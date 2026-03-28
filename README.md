@@ -1,8 +1,41 @@
-# Homeoffice MVP
-
-Docker-Compose-Stack für kleine Teams: Chat (Mattermost), Dateien (Nextcloud), SSO (Keycloak), Videokonferenzen (Jitsi), Benutzerverwaltung (LLDAP) — alles hinter Traefik mit automatischem HTTPS via Let's Encrypt und DuckDNS.
-
 ## Schnellstart
+
+### One-Liner (Linux / WSL2)
+
+```bash
+# Voraussetzung: git, curl — der Rest wird automatisch installiert
+git clone https://github.com/Paddione/homeoffice-mvp.git && cd homeoffice-mvp
+./scripts/setup.sh --quickstart
+```
+
+Das Script:
+1. Installiert fehlende Abhängigkeiten (Docker, Docker Compose, openssl, jq)
+2. Fragt Projektname, DuckDNS-Token und E-Mail ab
+3. Generiert 12 sichere Secrets automatisch
+4. Erstellt alle Datenverzeichnisse + acme.json
+5. Führt den vollständigen Pre-Flight Check mit Auto-Fix durch
+6. Validiert die Konfiguration und startet den Stack
+
+### One-Liner (Windows / PowerShell)
+
+```powershell
+# PowerShell als Administrator öffnen
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+git clone https://github.com/Paddione/homeoffice-mvp.git; cd homeoffice-mvp
+.\scripts\quickstart-windows.ps1
+```
+
+Das Script:
+1. Prüft/installiert Docker Desktop (via winget) und git
+2. Fragt Projektname, DuckDNS-Token und E-Mail ab
+3. Generiert 12 sichere Secrets automatisch
+4. Erstellt alle Datenverzeichnisse + acme.json
+5. Validiert die Konfiguration und startet den Stack
+
+> **Hinweis:** Nach der Docker Desktop Installation ist ein **Neustart** erforderlich.
+> Danach das Script erneut ausführen.
+
+### Manuelle Installation
 
 ```bash
 # 1. Konfiguration
@@ -38,6 +71,7 @@ Die vollständige Dokumentation liegt in [`docs/`](docs/README.md):
 | [Migration](docs/migration.md) | Import von Slack, Teams, Google Workspace |
 | [Backup](docs/backup.md) | Automatische Datensicherung (Filen.io, SMB/NAS) |
 | [Skripte](docs/scripts.md) | Referenz aller Skripte und Hilfsbibliotheken |
+| [Tests](docs/tests.md) | Automatisiertes Test-Framework (Bash + Playwright) |
 | [Sicherheit](docs/security.md) | Sicherheitshinweise und Best Practices |
 | [Fehlerbehebung](docs/troubleshooting.md) | Häufige Probleme und Lösungen |
 
@@ -45,7 +79,9 @@ Die vollständige Dokumentation liegt in [`docs/`](docs/README.md):
 
 | Skript | Beschreibung |
 |--------|-------------|
-| `scripts/setup.sh` | Pre-Flight Check und automatische Reparatur |
+| `scripts/setup.sh` | Pre-Flight Check, Auto-Fix, Quickstart (`--quickstart`) |
+| `scripts/quickstart-linux.sh` | Wrapper → `setup.sh --quickstart` |
+| `scripts/quickstart-windows.ps1` | Schnellstart für Windows (Docker Desktop + winget) |
 | `scripts/firewall-linux.sh` | Linux-Firewall (UFW) einrichten / entfernen |
 | `scripts/firewall-windows.ps1` | Windows-Firewall einrichten / entfernen |
 | `scripts/wsl2-portproxy.ps1` | WSL2 Port-Proxy einrichten / entfernen |
@@ -54,4 +90,20 @@ Die vollständige Dokumentation liegt in [`docs/`](docs/README.md):
 | `scripts/import-users.sh` | Benutzer-Import in LLDAP (CSV/LDIF) |
 | `scripts/setup-smb.sh` | SMB-Share für Backups einrichten |
 
+## Tests
+
+```bash
+# Alle lokalen Tests ausführen (startet und stoppt Docker Compose)
+./tests/runner.sh local
+
+# Nur bestimmte Anforderungen testen
+./tests/runner.sh local FA-01 SA-03
+
+# Produktionstests gegen Live-Deployment
+./tests/runner.sh prod
+
+# Ergebnisse: tests/results/<datum>-<tier>.json + .md
+```
+
+Details: [docs/tests.md](docs/tests.md)
 

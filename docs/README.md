@@ -15,6 +15,7 @@ Vollständige Dokumentation für das Homeoffice MVP Deployment.
 | [Migration](migration.md) | Import von Slack, Teams, Google Workspace |
 | [Backup](backup.md) | Automatische Datensicherung (Filen.io, SMB/NAS) |
 | [Skripte](scripts.md) | Referenz aller Skripte und Hilfsbibliotheken |
+| [Tests](tests.md) | Automatisiertes Test-Framework (Bash + Playwright, 37 Anforderungen) |
 | [Sicherheit](security.md) | Sicherheitshinweise und Best Practices |
 | [Fehlerbehebung](troubleshooting.md) | Häufige Probleme und Lösungen |
 

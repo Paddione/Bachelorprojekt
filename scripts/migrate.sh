@@ -6,7 +6,7 @@
 #   - Slack (Export-ZIP oder lokaler Cache) → Mattermost
 #   - Microsoft Teams (GDPR-Export) → Mattermost + Nextcloud
 #   - Google Workspace (Takeout-Export) → Mattermost + Nextcloud
-#   - Benutzer (CSV oder LDIF → LLDAP)
+#   - Benutzer (CSV oder LDIF → Keycloak)
 #   - Selektiver Datenexport → ZIP-Archiv
 #
 # Läuft lokal auf dem Rechner des Users (nicht auf dem Server).
@@ -77,9 +77,9 @@ load_config() {
   NC_URL="${NC_URL:-}"
   NC_ADMIN="${NC_ADMIN:-}"
   NC_PASS="${NC_PASS:-}"
-  LLDAP_URL="${LLDAP_URL:-http://localhost:17170}"
-  LLDAP_ADMIN="${LLDAP_ADMIN:-admin}"
-  LLDAP_PASS="${LLDAP_PASS:-}"
+  KC_URL="${KC_URL:-}"
+  KC_ADMIN="${KC_ADMIN:-admin}"
+  KC_PASS="${KC_PASS:-}"
 }
 
 save_config() {
@@ -89,8 +89,8 @@ MM_URL="${MM_URL}"
 MM_ADMIN="${MM_ADMIN}"
 NC_URL="${NC_URL}"
 NC_ADMIN="${NC_ADMIN}"
-LLDAP_URL="${LLDAP_URL}"
-LLDAP_ADMIN="${LLDAP_ADMIN}"
+KC_URL="${KC_URL}"
+KC_ADMIN="${KC_ADMIN}"
 # Passwörter werden nicht gespeichert
 EOF
   chmod 600 "$CFG_FILE"
@@ -119,13 +119,13 @@ ask_connection_config() {
   read -rsp "$(echo -e "${YELLOW}▶${NC} Nextcloud Admin-Passwort: ")" NC_PASS; echo
 
   echo ""
-  prompt "LLDAP URL [${LLDAP_URL}]:"; read -r input
-  [[ -n "$input" ]] && LLDAP_URL="$input"
+  prompt "Keycloak URL [${KC_URL:-https://auth.example.com}]:"; read -r input
+  [[ -n "$input" ]] && KC_URL="$input"
 
-  prompt "LLDAP Admin-User [${LLDAP_ADMIN}]:"; read -r input
-  [[ -n "$input" ]] && LLDAP_ADMIN="$input"
+  prompt "Keycloak Admin-User [${KC_ADMIN:-admin}]:"; read -r input
+  [[ -n "$input" ]] && KC_ADMIN="$input"
 
-  read -rsp "$(echo -e "${YELLOW}▶${NC} LLDAP Admin-Passwort: ")" LLDAP_PASS; echo
+  read -rsp "$(echo -e "${YELLOW}▶${NC} Keycloak Admin-Passwort: ")" KC_PASS; echo
 
   save_config
   success "Verbindungsdaten gespeichert"
@@ -171,7 +171,7 @@ show_main_menu() {
   echo -e "  ${BOLD}[1]${NC} 💬  Slack         → Mattermost"
   echo -e "  ${BOLD}[2]${NC} 📹  MS Teams      → Mattermost + Nextcloud"
   echo -e "  ${BOLD}[3]${NC} 🔵  Google        → Mattermost + Nextcloud"
-  echo -e "  ${BOLD}[4]${NC} 👥  Benutzer      → LLDAP (CSV / LDIF)"
+  echo -e "  ${BOLD}[4]${NC} 👥  Benutzer      → Keycloak (CSV / LDIF)"
   echo ""
   echo -e "  ${BOLD}Exportieren${NC}"
   echo -e "  ───────────"
@@ -334,14 +334,14 @@ flow_users() {
   file_path="${file_path//\'/}"
   [[ ! -f "$file_path" ]] && { error "Datei nicht gefunden: $file_path"; return 1; }
 
-  [[ -z "$LLDAP_PASS" ]] && { read -rsp "$(echo -e "${YELLOW}▶${NC} LLDAP Admin-Passwort: ")" LLDAP_PASS; echo; }
+  [[ -z "$KC_PASS" ]] && { read -rsp "$(echo -e "${YELLOW}▶${NC} Keycloak Admin-Passwort: ")" KC_PASS; echo; }
 
   local mode
   [[ "$fmt" == "2" ]] && mode="ldif" || mode="csv"
 
-  LLDAP_URL="$LLDAP_URL" LLDAP_ADMIN="$LLDAP_ADMIN" LLDAP_LDAP_USER_PASS="$LLDAP_PASS" \
+  KC_URL="$KC_URL" KC_ADMIN="$KC_ADMIN" KEYCLOAK_ADMIN_PASSWORD="$KC_PASS" \
     "${SCRIPT_DIR}/import-users.sh" "--${mode}" "$file_path" \
-    --url "$LLDAP_URL" --admin "$LLDAP_ADMIN" --pass "$LLDAP_PASS" \
+    --url "$KC_URL" --admin "$KC_ADMIN" --pass "$KC_PASS" \
     $( $DRY_RUN && echo "--dry-run" || true )
 }
 
@@ -414,7 +414,6 @@ flow_export() {
   NC_URL="${NC_URL:-}"; NC_USER="${NC_ADMIN:-}"; NC_PASS="${NC_PASS:-}"
   export NC_URL NC_USER NC_PASS
 
-  export LLDAP_URL LLDAP_ADMIN LLDAP_PASS
   export KC_DOMAIN KEYCLOAK_ADMIN_PASSWORD
   KC_URL="https://${KC_DOMAIN:-}"
 
@@ -445,10 +444,10 @@ test_connections() {
     [[ "$nc_status" == "200" ]] && success "Nextcloud:  ${NC_URL} ✓" || warn "Nextcloud:  ${NC_URL} (HTTP ${nc_status})"
   fi
 
-  if [[ -n "$LLDAP_URL" ]]; then
-    local lldap_status
-    lldap_status=$(curl -s -o /dev/null -w "%{http_code}" "${LLDAP_URL}/health" 2>/dev/null)
-    [[ "$lldap_status" =~ ^2 ]] && success "LLDAP:      ${LLDAP_URL} ✓" || warn "LLDAP:      ${LLDAP_URL} (HTTP ${lldap_status})"
+  if [[ -n "$KC_URL" ]]; then
+    local kc_status
+    kc_status=$(curl -s -o /dev/null -w "%{http_code}" "${KC_URL}/realms/homeoffice/.well-known/openid-configuration" 2>/dev/null)
+    [[ "$kc_status" == "200" ]] && success "Keycloak:   ${KC_URL} ✓" || warn "Keycloak:   ${KC_URL} (HTTP ${kc_status})"
   fi
   echo ""
 }
@@ -459,7 +458,7 @@ echo -e "${BOLD}${CYAN}"
 cat << 'BANNER'
   ╔════════════════════════════════════════════════╗
   ║   🏠  Homeoffice MVP — Daten-Assistent         ║
-  ║       Slack · Teams · Google · Export · LLDAP   ║
+  ║       Slack · Teams · Google · Export            ║
   ╚════════════════════════════════════════════════╝
 BANNER
 echo -e "${NC}"

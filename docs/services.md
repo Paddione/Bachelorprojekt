@@ -17,19 +17,6 @@ Traefik routet den gesamten Web-Traffic anhand von Docker-Labels. Jeder Service 
 - `https://projekt-chat.duckdns.org` → Container `mattermost:8065`
 - `https://projekt-files.duckdns.org` → Container `nextcloud:80`
 
-## LLDAP (User-Verzeichnis)
-
-| Eigenschaft | Wert |
-|------------|------|
-| Container | `homeoffice-lldap` + `homeoffice-lldap-db` |
-| Image | `lldap/lldap:latest` + `postgres:16-alpine` |
-| Ports | 17170 (Web-UI), 3890 (LDAP intern) |
-| Funktion | Leichtgewichtiges User-Verzeichnis mit Web-UI |
-
-LLDAP verwaltet alle Benutzerkonten und Gruppen. Keycloak liest per LDAP-Federation die User aus LLDAP. Neue Benutzer werden in LLDAP angelegt (Web-UI oder API) und stehen automatisch in allen Diensten zur Verfügung.
-
-**Base DN:** `dc=${LLDAP_BASE_DOMAIN},dc=${LLDAP_BASE_TLD}`
-
 ## Keycloak (SSO / Identity Provider)
 
 | Eigenschaft | Wert |
@@ -42,7 +29,7 @@ LLDAP verwaltet alle Benutzerkonten und Gruppen. Keycloak liest per LDAP-Federat
 Keycloak ist der zentrale Identity Provider. Beim ersten Start wird der Realm `homeoffice` aus `realm-homeoffice.json` importiert. Der Realm enthält:
 
 - OIDC-Clients für Mattermost und Nextcloud (mit Secrets aus `.env`)
-- LDAP-Federation zu LLDAP (auto-sync alle 5 Minuten)
+- Integrierte Benutzerverwaltung (Keycloak als alleiniger User Store)
 - Brute-Force-Schutz und E-Mail-Login
 
 Details: [Keycloak & SSO](keycloak.md)
@@ -99,7 +86,7 @@ Jitsi ist in Mattermost integriert. Ein Klick auf das Kamera-Symbol startet eine
 | Image | `curlimages/curl:latest` |
 | Funktion | Aktualisiert DNS-Einträge alle 5 Minuten |
 
-Der Container aktualisiert alle 5 DuckDNS-Subdomains gleichzeitig per HTTP-API. Dadurch zeigen die Domains immer auf die aktuelle öffentliche IP — auch bei dynamischer IP-Vergabe durch den ISP.
+Der Container aktualisiert alle 4 DuckDNS-Subdomains gleichzeitig per HTTP-API. Dadurch zeigen die Domains immer auf die aktuelle öffentliche IP — auch bei dynamischer IP-Vergabe durch den ISP.
 
 ## Backup (rclone)
 
@@ -117,10 +104,10 @@ Details: [Backup](backup.md)
 ```
 DuckDNS (unabhängig)
 
-LLDAP-DB → LLDAP → Keycloak-DB → Keycloak
-                                      │
-                    ┌─────────────────┤
-                    ▼                 ▼
+Keycloak-DB → Keycloak
+                  │
+    ┌─────────────┤
+    ▼             ▼
 Mattermost-DB → Mattermost    Nextcloud-DB → Nextcloud
 
 Prosody → Jicofo → JVB → Jitsi-Web

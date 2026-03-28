@@ -18,7 +18,7 @@ chmod +x scripts/migrate.sh
 ```
 
 Beim ersten Start:
-1. Server-URLs und Zugangsdaten eingeben (Mattermost, Nextcloud, LLDAP)
+1. Server-URLs und Zugangsdaten eingeben (Mattermost, Nextcloud, Keycloak)
 2. Automatischer Scan nach lokalen Export-Dateien
 3. Quelle auswählen oder Pfad manuell eingeben
 4. Import starten
@@ -95,7 +95,7 @@ Auswählen: Teams Chat, Dateien, Kalender, Kontakte → ZIP herunterladen. Kein 
 | Kalender | Nextcloud Calendar | iCal |
 | Kontakte | Nextcloud Contacts | vCard |
 
-## Benutzer-Import → LLDAP
+## Benutzer-Import → Keycloak
 
 ### CSV-Import
 
@@ -106,8 +106,8 @@ Auswählen: Teams Chat, Dateien, Kalender, Kontakte → ZIP herunterladen. Kein 
 
 # Oder direkt
 ./scripts/import-users.sh --csv users.csv \
-  --url http://localhost:17170 \
-  --pass <LLDAP_LDAP_USER_PASS>
+  --url https://<KC_DOMAIN> \
+  --pass <KEYCLOAK_ADMIN_PASSWORD>
 ```
 
 **CSV-Format:**
@@ -128,8 +128,8 @@ ldapsearch -x -H ldap://alter-server -b "dc=firma,dc=de" > export.ldif
 
 # Importieren
 ./scripts/import-users.sh --ldif export.ldif \
-  --url http://localhost:17170 \
-  --pass <LLDAP_LDAP_USER_PASS>
+  --url https://<KC_DOMAIN> \
+  --pass <KEYCLOAK_ADMIN_PASSWORD>
 ```
 
 ### Vorschau

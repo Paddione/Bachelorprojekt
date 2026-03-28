@@ -72,11 +72,11 @@ docker compose restart traefik
   docker compose up -d keycloak
   ```
 
-### LDAP-Sync funktioniert nicht
+### Benutzer erscheinen nicht in Keycloak
 
-- **Prüfen:** Keycloak Admin → User Federation → LLDAP → "Test connection"
-- **Häufige Ursache:** LLDAP-Container noch nicht bereit
-- **Lösung:** Warten oder manuell synchronisieren: "Sync all users"
+- **Prüfen:** Keycloak Admin Console → Users → Benutzer suchen
+- **Häufige Ursache:** Benutzer wurde noch nicht angelegt
+- **Lösung:** Benutzer über Keycloak Admin Console oder `import-users.sh` anlegen
 
 ### "Invalid redirect URI" beim Login
 

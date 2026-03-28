@@ -12,7 +12,6 @@ Alle Einstellungen werden über die Datei `.env` im Projekt-Root gesteuert. Vorl
 | `KC_DOMAIN` | Keycloak SSO-URL | `projekt-auth.duckdns.org` |
 | `NC_DOMAIN` | Nextcloud Dateien-URL | `projekt-files.duckdns.org` |
 | `JITSI_DOMAIN` | Jitsi Meet-URL | `projekt-meet.duckdns.org` |
-| `LLDAP_DOMAIN` | LLDAP Admin-URL | `projekt-ldap.duckdns.org` |
 
 ## DuckDNS
 
@@ -73,18 +72,6 @@ Unterverzeichnisse werden automatisch erstellt:
 
 > **Wichtig:** `NEXTCLOUD_OIDC_SECRET` muss VOR dem ersten Keycloak-Start gesetzt werden.
 
-## LLDAP
-
-| Variable | Beschreibung | Generierung |
-|----------|-------------|-------------|
-| `LLDAP_JWT_SECRET` | JWT-Session-Verschlüsselung | `openssl rand -base64 32` |
-| `LLDAP_LDAP_USER_PASS` | LDAP-Admin-Passwort | `openssl rand -base64 32` |
-| `LLDAP_DB_PASSWORD` | PostgreSQL-Passwort | `openssl rand -base64 32` |
-| `LLDAP_BASE_DOMAIN` | LDAP Base-DN Domain-Teil | z.B. `projekt-ldap` |
-| `LLDAP_BASE_TLD` | LDAP Base-DN TLD-Teil | z.B. `duckdns` |
-
-Die Base-DN wird zu `dc=${LLDAP_BASE_DOMAIN},dc=${LLDAP_BASE_TLD}` zusammengesetzt.
-
 ## Backup (optional)
 
 ### Filen.io (Cloud)
@@ -130,7 +117,7 @@ Für alle Passwort- und Secret-Felder:
 openssl rand -base64 32
 
 # Alle auf einmal generieren
-for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB LLDAP_DB LLDAP_JWT MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
+for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
   echo "${name}_PASSWORD=$(openssl rand -base64 32)"
 done
 ```

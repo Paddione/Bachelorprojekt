@@ -2,7 +2,7 @@
 
 ## Systemübersicht
 
-Das Homeoffice MVP ist eine Docker Compose-basierte Plattform mit sieben Kerndiensten hinter einem Reverse Proxy. Alle Services teilen sich ein Docker-Netzwerk (`homeoffice`) und werden durch zentrales Identity Management (Keycloak + LLDAP) verbunden.
+Das Homeoffice MVP ist eine Docker Compose-basierte Plattform mit sechs Kerndiensten hinter einem Reverse Proxy. Alle Services teilen sich ein Docker-Netzwerk (`homeoffice`) und werden durch zentrales Identity Management (Keycloak) verbunden.
 
 ```
 Internet
@@ -14,19 +14,19 @@ Internet
    │            │ Traefik  │  Reverse Proxy + Auto-HTTPS (Let's Encrypt)
    │            └────┬─────┘
    │                 │
-   │    ┌────────────┼────────────┬──────────────┬──────────────┐
-   │    ▼            ▼            ▼              ▼              ▼
-   │ ┌──────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────┐
-   │ │Matte-│  │Nextcloud │  │Keycloak  │  │  Jitsi   │  │ LLDAP │
-   │ │rmost │  │  :80     │  │  :8080   │  │  Web     │  │:17170 │
-   │ │:8065 │  │          │  │          │  │          │  │       │
-   │ └──┬───┘  └────┬─────┘  └────┬─────┘  └────┬─────┘  └──┬────┘
-   │    │           │             │              │            │
-   │    ▼           ▼             ▼              │            ▼
-   │ ┌──────┐  ┌──────────┐  ┌──────────┐       │       ┌────────┐
-   │ │PG DB │  │  PG DB   │  │  PG DB   │       │       │ PG DB  │
-   │ │:5432 │  │  :5432   │  │  :5432   │       │       │ :5432  │
-   │ └──────┘  └──────────┘  └──────────┘       │       └────────┘
+   │    ┌────────────┼────────────┬──────────────┐
+   │    ▼            ▼            ▼              ▼
+   │ ┌──────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
+   │ │Matte-│  │Nextcloud │  │Keycloak  │  │  Jitsi   │
+   │ │rmost │  │  :80     │  │  :8080   │  │  Web     │
+   │ │:8065 │  │          │  │          │  │          │
+   │ └──┬───┘  └────┬─────┘  └────┬─────┘  └────┬─────┘
+   │    │           │             │              │
+   │    ▼           ▼             ▼              │
+   │ ┌──────┐  ┌──────────┐  ┌──────────┐       │
+   │ │PG DB │  │  PG DB   │  │  PG DB   │       │
+   │ │:5432 │  │  :5432   │  │  :5432   │       │
+   │ └──────┘  └──────────┘  └──────────┘       │
    │                                             │
    │                              ┌──────────────┼──────────┐
    │                              ▼              ▼          ▼
@@ -54,17 +54,14 @@ Mattermost / Nextcloud
    │  "Mit Keycloak anmelden"
    ▼
 Keycloak (OIDC Provider)
-   │  Prüft Credentials gegen LDAP
-   ▼
-LLDAP (User-Verzeichnis)
-   │  Bestätigt Identität
+   │  Prüft Credentials gegen interne User-Datenbank
    ▼
 Keycloak → ID-Token → Mattermost / Nextcloud
 ```
 
 1. Benutzer klickt "Mit Keycloak anmelden"
 2. Redirect zu Keycloak (OIDC Authorization Code Flow)
-3. Keycloak prüft Credentials gegen LLDAP (LDAP Federation)
+3. Keycloak prüft Credentials gegen die interne User-Datenbank
 4. Bei Erfolg: ID-Token mit Claims (email, username) an den Dienst
 5. Dienst erstellt lokale Session
 
@@ -78,7 +75,7 @@ Alle Services laufen im Docker-Bridge-Netzwerk `homeoffice`. Nur zwei Ports sind
 | 443 | TCP | Traefik | HTTPS für alle Web-Dienste |
 | 10000 | UDP | Jitsi JVB | Video/Audio-Mediendaten (direkt, kein Proxy) |
 
-Interne Kommunikation (z.B. Keycloak → LLDAP auf Port 3890) bleibt im Docker-Netzwerk.
+Interne Kommunikation (z.B. Mattermost → Keycloak auf Port 8080) bleibt im Docker-Netzwerk.
 
 ## Datenfluss Backup
 

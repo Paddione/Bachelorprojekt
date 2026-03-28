@@ -720,7 +720,7 @@ if command -v ufw &>/dev/null; then
     ok "UFW aktiv"
     ALL_RULES_OK=true
     for entry in "${FIREWALL_RULES[@]}"; do
-      local port="${entry%%|*}" comment="${entry##*|}"
+      port="${entry%%|*}" comment="${entry##*|}"
       if ufw status 2>/dev/null | grep -q "$port.*ALLOW"; then
         ok "Firewall: $port erlaubt ($comment)"
       else
@@ -731,7 +731,7 @@ if command -v ufw &>/dev/null; then
     if ! $ALL_RULES_OK && ($FIX_MODE || $QUICKSTART); then
       if $QUICKSTART || ask "Fehlende Firewall-Regeln jetzt anlegen? (benötigt sudo)"; then
         for entry in "${FIREWALL_RULES[@]}"; do
-          local port="${entry%%|*}" comment="${entry##*|}"
+          port="${entry%%|*}" comment="${entry##*|}"
           if ! ufw status 2>/dev/null | grep -q "$port.*ALLOW"; then
             sudo ufw allow "$port" comment "$comment" 2>/dev/null && \
               ok "Firewall: $port angelegt" || warn "Konnte $port nicht freigeben (sudo?)"
@@ -743,7 +743,7 @@ if command -v ufw &>/dev/null; then
     warn "UFW installiert aber inaktiv"
     if ($FIX_MODE || $QUICKSTART) && { $QUICKSTART || ask "UFW aktivieren und Regeln anlegen? (benötigt sudo)"; }; then
       for entry in "${FIREWALL_RULES[@]}"; do
-        local port="${entry%%|*}" comment="${entry##*|}"
+        port="${entry%%|*}" comment="${entry##*|}"
         sudo ufw allow "$port" comment "$comment" 2>/dev/null
       done
       sudo ufw --force enable 2>/dev/null && ok "UFW aktiviert mit Regeln" || warn "Konnte UFW nicht aktivieren (sudo?)"

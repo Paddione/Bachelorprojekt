@@ -29,28 +29,27 @@ Beim ersten Start importiert Keycloak automatisch den Realm `homeoffice` aus `re
 | Redirect URIs | `https://${NC_DOMAIN}/apps/oidc_login/oidc`, `https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak` |
 | Protocol Mappers | email, username |
 
-## LDAP-Federation
+## Benutzerverwaltung
 
-Keycloak liest Benutzer aus LLDAP per LDAP-Protokoll:
+Keycloak ist der alleinige User Store. Benutzer werden direkt in Keycloak angelegt — über die Admin Console oder per Skript (`import-users.sh`).
 
-| Einstellung | Wert |
-|------------|------|
-| Vendor | Other |
-| Connection URL | `ldap://lldap:3890` |
-| Bind DN | `uid=admin,ou=people,dc=${LLDAP_BASE_DOMAIN},dc=${LLDAP_BASE_TLD}` |
-| Users DN | `ou=people,dc=${LLDAP_BASE_DOMAIN},dc=${LLDAP_BASE_TLD}` |
-| Edit Mode | READ_ONLY |
-| Username Attribute | `uid` |
-| UUID Attribute | `entryUUID` |
-| Object Classes | `inetOrgPerson` |
-| Full Sync | alle 3600s (1 Stunde) |
-| Changed Users Sync | alle 300s (5 Minuten) |
+### Benutzer anlegen (Admin Console)
 
-**Edit Mode READ_ONLY** bedeutet: Benutzer werden in LLDAP angelegt/geändert, Keycloak synchronisiert nur.
+1. Keycloak Admin Console → Realm `homeoffice` → **Users**
+2. **Add user** → Felder ausfüllen (Username, E-Mail, Vor-/Nachname)
+3. **Credentials** → Passwort setzen (Temporary = ON für erzwungene Änderung beim ersten Login)
+
+### Benutzer anlegen (Skript)
+
+```bash
+./scripts/import-users.sh --csv users.csv \
+  --url https://<KC_DOMAIN> \
+  --pass <KEYCLOAK_ADMIN_PASSWORD>
+```
 
 ## Bestehendes LDAP / Active Directory anbinden
 
-Falls ein vorhandener LDAP-Server verwendet werden soll, kann LLDAP als Zwischenschicht übersprungen werden.
+Falls ein vorhandener LDAP-Server verwendet werden soll, kann Keycloak direkt per LDAP-Federation angebunden werden.
 
 ### Active Directory
 
@@ -90,7 +89,7 @@ Mattermost und Nextcloud erhalten die User automatisch über OIDC — kein weite
 
 Damit LDAP-Gruppen als Rollen in Mattermost/Nextcloud landen:
 
-1. Keycloak → User Federation → LLDAP/AD → **Mappers → Add mapper**
+1. Keycloak → User Federation → LDAP/AD → **Mappers → Add mapper**
 2. Typ: `group-ldap-mapper`
 3. LDAP Groups DN: `ou=groups,dc=…`
 4. Group Name LDAP Attribute: `cn`

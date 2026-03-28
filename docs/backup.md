@@ -89,14 +89,14 @@ docker compose exec backup sh -c '/backup.sh'
 
 ## Datenbanken
 
-Die PostgreSQL-Datenbanken (Keycloak, Mattermost, Nextcloud, LLDAP) werden **nicht** durch das rclone-Backup gesichert — sie liegen in Docker Volumes. Für ein vollständiges Backup:
+Die PostgreSQL-Datenbanken (Keycloak, Mattermost, Nextcloud) werden **nicht** durch das rclone-Backup gesichert — sie liegen in Docker Volumes. Für ein vollständiges Backup:
 
 ```bash
 # Beispiel: Mattermost-DB sichern
 docker compose exec mattermost-db pg_dump -U mattermost mattermost > mattermost-backup.sql
 
 # Alle DBs sichern
-for svc in keycloak mattermost nextcloud lldap; do
+for svc in keycloak mattermost nextcloud; do
   docker compose exec ${svc}-db pg_dump -U ${svc} ${svc} > ${svc}-backup.sql
 done
 ```

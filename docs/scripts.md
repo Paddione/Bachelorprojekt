@@ -45,7 +45,7 @@ Interaktives Menü für Datenimport und -export.
 |--------|----------|
 | 1 | Slack → Mattermost |
 | 2 | Teams → Mattermost + Nextcloud |
-| 3 | Benutzer → LLDAP (CSV/LDIF) |
+| 3 | Benutzer → Keycloak (CSV/LDIF) |
 | 4 | Google → Mattermost + Nextcloud |
 | 5 | Daten exportieren |
 
@@ -53,18 +53,18 @@ Details: [Migration](migration.md)
 
 ## scripts/import-users.sh — Benutzer-Import
 
-Massenimport von Benutzern in LLDAP via GraphQL-API.
+Massenimport von Benutzern in Keycloak via Admin REST API.
 
 ```bash
 # CSV-Import
 ./scripts/import-users.sh --csv users.csv \
-  --url http://localhost:17170 \
-  --pass <LLDAP_LDAP_USER_PASS>
+  --url https://<KC_DOMAIN> \
+  --pass <KEYCLOAK_ADMIN_PASSWORD>
 
 # LDIF-Import
 ./scripts/import-users.sh --ldif export.ldif \
-  --url http://localhost:17170 \
-  --pass <LLDAP_LDAP_USER_PASS>
+  --url https://<KC_DOMAIN> \
+  --pass <KEYCLOAK_ADMIN_PASSWORD>
 
 # Vorschau
 ./scripts/import-users.sh --csv users.csv --dry-run
@@ -76,8 +76,8 @@ Massenimport von Benutzern in LLDAP via GraphQL-API.
 |-----------|-------------|---------|
 | `--csv <datei>` | CSV-Datei mit Benutzerdaten | Ja (oder `--ldif`) |
 | `--ldif <datei>` | LDIF-Datei mit Benutzerdaten | Ja (oder `--csv`) |
-| `--url <url>` | LLDAP-URL | Ja (Standard: `http://localhost:17170`) |
-| `--pass <passwort>` | LLDAP-Admin-Passwort | Ja |
+| `--url <url>` | Keycloak-URL | Ja (Standard: `https://localhost:8443`) |
+| `--pass <passwort>` | Keycloak-Admin-Passwort | Ja |
 | `--dry-run` | Nur Vorschau | Nein |
 
 ### CSV-Format

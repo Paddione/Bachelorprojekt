@@ -68,12 +68,6 @@ Empfehlung: Dem Docker-Host eine **statische IP** im Router zuweisen.
 - **Doppelte E-Mails** verboten
 - **SSL-Pflicht** für externe Verbindungen
 
-### LLDAP
-
-- Benutzer müssen Initial-Passwort (`ChangeMe123!`) beim ersten Login ändern
-- LLDAP Web-UI nur über HTTPS (via Traefik) erreichbar
-- Admin-Passwort (`LLDAP_LDAP_USER_PASS`) separat sichern
-
 ### OIDC
 
 - Client-Secrets (`MATTERMOST_OIDC_SECRET`, `NEXTCLOUD_OIDC_SECRET`) werden nur server-seitig verwendet
@@ -88,7 +82,7 @@ Empfehlung: Dem Docker-Host eine **statische IP** im Router zuweisen.
 openssl rand -base64 32
 
 # Alle Passwörter auf einmal
-for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB LLDAP_DB LLDAP_JWT MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
+for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
   echo "${name}_PASSWORD=$(openssl rand -base64 32)"
 done
 ```

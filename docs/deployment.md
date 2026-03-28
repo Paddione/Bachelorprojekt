@@ -22,7 +22,7 @@ brew install curl jq python3 unzip
 DuckDNS unterstützt keine Sub-Subdomains. Jeder Dienst braucht eine eigene Subdomain.
 
 1. Account auf [duckdns.org](https://www.duckdns.org/) anlegen
-2. **5 Subdomains** anlegen (Namen frei wählbar):
+2. **4 Subdomains** anlegen (Namen frei wählbar):
 
 | Subdomain | Dienst |
 |-----------|--------|
@@ -30,7 +30,6 @@ DuckDNS unterstützt keine Sub-Subdomains. Jeder Dienst braucht eine eigene Subd
 | `projektname-auth` | Keycloak |
 | `projektname-files` | Nextcloud |
 | `projektname-meet` | Jitsi |
-| `projektname-ldap` | LLDAP |
 
 3. Token von der Startseite kopieren
 
@@ -97,8 +96,7 @@ Docker Compose startet die Services in der richtigen Reihenfolge (via `depends_o
 
 1. **DuckDNS** — DNS-Einträge aktualisieren
 2. **Datenbanken** — PostgreSQL-Instanzen hochfahren
-3. **LLDAP** — User-Verzeichnis bereit
-4. **Keycloak** — Realm importieren, LDAP-Federation konfigurieren
+3. **Keycloak** — Realm importieren, Benutzerverwaltung bereit
 5. **Mattermost** — Chat mit OIDC-Login
 6. **Nextcloud** — Dateien mit OIDC-Login
 7. **Jitsi** — Video-Konferenzen (Prosody → Jicofo → JVB)
@@ -125,13 +123,13 @@ Drei Optionen — siehe [Keycloak & SSO](keycloak.md) für Details.
 
 ```bash
 ./scripts/import-users.sh --csv users.csv \
-  --url http://localhost:17170 \
-  --pass <LLDAP_LDAP_USER_PASS>
+  --url https://<KC_DOMAIN> \
+  --pass <KEYCLOAK_ADMIN_PASSWORD>
 ```
 
-### Option B: Manuell in LLDAP
+### Option B: Manuell in Keycloak
 
-Web-UI öffnen: `https://projektname-ldap.duckdns.org` → Benutzer anlegen
+Keycloak Admin Console öffnen: `https://<KC_DOMAIN>/admin` → Realm `homeoffice` → Users → Benutzer anlegen
 
 ### Option C: Bestehendes LDAP/AD anbinden
 

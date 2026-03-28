@@ -259,11 +259,10 @@ if (-not $SkipEnv) {
         KEYCLOAK_DB_PASSWORD     = New-Secret; KEYCLOAK_ADMIN_PASSWORD = New-Secret
         MATTERMOST_DB_PASSWORD   = New-Secret; MATTERMOST_OIDC_SECRET  = New-Secret
         NEXTCLOUD_OIDC_SECRET    = New-Secret; NEXTCLOUD_DB_PASSWORD   = New-Secret
-        NEXTCLOUD_ADMIN_PASSWORD = New-Secret; LLDAP_JWT_SECRET        = New-Secret
-        LLDAP_LDAP_USER_PASS     = New-Secret; LLDAP_DB_PASSWORD       = New-Secret
+        NEXTCLOUD_ADMIN_PASSWORD = New-Secret
         JICOFO_AUTH_PASSWORD     = New-Secret; JVB_AUTH_PASSWORD        = New-Secret
     }
-    Write-OK "12 Secrets generiert"
+    Write-OK "9 Secrets generiert"
 
     # Werte schreiben
     Write-Header "Werte in .env schreiben"
@@ -273,15 +272,11 @@ if (-not $SkipEnv) {
     $content = $content -replace "(?m)^KC_DOMAIN=.*",    "KC_DOMAIN=$ProjectName-auth.duckdns.org"
     $content = $content -replace "(?m)^NC_DOMAIN=.*",    "NC_DOMAIN=$ProjectName-files.duckdns.org"
     $content = $content -replace "(?m)^JITSI_DOMAIN=.*", "JITSI_DOMAIN=$ProjectName-meet.duckdns.org"
-    $content = $content -replace "(?m)^LLDAP_DOMAIN=.*", "LLDAP_DOMAIN=$ProjectName-ldap.duckdns.org"
     $content = $content -replace "(?m)^DUCKDNS_TOKEN=.*",      "DUCKDNS_TOKEN=$DuckDnsToken"
-    $content = $content -replace "(?m)^DUCKDNS_SUBDOMAINS=.*", "DUCKDNS_SUBDOMAINS=$ProjectName-chat,$ProjectName-auth,$ProjectName-files,$ProjectName-meet,$ProjectName-ldap"
+    $content = $content -replace "(?m)^DUCKDNS_SUBDOMAINS=.*", "DUCKDNS_SUBDOMAINS=$ProjectName-chat,$ProjectName-auth,$ProjectName-files,$ProjectName-meet"
     $content = $content -replace "(?m)^JVB_ADVERTISE_IPS=.*",  "JVB_ADVERTISE_IPS=$JvbIp"
     $content = $content -replace "(?m)^JITSI_XMPP_SUFFIX=.*", "JITSI_XMPP_SUFFIX=$ProjectName-meet.duckdns.org"
     $content = $content -replace "(?m)^ACME_EMAIL=.*",         "ACME_EMAIL=$AcmeEmail"
-    $content = $content -replace "(?m)^LLDAP_BASE_DOMAIN=.*",  "LLDAP_BASE_DOMAIN=$ProjectName-ldap"
-    $content = $content -replace "(?m)^LLDAP_BASE_TLD=.*",     "LLDAP_BASE_TLD=duckdns"
-
     foreach ($key in $Secrets.Keys) {
         $content = $content -replace "(?m)^${key}=.*", "${key}=$($Secrets[$key])"
     }
@@ -370,7 +365,6 @@ Write-Host "    Chat:     https://$($envVars['MM_DOMAIN'])" -ForegroundColor Cya
 Write-Host "    Auth:     https://$($envVars['KC_DOMAIN'])" -ForegroundColor Cyan
 Write-Host "    Dateien:  https://$($envVars['NC_DOMAIN'])" -ForegroundColor Cyan
 Write-Host "    Meeting:  https://$($envVars['JITSI_DOMAIN'])" -ForegroundColor Cyan
-Write-Host "    LDAP:     https://$($envVars['LLDAP_DOMAIN'])" -ForegroundColor Cyan
 Write-Host ""
 
 $startAnswer = Read-Host "  Stack jetzt starten? [J/n]"

@@ -814,10 +814,9 @@ if $QUICKSTART; then
     KEYCLOAK_DB_PASSWORD=$(gen_secret);    KEYCLOAK_ADMIN_PASSWORD=$(gen_secret)
     MATTERMOST_DB_PASSWORD=$(gen_secret);  MATTERMOST_OIDC_SECRET=$(gen_secret)
     NEXTCLOUD_OIDC_SECRET=$(gen_secret);   NEXTCLOUD_DB_PASSWORD=$(gen_secret)
-    NEXTCLOUD_ADMIN_PASSWORD=$(gen_secret); LLDAP_JWT_SECRET=$(gen_secret)
-    LLDAP_LDAP_USER_PASS=$(gen_secret);    LLDAP_DB_PASSWORD=$(gen_secret)
+    NEXTCLOUD_ADMIN_PASSWORD=$(gen_secret)
     JICOFO_AUTH_PASSWORD=$(gen_secret);    JVB_AUTH_PASSWORD=$(gen_secret)
-    ok "12 sichere Secrets generiert (je 32 Zeichen)"
+    ok "9 sichere Secrets generiert (je 32 Zeichen)"
 
     # Werte schreiben
     header "Werte in .env schreiben"
@@ -825,17 +824,14 @@ if $QUICKSTART; then
     sed_inplace "s|^KC_DOMAIN=.*|KC_DOMAIN=${PROJECT_NAME}-auth.duckdns.org|"         "$ENV_FILE"
     sed_inplace "s|^NC_DOMAIN=.*|NC_DOMAIN=${PROJECT_NAME}-files.duckdns.org|"        "$ENV_FILE"
     sed_inplace "s|^JITSI_DOMAIN=.*|JITSI_DOMAIN=${PROJECT_NAME}-meet.duckdns.org|"  "$ENV_FILE"
-    sed_inplace "s|^LLDAP_DOMAIN=.*|LLDAP_DOMAIN=${PROJECT_NAME}-ldap.duckdns.org|"  "$ENV_FILE"
     sed_inplace "s|^DUCKDNS_TOKEN=.*|DUCKDNS_TOKEN=${DUCKDNS_TOKEN}|"                "$ENV_FILE"
-    sed_inplace "s|^DUCKDNS_SUBDOMAINS=.*|DUCKDNS_SUBDOMAINS=${PROJECT_NAME}-chat,${PROJECT_NAME}-auth,${PROJECT_NAME}-files,${PROJECT_NAME}-meet,${PROJECT_NAME}-ldap|" "$ENV_FILE"
+    sed_inplace "s|^DUCKDNS_SUBDOMAINS=.*|DUCKDNS_SUBDOMAINS=${PROJECT_NAME}-chat,${PROJECT_NAME}-auth,${PROJECT_NAME}-files,${PROJECT_NAME}-meet|" "$ENV_FILE"
     sed_inplace "s|^JVB_ADVERTISE_IPS=.*|JVB_ADVERTISE_IPS=${JVB_IP}|"               "$ENV_FILE"
     sed_inplace "s|^JITSI_XMPP_SUFFIX=.*|JITSI_XMPP_SUFFIX=${PROJECT_NAME}-meet.duckdns.org|" "$ENV_FILE"
     sed_inplace "s|^ACME_EMAIL=.*|ACME_EMAIL=${ACME_EMAIL}|"                          "$ENV_FILE"
-    sed_inplace "s|^LLDAP_BASE_DOMAIN=.*|LLDAP_BASE_DOMAIN=${PROJECT_NAME}-ldap|"    "$ENV_FILE"
-    sed_inplace "s|^LLDAP_BASE_TLD=.*|LLDAP_BASE_TLD=duckdns|"                       "$ENV_FILE"
     for secret_var in KEYCLOAK_DB_PASSWORD KEYCLOAK_ADMIN_PASSWORD MATTERMOST_DB_PASSWORD \
       MATTERMOST_OIDC_SECRET NEXTCLOUD_OIDC_SECRET NEXTCLOUD_DB_PASSWORD NEXTCLOUD_ADMIN_PASSWORD \
-      LLDAP_JWT_SECRET LLDAP_LDAP_USER_PASS LLDAP_DB_PASSWORD JICOFO_AUTH_PASSWORD JVB_AUTH_PASSWORD; do
+      JICOFO_AUTH_PASSWORD JVB_AUTH_PASSWORD; do
       sed_inplace "s|^${secret_var}=.*|${secret_var}=${!secret_var}|" "$ENV_FILE"
     done
     ok "Alle Werte in .env geschrieben"
@@ -859,12 +855,11 @@ fi
 header ".env Inhalt"
 
 REQUIRED_VARS=(
-  MM_DOMAIN KC_DOMAIN NC_DOMAIN JITSI_DOMAIN LLDAP_DOMAIN
+  MM_DOMAIN KC_DOMAIN NC_DOMAIN JITSI_DOMAIN
   DUCKDNS_TOKEN DUCKDNS_SUBDOMAINS JVB_ADVERTISE_IPS JITSI_XMPP_SUFFIX ACME_EMAIL
   KEYCLOAK_DB_PASSWORD KEYCLOAK_ADMIN_PASSWORD
   MATTERMOST_DB_PASSWORD MATTERMOST_OIDC_SECRET NEXTCLOUD_OIDC_SECRET
   NEXTCLOUD_DB_PASSWORD NEXTCLOUD_ADMIN_PASSWORD
-  LLDAP_JWT_SECRET LLDAP_LDAP_USER_PASS LLDAP_DB_PASSWORD LLDAP_BASE_DOMAIN LLDAP_BASE_TLD
   JICOFO_AUTH_PASSWORD JVB_AUTH_PASSWORD
 )
 PLACEHOLDERS=("CHANGE_ME" "DEIN_" "your@" "xxxxxxxx" "NACH_KEYCLOAK" "DEIN_NEUER_TOKEN")
@@ -904,7 +899,7 @@ if [[ -f "$ENV_FILE" ]]; then
     [[ "$ACME_EMAIL" =~ ^[^@]+@[^@]+\.[^@]+$ ]] && ok "ACME E-Mail gültig: $ACME_EMAIL" || fail "ACME_EMAIL ungültig"
   }
 
-  for var in MM_DOMAIN KC_DOMAIN NC_DOMAIN JITSI_DOMAIN LLDAP_DOMAIN; do
+  for var in MM_DOMAIN KC_DOMAIN NC_DOMAIN JITSI_DOMAIN; do
     val="${!var:-}"
     [[ -n "$val" ]] && {
       [[ "$val" =~ \.duckdns\.org$ ]] || [[ "$val" =~ \.[a-z]{2,}$ ]] && \
@@ -968,8 +963,7 @@ if [[ -f "$ENV_FILE" ]]; then
 
   # Passwort-Länge
   for var in KEYCLOAK_DB_PASSWORD KEYCLOAK_ADMIN_PASSWORD MATTERMOST_DB_PASSWORD \
-             NEXTCLOUD_DB_PASSWORD NEXTCLOUD_ADMIN_PASSWORD LLDAP_DB_PASSWORD \
-             LLDAP_JWT_SECRET LLDAP_LDAP_USER_PASS MATTERMOST_OIDC_SECRET \
+             NEXTCLOUD_DB_PASSWORD NEXTCLOUD_ADMIN_PASSWORD MATTERMOST_OIDC_SECRET \
              NEXTCLOUD_OIDC_SECRET JICOFO_AUTH_PASSWORD JVB_AUTH_PASSWORD; do
     val="${!var:-}"
     [[ -n "$val" && ${#val} -lt 16 ]] && warn "${var} kurz (${#val} Zeichen) — min. 16 empfohlen"
@@ -1122,7 +1116,6 @@ if $QUICKSTART; then
   echo -e "    Auth:     ${CYAN}https://${KC_DOMAIN:-?}${NC}"
   echo -e "    Dateien:  ${CYAN}https://${NC_DOMAIN:-?}${NC}"
   echo -e "    Meeting:  ${CYAN}https://${JITSI_DOMAIN:-?}${NC}"
-  echo -e "    LDAP:     ${CYAN}https://${LLDAP_DOMAIN:-?}${NC}"
   echo ""
   echo -en "  ${BOLD}Stack jetzt starten?${NC} [J/n] "
   read -r start_answer

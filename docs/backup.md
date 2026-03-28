@@ -1,8 +1,10 @@
 # Backup
 
-## Übersicht
+## Uebersicht
 
-Das Backup läuft automatisch täglich um **02:00 UTC** als Docker-Container mit `rclone`. Es unterstützt zwei unabhängige Ziele, die beide optional sind.
+Das Backup laeuft automatisch taeglich um **02:00 UTC** als Docker-Container mit `rclone`. Es unterstuetzt zwei unabhaengige Ziele, die beide optional sind.
+
+Technische Details zum Backup-Container: [Skripte → backup-entrypoint.sh](scripts.md#scriptsbackup-entrypointsh--backup-cron)
 
 ## Gesicherte Daten
 
@@ -14,7 +16,7 @@ Das Backup läuft automatisch täglich um **02:00 UTC** als Docker-Container mit
 
 **Ausgeschlossen:** `*.log`, `*.tmp`
 
-**Methode:** `rclone sync` (inkrementell, einseitig — Quelle ist maßgeblich)
+**Methode:** `rclone sync` (inkrementell, einseitig — Quelle ist massgeblich)
 
 ## Backup-Ziele
 
@@ -22,81 +24,48 @@ Das Backup läuft automatisch täglich um **02:00 UTC** als Docker-Container mit
 
 Kostenlos bis 10 GB: [app.filen.io](https://app.filen.io)
 
-```env
-FILEN_EMAIL=deine@email.de
-FILEN_PASSWORD=dein-passwort
-FILEN_REMOTE_PATH=homeoffice-mvp
-```
+| Variable | Beschreibung |
+|----------|-------------|
+| `FILEN_EMAIL` | Filen.io Account-E-Mail |
+| `FILEN_PASSWORD` | Filen.io Passwort |
+| `FILEN_REMOTE_PATH` | Zielverzeichnis auf Filen.io |
 
 ### SMB / NAS (Netzwerk)
 
 Lokales NAS oder freigegebener Ordner im Netzwerk.
 
-```env
-SMB_HOST=192.168.1.100
-SMB_SHARE=backup
-SMB_USER=backupuser
-SMB_PASS=sicheres-passwort
-SMB_PORT=445
-SMB_DOMAIN=WORKGROUP
-SMB_REMOTE_PATH=homeoffice-mvp
-```
+| Variable | Beschreibung | Standard |
+|----------|-------------|----------|
+| `SMB_HOST` | NAS/Server IP oder Hostname | — |
+| `SMB_SHARE` | Freigabename | — |
+| `SMB_USER` | Benutzername | — |
+| `SMB_PASS` | Passwort | — |
+| `SMB_PORT` | SMB-Port | `445` |
+| `SMB_DOMAIN` | Arbeitsgruppe/Domaene | `WORKGROUP` |
+| `SMB_REMOTE_PATH` | Unterverzeichnis auf der Freigabe | `homeoffice-mvp` |
 
-Leere Felder = Ziel wird übersprungen. Beide Ziele können gleichzeitig aktiv sein.
+Leere Felder = Ziel wird uebersprungen. Beide Ziele koennen gleichzeitig aktiv sein.
 
 ## SMB-Share einrichten
 
-Falls ein lokales Laufwerk als SMB-Share für Backups verwendet werden soll:
+Falls ein lokales Laufwerk als SMB-Share fuer Backups verwendet werden soll, kann `setup.sh smb` die Einrichtung uebernehmen:
 
-```bash
-sudo ./scripts/setup.sh smb
-```
-
-Das Skript:
-1. Prüft SMB-Konfiguration aus `.env`
-2. Listet verfügbare (nicht eingehängte) Laufwerke
-3. Partitioniert (GPT) und formatiert das gewählte Laufwerk
+1. Prueft SMB-Konfiguration aus `.env`
+2. Listet verfuegbare (nicht eingehaengte) Laufwerke
+3. Partitioniert (GPT) und formatiert das gewaehlte Laufwerk
 4. Erstellt Mount-Point und konfiguriert `/etc/fstab`
 5. Richtet Samba-Freigabe in `smb.conf` ein
 6. Setzt Samba-Passwort
 7. Validiert die Konfiguration
 
-**Modi:**
-```bash
-sudo ./scripts/setup.sh smb           # Interaktive Einrichtung
-sudo ./scripts/setup.sh smb --check   # Nur verfügbare Laufwerke anzeigen
-```
+Befehle und Parameter: [Skripte → setup.sh smb](scripts.md#setupsh-smb--smb-share-einrichtung)
 
-## Logs prüfen
+## Logs und manuelles Backup
 
-```bash
-# Backup-Logs anzeigen
-docker compose logs backup
-
-# Backup-Logs fortlaufend verfolgen
-docker compose logs -f backup
-
-# Letzten Backup-Lauf prüfen
-docker compose logs --tail 50 backup
-```
-
-## Manuelles Backup
-
-```bash
-# Container-Shell öffnen und Backup manuell anstoßen
-docker compose exec backup sh -c '/backup.sh'
-```
+Backup-Logs pruefen und manuelles Backup anstoßen — siehe [Skripte → Docker Compose](scripts.md#docker-compose--allgemeine-befehle).
 
 ## Datenbanken
 
-Die PostgreSQL-Datenbanken (Keycloak, Mattermost, Nextcloud) werden **nicht** durch das rclone-Backup gesichert — sie liegen in Docker Volumes. Für ein vollständiges Backup:
+Die PostgreSQL-Datenbanken (Keycloak, Mattermost, Nextcloud) werden **nicht** durch das rclone-Backup gesichert — sie liegen in Docker Volumes. Fuer ein vollstaendiges Backup muessen die Datenbanken separat exportiert werden.
 
-```bash
-# Beispiel: Mattermost-DB sichern
-docker compose exec mattermost-db pg_dump -U mattermost mattermost > mattermost-backup.sql
-
-# Alle DBs sichern
-for svc in keycloak mattermost nextcloud; do
-  docker compose exec ${svc}-db pg_dump -U ${svc} ${svc} > ${svc}-backup.sql
-done
-```
+Befehle: [Skripte → Datenbank-Backup](scripts.md#datenbank-backup)

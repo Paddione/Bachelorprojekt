@@ -6,16 +6,7 @@
 - Ports **80**, **443** (TCP) und **10000** (UDP) in Firewall und Router freigegeben — siehe [Firewall & Netzwerk](firewall.md)
 - Account bei [duckdns.org](https://www.duckdns.org/) (kostenlos)
 - Linux, macOS oder Windows mit WSL2
-
-### System-Abhängigkeiten (für Skripte)
-
-```bash
-# Linux / WSL
-sudo apt install curl jq python3 unzip
-
-# macOS
-brew install curl jq python3 unzip
-```
+- Zusätzliche Pakete: `curl`, `jq`, `python3`, `unzip`
 
 ## Schritt 1: DuckDNS einrichten
 
@@ -35,20 +26,11 @@ DuckDNS unterstützt keine Sub-Subdomains. Jeder Dienst braucht eine eigene Subd
 
 ## Schritt 2: Konfiguration
 
-```bash
-cp .env.example .env
-nano .env
-```
-
-**Pflichtfelder** — alle `CHANGE_ME_*` Werte ersetzen:
+`.env.example` nach `.env` kopieren und alle `CHANGE_ME_*` Werte ersetzen:
 
 1. **Domains** — DuckDNS-Subdomains eintragen (`MM_DOMAIN`, `KC_DOMAIN`, etc.)
 2. **DuckDNS** — Token und Subdomain-Liste
-3. **Passwörter** — starke Zufallswerte generieren:
-   ```bash
-   # Für jedes Passwort-Feld:
-   openssl rand -base64 32
-   ```
+3. **Passwörter** — starke Zufallswerte generieren (siehe [Skripte → Passwörter generieren](scripts.md#passwörter-generieren))
 4. **OIDC Secrets** — müssen VOR dem ersten Start gesetzt werden
 5. **ACME_EMAIL** — gültige E-Mail für Let's Encrypt
 
@@ -56,10 +38,7 @@ Vollständige Variablen-Referenz: [Konfiguration](configuration.md)
 
 ## Schritt 3: Pre-Flight Check
 
-```bash
-chmod +x scripts/setup.sh
-./scripts/setup.sh --fix    # Prüft und repariert automatisch
-```
+`setup.sh` mit `--fix` ausführen — prüft und repariert die Umgebung automatisch.
 
 Der Check validiert:
 - Docker-Installation und Daemon-Status
@@ -71,24 +50,11 @@ Der Check validiert:
 - DuckDNS-Token-Format (UUID)
 - Verzeichnisstruktur und `acme.json`-Berechtigungen
 
+Befehle und Parameter: [Skripte → setup.sh](scripts.md#scriptssetupsh--pre-flight-check)
+
 ## Schritt 4: Starten
 
-```bash
-docker compose up -d
-```
-
-### Status prüfen
-
-```bash
-# Alle Container anzeigen
-docker compose ps
-
-# DuckDNS-Updates beobachten
-docker compose logs -f duckdns
-
-# Logs eines bestimmten Services
-docker compose logs -f keycloak
-```
+Stack mit Docker Compose starten — siehe [Skripte → Docker Compose](scripts.md#docker-compose--allgemeine-befehle).
 
 ### Reihenfolge der Services
 
@@ -97,88 +63,45 @@ Docker Compose startet die Services in der richtigen Reihenfolge (via `depends_o
 1. **DuckDNS** — DNS-Einträge aktualisieren
 2. **Datenbanken** — PostgreSQL-Instanzen hochfahren
 3. **Keycloak** — Realm importieren, Benutzerverwaltung bereit
-5. **Mattermost** — Chat mit OIDC-Login
-6. **Nextcloud** — Dateien mit OIDC-Login
-7. **Jitsi** — Video-Konferenzen (Prosody → Jicofo → JVB)
-8. **Traefik** — Reverse Proxy, SSL-Zertifikate anfordern
-9. **Backup** — Cron-Job einrichten
+4. **Mattermost** — Chat mit OIDC-Login
+5. **Nextcloud** — Dateien mit OIDC-Login
+6. **Jitsi** — Video-Konferenzen (Prosody → Jicofo → JVB)
+7. **Traefik** — Reverse Proxy, SSL-Zertifikate anfordern
+8. **Backup** — Cron-Job einrichten
 
 ## Schritt 5: Erreichbarkeit testen
 
-```bash
-# Von einem externen Netzwerk (z.B. Mobilfunk):
-curl -I https://projektname-chat.duckdns.org    # Mattermost
-curl -I https://projektname-files.duckdns.org   # Nextcloud
-curl -I https://projektname-auth.duckdns.org    # Keycloak
+Erreichbarkeit aller Dienste und Jitsi-UDP mit dem Connectivity-Check prüfen. Den HTTPS-Test von einem **externen Netzwerk** ausführen (z.B. Mobilfunk-Hotspot), um das Port-Forwarding zu verifizieren.
 
-# Jitsi UDP-Erreichbarkeit:
-nc -u -z -v projektname-meet.duckdns.org 10000
-```
+Befehle: [Skripte → check-connectivity.sh](scripts.md#scriptscheck-connectivitysh--erreichbarkeitstest)
 
 ## Schritt 6: Benutzer anlegen
 
 Drei Optionen — siehe [Keycloak & SSO](keycloak.md) für Details.
 
-### Option A: CSV/LDIF Bulk-Import
-
-```bash
-./scripts/import-users.sh --csv users.csv \
-  --url https://<KC_DOMAIN> \
-  --pass <KEYCLOAK_ADMIN_PASSWORD>
-```
-
-### Option B: Manuell in Keycloak
-
-Keycloak Admin Console öffnen: `https://<KC_DOMAIN>/admin` → Realm `homeoffice` → Users → Benutzer anlegen
-
-### Option C: Bestehendes LDAP/AD anbinden
-
-Keycloak Admin → User Federation → LDAP Provider hinzufügen
+| Option | Methode | Beschreibung |
+|--------|---------|-------------|
+| A | CSV/LDIF Bulk-Import | Massenimport per Skript — [Skripte → import-users.sh](scripts.md#scriptsimport-userssh--benutzer-import) |
+| B | Keycloak Admin Console | Manuell unter `https://<KC_DOMAIN>/admin` → Realm `homeoffice` → Users |
+| C | LDAP/AD Federation | Bestehenden LDAP-Server anbinden — [Keycloak & SSO](keycloak.md#bestehendes-ldap--active-directory-anbinden) |
 
 ## Optionale Schritte
 
 ### Daten migrieren (Slack / Teams / Google)
 
-```bash
-chmod +x scripts/migrate.sh
-./scripts/migrate.sh          # Interaktives Menü
-./scripts/migrate.sh --dry-run  # Vorschau ohne Änderungen
-```
-
-Details: [Migration](migration.md)
+Interaktiver Migration Assistant für Import bestehender Daten. Details: [Migration](migration.md), Befehle: [Skripte → migrate.sh](scripts.md#scriptsmigratesh--migration-assistant)
 
 ### SMB-Backup einrichten
 
-```bash
-sudo ./scripts/setup.sh smb
-```
-
-Details: [Backup](backup.md)
+Lokales Laufwerk als SMB-Freigabe für Backups konfigurieren. Details: [Backup](backup.md), Befehle: [Skripte → setup.sh smb](scripts.md#setupsh-smb--smb-share-einrichtung)
 
 ### Externen Speicher einbinden
 
-In `.env` den Pfad setzen:
-```
-STORAGE_PATH=/mnt/nas/homeoffice
-```
-
-Folgende Daten werden dort gespeichert:
+In `.env` den Pfad `STORAGE_PATH` auf ein NAS oder USB-Laufwerk setzen. Folgende Daten werden dort gespeichert:
 - `mattermost/` — Uploads, Plugins
 - `nextcloud/` — Alle Benutzerdateien
 - `traefik/letsencrypt/` — SSL-Zertifikate
 
 ## Stoppen und Neustarten
 
-```bash
-# Stoppen (Daten bleiben erhalten)
-docker compose down
-
-# Stoppen und Volumes löschen (ALLE DATEN WEG!)
-docker compose down -v
-
-# Neustarten
-docker compose restart
-
-# Einzelnen Service neustarten
-docker compose restart mattermost
-```
+Alle Befehle für Stack-Lifecycle: [Skripte → Docker Compose](scripts.md#docker-compose--allgemeine-befehle)

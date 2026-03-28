@@ -2,12 +2,9 @@
 
 ## Realm: homeoffice
 
-Beim ersten Start importiert Keycloak automatisch den Realm `homeoffice` aus `realm-homeoffice.json`. Der Import-Mechanismus:
+Beim ersten Start importiert Keycloak automatisch den Realm `homeoffice` aus `realm-homeoffice.json`. Der Import-Mechanismus wird durch `scripts/import-entrypoint.sh` gesteuert — siehe [Skripte → import-entrypoint.sh](scripts.md#scriptsimport-entrypointsh--realm-import).
 
-1. `scripts/import-entrypoint.sh` ersetzt Umgebungsvariablen (`envsubst`) in der Realm-JSON
-2. Keycloak startet mit `--import-realm` und liest die aufbereitete Datei
-
-> **Wichtig:** OIDC-Secrets (`MATTERMOST_OIDC_SECRET`, `NEXTCLOUD_OIDC_SECRET`) müssen in `.env` gesetzt sein, BEVOR Keycloak zum ersten Mal startet. Nachträgliches Ändern erfordert manuelle Anpassung in der Admin-Console.
+> **Wichtig:** OIDC-Secrets (`MATTERMOST_OIDC_SECRET`, `NEXTCLOUD_OIDC_SECRET`) muessen in `.env` gesetzt sein, BEVOR Keycloak zum ersten Mal startet. Nachtraegliches Aendern erfordert manuelle Anpassung in der Admin-Console.
 
 ## OIDC-Clients
 
@@ -31,21 +28,17 @@ Beim ersten Start importiert Keycloak automatisch den Realm `homeoffice` aus `re
 
 ## Benutzerverwaltung
 
-Keycloak ist der alleinige User Store. Benutzer werden direkt in Keycloak angelegt — über die Admin Console oder per Skript (`import-users.sh`).
+Keycloak ist der alleinige User Store. Benutzer werden direkt in Keycloak angelegt — ueber die Admin Console oder per Skript.
 
 ### Benutzer anlegen (Admin Console)
 
 1. Keycloak Admin Console → Realm `homeoffice` → **Users**
-2. **Add user** → Felder ausfüllen (Username, E-Mail, Vor-/Nachname)
-3. **Credentials** → Passwort setzen (Temporary = ON für erzwungene Änderung beim ersten Login)
+2. **Add user** → Felder ausfuellen (Username, E-Mail, Vor-/Nachname)
+3. **Credentials** → Passwort setzen (Temporary = ON fuer erzwungene Aenderung beim ersten Login)
 
 ### Benutzer anlegen (Skript)
 
-```bash
-./scripts/import-users.sh --csv users.csv \
-  --url https://<KC_DOMAIN> \
-  --pass <KEYCLOAK_ADMIN_PASSWORD>
-```
+Massenimport per CSV oder LDIF — siehe [Skripte → import-users.sh](scripts.md#scriptsimport-userssh--benutzer-import).
 
 ## Bestehendes LDAP / Active Directory anbinden
 
@@ -79,11 +72,11 @@ Falls ein vorhandener LDAP-Server verwendet werden soll, kann Keycloak direkt pe
 
 1. Keycloak Admin Console → Realm `homeoffice` → **User Federation**
 2. **Add provider → LDAP**
-3. Felder ausfüllen (siehe oben)
+3. Felder ausfuellen (siehe oben)
 4. **Test connection** → **Test authentication** → **Save**
 5. **Sync all users**
 
-Mattermost und Nextcloud erhalten die User automatisch über OIDC — kein weiterer Schritt.
+Mattermost und Nextcloud erhalten die User automatisch ueber OIDC — kein weiterer Schritt.
 
 ## LDAP-Gruppen als Keycloak-Rollen
 
@@ -91,7 +84,7 @@ Damit LDAP-Gruppen als Rollen in Mattermost/Nextcloud landen:
 
 1. Keycloak → User Federation → LDAP/AD → **Mappers → Add mapper**
 2. Typ: `group-ldap-mapper`
-3. LDAP Groups DN: `ou=groups,dc=…`
+3. LDAP Groups DN: `ou=groups,dc=...`
 4. Group Name LDAP Attribute: `cn`
 5. **Save** → **Sync LDAP Groups**
 

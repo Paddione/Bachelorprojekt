@@ -1,39 +1,18 @@
-# Homeoffice MVP — Dokumentation
+# Dokumentation
 
-Vollständige Dokumentation für das Homeoffice MVP Deployment.
-
-## Inhaltsverzeichnis
+Uebersicht und Schnellstart: [README](../README.md)
 
 | Dokument | Beschreibung |
 |----------|-------------|
-| [Architektur](architecture.md) | Systemübersicht, Services, Netzwerk und Datenfluss |
-| [Firewall & Netzwerk](firewall.md) | Firewall-Regeln, Router Port-Forwarding, Erreichbarkeitstest |
-| [Deployment](deployment.md) | Schritt-für-Schritt Anleitung zur Installation |
-| [Konfiguration](configuration.md) | Alle Umgebungsvariablen im Detail |
-| [Services](services.md) | Beschreibung aller Docker-Services und deren Zusammenspiel |
+| [Architektur](architecture.md) | Systemuebersicht, Service-Diagramm, Netzwerk und Datenfluss |
+| [Deployment](deployment.md) | Schritt-fuer-Schritt Anleitung zur Installation |
+| [Konfiguration](configuration.md) | Alle Umgebungsvariablen (`.env`) im Detail |
+| [Services](services.md) | Docker-Services und deren Zusammenspiel |
 | [Keycloak & SSO](keycloak.md) | Identity Management, OIDC-Clients, LDAP-Federation |
+| [Firewall & Netzwerk](firewall.md) | Firewall-Regeln, Router Port-Forwarding, WSL2-Proxy |
 | [Migration](migration.md) | Import von Slack, Teams, Google Workspace |
 | [Backup](backup.md) | Automatische Datensicherung (Filen.io, SMB/NAS) |
-| [Skripte](scripts.md) | Referenz aller Skripte und Hilfsbibliotheken |
-| [Tests](tests.md) | Automatisiertes Test-Framework (Bash + Playwright, 37 Anforderungen) |
-| [Sicherheit](security.md) | Sicherheitshinweise und Best Practices |
-| [Fehlerbehebung](troubleshooting.md) | Häufige Probleme und Lösungen |
-
-## Schnelleinstieg
-
-```bash
-# 1. Konfiguration anlegen
-cp .env.example .env
-nano .env                        # Alle CHANGE_ME_* Werte ausfüllen
-
-# 2. Pre-Flight Check
-./scripts/setup.sh --fix
-
-# 3. Starten
-docker compose up -d
-
-# 4. Status prüfen
-docker compose ps
-```
-
-Detaillierte Anleitung: [Deployment](deployment.md)
+| [Skripte](scripts.md) | Referenz aller Skripte, Parameter und Befehle |
+| [Tests](tests.md) | Automatisiertes Test-Framework (37 Anforderungen) |
+| [Sicherheit](security.md) | Sicherheitsrichtlinien und Best Practices |
+| [Fehlerbehebung](troubleshooting.md) | Haeufige Probleme und Loesungsansaetze |

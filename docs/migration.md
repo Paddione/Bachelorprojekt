@@ -4,24 +4,13 @@ Import von Daten aus bestehenden Systemen in die Homeoffice-Plattform.
 
 ## Voraussetzungen
 
-```bash
-sudo apt install curl jq python3 unzip   # Linux / WSL
-brew install curl jq python3 unzip       # macOS
-```
+Abhaengigkeiten: `curl`, `jq`, `python3`, `unzip` — siehe [Deployment → Voraussetzungen](deployment.md#voraussetzungen).
 
 ## Migration Assistant
 
-```bash
-chmod +x scripts/migrate.sh
-./scripts/migrate.sh              # Interaktives Menü
-./scripts/migrate.sh --dry-run    # Nur Vorschau, keine Änderungen
-```
+Interaktives Menue fuer Datenimport und -export. Beim ersten Start werden Server-URLs und Zugangsdaten abgefragt, anschliessend scannt das Skript nach lokalen Export-Dateien.
 
-Beim ersten Start:
-1. Server-URLs und Zugangsdaten eingeben (Mattermost, Nextcloud, Keycloak)
-2. Automatischer Scan nach lokalen Export-Dateien
-3. Quelle auswählen oder Pfad manuell eingeben
-4. Import starten
+Befehle und Parameter: [Skripte → migrate.sh](scripts.md#scriptsmigratesh--migration-assistant)
 
 ## Slack → Mattermost
 
@@ -29,25 +18,22 @@ Beim ersten Start:
 
 > Slack → Settings & Permissions → Import/Export Data → Export → All Messages
 
-Benötigt Workspace-Admin-Rechte.
+Benoetigt Workspace-Admin-Rechte.
 
 ### Importieren
 
-```bash
-./scripts/migrate.sh
-# → [1] Slack importieren → ZIP-Datei auswählen
-```
+Im Migration Assistant Option **[1] Slack importieren** waehlen und die ZIP-Datei angeben.
 
 ### Was wird importiert
 
 | Daten | Status | Hinweis |
 |-------|--------|---------|
-| Öffentliche Kanäle | Vollständig | Werden als Channels in Mattermost angelegt |
-| Private Kanäle | Vollständig | |
-| Nachrichten | Vollständig | Mit Zeitstempeln |
-| User-Konten | Vollständig | Werden in Mattermost angelegt |
+| Oeffentliche Kanaele | Vollstaendig | Werden als Channels in Mattermost angelegt |
+| Private Kanaele | Vollstaendig | |
+| Nachrichten | Vollstaendig | Mit Zeitstempeln |
+| User-Konten | Vollstaendig | Werden in Mattermost angelegt |
 | @mentions / ~channel-Links | Konvertiert | Automatisch umgewandelt |
-| Dateien / Anhänge | Nur Referenz | Kein Binary-Upload |
+| Dateien / Anhaenge | Nur Referenz | Kein Binary-Upload |
 
 ## Microsoft Teams → Mattermost + Nextcloud
 
@@ -55,21 +41,18 @@ Benötigt Workspace-Admin-Rechte.
 
 > myaccount.microsoft.com → Datenschutz → Daten herunterladen
 
-Auswählen: Teams Chat, Dateien, Kalender, Kontakte → ZIP herunterladen. Kein Admin nötig (GDPR-Export).
+Auswaehlen: Teams Chat, Dateien, Kalender, Kontakte → ZIP herunterladen. Kein Admin noetig (GDPR-Export).
 
 ### Importieren
 
-```bash
-./scripts/migrate.sh
-# → [2] Teams importieren → ZIP-Datei auswählen
-```
+Im Migration Assistant Option **[2] Teams importieren** waehlen und die ZIP-Datei angeben.
 
 ### Was wird importiert
 
 | Quelle | Ziel | Format |
 |--------|------|--------|
-| Teams Chats / Kanäle | Mattermost | Nachrichten mit Zeitstempeln |
-| Dateien & Anhänge | Nextcloud `/Teams-Import/` | WebDAV-Upload |
+| Teams Chats / Kanaele | Mattermost | Nachrichten mit Zeitstempeln |
+| Dateien & Anhaenge | Nextcloud `/Teams-Import/` | WebDAV-Upload |
 | Kalender | Nextcloud Calendar | iCal `.ics` |
 | Kontakte | Nextcloud Contacts | vCard `.vcf` |
 
@@ -77,14 +60,11 @@ Auswählen: Teams Chat, Dateien, Kalender, Kontakte → ZIP herunterladen. Kein 
 
 ### Export erstellen
 
-> takeout.google.com → Daten auswählen (Chat, Drive, Kalender, Kontakte) → Export erstellen
+> takeout.google.com → Daten auswaehlen (Chat, Drive, Kalender, Kontakte) → Export erstellen
 
 ### Importieren
 
-```bash
-./scripts/migrate.sh
-# → [4] Google importieren → ZIP-Datei auswählen
-```
+Im Migration Assistant Option **[4] Google importieren** waehlen und die ZIP-Datei angeben.
 
 ### Was wird importiert
 
@@ -99,55 +79,30 @@ Auswählen: Teams Chat, Dateien, Kalender, Kontakte → ZIP herunterladen. Kein 
 
 ### CSV-Import
 
-```bash
-# Über Migrations-Menü
-./scripts/migrate.sh
-# → [3] Benutzer importieren
-
-# Oder direkt
-./scripts/import-users.sh --csv users.csv \
-  --url https://<KC_DOMAIN> \
-  --pass <KEYCLOAK_ADMIN_PASSWORD>
-```
+Ueber den Migration Assistant (Option **[3] Benutzer importieren**) oder direkt per Skript — siehe [Skripte → import-users.sh](scripts.md#scriptsimport-userssh--benutzer-import).
 
 **CSV-Format:**
-```csv
-username,email,display_name,groups,first_name,last_name
-anna.schmidt,anna@example.com,Anna Schmidt,"homeoffice_users;admins",Anna,Schmidt
-max.mueller,max@example.com,Max Müller,"homeoffice_users",Max,Müller
-```
 
-- `groups`: Semikolon-getrennt, werden automatisch angelegt
-- Initiales Passwort: `ChangeMe123!` (muss beim ersten Login geändert werden)
+| Spalte | Beschreibung | Pflicht |
+|--------|-------------|---------|
+| `username` | Benutzername | Ja |
+| `email` | E-Mail-Adresse | Ja |
+| `display_name` | Anzeigename | Nein |
+| `groups` | Gruppen (Semikolon-getrennt) | Nein |
+| `first_name` | Vorname | Nein |
+| `last_name` | Nachname | Nein |
+
+Gruppen werden automatisch angelegt. Initiales Passwort: `ChangeMe123!` (muss beim ersten Login geaendert werden).
+
+Beispiel-Datei: `scripts/users-example.csv`
 
 ### LDIF-Import
 
-```bash
-# Aus bestehendem LDAP exportieren
-ldapsearch -x -H ldap://alter-server -b "dc=firma,dc=de" > export.ldif
-
-# Importieren
-./scripts/import-users.sh --ldif export.ldif \
-  --url https://<KC_DOMAIN> \
-  --pass <KEYCLOAK_ADMIN_PASSWORD>
-```
-
-### Vorschau
-
-```bash
-./scripts/import-users.sh --csv users.csv --dry-run
-```
+LDIF-Dateien aus einem bestehenden LDAP-Server koennen ebenfalls importiert werden. Export aus dem Quellsystem z.B. mit `ldapsearch`, dann Import per `import-users.sh --ldif` — siehe [Skripte → import-users.sh](scripts.md#scriptsimport-userssh--benutzer-import).
 
 ## Daten-Export
 
-Der Migration Assistant kann auch Daten aus der Homeoffice-Plattform exportieren:
-
-```bash
-./scripts/migrate.sh
-# → [5] Daten exportieren → Services auswählen → ZIP erstellen
-```
-
-Selektiver Export aus einzelnen oder allen Diensten.
+Der Migration Assistant kann auch Daten aus der Homeoffice-Plattform exportieren (Option **[5] Daten exportieren**). Selektiver Export aus einzelnen oder allen Diensten.
 
 ## Automatische Erkennung
 
@@ -157,17 +112,8 @@ Beim Start scannt der Migration Assistant das lokale System nach:
 - Teams-GDPR-Export und lokalem Teams-Cache
 - Bestehenden Mattermost/Nextcloud-Clients
 
-Erkannte Quellen werden im Menü direkt zur Auswahl angeboten.
+Erkannte Quellen werden im Menue direkt zur Auswahl angeboten.
 
 ## Hilfsbibliotheken
 
-Die Migration-Logik ist in `scripts/lib/` aufgeteilt:
-
-| Datei | Funktion |
-|-------|----------|
-| `scan.sh` | OS-spezifische Erkennung lokaler Exports |
-| `slack-import.sh` | Slack ZIP/Cache → Mattermost JSONL |
-| `teams-import.sh` | Teams GDPR-Export Parser |
-| `google-import.sh` | Google Takeout Parser |
-| `nextcloud-api.sh` | WebDAV/CalDAV/CardDAV API-Helfer |
-| `export.sh` | Selektiver Multi-Service Export |
+Die Migration-Logik ist in `scripts/lib/` aufgeteilt — siehe [Skripte → Hilfsbibliotheken](scripts.md#hilfsbibliotheken-scriptslib).

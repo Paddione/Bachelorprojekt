@@ -164,6 +164,138 @@ Konfiguriert rclone und richtet einen Cron-Job ein. Wird als Entrypoint des Back
 2. Erstellt Cron-Job für 02:00 UTC
 3. Startet `crond` im Vordergrund
 
+## tests/runner.sh — Test-Runner
+
+Orchestriert alle automatisierten Tests und erzeugt Ergebnis-Reports.
+
+```bash
+./tests/runner.sh local                  # Alle lokalen Tests (Stack wird automatisch gestartet/gestoppt)
+./tests/runner.sh local FA-01 SA-03      # Nur bestimmte Tests ausführen
+./tests/runner.sh local --keep           # Stack nach Tests weiterlaufen lassen
+./tests/runner.sh prod --env .env        # Produktionstests gegen Live-Deployment
+./tests/runner.sh report                 # Markdown-Reports aus vorhandenen JSON neu generieren
+```
+
+### Parameter
+
+| Parameter | Beschreibung | Pflicht |
+|-----------|-------------|---------|
+| `local` | Lokale Tests gegen Docker Compose Stack | Ja (oder `prod` / `report`) |
+| `prod` | Tests gegen Live-Deployment | Ja (oder `local` / `report`) |
+| `report` | Reports aus vorhandenen Ergebnissen generieren | Ja (oder `local` / `prod`) |
+| `--keep` | Stack nach lokalem Testlauf nicht herunterfahren | Nein |
+| `--env <datei>` | Pfad zur `.env`-Datei (für Prod-Tests) | Nein (Standard: `.env`) |
+| `<REQ-ID>` | Nur bestimmte Tests ausführen (z.B. `FA-01 SA-03`) | Nein |
+
+Details: [Tests](tests.md)
+
+---
+
+## Docker Compose — Allgemeine Befehle
+
+Häufig verwendete Befehle zur Verwaltung des Stacks.
+
+```bash
+# Stack starten
+docker compose up -d
+
+# Status prüfen
+docker compose ps
+
+# Logs eines Services anzeigen
+docker compose logs -f <service-name>
+
+# Alle Logs verfolgen
+docker compose logs -f
+
+# Einzelnen Service neustarten
+docker compose restart <service-name>
+
+# Stack stoppen (Daten bleiben erhalten)
+docker compose down
+
+# Stack stoppen und alle Volumes löschen (ALLE DATEN WEG!)
+docker compose down -v
+
+# Konfiguration validieren
+docker compose config --quiet && echo "OK" || echo "FEHLER"
+
+# Container-Shell öffnen
+docker compose exec <service-name> sh
+```
+
+---
+
+## Datenbank-Backup
+
+PostgreSQL-Datenbanken liegen in Docker Volumes und werden nicht vom rclone-Backup erfasst. Manueller Export:
+
+```bash
+# Einzelne Datenbank sichern
+docker compose exec <service>-db pg_dump -U <service> <service> > <service>-backup.sql
+
+# Alle Datenbanken sichern
+for svc in keycloak mattermost nextcloud; do
+  docker compose exec ${svc}-db pg_dump -U ${svc} ${svc} > ${svc}-backup.sql
+done
+
+# Manuelles rclone-Backup anstoßen
+docker compose exec backup sh -c '/backup.sh'
+```
+
+---
+
+## Diagnose
+
+Nützliche Befehle zur Fehlersuche.
+
+```bash
+# Prozess auf einem Port finden (z.B. Port 80)
+sudo lsof -i :80
+sudo ss -tlnp | grep :80
+
+# DuckDNS manuell testen
+curl "https://www.duckdns.org/update?domains=<subdomain>&token=<token>&verbose=true"
+
+# WebDAV-Erreichbarkeit prüfen
+curl -u admin:<passwort> https://<NC_DOMAIN>/remote.php/dav/files/admin/
+
+# SMB-Verbindung testen
+smbclient -L //<SMB_HOST> -U <SMB_USER>
+nc -z -v <SMB_HOST> 445
+
+# SSL-Zertifikate zurücksetzen
+rm ${STORAGE_PATH:-./data}/traefik/letsencrypt/acme.json
+touch ${STORAGE_PATH:-./data}/traefik/letsencrypt/acme.json
+chmod 600 ${STORAGE_PATH:-./data}/traefik/letsencrypt/acme.json
+docker compose restart traefik
+
+# Keycloak-Volume zurücksetzen (Realm-Neuimport erzwingen)
+docker compose down keycloak keycloak-db
+docker volume rm homeoffice-mvp_keycloak-db-data
+docker compose up -d keycloak
+
+# Alle Daten und Volumes komplett zurücksetzen (ALLE DATEN WEG!)
+docker compose down -v
+rm -rf ${STORAGE_PATH:-./data}/*
+```
+
+---
+
+## Passwörter generieren
+
+```bash
+# Einzelnes Passwort
+openssl rand -base64 32
+
+# Alle Passwörter auf einmal generieren
+for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
+  echo "${name}_PASSWORD=$(openssl rand -base64 32)"
+done
+```
+
+---
+
 ## Hilfsbibliotheken (scripts/lib/)
 
 Diese Dateien werden von `migrate.sh` geladen und nicht direkt aufgerufen.

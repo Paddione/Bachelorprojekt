@@ -2,46 +2,37 @@
 
 ## Grundregeln
 
-1. **`.env` niemals committen** — enthält alle Passwörter und Secrets
-2. **`data/` niemals committen** — enthält Benutzerdaten und Zertifikate
+1. **`.env` niemals committen** — enthaelt alle Passwoerter und Secrets
+2. **`data/` niemals committen** — enthaelt Benutzerdaten und Zertifikate
 3. **OIDC-Secrets vor dem ersten Start setzen** — werden in den Keycloak-Realm importiert
-4. **Starke Passwörter verwenden** — mindestens `openssl rand -base64 32`
+4. **Starke Passwoerter verwenden** — siehe [Skripte → Passwoerter generieren](scripts.md#passwörter-generieren)
 
 ## Dateien und Berechtigungen
 
 | Datei | Berechtigung | Grund |
 |-------|-------------|-------|
-| `.env` | `600` (nur Owner) | Enthält alle Passwörter |
+| `.env` | `600` (nur Owner) | Enthaelt alle Passwoerter |
 | `.env.secrets` | `600` (nur Owner) | Referenz-Secrets |
 | `acme.json` | `600` (nur Owner) | Traefik verweigert Start bei falschen Rechten |
-| `data/` | — | `.gitignore` schließt aus |
+| `data/` | — | `.gitignore` schliesst aus |
 
 ## Netzwerksicherheit
 
 ### Exponierte Ports
 
-Nur drei Ports sind nach außen offen:
+Nur drei Ports sind nach aussen offen:
 
 | Port | Service | Warum exponiert |
 |------|---------|----------------|
 | 80/TCP | Traefik | HTTP → HTTPS Redirect, Let's Encrypt Challenge |
-| 443/TCP | Traefik | Alle Web-Dienste (verschlüsselt) |
+| 443/TCP | Traefik | Alle Web-Dienste (verschluesselt) |
 | 10000/UDP | Jitsi JVB | Audio/Video-Mediendaten |
 
-Alle internen Services (Datenbanken, LDAP, XMPP) sind nur im Docker-Netzwerk erreichbar.
+Alle internen Services (Datenbanken, XMPP) sind nur im Docker-Netzwerk erreichbar.
 
 ### Firewall
 
-Ports müssen in der Host-Firewall freigegeben werden:
-
-```bash
-# Linux (UFW)
-sudo ufw allow 80/tcp comment "Homeoffice HTTP"
-sudo ufw allow 443/tcp comment "Homeoffice HTTPS"
-sudo ufw allow 10000/udp comment "Homeoffice Jitsi"
-```
-
-Für Windows-Firewall-Regeln und WSL2-Port-Proxy: [Firewall & Netzwerk](firewall.md).
+Ports muessen in der Host-Firewall freigegeben werden. Fuer Linux (UFW) und Windows stehen automatisierte Skripte bereit — siehe [Firewall & Netzwerk](firewall.md) und [Skripte → setup.sh firewall](scripts.md#setupsh-firewall--linux-firewall-ufw).
 
 ### Router
 
@@ -50,7 +41,7 @@ Port-Forwarding auf die interne IP des Docker-Hosts einrichten:
 - Port 443/TCP → Docker-Host
 - Port 10000/UDP → Docker-Host
 
-Empfehlung: Dem Docker-Host eine **statische IP** im Router zuweisen.
+Empfehlung: Dem Docker-Host eine **statische IP** im Router zuweisen. Details: [Firewall & Netzwerk → Router](firewall.md#router--port-forwarding).
 
 ## SSL/TLS
 
@@ -66,34 +57,26 @@ Empfehlung: Dem Docker-Host eine **statische IP** im Router zuweisen.
 - **Brute-Force-Schutz** aktiviert
 - **Selbstregistrierung** deaktiviert (nur Admin kann User anlegen)
 - **Doppelte E-Mails** verboten
-- **SSL-Pflicht** für externe Verbindungen
+- **SSL-Pflicht** fuer externe Verbindungen
 
 ### OIDC
 
 - Client-Secrets (`MATTERMOST_OIDC_SECRET`, `NEXTCLOUD_OIDC_SECRET`) werden nur server-seitig verwendet
-- Authorization Code Flow (nicht Implicit) für maximale Sicherheit
+- Authorization Code Flow (nicht Implicit) fuer maximale Sicherheit
 
 ## Secrets-Management
 
-### Passwörter generieren
+### Passwoerter generieren
 
-```bash
-# Einzelnes starkes Passwort
-openssl rand -base64 32
-
-# Alle Passwörter auf einmal
-for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
-  echo "${name}_PASSWORD=$(openssl rand -base64 32)"
-done
-```
+Fuer alle Passwort- und Secret-Felder starke Zufallswerte verwenden — siehe [Skripte → Passwoerter generieren](scripts.md#passwörter-generieren).
 
 ### Secrets rotieren
 
 1. Neues Passwort generieren
 2. In `.env` eintragen
-3. Betroffenen Service neustarten: `docker compose restart <service>`
+3. Betroffenen Service neustarten — siehe [Skripte → Docker Compose](scripts.md#docker-compose--allgemeine-befehle)
 
-> **Ausnahme:** OIDC-Secrets können nach dem ersten Keycloak-Import nicht einfach in `.env` geändert werden — sie müssen zusätzlich in der Keycloak Admin-Console aktualisiert werden.
+> **Ausnahme:** OIDC-Secrets koennen nach dem ersten Keycloak-Import nicht einfach in `.env` geaendert werden — sie muessen zusaetzlich in der Keycloak Admin-Console aktualisiert werden.
 
 ## DuckDNS-Token
 
@@ -102,11 +85,11 @@ Das DuckDNS-Token erlaubt DNS-Manipulation. Bei Kompromittierung:
 1. Auf [duckdns.org](https://www.duckdns.org/) einloggen
 2. Token rotieren
 3. Neues Token in `.env` eintragen
-4. Container neustarten: `docker compose restart duckdns`
+4. DuckDNS-Container neustarten — siehe [Skripte → Docker Compose](scripts.md#docker-compose--allgemeine-befehle)
 
 ## Backup-Sicherheit
 
 - Backup-Daten enthalten sensible Benutzerdateien
-- Filen.io-Backup ist Ende-zu-Ende verschlüsselt (Filen-Feature)
-- SMB-Backups liegen unverschlüsselt auf dem NAS — Zugang absichern
-- Backup-Passwörter in `.env` — gleiche Schutzmaßnahmen wie andere Secrets
+- Filen.io-Backup ist Ende-zu-Ende verschluesselt (Filen-Feature)
+- SMB-Backups liegen unverschluesselt auf dem NAS — Zugang absichern
+- Backup-Passwoerter in `.env` — gleiche Schutzmassnahmen wie andere Secrets

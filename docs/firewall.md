@@ -1,14 +1,14 @@
 # Firewall & Netzwerk
 
-Damit das Deployment von außen erreichbar ist, müssen drei Ports freigegeben werden — in der Host-Firewall **und** im Router.
+Damit das Deployment von aussen erreichbar ist, muessen drei Ports freigegeben werden — in der Host-Firewall **und** im Router.
 
-## Portübersicht
+## Portuebersicht
 
 | Port | Protokoll | Dienst | Pflicht |
 |------|-----------|--------|---------|
 | 80 | TCP | HTTP → automatisch Redirect auf HTTPS (Let's Encrypt) | Ja |
 | 443 | TCP | HTTPS — alle Web-Dienste via Traefik | Ja |
-| 10000 | UDP | Jitsi JVB Mediendaten (Video/Audio) | Ja, für Video |
+| 10000 | UDP | Jitsi JVB Mediendaten (Video/Audio) | Ja, fuer Video |
 
 > Ports 80 und 443 werden auf die **interne IP des Docker-Hosts** weitergeleitet.
 > Port 10000/UDP direkt auf denselben Host — kein NAT-Problem dank DuckDNS.
@@ -17,81 +17,31 @@ Damit das Deployment von außen erreichbar ist, müssen drei Ports freigegeben w
 
 ## Linux — UFW Firewall
 
-```bash
-# Regeln anlegen
-sudo ./scripts/setup.sh firewall setup
+Das Skript `setup.sh firewall` gibt die Ports 80/tcp, 443/tcp und 10000/udp frei und aktiviert UFW falls noetig. Bereits vorhandene Regeln werden nicht dupliziert.
 
-# Status anzeigen
-./scripts/setup.sh firewall status
-
-# Regeln wieder entfernen
-sudo ./scripts/setup.sh firewall remove
-```
-
-Das Skript gibt die Ports 80/tcp, 443/tcp und 10000/udp frei und aktiviert UFW falls nötig. Bereits vorhandene Regeln werden nicht dupliziert.
-
-Details: [`scripts/setup.sh`](../scripts/setup.sh)
+Befehle und Parameter: [Skripte → setup.sh firewall](scripts.md#setupsh-firewall--linux-firewall-ufw)
 
 ---
 
 ## Windows — Firewall
 
-PowerShell **als Administrator** ausführen (`Win + X → PowerShell (Administrator)`):
+PowerShell **als Administrator** ausfuehren. Das Skript `setup-windows.ps1` erstellt eingehende Firewall-Regeln fuer die drei Ports (benannt `Homeoffice MVP - *`).
 
-```powershell
-# Regeln anlegen
-.\scripts\setup-windows.ps1 -Action Firewall-Setup
-
-# Status anzeigen
-.\scripts\setup-windows.ps1 -Action Firewall-Status
-
-# Regeln wieder entfernen
-.\scripts\setup-windows.ps1 -Action Firewall-Remove
-```
-
-Das Skript erstellt eingehende Firewall-Regeln für die drei Ports (benannt `Homeoffice MVP - *`).
-
-Details: [`scripts/setup-windows.ps1`](../scripts/setup-windows.ps1)
+Befehle und Parameter: [Skripte → setup-windows.ps1](scripts.md#setup-windowsps1--windows-setup--firewall)
 
 ### WSL2-Hinweis
 
-WSL2 läuft in einer virtuellen Maschine. Wenn Docker innerhalb von WSL2 läuft, muss zusätzlich ein Port-Proxy eingerichtet werden, damit Windows den Traffic an WSL2 weiterleitet:
+WSL2 laeuft in einer virtuellen Maschine. Wenn Docker innerhalb von WSL2 laeuft, muss zusaetzlich ein Port-Proxy eingerichtet werden, damit Windows den Traffic an WSL2 weiterleitet.
 
-```powershell
-# Port-Proxy einrichten (WSL2-IP wird automatisch ermittelt)
-.\scripts\wsl2-portproxy.ps1 -Action Setup
+> **Wichtig:** Die WSL2-IP kann sich nach einem Neustart aendern. Bei Verbindungsproblemen den Proxy erneut einrichten.
 
-# Status anzeigen
-.\scripts\wsl2-portproxy.ps1 -Action Status
-
-# Port-Proxy entfernen
-.\scripts\wsl2-portproxy.ps1 -Action Remove
-```
-
-> **Wichtig:** Die WSL2-IP kann sich nach einem Neustart ändern. Bei Verbindungsproblemen `Setup` erneut ausführen.
-
-Details: [`scripts/wsl2-portproxy.ps1`](../scripts/wsl2-portproxy.ps1)
+Befehle und Parameter: [Skripte → wsl2-portproxy.ps1](scripts.md#scriptswsl2-portproxyps1--wsl2-port-proxy)
 
 ---
 
 ## Router — Port-Forwarding
 
-Im Router muss **Port-Forwarding** auf die interne IP des Docker-Hosts eingerichtet werden.
-
-### Interne IP ermitteln
-
-```bash
-# Linux / WSL
-./scripts/check-connectivity.sh --local
-# Zeigt die Host-IP am Ende der Ausgabe
-```
-
-```powershell
-# Windows PowerShell
-(Get-NetIPAddress -AddressFamily IPv4 |
-  Where-Object { $_.InterfaceAlias -notlike "*Loopback*" -and $_.IPAddress -notlike "169.*" } |
-  Select-Object -First 1).IPAddress
-```
+Im Router muss **Port-Forwarding** auf die interne IP des Docker-Hosts eingerichtet werden. Die Host-IP kann mit dem Connectivity-Check ermittelt werden — siehe [Skripte → check-connectivity.sh](scripts.md#scriptscheck-connectivitysh--erreichbarkeitstest).
 
 ### Fritzbox (Beispiel)
 
@@ -111,19 +61,8 @@ Im Router muss **Port-Forwarding** auf die interne IP des Docker-Hosts eingerich
 
 ## Erreichbarkeit testen
 
-```bash
-# Alle Dienste von außen prüfen (liest Domains aus .env)
-./scripts/check-connectivity.sh
+Das Skript prueft HTTPS-Erreichbarkeit aller Dienste und Jitsi JVB UDP-Port 10000.
 
-# Nur lokale Ports prüfen
-./scripts/check-connectivity.sh --local
-```
+> **Hinweis:** Den HTTPS-Test von einem **externen Netzwerk** ausfuehren (z.B. Mobilfunk-Hotspot), um das Port-Forwarding zu verifizieren.
 
-Das Skript prüft:
-- HTTPS-Erreichbarkeit aller fünf Dienste
-- Jitsi JVB UDP-Port 10000
-- Host-IP für Router-Konfiguration
-
-Details: [`scripts/check-connectivity.sh`](../scripts/check-connectivity.sh)
-
-> **Hinweis:** Den HTTPS-Test von einem **externen Netzwerk** ausführen (z.B. Mobilfunk-Hotspot), um das Port-Forwarding zu verifizieren.
+Befehle und Parameter: [Skripte → check-connectivity.sh](scripts.md#scriptscheck-connectivitysh--erreichbarkeitstest)

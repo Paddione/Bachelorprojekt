@@ -1,8 +1,8 @@
 # Konfiguration
 
-Alle Einstellungen werden über die Datei `.env` im Projekt-Root gesteuert. Vorlage: `.env.example`.
+Alle Einstellungen werden ueber die Datei `.env` im Projekt-Root gesteuert. Vorlage: `.env.example`.
 
-> `.env` darf niemals committed werden — sie enthält Passwörter und Secrets.
+> `.env` darf niemals committed werden — sie enthaelt Passwoerter und Secrets.
 
 ## Domains
 
@@ -24,22 +24,22 @@ Alle Einstellungen werden über die Datei `.env` im Projekt-Root gesteuert. Vorl
 
 | Variable | Beschreibung | Hinweis |
 |----------|-------------|---------|
-| `JVB_ADVERTISE_IPS` | Öffentliche IP/Domain für Video-Mediendaten | Gleich wie `JITSI_DOMAIN` |
+| `JVB_ADVERTISE_IPS` | Oeffentliche IP/Domain fuer Video-Mediendaten | Gleich wie `JITSI_DOMAIN` |
 | `JITSI_XMPP_SUFFIX` | Internes XMPP-Suffix | Gleich wie `JITSI_DOMAIN` |
-| `JICOFO_AUTH_PASSWORD` | Jicofo XMPP-Passwort | `openssl rand -base64 32` |
-| `JVB_AUTH_PASSWORD` | JVB XMPP-Passwort | `openssl rand -base64 32` |
+| `JICOFO_AUTH_PASSWORD` | Jicofo XMPP-Passwort | Zufallswert |
+| `JVB_AUTH_PASSWORD` | JVB XMPP-Passwort | Zufallswert |
 
 ## SSL / Let's Encrypt
 
 | Variable | Beschreibung |
 |----------|-------------|
-| `ACME_EMAIL` | E-Mail für Let's Encrypt Registrierung |
+| `ACME_EMAIL` | E-Mail fuer Let's Encrypt Registrierung |
 
 ## Speicher
 
 | Variable | Beschreibung | Standard |
 |----------|-------------|----------|
-| `STORAGE_PATH` | Pfad für persistente Daten (NAS, USB, etc.) | `./data` |
+| `STORAGE_PATH` | Pfad fuer persistente Daten (NAS, USB, etc.) | `./data` |
 
 Unterverzeichnisse werden automatisch erstellt:
 - `${STORAGE_PATH}/mattermost/` — Chat-Uploads und Plugins
@@ -50,15 +50,15 @@ Unterverzeichnisse werden automatisch erstellt:
 
 | Variable | Beschreibung | Generierung |
 |----------|-------------|-------------|
-| `KEYCLOAK_DB_PASSWORD` | PostgreSQL-Passwort | `openssl rand -base64 32` |
-| `KEYCLOAK_ADMIN_PASSWORD` | Admin-Console-Passwort | Frei wählbar |
+| `KEYCLOAK_DB_PASSWORD` | PostgreSQL-Passwort | Zufallswert |
+| `KEYCLOAK_ADMIN_PASSWORD` | Admin-Console-Passwort | Frei waehlbar |
 
 ## Mattermost
 
 | Variable | Beschreibung | Generierung |
 |----------|-------------|-------------|
-| `MATTERMOST_DB_PASSWORD` | PostgreSQL-Passwort | `openssl rand -base64 32` |
-| `MATTERMOST_OIDC_SECRET` | Keycloak OIDC-Client-Secret | `openssl rand -base64 32` |
+| `MATTERMOST_DB_PASSWORD` | PostgreSQL-Passwort | Zufallswert |
+| `MATTERMOST_OIDC_SECRET` | Keycloak OIDC-Client-Secret | Zufallswert |
 
 > **Wichtig:** `MATTERMOST_OIDC_SECRET` muss VOR dem ersten Keycloak-Start gesetzt werden. Es wird automatisch in den Realm importiert.
 
@@ -66,9 +66,9 @@ Unterverzeichnisse werden automatisch erstellt:
 
 | Variable | Beschreibung | Generierung |
 |----------|-------------|-------------|
-| `NEXTCLOUD_DB_PASSWORD` | PostgreSQL-Passwort | `openssl rand -base64 32` |
-| `NEXTCLOUD_ADMIN_PASSWORD` | Admin-Account-Passwort | Frei wählbar |
-| `NEXTCLOUD_OIDC_SECRET` | Keycloak OIDC-Client-Secret | `openssl rand -base64 32` |
+| `NEXTCLOUD_DB_PASSWORD` | PostgreSQL-Passwort | Zufallswert |
+| `NEXTCLOUD_ADMIN_PASSWORD` | Admin-Account-Passwort | Frei waehlbar |
+| `NEXTCLOUD_OIDC_SECRET` | Keycloak OIDC-Client-Secret | Zufallswert |
 
 > **Wichtig:** `NEXTCLOUD_OIDC_SECRET` muss VOR dem ersten Keycloak-Start gesetzt werden.
 
@@ -91,10 +91,10 @@ Unterverzeichnisse werden automatisch erstellt:
 | `SMB_USER` | Benutzername | — |
 | `SMB_PASS` | Passwort | — |
 | `SMB_PORT` | SMB-Port | `445` |
-| `SMB_DOMAIN` | Arbeitsgruppe/Domäne | `WORKGROUP` |
+| `SMB_DOMAIN` | Arbeitsgruppe/Domaene | `WORKGROUP` |
 | `SMB_REMOTE_PATH` | Unterverzeichnis auf der Freigabe | `homeoffice-mvp` |
 
-Beide Backup-Ziele sind unabhängig voneinander. Leere Felder = Ziel wird übersprungen.
+Beide Backup-Ziele sind unabhaengig voneinander. Leere Felder = Ziel wird uebersprungen.
 
 ## SMTP (optional)
 
@@ -106,18 +106,8 @@ Beide Backup-Ziele sind unabhängig voneinander. Leere Felder = Ziel wird übers
 | `SMTP_PASS` | SMTP-Passwort | — |
 | `SMTP_FROM` | Absenderadresse | `noreply@example.com` |
 
-Ein einziges Postfach reicht für alle Dienste (Keycloak, Mattermost, Nextcloud).
+Ein einziges Postfach reicht fuer alle Dienste (Keycloak, Mattermost, Nextcloud).
 
-## Passwörter generieren
+## Passwoerter generieren
 
-Für alle Passwort- und Secret-Felder:
-
-```bash
-# Einzelnes Passwort
-openssl rand -base64 32
-
-# Alle auf einmal generieren
-for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
-  echo "${name}_PASSWORD=$(openssl rand -base64 32)"
-done
-```
+Fuer alle Passwort- und Secret-Felder starke Zufallswerte verwenden — siehe [Skripte → Passwoerter generieren](scripts.md#passwörter-generieren).

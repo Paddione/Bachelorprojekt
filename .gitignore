@@ -1,0 +1,38 @@
+# ── Secrets (niemals committen!) ────────────────
+.env
+.env.secrets
+*.env.local
+
+# ── Runtime-Daten (Docker-Volumes, DB, Certs) ──
+data/
+
+# ── Backup-Dumps (Skripte ja, Dumps nein) ──────
+backup/*.sql
+backup/*.sql.gz
+backup/*.tar
+backup/*.tar.gz
+backup/*.dump
+
+# ── Logs ────────────────────────────────────────
+*.log
+logs/
+
+# ── OS-Artefakte ────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Editor / IDE ────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Docker ──────────────────────────────────────
+.docker/
+
+# ── Misc ────────────────────────────────────────
+node_modules/
+*.tmp
+*.bak

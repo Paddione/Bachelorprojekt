@@ -1,0 +1,5 @@
+username,email,display_name,groups,first_name,last_name
+anna.schmidt,anna.schmidt@example.com,Anna Schmidt,homeoffice_users,Anna,Schmidt
+max.mueller,max.mueller@example.com,Max Müller,homeoffice_users,Max,Müller
+lisa.berger,lisa.berger@example.com,Lisa Berger,"homeoffice_users;admins",Lisa,Berger
+tom.admin,tom.admin@example.com,Tom Admin,admins,Tom,Admin

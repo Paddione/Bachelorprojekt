@@ -1,0 +1,428 @@
+# ═══════════════════════════════════════════════════════════════════
+# Homeoffice MVP — Docker Compose Deployment
+# ═══════════════════════════════════════════════════════════════════
+# Konfiguration: cp .env.example .env  (dann alle Werte ausfüllen)
+#
+# Jeder Dienst bekommt eine eigene DuckDNS-Subdomain:
+#   MM_DOMAIN    → z.B. bachelorprojekt-chat.duckdns.org
+#   KC_DOMAIN    → z.B. bachelorprojekt-auth.duckdns.org
+#   NC_DOMAIN    → z.B. bachelorprojekt-files.duckdns.org
+#   JITSI_DOMAIN → z.B. bachelorprojekt-meet.duckdns.org
+#   LLDAP_DOMAIN → z.B. bachelorprojekt-ldap.duckdns.org
+#
+# Alle 5 Subdomains müssen einmalig auf duckdns.org angelegt werden.
+# Der DuckDNS-Updater pflegt dann alle 5 gleichzeitig:
+#   DUCKDNS_SUBDOMAINS=bachelorprojekt-chat,bachelorprojekt-auth,...
+#
+# Vor dem ersten Start:
+#   STORAGE=${STORAGE_PATH:-./data}
+#   mkdir -p ${STORAGE}/mattermost ${STORAGE}/nextcloud ${STORAGE}/traefik/letsencrypt
+#   touch ${STORAGE}/traefik/letsencrypt/acme.json
+#   chmod 600 ${STORAGE}/traefik/letsencrypt/acme.json
+# ── Volumes (interne DB-Daten) ──────────────────────────────────────
+volumes:
+  keycloak-db-data:
+  mattermost-db-data:
+  nextcloud-db-data:
+  nextcloud-app:
+  lldap-db-data:
+
+# ── Netzwerk ────────────────────────────────────────────────────────
+networks:
+  homeoffice:
+    driver: bridge
+
+# ═══════════════════════════════════════════════════════════════════
+# DIENSTE
+# ═══════════════════════════════════════════════════════════════════
+services:
+
+  # ── DuckDNS Updater ─────────────────────────────────────────────
+  # Aktualisiert alle 5 Subdomains alle 5 Minuten per DuckDNS HTTP API.
+  # DUCKDNS_SUBDOMAINS: kommagetrennte Subdomains OHNE .duckdns.org
+  #   z.B. bachelorprojekt-chat,bachelorprojekt-auth,bachelorprojekt-files,...
+  duckdns:
+    image: curlimages/curl:latest
+    container_name: homeoffice-duckdns
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo "DuckDNS Updater gestartet. Aktualisiere: ${DUCKDNS_SUBDOMAINS}"
+        while true; do
+          RESULT=$(curl -s "https://www.duckdns.org/update?domains=${DUCKDNS_SUBDOMAINS}&token=${DUCKDNS_TOKEN}&verbose=true")
+          echo "[$(date -u '+%Y-%m-%d %H:%M:%S UTC')] $${RESULT}"
+          sleep 300
+        done
+    environment:
+      DUCKDNS_SUBDOMAINS: ${DUCKDNS_SUBDOMAINS:?DuckDNS Subdomains fehlen}
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:?DuckDNS Token fehlt}
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Traefik (Reverse Proxy + SSL) ───────────────────────────────
+  traefik:
+    image: traefik:v3.0
+    container_name: homeoffice-traefik
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?ACME E-Mail fehlt}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${STORAGE_PATH:-./data}/traefik/letsencrypt:/letsencrypt
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── LLDAP Datenbank ──────────────────────────────────────────────
+  lldap-db:
+    image: postgres:16-alpine
+    container_name: homeoffice-lldap-db
+    environment:
+      POSTGRES_DB: lldap
+      POSTGRES_USER: lldap
+      POSTGRES_PASSWORD: ${LLDAP_DB_PASSWORD:?LLDAP DB Passwort fehlt}
+    volumes:
+      - lldap-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lldap"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── LLDAP (Lightweight LDAP) ────────────────────────────────────
+  # Web UI: https://${LLDAP_DOMAIN}
+  # Login:  admin / ${LLDAP_LDAP_USER_PASS}
+  lldap:
+    image: lldap/lldap:stable
+    container_name: homeoffice-lldap
+    environment:
+      LLDAP_JWT_SECRET: ${LLDAP_JWT_SECRET:?LLDAP JWT Secret fehlt}
+      LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS:?LLDAP Admin Passwort fehlt}
+      LLDAP_DATABASE_URL: "postgresql://lldap:${LLDAP_DB_PASSWORD}@lldap-db:5432/lldap"
+      LLDAP_LDAP_BASE_DN: "dc=${LLDAP_BASE_DOMAIN:-example},dc=${LLDAP_BASE_TLD:-com}"
+      LLDAP_LDAP_USER_DN: admin
+      LLDAP_HTTP_URL: "https://${LLDAP_DOMAIN:?LLDAP Domain fehlt}"
+      LLDAP_VERBOSE: "false"
+      TZ: Europe/Berlin
+    depends_on:
+      lldap-db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lldap.rule=Host(`${LLDAP_DOMAIN}`)"
+      - "traefik.http.routers.lldap.entrypoints=websecure"
+      - "traefik.http.routers.lldap.tls.certresolver=letsencrypt"
+      - "traefik.http.services.lldap.loadbalancer.server.port=17170"
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Keycloak Datenbank ──────────────────────────────────────────
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: homeoffice-keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Keycloak DB Passwort fehlt}
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Keycloak (SSO) ──────────────────────────────────────────────
+  # Realm "homeoffice" wird beim ersten Start automatisch importiert.
+  # Enthält: Mattermost + Nextcloud Clients mit vorgesetzten OIDC Secrets,
+  #          LLDAP User Federation, Protocol Mappers.
+  # → Kein manuelles Setup in der Admin-Console nötig.
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: homeoffice-keycloak
+    entrypoint: ["/opt/keycloak/realm-template/import-entrypoint.sh"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HOSTNAME: ${KC_DOMAIN:?Keycloak Domain fehlt}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Keycloak Admin Passwort fehlt}
+      # OIDC Secrets — werden in realm-homeoffice.json eingesetzt
+      MATTERMOST_OIDC_SECRET: ${MATTERMOST_OIDC_SECRET:?Mattermost OIDC Secret fehlt}
+      NEXTCLOUD_OIDC_SECRET: ${NEXTCLOUD_OIDC_SECRET:?Nextcloud OIDC Secret fehlt}
+      MM_DOMAIN: ${MM_DOMAIN}
+      NC_DOMAIN: ${NC_DOMAIN}
+      LLDAP_BASE_DOMAIN: ${LLDAP_BASE_DOMAIN}
+      LLDAP_BASE_TLD: ${LLDAP_BASE_TLD}
+      LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS}
+      TZ: Europe/Berlin
+    volumes:
+      - ./keycloak:/opt/keycloak/realm-template:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+      lldap:
+        condition: service_started
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`${KC_DOMAIN}`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls.certresolver=letsencrypt"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Mattermost Datenbank ────────────────────────────────────────
+  mattermost-db:
+    image: postgres:16-alpine
+    container_name: homeoffice-mattermost-db
+    environment:
+      POSTGRES_DB: mattermost
+      POSTGRES_USER: mattermost
+      POSTGRES_PASSWORD: ${MATTERMOST_DB_PASSWORD:?Mattermost DB Passwort fehlt}
+    volumes:
+      - mattermost-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mattermost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Mattermost (Chat) ───────────────────────────────────────────
+  mattermost:
+    image: mattermost/mattermost-team-edition:9.7
+    container_name: homeoffice-mattermost
+    environment:
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: "postgres://mattermost:${MATTERMOST_DB_PASSWORD}@mattermost-db:5432/mattermost?sslmode=disable"
+      MM_SERVICESETTINGS_SITEURL: "https://${MM_DOMAIN:?Mattermost Domain fehlt}"
+      MM_PLUGINSETTINGS_ENABLE: "true"
+      MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
+      MM_PLUGINSETTINGS_PLUGINSTATES: '{"com.mattermost.jitsi":{"Enable":true}}'
+      MM_OPENIDSETTINGS_ENABLE: "true"
+      MM_OPENIDSETTINGS_BUTTONTEXT: "Mit Keycloak anmelden"
+      MM_OPENIDSETTINGS_BUTTONICONURL: ""
+      MM_OPENIDSETTINGS_DISCOVERYENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/.well-known/openid-configuration"
+      MM_OPENIDSETTINGS_ID: "mattermost"
+      MM_OPENIDSETTINGS_SECRET: "${MATTERMOST_OIDC_SECRET:?Mattermost OIDC Secret fehlt}"
+      TZ: Europe/Berlin
+    volumes:
+      - ${STORAGE_PATH:-./data}/mattermost:/mattermost/data
+    depends_on:
+      mattermost-db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mattermost.rule=Host(`${MM_DOMAIN}`)"
+      - "traefik.http.routers.mattermost.entrypoints=websecure"
+      - "traefik.http.routers.mattermost.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mattermost.loadbalancer.server.port=8065"
+      - "traefik.http.middlewares.mattermost-buffering.buffering.maxRequestBodyBytes=52428800"
+      - "traefik.http.routers.mattermost.middlewares=mattermost-buffering"
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Nextcloud Datenbank ─────────────────────────────────────────
+  nextcloud-db:
+    image: postgres:16-alpine
+    container_name: homeoffice-nextcloud-db
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD:?Nextcloud DB Passwort fehlt}
+    volumes:
+      - nextcloud-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nextcloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Nextcloud (Dateien) ─────────────────────────────────────────
+  nextcloud:
+    image: nextcloud:28-apache
+    container_name: homeoffice-nextcloud
+    environment:
+      POSTGRES_HOST: nextcloud-db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:?Nextcloud Admin Passwort fehlt}
+      NEXTCLOUD_TRUSTED_DOMAINS: "${NC_DOMAIN:?Nextcloud Domain fehlt}"
+      OVERWRITEPROTOCOL: https
+      OVERWRITECLIURL: "https://${NC_DOMAIN}"
+      TZ: Europe/Berlin
+    volumes:
+      - nextcloud-app:/var/www/html
+      - ${STORAGE_PATH:-./data}/nextcloud:/var/www/html/data
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.rule=Host(`${NC_DOMAIN}`)"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud.tls.certresolver=letsencrypt"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Backup (rclone) ─────────────────────────────────────────────
+  # Tägliches Backup um 02:00 UTC zu Filen.io und/oder SMB.
+  # Beide Targets sind optional — wird übersprungen wenn nicht konfiguriert.
+  # Backup-Inhalte: Mattermost-Uploads, Nextcloud-Daten, SSL-Zertifikate.
+  #
+  # Filen.io einrichten: https://app.filen.io → Account erstellen
+  #   FILEN_EMAIL + FILEN_PASSWORD in .env setzen → fertig.
+  #
+  # SMB einrichten: SMB_HOST, SMB_SHARE, SMB_USER, SMB_PASS in .env setzen.
+  backup:
+    image: rclone/rclone:latest
+    container_name: homeoffice-backup
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo "[backup] Container gestartet. Nächstes Backup: 02:00 UTC täglich."
+        # Cron via busybox crond
+        echo "0 2 * * * /backup/backup-entrypoint.sh >> /var/log/backup.log 2>&1" \
+          > /var/spool/cron/crontabs/root
+        crond -f -l 8
+    environment:
+      STORAGE_PATH: /data
+      # Filen.io (optional)
+      FILEN_EMAIL: ${FILEN_EMAIL:-}
+      FILEN_PASSWORD: ${FILEN_PASSWORD:-}
+      FILEN_REMOTE_PATH: ${FILEN_REMOTE_PATH:-homeoffice-mvp}
+      # SMB (optional)
+      SMB_HOST: ${SMB_HOST:-}
+      SMB_SHARE: ${SMB_SHARE:-}
+      SMB_USER: ${SMB_USER:-}
+      SMB_PASS: ${SMB_PASS:-}
+      SMB_PORT: ${SMB_PORT:-445}
+      SMB_DOMAIN: ${SMB_DOMAIN:-WORKGROUP}
+      SMB_REMOTE_PATH: ${SMB_REMOTE_PATH:-homeoffice-mvp}
+    volumes:
+      - ./backup/backup-entrypoint.sh:/backup/backup-entrypoint.sh:ro
+      - ${STORAGE_PATH:-./data}:/data:ro
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Jitsi: Prosody (XMPP) ──────────────────────────────────────
+  prosody:
+    image: jitsi/prosody:stable-9111
+    container_name: homeoffice-prosody
+    expose:
+      - "5222"
+      - "5347"
+      - "5280"
+    environment:
+      XMPP_DOMAIN: "${JITSI_DOMAIN:?Jitsi Domain fehlt}"
+      XMPP_AUTH_DOMAIN: "auth.meet.${JITSI_XMPP_SUFFIX:?Jitsi XMPP Suffix fehlt}"
+      XMPP_MUC_DOMAIN: "muc.meet.${JITSI_XMPP_SUFFIX}"
+      XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.${JITSI_XMPP_SUFFIX}"
+      JICOFO_AUTH_PASSWORD: ${JICOFO_AUTH_PASSWORD:?Jicofo Auth Passwort fehlt}
+      JVB_AUTH_PASSWORD: ${JVB_AUTH_PASSWORD:?JVB Auth Passwort fehlt}
+      ENABLE_AUTH: 1
+      ENABLE_GUESTS: 1
+      TZ: Europe/Berlin
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Jitsi: Jicofo (Conference Focus) ───────────────────────────
+  jicofo:
+    image: jitsi/jicofo:stable-9111
+    container_name: homeoffice-jicofo
+    environment:
+      XMPP_SERVER: prosody
+      XMPP_DOMAIN: "${JITSI_DOMAIN}"
+      XMPP_AUTH_DOMAIN: "auth.meet.${JITSI_XMPP_SUFFIX}"
+      XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.${JITSI_XMPP_SUFFIX}"
+      JICOFO_AUTH_PASSWORD: ${JICOFO_AUTH_PASSWORD}
+      TZ: Europe/Berlin
+    depends_on:
+      - prosody
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Jitsi: JVB (Videobridge) ────────────────────────────────────
+  jvb:
+    image: jitsi/jvb:stable-9111
+    container_name: homeoffice-jvb
+    ports:
+      - "10000:10000/udp"
+    environment:
+      XMPP_SERVER: prosody
+      XMPP_DOMAIN: "${JITSI_DOMAIN}"
+      XMPP_AUTH_DOMAIN: "auth.meet.${JITSI_XMPP_SUFFIX}"
+      XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.${JITSI_XMPP_SUFFIX}"
+      JVB_AUTH_PASSWORD: ${JVB_AUTH_PASSWORD}
+      JVB_ADVERTISE_IPS: ${JVB_ADVERTISE_IPS:?JVB Advertise IP fehlt}
+      JVB_PORT: "10000"
+      TZ: Europe/Berlin
+    depends_on:
+      - prosody
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
+  # ── Jitsi: Web Frontend ──────────────────────────────────────────
+  jitsi-web:
+    image: jitsi/web:stable-9111
+    container_name: homeoffice-jitsi-web
+    environment:
+      PUBLIC_URL: "https://${JITSI_DOMAIN}"
+      XMPP_DOMAIN: "${JITSI_DOMAIN}"
+      XMPP_AUTH_DOMAIN: "auth.meet.${JITSI_XMPP_SUFFIX}"
+      XMPP_BOSH_URL_BASE: "http://prosody:5280"
+      XMPP_MUC_DOMAIN: "muc.meet.${JITSI_XMPP_SUFFIX}"
+      TZ: Europe/Berlin
+    depends_on:
+      - prosody
+      - jicofo
+      - jvb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jitsi.rule=Host(`${JITSI_DOMAIN}`)"
+      - "traefik.http.routers.jitsi.entrypoints=websecure"
+      - "traefik.http.routers.jitsi.tls.certresolver=letsencrypt"
+      - "traefik.http.services.jitsi.loadbalancer.server.port=80"
+    restart: unless-stopped
+    networks:
+      - homeoffice

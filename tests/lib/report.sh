@@ -15,10 +15,11 @@ finalize_json() {
   local tier="$1" output_file="$2"
 
   local total pass fail skip
-  total=$(wc -l < "$RESULTS_FILE")
-  pass=$(grep -c '"status": "pass"' "$RESULTS_FILE" || echo 0)
-  fail=$(grep -c '"status": "fail"' "$RESULTS_FILE" || echo 0)
-  skip=$(grep -c '"status": "skip"' "$RESULTS_FILE" || echo 0)
+  total=$(wc -l < "$RESULTS_FILE" | tr -d '[:space:]')
+  pass=$(grep -c '"status":"pass"' "$RESULTS_FILE" 2>/dev/null || true)
+  fail=$(grep -c '"status":"fail"' "$RESULTS_FILE" 2>/dev/null || true)
+  skip=$(grep -c '"status":"skip"' "$RESULTS_FILE" 2>/dev/null || true)
+  : "${pass:=0}" "${fail:=0}" "${skip:=0}"
 
   jq -n \
     --arg tier "$tier" \

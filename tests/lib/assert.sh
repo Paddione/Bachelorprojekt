@@ -24,7 +24,7 @@ _log_result() {
 
   [[ -n "${RESULTS_FILE:-}" ]] || { echo "ERROR: RESULTS_FILE is not set" >&2; return 1; }
 
-  jq -n --arg req "$req" --arg test "$test_id" --arg desc "$desc" \
+  jq -cn --arg req "$req" --arg test "$test_id" --arg desc "$desc" \
         --arg status "$status" --argjson dur "$duration_ms" --arg detail "$detail" \
     '{req: $req, test: $test, desc: $desc, status: $status, duration_ms: $dur, detail: $detail}' \
     >> "$RESULTS_FILE"

@@ -1,0 +1,13 @@
+# Traefik Dynamic Configuration
+# Router fuer Domains ohne eigenen Backend-Service.
+# Traefik fordert automatisch Let's Encrypt-Zertifikate per DNS-Challenge an.
+
+http:
+  routers:
+    ldap-cert:
+      rule: "Host(`bachelorprojekt-ldap.duckdns.org`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: noop@internal

@@ -174,8 +174,9 @@ services:
       - homeoffice
 
   # ── Mattermost (Chat) ───────────────────────────────────────────
+  # Enterprise-Image (ohne Lizenz = Free-Tier), da Team-Edition kein SSO hat.
   mattermost:
-    image: mattermost/mattermost-team-edition:9.7
+    image: mattermost/mattermost-enterprise-edition:9.7
     container_name: homeoffice-mattermost
     environment:
       MM_SQLSETTINGS_DRIVERNAME: postgres
@@ -184,12 +185,15 @@ services:
       MM_PLUGINSETTINGS_ENABLE: "true"
       MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
       MM_PLUGINSETTINGS_PLUGINSTATES: '{"com.mattermost.jitsi":{"Enable":true}}'
-      MM_OPENIDSETTINGS_ENABLE: "true"
-      MM_OPENIDSETTINGS_BUTTONTEXT: "Mit Keycloak anmelden"
-      MM_OPENIDSETTINGS_BUTTONICONURL: ""
-      MM_OPENIDSETTINGS_DISCOVERYENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/.well-known/openid-configuration"
-      MM_OPENIDSETTINGS_ID: "mattermost"
-      MM_OPENIDSETTINGS_SECRET: "${MATTERMOST_OIDC_SECRET:?Mattermost OIDC Secret fehlt}"
+      # GitLab-OAuth: In Enterprise-Image ohne Lizenz verfügbar.
+      # Keycloak liefert über Protocol-Mapper die Felder "id" + "username",
+      # die Mattermosts GitLab-Integration erwartet.
+      MM_GITLABSETTINGS_ENABLE: "true"
+      MM_GITLABSETTINGS_ID: "mattermost"
+      MM_GITLABSETTINGS_SECRET: "${MATTERMOST_OIDC_SECRET:?Mattermost OIDC Secret fehlt}"
+      MM_GITLABSETTINGS_AUTHENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/protocol/openid-connect/auth"
+      MM_GITLABSETTINGS_TOKENENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/protocol/openid-connect/token"
+      MM_GITLABSETTINGS_USERAPIENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/protocol/openid-connect/userinfo"
       TZ: Europe/Berlin
     volumes:
       - ${STORAGE_PATH:-./data}/mattermost:/mattermost/data
@@ -228,6 +232,9 @@ services:
       - homeoffice
 
   # ── Nextcloud (Dateien) ─────────────────────────────────────────
+  # SSO via Keycloak: oidc.config.php wird in /var/www/html/config/ gemountet.
+  # Nach dem ersten Start einmalig ausführen:
+  #   docker exec homeoffice-nextcloud php occ app:install oidc_login
   nextcloud:
     image: nextcloud:28-apache
     container_name: homeoffice-nextcloud
@@ -241,10 +248,15 @@ services:
       NEXTCLOUD_TRUSTED_DOMAINS: "${NC_DOMAIN:?Nextcloud Domain fehlt}"
       OVERWRITEPROTOCOL: https
       OVERWRITECLIURL: "https://${NC_DOMAIN}"
+      # OIDC — von oidc.config.php gelesen
+      KC_DOMAIN: ${KC_DOMAIN}
+      NC_DOMAIN: ${NC_DOMAIN}
+      NEXTCLOUD_OIDC_SECRET: ${NEXTCLOUD_OIDC_SECRET}
       TZ: Europe/Berlin
     volumes:
       - nextcloud-app:/var/www/html
       - ${STORAGE_PATH:-./data}/nextcloud:/var/www/html/data
+      - ./nextcloud/oidc.config.php:/var/www/html/config/oidc.config.php:ro
     depends_on:
       nextcloud-db:
         condition: service_healthy
@@ -301,7 +313,41 @@ services:
     networks:
       - homeoffice
 
+  # ── Jitsi: Keycloak-Adapter (OIDC → JWT Bridge) ─────────────────
+  # Übersetzt Keycloak OIDC-Tokens in Jitsi-JWTs.
+  # Erreichbar unter https://${JITSI_DOMAIN}/oidc/*
+  # Gepatchte adapter.ts: prompt=consent entfernt für transparentes SSO.
+  jitsi-keycloak-adapter:
+    image: ghcr.io/nordeck/jitsi-keycloak-adapter-v2:latest
+    container_name: homeoffice-jitsi-keycloak
+    environment:
+      KEYCLOAK_ORIGIN: "https://${KC_DOMAIN}"
+      KEYCLOAK_ORIGIN_INTERNAL: "http://keycloak:8080"
+      KEYCLOAK_REALM: homeoffice
+      KEYCLOAK_CLIENT_ID: jitsi
+      JWT_APP_ID: jitsi
+      JWT_APP_SECRET: ${JITSI_JWT_SECRET:?Jitsi JWT Secret fehlt}
+      ALLOW_UNSECURE_CERT: "false"
+    volumes:
+      - ./jitsi-keycloak-adapter/adapter.ts:/app/adapter.ts:ro
+    expose:
+      - "9000"
+    depends_on:
+      - keycloak
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jitsi-oidc.rule=Host(`${JITSI_DOMAIN}`) && PathPrefix(`/oidc`)"
+      - "traefik.http.routers.jitsi-oidc.entrypoints=websecure"
+      - "traefik.http.routers.jitsi-oidc.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.jitsi-oidc.priority=100"
+      - "traefik.http.services.jitsi-oidc.loadbalancer.server.port=9000"
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
   # ── Jitsi: Prosody (XMPP) ──────────────────────────────────────
+  # AUTH_TYPE=jwt: Prosody validiert JWTs statt interner Passwörter.
+  # JWT_ALLOW_EMPTY=1: Gäste dürfen ohne Token beitreten (Lobby).
   prosody:
     image: jitsi/prosody:stable-9111
     container_name: homeoffice-prosody
@@ -317,6 +363,12 @@ services:
       JICOFO_AUTH_PASSWORD: ${JICOFO_AUTH_PASSWORD:?Jicofo Auth Passwort fehlt}
       JVB_AUTH_PASSWORD: ${JVB_AUTH_PASSWORD:?JVB Auth Passwort fehlt}
       ENABLE_AUTH: 1
+      AUTH_TYPE: jwt
+      JWT_APP_ID: jitsi
+      JWT_APP_SECRET: ${JITSI_JWT_SECRET}
+      JWT_ACCEPTED_ISSUERS: jitsi
+      JWT_ACCEPTED_AUDIENCES: jitsi
+      JWT_ALLOW_EMPTY: 1
       ENABLE_GUESTS: 1
       TZ: Europe/Berlin
     restart: unless-stopped
@@ -333,6 +385,8 @@ services:
       XMPP_AUTH_DOMAIN: "auth.meet.${JITSI_XMPP_SUFFIX}"
       XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.${JITSI_XMPP_SUFFIX}"
       JICOFO_AUTH_PASSWORD: ${JICOFO_AUTH_PASSWORD}
+      ENABLE_AUTH: 1
+      AUTH_TYPE: jwt
       TZ: Europe/Berlin
     depends_on:
       - prosody
@@ -362,6 +416,7 @@ services:
       - homeoffice
 
   # ── Jitsi: Web Frontend ──────────────────────────────────────────
+  # TOKEN_AUTH_URL: Leitet nicht-authentifizierte Nutzer zum Keycloak-Adapter.
   jitsi-web:
     image: jitsi/web:stable-9111
     container_name: homeoffice-jitsi-web
@@ -371,6 +426,15 @@ services:
       XMPP_AUTH_DOMAIN: "auth.meet.${JITSI_XMPP_SUFFIX}"
       XMPP_BOSH_URL_BASE: "http://prosody:5280"
       XMPP_MUC_DOMAIN: "muc.meet.${JITSI_XMPP_SUFFIX}"
+      ENABLE_AUTH: 1
+      AUTH_TYPE: jwt
+      JWT_APP_ID: jitsi
+      JWT_APP_SECRET: ${JITSI_JWT_SECRET}
+      JWT_ACCEPTED_ISSUERS: jitsi
+      JWT_ACCEPTED_AUDIENCES: jitsi
+      TOKEN_AUTH_URL: "https://${JITSI_DOMAIN}/oidc/auth?state={state}"
+      ENABLE_GUESTS: 1
+      ENABLE_AUTO_LOGIN: 0
       TZ: Europe/Berlin
     depends_on:
       - prosody
@@ -382,6 +446,7 @@ services:
       - "traefik.http.routers.jitsi.entrypoints=websecure"
       - "traefik.http.routers.jitsi.tls.certresolver=letsencrypt"
       - "traefik.http.routers.jitsi.middlewares=hsts@file"
+      - "traefik.http.routers.jitsi.priority=1"
       - "traefik.http.services.jitsi.loadbalancer.server.port=80"
     restart: unless-stopped
     networks:

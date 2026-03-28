@@ -48,19 +48,23 @@ fi
 # ── Group B: OIDC Redirect-Chains ─────────────────────────────
 
 # T4: Mattermost → Keycloak Redirect
-# OpenID Connect ist nur in Mattermost Enterprise verfügbar.
-# Team-Edition liefert 200 (SPA) statt 302 (Redirect).
-MM_OIDC_STATUS=$(docker exec homeoffice-mattermost \
-  curl -s -o /dev/null -w '%{http_code}' "http://localhost:8065/oauth/openid_connect/login" 2>/dev/null)
-if [[ "$MM_OIDC_STATUS" == "302" ]]; then
-  MM_OIDC_REDIRECT=$(docker exec homeoffice-mattermost \
-    curl -s -o /dev/null -D - "http://localhost:8065/oauth/openid_connect/login" 2>/dev/null \
-    | grep -i '^location:' | tr -d '\r')
+# Enterprise-Image nutzt GitLab-OAuth (/oauth/gitlab/login) statt OpenID Connect.
+MM_OIDC_REDIRECT=""
+for endpoint in "/oauth/gitlab/login" "/oauth/openid_connect/login"; do
+  MM_OIDC_STATUS=$(docker exec homeoffice-mattermost \
+    curl -s -o /dev/null -w '%{http_code}' "http://localhost:8065${endpoint}" 2>/dev/null)
+  if [[ "$MM_OIDC_STATUS" == "302" ]]; then
+    MM_OIDC_REDIRECT=$(docker exec homeoffice-mattermost \
+      curl -s -o /dev/null -D - "http://localhost:8065${endpoint}" 2>/dev/null \
+      | grep -i '^location:' | tr -d '\r')
+    break
+  fi
+done
+if [[ -n "$MM_OIDC_REDIRECT" ]]; then
   assert_contains "$MM_OIDC_REDIRECT" "realms/homeoffice" "SA-08" "T4" \
-    "Mattermost OIDC-Login leitet zu Keycloak weiter"
+    "Mattermost SSO-Login leitet zu Keycloak weiter"
 else
-  MM_OIDC_REDIRECT=""
-  skip_test "SA-08" "T4" "Mattermost OIDC-Redirect" "OpenID Connect nicht verfügbar (Team Edition)"
+  skip_test "SA-08" "T4" "Mattermost SSO-Redirect" "Kein SSO-Endpoint verfügbar"
 fi
 
 # T5: Nextcloud → Keycloak Redirect
@@ -84,7 +88,7 @@ if [[ -n "$MM_OIDC_REDIRECT" ]]; then
   assert_contains "$MM_OIDC_REDIRECT" "client_id=mattermost" "SA-08" "T7" \
     "Mattermost Redirect enthält client_id=mattermost"
 else
-  skip_test "SA-08" "T7" "Mattermost client_id" "OpenID Connect nicht verfügbar (Team Edition)"
+  skip_test "SA-08" "T7" "Mattermost client_id" "Kein SSO-Endpoint verfügbar"
 fi
 
 # T8: Nextcloud redirect enthält client_id=nextcloud

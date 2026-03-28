@@ -70,9 +70,12 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=duckdns"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?ACME E-Mail fehlt}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    environment:
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:?DuckDNS Token fehlt}
     ports:
       - "80:80"
       - "443:443"

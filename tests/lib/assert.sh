@@ -22,6 +22,8 @@ _A_YELLOW='\033[1;33m'; _A_NC='\033[0m'
 _log_result() {
   local req="$1" test_id="$2" desc="$3" status="$4" duration_ms="$5" detail="${6:-}"
 
+  [[ -n "${RESULTS_FILE:-}" ]] || { echo "ERROR: RESULTS_FILE is not set" >&2; return 1; }
+
   jq -n --arg req "$req" --arg test "$test_id" --arg desc "$desc" \
         --arg status "$status" --argjson dur "$duration_ms" --arg detail "$detail" \
     '{req: $req, test: $test, desc: $desc, status: $status, duration_ms: $dur, detail: $detail}' \
@@ -101,6 +103,10 @@ assert_http_redirect() {
 assert_lt() {
   local actual="$1" max="$2" req="$3" test_id="$4" desc="$5"
   local start; start=$(_now_ms)
+  if ! [[ "$actual" =~ ^-?[0-9]+$ ]] || ! [[ "$max" =~ ^-?[0-9]+$ ]]; then
+    _log_result "$req" "$test_id" "$desc" "fail" "0" "Non-numeric input: actual='${actual}' max='${max}'"
+    return
+  fi
   if (( actual < max )); then
     _log_result "$req" "$test_id" "$desc" "pass" "$(( $(_now_ms) - start ))"
   else
@@ -111,6 +117,10 @@ assert_lt() {
 assert_gt() {
   local actual="$1" min="$2" req="$3" test_id="$4" desc="$5"
   local start; start=$(_now_ms)
+  if ! [[ "$actual" =~ ^-?[0-9]+$ ]] || ! [[ "$min" =~ ^-?[0-9]+$ ]]; then
+    _log_result "$req" "$test_id" "$desc" "fail" "0" "Non-numeric input: actual='${actual}' min='${min}'"
+    return
+  fi
   if (( actual > min )); then
     _log_result "$req" "$test_id" "$desc" "pass" "$(( $(_now_ms) - start ))"
   else
@@ -122,7 +132,7 @@ assert_cmd() {
   local cmd="$1" req="$2" test_id="$3" desc="$4"
   local start; start=$(_now_ms)
   local output
-  if output=$(eval "$cmd" 2>&1); then
+  if output=$(bash -c "$cmd" 2>&1); then
     _log_result "$req" "$test_id" "$desc" "pass" "$(( $(_now_ms) - start ))"
   else
     _log_result "$req" "$test_id" "$desc" "fail" "$(( $(_now_ms) - start ))" "Command failed: ${output:0:200}"
@@ -148,5 +158,5 @@ assert_summary() {
   local total=$(( _ASSERT_PASS + _ASSERT_FAIL + _ASSERT_SKIP ))
   echo ""
   echo -e "  ${_A_GREEN}${_ASSERT_PASS} passed${_A_NC}, ${_A_RED}${_ASSERT_FAIL} failed${_A_NC}, ${_A_YELLOW}${_ASSERT_SKIP} skipped${_A_NC} (${total} total)"
-  return "$_ASSERT_FAIL"
+  [[ $_ASSERT_FAIL -eq 0 ]]
 }

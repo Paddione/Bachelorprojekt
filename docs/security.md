@@ -41,7 +41,7 @@ sudo ufw allow 443/tcp comment "Homeoffice HTTPS"
 sudo ufw allow 10000/udp comment "Homeoffice Jitsi"
 ```
 
-Für Windows-Firewall-Regeln siehe die Hauptdokumentation in `README.md`.
+Für Windows-Firewall-Regeln und WSL2-Port-Proxy: [Firewall & Netzwerk](firewall.md).
 
 ### Router
 

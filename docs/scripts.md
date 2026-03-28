@@ -100,6 +100,51 @@ sudo ./scripts/setup-smb.sh --check   # Nur Laufwerke anzeigen
 
 Details: [Backup](backup.md)
 
+## scripts/firewall-linux.sh — Linux-Firewall (UFW)
+
+Verwaltet UFW-Firewall-Regeln für die drei benötigten Ports.
+
+```bash
+sudo ./scripts/firewall-linux.sh setup    # Regeln anlegen
+./scripts/firewall-linux.sh status        # Regeln anzeigen
+sudo ./scripts/firewall-linux.sh remove   # Regeln entfernen
+```
+
+Regeln: 80/tcp, 443/tcp, 10000/udp. Idempotent — vorhandene Regeln werden nicht dupliziert.
+
+## scripts/firewall-windows.ps1 — Windows-Firewall
+
+PowerShell-Skript für Windows-Firewall-Regeln. Als Administrator ausführen.
+
+```powershell
+.\scripts\firewall-windows.ps1 -Action Setup     # Regeln anlegen
+.\scripts\firewall-windows.ps1 -Action Status    # Regeln anzeigen
+.\scripts\firewall-windows.ps1 -Action Remove    # Regeln entfernen
+```
+
+## scripts/wsl2-portproxy.ps1 — WSL2 Port-Proxy
+
+Richtet Port-Forwarding von Windows auf WSL2 ein. Nur nötig wenn Docker in WSL2 läuft.
+
+```powershell
+.\scripts\wsl2-portproxy.ps1 -Action Setup     # Proxy anlegen
+.\scripts\wsl2-portproxy.ps1 -Action Status    # Proxy anzeigen
+.\scripts\wsl2-portproxy.ps1 -Action Remove    # Proxy entfernen
+```
+
+Ermittelt die WSL2-IP automatisch. Nach Neustart erneut `Setup` ausführen.
+
+## scripts/check-connectivity.sh — Erreichbarkeitstest
+
+Prüft HTTPS-Erreichbarkeit aller Dienste und Jitsi-UDP. Liest Domains aus `.env`.
+
+```bash
+./scripts/check-connectivity.sh          # Alle Dienste von außen prüfen
+./scripts/check-connectivity.sh --local  # Nur lokale Ports prüfen
+```
+
+Details: [Firewall & Netzwerk](firewall.md)
+
 ## keycloak/import-entrypoint.sh — Realm-Import
 
 Ersetzt Umgebungsvariablen in `realm-homeoffice.json` und startet Keycloak mit automatischem Realm-Import. Wird als Custom-Entrypoint im Docker-Container verwendet.

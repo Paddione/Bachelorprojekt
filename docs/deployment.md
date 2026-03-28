@@ -3,7 +3,7 @@
 ## Voraussetzungen
 
 - **Docker** + **Docker Compose v2** installiert
-- Ports **80**, **443** (TCP) und **10000** (UDP) in Firewall und Router freigegeben
+- Ports **80**, **443** (TCP) und **10000** (UDP) in Firewall und Router freigegeben — siehe [Firewall & Netzwerk](firewall.md)
 - Account bei [duckdns.org](https://www.duckdns.org/) (kostenlos)
 - Linux, macOS oder Windows mit WSL2
 

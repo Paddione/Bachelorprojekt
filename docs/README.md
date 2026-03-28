@@ -7,6 +7,7 @@ Vollständige Dokumentation für das Homeoffice MVP Deployment.
 | Dokument | Beschreibung |
 |----------|-------------|
 | [Architektur](architecture.md) | Systemübersicht, Services, Netzwerk und Datenfluss |
+| [Firewall & Netzwerk](firewall.md) | Firewall-Regeln, Router Port-Forwarding, Erreichbarkeitstest |
 | [Deployment](deployment.md) | Schritt-für-Schritt Anleitung zur Installation |
 | [Konfiguration](configuration.md) | Alle Umgebungsvariablen im Detail |
 | [Services](services.md) | Beschreibung aller Docker-Services und deren Zusammenspiel |

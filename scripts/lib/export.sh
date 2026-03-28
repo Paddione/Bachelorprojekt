@@ -9,7 +9,7 @@
 #   - Nextcloud Dateien (WebDAV)
 #   - Nextcloud Kalender (CalDAV → .ics)
 #   - Nextcloud Kontakte (CardDAV → .vcf)
-#   - LLDAP Benutzer (GraphQL → CSV + LDIF)
+#   - Keycloak Benutzer (Admin API → CSV + LDIF)
 #   - Keycloak Realm (REST API → JSON)
 #
 # Alles wird in ein datiertes ZIP-Archiv gepackt.
@@ -34,7 +34,7 @@ EXPORT_MODULES=(
   "nc_files|Nextcloud Dateien (User-Daten)"
   "nc_calendar|Nextcloud Kalender (→ .ics)"
   "nc_contacts|Nextcloud Kontakte (→ .vcf)"
-  "lldap_users|LLDAP Benutzer (→ CSV + LDIF)"
+  "kc_users|Keycloak Benutzer (→ CSV + LDIF)"
   "kc_realm|Keycloak Realm (→ JSON)"
 )
 EXPORT_ENABLED=(1 1 1 1 1 1 1)
@@ -202,68 +202,85 @@ export_nc_contacts() {
   nc_export_contacts "${output_dir}/nextcloud/contacts"
 }
 
-# ── LLDAP Benutzer ───────────────────────────────────────────────────
-export_lldap_users() {
+# ── Keycloak Benutzer ───────────────────────────────────────────────
+export_keycloak_users() {
   local output_dir="$1"
-  mkdir -p "${output_dir}/lldap"
-  info "Exportiere LLDAP-Benutzer..."
+  mkdir -p "${output_dir}/keycloak"
+  info "Exportiere Keycloak-Benutzer..."
 
-  if [[ -z "${LLDAP_URL:-}" || -z "${LLDAP_ADMIN:-}" || -z "${LLDAP_PASS:-}" ]]; then
-    warn "LLDAP-Zugangsdaten nicht konfiguriert — Export übersprungen"
+  local kc_url="https://${KC_DOMAIN:-}"
+  local kc_admin="${KC_ADMIN:-admin}"
+  local kc_pass="${KC_PASS:-${KEYCLOAK_ADMIN_PASSWORD:-}}"
+
+  if [[ -z "${KC_DOMAIN:-}" ]]; then
+    warn "KC_DOMAIN nicht gesetzt — Benutzer-Export übersprungen"
+    return 0
+  fi
+
+  if [[ -z "$kc_pass" ]]; then
+    warn "Keycloak Admin-Passwort nicht gesetzt — Benutzer-Export übersprungen"
     return 0
   fi
 
   if ${DRY_RUN:-false}; then
-    warn "[DRY-RUN] Würde LLDAP-Benutzer und -Gruppen exportieren"
+    warn "[DRY-RUN] Würde Keycloak-Benutzer und -Gruppen exportieren"
     return 0
   fi
 
   local token
-  token=$(curl -s -X POST "${LLDAP_URL}/auth/simple/login" \
-    -H "Content-Type: application/json" \
-    -d "{\"username\":\"${LLDAP_ADMIN}\",\"password\":\"${LLDAP_PASS}\"}" 2>/dev/null | jq -r '.token // empty')
+  token=$(curl -s -X POST "${kc_url}/realms/master/protocol/openid-connect/token" \
+    -d "client_id=admin-cli" \
+    -d "username=${kc_admin}" \
+    -d "password=${kc_pass}" \
+    -d "grant_type=password" 2>/dev/null | jq -r '.access_token // empty')
 
   if [[ -z "$token" ]]; then
-    warn "LLDAP-Login fehlgeschlagen"
+    warn "Keycloak-Login fehlgeschlagen"
     return 1
   fi
 
-  local users_json
-  users_json=$(curl -s -X POST "${LLDAP_URL}/api/graphql" \
-    -H "Authorization: Bearer ${token}" \
-    -H "Content-Type: application/json" \
-    -d '{"query":"{ users { id email displayName firstName lastName groups { displayName } } }"}' 2>/dev/null)
+  local auth="Authorization: Bearer ${token}"
 
-  local groups_json
-  groups_json=$(curl -s -X POST "${LLDAP_URL}/api/graphql" \
-    -H "Authorization: Bearer ${token}" \
-    -H "Content-Type: application/json" \
-    -d '{"query":"{ groups { id displayName users { id } } }"}' 2>/dev/null)
+  # Benutzer abrufen
+  local users_json
+  users_json=$(curl -s "${kc_url}/admin/realms/homeoffice/users?max=1000" \
+    -H "$auth" 2>/dev/null)
 
   # CSV
-  local csv_file="${output_dir}/lldap/users.csv"
+  local csv_file="${output_dir}/keycloak/users.csv"
   echo "username,email,display_name,groups,first_name,last_name" > "$csv_file"
-  echo "$users_json" | jq -r '.data.users[]? | [
-    .id,
-    .email,
-    .displayName,
-    ([.groups[]?.displayName] | join(";")),
-    (.firstName // ""),
-    (.lastName // "")
-  ] | @csv' >> "$csv_file" 2>/dev/null
 
-  # LDIF
-  local ldif_file="${output_dir}/lldap/users.ldif"
-  : > "$ldif_file"
-  echo "$users_json" | jq -r '.data.users[]? | @base64' 2>/dev/null | while read -r encoded; do
-    local user
-    user=$(echo "$encoded" | base64 -d)
-    local uid email cn fn ln
-    uid=$(echo "$user" | jq -r '.id')
+  local user_count=0
+  echo "$users_json" | jq -c '.[]' 2>/dev/null | while read -r user; do
+    local uid email fn ln
+    uid=$(echo "$user" | jq -r '.username')
     email=$(echo "$user" | jq -r '.email // ""')
-    cn=$(echo "$user" | jq -r '.displayName // .id')
     fn=$(echo "$user" | jq -r '.firstName // ""')
     ln=$(echo "$user" | jq -r '.lastName // ""')
+    local display_name="${fn} ${ln}"
+    [[ "$display_name" == " " ]] && display_name="$uid"
+
+    # Gruppen des Users abrufen
+    local user_id
+    user_id=$(echo "$user" | jq -r '.id')
+    local user_groups
+    user_groups=$(curl -s "${kc_url}/admin/realms/homeoffice/users/${user_id}/groups" \
+      -H "$auth" 2>/dev/null | jq -r '[.[].name] | join(";")' 2>/dev/null)
+
+    echo "\"${uid}\",\"${email}\",\"${display_name}\",\"${user_groups}\",\"${fn}\",\"${ln}\"" >> "$csv_file"
+  done
+
+  # LDIF
+  local ldif_file="${output_dir}/keycloak/users.ldif"
+  : > "$ldif_file"
+  echo "$users_json" | jq -c '.[]' 2>/dev/null | while read -r user; do
+    local uid email fn ln
+    uid=$(echo "$user" | jq -r '.username')
+    email=$(echo "$user" | jq -r '.email // ""')
+    fn=$(echo "$user" | jq -r '.firstName // ""')
+    ln=$(echo "$user" | jq -r '.lastName // ""')
+    local cn="${fn} ${ln}"
+    [[ "$cn" == " " ]] && cn="$uid"
 
     cat >> "$ldif_file" <<LDIF
 dn: uid=${uid},ou=people,dc=homeoffice
@@ -277,11 +294,14 @@ sn: ${ln:-${uid}}
 LDIF
   done
 
-  local user_count
-  user_count=$(echo "$users_json" | jq '.data.users | length' 2>/dev/null || echo 0)
-  success "LLDAP exportiert: ${user_count} Benutzer → CSV + LDIF"
+  user_count=$(echo "$users_json" | jq 'length' 2>/dev/null || echo 0)
+  success "Keycloak-Benutzer exportiert: ${user_count} Benutzer → CSV + LDIF"
 
-  echo "$groups_json" | jq '.data.groups' > "${output_dir}/lldap/groups.json" 2>/dev/null
+  # Gruppen
+  local groups_json
+  groups_json=$(curl -s "${kc_url}/admin/realms/homeoffice/groups" \
+    -H "$auth" 2>/dev/null)
+  echo "$groups_json" > "${output_dir}/keycloak/groups.json" 2>/dev/null
 }
 
 # ── Keycloak Realm ───────────────────────────────────────────────────
@@ -388,7 +408,7 @@ run_export() {
   [[ "${EXPORT_ENABLED[2]}" -eq 1 ]] && export_nc_files "$output_dir"
   [[ "${EXPORT_ENABLED[3]}" -eq 1 ]] && export_nc_calendar "$output_dir"
   [[ "${EXPORT_ENABLED[4]}" -eq 1 ]] && export_nc_contacts "$output_dir"
-  [[ "${EXPORT_ENABLED[5]}" -eq 1 ]] && export_lldap_users "$output_dir"
+  [[ "${EXPORT_ENABLED[5]}" -eq 1 ]] && export_keycloak_users "$output_dir"
   [[ "${EXPORT_ENABLED[6]}" -eq 1 ]] && export_keycloak_realm "$output_dir"
 
   write_export_manifest "$output_dir"

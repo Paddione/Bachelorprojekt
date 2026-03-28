@@ -180,7 +180,8 @@ services:
       LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS}
       TZ: Europe/Berlin
     volumes:
-      - ./keycloak:/opt/keycloak/realm-template:ro
+      - ./scripts/import-entrypoint.sh:/opt/keycloak/realm-template/import-entrypoint.sh:ro
+      - ./realm-homeoffice.json:/opt/keycloak/realm-template/realm-homeoffice.json:ro
     depends_on:
       keycloak-db:
         condition: service_healthy
@@ -336,7 +337,7 @@ services:
       SMB_DOMAIN: ${SMB_DOMAIN:-WORKGROUP}
       SMB_REMOTE_PATH: ${SMB_REMOTE_PATH:-homeoffice-mvp}
     volumes:
-      - ./backup/backup-entrypoint.sh:/backup/backup-entrypoint.sh:ro
+      - ./scripts/backup-entrypoint.sh:/backup/backup-entrypoint.sh:ro
       - ${STORAGE_PATH:-./data}:/data:ro
     restart: unless-stopped
     networks:

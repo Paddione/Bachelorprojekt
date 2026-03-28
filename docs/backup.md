@@ -49,8 +49,7 @@ Leere Felder = Ziel wird übersprungen. Beide Ziele können gleichzeitig aktiv s
 Falls ein lokales Laufwerk als SMB-Share für Backups verwendet werden soll:
 
 ```bash
-sudo chmod +x scripts/setup-smb.sh
-sudo ./scripts/setup-smb.sh
+sudo ./scripts/setup.sh smb
 ```
 
 Das Skript:
@@ -64,8 +63,8 @@ Das Skript:
 
 **Modi:**
 ```bash
-sudo ./scripts/setup-smb.sh           # Interaktive Einrichtung
-sudo ./scripts/setup-smb.sh --check   # Nur verfügbare Laufwerke anzeigen
+sudo ./scripts/setup.sh smb           # Interaktive Einrichtung
+sudo ./scripts/setup.sh smb --check   # Nur verfügbare Laufwerke anzeigen
 ```
 
 ## Logs prüfen

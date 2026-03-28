@@ -39,7 +39,7 @@ LLDAP verwaltet alle Benutzerkonten und Gruppen. Keycloak liest per LDAP-Federat
 | Port | 8080 (intern via Traefik) |
 | Funktion | Single Sign-On via OpenID Connect |
 
-Keycloak ist der zentrale Identity Provider. Beim ersten Start wird der Realm `homeoffice` aus `keycloak/realm-homeoffice.json` importiert. Der Realm enthält:
+Keycloak ist der zentrale Identity Provider. Beim ersten Start wird der Realm `homeoffice` aus `realm-homeoffice.json` importiert. Der Realm enthält:
 
 - OIDC-Clients für Mattermost und Nextcloud (mit Secrets aus `.env`)
 - LDAP-Federation zu LLDAP (auto-sync alle 5 Minuten)

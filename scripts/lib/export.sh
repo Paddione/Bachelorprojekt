@@ -328,7 +328,7 @@ export_keycloak_realm() {
     -H "Authorization: Bearer ${access_token}" 2>/dev/null)
 
   if echo "$realm_json" | jq -e '.realm' &>/dev/null; then
-    echo "$realm_json" | jq '.' > "${output_dir}/keycloak/realm-homeoffice.json"
+    echo "$realm_json" | jq '.' > "${output_dir}/realm-homeoffice.json"
     success "Keycloak Realm exportiert: realm-homeoffice.json"
   else
     warn "Keycloak Realm 'homeoffice' nicht gefunden oder Zugriff verweigert"

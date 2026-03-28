@@ -152,8 +152,7 @@ Details: [Migration](migration.md)
 ### SMB-Backup einrichten
 
 ```bash
-sudo chmod +x scripts/setup-smb.sh
-sudo ./scripts/setup-smb.sh
+sudo ./scripts/setup.sh smb
 ```
 
 Details: [Backup](backup.md)

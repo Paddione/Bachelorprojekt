@@ -12,7 +12,7 @@ Das Script:
 1. Installiert fehlende Abhängigkeiten (Docker, Docker Compose, openssl, jq)
 2. Fragt Projektname, DuckDNS-Token und E-Mail ab
 3. Generiert 12 sichere Secrets automatisch
-4. Erstellt alle Datenverzeichnisse + acme.json
+4. Erstellt Datenverzeichnisse + acme.json, richtet UFW-Firewall ein
 5. Führt den vollständigen Pre-Flight Check mit Auto-Fix durch
 6. Validiert die Konfiguration und startet den Stack
 
@@ -22,7 +22,7 @@ Das Script:
 # PowerShell als Administrator öffnen
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 git clone https://github.com/Paddione/homeoffice-mvp.git; cd homeoffice-mvp
-.\scripts\quickstart-windows.ps1
+.\scripts\setup-windows.ps1
 ```
 
 Das Script:
@@ -30,7 +30,8 @@ Das Script:
 2. Fragt Projektname, DuckDNS-Token und E-Mail ab
 3. Generiert 12 sichere Secrets automatisch
 4. Erstellt alle Datenverzeichnisse + acme.json
-5. Validiert die Konfiguration und startet den Stack
+5. Richtet Windows-Firewall-Regeln ein
+6. Validiert die Konfiguration und startet den Stack
 
 > **Hinweis:** Nach der Docker Desktop Installation ist ein **Neustart** erforderlich.
 > Danach das Script erneut ausführen.
@@ -43,8 +44,8 @@ cp .env.example .env
 nano .env                        # Alle CHANGE_ME_* Werte ausfüllen
 
 # 2. Firewall einrichten (Ports 80, 443, 10000/UDP)
-sudo ./scripts/firewall-linux.sh setup          # Linux
-# .\scripts\firewall-windows.ps1 -Action Setup  # Windows (als Admin)
+sudo ./scripts/setup.sh firewall setup          # Linux (UFW)
+# .\scripts\setup-windows.ps1 -Action Firewall-Setup  # Windows (als Admin)
 
 # 3. Pre-Flight Check
 ./scripts/setup.sh --fix
@@ -79,16 +80,12 @@ Die vollständige Dokumentation liegt in [`docs/`](docs/README.md):
 
 | Skript | Beschreibung |
 |--------|-------------|
-| `scripts/setup.sh` | Pre-Flight Check, Auto-Fix, Quickstart (`--quickstart`) |
-| `scripts/quickstart-linux.sh` | Wrapper → `setup.sh --quickstart` |
-| `scripts/quickstart-windows.ps1` | Schnellstart für Windows (Docker Desktop + winget) |
-| `scripts/firewall-linux.sh` | Linux-Firewall (UFW) einrichten / entfernen |
-| `scripts/firewall-windows.ps1` | Windows-Firewall einrichten / entfernen |
+| `scripts/setup.sh` | Linux: Check, Fix, Quickstart, Firewall, SMB — alles in einem |
+| `scripts/setup-windows.ps1` | Windows: Docker Desktop, Firewall, .env, Quickstart |
 | `scripts/wsl2-portproxy.ps1` | WSL2 Port-Proxy einrichten / entfernen |
 | `scripts/check-connectivity.sh` | Erreichbarkeit aller Dienste testen |
 | `scripts/migrate.sh` | Daten-Migration (Slack, Teams, Google) |
 | `scripts/import-users.sh` | Benutzer-Import in LLDAP (CSV/LDIF) |
-| `scripts/setup-smb.sh` | SMB-Share für Backups einrichten |
 
 ## Tests
 

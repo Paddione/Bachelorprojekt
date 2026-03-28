@@ -19,18 +19,18 @@ Damit das Deployment von außen erreichbar ist, müssen drei Ports freigegeben w
 
 ```bash
 # Regeln anlegen
-sudo ./scripts/firewall-linux.sh setup
+sudo ./scripts/setup.sh firewall setup
 
 # Status anzeigen
-./scripts/firewall-linux.sh status
+./scripts/setup.sh firewall status
 
 # Regeln wieder entfernen
-sudo ./scripts/firewall-linux.sh remove
+sudo ./scripts/setup.sh firewall remove
 ```
 
 Das Skript gibt die Ports 80/tcp, 443/tcp und 10000/udp frei und aktiviert UFW falls nötig. Bereits vorhandene Regeln werden nicht dupliziert.
 
-Details: [`scripts/firewall-linux.sh`](../scripts/firewall-linux.sh)
+Details: [`scripts/setup.sh`](../scripts/setup.sh)
 
 ---
 
@@ -40,18 +40,18 @@ PowerShell **als Administrator** ausführen (`Win + X → PowerShell (Administra
 
 ```powershell
 # Regeln anlegen
-.\scripts\firewall-windows.ps1 -Action Setup
+.\scripts\setup-windows.ps1 -Action Firewall-Setup
 
 # Status anzeigen
-.\scripts\firewall-windows.ps1 -Action Status
+.\scripts\setup-windows.ps1 -Action Firewall-Status
 
 # Regeln wieder entfernen
-.\scripts\firewall-windows.ps1 -Action Remove
+.\scripts\setup-windows.ps1 -Action Firewall-Remove
 ```
 
 Das Skript erstellt eingehende Firewall-Regeln für die drei Ports (benannt `Homeoffice MVP - *`).
 
-Details: [`scripts/firewall-windows.ps1`](../scripts/firewall-windows.ps1)
+Details: [`scripts/setup-windows.ps1`](../scripts/setup-windows.ps1)
 
 ### WSL2-Hinweis
 

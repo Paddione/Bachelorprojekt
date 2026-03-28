@@ -2,9 +2,9 @@
 
 ## Realm: homeoffice
 
-Beim ersten Start importiert Keycloak automatisch den Realm `homeoffice` aus `keycloak/realm-homeoffice.json`. Der Import-Mechanismus:
+Beim ersten Start importiert Keycloak automatisch den Realm `homeoffice` aus `realm-homeoffice.json`. Der Import-Mechanismus:
 
-1. `keycloak/import-entrypoint.sh` ersetzt Umgebungsvariablen (`envsubst`) in der Realm-JSON
+1. `scripts/import-entrypoint.sh` ersetzt Umgebungsvariablen (`envsubst`) in der Realm-JSON
 2. Keycloak startet mit `--import-realm` und liest die aufbereitete Datei
 
 > **Wichtig:** OIDC-Secrets (`MATTERMOST_OIDC_SECRET`, `NEXTCLOUD_OIDC_SECRET`) müssen in `.env` gesetzt sein, BEVOR Keycloak zum ersten Mal startet. Nachträgliches Ändern erfordert manuelle Anpassung in der Admin-Console.

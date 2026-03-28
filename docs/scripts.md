@@ -89,37 +89,38 @@ anna.schmidt,anna@example.com,Anna Schmidt,"homeoffice_users;admins",Anna,Schmid
 
 Beispiel: `scripts/users-example.csv`
 
-## scripts/setup-smb.sh — SMB-Share Einrichtung
+## setup.sh smb — SMB-Share Einrichtung
 
 Richtet ein lokales Laufwerk als SMB-Freigabe für Backups ein. Benötigt `sudo`.
 
 ```bash
-sudo ./scripts/setup-smb.sh           # Interaktiv
-sudo ./scripts/setup-smb.sh --check   # Nur Laufwerke anzeigen
+sudo ./scripts/setup.sh smb           # Interaktiv
+sudo ./scripts/setup.sh smb --check   # Nur Laufwerke anzeigen
 ```
 
 Details: [Backup](backup.md)
 
-## scripts/firewall-linux.sh — Linux-Firewall (UFW)
+## setup.sh firewall — Linux-Firewall (UFW)
 
 Verwaltet UFW-Firewall-Regeln für die drei benötigten Ports.
 
 ```bash
-sudo ./scripts/firewall-linux.sh setup    # Regeln anlegen
-./scripts/firewall-linux.sh status        # Regeln anzeigen
-sudo ./scripts/firewall-linux.sh remove   # Regeln entfernen
+sudo ./scripts/setup.sh firewall setup    # Regeln anlegen
+./scripts/setup.sh firewall status        # Regeln anzeigen
+sudo ./scripts/setup.sh firewall remove   # Regeln entfernen
 ```
 
 Regeln: 80/tcp, 443/tcp, 10000/udp. Idempotent — vorhandene Regeln werden nicht dupliziert.
 
-## scripts/firewall-windows.ps1 — Windows-Firewall
+## setup-windows.ps1 — Windows Setup + Firewall
 
-PowerShell-Skript für Windows-Firewall-Regeln. Als Administrator ausführen.
+PowerShell-Skript für Windows-Setup und Firewall-Regeln. Als Administrator ausführen.
 
 ```powershell
-.\scripts\firewall-windows.ps1 -Action Setup     # Regeln anlegen
-.\scripts\firewall-windows.ps1 -Action Status    # Regeln anzeigen
-.\scripts\firewall-windows.ps1 -Action Remove    # Regeln entfernen
+.\scripts\setup-windows.ps1                          # Quickstart
+.\scripts\setup-windows.ps1 -Action Firewall-Setup   # Regeln anlegen
+.\scripts\setup-windows.ps1 -Action Firewall-Status  # Regeln anzeigen
+.\scripts\setup-windows.ps1 -Action Firewall-Remove  # Regeln entfernen
 ```
 
 ## scripts/wsl2-portproxy.ps1 — WSL2 Port-Proxy
@@ -145,7 +146,7 @@ Prüft HTTPS-Erreichbarkeit aller Dienste und Jitsi-UDP. Liest Domains aus `.env
 
 Details: [Firewall & Netzwerk](firewall.md)
 
-## keycloak/import-entrypoint.sh — Realm-Import
+## scripts/import-entrypoint.sh — Realm-Import
 
 Ersetzt Umgebungsvariablen in `realm-homeoffice.json` und startet Keycloak mit automatischem Realm-Import. Wird als Custom-Entrypoint im Docker-Container verwendet.
 
@@ -154,7 +155,7 @@ Ersetzt Umgebungsvariablen in `realm-homeoffice.json` und startet Keycloak mit a
 2. Aufbereitete JSON wird als Import-Datei bereitgestellt
 3. Keycloak startet mit `--import-realm`
 
-## backup/backup-entrypoint.sh — Backup-Cron
+## scripts/backup-entrypoint.sh — Backup-Cron
 
 Konfiguriert rclone und richtet einen Cron-Job ein. Wird als Entrypoint des Backup-Containers verwendet.
 

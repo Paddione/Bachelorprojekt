@@ -71,6 +71,45 @@ _mm_login() {
   echo "$response" | grep -i '^token:' | tr -d '[:space:]' | cut -d: -f2
 }
 
+# ── Keycloak test user ──────────────────────────────────────────
+KC_URL="http://localhost:8080"
+KC_ADMIN_TOKEN=""
+
+_kc_admin_login() {
+  KC_ADMIN_TOKEN=$(curl -s -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
+    -d "client_id=admin-cli" \
+    -d "username=admin" \
+    -d "password=${KEYCLOAK_ADMIN_PASSWORD:-admin}" \
+    -d "grant_type=password" | jq -r '.access_token // empty')
+}
+
+_bootstrap_keycloak_user() {
+  echo "  Keycloak Test-User einrichten..."
+  _kc_admin_login
+  if [[ -z "$KC_ADMIN_TOKEN" ]]; then
+    echo "  ⚠ Keycloak Admin-Token nicht verfügbar — KC-Bootstrap übersprungen"
+    return 1
+  fi
+
+  local test_pass="${MM_TEST_ADMIN_PASS:-Testpassword123!}"
+
+  local exists
+  exists=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+    "${KC_URL}/admin/realms/homeoffice/users?username=testuser1" | jq -r '.[0].id // empty')
+
+  if [[ -z "$exists" ]]; then
+    curl -s -o /dev/null -X POST -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+      -H "Content-Type: application/json" \
+      "${KC_URL}/admin/realms/homeoffice/users" \
+      -d "{\"username\":\"testuser1\",\"email\":\"testuser1@homeoffice.local\",\"firstName\":\"Test\",\"lastName\":\"User\",\"enabled\":true,\"credentials\":[{\"type\":\"password\",\"value\":\"${test_pass}\",\"temporary\":false}]}"
+    echo "  Keycloak User 'testuser1' erstellt."
+  else
+    echo "  Keycloak User 'testuser1' existiert bereits."
+  fi
+
+  export KC_ADMIN_TOKEN KC_URL
+}
+
 # ── Bootstrap test data ─────────────────────────────────────────
 bootstrap_test_data() {
   echo "▶ Test-Daten einrichten..."
@@ -152,6 +191,8 @@ bootstrap_test_data() {
     _mm_api POST "/channels" "{\"team_id\":\"${team_id}\",\"name\":\"test-private\",\"display_name\":\"Test Private\",\"type\":\"P\"}" > /dev/null
     echo "  Channel 'test-private' erstellt."
   fi
+
+  _bootstrap_keycloak_user || echo "  ⚠ Keycloak-Bootstrap teilweise fehlgeschlagen"
 
   echo "  ✓ Test-Daten bereit."
   export MM_ADMIN_TOKEN MM_URL

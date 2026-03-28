@@ -20,11 +20,20 @@ if [[ -n "${NC_DOMAIN:-}" ]]; then
   assert_lt "$NC_MS" 2000 "NFA-02" "T3" "Nextcloud erreichbar < 2s"
 fi
 
-# T5: Load test with ab
-if command -v ab &>/dev/null; then
-  AB_OUT=$(ab -n 100 -c 10 "https://${MM_DOMAIN}/api/v4/system/ping" 2>&1)
-  FAIL_PCT=$(echo "$AB_OUT" | grep "Failed requests" | awk '{print $3}')
-  assert_lt "${FAIL_PCT:-100}" 5 "NFA-02" "T5" "Apache Bench: < 5% Fehlerrate bei 100 Requests"
-else
-  skip_test "NFA-02" "T5" "Load test" "Apache Bench (ab) nicht installiert"
-fi
+# T5: Load test — 100 requests, 10 concurrent (curl-based)
+_NFA02_FAILS=0
+_NFA02_TMPDIR=$(mktemp -d)
+for i in $(seq 1 100); do
+  ( curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+      "https://${MM_DOMAIN}/api/v4/system/ping" 2>/dev/null \
+      > "${_NFA02_TMPDIR}/${i}" ) &
+  # cap concurrency at 10
+  (( i % 10 == 0 )) && wait
+done
+wait
+for f in "${_NFA02_TMPDIR}"/*; do
+  s=$(cat "$f")
+  [[ "$s" == "500" || "$s" == "502" || "$s" == "503" || "$s" == "000" ]] && ((_NFA02_FAILS++)) || true
+done
+rm -rf "$_NFA02_TMPDIR"
+assert_lt "$_NFA02_FAILS" 5 "NFA-02" "T5" "Load-Test: < 5 Fehler bei 100 Requests (${_NFA02_FAILS} Fehler)"

@@ -10,8 +10,12 @@ for domain in microsoft.com slack.com zoom.us googleapis.com; do
 done
 
 # T2: No external tracking endpoints
-for tracker in analytics tracking telemetry; do
+for tracker in analytics tracking; do
   assert_not_contains "$LOGS" "$tracker" "NFA-01" "T2-${tracker}" "Kein ${tracker}-Endpunkt in Logs"
+done
+# Telemetry: check for actual outbound endpoints, not the config keyword
+for endpoint in telemetry.mattermost.com diagnostics.mattermost.com; do
+  assert_not_contains "$LOGS" "$endpoint" "NFA-01" "T2-${endpoint%%.*}" "Keine Verbindung zu ${endpoint}"
 done
 
 # T5: Server IP in Germany

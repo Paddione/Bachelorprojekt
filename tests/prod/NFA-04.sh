@@ -12,15 +12,23 @@ for i in $(seq 1 10); do
 done
 assert_eq "$ERROR_COUNT" "0" "NFA-04" "T1" "10 gleichzeitige Requests ohne HTTP 500"
 
-# T2: ab load test
-if command -v ab &>/dev/null; then
-  AB_OUT=$(ab -n 100 -c 10 "https://${MM_DOMAIN}/api/v4/system/ping" 2>&1)
-  FAIL_REQ=$(echo "$AB_OUT" | grep "Failed requests" | awk '{print $3}')
-  FAIL_PCT=$((FAIL_REQ * 100 / 100))
-  assert_lt "$FAIL_PCT" 5 "NFA-04" "T2" "ab -n 100 -c 10: < 5% Fehlerrate"
-else
-  skip_test "NFA-04" "T2" "Load test" "Apache Bench (ab) nicht installiert"
-fi
+# T2: Load test — 100 requests, 10 concurrent (curl-based)
+_NFA04_FAILS=0
+_NFA04_TMPDIR=$(mktemp -d)
+for i in $(seq 1 100); do
+  ( curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+      "https://${MM_DOMAIN}/api/v4/system/ping" 2>/dev/null \
+      > "${_NFA04_TMPDIR}/${i}" ) &
+  (( i % 10 == 0 )) && wait
+done
+wait
+for f in "${_NFA04_TMPDIR}"/*; do
+  s=$(cat "$f")
+  [[ "$s" == "500" || "$s" == "502" || "$s" == "503" || "$s" == "000" ]] && ((_NFA04_FAILS++)) || true
+done
+rm -rf "$_NFA04_TMPDIR"
+FAIL_PCT=$(( _NFA04_FAILS * 100 / 100 ))
+assert_lt "$FAIL_PCT" 5 "NFA-04" "T2" "Load-Test 100×c10: < 5% Fehlerrate (${FAIL_PCT}%)"
 
 # T4: README contains scaling notes
 if [[ -f "${COMPOSE_DIR}/README.md" ]]; then

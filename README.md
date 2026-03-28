@@ -67,6 +67,15 @@ Internet
 
 Details: [Architektur](docs/architecture.md)
 
+## Skalierung
+
+Die Plattform ist für kleine Teams (5–30 Nutzer) auf einem einzelnen Host ausgelegt. Skalierungsoptionen:
+
+- **Vertikal**: CPU/RAM des Hosts erhöhen; Postgres-Limits über Umgebungsvariablen anpassen (`POSTGRES_MAX_CONNECTIONS`, `shared_buffers`)
+- **Horizontal**: Mattermost und Nextcloud können auf separate Hosts aufgeteilt werden — jeweils eigener Docker Compose Stack mit gemeinsamer Datenbank
+- **Jitsi JVB**: Zusätzliche Videobridges über `JVB_ADVERTISE_IPS` und separate JVB-Container anbinden
+- **Traefik**: Unterstützt Load Balancing über mehrere Backend-Instanzen via Docker Labels
+
 ## Projektstruktur
 
 ```

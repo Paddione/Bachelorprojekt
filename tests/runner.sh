@@ -155,10 +155,10 @@ MD_OUT="${RESULTS_DIR}/${DATE_TAG}-${TIER}.md"
 
 finalize_json "$TIER" "$JSON_OUT"
 generate_markdown "$JSON_OUT" "$MD_OUT"
-rm -f "$RESULTS_FILE"  # clean up temp JSONL
 
 echo ""
 assert_summary
+rm -f "$RESULTS_FILE"  # clean up temp JSONL
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Reports: ${JSON_OUT}"

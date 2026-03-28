@@ -155,8 +155,18 @@ skip_test() {
 }
 
 assert_summary() {
-  local total=$(( _ASSERT_PASS + _ASSERT_FAIL + _ASSERT_SKIP ))
+  local pass fail skip total
+  if [[ -n "${RESULTS_FILE:-}" && -s "$RESULTS_FILE" ]]; then
+    pass=$(grep -c '"status":"pass"' "$RESULTS_FILE" 2>/dev/null) || pass=0
+    fail=$(grep -c '"status":"fail"' "$RESULTS_FILE" 2>/dev/null) || fail=0
+    skip=$(grep -c '"status":"skip"' "$RESULTS_FILE" 2>/dev/null) || skip=0
+  else
+    pass=$_ASSERT_PASS
+    fail=$_ASSERT_FAIL
+    skip=$_ASSERT_SKIP
+  fi
+  total=$(( pass + fail + skip ))
   echo ""
-  echo -e "  ${_A_GREEN}${_ASSERT_PASS} passed${_A_NC}, ${_A_RED}${_ASSERT_FAIL} failed${_A_NC}, ${_A_YELLOW}${_ASSERT_SKIP} skipped${_A_NC} (${total} total)"
-  [[ $_ASSERT_FAIL -eq 0 ]]
+  echo -e "  ${_A_GREEN}${pass} passed${_A_NC}, ${_A_RED}${fail} failed${_A_NC}, ${_A_YELLOW}${skip} skipped${_A_NC} (${total} total)"
+  [[ $fail -eq 0 ]]
 }

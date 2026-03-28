@@ -8,7 +8,6 @@
 #   KC_DOMAIN    → z.B. bachelorprojekt-auth.duckdns.org
 #   NC_DOMAIN    → z.B. bachelorprojekt-files.duckdns.org
 #   JITSI_DOMAIN → z.B. bachelorprojekt-meet.duckdns.org
-#   LLDAP_DOMAIN → z.B. bachelorprojekt-ldap.duckdns.org
 #
 # Alle 5 Subdomains müssen einmalig auf duckdns.org angelegt werden.
 # Der DuckDNS-Updater pflegt dann alle 5 gleichzeitig:
@@ -25,7 +24,6 @@ volumes:
   mattermost-db-data:
   nextcloud-db-data:
   nextcloud-app:
-  lldap-db-data:
 
 # ── Netzwerk ────────────────────────────────────────────────────────
 networks:
@@ -85,53 +83,6 @@ services:
     networks:
       - homeoffice
 
-  # ── LLDAP Datenbank ──────────────────────────────────────────────
-  lldap-db:
-    image: postgres:16-alpine
-    container_name: homeoffice-lldap-db
-    environment:
-      POSTGRES_DB: lldap
-      POSTGRES_USER: lldap
-      POSTGRES_PASSWORD: ${LLDAP_DB_PASSWORD:?LLDAP DB Passwort fehlt}
-    volumes:
-      - lldap-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lldap"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - homeoffice
-
-  # ── LLDAP (Lightweight LDAP) ────────────────────────────────────
-  # Web UI: https://${LLDAP_DOMAIN}
-  # Login:  admin / ${LLDAP_LDAP_USER_PASS}
-  lldap:
-    image: lldap/lldap:stable
-    container_name: homeoffice-lldap
-    environment:
-      LLDAP_JWT_SECRET: ${LLDAP_JWT_SECRET:?LLDAP JWT Secret fehlt}
-      LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS:?LLDAP Admin Passwort fehlt}
-      LLDAP_DATABASE_URL: "postgresql://lldap:${LLDAP_DB_PASSWORD}@lldap-db:5432/lldap"
-      LLDAP_LDAP_BASE_DN: "dc=${LLDAP_BASE_DOMAIN:-example},dc=${LLDAP_BASE_TLD:-com}"
-      LLDAP_LDAP_USER_DN: admin
-      LLDAP_HTTP_URL: "https://${LLDAP_DOMAIN:?LLDAP Domain fehlt}"
-      LLDAP_VERBOSE: "false"
-      TZ: Europe/Berlin
-    depends_on:
-      lldap-db:
-        condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.lldap.rule=Host(`${LLDAP_DOMAIN}`)"
-      - "traefik.http.routers.lldap.entrypoints=websecure"
-      - "traefik.http.routers.lldap.tls.certresolver=letsencrypt"
-      - "traefik.http.services.lldap.loadbalancer.server.port=17170"
-    restart: unless-stopped
-    networks:
-      - homeoffice
-
   # ── Keycloak Datenbank ──────────────────────────────────────────
   keycloak-db:
     image: postgres:16-alpine
@@ -154,7 +105,7 @@ services:
   # ── Keycloak (SSO) ──────────────────────────────────────────────
   # Realm "homeoffice" wird beim ersten Start automatisch importiert.
   # Enthält: Mattermost + Nextcloud Clients mit vorgesetzten OIDC Secrets,
-  #          LLDAP User Federation, Protocol Mappers.
+  #          Protocol Mappers.
   # → Kein manuelles Setup in der Admin-Console nötig.
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
@@ -175,9 +126,6 @@ services:
       NEXTCLOUD_OIDC_SECRET: ${NEXTCLOUD_OIDC_SECRET:?Nextcloud OIDC Secret fehlt}
       MM_DOMAIN: ${MM_DOMAIN}
       NC_DOMAIN: ${NC_DOMAIN}
-      LLDAP_BASE_DOMAIN: ${LLDAP_BASE_DOMAIN}
-      LLDAP_BASE_TLD: ${LLDAP_BASE_TLD}
-      LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS}
       TZ: Europe/Berlin
     volumes:
       - ./scripts/import-entrypoint.sh:/opt/keycloak/realm-template/import-entrypoint.sh:ro
@@ -185,8 +133,6 @@ services:
     depends_on:
       keycloak-db:
         condition: service_healthy
-      lldap:
-        condition: service_started
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.keycloak.rule=Host(`${KC_DOMAIN}`)"

@@ -22,13 +22,12 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 # Variablen aus .env laden (nur die benötigten)
-eval "$(grep -E '^(MM_DOMAIN|KC_DOMAIN|NC_DOMAIN|JITSI_DOMAIN|LLDAP_DOMAIN)=' "$ENV_FILE")"
+eval "$(grep -E '^(MM_DOMAIN|KC_DOMAIN|NC_DOMAIN|JITSI_DOMAIN)=' "$ENV_FILE")"
 
 SERVICES=(
   "$MM_DOMAIN|Mattermost"
   "$KC_DOMAIN|Keycloak"
   "$NC_DOMAIN|Nextcloud"
-  "$LLDAP_DOMAIN|LLDAP"
   "$JITSI_DOMAIN|Jitsi"
 )
 

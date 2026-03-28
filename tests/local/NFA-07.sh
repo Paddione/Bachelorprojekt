@@ -13,4 +13,3 @@ assert_contains "$IMAGES" "mattermost-team-edition" "NFA-07" "T2" "Mattermost Te
 assert_contains "$IMAGES" "nextcloud" "NFA-07" "T2b" "Nextcloud Image vorhanden"
 assert_contains "$IMAGES" "jitsi" "NFA-07" "T2c" "Jitsi Images vorhanden"
 assert_contains "$IMAGES" "keycloak" "NFA-07" "T2d" "Keycloak Image vorhanden"
-assert_contains "$IMAGES" "lldap" "NFA-07" "T2e" "LLDAP Image vorhanden"

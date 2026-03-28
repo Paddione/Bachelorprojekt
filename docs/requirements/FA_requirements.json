@@ -26,8 +26,8 @@
     "FA-05": {
         "Bezeichnung": "Nutzerverwaltung",
         "Beschreibung": "Vollständiger Lebenszyklus von Nutzerkonten: Anlegen (manuell oder per LDAP/AD-Synchronisation), Bearbeiten von Profildaten, Deaktivieren und Löschen. Rollenmodell: System-Admin (vollständige Kontrolle), Team-Admin (Teamverwaltung), Nutzer (Standardrolle) und Gast (eingeschränkter Zugriff auf explizit zugewiesene Kanäle). LDAP/Active-Directory-Anbindung ermöglicht Single-Source-of-Truth für Nutzerdaten.",
-        "Erfüllungskriterien": "1) Admin kann User anlegen, bearbeiten, deaktivieren\n2) Rollen Admin, User, Gast verfügbar und unterschiedlich berechtigt\n3) LDAP-Sync mit LLDAP funktioniert\n4) CSV-Import über migrate.sh möglich\n5) LDIF-Import unterstützt\n6) SSO-Login via Keycloak (OIDC)",
-        "Testfall": "T1: Admin legt User an → User kann sich einloggen\nT2: Gast-Rolle → Kanalerstellung verweigert\nT3: user.csv importieren → User erscheint in LLDAP und Keycloak\nT4: Keycloak LDAP-Sync → User kann sich per SSO einloggen\nT5: User deaktivieren → Login schlägt fehl"
+        "Erfüllungskriterien": "1) Admin kann User anlegen, bearbeiten, deaktivieren\n2) Rollen Admin, User, Gast verfügbar und unterschiedlich berechtigt\n3) Benutzerverwaltung direkt in Keycloak\n4) CSV-Import über migrate.sh möglich\n5) LDIF-Import unterstützt\n6) SSO-Login via Keycloak (OIDC)",
+        "Testfall": "T1: Admin legt User an → User kann sich einloggen\nT2: Gast-Rolle → Kanalerstellung verweigert\nT3: user.csv importieren → User erscheint in Keycloak\nT4: User in Keycloak angelegt → User kann sich per SSO einloggen\nT5: User deaktivieren → Login schlägt fehl"
     },
     "FA-06": {
         "Bezeichnung": "Benachrichtigungen",

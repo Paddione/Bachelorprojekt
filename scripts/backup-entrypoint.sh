@@ -11,7 +11,7 @@
 #   - traefik/         SSL-Zertifikate
 #
 # Plus DB-Dumps (via separate pg_dump calls zum Live-Container):
-#   - keycloak-db, mattermost-db, nextcloud-db, lldap-db
+#   - keycloak-db, mattermost-db, nextcloud-db
 # ═══════════════════════════════════════════════════════════════════
 set -e
 

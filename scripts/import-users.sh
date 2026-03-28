@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# LLDAP User Import Script
+# Keycloak User Import Script
 # ═══════════════════════════════════════════════════════════════════
-# Importiert User aus CSV oder LDIF in LLDAP über die REST API.
+# Importiert User aus CSV oder LDIF in Keycloak über die Admin REST API.
 # Erstellt fehlende Gruppen automatisch.
 #
 # Voraussetzungen:
 #   - curl, jq (apt install curl jq)
-#   - LLDAP läuft und ist erreichbar (lokal oder per URL)
+#   - Keycloak läuft und ist erreichbar
 #
 # Verwendung:
 #   ./import-users.sh --csv users.csv
 #   ./import-users.sh --ldif users.ldif
-#   ./import-users.sh --csv users.csv --url https://ldap.example.com --admin admin
+#   ./import-users.sh --csv users.csv --url https://auth.example.com --admin admin
 #
 # CSV-Format (erste Zeile = Header):
 #   username,email,display_name,groups,first_name,last_name
@@ -25,9 +25,10 @@
 set -euo pipefail
 
 # ── Defaults ────────────────────────────────────────────────────────
-LLDAP_URL="${LLDAP_URL:-http://localhost:17170}"
-LLDAP_ADMIN="${LLDAP_ADMIN:-admin}"
-LLDAP_PASS="${LLDAP_LDAP_USER_PASS:-}"
+KC_URL="${KC_URL:-}"
+KC_ADMIN="${KC_ADMIN:-admin}"
+KC_PASS="${KEYCLOAK_ADMIN_PASSWORD:-}"
+KC_REALM="homeoffice"
 MODE=""
 INPUT_FILE=""
 DEFAULT_GROUP="homeoffice_users"
@@ -49,20 +50,21 @@ Verwendung: $0 [Optionen]
 Optionen:
   --csv FILE        CSV-Datei importieren (Format siehe oben)
   --ldif FILE       LDIF-Datei importieren
-  --url URL         LLDAP URL (Standard: http://localhost:17170)
-                    Bei Docker Compose: http://lldap:17170
-  --admin USER      LLDAP Admin-User (Standard: admin)
-  --pass PASS       LLDAP Admin-Passwort (oder LLDAP_LDAP_USER_PASS setzen)
+  --url URL         Keycloak URL (Standard: aus KC_URL oder KC_DOMAIN)
+                    z.B. https://bachelorprojekt-auth.duckdns.org
+  --admin USER      Keycloak Admin-User (Standard: admin)
+  --pass PASS       Keycloak Admin-Passwort (oder KEYCLOAK_ADMIN_PASSWORD setzen)
+  --realm REALM     Keycloak Realm (Standard: homeoffice)
   --group GROUP     Standard-Gruppe für alle User (Standard: homeoffice_users)
   --dry-run         Zeigt was importiert würde, ohne es zu tun
   -h, --help        Diese Hilfe
 
 Beispiele:
-  # Lokaler LLDAP-Container (Docker Compose)
-  ./import-users.sh --csv users.csv --url http://localhost:17170
+  # Lokales Keycloak
+  ./import-users.sh --csv users.csv --url https://localhost:8443
 
-  # Remote LLDAP
-  ./import-users.sh --ldif export.ldif --url https://ldap.example.com --pass geheim
+  # Remote Keycloak
+  ./import-users.sh --csv users.csv --url https://auth.example.com --pass geheim
 
   # Nur anzeigen was passieren würde
   ./import-users.sh --csv users.csv --dry-run
@@ -75,9 +77,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --csv)   MODE="csv";  INPUT_FILE="$2"; shift 2 ;;
     --ldif)  MODE="ldif"; INPUT_FILE="$2"; shift 2 ;;
-    --url)   LLDAP_URL="$2"; shift 2 ;;
-    --admin) LLDAP_ADMIN="$2"; shift 2 ;;
-    --pass)  LLDAP_PASS="$2"; shift 2 ;;
+    --url)   KC_URL="$2"; shift 2 ;;
+    --admin) KC_ADMIN="$2"; shift 2 ;;
+    --pass)  KC_PASS="$2"; shift 2 ;;
+    --realm) KC_REALM="$2"; shift 2 ;;
     --group) DEFAULT_GROUP="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     -h|--help) usage ;;
@@ -91,106 +94,141 @@ done
 command -v curl &>/dev/null || { error "curl nicht gefunden (apt install curl)"; exit 1; }
 command -v jq   &>/dev/null || { error "jq nicht gefunden (apt install jq)"; exit 1; }
 
+# URL ermitteln
+if [[ -z "$KC_URL" ]]; then
+  if [[ -n "${KC_DOMAIN:-}" ]]; then
+    KC_URL="https://${KC_DOMAIN}"
+  else
+    error "Keycloak-URL nicht gesetzt. Verwende --url oder setze KC_URL / KC_DOMAIN."
+    exit 1
+  fi
+fi
+
 # Passwort abfragen wenn nicht gesetzt
-if [[ -z "$LLDAP_PASS" ]]; then
-  read -rsp "LLDAP Admin-Passwort für '$LLDAP_ADMIN': " LLDAP_PASS
+if [[ -z "$KC_PASS" ]]; then
+  read -rsp "Keycloak Admin-Passwort für '$KC_ADMIN': " KC_PASS
   echo
 fi
 
 # ── Auth-Token holen ─────────────────────────────────────────────────
-info "Verbinde mit LLDAP: $LLDAP_URL"
-TOKEN_RESPONSE=$(curl -s -X POST "${LLDAP_URL}/auth/simple/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"username\":\"${LLDAP_ADMIN}\",\"password\":\"${LLDAP_PASS}\"}" 2>&1)
+info "Verbinde mit Keycloak: $KC_URL"
+TOKEN_RESPONSE=$(curl -s -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
+  -d "client_id=admin-cli" \
+  -d "username=${KC_ADMIN}" \
+  -d "password=${KC_PASS}" \
+  -d "grant_type=password" 2>&1)
 
-TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.token // empty' 2>/dev/null)
+TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token // empty' 2>/dev/null)
 if [[ -z "$TOKEN" ]]; then
   error "Login fehlgeschlagen. Antwort: $TOKEN_RESPONSE"
   exit 1
 fi
-success "Authentifiziert als '$LLDAP_ADMIN'"
+success "Authentifiziert als '$KC_ADMIN'"
 
 # ── Hilfsfunktionen ──────────────────────────────────────────────────
 
-api_get() {
-  curl -s -H "Authorization: Bearer ${TOKEN}" "${LLDAP_URL}/api${1}"
+kc_get() {
+  curl -s -H "Authorization: Bearer ${TOKEN}" "${KC_URL}/admin/realms/${KC_REALM}${1}"
 }
 
-api_post() {
-  local endpoint="$1"; local data="$2"
+kc_post() {
+  local endpoint="$1" data="$2"
   curl -s -X POST \
     -H "Authorization: Bearer ${TOKEN}" \
     -H "Content-Type: application/json" \
     -d "$data" \
-    "${LLDAP_URL}/api${endpoint}"
+    -w "\n%{http_code}" \
+    "${KC_URL}/admin/realms/${KC_REALM}${endpoint}"
 }
 
-# Gruppe erstellen falls nicht vorhanden
+kc_put() {
+  local endpoint="$1" data="$2"
+  curl -s -X PUT \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "$data" \
+    -w "\n%{http_code}" \
+    "${KC_URL}/admin/realms/${KC_REALM}${endpoint}"
+}
+
+# Gruppe erstellen falls nicht vorhanden, gibt Gruppen-ID zurück
 ensure_group() {
   local group="$1"
   [[ -z "$group" ]] && return
+
+  # Existierende Gruppe suchen
   local existing
-  existing=$(api_get "/graphql" | jq -r --arg g "$group" '.data.groups[]? | select(.displayName==$g) | .id' 2>/dev/null || true)
+  existing=$(kc_get "/groups?search=${group}&exact=true" | jq -r '.[0].id // empty' 2>/dev/null)
   if [[ -n "$existing" ]]; then
     echo "$existing"
     return
   fi
+
   if $DRY_RUN; then
     warn "[DRY-RUN] Würde Gruppe erstellen: $group"
     echo "dry-run-id"
     return
   fi
-  local result
-  result=$(api_post "/graphql" "{\"query\":\"mutation { createGroup(name: \\\"${group}\\\") { id } }\"}")
-  local gid
-  gid=$(echo "$result" | jq -r '.data.createGroup.id // empty')
-  if [[ -n "$gid" ]]; then
-    success "Gruppe erstellt: $group (ID: $gid)"
-    echo "$gid"
-  else
-    warn "Gruppe konnte nicht erstellt werden: $group — $result"
-    echo ""
+
+  local response http_code body
+  response=$(kc_post "/groups" "{\"name\":\"${group}\"}")
+  http_code=$(echo "$response" | tail -1)
+  body=$(echo "$response" | sed '$d')
+
+  if [[ "$http_code" == "201" || "$http_code" == "409" ]]; then
+    # 201 = created, 409 = already exists (race condition)
+    local gid
+    gid=$(kc_get "/groups?search=${group}&exact=true" | jq -r '.[0].id // empty' 2>/dev/null)
+    if [[ -n "$gid" ]]; then
+      [[ "$http_code" == "201" ]] && success "Gruppe erstellt: $group"
+      echo "$gid"
+      return
+    fi
   fi
+
+  warn "Gruppe konnte nicht erstellt werden: $group (HTTP $http_code)"
+  echo ""
 }
 
 # User erstellen
 create_user() {
-  local username="$1" email="$2" display_name="$3" first_name="$4" last_name="$5"
+  local username="$1" email="$2" first_name="$3" last_name="$4"
+
   if $DRY_RUN; then
     warn "[DRY-RUN] Würde User erstellen: $username ($email)"
     return 0
   fi
-  local result
-  result=$(api_post "/graphql" "{
-    \"query\": \"mutation CreateUser(\$user: CreateUserInput!) { createUser(user: \$user) { id } }\",
-    \"variables\": {
-      \"user\": {
-        \"id\": \"${username}\",
-        \"email\": \"${email}\",
-        \"displayName\": \"${display_name}\",
-        \"firstName\": \"${first_name}\",
-        \"lastName\": \"${last_name}\",
-        \"avatar\": null
-      }
-    }
-  }")
-  local uid
-  uid=$(echo "$result" | jq -r '.data.createUser.id // empty')
-  if [[ -n "$uid" ]]; then
-    # Initial-Passwort setzen
-    api_post "/graphql" "{
-      \"query\": \"mutation { changeUserPassword(userId: \\\"${username}\\\", password: \\\"${DEFAULT_PASSWORD}\\\") }\"
-    }" >/dev/null
+
+  local payload
+  payload=$(jq -n \
+    --arg u "$username" \
+    --arg e "$email" \
+    --arg fn "$first_name" \
+    --arg ln "$last_name" \
+    '{username: $u, email: $e, firstName: $fn, lastName: $ln, enabled: true}')
+
+  local response http_code body
+  response=$(kc_post "/users" "$payload")
+  http_code=$(echo "$response" | tail -1)
+  body=$(echo "$response" | sed '$d')
+
+  if [[ "$http_code" == "201" ]]; then
+    # Passwort setzen
+    local user_id
+    user_id=$(kc_get "/users?username=${username}&exact=true" | jq -r '.[0].id // empty')
+    if [[ -n "$user_id" ]]; then
+      kc_put "/users/${user_id}/reset-password" \
+        "{\"type\":\"password\",\"value\":\"${DEFAULT_PASSWORD}\",\"temporary\":true}" > /dev/null
+    fi
     success "User erstellt: $username"
+    return 0
+  elif [[ "$http_code" == "409" ]]; then
+    warn "User existiert bereits: $username — übersprungen"
     return 0
   else
     local err
-    err=$(echo "$result" | jq -r '.errors[0].message // empty')
-    if echo "$err" | grep -qi "already exists\|duplicate\|conflict"; then
-      warn "User existiert bereits: $username — übersprungen"
-      return 0
-    fi
-    error "Fehler beim Erstellen von '$username': $err"
+    err=$(echo "$body" | jq -r '.errorMessage // empty' 2>/dev/null)
+    error "Fehler beim Erstellen von '$username': ${err:-HTTP $http_code}"
     return 1
   fi
 }
@@ -200,9 +238,12 @@ add_to_group() {
   local username="$1" group_id="$2"
   [[ -z "$group_id" || "$group_id" == "dry-run-id" ]] && return
   $DRY_RUN && return
-  api_post "/graphql" "{
-    \"query\": \"mutation { addUserToGroup(userId: \\\"${username}\\\", groupId: ${group_id}) }\"
-  }" >/dev/null
+
+  local user_id
+  user_id=$(kc_get "/users?username=${username}&exact=true" | jq -r '.[0].id // empty')
+  [[ -z "$user_id" ]] && { warn "User nicht gefunden: $username"; return; }
+
+  kc_put "/users/${user_id}/groups/${group_id}" '{}' > /dev/null
 }
 
 # ── CSV Import ───────────────────────────────────────────────────────
@@ -229,7 +270,7 @@ import_csv() {
 
     info "Verarbeite: $username ($email)"
 
-    if create_user "$username" "$email" "$display_name" "$first_name" "$last_name"; then
+    if create_user "$username" "$email" "$first_name" "$last_name"; then
       # Gruppen zuweisen (semikolon-getrennt)
       IFS=';' read -ra group_list <<< "$groups"
       for grp in "${group_list[@]}"; do
@@ -260,7 +301,7 @@ import_ldif() {
   flush_ldif_entry() {
     [[ -z "$username" ]] && return
     info "Verarbeite: $username ($email)"
-    if create_user "$username" "$email" "${display_name:-$username}" "${first_name:-}" "${last_name:-}"; then
+    if create_user "$username" "$email" "${first_name:-}" "${last_name:-}"; then
       local gid
       gid=$(ensure_group "$DEFAULT_GROUP")
       add_to_group "$username" "$gid"

@@ -1,0 +1,63 @@
+name: Tracking Sync
+
+# Runs when test result artifacts are uploaded or manually triggered
+on:
+  workflow_dispatch:
+  # Trigger after the main CI completes
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  sync-results:
+    name: Sync Test Results to Issues
+    runs-on: ubuntu-latest
+    # Only run if CI succeeded or manual trigger
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y sqlite3 jq
+
+      - name: Initialize tracking database
+        run: ./scripts/tracking/init-db.sh
+
+      - name: Check for test results
+        id: check
+        run: |
+          # Look for the latest results JSON
+          LATEST=$(ls -t tests/results/*.json 2>/dev/null | head -1 || echo "")
+          if [[ -n "$LATEST" ]]; then
+            echo "results_file=${LATEST}" >> "$GITHUB_OUTPUT"
+            echo "has_results=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_results=false" >> "$GITHUB_OUTPUT"
+            echo "No test results found — skipping sync"
+          fi
+
+      - name: Ingest results into SQLite
+        if: steps.check.outputs.has_results == 'true'
+        env:
+          RESULTS_JSON: ${{ steps.check.outputs.results_file }}
+        run: |
+          ./scripts/tracking/ingest-results.sh "$RESULTS_JSON"
+
+      - name: Sync to GitHub Issues
+        if: steps.check.outputs.has_results == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RESULTS_JSON: ${{ steps.check.outputs.results_file }}
+        run: |
+          ./scripts/tracking/gh-sync.sh "$RESULTS_JSON"
+
+      - name: Print pipeline status
+        run: |
+          ./scripts/tracking/status.sh --summary

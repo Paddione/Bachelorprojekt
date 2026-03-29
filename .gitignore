@@ -32,6 +32,9 @@ Desktop.ini
 # ── Docker ──────────────────────────────────────
 .docker/
 
+# ── Tracking (local SQLite, regenerated from JSON) ──
+tracking.db
+
 # ── Misc ────────────────────────────────────────
 node_modules/
 *.tmp

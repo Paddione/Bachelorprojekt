@@ -25,7 +25,7 @@ finalize_json() {
     --arg tier "$tier" \
     --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     --arg host "$(hostname)" \
-    --arg compose "docker-compose.yml" \
+    --arg compose "k3d/kustomization.yaml" \
     --argjson total "$total" \
     --argjson pass "$pass" \
     --argjson fail "$fail" \

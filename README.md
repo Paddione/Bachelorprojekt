@@ -1,90 +1,105 @@
 # Homeoffice MVP
 
-Docker Compose-basierte Kollaborationsplattform für kleine Teams — Mattermost (Chat), Nextcloud (Dateien), Keycloak (SSO) und Jitsi (Video) hinter einem Traefik Reverse Proxy mit automatischem HTTPS.
+Kubernetes-basierte Kollaborationsplattform für kleine Teams — Mattermost (Chat), Nextcloud (Dateien), Keycloak (SSO) und Jitsi (Video) auf k3d/k3s mit NGINX Ingress.
 
 ## Schnellstart
 
-### Linux / WSL2
+Voraussetzungen: Docker, [k3d](https://k3d.io), kubectl, [task](https://taskfile.dev)
 
 ```bash
-git clone https://github.com/Paddione/homeoffice-mvp.git && cd homeoffice-mvp
-./scripts/setup.sh --quickstart
+git clone https://github.com/Paddione/Bachelorprojekt.git && cd Bachelorprojekt
+
+# Cluster erstellen + alle Services deployen
+cd .. && task cluster:create && task ingress:install && task homeoffice:deploy
 ```
 
-### Windows / PowerShell
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-git clone https://github.com/Paddione/homeoffice-mvp.git; cd homeoffice-mvp
-.\scripts\setup-windows.ps1
-```
-
-Vollständige Anleitung: [Deployment](docs/deployment.md)
+Services sind erreichbar unter:
+- **Keycloak (SSO):** http://auth.localhost (admin / devadmin)
+- **Mattermost (Chat):** http://chat.localhost
+- **Nextcloud (Dateien):** http://files.localhost
+- **Jitsi (Video):** http://meet.localhost
 
 ## Dokumentation
 
 | Dokument | Beschreibung |
 |----------|-------------|
 | [Architektur](docs/architecture.md) | Systemübersicht, Service-Diagramm, Netzwerk und Datenfluss |
-| [Deployment](docs/deployment.md) | Schritt-für-Schritt Anleitung zur Installation |
-| [Konfiguration](docs/configuration.md) | Alle Umgebungsvariablen (`.env`) im Detail |
-| [Services](docs/services.md) | Docker-Services und deren Zusammenspiel |
-| [Keycloak & SSO](docs/keycloak.md) | Identity Management, OIDC-Clients, LDAP-Federation |
-| [Firewall & Netzwerk](docs/firewall.md) | Firewall-Regeln, Router Port-Forwarding, WSL2-Proxy |
+| [Services](docs/services.md) | Kubernetes-Services und deren Zusammenspiel |
+| [Keycloak & SSO](docs/keycloak.md) | Identity Management, OIDC-Clients |
 | [Migration](docs/migration.md) | Import von Slack, Teams, Google Workspace |
-| [Backup](docs/backup.md) | Automatische Datensicherung (Filen.io, SMB/NAS) |
 | [Skripte](docs/scripts.md) | Referenz aller Skripte, Parameter und Befehle |
-| [Tests](docs/tests.md) | Automatisiertes Test-Framework (37 Anforderungen) |
+| [Tests](docs/tests.md) | Automatisiertes Test-Framework |
 | [Sicherheit](docs/security.md) | Sicherheitsrichtlinien und Best Practices |
 | [Fehlerbehebung](docs/troubleshooting.md) | Häufige Probleme und Lösungsansätze |
 
 ## Architektur
 
 ```
-Internet
-   |
-   +-- Port 80/TCP --+
-   +-- Port 443/TCP -+
-   |                  v
-   |            +----------+
-   |            | Traefik  |  Reverse Proxy + Auto-HTTPS (Let's Encrypt)
-   |            +----+-----+
-   |                 |
-   |    +------------+------------+--------------+
-   |    v            v            v              v
-   | +------+  +----------+  +----------+  +----------+
-   | |Matte-|  |Nextcloud |  |Keycloak  |  |  Jitsi   |
-   | |rmost |  |          |  |  (SSO)   |  |  Meet    |
-   | +------+  +----------+  +----------+  +----------+
-   |
-   +-- Port 10000/UDP ---> Jitsi JVB (Video/Audio)
+              NGINX Ingress (Ports 80/443)
+                     |
+    +----------------+----------------+--------------+
+    v                v                v              v
++--------+    +----------+    +----------+    +----------+
+|Matter- |    |Nextcloud |    |Keycloak  |    |  Jitsi   |
+|most    |    |          |    |  (SSO)   |    |  Meet    |
++--------+    +----------+    +----------+    +----------+
+    |              |               |               |
++--------+    +----------+    +----------+    +----------+
+|  DB    |    |    DB    |    |    DB    |    | Prosody  |
+|(PG 16) |    | (PG 16) |    | (PG 16) |    | Jicofo   |
++--------+    +----------+    +----------+    |   JVB    |
+                                              +----------+
 
-+----------+         +----------+
-| DuckDNS  |         |  Backup  |
-| alle 5m  |         | 02:00UTC |
-+----------+         +----------+
+Namespace: homeoffice
+Alle Services laufen als Kubernetes Deployments in k3d/k3s.
 ```
 
-Details: [Architektur](docs/architecture.md)
+## Tägliche Befehle
 
-## Skalierung
+```bash
+task homeoffice:status           # Pod-Status prüfen
+task homeoffice:logs -- keycloak # Logs eines Service ansehen
+task homeoffice:restart -- mattermost  # Service neustarten
+task homeoffice:validate         # Manifeste validieren
+task homeoffice:teardown         # Alles entfernen
+```
 
-Die Plattform ist für kleine Teams (5–30 Nutzer) auf einem einzelnen Host ausgelegt. Skalierungsoptionen:
+## Tests
 
-- **Vertikal**: CPU/RAM des Hosts erhöhen; Postgres-Limits über Umgebungsvariablen anpassen (`POSTGRES_MAX_CONNECTIONS`, `shared_buffers`)
-- **Horizontal**: Mattermost und Nextcloud können auf separate Hosts aufgeteilt werden — jeweils eigener Docker Compose Stack mit gemeinsamer Datenbank
-- **Jitsi JVB**: Zusätzliche Videobridges über `JVB_ADVERTISE_IPS` und separate JVB-Container anbinden
-- **Traefik**: Unterstützt Load Balancing über mehrere Backend-Instanzen via Docker Labels
+```bash
+./tests/runner.sh local              # Alle Tests gegen k3d
+./tests/runner.sh local SA-08        # Einzelnen Test ausführen
+./tests/runner.sh report             # Markdown-Report generieren
+```
 
 ## Projektstruktur
 
 ```
-homeoffice-mvp/
-  docker-compose.yml          # Service-Definitionen
-  .env.example                # Vorlage fuer Umgebungsvariablen
-  realm-homeoffice.json       # Keycloak Realm-Konfiguration
-  scripts/                    # Setup, Migration, Import, Backup
-  tests/                      # Automatisierte Tests (Bash + Playwright)
-  docs/                       # Dokumentation
-  data/                       # Laufzeitdaten (gitignored)
+Bachelorprojekt/
+  k3d/                          # Kubernetes-Manifeste (Kustomize)
+    kustomization.yaml          # Kustomize-Orchestrierung
+    configmap-domains.yaml      # Domain-Konfiguration
+    secrets.yaml                # Dev-Secrets
+    ingress.yaml                # NGINX Ingress Rules
+    keycloak*.yaml              # Keycloak + DB
+    mattermost*.yaml            # Mattermost + DB
+    nextcloud*.yaml             # Nextcloud + DB
+    jitsi-*.yaml                # Jitsi (Web, Prosody, Jicofo, JVB, Adapter)
+    realm-homeoffice-dev.json   # Keycloak Realm-Konfiguration
+    nextcloud-oidc-dev.php      # Nextcloud OIDC-Konfiguration
+  scripts/                      # Migration, Import, Utility-Skripte
+  tests/                        # Automatisierte Tests (Bash + Playwright)
+  docs/                         # Dokumentation
+  mattermost/                   # Mattermost Keycloak-Proxy Config
+  jitsi-keycloak-adapter/       # Gepatchter OIDC→JWT Adapter
 ```
+
+## Regeln für dieses Monorepo
+
+1. **Einziger Deployment-Pfad ist k3d/k3s.** Es gibt keine docker-compose-Konfiguration.
+2. **Alle Kubernetes-Manifeste liegen in `k3d/`.** Kustomize ist das Build-Tool.
+3. **Änderungen gehen immer durch Pull Requests** — keine direkten Pushes auf `main`.
+4. **CI muss grün sein** vor dem Merge (Manifest-Validierung, YAML-Lint, Shellcheck, Security-Scan).
+5. **Domain-Konfiguration ist zentral** in `k3d/configmap-domains.yaml`. Keine hartkodierten Hostnamen in Manifesten.
+6. **Secrets liegen in `k3d/secrets.yaml`** (nur Dev-Werte). Niemals echte Credentials committen.
+7. **Tests laufen gegen den lokalen k3d-Cluster** via `./tests/runner.sh local`.

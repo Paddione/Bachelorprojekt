@@ -2,34 +2,6 @@
 
 Referenz aller Skripte und Hilfsbibliotheken.
 
-## scripts/setup.sh — Pre-Flight Check
-
-Validiert die Umgebung vor dem Deployment.
-
-```bash
-./scripts/setup.sh           # Interaktiv (fragt vor Reparaturen)
-./scripts/setup.sh --fix     # Automatische Reparatur wo möglich
-./scripts/setup.sh --check   # Nur prüfen, nichts ändern
-```
-
-### Prüfungen (11 Kategorien)
-
-| Nr. | Prüfung | Auto-Fix |
-|-----|---------|----------|
-| 1 | OS-Erkennung (Linux, WSL, macOS) | — |
-| 2 | Docker installiert und Daemon läuft | Nein |
-| 3 | Docker Compose v2 verfügbar | Nein |
-| 4 | Benutzer in `docker`-Gruppe | Ja |
-| 5 | Port 80, 443, 10000/UDP frei | Nein |
-| 6 | `.env` existiert | Ja (kopiert `.env.example`) |
-| 7 | Alle Pflicht-Variablen gesetzt (23 Stück) | Nein |
-| 8 | Keine Platzhalter (`CHANGE_ME_*`, `your@`) | Nein |
-| 9 | DuckDNS-Token-Format (UUID) | Nein |
-| 10 | Verzeichnisse und `acme.json` Berechtigungen | Ja |
-| 11 | `docker compose config` Validierung | Nein |
-
-**Ausgabe:** Farbcodiert — `✓` bestanden, `⚠` Warnung, `✗` fehlgeschlagen
-
 ## scripts/migrate.sh — Migration Assistant
 
 Interaktives Menü für Datenimport und -export.
@@ -58,27 +30,17 @@ Massenimport von Benutzern in Keycloak via Admin REST API.
 ```bash
 # CSV-Import
 ./scripts/import-users.sh --csv users.csv \
-  --url https://<KC_DOMAIN> \
-  --pass <KEYCLOAK_ADMIN_PASSWORD>
+  --url http://auth.localhost \
+  --pass devadmin
 
 # LDIF-Import
 ./scripts/import-users.sh --ldif export.ldif \
-  --url https://<KC_DOMAIN> \
-  --pass <KEYCLOAK_ADMIN_PASSWORD>
+  --url http://auth.localhost \
+  --pass devadmin
 
 # Vorschau
 ./scripts/import-users.sh --csv users.csv --dry-run
 ```
-
-### Parameter
-
-| Parameter | Beschreibung | Pflicht |
-|-----------|-------------|---------|
-| `--csv <datei>` | CSV-Datei mit Benutzerdaten | Ja (oder `--ldif`) |
-| `--ldif <datei>` | LDIF-Datei mit Benutzerdaten | Ja (oder `--csv`) |
-| `--url <url>` | Keycloak-URL | Ja (Standard: `https://localhost:8443`) |
-| `--pass <passwort>` | Keycloak-Admin-Passwort | Ja |
-| `--dry-run` | Nur Vorschau | Nein |
 
 ### CSV-Format
 
@@ -89,90 +51,32 @@ anna.schmidt,anna@example.com,Anna Schmidt,"homeoffice_users;admins",Anna,Schmid
 
 Beispiel: `scripts/users-example.csv`
 
-## setup.sh smb — SMB-Share Einrichtung
-
-Richtet ein lokales Laufwerk als SMB-Freigabe für Backups ein. Benötigt `sudo`.
-
-```bash
-sudo ./scripts/setup.sh smb           # Interaktiv
-sudo ./scripts/setup.sh smb --check   # Nur Laufwerke anzeigen
-```
-
-Details: [Backup](backup.md)
-
-## setup.sh firewall — Linux-Firewall (UFW)
-
-Verwaltet UFW-Firewall-Regeln für die drei benötigten Ports.
-
-```bash
-sudo ./scripts/setup.sh firewall setup    # Regeln anlegen
-./scripts/setup.sh firewall status        # Regeln anzeigen
-sudo ./scripts/setup.sh firewall remove   # Regeln entfernen
-```
-
-Regeln: 80/tcp, 443/tcp, 10000/udp. Idempotent — vorhandene Regeln werden nicht dupliziert.
-
-## setup-windows.ps1 — Windows Setup + Firewall
-
-PowerShell-Skript für Windows-Setup und Firewall-Regeln. Als Administrator ausführen.
-
-```powershell
-.\scripts\setup-windows.ps1                          # Quickstart
-.\scripts\setup-windows.ps1 -Action Firewall-Setup   # Regeln anlegen
-.\scripts\setup-windows.ps1 -Action Firewall-Status  # Regeln anzeigen
-.\scripts\setup-windows.ps1 -Action Firewall-Remove  # Regeln entfernen
-```
-
-## scripts/wsl2-portproxy.ps1 — WSL2 Port-Proxy
-
-Richtet Port-Forwarding von Windows auf WSL2 ein. Nur nötig wenn Docker in WSL2 läuft.
-
-```powershell
-.\scripts\wsl2-portproxy.ps1 -Action Setup     # Proxy anlegen
-.\scripts\wsl2-portproxy.ps1 -Action Status    # Proxy anzeigen
-.\scripts\wsl2-portproxy.ps1 -Action Remove    # Proxy entfernen
-```
-
-Ermittelt die WSL2-IP automatisch. Nach Neustart erneut `Setup` ausführen.
-
-## scripts/check-connectivity.sh — Erreichbarkeitstest
-
-Prüft HTTPS-Erreichbarkeit aller Dienste und Jitsi-UDP. Liest Domains aus `.env`.
-
-```bash
-./scripts/check-connectivity.sh          # Alle Dienste von außen prüfen
-./scripts/check-connectivity.sh --local  # Nur lokale Ports prüfen
-```
-
-Details: [Firewall & Netzwerk](firewall.md)
-
 ## scripts/import-entrypoint.sh — Realm-Import
 
-Ersetzt Umgebungsvariablen in `realm-homeoffice.json` und startet Keycloak mit automatischem Realm-Import. Wird als Custom-Entrypoint im Docker-Container verwendet.
+Ersetzt Umgebungsvariablen in `realm-homeoffice-dev.json` und startet Keycloak mit automatischem Realm-Import. Wird als ConfigMap im Keycloak-Pod gemountet.
 
 **Ablauf:**
 1. `envsubst` ersetzt `${VARIABLE}` Platzhalter in der Realm-JSON
 2. Aufbereitete JSON wird als Import-Datei bereitgestellt
 3. Keycloak startet mit `--import-realm`
 
-## scripts/backup-entrypoint.sh — Backup-Cron
+## scripts/check-connectivity.sh — Erreichbarkeitstest
 
-Konfiguriert rclone und richtet einen Cron-Job ein. Wird als Entrypoint des Backup-Containers verwendet.
+Prüft Erreichbarkeit aller Dienste.
 
-**Ablauf:**
-1. Konfiguriert rclone-Remotes (Filen.io, SMB) anhand der `.env`-Variablen
-2. Erstellt Cron-Job für 02:00 UTC
-3. Startet `crond` im Vordergrund
+```bash
+./scripts/check-connectivity.sh          # Alle Dienste prüfen
+./scripts/check-connectivity.sh --local  # Nur lokale Ports prüfen
+```
 
 ## tests/runner.sh — Test-Runner
 
 Orchestriert alle automatisierten Tests und erzeugt Ergebnis-Reports.
 
 ```bash
-./tests/runner.sh local                  # Alle lokalen Tests (Stack wird automatisch gestartet/gestoppt)
+./tests/runner.sh local                  # Alle Tests gegen k3d-Cluster
 ./tests/runner.sh local FA-01 SA-03      # Nur bestimmte Tests ausführen
-./tests/runner.sh local --keep           # Stack nach Tests weiterlaufen lassen
-./tests/runner.sh prod --env .env        # Produktionstests gegen Live-Deployment
+./tests/runner.sh local --verbose        # Verbose-Ausgabe
 ./tests/runner.sh report                 # Markdown-Reports aus vorhandenen JSON neu generieren
 ```
 
@@ -180,67 +84,59 @@ Orchestriert alle automatisierten Tests und erzeugt Ergebnis-Reports.
 
 | Parameter | Beschreibung | Pflicht |
 |-----------|-------------|---------|
-| `local` | Lokale Tests gegen Docker Compose Stack | Ja (oder `prod` / `report`) |
-| `prod` | Tests gegen Live-Deployment | Ja (oder `local` / `report`) |
-| `report` | Reports aus vorhandenen Ergebnissen generieren | Ja (oder `local` / `prod`) |
-| `--keep` | Stack nach lokalem Testlauf nicht herunterfahren | Nein |
-| `--env <datei>` | Pfad zur `.env`-Datei (für Prod-Tests) | Nein (Standard: `.env`) |
+| `local` | Tests gegen lokalen k3d-Cluster | Ja (oder `report`) |
+| `report` | Reports aus vorhandenen Ergebnissen generieren | Ja (oder `local`) |
+| `--verbose` | Detaillierte Ausgabe aller Assertions | Nein |
 | `<REQ-ID>` | Nur bestimmte Tests ausführen (z.B. `FA-01 SA-03`) | Nein |
 
 Details: [Tests](tests.md)
 
 ---
 
-## Docker Compose — Allgemeine Befehle
+## Kubernetes (k3d) — Allgemeine Befehle
 
-Häufig verwendete Befehle zur Verwaltung des Stacks.
+Häufig verwendete Befehle zur Verwaltung des Stacks. Alternativ via `task` (siehe Taskfile.yml).
 
 ```bash
-# Stack starten
-docker compose up -d
+# Stack deployen
+task homeoffice:deploy
 
-# Status prüfen
-docker compose ps
+# Pod-Status prüfen
+kubectl get pods -n homeoffice
 
 # Logs eines Services anzeigen
-docker compose logs -f <service-name>
+kubectl logs -n homeoffice deploy/<service-name> -f --tail=50
 
-# Alle Logs verfolgen
-docker compose logs -f
+# Alle Pods beobachten
+kubectl get pods -n homeoffice -w
 
 # Einzelnen Service neustarten
-docker compose restart <service-name>
+kubectl rollout restart deployment/<service-name> -n homeoffice
 
-# Stack stoppen (Daten bleiben erhalten)
-docker compose down
+# Manifeste validieren
+kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
 
-# Stack stoppen und alle Volumes löschen (ALLE DATEN WEG!)
-docker compose down -v
+# Shell in einem Pod öffnen
+kubectl exec -it -n homeoffice deploy/<service-name> -- sh
 
-# Konfiguration validieren
-docker compose config --quiet && echo "OK" || echo "FEHLER"
-
-# Container-Shell öffnen
-docker compose exec <service-name> sh
+# Alles entfernen (ALLE DATEN WEG!)
+kubectl delete namespace homeoffice
 ```
 
 ---
 
 ## Datenbank-Backup
 
-PostgreSQL-Datenbanken liegen in Docker Volumes und werden nicht vom rclone-Backup erfasst. Manueller Export:
+PostgreSQL-Datenbanken liegen in PersistentVolumeClaims. Manueller Export:
 
 ```bash
 # Einzelne Datenbank sichern
-docker compose exec <service>-db pg_dump -U <service> <service> > <service>-backup.sql
+kubectl exec -n homeoffice deploy/<service>-db -- pg_dump -U <service> <service> > <service>-backup.sql
 
 # Alle Datenbanken sichern
 for svc in keycloak mattermost nextcloud; do
-  docker compose exec ${svc}-db pg_dump -U ${svc} ${svc} > ${svc}-backup.sql
+  kubectl exec -n homeoffice deploy/${svc}-db -- pg_dump -U ${svc} ${svc} > ${svc}-backup.sql
 done
-
-# Manuelles rclone-Backup anstoßen
-docker compose exec backup sh -c '/backup.sh'
 ```
 
 ---
@@ -250,34 +146,21 @@ docker compose exec backup sh -c '/backup.sh'
 Nützliche Befehle zur Fehlersuche.
 
 ```bash
-# Prozess auf einem Port finden (z.B. Port 80)
-sudo lsof -i :80
-sudo ss -tlnp | grep :80
+# Alle Pods mit Status
+kubectl get pods -n homeoffice -o wide
 
-# DuckDNS manuell testen
-curl "https://www.duckdns.org/update?domains=<subdomain>&token=<token>&verbose=true"
+# Events anzeigen (letzte Fehler)
+kubectl get events -n homeoffice --sort-by='.lastTimestamp' | tail -20
 
-# WebDAV-Erreichbarkeit prüfen
-curl -u admin:<passwort> https://<NC_DOMAIN>/remote.php/dav/files/admin/
+# Pod-Details (Restart-Gründe, Mount-Fehler)
+kubectl describe pod -n homeoffice <pod-name>
 
-# SMB-Verbindung testen
-smbclient -L //<SMB_HOST> -U <SMB_USER>
-nc -z -v <SMB_HOST> 445
+# Keycloak zurücksetzen (Realm-Neuimport erzwingen)
+kubectl delete pvc keycloak-db-data -n homeoffice
+kubectl rollout restart deployment/keycloak-db deployment/keycloak -n homeoffice
 
-# SSL-Zertifikate zurücksetzen
-rm ${STORAGE_PATH:-./data}/traefik/letsencrypt/acme.json
-touch ${STORAGE_PATH:-./data}/traefik/letsencrypt/acme.json
-chmod 600 ${STORAGE_PATH:-./data}/traefik/letsencrypt/acme.json
-docker compose restart traefik
-
-# Keycloak-Volume zurücksetzen (Realm-Neuimport erzwingen)
-docker compose down keycloak keycloak-db
-docker volume rm homeoffice-mvp_keycloak-db-data
-docker compose up -d keycloak
-
-# Alle Daten und Volumes komplett zurücksetzen (ALLE DATEN WEG!)
-docker compose down -v
-rm -rf ${STORAGE_PATH:-./data}/*
+# Env-Variablen eines Pods prüfen
+kubectl exec -n homeoffice deploy/<service> -- env | sort
 ```
 
 ---
@@ -288,10 +171,7 @@ rm -rf ${STORAGE_PATH:-./data}/*
 # Einzelnes Passwort
 openssl rand -base64 32
 
-# Alle Passwörter auf einmal generieren
-for name in KEYCLOAK_DB MATTERMOST_DB NEXTCLOUD_DB MATTERMOST_OIDC NEXTCLOUD_OIDC JICOFO JVB; do
-  echo "${name}_PASSWORD=$(openssl rand -base64 32)"
-done
+# Dev-Secrets liegen in k3d/secrets.yaml — nur für lokale Entwicklung.
 ```
 
 ---

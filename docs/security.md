@@ -2,53 +2,22 @@
 
 ## Grundregeln
 
-1. **`.env` niemals committen** — enthaelt alle Passwoerter und Secrets
-2. **`data/` niemals committen** — enthaelt Benutzerdaten und Zertifikate
-3. **OIDC-Secrets vor dem ersten Start setzen** — werden in den Keycloak-Realm importiert
-4. **Starke Passwoerter verwenden** — siehe [Skripte → Passwoerter generieren](scripts.md#passwörter-generieren)
-
-## Dateien und Berechtigungen
-
-| Datei | Berechtigung | Grund |
-|-------|-------------|-------|
-| `.env` | `600` (nur Owner) | Enthaelt alle Passwoerter |
-| `.env.secrets` | `600` (nur Owner) | Referenz-Secrets |
-| `acme.json` | `600` (nur Owner) | Traefik verweigert Start bei falschen Rechten |
-| `data/` | — | `.gitignore` schliesst aus |
+1. **Keine echten Secrets committen** — `k3d/secrets.yaml` enthält nur Dev-Werte
+2. **OIDC-Secrets vor dem ersten Start setzen** — werden in den Keycloak-Realm importiert
+3. **Starke Passwörter verwenden** — siehe [Skripte → Passwörter generieren](scripts.md#passwörter-generieren)
 
 ## Netzwerksicherheit
 
-### Exponierte Ports
+### k3d-Cluster (Entwicklung)
 
-Nur drei Ports sind nach aussen offen:
+In der lokalen k3d-Umgebung:
 
-| Port | Service | Warum exponiert |
-|------|---------|----------------|
-| 80/TCP | Traefik | HTTP → HTTPS Redirect, Let's Encrypt Challenge |
-| 443/TCP | Traefik | Alle Web-Dienste (verschluesselt) |
-| 10000/UDP | Jitsi JVB | Audio/Video-Mediendaten |
+| Port | Service | Zugriff |
+|------|---------|---------|
+| 80/TCP | NGINX Ingress | `*.localhost` Domains |
+| 10000/UDP | Jitsi JVB | TCP-Fallback in k3d |
 
-Alle internen Services (Datenbanken, XMPP) sind nur im Docker-Netzwerk erreichbar.
-
-### Firewall
-
-Ports muessen in der Host-Firewall freigegeben werden. Fuer Linux (UFW) und Windows stehen automatisierte Skripte bereit — siehe [Firewall & Netzwerk](firewall.md) und [Skripte → setup.sh firewall](scripts.md#setupsh-firewall--linux-firewall-ufw).
-
-### Router
-
-Port-Forwarding auf die interne IP des Docker-Hosts einrichten:
-- Port 80/TCP → Docker-Host
-- Port 443/TCP → Docker-Host
-- Port 10000/UDP → Docker-Host
-
-Empfehlung: Dem Docker-Host eine **statische IP** im Router zuweisen. Details: [Firewall & Netzwerk → Router](firewall.md#router--port-forwarding).
-
-## SSL/TLS
-
-- Automatische Zertifikate via **Let's Encrypt** (TLS-Challenge durch Traefik)
-- Zertifikate in `${STORAGE_PATH}/traefik/letsencrypt/acme.json`
-- Automatische Erneuerung durch Traefik
-- HTTP wird automatisch auf HTTPS umgeleitet
+Alle internen Services (Datenbanken, XMPP) sind nur innerhalb des Kubernetes-Clusters erreichbar.
 
 ## Authentifizierung
 
@@ -57,39 +26,25 @@ Empfehlung: Dem Docker-Host eine **statische IP** im Router zuweisen. Details: [
 - **Brute-Force-Schutz** aktiviert
 - **Selbstregistrierung** deaktiviert (nur Admin kann User anlegen)
 - **Doppelte E-Mails** verboten
-- **SSL-Pflicht** fuer externe Verbindungen
 
 ### OIDC
 
 - Client-Secrets (`MATTERMOST_OIDC_SECRET`, `NEXTCLOUD_OIDC_SECRET`) werden nur server-seitig verwendet
-- Authorization Code Flow (nicht Implicit) fuer maximale Sicherheit
+- Authorization Code Flow (nicht Implicit) für maximale Sicherheit
 
 ## Secrets-Management
 
-### Passwoerter generieren
+### Passwörter generieren
 
-Fuer alle Passwort- und Secret-Felder starke Zufallswerte verwenden — siehe [Skripte → Passwoerter generieren](scripts.md#passwörter-generieren).
+Für alle Passwort- und Secret-Felder starke Zufallswerte verwenden — siehe [Skripte → Passwörter generieren](scripts.md#passwörter-generieren).
 
 ### Secrets rotieren
 
 1. Neues Passwort generieren
-2. In `.env` eintragen
-3. Betroffenen Service neustarten — siehe [Skripte → Docker Compose](scripts.md#docker-compose--allgemeine-befehle)
+2. In `k3d/secrets.yaml` eintragen
+3. Betroffenen Service neustarten:
+   ```bash
+   kubectl rollout restart deployment/<service> -n homeoffice
+   ```
 
-> **Ausnahme:** OIDC-Secrets koennen nach dem ersten Keycloak-Import nicht einfach in `.env` geaendert werden — sie muessen zusaetzlich in der Keycloak Admin-Console aktualisiert werden.
-
-## DuckDNS-Token
-
-Das DuckDNS-Token erlaubt DNS-Manipulation. Bei Kompromittierung:
-
-1. Auf [duckdns.org](https://www.duckdns.org/) einloggen
-2. Token rotieren
-3. Neues Token in `.env` eintragen
-4. DuckDNS-Container neustarten — siehe [Skripte → Docker Compose](scripts.md#docker-compose--allgemeine-befehle)
-
-## Backup-Sicherheit
-
-- Backup-Daten enthalten sensible Benutzerdateien
-- Filen.io-Backup ist Ende-zu-Ende verschluesselt (Filen-Feature)
-- SMB-Backups liegen unverschluesselt auf dem NAS — Zugang absichern
-- Backup-Passwoerter in `.env` — gleiche Schutzmassnahmen wie andere Secrets
+> **Ausnahme:** OIDC-Secrets können nach dem ersten Keycloak-Import nicht einfach in `secrets.yaml` geändert werden — sie müssen zusätzlich in der Keycloak Admin-Console aktualisiert werden.

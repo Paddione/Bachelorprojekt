@@ -3,6 +3,8 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
+NAMESPACE="${NAMESPACE:-homeoffice}"
+
 # T1: Keycloak login events
 KC_ADMIN_TOKEN=$(curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
@@ -35,5 +37,5 @@ else
 fi
 
 # T4: Logs retained
-LOG_LINES=$(docker compose -f "${COMPOSE_DIR}/docker-compose.yml" logs --tail 5 keycloak 2>&1 | wc -l)
+LOG_LINES=$(kubectl logs -n "$NAMESPACE" deploy/keycloak --tail=5 2>&1 | wc -l)
 assert_gt "$LOG_LINES" 0 "SA-05" "T4" "Keycloak-Logs verfügbar"

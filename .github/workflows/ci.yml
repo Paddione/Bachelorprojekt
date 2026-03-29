@@ -48,11 +48,6 @@ jobs:
           yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' \
             k3d/*.yaml
 
-      - name: Lint docker-compose
-        run: |
-          yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' \
-            docker-compose.yml
-
   lint-scripts:
     name: Lint Shell Scripts
     runs-on: ubuntu-latest
@@ -64,7 +59,7 @@ jobs:
 
       - name: Check scripts
         run: |
-          shellcheck -x scripts/*.sh k3d/*.sh || true
+          shellcheck -x scripts/*.sh k3d/*.sh tests/lib/*.sh || true
           echo "Shellcheck completed"
 
   test-configs:
@@ -74,24 +69,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate environment template
+      - name: Validate realm JSON
         run: |
-          REQUIRED_VARS=$(grep -c '^[A-Z]' .env.example || true)
-          echo "Found $REQUIRED_VARS environment variables in template"
-          [ "$REQUIRED_VARS" -gt 0 ] || exit 1
-
-      - name: Validate realm JSON configs
-        run: |
-          python3 -c "import json; json.load(open('realm-homeoffice.json'))"
-          echo "realm-homeoffice.json is valid JSON"
           python3 -c "import json; json.load(open('k3d/realm-homeoffice-dev.json'))"
           echo "realm-homeoffice-dev.json is valid JSON"
 
-      - name: Validate PHP configs
+      - name: Validate PHP config
         run: |
-          php -l nextcloud/oidc.config.php
           php -l k3d/nextcloud-oidc-dev.php
-          echo "PHP configs are syntactically valid"
+          echo "PHP config is syntactically valid"
 
   security-scan:
     name: Security Scan
@@ -99,10 +85,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check Docker image pinning
+      - name: Check image pinning in k3d manifests
         run: |
-          if grep -r ':latest' docker-compose.yml 2>/dev/null; then
-            echo "WARNING: docker-compose.yml uses :latest tags"
+          if grep -r ':latest' k3d/*.yaml 2>/dev/null; then
+            echo "WARNING: Some k3d manifests use :latest tags"
           else
-            echo "Production images are version-pinned"
+            echo "All images are version-pinned"
+          fi
+
+      - name: Check for secrets in code
+        run: |
+          if grep -rn 'password.*=.*[^$]' k3d/*.yaml --include='*.yaml' \
+               | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}' \
+               | grep -iv '^\s*#'; then
+            echo "WARNING: Possible hardcoded secrets found"
+          else
+            echo "No hardcoded secrets detected"
           fi

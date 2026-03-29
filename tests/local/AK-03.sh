@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
-# AK-03: Technische Machbarkeit — compose starts, stable image tags
+# AK-03: Technische Machbarkeit — k3d pods running, stable image tags
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
+NAMESPACE="${NAMESPACE:-homeoffice}"
+
 # T1: All services running
-RUNNING=$(docker compose -f "${COMPOSE_DIR}/docker-compose.yml" ps --format json 2>/dev/null | jq -s 'length')
-assert_gt "$RUNNING" 0 "AK-03" "T1" "docker compose up: Services laufen"
+RUNNING=$(kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null | grep -c 'Running')
+assert_gt "$RUNNING" 0 "AK-03" "T1" "k3d Cluster: Pods laufen"
 
 # T2: All images use stable release tags (no :latest except curl)
-IMAGES=$(docker compose -f "${COMPOSE_DIR}/docker-compose.yml" config --images 2>/dev/null)
+IMAGES=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{.items[*].spec.containers[*].image}' 2>/dev/null)
 UNSTABLE=""
-while IFS= read -r img; do
+for img in $IMAGES; do
   tag="${img##*:}"
   if [[ "$tag" == "latest" && "$img" != *"curlimages"* ]]; then
     UNSTABLE+="${img} "
   fi
-done <<< "$IMAGES"
+done
 assert_eq "${UNSTABLE:-}" "" "AK-03" "T2" "Alle Images haben stabile Release-Tags"

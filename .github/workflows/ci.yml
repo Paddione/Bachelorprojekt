@@ -16,15 +16,23 @@ jobs:
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Install kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | sudo tar xz -C /usr/local/bin kubeconform
+
       - name: Validate kustomize output
         run: |
           kubectl kustomize k3d/ > /dev/null
           echo "Kustomize build succeeded"
 
-      - name: Dry-run apply
+      - name: Validate manifests with kubeconform
         run: |
-          kubectl kustomize k3d/ | kubectl apply --dry-run=client -f - 2>&1
-          echo "Dry-run apply passed"
+          kubectl kustomize k3d/ | kubeconform -strict -summary \
+            -kubernetes-version 1.31.0 \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+          echo "Manifest validation passed"
 
   lint-yaml:
     name: Lint YAML

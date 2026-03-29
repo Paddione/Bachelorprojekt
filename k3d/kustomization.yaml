@@ -24,6 +24,10 @@ resources:
   - billing-bot.yaml
   # Suche (FA-07)
   - opensearch.yaml
+  # Backup (SA-07)
+  - backup-pvc.yaml
+  - backup-secrets.yaml
+  - backup-cronjob.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
   # Dokumentation

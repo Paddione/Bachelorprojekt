@@ -69,6 +69,16 @@ spec:
             - containerPort: 5222
             - containerPort: 5347
             - containerPort: 5280
+          readinessProbe:
+            tcpSocket:
+              port: 5222
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5222
+            initialDelaySeconds: 30
+            periodSeconds: 30
           resources:
             requests:
               memory: 128Mi

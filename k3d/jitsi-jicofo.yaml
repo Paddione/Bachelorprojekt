@@ -45,6 +45,18 @@ spec:
               value: jwt
             - name: TZ
               value: Europe/Berlin
+          readinessProbe:
+            httpGet:
+              path: /about/health
+              port: 8888
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /about/health
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 30
           resources:
             requests:
               memory: 128Mi

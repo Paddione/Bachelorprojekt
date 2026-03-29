@@ -51,6 +51,18 @@ spec:
               protocol: UDP
             - containerPort: 8080
               name: http
+          readinessProbe:
+            httpGet:
+              path: /about/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /about/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
           resources:
             requests:
               memory: 256Mi

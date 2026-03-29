@@ -1,39 +1,40 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# runner.sh — Homeoffice MVP Test Runner
+# runner.sh — Homeoffice MVP Test Runner (k3d)
 # ═══════════════════════════════════════════════════════════════════
 # Usage:
-#   ./tests/runner.sh local              # full local tier
-#   ./tests/runner.sh prod               # full prod tier
+#   ./tests/runner.sh local              # full local tier (k3d)
 #   ./tests/runner.sh local FA-01 SA-03  # specific tests
 #   ./tests/runner.sh report             # regenerate Markdown
+#
+# Prerequisites:
+#   - k3d cluster running (task cluster:create)
+#   - Homeoffice stack deployed (task homeoffice:deploy)
+#   - kubectl, jq, curl installed
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export COMPOSE_DIR="$(dirname "$SCRIPT_DIR")"
+export PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 export RESULTS_DIR="${SCRIPT_DIR}/results"
 export VERBOSE="${VERBOSE:-false}"
+export NAMESPACE="${NAMESPACE:-homeoffice}"
 
 # Source libraries
 source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/report.sh"
-source "${SCRIPT_DIR}/lib/compose.sh"
+source "${SCRIPT_DIR}/lib/k3d.sh"
 
 # ── Argument parsing ─────────────────────────────────────────────
 TIER=""
-KEEP=false
 SPECIFIC_TESTS=()
-ENV_FILE="${COMPOSE_DIR}/.env"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    local|prod|report) TIER="$1"; shift ;;
-    --keep)    KEEP=true; shift ;;
+    local|report) TIER="$1"; shift ;;
     --verbose) export VERBOSE="true"; shift ;;
-    --env)     ENV_FILE="$2"; shift 2 ;;
     -h|--help)
-      echo "Usage: $0 <local|prod|report> [TEST_IDS...] [--keep] [--verbose] [--env FILE]"
+      echo "Usage: $0 <local|report> [TEST_IDS...] [--verbose]"
       exit 0 ;;
     *)
       SPECIFIC_TESTS+=("$1"); shift ;;
@@ -41,14 +42,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$TIER" ]]; then
-  echo "Error: Tier required. Usage: $0 <local|prod|report>"
+  echo "Error: Tier required. Usage: $0 <local|report>"
   exit 1
 fi
 
 # ── Prerequisites ────────────────────────────────────────────────
 check_prereqs() {
   local missing=()
-  for cmd in docker jq curl; do
+  for cmd in kubectl jq curl; do
     command -v "$cmd" &>/dev/null || missing+=("$cmd")
   done
   if (( ${#missing[@]} > 0 )); then
@@ -101,13 +102,13 @@ export RESULTS_FILE="${RESULTS_DIR}/.tmp-${TIER}-${DATE_TAG}.jsonl"
 > "$RESULTS_FILE"  # truncate
 
 echo "═══════════════════════════════════════════════════════════════"
-echo "  Homeoffice MVP — Test Runner (${TIER})"
+echo "  Homeoffice MVP — Test Runner (${TIER} / k3d)"
 echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "═══════════════════════════════════════════════════════════════"
 
-# ── Local tier ───────────────────────────────────────────────────
+# ── Local tier (k3d) ────────────────────────────────────────────
 if [[ "$TIER" == "local" ]]; then
-  compose_up
+  k3d_wait
   bootstrap_test_data || echo "⚠ Bootstrap teilweise fehlgeschlagen"
 
   run_test_files "${SCRIPT_DIR}/local"
@@ -121,32 +122,11 @@ if [[ "$TIER" == "local" ]]; then
       npm ci
       npx playwright install chromium
     fi
-    TEST_BASE_URL="http://localhost:8065" \
+    TEST_BASE_URL="http://chat.localhost" \
     RESULTS_FILE="$RESULTS_FILE" \
       npx playwright test --reporter=line 2>&1 || true
     cd "$SCRIPT_DIR"
   fi
-
-  if ! $KEEP; then
-    compose_down
-  else
-    echo "▶ --keep: Stack bleibt laufen."
-  fi
-fi
-
-# ── Prod tier ────────────────────────────────────────────────────
-if [[ "$TIER" == "prod" ]]; then
-  if [[ -f "$ENV_FILE" ]]; then
-    set -a; source "$ENV_FILE"; set +a
-  fi
-  for var in MM_DOMAIN KC_DOMAIN NC_DOMAIN JITSI_DOMAIN; do
-    if [[ -z "${!var:-}" ]]; then
-      echo "Error: ${var} not set. Use --env to specify .env file."
-      exit 1
-    fi
-  done
-
-  run_test_files "${SCRIPT_DIR}/prod"
 fi
 
 # ── Finalize ─────────────────────────────────────────────────────

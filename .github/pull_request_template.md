@@ -22,18 +22,14 @@
 - [ ] Deployed to local k3d cluster and verified (`task homeoffice:deploy`)
 - [ ] Resource requests/limits are set for new containers
 - [ ] Health probes configured for new services
+- [ ] No hardcoded hostnames — use `configMapKeyRef` from `domain-config`
 
-### If modifying Docker Compose (`docker-compose.yml`)
-- [ ] `.env.example` updated if new variables are needed
-- [ ] `docker compose config` validates successfully
-- [ ] Tested with `docker compose up` locally
-
-### If modifying scripts (`scripts/`)
+### If modifying scripts (`scripts/`, `tests/`)
 - [ ] `shellcheck` passes (warnings acceptable, errors are not)
 - [ ] Tested on a clean environment
 
 ### If modifying authentication (Keycloak / OIDC)
-- [ ] `realm-homeoffice.json` and `k3d/realm-homeoffice-dev.json` are in sync
+- [ ] `k3d/realm-homeoffice-dev.json` updated if clients change
 - [ ] SSO login tested for all affected services
 
 ## Requirements Traceability
@@ -63,7 +59,7 @@
 <!-- Paste the Testfall field from the JSON entry so reviewers can verify coverage -->
 
 **Tests implemented:**
-- [ ] Test script added/updated in `tests/local/` or `tests/prod/` (bash) or `tests/e2e/specs/` (Playwright)
+- [ ] Test script added/updated in `tests/local/` (bash) or `tests/e2e/specs/` (Playwright)
 - [ ] Each test case (T1, T2, ...) from the JSON `Testfall` is covered by an assertion
 - [ ] Assertions use the correct requirement ID and test ID: `assert_* ... "REQ-ID" "T1" "description"`
 - [ ] `./tests/runner.sh local <REQ-ID>` passes

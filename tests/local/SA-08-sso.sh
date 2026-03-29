@@ -3,17 +3,19 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
+NAMESPACE="${NAMESPACE:-homeoffice}"
 KC_INT_URL="http://keycloak:8080"
+KC_EXT_URL="http://auth.localhost"
 KC_ADMIN_TOKEN=""
 
-# Helper: curl innerhalb des Docker-Netzwerks via Mattermost-Container
-_docker_curl() { docker exec homeoffice-mattermost curl -s "$@" 2>/dev/null; }
+# Helper: curl innerhalb des k3d-Clusters via Mattermost-Pod
+_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
 
 # ── Admin-Token holen ────────────────────────────────────────────
-KC_ADMIN_TOKEN=$(_docker_curl -X POST "${KC_INT_URL}/realms/master/protocol/openid-connect/token" \
+KC_ADMIN_TOKEN=$(_kube_curl -X POST "${KC_INT_URL}/realms/master/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=admin" \
-  -d "password=${KEYCLOAK_ADMIN_PASSWORD:-admin}" \
+  -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
   -d "grant_type=password" | jq -r '.access_token // empty')
 
 if [[ -z "$KC_ADMIN_TOKEN" ]]; then
@@ -24,21 +26,21 @@ else
   # ── Group A: Client-Konfiguration ──────────────────────────────
 
   # T1: Mattermost OIDC Client existiert mit korrekter Redirect-URI
-  MM_CLIENT=$(_docker_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+  MM_CLIENT=$(_kube_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
     "${KC_INT_URL}/admin/realms/homeoffice/clients?clientId=mattermost")
   MM_REDIRECT=$(echo "$MM_CLIENT" | jq -r '.[0].redirectUris[0] // empty')
-  assert_contains "$MM_REDIRECT" "bachelorprojekt-chat" "SA-08" "T1" \
+  assert_contains "$MM_REDIRECT" "chat.localhost" "SA-08" "T1" \
     "Mattermost OIDC Client — Redirect-URI konfiguriert"
 
   # T2: Nextcloud OIDC Client existiert mit korrekter Redirect-URI
-  NC_CLIENT=$(_docker_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+  NC_CLIENT=$(_kube_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
     "${KC_INT_URL}/admin/realms/homeoffice/clients?clientId=nextcloud")
   NC_REDIRECT=$(echo "$NC_CLIENT" | jq -r '.[0].redirectUris | join(" ") // empty')
   assert_contains "$NC_REDIRECT" "/apps/oidc_login/oidc" "SA-08" "T2" \
     "Nextcloud OIDC Client — Redirect-URI enthält /apps/oidc_login/oidc"
 
   # T3: Jitsi OIDC Client existiert mit korrekter Redirect-URI
-  JITSI_CLIENT=$(_docker_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+  JITSI_CLIENT=$(_kube_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
     "${KC_INT_URL}/admin/realms/homeoffice/clients?clientId=jitsi")
   JITSI_REDIRECT=$(echo "$JITSI_CLIENT" | jq -r '.[0].redirectUris[0] // empty')
   assert_contains "$JITSI_REDIRECT" "/oidc/tokenize" "SA-08" "T3" \
@@ -48,14 +50,11 @@ fi
 # ── Group B: OIDC Redirect-Chains ─────────────────────────────
 
 # T4: Mattermost → Keycloak Redirect
-# Enterprise-Image nutzt GitLab-OAuth (/oauth/gitlab/login) statt OpenID Connect.
 MM_OIDC_REDIRECT=""
 for endpoint in "/oauth/gitlab/login" "/oauth/openid_connect/login"; do
-  MM_OIDC_STATUS=$(docker exec homeoffice-mattermost \
-    curl -s -o /dev/null -w '%{http_code}' "http://localhost:8065${endpoint}" 2>/dev/null)
+  MM_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' "http://chat.localhost${endpoint}" 2>/dev/null)
   if [[ "$MM_OIDC_STATUS" == "302" ]]; then
-    MM_OIDC_REDIRECT=$(docker exec homeoffice-mattermost \
-      curl -s -o /dev/null -D - "http://localhost:8065${endpoint}" 2>/dev/null \
+    MM_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "http://chat.localhost${endpoint}" 2>/dev/null \
       | grep -i '^location:' | tr -d '\r')
     break
   fi
@@ -68,15 +67,14 @@ else
 fi
 
 # T5: Nextcloud → Keycloak Redirect
-NC_OIDC_REDIRECT=$(docker exec homeoffice-nextcloud \
-  curl -s -o /dev/null -D - "http://localhost/apps/oidc_login/oidc" 2>/dev/null \
+NC_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "http://files.localhost/apps/oidc_login/oidc" 2>/dev/null \
   | grep -i '^location:' | tr -d '\r')
 assert_contains "$NC_OIDC_REDIRECT" "realms/homeoffice" "SA-08" "T5" \
   "Nextcloud OIDC-Login leitet zu Keycloak weiter"
 
 # T6: Jitsi Adapter → Keycloak Redirect
 JITSI_STATE='{"room":"testroom","tenant":""}'
-JITSI_OIDC_REDIRECT=$(docker exec homeoffice-jitsi-web \
+JITSI_OIDC_REDIRECT=$(kubectl exec -n "$NAMESPACE" deploy/jitsi-web -- \
   curl -s -o /dev/null -D - \
   "http://jitsi-keycloak-adapter:9000/oidc/auth?state=$(echo "$JITSI_STATE" | jq -sRr @uri)" 2>/dev/null \
   | grep -i '^location:' | tr -d '\r')
@@ -105,7 +103,7 @@ assert_not_contains "$JITSI_OIDC_REDIRECT" "prompt=consent" "SA-08" "T9b" \
 
 # T10: Keycloak Token-Endpoint liefert access_token für testuser1
 TEST_PASS="${MM_TEST_ADMIN_PASS:-Testpassword123!}"
-TOKEN_RESPONSE=$(_docker_curl -X POST "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/token" \
+TOKEN_RESPONSE=$(_kube_curl -X POST "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=testuser1" \
   -d "password=${TEST_PASS}" \
@@ -122,7 +120,7 @@ fi
 
 # T11: Keycloak Userinfo enthält korrekten Username und E-Mail
 if [[ -n "$USER_ACCESS_TOKEN" ]]; then
-  USERINFO=$(_docker_curl -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
+  USERINFO=$(_kube_curl -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
     "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/userinfo")
   UI_USERNAME=$(echo "$USERINFO" | jq -r '.preferred_username // empty')
   UI_EMAIL=$(echo "$USERINFO" | jq -r '.email // empty')
@@ -136,19 +134,19 @@ else
 fi
 
 # T12: Jitsi Adapter Health-Endpoint erreichbar
-ADAPTER_HEALTH=$(docker exec homeoffice-jitsi-web \
+ADAPTER_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/jitsi-web -- \
   curl -s -o /dev/null -w '%{http_code}' "http://jitsi-keycloak-adapter:9000/oidc/health" 2>/dev/null || echo "000")
 assert_eq "$ADAPTER_HEALTH" "200" "SA-08" "T12" \
   "Jitsi Keycloak-Adapter Health-Endpoint erreichbar"
 
 # T13: Nextcloud OIDC-Konfiguration geladen
-NC_OIDC_URL=$(docker exec -u www-data homeoffice-nextcloud \
+NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
   php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
 assert_contains "$NC_OIDC_URL" "realms/homeoffice" "SA-08" "T13" \
   "Nextcloud oidc_login_provider_url konfiguriert"
 
 # T14: Zweiter Token-Request funktioniert (Session-Konsistenz)
-TOKEN_RESPONSE_2=$(_docker_curl -X POST "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/token" \
+TOKEN_RESPONSE_2=$(_kube_curl -X POST "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=testuser1" \
   -d "password=${TEST_PASS}" \

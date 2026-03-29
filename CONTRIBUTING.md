@@ -35,12 +35,11 @@ All changes go through pull requests. Direct pushes to `main` are not allowed.
 
 4. **Push and open a PR**:
    - Use the PR template checklist
-   - For features, select the `feature` template
    - CI runs automatically (manifest validation, YAML lint, security scan)
 
 5. **CI must pass** before merge. The pipeline checks:
-   - Kubernetes manifest validity (kustomize build + dry-run)
-   - YAML linting (k3d manifests + docker-compose)
+   - Kubernetes manifest validity (kustomize build + kubeconform)
+   - YAML linting (k3d manifests)
    - Shell script linting
    - Config validation (realm JSON, PHP OIDC config)
    - Security scan (image pinning, secret detection)
@@ -53,7 +52,8 @@ Prerequisites: Docker, k3d, kubectl, task (go-task)
 
 ```bash
 # First time: create cluster + deploy
-task up                          # creates k3d cluster
+cd /path/to/k3d-dev
+task cluster:create              # creates k3d cluster
 task ingress:install             # install NGINX ingress
 task homeoffice:deploy           # deploy all services
 
@@ -68,6 +68,22 @@ Services are available at:
 - **Mattermost (Chat):** http://chat.localhost
 - **Nextcloud (Files):** http://files.localhost
 - **Jitsi (Video):** http://meet.localhost
+
+### Running Tests
+
+```bash
+./tests/runner.sh local              # full test suite against k3d
+./tests/runner.sh local SA-08        # single test
+./tests/runner.sh local --verbose    # verbose output
+```
+
+### Monorepo Rules
+
+1. **k3d/k3s is the only deployment target.** No docker-compose.
+2. **All K8s manifests live in `k3d/`.** Use Kustomize.
+3. **Domains are centralized** in `k3d/configmap-domains.yaml`. Never hardcode hostnames.
+4. **Secrets stay in `k3d/secrets.yaml`** (dev values only). Never commit real credentials.
+5. **Shared configs** (proxy configs, adapter code, import scripts) live outside `k3d/` and are loaded as ConfigMaps by the deploy task.
 
 ### For AI Assistants (Claude Code)
 

@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# compose.sh — Docker Compose lifecycle + test data bootstrap
+# k3d.sh — Kubernetes (k3d) lifecycle + test data bootstrap
 # ═══════════════════════════════════════════════════════════════════
-# Usage: source this file, then call compose_up / compose_down / bootstrap_test_data.
+# Usage: source this file, then call k3d_wait / bootstrap_test_data.
 #
 # Required env vars:
-#   COMPOSE_DIR — path to directory containing docker-compose.yml
+#   NAMESPACE — Kubernetes namespace (default: homeoffice)
 # ═══════════════════════════════════════════════════════════════════
 
-COMPOSE_CMD="docker compose -f ${COMPOSE_DIR}/docker-compose.yml --env-file ${COMPOSE_DIR}/.env"
+NAMESPACE="${NAMESPACE:-homeoffice}"
+
+# ── kubectl helper for running commands in pods ──────────────────
+_kube_run() {
+  local deploy="$1"; shift
+  kubectl exec -n "$NAMESPACE" "deploy/${deploy}" -- "$@" 2>/dev/null
+}
 
 # ── Wait for a URL to return HTTP 200 ───────────────────────────
 _wait_for_url() {
@@ -28,30 +34,32 @@ _wait_for_url() {
   return 1
 }
 
-# ── Start the stack ──────────────────────────────────────────────
-compose_up() {
-  echo "▶ Docker Compose starten..."
-  $COMPOSE_CMD up -d
+# ── Wait for k3d services ───────────────────────────────────────
+k3d_wait() {
+  echo "▶ Warte auf k3d Services..."
 
-  echo "▶ Warte auf Services..."
-  local mm_url="http://localhost:8065/api/v4/system/ping"
-  local kc_url="http://localhost:8080/health/ready"
+  echo "  Prüfe ob k3d-Cluster erreichbar ist..."
+  if ! kubectl cluster-info &>/dev/null; then
+    echo "  FEHLER: Kein k3d-Cluster erreichbar. Starte mit: task cluster:create && task homeoffice:deploy"
+    return 1
+  fi
 
-  _wait_for_url "$mm_url" "Mattermost" 180
-  _wait_for_url "$kc_url" "Keycloak" 180
+  # Check that pods are running
+  local not_ready
+  not_ready=$(kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null \
+    | grep -cv "Running" || true)
+  if (( not_ready > 0 )); then
+    echo "  ⚠ ${not_ready} Pods sind noch nicht Running — warte..."
+    kubectl wait --for=condition=Available deployment --all -n "$NAMESPACE" --timeout=300s 2>&1 || true
+  fi
 
+  _wait_for_url "http://chat.localhost/api/v4/system/ping" "Mattermost" 180
+  _wait_for_url "http://auth.localhost/health/ready" "Keycloak" 180
   echo "  Alle Services bereit."
 }
 
-# ── Stop the stack ───────────────────────────────────────────────
-compose_down() {
-  echo "▶ Docker Compose stoppen..."
-  $COMPOSE_CMD down -v --remove-orphans
-  echo "  Stack beendet."
-}
-
 # ── Mattermost API helper ────────────────────────────────────────
-MM_URL="http://localhost:8065/api/v4"
+MM_URL="http://chat.localhost/api/v4"
 MM_ADMIN_TOKEN=""
 
 _mm_api() {
@@ -61,7 +69,6 @@ _mm_api() {
   curl "${args[@]}" "${MM_URL}${endpoint}"
 }
 
-# ── Bootstrap: create admin token ────────────────────────────────
 _mm_login() {
   local user="$1" pass="$2"
   local response
@@ -72,14 +79,14 @@ _mm_login() {
 }
 
 # ── Keycloak test user ──────────────────────────────────────────
-KC_URL="http://localhost:8080"
+KC_URL="http://auth.localhost"
 KC_ADMIN_TOKEN=""
 
 _kc_admin_login() {
   KC_ADMIN_TOKEN=$(curl -s -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
     -d "client_id=admin-cli" \
     -d "username=admin" \
-    -d "password=${KEYCLOAK_ADMIN_PASSWORD:-admin}" \
+    -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
     -d "grant_type=password" | jq -r '.access_token // empty')
 }
 
@@ -121,9 +128,9 @@ bootstrap_test_data() {
   MM_ADMIN_TOKEN=$(_mm_login "testadmin" "$admin_pass")
 
   if [[ -z "$MM_ADMIN_TOKEN" ]]; then
-    # Create via Mattermost CLI inside container
+    # Create via Mattermost CLI inside k3d pod
     echo "  Admin-Token via CLI erstellen..."
-    docker exec homeoffice-mattermost mmctl user create \
+    _kube_run mattermost mmctl user create \
       --username testadmin --email "$admin_email" \
       --password "$admin_pass" --system-admin --local 2>/dev/null || true
     MM_ADMIN_TOKEN=$(_mm_login "testadmin" "$admin_pass")

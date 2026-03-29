@@ -8,6 +8,7 @@ data:
   NC_DOMAIN: "files.localhost"
   SIGNALING_DOMAIN: "signaling.localhost"
   COLLABORA_DOMAIN: "office.localhost"
+  SPACEDECK_DOMAIN: "board.localhost"
   MAIL_DOMAIN: "mail.localhost"
   DOCS_DOMAIN: "docs.localhost"
   GITBOOK_URL: ""

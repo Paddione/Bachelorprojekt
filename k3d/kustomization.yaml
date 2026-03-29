@@ -13,10 +13,11 @@ resources:
   - mm-keycloak-proxy.yaml
   - mattermost.yaml
   - nextcloud.yaml
-  # Nextcloud Talk HPB + Collabora
+  # Nextcloud Talk HPB + Collabora + Whiteboard
   - talk-hpb.yaml
   - coturn.yaml
   - collabora.yaml
+  - spacedeck.yaml
   # Buchhaltung
   - invoiceninja.yaml
   - oauth2-proxy-invoiceninja.yaml

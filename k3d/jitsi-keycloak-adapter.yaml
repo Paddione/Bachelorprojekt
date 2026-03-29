@@ -18,9 +18,14 @@ spec:
         - name: adapter
           image: ghcr.io/nordeck/jitsi-keycloak-adapter-v2:latest
           env:
+            - name: KC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: KC_DOMAIN
             # Browser-seitige Keycloak-URL (extern)
             - name: KEYCLOAK_ORIGIN
-              value: "http://auth.localhost"
+              value: "http://$(KC_DOMAIN)"
             # Server-seitige Keycloak-URL (intern)
             - name: KEYCLOAK_ORIGIN_INTERNAL
               value: "http://keycloak:8080"

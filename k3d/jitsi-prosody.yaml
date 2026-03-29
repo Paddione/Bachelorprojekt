@@ -23,12 +23,17 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: JITSI_DOMAIN
+            - name: JITSI_XMPP_SUFFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: JITSI_XMPP_SUFFIX
             - name: XMPP_AUTH_DOMAIN
-              value: "auth.meet.meet.localhost"
+              value: "auth.meet.$(JITSI_XMPP_SUFFIX)"
             - name: XMPP_MUC_DOMAIN
-              value: "muc.meet.meet.localhost"
+              value: "muc.meet.$(JITSI_XMPP_SUFFIX)"
             - name: XMPP_INTERNAL_MUC_DOMAIN
-              value: "internal-muc.meet.meet.localhost"
+              value: "internal-muc.meet.$(JITSI_XMPP_SUFFIX)"
             - name: JICOFO_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:

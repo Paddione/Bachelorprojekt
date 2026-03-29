@@ -14,6 +14,7 @@ resources:
   - keycloak.yaml
   - mm-keycloak-proxy.yaml
   - mattermost.yaml
+  - mattermost-hpa.yaml      # Autoscaling (NFA-04)
   - nextcloud.yaml
   # Jitsi Stack
   - jitsi-prosody.yaml
@@ -21,6 +22,10 @@ resources:
   - jitsi-jvb.yaml
   - jitsi-web.yaml
   - jitsi-keycloak-adapter.yaml
+  # Backup (SA-07)
+  - backup-pvc.yaml
+  - backup-secrets.yaml
+  - backup-cronjob.yaml
   # Ingress
   - ingress.yaml
 

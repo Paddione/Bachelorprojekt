@@ -162,9 +162,6 @@
       "redirectUris": [
         "http://${JITSI_DOMAIN}/oidc/tokenize"
       ],
-      "postLogoutRedirectUris": [
-        "http://${JITSI_DOMAIN}/*"
-      ],
       "webOrigins": [
         "http://${JITSI_DOMAIN}"
       ],

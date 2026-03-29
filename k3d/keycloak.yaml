@@ -71,6 +71,11 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: NC_DOMAIN
+            - name: JITSI_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: JITSI_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:
@@ -89,14 +94,14 @@ spec:
               readOnly: true
           readinessProbe:
             httpGet:
-              path: /health/ready
-              port: 9000
+              path: /realms/master
+              port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /health/live
-              port: 9000
+              path: /realms/master
+              port: 8080
             initialDelaySeconds: 60
             periodSeconds: 30
           resources:

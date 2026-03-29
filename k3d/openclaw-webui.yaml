@@ -30,7 +30,9 @@ spec:
         - name: open-webui
           image: ghcr.io/open-webui/open-webui:main
           env:
-            # ─── LLM Backend (Claude only) ────────────────────
+            # ─── LLM Backend ─────────────────────────────────
+            - name: OLLAMA_BASE_URL
+              value: "http://ollama:11434"
             - name: OPENAI_API_BASE_URLS
               value: "https://api.anthropic.com/v1"
             - name: OPENAI_API_KEYS
@@ -40,7 +42,7 @@ spec:
                   key: ANTHROPIC_API_KEY
             # ─── Defaults ─────────────────────────────────────
             - name: DEFAULT_MODELS
-              value: "claude-sonnet-4-20250514"
+              value: "qwen2.5:9b"
             - name: DEFAULT_USER_ROLE
               value: "user"
             # ─── Disable external connections ──────────────────

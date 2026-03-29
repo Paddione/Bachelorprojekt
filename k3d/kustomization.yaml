@@ -26,6 +26,7 @@ resources:
   - openclaw-config.yaml
   - openclaw-rbac.yaml
   - openclaw-webui.yaml
+  - openclaw-ollama.yaml
   # OpenClaw MCP Server (FA-11..FA-14)
   - openclaw-mcp-kubernetes.yaml
   - openclaw-mcp-postgres.yaml

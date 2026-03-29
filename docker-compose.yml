@@ -206,9 +206,11 @@ services:
       MM_GITLABSETTINGS_ENABLE: "true"
       MM_GITLABSETTINGS_ID: "mattermost"
       MM_GITLABSETTINGS_SECRET: "${MATTERMOST_OIDC_SECRET:?Mattermost OIDC Secret fehlt}"
+      MM_GITLABSETTINGS_SCOPE: "openid profile email"
+      MM_SERVICESETTINGS_EXPERIMENTALENABLEAUTHENTICATIONTRANSFER: "true"
       MM_GITLABSETTINGS_AUTHENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/protocol/openid-connect/auth"
       # Token + Userinfo: intern (Server-zu-Server), nicht über externes DNS
-      MM_GITLABSETTINGS_TOKENENDPOINT: "http://keycloak:8080/realms/homeoffice/protocol/openid-connect/token"
+      MM_GITLABSETTINGS_TOKENENDPOINT: "http://mm-keycloak-proxy:8081/token"
       MM_GITLABSETTINGS_USERAPIENDPOINT: "http://mm-keycloak-proxy:8081/userinfo"
       TZ: Europe/Berlin
     volumes:

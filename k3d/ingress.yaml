@@ -59,3 +59,39 @@ spec:
                 name: jitsi-web
                 port:
                   number: 80
+
+    # ── Collabora Online (Dokument-Editor) ──────────────────────────
+    - host: office.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: collabora
+                port:
+                  number: 9980
+
+    # ── Spacedeck (Whiteboard) ──────────────────────────────────────
+    - host: board.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spacedeck
+                port:
+                  number: 9666
+
+    # ── OpenClaw (KI-Assistent) ─────────────────────────────────────
+    - host: ai.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openclaw
+                port:
+                  number: 8080

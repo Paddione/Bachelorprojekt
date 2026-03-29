@@ -27,24 +27,32 @@ All changes go through pull requests. Direct pushes to `main` are not allowed.
    task homeoffice:logs -- keycloak  # tail service logs
    ```
 
-3. **Validate before pushing**:
+3. **Update the tracking database** (mandatory for any significant change):
+   - Via the **Tracking UI**: http://tracking.localhost
+   - Via **psql**: `task tracking:psql`
+   - Via **PostgreSQL MCP** (from OpenClaw or Claude Code)
+
+   At minimum, update the pipeline stage/status for the affected requirement(s).
+   If this change introduces a new requirement, create the entry first.
+
+4. **Validate before pushing**:
    ```bash
    task homeoffice:validate      # dry-run k8s manifests
    shellcheck scripts/*.sh       # lint scripts (if modified)
    ```
 
-4. **Push and open a PR**:
+5. **Push and open a PR**:
    - Use the PR template checklist
    - CI runs automatically (manifest validation, YAML lint, security scan)
 
-5. **CI must pass** before merge. The pipeline checks:
+6. **CI must pass** before merge. The pipeline checks:
    - Kubernetes manifest validity (kustomize build + kubeconform)
    - YAML linting (k3d manifests)
    - Shell script linting
    - Config validation (realm JSON, PHP OIDC config)
    - Security scan (image pinning, secret detection)
 
-6. **Merge via squash-and-merge** to keep `main` history clean.
+7. **Merge via squash-and-merge** to keep `main` history clean.
 
 ### Local k3d Development
 
@@ -90,7 +98,11 @@ Services are available at:
 When asked to develop a feature, fix a bug, or make any code change:
 
 1. **Always create a feature branch** — never commit directly to `main`
-2. **Follow the PR template** — fill out the checklist completely
-3. **Run `task homeoffice:validate`** before pushing
-4. **Create a PR** using `gh pr create` with the appropriate template
-5. **Wait for CI** to pass before requesting merge
+2. **Update the tracking database** — mandatory for every significant change:
+   - Update pipeline stage/status for affected requirement(s) via psql (`task tracking:psql`) or PostgreSQL MCP
+   - If no matching requirement exists, create one first
+   - Use schema `bachelorprojekt` for Homeoffice MVP work
+3. **Follow the PR template** — fill out the checklist completely
+4. **Run `task homeoffice:validate`** before pushing
+5. **Create a PR** using `gh pr create` with the appropriate template
+6. **Wait for CI** to pass before requesting merge

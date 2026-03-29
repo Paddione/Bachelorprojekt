@@ -2,8 +2,7 @@
 # Substituiert Umgebungsvariablen in realm-homeoffice.json
 # und startet Keycloak mit --import-realm
 #
-# Hinweis: envsubst ist im Keycloak-Image (RHEL UBI9-micro) nicht
-# verfügbar, daher werden die Variablen per sed ersetzt.
+# Production-Variante: substituiert auch SMTP_PASSWORD
 set -e
 
 TEMPLATE="/opt/keycloak/realm-template/realm-homeoffice.json"
@@ -13,8 +12,8 @@ mkdir -p "$(dirname "$OUTPUT")"
 
 # Alle ${VAR} Referenzen im JSON durch aktuelle Env-Werte ersetzen (sed-basiert)
 cp "$TEMPLATE" "$OUTPUT"
-for var in MATTERMOST_OIDC_SECRET NEXTCLOUD_OIDC_SECRET OPENCLAW_OIDC_SECRET \
-           MM_DOMAIN NC_DOMAIN JITSI_DOMAIN OPENCLAW_DOMAIN; do
+for var in MATTERMOST_OIDC_SECRET NEXTCLOUD_OIDC_SECRET \
+           MM_DOMAIN NC_DOMAIN JITSI_DOMAIN SMTP_PASSWORD; do
   eval val="\${${var}:-}"
   if [ -z "$val" ]; then
     echo "[import-entrypoint] WARNUNG: ${var} ist nicht gesetzt!"

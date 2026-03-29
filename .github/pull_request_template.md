@@ -32,28 +32,28 @@
 - [ ] `k3d/realm-homeoffice-dev.json` updated if clients change
 - [ ] SSO login tested for all affected services
 
+### Tracking Database Update (mandatory)
+- [ ] **Pipeline status updated** in tracking DB for affected requirement(s)
+  - Via Tracking UI (http://tracking.localhost), `task tracking:psql`, or PostgreSQL MCP
+  - Updated stage (`idea` / `implementation` / `testing` / `documentation` / `archive`)
+  - Updated status (`pending` / `in_progress` / `done` / `fail` / `skip`)
+- [ ] **If new requirement:** Entry created in `bachelorprojekt.requirements` with category, name, and description
+
+**Tracking update method used:** <!-- UI / psql / MCP -->
+
 ## Requirements Traceability
 
-> Every functional change must be traceable to a requirement in `docs/requirements/`.
+> The **tracking database** is the single source of truth for all requirements and deployment status.
+> Access via: Tracking UI (http://tracking.localhost), `task tracking:psql`, or PostgreSQL MCP.
 
-- [ ] **Checked** whether a matching requirement entry exists in the appropriate JSON file:
-  - `FA_requirements.json` — Functional requirements
-  - `SA_requirements.json` — Security requirements
-  - `NFA_requirements.json` — Non-functional requirements
-  - `AK_requirements.json` — Acceptance criteria
-  - `L_requirements.json` — Deliverables
-- [ ] **If no entry exists:** Created a new entry with the following fields:
-  - `Bezeichnung` — Short title
-  - `Beschreibung` — Detailed description
-  - `Erfüllungskriterien` — Numbered acceptance criteria
-  - `Testfall` — Test cases (T1, T2, ...) that verify the criteria
-- [ ] **Added entry to the correct grouped JSON** file (FA/SA/NFA/AK use object format `{"REQ-ID": {...}}`, L uses array format `[{"ID": "L-XX", ...}]`)
+- [ ] **Checked** whether a matching requirement exists in the tracking DB (`bachelorprojekt.requirements`)
+- [ ] **If no entry exists:** Created via Tracking UI or SQL with: id, category, name, description, acceptance_criteria, test_cases, priority
 
 **Requirement ID:** <!-- e.g. FA-09, SA-08, NFA-08 -->
 
 ## Test Plan
 
-> Tests in this PR must match the `Testfall` entries defined in the requirement JSON.
+> Tests in this PR must match the `test_cases` column of the requirement in the tracking DB.
 
 **Requirement JSON Testfall:**
 <!-- Paste the Testfall field from the JSON entry so reviewers can verify coverage -->

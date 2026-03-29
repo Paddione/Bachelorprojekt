@@ -2,6 +2,7 @@
 .env
 .env.secrets
 *.env.local
+prod/secrets.yaml
 
 # ── Runtime-Daten (Docker-Volumes, DB, Certs) ──
 data/

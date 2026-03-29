@@ -2,7 +2,7 @@
   "realm": "homeoffice",
   "enabled": true,
   "displayName": "Homeoffice MVP (Dev)",
-  "sslRequired": "none",
+  "sslRequired": "external",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
@@ -17,10 +17,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${MATTERMOST_OIDC_SECRET}",
       "redirectUris": [
-        "http://${MM_DOMAIN}/*"
+        "https://${MM_DOMAIN}/*"
       ],
       "webOrigins": [
-        "http://${MM_DOMAIN}"
+        "https://${MM_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -110,11 +110,11 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${NEXTCLOUD_OIDC_SECRET}",
       "redirectUris": [
-        "http://${NC_DOMAIN}/apps/oidc_login/oidc",
-        "http://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
+        "https://${NC_DOMAIN}/apps/oidc_login/oidc",
+        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
       ],
       "webOrigins": [
-        "http://${NC_DOMAIN}"
+        "https://${NC_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -160,80 +160,15 @@
       "secret": "public-client-not-used",
       "publicClient": true,
       "redirectUris": [
-        "http://${JITSI_DOMAIN}/oidc/tokenize"
+        "https://${JITSI_DOMAIN}/oidc/tokenize"
       ],
       "webOrigins": [
-        "http://${JITSI_DOMAIN}"
+        "https://${JITSI_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "protocol": "openid-connect",
-      "protocolMappers": [
-        {
-          "name": "email",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "email",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "email",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "username",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "username",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "preferred_username",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "full name",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-full-name-mapper",
-          "consentRequired": false,
-          "config": {
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "userinfo.token.claim": "true"
-          }
-        }
-      ]
-    },
-    {
-      "clientId": "openclaw",
-      "name": "OpenClaw AI Assistant",
-      "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "${OPENCLAW_OIDC_SECRET}",
-      "redirectUris": [
-        "http://${OPENCLAW_DOMAIN}/*"
-      ],
-      "webOrigins": [
-        "http://${OPENCLAW_DOMAIN}"
-      ],
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "protocol": "openid-connect",
-      "publicClient": false,
-      "attributes": {
-        "oidc.ciba.grant.enabled": "false",
-        "oauth2.device.authorization.grant.enabled": "false",
-        "backchannel.logout.session.required": "true"
-      },
       "protocolMappers": [
         {
           "name": "email",
@@ -276,5 +211,18 @@
         }
       ]
     }
-  ]
+  ],
+  "smtpServer": {
+    "host": "smtp.mailbox.org",
+    "port": "465",
+    "ssl": "true",
+    "starttls": "false",
+    "auth": "true",
+    "user": "korczewski@mailbox.org",
+    "password": "${SMTP_PASSWORD}",
+    "from": "noreply-bachelorprojekt@mailbox.org",
+    "fromDisplayName": "Homeoffice MVP",
+    "replyTo": "",
+    "envelopeFrom": "noreply-bachelorprojekt@mailbox.org"
+  }
 }

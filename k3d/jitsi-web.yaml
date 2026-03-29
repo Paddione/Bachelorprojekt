@@ -18,19 +18,26 @@ spec:
         - name: web
           image: jitsi/web:stable-9111
           env:
-            - name: PUBLIC_URL
-              value: "http://meet.localhost"
-            - name: XMPP_DOMAIN
+            - name: JITSI_DOMAIN
               valueFrom:
                 configMapKeyRef:
                   name: domain-config
                   key: JITSI_DOMAIN
+            - name: JITSI_XMPP_SUFFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: JITSI_XMPP_SUFFIX
+            - name: PUBLIC_URL
+              value: "http://$(JITSI_DOMAIN)"
+            - name: XMPP_DOMAIN
+              value: "$(JITSI_DOMAIN)"
             - name: XMPP_AUTH_DOMAIN
-              value: "auth.meet.meet.localhost"
+              value: "auth.meet.$(JITSI_XMPP_SUFFIX)"
             - name: XMPP_BOSH_URL_BASE
               value: "http://prosody:5280"
             - name: XMPP_MUC_DOMAIN
-              value: "muc.meet.meet.localhost"
+              value: "muc.meet.$(JITSI_XMPP_SUFFIX)"
             - name: ENABLE_AUTH
               value: "1"
             - name: AUTH_TYPE
@@ -48,7 +55,7 @@ spec:
               value: jitsi
             # TOKEN_AUTH_URL: Leitet nicht-authentifizierte Nutzer zum OIDC-Adapter
             - name: TOKEN_AUTH_URL
-              value: "http://meet.localhost/oidc/auth?state={state}"
+              value: "http://$(JITSI_DOMAIN)/oidc/auth?state={state}"
             - name: ENABLE_GUESTS
               value: "1"
             - name: ENABLE_AUTO_LOGIN

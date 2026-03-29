@@ -173,6 +173,21 @@ services:
     networks:
       - homeoffice
 
+  # ── Mattermost: Keycloak Userinfo Proxy ──────────────────────────
+  # Mattermosts GitLab-OAuth sendet das Token als ?access_token=xxx,
+  # aber Keycloak akzeptiert nur Authorization: Bearer. Dieser Proxy
+  # übersetzt Query-Parameter → Header.
+  mm-keycloak-proxy:
+    image: nginx:alpine
+    container_name: homeoffice-mm-kc-proxy
+    volumes:
+      - ./mattermost/userinfo-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    expose:
+      - "8081"
+    restart: unless-stopped
+    networks:
+      - homeoffice
+
   # ── Mattermost (Chat) ───────────────────────────────────────────
   # Enterprise-Image (ohne Lizenz = Free-Tier), da Team-Edition kein SSO hat.
   mattermost:
@@ -192,8 +207,9 @@ services:
       MM_GITLABSETTINGS_ID: "mattermost"
       MM_GITLABSETTINGS_SECRET: "${MATTERMOST_OIDC_SECRET:?Mattermost OIDC Secret fehlt}"
       MM_GITLABSETTINGS_AUTHENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/protocol/openid-connect/auth"
-      MM_GITLABSETTINGS_TOKENENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/protocol/openid-connect/token"
-      MM_GITLABSETTINGS_USERAPIENDPOINT: "https://${KC_DOMAIN}/realms/homeoffice/protocol/openid-connect/userinfo"
+      # Token + Userinfo: intern (Server-zu-Server), nicht über externes DNS
+      MM_GITLABSETTINGS_TOKENENDPOINT: "http://keycloak:8080/realms/homeoffice/protocol/openid-connect/token"
+      MM_GITLABSETTINGS_USERAPIENDPOINT: "http://mm-keycloak-proxy:8081/userinfo"
       TZ: Europe/Berlin
     volumes:
       - ${STORAGE_PATH:-./data}/mattermost:/mattermost/data

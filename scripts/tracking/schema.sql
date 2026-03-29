@@ -13,7 +13,7 @@ PRAGMA foreign_keys = ON;
 -- ── Requirements ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS requirements (
   id                TEXT PRIMARY KEY,   -- FA-01, SA-03, L-02 …
-  category          TEXT NOT NULL,      -- FA, SA, NFA, AK, L
+  category          TEXT NOT NULL,      -- Funktionale Anforderung, Nicht-Funktionale Anforderung, Sicherheitsanforderung, Akzeptanzkriterium, Auslieferbares Objekt
   name              TEXT NOT NULL,      -- Bezeichnung
   description       TEXT,               -- Beschreibung
   acceptance_criteria TEXT,             -- Erfüllungskriterien

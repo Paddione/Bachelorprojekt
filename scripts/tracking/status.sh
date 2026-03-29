@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # Usage:
 #   ./scripts/tracking/status.sh              # full pipeline overview
-#   ./scripts/tracking/status.sh --category FA # filter by category
+#   ./scripts/tracking/status.sh --category 'Funktionale Anforderung' # filter by category
 #   ./scripts/tracking/status.sh --failing     # only failing requirements
 #   ./scripts/tracking/status.sh --summary     # progress summary
 #   ./scripts/tracking/status.sh --tests       # latest test results

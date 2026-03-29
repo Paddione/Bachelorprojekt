@@ -56,9 +56,15 @@ Beispiel: `scripts/users-example.csv`
 Ersetzt Umgebungsvariablen in `realm-homeoffice-dev.json` und startet Keycloak mit automatischem Realm-Import. Wird als ConfigMap im Keycloak-Pod gemountet.
 
 **Ablauf:**
-1. `envsubst` ersetzt `${VARIABLE}` Platzhalter in der Realm-JSON
+1. `sed` ersetzt `${VARIABLE}` Platzhalter in der Realm-JSON (envsubst ist im Keycloak-Image nicht verfügbar)
 2. Aufbereitete JSON wird als Import-Datei bereitgestellt
 3. Keycloak startet mit `--import-realm`
+
+**Hinweis:** Beim Re-Deploy auf einem bestehenden Cluster wird ein bereits existierender Realm *nicht* überschrieben. Um Realm-Änderungen zu übernehmen, muss zuerst der Keycloak-DB PVC gelöscht werden:
+```bash
+kubectl delete pvc keycloak-db-data -n homeoffice
+kubectl rollout restart deployment/keycloak-db deployment/keycloak -n homeoffice
+```
 
 ## scripts/check-connectivity.sh — Erreichbarkeitstest
 
@@ -113,8 +119,8 @@ kubectl get pods -n homeoffice -w
 # Einzelnen Service neustarten
 kubectl rollout restart deployment/<service-name> -n homeoffice
 
-# Manifeste validieren
-kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
+# Manifeste validieren (benötigt kubeconform)
+kubectl kustomize k3d/ | kubeconform -strict -kubernetes-version 1.28.0
 
 # Shell in einem Pod öffnen
 kubectl exec -it -n homeoffice deploy/<service-name> -- sh

@@ -2,46 +2,46 @@
 
 ## Systemübersicht
 
-Das Homeoffice MVP ist eine Docker Compose-basierte Plattform mit sechs Kerndiensten hinter einem Reverse Proxy. Alle Services teilen sich ein Docker-Netzwerk (`homeoffice`) und werden durch zentrales Identity Management (Keycloak) verbunden.
+Das Homeoffice MVP ist eine Kubernetes-basierte Plattform (k3d/k3s), die vier Kerndienste hinter einem NGINX Ingress Controller bereitstellt. Alle Services laufen im Namespace `homeoffice` und werden durch zentrales Identity Management (Keycloak) per OIDC/SSO verbunden.
 
 ```
-Internet
+Browser
    │
-   ├── Port 80/TCP ──┐
-   ├── Port 443/TCP ─┤
-   │                  ▼
-   │            ┌──────────┐
-   │            │ Traefik  │  Reverse Proxy + Auto-HTTPS (Let's Encrypt)
-   │            └────┬─────┘
-   │                 │
-   │    ┌────────────┼────────────┬──────────────┐
-   │    ▼            ▼            ▼              ▼
-   │ ┌──────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-   │ │Matte-│  │Nextcloud │  │Keycloak  │  │  Jitsi   │
-   │ │rmost │  │  :80     │  │  :8080   │  │  Web     │
-   │ │:8065 │  │          │  │          │  │          │
-   │ └──┬───┘  └────┬─────┘  └────┬─────┘  └────┬─────┘
-   │    │           │             │              │
-   │    ▼           ▼             ▼              │
-   │ ┌──────┐  ┌──────────┐  ┌──────────┐       │
-   │ │PG DB │  │  PG DB   │  │  PG DB   │       │
-   │ │:5432 │  │  :5432   │  │  :5432   │       │
-   │ └──────┘  └──────────┘  └──────────┘       │
-   │                                             │
-   │                              ┌──────────────┼──────────┐
-   │                              ▼              ▼          ▼
-   │                         ┌────────┐   ┌─────────┐ ┌────────┐
-   │                         │Prosody │   │ Jicofo  │ │  JVB   │
-   │                         │ (XMPP) │   │         │ │:10000  │
-   │                         └────────┘   └─────────┘ └────┬───┘
-   │                                                       │
-   └── Port 10000/UDP ────────────────────────────────────-┘
-
-┌──────────┐         ┌──────────┐
-│ DuckDNS  │         │  Backup  │
-│ Updater  │         │ (rclone) │
-│ alle 5m  │         │ 02:00UTC │
-└──────────┘         └──────────┘
+   ├── auth.localhost ──────┐
+   ├── chat.localhost ──────┤
+   ├── files.localhost ─────┤
+   ├── meet.localhost ──────┤
+   │                        ▼
+   │              ┌──────────────────┐
+   │              │  NGINX Ingress   │  Reverse Proxy (k3d-managed)
+   │              │  Controller      │
+   │              └────────┬─────────┘
+   │                       │
+   │    ┌──────────────────┼──────────────────┬──────────────────┐
+   │    ▼                  ▼                  ▼                  ▼
+   │ ┌──────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐
+   │ │Keycloak  │  │ Mattermost   │  │  Nextcloud   │  │   Jitsi Web      │
+   │ │  :8080   │  │   :8065      │  │    :80       │  │    :80           │
+   │ └────┬─────┘  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘
+   │      │               │                 │                    │
+   │      ▼               ▼                 ▼                    │
+   │ ┌──────────┐  ┌──────────────┐  ┌──────────────┐           │
+   │ │  PG DB   │  │    PG DB     │  │    PG DB     │           │
+   │ │  :5432   │  │    :5432     │  │    :5432     │           │
+   │ └──────────┘  └──────────────┘  └──────────────┘           │
+   │                                                             │
+   │       ┌────────────────┐              ┌─────────────────────┼──────────┐
+   │       │ mm-keycloak    │              ▼                     ▼          ▼
+   │       │ -proxy :8081   │         ┌────────┐          ┌─────────┐ ┌────────┐
+   │       │ (userinfo)     │         │Prosody │          │ Jicofo  │ │  JVB   │
+   │       └────────────────┘         │ (XMPP) │          │         │ │:10000  │
+   │                                  └────────┘          └─────────┘ └────┬───┘
+   │                                                                       │
+   │ ┌──────────────────────┐                                              │
+   │ │ jitsi-keycloak       │                                              │
+   │ │ -adapter :9000       │──── OIDC→JWT Bridge ─────────────────────────┘
+   │ │ (/oidc)              │
+   │ └──────────────────────┘
 ```
 
 ## Authentifizierungsfluss (OIDC / SSO)
@@ -50,13 +50,13 @@ Internet
 Benutzer
    │
    ▼
-Mattermost / Nextcloud
+Mattermost / Nextcloud / Jitsi
    │  "Mit Keycloak anmelden"
    ▼
-Keycloak (OIDC Provider)
+Keycloak (OIDC Provider, Realm "homeoffice")
    │  Prüft Credentials gegen interne User-Datenbank
    ▼
-Keycloak → ID-Token → Mattermost / Nextcloud
+Keycloak → ID-Token → Dienst erstellt lokale Session
 ```
 
 1. Benutzer klickt "Mit Keycloak anmelden"
@@ -65,35 +65,51 @@ Keycloak → ID-Token → Mattermost / Nextcloud
 4. Bei Erfolg: ID-Token mit Claims (email, username) an den Dienst
 5. Dienst erstellt lokale Session
 
-## Docker-Netzwerk
+### Service-spezifische SSO-Anbindung
 
-Alle Services laufen im Docker-Bridge-Netzwerk `homeoffice`. Nur zwei Ports sind nach außen exponiert:
+| Service | Methode | Besonderheit |
+|---------|---------|-------------|
+| Mattermost | GitLab OAuth-Protokoll | mm-keycloak-proxy übersetzt Keycloak-Userinfo auf GitLab-Format |
+| Nextcloud | `oidc_login` App | Muss nach Erstdeployment manuell installiert werden |
+| Jitsi | jitsi-keycloak-adapter | OIDC→JWT Bridge, alle User erhalten Moderator-Rechte |
 
-| Port | Protokoll | Service | Grund |
-|------|-----------|---------|-------|
-| 80 | TCP | Traefik | HTTP → HTTPS Redirect + Let's Encrypt Challenge |
-| 443 | TCP | Traefik | HTTPS für alle Web-Dienste |
-| 10000 | UDP | Jitsi JVB | Video/Audio-Mediendaten (direkt, kein Proxy) |
+## Kubernetes-Namespace
 
-Interne Kommunikation (z.B. Mattermost → Keycloak auf Port 8080) bleibt im Docker-Netzwerk.
+Alle Services laufen im Namespace `homeoffice`. Routing erfolgt über einen NGINX Ingress Controller (installiert via Helm). Domains sind zentral in `k3d/configmap-domains.yaml` konfiguriert — niemals Hostnamen hartcodieren.
 
-## Datenfluss Backup
-
-```
-Mattermost-Daten ──┐
-Nextcloud-Daten  ──┼──→ rclone sync ──┬──→ Filen.io (Cloud)
-Traefik-Certs    ──┘                   └──→ SMB/NAS (Lokal)
-```
-
-Das Backup läuft täglich um 02:00 UTC. Beide Ziele sind optional und unabhängig konfigurierbar.
+| Domain | Service | Port |
+|--------|---------|------|
+| auth.localhost | Keycloak | 8080 |
+| chat.localhost | Mattermost | 8065 |
+| files.localhost | Nextcloud | 80 |
+| meet.localhost | Jitsi Web + Keycloak Adapter (/oidc) | 80 / 9000 |
 
 ## Persistenz
 
-| Service | Volume-Typ | Speicherort |
+| Service | Volume-Typ | Beschreibung |
 |---------|-----------|-------------|
-| Mattermost Uploads | Bind Mount | `${STORAGE_PATH}/mattermost/` |
-| Nextcloud Dateien | Bind Mount | `${STORAGE_PATH}/nextcloud/` |
-| Traefik SSL-Certs | Bind Mount | `${STORAGE_PATH}/traefik/letsencrypt/` |
-| Nextcloud App | Docker Volume | `nextcloud-app` |
-| Jitsi Config | Docker Volumes | `jitsi-*` |
-| Alle Datenbanken | Docker Volumes | `*-db-data` |
+| Keycloak DB | PersistentVolumeClaim | `keycloak-db-data` |
+| Mattermost DB | PersistentVolumeClaim | `mattermost-db-data` |
+| Mattermost Uploads | PersistentVolumeClaim | `mattermost-data` |
+| Nextcloud DB | PersistentVolumeClaim | `nextcloud-db-data` |
+| Nextcloud Dateien | PersistentVolumeClaim | `nextcloud-data` |
+
+## Service-Abhängigkeiten
+
+```
+Keycloak-DB → Keycloak
+                  │
+    ┌─────────────┼─────────────────┐
+    ▼             ▼                 ▼
+MM-DB → Mattermost    NC-DB → Nextcloud
+    │
+    ▼
+mm-keycloak-proxy (Userinfo-Übersetzung)
+
+Prosody → Jicofo → JVB → Jitsi-Web
+                          │
+                          ▼
+              jitsi-keycloak-adapter (OIDC→JWT)
+
+NGINX Ingress Controller (routet alle *.localhost Domains)
+```

@@ -1,34 +1,19 @@
 # Services
 
-Übersicht aller Docker-Services im Homeoffice MVP.
-
-## Traefik (Reverse Proxy)
-
-| Eigenschaft | Wert |
-|------------|------|
-| Container | `homeoffice-traefik` |
-| Image | `traefik:v3.0` |
-| Ports | 80 (HTTP), 443 (HTTPS) |
-| Funktion | Reverse Proxy, automatische HTTPS-Zertifikate |
-
-Traefik routet den gesamten Web-Traffic anhand von Docker-Labels. Jeder Service registriert seine Route automatisch. SSL-Zertifikate werden per Let's Encrypt (TLS-Challenge) bezogen und in `${STORAGE_PATH}/traefik/letsencrypt/acme.json` gespeichert.
-
-**Routing-Beispiel:**
-- `https://projekt-chat.duckdns.org` → Container `mattermost:8065`
-- `https://projekt-files.duckdns.org` → Container `nextcloud:80`
+Übersicht aller Kubernetes-Deployments im Homeoffice MVP (Namespace `homeoffice`).
 
 ## Keycloak (SSO / Identity Provider)
 
 | Eigenschaft | Wert |
 |------------|------|
-| Container | `homeoffice-keycloak` + `homeoffice-keycloak-db` |
+| Deployment | `keycloak` + `keycloak-db` |
 | Image | `quay.io/keycloak/keycloak:24.0` + `postgres:16-alpine` |
-| Port | 8080 (intern via Traefik) |
+| Port | 8080 (via Ingress auf `auth.localhost`) |
 | Funktion | Single Sign-On via OpenID Connect |
 
-Keycloak ist der zentrale Identity Provider. Beim ersten Start wird der Realm `homeoffice` aus `realm-homeoffice.json` importiert. Der Realm enthält:
+Keycloak ist der zentrale Identity Provider. Beim ersten Start wird der Realm `homeoffice` aus `realm-homeoffice-dev.json` importiert (via `import-entrypoint.sh`). Der Realm enthält:
 
-- OIDC-Clients für Mattermost und Nextcloud (mit Secrets aus `.env`)
+- OIDC-Clients für Mattermost, Nextcloud und Jitsi (Secrets aus `k3d/secrets.yaml`)
 - Integrierte Benutzerverwaltung (Keycloak als alleiniger User Store)
 - Brute-Force-Schutz und E-Mail-Login
 
@@ -38,80 +23,63 @@ Details: [Keycloak & SSO](keycloak.md)
 
 | Eigenschaft | Wert |
 |------------|------|
-| Container | `homeoffice-mattermost` + `homeoffice-mattermost-db` |
-| Image | `mattermost/mattermost-team-edition:9.7` + `postgres:16-alpine` |
-| Port | 8065 (intern via Traefik) |
+| Deployment | `mattermost` + `mattermost-db` |
+| Image | `mattermost/mattermost-enterprise-edition:9.7` + `postgres:16-alpine` |
+| Port | 8065 (via Ingress auf `chat.localhost`) |
 | Funktion | Chat, Channels, Dateifreigabe, Jitsi-Integration |
 
-Mattermost ist die Chat-Plattform (Slack-Alternative). Login erfolgt per Keycloak SSO. Das Jitsi-Plugin ist vorinstalliert — Video-Calls starten direkt aus dem Chat.
+Mattermost ist die Chat-Plattform (Slack-Alternative). Login erfolgt per Keycloak SSO über das GitLab-OAuth-Protokoll — der `mm-keycloak-proxy` übersetzt Keycloak-Userinfo ins GitLab-Format.
 
-**Datenspeicher:** `${STORAGE_PATH}/mattermost/` (Uploads, Plugins)
-**Upload-Limit:** 50 MB (via Traefik Buffering-Middleware)
+**Zusatz-Komponente:** `mm-keycloak-proxy` (NGINX, Port 8081) — übersetzt `/userinfo`-Responses und leitet `/token`-Anfragen weiter.
 
 ## Nextcloud (Dateien)
 
 | Eigenschaft | Wert |
 |------------|------|
-| Container | `homeoffice-nextcloud` + `homeoffice-nextcloud-db` |
+| Deployment | `nextcloud` + `nextcloud-db` |
 | Image | `nextcloud:28-apache` + `postgres:16-alpine` |
-| Port | 80 (intern via Traefik) |
+| Port | 80 (via Ingress auf `files.localhost`) |
 | Funktion | Dateisynchronisation, Kalender, Kontakte |
 
-Nextcloud ist die Datei-Plattform (Google Drive / OneDrive-Alternative). Login per Keycloak SSO. Unterstützt WebDAV, CalDAV und CardDAV.
+Nextcloud ist die Datei-Plattform (Google Drive-Alternative). Login per Keycloak SSO über die `oidc_login` App.
 
-**Datenspeicher:** `${STORAGE_PATH}/nextcloud/` (Benutzerdateien)
+**Wichtig:** Nach dem ersten Deployment muss die OIDC-App manuell installiert werden:
+```bash
+kubectl exec -n homeoffice deploy/nextcloud -- php occ app:install oidc_login
+```
 
 ## Jitsi (Videokonferenzen)
 
-Jitsi besteht aus vier Containern:
+Jitsi besteht aus fünf Deployments:
 
-| Container | Image | Funktion |
-|-----------|-------|----------|
-| `homeoffice-jitsi-web` | `jitsi/web:stable` | Web-Frontend |
-| `homeoffice-prosody` | `jitsi/prosody:stable` | XMPP-Server (Signaling) |
-| `homeoffice-jicofo` | `jitsi/jicofo:stable` | Conference Focus (Steuerung) |
-| `homeoffice-jvb` | `jitsi/jvb:stable` | Videobridge (Media) |
+| Deployment | Image | Funktion |
+|------------|-------|----------|
+| `jitsi-web` | `jitsi/web:stable-9111` | Web-Frontend |
+| `jitsi-prosody` | `jitsi/prosody:stable-9111` | XMPP-Server (Signaling) |
+| `jitsi-jicofo` | `jitsi/jicofo:stable-9111` | Conference Focus (Steuerung) |
+| `jitsi-jvb` | `jitsi/jvb:stable-9111` | Videobridge (Media, UDP 10000) |
+| `jitsi-keycloak-adapter` | `ghcr.io/nordeck/jitsi-keycloak-adapter-v2` | OIDC→JWT Bridge |
 
-**Ports:**
-- Web: 443/TCP (via Traefik)
-- JVB: 10000/UDP (direkt, ohne Proxy — für Audio/Video-Streams)
+Der `jitsi-keycloak-adapter` übersetzt Keycloak OIDC-Tokens in Jitsi-kompatible JWTs. Alle authentifizierten Benutzer erhalten automatisch Moderator-Rechte.
 
-Jitsi ist in Mattermost integriert. Ein Klick auf das Kamera-Symbol startet eine Konferenz.
-
-## DuckDNS (Dynamic DNS)
-
-| Eigenschaft | Wert |
-|------------|------|
-| Container | `homeoffice-duckdns` |
-| Image | `curlimages/curl:latest` |
-| Funktion | Aktualisiert DNS-Einträge alle 5 Minuten |
-
-Der Container aktualisiert alle 4 DuckDNS-Subdomains gleichzeitig per HTTP-API. Dadurch zeigen die Domains immer auf die aktuelle öffentliche IP — auch bei dynamischer IP-Vergabe durch den ISP.
-
-## Backup (rclone)
-
-| Eigenschaft | Wert |
-|------------|------|
-| Container | `homeoffice-backup` |
-| Image | `rclone/rclone:latest` |
-| Zeitplan | Täglich 02:00 UTC |
-| Funktion | Inkrementelle Datensicherung |
-
-Details: [Backup](backup.md)
+**Routing:** `meet.localhost/oidc/*` → Adapter, `meet.localhost/*` → Jitsi Web
 
 ## Service-Abhängigkeiten
 
 ```
-DuckDNS (unabhängig)
-
 Keycloak-DB → Keycloak
                   │
-    ┌─────────────┤
-    ▼             ▼
-Mattermost-DB → Mattermost    Nextcloud-DB → Nextcloud
+    ┌─────────────┼─────────────────┐
+    ▼             ▼                 ▼
+MM-DB → Mattermost    NC-DB → Nextcloud
+    │
+    ▼
+mm-keycloak-proxy (Userinfo-Übersetzung)
 
 Prosody → Jicofo → JVB → Jitsi-Web
+                          │
+                          ▼
+              jitsi-keycloak-adapter (OIDC→JWT)
 
-Traefik (entdeckt Services via Docker Socket)
-Backup (liest Storage-Volumes)
+NGINX Ingress Controller (routet alle *.localhost Domains)
 ```

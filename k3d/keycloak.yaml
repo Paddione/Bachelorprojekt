@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:24.0
+          command: ["/opt/keycloak/realm-template/import-entrypoint.sh"]
+          env:
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://keycloak-db:5432/keycloak"
+            - name: KC_DB_USERNAME
+              value: keycloak
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: KEYCLOAK_DB_PASSWORD
+            - name: KC_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: KC_DOMAIN
+            - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
+              value: "true"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            # Realm-Import: Variablen werden von import-entrypoint.sh substituiert
+            - name: MATTERMOST_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: MATTERMOST_OIDC_SECRET
+            - name: NEXTCLOUD_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: NEXTCLOUD_OIDC_SECRET
+            - name: MM_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: MM_DOMAIN
+            - name: NC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: NC_DOMAIN
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          volumeMounts:
+            - name: import-script
+              mountPath: /opt/keycloak/realm-template/import-entrypoint.sh
+              subPath: import-entrypoint.sh
+              readOnly: true
+            - name: realm-template
+              mountPath: /opt/keycloak/realm-template/realm-homeoffice.json
+              subPath: realm-homeoffice.json
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: import-script
+          configMap:
+            name: keycloak-import-script
+            defaultMode: 0755
+        - name: realm-template
+          configMap:
+            name: realm-template
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

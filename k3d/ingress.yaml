@@ -1,0 +1,62 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homeoffice-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    # ── Keycloak (SSO) ──────────────────────────────────────────────
+    - host: auth.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak
+                port:
+                  number: 8080
+
+    # ── Mattermost (Chat) ───────────────────────────────────────────
+    - host: chat.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mattermost
+                port:
+                  number: 8065
+
+    # ── Nextcloud (Dateien) ──────────────────────────────────────────
+    - host: files.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nextcloud
+                port:
+                  number: 80
+
+    # ── Jitsi: OIDC Adapter (höhere Priorität) ──────────────────────
+    - host: meet.localhost
+      http:
+        paths:
+          - path: /oidc
+            pathType: Prefix
+            backend:
+              service:
+                name: jitsi-keycloak-adapter
+                port:
+                  number: 9000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jitsi-web
+                port:
+                  number: 80

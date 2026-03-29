@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: homeoffice
+
+resources:
+  - namespace.yaml
+  - configmap-domains.yaml
+  - secrets.yaml
+  # Datenbanken
+  - keycloak-db.yaml
+  - mattermost-db.yaml
+  - nextcloud-db.yaml
+  # Kerndienste
+  - keycloak.yaml
+  - mm-keycloak-proxy.yaml
+  - mattermost.yaml
+  - nextcloud.yaml
+  # Jitsi Stack
+  - jitsi-prosody.yaml
+  - jitsi-jicofo.yaml
+  - jitsi-jvb.yaml
+  - jitsi-web.yaml
+  - jitsi-keycloak-adapter.yaml
+  # Ingress
+  - ingress.yaml
+
+# ConfigMaps aus lokalen Dateien (dev-spezifisch)
+configMapGenerator:
+  - name: realm-template
+    files:
+      - realm-homeoffice.json=realm-homeoffice-dev.json
+  - name: nextcloud-oidc-config
+    files:
+      - oidc.config.php=nextcloud-oidc-dev.php
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+# Hinweis: ConfigMaps aus dem Eltern-Verzeichnis (import-entrypoint.sh,
+# userinfo-proxy.conf, adapter.ts) werden in deploy.sh per kubectl erstellt,
+# da Kustomize keine Dateien außerhalb des Basis-Verzeichnisses referenzieren darf.

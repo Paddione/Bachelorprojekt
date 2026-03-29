@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jicofo
+  labels:
+    app: jicofo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jicofo
+  template:
+    metadata:
+      labels:
+        app: jicofo
+    spec:
+      containers:
+        - name: jicofo
+          image: jitsi/jicofo:stable-9111
+          env:
+            - name: XMPP_SERVER
+              value: prosody
+            - name: XMPP_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: JITSI_DOMAIN
+            - name: XMPP_AUTH_DOMAIN
+              value: "auth.meet.meet.localhost"
+            - name: XMPP_INTERNAL_MUC_DOMAIN
+              value: "internal-muc.meet.meet.localhost"
+            - name: JICOFO_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: JICOFO_AUTH_PASSWORD
+            - name: ENABLE_AUTH
+              value: "1"
+            - name: AUTH_TYPE
+              value: jwt
+            - name: TZ
+              value: Europe/Berlin
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jicofo
+spec:
+  selector:
+    app: jicofo
+  ports:
+    - port: 8888
+      targetPort: 8888

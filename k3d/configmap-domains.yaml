@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: domain-config
+data:
+  MM_DOMAIN: "chat.localhost"
+  KC_DOMAIN: "auth.localhost"
+  NC_DOMAIN: "files.localhost"
+  JITSI_DOMAIN: "meet.localhost"
+  JITSI_XMPP_SUFFIX: "meet.localhost"

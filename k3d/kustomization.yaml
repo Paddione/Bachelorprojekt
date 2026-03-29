@@ -6,10 +6,8 @@ resources:
   - namespace.yaml
   - configmap-domains.yaml
   - secrets.yaml
-  # Datenbanken
-  - keycloak-db.yaml
-  - mattermost-db.yaml
-  - nextcloud-db.yaml
+  # Shared PostgreSQL (keycloak, mattermost, nextcloud, spacedeck)
+  - shared-db.yaml
   # Kerndienste
   - keycloak.yaml
   - mm-keycloak-proxy.yaml
@@ -21,6 +19,19 @@ resources:
   - jitsi-jvb.yaml
   - jitsi-web.yaml
   - jitsi-keycloak-adapter.yaml
+  # Collaboration (FA-09)
+  - collabora.yaml
+  - spacedeck.yaml
+  # OpenClaw KI-Assistent (FA-10)
+  - openclaw-config.yaml
+  - openclaw-rbac.yaml
+  - openclaw-webui.yaml
+  # OpenClaw MCP Server (FA-11..FA-14)
+  - openclaw-mcp-kubernetes.yaml
+  - openclaw-mcp-postgres.yaml
+  - openclaw-mcp-github.yaml
+  - openclaw-mcp-prometheus.yaml
+  - openclaw-mcp-grafana.yaml
   # Ingress
   - ingress.yaml
 

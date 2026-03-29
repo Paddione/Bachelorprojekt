@@ -76,6 +76,16 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: JITSI_DOMAIN
+            - name: OPENCLAW_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: OPENCLAW_OIDC_SECRET
+            - name: OPENCLAW_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: OPENCLAW_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:

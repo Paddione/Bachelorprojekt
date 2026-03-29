@@ -8,3 +8,7 @@ data:
   NC_DOMAIN: "files.localhost"
   JITSI_DOMAIN: "meet.localhost"
   JITSI_XMPP_SUFFIX: "meet.localhost"
+  COLLABORA_DOMAIN: "office.localhost"
+  SPACEDECK_DOMAIN: "board.localhost"
+  OPENCLAW_DOMAIN: "ai.localhost"
+  TRACKING_DOMAIN: "tracking.localhost"

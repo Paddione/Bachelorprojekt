@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collabora
+  labels:
+    app: collabora
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collabora
+  template:
+    metadata:
+      labels:
+        app: collabora
+    spec:
+      containers:
+        - name: collabora
+          image: collabora/code:24.04
+          env:
+            - name: aliasgroup1
+              value: "http://nextcloud:80"
+            - name: server_name
+              value: "office.localhost"
+            - name: extra_params
+              value: "--o:ssl.enable=false --o:ssl.termination=false"
+            - name: username
+              value: admin
+            - name: password
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: COLLABORA_ADMIN_PASSWORD
+            - name: dictionaries
+              value: "de_DE en_US"
+          ports:
+            - containerPort: 9980
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9980
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9980
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: collabora
+spec:
+  selector:
+    app: collabora
+  ports:
+    - port: 9980
+      targetPort: 9980

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+data:
+  OPENID_PROVIDER_URL: "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration"
+  MATTERMOST_WEBHOOK_URL: "http://mattermost:8065/hooks/openclaw-alerts"
+  MCP_KUBERNETES_URL: "http://mcp-kubernetes:3000/mcp"
+  MCP_POSTGRES_URL: "http://mcp-postgres:3001/mcp"
+  MCP_GITHUB_URL: "http://mcp-github:3002/mcp"
+  MCP_PROMETHEUS_URL: "http://mcp-prometheus:3003/mcp"
+  MCP_GRAFANA_URL: "http://mcp-grafana:3004/mcp"

@@ -48,8 +48,17 @@ import_requirements() {
   local file="$1"
   local filename
   filename=$(basename "$file" .json)
-  # Extract category prefix: SA, FA, NFA, AK, L
-  local category="${filename%%_*}"
+  # Extract category prefix from filename and map to full German name
+  local prefix="${filename%%_*}"
+  local category
+  case "$prefix" in
+    FA)  category="Funktionale Anforderung" ;;
+    NFA) category="Nicht-Funktionale Anforderung" ;;
+    SA)  category="Sicherheitsanforderung" ;;
+    AK)  category="Abnahmekriterium" ;;
+    L)   category="Auslieferbares Objekt" ;;
+    *)   category="$prefix" ;;
+  esac
 
   # Handle both object format {ID: {...}} and array format [{ID: ..., ...}]
   local is_array

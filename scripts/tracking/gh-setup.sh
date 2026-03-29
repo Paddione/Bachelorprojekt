@@ -5,7 +5,7 @@
 # Usage: ./scripts/tracking/gh-setup.sh [--dry-run]
 #
 # Creates:
-#   - Labels for categories (FA, SA, NFA, AK, L) and pipeline stages
+#   - Labels for categories (Funktionale Anforderung, Sicherheitsanforderung, etc.) and pipeline stages
 #   - One issue per requirement with structured body
 #   - Milestone for the project
 #
@@ -54,11 +54,11 @@ run_gh() {
 echo "Creating labels..."
 
 declare -A CATEGORY_COLORS=(
-  ["FA"]="0075ca"     # blue — functional
-  ["SA"]="d73a4a"     # red — security
-  ["NFA"]="e4e669"    # yellow — non-functional
-  ["AK"]="a2eeef"     # cyan — acceptance
-  ["L"]="7057ff"      # purple — deliverables
+  ["Funktionale Anforderung"]="0075ca"           # blue — functional
+  ["Sicherheitsanforderung"]="d73a4a"            # red — security
+  ["Nicht-Funktionale Anforderung"]="e4e669"     # yellow — non-functional
+  ["Abnahmekriterium"]="a2eeef"                   # cyan — acceptance
+  ["Auslieferbares Objekt"]="7057ff"             # purple — deliverables
 )
 
 declare -A STAGE_COLORS=(

@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════════
+# coturn — TURN/STUN server for NAT traversal
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coturn
+  labels:
+    app: coturn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coturn
+  template:
+    metadata:
+      labels:
+        app: coturn
+    spec:
+      containers:
+        - name: coturn
+          image: coturn/coturn:4.6-alpine
+          args:
+            - "--no-tls"
+            - "--no-dtls"
+            - "--listening-port=3478"
+            - "--realm=homeoffice.local"
+            - "--user=talk:devturnpassword1234"
+            - "--lt-cred-mech"
+            - "--fingerprint"
+            - "--log-file=stdout"
+            - "--no-stdout-log"
+            - "--simple-log"
+          ports:
+            - containerPort: 3478
+              protocol: TCP
+            - containerPort: 3478
+              protocol: UDP
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coturn
+spec:
+  selector:
+    app: coturn
+  ports:
+    - name: turn-tcp
+      port: 3478
+      targetPort: 3478
+      protocol: TCP
+    - name: turn-udp
+      port: 3478
+      targetPort: 3478
+      protocol: UDP

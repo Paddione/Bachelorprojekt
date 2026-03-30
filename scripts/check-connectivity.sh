@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
 # Homeoffice MVP — Erreichbarkeit aller Dienste testen
-# Liest Domains aus .env und prüft HTTPS + Jitsi-UDP.
+# Liest Domains aus .env und prüft HTTPS-Erreichbarkeit.
 #
 # Verwendung:
 #   ./scripts/check-connectivity.sh          # Alle Dienste prüfen
@@ -22,13 +22,14 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 # Variablen aus .env laden (nur die benötigten)
-eval "$(grep -E '^(MM_DOMAIN|KC_DOMAIN|NC_DOMAIN|JITSI_DOMAIN)=' "$ENV_FILE")"
+eval "$(grep -E '^(MM_DOMAIN|KC_DOMAIN|NC_DOMAIN|SIGNALING_DOMAIN|COLLABORA_DOMAIN)=' "$ENV_FILE")"
 
 SERVICES=(
   "$MM_DOMAIN|Mattermost"
   "$KC_DOMAIN|Keycloak"
   "$NC_DOMAIN|Nextcloud"
-  "$JITSI_DOMAIN|Jitsi"
+  "${SIGNALING_DOMAIN:-signaling.localhost}|Talk HPB"
+  "${COLLABORA_DOMAIN:-office.localhost}|Collabora"
 )
 
 # ── Farben ───────────────────────────────────────────────────────
@@ -46,7 +47,7 @@ fail=0
 check_local_ports() {
   echo "Lokale Port-Verfügbarkeit:"
   echo ""
-  for port_info in "80/TCP" "443/TCP" "10000/UDP"; do
+  for port_info in "80/TCP" "443/TCP"; do
     port="${port_info%%/*}"
     proto="${port_info##*/}"
     if [[ "$proto" == "TCP" ]]; then
@@ -89,25 +90,6 @@ check_https() {
   done
 }
 
-# ── Jitsi-UDP-Prüfung ───────────────────────────────────────────
-
-check_jitsi_udp() {
-  echo ""
-  echo "Jitsi JVB (UDP 10000):"
-  echo ""
-  if command -v nc &>/dev/null; then
-    if nc -u -z -w2 "$JITSI_DOMAIN" 10000 2>/dev/null; then
-      echo -e "  ${GREEN}✓${NC} UDP 10000 erreichbar ($JITSI_DOMAIN)"
-      ((pass++))
-    else
-      echo -e "  ${RED}✗${NC} UDP 10000 nicht erreichbar ($JITSI_DOMAIN)"
-      ((fail++))
-    fi
-  else
-    echo -e "  ${YELLOW}⚠${NC} nc (netcat) nicht installiert — UDP-Test übersprungen"
-  fi
-}
-
 # ── Host-IP ermitteln ────────────────────────────────────────────
 
 show_host_ip() {
@@ -136,7 +118,6 @@ if [[ "${1:-}" == "--local" ]]; then
   show_host_ip
 else
   check_https
-  check_jitsi_udp
   show_host_ip
 fi
 

@@ -87,6 +87,16 @@ spec:
                 secretKeyRef:
                   name: homeoffice-secrets
                   key: NEXTCLOUD_OIDC_SECRET
+            - name: SIGNALING_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: SIGNALING_DOMAIN
+            - name: COLLABORA_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: COLLABORA_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:

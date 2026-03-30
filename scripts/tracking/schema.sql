@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS requirements (
   acceptance_criteria TEXT,             -- Erfüllungskriterien
   test_cases        TEXT,               -- Testfall (free-text)
   automated         INTEGER DEFAULT 0,  -- 1 = has automated test script
-  created_at        TEXT DEFAULT (datetime('now'))
+  created_at        TEXT DEFAULT (datetime('now')),
+  updated_at        TEXT DEFAULT (datetime('now'))
 );
 
 -- ── Pipeline stages ─────────────────────────────────────────────
@@ -59,6 +60,20 @@ CREATE TABLE IF NOT EXISTS test_results (
   status      TEXT    CHECK (status IN ('pass','fail','skip')),
   duration_ms INTEGER,
   detail      TEXT
+);
+
+-- ── Issues / bug tracking ───────────────────────────────────────
+CREATE TABLE IF NOT EXISTS issues (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  req_id      TEXT    REFERENCES requirements(id) ON DELETE SET NULL,
+  title       TEXT    NOT NULL,
+  description TEXT,
+  severity    TEXT    CHECK (severity IN ('critical','high','medium','low')),
+  status      TEXT    DEFAULT 'open' CHECK (status IN ('open','in_progress','resolved','wontfix')),
+  assignee    TEXT,
+  gh_issue    INTEGER,
+  created_at  TEXT    DEFAULT (datetime('now')),
+  resolved_at TEXT
 );
 
 -- ── Views ───────────────────────────────────────────────────────
@@ -113,3 +128,18 @@ ORDER BY CASE stage
   WHEN 'documentation'  THEN 4
   WHEN 'archive'        THEN 5
 END;
+
+-- Open issues sorted by severity
+CREATE VIEW IF NOT EXISTS v_open_issues AS
+SELECT i.*, r.name AS req_name, r.category AS req_category
+FROM issues i
+LEFT JOIN requirements r ON r.id = i.req_id
+WHERE i.status IN ('open', 'in_progress')
+ORDER BY
+  CASE i.severity
+    WHEN 'critical' THEN 1
+    WHEN 'high'     THEN 2
+    WHEN 'medium'   THEN 3
+    WHEN 'low'      THEN 4
+  END,
+  i.created_at;

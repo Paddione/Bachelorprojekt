@@ -8,8 +8,8 @@
     "NFA-02": {
         "Bezeichnung": "Performance",
         "Beschreibung": "Systemantwortzeit für UI-Interaktionen (Seitenaufbau, Kanalwechsel) unter 2 Sekunden bei bis zu 100 gleichzeitigen Nutzern. WebSocket-Nachrichtenlatenz (Absenden bis Empfang beim Gegenüber) unter 500 ms unter Normallast. API-Response-Zeiten unter 1 Sekunde für 95 % der Requests. Messung und Monitoring via Prometheus + Grafana.",
-        "Erfüllungskriterien": "1) Mattermost UI-Ladezeit < 2 s (Cold Start)\n2) Nachrichtenlatenz (Senden → Anzeige) < 500 ms\n3) Nextcloud-Upload 10 MB < 10 s\n4) Jitsi-Video 720p für 2+ Teilnehmer stabil\n5) CPU < 80% bei Normallast",
-        "Testfall": "T1: curl -w '%{time_total}' https://chat.domain → < 2s\nT2: Stoppuhr: Nachricht senden → Anzeige beim Empfänger < 500ms\nT3: 10 MB Upload Nextcloud → Zeit < 10s\nT4: Jitsi 2-Personen-Call 5 min → kein Abbruch\nT5: docker stats → CPU < 80% bei 5 aktiven Usern"
+        "Erfüllungskriterien": "1) Mattermost UI-Ladezeit < 2 s (Cold Start)\n2) Nachrichtenlatenz (Senden → Anzeige) < 500 ms\n3) Nextcloud-Upload 10 MB < 10 s\n4) Talk-Video 720p für 2+ Teilnehmer stabil\n5) CPU < 80% bei Normallast",
+        "Testfall": "T1: curl -w '%{time_total}' https://chat.domain → < 2s\nT2: Stoppuhr: Nachricht senden → Anzeige beim Empfänger < 500ms\nT3: 10 MB Upload Nextcloud → Zeit < 10s\nT4: Talk 2-Personen-Call 5 min → kein Abbruch\nT5: docker stats → CPU < 80% bei 5 aktiven Usern"
     },
     "NFA-03": {
         "Bezeichnung": "Verfügbarkeit",
@@ -37,8 +37,8 @@
     },
     "NFA-07": {
         "Bezeichnung": "Lizenz",
-        "Beschreibung": "Alle eingesetzten Softwarekomponenten ausschließlich unter anerkannten Open-Source-Lizenzen: Mattermost Team Edition (AGPL-3.0), Jitsi Meet (Apache 2.0), Nextcloud (AGPL-3.0), PostgreSQL (PostgreSQL License), OpenSearch (Apache 2.0, als AGPL-freie Elasticsearch-Alternative). Keine proprietären Abhängigkeiten, keine Cloud-Vendor-Bindung, keine laufenden Lizenzgebühren.",
-        "Erfüllungskriterien": "1) Mattermost Team Edition (MIT)\n2) Nextcloud (AGPL v3)\n3) Jitsi Meet (Apache 2.0)\n4) Keycloak (Apache 2.0)\n5) Traefik (MIT)\n6) Lizenzübersicht im Projekt dokumentiert",
+        "Beschreibung": "Alle eingesetzten Softwarekomponenten ausschließlich unter anerkannten Open-Source-Lizenzen: Mattermost Team Edition (MIT), Nextcloud (AGPL-3.0), Nextcloud Talk (AGPL-3.0), Collabora Online (MPL-2.0), Keycloak (Apache 2.0), PostgreSQL (PostgreSQL License). Keine proprietären Abhängigkeiten, keine Cloud-Vendor-Bindung, keine laufenden Lizenzgebühren.",
+        "Erfüllungskriterien": "1) Mattermost Team Edition (MIT)\n2) Nextcloud + Talk (AGPL v3)\n3) Collabora Online (MPL-2.0)\n4) Keycloak (Apache 2.0)\n5) Traefik (MIT)\n6) Lizenzübersicht im Projekt dokumentiert",
         "Testfall": "T1: Mattermost About → Team Edition (nicht Enterprise)\nT2: docker images → Tags → Lizenzen in Repos prüfen\nT3: README/LICENSES.md enthält Lizenztabelle\nT4: Keine proprietären Plugins aktiviert\nT5: Kein inkompatibles Lizenzpaar (GPL vs. proprietär)"
     }
 }

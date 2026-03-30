@@ -75,18 +75,19 @@ kubectl logs -n homeoffice deploy/<service> --previous
 curl -u admin:devnextcloudadmin http://files.localhost/remote.php/dav/files/admin/
 ```
 
-## Jitsi
+## Nextcloud Talk
 
-### Video/Audio funktioniert nicht (k3d)
+### Video/Audio funktioniert nicht
 
-- In k3d fällt Jitsi auf TCP-Fallback zurück (kein UDP-Port-Mapping)
-- Für echte Medienübertragung müsste Port 10000/UDP durch k3d gemappt werden
+- Prüfen ob HPB (spreed-signaling) läuft: `kubectl get pods -n homeoffice | grep signaling`
+- Prüfen ob coturn (TURN-Server) läuft: `kubectl get pods -n homeoffice | grep coturn`
 - Browser-Konsole prüfen (F12) auf WebRTC-Fehler
+- Talk-App muss installiert sein: `kubectl exec -n homeoffice deploy/nextcloud -- php occ app:list | grep spreed`
 
 ### Konferenz startet, aber kein Bild/Ton
 
-- Meist ein NAT/Firewall-Problem mit UDP Port 10000
-- In k3d: TCP-Fallback ist normal, aber langsamer
+- Meist ein NAT/Firewall-Problem mit dem TURN-Server
+- Prüfen ob coturn korrekt konfiguriert ist
 
 ## Allgemeine Tipps
 

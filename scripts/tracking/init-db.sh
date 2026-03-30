@@ -85,7 +85,18 @@ JQEOF
     criteria=$(echo "$row" | jq -r '.criteria')
     tests=$(echo "$row" | jq -r '.tests')
     local automated=0
-    [[ -f "${PROJECT_DIR}/tests/local/${id}.sh" ]] && automated=1
+    # Check local bash tests: exact match (FA-01.sh) or suffixed (SA-08-sso.sh)
+    if compgen -G "${PROJECT_DIR}/tests/local/${id}.sh" >/dev/null 2>&1 || \
+       compgen -G "${PROJECT_DIR}/tests/local/${id}-*.sh" >/dev/null 2>&1; then
+      automated=1
+    fi
+    # Check e2e Playwright specs: e.g. fa-01-messaging.spec.ts
+    local id_lower
+    id_lower=$(echo "$id" | tr '[:upper:]' '[:lower:]')
+    if compgen -G "${PROJECT_DIR}/tests/e2e/specs/${id_lower}-*.spec.ts" >/dev/null 2>&1 || \
+       compgen -G "${PROJECT_DIR}/tests/e2e/specs/${id_lower}.spec.ts" >/dev/null 2>&1; then
+      automated=1
+    fi
 
     sqlite3 "$DB" "INSERT OR REPLACE INTO requirements (id, category, name, description, acceptance_criteria, test_cases, automated)
       VALUES ('${id}', '${category}', $(sqlite_quote "$name"), $(sqlite_quote "$desc"), $(sqlite_quote "$criteria"), $(sqlite_quote "$tests"), ${automated});"
@@ -113,10 +124,37 @@ mark_idea_done() {
 
 # Auto-detect implementation: if test files exist, implementation is likely done
 mark_implementation_from_tests() {
+  # Helper: resolve req_id from filename, handling suffixes like SA-08-sso → SA-08
+  _resolve_req_id() {
+    local req_id="$1"
+    if ! sqlite3 "$DB" "SELECT 1 FROM requirements WHERE id = '${req_id}'" | grep -q 1; then
+      local base_id="${req_id%%-[a-z]*}"
+      if [[ "$base_id" != "$req_id" ]]; then
+        req_id="$base_id"
+      fi
+    fi
+    echo "$req_id"
+  }
+
+  # Check local bash tests
   for test_file in "${PROJECT_DIR}"/tests/local/*.sh; do
     [[ -f "$test_file" ]] || continue
     local req_id
-    req_id=$(basename "$test_file" .sh)
+    req_id=$(_resolve_req_id "$(basename "$test_file" .sh)")
+    sqlite3 "$DB" "UPDATE pipeline SET status = 'done', updated_at = datetime('now')
+      WHERE req_id = '${req_id}' AND stage = 'implementation'
+      AND EXISTS (SELECT 1 FROM requirements WHERE id = '${req_id}');"
+  done
+
+  # Check e2e Playwright specs (e.g. fa-03-video.spec.ts → FA-03)
+  for spec_file in "${PROJECT_DIR}"/tests/e2e/specs/*.spec.ts; do
+    [[ -f "$spec_file" ]] || continue
+    local basename_lower
+    basename_lower=$(basename "$spec_file" .spec.ts)
+    # Extract requirement ID: fa-03-video → FA-03
+    local req_id
+    req_id=$(echo "$basename_lower" | grep -oE '^[a-z]+-[0-9]+' | tr '[:lower:]' '[:upper:]')
+    [[ -n "$req_id" ]] || continue
     sqlite3 "$DB" "UPDATE pipeline SET status = 'done', updated_at = datetime('now')
       WHERE req_id = '${req_id}' AND stage = 'implementation'
       AND EXISTS (SELECT 1 FROM requirements WHERE id = '${req_id}');"

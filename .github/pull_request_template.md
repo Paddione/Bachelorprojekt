@@ -34,33 +34,21 @@
 
 ## Requirements Traceability
 
-> Every functional change must be traceable to a requirement in `docs/requirements/`.
+> Every functional change must be traceable to a requirement in the tracking database.
+> Use `task tracking:psql` to query requirements, or view them at `tracking.localhost`.
 
-- [ ] **Checked** whether a matching requirement entry exists in the appropriate JSON file:
-  - `FA_requirements.json` — Functional requirements
-  - `SA_requirements.json` — Security requirements
-  - `NFA_requirements.json` — Non-functional requirements
-  - `AK_requirements.json` — Acceptance criteria
-  - `L_requirements.json` — Deliverables
-- [ ] **If no entry exists:** Created a new entry with the following fields:
-  - `Bezeichnung` — Short title
-  - `Beschreibung` — Detailed description
-  - `Erfüllungskriterien` — Numbered acceptance criteria
-  - `Testfall` — Test cases (T1, T2, ...) that verify the criteria
-- [ ] **Added entry to the correct grouped JSON** file (FA/SA/NFA/AK use object format `{"REQ-ID": {...}}`, L uses array format `[{"ID": "L-XX", ...}]`)
+- [ ] **Checked** whether a matching requirement exists in the tracking DB (`bachelorprojekt.requirements`)
+- [ ] **If no entry exists:** Added via `task tracking:psql` with category, name, description, acceptance_criteria, and test_cases
 
 **Requirement ID:** <!-- e.g. FA-09, SA-08, NFA-08 -->
 
 ## Test Plan
 
-> Tests in this PR must match the `Testfall` entries defined in the requirement JSON.
-
-**Requirement JSON Testfall:**
-<!-- Paste the Testfall field from the JSON entry so reviewers can verify coverage -->
+> Tests must match the `test_cases` column of the requirement entry in the tracking DB.
 
 **Tests implemented:**
 - [ ] Test script added/updated in `tests/local/` (bash) or `tests/e2e/specs/` (Playwright)
-- [ ] Each test case (T1, T2, ...) from the JSON `Testfall` is covered by an assertion
+- [ ] Each test case (T1, T2, ...) from the requirement is covered by an assertion
 - [ ] Assertions use the correct requirement ID and test ID: `assert_* ... "REQ-ID" "T1" "description"`
 - [ ] `./tests/runner.sh local <REQ-ID>` passes
 

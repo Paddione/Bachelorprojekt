@@ -22,38 +22,32 @@
 
 ### Requirements Traceability
 
-> Every feature must be backed by a requirement entry in `docs/requirements/`.
+> Every feature must be backed by a requirement entry in the tracking database.
+> Use `task tracking:psql` to query/add requirements, or view them at `tracking.localhost`.
 
-1. **Check** if a JSON entry exists for this feature in the appropriate file:
-   - `docs/requirements/FA_requirements.json` — Functional
-   - `docs/requirements/SA_requirements.json` — Security
-   - `docs/requirements/NFA_requirements.json` — Non-functional
-   - `docs/requirements/AK_requirements.json` — Acceptance criteria
-   - `docs/requirements/L_requirements.json` — Deliverables (array format)
-
-2. **If no entry exists**, add one using this schema:
-   ```json
-   "REQ-ID": {
-     "Bezeichnung": "Short title",
-     "Beschreibung": "Detailed description of what this requirement covers",
-     "Erfüllungskriterien": "1) First criterion\n2) Second criterion\n...",
-     "Testfall": "T1: First test case\nT2: Second test case\n..."
-   }
+1. **Check** if a requirement entry exists for this feature:
+   ```sql
+   SELECT id, name, category FROM bachelorprojekt.requirements WHERE id = 'FA-XX';
    ```
 
-3. **Write tests** that match the `Testfall` entries exactly:
+2. **If no entry exists**, add one:
+   ```sql
+   INSERT INTO bachelorprojekt.requirements (id, category, name, description, acceptance_criteria, test_cases)
+   VALUES ('FA-XX', 'Funktionale Anforderung', 'Short title', 'Description', '1) First criterion\n2) Second', 'T1: First test\nT2: Second test');
+   ```
+
+3. **Write tests** that match the `test_cases` column:
    - Bash: `tests/local/<REQ-ID>.sh` or `tests/prod/<REQ-ID>.sh`
    - Playwright: `tests/e2e/specs/<req-id>-<name>.spec.ts`
    - Each assertion must reference the correct `REQ-ID` and `Tn`
 
-- [ ] Requirement JSON entry exists (or was created in this PR)
-- [ ] `Erfüllungskriterien` are specific and verifiable
-- [ ] `Testfall` entries (T1, T2, ...) cover all `Erfüllungskriterien`
-- [ ] Test script implements all `Testfall` entries
+- [ ] Requirement entry exists in tracking DB (or was created in this PR)
+- [ ] `acceptance_criteria` are specific and verifiable
+- [ ] `test_cases` entries (T1, T2, ...) cover all acceptance criteria
+- [ ] Test script implements all test cases
 - [ ] `./tests/runner.sh local <REQ-ID>` passes
 
 **Requirement ID:** <!-- e.g. FA-09 -->
-**JSON file:** <!-- e.g. docs/requirements/FA_requirements.json -->
 
 ### Manual Testing
 

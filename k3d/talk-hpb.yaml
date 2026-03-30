@@ -106,7 +106,7 @@ spec:
     spec:
       containers:
         - name: janus
-          image: canyan/janus-gateway:0.14.3
+          image: canyan/janus-gateway:latest
           ports:
             - containerPort: 8188
               name: ws
@@ -207,7 +207,9 @@ spec:
       containers:
         - name: signaling
           image: strukturag/nextcloud-spreed-signaling:1.2.4
-          args: ["-config", "/etc/signaling/server.conf"]
+          env:
+            - name: CONFIG
+              value: /etc/signaling/server.conf
           ports:
             - containerPort: 8080
           volumeMounts:

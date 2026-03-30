@@ -2,46 +2,44 @@
 
 ## Systemübersicht
 
-Das Homeoffice MVP ist eine Kubernetes-basierte Plattform (k3d/k3s), die vier Kerndienste hinter einem NGINX Ingress Controller bereitstellt. Alle Services laufen im Namespace `homeoffice` und werden durch zentrales Identity Management (Keycloak) per OIDC/SSO verbunden.
+Das Homeoffice MVP ist eine Kubernetes-basierte Plattform (k3d/k3s), die drei Kerndienste plus Talk HPB und Collabora hinter dem Traefik Ingress Controller (in k3s integriert) bereitstellt. Alle Services laufen im Namespace `homeoffice` und werden durch zentrales Identity Management (Keycloak) per OIDC/SSO verbunden.
 
 ```
 Browser
    │
-   ├── auth.localhost ──────┐
-   ├── chat.localhost ──────┤
-   ├── files.localhost ─────┤
-   ├── meet.localhost ──────┤
-   │                        ▼
-   │              ┌──────────────────┐
-   │              │  NGINX Ingress   │  Reverse Proxy (k3d-managed)
-   │              │  Controller      │
-   │              └────────┬─────────┘
-   │                       │
-   │    ┌──────────────────┼──────────────────┬──────────────────┐
-   │    ▼                  ▼                  ▼                  ▼
-   │ ┌──────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐
-   │ │Keycloak  │  │ Mattermost   │  │  Nextcloud   │  │   Jitsi Web      │
-   │ │  :8080   │  │   :8065      │  │    :80       │  │    :80           │
-   │ └────┬─────┘  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘
-   │      │               │                 │                    │
-   │      ▼               ▼                 ▼                    │
-   │ ┌──────────┐  ┌──────────────┐  ┌──────────────┐           │
-   │ │  PG DB   │  │    PG DB     │  │    PG DB     │           │
-   │ │  :5432   │  │    :5432     │  │    :5432     │           │
-   │ └──────────┘  └──────────────┘  └──────────────┘           │
-   │                                                             │
-   │       ┌────────────────┐              ┌─────────────────────┼──────────┐
-   │       │ mm-keycloak    │              ▼                     ▼          ▼
-   │       │ -proxy :8081   │         ┌────────┐          ┌─────────┐ ┌────────┐
-   │       │ (userinfo)     │         │Prosody │          │ Jicofo  │ │  JVB   │
-   │       └────────────────┘         │ (XMPP) │          │         │ │:10000  │
-   │                                  └────────┘          └─────────┘ └────┬───┘
-   │                                                                       │
-   │ ┌──────────────────────┐                                              │
-   │ │ jitsi-keycloak       │                                              │
-   │ │ -adapter :9000       │──── OIDC→JWT Bridge ─────────────────────────┘
-   │ │ (/oidc)              │
-   │ └──────────────────────┘
+   ├── auth.localhost ──────────┐
+   ├── chat.localhost ──────────┤
+   ├── files.localhost ─────────┤
+   ├── office.localhost ────────┤
+   ├── signaling.localhost ─────┤
+   │                            ▼
+   │              ┌──────────────────────┐
+   │              │  Traefik Ingress     │  Reverse Proxy (k3d-managed)
+   │              │  Controller          │
+   │              └──────────┬───────────┘
+   │                         │
+   │    ┌────────────────────┼──────────────────┬───────────────────┐
+   │    ▼                    ▼                  ▼                   ▼
+   │ ┌──────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────────┐
+   │ │Keycloak  │  │ Mattermost   │  │  Nextcloud   │  │  Collabora      │
+   │ │  :8080   │  │   :8065      │  │  + Talk :80  │  │  Online :9980   │
+   │ └────┬─────┘  └──────┬───────┘  └──────┬───────┘  └─────────────────┘
+   │      │               │                 │
+   │      ▼               ▼                 ▼
+   │ ┌──────────┐  ┌──────────────┐  ┌──────────────┐
+   │ │  PG DB   │  │    PG DB     │  │    PG DB     │
+   │ │  :5432   │  │    :5432     │  │    :5432     │
+   │ └──────────┘  └──────────────┘  └──────────────┘
+   │
+   │       ┌────────────────┐         ┌───────────────────────────────┐
+   │       │ mm-keycloak    │         │  Talk High Performance Backend │
+   │       │ -proxy :8081   │         │                               │
+   │       │ (userinfo)     │         │  spreed-signaling :8080       │
+   │       └────────────────┘         │       ▼                       │
+   │                                  │  Janus :8188 (WebRTC SFU)     │
+   │                                  │  NATS :4222 (Message Bus)     │
+   │                                  │  coturn :3478 (TURN/STUN)     │
+   │                                  └───────────────────────────────┘
 ```
 
 ## Authentifizierungsfluss (OIDC / SSO)
@@ -50,7 +48,7 @@ Browser
 Benutzer
    │
    ▼
-Mattermost / Nextcloud / Jitsi
+Mattermost / Nextcloud (+ Talk)
    │  "Mit Keycloak anmelden"
    ▼
 Keycloak (OIDC Provider, Realm "homeoffice")
@@ -71,18 +69,19 @@ Keycloak → ID-Token → Dienst erstellt lokale Session
 |---------|---------|-------------|
 | Mattermost | GitLab OAuth-Protokoll | mm-keycloak-proxy übersetzt Keycloak-Userinfo auf GitLab-Format |
 | Nextcloud | `oidc_login` App | Muss nach Erstdeployment manuell installiert werden |
-| Jitsi | jitsi-keycloak-adapter | OIDC→JWT Bridge, alle User erhalten Moderator-Rechte |
+| Talk | Nextcloud-OIDC-Session | Erbt SSO automatisch von Nextcloud — kein separater Adapter nötig |
 
 ## Kubernetes-Namespace
 
-Alle Services laufen im Namespace `homeoffice`. Routing erfolgt über einen NGINX Ingress Controller (installiert via Helm). Domains sind zentral in `k3d/configmap-domains.yaml` konfiguriert — niemals Hostnamen hartcodieren.
+Alle Services laufen im Namespace `homeoffice`. Routing erfolgt über den Traefik Ingress Controller (in k3s integriert). Domains sind zentral in `k3d/configmap-domains.yaml` konfiguriert — niemals Hostnamen hartcodieren.
 
 | Domain | Service | Port |
 |--------|---------|------|
 | auth.localhost | Keycloak | 8080 |
 | chat.localhost | Mattermost | 8065 |
-| files.localhost | Nextcloud | 80 |
-| meet.localhost | Jitsi Web + Keycloak Adapter (/oidc) | 80 / 9000 |
+| files.localhost | Nextcloud (+ Talk) | 80 |
+| office.localhost | Collabora Online | 9980 |
+| signaling.localhost | Talk HPB (spreed-signaling) | 8080 |
 
 ## Persistenz
 
@@ -101,15 +100,15 @@ Keycloak-DB → Keycloak
                   │
     ┌─────────────┼─────────────────┐
     ▼             ▼                 ▼
-MM-DB → Mattermost    NC-DB → Nextcloud
-    │
-    ▼
-mm-keycloak-proxy (Userinfo-Übersetzung)
+MM-DB → Mattermost    NC-DB → Nextcloud ←── Collabora (WOPI)
+    │                          │
+    ▼                          ├── Talk (spreed App)
+mm-keycloak-proxy              │
+(Userinfo-Übersetzung)         ▼
+                          spreed-signaling ← Janus ← NATS
+                               │
+                               ▼
+                            coturn (TURN/STUN)
 
-Prosody → Jicofo → JVB → Jitsi-Web
-                          │
-                          ▼
-              jitsi-keycloak-adapter (OIDC→JWT)
-
-NGINX Ingress Controller (routet alle *.localhost Domains)
+Traefik Ingress Controller (routet alle *.localhost Domains)
 ```

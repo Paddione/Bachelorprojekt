@@ -13,9 +13,9 @@
     },
     "FA-03": {
         "Bezeichnung": "Videokonferenzen",
-        "Beschreibung": "Vollständig self-hosted Video- und Audiokonferenzen via Jitsi Meet (in Mattermost integriert). Unterstützt mindestens 10 gleichzeitige Teilnehmer mit Kamera- und Mikrofonübertragung sowie Bildschirmfreigabe (gesamter Bildschirm oder einzelne Anwendung). Meetinglinks per URL teilbar, Beitritt ohne Registrierung möglich. Keine Abhängigkeit zu externen Diensten (kein meet.jit.si).",
-        "Erfüllungskriterien": "1) Mindestens 10 gleichzeitige Teilnehmer unterstützt\n2) Kamera-Übertragung funktioniert\n3) Mikrofon-Übertragung funktioniert\n4) Bildschirmfreigabe möglich\n5) Meeting vollständig self-hosted (keine externen Dienste)\n6) Meeting per Link teilbar",
-        "Testfall": "T1: Jitsi-Meeting mit 2 Browsern → Video und Audio übertragen\nT2: Bildschirmfreigabe starten → anderer Teilnehmer sieht Bildschirm\nT3: DNS-Check → keine Anfragen an meet.jit.si\nT4: Load-Test 10 Tabs → kein Verbindungsabbruch\nT5: Meeting-Link kopieren → Beitritt ohne Login möglich"
+        "Beschreibung": "Vollständig self-hosted Video- und Audiokonferenzen via Nextcloud Talk mit High Performance Backend (HPB). Unterstützt mindestens 10 gleichzeitige Teilnehmer mit Kamera- und Mikrofonübertragung sowie Bildschirmfreigabe (gesamter Bildschirm oder einzelne Anwendung). Gäste können per Link beitreten. SSO-Authentifizierung erfolgt automatisch über die Nextcloud-OIDC-Session (Keycloak). Keine Abhängigkeit zu externen Diensten. Kollaborative Dokumentenbearbeitung während laufender Calls über Collabora Online.",
+        "Erfüllungskriterien": "1) Mindestens 10 gleichzeitige Teilnehmer unterstützt (via HPB)\n2) Kamera-Übertragung funktioniert\n3) Mikrofon-Übertragung funktioniert\n4) Bildschirmfreigabe möglich\n5) Meeting vollständig self-hosted (keine externen Dienste)\n6) Meeting per Link teilbar (Gast-Zugang)\n7) SSO ohne separaten Adapter (Nextcloud-OIDC-Session)",
+        "Testfall": "T1: Talk-Konversation mit 2 Browsern → Video und Audio übertragen\nT2: Bildschirmfreigabe starten → anderer Teilnehmer sieht Bildschirm\nT3: DNS-Check → keine Anfragen an externe WebRTC/TURN-Dienste\nT4: HPB Signaling-Server erreichbar (/api/v1/welcome)\nT5: Konversations-Link kopieren → Gast-Beitritt ohne Login möglich"
     },
     "FA-04": {
         "Bezeichnung": "Dateiablage",

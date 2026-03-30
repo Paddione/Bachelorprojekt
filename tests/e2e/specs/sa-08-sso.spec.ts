@@ -2,7 +2,6 @@ import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 
 const MM_URL = process.env.TEST_BASE_URL || 'http://localhost:8065';
 const NC_URL = process.env.TEST_NC_URL || 'http://localhost:80';
-const JITSI_URL = process.env.TEST_JITSI_URL || '';
 const KC_USER = process.env.MM_TEST_USER || 'testuser1';
 const KC_PASS = process.env.MM_TEST_PASS || 'Testpassword123!';
 
@@ -55,26 +54,18 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     await expect(page).toHaveURL(/.*\/(files|apps\/dashboard).*/, { timeout: 15_000 });
   });
 
-  test('T17: Jitsi SSO-Beitritt via Keycloak', async () => {
-    test.skip(!JITSI_URL, 'TEST_JITSI_URL nicht gesetzt');
+  test('T17: Talk SSO — Konversation öffnen nach Nextcloud-SSO', async () => {
+    test.skip(!NC_URL, 'TEST_NC_URL nicht gesetzt');
 
-    await page.goto(`${JITSI_URL}/sa08-testroom-1`);
+    // After Nextcloud SSO login (T16), Talk should be accessible without re-auth
+    await page.goto(`${NC_URL}/apps/spreed`);
 
-    // Should redirect through adapter to Keycloak, then back with JWT
-    await page.waitForURL(/.*jwt=.*/, { timeout: 20_000 });
-    expect(page.url()).toContain('jwt=');
-  });
+    // Should land on Talk without Keycloak login prompt
+    await expect(
+      page.locator('[data-app-id="spreed"], .app-spreed, [id="content"]')
+    ).toBeVisible({ timeout: 15_000 });
 
-  test('T18: Jitsi SSO-Wiederbeitritt (kein erneuter Login)', async () => {
-    test.skip(!JITSI_URL, 'TEST_JITSI_URL nicht gesetzt');
-
-    await page.goto(`${JITSI_URL}/sa08-testroom-2`);
-
-    // Should auto-redirect without Keycloak login page (prompt=consent fix)
-    await page.waitForURL(/.*jwt=.*/, { timeout: 20_000 });
-    expect(page.url()).toContain('jwt=');
-
-    // Verify we did NOT see the Keycloak login page
+    // Verify no Keycloak login form appeared
     const kcLoginForm = page.locator('#kc-login, input[name="username"]');
     expect(await kcLoginForm.isVisible().catch(() => false)).toBe(false);
   });

@@ -67,7 +67,8 @@ Services are available at:
 - **Keycloak (SSO):** http://auth.localhost (admin/devadmin)
 - **Mattermost (Chat):** http://chat.localhost
 - **Nextcloud (Files):** http://files.localhost
-- **Jitsi (Video):** http://meet.localhost
+- **Collabora (Office):** http://office.localhost
+- **Talk HPB (Signaling):** http://signaling.localhost
 
 ### Running Tests
 

@@ -1,5 +1,7 @@
 # Dokumentation
 
+> **Hinweis:** Die englischsprachige GitBook-Dokumentation unter [`docs/`](../../docs/README.md) ist die zentrale Anlaufstelle fuer alle Leser. Diese deutschen Dokumente enthalten die ausfuehrlichen Details und dienen als Referenz.
+
 Uebersicht und Schnellstart: [README](../README.md)
 
 | Dokument | Beschreibung |

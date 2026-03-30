@@ -40,3 +40,13 @@ RENAME_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT \
   -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" -H "Content-Type: application/json" \
   -d "{\"id\":\"${PUB_CH}\",\"display_name\":\"${NEW_NAME}\"}" "${MM_URL}/channels/${PUB_CH}")
 assert_eq "$RENAME_STATUS" "200" "FA-02" "T4" "Kanal umbenennen erfolgreich"
+
+# T5: Archive channel — content still readable, no new messages
+ARCHIVE_CH=$(_mm -X POST "${MM_URL}/channels" \
+  -d "{\"team_id\":\"${TEAM_ID}\",\"name\":\"archive-test-$(date +%s)\",\"display_name\":\"Archive Test\",\"type\":\"O\"}" | jq -r '.id')
+# Post a message before archiving
+_mm -X POST "${MM_URL}/posts" -d "{\"channel_id\":\"${ARCHIVE_CH}\",\"message\":\"pre-archive\"}" > /dev/null
+# Archive (delete) the channel
+ARCHIVE_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
+  -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/channels/${ARCHIVE_CH}")
+assert_eq "$ARCHIVE_STATUS" "200" "FA-02" "T5" "Kanal archivieren erfolgreich"

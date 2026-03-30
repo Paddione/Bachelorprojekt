@@ -27,6 +27,11 @@ else
   skip_test "SA-05" "T1" "Login-Events" "Kein Keycloak Admin-Token"
 fi
 
+# T2: Nextcloud file access logging (activity app)
+NC_ACTIVITY=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  php occ app:list 2>/dev/null | grep -c "activity" || echo "0")
+assert_gt "$NC_ACTIVITY" 0 "SA-05" "T2" "Nextcloud Activity App aktiv (Dateizugriffs-Logging)"
+
 # T3: Mattermost audit log
 if [[ -n "${MM_ADMIN_TOKEN:-}" ]]; then
   AUDITS=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/audits?page=0&per_page=10")

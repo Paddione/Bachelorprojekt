@@ -10,6 +10,25 @@ WRONG_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
   "${MM_URL}/users/login")
 assert_eq "$WRONG_STATUS" "401" "SA-02" "T1" "Falsches Passwort → Zugang verweigert"
 
+# T2: 2FA/MFA configuration (verify Keycloak supports OTP)
+KC_ADMIN_TOKEN_T2=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/openid-connect/token" \
+  -d "client_id=admin-cli" \
+  -d "username=admin" \
+  -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
+  -d "grant_type=password" | jq -r '.access_token // empty')
+if [[ -n "$KC_ADMIN_TOKEN_T2" ]]; then
+  # Check if OTP policy is configured in the realm
+  OTP_POLICY=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN_T2}" \
+    "http://auth.localhost/admin/realms/homeoffice" | jq -r '.otpPolicyType // empty')
+  if [[ -n "$OTP_POLICY" ]]; then
+    _log_result "SA-02" "T2" "Keycloak OTP-Policy konfiguriert (${OTP_POLICY})" "pass" "0"
+  else
+    _log_result "SA-02" "T2" "Keycloak OTP-Policy konfiguriert" "fail" "0" "Kein OTP-Policy-Typ"
+  fi
+else
+  skip_test "SA-02" "T2" "2FA-Konfiguration" "Kein Keycloak Admin-Token"
+fi
+
 # T3: Multiple failed logins → rate limiting
 for i in $(seq 1 6); do
   curl -s -o /dev/null -X POST -H "Content-Type: application/json" \

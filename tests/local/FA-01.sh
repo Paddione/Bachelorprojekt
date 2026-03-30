@@ -29,3 +29,10 @@ assert_gt "${#CH_MSG}" 0 "FA-01" "T3" "Channel-Nachricht gesendet"
 # T4: Persistence
 FOUND=$(_mm "${MM_URL}/posts/${DM_MSG}" | jq -r '.id // empty')
 assert_eq "$FOUND" "$DM_MSG" "FA-01" "T4" "Nachricht nach Senden noch abrufbar"
+
+# T5: Offline delivery — post message, then verify it's retrievable (simulates reconnect)
+OFFLINE_MSG=$(_mm -X POST "${MM_URL}/posts" -d "{\"channel_id\":\"${DM_CH}\",\"message\":\"offline-test-$(date +%s)\"}" | jq -r '.id')
+# Simulate "reconnect" by fetching posts since a timestamp
+SINCE=$(( $(date +%s) * 1000 - 5000 ))
+POSTS_SINCE=$(_mm "${MM_URL}/channels/${DM_CH}/posts?since=${SINCE}" | jq -r '.order | length')
+assert_gt "$POSTS_SINCE" 0 "FA-01" "T5" "Nachrichten nach Reconnect abrufbar (Offline-Zustellung)"

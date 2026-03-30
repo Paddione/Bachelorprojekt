@@ -26,6 +26,15 @@ ADMIN_ID=$(_mm "${MM_URL}/users/me" | jq -r '.id')
 VISIBLE_STATUS=$(curl -s -H "Authorization: Bearer ${USER1_TOKEN}" "${MM_URL}/users/${ADMIN_ID}/status" | jq -r '.status')
 assert_eq "$VISIBLE_STATUS" "dnd" "FA-08" "T3" "Status für andere User sichtbar"
 
+# T4: Status emoji visible (the emoji set in T2 is returned)
+CUSTOM_RESP=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/me/status/custom")
+CUSTOM_EMOJI=$(echo "$CUSTOM_RESP" | jq -r '.emoji // empty')
+assert_eq "$CUSTOM_EMOJI" "house" "FA-08" "T4" "Status-Emoji sichtbar"
+
+# T5: Status auto-clear (verify expiry field is set from T2 duration)
+CUSTOM_EXPIRES=$(echo "$CUSTOM_RESP" | jq -r '.expires_at // 0')
+assert_gt "$CUSTOM_EXPIRES" 0 "FA-08" "T5" "Status-Ablaufzeit gesetzt (automatisches Zurücksetzen)"
+
 # Cleanup
 curl -s -o /dev/null -X DELETE -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/me/status/custom"
 curl -s -o /dev/null -X PUT -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" \

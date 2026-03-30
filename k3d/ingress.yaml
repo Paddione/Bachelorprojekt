@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: homeoffice-ingress
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
     # ── Keycloak (SSO) ──────────────────────────────────────────────
     - host: auth.localhost

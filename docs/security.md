@@ -14,7 +14,7 @@ In der lokalen k3d-Umgebung:
 
 | Port | Service | Zugriff |
 |------|---------|---------|
-| 80/TCP | NGINX Ingress | `*.localhost` Domains |
+| 80/TCP | Traefik Ingress | `*.localhost` Domains |
 | 10000/UDP | Jitsi JVB | TCP-Fallback in k3d |
 
 Alle internen Services (Datenbanken, XMPP) sind nur innerhalb des Kubernetes-Clusters erreichbar.

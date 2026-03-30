@@ -81,5 +81,5 @@ Prosody → Jicofo → JVB → Jitsi-Web
                           ▼
               jitsi-keycloak-adapter (OIDC→JWT)
 
-NGINX Ingress Controller (routet alle *.localhost Domains)
+Traefik Ingress Controller (routet alle *.localhost Domains)
 ```

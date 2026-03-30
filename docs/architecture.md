@@ -2,7 +2,7 @@
 
 ## Systemübersicht
 
-Das Homeoffice MVP ist eine Kubernetes-basierte Plattform (k3d/k3s), die vier Kerndienste hinter einem NGINX Ingress Controller bereitstellt. Alle Services laufen im Namespace `homeoffice` und werden durch zentrales Identity Management (Keycloak) per OIDC/SSO verbunden.
+Das Homeoffice MVP ist eine Kubernetes-basierte Plattform (k3d/k3s), die vier Kerndienste hinter dem Traefik Ingress Controller (in k3s integriert) bereitstellt. Alle Services laufen im Namespace `homeoffice` und werden durch zentrales Identity Management (Keycloak) per OIDC/SSO verbunden.
 
 ```
 Browser
@@ -13,7 +13,7 @@ Browser
    ├── meet.localhost ──────┤
    │                        ▼
    │              ┌──────────────────┐
-   │              │  NGINX Ingress   │  Reverse Proxy (k3d-managed)
+   │              │  Traefik Ingress   │  Reverse Proxy (k3d-managed)
    │              │  Controller      │
    │              └────────┬─────────┘
    │                       │
@@ -75,7 +75,7 @@ Keycloak → ID-Token → Dienst erstellt lokale Session
 
 ## Kubernetes-Namespace
 
-Alle Services laufen im Namespace `homeoffice`. Routing erfolgt über einen NGINX Ingress Controller (installiert via Helm). Domains sind zentral in `k3d/configmap-domains.yaml` konfiguriert — niemals Hostnamen hartcodieren.
+Alle Services laufen im Namespace `homeoffice`. Routing erfolgt über den Traefik Ingress Controller (in k3s integriert). Domains sind zentral in `k3d/configmap-domains.yaml` konfiguriert — niemals Hostnamen hartcodieren.
 
 | Domain | Service | Port |
 |--------|---------|------|
@@ -111,5 +111,5 @@ Prosody → Jicofo → JVB → Jitsi-Web
                           ▼
               jitsi-keycloak-adapter (OIDC→JWT)
 
-NGINX Ingress Controller (routet alle *.localhost Domains)
+Traefik Ingress Controller (routet alle *.localhost Domains)
 ```

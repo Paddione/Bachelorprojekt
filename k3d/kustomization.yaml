@@ -19,6 +19,10 @@ resources:
   - talk-hpb.yaml
   - coturn.yaml
   - collabora.yaml
+  # Suche (FA-07)
+  - opensearch.yaml
+  # Dev-Werkzeuge
+  - mailpit.yaml
   # Ingress
   - ingress.yaml
 

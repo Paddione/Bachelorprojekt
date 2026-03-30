@@ -48,3 +48,35 @@ Für alle Passwort- und Secret-Felder starke Zufallswerte verwenden — siehe [S
    ```
 
 > **Ausnahme:** OIDC-Secrets können nach dem ersten Keycloak-Import nicht einfach in `secrets.yaml` geändert werden — sie müssen zusätzlich in der Keycloak Admin-Console aktualisiert werden.
+
+## Bekannte Einschränkungen
+
+### Mobile Push-Benachrichtigungen und DSGVO
+
+Mattermost Team Edition verwendet den **Mattermost Test Push Notification Service (TPNS)** unter `https://push-test.mattermost.com` für mobile Push-Benachrichtigungen. Dieser Dienst wird von Mattermost Inc. in den USA betrieben.
+
+**DSGVO-Einschätzung:** Für mobile Push-Benachrichtigungen verlassen Benachrichtigungsdaten kurzzeitig den europäischen Raum, da Apple (APNs) und Google (FCM) keine EU-exklusiven Relay-Dienste anbieten. Dies betrifft **nur** den Push-Kanal — alle gespeicherten Daten (Nachrichten, Dateien, Nutzerkonten) bleiben vollständig on-premises.
+
+**Abgrenzung der DSGVO-Zusage:**
+
+| Datentyp | Speicherort | DSGVO-konform |
+|----------|-------------|---------------|
+| Nachrichten, Dateien, Nutzerdaten | On-Premises (PostgreSQL, PVC) | ✅ Vollständig |
+| Web- & Desktop-Benachrichtigungen | Browser/Electron (lokal) | ✅ Vollständig |
+| E-Mail-Benachrichtigungen | Mailpit/eigener SMTP-Server | ✅ Vollständig |
+| Mobile Push (iOS/Android) | Mattermost TPNS → APNs/FCM | ⚠️ US-Transit |
+
+**Optionen zur vollständigen Konformität:**
+1. **Eigener Push-Proxy:** [mattermost-push-proxy](https://github.com/mattermost/mattermost-push-proxy) selbst betreiben + eigene Mobile-Apps signieren
+2. **Mobile Push deaktivieren:** In Mattermost System Console → Notifications → Push Notifications → "Do not send"
+3. **Nur Web/Desktop nutzen:** Für maximale Datensouveränität keine Mobile-Apps verwenden
+
+### Aufnahme von Videokonferenzen
+
+Nextcloud Talk HPB unterstützt derzeit **keine serverseitige Aufnahme** von Videokonferenzen. Der Nextcloud Talk Recording Server befindet sich noch im experimentellen Stadium.
+
+**Alternativen:**
+- Teilnehmer können lokal per Browser-Funktion aufnehmen (z.B. OBS Studio)
+- Bei Compliance-Anforderungen an Aufzeichnung: Dokumentation im Gesprächsprotokoll empfohlen
+
+Diese Einschränkung ist in der Roadmap und wird bei Verfügbarkeit einer stabilen Recording-Lösung nachgerüstet.

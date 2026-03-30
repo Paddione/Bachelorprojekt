@@ -82,6 +82,21 @@ spec:
               value: "true"
             - name: MM_EMAILSETTINGS_CONNECTIONSECURITY
               value: ""
+            # ── OpenSearch / Elasticsearch (FA-07) ────────────
+            - name: MM_ELASTICSEARCHSETTINGS_ENABLEINDEXING
+              value: "true"
+            - name: MM_ELASTICSEARCHSETTINGS_ENABLESEARCHING
+              value: "true"
+            - name: MM_ELASTICSEARCHSETTINGS_ENABLEAUTOCOMPLETE
+              value: "true"
+            - name: MM_ELASTICSEARCHSETTINGS_CONNECTIONURL
+              value: "http://opensearch:9200"
+            - name: MM_ELASTICSEARCHSETTINGS_SNIFF
+              value: "false"
+            - name: MM_ELASTICSEARCHSETTINGS_USERNAME
+              value: ""
+            - name: MM_ELASTICSEARCHSETTINGS_PASSWORD
+              value: ""
             # GitLab-OAuth via Keycloak
             - name: MM_GITLABSETTINGS_ENABLE
               value: "true"

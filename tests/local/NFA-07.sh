@@ -13,5 +13,5 @@ assert_eq "$MM_LICENSE" "false" "NFA-07" "T1" "Mattermost Team Edition (keine En
 IMAGES=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{.items[*].spec.containers[*].image}' 2>/dev/null)
 assert_contains "$IMAGES" "mattermost-team-edition" "NFA-07" "T2" "Mattermost Team Edition Image"
 assert_contains "$IMAGES" "nextcloud" "NFA-07" "T2b" "Nextcloud Image vorhanden"
-assert_contains "$IMAGES" "jitsi" "NFA-07" "T2c" "Jitsi Images vorhanden"
+assert_contains "$IMAGES" "nextcloud-spreed-signaling\|janus\|nats" "NFA-07" "T2c" "Talk HPB Images vorhanden"
 assert_contains "$IMAGES" "keycloak" "NFA-07" "T2d" "Keycloak Image vorhanden"

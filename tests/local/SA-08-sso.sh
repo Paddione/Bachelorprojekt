@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SA-08: SSO-Integration — Keycloak OIDC für Mattermost, Nextcloud, Jitsi
+# SA-08: SSO-Integration — Keycloak OIDC für Mattermost, Nextcloud, Talk
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
@@ -39,12 +39,11 @@ else
   assert_contains "$NC_REDIRECT" "/apps/oidc_login/oidc" "SA-08" "T2" \
     "Nextcloud OIDC Client — Redirect-URI enthält /apps/oidc_login/oidc"
 
-  # T3: Jitsi OIDC Client existiert mit korrekter Redirect-URI
-  JITSI_CLIENT=$(_kube_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_INT_URL}/admin/realms/homeoffice/clients?clientId=jitsi")
-  JITSI_REDIRECT=$(echo "$JITSI_CLIENT" | jq -r '.[0].redirectUris[0] // empty')
-  assert_contains "$JITSI_REDIRECT" "/oidc/tokenize" "SA-08" "T3" \
-    "Jitsi OIDC Client — Redirect-URI enthält /oidc/tokenize"
+  # T3: Nextcloud Talk OIDC — verifiziert über Nextcloud OIDC-Konfiguration
+  NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+    php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
+  assert_contains "$NC_OIDC_URL" "realms/homeoffice" "SA-08" "T3" \
+    "Nextcloud Talk erbt OIDC-Session — provider_url konfiguriert"
 fi
 
 # ── Group B: OIDC Redirect-Chains ─────────────────────────────
@@ -72,14 +71,11 @@ NC_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "http://files.localhost/apps/oidc_l
 assert_contains "$NC_OIDC_REDIRECT" "realms/homeoffice" "SA-08" "T5" \
   "Nextcloud OIDC-Login leitet zu Keycloak weiter"
 
-# T6: Jitsi Adapter → Keycloak Redirect
-JITSI_STATE='{"room":"testroom","tenant":""}'
-JITSI_OIDC_REDIRECT=$(kubectl exec -n "$NAMESPACE" deploy/jitsi-web -- \
-  curl -s -o /dev/null -D - \
-  "http://jitsi-keycloak-adapter:9000/oidc/auth?state=$(echo "$JITSI_STATE" | jq -sRr @uri)" 2>/dev/null \
-  | grep -i '^location:' | tr -d '\r')
-assert_contains "$JITSI_OIDC_REDIRECT" "realms/homeoffice" "SA-08" "T6" \
-  "Jitsi Adapter leitet zu Keycloak weiter"
+# T6: Talk HPB Signaling erreichbar
+SIGNALING_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  curl -s -o /dev/null -w '%{http_code}' "http://spreed-signaling:8080/api/v1/welcome" 2>/dev/null || echo "000")
+assert_eq "$SIGNALING_HEALTH" "200" "SA-08" "T6" \
+  "Talk HPB Signaling-Server erreichbar"
 
 # T7: Mattermost redirect enthält client_id=mattermost
 if [[ -n "$MM_OIDC_REDIRECT" ]]; then
@@ -93,11 +89,11 @@ fi
 assert_contains "$NC_OIDC_REDIRECT" "client_id=nextcloud" "SA-08" "T8" \
   "Nextcloud Redirect enthält client_id=nextcloud"
 
-# T9: Jitsi redirect enthält client_id=jitsi und KEIN prompt=consent
-assert_contains "$JITSI_OIDC_REDIRECT" "client_id=jitsi" "SA-08" "T9a" \
-  "Jitsi Redirect enthält client_id=jitsi"
-assert_not_contains "$JITSI_OIDC_REDIRECT" "prompt=consent" "SA-08" "T9b" \
-  "Jitsi Redirect enthält KEIN prompt=consent (SSO-Fix)"
+# T9: Talk erbt SSO-Session von Nextcloud (kein separater OIDC-Client nötig)
+TALK_APP_ENABLED=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  php occ app:list 2>/dev/null | grep -c "spreed" || echo "0")
+assert_gt "$TALK_APP_ENABLED" "0" "SA-08" "T9" \
+  "Talk (spreed) App in Nextcloud aktiviert — SSO über Nextcloud-OIDC-Session"
 
 # ── Group C: Token-Exchange & Konfiguration ────────────────────
 
@@ -133,11 +129,11 @@ else
   skip_test "SA-08" "T11b" "Keycloak Userinfo E-Mail" "Kein User-Token"
 fi
 
-# T12: Jitsi Adapter Health-Endpoint erreichbar
-ADAPTER_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/jitsi-web -- \
-  curl -s -o /dev/null -w '%{http_code}' "http://jitsi-keycloak-adapter:9000/oidc/health" 2>/dev/null || echo "000")
-assert_eq "$ADAPTER_HEALTH" "200" "SA-08" "T12" \
-  "Jitsi Keycloak-Adapter Health-Endpoint erreichbar"
+# T12: Collabora Online erreichbar (für In-Call Dokumentenbearbeitung)
+COLLABORA_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  curl -s -o /dev/null -w '%{http_code}' "http://collabora:9980/" 2>/dev/null || echo "000")
+assert_eq "$COLLABORA_HEALTH" "200" "SA-08" "T12" \
+  "Collabora Online erreichbar (kollaborative Bearbeitung)"
 
 # T13: Nextcloud OIDC-Konfiguration geladen
 NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \

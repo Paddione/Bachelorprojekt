@@ -28,10 +28,6 @@ kubectl create configmap mattermost-proxy-config \
   --from-file="default.conf=$PROJECT_ROOT/mattermost/userinfo-proxy.conf" \
   -n homeoffice --dry-run=client -o yaml | kubectl apply -f -
 
-kubectl create configmap jitsi-adapter-code \
-  --from-file="adapter.ts=$PROJECT_ROOT/jitsi-keycloak-adapter/adapter.ts" \
-  -n homeoffice --dry-run=client -o yaml | kubectl apply -f -
-
 # ── Kustomize Manifeste anwenden ─────────────────────────────────────
 echo "[3/5] Kubernetes-Manifeste anwenden..."
 kubectl apply -k .
@@ -44,7 +40,7 @@ done
 
 # ── Dienste abwarten ────────────────────────────────────────────────
 echo "[5/5] Warte auf Dienste (kann 2-3 Minuten dauern)..."
-for svc in keycloak mattermost nextcloud prosody jitsi-web; do
+for svc in keycloak mattermost nextcloud spreed-signaling janus coturn collabora; do
   kubectl rollout status deployment/$svc -n homeoffice --timeout=300s 2>/dev/null || \
     echo "  WARNUNG: $svc noch nicht bereit — startet möglicherweise noch."
 done
@@ -53,18 +49,29 @@ echo ""
 echo "=== Deployment abgeschlossen ==="
 echo ""
 echo "Dienste:"
-echo "  Keycloak (SSO):      http://auth.localhost"
-echo "  Mattermost (Chat):   http://chat.localhost"
-echo "  Nextcloud (Dateien): http://files.localhost"
-echo "  Jitsi (Video):       http://meet.localhost"
+echo "  Keycloak (SSO):       http://auth.localhost"
+echo "  Mattermost (Chat):    http://chat.localhost"
+echo "  Nextcloud (Dateien):  http://files.localhost"
+echo "  Talk HPB (Signaling): http://signaling.localhost"
+echo "  Collabora (Office):   http://office.localhost"
 echo ""
 echo "Keycloak Admin-Konsole:"
 echo "  URL:      http://auth.localhost/admin"
 echo "  Benutzer: admin"
 echo "  Passwort: devadmin"
 echo ""
-echo "Nach dem ersten Nextcloud-Start OIDC-Plugin installieren:"
+echo "Nach dem ersten Nextcloud-Start Plugins installieren:"
 echo "  kubectl exec -n homeoffice deploy/nextcloud -- php occ app:install oidc_login"
+echo "  kubectl exec -n homeoffice deploy/nextcloud -- php occ app:install spreed"
+echo "  kubectl exec -n homeoffice deploy/nextcloud -- php occ app:install richdocuments"
+echo ""
+echo "Talk HPB konfigurieren:"
+echo "  kubectl exec -n homeoffice deploy/nextcloud -- php occ config:app:set spreed stun_servers --value='[{\"server\":\"coturn:3478\"}]'"
+echo "  kubectl exec -n homeoffice deploy/nextcloud -- php occ config:app:set spreed turn_servers --value='[{\"server\":\"coturn:3478\",\"secret\":\"devturnpassword1234\",\"protocols\":\"udp,tcp\"}]'"
+echo "  kubectl exec -n homeoffice deploy/nextcloud -- php occ config:app:set spreed signaling_servers --value='{\"servers\":[{\"server\":\"http://signaling.localhost/standalone-signaling/\",\"verify\":false}],\"secret\":\"devsignalingsecret1234567890abcdef\"}'"
+echo ""
+echo "Collabora konfigurieren:"
+echo "  kubectl exec -n homeoffice deploy/nextcloud -- php occ config:app:set richdocuments wopi_url --value='http://collabora:9980'"
 echo ""
 echo "Pods prüfen:  kubectl get pods -n homeoffice"
 echo "Logs anzeigen: kubectl logs -n homeoffice deploy/<service> -f"

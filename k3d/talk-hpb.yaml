@@ -1,0 +1,244 @@
+# ═══════════════════════════════════════════════════════════════════
+# Nextcloud Talk — High Performance Backend (HPB)
+# ═══════════════════════════════════════════════════════════════════
+# Components: NATS (message bus), Janus (WebRTC SFU),
+#             spreed-signaling (coordination)
+# ═══════════════════════════════════════════════════════════════════
+
+# ── NATS (internal message bus) ─────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats
+  labels:
+    app: nats
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats
+  template:
+    metadata:
+      labels:
+        app: nats
+    spec:
+      containers:
+        - name: nats
+          image: nats:2.10-alpine
+          ports:
+            - containerPort: 4222
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats
+spec:
+  selector:
+    app: nats
+  ports:
+    - port: 4222
+      targetPort: 4222
+
+---
+# ── Janus WebRTC Gateway (SFU) ──────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: janus-config
+data:
+  janus.jcfg: |
+    general: {
+      configs_folder = "/etc/janus"
+      log_to_stdout = true
+      debug_level = 4
+      admin_secret = "devjanusadmin"
+    }
+    nat: {
+      nice_debug = false
+      full_trickle = true
+      ice_lite = true
+      stun_server = "coturn"
+      stun_port = 3478
+      turn_server = "coturn"
+      turn_port = 3478
+      turn_type = "udp"
+      turn_user = "talk"
+      turn_pwd = "devturnpassword1234"
+    }
+    media: {
+      rtp_port_range = "20000-40000"
+    }
+    transports: {
+      disable = "libjanus_transport.so"
+    }
+  janus.transport.websockets.jcfg: |
+    general: {
+      ws = true
+      ws_port = 8188
+      ws_logging = "err,warn"
+    }
+  janus.plugin.videoroom.jcfg: |
+    general: {
+      admin_key = "devvideoroomadmin"
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: janus
+  labels:
+    app: janus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: janus
+  template:
+    metadata:
+      labels:
+        app: janus
+    spec:
+      containers:
+        - name: janus
+          image: canyan/janus-gateway:0.14.3
+          ports:
+            - containerPort: 8188
+              name: ws
+          volumeMounts:
+            - name: config
+              mountPath: /etc/janus/janus.jcfg
+              subPath: janus.jcfg
+            - name: config
+              mountPath: /etc/janus/janus.transport.websockets.jcfg
+              subPath: janus.transport.websockets.jcfg
+            - name: config
+              mountPath: /etc/janus/janus.plugin.videoroom.jcfg
+              subPath: janus.plugin.videoroom.jcfg
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 200m
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: config
+          configMap:
+            name: janus-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: janus
+spec:
+  selector:
+    app: janus
+  ports:
+    - port: 8188
+      targetPort: 8188
+      name: ws
+
+---
+# ── spreed-signaling (HPB coordination) ─────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: signaling-config
+data:
+  server.conf: |
+    [http]
+    listen = 0.0.0.0:8080
+
+    [app]
+    debug = false
+
+    [sessions]
+    hashkey = devsignalinghashkey1234567890abcd
+    blockkey = devsignalingblockkey123456789012
+
+    [clients]
+    internalsecret = devsignalinginternalsecret123456
+
+    [backend]
+    backends = backend-1
+    allowall = false
+    timeout = 10
+    connectionsperhost = 8
+
+    [backend-1]
+    url = http://nextcloud:80
+    secret = devsignalingsecret1234567890abcdef
+    maxstreambitrate = 0
+    maxscreenbitrate = 0
+
+    [nats]
+    url = nats://nats:4222
+
+    [mcu]
+    type = janus
+    url = ws://janus:8188
+
+    [turn]
+    apikey = devturnapikey1234567890
+    secret = devturnpassword1234
+    servers = turn:coturn:3478?transport=udp,turn:coturn:3478?transport=tcp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spreed-signaling
+  labels:
+    app: spreed-signaling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spreed-signaling
+  template:
+    metadata:
+      labels:
+        app: spreed-signaling
+    spec:
+      containers:
+        - name: signaling
+          image: strukturag/nextcloud-spreed-signaling:1.2.4
+          args: ["-config", "/etc/signaling/server.conf"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /etc/signaling/server.conf
+              subPath: server.conf
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /api/v1/welcome
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: signaling-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spreed-signaling
+spec:
+  selector:
+    app: spreed-signaling
+  ports:
+    - port: 8080
+      targetPort: 8080

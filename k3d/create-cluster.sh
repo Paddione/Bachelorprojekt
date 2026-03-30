@@ -5,7 +5,7 @@
 set -euo pipefail
 
 CLUSTER_NAME="${1:-homeoffice-dev}"
-DOMAINS="auth.localhost chat.localhost files.localhost meet.localhost"
+DOMAINS="auth.localhost chat.localhost files.localhost signaling.localhost office.localhost"
 
 echo "=== Homeoffice MVP — k3d Development Cluster ==="
 echo ""

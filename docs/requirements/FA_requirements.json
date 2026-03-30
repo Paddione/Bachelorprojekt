@@ -1,0 +1,50 @@
+{
+    "FA-01": {
+        "Bezeichnung": "Messaging (Echtzeit)",
+        "Beschreibung": "Echtzeit-Kommunikation über WebSocket-Protokoll. Unterstützt 1:1-Direktnachrichten, Gruppen-Direktnachrichten (bis 7 Teilnehmer) sowie kanalbasierte Kommunikation (öffentliche und private Channels). Nachrichten können mit Formatierung (Markdown), Emoji-Reaktionen, Dateianhängen und Thread-Antworten versehen werden. Persistente Speicherung in PostgreSQL.",
+        "Erfüllungskriterien": "1) Nachricht erscheint beim Empfänger in < 500 ms\n2) 1:1-DM, Gruppen-DM und Channel-Nachrichten möglich\n3) Threads/Antworten werden unterstützt\n4) Nachrichten bleiben nach Container-Neustart erhalten\n5) Offline-Nachrichten werden nach Wiederverbindung zugestellt",
+        "Testfall": "T1: Sende DM → Nachricht erscheint < 1s beim Empfänger\nT2: Gruppen-DM mit 3 Usern → alle sehen Nachricht\nT3: Channel-Nachricht → alle Mitglieder benachrichtigt\nT4: Mattermost-Container neu starten → Nachrichten vorhanden\nT5: User offline → Nachricht senden → nach Login zugestellt"
+    },
+    "FA-02": {
+        "Bezeichnung": "Kanäle / Workspaces",
+        "Beschreibung": "Hierarchische Struktur mit Teams (Workspaces) als oberster Ebene. Innerhalb eines Teams: öffentliche Kanäle (für alle Mitglieder sichtbar und beitretbar) und private Kanäle (nur für explizit eingeladene Mitglieder). Kanal-Beschreibungen, Topics und Purpose konfigurierbar. Archivierung deaktiviert den Kanal ohne Datenverlust.",
+        "Erfüllungskriterien": "1) Öffentliche Kanäle für alle Team-Mitglieder sichtbar und beitretbar\n2) Private Kanäle nur für eingeladene Mitglieder sichtbar\n3) Mindestens 2 Teams (Workspaces) erstellbar\n4) Kanal-Namen und -Beschreibungen konfigurierbar\n5) Kanalarchivierung möglich",
+        "Testfall": "T1: Öffentl. Kanal erstellen → User2 tritt ohne Einladung bei\nT2: Privaten Kanal erstellen → User2 sieht Kanal nicht\nT3: 2 Teams erstellen → User wechselt zwischen Teams\nT4: Kanal umbenennen → neuer Name überall sichtbar\nT5: Kanal archivieren → Inhalte noch lesbar, keine neuen Nachrichten"
+    },
+    "FA-03": {
+        "Bezeichnung": "Videokonferenzen",
+        "Beschreibung": "Vollständig self-hosted Video- und Audiokonferenzen via Nextcloud Talk mit High Performance Backend (HPB). Unterstützt mindestens 10 gleichzeitige Teilnehmer mit Kamera- und Mikrofonübertragung sowie Bildschirmfreigabe (gesamter Bildschirm oder einzelne Anwendung). Gäste können per Link beitreten. SSO-Authentifizierung erfolgt automatisch über die Nextcloud-OIDC-Session (Keycloak). Keine Abhängigkeit zu externen Diensten. Kollaborative Dokumentenbearbeitung während laufender Calls über Collabora Online.",
+        "Erfüllungskriterien": "1) Mindestens 10 gleichzeitige Teilnehmer unterstützt (via HPB)\n2) Kamera-Übertragung funktioniert\n3) Mikrofon-Übertragung funktioniert\n4) Bildschirmfreigabe möglich\n5) Meeting vollständig self-hosted (keine externen Dienste)\n6) Meeting per Link teilbar (Gast-Zugang)\n7) SSO ohne separaten Adapter (Nextcloud-OIDC-Session)",
+        "Testfall": "T1: Talk-Konversation mit 2 Browsern → Video und Audio übertragen\nT2: Bildschirmfreigabe starten → anderer Teilnehmer sieht Bildschirm\nT3: DNS-Check → keine Anfragen an externe WebRTC/TURN-Dienste\nT4: HPB Signaling-Server erreichbar (/api/v1/welcome)\nT5: Konversations-Link kopieren → Gast-Beitritt ohne Login möglich"
+    },
+    "FA-04": {
+        "Bezeichnung": "Dateiablage",
+        "Beschreibung": "Datei-Upload direkt in Channels und Direktnachrichten. Unterstützte Formate: alle gängigen Dateitypen (PDF, DOCX, XLSX, ZIP, MP4, PNG u. a.) mit konfigurierbarer Maximalgröße pro Datei. Persistente Speicherung auf gemounteten Kubernetes-Volumes. Nextcloud-Integration für Workspaces über 10 GB sowie kollaborative Bearbeitung von Dokumenten. Dateien per Share-Link teilbar; Download für berechtigte Nutzer.",
+        "Erfüllungskriterien": "1) Upload aller gängigen Dateitypen (PDF, DOCX, ZIP, MP4, PNG)\n2) Mindestens 10 GB Speicher pro Workspace konfiguriert\n3) Dateien per Link teilbar\n4) Download durch berechtigte User\n5) Dateien persistent nach Mattermost-Neustart\n6) Nextcloud-Integration für größere Dateien",
+        "Testfall": "T1: 100 MB ZIP hochladen → erscheint im Channel\nT2: Nextcloud-Quota prüfen: > 10 GB konfiguriert\nT3: Datei-Link generieren → Download ohne Login möglich (wenn öffentlich)\nT4: Container-Neustart → Dateien noch vorhanden\nT5: PDF, DOCX, MP4, ZIP, PNG je hochladen → alle ohne Fehler"
+    },
+    "FA-05": {
+        "Bezeichnung": "Nutzerverwaltung",
+        "Beschreibung": "Vollständiger Lebenszyklus von Nutzerkonten: Anlegen (manuell oder per LDAP/AD-Synchronisation), Bearbeiten von Profildaten, Deaktivieren und Löschen. Rollenmodell: System-Admin (vollständige Kontrolle), Team-Admin (Teamverwaltung), Nutzer (Standardrolle) und Gast (eingeschränkter Zugriff auf explizit zugewiesene Kanäle). LDAP/Active-Directory-Anbindung ermöglicht Single-Source-of-Truth für Nutzerdaten.",
+        "Erfüllungskriterien": "1) Admin kann User anlegen, bearbeiten, deaktivieren\n2) Rollen Admin, User, Gast verfügbar und unterschiedlich berechtigt\n3) Benutzerverwaltung direkt in Keycloak\n4) CSV-Import über migrate.sh möglich\n5) LDIF-Import unterstützt\n6) SSO-Login via Keycloak (OIDC)",
+        "Testfall": "T1: Admin legt User an → User kann sich einloggen\nT2: Gast-Rolle → Kanalerstellung verweigert\nT3: user.csv importieren → User erscheint in Keycloak\nT4: User in Keycloak angelegt → User kann sich per SSO einloggen\nT5: User deaktivieren → Login schlägt fehl"
+    },
+    "FA-06": {
+        "Bezeichnung": "Benachrichtigungen",
+        "Beschreibung": "Kanalübergreifende Benachrichtigungsinfrastruktur: Browser-Push (Web Notifications API), Desktop-Benachrichtigungen (Mattermost Desktop-App) und Mobile-Push (iOS/Android über eigenen Push-Proxy). Granulare Konfiguration pro Kanal: alle Nachrichten, nur @-Mentions oder keine Benachrichtigungen. Bitte-nicht-stören-Modus (DND) und Ruhezeiten einstellbar. E-Mail-Benachrichtigungen bei Inaktivität als Fallback.",
+        "Erfüllungskriterien": "1) Web-Push-Benachrichtigung bei neuer Nachricht\n2) Desktop-Benachrichtigung (Browser/Electron) konfigurierbar\n3) Mobile-Push via Mattermost Mobile App\n4) Benachrichtigungen pro Kanal stummschaltbar\n5) Do-Not-Disturb-Zeitfenster konfigurierbar",
+        "Testfall": "T1: Tab im Hintergrund → Browser-Push erscheint bei DM\nT2: Kanal stummschalten → keine Benachrichtigung bei Nachricht\nT3: Do-Not-Disturb aktivieren → keine Push in gesetztem Zeitraum\nT4: @mention → Benachrichtigung trotz stummgeschaltetem Kanal\nT5: Mattermost Mobile App → Push-Notification auf Gerät"
+    },
+    "FA-07": {
+        "Bezeichnung": "Suche",
+        "Beschreibung": "Integrierte Volltextsuche über alle zugänglichen Nachrichten, Dateinamen und Kanalinhalte (Elasticsearch-gestützt). Filteroptionen nach Autor, Kanal, Zeitraum und Dateityp. Suchergebnisse sortiert nach Relevanz und Datum. Suche respektiert Zugriffsrechte: Nutzer sehen nur Inhalte der Kanäle, denen sie angehören.",
+        "Erfüllungskriterien": "1) Volltextsuche über alle eigenen Nachrichten\n2) Dateisuche nach Dateiname\n3) Kanalsuche nach Name\n4) Suche liefert Ergebnis in < 2 s\n5) Suchergebnisse nach Datum filterbar",
+        "Testfall": "T1: Nachricht mit 'Testbegriff2026' → Suche findet Ergebnis\nT2: 'report_q1.pdf' hochladen → Dateisuche findet es\nT3: Kanalname suchen → Kanal erscheint in Vorschlägen\nT4: Zeit messen: Suchanfrage → Antwort < 2s\nT5: Datumsfilter setzen → nur Ergebnisse im Zeitraum"
+    },
+    "FA-08": {
+        "Bezeichnung": "Homeoffice-spezifisch",
+        "Beschreibung": "Homeoffice-spezifische Funktionen: Anpassbare Status-Emojis und -Texte (z. B. 🏠 Homeoffice, ⛔ Nicht stören, 🍕 Mittagspause) mit automatischer Ablaufzeit. Kalenderintegration via Mattermost-Plugin für Google Calendar / Outlook: zeigt aktive Meetings im Status an und setzt automatisch 'In einer Besprechung'. Verfügbarkeitsübersicht im Nutzerprofil für einfache Erreichbarkeitsplanung im Team.",
+        "Erfüllungskriterien": "1) Status-Optionen: Verfügbar, Beschäftigt, Abwesend, Homeoffice\n2) Status für andere User sichtbar\n3) Benutzerdefinierter Status-Text möglich\n4) Kalenderintegration (Konfiguration dokumentiert)\n5) Status-Emoji konfigurierbar",
+        "Testfall": "T1: Status auf 'Beschäftigt' setzen → anderer User sieht Status\nT2: Custom-Status 'Im Meeting bis 15:00' → sichtbar in Profil\nT3: Status-Emoji setzen → erscheint neben Namen\nT4: Kalender-Plugin konfigurieren → Events aus .ics-Feed importiert\nT5: Status nach festgelegter Zeit automatisch zurücksetzen"
+    }
+}

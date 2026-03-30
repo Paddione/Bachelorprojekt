@@ -26,7 +26,7 @@ WHERE id = 'AK-02';
 
 UPDATE requirements SET
   description = 'Die technische Umsetzbarkeit des Projekts muss durch eine vollständige Systemarchitektur-Dokumentation (Lieferobjekt L-05) und einen lauffähigen Prototyp (Lieferobjekt L-03) nachgewiesen werden. Alle eingesetzten Technologien müssen einen produktionsreifen Reifegrad aufweisen und die Technologiewahl muss gegenüber Alternativen begründet sein. Der Skalierungsnachweis erfolgt durch dokumentierte Testergebnisse mit mindestens zehn simultanen Nutzern ohne Fehler. Die Abnahme erfolgt nach einer Live-Demo und einer Architekturbesprechung mit dem Betreuer.',
-  acceptance_criteria = '1) Alle eingesetzten Technologien (Mattermost, Jitsi, Nextcloud, Keycloak, PostgreSQL, Traefik) sind produktionsreif und als stabile Releases verfügbar.
+  acceptance_criteria = '1) Alle eingesetzten Technologien (Mattermost, Nextcloud (Talk), Keycloak, PostgreSQL, Traefik) sind produktionsreif und als stabile Releases verfügbar.
 2) Eine vollständige Architektur-Dokumentation mit Komponenten- und Deployment-Diagramm liegt im Repository vor.
 3) Der Prototyp ist lauffähig und demonstriert die technische Umsetzbarkeit aller Kernfunktionen (FA-01 bis FA-08).
 4) Es werden keine experimentellen, Alpha- oder Beta-Abhängigkeiten eingesetzt; alle Container-Images verwenden stabile Release-Tags.',
@@ -95,12 +95,12 @@ UPDATE requirements SET
 WHERE id = 'FA-02';
 
 UPDATE requirements SET
-  description = 'Das System muss vollständig self-hosted Video- und Audiokonferenzen über Jitsi Meet bereitstellen, integriert in die Mattermost-Oberfläche. Es müssen mindestens zehn gleichzeitige Teilnehmer mit Kamera- und Mikrofonübertragung sowie Bildschirmfreigabe (gesamter Bildschirm oder einzelne Anwendung) unterstützt werden. Meetinglinks müssen per URL teilbar sein, und der Beitritt muss ohne vorherige Registrierung möglich sein. Es darf keine Abhängigkeit zu externen Diensten wie meet.jit.si bestehen.',
+  description = 'Das System muss vollständig self-hosted Video- und Audiokonferenzen über Nextcloud Talk bereitstellen, integriert in die Mattermost-Oberfläche. Es müssen mindestens zehn gleichzeitige Teilnehmer mit Kamera- und Mikrofonübertragung sowie Bildschirmfreigabe (gesamter Bildschirm oder einzelne Anwendung) unterstützt werden. Meetinglinks müssen per URL teilbar sein, und der Beitritt muss ohne vorherige Registrierung möglich sein. Es darf keine Abhängigkeit zu externen Diensten wie externe WebRTC-Dienste bestehen.',
   acceptance_criteria = '1) Mindestens zehn gleichzeitige Teilnehmer können an einer Videokonferenz teilnehmen, ohne dass Verbindungsabbrüche auftreten.
 2) Die Kamera-Übertragung funktioniert für alle Teilnehmer mit mindestens 720p-Auflösung.
 3) Die Mikrofon-Übertragung funktioniert bidirektional ohne relevante Verzögerung.
 4) Die Bildschirmfreigabe (gesamter Bildschirm oder einzelnes Fenster) ist für jeden Teilnehmer nutzbar.
-5) Das Meeting wird vollständig self-hosted betrieben; ein DNS-Check bestätigt, dass keine Anfragen an meet.jit.si oder andere externe Jitsi-Server gesendet werden.
+5) Das Meeting wird vollständig self-hosted betrieben; ein DNS-Check bestätigt, dass keine Anfragen an externe WebRTC-Dienste oder andere externe Nextcloud Talk-Server gesendet werden.
 6) Ein Meeting kann per URL-Link geteilt werden, und der Beitritt ist ohne Benutzeranmeldung möglich.',
   test_cases = 'Kein automatisierter Test vorhanden (FA-03.sh existiert nicht im Repository). Die Prüfung der Videokonferenz-Funktionalität erfordert manuelle Tests mit echten Browser-Instanzen, da WebRTC-Verbindungen nicht über die API simuliert werden können.'
 WHERE id = 'FA-03';
@@ -180,9 +180,9 @@ UPDATE requirements SET
 WHERE id = 'L-02';
 
 UPDATE requirements SET
-  description = 'Der Prototyp muss eine funktionsfähige Homeoffice-Kommunikationsplattform auf Basis von Mattermost, Jitsi Meet und Nextcloud sein, deployed im k3d-Cluster. Alle Kernfunktionen (Messaging, Videokonferenzen, Dateiablage und Nutzerverwaltung) müssen lauffähig und demonstrierbar sein. Der Prototyp muss über HTTPS erreichbar sein und im Abnahmegespräch live vorgeführt werden können. Der gesamte Quellcode (Kubernetes-Manifeste, Helm-Charts und Konfigurationsdateien) muss versioniert im GitHub-Repository vorliegen.',
+  description = 'Der Prototyp muss eine funktionsfähige Homeoffice-Kommunikationsplattform auf Basis von Mattermost und Nextcloud (Talk) sein, deployed im k3d-Cluster. Alle Kernfunktionen (Messaging, Videokonferenzen, Dateiablage und Nutzerverwaltung) müssen lauffähig und demonstrierbar sein. Der Prototyp muss über HTTPS erreichbar sein und im Abnahmegespräch live vorgeführt werden können. Der gesamte Quellcode (Kubernetes-Manifeste, Helm-Charts und Konfigurationsdateien) muss versioniert im GitHub-Repository vorliegen.',
   acceptance_criteria = '1) Alle Services starten im k3d-Cluster ohne Fehler und erreichen den Status Running.
-2) Login ist in Mattermost, Nextcloud und Jitsi Meet über den SSO-Provider Keycloak möglich.
+2) Login ist in Mattermost, Nextcloud und Nextcloud Talk über den SSO-Provider Keycloak möglich.
 3) Alle Kernfunktionen (FA-01 bis FA-07) sind im laufenden Prototyp demonstrierbar.
 4) Es besteht keine Abhängigkeit zu proprietären Diensten; alle Komponenten sind Open Source.
 5) Die Inbetriebnahme des Prototyps ist anhand der README-Dokumentation in unter 30 Minuten nachvollziehbar.',
@@ -200,7 +200,7 @@ UPDATE requirements SET
 WHERE id = 'L-04';
 
 UPDATE requirements SET
-  description = 'Die technische Architekturdokumentation muss folgende Bestandteile enthalten: ein Komponentendiagramm aller eingesetzten Services (Mattermost, Jitsi, Nextcloud, Keycloak, PostgreSQL, Traefik), ein Deployment-Diagramm für den k3d-Cluster, eine Netzwerkarchitektur mit Ingress-Routing, interner Service-Kommunikation und TLS-Terminierung, eine Datenbankschema-Übersicht sowie eine Sicherheitsarchitektur mit TLS-Flow, RBAC-Modell und SSO-Flow über Keycloak. Die Diagramme müssen versioniert im Repository vorliegen.',
+  description = 'Die technische Architekturdokumentation muss folgende Bestandteile enthalten: ein Komponentendiagramm aller eingesetzten Services (Mattermost, Nextcloud (Talk), Keycloak, PostgreSQL, Traefik), ein Deployment-Diagramm für den k3d-Cluster, eine Netzwerkarchitektur mit Ingress-Routing, interner Service-Kommunikation und TLS-Terminierung, eine Datenbankschema-Übersicht sowie eine Sicherheitsarchitektur mit TLS-Flow, RBAC-Modell und SSO-Flow über Keycloak. Die Diagramme müssen versioniert im Repository vorliegen.',
   acceptance_criteria = '1) Ein Architekturdiagramm mit allen Komponenten und deren Datenflüssen ist vorhanden und aktuell.
 2) Alle eingesetzten Services sind im Diagramm dokumentiert und stimmen mit den tatsächlich deployten Kubernetes-Ressourcen überein.
 3) Die Netzwerkarchitektur ist vollständig beschrieben, inklusive einer Tabelle mit Port, Protokoll und zugehörigem Dienst.
@@ -257,7 +257,7 @@ UPDATE requirements SET
   acceptance_criteria = '1) Die Mattermost-UI-Ladezeit beträgt unter zwei Sekunden beim Cold Start (gemessen mit curl oder Browser DevTools).
 2) Die Nachrichtenlatenz vom Senden bis zur Anzeige beim Empfänger beträgt unter 500 Millisekunden.
 3) Ein Nextcloud-Upload von 10 MB wird in unter zehn Sekunden abgeschlossen.
-4) Ein Jitsi-Videocall mit 720p-Auflösung ist für mindestens zwei Teilnehmer über fünf Minuten stabil ohne Abbrüche.
+4) Ein Nextcloud Talk-Videocall mit 720p-Auflösung ist für mindestens zwei Teilnehmer über fünf Minuten stabil ohne Abbrüche.
 5) Die CPU-Auslastung bleibt bei Normallast (fünf aktive Benutzer) unter 80 Prozent.',
   test_cases = 'Kein automatisierter Test vorhanden (NFA-02.sh existiert nicht im Repository). Die Prüfung erfordert manuelle Performance-Messungen mit curl, Browser DevTools und kubectl top.'
 WHERE id = 'NFA-02';
@@ -303,14 +303,14 @@ UPDATE requirements SET
 WHERE id = 'NFA-06';
 
 UPDATE requirements SET
-  description = 'Alle eingesetzten Softwarekomponenten müssen ausschließlich unter anerkannten Open-Source-Lizenzen stehen. Dies betrifft: Mattermost Team Edition (MIT-Lizenz), Jitsi Meet (Apache 2.0), Nextcloud (AGPL v3), Keycloak (Apache 2.0), PostgreSQL (PostgreSQL License) und Traefik (MIT-Lizenz). Es dürfen keine proprietären Abhängigkeiten, keine Cloud-Vendor-Bindung und keine laufenden Lizenzgebühren bestehen. Eine Lizenzübersicht muss im Projekt dokumentiert sein.',
+  description = 'Alle eingesetzten Softwarekomponenten müssen ausschließlich unter anerkannten Open-Source-Lizenzen stehen. Dies betrifft: Mattermost Team Edition (MIT-Lizenz), Nextcloud Talk (Apache 2.0), Nextcloud (AGPL v3), Keycloak (Apache 2.0), PostgreSQL (PostgreSQL License) und Traefik (MIT-Lizenz). Es dürfen keine proprietären Abhängigkeiten, keine Cloud-Vendor-Bindung und keine laufenden Lizenzgebühren bestehen. Eine Lizenzübersicht muss im Projekt dokumentiert sein.',
   acceptance_criteria = '1) Mattermost wird als Team Edition (MIT-Lizenz) eingesetzt, nicht als Enterprise Edition.
 2) Nextcloud wird unter der AGPL v3 eingesetzt und es sind keine proprietären Erweiterungen aktiviert.
-3) Jitsi Meet wird unter Apache 2.0 eingesetzt und ist vollständig self-hosted.
+3) Nextcloud Talk wird unter Apache 2.0 eingesetzt und ist vollständig self-hosted.
 4) Keycloak wird unter Apache 2.0 eingesetzt und dient als zentraler Identity Provider.
 5) Traefik wird unter MIT-Lizenz als Ingress-Controller eingesetzt.
 6) Eine vollständige Lizenzübersicht aller eingesetzten Komponenten ist im Projekt dokumentiert.',
-  test_cases = 'Automatisiert in tests/local/NFA-07.sh. Der Test prüft: (T1) Ob Mattermost als Team Edition betrieben wird und keine Enterprise-Lizenz aktiv ist, (T2) ob die Container-Images für Mattermost Team Edition, Nextcloud, Jitsi und Keycloak im Cluster vorhanden sind. Die Testergebnisse werden vom Testrunner über scripts/tracking/ingest-results.sh in die Tracking-Datenbank geschrieben.'
+  test_cases = 'Automatisiert in tests/local/NFA-07.sh. Der Test prüft: (T1) Ob Mattermost als Team Edition betrieben wird und keine Enterprise-Lizenz aktiv ist, (T2) ob die Container-Images für Mattermost Team Edition, Nextcloud, Nextcloud Talk und Keycloak im Cluster vorhanden sind. Die Testergebnisse werden vom Testrunner über scripts/tracking/ingest-results.sh in die Tracking-Datenbank geschrieben.'
 WHERE id = 'NFA-07';
 
 -- ─── SA: Sicherheitsanforderungen ─────────────────────────────────

@@ -44,7 +44,7 @@ spec:
             - name: MM_PLUGINSETTINGS_ENABLEUPLOADS
               value: "true"
             - name: MM_PLUGINSETTINGS_PLUGINSTATES
-              value: '{"com.mattermost.jitsi":{"Enable":true}}'
+              value: '{}'
             # GitLab-OAuth via Keycloak
             - name: MM_GITLABSETTINGS_ENABLE
               value: "true"

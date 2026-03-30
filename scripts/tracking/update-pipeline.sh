@@ -33,6 +33,13 @@ usage() {
 if [[ "${1:-}" == "--bulk-docs" ]]; then
   shift
   for req_id in "$@"; do
+    # Warn if prior stages are incomplete
+    for s in idea implementation testing; do
+      s_status=$(sqlite3 "$DB" "SELECT status FROM pipeline WHERE req_id = '${req_id}' AND stage = '${s}';")
+      if [[ "$s_status" == "pending" || "$s_status" == "in_progress" ]]; then
+        echo "  Warning: ${req_id} stage '${s}' is still '${s_status}'" >&2
+      fi
+    done
     sqlite3 "$DB" "UPDATE pipeline SET status = 'done', updated_at = datetime('now')
       WHERE req_id = '${req_id}' AND stage = 'documentation';"
     echo "  ${req_id} documentation → done"
@@ -65,6 +72,22 @@ if [[ "$exists" -eq 0 ]]; then
   echo "Error: Unknown requirement '${REQ_ID}'" >&2
   sqlite3 "$DB" "SELECT id, name FROM requirements ORDER BY id;" | column -t -s '|'
   exit 1
+fi
+
+# ── Stage ordering guard ─────────────────────────────────────────
+# Pipeline stages must progress in order: idea → implementation → testing → documentation → archive
+# A stage cannot be set to 'done' if a prior stage is still pending/in_progress
+STAGE_ORDER="idea implementation testing documentation archive"
+if [[ "$STATUS" == "done" ]]; then
+  prior_pending=0
+  for s in $STAGE_ORDER; do
+    [[ "$s" == "$STAGE" ]] && break
+    s_status=$(sqlite3 "$DB" "SELECT status FROM pipeline WHERE req_id = '${REQ_ID}' AND stage = '${s}';")
+    if [[ "$s_status" == "pending" || "$s_status" == "in_progress" ]]; then
+      echo "Warning: ${REQ_ID} stage '${s}' is still '${s_status}' — marking '${STAGE}' as done anyway" >&2
+      prior_pending=1
+    fi
+  done
 fi
 
 # Build update query

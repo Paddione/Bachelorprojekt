@@ -1,6 +1,6 @@
 # Homeoffice MVP
 
-Kubernetes-basierte Kollaborationsplattform für kleine Teams — Mattermost (Chat), Nextcloud (Dateien), Keycloak (SSO) und Jitsi (Video) auf k3d/k3s mit NGINX Ingress.
+Kubernetes-basierte Kollaborationsplattform für kleine Teams — Mattermost (Chat), Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO) auf k3d/k3s mit Traefik Ingress.
 
 ## Schnellstart
 
@@ -16,8 +16,9 @@ cd .. && task cluster:create && task ingress:install && task homeoffice:deploy
 Services sind erreichbar unter:
 - **Keycloak (SSO):** http://auth.localhost (admin / devadmin)
 - **Mattermost (Chat):** http://chat.localhost
-- **Nextcloud (Dateien):** http://files.localhost
-- **Jitsi (Video):** http://meet.localhost
+- **Nextcloud (Dateien + Talk):** http://files.localhost
+- **Collabora (Office):** http://office.localhost
+- **Talk HPB (Signaling):** http://signaling.localhost
 
 ## Dokumentation
 
@@ -39,16 +40,15 @@ Services sind erreichbar unter:
                      |
     +----------------+----------------+--------------+
     v                v                v              v
-+--------+    +----------+    +----------+    +----------+
-|Matter- |    |Nextcloud |    |Keycloak  |    |  Jitsi   |
-|most    |    |          |    |  (SSO)   |    |  Meet    |
-+--------+    +----------+    +----------+    +----------+
-    |              |               |               |
-+--------+    +----------+    +----------+    +----------+
-|  DB    |    |    DB    |    |    DB    |    | Prosody  |
-|(PG 16) |    | (PG 16) |    | (PG 16) |    | Jicofo   |
-+--------+    +----------+    +----------+    |   JVB    |
-                                              +----------+
++--------+    +----------+    +----------+    +-----------+    +----------+
+|Matter- |    |Nextcloud |    |Keycloak  |    | Collabora |    | Talk HPB |
+|most    |    | + Talk   |    |  (SSO)   |    |  Online   |    | Signaling|
++--------+    +----------+    +----------+    +-----------+    +----------+
+    |              |               |                            | Janus    |
++--------+    +----------+    +----------+                     | NATS     |
+|  DB    |    |    DB    |    |    DB    |                     | coturn   |
+|(PG 16) |    | (PG 16) |    | (PG 16) |                     +----------+
++--------+    +----------+    +----------+
 
 Namespace: homeoffice
 Alle Services laufen als Kubernetes Deployments in k3d/k3s.
@@ -84,14 +84,15 @@ Bachelorprojekt/
     keycloak*.yaml              # Keycloak + DB
     mattermost*.yaml            # Mattermost + DB
     nextcloud*.yaml             # Nextcloud + DB
-    jitsi-*.yaml                # Jitsi (Web, Prosody, Jicofo, JVB, Adapter)
+    talk-hpb.yaml               # Nextcloud Talk HPB (Signaling + Janus + NATS)
+    coturn.yaml                 # TURN/STUN Server
+    collabora.yaml              # Collabora Online (Dokumentenbearbeitung)
     realm-homeoffice-dev.json   # Keycloak Realm-Konfiguration
     nextcloud-oidc-dev.php      # Nextcloud OIDC-Konfiguration
   scripts/                      # Migration, Import, Utility-Skripte
   tests/                        # Automatisierte Tests (Bash + Playwright)
   docs/                         # Dokumentation
   mattermost/                   # Mattermost Keycloak-Proxy Config
-  jitsi-keycloak-adapter/       # Gepatchter OIDC→JWT Adapter
 ```
 
 ## Regeln für dieses Monorepo

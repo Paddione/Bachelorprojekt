@@ -97,6 +97,19 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: COLLABORA_DOMAIN
+            # ── SMTP via Mailpit (dev) ─────────────────────
+            - name: SMTP_HOST
+              value: "mailpit"
+            - name: SMTP_PORT
+              value: "1025"
+            - name: SMTP_SECURE
+              value: ""
+            - name: SMTP_AUTHTYPE
+              value: "PLAIN"
+            - name: MAIL_FROM_ADDRESS
+              value: "nextcloud"
+            - name: MAIL_DOMAIN
+              value: "homeoffice.local"
             - name: TZ
               value: Europe/Berlin
           ports:

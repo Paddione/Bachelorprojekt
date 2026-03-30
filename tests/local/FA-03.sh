@@ -60,3 +60,32 @@ assert_gt "$COTURN_POD" 0 "FA-03" "T3d" "coturn TURN/STUN Pod läuft"
 # Bonus: NATS message bus reachable
 NATS_POD=$(kubectl get pods -n "$NAMESPACE" -l app=nats --no-headers 2>/dev/null | grep -c 'Running')
 assert_gt "$NATS_POD" 0 "FA-03" "T3e" "NATS Message Bus Pod läuft"
+
+# T6: Guest access to Talk room (Gap 1.6 / O)
+# Create a public Talk room via Nextcloud OCS API and verify guest can reach it
+NC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" homeoffice-secrets \
+  -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || echo "devnextcloudadmin")
+# Create public conversation (type 3 = public)
+ROOM_RESP=$(_kube_curl -X POST \
+  -H "OCS-APIRequest: true" -H "Accept: application/json" \
+  -u "admin:${NC_ADMIN_PASS}" \
+  -d '{"roomType":3,"roomName":"guest-test-room"}' \
+  "http://localhost/ocs/v2.php/apps/spreed/api/v4/room" --max-time 10 2>/dev/null || echo "{}")
+ROOM_TOKEN=$(echo "$ROOM_RESP" | jq -r '.ocs.data.token // empty' 2>/dev/null)
+if [[ -n "$ROOM_TOKEN" ]]; then
+  # Verify guest can access the room without credentials (OCS API returns room info)
+  GUEST_RESP=$(_kube_curl -o /dev/null -w '%{http_code}' \
+    -H "OCS-APIRequest: true" -H "Accept: application/json" \
+    "http://localhost/ocs/v2.php/apps/spreed/api/v4/room/${ROOM_TOKEN}" --max-time 10 2>/dev/null || echo "000")
+  # 200 = room info returned to guest, 404 = room not found but endpoint works
+  if [[ "$GUEST_RESP" == "200" ]]; then
+    _log_result "FA-03" "T6" "Gast-Zugang zu Talk-Raum via Link möglich" "pass" "0"
+  else
+    _log_result "FA-03" "T6" "Gast-Zugang zu Talk-Raum via Link möglich" "fail" "0" "HTTP ${GUEST_RESP} (erwartet 200)"
+  fi
+  # Cleanup — delete the room
+  _kube_curl -X DELETE -H "OCS-APIRequest: true" -u "admin:${NC_ADMIN_PASS}" \
+    "http://localhost/ocs/v2.php/apps/spreed/api/v4/room/${ROOM_TOKEN}" --max-time 5 > /dev/null 2>&1 || true
+else
+  skip_test "FA-03" "T6" "Gast-Zugang zu Talk-Raum via Link möglich" "Talk-Raum konnte nicht erstellt werden"
+fi

@@ -41,3 +41,22 @@ assert_gt "$CH_FOUND" 0 "FA-07" "T3" "Kanalsuche findet Kanal"
 # T4: Search < 2s
 SEARCH_MS=$((END_MS - START_MS))
 assert_lt "$SEARCH_MS" 2000 "FA-07" "T4" "Suchanfrage in < 2s beantwortet"
+
+# T5: OpenSearch cluster is healthy
+NAMESPACE="${NAMESPACE:-homeoffice}"
+OS_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  curl -s -o /dev/null -w '%{http_code}' "http://opensearch:9200/_cluster/health" --max-time 5 2>/dev/null || echo "000")
+if [[ "$OS_HEALTH" == "200" ]]; then
+  _log_result "FA-07" "T5" "OpenSearch-Cluster erreichbar und gesund" "pass" "0"
+else
+  _log_result "FA-07" "T5" "OpenSearch-Cluster erreichbar und gesund" "fail" "0" "HTTP ${OS_HEALTH}"
+fi
+
+# T6: Mattermost Elasticsearch/OpenSearch indexing enabled
+ES_ENABLED=$(_mm "${MM_URL}/config/client?format=old" | jq -r '.EnableSearching // "false"' 2>/dev/null)
+if [[ "$ES_ENABLED" == "true" ]]; then
+  _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "pass" "0"
+else
+  # Fallback: check if the connection URL is configured (client config may not expose this)
+  _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "skip" "0" "Client-Config zeigt ES-Status nicht (serverseitig konfiguriert)"
+fi

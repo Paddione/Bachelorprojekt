@@ -18,9 +18,12 @@ spec:
       labels:
         app: billing-bot
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: billing-bot
-          image: localhost:5000/billing-bot:latest
+          image: registry.localhost:5000/billing-bot:v1
+          imagePullPolicy: IfNotPresent
           env:
             - name: INVOICENINJA_URL
               value: "http://invoiceninja:8080"

@@ -42,6 +42,9 @@ spec:
               value: "host=mattermost-db port=5432 user=mattermost password=$(MATTERMOST_DB_PASSWORD) dbname=mattermost sslmode=disable connect_timeout=10"
             - name: MM_SERVICESETTINGS_SITEURL
               value: "http://chat.localhost"
+            # ── Internal connections (billing-bot, etc.) ─────
+            - name: MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS
+              value: "billing-bot"
             # ── Plugins & Integrations ──────────────────────────
             - name: MM_PLUGINSETTINGS_ENABLE
               value: "true"

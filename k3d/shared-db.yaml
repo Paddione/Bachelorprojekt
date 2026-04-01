@@ -39,6 +39,11 @@ data:
       CREATE USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';
       CREATE DATABASE nextcloud OWNER nextcloud;
       GRANT ALL PRIVILEGES ON DATABASE nextcloud TO nextcloud;
+
+      -- Invoice Ninja
+      CREATE USER invoiceninja WITH PASSWORD '${INVOICENINJA_DB_PASSWORD}';
+      CREATE DATABASE invoiceninja OWNER invoiceninja;
+      GRANT ALL PRIVILEGES ON DATABASE invoiceninja TO invoiceninja;
     EOSQL
 ---
 apiVersion: apps/v1
@@ -93,6 +98,11 @@ spec:
                 secretKeyRef:
                   name: homeoffice-secrets
                   key: NEXTCLOUD_DB_PASSWORD
+            - name: INVOICENINJA_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: INVOICENINJA_DB_PASSWORD
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -164,6 +174,17 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nextcloud-db
+spec:
+  selector:
+    app: shared-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoiceninja-db
 spec:
   selector:
     app: shared-db

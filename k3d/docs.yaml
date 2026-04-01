@@ -23,7 +23,7 @@ spec:
             - -c
             - |
               git clone --depth 1 --single-branch --branch main \
-                https://github.com/Paddione/Bachelorprojekt.git /tmp/repo && \
+                https://github.com/Paddione/k3d-dev.git /tmp/repo && \
               cp -r /tmp/repo/docs/* /site/ && \
               cp /docsify/index.html /site/index.html
           volumeMounts:

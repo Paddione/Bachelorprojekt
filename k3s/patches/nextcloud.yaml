@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+spec:
+  template:
+    spec:
+      containers:
+        - name: nextcloud
+          env:
+            - name: NEXTCLOUD_TRUSTED_DOMAINS
+              value: "files-wbhprojekt.ipv64.de"
+            - name: OVERWRITEPROTOCOL
+              value: https
+            - name: OVERWRITECLIURL
+              value: "https://files-wbhprojekt.ipv64.de"
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: 80
+              httpHeaders:
+                - name: Host
+                  value: files-wbhprojekt.ipv64.de
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: 80
+              httpHeaders:
+                - name: Host
+                  value: files-wbhprojekt.ipv64.de
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 10

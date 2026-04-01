@@ -4,12 +4,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: opensearch-data
+  name: opensearch-data-pvc
 spec:
+  storageClassName: smb-storage
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 2Gi
+      storage: 5Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -84,7 +85,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: opensearch-data
+            claimName: opensearch-data-pvc
 ---
 apiVersion: v1
 kind: Service

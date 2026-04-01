@@ -1,0 +1,75 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: homeoffice
+
+# Base: dev manifests from k3d/
+resources:
+  - ../k3d
+
+# Production overrides
+patches:
+  # ── Domain ConfigMap ─────────────────────────────────────────────
+  - target:
+      kind: ConfigMap
+      name: domain-config
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: domain-config
+      data:
+        MM_DOMAIN: "chat-wbhprojekt.ipv64.de"
+        KC_DOMAIN: "auth-wbhprojekt.ipv64.de"
+        NC_DOMAIN: "files-wbhprojekt.ipv64.de"
+        SIGNALING_DOMAIN: "signaling-wbhprojekt.ipv64.de"
+        COLLABORA_DOMAIN: "office-wbhprojekt.ipv64.de"
+        MAIL_DOMAIN: "mail-wbhprojekt.ipv64.de"
+        DOCS_DOMAIN: "docs-wbhprojekt.ipv64.de"
+
+  # ── Ingress: production domains + Traefik ────────────────────────
+  - target:
+      kind: Ingress
+      name: homeoffice-ingress
+    path: patches/ingress.yaml
+
+  # ── Mattermost: HTTPS SiteURL + OIDC endpoint ───────────────────
+  - target:
+      kind: Deployment
+      name: mattermost
+    path: patches/mattermost.yaml
+
+  # ── Nextcloud: trusted domains + HTTPS ───────────────────────────
+  - target:
+      kind: Deployment
+      name: nextcloud
+    path: patches/nextcloud.yaml
+
+  # ── Collabora: production server_name ────────────────────────────
+  - target:
+      kind: Deployment
+      name: collabora
+    path: patches/collabora.yaml
+
+  # ── DB pods: securityContext for SMB storage ─────────────────────
+  - target:
+      kind: Deployment
+      name: keycloak-db
+    path: patches/db-security.yaml
+  - target:
+      kind: Deployment
+      name: mattermost-db
+    path: patches/db-security.yaml
+  - target:
+      kind: Deployment
+      name: nextcloud-db
+    path: patches/db-security.yaml
+
+# Production realm template (https:// redirect URIs, sslRequired: external)
+configMapGenerator:
+  - name: realm-template
+    behavior: replace
+    files:
+      - realm-homeoffice.json=realm-homeoffice-prod.json
+
+generatorOptions:
+  disableNameSuffixHash: true

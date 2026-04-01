@@ -3,6 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-app
 spec:
+  storageClassName: smb-storage
   accessModes: [ReadWriteOnce]
   resources:
     requests:
@@ -11,12 +12,13 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nextcloud-data
+  name: nextcloud-data-pvc
 spec:
+  storageClassName: smb-storage
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 5Gi
+      storage: 50Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -155,7 +157,7 @@ spec:
             claimName: nextcloud-app
         - name: data
           persistentVolumeClaim:
-            claimName: nextcloud-data
+            claimName: nextcloud-data-pvc
         - name: oidc-config
           configMap:
             name: nextcloud-oidc-config

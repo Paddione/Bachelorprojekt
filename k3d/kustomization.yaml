@@ -6,10 +6,8 @@ resources:
   - namespace.yaml
   - configmap-domains.yaml
   - secrets.yaml
-  # Datenbanken
-  - keycloak-db.yaml
-  - mattermost-db.yaml
-  - nextcloud-db.yaml
+  # Shared database (one PostgreSQL, one DB per service)
+  - shared-db.yaml
   # Kerndienste
   - keycloak.yaml
   - mm-keycloak-proxy.yaml

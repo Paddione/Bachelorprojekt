@@ -1,0 +1,172 @@
+# ═══════════════════════════════════════════════════════════════════
+# Shared PostgreSQL — single instance, one database per service
+# Replaces keycloak-db, mattermost-db, nextcloud-db deployments
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-db-pvc
+spec:
+  storageClassName: smb-storage
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 25Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shared-db-init
+data:
+  init-databases.sh: |
+    #!/bin/bash
+    set -e
+    # Create databases and users for each service.
+    # The primary superuser (postgres) is used for init;
+    # each service gets its own user + database.
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+      -- Keycloak
+      CREATE USER keycloak WITH PASSWORD '${KEYCLOAK_DB_PASSWORD}';
+      CREATE DATABASE keycloak OWNER keycloak;
+      GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
+
+      -- Mattermost
+      CREATE USER mattermost WITH PASSWORD '${MATTERMOST_DB_PASSWORD}';
+      CREATE DATABASE mattermost OWNER mattermost;
+      GRANT ALL PRIVILEGES ON DATABASE mattermost TO mattermost;
+
+      -- Nextcloud
+      CREATE USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';
+      CREATE DATABASE nextcloud OWNER nextcloud;
+      GRANT ALL PRIVILEGES ON DATABASE nextcloud TO nextcloud;
+    EOSQL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-db
+  labels:
+    app: shared-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: shared-db
+    spec:
+      securityContext:
+        fsGroup: 999
+        runAsUser: 999
+        runAsGroup: 999
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: SHARED_DB_PASSWORD
+            - name: KEYCLOAK_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: KEYCLOAK_DB_PASSWORD
+            - name: MATTERMOST_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: MATTERMOST_DB_PASSWORD
+            - name: NEXTCLOUD_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: NEXTCLOUD_DB_PASSWORD
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 150m
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: shared-db-pvc
+        - name: init
+          configMap:
+            name: shared-db-init
+---
+# Primary service name — used by MCP and direct access
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared-db
+spec:
+  selector:
+    app: shared-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+# Backward-compatible aliases so existing service connection strings work unchanged
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-db
+spec:
+  selector:
+    app: shared-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mattermost-db
+spec:
+  selector:
+    app: shared-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud-db
+spec:
+  selector:
+    app: shared-db
+  ports:
+    - port: 5432
+      targetPort: 5432

@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collabora
+spec:
+  template:
+    spec:
+      containers:
+        - name: collabora
+          env:
+            - name: server_name
+              value: "office-wbhprojekt.ipv64.de"

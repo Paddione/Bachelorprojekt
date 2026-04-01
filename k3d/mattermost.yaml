@@ -1,12 +1,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mattermost-data
+  name: mattermost-data-pvc
 spec:
+  storageClassName: smb-storage
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 2Gi
+      storage: 20Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -24,6 +25,8 @@ spec:
       labels:
         app: mattermost
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: mattermost
           image: mattermost/mattermost-enterprise-edition:9.7
@@ -147,7 +150,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: mattermost-data
+            claimName: mattermost-data-pvc
 ---
 apiVersion: v1
 kind: Service

@@ -88,3 +88,15 @@ spec:
                 name: docs
                 port:
                   number: 80
+
+    # ── Invoice Ninja (Buchhaltung) ────────────────────────────────
+    - host: billing.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: invoiceninja
+                port:
+                  number: 8080

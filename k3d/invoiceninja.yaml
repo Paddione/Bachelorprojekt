@@ -1,0 +1,132 @@
+# ═══════════════════════════════════════════════════════════════════
+# Invoice Ninja — self-hosted invoicing & accounting
+# Connects to shared-db (database: invoiceninja)
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: invoiceninja-data-pvc
+spec:
+  storageClassName: smb-storage
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoiceninja
+  labels:
+    app: invoiceninja
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invoiceninja
+  template:
+    metadata:
+      labels:
+        app: invoiceninja
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: invoiceninja
+          image: invoiceninja/invoiceninja:5
+          env:
+            # ── App Settings ──────────────────────────────────
+            - name: APP_URL
+              value: "http://billing.localhost"
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: INVOICENINJA_APP_KEY
+            - name: APP_ENV
+              value: "production"
+            - name: APP_DEBUG
+              value: "false"
+            - name: REQUIRE_HTTPS
+              value: "false"
+            # ── Database ──────────────────────────────────────
+            - name: DB_TYPE
+              value: "pgsql"
+            - name: DB_HOST
+              value: "invoiceninja-db"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_DATABASE
+              value: "invoiceninja"
+            - name: DB_USERNAME
+              value: "invoiceninja"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: INVOICENINJA_DB_PASSWORD
+            # ── Mail (Mailpit for dev) ────────────────────────
+            - name: MAIL_MAILER
+              value: "smtp"
+            - name: MAIL_HOST
+              value: "mailpit"
+            - name: MAIL_PORT
+              value: "1025"
+            - name: MAIL_FROM_ADDRESS
+              value: "billing@homeoffice.local"
+            - name: MAIL_FROM_NAME
+              value: "Homeoffice Billing"
+            - name: MAIL_ENCRYPTION
+              value: ""
+            # ── Misc ──────────────────────────────────────────
+            - name: IN_USER_EMAIL
+              value: "admin@homeoffice.local"
+            - name: IN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: INVOICENINJA_ADMIN_PASSWORD
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: data
+              mountPath: /var/app/public
+              subPath: public
+            - name: data
+              mountPath: /var/app/storage
+              subPath: storage
+          readinessProbe:
+            httpGet:
+              path: /api/v1/ping
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/ping
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 200m
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: invoiceninja-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoiceninja
+spec:
+  selector:
+    app: invoiceninja
+  ports:
+    - port: 8080
+      targetPort: 8080

@@ -17,6 +17,8 @@ resources:
   - talk-hpb.yaml
   - coturn.yaml
   - collabora.yaml
+  # Buchhaltung
+  - invoiceninja.yaml
   # Suche (FA-07)
   - opensearch.yaml
   # Dev-Werkzeuge

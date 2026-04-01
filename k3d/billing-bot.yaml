@@ -26,7 +26,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: INVOICENINJA_URL
-              value: "http://invoiceninja:8080"
+              value: "http://invoiceninja:80"
             - name: INVOICENINJA_API_TOKEN
               valueFrom:
                 secretKeyRef:

@@ -12,16 +12,20 @@
 # Environment variables:
 #   MM_URL       - Mattermost URL (default: auto-detect from SiteURL)
 #   MM_TOKEN     - Personal access token (skip mmctl, use API directly)
-#   DOCS_URL     - Docs site URL (default: auto-detect from ingress)
+#   DOCS_URL     - Local docs site URL (default: auto-detect from ingress)
+#   GITBOOK_URL  - External GitBook URL (for team members outside the cluster)
 #   TEAM_NAME    - Team to configure (default: first available team)
+#   CHANNEL_NAME - Channel to post in (default: dokumentation)
 
 set -euo pipefail
 
 NAMESPACE="${NAMESPACE:-homeoffice}"
 DOCS_URL="${DOCS_URL:-}"
+GITBOOK_URL="${GITBOOK_URL:-}"
 MM_URL="${MM_URL:-}"
 MM_TOKEN="${MM_TOKEN:-}"
 TEAM_NAME="${TEAM_NAME:-}"
+CHANNEL_NAME="${CHANNEL_NAME:-dokumentation}"
 
 echo "=== Mattermost Docs Integration ==="
 
@@ -39,9 +43,26 @@ if [ -z "${MM_URL}" ]; then
   MM_URL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- printenv MM_SERVICESETTINGS_SITEURL 2>/dev/null || echo "http://chat.localhost")
 fi
 
+# Auto-detect GitBook URL from ConfigMap if not set
+if [ -z "${GITBOOK_URL}" ]; then
+  GITBOOK_URL=$(kubectl get configmap domain-config -n "${NAMESPACE}" -o jsonpath='{.data.GITBOOK_URL}' 2>/dev/null || echo "")
+fi
+
 echo "  Mattermost: ${MM_URL}"
 echo "  Docs:       ${DOCS_URL}"
+if [ -n "${GITBOOK_URL}" ]; then
+  echo "  GitBook:    ${GITBOOK_URL}"
+fi
 echo ""
+
+# ── Build announcement message ───────────────────────────────
+if [ -n "${GITBOOK_URL}" ]; then
+  DOCS_MSG="### :books: KORE Platform Documentation\n\nThe project documentation is available at:\n\n| Resource | URL |\n|----------|-----|\n| **GitBook** | ${GITBOOK_URL} |\n| **Local (Docsify)** | ${DOCS_URL} |\n\nGitBook syncs automatically from the \`docs/\` directory on the \`main\` branch.\n\nContents:\n- Architecture, Services, Keycloak & SSO\n- Invoice Ninja (Billing)\n- Security, Requirements\n- Guides (admin, user, deployment, migration, testing)\n- API Reference"
+  HEADER_MSG=":books: [KORE Docs](${GITBOOK_URL}) | [Local](${DOCS_URL}) | Homeoffice MVP Documentation"
+else
+  DOCS_MSG="### :books: KORE Platform Documentation\n\nThe project documentation is available at **${DOCS_URL}**\n\nContents:\n- Architecture, Services, Keycloak & SSO\n- Invoice Ninja (Billing)\n- Security, Requirements\n- Guides (admin, user, deployment, migration, testing)\n- API Reference"
+  HEADER_MSG=":books: [KORE Docs](${DOCS_URL}) | Homeoffice MVP Documentation"
+fi
 
 # ── Method 1: mmctl (inside pod) ─────────────────────────────
 try_mmctl() {
@@ -57,25 +78,32 @@ try_mmctl() {
   local CHANNEL_ID
   CHANNEL_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
     mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
-    python3 -c "import sys,json; channels=json.load(sys.stdin); print(next(c['id'] for c in channels if c['name']=='town-square'))" 2>/dev/null) || return 1
+    python3 -c "import sys,json; channels=json.load(sys.stdin); print(next(c['id'] for c in channels if c['name']=='${CHANNEL_NAME}'))" 2>/dev/null) || return 1
 
-  echo "  Channel: town-square (${CHANNEL_ID})"
+  echo "  Channel: ${CHANNEL_NAME} (${CHANNEL_ID})"
 
   # Create webhook
   local WEBHOOK_URL
   WEBHOOK_URL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
     mmctl --local webhook create-incoming \
-      --channel "${TEAM}:town-square" \
+      --channel "${TEAM}:${CHANNEL_NAME}" \
       --display-name "KORE Docs" \
       --description "Documentation integration" \
       --json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null) || return 1
 
   echo "  Webhook created: ${WEBHOOK_URL}"
 
-  # Post via webhook
-  curl -s -X POST "${MM_URL}/hooks/${WEBHOOK_URL}" \
+  # Update channel header
+  kubectl exec -n "${NAMESPACE}" deploy/mattermost -- curl -s --unix-socket /var/tmp/mattermost_local.socket \
+    -X PUT "http://localhost:8065/api/v4/channels/${CHANNEL_ID}/patch" \
     -H 'Content-Type: application/json' \
-    -d "{\"text\": \"### :books: KORE Platform Documentation\\nThe project documentation is now available at **${DOCS_URL}**\\n\\nContents:\\n- Platform Architecture\\n- Homeoffice MVP (Keycloak, Mattermost, Nextcloud, Collabora, Talk HPB)\\n- Requirements Overview\\n- Admin & User Guides\\n- API Reference\"}" > /dev/null
+    -d "{\"header\": \"${HEADER_MSG}\"}" > /dev/null
+  echo "  Channel header updated."
+
+  # Post via webhook
+  kubectl exec -n "${NAMESPACE}" deploy/mattermost -- curl -s -X POST "http://localhost:8065/hooks/${WEBHOOK_URL}" \
+    -H 'Content-Type: application/json' \
+    -d "{\"text\": \"${DOCS_MSG}\"}" > /dev/null
 
   echo "  Announcement posted."
   return 0
@@ -113,19 +141,19 @@ try_api() {
   fi
   echo "  Team ID: ${TEAM_ID}"
 
-  # Get town-square channel
+  # Get target channel
   local CHANNEL_ID
-  CHANNEL_ID=$(mm_api GET "/teams/${TEAM_ID}/channels/name/town-square" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))")
+  CHANNEL_ID=$(mm_api GET "/teams/${TEAM_ID}/channels/name/${CHANNEL_NAME}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))")
   echo "  Channel ID: ${CHANNEL_ID}"
 
   # Update channel header with docs link
   mm_api PUT "/channels/${CHANNEL_ID}" \
-    -d "{\"id\": \"${CHANNEL_ID}\", \"header\": \"[KORE Docs](${DOCS_URL}) | Homeoffice MVP Development\"}" > /dev/null
+    -d "{\"id\": \"${CHANNEL_ID}\", \"header\": \"${HEADER_MSG}\"}" > /dev/null
   echo "  Channel header updated."
 
   # Post announcement
   mm_api POST "/posts" \
-    -d "{\"channel_id\": \"${CHANNEL_ID}\", \"message\": \"### :books: KORE Platform Documentation\nThe project documentation is now available at **${DOCS_URL}**\n\nContents:\n- Platform Architecture\n- Homeoffice MVP (Keycloak, Mattermost, Nextcloud, Collabora, Talk HPB)\n- Requirements Overview\n- Admin & User Guides\n- API Reference\"}" > /dev/null
+    -d "{\"channel_id\": \"${CHANNEL_ID}\", \"message\": \"$(echo -e "${DOCS_MSG}")\"}" > /dev/null
   echo "  Announcement posted."
   return 0
 }

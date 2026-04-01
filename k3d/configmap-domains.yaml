@@ -10,4 +10,5 @@ data:
   COLLABORA_DOMAIN: "office.localhost"
   MAIL_DOMAIN: "mail.localhost"
   DOCS_DOMAIN: "docs.localhost"
+  GITBOOK_URL: ""
   BILLING_DOMAIN: "billing.localhost"

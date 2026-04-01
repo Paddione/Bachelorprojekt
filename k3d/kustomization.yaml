@@ -38,6 +38,9 @@ configMapGenerator:
   - name: nextcloud-oidc-config
     files:
       - oidc.config.php=nextcloud-oidc-dev.php
+  - name: invoiceninja-nginx-config
+    files:
+      - default.conf=invoiceninja-nginx.conf
 
 generatorOptions:
   disableNameSuffixHash: true

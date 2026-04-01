@@ -22,7 +22,7 @@ import (
 
 var (
 	listenAddr      = env("LISTEN_ADDR", ":8090")
-	invoiceNinjaURL = env("INVOICENINJA_URL", "http://invoiceninja:8080")
+	invoiceNinjaURL = env("INVOICENINJA_URL", "http://invoiceninja:80")
 	invoiceNinjaKey = env("INVOICENINJA_API_TOKEN", "")
 	mattermostURL   = env("MATTERMOST_URL", "http://mattermost:8065")
 	mattermostToken = env("MATTERMOST_BOT_TOKEN", "")

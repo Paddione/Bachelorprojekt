@@ -23,6 +23,8 @@ resources:
   - opensearch.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
+  # Dokumentation
+  - docs.yaml
   # Ingress
   - ingress.yaml
 

@@ -9,3 +9,4 @@ data:
   SIGNALING_DOMAIN: "signaling.localhost"
   COLLABORA_DOMAIN: "office.localhost"
   MAIL_DOMAIN: "mail.localhost"
+  DOCS_DOMAIN: "docs.localhost"

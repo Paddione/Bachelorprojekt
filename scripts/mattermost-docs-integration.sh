@@ -1,118 +1,169 @@
 #!/usr/bin/env bash
 # mattermost-docs-integration.sh
-# Creates a channel bookmark in Mattermost's Town Square pointing to docs.localhost
-# Also creates a /docs slash command for quick access.
+# Integrates the KORE Docs site into Mattermost.
 #
-# Prerequisites:
-#   - Mattermost running at chat.localhost
-#   - Admin credentials (default dev: admin / admin)
+# Method 1 (preferred): Use mmctl inside the Mattermost pod
+# Method 2 (fallback):  Use Mattermost API with a personal access token
 #
-# Usage: bash scripts/mattermost-docs-integration.sh
+# Usage:
+#   bash scripts/mattermost-docs-integration.sh              # Auto-detect
+#   MM_TOKEN=<token> bash scripts/mattermost-docs-integration.sh  # Use API token
+#
+# Environment variables:
+#   MM_URL       - Mattermost URL (default: auto-detect from SiteURL)
+#   MM_TOKEN     - Personal access token (skip mmctl, use API directly)
+#   DOCS_URL     - Docs site URL (default: auto-detect from ingress)
+#   TEAM_NAME    - Team to configure (default: first available team)
 
 set -euo pipefail
 
-MM_URL="${MM_URL:-http://chat.localhost}"
-MM_ADMIN="${MM_ADMIN:-admin}"
-MM_PASS="${MM_PASS:-admin}"
-DOCS_URL="${DOCS_URL:-http://docs.localhost}"
-TEAM_NAME="${TEAM_NAME:-homeoffice}"
+NAMESPACE="${NAMESPACE:-homeoffice}"
+DOCS_URL="${DOCS_URL:-}"
+MM_URL="${MM_URL:-}"
+MM_TOKEN="${MM_TOKEN:-}"
+TEAM_NAME="${TEAM_NAME:-}"
 
 echo "=== Mattermost Docs Integration ==="
+
+# ── Auto-detect URLs ──────────────────────────────────────────
+if [ -z "${DOCS_URL}" ]; then
+  # Try to get docs domain from ConfigMap
+  DOCS_DOMAIN=$(kubectl get configmap domain-config -n "${NAMESPACE}" -o jsonpath='{.data.DOCS_DOMAIN}' 2>/dev/null || echo "docs.localhost")
+  # Match the scheme from Mattermost SiteURL
+  MM_SITEURL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- printenv MM_SERVICESETTINGS_SITEURL 2>/dev/null || echo "http://chat.localhost")
+  SCHEME=$(echo "${MM_SITEURL}" | grep -oP '^https?' || echo "http")
+  DOCS_URL="${SCHEME}://${DOCS_DOMAIN}"
+fi
+
+if [ -z "${MM_URL}" ]; then
+  MM_URL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- printenv MM_SERVICESETTINGS_SITEURL 2>/dev/null || echo "http://chat.localhost")
+fi
+
 echo "  Mattermost: ${MM_URL}"
 echo "  Docs:       ${DOCS_URL}"
 echo ""
 
-# 1. Login and get token
-echo "Logging in as ${MM_ADMIN}..."
-LOGIN_RESPONSE=$(curl -s -i -X POST "${MM_URL}/api/v4/users/login" \
-  -H 'Content-Type: application/json' \
-  -d "{\"login_id\": \"${MM_ADMIN}\", \"password\": \"${MM_PASS}\"}")
+# ── Method 1: mmctl (inside pod) ─────────────────────────────
+try_mmctl() {
+  echo "Trying mmctl (local mode)..."
 
-TOKEN=$(echo "${LOGIN_RESPONSE}" | grep -i '^token:' | awk '{print $2}' | tr -d '\r')
+  # Create incoming webhook
+  local TEAM
+  TEAM=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+    mmctl --local team list --json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['name'])" 2>/dev/null) || return 1
 
-if [ -z "${TOKEN}" ]; then
-  echo "ERROR: Login failed. Check MM_ADMIN and MM_PASS."
-  echo "  Hint: If first run, the admin user may not exist yet."
-  exit 1
-fi
-echo "  Logged in (token: ${TOKEN:0:8}...)"
+  echo "  Team: ${TEAM}"
 
-AUTH="-H \"Authorization: Bearer ${TOKEN}\""
+  local CHANNEL_ID
+  CHANNEL_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+    mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
+    python3 -c "import sys,json; channels=json.load(sys.stdin); print(next(c['id'] for c in channels if c['name']=='town-square'))" 2>/dev/null) || return 1
 
-# Helper: authenticated curl
-mm_api() {
-  local method="$1" endpoint="$2"
-  shift 2
-  curl -s -X "${method}" "${MM_URL}/api/v4${endpoint}" \
-    -H "Authorization: Bearer ${TOKEN}" \
+  echo "  Channel: town-square (${CHANNEL_ID})"
+
+  # Create webhook
+  local WEBHOOK_URL
+  WEBHOOK_URL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+    mmctl --local webhook create-incoming \
+      --channel "${TEAM}:town-square" \
+      --display-name "KORE Docs" \
+      --description "Documentation integration" \
+      --json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null) || return 1
+
+  echo "  Webhook created: ${WEBHOOK_URL}"
+
+  # Post via webhook
+  curl -s -X POST "${MM_URL}/hooks/${WEBHOOK_URL}" \
     -H 'Content-Type: application/json' \
-    "$@"
+    -d "{\"text\": \"### :books: KORE Platform Documentation\\nThe project documentation is now available at **${DOCS_URL}**\\n\\nContents:\\n- Platform Architecture\\n- Homeoffice MVP (Keycloak, Mattermost, Nextcloud, Collabora, Talk HPB)\\n- Requirements Overview\\n- Admin & User Guides\\n- API Reference\"}" > /dev/null
+
+  echo "  Announcement posted."
+  return 0
 }
 
-# 2. Get team ID
-echo "Looking up team '${TEAM_NAME}'..."
-TEAM_ID=$(mm_api GET "/teams/name/${TEAM_NAME}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null)
+# ── Method 2: API with token ──────────────────────────────────
+try_api() {
+  if [ -z "${MM_TOKEN}" ]; then
+    echo "No MM_TOKEN provided. Skipping API method."
+    return 1
+  fi
 
-if [ -z "${TEAM_ID}" ]; then
-  echo "  Team '${TEAM_NAME}' not found. Listing available teams..."
-  mm_api GET "/teams" | python3 -c "import sys,json; [print(f'  - {t[\"name\"]} ({t[\"display_name\"]})') for t in json.load(sys.stdin)]"
-  echo "  Set TEAM_NAME to one of the above and retry."
-  exit 1
-fi
-echo "  Team ID: ${TEAM_ID}"
+  echo "Using Mattermost API with token..."
 
-# 3. Get Town Square channel ID (default channel)
-echo "Looking up 'town-square' channel..."
-CHANNEL_ID=$(mm_api GET "/teams/${TEAM_ID}/channels/name/town-square" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null)
+  mm_api() {
+    local method="$1" endpoint="$2"
+    shift 2
+    curl -s -X "${method}" "${MM_URL}/api/v4${endpoint}" \
+      -H "Authorization: Bearer ${MM_TOKEN}" \
+      -H 'Content-Type: application/json' \
+      "$@"
+  }
 
-if [ -z "${CHANNEL_ID}" ]; then
-  echo "ERROR: Could not find town-square channel."
-  exit 1
-fi
-echo "  Channel ID: ${CHANNEL_ID}"
+  # Get team
+  local TEAM_ID
+  if [ -n "${TEAM_NAME}" ]; then
+    TEAM_ID=$(mm_api GET "/teams/name/${TEAM_NAME}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))")
+  else
+    TEAM_ID=$(mm_api GET "/teams" | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+  fi
 
-# 4. Set channel header to include docs link
-echo "Updating channel header with docs link..."
-mm_api PUT "/channels/${CHANNEL_ID}" \
-  -d "{\"id\": \"${CHANNEL_ID}\", \"header\": \"[KORE Docs](${DOCS_URL}) | Homeoffice MVP Development\"}" > /dev/null
+  if [ -z "${TEAM_ID}" ]; then
+    echo "ERROR: Could not find team."
+    return 1
+  fi
+  echo "  Team ID: ${TEAM_ID}"
 
-echo "  Channel header updated."
+  # Get town-square channel
+  local CHANNEL_ID
+  CHANNEL_ID=$(mm_api GET "/teams/${TEAM_ID}/channels/name/town-square" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))")
+  echo "  Channel ID: ${CHANNEL_ID}"
 
-# 5. Create a slash command /docs
-echo "Creating /docs slash command..."
-COMMAND_RESPONSE=$(mm_api POST "/commands" \
-  -d "{
-    \"team_id\": \"${TEAM_ID}\",
-    \"trigger\": \"docs\",
-    \"method\": \"G\",
-    \"url\": \"${DOCS_URL}\",
-    \"display_name\": \"KORE Docs\",
-    \"description\": \"Open KORE platform documentation\",
-    \"auto_complete\": true,
-    \"auto_complete_hint\": \"\",
-    \"auto_complete_desc\": \"Opens the KORE platform documentation in a new tab\"
-  }")
+  # Update channel header with docs link
+  mm_api PUT "/channels/${CHANNEL_ID}" \
+    -d "{\"id\": \"${CHANNEL_ID}\", \"header\": \"[KORE Docs](${DOCS_URL}) | Homeoffice MVP Development\"}" > /dev/null
+  echo "  Channel header updated."
 
-# Check if command already exists
-if echo "${COMMAND_RESPONSE}" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'id' in d else 1)" 2>/dev/null; then
-  echo "  /docs slash command created."
+  # Post announcement
+  mm_api POST "/posts" \
+    -d "{\"channel_id\": \"${CHANNEL_ID}\", \"message\": \"### :books: KORE Platform Documentation\nThe project documentation is now available at **${DOCS_URL}**\n\nContents:\n- Platform Architecture\n- Homeoffice MVP (Keycloak, Mattermost, Nextcloud, Collabora, Talk HPB)\n- Requirements Overview\n- Admin & User Guides\n- API Reference\"}" > /dev/null
+  echo "  Announcement posted."
+  return 0
+}
+
+# ── Run ───────────────────────────────────────────────────────
+if try_mmctl 2>/dev/null; then
+  echo ""
+  echo "=== Integration complete (via mmctl) ==="
+elif try_api; then
+  echo ""
+  echo "=== Integration complete (via API) ==="
 else
-  echo "  Slash command may already exist (skipping)."
+  echo ""
+  echo "=== Automatic integration failed ==="
+  echo ""
+  echo "Manual setup instructions:"
+  echo ""
+  echo "1. Open Mattermost: ${MM_URL}"
+  echo "2. Go to any channel > Channel Header > click Edit"
+  echo "3. Add this to the header:"
+  echo "   [KORE Docs](${DOCS_URL})"
+  echo ""
+  echo "4. Optional: Create a slash command"
+  echo "   System Console > Integrations > Slash Commands > Add"
+  echo "   - Title:   KORE Docs"
+  echo "   - Trigger:  docs"
+  echo "   - URL:     ${DOCS_URL}"
+  echo "   - Method:  GET"
+  echo ""
+  echo "5. Optional: Add as a channel bookmark"
+  echo "   Click the bookmark icon in any channel header"
+  echo "   - Label: KORE Docs"
+  echo "   - URL:   ${DOCS_URL}"
+  echo ""
+  echo "To use the API method, create a personal access token:"
+  echo "  Mattermost > Profile > Security > Personal Access Tokens"
+  echo "  Then re-run: MM_TOKEN=<token> bash $0"
 fi
-
-# 6. Post a welcome message with the docs link
-echo "Posting docs announcement..."
-mm_api POST "/posts" \
-  -d "{
-    \"channel_id\": \"${CHANNEL_ID}\",
-    \"message\": \"### :books: KORE Platform Documentation\nThe project documentation is now available as a live site integrated into our workspace.\n\n**URL:** ${DOCS_URL}\n\nContents:\n- Platform Architecture\n- Homeoffice MVP (Keycloak, Mattermost, Nextcloud, Collabora, Talk HPB)\n- Requirements Overview\n- Admin & User Guides\n- API Reference\n\nThe docs update automatically when changes are pushed to the repository.\"
-  }" > /dev/null
-
-echo "  Announcement posted to town-square."
 
 echo ""
-echo "=== Integration complete ==="
-echo "  Channel header: updated with docs link"
-echo "  Slash command:  /docs"
-echo "  Announcement:   posted to town-square"
-echo "  Docs URL:       ${DOCS_URL}"
+echo "  Docs URL: ${DOCS_URL}"

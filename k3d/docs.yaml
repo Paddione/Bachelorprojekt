@@ -14,9 +14,27 @@ spec:
       labels:
         app: docs
     spec:
+      initContainers:
+        # Clone docs from GitHub and merge with docsify index.html
+        - name: git-sync
+          image: alpine/git:latest
+          command:
+            - sh
+            - -c
+            - |
+              git clone --depth 1 --single-branch --branch main \
+                https://github.com/Paddione/Bachelorprojekt.git /tmp/repo && \
+              cp -r /tmp/repo/docs/* /site/ && \
+              cp /docsify/index.html /site/index.html
+          volumeMounts:
+            - name: docs-content
+              mountPath: /site
+            - name: docsify-index
+              mountPath: /docsify
+              readOnly: true
       containers:
         - name: docs
-          image: registry.localhost:5000/kore-docs:latest
+          image: nginx:1.27-alpine
           ports:
             - containerPort: 80
           resources:
@@ -32,6 +50,16 @@ spec:
               port: 80
             initialDelaySeconds: 2
             periodSeconds: 10
+          volumeMounts:
+            - name: docs-content
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: docs-content
+          emptyDir: {}
+        - name: docsify-index
+          configMap:
+            name: docsify-index
 ---
 apiVersion: v1
 kind: Service

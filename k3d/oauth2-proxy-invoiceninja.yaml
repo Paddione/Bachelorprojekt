@@ -27,6 +27,12 @@ spec:
             - --client-secret=$(INVOICENINJA_OIDC_SECRET)
             - --redirect-url=http://billing.localhost/oauth2/callback
             - --oidc-issuer-url=http://keycloak:8080/realms/homeoffice
+            - --ssl-insecure-skip-verify=true
+            - --skip-oidc-discovery=true
+            - --login-url=http://auth.localhost/realms/homeoffice/protocol/openid-connect/auth
+            - --redeem-url=http://keycloak:8080/realms/homeoffice/protocol/openid-connect/token
+            - --oidc-jwks-url=http://keycloak:8080/realms/homeoffice/protocol/openid-connect/certs
+            - --profile-url=http://keycloak:8080/realms/homeoffice/protocol/openid-connect/userinfo
             - --upstream=http://invoiceninja:8080
             - --http-address=0.0.0.0:4180
             - --cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)

@@ -1,0 +1,334 @@
+﻿sep=;
+"id";"category";"name";"description";"acceptance_criteria";"test_cases";"automated";"created_at";"updated_at"
+"AK-01";"Abnahmekriterium";"Marktnachweis";"Die Marktanalyse (L-02) weist einen adressierbaren Markt für self-hosted Kommunikationslösungen in Deutschland nach. Nachweispflicht umfasst: quantifizierte Marktgröße (TAM/SAM/SOM), identifizierte Zielgruppensegmente mit konkretem Bedarf sowie Wettbewerberanalyse mit Positionierungslücke. Abnahme durch Gutachter nach Sichtung des Marktanalysedokuments.";"1) Marktanalyse mit mind. 5 Wettbewerbern vorhanden
+2) Quantifizierte Marktgröße (z.B. Zahl KMU in DE)
+3) DSGVO-Problematik der Wettbewerber belegt
+4) Relevanz der Zielgruppe begründet";"Prüfung: Marktanalyse-Dokument vorhanden und abgegeben
+Prüfung: Mindestens 1 Marktgrößen-Quelle zitiert
+Prüfung: Betreuer bestätigt Marktrelevanz";"0";"2026-03-30 03:49:11";"2026-03-30 03:49:11"
+"AK-02";"Abnahmekriterium";"Alleinstellungsmerkmale";"Dokumentierte Alleinstellungsmerkmale (USPs) gegenüber bestehenden Lösungen (Slack, MS Teams, Zoom). Mindestens 3 klar formulierte und belegte USPs, z. B.: (1) Vollständige Datensouveränität – alle Daten on-premises in Deutschland, (2) Zero-Vendor-Lock-in durch 100 % Open Source ohne Lizenzgebühren, (3) integriertes All-in-One-Paket (Chat + Video + Dateiablage) ohne Cloud-Abhängigkeit, (4) DSGVO-Konformität by Design.";"1) Mind. 3 Alleinstellungsmerkmale klar formuliert
+2) Jeder USP direkt gegenüber Teams/Slack/Zoom abgegrenzt
+3) USPs technisch und wirtschaftlich begründet
+4) USP-Tabelle im Lastenheft und Bericht enthalten";"Prüfung: USP-Tabelle mind. 3 Einträge
+Prüfung: Jeder USP hat Abgrenzung zur Konkurrenz
+Prüfung: Betreuer-Feedback: USPs überzeugend
+T: In Präsentation explizit benannt";"0";"2026-03-30 03:49:11";"2026-03-30 03:49:11"
+"AK-03";"Abnahmekriterium";"Technische Machbarkeit";"Nachweis der technischen Umsetzbarkeit durch Systemarchitektur-Dokumentation (L-05) und lauffähigen Prototyp (L-03). Darstellung eingesetzter Technologien mit Reifegrad und Begründung der Technologiewahl gegenüber Alternativen. Skalierungsnachweis durch dokumentierte Load-Test-Ergebnisse (mindestens 10 simultane Nutzer ohne Fehler). Abnahme nach Live-Demo und Architekturbesprechung.";"1) Alle eingesetzten Technologien produktionsreif und verfügbar
+2) Architektur-Dokumentation vorhanden
+3) Prototyp demonstriert technische Umsetzbarkeit
+4) Keine experimentellen/Alpha-Abhängigkeiten";"T1: docker compose up → alle Services starten ohne Fehler
+Prüfung: Alle verwendeten Images haben stabile Release-Tags
+Prüfung: Architekturdiagramm stimmt mit Implementierung überein
+T2: Demo-Szenario vollständig durchführbar";"1";"2026-03-30 03:49:11";"2026-03-30 03:49:11"
+"AK-04";"Abnahmekriterium";"Prototyp-Betrieb";"Der Prototyp ist vollständig deployed und per HTTPS erreichbar auf einem Linux-Server (k3s-Cluster, Ubuntu 24.04). Alle Komponenten sind Open Source; proprietäre Abhängigkeiten (Microsoft, Google Cloud, AWS, Zoom) sind ausgeschlossen und nachweislich nicht vorhanden (DNS-Check, Netzwerkanalyse). Abnahme durch Live-Demo: Login, Nachricht senden, Videocall starten, Datei hochladen – alles ohne externe Dienste.";"1) Prototyp startet auf Linux-Server via docker compose up
+2) Keine proprietären Cloud-Abhängigkeiten
+3) setup.sh --check bestanden
+4) Alle Kern-Features (FA-01 bis FA-07) live demonstrierbar
+5) Betrieb auf WSL2 ebenfalls möglich";"T1: Fresh Ubuntu VM → docker compose up → System läuft
+T2: setup.sh --check → Exit 0
+T3: nmap → keine externen Dienste benötigt
+T4: Demo: DM, Video-Call, Datei-Upload, User-Login live
+T5: WSL2-Test → System startet ohne Fehler";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"AK-05";"Abnahmekriterium";"Geschäftsmodell";"Das Geschäftsmodell (L-04) ist vollständig ausgearbeitet und bewertet. Abnahmekriterien: Business-Model-Canvas vollständig ausgefüllt, Einnahmequellen plausibel mit Zahlen hinterlegt, Break-even-Analyse vorhanden und rechnerisch nachvollziehbar, wirtschaftliche Tragfähigkeit begründet argumentiert. Bewertet durch Gutachter nach Vorlage des Geschäftsmodell-Dokuments.";"1) Geschäftsmodell-Dokument vollständig
+2) Mind. 2 Szenarien (z.B. Managed Service, Einmal-Implementierung)
+3) Kostenstruktur plausibel kalkuliert
+4) Zielgruppe klar definiert";"Prüfung: Geschäftsmodell-Dokument abgegeben
+Prüfung: Kostenrechnung nachvollziehbar
+Prüfung: Mind. 2 Geschäftsmodell-Varianten
+Prüfung: Betreuer nimmt Geschäftsmodell ab";"0";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"AK-06";"Abnahmekriterium";"Dokumentation";"Alle Pflichtlieferobjekte (L-01 bis L-07) vollständig, fristgerecht und in akzeptabler Qualität im Dokumentenmanagementsystem (DMS) eingereicht. Checkliste: Konzept ✓, Marktanalyse ✓, Prototyp (GitHub-Link) ✓, Geschäftsmodell ✓, Systemarchitektur ✓, Deploymentanleitung ✓, Endbericht ✓. Kein Lieferobjekt unvollständig oder mit fehlenden Pflichtabschnitten.";"1) P1–P5 vollständig und im DMS abgelegt
+2) Alle Dokumente fristgerecht eingereicht
+3) Endbericht mind. 6 Seiten/Teilnehmer
+4) Deploymentanleitung reproduzierbar
+5) Betreuer bestätigt Vollständigkeit";"Prüfung: DMS-Checkliste → alle Dokumente vorhanden
+Prüfung: Abgabedatum aus Studienordnung eingehalten
+Prüfung: Seitenanzahl Endbericht ≥ 6 × Teamgröße
+Prüfung: Betreuer-Abnahme dokumentiert";"0";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"AK-07";"Abnahmekriterium";"Präsentation";"Abschlusspräsentation (L-08) erfolgreich vor dem Bewertungskomitee durchgeführt. Abnahmekriterien: Zeitrahmen 40–45 Minuten eingehalten, alle Teammitglieder aktiv präsentiert, Live-Demo des Prototyps fehlerfrei durchgeführt, Fragen des Komitees kompetent und sachlich beantwortet, Präsentationsunterlagen fristgerecht im DMS hinterlegt.";"1) Dauer 40–45 Minuten eingehalten
+2) Alle Projektziele präsentiert
+3) Live-Demo des Prototyps erfolgreich
+4) Alle Team-Mitglieder beteiligt
+5) Prüfer-Fragen zufriedenstellend beantwortet";"Prüfung: Zeitnahme → 40–45 Minuten
+T: Live-Demo: Login, DM, Video, Datei live
+Prüfung: Teilnahme aller Mitglieder
+Prüfung: Betreuer nimmt Abschlusspräsentation ab";"0";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-01";"Funktionale Anforderung";"Messaging (Echtzeit)";"Echtzeit-Kommunikation über WebSocket-Protokoll. Unterstützt 1:1-Direktnachrichten, Gruppen-Direktnachrichten (bis 7 Teilnehmer) sowie kanalbasierte Kommunikation (öffentliche und private Channels). Nachrichten können mit Formatierung (Markdown), Emoji-Reaktionen, Dateianhängen und Thread-Antworten versehen werden. Persistente Speicherung in PostgreSQL.";"1) Nachricht erscheint beim Empfänger in < 500 ms
+2) 1:1-DM, Gruppen-DM und Channel-Nachrichten möglich
+3) Threads/Antworten werden unterstützt
+4) Nachrichten bleiben nach Container-Neustart erhalten
+5) Offline-Nachrichten werden nach Wiederverbindung zugestellt";"T1: Sende DM → Nachricht erscheint < 1s beim Empfänger
+T2: Gruppen-DM mit 3 Usern → alle sehen Nachricht
+T3: Channel-Nachricht → alle Mitglieder benachrichtigt
+T4: Mattermost-Container neu starten → Nachrichten vorhanden
+T5: User offline → Nachricht senden → nach Login zugestellt";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-02";"Funktionale Anforderung";"Kanäle / Workspaces";"Hierarchische Struktur mit Teams (Workspaces) als oberster Ebene. Innerhalb eines Teams: öffentliche Kanäle (für alle Mitglieder sichtbar und beitretbar) und private Kanäle (nur für explizit eingeladene Mitglieder). Kanal-Beschreibungen, Topics und Purpose konfigurierbar. Archivierung deaktiviert den Kanal ohne Datenverlust.";"1) Öffentliche Kanäle für alle Team-Mitglieder sichtbar und beitretbar
+2) Private Kanäle nur für eingeladene Mitglieder sichtbar
+3) Mindestens 2 Teams (Workspaces) erstellbar
+4) Kanal-Namen und -Beschreibungen konfigurierbar
+5) Kanalarchivierung möglich";"T1: Öffentl. Kanal erstellen → User2 tritt ohne Einladung bei
+T2: Privaten Kanal erstellen → User2 sieht Kanal nicht
+T3: 2 Teams erstellen → User wechselt zwischen Teams
+T4: Kanal umbenennen → neuer Name überall sichtbar
+T5: Kanal archivieren → Inhalte noch lesbar, keine neuen Nachrichten";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-03";"Funktionale Anforderung";"Videokonferenzen";"Vollständig self-hosted Video- und Audiokonferenzen via Nextcloud Talk mit High Performance Backend (HPB). Unterstützt mindestens 10 gleichzeitige Teilnehmer mit Kamera- und Mikrofonübertragung sowie Bildschirmfreigabe (gesamter Bildschirm oder einzelne Anwendung). Gäste können per Link beitreten. SSO-Authentifizierung erfolgt automatisch über die Nextcloud-OIDC-Session (Keycloak). Keine Abhängigkeit zu externen Diensten. Kollaborative Dokumentenbearbeitung während laufender Calls über Collabora Online.";"1) Mindestens 10 gleichzeitige Teilnehmer unterstützt (via HPB)
+2) Kamera-Übertragung funktioniert
+3) Mikrofon-Übertragung funktioniert
+4) Bildschirmfreigabe möglich
+5) Meeting vollständig self-hosted (keine externen Dienste)
+6) Meeting per Link teilbar (Gast-Zugang)
+7) SSO ohne separaten Adapter (Nextcloud-OIDC-Session)";"T1: Talk-Konversation mit 2 Browsern → Video und Audio übertragen
+T2: Bildschirmfreigabe starten → anderer Teilnehmer sieht Bildschirm
+T3: DNS-Check → keine Anfragen an externe WebRTC/TURN-Dienste
+T4: HPB Signaling-Server erreichbar (/api/v1/welcome)
+T5: Konversations-Link kopieren → Gast-Beitritt ohne Login möglich";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-04";"Funktionale Anforderung";"Dateiablage";"Datei-Upload direkt in Channels und Direktnachrichten. Unterstützte Formate: alle gängigen Dateitypen (PDF, DOCX, XLSX, ZIP, MP4, PNG u. a.) mit konfigurierbarer Maximalgröße pro Datei. Persistente Speicherung auf gemounteten Kubernetes-Volumes. Nextcloud-Integration für Workspaces über 10 GB sowie kollaborative Bearbeitung von Dokumenten. Dateien per Share-Link teilbar; Download für berechtigte Nutzer.";"1) Upload aller gängigen Dateitypen (PDF, DOCX, ZIP, MP4, PNG)
+2) Mindestens 10 GB Speicher pro Workspace konfiguriert
+3) Dateien per Link teilbar
+4) Download durch berechtigte User
+5) Dateien persistent nach Mattermost-Neustart
+6) Nextcloud-Integration für größere Dateien";"T1: 100 MB ZIP hochladen → erscheint im Channel
+T2: Nextcloud-Quota prüfen: > 10 GB konfiguriert
+T3: Datei-Link generieren → Download ohne Login möglich (wenn öffentlich)
+T4: Container-Neustart → Dateien noch vorhanden
+T5: PDF, DOCX, MP4, ZIP, PNG je hochladen → alle ohne Fehler";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-05";"Funktionale Anforderung";"Nutzerverwaltung";"Vollständiger Lebenszyklus von Nutzerkonten: Anlegen (manuell oder per LDAP/AD-Synchronisation), Bearbeiten von Profildaten, Deaktivieren und Löschen. Rollenmodell: System-Admin (vollständige Kontrolle), Team-Admin (Teamverwaltung), Nutzer (Standardrolle) und Gast (eingeschränkter Zugriff auf explizit zugewiesene Kanäle). LDAP/Active-Directory-Anbindung ermöglicht Single-Source-of-Truth für Nutzerdaten.";"1) Admin kann User anlegen, bearbeiten, deaktivieren
+2) Rollen Admin, User, Gast verfügbar und unterschiedlich berechtigt
+3) Benutzerverwaltung direkt in Keycloak
+4) CSV-Import über migrate.sh möglich
+5) LDIF-Import unterstützt
+6) SSO-Login via Keycloak (OIDC)";"T1: Admin legt User an → User kann sich einloggen
+T2: Gast-Rolle → Kanalerstellung verweigert
+T3: user.csv importieren → User erscheint in Keycloak
+T4: User in Keycloak angelegt → User kann sich per SSO einloggen
+T5: User deaktivieren → Login schlägt fehl";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-06";"Funktionale Anforderung";"Benachrichtigungen";"Kanalübergreifende Benachrichtigungsinfrastruktur: Browser-Push (Web Notifications API), Desktop-Benachrichtigungen (Mattermost Desktop-App) und Mobile-Push (iOS/Android über eigenen Push-Proxy). Granulare Konfiguration pro Kanal: alle Nachrichten, nur @-Mentions oder keine Benachrichtigungen. Bitte-nicht-stören-Modus (DND) und Ruhezeiten einstellbar. E-Mail-Benachrichtigungen bei Inaktivität als Fallback.";"1) Web-Push-Benachrichtigung bei neuer Nachricht
+2) Desktop-Benachrichtigung (Browser/Electron) konfigurierbar
+3) Mobile-Push via Mattermost Mobile App
+4) Benachrichtigungen pro Kanal stummschaltbar
+5) Do-Not-Disturb-Zeitfenster konfigurierbar";"T1: Tab im Hintergrund → Browser-Push erscheint bei DM
+T2: Kanal stummschalten → keine Benachrichtigung bei Nachricht
+T3: Do-Not-Disturb aktivieren → keine Push in gesetztem Zeitraum
+T4: @mention → Benachrichtigung trotz stummgeschaltetem Kanal
+T5: Mattermost Mobile App → Push-Notification auf Gerät";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-07";"Funktionale Anforderung";"Suche";"Integrierte Volltextsuche über alle zugänglichen Nachrichten, Dateinamen und Kanalinhalte (Elasticsearch-gestützt). Filteroptionen nach Autor, Kanal, Zeitraum und Dateityp. Suchergebnisse sortiert nach Relevanz und Datum. Suche respektiert Zugriffsrechte: Nutzer sehen nur Inhalte der Kanäle, denen sie angehören.";"1) Volltextsuche über alle eigenen Nachrichten
+2) Dateisuche nach Dateiname
+3) Kanalsuche nach Name
+4) Suche liefert Ergebnis in < 2 s
+5) Suchergebnisse nach Datum filterbar";"T1: Nachricht mit 'Testbegriff2026' → Suche findet Ergebnis
+T2: 'report_q1.pdf' hochladen → Dateisuche findet es
+T3: Kanalname suchen → Kanal erscheint in Vorschlägen
+T4: Zeit messen: Suchanfrage → Antwort < 2s
+T5: Datumsfilter setzen → nur Ergebnisse im Zeitraum";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
+"FA-08";"Funktionale Anforderung";"Homeoffice-spezifisch";"Homeoffice-spezifische Funktionen: Anpassbare Status-Emojis und -Texte (z. B. 🏠 Homeoffice, ⛔ Nicht stören, 🍕 Mittagspause) mit automatischer Ablaufzeit. Kalenderintegration via Mattermost-Plugin für Google Calendar / Outlook: zeigt aktive Meetings im Status an und setzt automatisch 'In einer Besprechung'. Verfügbarkeitsübersicht im Nutzerprofil für einfache Erreichbarkeitsplanung im Team.";"1) Status-Optionen: Verfügbar, Beschäftigt, Abwesend, Homeoffice
+2) Status für andere User sichtbar
+3) Benutzerdefinierter Status-Text möglich
+4) Kalenderintegration (Konfiguration dokumentiert)
+5) Status-Emoji konfigurierbar";"T1: Status auf 'Beschäftigt' setzen → anderer User sieht Status
+T2: Custom-Status 'Im Meeting bis 15:00' → sichtbar in Profil
+T3: Status-Emoji setzen → erscheint neben Namen
+T4: Kalender-Plugin konfigurieren → Events aus .ics-Feed importiert
+T5: Status nach festgelegter Zeit automatisch zurücksetzen";"1";"2026-03-30 03:49:13";"2026-03-30 03:49:13"
+"L-01";"Auslieferbares Objekt";"Konzept";"Projektkonzept-Dokument (Phase 1–5) mit Projektidee, Zielgruppe, Nutzenversprechen und technischem Lösungsansatz. Enthält: Executive Summary, Problem- und Lösungsbeschreibung, Scope-Definition, Meilensteinplanung sowie grobe Ressourcenabschätzung. Bildet die inhaltliche und strukturelle Grundlage für alle weiteren Lieferobjekte (L-02 bis L-08).";"1) P1-Dokument (Lastenheft) vollständig
+2) P2-Dokument (Pflichtenheft) vollständig
+3) P3-Dokument (Projektplanung) vollständig
+4) P4-Dokument (Realisierung) vollständig
+5) P5-Dokument (Abnahme/Test) vollständig
+6) Alle Dokumente im DMS abgelegt";"Prüfung: Dokument-Checkliste P1–P5 → alle vorhanden
+Prüfung: DMS-Link für jedes Dokument gültig
+Prüfung: Betreuer bestätigt Vollständigkeit";"0";"2026-03-30 03:49:13";"2026-03-30 03:49:13"
+"L-02";"Auslieferbares Objekt";"Marktanalyse";"Strukturierte Analyse des Zielmarkts: Marktgröße und -wachstum, Zielgruppendefinition (KMUs, Remote-Teams, öffentliche Einrichtungen in Deutschland). Wettbewerberanalyse (Slack, Microsoft Teams, Zoom, Rocket.Chat, Nextcloud Talk) mit Feature- und Preisvergleich. SWOT-Analyse der eigenen Lösung. Klare Positionierung und Abgrenzung im Wettbewerbsumfeld als self-hosted, DSGVO-konformer Open-Source-Stack.";"1) Mind. 5 konkurrierende Lösungen analysiert
+2) DSGVO-Bewertung der Konkurrenten enthalten
+3) USP-Abgrenzung klar herausgearbeitet
+4) Marktgröße / Zielgruppengröße quantifiziert
+5) Quellenangaben vollständig";"Prüfung: Marktanalyse enthält mind. 5 Wettbewerber
+Prüfung: USP-Tabelle vorhanden und begründet
+Prüfung: Marktgröße belegt (Statistik/Studie)
+Prüfung: Alle Quellen zitiert und zugänglich";"0";"2026-03-30 03:49:13";"2026-03-30 03:49:13"
+"L-03";"Auslieferbares Objekt";"Prototyp";"Funktionsfähiger Prototyp der Homeoffice-Kommunikationsplattform auf Basis von Mattermost + Nextcloud (Talk + Collabora), deployed auf dem k3s-Cluster (korczewski.de). Lauffähige Kernfunktionen demonstrierbar: Messaging, Videokonferenzen, Dateiablage, Dokumentenbearbeitung und Nutzerverwaltung. Erreichbar via HTTPS-Domain, live vorführbar im Abnahmegespräch. Quellcode (Manifeste, Konfiguration) versioniert im GitHub-Repository.";"1) kubectl apply startet alle Services ohne Fehler
+2) Login möglich (Mattermost, Nextcloud, Talk)
+3) Kernfunktionen FA-01 bis FA-07 demonstrierbar
+4) Kein proprietärer Dienst als Abhängigkeit
+5) setup.sh --check besteht ohne Fehler";"T1: setup.sh --check → Exit Code 0
+T2: docker compose up -d → alle Services healthy
+T3: Demo-Szenario (Login, DM, Video, Datei) → erfolgreich
+T4: nmap → keine externen Dienste als Abhängigkeit
+T5: README: Inbetriebnahme in < 30 min nachvollziehbar";"0";"2026-03-30 03:49:13";"2026-03-30 03:49:13"
+"L-04";"Auslieferbares Objekt";"Geschäftsmodell";"Ausgearbeitetes Geschäftsmodell nach Business-Model-Canvas: Wertversprechen, Kundensegmente, Kanäle, Kundenbeziehungen, Einnahmequellen (z. B. Managed-Hosting-Abo, On-Premises-Lizenz mit Support-Vertrag, Implementierungsdienstleistungen), Schlüsselressourcen, -aktivitäten und -partner sowie Kostenstruktur. Bewertung der wirtschaftlichen Tragfähigkeit inklusive Break-even-Analyse.";"1) Mindestens 2 Geschäftsmodell-Optionen beschrieben
+2) Kostenstruktur (Betrieb, Implementierung) kalkuliert
+3) Zielgruppe klar definiert
+4) Monetarisierungsstrategie erläutert
+5) SWOT-Analyse oder Risikobewertung enthalten";"Prüfung: Geschäftsmodell-Dokument vorhanden
+Prüfung: Kostenrechnung plausibel und nachvollziehbar
+Prüfung: Mind. 2 Szenarien (z.B. SaaS + Self-Hosted)
+Prüfung: Betreuer-Feedback positiv";"0";"2026-03-30 03:49:13";"2026-03-30 03:49:13"
+"L-05";"Auslieferbares Objekt";"Systemarchitektur";"Technische Architekturdokumentation: Komponentendiagramm (Mattermost, Nextcloud, Talk HPB, Collabora, Keycloak, PostgreSQL, Traefik), Deployment-Diagramm auf k3s-Cluster, Netzwerkarchitektur (Ingress-Routing, interne Service-Kommunikation, TLS-Terminierung), Datenbankschema-Übersicht sowie Sicherheitsarchitektur (TLS-Flow, RBAC-Modell, Backup-Prozess). Erstellt mit draw.io oder PlantUML, versioniert im Repository.";"1) Architekturdiagramm (Komponenten + Datenflüsse)
+2) Alle eingesetzten Services dokumentiert
+3) Netzwerkarchitektur (Ports, Protokolle) beschrieben
+4) Datenspeicherung und Persistenz erklärt
+5) Sicherheitsarchitektur (TLS, RBAC, SSO) dargestellt";"Prüfung: Architekturdiagramm vorhanden und aktuell
+Prüfung: Alle docker-compose.yml-Services im Diagramm
+Prüfung: Netzwerk-Tabelle (Port/Protokoll/Dienst) vollständig
+Prüfung: SSO-Fluss (Keycloak → Mattermost/Nextcloud) erklärt";"0";"2026-03-30 03:49:14";"2026-03-30 03:49:14"
+"L-06";"Auslieferbares Objekt";"Deploymentanleitung";"Schritt-für-Schritt-Installationsanleitung für das Gesamtsystem. Inhalt: Voraussetzungen (k3s-Cluster, Helm, kubectl, DNS-Konfiguration), Konfigurationsanleitung (Secrets, Helm-Values, Umgebungsvariablen), Deployment-Ablauf in korrekter Reihenfolge der Komponenten, Post-Installation-Checks (Health-Checks, Smoke-Tests), Backup-Einrichtung sowie Update- und Rollback-Prozedur. Zielgruppe: Linux-Administrator ohne Mattermost-Vorkenntnisse.";"1) Schritt-für-Schritt-Anleitung für Linux und WSL2
+2) Voraussetzungen (Docker, Ports) dokumentiert
+3) .env-Konfiguration erklärt
+4) DuckDNS-Setup beschrieben
+5) Trouble­shooting-Abschnitt vorhanden
+6) Test-Person kann Deployment nach README reproduzieren";"T1: Frische VM → Anleitung befolgen → System läuft
+T2: Test-Person ohne Vorkenntnis reproduziert Deployment
+T3: Troubleshooting-Abschnitt deckt top-3-Fehlerfälle ab
+T4: DuckDNS-Abschnitt: Domains erreichbar nach Anleitung";"0";"2026-03-30 03:49:14";"2026-03-30 03:49:14"
+"L-07";"Auslieferbares Objekt";"Endbericht";"Wissenschaftlicher Abschlussbericht des Projekts. Mindestumfang 6 Seiten pro Teammitglied. Struktur: Einleitung und Zielsetzung, technische Umsetzung und Architektur, Marktanalyse-Ergebnisse, Projektverlauf und Lessons Learned, Ausblick und Weiterentwicklungspotenzial sowie Anhänge (Testergebnisse, Metriken, relevante Code-Auszüge). Abgabe als PDF fristgerecht im DMS.";"1) Mind. 6 Seiten pro Teammitglied
+2) Alle Projektziele reflektiert
+3) Lessons Learned dokumentiert
+4) Technische Entscheidungen begründet
+5) Quellenverzeichnis vollständig
+6) Fristgerecht eingereicht";"Prüfung: Seitenanzahl pro Teilnehmer ≥ 6
+Prüfung: Alle Lastenheft-Anforderungen im Bericht referenziert
+Prüfung: Abgabedatum eingehalten
+Prüfung: Betreuer nimmt Bericht ab";"0";"2026-03-30 03:49:14";"2026-03-30 03:49:14"
+"L-08";"Auslieferbares Objekt";"Abschlusspräsentation";"Strukturierte Abschlusspräsentation vor dem Bewertungskomitee. Gesamtdauer 40–45 Minuten inklusive Q&A-Runde. Pflichtinhalte: Live-Demo des Prototyps, Marktpositionierung und Geschäftsmodell, technische Architektur und Designentscheidungen, Projektrückblick und Teamreflexion. Alle Teammitglieder präsentieren aktiv. Präsentationsunterlagen (PDF/PPTX) im DMS hinterlegt.";"1) Dauer 40–45 Minuten (inkl. Demo)
+2) Alle Projektziele präsentiert
+3) Live-Demo des Prototyps
+4) Alle Team-Mitglieder präsentieren
+5) Fragen der Prüfer beantwortet";"Prüfung: Präsentation dauert 40–45 min (gestoppt)
+Prüfung: Live-Demo: Login, DM, Video, Datei-Upload demonstriert
+Prüfung: Alle Mitglieder haben Redeanteil
+Prüfung: Betreuer nimmt Präsentation ab";"0";"2026-03-30 03:49:14";"2026-03-30 03:49:14"
+"NFA-01";"Nicht-Funktionale Anforderung";"Datenschutz";"Alle personenbezogenen Daten (Nachrichten, Dateien, Nutzerprofile, Logs) werden ausschließlich auf Servern in Deutschland gespeichert und verarbeitet. Keine Übermittlung an Drittanbieter oder Cloud-Dienste außerhalb der EU. Verzeichnis der Verarbeitungstätigkeiten (VVT) vorhanden, Löschkonzept implementiert (Recht auf Löschung). Verschlüsselung at-rest für Datenbankvolumes und Dateiablage.";"1) Alle Daten nur auf eigenem Server (kein Cloud-Drittanbieter)
+2) Kein Telemetrie-Datenabfluss an US-Dienste
+3) DSGVO-Auskunftspflicht: User-Daten-Export möglich
+4) Recht auf Löschung: User-Account vollständig löschbar
+5) Keine Drittlands-Übertragung (CLOUD Act irrelevant)";"T1: tcpdump/nmap → keine Verbindungen zu *.microsoft.com, *.slack.com, *.zoom.us
+T2: docker compose logs → keine externen Tracking-Endpunkte
+T3: Mattermost-Admin → Compliance-Export für User erstellen
+T4: User löschen → Daten aus DB entfernt
+T5: curl ifconfig.me aus Container → IP in DE";"0";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"NFA-02";"Nicht-Funktionale Anforderung";"Performance";"Systemantwortzeit für UI-Interaktionen (Seitenaufbau, Kanalwechsel) unter 2 Sekunden bei bis zu 100 gleichzeitigen Nutzern. WebSocket-Nachrichtenlatenz (Absenden bis Empfang beim Gegenüber) unter 500 ms unter Normallast. API-Response-Zeiten unter 1 Sekunde für 95 % der Requests. Messung und Monitoring via Prometheus + Grafana.";"1) Mattermost UI-Ladezeit < 2 s (Cold Start)
+2) Nachrichtenlatenz (Senden → Anzeige) < 500 ms
+3) Nextcloud-Upload 10 MB < 10 s
+4) Talk-Video 720p für 2+ Teilnehmer stabil
+5) CPU < 80% bei Normallast";"T1: curl -w '%{time_total}' https://chat.domain → < 2s
+T2: Stoppuhr: Nachricht senden → Anzeige beim Empfänger < 500ms
+T3: 10 MB Upload Nextcloud → Zeit < 10s
+T4: Talk 2-Personen-Call 5 min → kein Abbruch
+T5: docker stats → CPU < 80% bei 5 aktiven Usern";"0";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"NFA-03";"Nicht-Funktionale Anforderung";"Verfügbarkeit";"Systemverfügbarkeit von mindestens 99,5 % im Jahresdurchschnitt (entspricht maximal ca. 44 Stunden ungeplanter Downtime pro Jahr). Erreicht durch Kubernetes-basiertes Deployment mit automatischem Pod-Neustart, Liveness- und Readiness-Probes sowie Rolling Updates ohne Dienstunterbrechung. Geplante Wartungsfenster werden angekündigt und außerhalb der Kernarbeitszeiten durchgeführt.";"1) restart: unless-stopped für alle Container
+2) Automatischer Neustart nach ungeplantem Stop
+3) Health-Check-Endpunkte erreichbar
+4) Datenpersistenz nach Containerabsturz gewährleistet
+5) Downtime bei Update < 2 Minuten";"T1: docker kill mattermost → startet automatisch neu
+T2: docker restart → Services nach < 60s erreichbar
+T3: curl /api/v4/system/ping → 200 OK
+T4: Daten vor/nach Crash identisch
+T5: docker compose up -d (Update-Zyklus) → Downtime < 2 min";"1";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"NFA-04";"Nicht-Funktionale Anforderung";"Skalierbarkeit";"Horizontale Skalierung durch Kubernetes Horizontal Pod Autoscaler (HPA): Mattermost-Pods skalieren automatisch basierend auf CPU- und RAM-Auslastung. Datenbankschicht (PostgreSQL) skaliert bei Bedarf über Read-Replicas. Lastverteilung über Kubernetes-internen Service und Ingress-Controller. Getesteter Bereich: 10–500 gleichzeitige Nutzer ohne Änderung an der Grundarchitektur.";"1) Stabil mit 10 gleichzeitigen Usern ohne Fehler
+2) Keine Architekturänderung bis 50 User nötig
+3) CPU/RAM über docker-compose.yml anpassbar
+4) Skalierungshinweise im README dokumentiert
+5) Datenbankverbindungen konfigurierbar";"T1: 10 Browser-Sessions gleichzeitig → kein HTTP 500
+T2: Apache Bench: ab -n 100 -c 10 → < 5% Fehlerrate
+T3: mem_limit in docker-compose.yml erhöhen → greift beim Neustart
+T4: README enthält Skalierungsabschnitt
+T5: DB_HOST extern konfigurierbar ohne Code-Änderung";"0";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"NFA-05";"Nicht-Funktionale Anforderung";"Usability";"Mattermost-Oberfläche vollständig auf Deutsch lokalisiert (Sprachpaket 'de'). Intuitive Benutzerführung orientiert an bekannten Kommunikationstools (Slack-ähnliches UX). Onboarding-Hinweise für neue Nutzer integriert. Einarbeitungszeit für Grundfunktionen (Nachricht senden, Kanal beitreten, Datei hochladen) maximal 30 Minuten ohne Vorkenntnisse. Verfügbar als Web-UI, Desktop-App (Win/Mac/Linux) und Mobile-App (iOS/Android).";"1) Mattermost-UI auf Deutsch konfiguriert
+2) Erstanmeldung ohne Anleitung < 30 Minuten möglich
+3) Intuitive Navigation (Kanäle, DMs, Suche)
+4) Mobile-Browser-Ansicht funktionsfähig
+5) Wichtigste Tastaturkürzel verfügbar";"T1: User anlegen → Sprache Deutsch → UI geprüft
+T2: Test-User ohne Vorkenntnis → DM senden < 30 min
+T3: Mobile Browser → Login und Nachricht senden
+T4: Strg+K (Quick Switcher) → funktioniert
+T5: 3 Test-Personen → mind. 2 bestehen 30-Minuten-Test";"1";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"NFA-06";"Nicht-Funktionale Anforderung";"Wartbarkeit";"Gesamtes System als Docker-Container im Kubernetes-Cluster (k3s) betrieben. Updates via Rolling-Deployment ohne Unterbrechung des laufenden Betriebs. Konfiguration vollständig in Helm-Charts und Kubernetes-Manifesten versioniert (GitOps via Git-Repository). Monitoring via Prometheus und Grafana-Dashboards, Log-Aggregation via Loki. Betrieb und Routinewartung durch einen Linux-Administrator ohne Mattermost-Spezialkenntnisse möglich.";"1) Alle Services via docker compose up/down steuerbar
+2) setup.sh --fix behebt Standardprobleme
+3) Updates ohne Datenverlust via docker compose pull + up -d
+4) Logs zentral via docker compose logs abrufbar
+5) Konfiguration vollständig in .env";"T1: docker compose up -d → alle Services healthy
+T2: setup.sh --check → kein Fehler auf korrektem System
+T3: docker compose pull + up -d → Daten vorhanden
+T4: docker compose logs --tail 50 → Logs lesbar
+T5: .env-Wert ändern → up -d → Änderung aktiv";"1";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"NFA-07";"Nicht-Funktionale Anforderung";"Lizenz";"Alle eingesetzten Softwarekomponenten ausschließlich unter anerkannten Open-Source-Lizenzen: Mattermost Team Edition (MIT), Nextcloud (AGPL-3.0), Nextcloud Talk (AGPL-3.0), Collabora Online (MPL-2.0), Keycloak (Apache 2.0), PostgreSQL (PostgreSQL License). Keine proprietären Abhängigkeiten, keine Cloud-Vendor-Bindung, keine laufenden Lizenzgebühren.";"1) Mattermost Team Edition (MIT)
+2) Nextcloud + Talk (AGPL v3)
+3) Collabora Online (MPL-2.0)
+4) Keycloak (Apache 2.0)
+5) Traefik (MIT)
+6) Lizenzübersicht im Projekt dokumentiert";"T1: Mattermost About → Team Edition (nicht Enterprise)
+T2: docker images → Tags → Lizenzen in Repos prüfen
+T3: README/LICENSES.md enthält Lizenztabelle
+T4: Keine proprietären Plugins aktiviert
+T5: Kein inkompatibles Lizenzpaar (GPL vs. proprietär)";"1";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"SA-01";"Sicherheitsanforderung";"Transportverschlüsselung";"Alle externen Verbindungen (HTTPS für Web-UI und REST-API, WSS für WebSocket-Echtzeitkommunikation) ausschließlich über TLS 1.3 (Fallback: TLS 1.2 mit starken Cipher-Suites). TLS-Terminierung am Ingress-Controller (nginx). Automatische Zertifikatsverwaltung via cert-manager mit Let's Encrypt. HSTS (HTTP Strict Transport Security) aktiviert. Interne Cluster-Kommunikation optional über verschlüsseltes Service-Mesh.";"1) Alle HTTP-Verbindungen auf HTTPS umgeleitet
+2) TLS 1.2 mind., TLS 1.3 bevorzugt
+3) Gültiges Let's-Encrypt-Zertifikat vorhanden
+4) WebSocket (WSS) ebenfalls verschlüsselt
+5) HSTS-Header gesetzt";"T1: curl http://chat.domain → 301 Redirect auf HTTPS
+T2: nmap --script ssl-enum-ciphers → TLS 1.3 vorhanden
+T3: SSL Labs Test → Note mind. A
+T4: Browser DevTools → WSS-Verbindung für Mattermost
+T5: curl -I https://chat.domain → Strict-Transport-Security Header";"0";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"SA-02";"Sicherheitsanforderung";"Authentifizierung";"Primäre Authentifizierung über Benutzername/E-Mail und Passwort mit Rate-Limiting zum Schutz vor Brute-Force-Angriffen (automatische Kontosperrung nach 10 Fehlversuchen). Optionale Zwei-Faktor-Authentifizierung (2FA) via TOTP (RFC 6238) – kompatibel mit Google Authenticator, Authy und vergleichbaren Apps. LDAP/Active-Directory-SSO als Unternehmensintegration. Passwort-Reset ausschließlich über verifizierte E-Mail-Adresse.";"1) Login nur mit Benutzername + Passwort möglich
+2) TOTP-2FA aktivierbar (z.B. via Authenticator-App)
+3) Fehlgeschlagene Logins werden geloggt
+4) Keycloak SSO als zentraler Identity Provider
+5) Brute-Force-Schutz konfiguriert";"T1: Login mit falschem Passwort → Zugang verweigert
+T2: 2FA aktivieren → Login erfordert TOTP-Code
+T3: 5x falsches Passwort → Account temporär gesperrt
+T4: SSO-Login via Keycloak → Token gültig
+T5: Keycloak-Log → fehlgeschlagene Logins sichtbar";"1";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"SA-03";"Sicherheitsanforderung";"Passwörter";"Passwörter werden niemals im Klartext gespeichert oder übertragen. Hashing ausschließlich mit bcrypt (Kostenfaktor >= 12, entspricht ca. 250 ms Hashzeit auf aktueller Hardware) – deutlich resistenter gegen GPU-basierte Offline-Angriffe als SHA-Varianten. Passwort-Policy: Mindestlänge 12 Zeichen, Pflicht zur Kombination aus Groß-/Kleinbuchstaben, Zahlen und Sonderzeichen. Passwort-Änderung erfordert Eingabe des aktuellen Passworts.";"1) Passwörter werden als bcrypt-Hash gespeichert
+2) Kostenfaktor mind. 12
+3) Keine Klartext-Passwörter in Logs oder DB
+4) Mindestpasswortlänge konfiguriert (mind. 12 Zeichen)
+5) Passwort-Richtlinien in Keycloak konfiguriert";"T1: DB-Abfrage → Passwort-Spalte enthält $2b$12$... Format
+T2: Keycloak Realm Settings → Password Policy: bcrypt, length>=12
+T3: docker compose logs → kein Klartext-Passwort
+T4: Login mit 8-Zeichen-Passwort → Registrierung abgelehnt
+T5: Keycloak Admin → Password Hashing: bcrypt cost=12";"1";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
+"SA-04";"Sicherheitsanforderung";"Session-Timeout";"Sessions werden serverseitig nach 30 Minuten ohne Nutzeraktivität automatisch invalidiert (serverseitiges Session-Management, nicht nur clientseitige Ablaufzeit). JWT-Tokens mit kurzer Gültigkeitsdauer (Access Token: 30 min, Refresh Token: 30 Tage) und serverseitiger Revocation-Möglichkeit. Bei Session-Ablauf wird der Nutzer auf die Login-Seite weitergeleitet. Expliziter Logout invalidiert alle aktiven Sessions des Nutzers auf allen Geräten.";"1) Session-Timeout nach 30 Minuten Inaktivität
+2) Access Token Lifespan in Keycloak konfiguriert
+3) Mattermost Session-Timeout gesetzt
+4) Abgelaufene Token werden abgelehnt
+5) User wird bei Timeout zur Login-Seite weitergeleitet";"T1: 31 Minuten inaktiv → nächste Aktion → Redirect zu Login
+T2: Keycloak Realm → Access Token Lifespan = 30min prüfen
+T3: Token manuell ablaufen lassen → API-Call → 401 Unauthorized
+T4: Mattermost Admin → Session Timeout = 30min
+T5: Browser-Cookie prüfen → Expiry entspricht Konfiguration";"1";"2026-03-30 03:49:16";"2026-03-30 03:49:16"
+"SA-05";"Sicherheitsanforderung";"Audit-Log";"Unveränderliches Audit-Log für alle sicherheitsrelevanten Ereignisse: Login/Logout, fehlgeschlagene Anmeldeversuche, Passwortänderungen, Vergabe und Entzug von Rechten, Kanal-Erstellung/-Löschung, Nutzer-Deaktivierungen sowie Admin-Aktionen. Jeder Eintrag enthält: Zeitstempel (UTC), Nutzer-ID, IP-Adresse, Aktion und betroffenes Objekt. Aufbewahrungsfrist mindestens 90 Tage; Logs exportierbar (CSV/JSON).";"1) Login-Ereignisse protokolliert (Erfolg + Fehlschlag)
+2) Datei-Zugriffe/Downloads protokolliert
+3) Admin-Aktionen protokolliert
+4) Logs mind. 30 Tage aufbewahrt
+5) Log-Export möglich (SIEM-fähig)";"T1: Keycloak Admin → Events → Login-Events sichtbar
+T2: Mattermost Compliance → Datei-Download-Logs
+T3: Admin-Aktion (User löschen) → im Audit-Log sichtbar
+T4: Logs nach 31 Tagen → Einträge noch vorhanden
+T5: Log-Export als CSV/JSON → erfolgreich";"1";"2026-03-30 03:49:16";"2026-03-30 03:49:16"
+"SA-06";"Sicherheitsanforderung";"RBAC";"Rollenbasierte Zugriffskontrolle (RBAC) auf System-, Team- und Kanalebene. Rollen: System-Admin (alle Rechte), Team-Admin (Teamverwaltung), Channel-Admin (Kanalmoderation), Member (Standardnutzer) und Guest (eingeschränkt auf explizit zugewiesene Kanäle). Prinzip der minimalen Rechtevergabe (Least Privilege): neue Nutzer erhalten standardmäßig nur Member-Rechte. Alle Rechteänderungen werden im Audit-Log erfasst.";"1) Rollen Admin, User, Gast mit unterschiedlichen Rechten
+2) Gast kann keine Kanäle erstellen
+3) Admin kann alle Einstellungen ändern
+4) Least-Privilege-Prinzip: User sieht nur eigene Daten
+5) Rollen in Keycloak und Mattermost konsistent";"T1: Gast-Account → Kanal erstellen → 403 Forbidden
+T2: User-Account → System Console → kein Zugang
+T3: Admin-Account → User deaktivieren → möglich
+T4: User A → Direktnachrichten von User B → nicht sichtbar
+T5: Keycloak-Rollen mit Mattermost-Rollen synchron";"1";"2026-03-30 03:49:16";"2026-03-30 03:49:16"
+"SA-07";"Sicherheitsanforderung";"Backup";"Automatisierte tägliche Backups aller kritischen Daten: PostgreSQL-Datenbankdump (pg_dump), Nextcloud-Dateiablage, Mattermost-Konfiguration und Attachments. Backup-Rotation: tägliche Sicherungen für 30 Tage, wöchentliche Sicherungen für 3 Monate. Sicherungen werden AES-256-verschlüsselt auf einem separaten Storage außerhalb des Kubernetes-Clusters abgelegt. Restore-Fähigkeit wird vierteljährlich durch Testwiederherstellung verifiziert.";"1) Tägliches Backup um 02:00 UTC
+2) Backup-Ziele: Filen.io und/oder SMB/NAS konfigurierbar
+3) Mattermost-Uploads, Nextcloud-Daten, SSL-Zertifikate gesichert
+4) Aufbewahrung mind. 30 Tage
+5) Restore-Prozess dokumentiert";"T1: rclone-Container-Log prüfen → Backup-Job erfolgreich
+T2: Backup-Ziel prüfen → Dateien vorhanden
+T3: 31 Tage alte Backup-Datei → noch vorhanden
+T4: Backup-Datei herunterladen → entpacken → Daten lesbar
+T5: Restore-Prozess im README dokumentiert und nachvollziehbar";"0";"2026-03-30 03:49:16";"2026-03-30 03:49:16"
+"SA-08";"Sicherheitsanforderung";"Single Sign-On (SSO)";"Zentrales Identity-Management über Keycloak als OIDC-Provider. Alle Dienste (Mattermost, Nextcloud, Nextcloud Talk) authentifizieren über denselben Keycloak-Realm (homeoffice). Einmalige Anmeldung genügt für alle Dienste (Single Sign-On). Mattermost und Nextcloud sind als eigene OIDC-Clients registriert. Nextcloud Talk erbt die OIDC-Session automatisch von Nextcloud — kein separater Adapter oder Client nötig. Cross-Service-SSO: Login bei einem Dienst gewährt automatisch Zugang zu allen anderen ohne erneute Anmeldung.";"1) Keycloak OIDC-Clients für Mattermost und Nextcloud konfiguriert
+2) Redirect-URIs korrekt gesetzt
+3) Mattermost SSO-Login leitet zu Keycloak weiter
+4) Nextcloud SSO-Login leitet zu Keycloak weiter
+5) Talk erbt Nextcloud-OIDC-Session (kein separater Adapter)
+6) Cross-Service-SSO: nach Login bei einem Dienst kein erneuter Login bei anderen nötig";"T1: Mattermost OIDC-Client in Keycloak → Redirect-URI enthält chat.localhost
+T2: Nextcloud OIDC-Client → Redirect-URI enthält /apps/oidc_login/oidc
+T3: Nextcloud oidc_login_provider_url → enthält realms/homeoffice
+T4: Mattermost SSO-Login → Redirect zu Keycloak realms/homeoffice
+T5: Nextcloud OIDC-Login → Redirect zu Keycloak realms/homeoffice";"1";"2026-03-30 03:49:16";"2026-03-30 03:49:16"

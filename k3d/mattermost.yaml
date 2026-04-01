@@ -59,6 +59,8 @@ spec:
               value: "true"
             - name: MM_SERVICESETTINGS_ENABLEBOTACCOUNTCREATION
               value: "true"
+            - name: MM_SERVICESETTINGS_ENABLEPERSONALACCESSTOKENS
+              value: "true"
             - name: MM_SERVICESETTINGS_ENABLECUSTOMEMOJI
               value: "true"
             - name: MM_SERVICESETTINGS_ENABLELOCALMODE

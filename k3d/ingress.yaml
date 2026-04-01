@@ -76,3 +76,15 @@ spec:
                 name: mailpit
                 port:
                   number: 8025
+
+    # ── Docs (GitBook / Docsify) ──────────────────────────────────
+    - host: docs.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docs
+                port:
+                  number: 80

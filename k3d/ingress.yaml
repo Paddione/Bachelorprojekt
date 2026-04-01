@@ -89,7 +89,7 @@ spec:
                 port:
                   number: 80
 
-    # ── Invoice Ninja (Buchhaltung) ────────────────────────────────
+    # ── Invoice Ninja (Buchhaltung, via OAuth2-Proxy SSO) ─────────
     - host: billing.localhost
       http:
         paths:
@@ -97,6 +97,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: invoiceninja
+                name: oauth2-proxy-invoiceninja
                 port:
-                  number: 8080
+                  number: 4180

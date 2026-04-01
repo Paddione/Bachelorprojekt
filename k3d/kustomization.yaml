@@ -19,6 +19,7 @@ resources:
   - collabora.yaml
   # Buchhaltung
   - invoiceninja.yaml
+  - oauth2-proxy-invoiceninja.yaml
   # Suche (FA-07)
   - opensearch.yaml
   # Dev-Werkzeuge

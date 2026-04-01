@@ -14,6 +14,8 @@ spec:
       labels:
         app: keycloak
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:24.0

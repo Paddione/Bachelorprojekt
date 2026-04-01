@@ -20,6 +20,7 @@ resources:
   # Buchhaltung
   - invoiceninja.yaml
   - oauth2-proxy-invoiceninja.yaml
+  - billing-bot.yaml
   # Suche (FA-07)
   - opensearch.yaml
   # Dev-Werkzeuge

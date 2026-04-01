@@ -1,0 +1,74 @@
+# ═══════════════════════════════════════════════════════════════════
+# Billing Bot — Mattermost ↔ Invoice Ninja integration
+# Handles /billing slash command and interactive button actions
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-bot
+  labels:
+    app: billing-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-bot
+  template:
+    metadata:
+      labels:
+        app: billing-bot
+    spec:
+      containers:
+        - name: billing-bot
+          image: localhost:5000/billing-bot:latest
+          env:
+            - name: INVOICENINJA_URL
+              value: "http://invoiceninja:8080"
+            - name: INVOICENINJA_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: INVOICENINJA_API_TOKEN
+            - name: MATTERMOST_URL
+              value: "http://mattermost:8065"
+            - name: MATTERMOST_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: BILLING_BOT_MM_TOKEN
+            - name: BILLING_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: BILLING_DOMAIN
+          ports:
+            - containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 50m
+            limits:
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-bot
+spec:
+  selector:
+    app: billing-bot
+  ports:
+    - port: 8090
+      targetPort: 8090

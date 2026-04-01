@@ -10,3 +10,4 @@ data:
   COLLABORA_DOMAIN: "office.localhost"
   MAIL_DOMAIN: "mail.localhost"
   DOCS_DOMAIN: "docs.localhost"
+  BILLING_DOMAIN: "billing.localhost"

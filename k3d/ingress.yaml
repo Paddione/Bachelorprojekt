@@ -88,3 +88,15 @@ spec:
                 name: docs
                 port:
                   number: 80
+
+    # ── Invoice Ninja (Buchhaltung, via OAuth2-Proxy SSO) ─────────
+    - host: billing.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-invoiceninja
+                port:
+                  number: 4180

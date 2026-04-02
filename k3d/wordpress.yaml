@@ -19,7 +19,20 @@ stringData:
   MYSQL_ROOT_PASSWORD: "wp-root-dev-only"
   MYSQL_DATABASE: "wordpress"
   MYSQL_USER: "wordpress"
+  # Override at deploy-time: kubectl create secret generic mariadb-secret ...
   MYSQL_PASSWORD: "wordpress-dev-only"
+---
+# ── WordPress OIDC Secret ─────────────────────────────────────────────────────
+# Holds credentials for the Keycloak OIDC client registered as "wordpress".
+# Replace WORDPRESS_OIDC_CLIENT_SECRET with the value from secrets.yaml at deploy time.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wordpress-oidc-secret
+  namespace: wordpress
+type: Opaque
+stringData:
+  client-secret: "devwordpressoidcsecret12345"
 ---
 # ── PHP Upload Limits ConfigMap ───────────────────────────────────────────────
 # Raises limits above the default 2MB to allow the 323MB .wpress import.

@@ -1,0 +1,148 @@
+# ── WordPress Init Job ─────────────────────────────────────────────────────────
+# Runs once after WordPress is healthy. Uses WP-CLI to:
+#   1. Install + activate the Keycloak OIDC plugin (openid-connect-generic)
+#   2. Configure OIDC settings (KC discovery URL, client ID/secret)
+#   3. Install + activate Contact Form 7 (contact-form-7)
+#   4. Install + activate CF7-to-Webhook (cf7-to-webhook) for Mattermost integration
+#
+# Re-running the Job is safe — plugin installs are idempotent.
+# Mattermost webhook URL must be configured separately after running
+# scripts/mattermost-anfragen-setup.sh.
+#
+# Apply: kubectl apply -f k3d/wordpress-init-job.yaml
+# Logs:  kubectl logs -n wordpress job/wordpress-init
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wordpress-init
+  namespace: wordpress
+  labels:
+    app: wordpress-init
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        # Wait until MariaDB is reachable before WP-CLI tries to connect.
+        - name: wait-for-db
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for MariaDB..."
+              until nc -z mariadb 3306; do
+                echo "  MariaDB not ready — retrying in 3s"
+                sleep 3
+              done
+              echo "MariaDB is up."
+      containers:
+        - name: wpcli
+          image: wordpress:cli-php8.2
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+
+              # ── Wait for WordPress DB setup ──────────────────────────
+              echo "Waiting for WordPress core install..."
+              RETRIES=40
+              until wp --allow-root core is-installed 2>/dev/null; do
+                RETRIES=$((RETRIES - 1))
+                if [ "$RETRIES" -le 0 ]; then
+                  echo "ERROR: WordPress not installed after timeout."
+                  exit 1
+                fi
+                echo "  Not ready yet — retrying in 5s (${RETRIES} left)"
+                sleep 5
+              done
+              echo "WordPress is installed."
+
+              # ── Plugin: Keycloak SSO (openid-connect-generic) ────────
+              if wp --allow-root plugin is-installed openid-connect-generic 2>/dev/null; then
+                echo "openid-connect-generic already installed — skipping."
+              else
+                wp --allow-root plugin install openid-connect-generic --activate
+                echo "openid-connect-generic installed."
+              fi
+
+              # Configure OIDC to point at the homeoffice Keycloak realm.
+              # KEYCLOAK_URL and WP_OIDC_SECRET are injected via env vars below.
+              wp --allow-root option set openid_connect_generic_settings \
+                "{
+                  \"login_type\": \"button\",
+                  \"client_id\": \"wordpress\",
+                  \"client_secret\": \"${WORDPRESS_OIDC_SECRET}\",
+                  \"scope\": \"openid email profile\",
+                  \"endpoint_login\": \"${KEYCLOAK_URL}/protocol/openid-connect/auth\",
+                  \"endpoint_userinfo\": \"${KEYCLOAK_URL}/protocol/openid-connect/userinfo\",
+                  \"endpoint_token\": \"${KEYCLOAK_URL}/protocol/openid-connect/token\",
+                  \"endpoint_end_session\": \"${KEYCLOAK_URL}/protocol/openid-connect/logout\",
+                  \"identity_key\": \"preferred_username\",
+                  \"no_sslverify\": 0,
+                  \"http_request_timeout\": 5,
+                  \"link_existing_users\": 1,
+                  \"create_if_does_not_exist\": 0,
+                  \"redirect_user_back\": 1,
+                  \"redirect_on_logout\": 1,
+                  \"enable_logging\": 0
+                }" \
+                --format=json
+              echo "OIDC settings configured."
+
+              # ── Plugin: Contact Form 7 ───────────────────────────────
+              if wp --allow-root plugin is-installed contact-form-7 2>/dev/null; then
+                echo "contact-form-7 already installed — skipping."
+              else
+                wp --allow-root plugin install contact-form-7 --activate
+                echo "contact-form-7 installed."
+              fi
+
+              # ── Plugin: CF7 to Webhook (Mattermost integration) ──────
+              if wp --allow-root plugin is-installed cf7-to-webhook 2>/dev/null; then
+                echo "cf7-to-webhook already installed — skipping."
+              else
+                wp --allow-root plugin install cf7-to-webhook --activate
+                echo "cf7-to-webhook installed."
+              fi
+
+              # ── Create contact form (idempotent via title check) ──────
+              FORM_EXISTS=$(wp --allow-root post list \
+                --post_type=wpcf7_contact_form \
+                --fields=ID \
+                --format=count \
+                2>/dev/null || echo "0")
+
+              if [ "$FORM_EXISTS" -eq "0" ]; then
+                wp --allow-root post create \
+                  --post_type=wpcf7_contact_form \
+                  --post_title="Kontaktanfrage" \
+                  --post_status=publish
+                echo "Contact form 'Kontaktanfrage' created."
+              else
+                echo "Contact form already exists — skipping creation."
+              fi
+
+              echo ""
+              echo "=== WordPress init complete ==="
+              echo ""
+              echo "Next step: run scripts/mattermost-anfragen-setup.sh to get"
+              echo "the Mattermost webhook URL, then set it in:"
+              echo "  WordPress Admin > CF7 to Webhook > Webhook URL"
+          env:
+            - name: WORDPRESS_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-oidc-secret
+                  key: client-secret
+            - name: KEYCLOAK_URL
+              value: "https://auth-wbhprojekt.ipv64.de/realms/homeoffice"
+          volumeMounts:
+            - name: wordpress-data
+              mountPath: /var/www/html
+      volumes:
+        - name: wordpress-data
+          persistentVolumeClaim:
+            claimName: wordpress-pvc

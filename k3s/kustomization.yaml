@@ -18,14 +18,16 @@ patches:
       metadata:
         name: domain-config
       data:
-        MM_DOMAIN: "chat-wbhprojekt.ipv64.de"
-        KC_DOMAIN: "auth-wbhprojekt.ipv64.de"
-        NC_DOMAIN: "files-wbhprojekt.ipv64.de"
-        SIGNALING_DOMAIN: "signaling-wbhprojekt.ipv64.de"
-        COLLABORA_DOMAIN: "office-wbhprojekt.ipv64.de"
-        MAIL_DOMAIN: "mail-wbhprojekt.ipv64.de"
-        DOCS_DOMAIN: "docs-wbhprojekt.ipv64.de"
-        WP_DOMAIN: "web-wbhprojekt.ipv64.de"
+        MM_DOMAIN: "chat.wbhprojekt.ipv64.de"
+        KC_DOMAIN: "auth.wbhprojekt.ipv64.de"
+        NC_DOMAIN: "files.wbhprojekt.ipv64.de"
+        SIGNALING_DOMAIN: "signaling.wbhprojekt.ipv64.de"
+        COLLABORA_DOMAIN: "office.wbhprojekt.ipv64.de"
+        WHITEBOARD_DOMAIN: "board.wbhprojekt.ipv64.de"
+        MAIL_DOMAIN: "mail.wbhprojekt.ipv64.de"
+        DOCS_DOMAIN: "docs.wbhprojekt.ipv64.de"
+        BILLING_DOMAIN: "billing.wbhprojekt.ipv64.de"
+        WP_DOMAIN: "web.wbhprojekt.ipv64.de"
 
   # ── Ingress: production domains + Traefik ────────────────────────
   - target:
@@ -51,7 +53,10 @@ patches:
       name: collabora
     path: patches/collabora.yaml
 
-  # ── DB pods: securityContext for SMB storage ─────────────────────
+  # ── Storage: use local-path provisioner (no SMB CSI driver) ────────
+  - path: patches/storage.yaml
+
+  # ── DB pods: securityContext for runAsUser consistency ───────────
   - target:
       kind: Deployment
       name: keycloak-db

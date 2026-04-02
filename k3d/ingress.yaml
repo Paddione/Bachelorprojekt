@@ -53,7 +53,7 @@ spec:
                 port:
                   number: 9980
 
-    # ── Spacedeck (Whiteboard) ──────────────────────────────────────
+    # ── Nextcloud Whiteboard (collaboration server) ─────────────────
     - host: board.localhost
       http:
         paths:
@@ -61,9 +61,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: spacedeck
+                name: whiteboard
                 port:
-                  number: 9666
+                  number: 3002
 
 
     # ── Talk HPB Signaling ───────────────────────────────────────────

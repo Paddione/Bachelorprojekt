@@ -9,6 +9,6 @@ spec:
         - name: adapter
           env:
             - name: KEYCLOAK_ORIGIN
-              value: "https://auth-wbhprojekt.ipv64.de"
+              value: "https://auth.wbhprojekt.ipv64.de"
             - name: ALLOW_UNSECURE_CERT
               value: "false"

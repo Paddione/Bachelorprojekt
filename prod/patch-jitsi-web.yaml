@@ -9,6 +9,6 @@ spec:
         - name: web
           env:
             - name: PUBLIC_URL
-              value: "https://meet-wbhprojekt.ipv64.de"
+              value: "https://meet.wbhprojekt.ipv64.de"
             - name: TOKEN_AUTH_URL
-              value: "https://meet-wbhprojekt.ipv64.de/oidc/auth?state={state}"
+              value: "https://meet.wbhprojekt.ipv64.de/oidc/auth?state={state}"

@@ -13,6 +13,38 @@
 $_SERVER['HTTP_HOST'] = 'localhost';
 require '/var/www/html/wp-load.php';
 
+// ── Install mu-plugin to unblock Application Passwords in local env ───────────
+// Wordfence's loginSec_disableApplicationPasswords setting hooks __return_false
+// onto wp_is_application_passwords_available, blocking all Application Password
+// auth. This mu-plugin runs after plugins_loaded (priority 20) and removes that
+// hook when WP_ENVIRONMENT_TYPE=local — the value set in the k3d container env.
+$muplugins_dir = WP_CONTENT_DIR . '/mu-plugins';
+if ( ! is_dir( $muplugins_dir ) ) {
+    mkdir( $muplugins_dir, 0755, true );
+}
+$mu_plugin_path = $muplugins_dir . '/openclaw-mcp-apppasswords.php';
+$mu_plugin_code = <<<'PHP'
+<?php
+/**
+ * OpenClaw MCP — Re-enable Application Passwords on local/k3d environments.
+ *
+ * Wordfence's "Disable Application Passwords" security setting blocks all
+ * Application Password authentication via __return_false. This mu-plugin
+ * removes that override when the environment type is 'local', allowing
+ * in-cluster MCP adapter requests to authenticate via HTTP Basic Auth.
+ *
+ * Only active when WP_ENVIRONMENT_TYPE=local (set in the k3d container env).
+ * Has no effect in production where WP_ENVIRONMENT_TYPE != 'local'.
+ */
+add_action( 'plugins_loaded', function () {
+    if ( 'local' === wp_get_environment_type() ) {
+        remove_filter( 'wp_is_application_passwords_available', '__return_false' );
+    }
+}, 20 );
+PHP;
+file_put_contents( $mu_plugin_path, $mu_plugin_code );
+echo "OK: mu-plugin installed at mu-plugins/openclaw-mcp-apppasswords.php\n";
+
 // ── Activate plugins ─────────────────────────────────────────────────────────
 $plugins = [
     'abilities-api/abilities-api.php',

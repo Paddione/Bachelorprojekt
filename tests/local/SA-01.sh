@@ -13,16 +13,20 @@ for svc in auth chat files office; do
   assert_gt "$INGRESS" 0 "SA-01" "T1-${svc}" "Ingress für ${svc}.localhost definiert"
 done
 
-# T2: Services reachable via Ingress hostnames
-for pair in "auth.localhost:200,302,303" "chat.localhost:200,302" "files.localhost:200,302,303"; do
+# T2: Services reachable (via ingress or port-forward)
+for pair in "auth.localhost:${KC_URL:-http://auth.localhost}:200,302,303" \
+            "chat.localhost:${MM_URL%/api/v4}:200,302" \
+            "files.localhost:${NC_URL:-http://files.localhost}:200,302,303"; do
   HOST="${pair%%:*}"
-  EXPECTED="${pair##*:}"
-  STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://${HOST}/" 2>/dev/null || echo "000")
-  # Check if status is one of the expected codes
+  REST="${pair#*:}"
+  URL="${REST%:*}"
+  EXPECTED="${REST##*:}"
+  # Use the port-forwarded URL if available, fall back to ingress hostname
+  STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "${URL}/" 2>/dev/null || echo "000")
   if echo "$EXPECTED" | tr ',' '\n' | grep -qx "$STATUS"; then
-    _log_result "SA-01" "T2-${HOST%%.*}" "Ingress ${HOST} erreichbar (HTTP ${STATUS})" "pass" "0"
+    _log_result "SA-01" "T2-${HOST%%.*}" "Service ${HOST%%.*} erreichbar (HTTP ${STATUS})" "pass" "0"
   else
-    _log_result "SA-01" "T2-${HOST%%.*}" "Ingress ${HOST} erreichbar" "fail" "0" "HTTP ${STATUS}, erwartet: ${EXPECTED}"
+    _log_result "SA-01" "T2-${HOST%%.*}" "Service ${HOST%%.*} erreichbar" "fail" "0" "HTTP ${STATUS}, erwartet: ${EXPECTED}"
   fi
 done
 

@@ -52,7 +52,7 @@ assert_eq "$SIGNALING_STATUS" "200" "FA-03" "T4" "HPB Signaling-Server erreichba
 
 # T5: Guest access — Talk endpoint accessible without authentication
 GUEST_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-  "http://files.localhost/apps/spreed" 2>/dev/null || echo "000")
+  "${NC_URL:-http://files.localhost}/apps/spreed" 2>/dev/null || echo "000")
 # 200 or 302 (redirect to login with Talk visible) both indicate the endpoint exists
 if [[ "$GUEST_STATUS" == "200" || "$GUEST_STATUS" == "302" || "$GUEST_STATUS" == "303" ]]; then
   _log_result "FA-03" "T5" "Talk-Endpunkt von extern erreichbar (Gast-Zugang möglich)" "pass" "0"

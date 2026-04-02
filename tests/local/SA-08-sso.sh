@@ -48,12 +48,13 @@ fi
 
 # ── Group B: OIDC Redirect-Chains ─────────────────────────────
 
-# T4: Mattermost → Keycloak Redirect
+# T4: Mattermost → Keycloak Redirect (use port-forwarded URL if available)
+MM_BASE="${MM_URL%/api/v4}"
 MM_OIDC_REDIRECT=""
 for endpoint in "/oauth/gitlab/login" "/oauth/openid_connect/login"; do
-  MM_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' "http://chat.localhost${endpoint}" 2>/dev/null)
+  MM_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${MM_BASE}${endpoint}" 2>/dev/null)
   if [[ "$MM_OIDC_STATUS" == "302" ]]; then
-    MM_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "http://chat.localhost${endpoint}" 2>/dev/null \
+    MM_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "${MM_BASE}${endpoint}" 2>/dev/null \
       | grep -i '^location:' | tr -d '\r')
     break
   fi

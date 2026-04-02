@@ -64,24 +64,33 @@ _MM_PF_PID=""
 
 _start_mm_portforward() {
   if [[ -n "${PROD_DOMAIN:-}" ]]; then return; fi  # prod uses real URLs
-  # Pick a random high port to avoid collisions
   local pf_port=18065
-  if curl -s -o /dev/null --max-time 1 "http://localhost:${pf_port}/api/v4/system/ping" 2>/dev/null; then
-    echo "  Port-forward bereits aktiv auf :${pf_port}"
-  else
-    kubectl port-forward -n "$NAMESPACE" svc/mattermost "${pf_port}:8065" &>/dev/null &
-    _MM_PF_PID=$!
-    # Wait for the port-forward to become ready
-    local elapsed=0
-    while (( elapsed < 15 )); do
-      if curl -s -o /dev/null --max-time 1 "http://localhost:${pf_port}/api/v4/system/ping" 2>/dev/null; then
-        break
-      fi
-      sleep 1
-      elapsed=$((elapsed + 1))
-    done
-    echo "  Port-forward Mattermost → localhost:${pf_port}"
+
+  # Kill any stale port-forward on the same port
+  if [[ -n "$_MM_PF_PID" ]]; then
+    kill "$_MM_PF_PID" 2>/dev/null || true
+    wait "$_MM_PF_PID" 2>/dev/null || true
+    _MM_PF_PID=""
   fi
+  # Also kill orphaned port-forwards from previous runs
+  local stale_pid
+  stale_pid=$(lsof -t -i:"${pf_port}" 2>/dev/null || true)
+  [[ -n "$stale_pid" ]] && kill "$stale_pid" 2>/dev/null || true
+  sleep 1
+
+  kubectl port-forward -n "$NAMESPACE" svc/mattermost "${pf_port}:8065" &>/dev/null &
+  _MM_PF_PID=$!
+  # Wait for the port-forward to become ready
+  local elapsed=0
+  while (( elapsed < 20 )); do
+    if curl -s -o /dev/null --max-time 1 "http://localhost:${pf_port}/api/v4/system/ping" 2>/dev/null; then
+      break
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  echo "  Port-forward Mattermost → localhost:${pf_port}"
+
   # Override MM_URL so all tests use the direct connection
   MM_URL="http://localhost:${pf_port}/api/v4"
   export MM_URL

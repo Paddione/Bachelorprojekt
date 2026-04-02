@@ -23,7 +23,7 @@ assert_lt "$LOGIN_DUR" 5000 "NFA-05" "T2b" "Login-Seite lädt < 5s (war ${LOGIN_
 
 # T3: Nextcloud default language is German
 NC_LANG=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  gosu 999 php occ config:system:get default_language 2>/dev/null || echo "")
+  setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get default_language 2>/dev/null || echo "")
 assert_eq "$NC_LANG" "de" "NFA-05" "T3" "Nextcloud Default-Sprache ist Deutsch"
 
 # T4: Mattermost Desktop App download link or web app accessible

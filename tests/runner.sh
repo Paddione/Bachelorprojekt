@@ -81,6 +81,13 @@ run_test_files() {
     test_name=$(basename "$f" .sh)
     echo ""
     echo "━━━ ${test_name} ━━━"
+    # Re-establish port-forward if it died (e.g. after NFA-03 pod kill)
+    if declare -f _start_mm_portforward &>/dev/null && [[ -z "${PROD_DOMAIN:-}" ]]; then
+      if ! curl -s -o /dev/null --max-time 1 "${MM_URL}/system/ping" 2>/dev/null; then
+        echo "  ↻ Port-forward neu aufbauen..."
+        _start_mm_portforward
+      fi
+    fi
     bash "$f"
   done
 }

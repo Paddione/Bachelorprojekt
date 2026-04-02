@@ -26,7 +26,7 @@ fi
 
 # T3: Nextcloud has no external storage backends
 NC_OCC=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  gosu 999 php occ config:list --output=json 2>/dev/null || echo "{}")
+  setpriv --reuid=999 --regid=999 --clear-groups php occ config:list --output=json 2>/dev/null || echo "{}")
 if [[ "$NC_OCC" != "{}" ]]; then
   assert_not_contains "$NC_OCC" "amazons3" "NFA-01" "T3a" "Kein Amazon S3 Storage-Backend"
   assert_not_contains "$NC_OCC" "azure" "NFA-01" "T3b" "Kein Azure Storage-Backend"

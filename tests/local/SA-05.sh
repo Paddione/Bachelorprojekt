@@ -29,7 +29,7 @@ fi
 
 # T2: Nextcloud file access logging (activity app)
 NC_ACTIVITY=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  gosu 999 php occ app:list 2>/dev/null | grep -c "activity" || echo "0")
+  setpriv --reuid=999 --regid=999 --clear-groups php occ app:list 2>/dev/null | grep -c "activity" || echo "0")
 assert_gt "$NC_ACTIVITY" 0 "SA-05" "T2" "Nextcloud Activity App aktiv (Dateizugriffs-Logging)"
 
 # T3: Mattermost audit log

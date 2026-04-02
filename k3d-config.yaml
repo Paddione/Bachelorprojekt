@@ -1,0 +1,62 @@
+# k3d Development Cluster Configuration
+# Docs: https://k3d.io/v5.8.3/usage/configfile/
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: dev
+servers: 1
+agents: 3
+kubeAPI:
+  host: "127.0.0.1"
+  hostIP: "127.0.0.1"
+image: rancher/k3s:v1.31.5-k3s1
+# Port mappings: expose HTTP/HTTPS on host via loadbalancer
+ports:
+  - port: 80:80
+    nodeFilters:
+      - loadbalancer
+  - port: 443:443
+    nodeFilters:
+      - loadbalancer
+  - port: 8080:30080
+    nodeFilters:
+      - agents:*
+# Local volume mount for fast I/O during development
+volumes:
+  - volume: ${PWD}/data:/mnt/data
+    nodeFilters:
+      - agents:*
+# Environment variables for all nodes
+env:
+  - envVar: K3S_DEBUG=false
+    nodeFilters:
+      - all
+# k3s server arguments
+options:
+  k3d:
+    wait: true
+    timeout: "120s"
+  k3s:
+    extraArgs:
+      # Disable components we don't need to save resources
+      - arg: --disable=metrics-server
+        nodeFilters:
+          - server:*
+      # Use k3s built-in Traefik as ingress controller (same in dev and prod)
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
+# Local container registry — the heart of fast inner-loop development
+registries:
+  create:
+    name: registry.localhost
+    host: "0.0.0.0"
+    hostPort: "5000"
+  config: |
+    mirrors:
+      "registry.localhost:5000":
+        endpoint:
+          - http://registry.localhost:5000
+      "localhost:5000":
+        endpoint:
+          - http://registry.localhost:5000

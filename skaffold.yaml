@@ -1,0 +1,42 @@
+# Skaffold configuration for k3d dev workflow
+# Docs: https://skaffold.dev/docs/references/yaml/
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: k3d-dev
+
+build:
+  local:
+    push: true        # Push to local registry (fast — it's localhost)
+    useBuildkit: true
+  artifacts:
+    - image: localhost:5000/demo-app
+      context: app
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        # Hot-reload: sync source files into the running container.
+        # Air watches /src and recompiles on change (~1-2s turnaround).
+        manual:
+          - src: "**/*.go"
+            dest: /src
+          - src: "**/*.html"
+            dest: /src
+          - src: "**/*.css"
+            dest: /src
+          - src: "**/*.js"
+            dest: /src
+
+deploy:
+  kubectl:
+    defaultNamespace: dev
+  kustomize:
+    paths:
+      - deploy/overlays/local
+
+portForward:
+  - resourceType: service
+    resourceName: demo-app
+    namespace: dev
+    port: 80
+    localPort: 8080

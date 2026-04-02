@@ -1,0 +1,70 @@
+# ═══════════════════════════════════════════════════════════════════
+# Stripe MCP Server — Payment management via Claude
+# Uses @stripe/agent-toolkit with supergateway stdio-to-HTTP bridge
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-stripe
+  labels:
+    app: mcp-stripe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-stripe
+  template:
+    metadata:
+      labels:
+        app: mcp-stripe
+    spec:
+      containers:
+        - name: mcp-stripe
+          image: node:20-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              npm install -g supergateway @stripe/agent-toolkit 2>&1
+              exec npx supergateway \
+                --stdio "npx -y @stripe/agent-toolkit mcp" \
+                --outputTransport streamableHttp \
+                --port 3003 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          env:
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: STRIPE_SECRET_KEY
+          ports:
+            - containerPort: 3003
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 45
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-stripe
+spec:
+  selector:
+    app: mcp-stripe
+  ports:
+    - port: 3003
+      targetPort: 3003

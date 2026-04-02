@@ -1,0 +1,287 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+data:
+  # ════════════════════════════════════════════════════════════════════
+  # MCP ENDPOINT URLS
+  # All endpoints use Streamable-HTTP unless noted.
+  # Credentials are in the openclaw-secrets Secret (default namespace).
+  # ════════════════════════════════════════════════════════════════════
+
+  OPENID_PROVIDER_URL: "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration"
+  MATTERMOST_WEBHOOK_URL: "http://mattermost.homeoffice.svc.cluster.local:8065/hooks/openclaw-alerts"
+
+  # Core pod: cluster + database + chat
+  MCP_KUBERNETES_URL:   "http://openclaw-mcp-core:8080/mcp"
+  MCP_POSTGRES_URL:     "http://openclaw-mcp-core:3001/mcp"
+  MCP_MATTERMOST_URL:   "http://openclaw-mcp-core:8000/mcp"
+  # Apps pod: files/calendar + billing
+  MCP_NEXTCLOUD_URL:    "http://openclaw-mcp-apps:8000/mcp"
+  MCP_INVOICENINJA_URL: "http://openclaw-mcp-apps:8080/mcp"
+  # Auth pod: SSO management (SSE transport)
+  MCP_KEYCLOAK_URL:     "http://openclaw-mcp-auth:8080/mcp/sse"
+  # Standalone
+  MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
+  MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
+  MCP_WORDPRESS_URL:  "http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server"
+
+  # ════════════════════════════════════════════════════════════════════
+  # INTERNAL SERVICE URLS (for direct API calls bypassing MCP)
+  # ════════════════════════════════════════════════════════════════════
+
+  KEYCLOAK_INTERNAL_URL:     "http://keycloak.homeoffice.svc.cluster.local:8080"
+  MATTERMOST_INTERNAL_URL:   "http://mattermost.homeoffice.svc.cluster.local:8065"
+  NEXTCLOUD_INTERNAL_URL:    "http://nextcloud.homeoffice.svc.cluster.local:80"
+  NEXTCLOUD_WEBDAV_URL:      "http://nextcloud.homeoffice.svc.cluster.local:80/remote.php/dav"
+  INVOICENINJA_INTERNAL_URL: "http://invoiceninja.homeoffice.svc.cluster.local:80/api/v1"
+  WORDPRESS_INTERNAL_URL:    "http://wordpress.wordpress.svc.cluster.local:80"
+  TRAEFIK_API_URL:           "http://traefik.kube-system.svc.cluster.local:9000/api"
+  UPTIME_KUMA_URL:           "http://uptime-kuma.homeoffice.svc.cluster.local:3001"
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-kubernetes  (port 3000, streamable-http)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_KUBERNETES: |
+    Image: ghcr.io/strowk/mcp-k8s
+    Transport: streamable-http → http://mcp-kubernetes:3000/mcp
+    Auth: none (uses openclaw-agent ServiceAccount, ClusterRole bound)
+
+    Capabilities:
+      - List/get pods, deployments, services, namespaces, nodes
+      - Read pod logs
+      - Patch deployments (restart/scale — allowed by RBAC)
+      - Does NOT have: exec into pods, access secrets, delete resources
+
+    Key namespaces to query:
+      - homeoffice (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja, Talk HPB)
+      - wordpress   (WordPress + MariaDB)
+      - default     (OpenClaw MCP servers)
+      - kube-system (Traefik, CoreDNS)
+      - tracking    (tracking DB + UI)
+
+    Traefik note: no dedicated Traefik MCP exists. Use this MCP to:
+      kubectl get ingressroutes --all-namespaces
+      kubectl get middleware --all-namespaces
+      Then call TRAEFIK_API_URL directly for router/service detail.
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-postgres  (port 3001, streamable-http)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_POSTGRES: |
+    Image: mcp/postgres (read-only)
+    Transport: streamable-http → http://mcp-postgres:3001/mcp
+    Auth: SHARED_DB_PASSWORD from openclaw-secrets
+    Host: shared-db.homeoffice.svc.cluster.local:5432
+
+    Available databases (all read-only):
+      - keycloak   → users, realms, sessions, clients
+      - mattermost → posts, channels, teams, users
+      - nextcloud  → files, shares, users, calendar events (oc_ prefix tables)
+      - spacedeck  → whiteboards, spaces
+
+    Usage tips:
+      - Prefer mcp-keycloak or mcp-mattermost MCPs for structured access.
+      - Use this MCP for raw SQL queries, debugging, or cross-DB aggregations.
+      - All connections enforce read-only via transaction_read_only=on.
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-github  (port 3002, streamable-http)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_GITHUB: |
+    Image: ghcr.io/github/github-mcp-server
+    Transport: streamable-http → http://mcp-github:3002/mcp
+    Auth: GITHUB_PAT from openclaw-secrets (set before deploying)
+
+    Required PAT scopes: repo (read), pull_requests (read), issues (read/write)
+
+    Capabilities: list/read repos, PRs, issues, commits, branches,
+    create/update issues and PR comments, search code.
+
+    Setup: Replace GITHUB_PAT placeholder in openclaw-secrets with a real token,
+    then: kubectl rollout restart deployment/mcp-github
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-mattermost  (port 8000, streamable-http)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_MATTERMOST: |
+    Image: legard/mcp-server-mattermost
+    Transport: streamable-http → http://mcp-mattermost:8000/mcp
+    Auth: MATTERMOST_TOKEN from openclaw-secrets (bot token)
+    Server: mattermost.homeoffice.svc.cluster.local:8065
+
+    Current token: uses billing-bot token (dev placeholder).
+    For production: create a dedicated OpenClaw bot in Mattermost:
+      Admin Console → Integrations → Bot Accounts → Add Bot Account
+      Name: openclaw | Role: Member | Post All + Read All Channels
+      Copy the generated token → update openclaw-secrets MATTERMOST_TOKEN
+      kubectl rollout restart deployment/mcp-mattermost
+
+    Key tools (37 total):
+      Channels: list_public_channels, list_my_channels, get_channel_by_name
+      Messages: post_message, get_channel_messages, search_messages
+      Users:    get_me, get_user_by_username, search_users
+      Threads:  get_thread, pin_message, add_reaction
+      Files:    upload_file, get_file_link
+
+    Common patterns:
+      - Post alert: post_message(channel_id, "🚨 Alert: ...")
+      - Find channel: get_channel_by_name(team_id, "general")
+      - Search logs: search_messages(terms="error", channel_id="...")
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-nextcloud  (port 8000, streamable-http)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_NEXTCLOUD: |
+    Image: ghcr.io/cbcoutinho/nextcloud-mcp-server
+    Transport: streamable-http → http://mcp-nextcloud:8000/mcp
+    Health: http://mcp-nextcloud:8000/health/ready
+    Auth: NEXTCLOUD_USERNAME + NEXTCLOUD_PASSWORD from openclaw-secrets
+    Host: nextcloud.homeoffice.svc.cluster.local
+
+    Current credentials: admin / devnextcloudadmin (dev placeholder).
+    For production: generate an App Password in Nextcloud:
+      Settings → Security → App passwords → Create new app password "openclaw"
+      Update openclaw-secrets NEXTCLOUD_PASSWORD
+      kubectl rollout restart deployment/mcp-nextcloud
+
+    Capabilities (90+ tools across 8 categories):
+      Files/WebDAV: list_files, read_file, write_file, delete_file, move_file
+      Calendar:     list_calendars, list_events, create_event, update_event
+      Contacts:     list_address_books, list_contacts, create_contact
+      Notes:        list_notes, get_note, create_note, search_notes
+      Deck (kanban): list_boards, list_cards, create_card, assign_card
+      Sharing:      create_share, list_shares, update_share
+      Tables:       list_tables, get_rows, add_row
+      Cookbook:     list_recipes, get_recipe, import_recipe_from_url
+
+    WebDAV direct URL: http://nextcloud.homeoffice.svc.cluster.local/remote.php/dav/files/admin/
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-keycloak  (port 8080, SSE transport)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_KEYCLOAK: |
+    Image: quay.io/sshaaf/keycloak-mcp-server
+    Transport: SSE → http://mcp-keycloak:8080/mcp/sse  ← NOTE: SSE, not streamable-http
+    Health: http://mcp-keycloak:8080/q/health
+    Auth: JWT Bearer token (see below)
+
+    ⚠️  This MCP uses JWT passthrough auth. You MUST obtain a Keycloak token
+    and pass it as "Authorization: Bearer <token>" on every SSE request.
+
+    Get admin token (valid ~60s, re-fetch as needed):
+      curl -s -X POST \
+        http://keycloak.homeoffice.svc.cluster.local:8080/realms/master/protocol/openid-connect/token \
+        -d "grant_type=password&client_id=admin-cli&username=admin&password=devadmin" \
+        | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
+
+    Capabilities (50+ tools):
+      Users:    GET_USERS, CREATE_USER, UPDATE_USER, DELETE_USER, RESET_PASSWORD
+                GET_USER_GROUPS, ADD_USER_TO_GROUP, ADD_ROLE_TO_USER
+      Clients:  GET_CLIENTS, CREATE_CLIENT, DELETE_CLIENT, GENERATE_CLIENT_SECRET
+      Roles:    GET_REALM_ROLES, CREATE_CLIENT_ROLE
+      Groups:   GET_GROUPS, CREATE_GROUP, GET_GROUP_MEMBERS
+      Realms:   GET_REALMS, GET_REALM, CREATE_REALM
+      Auth:     GET_AUTHENTICATION_FLOWS, GET_FLOW_EXECUTIONS
+      IdP:      GET_IDENTITY_PROVIDERS, GET_IDENTITY_PROVIDER_MAPPERS
+
+    Realm in use: homeoffice (Keycloak, Mattermost, Nextcloud, Collabora, WordPress, InvoiceNinja SSO)
+    Admin realm:  master (admin-cli client lives here)
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-invoiceninja  (port 8080, streamable-http via openapi-mcp)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_INVOICENINJA: |
+    Image: ckanthony/openapi-mcp (OpenAPI → MCP bridge)
+    Transport: streamable-http → http://mcp-invoiceninja:8080/mcp
+    Auth: X-Api-Token header injected from openclaw-secrets INVOICENINJA_REQUEST_HEADERS
+    Spec: http://invoiceninja.homeoffice.svc.cluster.local/api/openapi.json
+    Base URL: http://invoiceninja.homeoffice.svc.cluster.local
+
+    If spec fetch fails at startup, check pod logs:
+      kubectl logs -n default deployment/mcp-invoiceninja
+    Fallback spec URL: https://raw.githubusercontent.com/invoiceninja/invoiceninja/v5-stable/openapi.yaml
+
+    Invoice Ninja API v1 direct access:
+      Base: http://invoiceninja.homeoffice.svc.cluster.local/api/v1
+      Auth: X-Api-Token: testrunnertoken2026
+      Key endpoints: /clients, /invoices, /quotes, /payments, /expenses, /projects, /tasks
+
+    Current API token: testrunnertoken2026
+    Rotate: Invoice Ninja → Settings → API Tokens → revoke + create new
+    Then update both INVOICENINJA_API_TOKEN and INVOICENINJA_REQUEST_HEADERS in openclaw-secrets.
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-wordpress  (embedded in WordPress pod)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_WORDPRESS: |
+    Plugin: WordPress/mcp-adapter (REST plugin, no separate pod)
+    Transport: streamable-http → http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server
+    Auth: HTTP Basic Auth — credentials in wordpress-mcp-creds Secret (default namespace)
+      Username: kubectl get secret wordpress-mcp-creds -n default -o jsonpath='{.data.WORDPRESS_MCP_USERNAME}' | base64 -d
+      Password: kubectl get secret wordpress-mcp-creds -n default -o jsonpath='{.data.WORDPRESS_MCP_APP_PASSWORD}' | base64 -d
+
+    Notes:
+      - Requires WP_ENVIRONMENT_TYPE=local (set in wordpress deployment env)
+        to bypass Wordfence's Application Password block on non-HTTPS requests.
+      - Capabilities depend on WordPress Abilities API — extend via abilities-api plugin.
+      - Rotate credentials: task wordpress:mcp:install && task wordpress:mcp:save-credentials
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-stripe  (port 3003, streamable-http via supergateway)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_STRIPE: |
+    Image: node:20-alpine + @stripe/agent-toolkit + supergateway
+    Transport: streamable-http → http://mcp-stripe:3003/mcp
+    Auth: STRIPE_SECRET_KEY from openclaw-secrets
+
+    Setup: Replace STRIPE_SECRET_KEY placeholder in openclaw-secrets with a
+    real Stripe API key (sk_test_... for dev), then restart:
+      kubectl rollout restart deployment/mcp-stripe
+
+    Capabilities:
+      Customers: list, create, update, delete, search
+      Products:  list, create, update, delete
+      Prices:    list, create, update
+      Invoices:  list, create, update, send, void, finalize
+      Payments:  list, retrieve, create payment intents
+      Subscriptions: list, create, update, cancel
+      Checkout:  create sessions (hosted payment pages)
+      Refunds:   create, list
+      Balance:   retrieve current balance
+      Disputes:  list, retrieve
+
+    Payment methods configured in Stripe Dashboard:
+      1. Credit Card (default)
+      2. PayPal (Settings > Payment Methods)
+      3. SEPA Direct Debit / Lastschrift
+      4. Bank Transfer / Überweisung
+
+    Test cards: https://docs.stripe.com/testing#cards
+      Success: 4242 4242 4242 4242 (any exp/CVC)
+      Decline: 4000 0000 0000 0002
+
+    Integration: Invoice Ninja uses Stripe as payment gateway.
+    Use this MCP to inspect payments, create ad-hoc checkout sessions,
+    or manage subscriptions outside of Invoice Ninja.
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: Traefik (no dedicated MCP — use kubernetes MCP + direct API)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_TRAEFIK: |
+    No K8s-deployable Traefik MCP exists. Use these alternatives:
+
+    1. Via mcp-kubernetes: inspect IngressRoutes, Middlewares, TLS config
+         kubectl get ingressroutes --all-namespaces -o yaml
+         kubectl get middleware --all-namespaces
+         kubectl get tlsstores --all-namespaces
+
+    2. Via Traefik REST API (if dashboard is enabled):
+         curl http://traefik.kube-system.svc.cluster.local:9000/api/http/routers
+         curl http://traefik.kube-system.svc.cluster.local:9000/api/http/services
+         curl http://traefik.kube-system.svc.cluster.local:9000/api/http/middlewares
+         curl http://traefik.kube-system.svc.cluster.local:9000/api/overview
+
+    Enable Traefik dashboard (if not already):
+      kubectl edit helmchartconfig traefik -n kube-system
+      Add under valuesContent: api: { dashboard: true, insecure: true }

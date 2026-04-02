@@ -1,0 +1,145 @@
+# MCP Gateway — single-domain Traefik IngressRoute for all MCP servers
+# Access: https://mcp-wbhprojekt.ipv64.de/{service}/mcp
+# Security: IP-restricted to internal networks only
+#
+# Requires DNS: mcp-wbhprojekt.ipv64.de → 217.195.149.75
+
+# ── IP Allowlist — restrict MCP access to internal networks ──────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-ipallow
+spec:
+  ipAllowList:
+    sourceRange:
+      - 10.10.0.0/16       # k3s management network (Claude Code host)
+      - 10.0.3.0/24         # k3s control-plane nodes
+      - 10.0.31.0/24        # k3s worker nodes
+      - 172.16.0.0/12       # RFC1918 private (WSL2, Docker, etc.)
+---
+# ── Strip first path segment: /kubernetes/mcp → /mcp ─────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-strip-service-prefix
+spec:
+  stripPrefixRegex:
+    regex:
+      - "^/[^/]+"
+---
+# ── Middleware chain: IP filter + strip + security headers ────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-chain
+spec:
+  chain:
+    middlewares:
+      - name: mcp-ipallow
+      - name: mcp-strip-service-prefix
+      - name: security-headers
+        namespace: korczewski-infra
+      - name: compression
+        namespace: korczewski-infra
+---
+# ── IngressRoute: path-based routing to all MCP servers ──────────
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mcp-gateway
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # ── Kubernetes MCP ────────────────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/kubernetes`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: openclaw-mcp-core
+          port: 8080
+
+    # ── PostgreSQL MCP ────────────────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/postgres`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: openclaw-mcp-core
+          port: 3001
+
+    # ── Mattermost MCP ────────────────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/mattermost`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: openclaw-mcp-core
+          port: 8000
+
+    # ── Nextcloud MCP ─────────────────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/nextcloud`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: openclaw-mcp-apps
+          port: 8000
+
+    # ── Invoice Ninja MCP ─────────────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/invoiceninja`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: openclaw-mcp-apps
+          port: 8080
+
+    # ── Keycloak MCP (SSE transport) ──────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/keycloak`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: openclaw-mcp-auth
+          port: 8080
+
+    # ── GitHub MCP ────────────────────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/github`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: mcp-github
+          port: 3002
+
+    # ── Stripe MCP ────────────────────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`) && PathPrefix(`/stripe`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: mcp-stripe
+          port: 3003
+
+    # ── OpenClaw WebUI (catch-all at root) ───────────────────────
+    # Traefik routes by specificity: /kubernetes, /postgres etc.
+    # match first, everything else falls through to OpenClaw.
+    # No stripPrefix needed — OpenClaw serves from /.
+    - kind: Rule
+      match: Host(`mcp-wbhprojekt.ipv64.de`)
+      priority: 1
+      middlewares:
+        - name: mcp-ipallow
+        - name: security-headers
+          namespace: korczewski-infra
+        - name: compression
+          namespace: korczewski-infra
+      services:
+        - name: openclaw
+          namespace: homeoffice
+          port: 8080
+
+  tls:
+    certResolver: letsencrypt

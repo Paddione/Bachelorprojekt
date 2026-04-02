@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-github
+  labels:
+    app: mcp-github
+spec:
+  replicas: 0  # Set to 1 after replacing GITHUB_PAT in openclaw-secrets (task mcp:set-github-pat)
+  selector:
+    matchLabels:
+      app: mcp-github
+  template:
+    metadata:
+      labels:
+        app: mcp-github
+    spec:
+      containers:
+        - name: mcp-github
+          image: ghcr.io/github/github-mcp-server:latest
+          env:
+            - name: MCP_TRANSPORT
+              value: "streamable-http"
+            - name: MCP_PORT
+              value: "3002"
+            - name: GITHUB_PERSONAL_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: GITHUB_PAT
+          ports:
+            - containerPort: 3002
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-github
+spec:
+  selector:
+    app: mcp-github
+  ports:
+    - port: 3002
+      targetPort: 3002

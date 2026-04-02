@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - openclaw-rbac.yaml
+  - openclaw-secrets.yaml
+  - openclaw-config.yaml
+  # Consolidated MCP pods (7 containers → 3 pods)
+  - openclaw-mcp-core.yaml        # kubernetes + postgres + mattermost
+  - openclaw-mcp-apps.yaml        # nextcloud + invoiceninja
+  - openclaw-mcp-auth.yaml        # keycloak (SSE, Java — separate for resource isolation)
+  # Standalone
+  - openclaw-mcp-github.yaml      # replicas=0 — task mcp:set-github-pat to enable
+  - openclaw-mcp-stripe.yaml      # Stripe payment MCP — replace STRIPE_SECRET_KEY to activate
+  # Ingress — exposes MCP servers via mcp-*.localhost for external clients
+  - ingress.yaml

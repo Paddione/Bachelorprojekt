@@ -1,0 +1,138 @@
+# ════════════════════════════════════════════════════════════════════════════
+# openclaw-mcp-core — Operational backbone: cluster, database, chat
+#
+# Containers share one network namespace → no DNS between them, all localhost.
+# Ports: 8080 (kubernetes), 3001 (postgres), 8000 (mattermost)
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openclaw-mcp-core
+  labels:
+    app: openclaw-mcp-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw-mcp-core
+  template:
+    metadata:
+      labels:
+        app: openclaw-mcp-core
+    spec:
+      serviceAccountName: openclaw-agent
+      containers:
+        # ── Kubernetes MCP (port 8080) ──────────────────────────────
+        - name: kubernetes
+          image: quay.io/containers/kubernetes_mcp_server:latest
+          args: ["--port", "8080", "--stateless", "--cluster-provider", "in-cluster"]
+          ports:
+            - containerPort: 8080
+              name: kubernetes
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests: { memory: 64Mi, cpu: 50m }
+            limits:   { memory: 256Mi }
+
+        # ── PostgreSQL MCP (port 3001) ──────────────────────────────
+        # Bridges the stdio-only @modelcontextprotocol/server-postgres
+        # to streamable-http via supergateway. First boot ~30s (npm install).
+        - name: postgres
+          image: node:20-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Installing MCP postgres bridge..."
+              npm install -g supergateway @modelcontextprotocol/server-postgres 2>&1 | tail -3
+              echo "Starting supergateway on :3001/mcp..."
+              exec supergateway \
+                --stdio "npx @modelcontextprotocol/server-postgres \"$DATABASE_URL\"" \
+                --outputTransport streamableHttp \
+                --port 3001 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          env:
+            - name: SHARED_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: SHARED_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.homeoffice.svc.cluster.local:5432/mattermost"
+          ports:
+            - containerPort: 3001
+              name: postgres
+          readinessProbe:
+            httpGet: { path: /health, port: 3001 }
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 3001 }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests: { memory: 128Mi, cpu: 50m }
+            limits:   { memory: 512Mi }
+
+        # ── Mattermost MCP (port 8000) ─────────────────────────────
+        - name: mattermost
+          image: legard/mcp-server-mattermost:latest
+          env:
+            - name: MCP_TRANSPORT
+              value: "http"
+            - name: MCP_HOST
+              value: "0.0.0.0"
+            - name: MCP_PORT
+              value: "8000"
+            - name: MATTERMOST_URL
+              value: "http://mattermost.homeoffice.svc.cluster.local:8065"
+            - name: MATTERMOST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: MATTERMOST_TOKEN
+            - name: MATTERMOST_VERIFY_SSL
+              value: "false"
+          ports:
+            - containerPort: 8000
+              name: mattermost
+          readinessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests: { memory: 64Mi, cpu: 50m }
+            limits:   { memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw-mcp-core
+spec:
+  selector:
+    app: openclaw-mcp-core
+  ports:
+    - name: kubernetes
+      port: 8080
+      targetPort: 8080
+    - name: postgres
+      port: 3001
+      targetPort: 3001
+    - name: mattermost
+      port: 8000
+      targetPort: 8000

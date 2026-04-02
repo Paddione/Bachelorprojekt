@@ -60,6 +60,26 @@ KC_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
   "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration" 2>/dev/null)
 assert_eq "$KC_OIDC_STATUS" "200" "FA-05" "T4" "Keycloak OIDC Discovery erreichbar (SSO-Login)"
 
+# T3: User exists in Keycloak (verifies Keycloak as user store)
+KC_ADMIN_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/openid-connect/token" \
+  -d "client_id=admin-cli" \
+  -d "username=admin" \
+  -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
+  -d "grant_type=password" | jq -r '.access_token // empty')
+if [[ -n "$KC_ADMIN_TOKEN" ]]; then
+  KC_USERS=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+    "http://auth.localhost/admin/realms/homeoffice/users?username=testuser1")
+  KC_USER_COUNT=$(echo "$KC_USERS" | jq 'length')
+  assert_gt "$KC_USER_COUNT" 0 "FA-05" "T3" "User in Keycloak vorhanden (zentraler User Store)"
+else
+  skip_test "FA-05" "T3" "Keycloak User Store" "Kein Keycloak Admin-Token"
+fi
+
+# T4: SSO login via Keycloak OIDC endpoint reachable
+KC_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+  "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration" 2>/dev/null)
+assert_eq "$KC_OIDC_STATUS" "200" "FA-05" "T4" "Keycloak OIDC Discovery erreichbar (SSO-Login)"
+
 # T5: Deactivate user → login fails
 TEMP_ID=$(_mm "${MM_URL}/users/username/${TEMP_USER}" | jq -r '.id')
 curl -s -o /dev/null -X DELETE -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/${TEMP_ID}"

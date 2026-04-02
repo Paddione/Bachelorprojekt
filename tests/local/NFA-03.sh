@@ -2,6 +2,7 @@
 # NFA-03: Verfügbarkeit — restart recovery, health endpoints, data persistence
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
+source "${SCRIPT_DIR}/lib/k3d.sh"
 
 NAMESPACE="${NAMESPACE:-homeoffice}"
 
@@ -28,6 +29,10 @@ if declare -f _start_mm_portforward &>/dev/null; then
   done
 fi
 
+# Regenerate MM admin token (the old one is invalidated by the pod kill)
+_regenerate_mm_token
+echo "  MM Admin-Token nach Neustart regeneriert."
+
 # T2: Services reachable after restart (test via cluster-internal to avoid port-forward issues)
 MM_INTERNAL_STATUS=$(kubectl exec -n "$NAMESPACE" deploy/mattermost -- \
   curl -s -o /dev/null -w '%{http_code}' "http://localhost:8065/api/v4/system/ping" --max-time 5 2>/dev/null || echo "000")
@@ -51,11 +56,12 @@ fi
 if [[ -n "$MSG_ID" ]]; then
   kubectl rollout restart deployment/mattermost -n "$NAMESPACE" > /dev/null 2>&1
   kubectl rollout status deployment/mattermost -n "$NAMESPACE" --timeout=120s > /dev/null 2>&1
-  # Re-establish port-forward after rollout
+  # Re-establish port-forward and token after rollout
   if declare -f _start_mm_portforward &>/dev/null; then
     _start_mm_portforward
   fi
   sleep 5
+  _regenerate_mm_token
   FOUND=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/posts/${MSG_ID}" | jq -r 'if .message then .id else empty end')
   assert_eq "$FOUND" "$MSG_ID" "NFA-03" "T4" "Nachricht nach Container-Neustart vorhanden"
 else

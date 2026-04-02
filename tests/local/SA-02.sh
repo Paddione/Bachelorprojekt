@@ -2,6 +2,7 @@
 # SA-02: Authentifizierung — login, failed attempts, lockout
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
+source "${SCRIPT_DIR}/lib/k3d.sh"
 
 # T1: Wrong password → denied
 WRONG_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
@@ -11,15 +12,10 @@ WRONG_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
 assert_eq "$WRONG_STATUS" "401" "SA-02" "T1" "Falsches Passwort → Zugang verweigert"
 
 # T2: 2FA/MFA configuration (verify Keycloak supports OTP)
-KC_ADMIN_TOKEN_T2=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/openid-connect/token" \
-  -d "client_id=admin-cli" \
-  -d "username=admin" \
-  -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
-  -d "grant_type=password" | jq -r '.access_token // empty')
-if [[ -n "$KC_ADMIN_TOKEN_T2" ]]; then
-  # Check if OTP policy is configured in the realm
-  OTP_POLICY=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN_T2}" \
-    "http://auth.localhost/admin/realms/homeoffice" | jq -r '.otpPolicyType // empty')
+_kc_admin_login
+if [[ -n "$KC_ADMIN_TOKEN" ]]; then
+  OTP_POLICY=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+    "${KC_URL}/admin/realms/homeoffice" | jq -r '.otpPolicyType // empty')
   if [[ -n "$OTP_POLICY" ]]; then
     _log_result "SA-02" "T2" "Keycloak OTP-Policy konfiguriert (${OTP_POLICY})" "pass" "0"
   else
@@ -47,14 +43,10 @@ KC_DISCOVERY=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
 assert_eq "$KC_DISCOVERY" "200" "SA-02" "T4" "Keycloak OIDC Discovery erreichbar"
 
 # T5: Keycloak login events enabled
-KC_ADMIN_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/openid-connect/token" \
-  -d "client_id=admin-cli" \
-  -d "username=admin" \
-  -d "password=${KEYCLOAK_ADMIN_PASSWORD:-admin}" \
-  -d "grant_type=password" | jq -r '.access_token // empty')
+_kc_admin_login
 if [[ -n "$KC_ADMIN_TOKEN" ]]; then
   EVENTS_ENABLED=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "http://auth.localhost/admin/realms/homeoffice/events/config" | jq -r '.eventsEnabled // false')
+    "${KC_URL}/admin/realms/homeoffice/events/config" | jq -r '.eventsEnabled // false')
   assert_eq "$EVENTS_ENABLED" "true" "SA-02" "T5" "Keycloak Login-Events aktiviert"
 else
   skip_test "SA-02" "T5" "Keycloak Login-Events" "Kein Keycloak Admin-Token"

@@ -1,0 +1,95 @@
+# ═══════════════════════════════════════════════════════════════════
+# Automated DB Backup — daily PostgreSQL dumps with AES-256 encryption
+# SA-07: Daily at 02:00 UTC, 30-day retention
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup
+  labels:
+    app: db-backup
+spec:
+  schedule: "0 2 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: db-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              env:
+                - name: KEYCLOAK_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: homeoffice-secrets
+                      key: KEYCLOAK_DB_PASSWORD
+                - name: MATTERMOST_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: homeoffice-secrets
+                      key: MATTERMOST_DB_PASSWORD
+                - name: NEXTCLOUD_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: homeoffice-secrets
+                      key: NEXTCLOUD_DB_PASSWORD
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  STAMP=$(date +%Y%m%d-%H%M%S)
+                  BACKUP_DIR=/backups/${STAMP}
+                  mkdir -p "${BACKUP_DIR}"
+
+                  # Dump each database (separate PostgreSQL instances)
+                  for db in keycloak mattermost nextcloud; do
+                    PASSVAR=$(echo "${db}" | tr '[:lower:]' '[:upper:]')_DB_PASSWORD
+                    eval PASS=\$$PASSVAR
+                    echo "Backing up ${db}..."
+                    PGPASSWORD="${PASS}" pg_dump -Fc \
+                      -h "${db}-db" -U "${db}" -d "${db}" \
+                      > "${BACKUP_DIR}/${db}.dump"
+                  done
+
+                  # Encrypt with AES-256
+                  PASSFILE=/secrets/backup-passphrase
+                  if [ -f "${PASSFILE}" ]; then
+                    for f in "${BACKUP_DIR}"/*.dump; do
+                      openssl enc -aes-256-cbc -salt -pbkdf2 \
+                        -in "${f}" -out "${f}.enc" \
+                        -pass "file:${PASSFILE}"
+                      rm "${f}"
+                    done
+                  fi
+
+                  # Retention: remove backups older than 30 days
+                  find /backups -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +
+
+                  echo "Backup complete: ${BACKUP_DIR}"
+                  ls -lh "${BACKUP_DIR}"/
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                - name: backup-secrets
+                  mountPath: /secrets
+                  readOnly: true
+              resources:
+                requests:
+                  memory: 128Mi
+                  cpu: 100m
+                limits:
+                  memory: 256Mi
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
+            - name: backup-secrets
+              secret:
+                secretName: backup-passphrase
+                optional: true

@@ -1,106 +1,77 @@
 # Homeoffice MVP
 
-Kubernetes-basierte Kollaborationsplattform für kleine Teams — Mattermost (Chat), Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO) auf k3d/k3s mit Traefik Ingress.
+Kubernetes-native collaboration platform — Mattermost (Chat), Nextcloud (Files + Talk + Collabora), Keycloak (SSO), Invoice Ninja (Billing) on k3d/k3s with Traefik Ingress.
 
-## Schnellstart
+**Prerequisites:** Docker, [k3d](https://k3d.io), kubectl, [task](https://taskfile.dev)
 
-Voraussetzungen: Docker, [k3d](https://k3d.io), kubectl, [task](https://taskfile.dev)
+## Service URLs
 
-```bash
-git clone https://github.com/Paddione/Bachelorprojekt.git && cd Bachelorprojekt
+| Service | URL | Credentials (dev) |
+|---------|-----|-------------------|
+| Keycloak (SSO) | `http://auth.localhost` | admin / devadmin |
+| Mattermost (Chat) | `http://chat.localhost` | via Keycloak SSO |
+| Nextcloud (Files + Talk) | `http://files.localhost` | via Keycloak SSO |
+| Collabora (Office) | `http://office.localhost` | via Nextcloud |
+| Talk HPB (Signaling) | `http://signaling.localhost` | — |
+| Invoice Ninja (Billing) | `http://billing.localhost` | via Keycloak SSO |
 
-# Cluster erstellen + alle Services deployen
-cd .. && task cluster:create && task ingress:install && task homeoffice:deploy
-```
-
-Services sind erreichbar unter:
-- **Keycloak (SSO):** http://auth.localhost (admin / devadmin)
-- **Mattermost (Chat):** http://chat.localhost
-- **Nextcloud (Dateien + Talk):** http://files.localhost
-- **Collabora (Office):** http://office.localhost
-- **Talk HPB (Signaling):** http://signaling.localhost
-
-## Dokumentation
-
-| Dokument | Beschreibung |
-|----------|-------------|
-| [Architektur](docs/architecture.md) | Systemübersicht, Service-Diagramm, Netzwerk und Datenfluss |
-| [Services](docs/services.md) | Kubernetes-Services und deren Zusammenspiel |
-| [Keycloak & SSO](docs/keycloak.md) | Identity Management, OIDC-Clients |
-| [Migration](docs/migration.md) | Import von Slack, Teams, Google Workspace |
-| [Skripte](docs/scripts.md) | Referenz aller Skripte, Parameter und Befehle |
-| [Tests](docs/tests.md) | Automatisiertes Test-Framework |
-| [Sicherheit](docs/security.md) | Sicherheitsrichtlinien und Best Practices |
-| [Fehlerbehebung](docs/troubleshooting.md) | Häufige Probleme und Lösungsansätze |
-
-## Architektur
-
-```
-              NGINX Ingress (Ports 80/443)
-                     |
-    +----------------+----------------+--------------+
-    v                v                v              v
-+--------+    +----------+    +----------+    +-----------+    +----------+
-|Matter- |    |Nextcloud |    |Keycloak  |    | Collabora |    | Talk HPB |
-|most    |    | + Talk   |    |  (SSO)   |    |  Online   |    | Signaling|
-+--------+    +----------+    +----------+    +-----------+    +----------+
-    |              |               |                            | Janus    |
-+--------+    +----------+    +----------+                     | NATS     |
-|  DB    |    |    DB    |    |    DB    |                     | coturn   |
-|(PG 16) |    | (PG 16) |    | (PG 16) |                     +----------+
-+--------+    +----------+    +----------+
-
-Namespace: homeoffice
-Alle Services laufen als Kubernetes Deployments in k3d/k3s.
-```
-
-## Tägliche Befehle
+## Quick Start
 
 ```bash
-task homeoffice:status           # Pod-Status prüfen
-task homeoffice:logs -- keycloak # Logs eines Service ansehen
-task homeoffice:restart -- mattermost  # Service neustarten
-task homeoffice:validate         # Manifeste validieren
-task homeoffice:teardown         # Alles entfernen
+task cluster:create && task homeoffice:deploy
 ```
 
-## Tests
+## Architecture
+
+```
+              Traefik Ingress (Ports 80/443)
+                        |
+    +---------+---------+---------+-----------+----------+
+    v         v         v         v           v          v
+Keycloak  Mattermost Nextcloud Collabora  Invoice   Talk HPB
+  (SSO)    (Chat)    +Talk     Online     Ninja    Signaling
+                       |                          +Janus+NATS
+   shared-db (postgres:16-alpine)                 +coturn
+   DBs: keycloak | mattermost | nextcloud | invoiceninja
+```
+
+## Commands
 
 ```bash
-./tests/runner.sh local              # Alle Tests gegen k3d
-./tests/runner.sh local SA-08        # Einzelnen Test ausführen
-./tests/runner.sh report             # Markdown-Report generieren
+task homeoffice:status                 # pod health
+task homeoffice:logs -- keycloak       # service logs
+task homeoffice:restart -- mattermost  # restart
+task homeoffice:validate               # validate manifests
+task homeoffice:teardown               # remove everything
+
+cd Bachelorprojekt
+./tests/runner.sh local                # all local tests
+./tests/runner.sh local SA-08          # single test
+./tests/runner.sh report               # generate report
 ```
 
-## Projektstruktur
+## Project Structure
 
 ```
 Bachelorprojekt/
-  k3d/                          # Kubernetes-Manifeste (Kustomize)
-    kustomization.yaml          # Kustomize-Orchestrierung
-    configmap-domains.yaml      # Domain-Konfiguration
-    secrets.yaml                # Dev-Secrets
-    ingress.yaml                # NGINX Ingress Rules
-    keycloak*.yaml              # Keycloak + DB
-    mattermost*.yaml            # Mattermost + DB
-    nextcloud*.yaml             # Nextcloud + DB
-    talk-hpb.yaml               # Nextcloud Talk HPB (Signaling + Janus + NATS)
-    coturn.yaml                 # TURN/STUN Server
-    collabora.yaml              # Collabora Online (Dokumentenbearbeitung)
-    realm-homeoffice-dev.json   # Keycloak Realm-Konfiguration
-    nextcloud-oidc-dev.php      # Nextcloud OIDC-Konfiguration
-  scripts/                      # Migration, Import, Utility-Skripte
-  tests/                        # Automatisierte Tests (Bash + Playwright)
-  docs/                         # Dokumentation
-  mattermost/                   # Mattermost Keycloak-Proxy Config
+  k3d/
+    kustomization.yaml          # Kustomize entry point
+    configmap-domains.yaml      # central domain config (never hardcode hostnames)
+    secrets.yaml                # dev-only secrets
+    keycloak*.yaml / mattermost*.yaml / nextcloud*.yaml
+    talk-hpb.yaml / coturn.yaml / collabora.yaml / wordpress.yaml
+    realm-homeoffice-dev.json   # Keycloak realm config
+    nextcloud-oidc-dev.php      # Nextcloud OIDC config
+  scripts/   # migration, import, utility scripts
+  tests/     # automated tests (Bash + Playwright)
+  mattermost/ # Keycloak proxy config
 ```
 
-## Regeln für dieses Monorepo
+## Monorepo Rules
 
-1. **Einziger Deployment-Pfad ist k3d/k3s.** Es gibt keine docker-compose-Konfiguration.
-2. **Alle Kubernetes-Manifeste liegen in `k3d/`.** Kustomize ist das Build-Tool.
-3. **Änderungen gehen immer durch Pull Requests** — keine direkten Pushes auf `main`.
-4. **CI muss grün sein** vor dem Merge (Manifest-Validierung, YAML-Lint, Shellcheck, Security-Scan).
-5. **Domain-Konfiguration ist zentral** in `k3d/configmap-domains.yaml`. Keine hartkodierten Hostnamen in Manifesten.
-6. **Secrets liegen in `k3d/secrets.yaml`** (nur Dev-Werte). Niemals echte Credentials committen.
-7. **Tests laufen gegen den lokalen k3d-Cluster** via `./tests/runner.sh local`.
+1. **Only deployment target is k3d/k3s** — no docker-compose.
+2. **All K8s manifests in `k3d/`** — Kustomize only.
+3. **All changes via Pull Requests** — no direct pushes to `main`.
+4. **CI must pass** before merge (manifest validation, YAML lint, shellcheck, security scan).
+5. **Domain config is central** — `k3d/configmap-domains.yaml`; never hardcode hostnames.
+6. **Secrets in `k3d/secrets.yaml`** (dev values only) — never commit real credentials.

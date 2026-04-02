@@ -71,7 +71,8 @@ assert_gt "$NATS_POD" 0 "FA-03" "T3e" "NATS Message Bus Pod läuft"
 # T6: Guest access to Talk room (Gap 1.6 / O)
 # Create a public Talk room via Nextcloud OCS API and verify guest can reach it
 NC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" homeoffice-secrets \
-  -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || echo "devnextcloudadmin")
+  -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null)
+NC_ADMIN_PASS="${NC_ADMIN_PASS:-devnextcloudadmin}"
 # Create public conversation (type 3 = public)
 ROOM_RESP=$(_kube_curl -X POST \
   -H "OCS-APIRequest: true" -H "Accept: application/json" \

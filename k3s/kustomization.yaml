@@ -25,6 +25,7 @@ patches:
         COLLABORA_DOMAIN: "office-wbhprojekt.ipv64.de"
         MAIL_DOMAIN: "mail-wbhprojekt.ipv64.de"
         DOCS_DOMAIN: "docs-wbhprojekt.ipv64.de"
+        WP_DOMAIN: "web-wbhprojekt.ipv64.de"
 
   # ── Ingress: production domains + Traefik ────────────────────────
   - target:

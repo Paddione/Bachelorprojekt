@@ -38,6 +38,10 @@ assert_eq "$CUSTOM_EMOJI" "house" "FA-08" "T4" "Status-Emoji sichtbar"
 CUSTOM_TEXT=$(echo "$CUSTOM_JSON" | jq -r '.text // empty' 2>/dev/null)
 assert_gt "${#CUSTOM_TEXT}" 0 "FA-08" "T5" "Custom-Status-Text gesetzt und abrufbar"
 
+# T6: Custom status has expires_at set (verifies auto-reset is configured)
+CUSTOM_EXPIRY=$(echo "$CUSTOM_JSON" | jq -r '.expires_at // empty' 2>/dev/null)
+assert_gt "${#CUSTOM_EXPIRY}" 0 "FA-08" "T6" "Custom-Status expires_at gesetzt (Auto-Reset konfiguriert)"
+
 # Cleanup
 curl -s -o /dev/null -X DELETE -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/me/status/custom"
 curl -s -o /dev/null -X PUT -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" \

@@ -201,11 +201,38 @@ _mm_login() {
 KC_ADMIN_TOKEN=""
 
 _kc_admin_login() {
-  KC_ADMIN_TOKEN=$(curl -s -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
-    -d "client_id=admin-cli" \
-    -d "username=admin" \
-    -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
-    -d "grant_type=password" | jq -r '.access_token // empty')
+  local attempt max_attempts=3
+  KC_ADMIN_TOKEN=""
+  for attempt in $(seq 1 $max_attempts); do
+    KC_ADMIN_TOKEN=$(curl -s --max-time 10 -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
+      -d "client_id=admin-cli" \
+      -d "username=admin" \
+      -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
+      -d "grant_type=password" | jq -r '.access_token // empty')
+    if [[ -n "$KC_ADMIN_TOKEN" ]]; then
+      return 0
+    fi
+    if (( attempt < max_attempts )); then
+      echo "  KC Admin-Login Versuch ${attempt}/${max_attempts} fehlgeschlagen — warte 5s..."
+      sleep 5
+    fi
+  done
+  return 1
+}
+
+_regenerate_mm_token() {
+  # Regenerate MM_ADMIN_TOKEN via mmctl after a pod restart invalidates the old one
+  local old_tokens tid token_output
+  # Revoke stale test-runner tokens
+  old_tokens=$(_kube_run mattermost mmctl token list testadmin --local 2>/dev/null \
+    | grep "test-runner" | awk '{print $1}') || true
+  for tid in $old_tokens; do
+    _kube_run mattermost mmctl token revoke "$tid" --local 2>/dev/null || true
+  done
+  # Generate fresh token
+  token_output=$(_kube_run mattermost mmctl token generate testadmin test-runner --local 2>/dev/null)
+  MM_ADMIN_TOKEN=$(echo "$token_output" | awk -F: '{print $1}' | tr -d '[:space:]')
+  export MM_ADMIN_TOKEN
 }
 
 _bootstrap_keycloak_user() {

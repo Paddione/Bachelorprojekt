@@ -52,11 +52,17 @@ else
   _log_result "FA-07" "T5" "OpenSearch-Cluster erreichbar und gesund" "fail" "0" "HTTP ${OS_HEALTH}"
 fi
 
-# T6: Mattermost Elasticsearch/OpenSearch indexing enabled
-ES_ENABLED=$(_mm "${MM_URL}/config/client?format=old" | jq -r '.EnableSearching // "false"' 2>/dev/null)
+# T6: Mattermost Elasticsearch/OpenSearch indexing enabled (server config, requires admin token)
+ES_ENABLED=$(_mm "${MM_URL}/config" | jq -r '.ElasticsearchSettings.EnableSearching // false' 2>/dev/null)
 if [[ "$ES_ENABLED" == "true" ]]; then
   _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "pass" "0"
 else
-  # Fallback: check if the connection URL is configured (client config may not expose this)
-  _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "skip" "0" "Client-Config zeigt ES-Status nicht (serverseitig konfiguriert)"
+  _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "fail" "0" "EnableSearching=${ES_ENABLED}"
 fi
+
+# T7: Date-filtered search — after: syntax returns results for today's messages
+YESTERDAY=$(date -d 'yesterday' +%Y-%m-%d 2>/dev/null || date -v-1d +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
+DATE_RESULTS=$(_mm -X POST "${MM_URL}/teams/${TEAM_ID}/posts/search" \
+  -d "{\"terms\":\"${SEARCH_TERM} after:${YESTERDAY}\",\"is_or_search\":false}")
+DATE_MATCH=$(echo "$DATE_RESULTS" | jq '.order | length')
+assert_gt "$DATE_MATCH" 0 "FA-07" "T7" "Datumsfiltersuche (after:${YESTERDAY}) findet Nachricht"

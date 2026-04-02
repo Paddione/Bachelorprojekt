@@ -29,19 +29,13 @@ ADMIN_ID=$(_mm "${MM_URL}/users/me" | jq -r '.id')
 VISIBLE_STATUS=$(curl -s -H "Authorization: Bearer ${USER1_TOKEN}" "${MM_URL}/users/${ADMIN_ID}/status" | jq -r '.status')
 assert_eq "$VISIBLE_STATUS" "dnd" "FA-08" "T3" "Status für andere User sichtbar"
 
-# T4: Status emoji visible — check via user props
-CUSTOM_RESP=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/me/status")
-CUSTOM_EMOJI=$(echo "$CUSTOM_RESP" | jq -r '.custom_status.emoji // empty')
-if [[ -z "$CUSTOM_EMOJI" ]]; then
-  # Fallback: try the dedicated custom status endpoint
-  CUSTOM_RESP2=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/me/status/custom")
-  CUSTOM_EMOJI=$(echo "$CUSTOM_RESP2" | jq -r '.emoji // empty')
-fi
+# T4: Status emoji visible — custom status is stored in user props.customStatus (JSON string)
+CUSTOM_JSON=$(_mm "${MM_URL}/users/me" | jq -r '.props.customStatus // empty')
+CUSTOM_EMOJI=$(echo "$CUSTOM_JSON" | jq -r '.emoji // empty' 2>/dev/null)
 assert_eq "$CUSTOM_EMOJI" "house" "FA-08" "T4" "Status-Emoji sichtbar"
 
-# T5: Custom status was set in T2 — verify T2 returned 200 (already asserted)
-# Check that custom_status exists in user status response
-CUSTOM_TEXT=$(echo "$CUSTOM_RESP" | jq -r '.custom_status.text // empty')
+# T5: Custom status text is set
+CUSTOM_TEXT=$(echo "$CUSTOM_JSON" | jq -r '.text // empty' 2>/dev/null)
 assert_gt "${#CUSTOM_TEXT}" 0 "FA-08" "T5" "Custom-Status-Text gesetzt und abrufbar"
 
 # Cleanup

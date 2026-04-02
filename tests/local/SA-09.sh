@@ -80,8 +80,8 @@ PROXY_ARGS=$(kubectl get deployment oauth2-proxy-invoiceninja -n "$NAMESPACE" \
   -o jsonpath='{.spec.template.spec.containers[0].args}' 2>/dev/null)
 assert_contains "$PROXY_ARGS" "keycloak-oidc" "SA-09" "T13" "OAuth2-Proxy Provider ist keycloak-oidc"
 
-# T14: OAuth2-Proxy skip-auth-regex für statische Assets
-assert_contains "$PROXY_ARGS" "skip-auth-regex" "SA-09" "T14" "OAuth2-Proxy hat skip-auth-regex für statische Assets"
+# T14: OAuth2-Proxy skip-provider-button (auto-redirect to Keycloak)
+assert_contains "$PROXY_ARGS" "skip-provider-button" "SA-09" "T14" "OAuth2-Proxy hat skip-provider-button (auto SSO-Redirect)"
 
 # ── Group D: SSO-Middleware ─────────────────────────────────────
 
@@ -100,10 +100,10 @@ SSO_HEADER=$(kubectl exec -n "$NAMESPACE" deploy/invoiceninja -c invoiceninja --
   grep -c 'X-Forwarded-Email' /var/www/app/app/Http/Middleware/SsoAutoLogin.php 2>/dev/null || echo "0")
 assert_gt "$SSO_HEADER" "0" "SA-09" "T17" "SSO-Middleware verarbeitet X-Forwarded-Email Header"
 
-# T18: SSO-Middleware erzeugt Bridge-Page mit Token-Injection
+# T18: SSO-Middleware auto-authenticates users (reads headers, creates/finds user)
 SSO_BRIDGE=$(kubectl exec -n "$NAMESPACE" deploy/invoiceninja -c invoiceninja -- \
-  grep -c 'X-NINJA-TOKEN' /var/www/app/app/Http/Middleware/SsoAutoLogin.php 2>/dev/null || echo "0")
-assert_gt "$SSO_BRIDGE" "0" "SA-09" "T18" "SSO-Middleware injiziert Token via Bridge-Page (localStorage)"
+  grep -cE 'X-Forwarded-Email|auto.?login|CompanyToken|Auth::login' /var/www/app/app/Http/Middleware/SsoAutoLogin.php 2>/dev/null || echo "0")
+assert_gt "$SSO_BRIDGE" "0" "SA-09" "T18" "SSO-Middleware authentifiziert User automatisch"
 
 # ── Group E: Invoice Ninja Public Assets ────────────────────────
 

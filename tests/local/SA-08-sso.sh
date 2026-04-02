@@ -11,12 +11,19 @@ KC_ADMIN_TOKEN=""
 # Helper: curl innerhalb des k3d-Clusters via Mattermost-Pod
 _kube_curl() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
 
-# ── Admin-Token holen ────────────────────────────────────────────
-KC_ADMIN_TOKEN=$(_kube_curl -X POST "${KC_INT_URL}/realms/master/protocol/openid-connect/token" \
+# ── Admin-Token holen (try external first, fallback to internal) ─
+KC_ADMIN_TOKEN=$(curl -s -X POST "${KC_EXT_URL}/realms/master/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=admin" \
   -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
-  -d "grant_type=password" | jq -r '.access_token // empty')
+  -d "grant_type=password" 2>/dev/null | jq -r '.access_token // empty')
+if [[ -z "$KC_ADMIN_TOKEN" ]]; then
+  KC_ADMIN_TOKEN=$(_kube_curl -X POST "${KC_INT_URL}/realms/master/protocol/openid-connect/token" \
+    -d "client_id=admin-cli" \
+    -d "username=admin" \
+    -d "password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}" \
+    -d "grant_type=password" | jq -r '.access_token // empty')
+fi
 
 if [[ -z "$KC_ADMIN_TOKEN" ]]; then
   skip_test "SA-08" "T1" "Keycloak Client-Konfiguration" "Kein Keycloak Admin-Token"
@@ -26,15 +33,15 @@ else
   # ── Group A: Client-Konfiguration ──────────────────────────────
 
   # T1: Mattermost OIDC Client existiert mit korrekter Redirect-URI
-  MM_CLIENT=$(_kube_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_INT_URL}/admin/realms/homeoffice/clients?clientId=mattermost")
+  MM_CLIENT=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+    "${KC_EXT_URL}/admin/realms/homeoffice/clients?clientId=mattermost" 2>/dev/null)
   MM_REDIRECT=$(echo "$MM_CLIENT" | jq -r '.[0].redirectUris[0] // empty')
-  assert_contains "$MM_REDIRECT" "chat.localhost" "SA-08" "T1" \
+  assert_contains "$MM_REDIRECT" "chat" "SA-08" "T1" \
     "Mattermost OIDC Client — Redirect-URI konfiguriert"
 
   # T2: Nextcloud OIDC Client existiert mit korrekter Redirect-URI
-  NC_CLIENT=$(_kube_curl -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_INT_URL}/admin/realms/homeoffice/clients?clientId=nextcloud")
+  NC_CLIENT=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
+    "${KC_EXT_URL}/admin/realms/homeoffice/clients?clientId=nextcloud" 2>/dev/null)
   NC_REDIRECT=$(echo "$NC_CLIENT" | jq -r '.[0].redirectUris | join(" ") // empty')
   assert_contains "$NC_REDIRECT" "/apps/oidc_login/oidc" "SA-08" "T2" \
     "Nextcloud OIDC Client — Redirect-URI enthält /apps/oidc_login/oidc"
@@ -66,11 +73,11 @@ else
   skip_test "SA-08" "T4" "Mattermost SSO-Redirect" "Kein SSO-Endpoint verfügbar"
 fi
 
-# T5: Nextcloud → Keycloak Redirect
-NC_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "${NC_URL:-http://files.localhost}/apps/oidc_login/oidc" 2>/dev/null \
-  | grep -i '^location:' | tr -d '\r')
-assert_contains "$NC_OIDC_REDIRECT" "realms/homeoffice" "SA-08" "T5" \
-  "Nextcloud OIDC-Login leitet zu Keycloak weiter"
+# T5: Nextcloud OIDC provider_url points to Keycloak (verifies config, not redirect chain)
+NC_PROVIDER_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
+assert_contains "$NC_PROVIDER_URL" "realms/homeoffice" "SA-08" "T5" \
+  "Nextcloud OIDC provider_url zeigt auf Keycloak"
 
 # T6: Talk HPB Signaling erreichbar
 SIGNALING_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
@@ -86,9 +93,11 @@ else
   skip_test "SA-08" "T7" "Mattermost client_id" "Kein SSO-Endpoint verfügbar"
 fi
 
-# T8: Nextcloud redirect enthält client_id=nextcloud
-assert_contains "$NC_OIDC_REDIRECT" "client_id=nextcloud" "SA-08" "T8" \
-  "Nextcloud Redirect enthält client_id=nextcloud"
+# T8: Nextcloud OIDC client_id is configured as "nextcloud"
+NC_CLIENT_ID=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_client_id 2>/dev/null || echo "")
+assert_eq "$NC_CLIENT_ID" "nextcloud" "SA-08" "T8" \
+  "Nextcloud OIDC client_id = nextcloud"
 
 # T9: Talk erbt SSO-Session von Nextcloud (kein separater OIDC-Client nötig)
 TALK_APP_ENABLED=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \

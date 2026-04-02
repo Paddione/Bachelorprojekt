@@ -12,17 +12,21 @@ kubectl wait --for=condition=Available deployment/mattermost -n "$NAMESPACE" --t
 MM_READY=$(kubectl get deploy/mattermost -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
 assert_eq "${MM_READY:-0}" "1" "NFA-03" "T1" "Mattermost startet nach kill automatisch neu"
 
-# Re-establish port-forward if it was broken by pod kill
+# Wait for new pod to be ready before re-establishing port-forward
+kubectl wait --for=condition=Ready pod -l app=mattermost -n "$NAMESPACE" --timeout=60s > /dev/null 2>&1 || true
+sleep 5
+
+# Re-establish port-forward to the new pod
 if declare -f _start_mm_portforward &>/dev/null; then
   _start_mm_portforward
 fi
 
-# Wait for Mattermost to become fully ready (API responsive)
+# Wait for API to become responsive through port-forward
 elapsed=0
 while (( elapsed < 30 )); do
   if curl -s -o /dev/null --max-time 2 "${MM_URL}/system/ping" 2>/dev/null; then break; fi
-  sleep 2
-  elapsed=$((elapsed + 2))
+  sleep 3
+  elapsed=$((elapsed + 3))
 done
 
 # T2: Services reachable after restart

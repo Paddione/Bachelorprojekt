@@ -171,7 +171,7 @@ k3d_wait() {
 }
 
 # ── Mattermost API helper ────────────────────────────────────────
-MM_ADMIN_TOKEN=""
+MM_ADMIN_TOKEN="${MM_ADMIN_TOKEN:-}"
 
 _mm_api() {
   local method="$1" endpoint="$2" data="${3:-}"

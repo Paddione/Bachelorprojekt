@@ -17,7 +17,8 @@ resources:
   - talk-hpb.yaml
   - coturn.yaml
   - collabora.yaml
-  - spacedeck.yaml
+  - whiteboard.yaml
+  - vaultwarden.yaml
   # Buchhaltung
   - invoiceninja.yaml
   - oauth2-proxy-invoiceninja.yaml

@@ -1,0 +1,64 @@
+# ═══════════════════════════════════════════════════════════════════
+# Nextcloud Whiteboard — collaborative whiteboard server
+# Nextcloud app config (run after app install):
+#   occ config:app:set whiteboard collabBackendUrl --value="https://<WHITEBOARD_DOMAIN>"
+#   occ config:app:set whiteboard jwt_secret_key --value="<WHITEBOARD_JWT_SECRET>"
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whiteboard
+  labels:
+    app: whiteboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whiteboard
+  template:
+    metadata:
+      labels:
+        app: whiteboard
+    spec:
+      containers:
+        - name: whiteboard
+          image: ghcr.io/nextcloud-releases/whiteboard:latest
+          env:
+            - name: NEXTCLOUD_URL
+              value: "http://nextcloud"
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: WHITEBOARD_JWT_SECRET
+          ports:
+            - containerPort: 3002
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whiteboard
+spec:
+  selector:
+    app: whiteboard
+  ports:
+    - port: 3002
+      targetPort: 3002

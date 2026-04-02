@@ -11,4 +11,4 @@ spec:
             - name: OVERWRITEPROTOCOL
               value: "https"
             - name: OVERWRITECLIURL
-              value: "https://files-wbhprojekt.ipv64.de"
+              value: "https://files.wbhprojekt.ipv64.de"

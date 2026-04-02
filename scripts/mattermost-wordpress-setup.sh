@@ -43,7 +43,7 @@ fi
 # ── Auto-detect WordPress external URL ────────────────────────
 if [ -z "${WP_EXTERNAL}" ]; then
   # Try the IngressRoute host first (production domain)
-  # The match field looks like: Host(`web-wbhprojekt.ipv64.de`)
+  # The match field looks like: Host(`web.wbhprojekt.ipv64.de`)
   # Extract the hostname between the backticks using sed (backticks break grep -oP in bash)
   WP_HOST=$(kubectl get ingressroute -n wordpress wordpress \
     -o jsonpath='{.spec.routes[0].match}' 2>/dev/null \

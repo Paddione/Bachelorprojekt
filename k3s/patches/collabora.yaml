@@ -9,4 +9,4 @@ spec:
         - name: collabora
           env:
             - name: server_name
-              value: "office-wbhprojekt.ipv64.de"
+              value: "office.wbhprojekt.ipv64.de"

@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+spec:
+  template:
+    spec:
+      containers:
+        - name: vaultwarden
+          env:
+            - name: DOMAIN
+              value: "https://vault.wbhprojekt.ipv64.de"
+            - name: SSO_AUTHORITY
+              value: "https://auth.wbhprojekt.ipv64.de/realms/homeoffice"

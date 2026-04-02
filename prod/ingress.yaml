@@ -9,14 +9,14 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - auth-wbhprojekt.ipv64.de
-        - chat-wbhprojekt.ipv64.de
-        - files-wbhprojekt.ipv64.de
-        - meet-wbhprojekt.ipv64.de
+        - auth.wbhprojekt.ipv64.de
+        - chat.wbhprojekt.ipv64.de
+        - files.wbhprojekt.ipv64.de
+        - meet.wbhprojekt.ipv64.de
       secretName: homeoffice-tls
   rules:
     # Keycloak (SSO)
-    - host: auth-wbhprojekt.ipv64.de
+    - host: auth.wbhprojekt.ipv64.de
       http:
         paths:
           - path: /
@@ -28,7 +28,7 @@ spec:
                   number: 8080
 
     # Mattermost (Chat)
-    - host: chat-wbhprojekt.ipv64.de
+    - host: chat.wbhprojekt.ipv64.de
       http:
         paths:
           - path: /
@@ -40,7 +40,7 @@ spec:
                   number: 8065
 
     # Nextcloud (Dateien)
-    - host: files-wbhprojekt.ipv64.de
+    - host: files.wbhprojekt.ipv64.de
       http:
         paths:
           - path: /
@@ -52,7 +52,7 @@ spec:
                   number: 80
 
     # Jitsi: OIDC Adapter (higher priority)
-    - host: meet-wbhprojekt.ipv64.de
+    - host: meet.wbhprojekt.ipv64.de
       http:
         paths:
           - path: /oidc

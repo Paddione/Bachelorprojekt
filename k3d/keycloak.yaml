@@ -93,6 +93,16 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: WP_DOMAIN
+            - name: VAULTWARDEN_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: VAULTWARDEN_OIDC_SECRET
+            - name: VAULT_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: VAULT_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:

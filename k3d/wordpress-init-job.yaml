@@ -138,7 +138,7 @@ spec:
                   name: wordpress-oidc-secret
                   key: client-secret
             - name: KEYCLOAK_URL
-              value: "https://auth-wbhprojekt.ipv64.de/realms/homeoffice"
+              value: "https://auth.wbhprojekt.ipv64.de/realms/homeoffice"
           volumeMounts:
             - name: wordpress-data
               mountPath: /var/www/html

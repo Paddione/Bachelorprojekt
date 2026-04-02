@@ -1,0 +1,126 @@
+# ═══════════════════════════════════════════════════════════════════
+# Vaultwarden — self-hosted Bitwarden-compatible password manager
+# SSO via Keycloak OIDC; database on shared PostgreSQL
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vaultwarden-data-pvc
+spec:
+  storageClassName: local-path
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+  labels:
+    app: vaultwarden
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vaultwarden
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: vaultwarden
+    spec:
+      containers:
+        - name: vaultwarden
+          image: vaultwarden/server:latest
+          env:
+            - name: VAULTWARDEN_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: VAULTWARDEN_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://vaultwarden:$(VAULTWARDEN_DB_PASSWORD)@shared-db:5432/vaultwarden"
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: VAULTWARDEN_ADMIN_TOKEN
+            - name: DOMAIN
+              value: "http://vault.localhost"
+            - name: VAULT_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: VAULT_DOMAIN
+            # ── SSO via Keycloak ──────────────────────────────────
+            - name: SSO_ENABLED
+              value: "true"
+            - name: SSO_ONLY
+              value: "false"
+            - name: SSO_CLIENT_ID
+              value: "vaultwarden"
+            - name: SSO_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: VAULTWARDEN_OIDC_SECRET
+            - name: SSO_AUTHORITY
+              value: "http://keycloak:8080/realms/homeoffice"
+            - name: KC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: KC_DOMAIN
+            # ── SMTP via Mailpit (dev) ────────────────────────────
+            - name: SMTP_HOST
+              value: "mailpit"
+            - name: SMTP_PORT
+              value: "1025"
+            - name: SMTP_SECURITY
+              value: "off"
+            - name: SMTP_FROM
+              value: "vaultwarden@homeoffice.local"
+            - name: SMTP_FROM_NAME
+              value: "Vaultwarden"
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /alive
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: 80
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: vaultwarden-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden
+spec:
+  selector:
+    app: vaultwarden
+  ports:
+    - port: 80
+      targetPort: 80

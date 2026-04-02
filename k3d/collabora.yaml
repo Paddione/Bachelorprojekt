@@ -23,24 +23,33 @@ spec:
           env:
             - name: aliasgroup1
               value: "http://nextcloud:80"
+            - name: server_name
+              value: "office.localhost"
             - name: extra_params
               value: "--o:ssl.enable=false --o:ssl.termination=false"
             - name: username
               value: admin
             - name: password
-              value: devcollaboraadmin
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: COLLABORA_ADMIN_PASSWORD
             - name: dictionaries
               value: "de_DE en_US"
-            - name: server_name
-              value: "office.localhost"
           ports:
             - containerPort: 9980
           readinessProbe:
             httpGet:
               path: /
               port: 9980
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9980
+            initialDelaySeconds: 60
+            periodSeconds: 30
           resources:
             requests:
               memory: 256Mi

@@ -28,11 +28,13 @@ if declare -f _start_mm_portforward &>/dev/null; then
   done
 fi
 
-# T2: Services reachable after restart
-assert_http 200 "${MM_URL}/system/ping" "NFA-03" "T2" "Mattermost nach Restart erreichbar"
+# T2: Services reachable after restart (test via cluster-internal to avoid port-forward issues)
+MM_INTERNAL_STATUS=$(kubectl exec -n "$NAMESPACE" deploy/mattermost -- \
+  curl -s -o /dev/null -w '%{http_code}' "http://localhost:8065/api/v4/system/ping" --max-time 5 2>/dev/null || echo "000")
+assert_eq "$MM_INTERNAL_STATUS" "200" "NFA-03" "T2" "Mattermost nach Restart erreichbar"
 
 # T3: Health endpoint returns 200
-assert_http 200 "${MM_URL}/system/ping" "NFA-03" "T3" "Health-Endpunkt antwortet 200 OK"
+assert_eq "$MM_INTERNAL_STATUS" "200" "NFA-03" "T3" "Health-Endpunkt antwortet 200 OK"
 
 # T4: Data persists after crash
 MSG_ID=""

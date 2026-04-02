@@ -22,8 +22,17 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
   test('T15: Mattermost SSO-Login via Keycloak', async () => {
     await page.goto(`${MM_URL}/login`);
 
-    // Click SSO button
-    const ssoBtn = page.getByRole('button', { name: /keycloak|openid|sso/i });
+    // Dismiss "Desktop vs Browser" chooser if present
+    const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
+    try {
+      await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
+      await browserLink.click();
+    } catch {
+      // Already on login form
+    }
+
+    // Click SSO button (configured as GitLab OAuth via mm-keycloak-proxy)
+    const ssoBtn = page.getByRole('link', { name: /gitlab|keycloak|openid|sso/i });
     await expect(ssoBtn).toBeVisible({ timeout: 10_000 });
     await ssoBtn.click();
 

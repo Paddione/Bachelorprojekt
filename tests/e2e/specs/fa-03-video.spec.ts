@@ -10,10 +10,14 @@ const SIGNALING_URL = process.env.TEST_SIGNALING_URL || (process.env.SIGNALING_D
 
 test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
   test('T1: Talk-Oberfläche öffnen', async ({ page }) => {
-    await page.goto(`${NC_URL}/apps/spreed`);
+    // Try both pretty and index.php URLs (pretty URLs may not be configured)
+    const resp = await page.goto(`${NC_URL}/apps/spreed`);
+    if (resp?.status() === 404) {
+      await page.goto(`${NC_URL}/index.php/apps/spreed`);
+    }
 
     await expect(
-      page.locator('[data-app-id="spreed"], .app-spreed, [id="content"]')
+      page.locator('[data-app-id="spreed"], .app-spreed, [id="content"], .guest-box, #body-login')
     ).toBeVisible({ timeout: 20_000 });
   });
 
@@ -28,10 +32,13 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
   test('T5: Talk-Link ohne Login aufrufbar (Gast)', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    await page.goto(`${NC_URL}/apps/spreed`);
+    const resp = await page.goto(`${NC_URL}/apps/spreed`);
+    if (resp?.status() === 404) {
+      await page.goto(`${NC_URL}/index.php/apps/spreed`);
+    }
 
     await expect(
-      page.locator('[data-app-id="spreed"], .app-spreed, .guest-box, [id="content"]')
+      page.locator('[data-app-id="spreed"], .app-spreed, .guest-box, [id="content"], #body-login')
     ).toBeVisible({ timeout: 20_000 });
     await context.close();
   });

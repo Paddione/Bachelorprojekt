@@ -10,6 +10,28 @@
 
 NAMESPACE="${NAMESPACE:-homeoffice}"
 
+# ── Environment-aware URL configuration ─────────────────────────
+# For prod tier: set PROD_DOMAIN (e.g. "wbhprojekt.ipv64.de")
+# URLs are then https://auth-PROD_DOMAIN, https://chat-PROD_DOMAIN, etc.
+# For local tier: defaults to http://auth.localhost, http://chat.localhost
+if [[ -n "${PROD_DOMAIN:-}" ]]; then
+  PROTO="${PROTO:-https}"
+  KC_URL="${KC_URL:-${PROTO}://auth-${PROD_DOMAIN}}"
+  MM_URL="${MM_URL:-${PROTO}://chat-${PROD_DOMAIN}/api/v4}"
+  NC_URL="${NC_URL:-${PROTO}://files-${PROD_DOMAIN}}"
+  COLLAB_URL="${COLLAB_URL:-${PROTO}://office-${PROD_DOMAIN}}"
+  MEET_URL="${MEET_URL:-${PROTO}://meet-${PROD_DOMAIN}}"
+else
+  PROTO="${PROTO:-http}"
+  KC_URL="${KC_URL:-${PROTO}://auth.localhost}"
+  MM_URL="${MM_URL:-${PROTO}://chat.localhost/api/v4}"
+  NC_URL="${NC_URL:-${PROTO}://files.localhost}"
+  COLLAB_URL="${COLLAB_URL:-${PROTO}://office.localhost}"
+  MEET_URL="${MEET_URL:-${PROTO}://meet.localhost}"
+fi
+
+export PROTO KC_URL MM_URL NC_URL COLLAB_URL MEET_URL
+
 # ── kubectl helper for running commands in pods ──────────────────
 _kube_run() {
   local deploy="$1"; shift
@@ -53,13 +75,12 @@ k3d_wait() {
     kubectl wait --for=condition=Available deployment --all -n "$NAMESPACE" --timeout=300s 2>&1 || true
   fi
 
-  _wait_for_url "http://chat.localhost/api/v4/system/ping" "Mattermost" 180
-  _wait_for_url "http://auth.localhost/health/ready" "Keycloak" 180
+  _wait_for_url "${MM_URL}/system/ping" "Mattermost" 180
+  _wait_for_url "${KC_URL}/health/ready" "Keycloak" 180
   echo "  Alle Services bereit."
 }
 
 # ── Mattermost API helper ────────────────────────────────────────
-MM_URL="http://chat.localhost/api/v4"
 MM_ADMIN_TOKEN=""
 
 _mm_api() {
@@ -79,7 +100,6 @@ _mm_login() {
 }
 
 # ── Keycloak test user ──────────────────────────────────────────
-KC_URL="http://auth.localhost"
 KC_ADMIN_TOKEN=""
 
 _kc_admin_login() {

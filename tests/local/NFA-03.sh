@@ -33,7 +33,6 @@ fi
 _regenerate_mm_token
 echo "  MM Admin-Token nach Neustart regeneriert."
 
-
 # T2: Services reachable after restart (test via cluster-internal to avoid port-forward issues)
 MM_INTERNAL_STATUS=$(kubectl exec -n "$NAMESPACE" deploy/mattermost -- \
   curl -s -o /dev/null -w '%{http_code}' "http://localhost:8065/api/v4/system/ping" --max-time 5 2>/dev/null || echo "000")

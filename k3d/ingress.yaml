@@ -65,6 +65,7 @@ spec:
                 port:
                   number: 9666
 
+
     # ── Talk HPB Signaling ───────────────────────────────────────────
     - host: signaling.localhost
       http:

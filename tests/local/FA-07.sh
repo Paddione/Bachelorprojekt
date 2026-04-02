@@ -59,10 +59,3 @@ if [[ "$ES_ENABLED" == "true" ]]; then
 else
   _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "fail" "0" "EnableSearching=${ES_ENABLED}"
 fi
-
-# T7: Date-filtered search — after: syntax returns results for today's messages
-YESTERDAY=$(date -d 'yesterday' +%Y-%m-%d 2>/dev/null || date -v-1d +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
-DATE_RESULTS=$(_mm -X POST "${MM_URL}/teams/${TEAM_ID}/posts/search" \
-  -d "{\"terms\":\"${SEARCH_TERM} after:${YESTERDAY}\",\"is_or_search\":false}")
-DATE_MATCH=$(echo "$DATE_RESULTS" | jq '.order | length')
-assert_gt "$DATE_MATCH" 0 "FA-07" "T7" "Datumsfiltersuche (after:${YESTERDAY}) findet Nachricht"

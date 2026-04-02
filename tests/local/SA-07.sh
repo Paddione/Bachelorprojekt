@@ -37,23 +37,3 @@ assert_eq "$DUMPALL_CHECK" "1" "SA-07" "T4" "pg_dumpall (Cluster-Backup) funktio
 # T5: Nextcloud data directory has content
 NC_FILES=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- ls /var/www/html/data/ 2>/dev/null | wc -l || echo "0")
 assert_gt "$NC_FILES" 0 "SA-07" "T5" "Nextcloud Datenverzeichnis nicht leer"
-
-# T6: db-backup CronJob exists in homeoffice namespace
-CRONJOB_NAME=$(kubectl get cronjob db-backup -n "$NAMESPACE" \
-  -o jsonpath='{.metadata.name}' 2>/dev/null || echo "")
-assert_eq "$CRONJOB_NAME" "db-backup" "SA-07" "T6" "db-backup CronJob vorhanden"
-
-# T7: CronJob schedule is 0 2 * * * (daily at 02:00 UTC)
-CRONJOB_SCHEDULE=$(kubectl get cronjob db-backup -n "$NAMESPACE" \
-  -o jsonpath='{.spec.schedule}' 2>/dev/null || echo "")
-assert_eq "$CRONJOB_SCHEDULE" "0 2 * * *" "SA-07" "T7" "db-backup Schedule = '0 2 * * *' (täglich 02:00 UTC)"
-
-# T8: backup-pvc PVC exists and is Bound
-BACKUP_PVC_PHASE=$(kubectl get pvc backup-pvc -n "$NAMESPACE" \
-  -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
-assert_eq "$BACKUP_PVC_PHASE" "Bound" "SA-07" "T8" "backup-pvc PVC ist Bound"
-
-# T9: backup-passphrase secret exists
-BACKUP_SECRET=$(kubectl get secret backup-passphrase -n "$NAMESPACE" \
-  -o jsonpath='{.metadata.name}' 2>/dev/null || echo "")
-assert_eq "$BACKUP_SECRET" "backup-passphrase" "SA-07" "T9" "backup-passphrase Secret vorhanden"

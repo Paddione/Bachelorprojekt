@@ -40,6 +40,11 @@ data:
       CREATE DATABASE nextcloud OWNER nextcloud;
       GRANT ALL PRIVILEGES ON DATABASE nextcloud TO nextcloud;
 
+      -- Vaultwarden
+      CREATE USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';
+      CREATE DATABASE vaultwarden OWNER vaultwarden;
+      GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO vaultwarden;
+
     EOSQL
 ---
 apiVersion: apps/v1
@@ -94,6 +99,11 @@ spec:
                 secretKeyRef:
                   name: homeoffice-secrets
                   key: NEXTCLOUD_DB_PASSWORD
+            - name: VAULTWARDEN_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: VAULTWARDEN_DB_PASSWORD
           ports:
             - containerPort: 5432
           volumeMounts:

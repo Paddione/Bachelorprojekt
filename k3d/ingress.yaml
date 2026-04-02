@@ -113,3 +113,15 @@ spec:
                 name: oauth2-proxy-invoiceninja
                 port:
                   number: 4180
+
+    # ── Vaultwarden (Passwortmanager) ────────────────────────────
+    - host: vault.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vaultwarden
+                port:
+                  number: 80

@@ -18,6 +18,7 @@ resources:
   - coturn.yaml
   - collabora.yaml
   - whiteboard.yaml
+  - vaultwarden.yaml
   # Buchhaltung
   - invoiceninja.yaml
   - oauth2-proxy-invoiceninja.yaml

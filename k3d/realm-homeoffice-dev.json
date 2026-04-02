@@ -408,6 +408,30 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "vaultwarden",
+      "name": "Vaultwarden",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${VAULTWARDEN_OIDC_SECRET}",
+      "redirectUris": [
+        "http://${VAULT_DOMAIN}/identity/connect/oidc-signin"
+      ],
+      "webOrigins": [
+        "http://${VAULT_DOMAIN}"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "attributes": {
+        "oidc.ciba.grant.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true"
+      }
     }
   ]
 }

@@ -28,3 +28,6 @@
 - op: replace
   path: /spec/rules/8/host
   value: billing.wbhprojekt.ipv64.de
+- op: replace
+  path: /spec/rules/9/host
+  value: vault.wbhprojekt.ipv64.de

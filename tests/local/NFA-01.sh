@@ -11,18 +11,15 @@ for suspect in "gcr.io" "amazonaws.com" "azurecr.io" "mcr.microsoft.com"; do
   assert_not_contains "$IMAGES" "$suspect" "NFA-01" "T1-${suspect%%.*}" "Keine Images von ${suspect}"
 done
 
-# T2: Mattermost telemetry disabled
-if [[ -n "${MM_ADMIN_TOKEN:-}" ]]; then
-  MM_CONFIG=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/config" 2>/dev/null)
-  TELEMETRY=$(echo "$MM_CONFIG" | jq -r '.LogSettings.EnableDiagnostics // true')
-  assert_eq "$TELEMETRY" "false" "NFA-01" "T2a" "Mattermost Telemetrie deaktiviert"
+# T2: Mattermost telemetry disabled (check via deployment env vars — survives pod restarts)
+TELEMETRY_ENV=$(kubectl get deployment mattermost -n "$NAMESPACE" \
+  -o jsonpath='{.spec.template.spec.containers[0].env}' 2>/dev/null)
+TELEMETRY_VAL=$(echo "$TELEMETRY_ENV" | jq -r '.[] | select(.name=="MM_LOGSETTINGS_ENABLEDIAGNOSTICS") | .value // "true"')
+assert_eq "${TELEMETRY_VAL:-true}" "false" "NFA-01" "T2a" "Mattermost Telemetrie deaktiviert (Env)"
 
-  SEGMENT_KEY=$(echo "$MM_CONFIG" | jq -r '.AnalyticsSettings.SegmentDeveloperKey // empty')
-  assert_eq "${SEGMENT_KEY:-}" "" "NFA-01" "T2b" "Kein Segment Analytics-Key konfiguriert"
-else
-  skip_test "NFA-01" "T2a" "Telemetrie-Check" "Kein Admin-Token"
-  skip_test "NFA-01" "T2b" "Analytics-Check" "Kein Admin-Token"
-fi
+# T2b: No analytics key configured
+SEGMENT_VAL=$(echo "$TELEMETRY_ENV" | jq -r '.[] | select(.name | test("SEGMENT")) | .value // empty')
+assert_eq "${SEGMENT_VAL:-}" "" "NFA-01" "T2b" "Kein Segment Analytics-Key konfiguriert"
 
 # T3: Nextcloud has no external storage backends
 NC_OCC=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \

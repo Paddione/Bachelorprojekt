@@ -83,7 +83,7 @@ spec:
             - name: MM_SERVICESETTINGS_ENABLEPOSTIMAGEPROXY
               value: "true"
             # ── Guest Access (Gap 1.6) ────────────────────────
-            - name: MM_GUESTSETTINGS_ENABLE
+            - name: MM_GUESTACCOUNTSSETTINGS_ENABLE
               value: "true"
             # ── Email / SMTP via Mailpit (Gap 1.5) ────────────
             - name: MM_EMAILSETTINGS_SMTPSERVER

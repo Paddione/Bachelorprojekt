@@ -16,18 +16,17 @@ assert_eq "${MM_READY:-0}" "1" "NFA-03" "T1" "Mattermost startet nach kill autom
 kubectl wait --for=condition=Ready pod -l app=mattermost -n "$NAMESPACE" --timeout=60s > /dev/null 2>&1 || true
 sleep 5
 
-# Re-establish port-forward to the new pod
+# Re-establish port-forward to the new pod (retry up to 3 times)
 if declare -f _start_mm_portforward &>/dev/null; then
-  _start_mm_portforward
+  for attempt in 1 2 3; do
+    _start_mm_portforward
+    if curl -s -o /dev/null --max-time 3 "${MM_URL}/system/ping" 2>/dev/null; then
+      break
+    fi
+    echo "  Port-forward Versuch ${attempt}/3 fehlgeschlagen — warte..."
+    sleep 5
+  done
 fi
-
-# Wait for API to become responsive through port-forward
-elapsed=0
-while (( elapsed < 30 )); do
-  if curl -s -o /dev/null --max-time 2 "${MM_URL}/system/ping" 2>/dev/null; then break; fi
-  sleep 3
-  elapsed=$((elapsed + 3))
-done
 
 # T2: Services reachable after restart
 assert_http 200 "${MM_URL}/system/ping" "NFA-03" "T2" "Mattermost nach Restart erreichbar"

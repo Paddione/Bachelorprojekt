@@ -1,0 +1,48 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: homeoffice
+
+# Base kustomization (all deployments, services, PVCs from k3d/)
+resources:
+  - ../k3d
+  # Production-only (no equivalent in base)
+  - cluster-issuer.yaml
+
+# Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
+configMapGenerator:
+  - name: realm-template
+    behavior: replace
+    files:
+      - realm-homeoffice.json=realm-homeoffice-prod.json
+  - name: nextcloud-oidc-config
+    behavior: replace
+    files:
+      - oidc.config.php=nextcloud-oidc-prod.php
+  - name: keycloak-import-script
+    files:
+      - import-entrypoint.sh
+  - name: mattermost-proxy-config
+    files:
+      - default.conf=userinfo-proxy.conf
+  - name: jitsi-adapter-code
+    files:
+      - adapter.ts=adapter.ts
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+# Strategic merge patches
+patches:
+  # Override secrets with production values
+  - path: secrets.yaml
+  # Override domains
+  - path: configmap-domains.yaml
+  # Override ingress (add TLS + real hostnames)
+  - path: ingress.yaml
+  # Service patches for https:// env vars
+  - path: patch-mattermost.yaml
+  - path: patch-nextcloud.yaml
+  - path: patch-jitsi-web.yaml
+  - path: patch-jitsi-keycloak-adapter.yaml
+  - path: patch-jitsi-jvb.yaml
+  - path: patch-keycloak.yaml

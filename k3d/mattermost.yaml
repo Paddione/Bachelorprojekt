@@ -141,6 +141,10 @@ spec:
               value: "http://mm-keycloak-proxy:8081/token"
             - name: MM_GITLABSETTINGS_USERAPIENDPOINT
               value: "http://mm-keycloak-proxy:8081/userinfo"
+            - name: MM_SQLSETTINGS_MAXOPENCONNS
+              value: "25"
+            - name: MM_SQLSETTINGS_MAXIDLECONNS
+              value: "10"
             - name: TZ
               value: Europe/Berlin
           ports:
@@ -162,9 +166,10 @@ spec:
             periodSeconds: 30
           resources:
             requests:
+              cpu: 250m
               memory: 256Mi
-              cpu: 200m
             limits:
+              cpu: "1"
               memory: 1Gi
       volumes:
         - name: data

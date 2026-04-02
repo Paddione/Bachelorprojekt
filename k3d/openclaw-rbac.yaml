@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openclaw-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openclaw-agent
+rules:
+  # ─── Broad read access ────────────────────────────────────────
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - configmaps
+      - persistentvolumeclaims
+      - namespaces
+      - nodes
+      - events
+      - replicationcontrollers
+      - serviceaccounts
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+  # ─── Limited write (restart + scale only) ─────────────────────
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "patch", "update"]
+  # ─── Explicitly DENIED by omission ────────────────────────────
+  # - No access to secrets (cannot read credentials)
+  # - No pods/exec (cannot exec into containers)
+  # - No delete on namespaces, PVCs, or deployments
+  # - No create on any resource except via patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openclaw-agent
+subjects:
+  - kind: ServiceAccount
+    name: openclaw-agent
+    namespace: homeoffice
+roleRef:
+  kind: ClusterRole
+  name: openclaw-agent
+  apiGroup: rbac.authorization.k8s.io

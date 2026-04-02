@@ -2,14 +2,13 @@
   "realm": "homeoffice",
   "enabled": true,
   "displayName": "Homeoffice MVP (Dev)",
-  "sslRequired": "none",
+  "sslRequired": "external",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
   "bruteForceProtected": true,
-  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and hashAlgorithm(pbkdf2-sha512)",
   "clients": [
     {
       "clientId": "mattermost",
@@ -18,10 +17,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${MATTERMOST_OIDC_SECRET}",
       "redirectUris": [
-        "http://${MM_DOMAIN}/*"
+        "https://${MM_DOMAIN}/*"
       ],
       "webOrigins": [
-        "http://${MM_DOMAIN}"
+        "https://${MM_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -105,65 +104,17 @@
       ]
     },
     {
-      "clientId": "invoiceninja",
-      "name": "Invoice Ninja",
-      "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "${INVOICENINJA_OIDC_SECRET}",
-      "redirectUris": [
-        "http://${BILLING_DOMAIN}/oauth2/callback"
-      ],
-      "webOrigins": [
-        "http://${BILLING_DOMAIN}"
-      ],
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "protocol": "openid-connect",
-      "publicClient": false,
-      "protocolMappers": [
-        {
-          "name": "email",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "email",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "email",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "username",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "username",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "preferred_username",
-            "jsonType.label": "String"
-          }
-        }
-      ]
-    },
-    {
       "clientId": "nextcloud",
       "name": "Nextcloud",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
       "secret": "${NEXTCLOUD_OIDC_SECRET}",
       "redirectUris": [
-        "http://${NC_DOMAIN}/apps/oidc_login/oidc",
-        "http://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
+        "https://${NC_DOMAIN}/apps/oidc_login/oidc",
+        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
       ],
       "webOrigins": [
-        "http://${NC_DOMAIN}"
+        "https://${NC_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -202,106 +153,22 @@
       ]
     },
     {
-      "clientId": "wordpress",
-      "name": "WordPress",
+      "clientId": "jitsi",
+      "name": "Jitsi Meet",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "${WORDPRESS_OIDC_SECRET}",
+      "secret": "public-client-not-used",
+      "publicClient": true,
       "redirectUris": [
-        "https://${WP_DOMAIN}/wp-admin/admin-ajax.php?action=openid-connect-authorize",
-        "http://${WP_DOMAIN}/wp-admin/admin-ajax.php?action=openid-connect-authorize"
+        "https://${JITSI_DOMAIN}/oidc/tokenize"
       ],
       "webOrigins": [
-        "https://${WP_DOMAIN}",
-        "http://${WP_DOMAIN}"
+        "https://${JITSI_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "protocol": "openid-connect",
-      "publicClient": false,
-      "protocolMappers": [
-        {
-          "name": "email",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "email",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "email",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "username",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "username",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "preferred_username",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "given name",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "firstName",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "given_name",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "family name",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "lastName",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "family_name",
-            "jsonType.label": "String"
-          }
-        }
-      ]
-    },
-    {
-      "clientId": "openclaw",
-      "name": "OpenClaw AI Assistant",
-      "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "${OPENCLAW_OIDC_SECRET}",
-      "redirectUris": [
-        "http://${OPENCLAW_DOMAIN}/*"
-      ],
-      "webOrigins": [
-        "http://${OPENCLAW_DOMAIN}"
-      ],
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "protocol": "openid-connect",
-      "publicClient": false,
-      "attributes": {
-        "oidc.ciba.grant.enabled": "false",
-        "oauth2.device.authorization.grant.enabled": "false",
-        "backchannel.logout.session.required": "true"
-      },
       "protocolMappers": [
         {
           "name": "email",
@@ -344,5 +211,18 @@
         }
       ]
     }
-  ]
+  ],
+  "smtpServer": {
+    "host": "smtp.mailbox.org",
+    "port": "465",
+    "ssl": "true",
+    "starttls": "false",
+    "auth": "true",
+    "user": "korczewski@mailbox.org",
+    "password": "${SMTP_PASSWORD}",
+    "from": "noreply-bachelorprojekt@mailbox.org",
+    "fromDisplayName": "Homeoffice MVP",
+    "replyTo": "",
+    "envelopeFrom": "noreply-bachelorprojekt@mailbox.org"
+  }
 }

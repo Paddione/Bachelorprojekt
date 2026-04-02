@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+spec:
+  template:
+    spec:
+      containers:
+        - name: nextcloud
+          env:
+            - name: OVERWRITEPROTOCOL
+              value: "https"
+            - name: OVERWRITECLIURL
+              value: "https://files-wbhprojekt.ipv64.de"

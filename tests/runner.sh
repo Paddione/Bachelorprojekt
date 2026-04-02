@@ -5,6 +5,8 @@
 # Usage:
 #   ./tests/runner.sh local              # full local tier (k3d)
 #   ./tests/runner.sh local FA-01 SA-03  # specific tests
+#   ./tests/runner.sh prod               # full prod tier (k3s)
+#   ./tests/runner.sh prod SA-01 NFA-02  # specific prod tests
 #   ./tests/runner.sh report             # regenerate Markdown
 #
 # Prerequisites:
@@ -31,10 +33,10 @@ SPECIFIC_TESTS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    local|report) TIER="$1"; shift ;;
+    local|prod|report) TIER="$1"; shift ;;
     --verbose) export VERBOSE="true"; shift ;;
     -h|--help)
-      echo "Usage: $0 <local|report> [TEST_IDS...] [--verbose]"
+      echo "Usage: $0 <local|prod|report> [TEST_IDS...] [--verbose]"
       exit 0 ;;
     *)
       SPECIFIC_TESTS+=("$1"); shift ;;
@@ -42,7 +44,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$TIER" ]]; then
-  echo "Error: Tier required. Usage: $0 <local|report>"
+  echo "Error: Tier required. Usage: $0 <local|prod|report>"
   exit 1
 fi
 
@@ -102,7 +104,7 @@ export RESULTS_FILE="${RESULTS_DIR}/.tmp-${TIER}-${DATE_TAG}.jsonl"
 > "$RESULTS_FILE"  # truncate
 
 echo "═══════════════════════════════════════════════════════════════"
-echo "  Homeoffice MVP — Test Runner (${TIER} / k3d)"
+echo "  Homeoffice MVP — Test Runner (${TIER} / ${PROD_DOMAIN:-k3d})"
 echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "═══════════════════════════════════════════════════════════════"
 
@@ -127,6 +129,33 @@ if [[ "$TIER" == "local" ]]; then
       npx playwright test --reporter=line 2>&1 || true
     cd "$SCRIPT_DIR"
   fi
+fi
+
+# ── Prod tier (k3s) ─────────────────────────────────────────────
+if [[ "$TIER" == "prod" ]]; then
+  if [[ -z "${PROD_DOMAIN:-}" ]]; then
+    echo "Error: PROD_DOMAIN is required for prod tier."
+    echo "  Example: PROD_DOMAIN=wbhprojekt.ipv64.de $0 prod"
+    exit 1
+  fi
+  export PROD_DOMAIN
+
+  # Check prod-specific tools (optional but warn)
+  for cmd in nmap ab; do
+    if ! command -v "$cmd" &>/dev/null; then
+      echo "  ⚠ '${cmd}' nicht installiert — einige Tests werden übersprungen"
+    fi
+  done
+
+  # Verify prod is reachable before running tests
+  echo "▶ Prüfe Erreichbarkeit von ${PROD_DOMAIN}..."
+  if ! curl -sk -o /dev/null --max-time 10 "https://auth-${PROD_DOMAIN}/health/ready" 2>/dev/null; then
+    echo "  ⚠ Keycloak auf auth-${PROD_DOMAIN} nicht erreichbar — Tests starten trotzdem"
+  else
+    echo "  Keycloak erreichbar."
+  fi
+
+  run_test_files "${SCRIPT_DIR}/prod"
 fi
 
 # ── Finalize ─────────────────────────────────────────────────────

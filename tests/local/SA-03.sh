@@ -5,8 +5,8 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 
 NAMESPACE="${NAMESPACE:-homeoffice}"
 
-# T1: bcrypt hash in DB
-HASH=$(kubectl exec -n "$NAMESPACE" deploy/mattermost-db -- psql -U mattermost -d mattermost -t -c \
+# T1: bcrypt hash in DB (shared-db hosts the mattermost database)
+HASH=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- psql -U mattermost -d mattermost -t -c \
   "SELECT password FROM users WHERE username='testadmin' LIMIT 1;" 2>/dev/null | tr -d '[:space:]')
 assert_match "$HASH" '^\$2[aby]\$' "SA-03" "T1" "Passwort als bcrypt-Hash gespeichert"
 

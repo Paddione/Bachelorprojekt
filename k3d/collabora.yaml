@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: collabora
-          image: collabora/code:latest
+          image: collabora/code:25.04.9.4.1
           env:
             - name: aliasgroup1
               value: "http://nextcloud:80"

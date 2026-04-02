@@ -9,12 +9,9 @@ TEAM_ID=$(_mm "${MM_URL}/teams/name/testteam" | jq -r '.id')
 CH_ID=$(_mm "${MM_URL}/teams/${TEAM_ID}/channels/name/test-public" | jq -r '.id')
 ADMIN_ID=$(_mm "${MM_URL}/users/me" | jq -r '.id')
 
-# T1: Push notification config exists (web push enabled in server config)
-MM_CONFIG=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/config" 2>/dev/null)
-PUSH_SERVER=$(echo "$MM_CONFIG" | jq -r '.EmailSettings.SendPushNotifications // false')
-# For self-hosted, push may be disabled — check that notification preferences API works
+# T1: Notification preferences exist for user
 NOTIF_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
-  -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/me/notify-props")
+  -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/users/${ADMIN_ID}/preferences")
 assert_eq "$NOTIF_STATUS" "200" "FA-06" "T1" "Benachrichtigungseinstellungen abrufbar"
 
 # T2: Channel mute — notification level configurable
@@ -24,10 +21,10 @@ MUTE_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT \
   "${MM_URL}/channels/${CH_ID}/members/${ADMIN_ID}/notify_props")
 assert_eq "$MUTE_STATUS" "200" "FA-06" "T2" "Kanal stummschalten konfigurierbar"
 
-# T3: DND status settable
+# T3: DND status settable (requires user_id in body)
 DND_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT \
   -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" -H "Content-Type: application/json" \
-  -d '{"status":"dnd"}' "${MM_URL}/users/me/status")
+  -d "{\"user_id\":\"${ADMIN_ID}\",\"status\":\"dnd\"}" "${MM_URL}/users/me/status")
 assert_eq "$DND_STATUS" "200" "FA-06" "T3" "Do-Not-Disturb Status setzbar"
 
 # T4: @mention triggers notification (verify mention counts API)
@@ -45,4 +42,4 @@ assert_gt "$MENTION_COUNT" 0 "FA-06" "T4" "@mention erhöht Mention-Counter"
 
 # Cleanup: reset status
 curl -s -o /dev/null -X PUT -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" \
-  -H "Content-Type: application/json" -d '{"status":"online"}' "${MM_URL}/users/me/status"
+  -H "Content-Type: application/json" -d "{\"user_id\":\"${ADMIN_ID}\",\"status\":\"online\"}" "${MM_URL}/users/me/status"

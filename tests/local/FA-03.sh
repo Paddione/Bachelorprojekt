@@ -30,7 +30,14 @@ fi
 SIGNALING_CONF=$(kubectl exec -n "$NAMESPACE" deploy/spreed-signaling -- \
   cat /etc/signaling/server.conf 2>/dev/null || echo "")
 if [[ -n "$SIGNALING_CONF" ]]; then
-  assert_contains "$SIGNALING_CONF" "coturn" "FA-03" "T3a" "TURN-Server zeigt auf cluster-internen coturn"
+  # TURN server uses either cluster-internal "coturn" name or the node IP with coturn NodePort
+  COTURN_NODEPORT=$(kubectl get svc coturn -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || echo "")
+  if echo "$SIGNALING_CONF" | grep -qE "coturn|:${COTURN_NODEPORT}"; then
+    _log_result "FA-03" "T3a" "TURN-Server zeigt auf cluster-internen coturn" "pass" "0"
+  else
+    _log_result "FA-03" "T3a" "TURN-Server zeigt auf cluster-internen coturn" "fail" "0" \
+      "Weder 'coturn' noch NodePort :${COTURN_NODEPORT} in signaling config gefunden"
+  fi
   assert_not_contains "$SIGNALING_CONF" "stun.l.google.com" "FA-03" "T3b" "Kein externer Google STUN-Server konfiguriert"
   assert_not_contains "$SIGNALING_CONF" "turn.jit.si" "FA-03" "T3c" "Kein externer Jitsi TURN-Server konfiguriert"
 else
@@ -45,9 +52,9 @@ assert_eq "$SIGNALING_STATUS" "200" "FA-03" "T4" "HPB Signaling-Server erreichba
 
 # T5: Guest access — Talk endpoint accessible without authentication
 GUEST_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-  "http://files.localhost/apps/spreed" 2>/dev/null || echo "000")
-# 200 or 302 (redirect to login with Talk visible) both indicate the endpoint exists
-if [[ "$GUEST_STATUS" == "200" || "$GUEST_STATUS" == "302" || "$GUEST_STATUS" == "303" ]]; then
+  "${NC_URL:-http://files.localhost}/apps/spreed" 2>/dev/null || echo "000")
+# 200 = direct access, 301/302/303 = redirect to login (endpoint exists)
+if [[ "$GUEST_STATUS" == "200" || "$GUEST_STATUS" == "301" || "$GUEST_STATUS" == "302" || "$GUEST_STATUS" == "303" ]]; then
   _log_result "FA-03" "T5" "Talk-Endpunkt von extern erreichbar (Gast-Zugang möglich)" "pass" "0"
 else
   _log_result "FA-03" "T5" "Talk-Endpunkt von extern erreichbar (Gast-Zugang möglich)" "fail" "0" "HTTP ${GUEST_STATUS}"
@@ -64,7 +71,8 @@ assert_gt "$NATS_POD" 0 "FA-03" "T3e" "NATS Message Bus Pod läuft"
 # T6: Guest access to Talk room (Gap 1.6 / O)
 # Create a public Talk room via Nextcloud OCS API and verify guest can reach it
 NC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" homeoffice-secrets \
-  -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || echo "devnextcloudadmin")
+  -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null)
+NC_ADMIN_PASS="${NC_ADMIN_PASS:-devnextcloudadmin}"
 # Create public conversation (type 3 = public)
 ROOM_RESP=$(_kube_curl -X POST \
   -H "OCS-APIRequest: true" -H "Accept: application/json" \

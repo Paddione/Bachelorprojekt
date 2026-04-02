@@ -106,7 +106,7 @@ spec:
     spec:
       containers:
         - name: janus
-          image: canyan/janus-gateway:latest
+          image: canyan/janus-gateway:master
           ports:
             - containerPort: 8188
               name: ws

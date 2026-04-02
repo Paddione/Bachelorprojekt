@@ -69,6 +69,10 @@ spec:
                   key: NEXTCLOUD_ADMIN_PASSWORD
             - name: NEXTCLOUD_TRUSTED_DOMAINS
               value: "files.localhost"
+            - name: NEXTCLOUD_DEFAULT_LANGUAGE
+              value: "de"
+            - name: NEXTCLOUD_DEFAULT_LOCALE
+              value: "de_DE"
             - name: OVERWRITEPROTOCOL
               value: http
             - name: OVERWRITECLIURL

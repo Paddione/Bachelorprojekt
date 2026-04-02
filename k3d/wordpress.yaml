@@ -1,0 +1,237 @@
+
+# ── Namespace ─────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wordpress
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted
+---
+# ── MariaDB Secret ────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mariadb-secret
+  namespace: wordpress
+type: Opaque
+stringData:
+  MYSQL_ROOT_PASSWORD: "wp-root-dev-only"
+  MYSQL_DATABASE: "wordpress"
+  MYSQL_USER: "wordpress"
+  # Override at deploy-time: kubectl create secret generic mariadb-secret ...
+  MYSQL_PASSWORD: "wordpress-dev-only"
+---
+# ── WordPress OIDC Secret ─────────────────────────────────────────────────────
+# Holds credentials for the Keycloak OIDC client registered as "wordpress".
+# Replace WORDPRESS_OIDC_CLIENT_SECRET with the value from secrets.yaml at deploy time.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wordpress-oidc-secret
+  namespace: wordpress
+type: Opaque
+stringData:
+  client-secret: "devwordpressoidcsecret12345"
+---
+# ── PHP Upload Limits ConfigMap ───────────────────────────────────────────────
+# Raises limits above the default 2MB to allow the 323MB .wpress import.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-php-config
+  namespace: wordpress
+data:
+  uploads.ini: |
+    upload_max_filesize = 512M
+    post_max_size       = 512M
+    memory_limit        = 512M
+    max_execution_time  = 300
+    max_input_time      = 300
+---
+# ── MariaDB PVC ───────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-pvc
+  namespace: wordpress
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: smb-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+# ── MariaDB Deployment ────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:11
+          envFrom:
+            - secretRef:
+                name: mariadb-secret
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mariadb-pvc
+---
+# ── MariaDB Service ───────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: wordpress
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+---
+# ── MariaDB Service alias (mysql) ────────────────────────────────────────────
+# Ensures WP-CLI and legacy wp-config.php DB_HOST=mysql still resolves.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: wordpress
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+---
+# ── WordPress PVC ─────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-pvc
+  namespace: wordpress
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: smb-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+# ── WordPress Deployment ──────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+        - name: wordpress
+          image: wordpress:6-apache
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: "mariadb:3306"
+            - name: WORDPRESS_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-secret
+                  key: MYSQL_DATABASE
+            - name: WORDPRESS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-secret
+                  key: MYSQL_USER
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-secret
+                  key: MYSQL_PASSWORD
+            # Trust Traefik's X-Forwarded-Proto so WordPress knows it's behind HTTPS.
+            # Without this, WP will generate http:// URLs and trigger redirect loops.
+            - name: WORDPRESS_CONFIG_EXTRA
+              value: |
+                define('FORCE_SSL_ADMIN', true);
+                if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) {
+                    $_SERVER['HTTPS'] = 'on';
+                }
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/html
+            - name: php-config
+              mountPath: /usr/local/etc/php/conf.d/uploads.ini
+              subPath: uploads.ini
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: wordpress-pvc
+        - name: php-config
+          configMap:
+            name: wordpress-php-config
+---
+# ── WordPress Service ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  namespace: wordpress
+spec:
+  selector:
+    app: wordpress
+  ports:
+    - port: 80
+---
+# ── IngressRoute (HTTPS) ─────────────────────────────────────────────────────
+# Uses Traefik's built-in Let's Encrypt resolver — no cert-manager needed.
+# TLS cert is obtained automatically on first request to the domain.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: wordpress
+  namespace: wordpress
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`web-wbhprojekt.ipv64.de`)
+      middlewares:
+        - name: default-chain
+          namespace: korczewski-infra
+      services:
+        - name: wordpress
+          port: 80
+  tls:
+    certResolver: letsencrypt

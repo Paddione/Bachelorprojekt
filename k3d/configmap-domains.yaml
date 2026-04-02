@@ -12,3 +12,4 @@ data:
   DOCS_DOMAIN: "docs.localhost"
   GITBOOK_URL: ""
   BILLING_DOMAIN: "billing.localhost"
+  WP_DOMAIN: "web.localhost"

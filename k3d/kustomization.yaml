@@ -12,6 +12,7 @@ resources:
   - keycloak.yaml
   - mm-keycloak-proxy.yaml
   - mattermost.yaml
+  - mattermost-hpa.yaml      # Autoscaling (NFA-04)
   - nextcloud.yaml
   # Jitsi Stack
   - jitsi-prosody.yaml
@@ -26,6 +27,7 @@ resources:
   - openclaw-config.yaml
   - openclaw-rbac.yaml
   - openclaw-webui.yaml
+  - openclaw-ollama.yaml
   # OpenClaw MCP Server (FA-11..FA-14)
   - openclaw-mcp-kubernetes.yaml
   - openclaw-mcp-postgres.yaml

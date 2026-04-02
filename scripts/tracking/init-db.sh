@@ -5,7 +5,7 @@
 # Usage: ./scripts/tracking/init-db.sh [--reset]
 #
 # Creates tracking.db from schema.sql, then imports all requirements
-# from docs/requirements/*.json and seeds the pipeline stages.
+# from docs/requirements/overview.md and seeds the pipeline stages.
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 DB="${PROJECT_DIR}/tracking.db"
 SCHEMA="${SCRIPT_DIR}/schema.sql"
-REQ_DIR="${PROJECT_DIR}/docs/requirements"
+OVERVIEW="${PROJECT_DIR}/../docs/requirements/overview.md"
 
 # ── Args ─────────────────────────────────────────────────────────
 if [[ "${1:-}" == "--reset" ]]; then
@@ -28,12 +28,17 @@ if [[ -f "$DB" && "${1:-}" != "--reset" ]]; then
 fi
 
 # ── Prerequisites ────────────────────────────────────────────────
-for cmd in sqlite3 jq; do
+for cmd in sqlite3 awk; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "Error: $cmd is required but not installed." >&2
     exit 1
   fi
 done
+
+if [[ ! -f "$OVERVIEW" ]]; then
+  echo "Error: requirements overview not found at ${OVERVIEW}" >&2
+  exit 1
+fi
 
 # ── Create schema ────────────────────────────────────────────────
 echo "Creating database schema..."
@@ -44,46 +49,15 @@ echo "Importing requirements..."
 
 STAGES=("idea" "implementation" "testing" "documentation" "archive")
 
-import_requirements() {
+import_requirements_from_md() {
   local file="$1"
-  local filename
-  filename=$(basename "$file" .json)
-  # Extract category prefix from filename and map to full German name
-  local prefix="${filename%%_*}"
-  local category
-  case "$prefix" in
-    FA)  category="Funktionale Anforderung" ;;
-    NFA) category="Nicht-Funktionale Anforderung" ;;
-    SA)  category="Sicherheitsanforderung" ;;
-    AK)  category="Abnahmekriterium" ;;
-    L)   category="Auslieferbares Objekt" ;;
-    *)   category="$prefix" ;;
-  esac
 
-  # Handle both object format {ID: {...}} and array format [{ID: ..., ...}]
-  local is_array
-  is_array=$(jq 'type == "array"' "$file")
+  # Parse Markdown tables from overview.md using awk.
+  # Section headers determine the German category name.
+  # Data rows match: | XX-NN | Name | Description |
+  while IFS=$'\t' read -r category id name desc criteria tests; do
+    [[ -n "$id" ]] || continue
 
-  # Normalize both formats to JSON lines with stable keys
-  local jq_script
-  jq_script=$(mktemp)
-  if [[ "$is_array" == "true" ]]; then
-    cat > "$jq_script" <<'JQEOF'
-.[] | {id: .ID, name: .Bezeichnung, desc: .Beschreibung, criteria: (.["Erf\u00fcllungskriterien"] // ""), tests: .Testfall}
-JQEOF
-  else
-    cat > "$jq_script" <<'JQEOF'
-to_entries[] | {id: .key, name: .value.Bezeichnung, desc: .value.Beschreibung, criteria: (.value["Erf\u00fcllungskriterien"] // ""), tests: .value.Testfall}
-JQEOF
-  fi
-
-  jq -c -f "$jq_script" "$file" | while IFS= read -r row; do
-    local id name desc criteria tests
-    id=$(echo "$row" | jq -r '.id')
-    name=$(echo "$row" | jq -r '.name')
-    desc=$(echo "$row" | jq -r '.desc')
-    criteria=$(echo "$row" | jq -r '.criteria')
-    tests=$(echo "$row" | jq -r '.tests')
     local automated=0
     # Check local bash tests: exact match (FA-01.sh) or suffixed (SA-08-sso.sh)
     if compgen -G "${PROJECT_DIR}/tests/local/${id}.sh" >/dev/null 2>&1 || \
@@ -104,8 +78,21 @@ JQEOF
     for stage in "${STAGES[@]}"; do
       sqlite3 "$DB" "INSERT OR IGNORE INTO pipeline (req_id, stage) VALUES ('${id}', '${stage}');"
     done
-  done
-  rm -f "$jq_script"
+  done < <(awk -F' \\| ' '
+    /^## Functional/      { cat = "Funktionale Anforderung" }
+    /^## Security/        { cat = "Sicherheitsanforderung" }
+    /^## Non-Functional/  { cat = "Nicht-Funktionale Anforderung" }
+    /^## Acceptance/      { cat = "Abnahmekriterium" }
+    /^## Deliverables/    { cat = "Auslieferbares Objekt" }
+    /^\| [A-Z]+-[0-9]+/ {
+      id       = $1; sub(/^\| /, "", id)
+      name     = $2
+      desc     = $3
+      criteria = $4
+      tests    = $5; sub(/ \|.*$/, "", tests)
+      print cat "\t" id "\t" name "\t" desc "\t" criteria "\t" tests
+    }
+  ' "$file")
 }
 
 # Helper: safely quote strings for SQLite (escape single quotes)
@@ -116,7 +103,7 @@ sqlite_quote() {
 }
 
 # Auto-detect idea stage: all requirements start as "done" for idea
-# (they're defined in the JSON, so the idea exists)
+# (they're defined in the overview, so the idea exists)
 mark_idea_done() {
   sqlite3 "$DB" "UPDATE pipeline SET status = 'done', updated_at = datetime('now')
     WHERE stage = 'idea';"
@@ -161,12 +148,9 @@ mark_implementation_from_tests() {
   done
 }
 
-# Import all requirement files
-for req_file in "${REQ_DIR}"/*_requirements.json; do
-  [[ -f "$req_file" ]] || continue
-  echo "  ← $(basename "$req_file")"
-  import_requirements "$req_file"
-done
+# Import requirements from canonical Markdown overview
+echo "  ← $(basename "$OVERVIEW")"
+import_requirements_from_md "$OVERVIEW"
 
 mark_idea_done
 mark_implementation_from_tests

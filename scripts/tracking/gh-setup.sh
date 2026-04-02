@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-REQ_DIR="${PROJECT_DIR}/docs/requirements"
+OVERVIEW="${PROJECT_DIR}/../docs/requirements/overview.md"
 
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
@@ -155,45 +155,40 @@ EOF
   fi
 }
 
-# Process requirement files (handles both object and array formats)
-process_requirements() {
-  local file="$1" category="$2"
+# Process all requirements from the canonical Markdown overview.
+# Section headers determine the category; rows are parsed by awk.
+process_requirements_from_md() {
+  local file="$1"
+  local current_category=""
 
-  local jq_script
-  jq_script=$(mktemp)
-  local is_array
-  is_array=$(jq 'type == "array"' "$file")
-
-  if [[ "$is_array" == "true" ]]; then
-    cat > "$jq_script" <<'JQEOF'
-.[] | {id: .ID, name: .Bezeichnung, desc: .Beschreibung, criteria: (.["Erf\u00fcllungskriterien"] // ""), tests: .Testfall}
-JQEOF
-  else
-    cat > "$jq_script" <<'JQEOF'
-to_entries[] | {id: .key, name: .value.Bezeichnung, desc: .value.Beschreibung, criteria: (.value["Erf\u00fcllungskriterien"] // ""), tests: .value.Testfall}
-JQEOF
-  fi
-
-  jq -c -f "$jq_script" "$file" | while IFS= read -r row; do
-    local id name desc criteria tests automated=0
-    id=$(echo "$row" | jq -r '.id')
-    name=$(echo "$row" | jq -r '.name')
-    desc=$(echo "$row" | jq -r '.desc')
-    criteria=$(echo "$row" | jq -r '.criteria')
-    tests=$(echo "$row" | jq -r '.tests')
+  while IFS=$'\t' read -r category id name desc criteria tests; do
+    [[ -n "$id" ]] || continue
+    if [[ "$category" != "$current_category" ]]; then
+      current_category="$category"
+      echo ""
+      echo "── ${current_category} ──"
+    fi
+    local automated=0
     [[ -f "${PROJECT_DIR}/tests/local/${id}.sh" ]] && automated=1 || true
     create_issue "$id" "$name" "$desc" "$criteria" "$tests" "$category" "$automated"
-  done
-  rm -f "$jq_script"
+  done < <(awk -F' \\| ' '
+    /^## Functional/      { cat = "Funktionale Anforderung" }
+    /^## Security/        { cat = "Sicherheitsanforderung" }
+    /^## Non-Functional/  { cat = "Nicht-Funktionale Anforderung" }
+    /^## Acceptance/      { cat = "Abnahmekriterium" }
+    /^## Deliverables/    { cat = "Auslieferbares Objekt" }
+    /^\| [A-Z]+-[0-9]+/ {
+      id       = $1; sub(/^\| /, "", id)
+      name     = $2
+      desc     = $3
+      criteria = $4
+      tests    = $5; sub(/ \|.*$/, "", tests)
+      print cat "\t" id "\t" name "\t" desc "\t" criteria "\t" tests
+    }
+  ' "$file")
 }
 
-for req_file in "${REQ_DIR}"/*_requirements.json; do
-  [[ -f "$req_file" ]] || continue
-  local_category=$(basename "$req_file" _requirements.json)
-  echo ""
-  echo "── ${local_category} ──"
-  process_requirements "$req_file" "$local_category"
-done
+process_requirements_from_md "$OVERVIEW"
 
 echo ""
 echo "Done! View your issues:"

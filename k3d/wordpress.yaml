@@ -150,6 +150,46 @@ spec:
       labels:
         app: wordpress
     spec:
+      initContainers:
+        # Clones the MCP adapter plugin and its peer dependency into the PVC
+        # before WordPress starts. Idempotent: skips clone if directory exists.
+        - name: install-mcp-plugins
+          # composer:2 ships git + PHP + Composer — needed because the plugins
+          # are distributed as source-only GitHub repos that require `composer install`
+          # to generate vendor/autoload.php. Without it the Autoloader silently bails.
+          image: composer:2
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              PLUGIN_DIR=/var/www/html/wp-content/plugins
+              mkdir -p "$PLUGIN_DIR"
+
+              install_plugin() {
+                local name="$1"
+                local repo="$2"
+                local check_file="$3"
+                if [ ! -f "$PLUGIN_DIR/$name/$check_file" ]; then
+                  echo "Cloning WordPress/$name..."
+                  git clone --depth=1 "https://github.com/WordPress/$name.git" "$PLUGIN_DIR/$name"
+                else
+                  echo "$name already cloned, skipping git."
+                fi
+                if [ ! -f "$PLUGIN_DIR/$name/vendor/autoload.php" ]; then
+                  echo "Running composer install for $name..."
+                  composer install --no-dev --no-interaction --working-dir="$PLUGIN_DIR/$name"
+                else
+                  echo "$name vendor/ already present, skipping composer."
+                fi
+              }
+
+              install_plugin "abilities-api"  "" "abilities-api.php"
+              install_plugin "mcp-adapter"    "" "mcp-adapter.php"
+
+              echo "MCP plugin installation complete."
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/html
       containers:
         - name: wordpress
           image: wordpress:6-apache
@@ -179,6 +219,11 @@ spec:
                 if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) {
                     $_SERVER['HTTPS'] = 'on';
                 }
+            # Required for Application Password auth over in-cluster plain HTTP.
+            # WordPress 6.8+ disables app passwords on non-HTTPS unless env type is 'local'.
+            # In-cluster MCP calls (pod→pod HTTP) carry no X-Forwarded-Proto header.
+            - name: WP_ENVIRONMENT_TYPE
+              value: "local"
           volumeMounts:
             - name: data
               mountPath: /var/www/html

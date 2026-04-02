@@ -118,6 +118,16 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/arch: amd64
+      initContainers:
+        # Copy public assets from backup into the shared emptyDir volume.
+        # The image bakes files into /var/www/app/public at build time, but
+        # the emptyDir mount overlays that path with an empty directory.
+        - name: copy-public-assets
+          image: invoiceninja/invoiceninja:5
+          command: ["sh", "-c", "cp -a /var/www/app/docker-backup-public/* /var/www/app/public/"]
+          volumeMounts:
+            - name: public
+              mountPath: /var/www/app/public
       containers:
         - name: invoiceninja
           image: invoiceninja/invoiceninja:5

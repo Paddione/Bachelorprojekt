@@ -55,6 +55,7 @@ type ActionRequest struct {
 	UserName  string            `json:"user_name"`
 	ChannelID string            `json:"channel_id"`
 	PostID    string            `json:"post_id"`
+	TriggerID string            `json:"trigger_id"`
 	Context   map[string]string `json:"context"`
 }
 
@@ -150,6 +151,8 @@ type INResponse[T any] struct {
 func main() {
 	http.HandleFunc("/slash", handleSlash)
 	http.HandleFunc("/actions", handleAction)
+	http.HandleFunc("/dialog/client", handleClientDialog)
+	http.HandleFunc("/dialog/company", handleCompanyDialog)
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "ok")
@@ -180,7 +183,13 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case req.Text == "" || req.Text == "help":
-		resp = buildMainMenu(req.ChannelName)
+		// Post interactive menu via Mattermost API so buttons are stored in DB.
+		// Ephemeral slash responses don't persist, which breaks button callbacks.
+		go postMenuViaMM(req)
+		resp = SlashResponse{ResponseType: "ephemeral"}
+	case req.Text == "setup":
+		go postSetupMenuViaMM(req)
+		resp = SlashResponse{ResponseType: "ephemeral"}
 	case strings.HasPrefix(req.Text, "client "):
 		resp = handleQuickClient(req)
 	case strings.HasPrefix(req.Text, "invoice "):
@@ -196,77 +205,219 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// buildMainMenu returns the interactive button menu shown when user types /billing
-func buildMainMenu(channelName string) SlashResponse {
-	actionURL := fmt.Sprintf("http://billing-bot:8090/actions")
+// postMenuViaMM creates the interactive button menu as an ephemeral post
+// through the Mattermost REST API, which persists it in the DB so that
+// button click callbacks (DoPostAction) can find the post.
+func postMenuViaMM(req SlashRequest) {
+	actionURL := "http://billing-bot:8090/actions"
 
-	return SlashResponse{
-		ResponseType: "ephemeral",
-		Attachments: []Attachment{
-			{
-				Text:  fmt.Sprintf("**Buchhaltung** — Channel: `%s`\nWas moechtest du erstellen?", channelName),
-				Color: "#1E88E5",
-				Actions: []Action{
-					{
-						ID:    "create_invoice",
-						Type:  "button",
-						Name:  "Rechnung erstellen",
-						Style: "primary",
-						Integration: Integration{
-							URL:     actionURL,
-							Context: map[string]string{"action": "create_invoice"},
-						},
-					},
-					{
-						ID:   "create_quote",
-						Type: "button",
-						Name: "Angebot erstellen",
-						Integration: Integration{
-							URL:     actionURL,
-							Context: map[string]string{"action": "create_quote"},
-						},
-					},
-					{
-						ID:   "create_expense",
-						Type: "button",
-						Name: "Ausgabe erfassen",
-						Integration: Integration{
-							URL:     actionURL,
-							Context: map[string]string{"action": "create_expense"},
-						},
-					},
-					{
-						ID:    "create_client",
-						Type:  "button",
-						Name:  "Kunde anlegen",
-						Style: "success",
-						Integration: Integration{
-							URL:     actionURL,
-							Context: map[string]string{"action": "create_client"},
-						},
-					},
-					{
-						ID:   "list_invoices",
-						Type: "button",
-						Name: "Rechnungen anzeigen",
-						Integration: Integration{
-							URL:     actionURL,
-							Context: map[string]string{"action": "list_invoices"},
-						},
-					},
-					{
-						ID:   "open_dashboard",
-						Type: "button",
-						Name: "Dashboard oeffnen",
-						Integration: Integration{
-							URL:     actionURL,
-							Context: map[string]string{"action": "open_dashboard"},
-						},
+	post := map[string]interface{}{
+		"channel_id": req.ChannelID,
+		"message":    "",
+		"props": map[string]interface{}{
+			"attachments": []map[string]interface{}{
+				{
+					"text":  fmt.Sprintf("**Buchhaltung** — @%s\nWas moechtest du erstellen?", req.UserName),
+					"color": "#1E88E5",
+					"actions": []map[string]interface{}{
+						{"id": "createinvoice", "type": "button", "name": "Rechnung erstellen", "style": "primary", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_invoice"}}},
+						{"id": "createquote", "type": "button", "name": "Angebot erstellen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_quote"}}},
+						{"id": "createexpense", "type": "button", "name": "Ausgabe erfassen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_expense"}}},
+						{"id": "createclient", "type": "button", "name": "Kunde anlegen", "style": "success", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_client"}}},
+						{"id": "listclients", "type": "button", "name": "Kunden verwalten", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_clients"}}},
+						{"id": "listinvoices", "type": "button", "name": "Rechnungen anzeigen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_invoices"}}},
+						{"id": "opendashboard", "type": "button", "name": "Dashboard oeffnen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "open_dashboard"}}},
 					},
 				},
 			},
 		},
 	}
+
+	body, err := json.Marshal(post)
+	if err != nil {
+		log.Printf("postMenuViaMM: marshal error: %v", err)
+		return
+	}
+
+	mmReq, err := http.NewRequest("POST", mattermostURL+"/api/v4/posts", bytes.NewReader(body))
+	if err != nil {
+		log.Printf("postMenuViaMM: request error: %v", err)
+		return
+	}
+	mmReq.Header.Set("Authorization", "Bearer "+mattermostToken)
+	mmReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(mmReq)
+	if err != nil {
+		log.Printf("postMenuViaMM: MM unreachable: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		b, _ := io.ReadAll(resp.Body)
+		log.Printf("postMenuViaMM: MM API %d: %s", resp.StatusCode, string(b))
+	}
+}
+
+// postSetupMenuViaMM posts the setup/admin menu
+func postSetupMenuViaMM(req SlashRequest) {
+	actionURL := "http://billing-bot:8090/actions"
+
+	post := map[string]interface{}{
+		"channel_id": req.ChannelID,
+		"message":    "",
+		"props": map[string]interface{}{
+			"attachments": []map[string]interface{}{
+				{
+					"text":  fmt.Sprintf("**Einstellungen** — @%s\nWas moechtest du konfigurieren?", req.UserName),
+					"color": "#43A047",
+					"actions": []map[string]interface{}{
+						{"id": "setupcompany", "type": "button", "name": "Firmendaten bearbeiten", "style": "primary", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "setup_company"}}},
+						{"id": "createclient", "type": "button", "name": "Kunde anlegen", "style": "success", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_client"}}},
+						{"id": "listclients", "type": "button", "name": "Kunden verwalten", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_clients"}}},
+						{"id": "opendashboard", "type": "button", "name": "Dashboard oeffnen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "open_dashboard"}}},
+					},
+				},
+			},
+		},
+	}
+
+	body, _ := json.Marshal(post)
+	mmReq, _ := http.NewRequest("POST", mattermostURL+"/api/v4/posts", bytes.NewReader(body))
+	mmReq.Header.Set("Authorization", "Bearer "+mattermostToken)
+	mmReq.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(mmReq)
+	if err != nil {
+		log.Printf("postSetupMenuViaMM: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		b, _ := io.ReadAll(resp.Body)
+		log.Printf("postSetupMenuViaMM: MM %d: %s", resp.StatusCode, string(b))
+	}
+}
+
+// openCompanyDialog opens a dialog pre-filled with current company settings
+func openCompanyDialog(req ActionRequest) {
+	triggerID := req.TriggerID
+	if triggerID == "" {
+		log.Printf("openCompanyDialog: no trigger_id")
+		return
+	}
+
+	// Fetch current company settings
+	var compResp struct {
+		Data struct {
+			Settings map[string]interface{} `json:"settings"`
+		} `json:"data"`
+	}
+	_ = inAPI("GET", "/api/v1/companies/1", nil, &compResp)
+	s := compResp.Data.Settings
+
+	getString := func(key string) string {
+		if v, ok := s[key]; ok && v != nil {
+			return fmt.Sprintf("%v", v)
+		}
+		return ""
+	}
+
+	dialog := map[string]interface{}{
+		"trigger_id": triggerID,
+		"url":        "http://billing-bot:8090/dialog/company",
+		"dialog": map[string]interface{}{
+			"callback_id":      "setup_company",
+			"title":            "Firmendaten",
+			"submit_label":     "Speichern",
+			"notify_on_cancel": false,
+			"elements": []map[string]interface{}{
+				{"display_name": "Firmenname", "name": "name", "type": "text", "default": getString("name"), "optional": false},
+				{"display_name": "E-Mail", "name": "email", "type": "text", "subtype": "email", "default": getString("email"), "optional": true},
+				{"display_name": "Telefon", "name": "phone", "type": "text", "default": getString("phone"), "optional": true},
+				{"display_name": "Website", "name": "website", "type": "text", "default": getString("website"), "optional": true},
+				{"display_name": "Strasse + Hausnr.", "name": "address1", "type": "text", "default": getString("address1"), "optional": true},
+				{"display_name": "Adresszusatz", "name": "address2", "type": "text", "default": getString("address2"), "optional": true},
+				{"display_name": "PLZ", "name": "postal_code", "type": "text", "default": getString("postal_code"), "optional": true},
+				{"display_name": "Ort", "name": "city", "type": "text", "default": getString("city"), "optional": true},
+				{"display_name": "USt-IdNr.", "name": "vat_number", "type": "text", "default": getString("vat_number"), "placeholder": "DE123456789", "optional": true},
+				{"display_name": "Steuernummer", "name": "id_number", "type": "text", "default": getString("id_number"), "optional": true},
+			},
+		},
+	}
+
+	body, _ := json.Marshal(dialog)
+	r, _ := http.NewRequest("POST", mattermostURL+"/api/v4/actions/dialogs/open", bytes.NewReader(body))
+	r.Header.Set("Authorization", "Bearer "+mattermostToken)
+	r.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(r)
+	if err != nil {
+		log.Printf("openCompanyDialog: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		b, _ := io.ReadAll(resp.Body)
+		log.Printf("openCompanyDialog: MM %d: %s", resp.StatusCode, string(b))
+	}
+}
+
+// handleCompanyDialog saves company settings to Invoice Ninja
+func handleCompanyDialog(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		UserID     string            `json:"user_id"`
+		ChannelID  string            `json:"channel_id"`
+		Submission map[string]string `json:"submission"`
+		Cancelled  bool              `json:"cancelled"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if req.Cancelled {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	s := req.Submission
+	log.Printf("dialog/company: name=%s", s["name"])
+
+	settings := map[string]interface{}{
+		"name":        s["name"],
+		"email":       s["email"],
+		"phone":       s["phone"],
+		"website":     s["website"],
+		"address1":    s["address1"],
+		"address2":    s["address2"],
+		"postal_code": s["postal_code"],
+		"city":        s["city"],
+		"state":       "",
+		"country_id":  "276",
+		"vat_number":  s["vat_number"],
+		"id_number":   s["id_number"],
+		"currency_id": "3",
+		"language_id": "5",
+		"timezone_id": "18",
+	}
+
+	update := map[string]interface{}{"settings": settings}
+	var result map[string]interface{}
+	if err := inAPI("PUT", "/api/v1/companies/1", update, &result); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"errors": map[string]string{"name": fmt.Sprintf("Fehler: %v", err)},
+		})
+		return
+	}
+
+	postToMM(req.ChannelID, fmt.Sprintf("Firmendaten aktualisiert: **%s**\n"+
+		"%s, %s %s\n"+
+		"USt-IdNr: %s | Steuernr: %s\n\n"+
+		"Weitere Details (Logo, Bankdaten, Zahlungsbedingungen): [Invoice Ninja Einstellungen](https://%s/#/settings/company_details)",
+		s["name"], s["address1"], s["postal_code"], s["city"],
+		s["vat_number"], s["id_number"], billingDomain))
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // ── Interactive Action Handler ───────────────────────────────────
@@ -291,12 +442,18 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 	case "create_expense":
 		resp = actionCreateExpense(req)
 	case "create_client":
-		resp = actionCreateClient(req)
+		openClientDialog(req)
+		resp = ActionResponse{}
+	case "setup_company":
+		openCompanyDialog(req)
+		resp = ActionResponse{}
+	case "list_clients":
+		resp = actionListClients(req)
 	case "list_invoices":
 		resp = actionListInvoices(req)
 	case "open_dashboard":
 		resp = ActionResponse{
-			EphemeralText: fmt.Sprintf("Oeffne das Invoice Ninja Dashboard: [billing.localhost](http://%s)", billingDomain),
+			EphemeralText: fmt.Sprintf("Dashboard oeffnen: [Invoice Ninja](https://%s)", billingDomain),
 		}
 	default:
 		resp = ActionResponse{
@@ -310,26 +467,161 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 
 // ── Action Implementations ───────────────────────────────────────
 
-func actionCreateClient(req ActionRequest) ActionResponse {
+// openClientDialog triggers a Mattermost interactive dialog for client creation
+func openClientDialog(req ActionRequest) {
+	triggerID := req.TriggerID
+	if triggerID == "" {
+		log.Printf("openClientDialog: no trigger_id")
+		return
+	}
+
+	dialog := map[string]interface{}{
+		"trigger_id": triggerID,
+		"url":        "http://billing-bot:8090/dialog/client",
+		"dialog": map[string]interface{}{
+			"callback_id":       "create_client",
+			"title":             "Kunde anlegen",
+			"submit_label":      "Anlegen",
+			"notify_on_cancel":  false,
+			"elements": []map[string]interface{}{
+				{"display_name": "Firmenname / Name", "name": "name", "type": "text", "placeholder": "Musterfirma GmbH", "optional": false},
+				{"display_name": "Ansprechpartner Vorname", "name": "first_name", "type": "text", "placeholder": "Max", "optional": true},
+				{"display_name": "Ansprechpartner Nachname", "name": "last_name", "type": "text", "placeholder": "Mustermann", "optional": true},
+				{"display_name": "E-Mail", "name": "email", "type": "text", "subtype": "email", "placeholder": "kontakt@firma.de", "optional": true},
+				{"display_name": "Telefon", "name": "phone", "type": "text", "placeholder": "+49 123 456789", "optional": true},
+				{"display_name": "Strasse + Hausnr.", "name": "address1", "type": "text", "placeholder": "Musterstr. 1", "optional": true},
+				{"display_name": "PLZ", "name": "postal_code", "type": "text", "placeholder": "12345", "optional": true},
+				{"display_name": "Ort", "name": "city", "type": "text", "placeholder": "Berlin", "optional": true},
+				{"display_name": "USt-IdNr.", "name": "vat_number", "type": "text", "placeholder": "DE123456789", "optional": true},
+				{"display_name": "Notizen", "name": "notes", "type": "textarea", "placeholder": "Interne Notizen zum Kunden", "optional": true},
+			},
+		},
+	}
+
+	body, _ := json.Marshal(dialog)
+	req2, _ := http.NewRequest("POST", mattermostURL+"/api/v4/actions/dialogs/open", bytes.NewReader(body))
+	req2.Header.Set("Authorization", "Bearer "+mattermostToken)
+	req2.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req2)
+	if err != nil {
+		log.Printf("openClientDialog: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		b, _ := io.ReadAll(resp.Body)
+		log.Printf("openClientDialog: MM %d: %s", resp.StatusCode, string(b))
+	}
+}
+
+// handleClientDialog processes the submitted client creation dialog
+func handleClientDialog(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		UserID     string            `json:"user_id"`
+		ChannelID  string            `json:"channel_id"`
+		Submission map[string]string `json:"submission"`
+		Cancelled  bool              `json:"cancelled"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if req.Cancelled {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	s := req.Submission
+	log.Printf("dialog/client: name=%s user=%s", s["name"], req.UserID)
+
+	if s["name"] == "" {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"errors": map[string]string{"name": "Firmenname ist erforderlich"},
+		})
+		return
+	}
+
 	client := map[string]interface{}{
-		"name": fmt.Sprintf("Kunde von @%s", req.UserName),
+		"name":        s["name"],
+		"address1":    s["address1"],
+		"city":        s["city"],
+		"postal_code": s["postal_code"],
+		"country_id":  "276", // Germany
+		"vat_number":  s["vat_number"],
+		"phone":       s["phone"],
+		"public_notes": s["notes"],
 		"contacts": []map[string]string{
-			{"first_name": req.UserName, "email": req.UserName + "@homeoffice.local"},
+			{
+				"first_name": s["first_name"],
+				"last_name":  s["last_name"],
+				"email":      s["email"],
+				"phone":      s["phone"],
+			},
 		},
 	}
 
 	var result INResponse[INClient]
-	err := inAPI("POST", "/api/v1/clients", client, &result)
-	if err != nil {
-		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler beim Anlegen: %v", err)}
+	if err := inAPI("POST", "/api/v1/clients", client, &result); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"errors": map[string]string{"name": fmt.Sprintf("Fehler: %v", err)},
+		})
+		return
 	}
 
-	return ActionResponse{
-		EphemeralText: fmt.Sprintf(
-			"Kunde **%s** angelegt (ID: `%s`).\n\nBearbeiten: [Invoice Ninja](http://%s/#/clients/%s)",
-			result.Data.Name, result.Data.ID, billingDomain, result.Data.ID,
-		),
+	// Post confirmation to channel
+	msg := fmt.Sprintf("Kunde **%s** angelegt von @%s\n"+
+		"Bearbeiten: [Invoice Ninja](https://%s/#/clients/%s/edit)",
+		result.Data.Name, req.UserID, billingDomain, result.Data.ID)
+
+	postToMM(req.ChannelID, msg)
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// actionListClients returns a table of existing clients with edit links
+func actionListClients(req ActionRequest) ActionResponse {
+	clients, err := inListClients()
+	if err != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
 	}
+	if len(clients) == 0 {
+		return ActionResponse{EphemeralText: "Noch keine Kunden vorhanden."}
+	}
+
+	var lines []string
+	lines = append(lines, "**Kunden:**\n")
+	lines = append(lines, "| Name | Kontakt | E-Mail | Bearbeiten |")
+	lines = append(lines, "|------|---------|--------|------------|")
+	for _, c := range clients {
+		contact := ""
+		email := ""
+		if len(c.Contacts) > 0 {
+			contact = strings.TrimSpace(c.Contacts[0].FirstName + " " + c.Contacts[0].LastName)
+			email = c.Contacts[0].Email
+		}
+		lines = append(lines, fmt.Sprintf("| %s | %s | %s | [Bearbeiten](https://%s/#/clients/%s/edit) |",
+			c.Name, contact, email, billingDomain, c.ID))
+	}
+
+	return ActionResponse{EphemeralText: strings.Join(lines, "\n")}
+}
+
+// postToMM sends a message to a channel via the Mattermost API
+func postToMM(channelID, message string) {
+	post := map[string]string{"channel_id": channelID, "message": message}
+	body, _ := json.Marshal(post)
+	req, _ := http.NewRequest("POST", mattermostURL+"/api/v4/posts", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+mattermostToken)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("postToMM: %v", err)
+		return
+	}
+	resp.Body.Close()
 }
 
 func actionCreateInvoice(req ActionRequest) ActionResponse {
@@ -572,7 +864,7 @@ func inAPI(method, path string, body interface{}, target interface{}) error {
 
 func inListClients() ([]INClient, error) {
 	var result INResponse[[]INClient]
-	if err := inAPI("GET", "/api/v1/clients?per_page=5", nil, &result); err != nil {
+	if err := inAPI("GET", "/api/v1/clients?per_page=20&sort=name|asc", nil, &result); err != nil {
 		return nil, err
 	}
 	return result.Data, nil

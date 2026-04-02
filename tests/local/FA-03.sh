@@ -30,7 +30,14 @@ fi
 SIGNALING_CONF=$(kubectl exec -n "$NAMESPACE" deploy/spreed-signaling -- \
   cat /etc/signaling/server.conf 2>/dev/null || echo "")
 if [[ -n "$SIGNALING_CONF" ]]; then
-  assert_contains "$SIGNALING_CONF" "coturn" "FA-03" "T3a" "TURN-Server zeigt auf cluster-internen coturn"
+  # TURN server uses either cluster-internal "coturn" name or the node IP with coturn NodePort
+  COTURN_NODEPORT=$(kubectl get svc coturn -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || echo "")
+  if echo "$SIGNALING_CONF" | grep -qE "coturn|:${COTURN_NODEPORT}"; then
+    _log_result "FA-03" "T3a" "TURN-Server zeigt auf cluster-internen coturn" "pass" "0"
+  else
+    _log_result "FA-03" "T3a" "TURN-Server zeigt auf cluster-internen coturn" "fail" "0" \
+      "Weder 'coturn' noch NodePort :${COTURN_NODEPORT} in signaling config gefunden"
+  fi
   assert_not_contains "$SIGNALING_CONF" "stun.l.google.com" "FA-03" "T3b" "Kein externer Google STUN-Server konfiguriert"
   assert_not_contains "$SIGNALING_CONF" "turn.jit.si" "FA-03" "T3c" "Kein externer Jitsi TURN-Server konfiguriert"
 else

@@ -81,11 +81,19 @@ run_test_files() {
     test_name=$(basename "$f" .sh)
     echo ""
     echo "━━━ ${test_name} ━━━"
-    # Re-establish port-forward if it died (e.g. after NFA-03 pod kill)
-    if declare -f _start_mm_portforward &>/dev/null && [[ -z "${PROD_DOMAIN:-}" ]]; then
-      if ! curl -s -o /dev/null --max-time 1 "${MM_URL}/system/ping" 2>/dev/null; then
-        echo "  ↻ Port-forward neu aufbauen..."
-        _start_mm_portforward
+    # Re-establish port-forwards if they died (e.g. after NFA-03 pod kill)
+    if [[ -z "${PROD_DOMAIN:-}" ]]; then
+      if declare -f _start_mm_portforward &>/dev/null; then
+        if ! curl -s -o /dev/null --max-time 1 "${MM_URL}/system/ping" 2>/dev/null; then
+          echo "  ↻ MM Port-forward neu aufbauen..."
+          _start_mm_portforward
+        fi
+      fi
+      if declare -f _start_nc_portforward &>/dev/null; then
+        if ! curl -s -o /dev/null --max-time 1 "${NC_URL}/status.php" 2>/dev/null; then
+          echo "  ↻ NC Port-forward neu aufbauen..."
+          _start_nc_portforward
+        fi
       fi
     fi
     bash "$f"
@@ -165,10 +173,9 @@ if [[ "$TIER" == "prod" ]]; then
   run_test_files "${SCRIPT_DIR}/prod"
 fi
 
-# ── Cleanup port-forward ────────────────────────────────────────
-if declare -f _stop_mm_portforward &>/dev/null; then
-  _stop_mm_portforward
-fi
+# ── Cleanup port-forwards ───────────────────────────────────────
+if declare -f _stop_mm_portforward &>/dev/null; then _stop_mm_portforward; fi
+if declare -f _stop_nc_portforward &>/dev/null; then _stop_nc_portforward; fi
 
 # ── Finalize ─────────────────────────────────────────────────────
 JSON_OUT="${RESULTS_DIR}/${DATE_TAG}-${TIER}.json"

@@ -66,7 +66,7 @@ else
 fi
 
 # T5: Nextcloud → Keycloak Redirect
-NC_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "http://files.localhost/apps/oidc_login/oidc" 2>/dev/null \
+NC_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "${NC_URL:-http://files.localhost}/apps/oidc_login/oidc" 2>/dev/null \
   | grep -i '^location:' | tr -d '\r')
 assert_contains "$NC_OIDC_REDIRECT" "realms/homeoffice" "SA-08" "T5" \
   "Nextcloud OIDC-Login leitet zu Keycloak weiter"
@@ -137,7 +137,7 @@ assert_eq "$COLLABORA_HEALTH" "200" "SA-08" "T12" \
 
 # T13: Nextcloud OIDC-Konfiguration geladen
 NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
+  setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
 assert_contains "$NC_OIDC_URL" "realms/homeoffice" "SA-08" "T13" \
   "Nextcloud oidc_login_provider_url konfiguriert"
 

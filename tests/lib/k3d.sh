@@ -61,6 +61,44 @@ _wait_for_url() {
 # local ingress.  A port-forward bypasses the ingress and talks to
 # the Mattermost service directly.
 _MM_PF_PID=""
+_NC_PF_PID=""
+
+_start_nc_portforward() {
+  if [[ -n "${PROD_DOMAIN:-}" ]]; then return; fi
+  local pf_port=18080
+
+  if [[ -n "$_NC_PF_PID" ]]; then
+    kill "$_NC_PF_PID" 2>/dev/null || true
+    wait "$_NC_PF_PID" 2>/dev/null || true
+    _NC_PF_PID=""
+  fi
+  local stale_pid
+  stale_pid=$(lsof -t -i:"${pf_port}" 2>/dev/null || true)
+  [[ -n "$stale_pid" ]] && kill "$stale_pid" 2>/dev/null || true
+  sleep 1
+
+  kubectl port-forward -n "$NAMESPACE" svc/nextcloud "${pf_port}:80" &>/dev/null &
+  _NC_PF_PID=$!
+  local elapsed=0
+  while (( elapsed < 15 )); do
+    if curl -s -o /dev/null --max-time 1 "http://localhost:${pf_port}/status.php" 2>/dev/null; then
+      break
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  echo "  Port-forward Nextcloud → localhost:${pf_port}"
+  NC_URL="http://localhost:${pf_port}"
+  export NC_URL
+}
+
+_stop_nc_portforward() {
+  if [[ -n "$_NC_PF_PID" ]]; then
+    kill "$_NC_PF_PID" 2>/dev/null || true
+    wait "$_NC_PF_PID" 2>/dev/null || true
+    _NC_PF_PID=""
+  fi
+}
 
 _start_mm_portforward() {
   if [[ -n "${PROD_DOMAIN:-}" ]]; then return; fi  # prod uses real URLs
@@ -127,8 +165,9 @@ k3d_wait() {
   _wait_for_url "${KC_URL}/health/ready" "Keycloak" 180
   echo "  Alle Services bereit."
 
-  # Start port-forward for local tier (bypasses SiteURL mismatch)
+  # Start port-forwards for local tier (bypasses ingress issues)
   _start_mm_portforward
+  _start_nc_portforward
 }
 
 # ── Mattermost API helper ────────────────────────────────────────

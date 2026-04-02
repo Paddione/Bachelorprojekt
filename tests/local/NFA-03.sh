@@ -17,8 +17,15 @@ if declare -f _start_mm_portforward &>/dev/null; then
   _start_mm_portforward
 fi
 
+# Wait for Mattermost to become fully ready (API responsive)
+elapsed=0
+while (( elapsed < 30 )); do
+  if curl -s -o /dev/null --max-time 2 "${MM_URL}/system/ping" 2>/dev/null; then break; fi
+  sleep 2
+  elapsed=$((elapsed + 2))
+done
+
 # T2: Services reachable after restart
-sleep 5
 assert_http 200 "${MM_URL}/system/ping" "NFA-03" "T2" "Mattermost nach Restart erreichbar"
 
 # T3: Health endpoint returns 200

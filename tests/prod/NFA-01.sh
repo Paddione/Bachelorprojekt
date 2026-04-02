@@ -25,7 +25,7 @@ if [[ -n "${MM_URL:-}" ]]; then
   MM_CONFIG=$(curl -sk -H "Authorization: Bearer ${MM_ADMIN_TOKEN:-}" "${MM_URL}/config" 2>/dev/null)
   if [[ -n "$MM_CONFIG" ]]; then
     # Telemetry should be disabled
-    TELEMETRY=$(echo "$MM_CONFIG" | jq -r '.LogSettings.EnableDiagnostics // true')
+    TELEMETRY=$(echo "$MM_CONFIG" | jq -r '.LogSettings.EnableDiagnostics | tostring')
     assert_eq "$TELEMETRY" "false" "NFA-01" "T3a" "Mattermost Telemetrie deaktiviert"
 
     # No external integrations sending data out

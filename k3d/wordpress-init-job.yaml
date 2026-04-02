@@ -1,9 +1,9 @@
 # ── WordPress Init Job ─────────────────────────────────────────────────────────
 # Runs once after WordPress is healthy. Uses WP-CLI to:
-#   1. Install + activate the Keycloak OIDC plugin (openid-connect-generic)
+#   1. Install + activate the Keycloak OIDC plugin (daggerhart-openid-connect-generic)
 #   2. Configure OIDC settings (KC discovery URL, client ID/secret)
 #   3. Install + activate Contact Form 7 (contact-form-7)
-#   4. Install + activate CF7-to-Webhook (cf7-to-webhook) for Mattermost integration
+#   4. Install + activate CF7-to-Webhook (cf7-to-zapier) for Mattermost integration
 #
 # Re-running the Job is safe — plugin installs are idempotent.
 # Mattermost webhook URL must be configured separately after running
@@ -60,12 +60,12 @@ spec:
               done
               echo "WordPress is installed."
 
-              # ── Plugin: Keycloak SSO (openid-connect-generic) ────────
-              if wp --allow-root plugin is-installed openid-connect-generic 2>/dev/null; then
-                echo "openid-connect-generic already installed — skipping."
+              # ── Plugin: Keycloak SSO (daggerhart-openid-connect-generic) ────────
+              if wp --allow-root plugin is-installed daggerhart-openid-connect-generic 2>/dev/null; then
+                echo "daggerhart-openid-connect-generic already installed — skipping."
               else
-                wp --allow-root plugin install openid-connect-generic --activate
-                echo "openid-connect-generic installed."
+                wp --allow-root plugin install daggerhart-openid-connect-generic --activate
+                echo "daggerhart-openid-connect-generic installed."
               fi
 
               # Configure OIDC to point at the homeoffice Keycloak realm.
@@ -101,11 +101,11 @@ spec:
               fi
 
               # ── Plugin: CF7 to Webhook (Mattermost integration) ──────
-              if wp --allow-root plugin is-installed cf7-to-webhook 2>/dev/null; then
-                echo "cf7-to-webhook already installed — skipping."
+              if wp --allow-root plugin is-installed cf7-to-zapier 2>/dev/null; then
+                echo "cf7-to-zapier already installed — skipping."
               else
-                wp --allow-root plugin install cf7-to-webhook --activate
-                echo "cf7-to-webhook installed."
+                wp --allow-root plugin install cf7-to-zapier --activate
+                echo "cf7-to-zapier installed."
               fi
 
               # ── Create contact form (idempotent via title check) ──────

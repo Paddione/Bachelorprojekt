@@ -109,6 +109,19 @@ spec:
   ports:
     - port: 3306
 ---
+# ── MariaDB Service alias (mysql) ────────────────────────────────────────────
+# Ensures WP-CLI and legacy wp-config.php DB_HOST=mysql still resolves.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: wordpress
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+---
 # ── WordPress PVC ─────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: PersistentVolumeClaim

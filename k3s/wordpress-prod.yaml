@@ -75,7 +75,7 @@ spec:
   storageClassName: smb-storage
   resources:
     requests:
-      storage: 10Gi
+      storage: 5Gi
 ---
 # ── MariaDB Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
@@ -84,6 +84,8 @@ metadata:
   name: mariadb
   namespace: wordpress
 spec:
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: mariadb
@@ -108,13 +110,13 @@ spec:
             limits:
               memory: "512Mi"
           livenessProbe:
-            exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
-            exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"]
+            tcpSocket:
+              port: 3306
             initialDelaySeconds: 10
             periodSeconds: 5
       volumes:
@@ -134,6 +136,21 @@ spec:
   ports:
     - port: 3306
 ---
+# ── MariaDB Service alias (mysql) ────────────────────────────
+# wp-config.php may store DB_HOST as "mysql" if the site was first initialised
+# with that hostname. This alias ensures WP-CLI and any legacy config can
+# resolve the same endpoint as the "mariadb" Service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: wordpress
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+---
 # ── WordPress PVC ─────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -145,7 +162,7 @@ spec:
   storageClassName: smb-storage
   resources:
     requests:
-      storage: 10Gi
+      storage: 5Gi
 ---
 # ── WordPress Deployment ──────────────────────────────────────────────────────
 apiVersion: apps/v1
@@ -154,6 +171,8 @@ metadata:
   name: wordpress
   namespace: wordpress
 spec:
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: wordpress
@@ -206,16 +225,16 @@ spec:
               cpu: "100m"
             limits:
               memory: "512Mi"
+          # TCP probe avoids following FORCE_SSL_ADMIN redirects to the
+          # external HTTPS URL, which causes the httpGet probe to time out.
           livenessProbe:
-            httpGet:
-              path: /wp-login.php
+            tcpSocket:
               port: 80
             initialDelaySeconds: 60
             periodSeconds: 30
             failureThreshold: 5
           readinessProbe:
-            httpGet:
-              path: /wp-login.php
+            tcpSocket:
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 10

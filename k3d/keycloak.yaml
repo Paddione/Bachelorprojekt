@@ -83,6 +83,16 @@ spec:
                 secretKeyRef:
                   name: homeoffice-secrets
                   key: INVOICENINJA_OIDC_SECRET
+            - name: WORDPRESS_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: homeoffice-secrets
+                  key: WORDPRESS_OIDC_SECRET
+            - name: WP_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: WP_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:

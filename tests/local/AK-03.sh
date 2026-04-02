@@ -14,6 +14,7 @@ IMAGES=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{.items[*].spec.container
 UNSTABLE=""
 for img in $IMAGES; do
   tag="${img##*:}"
+  # Allow :latest for curlimages and :master for janus (only available tag)
   if [[ "$tag" == "latest" && "$img" != *"curlimages"* ]]; then
     UNSTABLE+="${img} "
   fi

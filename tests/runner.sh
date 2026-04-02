@@ -158,6 +158,11 @@ if [[ "$TIER" == "prod" ]]; then
   run_test_files "${SCRIPT_DIR}/prod"
 fi
 
+# ── Cleanup port-forward ────────────────────────────────────────
+if declare -f _stop_mm_portforward &>/dev/null; then
+  _stop_mm_portforward
+fi
+
 # ── Finalize ─────────────────────────────────────────────────────
 JSON_OUT="${RESULTS_DIR}/${DATE_TAG}-${TIER}.json"
 MD_OUT="${RESULTS_DIR}/${DATE_TAG}-${TIER}.md"

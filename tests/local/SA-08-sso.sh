@@ -41,7 +41,7 @@ else
 
   # T3: Nextcloud Talk OIDC — verifiziert über Nextcloud OIDC-Konfiguration
   NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-    php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
+    gosu 999 php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
   assert_contains "$NC_OIDC_URL" "realms/homeoffice" "SA-08" "T3" \
     "Nextcloud Talk erbt OIDC-Session — provider_url konfiguriert"
 fi
@@ -91,7 +91,7 @@ assert_contains "$NC_OIDC_REDIRECT" "client_id=nextcloud" "SA-08" "T8" \
 
 # T9: Talk erbt SSO-Session von Nextcloud (kein separater OIDC-Client nötig)
 TALK_APP_ENABLED=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  php occ app:list 2>/dev/null | grep -c "spreed" || echo "0")
+  gosu 999 php occ app:list 2>/dev/null | grep -c "spreed" || echo "0")
 assert_gt "$TALK_APP_ENABLED" "0" "SA-08" "T9" \
   "Talk (spreed) App in Nextcloud aktiviert — SSO über Nextcloud-OIDC-Session"
 

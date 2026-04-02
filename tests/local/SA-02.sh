@@ -43,18 +43,18 @@ assert_contains "429 401" "$LOCKED_STATUS" "SA-02" "T3" "Brute-Force-Schutz akti
 
 # T4: Keycloak OIDC discovery
 KC_DISCOVERY=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-  "http://localhost:8080/realms/homeoffice/.well-known/openid-configuration")
+  "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration")
 assert_eq "$KC_DISCOVERY" "200" "SA-02" "T4" "Keycloak OIDC Discovery erreichbar"
 
 # T5: Keycloak login events enabled
-KC_ADMIN_TOKEN=$(curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+KC_ADMIN_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=admin" \
   -d "password=${KEYCLOAK_ADMIN_PASSWORD:-admin}" \
   -d "grant_type=password" | jq -r '.access_token // empty')
 if [[ -n "$KC_ADMIN_TOKEN" ]]; then
   EVENTS_ENABLED=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "http://localhost:8080/admin/realms/homeoffice/events/config" | jq -r '.eventsEnabled // false')
+    "http://auth.localhost/admin/realms/homeoffice/events/config" | jq -r '.eventsEnabled // false')
   assert_eq "$EVENTS_ENABLED" "true" "SA-02" "T5" "Keycloak Login-Events aktiviert"
 else
   skip_test "SA-02" "T5" "Keycloak Login-Events" "Kein Keycloak Admin-Token"

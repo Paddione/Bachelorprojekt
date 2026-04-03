@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-browser
+  labels:
+    app: mcp-browser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-browser
+  template:
+    metadata:
+      labels:
+        app: mcp-browser
+    spec:
+      containers:
+        - name: mcp-browser
+          image: mcr.microsoft.com/playwright:v1.50.1-jammy
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              npm install -g supergateway @modelcontextprotocol/server-playwright 2>&1 | tail -3
+              exec supergateway \
+                --stdio "npx @modelcontextprotocol/server-playwright" \
+                --outputTransport streamableHttp \
+                --port 3000 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-browser
+spec:
+  selector:
+    app: mcp-browser
+  ports:
+    - port: 3000
+      targetPort: 3000

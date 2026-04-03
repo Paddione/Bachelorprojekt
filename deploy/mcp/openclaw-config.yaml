@@ -21,6 +21,8 @@ data:
   MCP_INVOICENINJA_URL: "http://openclaw-mcp-apps:8080/mcp"
   # Auth pod: SSO management (SSE transport)
   MCP_KEYCLOAK_URL:     "http://openclaw-mcp-auth:8080/mcp/sse"
+  # Browser pod: Playwright (Browser interaction)
+  MCP_BROWSER_URL:      "http://openclaw-mcp-browser:3000/mcp"
   # Standalone
   MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
   MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
@@ -210,6 +212,30 @@ data:
     Current API token: testrunnertoken2026
     Rotate: Invoice Ninja → Settings → API Tokens → revoke + create new
     Then update both INVOICENINJA_API_TOKEN and INVOICENINJA_REQUEST_HEADERS in openclaw-secrets.
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-browser  (port 3000, streamable-http)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_BROWSER: |
+    Image: mcr.microsoft.com/playwright (Chromium/Firefox/Webkit)
+    Transport: streamable-http → http://mcp-browser:3000/mcp
+
+    Capabilities:
+      - navigate (URL)
+      - click (selector)
+      - fill (selector, text)
+      - screenshot (path/name)
+      - evaluate (JS script)
+      - hover, scroll, drag-and-drop
+
+    Usage for platform verification:
+      - Navigate to http://auth.localhost to check Keycloak
+      - Navigate to http://chat.localhost to check Mattermost
+      - Verify SSO redirects between services
+      - Capture visual state of UI components (e.g., Nextcloud Talk)
+
+    Note: The browser runs inside the cluster and has internal access to
+    all .localhost domains via the cluster's internal network.
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-stripe  (port 3003, streamable-http via supergateway)

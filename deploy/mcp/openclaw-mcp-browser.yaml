@@ -1,0 +1,63 @@
+# ════════════════════════════════════════════════════════════════════════════
+# openclaw-mcp-browser — Web interaction: Browser automation via Playwright
+#
+# Enables the AI to "see" and "interact" with the platform's web interfaces.
+# Bridges the stdio-only @modelcontextprotocol/server-playwright to HTTP.
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openclaw-mcp-browser
+  labels:
+    app: openclaw-mcp-browser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw-mcp-browser
+  template:
+    metadata:
+      labels:
+        app: openclaw-mcp-browser
+    spec:
+      containers:
+        - name: playwright
+          image: mcr.microsoft.com/playwright:v1.50.1-jammy
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Installing MCP playwright bridge..."
+              npm install -g supergateway @modelcontextprotocol/server-playwright 2>&1 | tail -3
+              echo "Starting supergateway on :3000/mcp..."
+              exec supergateway \
+                --stdio "npx @modelcontextprotocol/server-playwright" \
+                --outputTransport streamableHttp \
+                --port 3000 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          ports:
+            - containerPort: 3000
+              name: mcp
+          readinessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 45
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests: { memory: 512Mi, cpu: 200m }
+            limits:   { memory: 1Gi, cpu: 500m }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw-mcp-browser
+spec:
+  selector:
+    app: openclaw-mcp-browser
+  ports:
+    - name: mcp
+      port: 3000
+      targetPort: 3000

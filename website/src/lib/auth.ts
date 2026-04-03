@@ -1,7 +1,8 @@
 // OIDC authentication helper for Keycloak.
 // Implements Authorization Code Flow with cookie-based sessions.
 
-const KC_URL = import.meta.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
+const KC_FRONTEND_URL = import.meta.env.KEYCLOAK_FRONTEND_URL || 'http://auth.localhost';
+const KC_INTERNAL_URL = import.meta.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
 const KC_REALM = import.meta.env.KEYCLOAK_REALM || 'workspace';
 const CLIENT_ID = 'website';
 const CLIENT_SECRET = import.meta.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
@@ -10,11 +11,12 @@ const CALLBACK_PATH = '/api/auth/callback';
 const COOKIE_NAME = 'mentolder_session';
 
 // Well-known OIDC endpoints
-const ISSUER = `${KC_URL}/realms/${KC_REALM}`;
-const AUTH_ENDPOINT = `${ISSUER}/protocol/openid-connect/auth`;
-const TOKEN_ENDPOINT = `${ISSUER}/protocol/openid-connect/token`;
-const USERINFO_ENDPOINT = `${ISSUER}/protocol/openid-connect/userinfo`;
-const LOGOUT_ENDPOINT = `${ISSUER}/protocol/openid-connect/logout`;
+const ISSUER_FRONTEND = `${KC_FRONTEND_URL}/realms/${KC_REALM}`;
+const ISSUER_INTERNAL = `${KC_INTERNAL_URL}/realms/${KC_REALM}`;
+const AUTH_ENDPOINT = `${ISSUER_FRONTEND}/protocol/openid-connect/auth`;
+const TOKEN_ENDPOINT = `${ISSUER_INTERNAL}/protocol/openid-connect/token`;
+const USERINFO_ENDPOINT = `${ISSUER_INTERNAL}/protocol/openid-connect/userinfo`;
+const LOGOUT_ENDPOINT = `${ISSUER_FRONTEND}/protocol/openid-connect/logout`;
 
 export interface UserSession {
   sub: string;

@@ -4,9 +4,7 @@ metadata:
   name: homeoffice-ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
-  ingressClassName: nginx
   tls:
     - hosts:
         - auth.wbhprojekt.ipv64.de

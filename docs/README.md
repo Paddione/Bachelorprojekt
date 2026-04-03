@@ -1,11 +1,21 @@
-# Dokumentation
+# Dokumentation (Requirements)
 
-> Die englischsprachige Dokumentation unter [`docs/`](../../docs/README.md) ist die **einzige Anlaufstelle** fuer alle Inhalte. Dieses Verzeichnis enthaelt nur maschinenlesbare Anforderungsdefinitionen.
+Diese Dokumentation enthält maschinenlesbare Anforderungsdefinitionen (JSON), die als zentrale Source of Truth für das Projekt dienen.
 
-## Inhalt
+## Live-Dokumentation
 
-| Verzeichnis | Beschreibung |
-|-------------|-------------|
-| [`requirements/`](requirements/) | Anforderungsdefinitionen als JSON (FA, SA, NFA, AK, L) — wird von `scripts/tracking/` referenziert |
+Die vollständige, menschenlesbare Dokumentation zu Architektur, Services, Migration und Betrieb finden Sie unter:
 
-Fuer alle anderen Themen (Architektur, Services, Sicherheit, Migration, Tests, Fehlerbehebung) siehe die [englische Dokumentation](../../docs/README.md).
+👉 **[http://docs.localhost](http://docs.localhost)** (Erfordert laufenden k3d-Cluster)
+
+## Lokale Anforderungen (JSON)
+
+Die Anforderungen sind nach Kategorien in JSON-Dateien strukturiert:
+
+| Datei | Beschreibung |
+|-------|--------------|
+| [`FA_requirements.json`](requirements/FA_requirements.json) | Funktionale Anforderungen (Messaging, Files, Konferenzen) |
+| [`SA_requirements.json`](requirements/SA_requirements.json) | Sicherheitsanforderungen (SSO, Auth, Encryption) |
+| [`NFA_requirements.json`](requirements/NFA_requirements.json) | Nicht-funktionale Anforderungen (Performance, Resilienz, Monitoring) |
+| [`L_requirements.json`](requirements/L_requirements.json) | Auslieferbare Objekte (Deliverables) |
+| [`AK_requirements.json`](requirements/AK_requirements.json) | Abnahmekriterien |

@@ -3,7 +3,6 @@ kind: Ingress
 metadata:
   name: homeoffice-ingress
 spec:
-  ingressClassName: nginx
   rules:
     # ── Keycloak (SSO) ──────────────────────────────────────────────
     - host: auth.localhost
@@ -125,3 +124,15 @@ spec:
                 name: vaultwarden
                 port:
                   number: 80
+
+    # ── OpenClaw (KI-Assistent) ─────────────────────────────────
+    - host: ai.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openclaw
+                port:
+                  number: 8080

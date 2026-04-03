@@ -19,7 +19,6 @@ Die Homeoffice-Plattform laeuft vollstaendig self-hosted in einem Kubernetes-Clu
 | **Spacedeck** | http://board.localhost | Whiteboard-Kollaboration |
 | **Jitsi Meet** | http://meet.localhost | Videokonferenzen |
 | **OpenClaw (du)** | http://ai.localhost | KI-Assistent |
-| **Tracking UI** | http://tracking.localhost | Feature-Tracking Dashboard |
 
 Alle Dienste nutzen **Keycloak SSO** — Nutzer melden sich einmal an und sind ueberall eingeloggt.
 

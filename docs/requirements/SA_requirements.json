@@ -1,7 +1,7 @@
 {
     "SA-01": {
         "Bezeichnung": "Transportverschlüsselung",
-        "Beschreibung": "Alle externen Verbindungen (HTTPS für Web-UI und REST-API, WSS für WebSocket-Echtzeitkommunikation) ausschließlich über TLS 1.3 (Fallback: TLS 1.2 mit starken Cipher-Suites). TLS-Terminierung am Ingress-Controller (nginx). Automatische Zertifikatsverwaltung via cert-manager mit Let's Encrypt. HSTS (HTTP Strict Transport Security) aktiviert. Interne Cluster-Kommunikation optional über verschlüsseltes Service-Mesh.",
+        "Beschreibung": "Alle externen Verbindungen (HTTPS für Web-UI und REST-API, WSS für WebSocket-Echtzeitkommunikation) ausschließlich über TLS 1.3 (Fallback: TLS 1.2 mit starken Cipher-Suites). TLS-Terminierung am Ingress-Controller (traefik). Automatische Zertifikatsverwaltung via cert-manager mit Let's Encrypt. HSTS (HTTP Strict Transport Security) aktiviert. Interne Cluster-Kommunikation optional über verschlüsseltes Service-Mesh.",
         "Erfüllungskriterien": "1) Alle HTTP-Verbindungen auf HTTPS umgeleitet\n2) TLS 1.2 mind., TLS 1.3 bevorzugt\n3) Gültiges Let's-Encrypt-Zertifikat vorhanden\n4) WebSocket (WSS) ebenfalls verschlüsselt\n5) HSTS-Header gesetzt",
         "Testfall": "T1: curl http://chat.domain → 301 Redirect auf HTTPS\nT2: nmap --script ssl-enum-ciphers → TLS 1.3 vorhanden\nT3: SSL Labs Test → Note mind. A\nT4: Browser DevTools → WSS-Verbindung für Mattermost\nT5: curl -I https://chat.domain → Strict-Transport-Security Header"
     },

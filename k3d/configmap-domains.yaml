@@ -15,3 +15,4 @@ data:
   GITBOOK_URL: ""
   BILLING_DOMAIN: "billing.localhost"
   WP_DOMAIN: "web.localhost"
+  AI_DOMAIN: "ai.localhost"

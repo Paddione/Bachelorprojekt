@@ -259,7 +259,7 @@ T2: docker images → Tags → Lizenzen in Repos prüfen
 T3: README/LICENSES.md enthält Lizenztabelle
 T4: Keine proprietären Plugins aktiviert
 T5: Kein inkompatibles Lizenzpaar (GPL vs. proprietär)";"1";"2026-03-30 03:49:15";"2026-03-30 03:49:15"
-"SA-01";"Sicherheitsanforderung";"Transportverschlüsselung";"Alle externen Verbindungen (HTTPS für Web-UI und REST-API, WSS für WebSocket-Echtzeitkommunikation) ausschließlich über TLS 1.3 (Fallback: TLS 1.2 mit starken Cipher-Suites). TLS-Terminierung am Ingress-Controller (nginx). Automatische Zertifikatsverwaltung via cert-manager mit Let's Encrypt. HSTS (HTTP Strict Transport Security) aktiviert. Interne Cluster-Kommunikation optional über verschlüsseltes Service-Mesh.";"1) Alle HTTP-Verbindungen auf HTTPS umgeleitet
+"SA-01";"Sicherheitsanforderung";"Transportverschlüsselung";"Alle externen Verbindungen (HTTPS für Web-UI und REST-API, WSS für WebSocket-Echtzeitkommunikation) ausschließlich über TLS 1.3 (Fallback: TLS 1.2 mit starken Cipher-Suites). TLS-Terminierung am Ingress-Controller (traefik). Automatische Zertifikatsverwaltung via cert-manager mit Let's Encrypt. HSTS (HTTP Strict Transport Security) aktiviert. Interne Cluster-Kommunikation optional über verschlüsseltes Service-Mesh.";"1) Alle HTTP-Verbindungen auf HTTPS umgeleitet
 2) TLS 1.2 mind., TLS 1.3 bevorzugt
 3) Gültiges Let's-Encrypt-Zertifikat vorhanden
 4) WebSocket (WSS) ebenfalls verschlüsselt

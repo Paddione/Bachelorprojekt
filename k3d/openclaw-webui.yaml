@@ -78,6 +78,27 @@ spec:
             # ─── Branding ─────────────────────────────────────
             - name: WEBUI_NAME
               value: "OpenClaw"
+            - name: WEBUI_SECRET_KEY
+              value: "dev-secret-key-12345"
+            # ─── MCP Endpoints ─────────────────────────────────
+            - name: MCP_KUBERNETES_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_KUBERNETES_URL } }
+            - name: MCP_POSTGRES_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_POSTGRES_URL } }
+            - name: MCP_MATTERMOST_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_MATTERMOST_URL } }
+            - name: MCP_NEXTCLOUD_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_NEXTCLOUD_URL } }
+            - name: MCP_INVOICENINJA_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_INVOICENINJA_URL } }
+            - name: MCP_KEYCLOAK_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_KEYCLOAK_URL } }
+            - name: MCP_GITHUB_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_GITHUB_URL } }
+            - name: MCP_STRIPE_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_STRIPE_URL } }
+            - name: MCP_WORDPRESS_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_WORDPRESS_URL } }
           ports:
             - containerPort: 8080
           volumeMounts:

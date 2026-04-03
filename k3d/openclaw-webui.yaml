@@ -40,14 +40,17 @@ spec:
                   key: ANTHROPIC_API_KEY
             # ─── Defaults ─────────────────────────────────────
             - name: DEFAULT_MODELS
-              value: "claude-sonnet-4-20250514"
+              value: "openclaw-assistant"
             - name: DEFAULT_USER_ROLE
               value: "user"
-            # ─── Disable external connections ──────────────────
+            # ─── Disable external connections ─────────────────
             - name: ENABLE_RAG_WEB_SEARCH
               value: "false"
             - name: ENABLE_IMAGE_GENERATION
               value: "false"
+            # ─── Local auth (required for init job admin account) ─
+            - name: WEBUI_AUTH
+              value: "true"
             # ─── Keycloak OIDC SSO ────────────────────────────
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
@@ -85,20 +88,8 @@ spec:
               valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_KUBERNETES_URL } }
             - name: MCP_POSTGRES_URL
               valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_POSTGRES_URL } }
-            - name: MCP_MATTERMOST_URL
-              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_MATTERMOST_URL } }
-            - name: MCP_NEXTCLOUD_URL
-              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_NEXTCLOUD_URL } }
-            - name: MCP_INVOICENINJA_URL
-              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_INVOICENINJA_URL } }
-            - name: MCP_KEYCLOAK_URL
-              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_KEYCLOAK_URL } }
-            - name: MCP_GITHUB_URL
-              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_GITHUB_URL } }
-            - name: MCP_STRIPE_URL
-              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_STRIPE_URL } }
-            - name: MCP_WORDPRESS_URL
-              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_WORDPRESS_URL } }
+            - name: MCP_BROWSER_URL
+              valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_BROWSER_URL } }
           ports:
             - containerPort: 8080
           volumeMounts:

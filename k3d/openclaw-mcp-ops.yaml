@@ -52,6 +52,7 @@ spec:
               cpu: 50m
             limits:
               memory: 256Mi
+              cpu: 100m
         # ─── PostgreSQL MCP (port 3001) ──────────────────────────
         # Connects to the shared PostgreSQL superuser DB so it can
         # inspect all service databases. Read queries only by convention

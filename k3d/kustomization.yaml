@@ -35,8 +35,12 @@ resources:
   # Dokumentation
   - docs.yaml
   # KI-Assistent
+  - openclaw-rbac.yaml
   - openclaw-config.yaml
+  - openclaw-mcp-ops.yaml
+  - openclaw-mcp-browser.yaml
   - openclaw-webui.yaml
+  - openclaw-init-job.yaml
   # Ingress
   - ingress.yaml
 

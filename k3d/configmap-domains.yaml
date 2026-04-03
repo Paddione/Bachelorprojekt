@@ -6,6 +6,7 @@ data:
   MM_DOMAIN: "chat.localhost"
   KC_DOMAIN: "auth.localhost"
   NC_DOMAIN: "files.localhost"
+  MEET_DOMAIN: "meet.localhost"
   SIGNALING_DOMAIN: "signaling.localhost"
   COLLABORA_DOMAIN: "office.localhost"
   WHITEBOARD_DOMAIN: "board.localhost"
@@ -16,3 +17,4 @@ data:
   BILLING_DOMAIN: "billing.localhost"
   WEB_DOMAIN: "web.localhost"
   WIKI_DOMAIN: "wiki.localhost"
+  AI_DOMAIN: "ai.localhost"

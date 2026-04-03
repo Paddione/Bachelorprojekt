@@ -165,7 +165,7 @@ tasks:
       # Import DSGVO Compliance Dashboard as a ConfigMap (Grafana sidecar auto-detects it)
       - |
         kubectl create configmap grafana-dsgvo-dashboard \
-          --from-file=dsgvo-compliance.json=Bachelorprojekt/grafana/dsgvo-compliance-dashboard.json \
+          --from-file=dsgvo-compliance.json=grafana/dsgvo-compliance-dashboard.json \
           -n monitoring --dry-run=client -o yaml | \
           kubectl label -f - --dry-run=client -o yaml --local grafana_dashboard=1 | \
           kubectl apply -f -
@@ -177,7 +177,6 @@ tasks:
 
   workspace:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
-    dir: Bachelorprojekt
     cmds:
       - bash scripts/dsgvo-compliance-check.sh
 
@@ -252,7 +251,6 @@ tasks:
       - 'echo "  billing.{{.PROD_DOMAIN}} (Invoice Ninja)"'
       - 'echo "  web.{{.PROD_DOMAIN}}     (Website - Astro)"'
       - 'echo "  mcp.{{.PROD_DOMAIN}}     (OpenClaw MCP)"'
-      - 'echo "  meet.{{.PROD_DOMAIN}}    (Jitsi)"'
 
   # ─────────────────────────────────────────────
   # Utilities
@@ -295,6 +293,20 @@ tasks:
       - 'echo "   Registry: http://registry.localhost:5000/v2/_catalog"'
       - 'echo "   kubectl:  already configured for cluster ''{{.CLUSTER_NAME}}''"'
 
+  workspace:up:
+    desc: "Full automated setup: Cluster -> MVP -> MCP -> Monitoring -> Billing"
+    cmds:
+      - task: cluster:create
+      - task: workspace:deploy
+      - task: mcp:deploy
+      - task: workspace:monitoring
+      - task: workspace:post-setup
+      - task: workspace:billing-setup
+      - echo ""
+      - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
+      - 'echo "  OpenClaw (AI): http://ai.localhost"'
+      - 'echo "  Monitoring:    http://localhost:3000 (Grafana)"'
+
   down:
     desc: "Tear down everything"
     cmds:
@@ -305,7 +317,6 @@ tasks:
   # ─────────────────────────────────────────────
   workspace:deploy:
     desc: Deploy all Workspace MVP services into the workspace namespace
-    dir: Bachelorprojekt
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
@@ -330,13 +341,14 @@ tasks:
         echo "Waiting for shared-db..."
         kubectl rollout status deployment/shared-db -n workspace --timeout=120s
       - |
-        for svc in keycloak mattermost nextcloud spreed-signaling collabora spacedeck opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
+        for svc in keycloak mm-keycloak-proxy mattermost nextcloud spreed-signaling collabora whiteboard openclaw opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
           echo "Waiting for $svc..."
           kubectl rollout status deployment/$svc -n workspace --timeout=300s || \
             echo "WARNING: $svc not ready yet"
         done
       - echo ""
       - 'echo "✓ Workspace MVP deployed"'
+      - task: workspace:openclaw:setup
       - 'echo "  Keycloak:    http://auth.localhost"'
       - 'echo "  Mattermost:  http://chat.localhost"'
       - 'echo "  Nextcloud:   http://files.localhost"'
@@ -352,10 +364,25 @@ tasks:
       - 'echo "Run ''task workspace:vaultwarden:seed'' to seed Vaultwarden with production secret templates (once)."'
       - 'echo "Run ''task workspace:billing-setup'' to configure the billing bot slash command."'
       - 'echo "Run ''task workspace:monitoring'' to install Prometheus + Grafana (NFA-02)."'
+      - 'echo "Run ''task ddns:deploy -- <api-key>'' to enable automatic DNS updates (dynamic IP only)."'
+
+  workspace:openclaw:setup:
+    desc: Register all MCP servers in the OpenClaw database
+    cmds:
+      - |
+        kubectl wait --for=condition=Ready pod -l app=openclaw -n workspace --timeout=120s
+        OC_POD=$(kubectl get pod -n workspace -l app=openclaw -o jsonpath='{.items[0].metadata.name}')
+        echo "Registering MCP servers in OpenClaw ($OC_POD)..."
+        kubectl cp scripts/openclaw-mcp-register.py workspace/$OC_POD:/tmp/mcp-register.py
+        kubectl exec -n workspace $OC_POD -- python3 /tmp/mcp-register.py
+        kubectl exec -n workspace $OC_POD -- rm /tmp/mcp-register.py
+        # Restart pod to pick up changes (especially if in config table)
+        kubectl rollout restart deployment/openclaw -n workspace
+        kubectl rollout status deployment/openclaw -n workspace --timeout=120s
+      - echo "✓ MCP servers registered in OpenClaw"
 
   workspace:billing-build:
     desc: Build and push billing-bot image to local registry
-    dir: Bachelorprojekt
     cmds:
       - docker build -t {{.REGISTRY}}/billing-bot:latest billing-bot/
       - docker push {{.REGISTRY}}/billing-bot:latest
@@ -363,7 +390,6 @@ tasks:
 
   workspace:billing-setup:
     desc: Build billing-bot and create /billing slash command in Mattermost
-    dir: Bachelorprojekt
     deps: [workspace:billing-build]
     cmds:
       - bash scripts/billing-bot-setup.sh
@@ -431,30 +457,6 @@ tasks:
       - kubectl rollout restart deployment/{{.CLI_ARGS}} -n workspace
       - kubectl rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
 
-  workspace:cert:install:
-    desc: "Install IPv64 webhook + issue wildcard cert for *.korczewski.de (usage: task workspace:cert:install -- YOUR_IPV64_API_KEY)"
-    preconditions:
-      - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
-        msg: "k3s-production context not reachable."
-      - sh: "[ -n '{{.CLI_ARGS}}' ]"
-        msg: "Usage: task workspace:cert:install -- YOUR_IPV64_API_KEY"
-    cmds:
-      - helm repo add cert-manager-webhook-ipv64 https://theklausklausen.github.io/cert-manager-webhook-ipv64/ || true
-      - helm repo update cert-manager-webhook-ipv64
-      - |
-        helm upgrade --install cert-manager-webhook-ipv64 cert-manager-webhook-ipv64/cert-manager-webhook-ipv64 \
-          --namespace cert-manager --create-namespace \
-          --set groupName=cert-manager-webhook-ipv64 \
-          --wait --timeout=120s
-      - |
-        kubectl --context k3s-production create secret generic ipv64-token \
-          --namespace cert-manager \
-          --from-literal=api-key={{.CLI_ARGS}} \
-          --dry-run=client -o yaml | kubectl --context k3s-production apply -f -
-      - kubectl --context k3s-production apply -f prod/cluster-issuer.yaml
-      - kubectl --context k3s-production apply -f prod/wildcard-certificate.yaml
-      - 'echo "✓ Wildcard cert requested — check progress with: kubectl --context k3s-production get certificate -n workspace"'
-
   workspace:prod:deploy:
     desc: Deploy workspace stack to k3s-production cluster
     preconditions:
@@ -473,7 +475,6 @@ tasks:
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
-    dir: Bachelorprojekt
     cmds:
       - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
@@ -484,10 +485,10 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
       - sh: kubectl get secret vaultwarden-seed-credentials -n workspace > /dev/null 2>&1
-        msg: "vaultwarden-seed-credentials secret missing. Fill in and apply Bachelorprojekt/k3d/vaultwarden-seed-credentials.yaml first."
+        msg: "vaultwarden-seed-credentials secret missing. Fill in and apply k3d/vaultwarden-seed-credentials.yaml first."
     cmds:
       - kubectl delete job vaultwarden-seed -n workspace --ignore-not-found
-      - kubectl apply -f Bachelorprojekt/k3d/vaultwarden-seed-job.yaml
+      - kubectl apply -f k3d/vaultwarden-seed-job.yaml
       - |
         echo "Waiting for seed job to complete..."
         kubectl wait --for=condition=complete job/vaultwarden-seed -n workspace --timeout=120s
@@ -497,139 +498,6 @@ tasks:
     desc: Show logs from the last Vaultwarden seed job run
     cmds:
       - kubectl logs -n workspace job/vaultwarden-seed
-
-  # ─────────────────────────────────────────────
-  # Assetgenerator
-  # ─────────────────────────────────────────────
-  assetgen:build:
-    desc: Build the Assetgenerator image and push to local registry
-    dir: assetgenerator
-    cmds:
-      - docker build -t {{.REGISTRY}}/assetgenerator:latest .
-      - docker push {{.REGISTRY}}/assetgenerator:latest
-      - echo "✓ Image pushed to {{.REGISTRY}}/assetgenerator:latest"
-
-  assetgen:deploy:
-    desc: Deploy Assetgenerator to k3d
-    dir: assetgenerator
-    deps: [assetgen:build]
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-    cmds:
-      - kubectl apply -k k3d/
-      - kubectl rollout status deployment/assetgenerator -n assetgen --timeout=120s
-      - echo ""
-      - 'echo "✓ Assetgenerator deployed"'
-      - 'echo "  URL:    http://assets.localhost"'
-      - 'echo "  Health: http://assets.localhost/health"'
-
-  assetgen:status:
-    desc: Show Assetgenerator deployment status
-    cmds:
-      - echo "=== Pods ==="
-      - kubectl get pods -n assetgen -o wide
-      - echo ""
-      - echo "=== Services ==="
-      - kubectl get svc -n assetgen
-      - echo ""
-      - echo "=== Ingress ==="
-      - kubectl get ingress -n assetgen
-
-  assetgen:logs:
-    desc: Tail Assetgenerator logs
-    cmds:
-      - kubectl logs -n assetgen deploy/assetgenerator -f --tail=50
-
-  assetgen:teardown:
-    desc: Remove Assetgenerator resources
-    prompt: "This will delete the assetgen namespace and all data. Continue?"
-    cmds:
-      - kubectl delete namespace assetgen --ignore-not-found --timeout=120s
-      - echo "✓ Assetgenerator namespace deleted"
-
-  assetgen:restart:
-    desc: Rebuild and redeploy Assetgenerator
-    cmds:
-      - task: assetgen:build
-      - kubectl rollout restart deployment/assetgenerator -n assetgen
-      - kubectl rollout status deployment/assetgenerator -n assetgen --timeout=120s
-
-  # ─────────────────────────────────────────────
-  # Tracking Database (shared PostgreSQL)
-  # ─────────────────────────────────────────────
-  tracking:deploy:
-    desc: Deploy shared tracking PostgreSQL database and UI
-    cmds:
-      - kubectl apply -k deploy/tracking
-      - kubectl rollout status deployment/tracking-db -n tracking --timeout=120s
-      - kubectl rollout status deployment/tracking-ui -n tracking --timeout=120s
-      - echo '✓ Tracking DB + UI deployed (tracking namespace)'
-      - 'echo "  UI: http://tracking.localhost"'
-
-  tracking:build:
-    desc: Build the tracking UI image and push to local registry
-    cmds:
-      - docker build -t localhost:5000/tracking-ui:latest deploy/tracking/tracking-ui/
-      - docker push localhost:5000/tracking-ui:latest
-      - echo '✓ Image pushed to localhost:5000/tracking-ui:latest'
-
-  tracking:redeploy:
-    desc: Rebuild and redeploy tracking UI
-    cmds:
-      - task: tracking:build
-      - kubectl rollout restart deployment/tracking-ui -n tracking
-      - kubectl rollout status deployment/tracking-ui -n tracking --timeout=120s
-      - echo '✓ Tracking UI redeployed'
-
-  tracking:status:
-    desc: Show tracking DB and UI status
-    cmds:
-      - kubectl get pods,svc,pvc,ingress -n tracking
-
-  tracking:psql:
-    desc: Open psql shell to tracking database
-    cmds:
-      - kubectl exec -it -n tracking deploy/tracking-db -- psql -U tracking -d tracking
-
-  tracking:port-forward:
-    desc: 'Forward tracking DB to localhost:5433'
-    cmds:
-      - 'echo "Tracking DB available at localhost:5433"'
-      - 'echo "Connect: psql -h localhost -p 5433 -U tracking -d tracking"'
-      - kubectl port-forward -n tracking svc/tracking-db 5433:5432
-
-  tracking:migrate:
-    desc: Migrate existing SQLite tracking.db into PostgreSQL
-    cmds:
-      - echo 'Starting port-forward in background...'
-      - kubectl port-forward -n tracking svc/tracking-db 5433:5432 &
-      - sleep 2
-      - PG_PORT=5433 PGPASSWORD=tracking-dev-only bash deploy/tracking/migrate-sqlite.sh Bachelorprojekt/tracking.db
-      - kill %1 2>/dev/null || true
-
-  tracking:sync-pipeline:
-    desc: Sync pipeline statuses to match actual project state
-    cmds:
-      - echo 'Applying pipeline status sync...'
-      - |
-        kubectl exec -n tracking deploy/tracking-db -- \
-          psql -U tracking -d tracking -f /dev/stdin \
-          < Bachelorprojekt/scripts/tracking/sync-pipeline.sql
-      - echo ''
-      - echo '=== Progress Summary ==='
-      - |
-        kubectl exec -n tracking deploy/tracking-db -- \
-          psql -U tracking -d tracking -c \
-          'SELECT * FROM bachelorprojekt.v_progress_summary'
-      - echo '✓ Pipeline statuses synced'
-
-  tracking:teardown:
-    desc: Remove tracking database and all data
-    prompt: 'This will delete the tracking namespace and all data. Continue?'
-    cmds:
-      - kubectl delete namespace tracking --ignore-not-found --timeout=120s
-      - echo '✓ Tracking namespace deleted'
 
   # ─────────────────────────────────────────────
   # Documentation
@@ -642,9 +510,9 @@ tasks:
     cmds:
       - |
         kubectl create configmap docsify-index \
-          --from-file="index.html=Bachelorprojekt/docs-site/index.html" \
+          --from-file="index.html=docs-site/index.html" \
           -n workspace --dry-run=client -o yaml | kubectl apply -f -
-      - kubectl apply -f Bachelorprojekt/k3d/docs.yaml -n workspace
+      - kubectl apply -f k3d/docs.yaml -n workspace
       - kubectl rollout status deployment/docs -n workspace --timeout=120s
       - echo ''
       - 'echo "✓ Docs deployed"'
@@ -659,7 +527,6 @@ tasks:
 
   docs:integrate-mattermost:
     desc: Integrate docs into Mattermost (channel bookmark + slash command)
-    dir: Bachelorprojekt
     cmds:
       - bash scripts/mattermost-docs-integration.sh
 
@@ -735,7 +602,7 @@ tasks:
           --image=python:3.12-alpine \
           --env="MM_URL=http://mattermost.workspace.svc.cluster.local:8065" \
           --env="MM_TOKEN=$TOKEN" \
-          -- python3 /dev/stdin < Bachelorprojekt/scripts/openclaw-mattermost-setup.py
+          -- python3 /dev/stdin < scripts/openclaw-mattermost-setup.py
       - 'echo "✓ OpenClaw channels created in all teams"'
 
   mcp:set-github-pat:
@@ -981,23 +848,103 @@ tasks:
       - echo ""
       - echo "✓ Webhook setup complete"
 
-  certmanager:install:
-    desc: Install cert-manager and create Let's Encrypt ClusterIssuer (edit email first)
+  # ─────────────────────────────────────────────
+  # Cert-Manager — wildcard TLS via DNS-01/lego
+  # ─────────────────────────────────────────────
+  # ─────────────────────────────────────────────
+  # DDNS Updater (optional — skip if static IP)
+  # ─────────────────────────────────────────────
+  ddns:deploy:
+    desc: "Deploy DDNS updater CronJob (dynamic IP only). Usage: task ddns:deploy -- <ipv64-api-key>"
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running."
+      - sh: '[ -n "{{.CLI_ARGS}}" ]'
+        msg: "Usage: task ddns:deploy -- <your-ipv64-api-key>"
+    cmds:
+      - |
+        kubectl create secret generic ddns-ipv64-key \
+          --namespace workspace \
+          --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
+          --dry-run=client -o yaml | kubectl apply -f -
+      - kubectl apply -f prod/ddns-updater.yaml
+      - echo "✓ DDNS updater deployed (runs every 5 min, only calls API on IP change)"
+
+  ddns:trigger:
+    desc: Manually trigger the DDNS updater once (force an immediate IP check)
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running."
+    cmds:
+      - |
+        kubectl create job ddns-manual-$(date +%s) \
+          --from=cronjob/ddns-updater \
+          -n workspace
+      - echo "✓ Manual job created — run 'task ddns:status' to see result"
+
+  ddns:status:
+    desc: Show DDNS updater status and last known IP
+    cmds:
+      - kubectl get cronjob ddns-updater -n workspace 2>/dev/null || echo "(ddns-updater not deployed)"
+      - kubectl get configmap ddns-last-ip -n workspace -o jsonpath='Last known IP: {.data.ip}{"\n"}' 2>/dev/null || true
+      - kubectl get jobs -n workspace -l job-name --sort-by=.metadata.creationTimestamp 2>/dev/null | tail -5
+
+  ddns:teardown:
+    desc: Remove the DDNS updater (keeps cert-manager and TLS certs intact)
+    prompt: "Remove the DDNS updater CronJob and its secret?"
+    cmds:
+      - kubectl delete -f prod/ddns-updater.yaml --ignore-not-found
+      - kubectl delete secret ddns-ipv64-key -n workspace --ignore-not-found
+      - echo "✓ DDNS updater removed"
+
+  cert:install:
+    desc: Install cert-manager + lego DNS-01 webhook for wildcard certs
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: 'grep -q "your-email@example.com" Bachelorprojekt/k3d/letsencrypt-issuer.yaml && exit 1 || exit 0'
-        msg: "Edit letsencrypt-issuer.yaml and replace your-email@example.com with your real email first."
     cmds:
-      - helm repo add jetstack https://charts.jetstack.io
+      # Install cert-manager
+      - helm repo add jetstack https://charts.jetstack.io --force-update
       - helm repo update
       - |
         helm upgrade --install cert-manager jetstack/cert-manager \
           --namespace cert-manager --create-namespace \
           --set crds.enabled=true \
+          --wait --timeout=180s
+      # Install cert-manager-lego-webhook
+      - helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update
+      - helm repo update
+      - |
+        helm upgrade --install cert-manager-lego-webhook cert-manager-lego-webhook/cert-manager-lego-webhook \
+          --namespace cert-manager \
+          --set certManager.namespace=cert-manager \
+          --set certManager.serviceAccountName=cert-manager \
           --wait --timeout=120s
-      - kubectl apply -f Bachelorprojekt/k3d/letsencrypt-issuer.yaml
-      - echo "✓ cert-manager installed with Let's Encrypt ClusterIssuer"
+      - echo "✓ cert-manager + lego webhook installed"
+      - echo "Next: run 'task cert:secret -- <your-ipv64-api-key>' to store credentials"
+
+  cert:secret:
+    desc: "Store the ipv64 API key as a Secret (usage: task cert:secret -- <API_KEY>)"
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running."
+      - sh: '[ -n "{{.CLI_ARGS}}" ]'
+        msg: "Usage: task cert:secret -- <your-ipv64-api-key>"
+    cmds:
+      - |
+        kubectl create secret generic ipv64-api-key \
+          --namespace cert-manager \
+          --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
+          --dry-run=client -o yaml | kubectl apply -f -
+      - echo "✓ Secret 'ipv64-api-key' created/updated in namespace cert-manager"
+
+  cert:status:
+    desc: Show wildcard certificate and ClusterIssuer status
+    cmds:
+      - kubectl get clusterissuer letsencrypt-prod -o wide
+      - kubectl get certificate workspace-wildcard -n workspace -o wide
+      - kubectl get certificaterequest -n workspace
+      - kubectl get order -n workspace 2>/dev/null || true
 
   docs:publish-api:
     desc: Publish OpenAPI spec to GitBook

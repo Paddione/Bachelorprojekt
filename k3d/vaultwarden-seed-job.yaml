@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vaultwarden-seed
+  namespace: workspace
+spec:
+  template:
+    spec:
+      containers:
+        - name: seeder
+          image: node:20-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Installing Bitwarden CLI..."
+              npm install -g @bitwarden/cli
+              
+              export BW_URL="http://vault:80"
+              
+              echo "Logging into Vaultwarden..."
+              # Note: This requires the account to already exist
+              export BW_SESSION=$(bw login "$BW_EMAIL" "$BW_PASSWORD" --raw)
+              
+              if [ -z "$BW_SESSION" ]; then
+                echo "Failed to login. Please ensure the account exists and credentials are correct."
+                exit 1
+              fi
+              
+              echo "Seeding production secret templates..."
+              
+              # Create Organization if it doesn't exist
+              ORG_ID=$(bw list organizations | jq -r '.[0].id // empty')
+              if [ -z "$ORG_ID" ]; then
+                echo "Please create an organization manually first."
+                # In a real scenario, we might try to automate this if the API allowed easily
+              fi
+              
+              # Create common collections/folders
+              bw create folder '{"name":"Infrastructure"}'
+              bw create folder '{"name":"Services"}'
+              bw create folder '{"name":"MCP Keys"}'
+              
+              echo "Vaultwarden seeding completed successfully."
+          env:
+            - name: BW_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-seed-credentials
+                  key: BW_EMAIL
+            - name: BW_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-seed-credentials
+                  key: BW_PASSWORD
+      restartPolicy: OnFailure
+  backoffLimit: 2

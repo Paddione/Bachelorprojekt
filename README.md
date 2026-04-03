@@ -10,7 +10,7 @@ Voraussetzungen: Docker, [k3d](https://k3d.io), kubectl, [task](https://taskfile
 git clone https://github.com/Paddione/Bachelorprojekt.git && cd Bachelorprojekt
 
 # Cluster erstellen + alle Services deployen
-cd .. && task cluster:create && task ingress:install && task workspace:deploy
+task cluster:create && task workspace:deploy
 ```
 
 Services sind erreichbar unter:
@@ -19,24 +19,26 @@ Services sind erreichbar unter:
 - **Nextcloud (Dateien + Talk):** http://files.localhost
 - **Collabora (Office):** http://office.localhost
 - **Talk HPB (Signaling):** http://signaling.localhost
+- **Docs:** http://docs.localhost
 
 ## Dokumentation
 
 | Dokument | Beschreibung |
 |----------|-------------|
-| [Architektur](docs/architecture.md) | Systemübersicht, Service-Diagramm, Netzwerk und Datenfluss |
-| [Services](docs/services.md) | Kubernetes-Services und deren Zusammenspiel |
-| [Keycloak & SSO](docs/keycloak.md) | Identity Management, OIDC-Clients |
-| [Migration](docs/migration.md) | Import von Slack, Teams, Google Workspace |
-| [Skripte](docs/scripts.md) | Referenz aller Skripte, Parameter und Befehle |
-| [Tests](docs/tests.md) | Automatisiertes Test-Framework |
-| [Sicherheit](docs/security.md) | Sicherheitsrichtlinien und Best Practices |
-| [Fehlerbehebung](docs/troubleshooting.md) | Häufige Probleme und Lösungsansätze |
+| [Architektur](http://docs.localhost/architecture) | Systemübersicht, Service-Diagramm, Netzwerk und Datenfluss |
+| [Services](http://docs.localhost/services) | Kubernetes-Services und deren Zusammenspiel |
+| [Keycloak & SSO](http://docs.localhost/keycloak) | Identity Management, OIDC-Clients |
+| [Migration](http://docs.localhost/migration) | Import von Slack, Teams, Google Workspace |
+| [Skripte](http://docs.localhost/scripts) | Referenz aller Skripte, Parameter und Befehle |
+| [Tests](http://docs.localhost/tests) | Automatisiertes Test-Framework |
+| [Sicherheit](http://docs.localhost/security) | Sicherheitsrichtlinien und Best Practices |
+| [Fehlerbehebung](http://docs.localhost/troubleshooting) | Häufige Probleme und Lösungsansätze |
+| [Anforderungen](docs/README.md) | Maschinell lesbare Anforderungsdefinitionen (JSON) |
 
 ## Architektur
 
 ```
-              NGINX Ingress (Ports 80/443)
+              Traefik Ingress (Ports 80/443)
                      |
     +----------------+----------------+--------------+
     v                v                v              v
@@ -80,7 +82,7 @@ Bachelorprojekt/
     kustomization.yaml          # Kustomize-Orchestrierung
     configmap-domains.yaml      # Domain-Konfiguration
     secrets.yaml                # Dev-Secrets
-    ingress.yaml                # NGINX Ingress Rules
+    ingress.yaml                # Traefik Ingress Rules
     keycloak*.yaml              # Keycloak + DB
     mattermost*.yaml            # Mattermost + DB
     nextcloud*.yaml             # Nextcloud + DB
@@ -89,6 +91,7 @@ Bachelorprojekt/
     collabora.yaml              # Collabora Online (Dokumentenbearbeitung)
     realm-workspace-dev.json   # Keycloak Realm-Konfiguration
     nextcloud-oidc-dev.php      # Nextcloud OIDC-Konfiguration
+  website/                      # Astro + Svelte Website
   scripts/                      # Migration, Import, Utility-Skripte
   tests/                        # Automatisierte Tests (Bash + Playwright)
   docs/                         # Dokumentation

@@ -59,7 +59,6 @@ data:
       - website    (Astro website)
       - default     (OpenClaw MCP servers)
       - kube-system (Traefik, CoreDNS)
-      - tracking    (tracking DB + UI)
 
     Traefik note: no dedicated Traefik MCP exists. Use this MCP to:
       kubectl get ingressroutes --all-namespaces

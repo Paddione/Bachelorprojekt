@@ -9,6 +9,6 @@ spec:
         - name: vaultwarden
           env:
             - name: DOMAIN
-              value: "https://vault.korczewski.de"
+              value: "https://vault.wbhprojekt.ipv64.net"
             - name: SSO_AUTHORITY
-              value: "https://auth.korczewski.de/realms/workspace"
+              value: "https://auth.wbhprojekt.ipv64.net/realms/workspace"

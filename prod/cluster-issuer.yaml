@@ -11,9 +11,14 @@ spec:
     solvers:
       - dns01:
           webhook:
-            groupName: cert-manager-webhook-ipv64
-            solverName: cert-manager-webhook-ipv64
+            # cert-manager-lego-webhook — install via: task cert:install
+            # Docs: https://github.com/yxwuxuanl/cert-manager-lego-webhook
+            groupName: lego.dns-solver
+            solverName: lego-solver
             config:
-              secretName: ipv64-token
-              subdomain: korczewski.de
-              email: noreply-bachelorprojekt@mailbox.org
+              provider: ipv64
+              env:
+                IPV64_API_KEY:
+                  secretKeyRef:
+                    name: ipv64-api-key
+                    key: IPV64_API_KEY

@@ -4,19 +4,27 @@ metadata:
   name: workspace-ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
-  ingressClassName: nginx
   tls:
     - hosts:
-        - auth.korczewski.de
-        - chat.korczewski.de
-        - files.korczewski.de
-        - meet.korczewski.de
-      secretName: korczewski-tls
+        - auth.wbhprojekt.ipv64.net
+        - chat.wbhprojekt.ipv64.net
+        - files.wbhprojekt.ipv64.net
+        - meet.wbhprojekt.ipv64.net
+        - office.wbhprojekt.ipv64.net
+        - board.wbhprojekt.ipv64.net
+        - signaling.wbhprojekt.ipv64.net
+        - mail.wbhprojekt.ipv64.net
+        - docs.wbhprojekt.ipv64.net
+        - billing.wbhprojekt.ipv64.net
+        - vault.wbhprojekt.ipv64.net
+        - ai.wbhprojekt.ipv64.net
+        - web.wbhprojekt.ipv64.net
+        - wiki.wbhprojekt.ipv64.net
+      secretName: workspace-wildcard-tls
   rules:
     # Keycloak (SSO)
-    - host: auth.korczewski.de
+    - host: auth.wbhprojekt.ipv64.net
       http:
         paths:
           - path: /
@@ -28,7 +36,7 @@ spec:
                   number: 8080
 
     # Mattermost (Chat)
-    - host: chat.korczewski.de
+    - host: chat.wbhprojekt.ipv64.net
       http:
         paths:
           - path: /
@@ -40,7 +48,7 @@ spec:
                   number: 8065
 
     # Nextcloud (Dateien)
-    - host: files.korczewski.de
+    - host: files.wbhprojekt.ipv64.net
       http:
         paths:
           - path: /
@@ -51,21 +59,134 @@ spec:
                 port:
                   number: 80
 
-    # Jitsi: OIDC Adapter (higher priority)
-    - host: meet.korczewski.de
+    # Nextcloud Talk HPB Signaling (meet.* alias)
+    - host: meet.wbhprojekt.ipv64.net
       http:
         paths:
-          - path: /oidc
-            pathType: Prefix
-            backend:
-              service:
-                name: jitsi-keycloak-adapter
-                port:
-                  number: 9000
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: jitsi-web
+                name: spreed-signaling
+                port:
+                  number: 8080
+
+    # Collabora Online (Dokumentenbearbeitung)
+    - host: office.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: collabora
+                port:
+                  number: 9980
+
+    # Nextcloud Whiteboard
+    - host: board.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: whiteboard
+                port:
+                  number: 3002
+
+    # Talk HPB Signaling
+    - host: signaling.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spreed-signaling
+                port:
+                  number: 8080
+
+    # Mailpit (SMTP Web-UI)
+    - host: mail.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mailpit
+                port:
+                  number: 8025
+
+    # Docs
+    - host: docs.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docs
+                port:
+                  number: 80
+
+    # Invoice Ninja (Buchhaltung, via OAuth2-Proxy)
+    - host: billing.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-invoiceninja
+                port:
+                  number: 4180
+
+    # Vaultwarden (Passwortmanager)
+    - host: vault.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vaultwarden
+                port:
+                  number: 80
+
+    # OpenClaw (KI-Assistent)
+    - host: ai.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openclaw
+                port:
+                  number: 8080
+
+    # Website (Astro)
+    - host: web.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80
+
+    # Wiki (Outline)
+    - host: wiki.wbhprojekt.ipv64.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: outline
                 port:
                   number: 80

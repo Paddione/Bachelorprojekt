@@ -25,10 +25,6 @@ configMapGenerator:
   - name: mattermost-proxy-config
     files:
       - default.conf=userinfo-proxy.conf
-  - name: jitsi-adapter-code
-    files:
-      - adapter.ts=adapter.ts
-
 generatorOptions:
   disableNameSuffixHash: true
 
@@ -43,7 +39,4 @@ patches:
   # Service patches for https:// env vars
   - path: patch-mattermost.yaml
   - path: patch-nextcloud.yaml
-  - path: patch-jitsi-web.yaml
-  - path: patch-jitsi-keycloak-adapter.yaml
-  - path: patch-jitsi-jvb.yaml
   - path: patch-keycloak.yaml

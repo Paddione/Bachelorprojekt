@@ -184,13 +184,7 @@ MD_OUT="${RESULTS_DIR}/${DATE_TAG}-${TIER}.md"
 finalize_json "$TIER" "$JSON_OUT"
 generate_markdown "$JSON_OUT" "$MD_OUT"
 
-# ── Auto-ingest into tracking.db (if initialized) ───────────────
-TRACKING_SCRIPT="${PROJECT_DIR}/scripts/tracking/ingest-results.sh"
-if [[ -f "$TRACKING_SCRIPT" && -f "${PROJECT_DIR}/tracking.db" ]]; then
-  echo ""
-  echo "━━━ Updating tracking database ━━━"
-  bash "$TRACKING_SCRIPT" "$JSON_OUT" || echo "⚠ Tracking update failed (non-blocking)"
-fi
+# ── Done ─────────────────────────────────────────────────────────
 
 echo ""
 assert_summary

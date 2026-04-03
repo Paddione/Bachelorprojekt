@@ -1,10 +1,10 @@
-# MCP PostgreSQL Server — read-only access to all homeoffice databases
-# Connects to shared-db in the homeoffice namespace
+# MCP PostgreSQL Server — read-only access to all workspace databases
+# Connects to shared-db in the workspace namespace
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mcp-postgres
-  namespace: homeoffice
+  namespace: workspace
   labels:
     app: mcp-postgres
 spec:
@@ -28,7 +28,7 @@ spec:
             - name: SHARED_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: SHARED_DB_PASSWORD
             - name: DATABASE_URLS
               value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/keycloak?options=-c%20default_transaction_read_only%3Don,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/mattermost?options=-c%20default_transaction_read_only%3Don,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/nextcloud?options=-c%20default_transaction_read_only%3Don"
@@ -57,7 +57,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mcp-postgres
-  namespace: homeoffice
+  namespace: workspace
 spec:
   selector:
     app: mcp-postgres

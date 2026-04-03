@@ -36,7 +36,7 @@ spec:
             - name: MATTERMOST_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: MATTERMOST_DB_PASSWORD
             - name: MM_SQLSETTINGS_DATASOURCE
               value: "host=mattermost-db port=5432 user=mattermost password=$(MATTERMOST_DB_PASSWORD) dbname=mattermost sslmode=disable connect_timeout=10"
@@ -93,9 +93,9 @@ spec:
             - name: MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS
               value: "true"
             - name: MM_EMAILSETTINGS_FEEDBACKEMAIL
-              value: "noreply@homeoffice.local"
+              value: "noreply@workspace.local"
             - name: MM_EMAILSETTINGS_FEEDBACKNAME
-              value: "Homeoffice Platform"
+              value: "Workspace Platform"
             - name: MM_EMAILSETTINGS_REQUIREEMAILVERIFICATION
               value: "false"
             - name: MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL
@@ -127,7 +127,7 @@ spec:
             - name: MM_GITLABSETTINGS_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: MATTERMOST_OIDC_SECRET
             - name: MM_GITLABSETTINGS_SCOPE
               value: "openid profile email"
@@ -135,7 +135,7 @@ spec:
               value: "true"
             # Auth-Endpoint: Browser-seitig (extern)
             - name: MM_GITLABSETTINGS_AUTHENDPOINT
-              value: "http://auth.localhost/realms/homeoffice/protocol/openid-connect/auth"
+              value: "http://auth.localhost/realms/workspace/protocol/openid-connect/auth"
             # Token + Userinfo: Server-seitig (intern via Proxy)
             - name: MM_GITLABSETTINGS_TOKENENDPOINT
               value: "http://mm-keycloak-proxy:8081/token"

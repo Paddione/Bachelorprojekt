@@ -17,13 +17,13 @@
 # Environment variables:
 #   MM_URL       - Mattermost URL (default: auto-detect from SiteURL)
 #   MM_TOKEN     - Personal access token (skip mmctl, use REST API)
-#   NAMESPACE    - Kubernetes namespace (default: homeoffice)
+#   NAMESPACE    - Kubernetes namespace (default: workspace)
 #   WP_EXTERNAL  - External WordPress URL (default: auto-detect from IngressRoute)
 #   CHANNEL_NAME - Channel name (default: wordpress)
 
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 MM_URL="${MM_URL:-}"
 MM_TOKEN="${MM_TOKEN:-}"
 WP_EXTERNAL="${WP_EXTERNAL:-}"

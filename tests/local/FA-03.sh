@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # Helper: curl inside the cluster via nextcloud pod
 _kube_curl() { kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- curl -s "$@" 2>/dev/null; }
@@ -70,7 +70,7 @@ assert_gt "$NATS_POD" 0 "FA-03" "T3e" "NATS Message Bus Pod läuft"
 
 # T6: Guest access to Talk room (Gap 1.6 / O)
 # Create a public Talk room via Nextcloud OCS API and verify guest can reach it
-NC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" homeoffice-secrets \
+NC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" workspace-secrets \
   -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null)
 NC_ADMIN_PASS="${NC_ADMIN_PASS:-devnextcloudadmin}"
 # Create public conversation (type 3 = public)

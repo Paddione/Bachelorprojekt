@@ -5,7 +5,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
 DOMAIN="${PROD_DOMAIN:?PROD_DOMAIN must be set}"
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # Thresholds (milliseconds)
 THRESHOLD_FAST=2000    # 2s for health/API endpoints

@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: openclaw-config
 data:
-  OPENID_PROVIDER_URL: "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration"
+  OPENID_PROVIDER_URL: "http://auth.localhost/realms/workspace/.well-known/openid-configuration"
   MATTERMOST_WEBHOOK_URL: "http://mattermost:8065/hooks/openclaw-alerts"
   MCP_KUBERNETES_URL: "http://mcp-kubernetes:3000/mcp"
   MCP_POSTGRES_URL: "http://mcp-postgres:3001/mcp"

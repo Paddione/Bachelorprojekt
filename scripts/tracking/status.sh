@@ -41,7 +41,7 @@ show_pipeline() {
   [[ -n "${1:-}" ]] && where="WHERE category = '${1}'"
 
   echo ""
-  echo -e "${B}═══ Homeoffice MVP — Pipeline Status ═══${NC}"
+  echo -e "${B}═══ Workspace MVP — Pipeline Status ═══${NC}"
   echo ""
 
   sqlite3 -separator ' | ' "$DB" "

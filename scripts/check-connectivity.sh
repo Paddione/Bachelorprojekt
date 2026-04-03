@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# Homeoffice MVP — Erreichbarkeit aller Dienste testen
+# Workspace MVP — Erreichbarkeit aller Dienste testen
 # Liest Domains aus .env und prüft HTTPS-Erreichbarkeit.
 #
 # Verwendung:
@@ -109,7 +109,7 @@ show_host_ip() {
 
 echo ""
 echo "════════════════════════════════════════════"
-echo "  Homeoffice MVP — Erreichbarkeitstest"
+echo "  Workspace MVP — Erreichbarkeitstest"
 echo "════════════════════════════════════════════"
 echo ""
 

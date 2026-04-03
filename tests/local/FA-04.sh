@@ -18,7 +18,7 @@ FILE_ID=$(echo "$UPLOAD_RESP" | jq -r '.file_infos[0].id // empty')
 assert_gt "${#FILE_ID}" 0 "FA-04" "T1" "Datei-Upload erfolgreich"
 
 # T2: Nextcloud quota > 10 GB configured
-NC_QUOTA=$(kubectl exec -n "${NAMESPACE:-homeoffice}" deploy/nextcloud -c nextcloud -- \
+NC_QUOTA=$(kubectl exec -n "${NAMESPACE:-workspace}" deploy/nextcloud -c nextcloud -- \
   setpriv --reuid=999 --regid=999 --clear-groups php occ config:app:get files default_quota 2>/dev/null || echo "none")
 if [[ "$NC_QUOTA" == "none" || -z "$NC_QUOTA" ]]; then
   # No quota means unlimited — passes

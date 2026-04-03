@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# migrate.sh — Homeoffice MVP Migration Assistant
+# migrate.sh — Workspace MVP Migration Assistant
 # ═══════════════════════════════════════════════════════════════════
 # Interaktives Menü zum Importieren und Exportieren von Daten:
 #   - Slack (Export-ZIP oder lokaler Cache) → Mattermost
@@ -13,7 +13,7 @@
 #
 # Voraussetzungen:
 #   - bash 4+, curl, jq, python3, unzip
-#   - Netzwerkzugang zu den Homeoffice-Diensten
+#   - Netzwerkzugang zu den Workspace-Diensten
 #
 # Verwendung:
 #   chmod +x migrate.sh
@@ -34,7 +34,7 @@ source "${SCRIPT_DIR}/lib/google-import.sh"
 source "${SCRIPT_DIR}/lib/export.sh"
 
 # ── Globals ──────────────────────────────────────────────────────────
-WORKDIR="${TMPDIR:-/tmp}/homeoffice-migrate-$$"
+WORKDIR="${TMPDIR:-/tmp}/workspace-migrate-$$"
 mkdir -p "$WORKDIR"
 trap 'rm -rf "$WORKDIR"' EXIT
 
@@ -84,7 +84,7 @@ load_config() {
 
 save_config() {
   cat > "$CFG_FILE" << EOF
-# Homeoffice Migration Config — gespeicherte Verbindungsdaten
+# Workspace Migration Config — gespeicherte Verbindungsdaten
 MM_URL="${MM_URL}"
 MM_ADMIN="${MM_ADMIN}"
 NC_URL="${NC_URL}"
@@ -163,7 +163,7 @@ run_scan() {
 # ── Menü ─────────────────────────────────────────────────────────────
 show_main_menu() {
   echo ""
-  header "🏠 Homeoffice MVP — Daten-Assistent"
+  header "🏠 Workspace MVP — Daten-Assistent"
   $DRY_RUN && warn "DRY-RUN Modus aktiv — keine Änderungen werden vorgenommen"
   echo ""
   echo -e "  ${BOLD}Importieren${NC}"
@@ -446,7 +446,7 @@ test_connections() {
 
   if [[ -n "$KC_URL" ]]; then
     local kc_status
-    kc_status=$(curl -s -o /dev/null -w "%{http_code}" "${KC_URL}/realms/homeoffice/.well-known/openid-configuration" 2>/dev/null)
+    kc_status=$(curl -s -o /dev/null -w "%{http_code}" "${KC_URL}/realms/workspace/.well-known/openid-configuration" 2>/dev/null)
     [[ "$kc_status" == "200" ]] && success "Keycloak:   ${KC_URL} ✓" || warn "Keycloak:   ${KC_URL} (HTTP ${kc_status})"
   fi
   echo ""
@@ -457,7 +457,7 @@ clear
 echo -e "${BOLD}${CYAN}"
 cat << 'BANNER'
   ╔════════════════════════════════════════════════╗
-  ║   🏠  Homeoffice MVP — Daten-Assistent         ║
+  ║   🏠  Workspace MVP — Daten-Assistent         ║
   ║       Slack · Teams · Google · Export            ║
   ╚════════════════════════════════════════════════╝
 BANNER

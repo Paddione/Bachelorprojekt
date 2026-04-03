@@ -32,7 +32,7 @@ spec:
             - name: password
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: COLLABORA_ADMIN_PASSWORD
             - name: dictionaries
               value: "de_DE en_US"

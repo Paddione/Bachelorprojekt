@@ -9,6 +9,11 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod-key
     solvers:
-      - http01:
-          ingress:
-            ingressClassName: nginx
+      - dns01:
+          webhook:
+            groupName: cert-manager-webhook-ipv64
+            solverName: cert-manager-webhook-ipv64
+            config:
+              secretName: ipv64-token
+              subdomain: korczewski.de
+              email: noreply-bachelorprojekt@mailbox.org

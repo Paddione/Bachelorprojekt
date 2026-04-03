@@ -38,14 +38,14 @@ spec:
             - name: VAULTWARDEN_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: VAULTWARDEN_DB_PASSWORD
             - name: DATABASE_URL
               value: "postgresql://vaultwarden:$(VAULTWARDEN_DB_PASSWORD)@shared-db:5432/vaultwarden"
             - name: ADMIN_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: VAULTWARDEN_ADMIN_TOKEN
             - name: DOMAIN
               value: "http://vault.localhost"
@@ -64,10 +64,10 @@ spec:
             - name: SSO_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: VAULTWARDEN_OIDC_SECRET
             - name: SSO_AUTHORITY
-              value: "http://keycloak:8080/realms/homeoffice"
+              value: "http://keycloak:8080/realms/workspace"
             - name: KC_DOMAIN
               valueFrom:
                 configMapKeyRef:
@@ -81,7 +81,7 @@ spec:
             - name: SMTP_SECURITY
               value: "off"
             - name: SMTP_FROM
-              value: "vaultwarden@homeoffice.local"
+              value: "vaultwarden@workspace.local"
             - name: SMTP_FROM_NAME
               value: "Vaultwarden"
             - name: TZ

@@ -147,7 +147,7 @@ UPDATE requirements SET
 WHERE id = 'FA-07';
 
 UPDATE requirements SET
-  description = 'Das System muss homeoffice-spezifische Funktionen bereitstellen. Benutzer müssen anpassbare Status-Emojis und Status-Texte setzen können (z. B. Homeoffice, Nicht stören, Mittagspause), wobei eine automatische Ablaufzeit konfigurierbar ist. Eine Kalenderintegration über ein Mattermost-Plugin soll aktive Meetings im Status anzeigen. Die Verfügbarkeit eines Benutzers muss im Profil für andere Teammitglieder einsehbar sein, um die Erreichbarkeitsplanung im Team zu erleichtern.',
+  description = 'Das System muss workspace-spezifische Funktionen bereitstellen. Benutzer müssen anpassbare Status-Emojis und Status-Texte setzen können (z. B. Workspace, Nicht stören, Mittagspause), wobei eine automatische Ablaufzeit konfigurierbar ist. Eine Kalenderintegration über ein Mattermost-Plugin soll aktive Meetings im Status anzeigen. Die Verfügbarkeit eines Benutzers muss im Profil für andere Teammitglieder einsehbar sein, um die Erreichbarkeitsplanung im Team zu erleichtern.',
   acceptance_criteria = '1) Die Status-Optionen Verfügbar, Beschäftigt, Abwesend und ein benutzerdefinierter Status sind konfigurierbar.
 2) Der gesetzte Status ist für andere Benutzer im Profil und neben dem Benutzernamen sichtbar.
 3) Benutzerdefinierte Status-Texte mit Emoji und optionaler Ablaufzeit können gesetzt werden.
@@ -180,7 +180,7 @@ UPDATE requirements SET
 WHERE id = 'L-02';
 
 UPDATE requirements SET
-  description = 'Der Prototyp muss eine funktionsfähige Homeoffice-Kommunikationsplattform auf Basis von Mattermost und Nextcloud (Talk) sein, deployed im k3d-Cluster. Alle Kernfunktionen (Messaging, Videokonferenzen, Dateiablage und Nutzerverwaltung) müssen lauffähig und demonstrierbar sein. Der Prototyp muss über HTTPS erreichbar sein und im Abnahmegespräch live vorgeführt werden können. Der gesamte Quellcode (Kubernetes-Manifeste, Helm-Charts und Konfigurationsdateien) muss versioniert im GitHub-Repository vorliegen.',
+  description = 'Der Prototyp muss eine funktionsfähige Workspace-Kommunikationsplattform auf Basis von Mattermost und Nextcloud (Talk) sein, deployed im k3d-Cluster. Alle Kernfunktionen (Messaging, Videokonferenzen, Dateiablage und Nutzerverwaltung) müssen lauffähig und demonstrierbar sein. Der Prototyp muss über HTTPS erreichbar sein und im Abnahmegespräch live vorgeführt werden können. Der gesamte Quellcode (Kubernetes-Manifeste, Helm-Charts und Konfigurationsdateien) muss versioniert im GitHub-Repository vorliegen.',
   acceptance_criteria = '1) Alle Services starten im k3d-Cluster ohne Fehler und erreichen den Status Running.
 2) Login ist in Mattermost, Nextcloud und Nextcloud Talk über den SSO-Provider Keycloak möglich.
 3) Alle Kernfunktionen (FA-01 bis FA-07) sind im laufenden Prototyp demonstrierbar.

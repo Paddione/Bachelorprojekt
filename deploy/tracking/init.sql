@@ -339,7 +339,7 @@ INSERT INTO bachelorprojekt.requirements (id, category, name, description, accep
    '1) Volltextsuche ueber Nachrichten\n2) Filter nach Kanal/User/Datum\n3) Antwortzeit < 2s',
    'T1: Suchbegriff eingeben → Ergebnisse angezeigt\nT2: Filter setzen → Ergebnisse eingeschraenkt\nT3: Ladezeit messen → < 2s',
    TRUE, 'must_have'),
-  ('FA-08', 'FA', 'Homeoffice-spezifisch',
+  ('FA-08', 'FA', 'Workspace-spezifisch',
    'Status-Emojis, Kalender-Integration, Verfuegbarkeitsanzeige.',
    '1) Status setzbar (Beschaeftigt, Verfuegbar etc.)\n2) Custom-Status moeglich\n3) Kalender-Integration',
    'T1: Status setzen → sichtbar fuer andere\nT2: Custom-Status → in Profil angezeigt\nT3: Kalender-Events importierbar',

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# runner.sh — Homeoffice MVP Test Runner (k3d)
+# runner.sh — Workspace MVP Test Runner (k3d)
 # ═══════════════════════════════════════════════════════════════════
 # Usage:
 #   ./tests/runner.sh local              # full local tier (k3d)
@@ -11,7 +11,7 @@
 #
 # Prerequisites:
 #   - k3d cluster running (task cluster:create)
-#   - Homeoffice stack deployed (task homeoffice:deploy)
+#   - Workspace stack deployed (task workspace:deploy)
 #   - kubectl, jq, curl installed
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
@@ -20,7 +20,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 export RESULTS_DIR="${SCRIPT_DIR}/results"
 export VERBOSE="${VERBOSE:-false}"
-export NAMESPACE="${NAMESPACE:-homeoffice}"
+export NAMESPACE="${NAMESPACE:-workspace}"
 
 # Source libraries
 source "${SCRIPT_DIR}/lib/assert.sh"
@@ -119,7 +119,7 @@ export RESULTS_FILE="${RESULTS_DIR}/.tmp-${TIER}-${DATE_TAG}.jsonl"
 > "$RESULTS_FILE"  # truncate
 
 echo "═══════════════════════════════════════════════════════════════"
-echo "  Homeoffice MVP — Test Runner (${TIER} / ${PROD_DOMAIN:-k3d})"
+echo "  Workspace MVP — Test Runner (${TIER} / ${PROD_DOMAIN:-k3d})"
 echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "═══════════════════════════════════════════════════════════════"
 

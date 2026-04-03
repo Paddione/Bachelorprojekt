@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FA-08: Homeoffice-spezifisch — custom status
+# FA-08: Workspace-spezifisch — custom status
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
@@ -17,7 +17,7 @@ assert_eq "$SET_STATUS" "200" "FA-08" "T1" "Status auf 'Beschäftigt' setzbar"
 # T2: Custom status text
 CUSTOM_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT \
   -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" -H "Content-Type: application/json" \
-  -d '{"emoji":"house","text":"Im Homeoffice bis 17:00","duration":"today","expires_at":"'"$(date -d '+8 hours' -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' \
+  -d '{"emoji":"house","text":"Im Workspace bis 17:00","duration":"today","expires_at":"'"$(date -d '+8 hours' -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' \
   "${MM_URL}/users/me/status/custom")
 assert_eq "$CUSTOM_STATUS" "200" "FA-08" "T2" "Custom-Status-Text gesetzt"
 

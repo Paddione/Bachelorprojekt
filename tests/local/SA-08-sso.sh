@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 KC_INT_URL="http://keycloak:8080"
 KC_EXT_URL="http://auth.localhost"
 KC_ADMIN_TOKEN=""
@@ -34,14 +34,14 @@ else
 
   # T1: Mattermost OIDC Client existiert mit korrekter Redirect-URI
   MM_CLIENT=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_EXT_URL}/admin/realms/homeoffice/clients?clientId=mattermost" 2>/dev/null)
+    "${KC_EXT_URL}/admin/realms/workspace/clients?clientId=mattermost" 2>/dev/null)
   MM_REDIRECT=$(echo "$MM_CLIENT" | jq -r '.[0].redirectUris[0] // empty')
   assert_contains "$MM_REDIRECT" "chat" "SA-08" "T1" \
     "Mattermost OIDC Client — Redirect-URI konfiguriert"
 
   # T2: Nextcloud OIDC Client existiert mit korrekter Redirect-URI
   NC_CLIENT=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_EXT_URL}/admin/realms/homeoffice/clients?clientId=nextcloud" 2>/dev/null)
+    "${KC_EXT_URL}/admin/realms/workspace/clients?clientId=nextcloud" 2>/dev/null)
   NC_REDIRECT=$(echo "$NC_CLIENT" | jq -r '.[0].redirectUris | join(" ") // empty')
   assert_contains "$NC_REDIRECT" "/apps/oidc_login/oidc" "SA-08" "T2" \
     "Nextcloud OIDC Client — Redirect-URI enthält /apps/oidc_login/oidc"
@@ -49,7 +49,7 @@ else
   # T3: Nextcloud Talk OIDC — verifiziert über Nextcloud OIDC-Konfiguration
   NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
     setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
-  assert_contains "$NC_OIDC_URL" "realms/homeoffice" "SA-08" "T3" \
+  assert_contains "$NC_OIDC_URL" "realms/workspace" "SA-08" "T3" \
     "Nextcloud Talk erbt OIDC-Session — provider_url konfiguriert"
 fi
 
@@ -67,7 +67,7 @@ for endpoint in "/oauth/gitlab/login" "/oauth/openid_connect/login"; do
   fi
 done
 if [[ -n "$MM_OIDC_REDIRECT" ]]; then
-  assert_contains "$MM_OIDC_REDIRECT" "realms/homeoffice" "SA-08" "T4" \
+  assert_contains "$MM_OIDC_REDIRECT" "realms/workspace" "SA-08" "T4" \
     "Mattermost SSO-Login leitet zu Keycloak weiter"
 else
   skip_test "SA-08" "T4" "Mattermost SSO-Redirect" "Kein SSO-Endpoint verfügbar"
@@ -76,7 +76,7 @@ fi
 # T5: Nextcloud OIDC provider_url points to Keycloak (verifies config, not redirect chain)
 NC_PROVIDER_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
   setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
-assert_contains "$NC_PROVIDER_URL" "realms/homeoffice" "SA-08" "T5" \
+assert_contains "$NC_PROVIDER_URL" "realms/workspace" "SA-08" "T5" \
   "Nextcloud OIDC provider_url zeigt auf Keycloak"
 
 # T6: Talk HPB Signaling erreichbar
@@ -109,7 +109,7 @@ assert_gt "$TALK_APP_ENABLED" "0" "SA-08" "T9" \
 
 # T10: Keycloak Token-Endpoint liefert access_token für testuser1
 TEST_PASS="${MM_TEST_ADMIN_PASS:-Testpassword123!}"
-TOKEN_RESPONSE=$(_kube_curl -X POST "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/token" \
+TOKEN_RESPONSE=$(_kube_curl -X POST "${KC_INT_URL}/realms/workspace/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=testuser1" \
   -d "password=${TEST_PASS}" \
@@ -127,12 +127,12 @@ fi
 # T11: Keycloak Userinfo enthält korrekten Username und E-Mail
 if [[ -n "$USER_ACCESS_TOKEN" ]]; then
   USERINFO=$(_kube_curl -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
-    "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/userinfo")
+    "${KC_INT_URL}/realms/workspace/protocol/openid-connect/userinfo")
   UI_USERNAME=$(echo "$USERINFO" | jq -r '.preferred_username // empty')
   UI_EMAIL=$(echo "$USERINFO" | jq -r '.email // empty')
   assert_eq "$UI_USERNAME" "testuser1" "SA-08" "T11a" \
     "Keycloak Userinfo liefert preferred_username=testuser1"
-  assert_eq "$UI_EMAIL" "testuser1@homeoffice.local" "SA-08" "T11b" \
+  assert_eq "$UI_EMAIL" "testuser1@workspace.local" "SA-08" "T11b" \
     "Keycloak Userinfo liefert korrekte E-Mail"
 else
   skip_test "SA-08" "T11a" "Keycloak Userinfo Username" "Kein User-Token"
@@ -148,11 +148,11 @@ assert_eq "$COLLABORA_HEALTH" "200" "SA-08" "T12" \
 # T13: Nextcloud OIDC-Konfiguration geladen
 NC_OIDC_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
   setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
-assert_contains "$NC_OIDC_URL" "realms/homeoffice" "SA-08" "T13" \
+assert_contains "$NC_OIDC_URL" "realms/workspace" "SA-08" "T13" \
   "Nextcloud oidc_login_provider_url konfiguriert"
 
 # T14: Zweiter Token-Request funktioniert (Session-Konsistenz)
-TOKEN_RESPONSE_2=$(_kube_curl -X POST "${KC_INT_URL}/realms/homeoffice/protocol/openid-connect/token" \
+TOKEN_RESPONSE_2=$(_kube_curl -X POST "${KC_INT_URL}/realms/workspace/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=testuser1" \
   -d "password=${TEST_PASS}" \

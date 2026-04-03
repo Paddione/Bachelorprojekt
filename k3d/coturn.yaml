@@ -24,7 +24,7 @@ spec:
             - "--no-tls"
             - "--no-dtls"
             - "--listening-port=3478"
-            - "--realm=homeoffice.local"
+            - "--realm=workspace.local"
             - "--user=talk:devturnpassword1234"
             - "--lt-cred-mech"
             - "--fingerprint"

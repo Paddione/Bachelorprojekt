@@ -3,31 +3,31 @@
   value: traefik
 - op: replace
   path: /spec/rules/0/host
-  value: auth.wbhprojekt.ipv64.de
+  value: auth.korczewski.de
 - op: replace
   path: /spec/rules/1/host
-  value: chat.wbhprojekt.ipv64.de
+  value: chat.korczewski.de
 - op: replace
   path: /spec/rules/2/host
-  value: files.wbhprojekt.ipv64.de
+  value: files.korczewski.de
 - op: replace
   path: /spec/rules/3/host
-  value: office.wbhprojekt.ipv64.de
+  value: office.korczewski.de
 - op: replace
   path: /spec/rules/4/host
-  value: board.wbhprojekt.ipv64.de
+  value: board.korczewski.de
 - op: replace
   path: /spec/rules/5/host
-  value: signaling.wbhprojekt.ipv64.de
+  value: signaling.korczewski.de
 - op: replace
   path: /spec/rules/6/host
-  value: mail.wbhprojekt.ipv64.de
+  value: mail.korczewski.de
 - op: replace
   path: /spec/rules/7/host
-  value: docs.wbhprojekt.ipv64.de
+  value: docs.korczewski.de
 - op: replace
   path: /spec/rules/8/host
-  value: billing.wbhprojekt.ipv64.de
+  value: billing.korczewski.de
 - op: replace
   path: /spec/rules/9/host
-  value: vault.wbhprojekt.ipv64.de
+  value: vault.korczewski.de

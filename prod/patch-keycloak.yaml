@@ -11,7 +11,7 @@ spec:
             - name: SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: SMTP_PASSWORD
             - name: KC_HOSTNAME_STRICT
               value: "false"

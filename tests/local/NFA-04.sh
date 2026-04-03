@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: Mattermost can scale to 2 replicas
 ORIG_REPLICAS=$(kubectl get deploy/mattermost -n "$NAMESPACE" -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "1")

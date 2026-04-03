@@ -27,17 +27,17 @@ spec:
                 - name: KEYCLOAK_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: homeoffice-secrets
+                      name: workspace-secrets
                       key: KEYCLOAK_DB_PASSWORD
                 - name: MATTERMOST_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: homeoffice-secrets
+                      name: workspace-secrets
                       key: MATTERMOST_DB_PASSWORD
                 - name: NEXTCLOUD_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: homeoffice-secrets
+                      name: workspace-secrets
                       key: NEXTCLOUD_DB_PASSWORD
               command: ["/bin/sh", "-c"]
               args:

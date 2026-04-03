@@ -10,7 +10,7 @@ _kc_admin_login
 # T1: Keycloak SSO idle timeout configured (<= 30 min)
 if [[ -n "$KC_ADMIN_TOKEN" ]]; then
   REALM_CONFIG=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_URL}/admin/realms/homeoffice")
+    "${KC_URL}/admin/realms/workspace")
   SSO_IDLE=$(echo "$REALM_CONFIG" | jq -r '.ssoSessionIdleTimeout // 0')
   assert_lt "$SSO_IDLE" 1801 "SA-04" "T1a" "SSO Session Idle Timeout <= 30min (${SSO_IDLE}s)"
   assert_gt "$SSO_IDLE" 0 "SA-04" "T1b" "SSO Session Idle Timeout konfiguriert"

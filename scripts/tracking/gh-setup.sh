@@ -97,7 +97,7 @@ echo "Creating milestone..."
 run_gh api repos/"${REPO}"/milestones \
   --method POST \
   -f title="Bachelorprojekt MVP" \
-  -f description="All requirements for the Homeoffice MVP" \
+  -f description="All requirements for the Workspace MVP" \
   -f state="open" 2>/dev/null || echo "  Milestone may already exist"
 
 MILESTONE_NUMBER=$(gh api repos/"${REPO}"/milestones --jq '.[0].number' 2>/dev/null || echo "")
@@ -195,5 +195,5 @@ echo "Done! View your issues:"
 echo "  gh issue list --milestone 'Bachelorprojekt MVP'"
 echo ""
 echo "To create a GitHub Project board:"
-echo "  gh project create --title 'Homeoffice MVP Pipeline' --owner '$(echo "$REPO" | cut -d/ -f1)'"
+echo "  gh project create --title 'Workspace MVP Pipeline' --owner '$(echo "$REPO" | cut -d/ -f1)'"
 echo "  Then add issues to the project and set up columns: Idea | Implementation | Testing | Documentation | Archive"

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { dismissOverlays } from './helpers';
 
-test.describe('FA-08: Homeoffice-spezifisch', () => {
+test.describe('FA-08: Workspace-spezifisch', () => {
   test('T1: Status auf Beschäftigt setzen', async ({ page }) => {
     await page.goto('/');
     await dismissOverlays(page);
@@ -28,7 +28,7 @@ test.describe('FA-08: Homeoffice-spezifisch', () => {
     try {
       await customBtn.waitFor({ state: 'visible', timeout: 3_000 });
       await customBtn.click();
-      await page.getByPlaceholder(/what.*your.*status|status/i).fill('Im Homeoffice');
+      await page.getByPlaceholder(/what.*your.*status|status/i).fill('Im Workspace');
       await page.getByRole('button', { name: /set status|status setzen/i }).click();
     } catch {
       // Custom status variant not found — skip gracefully

@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # ── Group A: Pod- und Service-Status ────────────────────────────
 
@@ -43,7 +43,7 @@ assert_eq "$BOT_SVC" "8090" "SA-09" "T7" "Billing-Bot Service auf Port 8090"
 # ── Group B: Datenbank ──────────────────────────────────────────
 
 # T8: MariaDB erreichbar
-DB_PASS=$(kubectl get secret homeoffice-secrets -n "$NAMESPACE" -o jsonpath='{.data.INVOICENINJA_DB_PASSWORD}' 2>/dev/null | base64 -d)
+DB_PASS=$(kubectl get secret workspace-secrets -n "$NAMESPACE" -o jsonpath='{.data.INVOICENINJA_DB_PASSWORD}' 2>/dev/null | base64 -d)
 DB_CHECK=$(kubectl exec -n "$NAMESPACE" deploy/invoiceninja-mariadb -- \
   mariadb -u invoiceninja -p"$DB_PASS" invoiceninja -sN -e "SELECT 1;" 2>/dev/null || echo "")
 assert_eq "$DB_CHECK" "1" "SA-09" "T8" "MariaDB erreichbar und invoiceninja-DB vorhanden"

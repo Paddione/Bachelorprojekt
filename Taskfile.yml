@@ -6,6 +6,11 @@ vars:
   REGISTRY: localhost:5000
   APP_NAME: demo-app
   APP_IMAGE: "{{.REGISTRY}}/{{.APP_NAME}}"
+  # ── Domains ───────────────────────────────────────────────────────────
+  # Change PROD_DOMAIN once here, then run 'task domain:set -- new.tld'
+  # to propagate it across all prod config files.
+  PROD_DOMAIN: korczewski.de
+  DEV_DOMAIN: localhost
 
 tasks:
   # ─────────────────────────────────────────────
@@ -153,7 +158,7 @@ tasks:
       - 'echo "  Grafana: kubectl port-forward -n monitoring svc/kube-prometheus-grafana 3000:80"'
       - 'echo "  Password: kubectl get secret -n monitoring kube-prometheus-grafana -o jsonpath=''{.data.admin-password}'' | base64 -d"'
 
-  homeoffice:monitoring:
+  workspace:monitoring:
     desc: Install observability and import DSGVO dashboard (required for NFA-02)
     cmds:
       - task: observability:install
@@ -170,7 +175,7 @@ tasks:
       - 'echo "  Prometheus:         kubectl port-forward -n monitoring svc/kube-prometheus-prometheus 9090:9090"'
       - 'echo "  DSGVO Dashboard:    Grafana → Dashboards → DSGVO Compliance Dashboard"'
 
-  homeoffice:dsgvo-check:
+  workspace:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
     dir: Bachelorprojekt
     cmds:
@@ -202,6 +207,52 @@ tasks:
       - echo '✓ Git hooks installed from .githooks/'
       - 'echo "  pre-commit:         blocks main commits, validates kustomize, scans secrets"'
       - 'echo "  prepare-commit-msg: auto-prefixes commit message from branch name"'
+
+  # ─────────────────────────────────────────────
+  # Domain Management
+  # ─────────────────────────────────────────────
+  domain:set:
+    desc: "Change the production domain across all config files (usage: task domain:set -- new.tld)"
+    cmds:
+      - |
+        NEW="{{.CLI_ARGS}}"
+        OLD="{{.PROD_DOMAIN}}"
+        if [ -z "$NEW" ]; then
+          echo "Usage: task domain:set -- your.domain.tld"
+          echo "Current PROD_DOMAIN: $OLD"
+          exit 1
+        fi
+        if [ "$OLD" = "$NEW" ]; then
+          echo "Domain is already '$OLD' — nothing to do."
+          exit 0
+        fi
+        echo "Replacing '$OLD' → '$NEW' in all prod config files..."
+        grep -rl "$OLD" \
+          prod/ k3s/ deploy/mcp/ingress.yaml \
+          k3d/wordpress-init-job.yaml k3d/wordpress.yaml \
+          Taskfile.yml \
+          2>/dev/null | xargs sed -i "s|${OLD}|${NEW}|g"
+        echo "✓ Domain updated to '$NEW'"
+        echo "  Also update DNS: *.${NEW} → your server IP"
+        echo "  Then run: task workspace:prod:deploy"
+
+  domain:show:
+    desc: Show currently configured domains (dev + prod)
+    cmds:
+      - 'echo "  PROD_DOMAIN: {{.PROD_DOMAIN}}"'
+      - 'echo "  DEV_DOMAIN:  {{.DEV_DOMAIN}}"'
+      - echo ""
+      - echo "Production subdomains:"
+      - 'echo "  auth.{{.PROD_DOMAIN}}    (Keycloak)"'
+      - 'echo "  chat.{{.PROD_DOMAIN}}    (Mattermost)"'
+      - 'echo "  files.{{.PROD_DOMAIN}}   (Nextcloud)"'
+      - 'echo "  office.{{.PROD_DOMAIN}}  (Collabora)"'
+      - 'echo "  board.{{.PROD_DOMAIN}}   (Whiteboard)"'
+      - 'echo "  vault.{{.PROD_DOMAIN}}   (Vaultwarden)"'
+      - 'echo "  billing.{{.PROD_DOMAIN}} (Invoice Ninja)"'
+      - 'echo "  web.{{.PROD_DOMAIN}}     (WordPress)"'
+      - 'echo "  mcp.{{.PROD_DOMAIN}}     (OpenClaw MCP)"'
+      - 'echo "  meet.{{.PROD_DOMAIN}}    (Jitsi)"'
 
   # ─────────────────────────────────────────────
   # Utilities
@@ -250,10 +301,10 @@ tasks:
       - task: cluster:delete
 
   # ─────────────────────────────────────────────
-  # Homeoffice MVP (Bachelorprojekt)
+  # Workspace MVP (Bachelorprojekt)
   # ─────────────────────────────────────────────
-  homeoffice:deploy:
-    desc: Deploy all Homeoffice MVP services into the homeoffice namespace
+  workspace:deploy:
+    desc: Deploy all Workspace MVP services into the workspace namespace
     dir: Bachelorprojekt
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
@@ -264,28 +315,28 @@ tasks:
       - |
         kubectl create configmap keycloak-import-script \
           --from-file="import-entrypoint.sh=scripts/import-entrypoint.sh" \
-          -n homeoffice --dry-run=client -o yaml | kubectl apply -f -
+          -n workspace --dry-run=client -o yaml | kubectl apply -f -
       - |
         kubectl create configmap mattermost-proxy-config \
           --from-file="default.conf=mattermost/userinfo-proxy.conf" \
-          -n homeoffice --dry-run=client -o yaml | kubectl apply -f -
+          -n workspace --dry-run=client -o yaml | kubectl apply -f -
       - |
         kubectl create configmap docsify-index \
           --from-file="index.html=docs-site/index.html" \
-          -n homeoffice --dry-run=client -o yaml | kubectl apply -f -
+          -n workspace --dry-run=client -o yaml | kubectl apply -f -
       - kubectl apply -k k3d/
       # Wait for shared database, then services
       - |
         echo "Waiting for shared-db..."
-        kubectl rollout status deployment/shared-db -n homeoffice --timeout=120s
+        kubectl rollout status deployment/shared-db -n workspace --timeout=120s
       - |
         for svc in keycloak mattermost nextcloud spreed-signaling collabora spacedeck opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
           echo "Waiting for $svc..."
-          kubectl rollout status deployment/$svc -n homeoffice --timeout=300s || \
+          kubectl rollout status deployment/$svc -n workspace --timeout=300s || \
             echo "WARNING: $svc not ready yet"
         done
       - echo ""
-      - 'echo "✓ Homeoffice MVP deployed"'
+      - 'echo "✓ Workspace MVP deployed"'
       - 'echo "  Keycloak:    http://auth.localhost"'
       - 'echo "  Mattermost:  http://chat.localhost"'
       - 'echo "  Nextcloud:   http://files.localhost"'
@@ -297,12 +348,12 @@ tasks:
       - 'echo "  Mailpit:     http://mail.localhost"'
       - 'echo "  Vaultwarden: http://vault.localhost"'
       - echo ""
-      - 'echo "Run ''task homeoffice:post-setup'' to enable Nextcloud apps (calendar, contacts, oidc)."'
-      - 'echo "Run ''task homeoffice:vaultwarden:seed'' to seed Vaultwarden with production secret templates (once)."'
-      - 'echo "Run ''task homeoffice:billing-setup'' to configure the billing bot slash command."'
-      - 'echo "Run ''task homeoffice:monitoring'' to install Prometheus + Grafana (NFA-02)."'
+      - 'echo "Run ''task workspace:post-setup'' to enable Nextcloud apps (calendar, contacts, oidc)."'
+      - 'echo "Run ''task workspace:vaultwarden:seed'' to seed Vaultwarden with production secret templates (once)."'
+      - 'echo "Run ''task workspace:billing-setup'' to configure the billing bot slash command."'
+      - 'echo "Run ''task workspace:monitoring'' to install Prometheus + Grafana (NFA-02)."'
 
-  homeoffice:billing-build:
+  workspace:billing-build:
     desc: Build and push billing-bot image to local registry
     dir: Bachelorprojekt
     cmds:
@@ -310,24 +361,24 @@ tasks:
       - docker push {{.REGISTRY}}/billing-bot:latest
       - 'echo "✓ billing-bot image pushed"'
 
-  homeoffice:billing-setup:
+  workspace:billing-setup:
     desc: Build billing-bot and create /billing slash command in Mattermost
     dir: Bachelorprojekt
-    deps: [homeoffice:billing-build]
+    deps: [workspace:billing-build]
     cmds:
       - bash scripts/billing-bot-setup.sh
 
-  homeoffice:post-setup:
+  workspace:post-setup:
     desc: Enable Nextcloud apps (calendar, contacts, OIDC) after initial deploy
     cmds:
       - echo "Enabling Nextcloud apps..."
-      - kubectl exec -n homeoffice deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install oidc_login" || true
-      - kubectl exec -n homeoffice deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install calendar" || true
-      - kubectl exec -n homeoffice deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install contacts" || true
-      - kubectl exec -n homeoffice deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install richdocuments" || true
-      - kubectl exec -n homeoffice deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:enable spreed" || true
+      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install oidc_login" || true
+      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install calendar" || true
+      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install contacts" || true
+      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install richdocuments" || true
+      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:enable spreed" || true
       - |
-        kubectl exec -n homeoffice deploy/nextcloud -- su -s /bin/bash www-data -c \
+        kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c \
           "php occ config:app:set richdocuments wopi_url --value=http://collabora:9980"
       - echo ""
       - 'echo "✓ Nextcloud apps enabled"'
@@ -336,53 +387,76 @@ tasks:
       - 'echo "  Talk:      http://files.localhost/apps/spreed"'
       - 'echo "  Collabora: via richdocuments WOPI integration"'
 
-  homeoffice:status:
-    desc: Show Homeoffice MVP deployment status
+  workspace:status:
+    desc: Show Workspace MVP deployment status
     cmds:
       - echo "=== Pods ==="
-      - kubectl get pods -n homeoffice -o wide
+      - kubectl get pods -n workspace -o wide
       - echo ""
       - echo "=== Services ==="
-      - kubectl get svc -n homeoffice
+      - kubectl get svc -n workspace
       - echo ""
       - echo "=== Ingress ==="
-      - kubectl get ingress -n homeoffice
+      - kubectl get ingress -n workspace
       - echo ""
       - echo "=== PVCs ==="
-      - kubectl get pvc -n homeoffice
+      - kubectl get pvc -n workspace
 
-  homeoffice:logs:
-    desc: "Tail logs for a homeoffice service (usage: task homeoffice:logs -- <service>)"
+  workspace:logs:
+    desc: "Tail logs for a workspace service (usage: task workspace:logs -- <service>)"
     cmds:
-      - kubectl logs -n homeoffice deploy/{{.CLI_ARGS}} -f --tail=50
+      - kubectl logs -n workspace deploy/{{.CLI_ARGS}} -f --tail=50
 
-  homeoffice:psql:
-    desc: 'Open psql shell to shared-db (usage: task homeoffice:psql -- <dbname>, default: postgres)'
+  workspace:psql:
+    desc: 'Open psql shell to shared-db (usage: task workspace:psql -- <dbname>, default: postgres)'
     cmds:
-      - kubectl exec -it -n homeoffice deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
+      - kubectl exec -it -n workspace deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
 
-  homeoffice:port-forward:
+  workspace:port-forward:
     desc: 'Forward shared-db to localhost:5432'
     cmds:
       - 'echo "Connect: psql -h localhost -p 5432 -U postgres"'
-      - kubectl port-forward -n homeoffice svc/shared-db 5432:5432
+      - kubectl port-forward -n workspace svc/shared-db 5432:5432
 
-  homeoffice:teardown:
-    desc: Remove all Homeoffice MVP resources
-    prompt: "This will delete the homeoffice namespace and all data. Continue?"
+  workspace:teardown:
+    desc: Remove all Workspace MVP resources
+    prompt: "This will delete the workspace namespace and all data. Continue?"
     cmds:
-      - kubectl delete namespace homeoffice --ignore-not-found --timeout=120s
-      - echo "✓ Homeoffice namespace deleted"
+      - kubectl delete namespace workspace --ignore-not-found --timeout=120s
+      - echo "✓ Workspace namespace deleted"
 
-  homeoffice:restart:
-    desc: "Restart a homeoffice service (usage: task homeoffice:restart -- <service>)"
+  workspace:restart:
+    desc: "Restart a workspace service (usage: task workspace:restart -- <service>)"
     cmds:
-      - kubectl rollout restart deployment/{{.CLI_ARGS}} -n homeoffice
-      - kubectl rollout status deployment/{{.CLI_ARGS}} -n homeoffice --timeout=120s
+      - kubectl rollout restart deployment/{{.CLI_ARGS}} -n workspace
+      - kubectl rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
 
-  homeoffice:prod:deploy:
-    desc: Deploy homeoffice stack to k3s-production cluster
-    dir: Bachelorprojekt
+  workspace:cert:install:
+    desc: "Install IPv64 webhook + issue wildcard cert for *.korczewski.de (usage: task workspace:cert:install -- YOUR_IPV64_API_KEY)"
+    preconditions:
+      - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
+        msg: "k3s-production context not reachable."
+      - sh: "[ -n '{{.CLI_ARGS}}' ]"
+        msg: "Usage: task workspace:cert:install -- YOUR_IPV64_API_KEY"
+    cmds:
+      - helm repo add cert-manager-webhook-ipv64 https://theklausklausen.github.io/cert-manager-webhook-ipv64/ || true
+      - helm repo update cert-manager-webhook-ipv64
+      - |
+        helm upgrade --install cert-manager-webhook-ipv64 cert-manager-webhook-ipv64/cert-manager-webhook-ipv64 \
+          --namespace cert-manager --create-namespace \
+          --set groupName=cert-manager-webhook-ipv64 \
+          --wait --timeout=120s
+      - |
+        kubectl --context k3s-production create secret generic ipv64-token \
+          --namespace cert-manager \
+          --from-literal=api-key={{.CLI_ARGS}} \
+          --dry-run=client -o yaml | kubectl --context k3s-production apply -f -
+      - kubectl --context k3s-production apply -f prod/cluster-issuer.yaml
+      - kubectl --context k3s-production apply -f prod/wildcard-certificate.yaml
+      - 'echo "✓ Wildcard cert requested — check progress with: kubectl --context k3s-production get certificate -n workspace"'
+
+  workspace:prod:deploy:
+    desc: Deploy workspace stack to k3s-production cluster
     preconditions:
       - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
@@ -392,37 +466,37 @@ tasks:
       - kubectl --context k3s-production apply -k prod/
       - |
         echo "Waiting for vaultwarden rollout..."
-        kubectl --context k3s-production rollout status deployment/vaultwarden -n homeoffice --timeout=120s
+        kubectl --context k3s-production rollout status deployment/vaultwarden -n workspace --timeout=120s
       - 'echo "✓ Production deploy complete"'
-      - 'echo "  Vaultwarden: https://vault-wbhprojekt.ipv64.de"'
-      - 'echo "  Keycloak:    https://auth-wbhprojekt.ipv64.de"'
+      - 'echo "  Vaultwarden: https://vault.{{.PROD_DOMAIN}}"'
+      - 'echo "  Keycloak:    https://auth.{{.PROD_DOMAIN}}"'
 
-  homeoffice:validate:
+  workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
     dir: Bachelorprojekt
     cmds:
       - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
 
-  homeoffice:vaultwarden:seed:
+  workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: kubectl get secret vaultwarden-seed-credentials -n homeoffice > /dev/null 2>&1
+      - sh: kubectl get secret vaultwarden-seed-credentials -n workspace > /dev/null 2>&1
         msg: "vaultwarden-seed-credentials secret missing. Fill in and apply Bachelorprojekt/k3d/vaultwarden-seed-credentials.yaml first."
     cmds:
-      - kubectl delete job vaultwarden-seed -n homeoffice --ignore-not-found
+      - kubectl delete job vaultwarden-seed -n workspace --ignore-not-found
       - kubectl apply -f Bachelorprojekt/k3d/vaultwarden-seed-job.yaml
       - |
         echo "Waiting for seed job to complete..."
-        kubectl wait --for=condition=complete job/vaultwarden-seed -n homeoffice --timeout=120s
-      - kubectl logs -n homeoffice job/vaultwarden-seed
+        kubectl wait --for=condition=complete job/vaultwarden-seed -n workspace --timeout=120s
+      - kubectl logs -n workspace job/vaultwarden-seed
 
-  homeoffice:vaultwarden:seed-logs:
+  workspace:vaultwarden:seed-logs:
     desc: Show logs from the last Vaultwarden seed job run
     cmds:
-      - kubectl logs -n homeoffice job/vaultwarden-seed
+      - kubectl logs -n workspace job/vaultwarden-seed
 
   # ─────────────────────────────────────────────
   # Assetgenerator
@@ -561,7 +635,7 @@ tasks:
   # Documentation
   # ─────────────────────────────────────────────
   docs:deploy:
-    desc: Deploy Docsify docs site into the homeoffice namespace (git-sync, no build needed)
+    desc: Deploy Docsify docs site into the workspace namespace (git-sync, no build needed)
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: 'No cluster running. Run "task cluster:create" first.'
@@ -569,9 +643,9 @@ tasks:
       - |
         kubectl create configmap docsify-index \
           --from-file="index.html=Bachelorprojekt/docs-site/index.html" \
-          -n homeoffice --dry-run=client -o yaml | kubectl apply -f -
-      - kubectl apply -f Bachelorprojekt/k3d/docs.yaml -n homeoffice
-      - kubectl rollout status deployment/docs -n homeoffice --timeout=120s
+          -n workspace --dry-run=client -o yaml | kubectl apply -f -
+      - kubectl apply -f Bachelorprojekt/k3d/docs.yaml -n workspace
+      - kubectl rollout status deployment/docs -n workspace --timeout=120s
       - echo ''
       - 'echo "✓ Docs deployed"'
       - 'echo "  URL will match your ingress domain (e.g., http://docs.localhost)"'
@@ -579,8 +653,8 @@ tasks:
   docs:restart:
     desc: Restart docs pod to pull latest content from GitHub
     cmds:
-      - kubectl rollout restart deployment/docs -n homeoffice
-      - kubectl rollout status deployment/docs -n homeoffice --timeout=120s
+      - kubectl rollout restart deployment/docs -n workspace
+      - kubectl rollout status deployment/docs -n workspace --timeout=120s
       - echo '✓ Docs restarted with latest content from GitHub'
 
   docs:integrate-mattermost:
@@ -590,7 +664,7 @@ tasks:
       - bash scripts/mattermost-docs-integration.sh
 
   # ─────────────────────────────────────────────
-  # WordPress (web-wbhprojekt.ipv64.de)
+  # WordPress
   # ─────────────────────────────────────────────
   # ─────────────────────────────────────────────
   # OpenClaw MCP Servers
@@ -657,12 +731,12 @@ tasks:
     cmds:
       - |
         echo "Generating Mattermost API token..."
-        TOKEN=$(kubectl exec -n homeoffice deploy/mattermost -- \
+        TOKEN=$(kubectl exec -n workspace deploy/mattermost -- \
           mmctl --local token generate axzgi6xawjrm7rucg39h97dfjw "openclaw-setup-$(date +%s)" 2>/dev/null | cut -d: -f1)
         echo "Running OpenClaw Mattermost setup..."
         kubectl run openclaw-mm-setup --rm -i --restart=Never \
           --image=python:3.12-alpine \
-          --env="MM_URL=http://mattermost.homeoffice.svc.cluster.local:8065" \
+          --env="MM_URL=http://mattermost.workspace.svc.cluster.local:8065" \
           --env="MM_TOKEN=$TOKEN" \
           -- python3 /dev/stdin < Bachelorprojekt/scripts/openclaw-mattermost-setup.py
       - 'echo "✓ OpenClaw channels created in all teams"'
@@ -712,7 +786,7 @@ tasks:
         kubectl rollout status deployment/wordpress -n wordpress --timeout=120s
       - echo ""
       - 'echo "✓ WordPress deployed"'
-      - 'echo "  URL:  https://web-wbhprojekt.ipv64.de"'
+      - 'echo "  URL:  https://web.{{.PROD_DOMAIN}}"'
       - echo ""
       - 'echo "Next steps:"'
       - 'echo "  1. Complete WordPress setup wizard at the URL above"'

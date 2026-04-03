@@ -30,14 +30,14 @@ spec:
             - name: INVOICENINJA_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_API_TOKEN
             - name: MATTERMOST_URL
               value: "http://mattermost:8065"
             - name: MATTERMOST_BOT_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: BILLING_BOT_MM_TOKEN
             - name: BILLING_DOMAIN
               valueFrom:

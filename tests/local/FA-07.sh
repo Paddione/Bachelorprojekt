@@ -43,7 +43,7 @@ SEARCH_MS=$((END_MS - START_MS))
 assert_lt "$SEARCH_MS" 2000 "FA-07" "T4" "Suchanfrage in < 2s beantwortet"
 
 # T5: OpenSearch cluster is healthy
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 OS_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
   curl -s -o /dev/null -w '%{http_code}' "http://opensearch:9200/_cluster/health" --max-time 5 2>/dev/null || echo "000")
 if [[ "$OS_HEALTH" == "200" ]]; then

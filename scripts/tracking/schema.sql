@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- Homeoffice MVP — Requirements & Pipeline Tracking Schema
+-- Workspace MVP — Requirements & Pipeline Tracking Schema
 -- ═══════════════════════════════════════════════════════════════════
 -- Usage: sqlite3 tracking.db < schema.sql
 --

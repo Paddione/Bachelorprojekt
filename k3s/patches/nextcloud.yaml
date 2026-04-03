@@ -9,18 +9,18 @@ spec:
         - name: nextcloud
           env:
             - name: NEXTCLOUD_TRUSTED_DOMAINS
-              value: "files.wbhprojekt.ipv64.de"
+              value: "files.korczewski.de"
             - name: OVERWRITEPROTOCOL
               value: https
             - name: OVERWRITECLIURL
-              value: "https://files.wbhprojekt.ipv64.de"
+              value: "https://files.korczewski.de"
           readinessProbe:
             httpGet:
               path: /status.php
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.wbhprojekt.ipv64.de
+                  value: files.korczewski.de
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 10
@@ -30,7 +30,7 @@ spec:
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.wbhprojekt.ipv64.de
+                  value: files.korczewski.de
             initialDelaySeconds: 120
             periodSeconds: 30
             failureThreshold: 10

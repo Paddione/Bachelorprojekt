@@ -1,12 +1,12 @@
 #!/bin/sh
-# Substituiert Umgebungsvariablen in realm-homeoffice.json
+# Substituiert Umgebungsvariablen in realm-workspace.json
 # und startet Keycloak mit --import-realm
 #
 # Production-Variante: substituiert auch SMTP_PASSWORD
 set -e
 
-TEMPLATE="/opt/keycloak/realm-template/realm-homeoffice.json"
-OUTPUT="/opt/keycloak/data/import/realm-homeoffice.json"
+TEMPLATE="/opt/keycloak/realm-template/realm-workspace.json"
+OUTPUT="/opt/keycloak/data/import/realm-workspace.json"
 
 mkdir -p "$(dirname "$OUTPUT")"
 

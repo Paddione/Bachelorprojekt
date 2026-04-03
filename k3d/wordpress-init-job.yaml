@@ -68,7 +68,7 @@ spec:
                 echo "daggerhart-openid-connect-generic installed."
               fi
 
-              # Configure OIDC to point at the homeoffice Keycloak realm.
+              # Configure OIDC to point at the workspace Keycloak realm.
               # KEYCLOAK_URL and WP_OIDC_SECRET are injected via env vars below.
               wp --allow-root option set openid_connect_generic_settings \
                 "{
@@ -138,7 +138,7 @@ spec:
                   name: wordpress-oidc-secret
                   key: client-secret
             - name: KEYCLOAK_URL
-              value: "https://auth.wbhprojekt.ipv64.de/realms/homeoffice"
+              value: "https://auth.korczewski.de/realms/workspace"
           volumeMounts:
             - name: wordpress-data
               mountPath: /var/www/html

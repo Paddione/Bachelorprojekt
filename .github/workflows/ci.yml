@@ -71,8 +71,8 @@ jobs:
 
       - name: Validate realm JSON
         run: |
-          python3 -c "import json; json.load(open('k3d/realm-homeoffice-dev.json'))"
-          echo "realm-homeoffice-dev.json is valid JSON"
+          python3 -c "import json; json.load(open('k3d/realm-workspace-dev.json'))"
+          echo "realm-workspace-dev.json is valid JSON"
 
       - name: Validate PHP config
         run: |

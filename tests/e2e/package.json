@@ -1,5 +1,5 @@
 {
-  "name": "homeoffice-mvp-e2e",
+  "name": "workspace-mvp-e2e",
   "private": true,
   "scripts": {
     "test": "playwright test",

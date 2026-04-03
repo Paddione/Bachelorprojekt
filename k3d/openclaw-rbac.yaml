@@ -59,7 +59,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: openclaw-agent
-    namespace: homeoffice
+    namespace: workspace
 roleRef:
   kind: ClusterRole
   name: openclaw-agent

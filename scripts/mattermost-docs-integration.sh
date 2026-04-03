@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 DOCS_URL="${DOCS_URL:-}"
 GITBOOK_URL="${GITBOOK_URL:-}"
 MM_URL="${MM_URL:-}"
@@ -58,10 +58,10 @@ echo ""
 # ── Build announcement message ───────────────────────────────
 if [ -n "${GITBOOK_URL}" ]; then
   DOCS_MSG="### :books: KORE Platform Documentation\n\nThe project documentation is available at:\n\n| Resource | URL |\n|----------|-----|\n| **GitBook** | ${GITBOOK_URL} |\n| **Local (Docsify)** | ${DOCS_URL} |\n\nGitBook syncs automatically from the \`docs/\` directory on the \`main\` branch.\n\nContents:\n- Architecture, Services, Keycloak & SSO\n- Invoice Ninja (Billing)\n- Security, Requirements\n- Guides (admin, user, deployment, migration, testing)\n- API Reference"
-  HEADER_MSG=":books: [KORE Docs](${GITBOOK_URL}) | [Local](${DOCS_URL}) | Homeoffice MVP Documentation"
+  HEADER_MSG=":books: [KORE Docs](${GITBOOK_URL}) | [Local](${DOCS_URL}) | Workspace MVP Documentation"
 else
   DOCS_MSG="### :books: KORE Platform Documentation\n\nThe project documentation is available at **${DOCS_URL}**\n\nContents:\n- Architecture, Services, Keycloak & SSO\n- Invoice Ninja (Billing)\n- Security, Requirements\n- Guides (admin, user, deployment, migration, testing)\n- API Reference"
-  HEADER_MSG=":books: [KORE Docs](${DOCS_URL}) | Homeoffice MVP Documentation"
+  HEADER_MSG=":books: [KORE Docs](${DOCS_URL}) | Workspace MVP Documentation"
 fi
 
 # ── Method 1: mmctl (inside pod) ─────────────────────────────

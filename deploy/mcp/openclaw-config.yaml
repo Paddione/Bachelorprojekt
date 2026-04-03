@@ -9,8 +9,8 @@ data:
   # Credentials are in the openclaw-secrets Secret (default namespace).
   # ════════════════════════════════════════════════════════════════════
 
-  OPENID_PROVIDER_URL: "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration"
-  MATTERMOST_WEBHOOK_URL: "http://mattermost.homeoffice.svc.cluster.local:8065/hooks/openclaw-alerts"
+  OPENID_PROVIDER_URL: "http://auth.localhost/realms/workspace/.well-known/openid-configuration"
+  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/openclaw-alerts"
 
   # Core pod: cluster + database + chat
   MCP_KUBERNETES_URL:   "http://openclaw-mcp-core:8080/mcp"
@@ -30,14 +30,14 @@ data:
   # INTERNAL SERVICE URLS (for direct API calls bypassing MCP)
   # ════════════════════════════════════════════════════════════════════
 
-  KEYCLOAK_INTERNAL_URL:     "http://keycloak.homeoffice.svc.cluster.local:8080"
-  MATTERMOST_INTERNAL_URL:   "http://mattermost.homeoffice.svc.cluster.local:8065"
-  NEXTCLOUD_INTERNAL_URL:    "http://nextcloud.homeoffice.svc.cluster.local:80"
-  NEXTCLOUD_WEBDAV_URL:      "http://nextcloud.homeoffice.svc.cluster.local:80/remote.php/dav"
-  INVOICENINJA_INTERNAL_URL: "http://invoiceninja.homeoffice.svc.cluster.local:80/api/v1"
+  KEYCLOAK_INTERNAL_URL:     "http://keycloak.workspace.svc.cluster.local:8080"
+  MATTERMOST_INTERNAL_URL:   "http://mattermost.workspace.svc.cluster.local:8065"
+  NEXTCLOUD_INTERNAL_URL:    "http://nextcloud.workspace.svc.cluster.local:80"
+  NEXTCLOUD_WEBDAV_URL:      "http://nextcloud.workspace.svc.cluster.local:80/remote.php/dav"
+  INVOICENINJA_INTERNAL_URL: "http://invoiceninja.workspace.svc.cluster.local:80/api/v1"
   WORDPRESS_INTERNAL_URL:    "http://wordpress.wordpress.svc.cluster.local:80"
   TRAEFIK_API_URL:           "http://traefik.kube-system.svc.cluster.local:9000/api"
-  UPTIME_KUMA_URL:           "http://uptime-kuma.homeoffice.svc.cluster.local:3001"
+  UPTIME_KUMA_URL:           "http://uptime-kuma.workspace.svc.cluster.local:3001"
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-kubernetes  (port 3000, streamable-http)
@@ -54,7 +54,7 @@ data:
       - Does NOT have: exec into pods, access secrets, delete resources
 
     Key namespaces to query:
-      - homeoffice (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja, Talk HPB)
+      - workspace (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja, Talk HPB)
       - wordpress   (WordPress + MariaDB)
       - default     (OpenClaw MCP servers)
       - kube-system (Traefik, CoreDNS)
@@ -72,7 +72,7 @@ data:
     Image: mcp/postgres (read-only)
     Transport: streamable-http → http://mcp-postgres:3001/mcp
     Auth: SHARED_DB_PASSWORD from openclaw-secrets
-    Host: shared-db.homeoffice.svc.cluster.local:5432
+    Host: shared-db.workspace.svc.cluster.local:5432
 
     Available databases (all read-only):
       - keycloak   → users, realms, sessions, clients
@@ -108,7 +108,7 @@ data:
     Image: legard/mcp-server-mattermost
     Transport: streamable-http → http://mcp-mattermost:8000/mcp
     Auth: MATTERMOST_TOKEN from openclaw-secrets (bot token)
-    Server: mattermost.homeoffice.svc.cluster.local:8065
+    Server: mattermost.workspace.svc.cluster.local:8065
 
     Current token: uses billing-bot token (dev placeholder).
     For production: create a dedicated OpenClaw bot in Mattermost:
@@ -137,7 +137,7 @@ data:
     Transport: streamable-http → http://mcp-nextcloud:8000/mcp
     Health: http://mcp-nextcloud:8000/health/ready
     Auth: NEXTCLOUD_USERNAME + NEXTCLOUD_PASSWORD from openclaw-secrets
-    Host: nextcloud.homeoffice.svc.cluster.local
+    Host: nextcloud.workspace.svc.cluster.local
 
     Current credentials: admin / devnextcloudadmin (dev placeholder).
     For production: generate an App Password in Nextcloud:
@@ -155,7 +155,7 @@ data:
       Tables:       list_tables, get_rows, add_row
       Cookbook:     list_recipes, get_recipe, import_recipe_from_url
 
-    WebDAV direct URL: http://nextcloud.homeoffice.svc.cluster.local/remote.php/dav/files/admin/
+    WebDAV direct URL: http://nextcloud.workspace.svc.cluster.local/remote.php/dav/files/admin/
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-keycloak  (port 8080, SSE transport)
@@ -171,7 +171,7 @@ data:
 
     Get admin token (valid ~60s, re-fetch as needed):
       curl -s -X POST \
-        http://keycloak.homeoffice.svc.cluster.local:8080/realms/master/protocol/openid-connect/token \
+        http://keycloak.workspace.svc.cluster.local:8080/realms/master/protocol/openid-connect/token \
         -d "grant_type=password&client_id=admin-cli&username=admin&password=devadmin" \
         | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
 
@@ -185,7 +185,7 @@ data:
       Auth:     GET_AUTHENTICATION_FLOWS, GET_FLOW_EXECUTIONS
       IdP:      GET_IDENTITY_PROVIDERS, GET_IDENTITY_PROVIDER_MAPPERS
 
-    Realm in use: homeoffice (Keycloak, Mattermost, Nextcloud, Collabora, WordPress, InvoiceNinja SSO)
+    Realm in use: workspace (Keycloak, Mattermost, Nextcloud, Collabora, WordPress, InvoiceNinja SSO)
     Admin realm:  master (admin-cli client lives here)
 
   # ════════════════════════════════════════════════════════════════════
@@ -195,15 +195,15 @@ data:
     Image: ckanthony/openapi-mcp (OpenAPI → MCP bridge)
     Transport: streamable-http → http://mcp-invoiceninja:8080/mcp
     Auth: X-Api-Token header injected from openclaw-secrets INVOICENINJA_REQUEST_HEADERS
-    Spec: http://invoiceninja.homeoffice.svc.cluster.local/api/openapi.json
-    Base URL: http://invoiceninja.homeoffice.svc.cluster.local
+    Spec: http://invoiceninja.workspace.svc.cluster.local/api/openapi.json
+    Base URL: http://invoiceninja.workspace.svc.cluster.local
 
     If spec fetch fails at startup, check pod logs:
       kubectl logs -n default deployment/mcp-invoiceninja
     Fallback spec URL: https://raw.githubusercontent.com/invoiceninja/invoiceninja/v5-stable/openapi.yaml
 
     Invoice Ninja API v1 direct access:
-      Base: http://invoiceninja.homeoffice.svc.cluster.local/api/v1
+      Base: http://invoiceninja.workspace.svc.cluster.local/api/v1
       Auth: X-Api-Token: testrunnertoken2026
       Key endpoints: /clients, /invoices, /quotes, /payments, /expenses, /projects, /tasks
 

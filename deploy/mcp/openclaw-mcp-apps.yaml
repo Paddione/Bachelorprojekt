@@ -25,7 +25,7 @@ spec:
           image: ghcr.io/cbcoutinho/nextcloud-mcp-server:latest
           env:
             - name: NEXTCLOUD_HOST
-              value: "http://nextcloud.homeoffice.svc.cluster.local"
+              value: "http://nextcloud.workspace.svc.cluster.local"
             - name: NEXTCLOUD_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -57,7 +57,7 @@ spec:
         # ── Invoice Ninja MCP (port 8080) ──────────────────────────
         - name: invoiceninja
           image: ckanthony/openapi-mcp:latest
-          args: ["--spec", "/specs/spec.json", "--port", "8080", "--base-url", "http://invoiceninja.homeoffice.svc.cluster.local"]
+          args: ["--spec", "/specs/spec.json", "--port", "8080", "--base-url", "http://invoiceninja.workspace.svc.cluster.local"]
           env:
             - name: REQUEST_HEADERS
               valueFrom:

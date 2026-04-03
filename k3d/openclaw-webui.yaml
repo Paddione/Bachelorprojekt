@@ -36,7 +36,7 @@ spec:
             - name: OPENAI_API_KEYS
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: ANTHROPIC_API_KEY
             # ─── Defaults ─────────────────────────────────────
             - name: DEFAULT_MODELS
@@ -63,7 +63,7 @@ spec:
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: OPENCLAW_OIDC_SECRET
             - name: OAUTH_SCOPES
               value: "openid email profile"

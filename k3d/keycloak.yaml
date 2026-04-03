@@ -30,7 +30,7 @@ spec:
             - name: KC_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: KEYCLOAK_DB_PASSWORD
             - name: KC_HOSTNAME
               valueFrom:
@@ -50,18 +50,18 @@ spec:
             - name: KEYCLOAK_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: KEYCLOAK_ADMIN_PASSWORD
             # Realm-Import: Variablen werden von import-entrypoint.sh substituiert
             - name: MATTERMOST_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: MATTERMOST_OIDC_SECRET
             - name: NEXTCLOUD_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: NEXTCLOUD_OIDC_SECRET
             - name: MM_DOMAIN
               valueFrom:
@@ -81,12 +81,12 @@ spec:
             - name: INVOICENINJA_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_OIDC_SECRET
             - name: WORDPRESS_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: WORDPRESS_OIDC_SECRET
             - name: WP_DOMAIN
               valueFrom:
@@ -96,7 +96,7 @@ spec:
             - name: VAULTWARDEN_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: VAULTWARDEN_OIDC_SECRET
             - name: VAULT_DOMAIN
               valueFrom:
@@ -116,8 +116,8 @@ spec:
               subPath: import-entrypoint.sh
               readOnly: true
             - name: realm-template
-              mountPath: /opt/keycloak/realm-template/realm-homeoffice.json
-              subPath: realm-homeoffice.json
+              mountPath: /opt/keycloak/realm-template/realm-workspace.json
+              subPath: realm-workspace.json
               readOnly: true
           readinessProbe:
             httpGet:

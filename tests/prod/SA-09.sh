@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
 BILLING_URL="${PROTO:-https}://billing-${PROD_DOMAIN}"
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: billing-Domain erreichbar (OAuth2-Proxy antwortet)
 BILLING_STATUS=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 "${BILLING_URL}/" 2>/dev/null)

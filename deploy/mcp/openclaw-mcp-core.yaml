@@ -67,7 +67,7 @@ spec:
                   name: openclaw-secrets
                   key: SHARED_DB_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.homeoffice.svc.cluster.local:5432/mattermost"
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/mattermost"
           ports:
             - containerPort: 3001
               name: postgres
@@ -96,7 +96,7 @@ spec:
             - name: MCP_PORT
               value: "8000"
             - name: MATTERMOST_URL
-              value: "http://mattermost.homeoffice.svc.cluster.local:8065"
+              value: "http://mattermost.workspace.svc.cluster.local:8065"
             - name: MATTERMOST_TOKEN
               valueFrom:
                 secretKeyRef:

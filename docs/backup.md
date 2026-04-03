@@ -26,7 +26,7 @@ kubectl run backup-ls --rm -it --restart=Never \
       }]
     }
   }' \
-  -n homeoffice
+  -n workspace
 ```
 
 ## Backup entschluesseln
@@ -43,7 +43,7 @@ Die Passphrase liegt im Secret `backup-passphrase` (Key: `backup-passphrase`).
 Im Dev-Cluster:
 
 ```bash
-kubectl get secret backup-passphrase -n homeoffice \
+kubectl get secret backup-passphrase -n workspace \
   -o jsonpath='{.data.backup-passphrase}' | base64 -d
 ```
 
@@ -53,19 +53,19 @@ kubectl get secret backup-passphrase -n homeoffice \
 # 1. Dump entschluesseln (siehe oben)
 
 # 2. In den DB-Pod kopieren
-kubectl cp keycloak.dump homeoffice/<keycloak-db-pod>:/tmp/keycloak.dump
+kubectl cp keycloak.dump workspace/<keycloak-db-pod>:/tmp/keycloak.dump
 
 # 3. Datenbank droppen und neu erstellen
-kubectl exec -it deploy/keycloak-db -n homeoffice -- \
+kubectl exec -it deploy/keycloak-db -n workspace -- \
   psql -U keycloak -d postgres \
   -c "DROP DATABASE keycloak; CREATE DATABASE keycloak OWNER keycloak;"
 
 # 4. Restore ausfuehren
-kubectl exec -it deploy/keycloak-db -n homeoffice -- \
+kubectl exec -it deploy/keycloak-db -n workspace -- \
   pg_restore -U keycloak -d keycloak /tmp/keycloak.dump
 
 # 5. Service neustarten
-kubectl rollout restart deployment/keycloak -n homeoffice
+kubectl rollout restart deployment/keycloak -n workspace
 ```
 
 Fuer `mattermost` oder `nextcloud` analog vorgehen (Datenbank-, User- und
@@ -75,7 +75,7 @@ Deployment-Name anpassen, z.B. `mattermost-db`, `nextcloud-db`).
 
 ```bash
 kubectl create job --from=cronjob/db-backup manual-backup-$(date +%Y%m%d) \
-  -n homeoffice
+  -n workspace
 ```
 
 ## Konfiguration

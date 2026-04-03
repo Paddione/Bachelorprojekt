@@ -1,13 +1,13 @@
 #!/bin/sh
-# Substituiert Umgebungsvariablen in realm-homeoffice.json
+# Substituiert Umgebungsvariablen in realm-workspace.json
 # und startet Keycloak mit --import-realm
 #
 # Hinweis: envsubst ist im Keycloak-Image (RHEL UBI9-micro) nicht
 # verfügbar, daher werden die Variablen per sed ersetzt.
 set -e
 
-TEMPLATE="/opt/keycloak/realm-template/realm-homeoffice.json"
-OUTPUT="/opt/keycloak/data/import/realm-homeoffice.json"
+TEMPLATE="/opt/keycloak/realm-template/realm-workspace.json"
+OUTPUT="/opt/keycloak/data/import/realm-workspace.json"
 
 mkdir -p "$(dirname "$OUTPUT")"
 

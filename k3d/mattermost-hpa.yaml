@@ -2,7 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: mattermost
-  namespace: homeoffice
+  namespace: workspace
   labels:
     app: mattermost
 spec:

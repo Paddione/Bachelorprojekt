@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: domain-config
 data:
-  MM_DOMAIN: "chat.wbhprojekt.ipv64.de"
-  KC_DOMAIN: "auth.wbhprojekt.ipv64.de"
-  NC_DOMAIN: "files.wbhprojekt.ipv64.de"
-  JITSI_DOMAIN: "meet.wbhprojekt.ipv64.de"
-  JITSI_XMPP_SUFFIX: "meet.wbhprojekt.ipv64.de"
+  MM_DOMAIN: "chat.korczewski.de"
+  KC_DOMAIN: "auth.korczewski.de"
+  NC_DOMAIN: "files.korczewski.de"
+  JITSI_DOMAIN: "meet.korczewski.de"
+  JITSI_XMPP_SUFFIX: "meet.korczewski.de"

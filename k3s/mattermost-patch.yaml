@@ -1,10 +1,10 @@
 # Patch existing Mattermost deployment with new features
-# Apply with: kubectl patch deployment mattermost -n homeoffice --patch-file k3s/mattermost-patch.yaml
+# Apply with: kubectl patch deployment mattermost -n workspace --patch-file k3s/mattermost-patch.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mattermost
-  namespace: homeoffice
+  namespace: workspace
 spec:
   template:
     spec:

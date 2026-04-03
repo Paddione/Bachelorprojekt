@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: outline
+spec:
+  template:
+    spec:
+      containers:
+        - name: outline
+          env:
+            - name: URL
+              value: "https://wiki.wbhprojekt.ipv64.net"
+            - name: FORCE_HTTPS
+              value: "true"
+            - name: OIDC_AUTH_URI
+              value: "https://auth.wbhprojekt.ipv64.net/realms/workspace/protocol/openid-connect/auth"
+            - name: OIDC_LOGOUT_URI
+              value: "https://auth.wbhprojekt.ipv64.net/realms/workspace/protocol/openid-connect/logout"

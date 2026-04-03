@@ -34,6 +34,10 @@ resources:
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
+  # Wiki
+  - outline.yaml
+  # Transkription
+  - whisper.yaml
   # KI-Assistent
   - openclaw-rbac.yaml
   - openclaw-config.yaml

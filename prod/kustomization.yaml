@@ -40,3 +40,10 @@ patches:
   - path: patch-mattermost.yaml
   - path: patch-nextcloud.yaml
   - path: patch-keycloak.yaml
+  # OpenClaw prod overrides
+  - path: patch-openclaw-config.yaml
+  - path: patch-openclaw-webui.yaml
+  # Outline prod overrides
+  - path: patch-outline.yaml
+  # Pin mcp-browser to amd64 nodes (Playwright image has no arm64 build)
+  - path: patch-mcp-browser.yaml

@@ -45,13 +45,13 @@ spec:
                   name: workspace-secrets
                   key: OUTLINE_UTILS_SECRET
             # Database
-            - name: DATABASE_URL
-              value: "postgres://outline:$(OUTLINE_DB_PASSWORD)@shared-db:5432/outline"
             - name: OUTLINE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: OUTLINE_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgres://outline:$(OUTLINE_DB_PASSWORD)@shared-db:5432/outline"
             - name: PGSSLMODE
               value: "disable"
             # URLs
@@ -90,6 +90,9 @@ spec:
               value: "preferred_username"
             - name: OIDC_SCOPES
               value: "openid profile email"
+            # Redis
+            - name: REDIS_URL
+              value: "redis://localhost:6379"
             # Disable other auth
             - name: SLACK_CLIENT_ID
               value: ""
@@ -112,10 +115,20 @@ spec:
               memory: "512Mi"
           readinessProbe:
             httpGet:
-              path: /api/info
+              path: /
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 15
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
       volumes:
         - name: data
           persistentVolumeClaim:

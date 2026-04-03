@@ -64,7 +64,8 @@ spec:
             # System prompt stored as env var (avoids heredoc-in-YAML-block-scalar issues)
             - name: SYSTEM_PROMPT
               value: |
-                You are OpenClaw, the AI workspace assistant for this self-hosted collaboration platform. You have access to MCP tools for Kubernetes cluster management, PostgreSQL database inspection, and browser automation.
+                You are OpenClaw, the AI workspace assistant for this self-hosted collaboration platform.
+                You have access to MCP tools for Kubernetes cluster management, PostgreSQL database inspection, and browser automation.
 
                 ## Tool Usage Rules
 
@@ -118,7 +119,11 @@ spec:
               echo "OpenClaw is ready."
 
               # --- Create admin account (tolerate 4xx if user already exists) ---
-              curl -s -X POST "${OPENCLAW}/api/v1/auths/signup" -H "Content-Type: application/json" -d "{\"name\":\"Admin\",\"email\":\"${OPENCLAW_ADMIN_EMAIL}\",\"password\":\"${OPENCLAW_ADMIN_PASSWORD}\"}" > /dev/null 2>&1 && echo "Admin account created." || echo "Signup returned error (user may already exist), continuing."
+              SIGNUP_BODY=$(jq -n --arg name "Admin" --arg email "$OPENCLAW_ADMIN_EMAIL" --arg pw "$OPENCLAW_ADMIN_PASSWORD" \
+                '{"name":$name,"email":$email,"password":$pw}')
+              curl -s -X POST "${OPENCLAW}/api/v1/auths/signup" -H "Content-Type: application/json" -d "$SIGNUP_BODY" > /dev/null 2>&1 \
+                && echo "Admin account created." \
+                || echo "Signup returned error (user may already exist), continuing."
 
               # --- Sign in ---
               SIGNIN=$(curl -s -X POST "${OPENCLAW}/api/v1/auths/signin" -H "Content-Type: application/json" -d "{\"email\":\"${OPENCLAW_ADMIN_EMAIL}\",\"password\":\"${OPENCLAW_ADMIN_PASSWORD}\"}")
@@ -139,22 +144,41 @@ spec:
               echo "API key generated."
 
               # --- Store API key as Kubernetes Secret ---
-              curl -sf -X POST $KUBE_CA -H "Authorization: Bearer $KUBE_TOKEN" -H "Content-Type: application/json" "${KUBE_API}/api/v1/namespaces/${KUBE_NS}/secrets" -d "$(jq -n --arg key "$API_KEY" --arg ns "$KUBE_NS" '{"apiVersion":"v1","kind":"Secret","metadata":{"name":"openclaw-api-key","namespace":$ns},"stringData":{"key":$key}}')" > /dev/null
+              SECRET_BODY=$(jq -n --arg key "$API_KEY" --arg ns "$KUBE_NS" \
+                '{"apiVersion":"v1","kind":"Secret","metadata":{"name":"openclaw-api-key","namespace":$ns},"stringData":{"key":$key}}')
+              curl -sf -X POST $KUBE_CA \
+                -H "Authorization: Bearer $KUBE_TOKEN" \
+                -H "Content-Type: application/json" \
+                "${KUBE_API}/api/v1/namespaces/${KUBE_NS}/secrets" \
+                -d "$SECRET_BODY" > /dev/null
               echo "API key stored as Secret openclaw-api-key."
 
               # --- Create model preset with system prompt (SYSTEM_PROMPT from env) ---
-              curl -s -X POST "${OPENCLAW}/api/v1/models/create" -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -d "$(jq -n --arg sys "$SYSTEM_PROMPT" '{"id":"openclaw-assistant","name":"OpenClaw Assistant","base_model_id":"claude-sonnet-4-20250514","params":{"system":$sys},"meta":{"description":"Workspace assistant with MCP tool guidance"},"access_control":null,"is_active":true}')" > /dev/null
+              MODEL_BODY=$(jq -n --arg sys "$SYSTEM_PROMPT" \
+                '{"id":"openclaw-assistant","name":"OpenClaw Assistant","base_model_id":"claude-sonnet-4-20250514",
+                  "params":{"system":$sys},"meta":{"description":"Workspace assistant with MCP tool guidance"},
+                  "access_control":null,"is_active":true}')
+              curl -s -X POST "${OPENCLAW}/api/v1/models/create" \
+                -H "Authorization: Bearer $API_KEY" \
+                -H "Content-Type: application/json" \
+                -d "$MODEL_BODY" > /dev/null
               echo "Model preset openclaw-assistant created."
 
               # --- Helper: create one prompt shortcut if not already present ---
               seed_prompt() {
                 CMD="$1"; TITLE="$2"; CONTENT="$3"
-                EXISTING=$(curl -s "${OPENCLAW}/api/v1/prompts/" -H "Authorization: Bearer $API_KEY" | jq -r --arg cmd "$CMD" '.[] | select(.command == $cmd) | .command')
+                EXISTING=$(curl -s "${OPENCLAW}/api/v1/prompts/" -H "Authorization: Bearer $API_KEY" \
+                  | jq -r --arg cmd "$CMD" '.[] | select(.command == $cmd) | .command')
                 if [ -n "$EXISTING" ]; then
                   echo "  $CMD already exists, skipping."
                   return 0
                 fi
-                curl -s -X POST "${OPENCLAW}/api/v1/prompts/create" -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" -d "$(jq -n --arg cmd "$CMD" --arg title "$TITLE" --arg content "$CONTENT" '{"command":$cmd,"title":$title,"content":$content,"access_control":{"read":{"group_ids":[],"user_ids":[]},"write":{"group_ids":[],"user_ids":[]}}}')" > /dev/null
+                PROMPT_BODY=$(jq -n --arg cmd "$CMD" --arg title "$TITLE" --arg content "$CONTENT" \
+                  '{"command":$cmd,"title":$title,"content":$content,"access_control":{"read":{"group_ids":[],"user_ids":[]},"write":{"group_ids":[],"user_ids":[]}}}')
+                curl -s -X POST "${OPENCLAW}/api/v1/prompts/create" \
+                  -H "Authorization: Bearer $API_KEY" \
+                  -H "Content-Type: application/json" \
+                  -d "$PROMPT_BODY" > /dev/null
                 echo "  Created $CMD"
               }
 

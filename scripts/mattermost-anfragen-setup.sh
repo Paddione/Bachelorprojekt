@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # mattermost-anfragen-setup.sh
 # Creates an "anfragen" channel and an incoming webhook in every Mattermost team.
-# The webhook URLs are printed at the end — copy them into WordPress:
-#   WordPress Admin > CF7 to Webhook > Webhook URL
+# The webhook URLs are printed at the end — configure them in k3d/website.yaml
+#   ConfigMap website-config → MATTERMOST_WEBHOOK_URL
 #
 # Usage:
 #   bash scripts/mattermost-anfragen-setup.sh              # auto-detect via mmctl
@@ -21,7 +21,7 @@ MM_URL="${MM_URL:-}"
 MM_TOKEN="${MM_TOKEN:-}"
 CHANNEL_NAME="${CHANNEL_NAME:-anfragen}"
 CHANNEL_DISPLAY="Anfragen"
-CHANNEL_PURPOSE="Eingehende Kundenanfragen vom Kontaktformular der WordPress-Website"
+CHANNEL_PURPOSE="Eingehende Kundenanfragen vom Kontaktformular der Website"
 
 declare -A WEBHOOK_URLS  # team_name -> webhook_url
 
@@ -99,7 +99,7 @@ print('yes' if found else 'no')
       mmctl --local webhook create-incoming \
         --channel "${TEAM}:${CHANNEL_NAME}" \
         --display-name "Kontaktformular (${TEAM})" \
-        --description "Eingehende Anfragen vom WordPress-Kontaktformular" \
+        --description "Eingehende Anfragen vom Website-Kontaktformular" \
         --json 2>/dev/null | \
       python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null) || true
 
@@ -173,7 +173,7 @@ setup_via_api() {
       -d "{
         \"channel_id\": \"${CHANNEL_ID}\",
         \"display_name\": \"Kontaktformular (${TEAM})\",
-        \"description\": \"Eingehende Anfragen vom WordPress-Kontaktformular\"
+        \"description\": \"Eingehende Anfragen vom Website-Kontaktformular\"
       }")
     local WEBHOOK_ID
     WEBHOOK_ID=$(echo "${WEBHOOK_DATA}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
@@ -196,8 +196,8 @@ if [ -z "${MM_TOKEN}" ]; then
     echo "  1. Gehe in jedes Team → Kanal hinzufügen → Name: '${CHANNEL_NAME}'"
     echo "  2. System Console > Integrationen > Eingehende Webhooks"
     echo "     → Webhook erstellen, Zielkanal: '${CHANNEL_DISPLAY}'"
-    echo "  3. Webhook-URL in WordPress eintragen:"
-    echo "     WordPress Admin > CF7 to Webhook > Webhook URL"
+    echo "  3. Webhook-URL in k3d/website.yaml ConfigMap eintragen:"
+    echo "     MATTERMOST_WEBHOOK_URL: <webhook-url>"
     exit 1
   }
 else
@@ -208,14 +208,13 @@ fi
 echo ""
 echo "=== Setup abgeschlossen ==="
 echo ""
-echo "Webhook-URLs für WordPress (CF7 to Webhook Plugin):"
+echo "Webhook-URLs für die Website (Kontaktformular):"
 echo "──────────────────────────────────────────────────────"
 for TEAM in "${!WEBHOOK_URLS[@]}"; do
   echo "  Team '${TEAM}':"
   echo "    ${WEBHOOK_URLS[$TEAM]}"
   echo ""
 done
-echo "Eintragen unter: WordPress Admin > CF7 to Webhook > Webhook URL"
+echo "Eintragen unter: k3d/website.yaml → ConfigMap website-config → MATTERMOST_WEBHOOK_URL"
 echo ""
-echo "Tipp: Für mehrere Teams verschiedene CF7-Formulare anlegen,"
-echo "jedes mit der passenden Team-Webhook-URL."
+echo "Tipp: Die Webhook-URL wird als Umgebungsvariable an die Website übergeben."

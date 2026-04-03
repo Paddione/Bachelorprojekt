@@ -24,7 +24,6 @@ data:
   # Standalone
   MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
   MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
-  MCP_WORDPRESS_URL:  "http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server"
 
   # ════════════════════════════════════════════════════════════════════
   # INTERNAL SERVICE URLS (for direct API calls bypassing MCP)
@@ -35,7 +34,9 @@ data:
   NEXTCLOUD_INTERNAL_URL:    "http://nextcloud.workspace.svc.cluster.local:80"
   NEXTCLOUD_WEBDAV_URL:      "http://nextcloud.workspace.svc.cluster.local:80/remote.php/dav"
   INVOICENINJA_INTERNAL_URL: "http://invoiceninja.workspace.svc.cluster.local:80/api/v1"
-  WORDPRESS_INTERNAL_URL:    "http://wordpress.wordpress.svc.cluster.local:80"
+  WEBSITE_INTERNAL_URL:      "http://website.website.svc.cluster.local:80"
+  WHISPER_URL:               "http://whisper.workspace.svc.cluster.local:8000"
+  OUTLINE_URL:               "http://outline.workspace.svc.cluster.local:80"
   TRAEFIK_API_URL:           "http://traefik.kube-system.svc.cluster.local:9000/api"
   UPTIME_KUMA_URL:           "http://uptime-kuma.workspace.svc.cluster.local:3001"
 
@@ -55,7 +56,7 @@ data:
 
     Key namespaces to query:
       - workspace (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja, Talk HPB)
-      - wordpress   (WordPress + MariaDB)
+      - website    (Astro website)
       - default     (OpenClaw MCP servers)
       - kube-system (Traefik, CoreDNS)
       - tracking    (tracking DB + UI)
@@ -185,7 +186,7 @@ data:
       Auth:     GET_AUTHENTICATION_FLOWS, GET_FLOW_EXECUTIONS
       IdP:      GET_IDENTITY_PROVIDERS, GET_IDENTITY_PROVIDER_MAPPERS
 
-    Realm in use: workspace (Keycloak, Mattermost, Nextcloud, Collabora, WordPress, InvoiceNinja SSO)
+    Realm in use: workspace (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja SSO)
     Admin realm:  master (admin-cli client lives here)
 
   # ════════════════════════════════════════════════════════════════════
@@ -210,22 +211,6 @@ data:
     Current API token: testrunnertoken2026
     Rotate: Invoice Ninja → Settings → API Tokens → revoke + create new
     Then update both INVOICENINJA_API_TOKEN and INVOICENINJA_REQUEST_HEADERS in openclaw-secrets.
-
-  # ════════════════════════════════════════════════════════════════════
-  # GUIDE: mcp-wordpress  (embedded in WordPress pod)
-  # ════════════════════════════════════════════════════════════════════
-  GUIDE_WORDPRESS: |
-    Plugin: WordPress/mcp-adapter (REST plugin, no separate pod)
-    Transport: streamable-http → http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server
-    Auth: HTTP Basic Auth — credentials in wordpress-mcp-creds Secret (default namespace)
-      Username: kubectl get secret wordpress-mcp-creds -n default -o jsonpath='{.data.WORDPRESS_MCP_USERNAME}' | base64 -d
-      Password: kubectl get secret wordpress-mcp-creds -n default -o jsonpath='{.data.WORDPRESS_MCP_APP_PASSWORD}' | base64 -d
-
-    Notes:
-      - Requires WP_ENVIRONMENT_TYPE=local (set in wordpress deployment env)
-        to bypass Wordfence's Application Password block on non-HTTPS requests.
-      - Capabilities depend on WordPress Abilities API — extend via abilities-api plugin.
-      - Rotate credentials: task wordpress:mcp:install && task wordpress:mcp:save-credentials
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-stripe  (port 3003, streamable-http via supergateway)

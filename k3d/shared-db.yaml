@@ -45,6 +45,11 @@ data:
       CREATE DATABASE vaultwarden OWNER vaultwarden;
       GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO vaultwarden;
 
+      -- Outline
+      CREATE USER outline WITH PASSWORD '${OUTLINE_DB_PASSWORD}';
+      CREATE DATABASE outline OWNER outline;
+      GRANT ALL PRIVILEGES ON DATABASE outline TO outline;
+
     EOSQL
 ---
 apiVersion: apps/v1
@@ -104,6 +109,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: VAULTWARDEN_DB_PASSWORD
+            - name: OUTLINE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OUTLINE_DB_PASSWORD
           ports:
             - containerPort: 5432
           volumeMounts:

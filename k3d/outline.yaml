@@ -1,0 +1,133 @@
+
+# ── Outline Knowledge Base ───────────────────────────────────────────────────
+# Self-hosted wiki for customer profiles and coaching documentation.
+# Uses shared PostgreSQL, Keycloak OIDC, and local file storage.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: outline-data
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: smb-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: outline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: outline
+  template:
+    metadata:
+      labels:
+        app: outline
+    spec:
+      containers:
+        - name: outline
+          image: outlinewiki/outline:latest
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OUTLINE_SECRET_KEY
+            - name: UTILS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OUTLINE_UTILS_SECRET
+            # Database
+            - name: DATABASE_URL
+              value: "postgres://outline:$(OUTLINE_DB_PASSWORD)@shared-db:5432/outline"
+            - name: OUTLINE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OUTLINE_DB_PASSWORD
+            - name: PGSSLMODE
+              value: "disable"
+            # URLs
+            - name: URL
+              value: "http://wiki.localhost"
+            - name: PORT
+              value: "3000"
+            - name: FORCE_HTTPS
+              value: "false"
+            # File storage (local)
+            - name: FILE_STORAGE
+              value: "local"
+            - name: FILE_STORAGE_LOCAL_ROOT_DIR
+              value: "/var/lib/outline/data"
+            - name: FILE_STORAGE_UPLOAD_MAX_SIZE
+              value: "52428800"
+            # Keycloak OIDC
+            - name: OIDC_CLIENT_ID
+              value: "outline"
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OUTLINE_OIDC_SECRET
+            - name: OIDC_AUTH_URI
+              value: "http://auth.localhost/realms/workspace/protocol/openid-connect/auth"
+            - name: OIDC_TOKEN_URI
+              value: "http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/token"
+            - name: OIDC_USERINFO_URI
+              value: "http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/protocol/openid-connect/userinfo"
+            - name: OIDC_LOGOUT_URI
+              value: "http://auth.localhost/realms/workspace/protocol/openid-connect/logout"
+            - name: OIDC_DISPLAY_NAME
+              value: "Keycloak"
+            - name: OIDC_USERNAME_CLAIM
+              value: "preferred_username"
+            - name: OIDC_SCOPES
+              value: "openid profile email"
+            # Disable other auth
+            - name: SLACK_CLIENT_ID
+              value: ""
+            - name: SLACK_CLIENT_SECRET
+              value: ""
+            - name: GOOGLE_CLIENT_ID
+              value: ""
+            - name: GOOGLE_CLIENT_SECRET
+              value: ""
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/outline/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /api/info
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: outline-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: outline
+spec:
+  selector:
+    app: outline
+  ports:
+    - port: 80
+      targetPort: 3000

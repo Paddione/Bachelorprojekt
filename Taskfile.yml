@@ -229,7 +229,7 @@ tasks:
         echo "Replacing '$OLD' → '$NEW' in all prod config files..."
         grep -rl "$OLD" \
           prod/ k3s/ deploy/mcp/ingress.yaml \
-          k3d/wordpress-init-job.yaml k3d/wordpress.yaml \
+          k3d/website.yaml k3s/website-prod.yaml \
           Taskfile.yml \
           2>/dev/null | xargs sed -i "s|${OLD}|${NEW}|g"
         echo "✓ Domain updated to '$NEW'"
@@ -250,7 +250,7 @@ tasks:
       - 'echo "  board.{{.PROD_DOMAIN}}   (Whiteboard)"'
       - 'echo "  vault.{{.PROD_DOMAIN}}   (Vaultwarden)"'
       - 'echo "  billing.{{.PROD_DOMAIN}} (Invoice Ninja)"'
-      - 'echo "  web.{{.PROD_DOMAIN}}     (WordPress)"'
+      - 'echo "  web.{{.PROD_DOMAIN}}     (Website - Astro)"'
       - 'echo "  mcp.{{.PROD_DOMAIN}}     (OpenClaw MCP)"'
       - 'echo "  meet.{{.PROD_DOMAIN}}    (Jitsi)"'
 
@@ -664,9 +664,6 @@ tasks:
       - bash scripts/mattermost-docs-integration.sh
 
   # ─────────────────────────────────────────────
-  # WordPress
-  # ─────────────────────────────────────────────
-  # ─────────────────────────────────────────────
   # OpenClaw MCP Servers
   # ─────────────────────────────────────────────
   mcp:select:
@@ -753,7 +750,238 @@ tasks:
       - kubectl rollout restart deployment/mcp-github
       - 'echo "✓ GitHub PAT updated and mcp-github restarted"'
 
-  wordpress:certmanager:install:
+  # ─────────────────────────────────────────────
+  # Website (Astro + Svelte)
+  # ─────────────────────────────────────────────
+  website:build:
+    desc: Build the Astro website Docker image
+    cmds:
+      - |
+        docker build -t mentolder-website:latest website/
+        echo "✓ Docker image built: mentolder-website:latest"
+
+  website:build:import:
+    desc: Build and import website image into k3d cluster
+    cmds:
+      - task: website:build
+      - k3d image import mentolder-website:latest -c {{.CLUSTER_NAME}}
+      - echo "✓ Image imported into k3d cluster"
+
+  website:deploy:
+    desc: Deploy the Astro website to the website namespace
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running. Run 'task cluster:create' first."
+    cmds:
+      - task: website:build:import
+      - kubectl apply -f k3d/website.yaml
+      - |
+        echo "Waiting for website..."
+        kubectl rollout status deployment/website -n website --timeout=120s
+      - echo ""
+      - 'echo "✓ Website deployed"'
+      - 'echo "  URL: http://web.{{.DEV_DOMAIN}}"'
+
+  website:dev:
+    desc: Run Astro dev server locally (hot-reload)
+    dir: website
+    cmds:
+      - npm run dev
+
+  website:status:
+    desc: Show website deployment status
+    cmds:
+      - echo "=== Pods ==="
+      - kubectl get pods -n website -o wide
+      - echo ""
+      - echo "=== Services ==="
+      - kubectl get svc -n website
+      - echo ""
+      - echo "=== IngressRoute ==="
+      - kubectl get ingressroute -n website 2>/dev/null || echo "(no IngressRoute found)"
+
+  website:logs:
+    desc: Tail website logs
+    cmds:
+      - kubectl logs -n website deploy/website -f --tail=50
+
+  website:restart:
+    desc: Restart the website pod
+    cmds:
+      - kubectl rollout restart deployment/website -n website
+      - kubectl rollout status deployment/website -n website --timeout=60s
+
+  website:redeploy:
+    desc: Rebuild image, import, and restart the website
+    cmds:
+      - task: website:build:import
+      - kubectl rollout restart deployment/website -n website
+      - kubectl rollout status deployment/website -n website --timeout=60s
+      - 'echo "✓ Website redeployed"'
+
+  website:teardown:
+    desc: Remove website namespace and all resources
+    prompt: "This will delete the website namespace. Continue?"
+    cmds:
+      - kubectl delete namespace website --ignore-not-found --timeout=60s
+      - echo "✓ Website namespace deleted"
+
+  # ─────────────────────────────────────────────
+  # Whisper (Transcription Service)
+  # ─────────────────────────────────────────────
+  whisper:deploy:
+    desc: Deploy faster-whisper transcription service (medium model, CPU-only)
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running. Run 'task cluster:create' first."
+    cmds:
+      - kubectl apply -f k3d/whisper.yaml
+      - |
+        echo "Waiting for whisper (model download may take several minutes on first start)..."
+        kubectl rollout status deployment/whisper -n workspace --timeout=600s
+      - echo "✓ Whisper deployed"
+      - echo "  Endpoint: http://whisper.workspace.svc.cluster.local:8000"
+
+  whisper:status:
+    desc: Show whisper deployment status
+    cmds:
+      - kubectl get pods -l app=whisper -o wide
+      - kubectl logs deploy/whisper --tail=5 2>/dev/null || true
+
+  whisper:logs:
+    desc: Tail whisper logs
+    cmds:
+      - kubectl logs deploy/whisper -f --tail=50
+
+  # ─────────────────────────────────────────────
+  # Outline (Knowledge Base)
+  # ─────────────────────────────────────────────
+  outline:deploy:
+    desc: Deploy Outline knowledge base
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running. Run 'task cluster:create' first."
+    cmds:
+      - kubectl apply -f k3d/outline.yaml
+      - |
+        echo "Waiting for Outline..."
+        kubectl rollout status deployment/outline -n workspace --timeout=180s
+      - echo ""
+      - echo "✓ Outline deployed"
+      - echo "  URL: http://wiki.{{.DEV_DOMAIN}}"
+
+  outline:status:
+    desc: Show Outline deployment status
+    cmds:
+      - kubectl get pods -l app=outline -o wide
+      - kubectl get pvc outline-data
+
+  outline:logs:
+    desc: Tail Outline logs
+    cmds:
+      - kubectl logs deploy/outline -f --tail=50
+
+  outline:teardown:
+    desc: Remove Outline and its data
+    prompt: "This will delete Outline and all wiki data. Continue?"
+    cmds:
+      - kubectl delete -f k3d/outline.yaml --ignore-not-found
+      - echo "✓ Outline removed"
+
+  website:webhook:setup:
+    desc: Create Mattermost "anfragen" channel and configure webhook for the website
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running. Run 'task cluster:create' first."
+      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
+        msg: "Mattermost not deployed."
+    cmds:
+      - |
+        NAMESPACE="workspace"
+        MM_URL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+          printenv MM_SERVICESETTINGS_SITEURL 2>/dev/null || echo "http://chat.localhost")
+
+        echo "=== Website Webhook Setup ==="
+        echo "  Mattermost: ${MM_URL}"
+
+        # Get first team
+        TEAM=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+          mmctl --local team list --json 2>/dev/null | \
+          python3 -c "import sys,json; print(json.load(sys.stdin)[0]['name'])")
+        echo "  Team: ${TEAM}"
+
+        # Create anfragen channel if not exists
+        CHANNEL_EXISTS=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+          mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
+          python3 -c "
+        import sys,json
+        channels = json.load(sys.stdin)
+        found = [c for c in channels if c.get('name') == 'anfragen']
+        print('yes' if found else 'no')
+        " 2>/dev/null || echo "no")
+
+        if [ "${CHANNEL_EXISTS}" = "no" ]; then
+          kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+            mmctl --local channel create \
+              --team "${TEAM}" \
+              --name "anfragen" \
+              --display-name "Anfragen" \
+              --purpose "Eingehende Kundenanfragen vom Website-Kontaktformular" \
+              2>/dev/null
+          echo "  Channel 'anfragen' created."
+        else
+          echo "  Channel 'anfragen' already exists."
+        fi
+
+        # Get channel ID
+        CHANNEL_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+          mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
+          python3 -c "
+        import sys,json
+        channels = json.load(sys.stdin)
+        ch = next(c for c in channels if c['name'] == 'anfragen')
+        print(ch['id'])
+        " 2>/dev/null)
+
+        # Get admin user ID for webhook
+        ADMIN_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+          mmctl --local user list --json 2>/dev/null | \
+          python3 -c "
+        import sys,json
+        users = json.load(sys.stdin)
+        admin = next((u['id'] for u in users if 'system_admin' in u.get('roles','')), users[0]['id'])
+        print(admin)
+        " 2>/dev/null)
+
+        # Create incoming webhook
+        WEBHOOK_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+          mmctl --local webhook create-incoming \
+            --channel "${CHANNEL_ID}" \
+            --user "${ADMIN_ID}" \
+            --display-name "Website-Bot" \
+            --description "Kontaktformular-Eingaenge von mentolder.de" \
+            --json 2>/dev/null | \
+          python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'] if isinstance(d,dict) else d[0]['id'])" 2>/dev/null) || true
+
+        if [ -n "${WEBHOOK_ID}" ]; then
+          WEBHOOK_URL="${MM_URL}/hooks/${WEBHOOK_ID}"
+          echo "  Webhook created: ${WEBHOOK_URL}"
+
+          # Patch the website ConfigMap with the real webhook URL
+          kubectl patch configmap website-config -n website \
+            --type merge -p "{\"data\":{\"MATTERMOST_WEBHOOK_URL\":\"http://mattermost.workspace.svc.cluster.local:8065/hooks/${WEBHOOK_ID}\"}}" \
+            2>/dev/null && echo "  ConfigMap patched with webhook URL" || echo "  (website not deployed yet — deploy first, then re-run)"
+
+          # Restart website to pick up new config
+          kubectl rollout restart deployment/website -n website 2>/dev/null || true
+        else
+          echo "  WARNING: Could not create webhook — may already exist."
+          echo "  Check: kubectl exec -n workspace deploy/mattermost -- mmctl --local webhook list incoming"
+        fi
+      - echo ""
+      - echo "✓ Webhook setup complete"
+
+  certmanager:install:
     desc: Install cert-manager and create Let's Encrypt ClusterIssuer (edit email first)
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
@@ -770,139 +998,6 @@ tasks:
           --wait --timeout=120s
       - kubectl apply -f Bachelorprojekt/k3d/letsencrypt-issuer.yaml
       - echo "✓ cert-manager installed with Let's Encrypt ClusterIssuer"
-
-  wordpress:deploy:
-    desc: Deploy WordPress + MariaDB to the wordpress namespace
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-    cmds:
-      - kubectl apply -f Bachelorprojekt/k3d/wordpress.yaml
-      - |
-        echo "Waiting for MariaDB..."
-        kubectl rollout status deployment/mariadb -n wordpress --timeout=120s
-      - |
-        echo "Waiting for WordPress..."
-        kubectl rollout status deployment/wordpress -n wordpress --timeout=120s
-      - echo ""
-      - 'echo "✓ WordPress deployed"'
-      - 'echo "  URL:  https://web.{{.PROD_DOMAIN}}"'
-      - echo ""
-      - 'echo "Next steps:"'
-      - 'echo "  1. Complete WordPress setup wizard at the URL above"'
-      - 'echo "  2. Install the All-in-One WP Migration plugin"'
-      - 'echo "  3. Plugins → All-in-One WP Migration → Import → upload your .wpress file"'
-
-  wordpress:channel:
-    desc: Create Mattermost "wordpress" channel with site links and incoming webhook
-    cmds:
-      - bash Bachelorprojekt/scripts/mattermost-wordpress-setup.sh
-
-  wordpress:status:
-    desc: Show WordPress deployment status and TLS certificate state
-    cmds:
-      - echo "=== Pods ==="
-      - kubectl get pods -n wordpress -o wide
-      - echo ""
-      - echo "=== Services ==="
-      - kubectl get svc -n wordpress
-      - echo ""
-      - echo "=== Ingress ==="
-      - kubectl get ingress -n wordpress
-      - echo ""
-      - echo "=== PVCs ==="
-      - kubectl get pvc -n wordpress
-      - echo ""
-      - echo "=== TLS Certificate ==="
-      - kubectl get certificate -n wordpress 2>/dev/null || echo "(cert-manager not installed — run task wordpress:certmanager:install)"
-
-  wordpress:logs:
-    desc: "Tail WordPress or MariaDB logs (usage: task wordpress:logs -- wordpress|mariadb)"
-    cmds:
-      - kubectl logs -n wordpress deploy/{{.CLI_ARGS | default "wordpress"}} -f --tail=50
-
-  wordpress:restart:
-    desc: Restart the WordPress pod
-    cmds:
-      - kubectl rollout restart deployment/wordpress -n wordpress
-      - kubectl rollout status deployment/wordpress -n wordpress --timeout=120s
-
-  wordpress:teardown:
-    desc: Remove WordPress, MariaDB, and all data permanently
-    prompt: "This will delete the wordpress namespace and ALL data including the database. Continue?"
-    cmds:
-      - kubectl delete namespace wordpress --ignore-not-found --timeout=120s
-      - echo "✓ WordPress namespace deleted"
-
-  wordpress:mcp:install:
-    desc: Activate MCP adapter plugins in WordPress and generate OpenClaw Application Password
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: kubectl get deployment/wordpress -n wordpress > /dev/null 2>&1
-        msg: "WordPress not deployed. Run 'task wordpress:deploy' first."
-    cmds:
-      - 'echo "Redeploying WordPress with MCP plugin init container..."'
-      - kubectl apply -f Bachelorprojekt/k3d/wordpress.yaml
-      - kubectl rollout restart deployment/wordpress -n wordpress
-      - kubectl rollout status deployment/wordpress -n wordpress --timeout=180s
-      - 'echo "Running MCP setup in live pod (same PHP env = correct hash algorithm)..."'
-      # Copy the PHP script into the pod and execute it there.
-      # Must run inside the live wordpress:6-apache pod, NOT wordpress:cli, because
-      # the CLI image uses phpass ($generic$) while Apache uses bcrypt ($wp$2y$).
-      - |
-        WP_POD=$(kubectl get pod -n wordpress -l app=wordpress -o jsonpath='{.items[0].metadata.name}')
-        kubectl cp Bachelorprojekt/scripts/wordpress-mcp-setup.php wordpress/$WP_POD:/tmp/mcp-setup.php
-        kubectl exec -n wordpress deploy/wordpress -- php /tmp/mcp-setup.php \
-          | tee /tmp/wordpress-mcp-creds.txt
-      - 'echo ""'
-      - 'echo "Next: run  task wordpress:mcp:save-credentials  to store credentials as a K8s Secret."'
-
-  wordpress:mcp:save-credentials:
-    desc: Store the Application Password (from wordpress:mcp:install) in a K8s Secret
-    preconditions:
-      - sh: '[ -f /tmp/wordpress-mcp-creds.txt ]'
-        msg: "Credentials file not found. Run 'task wordpress:mcp:install' first."
-    vars:
-      WP_USER:
-        sh: grep '^OPENCLAW_WP_USERNAME=' /tmp/wordpress-mcp-creds.txt | cut -d= -f2
-      WP_PASS:
-        sh: grep '^OPENCLAW_WP_APP_PASSWORD=' /tmp/wordpress-mcp-creds.txt | cut -d= -f2
-    cmds:
-      - |
-        if [ -z "{{.WP_USER}}" ] || [ -z "{{.WP_PASS}}" ]; then
-          echo "ERROR: Could not parse credentials from /tmp/wordpress-mcp-creds.txt"
-          exit 1
-        fi
-      - |
-        kubectl create secret generic wordpress-mcp-creds -n default \
-          --from-literal=WORDPRESS_MCP_USERNAME="{{.WP_USER}}" \
-          --from-literal=WORDPRESS_MCP_APP_PASSWORD="{{.WP_PASS}}" \
-          --dry-run=client -o yaml | kubectl apply -f -
-      - 'echo "✓ Credentials stored in Secret wordpress-mcp-creds (default namespace)"'
-      - 'echo "  Username: {{.WP_USER}}"'
-      - 'echo "  Endpoint: http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server"'
-      - kubectl apply -f deploy/mcp/openclaw-config.yaml
-      - 'echo "✓ openclaw-config ConfigMap updated with MCP_WORDPRESS_URL"'
-
-  wordpress:mcp:status:
-    desc: Show MCP adapter plugin status inside WordPress
-    preconditions:
-      - sh: kubectl get deployment/wordpress -n wordpress > /dev/null 2>&1
-        msg: "WordPress not deployed."
-    cmds:
-      - 'echo "=== MCP Plugin Status ==="'
-      - kubectl exec -n wordpress deploy/wordpress -- wp plugin status mcp-adapter --allow-root --path=/var/www/html 2>/dev/null || echo "(WP-CLI not available in apache image — check logs of the setup job)"
-      - 'echo ""'
-      - 'echo "=== OpenClaw MCP Credentials Secret ==="'
-      - |
-        kubectl get secret wordpress-mcp-creds -n default \
-          -o jsonpath='{.data.WORDPRESS_MCP_USERNAME}{"\n"}{.data.WORDPRESS_MCP_APP_PASSWORD}' \
-          2>/dev/null | while IFS= read -r line; do echo "  $(echo "$line" | base64 -d)"; done \
-          || echo "  (Secret not created yet — run task wordpress:mcp:save-credentials)"
-      - 'echo ""'
-      - 'echo "=== WordPress MCP Endpoint ==="'
-      - 'echo "  http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server"'
 
   docs:publish-api:
     desc: Publish OpenAPI spec to GitBook

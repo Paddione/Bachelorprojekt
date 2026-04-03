@@ -28,7 +28,7 @@ patches:
         MAIL_DOMAIN: "mail.korczewski.de"
         DOCS_DOMAIN: "docs.korczewski.de"
         BILLING_DOMAIN: "billing.korczewski.de"
-        WP_DOMAIN: "web.korczewski.de"
+        WEB_DOMAIN: "web.korczewski.de"
 
   # ── Ingress: production domains + Traefik ────────────────────────
   - target:

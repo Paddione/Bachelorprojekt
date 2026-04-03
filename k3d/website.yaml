@@ -1,0 +1,152 @@
+
+# ── Namespace ─────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: website
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted
+---
+# ── Website ConfigMap ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+  namespace: website
+data:
+  # Mattermost
+  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/REPLACE_ME"
+  MATTERMOST_CHANNEL: "anfragen"
+  MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
+  MATTERMOST_BOT_TOKEN: ""
+  # Keycloak
+  KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
+  KEYCLOAK_REALM: "workspace"
+  KEYCLOAK_ADMIN_USER: "admin"
+  KEYCLOAK_ADMIN_PASSWORD: "devadmin"
+  # SMTP (Mailpit in dev)
+  SMTP_HOST: "mailpit.workspace.svc.cluster.local"
+  SMTP_PORT: "1025"
+  SMTP_SECURE: "false"
+  SMTP_USER: ""
+  SMTP_PASS: ""
+  FROM_EMAIL: "info@mentolder.de"
+  FROM_NAME: "mentolder.de"
+  # OIDC (Keycloak client for login)
+  WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
+  # Nextcloud
+  NEXTCLOUD_URL: "http://nextcloud.workspace.svc.cluster.local"
+  NEXTCLOUD_EXTERNAL_URL: "http://files.localhost"
+  NEXTCLOUD_CALDAV_USER: "admin"
+  NEXTCLOUD_CALDAV_PASSWORD: "devnextcloudadmin"
+  CALENDAR_NAME: "personal"
+  WORK_START_HOUR: "9"
+  WORK_END_HOUR: "17"
+  SLOT_DURATION_MIN: "60"
+  WORK_DAYS: "1,2,3,4,5"
+  BOOKING_HORIZON_DAYS: "21"
+  MIN_ADVANCE_HOURS: "24"
+  # InvoiceNinja
+  INVOICENINJA_URL: "http://invoiceninja.workspace.svc.cluster.local/api/v1"
+  INVOICENINJA_API_TOKEN: ""
+  # Whisper + Outline
+  WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
+  OUTLINE_URL: "http://outline.workspace.svc.cluster.local"
+  OUTLINE_API_KEY: ""
+  # Site
+  SITE_URL: "http://web.localhost"
+---
+# ── Website Deployment ────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+  namespace: website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: website
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+        - name: website
+          image: mentolder-website:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: website-config
+          ports:
+            - containerPort: 4321
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4321
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4321
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+# ── Website Service ───────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: website
+  namespace: website
+spec:
+  selector:
+    app: website
+  ports:
+    - port: 80
+      targetPort: 4321
+---
+# ── IngressRoute (dev - HTTP) ────────────────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: website
+  namespace: website
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`web.localhost`)
+      services:
+        - name: website
+          port: 80
+---
+# ── Reminder CronJob (every minute) ─────────────────────────────────────────
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: meeting-reminders
+  namespace: website
+spec:
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: trigger
+              image: curlimages/curl:latest
+              command: ["curl", "-sf", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
+          restartPolicy: Never

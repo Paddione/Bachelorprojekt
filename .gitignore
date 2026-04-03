@@ -45,6 +45,10 @@ Desktop.ini
 # ── Tracking (local SQLite, regenerated from JSON) ──
 tracking.db
 
+# ── Website (Astro build output) ───────────────
+website/dist/
+website/.astro/
+
 # ── Misc ────────────────────────────────────────
 node_modules/
 *.tmp

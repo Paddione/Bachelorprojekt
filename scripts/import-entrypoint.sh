@@ -14,8 +14,8 @@ mkdir -p "$(dirname "$OUTPUT")"
 # Alle ${VAR} Referenzen im JSON durch aktuelle Env-Werte ersetzen (sed-basiert)
 cp "$TEMPLATE" "$OUTPUT"
 for var in MATTERMOST_OIDC_SECRET NEXTCLOUD_OIDC_SECRET INVOICENINJA_OIDC_SECRET \
-           WORDPRESS_OIDC_SECRET VAULTWARDEN_OIDC_SECRET \
-           MM_DOMAIN NC_DOMAIN BILLING_DOMAIN WP_DOMAIN VAULT_DOMAIN; do
+           VAULTWARDEN_OIDC_SECRET WEBSITE_OIDC_SECRET \
+           MM_DOMAIN NC_DOMAIN BILLING_DOMAIN WEB_DOMAIN VAULT_DOMAIN; do
   eval val="\${${var}:-}"
   if [ -z "$val" ]; then
     echo "[import-entrypoint] WARNUNG: ${var} ist nicht gesetzt!"

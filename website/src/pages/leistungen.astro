@@ -1,0 +1,84 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CallToAction from '../components/CallToAction.svelte';
+
+const categories = [
+  {
+    title: 'Digital Cafe 50+',
+    icon: '\uD83D\uDCBB',
+    services: [
+      { key: 'digital-cafe-einzel', name: 'Einzelbegleitung', price: '60 \u20AC', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
+      { key: 'digital-cafe-gruppe', name: 'Kleine Gruppe (2-4)', price: '40 \u20AC', unit: '/ Person / Stunde', desc: 'Gemeinsam lernen in kleiner Runde. Ideal fur Freundeskreise oder Nachbarn.' },
+      { key: 'digital-cafe-5er', name: '5er-Paket', price: '270 \u20AC', unit: 'statt 300 \u20AC', desc: '5 Einzelstunden zum Vorteilspreis. Flexible Terminwahl.', highlight: true },
+      { key: 'digital-cafe-10er', name: '10er-Paket', price: '500 \u20AC', unit: 'statt 600 \u20AC', desc: '10 Einzelstunden. Fur langfristige Begleitung.' },
+    ],
+  },
+  {
+    title: 'Fuhrungskrafte-Coaching',
+    icon: '\uD83C\uDFAF',
+    services: [
+      { key: 'coaching-session', name: 'Einzelsession (90 Min.)', price: '150 \u20AC', unit: '/ Session', desc: 'Intensive Einzelsession fur Profilscharfung, Gesprachsvorbereitung oder Strategie.' },
+      { key: 'coaching-6er', name: '6er-Paket', price: '800 \u20AC', unit: 'statt 900 \u20AC', desc: 'Komplette Neuausrichtung in 6 Sessions. Der beliebteste Weg.', highlight: true },
+      { key: 'coaching-intensiv', name: 'Intensiv-Tag (6 Std.)', price: '500 \u20AC', unit: '/ Tag', desc: 'Ein ganzer Tag fokussiert auf Ihre Karrierestrategie.' },
+    ],
+  },
+  {
+    title: 'Unternehmensberatung',
+    icon: '\uD83C\uDFE2',
+    services: [
+      { key: 'beratung-tag', name: 'Tagessatz', price: '1.000 \u20AC', unit: '/ Tag', desc: 'Digitale Transformation, Change Management, Strategie. Projektumfang individuell.' },
+    ],
+  },
+];
+---
+
+<Layout title="Leistungen & Preise" description="Alle Angebote und Preise auf einen Blick. Digital Cafe 50+, Fuhrungskrafte-Coaching, Unternehmensberatung.">
+  <section class="pt-28 pb-16 bg-dark">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-center mb-14">
+        <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Leistungen & Preise</h1>
+        <p class="text-xl text-muted max-w-2xl mx-auto">
+          Alle Angebote auf einen Blick. Wahlen Sie das passende Format und buchen Sie direkt einen Termin.
+        </p>
+      </div>
+
+      {categories.map((cat) => (
+        <div class="mb-16">
+          <h2 class="text-2xl md:text-3xl font-bold text-light mb-8 font-serif">
+            <span class="mr-3">{cat.icon}</span>{cat.title}
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {cat.services.map((svc) => (
+              <div class={`bg-dark-light rounded-xl p-6 border ${svc.highlight ? 'border-gold' : 'border-dark-lighter'} flex flex-col`}>
+                <div class="flex-1">
+                  <h3 class="text-xl font-bold text-light mb-1">{svc.name}</h3>
+                  <div class="mb-3">
+                    <span class="text-2xl font-bold text-gold">{svc.price}</span>
+                    <span class="text-muted-dark ml-2">{svc.unit}</span>
+                  </div>
+                  <p class="text-muted mb-4">{svc.desc}</p>
+                </div>
+                <a
+                  href={`/termin?service=${svc.key}`}
+                  class="block text-center bg-gold hover:bg-gold-light text-dark px-6 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm"
+                >
+                  Termin buchen
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div class="bg-dark-light rounded-2xl p-8 border border-dark-lighter text-center">
+        <h3 class="text-xl font-bold text-light mb-3 font-serif">Kostenloses Erstgesprach</h3>
+        <p class="text-muted mb-4">Nicht sicher, welches Angebot passt? In einem kostenlosen Erstgesprach (30 Min.) klaren wir gemeinsam, was fur Sie am besten geeignet ist.</p>
+        <a href="/termin" class="inline-block bg-gold hover:bg-gold-light text-dark px-8 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm">
+          Erstgesprach vereinbaren
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <CallToAction client:visible />
+</Layout>

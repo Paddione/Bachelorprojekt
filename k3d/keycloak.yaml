@@ -83,16 +83,16 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: INVOICENINJA_OIDC_SECRET
-            - name: WORDPRESS_OIDC_SECRET
+            - name: WEBSITE_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: WORDPRESS_OIDC_SECRET
-            - name: WP_DOMAIN
+                  key: WEBSITE_OIDC_SECRET
+            - name: WEB_DOMAIN
               valueFrom:
                 configMapKeyRef:
                   name: domain-config
-                  key: WP_DOMAIN
+                  key: WEB_DOMAIN
             - name: VAULTWARDEN_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

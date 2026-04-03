@@ -21,7 +21,7 @@ spec:
           args:
             - |
               npm install -g supergateway @modelcontextprotocol/server-playwright 2>&1 | tail -3
-              exec supergateway \
+              exec npx supergateway \
                 --stdio "npx @modelcontextprotocol/server-playwright" \
                 --outputTransport streamableHttp \
                 --port 3000 \

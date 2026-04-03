@@ -46,7 +46,7 @@ data:
   # GUIDE: mcp-kubernetes  (port 3000, streamable-http)
   # ════════════════════════════════════════════════════════════════════
   GUIDE_KUBERNETES: |
-    Image: ghcr.io/strowk/mcp-k8s
+    Image: mcpk8s/server
     Transport: streamable-http → http://mcp-kubernetes:3000/mcp
     Auth: none (uses openclaw-agent ServiceAccount, ClusterRole bound)
 

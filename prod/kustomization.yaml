@@ -44,5 +44,6 @@ patches:
   - path: patch-openclaw-config.yaml
   # Outline prod overrides
   - path: patch-outline.yaml
-  # Pin mcp-browser to amd64 nodes (Playwright image has no arm64 build)
+  # Pin amd64-only images to amd64 nodes
+  - path: patch-amd64-only.yaml
   - path: patch-mcp-browser.yaml

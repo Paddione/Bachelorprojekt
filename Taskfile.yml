@@ -16,11 +16,14 @@ vars:
   # ── Domains ───────────────────────────────────────────────────────────
   # The base domain (e.g. korczewski.de)
   # Loaded from .env or uses default if not set.
-  PROD_DOMAIN: "{{.PROD_DOMAIN | default \"korczewski.de\"}}"
-  # The brand name (e.g. mentolder.de)
-  BRAND_NAME: "{{.BRAND_NAME | default \"mentolder.de\"}}"
-  # The contact email (e.g. info@mentolder.de)
-  CONTACT_EMAIL: "{{.CONTACT_EMAIL | default \"info@mentolder.de\"}}"
+  PROD_DOMAIN:
+    sh: echo "${PROD_DOMAIN:-korczewski.de}"
+  # The brand name (e.g. Kore IT)
+  BRAND_NAME:
+    sh: echo "${BRAND_NAME:-Kore IT}"
+  # The contact email (e.g. info@korczewski.de)
+  CONTACT_EMAIL:
+    sh: echo "${CONTACT_EMAIL:-info@korczewski.de}"
   DEV_DOMAIN: localhost
 
 tasks:

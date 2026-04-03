@@ -84,7 +84,10 @@ spec:
             - name: WEBUI_NAME
               value: "OpenClaw"
             - name: WEBUI_SECRET_KEY
-              value: "dev-secret-key-12345"
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OPENCLAW_WEBUI_SECRET_KEY
             # ─── MCP Endpoints ─────────────────────────────────
             - name: MCP_KUBERNETES_URL
               valueFrom: { configMapKeyRef: { name: openclaw-config, key: MCP_KUBERNETES_URL } }

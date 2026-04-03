@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: Kill mattermost pod → Kubernetes auto-restarts it
 kubectl delete pod -n "$NAMESPACE" -l app=mattermost --force --grace-period=0 > /dev/null 2>&1

@@ -16,7 +16,7 @@
     {
         "ID": "L-03",
         "Bezeichnung": "Prototyp",
-        "Beschreibung": "Funktionsfähiger Prototyp der Homeoffice-Kommunikationsplattform auf Basis von Mattermost + Nextcloud (Talk + Collabora), deployed auf dem k3s-Cluster (korczewski.de). Lauffähige Kernfunktionen demonstrierbar: Messaging, Videokonferenzen, Dateiablage, Dokumentenbearbeitung und Nutzerverwaltung. Erreichbar via HTTPS-Domain, live vorführbar im Abnahmegespräch. Quellcode (Manifeste, Konfiguration) versioniert im GitHub-Repository.",
+        "Beschreibung": "Funktionsfähiger Prototyp der Workspace-Kommunikationsplattform auf Basis von Mattermost + Nextcloud (Talk + Collabora), deployed auf dem k3s-Cluster (korczewski.de). Lauffähige Kernfunktionen demonstrierbar: Messaging, Videokonferenzen, Dateiablage, Dokumentenbearbeitung und Nutzerverwaltung. Erreichbar via HTTPS-Domain, live vorführbar im Abnahmegespräch. Quellcode (Manifeste, Konfiguration) versioniert im GitHub-Repository.",
         "Erfüllungskriterien": "1) kubectl apply startet alle Services ohne Fehler\n2) Login möglich (Mattermost, Nextcloud, Talk)\n3) Kernfunktionen FA-01 bis FA-07 demonstrierbar\n4) Kein proprietärer Dienst als Abhängigkeit\n5) setup.sh --check besteht ohne Fehler",
         "Testfall": "T1: setup.sh --check → Exit Code 0\nT2: docker compose up -d → alle Services healthy\nT3: Demo-Szenario (Login, DM, Video, Datei) → erfolgreich\nT4: nmap → keine externen Dienste als Abhängigkeit\nT5: README: Inbetriebnahme in < 30 min nachvollziehbar"
     },

@@ -26,13 +26,13 @@ spec:
             - --client-id=invoiceninja
             - --client-secret=$(INVOICENINJA_OIDC_SECRET)
             - --redirect-url=http://billing.localhost/oauth2/callback
-            - --oidc-issuer-url=http://keycloak:8080/realms/homeoffice
+            - --oidc-issuer-url=http://keycloak:8080/realms/workspace
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
-            - --login-url=http://auth.localhost/realms/homeoffice/protocol/openid-connect/auth
-            - --redeem-url=http://keycloak:8080/realms/homeoffice/protocol/openid-connect/token
-            - --oidc-jwks-url=http://keycloak:8080/realms/homeoffice/protocol/openid-connect/certs
-            - --profile-url=http://keycloak:8080/realms/homeoffice/protocol/openid-connect/userinfo
+            - --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth
+            - --redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token
+            - --oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs
+            - --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo
             - --upstream=http://invoiceninja:80
             - --http-address=0.0.0.0:4180
             - --cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)
@@ -51,12 +51,12 @@ spec:
             - name: INVOICENINJA_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_OIDC_SECRET
             - name: OAUTH2_PROXY_COOKIE_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: OAUTH2_PROXY_COOKIE_SECRET
           ports:
             - containerPort: 4180

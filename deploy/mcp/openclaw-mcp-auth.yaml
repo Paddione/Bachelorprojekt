@@ -6,7 +6,7 @@
 #
 # Auth: caller must supply a Keycloak Bearer token on every SSE request.
 # Get one via:
-#   curl -s -X POST http://keycloak.homeoffice.svc.cluster.local:8080/realms/master/protocol/openid-connect/token \
+#   curl -s -X POST http://keycloak.workspace.svc.cluster.local:8080/realms/master/protocol/openid-connect/token \
 #     -d "grant_type=password&client_id=admin-cli&username=admin&password=devadmin" \
 #     | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
 # ════════════════════════════════════════════════════════════════════════════
@@ -31,7 +31,7 @@ spec:
           image: quay.io/sshaaf/keycloak-mcp-server:latest
           env:
             - name: KC_URL
-              value: "http://keycloak.homeoffice.svc.cluster.local:8080"
+              value: "http://keycloak.workspace.svc.cluster.local:8080"
             - name: KC_REALM
               value: "master"
             - name: OIDC_CLIENT_ID

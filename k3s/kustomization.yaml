@@ -1,6 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: homeoffice
+namespace: workspace
 
 # Base: dev manifests from k3d/
 resources:
@@ -33,7 +33,7 @@ patches:
   # ── Ingress: production domains + Traefik ────────────────────────
   - target:
       kind: Ingress
-      name: homeoffice-ingress
+      name: workspace-ingress
     path: patches/ingress.yaml
 
   # ── Mattermost: HTTPS SiteURL + OIDC endpoint ───────────────────
@@ -82,7 +82,7 @@ configMapGenerator:
   - name: realm-template
     behavior: replace
     files:
-      - realm-homeoffice.json=realm-homeoffice-prod.json
+      - realm-workspace.json=realm-workspace-prod.json
 
 generatorOptions:
   disableNameSuffixHash: true

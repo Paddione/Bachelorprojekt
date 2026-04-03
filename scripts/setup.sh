@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# setup.sh — Prerequisite checker for Homeoffice MVP
+# setup.sh — Prerequisite checker for Workspace MVP
 # ═══════════════════════════════════════════════════════════════════
 # Usage:
 #   ./setup.sh --check    Validate all required tools are installed

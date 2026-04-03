@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: PostgreSQL pg_dump works inside shared-db pod
 PG_DUMP_OUT=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- \

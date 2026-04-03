@@ -6,7 +6,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
 WP_NAMESPACE="${WP_NAMESPACE:-wordpress}"
-MM_NAMESPACE="${NAMESPACE:-homeoffice}"
+MM_NAMESPACE="${NAMESPACE:-workspace}"
 
 # ── T1: WordPress pod läuft ──────────────────────────────────────
 WP_READY=$(kubectl get deployment wordpress -n "$WP_NAMESPACE" \

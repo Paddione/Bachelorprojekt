@@ -82,27 +82,27 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: SHARED_DB_PASSWORD
             - name: KEYCLOAK_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: KEYCLOAK_DB_PASSWORD
             - name: MATTERMOST_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: MATTERMOST_DB_PASSWORD
             - name: NEXTCLOUD_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: NEXTCLOUD_DB_PASSWORD
             - name: VAULTWARDEN_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: VAULTWARDEN_DB_PASSWORD
           ports:
             - containerPort: 5432

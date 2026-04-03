@@ -119,7 +119,7 @@ T2: 'report_q1.pdf' hochladen → Dateisuche findet es
 T3: Kanalname suchen → Kanal erscheint in Vorschlägen
 T4: Zeit messen: Suchanfrage → Antwort < 2s
 T5: Datumsfilter setzen → nur Ergebnisse im Zeitraum";"1";"2026-03-30 03:49:12";"2026-03-30 03:49:12"
-"FA-08";"Funktionale Anforderung";"Homeoffice-spezifisch";"Homeoffice-spezifische Funktionen: Anpassbare Status-Emojis und -Texte (z. B. 🏠 Homeoffice, ⛔ Nicht stören, 🍕 Mittagspause) mit automatischer Ablaufzeit. Kalenderintegration via Mattermost-Plugin für Google Calendar / Outlook: zeigt aktive Meetings im Status an und setzt automatisch 'In einer Besprechung'. Verfügbarkeitsübersicht im Nutzerprofil für einfache Erreichbarkeitsplanung im Team.";"1) Status-Optionen: Verfügbar, Beschäftigt, Abwesend, Homeoffice
+"FA-08";"Funktionale Anforderung";"Workspace-spezifisch";"Workspace-spezifische Funktionen: Anpassbare Status-Emojis und -Texte (z. B. 🏠 Workspace, ⛔ Nicht stören, 🍕 Mittagspause) mit automatischer Ablaufzeit. Kalenderintegration via Mattermost-Plugin für Google Calendar / Outlook: zeigt aktive Meetings im Status an und setzt automatisch 'In einer Besprechung'. Verfügbarkeitsübersicht im Nutzerprofil für einfache Erreichbarkeitsplanung im Team.";"1) Status-Optionen: Verfügbar, Beschäftigt, Abwesend, Workspace
 2) Status für andere User sichtbar
 3) Benutzerdefinierter Status-Text möglich
 4) Kalenderintegration (Konfiguration dokumentiert)
@@ -144,7 +144,7 @@ Prüfung: Betreuer bestätigt Vollständigkeit";"0";"2026-03-30 03:49:13";"2026-
 Prüfung: USP-Tabelle vorhanden und begründet
 Prüfung: Marktgröße belegt (Statistik/Studie)
 Prüfung: Alle Quellen zitiert und zugänglich";"0";"2026-03-30 03:49:13";"2026-03-30 03:49:13"
-"L-03";"Auslieferbares Objekt";"Prototyp";"Funktionsfähiger Prototyp der Homeoffice-Kommunikationsplattform auf Basis von Mattermost + Nextcloud (Talk + Collabora), deployed auf dem k3s-Cluster (korczewski.de). Lauffähige Kernfunktionen demonstrierbar: Messaging, Videokonferenzen, Dateiablage, Dokumentenbearbeitung und Nutzerverwaltung. Erreichbar via HTTPS-Domain, live vorführbar im Abnahmegespräch. Quellcode (Manifeste, Konfiguration) versioniert im GitHub-Repository.";"1) kubectl apply startet alle Services ohne Fehler
+"L-03";"Auslieferbares Objekt";"Prototyp";"Funktionsfähiger Prototyp der Workspace-Kommunikationsplattform auf Basis von Mattermost + Nextcloud (Talk + Collabora), deployed auf dem k3s-Cluster (korczewski.de). Lauffähige Kernfunktionen demonstrierbar: Messaging, Videokonferenzen, Dateiablage, Dokumentenbearbeitung und Nutzerverwaltung. Erreichbar via HTTPS-Domain, live vorführbar im Abnahmegespräch. Quellcode (Manifeste, Konfiguration) versioniert im GitHub-Repository.";"1) kubectl apply startet alle Services ohne Fehler
 2) Login möglich (Mattermost, Nextcloud, Talk)
 3) Kernfunktionen FA-01 bis FA-07 demonstrierbar
 4) Kein proprietärer Dienst als Abhängigkeit
@@ -322,13 +322,13 @@ T2: Backup-Ziel prüfen → Dateien vorhanden
 T3: 31 Tage alte Backup-Datei → noch vorhanden
 T4: Backup-Datei herunterladen → entpacken → Daten lesbar
 T5: Restore-Prozess im README dokumentiert und nachvollziehbar";"0";"2026-03-30 03:49:16";"2026-03-30 03:49:16"
-"SA-08";"Sicherheitsanforderung";"Single Sign-On (SSO)";"Zentrales Identity-Management über Keycloak als OIDC-Provider. Alle Dienste (Mattermost, Nextcloud, Nextcloud Talk) authentifizieren über denselben Keycloak-Realm (homeoffice). Einmalige Anmeldung genügt für alle Dienste (Single Sign-On). Mattermost und Nextcloud sind als eigene OIDC-Clients registriert. Nextcloud Talk erbt die OIDC-Session automatisch von Nextcloud — kein separater Adapter oder Client nötig. Cross-Service-SSO: Login bei einem Dienst gewährt automatisch Zugang zu allen anderen ohne erneute Anmeldung.";"1) Keycloak OIDC-Clients für Mattermost und Nextcloud konfiguriert
+"SA-08";"Sicherheitsanforderung";"Single Sign-On (SSO)";"Zentrales Identity-Management über Keycloak als OIDC-Provider. Alle Dienste (Mattermost, Nextcloud, Nextcloud Talk) authentifizieren über denselben Keycloak-Realm (workspace). Einmalige Anmeldung genügt für alle Dienste (Single Sign-On). Mattermost und Nextcloud sind als eigene OIDC-Clients registriert. Nextcloud Talk erbt die OIDC-Session automatisch von Nextcloud — kein separater Adapter oder Client nötig. Cross-Service-SSO: Login bei einem Dienst gewährt automatisch Zugang zu allen anderen ohne erneute Anmeldung.";"1) Keycloak OIDC-Clients für Mattermost und Nextcloud konfiguriert
 2) Redirect-URIs korrekt gesetzt
 3) Mattermost SSO-Login leitet zu Keycloak weiter
 4) Nextcloud SSO-Login leitet zu Keycloak weiter
 5) Talk erbt Nextcloud-OIDC-Session (kein separater Adapter)
 6) Cross-Service-SSO: nach Login bei einem Dienst kein erneuter Login bei anderen nötig";"T1: Mattermost OIDC-Client in Keycloak → Redirect-URI enthält chat.localhost
 T2: Nextcloud OIDC-Client → Redirect-URI enthält /apps/oidc_login/oidc
-T3: Nextcloud oidc_login_provider_url → enthält realms/homeoffice
-T4: Mattermost SSO-Login → Redirect zu Keycloak realms/homeoffice
-T5: Nextcloud OIDC-Login → Redirect zu Keycloak realms/homeoffice";"1";"2026-03-30 03:49:16";"2026-03-30 03:49:16"
+T3: Nextcloud oidc_login_provider_url → enthält realms/workspace
+T4: Mattermost SSO-Login → Redirect zu Keycloak realms/workspace
+T5: Nextcloud OIDC-Login → Redirect zu Keycloak realms/workspace";"1";"2026-03-30 03:49:16";"2026-03-30 03:49:16"

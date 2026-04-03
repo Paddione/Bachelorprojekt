@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Homeoffice MVP** — a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates Mattermost (chat), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
+**Workspace MVP** — a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates Mattermost (chat), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
 
 Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
@@ -15,18 +15,18 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 task cluster:create              # Create k3d cluster (k3d-config.yaml)
 task cluster:delete              # Destroy cluster
 task cluster:start / stop        # Pause/resume cluster
-task homeoffice:deploy           # Deploy all services (Kustomize)
-task homeoffice:validate         # Dry-run manifest validation
-task homeoffice:teardown         # Remove all services
+task workspace:deploy           # Deploy all services (Kustomize)
+task workspace:validate         # Dry-run manifest validation
+task workspace:teardown         # Remove all services
 ```
 
 ### Daily Operations
 ```bash
-task homeoffice:status           # Show pod status
-task homeoffice:logs -- <svc>    # Tail logs (e.g., keycloak, mattermost)
-task homeoffice:restart -- <svc> # Restart a specific service
-task homeoffice:monitoring       # Install Prometheus + Grafana (NFA-02)
-task homeoffice:post-setup       # Enable Nextcloud apps (calendar, contacts, OIDC)
+task workspace:status           # Show pod status
+task workspace:logs -- <svc>    # Tail logs (e.g., keycloak, mattermost)
+task workspace:restart -- <svc> # Restart a specific service
+task workspace:monitoring       # Install Prometheus + Grafana (NFA-02)
+task workspace:post-setup       # Enable Nextcloud apps (calendar, contacts, OIDC)
 ```
 
 ### Testing
@@ -46,7 +46,7 @@ cd billing-bot && go build ./...
 
 ## Architecture
 
-All services run as Kubernetes Deployments in the `homeoffice` namespace, fronted by Traefik (built-in k3s ingress). There is no docker-compose.
+All services run as Kubernetes Deployments in the `workspace` namespace, fronted by Traefik (built-in k3s ingress). There is no docker-compose.
 
 ```
 Traefik Ingress (80/443)
@@ -75,7 +75,7 @@ Shared: PostgreSQL 16 (one DB per service, single cluster)
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.
 - **Dev secrets**: `k3d/secrets.yaml` (dev values only — never commit real credentials).
-- **Keycloak realm**: `k3d/realm-homeoffice-dev.json` (exported realm config loaded as ConfigMap).
+- **Keycloak realm**: `k3d/realm-workspace-dev.json` (exported realm config loaded as ConfigMap).
 - **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (loaded as ConfigMap).
 - **SSO flow**: Keycloak is the OIDC provider; Mattermost, Nextcloud, and Invoice Ninja all authenticate through it.
 
@@ -93,6 +93,6 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 2. All changes via Pull Requests — no direct pushes to `main`.
 3. Use **squash-and-merge** to keep `main` history clean.
 4. CI must be green before merge.
-5. Validate manifests before committing: `task homeoffice:validate`.
+5. Validate manifests before committing: `task workspace:validate`.
 6. After modifying Kubernetes manifests, run the relevant test(s): `./tests/runner.sh local <TEST-ID>`.
 7. Branch naming: `feature/*`, `fix/*`, `chore/*`.

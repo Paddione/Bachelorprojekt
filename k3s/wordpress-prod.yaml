@@ -40,7 +40,7 @@ stringData:
   MYSQL_PASSWORD: "REPLACE_WITH_STRONG_DB_PASSWORD"
 ---
 # ── WordPress OIDC Secret ─────────────────────────────────────────────────────
-# Must match WORDPRESS_OIDC_SECRET in homeoffice-secrets (k3d/secrets.yaml).
+# Must match WORDPRESS_OIDC_SECRET in workspace-secrets (k3d/secrets.yaml).
 apiVersion: v1
 kind: Secret
 metadata:

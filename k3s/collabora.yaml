@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: collabora
-  namespace: homeoffice
+  namespace: workspace
   labels:
     app: collabora
 spec:
@@ -51,7 +51,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: collabora
-  namespace: homeoffice
+  namespace: workspace
 spec:
   selector:
     app: collabora
@@ -63,7 +63,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: collabora
-  namespace: homeoffice
+  namespace: workspace
 spec:
   entryPoints:
     - websecure

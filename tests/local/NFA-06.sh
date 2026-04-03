@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: All pods healthy (Running or Completed)
 UNHEALTHY=$(kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null \

@@ -37,7 +37,7 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     await ssoBtn.click();
 
     // Should land on Keycloak login page
-    await expect(page).toHaveURL(/.*realms\/homeoffice.*/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 15_000 });
 
     // Fill Keycloak credentials
     await page.locator('#username, input[name="username"]').fill(KC_USER);

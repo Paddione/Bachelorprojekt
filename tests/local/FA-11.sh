@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 WP_NAMESPACE="${WP_NAMESPACE:-wordpress}"
 
 # ── T1: create-customer-guest.sh existiert und ist ausführbar ───
@@ -35,15 +35,15 @@ else
   skip_test "FA-11" "T3" "system_guest Rolle" "Mattermost nicht bereit"
 fi
 
-# ── T4: Keycloak homeoffice-Realm erreichbar ────────────────────
+# ── T4: Keycloak workspace-Realm erreichbar ────────────────────
 KC_READY=$(kubectl get deployment keycloak -n "$NAMESPACE" \
   -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
 assert_gt "$KC_READY" 0 "FA-11" "T4" "Keycloak läuft (readyReplicas > 0)"
 
-# ── T5: homeoffice-secrets enthält KEYCLOAK_ADMIN_PASSWORD ──────
-KC_PASS=$(kubectl get secret homeoffice-secrets -n "$NAMESPACE" \
+# ── T5: workspace-secrets enthält KEYCLOAK_ADMIN_PASSWORD ──────
+KC_PASS=$(kubectl get secret workspace-secrets -n "$NAMESPACE" \
   -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d | wc -c | tr -d '[:space:]')
-assert_gt "$KC_PASS" 0 "FA-11" "T5" "KEYCLOAK_ADMIN_PASSWORD in homeoffice-secrets gesetzt"
+assert_gt "$KC_PASS" 0 "FA-11" "T5" "KEYCLOAK_ADMIN_PASSWORD in workspace-secrets gesetzt"
 
 # ── T6: domain-config ConfigMap enthält KC_DOMAIN ───────────────
 KC_DOMAIN=$(kubectl get configmap domain-config -n "$NAMESPACE" \

@@ -16,8 +16,8 @@
 #
 # CSV-Format (erste Zeile = Header):
 #   username,email,display_name,groups,first_name,last_name
-#   anna.schmidt,anna@example.com,Anna Schmidt,"homeoffice_users;admins",Anna,Schmidt
-#   max.mueller,max@example.com,Max Müller,homeoffice_users,Max,Müller
+#   anna.schmidt,anna@example.com,Anna Schmidt,"workspace_users;admins",Anna,Schmidt
+#   max.mueller,max@example.com,Max Müller,workspace_users,Max,Müller
 #
 # LDIF-Format: Standard LDAP LDIF (objectClass: inetOrgPerson)
 # ═══════════════════════════════════════════════════════════════════
@@ -28,10 +28,10 @@ set -euo pipefail
 KC_URL="${KC_URL:-}"
 KC_ADMIN="${KC_ADMIN:-admin}"
 KC_PASS="${KEYCLOAK_ADMIN_PASSWORD:-}"
-KC_REALM="homeoffice"
+KC_REALM="workspace"
 MODE=""
 INPUT_FILE=""
-DEFAULT_GROUP="homeoffice_users"
+DEFAULT_GROUP="workspace_users"
 DEFAULT_PASSWORD="ChangeMe123!"   # User müssen beim ersten Login ändern
 DRY_RUN=false
 
@@ -54,8 +54,8 @@ Optionen:
                     z.B. https://bachelorprojekt-auth.duckdns.org
   --admin USER      Keycloak Admin-User (Standard: admin)
   --pass PASS       Keycloak Admin-Passwort (oder KEYCLOAK_ADMIN_PASSWORD setzen)
-  --realm REALM     Keycloak Realm (Standard: homeoffice)
-  --group GROUP     Standard-Gruppe für alle User (Standard: homeoffice_users)
+  --realm REALM     Keycloak Realm (Standard: workspace)
+  --group GROUP     Standard-Gruppe für alle User (Standard: workspace_users)
   --dry-run         Zeigt was importiert würde, ohne es zu tun
   -h, --help        Diese Hilfe
 

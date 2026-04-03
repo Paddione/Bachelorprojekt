@@ -6,11 +6,11 @@
  * but public HTTPS URLs for browser redirects.
  */
 $CONFIG = [
-  'oidc_login_provider_url'      => 'http://keycloak:8080/realms/homeoffice',
+  'oidc_login_provider_url'      => 'http://keycloak:8080/realms/workspace',
   'oidc_login_client_id'         => 'nextcloud',
   'oidc_login_client_secret'     => getenv('NEXTCLOUD_OIDC_SECRET'),
   'oidc_login_auto_redirect'     => false,
-  'oidc_login_logout_url'        => 'https://' . getenv('KC_DOMAIN') . '/realms/homeoffice/protocol/openid-connect/logout?client_id=nextcloud&post_logout_redirect_uri=' . urlencode('https://' . getenv('NC_DOMAIN')),
+  'oidc_login_logout_url'        => 'https://' . getenv('KC_DOMAIN') . '/realms/workspace/protocol/openid-connect/logout?client_id=nextcloud&post_logout_redirect_uri=' . urlencode('https://' . getenv('NC_DOMAIN')),
   'oidc_login_button_text'       => 'Mit Keycloak anmelden',
   'oidc_login_hide_password_form' => false,
   'oidc_login_use_id_token'      => false,

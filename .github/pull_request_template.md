@@ -19,7 +19,7 @@
 
 ### If modifying Kubernetes manifests (`k3d/`)
 - [ ] `kubectl kustomize k3d/` succeeds locally
-- [ ] Deployed to local k3d cluster and verified (`task homeoffice:deploy`)
+- [ ] Deployed to local k3d cluster and verified (`task workspace:deploy`)
 - [ ] Resource requests/limits are set for new containers
 - [ ] Health probes configured for new services
 - [ ] No hardcoded hostnames — use `configMapKeyRef` from `domain-config`
@@ -29,7 +29,7 @@
 - [ ] Tested on a clean environment
 
 ### If modifying authentication (Keycloak / OIDC)
-- [ ] `k3d/realm-homeoffice-dev.json` updated if clients change
+- [ ] `k3d/realm-workspace-dev.json` updated if clients change
 - [ ] SSO login tested for all affected services
 
 ### Tracking Database Update (mandatory)

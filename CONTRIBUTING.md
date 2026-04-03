@@ -1,4 +1,4 @@
-# Contributing to Homeoffice MVP
+# Contributing to Workspace MVP
 
 ## Development Workflow
 
@@ -22,14 +22,14 @@ All changes go through pull requests. Direct pushes to `main` are not allowed.
 
 2. **Develop locally** with k3d:
    ```bash
-   task homeoffice:deploy        # deploy all services
-   task homeoffice:status        # check pod health
-   task homeoffice:logs -- keycloak  # tail service logs
+   task workspace:deploy        # deploy all services
+   task workspace:status        # check pod health
+   task workspace:logs -- keycloak  # tail service logs
    ```
 
 3. **Validate before pushing**:
    ```bash
-   task homeoffice:validate      # dry-run k8s manifests
+   task workspace:validate      # dry-run k8s manifests
    shellcheck scripts/*.sh       # lint scripts (if modified)
    ```
 
@@ -53,12 +53,12 @@ Prerequisites: Docker, k3d, kubectl, task (go-task)
 ```bash
 # First time: create cluster + deploy
 task cluster:create              # creates k3d cluster
-task homeoffice:deploy           # deploy all services
+task workspace:deploy           # deploy all services
 
 # Day-to-day
-task homeoffice:status           # check everything
-task homeoffice:restart -- keycloak  # restart a service
-task homeoffice:teardown         # clean up
+task workspace:status           # check everything
+task workspace:restart -- keycloak  # restart a service
+task workspace:teardown         # clean up
 ```
 
 Services are available at:
@@ -90,6 +90,6 @@ When asked to develop a feature, fix a bug, or make any code change:
 
 1. **Always create a feature branch** — never commit directly to `main`
 2. **Follow the PR template** — fill out the checklist completely
-3. **Run `task homeoffice:validate`** before pushing
+3. **Run `task workspace:validate`** before pushing
 5. **Create a PR** using `gh pr create` with the appropriate template
 6. **Wait for CI** to pass before requesting merge

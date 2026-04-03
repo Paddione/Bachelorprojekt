@@ -26,16 +26,16 @@
 #   KC_ADMIN_PASS   - Keycloak Admin-Passwort (default: aus secrets.yaml)
 #   MM_URL          - Mattermost URL
 #   KC_URL          - Keycloak Base URL
-#   KC_REALM        - Keycloak Realm (default: homeoffice)
-#   NAMESPACE       - Kubernetes Namespace (default: homeoffice)
+#   KC_REALM        - Keycloak Realm (default: workspace)
+#   NAMESPACE       - Kubernetes Namespace (default: workspace)
 #   DRY_RUN         - Wenn "true": Aktionen nur anzeigen, nicht ausführen
 
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 MM_URL="${MM_URL:-}"
 KC_URL="${KC_URL:-}"
-KC_REALM="${KC_REALM:-homeoffice}"
+KC_REALM="${KC_REALM:-workspace}"
 KC_ADMIN_USER="${KC_ADMIN_USER:-admin}"
 KC_ADMIN_PASS="${KC_ADMIN_PASS:-}"
 MM_TOKEN="${MM_TOKEN:-}"
@@ -100,7 +100,7 @@ if [ -z "${KC_URL}" ]; then
 fi
 
 if [ -z "${KC_ADMIN_PASS}" ]; then
-  KC_ADMIN_PASS=$(kubectl get secret homeoffice-secrets -n "${NAMESPACE}" \
+  KC_ADMIN_PASS=$(kubectl get secret workspace-secrets -n "${NAMESPACE}" \
     -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "")
   [ -z "${KC_ADMIN_PASS}" ] && { echo "FEHLER: KC_ADMIN_PASS nicht ermittelbar."; exit 1; }
 fi

@@ -2,7 +2,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # export.sh — Selektiver Datenexport → ZIP
 # ═══════════════════════════════════════════════════════════════════
-# Exportiert Daten aus dem laufenden Homeoffice-Stack:
+# Exportiert Daten aus dem laufenden Workspace-Stack:
 #
 #   - Mattermost Nachrichten (JSONL via mmctl/API)
 #   - Mattermost Dateien (aus Volume)
@@ -243,7 +243,7 @@ export_keycloak_users() {
 
   # Benutzer abrufen
   local users_json
-  users_json=$(curl -s "${kc_url}/admin/realms/homeoffice/users?max=1000" \
+  users_json=$(curl -s "${kc_url}/admin/realms/workspace/users?max=1000" \
     -H "$auth" 2>/dev/null)
 
   # CSV
@@ -264,7 +264,7 @@ export_keycloak_users() {
     local user_id
     user_id=$(echo "$user" | jq -r '.id')
     local user_groups
-    user_groups=$(curl -s "${kc_url}/admin/realms/homeoffice/users/${user_id}/groups" \
+    user_groups=$(curl -s "${kc_url}/admin/realms/workspace/users/${user_id}/groups" \
       -H "$auth" 2>/dev/null | jq -r '[.[].name] | join(";")' 2>/dev/null)
 
     echo "\"${uid}\",\"${email}\",\"${display_name}\",\"${user_groups}\",\"${fn}\",\"${ln}\"" >> "$csv_file"
@@ -283,7 +283,7 @@ export_keycloak_users() {
     [[ "$cn" == " " ]] && cn="$uid"
 
     cat >> "$ldif_file" <<LDIF
-dn: uid=${uid},ou=people,dc=homeoffice
+dn: uid=${uid},ou=people,dc=workspace
 objectClass: inetOrgPerson
 uid: ${uid}
 mail: ${email}
@@ -299,7 +299,7 @@ LDIF
 
   # Gruppen
   local groups_json
-  groups_json=$(curl -s "${kc_url}/admin/realms/homeoffice/groups" \
+  groups_json=$(curl -s "${kc_url}/admin/realms/workspace/groups" \
     -H "$auth" 2>/dev/null)
   echo "$groups_json" > "${output_dir}/keycloak/groups.json" 2>/dev/null
 }
@@ -316,7 +316,7 @@ export_keycloak_realm() {
   fi
 
   if ${DRY_RUN:-false}; then
-    warn "[DRY-RUN] Würde Keycloak Realm 'homeoffice' exportieren"
+    warn "[DRY-RUN] Würde Keycloak Realm 'workspace' exportieren"
     return 0
   fi
 
@@ -344,14 +344,14 @@ export_keycloak_realm() {
   fi
 
   local realm_json
-  realm_json=$(curl -s "${KC_URL}/admin/realms/homeoffice" \
+  realm_json=$(curl -s "${KC_URL}/admin/realms/workspace" \
     -H "Authorization: Bearer ${access_token}" 2>/dev/null)
 
   if echo "$realm_json" | jq -e '.realm' &>/dev/null; then
-    echo "$realm_json" | jq '.' > "${output_dir}/realm-homeoffice.json"
-    success "Keycloak Realm exportiert: realm-homeoffice.json"
+    echo "$realm_json" | jq '.' > "${output_dir}/realm-workspace.json"
+    success "Keycloak Realm exportiert: realm-workspace.json"
   else
-    warn "Keycloak Realm 'homeoffice' nicht gefunden oder Zugriff verweigert"
+    warn "Keycloak Realm 'workspace' nicht gefunden oder Zugriff verweigert"
   fi
 }
 
@@ -396,7 +396,7 @@ run_export() {
 
   local date_stamp
   date_stamp=$(date '+%Y-%m-%d')
-  local export_name="homeoffice-export-${date_stamp}"
+  local export_name="workspace-export-${date_stamp}"
   local output_dir="${WORKDIR}/${export_name}"
   mkdir -p "$output_dir"
 

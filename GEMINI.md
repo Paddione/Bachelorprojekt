@@ -1,11 +1,11 @@
-# Homeoffice MVP - Gemini Context
+# Workspace MVP - Gemini Context
 
-This document provides essential context and instructions for AI assistants working on the **Homeoffice MVP** (Bachelorprojekt). This project is a Kubernetes-based collaboration platform designed for small teams, integrating several open-source services with Single Sign-On (SSO) and a self-hosted AI assistant.
+This document provides essential context and instructions for AI assistants working on the **Workspace MVP** (Bachelorprojekt). This project is a Kubernetes-based collaboration platform designed for small teams, integrating several open-source services with Single Sign-On (SSO) and a self-hosted AI assistant.
 
 ## Project Overview
 
 - **Core Technologies:** Kubernetes (k3d/k3s), Kustomize, Go (billing-bot), Shell scripts, Taskfile.
-- **Architecture:** A microservices-oriented architecture running primarily in the `homeoffice` namespace.
+- **Architecture:** A microservices-oriented architecture running primarily in the `workspace` namespace.
 - **Key Services:**
   - **Keycloak (SSO):** Identity management and OIDC provider (`auth.localhost`).
   - **Mattermost:** Team chat and collaboration (`chat.localhost`).
@@ -30,13 +30,13 @@ The project uses `task` (go-task) for orchestration.
   - `task cluster:create`: Create the local k3d cluster (uses k3d-config.yaml).
   - `task cluster:delete`: Remove the k3d cluster.
 - **Deployment:**
-  - `task homeoffice:deploy`: Deploy all services to the cluster (Kustomize).
-  - `task homeoffice:validate`: Perform a dry-run and validate Kubernetes manifests.
+  - `task workspace:deploy`: Deploy all services to the cluster (Kustomize).
+  - `task workspace:validate`: Perform a dry-run and validate Kubernetes manifests.
 - **Observability:**
-  - `task homeoffice:monitoring`: Install Prometheus + Grafana stack (required for NFA-02).
-  - `task homeoffice:status`: Check the status of all pods and services.
-  - `task homeoffice:logs -- <service>`: Tail logs for a specific service (e.g., `keycloak`).
-  - `task homeoffice:restart -- <service>`: Restart a specific service.
+  - `task workspace:monitoring`: Install Prometheus + Grafana stack (required for NFA-02).
+  - `task workspace:status`: Check the status of all pods and services.
+  - `task workspace:logs -- <service>`: Tail logs for a specific service (e.g., `keycloak`).
+  - `task workspace:restart -- <service>`: Restart a specific service.
 
 ### Testing
 
@@ -68,6 +68,6 @@ When executing a directive:
 4. **Collaboration:** Work with **OpenClaw** in the admin-only Mattermost channels if available.
 5. **Execution:** 
    - Apply surgical changes.
-   - If modifying Kubernetes manifests, run `task homeoffice:validate`.
+   - If modifying Kubernetes manifests, run `task workspace:validate`.
 6. **Validation:** Run relevant tests using `./tests/runner.sh local`.
 7. **PR:** Use `gh pr create` with the repository's template.

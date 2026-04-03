@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: Mattermost is Team Edition
 MM_LICENSE=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN:-}" "${MM_URL:-http://localhost:8065}/api/v4/license/client?format=old" 2>/dev/null | jq -r '.IsLicensed // "false"')

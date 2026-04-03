@@ -4,13 +4,13 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 BILLING_BOT_URL="http://billing-bot:8090"
 IN_URL="http://invoiceninja:80"
 _kube_curl() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
 
 # ── Get Invoice Ninja API token ─────────────────────────────────
-IN_TOKEN=$(kubectl get secret homeoffice-secrets -n "$NAMESPACE" -o jsonpath='{.data.INVOICENINJA_API_TOKEN}' 2>/dev/null | base64 -d)
+IN_TOKEN=$(kubectl get secret workspace-secrets -n "$NAMESPACE" -o jsonpath='{.data.INVOICENINJA_API_TOKEN}' 2>/dev/null | base64 -d)
 
 _in_api() {
   local method="$1" path="$2" data="${3:-}"

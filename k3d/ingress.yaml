@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: homeoffice-ingress
+  name: workspace-ingress
 spec:
   rules:
     # ── Keycloak (SSO) ──────────────────────────────────────────────
@@ -65,7 +65,18 @@ spec:
                   number: 3002
 
 
-    # ── Talk HPB Signaling ───────────────────────────────────────────
+    # ── Nextcloud Talk HPB Signaling ────────────────────────────────
+    - host: meet.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spreed-signaling
+                port:
+                  number: 8080
+
     - host: signaling.localhost
       http:
         paths:

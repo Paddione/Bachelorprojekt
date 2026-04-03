@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: openclaw-config
 data:
-  OPENID_PROVIDER_URL: "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration"
-  MATTERMOST_WEBHOOK_URL: "http://mattermost.homeoffice.svc.cluster.local:8065/hooks/openclaw-alerts"
+  OPENID_PROVIDER_URL: "http://auth.localhost/realms/workspace/.well-known/openid-configuration"
+  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/openclaw-alerts"
   # Core pod: cluster + database + chat
   MCP_KUBERNETES_URL:   "http://openclaw-mcp-core:8080/mcp"
   MCP_POSTGRES_URL:     "http://openclaw-mcp-core:3001/mcp"

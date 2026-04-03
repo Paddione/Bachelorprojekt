@@ -138,7 +138,7 @@ spec:
           namespace: korczewski-infra
       services:
         - name: openclaw
-          namespace: homeoffice
+          namespace: workspace
           port: 8080
 
   tls:

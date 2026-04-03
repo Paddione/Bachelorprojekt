@@ -5,10 +5,10 @@
 # Usage: source this file, then call k3d_wait / bootstrap_test_data.
 #
 # Required env vars:
-#   NAMESPACE — Kubernetes namespace (default: homeoffice)
+#   NAMESPACE — Kubernetes namespace (default: workspace)
 # ═══════════════════════════════════════════════════════════════════
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # ── Environment-aware URL configuration ─────────────────────────
 # For prod tier: set PROD_DOMAIN (e.g. "wbhprojekt.ipv64.de")
@@ -148,7 +148,7 @@ k3d_wait() {
 
   echo "  Prüfe ob k3d-Cluster erreichbar ist..."
   if ! kubectl cluster-info &>/dev/null; then
-    echo "  FEHLER: Kein k3d-Cluster erreichbar. Starte mit: task cluster:create && task homeoffice:deploy"
+    echo "  FEHLER: Kein k3d-Cluster erreichbar. Starte mit: task cluster:create && task workspace:deploy"
     return 1
   fi
 
@@ -247,13 +247,13 @@ _bootstrap_keycloak_user() {
 
   local exists
   exists=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_URL}/admin/realms/homeoffice/users?username=testuser1" | jq -r '.[0].id // empty')
+    "${KC_URL}/admin/realms/workspace/users?username=testuser1" | jq -r '.[0].id // empty')
 
   if [[ -z "$exists" ]]; then
     curl -s -o /dev/null -X POST -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
       -H "Content-Type: application/json" \
-      "${KC_URL}/admin/realms/homeoffice/users" \
-      -d "{\"username\":\"testuser1\",\"email\":\"testuser1@homeoffice.local\",\"firstName\":\"Test\",\"lastName\":\"User\",\"enabled\":true,\"credentials\":[{\"type\":\"password\",\"value\":\"${test_pass}\",\"temporary\":false}]}"
+      "${KC_URL}/admin/realms/workspace/users" \
+      -d "{\"username\":\"testuser1\",\"email\":\"testuser1@workspace.local\",\"firstName\":\"Test\",\"lastName\":\"User\",\"enabled\":true,\"credentials\":[{\"type\":\"password\",\"value\":\"${test_pass}\",\"temporary\":false}]}"
     echo "  Keycloak User 'testuser1' erstellt."
   else
     echo "  Keycloak User 'testuser1' existiert bereits."
@@ -267,7 +267,7 @@ bootstrap_test_data() {
   echo "▶ Test-Daten einrichten..."
 
   local admin_pass="${MM_TEST_ADMIN_PASS:-Testpassword123!}"
-  local admin_email="testadmin@homeoffice.local"
+  local admin_email="testadmin@workspace.local"
 
   # Try to login as existing admin
   MM_ADMIN_TOKEN=$(_mm_login "testadmin" "$admin_pass")
@@ -316,7 +316,7 @@ bootstrap_test_data() {
     exists=$(_mm_api GET "/users/username/${user}" | _mm_id)
     if [[ -z "$exists" ]]; then
       _kube_run mattermost mmctl user create \
-        --username "$user" --email "${user}@homeoffice.local" \
+        --username "$user" --email "${user}@workspace.local" \
         --password "$admin_pass" --local 2>/dev/null || true
       echo "  User '${user}' erstellt."
     else
@@ -329,7 +329,7 @@ bootstrap_test_data() {
   guest_exists=$(_mm_api GET "/users/username/testguest" | _mm_id)
   if [[ -z "$guest_exists" ]]; then
     _kube_run mattermost mmctl user create \
-      --username testguest --email "testguest@homeoffice.local" \
+      --username testguest --email "testguest@workspace.local" \
       --password "$admin_pass" --local 2>/dev/null || true
     local guest_id
     guest_id=$(_mm_api GET "/users/username/testguest" | _mm_id)

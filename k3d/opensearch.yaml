@@ -52,7 +52,7 @@ spec:
             - name: bootstrap.memory_lock
               value: "false"
             - name: cluster.name
-              value: homeoffice-search
+              value: workspace-search
             - name: node.name
               value: opensearch-0
           ports:

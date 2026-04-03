@@ -4,21 +4,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: Keycloak login events (fresh token with retry)
 _kc_admin_login
 
 if [[ -n "$KC_ADMIN_TOKEN" ]]; then
   # Trigger a login event so there's something to find
-  curl -s -o /dev/null --max-time 10 -X POST "${KC_URL}/realms/homeoffice/protocol/openid-connect/token" \
+  curl -s -o /dev/null --max-time 10 -X POST "${KC_URL}/realms/workspace/protocol/openid-connect/token" \
     -d "client_id=admin-cli" \
     -d "username=testadmin" \
     -d "password=Testpassword123!" \
     -d "grant_type=password" 2>/dev/null || true
 
   EVENTS=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_URL}/admin/realms/homeoffice/events?max=10")
+    "${KC_URL}/admin/realms/workspace/events?max=10")
   EVENT_COUNT=$(echo "$EVENTS" | jq 'length')
   assert_gt "$EVENT_COUNT" 0 "SA-05" "T1" "Keycloak Login-Events vorhanden"
 else

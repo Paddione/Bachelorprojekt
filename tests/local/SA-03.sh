@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: bcrypt hash in DB (shared-db hosts the mattermost database)
 HASH=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- psql -U mattermost -d mattermost -t -c \
@@ -18,7 +18,7 @@ KC_ADMIN_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/o
   -d "grant_type=password" | jq -r '.access_token // empty')
 if [[ -n "$KC_ADMIN_TOKEN" ]]; then
   POLICY=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "http://auth.localhost/admin/realms/homeoffice" | jq -r '.passwordPolicy // empty')
+    "http://auth.localhost/admin/realms/workspace" | jq -r '.passwordPolicy // empty')
   assert_gt "${#POLICY}" 0 "SA-03" "T2" "Keycloak Password Policy konfiguriert"
 else
   skip_test "SA-03" "T2" "Keycloak Password Policy" "Kein Keycloak Admin-Token"

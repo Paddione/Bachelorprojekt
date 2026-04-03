@@ -56,12 +56,12 @@ spec:
             - name: MARIADB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_DB_PASSWORD
             - name: MARIADB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_DB_PASSWORD
           ports:
             - containerPort: 3306
@@ -138,7 +138,7 @@ spec:
             - name: APP_KEY
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_APP_KEY
             - name: APP_ENV
               value: "production"
@@ -160,7 +160,7 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_DB_PASSWORD
             # ── Mail (Mailpit for dev) ────────────────────────
             - name: MAIL_MAILER
@@ -170,18 +170,18 @@ spec:
             - name: MAIL_PORT
               value: "1025"
             - name: MAIL_FROM_ADDRESS
-              value: "billing@homeoffice.local"
+              value: "billing@workspace.local"
             - name: MAIL_FROM_NAME
-              value: "Homeoffice Billing"
+              value: "Workspace Billing"
             - name: MAIL_ENCRYPTION
               value: ""
             # ── Misc ──────────────────────────────────────────
             - name: IN_USER_EMAIL
-              value: "admin@homeoffice.local"
+              value: "admin@workspace.local"
             - name: IN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: homeoffice-secrets
+                  name: workspace-secrets
                   key: INVOICENINJA_ADMIN_PASSWORD
             - name: TZ
               value: Europe/Berlin

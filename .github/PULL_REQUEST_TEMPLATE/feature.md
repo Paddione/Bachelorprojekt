@@ -51,7 +51,7 @@
 
 ### Manual Testing
 
-- [ ] Deployed to k3d cluster (`task homeoffice:deploy`)
+- [ ] Deployed to k3d cluster (`task workspace:deploy`)
 - [ ] Verified service is accessible via `*.localhost`
 - [ ] Verified SSO flow works end-to-end (if auth-related)
 - [ ] Ran relevant test suite (`tests/runner.sh`)

@@ -7,7 +7,7 @@ import sys
 import urllib.request
 import urllib.error
 
-MM_URL = os.environ.get("MM_URL", "http://mattermost.homeoffice.svc.cluster.local:8065")
+MM_URL = os.environ.get("MM_URL", "http://mattermost.workspace.svc.cluster.local:8065")
 MM_TOKEN = os.environ["MM_TOKEN"]
 
 def api(method, path, data=None):
@@ -67,7 +67,7 @@ Antworten: ✅ Genehmigt | ❌ Abgelehnt | 🔄 Anpassen"""
 
 WELCOME = """## 🤖 OpenClaw ist bereit!
 
-Hallo! Ich bin **OpenClaw**, euer KI-Assistent für das Homeoffice-Cluster.
+Hallo! Ich bin **OpenClaw**, euer KI-Assistent für das Workspace-Cluster.
 
 ### So funktioniert es:
 1. Ich schlage Aktionen vor und erkläre sie **auf Deutsch**
@@ -92,7 +92,7 @@ Hallo! Ich bin **OpenClaw**, euer KI-Assistent für das Homeoffice-Cluster.
 
 > 📋 **Aktion:** Deployment `nextcloud` neustarten
 >
-> **Beschreibung:** Das Nextcloud-Deployment im Namespace `homeoffice` wird neugestartet. Alle aktiven Sitzungen werden kurz unterbrochen (~30 Sekunden).
+> **Beschreibung:** Das Nextcloud-Deployment im Namespace `workspace` wird neugestartet. Alle aktiven Sitzungen werden kurz unterbrochen (~30 Sekunden).
 >
 > **Auswirkung:** Benutzer sehen kurzzeitig eine Fehlermeldung, danach funktioniert alles normal.
 >

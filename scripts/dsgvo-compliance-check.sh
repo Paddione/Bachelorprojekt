@@ -2,7 +2,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # dsgvo-compliance-check.sh — DSGVO Compliance Verification
 # ═══════════════════════════════════════════════════════════════════
-# Verifies that the Homeoffice platform meets data sovereignty claims.
+# Verifies that the Workspace platform meets data sovereignty claims.
 # Can run standalone (human-readable) or with --json for Grafana ingestion.
 #
 # Checks:
@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 OUTPUT_FORMAT="${1:-text}"
 RESULTS=()
 PASS=0
@@ -87,7 +87,7 @@ fi
 
 # ── Check 4: Keycloak audit logging enabled ──────────────────────
 echo "▸ Prüfe Audit-Logging..."
-KC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" homeoffice-secrets \
+KC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" workspace-secrets \
   -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || echo "devadmin")
 KC_TOKEN=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
   curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
@@ -97,7 +97,7 @@ KC_TOKEN=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
 if [[ -n "$KC_TOKEN" ]]; then
   EVENTS_ENABLED=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
     curl -s -H "Authorization: Bearer ${KC_TOKEN}" \
-    "http://localhost:8080/admin/realms/homeoffice" 2>/dev/null \
+    "http://localhost:8080/admin/realms/workspace" 2>/dev/null \
     | jq -r '.eventsEnabled // false' 2>/dev/null || echo "false")
   if [[ "$EVENTS_ENABLED" == "true" ]]; then
     _check "D04" "Keycloak Audit-Events aktiviert" "pass"

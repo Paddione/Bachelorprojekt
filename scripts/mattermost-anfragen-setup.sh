@@ -11,12 +11,12 @@
 # Environment variables:
 #   MM_URL       - Mattermost URL (default: auto-detect)
 #   MM_TOKEN     - Personal access token (skip mmctl, use REST API)
-#   NAMESPACE    - Kubernetes namespace (default: homeoffice)
+#   NAMESPACE    - Kubernetes namespace (default: workspace)
 #   CHANNEL_NAME - Channel name to create per team (default: anfragen)
 
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 MM_URL="${MM_URL:-}"
 MM_TOKEN="${MM_TOKEN:-}"
 CHANNEL_NAME="${CHANNEL_NAME:-anfragen}"

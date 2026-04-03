@@ -5,13 +5,13 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 
 _mm() { curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" -H "Content-Type: application/json" "$@"; }
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: Admin creates user → user can login
 TEMP_USER="tempuser$(date +%s)"
 CREATE_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
   -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" -H "Content-Type: application/json" \
-  -d "{\"username\":\"${TEMP_USER}\",\"email\":\"${TEMP_USER}@homeoffice.local\",\"password\":\"Testpassword123!\"}" \
+  -d "{\"username\":\"${TEMP_USER}\",\"email\":\"${TEMP_USER}@workspace.local\",\"password\":\"Testpassword123!\"}" \
   "${MM_URL}/users")
 assert_eq "$CREATE_STATUS" "201" "FA-05" "T1a" "Admin legt User an"
 
@@ -48,7 +48,7 @@ KC_ADMIN_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/o
   -d "grant_type=password" | jq -r '.access_token // empty')
 if [[ -n "$KC_ADMIN_TOKEN" ]]; then
   KC_USERS=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "http://auth.localhost/admin/realms/homeoffice/users?username=testuser1")
+    "http://auth.localhost/admin/realms/workspace/users?username=testuser1")
   KC_USER_COUNT=$(echo "$KC_USERS" | jq 'length')
   assert_gt "$KC_USER_COUNT" 0 "FA-05" "T3" "User in Keycloak vorhanden (zentraler User Store)"
 else
@@ -57,7 +57,7 @@ fi
 
 # T4: SSO login via Keycloak OIDC endpoint reachable
 KC_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-  "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration" 2>/dev/null)
+  "http://auth.localhost/realms/workspace/.well-known/openid-configuration" 2>/dev/null)
 assert_eq "$KC_OIDC_STATUS" "200" "FA-05" "T4" "Keycloak OIDC Discovery erreichbar (SSO-Login)"
 
 # T3: User exists in Keycloak (verifies Keycloak as user store)
@@ -68,7 +68,7 @@ KC_ADMIN_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/o
   -d "grant_type=password" | jq -r '.access_token // empty')
 if [[ -n "$KC_ADMIN_TOKEN" ]]; then
   KC_USERS=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "http://auth.localhost/admin/realms/homeoffice/users?username=testuser1")
+    "http://auth.localhost/admin/realms/workspace/users?username=testuser1")
   KC_USER_COUNT=$(echo "$KC_USERS" | jq 'length')
   assert_gt "$KC_USER_COUNT" 0 "FA-05" "T3" "User in Keycloak vorhanden (zentraler User Store)"
 else
@@ -77,7 +77,7 @@ fi
 
 # T4: SSO login via Keycloak OIDC endpoint reachable
 KC_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-  "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration" 2>/dev/null)
+  "http://auth.localhost/realms/workspace/.well-known/openid-configuration" 2>/dev/null)
 assert_eq "$KC_OIDC_STATUS" "200" "FA-05" "T4" "Keycloak OIDC Discovery erreichbar (SSO-Login)"
 
 # T5: Deactivate user → login fails

@@ -6,7 +6,7 @@
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-MM_URL="${MM_URL:-http://mattermost.homeoffice.svc.cluster.local:8065}"
+MM_URL="${MM_URL:-http://mattermost.workspace.svc.cluster.local:8065}"
 MM_TOKEN="${MM_TOKEN:?MM_TOKEN env var required (use mmctl token generate)}"
 
 api() {
@@ -203,7 +203,7 @@ echo "$TEAM_IDS" | while read -r team_id team_name; do
   # Post welcome message
   api POST /posts -d "{
     \"channel_id\": \"$CHANNEL_ID\",
-    \"message\": \"## 🤖 OpenClaw ist bereit!\n\nHallo! Ich bin **OpenClaw**, euer KI-Assistent für das Homeoffice-Cluster.\n\n### So funktioniert es:\n1. Ich schlage Aktionen vor und erkläre sie auf Deutsch\n2. Ihr antwortet mit **✅ Genehmigt**, **❌ Abgelehnt** oder **🔄 Anpassen**\n3. Erst nach eurer Genehmigung führe ich die Aktion aus\n\n### Verfügbare Dienste:\n| Dienst | Funktion |\n|---|---|\n| 🏗️ Kubernetes | Pods, Logs, Deployments verwalten |\n| 🗄️ PostgreSQL | Datenbank-Abfragen (nur lesen) |\n| 💬 Mattermost | Nachrichten, Kanäle, Dateien |\n| 📁 Nextcloud | Dateien, Kalender, Kontakte, Deck |\n| 🔐 Keycloak | Benutzer, Gruppen, SSO |\n| 💰 Invoice Ninja | Rechnungen, Kunden, Ausgaben |\n| 🌐 WordPress | Webseite-Inhalte verwalten |\n\nSchreibt mir einfach, was ihr braucht — ich erkläre jeden Schritt bevor ich ihn ausführe.\",
+    \"message\": \"## 🤖 OpenClaw ist bereit!\n\nHallo! Ich bin **OpenClaw**, euer KI-Assistent für das Workspace-Cluster.\n\n### So funktioniert es:\n1. Ich schlage Aktionen vor und erkläre sie auf Deutsch\n2. Ihr antwortet mit **✅ Genehmigt**, **❌ Abgelehnt** oder **🔄 Anpassen**\n3. Erst nach eurer Genehmigung führe ich die Aktion aus\n\n### Verfügbare Dienste:\n| Dienst | Funktion |\n|---|---|\n| 🏗️ Kubernetes | Pods, Logs, Deployments verwalten |\n| 🗄️ PostgreSQL | Datenbank-Abfragen (nur lesen) |\n| 💬 Mattermost | Nachrichten, Kanäle, Dateien |\n| 📁 Nextcloud | Dateien, Kalender, Kontakte, Deck |\n| 🔐 Keycloak | Benutzer, Gruppen, SSO |\n| 💰 Invoice Ninja | Rechnungen, Kunden, Ausgaben |\n| 🌐 WordPress | Webseite-Inhalte verwalten |\n\nSchreibt mir einfach, was ihr braucht — ich erkläre jeden Schritt bevor ich ihn ausführe.\",
     \"props\": {\"from_bot\": \"true\"}
   }" > /dev/null 2>&1 && echo "    Welcome message posted"
 done

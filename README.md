@@ -1,4 +1,4 @@
-# Homeoffice MVP
+# Workspace MVP
 
 Kubernetes-basierte Kollaborationsplattform für kleine Teams — Mattermost (Chat), Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO) auf k3d/k3s mit Traefik Ingress.
 
@@ -10,7 +10,7 @@ Voraussetzungen: Docker, [k3d](https://k3d.io), kubectl, [task](https://taskfile
 git clone https://github.com/Paddione/Bachelorprojekt.git && cd Bachelorprojekt
 
 # Cluster erstellen + alle Services deployen
-task cluster:create && task homeoffice:deploy
+task cluster:create && task workspace:deploy
 ```
 
 Services sind erreichbar unter:
@@ -52,18 +52,18 @@ Services sind erreichbar unter:
 |(PG 16) |    | (PG 16) |    | (PG 16) |                     +----------+
 +--------+    +----------+    +----------+
 
-Namespace: homeoffice
+Namespace: workspace
 Alle Services laufen als Kubernetes Deployments in k3d/k3s.
 ```
 
 ## Tägliche Befehle
 
 ```bash
-task homeoffice:status           # Pod-Status prüfen
-task homeoffice:logs -- keycloak # Logs eines Service ansehen
-task homeoffice:restart -- mattermost  # Service neustarten
-task homeoffice:validate         # Manifeste validieren
-task homeoffice:teardown         # Alles entfernen
+task workspace:status           # Pod-Status prüfen
+task workspace:logs -- keycloak # Logs eines Service ansehen
+task workspace:restart -- mattermost  # Service neustarten
+task workspace:validate         # Manifeste validieren
+task workspace:teardown         # Alles entfernen
 ```
 
 ## Tests
@@ -89,7 +89,7 @@ Bachelorprojekt/
     talk-hpb.yaml               # Nextcloud Talk HPB (Signaling + Janus + NATS)
     coturn.yaml                 # TURN/STUN Server
     collabora.yaml              # Collabora Online (Dokumentenbearbeitung)
-    realm-homeoffice-dev.json   # Keycloak Realm-Konfiguration
+    realm-workspace-dev.json   # Keycloak Realm-Konfiguration
     nextcloud-oidc-dev.php      # Nextcloud OIDC-Konfiguration
   scripts/                      # Migration, Import, Utility-Skripte
   tests/                        # Automatisierte Tests (Bash + Playwright)

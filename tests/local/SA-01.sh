@@ -5,7 +5,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-NAMESPACE="${NAMESPACE:-homeoffice}"
+NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: All service ingresses are defined
 for svc in auth chat files office; do
@@ -48,6 +48,6 @@ WS_UPGRADE=$(curl -s -D - -o /dev/null --max-time 5 \
 assert_gt "$WS_UPGRADE" 0 "SA-01" "T4" "WebSocket-Upgrade für Mattermost unterstützt"
 
 # T5: Keycloak serves correct CORS/security headers
-KC_HEADERS=$(curl -s -D - -o /dev/null --max-time 10 "http://auth.localhost/realms/homeoffice" 2>/dev/null)
+KC_HEADERS=$(curl -s -D - -o /dev/null --max-time 10 "http://auth.localhost/realms/workspace" 2>/dev/null)
 assert_contains "$KC_HEADERS" "X-Content-Type-Options" "SA-01" "T5a" "Keycloak setzt X-Content-Type-Options Header"
 assert_contains "$KC_HEADERS" "X-Frame-Options" "SA-01" "T5b" "Keycloak setzt X-Frame-Options Header"

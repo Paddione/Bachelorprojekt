@@ -1,13 +1,13 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════
-# Homeoffice MVP — k3d Development Cluster erstellen
+# Workspace MVP — k3d Development Cluster erstellen
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-CLUSTER_NAME="${1:-homeoffice-dev}"
+CLUSTER_NAME="${1:-workspace-dev}"
 DOMAINS="auth.localhost chat.localhost files.localhost signaling.localhost office.localhost"
 
-echo "=== Homeoffice MVP — k3d Development Cluster ==="
+echo "=== Workspace MVP — k3d Development Cluster ==="
 echo ""
 
 # ── Voraussetzungen prüfen ─────────────────────────────────────────

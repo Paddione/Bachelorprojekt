@@ -7,4 +7,4 @@
 - [Tests](tests.md)
 - [Sicherheit](security.md)
 - [Fehlerbehebung](troubleshooting.md)
-- [Anforderungen](requirements/overview.md)
+- [Anforderungen](requirements.md)

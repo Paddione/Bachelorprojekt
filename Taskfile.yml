@@ -360,10 +360,7 @@ tasks:
         kubectl create configmap mattermost-proxy-config \
           --from-file="default.conf=mattermost/userinfo-proxy.conf" \
           -n workspace --dry-run=client -o yaml | kubectl apply -f -
-      - |
-        kubectl create configmap docsify-index \
-          --from-file="index.html=docs-site/index.html" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
+      - task: docs:configmap
       - |
         export PROD_DOMAIN="{{.PROD_DOMAIN}}"
         export BRAND_NAME="{{.BRAND_NAME}}"
@@ -544,28 +541,45 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
+  docs:configmap:
+    desc: Build docs-content ConfigMap from local docs/ directory
+    cmds:
+      - |
+        kubectl create configmap docs-content \
+          --from-file="index.html=docs-site/index.html" \
+          --from-file="README.md=docs/README.md" \
+          --from-file="_sidebar.md=docs/_sidebar.md" \
+          --from-file="architecture.md=docs/architecture.md" \
+          --from-file="services.md=docs/services.md" \
+          --from-file="keycloak.md=docs/keycloak.md" \
+          --from-file="migration.md=docs/migration.md" \
+          --from-file="scripts.md=docs/scripts.md" \
+          --from-file="tests.md=docs/tests.md" \
+          --from-file="security.md=docs/security.md" \
+          --from-file="troubleshooting.md=docs/troubleshooting.md" \
+          --from-file="requirements.md=docs/requirements/overview.md" \
+          -n workspace --dry-run=client -o yaml | kubectl apply -f -
+
   docs:deploy:
-    desc: Deploy Docsify docs site into the workspace namespace (git-sync, no build needed)
+    desc: Deploy Docsify docs site into the workspace namespace
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: 'No cluster running. Run "task cluster:create" first.'
     cmds:
-      - |
-        kubectl create configmap docsify-index \
-          --from-file="index.html=docs-site/index.html" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
+      - task: docs:configmap
       - kubectl apply -f k3d/docs.yaml -n workspace
       - kubectl rollout status deployment/docs -n workspace --timeout=120s
       - echo ''
       - 'echo "✓ Docs deployed"'
-      - 'echo "  URL will match your ingress domain (e.g., http://docs.localhost)"'
+      - 'echo "  URL: http://docs.localhost"'
 
   docs:restart:
-    desc: Restart docs pod to pull latest content from GitHub
+    desc: Rebuild docs ConfigMap from local files and restart the docs pod
     cmds:
+      - task: docs:configmap
       - kubectl rollout restart deployment/docs -n workspace
       - kubectl rollout status deployment/docs -n workspace --timeout=120s
-      - echo '✓ Docs restarted with latest content from GitHub'
+      - echo '✓ Docs updated from local docs/ directory'
 
   docs:integrate-mattermost:
     desc: Integrate docs into Mattermost (channel bookmark + slash command)

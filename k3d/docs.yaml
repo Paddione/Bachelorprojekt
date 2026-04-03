@@ -14,24 +14,6 @@ spec:
       labels:
         app: docs
     spec:
-      initContainers:
-        # Clone docs from GitHub and merge with docsify index.html
-        - name: git-sync
-          image: alpine/git:v2.43.0
-          command:
-            - sh
-            - -c
-            - |
-              git clone --depth 1 --single-branch --branch main \
-                https://github.com/Paddione/Bachelorprojekt.git /tmp/repo && \
-              cp -r /tmp/repo/docs/* /site/ && \
-              cp /docsify/index.html /site/index.html
-          volumeMounts:
-            - name: docs-content
-              mountPath: /site
-            - name: docsify-index
-              mountPath: /docsify
-              readOnly: true
       containers:
         - name: docs
           image: nginx:1.27-alpine
@@ -56,10 +38,8 @@ spec:
               readOnly: true
       volumes:
         - name: docs-content
-          emptyDir: {}
-        - name: docsify-index
           configMap:
-            name: docsify-index
+            name: docs-content
 ---
 apiVersion: v1
 kind: Service

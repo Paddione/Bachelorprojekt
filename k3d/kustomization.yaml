@@ -12,6 +12,7 @@ resources:
   - keycloak.yaml
   - mm-keycloak-proxy.yaml
   - mattermost.yaml
+  - mattermost-hpa.yaml
   - nextcloud.yaml
   # Nextcloud Talk HPB + Collabora + Whiteboard
   - talk-hpb.yaml
@@ -33,6 +34,9 @@ resources:
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
+  # KI-Assistent
+  - openclaw-config.yaml
+  - openclaw-webui.yaml
   # Ingress
   - ingress.yaml
 

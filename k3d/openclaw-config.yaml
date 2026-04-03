@@ -4,9 +4,17 @@ metadata:
   name: openclaw-config
 data:
   OPENID_PROVIDER_URL: "http://auth.localhost/realms/homeoffice/.well-known/openid-configuration"
-  MATTERMOST_WEBHOOK_URL: "http://mattermost:8065/hooks/openclaw-alerts"
-  MCP_KUBERNETES_URL: "http://mcp-kubernetes:3000/mcp"
-  MCP_POSTGRES_URL: "http://mcp-postgres:3001/mcp"
-  MCP_GITHUB_URL: "http://mcp-github:3002/mcp"
-  MCP_PROMETHEUS_URL: "http://mcp-prometheus:3003/mcp"
-  MCP_GRAFANA_URL: "http://mcp-grafana:3004/mcp"
+  MATTERMOST_WEBHOOK_URL: "http://mattermost.homeoffice.svc.cluster.local:8065/hooks/openclaw-alerts"
+  # Core pod: cluster + database + chat
+  MCP_KUBERNETES_URL:   "http://openclaw-mcp-core:8080/mcp"
+  MCP_POSTGRES_URL:     "http://openclaw-mcp-core:3001/mcp"
+  MCP_MATTERMOST_URL:   "http://openclaw-mcp-core:8000/mcp"
+  # Apps pod: files/calendar + billing
+  MCP_NEXTCLOUD_URL:    "http://openclaw-mcp-apps:8000/mcp"
+  MCP_INVOICENINJA_URL: "http://openclaw-mcp-apps:8080/mcp"
+  # Auth pod: SSO management (SSE transport)
+  MCP_KEYCLOAK_URL:     "http://openclaw-mcp-auth:8080/mcp/sse"
+  # Standalone
+  MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
+  MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
+  MCP_WORDPRESS_URL:    "http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server"

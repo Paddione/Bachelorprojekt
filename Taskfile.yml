@@ -160,7 +160,7 @@ tasks:
       # Import DSGVO Compliance Dashboard as a ConfigMap (Grafana sidecar auto-detects it)
       - |
         kubectl create configmap grafana-dsgvo-dashboard \
-          --from-file=dsgvo-compliance.json=Bachelorprojekt/grafana/dsgvo-compliance-dashboard.json \
+          --from-file=dsgvo-compliance.json=grafana/dsgvo-compliance-dashboard.json \
           -n monitoring --dry-run=client -o yaml | \
           kubectl label -f - --dry-run=client -o yaml --local grafana_dashboard=1 | \
           kubectl apply -f -
@@ -172,7 +172,7 @@ tasks:
 
   homeoffice:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
-    dir: Bachelorprojekt
+
     cmds:
       - bash scripts/dsgvo-compliance-check.sh
 
@@ -244,6 +244,20 @@ tasks:
       - 'echo "   Registry: http://registry.localhost:5000/v2/_catalog"'
       - 'echo "   kubectl:  already configured for cluster ''{{.CLUSTER_NAME}}''"'
 
+  homeoffice:up:
+    desc: "Full automated setup: Cluster -> MVP -> MCP -> Monitoring -> Billing"
+    cmds:
+      - task: cluster:create
+      - task: homeoffice:deploy
+      - task: mcp:deploy
+      - task: homeoffice:monitoring
+      - task: homeoffice:post-setup
+      - task: homeoffice:billing-setup
+      - echo ""
+      - 'echo "✓ Homeoffice MVP stack is fully deployed and configured!"'
+      - 'echo "  OpenClaw (AI): http://ai.localhost"'
+      - 'echo "  Monitoring:    http://localhost:3000 (Grafana)"'
+
   down:
     desc: "Tear down everything"
     cmds:
@@ -254,7 +268,7 @@ tasks:
   # ─────────────────────────────────────────────
   homeoffice:deploy:
     desc: Deploy all Homeoffice MVP services into the homeoffice namespace
-    dir: Bachelorprojekt
+
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
@@ -279,13 +293,14 @@ tasks:
         echo "Waiting for shared-db..."
         kubectl rollout status deployment/shared-db -n homeoffice --timeout=120s
       - |
-        for svc in keycloak mattermost nextcloud spreed-signaling collabora spacedeck opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
+        for svc in keycloak mm-keycloak-proxy mattermost nextcloud spreed-signaling collabora whiteboard openclaw opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
           echo "Waiting for $svc..."
           kubectl rollout status deployment/$svc -n homeoffice --timeout=300s || \
             echo "WARNING: $svc not ready yet"
         done
       - echo ""
       - 'echo "✓ Homeoffice MVP deployed"'
+      - task: homeoffice:openclaw:setup
       - 'echo "  Keycloak:    http://auth.localhost"'
       - 'echo "  Mattermost:  http://chat.localhost"'
       - 'echo "  Nextcloud:   http://files.localhost"'
@@ -302,9 +317,24 @@ tasks:
       - 'echo "Run ''task homeoffice:billing-setup'' to configure the billing bot slash command."'
       - 'echo "Run ''task homeoffice:monitoring'' to install Prometheus + Grafana (NFA-02)."'
 
+  homeoffice:openclaw:setup:
+    desc: Register all MCP servers in the OpenClaw database
+    cmds:
+      - |
+        kubectl wait --for=condition=Ready pod -l app=openclaw -n homeoffice --timeout=120s
+        OC_POD=$(kubectl get pod -n homeoffice -l app=openclaw -o jsonpath='{.items[0].metadata.name}')
+        echo "Registering MCP servers in OpenClaw ($OC_POD)..."
+        kubectl cp scripts/openclaw-mcp-register.py homeoffice/$OC_POD:/tmp/mcp-register.py
+        kubectl exec -n homeoffice $OC_POD -- python3 /tmp/mcp-register.py
+        kubectl exec -n homeoffice $OC_POD -- rm /tmp/mcp-register.py
+        # Restart pod to pick up changes (especially if in config table)
+        kubectl rollout restart deployment/openclaw -n homeoffice
+        kubectl rollout status deployment/openclaw -n homeoffice --timeout=120s
+      - echo "✓ MCP servers registered in OpenClaw"
+
   homeoffice:billing-build:
     desc: Build and push billing-bot image to local registry
-    dir: Bachelorprojekt
+
     cmds:
       - docker build -t {{.REGISTRY}}/billing-bot:latest billing-bot/
       - docker push {{.REGISTRY}}/billing-bot:latest
@@ -312,7 +342,7 @@ tasks:
 
   homeoffice:billing-setup:
     desc: Build billing-bot and create /billing slash command in Mattermost
-    dir: Bachelorprojekt
+
     deps: [homeoffice:billing-build]
     cmds:
       - bash scripts/billing-bot-setup.sh
@@ -382,7 +412,7 @@ tasks:
 
   homeoffice:prod:deploy:
     desc: Deploy homeoffice stack to k3s-production cluster
-    dir: Bachelorprojekt
+
     preconditions:
       - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
@@ -399,7 +429,7 @@ tasks:
 
   homeoffice:validate:
     desc: Validate k3d manifests with kustomize dry-run
-    dir: Bachelorprojekt
+
     cmds:
       - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
@@ -410,10 +440,10 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
       - sh: kubectl get secret vaultwarden-seed-credentials -n homeoffice > /dev/null 2>&1
-        msg: "vaultwarden-seed-credentials secret missing. Fill in and apply Bachelorprojekt/k3d/vaultwarden-seed-credentials.yaml first."
+        msg: "vaultwarden-seed-credentials secret missing. Fill in and apply k3d/vaultwarden-seed-credentials.yaml first."
     cmds:
       - kubectl delete job vaultwarden-seed -n homeoffice --ignore-not-found
-      - kubectl apply -f Bachelorprojekt/k3d/vaultwarden-seed-job.yaml
+      - kubectl apply -f k3d/vaultwarden-seed-job.yaml
       - |
         echo "Waiting for seed job to complete..."
         kubectl wait --for=condition=complete job/vaultwarden-seed -n homeoffice --timeout=120s
@@ -423,139 +453,6 @@ tasks:
     desc: Show logs from the last Vaultwarden seed job run
     cmds:
       - kubectl logs -n homeoffice job/vaultwarden-seed
-
-  # ─────────────────────────────────────────────
-  # Assetgenerator
-  # ─────────────────────────────────────────────
-  assetgen:build:
-    desc: Build the Assetgenerator image and push to local registry
-    dir: assetgenerator
-    cmds:
-      - docker build -t {{.REGISTRY}}/assetgenerator:latest .
-      - docker push {{.REGISTRY}}/assetgenerator:latest
-      - echo "✓ Image pushed to {{.REGISTRY}}/assetgenerator:latest"
-
-  assetgen:deploy:
-    desc: Deploy Assetgenerator to k3d
-    dir: assetgenerator
-    deps: [assetgen:build]
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-    cmds:
-      - kubectl apply -k k3d/
-      - kubectl rollout status deployment/assetgenerator -n assetgen --timeout=120s
-      - echo ""
-      - 'echo "✓ Assetgenerator deployed"'
-      - 'echo "  URL:    http://assets.localhost"'
-      - 'echo "  Health: http://assets.localhost/health"'
-
-  assetgen:status:
-    desc: Show Assetgenerator deployment status
-    cmds:
-      - echo "=== Pods ==="
-      - kubectl get pods -n assetgen -o wide
-      - echo ""
-      - echo "=== Services ==="
-      - kubectl get svc -n assetgen
-      - echo ""
-      - echo "=== Ingress ==="
-      - kubectl get ingress -n assetgen
-
-  assetgen:logs:
-    desc: Tail Assetgenerator logs
-    cmds:
-      - kubectl logs -n assetgen deploy/assetgenerator -f --tail=50
-
-  assetgen:teardown:
-    desc: Remove Assetgenerator resources
-    prompt: "This will delete the assetgen namespace and all data. Continue?"
-    cmds:
-      - kubectl delete namespace assetgen --ignore-not-found --timeout=120s
-      - echo "✓ Assetgenerator namespace deleted"
-
-  assetgen:restart:
-    desc: Rebuild and redeploy Assetgenerator
-    cmds:
-      - task: assetgen:build
-      - kubectl rollout restart deployment/assetgenerator -n assetgen
-      - kubectl rollout status deployment/assetgenerator -n assetgen --timeout=120s
-
-  # ─────────────────────────────────────────────
-  # Tracking Database (shared PostgreSQL)
-  # ─────────────────────────────────────────────
-  tracking:deploy:
-    desc: Deploy shared tracking PostgreSQL database and UI
-    cmds:
-      - kubectl apply -k deploy/tracking
-      - kubectl rollout status deployment/tracking-db -n tracking --timeout=120s
-      - kubectl rollout status deployment/tracking-ui -n tracking --timeout=120s
-      - echo '✓ Tracking DB + UI deployed (tracking namespace)'
-      - 'echo "  UI: http://tracking.localhost"'
-
-  tracking:build:
-    desc: Build the tracking UI image and push to local registry
-    cmds:
-      - docker build -t localhost:5000/tracking-ui:latest deploy/tracking/tracking-ui/
-      - docker push localhost:5000/tracking-ui:latest
-      - echo '✓ Image pushed to localhost:5000/tracking-ui:latest'
-
-  tracking:redeploy:
-    desc: Rebuild and redeploy tracking UI
-    cmds:
-      - task: tracking:build
-      - kubectl rollout restart deployment/tracking-ui -n tracking
-      - kubectl rollout status deployment/tracking-ui -n tracking --timeout=120s
-      - echo '✓ Tracking UI redeployed'
-
-  tracking:status:
-    desc: Show tracking DB and UI status
-    cmds:
-      - kubectl get pods,svc,pvc,ingress -n tracking
-
-  tracking:psql:
-    desc: Open psql shell to tracking database
-    cmds:
-      - kubectl exec -it -n tracking deploy/tracking-db -- psql -U tracking -d tracking
-
-  tracking:port-forward:
-    desc: 'Forward tracking DB to localhost:5433'
-    cmds:
-      - 'echo "Tracking DB available at localhost:5433"'
-      - 'echo "Connect: psql -h localhost -p 5433 -U tracking -d tracking"'
-      - kubectl port-forward -n tracking svc/tracking-db 5433:5432
-
-  tracking:migrate:
-    desc: Migrate existing SQLite tracking.db into PostgreSQL
-    cmds:
-      - echo 'Starting port-forward in background...'
-      - kubectl port-forward -n tracking svc/tracking-db 5433:5432 &
-      - sleep 2
-      - PG_PORT=5433 PGPASSWORD=tracking-dev-only bash deploy/tracking/migrate-sqlite.sh Bachelorprojekt/tracking.db
-      - kill %1 2>/dev/null || true
-
-  tracking:sync-pipeline:
-    desc: Sync pipeline statuses to match actual project state
-    cmds:
-      - echo 'Applying pipeline status sync...'
-      - |
-        kubectl exec -n tracking deploy/tracking-db -- \
-          psql -U tracking -d tracking -f /dev/stdin \
-          < Bachelorprojekt/scripts/tracking/sync-pipeline.sql
-      - echo ''
-      - echo '=== Progress Summary ==='
-      - |
-        kubectl exec -n tracking deploy/tracking-db -- \
-          psql -U tracking -d tracking -c \
-          'SELECT * FROM bachelorprojekt.v_progress_summary'
-      - echo '✓ Pipeline statuses synced'
-
-  tracking:teardown:
-    desc: Remove tracking database and all data
-    prompt: 'This will delete the tracking namespace and all data. Continue?'
-    cmds:
-      - kubectl delete namespace tracking --ignore-not-found --timeout=120s
-      - echo '✓ Tracking namespace deleted'
 
   # ─────────────────────────────────────────────
   # Documentation
@@ -568,9 +465,9 @@ tasks:
     cmds:
       - |
         kubectl create configmap docsify-index \
-          --from-file="index.html=Bachelorprojekt/docs-site/index.html" \
+          --from-file="index.html=docs-site/index.html" \
           -n homeoffice --dry-run=client -o yaml | kubectl apply -f -
-      - kubectl apply -f Bachelorprojekt/k3d/docs.yaml -n homeoffice
+      - kubectl apply -f k3d/docs.yaml -n homeoffice
       - kubectl rollout status deployment/docs -n homeoffice --timeout=120s
       - echo ''
       - 'echo "✓ Docs deployed"'
@@ -585,7 +482,7 @@ tasks:
 
   docs:integrate-mattermost:
     desc: Integrate docs into Mattermost (channel bookmark + slash command)
-    dir: Bachelorprojekt
+
     cmds:
       - bash scripts/mattermost-docs-integration.sh
 
@@ -664,7 +561,7 @@ tasks:
           --image=python:3.12-alpine \
           --env="MM_URL=http://mattermost.homeoffice.svc.cluster.local:8065" \
           --env="MM_TOKEN=$TOKEN" \
-          -- python3 /dev/stdin < Bachelorprojekt/scripts/openclaw-mattermost-setup.py
+          -- python3 /dev/stdin < scripts/openclaw-mattermost-setup.py
       - 'echo "✓ OpenClaw channels created in all teams"'
 
   mcp:set-github-pat:
@@ -684,7 +581,7 @@ tasks:
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: 'grep -q "your-email@example.com" Bachelorprojekt/k3d/letsencrypt-issuer.yaml && exit 1 || exit 0'
+      - sh: 'grep -q "your-email@example.com" k3d/letsencrypt-issuer.yaml && exit 1 || exit 0'
         msg: "Edit letsencrypt-issuer.yaml and replace your-email@example.com with your real email first."
     cmds:
       - helm repo add jetstack https://charts.jetstack.io
@@ -694,7 +591,7 @@ tasks:
           --namespace cert-manager --create-namespace \
           --set crds.enabled=true \
           --wait --timeout=120s
-      - kubectl apply -f Bachelorprojekt/k3d/letsencrypt-issuer.yaml
+      - kubectl apply -f k3d/letsencrypt-issuer.yaml
       - echo "✓ cert-manager installed with Let's Encrypt ClusterIssuer"
 
   wordpress:deploy:
@@ -703,7 +600,7 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
-      - kubectl apply -f Bachelorprojekt/k3d/wordpress.yaml
+      - kubectl apply -f k3d/wordpress.yaml
       - |
         echo "Waiting for MariaDB..."
         kubectl rollout status deployment/mariadb -n wordpress --timeout=120s
@@ -722,7 +619,7 @@ tasks:
   wordpress:channel:
     desc: Create Mattermost "wordpress" channel with site links and incoming webhook
     cmds:
-      - bash Bachelorprojekt/scripts/mattermost-wordpress-setup.sh
+      - bash scripts/mattermost-wordpress-setup.sh
 
   wordpress:status:
     desc: Show WordPress deployment status and TLS certificate state
@@ -769,7 +666,7 @@ tasks:
         msg: "WordPress not deployed. Run 'task wordpress:deploy' first."
     cmds:
       - 'echo "Redeploying WordPress with MCP plugin init container..."'
-      - kubectl apply -f Bachelorprojekt/k3d/wordpress.yaml
+      - kubectl apply -f k3d/wordpress.yaml
       - kubectl rollout restart deployment/wordpress -n wordpress
       - kubectl rollout status deployment/wordpress -n wordpress --timeout=180s
       - 'echo "Running MCP setup in live pod (same PHP env = correct hash algorithm)..."'
@@ -778,7 +675,7 @@ tasks:
       # the CLI image uses phpass ($generic$) while Apache uses bcrypt ($wp$2y$).
       - |
         WP_POD=$(kubectl get pod -n wordpress -l app=wordpress -o jsonpath='{.items[0].metadata.name}')
-        kubectl cp Bachelorprojekt/scripts/wordpress-mcp-setup.php wordpress/$WP_POD:/tmp/mcp-setup.php
+        kubectl cp scripts/wordpress-mcp-setup.php wordpress/$WP_POD:/tmp/mcp-setup.php
         kubectl exec -n wordpress deploy/wordpress -- php /tmp/mcp-setup.php \
           | tee /tmp/wordpress-mcp-creds.txt
       - 'echo ""'

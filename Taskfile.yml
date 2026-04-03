@@ -330,6 +330,7 @@ tasks:
       - task: workspace:monitoring
       - task: workspace:post-setup
       - task: workspace:billing-setup
+      - task: workspace:stripe-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  OpenClaw (AI): http://ai.localhost"'
@@ -425,6 +426,11 @@ tasks:
     deps: [workspace:billing-build]
     cmds:
       - 'echo "✓ billing-bot image built. Token and /billing slash command are provisioned automatically by billing-bot-init-job."'
+
+  workspace:stripe-setup:
+    desc: Register Stripe as payment gateway in Invoice Ninja
+    cmds:
+      - bash scripts/stripe-setup.sh
 
   workspace:post-setup:
     desc: Enable Nextcloud apps (calendar, contacts, OIDC) after initial deploy

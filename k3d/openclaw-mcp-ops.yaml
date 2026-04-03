@@ -1,0 +1,111 @@
+# ═══════════════════════════════════════════════════════════════════
+# OpenClaw MCP Ops Pod — Kubernetes + PostgreSQL MCP servers
+# Two containers share one pod to minimize overhead.
+# Uses openclaw-agent ServiceAccount (defined in openclaw-rbac.yaml).
+# postgres MCP connects to shared-db:5432 — no separate DB.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openclaw-mcp-ops
+  labels:
+    app: openclaw-mcp-ops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw-mcp-ops
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: openclaw-mcp-ops
+    spec:
+      serviceAccountName: openclaw-agent
+      containers:
+        # ─── Kubernetes MCP (port 3000) ──────────────────────────
+        - name: mcp-kubernetes
+          image: ghcr.io/strowk/mcp-k8s:latest
+          env:
+            - name: MCP_TRANSPORT
+              value: "streamable-http"
+            - name: MCP_PORT
+              value: "3000"
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+        # ─── PostgreSQL MCP (port 3001) ──────────────────────────
+        # Connects to the shared PostgreSQL superuser DB so it can
+        # inspect all service databases. Read queries only by convention
+        # (enforce via system prompt — no DB-level restriction in dev).
+        - name: mcp-postgres
+          image: node:22-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              npm install -g supergateway @modelcontextprotocol/server-postgres 2>&1 | tail -3
+              exec supergateway \
+                --stdio "npx @modelcontextprotocol/server-postgres postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/postgres" \
+                --outputTransport streamableHttp \
+                --port 3001 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          env:
+            - name: SHARED_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SHARED_DB_PASSWORD
+          ports:
+            - containerPort: 3001
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 90
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw-mcp-ops
+spec:
+  selector:
+    app: openclaw-mcp-ops
+  ports:
+    - name: mcp-kubernetes
+      port: 3000
+      targetPort: 3000
+    - name: mcp-postgres
+      port: 3001
+      targetPort: 3001

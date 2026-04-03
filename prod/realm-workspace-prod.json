@@ -1,7 +1,7 @@
 {
   "realm": "workspace",
   "enabled": true,
-  "displayName": "Workspace MVP (Dev)",
+  "displayName": "Kore IT Workspace",
   "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
@@ -10,6 +10,27 @@
   "editUsernameAllowed": false,
   "bruteForceProtected": true,
   "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and hashAlgorithm(pbkdf2-sha512)",
+  "users": [
+    {
+      "username": "Paddione",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "patrick@korczewski.de",
+      "firstName": "Patrick",
+      "lastName": "Korczewski",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Plotterpapier11!$",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-workspace"],
+      "clientRoles": {
+        "realm-management": ["realm-admin"]
+      }
+    }
+  ],
   "clients": [
     {
       "clientId": "mattermost",

@@ -122,6 +122,19 @@ spec:
                 $KB exec -n "$KUBE_NS" "$MM_POD" -- mmctl --local "$@"
               }
 
+              # --- Provision platform admin (Paddione) ---
+              echo "Provisioning admin user: ${ADMIN_USERNAME}..."
+              mmctl_local user create \
+                --username "${ADMIN_USERNAME}" \
+                --email "${ADMIN_EMAIL}" \
+                --password "${ADMIN_PASSWORD}" \
+                --system-admin \
+                --email-verified \
+                2>&1 | grep -v "already exists" || true
+              # Ensure system_admin role even if user was created by OIDC
+              mmctl_local roles system-admin "${ADMIN_USERNAME}" 2>/dev/null || true
+              echo "Admin user ${ADMIN_USERNAME} ready."
+
               # --- Create billing-bot account (idempotent) ---
               echo "Creating billing-bot account..."
               mmctl_local bot create billing-bot \
@@ -193,6 +206,22 @@ spec:
               echo "billing-bot restarted successfully."
 
               echo "billing-bot init complete."
+          env:
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN_USERNAME
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN_PASSWORD
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN_EMAIL
           resources:
             requests:
               memory: 32Mi

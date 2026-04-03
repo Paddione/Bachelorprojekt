@@ -21,36 +21,36 @@ data:
   init-databases.sh: |
     #!/bin/bash
     set -e
-    # Create databases and users for each service.
-    # The primary superuser (postgres) is used for init;
-    # each service gets its own user + database.
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-      -- Keycloak
-      CREATE USER keycloak WITH PASSWORD '${KEYCLOAK_DB_PASSWORD}';
-      CREATE DATABASE keycloak OWNER keycloak;
-      GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
-
-      -- Mattermost
-      CREATE USER mattermost WITH PASSWORD '${MATTERMOST_DB_PASSWORD}';
-      CREATE DATABASE mattermost OWNER mattermost;
-      GRANT ALL PRIVILEGES ON DATABASE mattermost TO mattermost;
-
-      -- Nextcloud
-      CREATE USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';
-      CREATE DATABASE nextcloud OWNER nextcloud;
-      GRANT ALL PRIVILEGES ON DATABASE nextcloud TO nextcloud;
-
-      -- Vaultwarden
-      CREATE USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';
-      CREATE DATABASE vaultwarden OWNER vaultwarden;
-      GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO vaultwarden;
-
-      -- Outline
-      CREATE USER outline WITH PASSWORD '${OUTLINE_DB_PASSWORD}';
-      CREATE DATABASE outline OWNER outline;
-      GRANT ALL PRIVILEGES ON DATABASE outline TO outline;
-
+    # Create databases and users for each service (idempotent).
+    # Uses DO blocks so re-runs don't fail if users/DBs already exist.
+    # Always syncs passwords to match current secrets.
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
+      -- Helper: create user if not exists
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'keycloak') THEN CREATE USER keycloak; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'mattermost') THEN CREATE USER mattermost; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'nextcloud') THEN CREATE USER nextcloud; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'vaultwarden') THEN CREATE USER vaultwarden; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'outline') THEN CREATE USER outline; END IF;
+      END $$;
     EOSQL
+
+    # Sync passwords to match current secrets (works on first run and re-runs)
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+      -c "ALTER USER keycloak WITH PASSWORD '${KEYCLOAK_DB_PASSWORD}';" \
+      -c "ALTER USER mattermost WITH PASSWORD '${MATTERMOST_DB_PASSWORD}';" \
+      -c "ALTER USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';" \
+      -c "ALTER USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';" \
+      -c "ALTER USER outline WITH PASSWORD '${OUTLINE_DB_PASSWORD}';"
+
+    # Create databases if not exists
+    for db_user in keycloak mattermost nextcloud vaultwarden outline; do
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+        SELECT 'CREATE DATABASE ${db_user} OWNER ${db_user}'
+        WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${db_user}')\gexec
+        GRANT ALL PRIVILEGES ON DATABASE ${db_user} TO ${db_user};
+    EOSQL
+    done
 ---
 apiVersion: apps/v1
 kind: Deployment

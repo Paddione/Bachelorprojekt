@@ -22,6 +22,12 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "create"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -133,6 +139,30 @@ spec:
                 exit 1
               fi
               echo "Signed in."
+
+              # --- Ensure admin role (OIDC user may have claimed first-user slot) ---
+              ROLE=$(echo "$SIGNIN" | jq -r '.role')
+              if [ "$ROLE" != "admin" ]; then
+                echo "Account has role='${ROLE}' — promoting to admin via kubectl exec..."
+                ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+                curl -sfLo /tmp/kubectl \
+                  "https://dl.k8s.io/release/v1.31.4/bin/linux/${ARCH}/kubectl" \
+                  && chmod +x /tmp/kubectl \
+                  || { echo "ERROR: kubectl download failed"; exit 1; }
+                E="$OPENCLAW_ADMIN_EMAIL"
+                OC_POD=$(curl -sf $KUBE_CA -H "Authorization: Bearer $KUBE_TOKEN" \
+                  "${KUBE_API}/api/v1/namespaces/${KUBE_NS}/pods?labelSelector=app%3Dopenclaw" \
+                  | jq -r '.items[0].metadata.name')
+                /tmp/kubectl --server="$KUBE_API" --token="$KUBE_TOKEN" \
+                  --certificate-authority="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt" \
+                  exec -n "$KUBE_NS" "$OC_POD" -- \
+                  python3 -c "import sqlite3;db=sqlite3.connect('/app/backend/data/webui.db');db.execute(\"UPDATE user SET role='admin' WHERE email='$E'\");db.commit();db.close()"
+                echo "Promoted. Re-signing in..."
+                SIGNIN=$(curl -s -X POST "${OPENCLAW}/api/v1/auths/signin" \
+                  -H "Content-Type: application/json" \
+                  -d "{\"email\":\"${OPENCLAW_ADMIN_EMAIL}\",\"password\":\"${OPENCLAW_ADMIN_PASSWORD}\"}")
+                SESSION_TOKEN=$(echo "$SIGNIN" | jq -r '.token')
+              fi
 
               # --- Generate API key ---
               APIKEY_RESP=$(curl -s -X POST "${OPENCLAW}/api/v1/auths/api_key" -H "Authorization: Bearer $SESSION_TOKEN")

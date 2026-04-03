@@ -122,23 +122,39 @@ Vaultwarden dient als zentraler Passwort-Manager fuer das Team. Der Seed-Job (`t
 
 ```mermaid
 flowchart LR
-    LE[Let's Encrypt] --> CM[cert-manager]
+    LE[Let's Encrypt<br/>ACME v2] --> CM[cert-manager]
     CM --> LEGO[lego DNS-01 Webhook]
     LEGO --> IPV64[ipv64.net DNS API]
-    CM --> CERT[Wildcard-Zertifikat<br/>*.domain.tld]
-    CERT --> TRAEFIK[Traefik Ingress]
+    IPV64 --> TXT[TXT Record<br/>_acme-challenge.korczewski.de]
+    CM --> CERT["Wildcard-Zertifikat<br/>*.korczewski.de"]
+    CERT --> SECRET[Secret<br/>workspace-wildcard-tls]
+    SECRET --> TRAEFIK[Traefik Ingress<br/>HTTPS-Terminierung]
 ```
 
 **Setup-Befehle:**
 ```bash
 task cert:install               # cert-manager + lego Webhook installieren
-task cert:secret -- <api-key>   # ipv64 API-Key speichern
+task cert:secret -- <api-key>   # ipv64 API-Key speichern (cert-manager + workspace NS)
 task cert:status                # Zertifikat-Status anzeigen
 ```
 
-- Wildcard-Zertifikat via DNS-01 Challenge (ipv64.net)
-- cert-manager automatisiert Erneuerung
-- ClusterIssuer: letsencrypt-prod
+### Architektur
+
+- **ClusterIssuer:** `letsencrypt-prod` (ACME v2, `prod/cluster-issuer.yaml`)
+- **Certificate:** `workspace-wildcard` fuer `*.korczewski.de` + `korczewski.de` (`prod/wildcard-certificate.yaml`)
+- **Secret:** `workspace-wildcard-tls` im Namespace `workspace` (automatisch von cert-manager erstellt)
+- **DNS-Provider:** ipv64.net (API-Key als Secret `ipv64-api-key`)
+- **Erneuerung:** Automatisch durch cert-manager (30 Tage vor Ablauf)
+
+### Wichtige Konfigurationsdetails
+
+Der `ipv64-api-key` Secret muss in **zwei Namespaces** existieren:
+- `cert-manager` -- fuer den lego-Webhook-Pod (als Umgebungsvariable)
+- `workspace` -- fuer die Challenge-Aufloesung (secretKeyRef im Solver-Config)
+
+Der Befehl `task cert:secret` erstellt den Secret in beiden Namespaces und setzt die Umgebungsvariable auf dem Webhook-Deployment.
+
+**Hinweis:** Die Ingress-Ressource (`prod/ingress.yaml`) verwendet **keine** `cert-manager.io/cluster-issuer`-Annotation. Das Wildcard-Zertifikat wird separat ueber `prod/wildcard-certificate.yaml` verwaltet, nicht ueber den Ingress-Shim.
 
 ## Netzwerk-Sicherheit
 

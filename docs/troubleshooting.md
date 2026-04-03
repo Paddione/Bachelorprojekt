@@ -191,6 +191,69 @@ kubectl exec -n workspace deploy/opensearch -- curl -s localhost:9200/_cluster/h
 - **Zu wenig RAM:** OpenSearch benoetigt 512Mi. `kubectl describe pod -n workspace -l app=opensearch` fuer OOMKilled pruefen.
 - **vm.max_map_count zu niedrig:** Auf dem Host `sysctl vm.max_map_count=262144` setzen.
 
+### TLS-Zertifikat wird nicht ausgestellt
+
+**Symptom:** `task cert:status` zeigt `READY: False`, Challenges bleiben `pending`.
+
+**Diagnose:**
+```bash
+# Zertifikat-Status
+task cert:status
+
+# Challenge-Details
+kubectl describe challenge -n workspace
+
+# Webhook-Logs
+kubectl logs -n cert-manager deploy/cert-manager-lego-webhook --tail=20
+```
+
+**Haeufige Ursachen:**
+
+- **"some credentials information are missing: IPV64_API_KEY":** Der API-Key-Secret fehlt oder ist nicht korrekt konfiguriert. Loesung:
+  ```bash
+  task cert:secret -- <dein-ipv64-api-key>
+  ```
+  Dieser Befehl erstellt den Secret in `cert-manager` und `workspace` Namespaces und setzt die Umgebungsvariable auf dem Webhook-Pod.
+
+- **Challenges bleiben in `pending` (DNS-Propagation):** TXT-Record-Propagation kann 1-5 Minuten dauern. Pruefen:
+  ```bash
+  nslookup -type=TXT _acme-challenge.<domain> 8.8.8.8
+  ```
+
+- **Ingress erstellt eigene Zertifikate:** Falls die Annotation `cert-manager.io/cluster-issuer` am Ingress gesetzt ist, erstellt cert-manager ein separates Zertifikat pro Subdomain statt das Wildcard zu nutzen. Die Annotation entfernen:
+  ```bash
+  kubectl annotate ingress workspace-ingress -n workspace cert-manager.io/cluster-issuer-
+  ```
+
+- **Orphan-Challenges mit Finalizer:** Stuck Challenges loeschen:
+  ```bash
+  kubectl get challenge -n workspace -o name | while read c; do
+    kubectl patch "$c" -n workspace --type=merge -p '{"metadata":{"finalizers":null}}'
+  done
+  kubectl delete challenge --all -n workspace
+  ```
+
+### Mattermost OIDC-Login: "E-Mail bereits verknuepft"
+
+**Symptom:** "Mit dieser E-Mail-Adresse ist bereits ein Konto verknuepft, das nicht die Anmeldemethode gitlab verwendet."
+
+**Ursache:** Ein Mattermost-Account wurde mit E-Mail/Passwort erstellt, bevor OIDC (Keycloak) eingerichtet wurde.
+
+**Loesung:** Authservice des Benutzers in der Datenbank umstellen:
+```bash
+# Keycloak User-ID ermitteln
+task workspace:psql -- keycloak
+SELECT id, username FROM user_entity WHERE email='<email>';
+
+# Mattermost-User auf OIDC umstellen
+task workspace:psql -- mattermost
+UPDATE users
+SET authservice='gitlab', authdata='<keycloak-user-id>', password=''
+WHERE email='<email>';
+```
+
+Danach kann sich der Benutzer per Keycloak SSO anmelden.
+
 ### Website nicht erreichbar
 
 **Diagnose:**

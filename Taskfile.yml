@@ -1003,7 +1003,15 @@ tasks:
           --namespace cert-manager \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
           --dry-run=client -o yaml | kubectl apply -f -
-      - echo "✓ Secret 'ipv64-api-key' created/updated in namespace cert-manager"
+      - |
+        kubectl create secret generic ipv64-api-key \
+          --namespace workspace \
+          --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
+          --dry-run=client -o yaml | kubectl apply -f -
+      - |
+        kubectl set env deployment/cert-manager-lego-webhook \
+          -n cert-manager --from=secret/ipv64-api-key
+      - echo "✓ Secret 'ipv64-api-key' created/updated in cert-manager + workspace namespaces"
 
   cert:status:
     desc: Show wildcard certificate and ClusterIssuer status

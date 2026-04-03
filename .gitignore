@@ -54,3 +54,6 @@ node_modules/
 *.tmp
 *.bak
 docs/superpowers
+files_chore.txt
+.gitignore
+files_main.txt

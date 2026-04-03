@@ -12,7 +12,7 @@ Alle Anforderungen sind in der Requirements-Uebersicht dokumentiert:
 
 | Datei | Beschreibung |
 |-------|--------------|
-| [Requirements Overview](requirements/overview.md) | Vollstaendige Anforderungsdefinitionen (FA, SA, NFA, AK, Lieferobjekte) |
+| [Requirements Overview](requirements.md) | Vollstaendige Anforderungsdefinitionen (FA, SA, NFA, AK, Lieferobjekte) |
 
 ### Anforderungskategorien
 

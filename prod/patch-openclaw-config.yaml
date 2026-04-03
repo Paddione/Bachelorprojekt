@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: openclaw-config
 data:
-  OPENID_PROVIDER_URL: "https://auth.wbhprojekt.ipv64.net/realms/workspace/.well-known/openid-configuration"
+  OPENID_PROVIDER_URL: "https://auth.${PROD_DOMAIN}/realms/workspace/.well-known/openid-configuration"

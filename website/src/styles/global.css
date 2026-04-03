@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* mentolder.de color palette — dark navy + gold */
+  /* ${BRAND_NAME} color palette — dark navy + gold */
   --color-dark: #0f1623;
   --color-dark-light: #1a2235;
   --color-dark-lighter: #243049;

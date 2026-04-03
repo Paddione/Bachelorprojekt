@@ -1,15 +1,26 @@
 # https://taskfile.dev
 version: "3"
 
+dotenv: ['.env']
+
+env:
+  PROD_DOMAIN: "{{.PROD_DOMAIN}}"
+  BRAND_NAME: "{{.BRAND_NAME}}"
+  CONTACT_EMAIL: "{{.CONTACT_EMAIL}}"
+
 vars:
   CLUSTER_NAME: dev
   REGISTRY: localhost:5000
   APP_NAME: demo-app
   APP_IMAGE: "{{.REGISTRY}}/{{.APP_NAME}}"
   # ── Domains ───────────────────────────────────────────────────────────
-  # Change PROD_DOMAIN once here, then run 'task domain:set -- new.tld'
-  # to propagate it across all prod config files.
-  PROD_DOMAIN: korczewski.de
+  # The base domain (e.g. korczewski.de)
+  # Loaded from .env or uses default if not set.
+  PROD_DOMAIN: "{{.PROD_DOMAIN | default \"korczewski.de\"}}"
+  # The brand name (e.g. mentolder.de)
+  BRAND_NAME: "{{.BRAND_NAME | default \"mentolder.de\"}}"
+  # The contact email (e.g. info@mentolder.de)
+  CONTACT_EMAIL: "{{.CONTACT_EMAIL | default \"info@mentolder.de\"}}"
   DEV_DOMAIN: localhost
 
 tasks:
@@ -208,38 +219,56 @@ tasks:
       - 'echo "  prepare-commit-msg: auto-prefixes commit message from branch name"'
 
   # ─────────────────────────────────────────────
-  # Domain Management
+  # Configuration Management
   # ─────────────────────────────────────────────
   domain:set:
-    desc: "Change the production domain across all config files (usage: task domain:set -- new.tld)"
+    desc: "Change the production domain in .env (usage: task domain:set -- new.tld)"
     cmds:
       - |
         NEW="{{.CLI_ARGS}}"
-        OLD="{{.PROD_DOMAIN}}"
         if [ -z "$NEW" ]; then
           echo "Usage: task domain:set -- your.domain.tld"
-          echo "Current PROD_DOMAIN: $OLD"
+          echo "Current PROD_DOMAIN: {{.PROD_DOMAIN}}"
           exit 1
         fi
-        if [ "$OLD" = "$NEW" ]; then
-          echo "Domain is already '$OLD' — nothing to do."
-          exit 0
-        fi
-        echo "Replacing '$OLD' → '$NEW' in all prod config files..."
-        grep -rl "$OLD" \
-          prod/ k3s/ deploy/mcp/ingress.yaml \
-          k3d/website.yaml k3s/website-prod.yaml \
-          Taskfile.yml \
-          2>/dev/null | xargs sed -i "s|${OLD}|${NEW}|g"
-        echo "✓ Domain updated to '$NEW'"
-        echo "  Also update DNS: *.${NEW} → your server IP"
+        sed -i "s/^PROD_DOMAIN=.*/PROD_DOMAIN=$NEW/" .env
+        echo "✓ PROD_DOMAIN updated to '$NEW' in .env"
+        echo "  Update DNS: *.${NEW} → your server IP"
         echo "  Then run: task workspace:prod:deploy"
 
-  domain:show:
-    desc: Show currently configured domains (dev + prod)
+  brand:set:
+    desc: "Change the branding name in .env (usage: task brand:set -- NewBrand.de)"
     cmds:
-      - 'echo "  PROD_DOMAIN: {{.PROD_DOMAIN}}"'
-      - 'echo "  DEV_DOMAIN:  {{.DEV_DOMAIN}}"'
+      - |
+        NEW="{{.CLI_ARGS}}"
+        if [ -z "$NEW" ]; then
+          echo "Usage: task brand:set -- NewBrand.de"
+          echo "Current BRAND_NAME: {{.BRAND_NAME}}"
+          exit 1
+        fi
+        sed -i "s/^BRAND_NAME=.*/BRAND_NAME=$NEW/" .env
+        echo "✓ BRAND_NAME updated to '$NEW' in .env"
+
+  email:set:
+    desc: "Change the contact email in .env (usage: task email:set -- info@newbrand.de)"
+    cmds:
+      - |
+        NEW="{{.CLI_ARGS}}"
+        if [ -z "$NEW" ]; then
+          echo "Usage: task email:set -- info@yourbrand.tld"
+          echo "Current CONTACT_EMAIL: {{.CONTACT_EMAIL}}"
+          exit 1
+        fi
+        sed -i "s/^CONTACT_EMAIL=.*/CONTACT_EMAIL=$NEW/" .env
+        echo "✓ CONTACT_EMAIL updated to '$NEW' in .env"
+
+  config:show:
+    desc: Show currently configured variables from .env
+    cmds:
+      - 'echo "  PROD_DOMAIN:   {{.PROD_DOMAIN}}"'
+      - 'echo "  BRAND_NAME:    {{.BRAND_NAME}}"'
+      - 'echo "  CONTACT_EMAIL: {{.CONTACT_EMAIL}}"'
+      - 'echo "  DEV_DOMAIN:    {{.DEV_DOMAIN}}"'
       - echo ""
       - echo "Production subdomains:"
       - 'echo "  auth.{{.PROD_DOMAIN}}    (Keycloak)"'
@@ -250,7 +279,6 @@ tasks:
       - 'echo "  vault.{{.PROD_DOMAIN}}   (Vaultwarden)"'
       - 'echo "  billing.{{.PROD_DOMAIN}} (Invoice Ninja)"'
       - 'echo "  web.{{.PROD_DOMAIN}}     (Website - Astro)"'
-      - 'echo "  mcp.{{.PROD_DOMAIN}}     (OpenClaw MCP)"'
 
   # ─────────────────────────────────────────────
   # Utilities
@@ -335,7 +363,11 @@ tasks:
         kubectl create configmap docsify-index \
           --from-file="index.html=docs-site/index.html" \
           -n workspace --dry-run=client -o yaml | kubectl apply -f -
-      - kubectl apply -k k3d/
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
       # Wait for shared database, then services
       - |
         echo "Waiting for shared-db..."
@@ -362,7 +394,7 @@ tasks:
       - echo ""
       - 'echo "Run ''task workspace:post-setup'' to enable Nextcloud apps (calendar, contacts, oidc)."'
       - 'echo "Run ''task workspace:vaultwarden:seed'' to seed Vaultwarden with production secret templates (once)."'
-      - 'echo "Run ''task workspace:billing-setup'' to configure the billing bot slash command."'
+      - 'echo "Run ''task workspace:billing-setup'' to build the billing-bot image (token/slash-command are auto-provisioned)."'
       - 'echo "Run ''task workspace:monitoring'' to install Prometheus + Grafana (NFA-02)."'
       - 'echo "Run ''task ddns:deploy -- <api-key>'' to enable automatic DNS updates (dynamic IP only)."'
 
@@ -389,10 +421,10 @@ tasks:
       - 'echo "✓ billing-bot image pushed"'
 
   workspace:billing-setup:
-    desc: Build billing-bot and create /billing slash command in Mattermost
+    desc: Build and push billing-bot image (bot token + slash command provisioned automatically by billing-bot-init-job)
     deps: [workspace:billing-build]
     cmds:
-      - bash scripts/billing-bot-setup.sh
+      - 'echo "✓ billing-bot image built. Token and /billing slash command are provisioned automatically by billing-bot-init-job."'
 
   workspace:post-setup:
     desc: Enable Nextcloud apps (calendar, contacts, OIDC) after initial deploy
@@ -465,7 +497,11 @@ tasks:
       - sh: "! grep -q 'CHANGE_ME' prod/secrets.yaml"
         msg: "prod/secrets.yaml still contains CHANGE_ME — fill in SMTP_PASSWORD first."
     cmds:
-      - kubectl --context k3s-production apply -k prod/
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl --context k3s-production apply -f -
       - |
         echo "Waiting for vaultwarden rollout..."
         kubectl --context k3s-production rollout status deployment/vaultwarden -n workspace --timeout=120s
@@ -624,7 +660,11 @@ tasks:
     desc: Build the Astro website Docker image
     cmds:
       - |
-        docker build -t mentolder-website:latest website/
+        docker build -t mentolder-website:latest \
+          --build-arg PROD_DOMAIN="{{.PROD_DOMAIN}}" \
+          --build-arg BRAND_NAME="{{.BRAND_NAME}}" \
+          --build-arg CONTACT_EMAIL="{{.CONTACT_EMAIL}}" \
+          website/
         echo "✓ Docker image built: mentolder-website:latest"
 
   website:build:import:
@@ -641,7 +681,11 @@ tasks:
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
       - task: website:build:import
-      - kubectl apply -f k3d/website.yaml
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" < k3d/website.yaml | kubectl apply -f -
       - |
         echo "Waiting for website..."
         kubectl rollout status deployment/website -n website --timeout=120s
@@ -826,7 +870,7 @@ tasks:
             --channel "${CHANNEL_ID}" \
             --user "${ADMIN_ID}" \
             --display-name "Website-Bot" \
-            --description "Kontaktformular-Eingaenge von mentolder.de" \
+            --description "Kontaktformular-Eingaenge von ${BRAND_NAME}" \
             --json 2>/dev/null | \
           python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'] if isinstance(d,dict) else d[0]['id'])" 2>/dev/null) || true
 

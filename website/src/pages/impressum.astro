@@ -15,7 +15,7 @@ import Layout from '../layouts/Layout.astro';
       <h2>Angaben gemaess &sect; 5 DDG</h2>
       <p>
         [Vorname Nachname]<br />
-        mentolder.de &ndash; Digital Coaching &amp; Fuhrungskrafte-Beratung<br />
+        ${BRAND_NAME} &ndash; Digital Coaching &amp; Fuhrungskrafte-Beratung<br />
         [Strasse Hausnummer]<br />
         [PLZ] Luneburg<br />
         Deutschland
@@ -24,8 +24,8 @@ import Layout from '../layouts/Layout.astro';
       <h2>Kontakt</h2>
       <p>
         Telefon: +49 151 508 32 601<br />
-        E-Mail: info@mentolder.de<br />
-        Web: www.mentolder.de
+        E-Mail: ${CONTACT_EMAIL}<br />
+        Web: www.${BRAND_NAME}
       </p>
 
       <h2>Berufsbezeichnung und berufsrechtliche Regelungen</h2>

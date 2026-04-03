@@ -20,7 +20,7 @@ const { title, description = 'Digital Coach & Fuhrungskrafte-Mentor - Ihr Partne
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
-    <title>{title} | mentolder.de</title>
+    <title>{title} | ${BRAND_NAME}</title>
   </head>
   <body class="min-h-screen flex flex-col bg-dark text-light">
     <Navigation client:load />
@@ -33,7 +33,7 @@ const { title, description = 'Digital Coach & Fuhrungskrafte-Mentor - Ihr Partne
           <div>
             <h3 class="text-lg font-semibold text-gold mb-4">Kontakt</h3>
             <p class="text-muted mb-2">+49 151 508 32 601</p>
-            <p class="text-muted mb-2">info@mentolder.de</p>
+            <p class="text-muted mb-2">${CONTACT_EMAIL}</p>
             <p class="text-muted">Luneburg und Umgebung</p>
           </div>
           <div>
@@ -53,7 +53,7 @@ const { title, description = 'Digital Coach & Fuhrungskrafte-Mentor - Ihr Partne
           </div>
         </div>
         <div class="border-t border-dark-lighter pt-8 text-center text-muted-dark text-sm">
-          <p>&copy; {new Date().getFullYear()} mentolder.de - Alle Rechte vorbehalten</p>
+          <p>&copy; {new Date().getFullYear()} ${BRAND_NAME} - Alle Rechte vorbehalten</p>
         </div>
       </div>
     </footer>

@@ -216,9 +216,9 @@ export async function createCalendarEvent(params: {
 
   const ical = `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//mentolder.de//Booking//DE
+PRODID:-//${BRAND_NAME}//Booking//DE
 BEGIN:VEVENT
-UID:${uid}@mentolder.de
+UID:${uid}@${BRAND_NAME}
 DTSTART:${formatDt(params.start)}
 DTEND:${formatDt(params.end)}
 SUMMARY:${params.summary}

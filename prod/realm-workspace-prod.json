@@ -317,10 +317,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${OUTLINE_OIDC_SECRET}",
       "redirectUris": [
-        "https://wiki.wbhprojekt.ipv64.net/*"
+        "https://wiki.${PROD_DOMAIN}/*"
       ],
       "webOrigins": [
-        "https://wiki.wbhprojekt.ipv64.net"
+        "https://wiki.${PROD_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

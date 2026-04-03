@@ -3,31 +3,31 @@
   value: traefik
 - op: replace
   path: /spec/rules/0/host
-  value: auth.korczewski.de
+  value: auth.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/1/host
-  value: chat.korczewski.de
+  value: chat.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/2/host
-  value: files.korczewski.de
+  value: files.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/3/host
-  value: office.korczewski.de
+  value: office.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/4/host
-  value: board.korczewski.de
+  value: board.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/5/host
-  value: signaling.korczewski.de
+  value: signaling.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/6/host
-  value: mail.korczewski.de
+  value: mail.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/7/host
-  value: docs.korczewski.de
+  value: docs.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/8/host
-  value: billing.korczewski.de
+  value: billing.${PROD_DOMAIN}
 - op: replace
   path: /spec/rules/9/host
-  value: vault.korczewski.de
+  value: vault.${PROD_DOMAIN}

@@ -150,7 +150,7 @@ fi
 if [[ "$TIER" == "prod" ]]; then
   if [[ -z "${PROD_DOMAIN:-}" ]]; then
     echo "Error: PROD_DOMAIN is required for prod tier."
-    echo "  Example: PROD_DOMAIN=wbhprojekt.ipv64.de $0 prod"
+    echo "  Example: PROD_DOMAIN=${PROD_DOMAIN} $0 prod"
     exit 1
   fi
   export PROD_DOMAIN

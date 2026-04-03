@@ -1,4 +1,4 @@
-// API Integration Tests for mentolder.de
+// API Integration Tests for ${BRAND_NAME}
 // Run: node tests/api.test.mjs
 // Override base URL: BASE_URL=http://localhost:4321 node tests/api.test.mjs
 

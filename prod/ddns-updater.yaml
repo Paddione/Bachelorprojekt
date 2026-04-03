@@ -1,4 +1,4 @@
-# DDNS Updater — keeps wbhprojekt.ipv64.net A-record in sync with the cluster's public IP.
+# DDNS Updater — keeps ${PROD_DOMAIN} A-record in sync with the cluster's public IP.
 # Optional component: not included in kustomization.yaml.
 # Deploy with: task ddns:deploy -- <ipv64-api-key>
 ---
@@ -68,7 +68,7 @@ spec:
                       name: ddns-ipv64-key
                       key: IPV64_API_KEY
                 - name: DDNS_HOSTNAME
-                  value: "wbhprojekt.ipv64.net"
+                  value: "${PROD_DOMAIN}"
               command:
                 - /bin/sh
                 - -c

@@ -9,6 +9,6 @@ spec:
         - name: mattermost
           env:
             - name: MM_SERVICESETTINGS_SITEURL
-              value: "https://chat.wbhprojekt.ipv64.net"
+              value: "https://chat.${PROD_DOMAIN}"
             - name: MM_GITLABSETTINGS_AUTHENDPOINT
-              value: "https://auth.wbhprojekt.ipv64.net/realms/workspace/protocol/openid-connect/auth"
+              value: "https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"

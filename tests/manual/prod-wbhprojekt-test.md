@@ -1,7 +1,7 @@
-# Manual Production Test — wbhprojekt.ipv64.de
+# Manual Production Test — ${PROD_DOMAIN}
 
 **Cluster:** k3s-production  
-**Domains:** `*.wbhprojekt.ipv64.de` → `217.195.149.75`
+**Domains:** `*.${PROD_DOMAIN}` → `217.195.149.75`
 
 > This checklist has been consolidated into the main manual test guide.
 > See **[docs/guides/manual-tests.md](../../../docs/guides/manual-tests.md)** → Section 2: Production Tests.

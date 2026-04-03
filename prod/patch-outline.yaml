@@ -9,10 +9,10 @@ spec:
         - name: outline
           env:
             - name: URL
-              value: "https://wiki.wbhprojekt.ipv64.net"
+              value: "https://wiki.${PROD_DOMAIN}"
             - name: FORCE_HTTPS
               value: "true"
             - name: OIDC_AUTH_URI
-              value: "https://auth.wbhprojekt.ipv64.net/realms/workspace/protocol/openid-connect/auth"
+              value: "https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"
             - name: OIDC_LOGOUT_URI
-              value: "https://auth.wbhprojekt.ipv64.net/realms/workspace/protocol/openid-connect/logout"
+              value: "https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/logout"

@@ -11,7 +11,7 @@
 NAMESPACE="${NAMESPACE:-workspace}"
 
 # ── Environment-aware URL configuration ─────────────────────────
-# For prod tier: set PROD_DOMAIN (e.g. "wbhprojekt.ipv64.de")
+# For prod tier: set PROD_DOMAIN (e.g. "${PROD_DOMAIN}")
 # URLs are then https://auth-PROD_DOMAIN, https://chat-PROD_DOMAIN, etc.
 # For local tier: defaults to http://auth.localhost, http://chat.localhost
 if [[ -n "${PROD_DOMAIN:-}" ]]; then

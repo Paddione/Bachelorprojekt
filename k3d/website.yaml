@@ -31,8 +31,8 @@ data:
   SMTP_SECURE: "false"
   SMTP_USER: ""
   SMTP_PASS: ""
-  FROM_EMAIL: "info@mentolder.de"
-  FROM_NAME: "mentolder.de"
+  FROM_EMAIL: "${CONTACT_EMAIL}"
+  FROM_NAME: "${BRAND_NAME}"
   # OIDC (Keycloak client for login)
   WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
   # Nextcloud

@@ -51,6 +51,8 @@ spec:
             # ─── Local auth (required for init job admin account) ─
             - name: WEBUI_AUTH
               value: "true"
+            - name: ENABLE_API_KEYS
+              value: "true"
             # ─── Keycloak OIDC SSO ────────────────────────────
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"

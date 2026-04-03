@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: openclaw-config
 data:
-  OPENID_PROVIDER_URL: "http://auth.localhost/realms/workspace/.well-known/openid-configuration"
+  OPENID_PROVIDER_URL: "http://keycloak:8080/realms/workspace/.well-known/openid-configuration"
   MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/openclaw-alerts"
   MCP_KUBERNETES_URL: "http://openclaw-mcp-ops:3000/mcp"
   MCP_POSTGRES_URL:   "http://openclaw-mcp-ops:3001/mcp"

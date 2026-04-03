@@ -9,7 +9,7 @@ metadata:
   name: outline-data
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: smb-storage
+  storageClassName: local-path
   resources:
     requests:
       storage: 5Gi
@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: outline
-          image: outlinewiki/outline:latest
+          image: outlinewiki/outline:0.75.0
           env:
             - name: NODE_ENV
               value: "production"

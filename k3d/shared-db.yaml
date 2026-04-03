@@ -7,7 +7,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: shared-db-pvc
 spec:
-  storageClassName: smb-storage
+  storageClassName: local-path
   accessModes: [ReadWriteOnce]
   resources:
     requests:

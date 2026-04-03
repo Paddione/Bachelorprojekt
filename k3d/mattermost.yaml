@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: mattermost-data-pvc
 spec:
-  storageClassName: smb-storage
+  storageClassName: local-path
   accessModes: [ReadWriteOnce]
   resources:
     requests:

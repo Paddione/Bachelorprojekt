@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-app
 spec:
-  storageClassName: smb-storage
+  storageClassName: local-path
   accessModes: [ReadWriteOnce]
   resources:
     requests:
@@ -14,7 +14,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-data-pvc
 spec:
-  storageClassName: smb-storage
+  storageClassName: local-path
   accessModes: [ReadWriteOnce]
   resources:
     requests:

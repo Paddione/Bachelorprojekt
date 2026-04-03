@@ -21,7 +21,7 @@ tasks:
     preconditions:
       - sh: docker info > /dev/null 2>&1
         msg: "Docker is not running. Start Docker first."
-      - sh: "! k3d cluster list | grep -q {{.CLUSTER_NAME}}"
+      - sh: "k3d cluster list | grep -q {{.CLUSTER_NAME}} && exit 1 || exit 0"
         msg: "Cluster '{{.CLUSTER_NAME}}' already exists. Run 'task cluster:delete' first."
     cmds:
       - mkdir -p data
@@ -707,7 +707,7 @@ tasks:
         echo "Waiting for whisper (model download may take several minutes on first start)..."
         kubectl rollout status deployment/whisper -n workspace --timeout=600s
       - echo "✓ Whisper deployed"
-      - echo "  Endpoint: http://whisper.workspace.svc.cluster.local:8000"
+      - 'echo "  Endpoint: http://whisper.workspace.svc.cluster.local:8000"'
 
   whisper:status:
     desc: Show whisper deployment status
@@ -735,7 +735,7 @@ tasks:
         kubectl rollout status deployment/outline -n workspace --timeout=180s
       - echo ""
       - echo "✓ Outline deployed"
-      - echo "  URL: http://wiki.{{.DEV_DOMAIN}}"
+      - 'echo "  URL: http://wiki.{{.DEV_DOMAIN}}"'
 
   outline:status:
     desc: Show Outline deployment status
@@ -886,7 +886,7 @@ tasks:
     desc: Show DDNS updater status and last known IP
     cmds:
       - kubectl get cronjob ddns-updater -n workspace 2>/dev/null || echo "(ddns-updater not deployed)"
-      - kubectl get configmap ddns-last-ip -n workspace -o jsonpath='Last known IP: {.data.ip}{"\n"}' 2>/dev/null || true
+      - 'kubectl get configmap ddns-last-ip -n workspace -o jsonpath=''Last known IP: {.data.ip}{"\n"}'' 2>/dev/null || true'
       - kubectl get jobs -n workspace -l job-name --sort-by=.metadata.creationTimestamp 2>/dev/null | tail -5
 
   ddns:teardown:
@@ -921,7 +921,7 @@ tasks:
           --set certManager.serviceAccountName=cert-manager \
           --wait --timeout=120s
       - echo "✓ cert-manager + lego webhook installed"
-      - echo "Next: run 'task cert:secret -- <your-ipv64-api-key>' to store credentials"
+      - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key>'' to store credentials"'
 
   cert:secret:
     desc: "Store the ipv64 API key as a Secret (usage: task cert:secret -- <API_KEY>)"

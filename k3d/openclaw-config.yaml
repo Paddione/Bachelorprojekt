@@ -17,3 +17,4 @@ data:
   # Standalone
   MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
   MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
+  MCP_WORDPRESS_URL:    "http://website.website.svc.cluster.local"

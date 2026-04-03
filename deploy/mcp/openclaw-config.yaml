@@ -9,7 +9,7 @@ data:
   # Credentials are in the openclaw-secrets Secret (default namespace).
   # ════════════════════════════════════════════════════════════════════
 
-  OPENID_PROVIDER_URL: "http://auth.localhost/realms/workspace/.well-known/openid-configuration"
+  OPENID_PROVIDER_URL: "http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/.well-known/openid-configuration"
   MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/openclaw-alerts"
 
   # Core pod: cluster + database + chat

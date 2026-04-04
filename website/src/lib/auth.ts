@@ -1,12 +1,12 @@
 // OIDC authentication helper for Keycloak.
 // Implements Authorization Code Flow with cookie-based sessions.
 
-const KC_FRONTEND_URL = import.meta.env.KEYCLOAK_FRONTEND_URL || 'http://auth.localhost';
-const KC_INTERNAL_URL = import.meta.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
-const KC_REALM = import.meta.env.KEYCLOAK_REALM || 'workspace';
+const KC_FRONTEND_URL = process.env.KEYCLOAK_FRONTEND_URL || 'https://auth.${PROD_DOMAIN}';
+const KC_INTERNAL_URL = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
+const KC_REALM = process.env.KEYCLOAK_REALM || 'workspace';
 const CLIENT_ID = 'website';
-const CLIENT_SECRET = import.meta.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
-const SITE_URL = import.meta.env.SITE_URL || 'http://web.localhost';
+const CLIENT_SECRET = process.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
+const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
 const CALLBACK_PATH = '/api/auth/callback';
 const COOKIE_NAME = 'mentolder_session';
 

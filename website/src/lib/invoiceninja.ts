@@ -2,8 +2,8 @@
 // Creates clients, invoices, and quotes for service bookings.
 // Uses InvoiceNinja v5 REST API.
 
-const IN_URL = import.meta.env.INVOICENINJA_URL || 'http://invoiceninja.workspace.svc.cluster.local/api/v1';
-const IN_TOKEN = import.meta.env.INVOICENINJA_API_TOKEN || '';
+const IN_URL = process.env.INVOICENINJA_URL || 'http://invoiceninja.workspace.svc.cluster.local/api/v1';
+const IN_TOKEN = process.env.INVOICENINJA_API_TOKEN || '';
 
 async function inApi(method: string, endpoint: string, body?: unknown): Promise<Response> {
   return fetch(`${IN_URL}${endpoint}`, {

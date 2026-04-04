@@ -1,9 +1,9 @@
 // Mattermost API helper for interactive messages and bot actions.
 
-const MM_URL = import.meta.env.MATTERMOST_URL || 'http://mattermost.workspace.svc.cluster.local:8065';
-const MM_TOKEN = import.meta.env.MATTERMOST_BOT_TOKEN || '';
-const WEBHOOK_URL = import.meta.env.MATTERMOST_WEBHOOK_URL || '';
-const SITE_URL = import.meta.env.SITE_URL || 'http://web.localhost';
+const MM_URL = process.env.MATTERMOST_URL || 'http://mattermost.workspace.svc.cluster.local:8065';
+const MM_TOKEN = process.env.MATTERMOST_BOT_TOKEN || '';
+const WEBHOOK_URL = process.env.MATTERMOST_WEBHOOK_URL || '';
+const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
 
 function mmApi(method: string, endpoint: string, body?: unknown) {
   return fetch(`${MM_URL}/api/v4${endpoint}`, {

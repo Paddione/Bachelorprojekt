@@ -3,13 +3,13 @@
 
 import nodemailer from 'nodemailer';
 
-const SMTP_HOST = import.meta.env.SMTP_HOST || 'mailpit.workspace.svc.cluster.local';
-const SMTP_PORT = parseInt(import.meta.env.SMTP_PORT || '1025');
-const SMTP_SECURE = import.meta.env.SMTP_SECURE === 'true';
-const SMTP_USER = import.meta.env.SMTP_USER || '';
-const SMTP_PASS = import.meta.env.SMTP_PASS || '';
-const FROM_EMAIL = import.meta.env.FROM_EMAIL || '${CONTACT_EMAIL}';
-const FROM_NAME = import.meta.env.FROM_NAME || '${BRAND_NAME}';
+const SMTP_HOST = process.env.SMTP_HOST || 'mailpit.workspace.svc.cluster.local';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '1025');
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
+const SMTP_USER = process.env.SMTP_USER || '';
+const SMTP_PASS = process.env.SMTP_PASS || '';
+const FROM_EMAIL = process.env.FROM_EMAIL || '${CONTACT_EMAIL}';
+const FROM_NAME = process.env.FROM_NAME || '${BRAND_NAME}';
 
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,

@@ -2,7 +2,7 @@
 // Sends audio files to the whisper service and returns transcripts.
 // Uses the OpenAI-compatible API (fedirz/faster-whisper-server).
 
-const WHISPER_URL = import.meta.env.WHISPER_URL || 'http://whisper.workspace.svc.cluster.local:8000';
+const WHISPER_URL = process.env.WHISPER_URL || 'http://whisper.workspace.svc.cluster.local:8000';
 
 export interface TranscriptionResult {
   text: string;

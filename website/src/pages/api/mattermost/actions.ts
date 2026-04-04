@@ -215,7 +215,7 @@ export const POST: APIRoute = async ({ request }) => {
         const { customerName: fName, customerEmail: fEmail, meetingType: fType, meetingDate: fDate, customerChannelId } = context;
 
         // Call the finalize endpoint
-        const SITE_URL = import.meta.env.SITE_URL || 'http://web.localhost';
+        const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
         const finalizeRes = await fetch(`${SITE_URL}/api/meeting/finalize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -511,9 +511,32 @@ tasks:
       - |
         echo "Waiting for vaultwarden rollout..."
         kubectl --context k3s-production rollout status deployment/vaultwarden -n workspace --timeout=120s
+      # Deploy website (separate namespace, not in main kustomization)
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        # Apply base website manifests
+        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" < k3d/website.yaml | kubectl --context k3s-production apply -f -
+        # Patch prod-specific config (merge, not replace)
+        kubectl --context k3s-production patch configmap website-config -n website --type merge -p "{\"data\":{
+          \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
+          \"SMTP_HOST\":\"smtp.mailbox.org\",
+          \"SMTP_PORT\":\"465\",
+          \"SMTP_SECURE\":\"true\",
+          \"NEXTCLOUD_EXTERNAL_URL\":\"https://files.${PROD_DOMAIN}\",
+          \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
+        }}"
+        # Apply prod IngressRoute (HTTPS + TLS)
+        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context k3s-production apply -f -
+      - |
+        echo "Waiting for website rollout..."
+        kubectl --context k3s-production rollout status deployment/website -n website --timeout=120s
+      - task: website:webhook:setup
       - 'echo "✓ Production deploy complete"'
       - 'echo "  Vaultwarden: https://vault.{{.PROD_DOMAIN}}"'
       - 'echo "  Keycloak:    https://auth.{{.PROD_DOMAIN}}"'
+      - 'echo "  Website:     https://web.{{.PROD_DOMAIN}}"'
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
@@ -712,6 +735,7 @@ tasks:
       - |
         echo "Waiting for website..."
         kubectl rollout status deployment/website -n website --timeout=120s
+      - task: website:webhook:setup
       - echo ""
       - 'echo "✓ Website deployed"'
       - 'echo "  URL: http://web.{{.DEV_DOMAIN}}"'

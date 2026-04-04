@@ -73,10 +73,12 @@ spec:
       labels:
         app: website
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: website
-          image: mentolder-website:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/paddione/mentolder-website:latest
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: website-config

@@ -95,7 +95,7 @@ spec:
             - name: MM_EMAILSETTINGS_FEEDBACKEMAIL
               value: "noreply@workspace.local"
             - name: MM_EMAILSETTINGS_FEEDBACKNAME
-              value: "Workspace Platform"
+              value: "${BRAND_NAME}"
             - name: MM_EMAILSETTINGS_REQUIREEMAILVERIFICATION
               value: "false"
             - name: MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL

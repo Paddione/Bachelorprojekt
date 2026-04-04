@@ -40,3 +40,10 @@ patches:
   - path: patch-mattermost.yaml
   - path: patch-nextcloud.yaml
   - path: patch-keycloak.yaml
+  # OpenClaw prod overrides
+  - path: patch-openclaw-config.yaml
+  # Outline prod overrides
+  - path: patch-outline.yaml
+  # Pin amd64-only images to amd64 nodes
+  - path: patch-amd64-only.yaml
+  - path: patch-mcp-browser.yaml

@@ -1,10 +1,10 @@
 // Keycloak Admin API helper
 // Uses the admin-cli client in the master realm to manage users in the workspace realm.
 
-const KC_URL = import.meta.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
-const KC_REALM = import.meta.env.KEYCLOAK_REALM || 'workspace';
-const KC_ADMIN_USER = import.meta.env.KEYCLOAK_ADMIN_USER || 'admin';
-const KC_ADMIN_PASS = import.meta.env.KEYCLOAK_ADMIN_PASSWORD || 'devadmin';
+const KC_URL = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
+const KC_REALM = process.env.KEYCLOAK_REALM || 'workspace';
+const KC_ADMIN_USER = process.env.KEYCLOAK_ADMIN_USER || 'admin';
+const KC_ADMIN_PASS = process.env.KEYCLOAK_ADMIN_PASSWORD || 'devadmin';
 
 async function getAdminToken(): Promise<string> {
   const res = await fetch(`${KC_URL}/realms/master/protocol/openid-connect/token`, {

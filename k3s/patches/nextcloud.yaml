@@ -9,18 +9,18 @@ spec:
         - name: nextcloud
           env:
             - name: NEXTCLOUD_TRUSTED_DOMAINS
-              value: "files.korczewski.de"
+              value: "files.${PROD_DOMAIN}"
             - name: OVERWRITEPROTOCOL
               value: https
             - name: OVERWRITECLIURL
-              value: "https://files.korczewski.de"
+              value: "https://files.${PROD_DOMAIN}"
           readinessProbe:
             httpGet:
               path: /status.php
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.korczewski.de
+                  value: files.${PROD_DOMAIN}
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 10
@@ -30,7 +30,7 @@ spec:
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.korczewski.de
+                  value: files.${PROD_DOMAIN}
             initialDelaySeconds: 120
             periodSeconds: 30
             failureThreshold: 10

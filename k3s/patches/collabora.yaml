@@ -9,4 +9,4 @@ spec:
         - name: collabora
           env:
             - name: server_name
-              value: "office.korczewski.de"
+              value: "office.${PROD_DOMAIN}"

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Workspace MVP** — a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates Mattermost (chat), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
+**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates Mattermost (chat), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), OpenClaw (AI), Invoice Ninja (billing), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
 
 Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
@@ -14,19 +14,81 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 ```bash
 task cluster:create              # Create k3d cluster (k3d-config.yaml)
 task cluster:delete              # Destroy cluster
-task cluster:start / stop        # Pause/resume cluster
-task workspace:deploy           # Deploy all services (Kustomize)
-task workspace:validate         # Dry-run manifest validation
-task workspace:teardown         # Remove all services
+task cluster:start               # Start stopped cluster
+task cluster:stop                # Stop cluster (preserves state)
+task cluster:status              # Show cluster status, nodes, resource usage
+task workspace:up                # Full automated setup (Cluster + MVP + MCP + Monitoring + Billing)
+task workspace:deploy            # Deploy all workspace services (Kustomize)
+task workspace:validate          # Dry-run manifest validation
+task workspace:teardown          # Remove all services
+task workspace:prod:deploy       # Deploy to k3s-production
 ```
 
 ### Daily Operations
 ```bash
-task workspace:status           # Show pod status
-task workspace:logs -- <svc>    # Tail logs (e.g., keycloak, mattermost)
-task workspace:restart -- <svc> # Restart a specific service
-task workspace:monitoring       # Install Prometheus + Grafana (NFA-02)
-task workspace:post-setup       # Enable Nextcloud apps (calendar, contacts, OIDC)
+task workspace:status            # Show pod status, services, ingress, PVCs
+task workspace:logs -- <svc>     # Tail logs (e.g., keycloak, mattermost)
+task workspace:restart -- <svc>  # Restart a specific service
+task workspace:psql -- <db>      # Open psql shell to shared-db
+task workspace:port-forward      # Forward shared-db to localhost:5432
+```
+
+### Post-Deploy Setup
+```bash
+task workspace:post-setup        # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
+task workspace:billing-setup     # Build billing-bot image (token + slash command auto-provisioned)
+task workspace:stripe-setup      # Register Stripe as payment gateway in Invoice Ninja
+task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
+task workspace:monitoring        # Install Prometheus + Grafana + DSGVO dashboard (NFA-02)
+task workspace:dsgvo-check       # Run DSGVO compliance verification (NFA-01)
+task workspace:openclaw:setup    # Register MCP servers in OpenClaw database
+```
+
+### OpenClaw MCP Servers
+```bash
+task mcp:deploy                  # Deploy all MCP pods (core + apps + auth)
+task mcp:status                  # Show MCP pod and container status
+task mcp:logs -- <pod>/<ctr>     # Tail MCP container logs
+task mcp:restart -- core|apps|auth  # Restart an MCP pod
+task mcp:select                  # Interactive MCP server selector
+task mcp:mattermost-setup        # Create OpenClaw channels in Mattermost
+task mcp:set-github-pat -- <tok> # Update GitHub PAT in openclaw-secrets
+```
+
+### Website (Astro + Svelte)
+```bash
+task website:deploy              # Build, import, and deploy website
+task website:dev                 # Astro dev server (hot-reload)
+task website:redeploy            # Rebuild and restart
+task website:status              # Show website deployment status
+task website:webhook:setup       # Create Mattermost webhook for contact form
+task website:teardown            # Remove website namespace
+```
+
+### Optional Services
+```bash
+task whisper:deploy              # Deploy faster-whisper transcription service
+task outline:deploy              # Deploy Outline knowledge base
+task outline:teardown            # Remove Outline and its data
+```
+
+### TLS & DNS (Production)
+```bash
+task cert:install                # Install cert-manager + lego DNS-01 webhook
+task cert:secret -- <key>        # Store ipv64 API key as Secret
+task cert:status                 # Show wildcard cert and ClusterIssuer status
+task ddns:deploy -- <key>        # Deploy DDNS updater CronJob (dynamic IP)
+task ddns:trigger                # Manually trigger DDNS update
+task ddns:status                 # Show DDNS status and last known IP
+task ddns:teardown               # Remove DDNS updater
+```
+
+### Configuration
+```bash
+task domain:set -- <domain>      # Change production domain in .env
+task brand:set -- <name>         # Change branding name in .env
+task email:set -- <email>        # Change contact email in .env
+task config:show                 # Show current config variables
 ```
 
 ### Testing
@@ -37,7 +99,7 @@ task workspace:post-setup       # Enable Nextcloud apps (calendar, contacts, OID
 ./tests/runner.sh report             # Generate Markdown report
 ```
 
-Test IDs: `FA-01`–`FA-11` (functional), `SA-01`–`SA-09` (security), `NFA-01`–`NFA-07` (non-functional), `AK-03`, `AK-04` (acceptance).
+Test IDs: `FA-01`--`FA-11` (functional), `SA-01`--`SA-09` (security), `NFA-01`--`NFA-07` (non-functional), `AK-03`, `AK-04` (acceptance).
 
 ### Building the billing-bot (Go)
 ```bash
@@ -48,36 +110,71 @@ cd billing-bot && go build ./...
 
 All services run as Kubernetes Deployments in the `workspace` namespace, fronted by Traefik (built-in k3s ingress). There is no docker-compose.
 
-```
-Traefik Ingress (80/443)
-  ├── Keycloak (auth.localhost)      — OIDC provider for all services
-  ├── Mattermost (chat.localhost)    — Team chat
-  ├── Nextcloud (files.localhost)    — Files, Talk video, Collabora editor
-  ├── Collabora (office.localhost)   — LibreOffice-based online office
-  ├── Talk HPB (signaling.localhost) — WebRTC signaling (Janus + NATS + coturn)
-  ├── Invoice Ninja (billing.localhost)
-  ├── OpenClaw (ai.localhost)        — Self-hosted AI (Ollama + Anthropic API)
-  ├── WordPress (web.localhost)
-  ├── OpenSearch, Vaultwarden, Whiteboard, Mailpit, Docs
-  └── billing-bot (internal)         — Mattermost ↔ Invoice Ninja bridge (Go)
+```mermaid
+graph TB
+    Traefik["Traefik Ingress (80/443)"]
 
-Shared: PostgreSQL 16 (one DB per service, single cluster)
+    subgraph workspace ["Namespace: workspace"]
+        KC[Keycloak<br/>auth.localhost]
+        MM[Mattermost<br/>chat.localhost]
+        NC[Nextcloud + Talk<br/>files.localhost]
+        CO[Collabora Online<br/>office.localhost]
+        HPB[Talk HPB Signaling<br/>signaling.localhost]
+        OC[OpenClaw AI<br/>ai.localhost]
+        IN[Invoice Ninja<br/>billing.localhost]
+        VW[Vaultwarden<br/>vault.localhost]
+        WB[Whiteboard<br/>board.localhost]
+        MP[Mailpit<br/>mail.localhost]
+        OS[OpenSearch]
+        DOCS[Docs<br/>docs.localhost]
+        BB[billing-bot<br/>internal]
+        PROXY[mm-keycloak-proxy]
+        OAUTH[oauth2-proxy-invoiceninja]
+        WHISPER[Whisper<br/>transcription]
+        JANUS[Janus + NATS + coturn]
+        DB[(PostgreSQL 16<br/>shared-db)]
+    end
+
+    subgraph website-ns ["Namespace: website"]
+        WEB[Website Astro<br/>web.localhost]
+    end
+
+    subgraph monitoring-ns ["Namespace: monitoring"]
+        PROM[Prometheus + Grafana]
+    end
+
+    Traefik --> KC & MM & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
+
+    KC -. OIDC .-> MM & NC & IN & OC
+    PROXY --> KC
+    MM --> PROXY
+    OAUTH --> KC
+    IN --> OAUTH
+    MM <--> BB <--> IN
+    NC --> CO
+    NC --> HPB --> JANUS
+    KC & MM & NC & IN & OC & OS --> DB
 ```
 
 ### Key components
-- **`k3d/`** — All base Kubernetes manifests (Kustomize). This is the only deployment path.
-- **`prod/`** — Production overlays/patches (TLS, resource limits, replicas).
-- **`deploy/`** — Alternative Skaffold-based deploy path (hot-reload for dev iteration).
-- **`billing-bot/`** — Go microservice (`main.go`). Exposes `/slash`, `/actions`, `/healthz`.
-- **`scripts/`** — Bash utility scripts for migration, user import, DSGVO checks, etc.
-- **`tests/`** — Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
+- **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the only deployment path.
+- **`prod/`** -- Production overlays/patches (TLS, resource limits, replicas, DDNS).
+- **`deploy/`** -- Alternative Skaffold-based deploy path (hot-reload for dev iteration). Contains `mcp/` for MCP server overlays.
+- **`billing-bot/`** -- Go microservice (`main.go`). Exposes `/slash`, `/actions`, `/healthz`.
+- **`openclaw/`** -- OpenClaw configuration and system prompt.
+- **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, etc.
+- **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
+- **`website/`** -- Astro + Svelte website.
+- **`docs-site/`** -- Docsify index.html for the docs service.
+- **`grafana/`** -- DSGVO Compliance Dashboard JSON.
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.
-- **Dev secrets**: `k3d/secrets.yaml` (dev values only — never commit real credentials).
+- **Parameterized branding**: `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL` in `.env`, injected via `envsubst`.
+- **Dev secrets**: `k3d/secrets.yaml` (dev values only -- never commit real credentials).
 - **Keycloak realm**: `k3d/realm-workspace-dev.json` (exported realm config loaded as ConfigMap).
 - **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (loaded as ConfigMap).
-- **SSO flow**: Keycloak is the OIDC provider; Mattermost, Nextcloud, and Invoice Ninja all authenticate through it.
+- **SSO flow**: Keycloak is the OIDC provider; Mattermost, Nextcloud, Invoice Ninja, and OpenClaw all authenticate through it.
 
 ## CI/CD
 
@@ -90,7 +187,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 ## Development Rules
 
 1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base).
-2. All changes via Pull Requests — no direct pushes to `main`.
+2. All changes via Pull Requests -- no direct pushes to `main`.
 3. Use **squash-and-merge** to keep `main` history clean.
 4. CI must be green before merge.
 5. Validate manifests before committing: `task workspace:validate`.

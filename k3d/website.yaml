@@ -31,8 +31,8 @@ data:
   SMTP_SECURE: "false"
   SMTP_USER: ""
   SMTP_PASS: ""
-  FROM_EMAIL: "info@mentolder.de"
-  FROM_NAME: "mentolder.de"
+  FROM_EMAIL: "${CONTACT_EMAIL}"
+  FROM_NAME: "${BRAND_NAME}"
   # OIDC (Keycloak client for login)
   WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
   # Nextcloud
@@ -73,10 +73,12 @@ spec:
       labels:
         app: website
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: website
-          image: mentolder-website:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/paddione/mentolder-website:latest
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: website-config

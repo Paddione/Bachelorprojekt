@@ -9,5 +9,5 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - "*.wbhprojekt.ipv64.net"
-    - "wbhprojekt.ipv64.net"
+    - "*.${PROD_DOMAIN}"
+    - "${PROD_DOMAIN}"

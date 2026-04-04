@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
       subject: `Terminanfrage: ${typeLabel} am ${dateFormatted}`,
       text: `Hallo ${name},
 
-vielen Dank fur Ihre Terminanfrage bei mentolder.de.
+vielen Dank fur Ihre Terminanfrage bei ${BRAND_NAME}.
 
 Ihr gewunschter Termin:
   Typ:     ${typeLabel}
@@ -69,7 +69,7 @@ Ihr gewunschter Termin:
 Wir prufen Ihre Anfrage und melden uns in Kurze mit einer Bestatigung.
 
 Mit freundlichen Grussen
-mentolder.de`,
+${BRAND_NAME}`,
     });
 
     return new Response(

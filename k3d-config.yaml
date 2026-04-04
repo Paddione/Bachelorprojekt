@@ -5,11 +5,11 @@ kind: Simple
 metadata:
   name: dev
 servers: 1
-agents: 3
+agents: 5
 kubeAPI:
   host: "127.0.0.1"
   hostIP: "127.0.0.1"
-image: rancher/k3s:v1.31.5-k3s1
+image: rancher/k3s:v1.32.13-k3s1
 # Port mappings: expose HTTP/HTTPS on host via loadbalancer
 ports:
   - port: 80:80

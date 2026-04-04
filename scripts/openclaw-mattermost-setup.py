@@ -84,7 +84,7 @@ Hallo! Ich bin **OpenClaw**, euer KI-Assistent für das Workspace-Cluster.
 | 📁 **Nextcloud** | Dateien (WebDAV), Kalender, Kontakte, Notizen, Deck-Boards |
 | 🔐 **Keycloak** | Benutzer & Gruppen verwalten, Rollen, OIDC-Clients, SSO |
 | 💰 **Invoice Ninja** | Kunden, Rechnungen, Angebote, Zahlungen, Ausgaben |
-| 🌐 **Website** | Astro-basierte Coaching-Website (mentolder.de) |
+| 🌐 **Website** | Astro-basierte Coaching-Website (${BRAND_NAME}) |
 
 ---
 

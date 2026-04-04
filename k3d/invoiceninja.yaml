@@ -7,7 +7,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: invoiceninja-data-pvc
 spec:
-  storageClassName: smb-storage
+  storageClassName: local-path
   accessModes: [ReadWriteOnce]
   resources:
     requests:
@@ -18,7 +18,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: invoiceninja-mariadb-pvc
 spec:
-  storageClassName: smb-storage
+  storageClassName: local-path
   accessModes: [ReadWriteOnce]
   resources:
     requests:

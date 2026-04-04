@@ -14,52 +14,45 @@ spec:
       labels:
         app: docs
     spec:
-      initContainers:
-        # Clone docs from GitHub and merge with docsify index.html
-        - name: git-sync
-          image: alpine/git:latest
-          command:
-            - sh
-            - -c
-            - |
-              git clone --depth 1 --single-branch --branch main \
-                https://github.com/Paddione/k3d-dev.git /tmp/repo && \
-              cp -r /tmp/repo/docs/* /site/ && \
-              cp /docsify/index.html /site/index.html
-          volumeMounts:
-            - name: docs-content
-              mountPath: /site
-            - name: docsify-index
-              mountPath: /docsify
-              readOnly: true
       containers:
         - name: docs
-          image: nginx:1.27-alpine
+          image: joseluisq/static-web-server:2.36-alpine
           ports:
-            - containerPort: 80
+            - containerPort: 8787
+          env:
+            - name: SERVER_ROOT
+              value: /public
+            - name: SERVER_PORT
+              value: "8787"
           resources:
             requests:
-              memory: 16Mi
-              cpu: 10m
+              memory: 8Mi
+              cpu: 5m
             limits:
-              memory: 64Mi
-              cpu: 100m
+              memory: 32Mi
+              cpu: 50m
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8787
             initialDelaySeconds: 2
             periodSeconds: 10
           volumeMounts:
             - name: docs-content
-              mountPath: /usr/share/nginx/html
+              mountPath: /public
               readOnly: true
       volumes:
         - name: docs-content
-          emptyDir: {}
-        - name: docsify-index
           configMap:
-            name: docsify-index
+            name: docs-content
 ---
 apiVersion: v1
 kind: Service
@@ -70,4 +63,4 @@ spec:
     app: docs
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8787

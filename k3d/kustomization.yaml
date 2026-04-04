@@ -24,6 +24,7 @@ resources:
   - invoiceninja.yaml
   - oauth2-proxy-invoiceninja.yaml
   - billing-bot.yaml
+  - billing-bot-init-job.yaml
   # Suche (FA-07)
   - opensearch.yaml
   # Backup (SA-07)
@@ -34,9 +35,17 @@ resources:
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
+  # Wiki
+  - outline.yaml
+  # Transkription
+  - whisper.yaml
   # KI-Assistent
+  - openclaw-rbac.yaml
   - openclaw-config.yaml
+  - openclaw-mcp-ops.yaml
+  - openclaw-mcp-browser.yaml
   - openclaw-webui.yaml
+  - openclaw-init-job.yaml
   # Ingress
   - ingress.yaml
 

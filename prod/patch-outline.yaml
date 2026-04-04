@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: outline
+spec:
+  template:
+    spec:
+      containers:
+        - name: outline
+          env:
+            - name: URL
+              value: "https://wiki.${PROD_DOMAIN}"
+            - name: FORCE_HTTPS
+              value: "false"
+            - name: OIDC_AUTH_URI
+              value: "https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"
+            - name: OIDC_LOGOUT_URI
+              value: "https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/logout"

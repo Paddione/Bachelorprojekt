@@ -31,14 +31,14 @@ _log_result() {
 
   if [[ "$status" == "pass" ]]; then
     ((_ASSERT_PASS++)) || true
-    [[ "${VERBOSE:-}" == "true" ]] && echo -e "  ${_A_GREEN}✓${_A_NC} ${req}/${test_id}: ${desc}"
+    [[ "${VERBOSE:-}" == "true" ]] && echo -e "  ${_A_GREEN}✓${_A_NC} ${req}/${test_id}: ${desc}" || true
   elif [[ "$status" == "fail" ]]; then
     ((_ASSERT_FAIL++)) || true
     echo -e "  ${_A_RED}✗${_A_NC} ${req}/${test_id}: ${desc}"
     [[ -n "$detail" ]] && echo -e "    ${_A_RED}→ ${detail}${_A_NC}"
   else
     ((_ASSERT_SKIP++)) || true
-    [[ "${VERBOSE:-}" == "true" ]] && echo -e "  ${_A_YELLOW}⊘${_A_NC} ${req}/${test_id}: ${desc} (skipped)"
+    [[ "${VERBOSE:-}" == "true" ]] && echo -e "  ${_A_YELLOW}⊘${_A_NC} ${req}/${test_id}: ${desc} (skipped)" || true
   fi
 }
 

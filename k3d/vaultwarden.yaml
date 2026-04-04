@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: vaultwarden
-          image: vaultwarden/server:latest
+          image: vaultwarden/server:1.30.5-alpine
           env:
             - name: VAULTWARDEN_DB_PASSWORD
               valueFrom:

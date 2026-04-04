@@ -115,7 +115,7 @@ spec:
               memory: "512Mi"
           readinessProbe:
             httpGet:
-              path: /
+              path: /auth/info
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 15

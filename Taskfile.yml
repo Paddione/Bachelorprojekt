@@ -560,7 +560,7 @@ tasks:
           --from-file="tests.md=docs/tests.md" \
           --from-file="security.md=docs/security.md" \
           --from-file="troubleshooting.md=docs/troubleshooting.md" \
-          --from-file="requirements.md=docs/requirements/overview.md" \
+          --from-file="requirements.md=docs/requirements.md" \
           -n workspace --dry-run=client -o yaml | kubectl apply -f -
 
   docs:deploy:

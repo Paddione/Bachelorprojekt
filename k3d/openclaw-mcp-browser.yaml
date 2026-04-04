@@ -18,6 +18,9 @@ spec:
         - name: mcp-browser
           image: mcr.microsoft.com/playwright:v1.50.1-jammy
           command: ["/bin/sh", "-c"]
+          env:
+            - name: NODE_OPTIONS
+              value: "--dns-result-order=ipv4first"
           args:
             - |
               npm install -g supergateway @modelcontextprotocol/server-playwright 2>&1 | tail -3

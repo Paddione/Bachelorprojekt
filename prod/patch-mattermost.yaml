@@ -12,3 +12,9 @@ spec:
               value: "https://chat.${PROD_DOMAIN}"
             - name: MM_GITLABSETTINGS_AUTHENDPOINT
               value: "https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"
+            - name: MM_SUPPORTSETTINGS_HELPLINK
+              value: "https://web.${PROD_DOMAIN}"
+            - name: MM_SUPPORTSETTINGS_ABOUTLINK
+              value: "https://web.${PROD_DOMAIN}"
+            - name: MM_ANNOUNCEMENTSETTINGS_BANNERTEXT
+              value: "Besuche unsere Website: web.${PROD_DOMAIN}"

@@ -1,0 +1,231 @@
+# ═══════════════════════════════════════════════════════════════════
+# Billing-Bot Init Job
+# Runs once after deploy. Provisions:
+#   - billing-bot account in Mattermost (via mmctl --local)
+#   - Bot access token → patched into workspace-secrets
+#   - /billing slash command registered in every team
+#   - billing-bot deployment restarted to pick up new token
+# Idempotent: exits 0 immediately if BILLING_BOT_MM_TOKEN in
+# workspace-secrets differs from the dev placeholder.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: billing-bot-init
+  namespace: workspace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: billing-bot-init
+  namespace: workspace
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: billing-bot-init
+subjects:
+  - kind: ServiceAccount
+    name: billing-bot-init
+    namespace: workspace
+roleRef:
+  kind: Role
+  name: billing-bot-init
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: billing-bot-init
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      serviceAccountName: billing-bot-init
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: alpine:3.19
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              apk add --no-cache curl jq > /dev/null 2>&1
+
+              KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              KUBE_NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+              KUBE_CA="--cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+              KUBE_API="https://kubernetes.default.svc"
+              MM_URL="http://mattermost:8065"
+              PLACEHOLDER="devbillingbotmmtoken1234567890abc"
+
+              # --- Idempotency: skip if token already provisioned ---
+              SECRET=$(curl -sf $KUBE_CA -H "Authorization: Bearer $KUBE_TOKEN" \
+                "${KUBE_API}/api/v1/namespaces/${KUBE_NS}/secrets/workspace-secrets")
+              CURRENT_TOKEN=$(echo "$SECRET" | jq -r '.data.BILLING_BOT_MM_TOKEN // ""' \
+                | base64 -d 2>/dev/null || true)
+              if [ -n "$CURRENT_TOKEN" ] && [ "$CURRENT_TOKEN" != "$PLACEHOLDER" ]; then
+                echo "BILLING_BOT_MM_TOKEN already provisioned — skipping init."
+                exit 0
+              fi
+
+              # --- Download kubectl ---
+              echo "Downloading kubectl..."
+              ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+              curl -sfLo /tmp/kubectl \
+                "https://dl.k8s.io/release/v1.31.4/bin/linux/${ARCH}/kubectl" \
+                && chmod +x /tmp/kubectl \
+                || { echo "ERROR: kubectl download failed"; exit 1; }
+              KB="/tmp/kubectl --server=${KUBE_API} --token=${KUBE_TOKEN} \
+                --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+
+              # --- Wait for Mattermost ---
+              echo "Waiting for Mattermost..."
+              RETRIES=0
+              until curl -sf "${MM_URL}/api/v4/system/ping" > /dev/null 2>&1; do
+                RETRIES=$((RETRIES + 1))
+                if [ "$RETRIES" -ge 20 ]; then
+                  echo "ERROR: Mattermost not ready after 10 minutes"
+                  exit 1
+                fi
+                echo "  attempt ${RETRIES}/20, retrying in 30s..."
+                sleep 30
+              done
+              echo "Mattermost is ready."
+
+              # --- Find Mattermost pod ---
+              MM_POD=$(curl -sf $KUBE_CA -H "Authorization: Bearer $KUBE_TOKEN" \
+                "${KUBE_API}/api/v1/namespaces/${KUBE_NS}/pods?labelSelector=app%3Dmattermost" \
+                | jq -r '[.items[] | select(.status.phase == "Running")] | .[0].metadata.name')
+              if [ -z "$MM_POD" ] || [ "$MM_POD" = "null" ]; then
+                echo "ERROR: Could not find a running Mattermost pod"
+                exit 1
+              fi
+              echo "Mattermost pod: $MM_POD"
+
+              # Helper: run mmctl --local inside the Mattermost pod
+              mmctl_local() {
+                $KB exec -n "$KUBE_NS" "$MM_POD" -- mmctl --local "$@"
+              }
+
+              # --- Provision platform admin (Paddione) ---
+              echo "Provisioning admin user: ${ADMIN_USERNAME}..."
+              mmctl_local user create \
+                --username "${ADMIN_USERNAME}" \
+                --email "${ADMIN_EMAIL}" \
+                --password "${ADMIN_PASSWORD}" \
+                --system-admin \
+                --email-verified \
+                2>&1 | grep -v "already exists" || true
+              # Ensure system_admin role even if user was created by OIDC
+              mmctl_local roles system-admin "${ADMIN_USERNAME}" 2>/dev/null || true
+              echo "Admin user ${ADMIN_USERNAME} ready."
+
+              # --- Create billing-bot account (idempotent) ---
+              echo "Creating billing-bot account..."
+              mmctl_local bot create billing-bot \
+                --display-name "Billing Bot" \
+                --description "Rechnungen, Angebote und Kunden über Invoice Ninja verwalten" \
+                2>&1 | grep -v "already exists" || true
+              echo "billing-bot account ready."
+
+              # --- Generate bot access token ---
+              # mmctl output format: "<token-value>: <description>"
+              echo "Generating bot access token..."
+              TOKEN_OUTPUT=$(mmctl_local token generate billing-bot "billing-bot-token" 2>&1)
+              BOT_TOKEN=$(echo "$TOKEN_OUTPUT" | sed -n 's/^\([^ ]*\): .*/\1/p' | tail -1)
+              if [ -z "$BOT_TOKEN" ]; then
+                echo "ERROR: Could not parse bot token from output:"
+                echo "$TOKEN_OUTPUT"
+                exit 1
+              fi
+              echo "Bot access token generated."
+
+              # --- Register /billing slash command in every team ---
+              mmctl_local team list --json 2>/dev/null | jq -r '.[].name' > /tmp/teams.txt || true
+              if [ ! -s /tmp/teams.txt ]; then
+                echo "WARNING: No teams found — skipping slash command registration."
+              else
+                # Ensure billing-bot is a member of each team first
+                while IFS= read -r TEAM; do
+                  mmctl_local team users add "$TEAM" billing-bot > /dev/null 2>&1 || true
+                done < /tmp/teams.txt
+
+                while IFS= read -r TEAM; do
+                  echo "  Registering /billing in team: $TEAM"
+                  EXISTING=$(mmctl_local command list --team "$TEAM" 2>/dev/null \
+                    | grep -w "billing" || true)
+                  if [ -n "$EXISTING" ]; then
+                    echo "  /billing already registered in $TEAM, skipping."
+                    continue
+                  fi
+                  mmctl_local command create "$TEAM" \
+                    --title "Billing" \
+                    --trigger-word "billing" \
+                    --url "http://billing-bot:8090/slash" \
+                    --creator "billing-bot" \
+                    --post \
+                    --autocomplete \
+                    --autocompleteDesc "Buchhaltung: Rechnungen, Angebote, Ausgaben verwalten" \
+                    --autocompleteHint "[help|client <name>|invoice <kunde>]" \
+                    > /dev/null 2>&1 \
+                    && echo "  /billing registered in $TEAM." \
+                    || echo "  WARNING: /billing registration failed in $TEAM (run billing-bot-setup.sh manually if needed)."
+                done < /tmp/teams.txt
+              fi
+
+              # --- Patch workspace-secrets with real token ---
+              echo "Patching workspace-secrets..."
+              TOKEN_B64=$(printf '%s' "$BOT_TOKEN" | base64 | tr -d '\n')
+              PATCH_BODY="{\"data\":{\"BILLING_BOT_MM_TOKEN\":\"${TOKEN_B64}\"}}"
+              curl -sf -X PATCH $KUBE_CA \
+                -H "Authorization: Bearer $KUBE_TOKEN" \
+                -H "Content-Type: application/strategic-merge-patch+json" \
+                "${KUBE_API}/api/v1/namespaces/${KUBE_NS}/secrets/workspace-secrets" \
+                -d "$PATCH_BODY" > /dev/null
+              echo "workspace-secrets patched."
+
+              # --- Restart billing-bot to pick up the new token ---
+              echo "Restarting billing-bot deployment..."
+              $KB rollout restart deployment/billing-bot -n "$KUBE_NS"
+              $KB rollout status deployment/billing-bot -n "$KUBE_NS" --timeout=120s
+              echo "billing-bot restarted successfully."
+
+              echo "billing-bot init complete."
+          env:
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN_USERNAME
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN_PASSWORD
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN_EMAIL
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+              cpu: 100m

@@ -7,12 +7,6 @@ k3d/secrets.yaml
 deploy/mcp/openclaw-secrets.yaml
 k3d/vaultwarden-seed-credentials.yaml
 k3d/vaultwarden-seed-job.yaml
-k3d/realm-workspace-dev.json
-k3s/realm-workspace-prod.json
-prod/realm-workspace-prod.json
-prod/wildcard-certificate.yaml
-.git_corrupt/
-
 # ── Runtime-Daten (Docker-Volumes, DB, Certs) ──
 data/
 
@@ -50,10 +44,11 @@ website/dist/
 website/.astro/
 
 # ── Misc ────────────────────────────────────────
+.git_corrupt/
+docs-site/
 node_modules/
 *.tmp
 *.bak
 docs/superpowers
 files_chore.txt
-.gitignore
 files_main.txt

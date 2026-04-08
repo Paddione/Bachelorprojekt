@@ -181,8 +181,8 @@ export const POST: APIRoute = async ({ request }) => {
         await sendEmail({
           to: bEmail,
           subject: `Termin bestatigt: ${typeLabel} am ${dateFormatted}`,
-          text: `Hallo ${bName},\n\nIhr Termin wurde bestatigt!\n\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}${meetingLinkText}\n\nWir freuen uns auf das Gesprach.\n\nMit freundlichen Grussen\nmentolder.de`,
-          html: `<p>Hallo ${bName},</p><p><strong>Ihr Termin wurde bestatigt!</strong></p><table style="border-collapse:collapse;margin:16px 0"><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Typ</td><td style="color:#e8e8f0">${typeLabel}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Datum</td><td style="color:#e8e8f0">${dateFormatted}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Uhrzeit</td><td style="color:#e8e8f0">${slotDisplay}</td></tr></table>${room ? `<p><a href="${room.url}" style="display:inline-block;background:#e8c870;color:#0f1623;padding:12px 24px;border-radius:25px;text-decoration:none;font-weight:bold">Zum Meeting beitreten</a></p><p style="color:#aabbcc;font-size:14px">Sie erhalten 10 Minuten vor dem Termin eine Erinnerung.</p>` : ''}<p>Mit freundlichen Grussen<br>mentolder.de</p>`,
+          text: `Hallo ${bName},\n\nIhr Termin wurde bestatigt!\n\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}${meetingLinkText}\n\nWir freuen uns auf das Gesprach.\n\nMit freundlichen Grussen\n${BRAND_NAME}`,
+          html: `<p>Hallo ${bName},</p><p><strong>Ihr Termin wurde bestatigt!</strong></p><table style="border-collapse:collapse;margin:16px 0"><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Typ</td><td style="color:#e8e8f0">${typeLabel}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Datum</td><td style="color:#e8e8f0">${dateFormatted}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Uhrzeit</td><td style="color:#e8e8f0">${slotDisplay}</td></tr></table>${room ? `<p><a href="${room.url}" style="display:inline-block;background:#e8c870;color:#0f1623;padding:12px 24px;border-radius:25px;text-decoration:none;font-weight:bold">Zum Meeting beitreten</a></p><p style="color:#aabbcc;font-size:14px">Sie erhalten 10 Minuten vor dem Termin eine Erinnerung.</p>` : ''}<p>Mit freundlichen Grussen<br>${BRAND_NAME}</p>`,
         });
         statusParts.push(':email: Bestatigungs-E-Mail versendet');
 
@@ -202,8 +202,8 @@ export const POST: APIRoute = async ({ request }) => {
 
         await sendEmail({
           to: dEmail,
-          subject: `Zu Ihrer Terminanfrage bei mentolder.de`,
-          text: `Hallo ${dName},\n\nleider konnen wir den angefragten Termin (${dType} am ${dDateFormatted}, ${dSlot}) nicht bestatigen.\n\nBitte wahlen Sie einen alternativen Termin unter https://web.korczewski.de/termin oder kontaktieren Sie uns direkt.\n\nMit freundlichen Grussen\nmentolder.de`,
+          subject: `Zu Ihrer Terminanfrage bei ${BRAND_NAME}`,
+          text: `Hallo ${dName},\n\nleider konnen wir den angefragten Termin (${dType} am ${dDateFormatted}, ${dSlot}) nicht bestatigen.\n\nBitte wahlen Sie einen alternativen Termin unter https://web.${PROD_DOMAIN}/termin oder kontaktieren Sie uns direkt.\n\nMit freundlichen Grussen\n${BRAND_NAME}`,
         });
 
         await updatePost(post_id, `### :x: Termin abgelehnt\n\n**${dName}** (${dEmail})\n${dType} am ${dDateFormatted}, ${dSlot}\n\nAbsage per E-Mail versendet.`);
@@ -215,7 +215,7 @@ export const POST: APIRoute = async ({ request }) => {
         const { customerName: fName, customerEmail: fEmail, meetingType: fType, meetingDate: fDate, customerChannelId } = context;
 
         // Call the finalize endpoint
-        const SITE_URL = import.meta.env.SITE_URL || 'http://web.localhost';
+        const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
         const finalizeRes = await fetch(`${SITE_URL}/api/meeting/finalize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

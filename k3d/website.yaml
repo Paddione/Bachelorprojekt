@@ -1,4 +1,3 @@
-
 # ── Namespace ─────────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: Namespace
@@ -31,13 +30,14 @@ data:
   SMTP_SECURE: "false"
   SMTP_USER: ""
   SMTP_PASS: ""
-  FROM_EMAIL: "info@mentolder.de"
-  FROM_NAME: "mentolder.de"
+  FROM_EMAIL: "${CONTACT_EMAIL}"
+  FROM_NAME: "${BRAND_NAME}"
   # OIDC (Keycloak client for login)
   WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
   # Nextcloud
   NEXTCLOUD_URL: "http://nextcloud.workspace.svc.cluster.local"
   NEXTCLOUD_EXTERNAL_URL: "http://files.localhost"
+  KEYCLOAK_FRONTEND_URL: "http://auth.localhost"
   NEXTCLOUD_CALDAV_USER: "admin"
   NEXTCLOUD_CALDAV_PASSWORD: "devnextcloudadmin"
   CALENDAR_NAME: "personal"
@@ -73,10 +73,12 @@ spec:
       labels:
         app: website
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: website
-          image: mentolder-website:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: website-config

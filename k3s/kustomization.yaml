@@ -18,17 +18,17 @@ patches:
       metadata:
         name: domain-config
       data:
-        MM_DOMAIN: "chat.korczewski.de"
-        KC_DOMAIN: "auth.korczewski.de"
-        NC_DOMAIN: "files.korczewski.de"
-        SIGNALING_DOMAIN: "signaling.korczewski.de"
-        COLLABORA_DOMAIN: "office.korczewski.de"
-        WHITEBOARD_DOMAIN: "board.korczewski.de"
-        VAULT_DOMAIN: "vault.korczewski.de"
-        MAIL_DOMAIN: "mail.korczewski.de"
-        DOCS_DOMAIN: "docs.korczewski.de"
-        BILLING_DOMAIN: "billing.korczewski.de"
-        WEB_DOMAIN: "web.korczewski.de"
+        MM_DOMAIN: "chat.${PROD_DOMAIN}"
+        KC_DOMAIN: "auth.${PROD_DOMAIN}"
+        NC_DOMAIN: "files.${PROD_DOMAIN}"
+        SIGNALING_DOMAIN: "signaling.${PROD_DOMAIN}"
+        COLLABORA_DOMAIN: "office.${PROD_DOMAIN}"
+        WHITEBOARD_DOMAIN: "board.${PROD_DOMAIN}"
+        VAULT_DOMAIN: "vault.${PROD_DOMAIN}"
+        MAIL_DOMAIN: "mail.${PROD_DOMAIN}"
+        DOCS_DOMAIN: "docs.${PROD_DOMAIN}"
+        BILLING_DOMAIN: "billing.${PROD_DOMAIN}"
+        WEB_DOMAIN: "web.${PROD_DOMAIN}"
 
   # ── Ingress: production domains + Traefik ────────────────────────
   - target:

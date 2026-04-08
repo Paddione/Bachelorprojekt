@@ -8,6 +8,7 @@ resources:
   - openclaw-mcp-core.yaml        # kubernetes + postgres + mattermost
   - openclaw-mcp-apps.yaml        # nextcloud + invoiceninja
   - openclaw-mcp-auth.yaml        # keycloak (SSE, Java — separate for resource isolation)
+  - openclaw-mcp-browser.yaml     # playwright (Browser interaction)
   # Standalone
   - openclaw-mcp-github.yaml      # replicas=0 — task mcp:set-github-pat to enable
   - openclaw-mcp-stripe.yaml      # Stripe payment MCP — replace STRIPE_SECRET_KEY to activate

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-invoiceninja
+spec:
+  template:
+    spec:
+      containers:
+        - name: oauth2-proxy
+          args:
+            - "--provider=keycloak-oidc"
+            - "--client-id=invoiceninja"
+            - "--client-secret=$(INVOICENINJA_OIDC_SECRET)"
+            - "--redirect-url=https://billing.${PROD_DOMAIN}/oauth2/callback"
+            - "--oidc-issuer-url=http://keycloak:8080/realms/workspace"
+            - "--ssl-insecure-skip-verify=true"
+            - "--skip-oidc-discovery=true"
+            - "--login-url=https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"
+            - "--redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token"
+            - "--oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs"
+            - "--profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo"
+            - "--upstream=http://invoiceninja:80"
+            - "--http-address=0.0.0.0:4180"
+            - "--cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)"
+            - "--cookie-secure=true"
+            - "--cookie-name=_oauth2_proxy_billing"
+            - "--email-domain=*"
+            - "--pass-access-token=true"
+            - "--pass-authorization-header=true"
+            - "--set-xauthrequest=true"
+            - "--skip-provider-button=true"
+            - "--code-challenge-method=S256"
+            - "--insecure-oidc-allow-unverified-email=true"
+            - "--oidc-extra-audience=invoiceninja"
+            - "--scope=openid email profile"
+            - "--skip-auth-regex=^/(favicon\\.ico|manifest\\.json|css/|js/|images/|fonts/)"

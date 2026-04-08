@@ -6,7 +6,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: opensearch-data-pvc
 spec:
-  storageClassName: smb-storage
+  storageClassName: local-path
   accessModes: [ReadWriteOnce]
   resources:
     requests:
@@ -41,7 +41,7 @@ spec:
               mountPath: /usr/share/opensearch/data
       containers:
         - name: opensearch
-          image: opensearchproject/opensearch:2.17.1
+          image: opensearchproject/opensearch:2.19.1
           env:
             - name: discovery.type
               value: single-node

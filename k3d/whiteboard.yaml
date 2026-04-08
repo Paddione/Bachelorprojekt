@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: whiteboard
-          image: ghcr.io/nextcloud-releases/whiteboard:latest
+          image: ghcr.io/nextcloud-releases/whiteboard:v1.5.7
           env:
             - name: NEXTCLOUD_URL
               value: "http://nextcloud"

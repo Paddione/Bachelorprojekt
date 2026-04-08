@@ -2,29 +2,28 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+  annotations: {}
 spec:
   tls:
     - hosts:
-        - auth.wbhprojekt.ipv64.net
-        - chat.wbhprojekt.ipv64.net
-        - files.wbhprojekt.ipv64.net
-        - meet.wbhprojekt.ipv64.net
-        - office.wbhprojekt.ipv64.net
-        - board.wbhprojekt.ipv64.net
-        - signaling.wbhprojekt.ipv64.net
-        - mail.wbhprojekt.ipv64.net
-        - docs.wbhprojekt.ipv64.net
-        - billing.wbhprojekt.ipv64.net
-        - vault.wbhprojekt.ipv64.net
-        - ai.wbhprojekt.ipv64.net
-        - web.wbhprojekt.ipv64.net
-        - wiki.wbhprojekt.ipv64.net
+        - auth.${PROD_DOMAIN}
+        - chat.${PROD_DOMAIN}
+        - files.${PROD_DOMAIN}
+        - meet.${PROD_DOMAIN}
+        - office.${PROD_DOMAIN}
+        - board.${PROD_DOMAIN}
+        - signaling.${PROD_DOMAIN}
+        - mail.${PROD_DOMAIN}
+        - docs.${PROD_DOMAIN}
+        - billing.${PROD_DOMAIN}
+        - vault.${PROD_DOMAIN}
+        - ai.${PROD_DOMAIN}
+        - web.${PROD_DOMAIN}
+        - wiki.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
     # Keycloak (SSO)
-    - host: auth.wbhprojekt.ipv64.net
+    - host: auth.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -36,7 +35,7 @@ spec:
                   number: 8080
 
     # Mattermost (Chat)
-    - host: chat.wbhprojekt.ipv64.net
+    - host: chat.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -48,7 +47,7 @@ spec:
                   number: 8065
 
     # Nextcloud (Dateien)
-    - host: files.wbhprojekt.ipv64.net
+    - host: files.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -60,7 +59,7 @@ spec:
                   number: 80
 
     # Nextcloud Talk HPB Signaling (meet.* alias)
-    - host: meet.wbhprojekt.ipv64.net
+    - host: meet.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -72,7 +71,7 @@ spec:
                   number: 8080
 
     # Collabora Online (Dokumentenbearbeitung)
-    - host: office.wbhprojekt.ipv64.net
+    - host: office.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -84,7 +83,7 @@ spec:
                   number: 9980
 
     # Nextcloud Whiteboard
-    - host: board.wbhprojekt.ipv64.net
+    - host: board.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -96,7 +95,7 @@ spec:
                   number: 3002
 
     # Talk HPB Signaling
-    - host: signaling.wbhprojekt.ipv64.net
+    - host: signaling.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -108,7 +107,7 @@ spec:
                   number: 8080
 
     # Mailpit (SMTP Web-UI)
-    - host: mail.wbhprojekt.ipv64.net
+    - host: mail.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -120,7 +119,7 @@ spec:
                   number: 8025
 
     # Docs
-    - host: docs.wbhprojekt.ipv64.net
+    - host: docs.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -132,7 +131,7 @@ spec:
                   number: 80
 
     # Invoice Ninja (Buchhaltung, via OAuth2-Proxy)
-    - host: billing.wbhprojekt.ipv64.net
+    - host: billing.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -144,7 +143,7 @@ spec:
                   number: 4180
 
     # Vaultwarden (Passwortmanager)
-    - host: vault.wbhprojekt.ipv64.net
+    - host: vault.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -156,7 +155,7 @@ spec:
                   number: 80
 
     # OpenClaw (KI-Assistent)
-    - host: ai.wbhprojekt.ipv64.net
+    - host: ai.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -168,7 +167,7 @@ spec:
                   number: 8080
 
     # Website (Astro)
-    - host: web.wbhprojekt.ipv64.net
+    - host: web.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -180,7 +179,7 @@ spec:
                   number: 80
 
     # Wiki (Outline)
-    - host: wiki.wbhprojekt.ipv64.net
+    - host: wiki.${PROD_DOMAIN}
       http:
         paths:
           - path: /

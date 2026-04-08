@@ -1,0 +1,20 @@
+# ── Website Production ConfigMap ──────────────────────────────────────────────
+# Applied AFTER k3d/website.yaml to override dev defaults with production values.
+# Only includes keys that differ from dev. Secrets (passwords, tokens, keys)
+# are patched separately via kubectl and persist across deploys.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+  namespace: website
+data:
+  # Keycloak (add frontend URL for OIDC redirects)
+  KEYCLOAK_FRONTEND_URL: "https://auth.${PROD_DOMAIN}"
+  # SMTP (production mailbox.org, overrides dev Mailpit)
+  SMTP_HOST: "smtp.mailbox.org"
+  SMTP_PORT: "465"
+  SMTP_SECURE: "true"
+  # Nextcloud (HTTPS external URL)
+  NEXTCLOUD_EXTERNAL_URL: "https://files.${PROD_DOMAIN}"
+  # Site (HTTPS)
+  SITE_URL: "https://web.${PROD_DOMAIN}"

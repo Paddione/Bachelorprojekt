@@ -3,17 +3,8 @@ kind: ConfigMap
 metadata:
   name: openclaw-config
 data:
-  OPENID_PROVIDER_URL: "http://auth.localhost/realms/workspace/.well-known/openid-configuration"
+  OPENID_PROVIDER_URL: "http://keycloak:8080/realms/workspace/.well-known/openid-configuration"
   MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/openclaw-alerts"
-  # Core pod: cluster + database + chat
-  MCP_KUBERNETES_URL:   "http://openclaw-mcp-core:8080/mcp"
-  MCP_POSTGRES_URL:     "http://openclaw-mcp-core:3001/mcp"
-  MCP_MATTERMOST_URL:   "http://openclaw-mcp-core:8000/mcp"
-  # Apps pod: files/calendar + billing
-  MCP_NEXTCLOUD_URL:    "http://openclaw-mcp-apps:8000/mcp"
-  MCP_INVOICENINJA_URL: "http://openclaw-mcp-apps:8080/mcp"
-  # Auth pod: SSO management (SSE transport)
-  MCP_KEYCLOAK_URL:     "http://openclaw-mcp-auth:8080/mcp/sse"
-  # Standalone
-  MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
-  MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
+  MCP_KUBERNETES_URL: "http://openclaw-mcp-ops:3000/mcp"
+  MCP_POSTGRES_URL:   "http://openclaw-mcp-ops:3001/mcp"
+  MCP_BROWSER_URL:    "http://mcp-browser:3000/mcp"

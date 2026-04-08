@@ -1,21 +1,33 @@
-# Dokumentation (Requirements)
-
-Diese Dokumentation enthält maschinenlesbare Anforderungsdefinitionen (JSON), die als zentrale Source of Truth für das Projekt dienen.
+# Dokumentation
 
 ## Live-Dokumentation
 
-Die vollständige, menschenlesbare Dokumentation zu Architektur, Services, Migration und Betrieb finden Sie unter:
+Die vollstaendige, menschenlesbare Dokumentation zu Architektur, Services, Migration und Betrieb:
 
-👉 **[http://docs.localhost](http://docs.localhost)** (Erfordert laufenden k3d-Cluster)
+**[http://docs.localhost](http://docs.localhost)** (erfordert laufenden k3d-Cluster)
 
-## Lokale Anforderungen (JSON)
+## Anforderungen
 
-Die Anforderungen sind nach Kategorien in JSON-Dateien strukturiert:
+Alle Anforderungen sind in der Requirements-Uebersicht dokumentiert:
 
 | Datei | Beschreibung |
 |-------|--------------|
-| [`FA_requirements.json`](requirements/FA_requirements.json) | Funktionale Anforderungen (Messaging, Files, Konferenzen) |
-| [`SA_requirements.json`](requirements/SA_requirements.json) | Sicherheitsanforderungen (SSO, Auth, Encryption) |
-| [`NFA_requirements.json`](requirements/NFA_requirements.json) | Nicht-funktionale Anforderungen (Performance, Resilienz, Monitoring) |
-| [`L_requirements.json`](requirements/L_requirements.json) | Auslieferbare Objekte (Deliverables) |
-| [`AK_requirements.json`](requirements/AK_requirements.json) | Abnahmekriterien |
+| [Requirements Overview](requirements.md) | Vollstaendige Anforderungsdefinitionen (FA, SA, NFA, AK, Lieferobjekte) |
+
+### Anforderungskategorien
+
+| Kategorie | IDs | Beschreibung |
+|-----------|-----|--------------|
+| Funktional (FA) | FA-01 -- FA-12 | Messaging, Kanaele, Video, Dateien, Nutzerverwaltung, Benachrichtigungen, Suche, Homeoffice, Billing Bot, Website, Gast-Portal, OpenClaw AI |
+| Sicherheit (SA) | SA-01 -- SA-09 | SSO, Authentifizierung, Verschluesselung, Netzwerksicherheit |
+| Nicht-funktional (NFA) | NFA-01 -- NFA-07 | DSGVO/Datensouveraenitaet, Monitoring, Performance, Resilienz |
+| Abnahmekriterien (AK) | AK-03, AK-04 | Akzeptanztests |
+| Lieferobjekte (L) | L-01 ff. | Auslieferbare Artefakte |
+
+### Tests ausfuehren
+
+```bash
+./tests/runner.sh local              # Alle Tests
+./tests/runner.sh local FA-03        # Einzelner Test
+./tests/runner.sh report             # Markdown-Report
+```

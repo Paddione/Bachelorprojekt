@@ -2,8 +2,8 @@
 // Creates collections, documents, and manages the customer knowledge base.
 // Uses the Outline REST API: https://www.getoutline.com/developers
 
-const OUTLINE_URL = import.meta.env.OUTLINE_URL || 'http://outline.workspace.svc.cluster.local';
-const OUTLINE_API_KEY = import.meta.env.OUTLINE_API_KEY || '';
+const OUTLINE_URL = process.env.OUTLINE_URL || 'http://outline.workspace.svc.cluster.local';
+const OUTLINE_API_KEY = process.env.OUTLINE_API_KEY || '';
 
 async function outlineApi(endpoint: string, body?: unknown): Promise<Response> {
   return fetch(`${OUTLINE_URL}/api${endpoint}`, {

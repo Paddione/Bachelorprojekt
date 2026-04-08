@@ -149,7 +149,7 @@ spec:
           args:
             - --no-tls
             - --no-dtls
-            - --realm=korczewski.de
+            - --realm=${PROD_DOMAIN}
             - --user=talk:prodturnpassword
             - --lt-cred-mech
           ports:
@@ -202,7 +202,7 @@ data:
     backends = backend-1
 
     [backend-1]
-    url = https://files.korczewski.de
+    url = https://files.${PROD_DOMAIN}
     secret = prodsignalingsecret1234567890abcdef
 
     [nats]
@@ -286,12 +286,12 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`signaling.korczewski.de`)
+      match: Host(`signaling.${PROD_DOMAIN}`)
       middlewares:
         - name: default-chain
-          namespace: korczewski-infra
+          namespace: ${INFRA_NAMESPACE}
       services:
         - name: spreed-signaling
           port: 8080
   tls:
-    secretName: korczewski-tls
+    secretName: ${TLS_SECRET_NAME}

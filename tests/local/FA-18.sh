@@ -14,9 +14,9 @@ assert_gt "$WH_READY" 0 "FA-18" "T1" "Whisper-Deployment laeuft (readyReplicas >
 # ── T2: Whisper health endpoint ───────────────────────────────────
 if [[ "$WH_READY" -gt 0 ]]; then
   HEALTH=$(kubectl exec -n "$WS_NS" deploy/whisper -- \
-    curl -sf http://localhost:8000/health 2>/dev/null || echo "")
-  if [[ -n "$HEALTH" ]]; then
-    assert_eq "ok" "ok" "FA-18" "T2" "Whisper Health-Endpoint erreichbar"
+    python3 -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/health').read().decode())" 2>/dev/null || echo "")
+  if [[ "$HEALTH" == *"OK"* ]]; then
+    assert_eq "OK" "OK" "FA-18" "T2" "Whisper Health-Endpoint erreichbar"
   else
     skip_test "FA-18" "T2" "Whisper Health" "Endpoint nicht erreichbar"
   fi

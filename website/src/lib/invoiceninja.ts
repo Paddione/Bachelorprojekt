@@ -2,8 +2,8 @@
 // Creates clients, invoices, and quotes for service bookings.
 // Uses InvoiceNinja v5 REST API.
 
-const IN_URL = import.meta.env.INVOICENINJA_URL || 'http://invoiceninja.workspace.svc.cluster.local/api/v1';
-const IN_TOKEN = import.meta.env.INVOICENINJA_API_TOKEN || '';
+const IN_URL = process.env.INVOICENINJA_URL || 'http://invoiceninja.workspace.svc.cluster.local/api/v1';
+const IN_TOKEN = process.env.INVOICENINJA_API_TOKEN || '';
 
 async function inApi(method: string, endpoint: string, body?: unknown): Promise<Response> {
   return fetch(`${IN_URL}${endpoint}`, {
@@ -91,13 +91,13 @@ export async function getOrCreateClient(params: {
 
 // Service definitions with InvoiceNinja product details
 export const SERVICES = {
-  'digital-cafe-einzel': { name: 'Digital Cafe 50+ — Einzelbegleitung', rate: 60, unit: 'Stunde' },
-  'digital-cafe-gruppe': { name: 'Digital Cafe 50+ — Kleine Gruppe', rate: 40, unit: 'Person/Stunde' },
-  'digital-cafe-5er': { name: 'Digital Cafe 50+ — 5er-Paket', rate: 270, unit: 'Paket' },
-  'digital-cafe-10er': { name: 'Digital Cafe 50+ — 10er-Paket', rate: 500, unit: 'Paket' },
-  'coaching-session': { name: 'Fuhrungskrafte-Coaching — Einzelsession (90 Min.)', rate: 150, unit: 'Session' },
-  'coaching-6er': { name: 'Fuhrungskrafte-Coaching — 6er-Paket', rate: 800, unit: 'Paket' },
-  'coaching-intensiv': { name: 'Fuhrungskrafte-Coaching — Intensiv-Tag (6 Std.)', rate: 500, unit: 'Tag' },
+  'digital-cafe-einzel': { name: 'Digital Café 50+ — Einzelbegleitung', rate: 60, unit: 'Stunde' },
+  'digital-cafe-gruppe': { name: 'Digital Café 50+ — Kleine Gruppe', rate: 40, unit: 'Person/Stunde' },
+  'digital-cafe-5er': { name: 'Digital Café 50+ — 5er-Paket', rate: 270, unit: 'Paket' },
+  'digital-cafe-10er': { name: 'Digital Café 50+ — 10er-Paket', rate: 500, unit: 'Paket' },
+  'coaching-session': { name: 'Führungskräfte-Coaching — Einzelsession (90 Min.)', rate: 150, unit: 'Session' },
+  'coaching-6er': { name: 'Führungskräfte-Coaching — 6er-Paket', rate: 800, unit: 'Paket' },
+  'coaching-intensiv': { name: 'Führungskräfte-Coaching — Intensiv-Tag (6 Std.)', rate: 500, unit: 'Tag' },
   'beratung-tag': { name: 'Unternehmensberatung — Tagessatz', rate: 1000, unit: 'Tag' },
 } as const;
 

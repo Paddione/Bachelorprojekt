@@ -150,7 +150,7 @@ fi
 if [[ "$TIER" == "prod" ]]; then
   if [[ -z "${PROD_DOMAIN:-}" ]]; then
     echo "Error: PROD_DOMAIN is required for prod tier."
-    echo "  Example: PROD_DOMAIN=wbhprojekt.ipv64.de $0 prod"
+    echo "  Example: PROD_DOMAIN=${PROD_DOMAIN} $0 prod"
     exit 1
   fi
   export PROD_DOMAIN
@@ -164,8 +164,8 @@ if [[ "$TIER" == "prod" ]]; then
 
   # Verify prod is reachable before running tests
   echo "▶ Prüfe Erreichbarkeit von ${PROD_DOMAIN}..."
-  if ! curl -sk -o /dev/null --max-time 10 "https://auth-${PROD_DOMAIN}/health/ready" 2>/dev/null; then
-    echo "  ⚠ Keycloak auf auth-${PROD_DOMAIN} nicht erreichbar — Tests starten trotzdem"
+  if ! curl -sk -o /dev/null --max-time 10 "https://auth.${PROD_DOMAIN}/health/ready" 2>/dev/null; then
+    echo "  ⚠ Keycloak auf auth.${PROD_DOMAIN} nicht erreichbar — Tests starten trotzdem"
   else
     echo "  Keycloak erreichbar."
   fi

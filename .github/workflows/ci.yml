@@ -21,6 +21,14 @@ jobs:
           curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
             | sudo tar xz -C /usr/local/bin kubeconform
 
+      - name: Create CI dummy secrets
+        run: |
+          for f in k3d/secrets.yaml k3d/backup-secrets.yaml; do
+            if [ ! -f "$f" ]; then
+              echo -e "apiVersion: v1\nkind: Secret\nmetadata:\n  name: $(basename $f .yaml)\ntype: Opaque\nstringData:\n  PLACEHOLDER: ci-dummy" > "$f"
+            fi
+          done
+
       - name: Validate kustomize output
         run: |
           kubectl kustomize k3d/ > /dev/null

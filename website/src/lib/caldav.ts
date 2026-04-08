@@ -1,21 +1,21 @@
 // Nextcloud CalDAV helper.
 // Fetches events from the admin's calendar and computes free time slots.
 
-const NC_URL = import.meta.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
-const NC_USER = import.meta.env.NEXTCLOUD_CALDAV_USER || 'admin';
-const NC_PASS = import.meta.env.NEXTCLOUD_CALDAV_PASSWORD || 'devnextcloudadmin';
-const CALENDAR_NAME = import.meta.env.CALENDAR_NAME || 'personal';
+const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
+const NC_USER = process.env.NEXTCLOUD_CALDAV_USER || 'admin';
+const NC_PASS = process.env.NEXTCLOUD_CALDAV_PASSWORD || 'devnextcloudadmin';
+const CALENDAR_NAME = process.env.CALENDAR_NAME || 'personal';
 
 // Configurable working hours (admin sets these)
-const WORK_START_HOUR = parseInt(import.meta.env.WORK_START_HOUR || '9');
-const WORK_END_HOUR = parseInt(import.meta.env.WORK_END_HOUR || '17');
-const SLOT_DURATION_MIN = parseInt(import.meta.env.SLOT_DURATION_MIN || '60');
+const WORK_START_HOUR = parseInt(process.env.WORK_START_HOUR || '9');
+const WORK_END_HOUR = parseInt(process.env.WORK_END_HOUR || '17');
+const SLOT_DURATION_MIN = parseInt(process.env.SLOT_DURATION_MIN || '60');
 // Working days: 1=Mon, 2=Tue, ..., 5=Fri
-const WORK_DAYS = (import.meta.env.WORK_DAYS || '1,2,3,4,5').split(',').map(Number);
+const WORK_DAYS = (process.env.WORK_DAYS || '1,2,3,4,5').split(',').map(Number);
 // How many days ahead to show slots
-const BOOKING_HORIZON_DAYS = parseInt(import.meta.env.BOOKING_HORIZON_DAYS || '21');
+const BOOKING_HORIZON_DAYS = parseInt(process.env.BOOKING_HORIZON_DAYS || '21');
 // Minimum hours in advance for a booking
-const MIN_ADVANCE_HOURS = parseInt(import.meta.env.MIN_ADVANCE_HOURS || '24');
+const MIN_ADVANCE_HOURS = parseInt(process.env.MIN_ADVANCE_HOURS || '24');
 
 const CALDAV_BASE = `${NC_URL}/remote.php/dav/calendars/${NC_USER}/${CALENDAR_NAME}`;
 
@@ -216,9 +216,9 @@ export async function createCalendarEvent(params: {
 
   const ical = `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//mentolder.de//Booking//DE
+PRODID:-//${BRAND_NAME}//Booking//DE
 BEGIN:VEVENT
-UID:${uid}@mentolder.de
+UID:${uid}@${BRAND_NAME}
 DTSTART:${formatDt(params.start)}
 DTEND:${formatDt(params.end)}
 SUMMARY:${params.summary}

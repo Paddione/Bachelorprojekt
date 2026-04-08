@@ -11,16 +11,16 @@
 NAMESPACE="${NAMESPACE:-workspace}"
 
 # ── Environment-aware URL configuration ─────────────────────────
-# For prod tier: set PROD_DOMAIN (e.g. "wbhprojekt.ipv64.de")
+# For prod tier: set PROD_DOMAIN (e.g. "${PROD_DOMAIN}")
 # URLs are then https://auth-PROD_DOMAIN, https://chat-PROD_DOMAIN, etc.
 # For local tier: defaults to http://auth.localhost, http://chat.localhost
 if [[ -n "${PROD_DOMAIN:-}" ]]; then
   PROTO="${PROTO:-https}"
-  KC_URL="${KC_URL:-${PROTO}://auth-${PROD_DOMAIN}}"
-  MM_URL="${MM_URL:-${PROTO}://chat-${PROD_DOMAIN}/api/v4}"
-  NC_URL="${NC_URL:-${PROTO}://files-${PROD_DOMAIN}}"
-  COLLAB_URL="${COLLAB_URL:-${PROTO}://office-${PROD_DOMAIN}}"
-  MEET_URL="${MEET_URL:-${PROTO}://meet-${PROD_DOMAIN}}"
+  KC_URL="${KC_URL:-${PROTO}://auth.${PROD_DOMAIN}}"
+  MM_URL="${MM_URL:-${PROTO}://chat.${PROD_DOMAIN}/api/v4}"
+  NC_URL="${NC_URL:-${PROTO}://files.${PROD_DOMAIN}}"
+  COLLAB_URL="${COLLAB_URL:-${PROTO}://office.${PROD_DOMAIN}}"
+  MEET_URL="${MEET_URL:-${PROTO}://meet.${PROD_DOMAIN}}"
 else
   PROTO="${PROTO:-http}"
   KC_URL="${KC_URL:-${PROTO}://auth.localhost}"

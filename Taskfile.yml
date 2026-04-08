@@ -1,15 +1,56 @@
 # https://taskfile.dev
 version: "3"
 
+dotenv: ['.env']
+
+env:
+  PROD_DOMAIN: "{{.PROD_DOMAIN}}"
+  BRAND_NAME: "{{.BRAND_NAME}}"
+  CONTACT_EMAIL: "{{.CONTACT_EMAIL}}"
+  CONTACT_PHONE: "{{.CONTACT_PHONE}}"
+  CONTACT_CITY: "{{.CONTACT_CITY}}"
+  CONTACT_NAME: "{{.CONTACT_NAME}}"
+  INFRA_NAMESPACE: "{{.INFRA_NAMESPACE}}"
+  TLS_SECRET_NAME: "{{.TLS_SECRET_NAME}}"
+  SMTP_FROM: "{{.SMTP_FROM}}"
+
 vars:
   CLUSTER_NAME: dev
   REGISTRY: localhost:5000
   APP_NAME: demo-app
   APP_IMAGE: "{{.REGISTRY}}/{{.APP_NAME}}"
   # ── Domains ───────────────────────────────────────────────────────────
-  # Change PROD_DOMAIN once here, then run 'task domain:set -- new.tld'
-  # to propagate it across all prod config files.
-  PROD_DOMAIN: korczewski.de
+  # The base domain (e.g. example.com)
+  # Loaded from .env or uses default if not set.
+  PROD_DOMAIN:
+    sh: echo "${PROD_DOMAIN:-yourdomain.tld}"
+  # The brand name (e.g. My Brand)
+  BRAND_NAME:
+    sh: echo "${BRAND_NAME:-yourbrand.tld}"
+  # The contact email (e.g. info@example.com)
+  CONTACT_EMAIL:
+    sh: echo "${CONTACT_EMAIL:-info@yourdomain.tld}"
+  # The phone number displayed on the website
+  CONTACT_PHONE:
+    sh: echo "${CONTACT_PHONE:-+49 000 000 00 000}"
+  # The city/region displayed on the website
+  CONTACT_CITY:
+    sh: echo "${CONTACT_CITY:-YourCity}"
+  # The person name displayed on the website
+  CONTACT_NAME:
+    sh: echo "${CONTACT_NAME:-Firstname Lastname}"
+  # The Docker image name for the website
+  WEBSITE_IMAGE:
+    sh: echo "${WEBSITE_IMAGE:-workspace-website}"
+  # Infrastructure namespace for Traefik middlewares
+  INFRA_NAMESPACE:
+    sh: echo "${INFRA_NAMESPACE:-workspace-infra}"
+  # TLS secret name for wildcard certificate
+  TLS_SECRET_NAME:
+    sh: echo "${TLS_SECRET_NAME:-workspace-wildcard-tls}"
+  # SMTP sender address for production
+  SMTP_FROM:
+    sh: echo "${SMTP_FROM:-noreply@yourdomain.tld}"
   DEV_DOMAIN: localhost
 
 tasks:
@@ -21,7 +62,7 @@ tasks:
     preconditions:
       - sh: docker info > /dev/null 2>&1
         msg: "Docker is not running. Start Docker first."
-      - sh: "! k3d cluster list | grep -q {{.CLUSTER_NAME}}"
+      - sh: "k3d cluster list | grep -q {{.CLUSTER_NAME}} && exit 1 || exit 0"
         msg: "Cluster '{{.CLUSTER_NAME}}' already exists. Run 'task cluster:delete' first."
     cmds:
       - mkdir -p data
@@ -208,38 +249,56 @@ tasks:
       - 'echo "  prepare-commit-msg: auto-prefixes commit message from branch name"'
 
   # ─────────────────────────────────────────────
-  # Domain Management
+  # Configuration Management
   # ─────────────────────────────────────────────
   domain:set:
-    desc: "Change the production domain across all config files (usage: task domain:set -- new.tld)"
+    desc: "Change the production domain in .env (usage: task domain:set -- new.tld)"
     cmds:
       - |
         NEW="{{.CLI_ARGS}}"
-        OLD="{{.PROD_DOMAIN}}"
         if [ -z "$NEW" ]; then
           echo "Usage: task domain:set -- your.domain.tld"
-          echo "Current PROD_DOMAIN: $OLD"
+          echo "Current PROD_DOMAIN: {{.PROD_DOMAIN}}"
           exit 1
         fi
-        if [ "$OLD" = "$NEW" ]; then
-          echo "Domain is already '$OLD' — nothing to do."
-          exit 0
-        fi
-        echo "Replacing '$OLD' → '$NEW' in all prod config files..."
-        grep -rl "$OLD" \
-          prod/ k3s/ deploy/mcp/ingress.yaml \
-          k3d/website.yaml k3s/website-prod.yaml \
-          Taskfile.yml \
-          2>/dev/null | xargs sed -i "s|${OLD}|${NEW}|g"
-        echo "✓ Domain updated to '$NEW'"
-        echo "  Also update DNS: *.${NEW} → your server IP"
+        sed -i "s/^PROD_DOMAIN=.*/PROD_DOMAIN=$NEW/" .env
+        echo "✓ PROD_DOMAIN updated to '$NEW' in .env"
+        echo "  Update DNS: *.${NEW} → your server IP"
         echo "  Then run: task workspace:prod:deploy"
 
-  domain:show:
-    desc: Show currently configured domains (dev + prod)
+  brand:set:
+    desc: "Change the branding name in .env (usage: task brand:set -- NewBrand.de)"
     cmds:
-      - 'echo "  PROD_DOMAIN: {{.PROD_DOMAIN}}"'
-      - 'echo "  DEV_DOMAIN:  {{.DEV_DOMAIN}}"'
+      - |
+        NEW="{{.CLI_ARGS}}"
+        if [ -z "$NEW" ]; then
+          echo "Usage: task brand:set -- NewBrand.de"
+          echo "Current BRAND_NAME: {{.BRAND_NAME}}"
+          exit 1
+        fi
+        sed -i "s/^BRAND_NAME=.*/BRAND_NAME=$NEW/" .env
+        echo "✓ BRAND_NAME updated to '$NEW' in .env"
+
+  email:set:
+    desc: "Change the contact email in .env (usage: task email:set -- info@newbrand.de)"
+    cmds:
+      - |
+        NEW="{{.CLI_ARGS}}"
+        if [ -z "$NEW" ]; then
+          echo "Usage: task email:set -- info@yourbrand.tld"
+          echo "Current CONTACT_EMAIL: {{.CONTACT_EMAIL}}"
+          exit 1
+        fi
+        sed -i "s/^CONTACT_EMAIL=.*/CONTACT_EMAIL=$NEW/" .env
+        echo "✓ CONTACT_EMAIL updated to '$NEW' in .env"
+
+  config:show:
+    desc: Show currently configured variables from .env
+    cmds:
+      - 'echo "  PROD_DOMAIN:   {{.PROD_DOMAIN}}"'
+      - 'echo "  BRAND_NAME:    {{.BRAND_NAME}}"'
+      - 'echo "  CONTACT_EMAIL: {{.CONTACT_EMAIL}}"'
+      - 'echo "  DEV_DOMAIN:    {{.DEV_DOMAIN}}"'
       - echo ""
       - echo "Production subdomains:"
       - 'echo "  auth.{{.PROD_DOMAIN}}    (Keycloak)"'
@@ -250,7 +309,6 @@ tasks:
       - 'echo "  vault.{{.PROD_DOMAIN}}   (Vaultwarden)"'
       - 'echo "  billing.{{.PROD_DOMAIN}} (Invoice Ninja)"'
       - 'echo "  web.{{.PROD_DOMAIN}}     (Website - Astro)"'
-      - 'echo "  mcp.{{.PROD_DOMAIN}}     (OpenClaw MCP)"'
 
   # ─────────────────────────────────────────────
   # Utilities
@@ -302,6 +360,7 @@ tasks:
       - task: workspace:monitoring
       - task: workspace:post-setup
       - task: workspace:billing-setup
+      - task: workspace:stripe-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  OpenClaw (AI): http://ai.localhost"'
@@ -331,11 +390,12 @@ tasks:
         kubectl create configmap mattermost-proxy-config \
           --from-file="default.conf=mattermost/userinfo-proxy.conf" \
           -n workspace --dry-run=client -o yaml | kubectl apply -f -
+      - task: docs:configmap
       - |
-        kubectl create configmap docsify-index \
-          --from-file="index.html=docs-site/index.html" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
-      - kubectl apply -k k3d/
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
       # Wait for shared database, then services
       - |
         echo "Waiting for shared-db..."
@@ -362,7 +422,7 @@ tasks:
       - echo ""
       - 'echo "Run ''task workspace:post-setup'' to enable Nextcloud apps (calendar, contacts, oidc)."'
       - 'echo "Run ''task workspace:vaultwarden:seed'' to seed Vaultwarden with production secret templates (once)."'
-      - 'echo "Run ''task workspace:billing-setup'' to configure the billing bot slash command."'
+      - 'echo "Run ''task workspace:billing-setup'' to build the billing-bot image (token/slash-command are auto-provisioned)."'
       - 'echo "Run ''task workspace:monitoring'' to install Prometheus + Grafana (NFA-02)."'
       - 'echo "Run ''task ddns:deploy -- <api-key>'' to enable automatic DNS updates (dynamic IP only)."'
 
@@ -389,10 +449,15 @@ tasks:
       - 'echo "✓ billing-bot image pushed"'
 
   workspace:billing-setup:
-    desc: Build billing-bot and create /billing slash command in Mattermost
+    desc: Build and push billing-bot image (bot token + slash command provisioned automatically by billing-bot-init-job)
     deps: [workspace:billing-build]
     cmds:
-      - bash scripts/billing-bot-setup.sh
+      - 'echo "✓ billing-bot image built. Token and /billing slash command are provisioned automatically by billing-bot-init-job."'
+
+  workspace:stripe-setup:
+    desc: Register Stripe as payment gateway in Invoice Ninja
+    cmds:
+      - bash scripts/stripe-setup.sh
 
   workspace:post-setup:
     desc: Enable Nextcloud apps (calendar, contacts, OIDC) after initial deploy
@@ -460,18 +525,55 @@ tasks:
   workspace:prod:deploy:
     desc: Deploy workspace stack to k3s-production cluster
     preconditions:
-      - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
+      - sh: kubectl --context hetzner cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
       - sh: "! grep -q 'CHANGE_ME' prod/secrets.yaml"
         msg: "prod/secrets.yaml still contains CHANGE_ME — fill in SMTP_PASSWORD first."
     cmds:
-      - kubectl --context k3s-production apply -k prod/
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
+        export CONTACT_CITY="{{.CONTACT_CITY}}"
+        export CONTACT_NAME="{{.CONTACT_NAME}}"
+        export INFRA_NAMESPACE="{{.INFRA_NAMESPACE}}"
+        export TLS_SECRET_NAME="{{.TLS_SECRET_NAME}}"
+        export SMTP_FROM="{{.SMTP_FROM}}"
+        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context hetzner apply -f -
       - |
         echo "Waiting for vaultwarden rollout..."
-        kubectl --context k3s-production rollout status deployment/vaultwarden -n workspace --timeout=120s
+        kubectl --context hetzner rollout status deployment/vaultwarden -n workspace --timeout=120s
+      # Deploy website (separate namespace, not in main kustomization)
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
+        export CONTACT_CITY="{{.CONTACT_CITY}}"
+        export CONTACT_NAME="{{.CONTACT_NAME}}"
+        export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
+        # Apply base website manifests
+        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$WEBSITE_IMAGE" < k3d/website.yaml | kubectl --context hetzner apply -f -
+        # Patch prod-specific config (merge, not replace)
+        kubectl --context hetzner patch configmap website-config -n website --type merge -p "{\"data\":{
+          \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
+          \"SMTP_HOST\":\"smtp.mailbox.org\",
+          \"SMTP_PORT\":\"465\",
+          \"SMTP_SECURE\":\"true\",
+          \"NEXTCLOUD_EXTERNAL_URL\":\"https://files.${PROD_DOMAIN}\",
+          \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
+        }}"
+        # Apply prod IngressRoute (HTTPS + TLS)
+        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context hetzner apply -f -
+      - |
+        echo "Waiting for website rollout..."
+        kubectl --context hetzner rollout status deployment/website -n website --timeout=120s
+      - task: website:webhook:setup
       - 'echo "✓ Production deploy complete"'
       - 'echo "  Vaultwarden: https://vault.{{.PROD_DOMAIN}}"'
       - 'echo "  Keycloak:    https://auth.{{.PROD_DOMAIN}}"'
+      - 'echo "  Website:     https://web.{{.PROD_DOMAIN}}"'
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
@@ -502,28 +604,45 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
+  docs:configmap:
+    desc: Build docs-content ConfigMap from local docs/ directory
+    cmds:
+      - |
+        kubectl create configmap docs-content \
+          --from-file="index.html=docs-site/index.html" \
+          --from-file="README.md=docs/README.md" \
+          --from-file="_sidebar.md=docs/_sidebar.md" \
+          --from-file="architecture.md=docs/architecture.md" \
+          --from-file="services.md=docs/services.md" \
+          --from-file="keycloak.md=docs/keycloak.md" \
+          --from-file="migration.md=docs/migration.md" \
+          --from-file="scripts.md=docs/scripts.md" \
+          --from-file="tests.md=docs/tests.md" \
+          --from-file="security.md=docs/security.md" \
+          --from-file="troubleshooting.md=docs/troubleshooting.md" \
+          --from-file="requirements.md=docs/requirements.md" \
+          -n workspace --dry-run=client -o yaml | kubectl apply -f -
+
   docs:deploy:
-    desc: Deploy Docsify docs site into the workspace namespace (git-sync, no build needed)
+    desc: Deploy Docsify docs site into the workspace namespace
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: 'No cluster running. Run "task cluster:create" first.'
     cmds:
-      - |
-        kubectl create configmap docsify-index \
-          --from-file="index.html=docs-site/index.html" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
+      - task: docs:configmap
       - kubectl apply -f k3d/docs.yaml -n workspace
       - kubectl rollout status deployment/docs -n workspace --timeout=120s
       - echo ''
       - 'echo "✓ Docs deployed"'
-      - 'echo "  URL will match your ingress domain (e.g., http://docs.localhost)"'
+      - 'echo "  URL: http://docs.localhost"'
 
   docs:restart:
-    desc: Restart docs pod to pull latest content from GitHub
+    desc: Rebuild docs ConfigMap from local files and restart the docs pod
     cmds:
+      - task: docs:configmap
       - kubectl rollout restart deployment/docs -n workspace
       - kubectl rollout status deployment/docs -n workspace --timeout=120s
-      - echo '✓ Docs restarted with latest content from GitHub'
+      - echo '✓ Docs updated from local docs/ directory'
 
   docs:integrate-mattermost:
     desc: Integrate docs into Mattermost (channel bookmark + slash command)
@@ -545,7 +664,8 @@ tasks:
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
       - 'echo "Deploying OpenClaw MCP pods..."'
-      - kubectl apply -k deploy/mcp/
+      - |
+        kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME" | kubectl apply -f -
       - 'echo "Waiting for pods to roll out..."'
       - kubectl rollout status deployment/openclaw-mcp-core --timeout=120s
       - kubectl rollout status deployment/openclaw-mcp-apps --timeout=90s
@@ -624,14 +744,21 @@ tasks:
     desc: Build the Astro website Docker image
     cmds:
       - |
-        docker build -t mentolder-website:latest website/
-        echo "✓ Docker image built: mentolder-website:latest"
+        docker build -t {{.WEBSITE_IMAGE}}:latest \
+          --build-arg PROD_DOMAIN="{{.PROD_DOMAIN}}" \
+          --build-arg BRAND_NAME="{{.BRAND_NAME}}" \
+          --build-arg CONTACT_EMAIL="{{.CONTACT_EMAIL}}" \
+          --build-arg CONTACT_PHONE="{{.CONTACT_PHONE}}" \
+          --build-arg CONTACT_CITY="{{.CONTACT_CITY}}" \
+          --build-arg CONTACT_NAME="{{.CONTACT_NAME}}" \
+          website/
+        echo "✓ Docker image built: {{.WEBSITE_IMAGE}}:latest"
 
   website:build:import:
     desc: Build and import website image into k3d cluster
     cmds:
       - task: website:build
-      - k3d image import mentolder-website:latest -c {{.CLUSTER_NAME}}
+      - k3d image import {{.WEBSITE_IMAGE}}:latest -c {{.CLUSTER_NAME}}
       - echo "✓ Image imported into k3d cluster"
 
   website:deploy:
@@ -641,10 +768,19 @@ tasks:
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
       - task: website:build:import
-      - kubectl apply -f k3d/website.yaml
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export BRAND_NAME="{{.BRAND_NAME}}"
+        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
+        export CONTACT_CITY="{{.CONTACT_CITY}}"
+        export CONTACT_NAME="{{.CONTACT_NAME}}"
+        export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
+        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$WEBSITE_IMAGE" < k3d/website.yaml | kubectl apply -f -
       - |
         echo "Waiting for website..."
         kubectl rollout status deployment/website -n website --timeout=120s
+      - task: website:webhook:setup
       - echo ""
       - 'echo "✓ Website deployed"'
       - 'echo "  URL: http://web.{{.DEV_DOMAIN}}"'
@@ -707,7 +843,7 @@ tasks:
         echo "Waiting for whisper (model download may take several minutes on first start)..."
         kubectl rollout status deployment/whisper -n workspace --timeout=600s
       - echo "✓ Whisper deployed"
-      - echo "  Endpoint: http://whisper.workspace.svc.cluster.local:8000"
+      - 'echo "  Endpoint: http://whisper.workspace.svc.cluster.local:8000"'
 
   whisper:status:
     desc: Show whisper deployment status
@@ -735,7 +871,7 @@ tasks:
         kubectl rollout status deployment/outline -n workspace --timeout=180s
       - echo ""
       - echo "✓ Outline deployed"
-      - echo "  URL: http://wiki.{{.DEV_DOMAIN}}"
+      - 'echo "  URL: http://wiki.{{.DEV_DOMAIN}}"'
 
   outline:status:
     desc: Show Outline deployment status
@@ -826,7 +962,7 @@ tasks:
             --channel "${CHANNEL_ID}" \
             --user "${ADMIN_ID}" \
             --display-name "Website-Bot" \
-            --description "Kontaktformular-Eingaenge von mentolder.de" \
+            --description "Kontaktformular-Eingaenge von ${BRAND_NAME}" \
             --json 2>/dev/null | \
           python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'] if isinstance(d,dict) else d[0]['id'])" 2>/dev/null) || true
 
@@ -886,7 +1022,7 @@ tasks:
     desc: Show DDNS updater status and last known IP
     cmds:
       - kubectl get cronjob ddns-updater -n workspace 2>/dev/null || echo "(ddns-updater not deployed)"
-      - kubectl get configmap ddns-last-ip -n workspace -o jsonpath='Last known IP: {.data.ip}{"\n"}' 2>/dev/null || true
+      - 'kubectl get configmap ddns-last-ip -n workspace -o jsonpath=''Last known IP: {.data.ip}{"\n"}'' 2>/dev/null || true'
       - kubectl get jobs -n workspace -l job-name --sort-by=.metadata.creationTimestamp 2>/dev/null | tail -5
 
   ddns:teardown:
@@ -921,7 +1057,7 @@ tasks:
           --set certManager.serviceAccountName=cert-manager \
           --wait --timeout=120s
       - echo "✓ cert-manager + lego webhook installed"
-      - echo "Next: run 'task cert:secret -- <your-ipv64-api-key>' to store credentials"
+      - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key>'' to store credentials"'
 
   cert:secret:
     desc: "Store the ipv64 API key as a Secret (usage: task cert:secret -- <API_KEY>)"
@@ -936,7 +1072,15 @@ tasks:
           --namespace cert-manager \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
           --dry-run=client -o yaml | kubectl apply -f -
-      - echo "✓ Secret 'ipv64-api-key' created/updated in namespace cert-manager"
+      - |
+        kubectl create secret generic ipv64-api-key \
+          --namespace workspace \
+          --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
+          --dry-run=client -o yaml | kubectl apply -f -
+      - |
+        kubectl set env deployment/cert-manager-lego-webhook \
+          -n cert-manager --from=secret/ipv64-api-key
+      - echo "✓ Secret 'ipv64-api-key' created/updated in cert-manager + workspace namespaces"
 
   cert:status:
     desc: Show wildcard certificate and ClusterIssuer status

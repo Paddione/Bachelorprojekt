@@ -18,7 +18,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:24.0
+          image: quay.io/keycloak/keycloak:26.6
           command: ["/opt/keycloak/realm-template/import-entrypoint.sh"]
           env:
             - name: KC_DB
@@ -103,6 +103,21 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: VAULT_DOMAIN
+            - name: AI_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: AI_DOMAIN
+            - name: OPENCLAW_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OPENCLAW_OIDC_SECRET
+            - name: OUTLINE_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OUTLINE_OIDC_SECRET
             - name: TZ
               value: Europe/Berlin
           ports:

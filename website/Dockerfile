@@ -2,10 +2,30 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
+# Install envsubst (via gettext)
+RUN apk add --no-cache gettext
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+# Substitute variables in all .astro, .ts, .js, .svelte, .css files
+# before building the website.
+ARG PROD_DOMAIN
+ARG BRAND_NAME
+ARG CONTACT_EMAIL
+ARG CONTACT_PHONE
+ARG CONTACT_CITY
+ARG CONTACT_NAME
+ENV PROD_DOMAIN=$PROD_DOMAIN
+ENV BRAND_NAME=$BRAND_NAME
+ENV CONTACT_EMAIL=$CONTACT_EMAIL
+ENV CONTACT_PHONE=$CONTACT_PHONE
+ENV CONTACT_CITY=$CONTACT_CITY
+ENV CONTACT_NAME=$CONTACT_NAME
+RUN find src -type f \( -name "*.astro" -o -name "*.ts" -o -name "*.js" -o -name "*.svelte" -o -name "*.css" \) -exec sh -c 'envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_PHONE \$CONTACT_CITY \$CONTACT_NAME" < "$1" > "$1.tmp" && mv "$1.tmp" "$1"' _ {} \;
+
 RUN npm run build
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────

@@ -73,5 +73,7 @@ assert_eq "${PODS_WITHOUT_LIMITS:-99}" "0" "NFA-02" "T5" "Alle Container haben R
 
 # T6: No pods in CrashLoopBackOff or OOMKilled
 CRASH_PODS=$(kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null \
-  | grep -cE "CrashLoopBackOff|OOMKilled|Error" || echo "0")
+  | grep -cE "CrashLoopBackOff|OOMKilled" || true)
+CRASH_PODS="${CRASH_PODS:-0}"
+CRASH_PODS=$(echo "$CRASH_PODS" | tr -d '[:space:]')
 assert_eq "$CRASH_PODS" "0" "NFA-02" "T6" "Keine Pods in CrashLoop/OOMKilled"

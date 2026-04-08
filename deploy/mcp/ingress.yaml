@@ -1,8 +1,8 @@
 # MCP Gateway — single-domain Traefik IngressRoute for all MCP servers
-# Access: https://mcp-korczewski.de/{service}/mcp
+# Access: https://mcp-${PROD_DOMAIN}/{service}/mcp
 # Security: IP-restricted to internal networks only
 #
-# Requires DNS: mcp-korczewski.de → 217.195.149.75
+# Requires DNS: mcp-${PROD_DOMAIN} → 217.195.149.75
 
 # ── IP Allowlist — restrict MCP access to internal networks ──────
 apiVersion: traefik.io/v1alpha1
@@ -38,9 +38,9 @@ spec:
       - name: mcp-ipallow
       - name: mcp-strip-service-prefix
       - name: security-headers
-        namespace: korczewski-infra
+        namespace: ${INFRA_NAMESPACE}
       - name: compression
-        namespace: korczewski-infra
+        namespace: ${INFRA_NAMESPACE}
 ---
 # ── IngressRoute: path-based routing to all MCP servers ──────────
 apiVersion: traefik.io/v1alpha1
@@ -53,7 +53,7 @@ spec:
   routes:
     # ── Kubernetes MCP ────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/kubernetes`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/kubernetes`)
       middlewares:
         - name: mcp-chain
       services:
@@ -62,7 +62,7 @@ spec:
 
     # ── PostgreSQL MCP ────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/postgres`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/postgres`)
       middlewares:
         - name: mcp-chain
       services:
@@ -71,7 +71,7 @@ spec:
 
     # ── Mattermost MCP ────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/mattermost`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/mattermost`)
       middlewares:
         - name: mcp-chain
       services:
@@ -80,7 +80,7 @@ spec:
 
     # ── Nextcloud MCP ─────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/nextcloud`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/nextcloud`)
       middlewares:
         - name: mcp-chain
       services:
@@ -89,7 +89,7 @@ spec:
 
     # ── Invoice Ninja MCP ─────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/invoiceninja`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/invoiceninja`)
       middlewares:
         - name: mcp-chain
       services:
@@ -98,7 +98,7 @@ spec:
 
     # ── Keycloak MCP (SSE transport) ──────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/keycloak`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/keycloak`)
       middlewares:
         - name: mcp-chain
       services:
@@ -107,7 +107,7 @@ spec:
 
     # ── GitHub MCP ────────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/github`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/github`)
       middlewares:
         - name: mcp-chain
       services:
@@ -116,7 +116,7 @@ spec:
 
     # ── Stripe MCP ────────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp-korczewski.de`) && PathPrefix(`/stripe`)
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/stripe`)
       middlewares:
         - name: mcp-chain
       services:
@@ -128,14 +128,14 @@ spec:
     # match first, everything else falls through to OpenClaw.
     # No stripPrefix needed — OpenClaw serves from /.
     - kind: Rule
-      match: Host(`mcp-korczewski.de`)
+      match: Host(`mcp-${PROD_DOMAIN}`)
       priority: 1
       middlewares:
         - name: mcp-ipallow
         - name: security-headers
-          namespace: korczewski-infra
+          namespace: ${INFRA_NAMESPACE}
         - name: compression
-          namespace: korczewski-infra
+          namespace: ${INFRA_NAMESPACE}
       services:
         - name: openclaw
           namespace: workspace

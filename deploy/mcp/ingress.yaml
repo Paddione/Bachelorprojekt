@@ -35,10 +35,6 @@ spec:
     middlewares:
       - name: mcp-forwardauth
       - name: mcp-strip-service-prefix
-      - name: security-headers
-        namespace: ${INFRA_NAMESPACE}
-      - name: compression
-        namespace: ${INFRA_NAMESPACE}
 ---
 # ── IngressRoute: path-based routing to all MCP servers ──────────
 apiVersion: traefik.io/v1alpha1

@@ -12,5 +12,9 @@ resources:
   # Standalone
   - openclaw-mcp-github.yaml      # replicas=0 — task mcp:set-github-pat to enable
   - openclaw-mcp-stripe.yaml      # Stripe payment MCP — replace STRIPE_SECRET_KEY to activate
+  # Auth + Status
+  - mcp-tokens.yaml             # Bearer tokens for Claude Code access
+  - mcp-auth-proxy.yaml         # ForwardAuth proxy (token validation + role enforcement)
+  - mcp-status.yaml             # Health status page (replaces OpenClaw WebUI)
   # Ingress — exposes MCP servers via mcp-*.localhost for external clients
   - ingress.yaml

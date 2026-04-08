@@ -10,6 +10,12 @@ env:
   CONTACT_PHONE: "{{.CONTACT_PHONE}}"
   CONTACT_CITY: "{{.CONTACT_CITY}}"
   CONTACT_NAME: "{{.CONTACT_NAME}}"
+  LEGAL_STREET: "{{.LEGAL_STREET}}"
+  LEGAL_ZIP: "{{.LEGAL_ZIP}}"
+  LEGAL_JOBTITLE: "{{.LEGAL_JOBTITLE}}"
+  LEGAL_CHAMBER: "{{.LEGAL_CHAMBER}}"
+  LEGAL_UST_ID: "{{.LEGAL_UST_ID}}"
+  LEGAL_WEBSITE: "{{.LEGAL_WEBSITE}}"
   INFRA_NAMESPACE: "{{.INFRA_NAMESPACE}}"
   TLS_SECRET_NAME: "{{.TLS_SECRET_NAME}}"
   SMTP_FROM: "{{.SMTP_FROM}}"
@@ -39,6 +45,19 @@ vars:
   # The person name displayed on the website
   CONTACT_NAME:
     sh: echo "${CONTACT_NAME:-Firstname Lastname}"
+  # Impressum / legal details
+  LEGAL_STREET:
+    sh: echo "${LEGAL_STREET:-Musterstraße 1}"
+  LEGAL_ZIP:
+    sh: echo "${LEGAL_ZIP:-00000}"
+  LEGAL_JOBTITLE:
+    sh: echo "${LEGAL_JOBTITLE:-Coach, Berater, Trainer}"
+  LEGAL_CHAMBER:
+    sh: echo "${LEGAL_CHAMBER:-Entfällt}"
+  LEGAL_UST_ID:
+    sh: echo "${LEGAL_UST_ID:-Nicht vorhanden}"
+  LEGAL_WEBSITE:
+    sh: echo "${LEGAL_WEBSITE:-${PROD_DOMAIN}}"
   # The Docker image name for the website
   WEBSITE_IMAGE:
     sh: echo "${WEBSITE_IMAGE:-workspace-website}"
@@ -363,7 +382,7 @@ tasks:
       - task: workspace:stripe-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
-      - 'echo "  OpenClaw (AI): http://ai.localhost"'
+      - 'echo "  MCP Status:   http://ai.localhost"'
       - 'echo "  Monitoring:    http://localhost:3000 (Grafana)"'
 
   down:
@@ -401,14 +420,13 @@ tasks:
         echo "Waiting for shared-db..."
         kubectl rollout status deployment/shared-db -n workspace --timeout=120s
       - |
-        for svc in keycloak mm-keycloak-proxy mattermost nextcloud spreed-signaling collabora whiteboard openclaw opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
+        for svc in keycloak mm-keycloak-proxy mattermost nextcloud spreed-signaling collabora whiteboard opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
           echo "Waiting for $svc..."
           kubectl rollout status deployment/$svc -n workspace --timeout=300s || \
             echo "WARNING: $svc not ready yet"
         done
       - echo ""
       - 'echo "✓ Workspace MVP deployed"'
-      - task: workspace:openclaw:setup
       - 'echo "  Keycloak:    http://auth.localhost"'
       - 'echo "  Mattermost:  http://chat.localhost"'
       - 'echo "  Nextcloud:   http://files.localhost"'
@@ -425,21 +443,6 @@ tasks:
       - 'echo "Run ''task workspace:billing-setup'' to build the billing-bot image (token/slash-command are auto-provisioned)."'
       - 'echo "Run ''task workspace:monitoring'' to install Prometheus + Grafana (NFA-02)."'
       - 'echo "Run ''task ddns:deploy -- <api-key>'' to enable automatic DNS updates (dynamic IP only)."'
-
-  workspace:openclaw:setup:
-    desc: Register all MCP servers in the OpenClaw database
-    cmds:
-      - |
-        kubectl wait --for=condition=Ready pod -l app=openclaw -n workspace --timeout=120s
-        OC_POD=$(kubectl get pod -n workspace -l app=openclaw -o jsonpath='{.items[0].metadata.name}')
-        echo "Registering MCP servers in OpenClaw ($OC_POD)..."
-        kubectl cp scripts/openclaw-mcp-register.py workspace/$OC_POD:/tmp/mcp-register.py
-        kubectl exec -n workspace $OC_POD -- python3 /tmp/mcp-register.py
-        kubectl exec -n workspace $OC_POD -- rm /tmp/mcp-register.py
-        # Restart pod to pick up changes (especially if in config table)
-        kubectl rollout restart deployment/openclaw -n workspace
-        kubectl rollout status deployment/openclaw -n workspace --timeout=120s
-      - echo "✓ MCP servers registered in OpenClaw"
 
   workspace:billing-build:
     desc: Build and push billing-bot image to local registry
@@ -670,18 +673,20 @@ tasks:
       - kubectl rollout status deployment/openclaw-mcp-core --timeout=120s
       - kubectl rollout status deployment/openclaw-mcp-apps --timeout=90s
       - kubectl rollout status deployment/openclaw-mcp-auth --timeout=120s
-      - 'echo "✓ All MCP pods deployed (3 pods, 7 containers)"'
+      - kubectl rollout status deployment/mcp-auth-proxy --timeout=60s
+      - kubectl rollout status deployment/mcp-status --timeout=60s
+      - 'echo "✓ All MCP pods deployed (3 pods + auth proxy + status page)"'
       - task: mcp:status
 
   mcp:status:
     desc: Show status of all OpenClaw MCP pods and containers
     cmds:
       - 'echo "=== MCP Pods ==="'
-      - kubectl get pods -l 'app in (openclaw-mcp-core,openclaw-mcp-apps,openclaw-mcp-auth,mcp-github)' -o wide
+      - kubectl get pods -l 'app in (openclaw-mcp-core,openclaw-mcp-apps,openclaw-mcp-auth,mcp-github,mcp-auth-proxy,mcp-status)' -o wide
       - 'echo ""'
       - 'echo "=== Container Status (per pod) ==="'
       - |
-        for pod in $(kubectl get pods -l 'app in (openclaw-mcp-core,openclaw-mcp-apps,openclaw-mcp-auth)' -o name 2>/dev/null); do
+        for pod in $(kubectl get pods -l 'app in (openclaw-mcp-core,openclaw-mcp-apps,openclaw-mcp-auth,mcp-auth-proxy,mcp-status)' -o name 2>/dev/null); do
           echo "  $pod:"
           kubectl get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}'
         done
@@ -738,6 +743,73 @@ tasks:
       - 'echo "✓ GitHub PAT updated and mcp-github restarted"'
 
   # ─────────────────────────────────────────────
+  # Claude Code Setup
+  # ─────────────────────────────────────────────
+  claude-code:setup:
+    desc: "Generate Claude Code settings.json (usage: task claude-code:setup -- cluster|business)"
+    cmds:
+      - |
+        ROLE="{{.CLI_ARGS}}"
+        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
+          echo "Usage: task claude-code:setup -- cluster|business"
+          echo ""
+          echo "  cluster  -- All 9 MCP servers (for platform admin)"
+          echo "  business -- 4 business MCP servers (for business user)"
+          exit 1
+        fi
+
+        TEMPLATE="claude-code/${ROLE}.settings.json"
+        if [ ! -f "$TEMPLATE" ]; then
+          echo "ERROR: Template $TEMPLATE not found"
+          exit 1
+        fi
+
+        # Read token from k8s Secret
+        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
+        TOKEN=$(kubectl get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        if [ -z "$TOKEN" ]; then
+          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
+          echo "Deploy MCP first: task mcp:deploy"
+          exit 1
+        fi
+
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export CLUSTER_TOKEN="$TOKEN"
+        export BUSINESS_TOKEN="$TOKEN"
+
+        OUTPUT="$HOME/.claude/settings.json"
+        mkdir -p "$(dirname "$OUTPUT")"
+
+        envsubst < "$TEMPLATE" > "$OUTPUT"
+        echo "Claude Code settings written to $OUTPUT"
+        echo "  Role: $ROLE"
+        echo "  MCP endpoint: https://mcp-{{.PROD_DOMAIN}}"
+        echo ""
+        echo "Configured servers:"
+        grep -o '"[a-z]*":' "$OUTPUT" | tr -d '":' | sed 's/^/  - /'
+
+  claude-code:rotate-tokens:
+    desc: Generate new MCP access tokens and update the Secret
+    cmds:
+      - |
+        NEW_CLUSTER=$(openssl rand -hex 32)
+        NEW_BUSINESS=$(openssl rand -hex 32)
+
+        kubectl patch secret mcp-tokens --type='json' -p="[
+          {\"op\":\"replace\",\"path\":\"/data/CLUSTER_TOKEN\",\"value\":\"$(echo -n $NEW_CLUSTER | base64 -w0)\"},
+          {\"op\":\"replace\",\"path\":\"/data/BUSINESS_TOKEN\",\"value\":\"$(echo -n $NEW_BUSINESS | base64 -w0)\"}
+        ]"
+
+        kubectl rollout restart deployment/mcp-auth-proxy
+        kubectl rollout status deployment/mcp-auth-proxy --timeout=60s
+
+        echo "MCP tokens rotated"
+        echo ""
+        echo "IMPORTANT: Re-run 'task claude-code:setup -- cluster' and"
+        echo "           'task claude-code:setup -- business' on each machine"
+        echo "           to update the local Claude Code config."
+
+  # ─────────────────────────────────────────────
   # Website (Astro + Svelte)
   # ─────────────────────────────────────────────
   website:build:
@@ -751,6 +823,12 @@ tasks:
           --build-arg CONTACT_PHONE="{{.CONTACT_PHONE}}" \
           --build-arg CONTACT_CITY="{{.CONTACT_CITY}}" \
           --build-arg CONTACT_NAME="{{.CONTACT_NAME}}" \
+          --build-arg LEGAL_STREET="{{.LEGAL_STREET}}" \
+          --build-arg LEGAL_ZIP="{{.LEGAL_ZIP}}" \
+          --build-arg LEGAL_JOBTITLE="{{.LEGAL_JOBTITLE}}" \
+          --build-arg LEGAL_CHAMBER="{{.LEGAL_CHAMBER}}" \
+          --build-arg LEGAL_UST_ID="{{.LEGAL_UST_ID}}" \
+          --build-arg LEGAL_WEBSITE="{{.LEGAL_WEBSITE}}" \
           website/
         echo "✓ Docker image built: {{.WEBSITE_IMAGE}}:latest"
 

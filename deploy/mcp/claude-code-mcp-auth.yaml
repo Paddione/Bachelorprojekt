@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════════════════════
-# openclaw-mcp-auth — Identity & access: Keycloak SSO management
+# claude-code-mcp-auth — Identity & access: Keycloak SSO management
 #
 # Separate pod because: Java/Quarkus (256MB+ baseline), SSE transport
 # (different protocol from the streamable-http servers), JWT passthrough auth.
@@ -13,18 +13,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openclaw-mcp-auth
+  name: claude-code-mcp-auth
   labels:
-    app: openclaw-mcp-auth
+    app: claude-code-mcp-auth
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: openclaw-mcp-auth
+      app: claude-code-mcp-auth
   template:
     metadata:
       labels:
-        app: openclaw-mcp-auth
+        app: claude-code-mcp-auth
     spec:
       containers:
         - name: keycloak
@@ -54,10 +54,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: openclaw-mcp-auth
+  name: claude-code-mcp-auth
 spec:
   selector:
-    app: openclaw-mcp-auth
+    app: claude-code-mcp-auth
   ports:
     - name: keycloak
       port: 8080

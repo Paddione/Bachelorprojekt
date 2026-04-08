@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: openclaw-agent
+  name: claude-code-agent
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: openclaw-agent
+  name: claude-code-agent
 rules:
   # ─── Read access to Pods and Deployments ──────────────────────
   - apiGroups: [""]
@@ -31,12 +31,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: openclaw-agent
+  name: claude-code-agent
 subjects:
   - kind: ServiceAccount
-    name: openclaw-agent
+    name: claude-code-agent
     namespace: default
 roleRef:
   kind: ClusterRole
-  name: openclaw-agent
+  name: claude-code-agent
   apiGroup: rbac.authorization.k8s.io

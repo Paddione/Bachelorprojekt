@@ -543,7 +543,7 @@ tasks:
         export INFRA_NAMESPACE="{{.INFRA_NAMESPACE}}"
         export TLS_SECRET_NAME="{{.TLS_SECRET_NAME}}"
         export SMTP_FROM="{{.SMTP_FROM}}"
-        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context hetzner apply -f -
+        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context hetzner apply --server-side --force-conflicts -f -
       - |
         echo "Waiting for vaultwarden rollout..."
         kubectl --context hetzner rollout status deployment/vaultwarden -n workspace --timeout=120s
@@ -577,6 +577,62 @@ tasks:
       - 'echo "  Vaultwarden: https://vault.{{.PROD_DOMAIN}}"'
       - 'echo "  Keycloak:    https://auth.{{.PROD_DOMAIN}}"'
       - 'echo "  Website:     https://web.{{.PROD_DOMAIN}}"'
+
+  # ─────────────────────────────────────────────
+  # HA Cluster (3-node Hetzner)
+  # ─────────────────────────────────────────────
+  ha:setup:
+    desc: Bootstrap 3-node k3s HA cluster on Hetzner (run once)
+    cmds:
+      - ./scripts/setup-ha-cluster.sh
+
+  ha:import-image:
+    desc: "Build a local Docker image and import to all HA nodes (usage: task ha:import-image -- <path> <image:tag>)"
+    vars:
+      BUILD_PATH: '{{index .CLI_ARGS_LIST 0}}'
+      IMAGE_TAG: '{{index .CLI_ARGS_LIST 1}}'
+      SSH_KEY: "$HOME/.ssh/id_ed25519_hetzner"
+      HA_NODES: "178.104.169.206 46.225.125.59 178.104.159.79"
+    cmds:
+      - docker build -t {{.IMAGE_TAG}} {{.BUILD_PATH}}
+      - docker save {{.IMAGE_TAG}} -o /tmp/ha-image-import.tar
+      - |
+        for IP in {{.HA_NODES}}; do
+          echo "  Importing to $IP..."
+          scp -o StrictHostKeyChecking=no -i {{.SSH_KEY}} /tmp/ha-image-import.tar root@$IP:/tmp/
+          ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@$IP "k3s ctr images import /tmp/ha-image-import.tar && rm /tmp/ha-image-import.tar"
+        done
+        rm -f /tmp/ha-image-import.tar
+      - echo "✓ {{.IMAGE_TAG}} imported to all HA nodes"
+
+  ha:cert-renew:
+    desc: Renew wildcard TLS cert via acme.sh on node 1 and update K8s secret
+    vars:
+      SSH_KEY: "$HOME/.ssh/id_ed25519_hetzner"
+      NODE1_IP: "178.104.169.206"
+    cmds:
+      - |
+        ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} \
+          'export IPv64_Token="$(cat /root/.acme.sh/account.conf 2>/dev/null | grep SAVED_IPv64_Token | cut -d= -f2 | tr -d "'\''\"" || echo "")" && \
+           /root/.acme.sh/acme.sh --renew -d "*.mentolder.de" -d "mentolder.de" --ecc'
+      - |
+        echo "Updating K8s TLS secret..."
+        CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.mentolder.de_ecc/fullchain.cer'" | base64 -w0)
+        KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.mentolder.de_ecc/*.mentolder.de.key'" | base64 -w0)
+        kubectl --context hetzner patch secret workspace-wildcard-tls -n workspace \
+          -p "{\"data\":{\"tls.crt\":\"$CERT\",\"tls.key\":\"$KEY\"}}"
+      - echo "✓ Wildcard cert renewed and K8s secret updated"
+
+  ha:status:
+    desc: Show HA cluster node and pod status
+    cmds:
+      - kubectl --context hetzner get nodes -o wide
+      - echo "---"
+      - kubectl --context hetzner get pods -n workspace --sort-by=.metadata.name
+      - echo "---"
+      - kubectl --context hetzner get pods -n website --sort-by=.metadata.name
+      - echo "---"
+      - kubectl --context hetzner get certificate -n workspace
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
@@ -653,7 +709,7 @@ tasks:
       - bash scripts/mattermost-docs-integration.sh
 
   # ─────────────────────────────────────────────
-  # OpenClaw MCP Servers
+  # Claude Code MCP Servers
   # ─────────────────────────────────────────────
   mcp:select:
     desc: Interactive MCP server selector (pick env + servers → .mcp.json)
@@ -661,38 +717,38 @@ tasks:
       - scripts/mcp-select.sh
 
   mcp:deploy:
-    desc: Deploy all OpenClaw MCP pods (core + apps + auth)
+    desc: Deploy all Claude Code MCP pods (core + apps + auth)
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
-      - 'echo "Deploying OpenClaw MCP pods..."'
+      - 'echo "Deploying Claude Code MCP pods..."'
       - |
         kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME" | kubectl apply -f -
       - 'echo "Waiting for pods to roll out..."'
-      - kubectl rollout status deployment/openclaw-mcp-core --timeout=120s
-      - kubectl rollout status deployment/openclaw-mcp-apps --timeout=90s
-      - kubectl rollout status deployment/openclaw-mcp-auth --timeout=120s
+      - kubectl rollout status deployment/claude-code-mcp-core --timeout=120s
+      - kubectl rollout status deployment/claude-code-mcp-apps --timeout=90s
+      - kubectl rollout status deployment/claude-code-mcp-auth --timeout=120s
       - kubectl rollout status deployment/mcp-auth-proxy --timeout=60s
       - kubectl rollout status deployment/mcp-status --timeout=60s
       - 'echo "✓ All MCP pods deployed (3 pods + auth proxy + status page)"'
       - task: mcp:status
 
   mcp:status:
-    desc: Show status of all OpenClaw MCP pods and containers
+    desc: Show status of all Claude Code MCP pods and containers
     cmds:
       - 'echo "=== MCP Pods ==="'
-      - kubectl get pods -l 'app in (openclaw-mcp-core,openclaw-mcp-apps,openclaw-mcp-auth,mcp-github,mcp-auth-proxy,mcp-status)' -o wide
+      - kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-github,mcp-auth-proxy,mcp-status)' -o wide
       - 'echo ""'
       - 'echo "=== Container Status (per pod) ==="'
       - |
-        for pod in $(kubectl get pods -l 'app in (openclaw-mcp-core,openclaw-mcp-apps,openclaw-mcp-auth,mcp-auth-proxy,mcp-status)' -o name 2>/dev/null); do
+        for pod in $(kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-auth-proxy,mcp-status)' -o name 2>/dev/null); do
           echo "  $pod:"
           kubectl get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}'
         done
       - 'echo ""'
       - 'echo "=== MCP Endpoints ==="'
-      - kubectl get configmap openclaw-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
+      - kubectl get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
 
   mcp:logs:
     desc: "Tail logs for a container (usage: task mcp:logs -- core/mattermost or apps/nextcloud)"
@@ -701,19 +757,19 @@ tasks:
         POD_PART=$(echo "{{.CLI_ARGS}}" | cut -d/ -f1)
         CONTAINER=$(echo "{{.CLI_ARGS}}" | cut -d/ -f2)
         if [ -z "$CONTAINER" ]; then
-          kubectl logs deployment/openclaw-mcp-$POD_PART -f --tail=50 --all-containers
+          kubectl logs deployment/claude-code-mcp-$POD_PART -f --tail=50 --all-containers
         else
-          kubectl logs deployment/openclaw-mcp-$POD_PART -c $CONTAINER -f --tail=50
+          kubectl logs deployment/claude-code-mcp-$POD_PART -c $CONTAINER -f --tail=50
         fi
 
   mcp:restart:
     desc: "Restart an MCP pod (usage: task mcp:restart -- core|apps|auth)"
     cmds:
-      - kubectl rollout restart deployment/openclaw-mcp-{{.CLI_ARGS}}
-      - kubectl rollout status deployment/openclaw-mcp-{{.CLI_ARGS}} --timeout=120s
+      - kubectl rollout restart deployment/claude-code-mcp-{{.CLI_ARGS}}
+      - kubectl rollout status deployment/claude-code-mcp-{{.CLI_ARGS}} --timeout=120s
 
   mcp:mattermost-setup:
-    desc: Create admin-only OpenClaw channels in all Mattermost teams
+    desc: Create admin-only Claude Code channels in all Mattermost teams
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running."
@@ -721,24 +777,24 @@ tasks:
       - |
         echo "Generating Mattermost API token..."
         TOKEN=$(kubectl exec -n workspace deploy/mattermost -- \
-          mmctl --local token generate axzgi6xawjrm7rucg39h97dfjw "openclaw-setup-$(date +%s)" 2>/dev/null | cut -d: -f1)
-        echo "Running OpenClaw Mattermost setup..."
-        kubectl run openclaw-mm-setup --rm -i --restart=Never \
+          mmctl --local token generate axzgi6xawjrm7rucg39h97dfjw "claude-code-setup-$(date +%s)" 2>/dev/null | cut -d: -f1)
+        echo "Running Claude Code Mattermost setup..."
+        kubectl run claude-code-mm-setup --rm -i --restart=Never \
           --image=python:3.12-alpine \
           --env="MM_URL=http://mattermost.workspace.svc.cluster.local:8065" \
           --env="MM_TOKEN=$TOKEN" \
-          -- python3 /dev/stdin < scripts/openclaw-mattermost-setup.py
-      - 'echo "✓ OpenClaw channels created in all teams"'
+          -- python3 /dev/stdin < scripts/claude-code-mattermost-setup.py
+      - 'echo "✓ Claude Code channels created in all teams"'
 
   mcp:set-github-pat:
-    desc: Update the GitHub PAT in openclaw-secrets
+    desc: Update the GitHub PAT in claude-code-secrets
     cmds:
       - |
         if [ -z "{{.CLI_ARGS}}" ]; then
           echo "Usage: task mcp:set-github-pat -- ghp_yourtoken"
           exit 1
         fi
-      - kubectl patch secret openclaw-secrets -n default --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
+      - kubectl patch secret claude-code-secrets -n default --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
       - kubectl rollout restart deployment/mcp-github
       - 'echo "✓ GitHub PAT updated and mcp-github restarted"'
 
@@ -790,6 +846,107 @@ tasks:
         echo ""
         echo "Configured servers:"
         python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$OUTPUT"
+
+  claude-code:export:
+    desc: "Export a ready-to-use settings.json for another user (usage: task claude-code:export -- cluster|business)"
+    cmds:
+      - |
+        ROLE="{{.CLI_ARGS}}"
+        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
+          echo "Usage: task claude-code:export -- cluster|business"
+          echo ""
+          echo "  cluster  -- All 9 MCP servers (for platform admin)"
+          echo "  business -- 4 business MCP servers (for business user)"
+          exit 1
+        fi
+
+        TEMPLATE="claude-code/${ROLE}.settings.json"
+        if [ ! -f "$TEMPLATE" ]; then
+          echo "ERROR: Template $TEMPLATE not found"
+          exit 1
+        fi
+
+        # Read token from k8s Secret (production context)
+        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
+        TOKEN=$(kubectl --context hetzner get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        if [ -z "$TOKEN" ]; then
+          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
+          echo "Deploy MCP first: task mcp:deploy"
+          exit 1
+        fi
+
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        export CLUSTER_TOKEN="$TOKEN"
+        export BUSINESS_TOKEN="$TOKEN"
+
+        OUTPUT="claude-code/${ROLE}-export.settings.json"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+
+        echo "Exported settings to: $OUTPUT"
+        echo "  Role: $ROLE"
+        echo "  MCP endpoint: https://mcp.{{.PROD_DOMAIN}}"
+        echo ""
+        echo "Send this file to the user. They should place it at:"
+        echo "  ~/.claude/settings.json"
+        echo ""
+        echo "Or import it with:"
+        echo "  mkdir -p ~/.claude && cp ${ROLE}-export.settings.json ~/.claude/settings.json"
+
+  claude-code:invite:
+    desc: "Print claude mcp add commands for a user (usage: task claude-code:invite -- cluster|business)"
+    cmds:
+      - |
+        ROLE="{{.CLI_ARGS}}"
+        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
+          echo "Usage: task claude-code:invite -- cluster|business"
+          echo ""
+          echo "  cluster  -- All 9 MCP servers (for platform admin)"
+          echo "  business -- 4 business MCP servers (for business user)"
+          exit 1
+        fi
+
+        TEMPLATE="claude-code/${ROLE}.settings.json"
+        if [ ! -f "$TEMPLATE" ]; then
+          echo "ERROR: Template $TEMPLATE not found"
+          exit 1
+        fi
+
+        # Read token from k8s Secret (production context)
+        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
+        TOKEN=$(kubectl --context hetzner get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        if [ -z "$TOKEN" ]; then
+          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
+          echo "Deploy MCP first: task mcp:deploy"
+          exit 1
+        fi
+
+        DOMAIN="{{.PROD_DOMAIN}}"
+
+        # Parse template and generate commands
+        SERVERS=$(python3 -c "
+        import json, sys
+        with open(sys.argv[1]) as f:
+            servers = json.load(f)['mcpServers']
+        for name, cfg in servers.items():
+            url = cfg['url'].replace('\${PROD_DOMAIN}', sys.argv[2]).replace('\${CLUSTER_TOKEN}', sys.argv[3]).replace('\${BUSINESS_TOKEN}', sys.argv[3])
+            server_json = json.dumps({'type': 'url', 'url': url, 'headers': {'Authorization': f'Bearer {sys.argv[3]}'}})
+            print(f'mcp-{name}|{server_json}')
+        " "$TEMPLATE" "$DOMAIN" "$TOKEN")
+
+        echo "================================================================"
+        echo "  Claude Code MCP Setup Commands (${ROLE})"
+        echo "================================================================"
+        echo ""
+        echo "Run these commands on the target machine (works on any OS):"
+        echo ""
+        echo "$SERVERS" | while IFS='|' read -r NAME JSON; do
+          echo "claude mcp add-json -s user \"$NAME\" '$JSON'"
+          echo ""
+        done
+        echo "================================================================"
+        echo ""
+        echo "To verify:  claude mcp list"
+        echo "To remove:  claude mcp remove <name>"
 
   claude-code:rotate-tokens:
     desc: Generate new MCP access tokens and update the Secret

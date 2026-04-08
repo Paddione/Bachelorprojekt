@@ -18,7 +18,7 @@ Alle Anforderungen sind in der Requirements-Uebersicht dokumentiert:
 
 | Kategorie | IDs | Beschreibung |
 |-----------|-----|--------------|
-| Funktional (FA) | FA-01 -- FA-12 | Messaging, Kanaele, Video, Dateien, Nutzerverwaltung, Benachrichtigungen, Suche, Homeoffice, Billing Bot, Website, Gast-Portal, OpenClaw AI |
+| Funktional (FA) | FA-01 -- FA-12 | Messaging, Kanaele, Video, Dateien, Nutzerverwaltung, Benachrichtigungen, Suche, Homeoffice, Billing Bot, Website, Gast-Portal, Claude Code AI |
 | Sicherheit (SA) | SA-01 -- SA-09 | SSO, Authentifizierung, Verschluesselung, Netzwerksicherheit |
 | Nicht-funktional (NFA) | NFA-01 -- NFA-07 | DSGVO/Datensouveraenitaet, Monitoring, Performance, Resilienz |
 | Abnahmekriterien (AK) | AK-03, AK-04 | Akzeptanztests |

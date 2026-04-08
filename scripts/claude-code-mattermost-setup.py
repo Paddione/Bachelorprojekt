@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenClaw Mattermost channel setup — creates admin-only channels in every team."""
+"""Claude Code Mattermost channel setup — creates admin-only channels in every team."""
 
 import json
 import os
@@ -24,18 +24,18 @@ def api(method, path, data=None):
         err = e.read().decode()
         return {"error": True, "status": e.code, "message": err}
 
-# ── 1. Find or verify openclaw bot ─────────────────────────────────────
-print("=== 1. OpenClaw Bot ===")
+# ── 1. Find or verify claude-code bot ─────────────────────────────────────
+print("=== 1. Claude Code Bot ===")
 bots = api("GET", "/bots?include_deleted=false")
-bot = next((b for b in bots if b["username"] == "openclaw"), None) if isinstance(bots, list) else None
+bot = next((b for b in bots if b["username"] == "claude-code"), None) if isinstance(bots, list) else None
 
 if bot:
     bot_user_id = bot["user_id"]
     print(f"  Bot exists: {bot_user_id}")
 else:
     result = api("POST", "/bots", {
-        "username": "openclaw",
-        "display_name": "OpenClaw",
+        "username": "claude-code",
+        "display_name": "Claude Code",
         "description": "KI-Assistent — alle Aktionen benötigen Admin-Genehmigung",
     })
     if "error" in result:
@@ -59,15 +59,15 @@ for t in teams:
     print(f"  {t['name']} ({t['id']})")
 
 # ── Channel header and welcome message ─────────────────────────────────
-HEADER = "🤖 OpenClaw — KI-Assistent | Alle Aktionen benötigen Genehmigung"
+HEADER = "🤖 Claude Code — KI-Assistent | Alle Aktionen benötigen Genehmigung"
 
 PURPOSE = """KI-Assistent für Cluster- und Service-Management. Nur für Admins.
-Workflow: OpenClaw beschreibt → Admin genehmigt → Aktion wird ausgeführt.
+Workflow: Claude Code beschreibt → Admin genehmigt → Aktion wird ausgeführt.
 Antworten: ✅ Genehmigt | ❌ Abgelehnt | 🔄 Anpassen"""
 
-WELCOME = """## 🤖 OpenClaw ist bereit!
+WELCOME = """## 🤖 Claude Code ist bereit!
 
-Hallo! Ich bin **OpenClaw**, euer KI-Assistent für das Workspace-Cluster.
+Hallo! Ich bin **Claude Code**, euer KI-Assistent für das Workspace-Cluster.
 
 ### So funktioniert es:
 1. Ich schlage Aktionen vor und erkläre sie **auf Deutsch**
@@ -112,15 +112,15 @@ for team in teams:
     print(f"\n  Team: {tname}")
 
     # Check if channel exists
-    existing = api("GET", f"/teams/{tid}/channels/name/openclaw")
+    existing = api("GET", f"/teams/{tid}/channels/name/claude-code")
     if "error" not in existing and "id" in existing:
         cid = existing["id"]
         print(f"    Channel already exists: {cid}")
     else:
         result = api("POST", "/channels", {
             "team_id": tid,
-            "name": "openclaw",
-            "display_name": "🤖 OpenClaw",
+            "name": "claude-code",
+            "display_name": "🤖 Claude Code",
             "type": "P",
             "header": HEADER,
             "purpose": PURPOSE,

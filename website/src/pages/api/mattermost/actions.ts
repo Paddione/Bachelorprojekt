@@ -129,7 +129,7 @@ export const POST: APIRoute = async ({ request }) => {
             // Post finalize button (admin clicks after meeting to trigger pipeline)
             await postInteractiveMessage({
               channelId: channel.id,
-              text: ':point_down: _Nach dem Meeting: Artefakte finalisieren und an OpenClaw ubergeben._',
+              text: ':point_down: _Nach dem Meeting: Artefakte finalisieren und an Claude Code ubergeben._',
               actions: [
                 { id: 'finalize_meeting', name: 'Meeting abschliessen', style: 'primary' },
               ],

@@ -41,8 +41,8 @@ patches:
   - path: patch-mattermost.yaml
   - path: patch-nextcloud.yaml
   - path: patch-keycloak.yaml
-  # OpenClaw prod overrides
-  - path: patch-openclaw-config.yaml
+  # Claude Code prod overrides
+  - path: patch-claude-code-config.yaml
   # Outline prod overrides
   - path: patch-outline.yaml
   # Production SMTP and service config

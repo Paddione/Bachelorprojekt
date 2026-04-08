@@ -40,10 +40,15 @@ resources:
   # Transkription
   - whisper.yaml
   # KI-Assistent
-  - openclaw-rbac.yaml
-  - openclaw-config.yaml
-  - openclaw-mcp-ops.yaml
-  - openclaw-mcp-browser.yaml
+  - claude-code-rbac.yaml
+  - claude-code-config.yaml
+  - claude-code-mcp-ops.yaml
+  - claude-code-mcp-browser.yaml
+  - claude-code-mcp-mattermost.yaml
+  - claude-code-mcp-apps.yaml
+  - claude-code-mcp-auth.yaml
+  - claude-code-mcp-stripe.yaml
+  - claude-code-mcp-github.yaml
   # Ingress
   - ingress.yaml
 

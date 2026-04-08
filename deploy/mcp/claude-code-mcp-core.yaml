@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════════════════════
-# openclaw-mcp-core — Operational backbone: cluster, database, chat
+# claude-code-mcp-core — Operational backbone: cluster, database, chat
 #
 # Containers share one network namespace → no DNS between them, all localhost.
 # Ports: 8080 (kubernetes), 3001 (postgres), 8000 (mattermost)
@@ -7,20 +7,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openclaw-mcp-core
+  name: claude-code-mcp-core
   labels:
-    app: openclaw-mcp-core
+    app: claude-code-mcp-core
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: openclaw-mcp-core
+      app: claude-code-mcp-core
   template:
     metadata:
       labels:
-        app: openclaw-mcp-core
+        app: claude-code-mcp-core
     spec:
-      serviceAccountName: openclaw-agent
+      serviceAccountName: claude-code-agent
       containers:
         # ── Kubernetes MCP (port 8080) ──────────────────────────────
         - name: kubernetes
@@ -64,7 +64,7 @@ spec:
             - name: SHARED_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
+                  name: claude-code-secrets
                   key: SHARED_DB_PASSWORD
             - name: DATABASE_URL
               value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/mattermost"
@@ -100,7 +100,7 @@ spec:
             - name: MATTERMOST_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
+                  name: claude-code-secrets
                   key: MATTERMOST_TOKEN
             - name: MATTERMOST_VERIFY_SSL
               value: "false"
@@ -122,10 +122,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: openclaw-mcp-core
+  name: claude-code-mcp-core
 spec:
   selector:
-    app: openclaw-mcp-core
+    app: claude-code-mcp-core
   ports:
     - name: kubernetes
       port: 8080

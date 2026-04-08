@@ -36,7 +36,7 @@ flowchart TB
         end
 
         subgraph ai ["fa:fa-robot KI & Automatisierung"]
-            OC["fa:fa-brain OpenClaw AI\nai.localhost"]
+            OC["fa:fa-brain Claude Code AI\nai.localhost"]
             MCP_K8S["MCP Kubernetes"]
             MCP_PG["MCP Postgres"]
             MCP_BR["MCP Browser"]
@@ -139,7 +139,7 @@ flowchart TB
     click MM "#mattermost" "Mattermost: Team-Chat mit Channels, Threads und Dateifreigabe. Integriert OpenSearch fuer Volltextsuche, Webhooks fuer Automatisierung und Slash-Commands fuer billing-bot."
     click NC "#nextcloud" "Nextcloud: Dateiverwaltung, Kalender, Kontakte und Videokonferenzen via Talk. WOPI-Integration mit Collabora fuer Office-Dokumente. WebRTC via HPB Stack."
     click CO "#collabora" "Collabora Online: LibreOffice-basierter Office-Editor im Browser. Bearbeitet DOCX, XLSX, PPTX, ODT Dateien kollaborativ ueber WOPI-Protokoll mit Nextcloud."
-    click OC "#openclaw" "OpenClaw: KI-Assistent mit Claude Sonnet 4. Nutzt MCP-Server fuer Kubernetes-Verwaltung, Datenbank-Abfragen und Browser-Automatisierung. RBAC-gesichert."
+    click OC "#claude-code" "Claude Code: KI-Assistent mit Claude Sonnet 4. Nutzt MCP-Server fuer Kubernetes-Verwaltung, Datenbank-Abfragen und Browser-Automatisierung. RBAC-gesichert."
     click IN "#invoice-ninja" "Invoice Ninja: Rechnungserstellung, Kundenverwaltung und Zahlungsabwicklung via Stripe. Geschuetzt durch oauth2-proxy. Eigene MariaDB-Instanz."
     click VW "#vaultwarden" "Vaultwarden: Self-hosted Bitwarden-kompatibler Passwort-Manager. Speichert verschluesselte Vault-Items in PostgreSQL. OIDC-Login via Keycloak."
     click BB "#billing-bot" "billing-bot: Go-Microservice. Verbindet Mattermost Slash-Commands mit Invoice Ninja API fuer schnelle Rechnungs- und Kundenerstellung aus dem Chat."
@@ -154,8 +154,8 @@ flowchart TB
     click GRAF "#monitoring" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
     click WHISPER "#whisper" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
     click SIG "#talk-hpb" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk Videokonferenzen."
-    click MCP_K8S "#openclaw" "MCP Kubernetes: Read-only Zugriff auf Pods, Deployments, Services, Logs. Kann Deployments neu starten (mit Genehmigung)."
-    click MCP_PG "#openclaw" "MCP Postgres: Superuser-Zugriff auf alle shared-db Datenbanken fuer Analyse und Debugging."
+    click MCP_K8S "#claude-code" "MCP Kubernetes: Read-only Zugriff auf Pods, Deployments, Services, Logs. Kann Deployments neu starten (mit Genehmigung)."
+    click MCP_PG "#claude-code" "MCP Postgres: Superuser-Zugriff auf alle shared-db Datenbanken fuer Analyse und Debugging."
 
     %% --- Styles ---
     classDef identity_style fill:#4a90d9,color:#fff,stroke:#2d6a9f
@@ -227,7 +227,7 @@ sequenceDiagram
     Browser -->> User: Eingeloggt
 ```
 
-**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, OpenClaw, Vaultwarden, Outline, Website (7 Clients im Realm `workspace`)
+**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Outline, Website (7 Clients im Realm `workspace`)
 
 ---
 
@@ -377,14 +377,14 @@ sequenceDiagram
 
 ---
 
-### KI-Assistent (OpenClaw + MCP)
+### KI-Assistent (Claude Code + MCP)
 
-OpenClaw nutzt Claude Sonnet 4 mit MCP-Servern (Model Context Protocol) fuer Kubernetes-Management, Datenbank-Analyse und Browser-Automatisierung.
+Claude Code nutzt Claude Sonnet 4 mit MCP-Servern (Model Context Protocol) fuer Kubernetes-Management, Datenbank-Analyse und Browser-Automatisierung.
 
 ```mermaid
 sequenceDiagram
     actor Admin as Administrator
-    participant OC as OpenClaw<br/>ai.localhost
+    participant OC as Claude Code<br/>ai.localhost
     participant Claude as Claude Sonnet 4<br/>Anthropic API
     participant MCP_K as MCP Kubernetes<br/>mcp-k8s-go
     participant K8S as Kubernetes API
@@ -538,7 +538,7 @@ Traefik (k3s built-in) routet anhand von Host-Headern:
 | office.localhost | collabora | 9980 |
 | signaling.localhost | spreed-signaling | 8080 |
 | meet.localhost | spreed-signaling | 8080 |
-| ai.localhost | openclaw | 8080 |
+| ai.localhost | claude-code | 8080 |
 | billing.localhost | oauth2-proxy-invoiceninja | 4180 |
 | vault.localhost | vaultwarden | 80 |
 | board.localhost | whiteboard | 3002 |
@@ -557,7 +557,7 @@ Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 | mattermost-data | 20 Gi | Mattermost Dateien |
 | nextcloud-app | 2 Gi | Nextcloud App |
 | nextcloud-data | 50 Gi | Nextcloud Dateien |
-| openclaw-data | 2 Gi | OpenClaw AI Daten |
+| claude-code-data | 2 Gi | Claude Code AI Daten |
 | invoiceninja-public | 5 Gi | Invoice Ninja |
 | invoiceninja-mariadb-data | 5 Gi | MariaDB |
 | vaultwarden-data | 5 Gi | Vaultwarden |

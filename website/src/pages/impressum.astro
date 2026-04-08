@@ -1,10 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-// ────────────────────────────────────────────────────────────────
-// WICHTIG: Alle Platzhalter [in eckigen Klammern] müssen vor
-// Veröffentlichung mit echten Angaben ersetzt werden!
-// ────────────────────────────────────────────────────────────────
+const brandName   = import.meta.env.BRAND_NAME   || 'Mentolder';
+const contactName = import.meta.env.CONTACT_NAME  || '';
+const contactEmail= import.meta.env.CONTACT_EMAIL || '';
+const contactPhone= import.meta.env.CONTACT_PHONE || '';
+const contactCity = import.meta.env.CONTACT_CITY  || '';
+const street      = import.meta.env.LEGAL_STREET  || '';
+const zip         = import.meta.env.LEGAL_ZIP     || '';
+const jobtitle    = import.meta.env.LEGAL_JOBTITLE|| '';
+const chamber     = import.meta.env.LEGAL_CHAMBER || '';
+const ustId       = import.meta.env.LEGAL_UST_ID  || '';
+const website     = import.meta.env.LEGAL_WEBSITE || '';
 ---
 
 <Layout title="Impressum">
@@ -14,49 +21,41 @@ import Layout from '../layouts/Layout.astro';
 
       <h2>Angaben gemäß &sect; 5 DDG</h2>
       <p>
-        [Vorname Nachname]<br />
-        ${BRAND_NAME} &ndash; Digital Coaching &amp; Führungskräfte-Beratung<br />
-        [Straße Hausnummer]<br />
-        [PLZ] ${CONTACT_CITY}<br />
+        {contactName}<br />
+        {brandName} &ndash; Digital Coaching &amp; Führungskräfte-Beratung<br />
+        {street}<br />
+        {zip} {contactCity}<br />
         Deutschland
       </p>
 
       <h2>Kontakt</h2>
       <p>
-        Telefon: ${CONTACT_PHONE}<br />
-        E-Mail: ${CONTACT_EMAIL}<br />
-        Web: www.${BRAND_NAME}
+        Telefon: {contactPhone}<br />
+        E-Mail: {contactEmail}<br />
+        Web: www.{website}
       </p>
 
       <h2>Berufsbezeichnung und berufsrechtliche Regelungen</h2>
       <p>
-        Berufsbezeichnung: Coach, Berater, Trainer<br />
-        Zuständige Kammer: [Entfällt / IHK ${CONTACT_CITY}, falls Mitglied]<br />
+        Berufsbezeichnung: {jobtitle}<br />
+        Zuständige Kammer: {chamber}<br />
         Verliehen in: Bundesrepublik Deutschland
       </p>
       <p>
-        Es gelten folgende berufsrechtliche Regelungen:<br />
         Coaching und Beratung sind in Deutschland nicht reglementierte Berufe.
         Es bestehen keine besonderen berufsrechtlichen Regelungen.
       </p>
 
-      <h2>Umsatzsteuer-ID</h2>
+      <h2>Umsatzsteuer</h2>
       <p>
-        {/* Option A: Wenn USt-IdNr. vorhanden */}
-        Umsatzsteuer-Identifikationsnummer gemäß &sect; 27a Umsatzsteuergesetz:<br />
-        [DE XXXXXXXXX]
-      </p>
-      <p>
-        {/* Option B: Wenn Kleinunternehmer */}
-        {/* Alternativ, falls zutreffend: */}
-        {/* Als Kleinunternehmer im Sinne von &sect; 19 Abs. 1 UStG wird keine Umsatzsteuer erhoben. */}
+        {ustId}
       </p>
 
       <h2>Redaktionell Verantwortlicher</h2>
       <p>
-        [Vorname Nachname]<br />
-        [Straße Hausnummer]<br />
-        [PLZ] ${CONTACT_CITY}
+        {contactName}<br />
+        {street}<br />
+        {zip} {contactCity}
       </p>
 
       <h2>EU-Streitschlichtung</h2>
@@ -104,7 +103,7 @@ import Layout from '../layouts/Layout.astro';
       <p>
         Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete
         Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von
-        Rechtsverletzungen werden wir derartige Links umgehend entfernen.
+        Rechtsverletzungen werden wir derartige Links umgehang entfernen.
       </p>
 
       <h2>Urheberrecht</h2>
@@ -121,15 +120,6 @@ import Layout from '../layouts/Layout.astro';
         gekennzeichnet. Sollten Sie trotzdem auf eine Urheberrechtsverletzung aufmerksam
         werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden von
         Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen.
-      </p>
-
-      <hr />
-
-      <p class="text-sm text-slate-400">
-        Hinweis: Platzhalter in [eckigen Klammern] müssen vor Veröffentlichung
-        mit den tatsächlichen Angaben ersetzt werden. Dieses Impressum wurde als
-        Vorlage erstellt und ersetzt keine Rechtsberatung. Seit dem 14.05.2024 gilt
-        das Digitale-Dienste-Gesetz (DDG) als Nachfolger des TMG.
       </p>
     </div>
   </section>

@@ -30,7 +30,7 @@ graph LR
     MM[Mattermost<br/>Client: mattermost]
     NC[Nextcloud<br/>Client: nextcloud]
     IN[Invoice Ninja<br/>Client: invoiceninja]
-    OC[OpenClaw<br/>Client: openclaw]
+    OC[Claude Code<br/>Client: claude-code]
     VW[Vaultwarden<br/>Client: vaultwarden]
     WEB[Website<br/>Client: website]
     OL[Outline<br/>Client: outline]
@@ -43,7 +43,7 @@ graph LR
 | mattermost | `http://{MM_DOMAIN}/*` | MATTERMOST_OIDC_SECRET |
 | nextcloud | `http://{NC_DOMAIN}/apps/oidc_login/oidc` | NEXTCLOUD_OIDC_SECRET |
 | invoiceninja | `http://{BILLING_DOMAIN}/oauth2/callback` | INVOICENINJA_OIDC_SECRET |
-| openclaw | `http://{AI_DOMAIN}/*` | OPENCLAW_OIDC_SECRET |
+| claude-code | `http://{AI_DOMAIN}/*` | CLAUDE_CODE_OIDC_SECRET |
 | vaultwarden | `http://{VAULT_DOMAIN}/identity/connect/oidc-signin` | VAULTWARDEN_OIDC_SECRET |
 | website | `http://{WEB_DOMAIN}/*` | WEBSITE_OIDC_SECRET |
 | outline | `http://wiki.localhost/*` | OUTLINE_OIDC_SECRET |
@@ -105,7 +105,7 @@ Zugriff laeuft ueber einen oauth2-proxy (v7.6.0) als Reverse-Proxy:
 - **Token/JWKS/UserInfo (Server):** `http://keycloak:8080/...` (intern)
 - Pass Access Token und Authorization Header an Invoice Ninja weiter
 
-### OpenClaw
+### Claude Code
 
 Direkte OIDC-Integration ueber Open WebUI:
 
@@ -141,7 +141,7 @@ Alle OIDC-Secrets werden in `k3d/secrets.yaml` (Dev) bzw. `prod/secrets.yaml` (P
 - MATTERMOST_OIDC_SECRET
 - NEXTCLOUD_OIDC_SECRET
 - INVOICENINJA_OIDC_SECRET
-- OPENCLAW_OIDC_SECRET
+- CLAUDE_CODE_OIDC_SECRET
 - VAULTWARDEN_OIDC_SECRET
 - WEBSITE_OIDC_SECRET
 - OUTLINE_OIDC_SECRET

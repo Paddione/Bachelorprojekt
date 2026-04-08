@@ -136,7 +136,7 @@ spec:
                 port:
                   number: 80
 
-    # ── MCP Status (replaces OpenClaw WebUI) ────────────────────
+    # ── MCP Status (replaces Claude Code WebUI) ────────────────────
     - host: ai.localhost
       http:
         paths:

@@ -1,7 +1,7 @@
 #!/bin/bash
 # ══════════════════════════════════════════════════════════════════════════════
-# OpenClaw Mattermost Setup
-# Creates an openclaw bot + admin-only channels in every team.
+# Claude Code Mattermost Setup
+# Creates an claude-code bot + admin-only channels in every team.
 # Run via: task mcp:mattermost-setup
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
@@ -14,10 +14,10 @@ api() {
   curl -sf -X "$method" -H "Authorization: Bearer $MM_TOKEN" -H "Content-Type: application/json" "$@" "$MM_URL/api/v4$path"
 }
 
-echo "=== 1. Creating OpenClaw Bot ==="
+echo "=== 1. Creating Claude Code Bot ==="
 BOT=$(api POST /bots -d '{
-  "username": "openclaw",
-  "display_name": "OpenClaw",
+  "username": "claude-code",
+  "display_name": "Claude Code",
   "description": "KI-Assistent für Cluster- und Service-Management. Alle Aktionen erfordern Admin-Genehmigung."
 }' 2>/dev/null) || true
 
@@ -30,23 +30,23 @@ else
 import sys,json
 bots = json.load(sys.stdin)
 for b in bots:
-  if b['username'] == 'openclaw':
+  if b['username'] == 'claude-code':
     print(b['user_id'])
     break
 " 2>/dev/null)
   if [ -z "$BOT_USER_ID" ]; then
-    echo "  ERROR: Could not create or find openclaw bot"
+    echo "  ERROR: Could not create or find claude-code bot"
     exit 1
   fi
   echo "  Bot already exists: user_id=$BOT_USER_ID"
 fi
 
 # Generate bot token
-BOT_TOKEN_RESP=$(api POST "/users/$BOT_USER_ID/tokens" -d '{"description": "openclaw-mcp"}' 2>/dev/null) || true
+BOT_TOKEN_RESP=$(api POST "/users/$BOT_USER_ID/tokens" -d '{"description": "claude-code-mcp"}' 2>/dev/null) || true
 BOT_ACCESS_TOKEN=$(echo "$BOT_TOKEN_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
 if [ -n "$BOT_ACCESS_TOKEN" ]; then
   echo "  Bot access token generated (save this!):"
-  echo "  OPENCLAW_MM_BOT_TOKEN=$BOT_ACCESS_TOKEN"
+  echo "  CLAUDE_CODE_MM_BOT_TOKEN=$BOT_ACCESS_TOKEN"
 fi
 
 # Get admin user IDs (system_admin role)
@@ -67,15 +67,15 @@ ADMIN_IDS=$(cat /tmp/admin_ids.txt)
 echo "$ADMIN_IDS" | tr ',' '\n' | while read -r id; do echo "  $id"; done
 
 # Channel header with MCP capabilities (easy German)
-CHANNEL_HEADER="🤖 OpenClaw — KI-Assistent | Alle Aktionen benötigen Genehmigung"
+CHANNEL_HEADER="🤖 Claude Code — KI-Assistent | Alle Aktionen benötigen Genehmigung"
 
 CHANNEL_PURPOSE=$(cat << 'PURPOSEEOF'
-## 🤖 OpenClaw — Kommunikationskanal
+## 🤖 Claude Code — Kommunikationskanal
 
-Dieser Kanal ist die Schnittstelle zwischen dem OpenClaw KI-Assistenten und den Administratoren.
+Dieser Kanal ist die Schnittstelle zwischen dem Claude Code KI-Assistenten und den Administratoren.
 
 ### ⚠️ Genehmigungsworkflow
-OpenClaw wird jede geplante Aktion **vor der Ausführung** hier beschreiben:
+Claude Code wird jede geplante Aktion **vor der Ausführung** hier beschreiben:
 1. **Was** soll gemacht werden (einfache Beschreibung auf Deutsch)
 2. **Warum** ist die Aktion nötig
 3. **Auswirkung** — was ändert sich dadurch
@@ -133,7 +133,7 @@ Erst nach expliziter Admin-Genehmigung wird die Aktion ausgeführt.
 
 ### 💬 Beispiel-Interaktion
 
-**OpenClaw:**
+**Claude Code:**
 > 📋 **Aktion:** Nextcloud-Benutzer "neuer.mitarbeiter" anlegen
 >
 > **Beschreibung:** Ein neuer Benutzer soll in Nextcloud angelegt werden mit Standardgruppe "Mitarbeiter" und 5GB Speicherplatz.
@@ -150,7 +150,7 @@ PURPOSEEOF
 )
 
 echo ""
-echo "=== 3. Creating openclaw channels ==="
+echo "=== 3. Creating claude-code channels ==="
 
 # Get all teams
 TEAMS=$(api GET "/teams")
@@ -163,8 +163,8 @@ echo "$TEAM_IDS" | while read -r team_id team_name; do
   # Create private channel
   CHANNEL=$(api POST /channels -d "{
     \"team_id\": \"$team_id\",
-    \"name\": \"openclaw\",
-    \"display_name\": \"🤖 OpenClaw\",
+    \"name\": \"claude-code\",
+    \"display_name\": \"🤖 Claude Code\",
     \"type\": \"P\",
     \"header\": \"$CHANNEL_HEADER\",
     \"purpose\": \"KI-Assistent — nur für Admins\"
@@ -175,9 +175,9 @@ echo "$TEAM_IDS" | while read -r team_id team_name; do
     echo "    Channel created: $CHANNEL_ID"
   else
     # Channel might already exist
-    CHANNEL_ID=$(api GET "/teams/$team_id/channels/name/openclaw" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
+    CHANNEL_ID=$(api GET "/teams/$team_id/channels/name/claude-code" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
     if [ -z "$CHANNEL_ID" ]; then
-      echo "    ERROR: Could not create or find openclaw channel in team $team_name"
+      echo "    ERROR: Could not create or find claude-code channel in team $team_name"
       continue
     fi
     echo "    Channel already exists: $CHANNEL_ID"
@@ -202,7 +202,7 @@ echo "$TEAM_IDS" | while read -r team_id team_name; do
   # Post welcome message
   api POST /posts -d "{
     \"channel_id\": \"$CHANNEL_ID\",
-    \"message\": \"## 🤖 OpenClaw ist bereit!\n\nHallo! Ich bin **OpenClaw**, euer KI-Assistent für das Workspace-Cluster.\n\n### So funktioniert es:\n1. Ich schlage Aktionen vor und erkläre sie auf Deutsch\n2. Ihr antwortet mit **✅ Genehmigt**, **❌ Abgelehnt** oder **🔄 Anpassen**\n3. Erst nach eurer Genehmigung führe ich die Aktion aus\n\n### Verfügbare Dienste:\n| Dienst | Funktion |\n|---|---|\n| 🏗️ Kubernetes | Pods, Logs, Deployments verwalten |\n| 🗄️ PostgreSQL | Datenbank-Abfragen (nur lesen) |\n| 💬 Mattermost | Nachrichten, Kanäle, Dateien |\n| 📁 Nextcloud | Dateien, Kalender, Kontakte, Deck |\n| 🔐 Keycloak | Benutzer, Gruppen, SSO |\n| 💰 Invoice Ninja | Rechnungen, Kunden, Ausgaben |\n| 🌐 Website | ${BRAND_NAME} Coaching-Website |\n\nSchreibt mir einfach, was ihr braucht — ich erkläre jeden Schritt bevor ich ihn ausführe.\",
+    \"message\": \"## 🤖 Claude Code ist bereit!\n\nHallo! Ich bin **Claude Code**, euer KI-Assistent für das Workspace-Cluster.\n\n### So funktioniert es:\n1. Ich schlage Aktionen vor und erkläre sie auf Deutsch\n2. Ihr antwortet mit **✅ Genehmigt**, **❌ Abgelehnt** oder **🔄 Anpassen**\n3. Erst nach eurer Genehmigung führe ich die Aktion aus\n\n### Verfügbare Dienste:\n| Dienst | Funktion |\n|---|---|\n| 🏗️ Kubernetes | Pods, Logs, Deployments verwalten |\n| 🗄️ PostgreSQL | Datenbank-Abfragen (nur lesen) |\n| 💬 Mattermost | Nachrichten, Kanäle, Dateien |\n| 📁 Nextcloud | Dateien, Kalender, Kontakte, Deck |\n| 🔐 Keycloak | Benutzer, Gruppen, SSO |\n| 💰 Invoice Ninja | Rechnungen, Kunden, Ausgaben |\n| 🌐 Website | ${BRAND_NAME} Coaching-Website |\n\nSchreibt mir einfach, was ihr braucht — ich erkläre jeden Schritt bevor ich ihn ausführe.\",
     \"props\": {\"from_bot\": \"true\"}
   }" > /dev/null 2>&1 && echo "    Welcome message posted"
 done
@@ -211,8 +211,8 @@ echo ""
 echo "=== Done ==="
 if [ -n "$BOT_ACCESS_TOKEN" ]; then
   echo ""
-  echo "IMPORTANT: Update the openclaw-secrets with the bot token:"
-  echo "  kubectl patch secret openclaw-secrets --type='json' \\"
+  echo "IMPORTANT: Update the claude-code-secrets with the bot token:"
+  echo "  kubectl patch secret claude-code-secrets --type='json' \\"
   echo "    -p='[{\"op\":\"replace\",\"path\":\"/data/MATTERMOST_TOKEN\",\"value\":\"'$(echo -n "$BOT_ACCESS_TOKEN" | base64 -w0)'\"}]'"
   echo ""
   echo "  Then restart the MCP: task mcp:restart -- core"

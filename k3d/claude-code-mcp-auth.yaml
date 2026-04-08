@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════════════
+# Claude Code MCP Auth — Keycloak SSO management (SSE transport)
+# Auth: caller must supply a Keycloak Bearer token on each request.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-code-mcp-auth
+  labels:
+    app: claude-code-mcp-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claude-code-mcp-auth
+  template:
+    metadata:
+      labels:
+        app: claude-code-mcp-auth
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/sshaaf/keycloak-mcp-server:latest
+          env:
+            - name: KC_URL
+              value: "http://keycloak.workspace.svc.cluster.local:8080"
+            - name: KC_REALM
+              value: "master"
+            - name: OIDC_CLIENT_ID
+              value: "admin-cli"
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /q/health, port: 8080 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /q/health, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits:   { memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-code-mcp-auth
+spec:
+  selector:
+    app: claude-code-mcp-auth
+  ports:
+    - port: 8080
+      targetPort: 8080

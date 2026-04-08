@@ -1,28 +1,28 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: openclaw-config
+  name: claude-code-config
 data:
   # ════════════════════════════════════════════════════════════════════
   # MCP ENDPOINT URLS
   # All endpoints use Streamable-HTTP unless noted.
-  # Credentials are in the openclaw-secrets Secret (default namespace).
+  # Credentials are in the claude-code-secrets Secret (default namespace).
   # ════════════════════════════════════════════════════════════════════
 
   OPENID_PROVIDER_URL: "http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/.well-known/openid-configuration"
-  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/openclaw-alerts"
+  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/claude-code-alerts"
 
   # Core pod: cluster + database + chat
-  MCP_KUBERNETES_URL:   "http://openclaw-mcp-core:8080/mcp"
-  MCP_POSTGRES_URL:     "http://openclaw-mcp-core:3001/mcp"
-  MCP_MATTERMOST_URL:   "http://openclaw-mcp-core:8000/mcp"
+  MCP_KUBERNETES_URL:   "http://claude-code-mcp-core:8080/mcp"
+  MCP_POSTGRES_URL:     "http://claude-code-mcp-core:3001/mcp"
+  MCP_MATTERMOST_URL:   "http://claude-code-mcp-core:8000/mcp"
   # Apps pod: files/calendar + billing
-  MCP_NEXTCLOUD_URL:    "http://openclaw-mcp-apps:8000/mcp"
-  MCP_INVOICENINJA_URL: "http://openclaw-mcp-apps:8080/mcp"
+  MCP_NEXTCLOUD_URL:    "http://claude-code-mcp-apps:8000/mcp"
+  MCP_INVOICENINJA_URL: "http://claude-code-mcp-apps:8080/mcp"
   # Auth pod: SSO management (SSE transport)
-  MCP_KEYCLOAK_URL:     "http://openclaw-mcp-auth:8080/mcp/sse"
+  MCP_KEYCLOAK_URL:     "http://claude-code-mcp-auth:8080/mcp/sse"
   # Browser pod: Playwright (Browser interaction)
-  MCP_BROWSER_URL:      "http://openclaw-mcp-browser:3000/mcp"
+  MCP_BROWSER_URL:      "http://claude-code-mcp-browser:3000/mcp"
   # Standalone
   MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
   MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
@@ -48,7 +48,7 @@ data:
   GUIDE_KUBERNETES: |
     Image: mcpk8s/server
     Transport: streamable-http → http://mcp-kubernetes:3000/mcp
-    Auth: none (uses openclaw-agent ServiceAccount, ClusterRole bound)
+    Auth: none (uses claude-code-agent ServiceAccount, ClusterRole bound)
 
     Capabilities:
       - List/get pods, deployments, services, namespaces, nodes
@@ -59,7 +59,7 @@ data:
     Key namespaces to query:
       - workspace (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja, Talk HPB)
       - website    (Astro website)
-      - default     (OpenClaw MCP servers)
+      - default     (Claude Code MCP servers)
       - kube-system (Traefik, CoreDNS)
 
     Traefik note: no dedicated Traefik MCP exists. Use this MCP to:
@@ -73,7 +73,7 @@ data:
   GUIDE_POSTGRES: |
     Image: mcp/postgres (read-only)
     Transport: streamable-http → http://mcp-postgres:3001/mcp
-    Auth: SHARED_DB_PASSWORD from openclaw-secrets
+    Auth: SHARED_DB_PASSWORD from claude-code-secrets
     Host: shared-db.workspace.svc.cluster.local:5432
 
     Available databases (all read-only):
@@ -93,14 +93,14 @@ data:
   GUIDE_GITHUB: |
     Image: ghcr.io/github/github-mcp-server
     Transport: streamable-http → http://mcp-github:3002/mcp
-    Auth: GITHUB_PAT from openclaw-secrets (set before deploying)
+    Auth: GITHUB_PAT from claude-code-secrets (set before deploying)
 
     Required PAT scopes: repo (read), pull_requests (read), issues (read/write)
 
     Capabilities: list/read repos, PRs, issues, commits, branches,
     create/update issues and PR comments, search code.
 
-    Setup: Replace GITHUB_PAT placeholder in openclaw-secrets with a real token,
+    Setup: Replace GITHUB_PAT placeholder in claude-code-secrets with a real token,
     then: kubectl rollout restart deployment/mcp-github
 
   # ════════════════════════════════════════════════════════════════════
@@ -109,14 +109,14 @@ data:
   GUIDE_MATTERMOST: |
     Image: legard/mcp-server-mattermost
     Transport: streamable-http → http://mcp-mattermost:8000/mcp
-    Auth: MATTERMOST_TOKEN from openclaw-secrets (bot token)
+    Auth: MATTERMOST_TOKEN from claude-code-secrets (bot token)
     Server: mattermost.workspace.svc.cluster.local:8065
 
     Current token: uses billing-bot token (dev placeholder).
-    For production: create a dedicated OpenClaw bot in Mattermost:
+    For production: create a dedicated Claude Code bot in Mattermost:
       Admin Console → Integrations → Bot Accounts → Add Bot Account
-      Name: openclaw | Role: Member | Post All + Read All Channels
-      Copy the generated token → update openclaw-secrets MATTERMOST_TOKEN
+      Name: claude-code | Role: Member | Post All + Read All Channels
+      Copy the generated token → update claude-code-secrets MATTERMOST_TOKEN
       kubectl rollout restart deployment/mcp-mattermost
 
     Key tools (37 total):
@@ -138,13 +138,13 @@ data:
     Image: ghcr.io/cbcoutinho/nextcloud-mcp-server
     Transport: streamable-http → http://mcp-nextcloud:8000/mcp
     Health: http://mcp-nextcloud:8000/health/ready
-    Auth: NEXTCLOUD_USERNAME + NEXTCLOUD_PASSWORD from openclaw-secrets
+    Auth: NEXTCLOUD_USERNAME + NEXTCLOUD_PASSWORD from claude-code-secrets
     Host: nextcloud.workspace.svc.cluster.local
 
     Current credentials: admin / devnextcloudadmin (dev placeholder).
     For production: generate an App Password in Nextcloud:
-      Settings → Security → App passwords → Create new app password "openclaw"
-      Update openclaw-secrets NEXTCLOUD_PASSWORD
+      Settings → Security → App passwords → Create new app password "claude-code"
+      Update claude-code-secrets NEXTCLOUD_PASSWORD
       kubectl rollout restart deployment/mcp-nextcloud
 
     Capabilities (90+ tools across 8 categories):
@@ -196,7 +196,7 @@ data:
   GUIDE_INVOICENINJA: |
     Image: ckanthony/openapi-mcp (OpenAPI → MCP bridge)
     Transport: streamable-http → http://mcp-invoiceninja:8080/mcp
-    Auth: X-Api-Token header injected from openclaw-secrets INVOICENINJA_REQUEST_HEADERS
+    Auth: X-Api-Token header injected from claude-code-secrets INVOICENINJA_REQUEST_HEADERS
     Spec: http://invoiceninja.workspace.svc.cluster.local/api/openapi.json
     Base URL: http://invoiceninja.workspace.svc.cluster.local
 
@@ -211,7 +211,7 @@ data:
 
     Current API token: testrunnertoken2026
     Rotate: Invoice Ninja → Settings → API Tokens → revoke + create new
-    Then update both INVOICENINJA_API_TOKEN and INVOICENINJA_REQUEST_HEADERS in openclaw-secrets.
+    Then update both INVOICENINJA_API_TOKEN and INVOICENINJA_REQUEST_HEADERS in claude-code-secrets.
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-browser  (port 3000, streamable-http)
@@ -243,9 +243,9 @@ data:
   GUIDE_STRIPE: |
     Image: node:20-alpine + @stripe/agent-toolkit + supergateway
     Transport: streamable-http → http://mcp-stripe:3003/mcp
-    Auth: STRIPE_SECRET_KEY from openclaw-secrets
+    Auth: STRIPE_SECRET_KEY from claude-code-secrets
 
-    Setup: Replace STRIPE_SECRET_KEY placeholder in openclaw-secrets with a
+    Setup: Replace STRIPE_SECRET_KEY placeholder in claude-code-secrets with a
     real Stripe API key (sk_test_... for dev), then restart:
       kubectl rollout restart deployment/mcp-stripe
 

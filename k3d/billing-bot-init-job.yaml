@@ -131,9 +131,32 @@ spec:
                 --system-admin \
                 --email-verified \
                 2>&1 | grep -v "already exists" || true
-              # Ensure system_admin role even if user was created by OIDC
               mmctl_local roles system-admin "${ADMIN_USERNAME}" 2>/dev/null || true
               echo "Admin user ${ADMIN_USERNAME} ready."
+
+              # --- Provision admin: patrick ---
+              echo "Provisioning admin user: ${ADMIN2_USERNAME}..."
+              mmctl_local user create \
+                --username "${ADMIN2_USERNAME}" \
+                --email "${ADMIN2_EMAIL}" \
+                --password "${ADMIN2_PASSWORD}" \
+                --system-admin \
+                --email-verified \
+                2>&1 | grep -v "already exists" || true
+              mmctl_local roles system-admin "${ADMIN2_USERNAME}" 2>/dev/null || true
+              echo "Admin user ${ADMIN2_USERNAME} ready."
+
+              # --- Provision admin: gekko ---
+              echo "Provisioning admin user: ${ADMIN3_USERNAME}..."
+              mmctl_local user create \
+                --username "${ADMIN3_USERNAME}" \
+                --email "${ADMIN3_EMAIL}" \
+                --password "${ADMIN3_PASSWORD}" \
+                --system-admin \
+                --email-verified \
+                2>&1 | grep -v "already exists" || true
+              mmctl_local roles system-admin "${ADMIN3_USERNAME}" 2>/dev/null || true
+              echo "Admin user ${ADMIN3_USERNAME} ready."
 
               # --- Create billing-bot account (idempotent) ---
               echo "Creating billing-bot account..."
@@ -222,6 +245,36 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN_EMAIL
+            - name: ADMIN2_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN2_USERNAME
+            - name: ADMIN2_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN2_PASSWORD
+            - name: ADMIN2_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN2_EMAIL
+            - name: ADMIN3_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN3_USERNAME
+            - name: ADMIN3_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN3_PASSWORD
+            - name: ADMIN3_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: ADMIN3_EMAIL
           resources:
             requests:
               memory: 32Mi

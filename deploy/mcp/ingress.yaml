@@ -51,7 +51,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: openclaw-mcp-core
+        - name: claude-code-mcp-core
           port: 8080
 
     # ── PostgreSQL MCP ────────────────────────────────────────────
@@ -60,7 +60,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: openclaw-mcp-core
+        - name: claude-code-mcp-core
           port: 3001
 
     # ── Mattermost MCP ────────────────────────────────────────────
@@ -69,7 +69,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: openclaw-mcp-core
+        - name: claude-code-mcp-core
           port: 8000
 
     # ── Nextcloud MCP ─────────────────────────────────────────────
@@ -78,7 +78,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: openclaw-mcp-apps
+        - name: claude-code-mcp-apps
           port: 8000
 
     # ── Invoice Ninja MCP ─────────────────────────────────────────
@@ -87,7 +87,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: openclaw-mcp-apps
+        - name: claude-code-mcp-apps
           port: 8080
 
     # ── Keycloak MCP (SSE transport) ──────────────────────────────
@@ -96,7 +96,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: openclaw-mcp-auth
+        - name: claude-code-mcp-auth
           port: 8080
 
     # ── Browser MCP (Playwright) ──────────────────────────────────
@@ -105,7 +105,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: openclaw-mcp-browser
+        - name: claude-code-mcp-browser
           port: 3000
 
     # ── GitHub MCP ────────────────────────────────────────────────

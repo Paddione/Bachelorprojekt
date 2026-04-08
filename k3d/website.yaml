@@ -30,8 +30,20 @@ data:
   SMTP_SECURE: "false"
   SMTP_USER: ""
   SMTP_PASS: ""
-  FROM_EMAIL: "${CONTACT_EMAIL}"
-  FROM_NAME: "${BRAND_NAME}"
+  FROM_EMAIL: "info@mentolder.de"
+  FROM_NAME: "Mentolder"
+  # Legal / Impressum
+  BRAND_NAME: "Mentolder"
+  CONTACT_NAME: "Gerald Korczewski"
+  CONTACT_EMAIL: "info@mentolder.de"
+  CONTACT_PHONE: "+49 151 508 32 601"
+  CONTACT_CITY: "Lüneburg"
+  LEGAL_STREET: "Ludwig-Erhard-Str. 18"
+  LEGAL_ZIP: "20459"
+  LEGAL_JOBTITLE: "Coach, Berater, Trainer"
+  LEGAL_CHAMBER: "Entfällt"
+  LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
+  LEGAL_WEBSITE: "mentolder.de"
   # OIDC (Keycloak client for login)
   WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
   # Nextcloud
@@ -150,5 +162,5 @@ spec:
           containers:
             - name: trigger
               image: curlimages/curl:latest
-              command: ["curl", "-sf", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
+              command: ["curl", "-sf", "-X", "POST", "-H", "Origin: http://website.website.svc.cluster.local", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never

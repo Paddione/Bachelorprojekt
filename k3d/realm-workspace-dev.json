@@ -29,6 +29,44 @@
       "clientRoles": {
         "realm-management": ["realm-admin"]
       }
+    },
+    {
+      "username": "patrick",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "patrick@localhost",
+      "firstName": "Patrick",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "170591pk!gekko",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-workspace"],
+      "clientRoles": {
+        "realm-management": ["realm-admin"]
+      }
+    },
+    {
+      "username": "gekko",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "gekko@localhost",
+      "firstName": "Gekko",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "170591pk!gekko",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-workspace"],
+      "clientRoles": {
+        "realm-management": ["realm-admin"]
+      }
     }
   ],
   "clients": [
@@ -243,11 +281,11 @@
       ]
     },
     {
-      "clientId": "openclaw",
-      "name": "OpenClaw AI Assistant",
+      "clientId": "claude-code",
+      "name": "Claude Code AI Assistant",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "${OPENCLAW_OIDC_SECRET}",
+      "secret": "${CLAUDE_CODE_OIDC_SECRET}",
       "redirectUris": [
         "http://${AI_DOMAIN}/*"
       ],

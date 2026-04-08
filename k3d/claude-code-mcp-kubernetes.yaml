@@ -14,7 +14,7 @@ spec:
       labels:
         app: mcp-kubernetes
     spec:
-      serviceAccountName: openclaw-agent
+      serviceAccountName: claude-code-agent
       containers:
         - name: mcp-kubernetes
           image: node:22-alpine

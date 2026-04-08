@@ -35,7 +35,7 @@ spec:
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
+                  name: claude-code-secrets
                   key: STRIPE_SECRET_KEY
           ports:
             - containerPort: 3003

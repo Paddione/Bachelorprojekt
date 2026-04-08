@@ -1,23 +1,23 @@
 # ════════════════════════════════════════════════════════════════════════════
-# openclaw-mcp-apps — Application layer: files/calendar/contacts + billing
+# claude-code-mcp-apps — Application layer: files/calendar/contacts + billing
 #
 # Ports: 8000 (nextcloud), 8080 (invoiceninja)
 # ════════════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openclaw-mcp-apps
+  name: claude-code-mcp-apps
   labels:
-    app: openclaw-mcp-apps
+    app: claude-code-mcp-apps
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: openclaw-mcp-apps
+      app: claude-code-mcp-apps
   template:
     metadata:
       labels:
-        app: openclaw-mcp-apps
+        app: claude-code-mcp-apps
     spec:
       containers:
         # ── Nextcloud MCP (port 8000) ──────────────────────────────
@@ -29,12 +29,12 @@ spec:
             - name: NEXTCLOUD_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
+                  name: claude-code-secrets
                   key: NEXTCLOUD_USERNAME
             - name: NEXTCLOUD_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
+                  name: claude-code-secrets
                   key: NEXTCLOUD_PASSWORD
           ports:
             - containerPort: 8000
@@ -62,7 +62,7 @@ spec:
             - name: REQUEST_HEADERS
               valueFrom:
                 secretKeyRef:
-                  name: openclaw-secrets
+                  name: claude-code-secrets
                   key: INVOICENINJA_REQUEST_HEADERS
           ports:
             - containerPort: 8080
@@ -82,10 +82,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: openclaw-mcp-apps
+  name: claude-code-mcp-apps
 spec:
   selector:
-    app: openclaw-mcp-apps
+    app: claude-code-mcp-apps
   ports:
     - name: nextcloud
       port: 8000

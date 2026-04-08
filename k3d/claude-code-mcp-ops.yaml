@@ -1,28 +1,28 @@
 # ═══════════════════════════════════════════════════════════════════
-# OpenClaw MCP Ops Pod — Kubernetes + PostgreSQL MCP servers
+# Claude Code MCP Ops Pod — Kubernetes + PostgreSQL MCP servers
 # Two containers share one pod to minimize overhead.
-# Uses openclaw-agent ServiceAccount (defined in openclaw-rbac.yaml).
+# Uses claude-code-agent ServiceAccount (defined in claude-code-rbac.yaml).
 # postgres MCP connects to shared-db:5432 — no separate DB.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openclaw-mcp-ops
+  name: claude-code-mcp-ops
   labels:
-    app: openclaw-mcp-ops
+    app: claude-code-mcp-ops
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: openclaw-mcp-ops
+      app: claude-code-mcp-ops
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: openclaw-mcp-ops
+        app: claude-code-mcp-ops
     spec:
-      serviceAccountName: openclaw-agent
+      serviceAccountName: claude-code-agent
       containers:
         # ─── Kubernetes MCP (port 3000) ──────────────────────────
         - name: mcp-kubernetes
@@ -111,10 +111,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: openclaw-mcp-ops
+  name: claude-code-mcp-ops
 spec:
   selector:
-    app: openclaw-mcp-ops
+    app: claude-code-mcp-ops
   ports:
     - name: mcp-kubernetes
       port: 3000

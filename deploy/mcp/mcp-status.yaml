@@ -141,13 +141,13 @@ data:
         fi
       }
       RESULTS=""
-      RESULTS="${RESULTS}$(check kubernetes http://openclaw-mcp-core:8080/mcp),"
-      RESULTS="${RESULTS}$(check postgres http://openclaw-mcp-core:3001/health),"
-      RESULTS="${RESULTS}$(check mattermost http://openclaw-mcp-core:8000/health),"
-      RESULTS="${RESULTS}$(check nextcloud http://openclaw-mcp-apps:8000/health/ready),"
-      RESULTS="${RESULTS}$(check invoiceninja http://openclaw-mcp-apps:8080/mcp),"
-      RESULTS="${RESULTS}$(check keycloak http://openclaw-mcp-auth:8080/q/health),"
-      RESULTS="${RESULTS}$(check browser http://openclaw-mcp-browser:3000/health),"
+      RESULTS="${RESULTS}$(check kubernetes http://claude-code-mcp-core:8080/mcp),"
+      RESULTS="${RESULTS}$(check postgres http://claude-code-mcp-core:3001/health),"
+      RESULTS="${RESULTS}$(check mattermost http://claude-code-mcp-core:8000/health),"
+      RESULTS="${RESULTS}$(check nextcloud http://claude-code-mcp-apps:8000/health/ready),"
+      RESULTS="${RESULTS}$(check invoiceninja http://claude-code-mcp-apps:8080/mcp),"
+      RESULTS="${RESULTS}$(check keycloak http://claude-code-mcp-auth:8080/q/health),"
+      RESULTS="${RESULTS}$(check browser http://claude-code-mcp-browser:3000/health),"
       RESULTS="${RESULTS}$(check github http://mcp-github:3002/mcp),"
       RESULTS="${RESULTS}$(check stripe http://mcp-stripe:3003/mcp)"
       echo "{${RESULTS}}" > /usr/share/nginx/html/health.json

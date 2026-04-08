@@ -79,7 +79,7 @@ Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. All
 
 ## AI & Suche
 
-### OpenClaw (KI-Assistent)
+### Claude Code (KI-Assistent)
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -88,15 +88,15 @@ Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. All
 | URL | http://ai.localhost |
 | Storage | 2 Gi PVC |
 | Resources | 200m CPU, 256Mi--1Gi RAM |
-| Manifest | `k3d/openclaw-webui.yaml` |
+| Manifest | `k3d/claude-code-webui.yaml` |
 
 Self-hosted AI auf Basis von Open WebUI. Backend: Anthropic API. OIDC-Login ueber Keycloak. MCP-Server-Integration fuer Kubernetes, PostgreSQL und Browser-Automatisierung.
 
 **Zugehoerige Manifeste:**
-- `k3d/openclaw-config.yaml` -- Konfiguration (MCP-URLs, Ollama, etc.)
-- `k3d/openclaw-rbac.yaml` -- Kubernetes RBAC fuer MCP-Zugriff
-- `k3d/openclaw-init-job.yaml` -- Initialisierungs-Job
-- `k3d/openclaw-mcp-*.yaml` -- MCP-Server (Kubernetes, PostgreSQL, Browser, GitHub, Grafana, Prometheus, Ops)
+- `k3d/claude-code-config.yaml` -- Konfiguration (MCP-URLs, Ollama, etc.)
+- `k3d/claude-code-rbac.yaml` -- Kubernetes RBAC fuer MCP-Zugriff
+- `k3d/claude-code-init-job.yaml` -- Initialisierungs-Job
+- `k3d/claude-code-mcp-*.yaml` -- MCP-Server (Kubernetes, PostgreSQL, Browser, GitHub, Grafana, Prometheus, Ops)
 
 ### OpenSearch (Volltextsuche)
 
@@ -238,7 +238,7 @@ pie title RAM Requests (Gesamt ca. 3.5 Gi)
     "Mattermost" : 256
     "Nextcloud" : 256
     "Keycloak" : 512
-    "OpenClaw" : 256
+    "Claude Code" : 256
     "OpenSearch" : 512
     "Collabora" : 256
     "Invoice Ninja + MariaDB" : 416

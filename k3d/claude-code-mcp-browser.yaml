@@ -23,9 +23,9 @@ spec:
               value: "--dns-result-order=ipv4first"
           args:
             - |
-              npm install -g supergateway @modelcontextprotocol/server-playwright 2>&1 | tail -3
+              npm install -g supergateway @playwright/mcp 2>&1 | tail -3
               exec npx supergateway \
-                --stdio "npx @modelcontextprotocol/server-playwright" \
+                --stdio "npx @playwright/mcp" \
                 --outputTransport streamableHttp \
                 --port 3000 \
                 --streamableHttpPath /mcp \

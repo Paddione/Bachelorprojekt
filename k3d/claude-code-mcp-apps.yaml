@@ -1,0 +1,112 @@
+# ═══════════════════════════════════════════════════════════════════
+# Claude Code MCP Apps — Nextcloud (8000) + Invoice Ninja (8001)
+# InvoiceNinja spec is fetched at startup from the live API.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-code-mcp-apps
+  labels:
+    app: claude-code-mcp-apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claude-code-mcp-apps
+  template:
+    metadata:
+      labels:
+        app: claude-code-mcp-apps
+    spec:
+      initContainers:
+        - name: fetch-invoiceninja-spec
+          image: curlimages/curl:latest
+          command:
+            - sh
+            - -c
+            - |
+              curl -sfL \
+                https://raw.githubusercontent.com/invoiceninja/invoiceninja/master/openapi.yaml \
+                -o /specs/spec.yaml \
+                && echo "Spec fetched from GitHub OK" \
+                || (echo "GitHub fetch failed, writing stub" && echo '{"openapi":"3.0.0","info":{"title":"InvoiceNinja","version":"5"},"paths":{}}' > /specs/spec.yaml)
+          volumeMounts:
+            - name: invoiceninja-spec
+              mountPath: /specs
+      containers:
+        # ── Nextcloud MCP (port 8000) ──────────────────────────────
+        - name: nextcloud
+          image: ghcr.io/cbcoutinho/nextcloud-mcp-server:latest
+          env:
+            - name: NEXTCLOUD_HOST
+              value: "http://nextcloud.workspace.svc.cluster.local"
+            - name: NEXTCLOUD_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: NEXTCLOUD_USERNAME
+            - name: NEXTCLOUD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: NEXTCLOUD_PASSWORD
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8000 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health/ready, port: 8000 }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests: { memory: 128Mi, cpu: 50m }
+            limits:   { memory: 512Mi }
+
+        # ── Invoice Ninja MCP (port 8001) ──────────────────────────
+        - name: invoiceninja
+          image: ckanthony/openapi-mcp:latest
+          args:
+            - "--spec"
+            - "/specs/spec.yaml"
+            - "--port"
+            - "8001"
+            - "--base-url"
+            - "http://invoiceninja.workspace.svc.cluster.local"
+          env:
+            - name: REQUEST_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: INVOICENINJA_REQUEST_HEADERS
+          ports:
+            - containerPort: 8001
+          volumeMounts:
+            - name: invoiceninja-spec
+              mountPath: /specs
+              readOnly: true
+          resources:
+            requests: { memory: 64Mi, cpu: 50m }
+            limits:   { memory: 512Mi }
+      volumes:
+        - name: invoiceninja-spec
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-code-mcp-apps
+spec:
+  selector:
+    app: claude-code-mcp-apps
+  ports:
+    - name: nextcloud
+      port: 8000
+      targetPort: 8000
+    - name: invoiceninja
+      port: 8001
+      targetPort: 8001

@@ -17,11 +17,8 @@ spec:
       containers:
         - name: mcp-github
           image: ghcr.io/github/github-mcp-server:latest
+          args: ["http", "--port", "3002"]
           env:
-            - name: MCP_TRANSPORT
-              value: "streamable-http"
-            - name: MCP_PORT
-              value: "3002"
             - name: GITHUB_PERSONAL_ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -30,14 +27,12 @@ spec:
           ports:
             - containerPort: 3002
           readinessProbe:
-            httpGet:
-              path: /health
+            tcpSocket:
               port: 3002
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /health
+            tcpSocket:
               port: 3002
             initialDelaySeconds: 15
             periodSeconds: 30

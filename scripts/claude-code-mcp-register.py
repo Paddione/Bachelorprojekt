@@ -5,13 +5,13 @@ import time
 
 DB_PATH = "/app/backend/data/webui.db"
 MCP_SERVERS = [
-    {"id": "kubernetes", "name": "Kubernetes", "url": "http://openclaw-mcp-core:8080/mcp", "type": "http"},
-    {"id": "postgres", "name": "Postgres", "url": "http://openclaw-mcp-core:3001/mcp", "type": "http"},
-    {"id": "mattermost", "name": "Mattermost", "url": "http://openclaw-mcp-core:8000/mcp", "type": "http"},
-    {"id": "nextcloud", "name": "Nextcloud", "url": "http://openclaw-mcp-apps:8000/mcp", "type": "http"},
-    {"id": "invoiceninja", "name": "InvoiceNinja", "url": "http://openclaw-mcp-apps:8080/mcp", "type": "http"},
-    {"id": "keycloak", "name": "Keycloak", "url": "http://openclaw-mcp-auth:8080/mcp/sse", "type": "sse"},
-    {"id": "browser", "name": "Browser", "url": "http://openclaw-mcp-browser:3000/mcp", "type": "http"},
+    {"id": "kubernetes", "name": "Kubernetes", "url": "http://claude-code-mcp-core:8080/mcp", "type": "http"},
+    {"id": "postgres", "name": "Postgres", "url": "http://claude-code-mcp-core:3001/mcp", "type": "http"},
+    {"id": "mattermost", "name": "Mattermost", "url": "http://claude-code-mcp-core:8000/mcp", "type": "http"},
+    {"id": "nextcloud", "name": "Nextcloud", "url": "http://claude-code-mcp-apps:8000/mcp", "type": "http"},
+    {"id": "invoiceninja", "name": "InvoiceNinja", "url": "http://claude-code-mcp-apps:8080/mcp", "type": "http"},
+    {"id": "keycloak", "name": "Keycloak", "url": "http://claude-code-mcp-auth:8080/mcp/sse", "type": "sse"},
+    {"id": "browser", "name": "Browser", "url": "http://claude-code-mcp-browser:3000/mcp", "type": "http"},
     {"id": "wordpress", "name": "WordPress", "url": "http://wordpress.wordpress.svc.cluster.local/wp-json/mcp/mcp-adapter-default-server", "type": "http"},
 ]
 

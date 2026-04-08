@@ -1,21 +1,19 @@
 # MCP Gateway — single-domain Traefik IngressRoute for all MCP servers
 # Access: https://mcp-${PROD_DOMAIN}/{service}/mcp
-# Security: IP-restricted to internal networks only
+# Security: Token-based auth via mcp-auth-proxy (ForwardAuth)
 #
 # Requires DNS: mcp-${PROD_DOMAIN} → 217.195.149.75
 
-# ── IP Allowlist — restrict MCP access to internal networks ──────
+# ── ForwardAuth — validate MCP tokens via mcp-auth-proxy ────────
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: mcp-ipallow
+  name: mcp-forwardauth
 spec:
-  ipAllowList:
-    sourceRange:
-      - 10.10.0.0/16       # k3s management network (Claude Code host)
-      - 10.0.3.0/24         # k3s control-plane nodes
-      - 10.0.31.0/24        # k3s worker nodes
-      - 172.16.0.0/12       # RFC1918 private (WSL2, Docker, etc.)
+  forwardAuth:
+    address: http://mcp-auth-proxy.default.svc.cluster.local:80/auth
+    authResponseHeaders:
+      - X-MCP-Role
 ---
 # ── Strip first path segment: /kubernetes/mcp → /mcp ─────────────
 apiVersion: traefik.io/v1alpha1
@@ -27,7 +25,7 @@ spec:
     regex:
       - "^/[^/]+"
 ---
-# ── Middleware chain: IP filter + strip + security headers ────────
+# ── Middleware chain: auth + strip + security headers ────────────
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -35,7 +33,7 @@ metadata:
 spec:
   chain:
     middlewares:
-      - name: mcp-ipallow
+      - name: mcp-forwardauth
       - name: mcp-strip-service-prefix
       - name: security-headers
         namespace: ${INFRA_NAMESPACE}
@@ -105,6 +103,15 @@ spec:
         - name: openclaw-mcp-auth
           port: 8080
 
+    # ── Browser MCP (Playwright) ──────────────────────────────────
+    - kind: Rule
+      match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/browser`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: openclaw-mcp-browser
+          port: 3000
+
     # ── GitHub MCP ────────────────────────────────────────────────
     - kind: Rule
       match: Host(`mcp-${PROD_DOMAIN}`) && PathPrefix(`/github`)
@@ -122,24 +129,6 @@ spec:
       services:
         - name: mcp-stripe
           port: 3003
-
-    # ── OpenClaw WebUI (catch-all at root) ───────────────────────
-    # Traefik routes by specificity: /kubernetes, /postgres etc.
-    # match first, everything else falls through to OpenClaw.
-    # No stripPrefix needed — OpenClaw serves from /.
-    - kind: Rule
-      match: Host(`mcp-${PROD_DOMAIN}`)
-      priority: 1
-      middlewares:
-        - name: mcp-ipallow
-        - name: security-headers
-          namespace: ${INFRA_NAMESPACE}
-        - name: compression
-          namespace: ${INFRA_NAMESPACE}
-      services:
-        - name: openclaw
-          namespace: workspace
-          port: 8080
 
   tls:
     certResolver: letsencrypt

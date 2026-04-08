@@ -783,7 +783,7 @@ tasks:
         envsubst < "$TEMPLATE" > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
-        echo "  MCP endpoint: https://mcp-{{.PROD_DOMAIN}}"
+        echo "  MCP endpoint: https://mcp.{{.PROD_DOMAIN}}"
         echo ""
         echo "Configured servers:"
         grep -o '"[a-z]*":' "$OUTPUT" | tr -d '":' | sed 's/^/  - /'

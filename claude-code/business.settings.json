@@ -2,28 +2,28 @@
   "mcpServers": {
     "mattermost": {
       "type": "url",
-      "url": "https://mcp-${PROD_DOMAIN}/mattermost/mcp",
+      "url": "https://mcp.${PROD_DOMAIN}/mattermost/mcp",
       "headers": {
         "Authorization": "Bearer ${BUSINESS_TOKEN}"
       }
     },
     "nextcloud": {
       "type": "url",
-      "url": "https://mcp-${PROD_DOMAIN}/nextcloud/mcp",
+      "url": "https://mcp.${PROD_DOMAIN}/nextcloud/mcp",
       "headers": {
         "Authorization": "Bearer ${BUSINESS_TOKEN}"
       }
     },
     "invoiceninja": {
       "type": "url",
-      "url": "https://mcp-${PROD_DOMAIN}/invoiceninja/mcp",
+      "url": "https://mcp.${PROD_DOMAIN}/invoiceninja/mcp",
       "headers": {
         "Authorization": "Bearer ${BUSINESS_TOKEN}"
       }
     },
     "stripe": {
       "type": "url",
-      "url": "https://mcp-${PROD_DOMAIN}/stripe/mcp",
+      "url": "https://mcp.${PROD_DOMAIN}/stripe/mcp",
       "headers": {
         "Authorization": "Bearer ${BUSINESS_TOKEN}"
       }

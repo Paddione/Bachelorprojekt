@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-auth-proxy-config
+data:
+  nginx.conf: |
+    load_module modules/ngx_http_perl_module.so;
+
+    events {
+      worker_connections 128;
+    }
+
+    http {
+      perl_set $cluster_token 'sub { return $ENV{"CLUSTER_TOKEN"} // "" }';
+      perl_set $business_token 'sub { return $ENV{"BUSINESS_TOKEN"} // "" }';
+
+      server {
+        listen 80;
+
+        location = /healthz {
+          access_log off;
+          return 200 "OK\n";
+        }
+
+        location = /auth {
+          set $bearer "";
+          if ($http_authorization ~* "^Bearer\s+(.+)$") {
+            set $bearer $1;
+          }
+
+          # No token provided
+          if ($bearer = "") {
+            return 401 '{"error":"missing or invalid Authorization header"}\n';
+          }
+
+          # Determine role
+          set $role "";
+          if ($bearer = $cluster_token) {
+            set $role "cluster";
+          }
+          if ($bearer = $business_token) {
+            set $role "business";
+          }
+
+          # Unknown token
+          if ($role = "") {
+            return 401 '{"error":"invalid token"}\n';
+          }
+
+          # Cluster role: allow everything
+          if ($role = "cluster") {
+            add_header X-MCP-Role "cluster" always;
+            return 200 '{"status":"ok","role":"cluster"}\n';
+          }
+
+          # Business role: check allowed paths
+          set $uri_path $http_x_forwarded_uri;
+          set $allowed "";
+
+          if ($uri_path ~ "^/mattermost(/|$)") {
+            set $allowed "yes";
+          }
+          if ($uri_path ~ "^/nextcloud(/|$)") {
+            set $allowed "yes";
+          }
+          if ($uri_path ~ "^/invoiceninja(/|$)") {
+            set $allowed "yes";
+          }
+          if ($uri_path ~ "^/stripe(/|$)") {
+            set $allowed "yes";
+          }
+
+          if ($allowed != "yes") {
+            return 403 '{"error":"forbidden: business role cannot access this path"}\n';
+          }
+
+          add_header X-MCP-Role "business" always;
+          return 200 '{"status":"ok","role":"business"}\n';
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-auth-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-auth-proxy
+  template:
+    metadata:
+      labels:
+        app: mcp-auth-proxy
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine-perl
+          ports:
+            - containerPort: 80
+          env:
+            - name: CLUSTER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-tokens
+                  key: CLUSTER_TOKEN
+            - name: BUSINESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-tokens
+                  key: BUSINESS_TOKEN
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+      volumes:
+        - name: config
+          configMap:
+            name: mcp-auth-proxy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-auth-proxy
+spec:
+  selector:
+    app: mcp-auth-proxy
+  ports:
+    - port: 80
+      targetPort: 80

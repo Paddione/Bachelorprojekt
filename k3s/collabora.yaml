@@ -72,9 +72,9 @@ spec:
       match: Host(`office.${PROD_DOMAIN}`)
       middlewares:
         - name: default-chain
-          namespace: korczewski-infra
+          namespace: ${INFRA_NAMESPACE}
       services:
         - name: collabora
           port: 9980
   tls:
-    secretName: korczewski-tls
+    secretName: ${TLS_SECRET_NAME}

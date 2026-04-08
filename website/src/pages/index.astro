@@ -43,7 +43,7 @@ const services = [
       'Nachhaltige interne Kompetenz aufbauen',
     ],
     href: '/beratung',
-    price: 'Tagessatz 1.000 \u20AC',
+    price: 'nach Vereinbarung',
   },
 ];
 
@@ -58,7 +58,7 @@ const faqItems = [
   },
   {
     question: 'Arbeiten Sie auch online?',
-    answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. Das Digital Cafe biete ich bevorzugt vor Ort in Luneburg und Umgebung an.',
+    answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. Das Digital Cafe biete ich bevorzugt vor Ort in ${CONTACT_CITY} und Umgebung an.',
   },
   {
     question: 'Was kostet ein Erstgesprach?',
@@ -167,7 +167,7 @@ const faqItems = [
           <div class="relative mb-8">
             <img
               src="/gerald.webp"
-              alt="Gerald Korczewski"
+              alt="${CONTACT_NAME}"
               class="w-64 h-64 md:w-72 md:h-72 rounded-full object-cover border-3 border-gold shadow-lg shadow-gold-dim"
               loading="lazy"
             />
@@ -177,9 +177,9 @@ const faqItems = [
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
             </svg>
             <blockquote class="text-lg text-light leading-relaxed italic font-serif">
-              "Ich stelle unbequeme Fragen &ndash; weil echte Losungen manchmal unbequeme Wahrheiten brauchen."
+              "Ich stelle unbequeme Fragen &ndash; weil echte Lösungen manchmal unbequeme Wahrheiten brauchen."
             </blockquote>
-            <p class="text-muted-dark mt-4 text-sm">Gerald Korczewski</p>
+            <p class="text-muted-dark mt-4 text-sm">${CONTACT_NAME}</p>
           </div>
         </div>
       </div>

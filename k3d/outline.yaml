@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: outline
-          image: outlinewiki/outline:0.75.0
+          image: outlinewiki/outline:0.82.0
           env:
             - name: NODE_ENV
               value: "production"

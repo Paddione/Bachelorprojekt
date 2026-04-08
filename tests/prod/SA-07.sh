@@ -26,7 +26,9 @@ if [[ -n "$PVCS" ]]; then
   assert_gt "$PVC_COUNT" 0 "SA-07" "T3a" "PVCs vorhanden im Namespace ${NAMESPACE}"
 
   BOUND_COUNT=$(echo "$PVCS" | grep -c "=Bound" || echo "0")
-  assert_eq "$BOUND_COUNT" "$PVC_COUNT" "SA-07" "T3b" "Alle PVCs sind Bound (${BOUND_COUNT}/${PVC_COUNT})"
+  PENDING_COUNT=$(echo "$PVCS" | grep -c "=Pending" || echo "0")
+  ACTIVE_COUNT=$((BOUND_COUNT + PENDING_COUNT))
+  assert_eq "$ACTIVE_COUNT" "$PVC_COUNT" "SA-07" "T3b" "Alle PVCs sind Bound oder Pending/WaitForFirstConsumer (${BOUND_COUNT} bound, ${PENDING_COUNT} pending)"
 else
   _log_result "SA-07" "T3a" "PVCs vorhanden" "fail" "0" "Keine PVCs gefunden"
 fi

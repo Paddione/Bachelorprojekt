@@ -29,7 +29,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: mattermost
-          image: mattermost/mattermost-enterprise-edition:9.7
+          image: mattermost/mattermost-enterprise-edition:release-11.5
           env:
             - name: MM_SQLSETTINGS_DRIVERNAME
               value: postgres

@@ -7,6 +7,12 @@ env:
   PROD_DOMAIN: "{{.PROD_DOMAIN}}"
   BRAND_NAME: "{{.BRAND_NAME}}"
   CONTACT_EMAIL: "{{.CONTACT_EMAIL}}"
+  CONTACT_PHONE: "{{.CONTACT_PHONE}}"
+  CONTACT_CITY: "{{.CONTACT_CITY}}"
+  CONTACT_NAME: "{{.CONTACT_NAME}}"
+  INFRA_NAMESPACE: "{{.INFRA_NAMESPACE}}"
+  TLS_SECRET_NAME: "{{.TLS_SECRET_NAME}}"
+  SMTP_FROM: "{{.SMTP_FROM}}"
 
 vars:
   CLUSTER_NAME: dev
@@ -14,16 +20,37 @@ vars:
   APP_NAME: demo-app
   APP_IMAGE: "{{.REGISTRY}}/{{.APP_NAME}}"
   # ── Domains ───────────────────────────────────────────────────────────
-  # The base domain (e.g. korczewski.de)
+  # The base domain (e.g. example.com)
   # Loaded from .env or uses default if not set.
   PROD_DOMAIN:
-    sh: echo "${PROD_DOMAIN:-korczewski.de}"
-  # The brand name (e.g. Kore IT)
+    sh: echo "${PROD_DOMAIN:-yourdomain.tld}"
+  # The brand name (e.g. My Brand)
   BRAND_NAME:
-    sh: echo "${BRAND_NAME:-Kore IT}"
-  # The contact email (e.g. info@korczewski.de)
+    sh: echo "${BRAND_NAME:-yourbrand.tld}"
+  # The contact email (e.g. info@example.com)
   CONTACT_EMAIL:
-    sh: echo "${CONTACT_EMAIL:-info@korczewski.de}"
+    sh: echo "${CONTACT_EMAIL:-info@yourdomain.tld}"
+  # The phone number displayed on the website
+  CONTACT_PHONE:
+    sh: echo "${CONTACT_PHONE:-+49 000 000 00 000}"
+  # The city/region displayed on the website
+  CONTACT_CITY:
+    sh: echo "${CONTACT_CITY:-YourCity}"
+  # The person name displayed on the website
+  CONTACT_NAME:
+    sh: echo "${CONTACT_NAME:-Firstname Lastname}"
+  # The Docker image name for the website
+  WEBSITE_IMAGE:
+    sh: echo "${WEBSITE_IMAGE:-workspace-website}"
+  # Infrastructure namespace for Traefik middlewares
+  INFRA_NAMESPACE:
+    sh: echo "${INFRA_NAMESPACE:-workspace-infra}"
+  # TLS secret name for wildcard certificate
+  TLS_SECRET_NAME:
+    sh: echo "${TLS_SECRET_NAME:-workspace-wildcard-tls}"
+  # SMTP sender address for production
+  SMTP_FROM:
+    sh: echo "${SMTP_FROM:-noreply@yourdomain.tld}"
   DEV_DOMAIN: localhost
 
 tasks:
@@ -498,7 +525,7 @@ tasks:
   workspace:prod:deploy:
     desc: Deploy workspace stack to k3s-production cluster
     preconditions:
-      - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
+      - sh: kubectl --context hetzner cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
       - sh: "! grep -q 'CHANGE_ME' prod/secrets.yaml"
         msg: "prod/secrets.yaml still contains CHANGE_ME — fill in SMTP_PASSWORD first."
@@ -507,19 +534,29 @@ tasks:
         export PROD_DOMAIN="{{.PROD_DOMAIN}}"
         export BRAND_NAME="{{.BRAND_NAME}}"
         export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
-        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl --context k3s-production apply -f -
+        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
+        export CONTACT_CITY="{{.CONTACT_CITY}}"
+        export CONTACT_NAME="{{.CONTACT_NAME}}"
+        export INFRA_NAMESPACE="{{.INFRA_NAMESPACE}}"
+        export TLS_SECRET_NAME="{{.TLS_SECRET_NAME}}"
+        export SMTP_FROM="{{.SMTP_FROM}}"
+        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context hetzner apply -f -
       - |
         echo "Waiting for vaultwarden rollout..."
-        kubectl --context k3s-production rollout status deployment/vaultwarden -n workspace --timeout=120s
+        kubectl --context hetzner rollout status deployment/vaultwarden -n workspace --timeout=120s
       # Deploy website (separate namespace, not in main kustomization)
       - |
         export PROD_DOMAIN="{{.PROD_DOMAIN}}"
         export BRAND_NAME="{{.BRAND_NAME}}"
         export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
+        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
+        export CONTACT_CITY="{{.CONTACT_CITY}}"
+        export CONTACT_NAME="{{.CONTACT_NAME}}"
+        export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
         # Apply base website manifests
-        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" < k3d/website.yaml | kubectl --context k3s-production apply -f -
+        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$WEBSITE_IMAGE" < k3d/website.yaml | kubectl --context hetzner apply -f -
         # Patch prod-specific config (merge, not replace)
-        kubectl --context k3s-production patch configmap website-config -n website --type merge -p "{\"data\":{
+        kubectl --context hetzner patch configmap website-config -n website --type merge -p "{\"data\":{
           \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
           \"SMTP_HOST\":\"smtp.mailbox.org\",
           \"SMTP_PORT\":\"465\",
@@ -528,10 +565,10 @@ tasks:
           \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
         }}"
         # Apply prod IngressRoute (HTTPS + TLS)
-        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context k3s-production apply -f -
+        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context hetzner apply -f -
       - |
         echo "Waiting for website rollout..."
-        kubectl --context k3s-production rollout status deployment/website -n website --timeout=120s
+        kubectl --context hetzner rollout status deployment/website -n website --timeout=120s
       - task: website:webhook:setup
       - 'echo "✓ Production deploy complete"'
       - 'echo "  Vaultwarden: https://vault.{{.PROD_DOMAIN}}"'
@@ -627,7 +664,8 @@ tasks:
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
       - 'echo "Deploying OpenClaw MCP pods..."'
-      - kubectl apply -k deploy/mcp/
+      - |
+        kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME" | kubectl apply -f -
       - 'echo "Waiting for pods to roll out..."'
       - kubectl rollout status deployment/openclaw-mcp-core --timeout=120s
       - kubectl rollout status deployment/openclaw-mcp-apps --timeout=90s
@@ -706,18 +744,21 @@ tasks:
     desc: Build the Astro website Docker image
     cmds:
       - |
-        docker build -t mentolder-website:latest \
+        docker build -t {{.WEBSITE_IMAGE}}:latest \
           --build-arg PROD_DOMAIN="{{.PROD_DOMAIN}}" \
           --build-arg BRAND_NAME="{{.BRAND_NAME}}" \
           --build-arg CONTACT_EMAIL="{{.CONTACT_EMAIL}}" \
+          --build-arg CONTACT_PHONE="{{.CONTACT_PHONE}}" \
+          --build-arg CONTACT_CITY="{{.CONTACT_CITY}}" \
+          --build-arg CONTACT_NAME="{{.CONTACT_NAME}}" \
           website/
-        echo "✓ Docker image built: mentolder-website:latest"
+        echo "✓ Docker image built: {{.WEBSITE_IMAGE}}:latest"
 
   website:build:import:
     desc: Build and import website image into k3d cluster
     cmds:
       - task: website:build
-      - k3d image import mentolder-website:latest -c {{.CLUSTER_NAME}}
+      - k3d image import {{.WEBSITE_IMAGE}}:latest -c {{.CLUSTER_NAME}}
       - echo "✓ Image imported into k3d cluster"
 
   website:deploy:
@@ -731,7 +772,11 @@ tasks:
         export PROD_DOMAIN="{{.PROD_DOMAIN}}"
         export BRAND_NAME="{{.BRAND_NAME}}"
         export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
-        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" < k3d/website.yaml | kubectl apply -f -
+        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
+        export CONTACT_CITY="{{.CONTACT_CITY}}"
+        export CONTACT_NAME="{{.CONTACT_NAME}}"
+        export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
+        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$WEBSITE_IMAGE" < k3d/website.yaml | kubectl apply -f -
       - |
         echo "Waiting for website..."
         kubectl rollout status deployment/website -n website --timeout=120s

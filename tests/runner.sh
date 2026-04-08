@@ -164,8 +164,8 @@ if [[ "$TIER" == "prod" ]]; then
 
   # Verify prod is reachable before running tests
   echo "▶ Prüfe Erreichbarkeit von ${PROD_DOMAIN}..."
-  if ! curl -sk -o /dev/null --max-time 10 "https://auth-${PROD_DOMAIN}/health/ready" 2>/dev/null; then
-    echo "  ⚠ Keycloak auf auth-${PROD_DOMAIN} nicht erreichbar — Tests starten trotzdem"
+  if ! curl -sk -o /dev/null --max-time 10 "https://auth.${PROD_DOMAIN}/health/ready" 2>/dev/null; then
+    echo "  ⚠ Keycloak auf auth.${PROD_DOMAIN} nicht erreichbar — Tests starten trotzdem"
   else
     echo "  Keycloak erreichbar."
   fi

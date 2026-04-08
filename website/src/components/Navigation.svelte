@@ -27,14 +27,14 @@
 >
   <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
     <a href="/" class="text-xl font-bold text-light hover:text-gold transition-colors font-serif">
-      mentolder<span class="text-gold">.de</span>
+      ${PROD_DOMAIN}
     </a>
 
     <!-- Desktop nav -->
     <div class="hidden md:flex items-center gap-8">
       <a href="/leistungen" class="text-muted hover:text-gold font-medium transition-colors">Leistungen</a>
       <a href="/termin" class="text-muted hover:text-gold font-medium transition-colors">Termin</a>
-      <a href="/ueber-mich" class="text-muted hover:text-gold font-medium transition-colors">Uber mich</a>
+      <a href="/ueber-mich" class="text-muted hover:text-gold font-medium transition-colors">Über mich</a>
 
       {#if authChecked}
         {#if user}
@@ -68,7 +68,7 @@
     <button
       class="md:hidden p-2 text-muted"
       onclick={() => (mobileOpen = !mobileOpen)}
-      aria-label="Menu offnen"
+      aria-label="Menü öffnen"
     >
       <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         {#if mobileOpen}
@@ -85,7 +85,7 @@
     <div class="md:hidden bg-dark-light border-t border-dark-lighter px-6 py-4 space-y-4">
       <a href="/leistungen" class="block text-muted hover:text-gold font-medium py-2" onclick={() => (mobileOpen = false)}>Leistungen</a>
       <a href="/termin" class="block text-muted hover:text-gold font-medium py-2" onclick={() => (mobileOpen = false)}>Termin</a>
-      <a href="/ueber-mich" class="block text-muted hover:text-gold font-medium py-2" onclick={() => (mobileOpen = false)}>Uber mich</a>
+      <a href="/ueber-mich" class="block text-muted hover:text-gold font-medium py-2" onclick={() => (mobileOpen = false)}>Über mich</a>
 
       {#if authChecked}
         {#if user}

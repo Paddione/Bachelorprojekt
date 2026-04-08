@@ -18,3 +18,29 @@ spec:
               value: "https://web.${PROD_DOMAIN}"
             - name: MM_ANNOUNCEMENTSETTINGS_BANNERTEXT
               value: "Besuche unsere Website: web.${PROD_DOMAIN}"
+            - name: MM_EMAILSETTINGS_SMTPSERVER
+              value: "smtp.mailbox.org"
+            - name: MM_EMAILSETTINGS_SMTPPORT
+              value: "465"
+            - name: MM_EMAILSETTINGS_CONNECTIONSECURITY
+              value: "TLS"
+            - name: MM_EMAILSETTINGS_ENABLESMTPAUTH
+              value: "true"
+            - name: MM_EMAILSETTINGS_SMTPUSERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_FROM
+            - name: MM_EMAILSETTINGS_SMTPPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_PASSWORD
+            - name: MM_EMAILSETTINGS_FEEDBACKEMAIL
+              value: "noreply@${PROD_DOMAIN}"
+            - name: MM_EMAILSETTINGS_FEEDBACKNAME
+              value: "${BRAND_NAME}"
+            - name: MM_LOGSETTINGS_ENABLEDIAGNOSTICS
+              value: "false"
+            - name: MM_SERVICESETTINGS_TRUSTEDPROXYIPHEADER
+              value: '["X-Forwarded-For","X-Real-IP"]'

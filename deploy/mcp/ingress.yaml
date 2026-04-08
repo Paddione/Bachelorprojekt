@@ -38,9 +38,9 @@ spec:
       - name: mcp-ipallow
       - name: mcp-strip-service-prefix
       - name: security-headers
-        namespace: korczewski-infra
+        namespace: ${INFRA_NAMESPACE}
       - name: compression
-        namespace: korczewski-infra
+        namespace: ${INFRA_NAMESPACE}
 ---
 # ── IngressRoute: path-based routing to all MCP servers ──────────
 apiVersion: traefik.io/v1alpha1
@@ -133,9 +133,9 @@ spec:
       middlewares:
         - name: mcp-ipallow
         - name: security-headers
-          namespace: korczewski-infra
+          namespace: ${INFRA_NAMESPACE}
         - name: compression
-          namespace: korczewski-infra
+          namespace: ${INFRA_NAMESPACE}
       services:
         - name: openclaw
           namespace: workspace

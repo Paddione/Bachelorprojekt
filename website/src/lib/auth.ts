@@ -8,7 +8,7 @@ const CLIENT_ID = 'website';
 const CLIENT_SECRET = process.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
 const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
 const CALLBACK_PATH = '/api/auth/callback';
-const COOKIE_NAME = 'mentolder_session';
+const COOKIE_NAME = 'workspace_session';
 
 // Well-known OIDC endpoints
 const ISSUER_FRONTEND = `${KC_FRONTEND_URL}/realms/${KC_REALM}`;

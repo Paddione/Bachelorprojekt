@@ -206,7 +206,7 @@ spec:
     spec:
       containers:
         - name: signaling
-          image: strukturag/nextcloud-spreed-signaling:1.2.4
+          image: strukturag/nextcloud-spreed-signaling:2.1.1
           env:
             - name: CONFIG
               value: /etc/signaling/server.conf

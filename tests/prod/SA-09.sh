@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
-BILLING_URL="${PROTO:-https}://billing-${PROD_DOMAIN}"
+BILLING_URL="${PROTO:-https}://billing.${PROD_DOMAIN}"
 NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: billing-Domain erreichbar (OAuth2-Proxy antwortet)
@@ -15,11 +15,11 @@ assert_eq "$BILLING_OK" "true" "SA-09" "T1" "billing-Domain erreichbar (HTTP ${B
 # T2: OAuth2-Proxy leitet zu Keycloak weiter
 BILLING_REDIRECT=$(curl -sk -o /dev/null -D - --max-time 10 "${BILLING_URL}/" 2>/dev/null \
   | grep -i '^location:' | tr -d '\r')
-assert_contains "$BILLING_REDIRECT" "auth-${PROD_DOMAIN}" "SA-09" "T2" \
+assert_contains "$BILLING_REDIRECT" "auth.${PROD_DOMAIN}" "SA-09" "T2" \
   "Billing-SSO leitet zu Keycloak weiter"
 
 # T3: OAuth2-Proxy Callback-URL korrekt konfiguriert
-assert_contains "$BILLING_REDIRECT" "billing-${PROD_DOMAIN}" "SA-09" "T3" \
+assert_contains "$BILLING_REDIRECT" "billing.${PROD_DOMAIN}" "SA-09" "T3" \
   "OAuth2-Proxy Callback enthält billing-Domain"
 
 # T4: Statische Assets ohne Auth erreichbar (skip-auth-regex)
@@ -46,5 +46,5 @@ IN_READY=$(kubectl get pods -n "$NAMESPACE" -l app=invoiceninja --no-headers 2>/
 assert_eq "$IN_READY" "2/2" "SA-09" "T7" "Invoice Ninja Pod running (Prod)"
 
 # T8: TLS-Zertifikat gültig
-TLS_VALID=$(curl -sv "https://billing-${PROD_DOMAIN}/" 2>&1 | grep -c 'SSL certificate verify ok' || echo "0")
+TLS_VALID=$(curl -sv "https://billing.${PROD_DOMAIN}/" 2>&1 | grep -c 'SSL certificate verify ok' || echo "0")
 assert_gt "$TLS_VALID" "0" "SA-09" "T8" "TLS-Zertifikat für billing-Domain gültig"

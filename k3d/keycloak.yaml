@@ -18,7 +18,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:24.0
+          image: quay.io/keycloak/keycloak:26.6
           command: ["/opt/keycloak/realm-template/import-entrypoint.sh"]
           env:
             - name: KC_DB

@@ -7,7 +7,7 @@ source "${SCRIPT_DIR}/lib/k3d.sh"
 DOMAIN="${PROD_DOMAIN:?PROD_DOMAIN must be set}"
 
 # All service subdomains to check
-SERVICES=("auth-${DOMAIN}" "chat-${DOMAIN}" "files-${DOMAIN}" "office-${DOMAIN}")
+SERVICES=("auth.${DOMAIN}" "chat.${DOMAIN}" "files.${DOMAIN}" "office.${DOMAIN}")
 
 # T1: HTTPS is reachable on all services
 for svc in "${SERVICES[@]}"; do
@@ -33,7 +33,7 @@ done
 
 # T3: TLS cipher strength (requires nmap)
 if command -v nmap &>/dev/null; then
-  NMAP_OUT=$(nmap --script ssl-enum-ciphers -p 443 "auth-${DOMAIN}" 2>/dev/null)
+  NMAP_OUT=$(nmap --script ssl-enum-ciphers -p 443 "auth.${DOMAIN}" 2>/dev/null)
 
   # Check TLS 1.2+ is supported
   assert_contains "$NMAP_OUT" "TLSv1.2" "SA-01" "T3a" "TLS 1.2 unterstützt"
@@ -59,7 +59,7 @@ else
 fi
 
 # T4: HSTS header present
-for svc in "auth-${DOMAIN}" "chat-${DOMAIN}" "files-${DOMAIN}"; do
+for svc in "auth.${DOMAIN}" "chat.${DOMAIN}" "files.${DOMAIN}"; do
   HSTS=$(curl -sk -D - -o /dev/null --max-time 10 "https://${svc}/" 2>/dev/null | grep -i "strict-transport-security" || echo "")
   if [[ -n "$HSTS" ]]; then
     _log_result "SA-01" "T4-${svc%%.*}" "HSTS Header auf ${svc}" "pass" "0"
@@ -69,7 +69,7 @@ for svc in "auth-${DOMAIN}" "chat-${DOMAIN}" "files-${DOMAIN}"; do
 done
 
 # T5: Certificate validity (not expired)
-CERT_EXPIRY=$(echo | openssl s_client -servername "auth-${DOMAIN}" -connect "auth-${DOMAIN}:443" 2>/dev/null \
+CERT_EXPIRY=$(echo | openssl s_client -servername "auth.${DOMAIN}" -connect "auth.${DOMAIN}:443" 2>/dev/null \
   | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
 if [[ -n "$CERT_EXPIRY" ]]; then
   EXPIRY_EPOCH=$(date -d "$CERT_EXPIRY" +%s 2>/dev/null || echo "0")

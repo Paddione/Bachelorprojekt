@@ -15,7 +15,7 @@
       "username": "Paddione",
       "enabled": true,
       "emailVerified": true,
-      "email": "patrick@korczewski.de",
+      "email": "patrick@${PROD_DOMAIN}",
       "firstName": "Patrick",
       "lastName": "Korczewski",
       "credentials": [

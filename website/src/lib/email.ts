@@ -55,14 +55,14 @@ vielen Dank fur Ihre Registrierung bei ${BRAND_NAME}.
 
 Ihre Anfrage wird in Kurze gepruft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.
 
-Bei Fragen erreichen Sie uns unter ${CONTACT_EMAIL} oder +49 151 508 32 601.
+Bei Fragen erreichen Sie uns unter ${CONTACT_EMAIL} oder ${CONTACT_PHONE}.
 
 Mit freundlichen Grussen
 ${BRAND_NAME}`,
     html: `<p>Hallo ${name},</p>
 <p>vielen Dank fur Ihre Registrierung bei ${BRAND_NAME}.</p>
 <p>Ihre Anfrage wird in Kurze gepruft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.</p>
-<p>Bei Fragen erreichen Sie uns unter <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> oder +49 151 508 32 601.</p>
+<p>Bei Fragen erreichen Sie uns unter <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> oder ${CONTACT_PHONE}.</p>
 <p>Mit freundlichen Grussen<br>${BRAND_NAME}</p>`,
   });
 }

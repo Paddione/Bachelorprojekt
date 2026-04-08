@@ -764,9 +764,9 @@ tasks:
           exit 1
         fi
 
-        # Read token from k8s Secret
+        # Read token from k8s Secret (production context)
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context hetzner get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
           echo "Deploy MCP first: task mcp:deploy"
@@ -777,16 +777,19 @@ tasks:
         export CLUSTER_TOKEN="$TOKEN"
         export BUSINESS_TOKEN="$TOKEN"
 
-        OUTPUT="$HOME/.claude/settings.json"
-        mkdir -p "$(dirname "$OUTPUT")"
+        # Write to project-level settings (won't overwrite global config)
+        PROJECT_DIR="$HOME/.claude/projects/-home-patrick-Bachelorprojekt"
+        mkdir -p "$PROJECT_DIR"
+        OUTPUT="$PROJECT_DIR/settings.json"
 
-        envsubst < "$TEMPLATE" > "$OUTPUT"
+        # Prefix server names with mcp- to avoid conflicts with local MCP servers
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
         echo "  MCP endpoint: https://mcp.{{.PROD_DOMAIN}}"
         echo ""
         echo "Configured servers:"
-        grep -o '"[a-z]*":' "$OUTPUT" | tr -d '":' | sed 's/^/  - /'
+        python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$OUTPUT"
 
   claude-code:rotate-tokens:
     desc: Generate new MCP access tokens and update the Secret
@@ -795,13 +798,13 @@ tasks:
         NEW_CLUSTER=$(openssl rand -hex 32)
         NEW_BUSINESS=$(openssl rand -hex 32)
 
-        kubectl patch secret mcp-tokens --type='json' -p="[
-          {\"op\":\"replace\",\"path\":\"/data/CLUSTER_TOKEN\",\"value\":\"$(echo -n $NEW_CLUSTER | base64 -w0)\"},
-          {\"op\":\"replace\",\"path\":\"/data/BUSINESS_TOKEN\",\"value\":\"$(echo -n $NEW_BUSINESS | base64 -w0)\"}
-        ]"
+        kubectl --context hetzner delete secret mcp-tokens 2>/dev/null || true
+        kubectl --context hetzner create secret generic mcp-tokens \
+          --from-literal="CLUSTER_TOKEN=$NEW_CLUSTER" \
+          --from-literal="BUSINESS_TOKEN=$NEW_BUSINESS"
 
-        kubectl rollout restart deployment/mcp-auth-proxy
-        kubectl rollout status deployment/mcp-auth-proxy --timeout=60s
+        kubectl --context hetzner rollout restart deployment/mcp-auth-proxy
+        kubectl --context hetzner rollout status deployment/mcp-auth-proxy --timeout=60s
 
         echo "MCP tokens rotated"
         echo ""

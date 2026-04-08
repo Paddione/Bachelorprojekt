@@ -1,4 +1,3 @@
-
 # ── Outline Knowledge Base ───────────────────────────────────────────────────
 # Self-hosted wiki for customer profiles and coaching documentation.
 # Uses shared PostgreSQL, Keycloak OIDC, and local file storage.

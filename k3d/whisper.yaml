@@ -1,4 +1,3 @@
-
 # ── faster-whisper Transcription Service ─────────────────────────────────────
 # CPU-only, medium model. REST API: POST /asr with audio file → transcript.
 # Image: fedirz/faster-whisper-server (OpenAI-compatible API)

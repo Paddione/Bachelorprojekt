@@ -6,6 +6,9 @@ data:
   nginx.conf: |
     load_module modules/ngx_http_perl_module.so;
 
+    env CLUSTER_TOKEN;
+    env BUSINESS_TOKEN;
+
     events {
       worker_connections 128;
     }

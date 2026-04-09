@@ -1,6 +1,6 @@
 # Workspace MVP
 
-Kubernetes-basierte Kollaborationsplattform fuer kleine Teams -- Mattermost (Chat), Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO), OpenClaw (KI), Invoice Ninja (Rechnungen) und weitere Services auf k3d/k3s mit Traefik Ingress.
+Kubernetes-basierte Kollaborationsplattform fuer kleine Teams -- Mattermost (Chat), Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO), Claude Code (KI), Invoice Ninja (Rechnungen) und weitere Services auf k3d/k3s mit Traefik Ingress.
 
 ## Schnellstart
 
@@ -28,7 +28,7 @@ task workspace:up
 | Nextcloud (Dateien + Talk) | http://files.localhost | Dateien, Kalender, Kontakte, Video |
 | Collabora (Office) | http://office.localhost | Online-Office (LibreOffice) |
 | Talk HPB (Signaling) | http://signaling.localhost | WebRTC-Signaling (Janus + NATS + coturn) |
-| OpenClaw (KI) | http://ai.localhost | Self-hosted AI (Ollama + Anthropic API) |
+| Claude Code (KI) | http://ai.localhost | MCP-Status-Dashboard (Claude Code laeuft lokal) |
 | Invoice Ninja (Rechnungen) | http://billing.localhost | Rechnungsstellung |
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
 | Whiteboard | http://board.localhost | Kollaboratives Whiteboard |
@@ -70,7 +70,7 @@ graph TB
             NC[Nextcloud + Talk<br/>files.localhost]
             CO[Collabora Online<br/>office.localhost]
             HPB[Talk HPB Signaling<br/>signaling.localhost]
-            OC[OpenClaw AI<br/>ai.localhost]
+            OC[Claude Code AI<br/>ai.localhost]
             IN[Invoice Ninja<br/>billing.localhost]
             VW[Vaultwarden<br/>vault.localhost]
             WB[Whiteboard<br/>board.localhost]
@@ -202,18 +202,18 @@ Alternativ alles automatisch: `task workspace:up`
 | `task workspace:billing-setup` | billing-bot Image bauen (Token + Slash-Command automatisch) |
 | `task workspace:stripe-setup` | Stripe als Payment Gateway in Invoice Ninja registrieren |
 
-### OpenClaw & MCP-Server
+### Claude Code & MCP-Server
 
 | Befehl | Beschreibung |
 |--------|-------------|
-| `task workspace:openclaw:setup` | MCP-Server in OpenClaw-Datenbank registrieren |
-| `task mcp:deploy` | Alle OpenClaw MCP-Pods deployen (core + apps + auth) |
+| `task workspace:claude-code:setup` | MCP-Server in Claude Code-Datenbank registrieren |
+| `task mcp:deploy` | Alle Claude Code MCP-Pods deployen (core + apps + auth) |
 | `task mcp:status` | Status aller MCP-Pods und Container |
 | `task mcp:logs -- <pod>/<container>` | MCP-Container-Logs ansehen |
 | `task mcp:restart -- core\|apps\|auth` | MCP-Pod neu starten |
 | `task mcp:select` | Interaktiver MCP-Server-Selektor |
-| `task mcp:mattermost-setup` | OpenClaw-Channels in Mattermost erstellen |
-| `task mcp:set-github-pat -- <token>` | GitHub PAT in openclaw-secrets aktualisieren |
+| `task mcp:mattermost-setup` | Claude Code-Channels in Mattermost erstellen |
+| `task mcp:set-github-pat -- <token>` | GitHub PAT in claude-code-secrets aktualisieren |
 
 ### Vaultwarden
 
@@ -341,9 +341,9 @@ Bachelorprojekt/
     collabora.yaml              # Collabora Online
     talk-hpb.yaml               # Talk HPB (Signaling + Janus + NATS)
     coturn.yaml                 # TURN/STUN Server
-    openclaw-webui.yaml         # OpenClaw AI WebUI
-    openclaw-config.yaml        # OpenClaw Konfiguration
-    openclaw-mcp-*.yaml         # MCP-Server Manifeste (7 Server)
+    claude-code-config.yaml        # Claude Code Konfiguration
+    claude-code-rbac.yaml          # Kubernetes RBAC fuer MCP-Zugriff
+    claude-code-mcp-*.yaml         # MCP-Server Manifeste (11 Server)
     invoiceninja.yaml           # Invoice Ninja + OAuth2-Proxy
     billing-bot.yaml            # billing-bot Deployment
     vaultwarden.yaml            # Vaultwarden Passwort-Manager
@@ -361,7 +361,7 @@ Bachelorprojekt/
   deploy/                       # Skaffold-basierter Deploy-Pfad (Dev-Iteration)
     mcp/                        # MCP-Server Kustomize Overlays
   billing-bot/                  # Go-Microservice (main.go) -- /slash, /actions, /healthz
-  openclaw/                     # OpenClaw Konfiguration + System-Prompt
+  claude-code/                     # Claude Code Konfiguration + System-Prompt
   scripts/                      # Bash-Utility-Skripte (Migration, Import, DSGVO, MCP)
   tests/                        # Automatisierte Tests (Bash + Playwright)
   website/                      # Astro + Svelte Website

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates Mattermost (chat), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), OpenClaw (AI), Invoice Ninja (billing), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
+**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates Mattermost (chat), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Invoice Ninja (billing), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
 
 Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
@@ -41,18 +41,18 @@ task workspace:stripe-setup      # Register Stripe as payment gateway in Invoice
 task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
 task workspace:monitoring        # Install Prometheus + Grafana + DSGVO dashboard (NFA-02)
 task workspace:dsgvo-check       # Run DSGVO compliance verification (NFA-01)
-task workspace:openclaw:setup    # Register MCP servers in OpenClaw database
+task workspace:claude-code:setup    # Register MCP servers in Claude Code database
 ```
 
-### OpenClaw MCP Servers
+### Claude Code MCP Servers
 ```bash
 task mcp:deploy                  # Deploy all MCP pods (core + apps + auth)
 task mcp:status                  # Show MCP pod and container status
 task mcp:logs -- <pod>/<ctr>     # Tail MCP container logs
 task mcp:restart -- core|apps|auth  # Restart an MCP pod
 task mcp:select                  # Interactive MCP server selector
-task mcp:mattermost-setup        # Create OpenClaw channels in Mattermost
-task mcp:set-github-pat -- <tok> # Update GitHub PAT in openclaw-secrets
+task mcp:mattermost-setup        # Create Claude Code channels in Mattermost
+task mcp:set-github-pat -- <tok> # Update GitHub PAT in claude-code-secrets
 ```
 
 ### Website (Astro + Svelte)
@@ -120,7 +120,7 @@ graph TB
         NC[Nextcloud + Talk<br/>files.localhost]
         CO[Collabora Online<br/>office.localhost]
         HPB[Talk HPB Signaling<br/>signaling.localhost]
-        OC[OpenClaw AI<br/>ai.localhost]
+        OC[Claude Code AI<br/>ai.localhost]
         IN[Invoice Ninja<br/>billing.localhost]
         VW[Vaultwarden<br/>vault.localhost]
         WB[Whiteboard<br/>board.localhost]
@@ -161,7 +161,7 @@ graph TB
 - **`prod/`** -- Production overlays/patches (TLS, resource limits, replicas, DDNS).
 - **`deploy/`** -- Alternative Skaffold-based deploy path (hot-reload for dev iteration). Contains `mcp/` for MCP server overlays.
 - **`billing-bot/`** -- Go microservice (`main.go`). Exposes `/slash`, `/actions`, `/healthz`.
-- **`openclaw/`** -- OpenClaw configuration and system prompt.
+- **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
 - **`website/`** -- Astro + Svelte website.
@@ -174,7 +174,7 @@ graph TB
 - **Dev secrets**: `k3d/secrets.yaml` (dev values only -- never commit real credentials).
 - **Keycloak realm**: `k3d/realm-workspace-dev.json` (exported realm config loaded as ConfigMap).
 - **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (loaded as ConfigMap).
-- **SSO flow**: Keycloak is the OIDC provider; Mattermost, Nextcloud, Invoice Ninja, and OpenClaw all authenticate through it.
+- **SSO flow**: Keycloak is the OIDC provider; Mattermost, Nextcloud, Invoice Ninja, and Claude Code all authenticate through it.
 
 ## CI/CD
 

@@ -112,9 +112,9 @@ Keycloak-Startskript: Substituiert Umgebungsvariablen (OIDC-Secrets, Domains) in
 
 Baut das billing-bot Docker-Image, pusht es in die lokale Registry und erstellt den `/billing` Slash-Command in Mattermost.
 
-### openclaw-mattermost-setup.sh / .py -- OpenClaw Channels
+### claude-code-mattermost-setup.sh / .py -- Claude Code Channels
 
-Erstellt den OpenClaw-Bot und admin-only Kanaele in allen Mattermost-Teams. Verfuegbar als Bash- und Python-Variante.
+Erstellt den Claude Code-Bot und admin-only Kanaele in allen Mattermost-Teams. Verfuegbar als Bash- und Python-Variante.
 
 ### mattermost-anfragen-setup.sh -- Anfragen-Channel
 
@@ -123,6 +123,14 @@ Erstellt einen "Anfragen"-Kanal und Incoming-Webhook in allen Mattermost-Teams f
 ### mattermost-docs-integration.sh -- Docs in Mattermost
 
 Integriert die Dokumentations-Site in Mattermost (Kanal "dokumentation" + Header + Ankuendigung).
+
+### setup-ha-cluster.sh -- HA-Cluster auf Hetzner
+
+Bootstrapped einen 3-Node k3s HA-Cluster auf Hetzner Bare-Metal-Servern. Installiert k3s, konfiguriert etcd-HA und richtet alle Nodes ein.
+
+```bash
+scripts/setup-ha-cluster.sh
+```
 
 ## Bibliotheks-Skripte (scripts/lib/)
 

@@ -1,0 +1,67 @@
+{
+  "mcpServers": {
+    "kubernetes": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/kubernetes/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "postgres": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/postgres/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "mattermost": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/mattermost/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "nextcloud": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/nextcloud/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "invoiceninja": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/invoiceninja/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "keycloak": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/keycloak/mcp/sse",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "browser": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/browser/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "github": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/github/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    },
+    "stripe": {
+      "type": "url",
+      "url": "https://mcp.${PROD_DOMAIN}/stripe/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLUSTER_TOKEN}"
+      }
+    }
+  }
+}

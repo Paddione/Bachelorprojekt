@@ -20,4 +20,7 @@ export default defineConfig({
     defaultLocale: 'de',
     locales: ['de'],
   },
+  security: {
+    checkOrigin: false,
+  },
 });

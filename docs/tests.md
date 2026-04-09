@@ -61,7 +61,7 @@ flowchart TB
 | FA-09 | Billing Bot | /billing Slash-Command, Invoice Ninja Integration |
 | FA-10 | Website | Astro-Deployment, Kontaktformular, Webhook |
 | FA-11 | Kunden-Gast-Portal | Gast-Account, privater Kanal, Keycloak |
-| FA-12 | OpenClaw AI | Bot-User, Admin-Kanaele, MCP-Server |
+| FA-12 | Claude Code AI | Bot-User, Admin-Kanaele, MCP-Server |
 | FA-13 | Dokumentation | Docsify-Deployment, Inhalte |
 | FA-14 | Self-Registration | Anmeldung, Signup |
 | FA-15 | OIDC-Authentifizierung | OpenID Connect Flow |

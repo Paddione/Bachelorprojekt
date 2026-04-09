@@ -136,7 +136,7 @@ spec:
                 port:
                   number: 80
 
-    # ── OpenClaw (KI-Assistent) ─────────────────────────────────
+    # ── MCP Status (replaces Claude Code WebUI) ────────────────────
     - host: ai.localhost
       http:
         paths:
@@ -144,6 +144,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: openclaw
+                name: mcp-status
                 port:
-                  number: 8080
+                  number: 80

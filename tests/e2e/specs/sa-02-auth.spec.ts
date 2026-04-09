@@ -22,7 +22,7 @@ test.describe('SA-02: Authentifizierung — Browser', () => {
     await page.getByRole('button', { name: /sign in|anmelden|log in/i }).click();
 
     await expect(
-      page.locator('.login-body-message-error, .AlertBanner, [class*="error"]')
+      page.locator('.login-body-message-error, .AlertBanner, [class*="error"]').first()
     ).toBeVisible({ timeout: 5_000 });
     await context.close();
   });

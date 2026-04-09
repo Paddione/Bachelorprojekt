@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mcp-tokens
+type: Opaque
+stringData:
+  # Replace with real tokens at deploy time (task claude-code:rotate-tokens)
+  CLUSTER_TOKEN: "dev-cluster-token-placeholder"
+  BUSINESS_TOKEN: "dev-business-token-placeholder"

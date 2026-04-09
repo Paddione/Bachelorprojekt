@@ -10,7 +10,7 @@ This document provides essential context and instructions for AI assistants work
   - **Keycloak (SSO):** Identity management and OIDC provider (`auth.localhost`).
   - **Mattermost:** Team chat and collaboration (`chat.localhost`).
   - **Nextcloud:** File storage, Talk (video), and Collabora Office (`files.localhost`).
-  - **OpenClaw (AI Assistant):** Self-hosted AI interface with MCP-based tool use (`ai.localhost`).
+  - **Claude Code (AI Assistant):** Self-hosted AI interface with MCP-based tool use (`ai.localhost`).
   - **WordPress:** Customer request portal and external website (`web.localhost`).
   - **Billing Bot:** A Go service bridging Mattermost interactive messages with Invoice Ninja.
   - **Invoice Ninja:** Accounting and invoicing platform (`billing.localhost`).
@@ -65,7 +65,7 @@ When executing a directive:
 1. **Research:** Understand the service interaction.
 2. **Strategy:** Plan changes across K8s manifests, scripts, or the billing-bot code.
 3. **Branching:** Create a dedicated branch using `git checkout -b`.
-4. **Collaboration:** Work with **OpenClaw** in the admin-only Mattermost channels if available.
+4. **Collaboration:** Work with **Claude Code** in the admin-only Mattermost channels if available.
 5. **Execution:** 
    - Apply surgical changes.
    - If modifying Kubernetes manifests, run `task workspace:validate`.

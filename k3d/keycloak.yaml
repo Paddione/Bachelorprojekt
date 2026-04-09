@@ -33,10 +33,7 @@ spec:
                   name: workspace-secrets
                   key: KEYCLOAK_DB_PASSWORD
             - name: KC_HOSTNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: KC_DOMAIN
+              value: "http://auth.localhost"
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
               value: "true"
             - name: KC_HTTP_ENABLED
@@ -108,11 +105,11 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: AI_DOMAIN
-            - name: OPENCLAW_OIDC_SECRET
+            - name: CLAUDE_CODE_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: OPENCLAW_OIDC_SECRET
+                  key: CLAUDE_CODE_OIDC_SECRET
             - name: OUTLINE_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

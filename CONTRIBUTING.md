@@ -109,7 +109,7 @@ Services are available at:
 | Nextcloud (Files + Talk) | http://files.localhost | -- |
 | Collabora (Office) | http://office.localhost | -- |
 | Talk HPB (Signaling) | http://signaling.localhost | -- |
-| OpenClaw (AI) | http://ai.localhost | -- |
+| Claude Code (AI) | http://ai.localhost | -- |
 | Invoice Ninja (Billing) | http://billing.localhost | -- |
 | Vaultwarden (Passwords) | http://vault.localhost | -- |
 | Whiteboard | http://board.localhost | -- |
@@ -138,7 +138,7 @@ task workspace:billing-setup         # build billing-bot image (token auto-provi
 task workspace:stripe-setup          # register Stripe payment gateway
 task workspace:vaultwarden:seed      # seed Vaultwarden with secret templates
 task workspace:monitoring            # install Prometheus + Grafana (NFA-02)
-task mcp:deploy                      # deploy OpenClaw MCP server pods
+task mcp:deploy                      # deploy Claude Code MCP server pods
 task website:deploy                  # deploy Astro website
 ```
 

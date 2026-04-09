@@ -8,7 +8,7 @@ const TEAM = 'bachelorprojekt';
 
 test.describe('FA-04: Dateiablage', () => {
   test('T1: Datei über UI hochladen', async ({ page }) => {
-    await goToChannel(page, TEAM, 'test-public');
+    await goToChannel(page, TEAM, 'town-square');
 
     const tmpFile = path.join(os.tmpdir(), `e2e-upload-${Date.now()}.txt`);
     fs.writeFileSync(tmpFile, 'E2E test file content');

@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-code-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-code-agent
+rules:
+  # ─── Read access to Pods and Deployments ──────────────────────
+  - apiGroups: [""]
+    resources:
+      - pods
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+    verbs: ["get", "list"]
+  # ─── Limited write: PATCH only on Deployments ─────────────────
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+    verbs: ["patch"]
+  # ─── Explicitly DENIED by omission ────────────────────────────
+  # - No access to Secrets (cannot read credentials)
+  # - No pods/exec (cannot exec into containers)
+  # - No DELETE on any resource
+  # - No watch, update, or create verbs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-code-agent
+subjects:
+  - kind: ServiceAccount
+    name: claude-code-agent
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: claude-code-agent
+  apiGroup: rbac.authorization.k8s.io

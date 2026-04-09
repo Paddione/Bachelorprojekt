@@ -1,16 +1,20 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - openclaw-rbac.yaml
-  - openclaw-secrets.yaml
-  - openclaw-config.yaml
+  - claude-code-rbac.yaml
+  - claude-code-secrets.yaml
+  - claude-code-config.yaml
   # Consolidated MCP pods (7 containers → 3 pods)
-  - openclaw-mcp-core.yaml        # kubernetes + postgres + mattermost
-  - openclaw-mcp-apps.yaml        # nextcloud + invoiceninja
-  - openclaw-mcp-auth.yaml        # keycloak (SSE, Java — separate for resource isolation)
-  - openclaw-mcp-browser.yaml     # playwright (Browser interaction)
+  - claude-code-mcp-core.yaml        # kubernetes + postgres + mattermost
+  - claude-code-mcp-apps.yaml        # nextcloud + invoiceninja
+  - claude-code-mcp-auth.yaml        # keycloak (SSE, Java — separate for resource isolation)
+  - claude-code-mcp-browser.yaml     # playwright (Browser interaction)
   # Standalone
-  - openclaw-mcp-github.yaml      # replicas=0 — task mcp:set-github-pat to enable
-  - openclaw-mcp-stripe.yaml      # Stripe payment MCP — replace STRIPE_SECRET_KEY to activate
+  - claude-code-mcp-github.yaml      # replicas=0 — task mcp:set-github-pat to enable
+  - claude-code-mcp-stripe.yaml      # Stripe payment MCP — replace STRIPE_SECRET_KEY to activate
+  # Auth + Status
+  - mcp-tokens.yaml             # Bearer tokens for Claude Code access
+  - mcp-auth-proxy.yaml         # ForwardAuth proxy (token validation + role enforcement)
+  - mcp-status.yaml             # Health status page (replaces Claude Code WebUI)
   # Ingress — exposes MCP servers via mcp-*.localhost for external clients
   - ingress.yaml

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getOrCreateCollection, createDocument } from '../../../lib/outline';
 import { postToChannel } from '../../../lib/mattermost';
 
-// Finalize a meeting: collect artifacts, create Outline profile, trigger OpenClaw.
+// Finalize a meeting: collect artifacts, create Outline profile, trigger Claude Code.
 // Called by the Mattermost "Abschliessen" action or directly via API.
 //
 // Body: {
@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
 - **Erstellt:** ${new Date().toLocaleDateString('de-DE')}
 
 ## Coaching-Richtung
-_Wird durch OpenClaw nach Meetings automatisch aktualisiert._
+_Wird durch Claude Code nach Meetings automatisch aktualisiert._
 
 ## Zusammenfassung
 _Basiert auf bisherigen Gesprachen und Erkenntnissen._
@@ -85,7 +85,7 @@ _Basiert auf bisherigen Gesprachen und Erkenntnissen._
         sessionContent += '\n';
       }
 
-      sessionContent += `## OpenClaw-Analyse\n\n_Analyse wird nach Finalisierung durch OpenClaw erstellt._\n\n`;
+      sessionContent += `## Claude Code-Analyse\n\n_Analyse wird nach Finalisierung durch Claude Code erstellt._\n\n`;
       sessionContent += `---\n*Automatisch erstellt am ${new Date().toLocaleString('de-DE')}*\n`;
 
       const sessionDoc = await createDocument({
@@ -117,16 +117,16 @@ _Basiert auf bisherigen Gesprachen und Erkenntnissen._
       if (collection) {
         summaryParts.push(`:books: Outline-Kollektion: ${collection.url}`);
       }
-      summaryParts.push('', ':robot_face: _OpenClaw-Analyse wird erstellt..._');
+      summaryParts.push('', ':robot_face: _Claude Code-Analyse wird erstellt..._');
 
       await postToChannel(channelId, summaryParts.join('\n'));
     }
 
-    // 5. TODO: Trigger OpenClaw to analyze artifacts and update Outline profile
-    // This would be a call to OpenClaw's MCP or API endpoint.
-    // For now, we prepare the structure — OpenClaw integration comes when
+    // 5. TODO: Trigger Claude Code to analyze artifacts and update Outline profile
+    // This would be a call to Claude Code's MCP or API endpoint.
+    // For now, we prepare the structure — Claude Code integration comes when
     // the MCP pipeline is configured.
-    results.push('OpenClaw-Pipeline: bereit (Trigger bei MCP-Konfiguration)');
+    results.push('Claude Code-Pipeline: bereit (Trigger bei MCP-Konfiguration)');
 
     return new Response(
       JSON.stringify({ success: true, results }),

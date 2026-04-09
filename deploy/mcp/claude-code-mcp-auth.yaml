@@ -1,0 +1,64 @@
+# ════════════════════════════════════════════════════════════════════════════
+# claude-code-mcp-auth — Identity & access: Keycloak SSO management
+#
+# Separate pod because: Java/Quarkus (256MB+ baseline), SSE transport
+# (different protocol from the streamable-http servers), JWT passthrough auth.
+#
+# Auth: caller must supply a Keycloak Bearer token on every SSE request.
+# Get one via:
+#   curl -s -X POST http://keycloak.workspace.svc.cluster.local:8080/realms/master/protocol/openid-connect/token \
+#     -d "grant_type=password&client_id=admin-cli&username=admin&password=devadmin" \
+#     | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-code-mcp-auth
+  labels:
+    app: claude-code-mcp-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claude-code-mcp-auth
+  template:
+    metadata:
+      labels:
+        app: claude-code-mcp-auth
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/sshaaf/keycloak-mcp-server:latest
+          env:
+            - name: KC_URL
+              value: "http://keycloak.workspace.svc.cluster.local:8080"
+            - name: KC_REALM
+              value: "master"
+            - name: OIDC_CLIENT_ID
+              value: "admin-cli"
+          ports:
+            - containerPort: 8080
+              name: keycloak
+          readinessProbe:
+            httpGet: { path: /q/health, port: 8080 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /q/health, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits:   { memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-code-mcp-auth
+spec:
+  selector:
+    app: claude-code-mcp-auth
+  ports:
+    - name: keycloak
+      port: 8080
+      targetPort: 8080

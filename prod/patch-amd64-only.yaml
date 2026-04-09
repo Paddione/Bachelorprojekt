@@ -1,5 +1,5 @@
 # Pin amd64-only images to amd64 nodes.
-# janus-gateway and open-webui have no arm64 builds.
+# janus-gateway has no arm64 build.
 # faster-whisper-server has no arm64 build for CPU variant.
 ---
 apiVersion: apps/v1
@@ -16,16 +16,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: whisper
-spec:
-  template:
-    spec:
-      nodeSelector:
-        kubernetes.io/arch: amd64
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: openclaw
 spec:
   template:
     spec:

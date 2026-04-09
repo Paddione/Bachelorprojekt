@@ -6,21 +6,21 @@ Das Migrations-Framework ermoeglicht den Import von Daten aus Slack, Microsoft T
 
 ```mermaid
 flowchart LR
-    subgraph Quellen
-        SL[Slack Export<br/>ZIP / Verzeichnis]
-        TE[Teams Export<br/>GDPR / Cache]
-        GO[Google Takeout<br/>ZIP]
-        CSV[CSV / LDIF<br/>Benutzerliste]
+    subgraph Quellen ["fa:fa-file-import Quellen"]
+        SL["fa:fa-hashtag Slack Export<br/>ZIP / Verzeichnis"]
+        TE["fa:fa-users Teams Export<br/>GDPR / Cache"]
+        GO["fa:fa-envelope Google Takeout<br/>ZIP"]
+        CSV["fa:fa-file-csv CSV / LDIF<br/>Benutzerliste"]
     end
 
-    subgraph migrate.sh
-        M[Interaktives Menue]
+    subgraph script ["fa:fa-terminal migrate.sh"]
+        M["fa:fa-list Interaktives Menue"]
     end
 
-    subgraph Ziele
-        MM[Mattermost<br/>Chat + Channels]
-        NC[Nextcloud<br/>Dateien + Kalender + Kontakte]
-        KC[Keycloak<br/>Benutzerkonten]
+    subgraph Ziele ["fa:fa-bullseye Ziele"]
+        MM["fa:fa-comments Mattermost<br/>Chat + Kanaele"]
+        NC["fa:fa-cloud Nextcloud<br/>Dateien + Kalender + Kontakte"]
+        KC["fa:fa-key Keycloak<br/>Benutzerkonten"]
     end
 
     SL --> M
@@ -31,6 +31,15 @@ flowchart LR
     M --> MM
     M --> NC
     M --> KC
+
+    style SL fill:#611f69,color:#fff
+    style TE fill:#4a90d9,color:#fff
+    style GO fill:#2d8659,color:#fff
+    style CSV fill:#6b7280,color:#fff
+    style M fill:#374151,color:#fff
+    style MM fill:#2d8659,color:#fff
+    style NC fill:#0891b2,color:#fff
+    style KC fill:#4a90d9,color:#fff
 ```
 
 ## Migrations-Assistent

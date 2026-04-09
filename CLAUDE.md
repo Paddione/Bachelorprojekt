@@ -112,35 +112,35 @@ All services run as Kubernetes Deployments in the `workspace` namespace, fronted
 
 ```mermaid
 graph TB
-    Traefik["Traefik Ingress (80/443)"]
+    Traefik["fa:fa-globe Traefik Ingress (80/443)"]
 
     subgraph workspace ["Namespace: workspace"]
-        KC[Keycloak<br/>auth.localhost]
-        MM[Mattermost<br/>chat.localhost]
-        NC[Nextcloud + Talk<br/>files.localhost]
-        CO[Collabora Online<br/>office.localhost]
-        HPB[Talk HPB Signaling<br/>signaling.localhost]
-        OC[Claude Code KI<br/>ai.localhost]
-        IN[Invoice Ninja<br/>billing.localhost]
-        VW[Vaultwarden<br/>vault.localhost]
-        WB[Whiteboard<br/>board.localhost]
-        MP[Mailpit<br/>mail.localhost]
-        OS[OpenSearch]
-        DOCS[Docs<br/>docs.localhost]
-        BB[billing-bot<br/>intern]
+        KC["fa:fa-key Keycloak<br/>auth.localhost"]
+        MM["fa:fa-comments Mattermost<br/>chat.localhost"]
+        NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
+        CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
+        HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
+        OC["fa:fa-brain Claude Code KI<br/>ai.localhost"]
+        IN["fa:fa-receipt Invoice Ninja<br/>billing.localhost"]
+        VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
+        WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
+        MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
+        OS["fa:fa-search OpenSearch"]
+        DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
+        BB["fa:fa-robot billing-bot<br/>intern"]
         PROXY[mm-keycloak-proxy]
         OAUTH[oauth2-proxy-invoiceninja]
-        WHISPER[Whisper<br/>Transkription]
+        WHISPER["fa:fa-microphone Whisper<br/>Transkription"]
         JANUS[Janus + NATS + coturn]
-        DB[(PostgreSQL 16<br/>shared-db)]
+        DB[("fa:fa-database PostgreSQL 16<br/>shared-db")]
     end
 
     subgraph website-ns ["Namespace: website"]
-        WEB[Website Astro<br/>web.localhost]
+        WEB["fa:fa-globe Website Astro<br/>web.localhost"]
     end
 
     subgraph monitoring-ns ["Namespace: monitoring"]
-        PROM[Prometheus + Grafana]
+        PROM["fa:fa-chart-line Prometheus + Grafana"]
     end
 
     Traefik --> KC & MM & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB

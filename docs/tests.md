@@ -6,21 +6,30 @@ Das Test-Framework kombiniert Bash-basierte API/CLI-Tests mit Playwright-basiert
 
 ```mermaid
 flowchart TB
-    R[runner.sh] --> P{Tier?}
-    P -->|local| L[tests/local/*.sh]
-    P -->|prod| PR[tests/prod/*.sh]
-    P -->|report| REP[Report regenerieren]
+    R["fa:fa-play runner.sh"] --> P{"fa:fa-code-branch Tier?"}
+    P -->|local| L["fa:fa-laptop tests/local/*.sh"]
+    P -->|prod| PR["fa:fa-server tests/prod/*.sh"]
+    P -->|report| REP["fa:fa-file-lines Report regenerieren"]
 
-    L --> BOOT[k3d_wait + bootstrap_test_data]
-    BOOT --> BASH[Bash-Tests ausfuehren]
-    BASH --> PW[Playwright E2E-Tests]
-    PW --> JSON[JSON-Report erstellen]
-    JSON --> MD[Markdown-Report generieren]
+    L --> BOOT["fa:fa-spinner k3d_wait + bootstrap_test_data"]
+    BOOT --> BASH["fa:fa-terminal Bash-Tests ausfuehren"]
+    BASH --> PW["fa:fa-globe Playwright E2E-Tests"]
+    PW --> JSON["fa:fa-file-code JSON-Report erstellen"]
+    JSON --> MD["fa:fa-file-lines Markdown-Report generieren"]
 
-    PR --> PBASH[Bash-Tests ausfuehren]
+    PR --> PBASH["fa:fa-terminal Bash-Tests ausfuehren"]
     PBASH --> JSON
 
     style R fill:#2d6a4f,color:#fff
+    style L fill:#4a90d9,color:#fff
+    style PR fill:#d97706,color:#fff
+    style REP fill:#6b7280,color:#fff
+    style BOOT fill:#374151,color:#fff
+    style BASH fill:#8b5cf6,color:#fff
+    style PBASH fill:#8b5cf6,color:#fff
+    style PW fill:#0891b2,color:#fff
+    style JSON fill:#2d8659,color:#fff
+    style MD fill:#2d8659,color:#fff
 ```
 
 ## Ausfuehrung

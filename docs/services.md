@@ -248,15 +248,16 @@ Unternehmenswebsite mit Kontaktformular (Mattermost-Webhook). Deploy: `task webs
 ## Ressourcen-Uebersicht
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'pie1': '#6b7280', 'pie2': '#2d8659', 'pie3': '#2d8659', 'pie4': '#4a90d9', 'pie5': '#8b5cf6', 'pie6': '#6b7280', 'pie7': '#2d8659', 'pie8': '#d97706', 'pie9': '#0891b2', 'pie10': '#374151'}}}%%
 pie title RAM Requests (Gesamt ca. 3.5 Gi)
-    "PostgreSQL" : 256
-    "Mattermost" : 256
-    "Nextcloud" : 256
-    "Keycloak" : 512
-    "Claude Code" : 256
-    "OpenSearch" : 512
-    "Collabora" : 256
-    "Invoice Ninja + MariaDB" : 416
-    "Talk HPB Stack" : 256
-    "Sonstige" : 544
+    "PostgreSQL (256 Mi)" : 256
+    "Mattermost (256 Mi)" : 256
+    "Nextcloud (256 Mi)" : 256
+    "Keycloak (512 Mi)" : 512
+    "Claude Code (256 Mi)" : 256
+    "OpenSearch (512 Mi)" : 512
+    "Collabora (256 Mi)" : 256
+    "Invoice Ninja + MariaDB (416 Mi)" : 416
+    "Talk HPB Stack (256 Mi)" : 256
+    "Sonstige (544 Mi)" : 544
 ```

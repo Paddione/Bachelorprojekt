@@ -16,13 +16,19 @@ Alle Aenderungen gehen durch Pull Requests. Direkte Pushes auf `main` sind nicht
 
 ```mermaid
 flowchart LR
-    A[main] -->|git checkout -b| B[feature/mein-feature]
-    B -->|entwickeln + testen| C[Zum Remote pushen]
-    C -->|gh pr create| D[Pull Request]
-    D -->|CI-Pipeline| E{CI gruen?}
-    E -->|ja| F[Squash & Merge]
+    A["fa:fa-code-branch main"] -->|git checkout -b| B["fa:fa-laptop feature/mein-feature"]
+    B -->|entwickeln + testen| C["fa:fa-upload Zum Remote pushen"]
+    C -->|gh pr create| D["fa:fa-code-pull-request Pull Request"]
+    D -->|CI-Pipeline| E{"fa:fa-circle-check CI gruen?"}
+    E -->|ja| F["fa:fa-code-merge Squash & Merge"]
     E -->|nein| B
     F --> A
+
+    style A fill:#2d6a4f,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#374151,color:#fff
+    style D fill:#d97706,color:#fff
+    style F fill:#2d6a4f,color:#fff
 ```
 
 1. **Branch erstellen** von `main`:
@@ -61,16 +67,22 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    PR[Pull Request geoeffnet] --> YAML[YAML-Lint<br/>200-Zeichen-Limit]
-    PR --> KUSTOMIZE[Kustomize Build +<br/>kubeconform K8s 1.31.0]
-    PR --> SHELL[ShellCheck<br/>alle Skripte]
-    PR --> CONFIG[Config-Validierung<br/>JSON-Realm, PHP-OIDC]
-    PR --> SECURITY[Security-Scan<br/>Image-Pinning, Secrets]
+    PR["fa:fa-code-pull-request Pull Request geoeffnet"] --> YAML["fa:fa-file-code YAML-Lint<br/>200-Zeichen-Limit"]
+    PR --> KUSTOMIZE["fa:fa-cubes Kustomize Build +<br/>kubeconform K8s 1.31.0"]
+    PR --> SHELL["fa:fa-terminal ShellCheck<br/>alle Skripte"]
+    PR --> CONFIG["fa:fa-cogs Config-Validierung<br/>JSON-Realm, PHP-OIDC"]
+    PR --> SECURITY["fa:fa-shield-halved Security-Scan<br/>Image-Pinning, Secrets"]
 
-    YAML & KUSTOMIZE & SHELL & CONFIG & SECURITY --> RESULT{Alles gruen?}
-    RESULT -->|ja| MERGE[Bereit zum Merge]
-    RESULT -->|nein| FIX[Beheben und erneut pushen]
+    YAML & KUSTOMIZE & SHELL & CONFIG & SECURITY --> RESULT{"fa:fa-circle-check Alles gruen?"}
+    RESULT -->|ja| MERGE["fa:fa-check Bereit zum Merge"]
+    RESULT -->|nein| FIX["fa:fa-wrench Beheben und erneut pushen"]
 
+    style PR fill:#374151,color:#fff
+    style YAML fill:#4a90d9,color:#fff
+    style KUSTOMIZE fill:#8b5cf6,color:#fff
+    style SHELL fill:#0891b2,color:#fff
+    style CONFIG fill:#d97706,color:#fff
+    style SECURITY fill:#9b2226,color:#fff
     style MERGE fill:#2d6a4f,color:#fff
     style FIX fill:#9b2226,color:#fff
 ```

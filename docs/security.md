@@ -6,17 +6,17 @@ Workspace MVP ist DSGVO-konform by Design. Alle Daten bleiben vollstaendig on-pr
 
 ```mermaid
 flowchart TB
-    subgraph Cluster ["k3d/k3s Cluster (On-Premises)"]
-        DB[(PostgreSQL<br/>Benutzerdaten)]
-        FILES[(Nextcloud PVC<br/>Dateien)]
-        MAIL[Mailpit<br/>E-Mails]
-        BACKUP[(Verschluesselte Backups<br/>AES-256)]
+    subgraph Cluster ["fa:fa-shield-halved k3d/k3s Cluster (On-Premises)"]
+        DB[("fa:fa-database PostgreSQL<br/>Benutzerdaten")]
+        FILES[("fa:fa-folder-open Nextcloud PVC<br/>Dateien")]
+        MAIL["fa:fa-envelope Mailpit<br/>E-Mails"]
+        BACKUP[("fa:fa-lock Verschluesselte Backups<br/>AES-256")]
     end
 
-    subgraph Blocked ["Blockiert / Deaktiviert"]
-        CLOUD[Cloud-Registries<br/>gcr.io, amazonaws, azurecr]
-        TRACK[Tracking<br/>google-analytics, sentry]
-        TELE[Telemetrie<br/>datadog, newrelic, splunk]
+    subgraph Blocked ["fa:fa-ban Blockiert / Deaktiviert"]
+        CLOUD["fa:fa-cloud Cloud-Registries<br/>gcr.io, amazonaws, azurecr"]
+        TRACK["fa:fa-eye Tracking<br/>google-analytics, sentry"]
+        TELE["fa:fa-satellite-dish Telemetrie<br/>datadog, newrelic, splunk"]
     end
 
     DB & FILES & MAIL --> BACKUP
@@ -24,8 +24,12 @@ flowchart TB
     TRACK -.-x Cluster
     TELE -.-x Cluster
 
-    style Blocked fill:#9b2226,color:#fff
     style Cluster fill:#2d6a4f,color:#fff
+    style Blocked fill:#9b2226,color:#fff
+    style DB fill:#6b7280,color:#fff,stroke:#4b5563
+    style FILES fill:#2d8659,color:#fff,stroke:#1a5c3a
+    style MAIL fill:#0891b2,color:#fff,stroke:#0e7490
+    style BACKUP fill:#374151,color:#fff,stroke:#1f2937
 ```
 
 ### Automatisierte DSGVO-Pruefung
@@ -122,13 +126,22 @@ Vaultwarden dient als zentraler Passwort-Manager fuer das Team. Der Seed-Job (`t
 
 ```mermaid
 flowchart LR
-    LE[Let's Encrypt<br/>ACME v2] --> CM[cert-manager]
-    CM --> LEGO[lego DNS-01 Webhook]
-    LEGO --> IPV64[ipv64.net DNS API]
-    IPV64 --> TXT[TXT Record<br/>_acme-challenge.korczewski.de]
-    CM --> CERT["Wildcard-Zertifikat<br/>*.korczewski.de"]
-    CERT --> SECRET[Secret<br/>workspace-wildcard-tls]
-    SECRET --> TRAEFIK[Traefik Ingress<br/>HTTPS-Terminierung]
+    LE["fa:fa-certificate Let's Encrypt<br/>ACME v2"] --> CM["fa:fa-cogs cert-manager"]
+    CM --> LEGO["fa:fa-plug lego DNS-01 Webhook"]
+    LEGO --> IPV64["fa:fa-globe ipv64.net DNS API"]
+    IPV64 --> TXT["fa:fa-file-code TXT Record<br/>_acme-challenge.korczewski.de"]
+    CM --> CERT["fa:fa-shield-halved Wildcard-Zertifikat<br/>*.korczewski.de"]
+    CERT --> SECRET["fa:fa-key Secret<br/>workspace-wildcard-tls"]
+    SECRET --> TRAEFIK["fa:fa-server Traefik Ingress<br/>HTTPS-Terminierung"]
+
+    style LE fill:#2d6a4f,color:#fff
+    style CM fill:#4a90d9,color:#fff
+    style LEGO fill:#4a90d9,color:#fff
+    style IPV64 fill:#374151,color:#fff
+    style TXT fill:#374151,color:#fff
+    style CERT fill:#2d8659,color:#fff
+    style SECRET fill:#d97706,color:#fff
+    style TRAEFIK fill:#374151,color:#fff
 ```
 
 **Setup-Befehle:**

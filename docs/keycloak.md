@@ -25,17 +25,31 @@ Der Realm `workspace` wird beim Keycloak-Start automatisch aus einer Template-Da
 
 ```mermaid
 graph LR
-    KC[Keycloak<br/>Realm: workspace]
+    KC["fa:fa-key Keycloak<br/>Realm: workspace"]
 
-    MM[Mattermost<br/>Client: mattermost]
-    NC[Nextcloud<br/>Client: nextcloud]
-    IN[Invoice Ninja<br/>Client: invoiceninja]
-    OC[Claude Code<br/>Client: claude-code]
-    VW[Vaultwarden<br/>Client: vaultwarden]
-    WEB[Website<br/>Client: website]
-    OL[Outline<br/>Client: outline]
+    MM["fa:fa-comments Mattermost<br/>Client: mattermost"]
+    NC["fa:fa-cloud Nextcloud<br/>Client: nextcloud"]
+    IN["fa:fa-receipt Invoice Ninja<br/>Client: invoiceninja"]
+    OC["fa:fa-brain Claude Code<br/>Client: claude-code"]
+    VW["fa:fa-lock Vaultwarden<br/>Client: vaultwarden"]
+    WEB["fa:fa-globe Website<br/>Client: website"]
+    OL["fa:fa-book Outline<br/>Client: outline"]
 
     KC --> MM & NC & IN & OC & VW & WEB & OL
+
+    classDef kc fill:#4a90d9,color:#fff,stroke:#2d6a9f
+    classDef collab fill:#2d8659,color:#fff,stroke:#1a5c3a
+    classDef ai fill:#8b5cf6,color:#fff,stroke:#6d3ad4
+    classDef billing fill:#d97706,color:#fff,stroke:#b45309
+    classDef tools fill:#0891b2,color:#fff,stroke:#0e7490
+    classDef infra fill:#374151,color:#fff,stroke:#1f2937
+
+    class KC kc
+    class MM,NC collab
+    class IN billing
+    class OC ai
+    class VW tools
+    class WEB,OL infra
 ```
 
 | Client | Redirect URI | Secret-Variable |
@@ -54,21 +68,34 @@ Alle Clients verwenden `client-secret` als Authenticator und den Standard-Flow (
 
 ```mermaid
 sequenceDiagram
-    participant U as Benutzer
-    participant S as Service
-    participant KC as Keycloak
-    participant DB as PostgreSQL
+    autonumber
 
-    U->>S: Zugriff auf geschuetzte Seite
-    S->>U: Redirect zu Keycloak /auth
-    U->>KC: Login-Formular oeffnet sich
-    KC->>DB: Credentials pruefen
-    DB-->>KC: OK
-    KC->>U: Redirect mit Authorization Code
-    U->>S: Code uebermitteln
-    S->>KC: Token-Austausch (Code gegen Tokens)
-    KC-->>S: Access Token + ID Token
-    S-->>U: Session erstellt, Zugriff gewaehrt
+    participant U as 👤 Benutzer
+    participant S as 💬 Service
+    participant KC as 🔑 Keycloak
+    participant DB as 🗄️ PostgreSQL
+
+    rect rgba(74, 144, 217, 0.1)
+        Note over U,KC: Redirect zum Identity Provider
+        U->>S: Zugriff auf geschuetzte Seite
+        S->>U: Redirect zu Keycloak /auth
+        U->>KC: Login-Formular oeffnet sich
+    end
+
+    rect rgba(45, 134, 89, 0.1)
+        Note over KC,DB: Authentifizierung
+        KC->>DB: Credentials pruefen
+        DB-->>KC: OK
+        KC->>U: Redirect mit Authorization Code
+    end
+
+    rect rgba(139, 92, 246, 0.1)
+        Note over U,KC: Token-Austausch
+        U->>S: Code uebermitteln
+        S->>KC: Token-Austausch (Code gegen Tokens)
+        KC-->>S: Access Token + ID Token
+        S-->>U: ✅ Session erstellt, Zugriff gewaehrt
+    end
 ```
 
 ## Service-spezifische Integration

@@ -105,8 +105,9 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: mmURL,
+        storageState: '.auth/user.json',
       },
-      // no dependency on setup — purely health/UI checks
+      dependencies: ['setup'],
     },
   ],
 

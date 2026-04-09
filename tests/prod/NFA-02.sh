@@ -12,10 +12,12 @@ THRESHOLD_FAST=2000    # 2s for health/API endpoints
 THRESHOLD_PAGE=5000    # 5s for full page loads
 
 # T1: Keycloak health response time
+# /health/ready is on the management port (9000), not exposed via ingress.
+# Use the public OIDC realm endpoint as the availability indicator instead.
 KC_START=$(date +%s%3N)
-KC_STATUS=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 "${KC_URL}/health/ready" 2>/dev/null || echo "000")
+KC_STATUS=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 "${KC_URL}/realms/master" 2>/dev/null || echo "000")
 KC_DUR=$(( $(date +%s%3N) - KC_START ))
-assert_eq "$KC_STATUS" "200" "NFA-02" "T1a" "Keycloak Health-Endpoint erreichbar"
+assert_eq "$KC_STATUS" "200" "NFA-02" "T1a" "Keycloak erreichbar (realms/master)"
 assert_lt "$KC_DUR" "$THRESHOLD_FAST" "NFA-02" "T1b" "Keycloak Antwortzeit < ${THRESHOLD_FAST}ms (war ${KC_DUR}ms)"
 
 # T2: Mattermost API response time

@@ -10,7 +10,7 @@ flowchart TB
         DB[(PostgreSQL<br/>Benutzerdaten)]
         FILES[(Nextcloud PVC<br/>Dateien)]
         MAIL[Mailpit<br/>E-Mails]
-        BACKUP[(Encrypted Backups<br/>AES-256)]
+        BACKUP[(Verschluesselte Backups<br/>AES-256)]
     end
 
     subgraph Blocked ["Blockiert / Deaktiviert"]

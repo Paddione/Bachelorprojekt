@@ -14,7 +14,7 @@ spec:
               value: "https://files.${PROD_DOMAIN}"
             - name: OVERWRITEHOST
               value: "files.${PROD_DOMAIN}"
-            - name: TRUSTED_DOMAINS
+            - name: NEXTCLOUD_TRUSTED_DOMAINS
               value: "files.${PROD_DOMAIN} localhost"
             - name: SMTP_HOST
               value: "smtp.mailbox.org"

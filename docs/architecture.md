@@ -36,7 +36,7 @@ flowchart TB
         end
 
         subgraph ai ["fa:fa-robot KI & Automatisierung"]
-            OC["fa:fa-brain Claude Code AI\nai.localhost"]
+            OC["fa:fa-brain Claude Code KI\nai.localhost"]
             MCP_K8S["MCP Kubernetes"]
             MCP_PG["MCP Postgres"]
             MCP_BR["MCP Browser"]
@@ -185,46 +185,58 @@ Keycloak ist der zentrale Identity Provider. Alle Services authentifizieren uebe
 
 ```mermaid
 sequenceDiagram
-    actor User as Benutzer
-    participant Browser
-    participant Service as Service<br/>(z.B. Mattermost)
-    participant Proxy as mm-keycloak-proxy<br/>(nur Mattermost)
-    participant KC as Keycloak<br/>auth.localhost
-    participant DB as PostgreSQL<br/>keycloak DB
+    autonumber
 
-    User ->> Browser: Oeffnet chat.localhost
-    Browser ->> Service: GET /
-    Service -->> Browser: 302 Redirect → auth.localhost
-    Browser ->> KC: /realms/workspace/protocol/openid-connect/auth
-    KC ->> DB: Session + Client pruefen
-    DB -->> KC: Client-Config
-    KC -->> Browser: Login-Formular
-    User ->> Browser: Credentials eingeben
-    Browser ->> KC: POST Login
-    KC ->> DB: User validieren
-    DB -->> KC: User + Rollen
-    KC -->> Browser: 302 Redirect + Authorization Code
+    actor User as 👤 Benutzer
+    participant Browser as 🌐 Browser
+    participant Service as 💬 Service<br/>(z.B. Mattermost)
+    participant Proxy as 🔀 mm-keycloak-proxy<br/>(nur Mattermost)
+    participant KC as 🔑 Keycloak<br/>auth.localhost
+    participant DB as 🗄️ PostgreSQL<br/>keycloak DB
 
-    alt Mattermost (GitLab-kompatibel)
-        Browser ->> Service: Callback mit Code
-        Service ->> Proxy: Token-Request (intern)
-        Proxy ->> KC: /protocol/openid-connect/token
-        KC -->> Proxy: Access Token + ID Token
-        Proxy -->> Service: Token
-        Service ->> Proxy: Userinfo-Request
-        Proxy ->> KC: /protocol/openid-connect/userinfo
-        KC -->> Proxy: User Claims
-        Proxy -->> Service: User-Daten
-    else Andere Services (Standard OIDC)
-        Browser ->> Service: Callback mit Code
-        Service ->> KC: Token Exchange (direkt)
-        KC -->> Service: Access Token + ID Token
-        Service ->> KC: Userinfo (optional)
-        KC -->> Service: User Claims
+    rect rgba(74, 144, 217, 0.1)
+        Note over User,DB: Phase 1: Redirect zum Identity Provider
+        User ->> Browser: Oeffnet chat.localhost
+        Browser ->> Service: GET /
+        Service -->> Browser: 302 Redirect → auth.localhost
+        Browser ->> KC: /realms/workspace/protocol/openid-connect/auth
+        KC ->> DB: Session + Client pruefen
+        DB -->> KC: Client-Config
+        KC -->> Browser: Login-Formular
+    end
+
+    rect rgba(45, 134, 89, 0.1)
+        Note over User,DB: Phase 2: Authentifizierung
+        User ->> Browser: Credentials eingeben
+        Browser ->> KC: POST Login
+        KC ->> DB: User validieren
+        DB -->> KC: User + Rollen
+        KC -->> Browser: 302 Redirect + Authorization Code
+    end
+
+    rect rgba(139, 92, 246, 0.1)
+        Note over User,DB: Phase 3: Token-Austausch
+        alt Mattermost (GitLab-kompatibel)
+            Browser ->> Service: Callback mit Code
+            Service ->> Proxy: Token-Request (intern)
+            Proxy ->> KC: /protocol/openid-connect/token
+            KC -->> Proxy: Access Token + ID Token
+            Proxy -->> Service: Token
+            Service ->> Proxy: Userinfo-Request
+            Proxy ->> KC: /protocol/openid-connect/userinfo
+            KC -->> Proxy: User Claims
+            Proxy -->> Service: User-Daten
+        else Andere Services (Standard OIDC)
+            Browser ->> Service: Callback mit Code
+            Service ->> KC: Token Exchange (direkt)
+            KC -->> Service: Access Token + ID Token
+            Service ->> KC: Userinfo (optional)
+            KC -->> Service: User Claims
+        end
     end
 
     Service -->> Browser: Session erstellt, Dashboard laden
-    Browser -->> User: Eingeloggt
+    Browser -->> User: ✅ Eingeloggt
 ```
 
 **Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Outline, Website (7 Clients im Realm `workspace`)
@@ -237,42 +249,56 @@ Dokumente werden in Nextcloud gespeichert und ueber das WOPI-Protokoll in Collab
 
 ```mermaid
 sequenceDiagram
-    actor User as Benutzer
-    participant Browser
-    participant NC as Nextcloud<br/>files.localhost
-    participant CO as Collabora Online<br/>office.localhost
-    participant DB as PostgreSQL<br/>nextcloud DB
-    participant Store as Nextcloud Storage<br/>50 Gi PVC
+    autonumber
 
-    User ->> Browser: Datei oeffnen
-    Browser ->> NC: GET /apps/richdocuments/...
-    NC ->> DB: Datei-Metadaten laden
-    DB -->> NC: Pfad, Berechtigungen, Lock-Status
-    NC ->> NC: WOPI Token generieren
-    NC -->> Browser: Collabora iFrame URL + WOPI Token
+    actor User as 👤 Benutzer
+    participant Browser as 🌐 Browser
+    participant NC as ☁️ Nextcloud<br/>files.localhost
+    participant CO as 📝 Collabora Online<br/>office.localhost
+    participant DB as 🗄️ PostgreSQL<br/>nextcloud DB
+    participant Store as 💾 Nextcloud Storage<br/>50 Gi PVC
 
-    Browser ->> CO: iFrame laden (office.localhost)
-    CO ->> NC: WOPI CheckFileInfo (Token validieren)
-    NC -->> CO: Dateiname, Groesse, Berechtigungen
-    CO ->> NC: WOPI GetFile
-    NC ->> Store: Datei lesen
-    Store -->> NC: Datei-Inhalt
-    NC -->> CO: Dokument-Bytes
-    CO -->> Browser: Editor mit Dokument
-
-    loop Echtzeit-Kollaboration
-        User ->> Browser: Text bearbeiten
-        Browser ->> CO: Aenderung senden (WebSocket)
-        CO ->> CO: Aenderungen zusammenfuehren
-        CO -->> Browser: Aktualisierte Ansicht (alle Teilnehmer)
+    rect rgba(45, 134, 89, 0.1)
+        Note over User,Store: Phase 1: Dokument oeffnen
+        User ->> Browser: Datei oeffnen
+        Browser ->> NC: GET /apps/richdocuments/...
+        NC ->> DB: Datei-Metadaten laden
+        DB -->> NC: Pfad, Berechtigungen, Lock-Status
+        NC ->> NC: WOPI Token generieren
+        NC -->> Browser: Collabora iFrame URL + WOPI Token
     end
 
-    User ->> Browser: Speichern / Schliessen
-    Browser ->> CO: Save-Trigger
-    CO ->> NC: WOPI PutFile
-    NC ->> Store: Datei schreiben
-    NC ->> DB: Metadaten aktualisieren
-    NC -->> CO: Erfolg
+    rect rgba(74, 144, 217, 0.1)
+        Note over Browser,Store: Phase 2: WOPI-Protokoll
+        Browser ->> CO: iFrame laden (office.localhost)
+        CO ->> NC: WOPI CheckFileInfo (Token validieren)
+        NC -->> CO: Dateiname, Groesse, Berechtigungen
+        CO ->> NC: WOPI GetFile
+        NC ->> Store: Datei lesen
+        Store -->> NC: Datei-Inhalt
+        NC -->> CO: Dokument-Bytes
+        CO -->> Browser: Editor mit Dokument
+    end
+
+    rect rgba(139, 92, 246, 0.1)
+        Note over User,CO: Phase 3: Echtzeit-Bearbeitung
+        loop Echtzeit-Kollaboration
+            User ->> Browser: Text bearbeiten
+            Browser ->> CO: Aenderung senden (WebSocket)
+            CO ->> CO: Aenderungen zusammenfuehren
+            CO -->> Browser: Aktualisierte Ansicht (alle Teilnehmer)
+        end
+    end
+
+    rect rgba(217, 119, 6, 0.1)
+        Note over User,Store: Phase 4: Speichern
+        User ->> Browser: Speichern / Schliessen
+        Browser ->> CO: Save-Trigger
+        CO ->> NC: WOPI PutFile
+        NC ->> Store: Datei schreiben
+        NC ->> DB: Metadaten aktualisieren
+        NC -->> CO: ✅ Erfolg
+    end
 ```
 
 ---
@@ -283,47 +309,53 @@ Nextcloud Talk nutzt den High Performance Backend (HPB) Stack fuer skalierbare V
 
 ```mermaid
 sequenceDiagram
-    actor User1 as Teilnehmer A
-    actor User2 as Teilnehmer B
-    participant NC as Nextcloud Talk<br/>files.localhost
-    participant SIG as spreed-signaling<br/>signaling.localhost
-    participant NATS as NATS<br/>Message Bus
-    participant JANUS as Janus<br/>WebRTC SFU
-    participant TURN as coturn<br/>NAT Traversal
+    autonumber
 
-    User1 ->> NC: Anruf starten
-    NC ->> NC: Raum erstellen, Token generieren
-    NC -->> User1: Signaling-URL + Token
+    actor User1 as 👤 Teilnehmer A
+    actor User2 as 👥 Teilnehmer B
+    participant NC as 📹 Nextcloud Talk<br/>files.localhost
+    participant SIG as 📡 spreed-signaling<br/>signaling.localhost
+    participant NATS as 📨 NATS<br/>Message Bus
+    participant JANUS as 🎥 Janus<br/>WebRTC SFU
+    participant TURN as 🔄 coturn<br/>NAT Traversal
 
-    User1 ->> SIG: WebSocket verbinden + Auth
-    SIG ->> NC: Backend-Validierung (HTTP)
-    NC -->> SIG: Teilnehmer autorisiert
-    SIG ->> NATS: Raum-Event publizieren
+    rect rgba(45, 134, 89, 0.1)
+        Note over User1,NATS: Phase 1: Raum erstellen & Teilnehmer verbinden
+        User1 ->> NC: Anruf starten
+        NC ->> NC: Raum erstellen, Token generieren
+        NC -->> User1: Signaling-URL + Token
+        User1 ->> SIG: WebSocket verbinden + Auth
+        SIG ->> NC: Backend-Validierung (HTTP)
+        NC -->> SIG: Teilnehmer autorisiert
+        SIG ->> NATS: Raum-Event publizieren
+        User2 ->> NC: Anruf beitreten
+        NC -->> User2: Signaling-URL + Token
+        User2 ->> SIG: WebSocket verbinden + Auth
+        SIG ->> NATS: Teilnehmer-Event
+    end
 
-    User2 ->> NC: Anruf beitreten
-    NC -->> User2: Signaling-URL + Token
-    User2 ->> SIG: WebSocket verbinden + Auth
-    SIG ->> NATS: Teilnehmer-Event
+    rect rgba(74, 144, 217, 0.1)
+        Note over User1,JANUS: Phase 2: SDP Offer/Answer Austausch
+        User1 ->> SIG: SDP Offer
+        SIG ->> JANUS: Publish Stream
+        JANUS -->> SIG: SDP Answer
+        SIG -->> User1: SDP Answer
+        User2 ->> SIG: Subscribe Request
+        SIG ->> JANUS: Subscribe to Stream
+        JANUS -->> SIG: Media Stream
+        SIG -->> User2: SDP Answer
+    end
 
-    Note over SIG,JANUS: SDP Offer/Answer Austausch
-
-    User1 ->> SIG: SDP Offer
-    SIG ->> JANUS: Publish Stream
-    JANUS -->> SIG: SDP Answer
-    SIG -->> User1: SDP Answer
-
-    User2 ->> SIG: Subscribe Request
-    SIG ->> JANUS: Subscribe to Stream
-    JANUS -->> SIG: Media Stream
-    SIG -->> User2: SDP Answer
-
-    alt Direktverbindung moeglich
-        User1 <--> JANUS: Media (RTP/SRTP)
-        JANUS <--> User2: Media (RTP/SRTP)
-    else NAT/Firewall blockiert
-        User1 <--> TURN: TURN Relay
-        TURN <--> JANUS: Media weiterleiten
-        JANUS <--> User2: Media (RTP/SRTP)
+    rect rgba(139, 92, 246, 0.1)
+        Note over User1,TURN: Phase 3: Medien-Uebertragung
+        alt Direktverbindung moeglich
+            User1 <--> JANUS: Media (RTP/SRTP)
+            JANUS <--> User2: Media (RTP/SRTP)
+        else NAT/Firewall blockiert
+            User1 <--> TURN: TURN Relay
+            TURN <--> JANUS: Media weiterleiten
+            JANUS <--> User2: Media (RTP/SRTP)
+        end
     end
 ```
 
@@ -335,44 +367,52 @@ Der billing-bot verbindet Mattermost Slash-Commands mit der Invoice Ninja API. Z
 
 ```mermaid
 sequenceDiagram
-    actor User as Team-Mitglied
-    participant MM as Mattermost<br/>chat.localhost
-    participant BB as billing-bot<br/>:8090
-    participant IN as Invoice Ninja<br/>billing.localhost
-    participant MARIA as MariaDB<br/>invoiceninja DB
-    participant OAUTH as oauth2-proxy
-    participant KC as Keycloak
-    participant Stripe as Stripe API<br/>(extern)
+    autonumber
 
-    User ->> MM: /billing invoice Acme Corp
+    actor User as 👤 Team-Mitglied
+    participant MM as 💬 Mattermost<br/>chat.localhost
+    participant BB as 🤖 billing-bot<br/>:8090
+    participant IN as 🧾 Invoice Ninja<br/>billing.localhost
+    participant MARIA as 🗄️ MariaDB<br/>invoiceninja DB
+    participant OAUTH as 🔐 oauth2-proxy
+    participant KC as 🔑 Keycloak
+    participant Stripe as 💳 Stripe API<br/>(extern)
 
-    MM ->> BB: POST /slash<br/>{command, text, user_id}
-    BB ->> IN: GET /api/v1/clients?name=Acme<br/>X-Api-Token Header
-    IN ->> MARIA: SELECT * FROM clients
-    MARIA -->> IN: Client-Daten
-    IN -->> BB: Client gefunden
+    rect rgba(217, 119, 6, 0.1)
+        Note over User,MARIA: Phase 1: Rechnung per Slash-Command erstellen
+        User ->> MM: /billing invoice Acme Corp
+        MM ->> BB: POST /slash<br/>{command, text, user_id}
+        BB ->> IN: GET /api/v1/clients?name=Acme<br/>X-Api-Token Header
+        IN ->> MARIA: SELECT * FROM clients
+        MARIA -->> IN: Client-Daten
+        IN -->> BB: Client gefunden
+        BB ->> IN: POST /api/v1/invoices<br/>{client_id, items}
+        IN ->> MARIA: INSERT INTO invoices
+        MARIA -->> IN: Invoice #1042
+        IN -->> BB: Invoice erstellt
+        BB -->> MM: Antwort mit Link + Quick-Actions
+        MM -->> User: "Rechnung #1042 erstellt fuer Acme Corp"
+    end
 
-    BB ->> IN: POST /api/v1/invoices<br/>{client_id, items}
-    IN ->> MARIA: INSERT INTO invoices
-    MARIA -->> IN: Invoice #1042
-    IN -->> BB: Invoice erstellt
+    Note over User,Stripe: 📧 Kunde erhaelt Rechnung per E-Mail
 
-    BB -->> MM: Antwort mit Link + Quick-Actions
-    MM -->> User: "Rechnung #1042 erstellt fuer Acme Corp"
+    rect rgba(74, 144, 217, 0.1)
+        Note over User,IN: Phase 2: Rechnungsansicht (SSO-geschuetzt)
+        User ->> MM: Link klicken → billing.localhost
+        MM -->> User: Redirect
+        User ->> OAUTH: billing.localhost/invoices/1042
+        OAUTH ->> KC: OIDC Auth pruefen
+        KC -->> OAUTH: Token valid
+        OAUTH ->> IN: Request weiterleiten
+        IN -->> User: Rechnungsansicht mit Stripe-Widget
+    end
 
-    Note over User,Stripe: Kunde erhaelt Rechnung per E-Mail
-
-    User ->> MM: Link klicken → billing.localhost
-    MM -->> User: Redirect
-    User ->> OAUTH: billing.localhost/invoices/1042
-    OAUTH ->> KC: OIDC Auth pruefen
-    KC -->> OAUTH: Token valid
-    OAUTH ->> IN: Request weiterleiten
-    IN -->> User: Rechnungsansicht mit Stripe-Widget
-
-    User ->> Stripe: Zahlung (Kreditkarte / SEPA)
-    Stripe -->> IN: Webhook: payment_intent.succeeded
-    IN ->> MARIA: UPDATE invoices SET status=paid
+    rect rgba(45, 134, 89, 0.1)
+        Note over User,MARIA: Phase 3: Zahlung
+        User ->> Stripe: Zahlung (Kreditkarte / SEPA)
+        Stripe -->> IN: Webhook: payment_intent.succeeded
+        IN ->> MARIA: UPDATE invoices SET status=paid
+    end
 ```
 
 ---
@@ -383,48 +423,57 @@ Claude Code nutzt Claude Sonnet 4 mit MCP-Servern (Model Context Protocol) fuer 
 
 ```mermaid
 sequenceDiagram
-    actor Admin as Administrator
-    participant OC as Claude Code<br/>ai.localhost
-    participant Claude as Claude Sonnet 4<br/>Anthropic API
-    participant MCP_K as MCP Kubernetes<br/>mcp-k8s-go
-    participant K8S as Kubernetes API
-    participant MCP_P as MCP Postgres
-    participant DB as PostgreSQL<br/>shared-db
-    participant MM as Mattermost<br/>Approval-Channel
+    autonumber
 
-    Admin ->> OC: "Zeige Pod-Status und DB-Groessen"
-    OC ->> Claude: User-Prompt + System-Prompt + Tools
+    actor Admin as 👤 Administrator
+    participant OC as 🧠 Claude Code<br/>ai.localhost
+    participant Claude as 🤖 Claude Sonnet 4<br/>Anthropic API
+    participant MCP_K as ☸️ MCP Kubernetes<br/>mcp-k8s-go
+    participant K8S as ⚙️ Kubernetes API
+    participant MCP_P as 🗄️ MCP Postgres
+    participant DB as 💾 PostgreSQL<br/>shared-db
+    participant MM as 💬 Mattermost<br/>Genehmigungs-Kanal
 
-    par Kubernetes-Abfrage
-        Claude ->> MCP_K: list_pods(namespace=workspace)
-        MCP_K ->> K8S: GET /api/v1/namespaces/workspace/pods
-        K8S -->> MCP_K: Pod-Liste mit Status
-        MCP_K -->> Claude: Pod-Status formatiert
-    and Datenbank-Abfrage
-        Claude ->> MCP_P: query("SELECT pg_database_size(...)")
-        MCP_P ->> DB: SQL ausfuehren
-        DB -->> MCP_P: Ergebnis
-        MCP_P -->> Claude: DB-Groessen
+    rect rgba(139, 92, 246, 0.1)
+        Note over Admin,DB: Phase 1: Parallele Abfrage (nur lesend)
+        Admin ->> OC: "Zeige Pod-Status und DB-Groessen"
+        OC ->> Claude: User-Prompt + System-Prompt + Tools
+
+        par Kubernetes-Abfrage
+            Claude ->> MCP_K: list_pods(namespace=workspace)
+            MCP_K ->> K8S: GET /api/v1/namespaces/workspace/pods
+            K8S -->> MCP_K: Pod-Liste mit Status
+            MCP_K -->> Claude: Pod-Status formatiert
+        and Datenbank-Abfrage
+            Claude ->> MCP_P: query("SELECT pg_database_size(...)")
+            MCP_P ->> DB: SQL ausfuehren
+            DB -->> MCP_P: Ergebnis
+            MCP_P -->> Claude: DB-Groessen
+        end
+
+        Claude -->> OC: Zusammengefasste Antwort
+        OC -->> Admin: ✅ Pod-Status + DB-Groessen anzeigen
     end
 
-    Claude -->> OC: Zusammengefasste Antwort
-    OC -->> Admin: Pod-Status + DB-Groessen anzeigen
+    rect rgba(217, 119, 6, 0.1)
+        Note over Admin,MM: Phase 2: Destruktive Aktion mit Genehmigung
+        Admin ->> OC: "Starte Mattermost neu"
+        OC ->> Claude: Prompt + Tools
+        Claude ->> MM: Webhook: Genehmigungsanfrage<br/>"Mattermost Deployment neu starten?"
+        MM -->> Admin: Nachricht im Admin-Kanal
+    end
 
-    Note over Admin,MM: Destruktive Aktionen erfordern Genehmigung
-
-    Admin ->> OC: "Starte Mattermost neu"
-    OC ->> Claude: Prompt + Tools
-    Claude ->> MM: Webhook: Genehmigungsanfrage<br/>"Mattermost Deployment neu starten?"
-    MM -->> Admin: Nachricht im Admin-Channel
-
-    Admin ->> MM: Genehmigung erteilen
-    Claude ->> MCP_K: patch_deployment(mattermost, restart)
-    MCP_K ->> K8S: PATCH /apis/apps/v1/.../deployments/mattermost
-    K8S -->> MCP_K: Rollout gestartet
-    MCP_K -->> Claude: Deployment neu gestartet
-    Claude ->> MM: Bestaetigung an Admin-Channel
-    Claude -->> OC: "Mattermost wird neu gestartet"
-    OC -->> Admin: Erfolgsmeldung
+    rect rgba(45, 134, 89, 0.1)
+        Note over Admin,MM: Phase 3: Ausfuehrung nach Genehmigung
+        Admin ->> MM: Genehmigung erteilen
+        Claude ->> MCP_K: patch_deployment(mattermost, restart)
+        MCP_K ->> K8S: PATCH /apis/apps/v1/.../deployments/mattermost
+        K8S -->> MCP_K: Rollout gestartet
+        MCP_K -->> Claude: Deployment neu gestartet
+        Claude ->> MM: Bestaetigung an Admin-Kanal
+        Claude -->> OC: "Mattermost wird neu gestartet"
+        OC -->> Admin: ✅ Erfolgsmeldung
+    end
 ```
 
 **MCP-Server und Berechtigungen (RBAC):**
@@ -434,7 +483,7 @@ sequenceDiagram
 | mcp-kubernetes | mcp-k8s-go | Pods, Deployments, Services, Logs, Events lesen; Deployments skalieren/neustarten | Loeschen, Erstellen, Exec, Secrets lesen |
 | mcp-postgres | @modelcontextprotocol/server-postgres | Alle 5 shared-db Datenbanken abfragen (Superuser) | Schreibzugriff (per Konvention im System-Prompt) |
 | mcp-browser | Playwright | URLs navigieren, Screenshots, Formulare ausfuellen | Keine Netzwerk-Beschraenkung (Cluster-intern) |
-| mcp-mattermost | legard/mcp-server-mattermost | Channels, DMs, Posts lesen/schreiben | Admin-Operationen |
+| mcp-mattermost | legard/mcp-server-mattermost | Kanaele, DMs, Beitraege lesen/schreiben | Admin-Operationen |
 | mcp-nextcloud | ghcr.io/cbcoutinho/nextcloud-mcp-server | Dateien, Kalender, Kontakte (WebDAV/CalDAV/CardDAV) | Admin-Einstellungen |
 | mcp-invoiceninja | ckanthony/openapi-mcp | Kunden, Rechnungen, Produkte, Zahlungen (REST API) | Direkte DB-Zugriffe |
 | mcp-keycloak | quay.io/sshaaf/keycloak-mcp-server | Benutzer, Gruppen, Rollen, Sessions verwalten | Realm-Konfiguration aendern |
@@ -457,7 +506,11 @@ flowchart LR
 
     MP --> INBOX["fa:fa-inbox Web-UI\nmail.localhost\nAlle Mails einsehbar"]
 
+    style MM fill:#2d8659,color:#fff,stroke:#1a5c3a
+    style NC fill:#2d8659,color:#fff,stroke:#1a5c3a
+    style IN fill:#d97706,color:#fff,stroke:#b45309
     style MP fill:#0891b2,color:#fff,stroke:#0e7490
+    style INBOX fill:#374151,color:#fff,stroke:#1f2937
 ```
 
 ---
@@ -469,25 +522,25 @@ flowchart LR
 ```mermaid
 erDiagram
     SHARED_DB["PostgreSQL 16 (shared-db) — 25 Gi PVC"] {
-        database keycloak "Realms, Users, Sessions, Clients"
-        database mattermost "Teams, Channels, Messages, Files"
-        database nextcloud "Files, Calendar, Contacts, Shares"
-        database vaultwarden "Encrypted Vaults, Organizations"
-        database outline "Documents, Collections, Users"
+        database keycloak "Realms, Benutzer, Sessions, Clients"
+        database mattermost "Teams, Kanaele, Nachrichten, Dateien"
+        database nextcloud "Dateien, Kalender, Kontakte, Freigaben"
+        database vaultwarden "Verschluesselte Tresore, Organisationen"
+        database outline "Dokumente, Sammlungen, Benutzer"
     }
 
     MARIADB["MariaDB 11 (invoiceninja-mariadb) — 5 Gi PVC"] {
-        database invoiceninja "Clients, Invoices, Products, Payments"
+        database invoiceninja "Kunden, Rechnungen, Produkte, Zahlungen"
     }
 
     OPENSEARCH["OpenSearch 2.17 (opensearch) — 5 Gi PVC"] {
         index mattermost_posts "Volltextindex aller Nachrichten"
-        index mattermost_channels "Channel-Suchindex"
+        index mattermost_channels "Kanal-Suchindex"
     }
 
     REDIS["Redis 7 (Sidecar in Outline-Pod)"] {
-        db sessions "Outline User Sessions"
-        db cache "Document Render Cache"
+        db sessions "Outline Benutzer-Sessions"
+        db cache "Dokument-Render-Cache"
     }
 
     KC_SVC["Keycloak"] ||--|| SHARED_DB : "keycloak DB"
@@ -495,10 +548,10 @@ erDiagram
     NC_SVC["Nextcloud"] ||--|| SHARED_DB : "nextcloud DB"
     VW_SVC["Vaultwarden"] ||--|| SHARED_DB : "vaultwarden DB"
     OL_SVC["Outline"] ||--|| SHARED_DB : "outline DB"
-    OL_SVC ||--|| REDIS : "sessions + cache"
+    OL_SVC ||--|| REDIS : "Sessions + Cache"
     IN_SVC["Invoice Ninja"] ||--|| MARIADB : "invoiceninja DB"
     MM_SVC ||--|| OPENSEARCH : "Suchindex"
-    MCP_PG["MCP Postgres"] }|--|| SHARED_DB : "superuser read-only"
+    MCP_PG["MCP Postgres"] }|--|| SHARED_DB : "Superuser nur lesend"
 ```
 
 ### Datenbank-Isolation
@@ -574,22 +627,32 @@ Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 
 ```mermaid
 flowchart TD
-    A[task cluster:create] -->|k3d-config.yaml| B[k3d Cluster + Registry]
-    B --> C[task workspace:deploy]
-    C --> D[Namespace + ConfigMaps]
-    D --> E[kustomize build k3d/]
-    E --> F[shared-db wartet auf Ready]
-    F --> G[Alle Services parallel deployen]
-    G --> H{Optionale Schritte}
+    A["fa:fa-server task cluster:create"] -->|k3d-config.yaml| B["fa:fa-cube k3d Cluster + Registry"]
+    B --> C["fa:fa-rocket task workspace:deploy"]
+    C --> D["fa:fa-cogs Namespace + ConfigMaps"]
+    D --> E["fa:fa-layer-group kustomize build k3d/"]
+    E --> F["fa:fa-database shared-db wartet auf Ready"]
+    F --> G["fa:fa-play Alle Services parallel deployen"]
+    G --> H{"fa:fa-code-branch Optionale Schritte"}
 
-    H --> I[task workspace:post-setup<br/>Nextcloud Apps]
-    H --> J[task mcp:deploy<br/>MCP Server Pods]
-    H --> K[task workspace:monitoring<br/>Prometheus + Grafana]
-    H --> L[task workspace:billing-setup<br/>billing-bot Image]
-    H --> M[task workspace:vaultwarden:seed<br/>Secret-Templates]
+    H --> I["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
+    H --> J["fa:fa-brain task mcp:deploy<br/>MCP Server Pods"]
+    H --> K["fa:fa-chart-line task workspace:monitoring<br/>Prometheus + Grafana"]
+    H --> L["fa:fa-receipt task workspace:billing-setup<br/>billing-bot Image"]
+    H --> M["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
 
     style A fill:#2d6a4f,color:#fff
+    style B fill:#374151,color:#fff
     style C fill:#2d6a4f,color:#fff
+    style D fill:#374151,color:#fff
+    style E fill:#374151,color:#fff
+    style F fill:#6b7280,color:#fff
+    style G fill:#2d8659,color:#fff
+    style I fill:#2d8659,color:#fff
+    style J fill:#8b5cf6,color:#fff
+    style K fill:#0891b2,color:#fff
+    style L fill:#d97706,color:#fff
+    style M fill:#0891b2,color:#fff
 ```
 
 Alternativ: `task workspace:up` fuer vollautomatisches Setup (Cluster + MVP + MCP + Monitoring + Billing).

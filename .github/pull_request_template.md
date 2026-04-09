@@ -1,69 +1,69 @@
-## Summary
+## Zusammenfassung
 
-<!-- Describe WHAT changed and WHY (not how — the diff shows that). -->
+<!-- Beschreibe WAS sich geaendert hat und WARUM (nicht wie -- das zeigt der Diff). -->
 
-## Type of Change
+## Art der Aenderung
 
-- [ ] Feature (`feature/*` branch)
-- [ ] Bug fix (`fix/*` branch)
-- [ ] Refactor / chore (`chore/*` branch)
-- [ ] Documentation
-- [ ] Infrastructure / k8s manifests
+- [ ] Feature (`feature/*` Branch)
+- [ ] Bugfix (`fix/*` Branch)
+- [ ] Refactoring / Wartung (`chore/*` Branch)
+- [ ] Dokumentation
+- [ ] Infrastruktur / K8s-Manifeste
 
-## Checklist
+## Checkliste
 
-### Required for all PRs
-- [ ] Branch follows naming convention (`feature/`, `fix/`, `chore/`)
-- [ ] Changes are scoped to a single concern
-- [ ] No secrets or credentials committed (dev secrets in `k3d/secrets.yaml` are OK)
+### Pflicht fuer alle PRs
+- [ ] Branch folgt der Namenskonvention (`feature/`, `fix/`, `chore/`)
+- [ ] Aenderungen betreffen nur ein Thema
+- [ ] Keine Secrets oder Zugangsdaten committet (Dev-Secrets in `k3d/secrets.yaml` sind OK)
 
-### If modifying Kubernetes manifests (`k3d/`)
-- [ ] `kubectl kustomize k3d/` succeeds locally
-- [ ] Deployed to local k3d cluster and verified (`task workspace:deploy`)
-- [ ] Resource requests/limits are set for new containers
-- [ ] Health probes configured for new services
-- [ ] No hardcoded hostnames — use `configMapKeyRef` from `domain-config`
+### Bei Aenderungen an Kubernetes-Manifesten (`k3d/`)
+- [ ] `kubectl kustomize k3d/` funktioniert lokal
+- [ ] Im lokalen k3d-Cluster deployt und verifiziert (`task workspace:deploy`)
+- [ ] Resource Requests/Limits fuer neue Container gesetzt
+- [ ] Health Probes fuer neue Services konfiguriert
+- [ ] Keine hartkodierten Hostnamen -- `configMapKeyRef` aus `domain-config` verwenden
 
-### If modifying scripts (`scripts/`, `tests/`)
-- [ ] `shellcheck` passes (warnings acceptable, errors are not)
-- [ ] Tested on a clean environment
+### Bei Aenderungen an Skripten (`scripts/`, `tests/`)
+- [ ] `shellcheck` bestanden (Warnungen akzeptabel, Fehler nicht)
+- [ ] In sauberer Umgebung getestet
 
-### If modifying authentication (Keycloak / OIDC)
-- [ ] `k3d/realm-workspace-dev.json` updated if clients change
-- [ ] SSO login tested for all affected services
+### Bei Aenderungen an Authentifizierung (Keycloak / OIDC)
+- [ ] `k3d/realm-workspace-dev.json` aktualisiert falls Clients geaendert
+- [ ] SSO-Login fuer alle betroffenen Services getestet
 
-### Tracking Database Update (mandatory)
-- [ ] **Pipeline status updated** in tracking DB for affected requirement(s)
-  - Via Tracking UI (http://tracking.localhost), `task tracking:psql`, or PostgreSQL MCP
-  - Updated stage (`idea` / `implementation` / `testing` / `documentation` / `archive`)
-  - Updated status (`pending` / `in_progress` / `done` / `fail` / `skip`)
-- [ ] **If new requirement:** Entry created in `bachelorprojekt.requirements` with category, name, and description
+### Tracking-Datenbank-Update (Pflicht)
+- [ ] **Pipeline-Status aktualisiert** in der Tracking-DB fuer betroffene Anforderung(en)
+  - Via Tracking-UI (http://tracking.localhost), `task tracking:psql` oder PostgreSQL MCP
+  - Stage aktualisiert (`idea` / `implementation` / `testing` / `documentation` / `archive`)
+  - Status aktualisiert (`pending` / `in_progress` / `done` / `fail` / `skip`)
+- [ ] **Falls neue Anforderung:** Eintrag in `bachelorprojekt.requirements` mit Kategorie, Name und Beschreibung erstellt
 
-**Tracking update method used:** <!-- UI / psql / MCP -->
+**Verwendete Tracking-Update-Methode:** <!-- UI / psql / MCP -->
 
-## Requirements Traceability
+## Anforderungs-Nachverfolgbarkeit
 
-> The **tracking database** is the single source of truth for all requirements and deployment status.
-> Access via: Tracking UI (http://tracking.localhost), `task tracking:psql`, or PostgreSQL MCP.
+> Die **Tracking-Datenbank** ist die einzige Wahrheitsquelle fuer alle Anforderungen und den Deployment-Status.
+> Zugriff via: Tracking-UI (http://tracking.localhost), `task tracking:psql` oder PostgreSQL MCP.
 
-- [ ] **Checked** whether a matching requirement exists in the tracking DB (`bachelorprojekt.requirements`)
-- [ ] **If no entry exists:** Created via Tracking UI or SQL with: id, category, name, description, acceptance_criteria, test_cases, priority
+- [ ] **Geprueft**, ob eine passende Anforderung in der Tracking-DB existiert (`bachelorprojekt.requirements`)
+- [ ] **Falls kein Eintrag existiert:** Via Tracking-UI oder SQL erstellt mit: id, category, name, description, acceptance_criteria, test_cases, priority
 
-**Requirement ID:** <!-- e.g. FA-09, SA-08, NFA-08 -->
+**Anforderungs-ID:** <!-- z.B. FA-09, SA-08, NFA-08 -->
 
-## Test Plan
+## Testplan
 
-> Tests in this PR must match the `test_cases` column of the requirement in the tracking DB.
+> Tests in diesem PR muessen der `test_cases`-Spalte der Anforderung in der Tracking-DB entsprechen.
 
-**Requirement JSON Testfall:**
-<!-- Paste the Testfall field from the JSON entry so reviewers can verify coverage -->
+**Anforderungs-JSON Testfall:**
+<!-- Testfall-Feld aus dem JSON-Eintrag einfuegen, damit Reviewer die Abdeckung pruefen koennen -->
 
-**Tests implemented:**
-- [ ] Test script added/updated in `tests/local/` (bash) or `tests/e2e/specs/` (Playwright)
-- [ ] Each test case (T1, T2, ...) from the JSON `Testfall` is covered by an assertion
-- [ ] Assertions use the correct requirement ID and test ID: `assert_* ... "REQ-ID" "T1" "description"`
-- [ ] `./tests/runner.sh local <REQ-ID>` passes
+**Implementierte Tests:**
+- [ ] Test-Skript in `tests/local/` (Bash) oder `tests/e2e/specs/` (Playwright) hinzugefuegt/aktualisiert
+- [ ] Jeder Testfall (T1, T2, ...) aus dem JSON `Testfall` wird durch eine Assertion abgedeckt
+- [ ] Assertions verwenden die korrekte Anforderungs-ID und Test-ID: `assert_* ... "REQ-ID" "T1" "Beschreibung"`
+- [ ] `./tests/runner.sh local <REQ-ID>` besteht
 
 ## Screenshots / Logs
 
-<!-- If applicable, paste output or screenshots -->
+<!-- Falls zutreffend, Ausgabe oder Screenshots einfuegen -->

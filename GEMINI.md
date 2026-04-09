@@ -1,73 +1,73 @@
-# Workspace MVP - Gemini Context
+# Workspace MVP - Gemini Kontext
 
-This document provides essential context and instructions for AI assistants working on the **Workspace MVP** (Bachelorprojekt). This project is a Kubernetes-based collaboration platform designed for small teams, integrating several open-source services with Single Sign-On (SSO) and a self-hosted AI assistant.
+Dieses Dokument stellt den wesentlichen Kontext und Anleitungen fuer KI-Assistenten bereit, die am **Workspace MVP** (Bachelorprojekt) arbeiten. Das Projekt ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams, die mehrere Open-Source-Services mit Single Sign-On (SSO) und einem selbst gehosteten KI-Assistenten integriert.
 
-## Project Overview
+## Projektuebersicht
 
-- **Core Technologies:** Kubernetes (k3d/k3s), Kustomize, Go (billing-bot), Shell scripts, Taskfile.
-- **Architecture:** A microservices-oriented architecture running primarily in the `workspace` namespace.
-- **Key Services:**
-  - **Keycloak (SSO):** Identity management and OIDC provider (`auth.localhost`).
-  - **Mattermost:** Team chat and collaboration (`chat.localhost`).
-  - **Nextcloud:** File storage, Talk (video), and Collabora Office (`files.localhost`).
-  - **Claude Code (AI Assistant):** Self-hosted AI interface with MCP-based tool use (`ai.localhost`).
-  - **WordPress:** Customer request portal and external website (`web.localhost`).
-  - **Billing Bot:** A Go service bridging Mattermost interactive messages with Invoice Ninja.
-  - **Invoice Ninja:** Accounting and invoicing platform (`billing.localhost`).
-- **Infrastructure:**
-  - **Ingress:** Traefik (built-in k3s). No separate NGINX Ingress installation required.
-  - **AI Backend:** Ollama (Local LLM backend with Qwen 2.5) and Anthropic API.
-  - **Communication:** coturn (STUN/TURN), signaling-server (Talk HPB), Janus Gateway.
-  - **Auxiliary:** Mailpit (SMTP development), Opensearch (search), Vaultwarden (passwords), Spacedeck (whiteboard), and backup cronjobs.
+- **Kerntechnologien:** Kubernetes (k3d/k3s), Kustomize, Go (billing-bot), Shell-Skripte, Taskfile.
+- **Architektur:** Microservices-orientierte Architektur, die hauptsaechlich im `workspace`-Namespace laeuft.
+- **Wichtige Services:**
+  - **Keycloak (SSO):** Identity Management und OIDC-Provider (`auth.localhost`).
+  - **Mattermost:** Team-Chat und Kollaboration (`chat.localhost`).
+  - **Nextcloud:** Dateispeicher, Talk (Video) und Collabora Office (`files.localhost`).
+  - **Claude Code (KI-Assistent):** Lokaler KI-Client mit MCP-basiertem Tool-Zugriff (`ai.localhost`).
+  - **Website:** Unternehmens-Webseite (`web.localhost`).
+  - **Billing Bot:** Go-Service, der Mattermost-Slash-Commands mit Invoice Ninja verbindet.
+  - **Invoice Ninja:** Buchhaltungs- und Rechnungsplattform (`billing.localhost`).
+- **Infrastruktur:**
+  - **Ingress:** Traefik (k3s built-in). Keine separate NGINX-Ingress-Installation erforderlich.
+  - **KI-Backend:** Anthropic API (Claude Sonnet 4).
+  - **Kommunikation:** coturn (STUN/TURN), spreed-signaling (Talk HPB), Janus Gateway.
+  - **Hilfsdienste:** Mailpit (SMTP-Entwicklung), OpenSearch (Suche), Vaultwarden (Passwoerter), Whiteboard, Backup-CronJobs.
 
-## Building and Running
+## Bauen und Ausfuehren
 
-The project uses `task` (go-task) for orchestration.
+Das Projekt verwendet `task` (go-task) zur Orchestrierung.
 
-### Key Commands
+### Wichtige Befehle
 
-- **Cluster Management:**
-  - `task cluster:create`: Create the local k3d cluster (uses k3d-config.yaml).
-  - `task cluster:delete`: Remove the k3d cluster.
+- **Cluster-Verwaltung:**
+  - `task cluster:create`: Lokalen k3d-Cluster erstellen (nutzt k3d-config.yaml).
+  - `task cluster:delete`: k3d-Cluster entfernen.
 - **Deployment:**
-  - `task workspace:deploy`: Deploy all services to the cluster (Kustomize).
-  - `task workspace:validate`: Perform a dry-run and validate Kubernetes manifests.
+  - `task workspace:deploy`: Alle Services im Cluster deployen (Kustomize).
+  - `task workspace:validate`: Dry-Run und Kubernetes-Manifeste validieren.
 - **Observability:**
-  - `task workspace:monitoring`: Install Prometheus + Grafana stack (required for NFA-02).
-  - `task workspace:status`: Check the status of all pods and services.
-  - `task workspace:logs -- <service>`: Tail logs for a specific service (e.g., `keycloak`).
-  - `task workspace:restart -- <service>`: Restart a specific service.
+  - `task workspace:monitoring`: Prometheus + Grafana Stack installieren (erforderlich fuer NFA-02).
+  - `task workspace:status`: Status aller Pods und Services pruefen.
+  - `task workspace:logs -- <service>`: Logs eines bestimmten Service ansehen (z.B. `keycloak`).
+  - `task workspace:restart -- <service>`: Einen bestimmten Service neu starten.
 
-### Testing
+### Tests
 
-Run the automated test suite (Bash + Playwright) against the local cluster:
+Automatisierte Testsuite (Bash + Playwright) gegen den lokalen Cluster ausfuehren:
 ```bash
-./tests/runner.sh local              # Run all tests
-./tests/runner.sh local <TEST-ID>    # Run a specific test (e.g., SA-08)
+./tests/runner.sh local              # Alle Tests ausfuehren
+./tests/runner.sh local <TEST-ID>    # Bestimmten Test ausfuehren (z.B. SA-08)
 ```
 
-## Development Conventions
+## Entwicklungskonventionen
 
-### Branching and PRs
-- **Branching Policy:** Always work on a feature branch (`feature/*`, `fix/*`, `chore/*`). **Never commit directly to `main`.**
-- **Pull Requests:** All changes must go through a PR. Use the PR template and ensure CI (YAML lint, Shellcheck, manifest validation) passes.
-- **Merging:** Use **squash-and-merge** to keep the `main` history clean.
+### Branching und PRs
+- **Branch-Strategie:** Immer auf einem Feature-Branch arbeiten (`feature/*`, `fix/*`, `chore/*`). **Niemals direkt auf `main` committen.**
+- **Pull Requests:** Alle Aenderungen muessen durch einen PR gehen. PR-Template verwenden und sicherstellen, dass CI (YAML-Lint, Shellcheck, Manifest-Validierung) besteht.
+- **Merging:** **Squash-and-Merge** verwenden fuer eine saubere `main`-History.
 
-### Kubernetes & Configuration
-- **Manifests:** Base manifests are in `k3d/`. Production-specific overlays/patches are in `prod/`.
-- **Kustomize:** Always use Kustomize for managing Kubernetes resources.
-- **Centralized Domains:** Hostnames are centralized in `k3d/configmap-domains.yaml`. Do not hardcode hostnames in other manifests.
-- **Secrets:** Use `k3d/secrets.yaml` for development secrets. Never commit real production credentials.
+### Kubernetes & Konfiguration
+- **Manifeste:** Basis-Manifeste liegen in `k3d/`. Produktions-spezifische Overlays/Patches in `prod/`.
+- **Kustomize:** Immer Kustomize fuer die Verwaltung von Kubernetes-Ressourcen verwenden.
+- **Zentrale Domains:** Hostnamen sind zentral in `k3d/configmap-domains.yaml` definiert. Keine hartkodierten Hostnamen in anderen Manifesten.
+- **Secrets:** `k3d/secrets.yaml` fuer Entwicklungs-Secrets verwenden. Niemals echte Produktions-Zugangsdaten committen.
 
-## AI Assistant Guidelines
+## Richtlinien fuer KI-Assistenten
 
-When executing a directive:
-1. **Research:** Understand the service interaction.
-2. **Strategy:** Plan changes across K8s manifests, scripts, or the billing-bot code.
-3. **Branching:** Create a dedicated branch using `git checkout -b`.
-4. **Collaboration:** Work with **Claude Code** in the admin-only Mattermost channels if available.
-5. **Execution:** 
-   - Apply surgical changes.
-   - If modifying Kubernetes manifests, run `task workspace:validate`.
-6. **Validation:** Run relevant tests using `./tests/runner.sh local`.
-7. **PR:** Use `gh pr create` with the repository's template.
+Bei der Ausfuehrung einer Aufgabe:
+1. **Recherche:** Die Service-Interaktion verstehen.
+2. **Strategie:** Aenderungen an K8s-Manifesten, Skripten oder dem billing-bot-Code planen.
+3. **Branching:** Einen dedizierten Branch mit `git checkout -b` erstellen.
+4. **Kollaboration:** Falls verfuegbar, mit **Claude Code** in den Admin-Kanaelen in Mattermost zusammenarbeiten.
+5. **Umsetzung:**
+   - Gezielte Aenderungen vornehmen.
+   - Bei Aenderung von Kubernetes-Manifesten `task workspace:validate` ausfuehren.
+6. **Validierung:** Relevante Tests mit `./tests/runner.sh local` ausfuehren.
+7. **PR:** `gh pr create` mit dem Repository-Template verwenden.

@@ -58,45 +58,45 @@ task workspace:up
 ```mermaid
 graph TB
     subgraph Internet
-        User([Benutzer / Browser])
+        User(["fa:fa-user Benutzer / Browser"])
     end
 
-    subgraph k3d-Cluster ["k3d/k3s Cluster"]
-        Traefik["Traefik Ingress<br/>Ports 80 / 443"]
+    subgraph k3d-Cluster ["fa:fa-server k3d/k3s Cluster"]
+        Traefik["fa:fa-globe Traefik Ingress<br/>Ports 80 / 443"]
 
-        subgraph workspace ["Namespace: workspace"]
-            KC[Keycloak<br/>auth.localhost]
-            MM[Mattermost<br/>chat.localhost]
-            NC[Nextcloud + Talk<br/>files.localhost]
-            CO[Collabora Online<br/>office.localhost]
-            HPB[Talk HPB Signaling<br/>signaling.localhost]
-            OC[Claude Code AI<br/>ai.localhost]
-            IN[Invoice Ninja<br/>billing.localhost]
-            VW[Vaultwarden<br/>vault.localhost]
-            WB[Whiteboard<br/>board.localhost]
-            MP[Mailpit<br/>mail.localhost]
-            OS[OpenSearch]
-            DOCS[Docs<br/>docs.localhost]
-            BB[billing-bot<br/>intern]
-            PROXY[mm-keycloak-proxy<br/>intern]
-            OAUTH[oauth2-proxy<br/>Invoice Ninja]
+        subgraph workspace ["fa:fa-cubes Namespace: workspace"]
+            KC["fa:fa-key Keycloak<br/>auth.localhost"]
+            MM["fa:fa-comments Mattermost<br/>chat.localhost"]
+            NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
+            CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
+            HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
+            OC["fa:fa-brain Claude Code KI<br/>ai.localhost"]
+            IN["fa:fa-receipt Invoice Ninja<br/>billing.localhost"]
+            VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
+            WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
+            MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
+            OS["fa:fa-search OpenSearch"]
+            DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
+            BB["fa:fa-robot billing-bot<br/>intern"]
+            PROXY["fa:fa-shuffle mm-keycloak-proxy<br/>intern"]
+            OAUTH["fa:fa-shield-halved oauth2-proxy<br/>Invoice Ninja"]
 
-            subgraph HPB-Stack ["Talk HPB Stack"]
-                JANUS[Janus Gateway]
-                NATS[NATS]
-                COTURN[coturn TURN/STUN]
+            subgraph HPB-Stack ["fa:fa-video Talk HPB Stack"]
+                JANUS["Janus Gateway"]
+                NATS["NATS"]
+                COTURN["coturn TURN/STUN"]
             end
 
-            DB[(PostgreSQL 16<br/>shared-db)]
+            DB[("fa:fa-database PostgreSQL 16<br/>shared-db")]
         end
 
         subgraph website-ns ["Namespace: website"]
-            WEB[Website Astro<br/>web.localhost]
+            WEB["fa:fa-globe Website Astro<br/>web.localhost"]
         end
 
         subgraph monitoring-ns ["Namespace: monitoring"]
-            PROM[Prometheus]
-            GRAF[Grafana]
+            PROM["fa:fa-chart-line Prometheus"]
+            GRAF["fa:fa-gauge Grafana"]
         end
     end
 
@@ -119,46 +119,78 @@ graph TB
 
     KC & MM & NC & IN & OC & OS --> DB
     PROM --> GRAF
+
+    classDef identity fill:#4a90d9,color:#fff,stroke:#2d6a9f
+    classDef collab fill:#2d8659,color:#fff,stroke:#1a5c3a
+    classDef ai fill:#8b5cf6,color:#fff,stroke:#6d3ad4
+    classDef billing fill:#d97706,color:#fff,stroke:#b45309
+    classDef data fill:#6b7280,color:#fff,stroke:#4b5563
+    classDef tools fill:#0891b2,color:#fff,stroke:#0e7490
+    classDef infra fill:#374151,color:#fff,stroke:#1f2937
+
+    class KC,PROXY,OAUTH identity
+    class MM,NC,CO,WB,HPB,JANUS,NATS,COTURN collab
+    class OC ai
+    class IN,BB billing
+    class DB,OS data
+    class VW,MP,DOCS tools
+    class Traefik,WEB,PROM,GRAF infra
 ```
 
 ### SSO-Ablauf (OIDC)
 
 ```mermaid
 sequenceDiagram
-    participant U as Benutzer
-    participant S as Service<br/>(Mattermost / Nextcloud / etc.)
-    participant KC as Keycloak
-    participant DB as PostgreSQL
+    autonumber
 
-    U->>S: Zugriff auf geschuetzte Seite
-    S->>KC: Redirect zu /auth (OIDC Authorization Request)
-    KC->>U: Login-Formular
-    U->>KC: Credentials eingeben
-    KC->>DB: Credentials pruefen
-    DB-->>KC: OK
-    KC->>U: Redirect zurueck mit Authorization Code
-    U->>S: Authorization Code
-    S->>KC: Token-Austausch (Code -> Access Token + ID Token)
-    KC-->>S: Tokens
-    S->>S: Benutzer anlegen / Session erstellen
-    S-->>U: Zugriff gewaehrt
+    participant U as 👤 Benutzer
+    participant S as 💬 Service<br/>(Mattermost / Nextcloud / etc.)
+    participant KC as 🔑 Keycloak
+    participant DB as 🗄️ PostgreSQL
+
+    rect rgba(74, 144, 217, 0.1)
+        U->>S: Zugriff auf geschuetzte Seite
+        S->>KC: Redirect zu /auth (OIDC Authorization Request)
+        KC->>U: Login-Formular
+        U->>KC: Credentials eingeben
+    end
+
+    rect rgba(45, 134, 89, 0.1)
+        KC->>DB: Credentials pruefen
+        DB-->>KC: OK
+        KC->>U: Redirect zurueck mit Authorization Code
+    end
+
+    rect rgba(139, 92, 246, 0.1)
+        U->>S: Authorization Code
+        S->>KC: Token-Austausch (Code → Access Token + ID Token)
+        KC-->>S: Tokens
+        S->>S: Benutzer anlegen / Session erstellen
+        S-->>U: ✅ Zugriff gewaehrt
+    end
 ```
 
 ### Deployment-Ablauf
 
 ```mermaid
 flowchart LR
-    A[task cluster:create] --> B[task workspace:deploy]
-    B --> C{Optionale Schritte}
-    C --> D[task mcp:deploy<br/>MCP-Server]
-    C --> E[task workspace:monitoring<br/>Prometheus + Grafana]
-    C --> F[task workspace:post-setup<br/>Nextcloud Apps]
-    C --> G[task workspace:billing-setup<br/>billing-bot Image]
-    C --> H[task workspace:stripe-setup<br/>Stripe Gateway]
-    C --> I[task workspace:vaultwarden:seed<br/>Secret-Templates]
+    A["fa:fa-server task cluster:create"] --> B["fa:fa-rocket task workspace:deploy"]
+    B --> C{"fa:fa-code-branch Optionale Schritte"}
+    C --> D["fa:fa-brain task mcp:deploy<br/>MCP-Server"]
+    C --> E["fa:fa-chart-line task workspace:monitoring<br/>Prometheus + Grafana"]
+    C --> F["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
+    C --> G["fa:fa-receipt task workspace:billing-setup<br/>billing-bot Image"]
+    C --> H["fa:fa-credit-card task workspace:stripe-setup<br/>Stripe Gateway"]
+    C --> I["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
 
     style A fill:#2d6a4f,color:#fff
     style B fill:#2d6a4f,color:#fff
+    style D fill:#8b5cf6,color:#fff
+    style E fill:#0891b2,color:#fff
+    style F fill:#2d8659,color:#fff
+    style G fill:#d97706,color:#fff
+    style H fill:#d97706,color:#fff
+    style I fill:#0891b2,color:#fff
 ```
 
 Alternativ alles automatisch: `task workspace:up`

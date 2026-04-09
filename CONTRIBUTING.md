@@ -1,163 +1,163 @@
-# Contributing to Workspace MVP
+# Beitragen zum Workspace MVP
 
-## Development Workflow
+## Entwicklungs-Workflow
 
-All changes go through pull requests. Direct pushes to `main` are not allowed.
+Alle Aenderungen gehen durch Pull Requests. Direkte Pushes auf `main` sind nicht erlaubt.
 
-### Branch Naming
+### Branch-Namenskonvention
 
-| Prefix       | Purpose                          |
-|-------------|----------------------------------|
-| `feature/*` | New functionality                |
-| `fix/*`     | Bug fixes                        |
-| `chore/*`   | Refactoring, dependencies, CI/CD |
+| Praefix       | Zweck                            |
+|--------------|----------------------------------|
+| `feature/*` | Neue Funktionalitaet             |
+| `fix/*`     | Fehlerbehebungen                 |
+| `chore/*`   | Refactoring, Abhaengigkeiten, CI/CD |
 
 ### Workflow
 
 ```mermaid
 flowchart LR
-    A[main] -->|git checkout -b| B[feature/my-feature]
-    B -->|develop + test| C[Push to remote]
+    A[main] -->|git checkout -b| B[feature/mein-feature]
+    B -->|entwickeln + testen| C[Zum Remote pushen]
     C -->|gh pr create| D[Pull Request]
-    D -->|CI pipeline| E{CI green?}
-    E -->|yes| F[Squash & Merge]
-    E -->|no| B
+    D -->|CI-Pipeline| E{CI gruen?}
+    E -->|ja| F[Squash & Merge]
+    E -->|nein| B
     F --> A
 ```
 
-1. **Create a branch** from `main`:
+1. **Branch erstellen** von `main`:
    ```bash
    git checkout main && git pull
-   git checkout -b feature/my-feature
+   git checkout -b feature/mein-feature
    ```
 
-2. **Develop locally** with k3d:
+2. **Lokal entwickeln** mit k3d:
    ```bash
-   task workspace:deploy            # deploy all services
-   task workspace:status            # check pod health
-   task workspace:logs -- keycloak  # tail service logs
+   task workspace:deploy            # alle Services deployen
+   task workspace:status            # Pod-Gesundheit pruefen
+   task workspace:logs -- keycloak  # Service-Logs ansehen
    ```
 
-3. **Validate before pushing**:
+3. **Vor dem Push validieren**:
    ```bash
-   task workspace:validate          # dry-run k8s manifests
-   shellcheck scripts/*.sh          # lint scripts (if modified)
+   task workspace:validate          # Dry-Run der K8s-Manifeste
+   shellcheck scripts/*.sh          # Skripte linten (falls geaendert)
    ```
 
-4. **Push and open a PR**:
-   - Use the PR template checklist
-   - CI runs automatically (manifest validation, YAML lint, security scan)
+4. **Pushen und PR erstellen**:
+   - PR-Template-Checkliste verwenden
+   - CI laeuft automatisch (Manifest-Validierung, YAML-Lint, Security-Scan)
 
-5. **CI must pass** before merge. The pipeline checks:
-   - Kubernetes manifest validity (kustomize build + kubeconform)
-   - YAML linting (k3d manifests)
-   - Shell script linting
-   - Config validation (realm JSON, PHP OIDC config)
-   - Security scan (image pinning, secret detection)
+5. **CI muss gruen sein** vor dem Merge. Die Pipeline prueft:
+   - Kubernetes-Manifest-Gueltigkeit (kustomize build + kubeconform)
+   - YAML-Linting (k3d-Manifeste)
+   - Shell-Skript-Linting
+   - Konfigurations-Validierung (Realm-JSON, PHP-OIDC-Config)
+   - Security-Scan (Image-Pinning, Secret-Erkennung)
 
-6. **Merge via squash-and-merge** to keep `main` history clean.
+6. **Merge via Squash-and-Merge** fuer eine saubere `main`-History.
 
-### CI Pipeline
+### CI-Pipeline
 
 ```mermaid
 flowchart TB
-    PR[Pull Request opened] --> YAML[YAML Lint<br/>200-char line limit]
+    PR[Pull Request geoeffnet] --> YAML[YAML-Lint<br/>200-Zeichen-Limit]
     PR --> KUSTOMIZE[Kustomize Build +<br/>kubeconform K8s 1.31.0]
-    PR --> SHELL[ShellCheck<br/>all scripts]
-    PR --> CONFIG[Config Validation<br/>JSON realm, PHP OIDC]
-    PR --> SECURITY[Security Scan<br/>image pinning, secrets]
+    PR --> SHELL[ShellCheck<br/>alle Skripte]
+    PR --> CONFIG[Config-Validierung<br/>JSON-Realm, PHP-OIDC]
+    PR --> SECURITY[Security-Scan<br/>Image-Pinning, Secrets]
 
-    YAML & KUSTOMIZE & SHELL & CONFIG & SECURITY --> RESULT{All green?}
-    RESULT -->|yes| MERGE[Ready to merge]
-    RESULT -->|no| FIX[Fix and re-push]
+    YAML & KUSTOMIZE & SHELL & CONFIG & SECURITY --> RESULT{Alles gruen?}
+    RESULT -->|ja| MERGE[Bereit zum Merge]
+    RESULT -->|nein| FIX[Beheben und erneut pushen]
 
     style MERGE fill:#2d6a4f,color:#fff
     style FIX fill:#9b2226,color:#fff
 ```
 
-### Local k3d Development
+### Lokale k3d-Entwicklung
 
-Prerequisites: Docker, k3d, kubectl, task (go-task)
+Voraussetzungen: Docker, k3d, kubectl, task (go-task)
 
 ```bash
-# First time: create cluster + deploy
-task cluster:create              # creates k3d cluster
-task workspace:deploy            # deploy all services
+# Erstmaliges Setup: Cluster erstellen + deployen
+task cluster:create              # k3d-Cluster erstellen
+task workspace:deploy            # alle Services deployen
 
-# Or everything at once (Cluster + MVP + MCP + Monitoring + Billing):
+# Oder alles auf einmal (Cluster + MVP + MCP + Monitoring + Billing):
 task workspace:up
 ```
 
-**Day-to-day commands:**
+**Taegliche Befehle:**
 
 ```bash
-task workspace:status                # check everything
-task workspace:logs -- keycloak      # tail a service
-task workspace:restart -- keycloak   # restart a service
-task workspace:validate              # validate manifests
-task workspace:psql -- keycloak      # psql shell to a database
-task workspace:port-forward          # forward shared-db to localhost:5432
-task workspace:teardown              # clean up
+task workspace:status                # alles pruefen
+task workspace:logs -- keycloak      # Service-Logs ansehen
+task workspace:restart -- keycloak   # Service neu starten
+task workspace:validate              # Manifeste validieren
+task workspace:psql -- keycloak      # psql-Shell zur Datenbank
+task workspace:port-forward          # shared-db auf localhost:5432
+task workspace:teardown              # aufraeumen
 ```
 
-Services are available at:
+Services sind erreichbar unter:
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
+| Service | URL | Zugangsdaten |
+|---------|-----|--------------|
 | Keycloak (SSO) | http://auth.localhost | admin / devadmin |
 | Mattermost (Chat) | http://chat.localhost | -- |
-| Nextcloud (Files + Talk) | http://files.localhost | -- |
+| Nextcloud (Dateien + Talk) | http://files.localhost | -- |
 | Collabora (Office) | http://office.localhost | -- |
 | Talk HPB (Signaling) | http://signaling.localhost | -- |
-| Claude Code (AI) | http://ai.localhost | -- |
-| Invoice Ninja (Billing) | http://billing.localhost | -- |
-| Vaultwarden (Passwords) | http://vault.localhost | -- |
+| Claude Code (KI) | http://ai.localhost | -- |
+| Invoice Ninja (Rechnungen) | http://billing.localhost | -- |
+| Vaultwarden (Passwoerter) | http://vault.localhost | -- |
 | Whiteboard | http://board.localhost | -- |
-| Mailpit (Dev Mail) | http://mail.localhost | -- |
+| Mailpit (Dev-Mail) | http://mail.localhost | -- |
 | Docs | http://docs.localhost | -- |
 | Website | http://web.localhost | -- |
 
-### Running Tests
+### Tests ausfuehren
 
 ```bash
-./tests/runner.sh local              # full test suite against k3d
-./tests/runner.sh local SA-08        # single test
-./tests/runner.sh local --verbose    # verbose output
-./tests/runner.sh report             # generate markdown report
+./tests/runner.sh local              # Vollstaendige Testsuite gegen k3d
+./tests/runner.sh local SA-08        # Einzelner Test
+./tests/runner.sh local --verbose    # Ausfuehrliche Ausgabe
+./tests/runner.sh report             # Markdown-Report generieren
 ```
 
-Test IDs: `FA-01`--`FA-11` (functional), `SA-01`--`SA-09` (security), `NFA-01`--`NFA-07` (non-functional), `AK-03`, `AK-04` (acceptance).
+Test-IDs: `FA-01`--`FA-11` (funktional), `SA-01`--`SA-09` (Sicherheit), `NFA-01`--`NFA-07` (nicht-funktional), `AK-03`, `AK-04` (Abnahme).
 
-### Post-Deploy Setup
+### Post-Deploy-Setup
 
-After the initial `task workspace:deploy`, optional setup steps:
+Nach dem initialen `task workspace:deploy` stehen optionale Setup-Schritte zur Verfuegung:
 
 ```bash
-task workspace:post-setup            # enable Nextcloud apps (calendar, contacts, OIDC)
-task workspace:billing-setup         # build billing-bot image (token auto-provisioned)
-task workspace:stripe-setup          # register Stripe payment gateway
-task workspace:vaultwarden:seed      # seed Vaultwarden with secret templates
-task workspace:monitoring            # install Prometheus + Grafana (NFA-02)
-task mcp:deploy                      # deploy Claude Code MCP server pods
-task website:deploy                  # deploy Astro website
+task workspace:post-setup            # Nextcloud-Apps aktivieren (Kalender, Kontakte, OIDC)
+task workspace:billing-setup         # billing-bot Image bauen (Token automatisch provisioniert)
+task workspace:stripe-setup          # Stripe Payment Gateway registrieren
+task workspace:vaultwarden:seed      # Vaultwarden mit Secret-Templates befuellen
+task workspace:monitoring            # Prometheus + Grafana installieren (NFA-02)
+task mcp:deploy                      # Claude Code MCP-Server-Pods deployen
+task website:deploy                  # Astro-Website deployen
 ```
 
-### Monorepo Rules
+### Monorepo-Regeln
 
-1. **k3d/k3s is the only deployment target.** No docker-compose.
-2. **All K8s manifests live in `k3d/`.** Use Kustomize.
-3. **Domains are centralized** in `k3d/configmap-domains.yaml`. Never hardcode hostnames.
-4. **Secrets stay in `k3d/secrets.yaml`** (dev values only). Never commit real credentials.
-5. **Shared configs** (proxy configs, adapter code, import scripts) live outside `k3d/` and are loaded as ConfigMaps by the deploy task.
-6. **Test after manifest changes**: `./tests/runner.sh local <TEST-ID>`.
-7. **Validate before commit**: `task workspace:validate`.
+1. **k3d/k3s ist der einzige Deployment-Pfad.** Kein docker-compose.
+2. **Alle K8s-Manifeste liegen in `k3d/`.** Kustomize verwenden.
+3. **Domains sind zentral** in `k3d/configmap-domains.yaml` definiert. Keine hartkodierten Hostnamen.
+4. **Secrets bleiben in `k3d/secrets.yaml`** (nur Dev-Werte). Niemals echte Credentials committen.
+5. **Gemeinsame Configs** (Proxy-Configs, Adapter-Code, Import-Skripte) liegen ausserhalb von `k3d/` und werden als ConfigMaps durch den Deploy-Task geladen.
+6. **Nach Manifest-Aenderungen testen**: `./tests/runner.sh local <TEST-ID>`.
+7. **Vor dem Commit validieren**: `task workspace:validate`.
 
-### For AI Assistants (Claude Code)
+### Fuer KI-Assistenten (Claude Code)
 
-When asked to develop a feature, fix a bug, or make any code change:
+Bei der Entwicklung eines Features, Bugfixes oder einer Code-Aenderung:
 
-1. **Always create a feature branch** -- never commit directly to `main`
-2. **Follow the PR template** -- fill out the checklist completely
-3. **Run `task workspace:validate`** before pushing
-4. **Create a PR** using `gh pr create` with the appropriate template
-5. **Wait for CI** to pass before requesting merge
+1. **Immer einen Feature-Branch erstellen** -- niemals direkt auf `main` committen
+2. **PR-Template verwenden** -- Checkliste vollstaendig ausfuellen
+3. **`task workspace:validate` ausfuehren** vor dem Push
+4. **PR erstellen** mit `gh pr create` und dem passenden Template
+5. **Auf CI warten** -- erst nach gruener Pipeline Merge anfordern

@@ -1,144 +1,142 @@
-# MCP Actions Reference
+# MCP-Aktionen Referenz
 
-All actions Claude Code can perform via the connected MCP servers.
+Alle Aktionen, die Claude Code ueber die verbundenen MCP-Server ausfuehren kann.
 
-### Configuration
+### Konfiguration
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `configuration_contexts_list` | List all available kubeconfig contexts and their server URLs |
-| `configuration_view` | View the current kubeconfig YAML (full or minified for current context) |
+| `configuration_contexts_list` | Alle verfuegbaren kubeconfig-Kontexte und deren Server-URLs auflisten |
+| `configuration_view` | Aktuelle kubeconfig-YAML anzeigen (vollstaendig oder minimiert fuer aktuellen Kontext) |
 
 ### Namespaces & Events
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `namespaces_list` | List all namespaces in the cluster |
-| `events_list` | List cluster events (warnings, errors, state changes) for debugging |
+| `namespaces_list` | Alle Namespaces im Cluster auflisten |
+| `events_list` | Cluster-Events (Warnungen, Fehler, Zustandsaenderungen) zur Fehlersuche auflisten |
 
 ### Nodes
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `nodes_top` | Show CPU/memory consumption for nodes (via Metrics Server) |
-| `nodes_stats_summary` | Get detailed node stats: CPU, memory, filesystem, network, PSI metrics |
-| `nodes_log` | Fetch logs from a node (kubelet, kube-proxy, or arbitrary log file path) |
+| `nodes_top` | CPU-/Speicherverbrauch der Nodes anzeigen (via Metrics Server) |
+| `nodes_stats_summary` | Detaillierte Node-Statistiken: CPU, Speicher, Dateisystem, Netzwerk, PSI-Metriken |
+| `nodes_log` | Logs eines Nodes abrufen (kubelet, kube-proxy oder beliebiger Log-Dateipfad) |
 
 ### Pods
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `pods_list` | List all pods across all namespaces |
-| `pods_list_in_namespace` | List pods in a specific namespace (supports label/field selectors) |
-| `pods_get` | Get full manifest of a specific pod |
-| `pods_log` | Tail logs from a pod or specific container (supports previous container) |
-| `pods_exec` | Execute a command inside a pod container (shell access) |
-| `pods_run` | Spin up a new pod from an image (ephemeral/debug pods) |
-| `pods_delete` | Delete a pod by name |
-| `pods_top` | Show CPU/memory consumption for pods (via Metrics Server) |
+| `pods_list` | Alle Pods ueber alle Namespaces auflisten |
+| `pods_list_in_namespace` | Pods in einem bestimmten Namespace auflisten (unterstuetzt Label-/Field-Selektoren) |
+| `pods_get` | Vollstaendiges Manifest eines bestimmten Pods abrufen |
+| `pods_log` | Logs eines Pods oder bestimmten Containers ansehen (unterstuetzt vorherigen Container) |
+| `pods_exec` | Befehl in einem Pod-Container ausfuehren (Shell-Zugriff) |
+| `pods_run` | Neuen Pod aus einem Image starten (ephemere/Debug-Pods) |
+| `pods_delete` | Pod nach Name loeschen |
+| `pods_top` | CPU-/Speicherverbrauch der Pods anzeigen (via Metrics Server) |
 
-### Generic Resources
+### Generische Ressourcen
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `resources_list` | List any Kubernetes resource type by apiVersion + kind (Deployments, Services, Ingresses, etc.) |
-| `resources_get` | Get a specific resource by apiVersion, kind, and name |
-| `resources_create_or_update` | Apply a YAML/JSON resource manifest (create or update) |
-| `resources_delete` | Delete a resource by apiVersion, kind, and name |
-| `resources_scale` | Get or set the replica count for a Deployment or StatefulSet |
+| `resources_list` | Beliebige Kubernetes-Ressource nach apiVersion + kind auflisten (Deployments, Services, Ingresses usw.) |
+| `resources_get` | Bestimmte Ressource nach apiVersion, kind und Name abrufen |
+| `resources_create_or_update` | YAML/JSON-Ressourcen-Manifest anwenden (erstellen oder aktualisieren) |
+| `resources_delete` | Ressource nach apiVersion, kind und Name loeschen |
+| `resources_scale` | Replica-Anzahl eines Deployments oder StatefulSets abfragen oder setzen |
 
 ---
 
 ## Playwright Browser (`mcp-browser`)
 
-Full browser automation via `@playwright/mcp` (Microsoft). Runs headless Chromium in the cluster.
+Vollstaendige Browser-Automatisierung via `@playwright/mcp` (Microsoft). Fuehrt headloses Chromium im Cluster aus.
 
-Actions use an **accessibility snapshot** model — `browser_snapshot` gives you a structured DOM reference, and other actions target elements by their `ref` from that snapshot.
+Aktionen verwenden ein **Accessibility-Snapshot-Modell** -- `browser_snapshot` liefert eine strukturierte DOM-Referenz, andere Aktionen adressieren Elemente ueber deren `ref` aus dem Snapshot.
 
 ### Navigation
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `browser_navigate` | Navigate to a URL |
-| `browser_navigate_back` | Go back to the previous page in history |
-| `browser_wait_for` | Wait for text to appear/disappear, or pause for N seconds |
+| `browser_navigate` | Zu einer URL navigieren |
+| `browser_navigate_back` | Zurueck zur vorherigen Seite im Verlauf |
+| `browser_wait_for` | Auf das Erscheinen/Verschwinden von Text warten oder N Sekunden pausieren |
 
-### Page Inspection
+### Seiten-Inspektion
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `browser_snapshot` | Capture accessibility tree of the current page (preferred over screenshot for interactions) |
-| `browser_take_screenshot` | Take a PNG/JPEG screenshot of the viewport, full page, or a specific element |
-| `browser_console_messages` | Return all browser console messages (error/warning/info/debug) |
-| `browser_network_requests` | List all network requests since page load (filterable by URL pattern, includes headers/body) |
+| `browser_snapshot` | Accessibility-Tree der aktuellen Seite erfassen (bevorzugt gegenueber Screenshot fuer Interaktionen) |
+| `browser_take_screenshot` | PNG/JPEG-Screenshot des Viewports, der gesamten Seite oder eines bestimmten Elements |
+| `browser_console_messages` | Alle Browser-Konsolennachrichten zurueckgeben (Fehler/Warnung/Info/Debug) |
+| `browser_network_requests` | Alle Netzwerk-Requests seit Seitenladung auflisten (filterbar nach URL-Muster, inkl. Header/Body) |
 
-### Interaction
+### Interaktion
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `browser_click` | Click an element (single, double, or right-click; with modifier keys) |
-| `browser_hover` | Hover the mouse over an element |
-| `browser_type` | Type text into an editable element (optionally submit with Enter) |
-| `browser_press_key` | Press a specific keyboard key (e.g. `ArrowLeft`, `Enter`, `Escape`) |
-| `browser_fill_form` | Fill multiple form fields at once (textbox, checkbox, radio, combobox, slider) |
-| `browser_select_option` | Select one or more options in a dropdown |
-| `browser_drag` | Drag and drop between two elements |
-| `browser_file_upload` | Upload one or more files via a file chooser |
-| `browser_handle_dialog` | Accept or dismiss a browser dialog (alert, confirm, prompt) |
+| `browser_click` | Element anklicken (Einzel-, Doppel- oder Rechtsklick; mit Modifier-Tasten) |
+| `browser_hover` | Maus ueber ein Element bewegen |
+| `browser_type` | Text in ein editierbares Element eingeben (optional mit Enter absenden) |
+| `browser_press_key` | Bestimmte Taste druecken (z.B. `ArrowLeft`, `Enter`, `Escape`) |
+| `browser_fill_form` | Mehrere Formularfelder gleichzeitig ausfuellen (Textbox, Checkbox, Radio, Combobox, Slider) |
+| `browser_select_option` | Eine oder mehrere Optionen in einem Dropdown auswaehlen |
+| `browser_drag` | Drag-and-Drop zwischen zwei Elementen |
+| `browser_file_upload` | Eine oder mehrere Dateien ueber einen File-Chooser hochladen |
+| `browser_handle_dialog` | Browser-Dialog bestaetigen oder abbrechen (Alert, Confirm, Prompt) |
 
 ### Tabs
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `browser_tabs` | List, create, close, or switch between browser tabs |
+| `browser_tabs` | Browser-Tabs auflisten, erstellen, schliessen oder wechseln |
 
 ### Scripting
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `browser_evaluate` | Evaluate a JavaScript expression on the page or against a specific element |
-| `browser_run_code` | Run an arbitrary Playwright `async (page) => { ... }` code snippet |
+| `browser_evaluate` | JavaScript-Ausdruck auf der Seite oder gegen ein bestimmtes Element auswerten |
+| `browser_run_code` | Beliebiges Playwright `async (page) => { ... }` Code-Snippet ausfuehren |
 
-### Lifecycle
+### Lebenszyklus
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `browser_close` | Close the current page/browser |
-| `browser_resize` | Resize the browser window to a specific width/height |
+| `browser_close` | Aktuelle Seite/Browser schliessen |
+| `browser_resize` | Browserfenster auf bestimmte Breite/Hoehe aendern |
 
-> **Tip:** The typical workflow is `browser_navigate` → `browser_snapshot` (to get element refs) → interaction actions → `browser_take_screenshot` to verify.
+> **Tipp:** Der typische Ablauf ist `browser_navigate` → `browser_snapshot` (Element-Refs erhalten) → Interaktions-Aktionen → `browser_take_screenshot` zur Verifikation.
 
 ---
 
 ## Kubernetes Read-Only (`mcp-kubernetes` via `mcp-k8s-go`)
 
-A read-only Kubernetes MCP server running inside the cluster as part of `claude-code-mcp-ops`. Used by Claude Code to inspect the cluster without write access.
+Ein Read-Only-Kubernetes-MCP-Server, der im Cluster als Teil von `claude-code-mcp-ops` laeuft. Wird von Claude Code zur Cluster-Inspektion ohne Schreibzugriff verwendet.
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `list-k8s-contexts` | List all Kubernetes contexts from kubeconfig |
-| `list-k8s-namespaces` | List namespaces in a given context |
-| `list-k8s-nodes` | List nodes in a given context |
-| `list-k8s-resources` | List any resource type by kind (and optional group/version/namespace) |
-| `get-k8s-resource` | Get full details of a specific resource as JSON or via Go template |
-| `list-k8s-events` | List events in a namespace for a given context |
-| `get-k8s-pod-logs` | Fetch pod logs (supports container selection, since time/duration, byte limit) |
+| `list-k8s-contexts` | Alle Kubernetes-Kontexte aus kubeconfig auflisten |
+| `list-k8s-namespaces` | Namespaces in einem bestimmten Kontext auflisten |
+| `list-k8s-nodes` | Nodes in einem bestimmten Kontext auflisten |
+| `list-k8s-resources` | Beliebige Ressource nach kind (und optionalem group/version/namespace) auflisten |
+| `get-k8s-resource` | Vollstaendige Details einer bestimmten Ressource als JSON oder via Go-Template |
+| `list-k8s-events` | Events in einem Namespace fuer einen bestimmten Kontext auflisten |
+| `get-k8s-pod-logs` | Pod-Logs abrufen (unterstuetzt Container-Auswahl, Zeitfilter, Byte-Limit) |
 
-> **Read-only** — no create, update, delete, exec, or scale operations.
+> **Nur lesend** -- keine Erstell-, Aktualisierungs-, Loesch-, Exec- oder Skalierungs-Operationen.
 
 ---
 
 ## PostgreSQL (`mcp-postgres`)
 
-Direct SQL access to the shared PostgreSQL instance (`shared-db`) running inside the cluster.
+Direkter SQL-Zugriff auf die gemeinsame PostgreSQL-Instanz (`shared-db`) im Cluster.
 
-| Action | Description |
+| Aktion | Beschreibung |
 |--------|-------------|
-| `query` | Run a read-only SQL query against the shared database |
+| `query` | SQL-Abfrage (nur lesend) gegen die gemeinsame Datenbank ausfuehren |
 
-> **Read-only** — `SELECT` queries only. All workspace databases (Keycloak, Mattermost, Nextcloud, OpenSearch, etc.) are on this shared instance and queryable.
-
----
+> **Nur lesend** -- ausschliesslich `SELECT`-Abfragen. Alle Workspace-Datenbanken (Keycloak, Mattermost, Nextcloud, OpenSearch usw.) liegen auf dieser gemeinsamen Instanz und sind abfragbar.
 
 ---
 
@@ -148,115 +146,115 @@ Direct SQL access to the shared PostgreSQL instance (`shared-db`) running inside
 
 ## Mattermost (`mcp-mattermost`)
 
-Image: `legard/mcp-server-mattermost`  
-Connects to Mattermost over its REST API with a bot token.
+Image: `legard/mcp-server-mattermost`
+Verbindet sich mit Mattermost ueber dessen REST-API mit einem Bot-Token.
 
-| Capability area | What it covers |
-|----------------|----------------|
-| Channels | List, read, post messages to channels |
-| Direct messages | Send and read DMs |
-| Teams | List teams and memberships |
-| Users | Look up user profiles |
-| Posts | Create, read, react to posts |
+| Bereich | Abdeckung |
+|---------|-----------|
+| Kanaele | Auflisten, lesen, Nachrichten in Kanaele senden |
+| Direktnachrichten | DMs senden und lesen |
+| Teams | Teams und Mitgliedschaften auflisten |
+| Benutzer | Benutzerprofile nachschlagen |
+| Beitraege | Beitraege erstellen, lesen, darauf reagieren |
 
 ---
 
 ## Nextcloud (`mcp-nextcloud`)
 
-Image: `ghcr.io/cbcoutinho/nextcloud-mcp-server`  
-Connects to Nextcloud over WebDAV/API.
+Image: `ghcr.io/cbcoutinho/nextcloud-mcp-server`
+Verbindet sich mit Nextcloud ueber WebDAV/API.
 
-| Capability area | What it covers |
-|----------------|----------------|
-| Files | List, read, upload, move, delete files and folders |
-| Calendar | List calendars, read/create/update/delete events (CalDAV) |
-| Contacts | List address books, read/create/update/delete contacts (CardDAV) |
+| Bereich | Abdeckung |
+|---------|-----------|
+| Dateien | Dateien und Ordner auflisten, lesen, hochladen, verschieben, loeschen |
+| Kalender | Kalender auflisten, Termine lesen/erstellen/aktualisieren/loeschen (CalDAV) |
+| Kontakte | Adressbuecher auflisten, Kontakte lesen/erstellen/aktualisieren/loeschen (CardDAV) |
 
 ---
 
 ## Invoice Ninja (`mcp-invoiceninja`)
 
-Image: `ckanthony/openapi-mcp` — an OpenAPI-spec-to-MCP bridge.  
-Exposes the full Invoice Ninja REST API as MCP tools, driven by the `invoiceninja-openapi` ConfigMap. Exact tool list mirrors the Invoice Ninja API surface, which includes:
+Image: `ckanthony/openapi-mcp` -- eine OpenAPI-zu-MCP-Bruecke.
+Stellt die gesamte Invoice Ninja REST-API als MCP-Tools bereit, gesteuert durch die `invoiceninja-openapi` ConfigMap. Die Tool-Liste spiegelt die Invoice Ninja API-Oberflaeche:
 
-| Capability area | What it covers |
-|----------------|----------------|
-| Clients | CRUD on client records |
-| Invoices | Create, send, archive, delete invoices |
-| Quotes | Create and manage quotes |
-| Payments | Record and manage payments |
-| Products | Manage product/service catalog |
-| Expenses | Track expenses |
-| Reports | Generate financial reports |
+| Bereich | Abdeckung |
+|---------|-----------|
+| Kunden | CRUD auf Kundendatensaetzen |
+| Rechnungen | Rechnungen erstellen, senden, archivieren, loeschen |
+| Angebote | Angebote erstellen und verwalten |
+| Zahlungen | Zahlungen erfassen und verwalten |
+| Produkte | Produkt-/Dienstleistungskatalog verwalten |
+| Ausgaben | Ausgaben erfassen |
+| Berichte | Finanzberichte generieren |
 
 ---
 
 ## Keycloak (`mcp-keycloak`)
 
-Image: `quay.io/sshaaf/keycloak-mcp-server`  
-Uses SSE transport (not streamable-HTTP). Requires a valid Keycloak Bearer token on every request.
+Image: `quay.io/sshaaf/keycloak-mcp-server`
+Verwendet SSE-Transport (nicht streamable-HTTP). Erfordert ein gueltiges Keycloak-Bearer-Token bei jedem Request.
 
-| Capability area | What it covers |
-|----------------|----------------|
-| Users | Create, read, update, delete users; reset passwords |
-| Groups | Manage groups and memberships |
-| Roles | Assign and manage realm/client roles |
-| Clients | List and inspect OIDC clients |
-| Sessions | List and revoke active sessions |
-| Realms | Inspect realm configuration |
+| Bereich | Abdeckung |
+|---------|-----------|
+| Benutzer | Benutzer erstellen, lesen, aktualisieren, loeschen; Passwoerter zuruecksetzen |
+| Gruppen | Gruppen und Mitgliedschaften verwalten |
+| Rollen | Realm-/Client-Rollen zuweisen und verwalten |
+| Clients | OIDC-Clients auflisten und inspizieren |
+| Sessions | Aktive Sessions auflisten und widerrufen |
+| Realms | Realm-Konfiguration inspizieren |
 
 ---
 
 ## GitHub (`mcp-github`)
 
-Image: `ghcr.io/github/github-mcp-server` (official GitHub MCP server)  
-**Disabled by default** (`replicas: 0`) — requires a GitHub PAT set via `task mcp:set-github-pat`.
+Image: `ghcr.io/github/github-mcp-server` (offizieller GitHub MCP-Server)
+**Standardmaessig deaktiviert** (`replicas: 0`) -- erfordert einen GitHub PAT via `task mcp:set-github-pat`.
 
-| Capability area | What it covers |
-|----------------|----------------|
-| Repositories | List, search, get repo details |
-| Issues | Create, read, update, comment on issues |
-| Pull Requests | Create, list, review, merge PRs |
-| Code | Search code, read file contents, get commits |
-| Actions | List workflow runs and jobs |
-| Releases | List and get releases |
+| Bereich | Abdeckung |
+|---------|-----------|
+| Repositories | Auflisten, suchen, Repo-Details abrufen |
+| Issues | Issues erstellen, lesen, aktualisieren, kommentieren |
+| Pull Requests | PRs erstellen, auflisten, reviewen, mergen |
+| Code | Code durchsuchen, Dateiinhalte lesen, Commits abrufen |
+| Actions | Workflow-Laeufe und Jobs auflisten |
+| Releases | Releases auflisten und abrufen |
 
 ---
 
 ## Stripe (`mcp-stripe`)
 
-Image: `@stripe/agent-toolkit` (official Stripe MCP)  
-Requires a Stripe secret key.
+Image: `@stripe/agent-toolkit` (offizieller Stripe MCP)
+Erfordert einen Stripe Secret Key.
 
-| Capability area | What it covers |
-|----------------|----------------|
-| Customers | Create, list, retrieve customers |
-| Payment Intents | Create and confirm payment intents |
-| Invoices | Create, send, void invoices |
-| Subscriptions | Create and manage subscriptions |
-| Products & Prices | Manage product catalog and pricing |
-| Refunds | Issue and list refunds |
-| Balance | Retrieve account balance |
+| Bereich | Abdeckung |
+|---------|-----------|
+| Kunden | Kunden erstellen, auflisten, abrufen |
+| Zahlungsabsichten | Payment Intents erstellen und bestaetigen |
+| Rechnungen | Rechnungen erstellen, senden, stornieren |
+| Abonnements | Abonnements erstellen und verwalten |
+| Produkte & Preise | Produktkatalog und Preisgestaltung verwalten |
+| Rueckerstattungen | Rueckerstattungen ausstellen und auflisten |
+| Kontostand | Kontostand abrufen |
 
 ---
 
-## Summary
+## Zusammenfassung
 
-| MCP Server | # Actions | Category |
-|------------|-----------|----------|
-| Gmail | 7 | Personal productivity |
-| Google Calendar | 9 | Personal productivity |
-| FRITZ!Box | 4 | Home network / infrastructure |
-| IDE | 2 | Development tooling |
-| Kubernetes | 20 | Cluster operations |
-| Playwright Browser | 21 | Browser automation |
-| Kubernetes Read-Only | 7 | Cluster inspection (Claude Code-side) |
-| PostgreSQL | 1 | Shared DB read-only SQL |
-| — *deploy/mcp overlay only (not running in k3d)* — | | |
-| Mattermost | ~5 areas | Chat, channels, DMs, posts |
-| Nextcloud | ~3 areas | Files, Calendar, Contacts |
-| Invoice Ninja | ~7 areas | Full billing API via OpenAPI bridge |
-| Keycloak | ~6 areas | SSO user/group/role management |
-| GitHub | ~6 areas | Repos, issues, PRs, Actions (needs PAT) |
-| Stripe | ~7 areas | Payments, invoices, subscriptions |
-| **Total (k3d running)** | **71** | |
+| MCP-Server | Aktionen | Kategorie |
+|------------|----------|-----------|
+| Gmail | 7 | Persoenliche Produktivitaet |
+| Google Calendar | 9 | Persoenliche Produktivitaet |
+| FRITZ!Box | 4 | Heimnetzwerk / Infrastruktur |
+| IDE | 2 | Entwicklungs-Tooling |
+| Kubernetes | 20 | Cluster-Operationen |
+| Playwright Browser | 21 | Browser-Automatisierung |
+| Kubernetes Read-Only | 7 | Cluster-Inspektion (Claude Code-seitig) |
+| PostgreSQL | 1 | Gemeinsame DB, nur lesender SQL-Zugriff |
+| — *nur deploy/mcp Overlay (laeuft nicht in k3d)* — | | |
+| Mattermost | ~5 Bereiche | Chat, Kanaele, DMs, Beitraege |
+| Nextcloud | ~3 Bereiche | Dateien, Kalender, Kontakte |
+| Invoice Ninja | ~7 Bereiche | Vollstaendige Billing-API via OpenAPI-Bruecke |
+| Keycloak | ~6 Bereiche | SSO Benutzer-/Gruppen-/Rollenverwaltung |
+| GitHub | ~6 Bereiche | Repos, Issues, PRs, Actions (PAT erforderlich) |
+| Stripe | ~7 Bereiche | Zahlungen, Rechnungen, Abonnements |
+| **Gesamt (k3d laufend)** | **71** | |

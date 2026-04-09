@@ -1,7 +1,7 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 
 const MM_URL = process.env.TEST_BASE_URL || 'http://localhost:8065';
-const NC_URL = process.env.TEST_NC_URL || '';
+const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN ? `https://${process.env.NC_DOMAIN}` : 'http://files.localhost');
 const KC_USER = process.env.MM_TEST_USER || 'testuser1';
 const KC_PASS = process.env.MM_TEST_PASS || 'Testpassword123!';
 

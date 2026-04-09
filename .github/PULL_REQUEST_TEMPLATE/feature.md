@@ -1,61 +1,61 @@
-## Feature: <!-- short title -->
+## Feature: <!-- Kurztitel -->
 
 ### Problem / Motivation
 
-<!-- What gap does this feature fill? Link to issue if applicable. -->
+<!-- Welche Luecke schliesst dieses Feature? Link zu Issue falls vorhanden. -->
 
-### Solution
+### Loesung
 
-<!-- High-level description of the approach. -->
+<!-- Ueberblick ueber den gewaehlten Ansatz. -->
 
-### Changes
+### Aenderungen
 
-- [ ] List key files/components changed
+- [ ] Wichtigste geaenderte Dateien/Komponenten auflisten
 
-### CI/CD Verification
+### CI/CD-Verifikation
 
-> **This PR must pass all CI checks before merge.** The following are verified automatically:
-> - Kubernetes manifest validation (kustomize build + dry-run)
-> - YAML linting
-> - Shell script linting
-> - Security scan for hardcoded secrets
+> **Dieser PR muss alle CI-Checks bestehen.** Folgendes wird automatisch geprueft:
+> - Kubernetes-Manifest-Validierung (kustomize build + dry-run)
+> - YAML-Linting
+> - Shell-Skript-Linting
+> - Security-Scan auf hartcodierte Secrets
 
-### Requirements Traceability
+### Anforderungs-Nachverfolgbarkeit
 
-> Every feature must be backed by a requirement entry in the tracking database.
-> Use `task tracking:psql` to query/add requirements, or view them at `tracking.localhost`.
+> Jedes Feature muss durch einen Anforderungseintrag in der Tracking-Datenbank abgesichert sein.
+> Verwende `task tracking:psql` zum Abfragen/Hinzufuegen von Anforderungen oder schaue auf `tracking.localhost`.
 
-1. **Check** if a requirement entry exists for this feature:
+1. **Pruefen**, ob ein Anforderungseintrag fuer dieses Feature existiert:
    ```sql
    SELECT id, name, category FROM bachelorprojekt.requirements WHERE id = 'FA-XX';
    ```
 
-2. **If no entry exists**, add one:
+2. **Falls kein Eintrag existiert**, einen erstellen:
    ```sql
    INSERT INTO bachelorprojekt.requirements (id, category, name, description, acceptance_criteria, test_cases)
-   VALUES ('FA-XX', 'Funktionale Anforderung', 'Short title', 'Description', '1) First criterion\n2) Second', 'T1: First test\nT2: Second test');
+   VALUES ('FA-XX', 'Funktionale Anforderung', 'Kurztitel', 'Beschreibung', '1) Erstes Kriterium\n2) Zweites', 'T1: Erster Test\nT2: Zweiter Test');
    ```
 
-3. **Write tests** that match the `test_cases` column:
-   - Bash: `tests/local/<REQ-ID>.sh` or `tests/prod/<REQ-ID>.sh`
+3. **Tests schreiben**, die der `test_cases`-Spalte entsprechen:
+   - Bash: `tests/local/<REQ-ID>.sh` oder `tests/prod/<REQ-ID>.sh`
    - Playwright: `tests/e2e/specs/<req-id>-<name>.spec.ts`
-   - Each assertion must reference the correct `REQ-ID` and `Tn`
+   - Jede Assertion muss die korrekte `REQ-ID` und `Tn` referenzieren
 
-- [ ] Requirement entry exists in tracking DB (or was created in this PR)
-- [ ] `acceptance_criteria` are specific and verifiable
-- [ ] `test_cases` entries (T1, T2, ...) cover all acceptance criteria
-- [ ] Test script implements all test cases
-- [ ] `./tests/runner.sh local <REQ-ID>` passes
+- [ ] Anforderungseintrag existiert in der Tracking-DB (oder wurde in diesem PR erstellt)
+- [ ] `acceptance_criteria` sind spezifisch und verifizierbar
+- [ ] `test_cases`-Eintraege (T1, T2, ...) decken alle Abnahmekriterien ab
+- [ ] Test-Skript implementiert alle Testfaelle
+- [ ] `./tests/runner.sh local <REQ-ID>` besteht
 
-**Requirement ID:** <!-- e.g. FA-09 -->
+**Anforderungs-ID:** <!-- z.B. FA-09 -->
 
-### Manual Testing
+### Manuelles Testen
 
-- [ ] Deployed to k3d cluster (`task workspace:deploy`)
-- [ ] Verified service is accessible via `*.localhost`
-- [ ] Verified SSO flow works end-to-end (if auth-related)
-- [ ] Ran relevant test suite (`tests/runner.sh`)
+- [ ] Im k3d-Cluster deployt (`task workspace:deploy`)
+- [ ] Service ueber `*.localhost` erreichbar verifiziert
+- [ ] SSO-Flow End-to-End funktioniert (falls Auth-bezogen)
+- [ ] Relevante Testsuite ausgefuehrt (`tests/runner.sh`)
 
-### Rollback Plan
+### Rollback-Plan
 
-<!-- How to revert if this breaks something? Usually: revert the PR. -->
+<!-- Wie wird zurueckgesetzt, falls etwas kaputtgeht? In der Regel: PR revertieren. -->

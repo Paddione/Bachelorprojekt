@@ -1025,17 +1025,19 @@ tasks:
         echo "✓ Pushed ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest"
 
   website:pull-secret:
-    desc: Create/update ghcr-pull-secret in the website namespace on hetzner
+    desc: Create/update ghcr-pull-secret in website + workspace namespaces on hetzner (uses gh CLI token)
     cmds:
       - |
-        TOKEN=$(printf "ghcr.io" | docker-credential-desktop.exe get | python3 -c "import json,sys; print(json.load(sys.stdin)['Secret'])")
-        kubectl --context hetzner create secret docker-registry ghcr-pull-secret \
-          --namespace=website \
-          --docker-server=ghcr.io \
-          --docker-username=Paddione \
-          --docker-password="$TOKEN" \
-          --dry-run=client -o yaml | kubectl --context hetzner apply -f -
-        echo "✓ ghcr-pull-secret updated in website namespace"
+        TOKEN=$(gh auth token)
+        for NS in website workspace; do
+          kubectl --context hetzner create secret docker-registry ghcr-pull-secret \
+            --namespace="$NS" \
+            --docker-server=ghcr.io \
+            --docker-username=Paddione \
+            --docker-password="$TOKEN" \
+            --dry-run=client -o yaml | kubectl --context hetzner apply -f -
+          echo "✓ ghcr-pull-secret updated in $NS namespace"
+        done
 
   website:deploy:
     desc: Deploy the Astro website to the website namespace

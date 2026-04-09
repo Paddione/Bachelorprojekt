@@ -51,3 +51,5 @@ patches:
   # Pin amd64-only images to amd64 nodes
   - path: patch-amd64-only.yaml
   - path: patch-mcp-browser.yaml
+  # Billing bot: use ghcr.io image accessible from production nodes
+  - path: patch-billing-bot.yaml

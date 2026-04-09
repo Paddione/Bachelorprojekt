@@ -28,7 +28,7 @@ spec:
                   name: workspace-secrets
                   key: SHARED_DB_PASSWORD
             - name: DATABASE_URLS
-              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/keycloak,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/mattermost,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/nextcloud,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/spacedeck"
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/keycloak,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/mattermost,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/nextcloud,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/vaultwarden,postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/outline"
           ports:
             - containerPort: 3001
           readinessProbe:

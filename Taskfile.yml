@@ -23,8 +23,6 @@ env:
 vars:
   CLUSTER_NAME: dev
   REGISTRY: localhost:5000
-  APP_NAME: demo-app
-  APP_IMAGE: "{{.REGISTRY}}/{{.APP_NAME}}"
   # ── Domains ───────────────────────────────────────────────────────────
   # The base domain (e.g. example.com)
   # Loaded from .env or uses default if not set.
@@ -128,73 +126,15 @@ tasks:
   # Namespace Management
   # ─────────────────────────────────────────────
   namespaces:create:
-    desc: Create standard dev namespaces with PSS labels
+    desc: Create monitoring namespace with PSS labels
     cmds:
       - |
-        for ns in dev staging monitoring; do
-          kubectl create namespace $ns --dry-run=client -o yaml | kubectl apply -f -
-          kubectl label namespace $ns \
-            pod-security.kubernetes.io/enforce=baseline \
-            pod-security.kubernetes.io/warn=restricted \
-            --overwrite
-        done
-      - echo "✓ Namespaces created with Pod Security Standards"
-
-  # ─────────────────────────────────────────────
-  # Build & Push
-  # ─────────────────────────────────────────────
-  build:
-    desc: Build the demo app image and push to local registry
-    cmds:
-      - docker build -t {{.APP_IMAGE}}:latest ./app
-      - docker push {{.APP_IMAGE}}:latest
-      - echo "✓ Image pushed to {{.APP_IMAGE}}:latest"
-
-  build:import:
-    desc: Import a local Docker image directly into k3d (no registry push)
-    cmds:
-      - docker build -t {{.APP_NAME}}:latest ./app
-      - k3d image import {{.APP_NAME}}:latest -c {{.CLUSTER_NAME}}
-      - echo "✓ Image imported into cluster"
-
-  # ─────────────────────────────────────────────
-  # Deploy
-  # ─────────────────────────────────────────────
-  deploy:
-    desc: Deploy the app using kustomize (local overlay)
-    deps: [build]
-    cmds:
-      - kubectl apply -k deploy/overlays/local
-      - kubectl rollout status deployment/{{.APP_NAME}} -n dev --timeout=60s
-      - echo "✓ App deployed to dev namespace"
-
-  deploy:status:
-    desc: Show deployment status and endpoints
-    cmds:
-      - echo "=== Deployments ==="
-      - kubectl get deployments -n dev
-      - echo ""
-      - echo "=== Pods ==="
-      - kubectl get pods -n dev -o wide
-      - echo ""
-      - echo "=== Services ==="
-      - kubectl get svc -n dev
-      - echo ""
-      - echo "=== Ingress ==="
-      - kubectl get ingress -n dev 2>/dev/null || echo "(no ingress resources)"
-
-  # ─────────────────────────────────────────────
-  # Skaffold (continuous development)
-  # ─────────────────────────────────────────────
-  dev:
-    desc: Start skaffold in dev mode (auto-rebuild + hot-reload)
-    cmds:
-      - skaffold dev --port-forward
-
-  dev:run:
-    desc: One-shot build and deploy via skaffold
-    cmds:
-      - skaffold run
+        kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+        kubectl label namespace monitoring \
+          pod-security.kubernetes.io/enforce=baseline \
+          pod-security.kubernetes.io/warn=restricted \
+          --overwrite
+      - echo "✓ monitoring namespace ready"
 
   # ─────────────────────────────────────────────
   # Observability (required for NFA-02 compliance)
@@ -336,11 +276,6 @@ tasks:
     desc: List images in the local registry
     cmds:
       - curl -s http://{{.REGISTRY}}/v2/_catalog | python3 -m json.tool 2>/dev/null || echo "Registry empty or unavailable"
-
-  logs:
-    desc: Tail logs for the demo app
-    cmds:
-      - kubectl logs -n dev -l app={{.APP_NAME}} -f --tail=50
 
   shell:
     desc: Open a debug shell in the cluster

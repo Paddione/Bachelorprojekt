@@ -80,7 +80,8 @@ data:
       - keycloak   → users, realms, sessions, clients
       - mattermost → posts, channels, teams, users
       - nextcloud  → files, shares, users, calendar events (oc_ prefix tables)
-      - spacedeck  → whiteboards, spaces
+      - vaultwarden → cipher items, collections, organizations
+      - outline    → documents, collections, users, comments
 
     Usage tips:
       - Prefer mcp-keycloak or mcp-mattermost MCPs for structured access.

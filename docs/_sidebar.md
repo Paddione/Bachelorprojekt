@@ -8,3 +8,4 @@
 - [Sicherheit](security.md)
 - [Fehlerbehebung](troubleshooting.md)
 - [Anforderungen](requirements.md)
+- [MCP Actions](mcp-actions.md)

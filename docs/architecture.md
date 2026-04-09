@@ -434,6 +434,12 @@ sequenceDiagram
 | mcp-kubernetes | mcp-k8s-go | Pods, Deployments, Services, Logs, Events lesen; Deployments skalieren/neustarten | Loeschen, Erstellen, Exec, Secrets lesen |
 | mcp-postgres | @modelcontextprotocol/server-postgres | Alle 5 shared-db Datenbanken abfragen (Superuser) | Schreibzugriff (per Konvention im System-Prompt) |
 | mcp-browser | Playwright | URLs navigieren, Screenshots, Formulare ausfuellen | Keine Netzwerk-Beschraenkung (Cluster-intern) |
+| mcp-mattermost | legard/mcp-server-mattermost | Channels, DMs, Posts lesen/schreiben | Admin-Operationen |
+| mcp-nextcloud | ghcr.io/cbcoutinho/nextcloud-mcp-server | Dateien, Kalender, Kontakte (WebDAV/CalDAV/CardDAV) | Admin-Einstellungen |
+| mcp-invoiceninja | ckanthony/openapi-mcp | Kunden, Rechnungen, Produkte, Zahlungen (REST API) | Direkte DB-Zugriffe |
+| mcp-keycloak | quay.io/sshaaf/keycloak-mcp-server | Benutzer, Gruppen, Rollen, Sessions verwalten | Realm-Konfiguration aendern |
+| mcp-github | ghcr.io/github/github-mcp-server | Repos, Issues, PRs, Code-Suche (PAT erforderlich) | Admin-Rechte |
+| mcp-stripe | @stripe/agent-toolkit | Kunden, Zahlungen, Rechnungen, Abonnements | Kontoverwaltung |
 
 ---
 
@@ -557,7 +563,6 @@ Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 | mattermost-data | 20 Gi | Mattermost Dateien |
 | nextcloud-app | 2 Gi | Nextcloud App |
 | nextcloud-data | 50 Gi | Nextcloud Dateien |
-| claude-code-data | 2 Gi | Claude Code AI Daten |
 | invoiceninja-public | 5 Gi | Invoice Ninja |
 | invoiceninja-mariadb-data | 5 Gi | MariaDB |
 | vaultwarden-data | 5 Gi | Vaultwarden |

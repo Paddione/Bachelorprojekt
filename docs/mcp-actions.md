@@ -142,7 +142,7 @@ Direct SQL access to the shared PostgreSQL instance (`shared-db`) running inside
 
 ---
 
-> **Note:** The following MCP servers are defined in the `deploy/mcp` overlay (production/Claude Code path) and are **not currently running** in the k3d cluster. The current cluster (`feature/replace-claude-code-with-claude-code`) runs only the 3 servers above.
+> **Hinweis:** Alle folgenden MCP-Server sind sowohl im k3d-Cluster (via `k3d/claude-code-mcp-*.yaml`) als auch im Produktions-Overlay (`deploy/mcp/`) verfuegbar. Deploy: `task mcp:deploy` oder `task workspace:up`.
 
 ---
 

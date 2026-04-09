@@ -107,12 +107,11 @@ Zugriff laeuft ueber einen oauth2-proxy (v7.6.0) als Reverse-Proxy:
 
 ### Claude Code
 
-Direkte OIDC-Integration ueber Open WebUI:
+Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der nicht als Web-UI im Cluster laeuft. Der OIDC-Client `claude-code` ist fuer die Authentifizierung der MCP-Server und zukuenftige Web-Integrationen reserviert.
 
-- **Provider:** Keycloak
-- **Discovery-URL:** `http://keycloak:8080/realms/workspace/.well-known/openid-configuration`
+- **Client-ID:** claude-code
 - **Scopes:** openid email profile
-- OAuth-Signup aktiviert
+- **Redirect URI:** `http://{AI_DOMAIN}/*`
 
 ### Vaultwarden
 

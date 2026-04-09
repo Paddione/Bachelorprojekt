@@ -28,7 +28,7 @@ task workspace:up
 | Nextcloud (Dateien + Talk) | http://files.localhost | Dateien, Kalender, Kontakte, Video |
 | Collabora (Office) | http://office.localhost | Online-Office (LibreOffice) |
 | Talk HPB (Signaling) | http://signaling.localhost | WebRTC-Signaling (Janus + NATS + coturn) |
-| Claude Code (KI) | http://ai.localhost | Self-hosted AI (Ollama + Anthropic API) |
+| Claude Code (KI) | http://ai.localhost | MCP-Status-Dashboard (Claude Code laeuft lokal) |
 | Invoice Ninja (Rechnungen) | http://billing.localhost | Rechnungsstellung |
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
 | Whiteboard | http://board.localhost | Kollaboratives Whiteboard |
@@ -341,9 +341,9 @@ Bachelorprojekt/
     collabora.yaml              # Collabora Online
     talk-hpb.yaml               # Talk HPB (Signaling + Janus + NATS)
     coturn.yaml                 # TURN/STUN Server
-    claude-code-webui.yaml         # Claude Code AI WebUI
     claude-code-config.yaml        # Claude Code Konfiguration
-    claude-code-mcp-*.yaml         # MCP-Server Manifeste (7 Server)
+    claude-code-rbac.yaml          # Kubernetes RBAC fuer MCP-Zugriff
+    claude-code-mcp-*.yaml         # MCP-Server Manifeste (11 Server)
     invoiceninja.yaml           # Invoice Ninja + OAuth2-Proxy
     billing-bot.yaml            # billing-bot Deployment
     vaultwarden.yaml            # Vaultwarden Passwort-Manager

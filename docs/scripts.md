@@ -124,6 +124,14 @@ Erstellt einen "Anfragen"-Kanal und Incoming-Webhook in allen Mattermost-Teams f
 
 Integriert die Dokumentations-Site in Mattermost (Kanal "dokumentation" + Header + Ankuendigung).
 
+### setup-ha-cluster.sh -- HA-Cluster auf Hetzner
+
+Bootstrapped einen 3-Node k3s HA-Cluster auf Hetzner Bare-Metal-Servern. Installiert k3s, konfiguriert etcd-HA und richtet alle Nodes ein.
+
+```bash
+scripts/setup-ha-cluster.sh
+```
+
 ## Bibliotheks-Skripte (scripts/lib/)
 
 Diese Skripte werden von `migrate.sh` geladen und nicht direkt ausgefuehrt.

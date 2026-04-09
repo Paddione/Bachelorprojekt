@@ -81,22 +81,37 @@ Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. All
 
 ### Claude Code (KI-Assistent)
 
+Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (Model Context Protocol) mit dem Kubernetes-Cluster interagiert. Es gibt kein Web-UI im Cluster -- stattdessen zeigt `ai.localhost` eine MCP-Status-Seite mit Health-Checks aller MCP-Server.
+
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `ghcr.io/open-webui/open-webui:main` |
-| Port | 8080 |
-| URL | http://ai.localhost |
-| Storage | 2 Gi PVC |
-| Resources | 200m CPU, 256Mi--1Gi RAM |
-| Manifest | `k3d/claude-code-webui.yaml` |
+| Status-Seite | http://ai.localhost (MCP-Status-Dashboard) |
+| MCP-Server | 11 Server in separaten Pods |
+| Backend | Anthropic API (Claude Sonnet 4) |
+| Manifest | `k3d/claude-code-config.yaml`, `k3d/claude-code-rbac.yaml` |
 
-Self-hosted AI auf Basis von Open WebUI. Backend: Anthropic API. OIDC-Login ueber Keycloak. MCP-Server-Integration fuer Kubernetes, PostgreSQL und Browser-Automatisierung.
+**MCP-Server (k3d/):**
+
+| Pod / Manifest | Container | Funktion |
+|----------------|-----------|----------|
+| `claude-code-mcp-ops.yaml` | mcp-kubernetes, mcp-postgres, mcp-mattermost | Cluster-Management, DB-Abfragen, Chat-Integration |
+| `claude-code-mcp-browser.yaml` | mcp-browser | Playwright Browser-Automatisierung |
+| `claude-code-mcp-apps.yaml` | mcp-nextcloud, mcp-invoiceninja | Dateien/Kalender, Rechnungen |
+| `claude-code-mcp-auth.yaml` | mcp-keycloak | Benutzer-/Rollenverwaltung |
+| `claude-code-mcp-github.yaml` | mcp-github | GitHub Repos, Issues, PRs (PAT erforderlich) |
+| `claude-code-mcp-stripe.yaml` | mcp-stripe | Zahlungen, Abonnements |
+
+**Produktion (deploy/mcp/):**
+- `mcp-status.yaml` -- Health-Dashboard (nginx + healthcheck sidecar)
+- `mcp-auth-proxy.yaml` -- ForwardAuth-Proxy fuer Token-Validierung (RBAC)
+- Konsolidierte Pods: `claude-code-mcp-core.yaml`, `claude-code-mcp-apps.yaml`, `claude-code-mcp-auth.yaml`
 
 **Zugehoerige Manifeste:**
-- `k3d/claude-code-config.yaml` -- Konfiguration (MCP-URLs, Ollama, etc.)
-- `k3d/claude-code-rbac.yaml` -- Kubernetes RBAC fuer MCP-Zugriff
-- `k3d/claude-code-init-job.yaml` -- Initialisierungs-Job
-- `k3d/claude-code-mcp-*.yaml` -- MCP-Server (Kubernetes, PostgreSQL, Browser, GitHub, Grafana, Prometheus, Ops)
+- `k3d/claude-code-config.yaml` -- Umgebungskonfiguration (MCP-URLs, API-Keys)
+- `k3d/claude-code-rbac.yaml` -- Kubernetes RBAC fuer MCP-Zugriff (ClusterRole + ServiceAccount)
+- `claude-code/system-prompt.md` -- System-Prompt fuer Claude Code
+- `claude-code/cluster.settings.json` -- MCP-Konfiguration fuer Cluster-Admin-Rolle
+- `claude-code/business.settings.json` -- MCP-Konfiguration fuer Business-Benutzer-Rolle
 
 ### OpenSearch (Volltextsuche)
 

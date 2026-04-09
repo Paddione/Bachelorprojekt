@@ -7,6 +7,7 @@ k3d/secrets.yaml
 deploy/mcp/openclaw-secrets.yaml
 deploy/mcp/claude-code-secrets.yaml
 vaultwarden-import-*.json
+*-bitwarden-export.json
 claude-code/*-export.settings.json
 k3d/vaultwarden-seed-credentials.yaml
 k3d/vaultwarden-seed-job.yaml

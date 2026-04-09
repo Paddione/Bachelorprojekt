@@ -15,7 +15,7 @@
       "username": "Paddione",
       "enabled": true,
       "emailVerified": true,
-      "email": "admin@localhost",
+      "email": "info@korczewski.de",
       "firstName": "Patrick",
       "lastName": "Korczewski",
       "credentials": [
@@ -25,16 +25,20 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["default-roles-workspace"],
+      "realmRoles": [
+        "default-roles-workspace"
+      ],
       "clientRoles": {
-        "realm-management": ["realm-admin"]
+        "realm-management": [
+          "realm-admin"
+        ]
       }
     },
     {
       "username": "patrick",
       "enabled": true,
       "emailVerified": true,
-      "email": "patrick@localhost",
+      "email": "patrick@korczewski.de",
       "firstName": "Patrick",
       "lastName": "Admin",
       "credentials": [
@@ -44,16 +48,20 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["default-roles-workspace"],
+      "realmRoles": [
+        "default-roles-workspace"
+      ],
       "clientRoles": {
-        "realm-management": ["realm-admin"]
+        "realm-management": [
+          "realm-admin"
+        ]
       }
     },
     {
       "username": "gekko",
       "enabled": true,
       "emailVerified": true,
-      "email": "gekko@localhost",
+      "email": "quamain@web.de",
       "firstName": "Gekko",
       "lastName": "Admin",
       "credentials": [
@@ -63,9 +71,13 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["default-roles-workspace"],
+      "realmRoles": [
+        "default-roles-workspace"
+      ],
       "clientRoles": {
-        "realm-management": ["realm-admin"]
+        "realm-management": [
+          "realm-admin"
+        ]
       }
     }
   ],
@@ -131,6 +143,34 @@
             "id.token.claim": "true",
             "access.token.claim": "true",
             "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "gitlab id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "id",
+            "jsonType.label": "long"
+          }
+        },
+        {
+          "name": "gitlab username",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "username",
+            "jsonType.label": "String"
           }
         }
       ]

@@ -56,4 +56,4 @@ node_modules/
 docs/superpowers
 files_chore.txt
 files_main.txt
-website/node_modules
+website/node_modules.task/

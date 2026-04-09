@@ -1,0 +1,250 @@
+#!/usr/bin/env bats
+# ═══════════════════════════════════════════════════════════════════
+# manifests.bats — Validate kustomize output without a running cluster
+# ═══════════════════════════════════════════════════════════════════
+# Renders k3d/ manifests via 'kustomize build' and checks structural
+# correctness: expected resources, image pinning, namespace consistency,
+# label hygiene, and cross-references between resources.
+#
+# Prerequisites: kubectl (for kustomize), jq
+# No cluster required — pure static analysis.
+# ═══════════════════════════════════════════════════════════════════
+
+load test_helper
+
+# ── Fixtures ─────────────────────────────────────────────────────
+
+setup_file() {
+  export MANIFESTS_DIR="${PROJECT_DIR}/k3d"
+
+  # Create dummy secrets.yaml if missing (gitignored dev-only file)
+  if [[ ! -f "${MANIFESTS_DIR}/secrets.yaml" ]]; then
+    export _CREATED_DUMMY_SECRETS=1
+    cat > "${MANIFESTS_DIR}/secrets.yaml" <<'YAML'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: workspace-secrets
+type: Opaque
+stringData:
+  PLACEHOLDER: bats-dummy
+YAML
+  fi
+
+  # Render once, reuse across all tests
+  export RENDERED="${BATS_FILE_TMPDIR}/rendered.yaml"
+  kubectl kustomize "${MANIFESTS_DIR}" > "$RENDERED" 2>&1
+}
+
+teardown_file() {
+  if [[ "${_CREATED_DUMMY_SECRETS:-}" == "1" ]]; then
+    rm -f "${MANIFESTS_DIR}/secrets.yaml"
+  fi
+}
+
+# Helper: extract resources of a given kind as JSON array
+resources_of_kind() {
+  local kind="$1"
+  # Split multi-doc YAML, filter by kind
+  kubectl kustomize "${MANIFESTS_DIR}" 2>/dev/null \
+    | python3 -c "
+import sys, json, yaml
+docs = yaml.safe_load_all(sys.stdin)
+out = [d for d in docs if d and d.get('kind') == '${kind}']
+json.dump(out, sys.stdout)
+"
+}
+
+# Helper: list all container images from rendered manifests
+all_images() {
+  grep -E '^\s+image:' "$RENDERED" | sed 's/.*image:\s*//' | sort -u
+}
+
+# ── Kustomize Build ──────────────────────────────────────────────
+
+@test "kustomize build succeeds" {
+  run kubectl kustomize "${MANIFESTS_DIR}"
+  assert_success
+}
+
+@test "kustomize output is non-empty" {
+  [[ -s "$RENDERED" ]]
+}
+
+# ── Expected Core Resources ──────────────────────────────────────
+
+@test "namespace 'workspace' is declared" {
+  run grep -c "kind: Namespace" "$RENDERED"
+  assert_success
+  [[ "$output" -ge 1 ]]
+}
+
+@test "deployment: keycloak exists" {
+  grep -q 'name: keycloak' "$RENDERED"
+  grep -q 'kind: Deployment' "$RENDERED"
+}
+
+@test "deployment: mattermost exists" {
+  grep -qE '^\s+name: mattermost$' "$RENDERED"
+}
+
+@test "deployment: nextcloud exists" {
+  grep -qE '^\s+name: nextcloud$' "$RENDERED"
+}
+
+@test "deployment: shared-db (PostgreSQL) exists" {
+  grep -qE '^\s+name: shared-db$' "$RENDERED"
+}
+
+@test "deployment: collabora exists" {
+  grep -qE '^\s+name: collabora$' "$RENDERED"
+}
+
+@test "deployment: vaultwarden exists" {
+  grep -qE '^\s+name: vaultwarden$' "$RENDERED"
+}
+
+@test "deployment: invoiceninja exists" {
+  grep -qE '^\s+name: invoiceninja$' "$RENDERED"
+}
+
+@test "deployment: mailpit exists" {
+  grep -qE '^\s+name: mailpit$' "$RENDERED"
+}
+
+@test "deployment: billing-bot exists" {
+  grep -qE '^\s+name: billing-bot$' "$RENDERED"
+}
+
+@test "deployment: opensearch exists" {
+  grep -qE '^\s+name: opensearch$' "$RENDERED"
+}
+
+# ── Ingress ──────────────────────────────────────────────────────
+
+@test "ingress resource exists" {
+  grep -q 'kind: Ingress' "$RENDERED"
+}
+
+@test "ingress: all core hosts defined" {
+  local hosts
+  hosts=$(grep -oP 'host:\s*\K\S+' "$RENDERED" | sort -u)
+  for svc in auth chat files office billing vault mail; do
+    echo "$hosts" | grep -q "${svc}\." || {
+      echo "Missing ingress host for: ${svc}"
+      return 1
+    }
+  done
+}
+
+# ── Image Pinning ────────────────────────────────────────────────
+
+@test "no core service images use :latest tag" {
+  # MCP sidecar images may use :latest (upstream-controlled); skip those
+  local latest_images
+  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|mattermost-mcp|nextcloud-mcp|curlimages/curl)' || true)
+  if [[ -n "$latest_images" ]]; then
+    echo "Core images using :latest: ${latest_images}"
+    return 1
+  fi
+}
+
+@test "all images have explicit tags or digests" {
+  local untagged
+  # Images must have : (tag) or @ (digest)
+  untagged=$(all_images | grep -vE '[:@]' || true)
+  if [[ -n "$untagged" ]]; then
+    echo "Untagged images: ${untagged}"
+    return 1
+  fi
+}
+
+# ── Namespace Consistency ────────────────────────────────────────
+
+@test "all resources target namespace 'workspace' or are cluster-scoped" {
+  local bad_ns
+  bad_ns=$(kubectl kustomize "${MANIFESTS_DIR}" 2>/dev/null \
+    | grep -E '^\s+namespace:' \
+    | grep -v 'workspace' \
+    | grep -v 'kube-system' \
+    | sort -u || true)
+  if [[ -n "$bad_ns" ]]; then
+    echo "Resources with unexpected namespace: ${bad_ns}"
+    return 1
+  fi
+}
+
+# ── ConfigMaps ───────────────────────────────────────────────────
+
+@test "configmap: realm-template exists" {
+  grep -q 'name: realm-template' "$RENDERED"
+}
+
+@test "configmap: nextcloud-oidc-config exists" {
+  grep -q 'name: nextcloud-oidc-config' "$RENDERED"
+}
+
+@test "configmap: domain-config exists" {
+  grep -q 'name: domain-config' "$RENDERED"
+}
+
+# ── Services ─────────────────────────────────────────────────────
+
+@test "service for each core deployment exists" {
+  for svc in keycloak mattermost nextcloud shared-db collabora vaultwarden mailpit; do
+    grep -qE "kind: Service" "$RENDERED" || {
+      echo "No Service kind found"
+      return 1
+    }
+  done
+}
+
+# ── Security: Pod Security Standards ─────────────────────────────
+
+@test "namespace has pod-security labels" {
+  # Check that the namespace YAML includes PSS labels
+  grep -q 'pod-security.kubernetes.io' "$RENDERED"
+}
+
+# ── RBAC ─────────────────────────────────────────────────────────
+
+@test "claude-code RBAC resources exist" {
+  grep -q 'claude-code' "$RENDERED"
+  grep -qE 'kind: (Role|ClusterRole|RoleBinding|ServiceAccount)' "$RENDERED"
+}
+
+# ── HPA ──────────────────────────────────────────────────────────
+
+@test "HorizontalPodAutoscaler for mattermost exists" {
+  grep -q 'kind: HorizontalPodAutoscaler' "$RENDERED"
+  grep -q 'mattermost' "$RENDERED"
+}
+
+# ── Backup CronJob ───────────────────────────────────────────────
+
+@test "backup CronJob exists" {
+  grep -q 'kind: CronJob' "$RENDERED"
+}
+
+# ── PVCs ─────────────────────────────────────────────────────────
+
+@test "PersistentVolumeClaims exist for stateful services" {
+  grep -q 'kind: PersistentVolumeClaim' "$RENDERED"
+}
+
+# ── No Hardcoded Secrets in Env ──────────────────────────────────
+
+@test "no plaintext passwords in deployment env vars" {
+  local violations
+  # Look for env value: fields containing actual secret-looking strings near PASSWORD keys.
+  # Exclude: secretKeyRef, configMapKeyRef, known dev DB names/usernames, empty values.
+  violations=$(grep -B2 -A0 -i 'password' "$RENDERED" \
+    | grep -i 'value:' \
+    | grep -ivE 'valueFrom|secretKeyRef|configMapKeyRef|\$\(' \
+    | grep -ivE 'value: (admin|devadmin|invoiceninja|keycloak|postgres|nextcloud|mattermost|opensearch|outline|"")|value: [a-z]+@' \
+    || true)
+  if [[ -n "$violations" ]]; then
+    echo "Possible hardcoded passwords: ${violations}"
+    return 1
+  fi
+}

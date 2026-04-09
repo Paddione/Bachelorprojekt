@@ -292,6 +292,50 @@ tasks:
       - echo "✓ Cleaned up"
 
   # ─────────────────────────────────────────────
+  # Testing (no cluster required)
+  # ─────────────────────────────────────────────
+  test:unit:
+    desc: Run BATS unit tests (assertion lib, scripts, configs)
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/assert_lib.bats tests/unit/scripts.bats
+
+  test:manifests:
+    desc: Validate kustomize output structure (no cluster needed)
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats
+
+  test:dry-run:
+    desc: Dry-run key tasks to catch Taskfile syntax errors
+    cmds:
+      - |
+        PASS=0; FAIL=0
+        for t in workspace:deploy workspace:status workspace:teardown workspace:validate \
+                 workspace:post-setup config:show website:deploy mcp:deploy; do
+          if task --dry "$t" > /dev/null 2>&1; then
+            echo "  ✓ $t"
+            PASS=$((PASS + 1))
+          else
+            echo "  ✗ $t (dry-run failed)"
+            FAIL=$((FAIL + 1))
+          fi
+        done
+        echo ""
+        echo "Dry-run: ${PASS} passed, ${FAIL} failed"
+        [[ $FAIL -eq 0 ]]
+
+  test:all:
+    desc: "Run all offline tests: unit + manifests + dry-run"
+    cmds:
+      - task: test:unit
+      - task: test:manifests
+      - task: test:dry-run
+
+  test:ci:
+    desc: "CI-friendly test suite (non-zero exit on failure)"
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats --formatter tap tests/unit/
+
+  # ─────────────────────────────────────────────
   # Quick Start
   # ─────────────────────────────────────────────
   up:

@@ -60,7 +60,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: updater
-              image: curlimages/curl:8
+              image: curlimages/curl:latest
               env:
                 - name: IPV64_API_KEY
                   valueFrom:
@@ -103,12 +103,12 @@ spec:
 
                   echo "IP changed: '${LAST_IP:-<none>}' -> '$CURRENT_IP' — updating ipv64..."
 
-                  # Update A record via ipv64 DynDNS2 protocol
+                  # Update A record via ipv64 REST API (Bearer token auth)
                   # See: https://ipv64.net/dyndns_updater_api.html
                   HTTP_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
                     --max-time 10 \
-                    -u "workspace:$IPV64_API_KEY" \
-                    "https://ipv64.net/nic/update?hostname=$DDNS_HOSTNAME&myip=$CURRENT_IP")
+                    -H "Authorization: Bearer $IPV64_API_KEY" \
+                    "https://ipv64.net/api?update_record=$DDNS_HOSTNAME&type=A&content=$CURRENT_IP")
 
                   if [ "$HTTP_STATUS" != "200" ]; then
                     echo "ERROR: ipv64 returned HTTP $HTTP_STATUS" >&2

@@ -565,6 +565,96 @@ tasks:
       - 'echo "  Website:     https://web.{{.PROD_DOMAIN}}"'
 
   # ─────────────────────────────────────────────
+  # Korczewski Cluster (1 Hetzner + 6 LAN nodes)
+  # ─────────────────────────────────────────────
+  korczewski:deploy:
+    desc: Deploy workspace stack to korczewski.de cluster
+    preconditions:
+      - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
+        msg: "k3s-production context not reachable."
+      - sh: "[ -f prod-korczewski/secrets.yaml ]"
+        msg: "prod-korczewski/secrets.yaml not found — create it from the template."
+      - sh: "! grep -q 'REPLACE_ME' prod-korczewski/secrets.yaml"
+        msg: "prod-korczewski/secrets.yaml still contains REPLACE_ME placeholders."
+      - sh: "[ -f .env.korczewski ]"
+        msg: ".env.korczewski not found."
+    cmds:
+      - |
+        set -a; source .env.korczewski; set +a
+        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context k3s-production apply --server-side --force-conflicts -f -
+      - |
+        echo "Waiting for vaultwarden rollout..."
+        kubectl --context k3s-production rollout status deployment/vaultwarden -n workspace --timeout=120s
+      - |
+        set -a; source .env.korczewski; set +a
+        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context k3s-production apply -f -
+        kubectl --context k3s-production patch configmap website-config -n website --type merge -p "{\"data\":{
+          \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
+          \"SMTP_HOST\":\"smtp.mailbox.org\",
+          \"SMTP_PORT\":\"465\",
+          \"SMTP_SECURE\":\"true\",
+          \"NEXTCLOUD_EXTERNAL_URL\":\"https://files.${PROD_DOMAIN}\",
+          \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
+        }}"
+        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context k3s-production apply -f -
+      - |
+        echo "Waiting for website rollout..."
+        kubectl --context k3s-production rollout status deployment/website -n website --timeout=120s
+      - |
+        set -a; source .env.korczewski; set +a
+        echo "✓ Korczewski deploy complete"
+        echo "  Keycloak:    https://auth.${PROD_DOMAIN}"
+        echo "  Mattermost:  https://chat.${PROD_DOMAIN}"
+        echo "  Website:     https://web.${PROD_DOMAIN}"
+
+  korczewski:status:
+    desc: Show korczewski.de cluster status
+    cmds:
+      - kubectl --context k3s-production get nodes -o wide
+      - echo ""
+      - kubectl --context k3s-production get pods -n workspace -o wide
+      - echo ""
+      - kubectl --context k3s-production get pods -n website -o wide 2>/dev/null || true
+
+  korczewski:validate:
+    desc: Dry-run korczewski manifest validation
+    cmds:
+      - |
+        set -a; source .env.korczewski; set +a
+        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context k3s-production apply --dry-run=server -f - 2>&1
+
+  korczewski:logs:
+    desc: "Tail logs from a korczewski service (usage: task korczewski:logs -- <svc>)"
+    cmds:
+      - kubectl --context k3s-production logs -n workspace deployment/{{.CLI_ARGS}} -f --tail=100
+
+  korczewski:restart:
+    desc: "Restart a korczewski service (usage: task korczewski:restart -- <svc>)"
+    cmds:
+      - kubectl --context k3s-production rollout restart deployment/{{.CLI_ARGS}} -n workspace
+      - kubectl --context k3s-production rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
+
+  # ─────────────────────────────────────────────
+  # Multi-Cluster Overview
+  # ─────────────────────────────────────────────
+  clusters:status:
+    desc: Show status of all clusters (mentolder + korczewski)
+    cmds:
+      - |
+        echo "═══ MENTOLDER.DE (hetzner) ═══"
+        kubectl --context hetzner get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
+        echo ""
+        echo "  Workspace pods:"
+        kubectl --context hetzner get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+      - |
+        echo ""
+        echo "═══ KORCZEWSKI.DE (k3s-production) ═══"
+        kubectl --context k3s-production get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
+        echo ""
+        echo "  Workspace pods:"
+        kubectl --context k3s-production get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+
+  # ─────────────────────────────────────────────
   # HA Cluster (3-node Hetzner)
   # ─────────────────────────────────────────────
   ha:setup:

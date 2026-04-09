@@ -25,9 +25,13 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["default-roles-workspace"],
+      "realmRoles": [
+        "default-roles-workspace"
+      ],
       "clientRoles": {
-        "realm-management": ["realm-admin"]
+        "realm-management": [
+          "realm-admin"
+        ]
       }
     },
     {
@@ -40,13 +44,17 @@
       "credentials": [
         {
           "type": "password",
-          "value": "170591pk!gekko",
+          "value": "0tizrHZ1uqYvptHmRn4xa5LD",
           "temporary": false
         }
       ],
-      "realmRoles": ["default-roles-workspace"],
+      "realmRoles": [
+        "default-roles-workspace"
+      ],
       "clientRoles": {
-        "realm-management": ["realm-admin"]
+        "realm-management": [
+          "realm-admin"
+        ]
       }
     },
     {
@@ -59,13 +67,17 @@
       "credentials": [
         {
           "type": "password",
-          "value": "170591pk!gekko",
+          "value": "0tizrHZ1uqYvptHmRn4xa5LD",
           "temporary": false
         }
       ],
-      "realmRoles": ["default-roles-workspace"],
+      "realmRoles": [
+        "default-roles-workspace"
+      ],
       "clientRoles": {
-        "realm-management": ["realm-admin"]
+        "realm-management": [
+          "realm-admin"
+        ]
       }
     }
   ],
@@ -77,10 +89,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${MATTERMOST_OIDC_SECRET}",
       "redirectUris": [
-        "https://${MM_DOMAIN}/*"
+        "https://${MM_DOMAIN}/*",
+        "https://chat.korczewski.de/*"
       ],
       "webOrigins": [
-        "https://${MM_DOMAIN}"
+        "https://${MM_DOMAIN}",
+        "https://chat.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -142,10 +156,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${INVOICENINJA_OIDC_SECRET}",
       "redirectUris": [
-        "https://${BILLING_DOMAIN}/oauth2/callback"
+        "https://${BILLING_DOMAIN}/oauth2/callback",
+        "https://billing.korczewski.de/oauth2/callback"
       ],
       "webOrigins": [
-        "https://${BILLING_DOMAIN}"
+        "https://${BILLING_DOMAIN}",
+        "https://billing.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -191,10 +207,13 @@
       "secret": "${NEXTCLOUD_OIDC_SECRET}",
       "redirectUris": [
         "https://${NC_DOMAIN}/apps/oidc_login/oidc",
-        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
+        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak",
+        "https://files.korczewski.de/apps/oidc_login/oidc",
+        "https://files.korczewski.de/apps/sociallogin/custom_oidc/keycloak"
       ],
       "webOrigins": [
-        "https://${NC_DOMAIN}"
+        "https://${NC_DOMAIN}",
+        "https://files.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -239,10 +258,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${WEBSITE_OIDC_SECRET}",
       "redirectUris": [
-        "https://${WEB_DOMAIN}/*"
+        "https://${WEB_DOMAIN}/*",
+        "https://web.korczewski.de/*"
       ],
       "webOrigins": [
-        "https://${WEB_DOMAIN}"
+        "https://${WEB_DOMAIN}",
+        "https://web.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -287,10 +308,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${CLAUDE_CODE_OIDC_SECRET}",
       "redirectUris": [
-        "https://${AI_DOMAIN}/*"
+        "https://${AI_DOMAIN}/*",
+        "https://ai.korczewski.de/*"
       ],
       "webOrigins": [
-        "https://${AI_DOMAIN}"
+        "https://${AI_DOMAIN}",
+        "https://ai.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -352,10 +375,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${VAULTWARDEN_OIDC_SECRET}",
       "redirectUris": [
-        "https://${VAULT_DOMAIN}/identity/connect/oidc-signin"
+        "https://${VAULT_DOMAIN}/identity/connect/oidc-signin",
+        "https://vault.korczewski.de/identity/connect/oidc-signin"
       ],
       "webOrigins": [
-        "https://${VAULT_DOMAIN}"
+        "https://${VAULT_DOMAIN}",
+        "https://vault.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -376,10 +401,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${OUTLINE_OIDC_SECRET}",
       "redirectUris": [
-        "https://wiki.${PROD_DOMAIN}/*"
+        "https://wiki.${PROD_DOMAIN}/*",
+        "https://wiki.korczewski.de/*"
       ],
       "webOrigins": [
-        "https://wiki.${PROD_DOMAIN}"
+        "https://wiki.${PROD_DOMAIN}",
+        "https://wiki.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

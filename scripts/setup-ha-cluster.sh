@@ -23,7 +23,12 @@ SSH_KEY="$HOME/.ssh/id_ed25519_hetzner"
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -i $SSH_KEY"
 SSH_USER="root"
 
-PROD_DOMAIN="mentolder.de"
+# Load PROD_DOMAIN from .env if present, otherwise require it as env var
+if [[ -f "$(dirname "$0")/../.env" ]]; then
+  # shellcheck disable=SC1091
+  set -a; source "$(dirname "$0")/../.env"; set +a
+fi
+PROD_DOMAIN="${PROD_DOMAIN:?PROD_DOMAIN not set — create a .env file or export PROD_DOMAIN}"
 
 # ── Colors ────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'

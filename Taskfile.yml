@@ -378,6 +378,7 @@ tasks:
       - task: mcp:deploy
       - task: workspace:monitoring
       - task: workspace:post-setup
+      - task: workspace:admin-users-setup
       - task: workspace:billing-setup
       - task: workspace:stripe-setup
       - echo ""
@@ -530,8 +531,10 @@ tasks:
     preconditions:
       - sh: kubectl --context hetzner cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
-      - sh: "! grep -q 'CHANGE_ME' prod/secrets.yaml"
-        msg: "prod/secrets.yaml still contains CHANGE_ME — fill in SMTP_PASSWORD first."
+      - sh: "[ -f prod/secrets.yaml ]"
+        msg: "prod/secrets.yaml not found — create it from the template (it is gitignored)."
+      - sh: "! grep -q 'REPLACE_ME' prod/secrets.yaml"
+        msg: "prod/secrets.yaml still contains REPLACE_ME placeholders — fill in all secrets first."
       - sh: "[ '{{.PROD_DOMAIN}}' != 'yourdomain.tld' ]"
         msg: "PROD_DOMAIN is still the default. Ensure .env is present and readable (check for unquoted values with spaces)."
     cmds:
@@ -561,7 +564,7 @@ tasks:
         export CONTACT_NAME="{{.CONTACT_NAME}}"
         export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
         # Apply base website manifests
-        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$WEBSITE_IMAGE" < k3d/website.yaml | kubectl --context hetzner apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context hetzner apply -f -
         # Patch prod-specific config (merge, not replace)
         kubectl --context hetzner patch configmap website-config -n website --type merge -p "{\"data\":{
           \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
@@ -618,11 +621,11 @@ tasks:
       - |
         ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} \
           'export IPv64_Token="$(cat /root/.acme.sh/account.conf 2>/dev/null | grep SAVED_IPv64_Token | cut -d= -f2 | tr -d "'\''\"" || echo "")" && \
-           /root/.acme.sh/acme.sh --renew -d "*.mentolder.de" -d "mentolder.de" --ecc'
+           /root/.acme.sh/acme.sh --renew -d "*.{{.PROD_DOMAIN}}" -d "{{.PROD_DOMAIN}}" --ecc'
       - |
         echo "Updating K8s TLS secret..."
-        CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.mentolder.de_ecc/fullchain.cer'" | base64 -w0)
-        KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.mentolder.de_ecc/*.mentolder.de.key'" | base64 -w0)
+        CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.{{.PROD_DOMAIN}}_ecc/fullchain.cer'" | base64 -w0)
+        KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.{{.PROD_DOMAIN}}_ecc/*.{{.PROD_DOMAIN}}.key'" | base64 -w0)
         kubectl --context hetzner patch secret workspace-wildcard-tls -n workspace \
           -p "{\"data\":{\"tls.crt\":\"$CERT\",\"tls.key\":\"$KEY\"}}"
       - echo "✓ Wildcard cert renewed and K8s secret updated"
@@ -637,6 +640,16 @@ tasks:
       - kubectl --context hetzner get pods -n website --sort-by=.metadata.name
       - echo "---"
       - kubectl --context hetzner get certificate -n workspace
+
+  workspace:admin-users-setup:
+    desc: Provision SSO admin users (paddione, gekko) in Keycloak workspace realm
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running. Run 'task cluster:create' first."
+      - sh: "[ -n \"${KC_USER1_USERNAME:-}\" ]"
+        msg: "KC_USER1_USERNAME not set — check .env"
+    cmds:
+      - bash scripts/admin-users-setup.sh
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
@@ -1005,24 +1018,11 @@ tasks:
 
   website:push:
     desc: Build and push website image to ghcr.io (for production)
+    deps: [website:build]
     cmds:
-      - |
-        docker build -t ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest \
-          --build-arg PROD_DOMAIN="{{.PROD_DOMAIN}}" \
-          --build-arg BRAND_NAME="{{.BRAND_NAME}}" \
-          --build-arg CONTACT_EMAIL="{{.CONTACT_EMAIL}}" \
-          --build-arg CONTACT_PHONE="{{.CONTACT_PHONE}}" \
-          --build-arg CONTACT_CITY="{{.CONTACT_CITY}}" \
-          --build-arg CONTACT_NAME="{{.CONTACT_NAME}}" \
-          --build-arg LEGAL_STREET="{{.LEGAL_STREET}}" \
-          --build-arg LEGAL_ZIP="{{.LEGAL_ZIP}}" \
-          --build-arg LEGAL_JOBTITLE="{{.LEGAL_JOBTITLE}}" \
-          --build-arg LEGAL_CHAMBER="{{.LEGAL_CHAMBER}}" \
-          --build-arg LEGAL_UST_ID="{{.LEGAL_UST_ID}}" \
-          --build-arg LEGAL_WEBSITE="{{.LEGAL_WEBSITE}}" \
-          website/
-        docker push ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest
-        echo "✓ Pushed ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest"
+      - docker tag {{.WEBSITE_IMAGE}}:latest ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest
+      - docker push ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest
+      - echo "✓ Pushed ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest"
 
   website:pull-secret:
     desc: Create/update ghcr-pull-secret in website + workspace namespaces on hetzner (uses gh CLI token)
@@ -1054,7 +1054,7 @@ tasks:
         export CONTACT_CITY="{{.CONTACT_CITY}}"
         export CONTACT_NAME="{{.CONTACT_NAME}}"
         export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
-        envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$WEBSITE_IMAGE" < k3d/website.yaml | kubectl apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl apply -f -
       - |
         echo "Waiting for website..."
         kubectl rollout status deployment/website -n website --timeout=120s

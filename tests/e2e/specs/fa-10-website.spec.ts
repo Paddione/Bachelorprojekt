@@ -61,7 +61,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
 
   test('T7: Sidebar shows contact information', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    await expect(page.locator('text=${CONTACT_EMAIL}')).toBeVisible();
-    await expect(page.locator('text=+49 151 508 32 601')).toBeVisible();
+    await expect(page.locator('text=info@mentolder.de').first()).toBeVisible();
+    await expect(page.locator('text=+49 151 508 32 601').first()).toBeVisible();
   });
 });

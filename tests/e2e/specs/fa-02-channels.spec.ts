@@ -8,22 +8,31 @@ test.describe('FA-02: Kanäle / Workspaces', () => {
     await page.goto('/');
     await dismissOverlays(page);
 
-    // Use the sidebar "add channel" button
-    const addBtn = page.getByRole('button', { name: /kanal-dropdown hinzufügen|add channel/i });
-    await addBtn.first().click({ force: true });
-    await page.getByText(/create new channel|neuen kanal erstellen|kanal erstellen/i).first().click();
+    // In modern Mattermost, click the + button to open the channels menu
+    const addBtn = page.getByRole('button', { name: /kanäle erstellen oder durchsuchen|browse channels|add channel/i });
+    await addBtn.click();
+
+    // A dropdown menu appears — click "Neuen Kanal erstellen"
+    await page.getByRole('menuitem', { name: /neuen kanal erstellen|create new channel/i }).click();
+
+    // A dialog for channel creation should now appear
+    const dialog = page.getByRole('dialog');
+    await dialog.waitFor({ state: 'visible', timeout: 10_000 });
 
     const chName = `e2e-pub-${Date.now()}`;
-    await page.getByPlaceholder(/kanal|channel|namen/i).first().fill(chName);
-    await page.getByRole('button', { name: /create channel|kanal erstellen|erstellen/i }).last().click();
+    await dialog.getByPlaceholder(/name|kanal/i).first().fill(chName);
+    // Click the affirmative create button (not Cancel)
+    await dialog.getByRole('button', { name: /^(kanal erstellen|create channel|erstellen)$/i }).click();
 
-    await expect(page.locator('#channelHeaderTitle')).toContainText(chName, {
-      timeout: 5_000,
-    });
+    // Wait for navigation to the new channel URL
+    await page.waitForURL(`**/channels/**`, { timeout: 15_000 });
+
+    // The channel header strong element should contain the new channel name
+    await expect(page.locator('strong#channelHeaderTitle')).toContainText(chName, { timeout: 10_000 });
   });
 
   test('T5: Kanal archivieren', async ({ page }) => {
-    await goToChannel(page, TEAM, 'test-public');
+    await goToChannel(page, TEAM, 'town-square');
 
     await page.locator('#channelHeaderTitle').click();
     const archiveBtn = page.getByText(/archive channel|kanal archivieren/i);

@@ -16,7 +16,7 @@ test.describe('FA-01: Messaging (Echtzeit)', () => {
   });
 
   test('T3: Channel-Nachricht senden', async ({ page }) => {
-    await goToChannel(page, TEAM, 'test-public');
+    await goToChannel(page, TEAM, 'town-square');
 
     const msg = `e2e-channel-${Date.now()}`;
     await page.locator('#post_textbox').fill(msg);

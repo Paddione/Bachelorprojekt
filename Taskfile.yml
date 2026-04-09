@@ -532,6 +532,8 @@ tasks:
         msg: "k3s-production context not reachable."
       - sh: "! grep -q 'CHANGE_ME' prod/secrets.yaml"
         msg: "prod/secrets.yaml still contains CHANGE_ME — fill in SMTP_PASSWORD first."
+      - sh: "[ '{{.PROD_DOMAIN}}' != 'yourdomain.tld' ]"
+        msg: "PROD_DOMAIN is still the default. Ensure .env is present and readable (check for unquoted values with spaces)."
     cmds:
       - |
         export PROD_DOMAIN="{{.PROD_DOMAIN}}"
@@ -547,6 +549,8 @@ tasks:
       - |
         echo "Waiting for vaultwarden rollout..."
         kubectl --context hetzner rollout status deployment/vaultwarden -n workspace --timeout=120s
+      # Ensure ghcr pull secret exists in website namespace
+      - task: website:pull-secret
       # Deploy website (separate namespace, not in main kustomization)
       - |
         export PROD_DOMAIN="{{.PROD_DOMAIN}}"
@@ -998,6 +1002,40 @@ tasks:
       - task: website:build
       - k3d image import {{.WEBSITE_IMAGE}}:latest -c {{.CLUSTER_NAME}}
       - echo "✓ Image imported into k3d cluster"
+
+  website:push:
+    desc: Build and push website image to ghcr.io (for production)
+    cmds:
+      - |
+        docker build -t ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest \
+          --build-arg PROD_DOMAIN="{{.PROD_DOMAIN}}" \
+          --build-arg BRAND_NAME="{{.BRAND_NAME}}" \
+          --build-arg CONTACT_EMAIL="{{.CONTACT_EMAIL}}" \
+          --build-arg CONTACT_PHONE="{{.CONTACT_PHONE}}" \
+          --build-arg CONTACT_CITY="{{.CONTACT_CITY}}" \
+          --build-arg CONTACT_NAME="{{.CONTACT_NAME}}" \
+          --build-arg LEGAL_STREET="{{.LEGAL_STREET}}" \
+          --build-arg LEGAL_ZIP="{{.LEGAL_ZIP}}" \
+          --build-arg LEGAL_JOBTITLE="{{.LEGAL_JOBTITLE}}" \
+          --build-arg LEGAL_CHAMBER="{{.LEGAL_CHAMBER}}" \
+          --build-arg LEGAL_UST_ID="{{.LEGAL_UST_ID}}" \
+          --build-arg LEGAL_WEBSITE="{{.LEGAL_WEBSITE}}" \
+          website/
+        docker push ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest
+        echo "✓ Pushed ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest"
+
+  website:pull-secret:
+    desc: Create/update ghcr-pull-secret in the website namespace on hetzner
+    cmds:
+      - |
+        TOKEN=$(printf "ghcr.io" | docker-credential-desktop.exe get | python3 -c "import json,sys; print(json.load(sys.stdin)['Secret'])")
+        kubectl --context hetzner create secret docker-registry ghcr-pull-secret \
+          --namespace=website \
+          --docker-server=ghcr.io \
+          --docker-username=Paddione \
+          --docker-password="$TOKEN" \
+          --dry-run=client -o yaml | kubectl --context hetzner apply -f -
+        echo "✓ ghcr-pull-secret updated in website namespace"
 
   website:deploy:
     desc: Deploy the Astro website to the website namespace

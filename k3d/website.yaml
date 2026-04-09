@@ -162,5 +162,5 @@ spec:
           containers:
             - name: trigger
               image: curlimages/curl:latest
-              command: ["curl", "-sf", "-X", "POST", "-H", "Origin: http://website.website.svc.cluster.local", "http://website.website.svc.cluster.local/api/reminders/process"]
+              command: ["curl", "-sf", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never

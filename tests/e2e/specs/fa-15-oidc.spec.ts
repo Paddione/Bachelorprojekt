@@ -5,7 +5,7 @@ const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 test.describe('FA-15: OIDC Website Login', () => {
   test('T1: /api/auth/login redirects to Keycloak', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/login`, {
-      followRedirects: false,
+      maxRedirects: 0,
     });
     expect(res.status()).toBe(302);
     const location = res.headers()['location'] || '';
@@ -22,7 +22,7 @@ test.describe('FA-15: OIDC Website Login', () => {
 
   test('T3: /api/auth/logout redirects', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/logout`, {
-      followRedirects: false,
+      maxRedirects: 0,
     });
     expect(res.status()).toBe(302);
   });

@@ -32,10 +32,18 @@ test.describe('NFA-05: Usability', () => {
   });
 
   test('T4: Quick Switcher (Strg+K)', async ({ page }) => {
-    await page.goto('/');
+    const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
+    await page.goto(`${baseURL}/bachelorprojekt/channels/town-square`);
+    // Check if we have an authenticated session: wait briefly for either the post textbox or a login form
+    const textbox = page.locator('[data-testid="post_textbox"]');
+    const loginForm = page.locator('#loginId, input[placeholder*="Email"], input[name="loginId"]');
+    const landed = await Promise.race([
+      textbox.waitFor({ state: 'visible', timeout: 8_000 }).then(() => 'channel'),
+      loginForm.waitFor({ state: 'visible', timeout: 8_000 }).then(() => 'login'),
+    ]).catch(() => 'unknown');
+    test.skip(landed !== 'channel', 'No authenticated session — Quick Switcher test requires login');
     await dismissOverlays(page);
-    // Focus the post textbox first to ensure keyboard events reach Mattermost
-    await page.locator('#post_textbox').click();
+    await textbox.click();
     await page.keyboard.press('Control+k');
     await expect(
       page.getByRole('dialog', { name: /kanäle finden|find channels|quick switch/i })

@@ -24,10 +24,7 @@ spec:
             - name: aliasgroup1
               value: "http://nextcloud:80"
             - name: server_name
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: COLLABORA_DOMAIN
+              value: "office.localhost"
             - name: extra_params
               value: "--o:ssl.enable=false --o:ssl.termination=false"
             - name: username

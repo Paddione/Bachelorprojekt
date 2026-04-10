@@ -1,0 +1,145 @@
+# ── Meeting Knowledge Pipeline — Schema ──────────────────────────────────────
+# Applied to the 'meetings' database in shared-db.
+# Mounted as a second init script (runs after init-databases.sh).
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: meetings-schema
+data:
+  init-meetings-schema.sh: |
+    #!/bin/bash
+    set -e
+    echo "Initializing meetings schema (pgvector + tables)..."
+
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname meetings <<-'EOSQL'
+      -- Enable pgvector extension
+      CREATE EXTENSION IF NOT EXISTS vector;
+
+      -- Customers (cross-reference to Keycloak, Mattermost, Outline)
+      CREATE TABLE IF NOT EXISTS customers (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
+          phone TEXT,
+          company TEXT,
+          outline_collection_id TEXT,
+          mattermost_channel_id TEXT,
+          keycloak_user_id TEXT,
+          created_at TIMESTAMPTZ DEFAULT now(),
+          updated_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      -- Meeting history
+      CREATE TABLE IF NOT EXISTS meetings (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL REFERENCES customers(id),
+          meeting_type TEXT NOT NULL,
+          scheduled_at TIMESTAMPTZ,
+          started_at TIMESTAMPTZ,
+          ended_at TIMESTAMPTZ,
+          duration_seconds INTEGER,
+          talk_room_token TEXT,
+          recording_path TEXT,
+          status TEXT DEFAULT 'scheduled'
+              CHECK (status IN ('scheduled','active','ended','transcribed','finalized')),
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      -- Full-text transcripts
+      CREATE TABLE IF NOT EXISTS transcripts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+          full_text TEXT NOT NULL,
+          language TEXT DEFAULT 'de',
+          whisper_model TEXT DEFAULT 'Systran/faster-whisper-medium',
+          duration_seconds NUMERIC,
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      -- Transcript segments with timestamps
+      CREATE TABLE IF NOT EXISTS transcript_segments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          transcript_id UUID NOT NULL REFERENCES transcripts(id) ON DELETE CASCADE,
+          segment_index INTEGER NOT NULL,
+          start_time NUMERIC NOT NULL,
+          end_time NUMERIC NOT NULL,
+          text TEXT NOT NULL,
+          speaker TEXT
+      );
+
+      -- Meeting artifacts (whiteboards, files, screenshots)
+      CREATE TABLE IF NOT EXISTS meeting_artifacts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+          artifact_type TEXT NOT NULL
+              CHECK (artifact_type IN ('whiteboard','document','screenshot','file')),
+          name TEXT NOT NULL,
+          storage_path TEXT,
+          content_text TEXT,
+          metadata JSONB DEFAULT '{}',
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      -- AI-generated insights
+      CREATE TABLE IF NOT EXISTS meeting_insights (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+          insight_type TEXT NOT NULL
+              CHECK (insight_type IN ('summary','action_items','key_topics','sentiment','coaching_notes')),
+          content TEXT NOT NULL,
+          generated_by TEXT DEFAULT 'claude',
+          outline_document_id TEXT,
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      -- Vector embeddings (pgvector)
+      CREATE TABLE IF NOT EXISTS meeting_embeddings (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          source_type TEXT NOT NULL
+              CHECK (source_type IN ('transcript','segment','artifact','insight')),
+          source_id UUID NOT NULL,
+          content_preview TEXT,
+          embedding vector(1024),
+          model TEXT DEFAULT 'nomic-embed-text-v1.5',
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      -- Indexes for MCP query patterns
+      CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
+      CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);
+      CREATE INDEX IF NOT EXISTS idx_transcripts_meeting ON transcripts(meeting_id);
+      CREATE INDEX IF NOT EXISTS idx_segments_transcript ON transcript_segments(transcript_id);
+      CREATE INDEX IF NOT EXISTS idx_artifacts_meeting ON meeting_artifacts(meeting_id);
+      CREATE INDEX IF NOT EXISTS idx_insights_meeting ON meeting_insights(meeting_id);
+      CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+      CREATE INDEX IF NOT EXISTS idx_embeddings_source ON meeting_embeddings(source_type, source_id);
+
+      -- Semantic search function for Claude Code MCP
+      CREATE OR REPLACE FUNCTION semantic_search(
+          query_embedding vector(1024),
+          k INTEGER DEFAULT 5
+      )
+      RETURNS TABLE (
+          source_type TEXT,
+          source_id UUID,
+          content_preview TEXT,
+          similarity FLOAT
+      )
+      LANGUAGE sql STABLE AS $$
+          SELECT source_type, source_id, content_preview,
+                 1 - (embedding <=> query_embedding) AS similarity
+          FROM meeting_embeddings
+          WHERE embedding IS NOT NULL
+          ORDER BY embedding <=> query_embedding
+          LIMIT k;
+      $$;
+
+      -- Grant full access to the meetings user
+      GRANT ALL ON ALL TABLES IN SCHEMA public TO meetings;
+      GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO meetings;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO meetings;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO meetings;
+    EOSQL
+
+    echo "Meetings schema initialized."

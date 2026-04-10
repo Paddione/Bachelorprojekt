@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ══════════════════════════════════════════════════════════════════════════════
 # mattermost-connectors-setup.sh
-# Creates channel bookmarks and a pinned service-directory message in
-# Mattermost's "Town Square" channel, linking to every workspace service.
+# Creates a "workspace-services" channel with a pinned service directory and
+# updates Town Square's header with quick-links to all workspace services.
 #
 # Usage:
 #   bash scripts/mattermost-connectors-setup.sh              # auto-detect via mmctl
@@ -40,7 +40,6 @@ read_domain() {
   kubectl get configmap domain-config -n "${NAMESPACE}" -o jsonpath="{.data.$1}" 2>/dev/null || echo "$2"
 }
 
-MM_DOMAIN=$(read_domain MM_DOMAIN "chat.localhost")
 KC_DOMAIN=$(read_domain KC_DOMAIN "auth.localhost")
 NC_DOMAIN=$(read_domain NC_DOMAIN "files.localhost")
 COLLABORA_DOMAIN=$(read_domain COLLABORA_DOMAIN "office.localhost")
@@ -70,57 +69,43 @@ SERVICES=(
   "Claude Code|:robot_face:|${SCHEME}://${AI_DOMAIN}|KI-Assistent & MCP Status"
 )
 
-# ── Helper: mmctl API via local socket ────────────────────────────────────
-mm_exec() {
-  kubectl exec -n "${NAMESPACE}" deploy/mattermost -- "$@" 2>/dev/null
-}
-
-mm_mmctl() {
-  mm_exec mmctl --local "$@"
-}
-
-# ── Helper: REST API call ─────────────────────────────────────────────────
+# ── Helper: REST API call via external curl ───────────────────────────────
 mm_api() {
   local method="$1" endpoint="$2"
   shift 2
-  if [ -n "${MM_TOKEN}" ]; then
-    curl -sf -X "${method}" "${MM_URL}/api/v4${endpoint}" \
-      -H "Authorization: Bearer ${MM_TOKEN}" \
-      -H "Content-Type: application/json" \
-      "$@"
-  else
-    # Use mmctl local-mode via curl inside the pod
-    mm_exec curl -sf -X "${method}" \
-      --unix-socket /var/tmp/mattermost_local.socket \
-      "http://localhost/api/v4${endpoint}" \
-      -H "Content-Type: application/json" \
-      "$@"
-  fi
+  curl -sf -X "${method}" "${MM_URL}/api/v4${endpoint}" \
+    -H "Authorization: Bearer ${MM_TOKEN}" \
+    -H "Content-Type: application/json" \
+    "$@"
 }
 
 # ── Generate token if needed ─────────────────────────────────────────────
 if [ -z "${MM_TOKEN}" ]; then
   echo "Kein MM_TOKEN gesetzt — generiere temporaeren Token via mmctl..."
-  ADMIN_USER_ID=$(mm_mmctl user list --json | \
+  ADMIN_USER_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+    mmctl --local user list --json 2>/dev/null | \
     python3 -c "
 import sys,json
-users = json.load(sys.stdin)
+users = json.load(sys.stdin) or []
 admins = [u for u in users if 'system_admin' in u.get('roles','')]
 if admins:
     print(admins[0]['id'])
 " 2>/dev/null) || true
 
   if [ -n "${ADMIN_USER_ID}" ]; then
-    TOKEN_OUTPUT=$(mm_mmctl token generate "${ADMIN_USER_ID}" "connectors-setup-$(date +%s)" 2>/dev/null) || true
+    TOKEN_OUTPUT=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
+      mmctl --local token generate "${ADMIN_USER_ID}" "connectors-setup-$(date +%s)" 2>/dev/null) || true
     MM_TOKEN=$(echo "${TOKEN_OUTPUT}" | grep -oP '^[a-z0-9]{26}' | head -1) || true
   fi
 
   if [ -z "${MM_TOKEN}" ]; then
-    echo "  WARNUNG: Konnte keinen Token generieren. Nutze lokalen Socket."
-  else
-    echo "  Token generiert."
-    CLEANUP_TOKEN="true"
+    echo "  FEHLER: Konnte keinen API-Token generieren."
+    echo "  Erstelle manuell: Mattermost > Profil > Sicherheit > Persoenliche Zugriffstoken"
+    echo "  Dann: MM_TOKEN=<token> bash $0"
+    exit 1
   fi
+  echo "  Token generiert."
+  CLEANUP_TOKEN="true"
 fi
 
 # ── Get all teams ─────────────────────────────────────────────────────────
@@ -137,6 +122,32 @@ fi
 
 echo "  ${TEAM_COUNT} Team(s) gefunden."
 
+# ── Build service table for pinned message ────────────────────────────────
+TABLE_ROWS=""
+for SERVICE_DEF in "${SERVICES[@]}"; do
+  IFS='|' read -r SVC_NAME SVC_EMOJI SVC_URL SVC_DESC <<< "${SERVICE_DEF}"
+  TABLE_ROWS="${TABLE_ROWS}| ${SVC_EMOJI} **${SVC_NAME}** | [${SVC_URL##*://}](${SVC_URL}) | ${SVC_DESC} |\n"
+done
+
+SERVICE_DIRECTORY_MSG="### :link: Workspace Service-Verzeichnis
+
+Alle Services der Plattform auf einen Blick:
+
+| Service | URL | Beschreibung |
+|---------|-----|--------------|
+$(echo -e "${TABLE_ROWS}")
+---
+
+**Login:** Alle Services nutzen **Single Sign-On** ueber [Keycloak](${SCHEME}://${KC_DOMAIN}). Einmal anmelden — ueberall eingeloggt.
+
+**Hilfe:** Bei Fragen den Kanal \`claude-code\` nutzen oder die [Dokumentation](${SCHEME}://${DOCS_DOMAIN}) lesen."
+
+# ── Town Square header with quick-links ───────────────────────────────────
+TOWN_SQUARE_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :globe_with_meridians: [Website](${SCHEME}://${WEB_DOMAIN})"
+
+# ── workspace-services channel header ─────────────────────────────────────
+SVC_CHANNEL_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :pencil: [Office](${SCHEME}://${COLLABORA_DOMAIN}) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :art: [Whiteboard](${SCHEME}://${WHITEBOARD_DOMAIN}) | :robot_face: [KI](${SCHEME}://${AI_DOMAIN})"
+
 # ── Process each team ─────────────────────────────────────────────────────
 echo "${TEAMS_JSON}" | python3 -c "
 import sys,json
@@ -146,60 +157,21 @@ for t in json.load(sys.stdin):
   echo ""
   echo "── Team: ${TEAM_NAME} ──────────────────────────────────"
 
-  # Get "Town Square" channel (name: town-square)
-  CHANNEL_JSON=$(mm_api GET "/teams/${TEAM_ID}/channels/name/town-square")
-  CHANNEL_ID=$(echo "${CHANNEL_JSON}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+  # ── 1. Update Town Square header ───────────────────────────────────────
+  TS_JSON=$(mm_api GET "/teams/${TEAM_ID}/channels/name/town-square")
+  TS_CHANNEL_ID=$(echo "${TS_JSON}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 
-  if [ -z "${CHANNEL_ID}" ]; then
+  if [ -z "${TS_CHANNEL_ID}" ]; then
     echo "  FEHLER: Town Square nicht gefunden in Team ${TEAM_NAME}"
     continue
   fi
-  echo "  Town Square: ${CHANNEL_ID}"
 
-  # ── Create/update channel bookmarks ──────────────────────────────────
-  echo "  Erstelle Bookmarks..."
+  mm_api PUT "/channels/${TS_CHANNEL_ID}/patch" \
+    -d "{\"header\": $(echo "${TOWN_SQUARE_HEADER}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))")}" > /dev/null 2>&1 \
+    && echo "  Town Square Header aktualisiert mit Service-Links." \
+    || echo "  WARNUNG: Town Square Header konnte nicht aktualisiert werden."
 
-  # Get existing bookmarks
-  EXISTING_BOOKMARKS=$(mm_api GET "/channels/${CHANNEL_ID}/bookmarks" 2>/dev/null || echo "[]")
-
-  SORT_ORDER=0
-  for SERVICE_DEF in "${SERVICES[@]}"; do
-    IFS='|' read -r SVC_NAME SVC_EMOJI SVC_URL SVC_DESC <<< "${SERVICE_DEF}"
-    SORT_ORDER=$((SORT_ORDER + 10))
-
-    DISPLAY_NAME="${SVC_EMOJI} ${SVC_NAME}"
-
-    # Check if bookmark already exists (by URL)
-    BOOKMARK_EXISTS=$(echo "${EXISTING_BOOKMARKS}" | python3 -c "
-import sys,json
-bookmarks = json.load(sys.stdin)
-for b in bookmarks:
-    if b.get('link_url','') == '${SVC_URL}':
-        print(b['id'])
-        break
-" 2>/dev/null || echo "")
-
-    if [ -n "${BOOKMARK_EXISTS}" ]; then
-      # Update existing bookmark
-      mm_api PUT "/channels/${CHANNEL_ID}/bookmarks/${BOOKMARK_EXISTS}" \
-        -d "{
-          \"display_name\": \"${DISPLAY_NAME}\",
-          \"link_url\": \"${SVC_URL}\",
-          \"sort_order\": ${SORT_ORDER}
-        }" > /dev/null 2>&1 && echo "    Aktualisiert: ${SVC_NAME}" || echo "    Uebersprungen: ${SVC_NAME}"
-    else
-      # Create new bookmark
-      mm_api POST "/channels/${CHANNEL_ID}/bookmarks" \
-        -d "{
-          \"display_name\": \"${DISPLAY_NAME}\",
-          \"link_url\": \"${SVC_URL}\",
-          \"type\": \"link\",
-          \"sort_order\": ${SORT_ORDER}
-        }" > /dev/null 2>&1 && echo "    Erstellt: ${SVC_NAME}" || echo "    Fehlgeschlagen: ${SVC_NAME}"
-    fi
-  done
-
-  # ── Also create/find the workspace-services channel ──────────────────
+  # ── 2. Create/find workspace-services channel ──────────────────────────
   SVC_CHANNEL_JSON=$(mm_api GET "/teams/${TEAM_ID}/channels/name/workspace-services" 2>/dev/null || echo "")
   SVC_CHANNEL_ID=$(echo "${SVC_CHANNEL_JSON}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || echo "")
 
@@ -210,128 +182,128 @@ for b in bookmarks:
         \"name\": \"workspace-services\",
         \"display_name\": \"Workspace Services\",
         \"purpose\": \"Uebersicht und Links zu allen Workspace-Diensten\",
-        \"header\": \"Alle Services der Workspace-Plattform — Bookmarks oben nutzen!\",
         \"type\": \"O\"
-      }" 2>/dev/null || echo "")
+      }")
     SVC_CHANNEL_ID=$(echo "${SVC_CHANNEL_JSON}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || echo "")
     if [ -n "${SVC_CHANNEL_ID}" ]; then
       echo "  Kanal 'workspace-services' erstellt."
+    else
+      echo "  FEHLER: Kanal 'workspace-services' konnte nicht erstellt werden."
+      continue
     fi
   else
     echo "  Kanal 'workspace-services' existiert bereits."
   fi
 
-  # ── Add bookmarks to workspace-services channel too ──────────────────
-  if [ -n "${SVC_CHANNEL_ID}" ]; then
-    EXISTING_SVC_BOOKMARKS=$(mm_api GET "/channels/${SVC_CHANNEL_ID}/bookmarks" 2>/dev/null || echo "[]")
-    SORT_ORDER=0
-    for SERVICE_DEF in "${SERVICES[@]}"; do
-      IFS='|' read -r SVC_NAME SVC_EMOJI SVC_URL SVC_DESC <<< "${SERVICE_DEF}"
-      SORT_ORDER=$((SORT_ORDER + 10))
-      DISPLAY_NAME="${SVC_EMOJI} ${SVC_NAME}"
+  # Update channel header with all service links
+  mm_api PUT "/channels/${SVC_CHANNEL_ID}/patch" \
+    -d "{\"header\": $(echo "${SVC_CHANNEL_HEADER}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))")}" > /dev/null 2>&1 \
+    && echo "  workspace-services Header aktualisiert." \
+    || echo "  WARNUNG: workspace-services Header konnte nicht aktualisiert werden."
 
-      BOOKMARK_EXISTS=$(echo "${EXISTING_SVC_BOOKMARKS}" | python3 -c "
-import sys,json
-bookmarks = json.load(sys.stdin)
-for b in bookmarks:
-    if b.get('link_url','') == '${SVC_URL}':
-        print(b['id'])
-        break
-" 2>/dev/null || echo "")
-
-      if [ -z "${BOOKMARK_EXISTS}" ]; then
-        mm_api POST "/channels/${SVC_CHANNEL_ID}/bookmarks" \
-          -d "{
-            \"display_name\": \"${DISPLAY_NAME}\",
-            \"link_url\": \"${SVC_URL}\",
-            \"type\": \"link\",
-            \"sort_order\": ${SORT_ORDER}
-          }" > /dev/null 2>&1
-      fi
-    done
-
-    # ── Post pinned service directory message ──────────────────────────
-    # Build table rows
-    TABLE_ROWS=""
-    for SERVICE_DEF in "${SERVICES[@]}"; do
-      IFS='|' read -r SVC_NAME SVC_EMOJI SVC_URL SVC_DESC <<< "${SERVICE_DEF}"
-      TABLE_ROWS="${TABLE_ROWS}| ${SVC_EMOJI} **${SVC_NAME}** | [${SVC_URL##*://}](${SVC_URL}) | ${SVC_DESC} |\n"
-    done
-
-    MSG=$(cat <<MSGEOF
-### :link: Workspace Service-Verzeichnis
-
-Alle Services der Plattform auf einen Blick:
-
-| Service | URL | Beschreibung |
-|---------|-----|--------------|
-${TABLE_ROWS}
----
-
-**Schnellzugriff:** Nutze die **Bookmarks** oben im Kanal-Header!
-
-**Login:** Alle Services nutzen **Single Sign-On** ueber [Keycloak](${SCHEME}://${KC_DOMAIN}). Einmal anmelden — ueberall eingeloggt.
-
-**Hilfe:** Bei Fragen den Kanal \`claude-code\` nutzen oder die [Dokumentation](${SCHEME}://${DOCS_DOMAIN}) lesen.
-MSGEOF
-)
-
-    # Check if a service-directory post already exists (avoid duplicates)
-    EXISTING_POSTS=$(mm_api POST "/channels/${SVC_CHANNEL_ID}/posts/search" \
-      -d "{\"terms\": \"Workspace Service-Verzeichnis\", \"is_or_search\": false}" 2>/dev/null || echo "{}")
-    POST_COUNT=$(echo "${EXISTING_POSTS}" | python3 -c "
+  # ── 3. Post pinned service directory (if not already posted) ───────────
+  SEARCH_RESULT=$(mm_api POST "/teams/${TEAM_ID}/posts/search" \
+    -d '{"terms": "Workspace Service-Verzeichnis", "is_or_search": false}' 2>/dev/null || echo "{}")
+  EXISTING_COUNT=$(echo "${SEARCH_RESULT}" | python3 -c "
 import sys,json
 data = json.load(sys.stdin)
 posts = data.get('posts', {})
-print(len([p for p in posts.values() if 'Workspace Service-Verzeichnis' in p.get('message','')]))
+count = len([p for p in posts.values()
+             if 'Workspace Service-Verzeichnis' in p.get('message','')
+             and p.get('channel_id','') == '${SVC_CHANNEL_ID}'])
+print(count)
 " 2>/dev/null || echo "0")
 
-    if [ "${POST_COUNT}" = "0" ]; then
-      # Post and pin the message
-      POST_JSON=$(mm_api POST "/posts" \
-        -d "{
-          \"channel_id\": \"${SVC_CHANNEL_ID}\",
-          \"message\": $(echo "${MSG}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
-        }")
-      POST_ID=$(echo "${POST_JSON}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || echo "")
+  if [ "${EXISTING_COUNT}" = "0" ]; then
+    POST_JSON=$(mm_api POST "/posts" \
+      -d "{
+        \"channel_id\": \"${SVC_CHANNEL_ID}\",
+        \"message\": $(echo "${SERVICE_DIRECTORY_MSG}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
+      }")
+    POST_ID=$(echo "${POST_JSON}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || echo "")
 
-      if [ -n "${POST_ID}" ]; then
-        mm_api POST "/posts/${POST_ID}/pin" > /dev/null 2>&1
-        echo "  Service-Verzeichnis gepostet und gepinnt."
-      fi
+    if [ -n "${POST_ID}" ]; then
+      mm_api POST "/posts/${POST_ID}/pin" > /dev/null 2>&1
+      echo "  Service-Verzeichnis gepostet und gepinnt."
     else
-      echo "  Service-Verzeichnis existiert bereits."
+      echo "  WARNUNG: Service-Verzeichnis konnte nicht gepostet werden."
     fi
+  else
+    echo "  Service-Verzeichnis existiert bereits — uebersprungen."
   fi
 
-  # ── Update Town Square header with service links ──────────────────────
-  HEADER="$(printf ':file_folder: [Dateien](%s://%s) | :key: [SSO](%s://%s) | :receipt: [Rechnungen](%s://%s) | :lock: [Passwoerter](%s://%s) | :books: [Docs](%s://%s) | :globe_with_meridians: [Website](%s://%s)' \
-    "${SCHEME}" "${NC_DOMAIN}" \
-    "${SCHEME}" "${KC_DOMAIN}" \
-    "${SCHEME}" "${BILLING_DOMAIN}" \
-    "${SCHEME}" "${VAULT_DOMAIN}" \
-    "${SCHEME}" "${DOCS_DOMAIN}" \
-    "${SCHEME}" "${WEB_DOMAIN}")"
+  # ── 4. Post welcome message in Town Square (once) ──────────────────────
+  TS_SEARCH=$(mm_api POST "/teams/${TEAM_ID}/posts/search" \
+    -d '{"terms": "Workspace-Plattform Service-Links", "is_or_search": false}' 2>/dev/null || echo "{}")
+  TS_EXISTS=$(echo "${TS_SEARCH}" | python3 -c "
+import sys,json
+data = json.load(sys.stdin)
+posts = data.get('posts', {})
+count = len([p for p in posts.values()
+             if 'Workspace-Plattform Service-Links' in p.get('message','')
+             and p.get('channel_id','') == '${TS_CHANNEL_ID}'])
+print(count)
+" 2>/dev/null || echo "0")
 
-  mm_api PUT "/channels/${CHANNEL_ID}/patch" \
-    -d "{\"header\": $(echo "${HEADER}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))")}" > /dev/null 2>&1 \
-    && echo "  Town Square Header aktualisiert." \
-    || echo "  WARNUNG: Town Square Header konnte nicht aktualisiert werden."
+  if [ "${TS_EXISTS}" = "0" ]; then
+    WELCOME_MSG=":wave: **Workspace-Plattform Service-Links**
+
+Alle Services sind ueber den Browser erreichbar — SSO-Login ueber Keycloak:
+
+:file_folder: **[Nextcloud — Dateien](${SCHEME}://${NC_DOMAIN})** — Dateien, Kalender, Kontakte, Talk (Video)
+:pencil: **[Collabora — Office](${SCHEME}://${COLLABORA_DOMAIN})** — Dokumente, Tabellen, Praesentationen im Browser
+:receipt: **[Invoice Ninja — Rechnungen](${SCHEME}://${BILLING_DOMAIN})** — Buchhaltung & Rechnungsstellung
+:lock: **[Vaultwarden — Passwoerter](${SCHEME}://${VAULT_DOMAIN})** — Team-Passwort-Manager
+:books: **[Dokumentation](${SCHEME}://${DOCS_DOMAIN})** — Anleitungen & Referenz
+:art: **[Whiteboard](${SCHEME}://${WHITEBOARD_DOMAIN})** — Gemeinsam zeichnen & brainstormen
+:robot_face: **[Claude Code — KI](${SCHEME}://${AI_DOMAIN})** — KI-Assistent (MCP Status)
+:globe_with_meridians: **[Website](${SCHEME}://${WEB_DOMAIN})** — Unternehmens-Website
+:envelope: **[Mailpit — E-Mail](${SCHEME}://${MAIL_DOMAIN})** — E-Mail-Testumgebung
+
+> Detaillierte Uebersicht im Kanal **~workspace-services**"
+
+    POST_JSON=$(mm_api POST "/posts" \
+      -d "{
+        \"channel_id\": \"${TS_CHANNEL_ID}\",
+        \"message\": $(echo "${WELCOME_MSG}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
+      }")
+    POST_ID=$(echo "${POST_JSON}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || echo "")
+
+    if [ -n "${POST_ID}" ]; then
+      mm_api POST "/posts/${POST_ID}/pin" > /dev/null 2>&1
+      echo "  Willkommensnachricht in Town Square gepostet und gepinnt."
+    fi
+  else
+    echo "  Willkommensnachricht in Town Square existiert bereits."
+  fi
 
 done
 
 # ── Cleanup temporary token ──────────────────────────────────────────────
 if [ "${CLEANUP_TOKEN:-}" = "true" ] && [ -n "${MM_TOKEN}" ]; then
-  mm_api POST "/users/tokens/revoke" -d "{\"token_id\": \"${MM_TOKEN}\"}" > /dev/null 2>&1 || true
+  # Find token ID to revoke
+  TOKEN_ID=$(mm_api GET "/users/me/tokens" 2>/dev/null | python3 -c "
+import sys,json
+tokens = json.load(sys.stdin) or []
+for t in tokens:
+    if 'connectors-setup' in t.get('description',''):
+        print(t['id'])
+        break
+" 2>/dev/null || echo "")
+  if [ -n "${TOKEN_ID}" ]; then
+    mm_api POST "/users/tokens/revoke" -d "{\"token_id\": \"${TOKEN_ID}\"}" > /dev/null 2>&1
+    echo ""
+    echo "  Temporaerer Token bereinigt."
+  fi
 fi
 
 echo ""
 echo "=== Konnektor-Setup abgeschlossen ==="
 echo ""
 echo "Ergebnis:"
-echo "  - Channel Bookmarks in Town Square fuer alle Services"
-echo "  - Kanal 'workspace-services' mit allen Links + gepinnter Nachricht"
-echo "  - Town Square Header mit Schnell-Links"
+echo "  - Town Square Header mit Schnell-Links zu allen Services"
+echo "  - Kanal 'workspace-services' mit gepinntem Service-Verzeichnis"
+echo "  - Gepinnte Willkommensnachricht in Town Square"
 echo ""
 echo "Services:"
 for SERVICE_DEF in "${SERVICES[@]}"; do

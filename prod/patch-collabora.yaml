@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collabora
+spec:
+  template:
+    spec:
+      containers:
+        - name: collabora
+          env:
+            - name: aliasgroup1
+              value: "https://files.${PROD_DOMAIN}"
+            - name: server_name
+              value: "office.${PROD_DOMAIN}"
+            - name: extra_params
+              value: "--o:ssl.enable=false --o:ssl.termination=true"

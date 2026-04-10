@@ -65,6 +65,22 @@ task website:webhook:setup       # Create Mattermost webhook for contact form
 task website:teardown            # Remove website namespace
 ```
 
+### ArgoCD — GitOps Multi-Cluster Federation
+```bash
+task argocd:setup                # Full setup: install → login → register clusters → apply apps (run once)
+task argocd:install              # Install ArgoCD on hetzner hub cluster
+task argocd:password             # Print initial admin password
+task argocd:ui                   # Port-forward ArgoCD UI to http://localhost:8090
+task argocd:login                # Log in with argocd CLI
+task argocd:cluster:register     # Register hetzner + korczewski clusters with workspace labels
+task argocd:apps:apply           # Apply AppProject and ApplicationSet
+task argocd:status               # Show sync/health status of all apps across all clusters
+task argocd:sync -- <app>        # Manually trigger sync (e.g. workspace-hetzner)
+task argocd:diff -- <app>        # Show diff between git and live state
+```
+ArgoCD files: `argocd/install/` (CMP sidecar, Ingress), `argocd/project.yaml`, `argocd/applicationset.yaml`.
+Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task argocd:cluster:register`.
+
 ### Optional Services
 ```bash
 task whisper:deploy              # Deploy faster-whisper transcription service

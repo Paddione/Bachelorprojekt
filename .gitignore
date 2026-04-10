@@ -2,9 +2,9 @@
 .env
 .env.secrets
 *.env.local
-prod/secrets.yaml
-prod-korczewski/secrets.yaml
-k3d/secrets.yaml
+# prod/secrets.yaml and prod-korczewski/secrets.yaml committed as ArgoCD placeholders (Skip=true)
+# Real credentials are applied via: task workspace:prod:deploy / task korczewski:deploy
+# k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials
 .env.korczewski
 deploy/mcp/openclaw-secrets.yaml
 deploy/mcp/claude-code-secrets.yaml
@@ -65,9 +65,7 @@ files_chore.txt
 files_main.txt
 website/node_modules.task/
 .task/checksum
-prod-korczewski/realm-workspace-korczewski.json
+# prod-korczewski/realm-workspace-korczewski.json tracked — Keycloak realm config (no credentials)
 prod/realm-workspace-prod.json
-prod-korczewski/kustomization.yaml
-prod/realm-workspace-prod.json
-prod/realm-workspace-prod.json
+# prod-korczewski/kustomization.yaml tracked — no secrets in this file
 prod/realm-workspace-prod.json

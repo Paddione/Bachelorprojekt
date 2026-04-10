@@ -542,7 +542,7 @@ tasks:
   workspace:prod:deploy:
     desc: Deploy workspace stack to k3s-production cluster
     preconditions:
-      - sh: kubectl --context hetzner cluster-info > /dev/null 2>&1
+      - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
       - sh: "[ -f prod/secrets.yaml ]"
         msg: "prod/secrets.yaml not found — create it from the template (it is gitignored)."
@@ -561,10 +561,10 @@ tasks:
         export INFRA_NAMESPACE="{{.INFRA_NAMESPACE}}"
         export TLS_SECRET_NAME="{{.TLS_SECRET_NAME}}"
         export SMTP_FROM="{{.SMTP_FROM}}"
-        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context hetzner apply --server-side --force-conflicts -f -
+        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context mentolder apply --server-side --force-conflicts -f -
       - |
         echo "Waiting for vaultwarden rollout..."
-        kubectl --context hetzner rollout status deployment/vaultwarden -n workspace --timeout=120s
+        kubectl --context mentolder rollout status deployment/vaultwarden -n workspace --timeout=120s
       # Ensure ghcr pull secret exists in website namespace
       - task: website:pull-secret
       # Deploy website (separate namespace, not in main kustomization)
@@ -577,9 +577,9 @@ tasks:
         export CONTACT_NAME="{{.CONTACT_NAME}}"
         export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
         # Apply base website manifests
-        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context hetzner apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context mentolder apply -f -
         # Patch prod-specific config (merge, not replace)
-        kubectl --context hetzner patch configmap website-config -n website --type merge -p "{\"data\":{
+        kubectl --context mentolder patch configmap website-config -n website --type merge -p "{\"data\":{
           \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
           \"SMTP_HOST\":\"smtp.mailbox.org\",
           \"SMTP_PORT\":\"465\",
@@ -588,10 +588,10 @@ tasks:
           \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
         }}"
         # Apply prod IngressRoute (HTTPS + TLS)
-        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context hetzner apply -f -
+        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context mentolder apply -f -
       - |
         echo "Waiting for website rollout..."
-        kubectl --context hetzner rollout status deployment/website -n website --timeout=120s
+        kubectl --context mentolder rollout status deployment/website -n website --timeout=120s
       - task: website:webhook:setup
       - 'echo "✓ Production deploy complete"'
       - 'echo "  Vaultwarden: https://vault.{{.PROD_DOMAIN}}"'
@@ -604,7 +604,7 @@ tasks:
   korczewski:deploy:
     desc: Deploy workspace stack to korczewski.de cluster
     preconditions:
-      - sh: kubectl --context k3s-production cluster-info > /dev/null 2>&1
+      - sh: kubectl --context korczewski cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
       - sh: "[ -f prod-korczewski/secrets.yaml ]"
         msg: "prod-korczewski/secrets.yaml not found — create it from the template."
@@ -615,14 +615,14 @@ tasks:
     cmds:
       - |
         set -a; source .env.korczewski; set +a
-        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context k3s-production apply --server-side --force-conflicts -f -
+        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context korczewski apply --server-side --force-conflicts -f -
       - |
         echo "Waiting for vaultwarden rollout..."
-        kubectl --context k3s-production rollout status deployment/vaultwarden -n workspace --timeout=120s
+        kubectl --context korczewski rollout status deployment/vaultwarden -n workspace --timeout=120s
       - |
         set -a; source .env.korczewski; set +a
-        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context k3s-production apply -f -
-        kubectl --context k3s-production patch configmap website-config -n website --type merge -p "{\"data\":{
+        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context korczewski apply -f -
+        kubectl --context korczewski patch configmap website-config -n website --type merge -p "{\"data\":{
           \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
           \"SMTP_HOST\":\"smtp.mailbox.org\",
           \"SMTP_PORT\":\"465\",
@@ -630,10 +630,10 @@ tasks:
           \"NEXTCLOUD_EXTERNAL_URL\":\"https://files.${PROD_DOMAIN}\",
           \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
         }}"
-        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context k3s-production apply -f -
+        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context korczewski apply -f -
       - |
         echo "Waiting for website rollout..."
-        kubectl --context k3s-production rollout status deployment/website -n website --timeout=120s
+        kubectl --context korczewski rollout status deployment/website -n website --timeout=120s
       - |
         set -a; source .env.korczewski; set +a
         echo "✓ Korczewski deploy complete"
@@ -644,29 +644,29 @@ tasks:
   korczewski:status:
     desc: Show korczewski.de cluster status
     cmds:
-      - kubectl --context k3s-production get nodes -o wide
+      - kubectl --context korczewski get nodes -o wide
       - echo ""
-      - kubectl --context k3s-production get pods -n workspace -o wide
+      - kubectl --context korczewski get pods -n workspace -o wide
       - echo ""
-      - kubectl --context k3s-production get pods -n website -o wide 2>/dev/null || true
+      - kubectl --context korczewski get pods -n website -o wide 2>/dev/null || true
 
   korczewski:validate:
     desc: Dry-run korczewski manifest validation
     cmds:
       - |
         set -a; source .env.korczewski; set +a
-        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context k3s-production apply --dry-run=server -f - 2>&1
+        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context korczewski apply --dry-run=server -f - 2>&1
 
   korczewski:logs:
     desc: "Tail logs from a korczewski service (usage: task korczewski:logs -- <svc>)"
     cmds:
-      - kubectl --context k3s-production logs -n workspace deployment/{{.CLI_ARGS}} -f --tail=100
+      - kubectl --context korczewski logs -n workspace deployment/{{.CLI_ARGS}} -f --tail=100
 
   korczewski:restart:
     desc: "Restart a korczewski service (usage: task korczewski:restart -- <svc>)"
     cmds:
-      - kubectl --context k3s-production rollout restart deployment/{{.CLI_ARGS}} -n workspace
-      - kubectl --context k3s-production rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
+      - kubectl --context korczewski rollout restart deployment/{{.CLI_ARGS}} -n workspace
+      - kubectl --context korczewski rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
 
   # ─────────────────────────────────────────────
   # Multi-Cluster Overview
@@ -676,17 +676,243 @@ tasks:
     cmds:
       - |
         echo "═══ MENTOLDER.DE (hetzner) ═══"
-        kubectl --context hetzner get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
+        kubectl --context mentolder get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
         echo ""
         echo "  Workspace pods:"
-        kubectl --context hetzner get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+        kubectl --context mentolder get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
       - |
         echo ""
         echo "═══ KORCZEWSKI.DE (k3s-production) ═══"
-        kubectl --context k3s-production get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
+        kubectl --context korczewski get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
         echo ""
         echo "  Workspace pods:"
-        kubectl --context k3s-production get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+        kubectl --context korczewski get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+
+  # ─────────────────────────────────────────────
+  # ArgoCD — GitOps Multi-Cluster Federation
+  # Hub cluster: hetzner (ArgoCD runs here)
+  # Spoke clusters: k3s-production (korczewski), k3d (local dev)
+  # ─────────────────────────────────────────────
+  argocd:install:
+    desc: Install ArgoCD on the hub cluster (hetzner) with CMP sidecar
+    preconditions:
+      - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
+        msg: "hetzner context not reachable. Check kubeconfig."
+      - sh: command -v kustomize > /dev/null 2>&1
+        msg: "kustomize not found. Install it first."
+    cmds:
+      - |
+        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        kustomize build argocd/install/ | envsubst "\$PROD_DOMAIN" | kubectl --context mentolder apply -f -
+      - |
+        echo "Waiting for ArgoCD to be ready (this may take 2-3 minutes)..."
+        kubectl --context mentolder wait --for=condition=Available deployment/argocd-server \
+          -n argocd --timeout=300s
+        kubectl --context mentolder wait --for=condition=Available deployment/argocd-repo-server \
+          -n argocd --timeout=300s
+      - echo ""
+      - 'echo "✓ ArgoCD installed on hetzner cluster"'
+      - 'echo "  UI:    https://argocd.{{.PROD_DOMAIN}}"'
+      - 'echo "  Login: task argocd:password  →  task argocd:login"'
+
+  argocd:password:
+    desc: Print the ArgoCD initial admin password
+    cmds:
+      - |
+        PW=$(kubectl --context mentolder get secret argocd-initial-admin-secret \
+          -n argocd -o jsonpath='{.data.password}' 2>/dev/null | base64 -d)
+        if [ -z "$PW" ]; then
+          echo "Initial secret already deleted — password was changed after first login."
+        else
+          echo "ArgoCD admin password: $PW"
+          echo ""
+          echo "After logging in, change this password and delete the secret:"
+          echo "  kubectl --context mentolder delete secret argocd-initial-admin-secret -n argocd"
+        fi
+
+  argocd:ui:
+    desc: Port-forward the ArgoCD UI to http://localhost:8090
+    cmds:
+      - |
+        echo "ArgoCD UI available at http://localhost:8090"
+        echo "Press Ctrl+C to stop."
+        kubectl --context mentolder port-forward svc/argocd-server -n argocd 8090:80
+
+  argocd:login:
+    desc: Log in to the ArgoCD CLI (port-forward + argocd login)
+    preconditions:
+      - sh: command -v argocd > /dev/null 2>&1
+        msg: "argocd CLI not found. Install: https://argo-cd.readthedocs.io/en/stable/cli_installation/"
+    cmds:
+      - |
+        echo "Starting port-forward to argocd-server..."
+        kubectl --context mentolder port-forward svc/argocd-server -n argocd 8090:80 &
+        PF_PID=$!
+        sleep 2
+        PW=$(kubectl --context mentolder get secret argocd-initial-admin-secret \
+          -n argocd -o jsonpath='{.data.password}' 2>/dev/null | base64 -d)
+        if [ -z "$PW" ]; then
+          echo "Initial secret gone — enter your password manually:"
+          argocd login localhost:8090 --username admin --insecure
+        else
+          argocd login localhost:8090 --username admin --password "$PW" --insecure
+          echo ""
+          echo "Logged in. Consider changing the password:"
+          echo "  argocd account update-password"
+        fi
+        kill $PF_PID 2>/dev/null || true
+
+  argocd:cluster:register:
+    desc: Register all production clusters with ArgoCD and apply workspace labels/annotations
+    preconditions:
+      - sh: command -v argocd > /dev/null 2>&1
+        msg: "argocd CLI not found. Run 'task argocd:login' first."
+      - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
+        msg: "hetzner context not reachable."
+      - sh: kubectl --context korczewski cluster-info > /dev/null 2>&1
+        msg: "k3s-production context not reachable."
+      - sh: "[ -f .env.korczewski ]"
+        msg: ".env.korczewski not found."
+    vars:
+      MENTOLDER_EMAIL:
+        sh: grep '^CONTACT_EMAIL=' .env 2>/dev/null | cut -d= -f2 || echo "noreply@mentolder.de"
+      MENTOLDER_BRAND:
+        sh: grep '^BRAND_NAME=' .env 2>/dev/null | cut -d= -f2 || echo "Mentolder"
+      MENTOLDER_SMTP:
+        sh: grep '^SMTP_FROM=' .env 2>/dev/null | cut -d= -f2 || echo "noreply@{{.PROD_DOMAIN}}"
+      KORCZEWSKI_DOMAIN:
+        sh: grep '^PROD_DOMAIN=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "korczewski.de"
+      KORCZEWSKI_EMAIL:
+        sh: grep '^CONTACT_EMAIL=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "info@korczewski.de"
+      KORCZEWSKI_BRAND:
+        sh: grep '^BRAND_NAME=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "Patrick Korczewski"
+      KORCZEWSKI_SMTP:
+        sh: grep '^SMTP_FROM=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "noreply@korczewski.de"
+    cmds:
+      # ── Hetzner (in-cluster — ArgoCD manages its own cluster) ──
+      - |
+        echo "Registering hetzner (in-cluster)..."
+        argocd cluster add hetzner --in-cluster --yes \
+          --name hetzner \
+          --system-namespace argocd 2>/dev/null || \
+          argocd cluster add hetzner --yes --name hetzner 2>/dev/null || true
+        # Patch the cluster Secret with workspace labels and annotations
+        HETZNER_SECRET=$(kubectl --context mentolder get secret -n argocd \
+          -l argocd.argoproj.io/secret-type=cluster \
+          --no-headers 2>/dev/null | grep -E "^hetzner|cluster-" | awk '{print $1}' | head -1)
+        if [ -n "$HETZNER_SECRET" ]; then
+          kubectl --context mentolder patch secret "$HETZNER_SECRET" -n argocd --type=json -p='[
+            {"op":"add","path":"/metadata/labels/workspace","value":"true"},
+            {"op":"add","path":"/metadata/annotations","value":{}},
+            {"op":"add","path":"/metadata/annotations/workspace-overlay","value":"prod"},
+            {"op":"add","path":"/metadata/annotations/workspace-domain","value":"{{.PROD_DOMAIN}}"},
+            {"op":"add","path":"/metadata/annotations/workspace-brand","value":"{{.MENTOLDER_BRAND}}"},
+            {"op":"add","path":"/metadata/annotations/workspace-email","value":"{{.MENTOLDER_EMAIL}}"},
+            {"op":"add","path":"/metadata/annotations/workspace-infra-namespace","value":"workspace-infra"},
+            {"op":"add","path":"/metadata/annotations/workspace-tls-secret","value":"workspace-wildcard-tls"},
+            {"op":"add","path":"/metadata/annotations/workspace-smtp-from","value":"{{.MENTOLDER_SMTP}}"}
+          ]' 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
+          echo "  ✓ hetzner registered and annotated"
+        else
+          echo "  ✗ Could not find hetzner cluster Secret — register manually"
+        fi
+      # ── Korczewski (external cluster) ──
+      - |
+        echo "Registering k3s-production (korczewski)..."
+        argocd cluster add k3s-production --yes --name korczewski 2>/dev/null || true
+        KORCZ_SECRET=$(kubectl --context mentolder get secret -n argocd \
+          -l argocd.argoproj.io/secret-type=cluster \
+          --no-headers 2>/dev/null | grep "korczewski" | awk '{print $1}' | head -1)
+        if [ -n "$KORCZ_SECRET" ]; then
+          kubectl --context mentolder patch secret "$KORCZ_SECRET" -n argocd --type=json -p='[
+            {"op":"add","path":"/metadata/labels/workspace","value":"true"},
+            {"op":"add","path":"/metadata/annotations","value":{}},
+            {"op":"add","path":"/metadata/annotations/workspace-overlay","value":"prod-korczewski"},
+            {"op":"add","path":"/metadata/annotations/workspace-domain","value":"{{.KORCZEWSKI_DOMAIN}}"},
+            {"op":"add","path":"/metadata/annotations/workspace-brand","value":"{{.KORCZEWSKI_BRAND}}"},
+            {"op":"add","path":"/metadata/annotations/workspace-email","value":"{{.KORCZEWSKI_EMAIL}}"},
+            {"op":"add","path":"/metadata/annotations/workspace-infra-namespace","value":"workspace-infra"},
+            {"op":"add","path":"/metadata/annotations/workspace-tls-secret","value":"workspace-wildcard-tls"},
+            {"op":"add","path":"/metadata/annotations/workspace-smtp-from","value":"{{.KORCZEWSKI_SMTP}}"}
+          ]' 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
+          echo "  ✓ korczewski registered and annotated"
+        else
+          echo "  ✗ Could not find korczewski cluster Secret — register manually"
+        fi
+      - |
+        echo ""
+        echo "Registered clusters:"
+        argocd cluster list 2>/dev/null || kubectl --context mentolder get secrets -n argocd \
+          -l argocd.argoproj.io/secret-type=cluster -o custom-columns='NAME:.metadata.name,LABELS:.metadata.labels'
+
+  argocd:apps:apply:
+    desc: Apply AppProject and ApplicationSet (creates workspace-hetzner + workspace-korczewski apps)
+    preconditions:
+      - sh: kubectl --context mentolder get namespace argocd > /dev/null 2>&1
+        msg: "ArgoCD not installed. Run 'task argocd:install' first."
+    cmds:
+      - kubectl --context mentolder apply -f argocd/project.yaml
+      - kubectl --context mentolder apply -f argocd/applicationset.yaml
+      - echo ""
+      - echo "✓ AppProject 'workspace' and ApplicationSet applied"
+      - |
+        echo "Waiting for Applications to be created (up to 30s)..."
+        sleep 10
+        kubectl --context mentolder get applications -n argocd 2>/dev/null || true
+
+  argocd:status:
+    desc: Show sync/health status of all workspace applications across all clusters
+    cmds:
+      - |
+        echo "═══ ArgoCD Applications ═══"
+        kubectl --context mentolder get applications -n argocd \
+          -o custom-columns='APP:.metadata.name,HEALTH:.status.health.status,SYNC:.status.sync.status,CLUSTER:.spec.destination.server' \
+          2>/dev/null || echo "  No applications found (or ArgoCD not installed)"
+      - echo ""
+      - |
+        echo "═══ Registered Clusters ═══"
+        kubectl --context mentolder get secrets -n argocd \
+          -l argocd.argoproj.io/secret-type=cluster \
+          -o custom-columns='SECRET:.metadata.name,OVERLAY:.metadata.annotations.workspace-overlay,DOMAIN:.metadata.annotations.workspace-domain' \
+          2>/dev/null || echo "  No clusters registered"
+
+  argocd:sync:
+    desc: "Manually trigger sync for an application (usage: task argocd:sync -- workspace-hetzner)"
+    preconditions:
+      - sh: command -v argocd > /dev/null 2>&1
+        msg: "argocd CLI not found."
+    cmds:
+      - |
+        APP="{{.CLI_ARGS}}"
+        if [ -z "$APP" ]; then
+          echo "Syncing all workspace applications..."
+          argocd app sync -l app.kubernetes.io/instance=workspace --async
+        else
+          echo "Syncing $APP..."
+          argocd app sync "$APP"
+        fi
+
+  argocd:diff:
+    desc: "Show diff between git and live state (usage: task argocd:diff -- workspace-hetzner)"
+    preconditions:
+      - sh: command -v argocd > /dev/null 2>&1
+        msg: "argocd CLI not found."
+    cmds:
+      - argocd app diff "{{.CLI_ARGS}}"
+
+  argocd:setup:
+    desc: "Full ArgoCD setup: install → login → register clusters → apply apps (run once)"
+    cmds:
+      - task: argocd:install
+      - task: argocd:login
+      - task: argocd:cluster:register
+      - task: argocd:apps:apply
+      - echo ""
+      - echo "✓ ArgoCD federation setup complete!"
+      - 'echo "  UI:            https://argocd.{{.PROD_DOMAIN}}"'
+      - 'echo "  Apps:          task argocd:status"'
+      - 'echo "  Manual sync:   task argocd:sync -- workspace-hetzner"'
+      - 'echo "  Diff:          task argocd:diff -- workspace-hetzner"'
 
   # ─────────────────────────────────────────────
   # HA Cluster (3-node Hetzner)
@@ -729,20 +955,20 @@ tasks:
         echo "Updating K8s TLS secret..."
         CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.{{.PROD_DOMAIN}}_ecc/fullchain.cer'" | base64 -w0)
         KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.{{.PROD_DOMAIN}}_ecc/*.{{.PROD_DOMAIN}}.key'" | base64 -w0)
-        kubectl --context hetzner patch secret workspace-wildcard-tls -n workspace \
+        kubectl --context mentolder patch secret workspace-wildcard-tls -n workspace \
           -p "{\"data\":{\"tls.crt\":\"$CERT\",\"tls.key\":\"$KEY\"}}"
       - echo "✓ Wildcard cert renewed and K8s secret updated"
 
   ha:status:
     desc: Show HA cluster node and pod status
     cmds:
-      - kubectl --context hetzner get nodes -o wide
+      - kubectl --context mentolder get nodes -o wide
       - echo "---"
-      - kubectl --context hetzner get pods -n workspace --sort-by=.metadata.name
+      - kubectl --context mentolder get pods -n workspace --sort-by=.metadata.name
       - echo "---"
-      - kubectl --context hetzner get pods -n website --sort-by=.metadata.name
+      - kubectl --context mentolder get pods -n website --sort-by=.metadata.name
       - echo "---"
-      - kubectl --context hetzner get certificate -n workspace
+      - kubectl --context mentolder get certificate -n workspace
 
   workspace:admin-users-setup:
     desc: Provision SSO admin users (paddione, gekko) in Keycloak workspace realm
@@ -942,7 +1168,7 @@ tasks:
 
         # Read token from k8s Secret (production context)
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context hetzner get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context mentolder get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
           echo "Deploy MCP first: task mcp:deploy"
@@ -988,7 +1214,7 @@ tasks:
 
         # Read token from k8s Secret (production context)
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context hetzner get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context mentolder get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
           echo "Deploy MCP first: task mcp:deploy"
@@ -1033,7 +1259,7 @@ tasks:
 
         # Read token from k8s Secret (production context)
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context hetzner get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context mentolder get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
           echo "Deploy MCP first: task mcp:deploy"
@@ -1075,13 +1301,13 @@ tasks:
         NEW_CLUSTER=$(openssl rand -hex 32)
         NEW_BUSINESS=$(openssl rand -hex 32)
 
-        kubectl --context hetzner delete secret mcp-tokens 2>/dev/null || true
-        kubectl --context hetzner create secret generic mcp-tokens \
+        kubectl --context mentolder delete secret mcp-tokens 2>/dev/null || true
+        kubectl --context mentolder create secret generic mcp-tokens \
           --from-literal="CLUSTER_TOKEN=$NEW_CLUSTER" \
           --from-literal="BUSINESS_TOKEN=$NEW_BUSINESS"
 
-        kubectl --context hetzner rollout restart deployment/mcp-auth-proxy
-        kubectl --context hetzner rollout status deployment/mcp-auth-proxy --timeout=60s
+        kubectl --context mentolder rollout restart deployment/mcp-auth-proxy
+        kubectl --context mentolder rollout status deployment/mcp-auth-proxy --timeout=60s
 
         echo "MCP tokens rotated"
         echo ""
@@ -1133,12 +1359,12 @@ tasks:
       - |
         TOKEN=$(gh auth token)
         for NS in website workspace; do
-          kubectl --context hetzner create secret docker-registry ghcr-pull-secret \
+          kubectl --context mentolder create secret docker-registry ghcr-pull-secret \
             --namespace="$NS" \
             --docker-server=ghcr.io \
             --docker-username=Paddione \
             --docker-password="$TOKEN" \
-            --dry-run=client -o yaml | kubectl --context hetzner apply -f -
+            --dry-run=client -o yaml | kubectl --context mentolder apply -f -
           echo "✓ ghcr-pull-secret updated in $NS namespace"
         done
 
@@ -1314,26 +1540,26 @@ tasks:
   gpu-worker:switch-prod:
     desc: Switch k3s production to use GPU worker via WireGuard
     preconditions:
-      - sh: kubectl --context hetzner cluster-info > /dev/null 2>&1
+      - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
         msg: "k3s hetzner context not reachable."
       - sh: ping -c1 -W2 10.13.13.1 > /dev/null 2>&1
         msg: "WireGuard tunnel not up. Run: task wireguard:up"
     cmds:
       - |
-        kubectl --context hetzner apply -n workspace -f prod/whisper-gpu.yaml
-        kubectl --context hetzner patch svc whisper -n workspace --type=json -p '[{"op":"remove","path":"/spec/selector"}]' 2>/dev/null || true
+        kubectl --context mentolder apply -n workspace -f prod/whisper-gpu.yaml
+        kubectl --context mentolder patch svc whisper -n workspace --type=json -p '[{"op":"remove","path":"/spec/selector"}]' 2>/dev/null || true
       - echo "✓ Production cluster now uses GPU Whisper via WireGuard (10.13.13.2:8000)"
 
   gpu-worker:switch-prod-cpu:
     desc: Switch k3s production back to in-cluster CPU Whisper
     preconditions:
-      - sh: kubectl --context hetzner cluster-info > /dev/null 2>&1
+      - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
         msg: "k3s hetzner context not reachable."
     cmds:
-      - kubectl --context hetzner apply -n workspace -f k3d/whisper.yaml
+      - kubectl --context mentolder apply -n workspace -f k3d/whisper.yaml
       - |
         echo "Waiting for CPU Whisper..."
-        kubectl --context hetzner rollout status deployment/whisper -n workspace --timeout=600s
+        kubectl --context mentolder rollout status deployment/whisper -n workspace --timeout=600s
       - echo "✓ Production cluster switched back to CPU Whisper"
 
   # ─────────────────────────────────────────────

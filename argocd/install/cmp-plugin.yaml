@@ -1,0 +1,24 @@
+# Config Management Plugin: kustomize-envsubst
+# Wraps `kustomize build | envsubst` so ArgoCD can process overlays
+# that use ${VARIABLE} placeholders. Env vars are passed per-Application
+# via spec.source.plugin.env in the ApplicationSet template.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cmp-kustomize-envsubst
+data:
+  plugin.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: kustomize-envsubst
+    spec:
+      allowConcurrency: true
+      discover:
+        find:
+          glob: "**/kustomization.yaml"
+      generate:
+        command: [sh, -c]
+        args:
+          - kustomize build . | envsubst
+      lockRepo: false

@@ -1,0 +1,95 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: workspace
+  namespace: argocd
+spec:
+  # ── Cluster Discovery ──────────────────────────────────────────────────────
+  # The cluster generator creates one Application per registered cluster that
+  # has the label `workspace=true`. All per-cluster config (domain, overlay
+  # path, brand name, etc.) lives as annotations on the cluster Secret in the
+  # argocd namespace — set via `task argocd:cluster:register`.
+  #
+  # To add a new cluster:
+  #   task argocd:cluster:register
+  #
+  # Annotation keys (set during registration):
+  #   workspace-overlay          Kustomize path in this repo (e.g. prod, prod-korczewski)
+  #   workspace-domain           Production domain (e.g. mentolder.de)
+  #   workspace-brand            Brand name (e.g. Mentolder)
+  #   workspace-email            Contact email
+  #   workspace-infra-namespace  Traefik middleware namespace (usually workspace-infra)
+  #   workspace-tls-secret       TLS wildcard secret name (usually workspace-wildcard-tls)
+  #   workspace-smtp-from        SMTP sender address
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workspace: "true"
+
+  # ── Application Template ───────────────────────────────────────────────────
+  template:
+    metadata:
+      # One Application per cluster: workspace-hetzner, workspace-korczewski, …
+      name: "workspace-{{name}}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
+    spec:
+      project: workspace
+
+      source:
+        repoURL: https://github.com/Paddione/Bachelorprojekt
+        targetRevision: main
+        # Each cluster points to its own Kustomize overlay
+        path: "{{metadata.annotations.workspace-overlay}}"
+
+        # Use the kustomize-envsubst CMP so ${VAR} placeholders in overlay
+        # files get replaced with cluster-specific values at sync time.
+        plugin:
+          name: kustomize-envsubst
+          env:
+            - name: PROD_DOMAIN
+              value: "{{metadata.annotations.workspace-domain}}"
+            - name: BRAND_NAME
+              value: "{{metadata.annotations.workspace-brand}}"
+            - name: CONTACT_EMAIL
+              value: "{{metadata.annotations.workspace-email}}"
+            - name: INFRA_NAMESPACE
+              value: "{{metadata.annotations.workspace-infra-namespace}}"
+            - name: TLS_SECRET_NAME
+              value: "{{metadata.annotations.workspace-tls-secret}}"
+            - name: SMTP_FROM
+              value: "{{metadata.annotations.workspace-smtp-from}}"
+
+      destination:
+        server: "{{server}}"
+        namespace: workspace
+
+      syncPolicy:
+        automated:
+          # Don't auto-delete resources removed from git — require manual prune
+          # to avoid accidental data loss on stateful services.
+          prune: false
+          # Automatically revert manual changes that drift from git state.
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - RespectIgnoreDifferences=true
+
+      # Ignore fields that legitimately drift (HPA-managed replicas, secret data
+      # managed outside ArgoCD like manually rotated tokens).
+      ignoreDifferences:
+        - group: ""
+          kind: Secret
+          jsonPointers:
+            - /data
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/replicas
+        - group: autoscaling
+          kind: HorizontalPodAutoscaler
+          jsonPointers:
+            - /spec/minReplicas
+            - /spec/maxReplicas

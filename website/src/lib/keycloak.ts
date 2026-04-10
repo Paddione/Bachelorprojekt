@@ -93,7 +93,7 @@ export async function sendPasswordResetEmail(userId: string): Promise<boolean> {
 export interface KcUser {
   id: string;
   username: string;
-  email: string;
+  email?: string;
   firstName?: string;
   lastName?: string;
   enabled: boolean;

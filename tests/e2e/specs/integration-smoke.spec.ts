@@ -105,16 +105,10 @@ test.describe('Integration Smoke Tests', () => {
   // ── Nextcloud OIDC ────────────────────────────────────────────
   test('Nextcloud shows Keycloak login button', async ({ page }) => {
     await page.goto(`https://files.${DOMAIN}/login`);
-    // NC 33 renders login via Vue.js — wait for the OIDC button to appear.
-    // Try specific OIDC/Keycloak selectors first, then fall back to a broader SSO text match.
+    // NC 33 renders login via Vue.js — wait for the OIDC button to appear after hydration.
     const oidcButton = page.locator('a[href*="oidc"], a[href*="keycloak"], .oidc-button, .alternative-logins a[href*="social"]');
-    const fallback = page.getByRole('link', { name: /login|keycloak|openid|sso/i });
-    const isVisible = await oidcButton.first().isVisible().catch(() => false);
-    if (isVisible) {
-      await expect(oidcButton.first()).toBeVisible({ timeout: 15_000 });
-    } else {
-      await expect(fallback.first()).toBeVisible({ timeout: 15_000 });
-    }
+    const fallback = page.getByRole('link', { name: /keycloak|anmelden|openid|sso/i });
+    await expect(oidcButton.first().or(fallback.first())).toBeVisible({ timeout: 15_000 });
   });
 
   // ── Collabora Integration ─────────────────────────────────────

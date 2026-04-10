@@ -27,7 +27,11 @@ test.describe('NFA-05: Usability', () => {
       // Already on login form
     }
 
-    await expect(page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i })).toBeVisible({ timeout: 10_000 });
+    // Accept either local login form (email/username field) or SSO button (production uses OIDC)
+    const loginField = page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i });
+    const ssoButton = page.getByRole('link', { name: /gitlab|keycloak|openid|sso/i })
+      .or(page.getByRole('button', { name: /gitlab|keycloak|openid|sso/i }));
+    await expect(loginField.or(ssoButton.first())).toBeVisible({ timeout: 10_000 });
     await context.close();
   });
 

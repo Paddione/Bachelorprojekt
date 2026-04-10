@@ -1,13 +1,46 @@
 ---
+import { getMeetingsForClient } from '../../lib/meetings-db';
+import type { Meeting } from '../../lib/meetings-db';
+
 interface Props {
   clientEmail: string;
 }
 const { clientEmail } = Astro.props;
 
-void clientEmail; // will be used in Meeting History task
+let meetings: Meeting[] = [];
+try {
+  meetings = await getMeetingsForClient(clientEmail, true); // only released
+} catch {
+  // DB unavailable
+}
 ---
 
 <div data-testid="meetings-tab">
   <h3 class="text-lg font-semibold text-light mb-4">Besprechungen</h3>
-  <p class="text-muted">Freigegebene Besprechungsaufzeichnungen erscheinen hier.</p>
+  {meetings.length === 0 ? (
+    <p class="text-muted">Keine freigegebenen Besprechungen vorhanden.</p>
+  ) : (
+    <ul class="space-y-4">
+      {meetings.map(meeting => (
+        <li class="p-4 bg-dark rounded-xl border border-dark-lighter" data-testid="meeting-item">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <span class="text-sm font-medium text-light">Besprechung</span>
+              <span class="ml-3 text-xs text-muted">ID: {meeting.id}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted capitalize">
+                {meeting.status}
+              </span>
+              <span class="text-sm text-muted">
+                {meeting.released_at
+                  ? new Date(meeting.released_at).toLocaleDateString('de-DE')
+                  : ''}
+              </span>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
 </div>

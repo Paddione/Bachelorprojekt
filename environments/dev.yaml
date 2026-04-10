@@ -1,0 +1,17 @@
+# environments/dev.yaml
+environment: dev
+context: k3d-dev
+domain: localhost
+
+env_vars:
+  # Dev uses default_dev from schema.yaml for most values.
+  # Override only where the dev default differs from schema:
+  WEBSITE_IMAGE: workspace-website
+
+# Dev secrets: generated from schema defaults at deploy time.
+secrets_mode: plaintext
+
+setup_vars:
+  KC_USER1_USERNAME: admin
+  KC_USER1_EMAIL: admin@localhost
+  KC_USER1_PASSWORD: devadmin

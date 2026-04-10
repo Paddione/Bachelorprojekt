@@ -24,28 +24,7 @@ function getAuthHeader(): string {
   return 'Basic ' + Buffer.from(`${NC_USER}:${NC_PASS}`).toString('base64');
 }
 
-export interface CalEvent {
-  start: Date;
-  end: Date;
-  summary: string;
-}
-
-export interface TimeSlot {
-  start: string; // ISO 8601
-  end: string;
-  display: string; // "09:00 - 10:00"
-}
-
-export interface DaySlots {
-  date: string; // YYYY-MM-DD
-  weekday: string; // "Montag", etc.
-  slots: TimeSlot[];
-}
-
-const WEEKDAYS_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-
-// Fetch events from Nextcloud CalDAV for a date range
-async function fetchEvents(from: Date, to: Date): Promise<CalEvent[]> {
+async function fetchEventsRaw(from: Date, to: Date): Promise<string[]> {
   const fromStr = from.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const toStr = to.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
@@ -76,27 +55,50 @@ async function fetchEvents(from: Date, to: Date): Promise<CalEvent[]> {
     });
 
     if (!res.ok) {
-      console.error('[caldav] REPORT failed:', res.status, await res.text());
+      console.error('[caldav] REPORT failed:', res.status);
       return [];
     }
 
     const xml = await res.text();
-    return parseICalEvents(xml);
+    const icals: string[] = [];
+    const calDataRegex = /<c:calendar-data[^>]*>([\s\S]*?)<\/c:calendar-data>/gi;
+    let match;
+    while ((match = calDataRegex.exec(xml)) !== null) {
+      icals.push(match[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
+    }
+    return icals;
   } catch (err) {
     console.error('[caldav] Fetch error:', err);
     return [];
   }
 }
 
-// Parse VEVENT blocks from CalDAV XML response
-function parseICalEvents(xml: string): CalEvent[] {
-  const events: CalEvent[] = [];
-  const calDataRegex = /<c:calendar-data[^>]*>([\s\S]*?)<\/c:calendar-data>/gi;
-  let match;
+export interface CalEvent {
+  start: Date;
+  end: Date;
+  summary: string;
+}
 
-  while ((match = calDataRegex.exec(xml)) !== null) {
-    const ical = match[1]
-      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+export interface TimeSlot {
+  start: string; // ISO 8601
+  end: string;
+  display: string; // "09:00 - 10:00"
+}
+
+export interface DaySlots {
+  date: string; // YYYY-MM-DD
+  weekday: string; // "Montag", etc.
+  slots: TimeSlot[];
+}
+
+const WEEKDAYS_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+
+// Fetch events from Nextcloud CalDAV for a date range
+async function fetchEvents(from: Date, to: Date): Promise<CalEvent[]> {
+  const icals = await fetchEventsRaw(from, to);
+  const events: CalEvent[] = [];
+
+  for (const ical of icals) {
     const veventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/gi;
     let eventMatch;
 
@@ -134,6 +136,55 @@ function parseICalDate(val: string): Date {
   }
   const iso = `${clean.slice(0, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 8)}T${clean.slice(9, 11)}:${clean.slice(11, 13)}:${clean.slice(13, 15)}`;
   return clean.endsWith('Z') ? new Date(iso + 'Z') : new Date(iso);
+}
+
+export interface ClientBooking {
+  summary: string;
+  start: Date;
+  end: Date;
+  status: string;
+}
+
+export async function getClientBookings(clientEmail: string): Promise<ClientBooking[]> {
+  const now = new Date();
+  const past = new Date(now);
+  past.setDate(past.getDate() - 90);
+  const future = new Date(now);
+  future.setDate(future.getDate() + BOOKING_HORIZON_DAYS);
+
+  const icals = await fetchEventsRaw(past, future);
+  const bookings: ClientBooking[] = [];
+
+  for (const ical of icals) {
+    const veventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/gi;
+    let eventMatch;
+
+    while ((eventMatch = veventRegex.exec(ical)) !== null) {
+      const block = eventMatch[1];
+      const attendeePattern = new RegExp(
+        `ATTENDEE[^:]*:mailto:${clientEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+        'i'
+      );
+      if (!attendeePattern.test(block)) continue;
+
+      const dtstart = extractICalProp(block, 'DTSTART');
+      const dtend = extractICalProp(block, 'DTEND');
+      const summary = extractICalProp(block, 'SUMMARY') || 'Termin';
+      const status = extractICalProp(block, 'STATUS') || 'CONFIRMED';
+
+      if (dtstart) {
+        bookings.push({
+          summary,
+          start: parseICalDate(dtstart),
+          end: dtend ? parseICalDate(dtend) : new Date(parseICalDate(dtstart).getTime() + 3600000),
+          status,
+        });
+      }
+    }
+  }
+
+  bookings.sort((a, b) => b.start.getTime() - a.start.getTime());
+  return bookings;
 }
 
 // Compute available booking slots for a range of days

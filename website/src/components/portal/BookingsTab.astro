@@ -1,16 +1,76 @@
 ---
+import { getClientBookings } from '../../lib/caldav';
+import type { ClientBooking } from '../../lib/caldav';
+
 interface Props {
   clientEmail: string;
 }
 const { clientEmail } = Astro.props;
 
-// caldav.ts exposes getAvailableSlots() and createCalendarEvent() only.
-// There is no function to fetch bookings by client email.
-// Bookings for this client are not queryable from the CalDAV library.
-void clientEmail; // used by parent for context; no CalDAV lookup available
+let bookings: ClientBooking[] = [];
+try {
+  bookings = await getClientBookings(clientEmail);
+} catch {
+  // CalDAV unavailable
+}
+
+const now = new Date();
+const upcoming = bookings.filter(b => b.start >= now && b.status !== 'CANCELLED');
+const past = bookings.filter(b => b.start < now || b.status === 'CANCELLED');
 ---
 
 <div data-testid="bookings-tab">
   <h3 class="text-lg font-semibold text-light mb-4">Ihre Termine</h3>
-  <p class="text-muted">Ihre gebuchten Termine erscheinen hier.</p>
+
+  {bookings.length === 0 ? (
+    <p class="text-muted">Keine gebuchten Termine vorhanden.</p>
+  ) : (
+    <>
+      {upcoming.length > 0 && (
+        <div class="mb-6">
+          <h4 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Anstehend</h4>
+          <ul class="space-y-2">
+            {upcoming.map(b => (
+              <li class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-dark-lighter">
+                <div class="flex-1">
+                  <span class="text-light font-medium">{b.summary}</span>
+                  <div class="text-sm text-muted mt-1">
+                    {b.start.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    {' '}um{' '}
+                    {b.start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                    {' '}&ndash;{' '}
+                    {b.end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent">
+                  {b.status === 'TENTATIVE' ? 'Anfrage' : 'Bestaetigt'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {past.length > 0 && (
+        <div>
+          <h4 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Vergangene</h4>
+          <ul class="space-y-2">
+            {past.map(b => (
+              <li class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-dark-lighter opacity-60">
+                <div class="flex-1">
+                  <span class="text-light">{b.summary}</span>
+                  <div class="text-sm text-muted mt-1">
+                    {b.start.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </div>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted">
+                  {b.status === 'CANCELLED' ? 'Abgesagt' : 'Vergangen'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  )}
 </div>

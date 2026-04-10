@@ -190,6 +190,8 @@ spec:
           volumeMounts:
             - name: public
               mountPath: /var/www/app/public
+            - name: data
+              mountPath: /var/www/app/storage
           resources:
             requests:
               memory: 256Mi
@@ -231,6 +233,9 @@ spec:
         - name: nginx-config
           configMap:
             name: invoiceninja-nginx-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: invoiceninja-data-pvc
 ---
 apiVersion: v1
 kind: Service

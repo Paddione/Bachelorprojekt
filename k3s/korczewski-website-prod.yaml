@@ -1,0 +1,18 @@
+# ── Production IngressRoute for korczewski-website ──────────────────────────
+# HTTPS + Let's Encrypt via Traefik certResolver
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: korczewski-website
+  namespace: korczewski-website
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`web.korczewski.de`)
+      services:
+        - name: korczewski-website
+          port: 80
+  tls:
+    certResolver: letsencrypt

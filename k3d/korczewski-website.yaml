@@ -44,10 +44,12 @@ spec:
       labels:
         app: korczewski-website
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: korczewski-website
-          image: korczewski-website:latest
-          imagePullPolicy: Never
+          image: ghcr.io/paddione/korczewski-website:latest
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: korczewski-website-config

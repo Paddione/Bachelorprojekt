@@ -4,7 +4,7 @@ import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
 import { listUsers } from '../lib/keycloak';
 import type { KcUser } from '../lib/keycloak';
 
-const session = getSession(Astro.request.headers.get('cookie'));
+const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
   return Astro.redirect(getLoginUrl());
 }

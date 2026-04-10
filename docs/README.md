@@ -18,9 +18,9 @@ Alle Anforderungen sind in der Requirements-Uebersicht dokumentiert:
 
 | Kategorie | IDs | Beschreibung |
 |-----------|-----|--------------|
-| Funktional (FA) | FA-01 -- FA-12 | Messaging, Kanaele, Video, Dateien, Nutzerverwaltung, Benachrichtigungen, Suche, Homeoffice, Billing Bot, Website, Gast-Portal, Claude Code AI |
-| Sicherheit (SA) | SA-01 -- SA-09 | SSO, Authentifizierung, Verschluesselung, Netzwerksicherheit |
-| Nicht-funktional (NFA) | NFA-01 -- NFA-07 | DSGVO/Datensouveraenitaet, Monitoring, Performance, Resilienz |
+| Funktional (FA) | FA-01 -- FA-25 | Messaging, Kanaele, Video, Dateien, Nutzerverwaltung, Benachrichtigungen, Suche, Homeoffice, Billing Bot, Website, Gast-Portal, Claude Code AI, Docs, Registration, OIDC, Booking, Meetings, Transkription, Outline, Vaultwarden, Whiteboard, Mailpit |
+| Sicherheit (SA) | SA-01 -- SA-10 | SSO, Authentifizierung, Verschluesselung, Netzwerksicherheit, MCP-Auth |
+| Nicht-funktional (NFA) | NFA-01 -- NFA-09 | DSGVO/Datensouveraenitaet, Monitoring, Performance, Resilienz, Backup, Multi-Cluster |
 | Abnahmekriterien (AK) | AK-03, AK-04 | Akzeptanztests |
 | Lieferobjekte (L) | L-01 ff. | Auslieferbare Artefakte |
 

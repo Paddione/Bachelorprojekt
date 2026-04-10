@@ -1,13 +1,12 @@
 # ── Secrets (niemals committen!) ────────────────
 .env
-.env.secrets
-*.env.local
+.env.*
+!.env.example
 # ── Environment secrets (plaintext, never commit) ──
 environments/.secrets/
 # prod/secrets.yaml and prod-korczewski/secrets.yaml committed as ArgoCD placeholders (Skip=true)
 # Real credentials are applied via: task workspace:prod:deploy / task korczewski:deploy
 # k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials
-.env.korczewski
 deploy/mcp/openclaw-secrets.yaml
 deploy/mcp/claude-code-secrets.yaml
 vaultwarden-import-*.json

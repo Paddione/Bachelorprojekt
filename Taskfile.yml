@@ -827,16 +827,21 @@ tasks:
           kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
         else
           # Prod: build from overlay, apply to target cluster
+          # Apply SealedSecret first so the Secret is ready when pods start
+          sealed="environments/sealed-secrets/{{.ENV}}.yaml"
+          if [ -f "$sealed" ]; then
+            kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
+            echo "Waiting for SealedSecret to be decrypted..."
+            for i in $(seq 1 30); do
+              kubectl --context "$ENV_CONTEXT" get secret workspace-secrets -n workspace &>/dev/null && break
+              sleep 1
+            done
+          fi
+
           overlay="${ENV_OVERLAY:-prod}"
           kustomize build "$overlay/" \
             | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
-
-          # Apply SealedSecret if it exists
-          sealed="environments/sealed-secrets/{{.ENV}}.yaml"
-          if [ -f "$sealed" ]; then
-            kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
-          fi
         fi
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -1753,3 +1758,41 @@ tasks:
         --organization mjo8q7Mosz36nIJUksYd
         docs/api/kore-api.yaml
       - echo '✓ API spec published to GitBook'
+
+  # ─────────────────────────────────────────────
+  # Utility Scripts
+  # ─────────────────────────────────────────────
+  billing-bot:setup:
+    desc: Build billing-bot image and push to local registry
+    cmds:
+      - bash scripts/billing-bot-setup.sh
+
+  workspace:check-connectivity:
+    desc: Test HTTPS reachability of all workspace services
+    cmds:
+      - bash scripts/check-connectivity.sh
+
+  workspace:check-updates:
+    desc: Compare running container images against registry for available updates
+    cmds:
+      - bash scripts/check-updates.sh
+
+  workspace:create-guest:
+    desc: "Create a customer guest account in Keycloak + Mattermost (FA-11)"
+    cmds:
+      - bash scripts/create-customer-guest.sh {{.CLI_ARGS}}
+
+  workspace:import-users:
+    desc: Import users from CSV or LDIF into Keycloak
+    cmds:
+      - bash scripts/import-users.sh {{.CLI_ARGS}}
+
+  workspace:migrate:
+    desc: Interactive data migration assistant (import/export)
+    cmds:
+      - bash scripts/migrate.sh
+
+  workspace:anfragen-setup:
+    desc: Create anfragen channel and webhook in all Mattermost teams
+    cmds:
+      - bash scripts/mattermost-anfragen-setup.sh

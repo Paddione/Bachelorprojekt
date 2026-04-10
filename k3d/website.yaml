@@ -96,7 +96,7 @@ spec:
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: website-config

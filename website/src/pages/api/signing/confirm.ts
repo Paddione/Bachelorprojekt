@@ -1,0 +1,182 @@
+import type { APIRoute } from 'astro';
+import { getSession } from '../../../lib/auth';
+import {
+  hashFile,
+  moveFile,
+  ensureFolder,
+  getClientFolderPath,
+  PENDING_SIGNATURES_DIR,
+  SIGNED_DIR,
+} from '../../../lib/nextcloud-files';
+import { postToChannel } from '../../../lib/mattermost';
+import {
+  searchDocuments,
+  updateDocument,
+  createDocument,
+  getOrCreateCollection,
+} from '../../../lib/outline';
+
+const MATTERMOST_SIGNING_CHANNEL = process.env.MATTERMOST_SIGNING_CHANNEL || '';
+
+/**
+ * POST /api/signing/confirm
+ *
+ * Body: { documentName: string, documentPath: string }
+ *   documentPath: the Nextcloud-relative path of the pending document,
+ *                 e.g. "Clients/alice/pending-signatures/contract.pdf"
+ *                 (with or without a leading slash)
+ *
+ * 1. Requires authenticated Keycloak session.
+ * 2. Validates the document path is within the caller's own pending-signatures folder.
+ * 3. Computes SHA-256 hash of the file server-side.
+ * 4. Moves the file from pending-signatures/ to signed/.
+ * 5. Posts confirmation to Mattermost.
+ * 6. Appends a record to the client's Outline signing log.
+ * 7. Returns { success: true, hash: "<sha256>" }.
+ */
+export const POST: APIRoute = async ({ request }) => {
+  // --- Authentication ---
+  const cookieHeader = request.headers.get('cookie');
+  const session = getSession(cookieHeader);
+
+  if (!session) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // --- Parse body ---
+  let body: { documentName?: unknown; documentPath?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { documentName, documentPath } = body;
+  if (
+    !documentName ||
+    typeof documentName !== 'string' ||
+    !documentPath ||
+    typeof documentPath !== 'string'
+  ) {
+    return new Response(
+      JSON.stringify({ error: 'documentName and documentPath are required strings' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // --- Security: validate path is within the caller's own pending-signatures folder ---
+  const username = session.preferred_username || session.sub;
+  const clientFolder = getClientFolderPath(username); // e.g. "Clients/alice/"
+  const allowedPrefix = `${clientFolder}${PENDING_SIGNATURES_DIR}/`;
+
+  // Normalise: strip leading slash, collapse double-slashes, reject traversal sequences
+  const normalizedPath = documentPath
+    .replace(/\\/g, '/')   // normalise backslashes
+    .replace(/^\//, '')    // strip leading slash
+    .replace(/\/+/g, '/'); // collapse duplicate slashes
+
+  if (
+    normalizedPath.includes('../') ||
+    normalizedPath.includes('/..') ||
+    !normalizedPath.startsWith(allowedPrefix)
+  ) {
+    return new Response(JSON.stringify({ error: 'Invalid document path' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Also ensure documentName itself has no path separators (just a filename)
+  if (documentName.includes('/') || documentName.includes('\\') || documentName.includes('..')) {
+    return new Response(JSON.stringify({ error: 'Invalid document name' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    // --- Hash the file server-side ---
+    const fileHash = await hashFile(normalizedPath);
+
+    // --- Move file to signed/ ---
+    const signedFolder = `${clientFolder}${SIGNED_DIR}/`;
+    await ensureFolder(signedFolder);
+    const destPath = `${signedFolder}${documentName}`;
+
+    const moved = await moveFile(normalizedPath, destPath);
+    if (!moved) {
+      return new Response(JSON.stringify({ error: 'Failed to move document' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // --- Build confirmation strings ---
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('de-DE');
+    const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const displayName = session.name || username;
+
+    // --- Mattermost notification (non-fatal) ---
+    if (MATTERMOST_SIGNING_CHANNEL) {
+      const mmMsg =
+        `✅ **${displayName}** hat **${documentName}** am ${dateStr} um ${timeStr} UTC akzeptiert.\n` +
+        `SHA-256: \`${fileHash}\``;
+      try {
+        await postToChannel(MATTERMOST_SIGNING_CHANNEL, mmMsg);
+      } catch {
+        // Non-fatal: continue even if Mattermost is unavailable
+      }
+    }
+
+    // --- Outline signing log (non-fatal) ---
+    // Look for a collection named after the client, then find or create a signing-log document.
+    try {
+      const collectionName = `Kunde: ${displayName}`;
+      const collection = await getOrCreateCollection(collectionName);
+      if (collection) {
+        const logTitle = `Signaturprotokoll - ${username}`;
+        const existing = await searchDocuments(logTitle, collection.id);
+        const logEntry =
+          `\n| ${dateStr} ${timeStr} UTC | ${documentName} | \`${fileHash}\` |`;
+
+        if (existing.length > 0) {
+          // Append to the first matching document
+          await updateDocument(existing[0].id, logEntry, true);
+        } else {
+          // Create a new signing log document with a table header
+          const initialText =
+            `# ${logTitle}\n\n` +
+            `| Datum/Uhrzeit | Dokument | SHA-256 |\n` +
+            `|---|---|---|\n` +
+            `| ${dateStr} ${timeStr} UTC | ${documentName} | \`${fileHash}\` |`;
+          await createDocument({
+            title: logTitle,
+            text: initialText,
+            collectionId: collection.id,
+            publish: true,
+          });
+        }
+      }
+    } catch {
+      // Non-fatal: Outline logging failure must not block the signing response
+    }
+
+    return new Response(JSON.stringify({ success: true, hash: fileHash }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    console.error('[signing/confirm] Unexpected error:', err);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+};

@@ -24,8 +24,11 @@ spec:
           args:
             - |
               npm install -g supergateway @playwright/mcp 2>&1 | tail -3
+              # Find Chromium binary installed by the Playwright Docker image
+              CHROMIUM=$(find /ms-playwright -name chrome -path '*/chrome-linux/*' 2>/dev/null | head -1)
+              echo "Using Chromium: $CHROMIUM"
               exec npx supergateway \
-                --stdio "npx @playwright/mcp" \
+                --stdio "npx @playwright/mcp --headless --executable-path $CHROMIUM" \
                 --outputTransport streamableHttp \
                 --port 3000 \
                 --streamableHttpPath /mcp \
@@ -43,7 +46,7 @@ spec:
               memory: 512Mi
               cpu: 200m
             limits:
-              memory: 1Gi
+              memory: 2Gi
 ---
 apiVersion: v1
 kind: Service

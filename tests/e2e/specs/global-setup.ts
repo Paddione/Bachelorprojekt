@@ -15,14 +15,33 @@ setup('authenticate', async ({ page }) => {
     // Already on login form — no chooser shown
   }
 
-  // Wait for the actual login form to appear
+  // Check if SSO/OIDC login is available (GitLab button = Keycloak OIDC)
+  const ssoButton = page.getByRole('link', { name: /gitlab|openid|keycloak|sso/i });
   const emailField = page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i });
+
+  // Wait for login page to load
   await expect(emailField).toBeVisible({ timeout: 10_000 });
 
-  await emailField.fill(MM_USER);
-  await page.getByRole('textbox', { name: /passwort|password/i }).fill(MM_PASS);
-  await page.getByRole('button', { name: /sign in|anmelden|log in/i }).click();
-  await page.waitForURL('**/channels/**', { timeout: 15_000 });
+  if (await ssoButton.isVisible()) {
+    // SSO flow: click the OIDC button → Keycloak login page
+    await ssoButton.click();
+    await page.waitForURL(/\/realms\/|\/auth\//, { timeout: 10_000 });
+
+    // Fill in Keycloak login form
+    const kcUser = page.locator('#username');
+    const kcPass = page.locator('#password');
+    await expect(kcUser).toBeVisible({ timeout: 10_000 });
+    await kcUser.fill(MM_USER);
+    await kcPass.fill(MM_PASS);
+    await page.locator('#kc-login').click();
+  } else {
+    // Local login flow (dev/k3d environments)
+    await emailField.fill(MM_USER);
+    await page.getByRole('textbox', { name: /passwort|password/i }).fill(MM_PASS);
+    await page.getByRole('button', { name: /sign in|anmelden|log in/i }).click();
+  }
+
+  await page.waitForURL('**/channels/**', { timeout: 20_000 });
   await expect(page.locator('#channel_view')).toBeVisible({ timeout: 10_000 });
 
   // Disable remaining tour tips via user preferences (server-level config handles the main flow)

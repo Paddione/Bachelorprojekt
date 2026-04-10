@@ -1,0 +1,27 @@
+# ── GPU Worker override for k3d dev cluster ──────────────────────────────────
+# Replaces the selector-based whisper Service with manual Endpoints
+# pointing to the host-running GPU container.
+#
+# Apply:  task gpu-worker:switch-dev
+# Revert: task gpu-worker:switch-dev-cpu  (re-applies k3d/whisper.yaml)
+#
+# The __HOST_IP__ placeholder is replaced at apply-time by the Taskfile task.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: whisper
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: whisper
+subsets:
+  - addresses:
+      - ip: "__HOST_IP__"
+    ports:
+      - port: 8000

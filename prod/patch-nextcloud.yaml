@@ -38,3 +38,13 @@ spec:
               value: "nextcloud"
             - name: MAIL_DOMAIN
               value: "${PROD_DOMAIN}"
+          readinessProbe:
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: "files.${PROD_DOMAIN}"
+          livenessProbe:
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: "files.${PROD_DOMAIN}"

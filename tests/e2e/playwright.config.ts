@@ -109,6 +109,18 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+
+    // ── smoke: Cross-service integration tests ──────────────────
+    // Run: npx playwright test --project=smoke
+    {
+      name: 'smoke',
+      testMatch: ['**/integration-smoke.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: mmURL,
+      },
+      // no dependency on setup — handles its own auth
+    },
   ],
 
   outputDir: '../results/playwright-traces',

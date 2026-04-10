@@ -47,7 +47,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: mariadb
-          image: mariadb:11-jammy
+          image: mariadb:11.4-noble
           env:
             - name: MARIADB_DATABASE
               value: invoiceninja

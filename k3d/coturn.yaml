@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: coturn
-          image: coturn/coturn:4.6-alpine
+          image: coturn/coturn:4.9-alpine
           args:
             - "--no-tls"
             - "--no-dtls"

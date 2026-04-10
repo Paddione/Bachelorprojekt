@@ -39,6 +39,11 @@ Desktop.ini
 *.swo
 *~
 
+# ── WireGuard (generated keys and configs) ──────
+wireguard/*.conf
+wireguard/*.key
+wireguard/*.pub
+
 # ── Docker ──────────────────────────────────────
 .docker/
 

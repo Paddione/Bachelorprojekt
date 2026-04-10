@@ -83,6 +83,7 @@ runcmd:
   - ufw allow 6443/tcp
   - ufw allow 10250/tcp
   - ufw allow 8472/udp
+  - ufw allow 51820/udp    # WireGuard GPU worker tunnel
   - ufw allow 2379:2380/tcp
   - ufw --force enable
 

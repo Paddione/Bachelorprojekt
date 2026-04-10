@@ -47,7 +47,7 @@ spec:
               mountPath: /var/www/html
       containers:
         - name: nextcloud
-          image: nextcloud:30-apache
+          image: nextcloud:33-apache
           env:
             - name: POSTGRES_HOST
               value: nextcloud-db

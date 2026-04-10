@@ -20,5 +20,12 @@ data:
       generate:
         command: [sh, -c]
         args:
-          - kustomize build . | envsubst
+          - |
+            export PROD_DOMAIN="${ARGOCD_ENV_PROD_DOMAIN}"
+            export BRAND_NAME="${ARGOCD_ENV_BRAND_NAME}"
+            export CONTACT_EMAIL="${ARGOCD_ENV_CONTACT_EMAIL}"
+            export INFRA_NAMESPACE="${ARGOCD_ENV_INFRA_NAMESPACE}"
+            export TLS_SECRET_NAME="${ARGOCD_ENV_TLS_SECRET_NAME}"
+            export SMTP_FROM="${ARGOCD_ENV_SMTP_FROM}"
+            kustomize build . | envsubst
       lockRepo: false

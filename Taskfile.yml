@@ -360,6 +360,7 @@ tasks:
       - task: workspace:admin-users-setup
       - task: workspace:billing-setup
       - task: workspace:stripe-setup
+      - task: workspace:connectors
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  MCP Status:   http://ai.localhost"'
@@ -460,6 +461,16 @@ tasks:
       - 'echo "  Contacts:  http://files.localhost/apps/contacts"'
       - 'echo "  Talk:      http://files.localhost/apps/spreed"'
       - 'echo "  Collabora: via richdocuments WOPI integration"'
+
+  workspace:connectors:
+    desc: Set up Mattermost service connectors (bookmarks + links to all workspace services)
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running. Run 'task cluster:create' first."
+      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
+        msg: "Mattermost not deployed. Run 'task workspace:deploy' first."
+    cmds:
+      - bash scripts/mattermost-connectors-setup.sh
 
   workspace:status:
     desc: Show Workspace MVP deployment status

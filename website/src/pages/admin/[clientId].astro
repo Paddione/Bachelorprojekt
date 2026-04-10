@@ -17,7 +17,8 @@ if (!isAdmin(session)) {
 }
 
 const { clientId } = Astro.params;
-const client = await getUserById(clientId!);
+if (!clientId) return Astro.redirect('/admin');
+const client = await getUserById(clientId);
 if (!client) {
   return Astro.redirect('/admin');
 }

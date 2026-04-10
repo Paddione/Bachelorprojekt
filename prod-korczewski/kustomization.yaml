@@ -14,7 +14,3 @@ configMapGenerator:
       - realm-workspace.json=realm-workspace-korczewski.json
 generatorOptions:
   disableNameSuffixHash: true
-
-# Override secrets with korczewski-specific values
-patches:
-  - path: secrets.yaml

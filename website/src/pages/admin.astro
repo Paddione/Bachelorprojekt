@@ -1,0 +1,51 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
+import { listUsers } from '../lib/keycloak';
+import type { KcUser } from '../lib/keycloak';
+
+const session = getSession(Astro.request.headers.get('cookie'));
+if (!session) {
+  return Astro.redirect(getLoginUrl());
+}
+if (!isAdmin(session)) {
+  return Astro.redirect('/portal');
+}
+
+let users: KcUser[] = [];
+try {
+  users = await listUsers();
+} catch {
+  // Keycloak unavailable
+}
+---
+
+<Layout title="Admin — Alle Clients">
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-light font-serif">Clients</h1>
+        <p class="text-muted mt-1">{users.length} Benutzer</p>
+      </div>
+
+      <div class="grid gap-4" data-testid="admin-client-list">
+        {users.map(user => (
+          <a
+            href={`/admin/${user.id}`}
+            class="flex items-center gap-4 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors"
+            data-testid="admin-client-item"
+          >
+            <div>
+              <p class="text-light font-medium">{user.firstName} {user.lastName}</p>
+              <p class="text-sm text-muted">{user.username} · {user.email ?? '—'}</p>
+            </div>
+            <span class="ml-auto text-gold text-sm">→</span>
+          </a>
+        ))}
+        {users.length === 0 && (
+          <p class="text-muted">Keine Benutzer gefunden.</p>
+        )}
+      </div>
+    </div>
+  </section>
+</Layout>

@@ -10,6 +10,8 @@ spec:
           env:
             - name: DOMAIN
               value: "https://vault.${PROD_DOMAIN}"
+            - name: SSO_AUTHORITY
+              value: "https://auth.${PROD_DOMAIN}/realms/workspace"
             - name: SMTP_HOST
               value: "smtp.mailbox.org"
             - name: SMTP_PORT

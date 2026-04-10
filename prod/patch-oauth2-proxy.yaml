@@ -33,4 +33,4 @@ spec:
             - "--insecure-oidc-allow-unverified-email=true"
             - "--oidc-extra-audience=invoiceninja"
             - "--scope=openid email profile"
-            - "--skip-auth-regex=^/(favicon\\.ico|manifest\\.json|css/|js/|images/|fonts/)"
+            - "--skip-auth-regex=^/(favicon\\.ico|manifest\\.json|css/|js/|images/|fonts/|payment_webhook/|api/v1/payment_webhook)"

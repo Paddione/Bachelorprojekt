@@ -11,7 +11,7 @@ let files: NcFile[] = [];
 try {
   files = await listFiles(`Clients/${clientUsername}/`);
   // Filter out subdirectory entries
-  files = files.filter(f => !f.name.endsWith('/') && f.contentType !== 'httpd/unix-directory');
+  files = files.filter(f => f.contentType !== 'httpd/unix-directory');
 } catch {
   // Nextcloud unavailable
 }

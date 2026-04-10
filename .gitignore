@@ -54,6 +54,9 @@ tracking.db
 website/dist/
 website/.astro/
 
+# ── Worktrees ───────────────────────────────────
+.worktrees/
+
 # ── Misc ────────────────────────────────────────
 .git_corrupt/
 docs-site/

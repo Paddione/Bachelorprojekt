@@ -101,19 +101,17 @@ schema_field() {
   ' "$file"
 }
 
-# sealed_secret_keys <file> — extract keys from encryptedData section.
-# The character class includes digits so keys like OAUTH2_PROXY_COOKIE_SECRET
-# are matched (they start with a letter but can contain digits later).
+# sealed_secret_keys <file> — extract keys from encryptedData section
 sealed_secret_keys() {
   local file="$1"
   awk '
     /^[[:space:]]*encryptedData:/ { in_enc=1; next }
-    in_enc && /^[[:space:]]+[A-Z][A-Z0-9_]*:/ {
+    in_enc && /^[[:space:]]+[A-Z0-9_]+:/ {
       sub(/^[[:space:]]+/, "")
       sub(/:.*/, "")
       print
     }
-    in_enc && /^[[:space:]]*[a-z]/ && !/^[[:space:]]+[A-Z][A-Z0-9_]*:/ { in_enc=0 }
+    in_enc && /^[[:space:]]*[a-z]/ && !/^[[:space:]]+[A-Z0-9_]+:/ { in_enc=0 }
   ' "$file"
 }
 

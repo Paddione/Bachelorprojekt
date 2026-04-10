@@ -1,16 +1,14 @@
 import { test, expect } from '@playwright/test';
 
-const BASE = process.env.BASE_URL || 'http://localhost:4321';
-
 test.describe('Slot Widget', () => {
   test('T1 – homepage shows next available day section', async ({ page }) => {
-    await page.goto(BASE);
+    await page.goto('/');
     await expect(page.locator('[data-testid="slot-widget"]')).toBeVisible();
-    await expect(page.locator('[data-testid="slot-widget-heading"]')).toContainText('freier Termin');
+    await expect(page.locator('[data-testid="slot-widget-heading"]')).toContainText('Nächster freier Termin');
   });
 
   test('T2 – slot pills link to /termin with params', async ({ page }) => {
-    await page.goto(BASE);
+    await page.goto('/');
     const firstPill = page.locator('[data-testid="slot-pill"]').first();
     await expect(firstPill).toBeVisible();
     const href = await firstPill.getAttribute('href');
@@ -18,10 +16,12 @@ test.describe('Slot Widget', () => {
   });
 
   test('T3 – clicking slot pill pre-fills booking form', async ({ page }) => {
-    await page.goto(BASE);
+    await page.goto('/');
     const firstPill = page.locator('[data-testid="slot-pill"]').first();
+    await expect(firstPill).toBeVisible();
     const href = await firstPill.getAttribute('href');
-    await page.goto(`${BASE}${href}`);
+    expect(href).not.toBeNull();
+    await page.goto(href!);
     // BookingForm should show the pre-selected slot highlighted
     await expect(page.locator('[data-testid="selected-slot-display"]')).toBeVisible();
   });

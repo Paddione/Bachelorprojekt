@@ -86,6 +86,24 @@ jobs:
           php -l k3d/nextcloud-oidc-dev.php
           echo "PHP config is syntactically valid"
 
+  validate-environments:
+    name: Validate Environment Configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate all environments against schema
+        run: |
+          for f in environments/*.yaml; do
+            name="$(basename "$f" .yaml)"
+            [ "$name" = "schema" ] && continue
+            echo "--- Validating: $name ---"
+            bash scripts/env-validate.sh --env "$name" --env-dir environments --schema-only
+          done
+
+      - name: Check for cross-environment drift
+        run: bash scripts/env-validate.sh --drift --env-dir environments --strict
+
   unit-tests:
     name: BATS Unit Tests
     runs-on: ubuntu-latest

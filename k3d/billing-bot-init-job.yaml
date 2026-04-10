@@ -238,46 +238,55 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN_USERNAME
+                  optional: true
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN_PASSWORD
+                  optional: true
             - name: ADMIN_EMAIL
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN_EMAIL
+                  optional: true
             - name: ADMIN2_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN2_USERNAME
+                  optional: true
             - name: ADMIN2_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN2_PASSWORD
+                  optional: true
             - name: ADMIN2_EMAIL
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN2_EMAIL
+                  optional: true
             - name: ADMIN3_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN3_USERNAME
+                  optional: true
             - name: ADMIN3_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN3_PASSWORD
+                  optional: true
             - name: ADMIN3_EMAIL
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: ADMIN3_EMAIL
+                  optional: true
           resources:
             requests:
               memory: 32Mi

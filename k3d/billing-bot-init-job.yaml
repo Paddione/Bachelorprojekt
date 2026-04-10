@@ -51,7 +51,8 @@ kind: Job
 metadata:
   name: billing-bot-init
   annotations:
-    argocd.argoproj.io/sync-options: Replace=true
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
   backoffLimit: 3
   ttlSecondsAfterFinished: 3600

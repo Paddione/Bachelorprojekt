@@ -80,10 +80,11 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
               memory: 256Mi
+              cpu: "200m"
+            limits:
+              memory: 1Gi
+              cpu: "1"
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -194,10 +195,11 @@ spec:
               mountPath: /var/www/app/storage
           resources:
             requests:
-              memory: 256Mi
-              cpu: 200m
-            limits:
               memory: 512Mi
+              cpu: "500m"
+            limits:
+              memory: 1Gi
+              cpu: "2"
         # Nginx sidecar — serves static files and proxies PHP to FPM
         - name: nginx
           image: nginx:1.27-alpine
@@ -223,10 +225,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              memory: 32Mi
-              cpu: 50m
-            limits:
               memory: 64Mi
+              cpu: "100m"
+            limits:
+              memory: 256Mi
+              cpu: "500m"
       volumes:
         - name: public
           emptyDir: {}

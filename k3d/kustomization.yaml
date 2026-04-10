@@ -53,6 +53,7 @@ resources:
   - claude-code-mcp-auth.yaml
   - claude-code-mcp-stripe.yaml
   - claude-code-mcp-github.yaml
+  - claude-code-mcp-kubernetes.yaml
   # Ingress
   - ingress.yaml
 

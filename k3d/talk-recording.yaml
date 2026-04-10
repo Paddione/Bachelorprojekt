@@ -1,0 +1,94 @@
+# ── Nextcloud Talk Recording Backend ──────────────────────────────────────────
+# Firefox/geckodriver-based recording service for Nextcloud Talk.
+# Joins calls via spreed-signaling and records audio/video.
+# Recordings are saved to the call creator's Nextcloud Files directory.
+# Image: nextcloud/aio-talk-recording (official AIO image)
+#
+# Requires Nextcloud Talk spreed app configuration:
+#   occ config:app:set spreed recording_servers \
+#     --value='[{"server":"http://talk-recording:1234","secret":"<RECORDING_SECRET>"}]'
+#   occ config:app:set spreed call_recording --value='yes'
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: talk-recording
+  labels:
+    app: talk-recording
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: talk-recording
+  template:
+    metadata:
+      labels:
+        app: talk-recording
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: recording
+          image: nextcloud/aio-talk-recording:20260409_094910
+          env:
+            - name: NC_DOMAIN
+              value: "nextcloud"
+            - name: NC_PROTOCOL
+              value: "http"
+            - name: HPB_DOMAIN
+              value: "spreed-signaling:8080"
+            - name: HPB_PROTOCOL
+              value: "ws"
+            - name: HPB_PATH
+              value: "/"
+            - name: RECORDING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: RECORDING_SECRET
+            - name: INTERNAL_SECRET
+              value: "devsignalinginternalsecret123456"
+            - name: ALLOW_ALL
+              value: "true"
+            - name: SKIP_VERIFY
+              value: "true"
+          ports:
+            - containerPort: 1234
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 2Gi
+              cpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /api/v1/welcome
+              port: 1234
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /api/v1/welcome
+              port: 1234
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: talk-recording
+spec:
+  selector:
+    app: talk-recording
+  ports:
+    - port: 1234
+      targetPort: 1234

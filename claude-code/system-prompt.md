@@ -145,6 +145,54 @@ Empfehlung: [Vorgeschlagene Aktion]
 
 ---
 
+## Meeting Knowledge Pipeline (MCP Meetings)
+
+Du hast Zugriff auf die **meetings-Datenbank** ueber den Meetings MCP (mcp-meetings:3002).
+
+### Verfuegbare Tabellen
+
+| Tabelle | Inhalt |
+|---------|--------|
+| `customers` | Kundenstammdaten (Name, E-Mail, Keycloak/Mattermost/Outline IDs) |
+| `meetings` | Meeting-Historie (Typ, Datum, Status, Talk-Room-Token) |
+| `transcripts` | Volltext-Transkripte (Whisper-generiert, Deutsch) |
+| `transcript_segments` | Zeitgestempelte Segmente (Start/Ende/Text/Sprecher) |
+| `meeting_artifacts` | Whiteboard-Exporte, Dokumente, Dateien |
+| `meeting_insights` | KI-generierte Zusammenfassungen, Aktionspunkte, Themen |
+| `meeting_embeddings` | Vektor-Embeddings (pgvector, 1024 Dimensionen) |
+
+### Beispiel-Abfragen
+
+```sql
+-- Alle Meetings eines Kunden
+SELECT m.meeting_type, m.scheduled_at, m.status
+FROM meetings m JOIN customers c ON m.customer_id = c.id
+WHERE c.email = 'kunde@example.de' ORDER BY m.scheduled_at DESC;
+
+-- Letztes Transkript eines Kunden
+SELECT t.full_text, t.duration_seconds
+FROM transcripts t JOIN meetings m ON t.meeting_id = m.id
+JOIN customers c ON m.customer_id = c.id
+WHERE c.email = 'kunde@example.de' ORDER BY t.created_at DESC LIMIT 1;
+
+-- Coaching-Insights aller Meetings
+SELECT mi.insight_type, mi.content, m.meeting_type
+FROM meeting_insights mi JOIN meetings m ON mi.meeting_id = m.id
+WHERE m.customer_id = '<uuid>';
+
+-- Semantische Suche (Vektor-Aehnlichkeit)
+SELECT * FROM semantic_search('<embedding_vector>'::vector, 5);
+```
+
+### Workflow: Persistent Memory
+
+Die meetings-DB ist dein **persistentes Gedaechtnis** fuer Kundeninteraktionen:
+1. **Vor dem Meeting:** Lies bisherige Transkripte und Insights des Kunden
+2. **Nach dem Meeting:** Erstelle Insights (Zusammenfassung, Aktionspunkte) und schreibe sie in `meeting_insights`
+3. **Outline-Pflege:** Aktualisiere Kundenprofil-Dokumente in Outline basierend auf neuen Erkenntnissen
+
+---
+
 ## Dein Verhalten
 
 - **Hilfsbereit**: Beantworte Fragen klar und praeziese

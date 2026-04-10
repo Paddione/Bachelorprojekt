@@ -1,0 +1,77 @@
+# ── Text Embedding Service (infinity-emb) ────────────────────────────────────
+# CPU-based embedding model for meeting transcript vectorization.
+# Model: BAAI/bge-base-en-v1.5 (768 dimensions)
+# API: OpenAI-compatible — POST /embeddings
+#
+# Usage:
+#   curl -X POST http://embedding.workspace.svc.cluster.local:8080/embeddings \
+#     -H "Content-Type: application/json" \
+#     -d '{"input": ["Wie geht es Ihnen?"], "model": "BAAI/bge-base-en-v1.5"}'
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: embedding
+  labels:
+    app: embedding
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: embedding
+  template:
+    metadata:
+      labels:
+        app: embedding
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: infinity
+          image: michaelf34/infinity:0.0.70
+          args:
+            - "v2"
+            - "--model-id"
+            - "BAAI/bge-base-en-v1.5"
+            - "--port"
+            - "8080"
+            - "--engine"
+            - "torch"
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 500m
+            limits:
+              memory: 2Gi
+              cpu: "2"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 120
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: embedding
+spec:
+  selector:
+    app: embedding
+  ports:
+    - port: 8080
+      targetPort: 8080

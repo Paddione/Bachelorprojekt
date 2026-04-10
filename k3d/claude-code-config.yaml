@@ -14,3 +14,4 @@ data:
   MCP_BROWSER_URL: "http://mcp-browser:3000/mcp"
   MCP_GITHUB_URL: "http://mcp-github:3002/mcp"
   MCP_STRIPE_URL: "http://claude-code-mcp-stripe:3003/mcp"
+  MCP_MEETINGS_URL: "http://claude-code-mcp-ops:3002/mcp"

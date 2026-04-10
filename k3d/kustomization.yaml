@@ -20,6 +20,7 @@ resources:
   - coturn.yaml
   - collabora.yaml
   - whiteboard.yaml
+  - talk-recording.yaml
   - vaultwarden.yaml
   # Buchhaltung
   - invoiceninja.yaml
@@ -40,6 +41,8 @@ resources:
   - outline.yaml
   # Transkription
   - whisper.yaml
+  # Embedding (Vektorisierung)
+  - embedding.yaml
   # KI-Assistent
   - claude-code-rbac.yaml
   - claude-code-config.yaml

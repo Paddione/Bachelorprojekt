@@ -14,8 +14,10 @@
   "dependencies": {
     "@astrojs/node": "^9.1.0",
     "@astrojs/svelte": "^7.0.0",
+    "@types/pg": "^8.20.0",
     "astro": "^5.7.0",
     "nodemailer": "^8.0.4",
+    "pg": "^8.20.0",
     "svelte": "^5.0.0"
   },
   "devDependencies": {

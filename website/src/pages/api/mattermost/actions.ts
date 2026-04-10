@@ -212,9 +212,9 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       case 'finalize_meeting': {
-        const { customerName: fName, customerEmail: fEmail, meetingType: fType, meetingDate: fDate, customerChannelId } = context;
+        const { customerName: fName, customerEmail: fEmail, meetingType: fType, meetingDate: fDate, customerChannelId, roomToken: fRoomToken } = context;
 
-        // Call the finalize endpoint
+        // Call the finalize endpoint (with roomToken for recording/whiteboard fetch)
         const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
         const finalizeRes = await fetch(`${SITE_URL}/api/meeting/finalize`, {
           method: 'POST',
@@ -225,6 +225,7 @@ export const POST: APIRoute = async ({ request }) => {
             meetingType: fType,
             meetingDate: fDate,
             channelId: customerChannelId,
+            roomToken: fRoomToken,
           }),
         });
 

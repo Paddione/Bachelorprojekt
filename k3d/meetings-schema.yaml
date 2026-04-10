@@ -100,8 +100,8 @@ data:
               CHECK (source_type IN ('transcript','segment','artifact','insight')),
           source_id UUID NOT NULL,
           content_preview TEXT,
-          embedding vector(1024),
-          model TEXT DEFAULT 'nomic-embed-text-v1.5',
+          embedding vector(768),
+          model TEXT DEFAULT 'BAAI/bge-base-en-v1.5',
           created_at TIMESTAMPTZ DEFAULT now()
       );
 
@@ -117,7 +117,7 @@ data:
 
       -- Semantic search function for Claude Code MCP
       CREATE OR REPLACE FUNCTION semantic_search(
-          query_embedding vector(1024),
+          query_embedding vector(768),
           k INTEGER DEFAULT 5
       )
       RETURNS TABLE (

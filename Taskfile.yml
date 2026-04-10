@@ -361,6 +361,7 @@ tasks:
       - task: workspace:billing-setup
       - task: workspace:stripe-setup
       - task: workspace:connectors
+      - task: workspace:recording-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  MCP Status:   http://ai.localhost"'
@@ -461,6 +462,28 @@ tasks:
       - 'echo "  Contacts:  http://files.localhost/apps/contacts"'
       - 'echo "  Talk:      http://files.localhost/apps/spreed"'
       - 'echo "  Collabora: via richdocuments WOPI integration"'
+
+  workspace:meeting-slash:
+    desc: Register /meeting slash command in Mattermost
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running."
+      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
+        msg: "Mattermost not deployed."
+    cmds:
+      - bash scripts/meeting-slash-setup.sh
+
+  workspace:recording-setup:
+    desc: Configure Nextcloud Talk recording backend
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running."
+      - sh: kubectl get deployment talk-recording -n workspace > /dev/null 2>&1
+        msg: "talk-recording not deployed. Run 'task workspace:deploy' first."
+      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
+        msg: "Nextcloud not deployed."
+    cmds:
+      - bash scripts/recording-setup.sh
 
   workspace:connectors:
     desc: Set up Mattermost service connectors (bookmarks + links to all workspace services)

@@ -167,6 +167,53 @@ export async function getOrCreateCustomerChannel(teamId: string, customerName: s
   return null;
 }
 
+// Notify admins about pipeline errors.
+// Posts to the "anfragen" channel (or webhook) so admins see it immediately.
+export async function notifyPipelineError(params: {
+  step: string;
+  error: string;
+  customerName?: string;
+  meetingId?: string;
+}): Promise<void> {
+  const msg = [
+    `### :rotating_light: Meeting-Pipeline Fehler`,
+    '',
+    `**Schritt:** ${params.step}`,
+    params.customerName ? `**Kunde:** ${params.customerName}` : '',
+    params.meetingId ? `**Meeting-ID:** \`${params.meetingId}\`` : '',
+    '',
+    '```',
+    params.error.substring(0, 500),
+    '```',
+    '',
+    '_Bitte manuell pruefen. Pipeline wurde teilweise ausgefuehrt._',
+  ].filter(Boolean).join('\n');
+
+  // Try webhook first (works without bot token)
+  const webhookSent = await postWebhook({
+    text: msg,
+    username: 'Meeting-Pipeline',
+    icon_emoji: ':rotating_light:',
+  });
+
+  if (!webhookSent && MM_TOKEN) {
+    // Fallback: post to first team's town-square
+    try {
+      const teamsRes = await mmApi('GET', '/teams');
+      if (teamsRes.ok) {
+        const teams = await teamsRes.json();
+        if (teams.length > 0) {
+          const chRes = await mmApi('GET', `/teams/${teams[0].id}/channels/name/town-square`);
+          if (chRes.ok) {
+            const ch = await chRes.json();
+            await mmApi('POST', '/posts', { channel_id: ch.id, message: msg });
+          }
+        }
+      }
+    } catch { /* best-effort */ }
+  }
+}
+
 // Post a message to a channel (simple, no interactive buttons)
 export async function postToChannel(channelId: string, message: string): Promise<boolean> {
   if (!MM_TOKEN) return false;

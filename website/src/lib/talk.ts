@@ -98,6 +98,74 @@ export async function inviteGuestByEmail(roomToken: string, email: string): Prom
   }
 }
 
+// Download the most recent recording file for a Talk room.
+// Recordings are stored under the admin user's files in Talk/{roomName}/.
+export async function getRecordingFile(roomToken: string): Promise<{ data: Buffer; filename: string } | null> {
+  try {
+    // Get room info to find the room name
+    const roomRes = await ocsApi('GET', `/room/${roomToken}`);
+    if (!roomRes.ok) return null;
+    const roomData = await roomRes.json();
+    const roomName = roomData?.ocs?.data?.name || roomToken;
+
+    // List files in the Talk recording directory via WebDAV
+    const davUrl = `${NC_URL}/remote.php/dav/files/${NC_USER}/Talk/`;
+    const propfindRes = await fetch(davUrl, {
+      method: 'PROPFIND',
+      headers: {
+        Authorization: getAuthHeader(),
+        'Content-Type': 'application/xml',
+        Depth: '2',
+      },
+      body: `<?xml version="1.0" encoding="utf-8"?>
+        <d:propfind xmlns:d="DAV:">
+          <d:prop>
+            <d:displayname/>
+            <d:getcontentlength/>
+            <d:getlastmodified/>
+          </d:prop>
+        </d:propfind>`,
+    });
+
+    if (!propfindRes.ok) {
+      console.error('[talk] WebDAV PROPFIND failed:', propfindRes.status);
+      return null;
+    }
+
+    const xml = await propfindRes.text();
+
+    // Find audio/video files matching room name
+    const filePattern = new RegExp(`/Talk/[^/]*${encodeURIComponent(roomName)}[^/]*/[^/]+\\.(webm|ogg|mp4|wav|m4a)`, 'i');
+    const hrefMatches = [...xml.matchAll(/<d:href>([^<]+)<\/d:href>/g)]
+      .map((m) => decodeURIComponent(m[1]))
+      .filter((href) => filePattern.test(href));
+
+    if (hrefMatches.length === 0) {
+      console.log('[talk] No recording files found for room:', roomName);
+      return null;
+    }
+
+    // Download the most recent recording (last in list)
+    const recordingPath = hrefMatches[hrefMatches.length - 1];
+    const downloadUrl = `${NC_URL}${recordingPath}`;
+    const downloadRes = await fetch(downloadUrl, {
+      headers: { Authorization: getAuthHeader() },
+    });
+
+    if (!downloadRes.ok) {
+      console.error('[talk] Recording download failed:', downloadRes.status);
+      return null;
+    }
+
+    const arrayBuffer = await downloadRes.arrayBuffer();
+    const filename = recordingPath.split('/').pop() || 'recording.webm';
+    return { data: Buffer.from(arrayBuffer), filename };
+  } catch (err) {
+    console.error('[talk] Get recording error:', err);
+    return null;
+  }
+}
+
 // Close/delete a Talk room after meeting ends
 export async function deleteTalkRoom(roomToken: string): Promise<boolean> {
   try {

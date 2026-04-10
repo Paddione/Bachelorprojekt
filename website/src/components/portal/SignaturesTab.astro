@@ -1,0 +1,13 @@
+---
+interface Props {
+  clientUsername: string;
+}
+const { clientUsername } = Astro.props;
+
+void clientUsername; // will be used in Document Signing task
+---
+
+<div data-testid="signatures-tab">
+  <h3 class="text-lg font-semibold text-light mb-4">Zur Unterschrift</h3>
+  <p class="text-muted">Dokumente zur Unterschrift erscheinen hier.</p>
+</div>

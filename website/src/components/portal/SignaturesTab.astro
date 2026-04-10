@@ -1,13 +1,66 @@
 ---
+import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR, SIGNED_DIR } from '../../lib/nextcloud-files';
+import type { NcFile } from '../../lib/nextcloud-files';
+
 interface Props {
   clientUsername: string;
 }
 const { clientUsername } = Astro.props;
 
-void clientUsername; // will be used in Document Signing task
+const clientFolder = getClientFolderPath(clientUsername);
+let pendingFiles: NcFile[] = [];
+let signedFiles: NcFile[] = [];
+
+try {
+  pendingFiles = await listFiles(`${clientFolder}${PENDING_SIGNATURES_DIR}/`);
+  pendingFiles = pendingFiles.filter(f => f.contentType !== 'httpd/unix-directory');
+} catch { /* Nextcloud unavailable */ }
+
+try {
+  signedFiles = await listFiles(`${clientFolder}${SIGNED_DIR}/`);
+  signedFiles = signedFiles.filter(f => f.contentType !== 'httpd/unix-directory');
+} catch { /* folder may not exist yet */ }
 ---
 
 <div data-testid="signatures-tab">
   <h3 class="text-lg font-semibold text-light mb-4">Zur Unterschrift</h3>
-  <p class="text-muted">Dokumente zur Unterschrift erscheinen hier.</p>
+
+  {pendingFiles.length > 0 ? (
+    <div class="mb-6">
+      <h4 class="text-sm text-gold uppercase tracking-widest mb-3">Ausstehend</h4>
+      <ul class="space-y-2">
+        {pendingFiles.map(file => {
+          const encodedPath = encodeURIComponent(`${clientFolder}${PENDING_SIGNATURES_DIR}/${file.name}`);
+          return (
+            <li>
+              <a
+                href={`/portal/document?path=${encodedPath}&name=${encodeURIComponent(file.name)}`}
+                data-testid="pending-document-link"
+                class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-gold/30 hover:border-gold/60 transition-colors"
+              >
+                <span class="text-light">{file.name}</span>
+                <span class="ml-auto text-xs text-gold">Zur Unterschrift →</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  ) : (
+    <p class="text-muted mb-6">Keine ausstehenden Dokumente.</p>
+  )}
+
+  {signedFiles.length > 0 && (
+    <div>
+      <h4 class="text-sm text-muted uppercase tracking-widest mb-3">Unterzeichnet</h4>
+      <ul class="space-y-2">
+        {signedFiles.map(file => (
+          <li class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-dark-lighter" data-testid="signed-document-item">
+            <span class="text-muted">{file.name}</span>
+            <span class="ml-auto text-xs text-green-400">✓ Akzeptiert</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
 </div>

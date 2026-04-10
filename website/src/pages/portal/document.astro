@@ -1,0 +1,116 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession, getLoginUrl } from '../../lib/auth';
+import { getFileUrl } from '../../lib/nextcloud-files';
+
+const session = getSession(Astro.request.headers.get('cookie'));
+if (!session) {
+  return Astro.redirect(getLoginUrl());
+}
+
+const documentPath = Astro.url.searchParams.get('path') ?? '';
+const documentName = Astro.url.searchParams.get('name') ?? 'Dokument';
+
+if (!documentPath) {
+  return Astro.redirect('/portal?tab=signatures');
+}
+
+// Decode the path (it was encoded with encodeURIComponent in SignaturesTab)
+const decodedPath = decodeURIComponent(documentPath);
+const fileUrl = getFileUrl(decodedPath);
+---
+
+<Layout title={`Dokument: ${documentName}`}>
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="mb-4">
+        <a href="/portal?tab=signatures" class="text-muted hover:text-gold text-sm">← Zurück</a>
+      </div>
+      <h1 class="text-2xl font-bold text-light mb-6 font-serif">{documentName}</h1>
+
+      <!-- Document viewer: link to open in Nextcloud/Collabora -->
+      <div class="bg-dark-light rounded-xl border border-dark-lighter p-6 mb-6">
+        <p class="text-muted mb-4">Öffnen Sie das Dokument, um es zu lesen:</p>
+        <a
+          href={fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-dark border border-dark-lighter rounded-lg text-light hover:border-gold/40 transition-colors"
+        >
+          Dokument öffnen →
+        </a>
+      </div>
+
+      <!-- Confirmation button -->
+      <div class="bg-dark-light rounded-xl border border-gold/20 p-6" data-testid="confirm-section">
+        <p class="text-light mb-2 font-medium">Bestätigung</p>
+        <p class="text-muted text-sm mb-4">
+          Durch Klicken des Buttons bestätigen Sie, dass Sie das Dokument gelesen und akzeptiert haben.
+          Diese Aktion wird mit Datum, Uhrzeit und einem kryptografischen Hash des Dokuments protokolliert.
+        </p>
+        <button
+          id="confirm-btn"
+          data-document-name={documentName}
+          data-document-path={decodedPath}
+          data-testid="confirm-button"
+          class="px-6 py-3 bg-gold text-dark font-semibold rounded-lg hover:bg-gold/80 transition-colors"
+        >
+          Gelesen und akzeptiert
+        </button>
+        <p id="confirm-status" class="mt-3 text-sm hidden"></p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+const btn = document.getElementById('confirm-btn') as HTMLButtonElement | null;
+const status = document.getElementById('confirm-status') as HTMLElement | null;
+
+btn?.addEventListener('click', async () => {
+  if (!btn || !status) return;
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  const documentName = btn.dataset.documentName ?? '';
+  const documentPath = btn.dataset.documentPath ?? '';
+
+  try {
+    const res = await fetch('/api/signing/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documentName, documentPath }),
+    });
+
+    if (res.ok) {
+      btn.textContent = '✓ Akzeptiert';
+      btn.classList.remove('bg-gold', 'hover:bg-gold/80');
+      btn.classList.add('bg-green-600', 'cursor-default');
+      if (status) {
+        status.textContent = 'Das Dokument wurde erfolgreich bestätigt.';
+        status.classList.remove('hidden');
+        status.classList.add('text-green-400');
+      }
+      // Redirect back to portal after 2 seconds
+      setTimeout(() => { window.location.href = '/portal?tab=signatures'; }, 2000);
+    } else {
+      const data = await res.json().catch(() => ({})) as { error?: string };
+      btn.disabled = false;
+      btn.textContent = 'Gelesen und akzeptiert';
+      if (status) {
+        status.textContent = data.error ?? 'Fehler beim Bestätigen. Bitte versuchen Sie es erneut.';
+        status.classList.remove('hidden');
+        status.classList.add('text-red-400');
+      }
+    }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Gelesen und akzeptiert';
+    if (status) {
+      status.textContent = 'Verbindungsfehler. Bitte versuchen Sie es erneut.';
+      status.classList.remove('hidden');
+      status.classList.add('text-red-400');
+    }
+  }
+});
+</script>

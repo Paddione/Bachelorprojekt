@@ -4,7 +4,7 @@ import { getSession } from '../../../lib/auth';
 // Returns the current user's session info as JSON.
 // Used by client-side Svelte components to check auth state.
 export const GET: APIRoute = async ({ request }) => {
-  const session = getSession(request.headers.get('cookie'));
+  const session = await getSession(request.headers.get('cookie'));
 
   if (!session) {
     return new Response(JSON.stringify({ authenticated: false }), {

@@ -4,7 +4,7 @@ import { releaseMeeting } from '../../../lib/meetings-db';
 
 export const POST: APIRoute = async ({ request }) => {
   const cookieHeader = request.headers.get('cookie');
-  const session = getSession(cookieHeader);
+  const session = await getSession(cookieHeader);
 
   if (!session) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {

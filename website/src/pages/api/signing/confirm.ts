@@ -37,7 +37,7 @@ const MATTERMOST_SIGNING_CHANNEL = process.env.MATTERMOST_SIGNING_CHANNEL || '';
 export const POST: APIRoute = async ({ request }) => {
   // --- Authentication ---
   const cookieHeader = request.headers.get('cookie');
-  const session = getSession(cookieHeader);
+  const session = await getSession(cookieHeader);
 
   if (!session) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {

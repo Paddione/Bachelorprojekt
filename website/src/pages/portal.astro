@@ -7,7 +7,7 @@ import FilesTab from '../components/portal/FilesTab.astro';
 import SignaturesTab from '../components/portal/SignaturesTab.astro';
 import MeetingsTab from '../components/portal/MeetingsTab.astro';
 
-const session = getSession(Astro.request.headers.get('cookie'));
+const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
   return Astro.redirect(getLoginUrl());
 }

@@ -73,6 +73,7 @@ data:
   OUTLINE_URL: "http://outline.workspace.svc.cluster.local"
   OUTLINE_API_KEY: ""
   ANTHROPIC_API_KEY: ""
+  SESSIONS_DATABASE_URL: "postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings"
   # Site
   SITE_URL: "http://web.localhost"
 ---

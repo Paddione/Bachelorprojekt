@@ -201,3 +201,57 @@ export async function createQuote(params: {
 
   return { id: q.id, number: q.number, amount: q.amount };
 }
+
+// InvoiceNinja v5 invoice status IDs
+const INVOICE_STATUS_LABELS: Record<string, string> = {
+  '1': 'Entwurf',
+  '2': 'Versendet',
+  '3': 'Teilweise bezahlt',
+  '4': 'Bezahlt',
+  '5': 'Storniert',
+  '6': 'Ueberfaellig',
+};
+
+export interface ClientInvoiceListItem {
+  id: string;
+  number: string;
+  date: string;
+  dueDate: string;
+  amount: number;
+  balance: number;
+  statusId: string;
+  statusLabel: string;
+}
+
+// List invoices for a client by email
+export async function getClientInvoices(clientEmail: string): Promise<ClientInvoiceListItem[]> {
+  if (!IN_TOKEN) return [];
+
+  // Find client by email
+  const searchRes = await inApi('GET', `/clients?email=${encodeURIComponent(clientEmail)}`);
+  if (!searchRes.ok) return [];
+
+  const clientData = await searchRes.json();
+  if (!clientData.data?.length) return [];
+
+  const clientId = clientData.data[0].id;
+
+  // Fetch invoices for this client
+  const invoicesRes = await inApi('GET', `/invoices?client_id=${clientId}&sort=date|desc&per_page=50`);
+  if (!invoicesRes.ok) return [];
+
+  const invoicesData = await invoicesRes.json();
+  return (invoicesData.data || []).map((inv: {
+    id: string; number: string; date: string; due_date: string;
+    amount: number; balance: number; status_id: string;
+  }) => ({
+    id: inv.id,
+    number: inv.number,
+    date: inv.date,
+    dueDate: inv.due_date,
+    amount: inv.amount,
+    balance: inv.balance,
+    statusId: inv.status_id,
+    statusLabel: INVOICE_STATUS_LABELS[inv.status_id] || 'Unbekannt',
+  }));
+}

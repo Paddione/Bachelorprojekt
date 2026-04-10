@@ -1,16 +1,70 @@
 ---
+import { getClientInvoices } from '../../lib/invoiceninja';
+import type { ClientInvoiceListItem } from '../../lib/invoiceninja';
+
 interface Props {
   clientEmail: string;
 }
 const { clientEmail } = Astro.props;
 
-// invoiceninja.ts exposes getOrCreateClient(), createInvoice(), and createQuote().
-// There is no function to list invoices by client email.
-// Invoice listing requires a client ID lookup followed by a list call — not available as a lib function.
-void clientEmail; // used by parent for context; no invoice listing available
+let invoices: ClientInvoiceListItem[] = [];
+try {
+  invoices = await getClientInvoices(clientEmail);
+} catch {
+  // InvoiceNinja unavailable
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
+}
+
+function formatDate(dateStr: string): string {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function statusColor(statusId: string): string {
+  switch (statusId) {
+    case '4': return 'bg-green-500/20 text-green-400';
+    case '2': return 'bg-accent/20 text-accent';
+    case '6': return 'bg-red-500/20 text-red-400';
+    case '5': return 'bg-dark-lighter text-muted';
+    default: return 'bg-dark-lighter text-muted';
+  }
+}
 ---
 
 <div data-testid="invoices-tab">
   <h3 class="text-lg font-semibold text-light mb-4">Ihre Rechnungen</h3>
-  <p class="text-muted">Ihre Rechnungen erscheinen hier.</p>
+
+  {invoices.length === 0 ? (
+    <p class="text-muted">Keine Rechnungen vorhanden.</p>
+  ) : (
+    <ul class="space-y-2">
+      {invoices.map(inv => (
+        <li class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-dark-lighter" data-testid="invoice-item">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-light font-medium">#{inv.number}</span>
+              <span class={`text-xs px-2 py-0.5 rounded-full ${statusColor(inv.statusId)}`}>
+                {inv.statusLabel}
+              </span>
+            </div>
+            <div class="text-sm text-muted mt-1">
+              {formatDate(inv.date)}
+              {inv.dueDate && inv.statusId !== '4' && (
+                <span> &middot; Faellig: {formatDate(inv.dueDate)}</span>
+              )}
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-light font-medium">{formatCurrency(inv.amount)}</div>
+            {inv.balance > 0 && inv.balance !== inv.amount && (
+              <div class="text-xs text-muted">Offen: {formatCurrency(inv.balance)}</div>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
 </div>

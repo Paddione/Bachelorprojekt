@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly KEYCLOAK_URL: string;
   readonly KEYCLOAK_REALM: string;
   readonly KEYCLOAK_ADMIN_USER: string;
+  readonly PORTAL_ADMIN_USERNAME: string;
   readonly KEYCLOAK_ADMIN_PASSWORD: string;
   // OIDC client
   readonly WEBSITE_OIDC_SECRET: string;

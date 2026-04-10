@@ -81,7 +81,9 @@ spec:
                 "${KUBE_API}/api/v1/namespaces/${KUBE_NS}/secrets/workspace-secrets")
               CURRENT_TOKEN=$(echo "$SECRET" | jq -r '.data.BILLING_BOT_MM_TOKEN // ""' \
                 | base64 -d 2>/dev/null || true)
-              if [ -n "$CURRENT_TOKEN" ] && [ "$CURRENT_TOKEN" != "$PLACEHOLDER" ]; then
+              if [ -n "$CURRENT_TOKEN" ] \
+                  && [ "$CURRENT_TOKEN" != "$PLACEHOLDER" ] \
+                  && [ "$CURRENT_TOKEN" != "MANAGED_EXTERNALLY" ]; then
                 echo "BILLING_BOT_MM_TOKEN already provisioned — skipping init."
                 exit 0
               fi

@@ -1,11 +1,18 @@
 // WebDAV helpers for Nextcloud file operations
 
+import { posix } from 'node:path';
+
 const NC_URL = process.env.NEXTCLOUD_URL || '';
 const NC_ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER || 'admin';
 const NC_ADMIN_PASS = process.env.NEXTCLOUD_ADMIN_PASS || '';
+const NC_EXTERNAL_URL = process.env.NEXTCLOUD_EXTERNAL_URL || NC_URL;
 
 function davUrl(path: string): string {
-  return `${NC_URL}/remote.php/dav/files/${NC_ADMIN_USER}/${path.replace(/^\//, '')}`;
+  const safe = posix.normalize('/' + path).slice(1); // removes leading slash after normalize
+  if (safe.startsWith('..') || safe.includes('/../')) {
+    throw new Error(`Invalid path: ${path}`);
+  }
+  return `${NC_URL}/remote.php/dav/files/${NC_ADMIN_USER}/${safe}`;
 }
 
 function authHeader(): string {
@@ -117,12 +124,10 @@ export async function ensureFolder(folderPath: string): Promise<void> {
 }
 
 /**
- * Returns the Nextcloud WebDAV URL for a client's Collabora document preview.
- * The path should be relative to the WebDAV root.
+ * Returns the Nextcloud file's direct WebDAV download URL.
+ * For Collabora editor integration, use this URL as the file path parameter.
  */
-export function getCollaboraUrl(filePath: string): string {
-  const NC_EXTERNAL_URL = process.env.NEXTCLOUD_EXTERNAL_URL || NC_URL;
-  // Nextcloud's built-in Collabora integration uses /apps/richdocuments/direct
-  // But for WebDAV-opened docs via WOPI, we open the file URL directly in Nextcloud
-  return `${NC_EXTERNAL_URL}/remote.php/dav/files/${NC_ADMIN_USER}/${filePath.replace(/^\//, '')}`;
+export function getFileUrl(filePath: string): string {
+  const safe = posix.normalize('/' + filePath).slice(1);
+  return `${NC_EXTERNAL_URL}/remote.php/dav/files/${NC_ADMIN_USER}/${safe}`;
 }

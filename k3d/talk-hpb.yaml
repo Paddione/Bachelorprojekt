@@ -29,10 +29,11 @@ spec:
             - containerPort: 4222
           resources:
             requests:
-              memory: 32Mi
-              cpu: 50m
+              memory: 64Mi
+              cpu: "100m"
             limits:
-              memory: 128Mi
+              memory: 256Mi
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -122,10 +123,11 @@ spec:
               subPath: janus.plugin.videoroom.jcfg
           resources:
             requests:
-              memory: 128Mi
-              cpu: 200m
+              memory: 256Mi
+              cpu: "500m"
             limits:
-              memory: 512Mi
+              memory: 1Gi
+              cpu: "2"
       volumes:
         - name: config
           configMap:
@@ -225,10 +227,11 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              memory: 64Mi
-              cpu: 100m
+              memory: 128Mi
+              cpu: "200m"
             limits:
-              memory: 256Mi
+              memory: 512Mi
+              cpu: "1"
       volumes:
         - name: config
           configMap:

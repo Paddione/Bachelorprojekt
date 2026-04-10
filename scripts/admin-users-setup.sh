@@ -6,17 +6,18 @@
 # Safe to re-run — existing users are updated, not duplicated.
 #
 # Usage:  bash scripts/admin-users-setup.sh
+#         ENV=mentolder bash scripts/admin-users-setup.sh
 #         task workspace:admin-users-setup
 # ═══════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ── Load .env ──────────────────────────────────────────────────────────
-if [[ -f "$SCRIPT_DIR/../.env" ]]; then
-  # shellcheck disable=SC1091
-  set -a; source "$SCRIPT_DIR/../.env"; set +a
-fi
+# ── Load environment config ───────────────────────────────────────────
+# Accepts ENV= parameter (default: dev) to resolve variables from environments/
+ENV="${ENV:-dev}"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
 
 # ── Config ─────────────────────────────────────────────────────────────
 KC_NAMESPACE="${KC_NAMESPACE:-workspace}"
@@ -36,12 +37,12 @@ warn() { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 err()  { echo -e "${RED}[ERR]${NC}   $*"; exit 1; }
 
 # ── Validate required vars ─────────────────────────────────────────────
-: "${KC_USER1_USERNAME:?KC_USER1_USERNAME not set in .env}"
-: "${KC_USER1_EMAIL:?KC_USER1_EMAIL not set in .env}"
-: "${KC_USER1_PASSWORD:?KC_USER1_PASSWORD not set in .env}"
-: "${KC_USER2_USERNAME:?KC_USER2_USERNAME not set in .env}"
-: "${KC_USER2_EMAIL:?KC_USER2_EMAIL not set in .env}"
-: "${KC_USER2_PASSWORD:?KC_USER2_PASSWORD not set in .env}"
+: "${KC_USER1_USERNAME:?KC_USER1_USERNAME not set — check environments/${ENV}.yaml}"
+: "${KC_USER1_EMAIL:?KC_USER1_EMAIL not set — check environments/${ENV}.yaml}"
+: "${KC_USER1_PASSWORD:?KC_USER1_PASSWORD not set — check environments/${ENV}.yaml}"
+: "${KC_USER2_USERNAME:?KC_USER2_USERNAME not set — check environments/${ENV}.yaml}"
+: "${KC_USER2_EMAIL:?KC_USER2_EMAIL not set — check environments/${ENV}.yaml}"
+: "${KC_USER2_PASSWORD:?KC_USER2_PASSWORD not set — check environments/${ENV}.yaml}"
 
 # ── Wait for Keycloak ──────────────────────────────────────────────────
 log "Waiting for Keycloak to be ready..."

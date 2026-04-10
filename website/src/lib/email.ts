@@ -8,8 +8,10 @@ const SMTP_PORT = parseInt(process.env.SMTP_PORT || '1025');
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
-const FROM_EMAIL = process.env.FROM_EMAIL || '${CONTACT_EMAIL}';
-const FROM_NAME = process.env.FROM_NAME || '${BRAND_NAME}';
+const FROM_EMAIL = process.env.FROM_EMAIL || process.env.CONTACT_EMAIL || '';
+const FROM_NAME = process.env.FROM_NAME || process.env.BRAND_NAME || 'Workspace';
+const CONTACT_PHONE = process.env.CONTACT_PHONE || '';
+const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
 
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
@@ -50,77 +52,76 @@ export async function sendEmail(params: SendEmailParams): Promise<boolean> {
 export async function sendRegistrationConfirmation(email: string, name: string): Promise<boolean> {
   return sendEmail({
     to: email,
-    subject: 'Ihre Registrierung bei ${BRAND_NAME}',
+    subject: `Ihre Registrierung bei ${FROM_NAME}`,
     text: `Hallo ${name},
 
-vielen Dank fur Ihre Registrierung bei ${BRAND_NAME}.
+vielen Dank fur Ihre Registrierung bei ${FROM_NAME}.
 
 Ihre Anfrage wird in Kurze gepruft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.
 
-Bei Fragen erreichen Sie uns unter ${CONTACT_EMAIL} oder ${CONTACT_PHONE}.
+Bei Fragen erreichen Sie uns unter ${FROM_EMAIL}${CONTACT_PHONE ? ` oder ${CONTACT_PHONE}` : ''}.
 
 Mit freundlichen Grussen
-${BRAND_NAME}`,
+${FROM_NAME}`,
     html: `<p>Hallo ${name},</p>
-<p>vielen Dank fur Ihre Registrierung bei ${BRAND_NAME}.</p>
+<p>vielen Dank fur Ihre Registrierung bei ${FROM_NAME}.</p>
 <p>Ihre Anfrage wird in Kurze gepruft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.</p>
-<p>Bei Fragen erreichen Sie uns unter <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> oder ${CONTACT_PHONE}.</p>
-<p>Mit freundlichen Grussen<br>${BRAND_NAME}</p>`,
+<p>Bei Fragen erreichen Sie uns unter <a href="mailto:${FROM_EMAIL}">${FROM_EMAIL}</a>${CONTACT_PHONE ? ` oder ${CONTACT_PHONE}` : ''}.</p>
+<p>Mit freundlichen Grussen<br>${FROM_NAME}</p>`,
   });
 }
 
 export async function sendRegistrationApproved(email: string, name: string): Promise<boolean> {
+  const loginUrl = PROD_DOMAIN ? `https://web.${PROD_DOMAIN}/` : '';
   return sendEmail({
     to: email,
-    subject: 'Ihr Zugang bei ${BRAND_NAME} wurde freigeschaltet',
+    subject: `Ihr Zugang bei ${FROM_NAME} wurde freigeschaltet`,
     text: `Hallo ${name},
 
-Ihr Zugang bei ${BRAND_NAME} wurde freigeschaltet!
+Ihr Zugang bei ${FROM_NAME} wurde freigeschaltet!
 
 Sie erhalten in Kurze eine separate E-Mail mit einem Link, um Ihr Passwort festzulegen.
-
-Danach konnen Sie sich unter https://web.${PROD_DOMAIN}/ einloggen.
-
+${loginUrl ? `\nDanach konnen Sie sich unter ${loginUrl} einloggen.\n` : ''}
 Mit freundlichen Grussen
-${BRAND_NAME}`,
+${FROM_NAME}`,
     html: `<p>Hallo ${name},</p>
-<p><strong>Ihr Zugang bei ${BRAND_NAME} wurde freigeschaltet!</strong></p>
+<p><strong>Ihr Zugang bei ${FROM_NAME} wurde freigeschaltet!</strong></p>
 <p>Sie erhalten in Kurze eine separate E-Mail mit einem Link, um Ihr Passwort festzulegen.</p>
-<p>Danach konnen Sie sich unter <a href="https://web.${PROD_DOMAIN}/">web.${PROD_DOMAIN}</a> einloggen.</p>
-<p>Mit freundlichen Grussen<br>${BRAND_NAME}</p>`,
+${loginUrl ? `<p>Danach konnen Sie sich unter <a href="${loginUrl}">${loginUrl}</a> einloggen.</p>` : ''}
+<p>Mit freundlichen Grussen<br>${FROM_NAME}</p>`,
   });
 }
 
 export async function sendRegistrationDeclined(email: string, name: string, reason?: string): Promise<boolean> {
   return sendEmail({
     to: email,
-    subject: 'Zu Ihrer Registrierung bei ${BRAND_NAME}',
+    subject: `Zu Ihrer Registrierung bei ${FROM_NAME}`,
     text: `Hallo ${name},
 
-vielen Dank fur Ihr Interesse an ${BRAND_NAME}.
+vielen Dank fur Ihr Interesse an ${FROM_NAME}.
 
 Leider konnen wir Ihre Registrierung derzeit nicht bestatigen.${reason ? `\n\nGrund: ${reason}` : ''}
 
-Falls Sie Fragen haben, kontaktieren Sie uns gerne unter ${CONTACT_EMAIL}.
+Falls Sie Fragen haben, kontaktieren Sie uns gerne unter ${FROM_EMAIL}.
 
 Mit freundlichen Grussen
-${BRAND_NAME}`,
+${FROM_NAME}`,
   });
 }
 
 export async function sendContactReply(email: string, name: string, replyText: string, threadId?: string): Promise<boolean> {
   return sendEmail({
     to: email,
-    subject: 'Antwort auf Ihre Anfrage bei ${BRAND_NAME}',
+    subject: `Antwort auf Ihre Anfrage bei ${FROM_NAME}`,
     text: `Hallo ${name},
 
 ${replyText}
 
 Mit freundlichen Grussen
-${BRAND_NAME}`,
+${FROM_NAME}`,
     html: `<p>Hallo ${name},</p>
 <p>${replyText.replace(/\n/g, '<br>')}</p>
-<p>Mit freundlichen Grussen<br>${BRAND_NAME}</p>`,
+<p>Mit freundlichen Grussen<br>${FROM_NAME}</p>`,
     ...(threadId ? { headers: { 'X-Mattermost-Thread-Id': threadId } } : {}),
   });
 }

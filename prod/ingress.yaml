@@ -19,7 +19,6 @@ spec:
         - billing.${PROD_DOMAIN}
         - vault.${PROD_DOMAIN}
         - ai.${PROD_DOMAIN}
-        - web.${PROD_DOMAIN}
         - wiki.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
@@ -167,17 +166,7 @@ spec:
                 port:
                   number: 80
 
-    # Website (Astro)
-    - host: web.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: website
-                port:
-                  number: 80
+    # Website (Astro) — routed via IngressRoute in website namespace (k3s/website-prod.yaml)
 
     # Wiki (Outline)
     - host: wiki.${PROD_DOMAIN}

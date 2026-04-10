@@ -1,15 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import RegistrationForm from '../components/RegistrationForm.svelte';
+import { config } from '../config/index';
 ---
 
-<Layout title="Registrieren" description="Registrieren Sie sich bei ${BRAND_NAME} fur Zugang zur Coaching-Plattform.">
+<Layout title="Registrieren" description={`Registrieren Sie sich bei ${config.meta.siteTitle} fur Zugang zur Plattform.`}>
   <section class="pt-28 pb-20 bg-dark">
     <div class="max-w-3xl mx-auto px-6">
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Registrieren</h1>
         <p class="text-xl text-muted max-w-2xl mx-auto">
-          Erstellen Sie ein Konto, um Zugang zur Coaching-Plattform zu erhalten.
+          Erstellen Sie ein Konto, um Zugang zur Plattform zu erhalten.
           Nach Prufung Ihrer Anfrage schalten wir Ihren Zugang frei.
         </p>
       </div>

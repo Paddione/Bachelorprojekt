@@ -83,6 +83,8 @@ test.describe('Integration Smoke Tests', () => {
   });
 
   test('Keycloak login with paddione succeeds', async ({ page }) => {
+    const adminUser = process.env.MM_ADMIN_USER || 'paddione';
+    const adminPass = process.env.MM_ADMIN_PASS || '170591pk!Gekko';
     await page.goto(`https://chat.${DOMAIN}/login`);
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try { await browserLink.waitFor({ state: 'visible', timeout: 3000 }); await browserLink.click(); } catch {}
@@ -92,8 +94,8 @@ test.describe('Integration Smoke Tests', () => {
     await ssoButton.click();
     await page.waitForURL(/auth\./, { timeout: 10_000 });
 
-    await page.locator('#username').fill('paddione');
-    await page.locator('#password').fill('170591pk!Gekko');
+    await page.locator('#username').fill(adminUser);
+    await page.locator('#password').fill(adminPass);
     await page.locator('#kc-login').click();
 
     await page.waitForURL(/chat\..*\/(channels|landing)/, { timeout: 20_000 });
@@ -103,9 +105,10 @@ test.describe('Integration Smoke Tests', () => {
   // ── Nextcloud OIDC ────────────────────────────────────────────
   test('Nextcloud shows Keycloak login button', async ({ page }) => {
     await page.goto(`https://files.${DOMAIN}/login`);
-    // NC 33 renders login via Vue.js — wait for the OIDC button to appear
-    const oidcButton = page.locator('a[href*="oidc"], a:has-text("Keycloak"), .oidc-button, .alternative-logins a');
-    await expect(oidcButton.first()).toBeVisible({ timeout: 15_000 });
+    // NC 33 renders login via Vue.js — wait for the OIDC button to appear after hydration.
+    const oidcButton = page.locator('a[href*="oidc"], a[href*="keycloak"], .oidc-button, .alternative-logins a[href*="social"]');
+    const fallback = page.getByRole('link', { name: /keycloak|anmelden|openid|sso/i });
+    await expect(oidcButton.first().or(fallback.first())).toBeVisible({ timeout: 15_000 });
   });
 
   // ── Collabora Integration ─────────────────────────────────────

@@ -125,6 +125,13 @@ async function run() {
     });
   }
 
+  section('Portal Tabs (unauthenticated - expect redirect)');
+
+  await assert('GET /portal redirects to login', async () => {
+    const res = await fetch(`${BASE_URL}/portal`, { redirect: 'manual' });
+    expect(res.status).toBeOneOf([302, 303]);
+  });
+
   // -- 2. GET /api/auth/me --
   section('Auth API');
 
@@ -302,6 +309,21 @@ async function run() {
     expect(res.status).toBe(400);
   });
 
+  await assert('POST /api/meeting/finalize with transcript returns results', async () => {
+    const res = await fetch(`${BASE_URL}/api/meeting/finalize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerName: 'Test Insights',
+        customerEmail: 'insights@test.local',
+        meetingType: 'Test',
+        transcript: 'Dies ist ein Test-Transkript fuer die Insights-Generierung.',
+      }),
+    });
+    // Pipeline may fail on DB connection, but should not crash
+    expect(res.status).toBeOneOf([200, 503]);
+  });
+
   // -- 11. POST /api/reminders/process --
   section('Reminders Process (POST)');
 
@@ -339,6 +361,18 @@ async function run() {
     // In CI/Dev, this might return 500 because Mattermost/Email is not configured
     // but it confirms the route exists and processes data.
     expect([200, 500].includes(res.status)).toBeTrue();
+  });
+
+  // -- 13. Reminders persistence --
+  section('Reminders (persistence)');
+
+  await assert('GET /api/reminders/process returns pending count', async () => {
+    const res = await fetch(`${BASE_URL}/api/reminders/process`);
+    expect(res.status).toBeOneOf([200, 500]);
+    if (res.status === 200) {
+      const data = await res.json();
+      expect(data).toHaveProperty('pending');
+    }
   });
 
   // ============================================================

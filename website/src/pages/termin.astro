@@ -1,6 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import BookingForm from '../components/BookingForm.svelte';
+
+const initialDate = Astro.url.searchParams.get('date') ?? '';
+const initialStart = Astro.url.searchParams.get('start') ?? '';
+const initialEnd = Astro.url.searchParams.get('end') ?? '';
 ---
 
 <Layout title="Termin buchen" description="Buchen Sie einen Termin fur ein kostenloses Erstgesprach, Ruckruf oder Meeting.">
@@ -15,7 +19,12 @@ import BookingForm from '../components/BookingForm.svelte';
       </div>
 
       <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8">
-        <BookingForm client:load />
+        <BookingForm
+          client:load
+          initialDate={initialDate}
+          initialStart={initialStart}
+          initialEnd={initialEnd}
+        />
       </div>
 
       <div class="mt-8 text-center">

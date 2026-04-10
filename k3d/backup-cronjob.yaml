@@ -81,10 +81,11 @@ spec:
                   readOnly: true
               resources:
                 requests:
-                  memory: 128Mi
-                  cpu: 100m
-                limits:
                   memory: 256Mi
+                  cpu: "200m"
+                limits:
+                  memory: 512Mi
+                  cpu: "1"
           volumes:
             - name: backup-storage
               persistentVolumeClaim:

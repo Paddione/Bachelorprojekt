@@ -4,96 +4,37 @@ import Hero from '../components/Hero.svelte';
 import ServiceCard from '../components/ServiceCard.svelte';
 import CallToAction from '../components/CallToAction.svelte';
 import FAQ from '../components/FAQ.svelte';
+import { config } from '../config/index';
+import SlotWidget from '../components/SlotWidget.astro';
+import type { DaySlots } from '../lib/caldav';
+import { getAvailableSlots } from '../lib/caldav';
 
-const services = [
-  {
-    title: 'Digital Cafe 50+',
-    description: 'Ihr sicherer Einstieg in die digitale Welt. Ich begleite Sie Schritt fur Schritt \u2013 in Ihrem Tempo, ohne Fachchinesisch.',
-    icon: '\uD83D\uDCBB',
-    features: [
-      'Smartphone, Tablet & Computer Grundlagen',
-      'WhatsApp, Email & Videocalls',
-      'Online-Banking & Shopping sicher nutzen',
-      'Datenschutz & Sicherheit verstehen',
-    ],
-    href: '/digital-cafe',
-    price: 'Ab 60 \u20AC / Stunde',
-  },
-  {
-    title: 'Fuhrungskrafte-Coaching',
-    description: 'Ihre Karriere strategisch gestalten. Ich unterstutze erfahrene Fuhrungskrafte bei der beruflichen Neuorientierung.',
-    icon: '\uD83C\uDFAF',
-    features: [
-      'Profil-Scharfung & Positionierung',
-      'Karriere-Strategie entwickeln',
-      'Gesprachsvorbereitung (Headhunter, Vorstellungsgesprache)',
-      'Sparring auf Augenhohe',
-    ],
-    href: '/coaching',
-    price: 'Ab 150 \u20AC / Session',
-  },
-  {
-    title: 'Unternehmensberatung',
-    description: 'Digitale Transformation fur Mittelstand, Verwaltung und kritische Infrastrukturen. 40 Jahre Praxis aus komplexen Strukturen.',
-    icon: '\uD83C\uDFE2',
-    features: [
-      'Analyse & digitale Strategie',
-      'Change Management & Teamschulungen',
-      'Umsetzungsbegleitung & Prozessoptimierung',
-      'Nachhaltige interne Kompetenz aufbauen',
-    ],
-    href: '/beratung',
-    price: 'nach Vereinbarung',
-  },
-];
+const { homepage, services, faq, contact } = config;
 
-const faqItems = [
-  {
-    question: 'Fur wen ist das Digital Cafe geeignet?',
-    answer: 'Fur alle Menschen 50+, die digital selbststandiger werden mochten. Keine Vorkenntnisse notig \u2013 wir fangen genau da an, wo Sie stehen.',
-  },
-  {
-    question: 'Wie lauft ein Coaching ab?',
-    answer: 'Wir starten mit einem kostenlosen Erstgesprach (30-45 Min.), um Ihre Situation zu verstehen. Danach arbeiten wir in individuellen Sessions an Ihren Zielen \u2013 online oder vor Ort.',
-  },
-  {
-    question: 'Arbeiten Sie auch online?',
-    answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. Das Digital Cafe biete ich bevorzugt vor Ort in ${CONTACT_CITY} und Umgebung an.',
-  },
-  {
-    question: 'Was kostet ein Erstgesprach?',
-    answer: 'Nichts. Das Erstgesprach ist kostenlos und unverbindlich. Wir lernen uns kennen und klaren, ob eine Zusammenarbeit passt.',
-  },
-  {
-    question: 'Was unterscheidet Sie von anderen Coaches?',
-    answer: 'Ich komme aus 30+ Jahren Fuhrungspraxis bei der Polizei Hamburg. Ich kenne beide Seiten des Tisches, bin direkt und ehrlich \u2013 und verstehe die Herausforderungen der Generation 50+ aus eigener Erfahrung.',
-  },
-];
+let nextDay: DaySlots | null = null;
+try {
+  const slots = await getAvailableSlots();
+  nextDay = slots.length > 0 ? slots[0] : null;
+} catch {
+  // CalDAV unreachable — widget hidden gracefully
+}
 ---
 
-<Layout title="Digital Coach & Fuhrungskrafte-Mentor">
+<Layout title={config.meta.siteTitle}>
   <Hero client:load />
+
+  {nextDay && <SlotWidget day={nextDay} />}
 
   <!-- Trust indicators -->
   <section class="py-12 bg-dark-light border-b border-dark-lighter">
     <div class="max-w-6xl mx-auto px-6">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        <div>
-          <p class="text-3xl font-bold text-gold">30+</p>
-          <p class="text-muted mt-1">Jahre Fuhrungserfahrung</p>
-        </div>
-        <div>
-          <p class="text-3xl font-bold text-gold">50+</p>
-          <p class="text-muted mt-1">Begleitete Teilnehmer</p>
-        </div>
-        <div>
-          <p class="text-3xl font-bold text-gold">40</p>
-          <p class="text-muted mt-1">Jahre Praxis in IT & Sicherheit</p>
-        </div>
-        <div>
-          <p class="text-3xl font-bold text-gold">KI</p>
-          <p class="text-muted mt-1">Pionier der ersten Stunde</p>
-        </div>
+        {homepage.stats.map((stat) => (
+          <div>
+            <p class="text-3xl font-bold text-gold">{stat.value}</p>
+            <p class="text-muted mt-1">{stat.label}</p>
+          </div>
+        ))}
       </div>
     </div>
   </section>
@@ -102,15 +43,23 @@ const faqItems = [
   <section id="angebote" class="py-20 bg-dark">
     <div class="max-w-6xl mx-auto px-6">
       <div class="text-center mb-14">
-        <h2 class="text-3xl md:text-4xl font-bold text-light mb-4 font-serif">Meine Angebote</h2>
+        <h2 class="text-3xl md:text-4xl font-bold text-light mb-4 font-serif">{homepage.servicesHeadline}</h2>
         <p class="text-xl text-muted max-w-2xl mx-auto">
-          Sie suchen jemanden, der Menschen, Prozesse und Technik verbindet? Der Fuhrungserfahrung mit Empathie vereint?
+          {homepage.servicesSubheadline}
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         {services.map((service) => (
-          <ServiceCard {...service} client:visible />
+          <ServiceCard
+            title={service.title}
+            description={service.description}
+            icon={service.icon}
+            features={service.features}
+            href={`/${service.slug}`}
+            price={service.price}
+            client:visible
+          />
         ))}
       </div>
     </div>
@@ -121,72 +70,70 @@ const faqItems = [
     <div class="max-w-6xl mx-auto px-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
-          <h2 class="text-3xl md:text-4xl font-bold text-light mb-6 font-serif">Warum ich?</h2>
+          <h2 class="text-3xl md:text-4xl font-bold text-light mb-6 font-serif">{homepage.whyMeHeadline}</h2>
           <p class="text-xl text-muted leading-relaxed mb-8">
-            Ich kenne beide Welten: 40 Jahre etablierte Strukturen UND modernste KI-Tools. Ich weiss, wie Veranderung in komplexen Organisationen wirklich funktioniert.
+            {homepage.whyMeIntro}
           </p>
           <div class="space-y-5">
-            <div class="flex items-start gap-4">
-              <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            {homepage.whyMePoints.map((point) => (
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                  <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={point.iconPath} />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-light">{point.title}</h3>
+                  <p class="text-muted">{point.text}</p>
+                </div>
               </div>
-              <div>
-                <h3 class="text-lg font-semibold text-light">Erste deutsche Polizeibehorde mit KI</h3>
-                <p class="text-muted">Pionier, nicht Nachahmer. Gesichtserkennung, BOS-Digitalfunk, bundesweit fuhrend.</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-4">
-              <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-light">Systemischer Coach</h3>
-                <p class="text-muted">Nicht nur IT, sondern auch Menschen. Ich verbinde technologisches Verstandnis mit Empathie.</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-4">
-              <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-light">Selbst Generation 50+</h3>
-                <p class="text-muted">65 Jahre. Ich kenne die Herausforderungen aus eigener Erfahrung und spreche Ihre Sprache.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        <!-- Photo + Quote -->
+        <!-- Photo / Initials + Quote -->
         <div class="flex flex-col items-center">
-          <div class="relative mb-8">
-            <img
-              src="/gerald.webp"
-              alt="${CONTACT_NAME}"
-              class="w-64 h-64 md:w-72 md:h-72 rounded-full object-cover border-3 border-gold shadow-lg shadow-gold-dim"
-              loading="lazy"
-            />
-          </div>
+          {homepage.avatarType === 'image' ? (
+            <div class="relative mb-8">
+              <img
+                src={homepage.avatarSrc}
+                alt={contact.name}
+                class="w-64 h-64 md:w-72 md:h-72 rounded-full object-cover border-3 border-gold shadow-lg shadow-gold-dim"
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <div class="mb-8 bg-dark rounded-2xl p-6 border border-dark-lighter">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-gold-dim rounded-full flex items-center justify-center text-2xl">
+                  <span class="text-gold font-bold">{homepage.avatarInitials}</span>
+                </div>
+                <div>
+                  <p class="font-semibold text-light">{contact.name}</p>
+                  <p class="text-muted text-sm">{config.legal.tagline}</p>
+                  <p class="text-muted-dark text-sm">{contact.city}</p>
+                </div>
+              </div>
+            </div>
+          )}
           <div class="bg-dark rounded-2xl p-8 border border-dark-lighter max-w-md">
             <svg class="w-10 h-10 text-gold/30 mb-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
             </svg>
             <blockquote class="text-lg text-light leading-relaxed italic font-serif">
-              "Ich stelle unbequeme Fragen &ndash; weil echte Lösungen manchmal unbequeme Wahrheiten brauchen."
+              "{homepage.quote}"
             </blockquote>
-            <p class="text-muted-dark mt-4 text-sm">${CONTACT_NAME}</p>
+            <p class="text-muted-dark mt-4 text-sm">{homepage.quoteName}</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <FAQ items={faqItems} client:visible />
+  <FAQ items={faq.map((item) => ({
+    ...item,
+    answer: item.answer.replace('{city}', contact.city),
+  }))} client:visible />
 
   <CallToAction client:visible />
 </Layout>

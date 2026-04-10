@@ -8,6 +8,9 @@ import { sendRegistrationApproved, sendRegistrationDeclined, sendEmail } from '.
 import { getOrCreateClient, createInvoice, SERVICES } from '../../../lib/invoiceninja';
 import type { ServiceKey } from '../../../lib/invoiceninja';
 
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
+const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
+
 // Mattermost sends POST requests here when interactive buttons are clicked.
 // The payload includes: post_id, channel_id, context (our custom data), user_id (who clicked).
 export const POST: APIRoute = async ({ request }) => {
@@ -149,7 +152,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 4. Schedule reminder email 10 min before
         if (room) {
-          scheduleReminder({
+          await scheduleReminder({
             email: bEmail,
             name: bName,
             meetingStart,
@@ -215,7 +218,7 @@ export const POST: APIRoute = async ({ request }) => {
         const { customerName: fName, customerEmail: fEmail, meetingType: fType, meetingDate: fDate, customerChannelId, roomToken: fRoomToken } = context;
 
         // Call the finalize endpoint (with roomToken for recording/whiteboard fetch)
-        const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
+        const SITE_URL = process.env.SITE_URL || (PROD_DOMAIN ? `https://web.${PROD_DOMAIN}` : '');
         const finalizeRes = await fetch(`${SITE_URL}/api/meeting/finalize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

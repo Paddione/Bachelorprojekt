@@ -80,6 +80,9 @@ flowchart TB
 | FA-19 | Outline Wiki | Wiki-Deployment, Keycloak-OIDC |
 | FA-20 | Finalisierung | Abschlusspruefungen |
 | FA-21 | Billing Workflows | Rechnungsworkflows |
+| FA-23 | Vaultwarden | Passwort-Manager, Bitwarden-Kompatibilitaet |
+| FA-24 | Whiteboard | Kollaboratives Whiteboard |
+| FA-25 | Mailpit | Dev-Mailserver, E-Mail-Zustellung |
 
 ### Sicherheits-Tests (SA)
 
@@ -91,6 +94,7 @@ flowchart TB
 | SA-04--SA-07 | Autorisierung | Zugriffskontrolle und Berechtigungen |
 | SA-08 | SSO-Integration | Keycloak OIDC Flow |
 | SA-09 | Weitere Sicherheit | Zusaetzliche Sicherheitspruefungen |
+| SA-10 | MCP-Authentifizierung | MCP-Server Auth-Proxy, Token-Validierung |
 
 ### Nicht-funktionale Tests (NFA)
 
@@ -103,6 +107,8 @@ flowchart TB
 | NFA-05 | Usability | Barrierefreiheit, UX |
 | NFA-06 | Datenbank-Konsistenz | DB-Integritaet |
 | NFA-07 | Logging & Monitoring | Log-Verfuegbarkeit |
+| NFA-08 | Backup & Recovery | Backup-CronJob, Verschluesselung, Wiederherstellung |
+| NFA-09 | Multi-Cluster | ArgoCD Sync, Cluster-Registrierung |
 
 ### Abnahme-Tests (AK)
 
@@ -134,10 +140,16 @@ Browser-basierte UI-Tests in `tests/e2e/`.
 
 **Global Setup:** Authentifiziert als `testuser1`, deaktiviert Onboarding/Tutorials, speichert Auth-Session.
 
-**Test-Specs (26 Dateien):**
-- `fa-01-messaging.spec.ts` bis `fa-21-billing.spec.ts` -- Funktionale UI-Tests
+**Test-Specs (35 Dateien):**
+- `fa-01-messaging.spec.ts` bis `fa-25-mailpit.spec.ts` -- Funktionale UI-Tests
+- `fa-client-portal.spec.ts` -- Kunden-Portal (Login, Dokumente, Rechnungen)
+- `fa-document-signing.spec.ts` -- Dokumenten-Signierung
+- `fa-meeting-history.spec.ts` -- Meeting-Verlauf und Insights
+- `fa-slot-widget.spec.ts` -- Buchungs-Slot-Widget
+- `integration-smoke.spec.ts` -- Integrations-Smoke-Tests
 - `sa-02-auth.spec.ts` -- Login/Logout Browser-Flow
 - `sa-08-sso.spec.ts` -- Keycloak SSO Browser-Flow
+- `sa-10-mcp-auth.spec.ts` -- MCP-Server Authentifizierung
 - `nfa-05-usability.spec.ts` -- Barrierefreiheit und UX
 
 **Hilfsfunktionen** (`specs/helpers.ts`):

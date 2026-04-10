@@ -11,13 +11,24 @@
     slots: TimeSlot[];
   }
 
+  interface Props {
+    initialDate?: string;
+    initialStart?: string;
+    initialEnd?: string;
+  }
+  let { initialDate = '', initialStart = '', initialEnd = '' } = $props<Props>();
+
   let name = $state('');
   let email = $state('');
   let phone = $state('');
   let bookingType = $state('erstgespraech');
   let message = $state('');
-  let selectedSlot = $state<TimeSlot | null>(null);
-  let selectedDate = $state('');
+  let selectedSlot = $state<TimeSlot | null>(
+    initialStart && initialEnd
+      ? { start: initialStart, end: initialEnd, display: `${initialStart} - ${initialEnd}` }
+      : null
+  );
+  let selectedDate = $state(initialDate);
 
   let days = $state<DaySlots[]>([]);
   let loading = $state(true);
@@ -38,7 +49,7 @@
       .then((data) => {
         if (Array.isArray(data)) {
           days = data;
-          if (data.length > 0) selectedDate = data[0].date;
+          if (!initialDate && data.length > 0) selectedDate = data[0].date;
         }
         loading = false;
       })
@@ -56,9 +67,13 @@
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
+  let _prevDate = selectedDate;
   $effect(() => {
-    // Reset selected slot when date changes
-    selectedSlot = null;
+    // Reset selected slot when user changes the date
+    if (selectedDate !== _prevDate) {
+      _prevDate = selectedDate;
+      selectedSlot = null;
+    }
   });
 
   async function handleSubmit(e: Event) {
@@ -170,7 +185,7 @@
       {/if}
 
       {#if selectedSlot}
-        <p class="mt-4 text-gold font-medium">
+        <p class="mt-4 text-gold font-medium" data-testid="selected-slot-display">
           Gewahlt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {selectedSlot.display}
         </p>
       {/if}

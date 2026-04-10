@@ -1,12 +1,12 @@
 // OIDC authentication helper for Keycloak.
 // Implements Authorization Code Flow with cookie-based sessions.
 
-const KC_FRONTEND_URL = process.env.KEYCLOAK_FRONTEND_URL || 'https://auth.${PROD_DOMAIN}';
+const KC_FRONTEND_URL = process.env.KEYCLOAK_FRONTEND_URL || '';
 const KC_INTERNAL_URL = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
 const KC_REALM = process.env.KEYCLOAK_REALM || 'workspace';
 const CLIENT_ID = 'website';
 const CLIENT_SECRET = process.env.WEBSITE_OIDC_SECRET || 'devwebsiteoidcsecret12345';
-const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
+const SITE_URL = process.env.SITE_URL || '';
 const CALLBACK_PATH = '/api/auth/callback';
 const COOKIE_NAME = 'workspace_session';
 
@@ -30,8 +30,26 @@ export interface UserSession {
   expires_at: number;
 }
 
-// Simple in-memory session store. In production, use Redis or a database.
-const sessions = new Map<string, UserSession>();
+// PostgreSQL session store (survives container restarts)
+import pg from 'pg';
+const sessionPool = new pg.Pool({
+  connectionString: process.env.SESSIONS_DATABASE_URL
+    || 'postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings',
+});
+
+let sessionsTableReady = false;
+async function ensureSessionsTable(): Promise<void> {
+  if (sessionsTableReady) return;
+  await sessionPool.query(`
+    CREATE TABLE IF NOT EXISTS web_sessions (
+      id TEXT PRIMARY KEY,
+      data JSONB NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  sessionsTableReady = true;
+}
 
 function generateSessionId(): string {
   const bytes = new Uint8Array(32);
@@ -50,9 +68,13 @@ export function getLoginUrl(state?: string): string {
   return `${AUTH_ENDPOINT}?${params}`;
 }
 
-export function getLogoutUrl(sessionId?: string): string {
-  // Clean up server session
-  if (sessionId) sessions.delete(sessionId);
+export async function getLogoutUrl(sessionId?: string): Promise<string> {
+  if (sessionId) {
+    try {
+      await ensureSessionsTable();
+      await sessionPool.query('DELETE FROM web_sessions WHERE id = $1', [sessionId]);
+    } catch { /* best-effort cleanup */ }
+  }
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
@@ -106,28 +128,49 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
     expires_at: Date.now() + tokens.expires_in * 1000,
   };
 
-  sessions.set(sessionId, user);
+  await ensureSessionsTable();
+  await sessionPool.query(
+    'INSERT INTO web_sessions (id, data, expires_at) VALUES ($1, $2, $3)',
+    [sessionId, JSON.stringify(user), new Date(user.expires_at)]
+  );
   return { sessionId, user };
 }
 
-export function getSession(cookieHeader: string | null): UserSession | null {
+const ADMIN_USERNAME = process.env.PORTAL_ADMIN_USERNAME || 'admin';
+
+export function isAdmin(session: UserSession): boolean {
+  return session.preferred_username === ADMIN_USERNAME;
+}
+
+export async function getSession(cookieHeader: string | null): Promise<UserSession | null> {
   if (!cookieHeader) return null;
 
   const match = cookieHeader.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
   if (!match) return null;
 
   const sessionId = match[1];
-  const session = sessions.get(sessionId);
 
-  if (!session) return null;
+  try {
+    await ensureSessionsTable();
+    const result = await sessionPool.query(
+      'SELECT data FROM web_sessions WHERE id = $1 AND expires_at > NOW()',
+      [sessionId]
+    );
 
-  // Check expiry (with 60s buffer)
-  if (session.expires_at < Date.now() + 60000) {
-    sessions.delete(sessionId);
+    if (result.rows.length === 0) return null;
+
+    const session = result.rows[0].data as UserSession;
+
+    if (session.expires_at < Date.now() + 60000) {
+      await sessionPool.query('DELETE FROM web_sessions WHERE id = $1', [sessionId]);
+      return null;
+    }
+
+    return session;
+  } catch (err) {
+    console.error('[auth] Session lookup failed:', err);
     return null;
   }
-
-  return session;
 }
 
 export function getSessionId(cookieHeader: string | null): string | undefined {
@@ -143,3 +186,11 @@ export function setSessionCookie(sessionId: string): string {
 export function clearSessionCookie(): string {
   return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
+
+// Clean up expired sessions every 15 minutes
+setInterval(async () => {
+  try {
+    await ensureSessionsTable();
+    await sessionPool.query('DELETE FROM web_sessions WHERE expires_at < NOW()');
+  } catch { /* best-effort */ }
+}, 15 * 60 * 1000);

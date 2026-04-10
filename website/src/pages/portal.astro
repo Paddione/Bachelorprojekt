@@ -49,8 +49,8 @@ const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
       <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
         {tab === 'bookings' && <BookingsTab clientEmail={session.email} />}
         {tab === 'invoices' && <InvoicesTab clientEmail={session.email} />}
-        {tab === 'files' && <FilesTab clientUsername={session.preferred_username} />}
-        {tab === 'signatures' && <SignaturesTab clientUsername={session.preferred_username} />}
+        {tab === 'files' && <FilesTab clientUsername={session.preferred_username ?? session.sub} />}
+        {tab === 'signatures' && <SignaturesTab clientUsername={session.preferred_username ?? session.sub} />}
         {tab === 'meetings' && <MeetingsTab clientEmail={session.email} />}
       </div>
     </div>

@@ -21,11 +21,10 @@ data:
         command: [sh, -c]
         args:
           - |
-            export PROD_DOMAIN="${ARGOCD_ENV_PROD_DOMAIN}"
-            export BRAND_NAME="${ARGOCD_ENV_BRAND_NAME}"
-            export CONTACT_EMAIL="${ARGOCD_ENV_CONTACT_EMAIL}"
-            export INFRA_NAMESPACE="${ARGOCD_ENV_INFRA_NAMESPACE}"
-            export TLS_SECRET_NAME="${ARGOCD_ENV_TLS_SECRET_NAME}"
-            export SMTP_FROM="${ARGOCD_ENV_SMTP_FROM}"
-            kustomize build . | envsubst '${PROD_DOMAIN} ${BRAND_NAME} ${CONTACT_EMAIL} ${INFRA_NAMESPACE} ${TLS_SECRET_NAME} ${SMTP_FROM}'
+            # Export all ARGOCD_ENV_* vars without the prefix
+            for var in $(env | grep ^ARGOCD_ENV_ | cut -d= -f1); do
+              name="${var#ARGOCD_ENV_}"
+              export "$name=$(printenv "$var")"
+            done
+            kustomize build . | envsubst
       lockRepo: false

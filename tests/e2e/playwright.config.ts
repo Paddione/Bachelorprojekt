@@ -82,6 +82,7 @@ export default defineConfig({
         '**/fa-21-*.spec.ts', // service catalog & billing
         '**/fa-slot-widget.spec.ts', // slot widget
         '**/fa-client-portal.spec.ts', // client portal auth-gate
+        '**/fa-meeting-history.spec.ts', // meeting history & release
       ],
       use: {
         ...devices['Desktop Chrome'],

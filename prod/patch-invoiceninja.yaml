@@ -14,6 +14,8 @@ spec:
               value: "true"
             - name: TRUSTED_PROXIES
               value: "*"
+            - name: IN_USER_EMAIL
+              value: "${CONTACT_EMAIL}"
             - name: MAIL_FROM_ADDRESS
               value: "${CONTACT_EMAIL}"
             - name: MAIL_FROM_NAME

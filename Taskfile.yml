@@ -1071,6 +1071,40 @@ tasks:
         awk '/^setup_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
         echo "Created: environments/{{.ENV}}.yaml — fill in all FILL_ME values."
 
+  workspace:deploy:
+    desc: "Deploy workspace to any environment (ENV=dev|mentolder|korczewski|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - task: env:validate
+        vars: { ENV: "{{.ENV}}" }
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+
+        if [ "{{.ENV}}" = "dev" ]; then
+          # Dev: build from k3d base, apply locally
+          kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
+        else
+          # Prod: build from overlay, apply to target cluster
+          overlay="${ENV_OVERLAY:-prod}"
+          kustomize build "$overlay/" \
+            | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" \
+            | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
+
+          # Apply SealedSecret if it exists
+          sealed="environments/sealed-secrets/{{.ENV}}.yaml"
+          if [ -f "$sealed" ]; then
+            kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
+          fi
+        fi
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        echo "Waiting for shared-db..."
+        kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
+      - 'echo "✓ Workspace deployed to {{.ENV}}"'
+
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"
     preconditions:

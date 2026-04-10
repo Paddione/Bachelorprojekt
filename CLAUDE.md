@@ -115,7 +115,7 @@ task config:show                 # Show current config variables
 ./tests/runner.sh report             # Generate Markdown report
 ```
 
-Test IDs: `FA-01`--`FA-11` (functional), `SA-01`--`SA-09` (security), `NFA-01`--`NFA-07` (non-functional), `AK-03`, `AK-04` (acceptance).
+Test IDs: `FA-01`--`FA-25` (functional), `SA-01`--`SA-10` (security), `NFA-01`--`NFA-09` (non-functional), `AK-03`, `AK-04` (acceptance).
 
 ### Building the billing-bot (Go)
 ```bash

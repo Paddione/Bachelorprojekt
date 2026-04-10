@@ -1,0 +1,47 @@
+---
+import type { DaySlots } from '../lib/caldav';
+
+interface Props {
+  day: DaySlots;
+}
+
+const { day } = Astro.props;
+
+const dateFormatted = new Date(day.date + 'T00:00:00').toLocaleDateString('de-DE', {
+  weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+});
+---
+
+<section class="py-10 bg-dark-light border-y border-dark-lighter" data-testid="slot-widget">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row md:items-center gap-6">
+      <div class="flex-shrink-0">
+        <p class="text-sm text-muted uppercase tracking-widest mb-1">Nächster freier Termin</p>
+        <h2 class="text-xl font-semibold text-light" data-testid="slot-widget-heading">
+          {dateFormatted}
+        </h2>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        {day.slots.map((slot) => {
+          const [startHH, startMM] = slot.display.split(' - ')[0].split(':');
+          const [endHH, endMM] = slot.display.split(' - ')[1].split(':');
+          const href = `/termin?date=${day.date}&start=${startHH}:${startMM}&end=${endHH}:${endMM}`;
+          return (
+            <a
+              href={href}
+              data-testid="slot-pill"
+              class="px-4 py-2 rounded-full border border-gold/40 text-gold hover:bg-gold hover:text-dark font-medium text-sm transition-colors"
+            >
+              {slot.display}
+            </a>
+          );
+        })}
+      </div>
+      <div class="md:ml-auto flex-shrink-0">
+        <a href="/termin" class="text-muted hover:text-gold text-sm underline underline-offset-4 transition-colors">
+          Alle Termine anzeigen →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

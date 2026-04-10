@@ -47,12 +47,38 @@ export async function upsertCustomer(params: {
   return result.rows[0];
 }
 
+// ── Schema init ─────────────────────────────────────────────────────────────
+
+export async function initMeetingsDb(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS meetings (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      customer_id UUID NOT NULL REFERENCES customers(id),
+      meeting_type TEXT NOT NULL,
+      scheduled_at TIMESTAMPTZ,
+      talk_room_token TEXT,
+      status TEXT NOT NULL DEFAULT 'scheduled',
+      started_at TIMESTAMPTZ,
+      ended_at TIMESTAMPTZ,
+      duration_seconds INTEGER,
+      recording_path TEXT,
+      released_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(
+    'ALTER TABLE meetings ADD COLUMN IF NOT EXISTS released_at TIMESTAMPTZ'
+  );
+}
+
 // ── Meeting ─────────────────────────────────────────────────────────────────
 
 export interface Meeting {
   id: string;
   customerId: string;
   status: string;
+  released_at: string | null;
 }
 
 export async function createMeeting(params: {
@@ -254,4 +280,32 @@ export async function generateMeetingEmbeddings(meetingId: string): Promise<numb
   }
 
   return count;
+}
+
+// ── Meeting History ──────────────────────────────────────────────────────────
+
+export async function releaseMeeting(meetingId: string): Promise<void> {
+  await pool.query(
+    'UPDATE meetings SET released_at = NOW() WHERE id = $1',
+    [meetingId]
+  );
+}
+
+export async function getMeetingsForClient(
+  clientEmail: string,
+  onlyReleased = false
+): Promise<Meeting[]> {
+  const query = onlyReleased
+    ? `SELECT m.id, m.customer_id as "customerId", m.status, m.released_at
+       FROM meetings m
+       JOIN customers c ON m.customer_id = c.id
+       WHERE c.email = $1 AND m.released_at IS NOT NULL
+       ORDER BY m.created_at DESC`
+    : `SELECT m.id, m.customer_id as "customerId", m.status, m.released_at
+       FROM meetings m
+       JOIN customers c ON m.customer_id = c.id
+       WHERE c.email = $1
+       ORDER BY m.created_at DESC`;
+  const result = await pool.query(query, [clientEmail]);
+  return result.rows;
 }

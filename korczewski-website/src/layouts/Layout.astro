@@ -1,0 +1,60 @@
+---
+import Navigation from '../components/Navigation.svelte';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'KI-Beratung, Software-Architektur & Open-Source-Deployment - Patrick Korczewski' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+    <title>{title} | Korczewski</title>
+  </head>
+  <body class="min-h-screen flex flex-col bg-dark text-light">
+    <Navigation client:load />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <footer class="bg-dark border-t border-dark-lighter py-12">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div>
+            <h3 class="text-lg font-semibold text-gold mb-4">Kontakt</h3>
+            <p class="text-muted mb-2">${CONTACT_EMAIL}</p>
+            <p class="text-muted">${CONTACT_CITY}</p>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gold mb-4">Leistungen</h3>
+            <ul class="space-y-2 text-muted">
+              <li><a href="/leistungen#ki-beratung" class="hover:text-gold transition-colors">KI-Beratung</a></li>
+              <li><a href="/leistungen#software-dev" class="hover:text-gold transition-colors">Software-Entwicklung</a></li>
+              <li><a href="/leistungen#deployment" class="hover:text-gold transition-colors">Deployment & Infrastruktur</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gold mb-4">Rechtliches</h3>
+            <ul class="space-y-2 text-muted">
+              <li><a href="/impressum" class="hover:text-gold transition-colors">Impressum</a></li>
+              <li><a href="/datenschutz" class="hover:text-gold transition-colors">Datenschutz</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-dark-lighter pt-8 text-center text-muted-dark text-sm">
+          <p>&copy; {new Date().getFullYear()} Korczewski - Alle Rechte vorbehalten</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

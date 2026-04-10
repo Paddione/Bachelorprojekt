@@ -1,0 +1,197 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.svelte';
+import ServiceCard from '../components/ServiceCard.svelte';
+import CallToAction from '../components/CallToAction.svelte';
+import FAQ from '../components/FAQ.svelte';
+
+const services = [
+  {
+    title: 'KI-Beratung',
+    description: 'KI sicher, sinnvoll und kosteneffizient einsetzen \u2013 privat oder geschaftlich. Kein Hype, sondern das, was wirklich funktioniert.',
+    icon: '\uD83E\uDDE0',
+    features: [
+      'ChatGPT, Claude & Co. produktiv nutzen',
+      'Datenschutzkonformer KI-Einsatz im Unternehmen',
+      'Automatisierung von Routineaufgaben',
+      'Kosten-Nutzen-Analyse verschiedener KI-Tools',
+    ],
+    href: '/leistungen#ki-beratung',
+    price: '50 \u20AC / Stunde',
+  },
+  {
+    title: 'Software-Entwicklung mit KI',
+    description: 'Vom ersten Prompt bis zum fertigen Produkt. Ich zeige Ihnen, wie KI-gestutztes Entwickeln funktioniert \u2013 auch wenn Sie kein Informatiker sind.',
+    icon: '\uD83D\uDCBB',
+    features: [
+      'Einfuhrung in KI-gestutzte Entwicklung',
+      'Architekturentscheidungen mit KI treffen',
+      'Code-Qualitat und Testing mit KI',
+      'Von der Idee zum produktionsreifen Code',
+    ],
+    href: '/leistungen#software-dev',
+    price: '50 \u20AC / Stunde',
+  },
+  {
+    title: 'Deployment & Infrastruktur',
+    description: 'Kubernetes, Open-Source-Losungen, Wartung \u2013 ich bringe Ihre Software sicher in Produktion und halte sie am Laufen.',
+    icon: '\u2601\uFE0F',
+    features: [
+      'Kubernetes-Deployment von A bis Z',
+      'Open-Source-Alternativen zu teurer Software',
+      'Monitoring, Wartung & Updates',
+      'DSGVO-konforme Self-Hosted-Losungen',
+    ],
+    href: '/leistungen#deployment',
+    price: '50 \u20AC / Stunde',
+  },
+];
+
+const faqItems = [
+  {
+    question: 'Fur wen ist die KI-Beratung gedacht?',
+    answer: 'Fur alle, die KI sinnvoll nutzen wollen \u2013 ob Privatperson, Selbstandiger oder Unternehmen. Ich hole Sie dort ab, wo Sie stehen, und zeige Ihnen, was heute schon funktioniert.',
+  },
+  {
+    question: 'Brauche ich Programmierkenntnisse?',
+    answer: 'Nein. Fur die KI-Beratung und grundlegende Automatisierung brauchen Sie null Vorkenntnisse. Fur Software-Entwicklung mit KI starten wir bei den Basics \u2013 KI ubernimmt den Grossteil der schweren Arbeit.',
+  },
+  {
+    question: 'Wie lauft ein Kennenlerngesprach ab?',
+    answer: '45 Minuten, 20 Euro. Wir sprechen uber Ihre Situation, ich stelle Fragen, Sie stellen Fragen. Am Ende wissen wir beide, ob eine Zusammenarbeit Sinn macht \u2013 und wenn ja, wie.',
+  },
+  {
+    question: 'Warum Open Source statt Standardsoftware?',
+    answer: 'Weil Sie damit unabhangig bleiben: keine Vendor-Lock-ins, keine steigenden Lizenzkosten, volle Kontrolle uber Ihre Daten. Und oft ist die Open-Source-Losung auch die bessere.',
+  },
+  {
+    question: 'Arbeiten Sie remote oder vor Ort?',
+    answer: 'Beides. Die meisten Projekte lassen sich hervorragend remote umsetzen. Fur intensivere Zusammenarbeit komme ich auch gerne nach Luneburg und Umgebung.',
+  },
+];
+---
+
+<Layout title="KI-Beratung & Software-Architektur">
+  <Hero client:load />
+
+  <!-- Trust indicators -->
+  <section class="py-12 bg-dark-light border-b border-dark-lighter">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div>
+          <p class="text-3xl font-bold text-gold">B.Sc.</p>
+          <p class="text-muted mt-1">IT-Sicherheit</p>
+        </div>
+        <div>
+          <p class="text-3xl font-bold text-gold">10+</p>
+          <p class="text-muted mt-1">Jahre IT-Management</p>
+        </div>
+        <div>
+          <p class="text-3xl font-bold text-gold">KI</p>
+          <p class="text-muted mt-1">Seit Tag 1 dabei</p>
+        </div>
+        <div>
+          <p class="text-3xl font-bold text-gold">K8s</p>
+          <p class="text-muted mt-1">Kubernetes & Open Source</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="angebote" class="py-20 bg-dark">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl md:text-4xl font-bold text-light mb-4 font-serif">Was ich fur Sie tun kann</h2>
+        <p class="text-xl text-muted max-w-2xl mx-auto">
+          Technologie soll Ihnen das Leben leichter machen &ndash; nicht komplizierter. Ich sorge dafur, dass es so bleibt.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {services.map((service) => (
+          <ServiceCard {...service} client:visible />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Why me -->
+  <section class="py-20 bg-dark-light">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-bold text-light mb-6 font-serif">Warum ich?</h2>
+          <p class="text-xl text-muted leading-relaxed mb-8">
+            Ich komme nicht aus der Theorie. Ich habe jahrelang die IT von Unternehmen gemanaged, bevor ich angefangen habe, selbst zu entwickeln. Und seit GPT-3 auf dem Markt ist, habe ich jeden Tag damit verbracht, aus meiner Intuition solides Architekturwissen zu machen.
+          </p>
+          <div class="space-y-5">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-light">IT-Sicherheit im Blut</h3>
+                <p class="text-muted">Bachelor in IT-Sicherheit. Ich denke Security-first, nicht als Afterthought.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-light">KI-Native seit der ersten Stunde</h3>
+                <p class="text-muted">Seit dem Launch von ChatGPT 3 arbeite ich taglich mit KI. Nicht als Spielerei &ndash; als Werkzeug.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-light">Praxis schlagt Theorie</h3>
+                <p class="text-muted">Jahre in der IT grosser und kleiner Unternehmen. Ich kenne die echten Probleme, nicht nur die Lehrbuch-Probleme.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quote -->
+        <div class="flex flex-col items-center">
+          <div class="bg-dark rounded-2xl p-8 border border-dark-lighter max-w-md">
+            <svg class="w-10 h-10 text-gold/30 mb-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
+            </svg>
+            <blockquote class="text-lg text-light leading-relaxed italic font-serif">
+              "Ich habe meine Vibes in Architekturwissen verwandelt &ndash; und jetzt helfe ich Ihnen, dasselbe zu tun. Nur schneller, weil ich die Sackgassen schon kenne."
+            </blockquote>
+            <p class="text-muted-dark mt-4 text-sm">Patrick Korczewski</p>
+          </div>
+
+          <div class="mt-8 bg-dark rounded-2xl p-6 border border-dark-lighter max-w-md w-full">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 bg-gold-dim rounded-full flex items-center justify-center text-2xl">
+                <span class="text-gold font-bold">PK</span>
+              </div>
+              <div>
+                <p class="font-semibold text-light">Patrick Korczewski</p>
+                <p class="text-muted text-sm">Software Engineer & IT-Security-Berater</p>
+                <p class="text-muted-dark text-sm">Luneburg</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <FAQ items={faqItems} client:visible />
+
+  <CallToAction client:visible />
+</Layout>

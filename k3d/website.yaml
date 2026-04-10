@@ -72,6 +72,7 @@ data:
   WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
   OUTLINE_URL: "http://outline.workspace.svc.cluster.local"
   OUTLINE_API_KEY: ""
+  ANTHROPIC_API_KEY: ""
   # Site
   SITE_URL: "http://web.localhost"
 ---

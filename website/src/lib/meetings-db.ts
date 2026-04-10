@@ -78,7 +78,7 @@ export interface Meeting {
   id: string;
   customerId: string;
   status: string;
-  released_at: string | null;
+  released_at: Date | null;
 }
 
 export async function createMeeting(params: {
@@ -90,7 +90,7 @@ export async function createMeeting(params: {
   const result = await pool.query(
     `INSERT INTO meetings (customer_id, meeting_type, scheduled_at, talk_room_token, status)
      VALUES ($1, $2, $3, $4, 'scheduled')
-     RETURNING id, customer_id as "customerId", status`,
+     RETURNING id, customer_id as "customerId", status, released_at`,
     [params.customerId, params.meetingType, params.scheduledAt, params.talkRoomToken]
   );
   return result.rows[0];

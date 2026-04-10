@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName } from '../../lib/mattermost';
 import { sendEmail } from '../../lib/email';
 
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
+
 const TYPE_LABELS: Record<string, string> = {
   erstgespraech: 'Kostenloses Erstgesprach',
   callback: 'Ruckruf',

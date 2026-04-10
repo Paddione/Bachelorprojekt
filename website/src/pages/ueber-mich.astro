@@ -1,43 +1,34 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
+import { config } from '../config/index';
 
-const milestones = [
-  { year: '1980-2023', title: 'Polizei Hamburg', desc: 'Uber 30 Jahre in Fuhrungspositionen. Personalfuhrung, Organisationsentwicklung, Strategie.' },
-  { year: 'Highlight', title: 'KI-Pionier', desc: 'Erste deutsche Polizeibehorde mit KI/Gesichtserkennung. BOS-Digitalfunk bundesweit fuhrend gemacht.' },
-  { year: '2023', title: 'Digital Cafe', desc: '6 Monate intensives Digital Cafe im Altenheim. Uber 50 Teilnehmer individuell begleitet.' },
-  { year: 'Seit 2024', title: 'Selbststandig', desc: 'Coach und Digitaler Begleiter. Fuhrungskrafte-Coaching und Unternehmensberatung.' },
-];
+const { uebermich, contact } = config;
 ---
 
-<Layout title="Uber mich" description="Von der Polizei Hamburg in die digitale Begleitung. 30+ Jahre Fuhrungserfahrung fur Ihre Entwicklung.">
+<Layout title="Uber mich" description={`Uber ${contact.name} – ${config.legal.tagline}`}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
-      <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">Uber mich</p>
-      <h1 class="text-4xl md:text-5xl font-bold text-light leading-tight mb-6 font-serif">Von der Polizei Hamburg in die digitale Begleitung</h1>
+      <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">{uebermich.subheadline}</p>
+      <h1 class="text-4xl md:text-5xl font-bold text-light leading-tight mb-6 font-serif">{uebermich.pageHeadline}</h1>
     </div>
   </section>
 
   <section class="py-16 bg-dark-light">
     <div class="max-w-3xl mx-auto px-6 space-y-8 text-lg text-muted leading-relaxed">
-      <p>Nach uber 30 Jahren bei der Polizei Hamburg &ndash; davon viele Jahre in Fuhrungspositionen &ndash; habe ich 2023 einen neuen Weg eingeschlagen.</p>
-      <p>Was ich in all den Jahren gelernt habe? <strong class="text-light">Menschen fuhren bedeutet vor allem: Menschen verstehen, Geduld haben, und Wissen so vermitteln, dass es ankommt.</strong></p>
+      {uebermich.introParagraphs.map((para) => (
+        <p set:html={para} />
+      ))}
 
-      <div class="bg-dark rounded-2xl p-8 my-10 border-l-4 border-gold">
-        <h2 class="text-2xl font-bold text-light mb-4 font-serif">Warum Digital Cafe 50+?</h2>
-        <p>Als ich im Altenheim ein halbes Jahr lang ein Digital Cafe leitete, merkte ich: Hier kann ich genau diese Fahigkeiten einsetzen. Menschen der Generation 50+ stehen vor echten Herausforderungen in der digitalen Welt. Nicht weil sie &ldquo;zu alt&rdquo; sind &ndash; sondern weil niemand sich die Zeit nimmt, es in Ruhe und verstandlich zu erklaren.</p>
-      </div>
-
-      <div class="bg-dark rounded-2xl p-8 my-10 border-l-4 border-gold">
-        <h2 class="text-2xl font-bold text-light mb-4 font-serif">Warum Fuhrungskrafte-Coaching?</h2>
-        <p>30+ Jahre Fuhrungserfahrung bedeutet auch: Ich kenne beide Seiten. Ich habe hunderte Fuhrungskrafte eingestellt, entwickelt, befordert. Ich weiss, worauf es ankommt. Diese Erfahrung gebe ich heute weiter.</p>
-      </div>
-
-      <h2 class="text-2xl font-bold text-light !mt-12 font-serif">Mein Antrieb</h2>
-      <p>Ich liebe es, wenn Menschen ihr Potential entfalten. Ob eine 75-jahrige Dame, die zum ersten Mal WhatsApp nutzt, oder eine erfahrene Fuhrungskraft, die den nachsten Karriereschritt plant &ndash; der Moment, wo es &ldquo;klick&rdquo; macht, ist jedes Mal grossartig.</p>
+      {uebermich.sections.map((sec) => (
+        <div class="bg-dark rounded-2xl p-8 my-10 border-l-4 border-gold">
+          <h2 class="text-2xl font-bold text-light mb-4 font-serif">{sec.title}</h2>
+          <p>{sec.content}</p>
+        </div>
+      ))}
 
       <h2 class="text-2xl font-bold text-light !mt-12 font-serif">Privat</h2>
-      <p>Ich lebe in ${CONTACT_CITY}, bin verheiratet, habe zwei erwachsene Kinder. In meiner Freizeit bin ich viel zu Fuss unterwegs &ndash; Bewegung ist fur mich Meditation. Und ja, ich bin selbst Teil der Generation 50+ (65 Jahre) &ndash; ich weiss also aus eigener Erfahrung, wovon ich spreche.</p>
+      <p>{uebermich.privateText.replace('{city}', contact.city)}</p>
     </div>
   </section>
 
@@ -45,7 +36,7 @@ const milestones = [
     <div class="max-w-3xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-light mb-10 text-center font-serif">Mein Weg</h2>
       <div class="space-y-8">
-        {milestones.map((m) => (
+        {uebermich.milestones.map((m) => (
           <div class="flex gap-6 items-start">
             <div class="flex-shrink-0 w-28 text-right">
               <span class="text-sm font-bold text-dark bg-gold px-3 py-1 rounded-full">{m.year}</span>
@@ -66,14 +57,12 @@ const milestones = [
       <h2 class="text-3xl font-bold text-light mb-8 font-serif">Was ich nicht mache</h2>
       <p class="text-lg text-muted mb-6">Um ehrlich zu sein: Ich bin nicht fur alles der Richtige.</p>
       <div class="space-y-4">
-        <div class="p-5 bg-dark rounded-xl border border-dark-lighter border-l-4 border-l-red-500/50">
-          <p class="text-lg text-muted"><strong class="text-light">Keine technische Umsetzung</strong> &ndash; Ich berate, entwickle Strategien und begleite Change-Prozesse. Programmierung uberlasse ich Spezialisten.</p>
-        </div>
-        <div class="p-5 bg-dark rounded-xl border border-dark-lighter border-l-4 border-l-red-500/50">
-          <p class="text-lg text-muted"><strong class="text-light">Keine Online-Kurse</strong> &ndash; Ich glaube an personliche Begleitung statt standardisierte, skalierbare Produkte.</p>
-        </div>
+        {uebermich.notDoing.map((item) => (
+          <div class="p-5 bg-dark rounded-xl border border-dark-lighter border-l-4 border-l-red-500/50">
+            <p class="text-lg text-muted"><strong class="text-light">{item.title}</strong> &ndash; {item.text}</p>
+          </div>
+        ))}
       </div>
-      <p class="text-lg text-muted mt-6">Wenn Sie jemanden suchen, der Erfahrung, Klarheit und echte Veranderung bringt &ndash; dann sollten wir reden.</p>
     </div>
   </section>
 

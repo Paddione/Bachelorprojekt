@@ -18,6 +18,7 @@ const BOOKING_HORIZON_DAYS = parseInt(process.env.BOOKING_HORIZON_DAYS || '21');
 const MIN_ADVANCE_HOURS = parseInt(process.env.MIN_ADVANCE_HOURS || '24');
 
 const CALDAV_BASE = `${NC_URL}/remote.php/dav/calendars/${NC_USER}/${CALENDAR_NAME}`;
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
 function getAuthHeader(): string {
   return 'Basic ' + Buffer.from(`${NC_USER}:${NC_PASS}`).toString('base64');

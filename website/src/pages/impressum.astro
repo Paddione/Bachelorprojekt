@@ -1,17 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { config } from '../config/index';
 
-const brandName   = import.meta.env.BRAND_NAME   || 'Mentolder';
-const contactName = import.meta.env.CONTACT_NAME  || '';
-const contactEmail= import.meta.env.CONTACT_EMAIL || '';
-const contactPhone= import.meta.env.CONTACT_PHONE || '';
-const contactCity = import.meta.env.CONTACT_CITY  || '';
-const street      = import.meta.env.LEGAL_STREET  || '';
-const zip         = import.meta.env.LEGAL_ZIP     || '';
-const jobtitle    = import.meta.env.LEGAL_JOBTITLE|| '';
-const chamber     = import.meta.env.LEGAL_CHAMBER || '';
-const ustId       = import.meta.env.LEGAL_UST_ID  || '';
-const website     = import.meta.env.LEGAL_WEBSITE || '';
+const { contact, legal } = config;
 ---
 
 <Layout title="Impressum">
@@ -21,24 +12,24 @@ const website     = import.meta.env.LEGAL_WEBSITE || '';
 
       <h2>Angaben gemäß &sect; 5 DDG</h2>
       <p>
-        {contactName}<br />
-        {brandName} &ndash; Digital Coaching &amp; Führungskräfte-Beratung<br />
-        {street}<br />
-        {zip} {contactCity}<br />
+        {contact.name}<br />
+        {legal.tagline}<br />
+        {legal.street}<br />
+        {legal.zip} {contact.city}<br />
         Deutschland
       </p>
 
       <h2>Kontakt</h2>
       <p>
-        Telefon: {contactPhone}<br />
-        E-Mail: {contactEmail}<br />
-        Web: www.{website}
+        {contact.phone && contact.phone !== '***' && <>Telefon: {contact.phone}<br /></>}
+        E-Mail: {contact.email}<br />
+        Web: www.{legal.website}
       </p>
 
       <h2>Berufsbezeichnung und berufsrechtliche Regelungen</h2>
       <p>
-        Berufsbezeichnung: {jobtitle}<br />
-        Zuständige Kammer: {chamber}<br />
+        Berufsbezeichnung: {legal.jobtitle}<br />
+        Zuständige Kammer: {legal.chamber}<br />
         Verliehen in: Bundesrepublik Deutschland
       </p>
       <p>
@@ -48,14 +39,14 @@ const website     = import.meta.env.LEGAL_WEBSITE || '';
 
       <h2>Umsatzsteuer</h2>
       <p>
-        {ustId}
+        {legal.ustId}
       </p>
 
       <h2>Redaktionell Verantwortlicher</h2>
       <p>
-        {contactName}<br />
-        {street}<br />
-        {zip} {contactCity}
+        {contact.name}<br />
+        {legal.street}<br />
+        {legal.zip} {contact.city}
       </p>
 
       <h2>EU-Streitschlichtung</h2>
@@ -98,12 +89,12 @@ const website     = import.meta.env.LEGAL_WEBSITE || '';
         Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige
         Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum
         Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige
-        Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar.
+        Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennable.
       </p>
       <p>
         Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete
         Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von
-        Rechtsverletzungen werden wir derartige Links umgehang entfernen.
+        Rechtsverletzungen werden wir derartige Links umgehend entfernen.
       </p>
 
       <h2>Urheberrecht</h2>

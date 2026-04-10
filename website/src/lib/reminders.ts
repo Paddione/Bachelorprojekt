@@ -4,6 +4,8 @@
 
 import { sendEmail } from './email';
 
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
+
 export interface Reminder {
   id: string;
   meetingStart: Date;

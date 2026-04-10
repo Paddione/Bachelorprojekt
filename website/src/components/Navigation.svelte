@@ -1,4 +1,5 @@
 <script lang="ts">
+  let { siteTitle = '' } = $props();
   let mobileOpen = $state(false);
   let scrolled = $state(false);
   let user = $state<{ name: string; email: string } | null>(null);
@@ -27,7 +28,7 @@
 >
   <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
     <a href="/" class="text-xl font-bold text-light hover:text-gold transition-colors font-serif">
-      ${PROD_DOMAIN}
+      {siteTitle}
     </a>
 
     <!-- Desktop nav -->

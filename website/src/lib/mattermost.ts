@@ -3,17 +3,20 @@
 const MM_URL = process.env.MATTERMOST_URL || 'http://mattermost.workspace.svc.cluster.local:8065';
 const MM_TOKEN = process.env.MATTERMOST_BOT_TOKEN || '';
 const WEBHOOK_URL = process.env.MATTERMOST_WEBHOOK_URL || '';
-const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
+const SITE_URL = process.env.SITE_URL || 'http://localhost:4321';
 
-function mmApi(method: string, endpoint: string, body?: unknown) {
+async function mmApi(method: string, endpoint: string, body?: unknown) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5_000);
   return fetch(`${MM_URL}/api/v4${endpoint}`, {
     method,
+    signal: controller.signal,
     headers: {
       Authorization: `Bearer ${MM_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,
-  });
+  }).finally(() => clearTimeout(timer));
 }
 
 // Post via incoming webhook (simple, no token needed)

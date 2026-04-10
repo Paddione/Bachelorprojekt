@@ -1,13 +1,14 @@
 ---
 import Navigation from '../components/Navigation.svelte';
 import '../styles/global.css';
+import { config } from '../config/index';
 
 interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = 'Digital Coach & Fuhrungskrafte-Mentor - Ihr Partner fur digitale Kompetenz und personliche Entwicklung' } = Astro.props;
+const { title, description = config.meta.siteDescription } = Astro.props;
 ---
 
 <!doctype html>
@@ -20,10 +21,10 @@ const { title, description = 'Digital Coach & Fuhrungskrafte-Mentor - Ihr Partne
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
-    <title>{title} | ${BRAND_NAME}</title>
+    <title>{title} | {config.meta.siteTitle}</title>
   </head>
   <body class="min-h-screen flex flex-col bg-dark text-light">
-    <Navigation client:load />
+    <Navigation client:load siteTitle={config.meta.siteTitle} />
     <main class="flex-1">
       <slot />
     </main>
@@ -32,16 +33,16 @@ const { title, description = 'Digital Coach & Fuhrungskrafte-Mentor - Ihr Partne
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <h3 class="text-lg font-semibold text-gold mb-4">Kontakt</h3>
-            <p class="text-muted mb-2">${CONTACT_PHONE}</p>
-            <p class="text-muted mb-2">${CONTACT_EMAIL}</p>
-            <p class="text-muted">${CONTACT_CITY} und Umgebung</p>
+            {config.contact.phone && <p class="text-muted mb-2">{config.contact.phone}</p>}
+            <p class="text-muted mb-2">{config.contact.email}</p>
+            <p class="text-muted">{config.contact.city} und Umgebung</p>
           </div>
           <div>
             <h3 class="text-lg font-semibold text-gold mb-4">Angebote</h3>
             <ul class="space-y-2 text-muted">
-              <li><a href="/digital-cafe" class="hover:text-gold transition-colors">Digital Cafe 50+</a></li>
-              <li><a href="/coaching" class="hover:text-gold transition-colors">Fuhrungskrafte-Coaching</a></li>
-              <li><a href="/beratung" class="hover:text-gold transition-colors">Unternehmensberatung</a></li>
+              {config.services.map((s) => (
+                <li><a href={`/${s.slug}`} class="hover:text-gold transition-colors">{s.title}</a></li>
+              ))}
             </ul>
           </div>
           <div>
@@ -53,7 +54,7 @@ const { title, description = 'Digital Coach & Fuhrungskrafte-Mentor - Ihr Partne
           </div>
         </div>
         <div class="border-t border-dark-lighter pt-8 text-center text-muted-dark text-sm">
-          <p>&copy; {new Date().getFullYear()} ${BRAND_NAME} - Alle Rechte vorbehalten</p>
+          <p>&copy; {new Date().getFullYear()} {config.meta.siteTitle} - Alle Rechte vorbehalten</p>
         </div>
       </div>
     </footer>

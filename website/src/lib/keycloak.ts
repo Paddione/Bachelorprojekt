@@ -89,3 +89,25 @@ export async function sendPasswordResetEmail(userId: string): Promise<boolean> {
   const res = await kcApi('PUT', `/users/${userId}/execute-actions-email`, ['UPDATE_PASSWORD']);
   return res.ok;
 }
+
+export interface KcUser {
+  id: string;
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  enabled: boolean;
+}
+
+export async function listUsers(): Promise<KcUser[]> {
+  const res = await kcApi('GET', '/users?max=200');
+  if (!res.ok) throw new Error(`Failed to list Keycloak users: ${res.status}`);
+  return res.json() as Promise<KcUser[]>;
+}
+
+export async function getUserById(userId: string): Promise<KcUser | null> {
+  const res = await kcApi('GET', `/users/${encodeURIComponent(userId)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to get Keycloak user ${userId}: ${res.status}`);
+  return res.json() as Promise<KcUser>;
+}

@@ -7,7 +7,7 @@ interface Props {
 
 const { day } = Astro.props;
 
-const dateFormatted = new Date(day.date + 'T00:00:00').toLocaleDateString('de-DE', {
+const dateFormatted = new Date(day.date + 'T12:00:00').toLocaleDateString('de-DE', {
   weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
 });
 ---
@@ -23,9 +23,10 @@ const dateFormatted = new Date(day.date + 'T00:00:00').toLocaleDateString('de-DE
       </div>
       <div class="flex flex-wrap gap-3">
         {day.slots.map((slot) => {
-          const [startHH, startMM] = slot.display.split(' - ')[0].split(':');
-          const [endHH, endMM] = slot.display.split(' - ')[1].split(':');
-          const href = `/termin?date=${day.date}&start=${startHH}:${startMM}&end=${endHH}:${endMM}`;
+          const parts = slot.display.split(' - ');
+          const [startHH, startMM] = (parts[0] ?? '').split(':');
+          const [endHH, endMM] = (parts[1] ?? '').split(':');
+          const href = `/termin?date=${day.date}&start=${startHH ?? '00'}:${startMM ?? '00'}&end=${endHH ?? '00'}:${endMM ?? '00'}`;
           return (
             <a
               href={href}

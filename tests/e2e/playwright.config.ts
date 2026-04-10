@@ -80,6 +80,7 @@ export default defineConfig({
         '**/fa-19-*.spec.ts', // Outline knowledge base
         '**/fa-20-*.spec.ts', // meeting finalization
         '**/fa-21-*.spec.ts', // service catalog & billing
+        '**/fa-slot-widget.spec.ts', // slot widget
       ],
       use: {
         ...devices['Desktop Chrome'],

@@ -1018,6 +1018,59 @@ tasks:
         echo "=== Environment: {{.ENV}} ==="
         cat "environments/{{.ENV}}.yaml"
 
+  env:generate:
+    desc: Generate secrets for an environment from schema
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/env-generate.sh --env {{.ENV}} --env-dir environments
+
+  env:seal:
+    desc: Encrypt secrets into a SealedSecret manifest
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: command -v kubeseal > /dev/null
+        msg: "kubeseal not found. Install: https://github.com/bitnami-labs/sealed-secrets#kubeseal"
+    cmds:
+      - bash scripts/env-seal.sh --env {{.ENV}} --env-dir environments
+
+  env:fetch-cert:
+    desc: Fetch the sealing certificate from a cluster
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        context="$(grep 'context:' environments/{{.ENV}}.yaml | head -1 | sed 's/.*: *//' | tr -d '\"')"
+        mkdir -p environments/certs
+        kubeseal --controller-name=sealed-secrets-controller \
+                 --controller-namespace=sealed-secrets \
+                 --context "$context" \
+                 --fetch-cert > "environments/certs/{{.ENV}}.pem"
+        echo "Certificate saved to environments/certs/{{.ENV}}.pem"
+
+  env:init:
+    desc: Create a new environment file from schema template
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        if [ -f "environments/{{.ENV}}.yaml" ]; then
+          echo "ERROR: environments/{{.ENV}}.yaml already exists" >&2
+          exit 1
+        fi
+        echo "# environments/{{.ENV}}.yaml" > "environments/{{.ENV}}.yaml"
+        echo "environment: {{.ENV}}" >> "environments/{{.ENV}}.yaml"
+        echo "context: FILL_ME" >> "environments/{{.ENV}}.yaml"
+        echo "domain: FILL_ME" >> "environments/{{.ENV}}.yaml"
+        echo "" >> "environments/{{.ENV}}.yaml"
+        echo "env_vars:" >> "environments/{{.ENV}}.yaml"
+        awk '/^env_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
+        echo "" >> "environments/{{.ENV}}.yaml"
+        echo "setup_vars:" >> "environments/{{.ENV}}.yaml"
+        awk '/^setup_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
+        echo "Created: environments/{{.ENV}}.yaml — fill in all FILL_ME values."
+
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"
     preconditions:

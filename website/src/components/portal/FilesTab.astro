@@ -1,0 +1,34 @@
+---
+import { listFiles } from '../../lib/nextcloud-files';
+import type { NcFile } from '../../lib/nextcloud-files';
+
+interface Props {
+  clientUsername: string; // Keycloak preferred_username
+}
+const { clientUsername } = Astro.props;
+
+let files: NcFile[] = [];
+try {
+  files = await listFiles(`Clients/${clientUsername}/`);
+  // Filter out subdirectory entries
+  files = files.filter(f => !f.name.endsWith('/') && f.contentType !== 'httpd/unix-directory');
+} catch {
+  // Nextcloud unavailable
+}
+---
+
+<div data-testid="files-tab">
+  <h3 class="text-lg font-semibold text-light mb-4">Ihre Dateien</h3>
+  {files.length === 0 ? (
+    <p class="text-muted">Keine Dateien vorhanden.</p>
+  ) : (
+    <ul class="space-y-2">
+      {files.map(file => (
+        <li class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-dark-lighter">
+          <span class="text-light">{file.name}</span>
+          <span class="text-xs text-muted ml-auto">{file.lastModified}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>

@@ -1,0 +1,13 @@
+---
+interface Props {
+  clientEmail: string;
+}
+const { clientEmail } = Astro.props;
+
+void clientEmail; // will be used in Meeting History task
+---
+
+<div data-testid="meetings-tab">
+  <h3 class="text-lg font-semibold text-light mb-4">Besprechungen</h3>
+  <p class="text-muted">Freigegebene Besprechungsaufzeichnungen erscheinen hier.</p>
+</div>

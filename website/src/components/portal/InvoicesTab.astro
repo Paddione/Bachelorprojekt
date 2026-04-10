@@ -1,0 +1,16 @@
+---
+interface Props {
+  clientEmail: string;
+}
+const { clientEmail } = Astro.props;
+
+// invoiceninja.ts exposes getOrCreateClient(), createInvoice(), and createQuote().
+// There is no function to list invoices by client email.
+// Invoice listing requires a client ID lookup followed by a list call — not available as a lib function.
+void clientEmail; // used by parent for context; no invoice listing available
+---
+
+<div data-testid="invoices-tab">
+  <h3 class="text-lg font-semibold text-light mb-4">Ihre Rechnungen</h3>
+  <p class="text-muted">Ihre Rechnungen erscheinen hier.</p>
+</div>

@@ -1,0 +1,16 @@
+---
+interface Props {
+  clientEmail: string;
+}
+const { clientEmail } = Astro.props;
+
+// caldav.ts exposes getAvailableSlots() and createCalendarEvent() only.
+// There is no function to fetch bookings by client email.
+// Bookings for this client are not queryable from the CalDAV library.
+void clientEmail; // used by parent for context; no CalDAV lookup available
+---
+
+<div data-testid="bookings-tab">
+  <h3 class="text-lg font-semibold text-light mb-4">Ihre Termine</h3>
+  <p class="text-muted">Ihre gebuchten Termine erscheinen hier.</p>
+</div>

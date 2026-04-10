@@ -15,4 +15,4 @@ spec:
         - name: korczewski-website
           port: 80
   tls:
-    secretName: korczewski-wildcard-tls
+    certResolver: letsencrypt

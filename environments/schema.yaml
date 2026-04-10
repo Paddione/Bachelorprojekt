@@ -1,0 +1,232 @@
+# environments/schema.yaml
+# Single source of truth for all environment variables and secrets.
+# Every deployment target must satisfy this schema.
+version: 1
+
+env_vars:
+  - name: PROD_DOMAIN
+    required: true
+    default_dev: "localhost"
+    validate: "^[a-z0-9.-]+$"
+
+  - name: BRAND_NAME
+    required: true
+    default_dev: "Workspace"
+
+  - name: CONTACT_EMAIL
+    required: true
+    default_dev: "dev@localhost"
+    validate: "^.+@.+$"
+
+  - name: CONTACT_PHONE
+    required: true
+    default_dev: "+49 000 000 00 000"
+
+  - name: CONTACT_CITY
+    required: true
+    default_dev: "DevCity"
+
+  - name: CONTACT_NAME
+    required: true
+    default_dev: "Dev User"
+
+  - name: LEGAL_STREET
+    required: true
+    default_dev: "Musterstrasse 1"
+
+  - name: LEGAL_ZIP
+    required: true
+    default_dev: "00000"
+
+  - name: LEGAL_JOBTITLE
+    required: true
+    default_dev: "Coach, Berater, Trainer"
+
+  - name: LEGAL_CHAMBER
+    required: true
+    default_dev: "Entfaellt"
+
+  - name: LEGAL_UST_ID
+    required: true
+    default_dev: "Nicht vorhanden"
+
+  - name: LEGAL_WEBSITE
+    required: true
+    default_dev: "localhost"
+
+  - name: WEBSITE_IMAGE
+    required: true
+    default_dev: "workspace-website"
+
+  - name: INFRA_NAMESPACE
+    required: true
+    default_dev: "workspace-infra"
+
+  - name: TLS_SECRET_NAME
+    required: true
+    default_dev: "workspace-wildcard-tls"
+
+  - name: SMTP_FROM
+    required: true
+    default_dev: "noreply@localhost"
+
+secrets:
+  - name: SHARED_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: KEYCLOAK_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    required: true
+    generate: false
+
+  - name: MATTERMOST_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: MATTERMOST_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
+  - name: NEXTCLOUD_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: NEXTCLOUD_ADMIN_PASSWORD
+    required: true
+    generate: false
+
+  - name: NEXTCLOUD_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
+  - name: SIGNALING_SECRET
+    required: true
+    generate: true
+    length: 32
+
+  - name: TURN_SECRET
+    required: true
+    generate: true
+    length: 32
+
+  - name: INVOICENINJA_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: INVOICENINJA_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
+  - name: INVOICENINJA_API_TOKEN
+    required: true
+    generate: true
+    length: 32
+
+  - name: INVOICENINJA_APP_KEY
+    required: true
+    generate: true
+    length: 32
+    encoding: base64
+
+  - name: INVOICENINJA_ADMIN_PASSWORD
+    required: true
+    generate: false
+
+  - name: OAUTH2_PROXY_COOKIE_SECRET
+    required: true
+    generate: true
+    length: 32
+
+  - name: BILLING_BOT_MM_TOKEN
+    required: true
+    generate: true
+    length: 32
+
+  - name: COLLABORA_ADMIN_PASSWORD
+    required: true
+    generate: true
+    length: 24
+
+  - name: WHITEBOARD_JWT_SECRET
+    required: true
+    generate: true
+    length: 32
+
+  - name: VAULTWARDEN_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: VAULTWARDEN_ADMIN_TOKEN
+    required: true
+    generate: true
+    length: 48
+
+  - name: VAULTWARDEN_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
+  - name: MEETINGS_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: RECORDING_SECRET
+    required: true
+    generate: true
+    length: 32
+
+  - name: SMTP_PASSWORD
+    required: true
+    generate: false
+
+  - name: CLAUDE_CODE_ADMIN_EMAIL
+    required: true
+    generate: false
+
+  - name: CLAUDE_CODE_ADMIN_PASSWORD
+    required: true
+    generate: false
+
+  - name: WORDPRESS_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
+  - name: WORDPRESS_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+setup_vars:
+  - name: KC_USER1_USERNAME
+    required: true
+
+  - name: KC_USER1_EMAIL
+    required: true
+    validate: "^.+@.+$"
+
+  - name: KC_USER1_PASSWORD
+    required: true
+
+  - name: KC_USER2_USERNAME
+    required: false
+
+  - name: KC_USER2_EMAIL
+    required: false
+
+  - name: KC_USER2_PASSWORD
+    required: false

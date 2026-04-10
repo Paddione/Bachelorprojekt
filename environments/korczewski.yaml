@@ -1,0 +1,33 @@
+# environments/korczewski.yaml
+environment: korczewski
+context: korczewski
+domain: korczewski.de
+
+env_vars:
+  PROD_DOMAIN: korczewski.de
+  BRAND_NAME: "Korczewski"
+  CONTACT_EMAIL: info@korczewski.de
+  CONTACT_PHONE: "***"
+  CONTACT_CITY: "Lüneburg"
+  CONTACT_NAME: "Patrick Korczewski"
+  LEGAL_STREET: "In der Twiet 4"
+  LEGAL_ZIP: "21360"
+  LEGAL_JOBTITLE: "Software Engineer, IT-Security-Berater"
+  LEGAL_CHAMBER: "Entfällt"
+  LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
+  LEGAL_WEBSITE: korczewski.de
+  WEBSITE_IMAGE: korczewski-website
+  INFRA_NAMESPACE: korczewski-infra
+  TLS_SECRET_NAME: korczewski-tls
+  SMTP_FROM: korczewski@mailbox.org
+
+overlay: prod-korczewski
+secrets_ref: sealed-secrets/korczewski.yaml
+
+setup_vars:
+  KC_USER1_USERNAME: paddione
+  KC_USER1_EMAIL: patrick@korczewski.de
+  KC_USER1_PASSWORD: SEALED
+  KC_USER2_USERNAME: gekko
+  KC_USER2_EMAIL: quamain@web.de
+  KC_USER2_PASSWORD: SEALED

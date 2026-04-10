@@ -1,73 +1,9 @@
 # https://taskfile.dev
 version: "3"
 
-dotenv: ['.env']
-
-env:
-  PROD_DOMAIN: "{{.PROD_DOMAIN}}"
-  BRAND_NAME: "{{.BRAND_NAME}}"
-  CONTACT_EMAIL: "{{.CONTACT_EMAIL}}"
-  CONTACT_PHONE: "{{.CONTACT_PHONE}}"
-  CONTACT_CITY: "{{.CONTACT_CITY}}"
-  CONTACT_NAME: "{{.CONTACT_NAME}}"
-  LEGAL_STREET: "{{.LEGAL_STREET}}"
-  LEGAL_ZIP: "{{.LEGAL_ZIP}}"
-  LEGAL_JOBTITLE: "{{.LEGAL_JOBTITLE}}"
-  LEGAL_CHAMBER: "{{.LEGAL_CHAMBER}}"
-  LEGAL_UST_ID: "{{.LEGAL_UST_ID}}"
-  LEGAL_WEBSITE: "{{.LEGAL_WEBSITE}}"
-  INFRA_NAMESPACE: "{{.INFRA_NAMESPACE}}"
-  TLS_SECRET_NAME: "{{.TLS_SECRET_NAME}}"
-  SMTP_FROM: "{{.SMTP_FROM}}"
-
 vars:
   CLUSTER_NAME: dev
   REGISTRY: localhost:5000
-  # ── Domains ───────────────────────────────────────────────────────────
-  # The base domain (e.g. example.com)
-  # Loaded from .env or uses default if not set.
-  PROD_DOMAIN:
-    sh: echo "${PROD_DOMAIN:-yourdomain.tld}"
-  # The brand name (e.g. My Brand)
-  BRAND_NAME:
-    sh: echo "${BRAND_NAME:-yourbrand.tld}"
-  # The contact email (e.g. info@example.com)
-  CONTACT_EMAIL:
-    sh: echo "${CONTACT_EMAIL:-info@yourdomain.tld}"
-  # The phone number displayed on the website
-  CONTACT_PHONE:
-    sh: echo "${CONTACT_PHONE:-+49 000 000 00 000}"
-  # The city/region displayed on the website
-  CONTACT_CITY:
-    sh: echo "${CONTACT_CITY:-YourCity}"
-  # The person name displayed on the website
-  CONTACT_NAME:
-    sh: echo "${CONTACT_NAME:-Firstname Lastname}"
-  # Impressum / legal details
-  LEGAL_STREET:
-    sh: echo "${LEGAL_STREET:-Musterstraße 1}"
-  LEGAL_ZIP:
-    sh: echo "${LEGAL_ZIP:-00000}"
-  LEGAL_JOBTITLE:
-    sh: echo "${LEGAL_JOBTITLE:-Coach, Berater, Trainer}"
-  LEGAL_CHAMBER:
-    sh: echo "${LEGAL_CHAMBER:-Entfällt}"
-  LEGAL_UST_ID:
-    sh: echo "${LEGAL_UST_ID:-Nicht vorhanden}"
-  LEGAL_WEBSITE:
-    sh: echo "${LEGAL_WEBSITE:-${PROD_DOMAIN}}"
-  # The Docker image name for the website
-  WEBSITE_IMAGE:
-    sh: echo "${WEBSITE_IMAGE:-workspace-website}"
-  # Infrastructure namespace for Traefik middlewares
-  INFRA_NAMESPACE:
-    sh: echo "${INFRA_NAMESPACE:-workspace-infra}"
-  # TLS secret name for wildcard certificate
-  TLS_SECRET_NAME:
-    sh: echo "${TLS_SECRET_NAME:-workspace-wildcard-tls}"
-  # SMTP sender address for production
-  SMTP_FROM:
-    sh: echo "${SMTP_FROM:-noreply@yourdomain.tld}"
   DEV_DOMAIN: localhost
 
 tasks:
@@ -210,64 +146,28 @@ tasks:
   # ─────────────────────────────────────────────
   # Configuration Management
   # ─────────────────────────────────────────────
-  domain:set:
-    desc: "Change the production domain in .env (usage: task domain:set -- new.tld)"
-    cmds:
-      - |
-        NEW="{{.CLI_ARGS}}"
-        if [ -z "$NEW" ]; then
-          echo "Usage: task domain:set -- your.domain.tld"
-          echo "Current PROD_DOMAIN: {{.PROD_DOMAIN}}"
-          exit 1
-        fi
-        sed -i "s/^PROD_DOMAIN=.*/PROD_DOMAIN=$NEW/" .env
-        echo "✓ PROD_DOMAIN updated to '$NEW' in .env"
-        echo "  Update DNS: *.${NEW} → your server IP"
-        echo "  Then run: task workspace:prod:deploy"
-
-  brand:set:
-    desc: "Change the branding name in .env (usage: task brand:set -- NewBrand.de)"
-    cmds:
-      - |
-        NEW="{{.CLI_ARGS}}"
-        if [ -z "$NEW" ]; then
-          echo "Usage: task brand:set -- NewBrand.de"
-          echo "Current BRAND_NAME: {{.BRAND_NAME}}"
-          exit 1
-        fi
-        sed -i "s/^BRAND_NAME=.*/BRAND_NAME=$NEW/" .env
-        echo "✓ BRAND_NAME updated to '$NEW' in .env"
-
-  email:set:
-    desc: "Change the contact email in .env (usage: task email:set -- info@newbrand.de)"
-    cmds:
-      - |
-        NEW="{{.CLI_ARGS}}"
-        if [ -z "$NEW" ]; then
-          echo "Usage: task email:set -- info@yourbrand.tld"
-          echo "Current CONTACT_EMAIL: {{.CONTACT_EMAIL}}"
-          exit 1
-        fi
-        sed -i "s/^CONTACT_EMAIL=.*/CONTACT_EMAIL=$NEW/" .env
-        echo "✓ CONTACT_EMAIL updated to '$NEW' in .env"
-
   config:show:
-    desc: Show currently configured variables from .env
+    desc: "Show resolved config for an environment (usage: task config:show ENV=mentolder)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - 'echo "  PROD_DOMAIN:   {{.PROD_DOMAIN}}"'
-      - 'echo "  BRAND_NAME:    {{.BRAND_NAME}}"'
-      - 'echo "  CONTACT_EMAIL: {{.CONTACT_EMAIL}}"'
-      - 'echo "  DEV_DOMAIN:    {{.DEV_DOMAIN}}"'
-      - echo ""
-      - echo "Production subdomains:"
-      - 'echo "  auth.{{.PROD_DOMAIN}}    (Keycloak)"'
-      - 'echo "  chat.{{.PROD_DOMAIN}}    (Mattermost)"'
-      - 'echo "  files.{{.PROD_DOMAIN}}   (Nextcloud)"'
-      - 'echo "  office.{{.PROD_DOMAIN}}  (Collabora)"'
-      - 'echo "  board.{{.PROD_DOMAIN}}   (Whiteboard)"'
-      - 'echo "  vault.{{.PROD_DOMAIN}}   (Vaultwarden)"'
-      - 'echo "  billing.{{.PROD_DOMAIN}} (Invoice Ninja)"'
-      - 'echo "  web.{{.PROD_DOMAIN}}     (Website - Astro)"'
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        echo "  Environment:   {{.ENV}}"
+        echo "  PROD_DOMAIN:   ${PROD_DOMAIN:-<not set>}"
+        echo "  BRAND_NAME:    ${BRAND_NAME:-<not set>}"
+        echo "  CONTACT_EMAIL: ${CONTACT_EMAIL:-<not set>}"
+        echo "  DEV_DOMAIN:    {{.DEV_DOMAIN}}"
+        echo ""
+        echo "Production subdomains:"
+        echo "  auth.${PROD_DOMAIN}    (Keycloak)"
+        echo "  chat.${PROD_DOMAIN}    (Mattermost)"
+        echo "  files.${PROD_DOMAIN}   (Nextcloud)"
+        echo "  office.${PROD_DOMAIN}  (Collabora)"
+        echo "  board.${PROD_DOMAIN}   (Whiteboard)"
+        echo "  vault.${PROD_DOMAIN}   (Vaultwarden)"
+        echo "  billing.${PROD_DOMAIN} (Invoice Ninja)"
+        echo "  web.${PROD_DOMAIN}     (Website - Astro)"
 
   # ─────────────────────────────────────────────
   # Utilities
@@ -375,56 +275,6 @@ tasks:
   # ─────────────────────────────────────────────
   # Workspace MVP (Bachelorprojekt)
   # ─────────────────────────────────────────────
-  workspace:deploy:
-    desc: Deploy all Workspace MVP services into the workspace namespace
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-    cmds:
-      - kubectl apply -f k3d/namespace.yaml
-      # ConfigMaps from files outside the k3d/ Kustomize root
-      - |
-        kubectl create configmap keycloak-import-script \
-          --from-file="import-entrypoint.sh=scripts/import-entrypoint.sh" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
-      - |
-        kubectl create configmap mattermost-proxy-config \
-          --from-file="default.conf=mattermost/userinfo-proxy.conf" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
-      - task: docs:configmap
-      - |
-        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
-        export BRAND_NAME="{{.BRAND_NAME}}"
-        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
-        kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
-      # Wait for shared database, then services
-      - |
-        echo "Waiting for shared-db..."
-        kubectl rollout status deployment/shared-db -n workspace --timeout=120s
-      - |
-        for svc in keycloak mm-keycloak-proxy mattermost nextcloud spreed-signaling collabora whiteboard opensearch invoiceninja oauth2-proxy-invoiceninja billing-bot docs; do
-          echo "Waiting for $svc..."
-          kubectl rollout status deployment/$svc -n workspace --timeout=300s || \
-            echo "WARNING: $svc not ready yet"
-        done
-      - echo ""
-      - 'echo "✓ Workspace MVP deployed"'
-      - 'echo "  Keycloak:    http://auth.localhost"'
-      - 'echo "  Mattermost:  http://chat.localhost"'
-      - 'echo "  Nextcloud:   http://files.localhost"'
-      - 'echo "  Talk HPB:    http://signaling.localhost"'
-      - 'echo "  Collabora:   http://office.localhost"'
-      - 'echo "  Whiteboard:  http://board.localhost"'
-      - 'echo "  Invoice Ninja: http://billing.localhost"'
-      - 'echo "  Docs:        http://docs.localhost"'
-      - 'echo "  Mailpit:     http://mail.localhost"'
-      - 'echo "  Vaultwarden: http://vault.localhost"'
-      - echo ""
-      - 'echo "Run ''task workspace:post-setup'' to enable Nextcloud apps (calendar, contacts, oidc)."'
-      - 'echo "Run ''task workspace:vaultwarden:seed'' to seed Vaultwarden with production secret templates (once)."'
-      - 'echo "Run ''task workspace:billing-setup'' to build the billing-bot image (token/slash-command are auto-provisioned)."'
-      - 'echo "Run ''task workspace:monitoring'' to install Prometheus + Grafana (NFA-02)."'
-      - 'echo "Run ''task ddns:deploy -- <api-key>'' to enable automatic DNS updates (dynamic IP only)."'
 
   workspace:billing-build:
     desc: Build and push billing-bot image to local registry
@@ -539,108 +389,7 @@ tasks:
       - kubectl rollout restart deployment/{{.CLI_ARGS}} -n workspace
       - kubectl rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
 
-  workspace:prod:deploy:
-    desc: Deploy workspace stack to k3s-production cluster
-    preconditions:
-      - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
-        msg: "k3s-production context not reachable."
-      - sh: "[ -f prod/secrets.yaml ]"
-        msg: "prod/secrets.yaml not found — create it from the template (it is gitignored)."
-      - sh: "! grep -q 'REPLACE_ME' prod/secrets.yaml"
-        msg: "prod/secrets.yaml still contains REPLACE_ME placeholders — fill in all secrets first."
-      - sh: "[ '{{.PROD_DOMAIN}}' != 'yourdomain.tld' ]"
-        msg: "PROD_DOMAIN is still the default. Ensure .env is present and readable (check for unquoted values with spaces)."
-    cmds:
-      - |
-        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
-        export BRAND_NAME="{{.BRAND_NAME}}"
-        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
-        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
-        export CONTACT_CITY="{{.CONTACT_CITY}}"
-        export CONTACT_NAME="{{.CONTACT_NAME}}"
-        export INFRA_NAMESPACE="{{.INFRA_NAMESPACE}}"
-        export TLS_SECRET_NAME="{{.TLS_SECRET_NAME}}"
-        export SMTP_FROM="{{.SMTP_FROM}}"
-        kustomize build prod/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context mentolder apply --server-side --force-conflicts -f -
-      - |
-        echo "Waiting for vaultwarden rollout..."
-        kubectl --context mentolder rollout status deployment/vaultwarden -n workspace --timeout=120s
-      # Ensure ghcr pull secret exists in website namespace
-      - task: website:pull-secret
-      # Deploy website (separate namespace, not in main kustomization)
-      - |
-        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
-        export BRAND_NAME="{{.BRAND_NAME}}"
-        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
-        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
-        export CONTACT_CITY="{{.CONTACT_CITY}}"
-        export CONTACT_NAME="{{.CONTACT_NAME}}"
-        export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
-        # Apply base website manifests
-        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context mentolder apply -f -
-        # Patch prod-specific config (merge, not replace)
-        kubectl --context mentolder patch configmap website-config -n website --type merge -p "{\"data\":{
-          \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
-          \"SMTP_HOST\":\"smtp.mailbox.org\",
-          \"SMTP_PORT\":\"465\",
-          \"SMTP_SECURE\":\"true\",
-          \"NEXTCLOUD_EXTERNAL_URL\":\"https://files.${PROD_DOMAIN}\",
-          \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
-        }}"
-        # Apply prod IngressRoute (HTTPS + TLS)
-        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context mentolder apply -f -
-      - |
-        echo "Waiting for website rollout..."
-        kubectl --context mentolder rollout status deployment/website -n website --timeout=120s
-      - task: website:webhook:setup
-      - 'echo "✓ Production deploy complete"'
-      - 'echo "  Vaultwarden: https://vault.{{.PROD_DOMAIN}}"'
-      - 'echo "  Keycloak:    https://auth.{{.PROD_DOMAIN}}"'
-      - 'echo "  Website:     https://web.{{.PROD_DOMAIN}}"'
-
-  # ─────────────────────────────────────────────
-  # Korczewski Cluster (1 Hetzner + 6 LAN nodes)
-  # ─────────────────────────────────────────────
-  korczewski:deploy:
-    desc: Deploy workspace stack to korczewski.de cluster
-    preconditions:
-      - sh: kubectl --context korczewski cluster-info > /dev/null 2>&1
-        msg: "k3s-production context not reachable."
-      - sh: "[ -f prod-korczewski/secrets.yaml ]"
-        msg: "prod-korczewski/secrets.yaml not found — create it from the template."
-      - sh: "! grep -q 'REPLACE_ME' prod-korczewski/secrets.yaml"
-        msg: "prod-korczewski/secrets.yaml still contains REPLACE_ME placeholders."
-      - sh: "[ -f .env.korczewski ]"
-        msg: ".env.korczewski not found."
-    cmds:
-      - |
-        set -a; source .env.korczewski; set +a
-        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context korczewski apply --server-side --force-conflicts -f -
-      - |
-        echo "Waiting for vaultwarden rollout..."
-        kubectl --context korczewski rollout status deployment/vaultwarden -n workspace --timeout=120s
-      - |
-        set -a; source .env.korczewski; set +a
-        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl --context korczewski apply -f -
-        kubectl --context korczewski patch configmap website-config -n website --type merge -p "{\"data\":{
-          \"KEYCLOAK_FRONTEND_URL\":\"https://auth.${PROD_DOMAIN}\",
-          \"SMTP_HOST\":\"smtp.mailbox.org\",
-          \"SMTP_PORT\":\"465\",
-          \"SMTP_SECURE\":\"true\",
-          \"NEXTCLOUD_EXTERNAL_URL\":\"https://files.${PROD_DOMAIN}\",
-          \"SITE_URL\":\"https://web.${PROD_DOMAIN}\"
-        }}"
-        envsubst "\$PROD_DOMAIN" < k3s/website-prod.yaml | kubectl --context korczewski apply -f -
-      - |
-        echo "Waiting for website rollout..."
-        kubectl --context korczewski rollout status deployment/website -n website --timeout=120s
-      - |
-        set -a; source .env.korczewski; set +a
-        echo "✓ Korczewski deploy complete"
-        echo "  Keycloak:    https://auth.${PROD_DOMAIN}"
-        echo "  Mattermost:  https://chat.${PROD_DOMAIN}"
-        echo "  Website:     https://web.${PROD_DOMAIN}"
-
+  # korczewski:status, korczewski:logs, korczewski:restart — use ENV=korczewski with unified tasks
   korczewski:status:
     desc: Show korczewski.de cluster status
     cmds:
@@ -649,13 +398,6 @@ tasks:
       - kubectl --context korczewski get pods -n workspace -o wide
       - echo ""
       - kubectl --context korczewski get pods -n website -o wide 2>/dev/null || true
-
-  korczewski:validate:
-    desc: Dry-run korczewski manifest validation
-    cmds:
-      - |
-        set -a; source .env.korczewski; set +a
-        kustomize build prod-korczewski/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" | kubectl --context korczewski apply --dry-run=server -f - 2>&1
 
   korczewski:logs:
     desc: "Tail logs from a korczewski service (usage: task korczewski:logs -- <svc>)"
@@ -695,6 +437,8 @@ tasks:
   # ─────────────────────────────────────────────
   argocd:install:
     desc: Install ArgoCD on the hub cluster (hetzner) with CMP sidecar
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     preconditions:
       - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
         msg: "hetzner context not reachable. Check kubeconfig."
@@ -702,7 +446,7 @@ tasks:
         msg: "kustomize not found. Install it first."
     cmds:
       - |
-        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
+        source scripts/env-resolve.sh "{{.ENV}}"
         kustomize build argocd/install/ | envsubst "\$PROD_DOMAIN" | kubectl --context mentolder apply -f -
       - |
         echo "Waiting for ArgoCD to be ready (this may take 2-3 minutes)..."
@@ -710,10 +454,12 @@ tasks:
           -n argocd --timeout=300s
         kubectl --context mentolder wait --for=condition=Available deployment/argocd-repo-server \
           -n argocd --timeout=300s
-      - echo ""
-      - 'echo "✓ ArgoCD installed on hetzner cluster"'
-      - 'echo "  UI:    https://argocd.{{.PROD_DOMAIN}}"'
-      - 'echo "  Login: task argocd:password  →  task argocd:login"'
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        echo ""
+        echo "✓ ArgoCD installed on hetzner cluster"
+        echo "  UI:    https://argocd.${PROD_DOMAIN}"
+        echo "  Login: task argocd:password  →  task argocd:login"
 
   argocd:password:
     desc: Print the ArgoCD initial admin password
@@ -771,26 +517,10 @@ tasks:
         msg: "hetzner context not reachable."
       - sh: kubectl --context korczewski cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
-      - sh: "[ -f .env.korczewski ]"
-        msg: ".env.korczewski not found."
-    vars:
-      MENTOLDER_EMAIL:
-        sh: grep '^CONTACT_EMAIL=' .env 2>/dev/null | cut -d= -f2 || echo "noreply@mentolder.de"
-      MENTOLDER_BRAND:
-        sh: grep '^BRAND_NAME=' .env 2>/dev/null | cut -d= -f2 || echo "Mentolder"
-      MENTOLDER_SMTP:
-        sh: grep '^SMTP_FROM=' .env 2>/dev/null | cut -d= -f2 || echo "noreply@{{.PROD_DOMAIN}}"
-      KORCZEWSKI_DOMAIN:
-        sh: grep '^PROD_DOMAIN=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "korczewski.de"
-      KORCZEWSKI_EMAIL:
-        sh: grep '^CONTACT_EMAIL=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "info@korczewski.de"
-      KORCZEWSKI_BRAND:
-        sh: grep '^BRAND_NAME=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "Patrick Korczewski"
-      KORCZEWSKI_SMTP:
-        sh: grep '^SMTP_FROM=' .env.korczewski 2>/dev/null | cut -d= -f2 || echo "noreply@korczewski.de"
     cmds:
       # ── Hetzner (in-cluster — ArgoCD manages its own cluster) ──
       - |
+        source scripts/env-resolve.sh "mentolder"
         echo "Registering hetzner (in-cluster)..."
         argocd cluster add hetzner --in-cluster --yes \
           --name hetzner \
@@ -801,40 +531,41 @@ tasks:
           -l argocd.argoproj.io/secret-type=cluster \
           --no-headers 2>/dev/null | grep -E "^hetzner|cluster-" | awk '{print $1}' | head -1)
         if [ -n "$HETZNER_SECRET" ]; then
-          kubectl --context mentolder patch secret "$HETZNER_SECRET" -n argocd --type=json -p='[
-            {"op":"add","path":"/metadata/labels/workspace","value":"true"},
-            {"op":"add","path":"/metadata/annotations","value":{}},
-            {"op":"add","path":"/metadata/annotations/workspace-overlay","value":"prod"},
-            {"op":"add","path":"/metadata/annotations/workspace-domain","value":"{{.PROD_DOMAIN}}"},
-            {"op":"add","path":"/metadata/annotations/workspace-brand","value":"{{.MENTOLDER_BRAND}}"},
-            {"op":"add","path":"/metadata/annotations/workspace-email","value":"{{.MENTOLDER_EMAIL}}"},
-            {"op":"add","path":"/metadata/annotations/workspace-infra-namespace","value":"workspace-infra"},
-            {"op":"add","path":"/metadata/annotations/workspace-tls-secret","value":"workspace-wildcard-tls"},
-            {"op":"add","path":"/metadata/annotations/workspace-smtp-from","value":"{{.MENTOLDER_SMTP}}"}
-          ]' 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
+          kubectl --context mentolder patch secret "$HETZNER_SECRET" -n argocd --type=json -p="[
+            {\"op\":\"add\",\"path\":\"/metadata/labels/workspace\",\"value\":\"true\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations\",\"value\":{}},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-overlay\",\"value\":\"prod\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-domain\",\"value\":\"${PROD_DOMAIN}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-brand\",\"value\":\"${BRAND_NAME}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"workspace-infra\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"workspace-wildcard-tls\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"}
+          ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
           echo "  ✓ hetzner registered and annotated"
         else
           echo "  ✗ Could not find hetzner cluster Secret — register manually"
         fi
       # ── Korczewski (external cluster) ──
       - |
+        source scripts/env-resolve.sh "korczewski"
         echo "Registering k3s-production (korczewski)..."
         argocd cluster add k3s-production --yes --name korczewski 2>/dev/null || true
         KORCZ_SECRET=$(kubectl --context mentolder get secret -n argocd \
           -l argocd.argoproj.io/secret-type=cluster \
           --no-headers 2>/dev/null | grep "korczewski" | awk '{print $1}' | head -1)
         if [ -n "$KORCZ_SECRET" ]; then
-          kubectl --context mentolder patch secret "$KORCZ_SECRET" -n argocd --type=json -p='[
-            {"op":"add","path":"/metadata/labels/workspace","value":"true"},
-            {"op":"add","path":"/metadata/annotations","value":{}},
-            {"op":"add","path":"/metadata/annotations/workspace-overlay","value":"prod-korczewski"},
-            {"op":"add","path":"/metadata/annotations/workspace-domain","value":"{{.KORCZEWSKI_DOMAIN}}"},
-            {"op":"add","path":"/metadata/annotations/workspace-brand","value":"{{.KORCZEWSKI_BRAND}}"},
-            {"op":"add","path":"/metadata/annotations/workspace-email","value":"{{.KORCZEWSKI_EMAIL}}"},
-            {"op":"add","path":"/metadata/annotations/workspace-infra-namespace","value":"workspace-infra"},
-            {"op":"add","path":"/metadata/annotations/workspace-tls-secret","value":"workspace-wildcard-tls"},
-            {"op":"add","path":"/metadata/annotations/workspace-smtp-from","value":"{{.KORCZEWSKI_SMTP}}"}
-          ]' 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
+          kubectl --context mentolder patch secret "$KORCZ_SECRET" -n argocd --type=json -p="[
+            {\"op\":\"add\",\"path\":\"/metadata/labels/workspace\",\"value\":\"true\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations\",\"value\":{}},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-overlay\",\"value\":\"prod-korczewski\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-domain\",\"value\":\"${PROD_DOMAIN}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-brand\",\"value\":\"${BRAND_NAME}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"workspace-infra\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"workspace-wildcard-tls\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"}
+          ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
           echo "  ✓ korczewski registered and annotated"
         else
           echo "  ✗ Could not find korczewski cluster Secret — register manually"
@@ -902,17 +633,22 @@ tasks:
 
   argocd:setup:
     desc: "Full ArgoCD setup: install → login → register clusters → apply apps (run once)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - task: argocd:install
+        vars: { ENV: "{{.ENV}}" }
       - task: argocd:login
       - task: argocd:cluster:register
       - task: argocd:apps:apply
-      - echo ""
-      - echo "✓ ArgoCD federation setup complete!"
-      - 'echo "  UI:            https://argocd.{{.PROD_DOMAIN}}"'
-      - 'echo "  Apps:          task argocd:status"'
-      - 'echo "  Manual sync:   task argocd:sync -- workspace-hetzner"'
-      - 'echo "  Diff:          task argocd:diff -- workspace-hetzner"'
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        echo ""
+        echo "✓ ArgoCD federation setup complete!"
+        echo "  UI:            https://argocd.${PROD_DOMAIN}"
+        echo "  Apps:          task argocd:status"
+        echo "  Manual sync:   task argocd:sync -- workspace-hetzner"
+        echo "  Diff:          task argocd:diff -- workspace-hetzner"
 
   # ─────────────────────────────────────────────
   # HA Cluster (3-node Hetzner)
@@ -944,17 +680,20 @@ tasks:
   ha:cert-renew:
     desc: Renew wildcard TLS cert via acme.sh on node 1 and update K8s secret
     vars:
+      ENV: '{{.ENV | default "mentolder"}}'
       SSH_KEY: "$HOME/.ssh/id_ed25519_hetzner"
       NODE1_IP: "178.104.169.206"
     cmds:
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} \
-          'export IPv64_Token="$(cat /root/.acme.sh/account.conf 2>/dev/null | grep SAVED_IPv64_Token | cut -d= -f2 | tr -d "'\''\"" || echo "")" && \
-           /root/.acme.sh/acme.sh --renew -d "*.{{.PROD_DOMAIN}}" -d "{{.PROD_DOMAIN}}" --ecc'
+          "export IPv64_Token=\"\$(cat /root/.acme.sh/account.conf 2>/dev/null | grep SAVED_IPv64_Token | cut -d= -f2 | tr -d \"'\\\"\" || echo \"\")\" && \
+           /root/.acme.sh/acme.sh --renew -d \"*.${PROD_DOMAIN}\" -d \"${PROD_DOMAIN}\" --ecc"
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         echo "Updating K8s TLS secret..."
-        CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.{{.PROD_DOMAIN}}_ecc/fullchain.cer'" | base64 -w0)
-        KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.{{.PROD_DOMAIN}}_ecc/*.{{.PROD_DOMAIN}}.key'" | base64 -w0)
+        CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.${PROD_DOMAIN}_ecc/fullchain.cer'" | base64 -w0)
+        KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.${PROD_DOMAIN}_ecc/*.${PROD_DOMAIN}.key'" | base64 -w0)
         kubectl --context mentolder patch secret workspace-wildcard-tls -n workspace \
           -p "{\"data\":{\"tls.crt\":\"$CERT\",\"tls.key\":\"$KEY\"}}"
       - echo "✓ Wildcard cert renewed and K8s secret updated"
@@ -971,20 +710,141 @@ tasks:
       - kubectl --context mentolder get certificate -n workspace
 
   workspace:admin-users-setup:
-    desc: Provision SSO admin users (paddione, gekko) in Keycloak workspace realm
+    desc: Provision SSO admin users in Keycloak workspace realm
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: "[ -n \"${KC_USER1_USERNAME:-}\" ]"
-        msg: "KC_USER1_USERNAME not set — check .env"
     cmds:
-      - bash scripts/admin-users-setup.sh
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/admin-users-setup.sh
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
     cmds:
       - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
+
+  # ─────────────────────────────────────────────
+  # Environment Management
+  # ─────────────────────────────────────────────
+  env:validate:
+    desc: Validate environment config against schema
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/env-validate.sh --env {{.ENV}} --env-dir environments {{if eq .ENV "dev"}}--schema-only{{end}}
+
+  env:validate:all:
+    desc: Validate all environment configs (schema-only, no cluster needed)
+    cmds:
+      - |
+        errors=0
+        for f in environments/*.yaml; do
+          name="$(basename "$f" .yaml)"
+          [ "$name" = "schema" ] && continue
+          echo "--- Validating: $name ---"
+          bash scripts/env-validate.sh --env "$name" --env-dir environments --schema-only || errors=$((errors + 1))
+        done
+        exit "$errors"
+
+  env:show:
+    desc: Show resolved config for an environment
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        echo "=== Environment: {{.ENV}} ==="
+        cat "environments/{{.ENV}}.yaml"
+
+  env:generate:
+    desc: Generate secrets for an environment from schema
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/env-generate.sh --env {{.ENV}} --env-dir environments
+
+  env:seal:
+    desc: Encrypt secrets into a SealedSecret manifest
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: command -v kubeseal > /dev/null
+        msg: "kubeseal not found. Install: https://github.com/bitnami-labs/sealed-secrets#kubeseal"
+    cmds:
+      - bash scripts/env-seal.sh --env {{.ENV}} --env-dir environments
+
+  env:fetch-cert:
+    desc: Fetch the sealing certificate from a cluster
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        context="$(grep 'context:' environments/{{.ENV}}.yaml | head -1 | sed 's/.*: *//' | tr -d '\"')"
+        mkdir -p environments/certs
+        kubeseal --controller-name=sealed-secrets-controller \
+                 --controller-namespace=sealed-secrets \
+                 --context "$context" \
+                 --fetch-cert > "environments/certs/{{.ENV}}.pem"
+        echo "Certificate saved to environments/certs/{{.ENV}}.pem"
+
+  env:init:
+    desc: Create a new environment file from schema template
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        if [ -f "environments/{{.ENV}}.yaml" ]; then
+          echo "ERROR: environments/{{.ENV}}.yaml already exists" >&2
+          exit 1
+        fi
+        echo "# environments/{{.ENV}}.yaml" > "environments/{{.ENV}}.yaml"
+        echo "environment: {{.ENV}}" >> "environments/{{.ENV}}.yaml"
+        echo "context: FILL_ME" >> "environments/{{.ENV}}.yaml"
+        echo "domain: FILL_ME" >> "environments/{{.ENV}}.yaml"
+        echo "" >> "environments/{{.ENV}}.yaml"
+        echo "env_vars:" >> "environments/{{.ENV}}.yaml"
+        awk '/^env_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
+        echo "" >> "environments/{{.ENV}}.yaml"
+        echo "setup_vars:" >> "environments/{{.ENV}}.yaml"
+        awk '/^setup_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
+        echo "Created: environments/{{.ENV}}.yaml — fill in all FILL_ME values."
+
+  workspace:deploy:
+    desc: "Deploy workspace to any environment (ENV=dev|mentolder|korczewski|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - task: env:validate
+        vars: { ENV: "{{.ENV}}" }
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+
+        if [ "{{.ENV}}" = "dev" ]; then
+          # Dev: build from k3d base, apply locally
+          kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
+        else
+          # Prod: build from overlay, apply to target cluster
+          overlay="${ENV_OVERLAY:-prod}"
+          kustomize build "$overlay/" \
+            | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" \
+            | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
+
+          # Apply SealedSecret if it exists
+          sealed="environments/sealed-secrets/{{.ENV}}.yaml"
+          if [ -f "$sealed" ]; then
+            kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
+          fi
+        fi
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        echo "Waiting for shared-db..."
+        kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
+      - 'echo "✓ Workspace deployed to {{.ENV}}"'
 
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"
@@ -1064,12 +924,15 @@ tasks:
 
   mcp:deploy:
     desc: Deploy all Claude Code MCP pods (core + apps + auth)
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
       - 'echo "Deploying Claude Code MCP pods..."'
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME" | kubectl apply -f -
       - 'echo "Waiting for pods to roll out..."'
       - kubectl rollout status deployment/claude-code-mcp-core --timeout=120s
@@ -1149,8 +1012,11 @@ tasks:
   # ─────────────────────────────────────────────
   claude-code:setup:
     desc: "Generate Claude Code settings.json (usage: task claude-code:setup -- cluster|business)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         ROLE="{{.CLI_ARGS}}"
         if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
           echo "Usage: task claude-code:setup -- cluster|business"
@@ -1175,7 +1041,6 @@ tasks:
           exit 1
         fi
 
-        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
         export CLUSTER_TOKEN="$TOKEN"
         export BUSINESS_TOKEN="$TOKEN"
 
@@ -1188,15 +1053,18 @@ tasks:
         envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
-        echo "  MCP endpoint: https://mcp.{{.PROD_DOMAIN}}"
+        echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
         echo ""
         echo "Configured servers:"
         python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$OUTPUT"
 
   claude-code:export:
     desc: "Export a ready-to-use settings.json for another user (usage: task claude-code:export -- cluster|business)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         ROLE="{{.CLI_ARGS}}"
         if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
           echo "Usage: task claude-code:export -- cluster|business"
@@ -1221,7 +1089,6 @@ tasks:
           exit 1
         fi
 
-        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
         export CLUSTER_TOKEN="$TOKEN"
         export BUSINESS_TOKEN="$TOKEN"
 
@@ -1230,7 +1097,7 @@ tasks:
 
         echo "Exported settings to: $OUTPUT"
         echo "  Role: $ROLE"
-        echo "  MCP endpoint: https://mcp.{{.PROD_DOMAIN}}"
+        echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
         echo ""
         echo "Send this file to the user. They should place it at:"
         echo "  ~/.claude/settings.json"
@@ -1240,8 +1107,11 @@ tasks:
 
   claude-code:invite:
     desc: "Print claude mcp add commands for a user (usage: task claude-code:invite -- cluster|business)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         ROLE="{{.CLI_ARGS}}"
         if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
           echo "Usage: task claude-code:invite -- cluster|business"
@@ -1266,7 +1136,7 @@ tasks:
           exit 1
         fi
 
-        DOMAIN="{{.PROD_DOMAIN}}"
+        DOMAIN="${PROD_DOMAIN}"
 
         # Parse template and generate commands
         SERVERS=$(python3 -c "
@@ -1319,39 +1189,56 @@ tasks:
   # Website (Astro + Svelte)
   # ─────────────────────────────────────────────
   website:build:
-    desc: Build the Astro website Docker image
+    desc: "Build the Astro website Docker image (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
-        docker build -t {{.WEBSITE_IMAGE}}:latest \
-          --build-arg PROD_DOMAIN="{{.PROD_DOMAIN}}" \
-          --build-arg BRAND_NAME="{{.BRAND_NAME}}" \
-          --build-arg CONTACT_EMAIL="{{.CONTACT_EMAIL}}" \
-          --build-arg CONTACT_PHONE="{{.CONTACT_PHONE}}" \
-          --build-arg CONTACT_CITY="{{.CONTACT_CITY}}" \
-          --build-arg CONTACT_NAME="{{.CONTACT_NAME}}" \
-          --build-arg LEGAL_STREET="{{.LEGAL_STREET}}" \
-          --build-arg LEGAL_ZIP="{{.LEGAL_ZIP}}" \
-          --build-arg LEGAL_JOBTITLE="{{.LEGAL_JOBTITLE}}" \
-          --build-arg LEGAL_CHAMBER="{{.LEGAL_CHAMBER}}" \
-          --build-arg LEGAL_UST_ID="{{.LEGAL_UST_ID}}" \
-          --build-arg LEGAL_WEBSITE="{{.LEGAL_WEBSITE}}" \
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="${WEBSITE_IMAGE:-workspace-website}"
+        docker build -t "${IMAGE}:latest" \
+          --build-arg PROD_DOMAIN="${PROD_DOMAIN}" \
+          --build-arg BRAND_NAME="${BRAND_NAME}" \
+          --build-arg CONTACT_EMAIL="${CONTACT_EMAIL}" \
+          --build-arg CONTACT_PHONE="${CONTACT_PHONE}" \
+          --build-arg CONTACT_CITY="${CONTACT_CITY}" \
+          --build-arg CONTACT_NAME="${CONTACT_NAME}" \
+          --build-arg LEGAL_STREET="${LEGAL_STREET}" \
+          --build-arg LEGAL_ZIP="${LEGAL_ZIP}" \
+          --build-arg LEGAL_JOBTITLE="${LEGAL_JOBTITLE}" \
+          --build-arg LEGAL_CHAMBER="${LEGAL_CHAMBER}" \
+          --build-arg LEGAL_UST_ID="${LEGAL_UST_ID}" \
+          --build-arg LEGAL_WEBSITE="${LEGAL_WEBSITE}" \
           website/
-        echo "✓ Docker image built: {{.WEBSITE_IMAGE}}:latest"
+        echo "✓ Docker image built: ${IMAGE}:latest"
 
   website:build:import:
     desc: Build and import website image into k3d cluster
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
       - task: website:build
-      - k3d image import {{.WEBSITE_IMAGE}}:latest -c {{.CLUSTER_NAME}}
-      - echo "✓ Image imported into k3d cluster"
+        vars: { ENV: "{{.ENV}}" }
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="${WEBSITE_IMAGE:-workspace-website}"
+        k3d image import "${IMAGE}:latest" -c {{.CLUSTER_NAME}}
+        echo "✓ Image imported into k3d cluster"
 
   website:push:
     desc: Build and push website image to ghcr.io (for production)
-    deps: [website:build]
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    deps:
+      - task: website:build
+        vars: { ENV: "{{.ENV}}" }
     cmds:
-      - docker tag {{.WEBSITE_IMAGE}}:latest ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest
-      - docker push ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest
-      - echo "✓ Pushed ghcr.io/paddione/{{.WEBSITE_IMAGE}}:latest"
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="${WEBSITE_IMAGE:-workspace-website}"
+        docker tag "${IMAGE}:latest" "ghcr.io/paddione/${IMAGE}:latest"
+        docker push "ghcr.io/paddione/${IMAGE}:latest"
+        echo "✓ Pushed ghcr.io/paddione/${IMAGE}:latest"
 
   website:pull-secret:
     desc: Create/update ghcr-pull-secret in website + workspace namespaces on hetzner (uses gh CLI token)
@@ -1369,20 +1256,17 @@ tasks:
         done
 
   website:deploy:
-    desc: Deploy the Astro website to the website namespace
+    desc: "Deploy the Astro website to the website namespace (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
       - task: website:build:import
+        vars: { ENV: "{{.ENV}}" }
       - |
-        export PROD_DOMAIN="{{.PROD_DOMAIN}}"
-        export BRAND_NAME="{{.BRAND_NAME}}"
-        export CONTACT_EMAIL="{{.CONTACT_EMAIL}}"
-        export CONTACT_PHONE="{{.CONTACT_PHONE}}"
-        export CONTACT_CITY="{{.CONTACT_CITY}}"
-        export CONTACT_NAME="{{.CONTACT_NAME}}"
-        export WEBSITE_IMAGE="{{.WEBSITE_IMAGE}}"
+        source scripts/env-resolve.sh "{{.ENV}}"
         envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl apply -f -
       - |
         echo "Waiting for website..."
@@ -1824,6 +1708,36 @@ tasks:
       - kubectl get certificate workspace-wildcard -n workspace -o wide
       - kubectl get certificaterequest -n workspace
       - kubectl get order -n workspace 2>/dev/null || true
+
+  sealed-secrets:install:
+    desc: Install Sealed Secrets controller on a cluster via Helm
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+        helm repo update
+        helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
+          --namespace sealed-secrets --create-namespace \
+          --context "$ENV_CONTEXT" \
+          --set resources.requests.cpu=50m \
+          --set resources.requests.memory=64Mi \
+          --set resources.limits.memory=128Mi
+        echo "✓ Sealed Secrets controller installed on ${ENV_CONTEXT}"
+
+  sealed-secrets:status:
+    desc: Show Sealed Secrets controller status
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        kubectl $context_flag get pods -n sealed-secrets
+        echo ""
+        kubectl $context_flag get sealedsecrets -n workspace 2>/dev/null || echo "(no SealedSecrets in workspace namespace)"
 
   docs:publish-api:
     desc: Publish OpenAPI spec to GitBook

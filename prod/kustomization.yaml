@@ -31,8 +31,6 @@ generatorOptions:
 
 # Strategic merge patches
 patches:
-  # Override secrets with production values
-  - path: secrets.yaml
   # Override domains
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)

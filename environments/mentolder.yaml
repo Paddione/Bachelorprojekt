@@ -1,0 +1,33 @@
+# environments/mentolder.yaml
+environment: mentolder
+context: mentolder
+domain: mentolder.de
+
+env_vars:
+  PROD_DOMAIN: mentolder.de
+  BRAND_NAME: "Mentolder"
+  CONTACT_EMAIL: info@mentolder.de
+  CONTACT_PHONE: "+49 151 508 32 601"
+  CONTACT_CITY: "Lueneburg"
+  CONTACT_NAME: "Gerald Korczewski"
+  LEGAL_STREET: "Ludwig-Erhard-Str. 18"
+  LEGAL_ZIP: "20459"
+  LEGAL_JOBTITLE: "Coach, Berater, Trainer"
+  LEGAL_CHAMBER: "Entfaellt"
+  LEGAL_UST_ID: "Kleinunternehmer gem. 19 Abs. 1 UStG"
+  LEGAL_WEBSITE: mentolder.de
+  WEBSITE_IMAGE: mentolder-website
+  INFRA_NAMESPACE: mentolder-infra
+  TLS_SECRET_NAME: mentolder-tls
+  SMTP_FROM: mentolder@mailbox.org
+
+overlay: prod
+secrets_ref: sealed-secrets/mentolder.yaml
+
+setup_vars:
+  KC_USER1_USERNAME: paddione
+  KC_USER1_EMAIL: patrick@korczewski.de
+  KC_USER1_PASSWORD: SEALED
+  KC_USER2_USERNAME: gekko
+  KC_USER2_EMAIL: quamain@web.de
+  KC_USER2_PASSWORD: SEALED

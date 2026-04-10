@@ -540,7 +540,7 @@ tasks:
       - kubectl rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
 
   workspace:prod:deploy:
-    desc: Deploy workspace stack to k3s-production cluster
+    desc: "[DEPRECATED — use 'task workspace:deploy ENV=mentolder'] Deploy workspace stack to k3s-production cluster"
     preconditions:
       - sh: kubectl --context mentolder cluster-info > /dev/null 2>&1
         msg: "k3s-production context not reachable."
@@ -985,6 +985,38 @@ tasks:
     cmds:
       - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
+
+  # ─────────────────────────────────────────────
+  # Environment Management
+  # ─────────────────────────────────────────────
+  env:validate:
+    desc: Validate environment config against schema
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/env-validate.sh --env {{.ENV}} --env-dir environments {{if eq .ENV "dev"}}--schema-only{{end}}
+
+  env:validate:all:
+    desc: Validate all environment configs (schema-only, no cluster needed)
+    cmds:
+      - |
+        errors=0
+        for f in environments/*.yaml; do
+          name="$(basename "$f" .yaml)"
+          [ "$name" = "schema" ] && continue
+          echo "--- Validating: $name ---"
+          bash scripts/env-validate.sh --env "$name" --env-dir environments --schema-only || errors=$((errors + 1))
+        done
+        exit "$errors"
+
+  env:show:
+    desc: Show resolved config for an environment
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        echo "=== Environment: {{.ENV}} ==="
+        cat "environments/{{.ENV}}.yaml"
 
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"

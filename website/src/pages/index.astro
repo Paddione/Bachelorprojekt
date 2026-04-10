@@ -5,12 +5,25 @@ import ServiceCard from '../components/ServiceCard.svelte';
 import CallToAction from '../components/CallToAction.svelte';
 import FAQ from '../components/FAQ.svelte';
 import { config } from '../config/index';
+import SlotWidget from '../components/SlotWidget.astro';
+import type { DaySlots } from '../lib/caldav';
+import { getAvailableSlots } from '../lib/caldav';
 
 const { homepage, services, faq, contact } = config;
+
+let nextDay: DaySlots | null = null;
+try {
+  const slots = await getAvailableSlots();
+  nextDay = slots.length > 0 ? slots[0] : null;
+} catch {
+  // CalDAV unreachable — widget hidden gracefully
+}
 ---
 
 <Layout title={config.meta.siteTitle}>
   <Hero client:load />
+
+  {nextDay && <SlotWidget day={nextDay} />}
 
   <!-- Trust indicators -->
   <section class="py-12 bg-dark-light border-b border-dark-lighter">

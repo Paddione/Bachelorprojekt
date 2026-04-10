@@ -12,6 +12,8 @@ spec:
               value: "https://billing.${PROD_DOMAIN}"
             - name: REQUIRE_HTTPS
               value: "true"
+            - name: TRUSTED_PROXIES
+              value: "*"
             - name: MAIL_FROM_ADDRESS
               value: "${CONTACT_EMAIL}"
             - name: MAIL_FROM_NAME

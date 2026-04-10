@@ -996,15 +996,15 @@ tasks:
       - 'echo "✓ Claude Code channels created in all teams"'
 
   mcp:set-github-pat:
-    desc: Update the GitHub PAT in claude-code-secrets
+    desc: Update GITHUB_PAT in workspace-secrets (workspace namespace)
     cmds:
       - |
         if [ -z "{{.CLI_ARGS}}" ]; then
           echo "Usage: task mcp:set-github-pat -- ghp_yourtoken"
           exit 1
         fi
-      - kubectl patch secret claude-code-secrets -n default --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
-      - kubectl rollout restart deployment/mcp-github
+      - kubectl patch secret workspace-secrets -n workspace --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
+      - kubectl rollout restart deployment/mcp-github -n workspace
       - 'echo "✓ GitHub PAT updated and mcp-github restarted"'
 
   # ─────────────────────────────────────────────
@@ -1021,12 +1021,12 @@ tasks:
         if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
           echo "Usage: task claude-code:setup -- cluster|business"
           echo ""
-          echo "  cluster  -- All 9 MCP servers (for platform admin)"
-          echo "  business -- 4 business MCP servers (for business user)"
+          echo "  cluster  -- All 10 MCP servers, full ops access (for platform admin)"
+          echo "  business -- All 10 MCP servers, business access (for business user)"
           exit 1
         fi
 
-        TEMPLATE="claude-code/${ROLE}.settings.json"
+        TEMPLATE="claude-code/settings.json"
         if [ ! -f "$TEMPLATE" ]; then
           echo "ERROR: Template $TEMPLATE not found"
           exit 1
@@ -1050,7 +1050,7 @@ tasks:
         OUTPUT="$PROJECT_DIR/settings.json"
 
         # Prefix server names with mcp- to avoid conflicts with local MCP servers
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
         echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
@@ -1069,12 +1069,12 @@ tasks:
         if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
           echo "Usage: task claude-code:export -- cluster|business"
           echo ""
-          echo "  cluster  -- All 9 MCP servers (for platform admin)"
-          echo "  business -- 4 business MCP servers (for business user)"
+          echo "  cluster  -- All 10 MCP servers, full ops access (for platform admin)"
+          echo "  business -- All 10 MCP servers, business access (for business user)"
           exit 1
         fi
 
-        TEMPLATE="claude-code/${ROLE}.settings.json"
+        TEMPLATE="claude-code/settings.json"
         if [ ! -f "$TEMPLATE" ]; then
           echo "ERROR: Template $TEMPLATE not found"
           exit 1
@@ -1093,7 +1093,7 @@ tasks:
         export BUSINESS_TOKEN="$TOKEN"
 
         OUTPUT="claude-code/${ROLE}-export.settings.json"
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
 
         echo "Exported settings to: $OUTPUT"
         echo "  Role: $ROLE"
@@ -1116,12 +1116,12 @@ tasks:
         if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
           echo "Usage: task claude-code:invite -- cluster|business"
           echo ""
-          echo "  cluster  -- All 9 MCP servers (for platform admin)"
-          echo "  business -- 4 business MCP servers (for business user)"
+          echo "  cluster  -- All 10 MCP servers, full ops access (for platform admin)"
+          echo "  business -- All 10 MCP servers, business access (for business user)"
           exit 1
         fi
 
-        TEMPLATE="claude-code/${ROLE}.settings.json"
+        TEMPLATE="claude-code/settings.json"
         if [ ! -f "$TEMPLATE" ]; then
           echo "ERROR: Template $TEMPLATE not found"
           exit 1
@@ -1144,7 +1144,7 @@ tasks:
         with open(sys.argv[1]) as f:
             servers = json.load(f)['mcpServers']
         for name, cfg in servers.items():
-            url = cfg['url'].replace('\${PROD_DOMAIN}', sys.argv[2]).replace('\${CLUSTER_TOKEN}', sys.argv[3]).replace('\${BUSINESS_TOKEN}', sys.argv[3])
+            url = cfg['url'].replace('\${PROD_DOMAIN}', sys.argv[2]).replace('\${MCP_TOKEN}', sys.argv[3])
             server_json = json.dumps({'type': 'url', 'url': url, 'headers': {'Authorization': f'Bearer {sys.argv[3]}'}})
             print(f'mcp-{name}|{server_json}')
         " "$TEMPLATE" "$DOMAIN" "$TOKEN")

@@ -131,3 +131,14 @@ export function getFileUrl(filePath: string): string {
   const safe = posix.normalize('/' + filePath).slice(1);
   return `${NC_EXTERNAL_URL}/remote.php/dav/files/${NC_ADMIN_USER}/${safe}`;
 }
+
+/**
+ * Returns the standard Nextcloud folder path for a client.
+ * e.g. "Clients/max.mustermann/"
+ */
+export function getClientFolderPath(username: string): string {
+  return `Clients/${username}/`;
+}
+
+export const PENDING_SIGNATURES_DIR = 'pending-signatures';
+export const SIGNED_DIR = 'signed';

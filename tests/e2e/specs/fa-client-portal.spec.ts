@@ -19,11 +19,11 @@ test.describe('Client Portal', () => {
     // For now we just check the response - it will fail until /portal exists
     await page.goto('/portal');
     // Once implemented, unauthenticated users should be redirected (not get a 404)
-    await expect(page.locator('body')).not.toHaveText('404');
+    await expect(page.locator('body')).not.toContainText('404');
   });
 
   test('T4 – /admin page renders expected structure when visited', async ({ page }) => {
     await page.goto('/admin');
-    await expect(page.locator('body')).not.toHaveText('404');
+    await expect(page.locator('body')).not.toContainText('404');
   });
 });

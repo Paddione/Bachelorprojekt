@@ -784,7 +784,7 @@ tasks:
       - |
         context="$(grep 'context:' environments/{{.ENV}}.yaml | head -1 | sed 's/.*: *//' | tr -d '\"')"
         mkdir -p environments/certs
-        kubeseal --controller-name=sealed-secrets-controller \
+        kubeseal --controller-name=sealed-secrets \
                  --controller-namespace=sealed-secrets \
                  --context "$context" \
                  --fetch-cert > "environments/certs/{{.ENV}}.pem"
@@ -1720,7 +1720,7 @@ tasks:
         helm repo update
         helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
           --namespace sealed-secrets --create-namespace \
-          --context "$ENV_CONTEXT" \
+          --kube-context "$ENV_CONTEXT" \
           --set resources.requests.cpu=50m \
           --set resources.requests.memory=64Mi \
           --set resources.limits.memory=128Mi

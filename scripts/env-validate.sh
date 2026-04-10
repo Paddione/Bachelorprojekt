@@ -106,12 +106,12 @@ sealed_secret_keys() {
   local file="$1"
   awk '
     /^[[:space:]]*encryptedData:/ { in_enc=1; next }
-    in_enc && /^[[:space:]]+[A-Z_]+:/ {
+    in_enc && /^[[:space:]]+[A-Z0-9_]+:/ {
       sub(/^[[:space:]]+/, "")
       sub(/:.*/, "")
       print
     }
-    in_enc && /^[[:space:]]*[a-z]/ && !/^[[:space:]]+[A-Z_]+:/ { in_enc=0 }
+    in_enc && /^[[:space:]]*[a-z]/ && !/^[[:space:]]+[A-Z0-9_]+:/ { in_enc=0 }
   ' "$file"
 }
 

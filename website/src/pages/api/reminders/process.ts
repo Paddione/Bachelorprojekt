@@ -7,7 +7,7 @@ import { processDueReminders, getPendingReminders } from '../../../lib/reminders
 export const POST: APIRoute = async () => {
   try {
     const sent = await processDueReminders();
-    const pending = getPendingReminders();
+    const pending = await getPendingReminders();
 
     return new Response(
       JSON.stringify({ sent, pending: pending.length }),
@@ -24,7 +24,7 @@ export const POST: APIRoute = async () => {
 
 // GET to check pending reminders
 export const GET: APIRoute = async () => {
-  const pending = getPendingReminders();
+  const pending = await getPendingReminders();
   return new Response(
     JSON.stringify({ pending: pending.length, reminders: pending.map((r) => ({
       id: r.id,

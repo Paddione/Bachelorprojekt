@@ -152,7 +152,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 4. Schedule reminder email 10 min before
         if (room) {
-          scheduleReminder({
+          await scheduleReminder({
             email: bEmail,
             name: bName,
             meetingStart,

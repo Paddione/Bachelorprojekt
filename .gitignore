@@ -2,6 +2,8 @@
 .env
 .env.secrets
 *.env.local
+# ── Environment secrets (plaintext, never commit) ──
+environments/.secrets/
 # prod/secrets.yaml and prod-korczewski/secrets.yaml committed as ArgoCD placeholders (Skip=true)
 # Real credentials are applied via: task workspace:prod:deploy / task korczewski:deploy
 # k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials

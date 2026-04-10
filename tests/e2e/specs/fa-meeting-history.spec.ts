@@ -9,17 +9,15 @@ test.describe('Meeting History', () => {
     expect([401, 403]).toContain(res.status());
   });
 
-  test('T2 – meetings tab shows no-meetings message when empty', async ({ page }) => {
+  test('T2 – /portal?tab=meetings does not return a 404 page', async ({ page }) => {
     await page.goto('/portal?tab=meetings');
     // Without auth we get redirected; page should not be a 404
     await expect(page.locator('body')).not.toContainText('404');
   });
 
-  test('T3 – meetings tab data-testid exists in portal', async ({ page }) => {
-    await page.goto('/portal?tab=meetings');
-    // Either redirected (auth) or shows meetings-tab — both are fine
-    // After implementation, authenticated users should see data-testid="meetings-tab"
-    const url = page.url();
-    expect(url).toBeTruthy();
+  test('T3 – navigating to /portal?tab=meetings is handled gracefully', async ({ page }) => {
+    const response = await page.goto('/portal?tab=meetings');
+    // Should not be a server error
+    expect(response?.status()).not.toBe(500);
   });
 });

@@ -1709,6 +1709,36 @@ tasks:
       - kubectl get certificaterequest -n workspace
       - kubectl get order -n workspace 2>/dev/null || true
 
+  sealed-secrets:install:
+    desc: Install Sealed Secrets controller on a cluster via Helm
+    vars:
+      ENV: '{{.ENV}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+        helm repo update
+        helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
+          --namespace sealed-secrets --create-namespace \
+          --context "$ENV_CONTEXT" \
+          --set resources.requests.cpu=50m \
+          --set resources.requests.memory=64Mi \
+          --set resources.limits.memory=128Mi
+        echo "✓ Sealed Secrets controller installed on ${ENV_CONTEXT}"
+
+  sealed-secrets:status:
+    desc: Show Sealed Secrets controller status
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        kubectl $context_flag get pods -n sealed-secrets
+        echo ""
+        kubectl $context_flag get sealedsecrets -n workspace 2>/dev/null || echo "(no SealedSecrets in workspace namespace)"
+
   docs:publish-api:
     desc: Publish OpenAPI spec to GitBook
     preconditions:

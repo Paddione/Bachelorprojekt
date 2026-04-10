@@ -75,8 +75,17 @@ export const POST: APIRoute = async ({ request }) => {
   const clientFolder = getClientFolderPath(username); // e.g. "Clients/alice/"
   const allowedPrefix = `${clientFolder}${PENDING_SIGNATURES_DIR}/`;
 
-  // Normalise: strip leading slash, collapse double-slashes, reject traversal sequences
-  const normalizedPath = documentPath
+  // Normalise: URL-decode first, then strip leading slash, collapse double-slashes, reject traversal sequences
+  let decodedPath: string;
+  try {
+    decodedPath = decodeURIComponent(documentPath);
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid document path' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  const normalizedPath = decodedPath
     .replace(/\\/g, '/')   // normalise backslashes
     .replace(/^\//, '')    // strip leading slash
     .replace(/\/+/g, '/'); // collapse duplicate slashes

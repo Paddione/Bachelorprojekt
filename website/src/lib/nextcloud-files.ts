@@ -8,10 +8,11 @@ const NC_ADMIN_PASS = process.env.NEXTCLOUD_ADMIN_PASS || '';
 const NC_EXTERNAL_URL = process.env.NEXTCLOUD_EXTERNAL_URL || NC_URL;
 
 function davUrl(path: string): string {
-  const safe = posix.normalize('/' + path).slice(1); // removes leading slash after normalize
-  if (safe.startsWith('..') || safe.includes('/../')) {
+  const raw = path.replace(/\\/g, '/').replace(/^\//, '');
+  if (raw.includes('../') || raw.includes('/..') || raw === '..' || raw.startsWith('../')) {
     throw new Error(`Invalid path: ${path}`);
   }
+  const safe = posix.normalize(raw);
   return `${NC_URL}/remote.php/dav/files/${NC_ADMIN_USER}/${safe}`;
 }
 

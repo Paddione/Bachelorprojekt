@@ -110,6 +110,12 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
   return { sessionId, user };
 }
 
+const ADMIN_USERNAME = process.env.KEYCLOAK_ADMIN_USER || 'admin';
+
+export function isAdmin(session: UserSession): boolean {
+  return session.preferred_username === ADMIN_USERNAME;
+}
+
 export function getSession(cookieHeader: string | null): UserSession | null {
   if (!cookieHeader) return null;
 

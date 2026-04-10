@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { getUserById } from '../../lib/keycloak';
+import BookingsTab from '../../components/portal/BookingsTab.astro';
+import InvoicesTab from '../../components/portal/InvoicesTab.astro';
+import FilesTab from '../../components/portal/FilesTab.astro';
+import SignaturesTab from '../../components/portal/SignaturesTab.astro';
+import MeetingsTab from '../../components/portal/MeetingsTab.astro';
+
+const session = getSession(Astro.request.headers.get('cookie'));
+if (!session) {
+  return Astro.redirect(getLoginUrl());
+}
+if (!isAdmin(session)) {
+  return Astro.redirect('/portal');
+}
+
+const { clientId } = Astro.params;
+const client = await getUserById(clientId!);
+if (!client) {
+  return Astro.redirect('/admin');
+}
+
+const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
+---
+
+<Layout title={`Admin — ${client.firstName ?? client.username}`}>
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="mb-2">
+        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
+      </div>
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-light font-serif">{client.firstName} {client.lastName}</h1>
+        <p class="text-muted mt-1">{client.username} · {client.email ?? '—'}</p>
+      </div>
+
+      <!-- Tab navigation -->
+      <nav class="flex gap-1 mb-8 border-b border-dark-lighter overflow-x-auto" data-testid="admin-client-tabs">
+        {[
+          { id: 'bookings', label: 'Termine' },
+          { id: 'invoices', label: 'Rechnungen' },
+          { id: 'files', label: 'Dateien' },
+          { id: 'signatures', label: 'Zur Unterschrift' },
+          { id: 'meetings', label: 'Besprechungen' },
+        ].map(t => (
+          <a
+            href={`/admin/${clientId}?tab=${t.id}`}
+            class={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+              tab === t.id
+                ? 'text-gold border-b-2 border-gold'
+                : 'text-muted hover:text-light'
+            }`}
+          >
+            {t.label}
+          </a>
+        ))}
+      </nav>
+
+      <!-- Tab content -->
+      <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
+        {tab === 'bookings' && <BookingsTab clientEmail={client.email ?? ''} />}
+        {tab === 'invoices' && <InvoicesTab clientEmail={client.email ?? ''} />}
+        {tab === 'files' && <FilesTab clientUsername={client.username} />}
+        {tab === 'signatures' && <SignaturesTab clientUsername={client.username} />}
+        {tab === 'meetings' && <MeetingsTab clientEmail={client.email ?? ''} />}
+      </div>
+    </div>
+  </section>
+</Layout>

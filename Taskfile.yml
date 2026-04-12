@@ -295,7 +295,7 @@ tasks:
       - bash scripts/stripe-setup.sh
 
   workspace:post-setup:
-    desc: Enable Nextcloud apps (calendar, contacts, OIDC) after initial deploy
+    desc: Enable Nextcloud apps (calendar, contacts, OIDC, whiteboard) after initial deploy
     cmds:
       - echo "Enabling Nextcloud apps..."
       - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install oidc_login" || true
@@ -306,12 +306,24 @@ tasks:
       - |
         kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c \
           "php occ config:app:set richdocuments wopi_url --value=http://collabora:9980"
+      - task: workspace:whiteboard-setup
       - echo ""
       - 'echo "✓ Nextcloud apps enabled"'
-      - 'echo "  Calendar:  http://files.localhost/apps/calendar"'
-      - 'echo "  Contacts:  http://files.localhost/apps/contacts"'
-      - 'echo "  Talk:      http://files.localhost/apps/spreed"'
-      - 'echo "  Collabora: via richdocuments WOPI integration"'
+      - 'echo "  Calendar:   http://files.localhost/apps/calendar"'
+      - 'echo "  Contacts:   http://files.localhost/apps/contacts"'
+      - 'echo "  Talk:       http://files.localhost/apps/spreed"'
+      - 'echo "  Collabora:  via richdocuments WOPI integration"'
+      - 'echo "  Whiteboard: http://board.localhost (JWT secret synced)"'
+
+  workspace:whiteboard-setup:
+    desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
+    preconditions:
+      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
+        msg: "Nextcloud not deployed."
+      - sh: kubectl get deployment whiteboard -n workspace > /dev/null 2>&1
+        msg: "whiteboard not deployed. Run 'task workspace:deploy' first."
+    cmds:
+      - bash scripts/whiteboard-setup.sh
 
   workspace:meeting-slash:
     desc: Register /meeting slash command in Mattermost

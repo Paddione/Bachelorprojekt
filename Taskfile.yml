@@ -297,23 +297,43 @@ tasks:
       - bash scripts/stripe-setup.sh
 
   workspace:post-setup:
-    desc: Enable Nextcloud apps (calendar, contacts, OIDC) and wire WOPI to office-stack collabora
+    desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair, notify_push)
+    vars:
+      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- su -s /bin/bash www-data -c"
+      PUSH_URL: '{{.PUSH_URL | default "http://files.localhost/push"}}'
     cmds:
       - echo "Enabling Nextcloud apps..."
-      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install oidc_login" || true
-      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install calendar" || true
-      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install contacts" || true
-      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install richdocuments" || true
-      - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:enable spreed" || true
+      - '{{.NC_EXEC}} "php occ app:install oidc_login"   || true'
+      - '{{.NC_EXEC}} "php occ app:install calendar"     || true'
+      - '{{.NC_EXEC}} "php occ app:install contacts"     || true'
+      - '{{.NC_EXEC}} "php occ app:install richdocuments" || true'
+      - '{{.NC_EXEC}} "php occ app:install notify_push"  || true'
+      - '{{.NC_EXEC}} "php occ app:enable spreed"        || true'
       - |
-        kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c \
-          "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
+        {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
       - echo ""
-      - 'echo "✓ Nextcloud apps enabled"'
-      - 'echo "  Calendar:  http://files.localhost/apps/calendar"'
-      - 'echo "  Contacts:  http://files.localhost/apps/contacts"'
-      - 'echo "  Talk:      http://files.localhost/apps/spreed"'
-      - 'echo "  Collabora: WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
+      - echo "Running hardening (DB indices, missing columns, MIME repair)..."
+      - '{{.NC_EXEC}} "php occ db:add-missing-indices"           || true'
+      - '{{.NC_EXEC}} "php occ db:add-missing-columns"           || true'
+      - '{{.NC_EXEC}} "php occ db:add-missing-primary-keys"      || true'
+      - '{{.NC_EXEC}} "php occ maintenance:repair --include-expensive" || true'
+      - echo ""
+      - echo "Registering notify_push URL and restarting pod (sidecar picks up binary)..."
+      - '{{.NC_EXEC}} "php occ notify_push:setup {{.PUSH_URL}}" || true'
+      - kubectl rollout restart -n workspace deployment/nextcloud
+      - kubectl rollout status  -n workspace deployment/nextcloud --timeout=5m
+      - echo ""
+      - echo "Registering AppAPI manual-install daemon (no docker required)..."
+      - |
+        {{.NC_EXEC}} "php occ app_api:daemon:register manual-k8s 'Manual (Kubernetes)' manual-install http 0 http://127.0.0.1" || true
+      - '{{.NC_EXEC}} "php occ config:app:set app_api default_daemon_config --value=manual-k8s" || true'
+      - echo ""
+      - 'echo "✓ Nextcloud apps enabled + hardening applied"'
+      - 'echo "  Calendar:    http://files.localhost/apps/calendar"'
+      - 'echo "  Contacts:    http://files.localhost/apps/contacts"'
+      - 'echo "  Talk:        http://files.localhost/apps/spreed"'
+      - 'echo "  Collabora:   WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
+      - 'echo "  notify_push: {{.PUSH_URL}}"'
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"

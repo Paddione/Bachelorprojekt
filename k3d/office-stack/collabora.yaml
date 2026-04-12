@@ -32,18 +32,21 @@ spec:
       labels:
         app: collabora
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: collabora
-          image: collabora/code:25.04.9.4.1
-          # Run as root so coolwsd's forkit can exercise its bounding-set
-          # caps effectively. The image's default user (`cool`, uid 1001)
-          # has CapEff=0 even when SYS_ADMIN is in CapBnd — k8s only adds
-          # non-root caps to the bounding set, not the effective set.
-          # forkit drops to `cool` internally after creating the mount
-          # namespaces and bind-mounting /opt/cool/systemplate into the
-          # per-document jails.
+          # Custom image: upstream collabora/code with
+          # `setcap cap_sys_admin,cap_mknod=eip /usr/bin/coolwsd` baked
+          # in. File capabilities are effective for the non-root `cool`
+          # user on exec, so we get bind-mounts in the document jails
+          # without needing `runAsUser: 0` (coolwsd refuses to start
+          # as root). Built by .github/workflows/build-collabora.yml.
+          image: ghcr.io/paddione/collabora-code:25.04.9.4.1-setcap
+          # The caps only become effective via the file capabilities
+          # above; we still need them in the bounding set so the
+          # kernel doesn't strip them on exec.
           securityContext:
-            runAsUser: 0
             capabilities:
               add: ["SYS_ADMIN", "MKNOD"]
           env:

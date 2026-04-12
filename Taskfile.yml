@@ -382,6 +382,33 @@ tasks:
       - kubectl rollout status deploy/collabora -n workspace-office --timeout=180s
       - 'echo "✓ collabora-secrets synced; Collabora rolled"'
 
+  workspace:office:pull-secret:
+    desc: "Create/update ghcr-pull-secret in workspace-office (for the custom collabora-code image, ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
+        # Bootstrap the namespace if it doesn't exist yet — the secret
+        # has to be in place before the office-stack apply, otherwise
+        # the collabora Deployment hits ImagePullBackOff on first roll.
+        if ! kubectl $context_flag get namespace workspace-office >/dev/null 2>&1; then
+          kubectl $context_flag create namespace workspace-office
+          kubectl $context_flag label namespace workspace-office \
+            pod-security.kubernetes.io/enforce=privileged \
+            pod-security.kubernetes.io/warn=privileged --overwrite
+        fi
+        TOKEN=$(gh auth token)
+        kubectl $context_flag create secret docker-registry ghcr-pull-secret \
+          --namespace=workspace-office \
+          --docker-server=ghcr.io \
+          --docker-username=Paddione \
+          --docker-password="$TOKEN" \
+          --dry-run=client -o yaml | kubectl $context_flag apply -f -
+        echo "✓ ghcr-pull-secret in workspace-office ({{.ENV}})"
+
   workspace:office:deploy:
     desc: "Deploy the office-stack (Collabora in a privileged workspace-office ns, ENV=dev|mentolder|...)"
     vars:
@@ -390,6 +417,8 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running."
     cmds:
+      - task: workspace:office:pull-secret
+        vars: { ENV: "{{.ENV}}" }
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         # Derive Collabora envsubst vars from PROD_DOMAIN. Dev (*.localhost)

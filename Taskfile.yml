@@ -316,16 +316,23 @@ tasks:
       - 'echo "  Collabora: WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
 
   workspace:talk-setup:
-    desc: Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server
-    preconditions:
-      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
-        msg: "Nextcloud not deployed. Run 'task workspace:deploy' first."
-      - sh: kubectl get deployment spreed-signaling -n workspace > /dev/null 2>&1
-        msg: "spreed-signaling not deployed. Run 'task workspace:deploy' first."
-      - sh: kubectl get secret workspace-secrets -n workspace > /dev/null 2>&1
-        msg: "workspace-secrets missing. Seed it before running talk-setup."
+    desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - bash scripts/talk-hpb-setup.sh
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        export KUBE_CONTEXT=""
+        [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
+        bash scripts/talk-hpb-setup.sh
+
+  workspace:talk-setup:all-prods:
+    desc: Run workspace:talk-setup against every non-dev environment (mentolder + korczewski)
+    cmds:
+      - task: workspace:talk-setup
+        vars: { ENV: "mentolder" }
+      - task: workspace:talk-setup
+        vars: { ENV: "korczewski" }
 
   workspace:coturn:sync-secret:
     desc: Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets

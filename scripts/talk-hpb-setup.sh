@@ -23,7 +23,7 @@ echo "=== Nextcloud Talk HPB Setup ==="
 
 # ── Resolve target domain ─────────────────────────────────────────────
 # domain-config is rendered per-overlay (dev: *.localhost, prod: *.${PROD_DOMAIN}).
-SIGNALING_HOST=$(kubectl get configmap domain-config -n "${NAMESPACE}" \
+SIGNALING_HOST=$(kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} get configmap domain-config -n "${NAMESPACE}" \
   -o jsonpath='{.data.SIGNALING_DOMAIN}' 2>/dev/null || true)
 if [ -z "${SIGNALING_HOST}" ]; then
   echo "FEHLER: domain-config/SIGNALING_DOMAIN nicht gefunden in Namespace ${NAMESPACE}."
@@ -32,7 +32,7 @@ fi
 
 # Derive TURN hostname from the Nextcloud domain (turn.<base>).
 # NC_DOMAIN is already in the form files.<base>, so strip the leading files.
-NC_HOST=$(kubectl get configmap domain-config -n "${NAMESPACE}" \
+NC_HOST=$(kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} get configmap domain-config -n "${NAMESPACE}" \
   -o jsonpath='{.data.NC_DOMAIN}' 2>/dev/null || true)
 TURN_HOST="turn.${NC_HOST#files.}"
 
@@ -43,9 +43,9 @@ case "${SIGNALING_HOST}" in
 esac
 
 # ── Resolve secrets from workspace-secrets ────────────────────────────
-SIGNALING_SECRET=$(kubectl get secret workspace-secrets -n "${NAMESPACE}" \
+SIGNALING_SECRET=$(kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} get secret workspace-secrets -n "${NAMESPACE}" \
   -o jsonpath='{.data.SIGNALING_SECRET}' 2>/dev/null | base64 -d 2>/dev/null || true)
-TURN_SECRET=$(kubectl get secret workspace-secrets -n "${NAMESPACE}" \
+TURN_SECRET=$(kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} get secret workspace-secrets -n "${NAMESPACE}" \
   -o jsonpath='{.data.TURN_SECRET}' 2>/dev/null | base64 -d 2>/dev/null || true)
 
 if [ -z "${SIGNALING_SECRET}" ] || [ "${SIGNALING_SECRET}" = "MANAGED_EXTERNALLY" ]; then
@@ -77,7 +77,7 @@ TURN_JSON=$(jq -cn \
 
 # ── Apply to Nextcloud via occ ────────────────────────────────────────
 _occ() {
-  kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
+  kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
     su -s /bin/bash www-data -c "$*"
 }
 

@@ -43,12 +43,20 @@ spec:
           # without needing `runAsUser: 0` (coolwsd refuses to start
           # as root). Built by .github/workflows/build-collabora.yml.
           image: ghcr.io/paddione/collabora-code:25.04.9.4.1-setcap
-          # The caps only become effective via the file capabilities
-          # above; we still need them in the bounding set so the
-          # kernel doesn't strip them on exec.
+          # - capabilities: in the bounding set so the kernel doesn't
+          #   strip them on exec (file caps make them effective).
+          # - SETUID/SETGID needed to write uid_map/gid_map after the
+          #   forkit unshares a user namespace; SYS_ADMIN+MKNOD needed
+          #   for bind-mount + device nodes in the per-document jail.
+          # - appArmorProfile Unconfined: containerd's default AppArmor
+          #   profile (`cri-containerd.apparmor.d`) denies mount()
+          #   unconditionally, even with CAP_SYS_ADMIN present. The
+          #   privileged PSA on this namespace allows Unconfined.
           securityContext:
             capabilities:
-              add: ["SYS_ADMIN", "MKNOD"]
+              add: ["SYS_ADMIN", "MKNOD", "SETUID", "SETGID"]
+            appArmorProfile:
+              type: Unconfined
           env:
             - name: aliasgroup1
               value: "${COLLABORA_ALIASGROUP1}"

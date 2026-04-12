@@ -20,7 +20,18 @@ ARG UPSTREAM_TAG=25.04.9.4.1
 FROM collabora/code:${UPSTREAM_TAG}
 
 USER root
-RUN setcap cap_sys_admin,cap_mknod=eip /usr/bin/coolwsd \
+# coolwsd's forkit does:
+#   unshare(CLONE_NEWUSER | CLONE_NEWNS)
+#   echo "0 <uid> 1" > /proc/self/uid_map   # needs CAP_SETUID
+#   echo "0 <gid> 1" > /proc/self/gid_map   # needs CAP_SETGID
+#   mount --bind /opt/cool/systemplate …    # needs CAP_SYS_ADMIN
+#   mknod(...) for jail device nodes        # needs CAP_MKNOD
+# So all four caps have to be in the process's effective set at the
+# moment coolwsd runs the forkit. File capabilities make them effective
+# regardless of the calling uid, which is how we give the non-root
+# `cool` user what it needs without triggering coolwsd's "don't run as
+# root" guard.
+RUN setcap cap_sys_admin,cap_mknod,cap_setuid,cap_setgid=eip /usr/bin/coolwsd \
     && getcap /usr/bin/coolwsd
 
 # Collabora's own entrypoint refuses to start as root, so we flip back

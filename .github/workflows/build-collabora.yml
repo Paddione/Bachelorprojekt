@@ -7,7 +7,9 @@ name: Build Collabora (setcap)
 
 on:
   push:
-    branches: [main]
+    # Any branch — path filters keep it cheap. Safe to build + push
+    # from branches because the resulting tag is the upstream version,
+    # not a branch-derived name, so nothing a PR author could poison.
     paths:
       - "docker/collabora/Dockerfile"
       - ".github/workflows/build-collabora.yml"

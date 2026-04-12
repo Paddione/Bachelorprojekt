@@ -1,0 +1,15 @@
+# ═══════════════════════════════════════════════════════════════════
+# coturn-stack — TURN/STUN + Janus SFU in dedicated privileged ns
+# ═══════════════════════════════════════════════════════════════════
+# Lives in its own namespace `coturn` because both pods need
+# hostNetwork + hostPort, which violate the workspace namespace's
+# baseline PodSecurity policy. Pinned to a single public node via
+# the ${TURN_NODE} envsubst variable so RTP/ICE traffic lands on a
+# routable IP.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - coturn.yaml
+  - janus.yaml

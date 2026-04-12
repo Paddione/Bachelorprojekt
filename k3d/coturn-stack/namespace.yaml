@@ -1,0 +1,15 @@
+# ═══════════════════════════════════════════════════════════════════
+# coturn namespace — privileged PSA for hostNetwork TURN/SFU pods
+# ═══════════════════════════════════════════════════════════════════
+# coturn and janus need hostNetwork + hostPort, which are forbidden
+# under the baseline PSA enforced on the workspace namespace.
+# Isolating them in a dedicated privileged namespace keeps the
+# privilege escalation surface minimal.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coturn
+  labels:
+    app.kubernetes.io/part-of: workspace-mvp
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged

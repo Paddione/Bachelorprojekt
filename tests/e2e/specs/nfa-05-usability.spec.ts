@@ -16,18 +16,19 @@ test.describe('NFA-05: Usability', () => {
     const page = await context.newPage();
     const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
 
+    // Force-SSO: /login redirects to Keycloak where the login form renders.
     await page.goto(`${baseURL}/login`);
 
-    // Dismiss "Desktop vs Browser" chooser if present
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try {
       await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
       await browserLink.click();
     } catch {
-      // Already on login form
+      // Already redirected
     }
 
-    await expect(page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i })).toBeVisible({ timeout: 10_000 });
+    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 10_000 });
+    await expect(page.locator('#username, input[name="username"]')).toBeVisible({ timeout: 10_000 });
     await context.close();
   });
 

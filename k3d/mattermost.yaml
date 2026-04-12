@@ -114,10 +114,12 @@ spec:
               value: "${BRAND_NAME}"
             - name: MM_EMAILSETTINGS_REQUIREEMAILVERIFICATION
               value: "false"
+            # Force SSO: hide email/username login form, only Keycloak (GitLab slot) remains.
+            # Break-glass: toggle these back to "true" and remove mattermost-force-sso middleware.
             - name: MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL
-              value: "true"
+              value: "false"
             - name: MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME
-              value: "true"
+              value: "false"
             - name: MM_EMAILSETTINGS_CONNECTIONSECURITY
               value: ""
             # ── OpenSearch / Elasticsearch (FA-07) ────────────

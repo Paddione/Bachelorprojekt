@@ -8,7 +8,6 @@ spec:
   tls:
     - hosts:
         - auth.${PROD_DOMAIN}
-        - chat.${PROD_DOMAIN}
         - files.${PROD_DOMAIN}
         - meet.${PROD_DOMAIN}
         - office.${PROD_DOMAIN}
@@ -35,17 +34,9 @@ spec:
                 port:
                   number: 8080
 
-    # Mattermost (Chat)
-    - host: chat.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mattermost
-                port:
-                  number: 8065
+    # Mattermost (chat.*) lives in its own Ingress — see
+    # k3d/mattermost-force-sso.yaml (base) and prod/patch-mattermost-ingress.yaml
+    # (TLS + middleware chain).
 
     # Nextcloud (Dateien)
     - host: files.${PROD_DOMAIN}

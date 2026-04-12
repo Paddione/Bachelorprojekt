@@ -35,6 +35,8 @@ patches:
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)
   - path: ingress.yaml
+  # Mattermost chat.* ingress: TLS + HTTPS-redirect/HSTS/force-SSO middleware chain
+  - path: patch-mattermost-ingress.yaml
   # Service patches for https:// env vars
   - path: patch-mattermost.yaml
   - path: patch-nextcloud.yaml

@@ -58,6 +58,12 @@ jobs:
           echo "upstream=$TAG" >> "$GITHUB_OUTPUT"
           echo "published=${TAG}-setcap" >> "$GITHUB_OUTPUT"
 
+      - name: Set up QEMU
+        # Needed so amd64 runners can build the arm64 variant too.
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -72,6 +78,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: docker/collabora
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           build-args: |
             UPSTREAM_TAG=${{ steps.tag.outputs.upstream }}

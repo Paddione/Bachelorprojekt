@@ -40,17 +40,9 @@ spec:
                 port:
                   number: 80
 
-    # ── Collabora Online (Dokumentenbearbeitung) ───────────────────
-    - host: office.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: collabora
-                port:
-                  number: 9980
+    # NB: office.localhost lives in the k3d/office-stack Ingress
+    # (namespace workspace-office) because Collabora runs in its own
+    # privileged namespace — Ingress backends must be same-namespace.
 
     # ── Nextcloud Whiteboard (collaboration server) ─────────────────
     - host: board.localhost

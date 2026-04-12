@@ -15,13 +15,13 @@ resources:
   - mattermost.yaml
   - mattermost-hpa.yaml
   - nextcloud.yaml
-  # Nextcloud Talk HPB + Collabora + Whiteboard
-  # NB: coturn + janus live in their own ArgoCD Application
-  # (k3d/coturn-stack) because they need a dedicated privileged
-  # namespace and can't be transformed by this kustomization's
-  # `namespace: workspace` directive.
+  # Nextcloud Talk HPB + Whiteboard
+  # NB: coturn + janus (k3d/coturn-stack) and Collabora
+  # (k3d/office-stack) each live in their own ArgoCD Application
+  # because they need dedicated privileged namespaces and can't be
+  # transformed by this kustomization's `namespace: workspace`
+  # directive.
   - talk-hpb.yaml
-  - collabora.yaml
   - whiteboard.yaml
   - talk-recording.yaml
   - vaultwarden.yaml

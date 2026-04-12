@@ -20,19 +20,31 @@ ARG UPSTREAM_TAG=25.04.9.4.1
 FROM collabora/code:${UPSTREAM_TAG}
 
 USER root
-# coolwsd's forkit does:
-#   unshare(CLONE_NEWUSER | CLONE_NEWNS)
-#   echo "0 <uid> 1" > /proc/self/uid_map   # needs CAP_SETUID
-#   echo "0 <gid> 1" > /proc/self/gid_map   # needs CAP_SETGID
-#   mount --bind /opt/cool/systemplate …    # needs CAP_SYS_ADMIN
-#   mknod(...) for jail device nodes        # needs CAP_MKNOD
-# So all four caps have to be in the process's effective set at the
-# moment coolwsd runs the forkit. File capabilities make them effective
-# regardless of the calling uid, which is how we give the non-root
-# `cool` user what it needs without triggering coolwsd's "don't run as
-# root" guard.
-RUN setcap cap_sys_admin,cap_mknod,cap_setuid,cap_setgid=eip /usr/bin/coolwsd \
-    && getcap /usr/bin/coolwsd
+# The upstream image ships two forkit binaries:
+#   /usr/bin/coolforkit-caps — uses CAP_SYS_ADMIN directly to bind-mount
+#                              /opt/cool/systemplate into each jail.
+#                              Preferred when caps are available.
+#   /usr/bin/coolforkit-ns   — creates a user namespace, maps uid 0,
+#                              and bind-mounts from inside. Used as
+#                              a fallback when caps aren't available.
+#
+# The upstream image pre-sets cap_chown,cap_fowner,cap_sys_chroot on
+# coolforkit-caps but not cap_sys_admin, which means coolwsd routes
+# every document session through coolforkit-ns. coolforkit-ns is a
+# separate binary with no file caps, so once coolwsd fork+execs it,
+# the non-root `cool` user's CapEff drops to 0 and the CLONE_NEWNS
+# unshare fails with EPERM — exactly what surfaces the admin-console
+# "Langsame Einrichtung des Kit-Jails" red warning.
+#
+# Fix: add CAP_SYS_ADMIN + CAP_MKNOD to coolforkit-caps so coolwsd
+# picks the caps path, and also setcap coolwsd itself so its own
+# startup bind-mount self-test passes (needed before coolwsd will
+# mark bind-mounting as usable at all).
+RUN setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot=ep \
+        /usr/bin/coolforkit-caps \
+    && setcap cap_sys_admin,cap_mknod,cap_setuid,cap_setgid=eip \
+        /usr/bin/coolwsd \
+    && getcap /usr/bin/coolforkit-caps /usr/bin/coolwsd
 
 # Collabora's own entrypoint refuses to start as root, so we flip back
 # to the image's original user (uid 1001, cool). File capabilities

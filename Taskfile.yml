@@ -1663,14 +1663,31 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
-      # Install cert-manager
+      # Install cert-manager.
+      #
+      # podDnsPolicy=Default forces the cert-manager controller to use the
+      # node's /etc/resolv.conf instead of the cluster's CoreDNS service.
+      # On hybrid clusters where the only public-IP node (e.g. korczewski's
+      # pk-hetzner) cannot reach pods on private home nodes via the CNI
+      # overlay, the in-cluster CoreDNS Service is unreachable and ACME
+      # registration fails with `dial tcp: lookup acme-v02.api.letsencrypt.org:
+      # i/o timeout`. Default DNS policy bypasses this entirely. Harmless
+      # on single-network clusters.
       - helm repo add jetstack https://charts.jetstack.io --force-update
       - helm repo update
       - |
         helm upgrade --install cert-manager jetstack/cert-manager \
           --namespace cert-manager --create-namespace \
           --set crds.enabled=true \
+          --set podDnsPolicy=Default \
           --wait --timeout=180s
+      # If cert-manager was installed before this fix landed, the running
+      # Deployment still has dnsPolicy=ClusterFirst. Patch it idempotently
+      # so reruns of cert:install also fix existing installations.
+      - |
+        kubectl patch deploy -n cert-manager cert-manager \
+          --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}' \
+          2>/dev/null || true
       # Install cert-manager-lego-webhook
       - helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update
       - helm repo update

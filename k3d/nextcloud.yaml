@@ -149,7 +149,7 @@ spec:
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.localhost
+                  value: localhost
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 10
@@ -159,7 +159,7 @@ spec:
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.localhost
+                  value: localhost
             initialDelaySeconds: 120
             periodSeconds: 30
             failureThreshold: 10
@@ -207,11 +207,13 @@ spec:
               # Wait for notify_push app to be installed (binary shipped by app)
               BIN=""
               for i in $(seq 1 180); do
-                for ARCH in x86_64 aarch64 armv7; do
-                  if [ -x "/var/www/html/custom_apps/notify_push/bin/$ARCH/notify_push" ]; then
-                    BIN="/var/www/html/custom_apps/notify_push/bin/$ARCH/notify_push"
-                    break
-                  fi
+                for BASE in /var/www/html/apps/notify_push /var/www/html/custom_apps/notify_push; do
+                  for ARCH in x86_64 aarch64 armv7; do
+                    if [ -x "$BASE/bin/$ARCH/notify_push" ]; then
+                      BIN="$BASE/bin/$ARCH/notify_push"
+                      break 2
+                    fi
+                  done
                 done
                 [ -n "$BIN" ] && break
                 echo "notify_push binary not yet present, waiting..."
@@ -228,13 +230,8 @@ spec:
           ports:
             - containerPort: 7867
               name: push
-          readinessProbe:
-            httpGet:
-              path: /push/test/cookie
-              port: 7867
-            initialDelaySeconds: 30
-            periodSeconds: 20
-            failureThreshold: 30
+          # No readinessProbe: binary is only present after post-setup installs
+          # the notify_push app, so we don't want this sidecar to block pod ready.
           volumeMounts:
             - name: app
               mountPath: /var/www/html

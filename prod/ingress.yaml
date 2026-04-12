@@ -11,7 +11,8 @@ spec:
         - chat.${PROD_DOMAIN}
         - files.${PROD_DOMAIN}
         - meet.${PROD_DOMAIN}
-        - office.${PROD_DOMAIN}
+        # office.${PROD_DOMAIN} is on the office-stack Ingress
+        # (namespace workspace-office) with its own TLS entry.
         - board.${PROD_DOMAIN}
         - signaling.${PROD_DOMAIN}
         - mail.${PROD_DOMAIN}
@@ -71,17 +72,9 @@ spec:
                 port:
                   number: 8080
 
-    # Collabora Online (Dokumentenbearbeitung)
-    - host: office.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: collabora
-                port:
-                  number: 9980
+    # NB: office.${PROD_DOMAIN} is on the office-stack Ingress in
+    # the workspace-office namespace — Collabora needs SYS_ADMIN and
+    # so runs in a dedicated privileged namespace (see k3d/office-stack).
 
     # Nextcloud Whiteboard
     - host: board.${PROD_DOMAIN}

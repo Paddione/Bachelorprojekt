@@ -31,14 +31,18 @@ jobs:
       - name: Validate kustomize output
         run: |
           kubectl kustomize k3d/ > /dev/null
+          kubectl kustomize k3d/office-stack/ > /dev/null
+          kubectl kustomize k3d/coturn-stack/ > /dev/null
           echo "Kustomize build succeeded"
 
       - name: Validate manifests with kubeconform
         run: |
-          kubectl kustomize k3d/ | kubeconform -strict -summary \
-            -kubernetes-version 1.31.0 \
-            -schema-location default \
-            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+          for tree in k3d/ k3d/office-stack/ k3d/coturn-stack/; do
+            kubectl kustomize "$tree" | kubeconform -strict -summary \
+              -kubernetes-version 1.31.0 \
+              -schema-location default \
+              -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+          done
           echo "Manifest validation passed"
 
   lint-yaml:

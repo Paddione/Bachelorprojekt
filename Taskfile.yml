@@ -250,13 +250,15 @@ tasks:
       - 'echo "   kubectl:  already configured for cluster ''{{.CLUSTER_NAME}}''"'
 
   workspace:up:
-    desc: "Full automated setup: Cluster -> MVP -> MCP -> Monitoring -> Billing"
+    desc: "Full automated setup: Cluster -> MVP -> Office -> MCP -> Monitoring -> Billing"
     cmds:
       - task: cluster:create
       - task: workspace:deploy
+      - task: workspace:office:deploy
       - task: mcp:deploy
       - task: workspace:monitoring
       - task: workspace:post-setup
+      - task: workspace:talk-setup
       - task: workspace:admin-users-setup
       - task: workspace:billing-setup
       - task: workspace:stripe-setup
@@ -295,7 +297,7 @@ tasks:
       - bash scripts/stripe-setup.sh
 
   workspace:post-setup:
-    desc: Enable Nextcloud apps (calendar, contacts, OIDC) after initial deploy
+    desc: Enable Nextcloud apps (calendar, contacts, OIDC) and wire WOPI to office-stack collabora
     cmds:
       - echo "Enabling Nextcloud apps..."
       - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:install oidc_login" || true
@@ -305,13 +307,121 @@ tasks:
       - kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c "php occ app:enable spreed" || true
       - |
         kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c \
-          "php occ config:app:set richdocuments wopi_url --value=http://collabora:9980"
+          "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
       - echo ""
       - 'echo "✓ Nextcloud apps enabled"'
       - 'echo "  Calendar:  http://files.localhost/apps/calendar"'
       - 'echo "  Contacts:  http://files.localhost/apps/contacts"'
       - 'echo "  Talk:      http://files.localhost/apps/spreed"'
-      - 'echo "  Collabora: via richdocuments WOPI integration"'
+      - 'echo "  Collabora: WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
+
+  workspace:talk-setup:
+    desc: Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server
+    preconditions:
+      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
+        msg: "Nextcloud not deployed. Run 'task workspace:deploy' first."
+      - sh: kubectl get deployment spreed-signaling -n workspace > /dev/null 2>&1
+        msg: "spreed-signaling not deployed. Run 'task workspace:deploy' first."
+      - sh: kubectl get secret workspace-secrets -n workspace > /dev/null 2>&1
+        msg: "workspace-secrets missing. Seed it before running talk-setup."
+    cmds:
+      - bash scripts/talk-hpb-setup.sh
+
+  workspace:coturn:sync-secret:
+    desc: Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets
+    preconditions:
+      - sh: kubectl get namespace coturn > /dev/null 2>&1
+        msg: "coturn namespace does not exist. Deploy the coturn-stack first."
+      - sh: kubectl get secret workspace-secrets -n workspace > /dev/null 2>&1
+        msg: "workspace/workspace-secrets missing — can't sync HPB secrets."
+    cmds:
+      - |
+        SIG=$(kubectl get secret workspace-secrets -n workspace \
+                -o jsonpath='{.data.SIGNALING_SECRET}' | base64 -d)
+        TURN=$(kubectl get secret workspace-secrets -n workspace \
+                 -o jsonpath='{.data.TURN_SECRET}' | base64 -d)
+        if [ -z "$SIG" ] || [ -z "$TURN" ]; then
+          echo "FEHLER: SIGNALING_SECRET oder TURN_SECRET fehlt in workspace-secrets."
+          exit 1
+        fi
+        kubectl create secret generic coturn-secrets \
+          -n coturn \
+          --from-literal=SIGNALING_SECRET="$SIG" \
+          --from-literal=TURN_SECRET="$TURN" \
+          --dry-run=client -o yaml | kubectl apply -f -
+        kubectl annotate secret coturn-secrets -n coturn \
+          argocd.argoproj.io/sync-options=Skip=true --overwrite
+      - kubectl rollout restart deploy/coturn -n coturn
+      - kubectl rollout restart deploy/janus  -n coturn
+      - kubectl rollout status  deploy/coturn -n coturn --timeout=180s
+      - kubectl rollout status  deploy/janus  -n coturn --timeout=180s
+      - 'echo "✓ coturn-secrets synced; coturn + janus rolled"'
+
+  workspace:office:sync-secret:
+    desc: Copy COLLABORA_ADMIN_PASSWORD from workspace-secrets into workspace-office/collabora-secrets
+    preconditions:
+      - sh: kubectl get namespace workspace-office > /dev/null 2>&1
+        msg: "workspace-office namespace does not exist. Run 'task workspace:office:deploy' first."
+      - sh: kubectl get secret workspace-secrets -n workspace > /dev/null 2>&1
+        msg: "workspace/workspace-secrets missing — can't sync COLLABORA_ADMIN_PASSWORD."
+    cmds:
+      - |
+        PW=$(kubectl get secret workspace-secrets -n workspace \
+               -o jsonpath='{.data.COLLABORA_ADMIN_PASSWORD}' | base64 -d)
+        if [ -z "$PW" ]; then
+          echo "FEHLER: COLLABORA_ADMIN_PASSWORD nicht im workspace-secrets gesetzt."
+          exit 1
+        fi
+        kubectl create secret generic collabora-secrets \
+          -n workspace-office \
+          --from-literal=COLLABORA_ADMIN_PASSWORD="$PW" \
+          --dry-run=client -o yaml | kubectl apply -f -
+        kubectl annotate secret collabora-secrets -n workspace-office \
+          argocd.argoproj.io/sync-options=Skip=true --overwrite
+      - kubectl rollout restart deploy/collabora -n workspace-office
+      - kubectl rollout status deploy/collabora -n workspace-office --timeout=180s
+      - 'echo "✓ collabora-secrets synced; Collabora rolled"'
+
+  workspace:office:deploy:
+    desc: "Deploy the office-stack (Collabora in a privileged workspace-office ns, ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running."
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        # Derive Collabora envsubst vars from PROD_DOMAIN. Dev (*.localhost)
+        # runs Collabora behind plain HTTP; prod terminates TLS at Traefik
+        # and attaches the wildcard secret + HSTS/redirect middlewares.
+        export COLLABORA_HOST="office.${PROD_DOMAIN}"
+        export COLLABORA_ALIASGROUP1="https://files.${PROD_DOMAIN}"
+        export COLLABORA_SERVER_NAME="office.${PROD_DOMAIN}"
+        case "${PROD_DOMAIN}" in
+          localhost)
+            export COLLABORA_SSL_TERMINATION="false"
+            export COLLABORA_TLS_SECRET="collabora-tls-dev"
+            export COLLABORA_INGRESS_MIDDLEWARES=""
+            export COLLABORA_ALIASGROUP1="http://nextcloud.workspace.svc.cluster.local:80"
+            ;;
+          *)
+            export COLLABORA_SSL_TERMINATION="true"
+            export COLLABORA_TLS_SECRET="${TLS_SECRET_NAME:-workspace-wildcard-tls}"
+            export COLLABORA_INGRESS_MIDDLEWARES="${INFRA_NAMESPACE:-workspace-infra}-redirect-https@kubernetescrd,${INFRA_NAMESPACE:-workspace-infra}-hsts-headers@kubernetescrd"
+            ;;
+        esac
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
+        kustomize build k3d/office-stack \
+          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
+          | kubectl $context_flag apply -f -
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
+        kubectl $context_flag rollout status deploy/collabora -n workspace-office --timeout=300s
+      - task: workspace:office:sync-secret
 
   workspace:meeting-slash:
     desc: Register /meeting slash command in Mattermost
@@ -589,8 +699,9 @@ tasks:
       - kubectl --context mentolder apply -f argocd/project.yaml
       - kubectl --context mentolder apply -f argocd/applicationset.yaml
       - kubectl --context mentolder apply -f argocd/applicationset-coturn.yaml
+      - kubectl --context mentolder apply -f argocd/applicationset-office.yaml
       - echo ""
-      - echo "✓ AppProject 'workspace' and ApplicationSet applied"
+      - echo "✓ AppProject 'workspace' and ApplicationSets applied"
       - |
         echo "Waiting for Applications to be created (up to 30s)..."
         sleep 10

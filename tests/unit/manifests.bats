@@ -16,6 +16,7 @@ load test_helper
 
 setup_file() {
   export MANIFESTS_DIR="${PROJECT_DIR}/k3d"
+  export OFFICE_DIR="${PROJECT_DIR}/k3d/office-stack"
 
   # Create dummy secrets.yaml if missing (gitignored dev-only file)
   if [[ ! -f "${MANIFESTS_DIR}/secrets.yaml" ]]; then
@@ -31,9 +32,27 @@ stringData:
 YAML
   fi
 
-  # Render once, reuse across all tests
+  # Render once, reuse across all tests. The office-stack lives in its
+  # own kustomization tree (privileged namespace for Collabora), so the
+  # rendered fixture concatenates both bases — tests can grep it without
+  # caring which tree a given resource came from. Office-stack templates
+  # carry envsubst placeholders that only resolve at deploy time; we
+  # expand them here with dev defaults so host/image assertions still
+  # see literal strings.
   export RENDERED="${BATS_FILE_TMPDIR}/rendered.yaml"
   kubectl kustomize "${MANIFESTS_DIR}" > "$RENDERED" 2>&1
+  printf '\n---\n' >> "$RENDERED"
+  (
+    export PROD_DOMAIN=localhost
+    export COLLABORA_HOST=office.localhost
+    export COLLABORA_ALIASGROUP1=http://nextcloud.workspace.svc.cluster.local:80
+    export COLLABORA_SERVER_NAME=office.localhost
+    export COLLABORA_SSL_TERMINATION=false
+    export COLLABORA_TLS_SECRET=collabora-tls-dev
+    export COLLABORA_INGRESS_MIDDLEWARES=workspace-infra-redirect-https@kubernetescrd
+    kubectl kustomize "${OFFICE_DIR}" \
+      | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES'
+  ) >> "$RENDERED" 2>&1
 }
 
 teardown_file() {

@@ -1,16 +1,15 @@
 # ═══════════════════════════════════════════════════════════════════
-# coturn-stack — TURN/STUN + Janus SFU in dedicated privileged ns
+# office-stack — Collabora Online in a dedicated privileged namespace
 # ═══════════════════════════════════════════════════════════════════
-# Lives in its own namespace `coturn` because both pods need
-# hostNetwork + hostPort, which violate the workspace namespace's
-# baseline PodSecurity policy. Pinned to a single public node via
-# the ${TURN_NODE} envsubst variable so RTP/ICE traffic lands on a
-# routable IP.
+# Flat base used by both k3d/deploy.sh (dev) and the
+# argocd/applicationset-office.yaml (prod). Neither sets a namespace:
+# transformer here — every resource already names its own namespace
+# (workspace-office) explicitly, so the base is overlay-agnostic.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
   - namespace.yaml
   - secret.yaml
-  - coturn.yaml
-  - janus.yaml
+  - collabora.yaml
+  - ingress.yaml

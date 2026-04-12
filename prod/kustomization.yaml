@@ -51,7 +51,8 @@ patches:
   # Pin amd64-only images to amd64 nodes
   - path: patch-amd64-only.yaml
   - path: patch-mcp-browser.yaml
-  # Collabora: production domains + TLS termination
-  - path: patch-collabora.yaml
+  # Collabora lives in the workspace-office namespace via its own
+  # ArgoCD Application (argocd/applicationset-office.yaml) — no
+  # patch target on this overlay.
   # Billing bot: use ghcr.io image accessible from production nodes
   - path: patch-billing-bot.yaml

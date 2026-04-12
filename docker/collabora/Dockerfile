@@ -42,9 +42,11 @@ USER root
 # mark bind-mounting as usable at all).
 RUN setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot=ep \
         /usr/bin/coolforkit-caps \
+    && setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot,cap_setuid,cap_setgid=ep \
+        /usr/bin/coolforkit-ns \
     && setcap cap_sys_admin,cap_mknod,cap_setuid,cap_setgid=eip \
         /usr/bin/coolwsd \
-    && getcap /usr/bin/coolforkit-caps /usr/bin/coolwsd
+    && getcap /usr/bin/coolforkit-caps /usr/bin/coolforkit-ns /usr/bin/coolwsd
 
 # Collabora's own entrypoint refuses to start as root, so we flip back
 # to the image's original user (uid 1001, cool). File capabilities

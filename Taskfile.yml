@@ -540,7 +540,9 @@ tasks:
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"workspace-infra\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"workspace-wildcard-tls\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"}
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-ip\",\"value\":\"${TURN_PUBLIC_IP}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-node\",\"value\":\"${TURN_NODE}\"}
           ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
           echo "  ✓ hetzner registered and annotated"
         else
@@ -564,7 +566,9 @@ tasks:
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"workspace-infra\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"workspace-wildcard-tls\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"}
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-ip\",\"value\":\"${TURN_PUBLIC_IP}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-node\",\"value\":\"${TURN_NODE}\"}
           ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
           echo "  ✓ korczewski registered and annotated"
         else
@@ -584,6 +588,7 @@ tasks:
     cmds:
       - kubectl --context mentolder apply -f argocd/project.yaml
       - kubectl --context mentolder apply -f argocd/applicationset.yaml
+      - kubectl --context mentolder apply -f argocd/applicationset-coturn.yaml
       - echo ""
       - echo "✓ AppProject 'workspace' and ApplicationSet applied"
       - |

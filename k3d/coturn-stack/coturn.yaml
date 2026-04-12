@@ -1,10 +1,19 @@
 # ═══════════════════════════════════════════════════════════════════
 # coturn — TURN/STUN server for NAT traversal
 # ═══════════════════════════════════════════════════════════════════
+# Runs on hostNetwork on a single public node so that browsers can
+# reach it directly via UDP. Uses the REST API auth mechanism
+# (Nextcloud Talk's preferred method).
+#
+# Required environment substitutions (kustomize-envsubst):
+#   ${TURN_NODE}      — kubernetes.io/hostname of the public node
+#   ${TURN_PUBLIC_IP} — public IP of that node (used as external-ip)
+#   ${PROD_DOMAIN}    — used for the realm (turn.${PROD_DOMAIN})
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: coturn
+  namespace: coturn
   labels:
     app: coturn
 spec:
@@ -12,11 +21,17 @@ spec:
   selector:
     matchLabels:
       app: coturn
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         app: coturn
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: ${TURN_NODE}
       containers:
         - name: coturn
           image: coturn/coturn:4.9-alpine
@@ -24,38 +39,30 @@ spec:
             - "--no-tls"
             - "--no-dtls"
             - "--listening-port=3478"
-            - "--realm=workspace.local"
-            - "--user=talk:devturnpassword1234"
-            - "--lt-cred-mech"
+            - "--min-port=49152"
+            - "--max-port=49252"
+            - "--realm=turn.${PROD_DOMAIN}"
+            - "--use-auth-secret"
+            - "--static-auth-secret=devturnpassword1234"
+            - "--external-ip=${TURN_PUBLIC_IP}"
+            - "--listening-ip=0.0.0.0"
+            - "--no-multicast-peers"
+            - "--no-cli"
             - "--fingerprint"
             - "--log-file=stdout"
             - "--no-stdout-log"
             - "--simple-log"
           ports:
             - containerPort: 3478
+              hostPort: 3478
               protocol: TCP
             - containerPort: 3478
+              hostPort: 3478
               protocol: UDP
           resources:
             requests:
-              memory: 32Mi
-              cpu: 50m
+              memory: 64Mi
+              cpu: "100m"
             limits:
-              memory: 128Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: coturn
-spec:
-  selector:
-    app: coturn
-  ports:
-    - name: turn-tcp
-      port: 3478
-      targetPort: 3478
-      protocol: TCP
-    - name: turn-udp
-      port: 3478
-      targetPort: 3478
-      protocol: UDP
+              memory: 256Mi
+              cpu: "500m"

@@ -143,10 +143,10 @@ $(echo -e "${TABLE_ROWS}")
 **Hilfe:** Bei Fragen den Kanal \`claude-code\` nutzen oder die [Dokumentation](${SCHEME}://${DOCS_DOMAIN}) lesen."
 
 # ── Town Square header with quick-links ───────────────────────────────────
-TOWN_SQUARE_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :globe_with_meridians: [Website](${SCHEME}://${WEB_DOMAIN})"
+TOWN_SQUARE_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :movie_camera: [Talk](${SCHEME}://${NC_DOMAIN}/apps/spreed) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :globe_with_meridians: [Website](${SCHEME}://${WEB_DOMAIN})"
 
 # ── workspace-services channel header ─────────────────────────────────────
-SVC_CHANNEL_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :pencil: [Office](${SCHEME}://${COLLABORA_DOMAIN}) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :art: [Whiteboard](${SCHEME}://${WHITEBOARD_DOMAIN}) | :robot_face: [KI](${SCHEME}://${AI_DOMAIN})"
+SVC_CHANNEL_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :movie_camera: [Talk](${SCHEME}://${NC_DOMAIN}/apps/spreed) | :pencil: [Office](${SCHEME}://${COLLABORA_DOMAIN}) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :art: [Whiteboard](${SCHEME}://${WHITEBOARD_DOMAIN}) | :robot_face: [KI](${SCHEME}://${AI_DOMAIN})"
 
 # ── Process each team ─────────────────────────────────────────────────────
 echo "${TEAMS_JSON}" | python3 -c "

@@ -4,6 +4,12 @@
 #
 # Hinweis: envsubst ist im Keycloak-Image (RHEL UBI9-micro) nicht
 # verfügbar, daher werden die Variablen per sed ersetzt.
+#
+# Wichtig: Wenn hier eine Variable fehlt, landet ihr literaler ${VAR}-
+# String in der KC-Datenbank, weil kc.sh start --import-realm den
+# Realm nur einmalig importiert. Spätere Auth-Flows scheitern dann
+# mit "Invalid client credentials". Die Sanity-Prüfung am Ende lässt
+# das Pod failen, statt einen kaputten Realm zu produzieren.
 set -e
 
 TEMPLATE="/opt/keycloak/realm-template/realm-workspace.json"
@@ -24,6 +30,13 @@ for var in MATTERMOST_OIDC_SECRET NEXTCLOUD_OIDC_SECRET INVOICENINJA_OIDC_SECRET
     sed -i "s|\${${var}}|${val}|g" "$OUTPUT"
   fi
 done
+
+# Sanity check: keine unaufgelösten ${...} Platzhalter mehr im Output
+if grep -q '\${[A-Z_]*}' "$OUTPUT"; then
+  echo "[import-entrypoint] FEHLER: Unaufgelöste Platzhalter im Realm-JSON:" >&2
+  grep -o '\${[A-Z_]*}' "$OUTPUT" | sort -u >&2
+  exit 1
+fi
 
 echo "[import-entrypoint] Realm JSON generiert: $OUTPUT"
 

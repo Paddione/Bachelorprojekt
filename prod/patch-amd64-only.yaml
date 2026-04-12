@@ -1,16 +1,7 @@
 # Pin amd64-only images to amd64 nodes.
-# janus-gateway has no arm64 build.
 # faster-whisper-server has no arm64 build for CPU variant.
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: janus
-spec:
-  template:
-    spec:
-      nodeSelector:
-        kubernetes.io/arch: amd64
+# (janus is also amd64-only but it's pinned via nodeSelector to a
+#  specific public node in k3d/coturn-stack/janus.yaml — no patch needed)
 ---
 apiVersion: apps/v1
 kind: Deployment

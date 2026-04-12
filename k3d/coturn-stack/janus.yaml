@@ -1,0 +1,116 @@
+# ═══════════════════════════════════════════════════════════════════
+# Janus WebRTC Gateway (SFU) — Nextcloud Talk High-Performance Backend
+# ═══════════════════════════════════════════════════════════════════
+# Runs on hostNetwork, pinned to the same public node as coturn so the
+# RTP/RTCP UDP range and the WS admin port land directly on a routable
+# IP. Uses ICE-Lite + nat_1_1_mapping to advertise that public IP in
+# the candidates it returns to clients via spreed-signaling.
+#
+# Required environment substitutions (kustomize-envsubst):
+#   ${TURN_NODE}      — kubernetes.io/hostname of the public node
+#   ${TURN_PUBLIC_IP} — public IP of that node (for nat_1_1_mapping)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: janus-config
+  namespace: coturn
+data:
+  janus.jcfg: |
+    general: {
+      configs_folder = "/etc/janus"
+      log_to_stdout = true
+      debug_level = 4
+      admin_secret = "devjanusadmin"
+    }
+    nat: {
+      nice_debug = false
+      full_trickle = true
+      ice_lite = true
+      nat_1_1_mapping = "${TURN_PUBLIC_IP}"
+      keep_private_host = false
+    }
+    media: {
+      rtp_port_range = "20000-20200"
+    }
+    transports: {
+      disable = "libjanus_transport.so"
+    }
+  janus.transport.websockets.jcfg: |
+    general: {
+      ws = true
+      ws_port = 8188
+      ws_logging = "err,warn"
+    }
+  janus.plugin.videoroom.jcfg: |
+    general: {
+      admin_key = "devvideoroomadmin"
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: janus
+  namespace: coturn
+  labels:
+    app: janus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: janus
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: janus
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: ${TURN_NODE}
+      containers:
+        - name: janus
+          image: canyan/janus-gateway:master_cefca79700bdadd32d759ce65ba3805552a4d312
+          ports:
+            - containerPort: 8188
+              hostPort: 8188
+              name: ws
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/janus/janus.jcfg
+              subPath: janus.jcfg
+            - name: config
+              mountPath: /etc/janus/janus.transport.websockets.jcfg
+              subPath: janus.transport.websockets.jcfg
+            - name: config
+              mountPath: /etc/janus/janus.plugin.videoroom.jcfg
+              subPath: janus.plugin.videoroom.jcfg
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: "100m"
+            limits:
+              memory: 512Mi
+              cpu: "1"
+      volumes:
+        - name: config
+          configMap:
+            name: janus-config
+---
+# Cross-namespace service so spreed-signaling can reach Janus as
+# `janus.coturn:8188` from the workspace namespace. Endpoints will
+# resolve to the host network pod IP (== TURN_PUBLIC_IP).
+apiVersion: v1
+kind: Service
+metadata:
+  name: janus
+  namespace: coturn
+spec:
+  selector:
+    app: janus
+  ports:
+    - port: 8188
+      targetPort: 8188
+      name: ws

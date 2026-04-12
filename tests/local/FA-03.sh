@@ -82,8 +82,9 @@ else
   _log_result "FA-03" "T5" "Talk-Endpunkt von extern erreichbar (Gast-Zugang möglich)" "fail" "0" "HTTP ${GUEST_STATUS}"
 fi
 
-# Bonus: coturn reachable
-COTURN_POD=$(kubectl get pods -n "$NAMESPACE" -l app=coturn --no-headers 2>/dev/null | grep -c 'Running')
+# Bonus: coturn reachable (lives in its own privileged `coturn` namespace
+# since #63 — hostNetwork + hostPort need baseline PSA relaxed).
+COTURN_POD=$(kubectl get pods -n coturn -l app=coturn --no-headers 2>/dev/null | grep -c 'Running')
 assert_gt "$COTURN_POD" 0 "FA-03" "T3d" "coturn TURN/STUN Pod läuft"
 
 # Bonus: NATS message bus reachable

@@ -18,3 +18,97 @@ spec:
     stsSeconds: 31536000
     stsIncludeSubdomains: true
     forceSTSHeader: true
+---
+# ── Security-HTTP-Header (alle Production-Services) ──────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: security-headers
+  namespace: workspace
+spec:
+  headers:
+    customResponseHeaders:
+      X-Frame-Options: "SAMEORIGIN"
+      X-Content-Type-Options: "nosniff"
+      X-XSS-Protection: "1; mode=block"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: "camera=(), microphone=(), geolocation=(), payment=()"
+      X-Robots-Tag: "noindex"
+---
+# ── Rate-Limiting: Keycloak (Brute-Force-Schutz) ──────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-auth
+  namespace: workspace
+spec:
+  rateLimit:
+    average: 20
+    burst: 40
+---
+# ── Rate-Limiting: Mattermost ──────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-chat
+  namespace: workspace
+spec:
+  rateLimit:
+    average: 100
+    burst: 200
+---
+# ── Rate-Limiting: Nextcloud ───────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-files
+  namespace: workspace
+spec:
+  rateLimit:
+    average: 50
+    burst: 100
+---
+# ── Rate-Limiting: Vaultwarden ─────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-vault
+  namespace: workspace
+spec:
+  rateLimit:
+    average: 20
+    burst: 40
+---
+# ── Rate-Limiting: Invoice Ninja ───────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-billing
+  namespace: workspace
+spec:
+  rateLimit:
+    average: 30
+    burst: 60
+---
+# ── Rate-Limiting: Website (öffentlich) ───────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-web
+  namespace: workspace
+spec:
+  rateLimit:
+    average: 200
+    burst: 400
+---
+# ── BasicAuth: Mailpit, Docs, MCP-Status (interne Tools) ──────────
+# Secret "traefik-basic-auth" muss im Namespace "workspace" existieren
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: basic-auth-internal
+  namespace: workspace
+spec:
+  basicAuth:
+    secret: traefik-basic-auth
+    removeHeader: true

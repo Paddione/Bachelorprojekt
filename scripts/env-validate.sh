@@ -101,7 +101,9 @@ schema_field() {
   ' "$file"
 }
 
-# sealed_secret_keys <file> — extract keys from encryptedData section
+# sealed_secret_keys <file> — extract keys from encryptedData section.
+# Keys may contain digits (e.g. OAUTH2_PROXY_COOKIE_SECRET), so the character
+# class must include [0-9] — the old [A-Z_]+ pattern silently skipped them.
 sealed_secret_keys() {
   local file="$1"
   awk '

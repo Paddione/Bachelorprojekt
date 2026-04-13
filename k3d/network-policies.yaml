@@ -99,7 +99,7 @@ spec:
     matchExpressions:
     - key: app
       operator: In
-      values: [mcp-github, mcp-stripe]
+      values: [mcp-github, claude-code-mcp-stripe]
   policyTypes:
   - Egress
   egress:

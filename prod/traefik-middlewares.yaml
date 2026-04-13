@@ -32,7 +32,7 @@ spec:
       X-Content-Type-Options: "nosniff"
       X-XSS-Protection: "1; mode=block"
       Referrer-Policy: "strict-origin-when-cross-origin"
-      Permissions-Policy: "camera=(), microphone=(), geolocation=(), payment=()"
+      Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"
       X-Robots-Tag: "noindex"
 ---
 # ── Rate-Limiting: Keycloak (Brute-Force-Schutz) ──────────────────

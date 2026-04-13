@@ -1,51 +1,66 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { config } from '../config/index';
+
+const { contact, legal } = config;
 ---
 
-<Layout title="Datenschutz">
+<Layout title="Datenschutzerklärung">
   <section class="pt-28 pb-20">
     <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
       <h1>Datenschutzerklärung</h1>
 
-      <h2>1. Datenschutz auf einen Blick</h2>
-      <h3>Allgemeine Hinweise</h3>
+      <h2>1. Verantwortlicher</h2>
       <p>
-        Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren
-        personenbezogenen Daten passiert, wenn Sie diese Website besuchen.
+        Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:
+      </p>
+      <p>
+        <strong>{contact.name}</strong><br />
+        {legal.tagline}<br />
+        {contact.city}<br />
+        E-Mail: <a href={`mailto:${contact.email}`}>{contact.email}</a><br />
+        {contact.phone && <>Telefon: {contact.phone}</>}
       </p>
 
-      <h3>Datenerfassung auf dieser Website</h3>
+      <h2>2. Grundsätze der Datenverarbeitung</h2>
       <p>
-        <strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong><br />
-        Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber.
-        Dessen Kontaktdaten können Sie dem Impressum entnehmen.
+        Wir verarbeiten personenbezogene Daten nur, soweit dies zur Bereitstellung
+        unserer Dienste erforderlich ist. Alle Daten verbleiben vollständig auf
+        eigener Infrastruktur (On-Premises). Es findet keine Übermittlung an
+        Cloud-Anbieter oder Dritte statt.
       </p>
-
-      <h2>2. Allgemeine Hinweise und Pflichtinformationen</h2>
-      <h3>Datenschutz</h3>
       <p>
-        Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst.
-        Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend den
-        gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.
+        Rechtsgrundlagen der Verarbeitung: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung
+        und vorvertragliche Maßnahmen), Art. 6 Abs. 1 lit. c DSGVO (gesetzliche
+        Verpflichtung), Art. 6 Abs. 1 lit. f DSGVO (berechtigte Interessen).
       </p>
 
       <h2>3. Datenerfassung auf dieser Website</h2>
-      <h3>Cookies</h3>
+
+      <h3>Server-Log-Dateien</h3>
       <p>
-        Diese Website verwendet ausschließlich technisch notwendige Cookies. Diese Cookies
-        sind für den Betrieb der Website zwingend erforderlich und können in Ihrem Browser
-        nicht deaktiviert werden. Sie speichern keine personenbezogenen Daten und werden
-        nicht für Tracking- oder Werbezwecke eingesetzt.
+        Beim Aufruf dieser Website werden automatisch technische Zugriffsdaten
+        erfasst: IP-Adresse, Browsertyp, Betriebssystem, Referrer-URL, aufgerufene
+        Seite, Zeitpunkt des Zugriffs. Diese Daten werden ausschließlich zur
+        technischen Bereitstellung der Website benötigt und nach 7 Tagen automatisch
+        gelöscht. Eine Zuordnung zu bestimmten Personen ist nicht beabsichtigt.
       </p>
       <p>
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am sicheren
-        und funktionsfähigen Betrieb der Website).
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am
+        sicheren Betrieb der Website).
+      </p>
+
+      <h3>Cookies</h3>
+      <p>
+        Diese Website verwendet ausschließlich technisch notwendige Cookies. Es
+        werden keine Tracking-, Analyse- oder Werbe-Cookies eingesetzt. Technisch
+        notwendige Cookies erfordern keine Einwilligung (§ 25 Abs. 2 TTDSG).
       </p>
 
       <table>
         <thead>
           <tr>
-            <th>Cookie-Name</th>
+            <th>Cookie / Storage-Eintrag</th>
             <th>Zweck</th>
             <th>Speicherdauer</th>
           </tr>
@@ -53,63 +68,129 @@ import Layout from '../layouts/Layout.astro';
         <tbody>
           <tr>
             <td><code>session</code></td>
-            <td>Authentifizierung und Login-Sitzungsverwaltung</td>
-            <td>Sitzungsende (beim Schließen des Browsers)</td>
+            <td>Authentifizierung und Sitzungsverwaltung</td>
+            <td>Sitzungsende</td>
           </tr>
           <tr>
             <td><code>KEYCLOAK_*</code></td>
             <td>Single Sign-On Session (Keycloak OIDC)</td>
-            <td>Sitzungsende (beim Schließen des Browsers)</td>
+            <td>Sitzungsende</td>
           </tr>
           <tr>
-            <td><code>cookie_consent_v1</code></td>
-            <td>Speichert Ihre Cookie-Einwilligung (localStorage)</td>
-            <td>Dauerhaft (bis zur manuellen Löschung)</td>
+            <td><code>cookie_consent_v1</code> (localStorage)</td>
+            <td>Speichert Cookie-Einwilligung lokal im Browser</td>
+            <td>Bis zur manuellen Löschung (wird nicht an Server übertragen)</td>
           </tr>
         </tbody>
       </table>
 
-      <p class="text-sm text-muted-dark">
-        Hinweis: <code>cookie_consent_v1</code> wird im lokalen Browserspeicher (localStorage) gespeichert – nicht als HTTP-Cookie. Es wird daher nicht an den Server übertragen.
-      </p>
-
       <h3>Kontaktformular</h3>
       <p>
-        Wenn Sie uns per Kontaktformular Anfragen zukommen lassen, werden Ihre Angaben
-        aus dem Anfrageformular inklusive der von Ihnen dort angegebenen Kontaktdaten
-        zwecks Bearbeitung der Anfrage und für den Fall von Anschlussfragen bei uns
-        gespeichert. Diese Daten geben wir nicht ohne Ihre Einwilligung weiter.
+        Wenn Sie das Kontaktformular nutzen, werden Ihr Name, Ihre E-Mail-Adresse
+        und der Nachrichteninhalt verarbeitet, um Ihre Anfrage zu bearbeiten.
+        Die Daten werden intern über einen verschlüsselten Kanal weitergeleitet
+        und nicht an Dritte weitergegeben.
       </p>
       <p>
-        Die Verarbeitung dieser Daten erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO,
-        sofern Ihre Anfrage mit der Erfüllung eines Vertrags zusammenhängt oder zur
-        Durchführung vorvertraglicher Maßnahmen erforderlich ist.
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO. Speicherdauer: 3 Jahre.
       </p>
 
-      <h3>Server-Log-Dateien</h3>
+      <h3>Terminbuchung</h3>
       <p>
-        Der Provider der Seiten erhebt und speichert automatisch Informationen in
-        sogenannten Server-Log-Dateien, die Ihr Browser automatisch an uns übermittelt.
-        Diese Daten sind nicht bestimmten Personen zuordenbar.
+        Bei der Buchung eines Termins werden Name, E-Mail-Adresse und der gewählte
+        Zeitslot verarbeitet. Die Daten werden ausschließlich zur Terminorganisation
+        genutzt und auf eigener Infrastruktur gespeichert.
+      </p>
+      <p>
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen).
+        Speicherdauer: 3 Jahre.
       </p>
 
-      <h2>4. Ihre Rechte</h2>
+      <h3>Hosting</h3>
       <p>
-        Sie haben jederzeit das Recht, unentgeltlich Auskunft über Herkunft, Empfänger
-        und Zweck Ihrer gespeicherten personenbezogenen Daten zu erhalten. Sie haben
-        außerdem ein Recht, die Berichtigung oder Löschung dieser Daten zu verlangen.
-      </p>
-      <p>
-        Wenn Sie eine Einwilligung zur Datenverarbeitung erteilt haben, können Sie diese
-        jederzeit für die Zukunft widerrufen. Sie können Ihre Cookie-Einwilligung jederzeit
-        über den Link „Cookie-Einstellungen" im Footer dieser Seite anpassen oder widerrufen.
-        Für weitere Fragen zum Thema Datenschutz können Sie sich jederzeit an uns wenden.
+        Diese Website wird vollständig auf eigener Infrastruktur (On-Premises)
+        betrieben. Es werden keine Hosting-Dienste von Drittanbietern (AWS, Azure,
+        Google Cloud o. Ä.) genutzt. Es findet keine Übermittlung personenbezogener
+        Daten in Drittländer statt.
       </p>
 
-      <p class="text-sm text-slate-500 mt-12">
-        Hinweis: Diese Datenschutzerklärung ist ein Platzhalter und muss von einem
-        Rechtsanwalt oder Datenschutzbeauftragten für Ihren spezifischen Anwendungsfall
-        angepasst werden.
+      <h2>4. Ihre Rechte als betroffene Person</h2>
+      <p>
+        Sie haben nach der DSGVO folgende Rechte gegenüber uns als Verantwortlichem:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Recht</th>
+            <th>Rechtsgrundlage</th>
+            <th>Beschreibung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Auskunft</strong></td>
+            <td>Art. 15 DSGVO</td>
+            <td>Sie können Auskunft über die von uns verarbeiteten personenbezogenen Daten verlangen.</td>
+          </tr>
+          <tr>
+            <td><strong>Berichtigung</strong></td>
+            <td>Art. 16 DSGVO</td>
+            <td>Sie können die Berichtigung unrichtiger Daten verlangen.</td>
+          </tr>
+          <tr>
+            <td><strong>Löschung</strong></td>
+            <td>Art. 17 DSGVO</td>
+            <td>Sie können die Löschung Ihrer Daten verlangen, sofern keine gesetzliche Aufbewahrungspflicht besteht.</td>
+          </tr>
+          <tr>
+            <td><strong>Einschränkung</strong></td>
+            <td>Art. 18 DSGVO</td>
+            <td>Sie können die Einschränkung der Verarbeitung Ihrer Daten verlangen.</td>
+          </tr>
+          <tr>
+            <td><strong>Datenportabilität</strong></td>
+            <td>Art. 20 DSGVO</td>
+            <td>Sie können Ihre Daten in einem strukturierten, maschinenlesbaren Format erhalten.</td>
+          </tr>
+          <tr>
+            <td><strong>Widerspruch</strong></td>
+            <td>Art. 21 DSGVO</td>
+            <td>Sie können der Verarbeitung Ihrer Daten auf Basis von Art. 6 Abs. 1 lit. f DSGVO widersprechen.</td>
+          </tr>
+          <tr>
+            <td><strong>Widerruf</strong></td>
+            <td>Art. 7 Abs. 3 DSGVO</td>
+            <td>Erteilte Einwilligungen können Sie jederzeit mit Wirkung für die Zukunft widerrufen.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Zur Ausübung Ihrer Rechte wenden Sie sich bitte per E-Mail an:{' '}
+        <a href={`mailto:${contact.email}`}>{contact.email}</a>
+      </p>
+
+      <h2>5. Keine automatisierten Entscheidungen</h2>
+      <p>
+        Es finden keine automatisierten Entscheidungen im Sinne von Art. 22 DSGVO
+        statt. Es wird kein Profiling betrieben.
+      </p>
+
+      <h2>6. Beschwerderecht bei der Aufsichtsbehörde</h2>
+      <p>
+        Sie haben das Recht, sich bei der zuständigen Datenschutz-Aufsichtsbehörde
+        zu beschweren. Die zuständige Behörde richtet sich nach Ihrem Wohnort bzw.
+        dem Sitz des Verantwortlichen. Eine Liste der Datenschutzbehörden in
+        Deutschland finden Sie auf der Website der Bundesbeauftragten für den
+        Datenschutz und die Informationsfreiheit (BfDI):
+        <a href="https://www.bfdi.bund.de" target="_blank" rel="noopener noreferrer">www.bfdi.bund.de</a>.
+      </p>
+
+      <h2>7. Aktualität dieser Erklärung</h2>
+      <p class="text-sm text-slate-500 mt-8">
+        Stand: April 2026. Diese Datenschutzerklärung wird bei Änderungen der
+        Verarbeitungstätigkeiten oder der Rechtslage aktualisiert.
       </p>
     </div>
   </section>

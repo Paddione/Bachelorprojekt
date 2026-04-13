@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { config } from '../config/index';
 
-const { contact, legal } = config;
+const { contact, legal, features } = config;
 ---
 
 <Layout title="Datenschutzerklärung">
@@ -95,16 +95,20 @@ const { contact, legal } = config;
         Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO. Speicherdauer: 3 Jahre.
       </p>
 
-      <h3>Terminbuchung</h3>
-      <p>
-        Bei der Buchung eines Termins werden Name, E-Mail-Adresse und der gewählte
-        Zeitslot verarbeitet. Die Daten werden ausschließlich zur Terminorganisation
-        genutzt und auf eigener Infrastruktur gespeichert.
-      </p>
-      <p>
-        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen).
-        Speicherdauer: 3 Jahre.
-      </p>
+      {features.hasBooking && (
+        <>
+          <h3>Terminbuchung</h3>
+          <p>
+            Bei der Buchung eines Termins werden Name, E-Mail-Adresse und der gewählte
+            Zeitslot verarbeitet. Die Daten werden ausschließlich zur Terminorganisation
+            genutzt und auf eigener Infrastruktur gespeichert.
+          </p>
+          <p>
+            Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen).
+            Speicherdauer: 3 Jahre.
+          </p>
+        </>
+      )}
 
       <h3>Hosting</h3>
       <p>

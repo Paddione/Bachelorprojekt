@@ -17,7 +17,9 @@ const { contact, legal, features } = config;
       <p>
         <strong>{contact.name}</strong><br />
         {legal.tagline}<br />
-        {contact.city}<br />
+        {legal.street && <>{legal.street}<br /></>}
+        {legal.zip && <>{legal.zip} {contact.city}<br /></>}
+        {!legal.street && <>{contact.city}<br /></>}
         E-Mail: <a href={`mailto:${contact.email}`}>{contact.email}</a><br />
         {contact.phone && <>Telefon: {contact.phone}</>}
       </p>

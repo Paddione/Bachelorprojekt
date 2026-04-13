@@ -65,6 +65,7 @@ resources:
   - network-policies.yaml
   # Ingress
   - ingress.yaml
+  - mattermost-force-sso.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:

@@ -50,30 +50,6 @@ spec:
                 port:
                   number: 8080
 ---
-# ── Mattermost (Chat) ───────────────────────────────────────────────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: workspace-ingress-chat
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-chat@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - chat.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
-  rules:
-    - host: chat.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mattermost
-                port:
-                  number: 8065
----
 # ── Nextcloud (Dateien) ─────────────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress

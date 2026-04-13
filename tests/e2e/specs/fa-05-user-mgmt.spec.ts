@@ -10,23 +10,18 @@ test.describe('FA-05: Nutzerverwaltung — SSO', () => {
     const page = await context.newPage();
     const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
 
+    // Force-SSO middleware redirects /login directly to Keycloak.
     await page.goto(`${baseURL}/login`);
 
-    // Dismiss "Desktop vs Browser" chooser if present
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try {
       await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
       await browserLink.click();
     } catch {
-      // Already on login form
+      // Already redirected
     }
 
-    // SSO is configured as GitLab OAuth (via mm-keycloak-proxy)
-    const ssoBtn = page.getByRole('link', { name: /gitlab|keycloak|sso|openid/i });
-    if (await ssoBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await ssoBtn.click();
-      await expect(page).toHaveURL(/.*keycloak.*|.*realms.*|.*oauth.*/, { timeout: 10_000 });
-    }
+    await expect(page).toHaveURL(/.*keycloak.*|.*realms.*|.*oauth.*/, { timeout: 10_000 });
     await context.close();
   });
 });

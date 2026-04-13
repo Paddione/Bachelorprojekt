@@ -70,16 +70,13 @@ test.describe('Integration Smoke Tests', () => {
   });
 
   // ── SSO Login Flow ────────────────────────────────────────────
-  test('Mattermost SSO redirects to Keycloak', async ({ page }) => {
+  test('Mattermost /login auto-redirects to Keycloak', async ({ page }) => {
+    // Traefik mattermost-force-sso middleware: /login → /oauth/gitlab/login → Keycloak
     await page.goto(`https://chat.${DOMAIN}/login`);
-    // Dismiss desktop chooser
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try { await browserLink.waitFor({ state: 'visible', timeout: 3000 }); await browserLink.click(); } catch {}
 
-    const ssoButton = page.getByRole('link', { name: /gitlab/i });
-    await expect(ssoButton).toBeVisible({ timeout: 10_000 });
-    await ssoButton.click();
-    await page.waitForURL(/auth\./,  { timeout: 10_000 });
+    await page.waitForURL(/auth\./, { timeout: 10_000 });
     expect(page.url()).toContain(`auth.${DOMAIN}`);
     expect(page.url()).toContain('openid-connect');
   });
@@ -89,9 +86,6 @@ test.describe('Integration Smoke Tests', () => {
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try { await browserLink.waitFor({ state: 'visible', timeout: 3000 }); await browserLink.click(); } catch {}
 
-    const ssoButton = page.getByRole('link', { name: /gitlab/i });
-    await expect(ssoButton).toBeVisible({ timeout: 10_000 });
-    await ssoButton.click();
     await page.waitForURL(/auth\./, { timeout: 10_000 });
 
     await page.locator('#username').fill(SMOKE_KC_USER);

@@ -155,6 +155,64 @@ type INResponse[T any] struct {
 	Data T `json:"data"`
 }
 
+// ── Nextcloud Talk Types ─────────────────────────────────────────
+
+type NCRoomResponse struct {
+	OCS struct {
+		Data struct {
+			Token string `json:"token"`
+		} `json:"data"`
+	} `json:"ocs"`
+}
+
+// ── Nextcloud Talk ───────────────────────────────────────────────
+
+// createNextcloudRoom creates a fresh public Nextcloud Talk room named
+// "#<channelName> Call" and returns its token.
+func createNextcloudRoom(channelName string) (string, error) {
+	if nextcloudAdminPass == "" {
+		return "", fmt.Errorf("NEXTCLOUD_ADMIN_PASSWORD not configured")
+	}
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"roomType": 3,
+		"roomName": "#" + channelName + " Call",
+	})
+
+	req, err := http.NewRequest("POST",
+		nextcloudURL+"/ocs/v2.php/apps/spreed/api/v4/room",
+		bytes.NewReader(body))
+	if err != nil {
+		return "", fmt.Errorf("build request: %w", err)
+	}
+	req.SetBasicAuth(nextcloudAdminUser, nextcloudAdminPass)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("OCS-APIRequest", "true")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("call NC API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		b, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("NC API returned %d: %s", resp.StatusCode, b)
+	}
+
+	var ncResp NCRoomResponse
+	if err := json.NewDecoder(resp.Body).Decode(&ncResp); err != nil {
+		return "", fmt.Errorf("decode NC response: %w", err)
+	}
+
+	if ncResp.OCS.Data.Token == "" {
+		return "", fmt.Errorf("NC API returned empty token")
+	}
+
+	return ncResp.OCS.Data.Token, nil
+}
+
 // ── Main ─────────────────────────────────────────────────────────
 
 func main() {

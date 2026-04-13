@@ -12,6 +12,8 @@
 #   4. TLS certificates present (production)
 #   5. Audit logging enabled across services
 #   6. No telemetry endpoints contacted
+#   7. All services use open-source licenses
+#   8. SMTP is internal (not external mail relay)
 #   9. TLS certificate present
 #  10. Password policy configured in Keycloak
 #  11. Backup CronJob active
@@ -166,9 +168,7 @@ fi
 
 # ── Check 9: TLS-Zertifikat vorhanden (Art. 32) ──────────────────
 echo "▸ Prüfe TLS-Zertifikat..."
-TLS_SECRET=$(kubectl get secret workspace-wildcard-tls -n "$NAMESPACE" \
-  --no-headers 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-if [[ "$TLS_SECRET" -gt 0 ]]; then
+if kubectl get secret workspace-wildcard-tls -n "$NAMESPACE" &>/dev/null; then
   _check "D09" "TLS-Zertifikat (workspace-wildcard-tls) vorhanden" "pass"
 else
   _check "D09" "TLS-Zertifikat (workspace-wildcard-tls) vorhanden" "warn" \
@@ -207,9 +207,7 @@ fi
 
 # ── Check 12: NetworkPolicy Default-Deny aktiv (Art. 32) ─────────
 echo "▸ Prüfe NetworkPolicy Default-Deny..."
-NP_DENY=$(kubectl get networkpolicy default-deny-ingress -n "$NAMESPACE" \
-  --no-headers 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-if [[ "$NP_DENY" -gt 0 ]]; then
+if kubectl get networkpolicy default-deny-ingress -n "$NAMESPACE" &>/dev/null; then
   _check "D12" "NetworkPolicy Default-Deny-Ingress aktiv (Art. 32 — Netzwerksegmentierung)" "pass"
 else
   _check "D12" "NetworkPolicy Default-Deny-Ingress aktiv (Art. 32 — Netzwerksegmentierung)" "fail" \

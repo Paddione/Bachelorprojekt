@@ -438,6 +438,10 @@ task workspace:dsgvo-check                  # Kurzbefehl
 | `k3d/traefik-middlewares-dev.yaml` | Neu: basic-auth-internal für Dev |
 | `k3d/secrets.yaml` | Ergänzt: traefik-basic-auth |
 | 13× Deployment-YAMLs | SecurityContexts |
+| `docs/verarbeitungsverzeichnis.md` | Neu: Verarbeitungsverzeichnis Art. 30 (6 VTs) |
+| `docs/security-report.md` | Erweitert: DSGVO-Kapitel (Art. 5/25/32/33/34/35) |
+| `scripts/dsgvo-compliance-check.sh` | Ergänzt: D09–D12 (TLS, Passwort-Policy, Backup, NetworkPolicy) |
+| `website/src/pages/datenschutz.astro` | Ersetzt: vollständige Art. 13/14-konforme Datenschutzerklärung |
 
 ---
 

@@ -331,19 +331,7 @@ tasks:
         {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
       - echo ""
       - echo "Installing Nextcloud collaboration apps (Whiteboard, Forms, Transcription)..."
-      - '{{.NC_EXEC}} "php occ app:install whiteboard" || true'
-      - '{{.NC_EXEC}} "php occ app:enable whiteboard"  || true'
-      - |
-        BOARD_DOMAIN=$(kubectl get configmap domain-config -n workspace \
-          -o jsonpath='{.data.WHITEBOARD_DOMAIN}' 2>/dev/null || echo "board.localhost")
-        case "${BOARD_DOMAIN}" in
-          *.localhost) BOARD_URL="http://${BOARD_DOMAIN}" ;;
-          *)           BOARD_URL="https://${BOARD_DOMAIN}" ;;
-        esac
-        WB_JWT=$(kubectl get secret workspace-secrets -n workspace \
-          -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' | base64 -d)
-        {{.NC_EXEC}} "php occ config:app:set whiteboard collabBackendUrl --value='${BOARD_URL}'" || true
-        {{.NC_EXEC}} "php occ config:app:set whiteboard jwt_secret_key --value='${WB_JWT}'" || true
+      - task: workspace:whiteboard-setup
       - '{{.NC_EXEC}} "php occ app:install forms" || true'
       - |
         {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_allowlist \
@@ -385,11 +373,21 @@ tasks:
       - 'echo "  Talk:        http://files.localhost/apps/spreed"'
       - 'echo "  Collabora:   WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
       - 'echo "  notify_push: {{.PUSH_URL}}"'
-      - 'echo "  Whiteboard:    http://board.localhost (Talk-Tab in jedem Room)"'
+      - 'echo "  Whiteboard:  http://board.localhost"'
       - 'echo "  Forms:         http://files.localhost/apps/forms"'
       - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
       - 'echo "  Transkription: stt_whisper2 → http://whisper:8000/v1"'
       - 'echo "  Aufnahme:      Talk-Room > ··· > Aufnahme starten"'
+
+  workspace:whiteboard-setup:
+    desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
+    preconditions:
+      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
+        msg: "Nextcloud not deployed."
+      - sh: kubectl get deployment whiteboard -n workspace > /dev/null 2>&1
+        msg: "whiteboard not deployed. Run 'task workspace:deploy' first."
+    cmds:
+      - bash scripts/whiteboard-setup.sh
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"
@@ -534,16 +532,6 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kubectl $context_flag rollout status deploy/collabora -n workspace-office --timeout=300s
       - task: workspace:office:sync-secret
-
-  workspace:meeting-slash:
-    desc: Register /meeting slash command in Mattermost
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed."
-    cmds:
-      - bash scripts/meeting-slash-setup.sh
 
   workspace:recording-setup:
     desc: "Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)"

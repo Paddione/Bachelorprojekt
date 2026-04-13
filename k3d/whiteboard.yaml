@@ -1,8 +1,11 @@
 # ═══════════════════════════════════════════════════════════════════
 # Nextcloud Whiteboard — collaborative whiteboard server
-# Nextcloud app config (run after app install):
-#   occ config:app:set whiteboard collabBackendUrl --value="https://<WHITEBOARD_DOMAIN>"
-#   occ config:app:set whiteboard jwt_secret_key --value="<WHITEBOARD_JWT_SECRET>"
+#
+# The Nextcloud `whiteboard` app must be installed and its `jwt_secret_key`
+# app config must match this Deployment's JWT_SECRET_KEY, otherwise the client
+# shows "Problem mit Authentifizierungskonfiguration".
+#
+# Automated via `task workspace:whiteboard-setup` (also run from post-setup).
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment

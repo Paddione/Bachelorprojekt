@@ -9,9 +9,9 @@
 
   const types = [
     { value: 'allgemein', label: 'Allgemeine Anfrage' },
-    { value: 'erstgespraech', label: 'Kostenloses Erstgesprach' },
-    { value: 'digital-cafe', label: 'Digital Cafe 50+' },
-    { value: 'coaching', label: 'Fuhrungskrafte-Coaching' },
+    { value: 'erstgespraech', label: 'Kostenloses Erstgespräch' },
+    { value: 'digital-cafe', label: 'Digital Café 50+' },
+    { value: 'coaching', label: 'Führungskräfte-Coaching' },
     { value: 'beratung', label: 'Unternehmensberatung' },
     { value: 'support', label: 'Support' },
     { value: 'feedback', label: 'Feedback' },
@@ -32,7 +32,7 @@
       const data = await response.json();
 
       if (response.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Nachricht wurde gesendet. Wir melden uns in Kurze bei Ihnen.' };
+        result = { success: true, message: 'Vielen Dank! Ihre Nachricht wurde gesendet. Wir melden uns in Kürze bei Ihnen.' };
         name = '';
         email = '';
         phone = '';
@@ -53,7 +53,7 @@
   <!-- Type -->
   <div>
     <label for="type" class="block text-lg font-medium text-light mb-2">
-      Wie konnen wir Ihnen helfen?
+      Wie können wir Ihnen helfen?
     </label>
     <select
       id="type"

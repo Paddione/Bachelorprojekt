@@ -55,19 +55,19 @@ export async function sendRegistrationConfirmation(email: string, name: string):
     subject: `Ihre Registrierung bei ${FROM_NAME}`,
     text: `Hallo ${name},
 
-vielen Dank fur Ihre Registrierung bei ${FROM_NAME}.
+vielen Dank für Ihre Registrierung bei ${FROM_NAME}.
 
-Ihre Anfrage wird in Kurze gepruft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.
+Ihre Anfrage wird in Kürze geprüft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.
 
 Bei Fragen erreichen Sie uns unter ${FROM_EMAIL}${CONTACT_PHONE ? ` oder ${CONTACT_PHONE}` : ''}.
 
-Mit freundlichen Grussen
+Mit freundlichen Grüßen
 ${FROM_NAME}`,
     html: `<p>Hallo ${name},</p>
-<p>vielen Dank fur Ihre Registrierung bei ${FROM_NAME}.</p>
-<p>Ihre Anfrage wird in Kurze gepruft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.</p>
+<p>vielen Dank für Ihre Registrierung bei ${FROM_NAME}.</p>
+<p>Ihre Anfrage wird in Kürze geprüft. Sie erhalten eine separate E-Mail, sobald Ihr Zugang freigeschaltet wurde.</p>
 <p>Bei Fragen erreichen Sie uns unter <a href="mailto:${FROM_EMAIL}">${FROM_EMAIL}</a>${CONTACT_PHONE ? ` oder ${CONTACT_PHONE}` : ''}.</p>
-<p>Mit freundlichen Grussen<br>${FROM_NAME}</p>`,
+<p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
   });
 }
 
@@ -80,15 +80,15 @@ export async function sendRegistrationApproved(email: string, name: string): Pro
 
 Ihr Zugang bei ${FROM_NAME} wurde freigeschaltet!
 
-Sie erhalten in Kurze eine separate E-Mail mit einem Link, um Ihr Passwort festzulegen.
-${loginUrl ? `\nDanach konnen Sie sich unter ${loginUrl} einloggen.\n` : ''}
-Mit freundlichen Grussen
+Sie erhalten in Kürze eine separate E-Mail mit einem Link, um Ihr Passwort festzulegen.
+${loginUrl ? `\nDanach können Sie sich unter ${loginUrl} einloggen.\n` : ''}
+Mit freundlichen Grüßen
 ${FROM_NAME}`,
     html: `<p>Hallo ${name},</p>
 <p><strong>Ihr Zugang bei ${FROM_NAME} wurde freigeschaltet!</strong></p>
-<p>Sie erhalten in Kurze eine separate E-Mail mit einem Link, um Ihr Passwort festzulegen.</p>
-${loginUrl ? `<p>Danach konnen Sie sich unter <a href="${loginUrl}">${loginUrl}</a> einloggen.</p>` : ''}
-<p>Mit freundlichen Grussen<br>${FROM_NAME}</p>`,
+<p>Sie erhalten in Kürze eine separate E-Mail mit einem Link, um Ihr Passwort festzulegen.</p>
+${loginUrl ? `<p>Danach können Sie sich unter <a href="${loginUrl}">${loginUrl}</a> einloggen.</p>` : ''}
+<p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
   });
 }
 
@@ -98,13 +98,13 @@ export async function sendRegistrationDeclined(email: string, name: string, reas
     subject: `Zu Ihrer Registrierung bei ${FROM_NAME}`,
     text: `Hallo ${name},
 
-vielen Dank fur Ihr Interesse an ${FROM_NAME}.
+vielen Dank für Ihr Interesse an ${FROM_NAME}.
 
-Leider konnen wir Ihre Registrierung derzeit nicht bestatigen.${reason ? `\n\nGrund: ${reason}` : ''}
+Leider können wir Ihre Registrierung derzeit nicht bestätigen.${reason ? `\n\nGrund: ${reason}` : ''}
 
 Falls Sie Fragen haben, kontaktieren Sie uns gerne unter ${FROM_EMAIL}.
 
-Mit freundlichen Grussen
+Mit freundlichen Grüßen
 ${FROM_NAME}`,
   });
 }
@@ -117,11 +117,11 @@ export async function sendContactReply(email: string, name: string, replyText: s
 
 ${replyText}
 
-Mit freundlichen Grussen
+Mit freundlichen Grüßen
 ${FROM_NAME}`,
     html: `<p>Hallo ${name},</p>
 <p>${replyText.replace(/\n/g, '<br>')}</p>
-<p>Mit freundlichen Grussen<br>${FROM_NAME}</p>`,
+<p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
     ...(threadId ? { headers: { 'X-Mattermost-Thread-Id': threadId } } : {}),
   });
 }

@@ -36,8 +36,8 @@
   let result = $state<{ success: boolean; message: string } | null>(null);
 
   const bookingTypes = [
-    { value: 'erstgespraech', label: 'Kostenloses Erstgesprach (30 Min.)' },
-    { value: 'callback', label: 'Ruckruf' },
+    { value: 'erstgespraech', label: 'Kostenloses Erstgespräch (30 Min.)' },
+    { value: 'callback', label: 'Rückruf' },
     { value: 'meeting', label: 'Online-Meeting' },
     { value: 'termin', label: 'Termin vor Ort' },
   ];
@@ -102,7 +102,7 @@
       const data = await response.json();
 
       if (response.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Terminanfrage wurde eingereicht. Sie erhalten eine Bestatigung per E-Mail, sobald der Termin bestatigt wurde.' };
+        result = { success: true, message: 'Vielen Dank! Ihre Terminanfrage wurde eingereicht. Sie erhalten eine Bestätigung per E-Mail, sobald der Termin bestätigt wurde.' };
         name = '';
         email = '';
         phone = '';

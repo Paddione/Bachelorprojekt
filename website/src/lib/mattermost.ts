@@ -157,7 +157,7 @@ export async function getOrCreateCustomerChannel(teamId: string, customerName: s
     team_id: teamId,
     name: channelName,
     display_name: displayName,
-    purpose: `Kundenkanal fur ${customerName} — Termine, Meetings, Dokumente`,
+    purpose: `Kundenkanal für ${customerName} — Termine, Meetings, Dokumente`,
     type: 'P', // Private channel
   });
 

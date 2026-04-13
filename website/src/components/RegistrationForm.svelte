@@ -23,7 +23,7 @@
       const data = await response.json();
 
       if (response.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Registrierung wurde eingereicht. Sie erhalten eine Bestatigung per E-Mail.' };
+        result = { success: true, message: 'Vielen Dank! Ihre Registrierung wurde eingereicht. Sie erhalten eine Bestätigung per E-Mail.' };
         firstName = '';
         lastName = '';
         email = '';
@@ -114,7 +114,7 @@
 
   <div>
     <label for="reg-message" class="block text-lg font-medium text-light mb-2">
-      Warum mochten Sie sich registrieren? <span class="text-muted-dark">(optional)</span>
+      Warum möchten Sie sich registrieren? <span class="text-muted-dark">(optional)</span>
     </label>
     <textarea
       id="reg-message"

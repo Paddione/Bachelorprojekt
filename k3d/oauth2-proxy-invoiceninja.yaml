@@ -18,6 +18,11 @@ spec:
       labels:
         app: oauth2-proxy-invoiceninja
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: oauth2-proxy
           image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
@@ -58,6 +63,15 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: OAUTH2_PROXY_COOKIE_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           ports:
             - containerPort: 4180
           readinessProbe:

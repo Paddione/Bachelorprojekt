@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { dismissOverlays, goToChannel } from './helpers';
 
-const TEAM = 'bachelorprojekt';
+const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
 
 test.describe('FA-02: Kanäle / Workspaces', () => {
   test('T1: Öffentlichen Kanal erstellen und beitreten', async ({ page }) => {

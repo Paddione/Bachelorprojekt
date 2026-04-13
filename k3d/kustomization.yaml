@@ -46,6 +46,7 @@ resources:
   - outline.yaml
   # Transkription
   - whisper.yaml
+  - talk-transcriber.yaml  # Live-Transkription Bot
   # Embedding (Vektorisierung)
   - embedding.yaml
   # KI-Assistent
@@ -58,6 +59,10 @@ resources:
   - claude-code-mcp-auth.yaml
   - claude-code-mcp-stripe.yaml
   - claude-code-mcp-github.yaml
+  # Traefik Dev-Middlewares
+  - traefik-middlewares-dev.yaml
+  # Netzwerksicherheit (L3)
+  - network-policies.yaml
   # Ingress
   - ingress.yaml
 

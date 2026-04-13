@@ -20,9 +20,22 @@ spec:
       labels:
         app: whiteboard
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: whiteboard
           image: ghcr.io/nextcloud-releases/whiteboard:v1.5.7
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           env:
             - name: NEXTCLOUD_URL
               value: "http://nextcloud"

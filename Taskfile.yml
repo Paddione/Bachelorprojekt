@@ -265,6 +265,7 @@ tasks:
       - task: workspace:connectors
       - task: workspace:call-setup
       - task: workspace:recording-setup
+      - task: workspace:transcriber-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  MCP Status:   http://ai.localhost"'
@@ -278,6 +279,19 @@ tasks:
   # ─────────────────────────────────────────────
   # Workspace MVP (Bachelorprojekt)
   # ─────────────────────────────────────────────
+
+  workspace:transcriber-build:
+    desc: Build and push talk-transcriber image to local registry
+    cmds:
+      - docker build -t {{.REGISTRY}}/talk-transcriber:v1 k3d/talk-transcriber/
+      - docker push {{.REGISTRY}}/talk-transcriber:v1
+      - 'echo "✓ talk-transcriber image pushed to {{.REGISTRY}}"'
+
+  workspace:transcriber-setup:
+    desc: Build talk-transcriber image and create transcriber-bot Nextcloud user
+    deps: [workspace:transcriber-build]
+    cmds:
+      - bash scripts/transcriber-setup.sh
 
   workspace:billing-build:
     desc: Build and push billing-bot image to local registry
@@ -316,6 +330,29 @@ tasks:
       - |
         {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
       - echo ""
+      - echo "Installing Nextcloud collaboration apps (Whiteboard, Forms, Transcription)..."
+      - '{{.NC_EXEC}} "php occ app:install whiteboard" || true'
+      - '{{.NC_EXEC}} "php occ app:enable whiteboard"  || true'
+      - |
+        BOARD_DOMAIN=$(kubectl get configmap domain-config -n workspace \
+          -o jsonpath='{.data.WHITEBOARD_DOMAIN}' 2>/dev/null || echo "board.localhost")
+        case "${BOARD_DOMAIN}" in
+          *.localhost) BOARD_URL="http://${BOARD_DOMAIN}" ;;
+          *)           BOARD_URL="https://${BOARD_DOMAIN}" ;;
+        esac
+        WB_JWT=$(kubectl get secret workspace-secrets -n workspace \
+          -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' | base64 -d)
+        {{.NC_EXEC}} "php occ config:app:set whiteboard collabBackendUrl --value='${BOARD_URL}'" || true
+        {{.NC_EXEC}} "php occ config:app:set whiteboard jwt_secret_key --value='${WB_JWT}'" || true
+      - '{{.NC_EXEC}} "php occ app:install forms" || true'
+      - |
+        {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_allowlist \
+          --value='10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'"
+      - '{{.NC_EXEC}} "php occ app:install assistant"    || true'
+      - '{{.NC_EXEC}} "php occ app:install stt_whisper2" || true'
+      - '{{.NC_EXEC}} "php occ config:app:set stt_whisper2 url     --value=http://whisper:8000/v1"'
+      - '{{.NC_EXEC}} "php occ config:app:set stt_whisper2 api_key --value=local"'
+      - echo ""
       - echo "Running hardening (DB indices, missing columns, MIME repair)..."
       - '{{.NC_EXEC}} "php occ db:add-missing-indices"           || true'
       - '{{.NC_EXEC}} "php occ db:add-missing-columns"           || true'
@@ -348,6 +385,11 @@ tasks:
       - 'echo "  Talk:        http://files.localhost/apps/spreed"'
       - 'echo "  Collabora:   WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
       - 'echo "  notify_push: {{.PUSH_URL}}"'
+      - 'echo "  Whiteboard:    http://board.localhost (Talk-Tab in jedem Room)"'
+      - 'echo "  Forms:         http://files.localhost/apps/forms"'
+      - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
+      - 'echo "  Transkription: stt_whisper2 → http://whisper:8000/v1"'
+      - 'echo "  Aufnahme:      Talk-Room > ··· > Aufnahme starten"'
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"

@@ -1,10 +1,14 @@
 # Services
 
+> **Hinweis für Mitarbeiter:** Eine verständliche Erklärung aller Dienste mit konkreten Anwendungsbeispielen findest Du im [Benutzerhandbuch](benutzerhandbuch.md). Diese Seite enthält die technischen Details für Administratoren.
+
 Alle Services laufen als Kubernetes Deployments. Jeder Service hat definierte Resource Requests/Limits und Health Checks.
 
 ## Kern-Services
 
 ### Keycloak (SSO)
+
+**Für Mitarbeiter:** Keycloak ist der zentrale Login-Dienst. Du loggst Dich einmal ein und bist danach automatisch in allen anderen Diensten angemeldet (Single Sign-On). Keycloak verwaltet auch Passwort-Regeln und Benutzerkonten.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -18,6 +22,8 @@ Alle Services laufen als Kubernetes Deployments. Jeder Service hat definierte Re
 OIDC-Provider fuer alle Services. Realm `workspace` wird beim Start automatisch importiert. Siehe [Keycloak & SSO](keycloak.md) fuer Details.
 
 ### Mattermost (Chat)
+
+**Für Mitarbeiter:** Mattermost ist der Team-Chat. Hier kommunizierst Du mit Kollegen in Kanälen (themenbasierte Gruppen) oder per Direktnachricht. Du kannst Dateien teilen, auf Nachrichten reagieren und den Billing-Bot per `/billing`-Befehl nutzen.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -37,6 +43,8 @@ Team-Chat mit Channels, DMs, Threads, Webhooks, Slash-Commands. OpenSearch-Integ
 
 ### Nextcloud (Dateien + Talk)
 
+**Für Mitarbeiter:** Nextcloud ist Dein interner Cloud-Speicher. Hier lädst Du Dateien hoch, teilst Ordner mit Kollegen, führst Kalender und startest Videokonferenzen (über Nextcloud Talk). Dokumente lassen sich direkt im Browser bearbeiten.
+
 | Eigenschaft | Wert |
 |-------------|------|
 | Image | `nextcloud:28-apache` |
@@ -52,17 +60,21 @@ Dateiverwaltung mit Kalender, Kontakte, Talk (Video), Collabora-Integration. OID
 
 ### Collabora Online (Office)
 
+**Für Mitarbeiter:** Collabora ist das integrierte Büroprogramm. Du kannst Word-, Excel- und PowerPoint-Dateien direkt im Browser öffnen und bearbeiten – ohne zusätzliche Software. Mehrere Personen können gleichzeitig am selben Dokument arbeiten. Collabora öffnet sich automatisch aus Nextcloud heraus, Du musst es nicht separat aufrufen.
+
 | Eigenschaft | Wert |
 |-------------|------|
 | Image | `collabora/code:25.04.9.4.1` |
 | Port | 9980 |
-| URL | http://office.localhost |
+| URL | http://office.localhost (antwortet mit "OK" — kein eigenstaendiges UI) |
 | Resources | 200m CPU, 256Mi--1Gi RAM |
 | Manifest | `k3d/collabora.yaml` |
 
-LibreOffice-basiertes Online-Office. Verbunden mit Nextcloud ueber WOPI. Woerterbuecher: Deutsch + Englisch.
+LibreOffice-basiertes Online-Office. Verbunden mit Nextcloud ueber WOPI — Dokumente werden direkt aus Nextcloud heraus geoeffnet, nicht ueber die Collabora-URL. Woerterbuecher: Deutsch + Englisch.
 
 ### Talk HPB (Signaling)
+
+**Für Mitarbeiter:** Dieser Dienst arbeitet unsichtbar im Hintergrund und sorgt dafür, dass Videokonferenzen in Nextcloud Talk stabil funktionieren. Du interagierst nicht direkt damit – er wird automatisch genutzt, wenn Du einen Videoanruf startest.
 
 Drei Deployments fuer WebRTC-Videokonferenzen:
 
@@ -80,6 +92,8 @@ Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. All
 ## AI & Suche
 
 ### Claude Code (KI-Assistent)
+
+**Für Mitarbeiter:** Claude ist Dein interner KI-Assistent. Du kannst ihm Fragen stellen, Texte schreiben lassen, Zusammenfassungen anfordern oder Dir bei Aufgaben helfen lassen. Zugriff über die KI-Seite in Deinem Browser. Gib keine sensiblen Kundendaten in die KI ein.
 
 Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (Model Context Protocol) mit dem Kubernetes-Cluster interagiert. Es gibt kein Web-UI im Cluster -- stattdessen zeigt `ai.localhost` eine MCP-Status-Seite mit Health-Checks aller MCP-Server.
 
@@ -115,6 +129,8 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 
 ### OpenSearch (Volltextsuche)
 
+**Für Mitarbeiter:** OpenSearch arbeitet unsichtbar im Hintergrund und ermöglicht die Volltextsuche in Mattermost. Wenn Du in Mattermost nach einem Begriff suchst, liefert OpenSearch die Ergebnisse. Du interagierst nicht direkt damit.
+
 | Eigenschaft | Wert |
 |-------------|------|
 | Image | `opensearchproject/opensearch:2.17.1` |
@@ -126,6 +142,8 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 Single-Node Cluster fuer Mattermost-Volltextsuche. Security-Plugin deaktiviert (Dev). JVM Heap: 256m.
 
 ### Whisper (Transkription, optional)
+
+**Für Mitarbeiter:** Whisper wandelt gesprochene Sprache automatisch in Text um (Spracherkennung). Dieser Dienst ist optional und wird nicht standardmäßig aktiviert.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -139,6 +157,8 @@ CPU-basierte Spracherkennung mit dem Medium-Modell. Deploy: `task whisper:deploy
 ## Business-Services
 
 ### Invoice Ninja (Rechnungen)
+
+**Für Mitarbeiter:** Invoice Ninja ist das Rechnungsprogramm. Hier erstellst Du Rechnungen, verwaltets Kunden und verfolgst Zahlungen. Du kannst auch direkt aus dem Chat (Mattermost) per `/billing invoice Kundenname` eine Rechnung erstellen lassen.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -158,6 +178,8 @@ Rechnungserstellung mit Stripe-Integration. Zugriff ueber oauth2-proxy fuer Keyc
 
 ### billing-bot
 
+**Für Mitarbeiter:** Der Billing-Bot ist ein automatischer Helfer im Chat. Wenn Du in Mattermost `/billing` eingibst, erledigt er Aufgaben wie das Erstellen von Rechnungen für Dich – ohne dass Du die Rechnungssoftware separat öffnen musst.
+
 | Eigenschaft | Wert |
 |-------------|------|
 | Image | `registry.localhost:5000/billing-bot:v1` |
@@ -168,6 +190,8 @@ Rechnungserstellung mit Stripe-Integration. Zugriff ueber oauth2-proxy fuer Keyc
 Go-Microservice: `/slash` (Slash-Command Handler), `/actions` (Interactive Messages), `/healthz`. Verbindet Mattermost mit Invoice Ninja.
 
 ### Vaultwarden (Passwoerter)
+
+**Für Mitarbeiter:** Vaultwarden ist der sichere Passwort-Safe des Teams. Hier speicherst Du Zugangsdaten und kannst sie sicher mit Kollegen teilen – alles verschlüsselt auf Deinen eigenen Servern. Du kannst auch das Bitwarden-Browser-Plugin nutzen, um Passwörter automatisch ausfüllen zu lassen. Achtung: Du benötigst ein eigenes Master-Passwort, das Du Dir gut merken musst.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -185,6 +209,8 @@ Bitwarden-kompatibler Passwort-Manager mit SSO-Login ueber Keycloak. Seed-Job fu
 
 ### Whiteboard
 
+**Für Mitarbeiter:** Das digitale Whiteboard dient zum gemeinsamen Skizzieren, Brainstormen und Visualisieren – wie ein echtes Whiteboard in einem Besprechungsraum, nur online. Mehrere Personen können gleichzeitig zeichnen und schreiben.
+
 | Eigenschaft | Wert |
 |-------------|------|
 | Image | `ghcr.io/nextcloud-releases/whiteboard:v1.5.7` |
@@ -196,6 +222,8 @@ Bitwarden-kompatibler Passwort-Manager mit SSO-Login ueber Keycloak. Seed-Job fu
 Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 
 ### Outline (Wiki, optional)
+
+**Für Mitarbeiter:** Outline ist die interne Wissensdatenbank des Teams. Hier hältst Du Anleitungen, Prozesse und wichtiges Wissen schriftlich fest – so dass Kollegen es jederzeit nachlesen können. Inhalte lassen sich gemeinsam bearbeiten und sind über eine Volltextsuche leicht auffindbar.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -212,6 +240,8 @@ Wissensdatenbank mit Keycloak-OIDC. Redis-Sidecar fuer Caching. Deploy: `task ou
 ## Infrastruktur-Services
 
 ### Mailpit (Dev-Mail)
+
+**Für Mitarbeiter:** Mailpit wird nur in der Entwicklungsumgebung verwendet und ist kein normaler E-Mail-Dienst. Es fängt alle ausgehenden E-Mails ab, damit sie nicht versehentlich echte Empfänger erreichen. In der Produktivumgebung wird ein normaler E-Mail-Server eingesetzt.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -236,6 +266,8 @@ SMTP-Server fuer Entwicklung. Alle Services senden E-Mails an Mailpit.
 Git-Sync InitContainer klont `docs/` von GitHub, Docsify rendert Markdown im Browser.
 
 ### Website (Astro + Svelte)
+
+**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular auf der Website leitet Anfragen automatisch in den Mattermost-Chat weiter.
 
 | Eigenschaft | Wert |
 |-------------|------|

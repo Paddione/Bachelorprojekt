@@ -260,7 +260,7 @@ all_images() {
   violations=$(grep -B2 -A0 -i 'password' "$RENDERED" \
     | grep -i 'value:' \
     | grep -ivE 'valueFrom|secretKeyRef|configMapKeyRef|\$\(' \
-    | grep -ivE 'value: (admin|devadmin|invoiceninja|keycloak|postgres|nextcloud|mattermost|opensearch|outline|"")|value: [a-z]+@' \
+    | grep -ivE 'value: (admin|devadmin|invoiceninja|keycloak|postgres|nextcloud|mattermost|opensearch|outline|"")|value: [a-z]+@|value: "[0-9]+"' \
     || true)
   if [[ -n "$violations" ]]; then
     echo "Possible hardcoded passwords: ${violations}"

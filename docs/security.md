@@ -76,6 +76,21 @@ securityContext:
   runAsGroup: 999
 ```
 
+### Container SecurityContexts
+
+Alle Deployments haben `allowPrivilegeEscalation: false`, `capabilities: drop: [ALL]` und `seccompProfile: RuntimeDefault`.
+
+**Volle Härtung** (`readOnlyRootFilesystem: true`, `runAsNonRoot: true`):
+`billing-bot`, `mailpit`, `oauth2-proxy-invoiceninja`, `docs`, `nextcloud-redis`
+
+**Partielle Härtung** (`readOnlyRootFilesystem: false` — Applikation schreibt Dateien):
+`mattermost`, `keycloak`, `nextcloud`, `vaultwarden`, `opensearch`, `whiteboard`
+
+**Sonderfälle:**
+- `collabora`: SYS_ADMIN (LibreOffice-Kern) — isoliert im Namespace `workspace-office`
+- `mm-keycloak-proxy` (nginx): `readOnlyRootFilesystem: true` mit `emptyDir`-Volumes für `/var/cache/nginx`, `/var/run`, `/tmp`
+- `nextcloud` + `opensearch`: initContainers laufen als root für Berechtigungs-Setup
+
 ## Authentifizierung
 
 ### Single Sign-On (SSO)
@@ -171,10 +186,58 @@ Der Befehl `task cert:secret` erstellt den Secret in beiden Namespaces und setzt
 
 ## Netzwerk-Sicherheit
 
-Aktuell sind keine Kubernetes NetworkPolicies konfiguriert. Die Isolation erfolgt ueber:
-- Namespace-Trennung (workspace, website, monitoring)
-- Pod Security Standards (baseline erzwungen)
-- Service-basiertes Routing (nur explizit exponierte Ports)
+### Kubernetes NetworkPolicies (L3)
+
+Default-Deny auf allen Namespaces (`workspace`, `website`). Selektive Freigaben:
+
+| Policy | Namespace | Erlaubter Traffic |
+|--------|-----------|------------------|
+| `default-deny-ingress` | workspace, website | Blockiert (Default) |
+| `default-deny-egress` | workspace, website | Blockiert (Default) |
+| `allow-dns-egress` | workspace, website | kube-dns Port 53 UDP/TCP |
+| `allow-intra-namespace-egress` | workspace, website | Pod-zu-Pod im Namespace |
+| `allow-intra-namespace-ingress` | website | Intra-Namespace Ingress |
+| `allow-traefik-ingress` | workspace, website | Traefik aus kube-system |
+| `allow-monitoring-ingress` | workspace | Prometheus-Scraping |
+| `allow-mcp-external-egress` | workspace | mcp-github/mcp-stripe → HTTPS 443 |
+| `allow-egress-to-workspace` | website | Website → workspace Services |
+
+```bash
+kubectl get networkpolicies -n workspace    # Policies anzeigen
+kubectl describe networkpolicy default-deny-ingress -n workspace
+```
+
+### HTTP Security Header (L7)
+
+Neue Traefik-Middleware `security-headers` (alle Prod-Services):
+
+| Header | Wert |
+|--------|------|
+| `X-Frame-Options` | `SAMEORIGIN` |
+| `X-Content-Type-Options` | `nosniff` |
+| `X-XSS-Protection` | `1; mode=block` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=()` |
+
+### Rate-Limiting (L7)
+
+Traefik-Rate-Limit-Middlewares pro Service (Produktion):
+
+| Service | avg req/s | Burst |
+|---------|-----------|-------|
+| Keycloak | 20 | 40 |
+| Vaultwarden | 20 | 40 |
+| Invoice Ninja | 30 | 60 |
+| Nextcloud | 50 | 100 |
+| Mattermost | 100 | 200 |
+| Website | 200 | 400 |
+
+### Zugriffsschutz interne Tools (L7)
+
+Mailpit (`mail.*`), Docs (`docs.*`) und MCP-Status (`ai.*`) sind hinter BasicAuth geschützt (Traefik `basic-auth-internal`-Middleware, Secret `traefik-basic-auth`).
+
+Dev-Credentials: `admin:admin` (in `k3d/secrets.yaml`).
+Produktion: `htpasswd -nb <user> <password>` zum Generieren verwenden.
 
 ## Backup-Verschluesselung
 

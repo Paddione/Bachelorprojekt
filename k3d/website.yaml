@@ -172,3 +172,106 @@ spec:
               image: curlimages/curl:latest
               command: ["curl", "-sf", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
+---
+# ── NetworkPolicies: website-Namespace ───────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+---
+# Website-Pod darf workspace-Services erreichen
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-workspace
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: workspace
+---
+# Traefik-Ingress aus kube-system erlauben
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik-ingress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+---
+# CronJob-zu-Website-Service innerhalb website-Namespace (meeting-reminders)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace-egress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace-ingress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector: {}

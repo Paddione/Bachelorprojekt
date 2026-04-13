@@ -10,6 +10,13 @@
     if (!localStorage.getItem(CONSENT_KEY)) {
       visible = true;
     }
+
+    const handler = () => {
+      visible = true;
+      detailsOpen = false;
+    };
+    window.addEventListener('cookie-consent-reopen', handler);
+    return () => window.removeEventListener('cookie-consent-reopen', handler);
   });
 
   function acceptAll() {
@@ -22,11 +29,6 @@
     visible = false;
   }
 
-  // Exported so the footer link can call it
-  export function reopen() {
-    localStorage.removeItem(CONSENT_KEY);
-    visible = true;
-  }
 </script>
 
 {#if visible}

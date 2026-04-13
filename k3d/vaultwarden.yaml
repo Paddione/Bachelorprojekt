@@ -31,9 +31,24 @@ spec:
       labels:
         app: vaultwarden
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: vaultwarden
           image: vaultwarden/server:1.35.3-alpine
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           env:
             - name: VAULTWARDEN_DB_PASSWORD
               valueFrom:

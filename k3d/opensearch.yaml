@@ -30,6 +30,10 @@ spec:
       labels:
         app: opensearch
     spec:
+      securityContext:
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         # OpenSearch needs vm.max_map_count=262144, but in k3d we can't set
         # sysctl — so we disable the bootstrap check and run single-node.
@@ -42,6 +46,13 @@ spec:
       containers:
         - name: opensearch
           image: opensearchproject/opensearch:2.19.5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           env:
             - name: discovery.type
               value: single-node

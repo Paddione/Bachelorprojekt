@@ -1381,7 +1381,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
-        docker build -t "${IMAGE}:latest" \
+        docker build --no-cache -t "${IMAGE}:latest" \
           --build-arg PROD_DOMAIN="${PROD_DOMAIN}" \
           --build-arg BRAND_NAME="${BRAND_NAME}" \
           --build-arg CONTACT_EMAIL="${CONTACT_EMAIL}" \

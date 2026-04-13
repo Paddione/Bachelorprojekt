@@ -263,6 +263,7 @@ tasks:
       - task: workspace:billing-setup
       - task: workspace:stripe-setup
       - task: workspace:connectors
+      - task: workspace:call-setup
       - task: workspace:recording-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
@@ -523,6 +524,27 @@ tasks:
         msg: "Mattermost not deployed. Run 'task workspace:deploy' first."
     cmds:
       - bash scripts/mattermost-connectors-setup.sh
+
+  workspace:call-setup:
+    desc: "Register /call slash command in Mattermost (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    preconditions:
+      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
+        msg: "Mattermost not deployed. Run 'task workspace:deploy' first."
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}" || true
+        bash scripts/call-setup.sh
+
+  workspace:call-setup:all-prods:
+    desc: Register /call slash command in both production clusters (mentolder + korczewski)
+    cmds:
+      - task: workspace:call-setup
+        vars: { ENV: "mentolder" }
+      - task: workspace:call-setup
+        vars: { ENV: "korczewski" }
 
   workspace:status:
     desc: Show Workspace MVP deployment status

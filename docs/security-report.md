@@ -262,18 +262,152 @@ Claude-Code-Agent (least-privilege ClusterRole):
 
 ## 5. DSGVO / Compliance-Status
 
-| ID | Prüfung | Status |
-|----|---------|--------|
-| D01 | Keine US-Cloud-Registry-Images | ✓ |
-| D02 | Keine externen Tracking-Domains | ✓ |
-| D03 | Lokaler Storage (keine Cloud-Klassen) | ✓ |
-| D04 | Keycloak Audit Events aktiviert | ✓ |
-| D05 | Mattermost Audit-Log erreichbar | ✓ |
-| D06 | Keine proprietäre Telemetrie | ✓ |
-| D07 | Alle Images Open-Source | ✓ |
-| D08 | SMTP intern (Mailpit) | ✓ |
+Der Workspace MVP ist **DSGVO-konform by Design** — alle personenbezogenen Daten verbleiben vollständig on-premises. Kein Drittanbieter, keine Cloud-Registry, keine Telemetrie.
 
-**Backup-Verschlüsselung:** AES-256-CBC + PBKDF2, täglich 02:00 UTC, 30-Tage-Retention.
+---
+
+### 5.1 Art. 5 — Verarbeitungsgrundsätze
+
+| Grundsatz | Nachweis im Stack |
+|-----------|-------------------|
+| **Rechtmäßigkeit** | Keycloak OIDC: jede Verarbeitung an authentifizierte Session gebunden; Rechtsgrundlagen in Datenschutzerklärung dokumentiert (Art. 6 I b/c/f) |
+| **Zweckbindung** | Getrennte Services je Zweck (Mattermost = Kommunikation, Nextcloud = Dateien, Invoice Ninja = Rechnungen); keine Cross-Service-Datennutzung |
+| **Datenminimierung** | Keycloak erhebt nur Name + E-Mail + Passwort-Hash; kein Tracking, kein Profiling, keine Analyse-Tools |
+| **Richtigkeit** | Self-Service-Profil in Keycloak Account-Console und Nextcloud; Admin kann Daten auf Anfrage (Art. 16) korrigieren |
+| **Speicherbegrenzung** | Definierte Löschfristen im Verarbeitungsverzeichnis; Backup-Retention 30 Tage; Admin-Prozess für Datenlöschung (Art. 17) dokumentiert |
+| **Integrität & Vertraulichkeit** | TLS 1.2/1.3 extern, NetworkPolicies intern, AES-256 Backup, SecurityContexts, RBAC — vollständig in Art. 32 TOMs dokumentiert |
+| **Rechenschaftspflicht** | Dieser Sicherheitsbericht, Verarbeitungsverzeichnis (`docs/verarbeitungsverzeichnis.md`), automatisiertes Compliance-Script (`scripts/dsgvo-compliance-check.sh`) |
+
+---
+
+### 5.2 Art. 25 — Datenschutz durch Technikgestaltung (Privacy by Design / by Default)
+
+| Prinzip | Umsetzung |
+|---------|-----------|
+| **Privacy by Design** | On-premises-Architektur: kein Datentransfer zu Cloud-Anbietern (gcr.io, amazonaws, azurecr blockiert durch NetworkPolicies); FOSS-Only-Stack |
+| **Privacy by Default** | Minimale Standard-Berechtigungen: neue Keycloak-User erhalten nur Basis-Rollen; keine optionalen Tracking-Features aktiviert |
+| **Datenminimierung by Design** | Kontaktformular erhebt nur Name + E-Mail + Nachricht; Terminbuchung nur Name + E-Mail + Zeitslot |
+| **Keine Profilbildung** | Kein Analytics-Tool, kein Behavioural Tracking, keine A/B-Test-Infrastruktur |
+| **Segregation by Design** | Namespaces `workspace` / `website` getrennt mit NetworkPolicy Default-Deny; Claude Code MCP kein Zugriff auf Secrets |
+
+---
+
+### 5.3 Art. 32 — Technische und Organisatorische Maßnahmen (TOMs)
+
+#### Technische Maßnahmen
+
+| Maßnahme | Implementierung | Nachweis |
+|----------|----------------|---------|
+| Verschlüsselung in Transit | TLS 1.2/1.3 (Traefik), HSTS max-age=31536000 + includeSubDomains | `prod/traefik-middlewares.yaml`: `hsts-headers` |
+| Verschlüsselung at Rest | AES-256-CBC + PBKDF2 (Backup-CronJob, täglich 02:00 UTC, 30-Tage-Retention) | `k3d/backup-cronjob.yaml` |
+| Zugriffskontrolle | Keycloak OIDC SSO für alle Services; BasicAuth für interne Tools (Mailpit, Docs, MCP-Status) | `prod/ingress.yaml`, `prod/traefik-middlewares.yaml` |
+| Netzwerksegmentierung | NetworkPolicy Default-Deny-Ingress + Default-Deny-Egress in `workspace` + `website` Namespace | `k3d/network-policies.yaml`, `k3d/website.yaml` |
+| Container-Isolation | `allowPrivilegeEscalation: false`, `capabilities: drop: [ALL]`, `seccompProfile: RuntimeDefault` auf allen Deployments | Alle `k3d/*.yaml` Deployments |
+| Pseudonymisierung | Keycloak User-IDs (UUID) statt Klarnamen in Service-Logs; Mattermost-Nachrichten referenzieren User-ID | Keycloak-Standard |
+| Audit-Logging | Keycloak Audit Events (Login, Logout, Passwort-Änderung); Mattermost `/api/v4/audits` | Keycloak Realm-Config + D04/D05 |
+| Brute-Force-Schutz | Keycloak Brute-Force-Detection (Realm `workspace`) + Traefik Rate-Limiting (Keycloak: 20 req/s, Vaultwarden: 20 req/s) | `prod/traefik-middlewares.yaml` |
+| Pod Security Standards | `baseline` enforced, `restricted` warned im `workspace`-Namespace | `k3d/namespace.yaml` |
+| Secret-Isolierung | `k3d/secrets.yaml` (Dev), `prod/secrets.yaml` (Prod Platzhalter); Claude Code RBAC: kein Secrets-Zugriff | `k3d/mcp.yaml` ClusterRole |
+
+#### Organisatorische Maßnahmen
+
+| Maßnahme | Implementierung |
+|----------|----------------|
+| Passwort-Policy | Keycloak: ≥12 Zeichen, Groß-/Kleinbuchstaben, Ziffer, Sonderzeichen; PBKDF2-SHA512 |
+| Least-Privilege-Prinzip | Claude Code MCP: read-only auf Pods/Services/ConfigMaps; kein `pods/exec`, kein Secrets-Zugriff |
+| CI/CD-Sicherheitsprüfungen | GitHub Actions: kustomize-Validierung, kubeconform, yamllint, shellcheck, Secret-Detection, Image-Pinning |
+| Backup & Recovery | Tägliche verschlüsselte Backups (keycloak, mattermost, nextcloud); 30-Tage-Retention |
+| Automatisierte Compliance-Prüfung | `scripts/dsgvo-compliance-check.sh` — 12 Checks (D01–D12), Grafana-Dashboard-Integration |
+
+---
+
+### 5.4 Art. 33/34 — Meldepflicht bei Datenpannen
+
+Bei Feststellung einer Datenpanne gilt folgendes Verfahren:
+
+**Stufe 1 — Erkennung (0–4 Stunden):**
+- Monitoring-Alert (Grafana/Prometheus) oder manuelle Meldung
+- Erstbewertung: welche Daten betroffen, Umfang, potenzielle Ursache
+- Sofortmaßnahme: betroffenen Service isolieren (NetworkPolicy oder Deployment stoppen)
+- Dokumentation: Zeitpunkt, Art, erste Einschätzung
+
+**Stufe 2 — Bewertung (4–72 Stunden):**
+- Vollständige Analyse: welche personenbezogenen Daten, wie viele Betroffene, Risiko für Rechte und Freiheiten
+- Wenn **kein Risiko** für Betroffene: interne Dokumentation ausreichend (Art. 33 Abs. 1 Satz 2)
+- Wenn **Risiko** besteht: Meldung an zuständige Aufsichtsbehörde innerhalb 72 Stunden
+
+**Stufe 3 — Meldung (sofern erforderlich):**
+- Meldung an Datenschutz-Aufsichtsbehörde (Art. 33): Name/Kontakt des Verantwortlichen, Art der Panne, betroffene Datenkategorien, Anzahl betroffene Personen, voraussichtliche Folgen, ergriffene Maßnahmen
+- Benachrichtigung der Betroffenen (Art. 34): wenn voraussichtlich **hohes Risiko** für persönliche Rechte
+
+**Kontaktpunkt:** `CONTACT_EMAIL` (Verantwortlicher lt. Impressum)
+
+---
+
+### 5.5 Art. 35 — Datenschutz-Folgenabschätzung (DPIA)
+
+**Schwellwert-Prüfung nach Art. 35 Abs. 3 DSGVO:**
+
+| Kriterium | Bewertung |
+|-----------|-----------|
+| Systematische umfangreiche Verarbeitung besonderer Kategorien (Art. 9/10) | Nein — keine Gesundheits-, Bio- oder Strafverfolgungsdaten |
+| Systematische Überwachung öffentlich zugänglicher Bereiche | Nein — geschlossene Plattform, nur authentifizierte Nutzer |
+| Umfangreiches Profiling | Nein — kein Profiling, kein Tracking |
+| Neue Technologien mit hohem Risiko | Bedingt — KI (Claude Code MCP), aber: read-only, kein Zugriff auf Nutzerdaten |
+| Anzahl betroffener Personen | < 50 Nutzer (kleines Team) |
+
+**Ergebnis: DPIA nicht zwingend erforderlich.**
+
+**Vorsorglich dokumentiert (Mini-DPIA):**
+- **Verarbeitungszweck:** Kollaborationsplattform für kleine Teams (Kommunikation, Dateiablage, Rechnungsstellung)
+- **Notwendigkeit/Verhältnismäßigkeit:** Vollständig on-premises, minimale Datenerhebung, FOSS-Stack, keine Drittanbieter
+- **Identifizierte Risiken:** Unbefugter Zugriff bei kompromittiertem Container — mitigiert durch NetworkPolicies + SecurityContexts; Datenverlust — mitigiert durch verschlüsselte Backups
+- **Verbleibende Risiken:** Physischer Serverzugang (Hetzner-RZ, außerhalb K8s-Scope) — NIEDRIG
+
+---
+
+### 5.6 Betroffenenrechte-Matrix (Art. 15–22)
+
+| Art. | Recht | Technische Umsetzung | Kontaktweg |
+|------|-------|----------------------|------------|
+| 15 | **Auskunft** | Keycloak Account-Console zeigt alle gespeicherten Profildaten; Admin kann vollständigen Export erstellen | E-Mail an `CONTACT_EMAIL` |
+| 16 | **Berichtigung** | Self-Service in Keycloak Account-Console (Name, E-Mail); Nextcloud-Profil; Admin-Korrektur auf Anfrage | Self-Service oder E-Mail |
+| 17 | **Löschung** | Admin löscht Keycloak-User → OIDC-Session-Cascade beendet Zugang zu allen Services; Dateien in Nextcloud werden separat gelöscht | E-Mail an `CONTACT_EMAIL` |
+| 18 | **Einschränkung** | Admin deaktiviert Keycloak-User → Zugang gesperrt, Daten erhalten | E-Mail an `CONTACT_EMAIL` |
+| 20 | **Datenportabilität** | Nextcloud: Dateien über WebDAV/Download exportierbar; Mattermost: Data-Export-API (`/api/v4/compliance/reports`) | Self-Service oder E-Mail |
+| 21 | **Widerspruch** | Kontaktformular auf Website oder E-Mail; keine automatisierten Entscheidungen auf Basis der Daten | Kontaktformular Website |
+| 22 | **Keine Automatisierung** | Keine automatisierten Einzelentscheidungen mit Rechtswirkung implementiert | Nicht anwendbar |
+
+---
+
+### 5.7 Verarbeitungsverzeichnis (Art. 30)
+
+Vollständiges Verarbeitungsverzeichnis: [`docs/verarbeitungsverzeichnis.md`](verarbeitungsverzeichnis.md)
+
+---
+
+### 5.8 Automatisierte DSGVO-Prüfung
+
+```bash
+scripts/dsgvo-compliance-check.sh           # Menschenlesbar (12 Checks D01–D12)
+scripts/dsgvo-compliance-check.sh --json    # JSON-Ausgabe für Grafana-Dashboard
+task workspace:dsgvo-check                  # Kurzbefehl
+```
+
+| Check | Beschreibung |
+|-------|-------------|
+| D01 | Keine Container-Images von US-Cloud-Anbietern (gcr.io, amazonaws, azurecr) |
+| D02 | Keine externen Tracking-Domains auflösbar (google-analytics, sentry.io, telemetry.mattermost) |
+| D03 | Alle PersistentVolumes nutzen lokalen Storage (keine Cloud-StorageClasses) |
+| D04 | Keycloak Audit-Events aktiviert |
+| D05 | Mattermost Audit-Log abrufbar |
+| D06 | Keine proprietären Telemetrie-Dienste im Cluster (datadog, newrelic, splunk) |
+| D07 | Alle Container-Images sind Open-Source-Projekte |
+| D08 | SMTP-Server ist cluster-intern (Mailpit, kein externer Mail-Relay) |
+| D09 | TLS-Zertifikat (workspace-wildcard-tls) vorhanden (Art. 32) |
+| D10 | Passwortrichtlinie in Keycloak-Realm konfiguriert (Art. 32) |
+| D11 | Backup-CronJob aktiv (Art. 32 — Datenverfügbarkeit) |
+| D12 | NetworkPolicy Default-Deny-Ingress aktiv (Art. 32 — Netzwerksegmentierung) |
 
 ---
 

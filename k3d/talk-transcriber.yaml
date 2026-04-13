@@ -1,0 +1,79 @@
+# ── Nextcloud Talk Live-Transkription ─────────────────────────────────────────
+# Pollt auf aktive Calls, tritt headless bei (Firefox + PulseAudio),
+# schickt 10-s-Chunks an Whisper, postet Transkripte in den Talk-Chat.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: talk-transcriber
+  labels:
+    app: talk-transcriber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: talk-transcriber
+  template:
+    metadata:
+      labels:
+        app: talk-transcriber
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: transcriber
+          image: registry.localhost:5000/talk-transcriber:latest
+          env:
+            - name: NC_DOMAIN
+              value: "nextcloud"
+            - name: NC_PROTOCOL
+              value: "http"
+            - name: WHISPER_BASE_URL
+              value: "http://whisper:8000"
+            - name: CHUNK_SECONDS
+              value: "10"
+            - name: TRANSCRIBER_BOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: TRANSCRIBER_BOT_PASSWORD
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 2Gi
+              cpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+      volumes:
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: talk-transcriber
+spec:
+  selector:
+    app: talk-transcriber
+  ports:
+    - port: 8000
+      targetPort: 8000

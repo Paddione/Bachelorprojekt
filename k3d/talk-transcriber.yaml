@@ -39,6 +39,8 @@ spec:
                   key: TRANSCRIBER_BOT_PASSWORD
           ports:
             - containerPort: 8000
+          securityContext:
+            allowPrivilegeEscalation: false
           volumeMounts:
             - name: shm
               mountPath: /dev/shm

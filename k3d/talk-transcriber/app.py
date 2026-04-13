@@ -4,7 +4,7 @@ talk-transcriber — Nextcloud Talk Live-Transkription
 Pollt alle CHUNK_SECONDS nach aktiven Calls, tritt headless bei,
 buffert Audio und schickt 10-s-Chunks an Whisper.
 """
-import asyncio, os, subprocess, tempfile
+import asyncio, itertools, os, subprocess, tempfile
 from pathlib import Path
 
 import httpx
@@ -17,6 +17,8 @@ NC_USER  = "transcriber-bot"
 NC_PASS  = os.environ["TRANSCRIBER_BOT_PASSWORD"]
 WHISPER  = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 CHUNK_S  = int(os.environ.get("CHUNK_SECONDS", "10"))
+
+_display_counter = itertools.count(11)  # :11, :12, :13, ...
 
 app = FastAPI()
 sessions: dict[str, dict] = {}  # room_token → session state
@@ -69,7 +71,7 @@ async def tick(client: httpx.AsyncClient) -> None:
 
 async def run_session(token: str, client: httpx.AsyncClient) -> None:
     sink    = f"nc_t_{token[:6]}"
-    display = f":{abs(hash(token)) % 89 + 11}"
+    display = f":{next(_display_counter)}"
     print(f"[{token}] starting", flush=True)
 
     xvfb = subprocess.Popen(["Xvfb", display, "-screen", "0", "1280x720x24"])

@@ -371,6 +371,11 @@ tasks:
       - 'echo "  Talk:        http://files.localhost/apps/spreed"'
       - 'echo "  Collabora:   WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
       - 'echo "  notify_push: {{.PUSH_URL}}"'
+      - 'echo "  Whiteboard:    http://board.localhost (Talk-Tab in jedem Room)"'
+      - 'echo "  Forms:         http://files.localhost/apps/forms"'
+      - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
+      - 'echo "  Transkription: stt_whisper2 → http://whisper:8000/v1"'
+      - 'echo "  Aufnahme:      Talk-Room > ··· > Aufnahme starten"'
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"

@@ -37,7 +37,7 @@ spec:
             - allkeys-lru
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 999
             capabilities:

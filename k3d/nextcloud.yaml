@@ -183,6 +183,13 @@ spec:
         # ── Cron sidecar: runs php cron.php every 5 min ───────────────
         - name: nextcloud-cron
           image: nextcloud:33-apache
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -212,6 +219,13 @@ spec:
         # ── notify_push sidecar: client-push WebSocket server ─────────
         - name: notify-push
           image: nextcloud:33-apache
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           command: ["/bin/sh", "-c"]
           args:
             - |

@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 const DOMAIN = (process.env.TEST_BASE_URL || '').replace(/https?:\/\/chat\./, '') || 'localhost';
+const SMOKE_KC_USER = process.env.SMOKE_KC_USER || process.env.MM_TEST_USER || 'Paddione';
+const SMOKE_KC_PASS = process.env.SMOKE_KC_PASS || process.env.MM_TEST_PASS || 'Plotterpapier11!$';
 
 test.describe('Integration Smoke Tests', () => {
 
@@ -82,9 +84,7 @@ test.describe('Integration Smoke Tests', () => {
     expect(page.url()).toContain('openid-connect');
   });
 
-  test('Keycloak login with paddione succeeds', async ({ page }) => {
-    const adminUser = process.env.MM_ADMIN_USER || 'paddione';
-    const adminPass = process.env.MM_ADMIN_PASS || '170591pk!Gekko';
+  test('Keycloak login via SSO succeeds', async ({ page }) => {
     await page.goto(`https://chat.${DOMAIN}/login`);
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try { await browserLink.waitFor({ state: 'visible', timeout: 3000 }); await browserLink.click(); } catch {}
@@ -94,8 +94,8 @@ test.describe('Integration Smoke Tests', () => {
     await ssoButton.click();
     await page.waitForURL(/auth\./, { timeout: 10_000 });
 
-    await page.locator('#username').fill(adminUser);
-    await page.locator('#password').fill(adminPass);
+    await page.locator('#username').fill(SMOKE_KC_USER);
+    await page.locator('#password').fill(SMOKE_KC_PASS);
     await page.locator('#kc-login').click();
 
     await page.waitForURL(/chat\..*\/(channels|landing)/, { timeout: 20_000 });

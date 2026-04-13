@@ -328,12 +328,8 @@ tasks:
         esac
         WB_JWT=$(kubectl get secret workspace-secrets -n workspace \
           -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' | base64 -d)
-        kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
-          su -s /bin/bash www-data -c \
-          "php occ config:app:set whiteboard collabBackendUrl --value='${BOARD_URL}'"
-        kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
-          su -s /bin/bash www-data -c \
-          "php occ config:app:set whiteboard jwt_secret_key --value='${WB_JWT}'"
+        {{.NC_EXEC}} "php occ config:app:set whiteboard collabBackendUrl --value='${BOARD_URL}'" || true
+        {{.NC_EXEC}} "php occ config:app:set whiteboard jwt_secret_key --value='${WB_JWT}'" || true
       - echo ""
       - echo "Running hardening (DB indices, missing columns, MIME repair)..."
       - '{{.NC_EXEC}} "php occ db:add-missing-indices"           || true'

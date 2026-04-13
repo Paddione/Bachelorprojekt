@@ -34,6 +34,7 @@
   let loading = $state(true);
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
+  let agbAccepted = $state(false);
 
   const bookingTypes = [
     { value: 'erstgespraech', label: 'Kostenloses Erstgespräch (30 Min.)' },
@@ -78,7 +79,7 @@
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!selectedSlot) return;
+    if (!selectedSlot || !agbAccepted) return;
     submitting = true;
     result = null;
 
@@ -252,9 +253,23 @@
         ></textarea>
       </div>
 
+      <div class="flex items-start gap-3">
+        <input
+          id="b-agb"
+          type="checkbox"
+          bind:checked={agbAccepted}
+          required
+          class="mt-1 w-5 h-5 rounded border-dark-lighter bg-dark text-gold focus:ring-gold-dim cursor-pointer flex-shrink-0"
+        />
+        <label for="b-agb" class="text-muted text-sm leading-relaxed cursor-pointer">
+          Ich habe die <a href="/agb" class="text-gold hover:underline" target="_blank">AGB</a> gelesen
+          und akzeptiere sie. <span class="text-gold">*</span>
+        </label>
+      </div>
+
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !agbAccepted}
         class="w-full bg-gold hover:bg-gold-light disabled:bg-dark-lighter disabled:text-muted-dark text-dark px-8 py-4 rounded-full font-bold text-lg transition-colors cursor-pointer disabled:cursor-not-allowed uppercase tracking-wide"
       >
         {#if submitting}

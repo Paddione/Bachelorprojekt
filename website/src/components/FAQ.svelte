@@ -9,7 +9,7 @@
     title?: string;
   }
 
-  let { items, title = 'Haufig gestellte Fragen' }: Props = $props();
+  let { items, title = 'Häufig gestellte Fragen' }: Props = $props();
   let openIndex = $state<number | null>(null);
 
   function toggle(index: number) {
@@ -28,20 +28,26 @@
             class="w-full text-left px-6 py-5 flex items-center justify-between gap-4 hover:bg-dark-lighter/50 transition-colors"
             onclick={() => toggle(i)}
             aria-expanded={openIndex === i}
+            aria-controls="faq-answer-{i}"
           >
             <span class="text-lg font-semibold text-light">{item.question}</span>
             <svg
               class="w-6 h-6 text-gold flex-shrink-0 transition-transform duration-300 {openIndex === i ? 'rotate-180' : ''}"
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          {#if openIndex === i}
-            <div class="px-6 pb-5 text-muted text-lg leading-relaxed border-t border-dark-lighter pt-4">
-              {item.answer}
-            </div>
-          {/if}
+          <div
+            id="faq-answer-{i}"
+            role="region"
+            aria-label={item.question}
+            hidden={openIndex !== i}
+            class="px-6 pb-5 text-muted text-lg leading-relaxed border-t border-dark-lighter pt-4"
+          >
+            {item.answer}
+          </div>
         </div>
       {/each}
     </div>

@@ -12,7 +12,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
   });
 
   test('T2: Subpages are reachable', async ({ page }) => {
-    const servicePages = (process.env.WEBSITE_SERVICE_PAGES || '/digital-cafe,/coaching,/beratung').split(',');
+    const servicePages = (process.env.WEBSITE_SERVICE_PAGES || '/leistungen,/ueber-mich').split(',');
     const pages = [
       ...servicePages,
       '/ueber-mich',

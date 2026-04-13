@@ -1,0 +1,167 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { config } from '../config/index';
+
+const { contact, legal, services } = config;
+---
+
+<Layout title="AGB">
+  <section class="pt-28 pb-20">
+    <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
+      <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
+
+      <h2>§ 1 Geltungsbereich</h2>
+      <p>
+        Diese Allgemeinen Geschäftsbedingungen gelten für alle Verträge zwischen
+        {contact.name}, {legal.tagline} (nachfolgend „Anbieter") und dessen Auftraggebern
+        (nachfolgend „Auftraggeber"). Abweichende Bedingungen des Auftraggebers werden nicht
+        anerkannt, es sei denn, der Anbieter stimmt ihrer Geltung ausdrücklich schriftlich zu.
+      </p>
+
+      <h2>§ 2 Vertragsschluss</h2>
+      <p>
+        Eine Buchungsanfrage über die Website stellt ein Angebot des Auftraggebers zum Abschluss
+        eines Vertrages dar. Der Vertrag kommt erst durch die schriftliche oder elektronische
+        Auftragsbestätigung des Anbieters zustande. Automatisch generierte Eingangsbestätigungen
+        gelten nicht als Vertragsannahme.
+      </p>
+
+      <h2>§ 3 Leistungen</h2>
+      <p>Der Anbieter erbringt folgende Leistungen:</p>
+      <ul>
+        {services.map((s) => (
+          <li>
+            <strong>{s.title}</strong> – {s.description}
+            {s.price && s.price !== 'nach Vereinbarung' && (
+              <> (<span class="text-slate-500">{s.price}</span>)</>
+            )}
+          </li>
+        ))}
+      </ul>
+      <p>
+        Der genaue Leistungsumfang wird für jedes Engagement individuell vereinbart.
+        Änderungen oder Erweiterungen des Leistungsumfangs bedürfen der schriftlichen Bestätigung
+        durch den Anbieter.
+      </p>
+
+      <h2>§ 4 Preise und Zahlung</h2>
+      <p>
+        Alle Preise verstehen sich in Euro. Der Anbieter ist Kleinunternehmer gemäß § 19 Abs. 1
+        UStG; es wird daher keine Umsatzsteuer ausgewiesen.
+      </p>
+      <p>
+        Bei Einzelsitzungen wird die Rechnung nach Buchungsbestätigung gestellt und ist innerhalb
+        von 7 Tagen fällig. Die Leistung beginnt nach Zahlungseingang. Bei Paketen und Projekten
+        werden Zahlungsmodalitäten individuell schriftlich vereinbart.
+      </p>
+      <p>
+        Die Zahlung erfolgt per Überweisung auf das vom Anbieter angegebene Konto.
+        Bei Zahlungsverzug ist der Anbieter berechtigt, weitere Leistungen bis zum Ausgleich
+        des offenen Betrages zurückzuhalten.
+      </p>
+
+      <h2>§ 5 Stornierung und Terminabsage</h2>
+      <p>
+        Eine kostenfreie Stornierung ist bis 72 Stunden vor dem vereinbarten Termin möglich.
+        Die Stornierung muss in Textform (z. B. per E-Mail) erfolgen.
+      </p>
+      <p>
+        Bei einer Absage weniger als 72 Stunden vor dem Termin ist das vereinbarte Honorar
+        vollständig fällig, es sei denn, der Anbieter kann den Termin anderweitig vergeben.
+      </p>
+      <p>
+        Ausnahme: Bei nachgewiesener Erkrankung (ärztliches Attest innerhalb von 3 Werktagen)
+        entfällt die Ausfallgebühr; eine kostenfreie Neubuchung wird ermöglicht.
+      </p>
+      <p>
+        Der Anbieter behält sich vor, Termine bei eigener Verhinderung abzusagen. In diesem
+        Fall wird ein kostenfreier Ersatztermin angeboten. Schadensersatzansprüche des
+        Auftraggebers entstehen hieraus nicht.
+      </p>
+
+      <h2>§ 6 Widerrufsrecht</h2>
+      <p>
+        Verbrauchern steht ein gesetzliches Widerrufsrecht gemäß § 312g BGB zu. Die
+        Widerrufsfrist beträgt 14 Tage ab dem Tag des Vertragsschlusses.
+      </p>
+      <p>
+        Das Widerrufsrecht erlischt vorzeitig, wenn der Auftraggeber ausdrücklich zugestimmt
+        hat, dass der Anbieter mit der Ausführung der Dienstleistung vor Ablauf der
+        Widerrufsfrist beginnt, und der Auftraggeber bestätigt hat, dass er mit dem
+        vollständigen Erlöschen des Widerrufsrechts bei vollständiger Vertragserfüllung
+        einverstanden ist.
+      </p>
+      <p>
+        Zur Ausübung des Widerrufsrechts ist eine eindeutige Erklärung an folgende Adresse
+        zu richten:
+      </p>
+      <p>
+        {contact.name}<br />
+        {legal.street && <>{legal.street}<br /></>}
+        {legal.zip && <>{legal.zip} {contact.city}<br /></>}
+        {!legal.street && <>{contact.city}<br /></>}
+        {contact.email}
+      </p>
+
+      <p><strong>Muster-Widerrufsformular</strong></p>
+      <blockquote>
+        <p>
+          An: {contact.name},{' '}
+          {legal.street && <>{legal.street}, </>}
+          {legal.zip && <>{legal.zip} </>}
+          {contact.city},{' '}
+          {contact.email}
+        </p>
+        <p>
+          Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über
+          die Erbringung der folgenden Dienstleistung (*):
+        </p>
+        <p>Bestellt am (*) / erhalten am (*):</p>
+        <p>Name des/der Verbraucher(s):</p>
+        <p>Anschrift des/der Verbraucher(s):</p>
+        <p>Datum:</p>
+        <p><em>(*) Unzutreffendes streichen.</em></p>
+      </blockquote>
+
+      <h2>§ 7 Haftung</h2>
+      <p>
+        Der Anbieter haftet unbeschränkt für Schäden aus der Verletzung des Lebens, des Körpers
+        oder der Gesundheit sowie für Schäden, die auf Vorsatz oder grober Fahrlässigkeit
+        beruhen.
+      </p>
+      <p>
+        Bei leichter Fahrlässigkeit haftet der Anbieter nur, sofern eine wesentliche
+        Vertragspflicht (Kardinalpflicht) verletzt wird. In diesem Fall ist die Haftung auf den
+        vorhersehbaren, vertragstypischen Schaden begrenzt.
+      </p>
+      <p>
+        Eine Haftung für entgangenen Gewinn, mittelbare Schäden oder Folgeschäden ist
+        ausgeschlossen, soweit gesetzlich zulässig. Die Vorschriften des
+        Produkthaftungsgesetzes bleiben unberührt.
+      </p>
+
+      <h2>§ 8 Datenschutz</h2>
+      <p>
+        Personenbezogene Daten werden gemäß den Bestimmungen der DSGVO verarbeitet.
+        Einzelheiten entnehmen Sie bitte der{' '}
+        <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklärung</a>.
+      </p>
+
+      <h2>§ 9 Schlussbestimmungen</h2>
+      <p>
+        Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
+        UN-Kaufrechts (CISG).
+      </p>
+      <p>
+        Für Kaufleute sowie juristische Personen des öffentlichen Rechts ist
+        {contact.city} als Gerichtsstand vereinbart.
+      </p>
+      <p>
+        Sollten einzelne Bestimmungen dieser AGB unwirksam sein oder werden, bleibt die
+        Wirksamkeit der übrigen Bestimmungen unberührt. Die unwirksame Bestimmung gilt als durch
+        eine wirksame Regelung ersetzt, die dem wirtschaftlichen Zweck der unwirksamen Bestimmung
+        am nächsten kommt (salvatorische Klausel).
+      </p>
+    </div>
+  </section>
+</Layout>

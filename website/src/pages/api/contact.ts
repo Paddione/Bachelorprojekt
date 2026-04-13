@@ -3,9 +3,9 @@ import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName }
 
 const TYPE_LABELS: Record<string, string> = {
   allgemein: 'Allgemeine Anfrage',
-  erstgespraech: 'Kostenloses Erstgesprach',
-  'digital-cafe': 'Digital Cafe 50+',
-  coaching: 'Fuhrungskrafte-Coaching',
+  erstgespraech: 'Kostenloses Erstgespräch',
+  'digital-cafe': 'Digital Café 50+',
+  coaching: 'Führungskräfte-Coaching',
   beratung: 'Unternehmensberatung',
   support: 'Support',
   feedback: 'Feedback',
@@ -28,14 +28,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!name?.trim() || !email?.trim() || !message?.trim()) {
       return new Response(
-        JSON.stringify({ error: 'Bitte fullen Sie alle Pflichtfelder aus.' }),
+        JSON.stringify({ error: 'Bitte füllen Sie alle Pflichtfelder aus.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(
-        JSON.stringify({ error: 'Bitte geben Sie eine gultige E-Mail-Adresse an.' }),
+        JSON.stringify({ error: 'Bitte geben Sie eine gültige E-Mail-Adresse an.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }

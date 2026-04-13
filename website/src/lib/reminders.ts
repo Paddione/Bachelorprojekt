@@ -97,7 +97,7 @@ ${row.meeting_url}
 
 Klicken Sie auf den Link, um dem Meeting beizutreten.
 
-Mit freundlichen Grussen
+Mit freundlichen Grüßen
 ${BRAND_NAME}`,
       html: `<p>Hallo ${row.name},</p>
 <p><strong>Ihr Termin beginnt in 10 Minuten!</strong></p>
@@ -107,7 +107,7 @@ ${BRAND_NAME}`,
 <tr><td style="padding:4px 12px 4px 0;color:#666">Uhrzeit</td><td>${startTime}</td></tr>
 </table>
 <p><a href="${row.meeting_url}" style="display:inline-block;background:#e8c870;color:#0f1623;padding:12px 24px;border-radius:25px;text-decoration:none;font-weight:bold">Zum Meeting beitreten</a></p>
-<p>Mit freundlichen Grussen<br>${BRAND_NAME}</p>`,
+<p>Mit freundlichen Grüßen<br>${BRAND_NAME}</p>`,
     });
 
     if (emailSent) {

@@ -9,6 +9,7 @@ resources:
   - cluster-issuer.yaml
   - wildcard-certificate.yaml
   - traefik-middlewares.yaml
+  - old-webspace.yaml
 
 # Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
 configMapGenerator:

@@ -183,18 +183,18 @@ export const POST: APIRoute = async ({ request }) => {
         const meetingLinkText = room ? `\n\nIhr Meeting-Link:\n${room.url}\n\nSie erhalten 10 Minuten vor dem Termin eine Erinnerung mit dem Link.` : '';
         await sendEmail({
           to: bEmail,
-          subject: `Termin bestatigt: ${typeLabel} am ${dateFormatted}`,
-          text: `Hallo ${bName},\n\nIhr Termin wurde bestatigt!\n\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}${meetingLinkText}\n\nWir freuen uns auf das Gesprach.\n\nMit freundlichen Grussen\n${BRAND_NAME}`,
-          html: `<p>Hallo ${bName},</p><p><strong>Ihr Termin wurde bestatigt!</strong></p><table style="border-collapse:collapse;margin:16px 0"><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Typ</td><td style="color:#e8e8f0">${typeLabel}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Datum</td><td style="color:#e8e8f0">${dateFormatted}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Uhrzeit</td><td style="color:#e8e8f0">${slotDisplay}</td></tr></table>${room ? `<p><a href="${room.url}" style="display:inline-block;background:#e8c870;color:#0f1623;padding:12px 24px;border-radius:25px;text-decoration:none;font-weight:bold">Zum Meeting beitreten</a></p><p style="color:#aabbcc;font-size:14px">Sie erhalten 10 Minuten vor dem Termin eine Erinnerung.</p>` : ''}<p>Mit freundlichen Grussen<br>${BRAND_NAME}</p>`,
+          subject: `Termin bestätigt: ${typeLabel} am ${dateFormatted}`,
+          text: `Hallo ${bName},\n\nIhr Termin wurde bestätigt!\n\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}${meetingLinkText}\n\nWir freuen uns auf das Gespräch.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
+          html: `<p>Hallo ${bName},</p><p><strong>Ihr Termin wurde bestätigt!</strong></p><table style="border-collapse:collapse;margin:16px 0"><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Typ</td><td style="color:#e8e8f0">${typeLabel}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Datum</td><td style="color:#e8e8f0">${dateFormatted}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Uhrzeit</td><td style="color:#e8e8f0">${slotDisplay}</td></tr></table>${room ? `<p><a href="${room.url}" style="display:inline-block;background:#e8c870;color:#0f1623;padding:12px 24px;border-radius:25px;text-decoration:none;font-weight:bold">Zum Meeting beitreten</a></p><p style="color:#aabbcc;font-size:14px">Sie erhalten 10 Minuten vor dem Termin eine Erinnerung.</p>` : ''}<p>Mit freundlichen Grüßen<br>${BRAND_NAME}</p>`,
         });
-        statusParts.push(':email: Bestatigungs-E-Mail versendet');
+        statusParts.push(':email: Bestätigungs-E-Mail versendet');
 
         // Update Mattermost post
         const statusText = statusParts.map((s) => `- ${s}`).join('\n');
-        await updatePost(post_id, `### :white_check_mark: Termin bestatigt\n\n**${bName}** (${bEmail})\n${typeLabel} am ${dateFormatted}, ${slotDisplay}\n\n${statusText}`);
-        await replyToPost(post_id, channel_id, `:white_check_mark: Termin mit **${bName}** bestatigt — alle Systeme eingerichtet.`);
+        await updatePost(post_id, `### :white_check_mark: Termin bestätigt\n\n**${bName}** (${bEmail})\n${typeLabel} am ${dateFormatted}, ${slotDisplay}\n\n${statusText}`);
+        await replyToPost(post_id, channel_id, `:white_check_mark: Termin mit **${bName}** bestätigt — alle Systeme eingerichtet.`);
 
-        return new Response(JSON.stringify({ update: { message: `### :white_check_mark: Termin bestatigt\n\n**${bName}** — ${typeLabel} am ${dateFormatted}, ${slotDisplay}\n\n${statusText}`, props: { attachments: [] } } }));
+        return new Response(JSON.stringify({ update: { message: `### :white_check_mark: Termin bestätigt\n\n**${bName}** — ${typeLabel} am ${dateFormatted}, ${slotDisplay}\n\n${statusText}`, props: { attachments: [] } } }));
       }
 
       case 'decline_booking': {
@@ -206,7 +206,7 @@ export const POST: APIRoute = async ({ request }) => {
         await sendEmail({
           to: dEmail,
           subject: `Zu Ihrer Terminanfrage bei ${BRAND_NAME}`,
-          text: `Hallo ${dName},\n\nleider konnen wir den angefragten Termin (${dType} am ${dDateFormatted}, ${dSlot}) nicht bestatigen.\n\nBitte wahlen Sie einen alternativen Termin unter https://web.${PROD_DOMAIN}/termin oder kontaktieren Sie uns direkt.\n\nMit freundlichen Grussen\n${BRAND_NAME}`,
+          text: `Hallo ${dName},\n\nleider können wir den angefragten Termin (${dType} am ${dDateFormatted}, ${dSlot}) nicht bestätigen.\n\nBitte wählen Sie einen alternativen Termin unter https://web.${PROD_DOMAIN}/termin oder kontaktieren Sie uns direkt.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
         });
 
         await updatePost(post_id, `### :x: Termin abgelehnt\n\n**${dName}** (${dEmail})\n${dType} am ${dDateFormatted}, ${dSlot}\n\nAbsage per E-Mail versendet.`);
@@ -238,7 +238,7 @@ export const POST: APIRoute = async ({ request }) => {
           await updatePost(post_id, `### :white_check_mark: Meeting abgeschlossen\n\n**${fName}** — ${fType}\n\n${resultLines}`);
           return new Response(JSON.stringify({ update: { message: `### :white_check_mark: Meeting abgeschlossen\n\n**${fName}** — ${fType}\n\n${resultLines}`, props: { attachments: [] } } }));
         } else {
-          await replyToPost(post_id, channel_id, ':warning: Meeting-Finalisierung fehlgeschlagen. Bitte manuell prufen.');
+          await replyToPost(post_id, channel_id, ':warning: Meeting-Finalisierung fehlgeschlagen. Bitte manuell prüfen.');
           return new Response(JSON.stringify({ ephemeral_text: 'Finalisierung fehlgeschlagen.' }));
         }
       }

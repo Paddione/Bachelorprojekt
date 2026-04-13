@@ -11,3 +11,6 @@ spec:
         - name: billing-bot
           image: ghcr.io/paddione/billing-bot:latest
           imagePullPolicy: Always
+          env:
+            - name: SCHEME
+              value: "https"

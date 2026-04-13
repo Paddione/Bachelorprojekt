@@ -1,12 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+function deriveServiceURL(sub: string, fallback: string): string {
+  const base = process.env.TEST_BASE_URL ?? '';
+  const m = base.match(/^https:\/\/[^.]+\.(.+)$/);
+  return m ? `https://${sub}.${m[1]}` : fallback;
+}
+
 const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN
   ? `https://${process.env.NC_DOMAIN}`
-  : 'http://files.localhost');
+  : deriveServiceURL('files', 'http://files.localhost'));
 
 const SIGNALING_URL = process.env.TEST_SIGNALING_URL || (process.env.SIGNALING_DOMAIN
   ? `https://${process.env.SIGNALING_DOMAIN}`
-  : 'http://signaling.localhost');
+  : deriveServiceURL('signaling', 'http://signaling.localhost'));
 
 test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
   test('T1: Talk-Oberfläche öffnen', async ({ page }) => {
@@ -18,7 +24,7 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
     }
 
     await expect(
-      page.locator('[data-app-id="spreed"], .app-spreed, [id="content"], .guest-box, #body-login')
+      page.locator('[data-app-id="spreed"], .app-spreed, [id="content"], .guest-box, #body-login').first()
     ).toBeVisible({ timeout: 20_000 });
   });
 
@@ -41,7 +47,7 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
     }
 
     await expect(
-      page.locator('[data-app-id="spreed"], .app-spreed, .guest-box, [id="content"], #body-login')
+      page.locator('[data-app-id="spreed"], .app-spreed, .guest-box, [id="content"], #body-login').first()
     ).toBeVisible({ timeout: 20_000 });
     await context.close();
   });

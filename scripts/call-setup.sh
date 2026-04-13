@@ -33,7 +33,7 @@ echo ""
 # ── Auto-detect Mattermost URL ────────────────────────────────────────────
 if [ -z "${MM_URL}" ]; then
   MM_URL=$(${KUBECTL} exec -n "${NAMESPACE}" deploy/mattermost -- \
-    printenv MM_SERVICESETTINGS_SITEURL 2>/dev/null || echo "http://chat.localhost")
+    mmctl --local config get ServiceSettings.SiteURL 2>/dev/null | tr -d '"' || echo "http://chat.localhost")
 fi
 
 echo "  Mattermost: ${MM_URL}"

@@ -7,6 +7,7 @@ metadata:
 spec:
   tls:
     - hosts:
+        - ${PROD_DOMAIN}
         - auth.${PROD_DOMAIN}
         - chat.${PROD_DOMAIN}
         - files.${PROD_DOMAIN}
@@ -24,6 +25,18 @@ spec:
         - wiki.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
+    # Apex domain → old webspace (185.30.32.28)
+    - host: ${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: old-webspace
+                port:
+                  number: 443
+
     # Keycloak (SSO)
     - host: auth.${PROD_DOMAIN}
       http:
@@ -183,3 +196,4 @@ spec:
                 name: outline
                 port:
                   number: 80
+

@@ -283,8 +283,8 @@ tasks:
   workspace:transcriber-build:
     desc: Build and push talk-transcriber image to local registry
     cmds:
-      - docker build -t {{.REGISTRY}}/talk-transcriber:latest k3d/talk-transcriber/
-      - docker push {{.REGISTRY}}/talk-transcriber:latest
+      - docker build -t {{.REGISTRY}}/talk-transcriber:v1 k3d/talk-transcriber/
+      - docker push {{.REGISTRY}}/talk-transcriber:v1
       - 'echo "✓ talk-transcriber image pushed to {{.REGISTRY}}"'
 
   workspace:transcriber-setup:

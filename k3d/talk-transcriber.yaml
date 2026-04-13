@@ -22,7 +22,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: transcriber
-          image: registry.localhost:5000/talk-transcriber:latest
+          image: registry.localhost:5000/talk-transcriber:v1
           env:
             - name: NC_DOMAIN
               value: "nextcloud"

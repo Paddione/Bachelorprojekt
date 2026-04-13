@@ -333,20 +333,20 @@ Bei Feststellung einer Datenpanne gilt folgendes Verfahren:
 
 **Stufe 2 — Bewertung (4–72 Stunden):**
 - Vollständige Analyse: welche personenbezogenen Daten, wie viele Betroffene, Risiko für Rechte und Freiheiten
-- Wenn **kein Risiko** für Betroffene: interne Dokumentation ausreichend (Art. 33 Abs. 1 Satz 2)
+- Wenn **kein Risiko** für Betroffene: interne Dokumentation ausreichend (Art. 33 Abs. 1)
 - Wenn **Risiko** besteht: Meldung an zuständige Aufsichtsbehörde innerhalb 72 Stunden
 
 **Stufe 3 — Meldung (sofern erforderlich):**
 - Meldung an Datenschutz-Aufsichtsbehörde (Art. 33): Name/Kontakt des Verantwortlichen, Art der Panne, betroffene Datenkategorien, Anzahl betroffene Personen, voraussichtliche Folgen, ergriffene Maßnahmen
 - Benachrichtigung der Betroffenen (Art. 34): wenn voraussichtlich **hohes Risiko** für persönliche Rechte
 
-**Kontaktpunkt:** `CONTACT_EMAIL` (Verantwortlicher lt. Impressum)
+**Kontaktpunkt:** Verantwortlicher lt. Impressum (/impressum)
 
 ---
 
 ### 5.5 Art. 35 — Datenschutz-Folgenabschätzung (DPIA)
 
-**Schwellwert-Prüfung nach Art. 35 Abs. 3 DSGVO:**
+**Schwellwert-Prüfung nach Art. 35 Abs. 1 i.V.m. Abs. 3 DSGVO:**
 
 | Kriterium | Bewertung |
 |-----------|-----------|
@@ -370,10 +370,11 @@ Bei Feststellung einer Datenpanne gilt folgendes Verfahren:
 
 | Art. | Recht | Technische Umsetzung | Kontaktweg |
 |------|-------|----------------------|------------|
-| 15 | **Auskunft** | Keycloak Account-Console zeigt alle gespeicherten Profildaten; Admin kann vollständigen Export erstellen | E-Mail an `CONTACT_EMAIL` |
+| 15 | **Auskunft** | Keycloak Account-Console zeigt alle gespeicherten Profildaten; Admin kann vollständigen Export erstellen | E-Mail an Verantwortlichen (lt. Impressum) |
 | 16 | **Berichtigung** | Self-Service in Keycloak Account-Console (Name, E-Mail); Nextcloud-Profil; Admin-Korrektur auf Anfrage | Self-Service oder E-Mail |
-| 17 | **Löschung** | Admin löscht Keycloak-User → OIDC-Session-Cascade beendet Zugang zu allen Services; Dateien in Nextcloud werden separat gelöscht | E-Mail an `CONTACT_EMAIL` |
-| 18 | **Einschränkung** | Admin deaktiviert Keycloak-User → Zugang gesperrt, Daten erhalten | E-Mail an `CONTACT_EMAIL` |
+| 17 | **Löschung** | Admin löscht Keycloak-User → OIDC-Session-Cascade beendet Zugang zu allen Services; Dateien in Nextcloud werden separat gelöscht | E-Mail an Verantwortlichen (lt. Impressum) |
+| 18 | **Einschränkung** | Admin deaktiviert Keycloak-User → Zugang gesperrt, Daten erhalten | E-Mail an Verantwortlichen (lt. Impressum) |
+| 19 | **Mitteilung an Empfänger** | Admin benachrichtigt bekannte Empfänger (andere Services/Nutzer) bei Berichtigung oder Löschung | E-Mail an Verantwortlichen (lt. Impressum) |
 | 20 | **Datenportabilität** | Nextcloud: Dateien über WebDAV/Download exportierbar; Mattermost: Data-Export-API (`/api/v4/compliance/reports`) | Self-Service oder E-Mail |
 | 21 | **Widerspruch** | Kontaktformular auf Website oder E-Mail; keine automatisierten Entscheidungen auf Basis der Daten | Kontaktformular Website |
 | 22 | **Keine Automatisierung** | Keine automatisierten Einzelentscheidungen mit Rechtswirkung implementiert | Nicht anwendbar |

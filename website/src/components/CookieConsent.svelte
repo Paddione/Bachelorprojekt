@@ -12,8 +12,13 @@
     }
   });
 
-  function accept() {
-    localStorage.setItem(CONSENT_KEY, 'accepted');
+  function acceptAll() {
+    localStorage.setItem(CONSENT_KEY, 'all');
+    visible = false;
+  }
+
+  function acceptNecessary() {
+    localStorage.setItem(CONSENT_KEY, 'necessary');
     visible = false;
   }
 
@@ -27,9 +32,8 @@
 {#if visible}
   <div
     class="fixed bottom-0 left-0 right-0 z-50 border-t border-dark-lighter bg-dark-light shadow-lg"
-    role="dialog"
+    role="region"
     aria-label="Cookie-Einstellungen"
-    aria-modal="false"
   >
     <div class="max-w-6xl mx-auto px-6 py-4">
       <!-- Main row -->
@@ -39,19 +43,24 @@
         </div>
         <div class="flex flex-wrap gap-3 items-center shrink-0">
           <button
+            type="button"
             onclick={() => (detailsOpen = !detailsOpen)}
+            aria-expanded={detailsOpen}
+            aria-controls="cookie-details"
             class="text-xs text-muted hover:text-gold transition-colors underline underline-offset-2"
           >
             {detailsOpen ? 'Details ausblenden' : 'Details anzeigen'}
           </button>
           <button
-            onclick={accept}
+            type="button"
+            onclick={acceptNecessary}
             class="px-4 py-2 rounded text-sm font-semibold border border-gold text-gold hover:bg-gold hover:text-dark transition-colors"
           >
             Nur notwendige
           </button>
           <button
-            onclick={accept}
+            type="button"
+            onclick={acceptAll}
             class="px-4 py-2 rounded text-sm font-semibold bg-gold text-dark hover:bg-gold-light transition-colors"
           >
             Alle akzeptieren
@@ -61,7 +70,7 @@
 
       <!-- Detail panel -->
       {#if detailsOpen}
-        <div class="mt-4 pt-4 border-t border-dark-lighter">
+        <div id="cookie-details" class="mt-4 pt-4 border-t border-dark-lighter">
           <h3 class="text-sm font-semibold text-gold mb-3">Notwendige Cookies</h3>
           <p class="text-xs text-muted mb-3">
             Diese Cookies sind für die Grundfunktionen der Website zwingend erforderlich und können nicht deaktiviert werden.

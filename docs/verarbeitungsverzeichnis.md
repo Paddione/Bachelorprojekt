@@ -73,7 +73,7 @@
 | Feld | Wert |
 |------|------|
 | **Zweck** | Erstellung, Verwaltung und Archivierung von Rechnungen |
-| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. c DSGVO (rechtliche Verpflichtung: § 238 HGB, § 14 UStG) |
+| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. c DSGVO (rechtliche Verpflichtung: § 257 HGB, § 14 UStG) |
 | **Betroffene Personen** | Auftraggeber (Rechnungsempfänger) |
 | **Datenkategorien** | Name, Unternehmensname, Rechnungsadresse, E-Mail, Leistungsbeschreibung, Beträge, Rechnungsnummer, Datum |
 | **Empfänger** | Keine Dritten — On-Premises (Invoice Ninja im `workspace`-Namespace) |

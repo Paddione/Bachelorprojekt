@@ -27,6 +27,13 @@ var (
 	mattermostURL   = env("MATTERMOST_URL", "http://mattermost:8065")
 	mattermostToken = env("MATTERMOST_BOT_TOKEN", "")
 	billingDomain   = env("BILLING_DOMAIN", "billing.localhost")
+
+	// Nextcloud Talk config (for /call command)
+	nextcloudURL       = env("NEXTCLOUD_URL", "http://nextcloud.workspace.svc.cluster.local:80")
+	nextcloudAdminUser = env("NEXTCLOUD_ADMIN_USER", "admin")
+	nextcloudAdminPass = env("NEXTCLOUD_ADMIN_PASSWORD", "")
+	ncDomain           = env("NC_DOMAIN", "files.localhost")
+	scheme             = env("SCHEME", "https")
 )
 
 func env(key, fallback string) string {
@@ -66,9 +73,11 @@ type SlashResponse struct {
 }
 
 type Attachment struct {
-	Text    string   `json:"text,omitempty"`
-	Color   string   `json:"color,omitempty"`
-	Actions []Action `json:"actions,omitempty"`
+	Text      string   `json:"text,omitempty"`
+	Color     string   `json:"color,omitempty"`
+	Title     string   `json:"title,omitempty"`
+	TitleLink string   `json:"title_link,omitempty"`
+	Actions   []Action `json:"actions,omitempty"`
 }
 
 type Action struct {
@@ -159,6 +168,9 @@ func main() {
 	})
 
 	log.Printf("billing-bot listening on %s", listenAddr)
+	if nextcloudAdminPass == "" {
+		log.Printf("WARNING: NEXTCLOUD_ADMIN_PASSWORD not set — /call command will return errors")
+	}
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }
 

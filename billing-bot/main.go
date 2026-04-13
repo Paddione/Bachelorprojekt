@@ -1,7 +1,7 @@
 // billing-bot bridges Mattermost interactive messages with the Invoice Ninja v5 API.
 //
 // Endpoints:
-//   POST /slash    — Mattermost slash command (/billing)
+//   POST /slash    — Mattermost slash command (/billing, /call)
 //   POST /actions  — Mattermost interactive message actions (button clicks)
 //   GET  /healthz  — Liveness/readiness probe
 package main
@@ -180,7 +180,7 @@ func createNextcloudRoom(channelName string) (string, error) {
 	})
 
 	req, err := http.NewRequest("POST",
-		nextcloudURL+"/ocs/v2.php/apps/spreed/api/v4/room",
+		nextcloudURL+"/ocs/v2.php/apps/spreed/api/v4/room?format=json",
 		bytes.NewReader(body))
 	if err != nil {
 		return "", fmt.Errorf("build request: %w", err)

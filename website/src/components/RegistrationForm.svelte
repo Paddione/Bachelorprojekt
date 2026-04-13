@@ -149,6 +149,7 @@
 
   <p class="text-sm text-muted-dark text-center">
     Mit der Registrierung stimmen Sie unserer
-    <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklarung</a> zu.
+    <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklärung</a>
+    und unseren <a href="/agb" class="text-gold hover:underline">AGB</a> zu.
   </p>
 </form>

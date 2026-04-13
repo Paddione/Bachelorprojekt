@@ -330,6 +330,14 @@ tasks:
           -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' | base64 -d)
         {{.NC_EXEC}} "php occ config:app:set whiteboard collabBackendUrl --value='${BOARD_URL}'" || true
         {{.NC_EXEC}} "php occ config:app:set whiteboard jwt_secret_key --value='${WB_JWT}'" || true
+      - '{{.NC_EXEC}} "php occ app:install forms" || true'
+      - |
+        {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_allowlist \
+          --value='10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'"
+      - '{{.NC_EXEC}} "php occ app:install assistant"    || true'
+      - '{{.NC_EXEC}} "php occ app:install stt_whisper2" || true'
+      - '{{.NC_EXEC}} "php occ config:app:set stt_whisper2 url     --value=http://whisper:8000/v1"'
+      - '{{.NC_EXEC}} "php occ config:app:set stt_whisper2 api_key --value=local"'
       - echo ""
       - echo "Running hardening (DB indices, missing columns, MIME repair)..."
       - '{{.NC_EXEC}} "php occ db:add-missing-indices"           || true'

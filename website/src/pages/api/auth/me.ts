@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSession } from '../../../lib/auth';
+import { getSession, isAdmin } from '../../../lib/auth';
 
 // Returns the current user's session info as JSON.
 // Used by client-side Svelte components to check auth state.
@@ -22,6 +22,7 @@ export const GET: APIRoute = async ({ request }) => {
         username: session.preferred_username,
         givenName: session.given_name,
         familyName: session.family_name,
+        isAdmin: isAdmin(session),
       },
     }),
     {

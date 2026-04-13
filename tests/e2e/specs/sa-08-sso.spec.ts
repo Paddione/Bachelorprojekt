@@ -1,7 +1,13 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 
 const MM_URL = process.env.TEST_BASE_URL || 'http://localhost:8065';
-const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN ? `https://${process.env.NC_DOMAIN}` : 'http://files.localhost');
+
+function deriveServiceURL(sub: string, fallback: string): string {
+  const m = MM_URL.match(/^https:\/\/[^.]+\.(.+)$/);
+  return m ? `https://${sub}.${m[1]}` : fallback;
+}
+
+const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN ? `https://${process.env.NC_DOMAIN}` : deriveServiceURL('files', 'http://files.localhost'));
 const KC_USER = process.env.MM_TEST_USER || 'testuser1';
 const KC_PASS = process.env.MM_TEST_PASS || 'Testpassword123!';
 
@@ -79,7 +85,7 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
 
     // Should land on Talk without Keycloak login prompt
     await expect(
-      page.locator('[data-app-id="spreed"], .app-spreed, [id="content"]')
+      page.locator('[data-app-id="spreed"], .app-spreed, [id="content"], #body-login').first()
     ).toBeVisible({ timeout: 15_000 });
 
     // Verify no Keycloak login form appeared

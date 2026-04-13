@@ -19,6 +19,9 @@
     return () => window.removeEventListener('cookie-consent-reopen', handler);
   });
 
+  // Both buttons dismiss the banner. Distinct values ('all' vs 'necessary') are stored
+  // to support future conditional loading of non-essential scripts (e.g. analytics).
+  // Currently the site uses only necessary cookies, so both choices have the same effect.
   function acceptAll() {
     localStorage.setItem(CONSENT_KEY, 'all');
     visible = false;
@@ -33,7 +36,7 @@
 
 {#if visible}
   <div
-    class="fixed bottom-0 left-0 right-0 z-50 border-t border-dark-lighter bg-dark-light shadow-lg"
+    class="fixed bottom-0 left-0 right-0 z-40 border-t border-dark-lighter bg-dark-light shadow-lg"
     role="region"
     aria-label="Cookie-Einstellungen"
   >

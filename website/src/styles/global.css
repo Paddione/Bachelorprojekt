@@ -65,3 +65,18 @@ section {
 .prose hr {
   border-color: var(--color-dark-lighter);
 }
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.prose th {
+  color: var(--color-light);
+  border-bottom: 2px solid var(--color-dark-lighter);
+  padding: 0.5rem 1rem 0.5rem 0;
+  text-align: left;
+}
+.prose td {
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-dark-lighter);
+  padding: 0.5rem 1rem 0.5rem 0;
+}

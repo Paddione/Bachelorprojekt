@@ -100,3 +100,94 @@ func TestCreateNextcloudRoomNoPassword(t *testing.T) {
 		t.Error("expected error when password is empty")
 	}
 }
+
+func TestHandleSlashCallNoPassword(t *testing.T) {
+	orig := nextcloudAdminPass
+	nextcloudAdminPass = ""
+	defer func() { nextcloudAdminPass = orig }()
+
+	form := url.Values{}
+	form.Add("command", "/call")
+	form.Add("channel_name", "general")
+	form.Add("channel_id", "ch1")
+	form.Add("user_id", "u1")
+	form.Add("user_name", "testuser")
+
+	req := httptest.NewRequest("POST", "/slash", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	handleSlash(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected 200, got %d", w.Code)
+	}
+	var resp SlashResponse
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if resp.ResponseType != "ephemeral" {
+		t.Errorf("expected ephemeral on error, got %s", resp.ResponseType)
+	}
+	if !strings.Contains(resp.Text, "Fehler") {
+		t.Errorf("expected Fehler in error text, got: %s", resp.Text)
+	}
+}
+
+func TestHandleSlashCallSuccess(t *testing.T) {
+	// Mock Nextcloud Talk API
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"ocs":{"meta":{"status":"ok","statuscode":200},"data":{"token":"testtoken99"}}}`)
+	}))
+	defer srv.Close()
+
+	origURL := nextcloudURL
+	nextcloudURL = srv.URL
+	origPass := nextcloudAdminPass
+	nextcloudAdminPass = "pass"
+	origDomain := ncDomain
+	ncDomain = "files.example.com"
+	origScheme := scheme
+	scheme = "https"
+	defer func() {
+		nextcloudURL = origURL
+		nextcloudAdminPass = origPass
+		ncDomain = origDomain
+		scheme = origScheme
+	}()
+
+	form := url.Values{}
+	form.Add("command", "/call")
+	form.Add("channel_name", "general")
+	form.Add("channel_id", "ch1")
+	form.Add("user_id", "u1")
+	form.Add("user_name", "testuser")
+
+	req := httptest.NewRequest("POST", "/slash", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	handleSlash(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected 200, got %d", w.Code)
+	}
+	var resp SlashResponse
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if resp.ResponseType != "in_channel" {
+		t.Errorf("expected in_channel, got %s", resp.ResponseType)
+	}
+	if len(resp.Attachments) == 0 {
+		t.Fatal("expected at least one attachment")
+	}
+	att := resp.Attachments[0]
+	if !strings.Contains(att.TitleLink, "testtoken99") {
+		t.Errorf("expected call URL with token in TitleLink, got: %s", att.TitleLink)
+	}
+	if !strings.Contains(att.Text, "general") {
+		t.Errorf("expected channel name in text, got: %s", att.Text)
+	}
+}

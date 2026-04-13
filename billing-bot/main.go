@@ -241,6 +241,7 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := SlashRequest{
+		Command:     r.FormValue("command"),
 		ChannelID:   r.FormValue("channel_id"),
 		ChannelName: r.FormValue("channel_name"),
 		UserID:      r.FormValue("user_id"),
@@ -252,6 +253,8 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 	var resp SlashResponse
 
 	switch {
+	case req.Command == "/call":
+		resp = handleCallCommand(req)
 	case req.Text == "" || req.Text == "help":
 		// Post interactive menu via Mattermost API so buttons are stored in DB.
 		// Ephemeral slash responses don't persist, which breaks button callbacks.
@@ -273,6 +276,34 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// handleCallCommand handles the /call slash command.
+// It creates a fresh Nextcloud Talk room and returns an in-channel message
+// with a clickable "Join Call" card. On error it returns an ephemeral message.
+func handleCallCommand(req SlashRequest) SlashResponse {
+	token, err := createNextcloudRoom(req.ChannelName)
+	if err != nil {
+		log.Printf("handleCallCommand: createNextcloudRoom error: %v", err)
+		return SlashResponse{
+			ResponseType: "ephemeral",
+			Text:         "Fehler: Nextcloud Talk-Raum konnte nicht erstellt werden. Bitte versuche es erneut.",
+		}
+	}
+
+	callURL := fmt.Sprintf("%s://%s/apps/spreed/call/%s", scheme, ncDomain, token)
+
+	return SlashResponse{
+		ResponseType: "in_channel",
+		Attachments: []Attachment{
+			{
+				Color:     "#1f9b00",
+				Text:      fmt.Sprintf("📹 **#%s Call** gestartet", req.ChannelName),
+				Title:     "▶ Join Call",
+				TitleLink: callURL,
+			},
+		},
+	}
 }
 
 // postMenuViaMM creates the interactive button menu as an ephemeral post

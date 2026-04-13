@@ -504,16 +504,23 @@ tasks:
       - bash scripts/meeting-slash-setup.sh
 
   workspace:recording-setup:
-    desc: Configure Nextcloud Talk recording backend
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-      - sh: kubectl get deployment talk-recording -n workspace > /dev/null 2>&1
-        msg: "talk-recording not deployed. Run 'task workspace:deploy' first."
-      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
-        msg: "Nextcloud not deployed."
+    desc: "Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - bash scripts/recording-setup.sh
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        export KUBE_CONTEXT=""
+        [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
+        bash scripts/recording-setup.sh
+
+  workspace:recording-setup:all-prods:
+    desc: Configure Talk recording backend on all production clusters (mentolder + korczewski)
+    cmds:
+      - task: workspace:recording-setup
+        vars: { ENV: "mentolder" }
+      - task: workspace:recording-setup
+        vars: { ENV: "korczewski" }
 
   workspace:connectors:
     desc: Set up Mattermost service connectors (bookmarks + links to all workspace services)
@@ -1477,9 +1484,13 @@ tasks:
         [ -n "${ENV_CONTEXT:-}" ] && CTX_ARG="--context=${ENV_CONTEXT}"
 
         if [ "{{.ENV}}" = "dev" ]; then
+          WEBSITE_HOST="web.localhost"
+          WEBSITE_SITE_URL="http://web.localhost"
           task website:build:import ENV={{.ENV}}
           DIGEST=""
         else
+          WEBSITE_HOST="web.${PROD_DOMAIN}"
+          WEBSITE_SITE_URL="https://web.${PROD_DOMAIN}"
           task website:build ENV={{.ENV}}
           echo "Pushing ${IMAGE}:latest..."
           docker push "${IMAGE}:latest" | tee /tmp/website-push.log
@@ -1488,12 +1499,20 @@ tasks:
           [ -z "${DIGEST}" ] && { echo "ERROR: could not read digest from push"; exit 1; }
           echo "✓ Pushed digest: ${DIGEST}"
         fi
+        export WEBSITE_HOST WEBSITE_SITE_URL
 
-        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$WEBSITE_HOST \$WEBSITE_SITE_URL" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
 
         if [ -n "${DIGEST}" ]; then
           echo "Pinning deployment to ${IMAGE}@${DIGEST}..."
           kubectl ${CTX_ARG} -n website set image deployment/website "website=${IMAGE}@${DIGEST}"
+        fi
+
+        # For production: upgrade IngressRoute to HTTPS with letsencrypt
+        if [ "{{.ENV}}" != "dev" ]; then
+          kubectl ${CTX_ARG} -n website patch ingressroute website --type=merge \
+            -p "{\"spec\":{\"entryPoints\":[\"websecure\"],\"routes\":[{\"kind\":\"Rule\",\"match\":\"Host(\`${WEBSITE_HOST}\`)\",\"services\":[{\"name\":\"website\",\"port\":80}]}],\"tls\":{\"certResolver\":\"letsencrypt\"}}}"
+          echo "✓ IngressRoute patched for ${WEBSITE_HOST} (websecure + letsencrypt)"
         fi
 
         echo "Waiting for website..."

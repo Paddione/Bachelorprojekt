@@ -75,7 +75,7 @@ data:
   ANTHROPIC_API_KEY: ""
   SESSIONS_DATABASE_URL: "postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings"
   # Site
-  SITE_URL: "http://web.localhost"
+  SITE_URL: "${WEBSITE_SITE_URL}"
 ---
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
@@ -136,7 +136,7 @@ spec:
     - port: 80
       targetPort: 4321
 ---
-# ── IngressRoute (dev - HTTP) ────────────────────────────────────────────────
+# ── IngressRoute ─────────────────────────────────────────────────────────────
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -147,7 +147,7 @@ spec:
     - web
   routes:
     - kind: Rule
-      match: Host(`web.localhost`)
+      match: Host(`${WEBSITE_HOST}`)
       services:
         - name: website
           port: 80

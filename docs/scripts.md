@@ -116,6 +116,30 @@ Baut das billing-bot Docker-Image, pusht es in die lokale Registry und erstellt 
 
 Erstellt den Claude Code-Bot und admin-only Kanaele in allen Mattermost-Teams. Verfuegbar als Bash- und Python-Variante.
 
+### admin-users-setup.sh -- Admin-Benutzer einrichten
+
+Erstellt Admin-Benutzer in Keycloak und Mattermost mit den erforderlichen Rollen und Berechtigungen.
+
+```bash
+scripts/admin-users-setup.sh
+```
+
+### mcp-select.sh -- Interaktiver MCP-Server-Selektor
+
+Interaktives TUI zum Aktivieren/Deaktivieren einzelner MCP-Server. Skaliert die Replica-Anzahl der ausgewaehlten MCP-Deployments.
+
+```bash
+scripts/mcp-select.sh
+```
+
+### mattermost-connectors-setup.sh -- Mattermost Connectors
+
+Konfiguriert Mattermost-Integrationen (Webhooks, Slash-Commands, Bot-Accounts) fuer alle Workspace-Services.
+
+```bash
+scripts/mattermost-connectors-setup.sh
+```
+
 ### mattermost-anfragen-setup.sh -- Anfragen-Channel
 
 Erstellt einen "Anfragen"-Kanal und Incoming-Webhook in allen Mattermost-Teams fuer das Website-Kontaktformular.
@@ -130,6 +154,56 @@ Bootstrapped einen 3-Node k3s HA-Cluster auf Hetzner Bare-Metal-Servern. Install
 
 ```bash
 scripts/setup-ha-cluster.sh
+```
+
+### meeting-slash-setup.sh -- Meeting Slash-Command
+
+Erstellt den `/meeting` Slash-Command in Mattermost fuer Meeting-Verwaltung (Erstellen, Planen, Insights).
+
+```bash
+scripts/meeting-slash-setup.sh
+```
+
+### recording-setup.sh -- Talk Recording konfigurieren
+
+Konfiguriert den Nextcloud Talk Recording-Service (spreed-Konfiguration, Recording-Secret).
+
+```bash
+scripts/recording-setup.sh
+```
+
+### check-updates.sh -- Image-Updates pruefen
+
+Prueft alle Container-Images auf verfuegbare Updates und zeigt die aktuelle vs. neueste Version an.
+
+```bash
+scripts/check-updates.sh
+```
+
+### setup-wireguard.sh -- WireGuard VPN einrichten
+
+Richtet WireGuard-VPN-Tunnel zwischen Cluster-Nodes ein (fuer Multi-Cluster-Szenarien).
+
+```bash
+scripts/setup-wireguard.sh
+```
+
+## Umgebungs-Management (scripts/env-*)
+
+Skripte zur Verwaltung umgebungsspezifischer Konfiguration und Secrets.
+
+| Skript | Zweck |
+|--------|-------|
+| `env-generate.sh` | Generiert `.env`-Dateien aus Umgebungskonfiguration (`environments/*.yaml`) |
+| `env-resolve.sh` | Loest Variablen-Referenzen in Manifesten via `envsubst` auf |
+| `env-seal.sh` | Verschluesselt Secrets mit Sealed Secrets Controller |
+| `env-validate.sh` | Validiert Umgebungskonfiguration gegen das Schema (`environments/schema.yaml`) |
+
+```bash
+scripts/env-validate.sh environments/mentolder.yaml    # Schema-Validierung
+scripts/env-generate.sh environments/mentolder.yaml    # .env generieren
+scripts/env-seal.sh environments/mentolder.yaml        # Secrets versiegeln
+scripts/env-resolve.sh prod/ environments/mentolder.yaml  # Manifeste ausfuellen
 ```
 
 ## Bibliotheks-Skripte (scripts/lib/)

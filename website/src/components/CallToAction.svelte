@@ -22,7 +22,7 @@
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
       <a
         href={buttonHref}
-        class="bg-gold hover:bg-gold-light text-dark px-8 py-4 rounded-full font-bold text-lg transition-all hover:shadow-lg hover:shadow-gold-dim uppercase tracking-wide"
+        class="bg-gold hover:bg-gold-light text-dark px-6 sm:px-8 py-4 rounded-full font-bold text-base sm:text-lg transition-all hover:shadow-lg hover:shadow-gold-dim uppercase tracking-wide text-center"
       >
         {buttonText}
       </a>

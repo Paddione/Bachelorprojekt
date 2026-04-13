@@ -60,3 +60,5 @@ patches:
   # patch target on this overlay.
   # Billing bot: use ghcr.io image accessible from production nodes
   - path: patch-billing-bot.yaml
+  # Reduce shared-db resource requests for smaller production clusters
+  - path: patch-shared-db.yaml

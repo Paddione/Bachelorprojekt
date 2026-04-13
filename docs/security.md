@@ -126,9 +126,42 @@ Alle Secrets in `k3d/secrets.yaml` (Base64-kodierte Dev-Werte). **Niemals echte 
 | Extern | ANTHROPIC_API_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY |
 | Outline | OUTLINE_SECRET_KEY, OUTLINE_UTILS_SECRET |
 
-### Produktion
+### Produktion (Sealed Secrets)
 
-`prod/secrets.yaml` enthaelt separate Produktions-Secrets. Platzhalter muessen vor dem Deploy ersetzt werden.
+Produktions-Secrets werden mit dem Sealed Secrets Controller verschluesselt und koennen sicher im Git-Repository gespeichert werden.
+
+```mermaid
+flowchart LR
+    PLAIN["fa:fa-file-lines Klartext-Secrets\nenvironments/.secrets/*.yaml"] --> SEAL["fa:fa-lock env-seal.sh"]
+    SEAL --> CONTROLLER["fa:fa-shield-halved Sealed Secrets\nController (Cluster)"]
+    CONTROLLER --> SECRET["fa:fa-key Kubernetes Secret\nim workspace Namespace"]
+    SEALED["fa:fa-file-code SealedSecret\nenvironments/sealed-secrets/*.yaml"] --> CONTROLLER
+
+    style PLAIN fill:#9b2226,color:#fff
+    style SEAL fill:#4a90d9,color:#fff
+    style CONTROLLER fill:#2d6a4f,color:#fff
+    style SECRET fill:#d97706,color:#fff
+    style SEALED fill:#2d8659,color:#fff
+```
+
+**Workflow:**
+1. Klartext-Secrets in `environments/.secrets/<umgebung>.yaml` pflegen (gitignored)
+2. `scripts/env-seal.sh` verschluesselt sie mit dem Cluster-Zertifikat
+3. Verschluesselte `SealedSecret`-Ressourcen in `environments/sealed-secrets/` committen
+4. Der Sealed Secrets Controller im Cluster entschluesselt sie zu Kubernetes Secrets
+
+**Umgebungsspezifische Konfiguration:**
+
+| Datei | Zweck |
+|-------|-------|
+| `environments/dev.yaml` | Entwicklungsumgebung (localhost-Domains) |
+| `environments/mentolder.yaml` | Produktion mentolder.de |
+| `environments/korczewski.yaml` | Produktion korczewski.de |
+| `environments/schema.yaml` | JSON-Schema zur Validierung |
+
+Manifest: `k3d/sealed-secrets-controller.yaml`
+
+Legacy: `prod/secrets.yaml` enthaelt separate Produktions-Secrets (wird durch Sealed Secrets ersetzt).
 
 ### Vaultwarden als Secret-Store
 

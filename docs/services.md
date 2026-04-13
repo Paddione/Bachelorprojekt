@@ -114,6 +114,11 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 | `claude-code-mcp-auth.yaml` | mcp-keycloak | Benutzer-/Rollenverwaltung |
 | `claude-code-mcp-github.yaml` | mcp-github | GitHub Repos, Issues, PRs (PAT erforderlich) |
 | `claude-code-mcp-stripe.yaml` | mcp-stripe | Zahlungen, Abonnements |
+| `claude-code-mcp-grafana.yaml` | mcp-grafana | Grafana Dashboards und Metriken |
+| `claude-code-mcp-prometheus.yaml` | mcp-prometheus | PromQL-Abfragen, Cluster-Metriken |
+| `claude-code-mcp-kubernetes.yaml` | mcp-kubernetes (standalone) | Dedizierter Read-Only Kubernetes-MCP |
+| `claude-code-mcp-postgres.yaml` | mcp-postgres (standalone) | Dedizierter Datenbank-MCP |
+| `claude-code-mcp-mattermost.yaml` | mcp-mattermost (standalone) | Dedizierter Mattermost-MCP |
 
 **Produktion (deploy/mcp/):**
 - `mcp-status.yaml` -- Health-Dashboard (nginx + healthcheck sidecar)
@@ -152,7 +157,29 @@ Single-Node Cluster fuer Mattermost-Volltextsuche. Security-Plugin deaktiviert (
 | Resources | 1--4 CPU, 2--4Gi RAM |
 | Manifest | `k3d/whisper.yaml` |
 
-CPU-basierte Spracherkennung mit dem Medium-Modell. Deploy: `task whisper:deploy`.
+CPU-basierte Spracherkennung mit dem Medium-Modell. GPU-Variante: `k3d/whisper-gpu.yaml`. Deploy: `task whisper:deploy`.
+
+### Embedding (Text-Vektorisierung)
+
+| Eigenschaft | Wert |
+|-------------|------|
+| Image | `michaelf34/infinity:0.0.68` (infinity-emb) |
+| Port | 8080 |
+| Modell | BAAI/bge-base-en-v1.5 (768 Dimensionen) |
+| API | OpenAI-kompatibel (POST /embeddings) |
+| Manifest | `k3d/embedding.yaml` |
+
+CPU-basierte Text-Vektorisierung fuer Meeting-Transkript-Analyse. Wird intern von der Website fuer Meeting Insights genutzt.
+
+### Talk Recording (Anruf-Aufzeichnung)
+
+| Eigenschaft | Wert |
+|-------------|------|
+| Image | `nextcloud/aio-talk-recording` |
+| Port | 1234 |
+| Manifest | `k3d/talk-recording.yaml` |
+
+Firefox/geckodriver-basierter Aufzeichnungsservice fuer Nextcloud Talk. Tritt Anrufen ueber spreed-signaling bei und zeichnet Audio/Video auf. Aufnahmen werden im Nextcloud-Dateiverzeichnis des Anruf-Erstellers gespeichert.
 
 ## Business-Services
 
@@ -291,5 +318,6 @@ pie title RAM Requests (Gesamt ca. 3.5 Gi)
     "Collabora (256 Mi)" : 256
     "Invoice Ninja + MariaDB (416 Mi)" : 416
     "Talk HPB Stack (256 Mi)" : 256
-    "Sonstige (544 Mi)" : 544
+    "Embedding (256 Mi)" : 256
+    "Sonstige (288 Mi)" : 288
 ```

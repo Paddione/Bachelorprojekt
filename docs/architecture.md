@@ -26,6 +26,7 @@ flowchart TB
             CO["fa:fa-file-word Collabora Online\noffice.localhost"]
             WB["fa:fa-chalkboard Whiteboard\nboard.localhost"]
             OL["fa:fa-book Outline Wiki\nwiki.localhost"]
+            REC["fa:fa-record-vinyl Talk Recording"]
         end
 
         subgraph video ["fa:fa-video Talk HPB Stack"]
@@ -40,7 +41,10 @@ flowchart TB
             MCP_K8S["MCP Kubernetes"]
             MCP_PG["MCP Postgres"]
             MCP_BR["MCP Browser"]
+            MCP_GRAF["MCP Grafana"]
+            MCP_PROM["MCP Prometheus"]
             WHISPER["fa:fa-microphone Whisper"]
+            EMB["fa:fa-vector-square Embedding"]
         end
 
         subgraph billing ["fa:fa-file-invoice Abrechnung"]
@@ -112,6 +116,11 @@ flowchart TB
     OC --> MCP_K8S
     OC --> MCP_PG
     OC --> MCP_BR
+    OC --> MCP_GRAF
+    OC --> MCP_PROM
+
+    %% --- Recording ---
+    NC --> REC
 
     %% --- Search ---
     MM --> OS
@@ -153,9 +162,13 @@ flowchart TB
     click PROM "#monitoring" "Prometheus: Metriken-Sammlung aller Kubernetes-Ressourcen. Speist DSGVO-Compliance-Dashboard."
     click GRAF "#monitoring" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
     click WHISPER "#whisper" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
+    click EMB "#embedding" "Embedding: infinity-emb Text-Vektorisierung (BAAI/bge-base-en-v1.5) fuer Meeting-Transkript-Analyse."
+    click REC "#talk-recording" "Talk Recording: Firefox/geckodriver-basierte Anruf-Aufzeichnung fuer Nextcloud Talk."
     click SIG "#talk-hpb" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk Videokonferenzen."
     click MCP_K8S "#claude-code" "MCP Kubernetes: Read-only Zugriff auf Pods, Deployments, Services, Logs. Kann Deployments neu starten (mit Genehmigung)."
     click MCP_PG "#claude-code" "MCP Postgres: Superuser-Zugriff auf alle shared-db Datenbanken fuer Analyse und Debugging."
+    click MCP_GRAF "#claude-code" "MCP Grafana: Zugriff auf Grafana Dashboards und Metriken."
+    click MCP_PROM "#claude-code" "MCP Prometheus: Direkte PromQL-Abfragen fuer Cluster-Metriken."
 
     %% --- Styles ---
     classDef identity_style fill:#4a90d9,color:#fff,stroke:#2d6a9f
@@ -167,8 +180,8 @@ flowchart TB
     classDef infra_style fill:#374151,color:#fff,stroke:#1f2937
 
     class KC,PROXY,OAUTH identity_style
-    class MM,NC,CO,WB,OL collab_style
-    class OC,MCP_K8S,MCP_PG,MCP_BR,WHISPER ai_style
+    class MM,NC,CO,WB,OL,REC collab_style
+    class OC,MCP_K8S,MCP_PG,MCP_BR,MCP_GRAF,MCP_PROM,WHISPER,EMB ai_style
     class IN,BB billing_style
     class DB,MARIA,OS,REDIS data_style
     class VW,MP,DOCS tools_style
@@ -489,6 +502,8 @@ sequenceDiagram
 | mcp-keycloak | quay.io/sshaaf/keycloak-mcp-server | Benutzer, Gruppen, Rollen, Sessions verwalten | Realm-Konfiguration aendern |
 | mcp-github | ghcr.io/github/github-mcp-server | Repos, Issues, PRs, Code-Suche (PAT erforderlich) | Admin-Rechte |
 | mcp-stripe | @stripe/agent-toolkit | Kunden, Zahlungen, Rechnungen, Abonnements | Kontoverwaltung |
+| mcp-grafana | mcp-grafana | Dashboards, Panels, Annotationen lesen | Dashboard-Erstellung |
+| mcp-prometheus | mcp-prometheus | PromQL-Abfragen, Metriken, Alerts lesen | Konfigurationsaenderungen |
 
 ---
 
@@ -578,6 +593,7 @@ Die Init-Skripte in `shared-db` erstellen User und Datenbanken idempotent beim e
 | `workspace` | Alle Kernservices (Mattermost, Nextcloud, Keycloak, etc.) |
 | `website` | Astro + Svelte Unternehmenswebsite |
 | `monitoring` | Prometheus + Grafana Stack (optional) |
+| `argocd` | ArgoCD GitOps Controller (Produktion, Hub-Cluster) |
 | `cert-manager` | TLS-Zertifikate via Let's Encrypt (Produktion) |
 | `kube-system` | Traefik Ingress Controller (k3s built-in) |
 
@@ -656,6 +672,42 @@ flowchart TD
 ```
 
 Alternativ: `task workspace:up` fuer vollautomatisches Setup (Cluster + MVP + MCP + Monitoring + Billing).
+
+## Multi-Cluster (ArgoCD GitOps)
+
+In Produktion verwaltet ArgoCD die Deployments ueber mehrere Cluster hinweg. Ein Hub-Cluster (Hetzner) synchronisiert den Git-Zustand auf alle registrierten Cluster.
+
+```mermaid
+flowchart TB
+    subgraph hub ["fa:fa-tower-broadcast Hub-Cluster (Hetzner)"]
+        ARGO["fa:fa-rotate ArgoCD"]
+        APPSET["ApplicationSet"]
+        ARGO --> APPSET
+    end
+
+    GIT[("fa:fa-code-branch GitHub\nPaddione/Bachelorprojekt")] --> ARGO
+
+    subgraph hetzner ["fa:fa-server Hetzner Cluster"]
+        H_WS["workspace NS"]
+        H_WEB["website NS"]
+        H_MON["monitoring NS"]
+    end
+
+    subgraph korczewski ["fa:fa-server Korczewski Cluster"]
+        K_WS["workspace NS"]
+        K_WEB["website NS"]
+    end
+
+    APPSET -->|"sync"| hetzner
+    APPSET -->|"sync"| korczewski
+
+    style hub fill:#8b5cf6,color:#fff
+    style hetzner fill:#2d6a4f,color:#fff
+    style korczewski fill:#4a90d9,color:#fff
+    style GIT fill:#374151,color:#fff
+```
+
+**Konfiguration:** Cluster-spezifische Einstellungen (Domain, Branding, Secrets) werden als Annotationen auf ArgoCD Cluster-Secrets gespeichert. Die `environments/`-Dateien definieren pro-Umgebung Variablen, die via `envsubst` in die Manifeste eingesetzt werden.
 
 ## Backup-Strategie
 

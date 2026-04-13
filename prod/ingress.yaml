@@ -232,6 +232,7 @@ spec:
         - board.${PROD_DOMAIN}
         - signaling.${PROD_DOMAIN}
         - wiki.${PROD_DOMAIN}
+        - bug.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
     - host: meet.${PROD_DOMAIN}
@@ -272,5 +273,15 @@ spec:
             backend:
               service:
                 name: outline
+                port:
+                  number: 80
+    - host: bug.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bug-tracker
                 port:
                   number: 80

@@ -63,6 +63,7 @@ resources:
   # Ingress
   - ingress.yaml
   - mattermost-force-sso.yaml
+  - bug-tracker.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:

@@ -1,0 +1,26 @@
+# Production override for bug-tracker: HTTPS + Let's Encrypt + real hostnames
+# bug.mentolder.de is handled via the main ingress.yaml (wildcard cert)
+# bug.korczewski.de is handled here via Traefik certResolver
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bug-tracker-korczewski
+  namespace: workspace
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`bug.korczewski.de`)
+      middlewares:
+        - name: redirect-https
+          namespace: workspace
+        - name: hsts-headers
+          namespace: workspace
+        - name: security-headers
+          namespace: workspace
+      services:
+        - name: bug-tracker
+          port: 80
+  tls:
+    certResolver: letsencrypt

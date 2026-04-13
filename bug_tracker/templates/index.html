@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini Bug Tracker</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+        .form-section { background: #f4f4f4; padding: 20px; border-radius: 8px; margin-bottom: 40px; }
+        textarea { width: 100%; height: 80px; margin: 10px 0; }
+        .report-card { border-bottom: 1px solid #ccc; padding: 15px 0; }
+        .report-card img { max-width: 200px; display: block; margin-top: 10px; border: 1px solid #ddd; }
+        .timestamp { color: #666; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <h2>Neuen Fehler melden</h2>
+    <div class="form-section">
+        <form action="/report" method="post" enctype="multipart/form-data">
+            <textarea name="description" placeholder="Was ist passiert?" required></textarea>
+            <input type="file" name="image" accept="image/*">
+            <button type="submit">Absenden</button>
+        </form>
+    </div>
+
+    <h2>Gespeicherte Fehler</h2>
+    {% for r in reports %}
+    <div class="report-card">
+        <div class="timestamp">Zeitpunkt: {{ r.timestamp }}</div>
+        <p>{{ r.description }}</p>
+        {% if r.image %}
+            <a href="{{ url_for('static', filename='../uploads/' + r.image) }}" target="_blank">
+                <img src="/uploads/{{ r.image }}">
+            </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</body>
+</html>

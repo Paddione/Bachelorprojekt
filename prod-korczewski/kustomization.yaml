@@ -14,3 +14,12 @@ configMapGenerator:
       - realm-workspace.json=realm-workspace-korczewski.json
 generatorOptions:
   disableNameSuffixHash: true
+
+patches:
+  - target:
+      kind: Endpoints
+      name: bug-tracker
+    patch: |
+      - op: replace
+        path: /subsets/0/addresses/0/ip
+        value: "62.238.9.39"

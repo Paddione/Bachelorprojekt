@@ -73,15 +73,18 @@ async def run_session(token: str, client: httpx.AsyncClient) -> None:
     print(f"[{token}] starting", flush=True)
 
     xvfb = subprocess.Popen(["Xvfb", display, "-screen", "0", "1280x720x24"])
-    subprocess.run(
+    result = subprocess.run(
         ["pactl", "load-module", "module-null-sink", f"sink_name={sink}"],
         env={**os.environ, "DISPLAY": display},
+        capture_output=True,
+        text=True,
         check=False,
     )
+    module_id = result.stdout.strip()
 
     env = {**os.environ, "DISPLAY": display, "PULSE_SINK": sink}
     browser = _start_browser(token, env)
-    sessions[token] |= {"xvfb": xvfb, "browser": browser, "sink": sink}
+    sessions[token] |= {"xvfb": xvfb, "browser": browser, "sink": sink, "module_id": module_id}
 
     await asyncio.sleep(8)  # let call establish in Firefox
 
@@ -109,8 +112,8 @@ def _start_browser(token: str, env: dict) -> subprocess.Popen:
         "        browser = await p.firefox.launch(headless=True)\n"
         "        page    = await browser.new_page()\n"
         f"        await page.goto('{NC_URL}/login')\n"
-        f"        await page.fill('#user',       '{NC_USER}')\n"
-        f"        await page.fill('#password',   '{NC_PASS}')\n"
+        f"        await page.fill('#user',       {repr(NC_USER)})\n"
+        f"        await page.fill('#password',   {repr(NC_PASS)})\n"
         "        await page.click('#submit-form')\n"
         "        await page.wait_for_timeout(3000)\n"
         f"        await page.goto('{NC_URL}/index.php/call/{token}')\n"
@@ -129,17 +132,17 @@ def _start_browser(token: str, env: dict) -> subprocess.Popen:
 async def _record_chunk(sink: str) -> str | None:
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         path = f.name
-    result = subprocess.run(
-        [
-            "ffmpeg", "-y",
-            "-f", "pulse", "-i", f"{sink}.monitor",
-            "-t", str(CHUNK_S),
-            "-ar", "16000", "-ac", "1", "-sample_fmt", "s16",
-            path,
-        ],
-        capture_output=True,
+    proc = await asyncio.create_subprocess_exec(
+        "ffmpeg", "-y",
+        "-f", "pulse", "-i", f"{sink}.monitor",
+        "-t", str(CHUNK_S),
+        "-ar", "16000", "-ac", "1", "-sample_fmt", "s16",
+        path,
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL,
     )
-    if result.returncode != 0 or Path(path).stat().st_size < 2000:
+    await proc.wait()
+    if proc.returncode != 0 or Path(path).stat().st_size < 2000:
         Path(path).unlink(missing_ok=True)
         return None
     return path
@@ -169,22 +172,25 @@ async def _post_chat(client: httpx.AsyncClient, token: str, message: str) -> Non
 
 # ─── Cleanup ──────────────────────────────────────────────────────────────────
 
-def _cancel(token: str) -> None:
-    s = sessions.pop(token, None)
-    if s and (t := s.get("task")):
-        t.cancel()
-
-
-def _teardown(token: str) -> None:
-    s = sessions.pop(token, {})
-    print(f"[{token}] stopping", flush=True)
+def _teardown_resources(s: dict) -> None:
     for key in ("browser", "xvfb"):
         if p := s.get(key):
             p.terminate()
     if path := s.get("_script"):
         Path(path).unlink(missing_ok=True)
-    if sink := s.get("sink"):
-        subprocess.run(
-            ["pactl", "unload-module", f"sink_name={sink}"],
-            capture_output=True,
-        )
+    if mid := s.get("module_id"):
+        subprocess.run(["pactl", "unload-module", mid], capture_output=True)
+
+
+def _cancel(token: str) -> None:
+    s = sessions.pop(token, None)
+    if s:
+        if t := s.get("task"):
+            t.cancel()
+        _teardown_resources(s)
+
+
+def _teardown(token: str) -> None:
+    s = sessions.pop(token, {})
+    print(f"[{token}] stopping", flush=True)
+    _teardown_resources(s)

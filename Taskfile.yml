@@ -1380,7 +1380,7 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        IMAGE="${WEBSITE_IMAGE:-workspace-website}"
+        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
         docker build -t "${IMAGE}:latest" \
           --build-arg PROD_DOMAIN="${PROD_DOMAIN}" \
           --build-arg BRAND_NAME="${BRAND_NAME}" \
@@ -1406,7 +1406,7 @@ tasks:
         vars: { ENV: "{{.ENV}}" }
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        IMAGE="${WEBSITE_IMAGE:-workspace-website}"
+        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
         k3d image import "${IMAGE}:latest" -c {{.CLUSTER_NAME}}
         echo "✓ Image imported into k3d cluster"
 
@@ -1420,10 +1420,9 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        IMAGE="${WEBSITE_IMAGE:-workspace-website}"
-        docker tag "${IMAGE}:latest" "ghcr.io/paddione/${IMAGE}:latest"
-        docker push "ghcr.io/paddione/${IMAGE}:latest"
-        echo "✓ Pushed ghcr.io/paddione/${IMAGE}:latest"
+        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
+        docker push "${IMAGE}:latest"
+        echo "✓ Pushed ${IMAGE}:latest"
 
   website:pull-secret:
     desc: Create/update ghcr-pull-secret in website + workspace namespaces on hetzner (uses gh CLI token)
@@ -1448,18 +1447,49 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
-      - task: website:build:import
-        vars: { ENV: "{{.ENV}}" }
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
+        CTX_ARG=""
+        [ -n "${ENV_CONTEXT:-}" ] && CTX_ARG="--context=${ENV_CONTEXT}"
+
+        if [ "{{.ENV}}" = "dev" ]; then
+          task website:build:import ENV={{.ENV}}
+          DIGEST=""
+        else
+          task website:build ENV={{.ENV}}
+          echo "Pushing ${IMAGE}:latest..."
+          docker push "${IMAGE}:latest" | tee /tmp/website-push.log
+          DIGEST=$(grep -oE 'sha256:[a-f0-9]{64}' /tmp/website-push.log | tail -1)
+          rm -f /tmp/website-push.log
+          [ -z "${DIGEST}" ] && { echo "ERROR: could not read digest from push"; exit 1; }
+          echo "✓ Pushed digest: ${DIGEST}"
+        fi
+
+        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
+
+        if [ -n "${DIGEST}" ]; then
+          echo "Pinning deployment to ${IMAGE}@${DIGEST}..."
+          kubectl ${CTX_ARG} -n website set image deployment/website "website=${IMAGE}@${DIGEST}"
+        fi
+
+        echo "Waiting for website..."
+        kubectl ${CTX_ARG} -n website rollout status deployment/website --timeout=180s
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          task website:webhook:setup
+        else
+          echo "(skipping website:webhook:setup for non-dev env — manage webhooks on prod cluster manually)"
+        fi
+      - echo ""
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM" < k3d/website.yaml | kubectl apply -f -
-      - |
-        echo "Waiting for website..."
-        kubectl rollout status deployment/website -n website --timeout=120s
-      - task: website:webhook:setup
-      - echo ""
-      - 'echo "✓ Website deployed"'
-      - 'echo "  URL: http://web.{{.DEV_DOMAIN}}"'
+        if [ "{{.ENV}}" = "dev" ]; then
+          echo "✓ Website deployed — URL: http://web.{{.DEV_DOMAIN}}"
+        else
+          echo "✓ Website deployed — URL: https://${PROD_DOMAIN}"
+        fi
 
   website:dev:
     desc: Run Astro dev server locally (hot-reload)

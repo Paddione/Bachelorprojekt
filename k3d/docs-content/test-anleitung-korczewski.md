@@ -49,6 +49,8 @@ eingeloggt bist, wirst Du in den anderen automatisch erkannt.
 | **KI-Assistent** (Claude Code)       | https://ai.korczewski.de         |
 | **Wissensdatenbank** (Outline)       | https://wiki.korczewski.de       |
 | **Passwort-Safe** (Vaultwarden)      | https://vault.korczewski.de      |
+| **Dokumentation** (Handbuch)         | https://docs.korczewski.de       |
+| **Bug-Meldung** (Fehler melden)      | https://bug.korczewski.de        |
 
 Alle Dienste sind per HTTPS erreichbar und haben ein gültiges Zertifikat – Dein
 Browser sollte **keine** Sicherheitswarnung anzeigen. Falls doch: bitte
@@ -166,7 +168,15 @@ oder Ihr Euch nicht gleichzeitig sehen könnt, bitte melden.
 2. Lege eine neue Seite an und schreibe 2–3 Sätze Testtext.
 3. Prüfe, ob die Seite für die anderen Tester sichtbar ist.
 
-### 9. Passwort-Safe (Vaultwarden)
+### 9. Dokumentation (Docs)
+
+1. Öffne https://docs.korczewski.de
+2. Du wirst zur Keycloak-Anmeldeseite weitergeleitet – melde Dich mit Deinem SSO-Konto an.
+3. Nach dem Login siehst Du das interne Handbuch des Workspace.
+
+➡️ **Fragestellung:** Hat der SSO-Login funktioniert, ohne dass Du ein separates Passwort eingeben musstest?
+
+### 10. Passwort-Safe (Vaultwarden)
 
 1. Öffne https://vault.korczewski.de
 2. Registriere Dich **mit Deiner Test-E-Mail-Adresse** (Vaultwarden hat einen
@@ -174,7 +184,7 @@ oder Ihr Euch nicht gleichzeitig sehen könnt, bitte melden.
    wie Dein SSO-Passwort, bitte extra notieren).
 3. Lege einen Test-Eintrag an, z. B. *"Test-Login für Beispielseite"*.
 
-### 10. Logout-Test
+### 11. Logout-Test
 
 1. Melde Dich in **einem** der Dienste ab (oben rechts auf Deinen Namen →
    "Abmelden").

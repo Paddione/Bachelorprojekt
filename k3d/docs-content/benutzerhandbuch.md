@@ -99,6 +99,18 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ---
 
+### Live-Transkription (Talk Transcriber)
+
+**Wozu?** Automatische Mitschrift laufender Videokonferenzen – der Dienst wandelt gesprochene Sprache in Text um, während das Meeting läuft.
+
+**Was kannst Du tun?**
+- Einen laufenden Nextcloud-Talk-Anruf automatisch transkribieren lassen
+- Die Mitschrift nach dem Meeting als Textdatei abrufen
+
+> Der Dienst arbeitet im Hintergrund und ist in Nextcloud Talk integriert.
+
+---
+
 ### Whiteboard
 
 **Wozu?** Gemeinsam skizzieren, brainstormen und visualisieren – wie ein digitales Whiteboard in einer Besprechung.
@@ -143,6 +155,16 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 1. Klicke links auf eine Sammlung oder erstelle eine neue
 2. Klicke auf **"Neue Seite"**
 3. Schreibe Deinen Inhalt und speichere
+
+---
+
+### Dokumentation & Handbuch
+
+**Wozu?** Das technische und organisatorische Handbuch des Workspace – Installationsanleitungen, Architektur, Dienst-Beschreibungen und Fehlerbehebung.
+
+**Zugriff:** Die Dokumentation ist nur für angemeldete Benutzer zugänglich. Du wirst beim Öffnen automatisch zur Keycloak-Anmeldung weitergeleitet.
+
+> Dieses Handbuch, das Du gerade liest, läuft selbst auf dem Docs-Dienst.
 
 ---
 
@@ -225,3 +247,4 @@ Schreibe eine Nachricht im Mattermost-Kanal des Administrators oder schicke eine
 | Wissen im Team festhalten                     | **Outline (Wiki)**   |
 | Ein Passwort sicher aufbewahren               | **Vaultwarden**      |
 | Eine Rechnung erstellen                       | **Invoice Ninja**    |
+| Eine Besprechung automatisch transkribieren lassen | **Nextcloud Talk + Talk Transcriber** |

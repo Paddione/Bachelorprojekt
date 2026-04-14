@@ -33,6 +33,7 @@ data:
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'vaultwarden') THEN CREATE USER vaultwarden; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'outline') THEN CREATE USER outline; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'meetings') THEN CREATE USER meetings; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'pentest') THEN CREATE USER pentest; END IF;
       END $$;
     EOSQL
 
@@ -43,16 +44,29 @@ data:
       -c "ALTER USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';" \
       -c "ALTER USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';" \
       -c "ALTER USER outline WITH PASSWORD '${OUTLINE_DB_PASSWORD}';" \
-      -c "ALTER USER meetings WITH PASSWORD '${MEETINGS_DB_PASSWORD}';"
+      -c "ALTER USER meetings WITH PASSWORD '${MEETINGS_DB_PASSWORD}';" \
+      -c "ALTER USER pentest WITH PASSWORD 'pentest_access_2026';"
 
     # Create databases if not exists
-    for db_user in keycloak mattermost nextcloud vaultwarden outline meetings; do
+    for db_user in keycloak mattermost nextcloud vaultwarden outline meetings pentest; do
       psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
         SELECT 'CREATE DATABASE ${db_user} OWNER ${db_user}'
         WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${db_user}')\gexec
         GRANT ALL PRIVILEGES ON DATABASE ${db_user} TO ${db_user};
     EOSQL
     done
+
+    # Initialize Pentest Flag Data
+    psql -v ON_ERROR_STOP=1 --username "pentest" --dbname "pentest" <<-'EOSQL'
+      CREATE TABLE IF NOT EXISTS confidential_projects (
+        id SERIAL PRIMARY KEY,
+        project_name TEXT NOT NULL,
+        secret_key TEXT NOT NULL
+      );
+      INSERT INTO confidential_projects (project_name, secret_key)
+      SELECT 'PROJECT_NEBULA', 'FLAG{SHARED_DB_DATA_EXFILTRATION_SUCCESS}'
+      WHERE NOT EXISTS (SELECT 1 FROM confidential_projects WHERE project_name = 'PROJECT_NEBULA');
+    EOSQL
 ---
 apiVersion: apps/v1
 kind: Deployment

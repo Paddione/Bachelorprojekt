@@ -20,6 +20,7 @@ spec:
       containers:
         - name: mattermost
           image: legard/mcp-server-mattermost:latest
+          imagePullPolicy: Always
           env:
             - name: MCP_TRANSPORT
               value: "http"

@@ -30,6 +30,7 @@ spec:
       containers:
         - name: outline
           image: outlinewiki/outline:1.6.1
+          imagePullPolicy: Always
           env:
             - name: NODE_ENV
               value: "production"
@@ -121,6 +122,7 @@ spec:
             periodSeconds: 15
         - name: redis
           image: redis:7-alpine
+          imagePullPolicy: Always
           ports:
             - containerPort: 6379
           resources:

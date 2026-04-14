@@ -30,6 +30,7 @@ spec:
       containers:
         - name: recording
           image: nextcloud/aio-talk-recording:20260409_094910
+          imagePullPolicy: Always
           env:
             - name: NC_DOMAIN
               value: "nextcloud"

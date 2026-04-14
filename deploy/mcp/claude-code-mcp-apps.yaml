@@ -23,6 +23,7 @@ spec:
         # ── Nextcloud MCP (port 8000) ──────────────────────────────
         - name: nextcloud
           image: ghcr.io/cbcoutinho/nextcloud-mcp-server:latest
+          imagePullPolicy: Always
           env:
             - name: NEXTCLOUD_HOST
               value: "http://nextcloud.workspace.svc.cluster.local"
@@ -57,6 +58,7 @@ spec:
         # ── Invoice Ninja MCP (port 8080) ──────────────────────────
         - name: invoiceninja
           image: ckanthony/openapi-mcp:latest
+          imagePullPolicy: Always
           args: ["--spec", "/specs/spec.json", "--port", "8080", "--base-url", "http://invoiceninja.workspace.svc.cluster.local"]
           env:
             - name: REQUEST_HEADERS

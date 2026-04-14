@@ -364,3 +364,70 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
   );
   return result.rows[0] ?? null;
 }
+
+// ── Bug Tickets Table Init ────────────────────────────────────────────────────
+
+export async function initBugTicketsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bug_tickets (
+      ticket_id       TEXT PRIMARY KEY,
+      category        TEXT NOT NULL,
+      reporter_email  TEXT NOT NULL,
+      description     TEXT NOT NULL,
+      url             TEXT,
+      brand           TEXT NOT NULL DEFAULT 'mentolder',
+      status          TEXT NOT NULL DEFAULT 'open',
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+      resolved_at     TIMESTAMPTZ,
+      resolution_note TEXT
+    )
+  `);
+}
+
+// ── Bug Ticket List ───────────────────────────────────────────────────────────
+
+export interface BugTicketRow {
+  ticketId: string;
+  category: string;
+  reporterEmail: string;
+  description: string;
+  url: string | null;
+  brand: string;
+  status: 'open' | 'resolved' | 'archived';
+  createdAt: Date;
+  resolvedAt: Date | null;
+  resolutionNote: string | null;
+}
+
+export async function listBugTickets(filters: {
+  status?: string;
+  category?: string;
+  brand?: string;
+  q?: string;
+  limit?: number;
+}): Promise<BugTicketRow[]> {
+  await initBugTicketsTable();
+  const { status, category, brand, q, limit = 200 } = filters;
+  const result = await pool.query(
+    `SELECT ticket_id        AS "ticketId",
+            category,
+            reporter_email   AS "reporterEmail",
+            description,
+            url,
+            brand,
+            status,
+            created_at       AS "createdAt",
+            resolved_at      AS "resolvedAt",
+            resolution_note  AS "resolutionNote"
+     FROM bug_tickets
+     WHERE ($1::text IS NULL OR brand = $1)
+       AND ($2::text IS NULL OR status = $2)
+       AND ($3::text IS NULL OR category = $3)
+       AND ($4::text IS NULL OR ticket_id ILIKE '%' || $4 || '%'
+                              OR reporter_email ILIKE '%' || $4 || '%')
+     ORDER BY created_at DESC
+     LIMIT $5`,
+    [brand ?? null, status ?? null, category ?? null, q ?? null, limit]
+  );
+  return result.rows;
+}

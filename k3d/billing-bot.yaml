@@ -28,7 +28,7 @@ spec:
       containers:
         - name: billing-bot
           image: registry.localhost:5000/billing-bot:v1
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

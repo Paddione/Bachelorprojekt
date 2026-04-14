@@ -27,6 +27,7 @@ spec:
         # ─── Kubernetes MCP (port 3000) ──────────────────────────
         - name: mcp-kubernetes
           image: node:22-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -69,6 +70,7 @@ spec:
         # (enforce via system prompt — no DB-level restriction in dev).
         - name: mcp-postgres
           image: node:22-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -113,6 +115,7 @@ spec:
         # transcripts, insights, and vector embeddings.
         - name: mcp-meetings
           image: node:22-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |

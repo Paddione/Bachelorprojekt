@@ -119,7 +119,7 @@ spec:
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: website-config
@@ -207,7 +207,7 @@ spec:
           containers:
             - name: trigger
               image: curlimages/curl:latest
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
 ---
@@ -313,3 +313,36 @@ spec:
   ingress:
   - from:
     - podSelector: {}
+---
+# kube-router IPSet race fix: kurzlebige Job-Pods (z.B. meeting-reminders CronJob)
+# werden ggf. nicht schnell genug in das podSelector-IPSet aufgenommen. Das ipBlock-
+# Prädikat wird sofort ausgewertet — kein Lookup nötig.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-pod-cidr-ingress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.42.0.0/16
+---
+# Service-CIDR Egress: CronJob-Pods müssen ClusterIP-Services erreichen können.
+# podSelector: {} deckt nur Pod-IPs ab, nicht 10.43.x.x ClusterIPs.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-service-cidr-egress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.43.0.0/16

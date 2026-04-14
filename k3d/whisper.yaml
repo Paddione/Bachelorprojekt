@@ -15,6 +15,7 @@ spec:
       containers:
         - name: whisper
           image: registry.localhost:5000/faster-whisper:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           resources:

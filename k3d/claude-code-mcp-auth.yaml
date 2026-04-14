@@ -21,6 +21,7 @@ spec:
       containers:
         - name: keycloak
           image: quay.io/sshaaf/keycloak-mcp-server:latest
+          imagePullPolicy: Always
           env:
             - name: KC_URL
               value: "http://keycloak.workspace.svc.cluster.local:8080"

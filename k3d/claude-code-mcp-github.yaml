@@ -17,6 +17,7 @@ spec:
       containers:
         - name: mcp-github
           image: ghcr.io/github/github-mcp-server:latest
+          imagePullPolicy: Always
           args: ["http", "--port", "3002"]
           env:
             - name: GITHUB_PERSONAL_ACCESS_TOKEN

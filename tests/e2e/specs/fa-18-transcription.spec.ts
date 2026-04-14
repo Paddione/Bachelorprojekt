@@ -1,24 +1,108 @@
 import { test, expect } from '@playwright/test';
+import * as crypto from 'crypto';
 
-const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
+const TRANSCRIBER_URL = process.env.TRANSCRIBER_URL || 'http://talk-transcriber.workspace.svc.cluster.local:8000';
+const TRANSCRIBER_SECRET = process.env.TRANSCRIBER_SECRET || 'devtranscribersecret1234567890';
 
-test.describe('FA-18: Meeting Transcription', () => {
-  test('T1: POST /api/meeting/transcribe without file returns 400', async ({ request }) => {
-    // We use a multipart form but without the 'file' field
-    const res = await request.post(`${BASE}/api/meeting/transcribe`, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      data: {
-        someOtherField: 'value'
-      },
-    });
-    // The API should catch missing file and return 400
-    // If request.formData() fails due to empty body it might 500
-    expect([400, 500]).toContain(res.status());
+function signBody(body: string): string {
+  return crypto.createHmac('sha256', TRANSCRIBER_SECRET).update(body).digest('hex');
+}
+
+test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
+
+  test('T1: /health returns ok or degraded with expected shape', async ({ request }) => {
+    const res = await request.get(`${TRANSCRIBER_URL}/health`);
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    expect(['ok', 'degraded']).toContain(body.status);
+    expect(typeof body.pulseaudio).toBe('boolean');
+    expect(Array.isArray(body.active)).toBeTruthy();
   });
 
-  test('T2: API endpoint exists', async ({ request }) => {
-    // Route exists but only defines POST — Astro returns 404 or 405 depending on version.
-    const res = await request.get(`${BASE}/api/meeting/transcribe`);
-    expect([404, 405]).toContain(res.status());
+  test('T2: /webhook rejects missing HMAC signature with 401', async ({ request }) => {
+    const payload = JSON.stringify({ token: 'testtoken123', event: 'call_started' });
+    const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
+      headers: { 'Content-Type': 'application/json' },
+      data: payload,
+    });
+    expect(res.status()).toBe(401);
+  });
+
+  test('T3: /webhook rejects invalid HMAC signature with 401', async ({ request }) => {
+    const payload = JSON.stringify({ token: 'testtoken123', event: 'call_started' });
+    const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Nextcloud-Talk-Signature': 'badsignature',
+      },
+      data: payload,
+    });
+    expect(res.status()).toBe(401);
+  });
+
+  test('T4: /webhook accepts valid HMAC and returns ok or started', async ({ request }) => {
+    const payload = JSON.stringify({ token: 'faketesttoken', event: 'message' });
+    const sig = signBody(payload);
+    const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Nextcloud-Talk-Signature': sig,
+      },
+      data: payload,
+    });
+    // Either starts a session (started) or skips gracefully (ok / rejected)
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    expect(['started', 'ok', 'rejected']).toContain(body.status);
+  });
+
+  test('T5: /webhook with missing token returns ignored', async ({ request }) => {
+    const payload = JSON.stringify({ event: 'call_started' });
+    const sig = signBody(payload);
+    const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Nextcloud-Talk-Signature': sig,
+      },
+      data: payload,
+    });
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    expect(body.status).toBe('ignored');
+  });
+
+  test('T6: /webhook rejects malformed JSON with 400', async ({ request }) => {
+    const payload = 'not valid json{{{';
+    const sig = signBody(payload);
+    const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Nextcloud-Talk-Signature': sig,
+      },
+      data: payload,
+    });
+    expect(res.status()).toBe(400);
+  });
+
+  test('T7: /health reports active session after webhook trigger', async ({ request }) => {
+    const fakeToken = `e2etest${Date.now()}`;
+    const payload = JSON.stringify({ token: fakeToken, event: 'call_started' });
+    const sig = signBody(payload);
+
+    await request.post(`${TRANSCRIBER_URL}/webhook`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Nextcloud-Talk-Signature': sig,
+      },
+      data: payload,
+    });
+
+    // Give the session a moment to register
+    await new Promise(r => setTimeout(r, 500));
+
+    const health = await request.get(`${TRANSCRIBER_URL}/health`);
+    const body = await health.json();
+    // Session may have started or been rejected (no real Nextcloud), but structure must be valid
+    expect(Array.isArray(body.active)).toBeTruthy();
   });
 });

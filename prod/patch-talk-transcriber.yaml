@@ -9,3 +9,9 @@ spec:
       containers:
         - name: transcriber
           image: ghcr.io/paddione/talk-transcriber:latest
+          imagePullPolicy: Always
+          env:
+            - name: NC_PROTOCOL
+              value: "https"
+            - name: NC_VERIFY_SSL
+              value: "true"

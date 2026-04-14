@@ -47,6 +47,7 @@ spec:
       initContainers:
         - name: fix-config-perms
           image: busybox:1.36
+          imagePullPolicy: Always
           command: ["sh", "-c", "mkdir -p /var/www/html/config && chown 33:33 /var/www/html/config"]
           volumeMounts:
             - name: app
@@ -54,6 +55,7 @@ spec:
       containers:
         - name: nextcloud
           image: nextcloud:33-apache
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -189,6 +191,7 @@ spec:
         # ── Cron sidecar: runs php cron.php every 5 min ───────────────
         - name: nextcloud-cron
           image: nextcloud:33-apache
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -225,6 +228,7 @@ spec:
         # ── notify_push sidecar: client-push WebSocket server ─────────
         - name: notify-push
           image: nextcloud:33-apache
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false

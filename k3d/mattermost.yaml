@@ -36,6 +36,7 @@ spec:
       containers:
         - name: mattermost
           image: mattermost/mattermost-enterprise-edition:release-11.5
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false

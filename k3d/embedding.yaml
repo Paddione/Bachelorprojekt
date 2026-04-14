@@ -29,6 +29,7 @@ spec:
       containers:
         - name: infinity
           image: michaelf34/infinity:0.0.70
+          imagePullPolicy: Always
           args:
             - "v2"
             - "--model-id"

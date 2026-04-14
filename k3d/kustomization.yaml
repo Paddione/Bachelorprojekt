@@ -44,6 +44,10 @@ resources:
   - docs.yaml
   # Wiki
   - outline.yaml
+  # Transkription
+  - whisper.yaml
+  # Live-Transkription Bot
+  - talk-transcriber.yaml
   # Embedding (Vektorisierung)
   - embedding.yaml
   # KI-Assistent
@@ -63,13 +67,15 @@ resources:
   # Ingress
   - ingress.yaml
   - mattermost-force-sso.yaml
-  - bug-tracker.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:
   - name: realm-template
     files:
       - realm-workspace.json=realm-workspace-dev.json
+  - name: keycloak-import-script
+    files:
+      - import-entrypoint.sh=realm-import-entrypoint.sh
   - name: nextcloud-oidc-config
     files:
       - oidc.config.php=nextcloud-oidc-dev.php
@@ -79,6 +85,27 @@ configMapGenerator:
   - name: invoiceninja-nginx-config
     files:
       - default.conf=invoiceninja-nginx.conf
+  - name: mattermost-proxy-config
+    files:
+      - default.conf=mattermost-userinfo-proxy.conf
+  - name: docs-content
+    files:
+      - docs-content/README.md
+      - docs-content/_sidebar.md
+      - docs-content/architecture.md
+      - docs-content/benutzerhandbuch.md
+      - docs-content/keycloak.md
+      - docs-content/mcp-actions.md
+      - docs-content/migration.md
+      - docs-content/requirements.md
+      - docs-content/scripts.md
+      - docs-content/security-report.md
+      - docs-content/security.md
+      - docs-content/services.md
+      - docs-content/test-anleitung-korczewski.md
+      - docs-content/tests.md
+      - docs-content/troubleshooting.md
+      - docs-content/verarbeitungsverzeichnis.md
 
 generatorOptions:
   disableNameSuffixHash: true

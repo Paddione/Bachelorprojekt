@@ -59,8 +59,11 @@ spec:
             readOnlyRootFilesystem: false
             capabilities:
               drop: [ALL]
+              add: ["SETUID", "SETGID"]
             seccompProfile:
               type: RuntimeDefault
+          ports:
+            - containerPort: 80
           env:
             - name: POSTGRES_HOST
               value: nextcloud-db
@@ -124,13 +127,13 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: COLLABORA_DOMAIN
-            # ── SMTP via Mailpit (dev) ─────────────────────
+            # SMTP-Konfiguration für Mail-Versand (Gap 1.5)
             - name: SMTP_HOST
               value: "mailpit"
             - name: SMTP_PORT
               value: "1025"
             - name: SMTP_SECURE
-              value: ""
+              value: "" # Plain SMTP für Mailpit
             - name: SMTP_AUTHTYPE
               value: "PLAIN"
             - name: MAIL_FROM_ADDRESS
@@ -139,8 +142,6 @@ spec:
               value: "workspace.local"
             - name: TZ
               value: Europe/Berlin
-          ports:
-            - containerPort: 80
           volumeMounts:
             - name: app
               mountPath: /var/www/html
@@ -176,8 +177,8 @@ spec:
             failureThreshold: 10
           resources:
             requests:
+              cpu: "200m"
               memory: 256Mi
-              cpu: 200m
             limits:
               memory: 1Gi
         # ── Cron sidecar: runs php cron.php every 5 min ───────────────
@@ -212,8 +213,8 @@ spec:
               readOnly: true
           resources:
             requests:
+              cpu: "50m"
               memory: 64Mi
-              cpu: 50m
             limits:
               memory: 256Mi
         # ── notify_push sidecar: client-push WebSocket server ─────────
@@ -264,8 +265,8 @@ spec:
               mountPath: /var/www/html/data
           resources:
             requests:
+              cpu: "20m"
               memory: 32Mi
-              cpu: 20m
             limits:
               memory: 128Mi
       volumes:

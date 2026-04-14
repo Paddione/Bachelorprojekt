@@ -9,9 +9,9 @@ resources:
   - cluster-issuer.yaml
   - wildcard-certificate.yaml
   - traefik-middlewares.yaml
+  - tlsoption.yaml
   - old-webspace.yaml
   - ingress.yaml
-  - patch-bug-tracker.yaml
 
 # Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
 configMapGenerator:
@@ -24,9 +24,11 @@ configMapGenerator:
     files:
       - oidc.config.php=nextcloud-oidc-prod.php
   - name: keycloak-import-script
+    behavior: replace
     files:
       - import-entrypoint.sh
   - name: mattermost-proxy-config
+    behavior: replace
     files:
       - default.conf=userinfo-proxy.conf
 generatorOptions:
@@ -64,11 +66,3 @@ patches:
   - path: patch-billing-bot.yaml
   # Reduce shared-db resource requests for smaller production clusters
   - path: patch-shared-db.yaml
-  # Bug-tracker: use node IP for host-hosted app
-  - target:
-      kind: Endpoints
-      name: bug-tracker
-    patch: |
-      - op: replace
-        path: /subsets/0/addresses/0/ip
-        value: "178.104.169.206"

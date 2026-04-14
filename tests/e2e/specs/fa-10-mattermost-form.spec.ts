@@ -8,9 +8,10 @@ test.describe('FA-10: Website Contact Form to Mattermost', () => {
     // but here we just ensure the website reports success.
     await page.goto(`${BASE}/kontakt`);
     
-    await page.locator('#name').fill('Mattermost Test Bot');
-    await page.locator('#email').fill('bot-test@mattermost.internal');
-    await page.locator('#message').fill('Diese Nachricht sollte in Mattermost im Kanal "anfragen" erscheinen.');
+    await page.locator('#name').fill('Bug Reporter');
+    await page.locator('#email').fill('bug-test@mattermost.internal');
+    await page.selectOption('#type', 'bug');
+    await page.locator('#message').fill('KRITISCHER FEHLER: Die Kaffeemaschine ist leer.');
     
     await page.getByRole('button', { name: /nachricht senden/i }).click();
 

@@ -275,13 +275,3 @@ spec:
                 name: outline
                 port:
                   number: 80
-    - host: bug.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: bug-tracker
-                port:
-                  number: 80

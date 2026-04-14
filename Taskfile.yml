@@ -265,6 +265,7 @@ tasks:
       - task: workspace:connectors
       - task: workspace:call-setup
       - task: workspace:recording-setup
+      - task: workspace:transcriber-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  MCP Status:   http://ai.localhost"'
@@ -278,6 +279,19 @@ tasks:
   # ─────────────────────────────────────────────
   # Workspace MVP (Bachelorprojekt)
   # ─────────────────────────────────────────────
+
+  workspace:transcriber-build:
+    desc: Build and push talk-transcriber image to local registry
+    cmds:
+      - docker build -t {{.REGISTRY}}/talk-transcriber:v2 k3d/talk-transcriber/
+      - docker push {{.REGISTRY}}/talk-transcriber:v2
+      - 'echo "✓ talk-transcriber image pushed to {{.REGISTRY}}"'
+
+  workspace:transcriber-setup:
+    desc: Build talk-transcriber image and create transcriber-bot Nextcloud user
+    deps: [workspace:transcriber-build]
+    cmds:
+      - bash scripts/transcriber-setup.sh
 
   workspace:billing-build:
     desc: Build and push billing-bot image to local registry

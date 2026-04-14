@@ -1,7 +1,7 @@
 # ── Nextcloud Talk Live-Transkription ─────────────────────────────────────────
 # Pollt auf aktive Calls, tritt headless bei (Firefox + PulseAudio),
 # schickt 10-s-Chunks an Whisper, postet Transkripte in den Talk-Chat.
-# ─────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,28 +22,26 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: transcriber
-          image: registry.localhost:5000/talk-transcriber:v1
+          image: registry.localhost:5000/talk-transcriber:v2
           env:
             - name: NC_DOMAIN
               value: "nextcloud"
             - name: NC_PROTOCOL
               value: "http"
-            - name: WHISPER_BASE_URL
-              value: "http://whisper:8000"
-            - name: CHUNK_SECONDS
-              value: "10"
             - name: TRANSCRIBER_BOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: TRANSCRIBER_BOT_PASSWORD
+            - name: TRANSCRIBER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: TRANSCRIBER_SECRET
           ports:
             - containerPort: 8000
           securityContext:
             allowPrivilegeEscalation: false
-          volumeMounts:
-            - name: shm
-              mountPath: /dev/shm
           resources:
             requests:
               memory: 512Mi
@@ -63,6 +61,9 @@ spec:
               port: 8000
             initialDelaySeconds: 60
             periodSeconds: 30
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
       volumes:
         - name: shm
           emptyDir:

@@ -8,6 +8,7 @@ const TYPE_LABELS: Record<string, string> = {
   coaching: 'Führungskräfte-Coaching',
   beratung: 'Unternehmensberatung',
   support: 'Support',
+  bug: 'Bug Report / Fehler',
   feedback: 'Feedback',
 };
 
@@ -18,6 +19,7 @@ const TYPE_ICONS: Record<string, string> = {
   coaching: ':dart:',
   beratung: ':office:',
   support: ':wrench:',
+  bug: ':bug:',
   feedback: ':star:',
 };
 

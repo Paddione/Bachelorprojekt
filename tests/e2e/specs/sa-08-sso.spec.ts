@@ -22,22 +22,18 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
   test('T15: Mattermost SSO-Login via Keycloak', async () => {
     await page.goto(`${MM_URL}/login`);
 
-    // Dismiss "Desktop vs Browser" chooser if present
+    // Force-SSO: Traefik mattermost-force-sso middleware redirects /login →
+    // /oauth/gitlab/login which in turn redirects to Keycloak. If the chooser
+    // dialog pre-empts the redirect, click "in browser" first.
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try {
       await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
       await browserLink.click();
     } catch {
-      // Already on login form
+      // Redirect already landed on Keycloak — nothing to dismiss
     }
 
-    // Click SSO button/link (configured as GitLab OAuth via mm-keycloak-proxy)
-    const ssoBtn = page.getByRole('link', { name: /gitlab|keycloak|openid|sso/i })
-      .or(page.getByRole('button', { name: /gitlab|keycloak|openid|sso/i }));
-    await expect(ssoBtn.first()).toBeVisible({ timeout: 10_000 });
-    await ssoBtn.first().click();
-
-    // Should land on Keycloak login page — SSO redirect confirmed
+    // Should land on Keycloak login page — force-SSO redirect confirmed
     await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 15_000 });
 
     // Fill Keycloak credentials and attempt login

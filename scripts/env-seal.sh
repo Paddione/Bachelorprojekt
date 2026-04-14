@@ -123,10 +123,18 @@ SECRET_MANIFEST="${TMPDIR}/secret.yaml"
     [[ -z "${line// /}" ]] && continue
 
     # Parse KEY: "value" format
-    key=$(echo "$line" | sed 's/:.*//')
-    value=$(echo "$line" | sed 's/^[^:]*:[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')
+    # Use a more robust regex to handle keys with underscores and possible spaces
+    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
+      key="${BASH_REMATCH[1]}"
+      value="${BASH_REMATCH[2]}"
+      # Strip quotes from value
+      value="${value%\"}"
+      value="${value#\"}"
+      value="${value%\'}"
+      value="${value#\'}"
 
-    echo "  ${key}: \"${value}\""
+      echo "  ${key}: \"${value}\""
+    fi
   done < "$SECRETS_FILE"
 } > "$SECRET_MANIFEST"
 

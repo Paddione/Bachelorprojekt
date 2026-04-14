@@ -1,7 +1,7 @@
 # Sicherheitsbericht — Workspace MVP
 
-**Version:** 1.1
-**Datum:** 2026-04-14
+**Version:** 1.0
+**Datum:** 2026-04-13
 **Scope:** Kubernetes-basierter Collaboration-Stack (k3s/k3d), On-Premises
 
 ---
@@ -82,7 +82,7 @@ Der Workspace MVP ist eine selbst-gehostete Kollaborationsplattform auf Kubernet
 
 **Risiko nach Härtung:** NIEDRIG.
 
-**Verbleibend:** Ein vollständiger `monitoring`-Namespace (Prometheus/Grafana) ist aktuell auf der Produktionsumgebung nicht deployed. Die bestehende `allow-monitoring-ingress`-Policy im `workspace`-Namespace ist zukunftssicher vorbereitet; beim späteren Deployment von Prometheus/Grafana per `task workspace:monitoring` muss der `monitoring`-Namespace gleichzeitig mit eigenen Default-Deny-Policies versehen werden.
+**Verbleibend:** PostgreSQL intern ohne TLS — mitigiert durch NetworkPolicy-Isolation. Monitoring-Namespace ohne eigene Policies (Helm-verwaltet).
 
 ---
 
@@ -96,7 +96,7 @@ Der Workspace MVP ist eine selbst-gehostete Kollaborationsplattform auf Kubernet
 |-----------|-----------|--------|
 | Extern → Traefik | TLS 1.2/1.3 | ✓ Let's Encrypt Wildcard |
 | Traefik → Services (intern) | HTTP | Akzeptabel (gleiches Namespace, NetworkPolicies) |
-| Services → PostgreSQL | TCP (`sslmode=prefer`) mit Server-TLS | ✓ PG-TLS aktiv (self-signed, opportunistisch) |
+| Services → PostgreSQL | TCP (sslmode=disable) | Mitigiert durch NetworkPolicies |
 | TURN-Verbindungen (coturn) | TLS | ✓ |
 | Mattermost WebSocket extern | WSS (TLS) | ✓ |
 
@@ -105,12 +105,10 @@ Der Workspace MVP ist eine selbst-gehostete Kollaborationsplattform auf Kubernet
 - HSTS `max-age=31536000; includeSubDomains`
 - HTTP → HTTPS Redirect (301 Permanent)
 - Let's Encrypt ACME v2
-- Explizite `TLSOption default` in Traefik: `minVersion: VersionTLS12`, `sniStrict: true`
-- PostgreSQL-Server-TLS: Selbstsigniertes Zertifikat wird von einem initContainer bei jedem Pod-Start in ein `emptyDir` geschrieben; PG startet mit `ssl=on` + `ssl_cert_file` / `ssl_key_file`. Clients (Keycloak, Mattermost, Vaultwarden, Outline) nutzen `sslmode=prefer` und handeln TLS opportunistisch aus. Nextcloud und Meetings folgen später.
 
-**Risiko:** NIEDRIG extern, NIEDRIG intern.
+**Risiko:** NIEDRIG extern, NIEDRIG intern (mitigiert durch L3-Policies).
 
-**Zukünftige Erweiterung:** Vollständige PKI via cert-manager mit Client-CA-Verifikation (`sslmode=verify-ca`) für alle Services — schrittweise Migration nach v1.1.
+**Zukünftige Erweiterung:** PostgreSQL-TLS intern via cert-manager.
 
 ---
 
@@ -140,9 +138,10 @@ Der Workspace MVP ist eine selbst-gehostete Kollaborationsplattform auf Kubernet
 - Let's Encrypt Wildcard-Zertifikat: `*.korczewski.de` + `korczewski.de`
 - Automatische Erneuerung: 30 Tage vor Ablauf (cert-manager)
 - Cipher Suites: Traefik-Defaults (keine RC4, DES, 3DES)
-- `TLSOption default` (workspace-Namespace) mit `minVersion: VersionTLS12` und `sniStrict: true` — wird von Traefik automatisch auf alle IngressRoutes im Namespace angewendet
 
 **Risiko:** NIEDRIG.
+
+**Empfehlung:** `minVersion: VersionTLS12` explizit in Traefik-Config setzen.
 
 ---
 
@@ -429,8 +428,6 @@ task workspace:dsgvo-check                  # Kurzbefehl
 
 ## 7. Implementierte Änderungen
 
-### 7.1 Sicherheitshärtung v1.0 (2026-04-13)
-
 | Datei | Änderung |
 |-------|---------|
 | `k3d/network-policies.yaml` | Neu: 7 NetworkPolicies workspace |
@@ -446,55 +443,16 @@ task workspace:dsgvo-check                  # Kurzbefehl
 | `scripts/dsgvo-compliance-check.sh` | Ergänzt: D09–D12 (TLS, Passwort-Policy, Backup, NetworkPolicy) |
 | `website/src/pages/datenschutz.astro` | Ersetzt: vollständige Art. 13/14-konforme Datenschutzerklärung |
 
-### 7.2 Finalisierung v1.1 (2026-04-14)
-
-| Datei | Änderung |
-|-------|---------|
-| `prod/tlsoption.yaml` | Neu: Traefik `TLSOption default` (`minVersion: VersionTLS12`, `sniStrict: true`) |
-| `prod/kustomization.yaml` | Ergänzt: `tlsoption.yaml` als Resource |
-| `k3d/shared-db.yaml` | Ergänzt: initContainer `generate-tls-cert` (self-signed Cert in `emptyDir`), PG-Args `ssl=on` + `ssl_cert_file` / `ssl_key_file` |
-| `k3d/keycloak.yaml` | `KC_DB_URL` um `?sslmode=prefer` erweitert |
-| `k3d/vaultwarden.yaml` | `DATABASE_URL` um `?sslmode=prefer` erweitert |
-| `k3d/outline.yaml` | `PGSSLMODE=prefer` (vorher `disable`) |
-| `k3d/mattermost.yaml` | `MM_SQLSETTINGS_DATASOURCE` auf `sslmode=prefer` (vorher `disable`) |
-| `docs/security-report.md` | §3 Verbleibend, §4 Transport-Matrix, §6 Presentation, §7 Änderungen, §9 Fazit + Versionshistorie + Freigabe |
-| `docs/superpowers/specs/2026-04-14-security-report-finalization-design.md` | Neu: Design-Spec für diese Finalisierung |
-
 ---
 
 ## 8. Empfehlungen — Zukünftige Erweiterungen
 
 | Priorität | Maßnahme | Aufwand |
 |-----------|---------|---------|
-| HOCH | PostgreSQL cert-manager PKI + Client-CA-Verifikation (`sslmode=verify-ca`) | MITTEL |
-| HOCH | Nextcloud + Meetings auf `sslmode=prefer` umstellen (Config-Dateien statt Env) | NIEDRIG |
+| HOCH | PostgreSQL-TLS intern (cert-manager) | MITTEL |
+| HOCH | TLS minVersion: VersionTLS12 explizit in Traefik | NIEDRIG |
 | MITTEL | Cilium mit WireGuard für Pod-to-Pod-TLS (Service Mesh) | HOCH |
-| MITTEL | Monitoring-Stack auf korczewski deployen (Prometheus/Grafana) + Default-Deny-Policies im `monitoring`-Namespace | MITTEL |
+| MITTEL | Monitoring-Namespace NetworkPolicies | NIEDRIG |
 | MITTEL | OPA Gatekeeper / Kyverno für Policy-Enforcement | MITTEL |
 | NIEDRIG | LUKS Full-Disk-Encryption auf Host-Ebene | MITTEL |
 | NIEDRIG | SBOM + Image-Vulnerability-Scanning (Trivy) | NIEDRIG |
-
----
-
-## 9. Fazit, Versionshistorie und Freigabe
-
-### 9.1 Fazit
-
-Der Workspace MVP erreicht nach der zweistufigen Härtung (v1.0 Netzwerk- und Container-Härtung, v1.1 Transport-Layer-Finalisierung) ein durchgängiges Sicherheitsniveau auf allen sieben OSI-Schichten sowie der Kubernetes-Querschnittsebene. Alle in §3 identifizierten kritischen Lücken (East-West-Traffic, Container-Privilegien, unauthentifizierte interne Tools) sind geschlossen; PostgreSQL-Server-TLS und explizite Traefik-TLS-Mindestversion vervollständigen den Transport-Layer. Die DSGVO-Kapitel (Art. 5, 25, 32, 33/34, 35 sowie die vollständige Betroffenenrechte-Matrix Art. 15–22) sind inhaltlich und technisch mit konkreten Nachweisen unterlegt. Die verbleibenden Restrisiken (Nextcloud/Meetings-Client-TLS, cert-manager-PKI, Monitoring-Stack-Deployment, physische Server-Absicherung) sind dokumentiert, priorisiert und in §8 als geplante Erweiterungen ausgewiesen. **Gesamtbewertung: HOCH.**
-
-### 9.2 Versionshistorie
-
-| Version | Datum | Änderungen |
-|---------|-------|-----------|
-| 1.0 | 2026-04-13 | Erstveröffentlichung. OSI-Schichtanalyse L1–L7, Kubernetes-Querschnitt, DSGVO Art. 5/25/32/33/34/35, Risikomatrix, Änderungs- und Empfehlungsliste. |
-| 1.1 | 2026-04-14 | PostgreSQL-Server-TLS (self-signed, opportunistisch), Traefik `TLSOption default` mit expliziter `minVersion: VersionTLS12`, Client-`sslmode=prefer` für Keycloak/Mattermost/Vaultwarden/Outline, Korrektur §3 (Monitoring-Namespace), neues Kapitel §9 (Fazit, Versionshistorie, Freigabe). Gesamtbewertung von HOCH bestätigt. |
-
-### 9.3 Freigabe
-
-| Rolle | Name | Datum | Unterschrift |
-|-------|------|-------|--------------|
-| Verantwortlicher (lt. Impressum) |   |   |   |
-| Technische Umsetzung (DevOps) |   |   |   |
-| Datenschutzkoordination |   |   |   |
-
-*Dieser Bericht dient als Nachweis der technischen und organisatorischen Maßnahmen gemäß Art. 32 DSGVO und ergänzt das Verarbeitungsverzeichnis (`docs/verarbeitungsverzeichnis.md`).*

@@ -1,6 +1,7 @@
 ---
 import Navigation from '../components/Navigation.svelte';
 import CookieConsent from '../components/CookieConsent.svelte';
+import BugReportWidget from '../components/BugReportWidget.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
 
@@ -73,5 +74,6 @@ const { title, description = config.meta.siteDescription } = Astro.props;
       </div>
     </footer>
     <CookieConsent client:load />
+    <BugReportWidget client:load />
   </body>
 </html>

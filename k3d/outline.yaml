@@ -52,7 +52,7 @@ spec:
             - name: DATABASE_URL
               value: "postgres://outline:$(OUTLINE_DB_PASSWORD)@shared-db:5432/outline"
             - name: PGSSLMODE
-              value: "disable"
+              value: "prefer"
             # URLs
             - name: URL
               value: "http://wiki.localhost"

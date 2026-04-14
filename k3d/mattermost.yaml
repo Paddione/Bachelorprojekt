@@ -54,7 +54,7 @@ spec:
                   name: workspace-secrets
                   key: MATTERMOST_DB_PASSWORD
             - name: MM_SQLSETTINGS_DATASOURCE
-              value: "host=mattermost-db port=5432 user=mattermost password=$(MATTERMOST_DB_PASSWORD) dbname=mattermost sslmode=disable connect_timeout=10"
+              value: "host=mattermost-db port=5432 user=mattermost password=$(MATTERMOST_DB_PASSWORD) dbname=mattermost sslmode=prefer connect_timeout=10"
             - name: MM_SERVICESETTINGS_SITEURL
               value: "http://chat.localhost"
             # ── Internal connections (billing-bot, etc.) ─────

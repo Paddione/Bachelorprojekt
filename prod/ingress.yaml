@@ -232,6 +232,7 @@ spec:
         - board.${PROD_DOMAIN}
         - signaling.${PROD_DOMAIN}
         - wiki.${PROD_DOMAIN}
+        - bug.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
     - host: meet.${PROD_DOMAIN}

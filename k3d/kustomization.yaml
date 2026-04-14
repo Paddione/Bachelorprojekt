@@ -90,6 +90,7 @@ configMapGenerator:
       - default.conf=mattermost-userinfo-proxy.conf
   - name: docs-content
     files:
+      - docs-content/index.html
       - docs-content/README.md
       - docs-content/_sidebar.md
       - docs-content/architecture.md

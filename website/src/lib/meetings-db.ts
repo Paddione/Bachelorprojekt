@@ -320,6 +320,7 @@ export async function insertBugTicket(params: {
   url?: string;
   brand: string;
 }): Promise<void> {
+  await initBugTicketsTable();
   await pool.query(
     `INSERT INTO bug_tickets (ticket_id, category, reporter_email, description, url, brand)
      VALUES ($1, $2, $3, $4, $5, $6)
@@ -330,6 +331,7 @@ export async function insertBugTicket(params: {
 }
 
 export async function resolveBugTicket(ticketId: string, resolutionNote: string): Promise<void> {
+  await initBugTicketsTable();
   await pool.query(
     `UPDATE bug_tickets
      SET status = 'resolved', resolved_at = NOW(), resolution_note = $2
@@ -339,6 +341,7 @@ export async function resolveBugTicket(ticketId: string, resolutionNote: string)
 }
 
 export async function archiveBugTicket(ticketId: string): Promise<void> {
+  await initBugTicketsTable();
   await pool.query(
     `UPDATE bug_tickets SET status = 'archived' WHERE ticket_id = $1`,
     [ticketId]

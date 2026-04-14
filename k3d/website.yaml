@@ -15,7 +15,7 @@ metadata:
   namespace: website
 data:
   # Mattermost
-  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/REPLACE_ME"
+  MATTERMOST_WEBHOOK_URL: ""
   MATTERMOST_CHANNEL: "anfragen"
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
   MATTERMOST_BOT_TOKEN: ""
@@ -96,6 +96,15 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-pull-secret
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - pk-hetzner
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
@@ -164,15 +173,25 @@ spec:
   schedule: "* * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 25
       template:
         spec:
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: website
+                  topologyKey: kubernetes.io/hostname
           containers:
             - name: trigger
               image: curlimages/curl:latest
-              command: ["curl", "-sf", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
+              imagePullPolicy: IfNotPresent
+              command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
 ---
 # ── NetworkPolicies: website-Namespace ───────────────────────────────────────

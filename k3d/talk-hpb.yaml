@@ -78,13 +78,18 @@ data:
     internalsecret = @@CLIENTS_INTERNALSECRET@@
 
     [backend]
+    # allowall = true: skip URL-matching for dev (HMAC still enforces auth).
+    # The backend URL sent by Nextcloud (overwrite.cli.url = http://localhost)
+    # doesn't match files.localhost; allowall avoids the mismatch.
+    # secret is required in [backend] when allowall = true.
+    allowall = true
+    secret = @@SIGNALING_SECRET@@
     backends = backend-1
-    allowall = false
     timeout = 10
     connectionsperhost = 8
 
     [backend-1]
-    url = https://files.${PROD_DOMAIN}
+    url = http://files.localhost
     secret = @@SIGNALING_SECRET@@
     maxstreambitrate = 0
     maxscreenbitrate = 0
@@ -99,7 +104,7 @@ data:
     [turn]
     apikey = @@TURN_APIKEY@@
     secret = @@TURN_SECRET@@
-    servers = turn:turn.${PROD_DOMAIN}:3478?transport=udp,turn:turn.${PROD_DOMAIN}:3478?transport=tcp
+    servers = turn:turn.localhost:3478?transport=udp,turn:turn.localhost:3478?transport=tcp
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -118,8 +123,20 @@ spec:
         app: spreed-signaling
       # Bump this to force a rollout whenever the render logic changes.
       annotations:
-        config/hash: "2"
+        config/hash: "5"
     spec:
+      # Soft preference: avoid agent-4 which has transient Janus MCU
+      # connectivity issues (hostNetwork pod reachability via kube-proxy).
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - k3d-dev-agent-4
       initContainers:
         # Render /shared/server.conf from the template by substituting
         # @@VAR@@ placeholders with values sourced from workspace-secrets.

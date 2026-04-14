@@ -105,6 +105,23 @@ data:
           created_at TIMESTAMPTZ DEFAULT now()
       );
 
+      -- Bug report tickets (status tracking for /status page)
+      CREATE TABLE IF NOT EXISTS bug_tickets (
+          ticket_id       TEXT PRIMARY KEY,
+          status          TEXT NOT NULL DEFAULT 'open'
+              CHECK (status IN ('open', 'resolved', 'archived')),
+          category        TEXT NOT NULL,
+          reporter_email  TEXT NOT NULL,
+          description     TEXT NOT NULL,
+          url             TEXT,
+          brand           TEXT NOT NULL DEFAULT 'mentolder',
+          created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          resolved_at     TIMESTAMPTZ,
+          resolution_note TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_bug_tickets_status ON bug_tickets(status);
+
       -- Indexes for MCP query patterns
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);

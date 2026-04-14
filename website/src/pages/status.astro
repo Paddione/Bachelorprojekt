@@ -1,0 +1,179 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Bug-Status" description="Ticket-Status Ihrer Bug-Meldung prüfen.">
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-2xl mx-auto px-6">
+      <div class="text-center mb-10">
+        <h1 class="text-4xl font-bold text-light mb-3 font-serif">Bug-Status prüfen</h1>
+        <p class="text-muted">Ticket-ID aus der Bestätigungsmeldung eingeben.</p>
+      </div>
+
+      <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8">
+        <div class="flex gap-3">
+          <input
+            id="ticket-input"
+            type="text"
+            placeholder="BR-20260414-9214"
+            maxlength="18"
+            class="flex-1 px-4 py-2.5 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold-dim font-mono text-sm"
+          />
+          <button
+            id="search-btn"
+            class="bg-gold hover:bg-gold-light text-dark px-5 py-2.5 rounded font-semibold transition-colors cursor-pointer"
+          >
+            Suchen
+          </button>
+        </div>
+        <p class="text-xs text-muted-dark mt-2">Keine Registrierung nötig.</p>
+
+        <div id="result-area" class="hidden mt-6"></div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const input = document.getElementById('ticket-input') as HTMLInputElement;
+  const btn = document.getElementById('search-btn') as HTMLButtonElement;
+  const resultArea = document.getElementById('result-area') as HTMLDivElement;
+
+  function formatDate(iso: string | null): string {
+    if (!iso) return '–';
+    return new Date(iso).toLocaleDateString('de-DE', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+    });
+  }
+
+  function categoryLabel(cat: string): string {
+    const map: Record<string, string> = {
+      fehler: 'Fehler',
+      verbesserung: 'Verbesserung',
+      erweiterungswunsch: 'Erweiterungswunsch',
+    };
+    return map[cat] ?? cat;
+  }
+
+  function renderResult(data: {
+    ticketId: string;
+    status: string;
+    category: string;
+    createdAt: string;
+    resolvedAt: string | null;
+    resolutionNote: string | null;
+  }) {
+    resultArea.textContent = '';
+
+    const header = document.createElement('div');
+    header.className = 'flex items-center gap-3 mb-4';
+
+    const idEl = document.createElement('span');
+    idEl.className = 'font-mono text-gold font-semibold';
+    idEl.textContent = data.ticketId;
+
+    const badge = document.createElement('span');
+    badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold border';
+    if (data.status === 'resolved') {
+      badge.classList.add('bg-green-900/40', 'text-green-300', 'border-green-800');
+      badge.textContent = '✓ Erledigt';
+    } else if (data.status === 'archived') {
+      badge.classList.add('bg-gray-800', 'text-gray-400', 'border-gray-700');
+      badge.textContent = '🗂 Archiviert';
+    } else {
+      badge.classList.add('bg-yellow-900/40', 'text-yellow-300', 'border-yellow-800');
+      badge.textContent = '🕐 Offen';
+    }
+    header.appendChild(idEl);
+    header.appendChild(badge);
+
+    const table = document.createElement('table');
+    table.className = 'w-full border-collapse';
+
+    const rows: [string, string, string][] = [
+      ['Kategorie', categoryLabel(data.category), 'text-light'],
+      ['Gemeldet', formatDate(data.createdAt), 'text-light'],
+    ];
+    if (data.resolvedAt) {
+      rows.push(['Behoben am', formatDate(data.resolvedAt), 'text-green-300']);
+    }
+    for (const [label, value, valueClass] of rows) {
+      const tr = document.createElement('tr');
+      const tdLabel = document.createElement('td');
+      tdLabel.className = 'text-muted-dark py-1.5 pr-6 text-sm w-36';
+      tdLabel.textContent = label;
+      const tdValue = document.createElement('td');
+      tdValue.className = `${valueClass} text-sm`;
+      tdValue.textContent = value;
+      tr.appendChild(tdLabel);
+      tr.appendChild(tdValue);
+      table.appendChild(tr);
+    }
+
+    let noteEl: HTMLDivElement | null = null;
+    if (data.resolutionNote) {
+      noteEl = document.createElement('div');
+      noteEl.className = 'mt-4 p-3 bg-dark rounded border-l-4 border-green-600';
+      const noteLabel = document.createElement('p');
+      noteLabel.className = 'text-xs text-muted-dark mb-1';
+      noteLabel.textContent = 'Lösungshinweis';
+      const noteText = document.createElement('p');
+      noteText.className = 'text-sm text-muted';
+      noteText.textContent = data.resolutionNote;
+      noteEl.appendChild(noteLabel);
+      noteEl.appendChild(noteText);
+    }
+
+    const footer = document.createElement('p');
+    footer.className = 'text-xs text-muted-dark mt-4';
+    footer.textContent = 'Bei weiteren Fragen nutzen Sie das Bug-Formular erneut.';
+
+    resultArea.appendChild(header);
+    resultArea.appendChild(table);
+    if (noteEl) resultArea.appendChild(noteEl);
+    resultArea.appendChild(footer);
+  }
+
+  async function search() {
+    const id = input.value.trim().toUpperCase();
+    if (!id) return;
+
+    btn.disabled = true;
+    btn.textContent = '...';
+    resultArea.classList.remove('hidden');
+    resultArea.textContent = '';
+
+    const loading = document.createElement('p');
+    loading.className = 'text-sm text-muted';
+    loading.textContent = 'Suche...';
+    resultArea.appendChild(loading);
+
+    try {
+      const res = await fetch(`/api/status?id=${encodeURIComponent(id)}`);
+      const data = await res.json();
+      resultArea.textContent = '';
+
+      if (!res.ok) {
+        const err = document.createElement('p');
+        err.className = 'text-red-400 text-sm';
+        err.textContent = data.error ?? 'Fehler bei der Abfrage.';
+        resultArea.appendChild(err);
+        return;
+      }
+
+      renderResult(data);
+    } catch {
+      resultArea.textContent = '';
+      const err = document.createElement('p');
+      err.className = 'text-red-400 text-sm';
+      err.textContent = 'Verbindungsfehler. Bitte versuchen Sie es erneut.';
+      resultArea.appendChild(err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Suchen';
+    }
+  }
+
+  btn.addEventListener('click', search);
+  input.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') search(); });
+</script>

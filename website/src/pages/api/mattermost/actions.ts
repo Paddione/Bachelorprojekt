@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { updatePost, replyToPost, getFirstTeamId, getOrCreateCustomerChannel, postToChannel, postInteractiveMessage, openDialog } from '../../../lib/mattermost';
+import { archiveBugTicket } from '../../../lib/meetings-db';
 import { createUser, sendPasswordResetEmail } from '../../../lib/keycloak';
 import { createCalendarEvent } from '../../../lib/caldav';
 import { createTalkRoom, inviteGuestByEmail } from '../../../lib/talk';
@@ -306,6 +307,12 @@ export const POST: APIRoute = async ({ request }) => {
           post_id,
           `### :file_cabinet: ${ticketId} · Archiviert\n\nReporter: ${reporter}`
         );
+        // Update ticket status in DB (best-effort)
+        try {
+          await archiveBugTicket(ticketId);
+        } catch (err) {
+          console.warn('[actions] archive DB update failed (non-fatal):', err);
+        }
         return new Response(
           JSON.stringify({
             update: {

@@ -52,6 +52,7 @@ async function fetchEventsRaw(from: Date, to: Date): Promise<string[]> {
         Depth: '1',
       },
       body,
+      signal: AbortSignal.timeout(3000),
     });
 
     if (!res.ok) {

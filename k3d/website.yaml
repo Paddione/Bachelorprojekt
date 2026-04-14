@@ -14,11 +14,12 @@ metadata:
   name: website-config
   namespace: website
 data:
+  # Brand
+  BRAND: "${BRAND_ID}"
   # Mattermost
-  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/REPLACE_ME"
+  MATTERMOST_WEBHOOK_URL: ""
   MATTERMOST_CHANNEL: "anfragen"
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
-  MATTERMOST_BOT_TOKEN: ""
   BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
   KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
@@ -78,6 +79,16 @@ data:
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
 ---
+# ── Website Secrets ───────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: website-secrets
+  namespace: website
+type: Opaque
+stringData:
+  MATTERMOST_BOT_TOKEN: "devwebsitebottoken1234567890abcde"
+---
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
@@ -96,6 +107,15 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-pull-secret
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - pk-hetzner
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
@@ -103,6 +123,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: website-config
+          env:
+            - name: MATTERMOST_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: MATTERMOST_BOT_TOKEN
           ports:
             - containerPort: 4321
           resources:
@@ -164,15 +190,25 @@ spec:
   schedule: "* * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 25
       template:
         spec:
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: website
+                  topologyKey: kubernetes.io/hostname
           containers:
             - name: trigger
               image: curlimages/curl:latest
-              command: ["curl", "-sf", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
+              imagePullPolicy: IfNotPresent
+              command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
 ---
 # ── NetworkPolicies: website-Namespace ───────────────────────────────────────

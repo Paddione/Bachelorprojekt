@@ -13,6 +13,10 @@ env_vars:
     required: true
     default_dev: "Workspace"
 
+  - name: BRAND_ID
+    required: true
+    default_dev: "mentolder"
+
   - name: CONTACT_EMAIL
     required: true
     default_dev: "dev@localhost"
@@ -161,6 +165,10 @@ secrets:
     required: true
     generate: true
     length: 32
+
+  - name: WEBSITE_MM_TOKEN
+    required: true
+    description: "Mattermost bot token for the website (bug reports, contact form interactive messages). Must be provisioned in Mattermost and stored in a website-secrets Secret in the website namespace."
 
   - name: COLLABORA_ADMIN_PASSWORD
     required: true

@@ -6,6 +6,7 @@ import {
   getChannelByName,
   uploadFile,
 } from '../../lib/mattermost';
+import { insertBugTicket } from '../../lib/meetings-db';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
@@ -48,8 +49,6 @@ export const POST: APIRoute = async ({ request }) => {
     const url = (formData.get('url')?.toString() ?? 'unbekannt').slice(0, 500).replace(/[\r\n]/g, ' ');
     const userAgent = (formData.get('userAgent')?.toString() ?? 'unbekannt').slice(0, 500).replace(/[\r\n]/g, ' ');
     const viewport = (formData.get('viewport')?.toString() ?? 'unbekannt').slice(0, 40).replace(/[\r\n]/g, ' ');
-    const screenshot = formData.get('screenshot');
-
     if (!description) {
       return jsonError('Bitte beschreiben Sie das Problem.', 400);
     }
@@ -63,15 +62,21 @@ export const POST: APIRoute = async ({ request }) => {
       return jsonError('Bitte wählen Sie eine Kategorie.', 400);
     }
 
-    let file: File | null = null;
-    if (screenshot instanceof File && screenshot.size > 0) {
-      if (screenshot.size > MAX_BYTES) {
-        return jsonError('Datei zu groß (max. 5 MB).', 400);
+    const screenshots = formData.getAll('screenshot');
+
+    const validFiles: File[] = [];
+    for (const item of screenshots) {
+      if (!(item instanceof File) || item.size === 0) continue;
+      if (item.size > MAX_BYTES) {
+        return jsonError(`Datei "${item.name}" zu groß (max. 5 MB).`, 400);
       }
-      if (!ALLOWED_MIME.has(screenshot.type)) {
-        return jsonError('Dateiformat nicht unterstützt. Erlaubt: PNG, JPEG, WEBP.', 400);
+      if (!ALLOWED_MIME.has(item.type)) {
+        return jsonError(`"${item.name}": Dateiformat nicht unterstützt. Erlaubt: PNG, JPEG, WEBP.`, 400);
       }
-      file = screenshot;
+      validFiles.push(item);
+    }
+    if (validFiles.length > 3) {
+      return jsonError('Maximal 3 Screenshots erlaubt.', 400);
     }
 
     const ticketId = generateTicketId();
@@ -92,13 +97,17 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // Upload screenshot if present (best-effort — lost screenshot is soft failure)
-    let fileId: string | null = null;
+    // Upload screenshots — best-effort, partial failure is a soft warning
+    const fileIds: string[] = [];
     let uploadWarning = '';
-    if (file && channelId) {
-      fileId = await uploadFile({ channelId, file });
-      if (!fileId) {
-        uploadWarning = '\n\n:warning: Screenshot-Upload fehlgeschlagen';
+    if (validFiles.length > 0 && channelId) {
+      for (const f of validFiles) {
+        const fid = await uploadFile({ channelId, file: f });
+        if (fid) {
+          fileIds.push(fid);
+        } else {
+          uploadWarning = '\n\n:warning: Ein oder mehrere Screenshots konnten nicht hochgeladen werden';
+        }
       }
     }
 
@@ -138,7 +147,7 @@ export const POST: APIRoute = async ({ request }) => {
           { id: 'archive_bug', name: 'Archivieren', style: 'default' },
         ],
         context: sharedContext,
-        fileIds: fileId ? [fileId] : undefined,
+        fileIds: fileIds.length > 0 ? fileIds : undefined,
       });
       delivered = postId !== null;
     }
@@ -155,6 +164,20 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!delivered) {
       return jsonError('Interner Serverfehler. Bitte versuchen Sie es später erneut.', 500);
+    }
+
+    // Persist ticket to DB for /status lookups (best-effort)
+    try {
+      await insertBugTicket({
+        ticketId,
+        category,
+        reporterEmail: email,
+        description,
+        url,
+        brand: BRAND,
+      });
+    } catch (err) {
+      console.warn('[bug-report] DB insert failed (non-fatal):', err);
     }
 
     return new Response(

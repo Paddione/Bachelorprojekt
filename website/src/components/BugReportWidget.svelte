@@ -1,7 +1,7 @@
 <script lang="ts">
   let open = $state(false);
   let description = $state('');
-  let file = $state<File | null>(null);
+  let files = $state<File[]>([]);
   let fileError = $state('');
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
@@ -13,6 +13,7 @@
   let fileInputEl = $state<HTMLInputElement | null>(null);
 
   const MAX_BYTES = 5 * 1024 * 1024;
+  const MAX_FILES = 3;
   const ALLOWED = ['image/png', 'image/jpeg', 'image/webp'];
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,7 +31,7 @@
     description = '';
     email = '';
     category = 'fehler';
-    file = null;
+    files = [];
     fileError = '';
     result = null;
     if (fileInputEl) fileInputEl.value = '';
@@ -39,27 +40,35 @@
   function onFileChange(e: Event) {
     fileError = '';
     const input = e.target as HTMLInputElement;
-    const picked = input.files?.[0] ?? null;
-    if (!picked) { file = null; return; }
-    if (picked.size > MAX_BYTES) {
-      fileError = 'Datei zu groß (max. 5 MB).';
-      file = null;
-      input.value = '';
-      return;
+    if (!input.files) return;
+
+    const incoming = Array.from(input.files);
+    for (const picked of incoming) {
+      if (files.length >= MAX_FILES) {
+        fileError = `Maximal ${MAX_FILES} Screenshots erlaubt.`;
+        break;
+      }
+      if (picked.size > MAX_BYTES) {
+        fileError = `"${picked.name}" ist zu groß (max. 5 MB).`;
+        continue;
+      }
+      if (!ALLOWED.includes(picked.type)) {
+        fileError = `"${picked.name}": Nur PNG, JPEG oder WEBP erlaubt.`;
+        continue;
+      }
+      if (files.some(f => f.name === picked.name && f.size === picked.size)) {
+        fileError = `"${picked.name}" ist bereits hinzugefügt.`;
+        continue;
+      }
+      files = [...files, picked];
     }
-    if (!ALLOWED.includes(picked.type)) {
-      fileError = 'Nur PNG, JPEG oder WEBP erlaubt.';
-      file = null;
-      input.value = '';
-      return;
-    }
-    file = picked;
+    // Reset input so the same file can be re-added after removal
+    input.value = '';
   }
 
-  function removeFile() {
-    file = null;
+  function removeFile(index: number) {
+    files = files.filter((_, i) => i !== index);
     fileError = '';
-    if (fileInputEl) fileInputEl.value = '';
   }
 
   const canSubmit = $derived(
@@ -82,7 +91,9 @@
     fd.append('url', window.location.href);
     fd.append('userAgent', navigator.userAgent);
     fd.append('viewport', `${window.innerWidth}x${window.innerHeight}`);
-    if (file) fd.append('screenshot', file, file.name);
+    for (const file of files) {
+      fd.append('screenshot', file, file.name);
+    }
 
     try {
       const res = await fetch('/api/bug-report', { method: 'POST', body: fd });
@@ -111,7 +122,6 @@
 
   let effectInitialized = false;
   $effect(() => {
-    // Read `open` first to register reactivity
     const isOpen = open;
     if (!effectInitialized) {
       effectInitialized = true;
@@ -212,21 +222,32 @@
 
         <div>
           <label for="bug-screenshot" class="block text-sm font-medium text-light mb-1">
-            Screenshot <span class="text-muted-dark">(optional, max. 5 MB)</span>
+            Screenshots <span class="text-muted-dark">(optional, bis zu 3, max. 5 MB je Bild)</span>
           </label>
-          <input
-            id="bug-screenshot"
-            bind:this={fileInputEl}
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onchange={onFileChange}
-            class="block w-full text-sm text-muted file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gold file:text-dark file:font-semibold hover:file:bg-gold-light cursor-pointer"
-          />
-          {#if file}
-            <p class="text-xs text-muted mt-1">
-              {file.name} ({(file.size / 1024).toFixed(1)} KB)
-              <button type="button" onclick={removeFile} class="text-gold hover:underline ml-2 bg-transparent border-0 cursor-pointer">Entfernen</button>
-            </p>
+          {#if files.length < 3}
+            <input
+              id="bug-screenshot"
+              bind:this={fileInputEl}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              multiple
+              onchange={onFileChange}
+              class="block w-full text-sm text-muted file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-gold file:text-dark file:font-semibold hover:file:bg-gold-light cursor-pointer"
+            />
+          {/if}
+          {#if files.length > 0}
+            <ul class="mt-2 space-y-1">
+              {#each files as file, i}
+                <li class="text-xs text-muted flex items-center gap-2">
+                  <span>{file.name} ({(file.size / 1024).toFixed(1)} KB)</span>
+                  <button
+                    type="button"
+                    onclick={() => removeFile(i)}
+                    class="text-gold hover:underline bg-transparent border-0 cursor-pointer"
+                  >Entfernen</button>
+                </li>
+              {/each}
+            </ul>
           {/if}
           {#if fileError}
             <p class="text-xs text-red-400 mt-1">{fileError}</p>

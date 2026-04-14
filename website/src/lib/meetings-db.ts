@@ -309,3 +309,58 @@ export async function getMeetingsForClient(
   const result = await pool.query(query, [clientEmail]);
   return result.rows;
 }
+
+// ── Bug Tickets ──────────────────────────────────────────────────────────────
+
+export async function insertBugTicket(params: {
+  ticketId: string;
+  category: string;
+  reporterEmail: string;
+  description: string;
+  url?: string;
+  brand: string;
+}): Promise<void> {
+  await pool.query(
+    `INSERT INTO bug_tickets (ticket_id, category, reporter_email, description, url, brand)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (ticket_id) DO NOTHING`,
+    [params.ticketId, params.category, params.reporterEmail,
+     params.description, params.url ?? null, params.brand]
+  );
+}
+
+export async function resolveBugTicket(ticketId: string, resolutionNote: string): Promise<void> {
+  await pool.query(
+    `UPDATE bug_tickets
+     SET status = 'resolved', resolved_at = NOW(), resolution_note = $2
+     WHERE ticket_id = $1`,
+    [ticketId, resolutionNote]
+  );
+}
+
+export async function archiveBugTicket(ticketId: string): Promise<void> {
+  await pool.query(
+    `UPDATE bug_tickets SET status = 'archived' WHERE ticket_id = $1`,
+    [ticketId]
+  );
+}
+
+export interface BugTicketStatus {
+  ticketId: string;
+  status: 'open' | 'resolved' | 'archived';
+  category: string;
+  createdAt: Date;
+  resolvedAt: Date | null;
+  resolutionNote: string | null;
+}
+
+export async function getBugTicketStatus(ticketId: string): Promise<BugTicketStatus | null> {
+  const result = await pool.query(
+    `SELECT ticket_id as "ticketId", status, category,
+            created_at as "createdAt", resolved_at as "resolvedAt",
+            resolution_note as "resolutionNote"
+     FROM bug_tickets WHERE ticket_id = $1`,
+    [ticketId]
+  );
+  return result.rows[0] ?? null;
+}

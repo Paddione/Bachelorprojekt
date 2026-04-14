@@ -6,6 +6,7 @@ domain: korczewski.de
 env_vars:
   PROD_DOMAIN: korczewski.de
   BRAND_NAME: "Korczewski"
+  BRAND_ID: korczewski
   CONTACT_EMAIL: info@korczewski.de
   CONTACT_PHONE: "***"
   CONTACT_CITY: "Lüneburg"
@@ -30,6 +31,6 @@ setup_vars:
   KC_USER1_USERNAME: paddione
   KC_USER1_EMAIL: patrick@korczewski.de
   KC_USER1_PASSWORD: SEALED
-  KC_USER2_USERNAME: gekko
-  KC_USER2_EMAIL: quamain@web.de
+  KC_USER2_USERNAME: Christina.Wolf
+  KC_USER2_EMAIL: tina-merlin@web.de
   KC_USER2_PASSWORD: SEALED

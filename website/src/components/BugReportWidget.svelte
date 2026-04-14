@@ -56,6 +56,10 @@
         fileError = `"${picked.name}": Nur PNG, JPEG oder WEBP erlaubt.`;
         continue;
       }
+      if (files.some(f => f.name === picked.name && f.size === picked.size)) {
+        fileError = `"${picked.name}" ist bereits hinzugefügt.`;
+        continue;
+      }
       files = [...files, picked];
     }
     // Reset input so the same file can be re-added after removal

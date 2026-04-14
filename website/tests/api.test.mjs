@@ -255,20 +255,74 @@ async function run() {
     expect(res.status).toBe(400);
   });
 
-  await assert('POST /api/bug-report with description only returns 200 or 500', async () => {
-    // 200 when Mattermost is reachable, 500 when it is not — both are
-    // valid outcomes for this integration test; we only assert the
-    // endpoint does not crash on well-formed input.
+  await assert('POST /api/bug-report with description only returns 400 (v2: email+category required)', async () => {
+    // v2: email and category are required; description-only input must be rejected
     const fd = new FormData();
     fd.append('description', 'Automated test: Kaffeemaschine leer');
     fd.append('url', 'http://test/homepage');
     fd.append('userAgent', 'api-test/1.0');
     fd.append('viewport', '1280x720');
     const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  // v2: new validation paths (email + category)
+
+  await assert('POST /api/bug-report without email returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('category', 'fehler');
+    fd.append('url', 'http://test/');
+    fd.append('userAgent', 'test-ua');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with invalid email returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'not-an-email');
+    fd.append('category', 'fehler');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report without category returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with invalid category returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'nonsense');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report v2 happy path returns ticketId', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Automated v2 test: Kaffeemaschine leer');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'fehler');
+    fd.append('url', 'http://test/homepage');
+    fd.append('userAgent', 'api-test/2.0');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    // Tolerant: 200 if MM reachable, 500 if not
     expect(res.status).toBeOneOf([200, 500]);
     if (res.status === 200) {
       const body = await res.json();
       expect(body.success).toBe(true);
+      // Ticket ID format: BR-YYYYMMDD-xxxx (4 lowercase hex chars)
+      if (!/^BR-\d{8}-[0-9a-f]{4}$/.test(body.ticketId ?? '')) {
+        throw new Error(`ticketId "${body.ticketId}" does not match /^BR-\\d{8}-[0-9a-f]{4}$/`);
+      }
     }
   });
 

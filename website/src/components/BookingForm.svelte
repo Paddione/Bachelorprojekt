@@ -15,13 +15,14 @@
     initialDate?: string;
     initialStart?: string;
     initialEnd?: string;
+    initialType?: string;
   }
-  let { initialDate = '', initialStart = '', initialEnd = '' } = $props<Props>();
+  let { initialDate = '', initialStart = '', initialEnd = '', initialType = '' } = $props<Props>();
 
   let name = $state('');
   let email = $state('');
   let phone = $state('');
-  let bookingType = $state('erstgespraech');
+  let bookingType = $state(initialType || 'erstgespraech');
   let message = $state('');
   let selectedSlot = $state<TimeSlot | null>(
     initialStart && initialEnd
@@ -79,7 +80,7 @@
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!selectedSlot || !agbAccepted) return;
+    if ((!selectedSlot && !isCallback) || !agbAccepted) return;
     submitting = true;
     result = null;
 
@@ -119,6 +120,8 @@
     }
   }
 
+  let isCallback = $derived(bookingType === 'callback');
+  let showContactForm = $derived(isCallback || selectedSlot !== null);
   let currentDaySlots = $derived(days.find((d) => d.date === selectedDate));
 </script>
 
@@ -141,7 +144,8 @@
     </div>
   </div>
 
-  <!-- Step 2: Choose date + slot -->
+  <!-- Step 2: Choose date + slot (not needed for callback) -->
+  {#if !isCallback}
   <div>
     <h3 class="text-xl font-semibold text-light mb-4">2. Termin wahlen</h3>
 
@@ -192,11 +196,12 @@
       {/if}
     {/if}
   </div>
+  {/if}
 
-  <!-- Step 3: Contact details -->
-  {#if selectedSlot}
+  <!-- Step 3 (or Step 2 for callback): Contact details -->
+  {#if showContactForm}
     <form onsubmit={handleSubmit} class="space-y-6">
-      <h3 class="text-xl font-semibold text-light">3. Ihre Kontaktdaten</h3>
+      <h3 class="text-xl font-semibold text-light">{isCallback ? '2' : '3'}. Ihre Kontaktdaten</h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -229,15 +234,19 @@
 
       <div>
         <label for="b-phone" class="block text-lg font-medium text-light mb-2">
-          Telefon <span class="text-muted-dark">(optional)</span>
+          Telefon {#if isCallback}<span class="text-gold">*</span>{:else}<span class="text-muted-dark">(optional)</span>{/if}
         </label>
         <input
           id="b-phone"
           type="tel"
           bind:value={phone}
+          required={isCallback}
           placeholder="+49 ..."
           class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
         />
+        {#if isCallback}
+          <p class="mt-1 text-sm text-muted">Wir rufen Sie unter dieser Nummer zurück.</p>
+        {/if}
       </div>
 
       <div>

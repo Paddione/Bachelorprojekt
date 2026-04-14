@@ -54,6 +54,7 @@ patches:
   # Production SMTP and service config
   - path: patch-vaultwarden.yaml
   - path: patch-oauth2-proxy.yaml
+  - path: patch-oauth2-proxy-docs.yaml
   # Invoice Ninja: production APP_URL + SMTP
   - path: patch-invoiceninja.yaml
   # Pin amd64-only images to amd64 nodes

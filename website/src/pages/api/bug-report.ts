@@ -24,9 +24,9 @@ export const POST: APIRoute = async ({ request }) => {
     const formData = await request.formData();
 
     const description = (formData.get('description')?.toString() ?? '').trim();
-    const url = (formData.get('url')?.toString() ?? 'unbekannt').slice(0, 500);
-    const userAgent = (formData.get('userAgent')?.toString() ?? 'unbekannt').slice(0, 500);
-    const viewport = (formData.get('viewport')?.toString() ?? 'unbekannt').slice(0, 40);
+    const url = (formData.get('url')?.toString() ?? 'unbekannt').slice(0, 500).replace(/[\r\n]/g, ' ');
+    const userAgent = (formData.get('userAgent')?.toString() ?? 'unbekannt').slice(0, 500).replace(/[\r\n]/g, ' ');
+    const viewport = (formData.get('viewport')?.toString() ?? 'unbekannt').slice(0, 40).replace(/[\r\n]/g, ' ');
     const screenshot = formData.get('screenshot');
 
     if (!description) {
@@ -67,7 +67,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (file && channelId) {
       fileId = await uploadFile({ channelId, file });
       if (!fileId) {
-        uploadWarning = '\n\n⚠️ Screenshot-Upload fehlgeschlagen';
+        uploadWarning = '\n\n:warning: Screenshot-Upload fehlgeschlagen';
       }
     }
 

@@ -52,9 +52,9 @@ data:
   NEXTCLOUD_EXTERNAL_URL: "http://files.localhost"
   NEXTCLOUD_ADMIN_USER: "admin"
   NEXTCLOUD_ADMIN_PASS: "devnextcloudadmin"
-  KEYCLOAK_FRONTEND_URL: "${KEYCLOAK_FRONTEND_URL}"
   NEXTCLOUD_CALDAV_USER: "admin"
   NEXTCLOUD_CALDAV_PASSWORD: "devnextcloudadmin"
+  KEYCLOAK_FRONTEND_URL: "${KEYCLOAK_FRONTEND_URL}"
   # Mattermost signing channel
   MATTERMOST_SIGNING_CHANNEL: "signing"
   # Portal admin

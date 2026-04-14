@@ -177,10 +177,11 @@ spec:
             failureThreshold: 10
           resources:
             requests:
-              cpu: "200m"
-              memory: 256Mi
+              memory: 512Mi
+              cpu: "500m"
             limits:
-              memory: 1Gi
+              memory: 2Gi
+              cpu: "2"
         # ── Cron sidecar: runs php cron.php every 5 min ───────────────
         - name: nextcloud-cron
           image: nextcloud:33-apache
@@ -269,6 +270,7 @@ spec:
               memory: 32Mi
             limits:
               memory: 128Mi
+
       volumes:
         - name: app
           persistentVolumeClaim:

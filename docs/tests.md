@@ -80,10 +80,11 @@ flowchart TB
 | FA-19 | Outline Wiki | Wiki-Deployment, Keycloak-OIDC |
 | FA-20 | Finalisierung | Abschlusspruefungen |
 | FA-21 | Billing Workflows | Rechnungsworkflows |
-| FA-22 | Stripe Payment Gateway | Stripe als Zahlungsgateway in Invoice Ninja (nur Shell-Tests, kein Playwright-Spec) |
+| FA-22 | Stripe Payment | Stripe als Zahlungsgateway |
 | FA-23 | Vaultwarden | Passwort-Manager mit Keycloak SSO |
-| FA-24 | Kollaboratives Whiteboard | Nextcloud Whiteboard (board.{domain}) |
+| FA-24 | Whiteboard | Nextcloud Whiteboard (board.{domain}) |
 | FA-25 | Mailpit | Self-hosted SMTP-Server und Web-UI |
+| FA-26 | Bug Report Form | Fehler-Reporting Widget |
 
 ### Sicherheits-Tests (SA)
 
@@ -95,7 +96,11 @@ flowchart TB
 | SA-04--SA-07 | Autorisierung | Zugriffskontrolle und Berechtigungen |
 | SA-08 | SSO-Integration | Keycloak OIDC Flow |
 | SA-09 | Weitere Sicherheit | Zusaetzliche Sicherheitspruefungen |
+<<<<<<< HEAD
+| SA-10 | MCP-Authentifizierung | MCP-Server Auth-Proxy, Token-Validierung |
+=======
 | SA-10 | MCP-Endpunkt-Absicherung | ForwardAuth-Proxy, Bearer-Token, HTTP 401 ohne Token |
+>>>>>>> origin/main
 
 ### Nicht-funktionale Tests (NFA)
 
@@ -108,6 +113,8 @@ flowchart TB
 | NFA-05 | Usability | Barrierefreiheit, UX |
 | NFA-06 | Datenbank-Konsistenz | DB-Integritaet |
 | NFA-07 | Logging & Monitoring | Log-Verfuegbarkeit |
+| NFA-08 | Backup & Recovery | Backup-CronJob, Verschluesselung, Wiederherstellung |
+| NFA-09 | Multi-Cluster | ArgoCD Sync, Cluster-Registrierung |
 
 ### Abnahme-Tests (AK)
 
@@ -151,7 +158,7 @@ siehe "Playwright gegen Produktion" unten.
 Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
 `Testpassword123!`), deaktiviert Onboarding/Tutorials, speichert Session.
 
-**Test-Specs (29 Dateien):**
+**Test-Specs (35 Dateien):**
 - `fa-01-messaging.spec.ts` -- DM- und Channel-Nachrichten
 - `fa-02-channels.spec.ts` -- Kanal-Erstellung, Berechtigungen
 - `fa-03-video.spec.ts` -- Nextcloud Talk / Signaling
@@ -169,18 +176,23 @@ Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
 - `fa-15-oidc.spec.ts` -- OIDC-Website-Login
 - `fa-16-booking.spec.ts` -- Kalender / Buchung
 - `fa-17-meeting.spec.ts` -- Meeting-Lifecycle
-- `fa-18-transcription.spec.ts` -- Whisper-Upload-API (akzeptiert 404/405 für GET)
+- `fa-18-transcription.spec.ts` -- Whisper-Upload-API
 - `fa-19-outline.spec.ts` -- Outline Wiki
 - `fa-20-finalize.spec.ts` -- Meeting-Finalisierung
 - `fa-21-billing.spec.ts` -- Service Catalog, Invoice-API
 - `fa-23-vaultwarden.spec.ts` -- Vaultwarden-Gesundheit
 - `fa-24-whiteboard.spec.ts` -- Whiteboard-Service
 - `fa-25-mailpit.spec.ts` -- Mailpit Web-UI und API
+- `fa-26-bug-report-form.spec.ts` -- Fehler-Reporting Widget
+- `fa-client-portal.spec.ts` -- Kunden-Portal (Login, Dokumente, Rechnungen)
+- `fa-document-signing.spec.ts` -- Dokumenten-Signierung
+- `fa-meeting-history.spec.ts` -- Meeting-Verlauf und Insights
+- `fa-slot-widget.spec.ts` -- Buchungs-Slot-Widget
 - `sa-02-auth.spec.ts` -- Falsches Passwort, SSO-Button
 - `sa-08-sso.spec.ts` -- Cross-Service-SSO (Browser)
 - `sa-10-mcp-auth.spec.ts` -- MCP-Statusseite ohne Auth
 - `nfa-05-usability.spec.ts` -- Mobile, Quick-Switcher
-- `integration-smoke.spec.ts` -- Cross-Service Smoke gegen Produktion
+- `integration-smoke.spec.ts` -- Cross-Service Smoke Tests
 
 **Hilfsfunktionen** (`specs/helpers.ts`):
 - `dismissOverlays(page)` -- Tour/Onboarding entfernen

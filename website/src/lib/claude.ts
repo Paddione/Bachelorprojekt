@@ -41,7 +41,11 @@ Erstelle die Analyse im folgenden JSON-Format. Alle Texte auf Deutsch:
   "summary": "2-3 Saetze Zusammenfassung des Meetings",
   "actionItems": "Bullet-Liste der naechsten Schritte (Markdown)",
   "keyTopics": "Komma-separierte Liste der Hauptthemen",
+<<<<<<< HEAD
+  "sentiment": "Kurze Einschaetzung der Stimmung und Dynamik",
+=======
   "sentiment": "Kurze Einschätzung der Stimmung und Dynamik",
+>>>>>>> origin/main
   "coachingNotes": "Beobachtungen und Empfehlungen fuer den Coach (Markdown)"
 }
 

@@ -265,6 +265,16 @@ spec:
                 name: spreed-signaling
                 port:
                   number: 8080
+    - host: bug.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80
     - host: wiki.${PROD_DOMAIN}
       http:
         paths:

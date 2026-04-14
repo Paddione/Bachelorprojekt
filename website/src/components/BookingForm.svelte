@@ -15,7 +15,7 @@
     initialDate?: string;
     initialStart?: string;
     initialEnd?: string;
-    initialType?: string;
+    initialType?: 'erstgespraech' | 'callback' | 'meeting' | 'termin';
   }
   let { initialDate = '', initialStart = '', initialEnd = '', initialType = '' } = $props<Props>();
 
@@ -37,6 +37,10 @@
   let result = $state<{ success: boolean; message: string } | null>(null);
   let agbAccepted = $state(false);
 
+  let isCallback = $derived(bookingType === 'callback');
+  let showContactForm = $derived(isCallback || selectedSlot !== null);
+  let currentDaySlots = $derived(days.find((d) => d.date === selectedDate));
+
   const bookingTypes = [
     { value: 'erstgespraech', label: 'Kostenloses Erstgespräch (30 Min.)' },
     { value: 'callback', label: 'Rückruf' },
@@ -45,7 +49,7 @@
   ];
 
   // Fetch available slots on mount
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && initialType !== 'callback') {
     fetch('/api/calendar/slots')
       .then((r) => r.json())
       .then((data) => {
@@ -94,9 +98,9 @@
           phone,
           type: bookingType,
           message,
-          slotStart: selectedSlot.start,
-          slotEnd: selectedSlot.end,
-          slotDisplay: selectedSlot.display,
+          slotStart: selectedSlot?.start ?? null,
+          slotEnd: selectedSlot?.end ?? null,
+          slotDisplay: selectedSlot?.display ?? null,
           date: selectedDate,
         }),
       });
@@ -120,9 +124,6 @@
     }
   }
 
-  let isCallback = $derived(bookingType === 'callback');
-  let showContactForm = $derived(isCallback || selectedSlot !== null);
-  let currentDaySlots = $derived(days.find((d) => d.date === selectedDate));
 </script>
 
 <div class="space-y-8">

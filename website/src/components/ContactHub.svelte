@@ -27,6 +27,7 @@
       <button
         type="button"
         onclick={() => setMode(tile.id)}
+        aria-expanded={activeMode === tile.id}
         class="text-left p-5 rounded-xl border transition-all cursor-pointer
           {activeMode === tile.id
             ? 'border-gold bg-gold/10'

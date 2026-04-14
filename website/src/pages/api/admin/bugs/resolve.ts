@@ -1,15 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { resolveBugTicket } from '../../../../lib/meetings-db';
-
-function buildBackUrl(filters: { status: string; category: string; q: string }): string {
-  const params = new URLSearchParams();
-  if (filters.status) params.set('status', filters.status);
-  if (filters.category) params.set('category', filters.category);
-  if (filters.q) params.set('q', filters.q);
-  const qs = params.toString();
-  return `/admin/bugs${qs ? '?' + qs : ''}`;
-}
+import { buildBackUrl } from './_helpers';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

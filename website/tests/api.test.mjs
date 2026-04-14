@@ -219,7 +219,60 @@ async function run() {
     }
   });
 
-  // -- 7. POST /api/register --
+  // -- 7. POST /api/bug-report --
+  section('Bug report form');
+
+  await assert('POST /api/bug-report with empty body returns 400', async () => {
+    const fd = new FormData();
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report missing description returns 400', async () => {
+    const fd = new FormData();
+    fd.append('url', 'http://test/');
+    fd.append('userAgent', 'test-ua');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with oversized screenshot returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    const big = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/png' });
+    fd.append('screenshot', big, 'big.png');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with invalid MIME returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    const exe = new Blob([new Uint8Array(100)], { type: 'application/x-msdownload' });
+    fd.append('screenshot', exe, 'virus.exe');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with description only returns 200 or 500', async () => {
+    // 200 when Mattermost is reachable, 500 when it is not — both are
+    // valid outcomes for this integration test; we only assert the
+    // endpoint does not crash on well-formed input.
+    const fd = new FormData();
+    fd.append('description', 'Automated test: Kaffeemaschine leer');
+    fd.append('url', 'http://test/homepage');
+    fd.append('userAgent', 'api-test/1.0');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBeOneOf([200, 500]);
+    if (res.status === 200) {
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    }
+  });
+
+  // -- 9. POST /api/register --
   section('Register API');
 
   await assert('POST /api/register with empty body returns 400', async () => {
@@ -252,7 +305,7 @@ async function run() {
     }
   });
 
-  // -- 8. POST /api/booking --
+  // -- 10. POST /api/booking --
   section('Booking API');
 
   await assert('POST /api/booking with empty body returns 400', async () => {
@@ -282,7 +335,7 @@ async function run() {
     }
   });
 
-  // -- 9. POST /api/billing/create-invoice --
+  // -- 11. POST /api/billing/create-invoice --
   section('Billing API');
 
   await assert('POST /api/billing/create-invoice with empty body returns 400', async () => {
@@ -301,7 +354,7 @@ async function run() {
     expect(body).toHaveProperty('error');
   });
 
-  // -- 10. POST /api/meeting/finalize --
+  // -- 12. POST /api/meeting/finalize --
   section('Meeting API');
 
   await assert('POST /api/meeting/finalize with empty body returns 400', async () => {
@@ -324,7 +377,7 @@ async function run() {
     expect(res.status).toBeOneOf([200, 503]);
   });
 
-  // -- 11. POST /api/reminders/process --
+  // -- 13. POST /api/reminders/process --
   section('Reminders Process (POST)');
 
   await assert('POST /api/reminders/process returns 200', async () => {
@@ -334,7 +387,7 @@ async function run() {
     expect(body).toHaveProperty('pending');
   });
 
-  // -- 12. Registration API --
+  // -- 14. Registration API --
   section('Registration API');
 
   await assert('POST /api/register returns 400 for missing fields', async () => {
@@ -363,7 +416,7 @@ async function run() {
     expect([200, 500].includes(res.status)).toBeTrue();
   });
 
-  // -- 13. Reminders persistence --
+  // -- 15. Reminders persistence --
   section('Reminders (persistence)');
 
   await assert('GET /api/reminders/process returns pending count', async () => {

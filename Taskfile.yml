@@ -311,6 +311,28 @@ tasks:
     cmds:
       - bash scripts/stripe-setup.sh
 
+  workspace:theme:nextcloud:
+    desc: Apply dark+gold Nextcloud branding via OCC (idempotent)
+    vars:
+      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- su -s /bin/bash www-data -c"
+      BRAND: '{{.BRAND_NAME | default "mentolder"}}'
+      DOMAIN: '{{.PROD_DOMAIN | default "mentolder.localhost"}}'
+    cmds:
+      - '{{.NC_EXEC}} "php occ config:app:set theming name           --value={{.BRAND}}"'
+      - '{{.NC_EXEC}} "php occ config:app:set theming url            --value=https://web.{{.DOMAIN}}"'
+      - '{{.NC_EXEC}} "php occ config:app:set theming color          --value=#e8c870"'
+      - '{{.NC_EXEC}} "php occ config:app:set theming enforce-theme  --value=dark"'
+      - echo "Nextcloud theme applied."
+
+  workspace:theme:
+    desc: Apply dark+gold theme to Mattermost + Nextcloud (idempotent, run after post-setup)
+    cmds:
+      - echo "=== Mattermost Theme ==="
+      - bash scripts/set-mattermost-theme.sh
+      - echo "=== Nextcloud Theme ==="
+      - task: workspace:theme:nextcloud
+      - echo "All themes applied."
+
   workspace:post-setup:
     desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair, notify_push)
     vars:

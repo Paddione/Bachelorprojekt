@@ -18,7 +18,6 @@ data:
   SITE_URL: "https://web.korczewski.de"
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
   MATTERMOST_WEBHOOK_URL: ""
-  MATTERMOST_BOT_TOKEN: ""
   BUG_REPORT_CHANNEL: "bugs"
   SMTP_HOST: "mailpit.workspace.svc.cluster.local"
   SMTP_PORT: "1025"
@@ -38,6 +37,16 @@ data:
   INVOICENINJA_TOKEN: ""
   OUTLINE_URL: "https://wiki.korczewski.de"
   WHISPER_URL: "http://faster-whisper.workspace.svc.cluster.local:8000"
+---
+# ── Secrets ───────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: korczewski-website-secrets
+  namespace: korczewski-website
+type: Opaque
+stringData:
+  MATTERMOST_BOT_TOKEN: "devwebsitebottoken1234567890abcde"
 ---
 # ── Deployment ───────────────────────────────────────────────────────────────
 apiVersion: apps/v1
@@ -64,6 +73,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: korczewski-website-config
+          env:
+            - name: MATTERMOST_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: korczewski-website-secrets
+                  key: MATTERMOST_BOT_TOKEN
           ports:
             - containerPort: 4321
           resources:

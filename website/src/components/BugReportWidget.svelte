@@ -5,6 +5,8 @@
   let fileError = $state('');
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
+  let email = $state('');
+  let category = $state<'fehler' | 'verbesserung' | 'erweiterungswunsch'>('fehler');
 
   let triggerButtonEl = $state<HTMLButtonElement | null>(null);
   let dialogEl = $state<HTMLDivElement | null>(null);
@@ -12,6 +14,7 @@
 
   const MAX_BYTES = 5 * 1024 * 1024;
   const ALLOWED = ['image/png', 'image/jpeg', 'image/webp'];
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   function openModal() {
     open = true;
@@ -25,6 +28,8 @@
 
   function resetForm() {
     description = '';
+    email = '';
+    category = 'fehler';
     file = null;
     fileError = '';
     result = null;
@@ -57,7 +62,12 @@
     if (fileInputEl) fileInputEl.value = '';
   }
 
-  const canSubmit = $derived(description.trim().length > 0 && !submitting && !fileError);
+  const canSubmit = $derived(
+    description.trim().length > 0 &&
+    EMAIL_RE.test(email) &&
+    !submitting &&
+    !fileError
+  );
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
@@ -67,6 +77,8 @@
 
     const fd = new FormData();
     fd.append('description', description.trim());
+    fd.append('email', email.trim());
+    fd.append('category', category);
     fd.append('url', window.location.href);
     fd.append('userAgent', navigator.userAgent);
     fd.append('viewport', `${window.innerWidth}x${window.innerHeight}`);
@@ -76,7 +88,11 @@
       const res = await fetch('/api/bug-report', { method: 'POST', body: fd });
       const data = await res.json();
       if (res.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Meldung wurde übermittelt.' };
+        const ticketId = data.ticketId ?? '';
+        const successMsg = ticketId
+          ? `Vielen Dank! Ihre Meldung wurde als ${ticketId} aufgenommen.`
+          : 'Vielen Dank! Ihre Meldung wurde übermittelt.';
+        result = { success: true, message: successMsg };
         resetForm();
         setTimeout(() => { open = false; result = null; }, 2000);
       } else {
@@ -149,6 +165,36 @@
       </div>
 
       <form onsubmit={handleSubmit} class="space-y-4">
+        <div>
+          <label for="bug-email" class="block text-sm font-medium text-light mb-1">
+            Ihre E-Mail <span class="text-gold">*</span>
+          </label>
+          <input
+            id="bug-email"
+            type="email"
+            bind:value={email}
+            required
+            placeholder="max@example.com"
+            class="w-full px-3 py-2 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold-dim"
+          />
+        </div>
+
+        <div>
+          <label for="bug-category" class="block text-sm font-medium text-light mb-1">
+            Kategorie <span class="text-gold">*</span>
+          </label>
+          <select
+            id="bug-category"
+            bind:value={category}
+            required
+            class="w-full px-3 py-2 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold-dim"
+          >
+            <option value="fehler">Fehler</option>
+            <option value="verbesserung">Verbesserung</option>
+            <option value="erweiterungswunsch">Erweiterungswunsch</option>
+          </select>
+        </div>
+
         <div>
           <label for="bug-description" class="block text-sm font-medium text-light mb-1">
             Beschreibung <span class="text-gold">*</span>

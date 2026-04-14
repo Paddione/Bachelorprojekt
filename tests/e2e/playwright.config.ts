@@ -86,6 +86,7 @@ export default defineConfig({
         '**/fa-19-*.spec.ts', // Outline knowledge base
         '**/fa-20-*.spec.ts', // meeting finalization
         '**/fa-21-*.spec.ts', // service catalog & billing
+        '**/fa-26-*.spec.ts', // bug report form
         '**/fa-slot-widget.spec.ts', // slot widget
         '**/fa-client-portal.spec.ts', // client portal auth-gate
         '**/fa-meeting-history.spec.ts', // meeting history & release

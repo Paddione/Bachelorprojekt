@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { updatePost, replyToPost, getFirstTeamId, getOrCreateCustomerChannel, postToChannel, postInteractiveMessage } from '../../../lib/mattermost';
+import { updatePost, replyToPost, getFirstTeamId, getOrCreateCustomerChannel, postToChannel, postInteractiveMessage, openDialog } from '../../../lib/mattermost';
 import { createUser, sendPasswordResetEmail } from '../../../lib/keycloak';
 import { createCalendarEvent } from '../../../lib/caldav';
 import { createTalkRoom, inviteGuestByEmail } from '../../../lib/talk';
@@ -16,7 +16,7 @@ const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
 export const POST: APIRoute = async ({ request }) => {
   try {
     const payload = await request.json();
-    const { post_id, channel_id, context } = payload;
+    const { post_id, channel_id, context, trigger_id } = payload;
     const action = context?.action;
 
     if (!action || !post_id) {
@@ -241,6 +241,80 @@ export const POST: APIRoute = async ({ request }) => {
           await replyToPost(post_id, channel_id, ':warning: Meeting-Finalisierung fehlgeschlagen. Bitte manuell prüfen.');
           return new Response(JSON.stringify({ ephemeral_text: 'Finalisierung fehlgeschlagen.' }));
         }
+      }
+
+      case 'erledigt_bug': {
+        if (!trigger_id) {
+          return new Response(
+            JSON.stringify({ ephemeral_text: ':warning: Kein trigger_id im Payload — Dialog kann nicht geöffnet werden.' }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const state = JSON.stringify({
+          postId: post_id,
+          channelId: channel_id,
+          ticketId: context.ticketId,
+          category: context.category,
+          categoryLabel: context.categoryLabel,
+          reporterEmail: context.reporterEmail,
+          description: context.description,
+          url: context.url,
+          userAgent: context.userAgent,
+          viewport: context.viewport,
+          brand: context.brand,
+        });
+
+        const siteUrl = process.env.SITE_URL || 'http://localhost:4321';
+
+        const opened = await openDialog({
+          triggerId: trigger_id,
+          url: `${siteUrl}/api/mattermost/dialog-submit`,
+          dialog: {
+            callback_id: 'erledigt_bug',
+            title: `${context.ticketId}: Als erledigt markieren`,
+            introduction_text: `**Kategorie:** ${context.categoryLabel}\n**Reporter:** ${context.reporterEmail}`,
+            elements: [
+              {
+                display_name: 'Was hast du gemacht?',
+                name: 'note',
+                type: 'textarea',
+                max_length: 500,
+                placeholder: 'Kurze Beschreibung der Lösung...',
+              },
+            ],
+            submit_label: 'Erledigt',
+            notify_on_cancel: false,
+            state,
+          },
+        });
+
+        if (!opened) {
+          return new Response(
+            JSON.stringify({ ephemeral_text: ':warning: Dialog konnte nicht geöffnet werden. Siehe Logs.' }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+
+        return new Response(JSON.stringify({}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      case 'archive_bug': {
+        const ticketId = context.ticketId ?? '(kein Ticket)';
+        const reporter = context.reporterEmail ?? 'unbekannt';
+        await updatePost(
+          post_id,
+          `### :file_cabinet: ${ticketId} · Archiviert\n\nReporter: ${reporter}`
+        );
+        return new Response(
+          JSON.stringify({
+            update: {
+              message: `### :file_cabinet: ${ticketId} · Archiviert\n\nReporter: ${reporter}`,
+              props: { attachments: [] },
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
       }
 
       default:

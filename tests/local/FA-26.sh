@@ -18,8 +18,9 @@ assert_gt "$WEB_READY" 0 "FA-26" "T1" "Website-Deployment laeuft (readyReplicas 
 
 # ── T2: /api/bug-report endpoint reachable ───────────────────────
 if [[ "$WEB_READY" -gt 0 ]]; then
+  # Busybox wget has no --method flag; --post-data sends an empty POST body.
   API_CODE=$(kubectl exec -n "$WEB_NAMESPACE" deploy/website -- \
-    wget -qO /dev/null -S --spider --method=POST http://localhost:4321/api/bug-report 2>&1 \
+    wget -qO /dev/null -S --post-data='' http://127.0.0.1:4321/api/bug-report 2>&1 \
     | grep "HTTP/" | awk '{print $2}' || echo "0")
   # 400 is the expected response for an empty body — confirms the endpoint exists.
   assert_eq "$API_CODE" "400" "FA-26" "T2" "/api/bug-report endpoint erreichbar (HTTP 400 bei leerem Body)"

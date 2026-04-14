@@ -6,6 +6,7 @@ import {
   getChannelByName,
   uploadFile,
 } from '../../lib/mattermost';
+import { insertBugTicket } from '../../lib/meetings-db';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
@@ -163,6 +164,20 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!delivered) {
       return jsonError('Interner Serverfehler. Bitte versuchen Sie es später erneut.', 500);
+    }
+
+    // Persist ticket to DB for /status lookups (best-effort)
+    try {
+      await insertBugTicket({
+        ticketId,
+        category,
+        reporterEmail: email,
+        description,
+        url,
+        brand: BRAND,
+      });
+    } catch (err) {
+      console.warn('[bug-report] DB insert failed (non-fatal):', err);
     }
 
     return new Response(

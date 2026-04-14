@@ -19,6 +19,7 @@ data:
   MATTERMOST_CHANNEL: "anfragen"
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
   MATTERMOST_BOT_TOKEN: ""
+  BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
   KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
   KEYCLOAK_REALM: "workspace"

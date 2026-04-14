@@ -19,6 +19,7 @@ data:
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
   MATTERMOST_WEBHOOK_URL: ""
   MATTERMOST_BOT_TOKEN: ""
+  BUG_REPORT_CHANNEL: "bugs"
   SMTP_HOST: "mailpit.workspace.svc.cluster.local"
   SMTP_PORT: "1025"
   SMTP_SECURE: "false"

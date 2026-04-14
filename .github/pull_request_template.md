@@ -1,5 +1,8 @@
 ## Zusammenfassung
 
+> **Hinweis:** Dieser PR ist nach dem Review sofort zu mergen (Squash-Merge) und nicht offen zu lassen.
+> PRs dienen ausschliesslich der sauberen Git-History -- kein langwieriger Review-Prozess vorgesehen.
+
 <!-- Beschreibe WAS sich geaendert hat und WARUM (nicht wie -- das zeigt der Diff). -->
 
 ## Art der Aenderung

@@ -19,6 +19,49 @@ async function mmApi(method: string, endpoint: string, body?: unknown) {
   }).finally(() => clearTimeout(timer));
 }
 
+// Upload a file to Mattermost via the Files API. Returns the file_id
+// to include in a subsequent post's `file_ids` array, or null on failure.
+// Do NOT route through mmApi — multipart/form-data needs the runtime to
+// set the Content-Type header (with boundary) automatically.
+export async function uploadFile(params: {
+  channelId: string;
+  file: File;
+  filename?: string;
+}): Promise<string | null> {
+  if (!MM_TOKEN) {
+    console.log('[mattermost] No bot token configured. Would upload file:', params.filename ?? params.file.name);
+    return null;
+  }
+
+  const formData = new FormData();
+  formData.append('files', params.file, params.filename ?? params.file.name);
+  formData.append('channel_id', params.channelId);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const res = await fetch(`${MM_URL}/api/v4/files`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${MM_TOKEN}`,
+      },
+      body: formData,
+    });
+    if (!res.ok) {
+      console.error('[mattermost] uploadFile failed:', res.status, await res.text().catch(() => ''));
+      return null;
+    }
+    const data = await res.json() as { file_infos?: Array<{ id: string }> };
+    return data.file_infos?.[0]?.id ?? null;
+  } catch (err) {
+    console.error('[mattermost] uploadFile threw:', err);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Post via incoming webhook (simple, no token needed)
 export async function postWebhook(payload: {
   channel?: string;
@@ -50,6 +93,7 @@ export async function postInteractiveMessage(params: {
     style?: 'default' | 'primary' | 'danger' | 'success';
   }>;
   context?: Record<string, unknown>;
+  fileIds?: string[];
 }): Promise<string | null> {
   if (!MM_TOKEN) {
     console.log('[mattermost] No bot token configured. Would post interactive message:', JSON.stringify(params, null, 2));
@@ -59,6 +103,7 @@ export async function postInteractiveMessage(params: {
   const res = await mmApi('POST', '/posts', {
     channel_id: params.channelId,
     message: params.text,
+    ...(params.fileIds && params.fileIds.length > 0 ? { file_ids: params.fileIds } : {}),
     props: {
       attachments: [
         {

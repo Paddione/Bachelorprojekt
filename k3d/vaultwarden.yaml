@@ -56,7 +56,7 @@ spec:
                   name: workspace-secrets
                   key: VAULTWARDEN_DB_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://vaultwarden:$(VAULTWARDEN_DB_PASSWORD)@shared-db:5432/vaultwarden"
+              value: "postgresql://vaultwarden:$(VAULTWARDEN_DB_PASSWORD)@shared-db:5432/vaultwarden?sslmode=prefer"
             - name: ADMIN_TOKEN
               valueFrom:
                 secretKeyRef:

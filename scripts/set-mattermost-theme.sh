@@ -6,17 +6,33 @@
 # Mattermost via the REST API. Idempotent — safe to re-run.
 #
 # Usage:
-#   bash scripts/set-mattermost-theme.sh [namespace]
+#   bash scripts/set-mattermost-theme.sh [namespace] [mm-url]
 #
 # Requirements:
-#   kubectl context pointing at the target cluster
+#   curl available on the developer machine
+#   kubectl context pointing at the target cluster (for secret + domain lookup)
 # ════════════════════════════════════════════════════════════
 set -euo pipefail
 
 NAMESPACE="${1:-workspace}"
-MM_URL="http://mattermost.workspace.svc.cluster.local:8065"
+MM_URL="${2:-${MM_URL:-}}"
 
-_mm() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
+if [[ -z "$MM_URL" ]]; then
+  # Try to get the Mattermost hostname from the cluster's domain configmap
+  CHAT_HOST=$(kubectl --context="$(kubectl config current-context)" \
+    get configmap workspace-domains -n "$NAMESPACE" \
+    -o jsonpath='{.data.CHAT_DOMAIN}' 2>/dev/null || true)
+  if [[ -n "$CHAT_HOST" ]]; then
+    MM_URL="https://$CHAT_HOST"
+  else
+    echo "ERROR: Pass MM_URL as second argument or set MM_URL env var"
+    echo "  Usage: $0 [namespace] <mm-url>"
+    echo "  Example: $0 workspace https://chat.mentolder.de"
+    exit 1
+  fi
+fi
+
+_mm() { curl -sf "$@"; }
 
 # ── Admin credentials ──────────────────────────────────────
 MM_ADMIN_USER="${MM_ADMIN_USER:-admin}"

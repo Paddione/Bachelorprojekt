@@ -326,9 +326,11 @@ tasks:
 
   workspace:theme:
     desc: Apply dark+gold theme to Mattermost + Nextcloud (idempotent, run after post-setup)
+    vars:
+      MM_URL: 'https://chat.{{.PROD_DOMAIN | default "mentolder.localhost"}}'
     cmds:
       - echo "=== Mattermost Theme ==="
-      - bash scripts/set-mattermost-theme.sh
+      - bash scripts/set-mattermost-theme.sh workspace "{{.MM_URL}}"
       - echo "=== Nextcloud Theme ==="
       - task: workspace:theme:nextcloud
       - echo "All themes applied."

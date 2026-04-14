@@ -6,7 +6,7 @@ import { config } from '../config/index';
 const { uebermich, contact } = config;
 ---
 
-<Layout title="Uber mich" description={`Uber ${contact.name} – ${config.legal.tagline}`}>
+<Layout title="Über mich" description={`Über ${contact.name} – ${config.legal.tagline}`}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">{uebermich.subheadline}</p>
@@ -55,7 +55,7 @@ const { uebermich, contact } = config;
   <section class="py-16 bg-dark-light">
     <div class="max-w-3xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-light mb-8 font-serif">Was ich nicht mache</h2>
-      <p class="text-lg text-muted mb-6">Um ehrlich zu sein: Ich bin nicht fur alles der Richtige.</p>
+      <p class="text-lg text-muted mb-6">Um ehrlich zu sein: Ich bin nicht für alles der Richtige.</p>
       <div class="space-y-4">
         {uebermich.notDoing.map((item) => (
           <div class="p-5 bg-dark rounded-xl border border-dark-lighter border-l-4 border-l-red-500/50">

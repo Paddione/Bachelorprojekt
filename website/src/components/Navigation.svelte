@@ -2,7 +2,7 @@
   let { siteTitle = '' } = $props();
   let mobileOpen = $state(false);
   let scrolled = $state(false);
-  let user = $state<{ name: string; email: string } | null>(null);
+  let user = $state<{ name: string; email: string; isAdmin?: boolean } | null>(null);
   let authChecked = $state(false);
 
   if (typeof window !== 'undefined') {
@@ -39,6 +39,13 @@
 
       {#if authChecked}
         {#if user}
+          <a
+            href={user.isAdmin ? '/admin' : '/portal'}
+            class="text-gold hover:text-gold-light font-medium transition-colors"
+            data-testid="nav-user-area"
+          >
+            {user.isAdmin ? 'Admin' : 'Mein Portal'}
+          </a>
           <span class="text-muted text-sm">{user.name}</span>
           <a
             href="/api/auth/logout"
@@ -91,6 +98,13 @@
       {#if authChecked}
         {#if user}
           <div class="py-2 text-muted text-sm border-t border-dark-lighter pt-4">Angemeldet als {user.name}</div>
+          <a
+            href={user.isAdmin ? '/admin' : '/portal'}
+            class="block text-gold hover:text-gold-light font-medium py-2"
+            onclick={() => (mobileOpen = false)}
+          >
+            {user.isAdmin ? 'Admin' : 'Mein Portal'}
+          </a>
           <a href="/api/auth/logout" class="block text-muted hover:text-gold font-medium py-2" onclick={() => (mobileOpen = false)}>Abmelden</a>
         {:else}
           <a href="/registrieren" class="block text-muted hover:text-gold font-medium py-2" onclick={() => (mobileOpen = false)}>Registrieren</a>

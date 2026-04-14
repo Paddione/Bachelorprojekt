@@ -6,8 +6,8 @@
   }
 
   let {
-    title = 'Digital Coach &\nFuhrungskrafte-Mentor',
-    subtitle = 'Mit 30+ Jahren Fuhrungserfahrung bei der Polizei Hamburg begleite ich Menschen 50+ bei der digitalen Transformation und Fuhrungskrafte bei ihrer beruflichen Weiterentwicklung.',
+    title = 'Digital Coach &\nFührungskräfte-Mentor',
+    subtitle = 'Mit 30+ Jahren Führungserfahrung bei der Polizei Hamburg begleite ich Menschen 50+ bei der digitalen Transformation und Führungskräfte bei ihrer beruflichen Weiterentwicklung.',
     tagline = 'Praxisnah. Strukturiert. Auf Augenhohe.',
   }: Props = $props();
 </script>
@@ -29,7 +29,7 @@
           href="/kontakt"
           class="bg-gold hover:bg-gold-light text-dark px-8 py-4 rounded-full font-bold text-lg transition-all hover:shadow-lg hover:shadow-gold-dim text-center uppercase tracking-wide"
         >
-          Kostenloses Erstgesprach
+          Kostenloses Erstgespräch
         </a>
         <a
           href="/#angebote"

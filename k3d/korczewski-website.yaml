@@ -19,6 +19,7 @@ data:
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
   MATTERMOST_WEBHOOK_URL: ""
   MATTERMOST_BOT_TOKEN: ""
+  BUG_REPORT_CHANNEL: "bugs"
   SMTP_HOST: "mailpit.workspace.svc.cluster.local"
   SMTP_PORT: "1025"
   SMTP_SECURE: "false"
@@ -36,7 +37,7 @@ data:
   INVOICENINJA_URL: "http://invoiceninja.workspace.svc.cluster.local"
   INVOICENINJA_TOKEN: ""
   OUTLINE_URL: "https://wiki.korczewski.de"
-  WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
+  WHISPER_URL: "http://faster-whisper.workspace.svc.cluster.local:8000"
 ---
 # ── Deployment ───────────────────────────────────────────────────────────────
 apiVersion: apps/v1

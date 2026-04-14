@@ -1,7 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const mmURL     = process.env.TEST_BASE_URL || 'http://localhost:8065';
+const mmURL      = process.env.TEST_BASE_URL || 'http://localhost:8065';
 const websiteURL = process.env.WEBSITE_URL  || 'http://localhost:4321';
+
+// Auto-derive MCP status URL from TEST_BASE_URL (chat.X → ai.X) when not explicitly set.
+// Example: https://chat.mentolder.de → https://ai.mentolder.de
+if (!process.env.MCP_STATUS_URL && process.env.TEST_BASE_URL) {
+  process.env.MCP_STATUS_URL = process.env.TEST_BASE_URL.replace(/\/\/[^.]+\./, '//ai.');
+}
 
 export default defineConfig({
   testDir: './specs',
@@ -80,6 +86,7 @@ export default defineConfig({
         '**/fa-19-*.spec.ts', // Outline knowledge base
         '**/fa-20-*.spec.ts', // meeting finalization
         '**/fa-21-*.spec.ts', // service catalog & billing
+        '**/fa-26-*.spec.ts', // bug report form
         '**/fa-slot-widget.spec.ts', // slot widget
         '**/fa-client-portal.spec.ts', // client portal auth-gate
         '**/fa-meeting-history.spec.ts', // meeting history & release

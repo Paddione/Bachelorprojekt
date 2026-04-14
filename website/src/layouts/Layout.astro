@@ -1,5 +1,7 @@
 ---
 import Navigation from '../components/Navigation.svelte';
+import CookieConsent from '../components/CookieConsent.svelte';
+import BugReportWidget from '../components/BugReportWidget.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
 
@@ -24,8 +26,11 @@ const { title, description = config.meta.siteDescription } = Astro.props;
     <title>{title} | {config.meta.siteTitle}</title>
   </head>
   <body class="min-h-screen flex flex-col bg-dark text-light">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-gold focus:text-dark focus:font-semibold focus:rounded">
+      Zum Hauptinhalt springen
+    </a>
     <Navigation client:load siteTitle={config.meta.siteTitle} />
-    <main class="flex-1">
+    <main id="main-content" class="flex-1">
       <slot />
     </main>
     <footer class="bg-dark border-t border-dark-lighter py-12">
@@ -50,6 +55,16 @@ const { title, description = config.meta.siteDescription } = Astro.props;
             <ul class="space-y-2 text-muted">
               <li><a href="/impressum" class="hover:text-gold transition-colors">Impressum</a></li>
               <li><a href="/datenschutz" class="hover:text-gold transition-colors">Datenschutz</a></li>
+              <li><a href="/agb" class="hover:text-gold transition-colors">AGB</a></li>
+              <li>
+                <button
+                  type="button"
+                  onclick="window.dispatchEvent(new Event('cookie-consent-reopen'))"
+                  class="hover:text-gold transition-colors cursor-pointer bg-transparent border-none p-0 text-inherit text-sm"
+                >
+                  Cookie-Einstellungen
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -58,5 +73,7 @@ const { title, description = config.meta.siteDescription } = Astro.props;
         </div>
       </div>
     </footer>
+    <CookieConsent client:load />
+    <BugReportWidget client:load />
   </body>
 </html>

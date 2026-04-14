@@ -56,17 +56,20 @@ echo "  Scheme:     ${SCHEME}"
 echo ""
 
 # ── Service definitions: name|emoji|url|description ───────────────────────
+# Only includes services with a meaningful direct user-facing URL.
+# Collabora and Whiteboard are excluded: Collabora opens automatically from
+# within Nextcloud and has no standalone UI; the Whiteboard pod exposes only
+# a WebSocket/API backend — both are accessed via Nextcloud, not directly.
 SERVICES=(
-  "Nextcloud|:file_folder:|${SCHEME}://${NC_DOMAIN}|Dateien, Kalender, Kontakte"
-  "Collabora Office|:pencil:|${SCHEME}://${COLLABORA_DOMAIN}|Dokumente online bearbeiten"
+  "Nextcloud|:file_folder:|${SCHEME}://${NC_DOMAIN}|Dateien, Kalender, Kontakte & Video-Talk"
+  "Nextcloud Talk|:movie_camera:|${SCHEME}://${NC_DOMAIN}/apps/spreed|Video-Konferenzen & Gruppen-Calls"
   "Keycloak|:key:|${SCHEME}://${KC_DOMAIN}|SSO & Benutzerverwaltung"
   "Invoice Ninja|:receipt:|${SCHEME}://${BILLING_DOMAIN}|Rechnungen & Buchhaltung"
   "Vaultwarden|:lock:|${SCHEME}://${VAULT_DOMAIN}|Passwort-Manager"
-  "Dokumentation|:books:|${SCHEME}://${DOCS_DOMAIN}|Projekt-Dokumentation"
-  "Whiteboard|:art:|${SCHEME}://${WHITEBOARD_DOMAIN}|Whiteboard-Zusammenarbeit"
-  "Mailpit|:envelope:|${SCHEME}://${MAIL_DOMAIN}|E-Mail (Entwicklung)"
+  "Dokumentation|:books:|${SCHEME}://${DOCS_DOMAIN}|Anleitungen & Referenz"
+  "Mailpit|:envelope:|${SCHEME}://${MAIL_DOMAIN}|E-Mail-Testumgebung (nur Entwicklung)"
   "Website|:globe_with_meridians:|${SCHEME}://${WEB_DOMAIN}|Unternehmens-Website"
-  "Claude Code|:robot_face:|${SCHEME}://${AI_DOMAIN}|KI-Assistent & MCP Status"
+  "MCP Status|:robot_face:|${SCHEME}://${AI_DOMAIN}|KI-Infrastruktur & MCP-Server Status"
 )
 
 # ── Helper: REST API call via external curl ───────────────────────────────
@@ -131,22 +134,27 @@ done
 
 SERVICE_DIRECTORY_MSG="### :link: Workspace Service-Verzeichnis
 
-Alle Services der Plattform auf einen Blick:
+Alle direkt erreichbaren Services auf einen Blick:
 
 | Service | URL | Beschreibung |
 |---------|-----|--------------|
 $(echo -e "${TABLE_ROWS}")
 ---
 
+:pencil: **Collabora Office** und :art: **Whiteboard** sind in Nextcloud integriert und werden von dort aus geoeffnet — kein eigener Aufruf noetig.
+
 **Login:** Alle Services nutzen **Single Sign-On** ueber [Keycloak](${SCHEME}://${KC_DOMAIN}). Einmal anmelden — ueberall eingeloggt.
 
 **Hilfe:** Bei Fragen den Kanal \`claude-code\` nutzen oder die [Dokumentation](${SCHEME}://${DOCS_DOMAIN}) lesen."
 
 # ── Town Square header with quick-links ───────────────────────────────────
-TOWN_SQUARE_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :globe_with_meridians: [Website](${SCHEME}://${WEB_DOMAIN})"
+# Compact set of the most-used, directly-navigable services.
+TOWN_SQUARE_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :movie_camera: [Talk](${SCHEME}://${NC_DOMAIN}/apps/spreed) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :globe_with_meridians: [Website](${SCHEME}://${WEB_DOMAIN})"
 
 # ── workspace-services channel header ─────────────────────────────────────
-SVC_CHANNEL_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :pencil: [Office](${SCHEME}://${COLLABORA_DOMAIN}) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :art: [Whiteboard](${SCHEME}://${WHITEBOARD_DOMAIN}) | :robot_face: [KI](${SCHEME}://${AI_DOMAIN})"
+# Collabora and Whiteboard omitted: they have no standalone user-facing UI
+# (both are embedded within Nextcloud).
+SVC_CHANNEL_HEADER=":file_folder: [Dateien](${SCHEME}://${NC_DOMAIN}) | :movie_camera: [Talk](${SCHEME}://${NC_DOMAIN}/apps/spreed) | :key: [SSO](${SCHEME}://${KC_DOMAIN}) | :receipt: [Rechnungen](${SCHEME}://${BILLING_DOMAIN}) | :lock: [Passwoerter](${SCHEME}://${VAULT_DOMAIN}) | :books: [Docs](${SCHEME}://${DOCS_DOMAIN}) | :globe_with_meridians: [Website](${SCHEME}://${WEB_DOMAIN}) | :robot_face: [MCP Status](${SCHEME}://${AI_DOMAIN})"
 
 # ── Process each team ─────────────────────────────────────────────────────
 echo "${TEAMS_JSON}" | python3 -c "
@@ -246,20 +254,21 @@ print(count)
 " 2>/dev/null || echo "0")
 
   if [ "${TS_EXISTS}" = "0" ]; then
-    WELCOME_MSG=":wave: **Workspace-Plattform Service-Links**
+    WELCOME_MSG=":wave: **Workspace-Plattform — Uebersicht aller Services**
 
-Alle Services sind ueber den Browser erreichbar — SSO-Login ueber Keycloak:
+Alle Services sind ueber den Browser erreichbar. Einmal mit **Single Sign-On** (Keycloak) anmelden — ueberall eingeloggt.
 
-:file_folder: **[Nextcloud — Dateien](${SCHEME}://${NC_DOMAIN})** — Dateien, Kalender, Kontakte, Talk (Video)
-:pencil: **[Collabora — Office](${SCHEME}://${COLLABORA_DOMAIN})** — Dokumente, Tabellen, Praesentationen im Browser
+:file_folder: **[Nextcloud — Dateien](${SCHEME}://${NC_DOMAIN})** — Dateien, Kalender, Kontakte & gemeinsame Ordner
+:movie_camera: **[Nextcloud Talk — Video](${SCHEME}://${NC_DOMAIN}/apps/spreed)** — Video-Konferenzen & Gruppen-Calls
+:key: **[Keycloak — SSO](${SCHEME}://${KC_DOMAIN})** — Benutzerverwaltung & Single Sign-On
 :receipt: **[Invoice Ninja — Rechnungen](${SCHEME}://${BILLING_DOMAIN})** — Buchhaltung & Rechnungsstellung
 :lock: **[Vaultwarden — Passwoerter](${SCHEME}://${VAULT_DOMAIN})** — Team-Passwort-Manager
 :books: **[Dokumentation](${SCHEME}://${DOCS_DOMAIN})** — Anleitungen & Referenz
-:art: **[Whiteboard](${SCHEME}://${WHITEBOARD_DOMAIN})** — Gemeinsam zeichnen & brainstormen
-:robot_face: **[Claude Code — KI](${SCHEME}://${AI_DOMAIN})** — KI-Assistent (MCP Status)
 :globe_with_meridians: **[Website](${SCHEME}://${WEB_DOMAIN})** — Unternehmens-Website
-:envelope: **[Mailpit — E-Mail](${SCHEME}://${MAIL_DOMAIN})** — E-Mail-Testumgebung
+:envelope: **[Mailpit — E-Mail](${SCHEME}://${MAIL_DOMAIN})** — E-Mail-Testumgebung (nur Entwicklung)
+:robot_face: **[MCP Status](${SCHEME}://${AI_DOMAIN})** — KI-Infrastruktur & MCP-Server Status
 
+> :pencil: **Office-Dokumente & Whiteboards** werden direkt aus Nextcloud heraus geoeffnet — kein separater Login noetig.
 > Detaillierte Uebersicht im Kanal **~workspace-services**"
 
     POST_JSON=$(mm_api POST "/posts" \

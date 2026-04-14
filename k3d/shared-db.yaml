@@ -76,9 +76,39 @@ spec:
         fsGroup: 999
         runAsUser: 999
         runAsGroup: 999
+      initContainers:
+        # Selbstsigniertes TLS-Zertifikat für interne PostgreSQL-Verbindungen
+        # erzeugen. Zertifikat lebt im emptyDir → bei jedem Pod-Restart neu
+        # generiert. sslmode=prefer auf Client-Seite (libpq-Default) handelt
+        # TLS opportunistisch aus. NetworkPolicies (Default-Deny-Ingress)
+        # bilden die primäre Vertrauensgrenze.
+        - name: generate-tls-cert
+          image: pgvector/pgvector:0.8.0-pg16
+          command: [bash, -c]
+          args:
+            - |
+              set -e
+              openssl req -new -x509 -days 825 -nodes \
+                -out /etc/postgresql/certs/server.crt \
+                -keyout /etc/postgresql/certs/server.key \
+                -subj "/CN=shared-db.workspace.svc.cluster.local"
+              chmod 600 /etc/postgresql/certs/server.key
+              chmod 644 /etc/postgresql/certs/server.crt
+              echo "PostgreSQL TLS-Zertifikat generiert"
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /etc/postgresql/certs
       containers:
         - name: postgres
           image: pgvector/pgvector:0.8.0-pg16
+          args:
+            - "postgres"
+            - "-c"
+            - "ssl=on"
+            - "-c"
+            - "ssl_cert_file=/etc/postgresql/certs/server.crt"
+            - "-c"
+            - "ssl_key_file=/etc/postgresql/certs/server.key"
           env:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
@@ -133,6 +163,9 @@ spec:
             - name: meetings-schema
               mountPath: /docker-entrypoint-initdb.d/02-meetings-schema.sh
               subPath: init-meetings-schema.sh
+            - name: tls-certs
+              mountPath: /etc/postgresql/certs
+              readOnly: true
           readinessProbe:
             exec:
               command: ["pg_isready", "-U", "postgres"]
@@ -160,6 +193,8 @@ spec:
         - name: meetings-schema
           configMap:
             name: meetings-schema
+        - name: tls-certs
+          emptyDir: {}
 ---
 # Primary service name — used by MCP and direct access
 apiVersion: v1

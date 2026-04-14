@@ -31,11 +31,14 @@ spec:
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
           env:
+            # Optional: deployments without a Stripe account (e.g. mentolder)
+            # leave this unset and the MCP server logs but stays up.
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: STRIPE_SECRET_KEY
+                  optional: true
           ports:
             - containerPort: 3003
           readinessProbe:

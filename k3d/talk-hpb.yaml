@@ -1,8 +1,9 @@
 # ═══════════════════════════════════════════════════════════════════
 # Nextcloud Talk — High Performance Backend (HPB)
 # ═══════════════════════════════════════════════════════════════════
-# Components: NATS (message bus), Janus (WebRTC SFU),
-#             spreed-signaling (coordination)
+# Components: NATS (message bus), spreed-signaling (coordination)
+# Janus (the SFU) lives in k3d/janus.yaml inside the privileged
+# `coturn` namespace because it requires hostNetwork.
 # ═══════════════════════════════════════════════════════════════════
 
 # ── NATS (internal message bus) ─────────────────────────────────
@@ -47,112 +48,22 @@ spec:
       targetPort: 4222
 
 ---
-# ── Janus WebRTC Gateway (SFU) ──────────────────────────────────
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: janus-config
-data:
-  janus.jcfg: |
-    general: {
-      configs_folder = "/etc/janus"
-      log_to_stdout = true
-      debug_level = 4
-      admin_secret = "devjanusadmin"
-    }
-    nat: {
-      nice_debug = false
-      full_trickle = true
-      ice_lite = true
-      stun_server = "coturn"
-      stun_port = 3478
-      turn_server = "coturn"
-      turn_port = 3478
-      turn_type = "udp"
-      turn_user = "talk"
-      turn_pwd = "devturnpassword1234"
-    }
-    media: {
-      rtp_port_range = "20000-40000"
-    }
-    transports: {
-      disable = "libjanus_transport.so"
-    }
-  janus.transport.websockets.jcfg: |
-    general: {
-      ws = true
-      ws_port = 8188
-      ws_logging = "err,warn"
-    }
-  janus.plugin.videoroom.jcfg: |
-    general: {
-      admin_key = "devvideoroomadmin"
-    }
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: janus
-  labels:
-    app: janus
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: janus
-  template:
-    metadata:
-      labels:
-        app: janus
-    spec:
-      containers:
-        - name: janus
-          image: canyan/janus-gateway:master_cefca79700bdadd32d759ce65ba3805552a4d312
-          ports:
-            - containerPort: 8188
-              name: ws
-          volumeMounts:
-            - name: config
-              mountPath: /etc/janus/janus.jcfg
-              subPath: janus.jcfg
-            - name: config
-              mountPath: /etc/janus/janus.transport.websockets.jcfg
-              subPath: janus.transport.websockets.jcfg
-            - name: config
-              mountPath: /etc/janus/janus.plugin.videoroom.jcfg
-              subPath: janus.plugin.videoroom.jcfg
-          resources:
-            requests:
-              memory: 256Mi
-              cpu: "500m"
-            limits:
-              memory: 1Gi
-              cpu: "2"
-      volumes:
-        - name: config
-          configMap:
-            name: janus-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: janus
-spec:
-  selector:
-    app: janus
-  ports:
-    - port: 8188
-      targetPort: 8188
-      name: ws
-
----
 # ── spreed-signaling (HPB coordination) ─────────────────────────
+# server.conf is rendered at pod startup from server.conf.template by
+# an init container. The init container reads SIGNALING_SECRET and
+# TURN_SECRET from workspace-secrets and substitutes the @@VAR@@ markers
+# below via `sed`. This keeps the manifest in git free of real secrets
+# and lets the same file work in dev (literal dev secrets) and in prod
+# (rotated sealed secrets) without regenerating the ConfigMap.
+#
+# Required environment substitutions (kustomize-envsubst, build-time):
+#   ${PROD_DOMAIN} — backend URL + TURN hostname (turn.${PROD_DOMAIN})
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: signaling-config
 data:
-  server.conf: |
+  server.conf.template: |
     [http]
     listen = 0.0.0.0:8080
 
@@ -160,11 +71,11 @@ data:
     debug = false
 
     [sessions]
-    hashkey = devsignalinghashkey1234567890abcd
-    blockkey = devsignalingblockkey123456789012
+    hashkey = @@SESSION_HASHKEY@@
+    blockkey = @@SESSION_BLOCKKEY@@
 
     [clients]
-    internalsecret = devsignalinginternalsecret123456
+    internalsecret = @@CLIENTS_INTERNALSECRET@@
 
     [backend]
     backends = backend-1
@@ -173,8 +84,8 @@ data:
     connectionsperhost = 8
 
     [backend-1]
-    url = http://nextcloud:80
-    secret = devsignalingsecret1234567890abcdef
+    url = https://files.${PROD_DOMAIN}
+    secret = @@SIGNALING_SECRET@@
     maxstreambitrate = 0
     maxscreenbitrate = 0
 
@@ -183,12 +94,12 @@ data:
 
     [mcu]
     type = janus
-    url = ws://janus:8188
+    url = ws://janus.coturn:8188
 
     [turn]
-    apikey = devturnapikey1234567890
-    secret = devturnpassword1234
-    servers = turn:coturn:3478?transport=udp,turn:coturn:3478?transport=tcp
+    apikey = @@TURN_APIKEY@@
+    secret = @@TURN_SECRET@@
+    servers = turn:turn.${PROD_DOMAIN}:3478?transport=udp,turn:turn.${PROD_DOMAIN}:3478?transport=tcp
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -205,7 +116,57 @@ spec:
     metadata:
       labels:
         app: spreed-signaling
+      # Bump this to force a rollout whenever the render logic changes.
+      annotations:
+        config/hash: "2"
     spec:
+      initContainers:
+        # Render /shared/server.conf from the template by substituting
+        # @@VAR@@ placeholders with values sourced from workspace-secrets.
+        # Uses busybox sed (POSIX, no external tools) and `|` as the sed
+        # delimiter so base64-safe secret values don't collide.
+        - name: render-config
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+              sed \
+                -e "s|@@SIGNALING_SECRET@@|${SIGNALING_SECRET}|g" \
+                -e "s|@@TURN_SECRET@@|${TURN_SECRET}|g" \
+                -e "s|@@SESSION_HASHKEY@@|${SESSION_HASHKEY}|g" \
+                -e "s|@@SESSION_BLOCKKEY@@|${SESSION_BLOCKKEY}|g" \
+                -e "s|@@CLIENTS_INTERNALSECRET@@|${CLIENTS_INTERNALSECRET}|g" \
+                -e "s|@@TURN_APIKEY@@|${TURN_APIKEY}|g" \
+                /tpl/server.conf.template > /shared/server.conf
+          env:
+            - name: SIGNALING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SIGNALING_SECRET
+            - name: TURN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: TURN_SECRET
+            # The remaining keys are not rotated secrets — they only need
+            # to be stable within the pod's lifetime. Hardcoding them in
+            # the Deployment env (not git-committed secrets) is fine.
+            - name: SESSION_HASHKEY
+              value: "devsignalinghashkey1234567890abcd"
+            - name: SESSION_BLOCKKEY
+              value: "devsignalingblockkey123456789012"
+            - name: CLIENTS_INTERNALSECRET
+              value: "devsignalinginternalsecret123456"
+            - name: TURN_APIKEY
+              value: "devturnapikey1234567890"
+          volumeMounts:
+            - name: config-template
+              mountPath: /tpl
+              readOnly: true
+            - name: rendered-config
+              mountPath: /shared
       containers:
         - name: signaling
           image: strukturag/nextcloud-spreed-signaling:2.1.1
@@ -215,7 +176,7 @@ spec:
           ports:
             - containerPort: 8080
           volumeMounts:
-            - name: config
+            - name: rendered-config
               mountPath: /etc/signaling/server.conf
               subPath: server.conf
               readOnly: true
@@ -233,9 +194,14 @@ spec:
               memory: 512Mi
               cpu: "1"
       volumes:
-        - name: config
+        - name: config-template
           configMap:
             name: signaling-config
+            items:
+              - key: server.conf.template
+                path: server.conf.template
+        - name: rendered-config
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

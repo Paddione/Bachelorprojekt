@@ -1,51 +1,51 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('SA-02: Authentifizierung — Browser', () => {
-  test('T1: Falsches Passwort → Fehlermeldung', async ({ browser }) => {
+  test('T1: Falsches Passwort → Fehlermeldung (über Keycloak)', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
 
+    // Force-SSO: /login redirects to Keycloak; credentials are entered there.
     await page.goto(`${baseURL}/login`);
 
-    // Dismiss "Desktop vs Browser" chooser if present
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try {
       await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
       await browserLink.click();
     } catch {
-      // Already on login form
+      // Already redirected to Keycloak
     }
 
-    await page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i }).fill('testuser1');
-    await page.getByRole('textbox', { name: /passwort|password/i }).fill('wrongpassword');
-    await page.getByRole('button', { name: /sign in|anmelden|log in/i }).click();
+    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 15_000 });
+
+    await page.locator('#username, input[name="username"]').fill('testuser1');
+    await page.locator('#password, input[name="password"]').fill('wrongpassword');
+    await page.locator('#kc-login, input[type="submit"]').click();
 
     await expect(
-      page.locator('.login-body-message-error, .AlertBanner, [class*="error"]').first()
+      page.locator('#input-error, .kc-feedback-text, .alert-error').first()
     ).toBeVisible({ timeout: 5_000 });
     await context.close();
   });
 
-  test('T4: SSO-Login Button sichtbar', async ({ browser }) => {
+  test('T4: /login leitet automatisch zu Keycloak (force-SSO)', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
 
     await page.goto(`${baseURL}/login`);
 
-    // Dismiss "Desktop vs Browser" chooser if present
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try {
       await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
       await browserLink.click();
     } catch {
-      // Already on login form
+      // Already redirected
     }
 
-    // SSO is configured as GitLab OAuth (via mm-keycloak-proxy)
-    const ssoBtn = page.getByRole('link', { name: /gitlab|keycloak|openid|sso/i });
-    await expect(ssoBtn).toBeVisible({ timeout: 10_000 });
+    // No native form, no SSO button — we expect the Keycloak realm URL.
+    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 10_000 });
     await context.close();
   });
 });

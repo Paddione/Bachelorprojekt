@@ -21,10 +21,17 @@ data:
         command: [sh, -c]
         args:
           - |
-            # Export all ARGOCD_ENV_* vars without the prefix
+            # Export all ARGOCD_ENV_* vars without the prefix and build a
+            # whitelist for envsubst. The whitelist is essential: bare
+            # `envsubst` would also replace shell variables that legitimately
+            # appear in manifests (e.g. `${ARCH}` inside an inline pod
+            # script), substituting them with empty string and breaking
+            # the affected workloads.
+            WHITELIST=""
             for var in $(env | grep ^ARGOCD_ENV_ | cut -d= -f1); do
               name="${var#ARGOCD_ENV_}"
               export "$name=$(printenv "$var")"
+              WHITELIST="$WHITELIST \${$name}"
             done
-            kustomize build . | envsubst
+            kustomize build . | envsubst "$WHITELIST"
       lockRepo: false

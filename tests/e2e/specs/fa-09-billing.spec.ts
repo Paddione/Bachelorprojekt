@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { goToChannel } from './helpers';
 
-const TEAM = 'bachelorprojekt';
+const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
 const BASE = process.env.WEBSITE_URL || 'http://web.localhost';
 
 test.describe('FA-09: Billing Bot & Service Catalog', () => {

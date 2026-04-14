@@ -1,0 +1,28 @@
+---
+# Production overrides for the dedicated chat.* Ingress:
+# - use chat.${PROD_DOMAIN} instead of chat.localhost
+# - wire the wildcard TLS cert
+# - chain redirect-https + hsts + force-sso middlewares (order matters:
+#   Traefik applies middlewares left-to-right, so HTTPS redirect runs first)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mattermost-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-mattermost-force-sso@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - chat.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: chat.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mattermost
+                port:
+                  number: 8065

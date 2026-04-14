@@ -26,12 +26,12 @@ task workspace:up
 | Keycloak (SSO) | http://auth.localhost | Identity Provider (admin / devadmin) |
 | Mattermost (Chat) | http://chat.localhost | Team-Chat |
 | Nextcloud (Dateien + Talk) | http://files.localhost | Dateien, Kalender, Kontakte, Video |
-| Collabora (Office) | http://office.localhost | Online-Office (LibreOffice) |
+| Collabora (Office) | http://office.localhost | WOPI-Backend fuer Nextcloud (kein eigenstaendiges UI — antwortet mit "OK") |
 | Talk HPB (Signaling) | http://signaling.localhost | WebRTC-Signaling (Janus + NATS + coturn) |
 | Claude Code (KI) | http://ai.localhost | MCP-Status-Dashboard (Claude Code laeuft lokal) |
 | Invoice Ninja (Rechnungen) | http://billing.localhost | Rechnungsstellung |
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
-| Whiteboard | http://board.localhost | Kollaboratives Whiteboard |
+| Whiteboard | http://board.localhost | WebSocket-Backend fuer Nextcloud Whiteboard (kein eigenstaendiges UI) |
 | Mailpit (Dev-Mail) | http://mail.localhost | E-Mail-Testing (nur Dev) |
 | OpenSearch | -- | Volltextsuche (intern) |
 | Docs | http://docs.localhost | Projektdokumentation (Docsify) |

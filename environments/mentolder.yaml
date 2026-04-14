@@ -20,6 +20,8 @@ env_vars:
   INFRA_NAMESPACE: mentolder-infra
   TLS_SECRET_NAME: mentolder-tls
   SMTP_FROM: mentolder@mailbox.org
+  TURN_PUBLIC_IP: "178.104.169.206"
+  TURN_NODE: "gekko-hetzner-2"
 
 overlay: prod
 secrets_ref: sealed-secrets/mentolder.yaml

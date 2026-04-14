@@ -16,6 +16,10 @@ spec:
   destinations:
     - namespace: workspace
       server: "*"
+    - namespace: workspace-office
+      server: "*"
+    - namespace: coturn
+      server: "*"
     - namespace: website
       server: "*"
     - namespace: monitoring

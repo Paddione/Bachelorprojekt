@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 
-const TEAM = 'bachelorprojekt';
+const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
 
 test.describe('FA-04: Dateiablage', () => {
   test('T1: Datei über UI hochladen', async ({ page }) => {

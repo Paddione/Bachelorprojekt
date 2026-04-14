@@ -1,0 +1,80 @@
+# ═══════════════════════════════════════════════════════════════════
+# coturn — TURN/STUN server for NAT traversal
+# ═══════════════════════════════════════════════════════════════════
+# Runs on hostNetwork on a single public node so that browsers can
+# reach it directly via UDP. Uses the REST API auth mechanism
+# (Nextcloud Talk's preferred method).
+#
+# Required environment substitutions (kustomize-envsubst):
+#   ${TURN_NODE}      — kubernetes.io/hostname of the public node
+#   ${TURN_PUBLIC_IP} — public IP of that node (used as external-ip)
+#   ${PROD_DOMAIN}    — used for the realm (turn.${PROD_DOMAIN})
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coturn
+  namespace: coturn
+  labels:
+    app: coturn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coturn
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: coturn
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: ${TURN_NODE}
+      containers:
+        - name: coturn
+          image: coturn/coturn:4.9-alpine
+          # TURN_SECRET is sourced from coturn-secrets at runtime so the
+          # same manifests work with dev literals and production-rotated
+          # secrets. $(VAR) in args is Kubernetes-native substitution
+          # (kubelet expands it from the env list below) — kustomize-envsubst
+          # only touches ${VAR}, so $(TURN_SECRET) survives build-time.
+          command: ["turnserver"]
+          args:
+            - "--no-tls"
+            - "--no-dtls"
+            - "--listening-port=3478"
+            - "--min-port=49152"
+            - "--max-port=49252"
+            - "--realm=turn.${PROD_DOMAIN}"
+            - "--use-auth-secret"
+            - "--static-auth-secret=$(TURN_SECRET)"
+            - "--external-ip=${TURN_PUBLIC_IP}"
+            - "--listening-ip=0.0.0.0"
+            - "--no-multicast-peers"
+            - "--no-cli"
+            - "--fingerprint"
+            - "--log-file=stdout"
+            - "--no-stdout-log"
+            - "--simple-log"
+          env:
+            - name: TURN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: coturn-secrets
+                  key: TURN_SECRET
+          ports:
+            - containerPort: 3478
+              hostPort: 3478
+              protocol: TCP
+            - containerPort: 3478
+              hostPort: 3478
+              protocol: UDP
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "100m"
+            limits:
+              memory: 256Mi
+              cpu: "500m"

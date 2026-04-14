@@ -46,8 +46,6 @@ data:
   LEGAL_CHAMBER: "${LEGAL_CHAMBER}"
   LEGAL_UST_ID: "${LEGAL_UST_ID}"
   LEGAL_WEBSITE: "${LEGAL_WEBSITE}"
-  # OIDC (Keycloak client for login)
-  WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
   # Nextcloud
   NEXTCLOUD_URL: "http://nextcloud.workspace.svc.cluster.local"
   NEXTCLOUD_EXTERNAL_URL: "http://files.localhost"
@@ -88,6 +86,8 @@ metadata:
 type: Opaque
 stringData:
   MATTERMOST_BOT_TOKEN: "devwebsitebottoken1234567890abcde"
+  WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
+  SMTP_PASS: ""
 ---
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
@@ -129,6 +129,16 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: MATTERMOST_BOT_TOKEN
+            - name: WEBSITE_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: WEBSITE_OIDC_SECRET
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SMTP_PASS
           ports:
             - containerPort: 4321
           resources:

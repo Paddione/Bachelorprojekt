@@ -240,6 +240,8 @@ async function run() {
   await assert('POST /api/bug-report with oversized screenshot returns 400', async () => {
     const fd = new FormData();
     fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'fehler');
     const big = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/png' });
     fd.append('screenshot', big, 'big.png');
     const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
@@ -249,6 +251,8 @@ async function run() {
   await assert('POST /api/bug-report with invalid MIME returns 400', async () => {
     const fd = new FormData();
     fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'fehler');
     const exe = new Blob([new Uint8Array(100)], { type: 'application/x-msdownload' });
     fd.append('screenshot', exe, 'virus.exe');
     const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });

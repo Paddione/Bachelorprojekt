@@ -252,17 +252,17 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const state = JSON.stringify({
-          postId: post_id,
-          channelId: channel_id,
-          ticketId: context.ticketId,
-          category: context.category,
-          categoryLabel: context.categoryLabel,
-          reporterEmail: context.reporterEmail,
-          description: context.description,
-          url: context.url,
-          userAgent: context.userAgent,
-          viewport: context.viewport,
-          brand: context.brand,
+          postId: post_id ?? '',
+          channelId: channel_id ?? '',
+          ticketId: context.ticketId ?? '(kein Ticket)',
+          category: context.category ?? 'fehler',
+          categoryLabel: context.categoryLabel ?? 'Fehler',
+          reporterEmail: context.reporterEmail ?? 'unbekannt',
+          description: context.description ?? '',
+          url: context.url ?? 'unbekannt',
+          userAgent: context.userAgent ?? 'unbekannt',
+          viewport: context.viewport ?? 'unbekannt',
+          brand: context.brand ?? 'mentolder',
         });
 
         const siteUrl = process.env.SITE_URL || 'http://localhost:4321';

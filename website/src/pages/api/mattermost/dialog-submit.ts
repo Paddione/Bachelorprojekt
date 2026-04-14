@@ -10,6 +10,13 @@ const FALLBACK_INBOX = 'info@mentolder.de';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // Verify the request came from Mattermost using the bot token
+    const authHeader = request.headers.get('authorization') ?? '';
+    const mmToken = process.env.MM_TOKEN ?? '';
+    if (mmToken && authHeader !== `Token ${mmToken}`) {
+      return new Response('Forbidden', { status: 403 });
+    }
+
     const payload = await request.json();
     const { callback_id, state: stateJson, submission } = payload;
 
@@ -69,9 +76,12 @@ export const POST: APIRoute = async ({ request }) => {
     // 2. Send email to the brand-appropriate inbox
     const toInbox = BRAND_INBOX[state.brand] ?? FALLBACK_INBOX;
     const siteUrl = process.env.SITE_URL || '';
-    const mmLink = siteUrl
-      ? `${siteUrl.replace(/^https?:\/\/web\./, (m) => m.replace('web.', 'chat.'))}/pl/${state.postId}`
-      : '(siehe Mattermost)';
+    const mmPublicUrl = process.env.MATTERMOST_PUBLIC_URL || '';
+    const mmLink = mmPublicUrl
+      ? `${mmPublicUrl}/pl/${state.postId}`
+      : siteUrl
+        ? `${siteUrl.replace(/^https?:\/\/web\./, (m) => m.replace('web.', 'chat.'))}/pl/${state.postId}`
+        : '(siehe Mattermost)';
 
     const subject = `[${state.ticketId}] ${state.categoryLabel}: ${state.description.slice(0, 60)}`;
     const text =

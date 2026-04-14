@@ -6,8 +6,9 @@ import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
 import {
   upsertCustomer, createMeeting, updateMeetingStatus,
-  saveTranscript, saveArtifact, generateMeetingEmbeddings,
+  saveTranscript, saveArtifact, saveInsight, generateMeetingEmbeddings,
 } from '../../../lib/meetings-db';
+import { generateMeetingInsights } from '../../../lib/claude';
 
 // Finalize a meeting: collect artifacts, create Outline profile, trigger Claude Code.
 // Called by the Mattermost "Abschliessen" action or directly via API.
@@ -224,6 +225,50 @@ export const POST: APIRoute = async ({ request }) => {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Embeddings: ${msg}`);
       await notifyPipelineError({ step: 'Embedding-Generierung', error: msg, customerName, meetingId });
+    }
+
+    // ── 7b. Generate Claude AI insights (best-effort) ───────────────
+    if (transcriptText) {
+      try {
+        const artifactTexts = whiteboardArtifacts
+          .map(wb => {
+            const text = extractWhiteboardText(wb.data);
+            return text ? `### ${wb.name}\n${text}` : '';
+          })
+          .filter(Boolean)
+          .join('\n\n');
+
+        const insights = await generateMeetingInsights({
+          customerName,
+          meetingType: meetingType || 'Meeting',
+          transcript: transcriptText,
+          artifacts: artifactTexts || undefined,
+        });
+
+        if (insights) {
+          const insightTypes = [
+            { type: 'summary' as const, content: insights.summary },
+            { type: 'action_items' as const, content: insights.actionItems },
+            { type: 'key_topics' as const, content: insights.keyTopics },
+            { type: 'sentiment' as const, content: insights.sentiment },
+            { type: 'coaching_notes' as const, content: insights.coachingNotes },
+          ];
+
+          for (const { type, content } of insightTypes) {
+            await saveInsight({
+              meetingId: meeting.id,
+              insightType: type,
+              content,
+              generatedBy: 'claude-sonnet-4-20250514',
+            });
+          }
+          results.push(`:brain: Claude-Analyse: ${insightTypes.length} Insights generiert`);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`Claude-Insights: ${msg}`);
+        await notifyPipelineError({ step: 'Claude-Insights generieren', error: msg, customerName, meetingId });
+      }
     }
 
     await updateMeetingStatus(meeting.id, 'finalized');

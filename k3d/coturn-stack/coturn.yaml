@@ -35,6 +35,12 @@ spec:
       containers:
         - name: coturn
           image: coturn/coturn:4.9-alpine
+          # TURN_SECRET is sourced from coturn-secrets at runtime so the
+          # same manifests work with dev literals and production-rotated
+          # secrets. $(VAR) in args is Kubernetes-native substitution
+          # (kubelet expands it from the env list below) — kustomize-envsubst
+          # only touches ${VAR}, so $(TURN_SECRET) survives build-time.
+          command: ["turnserver"]
           args:
             - "--no-tls"
             - "--no-dtls"
@@ -43,7 +49,7 @@ spec:
             - "--max-port=49252"
             - "--realm=turn.${PROD_DOMAIN}"
             - "--use-auth-secret"
-            - "--static-auth-secret=devturnpassword1234"
+            - "--static-auth-secret=$(TURN_SECRET)"
             - "--external-ip=${TURN_PUBLIC_IP}"
             - "--listening-ip=0.0.0.0"
             - "--no-multicast-peers"
@@ -52,6 +58,12 @@ spec:
             - "--log-file=stdout"
             - "--no-stdout-log"
             - "--simple-log"
+          env:
+            - name: TURN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: coturn-secrets
+                  key: TURN_SECRET
           ports:
             - containerPort: 3478
               hostPort: 3478

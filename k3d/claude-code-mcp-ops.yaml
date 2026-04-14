@@ -59,10 +59,10 @@ spec:
           resources:
             requests:
               memory: 128Mi
-              cpu: 50m
+              cpu: "100m"
             limits:
               memory: 512Mi
-              cpu: 200m
+              cpu: "500m"
         # ─── PostgreSQL MCP (port 3001) ──────────────────────────
         # Connects to the shared PostgreSQL superuser DB so it can
         # inspect all service databases. Read queries only by convention
@@ -103,10 +103,10 @@ spec:
           resources:
             requests:
               memory: 128Mi
-              cpu: 50m
+              cpu: "100m"
             limits:
               memory: 512Mi
-              cpu: 200m
+              cpu: "500m"
         # ─── Meetings PostgreSQL MCP (port 3002) ─────────���──────
         # Dedicated connection to the meetings database.
         # Read-write access for Claude Code to query meeting data,
@@ -147,10 +147,10 @@ spec:
           resources:
             requests:
               memory: 128Mi
-              cpu: 50m
+              cpu: "100m"
             limits:
               memory: 512Mi
-              cpu: 200m
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service

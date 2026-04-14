@@ -17,9 +17,8 @@ test.describe('FA-18: Meeting Transcription', () => {
   });
 
   test('T2: API endpoint exists', async ({ request }) => {
-    // GET is not defined, but we check for 405 or 404
-    // Actually, Astro returns 404 if the method is not defined for a route
+    // Route exists but only defines POST — Astro returns 404 or 405 depending on version.
     const res = await request.get(`${BASE}/api/meeting/transcribe`);
-    expect(res.status()).toBe(404);
+    expect([404, 405]).toContain(res.status());
   });
 });

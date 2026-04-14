@@ -14,17 +14,32 @@ spec:
       labels:
         app: keycloak
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       nodeSelector:
         kubernetes.io/arch: amd64
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.6
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           command: ["/opt/keycloak/realm-template/import-entrypoint.sh"]
           env:
             - name: KC_DB
               value: postgres
             - name: KC_DB_URL
-              value: "jdbc:postgresql://keycloak-db:5432/keycloak"
+              value: "jdbc:postgresql://keycloak-db:5432/keycloak?sslmode=prefer"
             - name: KC_DB_USERNAME
               value: keycloak
             - name: KC_DB_PASSWORD
@@ -145,10 +160,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              memory: 512Mi
-              cpu: 250m
-            limits:
               memory: 1Gi
+              cpu: "500m"
+            limits:
+              memory: 2Gi
+              cpu: "2"
       volumes:
         - name: import-script
           configMap:

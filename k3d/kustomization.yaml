@@ -15,13 +15,15 @@ resources:
   - mattermost.yaml
   - mattermost-hpa.yaml
   - nextcloud.yaml
-  # Nextcloud Talk HPB + Collabora + Whiteboard
-  # NB: coturn + janus live in their own ArgoCD Application
-  # (k3d/coturn-stack) because they need a dedicated privileged
-  # namespace and can't be transformed by this kustomization's
-  # `namespace: workspace` directive.
+  - nextcloud-redis.yaml
+  - nextcloud-notify-push-ingress.yaml
+  # Nextcloud Talk HPB + Whiteboard
+  # NB: coturn + janus (k3d/coturn-stack) and Collabora
+  # (k3d/office-stack) each live in their own ArgoCD Application
+  # because they need dedicated privileged namespaces and can't be
+  # transformed by this kustomization's `namespace: workspace`
+  # directive.
   - talk-hpb.yaml
-  - collabora.yaml
   - whiteboard.yaml
   - talk-recording.yaml
   - vaultwarden.yaml
@@ -44,6 +46,8 @@ resources:
   - outline.yaml
   # Transkription
   - whisper.yaml
+  # Live-Transkription Bot
+  - talk-transcriber.yaml
   # Embedding (Vektorisierung)
   - embedding.yaml
   # KI-Assistent
@@ -56,20 +60,53 @@ resources:
   - claude-code-mcp-auth.yaml
   - claude-code-mcp-stripe.yaml
   - claude-code-mcp-github.yaml
+  # Traefik Dev-Middlewares
+  - traefik-middlewares-dev.yaml
+  # Netzwerksicherheit (L3)
+  - network-policies.yaml
   # Ingress
   - ingress.yaml
+  - mattermost-force-sso.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:
   - name: realm-template
     files:
       - realm-workspace.json=realm-workspace-dev.json
+  - name: keycloak-import-script
+    files:
+      - import-entrypoint.sh=realm-import-entrypoint.sh
   - name: nextcloud-oidc-config
     files:
       - oidc.config.php=nextcloud-oidc-dev.php
+  - name: nextcloud-extra-config
+    files:
+      - zz-extra.config.php=nextcloud-extra-config.php
   - name: invoiceninja-nginx-config
     files:
       - default.conf=invoiceninja-nginx.conf
+  - name: mattermost-proxy-config
+    files:
+      - default.conf=mattermost-userinfo-proxy.conf
+  - name: docs-content
+    files:
+      - docs-content/index.html
+      - docs-content/README.md
+      - docs-content/_sidebar.md
+      - docs-content/architecture.md
+      - docs-content/benutzerhandbuch.md
+      - docs-content/keycloak.md
+      - docs-content/mcp-actions.md
+      - docs-content/migration.md
+      - docs-content/requirements.md
+      - docs-content/scripts.md
+      - docs-content/security-report.md
+      - docs-content/security.md
+      - docs-content/services.md
+      - docs-content/test-anleitung-korczewski.md
+      - docs-content/tests.md
+      - docs-content/troubleshooting.md
+      - docs-content/verarbeitungsverzeichnis.md
 
 generatorOptions:
   disableNameSuffixHash: true

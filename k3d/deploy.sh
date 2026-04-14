@@ -40,10 +40,17 @@ done
 
 # ── Dienste abwarten ────────────────────────────────────────────────
 echo "[5/5] Warte auf Dienste (kann 2-3 Minuten dauern)..."
-for svc in keycloak mattermost nextcloud spreed-signaling janus coturn collabora; do
+for svc in keycloak mattermost nextcloud spreed-signaling janus coturn; do
   kubectl rollout status deployment/$svc -n workspace --timeout=300s 2>/dev/null || \
     echo "  WARNUNG: $svc noch nicht bereit — startet möglicherweise noch."
 done
+
+# Collabora lives in its own privileged namespace (office-stack). Deployed
+# separately via `task workspace:office:deploy` or `kubectl apply -k office-stack`.
+if kubectl get deployment collabora -n workspace-office >/dev/null 2>&1; then
+  kubectl rollout status deployment/collabora -n workspace-office --timeout=300s 2>/dev/null || \
+    echo "  WARNUNG: collabora (workspace-office) noch nicht bereit."
+fi
 
 echo ""
 echo "=== Deployment abgeschlossen ==="
@@ -71,7 +78,7 @@ echo "  kubectl exec -n workspace deploy/nextcloud -- php occ config:app:set spr
 echo "  kubectl exec -n workspace deploy/nextcloud -- php occ config:app:set spreed signaling_servers --value='{\"servers\":[{\"server\":\"http://signaling.localhost/standalone-signaling/\",\"verify\":false}],\"secret\":\"devsignalingsecret1234567890abcdef\"}'"
 echo ""
 echo "Collabora konfigurieren:"
-echo "  kubectl exec -n workspace deploy/nextcloud -- php occ config:app:set richdocuments wopi_url --value='http://collabora:9980'"
+echo "  kubectl exec -n workspace deploy/nextcloud -- php occ config:app:set richdocuments wopi_url --value='http://collabora.workspace-office.svc.cluster.local:9980'"
 echo ""
 echo "Pods prüfen:  kubectl get pods -n workspace"
 echo "Logs anzeigen: kubectl logs -n workspace deploy/<service> -f"

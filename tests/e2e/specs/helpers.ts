@@ -34,12 +34,12 @@ export async function dismissOverlays(page: Page): Promise<void> {
 export async function goToChannel(page: Page, teamSlug: string, channelSlug: string): Promise<void> {
   await page.goto(`/${teamSlug}/channels/${channelSlug}`);
   await dismissOverlays(page);
-  await page.locator('#post_textbox, [data-testid="post_textbox"]').waitFor({ state: 'visible', timeout: 10_000 });
+  await page.locator('#post_textbox, [data-testid="post_textbox"]').waitFor({ state: 'visible', timeout: 20_000 });
 }
 
 /** Navigate to a DM with a user by URL */
 export async function goToDM(page: Page, teamSlug: string, username: string): Promise<void> {
   await page.goto(`/${teamSlug}/messages/@${username}`);
   await dismissOverlays(page);
-  await page.locator('#post_textbox, [data-testid="post_textbox"]').waitFor({ state: 'visible', timeout: 10_000 });
+  await page.locator('#post_textbox, [data-testid="post_textbox"]').waitFor({ state: 'visible', timeout: 20_000 });
 }

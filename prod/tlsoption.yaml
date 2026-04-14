@@ -1,0 +1,13 @@
+# ═══════════════════════════════════════════════════════════════════
+# Traefik TLSOption — explizite minVersion (§6 Presentation-Layer)
+# Name `default` + workspace-Namespace wird von Traefik automatisch
+# auf alle IngressRoutes/Ingresses in diesem Namespace angewendet.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: default
+  namespace: workspace
+spec:
+  minVersion: VersionTLS12
+  sniStrict: true

@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly KEYCLOAK_URL: string;
   readonly KEYCLOAK_REALM: string;
   readonly KEYCLOAK_ADMIN_USER: string;
+  readonly PORTAL_ADMIN_USERNAME: string;
   readonly KEYCLOAK_ADMIN_PASSWORD: string;
   // OIDC client
   readonly WEBSITE_OIDC_SECRET: string;
@@ -21,6 +22,12 @@ interface ImportMetaEnv {
   readonly SMTP_PASS: string;
   readonly FROM_EMAIL: string;
   readonly FROM_NAME: string;
+  // Nextcloud
+  readonly NEXTCLOUD_ADMIN_USER?: string;
+  readonly NEXTCLOUD_ADMIN_PASS?: string;
+  readonly NEXTCLOUD_EXTERNAL_URL?: string;
+  // Mattermost signing
+  readonly MATTERMOST_SIGNING_CHANNEL?: string;
   // Nextcloud CalDAV
   readonly NEXTCLOUD_URL: string;
   readonly NEXTCLOUD_CALDAV_USER: string;

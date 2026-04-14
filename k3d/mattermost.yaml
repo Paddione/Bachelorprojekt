@@ -25,11 +25,26 @@ spec:
       labels:
         app: mattermost
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 2000
+        fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
       nodeSelector:
         kubernetes.io/arch: amd64
       containers:
         - name: mattermost
           image: mattermost/mattermost-enterprise-edition:release-11.5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 2000
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           env:
             - name: MM_SQLSETTINGS_DRIVERNAME
               value: postgres
@@ -39,7 +54,7 @@ spec:
                   name: workspace-secrets
                   key: MATTERMOST_DB_PASSWORD
             - name: MM_SQLSETTINGS_DATASOURCE
-              value: "host=mattermost-db port=5432 user=mattermost password=$(MATTERMOST_DB_PASSWORD) dbname=mattermost sslmode=disable connect_timeout=10"
+              value: "host=mattermost-db port=5432 user=mattermost password=$(MATTERMOST_DB_PASSWORD) dbname=mattermost sslmode=prefer connect_timeout=10"
             - name: MM_SERVICESETTINGS_SITEURL
               value: "http://chat.localhost"
             # ── Internal connections (billing-bot, etc.) ─────
@@ -93,6 +108,9 @@ spec:
               value: "true"
             - name: MM_SERVICESETTINGS_ENABLELOCALMODE
               value: "true"
+            # ── Default Channels (auto-join on team entry) ────
+            - name: MM_TEAMSETTINGS_EXPERIMENTALDEFAULTCHANNELS
+              value: '["off-topic","anfragen","workspace-services","claude-code"]'
             # ── Link Previews (Gap 1.3) ───────────────────────
             - name: MM_SERVICESETTINGS_ENABLELINKPREVIEWS
               value: "true"
@@ -114,10 +132,12 @@ spec:
               value: "${BRAND_NAME}"
             - name: MM_EMAILSETTINGS_REQUIREEMAILVERIFICATION
               value: "false"
+            # Force SSO: hide email/username login form, only Keycloak (GitLab slot) remains.
+            # Break-glass: toggle these back to "true" and remove mattermost-force-sso middleware.
             - name: MM_EMAILSETTINGS_ENABLESIGNINWITHEMAIL
-              value: "true"
+              value: "false"
             - name: MM_EMAILSETTINGS_ENABLESIGNINWITHUSERNAME
-              value: "true"
+              value: "false"
             - name: MM_EMAILSETTINGS_CONNECTIONSECURITY
               value: ""
             # ── OpenSearch / Elasticsearch (FA-07) ────────────
@@ -182,11 +202,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              cpu: 250m
-              memory: 256Mi
+              cpu: "500m"
+              memory: 512Mi
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: "2"
+              memory: 2Gi
       volumes:
         - name: data
           persistentVolumeClaim:

@@ -128,6 +128,7 @@ Services sind erreichbar unter:
 | Mailpit (Dev-Mail) | http://mail.localhost | -- |
 | Docs | http://docs.localhost | -- |
 | Website | http://web.localhost | -- |
+| Outline (Wiki) | http://wiki.localhost | -- |
 
 ### Tests ausfuehren
 
@@ -138,7 +139,7 @@ Services sind erreichbar unter:
 ./tests/runner.sh report             # Markdown-Report generieren
 ```
 
-Test-IDs: `FA-01`--`FA-11` (funktional), `SA-01`--`SA-09` (Sicherheit), `NFA-01`--`NFA-07` (nicht-funktional), `AK-03`, `AK-04` (Abnahme).
+Test-IDs: `FA-01`--`FA-25` (funktional), `SA-01`--`SA-10` (Sicherheit), `NFA-01`--`NFA-09` (nicht-funktional), `AK-03`, `AK-04` (Abnahme).
 
 ### Post-Deploy-Setup
 

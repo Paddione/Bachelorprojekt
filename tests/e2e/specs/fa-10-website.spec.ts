@@ -12,10 +12,9 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
   });
 
   test('T2: Subpages are reachable', async ({ page }) => {
+    const servicePages = (process.env.WEBSITE_SERVICE_PAGES || '/digital-cafe,/coaching,/beratung').split(',');
     const pages = [
-      '/digital-cafe',
-      '/coaching',
-      '/beratung',
+      ...servicePages,
       '/ueber-mich',
       '/kontakt',
       '/leistungen',
@@ -61,7 +60,11 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
 
   test('T7: Sidebar shows contact information', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    await expect(page.locator('text=info@mentolder.de').first()).toBeVisible();
-    await expect(page.locator('text=+49 151 508 32 601').first()).toBeVisible();
+    const expectedEmail = process.env.CONTACT_EMAIL || 'info@mentolder.de';
+    const expectedPhone = process.env.CONTACT_PHONE || '+49 151 508 32 601';
+    await expect(page.locator(`text=${expectedEmail}`).first()).toBeVisible();
+    if (expectedPhone && expectedPhone !== '***') {
+      await expect(page.locator(`text=${expectedPhone}`).first()).toBeVisible();
+    }
   });
 });

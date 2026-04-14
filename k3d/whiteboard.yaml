@@ -23,9 +23,22 @@ spec:
       labels:
         app: whiteboard
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: whiteboard
           image: ghcr.io/nextcloud-releases/whiteboard:v1.5.7
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           env:
             - name: NEXTCLOUD_URL
               value: "http://nextcloud"
@@ -50,10 +63,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
               memory: 256Mi
+              cpu: "200m"
+            limits:
+              memory: 512Mi
+              cpu: "1"
 ---
 apiVersion: v1
 kind: Service

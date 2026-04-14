@@ -57,7 +57,7 @@ export const mentolderConfig: BrandConfig = {
   services: [
     {
       slug: 'digital-cafe',
-      title: 'Digital Café 50+',
+      title: '50+ digital',
       description: 'Ihr sicherer Einstieg in die digitale Welt. Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.',
       icon: '💻',
       features: [
@@ -243,7 +243,7 @@ export const mentolderConfig: BrandConfig = {
   leistungen: [
     {
       id: 'digital-cafe',
-      title: 'Digital Café 50+',
+      title: '50+ digital',
       icon: '💻',
       services: [
         { key: 'digital-cafe-einzel', name: 'Einzelbegleitung', price: '60 €', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
@@ -280,7 +280,7 @@ export const mentolderConfig: BrandConfig = {
     ],
     sections: [
       {
-        title: 'Warum Digital Café 50+?',
+        title: 'Warum 50+ digital?',
         content: 'Als ich im Altenheim ein halbes Jahr lang ein Digital Café leitete, merkte ich: Hier kann ich genau diese Fähigkeiten einsetzen. Menschen der Generation 50+ stehen vor echten Herausforderungen in der digitalen Welt. Nicht weil sie "zu alt" sind – sondern weil niemand sich die Zeit nimmt, es in Ruhe und verständlich zu erklären.',
       },
       {
@@ -310,7 +310,7 @@ export const mentolderConfig: BrandConfig = {
   },
   faq: [
     {
-      question: 'Für wen ist das Digital Café geeignet?',
+      question: 'Für wen ist 50+ digital geeignet?',
       answer: 'Für alle Menschen 50+, die digital selbstständiger werden möchten. Keine Vorkenntnisse nötig – wir fangen genau da an, wo Sie stehen.',
     },
     {

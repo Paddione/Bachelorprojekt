@@ -1,14 +1,17 @@
 import type { APIRoute } from 'astro';
 import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName } from '../../lib/mattermost';
+import { sendEmail } from '../../lib/email';
+
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
 const TYPE_LABELS: Record<string, string> = {
   allgemein: 'Allgemeine Anfrage',
   erstgespraech: 'Kostenloses Erstgespräch',
-  'digital-cafe': 'Digital Café 50+',
+  'digital-cafe': '50+ digital',
   coaching: 'Führungskräfte-Coaching',
   beratung: 'Unternehmensberatung',
   support: 'Support',
-  bug: 'Bug Report / Fehler',
   feedback: 'Feedback',
 };
 
@@ -19,7 +22,6 @@ const TYPE_ICONS: Record<string, string> = {
   coaching: ':dart:',
   beratung: ':office:',
   support: ':wrench:',
-  bug: ':bug:',
   feedback: ':star:',
 };
 
@@ -67,6 +69,25 @@ export const POST: APIRoute = async ({ request }) => {
         username: 'Website-Bot',
         icon_emoji: ':globe_with_meridians:',
         text,
+      });
+    }
+
+    // E-Mail-Benachrichtigung an Admin
+    if (CONTACT_EMAIL) {
+      const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
+      await sendEmail({
+        to: CONTACT_EMAIL,
+        subject: `[${typeLabel}] Neue Anfrage von ${name}`,
+        replyTo: email,
+        text: `Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\n\nNachricht:\n${message}`,
+        html: `<p>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</p>
+<table>
+<tr><td><strong>Name</strong></td><td>${name}</td></tr>
+<tr><td><strong>E-Mail</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>
+${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}
+<tr><td><strong>Typ</strong></td><td>${typeLabel}</td></tr>
+</table>
+<p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
       });
     }
 

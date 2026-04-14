@@ -15,19 +15,37 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey } = await request.json();
 
-    if (!name?.trim() || !email?.trim() || !slotStart || !slotEnd) {
+    const isCallback = type === 'callback';
+
+    if (!name?.trim() || !email?.trim()) {
       return new Response(
-        JSON.stringify({ error: 'Bitte füllen Sie alle Pflichtfelder aus und wählen einen Termin.' }),
+        JSON.stringify({ error: 'Bitte füllen Sie alle Pflichtfelder aus.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (!isCallback && (!slotStart || !slotEnd)) {
+      return new Response(
+        JSON.stringify({ error: 'Bitte wählen Sie einen Termin.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (isCallback && !phone?.trim()) {
+      return new Response(
+        JSON.stringify({ error: 'Bitte geben Sie eine Telefonnummer für den Rückruf an.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const typeLabel = TYPE_LABELS[type] || type;
-    const dateFormatted = new Date(date + 'T00:00:00').toLocaleDateString('de-DE', {
-      weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
-    });
+    const dateFormatted = date
+      ? new Date(date + 'T00:00:00').toLocaleDateString('de-DE', {
+          weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+        })
+      : '';
 
-    const text = `### :calendar: Neue Terminanfrage: ${typeLabel}\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Typ** | ${typeLabel} |\n| **Datum** | ${dateFormatted} |\n| **Uhrzeit** | ${slotDisplay} |\n\n${message ? `**Anmerkungen:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}`;
+    const text = isCallback
+      ? `### :phone: Rückruf-Anfrage\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone} |\n\n${message ? `**Anmerkungen:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}`
+      : `### :calendar: Neue Terminanfrage: ${typeLabel}\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Typ** | ${typeLabel} |\n| **Datum** | ${dateFormatted} |\n| **Uhrzeit** | ${slotDisplay} |\n\n${message ? `**Anmerkungen:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}`;
 
     // Post interactive message
     const teamId = await getFirstTeamId();
@@ -58,20 +76,10 @@ export const POST: APIRoute = async ({ request }) => {
     // Confirmation email to user
     await sendEmail({
       to: email,
-      subject: `Terminanfrage: ${typeLabel} am ${dateFormatted}`,
-      text: `Hallo ${name},
-
-vielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.
-
-Ihr gewünschter Termin:
-  Typ:     ${typeLabel}
-  Datum:   ${dateFormatted}
-  Uhrzeit: ${slotDisplay}
-
-Wir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.
-
-Mit freundlichen Grüßen
-${BRAND_NAME}`,
+      subject: isCallback ? `Rückruf-Anfrage bei ${BRAND_NAME}` : `Terminanfrage: ${typeLabel} am ${dateFormatted}`,
+      text: isCallback
+        ? `Hallo ${name},\n\nvielen Dank für Ihre Rückruf-Anfrage bei ${BRAND_NAME}.\n\nWir melden uns in Kürze unter ${phone} bei Ihnen.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`
+        : `Hallo ${name},\n\nvielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.\n\nIhr gewünschter Termin:\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}\n\nWir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
     });
 
     return new Response(

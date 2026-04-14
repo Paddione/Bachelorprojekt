@@ -111,3 +111,8 @@ export async function getUserById(userId: string): Promise<KcUser | null> {
   if (!res.ok) throw new Error(`Failed to get Keycloak user ${userId}: ${res.status}`);
   return res.json() as Promise<KcUser>;
 }
+
+export async function deleteUser(userId: string): Promise<boolean> {
+  const res = await kcApi('DELETE', `/users/${encodeURIComponent(userId)}`);
+  return res.ok || res.status === 404;
+}

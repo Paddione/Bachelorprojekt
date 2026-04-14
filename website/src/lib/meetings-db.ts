@@ -317,7 +317,7 @@ export async function insertBugTicket(params: {
   category: string;
   reporterEmail: string;
   description: string;
-  url: string;
+  url?: string;
   brand: string;
 }): Promise<void> {
   await pool.query(
@@ -325,7 +325,7 @@ export async function insertBugTicket(params: {
      VALUES ($1, $2, $3, $4, $5, $6)
      ON CONFLICT (ticket_id) DO NOTHING`,
     [params.ticketId, params.category, params.reporterEmail,
-     params.description, params.url, params.brand]
+     params.description, params.url ?? null, params.brand]
   );
 }
 

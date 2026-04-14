@@ -24,12 +24,12 @@ flowchart TB
     TRACK -.-x Cluster
     TELE -.-x Cluster
 
-    style Cluster fill:#2d6a4f,color:#fff
-    style Blocked fill:#9b2226,color:#fff
-    style DB fill:#6b7280,color:#fff,stroke:#4b5563
-    style FILES fill:#2d8659,color:#fff,stroke:#1a5c3a
-    style MAIL fill:#0891b2,color:#fff,stroke:#0e7490
-    style BACKUP fill:#374151,color:#fff,stroke:#1f2937
+    style Cluster fill:#0a1a0a,color:#b8e8b8
+    style Blocked fill:#3a0a0a,color:#ffaaaa
+    style DB fill:#1f2937,color:#aabbcc,stroke:#374151
+    style FILES fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
+    style MAIL fill:#083344,color:#e8c870,stroke:#0e4f68
+    style BACKUP fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 ```
 
 ### Automatisierte DSGVO-Pruefung
@@ -166,14 +166,14 @@ flowchart LR
     CERT --> SECRET["fa:fa-key Secret<br/>workspace-wildcard-tls"]
     SECRET --> TRAEFIK["fa:fa-server Traefik Ingress<br/>HTTPS-Terminierung"]
 
-    style LE fill:#2d6a4f,color:#fff
-    style CM fill:#4a90d9,color:#fff
-    style LEGO fill:#4a90d9,color:#fff
-    style IPV64 fill:#374151,color:#fff
-    style TXT fill:#374151,color:#fff
-    style CERT fill:#2d8659,color:#fff
-    style SECRET fill:#d97706,color:#fff
-    style TRAEFIK fill:#374151,color:#fff
+    style LE fill:#0a1a0a,color:#b8e8b8
+    style CM fill:#1b3766,color:#e8c870
+    style LEGO fill:#1b3766,color:#e8c870
+    style IPV64 fill:#1a1a2e,color:#aabbcc
+    style TXT fill:#1a1a2e,color:#aabbcc
+    style CERT fill:#1a3d28,color:#e8c870
+    style SECRET fill:#3a2000,color:#e8c870
+    style TRAEFIK fill:#1a1a2e,color:#aabbcc
 ```
 
 **Setup-Befehle:**

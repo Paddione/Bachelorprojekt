@@ -76,7 +76,47 @@
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <script>
-    mermaid.initialize({ startOnLoad: false, securityLevel: 'loose' });
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: 'dark',
+      themeVariables: {
+        background: '#1a2235',
+        mainBkg: '#1a2235',
+        nodeBorder: '#243049',
+        clusterBkg: '#0f1623',
+        clusterBorder: '#e8c870',
+        edgeLabelBackground: '#1a2235',
+        lineColor: '#e8c870',
+        textColor: '#e8e8f0',
+        primaryColor: '#1b3766',
+        primaryTextColor: '#e8c870',
+        primaryBorderColor: '#2a5291',
+        secondaryColor: '#1a3d28',
+        secondaryTextColor: '#e8c870',
+        tertiaryColor: '#2a1654',
+        tertiaryTextColor: '#e8c870',
+        actorBkg: '#1b3766',
+        actorBorder: '#2a5291',
+        actorTextColor: '#e8c870',
+        actorLineColor: '#e8c870',
+        signalColor: '#e8c870',
+        signalTextColor: '#e8e8f0',
+        labelBoxBkgColor: '#1a2235',
+        labelBoxBorderColor: '#243049',
+        labelTextColor: '#e8e8f0',
+        loopTextColor: '#e8e8f0',
+        noteBorderColor: '#e8c870',
+        noteBkgColor: '#1a2235',
+        noteTextColor: '#e8e8f0',
+        activationBorderColor: '#e8c870',
+        activationBkgColor: '#243049',
+        sequenceNumberColor: '#0a0f1a',
+        pieTextColor: '#e8e8f0',
+        pieLegendTextColor: '#e8e8f0',
+        pieLabelTextColor: '#e8e8f0',
+      }
+    });
     window.$docsify.plugins = [].concat(function(hook) {
       hook.doneEach(function() {
         mermaid.run({ querySelector: '.mermaid' });

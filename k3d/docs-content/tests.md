@@ -20,16 +20,16 @@ flowchart TB
     PR --> PBASH["fa:fa-terminal Bash-Tests ausfuehren"]
     PBASH --> JSON
 
-    style R fill:#2d6a4f,color:#fff
-    style L fill:#4a90d9,color:#fff
-    style PR fill:#d97706,color:#fff
-    style REP fill:#6b7280,color:#fff
-    style BOOT fill:#374151,color:#fff
-    style BASH fill:#8b5cf6,color:#fff
-    style PBASH fill:#8b5cf6,color:#fff
-    style PW fill:#0891b2,color:#fff
-    style JSON fill:#2d8659,color:#fff
-    style MD fill:#2d8659,color:#fff
+    style R fill:#0a1a0a,color:#b8e8b8
+    style L fill:#1b3766,color:#e8c870
+    style PR fill:#3a2000,color:#e8c870
+    style REP fill:#1f2937,color:#aabbcc
+    style BOOT fill:#1a1a2e,color:#aabbcc
+    style BASH fill:#2a1654,color:#e8c870
+    style PBASH fill:#2a1654,color:#e8c870
+    style PW fill:#083344,color:#e8c870
+    style JSON fill:#1a3d28,color:#e8c870
+    style MD fill:#1a3d28,color:#e8c870
 ```
 
 ## Ausfuehrung

@@ -42,12 +42,12 @@ graph LR
 
     KC --> MM & NC & IN & OC & VW & WEB & OL & DOC
 
-    classDef kc fill:#4a90d9,color:#fff,stroke:#2d6a9f
-    classDef collab fill:#2d8659,color:#fff,stroke:#1a5c3a
-    classDef ai fill:#8b5cf6,color:#fff,stroke:#6d3ad4
-    classDef billing fill:#d97706,color:#fff,stroke:#b45309
-    classDef tools fill:#0891b2,color:#fff,stroke:#0e7490
-    classDef infra fill:#374151,color:#fff,stroke:#1f2937
+    classDef kc fill:#1b3766,color:#e8c870,stroke:#2a5291
+    classDef collab fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
+    classDef ai fill:#2a1654,color:#e8c870,stroke:#3d2478
+    classDef billing fill:#3a2000,color:#e8c870,stroke:#5a3500
+    classDef tools fill:#083344,color:#e8c870,stroke:#0e4f68
+    classDef infra fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 
     class KC kc
     class MM,NC collab

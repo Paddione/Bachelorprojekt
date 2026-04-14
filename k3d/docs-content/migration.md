@@ -32,14 +32,14 @@ flowchart LR
     M --> NC
     M --> KC
 
-    style SL fill:#611f69,color:#fff
-    style TE fill:#4a90d9,color:#fff
-    style GO fill:#2d8659,color:#fff
-    style CSV fill:#6b7280,color:#fff
-    style M fill:#374151,color:#fff
-    style MM fill:#2d8659,color:#fff
-    style NC fill:#0891b2,color:#fff
-    style KC fill:#4a90d9,color:#fff
+    style SL fill:#2a1654,color:#e8c870
+    style TE fill:#1b3766,color:#e8c870
+    style GO fill:#1a3d28,color:#e8c870
+    style CSV fill:#1f2937,color:#aabbcc
+    style M fill:#1a1a2e,color:#aabbcc
+    style MM fill:#1a3d28,color:#e8c870
+    style NC fill:#083344,color:#e8c870
+    style KC fill:#1b3766,color:#e8c870
 ```
 
 ## Migrations-Assistent

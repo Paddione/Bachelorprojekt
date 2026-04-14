@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
 
-    const description = (formData.get('description')?.toString() ?? '').trim();
+    const description = (formData.get('description')?.toString() ?? '').replace(/\r/g, '').trim();
     const email = (formData.get('email')?.toString() ?? '').trim().slice(0, 200);
     const category = (formData.get('category')?.toString() ?? '').trim();
     const url = (formData.get('url')?.toString() ?? 'unbekannt').slice(0, 500).replace(/[\r\n]/g, ' ');

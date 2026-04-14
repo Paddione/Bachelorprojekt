@@ -423,3 +423,43 @@ export async function getRecentPosts(channelId: string, perPage = 10): Promise<A
   const data = await res.json();
   return data.order.map((id: string) => data.posts[id]);
 }
+
+// Open a Mattermost interactive dialog in response to an action button click.
+// Call this from the /api/mattermost/actions handler with the `trigger_id`
+// Mattermost sends on the action payload. The dialog's `url` must point at
+// an endpoint you own that handles the submission (e.g. /api/mattermost/dialog-submit).
+export async function openDialog(params: {
+  triggerId: string;
+  url: string;
+  dialog: {
+    callback_id: string;
+    title: string;
+    introduction_text?: string;
+    elements: Array<{
+      display_name: string;
+      name: string;
+      type: 'text' | 'textarea' | 'select' | 'checkbox';
+      optional?: boolean;
+      max_length?: number;
+      placeholder?: string;
+    }>;
+    submit_label: string;
+    notify_on_cancel?: boolean;
+    state?: string;
+  };
+}): Promise<boolean> {
+  if (!MM_TOKEN) {
+    console.log('[mattermost] No bot token configured. Would open dialog:', params.dialog.callback_id);
+    return false;
+  }
+  const res = await mmApi('POST', '/actions/dialogs/open', {
+    trigger_id: params.triggerId,
+    url: params.url,
+    dialog: params.dialog,
+  });
+  if (!res.ok) {
+    console.error('[mattermost] openDialog failed:', res.status, await res.text().catch(() => ''));
+    return false;
+  }
+  return true;
+}

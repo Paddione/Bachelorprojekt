@@ -400,6 +400,9 @@ tasks:
       - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
       - 'echo "  Transkription: stt_whisper2 → http://whisper:8000/v1"'
       - 'echo "  Aufnahme:      Talk-Room > ··· > Aufnahme starten"'
+      - echo ""
+      - echo "Applying Nextcloud branding..."
+      - task: workspace:theme:nextcloud
 
   workspace:whiteboard-setup:
     desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)

@@ -3,7 +3,7 @@
   let cookieConsent = $state<string | null>(null);
 
   // Section 2: Auth state
-  let authState = $state<{ authenticated: boolean; user?: { name: string; email: string } } | null>(null);
+  let authState = $state<{ authenticated: boolean; user?: { name: string; email: string; username: string; isAdmin: boolean } } | null>(null);
 
   // Section 3: DSGVO request form
   let requestType = $state<'auskunft' | 'loeschung' | null>(null);
@@ -146,13 +146,17 @@
       </div>
       {#if requestType}
         <div class="space-y-3">
+          <label for="req-name" class="sr-only">Ihr Name</label>
           <input
+            id="req-name"
             type="text"
             placeholder="Ihr Name"
             bind:value={requestName}
             class="w-full px-4 py-2.5 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold/20 text-sm"
           />
+          <label for="req-email" class="sr-only">Ihre E-Mail-Adresse</label>
           <input
+            id="req-email"
             type="email"
             placeholder="Ihre E-Mail-Adresse"
             bind:value={requestEmail}

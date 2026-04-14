@@ -107,9 +107,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: docs
+                name: oauth2-proxy-docs
                 port:
-                  number: 80
+                  number: 4180
     - host: ai.localhost
       http:
         paths:

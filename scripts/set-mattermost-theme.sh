@@ -67,10 +67,10 @@ print('\n'.join(u['id'] for u in users if not u.get('is_bot', False)))
 COUNT=$(printf '%s' "$USER_IDS" | grep -c . || true)
 echo "Setting theme for $COUNT users..."
 
-for UID in $USER_IDS; do
+for MM_UID in $USER_IDS; do
   # Get team IDs for this user
   TEAM_IDS=$(_mm -H "Authorization: Bearer $TOKEN" \
-    "$MM_URL/api/v4/users/$UID/teams" \
+    "$MM_URL/api/v4/users/$MM_UID/teams" \
     | python3 -c "
 import sys, json
 teams = json.load(sys.stdin)
@@ -81,18 +81,18 @@ if isinstance(teams, list):
   # Build preferences array: one entry per team + one global (empty name)
   PREFS="["
   for TID in $TEAM_IDS; do
-    PREFS+="{\"user_id\":\"$UID\",\"category\":\"theme\",\"name\":\"$TID\",\"value\":$THEME_ESCAPED},"
+    PREFS+="{\"user_id\":\"$MM_UID\",\"category\":\"theme\",\"name\":\"$TID\",\"value\":$THEME_ESCAPED},"
   done
-  PREFS+="{\"user_id\":\"$UID\",\"category\":\"theme\",\"name\":\"\",\"value\":$THEME_ESCAPED}]"
+  PREFS+="{\"user_id\":\"$MM_UID\",\"category\":\"theme\",\"name\":\"\",\"value\":$THEME_ESCAPED}]"
 
   RESP=$(_mm -X PUT \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -d "$PREFS" \
-    "$MM_URL/api/v4/users/$UID/preferences")
+    "$MM_URL/api/v4/users/$MM_UID/preferences")
   echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print('  WARN: '+d.get('message','?')) if 'status_code' in d else None" 2>/dev/null || true
 
-  echo "  ✓ $UID"
+  echo "  ✓ $MM_UID"
 done
 
 echo "Mattermost theme applied to all users."

@@ -89,9 +89,11 @@ spec:
             - name: MM_ANNOUNCEMENTSETTINGS_BANNERTEXT
               value: "Besuche unsere Website: web.localhost"
             - name: MM_ANNOUNCEMENTSETTINGS_BANNERCOLOR
-              value: "#1E88E5"
+              value: "#0f1623"
             - name: MM_ANNOUNCEMENTSETTINGS_BANNERTEXTCOLOR
-              value: "#FFFFFF"
+              value: "#e8c870"
+            - name: MM_DISPLAYSETTINGS_DEFAULTTHEME
+              value: "mattermostDark"
             - name: MM_ANNOUNCEMENTSETTINGS_ALLOWBANNERADISMISSAL
               value: "true"
             # ── Privacy (NFA-01) — disable telemetry ──────

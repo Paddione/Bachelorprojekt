@@ -44,3 +44,9 @@ spec:
               value: "false"
             - name: MM_SERVICESETTINGS_TRUSTEDPROXYIPHEADER
               value: '["X-Forwarded-For","X-Real-IP"]'
+            - name: MM_ANNOUNCEMENTSETTINGS_BANNERCOLOR
+              value: "#0f1623"
+            - name: MM_ANNOUNCEMENTSETTINGS_BANNERTEXTCOLOR
+              value: "#e8c870"
+            - name: MM_DISPLAYSETTINGS_DEFAULTTHEME
+              value: "mattermostDark"

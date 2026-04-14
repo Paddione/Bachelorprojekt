@@ -6,6 +6,10 @@
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
 
+  let triggerButtonEl = $state<HTMLButtonElement | null>(null);
+  let dialogEl = $state<HTMLDivElement | null>(null);
+  let fileInputEl = $state<HTMLInputElement | null>(null);
+
   const MAX_BYTES = 5 * 1024 * 1024;
   const ALLOWED = ['image/png', 'image/jpeg', 'image/webp'];
 
@@ -24,8 +28,7 @@
     file = null;
     fileError = '';
     result = null;
-    const input = document.getElementById('bug-screenshot') as HTMLInputElement | null;
-    if (input) input.value = '';
+    if (fileInputEl) fileInputEl.value = '';
   }
 
   function onFileChange(e: Event) {
@@ -51,17 +54,14 @@
   function removeFile() {
     file = null;
     fileError = '';
-    const input = document.getElementById('bug-screenshot') as HTMLInputElement | null;
-    if (input) input.value = '';
+    if (fileInputEl) fileInputEl.value = '';
   }
 
-  function canSubmit() {
-    return description.trim().length > 0 && !submitting && !fileError;
-  }
+  const canSubmit = $derived(description.trim().length > 0 && !submitting && !fileError);
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!canSubmit()) return;
+    if (!canSubmit) return;
     submitting = true;
     result = null;
 
@@ -92,12 +92,29 @@
   function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && open) closeModal();
   }
+
+  let effectInitialized = false;
+  $effect(() => {
+    // Read `open` first to register reactivity
+    const isOpen = open;
+    if (!effectInitialized) {
+      effectInitialized = true;
+      return;
+    }
+    if (isOpen && dialogEl) {
+      const first = dialogEl.querySelector<HTMLElement>('textarea, button, input, [tabindex]:not([tabindex="-1"])');
+      first?.focus();
+    } else if (!isOpen && triggerButtonEl) {
+      triggerButtonEl.focus();
+    }
+  });
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
 <button
   type="button"
+  bind:this={triggerButtonEl}
   onclick={openModal}
   aria-label="Bug melden"
   class="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-gold hover:bg-gold-light text-dark px-4 py-3 rounded-full font-semibold shadow-lg transition-colors cursor-pointer"
@@ -110,9 +127,9 @@
   <div
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     onclick={closeModal}
-    role="presentation"
   >
     <div
+      bind:this={dialogEl}
       class="bg-dark border border-dark-lighter rounded-xl max-w-lg w-full p-6 shadow-2xl"
       onclick={(e) => e.stopPropagation()}
       role="dialog"
@@ -143,7 +160,7 @@
             rows="5"
             required
             placeholder="Was ist passiert? Was haben Sie erwartet?"
-            class="w-full px-3 py-2 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-1 focus:ring-gold-dim resize-y"
+            class="w-full px-3 py-2 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold-dim resize-y"
           ></textarea>
         </div>
 
@@ -153,6 +170,7 @@
           </label>
           <input
             id="bug-screenshot"
+            bind:this={fileInputEl}
             type="file"
             accept="image/png,image/jpeg,image/webp"
             onchange={onFileChange}
@@ -171,7 +189,7 @@
 
         <button
           type="submit"
-          disabled={!canSubmit()}
+          disabled={!canSubmit}
           class="w-full bg-gold hover:bg-gold-light disabled:bg-dark-lighter disabled:text-muted-dark text-dark px-4 py-2.5 rounded font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed"
         >
           {submitting ? 'Wird gesendet...' : 'Meldung senden'}

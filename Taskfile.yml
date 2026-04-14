@@ -283,8 +283,8 @@ tasks:
   workspace:transcriber-build:
     desc: Build and push talk-transcriber image to local registry
     cmds:
-      - docker build -t {{.REGISTRY}}/talk-transcriber:v1 k3d/talk-transcriber/
-      - docker push {{.REGISTRY}}/talk-transcriber:v1
+      - docker build -t {{.REGISTRY}}/talk-transcriber:v2 k3d/talk-transcriber/
+      - docker push {{.REGISTRY}}/talk-transcriber:v2
       - 'echo "✓ talk-transcriber image pushed to {{.REGISTRY}}"'
 
   workspace:transcriber-setup:
@@ -331,19 +331,7 @@ tasks:
         {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
       - echo ""
       - echo "Installing Nextcloud collaboration apps (Whiteboard, Forms, Transcription)..."
-      - '{{.NC_EXEC}} "php occ app:install whiteboard" || true'
-      - '{{.NC_EXEC}} "php occ app:enable whiteboard"  || true'
-      - |
-        BOARD_DOMAIN=$(kubectl get configmap domain-config -n workspace \
-          -o jsonpath='{.data.WHITEBOARD_DOMAIN}' 2>/dev/null || echo "board.localhost")
-        case "${BOARD_DOMAIN}" in
-          *.localhost) BOARD_URL="http://${BOARD_DOMAIN}" ;;
-          *)           BOARD_URL="https://${BOARD_DOMAIN}" ;;
-        esac
-        WB_JWT=$(kubectl get secret workspace-secrets -n workspace \
-          -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' | base64 -d)
-        {{.NC_EXEC}} "php occ config:app:set whiteboard collabBackendUrl --value='${BOARD_URL}'" || true
-        {{.NC_EXEC}} "php occ config:app:set whiteboard jwt_secret_key --value='${WB_JWT}'" || true
+      - task: workspace:whiteboard-setup
       - '{{.NC_EXEC}} "php occ app:install forms" || true'
       - |
         {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_allowlist \
@@ -390,6 +378,16 @@ tasks:
       - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
       - 'echo "  Transkription: stt_whisper2 → http://whisper:8000/v1"'
       - 'echo "  Aufnahme:      Talk-Room > ··· > Aufnahme starten"'
+
+  workspace:whiteboard-setup:
+    desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
+    preconditions:
+      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
+        msg: "Nextcloud not deployed."
+      - sh: kubectl get deployment whiteboard -n workspace > /dev/null 2>&1
+        msg: "whiteboard not deployed. Run 'task workspace:deploy' first."
+    cmds:
+      - bash scripts/whiteboard-setup.sh
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"
@@ -534,16 +532,6 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kubectl $context_flag rollout status deploy/collabora -n workspace-office --timeout=300s
       - task: workspace:office:sync-secret
-
-  workspace:meeting-slash:
-    desc: Register /meeting slash command in Mattermost
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed."
-    cmds:
-      - bash scripts/meeting-slash-setup.sh
 
   workspace:recording-setup:
     desc: "Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)"
@@ -1083,16 +1071,21 @@ tasks:
           kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
         else
           # Prod: build from overlay, apply to target cluster
+          # Apply SealedSecret first so the Secret is ready when pods start
+          sealed="environments/sealed-secrets/{{.ENV}}.yaml"
+          if [ -f "$sealed" ]; then
+            kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
+            echo "Waiting for SealedSecret to be decrypted..."
+            for i in $(seq 1 30); do
+              kubectl --context "$ENV_CONTEXT" get secret workspace-secrets -n workspace &>/dev/null && break
+              sleep 1
+            done
+          fi
+
           overlay="${ENV_OVERLAY:-prod}"
           kustomize build "$overlay/" \
             | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
-
-          # Apply SealedSecret if it exists
-          sealed="environments/sealed-secrets/{{.ENV}}.yaml"
-          if [ -f "$sealed" ]; then
-            kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
-          fi
         fi
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -2068,3 +2061,41 @@ tasks:
         --organization mjo8q7Mosz36nIJUksYd
         docs/api/kore-api.yaml
       - echo '✓ API spec published to GitBook'
+
+  # ─────────────────────────────────────────────
+  # Utility Scripts
+  # ─────────────────────────────────────────────
+  billing-bot:setup:
+    desc: Build billing-bot image and push to local registry
+    cmds:
+      - bash scripts/billing-bot-setup.sh
+
+  workspace:check-connectivity:
+    desc: Test HTTPS reachability of all workspace services
+    cmds:
+      - bash scripts/check-connectivity.sh
+
+  workspace:check-updates:
+    desc: Compare running container images against registry for available updates
+    cmds:
+      - bash scripts/check-updates.sh
+
+  workspace:create-guest:
+    desc: "Create a customer guest account in Keycloak + Mattermost (FA-11)"
+    cmds:
+      - bash scripts/create-customer-guest.sh {{.CLI_ARGS}}
+
+  workspace:import-users:
+    desc: Import users from CSV or LDIF into Keycloak
+    cmds:
+      - bash scripts/import-users.sh {{.CLI_ARGS}}
+
+  workspace:migrate:
+    desc: Interactive data migration assistant (import/export)
+    cmds:
+      - bash scripts/migrate.sh
+
+  workspace:anfragen-setup:
+    desc: Create anfragen channel and webhook in all Mattermost teams
+    cmds:
+      - bash scripts/mattermost-anfragen-setup.sh

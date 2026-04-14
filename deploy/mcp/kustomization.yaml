@@ -1,3 +1,8 @@
+# ═══════════════════════════════════════════════════════════════════
+# Skaffold dev overlay for MCP servers (hot-reload iteration).
+# The authoritative base manifests live in k3d/ — this overlay adds
+# Ingress, auth proxy, and status page for external access.
+# ═══════════════════════════════════════════════════════════════════
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

@@ -15,6 +15,7 @@ NC_HOST  = os.environ.get("NC_DOMAIN", "nextcloud")
 NC_URL   = f"{NC_PROTO}://{NC_HOST}"
 NC_USER  = "transcriber-bot"
 NC_PASS  = os.environ["TRANSCRIBER_BOT_PASSWORD"]
+NC_SECRET= os.environ.get("TRANSCRIBER_SECRET")
 WHISPER  = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 CHUNK_S  = int(os.environ.get("CHUNK_SECONDS", "10"))
 
@@ -34,6 +35,30 @@ async def start() -> None:
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok", "active": list(sessions)}
+
+
+@app.post("/webhook")
+async def webhook(data: dict) -> dict:
+    """
+    Empfängt Events von Nextcloud Talk.
+    Bei Call-Ereignissen wird die Transkription sofort gestartet.
+    """
+    token = data.get("token") or data.get("roomToken")
+    event = data.get("event", "")
+
+    if not token:
+        return {"status": "ignored", "reason": "no token"}
+
+    # Wenn der Call startet oder eine Nachricht kommt (Bot-Trigger)
+    if event in ("call_started", "message") or not event:
+        if token not in sessions:
+            print(f"[webhook] trigger for {token}", flush=True)
+            sessions[token] = {}
+            t = asyncio.create_task(run_session(token))
+            sessions[token]["task"] = t
+            return {"status": "started", "token": token}
+
+    return {"status": "ok"}
 
 
 # ─── Polling ──────────────────────────────────────────────────────────────────
@@ -63,13 +88,13 @@ async def tick(client: httpx.AsyncClient) -> None:
         _cancel(token)
     for token in live - set(sessions):
         sessions[token] = {}
-        t = asyncio.create_task(run_session(token, client))
+        t = asyncio.create_task(run_session(token))
         sessions[token]["task"] = t
 
 
 # ─── Session ──────────────────────────────────────────────────────────────────
 
-async def run_session(token: str, client: httpx.AsyncClient) -> None:
+async def run_session(token: str) -> None:
     sink    = f"nc_t_{token[:6]}"
     display = f":{next(_display_counter)}"
     print(f"[{token}] starting", flush=True)
@@ -90,17 +115,20 @@ async def run_session(token: str, client: httpx.AsyncClient) -> None:
 
     await asyncio.sleep(8)  # let call establish in Firefox
 
-    try:
-        while token in sessions and sessions[token]:
-            chunk = await _record_chunk(sink)
-            if chunk:
-                text = await _whisper(chunk)
-                if text:
-                    await _post_chat(client, token, f"🎙 {text}")
-    except asyncio.CancelledError:
-        pass
-    finally:
-        _teardown(token)
+    async with httpx.AsyncClient(
+        auth=(NC_USER, NC_PASS), verify=False, timeout=10
+    ) as client:
+        try:
+            while token in sessions and sessions[token]:
+                chunk = await _record_chunk(sink)
+                if chunk:
+                    text = await _whisper(chunk)
+                    if text:
+                        await _post_chat(client, token, f"🎙 {text}")
+        except asyncio.CancelledError:
+            pass
+        finally:
+            _teardown(token)
 
 
 def _start_browser(token: str, env: dict) -> subprocess.Popen:

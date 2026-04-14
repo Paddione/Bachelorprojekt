@@ -15,13 +15,13 @@
 <section class="relative bg-dark pt-28 pb-20 md:pt-36 md:pb-28">
   <div class="max-w-6xl mx-auto px-6">
     <div class="max-w-3xl">
-      <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">
+      <p class="text-gold font-semibold text-lg mb-4 tracking-normal sm:tracking-widest uppercase">
         {tagline}
       </p>
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-light leading-tight mb-6 whitespace-pre-line font-serif">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-light leading-tight mb-6 whitespace-pre-line font-serif break-words">
         {title}
       </h1>
-      <p class="text-xl md:text-2xl text-muted leading-relaxed mb-10 max-w-2xl">
+      <p class="text-lg sm:text-xl md:text-2xl text-muted leading-relaxed mb-10 max-w-2xl">
         {subtitle}
       </p>
       <div class="flex flex-col sm:flex-row gap-4">

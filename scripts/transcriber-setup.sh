@@ -2,29 +2,30 @@
 # ══════════════════════════════════════════════════════════════════════════════
 # transcriber-setup.sh
 # Legt den transcriber-bot-Nextcloud-User für den talk-transcriber-Pod an.
-# Idempotent: bei bereits existierendem User kein Fehler.
-# ENV: KUBE_CONTEXT (optional) — kubectl context; defaults to current context
+# Idempotent: bei bereits existierendem User wird nur das Passwort aktualisiert.
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-workspace}"
-KUBE_CONTEXT="${KUBE_CONTEXT:-}"
+NAMESPACE="workspace"
 
-_kubectl() { kubectl ${KUBE_CONTEXT:+--context "$KUBE_CONTEXT"} "$@"; }
-
+# Hilfsfunktion für occ-Kommandos im Nextcloud-Container
 _occ() {
-  _kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
-    su -s /bin/bash www-data -c "$1" 2>&1
+  kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
+    su -s /bin/bash www-data -c "$1"
+}
+
+_kubectl() {
+  kubectl "$@"
 }
 
 echo "=== Transcriber-Bot Setup ==="
 
-# Get the transcriber-bot password from the Kubernetes secret
+# Passwort aus Secret laden
 TRANSCRIBER_PASS=$(_kubectl get secret workspace-secrets -n "${NAMESPACE}" \
   -o jsonpath='{.data.TRANSCRIBER_BOT_PASSWORD}' | base64 -d)
 
 if [ -z "${TRANSCRIBER_PASS}" ]; then
-  echo "FEHLER: TRANSCRIBER_BOT_PASSWORD nicht gefunden." >&2
+  echo "FEHLER: TRANSCRIBER_BOT_PASSWORD fehlt im Secret workspace-secrets."
   exit 1
 fi
 
@@ -37,6 +38,27 @@ _kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
     su -s /bin/bash www-data -c \
     'php occ user:add --display-name=\"Live-Transkription\" \
      --password-from-env transcriber-bot 2>/dev/null || true'"
+
+echo "  Registriere Talk-Bot..."
+
+TRANSCRIBER_SECRET=$(_kubectl get secret workspace-secrets -n "${NAMESPACE}" \
+  -o jsonpath='{.data.TRANSCRIBER_SECRET}' | base64 -d)
+
+# Bot global registrieren (--feature=webhook: empfängt Call-Ereignisse)
+# Idempotent via || true (bzw. überschreibt falls vorhanden)
+_occ "php occ talk:bot:install \
+  --feature=webhook \
+  --feature=response \
+  'Live-Transkription' \
+  '${TRANSCRIBER_SECRET}' \
+  'http://talk-transcriber:8000/webhook' \
+  'Automatische Live-Transkription für alle Räume' || true"
+
+echo "  Aktiviere Call-Transkription in spreed..."
+_occ "php occ config:app:set spreed call_transcription_enabled --value=yes"
+
+echo "  Füge 'nextcloud' zu trusted_domains hinzu (für in-cluster Polling)..."
+_occ "php occ config:system:set trusted_domains 5 --value=nextcloud"
 
 echo ""
 echo "=== Verifizierung ==="

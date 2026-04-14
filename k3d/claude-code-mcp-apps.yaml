@@ -64,8 +64,8 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 5
           resources:
-            requests: { memory: 128Mi, cpu: 50m }
-            limits: { memory: 512Mi }
+            requests: { memory: 128Mi, cpu: "100m" }
+            limits: { memory: 512Mi, cpu: "500m" }
 
         # ── Invoice Ninja MCP (port 8001) ──────────────────────────
         - name: invoiceninja
@@ -90,8 +90,8 @@ spec:
               mountPath: /specs
               readOnly: true
           resources:
-            requests: { memory: 64Mi, cpu: 50m }
-            limits: { memory: 512Mi }
+            requests: { memory: 128Mi, cpu: "100m" }
+            limits: { memory: 512Mi, cpu: "500m" }
       volumes:
         - name: invoiceninja-spec
           emptyDir: {}

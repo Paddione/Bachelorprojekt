@@ -9,7 +9,9 @@ resources:
   - cluster-issuer.yaml
   - wildcard-certificate.yaml
   - traefik-middlewares.yaml
+  - tlsoption.yaml
   - old-webspace.yaml
+  - ingress.yaml
 
 # Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
 configMapGenerator:
@@ -22,9 +24,11 @@ configMapGenerator:
     files:
       - oidc.config.php=nextcloud-oidc-prod.php
   - name: keycloak-import-script
+    behavior: replace
     files:
       - import-entrypoint.sh
   - name: mattermost-proxy-config
+    behavior: replace
     files:
       - default.conf=userinfo-proxy.conf
 generatorOptions:
@@ -36,6 +40,8 @@ patches:
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)
   - path: ingress.yaml
+  # Mattermost chat.* ingress: TLS + HTTPS-redirect/HSTS/force-SSO middleware chain
+  - path: patch-mattermost-ingress.yaml
   # Service patches for https:// env vars
   - path: patch-mattermost.yaml
   - path: patch-nextcloud.yaml
@@ -58,3 +64,5 @@ patches:
   # patch target on this overlay.
   # Billing bot: use ghcr.io image accessible from production nodes
   - path: patch-billing-bot.yaml
+  # Reduce shared-db resource requests for smaller production clusters
+  - path: patch-shared-db.yaml

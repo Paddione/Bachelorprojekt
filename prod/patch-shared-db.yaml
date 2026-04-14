@@ -1,0 +1,19 @@
+# Reduce shared-db resource requests for smaller production clusters.
+# The base requests 500m CPU which can cause scheduling failures on
+# 3-node clusters when many services are deployed simultaneously.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-db
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: "250m"
+            limits:
+              memory: 2Gi
+              cpu: "2"

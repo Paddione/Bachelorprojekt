@@ -1,0 +1,16 @@
+- [Home](/)
+- **Für Mitarbeiter**
+- [Benutzerhandbuch](benutzerhandbuch.md)
+- [Testanleitung](test-anleitung-korczewski.md)
+- **Für Administratoren**
+- [Architektur](architecture.md)
+- [Services](services.md)
+- [Keycloak & SSO](keycloak.md)
+- [Migration](migration.md)
+- [Skripte](scripts.md)
+- [Tests](tests.md)
+- [Sicherheit](security.md)
+- [Verarbeitungsverzeichnis (Art. 30)](verarbeitungsverzeichnis.md)
+- [Fehlerbehebung](troubleshooting.md)
+- [Anforderungen](requirements.md)
+- [MCP Actions](mcp-actions.md)

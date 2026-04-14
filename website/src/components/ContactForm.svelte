@@ -14,6 +14,7 @@
     { value: 'coaching', label: 'Führungskräfte-Coaching' },
     { value: 'beratung', label: 'Unternehmensberatung' },
     { value: 'support', label: 'Support' },
+    { value: 'bug', label: 'Fehler melden (Bug Report)' },
     { value: 'feedback', label: 'Feedback' },
   ];
 

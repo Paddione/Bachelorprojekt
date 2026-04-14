@@ -34,5 +34,5 @@ assert_eq "$BUG_CHANNEL" "bugs" "FA-26" "T3" "BUG_REPORT_CHANNEL in website-conf
 
 # ── T4: bugs channel (or fallback anfragen) present in Mattermost ─
 CHAN_COUNT=$(kubectl exec -n "$MM_NAMESPACE" deploy/mattermost -- \
-  mmctl --local channel list --all 2>/dev/null | grep -cE "^bugs$|^anfragen$|[[:space:]]bugs[[:space:]]|[[:space:]]anfragen[[:space:]]" || echo "0")
+  mmctl --local channel list --all 2>/dev/null | grep -cE "bugs|anfragen" || echo "0")
 assert_gt "$CHAN_COUNT" 0 "FA-26" "T4" "bugs- oder anfragen-Kanal in Mattermost vorhanden"

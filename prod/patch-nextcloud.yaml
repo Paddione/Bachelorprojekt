@@ -42,9 +42,9 @@ spec:
             httpGet:
               httpHeaders:
                 - name: Host
-                  value: "files.${PROD_DOMAIN}"
+                  value: "localhost"
           livenessProbe:
             httpGet:
               httpHeaders:
                 - name: Host
-                  value: "files.${PROD_DOMAIN}"
+                  value: "localhost"

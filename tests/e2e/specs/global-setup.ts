@@ -41,7 +41,19 @@ setup('authenticate', async ({ page }) => {
     await page.getByRole('button', { name: /sign in|anmelden|log in/i }).click();
   }
 
-  await page.waitForURL('**/channels/**', { timeout: 20_000 });
+  // Handle team selection page (appears when user belongs to multiple teams)
+  const teamName = process.env.MM_TEST_TEAM || 'bachelorprojekt';
+  try {
+    await page.waitForURL('**/channels/**', { timeout: 10_000 });
+  } catch {
+    // Might be on /select_team – click the correct team
+    if (page.url().includes('/select_team')) {
+      await page.getByRole('link', { name: new RegExp(teamName, 'i') }).click();
+      await page.waitForURL('**/channels/**', { timeout: 15_000 });
+    } else {
+      throw new Error(`Unexpected URL after login: ${page.url()}`);
+    }
+  }
   await expect(page.locator('#channel_view')).toBeVisible({ timeout: 10_000 });
 
   // Disable remaining tour tips via user preferences (server-level config handles the main flow)

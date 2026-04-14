@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { goToChannel } from './helpers';
 
-const TEAM = 'bachelorprojekt';
+const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
 const BASE = process.env.WEBSITE_URL || 'http://web.localhost';
 
 test.describe('FA-09: Billing Bot & Service Catalog', () => {
@@ -14,14 +14,12 @@ test.describe('FA-09: Billing Bot & Service Catalog', () => {
     await postBox.fill('/billing');
     await page.keyboard.press('Enter');
 
-    // Bot posts via MM API with attachment (not ephemeral) — wait for interactive buttons
-    try {
-      await expect(page.getByRole('button', { name: /Rechnung erstellen/i })).toBeVisible({ timeout: 15_000 });
-      await expect(page.getByRole('button', { name: /Kunde anlegen/i })).toBeVisible();
-    } catch {
-      // Billing bot not configured — skip gracefully
-      test.skip(true, 'Billing bot did not respond to /billing command');
-    }
+    // Bot posts via MM API (async goroutine) — wait for the attachment action buttons.
+    // Mattermost renders action buttons inside .attachment-actions, may not have role="button".
+    const invoiceBtn = page.locator('button:has-text("Rechnung erstellen"), [id="createinvoice"]');
+    const clientBtn = page.locator('button:has-text("Kunde anlegen"), [id="createclient"]');
+    await expect(invoiceBtn.first()).toBeVisible({ timeout: 20_000 });
+    await expect(clientBtn.first()).toBeVisible();
   });
 
   test('T2: /billing help shows help text', async ({ page }) => {
@@ -31,12 +29,9 @@ test.describe('FA-09: Billing Bot & Service Catalog', () => {
     await postBox.fill('/billing help');
     await page.keyboard.press('Enter');
 
-    // Bot sends same interactive menu for /billing help — check buttons appear
-    try {
-      await expect(page.getByRole('button', { name: /Rechnung erstellen/i })).toBeVisible({ timeout: 10_000 });
-    } catch {
-      test.skip(true, 'Billing bot did not respond to /billing help command');
-    }
+    // Bot posts via MM API (async goroutine)
+    const invoiceBtn = page.locator('button:has-text("Rechnung erstellen"), [id="createinvoice"]');
+    await expect(invoiceBtn.first()).toBeVisible({ timeout: 20_000 });
   });
 
   // -- Website Part (from former FA-21) --

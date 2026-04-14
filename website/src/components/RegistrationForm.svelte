@@ -23,7 +23,7 @@
       const data = await response.json();
 
       if (response.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Registrierung wurde eingereicht. Sie erhalten eine Bestatigung per E-Mail.' };
+        result = { success: true, message: 'Vielen Dank! Ihre Registrierung wurde eingereicht. Sie erhalten eine Bestätigung per E-Mail.' };
         firstName = '';
         lastName = '';
         email = '';
@@ -114,7 +114,7 @@
 
   <div>
     <label for="reg-message" class="block text-lg font-medium text-light mb-2">
-      Warum mochten Sie sich registrieren? <span class="text-muted-dark">(optional)</span>
+      Warum möchten Sie sich registrieren? <span class="text-muted-dark">(optional)</span>
     </label>
     <textarea
       id="reg-message"
@@ -149,6 +149,7 @@
 
   <p class="text-sm text-muted-dark text-center">
     Mit der Registrierung stimmen Sie unserer
-    <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklarung</a> zu.
+    <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklärung</a>
+    und unseren <a href="/agb" class="text-gold hover:underline">AGB</a> zu.
   </p>
 </form>

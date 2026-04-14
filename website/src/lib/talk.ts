@@ -5,7 +5,7 @@
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 const NC_USER = process.env.NEXTCLOUD_CALDAV_USER || 'admin';
 const NC_PASS = process.env.NEXTCLOUD_CALDAV_PASSWORD || 'devnextcloudadmin';
-const NC_EXTERNAL_URL = process.env.NEXTCLOUD_EXTERNAL_URL || 'https://files.${PROD_DOMAIN}';
+const NC_EXTERNAL_URL = process.env.NEXTCLOUD_EXTERNAL_URL || '';
 
 function getAuthHeader(): string {
   return 'Basic ' + Buffer.from(`${NC_USER}:${NC_PASS}`).toString('base64');

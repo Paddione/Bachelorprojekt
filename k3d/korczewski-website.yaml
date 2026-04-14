@@ -14,19 +14,30 @@ metadata:
   name: korczewski-website-config
   namespace: korczewski-website
 data:
+  BRAND: "korczewski"
+  SITE_URL: "https://web.korczewski.de"
+  MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
   MATTERMOST_WEBHOOK_URL: ""
-  BRAND_NAME: "${BRAND_NAME}"
-  CONTACT_NAME: "${CONTACT_NAME}"
-  CONTACT_EMAIL: "${CONTACT_EMAIL}"
-  CONTACT_PHONE: "${CONTACT_PHONE}"
-  CONTACT_CITY: "${CONTACT_CITY}"
-  LEGAL_STREET: "${LEGAL_STREET}"
-  LEGAL_ZIP: "${LEGAL_ZIP}"
-  LEGAL_JOBTITLE: "${LEGAL_JOBTITLE}"
-  LEGAL_CHAMBER: "${LEGAL_CHAMBER}"
-  LEGAL_UST_ID: "${LEGAL_UST_ID}"
-  LEGAL_WEBSITE: "${LEGAL_WEBSITE}"
-  SITE_URL: "http://pk.localhost"
+  MATTERMOST_BOT_TOKEN: ""
+  BUG_REPORT_CHANNEL: "bugs"
+  SMTP_HOST: "mailpit.workspace.svc.cluster.local"
+  SMTP_PORT: "1025"
+  SMTP_SECURE: "false"
+  SMTP_USER: ""
+  SMTP_PASS: ""
+  FROM_EMAIL: "info@korczewski.de"
+  FROM_NAME: "Patrick Korczewski"
+  KEYCLOAK_URL: "https://auth.korczewski.de"
+  KEYCLOAK_REALM: "workspace"
+  KEYCLOAK_CLIENT_ID: "website"
+  KEYCLOAK_CLIENT_SECRET: ""
+  CALDAV_URL: ""
+  CALDAV_USER: ""
+  CALDAV_PASS: ""
+  INVOICENINJA_URL: "http://invoiceninja.workspace.svc.cluster.local"
+  INVOICENINJA_TOKEN: ""
+  OUTLINE_URL: "https://wiki.korczewski.de"
+  WHISPER_URL: "http://faster-whisper.workspace.svc.cluster.local:8000"
 ---
 # ── Deployment ───────────────────────────────────────────────────────────────
 apiVersion: apps/v1
@@ -48,7 +59,7 @@ spec:
         - name: ghcr-pull-secret
       containers:
         - name: korczewski-website
-          image: ghcr.io/paddione/korczewski-website:latest
+          image: ghcr.io/paddione/workspace-website:latest
           imagePullPolicy: Always
           envFrom:
             - configMapRef:

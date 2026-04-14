@@ -50,6 +50,28 @@ fi
 SIGNALING_STATUS=$(_kube_curl -o /dev/null -w '%{http_code}' "http://spreed-signaling:8080/api/v1/welcome" --max-time 5 || echo "000")
 assert_eq "$SIGNALING_STATUS" "200" "FA-03" "T4" "HPB Signaling-Server erreichbar (/api/v1/welcome)"
 
+# T4b: Nextcloud Talk app is actually pointed at the HPB (config:app:get spreed signaling_servers).
+# Without this, Talk falls back to the internal backend which fails to establish a session
+# on mobile / behind strict NAT — the "loggt sich nicht komplett ein" symptom.
+SIGNALING_CFG=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  su -s /bin/sh www-data -c "php occ config:app:get spreed signaling_servers" 2>/dev/null || echo "")
+if echo "$SIGNALING_CFG" | grep -qE '"server":\s*"https?://[^"]*signaling'; then
+  _log_result "FA-03" "T4b" "Nextcloud Talk auf HPB konfiguriert (signaling_servers)" "pass" "0"
+else
+  _log_result "FA-03" "T4b" "Nextcloud Talk auf HPB konfiguriert (signaling_servers)" "fail" "0" \
+    "spreed signaling_servers ist leer oder zeigt nicht auf spreed-signaling"
+fi
+
+# T4c: Nextcloud Talk has a TURN server configured (otherwise calls fail across NAT)
+TURN_CFG=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  su -s /bin/sh www-data -c "php occ config:app:get spreed turn_servers" 2>/dev/null || echo "")
+if echo "$TURN_CFG" | grep -qE '"server":\s*"[^"]*:3478'; then
+  _log_result "FA-03" "T4c" "Nextcloud Talk auf TURN-Server konfiguriert (turn_servers)" "pass" "0"
+else
+  _log_result "FA-03" "T4c" "Nextcloud Talk auf TURN-Server konfiguriert (turn_servers)" "fail" "0" \
+    "spreed turn_servers ist leer oder ohne :3478-Port"
+fi
+
 # T5: Guest access — Talk endpoint accessible without authentication
 GUEST_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
   "${NC_URL:-http://files.localhost}/apps/spreed" 2>/dev/null || echo "000")
@@ -60,8 +82,9 @@ else
   _log_result "FA-03" "T5" "Talk-Endpunkt von extern erreichbar (Gast-Zugang möglich)" "fail" "0" "HTTP ${GUEST_STATUS}"
 fi
 
-# Bonus: coturn reachable
-COTURN_POD=$(kubectl get pods -n "$NAMESPACE" -l app=coturn --no-headers 2>/dev/null | grep -c 'Running')
+# Bonus: coturn reachable (lives in its own privileged `coturn` namespace
+# since #63 — hostNetwork + hostPort need baseline PSA relaxed).
+COTURN_POD=$(kubectl get pods -n coturn -l app=coturn --no-headers 2>/dev/null | grep -c 'Running')
 assert_gt "$COTURN_POD" 0 "FA-03" "T3d" "coturn TURN/STUN Pod läuft"
 
 # Bonus: NATS message bus reachable

@@ -9,25 +9,31 @@ test.describe('NFA-05: Usability', () => {
   });
 
   test('T3: Mobile Browser — Login und Navigation', async ({ browser }) => {
+    // Use empty storageState to ensure a fresh, unauthenticated context
     const context = await browser.newContext({
       viewport: { width: 375, height: 812 },
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
+      storageState: { cookies: [], origins: [] },
     });
     const page = await context.newPage();
     const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
 
+    // Force-SSO: /login redirects to Keycloak where the login form renders.
     await page.goto(`${baseURL}/login`);
 
-    // Dismiss "Desktop vs Browser" chooser if present
     const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
     try {
       await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
       await browserLink.click();
     } catch {
-      // Already on login form
+      // Already redirected
     }
 
-    await expect(page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i })).toBeVisible({ timeout: 10_000 });
+    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 10_000 });
+    // Accept either an email/username textbox (local login) or an SSO button (SSO-only mode)
+    const emailField = page.getByRole('textbox', { name: /e-mail|email|benutzername|username/i });
+    const ssoButton = page.getByRole('link', { name: /gitlab|openid|keycloak|sso/i });
+    await expect(emailField.or(ssoButton).first()).toBeVisible({ timeout: 10_000 });
     await context.close();
   });
 

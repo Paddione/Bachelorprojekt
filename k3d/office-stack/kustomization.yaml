@@ -1,0 +1,15 @@
+# ═══════════════════════════════════════════════════════════════════
+# office-stack — Collabora Online in a dedicated privileged namespace
+# ═══════════════════════════════════════════════════════════════════
+# Flat base used by both k3d/deploy.sh (dev) and the
+# argocd/applicationset-office.yaml (prod). Neither sets a namespace:
+# transformer here — every resource already names its own namespace
+# (workspace-office) explicitly, so the base is overlay-agnostic.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - collabora.yaml
+  - ingress.yaml

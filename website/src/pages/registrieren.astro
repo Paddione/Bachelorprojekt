@@ -1,16 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import RegistrationForm from '../components/RegistrationForm.svelte';
+import { config } from '../config/index';
 ---
 
-<Layout title="Registrieren" description="Registrieren Sie sich bei ${BRAND_NAME} fur Zugang zur Coaching-Plattform.">
+<Layout title="Registrieren" description={`Registrieren Sie sich bei ${config.meta.siteTitle} für Zugang zur Plattform.`}>
   <section class="pt-28 pb-20 bg-dark">
     <div class="max-w-3xl mx-auto px-6">
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Registrieren</h1>
         <p class="text-xl text-muted max-w-2xl mx-auto">
-          Erstellen Sie ein Konto, um Zugang zur Coaching-Plattform zu erhalten.
-          Nach Prufung Ihrer Anfrage schalten wir Ihren Zugang frei.
+          Erstellen Sie ein Konto, um Zugang zur Plattform zu erhalten.
+          Nach Prüfung Ihrer Anfrage schalten wir Ihren Zugang frei.
         </p>
       </div>
 
@@ -20,7 +21,7 @@ import RegistrationForm from '../components/RegistrationForm.svelte';
 
       <div class="mt-8 text-center">
         <p class="text-muted">
-          Sie mochten lieber zuerst ein unverbindliches Gesprach fuhren?
+          Sie möchten lieber zuerst ein unverbindliches Gespräch führen?
           <a href="/kontakt" class="text-gold hover:underline font-medium">Kontakt aufnehmen</a>
         </p>
       </div>

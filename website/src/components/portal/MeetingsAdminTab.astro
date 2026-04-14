@@ -1,0 +1,87 @@
+---
+import { getMeetingsForClient } from '../../lib/meetings-db';
+import type { Meeting } from '../../lib/meetings-db';
+
+interface Props {
+  clientEmail: string;
+}
+const { clientEmail } = Astro.props;
+
+let meetings: Meeting[] = [];
+try {
+  meetings = await getMeetingsForClient(clientEmail, false); // all meetings
+} catch {
+  // DB unavailable
+}
+---
+
+<div data-testid="meetings-admin-tab">
+  <h3 class="text-lg font-semibold text-light mb-4">Besprechungen</h3>
+  {meetings.length === 0 ? (
+    <p class="text-muted">Keine Besprechungen vorhanden.</p>
+  ) : (
+    <ul class="space-y-4">
+      {meetings.map(meeting => (
+        <li class="p-4 bg-dark rounded-xl border border-dark-lighter" data-testid="meeting-admin-item">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-sm text-muted">ID: {meeting.id}</span>
+              <span class="ml-3 text-xs text-muted capitalize">{meeting.status}</span>
+              {meeting.released_at ? (
+                <span class="ml-3 text-xs text-green-400">
+                  Freigegeben: {new Date(meeting.released_at).toLocaleDateString('de-DE')}
+                </span>
+              ) : (
+                <span class="ml-3 text-xs text-gold">Nicht freigegeben</span>
+              )}
+            </div>
+            {!meeting.released_at && (
+              <button
+                type="button"
+                data-testid="release-button"
+                data-meeting-id={meeting.id}
+                class="release-btn px-3 py-1 text-xs bg-gold text-dark rounded-full font-medium hover:bg-gold/80 transition-colors"
+              >
+                Freigeben
+              </button>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.release-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const meetingId = btn.dataset.meetingId;
+      if (!meetingId) return;
+
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        const res = await fetch('/api/meeting/release', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ meetingId }),
+        });
+
+        if (res.ok) {
+          // Reload to reflect updated state
+          window.location.reload();
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert('Fehler: ' + (data.error || res.statusText));
+          btn.disabled = false;
+          btn.textContent = 'Freigeben';
+        }
+      } catch {
+        alert('Netzwerkfehler beim Freigeben.');
+        btn.disabled = false;
+        btn.textContent = 'Freigeben';
+      }
+    });
+  });
+</script>

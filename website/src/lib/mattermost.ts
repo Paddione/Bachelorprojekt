@@ -3,17 +3,63 @@
 const MM_URL = process.env.MATTERMOST_URL || 'http://mattermost.workspace.svc.cluster.local:8065';
 const MM_TOKEN = process.env.MATTERMOST_BOT_TOKEN || '';
 const WEBHOOK_URL = process.env.MATTERMOST_WEBHOOK_URL || '';
-const SITE_URL = process.env.SITE_URL || 'https://web.${PROD_DOMAIN}';
+const SITE_URL = process.env.SITE_URL || 'http://localhost:4321';
 
-function mmApi(method: string, endpoint: string, body?: unknown) {
+async function mmApi(method: string, endpoint: string, body?: unknown) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5_000);
   return fetch(`${MM_URL}/api/v4${endpoint}`, {
     method,
+    signal: controller.signal,
     headers: {
       Authorization: `Bearer ${MM_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,
-  });
+  }).finally(() => clearTimeout(timer));
+}
+
+// Upload a file to Mattermost via the Files API. Returns the file_id
+// to include in a subsequent post's `file_ids` array, or null on failure.
+// Do NOT route through mmApi — multipart/form-data needs the runtime to
+// set the Content-Type header (with boundary) automatically.
+export async function uploadFile(params: {
+  channelId: string;
+  file: File;
+  filename?: string;
+}): Promise<string | null> {
+  if (!MM_TOKEN) {
+    console.log('[mattermost] No bot token configured. Would upload file:', params.filename ?? params.file.name);
+    return null;
+  }
+
+  const formData = new FormData();
+  formData.append('files', params.file, params.filename ?? params.file.name);
+  formData.append('channel_id', params.channelId);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const res = await fetch(`${MM_URL}/api/v4/files`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${MM_TOKEN}`,
+      },
+      body: formData,
+    });
+    if (!res.ok) {
+      console.error('[mattermost] uploadFile failed:', res.status, await res.text().catch(() => ''));
+      return null;
+    }
+    const data = await res.json() as { file_infos?: Array<{ id: string }> };
+    return data.file_infos?.[0]?.id ?? null;
+  } catch (err) {
+    console.error('[mattermost] uploadFile threw:', err);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Post via incoming webhook (simple, no token needed)
@@ -47,6 +93,7 @@ export async function postInteractiveMessage(params: {
     style?: 'default' | 'primary' | 'danger' | 'success';
   }>;
   context?: Record<string, unknown>;
+  fileIds?: string[];
 }): Promise<string | null> {
   if (!MM_TOKEN) {
     console.log('[mattermost] No bot token configured. Would post interactive message:', JSON.stringify(params, null, 2));
@@ -56,6 +103,7 @@ export async function postInteractiveMessage(params: {
   const res = await mmApi('POST', '/posts', {
     channel_id: params.channelId,
     message: params.text,
+    ...(params.fileIds && params.fileIds.length > 0 ? { file_ids: params.fileIds } : {}),
     props: {
       attachments: [
         {
@@ -154,7 +202,7 @@ export async function getOrCreateCustomerChannel(teamId: string, customerName: s
     team_id: teamId,
     name: channelName,
     display_name: displayName,
-    purpose: `Kundenkanal fur ${customerName} — Termine, Meetings, Dokumente`,
+    purpose: `Kundenkanal für ${customerName} — Termine, Meetings, Dokumente`,
     type: 'P', // Private channel
   });
 
@@ -223,3 +271,196 @@ export async function postToChannel(channelId: string, message: string): Promise
   });
   return res.ok;
 }
+
+// ── Management API helpers ──
+
+export interface MmUser {
+  id: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  nickname: string;
+  roles: string;
+  create_at: number;
+  update_at: number;
+  delete_at: number;
+  last_activity_at?: number;
+  is_bot: boolean;
+  bot_description?: string;
+}
+
+export interface MmTeam {
+  id: string;
+  display_name: string;
+  name: string;
+  description: string;
+  type: string;
+  create_at: number;
+  update_at: number;
+  delete_at: number;
+  member_count?: number;
+}
+
+export interface MmChannel {
+  id: string;
+  team_id: string;
+  type: string;
+  display_name: string;
+  name: string;
+  header: string;
+  purpose: string;
+  create_at: number;
+  update_at: number;
+  delete_at: number;
+  total_msg_count: number;
+  last_post_at: number;
+  creator_id: string;
+}
+
+export interface MmSystemInfo {
+  version: string;
+  database_type: string;
+  database_version: string;
+  license_id?: string;
+  active_user_count?: number;
+}
+
+export async function getUsers(page = 0, perPage = 100): Promise<MmUser[]> {
+  if (!MM_TOKEN) return [];
+  const res = await mmApi('GET', `/users?page=${page}&per_page=${perPage}`);
+  return res.ok ? res.json() : [];
+}
+
+export async function getUserStats(userId: string): Promise<{ last_activity_at: number } | null> {
+  if (!MM_TOKEN) return null;
+  const res = await mmApi('GET', `/users/${userId}/status`);
+  return res.ok ? res.json() : null;
+}
+
+export async function getTeams(): Promise<MmTeam[]> {
+  if (!MM_TOKEN) return [];
+  const res = await mmApi('GET', '/teams?per_page=100');
+  return res.ok ? res.json() : [];
+}
+
+export async function getTeamStats(teamId: string): Promise<{ total_member_count: number; active_member_count: number } | null> {
+  if (!MM_TOKEN) return null;
+  const res = await mmApi('GET', `/teams/${teamId}/stats`);
+  return res.ok ? res.json() : null;
+}
+
+export async function getChannelsForTeam(teamId: string): Promise<MmChannel[]> {
+  if (!MM_TOKEN) return [];
+  const res = await mmApi('GET', `/teams/${teamId}/channels?per_page=200`);
+  return res.ok ? res.json() : [];
+}
+
+export async function getChannelStats(channelId: string): Promise<{ member_count: number } | null> {
+  if (!MM_TOKEN) return null;
+  const res = await mmApi('GET', `/channels/${channelId}/stats`);
+  return res.ok ? res.json() : null;
+}
+
+export async function getSystemPing(): Promise<Record<string, string> | null> {
+  if (!MM_TOKEN) return null;
+  const res = await mmApi('GET', '/system/ping?get_server_status=true');
+  return res.ok ? res.json() : null;
+}
+
+export async function getSystemConfig(): Promise<Record<string, unknown> | null> {
+  if (!MM_TOKEN) return null;
+  const res = await mmApi('GET', '/config');
+  return res.ok ? res.json() : null;
+}
+
+export async function getAnalytics(name = 'standard'): Promise<Array<{ name: string; value: number }>> {
+  if (!MM_TOKEN) return [];
+  const res = await mmApi('GET', `/analytics/old?name=${name}`);
+  return res.ok ? res.json() : [];
+}
+
+export async function deactivateUser(userId: string): Promise<boolean> {
+  if (!MM_TOKEN) return false;
+  const res = await mmApi('DELETE', `/users/${userId}`);
+  return res.ok;
+}
+
+export async function deleteChannel(channelId: string): Promise<boolean> {
+  if (!MM_TOKEN) return false;
+  const res = await mmApi('DELETE', `/channels/${channelId}`);
+  return res.ok;
+}
+
+export async function createChannel(teamId: string, name: string, displayName: string, type: 'O' | 'P', purpose?: string): Promise<MmChannel | null> {
+  if (!MM_TOKEN) return null;
+  const res = await mmApi('POST', '/channels', {
+    team_id: teamId,
+    name,
+    display_name: displayName,
+    type,
+    purpose: purpose || '',
+  });
+  return res.ok ? res.json() : null;
+}
+
+export async function deleteTeam(teamId: string): Promise<boolean> {
+  if (!MM_TOKEN) return false;
+  const res = await mmApi('DELETE', `/teams/${teamId}?permanent=true`);
+  return res.ok;
+}
+
+export async function postToChannelById(channelId: string, message: string): Promise<boolean> {
+  if (!MM_TOKEN) return false;
+  const res = await mmApi('POST', '/posts', { channel_id: channelId, message });
+  return res.ok;
+}
+
+export async function getRecentPosts(channelId: string, perPage = 10): Promise<Array<{ id: string; message: string; create_at: number; user_id: string }>> {
+  if (!MM_TOKEN) return [];
+  const res = await mmApi('GET', `/channels/${channelId}/posts?per_page=${perPage}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.order.map((id: string) => data.posts[id]);
+}
+
+// Open a Mattermost interactive dialog in response to an action button click.
+// Call this from the /api/mattermost/actions handler with the `trigger_id`
+// Mattermost sends on the action payload. The dialog's `url` must point at
+// an endpoint you own that handles the submission (e.g. /api/mattermost/dialog-submit).
+export async function openDialog(params: {
+  triggerId: string;
+  url: string;
+  dialog: {
+    callback_id: string;
+    title: string;
+    introduction_text?: string;
+    elements: Array<{
+      display_name: string;
+      name: string;
+      type: 'text' | 'textarea' | 'select' | 'checkbox';
+      optional?: boolean;
+      max_length?: number;
+      placeholder?: string;
+    }>;
+    submit_label: string;
+    notify_on_cancel?: boolean;
+    state?: string;
+  };
+}): Promise<boolean> {
+  if (!MM_TOKEN) {
+    console.log('[mattermost] No bot token configured. Would open dialog:', params.dialog.callback_id);
+    return false;
+  }
+  const res = await mmApi('POST', '/actions/dialogs/open', {
+    trigger_id: params.triggerId,
+    url: params.url,
+    dialog: params.dialog,
+  });
+  if (!res.ok) {
+    console.error('[mattermost] openDialog failed:', res.status, await res.text().catch(() => ''));
+    return false;
+  }
+  return true;
+}
+

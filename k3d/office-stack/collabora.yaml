@@ -1,0 +1,114 @@
+# ═══════════════════════════════════════════════════════════════════
+# Collabora Online — Document editing (WOPI integration with Nextcloud)
+# ═══════════════════════════════════════════════════════════════════
+# Lives in the dedicated `workspace-office` namespace so it can run
+# with CAP_SYS_ADMIN + MKNOD (needed for bind-mounting the systemplate
+# into each document jail). See namespace.yaml for why.
+#
+# Required environment substitutions (kustomize-envsubst CMP in prod;
+# inlined by envsubst in k3d/deploy.sh for local dev):
+#   ${PROD_DOMAIN}   — production base domain (e.g. mentolder.de)
+#   ${COLLABORA_ALIASGROUP1} — upstream WOPI host (auto-derived below)
+#   ${COLLABORA_SERVER_NAME} — coolwsd server_name (auto-derived below)
+#   ${COLLABORA_SSL_TERMINATION} — "true" behind TLS, "false" in dev
+#
+# The three COLLABORA_* vars are set by envsubst in the deploy path so
+# one file covers both dev (http://nextcloud.workspace:80) and prod
+# (https://files.${PROD_DOMAIN}) without a prod patch file.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collabora
+  namespace: workspace-office
+  labels:
+    app: collabora
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collabora
+  template:
+    metadata:
+      labels:
+        app: collabora
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: collabora
+          # Custom image: upstream collabora/code with
+          #   setcap cap_sys_admin,cap_mknod,cap_setuid,cap_setgid=eip /usr/bin/coolwsd
+          #   setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot,cap_setuid,cap_setgid=ep /usr/bin/coolforkit-ns
+          # baked in. File capabilities are effective for the non-root
+          # `cool` user on exec, so coolwsd + its per-session forkits
+          # can bind-mount /opt/cool/systemplate into document jails
+          # without needing `runAsUser: 0` (coolwsd refuses to start
+          # as root). Built by .github/workflows/build-collabora.yml
+          # as a multi-arch (amd64+arm64) image.
+          image: ghcr.io/paddione/collabora-code:25.04.9.4.1-setcap
+          # Always-pull so a rebuild of the same tag (when we bump the
+          # Dockerfile but keep the upstream version) is picked up by
+          # the next `kubectl rollout restart`.
+          imagePullPolicy: Always
+          # - capabilities: in the bounding set so the kernel doesn't
+          #   strip them on exec (file caps make them effective).
+          # - SETUID/SETGID needed to write uid_map/gid_map after the
+          #   forkit unshares a user namespace; SYS_ADMIN+MKNOD needed
+          #   for bind-mount + device nodes in the per-document jail.
+          # - appArmorProfile Unconfined: containerd's default AppArmor
+          #   profile (`cri-containerd.apparmor.d`) denies mount()
+          #   unconditionally, even with CAP_SYS_ADMIN present. The
+          #   privileged PSA on this namespace allows Unconfined.
+          securityContext:
+            capabilities:
+              add: ["SYS_ADMIN", "MKNOD", "SETUID", "SETGID"]
+            appArmorProfile:
+              type: Unconfined
+          env:
+            - name: aliasgroup1
+              value: "${COLLABORA_ALIASGROUP1}"
+            - name: server_name
+              value: "${COLLABORA_SERVER_NAME}"
+            - name: extra_params
+              value: "--o:ssl.enable=false --o:ssl.termination=${COLLABORA_SSL_TERMINATION}"
+            - name: username
+              value: admin
+            - name: password
+              valueFrom:
+                secretKeyRef:
+                  name: collabora-secrets
+                  key: COLLABORA_ADMIN_PASSWORD
+            - name: dictionaries
+              value: "de_DE en_US"
+          ports:
+            - containerPort: 9980
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9980
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9980
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: collabora
+  namespace: workspace-office
+spec:
+  selector:
+    app: collabora
+  ports:
+    - port: 9980
+      targetPort: 9980

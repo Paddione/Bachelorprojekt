@@ -23,12 +23,12 @@ SSH_KEY="$HOME/.ssh/id_ed25519_hetzner"
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -i $SSH_KEY"
 SSH_USER="root"
 
-# Load PROD_DOMAIN from .env if present, otherwise require it as env var
-if [[ -f "$(dirname "$0")/../.env" ]]; then
-  # shellcheck disable=SC1091
-  set -a; source "$(dirname "$0")/../.env"; set +a
-fi
-PROD_DOMAIN="${PROD_DOMAIN:?PROD_DOMAIN not set — create a .env file or export PROD_DOMAIN}"
+# Load environment config — accepts ENV= parameter (default: mentolder)
+ENV="${ENV:-mentolder}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
+PROD_DOMAIN="${PROD_DOMAIN:?PROD_DOMAIN not set — check environments/${ENV}.yaml}"
 
 # ── Colors ────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'

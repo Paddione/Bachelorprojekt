@@ -30,3 +30,12 @@ WB_JWT=$(kubectl get deploy whiteboard -n "$NAMESPACE" \
   | jq -r '.[] | select(.name=="JWT_SECRET_KEY") | .valueFrom.secretKeyRef.key // ""')
 assert_eq "$WB_JWT" "WHITEBOARD_JWT_SECRET" "FA-24" "T5" "Whiteboard JWT-Secret konfiguriert"
 
+# ── T6: Nextcloud whiteboard app jwt_secret_key matches backend ─
+# Prevents regression of "Problem mit Authentifizierungskonfiguration" where
+# Nextcloud signs JWTs with a different (or empty) secret than the backend.
+K8S_SECRET=$(kubectl get secret workspace-secrets -n "$NAMESPACE" \
+  -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' 2>/dev/null | base64 -d || echo "")
+NC_JWT=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
+  su -s /bin/bash www-data -c "php occ config:app:get whiteboard jwt_secret_key" 2>/dev/null || echo "")
+assert_eq "$NC_JWT" "$K8S_SECRET" "FA-24" "T6" "Nextcloud whiteboard.jwt_secret_key stimmt mit Backend ueberein"
+

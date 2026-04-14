@@ -48,11 +48,9 @@ patches:
       name: nextcloud
     path: patches/nextcloud.yaml
 
-  # ── Collabora: production server_name ────────────────────────────
-  - target:
-      kind: Deployment
-      name: collabora
-    path: patches/collabora.yaml
+  # Collabora is deployed via the separate office-stack ArgoCD
+  # Application (k3d/office-stack + argocd/applicationset-office.yaml)
+  # because it needs CAP_SYS_ADMIN in a dedicated privileged ns.
 
   # ── Vaultwarden: production DOMAIN + SSO authority ──────────────
   - target:

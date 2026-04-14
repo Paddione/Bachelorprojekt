@@ -37,7 +37,13 @@ spec:
     metadata:
       labels:
         app: nextcloud
+      annotations:
+        kubectl.kubernetes.io/default-container: nextcloud
     spec:
+      securityContext:
+        fsGroup: 33
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         - name: fix-config-perms
           image: busybox:1.36
@@ -48,6 +54,16 @@ spec:
       containers:
         - name: nextcloud
           image: nextcloud:33-apache
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+              add: ["SETUID", "SETGID"]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 80
           env:
             - name: POSTGRES_HOST
               value: nextcloud-db
@@ -77,6 +93,14 @@ spec:
               value: http
             - name: OVERWRITECLIURL
               value: "http://files.localhost"
+            # Reverse proxy: trust in-cluster pod/service CIDRs (RFC1918)
+            - name: TRUSTED_PROXIES
+              value: "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1/32"
+            # Redis: memcache.distributed + memcache.locking (auto-wired by image)
+            - name: REDIS_HOST
+              value: "nextcloud-redis"
+            - name: REDIS_HOST_PORT
+              value: "6379"
             # OIDC-Variablen für oidc.config.php
             - name: KC_DOMAIN
               valueFrom:
@@ -103,13 +127,13 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: COLLABORA_DOMAIN
-            # ── SMTP via Mailpit (dev) ─────────────────────
+            # SMTP-Konfiguration für Mail-Versand (Gap 1.5)
             - name: SMTP_HOST
               value: "mailpit"
             - name: SMTP_PORT
               value: "1025"
             - name: SMTP_SECURE
-              value: ""
+              value: "" # Plain SMTP für Mailpit
             - name: SMTP_AUTHTYPE
               value: "PLAIN"
             - name: MAIL_FROM_ADDRESS
@@ -118,8 +142,6 @@ spec:
               value: "workspace.local"
             - name: TZ
               value: Europe/Berlin
-          ports:
-            - containerPort: 80
           volumeMounts:
             - name: app
               mountPath: /var/www/html
@@ -129,13 +151,17 @@ spec:
               mountPath: /var/www/html/config/oidc.config.php
               subPath: oidc.config.php
               readOnly: true
+            - name: extra-config
+              mountPath: /var/www/html/config/zz-extra.config.php
+              subPath: zz-extra.config.php
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /status.php
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.localhost
+                  value: localhost
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 10
@@ -145,16 +171,104 @@ spec:
               port: 80
               httpHeaders:
                 - name: Host
-                  value: files.localhost
+                  value: localhost
             initialDelaySeconds: 120
             periodSeconds: 30
             failureThreshold: 10
           resources:
             requests:
+              cpu: "200m"
               memory: 256Mi
-              cpu: 200m
             limits:
               memory: 1Gi
+        # ── Cron sidecar: runs php cron.php every 5 min ───────────────
+        - name: nextcloud-cron
+          image: nextcloud:33-apache
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                su -s /bin/bash www-data -c "php -f /var/www/html/cron.php" || true
+                sleep 300
+              done
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: data
+              mountPath: /var/www/html/data
+            - name: oidc-config
+              mountPath: /var/www/html/config/oidc.config.php
+              subPath: oidc.config.php
+              readOnly: true
+            - name: extra-config
+              mountPath: /var/www/html/config/zz-extra.config.php
+              subPath: zz-extra.config.php
+              readOnly: true
+          resources:
+            requests:
+              cpu: "50m"
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+        # ── notify_push sidecar: client-push WebSocket server ─────────
+        - name: notify-push
+          image: nextcloud:33-apache
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # Wait for notify_push app to be installed (binary shipped by app)
+              BIN=""
+              for i in $(seq 1 180); do
+                for BASE in /var/www/html/apps/notify_push /var/www/html/custom_apps/notify_push; do
+                  for ARCH in x86_64 aarch64 armv7; do
+                    if [ -x "$BASE/bin/$ARCH/notify_push" ]; then
+                      BIN="$BASE/bin/$ARCH/notify_push"
+                      break 2
+                    fi
+                  done
+                done
+                [ -n "$BIN" ] && break
+                echo "notify_push binary not yet present, waiting..."
+                sleep 10
+              done
+              if [ -z "$BIN" ]; then
+                echo "notify_push binary not found after waiting; exiting cleanly."
+                exit 0
+              fi
+              exec "$BIN" --port 7867 /var/www/html/config/config.php
+          env:
+            - name: NEXTCLOUD_URL
+              value: "http://127.0.0.1:80"
+          ports:
+            - containerPort: 7867
+              name: push
+          # No readinessProbe: binary is only present after post-setup installs
+          # the notify_push app, so we don't want this sidecar to block pod ready.
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: data
+              mountPath: /var/www/html/data
+          resources:
+            requests:
+              cpu: "20m"
+              memory: 32Mi
+            limits:
+              memory: 128Mi
       volumes:
         - name: app
           persistentVolumeClaim:
@@ -165,6 +279,9 @@ spec:
         - name: oidc-config
           configMap:
             name: nextcloud-oidc-config
+        - name: extra-config
+          configMap:
+            name: nextcloud-extra-config
 ---
 apiVersion: v1
 kind: Service
@@ -176,3 +293,15 @@ spec:
   ports:
     - port: 80
       targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud-push
+spec:
+  selector:
+    app: nextcloud
+  ports:
+    - port: 7867
+      targetPort: 7867
+      name: push

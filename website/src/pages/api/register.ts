@@ -8,14 +8,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
       return new Response(
-        JSON.stringify({ error: 'Bitte fullen Sie alle Pflichtfelder aus.' }),
+        JSON.stringify({ error: 'Bitte füllen Sie alle Pflichtfelder aus.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(
-        JSON.stringify({ error: 'Bitte geben Sie eine gultige E-Mail-Adresse an.' }),
+        JSON.stringify({ error: 'Bitte geben Sie eine gültige E-Mail-Adresse an.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }

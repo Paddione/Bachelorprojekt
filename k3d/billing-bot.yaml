@@ -18,12 +18,26 @@ spec:
       labels:
         app: billing-bot
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       nodeSelector:
         kubernetes.io/arch: amd64
       containers:
         - name: billing-bot
           image: registry.localhost:5000/billing-bot:v1
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
           env:
             - name: INVOICENINJA_URL
               value: "http://invoiceninja:80"
@@ -44,6 +58,22 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: BILLING_DOMAIN
+            - name: NEXTCLOUD_URL
+              value: "http://nextcloud.workspace.svc.cluster.local:80"
+            - name: NEXTCLOUD_ADMIN_USER
+              value: "admin"
+            - name: NEXTCLOUD_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: NEXTCLOUD_ADMIN_PASSWORD
+            - name: NC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: NC_DOMAIN
+            - name: SCHEME
+              value: "http"
           ports:
             - containerPort: 8090
           readinessProbe:
@@ -60,10 +90,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              memory: 32Mi
-              cpu: 50m
-            limits:
               memory: 64Mi
+              cpu: "100m"
+            limits:
+              memory: 256Mi
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service

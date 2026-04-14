@@ -25,6 +25,7 @@ spec:
         # ── Kubernetes MCP (port 8080) ──────────────────────────────
         - name: kubernetes
           image: quay.io/containers/kubernetes_mcp_server:latest
+          imagePullPolicy: Always
           args: ["--port", "8080", "--stateless", "--cluster-provider", "in-cluster"]
           ports:
             - containerPort: 8080
@@ -48,6 +49,7 @@ spec:
         # to streamable-http via supergateway. First boot ~30s (npm install).
         - name: postgres
           image: node:20-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -88,6 +90,7 @@ spec:
         # ── Mattermost MCP (port 8000) ─────────────────────────────
         - name: mattermost
           image: legard/mcp-server-mattermost:latest
+          imagePullPolicy: Always
           env:
             - name: MCP_TRANSPORT
               value: "http"

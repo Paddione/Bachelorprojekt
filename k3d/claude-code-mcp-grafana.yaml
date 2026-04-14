@@ -19,6 +19,7 @@ spec:
       containers:
         - name: mcp-grafana
           image: grafana/mcp-grafana:latest
+          imagePullPolicy: Always
           env:
             - name: MCP_TRANSPORT
               value: "streamable-http"

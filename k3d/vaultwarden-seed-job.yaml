@@ -9,6 +9,7 @@ spec:
       containers:
         - name: seeder
           image: node:20-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |

@@ -119,7 +119,7 @@ spec:
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: website-config
@@ -207,7 +207,7 @@ spec:
           containers:
             - name: trigger
               image: curlimages/curl:latest
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
 ---

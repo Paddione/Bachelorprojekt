@@ -48,6 +48,7 @@ spec:
       containers:
         - name: mariadb
           image: mariadb:11.4-noble
+          imagePullPolicy: Always
           env:
             - name: MARIADB_DATABASE
               value: invoiceninja
@@ -125,6 +126,7 @@ spec:
         # the emptyDir mount overlays that path with an empty directory.
         - name: copy-public-assets
           image: invoiceninja/invoiceninja:5
+          imagePullPolicy: Always
           command: ["sh", "-c", "cp -a /var/www/app/docker-backup-public/* /var/www/app/public/"]
           volumeMounts:
             - name: public
@@ -132,6 +134,7 @@ spec:
       containers:
         - name: invoiceninja
           image: invoiceninja/invoiceninja:5
+          imagePullPolicy: Always
           env:
             # ── App Settings ──────────────────────────────────
             - name: APP_URL
@@ -203,6 +206,7 @@ spec:
         # Nginx sidecar — serves static files and proxies PHP to FPM
         - name: nginx
           image: nginx:1.27-alpine
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           volumeMounts:

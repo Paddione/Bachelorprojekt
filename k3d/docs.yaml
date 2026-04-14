@@ -17,6 +17,7 @@ spec:
       containers:
         - name: docs
           image: joseluisq/static-web-server:2.36-alpine
+          imagePullPolicy: Always
           ports:
             - containerPort: 8787
           env:

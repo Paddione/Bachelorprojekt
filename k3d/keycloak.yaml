@@ -25,6 +25,7 @@ spec:
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.6
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false

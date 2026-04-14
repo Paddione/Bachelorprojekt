@@ -39,6 +39,7 @@ spec:
         # sysctl — so we disable the bootstrap check and run single-node.
         - name: fix-permissions
           image: busybox:1.36
+          imagePullPolicy: Always
           command: ["sh", "-c", "chown -R 1000:1000 /usr/share/opensearch/data"]
           volumeMounts:
             - name: data
@@ -46,6 +47,7 @@ spec:
       containers:
         - name: opensearch
           image: opensearchproject/opensearch:2.19.5
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false

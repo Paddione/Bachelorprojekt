@@ -23,6 +23,7 @@ spec:
           containers:
             - name: backup
               image: postgres:16.13-alpine
+              imagePullPolicy: Always
               env:
                 - name: KEYCLOAK_DB_PASSWORD
                   valueFrom:

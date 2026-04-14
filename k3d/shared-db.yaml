@@ -84,6 +84,7 @@ spec:
         # bilden die primäre Vertrauensgrenze.
         - name: generate-tls-cert
           image: pgvector/pgvector:0.8.0-pg16
+          imagePullPolicy: Always
           command: [bash, -c]
           args:
             - |
@@ -101,6 +102,7 @@ spec:
       containers:
         - name: postgres
           image: pgvector/pgvector:0.8.0-pg16
+          imagePullPolicy: Always
           args:
             - "postgres"
             - "-c"

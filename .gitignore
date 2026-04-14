@@ -65,6 +65,7 @@ node_modules/
 *.tmp
 *.bak
 docs/superpowers
+!docs/superpowers/specs/
 files_chore.txt
 files_main.txt
 website/node_modules.task/
@@ -73,4 +74,4 @@ website/node_modules.task/
 prod/realm-workspace-prod.json
 # prod-korczewski/kustomization.yaml tracked — no secrets in this file
 prod/realm-workspace-prod.json
-website/.superpowers
+website/.superpowers.superpowers/

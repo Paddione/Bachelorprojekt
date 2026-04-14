@@ -71,8 +71,8 @@ export async function postWebhook(payload: {
   props?: Record<string, unknown>;
 }): Promise<boolean> {
   if (!WEBHOOK_URL) {
-    console.log('[mattermost] No webhook URL configured. Payload:', JSON.stringify(payload, null, 2));
-    return true;
+    console.warn('[mattermost] No webhook URL configured — payload dropped:', JSON.stringify(payload, null, 2));
+    return false;
   }
 
   const res = await fetch(WEBHOOK_URL, {

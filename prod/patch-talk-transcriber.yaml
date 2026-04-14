@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: talk-transcriber
+  namespace: workspace
+spec:
+  template:
+    spec:
+      containers:
+        - name: transcriber
+          image: ghcr.io/paddione/talk-transcriber:latest

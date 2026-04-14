@@ -66,3 +66,5 @@ patches:
   - path: patch-billing-bot.yaml
   # Reduce shared-db resource requests for smaller production clusters
   - path: patch-shared-db.yaml
+  # Use GHCR image for talk-transcriber in production
+  - path: patch-talk-transcriber.yaml

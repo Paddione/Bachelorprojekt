@@ -90,7 +90,7 @@ mkdir -p "$CERTS_DIR"
 
 if [[ ! -f "$CERT_FILE" ]]; then
   info "Fetching sealing certificate from cluster..."
-  kubeseal --controller-name=sealed-secrets-controller \
+  kubeseal --controller-name=sealed-secrets \
            --controller-namespace=sealed-secrets \
            --context "$CONTEXT" \
            --fetch-cert > "$CERT_FILE" \

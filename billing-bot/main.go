@@ -1,7 +1,7 @@
 // billing-bot bridges Mattermost interactive messages with the Invoice Ninja v5 API.
 //
 // Endpoints:
-//   POST /slash    — Mattermost slash command (/billing)
+//   POST /slash    — Mattermost slash command (/billing, /call)
 //   POST /actions  — Mattermost interactive message actions (button clicks)
 //   GET  /healthz  — Liveness/readiness probe
 package main
@@ -27,6 +27,13 @@ var (
 	mattermostURL   = env("MATTERMOST_URL", "http://mattermost:8065")
 	mattermostToken = env("MATTERMOST_BOT_TOKEN", "")
 	billingDomain   = env("BILLING_DOMAIN", "billing.localhost")
+
+	// Nextcloud Talk config (for /call command)
+	nextcloudURL       = env("NEXTCLOUD_URL", "http://nextcloud.workspace.svc.cluster.local:80")
+	nextcloudAdminUser = env("NEXTCLOUD_ADMIN_USER", "admin")
+	nextcloudAdminPass = env("NEXTCLOUD_ADMIN_PASSWORD", "")
+	ncDomain           = env("NC_DOMAIN", "files.localhost")
+	scheme             = env("SCHEME", "https")
 )
 
 func env(key, fallback string) string {
@@ -66,9 +73,11 @@ type SlashResponse struct {
 }
 
 type Attachment struct {
-	Text    string   `json:"text,omitempty"`
-	Color   string   `json:"color,omitempty"`
-	Actions []Action `json:"actions,omitempty"`
+	Text      string   `json:"text,omitempty"`
+	Color     string   `json:"color,omitempty"`
+	Title     string   `json:"title,omitempty"`
+	TitleLink string   `json:"title_link,omitempty"`
+	Actions   []Action `json:"actions,omitempty"`
 }
 
 type Action struct {
@@ -146,6 +155,64 @@ type INResponse[T any] struct {
 	Data T `json:"data"`
 }
 
+// ── Nextcloud Talk Types ─────────────────────────────────────────
+
+type NCRoomResponse struct {
+	OCS struct {
+		Data struct {
+			Token string `json:"token"`
+		} `json:"data"`
+	} `json:"ocs"`
+}
+
+// ── Nextcloud Talk ───────────────────────────────────────────────
+
+// createNextcloudRoom creates a fresh public Nextcloud Talk room named
+// "#<channelName> Call" and returns its token.
+func createNextcloudRoom(channelName string) (string, error) {
+	if nextcloudAdminPass == "" {
+		return "", fmt.Errorf("NEXTCLOUD_ADMIN_PASSWORD not configured")
+	}
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"roomType": 3,
+		"roomName": "#" + channelName + " Call",
+	})
+
+	req, err := http.NewRequest("POST",
+		nextcloudURL+"/ocs/v2.php/apps/spreed/api/v4/room?format=json",
+		bytes.NewReader(body))
+	if err != nil {
+		return "", fmt.Errorf("build request: %w", err)
+	}
+	req.SetBasicAuth(nextcloudAdminUser, nextcloudAdminPass)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("OCS-APIRequest", "true")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("call NC API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		b, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("NC API returned %d: %s", resp.StatusCode, b)
+	}
+
+	var ncResp NCRoomResponse
+	if err := json.NewDecoder(resp.Body).Decode(&ncResp); err != nil {
+		return "", fmt.Errorf("decode NC response: %w", err)
+	}
+
+	if ncResp.OCS.Data.Token == "" {
+		return "", fmt.Errorf("NC API returned empty token")
+	}
+
+	return ncResp.OCS.Data.Token, nil
+}
+
 // ── Main ─────────────────────────────────────────────────────────
 
 func main() {
@@ -159,6 +226,9 @@ func main() {
 	})
 
 	log.Printf("billing-bot listening on %s", listenAddr)
+	if nextcloudAdminPass == "" {
+		log.Printf("WARNING: NEXTCLOUD_ADMIN_PASSWORD not set — /call command will return errors")
+	}
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }
 
@@ -171,6 +241,7 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := SlashRequest{
+		Command:     r.FormValue("command"),
 		ChannelID:   r.FormValue("channel_id"),
 		ChannelName: r.FormValue("channel_name"),
 		UserID:      r.FormValue("user_id"),
@@ -182,6 +253,8 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 	var resp SlashResponse
 
 	switch {
+	case req.Command == "/call":
+		resp = handleCallCommand(req)
 	case req.Text == "" || req.Text == "help":
 		// Post interactive menu via Mattermost API so buttons are stored in DB.
 		// Ephemeral slash responses don't persist, which breaks button callbacks.
@@ -203,6 +276,34 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// handleCallCommand handles the /call slash command.
+// It creates a fresh Nextcloud Talk room and returns an in-channel message
+// with a clickable "Join Call" card. On error it returns an ephemeral message.
+func handleCallCommand(req SlashRequest) SlashResponse {
+	token, err := createNextcloudRoom(req.ChannelName)
+	if err != nil {
+		log.Printf("handleCallCommand: createNextcloudRoom error: %v", err)
+		return SlashResponse{
+			ResponseType: "ephemeral",
+			Text:         "Fehler: Nextcloud Talk-Raum konnte nicht erstellt werden. Bitte versuche es erneut.",
+		}
+	}
+
+	callURL := fmt.Sprintf("%s://%s/apps/spreed/call/%s", scheme, ncDomain, token)
+
+	return SlashResponse{
+		ResponseType: "in_channel",
+		Attachments: []Attachment{
+			{
+				Color:     "#1f9b00",
+				Text:      fmt.Sprintf("📹 **#%s Call** gestartet", req.ChannelName),
+				Title:     "▶ Join Call",
+				TitleLink: callURL,
+			},
+		},
+	}
 }
 
 // postMenuViaMM creates the interactive button menu as an ephemeral post

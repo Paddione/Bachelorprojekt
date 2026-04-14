@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { exchangeCode, setSessionCookie } from '../../../lib/auth';
+import { exchangeCode, isAdmin, setSessionCookie } from '../../../lib/auth';
 
 // Keycloak redirects here after successful login.
 // Exchanges the authorization code for tokens and creates a session.
@@ -32,11 +32,16 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  // Set session cookie and redirect to original page
+  // If the caller requested a specific deep link (state !== '/'), honor it.
+  // Otherwise land admins on /admin and regular users on /portal.
+  const destination = state && state !== '/'
+    ? state
+    : (isAdmin(result.user) ? '/admin' : '/portal');
+
   return new Response(null, {
     status: 302,
     headers: {
-      Location: state,
+      Location: destination,
       'Set-Cookie': setSessionCookie(result.sessionId),
     },
   });

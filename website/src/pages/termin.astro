@@ -1,28 +1,37 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import BookingForm from '../components/BookingForm.svelte';
+
+const initialDate = Astro.url.searchParams.get('date') ?? '';
+const initialStart = Astro.url.searchParams.get('start') ?? '';
+const initialEnd = Astro.url.searchParams.get('end') ?? '';
 ---
 
-<Layout title="Termin buchen" description="Buchen Sie einen Termin fur ein kostenloses Erstgesprach, Ruckruf oder Meeting.">
+<Layout title="Termin buchen" description="Buchen Sie einen Termin für ein kostenloses Erstgespräch, Rückruf oder Meeting.">
   <section class="pt-28 pb-20 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Termin buchen</h1>
         <p class="text-xl text-muted max-w-2xl mx-auto">
-          Wahlen Sie einen freien Termin fur ein Erstgesprach, einen Ruckruf oder ein Meeting.
-          Nach Ihrer Anfrage erhalten Sie eine Bestatigung per E-Mail.
+          Wählen Sie einen freien Termin für ein Erstgespräch, einen Rückruf oder ein Meeting.
+          Nach Ihrer Anfrage erhalten Sie eine Bestätigung per E-Mail.
         </p>
       </div>
 
       <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8">
-        <BookingForm client:load />
+        <BookingForm
+          client:load
+          initialDate={initialDate}
+          initialStart={initialStart}
+          initialEnd={initialEnd}
+        />
       </div>
 
       <div class="mt-8 text-center">
         <p class="text-muted">
           Kein passender Termin dabei?
           <a href="/kontakt" class="text-gold hover:underline font-medium">Schreiben Sie uns</a>
-          und wir finden gemeinsam eine Losung.
+          und wir finden gemeinsam eine Lösung.
         </p>
       </div>
     </div>

@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { goToDM, goToChannel } from './helpers';
 
-const TEAM = 'bachelorprojekt';
+const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
 
 test.describe('FA-01: Messaging (Echtzeit)', () => {
   test('T1: DM senden und empfangen', async ({ page }) => {
-    await goToDM(page, TEAM, 'testuser2');
+    await goToDM(page, TEAM, process.env.MM_TEST_DM_USER || 'quamain');
 
     const msg = `e2e-dm-${Date.now()}`;
     await page.locator('#post_textbox').fill(msg);

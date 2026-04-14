@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { dismissOverlays, goToChannel } from './helpers';
 
-const TEAM = process.env.MM_TEST_TEAM || 'bachelorprojekt';
+const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
 
 test.describe('FA-06: Benachrichtigungen', () => {
   test.beforeEach(async ({ page }) => {

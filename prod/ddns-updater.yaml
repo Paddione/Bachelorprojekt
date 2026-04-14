@@ -69,6 +69,8 @@ spec:
                       key: IPV64_API_KEY
                 - name: DDNS_HOSTNAME
                   value: "${PROD_DOMAIN}"
+                - name: DDNS_ALIASES
+                  value: "web.${PROD_DOMAIN}"
               command:
                 - /bin/sh
                 - -c
@@ -114,6 +116,19 @@ spec:
                     echo "ERROR: ipv64 returned HTTP $HTTP_STATUS" >&2
                     exit 1
                   fi
+
+                  # Update alias hostnames (e.g. web.korczewski.de)
+                  for ALIAS in $DDNS_ALIASES; do
+                    ALIAS_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
+                      --max-time 10 \
+                      -H "Authorization: Bearer $IPV64_API_KEY" \
+                      "https://ipv64.net/api?update_record=$ALIAS&type=A&content=$CURRENT_IP")
+                    if [ "$ALIAS_STATUS" != "200" ]; then
+                      echo "WARN: ipv64 returned HTTP $ALIAS_STATUS for $ALIAS" >&2
+                    else
+                      echo "✓ $ALIAS -> $CURRENT_IP"
+                    fi
+                  done
 
                   # Persist new IP so next run can skip
                   curl -sf --cacert "$CACERT" \

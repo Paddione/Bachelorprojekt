@@ -2,9 +2,11 @@ import type { APIRoute } from 'astro';
 import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName } from '../../lib/mattermost';
 import { sendEmail } from '../../lib/email';
 
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
+
 const TYPE_LABELS: Record<string, string> = {
-  erstgespraech: 'Kostenloses Erstgesprach',
-  callback: 'Ruckruf',
+  erstgespraech: 'Kostenloses Erstgespräch',
+  callback: 'Rückruf',
   meeting: 'Online-Meeting',
   termin: 'Termin vor Ort',
 };
@@ -15,7 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!name?.trim() || !email?.trim() || !slotStart || !slotEnd) {
       return new Response(
-        JSON.stringify({ error: 'Bitte fullen Sie alle Pflichtfelder aus und wahlen einen Termin.' }),
+        JSON.stringify({ error: 'Bitte füllen Sie alle Pflichtfelder aus und wählen einen Termin.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -36,7 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
         channelId,
         text,
         actions: [
-          { id: 'approve_booking', name: 'Bestatigen', style: 'success' },
+          { id: 'approve_booking', name: 'Bestätigen', style: 'success' },
           { id: 'decline_booking', name: 'Ablehnen', style: 'danger' },
         ],
         context: {
@@ -59,16 +61,16 @@ export const POST: APIRoute = async ({ request }) => {
       subject: `Terminanfrage: ${typeLabel} am ${dateFormatted}`,
       text: `Hallo ${name},
 
-vielen Dank fur Ihre Terminanfrage bei ${BRAND_NAME}.
+vielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.
 
-Ihr gewunschter Termin:
+Ihr gewünschter Termin:
   Typ:     ${typeLabel}
   Datum:   ${dateFormatted}
   Uhrzeit: ${slotDisplay}
 
-Wir prufen Ihre Anfrage und melden uns in Kurze mit einer Bestatigung.
+Wir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.
 
-Mit freundlichen Grussen
+Mit freundlichen Grüßen
 ${BRAND_NAME}`,
     });
 

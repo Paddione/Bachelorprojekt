@@ -80,6 +80,11 @@ flowchart TB
 | FA-19 | Outline Wiki | Wiki-Deployment, Keycloak-OIDC |
 | FA-20 | Finalisierung | Abschlusspruefungen |
 | FA-21 | Billing Workflows | Rechnungsworkflows |
+| FA-22 | Stripe Payment | Stripe als Zahlungsgateway |
+| FA-23 | Vaultwarden | Passwort-Manager mit Keycloak SSO |
+| FA-24 | Whiteboard | Nextcloud Whiteboard (board.{domain}) |
+| FA-25 | Mailpit | Self-hosted SMTP-Server und Web-UI |
+| FA-26 | Bug Report Form | Fehler-Reporting Widget |
 
 ### Sicherheits-Tests (SA)
 
@@ -91,6 +96,11 @@ flowchart TB
 | SA-04--SA-07 | Autorisierung | Zugriffskontrolle und Berechtigungen |
 | SA-08 | SSO-Integration | Keycloak OIDC Flow |
 | SA-09 | Weitere Sicherheit | Zusaetzliche Sicherheitspruefungen |
+<<<<<<< HEAD
+| SA-10 | MCP-Authentifizierung | MCP-Server Auth-Proxy, Token-Validierung |
+=======
+| SA-10 | MCP-Endpunkt-Absicherung | ForwardAuth-Proxy, Bearer-Token, HTTP 401 ohne Token |
+>>>>>>> origin/main
 
 ### Nicht-funktionale Tests (NFA)
 
@@ -103,6 +113,8 @@ flowchart TB
 | NFA-05 | Usability | Barrierefreiheit, UX |
 | NFA-06 | Datenbank-Konsistenz | DB-Integritaet |
 | NFA-07 | Logging & Monitoring | Log-Verfuegbarkeit |
+| NFA-08 | Backup & Recovery | Backup-CronJob, Verschluesselung, Wiederherstellung |
+| NFA-09 | Multi-Cluster | ArgoCD Sync, Cluster-Registrierung |
 
 ### Abnahme-Tests (AK)
 
@@ -124,26 +136,99 @@ flowchart TB
 
 ## Playwright E2E-Tests
 
-Browser-basierte UI-Tests in `tests/e2e/`.
+Browser-basierte UI-Tests in `tests/e2e/` -- werden automatisch vom `local`-Tier
+nach den Bash-Tests gestartet. Der `prod`-Tier führt sie nicht automatisch aus;
+siehe "Playwright gegen Produktion" unten.
 
-**Konfiguration:**
-- Base-URL: `TEST_BASE_URL` (Standard: http://localhost:8065)
-- Einzelner Worker, 1 Retry
-- Screenshots + Trace bei Fehler
-- Locale: de-DE, Zeitzone: Europe/Berlin
+**Konfiguration** (`tests/e2e/playwright.config.ts`):
+- Base-URL: `TEST_BASE_URL` (Standard: `http://localhost:8065`)
+- Website-URL: `WEBSITE_URL` (Standard: `http://localhost:4321`)
+- Ein Worker, 1 Retry, Locale: de-DE, Zeitzone: Europe/Berlin
+- Screenshots + Trace nur bei Fehler
 
-**Global Setup:** Authentifiziert als `testuser1`, deaktiviert Onboarding/Tutorials, speichert Auth-Session.
+**Projekt-Gruppen** (aufrufbar via `--project=<name>`):
+- `setup` -- Login-Flow, speichert Session in `.auth/user.json`
+- `chat` -- Mattermost-UI: FA-01, FA-02, FA-04, FA-06, FA-07, FA-08, FA-09, FA-11
+- `auth` -- Authentifizierung/SSO: FA-05, SA-02, SA-08
+- `website` -- Astro-Site + APIs: FA-10, FA-14 bis FA-21
+- `services` -- Infra-Dienste: FA-03, FA-12, FA-13, FA-23, FA-24, FA-25, SA-10, NFA-05
+- `smoke` -- Cross-Service Integration Smoke Tests
 
-**Test-Specs (26 Dateien):**
-- `fa-01-messaging.spec.ts` bis `fa-21-billing.spec.ts` -- Funktionale UI-Tests
-- `sa-02-auth.spec.ts` -- Login/Logout Browser-Flow
-- `sa-08-sso.spec.ts` -- Keycloak SSO Browser-Flow
-- `nfa-05-usability.spec.ts` -- Barrierefreiheit und UX
+**Global Setup:** Authentifiziert als `MM_TEST_USER` (Standard `testuser1`, vom
+Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
+`Testpassword123!`), deaktiviert Onboarding/Tutorials, speichert Session.
+
+**Test-Specs (35 Dateien):**
+- `fa-01-messaging.spec.ts` -- DM- und Channel-Nachrichten
+- `fa-02-channels.spec.ts` -- Kanal-Erstellung, Berechtigungen
+- `fa-03-video.spec.ts` -- Nextcloud Talk / Signaling
+- `fa-04-files.spec.ts` -- Dateiablage
+- `fa-05-user-mgmt.spec.ts` -- Nutzerverwaltung, SSO-Admin
+- `fa-06-notifications.spec.ts` -- Benachrichtigungen, DND, Mentions
+- `fa-07-search.spec.ts` -- Volltextsuche
+- `fa-08-status.spec.ts` -- Homeoffice-Status
+- `fa-09-billing.spec.ts` -- /billing Command + /leistungen Website-Seite
+- `fa-10-website.spec.ts` -- Astro-Website, Kontaktformular
+- `fa-11-guest.spec.ts` -- Gast-Zugang
+- `fa-12-claude-code.spec.ts` -- Claude Code / MCP-Statusseite
+- `fa-13-docs.spec.ts` -- Docsify-Docs
+- `fa-14-registration.spec.ts` -- Self-Registration
+- `fa-15-oidc.spec.ts` -- OIDC-Website-Login
+- `fa-16-booking.spec.ts` -- Kalender / Buchung
+- `fa-17-meeting.spec.ts` -- Meeting-Lifecycle
+- `fa-18-transcription.spec.ts` -- Whisper-Upload-API
+- `fa-19-outline.spec.ts` -- Outline Wiki
+- `fa-20-finalize.spec.ts` -- Meeting-Finalisierung
+- `fa-21-billing.spec.ts` -- Service Catalog, Invoice-API
+- `fa-23-vaultwarden.spec.ts` -- Vaultwarden-Gesundheit
+- `fa-24-whiteboard.spec.ts` -- Whiteboard-Service
+- `fa-25-mailpit.spec.ts` -- Mailpit Web-UI und API
+- `fa-26-bug-report-form.spec.ts` -- Fehler-Reporting Widget
+- `fa-client-portal.spec.ts` -- Kunden-Portal (Login, Dokumente, Rechnungen)
+- `fa-document-signing.spec.ts` -- Dokumenten-Signierung
+- `fa-meeting-history.spec.ts` -- Meeting-Verlauf und Insights
+- `fa-slot-widget.spec.ts` -- Buchungs-Slot-Widget
+- `sa-02-auth.spec.ts` -- Falsches Passwort, SSO-Button
+- `sa-08-sso.spec.ts` -- Cross-Service-SSO (Browser)
+- `sa-10-mcp-auth.spec.ts` -- MCP-Statusseite ohne Auth
+- `nfa-05-usability.spec.ts` -- Mobile, Quick-Switcher
+- `integration-smoke.spec.ts` -- Cross-Service Smoke Tests
 
 **Hilfsfunktionen** (`specs/helpers.ts`):
 - `dismissOverlays(page)` -- Tour/Onboarding entfernen
 - `goToChannel(page, team, channel)` -- Kanal-Navigation
 - `goToDM(page, team, username)` -- DM-Navigation
+
+### Playwright gegen Produktion
+
+Der `runner.sh prod`-Tier startet die Playwright-Tests nicht automatisch.
+Manuell aus `tests/e2e/` aufrufen:
+
+```bash
+# Smoke-Tests gegen mentolder.de
+TEST_BASE_URL=https://chat.mentolder.de \
+WEBSITE_URL=https://web.mentolder.de \
+  npx playwright test --project=smoke
+
+# Alles (chat + auth + website + services + smoke)
+TEST_BASE_URL=https://chat.mentolder.de \
+WEBSITE_URL=https://web.mentolder.de \
+VAULT_URL=https://vault.mentolder.de \
+MCP_STATUS_URL=https://ai.mentolder.de \
+MM_TEST_USER=Paddione \
+MM_TEST_PASS='Plotterpapier11!$' \
+  npx playwright test
+```
+
+**Für Produktion relevante Umgebungsvariablen:**
+- `TEST_BASE_URL` -- Mattermost (z. B. `https://chat.mentolder.de`)
+- `WEBSITE_URL` -- Astro-Website (z. B. `https://web.mentolder.de`)
+- `VAULT_URL` -- Vaultwarden (z. B. `https://vault.mentolder.de`)
+- `MCP_STATUS_URL` -- Claude Code MCP-Statusseite (z. B. `https://ai.mentolder.de`)
+- `MM_TEST_USER` / `MM_TEST_PASS` -- Anmeldedaten für Setup und Auth-Specs
+- `SMOKE_KC_USER` / `SMOKE_KC_PASS` -- Override nur für `integration-smoke.spec.ts`
+  (Fallback: `MM_TEST_USER` / `MM_TEST_PASS`, dann Realm-Defaults). Nützlich, wenn
+  die Smoke-Tests ein anderes Konto nutzen als der Setup-Login.
 
 ## Test-Bibliothek (tests/lib/)
 

@@ -11,22 +11,34 @@
     slots: TimeSlot[];
   }
 
+  interface Props {
+    initialDate?: string;
+    initialStart?: string;
+    initialEnd?: string;
+  }
+  let { initialDate = '', initialStart = '', initialEnd = '' } = $props<Props>();
+
   let name = $state('');
   let email = $state('');
   let phone = $state('');
   let bookingType = $state('erstgespraech');
   let message = $state('');
-  let selectedSlot = $state<TimeSlot | null>(null);
-  let selectedDate = $state('');
+  let selectedSlot = $state<TimeSlot | null>(
+    initialStart && initialEnd
+      ? { start: initialStart, end: initialEnd, display: `${initialStart} - ${initialEnd}` }
+      : null
+  );
+  let selectedDate = $state(initialDate);
 
   let days = $state<DaySlots[]>([]);
   let loading = $state(true);
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
+  let agbAccepted = $state(false);
 
   const bookingTypes = [
-    { value: 'erstgespraech', label: 'Kostenloses Erstgesprach (30 Min.)' },
-    { value: 'callback', label: 'Ruckruf' },
+    { value: 'erstgespraech', label: 'Kostenloses Erstgespräch (30 Min.)' },
+    { value: 'callback', label: 'Rückruf' },
     { value: 'meeting', label: 'Online-Meeting' },
     { value: 'termin', label: 'Termin vor Ort' },
   ];
@@ -38,7 +50,7 @@
       .then((data) => {
         if (Array.isArray(data)) {
           days = data;
-          if (data.length > 0) selectedDate = data[0].date;
+          if (!initialDate && data.length > 0) selectedDate = data[0].date;
         }
         loading = false;
       })
@@ -56,14 +68,18 @@
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
+  let _prevDate = selectedDate;
   $effect(() => {
-    // Reset selected slot when date changes
-    selectedSlot = null;
+    // Reset selected slot when user changes the date
+    if (selectedDate !== _prevDate) {
+      _prevDate = selectedDate;
+      selectedSlot = null;
+    }
   });
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!selectedSlot) return;
+    if (!selectedSlot || !agbAccepted) return;
     submitting = true;
     result = null;
 
@@ -87,7 +103,7 @@
       const data = await response.json();
 
       if (response.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Terminanfrage wurde eingereicht. Sie erhalten eine Bestatigung per E-Mail, sobald der Termin bestatigt wurde.' };
+        result = { success: true, message: 'Vielen Dank! Ihre Terminanfrage wurde eingereicht. Sie erhalten eine Bestätigung per E-Mail, sobald der Termin bestätigt wurde.' };
         name = '';
         email = '';
         phone = '';
@@ -170,7 +186,7 @@
       {/if}
 
       {#if selectedSlot}
-        <p class="mt-4 text-gold font-medium">
+        <p class="mt-4 text-gold font-medium" data-testid="selected-slot-display">
           Gewahlt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {selectedSlot.display}
         </p>
       {/if}
@@ -237,9 +253,23 @@
         ></textarea>
       </div>
 
+      <div class="flex items-start gap-3">
+        <input
+          id="b-agb"
+          type="checkbox"
+          bind:checked={agbAccepted}
+          required
+          class="mt-1 w-5 h-5 rounded border-dark-lighter bg-dark text-gold focus:ring-gold-dim cursor-pointer flex-shrink-0"
+        />
+        <label for="b-agb" class="text-muted text-sm leading-relaxed cursor-pointer">
+          Ich habe die <a href="/agb" class="text-gold hover:underline" target="_blank">AGB</a> gelesen
+          und akzeptiere sie. <span class="text-gold">*</span>
+        </label>
+      </div>
+
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !agbAccepted}
         class="w-full bg-gold hover:bg-gold-light disabled:bg-dark-lighter disabled:text-muted-dark text-dark px-8 py-4 rounded-full font-bold text-lg transition-colors cursor-pointer disabled:cursor-not-allowed uppercase tracking-wide"
       >
         {#if submitting}

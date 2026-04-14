@@ -1,28 +1,44 @@
+# ═══════════════════════════════════════════════════════════════════
+# Production Ingress — per-Service mit Traefik-Middlewares
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Apex Domain → Old Webspace ─────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: workspace-ingress
+  name: workspace-ingress-apex
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - ${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: ${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: old-webspace
+                port:
+                  number: 443
+---
+# ── Keycloak (SSO) — Rate-Limiting Brute-Force-Schutz ──────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-auth
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-auth@kubernetescrd"
 spec:
   tls:
     - hosts:
         - auth.${PROD_DOMAIN}
-        - files.${PROD_DOMAIN}
-        - meet.${PROD_DOMAIN}
-        - office.${PROD_DOMAIN}
-        - board.${PROD_DOMAIN}
-        - signaling.${PROD_DOMAIN}
-        - mail.${PROD_DOMAIN}
-        - docs.${PROD_DOMAIN}
-        - billing.${PROD_DOMAIN}
-        - vault.${PROD_DOMAIN}
-        - ai.${PROD_DOMAIN}
-        - web.${PROD_DOMAIN}
-        - wiki.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
-    # Keycloak (SSO)
     - host: auth.${PROD_DOMAIN}
       http:
         paths:
@@ -33,12 +49,20 @@ spec:
                 name: keycloak
                 port:
                   number: 8080
-
-    # Mattermost (chat.*) lives in its own Ingress — see
-    # k3d/mattermost-force-sso.yaml (base) and prod/patch-mattermost-ingress.yaml
-    # (TLS + middleware chain).
-
-    # Nextcloud (Dateien)
+---
+# ── Nextcloud (Dateien) ─────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-files
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-files@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - files.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
     - host: files.${PROD_DOMAIN}
       http:
         paths:
@@ -49,92 +73,20 @@ spec:
                 name: nextcloud
                 port:
                   number: 80
-
-    # Nextcloud Talk HPB Signaling (meet.* alias)
-    - host: meet.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: spreed-signaling
-                port:
-                  number: 8080
-
-    # Collabora Online (Dokumentenbearbeitung)
-    - host: office.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: collabora
-                port:
-                  number: 9980
-
-    # Nextcloud Whiteboard
-    - host: board.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: whiteboard
-                port:
-                  number: 3002
-
-    # Talk HPB Signaling
-    - host: signaling.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: spreed-signaling
-                port:
-                  number: 8080
-
-    # Mailpit (SMTP Web-UI)
-    - host: mail.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mailpit
-                port:
-                  number: 8025
-
-    # Docs
-    - host: docs.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: docs
-                port:
-                  number: 80
-
-    # Invoice Ninja (Buchhaltung, via OAuth2-Proxy)
-    - host: billing.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: oauth2-proxy-invoiceninja
-                port:
-                  number: 4180
-
-    # Vaultwarden (Passwortmanager)
+---
+# ── Vaultwarden (Passwort-Manager) ─────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-vault
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-vault@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - vault.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
     - host: vault.${PROD_DOMAIN}
       http:
         paths:
@@ -145,20 +97,44 @@ spec:
                 name: vaultwarden
                 port:
                   number: 80
-
-    # MCP Status (replaces Claude Code WebUI)
-    - host: ai.${PROD_DOMAIN}
+---
+# ── Invoice Ninja (Buchhaltung, via OAuth2-Proxy) ───────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-billing
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-billing@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - billing.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: billing.${PROD_DOMAIN}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: mcp-status
+                name: oauth2-proxy-invoiceninja
                 port:
-                  number: 80
-
-    # Website (Astro)
+                  number: 4180
+---
+# ── Website (Astro) ─────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-web
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-web@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - web.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
     - host: web.${PROD_DOMAIN}
       http:
         paths:
@@ -169,8 +145,136 @@ spec:
                 name: website
                 port:
                   number: 80
-
-    # Wiki (Outline)
+---
+# ── Mailpit (Dev SMTP) — BasicAuth (internes Tool) ──────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-mail
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-basic-auth-internal@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - mail.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: mail.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mailpit
+                port:
+                  number: 8025
+---
+# ── Docs — BasicAuth (internes Wissen) ─────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-docs
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-basic-auth-internal@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - docs.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: docs.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docs
+                port:
+                  number: 80
+---
+# ── MCP-Status — BasicAuth (AI-Infrastruktur) ──────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-ai
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-basic-auth-internal@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - ai.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: ai.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mcp-status
+                port:
+                  number: 80
+---
+# ── Restliche Services (meet, board, signaling, wiki) ──────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-misc
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - meet.${PROD_DOMAIN}
+        - board.${PROD_DOMAIN}
+        - signaling.${PROD_DOMAIN}
+        - wiki.${PROD_DOMAIN}
+        - bug.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: meet.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spreed-signaling
+                port:
+                  number: 8080
+    - host: board.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: whiteboard
+                port:
+                  number: 3002
+    - host: signaling.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spreed-signaling
+                port:
+                  number: 8080
+    - host: bug.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80
     - host: wiki.${PROD_DOMAIN}
       http:
         paths:

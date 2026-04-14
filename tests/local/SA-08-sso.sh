@@ -140,8 +140,11 @@ else
 fi
 
 # T12: Collabora Online erreichbar (für In-Call Dokumentenbearbeitung)
+# Collabora lebt im dedizierten workspace-office-Namespace (privileged
+# PSA für CAP_SYS_ADMIN) — Service via cluster-weitem DNS.
 COLLABORA_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  curl -s -o /dev/null -w '%{http_code}' "http://collabora:9980/" 2>/dev/null || echo "000")
+  curl -s -o /dev/null -w '%{http_code}' \
+  "http://collabora.workspace-office.svc.cluster.local:9980/" 2>/dev/null || echo "000")
 assert_eq "$COLLABORA_HEALTH" "200" "SA-08" "T12" \
   "Collabora Online erreichbar (kollaborative Bearbeitung)"
 

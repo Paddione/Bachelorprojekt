@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nextcloud-notify-push
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - files.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: files.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /push
+            pathType: Prefix
+            backend:
+              service:
+                name: nextcloud-push
+                port:
+                  number: 7867

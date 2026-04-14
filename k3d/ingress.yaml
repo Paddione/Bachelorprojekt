@@ -1,10 +1,10 @@
+# ─── Workspace Dev-Ingress ──────────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress
 spec:
   rules:
-    # ── Keycloak (SSO) ──────────────────────────────────────────────
     - host: auth.localhost
       http:
         paths:
@@ -30,20 +30,6 @@ spec:
                 name: nextcloud
                 port:
                   number: 80
-
-    # ── Collabora Online (Dokumentenbearbeitung) ───────────────────
-    - host: office.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: collabora
-                port:
-                  number: 9980
-
-    # ── Nextcloud Whiteboard (collaboration server) ─────────────────
     - host: board.localhost
       http:
         paths:
@@ -54,9 +40,6 @@ spec:
                 name: whiteboard
                 port:
                   number: 3002
-
-
-    # ── Nextcloud Talk HPB Signaling ────────────────────────────────
     - host: meet.localhost
       http:
         paths:
@@ -67,7 +50,6 @@ spec:
                 name: spreed-signaling
                 port:
                   number: 8080
-
     - host: signaling.localhost
       http:
         paths:
@@ -78,32 +60,6 @@ spec:
                 name: spreed-signaling
                 port:
                   number: 8080
-
-    # ── Mailpit (Dev SMTP Web-UI) ──────────────────────────────────
-    - host: mail.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mailpit
-                port:
-                  number: 8025
-
-    # ── Docs (GitBook / Docsify) ──────────────────────────────────
-    - host: docs.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: docs
-                port:
-                  number: 80
-
-    # ── Invoice Ninja (Buchhaltung, via OAuth2-Proxy SSO) ─────────
     - host: billing.localhost
       http:
         paths:
@@ -114,8 +70,6 @@ spec:
                 name: oauth2-proxy-invoiceninja
                 port:
                   number: 4180
-
-    # ── Vaultwarden (Passwortmanager) ────────────────────────────
     - host: vault.localhost
       http:
         paths:
@@ -126,8 +80,36 @@ spec:
                 name: vaultwarden
                 port:
                   number: 80
-
-    # ── MCP Status (replaces Claude Code WebUI) ────────────────────
+---
+# ─── Interne Tools — BasicAuth (Mailpit, Docs, MCP-Status) ───────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-internal
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-basic-auth-internal@kubernetescrd"
+spec:
+  rules:
+    - host: mail.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mailpit
+                port:
+                  number: 8025
+    - host: docs.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docs
+                port:
+                  number: 80
     - host: ai.localhost
       http:
         paths:

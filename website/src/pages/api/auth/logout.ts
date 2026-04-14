@@ -5,7 +5,7 @@ import { getLogoutUrl, getSessionId, clearSessionCookie } from '../../../lib/aut
 export const GET: APIRoute = async ({ request }) => {
   const cookieHeader = request.headers.get('cookie');
   const sessionId = getSessionId(cookieHeader);
-  const logoutUrl = getLogoutUrl(sessionId);
+  const logoutUrl = await getLogoutUrl(sessionId);
 
   return new Response(null, {
     status: 302,

@@ -1,0 +1,20 @@
+# ═══════════════════════════════════════════════════════════════════
+# workspace-office namespace — privileged PSA for Collabora Online
+# ═══════════════════════════════════════════════════════════════════
+# Collabora Online's coolwsd needs CAP_SYS_ADMIN + MKNOD to create
+# user/mount namespaces and bind-mount /opt/cool/systemplate into
+# each document jail. Without them it falls back to copy mode, which
+# surfaces the red "Langsame Einrichtung des Kit-Jails mit Kopieren,
+# Bind-Mount nicht möglich" warning in the admin console.
+#
+# Baseline PSA on the main `workspace` namespace rejects SYS_ADMIN,
+# so we isolate Collabora in this dedicated privileged namespace
+# instead of weakening enforcement for every other workload.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: workspace-office
+  labels:
+    app.kubernetes.io/part-of: workspace-mvp
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged

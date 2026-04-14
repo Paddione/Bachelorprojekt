@@ -1,0 +1,58 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getSession, getLoginUrl } from '../lib/auth';
+import BookingsTab from '../components/portal/BookingsTab.astro';
+import InvoicesTab from '../components/portal/InvoicesTab.astro';
+import FilesTab from '../components/portal/FilesTab.astro';
+import SignaturesTab from '../components/portal/SignaturesTab.astro';
+import MeetingsTab from '../components/portal/MeetingsTab.astro';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) {
+  return Astro.redirect(getLoginUrl());
+}
+
+const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
+---
+
+<Layout title="Mein Portal">
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-light font-serif">Willkommen, {session.name ?? session.preferred_username}</h1>
+        <p class="text-muted mt-1">{session.email}</p>
+      </div>
+
+      <!-- Tab navigation -->
+      <nav class="flex gap-1 mb-8 border-b border-dark-lighter overflow-x-auto" data-testid="portal-tabs">
+        {[
+          { id: 'bookings', label: 'Termine' },
+          { id: 'invoices', label: 'Rechnungen' },
+          { id: 'files', label: 'Dateien' },
+          { id: 'signatures', label: 'Zur Unterschrift' },
+          { id: 'meetings', label: 'Besprechungen' },
+        ].map(t => (
+          <a
+            href={`/portal?tab=${t.id}`}
+            class={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+              tab === t.id
+                ? 'text-gold border-b-2 border-gold'
+                : 'text-muted hover:text-light'
+            }`}
+          >
+            {t.label}
+          </a>
+        ))}
+      </nav>
+
+      <!-- Tab content -->
+      <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
+        {tab === 'bookings' && <BookingsTab clientEmail={session.email} />}
+        {tab === 'invoices' && <InvoicesTab clientEmail={session.email} />}
+        {tab === 'files' && <FilesTab clientUsername={session.preferred_username ?? session.sub} />}
+        {tab === 'signatures' && <SignaturesTab clientUsername={session.preferred_username ?? session.sub} />}
+        {tab === 'meetings' && <MeetingsTab clientEmail={session.email} />}
+      </div>
+    </div>
+  </section>
+</Layout>

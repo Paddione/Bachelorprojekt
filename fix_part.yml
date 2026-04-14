@@ -1,0 +1,20 @@
+      - 'echo "✓ Nextcloud apps enabled"'
+      - 'echo "  Calendar:   http://files.localhost/apps/calendar"'
+      - 'echo "  Contacts:   http://files.localhost/apps/contacts"'
+      - 'echo "  Talk:       http://files.localhost/apps/spreed"'
+      - 'echo "  Collabora:  via richdocuments WOPI integration"'
+      - 'echo "  Whiteboard: http://board.localhost (JWT secret synced)"'
+
+  workspace:whiteboard-setup:
+    desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
+    preconditions:
+      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
+        msg: "Nextcloud not deployed."
+      - sh: kubectl get deployment whiteboard -n workspace > /dev/null 2>&1
+        msg: "whiteboard not deployed. Run 'task workspace:deploy' first."
+    cmds:
+      - bash scripts/whiteboard-setup.sh
+>>>>>>> fix/whiteboard-jwt-secret
+
+  workspace:meeting-slash:
+    desc: Register /meeting slash command in Mattermost

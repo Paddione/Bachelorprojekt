@@ -6,6 +6,7 @@ domain: mentolder.de
 env_vars:
   PROD_DOMAIN: mentolder.de
   BRAND_NAME: "Mentolder"
+  BRAND_ID: mentolder
   CONTACT_EMAIL: info@mentolder.de
   CONTACT_PHONE: "+49 151 508 32 601"
   CONTACT_CITY: "Lueneburg"

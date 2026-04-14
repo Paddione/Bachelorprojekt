@@ -6,6 +6,7 @@ domain: korczewski.de
 env_vars:
   PROD_DOMAIN: korczewski.de
   BRAND_NAME: "Korczewski"
+  BRAND_ID: korczewski
   CONTACT_EMAIL: info@korczewski.de
   CONTACT_PHONE: "***"
   CONTACT_CITY: "Lüneburg"

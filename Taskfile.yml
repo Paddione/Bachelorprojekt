@@ -318,10 +318,10 @@ tasks:
       BRAND: '{{.BRAND_NAME | default "mentolder"}}'
       DOMAIN: '{{.PROD_DOMAIN | default "mentolder.localhost"}}'
     cmds:
-      - '{{.NC_EXEC}} "php occ config:app:set theming name           --value={{.BRAND}}"'
+      - "{{.NC_EXEC}} \"php occ config:app:set theming name --value='{{.BRAND}}'\""
       - '{{.NC_EXEC}} "php occ config:app:set theming url            --value=https://web.{{.DOMAIN}}"'
       - '{{.NC_EXEC}} "php occ config:app:set theming color          --value=#e8c870"'
-      - '{{.NC_EXEC}} "php occ config:app:set theming enforce-theme  --value=dark"'
+      - '{{.NC_EXEC}} "php occ config:app:set theming enforce-theme --value=dark"'
       - echo "Nextcloud theme applied."
 
   workspace:theme:

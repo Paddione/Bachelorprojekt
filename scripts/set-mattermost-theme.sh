@@ -48,7 +48,8 @@ users = json.load(sys.stdin)
 print('\n'.join(u['id'] for u in users if not u.get('is_bot', False)))
 ")
 
-echo "Setting theme for $(echo "$USER_IDS" | wc -l | tr -d ' ') users..."
+COUNT=$(printf '%s' "$USER_IDS" | grep -c . || true)
+echo "Setting theme for $COUNT users..."
 
 for UID in $USER_IDS; do
   # Get team IDs for this user
@@ -68,11 +69,12 @@ if isinstance(teams, list):
   done
   PREFS+="{\"user_id\":\"$UID\",\"category\":\"theme\",\"name\":\"\",\"value\":$THEME_ESCAPED}]"
 
-  _mm -X PUT \
+  RESP=$(_mm -X PUT \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -d "$PREFS" \
-    "$MM_URL/api/v4/users/$UID/preferences" >/dev/null
+    "$MM_URL/api/v4/users/$UID/preferences")
+  echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print('  WARN: '+d.get('message','?')) if 'status_code' in d else None" 2>/dev/null || true
 
   echo "  ✓ $UID"
 done

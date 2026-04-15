@@ -9,10 +9,11 @@ interface Props {
 const { keycloakUserId, back } = Astro.props;
 
 let notes: ClientNote[] = [];
+let dbError = false;
 try {
   notes = await listClientNotes(keycloakUserId);
 } catch {
-  // DB unavailable
+  dbError = true;
 }
 
 function fmtDate(d: Date): string {
@@ -39,9 +40,13 @@ function fmtDate(d: Date): string {
     </button>
   </form>
 
-  {notes.length === 0 ? (
+  {dbError && (
+    <p class="text-red-400 text-sm">Fehler beim Laden der Notizen.</p>
+  )}
+  {!dbError && notes.length === 0 && (
     <p class="text-muted text-sm">Noch keine Notizen vorhanden.</p>
-  ) : (
+  )}
+  {!dbError && notes.length > 0 && (
     <ul class="space-y-3">
       {notes.map(n => (
         <li class="flex gap-3 p-4 bg-dark rounded-xl border border-dark-lighter" data-testid="client-note-item">

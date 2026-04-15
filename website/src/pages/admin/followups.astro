@@ -62,7 +62,7 @@ const labelCls = 'block text-xs text-muted mb-1';
 
       {(errorMsg || dbError) && (
         <div id="err-banner" class="mb-6 p-4 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm flex items-start justify-between gap-4">
-          <span>{decodeURIComponent((errorMsg || dbError).replace(/\+/g, ' '))}</span>
+          <span>{(() => { const raw = (errorMsg || dbError).replace(/\+/g, ' '); try { return decodeURIComponent(raw); } catch { return raw; } })()}</span>
           <button type="button" onclick="document.getElementById('err-banner').remove()" class="text-red-400 hover:text-red-200 shrink-0">✕</button>
         </div>
       )}
@@ -185,6 +185,7 @@ const labelCls = 'block text-xs text-muted mb-1';
     btn.textContent = 'Sende …';
     try {
       const res  = await fetch('/api/admin/followups/notify', { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       btn.textContent = data.sent ? `✓ ${data.count} versendet` : 'Keine fälligen';
     } catch {

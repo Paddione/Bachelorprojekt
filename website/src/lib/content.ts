@@ -1,8 +1,17 @@
 import { config } from '../config/index';
-import { getServiceConfig, getLeistungenConfig } from './website-db';
+import { getServiceConfig, getLeistungenConfig, getSiteSetting, getReferenzen } from './website-db';
 import type { HomepageService, LeistungCategory } from '../config/types';
+import type { ReferenzItem } from './website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
+
+export async function getPriceListUrl(): Promise<string | null> {
+  return getSiteSetting(BRAND, 'price_list_url').catch(() => null);
+}
+
+export async function getEffectiveReferenzen(): Promise<ReferenzItem[]> {
+  return (await getReferenzen(BRAND).catch(() => null)) ?? [];
+}
 
 /**
  * Returns the effective services list, merging DB overrides over the static

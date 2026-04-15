@@ -6,7 +6,7 @@
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
   let email = $state('');
-  let category = $state<'fehler' | 'verbesserung' | 'erweiterungswunsch'>('fehler');
+  let category = $state<'fehler' | 'verbesserung' | 'erweiterungswunsch'>('verbesserung');
 
   let triggerButtonEl = $state<HTMLButtonElement | null>(null);
   let dialogEl = $state<HTMLDivElement | null>(null);
@@ -30,7 +30,7 @@
   function resetForm() {
     description = '';
     email = '';
-    category = 'fehler';
+    category = 'verbesserung';
     files = [];
     fileError = '';
     result = null;
@@ -199,9 +199,9 @@
             required
             class="w-full px-3 py-2 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold-dim"
           >
-            <option value="fehler">Fehler</option>
-            <option value="verbesserung">Verbesserung</option>
-            <option value="erweiterungswunsch">Erweiterungswunsch</option>
+            <option value="verbesserung">Verbesserungsvorschlag</option>
+            <option value="erweiterungswunsch">Idee / Wunsch</option>
+            <option value="fehler">Problem / Fehler melden</option>
           </select>
         </div>
 

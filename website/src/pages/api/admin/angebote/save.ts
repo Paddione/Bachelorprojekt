@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { saveServiceConfig, saveLeistungenConfig } from '../../../../lib/website-db';
+import { saveServiceConfig, saveLeistungenConfig, setSiteSetting } from '../../../../lib/website-db';
 import type { ServiceOverride, LeistungCategoryOverride } from '../../../../lib/website-db';
 import { mentolderConfig } from '../../../../config/brands/mentolder';
 
@@ -63,9 +63,14 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     })),
   }));
 
+  const priceListUrl = (form.get('price_list_url') as string)?.trim() ?? '';
+
   await Promise.all([
     saveServiceConfig(BRAND, serviceOverrides),
     saveLeistungenConfig(BRAND, leistungenOverrides),
+    priceListUrl
+      ? setSiteSetting(BRAND, 'price_list_url', priceListUrl)
+      : setSiteSetting(BRAND, 'price_list_url', ''),
   ]);
 
   return redirect('/admin/angebote?saved=1', 303);

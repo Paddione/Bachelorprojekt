@@ -494,6 +494,111 @@ export async function saveLeistungenConfig(brand: string, categories: LeistungCa
   );
 }
 
+// ── Site Settings (key/value store per brand) ────────────────────────────────
+
+export async function initSiteSettingsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS site_settings (
+      brand      TEXT,
+      key        TEXT,
+      value      TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (brand, key)
+    )
+  `);
+}
+
+export async function getSiteSetting(brand: string, key: string): Promise<string | null> {
+  await initSiteSettingsTable();
+  const result = await pool.query(
+    'SELECT value FROM site_settings WHERE brand = $1 AND key = $2',
+    [brand, key]
+  );
+  return result.rows[0]?.value ?? null;
+}
+
+export async function setSiteSetting(brand: string, key: string, value: string): Promise<void> {
+  await initSiteSettingsTable();
+  await pool.query(
+    `INSERT INTO site_settings (brand, key, value, updated_at)
+     VALUES ($1, $2, $3, now())
+     ON CONFLICT (brand, key) DO UPDATE SET value = $3, updated_at = now()`,
+    [brand, key, value]
+  );
+}
+
+// ── Legal Pages (admin-editable HTML content) ────────────────────────────────
+
+export async function initLegalPagesTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS legal_pages (
+      brand        TEXT,
+      page_key     TEXT,
+      content_html TEXT NOT NULL,
+      updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (brand, page_key)
+    )
+  `);
+}
+
+export async function getLegalPage(brand: string, pageKey: string): Promise<string | null> {
+  await initLegalPagesTable();
+  const result = await pool.query(
+    'SELECT content_html FROM legal_pages WHERE brand = $1 AND page_key = $2',
+    [brand, pageKey]
+  );
+  return result.rows[0]?.content_html ?? null;
+}
+
+export async function saveLegalPage(brand: string, pageKey: string, contentHtml: string): Promise<void> {
+  await initLegalPagesTable();
+  await pool.query(
+    `INSERT INTO legal_pages (brand, page_key, content_html, updated_at)
+     VALUES ($1, $2, $3, now())
+     ON CONFLICT (brand, page_key) DO UPDATE SET content_html = $3, updated_at = now()`,
+    [brand, pageKey, contentHtml]
+  );
+}
+
+// ── Referenzen Config ─────────────────────────────────────────────────────────
+
+export interface ReferenzItem {
+  id: string;
+  name: string;
+  url?: string;
+  logoUrl?: string;
+  description?: string;
+}
+
+export async function initReferenzenTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS referenzen_config (
+      brand      TEXT PRIMARY KEY,
+      items_json JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+export async function getReferenzen(brand: string): Promise<ReferenzItem[] | null> {
+  await initReferenzenTable();
+  const result = await pool.query(
+    'SELECT items_json FROM referenzen_config WHERE brand = $1',
+    [brand]
+  );
+  return result.rows[0]?.items_json ?? null;
+}
+
+export async function saveReferenzen(brand: string, items: ReferenzItem[]): Promise<void> {
+  await initReferenzenTable();
+  await pool.query(
+    `INSERT INTO referenzen_config (brand, items_json, updated_at)
+     VALUES ($1, $2, now())
+     ON CONFLICT (brand) DO UPDATE SET items_json = $2, updated_at = now()`,
+    [brand, JSON.stringify(items)]
+  );
+}
+
 // ── Bug Ticket List ───────────────────────────────────────────────────────────
 
 export interface BugTicketRow {

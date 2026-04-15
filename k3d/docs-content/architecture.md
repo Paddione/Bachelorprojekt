@@ -159,10 +159,10 @@ flowchart TB
     click OL "#outline" "Outline: Kollaboratives Wiki fuer Teamwissen. Markdown-basiert mit Echtzeit-Bearbeitung, verschachtelten Dokumenten und Volltextsuche. Redis fuer Sessions."
     click WB "#whiteboard" "Whiteboard: Nextcloud-integriertes Whiteboard fuer visuelle Zusammenarbeit. Echtzeit-Kollaboration ueber WebSockets."
     click MP "#mailpit" "Mailpit: SMTP-Testserver fuer Entwicklung. Faengt alle ausgehenden E-Mails ab (kein Versand). Web-UI zur Inspektion von Benachrichtigungen."
-    click DB "#datenbank-layout" "PostgreSQL 16 shared-db: 6 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, outline, meetings) mit eigenem User je Service."
+    click DB "#datenbank-layout" "PostgreSQL 16 shared-db: 7 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, outline, website, pentest) mit eigenem User je Service."
     click MARIA "#datenbank-layout" "MariaDB 11: Dedizierte Instanz fuer Invoice Ninja (benoetigt MySQL-Kompatibilitaet)."
     click OS "#datenbank-layout" "OpenSearch 2.19: Elasticsearch-kompatibler Suchindex fuer Mattermost Volltextsuche und Autocomplete."
-    click WEB "#website" "Website: Astro + Svelte Unternehmenswebsite mit Kontaktformular (Mattermost Webhook) und OIDC-Login."
+    click WEB "#website" "Website: Astro + Svelte Unternehmenswebsite mit Kontaktformular (Mattermost Webhook), OIDC-Login, Stripe-Checkout und Admin-Panel (/admin/projekte)."
     click PROM "#monitoring" "Prometheus: Metriken-Sammlung aller Kubernetes-Ressourcen. Speist DSGVO-Compliance-Dashboard."
     click GRAF "#monitoring" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
     click WHISPER "#whisper" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
@@ -366,12 +366,12 @@ sequenceDiagram
     rect rgba(139, 92, 246, 0.1)
         Note over User1,TURN: Phase 3: Medien-Uebertragung
         alt Direktverbindung moeglich
-            User1 <--> JANUS: Media (RTP/SRTP)
-            JANUS <--> User2: Media (RTP/SRTP)
+            User1 <<->> JANUS: Media (RTP/SRTP)
+            JANUS <<->> User2: Media (RTP/SRTP)
         else NAT/Firewall blockiert
-            User1 <--> TURN: TURN Relay
-            TURN <--> JANUS: Media weiterleiten
-            JANUS <--> User2: Media (RTP/SRTP)
+            User1 <<->> TURN: TURN Relay
+            TURN <<->> JANUS: Media weiterleiten
+            JANUS <<->> User2: Media (RTP/SRTP)
         end
     end
 ```
@@ -540,37 +540,44 @@ flowchart LR
 
 ```mermaid
 erDiagram
-    SHARED_DB["PostgreSQL 16 (shared-db) — 25 Gi PVC"] {
-        database keycloak "Realms, Benutzer, Sessions, Clients"
-        database mattermost "Teams, Kanaele, Nachrichten, Dateien"
-        database nextcloud "Dateien, Kalender, Kontakte, Freigaben"
-        database vaultwarden "Verschluesselte Tresore, Organisationen"
-        database outline "Dokumente, Sammlungen, Benutzer"
-    }
+    SHARED_DB ||--|| KC_SVC : "keycloak"
+    SHARED_DB ||--|| MM_SVC : "mattermost"
+    SHARED_DB ||--|| NC_SVC : "nextcloud"
+    SHARED_DB ||--|| VW_SVC : "vaultwarden"
+    SHARED_DB ||--|| OL_SVC : "outline"
+    SHARED_DB ||--|| WEB_SVC : "website"
+    SHARED_DB }|--|| MCP_PG : "alle DBs"
+    MARIADB ||--|| IN_SVC : "invoiceninja"
+    OPENSEARCH ||--|| MM_SVC : "Suchindex"
+    REDIS ||--|| OL_SVC : "Sessions"
 
-    MARIADB["MariaDB 11 (invoiceninja-mariadb) — 5 Gi PVC"] {
-        database invoiceninja "Kunden, Rechnungen, Produkte, Zahlungen"
+    SHARED_DB {
+        text host "shared-db.workspace"
+        text engine "PostgreSQL 16"
+        text storage "25 Gi PVC"
     }
-
-    OPENSEARCH["OpenSearch 2.17 (opensearch) — 5 Gi PVC"] {
-        index mattermost_posts "Volltextindex aller Nachrichten"
-        index mattermost_channels "Kanal-Suchindex"
+    MARIADB {
+        text host "invoiceninja-mariadb"
+        text engine "MariaDB 11"
+        text storage "5 Gi PVC"
     }
-
-    REDIS["Redis 7 (Sidecar in Outline-Pod)"] {
-        db sessions "Outline Benutzer-Sessions"
-        db cache "Dokument-Render-Cache"
+    OPENSEARCH {
+        text host "opensearch"
+        text engine "OpenSearch 2.17"
+        text storage "5 Gi PVC"
     }
-
-    KC_SVC["Keycloak"] ||--|| SHARED_DB : "keycloak DB"
-    MM_SVC["Mattermost"] ||--|| SHARED_DB : "mattermost DB"
-    NC_SVC["Nextcloud"] ||--|| SHARED_DB : "nextcloud DB"
-    VW_SVC["Vaultwarden"] ||--|| SHARED_DB : "vaultwarden DB"
-    OL_SVC["Outline"] ||--|| SHARED_DB : "outline DB"
-    OL_SVC ||--|| REDIS : "Sessions + Cache"
-    IN_SVC["Invoice Ninja"] ||--|| MARIADB : "invoiceninja DB"
-    MM_SVC ||--|| OPENSEARCH : "Suchindex"
-    MCP_PG["MCP Postgres"] }|--|| SHARED_DB : "Superuser nur lesend"
+    REDIS {
+        text host "localhost"
+        text engine "Redis 7 Sidecar"
+    }
+    KC_SVC { text service "Keycloak" }
+    MM_SVC { text service "Mattermost" }
+    NC_SVC { text service "Nextcloud" }
+    VW_SVC { text service "Vaultwarden" }
+    OL_SVC { text service "Outline" }
+    WEB_SVC { text service "Website" }
+    IN_SVC { text service "Invoice Ninja" }
+    MCP_PG { text service "MCP Postgres" }
 ```
 
 ### Datenbank-Isolation
@@ -584,9 +591,14 @@ Jede Datenbank hat einen eigenen User mit ausschliesslichem Zugriff auf seine Da
 | `nextcloud` | `nextcloud` | Nextcloud | Datei-Metadaten, Kalender, Kontakte |
 | `vaultwarden` | `vaultwarden` | Vaultwarden | Verschluesselte Vault-Items |
 | `outline` | `outline` | Outline | + Redis Sidecar fuer Sessions |
+| `website` | `website` | Website (Astro) | Meeting-Pipeline, Projektmgmt, Admin-Config — pgvector aktiviert |
+| `pentest` | `pentest` | Sicherheitstests | Isolierte DB fuer Pen-Tests |
 | `invoiceninja` | `invoiceninja` | Invoice Ninja | Separate MariaDB (MySQL-Kompatibilitaet) |
 
 Die Init-Skripte in `shared-db` erstellen User und Datenbanken idempotent beim ersten Start und synchronisieren Passwoerter bei Neustarts.
+
+> Die vollstaendigen Tabellenstrukturen und ER-Diagramme fuer `website` und `bachelorprojekt`
+> sind in [Datenbankmodelle](database.md) dokumentiert.
 
 ---
 

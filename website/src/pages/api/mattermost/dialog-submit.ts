@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { updatePost, replyToPost } from '../../../lib/mattermost';
 import { sendEmail } from '../../../lib/email';
-import { resolveBugTicket } from '../../../lib/meetings-db';
+import { resolveBugTicket } from '../../../lib/website-db';
 
 const BRAND_INBOX: Record<string, string> = {
   mentolder: 'info@mentolder.de',

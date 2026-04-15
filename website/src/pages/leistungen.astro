@@ -2,8 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
+import { getEffectiveLeistungen, getPriceListUrl } from '../lib/content';
 
-const { leistungen, leistungenCta, leistungenPricingHighlight } = config;
+const { leistungenCta, leistungenPricingHighlight } = config;
+const [leistungen, priceListUrl] = await Promise.all([
+  getEffectiveLeistungen(),
+  getPriceListUrl(),
+]);
 ---
 
 <Layout title="Leistungen & Preise" description="Alle Angebote und Preise auf einen Blick.">
@@ -47,17 +52,53 @@ const { leistungen, leistungenCta, leistungenPricingHighlight } = config;
                   </div>
                   <p class="text-muted mb-4">{svc.desc}</p>
                 </div>
-                <a
-                  href={`${leistungenCta.href}?service=${svc.key}`}
-                  class="block text-center bg-gold hover:bg-gold-light text-dark px-6 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm"
-                >
-                  {leistungenCta.text}
-                </a>
+                <div class="flex flex-col gap-2 mt-auto">
+                  {svc.price !== 'nach Vereinbarung' ? (
+                    <>
+                      <button
+                        type="button"
+                        class="stripe-buy-btn w-full text-center bg-gold hover:bg-gold-light text-dark px-6 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm"
+                        data-service-key={svc.key}
+                      >
+                        💳 Jetzt kaufen
+                      </button>
+                      <a
+                        href={`${leistungenCta.href}?service=${svc.key}`}
+                        class="block text-center border border-gold/40 hover:border-gold text-gold px-6 py-2 rounded-full font-semibold text-sm transition-colors"
+                      >
+                        Termin vereinbaren
+                      </a>
+                    </>
+                  ) : (
+                    <a
+                      href={leistungenCta.href}
+                      class="block text-center bg-gold hover:bg-gold-light text-dark px-6 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm"
+                    >
+                      {leistungenCta.text}
+                    </a>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
       ))}
+
+      {priceListUrl && (
+        <div class="mb-8 flex justify-center">
+          <a
+            href={priceListUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-dark-light border border-gold/40 hover:border-gold text-gold rounded-lg font-medium transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Preisliste herunterladen
+          </a>
+        </div>
+      )}
 
       <div class="bg-dark-light rounded-2xl p-8 border border-dark-lighter text-center">
         <h3 class="text-xl font-bold text-light mb-3 font-serif">Kostenloses Erstgespräch</h3>
@@ -71,3 +112,34 @@ const { leistungen, leistungenCta, leistungenPricingHighlight } = config;
 
   <CallToAction client:visible />
 </Layout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.stripe-buy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const serviceKey = btn.dataset.serviceKey;
+      if (!serviceKey) return;
+      const originalText = btn.textContent ?? '';
+      btn.textContent = 'Wird geladen…';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serviceKey }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error || 'Checkout fehlgeschlagen. Bitte erneut versuchen.');
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      } catch {
+        alert('Verbindungsfehler. Bitte erneut versuchen.');
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
+  });
+</script>

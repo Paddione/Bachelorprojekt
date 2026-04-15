@@ -53,6 +53,8 @@ spec:
             - --insecure-oidc-allow-unverified-email=true
             - --oidc-extra-audience=invoiceninja
             - --scope=openid email profile
+            - --cookie-expire=168h
+            - --cookie-refresh=1h
           env:
             - name: INVOICENINJA_OIDC_SECRET
               valueFrom:

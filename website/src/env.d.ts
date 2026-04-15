@@ -41,6 +41,10 @@ interface ImportMetaEnv {
   readonly MIN_ADVANCE_HOURS: string;
   // Site
   readonly SITE_URL: string;
+  // Stripe
+  readonly STRIPE_SECRET_KEY: string;
+  readonly STRIPE_PUBLISHABLE_KEY: string;
+  readonly STRIPE_WEBHOOK_SECRET: string;
 }
 
 interface ImportMeta {

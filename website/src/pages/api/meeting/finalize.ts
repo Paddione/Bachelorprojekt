@@ -7,7 +7,7 @@ import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whit
 import {
   upsertCustomer, createMeeting, updateMeetingStatus,
   saveTranscript, saveArtifact, saveInsight, generateMeetingEmbeddings,
-} from '../../../lib/meetings-db';
+} from '../../../lib/website-db';
 import { generateMeetingInsights } from '../../../lib/claude';
 
 // Finalize a meeting: collect artifacts, create Outline profile, trigger Claude Code.
@@ -33,6 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
       artifacts: providedArtifacts,
       channelId,
       roomToken,
+      projectId,
     } = await request.json();
     customerName = _customerName;
 
@@ -71,6 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
         customerId: customer.id,
         meetingType: meetingType || 'Meeting',
         talkRoomToken: roomToken,
+        projectId: projectId ?? undefined,
       });
       await updateMeetingStatus(meeting.id, 'ended', { endedAt: new Date() });
       meetingId = meeting.id;

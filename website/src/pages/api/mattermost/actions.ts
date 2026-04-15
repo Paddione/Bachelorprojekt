@@ -79,7 +79,7 @@ export const POST: APIRoute = async ({ request }) => {
         // Admin wants to reply to a contact form submission
         // This action opens a dialog — handled by Mattermost's dialog system
         // For now, we just acknowledge
-        return new Response(JSON.stringify({ ephemeral_text: 'Antwort-Funktion wird in einer zukunftigen Version verfugbar.' }));
+        return new Response(JSON.stringify({ ephemeral_text: 'Antwort-Funktion wird in einer zukünftigen Version verfügbar.' }));
       }
 
       case 'archive_contact': {
@@ -215,7 +215,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       case 'finalize_meeting': {
-        const { customerName: fName, customerEmail: fEmail, meetingType: fType, meetingDate: fDate, customerChannelId, roomToken: fRoomToken } = context;
+        const { customerName: fName, customerEmail: fEmail, meetingType: fType, meetingDate: fDate, customerChannelId, roomToken: fRoomToken, projectId: fProjectId } = context;
 
         // Call the finalize endpoint (with roomToken for recording/whiteboard fetch)
         const SITE_URL = process.env.SITE_URL || (PROD_DOMAIN ? `https://web.${PROD_DOMAIN}` : '');
@@ -223,12 +223,13 @@ export const POST: APIRoute = async ({ request }) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            customerName: fName,
-            customerEmail: fEmail,
-            meetingType: fType,
-            meetingDate: fDate,
-            channelId: customerChannelId,
-            roomToken: fRoomToken,
+            customerName:    fName,
+            customerEmail:   fEmail,
+            meetingType:     fType,
+            meetingDate:     fDate,
+            channelId:       customerChannelId,
+            roomToken:       fRoomToken,
+            projectId:       fProjectId ?? undefined,
           }),
         });
 

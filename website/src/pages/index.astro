@@ -8,8 +8,11 @@ import { config } from '../config/index';
 import SlotWidget from '../components/SlotWidget.astro';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
+import { getEffectiveServices } from '../lib/content';
 
-const { homepage, services, faq, contact } = config;
+const { homepage, faq, contact } = config;
+const allServices = await getEffectiveServices();
+const services = allServices.filter((s) => !s.hidden);
 
 let nextDay: DaySlots | null = null;
 try {
@@ -58,6 +61,7 @@ try {
             features={service.features}
             href={`/${service.slug}`}
             price={service.price}
+            stripeServiceKey={service.stripeServiceKey}
             client:visible
           />
         ))}

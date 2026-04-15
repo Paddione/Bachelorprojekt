@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { insertBugTicket } from '../../lib/meetings-db';
+import { insertBugTicket } from '../../lib/website-db';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
@@ -47,10 +47,12 @@ export const POST: APIRoute = async ({ request }) => {
       return jsonError('Bitte wählen Sie eine Kategorie.', 400);
     }
 
-    // Validate screenshots (accepted but not stored yet)
-    const screenshots = formData.getAll('screenshot');
-    for (const item of screenshots) {
-      if (!(item instanceof File) || item.size === 0) continue;
+    // Validate and convert screenshots to base64 data URLs
+    const screenshotItems = formData.getAll('screenshot');
+    const validFiles = screenshotItems.filter(
+      (s): s is File => s instanceof File && s.size > 0
+    );
+    for (const item of validFiles) {
       if (item.size > MAX_BYTES) {
         return jsonError(`Datei "${item.name}" zu groß (max. 5 MB).`, 400);
       }
@@ -58,8 +60,15 @@ export const POST: APIRoute = async ({ request }) => {
         return jsonError(`"${item.name}": Dateiformat nicht unterstützt. Erlaubt: PNG, JPEG, WEBP.`, 400);
       }
     }
-    if (screenshots.filter(s => s instanceof File && s.size > 0).length > 3) {
+    if (validFiles.length > 3) {
       return jsonError('Maximal 3 Screenshots erlaubt.', 400);
+    }
+
+    const screenshotDataUrls: string[] = [];
+    for (const file of validFiles) {
+      const buffer = await file.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      screenshotDataUrls.push(`data:${file.type};base64,${base64}`);
     }
 
     const ticketId = generateTicketId();
@@ -71,6 +80,7 @@ export const POST: APIRoute = async ({ request }) => {
       description,
       url,
       brand: BRAND,
+      screenshots: screenshotDataUrls.length > 0 ? screenshotDataUrls : undefined,
     });
 
     return new Response(

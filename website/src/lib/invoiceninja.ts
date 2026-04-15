@@ -255,3 +255,38 @@ export async function getClientInvoices(clientEmail: string): Promise<ClientInvo
     statusLabel: INVOICE_STATUS_LABELS[inv.status_id] || 'Unbekannt',
   }));
 }
+
+export interface AdminInvoiceListItem extends ClientInvoiceListItem {
+  clientName: string;
+  clientEmail: string;
+}
+
+export async function getAllInvoices(params?: {
+  statusId?: string;  // '1'=draft,'2'=sent,'3'=partial,'4'=paid,'5'=cancelled,'6'=overdue
+  perPage?: number;
+}): Promise<AdminInvoiceListItem[]> {
+  if (!IN_TOKEN) return [];
+
+  const perPage = params?.perPage ?? 100;
+  const statusFilter = params?.statusId ? `&invoice_status_id=${params.statusId}` : '';
+  const res = await inApi('GET', `/invoices?sort=date|desc&per_page=${perPage}&include=client${statusFilter}`);
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return (data.data || []).map((inv: {
+    id: string; number: string; date: string; due_date: string;
+    amount: number; balance: number; status_id: string;
+    client: { name: string; contacts: Array<{ email: string }> };
+  }) => ({
+    id: inv.id,
+    number: inv.number,
+    date: inv.date,
+    dueDate: inv.due_date,
+    amount: inv.amount,
+    balance: inv.balance,
+    statusId: inv.status_id,
+    statusLabel: INVOICE_STATUS_LABELS[inv.status_id] || 'Unbekannt',
+    clientName: inv.client?.name ?? '—',
+    clientEmail: inv.client?.contacts?.[0]?.email ?? '—',
+  }));
+}

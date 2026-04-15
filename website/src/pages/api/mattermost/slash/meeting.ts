@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createTalkRoom, inviteGuestByEmail } from '../../../../lib/talk';
 import { getFirstTeamId, getOrCreateCustomerChannel, postToChannel, postInteractiveMessage } from '../../../../lib/mattermost';
+import { findProjectByName } from '../../../../lib/website-db';
 
 // Mattermost slash command: /meeting
 // Starts an ad-hoc meeting with full pipeline integration.
@@ -17,8 +18,14 @@ export const POST: APIRoute = async ({ request }) => {
     const form = await request.formData();
     const text = (form.get('text') as string || '').trim();
     const channelId = form.get('channel_id') as string || '';
+
+    // Extract optional --projekt=<Name> flag
+    const projektMatch = text.match(/--projekt=(\S+)/);
+    const projektFlag  = projektMatch ? projektMatch[1] : null;
+    const cleanText    = text.replace(/--projekt=\S*/, '').trim();
+
     // Parse arguments: name email [type]
-    const parts = text.split(/\s+/);
+    const parts = cleanText.split(/\s+/);
     let customerName = '';
     let customerEmail = '';
     let meetingType = 'Ad-Hoc Meeting';
@@ -48,6 +55,20 @@ export const POST: APIRoute = async ({ request }) => {
     const timeFormatted = new Date().toLocaleTimeString('de-DE', {
       hour: '2-digit', minute: '2-digit',
     });
+
+    // Projekt-Lookup via --projekt-Flag
+    let projectId: string | undefined;
+    if (projektFlag) {
+      const brand = process.env.BRAND_NAME || 'mentolder';
+      const found = await findProjectByName(brand, projektFlag);
+      if (found) {
+        projectId = found.id;
+      } else {
+        await postToChannel(channelId,
+          `:warning: Projekt "${projektFlag}" nicht gefunden — Meeting ohne Projektzuordnung.`
+        );
+      }
+    }
 
     // 1. Create Talk room
     const roomName = customerName
@@ -108,6 +129,7 @@ export const POST: APIRoute = async ({ request }) => {
         meetingDate: dateFormatted,
         customerChannelId: targetChannelId,
         roomToken: room.token,
+        projectId: projectId ?? null,
       },
     });
 

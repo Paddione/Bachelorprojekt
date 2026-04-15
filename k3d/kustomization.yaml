@@ -99,6 +99,7 @@ configMapGenerator:
       - docs-content/README.md
       - docs-content/_sidebar.md
       - docs-content/architecture.md
+      - docs-content/database.md
       - docs-content/benutzerhandbuch.md
       - docs-content/keycloak.md
       - docs-content/mcp-actions.md
@@ -112,6 +113,8 @@ configMapGenerator:
       - docs-content/tests.md
       - docs-content/troubleshooting.md
       - docs-content/verarbeitungsverzeichnis.md
+      - docs-content/stripe.md
+      - docs-content/admin-projekte.md
 
 generatorOptions:
   disableNameSuffixHash: true

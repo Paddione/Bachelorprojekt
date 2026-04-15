@@ -5,7 +5,7 @@ import { postWebhook } from '../../../../lib/mattermost';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return new Response(null, { status: 401 });
+  if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
   const due = await getDueFollowUps();
   if (due.length === 0) {

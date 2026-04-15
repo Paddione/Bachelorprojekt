@@ -4,7 +4,7 @@ import { updateFollowUp } from '../../../../lib/website-db';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return new Response(null, { status: 401 });
+  if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
   const form    = await request.formData();
   const id      = form.get('id') as string;
@@ -15,11 +15,19 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (!id) return new Response(null, { status: 302, headers: { Location: back || '/admin/followups' } });
 
-  await updateFollowUp(id, {
-    done: done !== null ? done === 'true' : undefined,
-    dueDate: dueDate || undefined,
-    reason: reason || undefined,
-  });
+  try {
+    await updateFollowUp(id, {
+      done: done !== null ? done === 'true' : undefined,
+      dueDate: dueDate || undefined,
+      reason: reason || undefined,
+    });
+  } catch (err) {
+    console.error('[api/followups/update]', err);
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `${back || '/admin/followups'}?error=${encodeURIComponent('Datenbankfehler')}` },
+    });
+  }
 
   return new Response(null, { status: 302, headers: { Location: back || '/admin/followups' } });
 };

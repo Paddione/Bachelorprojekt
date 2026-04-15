@@ -4,7 +4,7 @@ import { listAllTimeEntries } from '../../../../lib/website-db';
 
 export const GET: APIRoute = async ({ request, url }) => {
   const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return new Response(null, { status: 401 });
+  if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
   const billableOnly = url.searchParams.get('billable') === 'true';
   const since        = url.searchParams.get('since') || undefined;

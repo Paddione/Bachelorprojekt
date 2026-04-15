@@ -8,7 +8,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
   const brand = url.searchParams.get('brand') || process.env.BRAND || 'mentolder';
 
-  let rows;
+  let rows: Awaited<ReturnType<typeof exportProjectsFlat>>;
   try {
     rows = await exportProjectsFlat(brand);
   } catch (err) {

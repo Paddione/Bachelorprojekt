@@ -1,0 +1,66 @@
+---
+import { listClientNotes } from '../../lib/website-db';
+import type { ClientNote } from '../../lib/website-db';
+
+interface Props {
+  keycloakUserId: string;
+  back: string;
+}
+const { keycloakUserId, back } = Astro.props;
+
+let notes: ClientNote[] = [];
+try {
+  notes = await listClientNotes(keycloakUserId);
+} catch {
+  // DB unavailable
+}
+
+function fmtDate(d: Date): string {
+  return new Date(d).toLocaleString('de-DE', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+---
+
+<div data-testid="client-notes-tab">
+  <h3 class="text-lg font-semibold text-light mb-4">Notizen & Aktivitäten</h3>
+
+  <!-- New note form -->
+  <form method="post" action="/api/admin/clientnotes/create" class="mb-6 flex gap-2">
+    <input type="hidden" name="keycloakUserId" value={keycloakUserId} />
+    <input type="hidden" name="_back" value={back} />
+    <textarea name="content" rows="2" maxlength="2000" required
+      placeholder="Neue Notiz eingeben …"
+      class="flex-1 px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none resize-none"></textarea>
+    <button type="submit"
+      class="px-4 py-2 bg-gold hover:bg-gold-light text-dark text-sm font-semibold rounded-lg transition-colors self-start">
+      Hinzufügen
+    </button>
+  </form>
+
+  {notes.length === 0 ? (
+    <p class="text-muted text-sm">Noch keine Notizen vorhanden.</p>
+  ) : (
+    <ul class="space-y-3">
+      {notes.map(n => (
+        <li class="flex gap-3 p-4 bg-dark rounded-xl border border-dark-lighter" data-testid="client-note-item">
+          <div class="flex-1">
+            <p class="text-light text-sm whitespace-pre-wrap">{n.content}</p>
+            <p class="text-xs text-muted mt-1">{fmtDate(n.createdAt)}</p>
+          </div>
+          <form method="post" action="/api/admin/clientnotes/delete">
+            <input type="hidden" name="id" value={n.id} />
+            <input type="hidden" name="_back" value={back} />
+            <button type="submit"
+              class="text-muted hover:text-red-400 transition-colors text-lg leading-none"
+              title="Notiz löschen"
+              onclick="return confirm('Notiz löschen?')">
+              ✕
+            </button>
+          </form>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>

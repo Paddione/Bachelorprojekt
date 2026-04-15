@@ -398,6 +398,30 @@ export interface ServiceOverride {
   price: string;
   features: string[];
   hidden?: boolean;
+  pageContent?: {
+    headline?: string;
+    intro?: string;
+    forWhom?: string[];
+    sections?: Array<{ title: string; items: string[] }>;
+    pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
+    faq?: Array<{ question: string; answer: string }>;
+  };
+}
+
+export interface LeistungServiceOverride {
+  key: string;
+  name?: string;
+  price?: string;
+  unit?: string;
+  desc?: string;
+  highlight?: boolean;
+}
+
+export interface LeistungCategoryOverride {
+  id: string;
+  title?: string;
+  icon?: string;
+  services?: LeistungServiceOverride[];
 }
 
 export async function initServiceConfigTable(): Promise<void> {
@@ -427,6 +451,38 @@ export async function saveServiceConfig(brand: string, overrides: ServiceOverrid
      VALUES ($1, $2, now())
      ON CONFLICT (brand) DO UPDATE SET services_json = $2, updated_at = now()`,
     [brand, JSON.stringify(overrides)]
+  );
+}
+
+// ── Leistungen Config (Preistabelle Overrides) ───────────────────────────────
+
+export async function initLeistungenConfigTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS leistungen_config (
+      brand            TEXT PRIMARY KEY,
+      categories_json  JSONB NOT NULL,
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+export async function getLeistungenConfig(brand: string): Promise<LeistungCategoryOverride[] | null> {
+  await initLeistungenConfigTable();
+  const result = await pool.query(
+    'SELECT categories_json FROM leistungen_config WHERE brand = $1',
+    [brand]
+  );
+  if (!result.rows[0]) return null;
+  return result.rows[0].categories_json as LeistungCategoryOverride[];
+}
+
+export async function saveLeistungenConfig(brand: string, categories: LeistungCategoryOverride[]): Promise<void> {
+  await initLeistungenConfigTable();
+  await pool.query(
+    `INSERT INTO leistungen_config (brand, categories_json, updated_at)
+     VALUES ($1, $2, now())
+     ON CONFLICT (brand) DO UPDATE SET categories_json = $2, updated_at = now()`,
+    [brand, JSON.stringify(categories)]
   );
 }
 

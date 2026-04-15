@@ -4,8 +4,9 @@
 
   interface Props {
     initialMode?: 'message' | 'termin' | 'callback' | null;
+    initialServiceKey?: string;
   }
-  let { initialMode = null } = $props<Props>();
+  let { initialMode = null, initialServiceKey } = $props<Props>();
 
   let activeMode = $state<'message' | 'termin' | 'callback' | null>(initialMode);
 
@@ -47,11 +48,11 @@
     </div>
   {:else if activeMode === 'termin'}
     <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
-      <BookingForm initialType="erstgespraech" />
+      <BookingForm initialType="erstgespraech" serviceKey={initialServiceKey} />
     </div>
   {:else if activeMode === 'callback'}
     <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
-      <BookingForm initialType="callback" />
+      <BookingForm initialType="callback" serviceKey={initialServiceKey} />
     </div>
   {/if}
 </div>

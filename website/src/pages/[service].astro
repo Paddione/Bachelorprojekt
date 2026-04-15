@@ -2,10 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import FAQ from '../components/FAQ.svelte';
-import { config } from '../config/index';
+import { getEffectiveServices } from '../lib/content';
 
 const { service } = Astro.params;
-const svc = config.services.find((s) => s.slug === service);
+const services = await getEffectiveServices();
+const svc = services.find((s) => s.slug === service && !s.hidden);
 
 if (!svc) {
   return Astro.redirect('/404');

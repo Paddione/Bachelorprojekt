@@ -2,8 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
+import { getEffectiveLeistungen } from '../lib/content';
 
-const { leistungen, leistungenCta, leistungenPricingHighlight } = config;
+const { leistungenCta, leistungenPricingHighlight } = config;
+const leistungen = await getEffectiveLeistungen();
 ---
 
 <Layout title="Leistungen & Preise" description="Alle Angebote und Preise auf einen Blick.">

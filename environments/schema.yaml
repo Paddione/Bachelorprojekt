@@ -74,6 +74,14 @@ env_vars:
     required: true
     default_dev: "noreply@localhost"
 
+  - name: SMTP_HOST
+    required: true
+    default_dev: "mailpit.workspace.svc.cluster.local"
+
+  - name: SMTP_PORT
+    required: true
+    default_dev: "1025"
+
   - name: TURN_PUBLIC_IP
     required: true
     default_dev: "127.0.0.1"

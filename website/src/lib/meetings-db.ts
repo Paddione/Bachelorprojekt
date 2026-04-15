@@ -335,7 +335,7 @@ export async function resolveBugTicket(ticketId: string, resolutionNote: string)
   await pool.query(
     `UPDATE bug_tickets
      SET status = 'resolved', resolved_at = NOW(), resolution_note = $2
-     WHERE ticket_id = $1`,
+     WHERE ticket_id = $1 AND status = 'open'`,
     [ticketId, resolutionNote]
   );
 }
@@ -343,7 +343,7 @@ export async function resolveBugTicket(ticketId: string, resolutionNote: string)
 export async function archiveBugTicket(ticketId: string): Promise<void> {
   await initBugTicketsTable();
   await pool.query(
-    `UPDATE bug_tickets SET status = 'archived' WHERE ticket_id = $1`,
+    `UPDATE bug_tickets SET status = 'archived' WHERE ticket_id = $1 AND status != 'archived'`,
     [ticketId]
   );
 }
@@ -358,6 +358,7 @@ export interface BugTicketStatus {
 }
 
 export async function getBugTicketStatus(ticketId: string): Promise<BugTicketStatus | null> {
+  await initBugTicketsTable();
   const result = await pool.query(
     `SELECT ticket_id as "ticketId", status, category,
             created_at as "createdAt", resolved_at as "resolvedAt",

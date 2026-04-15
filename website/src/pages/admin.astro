@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
 import { listUsers } from '../lib/keycloak';
+import { listBugTickets } from '../lib/meetings-db';
 import type { KcUser } from '../lib/keycloak';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -18,6 +19,18 @@ try {
 } catch {
   // Keycloak unavailable
 }
+
+let openBugCount = 0;
+try {
+  const openTickets = await listBugTickets({
+    status: 'open',
+    brand: process.env.BRAND || 'mentolder',
+    limit: 1000,
+  });
+  openBugCount = openTickets.length;
+} catch {
+  // DB unavailable — badge just shows 0
+}
 ---
 
 <Layout title="Admin — Alle Clients">
@@ -28,12 +41,25 @@ try {
           <h1 class="text-3xl font-bold text-light font-serif">Clients</h1>
           <p class="text-muted mt-1">{users.length} Benutzer</p>
         </div>
-        <a
-          href="/admin/mattermost"
-          class="px-4 py-2 bg-gold/20 text-gold rounded-lg text-sm font-medium hover:bg-gold/30 transition-colors"
-        >
-          Mattermost verwalten
-        </a>
+        <div class="flex gap-3">
+          <a
+            href="/admin/bugs"
+            class="relative px-4 py-2 bg-gold/20 text-gold rounded-lg text-sm font-medium hover:bg-gold/30 transition-colors"
+          >
+            Bug Reports
+            {openBugCount > 0 && (
+              <span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                {openBugCount > 99 ? '99+' : openBugCount}
+              </span>
+            )}
+          </a>
+          <a
+            href="/admin/mattermost"
+            class="px-4 py-2 bg-gold/20 text-gold rounded-lg text-sm font-medium hover:bg-gold/30 transition-colors"
+          >
+            Mattermost
+          </a>
+        </div>
       </div>
 
       <div class="grid gap-4" data-testid="admin-client-list">

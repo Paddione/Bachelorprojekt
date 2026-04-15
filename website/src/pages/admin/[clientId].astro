@@ -4,9 +4,11 @@ import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getUserById } from '../../lib/keycloak';
 import BookingsTab from '../../components/portal/BookingsTab.astro';
 import InvoicesTab from '../../components/portal/InvoicesTab.astro';
+import ClientNotesTab from '../../components/portal/ClientNotesTab.astro';
 import FilesTab from '../../components/portal/FilesTab.astro';
 import SignaturesTab from '../../components/portal/SignaturesTab.astro';
 import MeetingsAdminTab from '../../components/portal/MeetingsAdminTab.astro';
+import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -42,9 +44,11 @@ const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
         {[
           { id: 'bookings', label: 'Termine' },
           { id: 'invoices', label: 'Rechnungen' },
+          { id: 'notes', label: 'Notizen' },
           { id: 'files', label: 'Dateien' },
           { id: 'signatures', label: 'Zur Unterschrift' },
           { id: 'meetings', label: 'Besprechungen' },
+          { id: 'onboarding', label: 'Onboarding' },
         ].map(t => (
           <a
             href={`/admin/${clientId}?tab=${t.id}`}
@@ -63,9 +67,21 @@ const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
       <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
         {tab === 'bookings' && <BookingsTab clientEmail={client.email ?? ''} />}
         {tab === 'invoices' && <InvoicesTab clientEmail={client.email ?? ''} />}
+        {tab === 'notes' && (
+          <ClientNotesTab
+            keycloakUserId={clientId}
+            back={`/admin/${clientId}?tab=notes`}
+          />
+        )}
         {tab === 'files' && <FilesTab clientUsername={client.username} />}
         {tab === 'signatures' && <SignaturesTab clientUsername={client.username} />}
         {tab === 'meetings' && <MeetingsAdminTab clientEmail={client.email ?? ''} />}
+        {tab === 'onboarding' && (
+          <OnboardingTab
+            keycloakUserId={clientId}
+            back={`/admin/${clientId}?tab=onboarding`}
+          />
+        )}
       </div>
     </div>
   </section>

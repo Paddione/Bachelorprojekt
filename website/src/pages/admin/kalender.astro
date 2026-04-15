@@ -1,0 +1,149 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { listTasksInMonth } from '../../lib/website-db';
+import type { CalendarTask } from '../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const now    = new Date();
+const yearQ  = parseInt(Astro.url.searchParams.get('year')  ?? String(now.getFullYear()), 10);
+const monthQ = parseInt(Astro.url.searchParams.get('month') ?? String(now.getMonth() + 1), 10);
+const year   = isNaN(yearQ)  ? now.getFullYear()  : yearQ;
+const month  = isNaN(monthQ) ? now.getMonth() + 1 : Math.max(1, Math.min(12, monthQ));
+
+let tasks: CalendarTask[] = [];
+let dbError = '';
+try {
+  tasks = await listTasksInMonth(year, month);
+} catch (err) {
+  console.error('[admin/kalender]', err);
+  dbError = 'Datenbankfehler beim Laden.';
+}
+
+const firstDay     = new Date(year, month - 1, 1);
+const lastDay      = new Date(year, month, 0);
+const startWeekday = (firstDay.getDay() + 6) % 7; // Mon=0
+const totalDays    = lastDay.getDate();
+
+const tasksByDay = new Map<number, CalendarTask[]>();
+for (const t of tasks) {
+  const d = parseInt(new Date(t.dueDate).toISOString().slice(8, 10), 10);
+  if (!tasksByDay.has(d)) tasksByDay.set(d, []);
+  tasksByDay.get(d)!.push(t);
+}
+
+function navUrl(y: number, m: number): string {
+  if (m < 1)  { y--; m = 12; }
+  if (m > 12) { y++; m = 1; }
+  return `/admin/kalender?year=${y}&month=${m}`;
+}
+
+const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DAY_NAMES   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+const PRIO_DOT: Record<string, string> = {
+  hoch: 'bg-red-500', mittel: 'bg-yellow-500', niedrig: 'bg-green-500',
+};
+const STATUS_CLS: Record<string, string> = {
+  erledigt: 'line-through opacity-50',
+  archiviert: 'line-through opacity-30',
+};
+---
+
+<Layout title="Admin — Aufgaben-Kalender">
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-5xl mx-auto px-6">
+
+      <div class="mb-2">
+        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
+      </div>
+
+      <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-3xl font-bold text-light font-serif">Aufgaben-Kalender</h1>
+          <p class="text-muted mt-1">{tasks.length} Aufgaben mit Fälligkeit im {MONTH_NAMES[month - 1]} {year}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href={navUrl(year, month - 1)}
+            class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+            ← Vorheriger
+          </a>
+          <a href={`/admin/kalender?year=${now.getFullYear()}&month=${now.getMonth() + 1}`}
+            class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+            Heute
+          </a>
+          <a href={navUrl(year, month + 1)}
+            class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+            Nächster →
+          </a>
+        </div>
+      </div>
+
+      {dbError && (
+        <div class="mb-6 p-4 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm">{dbError}</div>
+      )}
+
+      <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
+        <!-- Day headers -->
+        <div class="grid grid-cols-7 border-b border-dark-lighter">
+          {DAY_NAMES.map(d => (
+            <div class={`px-2 py-3 text-center text-xs font-semibold ${['Sa','So'].includes(d) ? 'text-muted/60' : 'text-muted'}`}>
+              {d}
+            </div>
+          ))}
+        </div>
+
+        <!-- Calendar cells -->
+        <div class="grid grid-cols-7">
+          {Array.from({ length: startWeekday }).map(() => (
+            <div class="min-h-[100px] border-b border-r border-dark-lighter/50 bg-dark/30"></div>
+          ))}
+
+          {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
+            const isToday = year === now.getFullYear() && month === now.getMonth() + 1 && day === now.getDate();
+            const dayTasks = tasksByDay.get(day) ?? [];
+            const col = (startWeekday + day - 1) % 7;
+            const isWeekend = col >= 5;
+            return (
+              <div class={`min-h-[100px] border-b border-r border-dark-lighter/50 p-2 transition-colors hover:bg-dark/30 ${isWeekend ? 'bg-dark/20' : ''}`}>
+                <div class={`text-xs font-semibold mb-1.5 w-6 h-6 flex items-center justify-center rounded-full
+                  ${isToday ? 'bg-gold text-dark' : 'text-muted'}`}>
+                  {day}
+                </div>
+                <div class="space-y-1">
+                  {dayTasks.slice(0, 3).map(t => (
+                    <a href={`/admin/projekte/${t.projectId}`}
+                      class={`flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-dark border border-dark-lighter hover:border-gold/40 transition-colors group ${STATUS_CLS[t.status] ?? ''}`}
+                      title={`${t.name} — ${t.projectName}`}>
+                      <span class={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIO_DOT[t.priority] ?? 'bg-dark-lighter'}`}></span>
+                      <span class="truncate text-muted group-hover:text-light transition-colors">{t.name}</span>
+                    </a>
+                  ))}
+                  {dayTasks.length > 3 && (
+                    <p class="text-xs text-muted pl-1">+{dayTasks.length - 3} weitere</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {(() => {
+            const trailing = (7 - (startWeekday + totalDays) % 7) % 7;
+            return Array.from({ length: trailing }).map(() => (
+              <div class="min-h-[100px] border-b border-r border-dark-lighter/50 bg-dark/30"></div>
+            ));
+          })()}
+        </div>
+      </div>
+
+      <div class="flex gap-4 mt-4 text-xs text-muted">
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Hoch</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span> Mittel</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Niedrig</span>
+      </div>
+    </div>
+  </section>
+</Layout>

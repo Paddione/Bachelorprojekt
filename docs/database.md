@@ -149,8 +149,8 @@ Angelegt in der `postgres`-Standarddatenbank auf `shared-db`.
 ```mermaid
 erDiagram
     requirements {
-        text        id          PK "FA-01, SA-03, NFA-02 ..."
-        text        category        "FA | SA | NFA | AK | L"
+        text        id          PK
+        text        category
         text        name
         text        description
         text        criteria
@@ -161,7 +161,7 @@ erDiagram
     pipeline {
         serial      id          PK
         text        req_id      FK
-        text        stage           "idea | implementation | testing | documentation | archive"
+        text        stage
         timestamptz entered_at
         text        notes
     }
@@ -169,7 +169,7 @@ erDiagram
     test_results {
         serial      id          PK
         text        req_id      FK
-        text        result          "pass | fail | skip"
+        text        result
         timestamptz run_at
         text        details
     }

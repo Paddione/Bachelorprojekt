@@ -2,12 +2,14 @@
 import Layout from '../../layouts/Layout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAvailableSlots } from '../../lib/caldav';
+import { getWhitelistedSlots } from '../../lib/website-db';
 import type { DaySlots } from '../../lib/caldav';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
+const BRAND = process.env.BRAND_NAME || 'mentolder';
 const NC_DOMAIN = process.env.NC_DOMAIN || 'files.mentolder.de';
 const calendarUrl = `https://${NC_DOMAIN}/apps/calendar`;
 
@@ -18,6 +20,7 @@ horizon.setDate(horizon.getDate() + 14);
 let days: DaySlots[] = [];
 let calError = '';
 try {
+  // Without brand: all generated slots (no whitelist filter) for admin overview
   const all = await getAvailableSlots(now);
   days = all.filter(d => new Date(d.date) <= horizon);
 } catch (err) {
@@ -25,7 +28,15 @@ try {
   calError = 'Kalender konnte nicht geladen werden.';
 }
 
+// Load whitelist and build a Set of whitelisted ISO start strings
+const whitelistedSlots = await getWhitelistedSlots(BRAND).catch(() => [] as { slotStart: Date }[]);
+const whitelistedSet = new Set(whitelistedSlots.map((w: { slotStart: Date }) => w.slotStart.toISOString()));
+
 const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
+const releasedCount = days.reduce(
+  (sum, d) => sum + d.slots.filter(s => whitelistedSet.has(s.start)).length,
+  0
+);
 ---
 
 <Layout title="Admin — Termine">
@@ -35,7 +46,7 @@ const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
       <div class="mb-8 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Termine</h1>
-          <p class="text-muted mt-1">Freie Slots der nächsten 14 Tage · {totalSlots} verfügbar</p>
+          <p class="text-muted mt-1">Nächste 14 Tage · {totalSlots} generiert · <span class="text-gold"><span id="released-counter">{releasedCount}</span> freigegeben</span></p>
         </div>
         <div class="flex gap-3">
           <a
@@ -63,7 +74,7 @@ const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
 
       {days.length === 0 && !calError && (
         <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center">
-          Keine freien Termine in den nächsten 14 Tagen.
+          Keine generierten Termine in den nächsten 14 Tagen.
         </div>
       )}
 
@@ -76,11 +87,25 @@ const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
               <span class="ml-auto text-xs text-muted">{day.slots.length} Slot{day.slots.length !== 1 ? 's' : ''}</span>
             </div>
             <div class="flex flex-wrap gap-2">
-              {day.slots.map(slot => (
-                <span class="px-3 py-1.5 bg-gold/10 text-gold rounded-lg text-sm font-mono border border-gold/20">
-                  {slot.display}
-                </span>
-              ))}
+              {day.slots.map(slot => {
+                const released = whitelistedSet.has(slot.start);
+                return (
+                  <button
+                    class={`slot-toggle px-3 py-1.5 rounded-lg text-sm font-mono border transition-colors cursor-pointer ${
+                      released
+                        ? 'bg-gold/10 text-gold border-gold/20 hover:bg-gold/20'
+                        : 'bg-dark-lighter text-muted border-dark-lighter hover:border-gold/30'
+                    }`}
+                    data-start={slot.start}
+                    data-end={slot.end}
+                    data-released={released ? 'true' : 'false'}
+                    title={released ? 'Freigabe zurückziehen' : 'Slot freigeben'}
+                  >
+                    {slot.display}
+                    {released && <span class="ml-1 opacity-60">×</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -89,3 +114,62 @@ const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
     </div>
   </section>
 </Layout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.slot-toggle').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const start = btn.dataset.start!;
+      const end   = btn.dataset.end!;
+      const isReleased = btn.dataset.released === 'true';
+
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+
+      try {
+        const res = await fetch(
+          isReleased ? '/api/admin/slots/remove' : '/api/admin/slots/add',
+          {
+            method: isReleased ? 'DELETE' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(isReleased ? { slotStart: start } : { slotStart: start, slotEnd: end }),
+          }
+        );
+
+        if (!res.ok) {
+          console.error('Slot toggle failed:', await res.text());
+          return;
+        }
+
+        // Flip state
+        const nowReleased = !isReleased;
+        btn.dataset.released = nowReleased ? 'true' : 'false';
+
+        if (nowReleased) {
+          btn.classList.remove('bg-dark-lighter', 'text-muted', 'border-dark-lighter', 'hover:border-gold/30');
+          btn.classList.add('bg-gold/10', 'text-gold', 'border-gold/20', 'hover:bg-gold/20');
+          btn.title = 'Freigabe zurückziehen';
+          if (!btn.querySelector('.toggle-x')) {
+            const x = document.createElement('span');
+            x.className = 'ml-1 opacity-60 toggle-x';
+            x.textContent = '×';
+            btn.appendChild(x);
+          }
+        } else {
+          btn.classList.remove('bg-gold/10', 'text-gold', 'border-gold/20', 'hover:bg-gold/20');
+          btn.classList.add('bg-dark-lighter', 'text-muted', 'border-dark-lighter', 'hover:border-gold/30');
+          btn.title = 'Slot freigeben';
+          btn.querySelector('.toggle-x')?.remove();
+        }
+
+        // Update released counter
+        const counterEl = document.getElementById('released-counter');
+        if (counterEl) {
+          counterEl.textContent = String(Number(counterEl.textContent) + (nowReleased ? 1 : -1));
+        }
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    });
+  });
+</script>

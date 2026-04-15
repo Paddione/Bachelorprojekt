@@ -51,11 +51,6 @@
     .results-panel .matching-post a { color: #e8c870; }
     /* Mermaid diagrams */
     .mermaid { background: #1a2235; border-radius: 6px; padding: 16px; }
-    .mermaid svg { display: block; width: 100% !important; height: auto !important; max-width: none !important; cursor: grab; }
-    .mermaid svg:active { cursor: grabbing; }
-    .mermaid-zoom-controls { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px; }
-    .mermaid-zoom-btn { font-size: 11px; padding: 2px 8px; background: #1a2235; border: 1px solid #243049; border-radius: 3px; color: #aabbcc; cursor: pointer; }
-    .mermaid-zoom-btn:hover { border-color: #e8c870; color: #e8c870; }
   </style>
 </head>
 <body>
@@ -79,7 +74,6 @@
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/panzoom@9.4.3/dist/panzoom.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <script>
     mermaid.initialize({
@@ -125,40 +119,7 @@
     });
     window.$docsify.plugins = [].concat(function(hook) {
       hook.doneEach(function() {
-        mermaid.run({ querySelector: '.mermaid' }).then(function() {
-          document.querySelectorAll('.mermaid svg').forEach(function(svg) {
-            if (svg.dataset.panzoomApplied) return;
-            svg.dataset.panzoomApplied = '1';
-
-            var pz = panzoom(svg, { maxZoom: 8, minZoom: 0.3, boundsPadding: 0.1 });
-
-            var controls = document.createElement('div');
-            controls.className = 'mermaid-zoom-controls';
-
-            var resetBtn = document.createElement('button');
-            resetBtn.className = 'mermaid-zoom-btn';
-            resetBtn.textContent = 'Reset Zoom';
-            resetBtn.addEventListener('click', function() {
-              pz.moveTo(0, 0);
-              pz.zoomAbs(0, 0, 1);
-            });
-
-            var zoomInBtn = document.createElement('button');
-            zoomInBtn.className = 'mermaid-zoom-btn';
-            zoomInBtn.textContent = '+';
-            zoomInBtn.addEventListener('click', function() { pz.zoomIn(); });
-
-            var zoomOutBtn = document.createElement('button');
-            zoomOutBtn.className = 'mermaid-zoom-btn';
-            zoomOutBtn.textContent = '−';
-            zoomOutBtn.addEventListener('click', function() { pz.zoomOut(); });
-
-            controls.appendChild(zoomOutBtn);
-            controls.appendChild(resetBtn);
-            controls.appendChild(zoomInBtn);
-            svg.closest('.mermaid').insertAdjacentElement('afterend', controls);
-          });
-        });
+        mermaid.run({ querySelector: '.mermaid' });
       });
     }, window.$docsify.plugins || []);
   </script>

@@ -588,6 +588,9 @@ Jede Datenbank hat einen eigenen User mit ausschliesslichem Zugriff auf seine Da
 
 Die Init-Skripte in `shared-db` erstellen User und Datenbanken idempotent beim ersten Start und synchronisieren Passwoerter bei Neustarts.
 
+> Die vollstaendigen Tabellenstrukturen und ER-Diagramme fuer `website` und `bachelorprojekt`
+> sind in [Datenbankmodelle](database.md) dokumentiert.
+
 ---
 
 ## Namespaces

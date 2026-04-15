@@ -33,6 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
       artifacts: providedArtifacts,
       channelId,
       roomToken,
+      projectId,
     } = await request.json();
     customerName = _customerName;
 
@@ -71,6 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
         customerId: customer.id,
         meetingType: meetingType || 'Meeting',
         talkRoomToken: roomToken,
+        projectId: projectId ?? undefined,
       });
       await updateMeetingStatus(meeting.id, 'ended', { endedAt: new Date() });
       meetingId = meeting.id;

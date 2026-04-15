@@ -40,6 +40,11 @@ spec:
               value: "noreply@${PROD_DOMAIN}"
             - name: MM_EMAILSETTINGS_FEEDBACKNAME
               value: "${BRAND_NAME}"
+            - name: MATTERMOST_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: MATTERMOST_DB_PASSWORD
             - name: MM_SQLSETTINGS_DATASOURCE
               value: "host=mattermost-db port=5432 user=mattermost password=$(MATTERMOST_DB_PASSWORD) dbname=mattermost sslmode=disable connect_timeout=10"
             - name: MM_LOGSETTINGS_ENABLEDIAGNOSTICS

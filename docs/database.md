@@ -10,7 +10,8 @@ Die Tabellenstrukturen werden durch Kubernetes-Init-Skripte idempotent angelegt 
 ## Website-Datenbank (`website`)
 
 Speichert die Meeting Knowledge Pipeline: Kunden, Meeting-Verlauf, Transkripte,
-Artefakte, KI-Insights, Vektor-Embeddings sowie Bug-Tickets und Service-Konfigurationen.
+Artefakte, KI-Insights, Vektor-Embeddings sowie Bug-Tickets, Service-Konfigurationen,
+das Projektmanagement und Website-Admin-Einstellungen.
 
 ```mermaid
 erDiagram
@@ -113,11 +114,89 @@ erDiagram
         timestamptz updated_at
     }
 
+    leistungen_config {
+        text        brand           PK
+        jsonb       categories_json
+        timestamptz updated_at
+    }
+
+    site_settings {
+        text        brand           PK
+        text        key             PK
+        text        value
+        timestamptz updated_at
+    }
+
+    legal_pages {
+        text        brand           PK
+        text        page_key        PK
+        text        content_html
+        timestamptz updated_at
+    }
+
+    referenzen_config {
+        text        brand           PK
+        jsonb       items_json
+        timestamptz updated_at
+    }
+
+    projects {
+        uuid        id              PK
+        text        brand
+        text        name
+        text        description
+        text        notes
+        date        start_date
+        date        due_date
+        text        status
+        text        priority
+        uuid        customer_id     FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    sub_projects {
+        uuid        id              PK
+        uuid        project_id      FK
+        text        name
+        text        description
+        text        notes
+        date        start_date
+        date        due_date
+        text        status
+        text        priority
+        uuid        customer_id     FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    project_tasks {
+        uuid        id              PK
+        uuid        project_id      FK
+        uuid        sub_project_id  FK
+        text        name
+        text        description
+        text        notes
+        date        start_date
+        date        due_date
+        text        status
+        text        priority
+        uuid        customer_id     FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
     customers        ||--o{ meetings             : "hat"
     meetings         ||--o{ transcripts          : "hat"
     transcripts      ||--o{ transcript_segments  : "enthaelt"
     meetings         ||--o{ meeting_artifacts    : "hat"
     meetings         ||--o{ meeting_insights     : "hat"
+    customers        ||--o{ projects             : "verantwortlich"
+    customers        ||--o{ sub_projects         : "verantwortlich"
+    customers        ||--o{ project_tasks        : "verantwortlich"
+    projects         ||--o{ sub_projects         : "hat"
+    projects         ||--o{ project_tasks        : "hat direkt"
+    sub_projects     ||--o{ project_tasks        : "hat"
 ```
 
 > **`meeting_embeddings`** referenziert Zeilen aus `transcripts`, `transcript_segments`,
@@ -138,6 +217,13 @@ erDiagram
 | `meeting_embeddings` | pgvector-Einbettungen (BAAI/bge-base-en-v1.5, 768 Dim.) fuer semantische Suche |
 | `bug_tickets` | Bug-Meldungen vom Website-Formular mit Status `open → resolved → archived` |
 | `service_config` | Angebots-Overrides je Brand (JSON) fuer das Admin-Panel |
+| `leistungen_config` | Leistungskategorien-Overrides je Brand (Preistabelle) fuer das Admin-Panel |
+| `site_settings` | Key/Value-Store fuer Website-Einstellungen je Brand (z.B. Hero-Text, Kontaktdaten) |
+| `legal_pages` | Admin-editierbare Rechtstexte (AGB, Datenschutz, Impressum) je Brand als HTML |
+| `referenzen_config` | Referenz-/Kundenlisten je Brand fuer den Referenzen-Bereich der Website |
+| `projects` | Kundenprojekte mit Status-Lifecycle `entwurf → wartend → geplant → aktiv → erledigt → archiviert` |
+| `sub_projects` | Teilprojekte innerhalb eines Projekts (eine Ebene tief) mit identischen Attributen |
+| `project_tasks` | Aufgaben in Projekten oder Teilprojekten — `sub_project_id` IS NULL bedeutet direkte Projektzuordnung |
 
 ---
 

@@ -45,6 +45,8 @@ resources:
   - docs.yaml
   # Wiki
   - outline.yaml
+  # Anforderungs-Tracking
+  - tracking.yaml
   # Transkription
   - whisper.yaml
   # Live-Transkription Bot

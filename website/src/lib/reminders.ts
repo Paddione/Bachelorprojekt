@@ -7,7 +7,7 @@ import { sendEmail } from './email';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const REMINDERS_DB_URL = process.env.SESSIONS_DATABASE_URL
-  || 'postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings';
+  || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
 
 const pool = new pg.Pool({ connectionString: REMINDERS_DB_URL });
 

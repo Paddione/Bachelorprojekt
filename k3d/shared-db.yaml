@@ -32,7 +32,7 @@ data:
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'nextcloud') THEN CREATE USER nextcloud; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'vaultwarden') THEN CREATE USER vaultwarden; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'outline') THEN CREATE USER outline; END IF;
-        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'meetings') THEN CREATE USER meetings; END IF;
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'website') THEN CREATE USER website; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'pentest') THEN CREATE USER pentest; END IF;
       END $$;
     EOSQL
@@ -44,11 +44,11 @@ data:
       -c "ALTER USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';" \
       -c "ALTER USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';" \
       -c "ALTER USER outline WITH PASSWORD '${OUTLINE_DB_PASSWORD}';" \
-      -c "ALTER USER meetings WITH PASSWORD '${MEETINGS_DB_PASSWORD}';" \
+      -c "ALTER USER website WITH PASSWORD '${WEBSITE_DB_PASSWORD}';" \
       -c "ALTER USER pentest WITH PASSWORD 'pentest_access_2026';"
 
     # Create databases if not exists
-    for db_user in keycloak mattermost nextcloud vaultwarden outline meetings pentest; do
+    for db_user in keycloak mattermost nextcloud vaultwarden outline website pentest; do
       psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
         SELECT 'CREATE DATABASE ${db_user} OWNER ${db_user}'
         WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${db_user}')\gexec
@@ -162,11 +162,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: OUTLINE_DB_PASSWORD
-            - name: MEETINGS_DB_PASSWORD
+            - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: MEETINGS_DB_PASSWORD
+                  key: WEBSITE_DB_PASSWORD
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -176,7 +176,7 @@ spec:
             - name: init
               mountPath: /docker-entrypoint-initdb.d/01-init-databases.sh
               subPath: init-databases.sh
-            - name: meetings-schema
+            - name: website-schema
               mountPath: /docker-entrypoint-initdb.d/02-meetings-schema.sh
               subPath: init-meetings-schema.sh
             - name: tls-certs
@@ -206,9 +206,9 @@ spec:
         - name: init
           configMap:
             name: shared-db-init
-        - name: meetings-schema
+        - name: website-schema
           configMap:
-            name: meetings-schema
+            name: website-schema
         - name: tls-certs
           emptyDir: {}
 ---

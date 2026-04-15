@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getServiceConfig } from '../../lib/meetings-db';
+import { getServiceConfig } from '../../lib/website-db';
 import { mentolderConfig } from '../../config/brands/mentolder';
 
 const session = await getSession(Astro.request.headers.get('cookie'));

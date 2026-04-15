@@ -6,7 +6,7 @@ import pg from 'pg';
 const { Pool } = pg;
 
 const MEETINGS_DB_URL = process.env.MEETINGS_DATABASE_URL
-  || 'postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings';
+  || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
 const EMBEDDING_URL = process.env.EMBEDDING_URL
   || 'http://embedding.workspace.svc.cluster.local:8080';
 

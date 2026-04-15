@@ -34,7 +34,7 @@ export interface UserSession {
 import pg from 'pg';
 const sessionPool = new pg.Pool({
   connectionString: process.env.SESSIONS_DATABASE_URL
-    || 'postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings',
+    || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website',
 });
 
 let sessionsTableReady = false;

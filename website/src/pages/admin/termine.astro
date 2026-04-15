@@ -1,8 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getAvailableSlots } from '../../lib/caldav';
-import type { DaySlots } from '../../lib/caldav';
+import { getAvailableSlots, getAllBookings } from '../../lib/caldav';
+import type { DaySlots, AdminBooking } from '../../lib/caldav';
+import { getBookingProjects, listProjects } from '../../lib/website-db';
+import type { Project } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -10,22 +12,45 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const NC_DOMAIN = process.env.NC_DOMAIN || 'files.mentolder.de';
 const calendarUrl = `https://${NC_DOMAIN}/apps/calendar`;
+const brand = process.env.BRAND_NAME || 'mentolder';
 
 const now = new Date();
 const horizon = new Date(now);
 horizon.setDate(horizon.getDate() + 14);
 
 let days: DaySlots[] = [];
+let bookings: AdminBooking[] = [];
+let bookingProjectMap: Map<string, string> = new Map();
+let projects: Project[] = [];
 let calError = '';
+
 try {
-  const all = await getAvailableSlots(now);
-  days = all.filter(d => new Date(d.date) <= horizon);
+  const [allSlots, allBookings, allProjects] = await Promise.all([
+    getAvailableSlots(now),
+    getAllBookings(),
+    listProjects({ brand }),
+  ]);
+  days = allSlots.filter(d => new Date(d.date) <= horizon);
+  bookings = allBookings;
+  projects = allProjects;
+  const uids = bookings.map(b => b.uid).filter(Boolean);
+  bookingProjectMap = await getBookingProjects(uids, brand);
 } catch (err) {
-  console.error('[admin/termine] getAvailableSlots failed:', err);
+  console.error('[admin/termine] load failed:', err);
   calError = 'Kalender konnte nicht geladen werden.';
 }
 
 const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
+const upcomingBookings = bookings.filter(b => b.start >= now && b.status !== 'CANCELLED');
+const pastBookings = bookings.filter(b => b.start < now || b.status === 'CANCELLED');
+
+const WEEKDAYS_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+function formatBookingDate(d: Date) {
+  return `${WEEKDAYS_DE[d.getDay()]}, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+}
+function formatTime(d: Date) {
+  return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
 ---
 
 <Layout title="Admin — Termine">
@@ -35,7 +60,7 @@ const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
       <div class="mb-8 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Termine</h1>
-          <p class="text-muted mt-1">Freie Slots der nächsten 14 Tage · {totalSlots} verfügbar</p>
+          <p class="text-muted mt-1">{bookings.length} gebucht · {totalSlots} freie Slots (14 Tage)</p>
         </div>
         <div class="flex gap-3">
           <a
@@ -61,31 +86,149 @@ const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
         </div>
       )}
 
-      {days.length === 0 && !calError && (
-        <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center">
-          Keine freien Termine in den nächsten 14 Tagen.
-        </div>
-      )}
+      <!-- Gebuchte Termine -->
+      <div class="mb-10">
+        <h2 class="text-xl font-semibold text-light mb-4">Gebuchte Termine</h2>
 
-      <div class="grid gap-4">
-        {days.map(day => (
-          <div class="p-5 bg-dark-light rounded-xl border border-dark-lighter">
-            <div class="flex items-center gap-3 mb-3">
-              <h2 class="text-light font-semibold">{day.weekday}</h2>
-              <span class="text-muted text-sm">{day.date}</span>
-              <span class="ml-auto text-xs text-muted">{day.slots.length} Slot{day.slots.length !== 1 ? 's' : ''}</span>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              {day.slots.map(slot => (
-                <span class="px-3 py-1.5 bg-gold/10 text-gold rounded-lg text-sm font-mono border border-gold/20">
-                  {slot.display}
-                </span>
+        {bookings.length === 0 && !calError && (
+          <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center">
+            Keine gebuchten Termine vorhanden.
+          </div>
+        )}
+
+        {upcomingBookings.length > 0 && (
+          <div class="mb-6">
+            <h3 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Anstehend</h3>
+            <div class="grid gap-3">
+              {upcomingBookings.map(b => (
+                <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" data-booking-uid={b.uid}>
+                  <div class="flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                      <p class="text-light font-medium">{b.summary}</p>
+                      <p class="text-sm text-muted mt-0.5">
+                        {formatBookingDate(b.start)} · {formatTime(b.start)} – {formatTime(b.end)}
+                      </p>
+                      <p class="text-sm text-accent mt-0.5">{b.attendeeName} &lt;{b.attendeeEmail}&gt;</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                      {projects.length > 0 && (
+                        <select
+                          class="booking-project-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
+                          data-booking-uid={b.uid}
+                        >
+                          <option value="">— Kein Projekt —</option>
+                          {projects.map(p => (
+                            <option value={p.id} selected={bookingProjectMap.get(b.uid) === p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <span class={`text-xs px-2 py-0.5 rounded-full ${b.status === 'TENTATIVE' ? 'bg-gold/20 text-gold' : 'bg-accent/20 text-accent'}`}>
+                        {b.status === 'TENTATIVE' ? 'Anfrage' : 'Bestätigt'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
-        ))}
+        )}
+
+        {pastBookings.length > 0 && (
+          <div>
+            <h3 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Vergangene</h3>
+            <div class="grid gap-3">
+              {pastBookings.map(b => (
+                <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter opacity-60" data-booking-uid={b.uid}>
+                  <div class="flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                      <p class="text-light font-medium">{b.summary}</p>
+                      <p class="text-sm text-muted mt-0.5">
+                        {formatBookingDate(b.start)} · {formatTime(b.start)} – {formatTime(b.end)}
+                      </p>
+                      <p class="text-sm text-muted mt-0.5">{b.attendeeName} &lt;{b.attendeeEmail}&gt;</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                      {projects.length > 0 && (
+                        <select
+                          class="booking-project-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
+                          data-booking-uid={b.uid}
+                        >
+                          <option value="">— Kein Projekt —</option>
+                          {projects.map(p => (
+                            <option value={p.id} selected={bookingProjectMap.get(b.uid) === p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted">
+                        {b.status === 'CANCELLED' ? 'Abgesagt' : 'Vergangen'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Freie Slots -->
+      <div>
+        <h2 class="text-xl font-semibold text-light mb-4">Freie Slots <span class="text-sm font-normal text-muted">(nächste 14 Tage)</span></h2>
+
+        {days.length === 0 && !calError && (
+          <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center">
+            Keine freien Termine in den nächsten 14 Tagen.
+          </div>
+        )}
+
+        <div class="grid gap-4">
+          {days.map(day => (
+            <div class="p-5 bg-dark-light rounded-xl border border-dark-lighter">
+              <div class="flex items-center gap-3 mb-3">
+                <h3 class="text-light font-semibold">{day.weekday}</h3>
+                <span class="text-muted text-sm">{day.date}</span>
+                <span class="ml-auto text-xs text-muted">{day.slots.length} Slot{day.slots.length !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                {day.slots.map(slot => (
+                  <span class="px-3 py-1.5 bg-gold/10 text-gold rounded-lg text-sm font-mono border border-gold/20">
+                    {slot.display}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
     </div>
   </section>
 </Layout>
+
+<script>
+  document.querySelectorAll<HTMLSelectElement>('.booking-project-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const uid = sel.dataset.bookingUid;
+      if (!uid) return;
+      sel.disabled = true;
+      try {
+        const res = await fetch(`/api/bookings/${encodeURIComponent(uid)}/project`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId: sel.value || null }),
+        });
+        if (!res.ok) {
+          alert('Fehler beim Speichern der Projektzuordnung.');
+        }
+      } catch {
+        alert('Netzwerkfehler beim Speichern.');
+      } finally {
+        sel.disabled = false;
+      }
+    });
+  });
+</script>

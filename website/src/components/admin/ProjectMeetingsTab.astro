@@ -1,0 +1,211 @@
+---
+import type { MeetingWithDetails } from '../../lib/website-db';
+
+interface Props {
+  meetings: MeetingWithDetails[];
+  projectId: string;
+  unassignedMeetings: Array<{ id: string; meetingType: string; status: string; createdAt: Date }>;
+}
+
+const { meetings, projectId, unassignedMeetings } = Astro.props;
+
+const INSIGHT_LABELS: Record<string, string> = {
+  summary:        'Zusammenfassung',
+  action_items:   'Action Items',
+  key_topics:     'Themen',
+  sentiment:      'Sentiment',
+  coaching_notes: 'Coaching-Notizen',
+};
+
+const STATUS_CLS: Record<string, string> = {
+  scheduled:   'bg-blue-900/40 text-blue-300 border-blue-800',
+  active:      'bg-yellow-900/40 text-yellow-300 border-yellow-800',
+  ended:       'bg-slate-900/40 text-slate-300 border-slate-700',
+  transcribed: 'bg-purple-900/40 text-purple-300 border-purple-800',
+  finalized:   'bg-green-900/40 text-green-300 border-green-800',
+};
+
+function fmtDate(d: Date | null | string): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+---
+
+<div data-testid="project-meetings-tab">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-lg font-semibold text-light">Besprechungen</h3>
+    {unassignedMeetings.length > 0 && (
+      <button
+        id="open-assign-modal"
+        class="px-4 py-2 bg-gold/20 text-gold border border-gold/30 text-sm font-medium rounded-lg hover:bg-gold/30 transition-colors"
+      >
+        + Meeting zuordnen
+      </button>
+    )}
+  </div>
+
+  {meetings.length === 0 ? (
+    <p class="text-muted text-sm">Noch keine Besprechungen zugeordnet.</p>
+  ) : (
+    <div class="space-y-3">
+      {meetings.map(meeting => (
+        <details class="bg-dark rounded-xl border border-dark-lighter group" data-meeting-id={meeting.id}>
+          <summary class="flex items-center justify-between px-4 py-3 cursor-pointer list-none select-none">
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="text-light text-sm font-medium">{meeting.meetingType}</span>
+              <span class="text-muted text-xs">—</span>
+              <span class="text-muted text-xs">{fmtDate(meeting.createdAt)}</span>
+              <span class={`px-2 py-0.5 text-xs rounded-full border ${STATUS_CLS[meeting.status] ?? 'bg-dark border-dark-lighter text-muted'}`}>
+                {meeting.status}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                class="remove-meeting-btn px-3 py-1 text-xs text-red-400 border border-red-800 rounded-full hover:bg-red-900/20 transition-colors"
+                data-meeting-id={meeting.id}
+                onclick="event.stopPropagation()"
+              >
+                Entfernen
+              </button>
+              <span class="text-muted text-xs group-open:rotate-90 transition-transform inline-block">▶</span>
+            </div>
+          </summary>
+
+          <div class="border-t border-dark-lighter px-4 pb-4 pt-4 space-y-5">
+
+            {meeting.transcripts.length > 0 && (
+              <div>
+                <h4 class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Transkript</h4>
+                {meeting.transcripts.map(t => (
+                  <div class="bg-dark-lighter rounded-lg p-3 max-h-60 overflow-y-auto">
+                    {t.durationSeconds && (
+                      <p class="text-xs text-muted mb-2">{t.language.toUpperCase()} · {Math.round(Number(t.durationSeconds))}s</p>
+                    )}
+                    <pre class="text-xs text-light/80 whitespace-pre-wrap font-sans leading-relaxed">{t.fullText}</pre>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {meeting.insights.length > 0 && (
+              <div>
+                <h4 class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">KI-Insights</h4>
+                <div class="space-y-2">
+                  {meeting.insights.map(insight => (
+                    <div class="bg-dark-lighter rounded-lg p-3">
+                      <p class="text-xs font-semibold text-gold mb-1">
+                        {INSIGHT_LABELS[insight.insightType] ?? insight.insightType}
+                      </p>
+                      <p class="text-sm text-light/80 whitespace-pre-wrap">{insight.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {meeting.artifacts.length > 0 && (
+              <div>
+                <h4 class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Artefakte</h4>
+                <ul class="space-y-1">
+                  {meeting.artifacts.map(a => (
+                    <li class="flex items-center gap-2 text-sm">
+                      <span class="px-2 py-0.5 text-xs bg-dark rounded border border-dark-lighter text-muted">
+                        {a.artifactType}
+                      </span>
+                      <span class="text-light/80">{a.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {meeting.transcripts.length === 0 && meeting.insights.length === 0 && meeting.artifacts.length === 0 && (
+              <p class="text-muted text-sm">Noch keine Inhalte für dieses Meeting.</p>
+            )}
+          </div>
+        </details>
+      ))}
+    </div>
+  )}
+
+  <dialog
+    id="assign-meeting-modal"
+    class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-lg backdrop:bg-black/60"
+  >
+    <h3 class="text-lg font-semibold text-light mb-4">Meeting zuordnen</h3>
+    {unassignedMeetings.length === 0 ? (
+      <p class="text-muted text-sm">Alle Meetings sind bereits einem Projekt zugeordnet.</p>
+    ) : (
+      <div class="space-y-2 max-h-80 overflow-y-auto">
+        {unassignedMeetings.map(m => (
+          <button
+            type="button"
+            class="assign-meeting-btn w-full text-left p-3 rounded-lg border border-dark-lighter hover:border-gold/60 transition-colors"
+            data-meeting-id={m.id}
+            data-project-id={projectId}
+          >
+            <span class="text-sm text-light">{m.meetingType}</span>
+            <span class="text-xs text-muted ml-2">{fmtDate(m.createdAt)}</span>
+            <span class="text-xs text-muted ml-2 capitalize">{m.status}</span>
+          </button>
+        ))}
+      </div>
+    )}
+    <div class="mt-4 flex justify-end">
+      <button
+        id="close-assign-modal"
+        type="button"
+        class="px-4 py-2 text-sm text-muted hover:text-light transition-colors"
+      >
+        Schließen
+      </button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+  const modal = document.getElementById('assign-meeting-modal') as HTMLDialogElement | null;
+
+  document.getElementById('open-assign-modal')?.addEventListener('click', () => modal?.showModal());
+  document.getElementById('close-assign-modal')?.addEventListener('click', () => modal?.close());
+
+  async function patchMeetingProject(meetingId: string, projectId: string | null): Promise<boolean> {
+    const res = await fetch(`/api/meetings/${meetingId}/project`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectId }),
+    });
+    return res.ok;
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.assign-meeting-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const { meetingId, projectId } = btn.dataset;
+      if (!meetingId || !projectId) return;
+      btn.disabled = true;
+      btn.textContent = '...';
+      const ok = await patchMeetingProject(meetingId, projectId);
+      if (ok) window.location.reload();
+      else {
+        alert('Fehler beim Zuordnen.');
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.remove-meeting-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const meetingId = btn.dataset.meetingId;
+      if (!meetingId) return;
+      if (!confirm('Meeting-Zuordnung aufheben?')) return;
+      btn.disabled = true;
+      const ok = await patchMeetingProject(meetingId, null);
+      if (ok) window.location.reload();
+      else {
+        alert('Fehler beim Entfernen.');
+        btn.disabled = false;
+      }
+    });
+  });
+</script>

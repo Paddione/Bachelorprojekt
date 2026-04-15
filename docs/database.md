@@ -44,6 +44,7 @@ erDiagram
         timestamptz updated_at
     }
 
+
     transcripts {
         uuid        id               PK
         uuid        meeting_id       FK
@@ -96,13 +97,14 @@ erDiagram
     }
 
     bug_tickets {
-        text        ticket_id       PK
+        text        ticket_id           PK
         text        status
         text        category
         text        reporter_email
         text        description
         text        url
         text        brand
+        jsonb       screenshots_json
         timestamptz created_at
         timestamptz resolved_at
         text        resolution_note

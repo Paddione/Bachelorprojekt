@@ -1208,14 +1208,22 @@ tasks:
   # Documentation
   # ─────────────────────────────────────────────
   docs:deploy:
-    desc: Deploy docs to both production clusters (korczewski + mentolder)
+    desc: Deploy docs ConfigMap to both production clusters (korczewski + mentolder)
     cmds:
-      - echo '→ Applying docs-content to korczewski...'
-      - kubectl apply -k k3d/ --context korczewski 2>&1 | grep docs-content
+      - echo '→ Updating docs-content ConfigMap on korczewski...'
+      - |
+        kubectl create configmap docs-content \
+          --from-file=k3d/docs-content/ \
+          --dry-run=client -o yaml -n workspace \
+          | kubectl apply -f - --context korczewski
       - kubectl rollout restart deployment/docs -n workspace --context korczewski
       - kubectl rollout status deployment/docs -n workspace --context korczewski --timeout=120s
-      - echo '→ Applying docs-content to mentolder...'
-      - kubectl apply -k k3d/ --context mentolder 2>&1 | grep docs-content
+      - echo '→ Updating docs-content ConfigMap on mentolder...'
+      - |
+        kubectl create configmap docs-content \
+          --from-file=k3d/docs-content/ \
+          --dry-run=client -o yaml -n workspace \
+          | kubectl apply -f - --context mentolder
       - kubectl rollout restart deployment/docs -n workspace --context mentolder
       - kubectl rollout status deployment/docs -n workspace --context mentolder --timeout=120s
       - echo ''

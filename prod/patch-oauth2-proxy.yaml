@@ -33,4 +33,6 @@ spec:
             - "--insecure-oidc-allow-unverified-email=true"
             - "--oidc-extra-audience=invoiceninja"
             - "--scope=openid email profile"
+            - "--cookie-expire=168h"
+            - "--cookie-refresh=1h"
             - "--skip-auth-regex=^/(favicon\\.ico|manifest\\.json|css/|js/|images/|fonts/|payment_webhook/|api/v1/payment_webhook)"

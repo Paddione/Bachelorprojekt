@@ -10,7 +10,8 @@ Die Tabellenstrukturen werden durch Kubernetes-Init-Skripte idempotent angelegt 
 ## Website-Datenbank (`website`)
 
 Speichert die Meeting Knowledge Pipeline: Kunden, Meeting-Verlauf, Transkripte,
-Artefakte, KI-Insights, Vektor-Embeddings sowie Bug-Tickets und Service-Konfigurationen.
+Artefakte, KI-Insights, Vektor-Embeddings sowie Bug-Tickets, Service-Konfigurationen,
+das Projektmanagement und Website-Admin-Einstellungen.
 
 ```mermaid
 erDiagram
@@ -113,6 +114,32 @@ erDiagram
         timestamptz updated_at
     }
 
+    leistungen_config {
+        text        brand           PK
+        jsonb       categories_json
+        timestamptz updated_at
+    }
+
+    site_settings {
+        text        brand           PK
+        text        key             PK
+        text        value
+        timestamptz updated_at
+    }
+
+    legal_pages {
+        text        brand           PK
+        text        page_key        PK
+        text        content_html
+        timestamptz updated_at
+    }
+
+    referenzen_config {
+        text        brand           PK
+        jsonb       items_json
+        timestamptz updated_at
+    }
+
     projects {
         uuid        id              PK
         text        brand
@@ -190,6 +217,10 @@ erDiagram
 | `meeting_embeddings` | pgvector-Einbettungen (BAAI/bge-base-en-v1.5, 768 Dim.) fuer semantische Suche |
 | `bug_tickets` | Bug-Meldungen vom Website-Formular mit Status `open → resolved → archived` |
 | `service_config` | Angebots-Overrides je Brand (JSON) fuer das Admin-Panel |
+| `leistungen_config` | Leistungskategorien-Overrides je Brand (Preistabelle) fuer das Admin-Panel |
+| `site_settings` | Key/Value-Store fuer Website-Einstellungen je Brand (z.B. Hero-Text, Kontaktdaten) |
+| `legal_pages` | Admin-editierbare Rechtstexte (AGB, Datenschutz, Impressum) je Brand als HTML |
+| `referenzen_config` | Referenz-/Kundenlisten je Brand fuer den Referenzen-Bereich der Website |
 | `projects` | Kundenprojekte mit Status-Lifecycle `entwurf → wartend → geplant → aktiv → erledigt → archiviert` |
 | `sub_projects` | Teilprojekte innerhalb eines Projekts (eine Ebene tief) mit identischen Attributen |
 | `project_tasks` | Aufgaben in Projekten oder Teilprojekten — `sub_project_id` IS NULL bedeutet direkte Projektzuordnung |

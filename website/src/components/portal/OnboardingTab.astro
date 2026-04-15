@@ -1,0 +1,66 @@
+---
+import { getOrCreateOnboardingChecklist } from '../../lib/website-db';
+
+interface Props {
+  keycloakUserId: string;
+  back: string;
+}
+const { keycloakUserId, back } = Astro.props;
+
+let items: Awaited<ReturnType<typeof getOrCreateOnboardingChecklist>> = [];
+try {
+  items = await getOrCreateOnboardingChecklist(keycloakUserId);
+} catch {
+  // DB unavailable
+}
+
+const doneCount = items.filter(i => i.done).length;
+const pct       = items.length ? Math.round((doneCount / items.length) * 100) : 0;
+---
+
+<div data-testid="onboarding-tab">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="text-lg font-semibold text-light">Onboarding-Checkliste</h3>
+      <p class="text-sm text-muted mt-0.5">{doneCount}/{items.length} Schritte abgeschlossen</p>
+    </div>
+    <form method="post" action="/api/admin/onboarding/reset">
+      <input type="hidden" name="keycloakUserId" value={keycloakUserId} />
+      <input type="hidden" name="_back" value={back} />
+      <button type="submit"
+        class="px-3 py-1.5 text-xs bg-dark border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors"
+        onclick="return confirm('Checkliste zurücksetzen?')">
+        Zurücksetzen
+      </button>
+    </form>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="w-full bg-dark rounded-full h-2 mb-6 overflow-hidden">
+    <div class={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-green-500' : 'bg-gold'}`}
+      style={`width: ${pct}%`}></div>
+  </div>
+
+  <ul class="space-y-2">
+    {items.map(item => (
+      <li class="flex items-center gap-3 p-3 bg-dark rounded-xl border border-dark-lighter"
+        data-testid="onboarding-item">
+        <form method="post" action="/api/admin/onboarding/update" class="contents">
+          <input type="hidden" name="id" value={item.id} />
+          <input type="hidden" name="done" value={item.done ? 'false' : 'true'} />
+          <input type="hidden" name="_back" value={back} />
+          <button type="submit"
+            class={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
+              ${item.done
+                ? 'border-green-500 bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                : 'border-dark-lighter text-transparent hover:border-gold'}`}>
+            {item.done ? '✓' : ''}
+          </button>
+        </form>
+        <span class={`text-sm ${item.done ? 'text-muted line-through' : 'text-light'}`}>
+          {item.label}
+        </span>
+      </li>
+    ))}
+  </ul>
+</div>

@@ -7,6 +7,7 @@ import InvoicesTab from '../../components/portal/InvoicesTab.astro';
 import FilesTab from '../../components/portal/FilesTab.astro';
 import SignaturesTab from '../../components/portal/SignaturesTab.astro';
 import MeetingsAdminTab from '../../components/portal/MeetingsAdminTab.astro';
+import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -45,6 +46,7 @@ const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
           { id: 'files', label: 'Dateien' },
           { id: 'signatures', label: 'Zur Unterschrift' },
           { id: 'meetings', label: 'Besprechungen' },
+          { id: 'onboarding', label: 'Onboarding' },
         ].map(t => (
           <a
             href={`/admin/${clientId}?tab=${t.id}`}
@@ -66,6 +68,12 @@ const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
         {tab === 'files' && <FilesTab clientUsername={client.username} />}
         {tab === 'signatures' && <SignaturesTab clientUsername={client.username} />}
         {tab === 'meetings' && <MeetingsAdminTab clientEmail={client.email ?? ''} />}
+        {tab === 'onboarding' && (
+          <OnboardingTab
+            keycloakUserId={clientId}
+            back={`/admin/${clientId}?tab=onboarding`}
+          />
+        )}
       </div>
     </div>
   </section>

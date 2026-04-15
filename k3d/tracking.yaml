@@ -1,0 +1,84 @@
+# ═══════════════════════════════════════════════════════════════════
+# Bachelorprojekt Requirements Tracking UI
+# Deno HTTP server reading from bachelorprojekt schema in shared-db
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bachelorprojekt
+  labels:
+    app: bachelorprojekt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bachelorprojekt
+  template:
+    metadata:
+      labels:
+        app: bachelorprojekt
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+      containers:
+        - name: tracking-ui
+          image: ghcr.io/paddione/bachelorprojekt:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: SHARED_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SHARED_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgres://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/postgres"
+            - name: PORT
+              value: "80"
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 256Mi
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bachelorprojekt
+  labels:
+    app: bachelorprojekt
+spec:
+  selector:
+    app: bachelorprojekt
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bachelorprojekt
+  labels:
+    app: bachelorprojekt
+spec:
+  rules:
+    - host: tracking.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bachelorprojekt
+                port:
+                  number: 80

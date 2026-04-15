@@ -203,7 +203,7 @@ secrets:
     generate: true
     length: 40
 
-  - name: MEETINGS_DB_PASSWORD
+  - name: WEBSITE_DB_PASSWORD
     required: true
     generate: true
     length: 32

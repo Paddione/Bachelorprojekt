@@ -8,7 +8,7 @@ resources:
   - secrets.yaml
   # Shared database (one PostgreSQL, one DB per service)
   - shared-db.yaml
-  - meetings-schema.yaml
+  - website-schema.yaml
   # Kerndienste
   - keycloak.yaml
   - mm-keycloak-proxy.yaml

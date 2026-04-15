@@ -5,7 +5,6 @@ import { isSlotWhitelisted } from '../../lib/website-db';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
-const BRAND = process.env.BRAND_NAME || 'mentolder';
 
 const TYPE_LABELS: Record<string, string> = {
   erstgespraech: 'Kostenloses Erstgespräch',
@@ -35,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Whitelist check: slot must be explicitly released by admin
     if (!isCallback && slotStart) {
-      const whitelisted = await isSlotWhitelisted(BRAND, new Date(slotStart));
+      const whitelisted = await isSlotWhitelisted(BRAND_NAME, new Date(slotStart));
       if (!whitelisted) {
         return new Response(
           JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),

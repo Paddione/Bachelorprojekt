@@ -1,4 +1,17 @@
-# Requirements Overview
+<div class="page-hero">
+  <span class="page-hero-icon">📐</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Anforderungen</div>
+    <p class="page-hero-desc">Vollständige Anforderungsdefinitionen — funktionale (FA-01–FA-25), Sicherheits- (SA-01–SA-10), nicht-funktionale (NFA-01–NFA-09) und Abnahmekriterien (AK-03, AK-04).</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">FA-01 – FA-25</span>
+      <span class="page-hero-tag">SA-01 – SA-10</span>
+      <span class="page-hero-tag">NFA-01 – NFA-09</span>
+      <span class="page-hero-tag">Testfälle</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 All requirements are tracked in the PostgreSQL tracking database (`bachelorprojekt.requirements`). Access via `task tracking:psql` or the Tracking UI at `tracking.localhost`.
 

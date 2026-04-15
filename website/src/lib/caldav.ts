@@ -1,8 +1,6 @@
 // Nextcloud CalDAV helper.
 // Fetches events from the admin's calendar and computes free time slots.
 
-import { getWhitelistedSlots } from './website-db';
-
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 const NC_USER = process.env.NEXTCLOUD_CALDAV_USER || 'admin';
 const NC_PASS = process.env.NEXTCLOUD_CALDAV_PASSWORD || 'devnextcloudadmin';
@@ -158,48 +156,6 @@ export interface AdminBooking {
   attendeeName: string;
 }
 
-export async function getClientBookings(clientEmail: string): Promise<ClientBooking[]> {
-  const now = new Date();
-  const past = new Date(now);
-  past.setDate(past.getDate() - 90);
-  const future = new Date(now);
-  future.setDate(future.getDate() + BOOKING_HORIZON_DAYS);
-
-  const icals = await fetchEventsRaw(past, future);
-  const bookings: ClientBooking[] = [];
-
-  for (const ical of icals) {
-    const veventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/gi;
-    let eventMatch;
-
-    while ((eventMatch = veventRegex.exec(ical)) !== null) {
-      const block = eventMatch[1];
-      const attendeePattern = new RegExp(
-        `ATTENDEE[^:]*:mailto:${clientEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
-        'i'
-      );
-      if (!attendeePattern.test(block)) continue;
-
-      const dtstart = extractICalProp(block, 'DTSTART');
-      const dtend = extractICalProp(block, 'DTEND');
-      const summary = extractICalProp(block, 'SUMMARY') || 'Termin';
-      const status = extractICalProp(block, 'STATUS') || 'CONFIRMED';
-
-      if (dtstart) {
-        bookings.push({
-          summary,
-          start: parseICalDate(dtstart),
-          end: dtend ? parseICalDate(dtend) : new Date(parseICalDate(dtstart).getTime() + 3600000),
-          status,
-        });
-      }
-    }
-  }
-
-  bookings.sort((a, b) => b.start.getTime() - a.start.getTime());
-  return bookings;
-}
-
 export async function getAllBookings(): Promise<AdminBooking[]> {
   const now = new Date();
   const past = new Date(now);
@@ -252,21 +208,56 @@ export async function getAllBookings(): Promise<AdminBooking[]> {
   return bookings;
 }
 
+export async function getClientBookings(clientEmail: string): Promise<ClientBooking[]> {
+  const now = new Date();
+  const past = new Date(now);
+  past.setDate(past.getDate() - 90);
+  const future = new Date(now);
+  future.setDate(future.getDate() + BOOKING_HORIZON_DAYS);
+
+  const icals = await fetchEventsRaw(past, future);
+  const bookings: ClientBooking[] = [];
+
+  for (const ical of icals) {
+    const veventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/gi;
+    let eventMatch;
+
+    while ((eventMatch = veventRegex.exec(ical)) !== null) {
+      const block = eventMatch[1];
+      const attendeePattern = new RegExp(
+        `ATTENDEE[^:]*:mailto:${clientEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+        'i'
+      );
+      if (!attendeePattern.test(block)) continue;
+
+      const dtstart = extractICalProp(block, 'DTSTART');
+      const dtend = extractICalProp(block, 'DTEND');
+      const summary = extractICalProp(block, 'SUMMARY') || 'Termin';
+      const status = extractICalProp(block, 'STATUS') || 'CONFIRMED';
+
+      if (dtstart) {
+        bookings.push({
+          summary,
+          start: parseICalDate(dtstart),
+          end: dtend ? parseICalDate(dtend) : new Date(parseICalDate(dtstart).getTime() + 3600000),
+          status,
+        });
+      }
+    }
+  }
+
+  bookings.sort((a, b) => b.start.getTime() - a.start.getTime());
+  return bookings;
+}
+
 // Compute available booking slots for a range of days
-export async function getAvailableSlots(fromDate?: Date, brand?: string): Promise<DaySlots[]> {
+export async function getAvailableSlots(fromDate?: Date): Promise<DaySlots[]> {
   const now = new Date();
   const start = fromDate || now;
   const end = new Date(start);
   end.setDate(end.getDate() + BOOKING_HORIZON_DAYS);
 
   const events = await fetchEvents(start, end);
-
-  // Load whitelist once if brand is provided (whitelist mode)
-  let whitelistedKeys: Set<string> | null = null;
-  if (brand) {
-    const whitelisted = await getWhitelistedSlots(brand);
-    whitelistedKeys = new Set(whitelisted.map(w => w.slotStart.toISOString()));
-  }
 
   const result: DaySlots[] = [];
   const cursor = new Date(start);
@@ -292,11 +283,6 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string): Promis
         );
 
         if (!hasConflict) {
-          // Whitelist filter: skip if brand given and slot not whitelisted
-          if (whitelistedKeys !== null && !whitelistedKeys.has(slotStart.toISOString())) {
-            continue;
-          }
-
           const startHH = slotStart.getHours().toString().padStart(2, '0');
           const startMM = slotStart.getMinutes().toString().padStart(2, '0');
           const endHH = slotEnd.getHours().toString().padStart(2, '0');

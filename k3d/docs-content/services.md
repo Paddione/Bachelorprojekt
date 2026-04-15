@@ -1,4 +1,16 @@
-# Services
+<div class="page-hero">
+  <span class="page-hero-icon">⚙️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Services</div>
+    <p class="page-hero-desc">Technische Referenz aller Kubernetes-Deployments: Images, Ports, Ressourcen, Abhängigkeiten und Manifest-Verweise.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Kubernetes Deployments</span>
+      <span class="page-hero-tag">Resource Limits</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 > **Hinweis für Mitarbeiter:** Eine verständliche Erklärung aller Dienste mit konkreten Anwendungsbeispielen findest Du im [Benutzerhandbuch](benutzerhandbuch.md). Diese Seite enthält die technischen Details für Administratoren.
 

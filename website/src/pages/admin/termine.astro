@@ -3,8 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAvailableSlots, getAllBookings } from '../../lib/caldav';
 import type { DaySlots, AdminBooking } from '../../lib/caldav';
-import { getBookingProjects, listProjects } from '../../lib/website-db';
-import type { Project } from '../../lib/website-db';
+import { getBookingProjects, listProjects, getBookingInvoices, getWhitelistedSlots } from '../../lib/website-db';
+import type { Project, BookingInvoiceInfo } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -13,6 +13,7 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 const NC_DOMAIN = process.env.NC_DOMAIN || 'files.mentolder.de';
 const calendarUrl = `https://${NC_DOMAIN}/apps/calendar`;
 const brand = process.env.BRAND_NAME || 'mentolder';
+const IN_PUBLIC_URL = process.env.INVOICENINJA_PUBLIC_URL || '';
 
 const now = new Date();
 const horizon = new Date(now);
@@ -21,11 +22,13 @@ horizon.setDate(horizon.getDate() + 14);
 let days: DaySlots[] = [];
 let bookings: AdminBooking[] = [];
 let bookingProjectMap: Map<string, string> = new Map();
+let bookingInvoiceMap: Map<string, BookingInvoiceInfo> = new Map();
 let projects: Project[] = [];
 let calError = '';
 
 try {
   const [allSlots, allBookings, allProjects] = await Promise.all([
+    // Without brand: all generated slots (no whitelist filter) for admin overview
     getAvailableSlots(now),
     getAllBookings(),
     listProjects({ brand }),
@@ -34,13 +37,24 @@ try {
   bookings = allBookings;
   projects = allProjects;
   const uids = bookings.map(b => b.uid).filter(Boolean);
-  bookingProjectMap = await getBookingProjects(uids, brand);
+  [bookingProjectMap, bookingInvoiceMap] = await Promise.all([
+    getBookingProjects(uids, brand),
+    getBookingInvoices(uids, brand),
+  ]);
 } catch (err) {
   console.error('[admin/termine] load failed:', err);
   calError = 'Kalender konnte nicht geladen werden.';
 }
 
+// Load whitelist and build a Set of whitelisted ISO start strings
+const whitelistedSlots = await getWhitelistedSlots(brand).catch(() => [] as { slotStart: Date }[]);
+const whitelistedSet = new Set(whitelistedSlots.map((w: { slotStart: Date }) => w.slotStart.toISOString()));
+
 const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
+const releasedCount = days.reduce(
+  (sum, d) => sum + d.slots.filter(s => whitelistedSet.has(s.start)).length,
+  0
+);
 const upcomingBookings = bookings.filter(b => b.start >= now && b.status !== 'CANCELLED');
 const pastBookings = bookings.filter(b => b.start < now || b.status === 'CANCELLED');
 
@@ -60,7 +74,7 @@ function formatTime(d: Date) {
       <div class="mb-8 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Termine</h1>
-          <p class="text-muted mt-1">{bookings.length} gebucht · {totalSlots} freie Slots (14 Tage)</p>
+          <p class="text-muted mt-1">{bookings.length} gebucht · {totalSlots} generierte Slots · <span class="text-gold"><span id="released-counter">{releasedCount}</span> freigegeben</span></p>
         </div>
         <div class="flex gap-3">
           <a
@@ -100,37 +114,53 @@ function formatTime(d: Date) {
           <div class="mb-6">
             <h3 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Anstehend</h3>
             <div class="grid gap-3">
-              {upcomingBookings.map(b => (
-                <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" data-booking-uid={b.uid}>
-                  <div class="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                      <p class="text-light font-medium">{b.summary}</p>
-                      <p class="text-sm text-muted mt-0.5">
-                        {formatBookingDate(b.start)} · {formatTime(b.start)} – {formatTime(b.end)}
-                      </p>
-                      <p class="text-sm text-accent mt-0.5">{b.attendeeName} &lt;{b.attendeeEmail}&gt;</p>
-                    </div>
-                    <div class="flex items-center gap-3 shrink-0 flex-wrap">
-                      {projects.length > 0 && (
-                        <select
-                          class="booking-project-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
-                          data-booking-uid={b.uid}
-                        >
-                          <option value="">— Kein Projekt —</option>
-                          {projects.map(p => (
-                            <option value={p.id} selected={bookingProjectMap.get(b.uid) === p.id}>
-                              {p.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      <span class={`text-xs px-2 py-0.5 rounded-full ${b.status === 'TENTATIVE' ? 'bg-gold/20 text-gold' : 'bg-accent/20 text-accent'}`}>
-                        {b.status === 'TENTATIVE' ? 'Anfrage' : 'Bestätigt'}
-                      </span>
+              {upcomingBookings.map(b => {
+                const inv = bookingInvoiceMap.get(b.uid);
+                return (
+                  <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" data-booking-uid={b.uid}>
+                    <div class="flex items-start justify-between gap-4 flex-wrap">
+                      <div>
+                        <p class="text-light font-medium">{b.summary}</p>
+                        <p class="text-sm text-muted mt-0.5">
+                          {formatBookingDate(b.start)} · {formatTime(b.start)} – {formatTime(b.end)}
+                        </p>
+                        <p class="text-sm text-accent mt-0.5">{b.attendeeName} &lt;{b.attendeeEmail}&gt;</p>
+                      </div>
+                      <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                        {projects.length > 0 && (
+                          <select
+                            class="booking-project-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
+                            data-booking-uid={b.uid}
+                          >
+                            <option value="">— Kein Projekt —</option>
+                            {projects.map(p => (
+                              <option value={p.id} selected={bookingProjectMap.get(b.uid) === p.id}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {inv && (IN_PUBLIC_URL
+                          ? <a
+                              href={`${IN_PUBLIC_URL}/invoices/${inv.invoiceId}/edit`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20 hover:bg-gold/20 transition-colors whitespace-nowrap"
+                            >
+                              #{inv.invoiceNumber} · {inv.amount.toFixed(0)} EUR →
+                            </a>
+                          : <span class="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20 whitespace-nowrap">
+                              #{inv.invoiceNumber} · {inv.amount.toFixed(0)} EUR
+                            </span>
+                        )}
+                        <span class={`text-xs px-2 py-0.5 rounded-full ${b.status === 'TENTATIVE' ? 'bg-gold/20 text-gold' : 'bg-accent/20 text-accent'}`}>
+                          {b.status === 'TENTATIVE' ? 'Anfrage' : 'Bestätigt'}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -139,49 +169,65 @@ function formatTime(d: Date) {
           <div>
             <h3 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Vergangene</h3>
             <div class="grid gap-3">
-              {pastBookings.map(b => (
-                <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter opacity-60" data-booking-uid={b.uid}>
-                  <div class="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                      <p class="text-light font-medium">{b.summary}</p>
-                      <p class="text-sm text-muted mt-0.5">
-                        {formatBookingDate(b.start)} · {formatTime(b.start)} – {formatTime(b.end)}
-                      </p>
-                      <p class="text-sm text-muted mt-0.5">{b.attendeeName} &lt;{b.attendeeEmail}&gt;</p>
-                    </div>
-                    <div class="flex items-center gap-3 shrink-0 flex-wrap">
-                      {projects.length > 0 && (
-                        <select
-                          class="booking-project-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
-                          data-booking-uid={b.uid}
-                        >
-                          <option value="">— Kein Projekt —</option>
-                          {projects.map(p => (
-                            <option value={p.id} selected={bookingProjectMap.get(b.uid) === p.id}>
-                              {p.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted">
-                        {b.status === 'CANCELLED' ? 'Abgesagt' : 'Vergangen'}
-                      </span>
+              {pastBookings.map(b => {
+                const inv = bookingInvoiceMap.get(b.uid);
+                return (
+                  <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter opacity-60" data-booking-uid={b.uid}>
+                    <div class="flex items-start justify-between gap-4 flex-wrap">
+                      <div>
+                        <p class="text-light font-medium">{b.summary}</p>
+                        <p class="text-sm text-muted mt-0.5">
+                          {formatBookingDate(b.start)} · {formatTime(b.start)} – {formatTime(b.end)}
+                        </p>
+                        <p class="text-sm text-muted mt-0.5">{b.attendeeName} &lt;{b.attendeeEmail}&gt;</p>
+                      </div>
+                      <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                        {projects.length > 0 && (
+                          <select
+                            class="booking-project-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
+                            data-booking-uid={b.uid}
+                          >
+                            <option value="">— Kein Projekt —</option>
+                            {projects.map(p => (
+                              <option value={p.id} selected={bookingProjectMap.get(b.uid) === p.id}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {inv && (IN_PUBLIC_URL
+                          ? <a
+                              href={`${IN_PUBLIC_URL}/invoices/${inv.invoiceId}/edit`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted border border-dark-lighter hover:text-light transition-colors whitespace-nowrap"
+                            >
+                              #{inv.invoiceNumber} · {inv.amount.toFixed(0)} EUR →
+                            </a>
+                          : <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted border border-dark-lighter whitespace-nowrap">
+                              #{inv.invoiceNumber} · {inv.amount.toFixed(0)} EUR
+                            </span>
+                        )}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted">
+                          {b.status === 'CANCELLED' ? 'Abgesagt' : 'Vergangen'}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
       </div>
 
-      <!-- Freie Slots -->
+      <!-- Freie Slots (Whitelist-Verwaltung) -->
       <div>
         <h2 class="text-xl font-semibold text-light mb-4">Freie Slots <span class="text-sm font-normal text-muted">(nächste 14 Tage)</span></h2>
 
         {days.length === 0 && !calError && (
           <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center">
-            Keine freien Termine in den nächsten 14 Tagen.
+            Keine generierten Termine in den nächsten 14 Tagen.
           </div>
         )}
 
@@ -194,11 +240,25 @@ function formatTime(d: Date) {
                 <span class="ml-auto text-xs text-muted">{day.slots.length} Slot{day.slots.length !== 1 ? 's' : ''}</span>
               </div>
               <div class="flex flex-wrap gap-2">
-                {day.slots.map(slot => (
-                  <span class="px-3 py-1.5 bg-gold/10 text-gold rounded-lg text-sm font-mono border border-gold/20">
-                    {slot.display}
-                  </span>
-                ))}
+                {day.slots.map(slot => {
+                  const released = whitelistedSet.has(slot.start);
+                  return (
+                    <button
+                      class={`slot-toggle px-3 py-1.5 rounded-lg text-sm font-mono border transition-colors cursor-pointer ${
+                        released
+                          ? 'bg-gold/10 text-gold border-gold/20 hover:bg-gold/20'
+                          : 'bg-dark-lighter text-muted border-dark-lighter hover:border-gold/30'
+                      }`}
+                      data-start={slot.start}
+                      data-end={slot.end}
+                      data-released={released ? 'true' : 'false'}
+                      title={released ? 'Freigabe zurückziehen' : 'Slot freigeben'}
+                    >
+                      {slot.display}
+                      {released && <span class="ml-1 opacity-60">×</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -210,6 +270,65 @@ function formatTime(d: Date) {
 </Layout>
 
 <script>
+  // Whitelist slot toggle
+  document.querySelectorAll<HTMLButtonElement>('.slot-toggle').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const start = btn.dataset.start!;
+      const end   = btn.dataset.end!;
+      const isReleased = btn.dataset.released === 'true';
+
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+
+      try {
+        const res = await fetch(
+          isReleased ? '/api/admin/slots/remove' : '/api/admin/slots/add',
+          {
+            method: isReleased ? 'DELETE' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(isReleased ? { slotStart: start } : { slotStart: start, slotEnd: end }),
+          }
+        );
+
+        if (!res.ok) {
+          console.error('Slot toggle failed:', await res.text());
+          return;
+        }
+
+        // Flip state
+        const nowReleased = !isReleased;
+        btn.dataset.released = nowReleased ? 'true' : 'false';
+
+        if (nowReleased) {
+          btn.classList.remove('bg-dark-lighter', 'text-muted', 'border-dark-lighter', 'hover:border-gold/30');
+          btn.classList.add('bg-gold/10', 'text-gold', 'border-gold/20', 'hover:bg-gold/20');
+          btn.title = 'Freigabe zurückziehen';
+          if (!btn.querySelector('.toggle-x')) {
+            const x = document.createElement('span');
+            x.className = 'ml-1 opacity-60 toggle-x';
+            x.textContent = '×';
+            btn.appendChild(x);
+          }
+        } else {
+          btn.classList.remove('bg-gold/10', 'text-gold', 'border-gold/20', 'hover:bg-gold/20');
+          btn.classList.add('bg-dark-lighter', 'text-muted', 'border-dark-lighter', 'hover:border-gold/30');
+          btn.title = 'Slot freigeben';
+          btn.querySelector('.toggle-x')?.remove();
+        }
+
+        // Update released counter
+        const counterEl = document.getElementById('released-counter');
+        if (counterEl) {
+          counterEl.textContent = String(Number(counterEl.textContent) + (nowReleased ? 1 : -1));
+        }
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    });
+  });
+
+  // Booking project assignment
   document.querySelectorAll<HTMLSelectElement>('.booking-project-select').forEach(sel => {
     sel.addEventListener('change', async () => {
       const uid = sel.dataset.bookingUid;

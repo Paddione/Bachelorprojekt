@@ -1,4 +1,16 @@
-# Datenbankmodelle
+<div class="page-hero">
+  <span class="page-hero-icon">🗄️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Datenbankmodelle</div>
+    <p class="page-hero-desc">PostgreSQL-Schemata der Website-, Requirements- und Billing-Datenbanken. Alle Tabellen werden idempotent via Kubernetes-Init-Skripte angelegt.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">PostgreSQL 16</span>
+      <span class="page-hero-tag">shared-db</span>
+      <span class="page-hero-tag">ER-Diagramme</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 Alle im Repository definierten Schemas laufen auf `shared-db` (PostgreSQL 16).
 Die Tabellenstrukturen werden durch Kubernetes-Init-Skripte idempotent angelegt —

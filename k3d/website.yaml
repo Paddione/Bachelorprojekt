@@ -57,7 +57,7 @@ data:
   # Mattermost signing channel
   MATTERMOST_SIGNING_CHANNEL: "signing"
   # Portal admin
-  PORTAL_ADMIN_USERNAME: "gekko"
+  PORTAL_ADMIN_USERNAME: "gekko,paddione"
   CALENDAR_NAME: "personal"
   WORK_START_HOUR: "9"
   WORK_END_HOUR: "17"

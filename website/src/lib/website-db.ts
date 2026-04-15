@@ -1806,3 +1806,118 @@ export async function listBugTickets(filters: {
   );
   return result.rows;
 }
+
+// ── Homepage Content (hero + startseite) ─────────────────────────────────────
+
+export interface HomepageHero {
+  title: string;
+  subtitle: string;
+  tagline: string;
+}
+
+export interface WhyMePoint {
+  title: string;
+  text: string;
+}
+
+export interface StatItem {
+  value: string;
+  label: string;
+}
+
+export interface HomepageContent {
+  hero: HomepageHero;
+  stats: StatItem[];
+  servicesHeadline: string;
+  servicesSubheadline: string;
+  whyMeHeadline: string;
+  whyMeIntro: string;
+  whyMePoints: WhyMePoint[];
+  quote: string;
+  quoteName: string;
+}
+
+export async function getHomepageContent(brand: string): Promise<HomepageContent | null> {
+  const raw = await getSiteSetting(brand, 'homepage');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveHomepageContent(brand: string, data: HomepageContent): Promise<void> {
+  await setSiteSetting(brand, 'homepage', JSON.stringify(data));
+}
+
+// ── Über mich Content ─────────────────────────────────────────────────────────
+
+export interface UebermichSection {
+  title: string;
+  content: string;
+}
+
+export interface UebermichMilestone {
+  year: string;
+  title: string;
+  desc: string;
+}
+
+export interface UebermichNotDoing {
+  title: string;
+  text: string;
+}
+
+export interface UebermichContent {
+  pageHeadline: string;
+  subheadline: string;
+  introParagraphs: string[];
+  sections: UebermichSection[];
+  milestones: UebermichMilestone[];
+  notDoing: UebermichNotDoing[];
+  privateText: string;
+}
+
+export async function getUebermichContent(brand: string): Promise<UebermichContent | null> {
+  const raw = await getSiteSetting(brand, 'uebermich');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveUebermichContent(brand: string, data: UebermichContent): Promise<void> {
+  await setSiteSetting(brand, 'uebermich', JSON.stringify(data));
+}
+
+// ── FAQ Content ───────────────────────────────────────────────────────────────
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export async function getFaqContent(brand: string): Promise<FaqItem[] | null> {
+  const raw = await getSiteSetting(brand, 'faq');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveFaqContent(brand: string, items: FaqItem[]): Promise<void> {
+  await setSiteSetting(brand, 'faq', JSON.stringify(items));
+}
+
+// ── Kontakt Content ───────────────────────────────────────────────────────────
+
+export interface KontaktContent {
+  intro: string;
+  sidebarTitle: string;
+  sidebarText: string;
+  sidebarCta: string;
+  showPhone: boolean;
+}
+
+export async function getKontaktContent(brand: string): Promise<KontaktContent | null> {
+  const raw = await getSiteSetting(brand, 'kontakt');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
+  await setSiteSetting(brand, 'kontakt', JSON.stringify(data));
+}

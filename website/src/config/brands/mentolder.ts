@@ -295,7 +295,7 @@ export const mentolderConfig: BrandConfig = {
       { year: 'Seit 2024', title: 'Selbstständig', desc: 'Coach und Digitaler Begleiter. Führungskräfte-Coaching und Unternehmensberatung.' },
     ],
     notDoing: [
-      { title: 'Keine technische Umsetzung', text: 'Ich berate, entwickle Strategien und begleite Change-Prozesse. Programmierung uberlasse ich Spezialisten.' },
+      { title: 'Keine technische Umsetzung', text: 'Ich berate, entwickle Strategien und begleite Change-Prozesse. Programmierung überlasse ich Spezialisten.' },
       { title: 'Keine Online-Kurse', text: 'Ich glaube an persönliche Begleitung statt standardisierte, skalierbare Produkte.' },
     ],
     privateText: 'Ich lebe in {city}, bin verheiratet, habe zwei erwachsene Kinder. In meiner Freizeit bin ich viel zu Fuß unterwegs – Bewegung ist für mich Meditation. Und ja, ich bin selbst Teil der Generation 50+ (65 Jahre) – ich weiß also aus eigener Erfahrung, wovon ich spreche.',
@@ -304,7 +304,7 @@ export const mentolderConfig: BrandConfig = {
     intro: 'Egal ob Frage, Erstgespräch oder Feedback – ich freue mich, von Ihnen zu hören.',
     sidebarTitle: 'Kostenloses Erstgespräch',
     sidebarText: 'In 30 Minuten klären wir: Wo stehen Sie? Was ist Ihre größte Herausforderung? Wie könnte eine Zusammenarbeit aussehen?',
-    sidebarCta: 'Kein Verkaufsgesprach. Kein Druck. Nur Klarheit.',
+    sidebarCta: 'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit.',
     showPhone: true,
     showSteps: false,
   },
@@ -319,7 +319,7 @@ export const mentolderConfig: BrandConfig = {
     },
     {
       question: 'Arbeiten Sie auch online?',
-      answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. Das Digital Café biete ich bevorzugt vor Ort in {city} und Umgebung an.',
+      answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. 50+ digital biete ich bevorzugt vor Ort in {city} und Umgebung an.',
     },
     {
       question: 'Was kostet ein Erstgespräch?',

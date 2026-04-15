@@ -43,7 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
         channel: 'anfragen',
         username: 'Website-Bot',
         icon_emoji: ':bust_in_silhouette:',
-        text: `### :bust_in_silhouette: Neue Registrierung\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${fullName} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Unternehmen** | ${company || 'Nicht angegeben'} |\n\n${message ? `**Nachricht:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}\n\n:warning: Interaktive Buttons nicht verfugbar. Benutzer manuell in Keycloak anlegen.`,
+        text: `### :bust_in_silhouette: Neue Registrierung\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${fullName} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Unternehmen** | ${company || 'Nicht angegeben'} |\n\n${message ? `**Nachricht:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}\n\n:warning: Interaktive Buttons nicht verfügbar. Benutzer manuell in Keycloak anlegen.`,
       });
     }
 

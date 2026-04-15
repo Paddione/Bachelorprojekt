@@ -25,7 +25,7 @@ const pc = svc.pageContent;
 
   <section class="py-16 bg-dark-light">
     <div class="max-w-4xl mx-auto px-6">
-      <h2 class="text-3xl font-bold text-light mb-8 font-serif">Fur wen ist das?</h2>
+      <h2 class="text-3xl font-bold text-light mb-8 font-serif">Für wen ist das?</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {pc.forWhom.map((item) => (
           <div class="flex items-start gap-4 p-5 bg-dark rounded-xl border border-dark-lighter">
@@ -65,12 +65,12 @@ const pc = svc.pageContent;
           </div>
         ))}
       </div>
-      <p class="text-center text-muted mt-8 text-lg">Kostenloses Erstgesprach zum Kennenlernen!</p>
+      <p class="text-center text-muted mt-8 text-lg">Kostenloses Erstgespräch zum Kennenlernen!</p>
     </div>
   </section>
 
   {pc.faq && pc.faq.length > 0 && (
-    <FAQ items={pc.faq} title={`Haufige Fragen zu ${svc.title}`} client:visible />
+    <FAQ items={pc.faq} title={`Häufige Fragen zu ${svc.title}`} client:visible />
   )}
 
   <CallToAction client:visible />

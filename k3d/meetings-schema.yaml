@@ -114,7 +114,7 @@ data:
           reporter_email  TEXT NOT NULL,
           description     TEXT NOT NULL,
           url             TEXT,
-          brand           TEXT NOT NULL DEFAULT 'mentolder',
+          brand           TEXT NOT NULL,
           created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           resolved_at     TIMESTAMPTZ,
           resolution_note TEXT

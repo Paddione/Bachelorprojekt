@@ -64,7 +64,6 @@ function fmtDate(d: Date | null | string): string {
                 type="button"
                 class="remove-meeting-btn px-3 py-1 text-xs text-red-400 border border-red-800 rounded-full hover:bg-red-900/20 transition-colors"
                 data-meeting-id={meeting.id}
-                onclick="event.stopPropagation()"
               >
                 Entfernen
               </button>
@@ -169,14 +168,19 @@ function fmtDate(d: Date | null | string): string {
 
   document.getElementById('open-assign-modal')?.addEventListener('click', () => modal?.showModal());
   document.getElementById('close-assign-modal')?.addEventListener('click', () => modal?.close());
+  modal?.addEventListener('click', (e) => { if (e.target === modal) modal.close(); });
 
   async function patchMeetingProject(meetingId: string, projectId: string | null): Promise<boolean> {
-    const res = await fetch(`/api/meetings/${meetingId}/project`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId }),
-    });
-    return res.ok;
+    try {
+      const res = await fetch(`/api/meetings/${meetingId}/project`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 
   document.querySelectorAll<HTMLButtonElement>('.assign-meeting-btn').forEach(btn => {
@@ -195,7 +199,9 @@ function fmtDate(d: Date | null | string): string {
   });
 
   document.querySelectorAll<HTMLButtonElement>('.remove-meeting-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const meetingId = btn.dataset.meetingId;
       if (!meetingId) return;
       if (!confirm('Meeting-Zuordnung aufheben?')) return;

@@ -341,6 +341,7 @@ export async function getMeetingsForClient(
   clientEmail: string,
   onlyReleased = false
 ): Promise<Meeting[]> {
+  await initMeetingProjectLink();
   const baseSelect = `
     SELECT m.id, m.customer_id as "customerId", m.status, m.released_at,
            m.project_id as "projectId", p.name as "projectName"
@@ -1196,6 +1197,8 @@ export async function listMeetingsForProject(
   );
 
   const result: MeetingWithDetails[] = [];
+  // Per-meeting fan-out: 3 parallel queries × N meetings.
+  // Acceptable for small project meeting counts; revisit if projects regularly exceed ~20 meetings.
   for (const m of meetings.rows) {
     const [tRes, iRes, aRes] = await Promise.all([
       pool.query(

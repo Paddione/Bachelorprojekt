@@ -3,8 +3,9 @@ import Layout from '../../../layouts/Layout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import {
   getProject, listSubProjects, listDirectTasks, listSubProjectTasks, listAllCustomers,
+  listTimeEntries, getProjectTotalMinutes,
 } from '../../../lib/website-db';
-import type { Project, SubProject, ProjectTask, Customer } from '../../../lib/website-db';
+import type { Project, SubProject, ProjectTask, Customer, TimeEntry } from '../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -17,14 +18,18 @@ let project: Project | null = null;
 let subProjects: SubProject[] = [];
 let directTasks: ProjectTask[] = [];
 let customers: Customer[] = [];
+let timeEntries: TimeEntry[] = [];
+let timeStats: { total: number; billable: number } = { total: 0, billable: 0 };
 let dbError = '';
 
 try {
   [project, customers] = await Promise.all([getProject(id), listAllCustomers()]);
   if (project) {
-    [subProjects, directTasks] = await Promise.all([
+    [subProjects, directTasks, timeEntries, timeStats] = await Promise.all([
       listSubProjects(id),
       listDirectTasks(id),
+      listTimeEntries(id),
+      getProjectTotalMinutes(id),
     ]);
   }
 } catch (err) {
@@ -70,6 +75,9 @@ function isoDate(d: Date | null | string): string {
 }
 function isOverdue(dueDate: Date | null, status: string): boolean {
   return !!dueDate && new Date(dueDate) < today && !['erledigt','archiviert'].includes(status);
+}
+function fmtMin(m: number): string {
+  return `${Math.floor(m / 60)}h ${(m % 60).toString().padStart(2, '0')}m`;
 }
 
 const inputCls    = 'w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none';
@@ -373,6 +381,65 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
               </table>
             )}
           </div>
+
+          {/* ── Zeiterfassung ── */}
+          <section class="mt-10">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="text-xl font-semibold text-light font-serif">Zeiterfassung</h2>
+                <p class="text-muted text-sm mt-0.5">
+                  {fmtMin(timeStats.total)} gesamt · {fmtMin(timeStats.billable)} abrechenbar
+                </p>
+              </div>
+              <button type="button" id="time-create-btn"
+                class="px-3 py-1.5 bg-gold hover:bg-gold-light text-dark text-sm font-semibold rounded-lg transition-colors">
+                + Zeit buchen
+              </button>
+            </div>
+
+            {timeEntries.length === 0 ? (
+              <p class="text-muted text-sm">Noch keine Einträge.</p>
+            ) : (
+              <div class="bg-dark-light rounded-xl border border-dark-lighter overflow-hidden">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-dark-lighter">
+                      <th class="text-left px-3 py-2 text-xs text-muted uppercase tracking-wide font-medium">Datum</th>
+                      <th class="text-left px-3 py-2 text-xs text-muted uppercase tracking-wide font-medium">Aufgabe</th>
+                      <th class="text-left px-3 py-2 text-xs text-muted uppercase tracking-wide font-medium">Beschreibung</th>
+                      <th class="text-right px-3 py-2 text-xs text-muted uppercase tracking-wide font-medium">Min.</th>
+                      <th class="text-center px-3 py-2 text-xs text-muted uppercase tracking-wide font-medium">Abr.</th>
+                      <th class="px-3 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {timeEntries.map(e => (
+                      <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
+                        <td class="px-3 py-2 text-xs text-muted whitespace-nowrap">
+                          {new Date(e.entryDate).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        </td>
+                        <td class="px-3 py-2 text-xs text-muted">{e.taskName ?? '—'}</td>
+                        <td class="px-3 py-2 text-xs text-muted max-w-[160px] truncate">{e.description ?? '—'}</td>
+                        <td class="px-3 py-2 text-xs text-light text-right font-mono">{e.minutes}</td>
+                        <td class="px-3 py-2 text-center text-xs">
+                          {e.billable ? <span class="text-green-400">✓</span> : <span class="text-muted">—</span>}
+                        </td>
+                        <td class="px-3 py-2 text-right">
+                          <form method="post" action="/api/admin/zeiterfassung/delete">
+                            <input type="hidden" name="id" value={e.id} />
+                            <input type="hidden" name="_back" value={`/admin/projekte/${id}`} />
+                            <button type="submit"
+                              class="text-muted hover:text-red-400 transition-colors text-sm"
+                              onclick="return confirm('Eintrag löschen?')">✕</button>
+                          </form>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         </>
       )}
 
@@ -460,6 +527,43 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
       <div><label class={labelCls}>Notizen</label><textarea name="notes" id="edit-sp-notes" rows="2" maxlength="4000" class={`${inputCls} resize-none`}></textarea></div>
       <div class="flex gap-3 justify-end pt-2">
         <button type="button" id="edit-sp-cancel" class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
+        <button type="submit" class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  {/* ── Zeit-buchen Dialog ── */}
+  <dialog id="time-create-dialog"
+    class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-md backdrop:bg-black/60">
+    <h2 class="text-lg font-semibold text-light mb-4 font-serif">Zeit buchen</h2>
+    <form method="post" action="/api/admin/zeiterfassung/create" class="space-y-4">
+      <input type="hidden" name="projectId" value={project?.id ?? ''} />
+      <input type="hidden" name="_back" value={`/admin/projekte/${project?.id ?? ''}`} />
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-muted mb-1">Minuten <span class="text-red-400">*</span></label>
+          <input type="number" name="minutes" min="1" max="1440" required
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none"
+            placeholder="z.B. 90" />
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Datum</label>
+          <input type="date" name="entryDate"
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none"
+            value={new Date().toISOString().slice(0, 10)} />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Beschreibung</label>
+        <input type="text" name="description" maxlength="500"
+          class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none" />
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="checkbox" name="billable" value="true" id="time-billable-cb" checked class="accent-gold w-4 h-4" />
+        <label for="time-billable-cb" class="text-sm text-light cursor-pointer">Abrechenbar</label>
+      </div>
+      <div class="flex gap-3 justify-end pt-2">
+        <button type="button" id="time-create-cancel" class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
         <button type="submit" class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">Speichern</button>
       </div>
     </form>
@@ -607,4 +711,9 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
       if (!confirm('Aufgabe löschen?')) e.preventDefault();
     });
   });
+
+  // ── Zeit buchen dialog ──
+  const timeDialog = document.getElementById('time-create-dialog') as HTMLDialogElement;
+  document.getElementById('time-create-btn')?.addEventListener('click', () => timeDialog.showModal());
+  document.getElementById('time-create-cancel')?.addEventListener('click', () => timeDialog.close());
 </script>

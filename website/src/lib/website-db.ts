@@ -72,6 +72,17 @@ export async function initMeetingsDb(): Promise<void> {
   );
 }
 
+async function initMeetingProjectLink(): Promise<void> {
+  await initProjectTables(); // projects-Tabelle muss vor der FK-Spalte existieren
+  await pool.query(`
+    ALTER TABLE meetings
+      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE SET NULL
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_meetings_project ON meetings(project_id)
+  `);
+}
+
 // ── Meeting ─────────────────────────────────────────────────────────────────
 
 export interface Meeting {
@@ -79,6 +90,38 @@ export interface Meeting {
   customerId: string;
   status: string;
   released_at: Date | null;
+  projectId: string | null;
+  projectName: string | null;
+}
+
+export interface MeetingWithDetails {
+  id: string;
+  meetingType: string;
+  status: string;
+  scheduledAt: Date | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  durationSeconds: number | null;
+  releasedAt: Date | null;
+  createdAt: Date;
+  transcripts: Array<{
+    id: string;
+    fullText: string;
+    language: string;
+    durationSeconds: number | null;
+  }>;
+  insights: Array<{
+    id: string;
+    insightType: string;
+    content: string;
+    generatedBy: string;
+  }>;
+  artifacts: Array<{
+    id: string;
+    artifactType: string;
+    name: string;
+    contentText: string | null;
+  }>;
 }
 
 export async function createMeeting(params: {
@@ -86,12 +129,15 @@ export async function createMeeting(params: {
   meetingType: string;
   scheduledAt?: Date;
   talkRoomToken?: string;
+  projectId?: string;
 }): Promise<Meeting> {
   const result = await pool.query(
-    `INSERT INTO meetings (customer_id, meeting_type, scheduled_at, talk_room_token, status)
-     VALUES ($1, $2, $3, $4, 'scheduled')
-     RETURNING id, customer_id as "customerId", status, released_at`,
-    [params.customerId, params.meetingType, params.scheduledAt, params.talkRoomToken]
+    `INSERT INTO meetings (customer_id, meeting_type, scheduled_at, talk_room_token, status, project_id)
+     VALUES ($1, $2, $3, $4, 'scheduled', $5)
+     RETURNING id, customer_id as "customerId", status, released_at,
+               project_id as "projectId", NULL::text as "projectName"`,
+    [params.customerId, params.meetingType, params.scheduledAt,
+     params.talkRoomToken, params.projectId ?? null]
   );
   return result.rows[0];
 }
@@ -295,17 +341,18 @@ export async function getMeetingsForClient(
   clientEmail: string,
   onlyReleased = false
 ): Promise<Meeting[]> {
+  const baseSelect = `
+    SELECT m.id, m.customer_id as "customerId", m.status, m.released_at,
+           m.project_id as "projectId", p.name as "projectName"
+    FROM meetings m
+    JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN projects p ON m.project_id = p.id
+    WHERE c.email = $1`;
+
   const query = onlyReleased
-    ? `SELECT m.id, m.customer_id as "customerId", m.status, m.released_at
-       FROM meetings m
-       JOIN customers c ON m.customer_id = c.id
-       WHERE c.email = $1 AND m.released_at IS NOT NULL
-       ORDER BY m.created_at DESC`
-    : `SELECT m.id, m.customer_id as "customerId", m.status, m.released_at
-       FROM meetings m
-       JOIN customers c ON m.customer_id = c.id
-       WHERE c.email = $1
-       ORDER BY m.created_at DESC`;
+    ? `${baseSelect} AND m.released_at IS NOT NULL ORDER BY m.created_at DESC`
+    : `${baseSelect} ORDER BY m.created_at DESC`;
+
   const result = await pool.query(query, [clientEmail]);
   return result.rows;
 }
@@ -1130,6 +1177,107 @@ export async function listAllTimeEntries(params?: {
     [params?.billable ?? null, params?.since ?? null]
   );
   return result.rows;
+}
+
+// ── Meeting-Projekt-Verknüpfung ───────────────────────────────────────────────
+
+export async function listMeetingsForProject(
+  projectId: string
+): Promise<MeetingWithDetails[]> {
+  await initMeetingProjectLink();
+  const meetings = await pool.query(
+    `SELECT id, meeting_type AS "meetingType", status,
+            scheduled_at AS "scheduledAt", started_at AS "startedAt",
+            ended_at AS "endedAt", duration_seconds AS "durationSeconds",
+            released_at AS "releasedAt", created_at AS "createdAt"
+     FROM meetings WHERE project_id = $1
+     ORDER BY created_at DESC`,
+    [projectId]
+  );
+
+  const result: MeetingWithDetails[] = [];
+  for (const m of meetings.rows) {
+    const [tRes, iRes, aRes] = await Promise.all([
+      pool.query(
+        `SELECT id, full_text AS "fullText", language,
+                duration_seconds AS "durationSeconds"
+         FROM transcripts WHERE meeting_id = $1`,
+        [m.id]
+      ),
+      pool.query(
+        `SELECT id, insight_type AS "insightType", content,
+                generated_by AS "generatedBy"
+         FROM meeting_insights WHERE meeting_id = $1
+         ORDER BY created_at ASC`,
+        [m.id]
+      ),
+      pool.query(
+        `SELECT id, artifact_type AS "artifactType", name,
+                content_text AS "contentText"
+         FROM meeting_artifacts WHERE meeting_id = $1`,
+        [m.id]
+      ),
+    ]);
+    result.push({
+      ...m,
+      transcripts: tRes.rows,
+      insights: iRes.rows,
+      artifacts: aRes.rows,
+    });
+  }
+  return result;
+}
+
+export async function assignMeetingToProject(
+  meetingId: string,
+  projectId: string | null
+): Promise<void> {
+  await initMeetingProjectLink();
+  await pool.query(
+    `UPDATE meetings SET project_id = $2, updated_at = now() WHERE id = $1`,
+    [meetingId, projectId]
+  );
+}
+
+export async function findProjectByName(
+  brand: string,
+  name: string
+): Promise<{ id: string; name: string } | null> {
+  await initProjectTables();
+  const result = await pool.query(
+    `SELECT id, name FROM projects
+     WHERE brand = $1 AND name ILIKE $2
+     ORDER BY CASE status
+       WHEN 'aktiv' THEN 0 WHEN 'geplant' THEN 1 WHEN 'wartend' THEN 2
+       ELSE 3 END
+     LIMIT 1`,
+    [brand, `%${name}%`]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function listUnassignedMeetingsForCustomer(
+  customerId: string
+): Promise<Array<{ id: string; meetingType: string; status: string; createdAt: Date }>> {
+  await initMeetingProjectLink();
+  const result = await pool.query(
+    `SELECT id, meeting_type AS "meetingType", status, created_at AS "createdAt"
+     FROM meetings
+     WHERE customer_id = $1 AND project_id IS NULL
+     ORDER BY created_at DESC`,
+    [customerId]
+  );
+  return result.rows;
+}
+
+export async function getCustomerByEmail(
+  email: string
+): Promise<Customer | null> {
+  const result = await pool.query(
+    `SELECT id, name, email FROM customers WHERE email = $1`,
+    [email]
+  );
+  return result.rows[0] ?? null;
 }
 
 export async function deleteTimeEntry(id: string): Promise<void> {

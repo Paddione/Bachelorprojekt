@@ -71,3 +71,5 @@ patches:
   - path: patch-talk-transcriber.yaml
   # Override signaling backend URL for production (HTTPS + real domain)
   - path: patch-signaling-backend.yaml
+  # Whisper: use public Docker image in production (registry.localhost not accessible)
+  - path: patch-whisper.yaml

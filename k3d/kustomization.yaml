@@ -8,7 +8,7 @@ resources:
   - secrets.yaml
   # Shared database (one PostgreSQL, one DB per service)
   - shared-db.yaml
-  - meetings-schema.yaml
+  - website-schema.yaml
   # Kerndienste
   - keycloak.yaml
   - mm-keycloak-proxy.yaml
@@ -99,6 +99,7 @@ configMapGenerator:
       - docs-content/README.md
       - docs-content/_sidebar.md
       - docs-content/architecture.md
+      - docs-content/database.md
       - docs-content/benutzerhandbuch.md
       - docs-content/keycloak.md
       - docs-content/mcp-actions.md

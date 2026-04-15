@@ -136,10 +136,12 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
   return { sessionId, user };
 }
 
-const ADMIN_USERNAME = process.env.PORTAL_ADMIN_USERNAME || 'admin';
+const ADMIN_USERNAMES = new Set(
+  (process.env.PORTAL_ADMIN_USERNAME || 'admin').split(',').map(s => s.trim()).filter(Boolean)
+);
 
 export function isAdmin(session: UserSession): boolean {
-  return session.preferred_username === ADMIN_USERNAME;
+  return ADMIN_USERNAMES.has(session.preferred_username);
 }
 
 export async function getSession(cookieHeader: string | null): Promise<UserSession | null> {

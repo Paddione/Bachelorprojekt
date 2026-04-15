@@ -7,6 +7,7 @@ import { scheduleReminder } from '../../../lib/reminders';
 import { sendRegistrationApproved, sendRegistrationDeclined, sendEmail } from '../../../lib/email';
 import { getOrCreateClient, createInvoice, SERVICES } from '../../../lib/invoiceninja';
 import type { ServiceKey } from '../../../lib/invoiceninja';
+import { setBookingInvoice } from '../../../lib/website-db';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
@@ -89,7 +90,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       case 'approve_booking': {
-        const { name: bName, email: bEmail, phone: bPhone, typeLabel, slotStart, slotEnd, slotDisplay, date: bDate, serviceKey: bServiceKey } = context;
+        const { name: bName, email: bEmail, phone: bPhone, type: bType, typeLabel, slotStart, slotEnd, slotDisplay, date: bDate, serviceKey: bServiceKey } = context;
         const meetingStart = new Date(slotStart);
         const meetingEnd = new Date(slotEnd);
         const dateFormatted = new Date(bDate + 'T00:00:00').toLocaleDateString('de-DE', {
@@ -111,7 +112,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // 2. Create calendar event with meeting link
-        const eventCreated = await createCalendarEvent({
+        const calEvent = await createCalendarEvent({
           summary: `${typeLabel}: ${bName}`,
           description: `Termin mit ${bName} (${bEmail})\\nTyp: ${typeLabel}${room ? `\\nMeeting: ${room.url}` : ''}`,
           start: meetingStart,
@@ -119,7 +120,8 @@ export const POST: APIRoute = async ({ request }) => {
           attendeeEmail: bEmail,
           attendeeName: bName,
         });
-        statusParts.push(eventCreated ? ':calendar: Kalendereintrag erstellt' : ':warning: Kalendereintrag fehlgeschlagen');
+        const eventUid = calEvent?.uid ?? null;
+        statusParts.push(calEvent ? ':calendar: Kalendereintrag erstellt' : ':warning: Kalendereintrag fehlgeschlagen');
 
         // 3. Create or get customer Mattermost channel
         const teamId = await getFirstTeamId();
@@ -162,20 +164,35 @@ export const POST: APIRoute = async ({ request }) => {
           statusParts.push(':bell: Erinnerung geplant (10 Min. vorher)');
         }
 
-        // 5. Create invoice if a paid service was booked
-        if (bServiceKey && bServiceKey in SERVICES) {
+        // 5. Create invoice for every confirmed booking (free types get €0 invoice)
+        const brand = process.env.BRAND_NAME?.toLowerCase() || 'mentolder';
+        const effectiveServiceKey = (bServiceKey && bServiceKey in SERVICES)
+          ? bServiceKey as ServiceKey
+          : (bType && bType in SERVICES ? bType as ServiceKey : null);
+
+        if (effectiveServiceKey) {
           const inClient = await getOrCreateClient({ name: bName, email: bEmail, phone: bPhone });
           if (inClient) {
+            const isPaid = SERVICES[effectiveServiceKey].rate > 0;
             const invoice = await createInvoice({
               clientId: inClient.id,
-              serviceKey: bServiceKey as ServiceKey,
-              sendEmail: true,
+              serviceKey: effectiveServiceKey,
+              sendEmail: isPaid,
             });
             if (invoice) {
+              if (eventUid) {
+                try {
+                  await setBookingInvoice(eventUid, brand, invoice.id, invoice.number, invoice.amount);
+                } catch (err) {
+                  console.warn('[approve_booking] Failed to save invoice mapping (non-fatal):', err);
+                }
+              }
               statusParts.push(`:receipt: Rechnung #${invoice.number} erstellt (${invoice.amount} EUR)`);
             } else {
               statusParts.push(':warning: Rechnung konnte nicht erstellt werden');
             }
+          } else {
+            statusParts.push(':information_source: InvoiceNinja-Kunde nicht erstellt (API nicht konfiguriert)');
           }
         }
 

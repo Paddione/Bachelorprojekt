@@ -257,7 +257,7 @@ export async function createCalendarEvent(params: {
   end: Date;
   attendeeEmail?: string;
   attendeeName?: string;
-}): Promise<boolean> {
+}): Promise<{ uid: string } | null> {
   const uid = crypto.randomUUID();
   const formatDt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
@@ -290,11 +290,11 @@ END:VCALENDAR`;
       body: ical,
     });
 
-    if (res.ok || res.status === 201) return true;
+    if (res.ok || res.status === 201) return { uid };
     console.error('[caldav] Create event failed:', res.status, await res.text());
-    return false;
+    return null;
   } catch (err) {
     console.error('[caldav] Create event error:', err);
-    return false;
+    return null;
   }
 }

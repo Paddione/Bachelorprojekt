@@ -1616,6 +1616,44 @@ async function initBookingProjectLinks(): Promise<void> {
   bookingProjectLinksReady = true;
 }
 
+// ── Booking-Invoice Mapping ───────────────────────────────────────────────────
+
+let bookingInvoiceLinksReady = false;
+async function initBookingInvoiceLinksTable(): Promise<void> {
+  if (bookingInvoiceLinksReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_invoice_links (
+      caldav_uid      TEXT        NOT NULL,
+      brand           TEXT        NOT NULL,
+      invoice_id      TEXT        NOT NULL,
+      invoice_number  TEXT        NOT NULL,
+      amount          NUMERIC(10,2) NOT NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (caldav_uid, brand)
+    )
+  `);
+  bookingInvoiceLinksReady = true;
+}
+
+export async function setBookingInvoice(
+  caldavUid: string,
+  brand: string,
+  invoiceId: string,
+  invoiceNumber: string,
+  amount: number
+): Promise<void> {
+  await initBookingInvoiceLinksTable();
+  await pool.query(
+    `INSERT INTO booking_invoice_links (caldav_uid, brand, invoice_id, invoice_number, amount)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (caldav_uid, brand) DO UPDATE
+       SET invoice_id = EXCLUDED.invoice_id,
+           invoice_number = EXCLUDED.invoice_number,
+           amount = EXCLUDED.amount`,
+    [caldavUid, brand, invoiceId, invoiceNumber, amount]
+  );
+}
+
 export async function getBookingProjects(caldavUids: string[], brand: string): Promise<Map<string, string>> {
   if (caldavUids.length === 0) return new Map();
   await initBookingProjectLinks();

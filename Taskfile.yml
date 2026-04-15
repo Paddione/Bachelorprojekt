@@ -635,6 +635,11 @@ tasks:
     cmds:
       - kubectl exec -it -n workspace deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
 
+  tracking:psql:
+    desc: 'Open psql shell with bachelorprojekt search_path (requirements tracking DB)'
+    cmds:
+      - kubectl exec -it -n workspace deploy/shared-db -- env PGOPTIONS="-c search_path=bachelorprojekt,public" psql -U postgres -d postgres
+
   workspace:port-forward:
     desc: 'Forward shared-db to localhost:5432'
     cmds:

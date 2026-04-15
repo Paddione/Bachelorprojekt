@@ -160,16 +160,18 @@ spec:
               cpu: "1"
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: 4321
             initialDelaySeconds: 5
             periodSeconds: 30
+            timeoutSeconds: 3
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: 4321
             initialDelaySeconds: 3
             periodSeconds: 10
+            timeoutSeconds: 3
 ---
 # ── Website Service ───────────────────────────────────────────────────────────
 apiVersion: v1

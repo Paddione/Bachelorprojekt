@@ -1664,6 +1664,8 @@ async function initSlotWhitelistTable(): Promise<void> {
 
 export async function getWhitelistedSlots(brand: string): Promise<WhitelistedSlot[]> {
   await initSlotWhitelistTable();
+  // Only return future slots for display — isSlotWhitelisted has no time filter
+  // so booking validation works even for slots that just started.
   const result = await pool.query(
     `SELECT slot_start AS "slotStart", slot_end AS "slotEnd"
      FROM slot_whitelist
@@ -1687,7 +1689,7 @@ export async function addSlotToWhitelist(brand: string, start: Date, end: Date):
 export async function removeSlotFromWhitelist(brand: string, start: Date): Promise<void> {
   await initSlotWhitelistTable();
   await pool.query(
-    'DELETE FROM slot_whitelist WHERE brand = $1 AND slot_start = $2',
+    'DELETE FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz',
     [brand, start]
   );
 }
@@ -1695,7 +1697,7 @@ export async function removeSlotFromWhitelist(brand: string, start: Date): Promi
 export async function isSlotWhitelisted(brand: string, start: Date): Promise<boolean> {
   await initSlotWhitelistTable();
   const result = await pool.query(
-    'SELECT 1 FROM slot_whitelist WHERE brand = $1 AND slot_start = $2',
+    'SELECT 1 FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz',
     [brand, start]
   );
   return (result.rowCount ?? 0) > 0;

@@ -1,4 +1,17 @@
-# Architektur
+<div class="page-hero">
+  <span class="page-hero-icon">🏗️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Architektur</div>
+    <p class="page-hero-desc">Kubernetes-Systemübersicht, Service-Topologie und Datenflüsse des Workspace MVP — alle Komponenten on-premises, DSGVO-konform vernetzt.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">k3d / k3s</span>
+      <span class="page-hero-tag">Traefik Ingress</span>
+      <span class="page-hero-tag">12+ Services</span>
+      <span class="page-hero-tag">PostgreSQL 16</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 ## Systemuebersicht
 

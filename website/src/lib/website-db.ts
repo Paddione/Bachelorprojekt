@@ -1654,6 +1654,38 @@ export async function setBookingInvoice(
   );
 }
 
+export interface BookingInvoiceInfo {
+  invoiceId: string;
+  invoiceNumber: string;
+  amount: number;
+}
+
+export async function getBookingInvoices(caldavUids: string[], brand: string): Promise<Map<string, BookingInvoiceInfo>> {
+  if (caldavUids.length === 0) return new Map();
+  await initBookingInvoiceLinksTable();
+  const result = await pool.query(
+    `SELECT caldav_uid, invoice_id, invoice_number, amount
+     FROM booking_invoice_links
+     WHERE caldav_uid = ANY($1) AND brand = $2`,
+    [caldavUids, brand]
+  );
+  return new Map(
+    result.rows.map((r: {
+      caldav_uid: string;
+      invoice_id: string;
+      invoice_number: string;
+      amount: string;
+    }) => [
+      r.caldav_uid,
+      {
+        invoiceId: r.invoice_id,
+        invoiceNumber: r.invoice_number,
+        amount: parseFloat(r.amount),
+      },
+    ])
+  );
+}
+
 export async function getBookingProjects(caldavUids: string[], brand: string): Promise<Map<string, string>> {
   if (caldavUids.length === 0) return new Map();
   await initBookingProjectLinks();

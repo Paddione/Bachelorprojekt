@@ -1,4 +1,16 @@
-# Fehlerbehebung
+<div class="page-hero">
+  <span class="page-hero-icon">🔧</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Fehlerbehebung</div>
+    <p class="page-hero-desc">Diagnose-Befehle, bekannte Probleme und Lösungsansätze für häufige Betriebssituationen im Workspace-Cluster.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">kubectl</span>
+      <span class="page-hero-tag">task-Befehle</span>
+      <span class="page-hero-tag">Logs &amp; Status</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 ## Allgemeine Diagnose
 

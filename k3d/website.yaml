@@ -133,6 +133,22 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: SMTP_PASS
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: STRIPE_SECRET_KEY
+            - name: STRIPE_PUBLISHABLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: STRIPE_PUBLISHABLE_KEY
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: STRIPE_WEBHOOK_SECRET
+                  optional: true
           ports:
             - containerPort: 4321
           resources:
@@ -366,4 +382,19 @@ spec:
     - port: 587
       protocol: TCP
     - port: 1025
+      protocol: TCP
+---
+# Stripe API Egress: Website-Pod darf api.stripe.com (HTTPS) und andere externe HTTPS-Dienste erreichen
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-https-egress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 443
       protocol: TCP

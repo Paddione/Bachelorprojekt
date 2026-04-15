@@ -1,6 +1,8 @@
 // Nextcloud CalDAV helper.
 // Fetches events from the admin's calendar and computes free time slots.
 
+import { getWhitelistedSlots } from './website-db';
+
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 const NC_USER = process.env.NEXTCLOUD_CALDAV_USER || 'admin';
 const NC_PASS = process.env.NEXTCLOUD_CALDAV_PASSWORD || 'devnextcloudadmin';
@@ -251,13 +253,20 @@ export async function getAllBookings(): Promise<AdminBooking[]> {
 }
 
 // Compute available booking slots for a range of days
-export async function getAvailableSlots(fromDate?: Date): Promise<DaySlots[]> {
+export async function getAvailableSlots(fromDate?: Date, brand?: string): Promise<DaySlots[]> {
   const now = new Date();
   const start = fromDate || now;
   const end = new Date(start);
   end.setDate(end.getDate() + BOOKING_HORIZON_DAYS);
 
   const events = await fetchEvents(start, end);
+
+  // Load whitelist once if brand is provided (whitelist mode)
+  let whitelistedKeys: Set<string> | null = null;
+  if (brand) {
+    const whitelisted = await getWhitelistedSlots(brand);
+    whitelistedKeys = new Set(whitelisted.map(w => w.slotStart.toISOString()));
+  }
 
   const result: DaySlots[] = [];
   const cursor = new Date(start);
@@ -283,6 +292,11 @@ export async function getAvailableSlots(fromDate?: Date): Promise<DaySlots[]> {
         );
 
         if (!hasConflict) {
+          // Whitelist filter: skip if brand given and slot not whitelisted
+          if (whitelistedKeys !== null && !whitelistedKeys.has(slotStart.toISOString())) {
+            continue;
+          }
+
           const startHH = slotStart.getHours().toString().padStart(2, '0');
           const startMM = slotStart.getMinutes().toString().padStart(2, '0');
           const endHH = slotEnd.getHours().toString().padStart(2, '0');
@@ -319,7 +333,7 @@ export async function createCalendarEvent(params: {
   end: Date;
   attendeeEmail?: string;
   attendeeName?: string;
-}): Promise<boolean> {
+}): Promise<{ uid: string } | null> {
   const uid = crypto.randomUUID();
   const formatDt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
@@ -352,11 +366,11 @@ END:VCALENDAR`;
       body: ical,
     });
 
-    if (res.ok || res.status === 201) return true;
+    if (res.ok || res.status === 201) return { uid: `${uid}@${BRAND_NAME}` };
     console.error('[caldav] Create event failed:', res.status, await res.text());
-    return false;
+    return null;
   } catch (err) {
     console.error('[caldav] Create event error:', err);
-    return false;
+    return null;
   }
 }

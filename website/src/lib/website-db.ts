@@ -1601,6 +1601,108 @@ export interface BugTicketRow {
   screenshots: string[] | null;
 }
 
+let bookingProjectLinksReady = false;
+async function initBookingProjectLinks(): Promise<void> {
+  if (bookingProjectLinksReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_project_links (
+      caldav_uid  TEXT    NOT NULL,
+      brand       TEXT    NOT NULL,
+      project_id  UUID    REFERENCES projects(id) ON DELETE SET NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (caldav_uid, brand)
+    )
+  `);
+  bookingProjectLinksReady = true;
+}
+
+export async function getBookingProjects(caldavUids: string[], brand: string): Promise<Map<string, string>> {
+  if (caldavUids.length === 0) return new Map();
+  await initBookingProjectLinks();
+  const result = await pool.query(
+    `SELECT caldav_uid, project_id FROM booking_project_links
+     WHERE caldav_uid = ANY($1) AND brand = $2 AND project_id IS NOT NULL`,
+    [caldavUids, brand]
+  );
+  return new Map(result.rows.map((r: { caldav_uid: string; project_id: string }) => [r.caldav_uid, r.project_id]));
+}
+
+export async function setBookingProject(caldavUid: string, projectId: string | null, brand: string): Promise<void> {
+  await initBookingProjectLinks();
+  if (!projectId) {
+    await pool.query(
+      `DELETE FROM booking_project_links WHERE caldav_uid = $1 AND brand = $2`,
+      [caldavUid, brand]
+    );
+  } else {
+    await pool.query(
+      `INSERT INTO booking_project_links (caldav_uid, brand, project_id) VALUES ($1, $2, $3)
+       ON CONFLICT (caldav_uid, brand) DO UPDATE SET project_id = EXCLUDED.project_id`,
+      [caldavUid, brand, projectId]
+    );
+  }
+}
+
+// ── Slot Whitelist ────────────────────────────────────────────────────────────
+
+export interface WhitelistedSlot {
+  slotStart: Date;
+  slotEnd: Date;
+}
+
+async function initSlotWhitelistTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS slot_whitelist (
+      brand      TEXT        NOT NULL,
+      slot_start TIMESTAMPTZ NOT NULL,
+      slot_end   TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (brand, slot_start)
+    )
+  `);
+}
+
+export async function getWhitelistedSlots(brand: string): Promise<WhitelistedSlot[]> {
+  await initSlotWhitelistTable();
+  // Only return future slots for display — isSlotWhitelisted has no time filter
+  // so booking validation works even for slots that just started.
+  const result = await pool.query(
+    `SELECT slot_start AS "slotStart", slot_end AS "slotEnd"
+     FROM slot_whitelist
+     WHERE brand = $1 AND slot_start > now()
+     ORDER BY slot_start ASC`,
+    [brand]
+  );
+  return result.rows;
+}
+
+export async function addSlotToWhitelist(brand: string, start: Date, end: Date): Promise<void> {
+  await initSlotWhitelistTable();
+  await pool.query(
+    `INSERT INTO slot_whitelist (brand, slot_start, slot_end)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (brand, slot_start) DO UPDATE SET slot_end = $3`,
+    [brand, start, end]
+  );
+}
+
+export async function removeSlotFromWhitelist(brand: string, start: Date): Promise<void> {
+  await initSlotWhitelistTable();
+  await pool.query(
+    'DELETE FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz',
+    [brand, start]
+  );
+}
+
+export async function isSlotWhitelisted(brand: string, start: Date): Promise<boolean> {
+  await initSlotWhitelistTable();
+  const result = await pool.query(
+    'SELECT 1 FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz',
+    [brand, start]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function listBugTickets(filters: {
   status?: string;
   category?: string;

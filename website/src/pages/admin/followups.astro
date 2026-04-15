@@ -23,6 +23,7 @@ try {
 
 const today = new Date(); today.setHours(0, 0, 0, 0);
 const dueCount = followUps.filter(f => !f.done && new Date(f.dueDate) <= today).length;
+const overdueSet = new Set(followUps.filter(f => !f.done && new Date(f.dueDate) <= today).map(f => f.id));
 
 function fmtDate(d: Date): string {
   return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -93,7 +94,7 @@ const labelCls = 'block text-xs text-muted mb-1';
           </div>
         )}
         {followUps.map(f => {
-          const isOverdue = !f.done && new Date(f.dueDate) <= today;
+          const isOverdue = overdueSet.has(f.id);
           return (
             <div class={`flex items-start gap-4 p-4 bg-dark-light rounded-xl border transition-colors ${f.done ? 'opacity-50 border-dark-lighter' : isOverdue ? 'border-red-800' : 'border-dark-lighter'}`}
               data-testid="followup-item">

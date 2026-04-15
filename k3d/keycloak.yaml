@@ -131,6 +131,16 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: OUTLINE_OIDC_SECRET
+            - name: DOCS_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: DOCS_OIDC_SECRET
+            - name: DOCS_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: DOCS_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:

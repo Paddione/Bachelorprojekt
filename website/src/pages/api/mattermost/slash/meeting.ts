@@ -21,8 +21,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Extract optional --projekt=<Name> flag
     const projektMatch = text.match(/--projekt=(\S+)/);
-    const projektFlag  = projektMatch ? decodeURIComponent(projektMatch[1]) : null;
-    const cleanText    = text.replace(/--projekt=\S+/, '').trim();
+    const projektFlag  = projektMatch ? projektMatch[1] : null;
+    const cleanText    = text.replace(/--projekt=\S*/, '').trim();
 
     // Parse arguments: name email [type]
     const parts = cleanText.split(/\s+/);
@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Projekt-Lookup via --projekt-Flag
     let projectId: string | undefined;
     if (projektFlag) {
-      const brand = import.meta.env.BRAND_NAME || 'mentolder';
+      const brand = process.env.BRAND_NAME || 'mentolder';
       const found = await findProjectByName(brand, projektFlag);
       if (found) {
         projectId = found.id;

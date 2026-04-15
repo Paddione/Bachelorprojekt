@@ -1133,6 +1133,7 @@ export async function listAllTimeEntries(params?: {
 }
 
 export async function deleteTimeEntry(id: string): Promise<void> {
+  await initTimeEntriesTable();
   await pool.query('DELETE FROM time_entries WHERE id = $1', [id]);
 }
 
@@ -1272,10 +1273,12 @@ export async function getOrCreateOnboardingChecklist(keycloakUserId: string): Pr
 }
 
 export async function toggleOnboardingItem(id: string, done: boolean): Promise<void> {
+  await initOnboardingTable();
   await pool.query('UPDATE onboarding_items SET done = $2 WHERE id = $1', [id, done]);
 }
 
 export async function resetOnboardingChecklist(keycloakUserId: string): Promise<void> {
+  await initOnboardingTable();
   await pool.query(
     'UPDATE onboarding_items SET done = false WHERE keycloak_user_id = $1',
     [keycloakUserId]
@@ -1413,7 +1416,7 @@ export interface CalendarTask {
 export async function listTasksInMonth(year: number, month: number): Promise<CalendarTask[]> {
   await initProjectTables();
   const firstDay = `${year}-${String(month).padStart(2, '0')}-01`;
-  const lastDay = new Date(year, month, 0).toISOString().slice(0, 10);
+  const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
   const result = await pool.query(
     `SELECT pt.id,
             pt.name,

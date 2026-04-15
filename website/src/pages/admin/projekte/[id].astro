@@ -90,7 +90,7 @@ const spJson = JSON.stringify(subProjects.map(sp => ({
   id: sp.id, name: sp.name, description: sp.description ?? '',
   notes: sp.notes ?? '', startDate: isoDate(sp.startDate), dueDate: isoDate(sp.dueDate),
   status: sp.status, priority: sp.priority, customerId: sp.customerId ?? '',
-})));
+}))).replace(/</g, '\\u003c');
 
 const allTasksFlat = [...directTasks, ...Object.values(spTasks).flat()];
 const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
@@ -98,7 +98,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
   notes: t.notes ?? '', startDate: isoDate(t.startDate), dueDate: isoDate(t.dueDate),
   status: t.status, priority: t.priority, customerId: t.customerId ?? '',
   subProjectId: t.subProjectId ?? '',
-})));
+}))).replace(/</g, '\\u003c');
 ---
 
 <Layout title={`Admin — ${project?.name ?? 'Projekt'}`}>
@@ -543,7 +543,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
         <label class="block text-sm text-muted mb-1">Aufgabe (optional)</label>
         <select name="taskId" class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:outline-none focus:border-gold/50">
           <option value="">— keine Aufgabe —</option>
-          {directTasks.map(t => (
+          {allTasksFlat.map(t => (
             <option value={t.id}>{t.name}</option>
           ))}
         </select>
@@ -558,8 +558,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
         <div>
           <label class="block text-xs text-muted mb-1">Datum</label>
           <input type="date" name="entryDate"
-            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none"
-            value={new Date().toISOString().slice(0, 10)} />
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none" />
         </div>
       </div>
       <div>
@@ -723,6 +722,13 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
 
   // ── Zeit buchen dialog ──
   const timeDialog = document.getElementById('time-create-dialog') as HTMLDialogElement;
-  document.getElementById('time-create-btn')?.addEventListener('click', () => timeDialog.showModal());
+  document.getElementById('time-create-btn')?.addEventListener('click', () => {
+    // Set entryDate client-side to avoid UTC-offset giving yesterday's date
+    const dateInput = timeDialog.querySelector<HTMLInputElement>('input[name="entryDate"]');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toLocaleDateString('sv'); // sv locale → YYYY-MM-DD in local time
+    }
+    timeDialog.showModal();
+  });
   document.getElementById('time-create-cancel')?.addEventListener('click', () => timeDialog.close());
 </script>

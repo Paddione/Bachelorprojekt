@@ -12,7 +12,7 @@ Alle Services laufen als Kubernetes Deployments. Jeder Service hat definierte Re
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `quay.io/keycloak/keycloak:24.0` |
+| Image | `quay.io/keycloak/keycloak:26.6` |
 | Port | 8080 |
 | URL | http://auth.localhost |
 | Datenbank | PostgreSQL (shared-db/keycloak) |
@@ -27,7 +27,7 @@ OIDC-Provider fuer alle Services. Realm `workspace` wird beim Start automatisch 
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `mattermost/mattermost-enterprise-edition:9.7` |
+| Image | `mattermost/mattermost-enterprise-edition:release-11.5` |
 | Port | 8065 |
 | URL | http://chat.localhost |
 | Datenbank | PostgreSQL (shared-db/mattermost) |
@@ -47,7 +47,7 @@ Team-Chat mit Channels, DMs, Threads, Webhooks, Slash-Commands. OpenSearch-Integ
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `nextcloud:28-apache` |
+| Image | `nextcloud:33-apache` |
 | Port | 80 |
 | URL | http://files.localhost |
 | Datenbank | PostgreSQL (shared-db/nextcloud) |
@@ -80,7 +80,7 @@ Drei Deployments fuer WebRTC-Videokonferenzen:
 
 | Komponente | Image | Port |
 |------------|-------|------|
-| spreed-signaling | `strukturag/nextcloud-spreed-signaling:1.2.4` | 8080 |
+| spreed-signaling | `strukturag/nextcloud-spreed-signaling:2.1.1` | 8080 |
 | Janus Gateway | `canyan/janus-gateway:master` | 8188 |
 | NATS | `nats:2.10-alpine` | 4222 |
 | coturn | `coturn/coturn:4.6-alpine` | 3478 |
@@ -138,7 +138,7 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `opensearchproject/opensearch:2.17.1` |
+| Image | `opensearchproject/opensearch:2.19.5` |
 | Ports | 9200 (HTTP), 9600 (Telemetrie) |
 | Storage | 5 Gi PVC |
 | Resources | 200m CPU, 512Mi--1Gi RAM |
@@ -163,7 +163,7 @@ CPU-basierte Spracherkennung mit dem Medium-Modell. GPU-Variante: `k3d/whisper-g
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `michaelf34/infinity:0.0.68` (infinity-emb) |
+| Image | `michaelf34/infinity:0.0.70` (infinity-emb) |
 | Port | 8080 |
 | Modell | BAAI/bge-base-en-v1.5 (768 Dimensionen) |
 | API | OpenAI-kompatibel (POST /embeddings) |
@@ -180,6 +180,19 @@ CPU-basierte Text-Vektorisierung fuer Meeting-Transkript-Analyse. Wird intern vo
 | Manifest | `k3d/talk-recording.yaml` |
 
 Firefox/geckodriver-basierter Aufzeichnungsservice fuer Nextcloud Talk. Tritt Anrufen ueber spreed-signaling bei und zeichnet Audio/Video auf. Aufnahmen werden im Nextcloud-Dateiverzeichnis des Anruf-Erstellers gespeichert.
+
+### Talk Transcriber (Live-Transkription)
+
+**Für Mitarbeiter:** Der Talk Transcriber transkribiert laufende Nextcloud-Talk-Videokonferenzen in Echtzeit und stellt das Transkript als Textdatei bereit.
+
+| Eigenschaft | Wert |
+|-------------|------|
+| Image | `ghcr.io/paddione/talk-transcriber:latest` |
+| Port | intern |
+| Resources | nach Konfiguration |
+| Manifest | `k3d/talk-transcriber.yaml` |
+
+Verbindet sich mit dem spreed-signaling-Server, nimmt am Anruf teil und uebertraegt Audio an den Whisper-Dienst zur Transkription.
 
 ## Business-Services
 
@@ -199,7 +212,7 @@ Firefox/geckodriver-basierter Aufzeichnungsservice fuer Nextcloud Talk. Tritt An
 Rechnungserstellung mit Stripe-Integration. Zugriff ueber oauth2-proxy fuer Keycloak-SSO. Nginx-Sidecar serviert statische Dateien.
 
 **Zugehoerige Manifeste:**
-- `k3d/oauth2-proxy-invoiceninja.yaml` -- OAuth2-Proxy (quay.io/oauth2-proxy/oauth2-proxy:v7.6.0)
+- `k3d/oauth2-proxy-invoiceninja.yaml` -- OAuth2-Proxy (quay.io/oauth2-proxy/oauth2-proxy:v7.9.0)
 - `k3d/billing-bot.yaml` -- Go-Bot fuer Mattermost-Integration
 - `k3d/billing-bot-init-job.yaml` -- Automatische Token/Slash-Command-Provisionierung
 
@@ -222,7 +235,7 @@ Go-Microservice: `/slash` (Slash-Command Handler), `/actions` (Interactive Messa
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `vaultwarden/server:1.30.5-alpine` |
+| Image | `vaultwarden/server:1.35.3-alpine` |
 | Port | 80 |
 | URL | http://vault.localhost |
 | Datenbank | PostgreSQL (shared-db/vaultwarden) |
@@ -254,7 +267,7 @@ Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `outlinewiki/outline:0.75.0` + `redis:7-alpine` (Sidecar) |
+| Image | `outlinewiki/outline:1.6.1` + `redis:7-alpine` (Sidecar) |
 | Port | 3000 |
 | URL | http://wiki.localhost |
 | Datenbank | PostgreSQL (shared-db/outline) |
@@ -266,13 +279,25 @@ Wissensdatenbank mit Keycloak-OIDC. Redis-Sidecar fuer Caching. Deploy: `task ou
 
 ## Infrastruktur-Services
 
+### shared-db (PostgreSQL + pgvector)
+
+| Eigenschaft | Wert |
+|-------------|------|
+| Image | `pgvector/pgvector:0.8.0-pg16` |
+| Port | 5432 |
+| Storage | 25 Gi PVC |
+| Resources | 100m CPU, 256Mi RAM |
+| Manifest | `k3d/shared-db.yaml` |
+
+Gemeinsame PostgreSQL-16-Instanz mit pgvector-Erweiterung fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, mattermost, nextcloud, vaultwarden und outline. pgvector ermoeglicht Vektorsuche fuer KI-Features (z. B. Embedding-Auswertungen). Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
+
 ### Mailpit (Dev-Mail)
 
 **Für Mitarbeiter:** Mailpit wird nur in der Entwicklungsumgebung verwendet und ist kein normaler E-Mail-Dienst. Es fängt alle ausgehenden E-Mails ab, damit sie nicht versehentlich echte Empfänger erreichen. In der Produktivumgebung wird ein normaler E-Mail-Server eingesetzt.
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `axllent/mailpit:v1.21` |
+| Image | `axllent/mailpit:v1.29` |
 | Ports | 1025 (SMTP), 8025 (Web UI) |
 | URL | http://mail.localhost |
 | Resources | 25m CPU, 32--128Mi RAM |
@@ -284,30 +309,54 @@ SMTP-Server fuer Entwicklung. Alle Services senden E-Mails an Mailpit.
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `nginx:1.27-alpine` + `alpine/git:v2.43.0` (Init) |
+| Image | `joseluisq/static-web-server:2.36-alpine` |
 | Port | 80 |
-| URL | http://docs.localhost |
+| URL | http://docs.localhost (SSO-geschuetzt) |
 | Resources | 10m CPU, 16--64Mi RAM |
 | Manifest | `k3d/docs.yaml` |
 
-Git-Sync InitContainer klont `docs/` von GitHub, Docsify rendert Markdown im Browser.
+Static-Web-Server serviert die Docsify-Dokumentation aus einem Kubernetes ConfigMap. Kein Git-Sync -- Inhalte sind direkt im ConfigMap eingebettet. Zugriff ist per Keycloak-Login geschuetzt (oauth2-proxy-docs vorgelagert).
+
+### oauth2-proxy-docs (Docs SSO-Gateway)
+
+| Eigenschaft | Wert |
+|-------------|------|
+| Image | `quay.io/oauth2-proxy/oauth2-proxy:v7.9.0` |
+| Port | 4180 |
+| Upstream | `http://docs:80` |
+| Resources | 50m CPU, 64--128Mi RAM |
+| Manifest | `k3d/oauth2-proxy-docs.yaml` |
+
+Keycloak-OIDC-Proxy vor dem Docs-Dienst. Entspricht dem gleichen Muster wie `oauth2-proxy-invoiceninja`. Benutzer werden zur Keycloak-Anmeldeseite weitergeleitet; nach erfolgreicher Authentifizierung wird die Anfrage an `docs:80` weitergeleitet.
 
 ### Website (Astro + Svelte)
 
-**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular auf der Website leitet Anfragen automatisch in den Mattermost-Chat weiter.
+**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular leitet Anfragen automatisch in den Mattermost-Chat weiter. Auf der Leistungen-Seite kann direkt per Stripe bezahlt werden.
 
 | Eigenschaft | Wert |
 |-------------|------|
 | URL | http://web.localhost |
 | Namespace | `website` (eigener Namespace) |
 | Manifest | `k3d/website.yaml` |
+| Datenbank | PostgreSQL (shared-db/website) |
+| Deploy | `task website:deploy` |
 
-Unternehmenswebsite mit Kontaktformular (Mattermost-Webhook). Deploy: `task website:deploy`.
+Multi-Brand-Unternehmenswebsite (mentolder / korczewski) mit:
+- **Kontaktformular** — leitet Anfragen via Mattermost-Webhook in den Chat
+- **Leistungen-Seite** — Preistabelle mit Stripe-Checkout (direkter Kauf ohne Invoice Ninja)
+- **Homepage-CTA** — Stripe-Checkout-Button fuer das Haupt-Angebot
+- **OIDC-Login** — Keycloak SSO fuer Kunden und Administratoren
+- **Admin-Panel** (`/admin`) — Brand-Konfiguration: Services, Leistungen, Site-Einstellungen, Rechtstexte, Referenzen
+- **Projektmanagement** (`/admin/projekte`) — Projekte, Teilprojekte und Aufgaben je Kunde; Gantt-Diagramm
+- **Bug-Reporting** — Formular mit Ticket-Tracking in der `website`-Datenbank
+
+Stripe-Keys werden als Kubernetes Secret injiziert. Setup: `task workspace:stripe-setup`. Siehe [Stripe-Integration](stripe.md).
+Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 
 ## Ressourcen-Uebersicht
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'pie1': '#6b7280', 'pie2': '#2d8659', 'pie3': '#2d8659', 'pie4': '#4a90d9', 'pie5': '#8b5cf6', 'pie6': '#6b7280', 'pie7': '#2d8659', 'pie8': '#d97706', 'pie9': '#0891b2', 'pie10': '#374151'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#1d5c3a', 'pie4': '#2563a0', 'pie5': '#4c2d8a', 'pie6': '#374151', 'pie7': '#1d5c3a', 'pie8': '#7a3c00', 'pie9': '#0b5575', 'pie10': '#374151', 'pie11': '#1a1a2e', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
 pie title RAM Requests (Gesamt ca. 3.5 Gi)
     "PostgreSQL (256 Mi)" : 256
     "Mattermost (256 Mi)" : 256

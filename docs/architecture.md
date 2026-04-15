@@ -17,7 +17,8 @@ flowchart TB
         subgraph identity ["fa:fa-shield-halved Identitaet"]
             KC["fa:fa-key Keycloak\nauth.localhost"]
             PROXY["mm-keycloak-proxy"]
-            OAUTH["oauth2-proxy"]
+            OAUTH["oauth2-proxy (Invoice Ninja)"]
+            OAUTH2["oauth2-proxy (Docs)"]
         end
 
         subgraph collaboration ["fa:fa-users Kommunikation & Zusammenarbeit"]
@@ -81,6 +82,7 @@ flowchart TB
     Traefik --> SIG
     Traefik --> OC
     Traefik --> OAUTH
+    Traefik --> OAUTH2
     Traefik --> VW
     Traefik --> WB
     Traefik --> MP
@@ -101,6 +103,8 @@ flowchart TB
     MM --> PROXY --> KC
     OAUTH --> KC
     OAUTH --> IN
+    OAUTH2 --> KC
+    OAUTH2 --> DOCS
 
     %% --- Collaboration ---
     NC --> CO
@@ -144,7 +148,7 @@ flowchart TB
     IN -. "SMTP" .-> MP
 
     %% --- Klickbare Nodes ---
-    click KC "#keycloak" "Keycloak: Zentraler OIDC Identity Provider fuer SSO. Verwaltet Benutzer, Rollen und 7 OIDC-Clients. Speichert Sessions und Realm-Konfiguration in PostgreSQL."
+    click KC "#keycloak" "Keycloak: Zentraler OIDC Identity Provider fuer SSO. Verwaltet Benutzer, Rollen und 8 OIDC-Clients. Speichert Sessions und Realm-Konfiguration in PostgreSQL."
     click MM "#mattermost" "Mattermost: Team-Chat mit Channels, Threads und Dateifreigabe. Integriert OpenSearch fuer Volltextsuche, Webhooks fuer Automatisierung und Slash-Commands fuer billing-bot."
     click NC "#nextcloud" "Nextcloud: Dateiverwaltung, Kalender, Kontakte und Videokonferenzen via Talk. WOPI-Integration mit Collabora fuer Office-Dokumente. WebRTC via HPB Stack."
     click CO "#collabora" "Collabora Online: LibreOffice-basierter Office-Editor im Browser. Bearbeitet DOCX, XLSX, PPTX, ODT Dateien kollaborativ ueber WOPI-Protokoll mit Nextcloud."
@@ -155,10 +159,10 @@ flowchart TB
     click OL "#outline" "Outline: Kollaboratives Wiki fuer Teamwissen. Markdown-basiert mit Echtzeit-Bearbeitung, verschachtelten Dokumenten und Volltextsuche. Redis fuer Sessions."
     click WB "#whiteboard" "Whiteboard: Nextcloud-integriertes Whiteboard fuer visuelle Zusammenarbeit. Echtzeit-Kollaboration ueber WebSockets."
     click MP "#mailpit" "Mailpit: SMTP-Testserver fuer Entwicklung. Faengt alle ausgehenden E-Mails ab (kein Versand). Web-UI zur Inspektion von Benachrichtigungen."
-    click DB "#datenbank-layout" "PostgreSQL 16 shared-db: 5 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, outline) mit eigenem User je Service."
+    click DB "#datenbank-layout" "PostgreSQL 16 shared-db: 7 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, outline, website, pentest) mit eigenem User je Service."
     click MARIA "#datenbank-layout" "MariaDB 11: Dedizierte Instanz fuer Invoice Ninja (benoetigt MySQL-Kompatibilitaet)."
-    click OS "#datenbank-layout" "OpenSearch 2.17: Elasticsearch-kompatibler Suchindex fuer Mattermost Volltextsuche und Autocomplete."
-    click WEB "#website" "Website: Astro + Svelte Unternehmenswebsite mit Kontaktformular (Mattermost Webhook) und OIDC-Login."
+    click OS "#datenbank-layout" "OpenSearch 2.19: Elasticsearch-kompatibler Suchindex fuer Mattermost Volltextsuche und Autocomplete."
+    click WEB "#website" "Website: Astro + Svelte Unternehmenswebsite mit Kontaktformular (Mattermost Webhook), OIDC-Login, Stripe-Checkout und Admin-Panel (/admin/projekte)."
     click PROM "#monitoring" "Prometheus: Metriken-Sammlung aller Kubernetes-Ressourcen. Speist DSGVO-Compliance-Dashboard."
     click GRAF "#monitoring" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
     click WHISPER "#whisper" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
@@ -171,15 +175,15 @@ flowchart TB
     click MCP_PROM "#claude-code" "MCP Prometheus: Direkte PromQL-Abfragen fuer Cluster-Metriken."
 
     %% --- Styles ---
-    classDef identity_style fill:#4a90d9,color:#fff,stroke:#2d6a9f
-    classDef collab_style fill:#2d8659,color:#fff,stroke:#1a5c3a
-    classDef ai_style fill:#8b5cf6,color:#fff,stroke:#6d3ad4
-    classDef billing_style fill:#d97706,color:#fff,stroke:#b45309
-    classDef data_style fill:#6b7280,color:#fff,stroke:#4b5563
-    classDef tools_style fill:#0891b2,color:#fff,stroke:#0e7490
-    classDef infra_style fill:#374151,color:#fff,stroke:#1f2937
+    classDef identity_style fill:#1b3766,color:#e8c870,stroke:#2a5291
+    classDef collab_style fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
+    classDef ai_style fill:#2a1654,color:#e8c870,stroke:#3d2478
+    classDef billing_style fill:#3a2000,color:#e8c870,stroke:#5a3500
+    classDef data_style fill:#1f2937,color:#aabbcc,stroke:#374151
+    classDef tools_style fill:#083344,color:#e8c870,stroke:#0e4f68
+    classDef infra_style fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 
-    class KC,PROXY,OAUTH identity_style
+    class KC,PROXY,OAUTH,OAUTH2 identity_style
     class MM,NC,CO,WB,OL,REC collab_style
     class OC,MCP_K8S,MCP_PG,MCP_BR,MCP_GRAF,MCP_PROM,WHISPER,EMB ai_style
     class IN,BB billing_style
@@ -252,7 +256,7 @@ sequenceDiagram
     Browser -->> User: ✅ Eingeloggt
 ```
 
-**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Outline, Website (7 Clients im Realm `workspace`)
+**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Outline, Website, Docs (8 Clients im Realm `workspace`)
 
 ---
 
@@ -362,12 +366,12 @@ sequenceDiagram
     rect rgba(139, 92, 246, 0.1)
         Note over User1,TURN: Phase 3: Medien-Uebertragung
         alt Direktverbindung moeglich
-            User1 <--> JANUS: Media (RTP/SRTP)
-            JANUS <--> User2: Media (RTP/SRTP)
+            User1 <<->> JANUS: Media (RTP/SRTP)
+            JANUS <<->> User2: Media (RTP/SRTP)
         else NAT/Firewall blockiert
-            User1 <--> TURN: TURN Relay
-            TURN <--> JANUS: Media weiterleiten
-            JANUS <--> User2: Media (RTP/SRTP)
+            User1 <<->> TURN: TURN Relay
+            TURN <<->> JANUS: Media weiterleiten
+            JANUS <<->> User2: Media (RTP/SRTP)
         end
     end
 ```
@@ -494,7 +498,7 @@ sequenceDiagram
 | MCP-Server | Protokoll | Kann | Kann nicht |
 |------------|-----------|------|------------|
 | mcp-kubernetes | mcp-k8s-go | Pods, Deployments, Services, Logs, Events lesen; Deployments skalieren/neustarten | Loeschen, Erstellen, Exec, Secrets lesen |
-| mcp-postgres | @modelcontextprotocol/server-postgres | Alle 5 shared-db Datenbanken abfragen (Superuser) | Schreibzugriff (per Konvention im System-Prompt) |
+| mcp-postgres | @modelcontextprotocol/server-postgres | Alle shared-db Datenbanken abfragen (Superuser) | Schreibzugriff (per Konvention im System-Prompt) |
 | mcp-browser | Playwright | URLs navigieren, Screenshots, Formulare ausfuellen | Keine Netzwerk-Beschraenkung (Cluster-intern) |
 | mcp-mattermost | legard/mcp-server-mattermost | Kanaele, DMs, Beitraege lesen/schreiben | Admin-Operationen |
 | mcp-nextcloud | ghcr.io/cbcoutinho/nextcloud-mcp-server | Dateien, Kalender, Kontakte (WebDAV/CalDAV/CardDAV) | Admin-Einstellungen |
@@ -521,11 +525,11 @@ flowchart LR
 
     MP --> INBOX["fa:fa-inbox Web-UI\nmail.localhost\nAlle Mails einsehbar"]
 
-    style MM fill:#2d8659,color:#fff,stroke:#1a5c3a
-    style NC fill:#2d8659,color:#fff,stroke:#1a5c3a
-    style IN fill:#d97706,color:#fff,stroke:#b45309
-    style MP fill:#0891b2,color:#fff,stroke:#0e7490
-    style INBOX fill:#374151,color:#fff,stroke:#1f2937
+    style MM fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
+    style NC fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
+    style IN fill:#3a2000,color:#e8c870,stroke:#5a3500
+    style MP fill:#083344,color:#e8c870,stroke:#0e4f68
+    style INBOX fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 ```
 
 ---
@@ -536,37 +540,44 @@ flowchart LR
 
 ```mermaid
 erDiagram
-    SHARED_DB["PostgreSQL 16 (shared-db) — 25 Gi PVC"] {
-        database keycloak "Realms, Benutzer, Sessions, Clients"
-        database mattermost "Teams, Kanaele, Nachrichten, Dateien"
-        database nextcloud "Dateien, Kalender, Kontakte, Freigaben"
-        database vaultwarden "Verschluesselte Tresore, Organisationen"
-        database outline "Dokumente, Sammlungen, Benutzer"
-    }
+    SHARED_DB ||--|| KC_SVC : "keycloak"
+    SHARED_DB ||--|| MM_SVC : "mattermost"
+    SHARED_DB ||--|| NC_SVC : "nextcloud"
+    SHARED_DB ||--|| VW_SVC : "vaultwarden"
+    SHARED_DB ||--|| OL_SVC : "outline"
+    SHARED_DB ||--|| WEB_SVC : "website"
+    SHARED_DB }|--|| MCP_PG : "alle DBs"
+    MARIADB ||--|| IN_SVC : "invoiceninja"
+    OPENSEARCH ||--|| MM_SVC : "Suchindex"
+    REDIS ||--|| OL_SVC : "Sessions"
 
-    MARIADB["MariaDB 11 (invoiceninja-mariadb) — 5 Gi PVC"] {
-        database invoiceninja "Kunden, Rechnungen, Produkte, Zahlungen"
+    SHARED_DB {
+        text host "shared-db.workspace"
+        text engine "PostgreSQL 16"
+        text storage "25 Gi PVC"
     }
-
-    OPENSEARCH["OpenSearch 2.17 (opensearch) — 5 Gi PVC"] {
-        index mattermost_posts "Volltextindex aller Nachrichten"
-        index mattermost_channels "Kanal-Suchindex"
+    MARIADB {
+        text host "invoiceninja-mariadb"
+        text engine "MariaDB 11"
+        text storage "5 Gi PVC"
     }
-
-    REDIS["Redis 7 (Sidecar in Outline-Pod)"] {
-        db sessions "Outline Benutzer-Sessions"
-        db cache "Dokument-Render-Cache"
+    OPENSEARCH {
+        text host "opensearch"
+        text engine "OpenSearch 2.17"
+        text storage "5 Gi PVC"
     }
-
-    KC_SVC["Keycloak"] ||--|| SHARED_DB : "keycloak DB"
-    MM_SVC["Mattermost"] ||--|| SHARED_DB : "mattermost DB"
-    NC_SVC["Nextcloud"] ||--|| SHARED_DB : "nextcloud DB"
-    VW_SVC["Vaultwarden"] ||--|| SHARED_DB : "vaultwarden DB"
-    OL_SVC["Outline"] ||--|| SHARED_DB : "outline DB"
-    OL_SVC ||--|| REDIS : "Sessions + Cache"
-    IN_SVC["Invoice Ninja"] ||--|| MARIADB : "invoiceninja DB"
-    MM_SVC ||--|| OPENSEARCH : "Suchindex"
-    MCP_PG["MCP Postgres"] }|--|| SHARED_DB : "Superuser nur lesend"
+    REDIS {
+        text host "localhost"
+        text engine "Redis 7 Sidecar"
+    }
+    KC_SVC { text service "Keycloak" }
+    MM_SVC { text service "Mattermost" }
+    NC_SVC { text service "Nextcloud" }
+    VW_SVC { text service "Vaultwarden" }
+    OL_SVC { text service "Outline" }
+    WEB_SVC { text service "Website" }
+    IN_SVC { text service "Invoice Ninja" }
+    MCP_PG { text service "MCP Postgres" }
 ```
 
 ### Datenbank-Isolation
@@ -580,6 +591,8 @@ Jede Datenbank hat einen eigenen User mit ausschliesslichem Zugriff auf seine Da
 | `nextcloud` | `nextcloud` | Nextcloud | Datei-Metadaten, Kalender, Kontakte |
 | `vaultwarden` | `vaultwarden` | Vaultwarden | Verschluesselte Vault-Items |
 | `outline` | `outline` | Outline | + Redis Sidecar fuer Sessions |
+| `website` | `website` | Website (Astro) | Meeting-Pipeline, Projektmgmt, Admin-Config — pgvector aktiviert |
+| `pentest` | `pentest` | Sicherheitstests | Isolierte DB fuer Pen-Tests |
 | `invoiceninja` | `invoiceninja` | Invoice Ninja | Separate MariaDB (MySQL-Kompatibilitaet) |
 
 Die Init-Skripte in `shared-db` erstellen User und Datenbanken idempotent beim ersten Start und synchronisieren Passwoerter bei Neustarts.
@@ -660,18 +673,18 @@ flowchart TD
     H --> L["fa:fa-receipt task workspace:billing-setup<br/>billing-bot Image"]
     H --> M["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
 
-    style A fill:#2d6a4f,color:#fff
-    style B fill:#374151,color:#fff
-    style C fill:#2d6a4f,color:#fff
-    style D fill:#374151,color:#fff
-    style E fill:#374151,color:#fff
-    style F fill:#6b7280,color:#fff
-    style G fill:#2d8659,color:#fff
-    style I fill:#2d8659,color:#fff
-    style J fill:#8b5cf6,color:#fff
-    style K fill:#0891b2,color:#fff
-    style L fill:#d97706,color:#fff
-    style M fill:#0891b2,color:#fff
+    style A fill:#0a1a0a,color:#b8e8b8
+    style B fill:#1a1a2e,color:#aabbcc
+    style C fill:#0a1a0a,color:#b8e8b8
+    style D fill:#1a1a2e,color:#aabbcc
+    style E fill:#1a1a2e,color:#aabbcc
+    style F fill:#1f2937,color:#aabbcc
+    style G fill:#1a3d28,color:#e8c870
+    style I fill:#1a3d28,color:#e8c870
+    style J fill:#2a1654,color:#e8c870
+    style K fill:#083344,color:#e8c870
+    style L fill:#3a2000,color:#e8c870
+    style M fill:#083344,color:#e8c870
 ```
 
 Alternativ: `task workspace:up` fuer vollautomatisches Setup (Cluster + MVP + MCP + Monitoring + Billing).
@@ -704,10 +717,10 @@ flowchart TB
     APPSET -->|"sync"| hetzner
     APPSET -->|"sync"| korczewski
 
-    style hub fill:#8b5cf6,color:#fff
-    style hetzner fill:#2d6a4f,color:#fff
-    style korczewski fill:#4a90d9,color:#fff
-    style GIT fill:#374151,color:#fff
+    style hub fill:#2a1654,color:#e8c870
+    style hetzner fill:#0a1a0a,color:#b8e8b8
+    style korczewski fill:#1b3766,color:#e8c870
+    style GIT fill:#1a1a2e,color:#aabbcc
 ```
 
 **Konfiguration:** Cluster-spezifische Einstellungen (Domain, Branding, Secrets) werden als Annotationen auf ArgoCD Cluster-Secrets gespeichert. Die `environments/`-Dateien definieren pro-Umgebung Variablen, die via `envsubst` in die Manifeste eingesetzt werden.

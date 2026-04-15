@@ -1207,50 +1207,26 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
-  docs:configmap:
-    desc: Build docs-content ConfigMap from local docs/ directory
-    cmds:
-      - |
-        kubectl create configmap docs-content \
-          --from-file="index.html=docs-site/index.html" \
-          --from-file="README.md=docs/README.md" \
-          --from-file="_sidebar.md=docs/_sidebar.md" \
-          --from-file="architecture.md=docs/architecture.md" \
-          --from-file="database.md=docs/database.md" \
-          --from-file="services.md=docs/services.md" \
-          --from-file="keycloak.md=docs/keycloak.md" \
-          --from-file="migration.md=docs/migration.md" \
-          --from-file="scripts.md=docs/scripts.md" \
-          --from-file="tests.md=docs/tests.md" \
-          --from-file="security.md=docs/security.md" \
-          --from-file="troubleshooting.md=docs/troubleshooting.md" \
-          --from-file="requirements.md=docs/requirements.md" \
-          --from-file="benutzerhandbuch.md=docs/benutzerhandbuch.md" \
-          --from-file="test-anleitung-korczewski.md=docs/test-anleitung-korczewski.md" \
-          --from-file="verarbeitungsverzeichnis.md=docs/verarbeitungsverzeichnis.md" \
-          --from-file="mcp-actions.md=docs/mcp-actions.md" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
-
   docs:deploy:
-    desc: Deploy Docsify docs site into the workspace namespace
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: 'No cluster running. Run "task cluster:create" first.'
+    desc: Deploy docs to both production clusters (korczewski + mentolder)
     cmds:
-      - task: docs:configmap
-      - kubectl apply -f k3d/docs.yaml -n workspace
-      - kubectl rollout status deployment/docs -n workspace --timeout=120s
+      - echo '→ Applying docs-content to korczewski...'
+      - kubectl apply -k k3d/ --context korczewski 2>&1 | grep docs-content
+      - kubectl rollout restart deployment/docs -n workspace --context korczewski
+      - kubectl rollout status deployment/docs -n workspace --context korczewski --timeout=120s
+      - echo '→ Applying docs-content to mentolder...'
+      - kubectl apply -k k3d/ --context mentolder 2>&1 | grep docs-content
+      - kubectl rollout restart deployment/docs -n workspace --context mentolder
+      - kubectl rollout status deployment/docs -n workspace --context mentolder --timeout=120s
       - echo ''
-      - 'echo "✓ Docs deployed"'
-      - 'echo "  URL: http://docs.localhost"'
+      - 'echo "✓ Docs deployed to both clusters"'
+      - 'echo "  https://docs.korczewski.de"'
+      - 'echo "  https://docs.mentolder.de"'
 
   docs:restart:
-    desc: Rebuild docs ConfigMap from local files and restart the docs pod
+    desc: Rebuild docs ConfigMap and restart pods on both production clusters
     cmds:
-      - task: docs:configmap
-      - kubectl rollout restart deployment/docs -n workspace
-      - kubectl rollout status deployment/docs -n workspace --timeout=120s
-      - echo '✓ Docs updated from local docs/ directory'
+      - task: docs:deploy
 
   docs:integrate-mattermost:
     desc: Integrate docs into Mattermost (channel bookmark + slash command)

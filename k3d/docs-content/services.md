@@ -331,15 +331,27 @@ Keycloak-OIDC-Proxy vor dem Docs-Dienst. Entspricht dem gleichen Muster wie `oau
 
 ### Website (Astro + Svelte)
 
-**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular auf der Website leitet Anfragen automatisch in den Mattermost-Chat weiter.
+**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular leitet Anfragen automatisch in den Mattermost-Chat weiter. Auf der Leistungen-Seite kann direkt per Stripe bezahlt werden.
 
 | Eigenschaft | Wert |
 |-------------|------|
 | URL | http://web.localhost |
 | Namespace | `website` (eigener Namespace) |
 | Manifest | `k3d/website.yaml` |
+| Datenbank | PostgreSQL (shared-db/website) |
+| Deploy | `task website:deploy` |
 
-Unternehmenswebsite mit Kontaktformular (Mattermost-Webhook). Deploy: `task website:deploy`.
+Multi-Brand-Unternehmenswebsite (mentolder / korczewski) mit:
+- **Kontaktformular** — leitet Anfragen via Mattermost-Webhook in den Chat
+- **Leistungen-Seite** — Preistabelle mit Stripe-Checkout (direkter Kauf ohne Invoice Ninja)
+- **Homepage-CTA** — Stripe-Checkout-Button fuer das Haupt-Angebot
+- **OIDC-Login** — Keycloak SSO fuer Kunden und Administratoren
+- **Admin-Panel** (`/admin`) — Brand-Konfiguration: Services, Leistungen, Site-Einstellungen, Rechtstexte, Referenzen
+- **Projektmanagement** (`/admin/projekte`) — Projekte, Teilprojekte und Aufgaben je Kunde; Gantt-Diagramm
+- **Bug-Reporting** — Formular mit Ticket-Tracking in der `website`-Datenbank
+
+Stripe-Keys werden als Kubernetes Secret injiziert. Setup: `task workspace:stripe-setup`. Siehe [Stripe-Integration](stripe.md).
+Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 
 ## Ressourcen-Uebersicht
 

@@ -113,6 +113,8 @@ configMapGenerator:
       - docs-content/tests.md
       - docs-content/troubleshooting.md
       - docs-content/verarbeitungsverzeichnis.md
+      - docs-content/stripe.md
+      - docs-content/admin-projekte.md
 
 generatorOptions:
   disableNameSuffixHash: true

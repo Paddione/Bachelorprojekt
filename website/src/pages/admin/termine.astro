@@ -1,0 +1,91 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { getAvailableSlots } from '../../lib/caldav';
+import type { DaySlots } from '../../lib/caldav';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const NC_DOMAIN = process.env.NC_DOMAIN || 'files.mentolder.de';
+const calendarUrl = `https://${NC_DOMAIN}/apps/calendar`;
+
+const now = new Date();
+const horizon = new Date(now);
+horizon.setDate(horizon.getDate() + 14);
+
+let days: DaySlots[] = [];
+let calError = '';
+try {
+  const all = await getAvailableSlots(now);
+  days = all.filter(d => new Date(d.date) <= horizon);
+} catch (err) {
+  console.error('[admin/termine] getAvailableSlots failed:', err);
+  calError = 'Kalender konnte nicht geladen werden.';
+}
+
+const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
+---
+
+<Layout title="Admin — Termine">
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-4xl mx-auto px-6">
+
+      <div class="mb-8 flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-light font-serif">Termine</h1>
+          <p class="text-muted mt-1">Freie Slots der nächsten 14 Tage · {totalSlots} verfügbar</p>
+        </div>
+        <div class="flex gap-3">
+          <a
+            href={calendarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-4 py-2 bg-gold/20 text-gold rounded-lg text-sm font-medium hover:bg-gold/30 transition-colors"
+          >
+            Nextcloud Kalender →
+          </a>
+          <a
+            href="/admin"
+            class="px-4 py-2 bg-dark-light text-muted rounded-lg text-sm font-medium hover:text-light transition-colors"
+          >
+            ← Zurück
+          </a>
+        </div>
+      </div>
+
+      {calError && (
+        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+          {calError}
+        </div>
+      )}
+
+      {days.length === 0 && !calError && (
+        <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center">
+          Keine freien Termine in den nächsten 14 Tagen.
+        </div>
+      )}
+
+      <div class="grid gap-4">
+        {days.map(day => (
+          <div class="p-5 bg-dark-light rounded-xl border border-dark-lighter">
+            <div class="flex items-center gap-3 mb-3">
+              <h2 class="text-light font-semibold">{day.weekday}</h2>
+              <span class="text-muted text-sm">{day.date}</span>
+              <span class="ml-auto text-xs text-muted">{day.slots.length} Slot{day.slots.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {day.slots.map(slot => (
+                <span class="px-3 py-1.5 bg-gold/10 text-gold rounded-lg text-sm font-mono border border-gold/20">
+                  {slot.display}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+</Layout>

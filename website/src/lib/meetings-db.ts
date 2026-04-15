@@ -388,6 +388,48 @@ export async function initBugTicketsTable(): Promise<void> {
   `);
 }
 
+// ── Service Config (Angebote Overrides) ──────────────────────────────────────
+
+export interface ServiceOverride {
+  slug: string;
+  title: string;
+  description: string;
+  icon: string;
+  price: string;
+  features: string[];
+  hidden?: boolean;
+}
+
+export async function initServiceConfigTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS service_config (
+      brand        TEXT PRIMARY KEY,
+      services_json JSONB NOT NULL,
+      updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+export async function getServiceConfig(brand: string): Promise<ServiceOverride[] | null> {
+  await initServiceConfigTable();
+  const result = await pool.query(
+    'SELECT services_json FROM service_config WHERE brand = $1',
+    [brand]
+  );
+  if (!result.rows[0]) return null;
+  return result.rows[0].services_json as ServiceOverride[];
+}
+
+export async function saveServiceConfig(brand: string, overrides: ServiceOverride[]): Promise<void> {
+  await initServiceConfigTable();
+  await pool.query(
+    `INSERT INTO service_config (brand, services_json, updated_at)
+     VALUES ($1, $2, now())
+     ON CONFLICT (brand) DO UPDATE SET services_json = $2, updated_at = now()`,
+    [brand, JSON.stringify(overrides)]
+  );
+}
+
 // ── Bug Ticket List ───────────────────────────────────────────────────────────
 
 export interface BugTicketRow {

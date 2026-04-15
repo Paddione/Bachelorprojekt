@@ -67,6 +67,7 @@ export const mentolderConfig: BrandConfig = {
         'Datenschutz & Sicherheit verstehen',
       ],
       price: 'Ab 60 € / Stunde',
+      stripeServiceKey: 'digital-cafe-einzel',
       pageContent: {
         headline: 'Ihr sicherer Einstieg in die digitale Welt',
         intro: 'Sie möchten WhatsApp nutzen, Online-Banking verstehen, oder einfach sicherer im Umgang mit Smartphone und Computer werden? Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.',
@@ -136,6 +137,7 @@ export const mentolderConfig: BrandConfig = {
         'Sparring auf Augenhöhe',
       ],
       price: 'Ab 150 € / Session',
+      stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Ihre Karriere strategisch gestalten',
         intro: 'Sie sind erfahrene Führungskraft und stehen vor einer beruflichen Neuorientierung? Ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',

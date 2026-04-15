@@ -52,12 +52,32 @@ const [leistungen, priceListUrl] = await Promise.all([
                   </div>
                   <p class="text-muted mb-4">{svc.desc}</p>
                 </div>
-                <a
-                  href={`${leistungenCta.href}?service=${svc.key}`}
-                  class="block text-center bg-gold hover:bg-gold-light text-dark px-6 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm"
-                >
-                  {leistungenCta.text}
-                </a>
+                <div class="flex flex-col gap-2 mt-auto">
+                  {svc.price !== 'nach Vereinbarung' ? (
+                    <>
+                      <button
+                        type="button"
+                        class="stripe-buy-btn w-full text-center bg-gold hover:bg-gold-light text-dark px-6 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm"
+                        data-service-key={svc.key}
+                      >
+                        💳 Jetzt kaufen
+                      </button>
+                      <a
+                        href={`${leistungenCta.href}?service=${svc.key}`}
+                        class="block text-center border border-gold/40 hover:border-gold text-gold px-6 py-2 rounded-full font-semibold text-sm transition-colors"
+                      >
+                        Termin vereinbaren
+                      </a>
+                    </>
+                  ) : (
+                    <a
+                      href={leistungenCta.href}
+                      class="block text-center bg-gold hover:bg-gold-light text-dark px-6 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm"
+                    >
+                      {leistungenCta.text}
+                    </a>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -92,3 +112,34 @@ const [leistungen, priceListUrl] = await Promise.all([
 
   <CallToAction client:visible />
 </Layout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.stripe-buy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const serviceKey = btn.dataset.serviceKey;
+      if (!serviceKey) return;
+      const originalText = btn.textContent ?? '';
+      btn.textContent = 'Wird geladen…';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serviceKey }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error || 'Checkout fehlgeschlagen. Bitte erneut versuchen.');
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      } catch {
+        alert('Verbindungsfehler. Bitte erneut versuchen.');
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
+  });
+</script>

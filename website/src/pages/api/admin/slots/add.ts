@@ -39,6 +39,13 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
+  if (end <= start) {
+    return new Response(JSON.stringify({ error: 'slotEnd muss nach slotStart liegen' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     await addSlotToWhitelist(BRAND, start, end);
     return new Response(JSON.stringify({ success: true }), {

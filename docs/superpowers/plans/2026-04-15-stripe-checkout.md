@@ -709,8 +709,8 @@ git commit -m "feat(stripe): inject Stripe env vars into website deployment + al
 - [ ] **Step 1: Add keys to mentolder `website-secrets`**
 
 ```bash
-SK="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"
-PK="pk_live_51RhKrcDGTY4NP8aeqnf69F1OVgNleqjLqR5ZHi8jkzlyxLiaTEnsY5xwhgPAVV7FdNb4eRnelIzt7DUj9TTAopXg00yyxjx03t"
+SK="<your sk_live_... key from Stripe Dashboard>"
+PK="<your pk_live_... key from Stripe Dashboard>"
 
 kubectl --context=mentolder patch secret website-secrets -n website \
   --type=json \

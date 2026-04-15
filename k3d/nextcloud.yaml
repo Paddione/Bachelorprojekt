@@ -100,7 +100,7 @@ spec:
               value: "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1/32"
             # Redis: memcache.distributed + memcache.locking (auto-wired by image)
             - name: REDIS_HOST
-              value: "nextcloud-redis"
+              value: "nextcloud-redis.workspace.svc.cluster.local"
             - name: REDIS_HOST_PORT
               value: "6379"
             # OIDC-Variablen für oidc.config.php

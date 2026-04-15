@@ -8,7 +8,8 @@ export const GET: APIRoute = async ({ url }) => {
     const fromParam = url.searchParams.get('from');
     const fromDate = fromParam ? new Date(fromParam) : undefined;
 
-    const slots = await getAvailableSlots(fromDate);
+    const brand = process.env.BRAND_NAME || 'mentolder';
+    const slots = await getAvailableSlots(fromDate, brand);
 
     return new Response(JSON.stringify(slots), {
       status: 200,

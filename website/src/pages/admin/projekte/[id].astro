@@ -539,6 +539,15 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
     <form method="post" action="/api/admin/zeiterfassung/create" class="space-y-4">
       <input type="hidden" name="projectId" value={project?.id ?? ''} />
       <input type="hidden" name="_back" value={`/admin/projekte/${project?.id ?? ''}`} />
+      <div>
+        <label class="block text-sm text-muted mb-1">Aufgabe (optional)</label>
+        <select name="taskId" class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:outline-none focus:border-gold/50">
+          <option value="">— keine Aufgabe —</option>
+          {directTasks.map(t => (
+            <option value={t.id}>{t.name}</option>
+          ))}
+        </select>
+      </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs text-muted mb-1">Minuten <span class="text-red-400">*</span></label>

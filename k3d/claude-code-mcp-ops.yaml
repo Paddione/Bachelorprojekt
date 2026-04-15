@@ -109,8 +109,8 @@ spec:
             limits:
               memory: 512Mi
               cpu: "500m"
-        # ─── Meetings PostgreSQL MCP (port 3002) ─────────���──────
-        # Dedicated connection to the meetings database.
+        # ─── Website PostgreSQL MCP (port 3002) ──────────────────
+        # Dedicated connection to the website database.
         # Read-write access for Claude Code to query meeting data,
         # transcripts, insights, and vector embeddings.
         - name: mcp-meetings
@@ -122,17 +122,17 @@ spec:
               set -e
               npm install -g supergateway @modelcontextprotocol/server-postgres
               exec supergateway \
-                --stdio "npx @modelcontextprotocol/server-postgres postgresql://meetings:$(MEETINGS_DB_PASSWORD)@shared-db:5432/meetings" \
+                --stdio "npx @modelcontextprotocol/server-postgres postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website" \
                 --outputTransport streamableHttp \
                 --port 3002 \
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
           env:
-            - name: MEETINGS_DB_PASSWORD
+            - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: MEETINGS_DB_PASSWORD
+                  key: WEBSITE_DB_PASSWORD
           ports:
             - containerPort: 3002
           readinessProbe:

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { saveServiceConfig } from '../../../../lib/meetings-db';
-import type { ServiceOverride } from '../../../../lib/meetings-db';
+import { saveServiceConfig } from '../../../../lib/website-db';
+import type { ServiceOverride } from '../../../../lib/website-db';
 import { mentolderConfig } from '../../../../config/brands/mentolder';
 
 export const POST: APIRoute = async ({ request, redirect }) => {

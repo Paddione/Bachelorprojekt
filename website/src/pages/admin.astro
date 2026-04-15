@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
-import { listBugTickets } from '../lib/meetings-db';
+import { listBugTickets } from '../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {

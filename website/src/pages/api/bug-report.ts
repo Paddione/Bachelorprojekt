@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { insertBugTicket } from '../../lib/meetings-db';
+import { insertBugTicket } from '../../lib/website-db';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);

@@ -130,7 +130,7 @@ export const mentolderConfig: BrandConfig = {
       description: 'Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.',
       icon: '🎯',
       features: [
-        'Profil-Scharfung & Positionierung',
+        'Profil-Schärfung & Positionierung',
         'Karriere-Strategie entwickeln',
         'Gesprächsvorbereitung (Headhunter, Vorstellungsgespräche)',
         'Sparring auf Augenhöhe',

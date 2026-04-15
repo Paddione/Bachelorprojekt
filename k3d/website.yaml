@@ -73,7 +73,6 @@ data:
   OUTLINE_URL: "http://outline.workspace.svc.cluster.local"
   OUTLINE_API_KEY: ""
   ANTHROPIC_API_KEY: ""
-  SESSIONS_DATABASE_URL: "postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
 ---
@@ -112,6 +111,13 @@ spec:
             - configMapRef:
                 name: website-config
           env:
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: WEBSITE_DB_PASSWORD
+            - name: SESSIONS_DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
             - name: MATTERMOST_BOT_TOKEN
               valueFrom:
                 secretKeyRef:

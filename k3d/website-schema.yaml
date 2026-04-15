@@ -1,18 +1,18 @@
 # ── Meeting Knowledge Pipeline — Schema ──────────────────────────────────────
-# Applied to the 'meetings' database in shared-db.
+# Applied to the 'website' database in shared-db.
 # Mounted as a second init script (runs after init-databases.sh).
 # ─────────────────────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: meetings-schema
+  name: website-schema
 data:
   init-meetings-schema.sh: |
     #!/bin/bash
     set -e
     echo "Initializing meetings schema (pgvector + tables)..."
 
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname meetings <<-'EOSQL'
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
       -- Enable pgvector extension
       CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -114,7 +114,7 @@ data:
           reporter_email  TEXT NOT NULL,
           description     TEXT NOT NULL,
           url             TEXT,
-          brand           TEXT NOT NULL DEFAULT 'mentolder',
+          brand           TEXT NOT NULL,
           created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           resolved_at     TIMESTAMPTZ,
           resolution_note TEXT
@@ -152,11 +152,11 @@ data:
           LIMIT k;
       $$;
 
-      -- Grant full access to the meetings user
-      GRANT ALL ON ALL TABLES IN SCHEMA public TO meetings;
-      GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO meetings;
-      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO meetings;
-      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO meetings;
+      -- Grant full access to the website user
+      GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
+      GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO website;
     EOSQL
 
     echo "Meetings schema initialized."

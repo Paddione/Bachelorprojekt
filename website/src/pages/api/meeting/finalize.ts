@@ -7,7 +7,7 @@ import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whit
 import {
   upsertCustomer, createMeeting, updateMeetingStatus,
   saveTranscript, saveArtifact, saveInsight, generateMeetingEmbeddings,
-} from '../../../lib/meetings-db';
+} from '../../../lib/website-db';
 import { generateMeetingInsights } from '../../../lib/claude';
 
 // Finalize a meeting: collect artifacts, create Outline profile, trigger Claude Code.

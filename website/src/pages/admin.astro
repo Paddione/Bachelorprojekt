@@ -59,7 +59,7 @@ function fmtCurrency(n: number): string {
   {[
     { label: 'Aktive Projekte',   value: String(activeProjects),           href: '/admin/projekte',  cls: 'border-yellow-800' },
     { label: 'Offene Rechnungen', value: openInvoices > 0 ? `${openInvoices} (${fmtCurrency(openInvoiceAmount)})` : '0', href: '/admin/rechnungen', cls: openInvoices > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
-    { label: 'Offene Bugs',       value: String(openBugCount),             href: '/admin/bugs',      cls: openBugCount > 0 ? 'border-red-800' : 'border-dark-lighter' },
+    { label: 'Überfällige Bugs',   value: String(openBugCount),             href: '/admin/bugs',      cls: openBugCount > 0 ? 'border-red-800' : 'border-dark-lighter' },
     { label: 'Follow-ups fällig', value: String(dueFollowUps),             href: '/admin/followups', cls: dueFollowUps > 0 ? 'border-red-800' : 'border-dark-lighter' },
     { label: 'Freie Slots (7 T)', value: String(freeSlots),                href: '/admin/termine',   cls: freeSlots > 0 ? 'border-green-800' : 'border-dark-lighter' },
   ].map(k => (

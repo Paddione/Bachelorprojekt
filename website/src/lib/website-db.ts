@@ -319,14 +319,18 @@ export async function insertBugTicket(params: {
   description: string;
   url?: string;
   brand: string;
+  screenshots?: string[];
 }): Promise<void> {
   await initBugTicketsTable();
+  const screenshotsJson = params.screenshots && params.screenshots.length > 0
+    ? JSON.stringify(params.screenshots)
+    : null;
   await pool.query(
-    `INSERT INTO bug_tickets (ticket_id, category, reporter_email, description, url, brand)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO bug_tickets (ticket_id, category, reporter_email, description, url, brand, screenshots_json)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (ticket_id) DO NOTHING`,
     [params.ticketId, params.category, params.reporterEmail,
-     params.description, params.url ?? null, params.brand]
+     params.description, params.url ?? null, params.brand, screenshotsJson]
   );
 }
 
@@ -385,6 +389,10 @@ export async function initBugTicketsTable(): Promise<void> {
       resolved_at     TIMESTAMPTZ,
       resolution_note TEXT
     )
+  `);
+  await pool.query(`
+    ALTER TABLE bug_tickets
+      ADD COLUMN IF NOT EXISTS screenshots_json JSONB
   `);
 }
 
@@ -499,6 +507,7 @@ export interface BugTicketRow {
   createdAt: Date;
   resolvedAt: Date | null;
   resolutionNote: string | null;
+  screenshots: string[] | null;
 }
 
 export async function listBugTickets(filters: {
@@ -520,7 +529,8 @@ export async function listBugTickets(filters: {
             status,
             created_at       AS "createdAt",
             resolved_at      AS "resolvedAt",
-            resolution_note  AS "resolutionNote"
+            resolution_note  AS "resolutionNote",
+            screenshots_json AS "screenshots"
      FROM bug_tickets
      WHERE ($1::text IS NULL OR brand = $1)
        AND ($2::text IS NULL OR status = $2)

@@ -4,8 +4,10 @@ import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import {
   getProject, listSubProjects, listDirectTasks, listSubProjectTasks, listAllCustomers,
   listTimeEntries, getProjectTotalMinutes,
+  listMeetingsForProject, listUnassignedMeetingsForCustomer,
 } from '../../../lib/website-db';
-import type { Project, SubProject, ProjectTask, Customer, TimeEntry } from '../../../lib/website-db';
+import type { Project, SubProject, ProjectTask, Customer, TimeEntry, MeetingWithDetails } from '../../../lib/website-db';
+import ProjectMeetingsTab from '../../../components/admin/ProjectMeetingsTab.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -14,23 +16,34 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 const { id } = Astro.params;
 if (!id) return Astro.redirect('/admin/projekte');
 
+const tab = Astro.url.searchParams.get('tab') ?? 'projekt';
+
 let project: Project | null = null;
 let subProjects: SubProject[] = [];
 let directTasks: ProjectTask[] = [];
 let customers: Customer[] = [];
 let timeEntries: TimeEntry[] = [];
 let timeStats: { total: number; billable: number } = { total: 0, billable: 0 };
+let meetings: MeetingWithDetails[] = [];
+let unassignedMeetings: Array<{ id: string; meetingType: string; status: string; createdAt: Date }> = [];
 let dbError = '';
 
 try {
   [project, customers] = await Promise.all([getProject(id), listAllCustomers()]);
   if (project) {
-    [subProjects, directTasks, timeEntries, timeStats] = await Promise.all([
-      listSubProjects(id),
-      listDirectTasks(id),
-      listTimeEntries(id),
-      getProjectTotalMinutes(id),
-    ]);
+    if (tab === 'besprechungen') {
+      [meetings, unassignedMeetings] = await Promise.all([
+        listMeetingsForProject(id),
+        project.customerId ? listUnassignedMeetingsForCustomer(project.customerId) : Promise.resolve([]),
+      ]);
+    } else {
+      [subProjects, directTasks, timeEntries, timeStats] = await Promise.all([
+        listSubProjects(id),
+        listDirectTasks(id),
+        listTimeEntries(id),
+        getProjectTotalMinutes(id),
+      ]);
+    }
   }
 } catch (err) {
   console.error('[admin/projekte/[id]] DB error:', err);
@@ -151,6 +164,23 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
               Bearbeiten
             </button>
           </div>
+
+          {/* ── Tab nav ── */}
+          <div class="mb-6 border-b border-dark-lighter flex gap-1">
+            <a href={`/admin/projekte/${project.id}`}
+               class={`px-4 py-2 text-sm font-medium transition-colors ${tab !== 'besprechungen' ? 'text-gold border-b-2 border-gold' : 'text-muted hover:text-light'}`}>
+              Projekt
+            </a>
+            <a href={`/admin/projekte/${project.id}?tab=besprechungen`}
+               class={`px-4 py-2 text-sm font-medium transition-colors ${tab === 'besprechungen' ? 'text-gold border-b-2 border-gold' : 'text-muted hover:text-light'}`}>
+              Besprechungen
+            </a>
+          </div>
+
+          {tab === 'besprechungen' ? (
+            <ProjectMeetingsTab meetings={meetings} projectId={project.id} unassignedMeetings={unassignedMeetings} />
+          ) : (
+          <>
 
           {/* ── Edit project form (collapsible) ── */}
           <div id="edit-project-section" class="hidden mb-8">
@@ -383,7 +413,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
           </div>
 
           {/* ── Zeiterfassung ── */}
-          <section class="mt-10">
+          <section class="mt-10" id="zeiterfassung-section">
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h2 class="text-xl font-semibold text-light font-serif">Zeiterfassung</h2>
@@ -440,6 +470,8 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
               </div>
             )}
           </section>
+          </>
+          )}
         </>
       )}
 

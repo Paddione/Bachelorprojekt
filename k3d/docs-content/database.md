@@ -31,6 +31,7 @@ erDiagram
     meetings {
         uuid        id                  PK
         uuid        customer_id         FK
+        uuid        project_id          FK
         text        meeting_type
         timestamptz scheduled_at
         timestamptz started_at
@@ -188,6 +189,7 @@ erDiagram
     }
 
     customers        ||--o{ meetings             : "hat"
+    projects         ||--o{ meetings             : "zugeordnet"
     meetings         ||--o{ transcripts          : "hat"
     transcripts      ||--o{ transcript_segments  : "enthaelt"
     meetings         ||--o{ meeting_artifacts    : "hat"
@@ -210,7 +212,7 @@ erDiagram
 | Tabelle | Beschreibung |
 |---------|--------------|
 | `customers` | Kunden/Coachees — Referenzpunkte zu Keycloak, Mattermost-Channel und Outline-Collection |
-| `meetings` | Meeting-Verlauf mit Status-Lifecycle: `scheduled → active → ended → transcribed → finalized` |
+| `meetings` | Meeting-Verlauf mit Status-Lifecycle: `scheduled → active → ended → transcribed → finalized`; optional einem Projekt zugeordnet (`project_id`, nullable FK mit ON DELETE SET NULL) |
 | `transcripts` | Volltext-Transkripte aus Whisper (faster-whisper-medium) |
 | `transcript_segments` | Zeitgestempelte Segmente eines Transkripts mit optionalem Speaker-Label |
 | `meeting_artifacts` | Artefakte (Whiteboard-Export, Datei, Screenshot, Dokument) je Meeting |

@@ -79,7 +79,7 @@ export const POST: APIRoute = async ({ request }) => {
         // Admin wants to reply to a contact form submission
         // This action opens a dialog — handled by Mattermost's dialog system
         // For now, we just acknowledge
-        return new Response(JSON.stringify({ ephemeral_text: 'Antwort-Funktion wird in einer zukunftigen Version verfugbar.' }));
+        return new Response(JSON.stringify({ ephemeral_text: 'Antwort-Funktion wird in einer zukünftigen Version verfügbar.' }));
       }
 
       case 'archive_contact': {

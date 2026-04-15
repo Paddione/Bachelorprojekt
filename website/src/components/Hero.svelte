@@ -8,7 +8,7 @@
   let {
     title = 'Digital Coach &\nFührungskräfte-Mentor',
     subtitle = 'Mit 30+ Jahren Führungserfahrung bei der Polizei Hamburg begleite ich Menschen 50+ bei der digitalen Transformation und Führungskräfte bei ihrer beruflichen Weiterentwicklung.',
-    tagline = 'Praxisnah. Strukturiert. Auf Augenhohe.',
+    tagline = 'Praxisnah. Strukturiert. Auf Augenhöhe.',
   }: Props = $props();
 </script>
 

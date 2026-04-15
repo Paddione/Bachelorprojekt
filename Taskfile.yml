@@ -1182,7 +1182,16 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
         echo "Waiting for shared-db..."
         kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
+      - task: keycloak:sync-secrets
+        vars: { ENV: "{{.ENV}}" }
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
+
+  keycloak:sync-secrets:
+    desc: "Sync OIDC client secrets von workspace-secrets → Keycloak Admin API (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/keycloak-sync-secrets.sh
 
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"

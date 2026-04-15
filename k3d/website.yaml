@@ -26,11 +26,11 @@ data:
   KEYCLOAK_REALM: "workspace"
   KEYCLOAK_ADMIN_USER: "admin"
   KEYCLOAK_ADMIN_PASSWORD: "devadmin"
-  # SMTP (Mailpit in dev)
-  SMTP_HOST: "mailpit.workspace.svc.cluster.local"
-  SMTP_PORT: "1025"
+  # SMTP (dev: Mailpit; prod: smtp.mailbox.org via env registry)
+  SMTP_HOST: "${SMTP_HOST}"
+  SMTP_PORT: "${SMTP_PORT}"
   SMTP_SECURE: "false"
-  SMTP_USER: ""
+  SMTP_USER: "${SMTP_FROM}"
   SMTP_PASS: ""
   FROM_EMAIL: "${CONTACT_EMAIL}"
   FROM_NAME: "${BRAND_NAME}"
@@ -76,18 +76,6 @@ data:
   SESSIONS_DATABASE_URL: "postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
----
-# ── Website Secrets ───────────────────────────────────────────────────────────
-apiVersion: v1
-kind: Secret
-metadata:
-  name: website-secrets
-  namespace: website
-type: Opaque
-stringData:
-  MATTERMOST_BOT_TOKEN: "devwebsitebottoken1234567890abcde"
-  WEBSITE_OIDC_SECRET: "devwebsiteoidcsecret12345"
-  SMTP_PASS: ""
 ---
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
@@ -356,3 +344,20 @@ spec:
   - to:
     - ipBlock:
         cidr: 10.43.0.0/16
+---
+# SMTP Egress: Website-Pod darf externen SMTP-Server erreichen (Mailpit dev / mailbox.org prod)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-smtp-egress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 587
+      protocol: TCP
+    - port: 1025
+      protocol: TCP

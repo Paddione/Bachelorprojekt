@@ -94,6 +94,8 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-pull-secret
+      nodeSelector:
+        kubernetes.io/arch: amd64
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

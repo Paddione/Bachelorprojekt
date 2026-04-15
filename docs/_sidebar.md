@@ -4,6 +4,7 @@
 - [Testanleitung](test-anleitung-korczewski.md)
 - **Für Administratoren**
 - [Architektur](architecture.md)
+- [Datenbankmodelle](database.md)
 - [Services](services.md)
 - [Keycloak & SSO](keycloak.md)
 - [Migration](migration.md)

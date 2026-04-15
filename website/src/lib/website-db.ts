@@ -1634,3 +1634,76 @@ export async function listBugTickets(filters: {
   );
   return result.rows;
 }
+
+// ── Booking Invoices ──────────────────────────────────────────────────────────
+
+export interface BookingInvoiceInfo {
+  invoiceId: string;
+  invoiceNumber: string;
+  amount: number;
+}
+
+let bookingInvoicesReady = false;
+async function initBookingInvoices(): Promise<void> {
+  if (bookingInvoicesReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_invoices (
+      caldav_uid      TEXT        NOT NULL,
+      brand           TEXT        NOT NULL,
+      invoice_id      TEXT        NOT NULL,
+      invoice_number  TEXT        NOT NULL,
+      amount          NUMERIC     NOT NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (caldav_uid, brand)
+    )
+  `);
+  bookingInvoicesReady = true;
+}
+
+export async function setBookingInvoice(
+  caldavUid: string,
+  brand: string,
+  invoiceId: string,
+  invoiceNumber: string,
+  amount: number
+): Promise<void> {
+  await initBookingInvoices();
+  await pool.query(
+    `INSERT INTO booking_invoices (caldav_uid, brand, invoice_id, invoice_number, amount)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (caldav_uid, brand) DO UPDATE
+       SET invoice_id = EXCLUDED.invoice_id,
+           invoice_number = EXCLUDED.invoice_number,
+           amount = EXCLUDED.amount`,
+    [caldavUid, brand, invoiceId, invoiceNumber, amount]
+  );
+}
+
+export async function getBookingInvoices(
+  caldavUids: string[],
+  brand: string
+): Promise<Map<string, BookingInvoiceInfo>> {
+  if (caldavUids.length === 0) return new Map();
+  await initBookingInvoices();
+  const result = await pool.query(
+    `SELECT caldav_uid, invoice_id, invoice_number, amount
+     FROM booking_invoices
+     WHERE caldav_uid = ANY($1) AND brand = $2`,
+    [caldavUids, brand]
+  );
+  return new Map(
+    result.rows.map((r: {
+      caldav_uid: string;
+      invoice_id: string;
+      invoice_number: string;
+      amount: string;
+    }) => [
+      r.caldav_uid,
+      {
+        invoiceId: r.invoice_id,
+        invoiceNumber: r.invoice_number,
+        amount: parseFloat(r.amount),
+      },
+    ])
+  );
+}

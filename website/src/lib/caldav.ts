@@ -290,7 +290,7 @@ END:VCALENDAR`;
       body: ical,
     });
 
-    if (res.ok || res.status === 201) return { uid };
+    if (res.ok || res.status === 201) return { uid: `${uid}@${BRAND_NAME}` };
     console.error('[caldav] Create event failed:', res.status, await res.text());
     return null;
   } catch (err) {

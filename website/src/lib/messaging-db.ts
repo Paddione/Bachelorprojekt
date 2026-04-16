@@ -99,6 +99,7 @@ export async function countPendingByType(): Promise<Record<string, number>> {
   return out;
 }
 
+
 // ── Thread types ──────────────────────────────────────────────────────────────
 
 export interface MessageThread {
@@ -373,3 +374,4 @@ export async function listAllCustomers(): Promise<Array<{ id: string; name: stri
   const { rows } = await pool.query('SELECT id, name, email FROM customers ORDER BY name ASC');
   return rows;
 }
+

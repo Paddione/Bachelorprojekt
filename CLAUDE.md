@@ -84,8 +84,6 @@ Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task 
 ### Optional Services
 ```bash
 task whisper:deploy              # Deploy faster-whisper transcription service
-task outline:deploy              # Deploy Outline knowledge base
-task outline:teardown            # Remove Outline and its data
 ```
 
 ### TLS & DNS (Production)
@@ -141,7 +139,6 @@ graph TB
         VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
         WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
         MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
-        OS["fa:fa-search OpenSearch"]
         DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
         BB["fa:fa-robot billing-bot<br/>intern"]
         PROXY[mm-keycloak-proxy]
@@ -169,7 +166,7 @@ graph TB
     MM <--> BB <--> IN
     NC --> CO
     NC --> HPB --> JANUS
-    KC & MM & NC & IN & OC & OS --> DB
+    KC & MM & NC & IN & OC --> DB
 ```
 
 ### Key components

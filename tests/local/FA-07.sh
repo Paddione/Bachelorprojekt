@@ -42,20 +42,3 @@ assert_gt "$CH_FOUND" 0 "FA-07" "T3" "Kanalsuche findet Kanal"
 SEARCH_MS=$((END_MS - START_MS))
 assert_lt "$SEARCH_MS" 2000 "FA-07" "T4" "Suchanfrage in < 2s beantwortet"
 
-# T5: OpenSearch cluster is healthy
-NAMESPACE="${NAMESPACE:-workspace}"
-OS_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  curl -s -o /dev/null -w '%{http_code}' "http://opensearch:9200/_cluster/health" --max-time 5 2>/dev/null || echo "000")
-if [[ "$OS_HEALTH" == "200" ]]; then
-  _log_result "FA-07" "T5" "OpenSearch-Cluster erreichbar und gesund" "pass" "0"
-else
-  _log_result "FA-07" "T5" "OpenSearch-Cluster erreichbar und gesund" "fail" "0" "HTTP ${OS_HEALTH}"
-fi
-
-# T6: Mattermost Elasticsearch/OpenSearch indexing enabled (server config, requires admin token)
-ES_ENABLED=$(_mm "${MM_URL}/config" | jq -r '.ElasticsearchSettings.EnableSearching // false' 2>/dev/null)
-if [[ "$ES_ENABLED" == "true" ]]; then
-  _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "pass" "0"
-else
-  _log_result "FA-07" "T6" "Elasticsearch/OpenSearch-Suche in Mattermost aktiviert" "fail" "0" "EnableSearching=${ES_ENABLED}"
-fi

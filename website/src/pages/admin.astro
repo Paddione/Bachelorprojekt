@@ -3,7 +3,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
 import { listBugTickets, listProjects, getDueFollowUps, listAdminShortcuts } from '../lib/website-db';
 import type { AdminShortcut } from '../lib/website-db';
-import { getAllInvoices } from '../lib/invoiceninja';
+import { getAllBillingInvoices } from '../lib/stripe-billing';
 import { getAvailableSlots } from '../lib/caldav';
 import ServiceLinks from '../components/ServiceLinks.astro';
 import AdminShortcuts from '../components/admin/AdminShortcuts.svelte';
@@ -27,11 +27,11 @@ await Promise.allSettled([
     .then(t => { openBugCount = t.length; }),
   listProjects({ brand: BRAND, status: 'aktiv' })
     .then(p => { activeProjects = p.length; }),
-  getAllInvoices({ perPage: 200 })
+  getAllBillingInvoices({ perPage: 200 })
     .then(inv => {
-      const open = inv.filter(i => i.balance > 0 && !['4','5'].includes(i.statusId));
+      const open = inv.filter(i => i.amountRemaining > 0 && !['void','uncollectible'].includes(i.status));
       openInvoices      = open.length;
-      openInvoiceAmount = open.reduce((s, i) => s + i.balance, 0);
+      openInvoiceAmount = open.reduce((s, i) => s + i.amountRemaining, 0);
     }),
   getDueFollowUps()
     .then(f => { dueFollowUps = f.length; }),

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { insertBugTicket } from '../../lib/website-db';
+import { createInboxItem } from '../../lib/messaging-db';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
@@ -81,6 +82,21 @@ export const POST: APIRoute = async ({ request }) => {
       url,
       brand: BRAND,
       screenshots: screenshotDataUrls.length > 0 ? screenshotDataUrls : undefined,
+    });
+
+    await createInboxItem({
+      type: 'bug',
+      referenceId: ticketId,
+      referenceTable: 'bug_tickets',
+      payload: {
+        ticketId,
+        category,
+        categoryLabel: CATEGORY_LABELS[category] ?? category,
+        reporterEmail: email,
+        description,
+        url,
+        brand: BRAND,
+      },
     });
 
     return new Response(

@@ -34,6 +34,7 @@ resources:
   - backup-pvc.yaml
   - backup-secrets.yaml
   - backup-cronjob.yaml
+  - notify-unread-cronjob.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
   # Dokumentation

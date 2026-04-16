@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAvailableSlots, getAllBookings } from '../../lib/caldav';
 import type { DaySlots, AdminBooking } from '../../lib/caldav';
@@ -67,8 +67,8 @@ function formatTime(d: Date) {
 }
 ---
 
-<Layout title="Admin — Termine">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Termine">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
 
       <div class="mb-8 flex items-center justify-between">
@@ -84,12 +84,6 @@ function formatTime(d: Date) {
             class="px-4 py-2 bg-gold/20 text-gold rounded-lg text-sm font-medium hover:bg-gold/30 transition-colors"
           >
             Nextcloud Kalender →
-          </a>
-          <a
-            href="/admin"
-            class="px-4 py-2 bg-dark-light text-muted rounded-lg text-sm font-medium hover:text-light transition-colors"
-          >
-            ← Zurück
           </a>
         </div>
       </div>
@@ -267,7 +261,7 @@ function formatTime(d: Date) {
 
     </div>
   </section>
-</Layout>
+</AdminLayout>
 
 <script>
   // Whitelist slot toggle

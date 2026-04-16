@@ -1818,6 +1818,7 @@ export interface HomepageHero {
 export interface WhyMePoint {
   title: string;
   text: string;
+  iconPath?: string;
 }
 
 export interface StatItem {
@@ -1899,7 +1900,6 @@ export async function getFaqContent(brand: string): Promise<FaqItem[] | null> {
 }
 
 export async function saveFaqContent(brand: string, items: FaqItem[]): Promise<void> {
-  if (items.length === 0) return;
   await setSiteSetting(brand, 'faq', JSON.stringify(items));
 }
 

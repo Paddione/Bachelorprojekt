@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listFollowUps } from '../../lib/website-db';
 import type { FollowUp } from '../../lib/website-db';
@@ -33,13 +33,9 @@ const inputCls = 'w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg
 const labelCls = 'block text-xs text-muted mb-1';
 ---
 
-<Layout title="Admin — Follow-ups">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Follow-ups">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
-
-      <div class="mb-2">
-        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
-      </div>
 
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -173,7 +169,7 @@ const labelCls = 'block text-xs text-muted mb-1';
       </div>
     </form>
   </dialog>
-</Layout>
+</AdminLayout>
 
 <script>
   const dialog = document.getElementById('create-dialog') as HTMLDialogElement;

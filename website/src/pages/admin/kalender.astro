@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listTasksInMonth } from '../../lib/website-db';
 import type { CalendarTask } from '../../lib/website-db';
@@ -53,13 +53,9 @@ const STATUS_CLS: Record<string, string> = {
 };
 ---
 
-<Layout title="Admin — Aufgaben-Kalender">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Aufgaben-Kalender">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
-
-      <div class="mb-2">
-        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
-      </div>
 
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -146,4 +142,4 @@ const STATUS_CLS: Record<string, string> = {
       </div>
     </div>
   </section>
-</Layout>
+</AdminLayout>

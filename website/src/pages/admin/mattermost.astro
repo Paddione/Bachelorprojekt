@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import MattermostManager from '../../components/admin/MattermostManager.svelte';
 
@@ -12,12 +12,9 @@ if (!isAdmin(session)) {
 }
 ---
 
-<Layout title="Admin — Mattermost">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Mattermost">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-6xl mx-auto px-6">
-      <div class="mb-2">
-        <a href="/admin" class="text-muted hover:text-gold text-sm">&larr; Zurück zur Übersicht</a>
-      </div>
       <div class="mb-8 flex items-center gap-4">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Mattermost</h1>
@@ -28,4 +25,4 @@ if (!isAdmin(session)) {
       <MattermostManager client:load />
     </div>
   </section>
-</Layout>
+</AdminLayout>

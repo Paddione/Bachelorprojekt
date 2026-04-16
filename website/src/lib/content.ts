@@ -109,11 +109,17 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
     servicesSubheadline: c.servicesSubheadline,
     whyMeHeadline: c.whyMeHeadline,
     whyMeIntro: c.whyMeIntro,
-    whyMePoints: c.whyMePoints.map(p => ({ title: p.title, text: p.text })),
+    whyMePoints: c.whyMePoints.map(p => ({ title: p.title, text: p.text, iconPath: p.iconPath })),
     quote: c.quote,
     quoteName: c.quoteName,
   };
-  return db;
+  return {
+    ...db,
+    whyMePoints: db.whyMePoints.map((pt, i) => ({
+      ...pt,
+      iconPath: c.whyMePoints[i]?.iconPath,
+    })),
+  };
 }
 
 export async function getEffectiveUebermich(): Promise<UebermichContent> {

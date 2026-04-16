@@ -11,6 +11,10 @@ const PRIVATE_RANGES = [
   /^192\.168\./,
   /^::1$/,
   /^0\.0\.0\.0$/,
+  /^::ffff:/i,
+  /^fc/i,
+  /^fd/i,
+  /^fe80/i,
 ];
 
 function isPrivateHost(hostname: string): boolean {
@@ -20,25 +24,37 @@ function isPrivateHost(hostname: string): boolean {
 export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
-    return new Response(JSON.stringify({ title: '' }), { status: 403 });
+    return new Response(JSON.stringify({ title: '' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const { searchParams } = new URL(request.url);
   const url = searchParams.get('url') ?? '';
 
   if (!url.startsWith('https://')) {
-    return new Response(JSON.stringify({ title: '' }), { status: 400 });
+    return new Response(JSON.stringify({ title: '' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   let hostname: string;
   try {
     hostname = new URL(url).hostname;
   } catch {
-    return new Response(JSON.stringify({ title: '' }), { status: 400 });
+    return new Response(JSON.stringify({ title: '' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   if (isPrivateHost(hostname)) {
-    return new Response(JSON.stringify({ title: '' }), { status: 400 });
+    return new Response(JSON.stringify({ title: '' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   try {

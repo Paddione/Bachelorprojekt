@@ -339,19 +339,18 @@ export async function addRoomMessage(params: {
 }
 
 export async function markRoomMessagesRead(roomId: number, customerId: string, upToId: number): Promise<void> {
-  const { rows } = await pool.query<{ id: number }>(
-    `SELECT id FROM chat_messages
+  await pool.query(
+    `INSERT INTO chat_message_reads (message_id, customer_id)
+     SELECT id, $3
+     FROM chat_messages
      WHERE room_id = $1 AND id <= $2
-       AND id NOT IN (SELECT message_id FROM chat_message_reads WHERE customer_id = $3)`,
+       AND NOT EXISTS (
+         SELECT 1 FROM chat_message_reads r
+         WHERE r.message_id = chat_messages.id AND r.customer_id = $3
+       )
+     ON CONFLICT DO NOTHING`,
     [roomId, upToId, customerId],
   );
-  if (!rows.length) return;
-  for (const row of rows) {
-    await pool.query(
-      'INSERT INTO chat_message_reads (message_id, customer_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-      [row.id, customerId],
-    );
-  }
 }
 
 export async function getCustomerByEmail(email: string): Promise<{ id: string; name: string; email: string } | null> {

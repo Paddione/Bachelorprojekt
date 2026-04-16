@@ -212,3 +212,45 @@ print('OK')
   assert_success
   assert_output "OK"
 }
+
+@test "env-seal.sh rejects dev-prefixed values without --force" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+KEYCLOAK_DB_PASSWORD: "devkeycloakdb"
+NEXTCLOUD_DB_PASSWORD: "realpassword123"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
+  assert_failure
+  assert_output --partial "dev placeholder"
+  assert_output --partial "KEYCLOAK_DB_PASSWORD"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh dev-value scan passes with no dev values" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+KEYCLOAK_DB_PASSWORD: "xR7kP9mQ2nL5vB3h"
+NEXTCLOUD_DB_PASSWORD: "realpassword123"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
+  assert_success
+  assert_output --partial "OK"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh dev-value scan --force bypasses and warns" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+KEYCLOAK_DB_PASSWORD: "devkeycloakdb"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml" --force
+  assert_success
+  assert_output --partial "WARNING"
+  rm -rf "$tmpdir"
+}

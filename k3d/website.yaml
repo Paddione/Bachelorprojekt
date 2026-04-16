@@ -139,6 +139,11 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: MATTERMOST_BOT_TOKEN
+            - name: CRON_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: CRON_SECRET
             - name: WEBSITE_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

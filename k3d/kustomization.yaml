@@ -30,8 +30,6 @@ resources:
   - sso-auth-php.yaml
   - oauth2-proxy-invoiceninja.yaml
   - oauth2-proxy-docs.yaml
-  - billing-bot.yaml
-  - billing-bot-init-job.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-secrets.yaml

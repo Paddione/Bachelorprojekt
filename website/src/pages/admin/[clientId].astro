@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getUserById, getUserRealmRoles, listRealmRoles } from '../../lib/keycloak';
 import type { KcRole } from '../../lib/keycloak';
@@ -41,12 +41,9 @@ try {
 const userRoleIds = new Set(userRoles.map(r => r.id));
 ---
 
-<Layout title={`Admin — ${client.firstName ?? client.username}`}>
+<AdminLayout title={`Admin — ${client.firstName ?? client.username}`}>
   <section class="pt-28 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
-      <div class="mb-2">
-        <a href="/admin/clients" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
-      </div>
 
       <!-- Header mit Usermanagement-Aktionen -->
       <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
@@ -184,7 +181,7 @@ const userRoleIds = new Set(userRoles.map(r => r.id));
       </div>
     </div>
   </section>
-</Layout>
+</AdminLayout>
 
 <script>
   const userId = (document.getElementById('toggle-enabled-btn') as HTMLButtonElement)?.dataset.userId ?? '';

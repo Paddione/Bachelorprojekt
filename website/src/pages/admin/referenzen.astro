@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getReferenzen } from '../../lib/website-db';
 
@@ -16,18 +16,15 @@ const inputCls = 'w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg
 const labelCls = 'block text-xs text-muted mb-1';
 ---
 
-<Layout title="Admin — Referenzen">
+<AdminLayout title="Admin — Referenzen">
   <section class="pt-28 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
 
-      <div class="mb-8 flex items-center justify-between">
+      <div class="mb-8">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Referenzen</h1>
           <p class="text-muted mt-1">Referenzkunden und Projekte verwalten</p>
         </div>
-        <a href="/admin" class="px-4 py-2 bg-dark-light text-muted rounded-lg text-sm font-medium hover:text-light transition-colors">
-          ← Zurück
-        </a>
       </div>
 
       {saved && (
@@ -108,4 +105,4 @@ const labelCls = 'block text-xs text-muted mb-1';
 
     </div>
   </section>
-</Layout>
+</AdminLayout>

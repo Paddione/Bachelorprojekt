@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listBugTickets } from '../../lib/website-db';
 import type { BugTicketRow } from '../../lib/website-db';
@@ -56,13 +56,9 @@ function filterLink(overrides: Partial<{ status: string; category: string; q: st
 }
 ---
 
-<Layout title="Admin — Bug Reports">
+<AdminLayout title="Admin — Bug Reports">
   <section class="pt-28 pb-20 bg-dark min-h-screen">
     <div class="max-w-6xl mx-auto px-6">
-
-      <div class="mb-2">
-        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
-      </div>
 
       <div class="mb-8 flex items-center gap-4">
         <div>
@@ -296,7 +292,7 @@ function filterLink(overrides: Partial<{ status: string; category: string; q: st
       </div>
     </form>
   </dialog>
-</Layout>
+</AdminLayout>
 
 <script>
   // Resolve dialog

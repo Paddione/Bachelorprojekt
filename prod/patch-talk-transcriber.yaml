@@ -6,6 +6,19 @@ metadata:
 spec:
   template:
     spec:
+      # Avoid control-plane node (pk-hetzner) which has limited cross-node
+      # network connectivity to the workspace pods on the worker nodes.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+              - key: kubernetes.io/arch
+                operator: In
+                values: [amd64]
+      nodeSelector: {}
       containers:
         - name: transcriber
           image: ghcr.io/paddione/talk-transcriber:latest
@@ -33,3 +46,5 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: NEXTCLOUD_DB_PASSWORD
+            - name: WEBSITE_URL
+              value: "https://web.mentolder.de"

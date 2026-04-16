@@ -27,7 +27,11 @@ WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
 MAX_SESSIONS = int(os.environ.get("MAX_SESSIONS", "3"))
-AUTO_JOIN_INTERVAL = 300  # re-check for new rooms every 5 minutes
+AUTO_JOIN_INTERVAL = 30   # re-check for new rooms every 30 seconds
+
+# httpx timeout: DNS on this cluster can take up to 10s due to ndots:5 search path;
+# connect timeout must exceed that to avoid spurious ConnectTimeout errors.
+NC_TIMEOUT = httpx.Timeout(connect=30.0, read=30.0, write=30.0, pool=30.0)
 
 # Nextcloud DB access for system-wide room discovery
 NC_DB_HOST = os.environ.get("NC_DB_HOST", "shared-db")
@@ -113,160 +117,144 @@ async def webhook(request: Request) -> dict:
 
 # ---------- DB helpers --------------------------------------------------------
 
-def _db_get_all_room_tokens() -> list[str]:
+def _db_connect() -> "psycopg2.connection":
+    return psycopg2.connect(
+        host=NC_DB_HOST, port=NC_DB_PORT,
+        dbname=NC_DB_NAME, user=NC_DB_USER, password=NC_DB_PASS,
+        connect_timeout=5,
+    )
+
+
+def _db_get_active_call_tokens() -> set[str]:
     """
-    Query ALL group/public Talk room tokens directly from the Nextcloud DB.
-    This bypasses the Talk API limitation where admin can only see rooms
-    it's a member of — so new private rooms created by any user are found.
-    Room types: 1=one-to-one, 2=group, 3=public, 4=changelog, 5=one-to-one-former, 6=note-to-self
-    We join group (2) and public (3) rooms only.
+    Query the Nextcloud DB for rooms that have at least one participant
+    with in_call != 0 and a recent last_ping (within 120s).
+    This replaces the HTTP API poll and avoids DNS/auth issues.
     """
     if not NC_DB_PASS:
-        return []
+        return set()
+    conn = None
     try:
-        conn = psycopg2.connect(
-            host=NC_DB_HOST, port=NC_DB_PORT,
-            dbname=NC_DB_NAME, user=NC_DB_USER, password=NC_DB_PASS,
-            connect_timeout=5,
-        )
+        conn = _db_connect()
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT token FROM oc_talk_rooms WHERE type IN (2, 3)"
-            )
-            tokens = [row[0] for row in cur.fetchall()]
-        conn.close()
-        return tokens
+            import time as _time
+            cur.execute("""
+                SELECT DISTINCT r.token
+                FROM oc_talk_rooms r
+                JOIN oc_talk_attendees a ON a.room_id = r.id
+                JOIN oc_talk_sessions s ON s.attendee_id = a.id
+                WHERE s.in_call != 0
+                  AND s.last_ping > %s
+            """, (int(_time.time()) - 120,))
+            return {row[0] for row in cur.fetchall()}
     except Exception as exc:
-        print(f"[db] {exc}", flush=True)
-        return []
+        print(f"[db-poll] {exc}", flush=True)
+        return set()
+    finally:
+        if conn:
+            conn.close()
 
 
 # ---------- Auto-join loop (slow, every AUTO_JOIN_INTERVAL seconds) -----------
 
+def _db_add_bot_to_missing_rooms() -> int:
+    """
+    Directly INSERT the transcriber-bot into every group/public Talk room
+    it is not yet a member of. Bypasses the admin HTTP API (which requires
+    the caller to be a moderator of the room).
+    Returns the number of rooms joined.
+    """
+    if not NC_DB_PASS:
+        return 0
+    conn = psycopg2.connect(
+        host=NC_DB_HOST, port=NC_DB_PORT,
+        dbname=NC_DB_NAME, user=NC_DB_USER, password=NC_DB_PASS,
+        connect_timeout=5,
+    )
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO oc_talk_attendees
+                    (room_id, actor_type, actor_id, participant_type)
+                SELECT r.id, 'users', %s, 3
+                FROM oc_talk_rooms r
+                WHERE r.type IN (2, 3)
+                  AND NOT EXISTS (
+                      SELECT 1 FROM oc_talk_attendees a
+                      WHERE a.room_id = r.id
+                        AND a.actor_type = 'users'
+                        AND a.actor_id = %s
+                  )
+                RETURNING room_id
+            """, (NC_USER, NC_USER))
+            added = cur.rowcount
+            if added > 0:
+                added_ids = [row[0] for row in cur.fetchall()]
+                cur.execute(
+                    "SELECT token FROM oc_talk_rooms WHERE id = ANY(%s)",
+                    (added_ids,)
+                )
+                for (token,) in cur.fetchall():
+                    print(f"[auto-join] added {NC_USER} to room {token}", flush=True)
+        conn.commit()
+    finally:
+        conn.close()
+    return added
+
+
 async def auto_join_loop() -> None:
     """
-    Background loop: adds transcriber-bot to every group/public room it
-    is not yet a member of. Uses DB to discover ALL rooms (not just the
-    ones visible to the admin account via the Talk API).
+    Background loop: adds transcriber-bot to every group/public Talk room
+    it is not yet a member of. Uses direct DB INSERT to bypass the Talk API
+    restriction where admin can only manage rooms it's a moderator of.
     """
-    if not NC_ADMIN_PASS:
+    if not NC_DB_PASS:
+        print("[auto-join] NC_DB_PASS not set, auto-join disabled", flush=True)
         return
-    async with httpx.AsyncClient(
-        auth=(NC_ADMIN_USER, NC_ADMIN_PASS), verify=NC_VERIFY, timeout=15
-    ) as admin_client:
-        while True:
-            try:
-                await _auto_join_all_rooms(admin_client)
-            except Exception as exc:
-                print(f"[auto-join] {exc}", flush=True)
-            await asyncio.sleep(AUTO_JOIN_INTERVAL)
-
-
-async def _auto_join_all_rooms(admin_client: httpx.AsyncClient) -> None:
-    """Add transcriber-bot to every Talk room it is not yet a member of."""
-    # Discover all room tokens from the DB (system-wide, not limited to admin's rooms)
-    all_tokens = await asyncio.get_event_loop().run_in_executor(
-        None, _db_get_all_room_tokens
-    )
-    if not all_tokens:
-        # Fallback: use admin API if DB is not configured
-        all_r = await admin_client.get(
-            f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
-            headers={"OCS-APIRequest": "true", "Accept": "application/json"},
-            params={"noFilter": "1"},
-        )
-        if not all_r.is_success:
-            return
-        all_tokens = [rm["token"] for rm in all_r.json()["ocs"]["data"]]
-
-    # Get rooms the bot is already in via bot credentials
-    bot_r = await httpx.AsyncClient(
-        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=15
-    ).get(
-        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
-        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
-    )
-    bot_tokens: set[str] = (
-        {rm["token"] for rm in bot_r.json()["ocs"]["data"]}
-        if bot_r.is_success else set()
-    )
-
-    for token in all_tokens:
-        if token not in bot_tokens:
-            resp = await admin_client.post(
-                f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room/{token}/participants",
-                headers={"OCS-APIRequest": "true"},
-                json={"newParticipant": NC_USER, "source": "users"},
+    while True:
+        try:
+            added = await asyncio.get_event_loop().run_in_executor(
+                None, _db_add_bot_to_missing_rooms
             )
-            await pa_proc.wait()
-            _pa_ok = pa_proc.returncode == 0
-            if not _pa_ok:
-                print("[poll] WARNING: PulseAudio not responding", flush=True)
-
-            await asyncio.sleep(CHUNK_S)
+            if added:
+                print(f"[auto-join] joined {added} new room(s)", flush=True)
+        except Exception as exc:
+            print(f"[auto-join] {exc}", flush=True)
+        await asyncio.sleep(AUTO_JOIN_INTERVAL)
 
 
 # ---------- Poll loop (fast, every CHUNK_SECONDS) ----------------------------
 
 async def poll_loop() -> None:
+    """
+    Poll for active calls via DB query every CHUNK_SECONDS.
+    Uses oc_talk_sessions.in_call + last_ping to detect live calls.
+    This avoids the Nextcloud HTTP API entirely (no DNS / auth issues).
+    """
     global _pa_ok
-    async with httpx.AsyncClient(
-        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
-    ) as client:
-        while True:
-            try:
-                await tick(client)
-            except Exception as exc:
-                print(f"[poll] {exc}", flush=True)
-
-            pa_proc = await asyncio.create_subprocess_exec(
-                "pactl", "info",
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL,
+    while True:
+        try:
+            live = await asyncio.get_event_loop().run_in_executor(
+                None, _db_get_active_call_tokens
             )
-            await pa_proc.wait()
-            _pa_ok = pa_proc.returncode == 0
-            if not _pa_ok:
-                print("[poll] WARNING: PulseAudio not responding", flush=True)
+            await tick(live)
+        except Exception as exc:
+            print(f"[poll] {exc}", flush=True)
 
-            await asyncio.sleep(CHUNK_S)
+        pa_proc = await asyncio.create_subprocess_exec(
+            "pactl", "info",
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        await pa_proc.wait()
+        _pa_ok = pa_proc.returncode == 0
+        if not _pa_ok:
+            print("[poll] WARNING: PulseAudio not responding", flush=True)
 
-
-async def _room_has_active_call(client: httpx.AsyncClient, token: str) -> bool:
-    """
-    Returns True if any participant has inCall != 0.
-    Catches solo calls where Nextcloud Talk may not set hasCall=True.
-    """
-    r = await client.get(
-        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room/{token}/participants",
-        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
-    )
-    if not r.is_success:
-        return False
-    return any(p.get("inCall", 0) != 0 for p in r.json()["ocs"]["data"])
+        await asyncio.sleep(CHUNK_S)
 
 
-async def tick(client: httpx.AsyncClient) -> None:
-    r = await client.get(
-        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
-        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
-    )
-    r.raise_for_status()
-    rooms = r.json()["ocs"]["data"]
-
-    # Primary: hasCall from room list. Fallback: check participants (solo calls).
-    live: set[str] = set()
-    for rm in rooms:
-        token = rm["token"]
-        if rm.get("hasCall"):
-            live.add(token)
-        else:
-            try:
-                if await _room_has_active_call(client, token):
-                    live.add(token)
-            except Exception:
-                pass
-
+async def tick(live: set[str]) -> None:
     for token in set(sessions) - live:
         _cancel(token)
     for token in live - set(sessions):

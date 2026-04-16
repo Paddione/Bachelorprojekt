@@ -61,9 +61,11 @@ function isActive(href: string): boolean {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <title>{title} | Admin — {config.meta.siteTitle}</title>
     <script is:inline>
-  if (localStorage.getItem('admin-sidebar-collapsed') === '1') {
-    document.documentElement.classList.add('sidebar-collapsed');
-  }
+  try {
+    if (localStorage.getItem('admin-sidebar-collapsed') === '1') {
+      document.documentElement.classList.add('sidebar-collapsed');
+    }
+  } catch (_) {}
 </script>
 <style>
   #admin-sidebar {
@@ -121,6 +123,8 @@ function isActive(href: string): boolean {
           id="sidebar-toggle"
           title="Sidebar einklappen"
           aria-label="Sidebar einklappen"
+          aria-expanded="false"
+          aria-controls="admin-sidebar"
           class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-gold hover:text-gold-light transition-colors text-lg font-bold leading-none"
         >‹</button>
       </div>
@@ -172,6 +176,7 @@ function isActive(href: string): boolean {
     btn.textContent = collapsed ? '›' : '‹';
     btn.title = collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
     btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
 
     btn.addEventListener('click', function() {
       collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
@@ -179,6 +184,7 @@ function isActive(href: string): boolean {
       btn.textContent = collapsed ? '›' : '‹';
       btn.title = collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
       btn.setAttribute('aria-label', btn.title);
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
     });
   })();
 </script>

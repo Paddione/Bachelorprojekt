@@ -142,14 +142,21 @@ export async function uploadFile(
  * Ensure a folder exists in Nextcloud (MKCOL, ignores 405 if already exists).
  */
 export async function ensureFolder(folderPath: string): Promise<void> {
-  const url = davUrl(folderPath);
-  const res = await fetch(url, {
-    method: 'MKCOL',
-    headers: { Authorization: authHeader() },
-  });
-  // 201 = created, 405 = already exists — both are fine
-  if (res.status !== 201 && res.status !== 405) {
-    throw new Error(`Failed to ensure folder ${folderPath}: ${res.status}`);
+  // Create each path segment in order so parent folders exist before children.
+  // WebDAV MKCOL returns 409 if the parent doesn't exist yet.
+  const parts = folderPath.replace(/^\/|\/$/g, '').split('/');
+  let current = '';
+  for (const part of parts) {
+    current = current ? `${current}/${part}` : part;
+    const url = davUrl(current);
+    const res = await fetch(url, {
+      method: 'MKCOL',
+      headers: { Authorization: authHeader() },
+    });
+    // 201 = created, 405 = already exists — both are fine
+    if (res.status !== 201 && res.status !== 405) {
+      throw new Error(`Failed to ensure folder ${current}: ${res.status}`);
+    }
   }
 }
 

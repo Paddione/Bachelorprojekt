@@ -90,6 +90,38 @@ env_vars:
     required: true
     default_dev: "k3d-dev-server-0"
 
+  - name: NEXTCLOUD_EXTERNAL_URL
+    required: false
+    default_dev: "http://files.localhost"
+
+  - name: MATTERMOST_EXTERNAL_URL
+    required: false
+    default_dev: "http://chat.localhost"
+
+  - name: DOCS_URL
+    required: false
+    default_dev: "http://docs.localhost"
+
+  - name: BILLING_EXTERNAL_URL
+    required: false
+    default_dev: "http://billing.localhost"
+
+  - name: AUTH_EXTERNAL_URL
+    required: false
+    default_dev: "http://auth.localhost"
+
+  - name: VAULT_EXTERNAL_URL
+    required: false
+    default_dev: "http://vault.localhost"
+
+  - name: WHITEBOARD_EXTERNAL_URL
+    required: false
+    default_dev: "http://board.localhost"
+
+  - name: WIKI_EXTERNAL_URL
+    required: false
+    default_dev: "http://wiki.localhost"
+
 secrets:
   - name: SHARED_DB_PASSWORD
     required: true
@@ -114,6 +146,21 @@ secrets:
     required: true
     generate: true
     length: 40
+
+  - name: MEETINGS_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: GITLAB_APP_ID
+    required: true
+    generate: false
+    description: "GitLab OAuth2 App ID for Keycloak OIDC identity provider"
+
+  - name: GITLAB_APP_SECRET
+    required: true
+    generate: false
+    description: "GitLab OAuth2 App Secret for Keycloak OIDC identity provider"
 
   - name: NEXTCLOUD_DB_PASSWORD
     required: true
@@ -227,27 +274,6 @@ secrets:
     length: 40
 
   - name: WORDPRESS_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
-
-  # Outline
-  - name: OUTLINE_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
-
-  - name: OUTLINE_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
-  - name: OUTLINE_SECRET_KEY
-    required: true
-    generate: true
-    length: 64
-
-  - name: OUTLINE_UTILS_SECRET
     required: true
     generate: true
     length: 32

@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════
-# Billing Bot — Mattermost ↔ Invoice Ninja integration
+# Billing Bot — Mattermost ↔ Stripe integration
 # Handles /billing slash command and interactive button actions
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
@@ -39,13 +39,6 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           env:
-            - name: INVOICENINJA_URL
-              value: "http://invoiceninja:80"
-            - name: INVOICENINJA_API_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: INVOICENINJA_API_TOKEN
             - name: MATTERMOST_URL
               value: "http://mattermost:8065"
             - name: MATTERMOST_BOT_TOKEN
@@ -53,11 +46,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: BILLING_BOT_MM_TOKEN
-            - name: BILLING_DOMAIN
+            - name: STRIPE_SECRET_KEY
               valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: BILLING_DOMAIN
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: STRIPE_SECRET_KEY
             - name: NEXTCLOUD_URL
               value: "http://nextcloud.workspace.svc.cluster.local:80"
             - name: NEXTCLOUD_ADMIN_USER

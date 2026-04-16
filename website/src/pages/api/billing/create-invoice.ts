@@ -1,14 +1,12 @@
 import type { APIRoute } from 'astro';
-import { getOrCreateClient, createInvoice, createQuote, SERVICES } from '../../../lib/invoiceninja';
-import type { ServiceKey } from '../../../lib/invoiceninja';
+import {
+  getOrCreateCustomer,
+  createBillingInvoice,
+  createBillingQuote,
+  SERVICES,
+} from '../../../lib/stripe-billing';
+import type { ServiceKey } from '../../../lib/stripe-billing';
 
-// Create an invoice or quote for a service booking.
-// Called after admin approves a service booking.
-//
-// Body: {
-//   name, email, phone?, company?, address1?, city?, postalCode?, vatNumber?,
-//   serviceKey, quantity?, asQuote?, sendEmail?
-// }
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
@@ -31,36 +29,33 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Get or create InvoiceNinja client
-    const client = await getOrCreateClient({
+    const customer = await getOrCreateCustomer({
       name, email, phone, company, address1, city, postalCode, vatNumber,
     });
 
-    if (!client) {
+    if (!customer) {
       return new Response(
-        JSON.stringify({ error: 'InvoiceNinja client could not be created. Is the API configured?' }),
+        JSON.stringify({ error: 'Stripe customer could not be created. Is STRIPE_SECRET_KEY configured?' }),
         { status: 502, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create invoice or quote
     const key = serviceKey as ServiceKey;
+
     if (asQuote) {
-      const quote = await createQuote({
-        clientId: client.id,
+      const quote = await createBillingQuote({
+        customerId: customer.id,
         serviceKey: key,
         quantity: quantity || 1,
-        sendEmail: shouldSendEmail !== false,
       });
-
       return new Response(
         JSON.stringify({ success: true, type: 'quote', data: quote }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const invoice = await createInvoice({
-      clientId: client.id,
+    const invoice = await createBillingInvoice({
+      customerId: customer.id,
       serviceKey: key,
       quantity: quantity || 1,
       sendEmail: shouldSendEmail !== false,

@@ -5,8 +5,8 @@ import { createCalendarEvent } from '../../../lib/caldav';
 import { createTalkRoom, inviteGuestByEmail } from '../../../lib/talk';
 import { scheduleReminder } from '../../../lib/reminders';
 import { sendRegistrationApproved, sendRegistrationDeclined, sendEmail } from '../../../lib/email';
-import { getOrCreateClient, createInvoice, SERVICES } from '../../../lib/invoiceninja';
-import type { ServiceKey } from '../../../lib/invoiceninja';
+import { getOrCreateCustomer, createBillingInvoice, SERVICES } from '../../../lib/stripe-billing';
+import type { ServiceKey } from '../../../lib/stripe-billing';
 import { setBookingInvoice } from '../../../lib/website-db';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
@@ -43,17 +43,17 @@ export const POST: APIRoute = async ({ request }) => {
           return new Response(JSON.stringify({ update: { message: `### :warning: Registrierung fehlgeschlagen\n\n**${fullName}** (${email})\n\n${result.error}`, props: { attachments: [] } } }));
         }
 
-        // 2. Create InvoiceNinja client for billing
-        const inClient = await getOrCreateClient({
+        // 2. Create Stripe customer for billing
+        const inClient = await getOrCreateCustomer({
           name: fullName,
           email,
           phone,
           company,
         });
         if (inClient) {
-          statusParts.push(`:receipt: InvoiceNinja-Kunde erstellt (#${inClient.number})`);
+          statusParts.push(`:receipt: Stripe-Kunde erstellt (${inClient.email})`);
         } else {
-          statusParts.push(':information_source: InvoiceNinja-Kunde nicht erstellt (API nicht konfiguriert)');
+          statusParts.push(':information_source: Stripe-Kunde nicht erstellt (API nicht konfiguriert)');
         }
 
         const statusText = statusParts.map((s) => `- ${s}`).join('\n');
@@ -171,28 +171,28 @@ export const POST: APIRoute = async ({ request }) => {
           : (bType && bType in SERVICES ? bType as ServiceKey : null);
 
         if (effectiveServiceKey) {
-          const inClient = await getOrCreateClient({ name: bName, email: bEmail, phone: bPhone });
+          const inClient = await getOrCreateCustomer({ name: bName, email: bEmail, phone: bPhone });
           if (inClient) {
-            const isPaid = SERVICES[effectiveServiceKey].rate > 0;
-            const invoice = await createInvoice({
-              clientId: inClient.id,
+            const isPaid = SERVICES[effectiveServiceKey].cents > 0;
+            const invoice = await createBillingInvoice({
+              customerId: inClient.id,
               serviceKey: effectiveServiceKey,
               sendEmail: isPaid,
             });
             if (invoice) {
               if (eventUid) {
                 try {
-                  await setBookingInvoice(eventUid, brand, invoice.id, invoice.number, invoice.amount);
+                  await setBookingInvoice(eventUid, brand, invoice.id, invoice.number, invoice.amountDue);
                 } catch (err) {
                   console.warn('[approve_booking] Failed to save invoice mapping (non-fatal):', err);
                 }
               }
-              statusParts.push(`:receipt: Rechnung #${invoice.number} erstellt (${invoice.amount} EUR)`);
+              statusParts.push(`:receipt: Rechnung #${invoice.number} erstellt (${invoice.amountDue} EUR)`);
             } else {
               statusParts.push(':warning: Rechnung konnte nicht erstellt werden');
             }
           } else {
-            statusParts.push(':information_source: InvoiceNinja-Kunde nicht erstellt (API nicht konfiguriert)');
+            statusParts.push(':information_source: Stripe-Kunde nicht erstellt (API nicht konfiguriert)');
           }
         }
 

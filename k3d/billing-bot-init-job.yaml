@@ -168,7 +168,7 @@ spec:
               echo "Creating billing-bot account..."
               mmctl_local bot create billing-bot \
                 --display-name "Billing Bot" \
-                --description "Rechnungen, Angebote und Kunden über Invoice Ninja verwalten" \
+                --description "Rechnungen, Angebote und Kunden über Stripe verwalten" \
                 2>&1 | grep -v "already exists" || true
               echo "billing-bot account ready."
 

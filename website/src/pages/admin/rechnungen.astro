@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getAllInvoices } from '../../lib/invoiceninja';
-import type { AdminInvoiceListItem } from '../../lib/invoiceninja';
+import { getAllBillingInvoices, stripeInvoiceDashboardUrl } from '../../lib/stripe-billing';
+import type { AdminBillingInvoice } from '../../lib/stripe-billing';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -10,18 +10,19 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const statusFilter = Astro.url.searchParams.get('status') ?? '';
 
-let invoices: AdminInvoiceListItem[] = [];
+let invoices: AdminBillingInvoice[] = [];
 let apiError = '';
 try {
-  invoices = await getAllInvoices({ statusId: statusFilter || undefined, perPage: 200 });
+  invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
 } catch (err) {
   console.error('[admin/rechnungen]', err);
-  apiError = 'Invoice Ninja nicht erreichbar.';
+  apiError = 'Stripe nicht erreichbar.';
 }
 
-const totalOpen       = invoices.filter(i => i.balance > 0 && !['4','5'].includes(i.statusId)).reduce((s, i) => s + i.balance, 0);
-const totalPaid       = invoices.filter(i => i.statusId === '4').reduce((s, i) => s + i.amount, 0);
-const countOverdue    = invoices.filter(i => i.statusId === '6').length;
+const today = new Date().toISOString().slice(0, 10);
+const totalOpen       = invoices.filter(i => i.amountRemaining > 0 && !['void','uncollectible'].includes(i.status)).reduce((s, i) => s + i.amountRemaining, 0);
+const totalPaid       = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amountPaid, 0);
+const countOverdue    = invoices.filter(i => i.status === 'open' && i.dueDate < today).length;
 
 function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
@@ -32,21 +33,20 @@ function fmtDate(s: string): string {
 }
 
 const STATUS_CLS: Record<string, string> = {
-  '1': 'bg-slate-900/40 text-slate-300 border-slate-700',
-  '2': 'bg-blue-900/40 text-blue-300 border-blue-800',
-  '3': 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
-  '4': 'bg-green-900/40 text-green-300 border-green-800',
-  '5': 'bg-dark border border-dark-lighter text-muted',
-  '6': 'bg-red-900/40 text-red-300 border-red-800',
+  'draft':         'bg-slate-900/40 text-slate-300 border-slate-700',
+  'open':          'bg-blue-900/40 text-blue-300 border-blue-800',
+  'paid':          'bg-green-900/40 text-green-300 border-green-800',
+  'void':          'bg-dark border border-dark-lighter text-muted',
+  'uncollectible': 'bg-red-900/40 text-red-300 border-red-800',
 };
 
 const STATUS_TABS = [
-  { value: '',  label: 'Alle' },
-  { value: '2', label: 'Versendet' },
-  { value: '6', label: 'Überfällig' },
-  { value: '4', label: 'Bezahlt' },
-  { value: '1', label: 'Entwurf' },
-  { value: '5', label: 'Storniert' },
+  { value: '',              label: 'Alle' },
+  { value: 'open',         label: 'Offen' },
+  { value: 'uncollectible',label: 'Überfällig' },
+  { value: 'paid',         label: 'Bezahlt' },
+  { value: 'draft',        label: 'Entwurf' },
+  { value: 'void',         label: 'Storniert' },
 ];
 ---
 
@@ -100,32 +100,36 @@ const STATUS_TABS = [
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Betrag</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Offen</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Stripe</th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colspan="7" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+                <td colspan="8" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
               </tr>
             ) : invoices.map(inv => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
                 <td class="px-4 py-3 text-sm text-light font-mono">#{inv.number}</td>
                 <td class="px-4 py-3 text-sm">
-                  <div class="text-light">{inv.clientName}</div>
-                  <div class="text-xs text-muted">{inv.clientEmail}</div>
+                  <div class="text-light">{inv.customerName}</div>
+                  <div class="text-xs text-muted">{inv.customerEmail}</div>
                 </td>
                 <td class="px-4 py-3">
-                  <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[inv.statusId] ?? ''}`}>
+                  <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[inv.status] ?? ''}`}>
                     {inv.statusLabel}
                   </span>
                 </td>
                 <td class="px-4 py-3 text-sm text-muted whitespace-nowrap">{fmtDate(inv.date)}</td>
-                <td class={`px-4 py-3 text-sm whitespace-nowrap font-medium ${inv.statusId === '6' ? 'text-red-400' : 'text-muted'}`}>
-                  {fmtDate(inv.dueDate)}{inv.statusId === '6' ? ' ⚠' : ''}
+                <td class={`px-4 py-3 text-sm whitespace-nowrap font-medium ${inv.status === 'uncollectible' ? 'text-red-400' : 'text-muted'}`}>
+                  {fmtDate(inv.dueDate)}{inv.status === 'uncollectible' ? ' ⚠' : ''}
                 </td>
-                <td class="px-4 py-3 text-sm text-light text-right font-medium">{fmtCurrency(inv.amount)}</td>
-                <td class={`px-4 py-3 text-sm text-right font-medium ${inv.balance > 0 ? 'text-yellow-400' : 'text-muted'}`}>
-                  {inv.balance > 0 ? fmtCurrency(inv.balance) : '—'}
+                <td class="px-4 py-3 text-sm text-light text-right font-medium">{fmtCurrency(inv.amountDue)}</td>
+                <td class={`px-4 py-3 text-sm text-right font-medium ${inv.amountRemaining > 0 ? 'text-yellow-400' : 'text-muted'}`}>
+                  {inv.amountRemaining > 0 ? fmtCurrency(inv.amountRemaining) : '—'}
+                </td>
+                <td class="px-4 py-3 text-sm text-right">
+                  <a href={stripeInvoiceDashboardUrl(inv.id)} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline">Stripe ↗</a>
                 </td>
               </tr>
             ))}

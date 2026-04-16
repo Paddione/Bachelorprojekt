@@ -1,17 +1,17 @@
 ---
-import { getClientInvoices } from '../../lib/invoiceninja';
-import type { ClientInvoiceListItem } from '../../lib/invoiceninja';
+import { getCustomerInvoices } from '../../lib/stripe-billing';
+import type { BillingInvoice } from '../../lib/stripe-billing';
 
 interface Props {
   clientEmail: string;
 }
 const { clientEmail } = Astro.props;
 
-let invoices: ClientInvoiceListItem[] = [];
+let invoices: BillingInvoice[] = [];
 try {
-  invoices = await getClientInvoices(clientEmail);
+  invoices = await getCustomerInvoices(clientEmail);
 } catch {
-  // InvoiceNinja unavailable
+  // Stripe unavailable
 }
 
 function formatCurrency(amount: number): string {
@@ -23,13 +23,13 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function statusColor(statusId: string): string {
-  switch (statusId) {
-    case '4': return 'bg-green-500/20 text-green-400';
-    case '2': return 'bg-accent/20 text-accent';
-    case '6': return 'bg-red-500/20 text-red-400';
-    case '5': return 'bg-dark-lighter text-muted';
-    default: return 'bg-dark-lighter text-muted';
+function statusColor(status: string): string {
+  switch (status) {
+    case 'paid':          return 'bg-green-500/20 text-green-400';
+    case 'open':          return 'bg-accent/20 text-accent';
+    case 'uncollectible': return 'bg-red-500/20 text-red-400';
+    case 'void':          return 'bg-dark-lighter text-muted';
+    default:              return 'bg-dark-lighter text-muted';
   }
 }
 ---
@@ -46,21 +46,27 @@ function statusColor(statusId: string): string {
           <div class="flex-1">
             <div class="flex items-center gap-2">
               <span class="text-light font-medium">#{inv.number}</span>
-              <span class={`text-xs px-2 py-0.5 rounded-full ${statusColor(inv.statusId)}`}>
+              <span class={`text-xs px-2 py-0.5 rounded-full ${statusColor(inv.status)}`}>
                 {inv.statusLabel}
               </span>
             </div>
             <div class="text-sm text-muted mt-1">
               {formatDate(inv.date)}
-              {inv.dueDate && inv.statusId !== '4' && (
+              {inv.dueDate && inv.status !== 'paid' && (
                 <span> &middot; Faellig: {formatDate(inv.dueDate)}</span>
               )}
             </div>
           </div>
           <div class="text-right">
-            <div class="text-light font-medium">{formatCurrency(inv.amount)}</div>
-            {inv.balance > 0 && inv.balance !== inv.amount && (
-              <div class="text-xs text-muted">Offen: {formatCurrency(inv.balance)}</div>
+            <div class="text-light font-medium">{formatCurrency(inv.amountDue)}</div>
+            {inv.amountRemaining > 0 && inv.amountRemaining !== inv.amountDue && (
+              <div class="text-xs text-muted">Offen: {formatCurrency(inv.amountRemaining)}</div>
+            )}
+            {inv.hostedUrl && inv.status !== 'paid' && (
+              <a href={inv.hostedUrl} target="_blank" rel="noopener"
+                 class="mt-1 inline-block text-xs text-blue-400 hover:underline">
+                Jetzt zahlen ↗
+              </a>
             )}
           </div>
         </li>

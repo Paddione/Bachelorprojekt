@@ -20,8 +20,8 @@ data:
   MATTERMOST_WEBHOOK_URL: ""
   MATTERMOST_CHANNEL: "anfragen"
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
-  MATTERMOST_EXTERNAL_URL: "http://chat.localhost"
-  DOCS_URL: "http://docs.localhost"
+  MATTERMOST_EXTERNAL_URL: "${MATTERMOST_EXTERNAL_URL}"
+  DOCS_URL: "${DOCS_URL}"
   BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
   KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
@@ -50,7 +50,7 @@ data:
   LEGAL_WEBSITE: "${LEGAL_WEBSITE}"
   # Nextcloud
   NEXTCLOUD_URL: "http://nextcloud.workspace.svc.cluster.local"
-  NEXTCLOUD_EXTERNAL_URL: "http://files.localhost"
+  NEXTCLOUD_EXTERNAL_URL: "${NEXTCLOUD_EXTERNAL_URL}"
   NEXTCLOUD_ADMIN_USER: "admin"
   NEXTCLOUD_ADMIN_PASS: "devnextcloudadmin"
   NEXTCLOUD_CALDAV_USER: "admin"

@@ -25,6 +25,9 @@ env_vars:
   SMTP_PORT: "587"
   TURN_PUBLIC_IP: "62.238.9.39"
   TURN_NODE: "pk-hetzner"
+  NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
+  MATTERMOST_EXTERNAL_URL: "https://chat.korczewski.de"
+  DOCS_URL: "https://docs.korczewski.de"
 
 overlay: prod-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml

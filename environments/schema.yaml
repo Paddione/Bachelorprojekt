@@ -90,6 +90,18 @@ env_vars:
     required: true
     default_dev: "k3d-dev-server-0"
 
+  - name: NEXTCLOUD_EXTERNAL_URL
+    required: false
+    default_dev: "http://files.localhost"
+
+  - name: MATTERMOST_EXTERNAL_URL
+    required: false
+    default_dev: "http://chat.localhost"
+
+  - name: DOCS_URL
+    required: false
+    default_dev: "http://docs.localhost"
+
 secrets:
   - name: SHARED_DB_PASSWORD
     required: true

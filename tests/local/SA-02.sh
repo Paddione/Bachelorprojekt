@@ -4,11 +4,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
-# T1: Wrong password → denied
+# T1: Wrong password at Keycloak → denied
 WRONG_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"login_id":"testuser1","password":"wrongpassword"}' \
-  "${MM_URL}/users/login")
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=admin-cli&username=testuser1&password=wrongpassword&grant_type=password" \
+  "${KC_URL:-http://auth.localhost}/realms/workspace/protocol/openid-connect/token")
 assert_eq "$WRONG_STATUS" "401" "SA-02" "T1" "Falsches Passwort → Zugang verweigert"
 
 # T2: 2FA/MFA configuration (verify Keycloak supports OTP)
@@ -25,16 +25,16 @@ else
   skip_test "SA-02" "T2" "2FA-Konfiguration" "Kein Keycloak Admin-Token"
 fi
 
-# T3: Multiple failed logins → rate limiting
+# T3: Multiple failed logins at Keycloak → brute-force protection (still returns 401)
 for i in $(seq 1 6); do
-  curl -s -o /dev/null -X POST -H "Content-Type: application/json" \
-    -d '{"login_id":"testuser2","password":"wrongpassword"}' \
-    "${MM_URL}/users/login" 2>/dev/null
+  curl -s -o /dev/null -X POST -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "client_id=admin-cli&username=testuser2&password=wrongpassword&grant_type=password" \
+    "${KC_URL:-http://auth.localhost}/realms/workspace/protocol/openid-connect/token" 2>/dev/null
 done
 LOCKED_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"login_id":"testuser2","password":"wrongpassword"}' \
-  "${MM_URL}/users/login")
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=admin-cli&username=testuser2&password=wrongpassword&grant_type=password" \
+  "${KC_URL:-http://auth.localhost}/realms/workspace/protocol/openid-connect/token")
 assert_contains "429 401" "$LOCKED_STATUS" "SA-02" "T3" "Brute-Force-Schutz aktiv nach mehrfach falschem Login"
 
 # T4: Keycloak OIDC discovery

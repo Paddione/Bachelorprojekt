@@ -20,12 +20,12 @@ KC_DUR=$(( $(date +%s%3N) - KC_START ))
 assert_eq "$KC_STATUS" "200" "NFA-02" "T1a" "Keycloak erreichbar (realms/master)"
 assert_lt "$KC_DUR" "$THRESHOLD_FAST" "NFA-02" "T1b" "Keycloak Antwortzeit < ${THRESHOLD_FAST}ms (war ${KC_DUR}ms)"
 
-# T2: Mattermost API response time
-MM_START=$(date +%s%3N)
-MM_STATUS=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 "${MM_URL}/system/ping" 2>/dev/null || echo "000")
-MM_DUR=$(( $(date +%s%3N) - MM_START ))
-assert_eq "$MM_STATUS" "200" "NFA-02" "T2a" "Mattermost API erreichbar"
-assert_lt "$MM_DUR" "$THRESHOLD_FAST" "NFA-02" "T2b" "Mattermost Antwortzeit < ${THRESHOLD_FAST}ms (war ${MM_DUR}ms)"
+# T2: Vaultwarden response time
+VW_START=$(date +%s%3N)
+VW_STATUS=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 "https://vault.${DOMAIN}/alive" 2>/dev/null || echo "000")
+VW_DUR=$(( $(date +%s%3N) - VW_START ))
+assert_match "$VW_STATUS" "^(200|302)$" "NFA-02" "T2a" "Vaultwarden erreichbar"
+assert_lt "$VW_DUR" "$THRESHOLD_FAST" "NFA-02" "T2b" "Vaultwarden Antwortzeit < ${THRESHOLD_FAST}ms (war ${VW_DUR}ms)"
 
 # T3: Nextcloud page load time
 NC_START=$(date +%s%3N)
@@ -36,8 +36,8 @@ assert_lt "$NC_DUR" "$THRESHOLD_PAGE" "NFA-02" "T3b" "Nextcloud Antwortzeit < ${
 
 # T4: Concurrent load test with ab (Apache Bench)
 if command -v ab &>/dev/null; then
-  # 50 requests, 10 concurrent to Mattermost ping
-  AB_OUT=$(ab -n 50 -c 10 -s 10 -k "${MM_URL}/system/ping" 2>/dev/null || echo "")
+  # 50 requests, 10 concurrent to Keycloak realm endpoint
+  AB_OUT=$(ab -n 50 -c 10 -s 10 -k "${KC_URL}/realms/master" 2>/dev/null || echo "")
 
   if [[ -n "$AB_OUT" ]]; then
     # Extract mean time per request

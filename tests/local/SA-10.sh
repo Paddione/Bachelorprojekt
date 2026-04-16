@@ -5,7 +5,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 
 NAMESPACE="${NAMESPACE:-workspace}"
 MCP_NS="${MCP_NAMESPACE:-workspace}"
-_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
+_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/keycloak -- curl -s "$@" 2>/dev/null; }
 
 AUTH_URL="http://mcp-auth-proxy.${MCP_NS}.svc"
 
@@ -37,7 +37,7 @@ BUSINESS_TOKEN=$(kubectl get secret mcp-tokens -n "$MCP_NS" -o jsonpath='{.data.
 if [[ -n "$BUSINESS_TOKEN" ]]; then
   GOOD_BIZ=$(_kube_curl -o /dev/null -w '%{http_code}' \
     -H "Authorization: Bearer ${BUSINESS_TOKEN}" \
-    -H "X-Forwarded-Uri: /mattermost/test" \
+    -H "X-Forwarded-Uri: /nextcloud/test" \
     "${AUTH_URL}/auth")
   assert_eq "$GOOD_BIZ" "200" "SA-10" "T5" "Business-Token mit erlaubtem Pfad → HTTP 200"
 else

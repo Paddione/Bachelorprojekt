@@ -11,16 +11,6 @@ for suspect in "gcr.io" "amazonaws.com" "azurecr.io" "mcr.microsoft.com"; do
   assert_not_contains "$IMAGES" "$suspect" "NFA-01" "T1-${suspect%%.*}" "Keine Images von ${suspect}"
 done
 
-# T2: Mattermost telemetry disabled (check via deployment env vars — survives pod restarts)
-TELEMETRY_ENV=$(kubectl get deployment mattermost -n "$NAMESPACE" \
-  -o jsonpath='{.spec.template.spec.containers[0].env}' 2>/dev/null)
-TELEMETRY_VAL=$(echo "$TELEMETRY_ENV" | jq -r '.[] | select(.name=="MM_LOGSETTINGS_ENABLEDIAGNOSTICS") | .value // "true"')
-assert_eq "${TELEMETRY_VAL:-true}" "false" "NFA-01" "T2a" "Mattermost Telemetrie deaktiviert (Env)"
-
-# T2b: No analytics key configured
-SEGMENT_VAL=$(echo "$TELEMETRY_ENV" | jq -r '.[] | select(.name | test("SEGMENT")) | .value // empty')
-assert_eq "${SEGMENT_VAL:-}" "" "NFA-01" "T2b" "Kein Segment Analytics-Key konfiguriert"
-
 # T3: Nextcloud has no external storage backends
 NC_OCC=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
   setpriv --reuid=999 --regid=999 --clear-groups php occ config:list --output=json 2>/dev/null || echo "{}")

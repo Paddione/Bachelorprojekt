@@ -16,12 +16,12 @@ KC_DUR=$(( $(date +%s%3N) - KC_START ))
 assert_eq "$KC_STATUS" "200" "NFA-02" "T1a" "Keycloak Health-Endpoint erreichbar"
 assert_lt "$KC_DUR" "$THRESHOLD_API" "NFA-02" "T1b" "Keycloak Antwortzeit < ${THRESHOLD_API}ms (war ${KC_DUR}ms)"
 
-# T2: Mattermost API response time
-MM_START=$(date +%s%3N)
-MM_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "${MM_URL}/system/ping" 2>/dev/null || echo "000")
-MM_DUR=$(( $(date +%s%3N) - MM_START ))
-assert_eq "$MM_STATUS" "200" "NFA-02" "T2a" "Mattermost API erreichbar"
-assert_lt "$MM_DUR" "$THRESHOLD_API" "NFA-02" "T2b" "Mattermost Antwortzeit < ${THRESHOLD_API}ms (war ${MM_DUR}ms)"
+# T2: Vaultwarden API response time
+VW_START=$(date +%s%3N)
+VW_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://vault.localhost/alive" 2>/dev/null || echo "000")
+VW_DUR=$(( $(date +%s%3N) - VW_START ))
+assert_match "$VW_STATUS" "^(200|302)$" "NFA-02" "T2a" "Vaultwarden erreichbar"
+assert_lt "$VW_DUR" "$THRESHOLD_API" "NFA-02" "T2b" "Vaultwarden Antwortzeit < ${THRESHOLD_API}ms (war ${VW_DUR}ms)"
 
 # T3: Nextcloud response time
 NC_START=$(date +%s%3N)
@@ -30,21 +30,14 @@ NC_DUR=$(( $(date +%s%3N) - NC_START ))
 assert_match "$NC_STATUS" "^(200|302)$" "NFA-02" "T3a" "Nextcloud erreichbar"
 assert_lt "$NC_DUR" "$THRESHOLD_PAGE" "NFA-02" "T3b" "Nextcloud Antwortzeit < ${THRESHOLD_PAGE}ms (war ${NC_DUR}ms)"
 
-# T4: Mattermost message send < 1s
-if [[ -n "${MM_ADMIN_TOKEN:-}" ]]; then
-  TEAM_ID=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/teams/name/testteam" | jq -r '.id // empty')
-  CH_ID=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/teams/${TEAM_ID}/channels/name/test-public" | jq -r '.id // empty')
-  if [[ -n "$CH_ID" ]]; then
-    MSG_START=$(date +%s%3N)
-    curl -s -o /dev/null -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" -H "Content-Type: application/json" \
-      -X POST -d "{\"channel_id\":\"${CH_ID}\",\"message\":\"perf-test-$(date +%s)\"}" "${MM_URL}/posts"
-    MSG_DUR=$(( $(date +%s%3N) - MSG_START ))
-    assert_lt "$MSG_DUR" 1000 "NFA-02" "T4" "Nachricht senden < 1000ms (war ${MSG_DUR}ms)"
-  else
-    skip_test "NFA-02" "T4" "Nachricht senden" "Test-Channel nicht gefunden"
-  fi
+# T4: Website API response time
+WEB_START=$(date +%s%3N)
+WEB_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://web.localhost/" 2>/dev/null || echo "000")
+WEB_DUR=$(( $(date +%s%3N) - WEB_START ))
+if [[ "$WEB_STATUS" != "000" ]]; then
+  assert_lt "$WEB_DUR" "$THRESHOLD_PAGE" "NFA-02" "T4" "Website Antwortzeit < ${THRESHOLD_PAGE}ms (war ${WEB_DUR}ms)"
 else
-  skip_test "NFA-02" "T4" "Nachricht senden" "Kein Admin-Token"
+  skip_test "NFA-02" "T4" "Website Antwortzeit" "Website nicht erreichbar"
 fi
 
 # T5: Pod resource limits set on all containers

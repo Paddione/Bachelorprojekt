@@ -28,12 +28,5 @@ else
   skip_test "FA-21" "T2" "Billing API" "Website nicht bereit"
 fi
 
-# ── T3: InvoiceNinja running ──────────────────────────────────────
-IN_READY=$(kubectl get deployment invoiceninja -n "$WS_NS" \
-  -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
-assert_gt "$IN_READY" 0 "FA-21" "T3" "InvoiceNinja laeuft (readyReplicas > 0)"
-
-# ── T4: INVOICENINJA_URL in website ConfigMap ─────────────────────
-IN_URL=$(kubectl get configmap website-config -n "$WEB_NS" \
-  -o jsonpath='{.data.INVOICENINJA_URL}' 2>/dev/null || echo "")
-assert_contains "$IN_URL" "invoiceninja" "FA-21" "T4" "INVOICENINJA_URL in ConfigMap"
+skip_test "FA-21" "T3" "InvoiceNinja entfernt" "Invoice Ninja wurde aus dem Stack entfernt"
+skip_test "FA-21" "T4" "InvoiceNinja entfernt" "Invoice Ninja wurde aus dem Stack entfernt"

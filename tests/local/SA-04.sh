@@ -25,12 +25,8 @@ else
   skip_test "SA-04" "T2" "Token Lifespan" "Kein Keycloak Admin-Token"
 fi
 
-# T3: Invalid token rejected
+# T3: Invalid token rejected at Keycloak userinfo endpoint
 EXPIRED_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
-  -H "Authorization: Bearer invalidtoken12345" "${MM_URL}/users/me")
+  -H "Authorization: Bearer invalidtoken12345" \
+  "${KC_URL:-http://auth.localhost}/realms/workspace/protocol/openid-connect/userinfo")
 assert_eq "$EXPIRED_STATUS" "401" "SA-04" "T3" "Ungültiger Token wird abgelehnt"
-
-# T4: Mattermost session timeout
-MM_CONFIG=$(curl -s -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" "${MM_URL}/config" 2>/dev/null)
-SESSION_HOURS=$(echo "$MM_CONFIG" | jq -r '.ServiceSettings.SessionLengthWebInHours // 0')
-assert_gt "$SESSION_HOURS" 0 "SA-04" "T4" "Mattermost Session-Timeout konfiguriert"

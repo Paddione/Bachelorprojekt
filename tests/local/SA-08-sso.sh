@@ -32,13 +32,6 @@ if [[ -z "$KC_ADMIN_TOKEN" ]]; then
 else
   # ── Group A: Client-Konfiguration ──────────────────────────────
 
-  # T1: Mattermost OIDC Client existiert mit korrekter Redirect-URI
-  MM_CLIENT=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
-    "${KC_EXT_URL}/admin/realms/workspace/clients?clientId=mattermost" 2>/dev/null)
-  MM_REDIRECT=$(echo "$MM_CLIENT" | jq -r '.[0].redirectUris[0] // empty')
-  assert_contains "$MM_REDIRECT" "chat" "SA-08" "T1" \
-    "Mattermost OIDC Client — Redirect-URI konfiguriert"
-
   # T2: Nextcloud OIDC Client existiert mit korrekter Redirect-URI
   NC_CLIENT=$(curl -s -H "Authorization: Bearer ${KC_ADMIN_TOKEN}" \
     "${KC_EXT_URL}/admin/realms/workspace/clients?clientId=nextcloud" 2>/dev/null)
@@ -55,24 +48,6 @@ fi
 
 # ── Group B: OIDC Redirect-Chains ─────────────────────────────
 
-# T4: Mattermost → Keycloak Redirect (use port-forwarded URL if available)
-MM_BASE="${MM_URL%/api/v4}"
-MM_OIDC_REDIRECT=""
-for endpoint in "/oauth/gitlab/login" "/oauth/openid_connect/login"; do
-  MM_OIDC_STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${MM_BASE}${endpoint}" 2>/dev/null)
-  if [[ "$MM_OIDC_STATUS" == "302" ]]; then
-    MM_OIDC_REDIRECT=$(curl -s -o /dev/null -D - "${MM_BASE}${endpoint}" 2>/dev/null \
-      | grep -i '^location:' | tr -d '\r')
-    break
-  fi
-done
-if [[ -n "$MM_OIDC_REDIRECT" ]]; then
-  assert_contains "$MM_OIDC_REDIRECT" "realms/workspace" "SA-08" "T4" \
-    "Mattermost SSO-Login leitet zu Keycloak weiter"
-else
-  skip_test "SA-08" "T4" "Mattermost SSO-Redirect" "Kein SSO-Endpoint verfügbar"
-fi
-
 # T5: Nextcloud OIDC provider_url points to Keycloak (verifies config, not redirect chain)
 NC_PROVIDER_URL=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
   setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_provider_url 2>/dev/null || echo "")
@@ -88,7 +63,7 @@ assert_eq "$SIGNALING_HEALTH" "200" "SA-08" "T6" \
 # ── Group C: Token-Exchange & Konfiguration ────────────────────
 
 # T10: Keycloak Token-Endpoint liefert access_token für testuser1
-TEST_PASS="${MM_TEST_ADMIN_PASS:-Testpassword123!}"
+TEST_PASS="${TEST_ADMIN_PASS:-Testpassword123!}"
 TOKEN_RESPONSE=$(_kube_curl -X POST "${KC_INT_URL}/realms/workspace/protocol/openid-connect/token" \
   -d "client_id=admin-cli" \
   -d "username=testuser1" \

@@ -83,12 +83,6 @@ run_test_files() {
     echo "━━━ ${test_name} ━━━"
     # Re-establish port-forwards if they died (e.g. after NFA-03 pod kill)
     if [[ -z "${PROD_DOMAIN:-}" ]]; then
-      if declare -f _start_mm_portforward &>/dev/null; then
-        if ! curl -s -o /dev/null --max-time 1 "${MM_URL}/system/ping" 2>/dev/null; then
-          echo "  ↻ MM Port-forward neu aufbauen..."
-          _start_mm_portforward
-        fi
-      fi
       if declare -f _start_nc_portforward &>/dev/null; then
         if ! curl -s -o /dev/null --max-time 1 "${NC_URL}/status.php" 2>/dev/null; then
           echo "  ↻ NC Port-forward neu aufbauen..."
@@ -139,7 +133,7 @@ if [[ "$TIER" == "local" ]]; then
       npm ci
       npx playwright install chromium
     fi
-    TEST_BASE_URL="http://chat.localhost" \
+    TEST_BASE_URL="http://web.localhost" \
     RESULTS_FILE="$RESULTS_FILE" \
       npx playwright test --reporter=line 2>&1 || true
     cd "$SCRIPT_DIR"
@@ -174,7 +168,6 @@ if [[ "$TIER" == "prod" ]]; then
 fi
 
 # ── Cleanup port-forwards ───────────────────────────────────────
-if declare -f _stop_mm_portforward &>/dev/null; then _stop_mm_portforward; fi
 if declare -f _stop_nc_portforward &>/dev/null; then _stop_nc_portforward; fi
 
 # ── Finalize ─────────────────────────────────────────────────────

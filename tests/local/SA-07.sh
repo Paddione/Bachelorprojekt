@@ -11,7 +11,7 @@ PG_DUMP_OUT=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- \
 assert_contains "$PG_DUMP_OUT" "PostgreSQL database dump" "SA-07" "T1" "pg_dump funktioniert für Keycloak-DB"
 
 # T2: All three databases are dumpable
-for db in keycloak mattermost nextcloud; do
+for db in keycloak nextcloud; do
   DUMP_OK=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- \
     pg_dump -U postgres --schema-only "$db" 2>&1 | grep -c "^-- PostgreSQL database dump$" || echo "0")
   assert_eq "$DUMP_OK" "1" "SA-07" "T2-${db}" "pg_dump erfolgreich für ${db}-Datenbank"

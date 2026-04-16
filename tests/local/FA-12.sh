@@ -6,7 +6,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 
 NAMESPACE="${NAMESPACE:-workspace}"
 MCP_NS="${MCP_NAMESPACE:-workspace}"
-_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
+_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/keycloak -- curl -s "$@" 2>/dev/null; }
 
 # ── T1: MCP core pod running ────────────────────────────────────
 CORE_READY=$(kubectl get deploy claude-code-mcp-core -n "$MCP_NS" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")

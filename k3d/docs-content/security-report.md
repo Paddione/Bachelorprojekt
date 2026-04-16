@@ -1,3 +1,16 @@
+<div class="page-hero">
+  <span class="page-hero-icon">📋</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Security Report</div>
+    <p class="page-hero-desc">Sicherheitsbericht zum Workspace MVP: Testergebnisse SA-01–SA-10, Schwachstellenanalyse, CVSS-Bewertungen und Härtungsmaßnahmen.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Sicherheit</span>
+      <span class="page-hero-tag">SA-Anforderungen</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Sicherheitsbericht — Workspace MVP
 
 **Version:** 1.0

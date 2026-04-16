@@ -1,4 +1,17 @@
-# Sicherheit
+<div class="page-hero">
+  <span class="page-hero-icon">🛡️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Sicherheit</div>
+    <p class="page-hero-desc">DSGVO-Compliance, Netzwerkhärtung, TLS-Konfiguration, Secrets-Management und Sicherheitsanforderungen SA-01 bis SA-10.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">DSGVO by Design</span>
+      <span class="page-hero-tag">TLS 1.3</span>
+      <span class="page-hero-tag">On-Premises</span>
+      <span class="page-hero-tag">SA-01 – SA-10</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 ## DSGVO / Datensouveraenitaet
 

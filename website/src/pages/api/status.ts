@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getBugTicketStatus } from '../../lib/meetings-db';
+import { getBugTicketStatus } from '../../lib/website-db';
 
 const TICKET_RE = /^BR-\d{8}-[0-9a-f]{4}$/;
 

@@ -1,9 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { config } from '../config/index';
+import { getLegalPage } from '../lib/website-db';
 
 const { contact, legal } = config;
 const reviewDate = '14. April 2026';
+const BRAND = process.env.BRAND || 'mentolder';
+const customHtml = await getLegalPage(BRAND, 'barrierefreiheit').catch(() => null);
 ---
 
 <Layout title="Barrierefreiheitserklärung">
@@ -101,6 +104,20 @@ const reviewDate = '14. April 2026';
         Grundlage: Barrierefreiheitsstärkungsgesetz (BFSG) &middot;
         WCAG 2.1 Level AA &middot; EN&nbsp;301&nbsp;549 V3.2.1
       </p>
+
+      {customHtml && customHtml.trim() && (
+        <Fragment>
+          <h2>Weitere Hinweise</h2>
+          <div set:html={customHtml} />
+        </Fragment>
+      )}
+
+      <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex items-center justify-between">
+        <a href="/admin/rechtliches" class="text-xs text-slate-500 hover:text-gold transition-colors">✏️ Bearbeiten</a>
+        <button onclick="window.print()" class="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors">
+          Drucken / PDF
+        </button>
+      </div>
     </div>
   </section>
 </Layout>

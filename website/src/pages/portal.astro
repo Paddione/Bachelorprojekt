@@ -6,6 +6,7 @@ import InvoicesTab from '../components/portal/InvoicesTab.astro';
 import FilesTab from '../components/portal/FilesTab.astro';
 import SignaturesTab from '../components/portal/SignaturesTab.astro';
 import MeetingsTab from '../components/portal/MeetingsTab.astro';
+import ServiceLinks from '../components/ServiceLinks.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -13,6 +14,20 @@ if (!session) {
 }
 
 const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
+
+const ncBase  = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const wikiUrl = process.env.WIKI_EXTERNAL_URL ?? '';
+
+const portalLinks = [
+  ...(ncBase ? [
+    { href: `${ncBase}/apps/files/`,       label: 'Dateien',    icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`,    label: 'Kalender',   icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`,    label: 'Kontakte',   icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,      label: 'Talk',       icon: '🎥' },
+    { href: `${ncBase}/apps/files/`,       label: 'Whiteboard', icon: '🖊️' },
+  ] : []),
+  ...(wikiUrl ? [{ href: wikiUrl, label: 'Wiki', icon: '📚' }] : []),
+];
 ---
 
 <Layout title="Mein Portal">
@@ -22,6 +37,8 @@ const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
         <h1 class="text-3xl font-bold text-light font-serif">Willkommen, {session.name ?? session.preferred_username}</h1>
         <p class="text-muted mt-1">{session.email}</p>
       </div>
+
+      <ServiceLinks links={portalLinks} heading="Dienste" />
 
       <!-- Tab navigation -->
       <nav class="flex gap-1 mb-8 border-b border-dark-lighter overflow-x-auto" data-testid="portal-tabs">

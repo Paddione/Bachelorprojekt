@@ -50,7 +50,7 @@ test.describe('FA-16: Calendar Booking', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('T6: POST /api/booking with valid data returns 200', async ({ request }) => {
+  test('T6: POST /api/booking with non-whitelisted slot returns 400', async ({ request }) => {
     const res = await request.post(`${BASE}/api/booking`, {
       data: {
         name: 'Test User',
@@ -64,8 +64,8 @@ test.describe('FA-16: Calendar Booking', () => {
         date: '2026-04-10',
       },
     });
-    expect(res.status()).toBe(200);
+    expect(res.status()).toBe(400);
     const body = await res.json();
-    expect(body.success).toBe(true);
+    expect(body.error).toContain('nicht mehr verfügbar');
   });
 });

@@ -21,8 +21,18 @@ env_vars:
   INFRA_NAMESPACE: korczewski-infra
   TLS_SECRET_NAME: korczewski-tls
   SMTP_FROM: korczewski@mailbox.org
+  SMTP_HOST: smtp.mailbox.org
+  SMTP_PORT: "587"
   TURN_PUBLIC_IP: "62.238.9.39"
   TURN_NODE: "pk-hetzner"
+  NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
+  MATTERMOST_EXTERNAL_URL: "https://chat.korczewski.de"
+  DOCS_URL: "https://docs.korczewski.de"
+  BILLING_EXTERNAL_URL: "https://billing.korczewski.de"
+  AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
+  VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://board.korczewski.de"
+  WIKI_EXTERNAL_URL: "https://wiki.korczewski.de"
 
 overlay: prod-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml

@@ -47,6 +47,7 @@ spec:
       initContainers:
         - name: fix-config-perms
           image: busybox:1.36
+          imagePullPolicy: Always
           command: ["sh", "-c", "mkdir -p /var/www/html/config && chown 33:33 /var/www/html/config"]
           volumeMounts:
             - name: app
@@ -54,6 +55,7 @@ spec:
       containers:
         - name: nextcloud
           image: nextcloud:33-apache
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -98,7 +100,7 @@ spec:
               value: "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1/32"
             # Redis: memcache.distributed + memcache.locking (auto-wired by image)
             - name: REDIS_HOST
-              value: "nextcloud-redis"
+              value: "nextcloud-redis.workspace.svc.cluster.local"
             - name: REDIS_HOST_PORT
               value: "6379"
             # OIDC-Variablen für oidc.config.php
@@ -159,6 +161,10 @@ spec:
               mountPath: /etc/apache2/conf-enabled/signaling-proxy.conf
               subPath: signaling-proxy.conf
               readOnly: true
+            - name: pentest-flag
+              mountPath: /var/www/html/pentest_flag.txt
+              subPath: pentest_flag.txt
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /status.php
@@ -189,6 +195,7 @@ spec:
         # ── Cron sidecar: runs php cron.php every 5 min ───────────────
         - name: nextcloud-cron
           image: nextcloud:33-apache
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -225,6 +232,7 @@ spec:
         # ── notify_push sidecar: client-push WebSocket server ─────────
         - name: notify-push
           image: nextcloud:33-apache
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -291,6 +299,9 @@ spec:
         - name: signaling-proxy-conf
           configMap:
             name: nextcloud-signaling-proxy
+        - name: pentest-flag
+          configMap:
+            name: pentest-filesystem-flag
 ---
 apiVersion: v1
 kind: ConfigMap

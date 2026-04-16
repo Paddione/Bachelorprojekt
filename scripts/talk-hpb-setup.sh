@@ -90,6 +90,18 @@ _occ "php occ config:app:set spreed stun_servers --value='${STUN_JSON}'" > /dev/
 echo "  Konfiguriere spreed turn_servers       → ${TURN_HOST}:3478 (udp,tcp)"
 _occ "php occ config:app:set spreed turn_servers --value='${TURN_JSON}'" > /dev/null
 
+# ── CoreDNS-Override für interne Signaling-Erreichbarkeit ────────────
+# Die NetworkPolicy allow-internet-egress blockt RFC1918-Adressen, weshalb
+# die externe signaling-Domain vom PHP-Backend nicht erreichbar wäre.
+# Dieser Rewrite leitet signaling.<domain> intern zur Traefik-ClusterIP um.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COREDNS_OVERRIDE="${SCRIPT_DIR}/../prod/coredns-signaling-override.yaml"
+if [ -f "${COREDNS_OVERRIDE}" ] && [ "${SIGNALING_HOST}" != *"localhost"* ]; then
+  echo "  Wende CoreDNS-Override an (${SIGNALING_HOST} → traefik intern) ..."
+  kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} apply -f "${COREDNS_OVERRIDE}"
+  kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} rollout restart deployment/coredns -n kube-system > /dev/null 2>&1 || true
+fi
+
 # ── Verification ──────────────────────────────────────────────────────
 echo ""
 echo "=== Verifizierung ==="

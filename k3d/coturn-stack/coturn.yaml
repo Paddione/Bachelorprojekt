@@ -35,6 +35,7 @@ spec:
       containers:
         - name: coturn
           image: coturn/coturn:4.9-alpine
+          imagePullPolicy: Always
           # TURN_SECRET is sourced from coturn-secrets at runtime so the
           # same manifests work with dev literals and production-rotated
           # secrets. $(VAR) in args is Kubernetes-native substitution

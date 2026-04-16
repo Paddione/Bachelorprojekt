@@ -46,6 +46,7 @@ spec:
           # as root). Built by .github/workflows/build-collabora.yml
           # as a multi-arch (amd64+arm64) image.
           image: ghcr.io/paddione/collabora-code:25.04.9.4.1-setcap
+          imagePullPolicy: Always
           # Always-pull so a rebuild of the same tag (when we bump the
           # Dockerfile but keep the upstream version) is picked up by
           # the next `kubectl rollout restart`.

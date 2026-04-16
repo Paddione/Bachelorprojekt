@@ -1,4 +1,17 @@
-# Sicherheit
+<div class="page-hero">
+  <span class="page-hero-icon">🛡️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Sicherheit</div>
+    <p class="page-hero-desc">DSGVO-Compliance, Netzwerkhärtung, TLS-Konfiguration, Secrets-Management und Sicherheitsanforderungen SA-01 bis SA-10.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">DSGVO by Design</span>
+      <span class="page-hero-tag">TLS 1.3</span>
+      <span class="page-hero-tag">On-Premises</span>
+      <span class="page-hero-tag">SA-01 – SA-10</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 ## DSGVO / Datensouveraenitaet
 
@@ -24,12 +37,12 @@ flowchart TB
     TRACK -.-x Cluster
     TELE -.-x Cluster
 
-    style Cluster fill:#2d6a4f,color:#fff
-    style Blocked fill:#9b2226,color:#fff
-    style DB fill:#6b7280,color:#fff,stroke:#4b5563
-    style FILES fill:#2d8659,color:#fff,stroke:#1a5c3a
-    style MAIL fill:#0891b2,color:#fff,stroke:#0e7490
-    style BACKUP fill:#374151,color:#fff,stroke:#1f2937
+    style Cluster fill:#0a1a0a,color:#b8e8b8
+    style Blocked fill:#3a0a0a,color:#ffaaaa
+    style DB fill:#1f2937,color:#aabbcc,stroke:#374151
+    style FILES fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
+    style MAIL fill:#083344,color:#e8c870,stroke:#0e4f68
+    style BACKUP fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 ```
 
 ### Automatisierte DSGVO-Pruefung
@@ -81,7 +94,7 @@ securityContext:
 Alle Deployments haben `allowPrivilegeEscalation: false`, `capabilities: drop: [ALL]` und `seccompProfile: RuntimeDefault`.
 
 **Volle Härtung** (`readOnlyRootFilesystem: true`, `runAsNonRoot: true`):
-`billing-bot`, `mailpit`, `oauth2-proxy-invoiceninja`, `docs`, `nextcloud-redis`
+`billing-bot`, `mailpit`, `oauth2-proxy-invoiceninja`, `oauth2-proxy-docs`, `docs`, `nextcloud-redis`
 
 **Partielle Härtung** (`readOnlyRootFilesystem: false` — Applikation schreibt Dateien):
 `mattermost`, `keycloak`, `nextcloud`, `vaultwarden`, `opensearch`, `whiteboard`
@@ -115,40 +128,26 @@ Keycloak Brute-Force-Detection ist aktiviert fuer den Realm `workspace`.
 
 Alle Secrets in `k3d/secrets.yaml` (Base64-kodierte Dev-Werte). **Niemals echte Credentials in diese Datei committen.**
 
-**Secret: `workspace-secrets`** -- enthaelt 34 Keys:
+**Secret: `workspace-secrets`** -- enthaelt 41 Keys:
 
 | Kategorie | Keys |
 |-----------|------|
-| Datenbank | SHARED_DB_PASSWORD, KEYCLOAK_DB_PASSWORD, MATTERMOST_DB_PASSWORD, NEXTCLOUD_DB_PASSWORD, VAULTWARDEN_DB_PASSWORD, OUTLINE_DB_PASSWORD, INVOICENINJA_DB_PASSWORD |
-| OIDC | MATTERMOST_OIDC_SECRET, NEXTCLOUD_OIDC_SECRET, INVOICENINJA_OIDC_SECRET, CLAUDE_CODE_OIDC_SECRET, VAULTWARDEN_OIDC_SECRET, WEBSITE_OIDC_SECRET, OUTLINE_OIDC_SECRET |
+| Datenbank | SHARED_DB_PASSWORD, KEYCLOAK_DB_PASSWORD, MATTERMOST_DB_PASSWORD, NEXTCLOUD_DB_PASSWORD, VAULTWARDEN_DB_PASSWORD, OUTLINE_DB_PASSWORD, INVOICENINJA_DB_PASSWORD, MEETINGS_DB_PASSWORD |
+| OIDC | MATTERMOST_OIDC_SECRET, NEXTCLOUD_OIDC_SECRET, INVOICENINJA_OIDC_SECRET, DOCS_OIDC_SECRET, CLAUDE_CODE_OIDC_SECRET, VAULTWARDEN_OIDC_SECRET, WEBSITE_OIDC_SECRET, OUTLINE_OIDC_SECRET |
 | Admin | KEYCLOAK_ADMIN_PASSWORD, NEXTCLOUD_ADMIN_PASSWORD, COLLABORA_ADMIN_PASSWORD, INVOICENINJA_ADMIN_PASSWORD, VAULTWARDEN_ADMIN_TOKEN, CLAUDE_CODE_ADMIN_EMAIL, CLAUDE_CODE_ADMIN_PASSWORD |
-| Service | SIGNALING_SECRET, TURN_SECRET, WHITEBOARD_JWT_SECRET, INVOICENINJA_APP_KEY, INVOICENINJA_API_TOKEN, BILLING_BOT_MM_TOKEN, OAUTH2_PROXY_COOKIE_SECRET, CLAUDE_CODE_WEBUI_SECRET_KEY |
-| Extern | ANTHROPIC_API_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY |
+| Service | SIGNALING_SECRET, TURN_SECRET, WHITEBOARD_JWT_SECRET, INVOICENINJA_APP_KEY, INVOICENINJA_API_TOKEN, BILLING_BOT_MM_TOKEN, OAUTH2_PROXY_COOKIE_SECRET, CLAUDE_CODE_WEBUI_SECRET_KEY, RECORDING_SECRET, TRANSCRIBER_BOT_PASSWORD, TRANSCRIBER_SECRET |
 | Outline | OUTLINE_SECRET_KEY, OUTLINE_UTILS_SECRET |
+| Extern | SMTP_PASSWORD, GITHUB_PAT, STRIPE_SECRET_KEY, GRAFANA_API_KEY |
 
-### Produktion (Sealed Secrets)
+### Produktion (Secret-Management)
 
-Produktions-Secrets werden mit dem Sealed Secrets Controller verschluesselt und koennen sicher im Git-Repository gespeichert werden.
-
-```mermaid
-flowchart LR
-    PLAIN["fa:fa-file-lines Klartext-Secrets\nenvironments/.secrets/*.yaml"] --> SEAL["fa:fa-lock env-seal.sh"]
-    SEAL --> CONTROLLER["fa:fa-shield-halved Sealed Secrets\nController (Cluster)"]
-    CONTROLLER --> SECRET["fa:fa-key Kubernetes Secret\nim workspace Namespace"]
-    SEALED["fa:fa-file-code SealedSecret\nenvironments/sealed-secrets/*.yaml"] --> CONTROLLER
-
-    style PLAIN fill:#9b2226,color:#fff
-    style SEAL fill:#4a90d9,color:#fff
-    style CONTROLLER fill:#2d6a4f,color:#fff
-    style SECRET fill:#d97706,color:#fff
-    style SEALED fill:#2d8659,color:#fff
-```
+Produktions-Secrets werden **einmalig manuell** auf den jeweiligen Cluster angewendet und danach nicht mehr per GitOps überschrieben.
 
 **Workflow:**
-1. Klartext-Secrets in `environments/.secrets/<umgebung>.yaml` pflegen (gitignored)
-2. `scripts/env-seal.sh` verschluesselt sie mit dem Cluster-Zertifikat
-3. Verschluesselte `SealedSecret`-Ressourcen in `environments/sealed-secrets/` committen
-4. Der Sealed Secrets Controller im Cluster entschluesselt sie zu Kubernetes Secrets
+1. Echte Credentials einmalig setzen: `kubectl patch secret workspace-secrets -n workspace --type=merge -p '{"stringData":{...}}'`
+   oder beim initialen Deployment: `task workspace:prod:deploy`
+2. Die Datei `prod/secrets.yaml` enthält nur Platzhalter (`MANAGED_EXTERNALLY`) und hat die ArgoCD-Annotation `argocd.argoproj.io/sync-options: Skip=true`
+3. ArgoCD überspringt diese Ressource — live gesetzte Credentials werden nie überschrieben
 
 **Umgebungsspezifische Konfiguration:**
 
@@ -159,9 +158,7 @@ flowchart LR
 | `environments/korczewski.yaml` | Produktion korczewski.de |
 | `environments/schema.yaml` | JSON-Schema zur Validierung |
 
-Manifest: `k3d/sealed-secrets-controller.yaml`
-
-Legacy: `prod/secrets.yaml` enthaelt separate Produktions-Secrets (wird durch Sealed Secrets ersetzt).
+> **Hinweis:** Die `env-seal.sh`-Infrastruktur (Sealed Secrets Controller) ist vorbereitet (`k3d/sealed-secrets-controller.yaml`), wird aber aktuell nicht aktiv genutzt. Produktions-Secrets werden direkt per `kubectl patch` gesetzt.
 
 ### Vaultwarden als Secret-Store
 
@@ -182,14 +179,14 @@ flowchart LR
     CERT --> SECRET["fa:fa-key Secret<br/>workspace-wildcard-tls"]
     SECRET --> TRAEFIK["fa:fa-server Traefik Ingress<br/>HTTPS-Terminierung"]
 
-    style LE fill:#2d6a4f,color:#fff
-    style CM fill:#4a90d9,color:#fff
-    style LEGO fill:#4a90d9,color:#fff
-    style IPV64 fill:#374151,color:#fff
-    style TXT fill:#374151,color:#fff
-    style CERT fill:#2d8659,color:#fff
-    style SECRET fill:#d97706,color:#fff
-    style TRAEFIK fill:#374151,color:#fff
+    style LE fill:#0a1a0a,color:#b8e8b8
+    style CM fill:#1b3766,color:#e8c870
+    style LEGO fill:#1b3766,color:#e8c870
+    style IPV64 fill:#1a1a2e,color:#aabbcc
+    style TXT fill:#1a1a2e,color:#aabbcc
+    style CERT fill:#1a3d28,color:#e8c870
+    style SECRET fill:#3a2000,color:#e8c870
+    style TRAEFIK fill:#1a1a2e,color:#aabbcc
 ```
 
 **Setup-Befehle:**
@@ -267,7 +264,9 @@ Traefik-Rate-Limit-Middlewares pro Service (Produktion):
 
 ### Zugriffsschutz interne Tools (L7)
 
-Mailpit (`mail.*`), Docs (`docs.*`) und MCP-Status (`ai.*`) sind hinter BasicAuth geschützt (Traefik `basic-auth-internal`-Middleware, Secret `traefik-basic-auth`).
+Mailpit (`mail.*`) und MCP-Status (`ai.*`) sind hinter BasicAuth geschützt (Traefik `basic-auth-internal`-Middleware, Secret `traefik-basic-auth`).
+
+Docs (`docs.*`) ist seit April 2026 hinter Keycloak SSO geschützt (oauth2-proxy-docs → Keycloak OIDC, analog zu Invoice Ninja).
 
 Dev-Credentials: `admin:admin` (in `k3d/secrets.yaml`).
 Produktion: `htpasswd -nb <user> <password>` zum Generieren verwenden.

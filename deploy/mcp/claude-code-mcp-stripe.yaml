@@ -21,6 +21,7 @@ spec:
       containers:
         - name: mcp-stripe
           image: node:20-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |

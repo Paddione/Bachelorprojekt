@@ -1,59 +1,106 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import AdminLayout from '../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
-import { listUsers } from '../lib/keycloak';
-import type { KcUser } from '../lib/keycloak';
+import { listBugTickets, listProjects, getDueFollowUps, listAdminShortcuts } from '../lib/website-db';
+import type { AdminShortcut } from '../lib/website-db';
+import { getAllInvoices } from '../lib/invoiceninja';
+import { getAvailableSlots } from '../lib/caldav';
+import ServiceLinks from '../components/ServiceLinks.astro';
+import AdminShortcuts from '../components/admin/AdminShortcuts.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) {
-  return Astro.redirect(getLoginUrl());
-}
-if (!isAdmin(session)) {
-  return Astro.redirect('/portal');
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/portal');
+
+const BRAND = process.env.BRAND || 'mentolder';
+
+let openBugCount      = 0;
+let activeProjects    = 0;
+let openInvoices      = 0;
+let openInvoiceAmount = 0;
+let dueFollowUps      = 0;
+let freeSlots         = 0;
+let shortcuts: AdminShortcut[] = [];
+
+await Promise.allSettled([
+  listBugTickets({ status: 'open', brand: BRAND, limit: 1000 })
+    .then(t => { openBugCount = t.length; }),
+  listProjects({ brand: BRAND, status: 'aktiv' })
+    .then(p => { activeProjects = p.length; }),
+  getAllInvoices({ perPage: 200 })
+    .then(inv => {
+      const open = inv.filter(i => i.balance > 0 && !['4','5'].includes(i.statusId));
+      openInvoices      = open.length;
+      openInvoiceAmount = open.reduce((s, i) => s + i.balance, 0);
+    }),
+  getDueFollowUps()
+    .then(f => { dueFollowUps = f.length; }),
+  getAvailableSlots(new Date())
+    .then(slots => {
+      const horizon = new Date(); horizon.setDate(horizon.getDate() + 7);
+      freeSlots = slots
+        .filter(d => new Date(d.date) <= horizon)
+        .reduce((s, d) => s + d.slots.length, 0);
+    }),
+  listAdminShortcuts()
+    .then(s => { shortcuts = s; }),
+]);
+
+function fmtCurrency(n: number): string {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-let users: KcUser[] = [];
-try {
-  users = await listUsers();
-} catch {
-  // Keycloak unavailable
-}
+const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const docsUrl     = process.env.DOCS_URL ?? '';
+const billingUrl  = process.env.BILLING_EXTERNAL_URL ?? '';
+const authUrl     = process.env.AUTH_EXTERNAL_URL ?? '';
+const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
+const wikiUrl     = process.env.WIKI_EXTERNAL_URL ?? '';
+const adminLinks = [
+  ...(ncBase ? [
+    { href: `${ncBase}/apps/files/`,      label: 'Dateien',    icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`,   label: 'Kalender',   icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
+    { href: `${ncBase}/apps/files/`,      label: 'Whiteboard', icon: '🖊️' },
+  ] : []),
+  ...(wikiUrl     ? [{ href: wikiUrl,           label: 'Wiki',       icon: '📚' }] : []),
+  ...(billingUrl  ? [{ href: billingUrl,        label: 'Abrechnung', icon: '🧾' }] : []),
+  ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
+  ...(authUrl     ? [{ href: `${authUrl}/admin/`, label: 'Keycloak', icon: '🔑' }] : []),
+  ...(docsUrl     ? [{ href: docsUrl,           label: 'Docs',       icon: '📖' }] : []),
+];
 ---
 
-<Layout title="Admin — Alle Clients">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Dashboard">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
-      <div class="mb-8 flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Clients</h1>
-          <p class="text-muted mt-1">{users.length} Benutzer</p>
-        </div>
-        <a
-          href="/admin/mattermost"
-          class="px-4 py-2 bg-gold/20 text-gold rounded-lg text-sm font-medium hover:bg-gold/30 transition-colors"
-        >
-          Mattermost verwalten
-        </a>
+
+      <div class="mb-10">
+        <h1 class="text-3xl font-bold text-light font-serif">Admin</h1>
+        <p class="text-muted mt-1">Verwaltung & Werkzeuge</p>
       </div>
 
-      <div class="grid gap-4" data-testid="admin-client-list">
-        {users.map(user => (
-          <a
-            href={`/admin/${user.id}`}
-            class="flex items-center gap-4 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors"
-            data-testid="admin-client-item"
-          >
-            <div>
-              <p class="text-light font-medium">{user.firstName} {user.lastName}</p>
-              <p class="text-sm text-muted">{user.username} · {user.email ?? '—'}</p>
-            </div>
-            <span class="ml-auto text-gold text-sm">→</span>
-          </a>
-        ))}
-        {users.length === 0 && (
-          <p class="text-muted">Keine Benutzer gefunden.</p>
-        )}
-      </div>
+      <!-- KPI Banner -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
+  {[
+    { label: 'Aktive Projekte',   value: String(activeProjects),           href: '/admin/projekte',  cls: 'border-yellow-800' },
+    { label: 'Offene Rechnungen', value: openInvoices > 0 ? `${openInvoices} (${fmtCurrency(openInvoiceAmount)})` : '0', href: '/admin/rechnungen', cls: openInvoices > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
+    { label: 'Überfällige Bugs',   value: String(openBugCount),             href: '/admin/bugs',      cls: openBugCount > 0 ? 'border-red-800' : 'border-dark-lighter' },
+    { label: 'Follow-ups fällig', value: String(dueFollowUps),             href: '/admin/followups', cls: dueFollowUps > 0 ? 'border-red-800' : 'border-dark-lighter' },
+    { label: 'Freie Slots (7 T)', value: String(freeSlots),                href: '/admin/termine',   cls: freeSlots > 0 ? 'border-green-800' : 'border-dark-lighter' },
+  ].map(k => (
+    <a href={k.href} class={`p-4 bg-dark-light rounded-xl border hover:border-gold/40 transition-colors ${k.cls}`}>
+      <div class="text-xl font-bold text-light">{k.value}</div>
+      <div class="text-xs text-muted mt-0.5">{k.label}</div>
+    </a>
+  ))}
+</div>
+
+      <ServiceLinks links={adminLinks} heading="Dienste" />
+
+      <AdminShortcuts client:load links={shortcuts} />
+
     </div>
   </section>
-</Layout>
+</AdminLayout>

@@ -486,6 +486,36 @@ async function run() {
     }
   });
 
+  // -- Slot Whitelist Admin Endpoints --
+  section('Slot Whitelist API (unauthenticated)');
+
+  await assert('POST /api/admin/slots/add without auth returns 403', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/slots/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slotStart: '2026-05-01T08:00:00.000Z', slotEnd: '2026-05-01T09:00:00.000Z' }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  await assert('DELETE /api/admin/slots/remove without auth returns 403', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/slots/remove`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slotStart: '2026-05-01T08:00:00.000Z' }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  await assert('GET /api/calendar/slots returns empty array (no slots whitelisted)', async () => {
+    const res = await fetch(`${BASE_URL}/api/calendar/slots`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // With whitelist mode active and no whitelisted slots, array must be empty
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(0);
+  });
+
   // ============================================================
   // SUMMARY
   // ============================================================

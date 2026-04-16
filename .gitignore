@@ -64,8 +64,9 @@ docs-site/
 node_modules/
 *.tmp
 *.bak
-docs/superpowers
+docs/superpowers/*
 !docs/superpowers/specs/
+!docs/superpowers/plans/
 files_chore.txt
 files_main.txt
 website/node_modules.task/
@@ -75,3 +76,6 @@ prod/realm-workspace-prod.json
 # prod-korczewski/kustomization.yaml tracked — no secrets in this file
 prod/realm-workspace-prod.json
 website/.superpowers.superpowers/
+.superpowers/
+.playwright-mcp/
+test-results/

@@ -21,6 +21,7 @@ spec:
       initContainers:
         - name: fetch-invoiceninja-spec
           image: curlimages/curl:latest
+          imagePullPolicy: Always
           command:
             - sh
             - -c
@@ -37,6 +38,7 @@ spec:
         # ── Nextcloud MCP (port 8000) ──────────────────────────────
         - name: nextcloud
           image: ghcr.io/cbcoutinho/nextcloud-mcp-server:latest
+          imagePullPolicy: Always
           env:
             - name: NEXTCLOUD_HOST
               value: "http://nextcloud.workspace.svc.cluster.local"
@@ -70,6 +72,7 @@ spec:
         # ── Invoice Ninja MCP (port 8001) ──────────────────────────
         - name: invoiceninja
           image: ckanthony/openapi-mcp:latest
+          imagePullPolicy: Always
           args:
             - "--spec"
             - "/specs/spec.yaml"

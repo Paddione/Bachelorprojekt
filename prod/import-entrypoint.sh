@@ -25,12 +25,14 @@ for var in \
     CLAUDE_CODE_OIDC_SECRET \
     WEBSITE_OIDC_SECRET \
     OUTLINE_OIDC_SECRET \
+    DOCS_OIDC_SECRET \
     MM_DOMAIN \
     NC_DOMAIN \
     BILLING_DOMAIN \
     VAULT_DOMAIN \
     AI_DOMAIN \
     WEB_DOMAIN \
+    DOCS_DOMAIN \
     PROD_DOMAIN; do
   eval val="\${${var}:-}"
   if [ -z "$val" ]; then

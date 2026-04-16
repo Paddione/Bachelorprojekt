@@ -17,6 +17,7 @@ spec:
       containers:
         - name: mcp-browser
           image: mcr.microsoft.com/playwright:v1.50.1-jammy
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           env:
             - name: NODE_OPTIONS

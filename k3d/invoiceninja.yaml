@@ -48,6 +48,7 @@ spec:
       containers:
         - name: mariadb
           image: mariadb:11.4-noble
+          imagePullPolicy: Always
           env:
             - name: MARIADB_DATABASE
               value: invoiceninja
@@ -125,6 +126,7 @@ spec:
         # the emptyDir mount overlays that path with an empty directory.
         - name: copy-public-assets
           image: invoiceninja/invoiceninja:5
+          imagePullPolicy: Always
           command: ["sh", "-c", "cp -a /var/www/app/docker-backup-public/* /var/www/app/public/"]
           volumeMounts:
             - name: public
@@ -132,6 +134,7 @@ spec:
       containers:
         - name: invoiceninja
           image: invoiceninja/invoiceninja:5
+          imagePullPolicy: Always
           env:
             # ── App Settings ──────────────────────────────────
             - name: APP_URL
@@ -193,6 +196,10 @@ spec:
               mountPath: /var/www/app/public
             - name: data
               mountPath: /var/www/app/storage
+            - name: sso-auth-php
+              mountPath: /var/www/app/public/sso-auth.php
+              subPath: sso-auth.php
+              readOnly: true
           resources:
             requests:
               memory: 512Mi
@@ -203,6 +210,7 @@ spec:
         # Nginx sidecar — serves static files and proxies PHP to FPM
         - name: nginx
           image: nginx:1.27-alpine
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           volumeMounts:
@@ -239,6 +247,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: invoiceninja-data-pvc
+        - name: sso-auth-php
+          configMap:
+            name: sso-auth-php
 ---
 apiVersion: v1
 kind: Service

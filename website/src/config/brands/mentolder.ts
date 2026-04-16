@@ -57,7 +57,7 @@ export const mentolderConfig: BrandConfig = {
   services: [
     {
       slug: 'digital-cafe',
-      title: 'Digital Café 50+',
+      title: '50+ digital',
       description: 'Ihr sicherer Einstieg in die digitale Welt. Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.',
       icon: '💻',
       features: [
@@ -67,6 +67,7 @@ export const mentolderConfig: BrandConfig = {
         'Datenschutz & Sicherheit verstehen',
       ],
       price: 'Ab 60 € / Stunde',
+      stripeServiceKey: 'digital-cafe-einzel',
       pageContent: {
         headline: 'Ihr sicherer Einstieg in die digitale Welt',
         intro: 'Sie möchten WhatsApp nutzen, Online-Banking verstehen, oder einfach sicherer im Umgang mit Smartphone und Computer werden? Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.',
@@ -130,12 +131,13 @@ export const mentolderConfig: BrandConfig = {
       description: 'Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.',
       icon: '🎯',
       features: [
-        'Profil-Scharfung & Positionierung',
+        'Profil-Schärfung & Positionierung',
         'Karriere-Strategie entwickeln',
         'Gesprächsvorbereitung (Headhunter, Vorstellungsgespräche)',
         'Sparring auf Augenhöhe',
       ],
       price: 'Ab 150 € / Session',
+      stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Ihre Karriere strategisch gestalten',
         intro: 'Sie sind erfahrene Führungskraft und stehen vor einer beruflichen Neuorientierung? Ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',
@@ -243,7 +245,7 @@ export const mentolderConfig: BrandConfig = {
   leistungen: [
     {
       id: 'digital-cafe',
-      title: 'Digital Café 50+',
+      title: '50+ digital',
       icon: '💻',
       services: [
         { key: 'digital-cafe-einzel', name: 'Einzelbegleitung', price: '60 €', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
@@ -280,7 +282,7 @@ export const mentolderConfig: BrandConfig = {
     ],
     sections: [
       {
-        title: 'Warum Digital Café 50+?',
+        title: 'Warum 50+ digital?',
         content: 'Als ich im Altenheim ein halbes Jahr lang ein Digital Café leitete, merkte ich: Hier kann ich genau diese Fähigkeiten einsetzen. Menschen der Generation 50+ stehen vor echten Herausforderungen in der digitalen Welt. Nicht weil sie "zu alt" sind – sondern weil niemand sich die Zeit nimmt, es in Ruhe und verständlich zu erklären.',
       },
       {
@@ -295,7 +297,7 @@ export const mentolderConfig: BrandConfig = {
       { year: 'Seit 2024', title: 'Selbstständig', desc: 'Coach und Digitaler Begleiter. Führungskräfte-Coaching und Unternehmensberatung.' },
     ],
     notDoing: [
-      { title: 'Keine technische Umsetzung', text: 'Ich berate, entwickle Strategien und begleite Change-Prozesse. Programmierung uberlasse ich Spezialisten.' },
+      { title: 'Keine technische Umsetzung', text: 'Ich berate, entwickle Strategien und begleite Change-Prozesse. Programmierung überlasse ich Spezialisten.' },
       { title: 'Keine Online-Kurse', text: 'Ich glaube an persönliche Begleitung statt standardisierte, skalierbare Produkte.' },
     ],
     privateText: 'Ich lebe in {city}, bin verheiratet, habe zwei erwachsene Kinder. In meiner Freizeit bin ich viel zu Fuß unterwegs – Bewegung ist für mich Meditation. Und ja, ich bin selbst Teil der Generation 50+ (65 Jahre) – ich weiß also aus eigener Erfahrung, wovon ich spreche.',
@@ -304,13 +306,13 @@ export const mentolderConfig: BrandConfig = {
     intro: 'Egal ob Frage, Erstgespräch oder Feedback – ich freue mich, von Ihnen zu hören.',
     sidebarTitle: 'Kostenloses Erstgespräch',
     sidebarText: 'In 30 Minuten klären wir: Wo stehen Sie? Was ist Ihre größte Herausforderung? Wie könnte eine Zusammenarbeit aussehen?',
-    sidebarCta: 'Kein Verkaufsgesprach. Kein Druck. Nur Klarheit.',
+    sidebarCta: 'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit.',
     showPhone: true,
     showSteps: false,
   },
   faq: [
     {
-      question: 'Für wen ist das Digital Café geeignet?',
+      question: 'Für wen ist 50+ digital geeignet?',
       answer: 'Für alle Menschen 50+, die digital selbstständiger werden möchten. Keine Vorkenntnisse nötig – wir fangen genau da an, wo Sie stehen.',
     },
     {
@@ -319,7 +321,7 @@ export const mentolderConfig: BrandConfig = {
     },
     {
       question: 'Arbeiten Sie auch online?',
-      answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. Das Digital Café biete ich bevorzugt vor Ort in {city} und Umgebung an.',
+      answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. 50+ digital biete ich bevorzugt vor Ort in {city} und Umgebung an.',
     },
     {
       question: 'Was kostet ein Erstgespräch?',

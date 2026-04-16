@@ -148,7 +148,7 @@ fi
 
 # ── Check 7: All services use open-source licenses ───────────────
 echo "▸ Prüfe Open-Source-Lizenzen..."
-LICENSE_IMAGES=$(echo "$IMAGES" | grep -ivE '(mattermost|nextcloud|keycloak|postgres|collabora|coturn|nats|janus|nginx|opensearch|mailpit|busybox|signaling|axllent)' || true)
+LICENSE_IMAGES=$(echo "$IMAGES" | grep -ivE '(mattermost|nextcloud|keycloak|postgres|collabora|coturn|nats|janus|nginx|mailpit|busybox|signaling|axllent)' || true)
 if [[ -z "$LICENSE_IMAGES" ]]; then
   _check "D07" "Alle Container-Images sind Open-Source-Projekte" "pass"
 else

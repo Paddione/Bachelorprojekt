@@ -19,6 +19,7 @@ spec:
       containers:
         - name: mcp-prometheus
           image: prom/prometheus-mcp-server:latest
+          imagePullPolicy: Always
           env:
             - name: MCP_TRANSPORT
               value: "streamable-http"

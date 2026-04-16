@@ -113,7 +113,7 @@
             width="24"
             height="24"
             class="rounded-sm"
-            onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+            onerror={(e) => { const img = e.currentTarget as HTMLImageElement; img.style.display = 'none'; (img.nextElementSibling as HTMLElement | null)?.style.setProperty('display', 'block'); }}
           />
           <!-- Fallback icon -->
           <svg

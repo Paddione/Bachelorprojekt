@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getServiceConfig, getLeistungenConfig, getSiteSetting } from '../../lib/website-db';
 import { mentolderConfig } from '../../config/brands/mentolder';
@@ -66,18 +66,15 @@ const labelCls = 'block text-xs text-muted mb-1';
 const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter space-y-4';
 ---
 
-<Layout title="Admin — Angebote">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Angebote">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
 
-      <div class="mb-8 flex items-center justify-between">
+      <div class="mb-8">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Angebote</h1>
           <p class="text-muted mt-1">Servicekarten, Detailseiten und Preistabelle anpassen</p>
         </div>
-        <a href="/admin" class="px-4 py-2 bg-dark-light text-muted rounded-lg text-sm font-medium hover:text-light transition-colors">
-          ← Zurück
-        </a>
       </div>
 
       {saved && (
@@ -241,4 +238,4 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
       </form>
     </div>
   </section>
-</Layout>
+</AdminLayout>

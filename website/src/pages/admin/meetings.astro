@@ -1,0 +1,148 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { listAllMeetings } from '../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const meetings = await listAllMeetings();
+
+const unassignedCount = meetings.filter(m =>
+  m.customerEmail.endsWith('@unknown.local') || m.meetingType === 'Talk-Session'
+).length;
+
+function fmtDate(d: Date | string | null) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+function fmtTime(d: Date | string | null) {
+  if (!d) return '';
+  return new Date(d).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+function statusLabel(s: string) {
+  const map: Record<string, string> = {
+    scheduled: 'Geplant', ended: 'Beendet', transcribed: 'Transkript', finalized: 'Abgeschlossen',
+  };
+  return map[s] ?? s;
+}
+function statusColor(s: string) {
+  const map: Record<string, string> = {
+    scheduled: 'text-muted border-muted/30',
+    ended: 'text-yellow-400 border-yellow-400/30',
+    transcribed: 'text-blue-400 border-blue-400/30',
+    finalized: 'text-green-400 border-green-400/30',
+  };
+  return map[s] ?? 'text-muted border-muted/30';
+}
+---
+
+<AdminLayout title="Admin — Meetings">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <!-- Header -->
+      <div class="mb-8 flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-light font-serif">Meetings</h1>
+          <p class="text-muted mt-1">
+            {meetings.length} Meeting(s)
+            {unassignedCount > 0 && (
+              <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-400/30">
+                {unassignedCount} nicht zugeordnet
+              </span>
+            )}
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-all"
+            class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold">
+            Alle
+          </button>
+          <button id="btn-unassigned"
+            class="px-4 py-2 bg-dark-light text-light rounded-lg text-sm font-semibold border border-dark-lighter hover:border-gold/40">
+            Nicht zugeordnet
+          </button>
+        </div>
+      </div>
+
+      <!-- Liste -->
+      <div class="space-y-2" id="meeting-list">
+        {meetings.length === 0 && (
+          <div class="text-center py-16 text-muted">
+            <p class="text-4xl mb-4">🗓</p>
+            <p>Noch keine Meetings aufgezeichnet.</p>
+          </div>
+        )}
+        {meetings.map(m => {
+          const isUnassigned = m.customerEmail.endsWith('@unknown.local') || m.meetingType === 'Talk-Session';
+          return (
+            <a
+              href={`/admin/meetings/${m.id}`}
+              class="meeting-row block bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/30 transition-colors"
+              data-unassigned={isUnassigned ? '1' : '0'}
+            >
+              <div class="flex items-center gap-4 px-5 py-4">
+                <span class={`text-xs font-mono px-2 py-0.5 rounded border shrink-0 ${statusColor(m.status)}`}>
+                  {statusLabel(m.status)}
+                </span>
+                <div class="w-28 shrink-0">
+                  <div class="text-sm text-light">{fmtDate(m.startedAt ?? m.createdAt)}</div>
+                  <div class="text-xs text-muted">{fmtTime(m.startedAt ?? m.createdAt)}</div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  {isUnassigned ? (
+                    <div class="flex items-center gap-2">
+                      <span class="text-yellow-400 text-xs shrink-0">⚠</span>
+                      <span class="text-sm text-yellow-400 font-medium truncate">Nicht zugeordnet</span>
+                    </div>
+                  ) : (
+                    <div class="text-sm text-light font-medium truncate">{m.customerName}</div>
+                  )}
+                  <div class="text-xs text-muted truncate">{m.meetingType}</div>
+                </div>
+                <div class="w-32 shrink-0 hidden sm:block">
+                  <div class="text-xs text-muted truncate">{m.projectName ?? '—'}</div>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  {m.hasTranscript && (
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-400/20">📝</span>
+                  )}
+                  {m.artifactCount > 0 && (
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-400/20">
+                      📎 {m.artifactCount}
+                    </span>
+                  )}
+                </div>
+                <span class="text-muted text-sm shrink-0">›</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+</AdminLayout>
+
+<script>
+  const btnAll = document.getElementById('btn-all')!;
+  const btnUA  = document.getElementById('btn-unassigned')!;
+
+  function setActive(btn: HTMLElement, other: HTMLElement) {
+    btn.className   = 'px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold';
+    other.className = 'px-4 py-2 bg-dark-light text-light rounded-lg text-sm font-semibold border border-dark-lighter hover:border-gold/40';
+  }
+
+  btnAll.addEventListener('click', () => {
+    setActive(btnAll, btnUA);
+    document.querySelectorAll<HTMLElement>('.meeting-row').forEach(r => r.style.display = '');
+  });
+
+  btnUA.addEventListener('click', () => {
+    setActive(btnUA, btnAll);
+    document.querySelectorAll<HTMLElement>('.meeting-row').forEach(r => {
+      r.style.display = r.dataset.unassigned === '1' ? '' : 'none';
+    });
+  });
+</script>

@@ -1,3 +1,16 @@
+<div class="page-hero">
+  <span class="page-hero-icon">🧪</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Testanleitung</div>
+    <p class="page-hero-desc">Schritt-für-Schritt-Anleitung für Abnahmetests. Zugangsdaten, Service-Übersicht und zu prüfende Funktionen der Workspace-Plattform.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Mitarbeiter</span>
+      <span class="page-hero-tag">Abnahmetests</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Softwaretest Workspace – Anleitung für Testerinnen und Tester
 
 Herzlich willkommen und vielen Dank, dass Du Dir Zeit nimmst, die Workspace-Plattform

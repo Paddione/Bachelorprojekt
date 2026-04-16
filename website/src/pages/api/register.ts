@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName } from '../../lib/mattermost';
+import { createInboxItem } from '../../lib/messaging-db';
 import { sendRegistrationConfirmation } from '../../lib/email';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -22,30 +22,10 @@ export const POST: APIRoute = async ({ request }) => {
 
     const fullName = `${firstName} ${lastName}`;
 
-    // Try to post interactive message with Accept/Decline buttons
-    const teamId = await getFirstTeamId();
-    const channelId = teamId ? await getChannelByName(teamId, 'anfragen') : null;
-
-    if (channelId) {
-      // Post with interactive buttons (requires bot token)
-      await postInteractiveMessage({
-        channelId,
-        text: `### :bust_in_silhouette: Neue Registrierung\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${fullName} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Unternehmen** | ${company || 'Nicht angegeben'} |\n\n${message ? `**Nachricht:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}`,
-        actions: [
-          { id: 'approve_registration', name: 'Freischalten', style: 'success' },
-          { id: 'decline_registration', name: 'Ablehnen', style: 'danger' },
-        ],
-        context: { email, firstName, lastName, phone, company },
-      });
-    } else {
-      // Fallback: post via webhook without interactive buttons
-      await postWebhook({
-        channel: 'anfragen',
-        username: 'Website-Bot',
-        icon_emoji: ':bust_in_silhouette:',
-        text: `### :bust_in_silhouette: Neue Registrierung\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${fullName} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Unternehmen** | ${company || 'Nicht angegeben'} |\n\n${message ? `**Nachricht:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}\n\n:warning: Interaktive Buttons nicht verfügbar. Benutzer manuell in Keycloak anlegen.`,
-      });
-    }
+    await createInboxItem({
+      type: 'registration',
+      payload: { firstName, lastName, email, phone: phone ?? null, company: company ?? null, message: message ?? null },
+    });
 
     // Send confirmation email to user
     await sendRegistrationConfirmation(email, fullName);

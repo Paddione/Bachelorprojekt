@@ -1,7 +1,8 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getUserById } from '../../lib/keycloak';
+import { getUserById, getUserRealmRoles, listRealmRoles } from '../../lib/keycloak';
+import type { KcRole } from '../../lib/keycloak';
 import BookingsTab from '../../components/portal/BookingsTab.astro';
 import InvoicesTab from '../../components/portal/InvoicesTab.astro';
 import ClientNotesTab from '../../components/portal/ClientNotesTab.astro';
@@ -26,18 +27,113 @@ if (!client) {
 }
 
 const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
+
+let userRoles: KcRole[] = [];
+let allRoles: KcRole[] = [];
+try {
+  [userRoles, allRoles] = await Promise.all([
+    getUserRealmRoles(clientId),
+    listRealmRoles(),
+  ]);
+} catch {
+  // Keycloak unavailable
+}
+const userRoleIds = new Set(userRoles.map(r => r.id));
 ---
 
-<Layout title={`Admin — ${client.firstName ?? client.username}`}>
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title={`Admin — ${client.firstName ?? client.username}`}>
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
-      <div class="mb-2">
-        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
+
+      <!-- Header mit Usermanagement-Aktionen -->
+      <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-3xl font-bold text-light font-serif">{client.firstName} {client.lastName}</h1>
+            {client.enabled === false && (
+              <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">Deaktiviert</span>
+            )}
+          </div>
+          <p class="text-muted mt-1">{client.username} · {client.email ?? '—'}</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button
+            id="edit-user-btn"
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-light rounded-lg text-sm hover:border-gold/40 transition-colors"
+          >
+            ✏️ Bearbeiten
+          </button>
+          <button
+            id="toggle-enabled-btn"
+            data-user-id={clientId}
+            data-enabled={client.enabled !== false ? 'true' : 'false'}
+            class={`px-3 py-1.5 rounded-lg text-sm transition-colors ${client.enabled !== false ? 'bg-dark-light border border-dark-lighter text-muted hover:border-red-500/40 hover:text-red-400' : 'bg-green-500/20 border border-green-500/30 text-green-400 hover:bg-green-500/30'}`}
+          >
+            {client.enabled !== false ? '🔒 Deaktivieren' : '✅ Aktivieren'}
+          </button>
+          <button
+            id="reset-password-btn"
+            data-user-id={clientId}
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-muted rounded-lg text-sm hover:border-gold/40 hover:text-light transition-colors"
+          >
+            🔑 Passwort-Reset
+          </button>
+          <button
+            id="delete-user-btn"
+            data-user-id={clientId}
+            data-user-name={`${client.firstName} ${client.lastName}`}
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-muted rounded-lg text-sm hover:border-red-500/40 hover:text-red-400 transition-colors"
+          >
+            🗑️ Löschen
+          </button>
+        </div>
       </div>
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-light font-serif">{client.firstName} {client.lastName}</h1>
-        <p class="text-muted mt-1">{client.username} · {client.email ?? '—'}</p>
+
+      <!-- Edit Modal (versteckt) -->
+      <div id="edit-modal" class="hidden mb-6 p-6 bg-dark-light rounded-xl border border-gold/30">
+        <h2 class="text-lg font-semibold text-light mb-4">Benutzer bearbeiten</h2>
+        <div id="edit-error" class="hidden mb-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm"></div>
+        <form id="edit-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-muted mb-1">Vorname</label>
+            <input type="text" name="firstName" value={client.firstName ?? ''} class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm text-muted mb-1">Nachname</label>
+            <input type="text" name="lastName" value={client.lastName ?? ''} class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm text-muted mb-1">E-Mail</label>
+            <input type="email" name="email" value={client.email ?? ''} class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none" />
+          </div>
+          <div class="sm:col-span-2 flex gap-3 justify-end">
+            <button type="button" id="cancel-edit" class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
+            <button type="submit" id="save-edit" class="px-5 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors">Speichern</button>
+          </div>
+        </form>
       </div>
+
+      <!-- Rollen -->
+      {allRoles.length > 0 && (
+        <div class="mb-6 p-4 bg-dark-light rounded-xl border border-dark-lighter">
+          <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Rollen</h2>
+          <div class="flex flex-wrap gap-2" id="roles-container">
+            {allRoles.map(role => (
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="role-checkbox accent-gold"
+                  data-user-id={clientId}
+                  data-role-id={role.id}
+                  data-role-name={role.name}
+                  checked={userRoleIds.has(role.id)}
+                />
+                <span class="text-sm text-light">{role.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       <!-- Tab navigation -->
       <nav class="flex gap-1 mb-8 border-b border-dark-lighter overflow-x-auto" data-testid="admin-client-tabs">
@@ -85,4 +181,133 @@ const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
       </div>
     </div>
   </section>
-</Layout>
+</AdminLayout>
+
+<script>
+  const userId = (document.getElementById('toggle-enabled-btn') as HTMLButtonElement)?.dataset.userId ?? '';
+
+  // Edit modal
+  document.getElementById('edit-user-btn')?.addEventListener('click', () => {
+    document.getElementById('edit-modal')?.classList.toggle('hidden');
+  });
+  document.getElementById('cancel-edit')?.addEventListener('click', () => {
+    document.getElementById('edit-modal')?.classList.add('hidden');
+  });
+
+  const editForm = document.getElementById('edit-form') as HTMLFormElement | null;
+  editForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const saveBtn = document.getElementById('save-edit') as HTMLButtonElement;
+    const errorEl = document.getElementById('edit-error');
+    saveBtn.disabled = true;
+    saveBtn.textContent = '...';
+    errorEl?.classList.add('hidden');
+
+    const data = Object.fromEntries(new FormData(editForm));
+    try {
+      const res = await fetch('/api/admin/clients/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...data }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        if (errorEl) { errorEl.textContent = json.error || 'Fehler.'; errorEl.classList.remove('hidden'); }
+      }
+    } catch {
+      if (errorEl) { errorEl.textContent = 'Netzwerkfehler.'; errorEl.classList.remove('hidden'); }
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Speichern';
+    }
+  });
+
+  // Toggle enabled
+  document.getElementById('toggle-enabled-btn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    const enabled = btn.dataset.enabled === 'true';
+    const action = enabled ? 'Deaktivieren' : 'Aktivieren';
+    if (!confirm(`Benutzer wirklich ${action.toLowerCase()}?`)) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/admin/clients/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, enabled: !enabled }),
+      });
+      if (res.ok) window.location.reload();
+      else alert('Fehler beim Ändern des Status.');
+    } catch {
+      alert('Netzwerkfehler.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Password reset
+  document.getElementById('reset-password-btn')?.addEventListener('click', async () => {
+    if (!confirm('Passwort-Reset-Email senden?')) return;
+    try {
+      const res = await fetch('/api/admin/clients/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (res.ok) alert('Passwort-Reset-Email gesendet.');
+      else alert('Fehler beim Senden.');
+    } catch {
+      alert('Netzwerkfehler.');
+    }
+  });
+
+  // Delete user
+  document.getElementById('delete-user-btn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    const name = btn.dataset.userName;
+    if (!confirm(`Benutzer "${name}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/admin/clients/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (res.ok) window.location.href = '/admin/clients';
+      else alert('Fehler beim Löschen.');
+    } catch {
+      alert('Netzwerkfehler.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Role checkboxes
+  document.querySelectorAll<HTMLInputElement>('.role-checkbox').forEach(cb => {
+    cb.addEventListener('change', async () => {
+      const uid = cb.dataset.userId;
+      const role = { id: cb.dataset.roleId!, name: cb.dataset.roleName! };
+      cb.disabled = true;
+      try {
+        const endpoint = cb.checked
+          ? '/api/admin/clients/roles-assign'
+          : '/api/admin/clients/roles-remove';
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: uid, roles: [role] }),
+        });
+        if (!res.ok) {
+          alert('Fehler beim Ändern der Rolle.');
+          cb.checked = !cb.checked;
+        }
+      } catch {
+        alert('Netzwerkfehler.');
+        cb.checked = !cb.checked;
+      } finally {
+        cb.disabled = false;
+      }
+    });
+  });
+</script>

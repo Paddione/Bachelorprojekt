@@ -3,14 +3,31 @@
 // Uses the 'pg' npm package for direct database access.
 
 import pg from 'pg';
+import { resolve4 } from 'dns';
 const { Pool } = pg;
 
-const MEETINGS_DB_URL = process.env.MEETINGS_DATABASE_URL
+const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
 const EMBEDDING_URL = process.env.EMBEDDING_URL
   || 'http://embedding.workspace.svc.cluster.local:8080';
 
-const pool = new Pool({ connectionString: MEETINGS_DB_URL });
+// Use Node.js's built-in DNS resolver (dns.resolve4) instead of musl libc's
+// getaddrinfo. musl opens a *connected* UDP socket to the ClusterIP, but after
+// kube-proxy DNAT the CoreDNS response arrives from the pod IP — a connected
+// socket filters it out and times out with EAI_AGAIN. Node's dns.resolve4 uses
+// an unconnected socket and is not affected by this source-address mismatch.
+function nodeLookup(
+  hostname: string,
+  _opts: unknown,
+  cb: (err: Error | null, addr: string, family: number) => void,
+) {
+  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+}
+
+// pg's PoolConfig type doesn't declare `lookup`, but pg-pool passes it through
+// to net.createConnection at runtime. Cast via unknown to satisfy tsc.
+const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
+const pool = new Pool(poolConfig);
 
 // ── Customer ────────────────────────────────────────────────────────────────
 
@@ -25,24 +42,20 @@ export async function upsertCustomer(params: {
   email: string;
   phone?: string;
   company?: string;
-  outlineCollectionId?: string;
-  mattermostChannelId?: string;
   keycloakUserId?: string;
 }): Promise<Customer> {
   const result = await pool.query(
-    `INSERT INTO customers (name, email, phone, company, outline_collection_id, mattermost_channel_id, keycloak_user_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO customers (name, email, phone, company, keycloak_user_id)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (email) DO UPDATE SET
        name = EXCLUDED.name,
        phone = COALESCE(EXCLUDED.phone, customers.phone),
        company = COALESCE(EXCLUDED.company, customers.company),
-       outline_collection_id = COALESCE(EXCLUDED.outline_collection_id, customers.outline_collection_id),
-       mattermost_channel_id = COALESCE(EXCLUDED.mattermost_channel_id, customers.mattermost_channel_id),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
        updated_at = now()
      RETURNING id, name, email`,
     [params.name, params.email, params.phone, params.company,
-     params.outlineCollectionId, params.mattermostChannelId, params.keycloakUserId]
+     params.keycloakUserId]
   );
   return result.rows[0];
 }
@@ -122,6 +135,34 @@ export interface MeetingWithDetails {
     name: string;
     contentText: string | null;
   }>;
+}
+
+export interface MeetingWithCustomer {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+}
+
+export async function getMeetingByRoomToken(
+  roomToken: string,
+): Promise<MeetingWithCustomer | null> {
+  const result = await pool.query(
+    `SELECT m.id, m.customer_id AS "customerId",
+            c.name AS "customerName", c.email AS "customerEmail",
+            m.meeting_type AS "meetingType", m.status,
+            m.talk_room_token AS "talkRoomToken"
+     FROM meetings m
+     JOIN customers c ON m.customer_id = c.id
+     WHERE m.talk_room_token = $1
+     ORDER BY m.created_at DESC
+     LIMIT 1`,
+    [roomToken],
+  );
+  return result.rows[0] ?? null;
 }
 
 export async function createMeeting(params: {
@@ -236,14 +277,12 @@ export async function saveInsight(params: {
   insightType: 'summary' | 'action_items' | 'key_topics' | 'sentiment' | 'coaching_notes';
   content: string;
   generatedBy?: string;
-  outlineDocumentId?: string;
 }): Promise<string> {
   const result = await pool.query(
-    `INSERT INTO meeting_insights (meeting_id, insight_type, content, generated_by, outline_document_id)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO meeting_insights (meeting_id, insight_type, content, generated_by)
+     VALUES ($1, $2, $3, $4)
      RETURNING id`,
-    [params.meetingId, params.insightType, params.content,
-     params.generatedBy || 'system', params.outlineDocumentId]
+    [params.meetingId, params.insightType, params.content, params.generatedBy || 'system']
   );
   return result.rows[0].id;
 }
@@ -356,6 +395,113 @@ export async function getMeetingsForClient(
 
   const result = await pool.query(query, [clientEmail]);
   return result.rows;
+}
+
+// ── Admin: Meeting list ──────────────────────────────────────────────────────
+
+export interface AdminMeeting {
+  id: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  customerName: string;
+  customerEmail: string;
+  customerId: string;
+  projectName: string | null;
+  projectId: string | null;
+  hasTranscript: boolean;
+  artifactCount: number;
+}
+
+export async function listAllMeetings(opts?: {
+  unassignedOnly?: boolean;
+  limit?: number;
+}): Promise<AdminMeeting[]> {
+  const where = opts?.unassignedOnly
+    ? `WHERE c.name LIKE '%@unknown.local%' OR m.meeting_type = 'Talk-Session'`
+    : '';
+  const result = await pool.query(`
+    SELECT m.id, m.meeting_type AS "meetingType", m.status,
+           m.talk_room_token AS "talkRoomToken",
+           m.started_at AS "startedAt", m.ended_at AS "endedAt",
+           m.created_at AS "createdAt",
+           c.name AS "customerName", c.email AS "customerEmail",
+           c.id AS "customerId",
+           p.name AS "projectName", p.id AS "projectId",
+           EXISTS(SELECT 1 FROM meeting_transcripts t WHERE t.meeting_id = m.id) AS "hasTranscript",
+           (SELECT COUNT(*) FROM meeting_artifacts a WHERE a.meeting_id = m.id)::int AS "artifactCount"
+    FROM meetings m
+    JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN projects p ON m.project_id = p.id
+    ${where}
+    ORDER BY m.created_at DESC
+    LIMIT $1
+  `, [opts?.limit ?? 200]);
+  return result.rows;
+}
+
+export async function getMeetingDetail(meetingId: string): Promise<{
+  id: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  customerName: string;
+  customerEmail: string;
+  customerId: string;
+  projectName: string | null;
+  projectId: string | null;
+  transcript: { id: string; fullText: string } | null;
+  artifacts: Array<{ id: string; artifactType: string; name: string; storagePath: string | null; contentText: string | null }>;
+} | null> {
+  const r = await pool.query(`
+    SELECT m.id, m.meeting_type AS "meetingType", m.status,
+           m.talk_room_token AS "talkRoomToken",
+           m.started_at AS "startedAt", m.ended_at AS "endedAt",
+           m.created_at AS "createdAt",
+           c.name AS "customerName", c.email AS "customerEmail", c.id AS "customerId",
+           p.name AS "projectName", p.id AS "projectId"
+    FROM meetings m
+    JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN projects p ON m.project_id = p.id
+    WHERE m.id = $1
+  `, [meetingId]);
+  if (!r.rows[0]) return null;
+  const m = r.rows[0];
+
+  const [tRow, aRows] = await Promise.all([
+    pool.query(`SELECT id, full_text AS "fullText" FROM meeting_transcripts WHERE meeting_id = $1 LIMIT 1`, [meetingId]),
+    pool.query(`SELECT id, artifact_type AS "artifactType", name, storage_path AS "storagePath", content_text AS "contentText" FROM meeting_artifacts WHERE meeting_id = $1 ORDER BY created_at`, [meetingId]),
+  ]);
+
+  return {
+    ...m,
+    transcript: tRow.rows[0] ?? null,
+    artifacts: aRows.rows,
+  };
+}
+
+export async function assignMeeting(meetingId: string, params: {
+  customerName?: string;
+  customerEmail?: string;
+  meetingType?: string;
+  projectId?: string | null;
+}): Promise<void> {
+  if (params.customerName && params.customerEmail) {
+    const c = await upsertCustomer({ name: params.customerName, email: params.customerEmail });
+    await pool.query(`UPDATE meetings SET customer_id = $2, updated_at = now() WHERE id = $1`, [meetingId, c.id]);
+  }
+  if (params.meetingType !== undefined) {
+    await pool.query(`UPDATE meetings SET meeting_type = $2, updated_at = now() WHERE id = $1`, [meetingId, params.meetingType]);
+  }
+  if (params.projectId !== undefined) {
+    await pool.query(`UPDATE meetings SET project_id = $2, updated_at = now() WHERE id = $1`, [meetingId, params.projectId]);
+  }
 }
 
 // ── Bug Tickets ──────────────────────────────────────────────────────────────
@@ -1601,6 +1747,178 @@ export interface BugTicketRow {
   screenshots: string[] | null;
 }
 
+let bookingProjectLinksReady = false;
+async function initBookingProjectLinks(): Promise<void> {
+  if (bookingProjectLinksReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_project_links (
+      caldav_uid  TEXT    NOT NULL,
+      brand       TEXT    NOT NULL,
+      project_id  UUID    REFERENCES projects(id) ON DELETE SET NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (caldav_uid, brand)
+    )
+  `);
+  bookingProjectLinksReady = true;
+}
+
+// ── Booking-Invoice Mapping ───────────────────────────────────────────────────
+
+let bookingInvoiceLinksReady = false;
+async function initBookingInvoiceLinksTable(): Promise<void> {
+  if (bookingInvoiceLinksReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_invoice_links (
+      caldav_uid      TEXT        NOT NULL,
+      brand           TEXT        NOT NULL,
+      invoice_id      TEXT        NOT NULL,
+      invoice_number  TEXT        NOT NULL,
+      amount          NUMERIC(10,2) NOT NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (caldav_uid, brand)
+    )
+  `);
+  bookingInvoiceLinksReady = true;
+}
+
+export async function setBookingInvoice(
+  caldavUid: string,
+  brand: string,
+  invoiceId: string,
+  invoiceNumber: string,
+  amount: number
+): Promise<void> {
+  await initBookingInvoiceLinksTable();
+  await pool.query(
+    `INSERT INTO booking_invoice_links (caldav_uid, brand, invoice_id, invoice_number, amount)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (caldav_uid, brand) DO UPDATE
+       SET invoice_id = EXCLUDED.invoice_id,
+           invoice_number = EXCLUDED.invoice_number,
+           amount = EXCLUDED.amount`,
+    [caldavUid, brand, invoiceId, invoiceNumber, amount]
+  );
+}
+
+export interface BookingInvoiceInfo {
+  invoiceId: string;
+  invoiceNumber: string;
+  amount: number;
+}
+
+export async function getBookingInvoices(caldavUids: string[], brand: string): Promise<Map<string, BookingInvoiceInfo>> {
+  if (caldavUids.length === 0) return new Map();
+  await initBookingInvoiceLinksTable();
+  const result = await pool.query(
+    `SELECT caldav_uid, invoice_id, invoice_number, amount
+     FROM booking_invoice_links
+     WHERE caldav_uid = ANY($1) AND brand = $2`,
+    [caldavUids, brand]
+  );
+  return new Map(
+    result.rows.map((r: {
+      caldav_uid: string;
+      invoice_id: string;
+      invoice_number: string;
+      amount: string;
+    }) => [
+      r.caldav_uid,
+      {
+        invoiceId: r.invoice_id,
+        invoiceNumber: r.invoice_number,
+        amount: parseFloat(r.amount),
+      },
+    ])
+  );
+}
+
+export async function getBookingProjects(caldavUids: string[], brand: string): Promise<Map<string, string>> {
+  if (caldavUids.length === 0) return new Map();
+  await initBookingProjectLinks();
+  const result = await pool.query(
+    `SELECT caldav_uid, project_id FROM booking_project_links
+     WHERE caldav_uid = ANY($1) AND brand = $2 AND project_id IS NOT NULL`,
+    [caldavUids, brand]
+  );
+  return new Map(result.rows.map((r: { caldav_uid: string; project_id: string }) => [r.caldav_uid, r.project_id]));
+}
+
+export async function setBookingProject(caldavUid: string, projectId: string | null, brand: string): Promise<void> {
+  await initBookingProjectLinks();
+  if (!projectId) {
+    await pool.query(
+      `DELETE FROM booking_project_links WHERE caldav_uid = $1 AND brand = $2`,
+      [caldavUid, brand]
+    );
+  } else {
+    await pool.query(
+      `INSERT INTO booking_project_links (caldav_uid, brand, project_id) VALUES ($1, $2, $3)
+       ON CONFLICT (caldav_uid, brand) DO UPDATE SET project_id = EXCLUDED.project_id`,
+      [caldavUid, brand, projectId]
+    );
+  }
+}
+
+// ── Slot Whitelist ────────────────────────────────────────────────────────────
+
+export interface WhitelistedSlot {
+  slotStart: Date;
+  slotEnd: Date;
+}
+
+async function initSlotWhitelistTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS slot_whitelist (
+      brand      TEXT        NOT NULL,
+      slot_start TIMESTAMPTZ NOT NULL,
+      slot_end   TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (brand, slot_start)
+    )
+  `);
+}
+
+export async function getWhitelistedSlots(brand: string): Promise<WhitelistedSlot[]> {
+  await initSlotWhitelistTable();
+  // Only return future slots for display — isSlotWhitelisted has no time filter
+  // so booking validation works even for slots that just started.
+  const result = await pool.query(
+    `SELECT slot_start AS "slotStart", slot_end AS "slotEnd"
+     FROM slot_whitelist
+     WHERE brand = $1 AND slot_start > now()
+     ORDER BY slot_start ASC`,
+    [brand]
+  );
+  return result.rows;
+}
+
+export async function addSlotToWhitelist(brand: string, start: Date, end: Date): Promise<void> {
+  await initSlotWhitelistTable();
+  await pool.query(
+    `INSERT INTO slot_whitelist (brand, slot_start, slot_end)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (brand, slot_start) DO UPDATE SET slot_end = $3`,
+    [brand, start, end]
+  );
+}
+
+export async function removeSlotFromWhitelist(brand: string, start: Date): Promise<void> {
+  await initSlotWhitelistTable();
+  await pool.query(
+    'DELETE FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz',
+    [brand, start]
+  );
+}
+
+export async function isSlotWhitelisted(brand: string, start: Date): Promise<boolean> {
+  await initSlotWhitelistTable();
+  const result = await pool.query(
+    'SELECT 1 FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz',
+    [brand, start]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function listBugTickets(filters: {
   status?: string;
   category?: string;
@@ -1633,4 +1951,168 @@ export async function listBugTickets(filters: {
     [brand ?? null, status ?? null, category ?? null, q ?? null, limit]
   );
   return result.rows;
+}
+
+// ── Homepage Content (hero + startseite) ─────────────────────────────────────
+
+export interface HomepageHero {
+  title: string;
+  subtitle: string;
+  tagline: string;
+}
+
+export interface WhyMePoint {
+  title: string;
+  text: string;
+  iconPath?: string;
+}
+
+export interface StatItem {
+  value: string;
+  label: string;
+}
+
+export interface HomepageContent {
+  hero: HomepageHero;
+  stats: StatItem[];
+  servicesHeadline: string;
+  servicesSubheadline: string;
+  whyMeHeadline: string;
+  whyMeIntro: string;
+  whyMePoints: WhyMePoint[];
+  quote: string;
+  quoteName: string;
+}
+
+export async function getHomepageContent(brand: string): Promise<HomepageContent | null> {
+  const raw = await getSiteSetting(brand, 'homepage');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveHomepageContent(brand: string, data: HomepageContent): Promise<void> {
+  await setSiteSetting(brand, 'homepage', JSON.stringify(data));
+}
+
+// ── Über mich Content ─────────────────────────────────────────────────────────
+
+export interface UebermichSection {
+  title: string;
+  content: string;
+}
+
+export interface UebermichMilestone {
+  year: string;
+  title: string;
+  desc: string;
+}
+
+export interface UebermichNotDoing {
+  title: string;
+  text: string;
+}
+
+export interface UebermichContent {
+  pageHeadline: string;
+  subheadline: string;
+  introParagraphs: string[];
+  sections: UebermichSection[];
+  milestones: UebermichMilestone[];
+  notDoing: UebermichNotDoing[];
+  privateText: string;
+}
+
+export async function getUebermichContent(brand: string): Promise<UebermichContent | null> {
+  const raw = await getSiteSetting(brand, 'uebermich');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveUebermichContent(brand: string, data: UebermichContent): Promise<void> {
+  await setSiteSetting(brand, 'uebermich', JSON.stringify(data));
+}
+
+// ── FAQ Content ───────────────────────────────────────────────────────────────
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export async function getFaqContent(brand: string): Promise<FaqItem[] | null> {
+  const raw = await getSiteSetting(brand, 'faq');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveFaqContent(brand: string, items: FaqItem[]): Promise<void> {
+  await setSiteSetting(brand, 'faq', JSON.stringify(items));
+}
+
+// ── Kontakt Content ───────────────────────────────────────────────────────────
+
+export interface KontaktContent {
+  intro: string;
+  sidebarTitle: string;
+  sidebarText: string;
+  sidebarCta: string;
+  showPhone: boolean;
+}
+
+export async function getKontaktContent(brand: string): Promise<KontaktContent | null> {
+  const raw = await getSiteSetting(brand, 'kontakt');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
+  await setSiteSetting(brand, 'kontakt', JSON.stringify(data));
+}
+
+// ── Admin Shortcuts ──────────────────────────────────────────────────────────
+
+export interface AdminShortcut {
+  id: string;
+  url: string;
+  label: string;
+  sortOrder: number;
+  createdAt: Date;
+}
+
+async function initAdminShortcutsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_shortcuts (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      url        TEXT NOT NULL,
+      label      TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+export async function listAdminShortcuts(): Promise<AdminShortcut[]> {
+  await initAdminShortcutsTable();
+  const result = await pool.query(
+    `SELECT id, url, label, sort_order AS "sortOrder", created_at AS "createdAt"
+     FROM admin_shortcuts
+     ORDER BY created_at ASC`
+  );
+  return result.rows;
+}
+
+export async function createAdminShortcut(url: string, label: string): Promise<AdminShortcut> {
+  await initAdminShortcutsTable();
+  const result = await pool.query(
+    `INSERT INTO admin_shortcuts (url, label)
+     VALUES ($1, $2)
+     RETURNING id, url, label, sort_order AS "sortOrder", created_at AS "createdAt"`,
+    [url, label]
+  );
+  return result.rows[0];
+}
+
+export async function deleteAdminShortcut(id: string): Promise<void> {
+  await initAdminShortcutsTable();
+  await pool.query('DELETE FROM admin_shortcuts WHERE id = $1', [id]);
 }

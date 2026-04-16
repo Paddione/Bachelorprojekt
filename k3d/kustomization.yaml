@@ -11,9 +11,6 @@ resources:
   - website-schema.yaml
   # Kerndienste
   - keycloak.yaml
-  - mm-keycloak-proxy.yaml
-  - mattermost.yaml
-  - mattermost-hpa.yaml
   - nextcloud.yaml
   - nextcloud-redis.yaml
   - nextcloud-notify-push-ingress.yaml
@@ -35,8 +32,6 @@ resources:
   - oauth2-proxy-docs.yaml
   - billing-bot.yaml
   - billing-bot-init-job.yaml
-  # Suche (FA-07)
-  - opensearch.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-secrets.yaml
@@ -60,7 +55,6 @@ resources:
   - claude-code-config.yaml
   - claude-code-mcp-ops.yaml
   - claude-code-mcp-browser.yaml
-  - claude-code-mcp-mattermost.yaml
   - claude-code-mcp-apps.yaml
   - claude-code-mcp-auth.yaml
   - claude-code-mcp-stripe.yaml
@@ -73,7 +67,6 @@ resources:
   - network-policies.yaml
   # Ingress
   - ingress.yaml
-  - mattermost-force-sso.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:
@@ -92,9 +85,6 @@ configMapGenerator:
   - name: invoiceninja-nginx-config
     files:
       - default.conf=invoiceninja-nginx.conf
-  - name: mattermost-proxy-config
-    files:
-      - default.conf=mattermost-userinfo-proxy.conf
   - name: docs-content
     files:
       - docs-content/index.html

@@ -459,6 +459,7 @@ func openClientDialog(req ActionRequest) {
 func handleClientDialog(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		UserID     string            `json:"user_id"`
+		UserName   string            `json:"user_name"`
 		ChannelID  string            `json:"channel_id"`
 		Submission map[string]string `json:"submission"`
 		Cancelled  bool              `json:"cancelled"`
@@ -509,7 +510,7 @@ func handleClientDialog(w http.ResponseWriter, r *http.Request) {
 
 	postToMM(req.ChannelID, fmt.Sprintf(
 		"Kunde **%s** angelegt von @%s\nE-Mail: %s\n[Stripe Dashboard](%s/customers/%s)",
-		c.Name, req.UserID, c.Email, stripeDashboard(), c.ID,
+		c.Name, req.UserName, c.Email, stripeDashboard(), c.ID,
 	))
 	w.WriteHeader(http.StatusOK)
 }
@@ -548,15 +549,31 @@ func actionCreateQuote(ctx context.Context, req ActionRequest) ActionResponse {
 
 	c := customers[0]
 	sc := newSC()
+
+	// Create a temporary product with inline data
+	product, err := sc.V1Products.Create(ctx, &stripe.ProductCreateParams{
+		Name: stripe.String("Dienstleistung (bitte in Stripe anpassen)"),
+	})
+	if err != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler beim Erstellen des Produkts: %v", err)}
+	}
+
+	// Create a price for the product
+	price, err := sc.V1Prices.Create(ctx, &stripe.PriceCreateParams{
+		Product:    stripe.String(product.ID),
+		Currency:   stripe.String("eur"),
+		UnitAmount: stripe.Int64(0),
+	})
+	if err != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler beim Erstellen des Preises: %v", err)}
+	}
+
+	// Create quote with the price
 	q, err := sc.V1Quotes.Create(ctx, &stripe.QuoteCreateParams{
 		Customer: stripe.String(c.ID),
 		LineItems: []*stripe.QuoteCreateLineItemParams{
 			{
-				PriceData: &stripe.QuoteCreateLineItemPriceDataParams{
-					Currency:   stripe.String("eur"),
-					Product:    stripe.String(""),
-					UnitAmount: stripe.Int64(0),
-				},
+				Price:    stripe.String(price.ID),
 				Quantity: stripe.Int64(1),
 			},
 		},

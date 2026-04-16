@@ -60,16 +60,6 @@ spec:
                 name: spreed-signaling
                 port:
                   number: 8080
-    - host: billing.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: oauth2-proxy-invoiceninja
-                port:
-                  number: 4180
     - host: vault.localhost
       http:
         paths:

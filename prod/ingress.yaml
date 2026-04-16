@@ -98,30 +98,6 @@ spec:
                 port:
                   number: 80
 ---
-# ── Invoice Ninja (Buchhaltung, via OAuth2-Proxy) ───────────────────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: workspace-ingress-billing
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-billing@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - billing.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
-  rules:
-    - host: billing.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: oauth2-proxy-invoiceninja
-                port:
-                  number: 4180
----
 # ── Website (Astro) ─────────────────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -218,7 +194,7 @@ spec:
                 port:
                   number: 80
 ---
-# ── Restliche Services (meet, board, signaling, wiki) ──────────────
+# ── Restliche Services (meet, board, signaling) ─────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -231,7 +207,6 @@ spec:
         - meet.${PROD_DOMAIN}
         - board.${PROD_DOMAIN}
         - signaling.${PROD_DOMAIN}
-        - wiki.${PROD_DOMAIN}
         - bug.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
@@ -273,15 +248,5 @@ spec:
             backend:
               service:
                 name: website
-                port:
-                  number: 80
-    - host: wiki.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: outline
                 port:
                   number: 80

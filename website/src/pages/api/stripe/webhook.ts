@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { stripe } from '../../../lib/stripe';
-import { postWebhook } from '../../../lib/mattermost';
+
 
 export const POST: APIRoute = async ({ request }) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -30,15 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
     const customerEmail = session.customer_details?.email ?? 'unbekannt';
     const serviceKey = session.metadata?.serviceKey ?? 'unbekannt';
 
-    await postWebhook({
-      text:
-        `💳 **Neue Zahlung eingegangen!**\n\n` +
-        `**Service:** ${serviceKey}\n` +
-        `**Betrag:** ${amountFormatted}\n` +
-        `**Kunde:** ${customerEmail}\n` +
-        `**Stripe Session:** ${session.id}`,
-      icon_emoji: ':moneybag:',
-    });
+    console.log(`[stripe] Payment received: ${serviceKey} ${amountFormatted} from ${customerEmail} (${session.id})`);
   }
 
   return new Response('OK', { status: 200 });

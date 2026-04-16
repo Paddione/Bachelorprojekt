@@ -33,10 +33,8 @@ task workspace:up
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
 | Whiteboard | http://board.localhost | WebSocket-Backend fuer Nextcloud Whiteboard (kein eigenstaendiges UI) |
 | Mailpit (Dev-Mail) | http://mail.localhost | E-Mail-Testing (nur Dev) |
-| OpenSearch | -- | Volltextsuche (intern) |
 | Docs | http://docs.localhost | Projektdokumentation (Docsify) |
 | Website | http://web.localhost | Astro + Svelte Webseite |
-| Outline (Wiki) | http://wiki.localhost | Wissensdatenbank (optional) |
 | Whisper | -- | Transkriptions-Service (intern, optional) |
 | Embedding | -- | Text-Vektorisierung (intern, fuer Meeting-Transkripte) |
 | Talk Recording | -- | Anruf-Aufzeichnung fuer Nextcloud Talk (intern) |
@@ -77,9 +75,7 @@ graph TB
             VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
             WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
             MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
-            OS["fa:fa-search OpenSearch"]
             DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
-            OL["fa:fa-book Outline Wiki<br/>wiki.localhost"]
             BB["fa:fa-robot billing-bot<br/>intern"]
             PROXY["fa:fa-shuffle mm-keycloak-proxy<br/>intern"]
             OAUTH["fa:fa-shield-halved oauth2-proxy<br/>Invoice Ninja"]
@@ -107,9 +103,9 @@ graph TB
     end
 
     User --> Traefik
-    Traefik --> KC & MM & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB & OL
+    Traefik --> KC & MM & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
 
-    KC -. OIDC .-> MM & NC & IN & OC & VW & OL & WEB
+    KC -. OIDC .-> MM & NC & IN & OC & VW & WEB
     PROXY --> KC
     MM --> PROXY
     OAUTH --> KC
@@ -124,7 +120,7 @@ graph TB
     HPB --- JANUS & NATS
     JANUS --- COTURN
 
-    KC & MM & NC & IN & OC & OS & VW & OL --> DB
+    KC & MM & NC & IN & OC & VW --> DB
     PROM --> GRAF
 
     classDef identity fill:#4a90d9,color:#fff,stroke:#2d6a9f
@@ -299,15 +295,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task whisper:status` | Whisper Deployment-Status |
 | `task whisper:logs` | Whisper-Logs |
 
-### Outline (Wiki, optional)
-
-| Befehl | Beschreibung |
-|--------|-------------|
-| `task outline:deploy` | Outline Wissensdatenbank deployen |
-| `task outline:status` | Outline Deployment-Status |
-| `task outline:logs` | Outline-Logs |
-| `task outline:teardown` | Outline und Daten entfernen (mit Bestaetigung) |
-
 ### Dokumentation
 
 | Befehl | Beschreibung |
@@ -405,12 +392,10 @@ Bachelorprojekt/
     vaultwarden.yaml            # Vaultwarden Passwort-Manager
     vaultwarden-seed-*.yaml     # Vaultwarden Seed-Jobs + Credentials
     whiteboard.yaml             # Kollaboratives Whiteboard
-    opensearch.yaml             # Volltextsuche
     embedding.yaml              # Text-Embedding-Service (infinity-emb)
     meetings-schema.yaml        # Meeting-Datenbank-Schema
     mailpit.yaml                # Dev-Mailserver
     whisper.yaml                # Transkriptions-Service
-    outline.yaml                # Outline Wiki
     docs.yaml                   # Docsify Docs-Site
     website.yaml                # Astro Website
     korczewski-website.yaml     # Korczewski-Website (Branding-Variante)

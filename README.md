@@ -36,7 +36,6 @@ task workspace:up
 | Docs | http://docs.localhost | Projektdokumentation (Docsify) |
 | Website | http://web.localhost | Astro + Svelte Webseite |
 | Whisper | -- | Transkriptions-Service (intern, optional) |
-| Embedding | -- | Text-Vektorisierung (intern, fuer Meeting-Transkripte) |
 | Talk Recording | -- | Anruf-Aufzeichnung fuer Nextcloud Talk (intern) |
 
 ## Dokumentation
@@ -80,7 +79,6 @@ graph TB
             PROXY["fa:fa-shuffle mm-keycloak-proxy<br/>intern"]
             OAUTH["fa:fa-shield-halved oauth2-proxy<br/>Invoice Ninja"]
             WHISPER["fa:fa-microphone Whisper<br/>intern"]
-            EMB["fa:fa-vector-square Embedding<br/>intern"]
             REC["fa:fa-record-vinyl Talk Recording<br/>intern"]
 
             subgraph HPB-Stack ["fa:fa-video Talk HPB Stack"]
@@ -133,7 +131,7 @@ graph TB
 
     class KC,PROXY,OAUTH identity
     class MM,NC,CO,WB,OL,HPB,JANUS,NATS,COTURN collab
-    class OC,WHISPER,EMB ai
+    class OC,WHISPER ai
     class IN,BB billing
     class DB,OS data
     class VW,MP,DOCS,REC tools
@@ -392,7 +390,6 @@ Bachelorprojekt/
     vaultwarden.yaml            # Vaultwarden Passwort-Manager
     vaultwarden-seed-*.yaml     # Vaultwarden Seed-Jobs + Credentials
     whiteboard.yaml             # Kollaboratives Whiteboard
-    embedding.yaml              # Text-Embedding-Service (infinity-emb)
     meetings-schema.yaml        # Meeting-Datenbank-Schema
     mailpit.yaml                # Dev-Mailserver
     whisper.yaml                # Transkriptions-Service

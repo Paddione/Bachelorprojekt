@@ -9,7 +9,7 @@ Die Tabellenstrukturen werden durch Kubernetes-Init-Skripte idempotent angelegt 
 
 ## Website-Datenbank (`website`)
 
-Speichert die Meeting Knowledge Pipeline, das Messaging-System sowie Website-Admin-Einstellungen: Kunden, Meeting-Verlauf, Transkripte, Artefakte, KI-Insights, Vektor-Embeddings, Chat-Raeume, Nachrichten, Bug-Tickets, Service-Konfigurationen und Projektmanagement.
+Speichert die Meeting Knowledge Pipeline, das Messaging-System sowie Website-Admin-Einstellungen: Kunden, Meeting-Verlauf, Transkripte, Artefakte, KI-Insights, Chat-Raeume, Nachrichten, Bug-Tickets, Service-Konfigurationen und Projektmanagement.
 
 ```mermaid
 erDiagram
@@ -80,16 +80,6 @@ erDiagram
         text        content
         text        generated_by
         text        outline_document_id
-        timestamptz created_at
-    }
-
-    meeting_embeddings {
-        uuid        id              PK
-        text        source_type
-        uuid        source_id
-        text        content_preview
-        vector      embedding
-        text        model
         timestamptz created_at
     }
 
@@ -239,11 +229,6 @@ erDiagram
     chat_rooms       ||--o{ chat_messages        : "enthaelt"
 ```
 
-> **`meeting_embeddings`** referenziert Zeilen aus `transcripts`, `transcript_segments`,
-> `meeting_artifacts` oder `meeting_insights` ueber das Tupel `(source_type, source_id)` —
-> eine polymorphe Relation ohne Datenbank-FK. `source_type` nimmt einen der Werte
-> `'transcript'`, `'segment'`, `'artifact'` oder `'insight'` an.
-
 ### Tabellenbeschreibungen
 
 | Tabelle | Beschreibung |
@@ -254,7 +239,6 @@ erDiagram
 | `transcript_segments` | Zeitgestempelte Segmente eines Transkripts mit optionalem Speaker-Label |
 | `meeting_artifacts` | Artefakte (Whiteboard-Export, Datei, Screenshot, Dokument) je Meeting |
 | `meeting_insights` | KI-generierte Einsichten: Zusammenfassung, Aktionspunkte, Themen, Sentiment, Coaching-Notizen |
-| `meeting_embeddings` | pgvector-Einbettungen (BAAI/bge-base-en-v1.5, 768 Dim.) fuer semantische Suche |
 | `bug_tickets` | Bug-Meldungen vom Website-Formular mit Status `open → resolved → archived` |
 | `service_config` | Angebots-Overrides je Brand (JSON) fuer das Admin-Panel |
 | `leistungen_config` | Leistungskategorien-Overrides je Brand (Preistabelle) fuer das Admin-Panel |

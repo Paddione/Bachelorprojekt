@@ -112,7 +112,7 @@ spec:
         # ─── Website PostgreSQL MCP (port 3002) ──────────────────
         # Dedicated connection to the website database.
         # Read-write access for Claude Code to query meeting data,
-        # transcripts, insights, and vector embeddings.
+        # transcripts, and insights.
         - name: mcp-meetings
           image: node:22-alpine
           imagePullPolicy: Always

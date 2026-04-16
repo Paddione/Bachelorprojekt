@@ -16,7 +16,7 @@ Alle Services laufen als Kubernetes Deployments. Jeder Service hat definierte Re
 | Port | 8080 |
 | URL | http://auth.localhost |
 | Datenbank | PostgreSQL (shared-db/keycloak) |
-| Resources | 250m--1 CPU, 512Mi--1Gi RAM |
+| Resources | 500m--2 CPU, 1Gi--2Gi RAM |
 | Manifest | `k3d/keycloak.yaml` |
 
 OIDC-Provider fuer alle Services. Realm `workspace` wird beim Start automatisch importiert. Siehe [Keycloak & SSO](keycloak.md) fuer Details.
@@ -32,7 +32,7 @@ OIDC-Provider fuer alle Services. Realm `workspace` wird beim Start automatisch 
 | URL | http://files.localhost |
 | Datenbank | PostgreSQL (shared-db/nextcloud) |
 | Storage | 2 Gi (App) + 50 Gi (Daten) |
-| Resources | 200m CPU, 256Mi--1Gi RAM |
+| Resources | 500m--2 CPU, 512Mi--2Gi RAM |
 | Manifest | `k3d/nextcloud.yaml` |
 
 Dateiverwaltung mit Kalender, Kontakte, Talk (Video), Collabora-Integration. OIDC ueber `nextcloud-oidc-dev.php` ConfigMap. Apps werden nach Deploy per `task workspace:post-setup` aktiviert:
@@ -48,7 +48,7 @@ Dateiverwaltung mit Kalender, Kontakte, Talk (Video), Collabora-Integration. OID
 | Port | 9980 |
 | URL | http://office.localhost (antwortet mit "OK" — kein eigenstaendiges UI) |
 | Resources | 200m CPU, 256Mi--1Gi RAM |
-| Manifest | `k3d/collabora.yaml` |
+| Manifest | `k3d/office-stack/collabora.yaml` |
 
 LibreOffice-basiertes Online-Office. Verbunden mit Nextcloud ueber WOPI — Dokumente werden direkt aus Nextcloud heraus geoeffnet, nicht ueber die Collabora-URL. Woerterbuecher: Deutsch + Englisch.
 
@@ -118,22 +118,10 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 |-------------|------|
 | Image | `fedirz/faster-whisper-server:latest-cpu` |
 | Port | 8000 |
-| Resources | 1--4 CPU, 2--4Gi RAM |
+| Resources | 2--8 CPU, 4--8Gi RAM |
 | Manifest | `k3d/whisper.yaml` |
 
 CPU-basierte Spracherkennung mit dem Medium-Modell. GPU-Variante: `k3d/whisper-gpu.yaml`. Deploy: `task whisper:deploy`.
-
-### Embedding (Text-Vektorisierung)
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Image | `michaelf34/infinity:0.0.70` (infinity-emb) |
-| Port | 8080 |
-| Modell | BAAI/bge-base-en-v1.5 (768 Dimensionen) |
-| API | OpenAI-kompatibel (POST /embeddings) |
-| Manifest | `k3d/embedding.yaml` |
-
-CPU-basierte Text-Vektorisierung fuer Meeting-Transkript-Analyse. Wird intern von der Website fuer Meeting Insights genutzt.
 
 ### Talk Recording (Anruf-Aufzeichnung)
 
@@ -182,7 +170,7 @@ Verbindet sich mit dem spreed-signaling-Server, nimmt am Anruf teil und uebertra
 | URL | http://vault.localhost |
 | Datenbank | PostgreSQL (shared-db/vaultwarden) |
 | Storage | 5 Gi PVC |
-| Resources | 50m CPU, 64--256Mi RAM |
+| Resources | 100m--500m CPU, 128--512Mi RAM |
 | Manifest | `k3d/vaultwarden.yaml` |
 
 Bitwarden-kompatibler Passwort-Manager mit SSO-Login ueber Keycloak. Seed-Job fuer initiale Ordnerstruktur: `task workspace:vaultwarden:seed`.
@@ -198,14 +186,14 @@ Bitwarden-kompatibler Passwort-Manager mit SSO-Login ueber Keycloak. Seed-Job fu
 | Image | `ghcr.io/nextcloud-releases/whiteboard:v1.5.7` |
 | Port | 3002 |
 | URL | http://board.localhost |
-| Resources | 100m CPU, 128--256Mi RAM |
+| Resources | 200m--1 CPU, 256--512Mi RAM |
 | Manifest | `k3d/whiteboard.yaml` |
 
 Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 
 ## Infrastruktur-Services
 
-### shared-db (PostgreSQL + pgvector)
+### shared-db (PostgreSQL)
 
 **Für Mitarbeiter:** Die zentrale Datenbank. Du interagierst nicht direkt damit — sie laeuft im Hintergrund und speichert Daten aller Dienste sicher auf dem eigenen Server.
 
@@ -214,10 +202,10 @@ Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 | Image | `pgvector/pgvector:0.8.0-pg16` |
 | Port | 5432 |
 | Storage | 25 Gi PVC |
-| Resources | 100m CPU, 256Mi RAM |
+| Resources | 500m--2 CPU, 1--4Gi RAM |
 | Manifest | `k3d/shared-db.yaml` |
 
-Gemeinsame PostgreSQL-16-Instanz mit pgvector-Erweiterung fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, nextcloud, vaultwarden und website. pgvector ermoeglicht Vektorsuche fuer KI-Features (z. B. Embedding-Auswertungen). Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
+Gemeinsame PostgreSQL-16-Instanz fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, nextcloud, vaultwarden und website. Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
 
 ### Mailpit (Dev-Mail)
 
@@ -228,7 +216,7 @@ Gemeinsame PostgreSQL-16-Instanz mit pgvector-Erweiterung fuer alle Services. Be
 | Image | `axllent/mailpit:v1.29` |
 | Ports | 1025 (SMTP), 8025 (Web UI) |
 | URL | http://mail.localhost |
-| Resources | 25m CPU, 32--128Mi RAM |
+| Resources | 50m--200m CPU, 64--256Mi RAM |
 | Manifest | `k3d/mailpit.yaml` |
 
 SMTP-Server fuer Entwicklung. Alle Services senden E-Mails an Mailpit.
@@ -240,7 +228,7 @@ SMTP-Server fuer Entwicklung. Alle Services senden E-Mails an Mailpit.
 | Image | `joseluisq/static-web-server:2.36-alpine` |
 | Port | 80 |
 | URL | http://docs.localhost (SSO-geschuetzt) |
-| Resources | 10m CPU, 16--64Mi RAM |
+| Resources | 50m--200m CPU, 32--128Mi RAM |
 | Manifest | `k3d/docs.yaml` |
 
 Static-Web-Server serviert die Docsify-Dokumentation aus einem Kubernetes ConfigMap. Kein Git-Sync -- Inhalte sind direkt im ConfigMap eingebettet. Zugriff ist per Keycloak-Login geschuetzt (oauth2-proxy-docs vorgelagert).
@@ -298,13 +286,12 @@ Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 
 ```mermaid
 %%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#2563a0', 'pie4': '#4c2d8a', 'pie5': '#374151', 'pie6': '#1d5c3a', 'pie7': '#0b5575', 'pie8': '#374151', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
-pie title RAM Requests (Gesamt ca. 2.0 Gi)
-    "PostgreSQL (256 Mi)" : 256
-    "Nextcloud (256 Mi)" : 256
-    "Keycloak (512 Mi)" : 512
-    "Claude Code (256 Mi)" : 256
+pie title RAM Requests (Gesamt ca. 5.2 Gi)
+    "PostgreSQL (1 Gi)" : 1024
+    "Nextcloud (512 Mi)" : 512
+    "Keycloak (1 Gi)" : 1024
     "Collabora (256 Mi)" : 256
-    "Talk HPB Stack (256 Mi)" : 256
-    "Embedding (256 Mi)" : 256
-    "Sonstige (288 Mi)" : 288
+    "Talk HPB Stack (320 Mi)" : 320
+    "MCP-Server (1 Gi)" : 1024
+    "Sonstige (992 Mi)" : 992
 ```

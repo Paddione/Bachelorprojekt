@@ -38,7 +38,6 @@ data:
   INVOICENINJA_INTERNAL_URL: "http://invoiceninja.workspace.svc.cluster.local:80/api/v1"
   WEBSITE_INTERNAL_URL:      "http://website.website.svc.cluster.local:80"
   WHISPER_URL:               "http://whisper.workspace.svc.cluster.local:8000"
-  OUTLINE_URL:               "http://outline.workspace.svc.cluster.local:80"
   TRAEFIK_API_URL:           "http://traefik.kube-system.svc.cluster.local:9000/api"
   UPTIME_KUMA_URL:           "http://uptime-kuma.workspace.svc.cluster.local:3001"
 
@@ -81,7 +80,6 @@ data:
       - mattermost → posts, channels, teams, users
       - nextcloud  → files, shares, users, calendar events (oc_ prefix tables)
       - vaultwarden → cipher items, collections, organizations
-      - outline    → documents, collections, users, comments
 
     Usage tips:
       - Prefer mcp-keycloak or mcp-mattermost MCPs for structured access.

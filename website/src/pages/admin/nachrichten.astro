@@ -1,0 +1,27 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import MessagePanel from '../../components/MessagePanel.svelte';
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+import { listThreadsForAdmin, listAllCustomers } from '../../lib/messaging-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const [threads, customers] = await Promise.all([
+  listThreadsForAdmin(),
+  listAllCustomers(),
+]);
+---
+
+<AdminLayout title="Nachrichten">
+  <div style="height: calc(100vh - 120px)">
+    <MessagePanel
+      threads={threads}
+      role="admin"
+      listUrl="/api/admin/messages"
+      {customers}
+      client:load
+    />
+  </div>
+</AdminLayout>

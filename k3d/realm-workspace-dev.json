@@ -410,54 +410,6 @@
       }
     },
     {
-      "clientId": "outline",
-      "name": "Outline",
-      "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "${OUTLINE_OIDC_SECRET}",
-      "redirectUris": [
-        "http://wiki.localhost/*"
-      ],
-      "webOrigins": [
-        "http://wiki.localhost"
-      ],
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "protocol": "openid-connect",
-      "publicClient": false,
-      "protocolMappers": [
-        {
-          "name": "email",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "email",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "email",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "username",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "username",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "preferred_username",
-            "jsonType.label": "String"
-          }
-        }
-      ]
-    },
-    {
       "clientId": "docs",
       "name": "Docs",
       "enabled": true,

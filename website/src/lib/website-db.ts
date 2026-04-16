@@ -3,6 +3,7 @@
 // Uses the 'pg' npm package for direct database access.
 
 import pg from 'pg';
+import { resolve4 } from 'dns';
 const { Pool } = pg;
 
 const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
@@ -10,7 +11,23 @@ const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
 const EMBEDDING_URL = process.env.EMBEDDING_URL
   || 'http://embedding.workspace.svc.cluster.local:8080';
 
-const pool = new Pool({ connectionString: MEETINGS_DB_URL });
+// Use Node.js's built-in DNS resolver (dns.resolve4) instead of musl libc's
+// getaddrinfo. musl opens a *connected* UDP socket to the ClusterIP, but after
+// kube-proxy DNAT the CoreDNS response arrives from the pod IP — a connected
+// socket filters it out and times out with EAI_AGAIN. Node's dns.resolve4 uses
+// an unconnected socket and is not affected by this source-address mismatch.
+function nodeLookup(
+  hostname: string,
+  _opts: unknown,
+  cb: (err: Error | null, addr: string, family: number) => void,
+) {
+  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+}
+
+// pg's PoolConfig type doesn't declare `lookup`, but pg-pool passes it through
+// to net.createConnection at runtime. Cast via unknown to satisfy tsc.
+const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
+const pool = new Pool(poolConfig);
 
 // ── Customer ────────────────────────────────────────────────────────────────
 
@@ -25,24 +42,20 @@ export async function upsertCustomer(params: {
   email: string;
   phone?: string;
   company?: string;
-  outlineCollectionId?: string;
-  mattermostChannelId?: string;
   keycloakUserId?: string;
 }): Promise<Customer> {
   const result = await pool.query(
-    `INSERT INTO customers (name, email, phone, company, outline_collection_id, mattermost_channel_id, keycloak_user_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO customers (name, email, phone, company, keycloak_user_id)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (email) DO UPDATE SET
        name = EXCLUDED.name,
        phone = COALESCE(EXCLUDED.phone, customers.phone),
        company = COALESCE(EXCLUDED.company, customers.company),
-       outline_collection_id = COALESCE(EXCLUDED.outline_collection_id, customers.outline_collection_id),
-       mattermost_channel_id = COALESCE(EXCLUDED.mattermost_channel_id, customers.mattermost_channel_id),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
        updated_at = now()
      RETURNING id, name, email`,
     [params.name, params.email, params.phone, params.company,
-     params.outlineCollectionId, params.mattermostChannelId, params.keycloakUserId]
+     params.keycloakUserId]
   );
   return result.rows[0];
 }
@@ -264,14 +277,12 @@ export async function saveInsight(params: {
   insightType: 'summary' | 'action_items' | 'key_topics' | 'sentiment' | 'coaching_notes';
   content: string;
   generatedBy?: string;
-  outlineDocumentId?: string;
 }): Promise<string> {
   const result = await pool.query(
-    `INSERT INTO meeting_insights (meeting_id, insight_type, content, generated_by, outline_document_id)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO meeting_insights (meeting_id, insight_type, content, generated_by)
+     VALUES ($1, $2, $3, $4)
      RETURNING id`,
-    [params.meetingId, params.insightType, params.content,
-     params.generatedBy || 'system', params.outlineDocumentId]
+    [params.meetingId, params.insightType, params.content, params.generatedBy || 'system']
   );
   return result.rows[0].id;
 }

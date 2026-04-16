@@ -251,6 +251,8 @@ Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 
 ### shared-db (PostgreSQL + pgvector)
 
+**Für Mitarbeiter:** Outline ist die interne Wissensdatenbank des Teams. Hier hältst Du Anleitungen, Prozesse und wichtiges Wissen schriftlich fest – so dass Kollegen es jederzeit nachlesen können. Inhalte lassen sich gemeinsam bearbeiten und sind über eine Volltextsuche leicht auffindbar.
+
 | Eigenschaft | Wert |
 |-------------|------|
 | Image | `pgvector/pgvector:0.8.0-pg16` |

@@ -197,3 +197,18 @@ for gen in data.get('configMapGenerator', []):
   run task --dry workspace:deploy
   assert_success
 }
+
+@test "k3d/secrets.yaml workspace-secrets has environment: dev label" {
+  run python3 -c "
+import yaml
+with open('${PROJECT_DIR}/k3d/secrets.yaml') as f:
+    docs = list(yaml.safe_load_all(f))
+ws = next((d for d in docs if d and d.get('metadata', {}).get('name') == 'workspace-secrets'), None)
+assert ws is not None, 'workspace-secrets not found'
+labels = ws.get('metadata', {}).get('labels', {})
+assert labels.get('environment') == 'dev', f'expected environment=dev, got: {labels}'
+print('OK')
+"
+  assert_success
+  assert_output "OK"
+}

@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
+import psycopg2
 from fastapi import FastAPI, HTTPException, Request
 
 NC_PROTO      = os.environ.get("NC_PROTOCOL", "http")
@@ -26,6 +27,14 @@ WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
 MAX_SESSIONS = int(os.environ.get("MAX_SESSIONS", "3"))
+AUTO_JOIN_INTERVAL = 300  # re-check for new rooms every 5 minutes
+
+# Nextcloud DB access for system-wide room discovery
+NC_DB_HOST = os.environ.get("NC_DB_HOST", "shared-db")
+NC_DB_PORT = int(os.environ.get("NC_DB_PORT", "5432"))
+NC_DB_NAME = os.environ.get("NC_DB_NAME", "nextcloud")
+NC_DB_USER = os.environ.get("NC_DB_USER", "nextcloud")
+NC_DB_PASS = os.environ.get("NC_DB_PASS", "")
 
 _display_pool: list[int] = list(range(11, 100))  # X display numbers :11 through :99
 _pa_ok: bool = True  # last known PulseAudio state
@@ -35,13 +44,16 @@ _pa_ok: bool = True  # last known PulseAudio state
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    task = asyncio.create_task(poll_loop())
+    poll_task      = asyncio.create_task(poll_loop())
+    auto_join_task = asyncio.create_task(auto_join_loop())
     yield
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    poll_task.cancel()
+    auto_join_task.cancel()
+    for t in (poll_task, auto_join_task):
+        try:
+            await t
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(lifespan=lifespan)
@@ -99,54 +111,78 @@ async def webhook(request: Request) -> dict:
     return {"status": "ok"}
 
 
-# ---------- Polling -----------------------------------------------------------
+# ---------- DB helpers --------------------------------------------------------
 
-async def poll_loop() -> None:
-    global _pa_ok
-    admin_client = (
-        httpx.AsyncClient(auth=(NC_ADMIN_USER, NC_ADMIN_PASS), verify=NC_VERIFY, timeout=10)
-        if NC_ADMIN_PASS else None
-    )
-    async with httpx.AsyncClient(
-        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
-    ) as client:
-        try:
-            while True:
-                try:
-                    await tick(client, admin_client)
-                except Exception as exc:
-                    print(f"[poll] {exc}", flush=True)
-
-                pa_proc = await asyncio.create_subprocess_exec(
-                    "pactl", "info",
-                    stdout=asyncio.subprocess.DEVNULL,
-                    stderr=asyncio.subprocess.DEVNULL,
-                )
-                await pa_proc.wait()
-                _pa_ok = pa_proc.returncode == 0
-                if not _pa_ok:
-                    print("[poll] WARNING: PulseAudio not responding", flush=True)
-
-                await asyncio.sleep(CHUNK_S)
-        finally:
-            if admin_client:
-                await admin_client.aclose()
+def _db_get_all_room_tokens() -> list[str]:
+    """
+    Query ALL group/public Talk room tokens directly from the Nextcloud DB.
+    This bypasses the Talk API limitation where admin can only see rooms
+    it's a member of — so new private rooms created by any user are found.
+    Room types: 1=one-to-one, 2=group, 3=public, 4=changelog, 5=one-to-one-former, 6=note-to-self
+    We join group (2) and public (3) rooms only.
+    """
+    if not NC_DB_PASS:
+        return []
+    try:
+        conn = psycopg2.connect(
+            host=NC_DB_HOST, port=NC_DB_PORT,
+            dbname=NC_DB_NAME, user=NC_DB_USER, password=NC_DB_PASS,
+            connect_timeout=5,
+        )
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT token FROM oc_talk_rooms WHERE type IN (2, 3)"
+            )
+            tokens = [row[0] for row in cur.fetchall()]
+        conn.close()
+        return tokens
+    except Exception as exc:
+        print(f"[db] {exc}", flush=True)
+        return []
 
 
-async def _auto_join_all_rooms(
-    bot_client: httpx.AsyncClient,
-    admin_client: httpx.AsyncClient,
-) -> None:
-    """Add transcriber-bot to every Talk room it is not yet a member of."""
-    all_r = await admin_client.get(
-        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
-        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
-        params={"noFilter": "1"},
-    )
-    if not all_r.is_success:
+# ---------- Auto-join loop (slow, every AUTO_JOIN_INTERVAL seconds) -----------
+
+async def auto_join_loop() -> None:
+    """
+    Background loop: adds transcriber-bot to every group/public room it
+    is not yet a member of. Uses DB to discover ALL rooms (not just the
+    ones visible to the admin account via the Talk API).
+    """
+    if not NC_ADMIN_PASS:
         return
+    async with httpx.AsyncClient(
+        auth=(NC_ADMIN_USER, NC_ADMIN_PASS), verify=NC_VERIFY, timeout=15
+    ) as admin_client:
+        while True:
+            try:
+                await _auto_join_all_rooms(admin_client)
+            except Exception as exc:
+                print(f"[auto-join] {exc}", flush=True)
+            await asyncio.sleep(AUTO_JOIN_INTERVAL)
 
-    bot_r = await bot_client.get(
+
+async def _auto_join_all_rooms(admin_client: httpx.AsyncClient) -> None:
+    """Add transcriber-bot to every Talk room it is not yet a member of."""
+    # Discover all room tokens from the DB (system-wide, not limited to admin's rooms)
+    all_tokens = await asyncio.get_event_loop().run_in_executor(
+        None, _db_get_all_room_tokens
+    )
+    if not all_tokens:
+        # Fallback: use admin API if DB is not configured
+        all_r = await admin_client.get(
+            f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
+            headers={"OCS-APIRequest": "true", "Accept": "application/json"},
+            params={"noFilter": "1"},
+        )
+        if not all_r.is_success:
+            return
+        all_tokens = [rm["token"] for rm in all_r.json()["ocs"]["data"]]
+
+    # Get rooms the bot is already in via bot credentials
+    bot_r = await httpx.AsyncClient(
+        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=15
+    ).get(
         f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
         headers={"OCS-APIRequest": "true", "Accept": "application/json"},
     )
@@ -155,8 +191,7 @@ async def _auto_join_all_rooms(
         if bot_r.is_success else set()
     )
 
-    for room in all_r.json()["ocs"]["data"]:
-        token = room["token"]
+    for token in all_tokens:
         if token not in bot_tokens:
             resp = await admin_client.post(
                 f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room/{token}/participants",
@@ -167,13 +202,47 @@ async def _auto_join_all_rooms(
                 print(f"[auto-join] added {NC_USER} to room {token}", flush=True)
 
 
-async def tick(client: httpx.AsyncClient, admin_client: httpx.AsyncClient | None) -> None:
-    if admin_client:
-        try:
-            await _auto_join_all_rooms(client, admin_client)
-        except Exception as exc:
-            print(f"[auto-join] {exc}", flush=True)
+# ---------- Poll loop (fast, every CHUNK_SECONDS) ----------------------------
 
+async def poll_loop() -> None:
+    global _pa_ok
+    async with httpx.AsyncClient(
+        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
+    ) as client:
+        while True:
+            try:
+                await tick(client)
+            except Exception as exc:
+                print(f"[poll] {exc}", flush=True)
+
+            pa_proc = await asyncio.create_subprocess_exec(
+                "pactl", "info",
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            await pa_proc.wait()
+            _pa_ok = pa_proc.returncode == 0
+            if not _pa_ok:
+                print("[poll] WARNING: PulseAudio not responding", flush=True)
+
+            await asyncio.sleep(CHUNK_S)
+
+
+async def _room_has_active_call(client: httpx.AsyncClient, token: str) -> bool:
+    """
+    Returns True if any participant has inCall != 0.
+    Catches solo calls where Nextcloud Talk may not set hasCall=True.
+    """
+    r = await client.get(
+        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room/{token}/participants",
+        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
+    )
+    if not r.is_success:
+        return False
+    return any(p.get("inCall", 0) != 0 for p in r.json()["ocs"]["data"])
+
+
+async def tick(client: httpx.AsyncClient) -> None:
     r = await client.get(
         f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
         headers={"OCS-APIRequest": "true", "Accept": "application/json"},
@@ -181,13 +250,26 @@ async def tick(client: httpx.AsyncClient, admin_client: httpx.AsyncClient | None
     r.raise_for_status()
     rooms = r.json()["ocs"]["data"]
 
-    live = {rm["token"] for rm in rooms if rm.get("hasCall")}
+    # Primary: hasCall from room list. Fallback: check participants (solo calls).
+    live: set[str] = set()
+    for rm in rooms:
+        token = rm["token"]
+        if rm.get("hasCall"):
+            live.add(token)
+        else:
+            try:
+                if await _room_has_active_call(client, token):
+                    live.add(token)
+            except Exception:
+                pass
+
     for token in set(sessions) - live:
         _cancel(token)
     for token in live - set(sessions):
         if len(sessions) >= MAX_SESSIONS:
             print(f"[poll] skipping {token}: max sessions ({MAX_SESSIONS}) reached", flush=True)
             break
+        print(f"[poll] detected active call in {token}", flush=True)
         sessions[token] = {}
         t = asyncio.create_task(run_session(token))
         sessions[token]["task"] = t
@@ -206,7 +288,6 @@ async def run_session(token: str) -> None:
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
 
-    # Load PulseAudio null-sink asynchronously (avoids blocking the event loop)
     pa_proc = await asyncio.create_subprocess_exec(
         "pactl", "load-module", "module-null-sink", f"sink_name={sink}",
         stdout=asyncio.subprocess.PIPE,
@@ -216,7 +297,6 @@ async def run_session(token: str) -> None:
     pa_stdout, _ = await pa_proc.communicate()
     module_id = pa_stdout.decode().strip()
 
-    # Credentials are passed via env so the script file contains no secrets
     browser_env = {
         **os.environ,
         "DISPLAY": display,
@@ -265,11 +345,6 @@ async def run_session(token: str) -> None:
 
 
 def _start_browser(env: dict) -> subprocess.Popen:
-    """
-    Launch headless Firefox via Playwright.
-    Credentials are passed through environment variables --
-    the script file contains no sensitive data.
-    """
     script = (
         "import asyncio, os\n"
         "from playwright.async_api import async_playwright\n"
@@ -325,7 +400,6 @@ async def _record_chunk(sink: str) -> str | None:
 
 
 async def _whisper(audio_path: str) -> tuple[str, list]:
-    """Returns (full_text, segments) from Whisper. Segments contain start/end/text."""
     try:
         async with httpx.AsyncClient(timeout=30) as c:
             with open(audio_path, "rb") as f:
@@ -354,22 +428,18 @@ def _teardown_resources(s: dict) -> None:
                 pass
     if mid := s.get("module_id"):
         subprocess.run(["pactl", "unload-module", mid], capture_output=True)
-    # Return display number to pool
     if (num := s.get("display_num")) is not None:
         if num not in _display_pool:
             _display_pool.append(num)
 
 
 def _cancel(token: str) -> None:
-    """Cancel a session task; cleanup is handled by run_session's finally block."""
     s = sessions.get(token)
     if s and (t := s.get("task")):
         t.cancel()
-    # Do NOT pop from sessions here -- run_session finally calls _finalize_and_teardown
 
 
 async def _finalize_and_teardown(token: str, display_num: int | None = None) -> None:
-    """POST accumulated transcript to website API, then release resources."""
     s = sessions.get(token, {})
     transcript_parts: list[str] = s.get("transcript_parts", [])
     segments: list[dict] = s.get("segments", [])

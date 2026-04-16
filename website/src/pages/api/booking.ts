@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName } from '../../lib/mattermost';
+import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
+import { isSlotWhitelisted } from '../../lib/website-db';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
@@ -30,6 +31,18 @@ export const POST: APIRoute = async ({ request }) => {
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    // Whitelist check: slot must be explicitly released by admin
+    if (!isCallback && slotStart) {
+      const whitelisted = await isSlotWhitelisted(BRAND_NAME, new Date(slotStart));
+      if (!whitelisted) {
+        return new Response(
+          JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     if (isCallback && !phone?.trim()) {
       return new Response(
         JSON.stringify({ error: 'Bitte geben Sie eine Telefonnummer für den Rückruf an.' }),
@@ -44,35 +57,15 @@ export const POST: APIRoute = async ({ request }) => {
         })
       : '';
 
-    const text = isCallback
-      ? `### :phone: Rückruf-Anfrage\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone} |\n\n${message ? `**Anmerkungen:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}`
-      : `### :calendar: Neue Terminanfrage: ${typeLabel}\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Typ** | ${typeLabel} |\n| **Datum** | ${dateFormatted} |\n| **Uhrzeit** | ${slotDisplay} |\n\n${message ? `**Anmerkungen:**\n> ${message.replace(/\n/g, '\n> ')}` : ''}`;
-
-    // Post interactive message
-    const teamId = await getFirstTeamId();
-    const channelId = teamId ? await getChannelByName(teamId, 'anfragen') : null;
-
-    if (channelId) {
-      await postInteractiveMessage({
-        channelId,
-        text,
-        actions: [
-          { id: 'approve_booking', name: 'Bestätigen', style: 'success' },
-          { id: 'decline_booking', name: 'Ablehnen', style: 'danger' },
-        ],
-        context: {
-          name, email, phone, type, typeLabel, message,
-          slotStart, slotEnd, slotDisplay, date, serviceKey,
-        },
-      });
-    } else {
-      await postWebhook({
-        channel: 'anfragen',
-        username: 'Website-Bot',
-        icon_emoji: ':calendar:',
-        text,
-      });
-    }
+    await createInboxItem({
+      type: 'booking',
+      payload: {
+        name, email, phone: phone ?? null, type, typeLabel,
+        slotStart: slotStart ?? null, slotEnd: slotEnd ?? null,
+        slotDisplay: slotDisplay ?? null, date: date ?? null,
+        serviceKey: serviceKey ?? null, message: message ?? null,
+      },
+    });
 
     // Confirmation email to user
     await sendEmail({

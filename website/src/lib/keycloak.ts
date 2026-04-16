@@ -116,3 +116,42 @@ export async function deleteUser(userId: string): Promise<boolean> {
   const res = await kcApi('DELETE', `/users/${encodeURIComponent(userId)}`);
   return res.ok || res.status === 404;
 }
+
+export async function updateUser(userId: string, params: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  enabled?: boolean;
+}): Promise<boolean> {
+  const res = await kcApi('PUT', `/users/${encodeURIComponent(userId)}`, params);
+  return res.ok;
+}
+
+export interface KcRole {
+  id: string;
+  name: string;
+}
+
+export async function listRealmRoles(): Promise<KcRole[]> {
+  const res = await kcApi('GET', '/roles');
+  if (!res.ok) return [];
+  const roles: KcRole[] = await res.json();
+  return roles.filter(r => !r.name.startsWith('default-roles-') && !r.name.startsWith('uma_') && r.name !== 'offline_access');
+}
+
+export async function getUserRealmRoles(userId: string): Promise<KcRole[]> {
+  const res = await kcApi('GET', `/users/${encodeURIComponent(userId)}/role-mappings/realm`);
+  if (!res.ok) return [];
+  const roles: KcRole[] = await res.json();
+  return roles.filter(r => !r.name.startsWith('default-roles-') && !r.name.startsWith('uma_') && r.name !== 'offline_access');
+}
+
+export async function assignRealmRole(userId: string, roles: KcRole[]): Promise<boolean> {
+  const res = await kcApi('POST', `/users/${encodeURIComponent(userId)}/role-mappings/realm`, roles);
+  return res.ok;
+}
+
+export async function removeRealmRole(userId: string, roles: KcRole[]): Promise<boolean> {
+  const res = await kcApi('DELETE', `/users/${encodeURIComponent(userId)}/role-mappings/realm`, roles);
+  return res.ok;
+}

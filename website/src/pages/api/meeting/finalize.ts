@@ -1,6 +1,4 @@
 import type { APIRoute } from 'astro';
-import { getOrCreateCollection, createDocument } from '../../../lib/outline';
-import { postToChannel, notifyPipelineError } from '../../../lib/mattermost';
 import { getRecordingFile } from '../../../lib/talk';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
@@ -10,16 +8,15 @@ import {
 } from '../../../lib/website-db';
 import { generateMeetingInsights } from '../../../lib/claude';
 
-// Finalize a meeting: collect artifacts, create Outline profile, trigger Claude Code.
-// Called by the Mattermost "Abschliessen" action or directly via API.
+// Finalize a meeting: collect artifacts, transcribe, generate AI insights.
+// Called directly via API.
 //
 // Body: {
-//   customerName, customerEmail, meetingType, meetingDate,
-//   transcript?, artifacts?, channelId?, roomToken?
+//   customerName, customerEmail, meetingType,
+//   transcript?, artifacts?, roomToken?
 // }
 export const POST: APIRoute = async ({ request }) => {
   let customerName = '';
-  let meetingId = '';
   const errors: string[] = [];
   const results: string[] = [];
 
@@ -28,11 +25,10 @@ export const POST: APIRoute = async ({ request }) => {
       customerName: _customerName,
       customerEmail,
       meetingType,
-      meetingDate,
       transcript: providedTranscript,
       artifacts: providedArtifacts,
-      channelId,
       roomToken,
+      projectId,
     } = await request.json();
     customerName = _customerName;
 
@@ -43,21 +39,17 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const sessionDate = meetingDate || new Date().toLocaleDateString('de-DE');
-
     // ── 1. Upsert customer in meetings DB ──────────────────────────
     let customer;
     try {
       customer = await upsertCustomer({
         name: customerName,
         email: customerEmail,
-        mattermostChannelId: channelId,
       });
       results.push(`DB: Kunde ${customer.name} (${customer.id})`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Kunde anlegen: ${msg}`);
-      await notifyPipelineError({ step: 'Kunde anlegen (DB)', error: msg, customerName });
       return new Response(
         JSON.stringify({ success: false, error: 'DB nicht erreichbar', errors, results }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
@@ -71,14 +63,13 @@ export const POST: APIRoute = async ({ request }) => {
         customerId: customer.id,
         meetingType: meetingType || 'Meeting',
         talkRoomToken: roomToken,
+        projectId: projectId ?? undefined,
       });
       await updateMeetingStatus(meeting.id, 'ended', { endedAt: new Date() });
-      meetingId = meeting.id;
       results.push(`DB: Meeting ${meeting.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Meeting anlegen: ${msg}`);
-      await notifyPipelineError({ step: 'Meeting anlegen (DB)', error: msg, customerName });
       return new Response(
         JSON.stringify({ success: false, error: 'Meeting-Eintrag fehlgeschlagen', errors, results }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -103,13 +94,12 @@ export const POST: APIRoute = async ({ request }) => {
             results.push(`:page_facing_up: Transkript: ${whisperResult.duration.toFixed(0)}s, ${whisperResult.segments?.length || 0} Segmente`);
           } else {
             errors.push('Whisper: Transkription fehlgeschlagen');
-            await notifyPipelineError({ step: 'Whisper-Transkription', error: 'Whisper hat kein Ergebnis geliefert', customerName, meetingId });
+            errors.push('Whisper: kein Ergebnis');
           }
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Recording/Transkription: ${msg}`);
-        await notifyPipelineError({ step: 'Recording herunterladen / Transkription', error: msg, customerName, meetingId });
       }
     }
 
@@ -126,7 +116,6 @@ export const POST: APIRoute = async ({ request }) => {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Transkript speichern: ${msg}`);
-        await notifyPipelineError({ step: 'Transkript in DB speichern', error: msg, customerName, meetingId });
       }
     }
 
@@ -150,7 +139,6 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Whiteboard-Artefakte: ${msg}`);
-      await notifyPipelineError({ step: 'Whiteboard-Export', error: msg, customerName, meetingId });
     }
 
     // Save any additional provided artifacts
@@ -170,61 +158,13 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // ── 6. Create Outline documents ────────────────────────────────
-    try {
-      const collection = await getOrCreateCollection(
-        `Kunde: ${customerName}`,
-        `Kundenakte fuer ${customerName} (${customerEmail})`
-      );
-
-      if (collection) {
-        await upsertCustomer({
-          name: customerName,
-          email: customerEmail,
-          outlineCollectionId: collection.id,
-        });
-
-        results.push(`Outline-Kollektion: ${collection.url}`);
-
-        const profileDoc = await createDocument({
-          title: `Profil: ${customerName}`,
-          collectionId: collection.id,
-          text: `# Kundenprofil: ${customerName}\n\n## Kontaktdaten\n- **E-Mail:** ${customerEmail}\n- **Erstellt:** ${new Date().toLocaleDateString('de-DE')}\n\n## Coaching-Richtung\n_Wird durch Claude Code nach Meetings automatisch aktualisiert._\n\n---\n*Automatisch gepflegt durch Meeting-Pipeline.*\n`,
-        });
-        if (profileDoc) results.push(`Profil-Dokument: ${profileDoc.url}`);
-
-        const sessionTitle = `${meetingType || 'Meeting'} — ${sessionDate}`;
-        let sessionContent = `# ${sessionTitle}\n\n**Kunde:** ${customerName} (${customerEmail})\n**Datum:** ${sessionDate}\n**Typ:** ${meetingType || 'Nicht angegeben'}\n\n`;
-        if (transcriptText) sessionContent += `## Transkript\n\n${transcriptText}\n\n`;
-        if (whiteboardArtifacts.length > 0) {
-          sessionContent += `## Whiteboard-Artefakte\n\n`;
-          for (const wb of whiteboardArtifacts) {
-            const text = extractWhiteboardText(wb.data);
-            if (text) sessionContent += `### ${wb.name}\n${text}\n\n`;
-          }
-        }
-        sessionContent += `## Claude Code-Analyse\n\n_Analyse wird automatisch erstellt._\n\n---\n*Erstellt am ${new Date().toLocaleString('de-DE')}*\n`;
-
-        const sessionDoc = await createDocument({ title: sessionTitle, collectionId: collection.id, text: sessionContent });
-        if (sessionDoc) results.push(`Session-Dokument: ${sessionDoc.url}`);
-      } else {
-        errors.push('Outline nicht erreichbar');
-        await notifyPipelineError({ step: 'Outline-Dokumente erstellen', error: 'Outline API nicht erreichbar oder kein API-Key konfiguriert', customerName, meetingId });
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Outline: ${msg}`);
-      await notifyPipelineError({ step: 'Outline-Dokumente erstellen', error: msg, customerName, meetingId });
-    }
-
-    // ── 7. Generate embeddings (best-effort) ──────────────────────
+    // ── 6. Generate embeddings (best-effort) ──────────────────────
     try {
       const embeddingCount = await generateMeetingEmbeddings(meeting.id);
       if (embeddingCount > 0) results.push(`Embeddings: ${embeddingCount} Vektoren generiert`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Embeddings: ${msg}`);
-      await notifyPipelineError({ step: 'Embedding-Generierung', error: msg, customerName, meetingId });
     }
 
     // ── 7b. Generate Claude AI insights (best-effort) ───────────────
@@ -267,27 +207,10 @@ export const POST: APIRoute = async ({ request }) => {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Claude-Insights: ${msg}`);
-        await notifyPipelineError({ step: 'Claude-Insights generieren', error: msg, customerName, meetingId });
       }
     }
 
     await updateMeetingStatus(meeting.id, 'finalized');
-
-    // ── 8. Post summary to Mattermost ──────────────────────────────
-    if (channelId) {
-      const summaryParts = [
-        `### ${errors.length > 0 ? ':warning:' : ':white_check_mark:'} Meeting abgeschlossen: ${meetingType || 'Meeting'}`,
-        '', `**Kunde:** ${customerName}`, `**Datum:** ${sessionDate}`, '',
-      ];
-      if (transcriptText) summaryParts.push(':page_facing_up: Transkript gespeichert');
-      if (whiteboardArtifacts.length > 0) summaryParts.push(`:art: ${whiteboardArtifacts.length} Whiteboard-Artefakt(e)`);
-      summaryParts.push('', ':robot_face: _Daten in meetings-DB gespeichert._');
-      if (errors.length > 0) {
-        summaryParts.push('', `**:warning: ${errors.length} Fehler:**`);
-        for (const e of errors) summaryParts.push(`- ${e}`);
-      }
-      await postToChannel(channelId, summaryParts.join('\n'));
-    }
 
     results.push(errors.length > 0
       ? `Pipeline: abgeschlossen mit ${errors.length} Fehler(n)`
@@ -300,7 +223,6 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('Finalize meeting error:', err);
-    await notifyPipelineError({ step: 'Gesamte Pipeline (unerwarteter Fehler)', error: msg, customerName, meetingId });
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.', detail: msg }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

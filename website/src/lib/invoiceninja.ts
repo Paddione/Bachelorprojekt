@@ -91,14 +91,18 @@ export async function getOrCreateClient(params: {
 
 // Service definitions with InvoiceNinja product details
 export const SERVICES = {
-  'digital-cafe-einzel': { name: '50+ digital — Einzelbegleitung', rate: 60, unit: 'Stunde' },
-  'digital-cafe-gruppe': { name: '50+ digital — Kleine Gruppe', rate: 40, unit: 'Person/Stunde' },
-  'digital-cafe-5er': { name: '50+ digital — 5er-Paket', rate: 270, unit: 'Paket' },
-  'digital-cafe-10er': { name: '50+ digital — 10er-Paket', rate: 500, unit: 'Paket' },
-  'coaching-session': { name: 'Führungskräfte-Coaching — Einzelsession (90 Min.)', rate: 150, unit: 'Session' },
-  'coaching-6er': { name: 'Führungskräfte-Coaching — 6er-Paket', rate: 800, unit: 'Paket' },
-  'coaching-intensiv': { name: 'Führungskräfte-Coaching — Intensiv-Tag (6 Std.)', rate: 500, unit: 'Tag' },
-  'beratung-tag': { name: 'Unternehmensberatung — Tagessatz', rate: 1000, unit: 'Tag' },
+  'erstgespraech':         { name: 'Kostenloses Erstgespräch',                         rate: 0,    unit: 'Einheit' },
+  'callback':              { name: 'Rückruf',                                          rate: 0,    unit: 'Einheit' },
+  'meeting':               { name: 'Online-Meeting',                                    rate: 0,    unit: 'Einheit' },
+  'termin':                { name: 'Termin vor Ort',                                    rate: 0,    unit: 'Einheit' },
+  'digital-cafe-einzel':   { name: '50+ digital — Einzelbegleitung',                   rate: 60,   unit: 'Stunde' },
+  'digital-cafe-gruppe':   { name: '50+ digital — Kleine Gruppe',                      rate: 40,   unit: 'Person/Stunde' },
+  'digital-cafe-5er':      { name: '50+ digital — 5er-Paket',                          rate: 270,  unit: 'Paket' },
+  'digital-cafe-10er':     { name: '50+ digital — 10er-Paket',                         rate: 500,  unit: 'Paket' },
+  'coaching-session':      { name: 'Führungskräfte-Coaching — Einzelsession (90 Min.)', rate: 150,  unit: 'Session' },
+  'coaching-6er':          { name: 'Führungskräfte-Coaching — 6er-Paket',              rate: 800,  unit: 'Paket' },
+  'coaching-intensiv':     { name: 'Führungskräfte-Coaching — Intensiv-Tag (6 Std.)',   rate: 500,  unit: 'Tag' },
+  'beratung-tag':          { name: 'Unternehmensberatung — Tagessatz',                  rate: 1000, unit: 'Tag' },
 } as const;
 
 export type ServiceKey = keyof typeof SERVICES;
@@ -253,5 +257,40 @@ export async function getClientInvoices(clientEmail: string): Promise<ClientInvo
     balance: inv.balance,
     statusId: inv.status_id,
     statusLabel: INVOICE_STATUS_LABELS[inv.status_id] || 'Unbekannt',
+  }));
+}
+
+export interface AdminInvoiceListItem extends ClientInvoiceListItem {
+  clientName: string;
+  clientEmail: string;
+}
+
+export async function getAllInvoices(params?: {
+  statusId?: string;  // '1'=draft,'2'=sent,'3'=partial,'4'=paid,'5'=cancelled,'6'=overdue
+  perPage?: number;
+}): Promise<AdminInvoiceListItem[]> {
+  if (!IN_TOKEN) return [];
+
+  const perPage = params?.perPage ?? 100;
+  const statusFilter = params?.statusId ? `&invoice_status_id=${params.statusId}` : '';
+  const res = await inApi('GET', `/invoices?sort=date|desc&per_page=${perPage}&include=client${statusFilter}`);
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return (data.data || []).map((inv: {
+    id: string; number: string; date: string; due_date: string;
+    amount: number; balance: number; status_id: string;
+    client: { name: string; contacts: Array<{ email: string }> };
+  }) => ({
+    id: inv.id,
+    number: inv.number,
+    date: inv.date,
+    dueDate: inv.due_date,
+    amount: inv.amount,
+    balance: inv.balance,
+    statusId: inv.status_id,
+    statusLabel: INVOICE_STATUS_LABELS[inv.status_id] || 'Unbekannt',
+    clientName: inv.client?.name ?? '—',
+    clientEmail: inv.client?.contacts?.[0]?.email ?? '—',
   }));
 }

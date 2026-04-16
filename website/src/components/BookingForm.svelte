@@ -16,8 +16,9 @@
     initialStart?: string;
     initialEnd?: string;
     initialType?: 'erstgespraech' | 'callback' | 'meeting' | 'termin';
+    serviceKey?: string;
   }
-  let { initialDate = '', initialStart = '', initialEnd = '', initialType = '' } = $props<Props>();
+  let { initialDate = '', initialStart = '', initialEnd = '', initialType = '', serviceKey } = $props<Props>();
 
   let name = $state('');
   let email = $state('');
@@ -102,6 +103,7 @@
           slotEnd: selectedSlot?.end ?? null,
           slotDisplay: selectedSlot?.display ?? null,
           date: selectedDate,
+          serviceKey: serviceKey ?? null,
         }),
       });
 

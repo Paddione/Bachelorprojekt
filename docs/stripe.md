@@ -2,11 +2,10 @@
   <span class="page-hero-icon">💳</span>
   <div class="page-hero-body">
     <div class="page-hero-title">Stripe-Integration</div>
-    <p class="page-hero-desc">Zahlungsgateway-Konfiguration, Stripe Checkout, Webhook-Setup und Anbindung an Invoice Ninja für automatische Rechnungsstellung.</p>
+    <p class="page-hero-desc">Zahlungsgateway-Konfiguration, Stripe Checkout und Webhook-Setup fuer direkte Zahlungsabwicklung auf der Website.</p>
     <div class="page-hero-meta">
       <span class="page-hero-tag">Website &amp; Admin</span>
       <span class="page-hero-tag">Stripe</span>
-      <span class="page-hero-tag">Invoice Ninja</span>
     </div>
   </div>
   <a href="#/" class="page-hero-back">← Übersicht</a>
@@ -14,10 +13,7 @@
 
 # Stripe-Integration
 
-Die Website (mentolder.de / korczewski.de) nutzt Stripe fuer zwei unabhaengige Zahlungsflueesse:
-
-1. **Website-Checkout** — direkter Kauf ueber Stripe Checkout auf der Homepage und der Leistungen-Seite
-2. **Invoice Ninja** — Stripe als Payment Gateway fuer Rechnungs-Zahlungen (``Pay Now``-Button in Rechnungs-E-Mails)
+Die Website (mentolder.de / korczewski.de) wickelt Zahlungen direkt ueber Stripe Checkout ab — ohne separate Rechnungssoftware. Kunden bezahlen Leistungen auf der Homepage oder der Leistungen-Seite per Kreditkarte oder SEPA.
 
 ---
 
@@ -76,26 +72,6 @@ Auf der Leistungen-Seite kann jeder Service-Karte eine `stripeServiceKey` (Price
 
 ---
 
-## Invoice Ninja Gateway einrichten
-
-Registriert Stripe als Payment Gateway in Invoice Ninja. Aktiviert Kreditkarten (Visa, Mastercard, Amex) und SEPA-Lastschrift.
-
-```bash
-task workspace:stripe-setup
-# oder direkt:
-bash scripts/stripe-setup.sh
-```
-
-Das Skript:
-1. Liest `STRIPE_SECRET_KEY` und `STRIPE_PUBLISHABLE_KEY` aus `workspace-secrets`
-2. Authentifiziert sich bei Invoice Ninja (in-cluster via `kubectl exec`)
-3. Erstellt oder aktualisiert das Stripe-Payment-Gateway
-4. Aktiviert: Kreditkarten (Visa, Mastercard, Amex), SEPA Lastschrift
-
-Nach dem Setup erhalten erzeugte Rechnungen automatisch einen ``Pay Now``-Button.
-
----
-
 ## Test vs. Live
 
 | Modus | Publishable Key | Beschreibung |
@@ -120,10 +96,6 @@ Das Setup-Skript erkennt den Modus automatisch anhand des Publishable-Key-Praefi
 **Checkout-Seite laedt nicht / JS-Fehler:**
 - Pruefen ob `PUBLIC_STRIPE_PUBLISHABLE_KEY` im Pod vorhanden: `kubectl exec -n website deploy/website -- env | grep STRIPE`
 - Website neu deployen: `task website:redeploy`
-
-**Invoice Ninja zeigt keine ``Pay Now``-Schaltflaeche:**
-- Gateway-Status pruefen: `bash scripts/stripe-setup.sh`
-- Logs pruefen: `task workspace:logs -- invoiceninja`
 
 **``No such price`` Fehler:**
 - Price ID in der Brand-Konfig stimmt nicht mit dem Stripe-Dashboard ueberein

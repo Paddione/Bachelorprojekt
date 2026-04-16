@@ -126,12 +126,11 @@ graph TB
         CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
         HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
         OC["fa:fa-brain Claude Code KI<br/>ai.localhost"]
-        IN["fa:fa-receipt Invoice Ninja<br/>billing.localhost"]
         VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
         WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
         MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
         DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
-        OAUTH[oauth2-proxy-invoiceninja]
+        OAUTH2[oauth2-proxy-docs]
         WHISPER["fa:fa-microphone Whisper<br/>Transkription"]
         JANUS[Janus + NATS + coturn]
         DB[("fa:fa-database PostgreSQL 16<br/>shared-db")]
@@ -145,14 +144,14 @@ graph TB
         PROM["fa:fa-chart-line Prometheus + Grafana"]
     end
 
-    Traefik --> KC & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & OC & VW & WB & MP & DOCS & WEB
 
-    KC -. OIDC .-> NC & IN & OC
-    OAUTH --> KC
-    IN --> OAUTH
+    KC -. OIDC .-> NC & OC & VW & WEB
+    OAUTH2 --> KC
+    DOCS --> OAUTH2
     NC --> CO
     NC --> HPB --> JANUS
-    KC & NC & IN & OC --> DB
+    KC & NC & OC --> DB
     WEB --> DB
 ```
 

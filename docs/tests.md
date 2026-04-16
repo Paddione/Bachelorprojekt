@@ -81,7 +81,7 @@ flowchart TB
 | FA-06 | Benachrichtigungen | Push, Stummschaltung, Do-Not-Disturb |
 | FA-07 | Suche | Volltext, Kanal-/Benutzersuche |
 | FA-08 | Homeoffice-Status | Status-Emojis, Custom-Status, Kalender |
-| FA-09 | Billing Bot | /billing Slash-Command, Invoice Ninja Integration |
+| FA-09 | Messaging System | Chat-Raeume, Direktnachrichten, Inbox (Website) |
 | FA-10 | Website | Astro-Deployment, Kontaktformular, Webhook |
 | FA-11 | Kunden-Gast-Portal | Gast-Account, privater Kanal, Keycloak |
 | FA-12 | Claude Code AI | Bot-User, Admin-Kanaele, MCP-Server |
@@ -93,7 +93,7 @@ flowchart TB
 | FA-18 | Transkription | Whisper Service |
 | FA-20 | Finalisierung | Abschlusspruefungen |
 | FA-21 | Billing Workflows | Rechnungsworkflows |
-| FA-22 | Stripe Payment Gateway | Stripe als Zahlungsgateway in Invoice Ninja (nur Shell-Tests, kein Playwright-Spec) |
+| FA-22 | Stripe Payment Gateway | Stripe Checkout auf der Website (direkter Checkout ohne Invoice Ninja) |
 | FA-23 | Vaultwarden | Passwort-Manager mit Keycloak SSO |
 | FA-24 | Kollaboratives Whiteboard | Nextcloud Whiteboard (board.{domain}) |
 | FA-25 | Mailpit | Self-hosted SMTP-Server und Web-UI |
@@ -154,14 +154,14 @@ siehe "Playwright gegen Produktion" unten.
 
 **Projekt-Gruppen** (aufrufbar via `--project=<name>`):
 - `setup` -- Login-Flow, speichert Session in `.auth/user.json`
-- `chat` -- Mattermost-UI: FA-01, FA-02, FA-04, FA-06, FA-07, FA-08, FA-09, FA-11
+- `chat` -- Messaging / Website-UI: FA-01, FA-02, FA-04, FA-06, FA-07, FA-08, FA-09, FA-11
 - `auth` -- Authentifizierung/SSO: FA-05, SA-02, SA-08
 - `website` -- Astro-Site + APIs: FA-10, FA-14 bis FA-18, FA-20, FA-21
 - `services` -- Infra-Dienste: FA-03, FA-12, FA-13, FA-23, FA-24, FA-25, SA-10, NFA-05
 - `smoke` -- Cross-Service Integration Smoke Tests
 
-**Global Setup:** Authentifiziert als `MM_TEST_USER` (Standard `testuser1`, vom
-Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
+**Global Setup:** Authentifiziert als `TEST_USER` (Standard `testuser1`, vom
+Bootstrap in `tests/lib/k3d.sh` angelegt) mit `TEST_PASS` (Standard
 `Testpassword123!`), deaktiviert Onboarding/Tutorials, speichert Session.
 
 **Test-Specs (28 Dateien):**
@@ -221,11 +221,11 @@ MM_TEST_PASS='Plotterpapier11!$' \
 ```
 
 **Für Produktion relevante Umgebungsvariablen:**
-- `TEST_BASE_URL` -- Mattermost (z. B. `https://chat.mentolder.de`)
+- `TEST_BASE_URL` -- Website (z. B. `https://web.mentolder.de`)
 - `WEBSITE_URL` -- Astro-Website (z. B. `https://web.mentolder.de`)
 - `VAULT_URL` -- Vaultwarden (z. B. `https://vault.mentolder.de`)
 - `MCP_STATUS_URL` -- Claude Code MCP-Statusseite (z. B. `https://ai.mentolder.de`)
-- `MM_TEST_USER` / `MM_TEST_PASS` -- Anmeldedaten für Setup und Auth-Specs
+- `TEST_USER` / `TEST_PASS` -- Anmeldedaten fuer Setup und Auth-Specs
 - `SMOKE_KC_USER` / `SMOKE_KC_PASS` -- Override nur für `integration-smoke.spec.ts`
   (Fallback: `MM_TEST_USER` / `MM_TEST_PASS`, dann Realm-Defaults). Nützlich, wenn
   die Smoke-Tests ein anderes Konto nutzen als der Setup-Login.
@@ -255,10 +255,10 @@ Jede Assertion schreibt ein JSON-Objekt in `$RESULTS_FILE`:
 
 ### k3d.sh -- Kubernetes-Utilities
 
-- `k3d_wait()` -- Wartet auf Service-Bereitschaft (Mattermost, Keycloak, Nextcloud)
-- `bootstrap_test_data()` -- Erstellt Test-User, Teams, Channels, Gast-Accounts
-- Port-Forward-Management fuer Mattermost, Nextcloud, Keycloak
-- API-Hilfsfunktionen (`_mm_api`, `_mm_login`, `_kc_admin_login`)
+- `k3d_wait()` -- Wartet auf Service-Bereitschaft (Keycloak, Nextcloud, Website)
+- `bootstrap_test_data()` -- Erstellt Test-User, Gast-Accounts
+- Port-Forward-Management fuer Nextcloud, Keycloak, Website
+- API-Hilfsfunktionen (`_kc_admin_login`, `_website_api`)
 - Automatische Token-Regenerierung nach Pod-Neustarts
 
 ### report.sh -- Report-Generierung

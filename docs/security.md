@@ -42,10 +42,10 @@ scripts/dsgvo-compliance-check.sh --json    # Fuer Grafana-Dashboard
 | Pruefung | Beschreibung |
 |----------|-------------|
 | D01 | Keine Container-Images von US-Cloud-Providern (gcr.io, amazonaws, azurecr, mcr.microsoft) |
-| D02 | Keine DNS-Aufloesung externer Tracking-Domains (google-analytics, telemetry.mattermost, sentry.io) |
+| D02 | Keine DNS-Aufloesung externer Tracking-Domains (google-analytics, sentry.io) |
 | D03 | Alle PVCs nutzen lokalen Storage (keine Cloud-Storage-Klassen wie aws-ebs, azure-disk) |
 | D04 | Keycloak Audit Events aktiviert |
-| D05 | Mattermost Audit-Log erreichbar (/api/v4/audits) |
+| D05 | Website-API erreichbar (Health-Check /api/health) |
 | D06 | Keine proprietaeren Telemetrie-Dienste (datadog, newrelic, splunk, segment, mixpanel) |
 | D07 | Alle Container-Images sind Open-Source |
 | D08 | SMTP-Server ist Cluster-intern (mailpit, kein externer Relay) |
@@ -81,15 +81,14 @@ securityContext:
 Alle Deployments haben `allowPrivilegeEscalation: false`, `capabilities: drop: [ALL]` und `seccompProfile: RuntimeDefault`.
 
 **Volle Härtung** (`readOnlyRootFilesystem: true`, `runAsNonRoot: true`):
-`billing-bot`, `mailpit`, `oauth2-proxy-invoiceninja`, `docs`, `nextcloud-redis`
+`mailpit`, `oauth2-proxy-docs`, `docs`, `nextcloud-redis`, `website`
 
 **Partielle Härtung** (`readOnlyRootFilesystem: false` — Applikation schreibt Dateien):
-`mattermost`, `keycloak`, `nextcloud`, `vaultwarden`, `opensearch`, `whiteboard`
+`keycloak`, `nextcloud`, `vaultwarden`, `whiteboard`
 
 **Sonderfälle:**
 - `collabora`: SYS_ADMIN (LibreOffice-Kern) — isoliert im Namespace `workspace-office`
-- `mm-keycloak-proxy` (nginx): `readOnlyRootFilesystem: true` mit `emptyDir`-Volumes für `/var/cache/nginx`, `/var/run`, `/tmp`
-- `nextcloud` + `opensearch`: initContainers laufen als root für Berechtigungs-Setup
+- `nextcloud`: initContainers laufen als root fuer Berechtigungs-Setup
 
 ## Authentifizierung
 
@@ -115,16 +114,15 @@ Keycloak Brute-Force-Detection ist aktiviert fuer den Realm `workspace`.
 
 Alle Secrets in `k3d/secrets.yaml` (Base64-kodierte Dev-Werte). **Niemals echte Credentials in diese Datei committen.**
 
-**Secret: `workspace-secrets`** -- enthaelt 34 Keys:
+**Secret: `workspace-secrets`** -- relevante Keys:
 
 | Kategorie | Keys |
 |-----------|------|
-| Datenbank | SHARED_DB_PASSWORD, KEYCLOAK_DB_PASSWORD, MATTERMOST_DB_PASSWORD, NEXTCLOUD_DB_PASSWORD, VAULTWARDEN_DB_PASSWORD, OUTLINE_DB_PASSWORD, INVOICENINJA_DB_PASSWORD |
-| OIDC | MATTERMOST_OIDC_SECRET, NEXTCLOUD_OIDC_SECRET, INVOICENINJA_OIDC_SECRET, CLAUDE_CODE_OIDC_SECRET, VAULTWARDEN_OIDC_SECRET, WEBSITE_OIDC_SECRET, OUTLINE_OIDC_SECRET |
-| Admin | KEYCLOAK_ADMIN_PASSWORD, NEXTCLOUD_ADMIN_PASSWORD, COLLABORA_ADMIN_PASSWORD, INVOICENINJA_ADMIN_PASSWORD, VAULTWARDEN_ADMIN_TOKEN, CLAUDE_CODE_ADMIN_EMAIL, CLAUDE_CODE_ADMIN_PASSWORD |
-| Service | SIGNALING_SECRET, TURN_SECRET, WHITEBOARD_JWT_SECRET, INVOICENINJA_APP_KEY, INVOICENINJA_API_TOKEN, BILLING_BOT_MM_TOKEN, OAUTH2_PROXY_COOKIE_SECRET, CLAUDE_CODE_WEBUI_SECRET_KEY |
+| Datenbank | SHARED_DB_PASSWORD, KEYCLOAK_DB_PASSWORD, NEXTCLOUD_DB_PASSWORD, VAULTWARDEN_DB_PASSWORD, WEBSITE_DB_PASSWORD |
+| OIDC | NEXTCLOUD_OIDC_SECRET, CLAUDE_CODE_OIDC_SECRET, VAULTWARDEN_OIDC_SECRET, WEBSITE_OIDC_SECRET, DOCS_OIDC_SECRET |
+| Admin | KEYCLOAK_ADMIN_PASSWORD, NEXTCLOUD_ADMIN_PASSWORD, COLLABORA_ADMIN_PASSWORD, VAULTWARDEN_ADMIN_TOKEN, CLAUDE_CODE_ADMIN_EMAIL, CLAUDE_CODE_ADMIN_PASSWORD |
+| Service | SIGNALING_SECRET, TURN_SECRET, WHITEBOARD_JWT_SECRET, OAUTH2_PROXY_COOKIE_SECRET, CLAUDE_CODE_WEBUI_SECRET_KEY |
 | Extern | ANTHROPIC_API_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY |
-| Outline | OUTLINE_SECRET_KEY, OUTLINE_UTILS_SECRET |
 
 ### Produktion (Sealed Secrets)
 
@@ -260,14 +258,12 @@ Traefik-Rate-Limit-Middlewares pro Service (Produktion):
 |---------|-----------|-------|
 | Keycloak | 20 | 40 |
 | Vaultwarden | 20 | 40 |
-| Invoice Ninja | 30 | 60 |
 | Nextcloud | 50 | 100 |
-| Mattermost | 100 | 200 |
 | Website | 200 | 400 |
 
 ### Zugriffsschutz interne Tools (L7)
 
-Mailpit (`mail.*`), Docs (`docs.*`) und MCP-Status (`ai.*`) sind hinter BasicAuth geschützt (Traefik `basic-auth-internal`-Middleware, Secret `traefik-basic-auth`).
+Mailpit (`mail.*`) und MCP-Status (`ai.*`) sind hinter BasicAuth geschuetzt (Traefik `basic-auth-internal`-Middleware, Secret `traefik-basic-auth`). Docs (`docs.*`) ist hinter Keycloak SSO via oauth2-proxy geschuetzt.
 
 Dev-Credentials: `admin:admin` (in `k3d/secrets.yaml`).
 Produktion: `htpasswd -nb <user> <password>` zum Generieren verwenden.
@@ -277,7 +273,7 @@ Produktion: `htpasswd -nb <user> <password>` zum Generieren verwenden.
 Taegliche Backups der PostgreSQL-Datenbanken:
 - **Verschluesselung:** AES-256-CBC mit PBKDF2 (openssl)
 - **Rotation:** 30-Tage-Aufbewahrung
-- **Scope:** keycloak, mattermost, nextcloud
+- **Scope:** keycloak, nextcloud, website
 
 ## CI-Sicherheitspruefungen
 

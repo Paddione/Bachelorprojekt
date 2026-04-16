@@ -277,7 +277,6 @@ tasks:
       - task: workspace:talk-setup
       - task: workspace:admin-users-setup
       - task: workspace:billing-setup
-      - task: workspace:stripe-setup
       - task: workspace:connectors
       - task: workspace:call-setup
       - task: workspace:recording-setup
@@ -328,11 +327,6 @@ tasks:
     deps: [workspace:billing-build]
     cmds:
       - 'echo "✓ billing-bot image built. Token and /billing slash command are provisioned automatically by billing-bot-init-job."'
-
-  workspace:stripe-setup:
-    desc: Register Stripe as payment gateway in Invoice Ninja
-    cmds:
-      - bash scripts/stripe-setup.sh
 
   workspace:theme:nextcloud:
     desc: Apply dark+gold Nextcloud branding via OCC (idempotent)

@@ -125,6 +125,56 @@ def _db_connect() -> "psycopg2.connection":
     )
 
 
+def _db_get_room_metadata(token: str) -> dict:
+    """
+    Return room name and participants (non-bot users with display name + email)
+    for a given room token. Used to pass context to the save-transcript endpoint
+    so it can auto-create a meeting when none exists.
+    """
+    if not NC_DB_PASS:
+        return {}
+    import json as _json
+    conn = None
+    try:
+        conn = _db_connect()
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, name FROM oc_talk_rooms WHERE token = %s", (token,))
+            row = cur.fetchone()
+            if not row:
+                return {}
+            room_id, room_name = row
+
+            cur.execute("""
+                SELECT DISTINCT a.actor_id
+                FROM oc_talk_attendees a
+                WHERE a.room_id = %s AND a.actor_type = 'users' AND a.actor_id != %s
+                LIMIT 10
+            """, (room_id, NC_USER))
+            user_ids = [r[0] for r in cur.fetchall()]
+
+            participants = []
+            for uid in user_ids:
+                cur.execute("SELECT data FROM oc_accounts WHERE uid = %s", (uid,))
+                acc = cur.fetchone()
+                if acc:
+                    try:
+                        data = _json.loads(acc[0])
+                        display_name = data.get("displayname", {}).get("value", uid)
+                        email = data.get("email", {}).get("value", "")
+                    except Exception:
+                        display_name = uid
+                        email = ""
+                    participants.append({"displayName": display_name, "email": email, "uid": uid})
+
+            return {"roomName": room_name, "participants": participants}
+    except Exception as exc:
+        print(f"[db-meta] {exc}", flush=True)
+        return {}
+    finally:
+        if conn:
+            conn.close()
+
+
 def _db_get_active_call_tokens() -> set[str]:
     """
     Query the Nextcloud DB for rooms that have at least one participant
@@ -441,6 +491,9 @@ async def _finalize_and_teardown(token: str, display_num: int | None = None) -> 
         print(f"[{token}] saving transcript ({len(full_text)} chars, "
               f"{len(segments)} segments)", flush=True)
         try:
+            room_meta = await asyncio.get_event_loop().run_in_executor(
+                None, _db_get_room_metadata, token
+            )
             async with httpx.AsyncClient(timeout=30) as wc:
                 resp = await wc.post(
                     f"{WEBSITE_URL}/api/meeting/save-transcript",
@@ -448,11 +501,14 @@ async def _finalize_and_teardown(token: str, display_num: int | None = None) -> 
                         "roomToken": token,
                         "transcriptText": full_text,
                         "segments": segments,
+                        **room_meta,
                     },
                 )
                 if not resp.is_success:
                     print(f"[{token}] save-transcript returned {resp.status_code}: "
                           f"{resp.text[:200]}", flush=True)
+                else:
+                    print(f"[{token}] transcript saved OK", flush=True)
         except Exception as exc:
             print(f"[{token}] failed to save transcript: {exc}", flush=True)
     elif not transcript_parts:

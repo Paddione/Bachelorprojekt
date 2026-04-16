@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getOrCreateCollection, createDocument } from '../../../lib/outline';
-import { postToChannel, notifyPipelineError } from '../../../lib/mattermost';
+
 import { getRecordingFile } from '../../../lib/talk';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
@@ -19,7 +19,6 @@ import { generateMeetingInsights } from '../../../lib/claude';
 // }
 export const POST: APIRoute = async ({ request }) => {
   let customerName = '';
-  let meetingId = '';
   const errors: string[] = [];
   const results: string[] = [];
 
@@ -31,7 +30,6 @@ export const POST: APIRoute = async ({ request }) => {
       meetingDate,
       transcript: providedTranscript,
       artifacts: providedArtifacts,
-      channelId,
       roomToken,
       projectId,
     } = await request.json();
@@ -52,13 +50,11 @@ export const POST: APIRoute = async ({ request }) => {
       customer = await upsertCustomer({
         name: customerName,
         email: customerEmail,
-        mattermostChannelId: channelId,
       });
       results.push(`DB: Kunde ${customer.name} (${customer.id})`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Kunde anlegen: ${msg}`);
-      await notifyPipelineError({ step: 'Kunde anlegen (DB)', error: msg, customerName });
       return new Response(
         JSON.stringify({ success: false, error: 'DB nicht erreichbar', errors, results }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
@@ -75,12 +71,10 @@ export const POST: APIRoute = async ({ request }) => {
         projectId: projectId ?? undefined,
       });
       await updateMeetingStatus(meeting.id, 'ended', { endedAt: new Date() });
-      meetingId = meeting.id;
       results.push(`DB: Meeting ${meeting.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Meeting anlegen: ${msg}`);
-      await notifyPipelineError({ step: 'Meeting anlegen (DB)', error: msg, customerName });
       return new Response(
         JSON.stringify({ success: false, error: 'Meeting-Eintrag fehlgeschlagen', errors, results }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -105,13 +99,12 @@ export const POST: APIRoute = async ({ request }) => {
             results.push(`:page_facing_up: Transkript: ${whisperResult.duration.toFixed(0)}s, ${whisperResult.segments?.length || 0} Segmente`);
           } else {
             errors.push('Whisper: Transkription fehlgeschlagen');
-            await notifyPipelineError({ step: 'Whisper-Transkription', error: 'Whisper hat kein Ergebnis geliefert', customerName, meetingId });
+            errors.push('Whisper: kein Ergebnis');
           }
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Recording/Transkription: ${msg}`);
-        await notifyPipelineError({ step: 'Recording herunterladen / Transkription', error: msg, customerName, meetingId });
       }
     }
 
@@ -128,7 +121,6 @@ export const POST: APIRoute = async ({ request }) => {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Transkript speichern: ${msg}`);
-        await notifyPipelineError({ step: 'Transkript in DB speichern', error: msg, customerName, meetingId });
       }
     }
 
@@ -152,7 +144,6 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Whiteboard-Artefakte: ${msg}`);
-      await notifyPipelineError({ step: 'Whiteboard-Export', error: msg, customerName, meetingId });
     }
 
     // Save any additional provided artifacts
@@ -211,12 +202,10 @@ export const POST: APIRoute = async ({ request }) => {
         if (sessionDoc) results.push(`Session-Dokument: ${sessionDoc.url}`);
       } else {
         errors.push('Outline nicht erreichbar');
-        await notifyPipelineError({ step: 'Outline-Dokumente erstellen', error: 'Outline API nicht erreichbar oder kein API-Key konfiguriert', customerName, meetingId });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Outline: ${msg}`);
-      await notifyPipelineError({ step: 'Outline-Dokumente erstellen', error: msg, customerName, meetingId });
     }
 
     // ── 7. Generate embeddings (best-effort) ──────────────────────
@@ -226,7 +215,6 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Embeddings: ${msg}`);
-      await notifyPipelineError({ step: 'Embedding-Generierung', error: msg, customerName, meetingId });
     }
 
     // ── 7b. Generate Claude AI insights (best-effort) ───────────────
@@ -269,27 +257,10 @@ export const POST: APIRoute = async ({ request }) => {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push(`Claude-Insights: ${msg}`);
-        await notifyPipelineError({ step: 'Claude-Insights generieren', error: msg, customerName, meetingId });
       }
     }
 
     await updateMeetingStatus(meeting.id, 'finalized');
-
-    // ── 8. Post summary to Mattermost ──────────────────────────────
-    if (channelId) {
-      const summaryParts = [
-        `### ${errors.length > 0 ? ':warning:' : ':white_check_mark:'} Meeting abgeschlossen: ${meetingType || 'Meeting'}`,
-        '', `**Kunde:** ${customerName}`, `**Datum:** ${sessionDate}`, '',
-      ];
-      if (transcriptText) summaryParts.push(':page_facing_up: Transkript gespeichert');
-      if (whiteboardArtifacts.length > 0) summaryParts.push(`:art: ${whiteboardArtifacts.length} Whiteboard-Artefakt(e)`);
-      summaryParts.push('', ':robot_face: _Daten in meetings-DB gespeichert._');
-      if (errors.length > 0) {
-        summaryParts.push('', `**:warning: ${errors.length} Fehler:**`);
-        for (const e of errors) summaryParts.push(`- ${e}`);
-      }
-      await postToChannel(channelId, summaryParts.join('\n'));
-    }
 
     results.push(errors.length > 0
       ? `Pipeline: abgeschlossen mit ${errors.length} Fehler(n)`
@@ -302,7 +273,6 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('Finalize meeting error:', err);
-    await notifyPipelineError({ step: 'Gesamte Pipeline (unerwarteter Fehler)', error: msg, customerName, meetingId });
     return new Response(
       JSON.stringify({ error: 'Interner Serverfehler.', detail: msg }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

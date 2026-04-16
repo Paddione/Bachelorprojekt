@@ -8,7 +8,7 @@ import {
   PENDING_SIGNATURES_DIR,
   SIGNED_DIR,
 } from '../../../lib/nextcloud-files';
-import { postToChannel } from '../../../lib/mattermost';
+
 import {
   searchDocuments,
   updateDocument,
@@ -16,7 +16,6 @@ import {
   getOrCreateCollection,
 } from '../../../lib/outline';
 
-const MATTERMOST_SIGNING_CHANNEL = process.env.MATTERMOST_SIGNING_CHANNEL || '';
 
 /**
  * POST /api/signing/confirm
@@ -131,18 +130,6 @@ export const POST: APIRoute = async ({ request }) => {
     const dateStr = now.toLocaleDateString('de-DE');
     const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
     const displayName = session.name || username;
-
-    // --- Mattermost notification (non-fatal) ---
-    if (MATTERMOST_SIGNING_CHANNEL) {
-      const mmMsg =
-        `✅ **${displayName}** hat **${documentName}** am ${dateStr} um ${timeStr} UTC akzeptiert.\n` +
-        `SHA-256: \`${fileHash}\``;
-      try {
-        await postToChannel(MATTERMOST_SIGNING_CHANNEL, mmMsg);
-      } catch {
-        // Non-fatal: continue even if Mattermost is unavailable
-      }
-    }
 
     // --- Outline signing log (non-fatal) ---
     // Look for a collection named after the client, then find or create a signing-log document.

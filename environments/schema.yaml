@@ -246,10 +246,9 @@ secrets:
     generate: true
     length: 40
 
-  - name: WEBSITE_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
+  # NOTE: WEBSITE_DB_PASSWORD is managed via website-secrets SealedSecret
+  # (separate from workspace-secrets). Re-seal via: task env:seal ENV=<name>
+  # after adding to environments/.secrets/<name>.yaml
 
   - name: RECORDING_SECRET
     required: true

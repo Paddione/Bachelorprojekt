@@ -15,7 +15,7 @@ if (!session) {
 
 const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
 
-const ncBase = process.env.NEXTCLOUD_EXTERNAL_URL ?? '';
+const ncBase = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
 const portalLinks = ncBase ? [
   { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: '📁' },
   { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: '📅' },

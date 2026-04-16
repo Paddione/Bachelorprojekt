@@ -20,6 +20,8 @@ data:
   MATTERMOST_WEBHOOK_URL: ""
   MATTERMOST_CHANNEL: "anfragen"
   MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
+  MATTERMOST_EXTERNAL_URL: "http://chat.localhost"
+  DOCS_URL: "http://docs.localhost"
   BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
   KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"

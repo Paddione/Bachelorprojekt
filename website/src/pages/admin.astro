@@ -45,8 +45,8 @@ function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-const ncBase  = process.env.NEXTCLOUD_EXTERNAL_URL ?? '';
-const mmUrl   = process.env.MATTERMOST_URL ?? '';
+const ncBase  = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const mmUrl   = process.env.MATTERMOST_EXTERNAL_URL ?? '';
 const docsUrl = process.env.DOCS_URL ?? '';
 
 const adminLinks = [

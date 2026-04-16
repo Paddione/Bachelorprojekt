@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly MATTERMOST_WEBHOOK_URL: string;
   readonly MATTERMOST_CHANNEL: string;
   readonly MATTERMOST_URL: string;
+  readonly MATTERMOST_EXTERNAL_URL?: string;
   readonly MATTERMOST_BOT_TOKEN: string;
   // Keycloak
   readonly KEYCLOAK_URL: string;

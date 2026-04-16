@@ -15,16 +15,6 @@ const TYPE_LABELS: Record<string, string> = {
   feedback: 'Feedback',
 };
 
-const TYPE_ICONS: Record<string, string> = {
-  allgemein: ':envelope:',
-  erstgespraech: ':calendar:',
-  'digital-cafe': ':computer:',
-  coaching: ':dart:',
-  beratung: ':office:',
-  support: ':wrench:',
-  feedback: ':star:',
-};
-
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
@@ -45,8 +35,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const typeLabel = TYPE_LABELS[type] || 'Unbekannt';
-    const typeIcon = TYPE_ICONS[type] || ':grey_question:';
-    const text = `### ${typeIcon} Neue Anfrage: ${typeLabel}\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Typ** | ${typeLabel} |\n\n**Nachricht:**\n> ${message.replace(/\n/g, '\n> ')}`;
 
     await createInboxItem({
       type: 'contact',

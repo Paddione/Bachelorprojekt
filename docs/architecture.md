@@ -258,7 +258,7 @@ sequenceDiagram
     Browser -->> User: ✅ Eingeloggt
 ```
 
-**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Outline, Website, Docs (8 Clients im Realm `workspace`)
+**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Website, Docs (7 Clients im Realm `workspace`)
 
 ---
 
@@ -546,12 +546,9 @@ erDiagram
     SHARED_DB ||--|| MM_SVC : "mattermost"
     SHARED_DB ||--|| NC_SVC : "nextcloud"
     SHARED_DB ||--|| VW_SVC : "vaultwarden"
-    SHARED_DB ||--|| OL_SVC : "outline"
     SHARED_DB ||--|| WEB_SVC : "website"
     SHARED_DB }|--|| MCP_PG : "alle DBs"
     MARIADB ||--|| IN_SVC : "invoiceninja"
-    OPENSEARCH ||--|| MM_SVC : "Suchindex"
-    REDIS ||--|| OL_SVC : "Sessions"
 
     SHARED_DB {
         text host "shared-db.workspace"
@@ -563,20 +560,10 @@ erDiagram
         text engine "MariaDB 11"
         text storage "5 Gi PVC"
     }
-    OPENSEARCH {
-        text host "opensearch"
-        text engine "OpenSearch 2.17"
-        text storage "5 Gi PVC"
-    }
-    REDIS {
-        text host "localhost"
-        text engine "Redis 7 Sidecar"
-    }
     KC_SVC { text service "Keycloak" }
     MM_SVC { text service "Mattermost" }
     NC_SVC { text service "Nextcloud" }
     VW_SVC { text service "Vaultwarden" }
-    OL_SVC { text service "Outline" }
     WEB_SVC { text service "Website" }
     IN_SVC { text service "Invoice Ninja" }
     MCP_PG { text service "MCP Postgres" }
@@ -589,10 +576,9 @@ Jede Datenbank hat einen eigenen User mit ausschliesslichem Zugriff auf seine Da
 | Datenbank | User | Service | Besonderheiten |
 |-----------|------|---------|----------------|
 | `keycloak` | `keycloak` | Keycloak | Realm-Export als ConfigMap |
-| `mattermost` | `mattermost` | Mattermost | + OpenSearch fuer Volltextsuche |
+| `mattermost` | `mattermost` | Mattermost | PostgreSQL FTS fuer Volltextsuche |
 | `nextcloud` | `nextcloud` | Nextcloud | Datei-Metadaten, Kalender, Kontakte |
 | `vaultwarden` | `vaultwarden` | Vaultwarden | Verschluesselte Vault-Items |
-| `outline` | `outline` | Outline | + Redis Sidecar fuer Sessions |
 | `website` | `website` | Website (Astro) | Meeting-Pipeline, Projektmgmt, Admin-Config — pgvector aktiviert |
 | `pentest` | `pentest` | Sicherheitstests | Isolierte DB fuer Pen-Tests |
 | `invoiceninja` | `invoiceninja` | Invoice Ninja | Separate MariaDB (MySQL-Kompatibilitaet) |
@@ -638,7 +624,6 @@ Traefik (k3s built-in) routet anhand von Host-Headern:
 | mail.localhost | mailpit | 8025 |
 | docs.localhost | docs | 80 |
 | web.localhost | website | 4321 |
-| wiki.localhost | outline | 3000 |
 
 Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 
@@ -653,8 +638,6 @@ Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 | invoiceninja-public | 5 Gi | Invoice Ninja |
 | invoiceninja-mariadb-data | 5 Gi | MariaDB |
 | vaultwarden-data | 5 Gi | Vaultwarden |
-| opensearch-data | 5 Gi | OpenSearch Index |
-| outline-data | 5 Gi | Outline Wiki |
 | backup-pvc | 1 Gi | Verschluesselte Backups |
 
 ## Deployment-Ablauf

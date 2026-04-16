@@ -140,12 +140,12 @@ export async function createBillingQuote(params: {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   const service = SERVICES[params.serviceKey];
   const qty = params.quantity ?? 1;
-  // Quotes.PriceData requires an existing product ID (no inline product_data).
-  // Create an ephemeral product first, then reference it.
+  // QuoteCreateParams.LineItem requires a pre-created price (no inline price_data).
   const product = await stripe.products.create({ name: service.name });
+  const price = await stripe.prices.create({ product: product.id, unit_amount: service.cents, currency: 'eur' });
   const q = await stripe.quotes.create({
     customer: params.customerId,
-    line_items: [{ price_data: { currency: 'eur', product: product.id, unit_amount: service.cents }, quantity: qty }],
+    line_items: [{ price: price.id, quantity: qty }],
     description: params.notes ?? '',
   });
   return { id: q.id, status: q.status, amountTotal: centsToEur(q.amount_total) };

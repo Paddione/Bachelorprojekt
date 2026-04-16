@@ -142,7 +142,8 @@
       {#if !hasThread && role === 'user'}
         <div class="compose">
           <p class="hint">Schreiben Sie eine Nachricht an den Admin.</p>
-          <textarea bind:value={newBody} placeholder="Ihre Nachricht…" rows="4"></textarea>
+          <textarea bind:value={newBody} placeholder="Ihre Nachricht…" rows="4"
+            onkeydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); startUserThread(); } }}></textarea>
           <button class="btn-send" disabled={!newBody.trim() || sending} onclick={startUserThread}>
             {sending ? '…' : 'Senden'}
           </button>

@@ -36,6 +36,19 @@ generatorOptions:
 
 # Strategic merge patches
 patches:
+  # Drop the dev-placeholder workspace-secrets Secret from prod output.
+  # In production, workspace-secrets is managed exclusively by SealedSecrets
+  # (environments/sealed-secrets/<env>.yaml). Applying the dev values from
+  # k3d/secrets.yaml would overwrite the real secrets on every deploy.
+  - target:
+      kind: Secret
+      name: workspace-secrets
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: workspace-secrets
+      $patch: delete
   # Override domains
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)

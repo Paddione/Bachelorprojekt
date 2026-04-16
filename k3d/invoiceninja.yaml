@@ -196,6 +196,10 @@ spec:
               mountPath: /var/www/app/public
             - name: data
               mountPath: /var/www/app/storage
+            - name: sso-auth-php
+              mountPath: /var/www/app/public/sso-auth.php
+              subPath: sso-auth.php
+              readOnly: true
           resources:
             requests:
               memory: 512Mi
@@ -243,6 +247,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: invoiceninja-data-pvc
+        - name: sso-auth-php
+          configMap:
+            name: sso-auth-php
 ---
 apiVersion: v1
 kind: Service

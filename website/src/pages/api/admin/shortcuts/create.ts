@@ -30,6 +30,13 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
+  if (url.length > 2048 || label.length > 120) {
+    return new Response(JSON.stringify({ error: 'url or label too long' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const shortcut = await createAdminShortcut(url, label);
     return new Response(JSON.stringify(shortcut), {

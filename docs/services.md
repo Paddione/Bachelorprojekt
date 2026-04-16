@@ -94,8 +94,6 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 | `claude-code-mcp-auth.yaml` | mcp-keycloak | Benutzer-/Rollenverwaltung |
 | `claude-code-mcp-github.yaml` | mcp-github | GitHub Repos, Issues, PRs (PAT erforderlich) |
 | `claude-code-mcp-stripe.yaml` | mcp-stripe | Zahlungen, Abonnements |
-| `claude-code-mcp-grafana.yaml` | mcp-grafana | Grafana Dashboards und Metriken |
-| `claude-code-mcp-prometheus.yaml` | mcp-prometheus | PromQL-Abfragen, Cluster-Metriken |
 | `claude-code-mcp-kubernetes.yaml` | mcp-kubernetes (standalone) | Dedizierter Read-Only Kubernetes-MCP |
 | `claude-code-mcp-postgres.yaml` | mcp-postgres (standalone) | Dedizierter Datenbank-MCP |
 | `claude-code-mcp-stripe.yaml` | mcp-stripe | Stripe-Zahlungen, Produkte, Abonnements |

@@ -1051,6 +1051,19 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
 
+        if [ "{{.ENV}}" != "dev" ]; then
+          active_ctx=$(kubectl config current-context 2>/dev/null || echo "")
+          if [ "$active_ctx" != "$ENV_CONTEXT" ]; then
+            echo ""
+            echo "ERROR: kubectl context mismatch"
+            echo "  Expected : $ENV_CONTEXT  (from environments/{{.ENV}}.yaml)"
+            echo "  Active   : $active_ctx"
+            echo ""
+            echo "Fix: kubectl config use-context $ENV_CONTEXT"
+            exit 1
+          fi
+        fi
+
         if [ "{{.ENV}}" = "dev" ]; then
           # Dev: build from k3d base, apply locally
           kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -

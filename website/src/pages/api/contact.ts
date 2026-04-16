@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName } from '../../lib/mattermost';
+import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
 
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
@@ -48,29 +48,10 @@ export const POST: APIRoute = async ({ request }) => {
     const typeIcon = TYPE_ICONS[type] || ':grey_question:';
     const text = `### ${typeIcon} Neue Anfrage: ${typeLabel}\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Typ** | ${typeLabel} |\n\n**Nachricht:**\n> ${message.replace(/\n/g, '\n> ')}`;
 
-    // Try interactive message with Reply/Archive buttons
-    const teamId = await getFirstTeamId();
-    const channelId = teamId ? await getChannelByName(teamId, 'anfragen') : null;
-
-    if (channelId) {
-      await postInteractiveMessage({
-        channelId,
-        text,
-        actions: [
-          { id: 'reply_contact', name: 'Antworten', style: 'primary' },
-          { id: 'archive_contact', name: 'Archivieren', style: 'default' },
-        ],
-        context: { senderName: name, senderEmail: email, senderPhone: phone, type, message },
-      });
-    } else {
-      // Fallback: simple webhook
-      await postWebhook({
-        channel: 'anfragen',
-        username: 'Website-Bot',
-        icon_emoji: ':globe_with_meridians:',
-        text,
-      });
-    }
+    await createInboxItem({
+      type: 'contact',
+      payload: { name, email, phone: phone ?? null, type, typeLabel, message },
+    });
 
     // E-Mail-Benachrichtigung an Admin
     if (CONTACT_EMAIL) {

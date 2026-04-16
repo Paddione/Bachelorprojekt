@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
-import { postToChannel } from '../../../lib/mattermost';
+
 
 // Upload an audio file for transcription.
 // Sends to faster-whisper, posts result to the customer's Mattermost channel.
@@ -35,15 +35,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const formatted = formatTranscript(result);
-
-    // Post to Mattermost channel if provided
-    if (channelId) {
-      const durationMin = Math.round(result.duration / 60);
-      await postToChannel(
-        channelId,
-        `### :microphone: Transkript${customerName ? ` — ${customerName}` : ''}\n\n**Dauer:** ${durationMin} Minuten | **Sprache:** ${result.language}\n\n\`\`\`\n${formatted}\n\`\`\``
-      );
-    }
 
     return new Response(
       JSON.stringify({

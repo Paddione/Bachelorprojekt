@@ -42,22 +42,20 @@ export async function upsertCustomer(params: {
   email: string;
   phone?: string;
   company?: string;
-  mattermostChannelId?: string;
   keycloakUserId?: string;
 }): Promise<Customer> {
   const result = await pool.query(
-    `INSERT INTO customers (name, email, phone, company, mattermost_channel_id, keycloak_user_id)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO customers (name, email, phone, company, keycloak_user_id)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (email) DO UPDATE SET
        name = EXCLUDED.name,
        phone = COALESCE(EXCLUDED.phone, customers.phone),
        company = COALESCE(EXCLUDED.company, customers.company),
-       mattermost_channel_id = COALESCE(EXCLUDED.mattermost_channel_id, customers.mattermost_channel_id),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
        updated_at = now()
      RETURNING id, name, email`,
     [params.name, params.email, params.phone, params.company,
-     params.mattermostChannelId, params.keycloakUserId]
+     params.keycloakUserId]
   );
   return result.rows[0];
 }

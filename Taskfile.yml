@@ -276,9 +276,7 @@ tasks:
       - task: workspace:post-setup
       - task: workspace:talk-setup
       - task: workspace:admin-users-setup
-      - task: workspace:billing-setup
       - task: workspace:stripe-setup
-      - task: workspace:connectors
       - task: workspace:call-setup
       - task: workspace:recording-setup
       - task: workspace:transcriber-setup
@@ -309,25 +307,12 @@ tasks:
     cmds:
       - bash scripts/transcriber-setup.sh
 
-  workspace:billing-build:
-    desc: Build and push billing-bot image to local registry
-    cmds:
-      - docker build -t {{.REGISTRY}}/billing-bot:latest billing-bot/
-      - docker push {{.REGISTRY}}/billing-bot:latest
-      - 'echo "✓ billing-bot image pushed"'
-
   workspace:sso-bridge:build:
     desc: Build and push sso-bridge image to local registry
     cmds:
       - docker build -t {{.REGISTRY}}/sso-bridge:latest sso-bridge/
       - docker push {{.REGISTRY}}/sso-bridge:latest
       - 'echo "✓ sso-bridge image pushed to {{.REGISTRY}}"'
-
-  workspace:billing-setup:
-    desc: Build and push billing-bot image (bot token + slash command provisioned automatically by billing-bot-init-job)
-    deps: [workspace:billing-build]
-    cmds:
-      - 'echo "✓ billing-bot image built. Token and /billing slash command are provisioned automatically by billing-bot-init-job."'
 
   workspace:stripe-setup:
     desc: Register Stripe as payment gateway in Invoice Ninja
@@ -348,12 +333,8 @@ tasks:
       - echo "Nextcloud theme applied."
 
   workspace:theme:
-    desc: Apply dark+gold theme to Mattermost + Nextcloud (idempotent, run after post-setup)
-    vars:
-      MM_URL: 'https://chat.{{.PROD_DOMAIN | default "mentolder.localhost"}}'
+    desc: Apply dark+gold theme to Nextcloud (idempotent, run after post-setup)
     cmds:
-      - echo "=== Mattermost Theme ==="
-      - bash scripts/set-mattermost-theme.sh workspace "{{.MM_URL}}"
       - echo "=== Nextcloud Theme ==="
       - task: workspace:theme:nextcloud
       - echo "All themes applied."
@@ -623,23 +604,10 @@ tasks:
       - task: workspace:recording-setup
         vars: { ENV: "korczewski" }
 
-  workspace:connectors:
-    desc: Set up Mattermost service connectors (bookmarks + links to all workspace services)
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed. Run 'task workspace:deploy' first."
-    cmds:
-      - bash scripts/mattermost-connectors-setup.sh
-
   workspace:call-setup:
-    desc: "Register /call slash command in Mattermost (ENV=dev|mentolder|korczewski)"
+    desc: "Register /call slash command (ENV=dev|mentolder|korczewski)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
-    preconditions:
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed. Run 'task workspace:deploy' first."
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -1280,11 +1248,6 @@ tasks:
     cmds:
       - task: docs:deploy
 
-  docs:integrate-mattermost:
-    desc: Integrate docs into Mattermost (channel bookmark + slash command)
-    cmds:
-      - bash scripts/mattermost-docs-integration.sh
-
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers
   # ─────────────────────────────────────────────
@@ -1347,24 +1310,6 @@ tasks:
     cmds:
       - kubectl rollout restart deployment/claude-code-mcp-{{.CLI_ARGS}}
       - kubectl rollout status deployment/claude-code-mcp-{{.CLI_ARGS}} --timeout=120s
-
-  mcp:mattermost-setup:
-    desc: Create admin-only Claude Code channels in all Mattermost teams
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-    cmds:
-      - |
-        echo "Generating Mattermost API token..."
-        TOKEN=$(kubectl exec -n workspace deploy/mattermost -- \
-          mmctl --local token generate axzgi6xawjrm7rucg39h97dfjw "claude-code-setup-$(date +%s)" 2>/dev/null | cut -d: -f1)
-        echo "Running Claude Code Mattermost setup..."
-        kubectl run claude-code-mm-setup --rm -i --restart=Never \
-          --image=python:3.12-alpine \
-          --env="MM_URL=http://mattermost.workspace.svc.cluster.local:8065" \
-          --env="MM_TOKEN=$TOKEN" \
-          -- python3 /dev/stdin < scripts/claude-code-mattermost-setup.py
-      - 'echo "✓ Claude Code channels created in all teams"'
 
   mcp:set-github-pat:
     desc: Update GITHUB_PAT in workspace-secrets (workspace namespace)
@@ -1663,7 +1608,7 @@ tasks:
         fi
         export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL
 
-        envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$MATTERMOST_EXTERNAL_URL \$DOCS_URL \$BILLING_EXTERNAL_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$WIKI_EXTERNAL_URL" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$DOCS_URL \$BILLING_EXTERNAL_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$WIKI_EXTERNAL_URL" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
 
         # Dev-only: apply plaintext dev secrets (prod uses SealedSecrets — never overwrite)
         if [ "{{.ENV}}" = "dev" ]; then
@@ -1690,12 +1635,6 @@ tasks:
 
         echo "Waiting for website..."
         kubectl ${CTX_ARG} -n website rollout status deployment/website --timeout=180s
-      - |
-        if [ "{{.ENV}}" = "dev" ]; then
-          task website:webhook:setup
-        else
-          echo "(skipping website:webhook:setup for non-dev env — manage webhooks on prod cluster manually)"
-        fi
       - echo ""
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -1904,98 +1843,6 @@ tasks:
       - echo ""
       - ip addr show wg0 2>/dev/null || echo "wg0 interface not found"
 
-  website:webhook:setup:
-    desc: Create Mattermost "anfragen" channel and configure webhook for the website
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed."
-    cmds:
-      - |
-        NAMESPACE="workspace"
-        MM_URL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          printenv MM_SERVICESETTINGS_SITEURL 2>/dev/null || echo "http://chat.localhost")
-
-        echo "=== Website Webhook Setup ==="
-        echo "  Mattermost: ${MM_URL}"
-
-        # Get first team
-        TEAM=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local team list --json 2>/dev/null | \
-          python3 -c "import sys,json; print(json.load(sys.stdin)[0]['name'])")
-        echo "  Team: ${TEAM}"
-
-        # Create anfragen channel if not exists
-        CHANNEL_EXISTS=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
-          python3 -c "
-        import sys,json
-        channels = json.load(sys.stdin)
-        found = [c for c in channels if c.get('name') == 'anfragen']
-        print('yes' if found else 'no')
-        " 2>/dev/null || echo "no")
-
-        if [ "${CHANNEL_EXISTS}" = "no" ]; then
-          kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-            mmctl --local channel create \
-              --team "${TEAM}" \
-              --name "anfragen" \
-              --display-name "Anfragen" \
-              --purpose "Eingehende Kundenanfragen vom Website-Kontaktformular" \
-              2>/dev/null
-          echo "  Channel 'anfragen' created."
-        else
-          echo "  Channel 'anfragen' already exists."
-        fi
-
-        # Get channel ID
-        CHANNEL_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
-          python3 -c "
-        import sys,json
-        channels = json.load(sys.stdin)
-        ch = next(c for c in channels if c['name'] == 'anfragen')
-        print(ch['id'])
-        " 2>/dev/null)
-
-        # Get admin user ID for webhook
-        ADMIN_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local user list --json 2>/dev/null | \
-          python3 -c "
-        import sys,json
-        users = json.load(sys.stdin)
-        admin = next((u['id'] for u in users if 'system_admin' in u.get('roles','')), users[0]['id'])
-        print(admin)
-        " 2>/dev/null)
-
-        # Create incoming webhook
-        WEBHOOK_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local webhook create-incoming \
-            --channel "${CHANNEL_ID}" \
-            --user "${ADMIN_ID}" \
-            --display-name "Website-Bot" \
-            --description "Kontaktformular-Eingaenge von ${BRAND_NAME}" \
-            --json 2>/dev/null | \
-          python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'] if isinstance(d,dict) else d[0]['id'])" 2>/dev/null) || true
-
-        if [ -n "${WEBHOOK_ID}" ]; then
-          WEBHOOK_URL="${MM_URL}/hooks/${WEBHOOK_ID}"
-          echo "  Webhook created: ${WEBHOOK_URL}"
-
-          # Patch the website ConfigMap with the real webhook URL
-          kubectl patch configmap website-config -n website \
-            --type merge -p "{\"data\":{\"MATTERMOST_WEBHOOK_URL\":\"http://mattermost.workspace.svc.cluster.local:8065/hooks/${WEBHOOK_ID}\"}}" \
-            2>/dev/null && echo "  ConfigMap patched with webhook URL" || echo "  (website not deployed yet — deploy first, then re-run)"
-
-          # Restart website to pick up new config
-          kubectl rollout restart deployment/website -n website 2>/dev/null || true
-        else
-          echo "  WARNING: Could not create webhook — may already exist."
-          echo "  Check: kubectl exec -n workspace deploy/mattermost -- mmctl --local webhook list incoming"
-        fi
-      - echo ""
-      - echo "✓ Webhook setup complete"
 
   # ─────────────────────────────────────────────
   # Cert-Manager — wildcard TLS via DNS-01/lego
@@ -2168,11 +2015,6 @@ tasks:
   # ─────────────────────────────────────────────
   # Utility Scripts
   # ─────────────────────────────────────────────
-  billing-bot:setup:
-    desc: Build billing-bot image and push to local registry
-    cmds:
-      - bash scripts/billing-bot-setup.sh
-
   workspace:check-connectivity:
     desc: Test HTTPS reachability of all workspace services
     cmds:
@@ -2198,7 +2040,3 @@ tasks:
     cmds:
       - bash scripts/migrate.sh
 
-  workspace:anfragen-setup:
-    desc: Create anfragen channel and webhook in all Mattermost teams
-    cmds:
-      - bash scripts/mattermost-anfragen-setup.sh

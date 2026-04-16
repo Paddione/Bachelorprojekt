@@ -8,9 +8,7 @@ import {
   PENDING_SIGNATURES_DIR,
   SIGNED_DIR,
 } from '../../../lib/nextcloud-files';
-import { postToChannel } from '../../../lib/mattermost';
 
-const MATTERMOST_SIGNING_CHANNEL = process.env.MATTERMOST_SIGNING_CHANNEL || '';
 
 /**
  * POST /api/signing/confirm
@@ -117,24 +115,6 @@ export const POST: APIRoute = async ({ request }) => {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
-    }
-
-    // --- Build confirmation strings ---
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('de-DE');
-    const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-    const displayName = session.name || username;
-
-    // --- Mattermost notification (non-fatal) ---
-    if (MATTERMOST_SIGNING_CHANNEL) {
-      const mmMsg =
-        `✅ **${displayName}** hat **${documentName}** am ${dateStr} um ${timeStr} UTC akzeptiert.\n` +
-        `SHA-256: \`${fileHash}\``;
-      try {
-        await postToChannel(MATTERMOST_SIGNING_CHANNEL, mmMsg);
-      } catch {
-        // Non-fatal: continue even if Mattermost is unavailable
-      }
     }
 
     return new Response(JSON.stringify({ success: true, hash: fileHash }), {

@@ -47,6 +47,7 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
       <!-- Intro -->
       <div class={sectionCls}>
         <h2 class="text-xl font-bold text-light font-serif">Intro-Absätze</h2>
+        <input type="hidden" name="intro_count" value={um.introParagraphs.length} />
         {um.introParagraphs.map((para, i) => (
           <div>
             <label class={labelCls}>Absatz {i + 1}</label>

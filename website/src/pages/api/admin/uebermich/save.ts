@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   await saveUebermichContent(BRAND, {
     subheadline: g('subheadline'),
     pageHeadline: g('pageHeadline'),
-    introParagraphs: [g('intro_0'), g('intro_1')].filter(Boolean),
+    introParagraphs: Array.from({ length: parseInt(g('intro_count') || '2', 10) }, (_, i) => g(`intro_${i}`)).filter(Boolean),
     sections: [0, 1].map(i => ({
       title: g(`sec_${i}_title`),
       content: g(`sec_${i}_content`),

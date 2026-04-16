@@ -242,6 +242,10 @@ spec:
       activeDeadlineSeconds: 25
       template:
         spec:
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "3"
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:

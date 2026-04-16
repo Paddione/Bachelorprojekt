@@ -9,7 +9,9 @@ export const GET: APIRoute = async ({ request, params }) => {
   const roomId = parseInt(params.id!, 10);
   if (isNaN(roomId)) return new Response(JSON.stringify({ error: 'Invalid ID' }), { status: 400 });
   const url = new URL(request.url);
-  const afterId = url.searchParams.get('after') ? parseInt(url.searchParams.get('after')!, 10) : undefined;
+  const afterRaw = url.searchParams.get('after');
+  const afterId = afterRaw ? parseInt(afterRaw, 10) : undefined;
+  if (afterId !== undefined && isNaN(afterId)) return new Response(JSON.stringify({ error: 'Invalid after param' }), { status: 400 });
   const [messages, members] = await Promise.all([getRoomMessages(roomId, afterId), getRoomMembers(roomId)]);
   return new Response(JSON.stringify({ messages, members }), { headers: { 'Content-Type': 'application/json' } });
 };

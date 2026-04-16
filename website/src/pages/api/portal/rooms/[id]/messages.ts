@@ -12,7 +12,9 @@ export const GET: APIRoute = async ({ request, params }) => {
   if (isNaN(roomId)) return new Response(JSON.stringify({ error: 'Invalid ID' }), { status: 400 });
   if (!await isRoomMember(roomId, customer.id)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
   const url = new URL(request.url);
-  const afterId = url.searchParams.get('after') ? parseInt(url.searchParams.get('after')!, 10) : undefined;
+  const afterRaw = url.searchParams.get('after');
+  const afterId = afterRaw ? parseInt(afterRaw, 10) : undefined;
+  if (afterId !== undefined && isNaN(afterId)) return new Response(JSON.stringify({ error: 'Invalid after param' }), { status: 400 });
   const messages = await getRoomMessages(roomId, afterId);
   if (messages.length > 0) {
     await markRoomMessagesRead(roomId, customer.id, messages[messages.length - 1].id);

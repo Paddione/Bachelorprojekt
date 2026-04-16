@@ -7,7 +7,7 @@ export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   const customer = await getCustomerByEmail(session.email);
-  if (!customer) return new Response(JSON.stringify({ error: 'Customer not found' }), { status: 403 });
+  if (!customer) return new Response(JSON.stringify({ thread: null }), { headers: { 'Content-Type': 'application/json' } });
   const thread = await getThreadByCustomerId(customer.id);
   return new Response(JSON.stringify({ thread: thread ?? null }), { headers: { 'Content-Type': 'application/json' } });
 };

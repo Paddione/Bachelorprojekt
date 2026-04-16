@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Cookie-Einstellungen">
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <h1 class="text-3xl font-bold text-light mb-4 font-serif">Cookie-Einstellungen</h1>
+      <p class="text-muted mb-8">
+        Hier können Sie Ihre Cookie-Präferenzen anpassen.
+      </p>
+      <button
+        id="open-cookie-btn"
+        class="px-6 py-3 bg-gold text-dark font-semibold rounded-lg hover:bg-gold/90 transition-colors"
+      >
+        Cookie-Einstellungen öffnen
+      </button>
+    </div>
+  </section>
+  <script>
+    document.getElementById('open-cookie-btn')?.addEventListener('click', () => {
+      window.dispatchEvent(new Event('cookie-consent-reopen'));
+    });
+    // Auto-open on page load
+    window.addEventListener('load', () => {
+      window.dispatchEvent(new Event('cookie-consent-reopen'));
+    });
+  </script>
+</Layout>

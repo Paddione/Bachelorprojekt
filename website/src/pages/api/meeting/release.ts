@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
-import { releaseMeeting } from '../../../lib/meetings-db';
+import { releaseMeeting } from '../../../lib/website-db';
 
 export const POST: APIRoute = async ({ request }) => {
   const cookieHeader = request.headers.get('cookie');

@@ -1,15 +1,19 @@
 ---
-import { getMeetingsForClient } from '../../lib/meetings-db';
-import type { Meeting } from '../../lib/meetings-db';
+import { getMeetingsForClient, listProjects } from '../../lib/website-db';
+import type { Meeting, Project } from '../../lib/website-db';
 
 interface Props {
   clientEmail: string;
 }
 const { clientEmail } = Astro.props;
 
+const brand = process.env.BRAND_NAME || 'mentolder';
+
 let meetings: Meeting[] = [];
+let projects: Project[] = [];
 try {
   meetings = await getMeetingsForClient(clientEmail, false); // all meetings
+  projects = await listProjects({ brand });
 } catch {
   // DB unavailable
 }
@@ -23,7 +27,7 @@ try {
     <ul class="space-y-4">
       {meetings.map(meeting => (
         <li class="p-4 bg-dark rounded-xl border border-dark-lighter" data-testid="meeting-admin-item">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <span class="text-sm text-muted">ID: {meeting.id}</span>
               <span class="ml-3 text-xs text-muted capitalize">{meeting.status}</span>
@@ -35,16 +39,31 @@ try {
                 <span class="ml-3 text-xs text-gold">Nicht freigegeben</span>
               )}
             </div>
-            {!meeting.released_at && (
-              <button
-                type="button"
-                data-testid="release-button"
-                data-meeting-id={meeting.id}
-                class="release-btn px-3 py-1 text-xs bg-gold text-dark rounded-full font-medium hover:bg-gold/80 transition-colors"
-              >
-                Freigeben
-              </button>
-            )}
+            <div class="flex items-center gap-3 shrink-0 flex-wrap">
+              {projects.length > 0 && (
+                <select
+                  class="project-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
+                  data-meeting-id={meeting.id}
+                >
+                  <option value="">— Kein Projekt —</option>
+                  {projects.map(p => (
+                    <option value={p.id} selected={p.id === meeting.projectId}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!meeting.released_at && (
+                <button
+                  type="button"
+                  data-testid="release-button"
+                  data-meeting-id={meeting.id}
+                  class="release-btn px-3 py-1 text-xs bg-gold text-dark rounded-full font-medium hover:bg-gold/80 transition-colors"
+                >
+                  Freigeben
+                </button>
+              )}
+            </div>
           </div>
         </li>
       ))}
@@ -69,7 +88,6 @@ try {
         });
 
         if (res.ok) {
-          // Reload to reflect updated state
           window.location.reload();
         } else {
           const data = await res.json().catch(() => ({}));
@@ -81,6 +99,30 @@ try {
         alert('Netzwerkfehler beim Freigeben.');
         btn.disabled = false;
         btn.textContent = 'Freigeben';
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLSelectElement>('.project-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const meetingId = sel.dataset.meetingId;
+      if (!meetingId) return;
+      sel.disabled = true;
+      try {
+        const res = await fetch(`/api/meetings/${meetingId}/project`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId: sel.value || null }),
+        });
+        if (!res.ok) {
+          alert('Fehler beim Speichern der Projektzuordnung.');
+          window.location.reload();
+        }
+      } catch {
+        alert('Netzwerkfehler beim Speichern.');
+        window.location.reload();
+      } finally {
+        sel.disabled = false;
       }
     });
   });

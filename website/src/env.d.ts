@@ -1,11 +1,6 @@
 /// <reference types="astro/client" />
 
 interface ImportMetaEnv {
-  // Mattermost
-  readonly MATTERMOST_WEBHOOK_URL: string;
-  readonly MATTERMOST_CHANNEL: string;
-  readonly MATTERMOST_URL: string;
-  readonly MATTERMOST_BOT_TOKEN: string;
   // Keycloak
   readonly KEYCLOAK_URL: string;
   readonly KEYCLOAK_REALM: string;
@@ -26,8 +21,12 @@ interface ImportMetaEnv {
   readonly NEXTCLOUD_ADMIN_USER?: string;
   readonly NEXTCLOUD_ADMIN_PASS?: string;
   readonly NEXTCLOUD_EXTERNAL_URL?: string;
-  // Mattermost signing
-  readonly MATTERMOST_SIGNING_CHANNEL?: string;
+  readonly DOCS_URL?: string;
+  readonly BILLING_EXTERNAL_URL?: string;
+  readonly AUTH_EXTERNAL_URL?: string;
+  readonly VAULT_EXTERNAL_URL?: string;
+  readonly WHITEBOARD_EXTERNAL_URL?: string;
+  readonly WIKI_EXTERNAL_URL?: string;
   // Nextcloud CalDAV
   readonly NEXTCLOUD_URL: string;
   readonly NEXTCLOUD_CALDAV_USER: string;
@@ -41,6 +40,10 @@ interface ImportMetaEnv {
   readonly MIN_ADVANCE_HOURS: string;
   // Site
   readonly SITE_URL: string;
+  // Stripe
+  readonly STRIPE_SECRET_KEY: string;
+  readonly STRIPE_PUBLISHABLE_KEY: string;
+  readonly STRIPE_WEBHOOK_SECRET: string;
 }
 
 interface ImportMeta {

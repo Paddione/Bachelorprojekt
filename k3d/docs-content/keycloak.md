@@ -1,4 +1,17 @@
-# Keycloak & SSO
+<div class="page-hero">
+  <span class="page-hero-icon">🔑</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Keycloak &amp; SSO</div>
+    <p class="page-hero-desc">Zentraler Identity Provider für alle Services. OIDC-Konfiguration, Realm-Setup, Client-Secrets und Single Sign-On Flows für Mattermost, Nextcloud, Invoice Ninja und die Website.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Keycloak 26.6</span>
+      <span class="page-hero-tag">OIDC / OAuth2</span>
+      <span class="page-hero-tag">Realm workspace</span>
+      <span class="page-hero-tag">Single Sign-On</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 ## Uebersicht
 

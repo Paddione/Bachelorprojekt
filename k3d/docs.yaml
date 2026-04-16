@@ -25,6 +25,8 @@ spec:
               value: /public
             - name: SERVER_PORT
               value: "8787"
+            - name: SERVER_CACHE_CONTROL_HEADERS
+              value: "false"
           resources:
             requests:
               memory: 32Mi

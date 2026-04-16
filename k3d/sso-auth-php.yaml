@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sso-auth-php
+data:
+  sso-auth.php: |
+    <?php
+    /**
+     * SSO Bridge endpoint - INTERNAL ONLY.
+     * nginx restricts this path to pod CIDR (10.42.0.0/16).
+     * Creates a Laravel file session for the given email address.
+     */
+
+    $email = $_GET['email'] ?? '';
+    if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'invalid or missing email parameter']);
+        exit;
+    }
+
+    define('LARAVEL_START', microtime(true));
+    require __DIR__ . '/../vendor/autoload.php';
+
+    $app = require __DIR__ . '/../bootstrap/app.php';
+    $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+    $user = \App\Models\User::where('email', $email)->first();
+    if (!$user) {
+        http_response_code(404);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'user not found']);
+        exit;
+    }
+
+    // Session key: login_web_{sha1(SessionGuard::class)}
+    // sha1('Illuminate\Auth\SessionGuard') = 59ba36addc2b2f9401580f014c7f58ea4e30989d
+    $sessionKey = 'login_web_' . sha1(\Illuminate\Auth\SessionGuard::class);
+
+    $sessionId = bin2hex(random_bytes(20)); // 40-char hex, matches Laravel default
+
+    $sessionData = [
+        '_token'    => bin2hex(random_bytes(20)),
+        '_previous' => ['url' => '/'],
+        '_flash'    => ['old' => [], 'new' => []],
+        $sessionKey => $user->id,
+    ];
+
+    $sessionPath = storage_path('framework/sessions/' . $sessionId);
+    file_put_contents($sessionPath, serialize($sessionData));
+
+    header('Content-Type: application/json');
+    echo json_encode(['session_id' => $sessionId]);

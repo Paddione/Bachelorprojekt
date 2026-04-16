@@ -16,8 +16,9 @@
     initialStart?: string;
     initialEnd?: string;
     initialType?: 'erstgespraech' | 'callback' | 'meeting' | 'termin';
+    serviceKey?: string;
   }
-  let { initialDate = '', initialStart = '', initialEnd = '', initialType = '' } = $props<Props>();
+  let { initialDate = '', initialStart = '', initialEnd = '', initialType = '', serviceKey } = $props<Props>();
 
   let name = $state('');
   let email = $state('');
@@ -102,6 +103,7 @@
           slotEnd: selectedSlot?.end ?? null,
           slotDisplay: selectedSlot?.display ?? null,
           date: selectedDate,
+          serviceKey: serviceKey ?? null,
         }),
       });
 
@@ -118,7 +120,7 @@
         result = { success: false, message: data.error || 'Es ist ein Fehler aufgetreten.' };
       }
     } catch {
-      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es spater erneut.' };
+      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es später erneut.' };
     } finally {
       submitting = false;
     }
@@ -148,13 +150,13 @@
   <!-- Step 2: Choose date + slot (not needed for callback) -->
   {#if !isCallback}
   <div>
-    <h3 class="text-xl font-semibold text-light mb-4">2. Termin wahlen</h3>
+    <h3 class="text-xl font-semibold text-light mb-4">2. Termin wählen</h3>
 
     {#if loading}
-      <div class="text-muted py-8 text-center">Verfugbare Termine werden geladen...</div>
+      <div class="text-muted py-8 text-center">Verfügbare Termine werden geladen...</div>
     {:else if days.length === 0}
       <div class="text-muted py-8 text-center bg-dark rounded-xl border border-dark-lighter">
-        Derzeit sind keine freien Termine verfugbar. Bitte kontaktieren Sie uns direkt.
+        Derzeit sind keine freien Termine verfügbar. Bitte kontaktieren Sie uns direkt.
       </div>
     {:else}
       <!-- Date tabs -->
@@ -192,7 +194,7 @@
 
       {#if selectedSlot}
         <p class="mt-4 text-gold font-medium" data-testid="selected-slot-display">
-          Gewahlt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {selectedSlot.display}
+          Gewählt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {selectedSlot.display}
         </p>
       {/if}
     {/if}

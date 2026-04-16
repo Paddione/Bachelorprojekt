@@ -1,0 +1,137 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { getAllInvoices } from '../../lib/invoiceninja';
+import type { AdminInvoiceListItem } from '../../lib/invoiceninja';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const statusFilter = Astro.url.searchParams.get('status') ?? '';
+
+let invoices: AdminInvoiceListItem[] = [];
+let apiError = '';
+try {
+  invoices = await getAllInvoices({ statusId: statusFilter || undefined, perPage: 200 });
+} catch (err) {
+  console.error('[admin/rechnungen]', err);
+  apiError = 'Invoice Ninja nicht erreichbar.';
+}
+
+const totalOpen       = invoices.filter(i => i.balance > 0 && !['4','5'].includes(i.statusId)).reduce((s, i) => s + i.balance, 0);
+const totalPaid       = invoices.filter(i => i.statusId === '4').reduce((s, i) => s + i.amount, 0);
+const countOverdue    = invoices.filter(i => i.statusId === '6').length;
+
+function fmtCurrency(n: number): string {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
+}
+function fmtDate(s: string): string {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const STATUS_CLS: Record<string, string> = {
+  '1': 'bg-slate-900/40 text-slate-300 border-slate-700',
+  '2': 'bg-blue-900/40 text-blue-300 border-blue-800',
+  '3': 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
+  '4': 'bg-green-900/40 text-green-300 border-green-800',
+  '5': 'bg-dark border border-dark-lighter text-muted',
+  '6': 'bg-red-900/40 text-red-300 border-red-800',
+};
+
+const STATUS_TABS = [
+  { value: '',  label: 'Alle' },
+  { value: '2', label: 'Versendet' },
+  { value: '6', label: 'Überfällig' },
+  { value: '4', label: 'Bezahlt' },
+  { value: '1', label: 'Entwurf' },
+  { value: '5', label: 'Storniert' },
+];
+---
+
+<AdminLayout title="Admin — Rechnungen">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-light font-serif">Rechnungen</h1>
+        <p class="text-muted mt-1">{invoices.length} Rechnungen über alle Clients</p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        {[
+          { label: 'Offen',      value: fmtCurrency(totalOpen),  cls: totalOpen > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
+          { label: 'Bezahlt',    value: fmtCurrency(totalPaid),  cls: 'border-green-800' },
+          { label: 'Überfällig', value: countOverdue,            cls: countOverdue > 0 ? 'border-red-800' : 'border-dark-lighter' },
+          { label: 'Gesamt',     value: invoices.length,         cls: 'border-dark-lighter' },
+        ].map(s => (
+          <div class={`p-4 bg-dark-light rounded-xl border ${s.cls}`}>
+            <div class="text-xl font-bold text-light">{s.value}</div>
+            <div class="text-xs text-muted mt-0.5">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {apiError && (
+        <div class="mb-6 p-4 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm">{apiError}</div>
+      )}
+
+      <!-- Status filter tabs -->
+      <div class="flex gap-1 p-1 bg-dark-light rounded-lg border border-dark-lighter mb-6 w-fit flex-wrap">
+        {STATUS_TABS.map(t => (
+          <a href={`/admin/rechnungen${t.value ? '?status=' + t.value : ''}`}
+            class={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${statusFilter === t.value ? 'bg-gold text-dark' : 'text-muted hover:text-light'}`}>
+            {t.label}
+          </a>
+        ))}
+      </div>
+
+      <!-- Table -->
+      <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dark-lighter">
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Nr.</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Client</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Status</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Datum</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Betrag</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Offen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.length === 0 ? (
+              <tr>
+                <td colspan="7" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+              </tr>
+            ) : invoices.map(inv => (
+              <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
+                <td class="px-4 py-3 text-sm text-light font-mono">#{inv.number}</td>
+                <td class="px-4 py-3 text-sm">
+                  <div class="text-light">{inv.clientName}</div>
+                  <div class="text-xs text-muted">{inv.clientEmail}</div>
+                </td>
+                <td class="px-4 py-3">
+                  <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[inv.statusId] ?? ''}`}>
+                    {inv.statusLabel}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap">{fmtDate(inv.date)}</td>
+                <td class={`px-4 py-3 text-sm whitespace-nowrap font-medium ${inv.statusId === '6' ? 'text-red-400' : 'text-muted'}`}>
+                  {fmtDate(inv.dueDate)}{inv.statusId === '6' ? ' ⚠' : ''}
+                </td>
+                <td class="px-4 py-3 text-sm text-light text-right font-medium">{fmtCurrency(inv.amount)}</td>
+                <td class={`px-4 py-3 text-sm text-right font-medium ${inv.balance > 0 ? 'text-yellow-400' : 'text-muted'}`}>
+                  {inv.balance > 0 ? fmtCurrency(inv.balance) : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</AdminLayout>

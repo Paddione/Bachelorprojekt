@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { archiveBugTicket } from '../../../../lib/meetings-db';
+import { archiveBugTicket } from '../../../../lib/website-db';
 import { buildBackUrl } from './_helpers';
 
 export const POST: APIRoute = async ({ request }) => {

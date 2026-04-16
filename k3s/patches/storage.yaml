@@ -29,13 +29,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: opensearch-data-pvc
-spec:
-  storageClassName: local-path
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: invoiceninja-data-pvc
 spec:
   storageClassName: local-path

@@ -3,6 +3,7 @@
 // Uses the 'pg' npm package for direct database access.
 
 import pg from 'pg';
+import { resolve4 } from 'dns';
 const { Pool } = pg;
 
 const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
@@ -10,7 +11,23 @@ const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
 const EMBEDDING_URL = process.env.EMBEDDING_URL
   || 'http://embedding.workspace.svc.cluster.local:8080';
 
-const pool = new Pool({ connectionString: MEETINGS_DB_URL });
+// Use Node.js's built-in DNS resolver (dns.resolve4) instead of musl libc's
+// getaddrinfo. musl opens a *connected* UDP socket to the ClusterIP, but after
+// kube-proxy DNAT the CoreDNS response arrives from the pod IP — a connected
+// socket filters it out and times out with EAI_AGAIN. Node's dns.resolve4 uses
+// an unconnected socket and is not affected by this source-address mismatch.
+function nodeLookup(
+  hostname: string,
+  _opts: unknown,
+  cb: (err: Error | null, addr: string, family: number) => void,
+) {
+  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+}
+
+// pg's PoolConfig type doesn't declare `lookup`, but pg-pool passes it through
+// to net.createConnection at runtime. Cast via unknown to satisfy tsc.
+const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
+const pool = new Pool(poolConfig);
 
 // ── Customer ────────────────────────────────────────────────────────────────
 
@@ -25,24 +42,20 @@ export async function upsertCustomer(params: {
   email: string;
   phone?: string;
   company?: string;
-  outlineCollectionId?: string;
-  mattermostChannelId?: string;
   keycloakUserId?: string;
 }): Promise<Customer> {
   const result = await pool.query(
-    `INSERT INTO customers (name, email, phone, company, outline_collection_id, mattermost_channel_id, keycloak_user_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO customers (name, email, phone, company, keycloak_user_id)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (email) DO UPDATE SET
        name = EXCLUDED.name,
        phone = COALESCE(EXCLUDED.phone, customers.phone),
        company = COALESCE(EXCLUDED.company, customers.company),
-       outline_collection_id = COALESCE(EXCLUDED.outline_collection_id, customers.outline_collection_id),
-       mattermost_channel_id = COALESCE(EXCLUDED.mattermost_channel_id, customers.mattermost_channel_id),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
        updated_at = now()
      RETURNING id, name, email`,
     [params.name, params.email, params.phone, params.company,
-     params.outlineCollectionId, params.mattermostChannelId, params.keycloakUserId]
+     params.keycloakUserId]
   );
   return result.rows[0];
 }
@@ -264,14 +277,12 @@ export async function saveInsight(params: {
   insightType: 'summary' | 'action_items' | 'key_topics' | 'sentiment' | 'coaching_notes';
   content: string;
   generatedBy?: string;
-  outlineDocumentId?: string;
 }): Promise<string> {
   const result = await pool.query(
-    `INSERT INTO meeting_insights (meeting_id, insight_type, content, generated_by, outline_document_id)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO meeting_insights (meeting_id, insight_type, content, generated_by)
+     VALUES ($1, $2, $3, $4)
      RETURNING id`,
-    [params.meetingId, params.insightType, params.content,
-     params.generatedBy || 'system', params.outlineDocumentId]
+    [params.meetingId, params.insightType, params.content, params.generatedBy || 'system']
   );
   return result.rows[0].id;
 }
@@ -384,6 +395,113 @@ export async function getMeetingsForClient(
 
   const result = await pool.query(query, [clientEmail]);
   return result.rows;
+}
+
+// ── Admin: Meeting list ──────────────────────────────────────────────────────
+
+export interface AdminMeeting {
+  id: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  customerName: string;
+  customerEmail: string;
+  customerId: string;
+  projectName: string | null;
+  projectId: string | null;
+  hasTranscript: boolean;
+  artifactCount: number;
+}
+
+export async function listAllMeetings(opts?: {
+  unassignedOnly?: boolean;
+  limit?: number;
+}): Promise<AdminMeeting[]> {
+  const where = opts?.unassignedOnly
+    ? `WHERE c.name LIKE '%@unknown.local%' OR m.meeting_type = 'Talk-Session'`
+    : '';
+  const result = await pool.query(`
+    SELECT m.id, m.meeting_type AS "meetingType", m.status,
+           m.talk_room_token AS "talkRoomToken",
+           m.started_at AS "startedAt", m.ended_at AS "endedAt",
+           m.created_at AS "createdAt",
+           c.name AS "customerName", c.email AS "customerEmail",
+           c.id AS "customerId",
+           p.name AS "projectName", p.id AS "projectId",
+           EXISTS(SELECT 1 FROM meeting_transcripts t WHERE t.meeting_id = m.id) AS "hasTranscript",
+           (SELECT COUNT(*) FROM meeting_artifacts a WHERE a.meeting_id = m.id)::int AS "artifactCount"
+    FROM meetings m
+    JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN projects p ON m.project_id = p.id
+    ${where}
+    ORDER BY m.created_at DESC
+    LIMIT $1
+  `, [opts?.limit ?? 200]);
+  return result.rows;
+}
+
+export async function getMeetingDetail(meetingId: string): Promise<{
+  id: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  customerName: string;
+  customerEmail: string;
+  customerId: string;
+  projectName: string | null;
+  projectId: string | null;
+  transcript: { id: string; fullText: string } | null;
+  artifacts: Array<{ id: string; artifactType: string; name: string; storagePath: string | null; contentText: string | null }>;
+} | null> {
+  const r = await pool.query(`
+    SELECT m.id, m.meeting_type AS "meetingType", m.status,
+           m.talk_room_token AS "talkRoomToken",
+           m.started_at AS "startedAt", m.ended_at AS "endedAt",
+           m.created_at AS "createdAt",
+           c.name AS "customerName", c.email AS "customerEmail", c.id AS "customerId",
+           p.name AS "projectName", p.id AS "projectId"
+    FROM meetings m
+    JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN projects p ON m.project_id = p.id
+    WHERE m.id = $1
+  `, [meetingId]);
+  if (!r.rows[0]) return null;
+  const m = r.rows[0];
+
+  const [tRow, aRows] = await Promise.all([
+    pool.query(`SELECT id, full_text AS "fullText" FROM meeting_transcripts WHERE meeting_id = $1 LIMIT 1`, [meetingId]),
+    pool.query(`SELECT id, artifact_type AS "artifactType", name, storage_path AS "storagePath", content_text AS "contentText" FROM meeting_artifacts WHERE meeting_id = $1 ORDER BY created_at`, [meetingId]),
+  ]);
+
+  return {
+    ...m,
+    transcript: tRow.rows[0] ?? null,
+    artifacts: aRows.rows,
+  };
+}
+
+export async function assignMeeting(meetingId: string, params: {
+  customerName?: string;
+  customerEmail?: string;
+  meetingType?: string;
+  projectId?: string | null;
+}): Promise<void> {
+  if (params.customerName && params.customerEmail) {
+    const c = await upsertCustomer({ name: params.customerName, email: params.customerEmail });
+    await pool.query(`UPDATE meetings SET customer_id = $2, updated_at = now() WHERE id = $1`, [meetingId, c.id]);
+  }
+  if (params.meetingType !== undefined) {
+    await pool.query(`UPDATE meetings SET meeting_type = $2, updated_at = now() WHERE id = $1`, [meetingId, params.meetingType]);
+  }
+  if (params.projectId !== undefined) {
+    await pool.query(`UPDATE meetings SET project_id = $2, updated_at = now() WHERE id = $1`, [meetingId, params.projectId]);
+  }
 }
 
 // ── Bug Tickets ──────────────────────────────────────────────────────────────
@@ -1949,4 +2067,52 @@ export async function getKontaktContent(brand: string): Promise<KontaktContent |
 
 export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
   await setSiteSetting(brand, 'kontakt', JSON.stringify(data));
+}
+
+// ── Admin Shortcuts ──────────────────────────────────────────────────────────
+
+export interface AdminShortcut {
+  id: string;
+  url: string;
+  label: string;
+  sortOrder: number;
+  createdAt: Date;
+}
+
+async function initAdminShortcutsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_shortcuts (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      url        TEXT NOT NULL,
+      label      TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+export async function listAdminShortcuts(): Promise<AdminShortcut[]> {
+  await initAdminShortcutsTable();
+  const result = await pool.query(
+    `SELECT id, url, label, sort_order AS "sortOrder", created_at AS "createdAt"
+     FROM admin_shortcuts
+     ORDER BY created_at ASC`
+  );
+  return result.rows;
+}
+
+export async function createAdminShortcut(url: string, label: string): Promise<AdminShortcut> {
+  await initAdminShortcutsTable();
+  const result = await pool.query(
+    `INSERT INTO admin_shortcuts (url, label)
+     VALUES ($1, $2)
+     RETURNING id, url, label, sort_order AS "sortOrder", created_at AS "createdAt"`,
+    [url, label]
+  );
+  return result.rows[0];
+}
+
+export async function deleteAdminShortcut(id: string): Promise<void> {
+  await initAdminShortcutsTable();
+  await pool.query('DELETE FROM admin_shortcuts WHERE id = $1', [id]);
 }

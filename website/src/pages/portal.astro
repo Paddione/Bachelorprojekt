@@ -15,13 +15,20 @@ if (!session) {
 
 const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
 
-const ncBase = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
-const portalLinks = ncBase ? [
-  { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: '📁' },
-  { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: '📅' },
-  { href: `${ncBase}/apps/contacts/`, label: 'Kontakte', icon: '👥' },
-  { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: '🎥' },
-] : [];
+const ncBase        = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const wikiUrl       = process.env.WIKI_EXTERNAL_URL ?? '';
+const whiteboardUrl = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
+
+const portalLinks = [
+  ...(ncBase ? [
+    { href: `${ncBase}/apps/files/`,    label: 'Dateien',    icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`, label: 'Kalender',   icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte',   icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',       icon: '🎥' },
+  ] : []),
+  ...(wikiUrl       ? [{ href: wikiUrl,       label: 'Wiki',       icon: '📚' }] : []),
+  ...(whiteboardUrl ? [{ href: whiteboardUrl, label: 'Whiteboard', icon: '🖊️' }] : []),
+];
 ---
 
 <Layout title="Mein Portal">
@@ -32,7 +39,7 @@ const portalLinks = ncBase ? [
         <p class="text-muted mt-1">{session.email}</p>
       </div>
 
-      <ServiceLinks links={portalLinks} heading="Nextcloud" />
+      <ServiceLinks links={portalLinks} heading="Dienste" />
 
       <!-- Tab navigation -->
       <nav class="flex gap-1 mb-8 border-b border-dark-lighter overflow-x-auto" data-testid="portal-tabs">

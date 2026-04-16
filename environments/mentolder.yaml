@@ -28,6 +28,11 @@ env_vars:
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
   MATTERMOST_EXTERNAL_URL: "https://chat.mentolder.de"
   DOCS_URL: "https://docs.mentolder.de"
+  BILLING_EXTERNAL_URL: "https://billing.mentolder.de"
+  AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
+  VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
+  WHITEBOARD_EXTERNAL_URL: "https://board.mentolder.de"
+  WIKI_EXTERNAL_URL: "https://wiki.mentolder.de"
 
 overlay: prod-mentolder
 secrets_ref: sealed-secrets/mentolder.yaml

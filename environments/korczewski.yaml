@@ -28,6 +28,11 @@ env_vars:
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
   MATTERMOST_EXTERNAL_URL: "https://chat.korczewski.de"
   DOCS_URL: "https://docs.korczewski.de"
+  BILLING_EXTERNAL_URL: "https://billing.korczewski.de"
+  AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
+  VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://board.korczewski.de"
+  WIKI_EXTERNAL_URL: "https://wiki.korczewski.de"
 
 overlay: prod-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml

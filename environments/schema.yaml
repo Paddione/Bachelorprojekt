@@ -102,6 +102,26 @@ env_vars:
     required: false
     default_dev: "http://docs.localhost"
 
+  - name: BILLING_EXTERNAL_URL
+    required: false
+    default_dev: "http://billing.localhost"
+
+  - name: AUTH_EXTERNAL_URL
+    required: false
+    default_dev: "http://auth.localhost"
+
+  - name: VAULT_EXTERNAL_URL
+    required: false
+    default_dev: "http://vault.localhost"
+
+  - name: WHITEBOARD_EXTERNAL_URL
+    required: false
+    default_dev: "http://board.localhost"
+
+  - name: WIKI_EXTERNAL_URL
+    required: false
+    default_dev: "http://wiki.localhost"
+
 secrets:
   - name: SHARED_DB_PASSWORD
     required: true

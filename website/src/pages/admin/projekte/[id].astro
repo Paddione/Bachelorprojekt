@@ -1,5 +1,5 @@
 ---
-import Layout from '../../../layouts/Layout.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import {
   getProject, listSubProjects, listDirectTasks, listSubProjectTasks, listAllCustomers,
@@ -114,13 +114,9 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
 }))).replace(/</g, '\\u003c');
 ---
 
-<Layout title={`Admin — ${project?.name ?? 'Projekt'}`}>
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title={`Admin — ${project?.name ?? 'Projekt'}`}>
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
-
-      <div class="mb-2">
-        <a href="/admin/projekte" class="text-muted hover:text-gold text-sm">← Zurück zur Projektübersicht</a>
-      </div>
 
       {/* Banners */}
       {(errorMsg || dbError) && (
@@ -648,7 +644,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
       </div>
     </form>
   </dialog>
-</Layout>
+</AdminLayout>
 
 <script define:vars={{ spJson, tasksJson }}>
   const subProjects = JSON.parse(spJson);

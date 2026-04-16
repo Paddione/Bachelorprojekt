@@ -1,0 +1,21 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import InboxApp from '../../components/InboxApp.svelte';
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+import { listInboxItems, countPendingByType } from '../../lib/messaging-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const [initialItems, initialCounts] = await Promise.all([
+  listInboxItems({ status: 'pending' }),
+  countPendingByType(),
+]);
+---
+
+<AdminLayout title="Inbox">
+  <div style="height: calc(100vh - 120px)">
+    <InboxApp {initialItems} {initialCounts} client:load />
+  </div>
+</AdminLayout>

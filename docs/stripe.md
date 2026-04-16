@@ -1,3 +1,17 @@
+<div class="page-hero">
+  <span class="page-hero-icon">💳</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Stripe-Integration</div>
+    <p class="page-hero-desc">Zahlungsgateway-Konfiguration, Stripe Checkout, Webhook-Setup und Anbindung an Invoice Ninja für automatische Rechnungsstellung.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Website &amp; Admin</span>
+      <span class="page-hero-tag">Stripe</span>
+      <span class="page-hero-tag">Invoice Ninja</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Stripe-Integration
 
 Die Website (mentolder.de / korczewski.de) nutzt Stripe fuer zwei unabhaengige Zahlungsflueesse:

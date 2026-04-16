@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listUsers } from '../../lib/keycloak';
 import type { KcUser } from '../../lib/keycloak';
@@ -16,8 +16,8 @@ try {
 }
 ---
 
-<Layout title="Admin — Clients">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Clients">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-5xl mx-auto px-6">
       <div class="mb-8 flex items-center justify-between">
         <div>
@@ -31,12 +31,6 @@ try {
           >
             + Neuer Client
           </button>
-          <a
-            href="/admin"
-            class="px-4 py-2 bg-dark-light text-muted rounded-lg text-sm font-medium hover:text-light transition-colors"
-          >
-            ← Zurück
-          </a>
         </div>
       </div>
 
@@ -133,7 +127,7 @@ try {
       </div>
     </div>
   </section>
-</Layout>
+</AdminLayout>
 
 <script>
   const btn = document.getElementById('new-client-btn');

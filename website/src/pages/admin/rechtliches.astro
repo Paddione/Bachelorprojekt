@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getLegalPage } from '../../lib/website-db';
 import { config } from '../../config/index';
@@ -32,18 +32,15 @@ const defaultBarrierefreiheit = `<h2>Kontakt und Feedback</h2>
 wenden Sie sich bitte direkt an uns.</p>`;
 ---
 
-<Layout title="Admin — Rechtliches">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Rechtliches">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
 
-      <div class="mb-8 flex items-center justify-between">
+      <div class="mb-8">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Rechtliches</h1>
           <p class="text-muted mt-1">Impressum, Datenschutz, AGB und Barrierefreiheit bearbeiten</p>
         </div>
-        <a href="/admin" class="px-4 py-2 bg-dark-light text-muted rounded-lg text-sm font-medium hover:text-light transition-colors">
-          ← Zurück
-        </a>
       </div>
 
       {saved && (
@@ -138,4 +135,4 @@ wenden Sie sich bitte direkt an uns.</p>`;
       </form>
     </div>
   </section>
-</Layout>
+</AdminLayout>

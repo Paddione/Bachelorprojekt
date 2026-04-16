@@ -1,3 +1,16 @@
+<div class="page-hero">
+  <span class="page-hero-icon">📜</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Skripte</div>
+    <p class="page-hero-desc">Referenz aller Bash-Hilfsskripte im <code>scripts/</code>-Verzeichnis: Setup, Migration, DSGVO-Checks, MCP-Registrierung und Stripe.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Bash</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Skripte
 
 Referenz aller Skripte im `scripts/`-Verzeichnis.

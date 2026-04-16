@@ -1,5 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAllInvoices } from '../../lib/invoiceninja';
 import type { AdminInvoiceListItem } from '../../lib/invoiceninja';
@@ -50,13 +50,9 @@ const STATUS_TABS = [
 ];
 ---
 
-<Layout title="Admin — Rechnungen">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Rechnungen">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-6xl mx-auto px-6">
-
-      <div class="mb-2">
-        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
-      </div>
 
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-light font-serif">Rechnungen</h1>
@@ -138,4 +134,4 @@ const STATUS_TABS = [
       </div>
     </div>
   </section>
-</Layout>
+</AdminLayout>

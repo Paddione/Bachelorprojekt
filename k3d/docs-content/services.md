@@ -47,7 +47,7 @@ OIDC-Provider fuer alle Services. Realm `workspace` wird beim Start automatisch 
 | Resources | 250m--1 CPU, 256Mi--1Gi RAM |
 | Manifest | `k3d/mattermost.yaml` |
 
-Team-Chat mit Channels, DMs, Threads, Webhooks, Slash-Commands. OpenSearch-Integration fuer Volltextsuche. OIDC-Login ueber mm-keycloak-proxy. Konfiguriert mit deutscher Sprache und Europe/Berlin Zeitzone.
+Team-Chat mit Channels, DMs, Threads, Webhooks, Slash-Commands. PostgreSQL FTS fuer Volltextsuche. OIDC-Login ueber mm-keycloak-proxy. Konfiguriert mit deutscher Sprache und Europe/Berlin Zeitzone.
 
 **Zugehoerige Manifeste:**
 - `k3d/mattermost-hpa.yaml` -- Horizontal Pod Autoscaler
@@ -101,7 +101,7 @@ Drei Deployments fuer WebRTC-Videokonferenzen:
 
 Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. Alle Konfigurationen ueber ConfigMaps inline im Manifest.
 
-## AI & Suche
+## AI
 
 ### Claude Code (KI-Assistent)
 
@@ -143,20 +143,6 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 - `claude-code/system-prompt.md` -- System-Prompt fuer Claude Code
 - `claude-code/cluster.settings.json` -- MCP-Konfiguration fuer Cluster-Admin-Rolle
 - `claude-code/business.settings.json` -- MCP-Konfiguration fuer Business-Benutzer-Rolle
-
-### OpenSearch (Volltextsuche)
-
-**Für Mitarbeiter:** OpenSearch arbeitet unsichtbar im Hintergrund und ermöglicht die Volltextsuche in Mattermost. Wenn Du in Mattermost nach einem Begriff suchst, liefert OpenSearch die Ergebnisse. Du interagierst nicht direkt damit.
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Image | `opensearchproject/opensearch:2.19.5` |
-| Ports | 9200 (HTTP), 9600 (Telemetrie) |
-| Storage | 5 Gi PVC |
-| Resources | 200m CPU, 512Mi--1Gi RAM |
-| Manifest | `k3d/opensearch.yaml` |
-
-Single-Node Cluster fuer Mattermost-Volltextsuche. Security-Plugin deaktiviert (Dev). JVM Heap: 256m.
 
 ### Whisper (Transkription, optional)
 
@@ -273,22 +259,6 @@ Bitwarden-kompatibler Passwort-Manager mit SSO-Login ueber Keycloak. Seed-Job fu
 
 Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 
-### Outline (Wiki, optional)
-
-**Für Mitarbeiter:** Outline ist die interne Wissensdatenbank des Teams. Hier hältst Du Anleitungen, Prozesse und wichtiges Wissen schriftlich fest – so dass Kollegen es jederzeit nachlesen können. Inhalte lassen sich gemeinsam bearbeiten und sind über eine Volltextsuche leicht auffindbar.
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Image | `outlinewiki/outline:1.6.1` + `redis:7-alpine` (Sidecar) |
-| Port | 3000 |
-| URL | http://wiki.localhost |
-| Datenbank | PostgreSQL (shared-db/outline) |
-| Storage | 5 Gi PVC (Dateien) |
-| Resources | 100m CPU, 256--512Mi RAM |
-| Manifest | `k3d/outline.yaml` |
-
-Wissensdatenbank mit Keycloak-OIDC. Redis-Sidecar fuer Caching. Deploy: `task outline:deploy`.
-
 ## Infrastruktur-Services
 
 ### shared-db (PostgreSQL + pgvector)
@@ -301,7 +271,7 @@ Wissensdatenbank mit Keycloak-OIDC. Redis-Sidecar fuer Caching. Deploy: `task ou
 | Resources | 100m CPU, 256Mi RAM |
 | Manifest | `k3d/shared-db.yaml` |
 
-Gemeinsame PostgreSQL-16-Instanz mit pgvector-Erweiterung fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, mattermost, nextcloud, vaultwarden und outline. pgvector ermoeglicht Vektorsuche fuer KI-Features (z. B. Embedding-Auswertungen). Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
+Gemeinsame PostgreSQL-16-Instanz mit pgvector-Erweiterung fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, mattermost, nextcloud und vaultwarden. pgvector ermoeglicht Vektorsuche fuer KI-Features (z. B. Embedding-Auswertungen). Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
 
 ### Mailpit (Dev-Mail)
 
@@ -368,14 +338,13 @@ Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 ## Ressourcen-Uebersicht
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#1d5c3a', 'pie4': '#2563a0', 'pie5': '#4c2d8a', 'pie6': '#374151', 'pie7': '#1d5c3a', 'pie8': '#7a3c00', 'pie9': '#0b5575', 'pie10': '#374151', 'pie11': '#1a1a2e', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
-pie title RAM Requests (Gesamt ca. 3.5 Gi)
+%%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#1d5c3a', 'pie4': '#2563a0', 'pie5': '#4c2d8a', 'pie6': '#374151', 'pie7': '#1d5c3a', 'pie8': '#7a3c00', 'pie9': '#0b5575', 'pie10': '#374151', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
+pie title RAM Requests (Gesamt ca. 3.0 Gi)
     "PostgreSQL (256 Mi)" : 256
     "Mattermost (256 Mi)" : 256
     "Nextcloud (256 Mi)" : 256
     "Keycloak (512 Mi)" : 512
     "Claude Code (256 Mi)" : 256
-    "OpenSearch (512 Mi)" : 512
     "Collabora (256 Mi)" : 256
     "Invoice Ninja + MariaDB (416 Mi)" : 416
     "Talk HPB Stack (256 Mi)" : 256

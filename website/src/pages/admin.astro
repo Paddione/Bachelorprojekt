@@ -4,6 +4,7 @@ import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
 import { listBugTickets, listProjects, getDueFollowUps } from '../lib/website-db';
 import { getAllInvoices } from '../lib/invoiceninja';
 import { getAvailableSlots } from '../lib/caldav';
+import ServiceLinks from '../components/ServiceLinks.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -43,6 +44,21 @@ await Promise.allSettled([
 function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
 }
+
+const ncBase  = process.env.NEXTCLOUD_EXTERNAL_URL ?? '';
+const mmUrl   = process.env.MATTERMOST_URL ?? '';
+const docsUrl = process.env.DOCS_URL ?? '';
+
+const adminLinks = [
+  ...(ncBase ? [
+    { href: `${ncBase}/apps/files/`,    label: 'Dateien',     icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`, label: 'Kalender',    icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte',    icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',        icon: '🎥' },
+  ] : []),
+  ...(mmUrl   ? [{ href: mmUrl,   label: 'Mattermost', icon: '💬' }] : []),
+  ...(docsUrl ? [{ href: docsUrl, label: 'Docs',       icon: '📖' }] : []),
+];
 ---
 
 <AdminLayout title="Admin — Dashboard">
@@ -69,6 +85,8 @@ function fmtCurrency(n: number): string {
     </a>
   ))}
 </div>
+
+      <ServiceLinks links={adminLinks} heading="Dienste" />
 
     </div>
   </section>

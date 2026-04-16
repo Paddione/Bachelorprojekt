@@ -62,7 +62,7 @@ data:
       <footer id="footer"></footer>
       <script>
         var clusterServers = ['kubernetes', 'postgres', 'keycloak', 'browser', 'github'];
-        var businessServers = ['mattermost', 'nextcloud', 'stripe'];
+        var businessServers = ['nextcloud', 'stripe'];
 
         document.getElementById('title').textContent = 'MCP Server Status';
         document.getElementById('cluster-heading').textContent = 'Cluster Management';
@@ -143,7 +143,6 @@ data:
       RESULTS=""
       RESULTS="${RESULTS}$(check kubernetes http://claude-code-mcp-core:8080/mcp),"
       RESULTS="${RESULTS}$(check postgres http://claude-code-mcp-core:3001/health),"
-      RESULTS="${RESULTS}$(check mattermost http://claude-code-mcp-core:8000/health),"
       RESULTS="${RESULTS}$(check nextcloud http://claude-code-mcp-apps:8000/health/ready),"
       RESULTS="${RESULTS}$(check keycloak http://claude-code-mcp-auth:8080/q/health),"
       RESULTS="${RESULTS}$(check browser http://claude-code-mcp-browser:3000/health),"

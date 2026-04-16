@@ -63,15 +63,6 @@ spec:
         - name: claude-code-mcp-core
           port: 3001
 
-    # ── Mattermost MCP ────────────────────────────────────────────
-    - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/mattermost`)
-      middlewares:
-        - name: mcp-chain
-      services:
-        - name: claude-code-mcp-core
-          port: 8000
-
     # ── Nextcloud MCP ─────────────────────────────────────────────
     - kind: Rule
       match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/nextcloud`)

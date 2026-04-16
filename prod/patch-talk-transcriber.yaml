@@ -11,6 +11,8 @@ spec:
           image: ghcr.io/paddione/talk-transcriber:latest
           imagePullPolicy: Always
           env:
+            - name: NC_DOMAIN
+              value: "files.mentolder.de"
             - name: NC_PROTOCOL
               value: "https"
             - name: NC_VERIFY_SSL

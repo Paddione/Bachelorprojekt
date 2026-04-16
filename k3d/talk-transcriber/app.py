@@ -13,13 +13,15 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 
-NC_PROTO     = os.environ.get("NC_PROTOCOL", "http")
-NC_HOST      = os.environ.get("NC_DOMAIN", "nextcloud")
-NC_URL       = f"{NC_PROTO}://{NC_HOST}"
-NC_USER      = "transcriber-bot"
-NC_PASS      = os.environ["TRANSCRIBER_BOT_PASSWORD"]
-NC_SECRET    = os.environ.get("TRANSCRIBER_SECRET", "")
-NC_VERIFY    = os.environ.get("NC_VERIFY_SSL", "false").lower() == "true"
+NC_PROTO      = os.environ.get("NC_PROTOCOL", "http")
+NC_HOST       = os.environ.get("NC_DOMAIN", "nextcloud")
+NC_URL        = f"{NC_PROTO}://{NC_HOST}"
+NC_USER       = "transcriber-bot"
+NC_PASS       = os.environ["TRANSCRIBER_BOT_PASSWORD"]
+NC_SECRET     = os.environ.get("TRANSCRIBER_SECRET", "")
+NC_VERIFY     = os.environ.get("NC_VERIFY_SSL", "false").lower() == "true"
+NC_ADMIN_USER = os.environ.get("NC_ADMIN_USER", "admin")
+NC_ADMIN_PASS = os.environ.get("NC_ADMIN_PASS", "")
 WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
@@ -101,30 +103,77 @@ async def webhook(request: Request) -> dict:
 
 async def poll_loop() -> None:
     global _pa_ok
+    admin_client = (
+        httpx.AsyncClient(auth=(NC_ADMIN_USER, NC_ADMIN_PASS), verify=NC_VERIFY, timeout=10)
+        if NC_ADMIN_PASS else None
+    )
     async with httpx.AsyncClient(
         auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
     ) as client:
-        while True:
-            try:
-                await tick(client)
-            except Exception as exc:
-                print(f"[poll] {exc}", flush=True)
+        try:
+            while True:
+                try:
+                    await tick(client, admin_client)
+                except Exception as exc:
+                    print(f"[poll] {exc}", flush=True)
 
-            # Check PulseAudio health
-            pa_proc = await asyncio.create_subprocess_exec(
-                "pactl", "info",
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL,
+                pa_proc = await asyncio.create_subprocess_exec(
+                    "pactl", "info",
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL,
+                )
+                await pa_proc.wait()
+                _pa_ok = pa_proc.returncode == 0
+                if not _pa_ok:
+                    print("[poll] WARNING: PulseAudio not responding", flush=True)
+
+                await asyncio.sleep(CHUNK_S)
+        finally:
+            if admin_client:
+                await admin_client.aclose()
+
+
+async def _auto_join_all_rooms(
+    bot_client: httpx.AsyncClient,
+    admin_client: httpx.AsyncClient,
+) -> None:
+    """Add transcriber-bot to every Talk room it is not yet a member of."""
+    all_r = await admin_client.get(
+        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
+        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
+        params={"noFilter": "1"},
+    )
+    if not all_r.is_success:
+        return
+
+    bot_r = await bot_client.get(
+        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
+        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
+    )
+    bot_tokens: set[str] = (
+        {rm["token"] for rm in bot_r.json()["ocs"]["data"]}
+        if bot_r.is_success else set()
+    )
+
+    for room in all_r.json()["ocs"]["data"]:
+        token = room["token"]
+        if token not in bot_tokens:
+            resp = await admin_client.post(
+                f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room/{token}/participants",
+                headers={"OCS-APIRequest": "true"},
+                json={"newParticipant": NC_USER, "source": "users"},
             )
-            await pa_proc.wait()
-            _pa_ok = pa_proc.returncode == 0
-            if not _pa_ok:
-                print("[poll] WARNING: PulseAudio not responding", flush=True)
-
-            await asyncio.sleep(CHUNK_S)
+            if resp.is_success:
+                print(f"[auto-join] added {NC_USER} to room {token}", flush=True)
 
 
-async def tick(client: httpx.AsyncClient) -> None:
+async def tick(client: httpx.AsyncClient, admin_client: httpx.AsyncClient | None) -> None:
+    if admin_client:
+        try:
+            await _auto_join_all_rooms(client, admin_client)
+        except Exception as exc:
+            print(f"[auto-join] {exc}", flush=True)
+
     r = await client.get(
         f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
         headers={"OCS-APIRequest": "true", "Accept": "application/json"},

@@ -198,8 +198,12 @@ async def _auto_join_all_rooms(admin_client: httpx.AsyncClient) -> None:
                 headers={"OCS-APIRequest": "true"},
                 json={"newParticipant": NC_USER, "source": "users"},
             )
-            if resp.is_success:
-                print(f"[auto-join] added {NC_USER} to room {token}", flush=True)
+            await pa_proc.wait()
+            _pa_ok = pa_proc.returncode == 0
+            if not _pa_ok:
+                print("[poll] WARNING: PulseAudio not responding", flush=True)
+
+            await asyncio.sleep(CHUNK_S)
 
 
 # ---------- Poll loop (fast, every CHUNK_SECONDS) ----------------------------

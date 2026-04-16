@@ -257,9 +257,10 @@ all_images() {
   fi
 
   run python3 -c "
-import subprocess, sys, yaml
+import subprocess, sys, yaml, glob, os
 
-overlays = ['${PROJECT_DIR}/prod', '${PROJECT_DIR}/prod-korczewski', '${PROJECT_DIR}/prod-mentolder']
+overlays = sorted(glob.glob('${PROJECT_DIR}/prod*'))
+overlays = [o for o in overlays if os.path.isdir(o)]
 found = []
 for overlay in overlays:
     try:

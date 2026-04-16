@@ -3,7 +3,6 @@ kind: ConfigMap
 metadata:
   name: domain-config
 data:
-  MM_DOMAIN: "chat.localhost"
   KC_DOMAIN: "auth.localhost"
   NC_DOMAIN: "files.localhost"
   MEET_DOMAIN: "meet.localhost"
@@ -14,7 +13,6 @@ data:
   MAIL_DOMAIN: "mail.localhost"
   DOCS_DOMAIN: "docs.localhost"
   GITBOOK_URL: ""
-  BILLING_DOMAIN: "billing.localhost"
   WEB_DOMAIN: "web.localhost"
   WIKI_DOMAIN: "wiki.localhost"
   AI_DOMAIN: "ai.localhost"

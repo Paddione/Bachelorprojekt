@@ -25,10 +25,6 @@ resources:
   - talk-recording.yaml
   - vaultwarden.yaml
   # Buchhaltung
-  - invoiceninja.yaml
-  - sso-bridge.yaml
-  - sso-auth-php.yaml
-  - oauth2-proxy-invoiceninja.yaml
   - oauth2-proxy-docs.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
@@ -45,8 +41,6 @@ resources:
   - whisper.yaml
   # Live-Transkription Bot
   - talk-transcriber.yaml
-  # Embedding (Vektorisierung)
-  - embedding.yaml
   # KI-Assistent
   - claude-code-rbac.yaml
   - claude-code-config.yaml
@@ -79,9 +73,6 @@ configMapGenerator:
   - name: nextcloud-extra-config
     files:
       - zz-extra.config.php=nextcloud-extra-config.php
-  - name: invoiceninja-nginx-config
-    files:
-      - default.conf=invoiceninja-nginx.conf
   - name: docs-content
     files:
       - docs-content/index.html

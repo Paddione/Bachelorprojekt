@@ -45,28 +45,27 @@ function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-const ncBase       = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
-const mmUrl        = process.env.MATTERMOST_EXTERNAL_URL ?? '';
-const docsUrl      = process.env.DOCS_URL ?? '';
-const billingUrl   = process.env.BILLING_EXTERNAL_URL ?? '';
-const authUrl      = process.env.AUTH_EXTERNAL_URL ?? '';
-const vaultUrl     = process.env.VAULT_EXTERNAL_URL ?? '';
-const whiteboardUrl = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
-const wikiUrl      = process.env.WIKI_EXTERNAL_URL ?? '';
+const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const mmUrl       = process.env.MATTERMOST_EXTERNAL_URL ?? '';
+const docsUrl     = process.env.DOCS_URL ?? '';
+const billingUrl  = process.env.BILLING_EXTERNAL_URL ?? '';
+const authUrl     = process.env.AUTH_EXTERNAL_URL ?? '';
+const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
+const wikiUrl     = process.env.WIKI_EXTERNAL_URL ?? '';
 const adminLinks = [
   ...(ncBase ? [
-    { href: `${ncBase}/apps/files/`,    label: 'Dateien',     icon: '📁' },
-    { href: `${ncBase}/apps/calendar/`, label: 'Kalender',    icon: '📅' },
-    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte',    icon: '👥' },
-    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',        icon: '🎥' },
+    { href: `${ncBase}/apps/files/`,      label: 'Dateien',    icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`,   label: 'Kalender',   icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
+    { href: `${ncBase}/apps/whiteboard/`, label: 'Whiteboard', icon: '🖊️' },
   ] : []),
-  ...(wikiUrl      ? [{ href: wikiUrl,      label: 'Wiki',         icon: '📚' }] : []),
-  ...(whiteboardUrl ? [{ href: whiteboardUrl, label: 'Whiteboard', icon: '🖊️' }] : []),
-  ...(mmUrl        ? [{ href: mmUrl,        label: 'Mattermost',   icon: '💬' }] : []),
-  ...(billingUrl   ? [{ href: billingUrl,   label: 'Abrechnung',   icon: '🧾' }] : []),
-  ...(vaultUrl     ? [{ href: vaultUrl,     label: 'Passwörter',   icon: '🔐' }] : []),
-  ...(authUrl      ? [{ href: `${authUrl}/admin/`, label: 'Keycloak', icon: '🔑' }] : []),
-  ...(docsUrl      ? [{ href: docsUrl,      label: 'Docs',         icon: '📖' }] : []),
+  ...(wikiUrl     ? [{ href: wikiUrl,           label: 'Wiki',       icon: '📚' }] : []),
+  ...(mmUrl       ? [{ href: mmUrl,             label: 'Mattermost', icon: '💬' }] : []),
+  ...(billingUrl  ? [{ href: billingUrl,        label: 'Abrechnung', icon: '🧾' }] : []),
+  ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
+  ...(authUrl     ? [{ href: `${authUrl}/admin/`, label: 'Keycloak', icon: '🔑' }] : []),
+  ...(docsUrl     ? [{ href: docsUrl,           label: 'Docs',       icon: '📖' }] : []),
 ];
 ---
 

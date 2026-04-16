@@ -15,19 +15,18 @@ if (!session) {
 
 const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
 
-const ncBase        = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
-const wikiUrl       = process.env.WIKI_EXTERNAL_URL ?? '';
-const whiteboardUrl = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
+const ncBase  = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const wikiUrl = process.env.WIKI_EXTERNAL_URL ?? '';
 
 const portalLinks = [
   ...(ncBase ? [
-    { href: `${ncBase}/apps/files/`,    label: 'Dateien',    icon: '📁' },
-    { href: `${ncBase}/apps/calendar/`, label: 'Kalender',   icon: '📅' },
-    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte',   icon: '👥' },
-    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',       icon: '🎥' },
+    { href: `${ncBase}/apps/files/`,       label: 'Dateien',    icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`,    label: 'Kalender',   icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`,    label: 'Kontakte',   icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,      label: 'Talk',       icon: '🎥' },
+    { href: `${ncBase}/apps/whiteboard/`,  label: 'Whiteboard', icon: '🖊️' },
   ] : []),
-  ...(wikiUrl       ? [{ href: wikiUrl,       label: 'Wiki',       icon: '📚' }] : []),
-  ...(whiteboardUrl ? [{ href: whiteboardUrl, label: 'Whiteboard', icon: '🖊️' }] : []),
+  ...(wikiUrl ? [{ href: wikiUrl, label: 'Wiki', icon: '📚' }] : []),
 ];
 ---
 

@@ -110,6 +110,35 @@ export async function hashFile(filePath: string): Promise<string> {
 }
 
 /**
+ * Upload a file to Nextcloud (WebDAV PUT). Creates or overwrites the file.
+ */
+export async function uploadFile(
+  filePath: string,
+  content: Buffer | string,
+  contentType = 'application/octet-stream',
+): Promise<void> {
+  const url = davUrl(filePath);
+  // Convert Buffer to ArrayBuffer for Blob compatibility
+  const blobPart: BlobPart = typeof content === 'string'
+    ? content
+    : content.buffer.slice(content.byteOffset, content.byteOffset + content.byteLength) as ArrayBuffer;
+  const body = new Blob([blobPart], { type: contentType });
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: authHeader(),
+      'Content-Type': contentType,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    body: body as any,
+  });
+  // 201 = created, 204 = overwritten — both are fine
+  if (res.status !== 201 && res.status !== 204) {
+    throw new Error(`Failed to upload ${filePath}: ${res.status}`);
+  }
+}
+
+/**
  * Ensure a folder exists in Nextcloud (MKCOL, ignores 405 if already exists).
  */
 export async function ensureFolder(folderPath: string): Promise<void> {

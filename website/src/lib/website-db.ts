@@ -386,6 +386,113 @@ export async function getMeetingsForClient(
   return result.rows;
 }
 
+// ── Admin: Meeting list ──────────────────────────────────────────────────────
+
+export interface AdminMeeting {
+  id: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  customerName: string;
+  customerEmail: string;
+  customerId: string;
+  projectName: string | null;
+  projectId: string | null;
+  hasTranscript: boolean;
+  artifactCount: number;
+}
+
+export async function listAllMeetings(opts?: {
+  unassignedOnly?: boolean;
+  limit?: number;
+}): Promise<AdminMeeting[]> {
+  const where = opts?.unassignedOnly
+    ? `WHERE c.name LIKE '%@unknown.local%' OR m.meeting_type = 'Talk-Session'`
+    : '';
+  const result = await pool.query(`
+    SELECT m.id, m.meeting_type AS "meetingType", m.status,
+           m.talk_room_token AS "talkRoomToken",
+           m.started_at AS "startedAt", m.ended_at AS "endedAt",
+           m.created_at AS "createdAt",
+           c.name AS "customerName", c.email AS "customerEmail",
+           c.id AS "customerId",
+           p.name AS "projectName", p.id AS "projectId",
+           EXISTS(SELECT 1 FROM meeting_transcripts t WHERE t.meeting_id = m.id) AS "hasTranscript",
+           (SELECT COUNT(*) FROM meeting_artifacts a WHERE a.meeting_id = m.id)::int AS "artifactCount"
+    FROM meetings m
+    JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN projects p ON m.project_id = p.id
+    ${where}
+    ORDER BY m.created_at DESC
+    LIMIT $1
+  `, [opts?.limit ?? 200]);
+  return result.rows;
+}
+
+export async function getMeetingDetail(meetingId: string): Promise<{
+  id: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  customerName: string;
+  customerEmail: string;
+  customerId: string;
+  projectName: string | null;
+  projectId: string | null;
+  transcript: { id: string; fullText: string } | null;
+  artifacts: Array<{ id: string; artifactType: string; name: string; storagePath: string | null; contentText: string | null }>;
+} | null> {
+  const r = await pool.query(`
+    SELECT m.id, m.meeting_type AS "meetingType", m.status,
+           m.talk_room_token AS "talkRoomToken",
+           m.started_at AS "startedAt", m.ended_at AS "endedAt",
+           m.created_at AS "createdAt",
+           c.name AS "customerName", c.email AS "customerEmail", c.id AS "customerId",
+           p.name AS "projectName", p.id AS "projectId"
+    FROM meetings m
+    JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN projects p ON m.project_id = p.id
+    WHERE m.id = $1
+  `, [meetingId]);
+  if (!r.rows[0]) return null;
+  const m = r.rows[0];
+
+  const [tRow, aRows] = await Promise.all([
+    pool.query(`SELECT id, full_text AS "fullText" FROM meeting_transcripts WHERE meeting_id = $1 LIMIT 1`, [meetingId]),
+    pool.query(`SELECT id, artifact_type AS "artifactType", name, storage_path AS "storagePath", content_text AS "contentText" FROM meeting_artifacts WHERE meeting_id = $1 ORDER BY created_at`, [meetingId]),
+  ]);
+
+  return {
+    ...m,
+    transcript: tRow.rows[0] ?? null,
+    artifacts: aRows.rows,
+  };
+}
+
+export async function assignMeeting(meetingId: string, params: {
+  customerName?: string;
+  customerEmail?: string;
+  meetingType?: string;
+  projectId?: string | null;
+}): Promise<void> {
+  if (params.customerName && params.customerEmail) {
+    const c = await upsertCustomer({ name: params.customerName, email: params.customerEmail });
+    await pool.query(`UPDATE meetings SET customer_id = $2, updated_at = now() WHERE id = $1`, [meetingId, c.id]);
+  }
+  if (params.meetingType !== undefined) {
+    await pool.query(`UPDATE meetings SET meeting_type = $2, updated_at = now() WHERE id = $1`, [meetingId, params.meetingType]);
+  }
+  if (params.projectId !== undefined) {
+    await pool.query(`UPDATE meetings SET project_id = $2, updated_at = now() WHERE id = $1`, [meetingId, params.projectId]);
+  }
+}
+
 // ── Bug Tickets ──────────────────────────────────────────────────────────────
 
 export async function insertBugTicket(params: {

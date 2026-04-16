@@ -33,11 +33,11 @@ task workspace:up
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
 | Whiteboard | http://board.localhost | WebSocket-Backend fuer Nextcloud Whiteboard (kein eigenstaendiges UI) |
 | Mailpit (Dev-Mail) | http://mail.localhost | E-Mail-Testing (nur Dev) |
-| OpenSearch | -- | Volltextsuche (intern) |
 | Docs | http://docs.localhost | Projektdokumentation (Docsify) |
 | Website | http://web.localhost | Astro + Svelte Webseite |
-| Outline (Wiki) | http://wiki.localhost | Wissensdatenbank (optional) |
 | Whisper | -- | Transkriptions-Service (intern, optional) |
+| Embedding | -- | Text-Vektorisierung (intern, fuer Meeting-Transkripte) |
+| Talk Recording | -- | Anruf-Aufzeichnung fuer Nextcloud Talk (intern) |
 
 ## Dokumentation
 
@@ -75,11 +75,13 @@ graph TB
             VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
             WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
             MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
-            OS["fa:fa-search OpenSearch"]
             DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
             BB["fa:fa-robot billing-bot<br/>intern"]
             PROXY["fa:fa-shuffle mm-keycloak-proxy<br/>intern"]
             OAUTH["fa:fa-shield-halved oauth2-proxy<br/>Invoice Ninja"]
+            WHISPER["fa:fa-microphone Whisper<br/>intern"]
+            EMB["fa:fa-vector-square Embedding<br/>intern"]
+            REC["fa:fa-record-vinyl Talk Recording<br/>intern"]
 
             subgraph HPB-Stack ["fa:fa-video Talk HPB Stack"]
                 JANUS["Janus Gateway"]
@@ -103,7 +105,7 @@ graph TB
     User --> Traefik
     Traefik --> KC & MM & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
 
-    KC -. OIDC .-> MM & NC & IN & OC
+    KC -. OIDC .-> MM & NC & IN & OC & VW & WEB
     PROXY --> KC
     MM --> PROXY
     OAUTH --> KC
@@ -114,10 +116,11 @@ graph TB
 
     NC --> CO
     NC --> HPB
+    NC --> REC
     HPB --- JANUS & NATS
     JANUS --- COTURN
 
-    KC & MM & NC & IN & OC & OS --> DB
+    KC & MM & NC & IN & OC & VW --> DB
     PROM --> GRAF
 
     classDef identity fill:#4a90d9,color:#fff,stroke:#2d6a9f
@@ -129,11 +132,11 @@ graph TB
     classDef infra fill:#374151,color:#fff,stroke:#1f2937
 
     class KC,PROXY,OAUTH identity
-    class MM,NC,CO,WB,HPB,JANUS,NATS,COTURN collab
-    class OC ai
+    class MM,NC,CO,WB,OL,HPB,JANUS,NATS,COTURN collab
+    class OC,WHISPER,EMB ai
     class IN,BB billing
     class DB,OS data
-    class VW,MP,DOCS tools
+    class VW,MP,DOCS,REC tools
     class Traefik,WEB,PROM,GRAF infra
 ```
 
@@ -269,6 +272,21 @@ Alternativ alles automatisch: `task workspace:up`
 | `task website:teardown` | Website-Namespace loeschen (mit Bestaetigung) |
 | `task website:webhook:setup` | Mattermost-Webhook fuer Kontaktformular einrichten |
 
+### ArgoCD (GitOps Multi-Cluster)
+
+| Befehl | Beschreibung |
+|--------|-------------|
+| `task argocd:setup` | Vollstaendiges Setup: Install + Login + Cluster-Registrierung + Apps |
+| `task argocd:install` | ArgoCD auf Hetzner Hub-Cluster installieren |
+| `task argocd:password` | Initiales Admin-Passwort ausgeben |
+| `task argocd:ui` | ArgoCD-UI auf http://localhost:8090 weiterleiten |
+| `task argocd:login` | Mit argocd CLI einloggen |
+| `task argocd:cluster:register` | Hetzner + Korczewski Cluster mit Workspace-Labels registrieren |
+| `task argocd:apps:apply` | AppProject und ApplicationSet anwenden |
+| `task argocd:status` | Sync-/Health-Status aller Apps ueber alle Cluster |
+| `task argocd:sync -- <app>` | Sync manuell ausloesen |
+| `task argocd:diff -- <app>` | Diff zwischen Git und Live-Zustand |
+
 ### Whisper (Transkription, optional)
 
 | Befehl | Beschreibung |
@@ -276,15 +294,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task whisper:deploy` | faster-whisper Transkriptions-Service deployen |
 | `task whisper:status` | Whisper Deployment-Status |
 | `task whisper:logs` | Whisper-Logs |
-
-### Outline (Wiki, optional)
-
-| Befehl | Beschreibung |
-|--------|-------------|
-| `task outline:deploy` | Outline Wissensdatenbank deployen |
-| `task outline:status` | Outline Deployment-Status |
-| `task outline:logs` | Outline-Logs |
-| `task outline:teardown` | Outline und Daten entfernen (mit Bestaetigung) |
 
 ### Dokumentation
 
@@ -356,7 +365,7 @@ Alternativ alles automatisch: `task workspace:up`
 ./tests/runner.sh report             # Markdown-Report generieren
 ```
 
-Test-IDs: `FA-01`--`FA-11` (funktional), `SA-01`--`SA-09` (Sicherheit), `NFA-01`--`NFA-07` (nicht-funktional), `AK-03`, `AK-04` (Abnahme).
+Test-IDs: `FA-01`--`FA-25` (funktional), `SA-01`--`SA-10` (Sicherheit), `NFA-01`--`NFA-09` (nicht-funktional), `AK-03`, `AK-04` (Abnahme).
 
 ## Projektstruktur
 
@@ -366,41 +375,63 @@ Bachelorprojekt/
     kustomization.yaml          # Kustomize-Orchestrierung
     configmap-domains.yaml      # Zentrale Domain-Konfiguration
     secrets.yaml                # Dev-Secrets (keine echten Credentials!)
+    sealed-secrets-controller.yaml # Sealed Secrets Controller
     ingress.yaml                # Traefik Ingress Rules
     keycloak.yaml               # Keycloak + Realm-Import
     mattermost.yaml             # Mattermost + HPA
     nextcloud.yaml              # Nextcloud + Talk
     collabora.yaml              # Collabora Online
     talk-hpb.yaml               # Talk HPB (Signaling + Janus + NATS)
+    talk-recording.yaml         # Talk Anruf-Aufzeichnung
     coturn.yaml                 # TURN/STUN Server
-    claude-code-config.yaml        # Claude Code Konfiguration
-    claude-code-rbac.yaml          # Kubernetes RBAC fuer MCP-Zugriff
-    claude-code-mcp-*.yaml         # MCP-Server Manifeste (11 Server)
+    claude-code-config.yaml     # Claude Code Konfiguration
+    claude-code-rbac.yaml       # Kubernetes RBAC fuer MCP-Zugriff
+    claude-code-mcp-*.yaml      # MCP-Server Manifeste (13 Server)
     invoiceninja.yaml           # Invoice Ninja + OAuth2-Proxy
     billing-bot.yaml            # billing-bot Deployment
     vaultwarden.yaml            # Vaultwarden Passwort-Manager
+    vaultwarden-seed-*.yaml     # Vaultwarden Seed-Jobs + Credentials
     whiteboard.yaml             # Kollaboratives Whiteboard
-    opensearch.yaml             # Volltextsuche
+    embedding.yaml              # Text-Embedding-Service (infinity-emb)
+    meetings-schema.yaml        # Meeting-Datenbank-Schema
     mailpit.yaml                # Dev-Mailserver
     whisper.yaml                # Transkriptions-Service
-    outline.yaml                # Outline Wiki
     docs.yaml                   # Docsify Docs-Site
     website.yaml                # Astro Website
+    korczewski-website.yaml     # Korczewski-Website (Branding-Variante)
     shared-db.yaml              # PostgreSQL 16 (eine DB pro Service)
+    backup-*.yaml               # Backup CronJob, PVC, Secrets
     realm-workspace-dev.json    # Keycloak Realm-Konfiguration
     nextcloud-oidc-dev.php      # Nextcloud OIDC-Konfiguration
   prod/                         # Produktions-Overlays (TLS, Ressourcen-Limits, Replicas)
+  prod-korczewski/              # Korczewski-spezifische Produktions-Overlays
+  k3s/                          # k3s-Produktions-Patches (Collabora, Storage, HPB)
+  environments/                 # Umgebungskonfiguration (dev, mentolder, korczewski)
+    dev.yaml                    # Entwicklungsumgebung
+    mentolder.yaml              # Produktionsumgebung mentolder.de
+    korczewski.yaml             # Produktionsumgebung korczewski.de
+    schema.yaml                 # Konfigurations-Schema
+    sealed-secrets/             # Sealed Secrets pro Umgebung
+    certs/                      # TLS-Zertifikate pro Umgebung
+  argocd/                       # ArgoCD GitOps Multi-Cluster Federation
+    applicationset.yaml         # ApplicationSet fuer alle Cluster
+    project.yaml                # AppProject-Definition
+    install/                    # ArgoCD Installation + CMP-Plugin
   deploy/                       # Skaffold-basierter Deploy-Pfad (Dev-Iteration)
     mcp/                        # MCP-Server Kustomize Overlays
   billing-bot/                  # Go-Microservice (main.go) -- /slash, /actions, /healthz
-  claude-code/                     # Claude Code Konfiguration + System-Prompt
-  scripts/                      # Bash-Utility-Skripte (Migration, Import, DSGVO, MCP)
-  tests/                        # Automatisierte Tests (Bash + Playwright)
-  website/                      # Astro + Svelte Website
-  docs/                         # Anforderungsdefinitionen (JSON)
+  claude-code/                  # Claude Code Konfiguration + System-Prompt
+  scripts/                      # Bash-Utility-Skripte (Migration, Import, DSGVO, MCP, Env)
+  tests/                        # Automatisierte Tests (Bash + Playwright + BATS)
+    e2e/                        # Playwright E2E-Tests (35 Spec-Dateien)
+    unit/                       # BATS Unit-Tests
+  website/                      # Astro + Svelte Website (mentolder.de)
+  korczewski-website/           # Astro Website (korczewski.de, Branding-Variante)
+  docs/                         # Projektdokumentation (Docsify-faehig)
   docs-site/                    # Docsify index.html
   mattermost/                   # Mattermost Keycloak-Proxy Config
   grafana/                      # DSGVO Compliance Dashboard
+  wireguard/                    # VPN-Konfigurationsvorlagen
 ```
 
 ## Regeln fuer dieses Monorepo

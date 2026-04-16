@@ -8,12 +8,9 @@ resources:
   - secrets.yaml
   # Shared database (one PostgreSQL, one DB per service)
   - shared-db.yaml
-  - meetings-schema.yaml
+  - website-schema.yaml
   # Kerndienste
   - keycloak.yaml
-  - mm-keycloak-proxy.yaml
-  - mattermost.yaml
-  - mattermost-hpa.yaml
   - nextcloud.yaml
   - nextcloud-redis.yaml
   - nextcloud-notify-push-ingress.yaml
@@ -29,24 +26,25 @@ resources:
   - vaultwarden.yaml
   # Buchhaltung
   - invoiceninja.yaml
+  - sso-bridge.yaml
+  - sso-auth-php.yaml
   - oauth2-proxy-invoiceninja.yaml
-  - billing-bot.yaml
-  - billing-bot-init-job.yaml
-  # Suche (FA-07)
-  - opensearch.yaml
+  - oauth2-proxy-docs.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-secrets.yaml
   - backup-cronjob.yaml
+  - notify-unread-cronjob.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
-  # Wiki
-  - outline.yaml
+  # Anforderungs-Tracking
+  - tracking.yaml
   # Transkription
   - whisper.yaml
-  - talk-transcriber.yaml  # Live-Transkription Bot
+  # Live-Transkription Bot
+  - talk-transcriber.yaml
   # Embedding (Vektorisierung)
   - embedding.yaml
   # KI-Assistent
@@ -54,11 +52,12 @@ resources:
   - claude-code-config.yaml
   - claude-code-mcp-ops.yaml
   - claude-code-mcp-browser.yaml
-  - claude-code-mcp-mattermost.yaml
   - claude-code-mcp-apps.yaml
   - claude-code-mcp-auth.yaml
   - claude-code-mcp-stripe.yaml
   - claude-code-mcp-github.yaml
+  # Pentest Flags (CTF)
+  - pentest-flags.yaml
   # Traefik Dev-Middlewares
   - traefik-middlewares-dev.yaml
   # Netzwerksicherheit (L3)
@@ -71,6 +70,9 @@ configMapGenerator:
   - name: realm-template
     files:
       - realm-workspace.json=realm-workspace-dev.json
+  - name: keycloak-import-script
+    files:
+      - import-entrypoint.sh=realm-import-entrypoint.sh
   - name: nextcloud-oidc-config
     files:
       - oidc.config.php=nextcloud-oidc-dev.php
@@ -80,6 +82,28 @@ configMapGenerator:
   - name: invoiceninja-nginx-config
     files:
       - default.conf=invoiceninja-nginx.conf
+  - name: docs-content
+    files:
+      - docs-content/index.html
+      - docs-content/README.md
+      - docs-content/_sidebar.md
+      - docs-content/architecture.md
+      - docs-content/database.md
+      - docs-content/benutzerhandbuch.md
+      - docs-content/keycloak.md
+      - docs-content/mcp-actions.md
+      - docs-content/migration.md
+      - docs-content/requirements.md
+      - docs-content/scripts.md
+      - docs-content/security-report.md
+      - docs-content/security.md
+      - docs-content/services.md
+      - docs-content/test-anleitung-korczewski.md
+      - docs-content/tests.md
+      - docs-content/troubleshooting.md
+      - docs-content/verarbeitungsverzeichnis.md
+      - docs-content/stripe.md
+      - docs-content/admin-projekte.md
 
 generatorOptions:
   disableNameSuffixHash: true

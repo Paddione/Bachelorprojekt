@@ -25,6 +25,7 @@ spec:
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.6
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -39,7 +40,7 @@ spec:
             - name: KC_DB
               value: postgres
             - name: KC_DB_URL
-              value: "jdbc:postgresql://keycloak-db:5432/keycloak"
+              value: "jdbc:postgresql://keycloak-db:5432/keycloak?sslmode=prefer"
             - name: KC_DB_USERNAME
               value: keycloak
             - name: KC_DB_PASSWORD
@@ -130,6 +131,16 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: OUTLINE_OIDC_SECRET
+            - name: DOCS_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: DOCS_OIDC_SECRET
+            - name: DOCS_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: DOCS_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:
@@ -160,10 +171,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              memory: 512Mi
-              cpu: 250m
-            limits:
               memory: 1Gi
+              cpu: "500m"
+            limits:
+              memory: 2Gi
+              cpu: "2"
       volumes:
         - name: import-script
           configMap:

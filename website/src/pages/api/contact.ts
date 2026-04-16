@@ -1,24 +1,18 @@
 import type { APIRoute } from 'astro';
-import { postWebhook, postInteractiveMessage, getFirstTeamId, getChannelByName } from '../../lib/mattermost';
+import { createInboxItem } from '../../lib/messaging-db';
+import { sendEmail } from '../../lib/email';
+
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
+const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
 const TYPE_LABELS: Record<string, string> = {
   allgemein: 'Allgemeine Anfrage',
   erstgespraech: 'Kostenloses Erstgespräch',
-  'digital-cafe': 'Digital Café 50+',
+  'digital-cafe': '50+ digital',
   coaching: 'Führungskräfte-Coaching',
   beratung: 'Unternehmensberatung',
   support: 'Support',
   feedback: 'Feedback',
-};
-
-const TYPE_ICONS: Record<string, string> = {
-  allgemein: ':envelope:',
-  erstgespraech: ':calendar:',
-  'digital-cafe': ':computer:',
-  coaching: ':dart:',
-  beratung: ':office:',
-  support: ':wrench:',
-  feedback: ':star:',
 };
 
 export const POST: APIRoute = async ({ request }) => {
@@ -41,30 +35,28 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const typeLabel = TYPE_LABELS[type] || 'Unbekannt';
-    const typeIcon = TYPE_ICONS[type] || ':grey_question:';
-    const text = `### ${typeIcon} Neue Anfrage: ${typeLabel}\n\n| Feld | Inhalt |\n|------|--------|\n| **Name** | ${name} |\n| **E-Mail** | ${email} |\n| **Telefon** | ${phone || 'Nicht angegeben'} |\n| **Typ** | ${typeLabel} |\n\n**Nachricht:**\n> ${message.replace(/\n/g, '\n> ')}`;
 
-    // Try interactive message with Reply/Archive buttons
-    const teamId = await getFirstTeamId();
-    const channelId = teamId ? await getChannelByName(teamId, 'anfragen') : null;
+    await createInboxItem({
+      type: 'contact',
+      payload: { name, email, phone: phone ?? null, type, typeLabel, message },
+    });
 
-    if (channelId) {
-      await postInteractiveMessage({
-        channelId,
-        text,
-        actions: [
-          { id: 'reply_contact', name: 'Antworten', style: 'primary' },
-          { id: 'archive_contact', name: 'Archivieren', style: 'default' },
-        ],
-        context: { senderName: name, senderEmail: email, senderPhone: phone, type, message },
-      });
-    } else {
-      // Fallback: simple webhook
-      await postWebhook({
-        channel: 'anfragen',
-        username: 'Website-Bot',
-        icon_emoji: ':globe_with_meridians:',
-        text,
+    // E-Mail-Benachrichtigung an Admin
+    if (CONTACT_EMAIL) {
+      const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
+      await sendEmail({
+        to: CONTACT_EMAIL,
+        subject: `[${typeLabel}] Neue Anfrage von ${name}`,
+        replyTo: email,
+        text: `Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\n\nNachricht:\n${message}`,
+        html: `<p>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</p>
+<table>
+<tr><td><strong>Name</strong></td><td>${name}</td></tr>
+<tr><td><strong>E-Mail</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>
+${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}
+<tr><td><strong>Typ</strong></td><td>${typeLabel}</td></tr>
+</table>
+<p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
       });
     }
 

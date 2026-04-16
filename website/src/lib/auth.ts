@@ -34,7 +34,7 @@ export interface UserSession {
 import pg from 'pg';
 const sessionPool = new pg.Pool({
   connectionString: process.env.SESSIONS_DATABASE_URL
-    || 'postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings',
+    || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website',
 });
 
 let sessionsTableReady = false;
@@ -83,6 +83,30 @@ export async function getLogoutUrl(sessionId?: string): Promise<string> {
   return `${LOGOUT_ENDPOINT}?${params}`;
 }
 
+// 8 hours — session lifetime in the DB (independent of the short-lived access token)
+const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+
+async function refreshTokens(refreshToken: string): Promise<{ access_token: string; refresh_token: string; expires_in: number } | null> {
+  try {
+    const res = await fetch(TOKEN_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        refresh_token: refreshToken,
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.access_token) return null;
+    return { access_token: data.access_token, refresh_token: data.refresh_token || refreshToken, expires_in: data.expires_in || 300 };
+  } catch {
+    return null;
+  }
+}
+
 export async function exchangeCode(code: string): Promise<{ sessionId: string; user: UserSession } | null> {
   const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
@@ -116,6 +140,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
   const userInfo = await userRes.json();
 
   const sessionId = generateSessionId();
+  const sessionExpiry = Date.now() + SESSION_TTL_MS;
   const user: UserSession = {
     sub: userInfo.sub,
     email: userInfo.email,
@@ -125,21 +150,23 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
     family_name: userInfo.family_name,
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
-    expires_at: Date.now() + tokens.expires_in * 1000,
+    expires_at: sessionExpiry,
   };
 
   await ensureSessionsTable();
   await sessionPool.query(
     'INSERT INTO web_sessions (id, data, expires_at) VALUES ($1, $2, $3)',
-    [sessionId, JSON.stringify(user), new Date(user.expires_at)]
+    [sessionId, JSON.stringify(user), new Date(sessionExpiry)]
   );
   return { sessionId, user };
 }
 
-const ADMIN_USERNAME = process.env.PORTAL_ADMIN_USERNAME || 'admin';
+const ADMIN_USERNAMES = new Set(
+  (process.env.PORTAL_ADMIN_USERNAME || 'admin').split(',').map(s => s.trim()).filter(Boolean)
+);
 
 export function isAdmin(session: UserSession): boolean {
-  return session.preferred_username === ADMIN_USERNAME;
+  return ADMIN_USERNAMES.has(session.preferred_username);
 }
 
 export async function getSession(cookieHeader: string | null): Promise<UserSession | null> {
@@ -159,11 +186,30 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
 
     if (result.rows.length === 0) return null;
 
-    const session = result.rows[0].data as UserSession;
+    let session = result.rows[0].data as UserSession;
 
-    if (session.expires_at < Date.now() + 60000) {
-      await sessionPool.query('DELETE FROM web_sessions WHERE id = $1', [sessionId]);
-      return null;
+    // Proactively refresh Keycloak access token when it's within 5 minutes of expiry
+    // while keeping the DB session alive for the full SESSION_TTL_MS.
+    const ACCESS_TOKEN_BUFFER_MS = 5 * 60 * 1000;
+    if (session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS) {
+      const refreshed = await refreshTokens(session.refresh_token);
+      if (refreshed) {
+        const newExpiry = Date.now() + SESSION_TTL_MS;
+        session = {
+          ...session,
+          access_token: refreshed.access_token,
+          refresh_token: refreshed.refresh_token,
+          expires_at: newExpiry,
+        };
+        await sessionPool.query(
+          'UPDATE web_sessions SET data = $1, expires_at = $2 WHERE id = $3',
+          [JSON.stringify(session), new Date(newExpiry), sessionId]
+        );
+      } else {
+        // Refresh failed — session is expired, clean up
+        await sessionPool.query('DELETE FROM web_sessions WHERE id = $1', [sessionId]);
+        return null;
+      }
     }
 
     return session;
@@ -180,7 +226,8 @@ export function getSessionId(cookieHeader: string | null): string | undefined {
 }
 
 export function setSessionCookie(sessionId: string): string {
-  return `${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`;
+  const maxAgeSeconds = Math.floor(SESSION_TTL_MS / 1000);
+  return `${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
 }
 
 export function clearSessionCookie(): string {

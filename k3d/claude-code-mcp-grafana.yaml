@@ -19,6 +19,7 @@ spec:
       containers:
         - name: mcp-grafana
           image: grafana/mcp-grafana:latest
+          imagePullPolicy: Always
           env:
             - name: MCP_TRANSPORT
               value: "streamable-http"
@@ -41,10 +42,11 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              memory: 64Mi
-              cpu: 50m
+              memory: 128Mi
+              cpu: "100m"
             limits:
-              memory: 256Mi
+              memory: 512Mi
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service

@@ -1,0 +1,78 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CallToAction from '../components/CallToAction.svelte';
+import FAQ from '../components/FAQ.svelte';
+import { getEffectiveServices } from '../lib/content';
+
+const { service } = Astro.params;
+const services = await getEffectiveServices();
+const svc = services.find((s) => s.slug === service && !s.hidden);
+
+if (!svc) {
+  return Astro.redirect('/404');
+}
+
+const pc = svc.pageContent;
+---
+
+<Layout title={svc.title} description={svc.description}>
+  <section class="pt-28 pb-16 bg-dark">
+    <div class="max-w-4xl mx-auto px-6">
+      <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">{svc.title}</p>
+      <h1 class="text-4xl md:text-5xl font-bold text-light leading-tight mb-6 font-serif">{pc.headline}</h1>
+      <p class="text-xl text-muted leading-relaxed max-w-3xl">{pc.intro}</p>
+    </div>
+  </section>
+
+  <section class="py-16 bg-dark-light">
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-light mb-8 font-serif">Für wen ist das?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {pc.forWhom.map((item) => (
+          <div class="flex items-start gap-4 p-5 bg-dark rounded-xl border border-dark-lighter">
+            <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            <p class="text-lg text-muted">{item}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {pc.sections.length > 0 && (
+    <section class="py-16 bg-dark">
+      <div class="max-w-4xl mx-auto px-6">
+        <h2 class="text-3xl font-bold text-light mb-10 font-serif">Leistungsumfang</h2>
+        <div class={`grid grid-cols-1 ${pc.sections.length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-8`}>
+          {pc.sections.map((sec) => (
+            <div class="bg-dark-light rounded-xl p-6 border border-dark-lighter">
+              <h3 class="text-xl font-bold text-gold mb-4">{sec.title}</h3>
+              <ul class="space-y-2 text-muted">{sec.items.map((i) => <li>{i}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="py-16 bg-dark-light">
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-3xl font-bold text-light mb-10 text-center font-serif">Investition</h2>
+      <div class={`grid grid-cols-1 ${pc.pricing.length <= 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 max-w-3xl mx-auto`}>
+        {pc.pricing.map((p) => (
+          <div class={`bg-dark-light rounded-xl p-6 text-center ${p.highlight ? 'border-2 border-gold' : 'border border-dark-lighter'}`}>
+            <p class="text-muted mb-2">{p.label}</p>
+            <p class="text-3xl font-bold text-gold">{p.price}</p>
+            {p.unit && <p class="text-muted">{p.unit}</p>}
+          </div>
+        ))}
+      </div>
+      <p class="text-center text-muted mt-8 text-lg">Kostenloses Erstgespräch zum Kennenlernen!</p>
+    </div>
+  </section>
+
+  {pc.faq && pc.faq.length > 0 && (
+    <FAQ items={pc.faq} title={`Häufige Fragen zu ${svc.title}`} client:visible />
+  )}
+
+  <CallToAction client:visible />
+</Layout>

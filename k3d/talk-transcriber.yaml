@@ -1,7 +1,9 @@
-# ── Nextcloud Talk Live-Transkription ─────────────────────────────────────────
+# ── Nextcloud Talk Post-Meeting-Transkription ─────────────────────────────────
 # Pollt auf aktive Calls, tritt headless bei (Firefox + PulseAudio),
-# schickt 10-s-Chunks an Whisper, postet Transkripte in den Talk-Chat.
-# ─────────────────────────────────────────────────────────────────────────────
+# schickt Audio-Chunks an Whisper. Nach Gespraechsende sendet der Bot das
+# vollstaendige Transkript an die Website-API (/api/meeting/save-transcript),
+# die es in der Datenbank und als Markdown-Datei in Nextcloud speichert.
+# ──────────────────────────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,28 +24,35 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: transcriber
-          image: registry.localhost:5000/talk-transcriber:v1
+          image: registry.localhost:5000/talk-transcriber:latest
+          imagePullPolicy: Always
           env:
             - name: NC_DOMAIN
               value: "nextcloud"
             - name: NC_PROTOCOL
               value: "http"
-            - name: WHISPER_BASE_URL
-              value: "http://whisper:8000"
-            - name: CHUNK_SECONDS
-              value: "10"
             - name: TRANSCRIBER_BOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: TRANSCRIBER_BOT_PASSWORD
+            - name: TRANSCRIBER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: TRANSCRIBER_SECRET
+            - name: WEBSITE_URL
+              value: "http://website.website.svc.cluster.local"
+            - name: NC_VERIFY_SSL
+              value: "false"
+            - name: CHUNK_SECONDS
+              value: "5"
+            - name: MAX_SESSIONS
+              value: "3"
           ports:
             - containerPort: 8000
           securityContext:
             allowPrivilegeEscalation: false
-          volumeMounts:
-            - name: shm
-              mountPath: /dev/shm
           resources:
             requests:
               memory: 512Mi
@@ -63,6 +72,9 @@ spec:
               port: 8000
             initialDelaySeconds: 60
             periodSeconds: 30
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
       volumes:
         - name: shm
           emptyDir:

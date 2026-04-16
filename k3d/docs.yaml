@@ -17,6 +17,7 @@ spec:
       containers:
         - name: docs
           image: joseluisq/static-web-server:2.36-alpine
+          imagePullPolicy: Always
           ports:
             - containerPort: 8787
           env:
@@ -24,13 +25,15 @@ spec:
               value: /public
             - name: SERVER_PORT
               value: "8787"
+            - name: SERVER_CACHE_CONTROL_HEADERS
+              value: "false"
           resources:
             requests:
-              memory: 8Mi
-              cpu: 5m
-            limits:
               memory: 32Mi
-              cpu: 50m
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

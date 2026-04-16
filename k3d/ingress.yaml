@@ -15,16 +15,11 @@ spec:
                 name: keycloak
                 port:
                   number: 8080
-    - host: chat.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mattermost
-                port:
-                  number: 8065
+
+    # Mattermost (chat.*) lives in its own Ingress (mattermost-force-sso.yaml)
+    # so the force-SSO redirect middleware can be scoped to just that host.
+
+    # ── Nextcloud (Dateien) ──────────────────────────────────────────
     - host: files.localhost
       http:
         paths:
@@ -65,16 +60,6 @@ spec:
                 name: spreed-signaling
                 port:
                   number: 8080
-    - host: billing.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: oauth2-proxy-invoiceninja
-                port:
-                  number: 4180
     - host: vault.localhost
       http:
         paths:
@@ -112,9 +97,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: docs
+                name: oauth2-proxy-docs
                 port:
-                  number: 80
+                  number: 4180
     - host: ai.localhost
       http:
         paths:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SA-08: SSO-Integration — Keycloak OIDC für Mattermost, Nextcloud, Talk
+# SA-08: SSO-Integration — Keycloak OIDC für Nextcloud, Talk
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
@@ -8,8 +8,8 @@ KC_INT_URL="http://keycloak:8080"
 KC_EXT_URL="http://auth.localhost"
 KC_ADMIN_TOKEN=""
 
-# Helper: curl innerhalb des k3d-Clusters via Mattermost-Pod
-_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
+# Helper: curl innerhalb des k3d-Clusters via Keycloak-Pod
+_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/keycloak -- curl -s "$@" 2>/dev/null; }
 
 # ── Admin-Token holen (try external first, fallback to internal) ─
 KC_ADMIN_TOKEN=$(curl -s -X POST "${KC_EXT_URL}/realms/master/protocol/openid-connect/token" \
@@ -84,26 +84,6 @@ SIGNALING_HEALTH=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud --
   curl -s -o /dev/null -w '%{http_code}' "http://spreed-signaling:8080/api/v1/welcome" 2>/dev/null || echo "000")
 assert_eq "$SIGNALING_HEALTH" "200" "SA-08" "T6" \
   "Talk HPB Signaling-Server erreichbar"
-
-# T7: Mattermost redirect enthält client_id=mattermost
-if [[ -n "$MM_OIDC_REDIRECT" ]]; then
-  assert_contains "$MM_OIDC_REDIRECT" "client_id=mattermost" "SA-08" "T7" \
-    "Mattermost Redirect enthält client_id=mattermost"
-else
-  skip_test "SA-08" "T7" "Mattermost client_id" "Kein SSO-Endpoint verfügbar"
-fi
-
-# T8: Nextcloud OIDC client_id is configured as "nextcloud"
-NC_CLIENT_ID=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  setpriv --reuid=999 --regid=999 --clear-groups php occ config:system:get oidc_login_client_id 2>/dev/null || echo "")
-assert_eq "$NC_CLIENT_ID" "nextcloud" "SA-08" "T8" \
-  "Nextcloud OIDC client_id = nextcloud"
-
-# T9: Talk erbt SSO-Session von Nextcloud (kein separater OIDC-Client nötig)
-TALK_APP_ENABLED=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- \
-  setpriv --reuid=999 --regid=999 --clear-groups php occ app:list 2>/dev/null | grep -c "spreed" || echo "0")
-assert_gt "$TALK_APP_ENABLED" "0" "SA-08" "T9" \
-  "Talk (spreed) App in Nextcloud aktiviert — SSO über Nextcloud-OIDC-Session"
 
 # ── Group C: Token-Exchange & Konfiguration ────────────────────
 

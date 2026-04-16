@@ -219,7 +219,118 @@ async function run() {
     }
   });
 
-  // -- 7. POST /api/register --
+  // -- 7. POST /api/bug-report --
+  section('Bug report form');
+
+  await assert('POST /api/bug-report with empty body returns 400', async () => {
+    const fd = new FormData();
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report missing description returns 400', async () => {
+    const fd = new FormData();
+    fd.append('url', 'http://test/');
+    fd.append('userAgent', 'test-ua');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with oversized screenshot returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'fehler');
+    const big = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/png' });
+    fd.append('screenshot', big, 'big.png');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with invalid MIME returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'fehler');
+    const exe = new Blob([new Uint8Array(100)], { type: 'application/x-msdownload' });
+    fd.append('screenshot', exe, 'virus.exe');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with description only returns 400 (v2: email+category required)', async () => {
+    // v2: email and category are required; description-only input must be rejected
+    const fd = new FormData();
+    fd.append('description', 'Automated test: Kaffeemaschine leer');
+    fd.append('url', 'http://test/homepage');
+    fd.append('userAgent', 'api-test/1.0');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  // v2: new validation paths (email + category)
+
+  await assert('POST /api/bug-report without email returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('category', 'fehler');
+    fd.append('url', 'http://test/');
+    fd.append('userAgent', 'test-ua');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with invalid email returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'not-an-email');
+    fd.append('category', 'fehler');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report without category returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report with invalid category returns 400', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Test');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'nonsense');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    expect(res.status).toBe(400);
+  });
+
+  await assert('POST /api/bug-report v2 happy path returns ticketId', async () => {
+    const fd = new FormData();
+    fd.append('description', 'Automated v2 test: Kaffeemaschine leer');
+    fd.append('email', 'max@example.com');
+    fd.append('category', 'fehler');
+    fd.append('url', 'http://test/homepage');
+    fd.append('userAgent', 'api-test/2.0');
+    fd.append('viewport', '1280x720');
+    const res = await fetch(`${BASE_URL}/api/bug-report`, { method: 'POST', body: fd });
+    // Tolerant: 200 if MM reachable, 500 if not
+    expect(res.status).toBeOneOf([200, 500]);
+    if (res.status === 200) {
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      // Ticket ID format: BR-YYYYMMDD-xxxx (4 lowercase hex chars)
+      if (!/^BR-\d{8}-[0-9a-f]{4}$/.test(body.ticketId ?? '')) {
+        throw new Error(`ticketId "${body.ticketId}" does not match /^BR-\\d{8}-[0-9a-f]{4}$/`);
+      }
+    }
+  });
+
+  // -- 9. POST /api/register --
   section('Register API');
 
   await assert('POST /api/register with empty body returns 400', async () => {
@@ -252,7 +363,7 @@ async function run() {
     }
   });
 
-  // -- 8. POST /api/booking --
+  // -- 10. POST /api/booking --
   section('Booking API');
 
   await assert('POST /api/booking with empty body returns 400', async () => {
@@ -282,7 +393,7 @@ async function run() {
     }
   });
 
-  // -- 9. POST /api/billing/create-invoice --
+  // -- 11. POST /api/billing/create-invoice --
   section('Billing API');
 
   await assert('POST /api/billing/create-invoice with empty body returns 400', async () => {
@@ -301,7 +412,7 @@ async function run() {
     expect(body).toHaveProperty('error');
   });
 
-  // -- 10. POST /api/meeting/finalize --
+  // -- 12. POST /api/meeting/finalize --
   section('Meeting API');
 
   await assert('POST /api/meeting/finalize with empty body returns 400', async () => {
@@ -324,7 +435,7 @@ async function run() {
     expect(res.status).toBeOneOf([200, 503]);
   });
 
-  // -- 11. POST /api/reminders/process --
+  // -- 13. POST /api/reminders/process --
   section('Reminders Process (POST)');
 
   await assert('POST /api/reminders/process returns 200', async () => {
@@ -334,7 +445,7 @@ async function run() {
     expect(body).toHaveProperty('pending');
   });
 
-  // -- 12. Registration API --
+  // -- 14. Registration API --
   section('Registration API');
 
   await assert('POST /api/register returns 400 for missing fields', async () => {
@@ -363,7 +474,7 @@ async function run() {
     expect([200, 500].includes(res.status)).toBeTrue();
   });
 
-  // -- 13. Reminders persistence --
+  // -- 15. Reminders persistence --
   section('Reminders (persistence)');
 
   await assert('GET /api/reminders/process returns pending count', async () => {
@@ -373,6 +484,36 @@ async function run() {
       const data = await res.json();
       expect(data).toHaveProperty('pending');
     }
+  });
+
+  // -- Slot Whitelist Admin Endpoints --
+  section('Slot Whitelist API (unauthenticated)');
+
+  await assert('POST /api/admin/slots/add without auth returns 403', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/slots/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slotStart: '2026-05-01T08:00:00.000Z', slotEnd: '2026-05-01T09:00:00.000Z' }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  await assert('DELETE /api/admin/slots/remove without auth returns 403', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/slots/remove`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slotStart: '2026-05-01T08:00:00.000Z' }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  await assert('GET /api/calendar/slots returns empty array (no slots whitelisted)', async () => {
+    const res = await fetch(`${BASE_URL}/api/calendar/slots`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // With whitelist mode active and no whitelisted slots, array must be empty
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(0);
   });
 
   // ============================================================

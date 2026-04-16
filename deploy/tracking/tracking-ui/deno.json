@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-env main.ts"
+  },
+  "imports": {
+    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts"
+  }
+}

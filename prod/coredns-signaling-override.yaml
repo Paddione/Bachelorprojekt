@@ -1,0 +1,19 @@
+# CoreDNS-Override: signaling.<domain> → Traefik ClusterIP
+#
+# Nextcloud Talk's PHP-Backend ruft die signaling_servers-URL server-seitig auf
+# (z.B. POST /api/v1/room/<id>). Die externe IP ist aus dem Cluster heraus durch
+# die NetworkPolicy (allow-internet-egress blockt RFC1918) nicht erreichbar.
+# Diese Konfiguration überschreibt die DNS-Auflösung cluster-intern so, dass
+# signaling.${PROD_DOMAIN} auf die Traefik-ClusterIP zeigt, die innerhalb des
+# Clusters per HTTPS erreichbar ist (NetworkPolicy: allow-traefik-egress).
+#
+# Deployment: task workspace:talk-dns-fix ENV=mentolder|korczewski
+# (manuell; kube-system liegt ausserhalb des ArgoCD workspace-Scopes)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  signaling.override: |
+    rewrite name signaling.${PROD_DOMAIN} traefik.kube-system.svc.cluster.local

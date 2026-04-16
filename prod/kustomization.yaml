@@ -9,7 +9,9 @@ resources:
   - cluster-issuer.yaml
   - wildcard-certificate.yaml
   - traefik-middlewares.yaml
+  - tlsoption.yaml
   - old-webspace.yaml
+  - ingress.yaml
 
 # Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
 configMapGenerator:
@@ -22,9 +24,11 @@ configMapGenerator:
     files:
       - oidc.config.php=nextcloud-oidc-prod.php
   - name: keycloak-import-script
+    behavior: replace
     files:
       - import-entrypoint.sh
   - name: mattermost-proxy-config
+    behavior: replace
     files:
       - default.conf=userinfo-proxy.conf
 generatorOptions:
@@ -32,10 +36,25 @@ generatorOptions:
 
 # Strategic merge patches
 patches:
+  # Drop the dev-placeholder workspace-secrets Secret from prod output.
+  # In production, workspace-secrets is managed exclusively by SealedSecrets
+  # (environments/sealed-secrets/<env>.yaml). Applying the dev values from
+  # k3d/secrets.yaml would overwrite the real secrets on every deploy.
+  - target:
+      kind: Secret
+      name: workspace-secrets
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: workspace-secrets
+      $patch: delete
   # Override domains
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)
   - path: ingress.yaml
+  # Mattermost chat.* ingress: TLS + HTTPS-redirect/HSTS/force-SSO middleware chain
+  - path: patch-mattermost-ingress.yaml
   # Service patches for https:// env vars
   - path: patch-mattermost.yaml
   - path: patch-nextcloud.yaml
@@ -43,13 +62,9 @@ patches:
   - path: patch-keycloak.yaml
   # Claude Code prod overrides
   - path: patch-claude-code-config.yaml
-  # Outline prod overrides
-  - path: patch-outline.yaml
   # Production SMTP and service config
   - path: patch-vaultwarden.yaml
-  - path: patch-oauth2-proxy.yaml
-  # Invoice Ninja: production APP_URL + SMTP
-  - path: patch-invoiceninja.yaml
+  - path: patch-oauth2-proxy-docs.yaml
   # Pin amd64-only images to amd64 nodes
   - path: patch-amd64-only.yaml
   - path: patch-mcp-browser.yaml
@@ -58,3 +73,11 @@ patches:
   # patch target on this overlay.
   # Billing bot: use ghcr.io image accessible from production nodes
   - path: patch-billing-bot.yaml
+  # Reduce shared-db resource requests for smaller production clusters
+  - path: patch-shared-db.yaml
+  # Use GHCR image for talk-transcriber in production
+  - path: patch-talk-transcriber.yaml
+  # Override signaling backend URL for production (HTTPS + real domain)
+  - path: patch-signaling-backend.yaml
+  # Whisper: use public Docker image in production (registry.localhost not accessible)
+  - path: patch-whisper.yaml

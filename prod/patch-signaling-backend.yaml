@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: signaling-config
+data:
+  server.conf.template: |
+    [http]
+    listen = 0.0.0.0:8080
+
+    [app]
+    debug = false
+
+    [sessions]
+    hashkey = @@SESSION_HASHKEY@@
+    blockkey = @@SESSION_BLOCKKEY@@
+
+    [clients]
+    internalsecret = @@CLIENTS_INTERNALSECRET@@
+
+    [backend]
+    allowall = false
+    backends = backend-1
+    timeout = 10
+    connectionsperhost = 8
+
+    [backend-1]
+    url = https://files.${PROD_DOMAIN}
+    secret = @@SIGNALING_SECRET@@
+    maxstreambitrate = 0
+    maxscreenbitrate = 0
+
+    [nats]
+    url = nats://nats:4222
+
+    [mcu]
+    type = janus
+    url = ws://janus.coturn:8188
+
+    [turn]
+    apikey = @@TURN_APIKEY@@
+    secret = @@TURN_SECRET@@
+    servers = turn:turn.${PROD_DOMAIN}:3478?transport=udp,turn:turn.${PROD_DOMAIN}:3478?transport=tcp

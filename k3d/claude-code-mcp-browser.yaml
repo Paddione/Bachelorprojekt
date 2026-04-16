@@ -17,6 +17,7 @@ spec:
       containers:
         - name: mcp-browser
           image: mcr.microsoft.com/playwright:v1.50.1-jammy
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           env:
             - name: NODE_OPTIONS
@@ -43,10 +44,11 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              memory: 512Mi
-              cpu: 200m
+              memory: 1Gi
+              cpu: "500m"
             limits:
-              memory: 2Gi
+              memory: 4Gi
+              cpu: "2"
 ---
 apiVersion: v1
 kind: Service

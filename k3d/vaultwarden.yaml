@@ -40,6 +40,7 @@ spec:
       containers:
         - name: vaultwarden
           image: vaultwarden/server:1.35.3-alpine
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -56,7 +57,7 @@ spec:
                   name: workspace-secrets
                   key: VAULTWARDEN_DB_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://vaultwarden:$(VAULTWARDEN_DB_PASSWORD)@shared-db:5432/vaultwarden"
+              value: "postgresql://vaultwarden:$(VAULTWARDEN_DB_PASSWORD)@shared-db:5432/vaultwarden?sslmode=prefer"
             - name: ADMIN_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -120,10 +121,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              memory: 64Mi
-              cpu: 50m
+              memory: 128Mi
+              cpu: "100m"
             limits:
-              memory: 256Mi
+              memory: 512Mi
+              cpu: "500m"
       volumes:
         - name: data
           persistentVolumeClaim:

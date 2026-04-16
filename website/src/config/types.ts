@@ -26,6 +26,7 @@ export interface HomepageService {
   icon: string;
   features: string[];
   price: string;
+  stripeServiceKey?: string;
   pageContent: ServicePageContent;
 }
 

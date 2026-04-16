@@ -1,8 +1,12 @@
 ---
 import Navigation from '../components/Navigation.svelte';
 import CookieConsent from '../components/CookieConsent.svelte';
+import BugReportWidget from '../components/BugReportWidget.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
+import { getEffectiveServices } from '../lib/content';
+
+const footerServices = (await getEffectiveServices().catch(() => config.services)).filter(s => !s.hidden);
 
 interface Props {
   title: string;
@@ -19,6 +23,9 @@ const { title, description = config.meta.siteDescription } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <title>{title} | {config.meta.siteTitle}</title>
   </head>
   <body class="min-h-screen flex flex-col bg-dark text-light">
@@ -41,7 +48,7 @@ const { title, description = config.meta.siteDescription } = Astro.props;
           <div>
             <h3 class="text-lg font-semibold text-gold mb-4">Angebote</h3>
             <ul class="space-y-2 text-muted">
-              {config.services.map((s) => (
+              {footerServices.map((s) => (
                 <li><a href={`/${s.slug}`} class="hover:text-gold transition-colors">{s.title}</a></li>
               ))}
             </ul>
@@ -49,9 +56,12 @@ const { title, description = config.meta.siteDescription } = Astro.props;
           <div>
             <h3 class="text-lg font-semibold text-gold mb-4">Rechtliches</h3>
             <ul class="space-y-2 text-muted">
+              <li><a href="/referenzen" class="hover:text-gold transition-colors">Referenzen</a></li>
               <li><a href="/impressum" class="hover:text-gold transition-colors">Impressum</a></li>
               <li><a href="/datenschutz" class="hover:text-gold transition-colors">Datenschutz</a></li>
+              <li><a href="/meine-daten" class="hover:text-gold transition-colors">Meine Daten</a></li>
               <li><a href="/agb" class="hover:text-gold transition-colors">AGB</a></li>
+              <li><a href="/barrierefreiheit" class="hover:text-gold transition-colors">Barrierefreiheit</a></li>
               <li>
                 <button
                   type="button"
@@ -70,5 +80,6 @@ const { title, description = config.meta.siteDescription } = Astro.props;
       </div>
     </footer>
     <CookieConsent client:load />
+    <BugReportWidget client:load />
   </body>
 </html>

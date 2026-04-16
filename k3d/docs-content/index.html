@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Workspace MVP Documentation</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+  <style>
+    /* =====================================================================
+       MENTOLDER DARK-NAVY / GOLD THEME
+       ===================================================================== */
+
+    :root {
+      --dark:          #0f1623;
+      --dark-light:    #1a2235;
+      --dark-lighter:  #1e2d45;
+      --dark-border:   #2a3a52;
+      --gold:          #e8c870;
+      --gold-light:    #f0d88a;
+      --gold-dim:      rgba(232, 200, 112, 0.10);
+      --light:         #e8e8f0;
+      --muted:         #aabbcc;
+      --muted-dark:    #8899aa;
+      --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
+      --font-serif:    'Merriweather', Georgia, serif;
+    }
+
+    /* ---- Base ---------------------------------------------------------- */
+    html, body {
+      background: #111827 !important;
+      color: var(--light);
+      font-family: var(--font-sans);
+    }
+
+    /* ---- Sidebar ------------------------------------------------------- */
+    .sidebar {
+      background: var(--dark) !important;
+      border-right: 1px solid var(--dark-border) !important;
+    }
+    .sidebar .sidebar-nav a {
+      color: var(--muted) !important;
+      transition: color 0.15s;
+    }
+    .sidebar .sidebar-nav a:hover {
+      color: var(--gold-light) !important;
+    }
+    .sidebar .sidebar-nav li.active > a,
+    .sidebar .sidebar-nav a.active {
+      color: var(--gold) !important;
+      border-left: 3px solid var(--gold) !important;
+      padding-left: 0.6em;
+      font-weight: 600;
+    }
+    .sidebar h5,
+    .sidebar .sidebar-nav > ul > li > p,
+    .sidebar .sidebar-nav > ul > li > span {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted-dark) !important;
+      margin: 1.2em 0 0.3em;
+    }
+    .sidebar-toggle {
+      background: var(--dark) !important;
+    }
+    .sidebar-toggle span {
+      background-color: var(--muted) !important;
+    }
+    .app-name-link {
+      color: var(--gold) !important;
+      font-weight: 700 !important;
+      font-family: var(--font-serif) !important;
+    }
+
+    /* ---- Main content -------------------------------------------------- */
+    #main {
+      background: #111827 !important;
+      color: var(--light);
+    }
+    .content {
+      color: var(--light);
+      max-width: 860px !important;
+    }
+
+    /* ---- Headings ------------------------------------------------------ */
+    #main h1 {
+      font-family: var(--font-serif) !important;
+      font-weight: 700 !important;
+      color: var(--gold-light) !important;
+      border-bottom: 2px solid var(--dark-border) !important;
+      padding-bottom: 0.4em !important;
+      margin-top: 0.5em !important;
+    }
+    #main h2 {
+      font-family: var(--font-serif) !important;
+      font-weight: 400 !important;
+      color: var(--light) !important;
+      border-bottom: 1px solid var(--gold) !important;
+      padding-bottom: 0.25em !important;
+    }
+    #main h3 {
+      font-family: var(--font-sans) !important;
+      font-weight: 600 !important;
+      color: var(--light) !important;
+    }
+    #main h4 {
+      font-family: var(--font-sans) !important;
+      font-weight: 500 !important;
+      color: var(--muted) !important;
+    }
+    #main strong {
+      color: var(--light) !important;
+    }
+
+    /* ---- Links --------------------------------------------------------- */
+    a, .anchor span {
+      color: var(--gold) !important;
+    }
+    a:hover {
+      color: var(--gold-light) !important;
+      text-decoration: underline;
+    }
+
+    /* ---- Tables -------------------------------------------------------- */
+    #main table {
+      border-collapse: collapse !important;
+      width: 100% !important;
+      margin: 1em 0 !important;
+    }
+    #main table thead tr {
+      background: var(--dark-lighter) !important;
+    }
+    #main table thead th {
+      color: var(--gold) !important;
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.08em !important;
+      text-transform: uppercase !important;
+      border: 1px solid var(--dark-border) !important;
+      padding: 0.6em 0.9em !important;
+      background: var(--dark-lighter) !important;
+    }
+    #main table tbody tr:nth-child(odd) {
+      background: var(--dark-light) !important;
+    }
+    #main table tbody tr:nth-child(even) {
+      background: var(--dark-lighter) !important;
+    }
+    #main table tbody tr {
+      border-bottom: 1px solid var(--dark-border) !important;
+    }
+    #main table tbody tr:hover {
+      background: rgba(232, 200, 112, 0.18) !important;
+    }
+    #main table tbody td {
+      border: 1px solid var(--dark-border) !important;
+      padding: 0.5em 0.9em !important;
+      color: var(--light) !important;
+      background: inherit !important;
+    }
+
+    /* ---- Code ---------------------------------------------------------- */
+    code {
+      background: var(--dark-lighter) !important;
+      color: var(--gold) !important;
+      border: 1px solid var(--dark-border) !important;
+      border-radius: 4px;
+      padding: 0.15em 0.4em;
+      font-size: 0.88em;
+    }
+    pre {
+      background: var(--dark-light) !important;
+      border-left: 4px solid var(--gold) !important;
+      border-radius: 6px;
+      padding: 1em 1.2em;
+      overflow-x: auto;
+    }
+    pre code {
+      background: transparent !important;
+      border: none !important;
+      padding: 0;
+      color: var(--light) !important;
+    }
+
+    /* ---- Blockquote ---------------------------------------------------- */
+    blockquote {
+      border-left: 4px solid var(--gold) !important;
+      background: var(--gold-dim) !important;
+      color: var(--muted) !important;
+      padding: 0.8em 1.2em;
+      border-radius: 0 6px 6px 0;
+      margin: 1em 0;
+    }
+    blockquote p {
+      margin: 0;
+    }
+
+    /* ---- Page Hero ----------------------------------------------------- */
+    .page-hero {
+      background: linear-gradient(135deg, var(--dark-light) 0%, var(--dark) 100%);
+      border-left: 4px solid var(--gold);
+      border-radius: 0 10px 10px 0;
+      padding: 1.6em 2em;
+      margin: 0 0 2em;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2em;
+    }
+    .page-hero-icon {
+      font-size: 2.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .page-hero-body {
+      flex: 1;
+    }
+    .page-hero-title {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin: 0 0 0.3em;
+    }
+    .page-hero-desc {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0 0 0.6em;
+      line-height: 1.6;
+    }
+    .page-hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4em;
+      margin-top: 0.5em;
+    }
+    .page-hero-tag {
+      display: inline-block;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid rgba(232, 200, 112, 0.25);
+      border-radius: 20px;
+      padding: 0.15em 0.7em;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .page-hero-back {
+      display: inline-block;
+      color: var(--muted-dark) !important;
+      font-size: 0.8rem;
+      margin-bottom: 0.5em;
+      text-decoration: none !important;
+    }
+    .page-hero-back:hover {
+      color: var(--gold) !important;
+    }
+
+    /* ---- TOC Box ------------------------------------------------------- */
+    .toc-box {
+      background: var(--dark-light);
+      border: 1px solid var(--dark-border);
+      border-top: 3px solid var(--gold);
+      border-radius: 8px;
+      padding: 1.2em 1.5em;
+      margin: 2em 0;
+    }
+    .toc-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin: 0 0 0.8em;
+    }
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0.3em 1.5em;
+    }
+    .toc-item {
+      margin: 0;
+    }
+    .toc-item a {
+      color: var(--muted) !important;
+      text-decoration: none !important;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.4em;
+      padding: 0.2em 0;
+      transition: color 0.15s;
+    }
+    .toc-item a:hover {
+      color: var(--gold-light) !important;
+    }
+    .toc-num {
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      min-width: 1.4em;
+    }
+
+    /* ---- Home Hero ----------------------------------------------------- */
+    .home-hero {
+      text-align: center;
+      padding: 3em 1em 2em;
+    }
+    .home-hero-tag {
+      display: inline-block;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid rgba(232, 200, 112, 0.3);
+      border-radius: 20px;
+      padding: 0.25em 1em;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.8em;
+    }
+    .home-hero-title {
+      font-family: var(--font-serif);
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin: 0 0 0.5em;
+      line-height: 1.2;
+    }
+    .home-hero-sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ---- Home Stats ---------------------------------------------------- */
+    .home-stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5em;
+      padding: 1.5em 0;
+      border-top: 1px solid var(--dark-border);
+      border-bottom: 1px solid var(--dark-border);
+      margin: 1.5em 0;
+    }
+    .home-stat {
+      text-align: center;
+    }
+    .home-stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--gold);
+      font-family: var(--font-serif);
+    }
+    .home-stat-label {
+      font-size: 0.75rem;
+      color: var(--muted-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ---- Home Sections & Cards ---------------------------------------- */
+    .home-section {
+      margin: 2em 0;
+    }
+    .home-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.8em;
+      padding-bottom: 0.4em;
+      border-bottom: 1px solid var(--dark-border);
+    }
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1em;
+    }
+    .home-card {
+      background: var(--dark-light);
+      border: 1px solid var(--dark-border);
+      border-radius: 8px;
+      padding: 1.2em 1.4em;
+      text-decoration: none !important;
+      display: block;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .home-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+    .home-card-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.4em;
+    }
+    .home-card-title {
+      font-weight: 600;
+      color: var(--light) !important;
+      margin-bottom: 0.3em;
+      font-size: 0.95rem;
+    }
+    .home-card-desc {
+      color: var(--muted-dark);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    /* ---- Mermaid arrows & edges ---------------------------------------- */
+    .mermaid svg .edgePath .path,
+    .mermaid svg .flowchart-link,
+    .mermaid svg path.er.relationshipLine,
+    .mermaid svg line.er.relationshipLine,
+    .mermaid svg path[class*="relation"] {
+      stroke: #a8cce8 !important;
+      stroke-width: 2px !important;
+    }
+    .mermaid svg marker path,
+    .mermaid svg marker polygon,
+    .mermaid svg marker line {
+      fill: #a8cce8 !important;
+      stroke: #a8cce8 !important;
+    }
+    .mermaid svg .edgeLabel .label rect {
+      fill: var(--dark-light) !important;
+    }
+    .mermaid svg .edgeLabel span,
+    .mermaid svg .edgeLabel p {
+      color: var(--muted) !important;
+      background: var(--dark-light) !important;
+    }
+    /* ---- ER diagram ---------------------------------------------------- */
+    .mermaid svg .er.entityBox {
+      fill: var(--dark-lighter) !important;
+      stroke: var(--dark-border) !important;
+    }
+    .mermaid svg .er.entityLabel {
+      fill: var(--light) !important;
+    }
+    .mermaid svg .er.attributeBoxEven {
+      fill: var(--dark-light) !important;
+    }
+    .mermaid svg .er.attributeBoxOdd {
+      fill: #151e2e !important;
+    }
+    .mermaid svg .er.relationshipLabel {
+      fill: var(--muted) !important;
+    }
+    .mermaid svg .er.relationshipLabelBox {
+      fill: var(--dark-light) !important;
+      opacity: 1 !important;
+    }
+
+    /* ---- Mermaid ------------------------------------------------------- */
+    .mermaid-wrapper {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border: 1px solid var(--dark-border);
+      border-radius: 6px;
+      margin: 1em 0;
+      background: var(--dark-light);
+    }
+    .mermaid-wrapper svg {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+      max-width: none !important;
+      cursor: grab;
+    }
+    .mermaid-wrapper svg:active {
+      cursor: grabbing;
+    }
+    .mermaid-zoom-hint {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      font-size: 11px;
+      color: var(--muted-dark);
+      pointer-events: none;
+      user-select: none;
+    }
+    .mermaid-zoom-reset {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 11px;
+      padding: 2px 6px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--dark-border);
+      border-radius: 3px;
+      cursor: pointer;
+      display: none;
+      color: var(--muted);
+    }
+    .mermaid-wrapper:hover .mermaid-zoom-reset {
+      display: block;
+    }
+    .mermaidTooltip {
+      background-color: var(--dark-light) !important;
+      color: var(--gold) !important;
+      border: 1px solid var(--dark-border) !important;
+      border-radius: 6px !important;
+      padding: 8px 12px !important;
+      font-size: 12px !important;
+      font-family: inherit !important;
+      max-width: 320px !important;
+      line-height: 1.5 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+      pointer-events: none;
+    }
+
+    /* ---- Search -------------------------------------------------------- */
+    .search {
+      background: var(--dark-lighter) !important;
+      border-bottom: 1px solid var(--dark-border) !important;
+    }
+    .search input {
+      background: var(--dark) !important;
+      color: var(--light) !important;
+      border: 1px solid var(--dark-border) !important;
+      border-radius: 4px;
+    }
+    .search input::placeholder {
+      color: var(--muted-dark) !important;
+    }
+    .search .matching-post {
+      background: var(--dark-light) !important;
+      border-bottom: 1px solid var(--dark-border) !important;
+    }
+    .search .matching-post:hover {
+      background: var(--gold-dim) !important;
+    }
+    .search .matching-post h2 {
+      color: var(--gold) !important;
+      font-size: 0.95rem !important;
+      border: none !important;
+    }
+    .search .matching-post p {
+      color: var(--muted) !important;
+      font-size: 0.82rem;
+    }
+    mark {
+      background: rgba(232, 200, 112, 0.3) !important;
+      color: var(--gold-light) !important;
+      border-radius: 2px;
+    }
+
+    /* ---- Miscellaneous ------------------------------------------------- */
+    hr {
+      border: none;
+      border-top: 1px solid var(--dark-border);
+      margin: 2em 0;
+    }
+    .markdown-section {
+      color: var(--light);
+    }
+    .cover-main {
+      background: var(--dark) !important;
+    }
+    nav.app-nav a {
+      color: var(--muted) !important;
+    }
+    nav.app-nav a:hover {
+      color: var(--gold) !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      name: 'Workspace MVP',
+      repo: '',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: 'Suchen …',
+        noData: 'Kein Ergebnis',
+        depth: 3
+      },
+      plugins: [
+        /* ---- Mermaid Panzoom ------------------------------------------ */
+        function(hook) {
+          hook.doneEach(function() {
+            setTimeout(function() {
+              document.querySelectorAll('.mermaid svg').forEach(function(svg) {
+                if (svg.dataset.panzoomApplied) return;
+                svg.dataset.panzoomApplied = '1';
+
+                var wrapper = document.createElement('div');
+                wrapper.className = 'mermaid-wrapper';
+
+                var hint = document.createElement('span');
+                hint.className = 'mermaid-zoom-hint';
+                hint.textContent = 'Scroll = Zoom · Ziehen = Pan';
+
+                var resetBtn = document.createElement('button');
+                resetBtn.className = 'mermaid-zoom-reset';
+                resetBtn.textContent = 'Reset';
+
+                svg.parentNode.insertBefore(wrapper, svg);
+                wrapper.appendChild(svg);
+                wrapper.appendChild(hint);
+                wrapper.appendChild(resetBtn);
+
+                var pz = panzoom(svg, { maxZoom: 10, minZoom: 0.3, boundsPadding: 0.1 });
+
+                resetBtn.addEventListener('click', function() {
+                  pz.moveTo(0, 0);
+                  pz.zoomAbs(0, 0, 1);
+                });
+              });
+            }, 300);
+          });
+        },
+        /* ---- Auto-TOC -------------------------------------------------- */
+        function(hook) {
+          hook.doneEach(function() {
+            var existing = document.querySelector('#main .auto-toc');
+            if (existing) existing.remove();
+
+            var headings = Array.from(document.querySelectorAll('#main h2'));
+            if (headings.length < 2) return;
+
+            var base = (window.location.hash.split('?')[0] || '#/').replace(/^#/, '') || '/';
+
+            var box = document.createElement('div');
+            box.className = 'toc-box auto-toc';
+
+            var titleEl = document.createElement('div');
+            titleEl.className = 'toc-title';
+            titleEl.textContent = 'Auf dieser Seite';
+            box.appendChild(titleEl);
+
+            var ul = document.createElement('ul');
+            ul.className = 'toc-list';
+
+            headings.forEach(function(h, i) {
+              var raw = h.textContent.trim();
+              var id = h.id || raw.toLowerCase()
+                .replace(/\u00e4/g, 'ae').replace(/\u00c4/g, 'ae')
+                .replace(/\u00f6/g, 'oe').replace(/\u00d6/g, 'oe')
+                .replace(/\u00fc/g, 'ue').replace(/\u00dc/g, 'ue')
+                .replace(/\u00df/g, 'ss')
+                .replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+              if (!h.id) h.id = id;
+
+              var li = document.createElement('li');
+              li.className = 'toc-item';
+
+              var a = document.createElement('a');
+              a.href = '#' + base + '?id=' + id;
+
+              var num = document.createElement('span');
+              num.className = 'toc-num';
+              num.textContent = (i + 1) + '.';
+
+              a.appendChild(num);
+              a.appendChild(document.createTextNode('\u00a0' + raw));
+              li.appendChild(a);
+              ul.appendChild(li);
+            });
+
+            box.appendChild(ul);
+
+            var hero = document.querySelector('#main .page-hero');
+            var h1   = document.querySelector('#main h1');
+            var anchor = hero || h1;
+            if (anchor) {
+              anchor.insertAdjacentElement('afterend', box);
+            } else {
+              var main = document.querySelector('#main');
+              if (main) main.insertBefore(box, main.firstChild);
+            }
+          });
+        }
+      ],
+    }
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/panzoom@9.4.3/dist/panzoom.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: false, useMaxWidth: true, securityLevel: 'loose', theme: 'dark' });</script>
+</body>
+</html>

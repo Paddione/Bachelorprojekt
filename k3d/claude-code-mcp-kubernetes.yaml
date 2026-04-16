@@ -18,6 +18,7 @@ spec:
       containers:
         - name: mcp-kubernetes
           image: node:22-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -50,9 +51,10 @@ spec:
           resources:
             requests:
               memory: 128Mi
-              cpu: 50m
+              cpu: "100m"
             limits:
               memory: 512Mi
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service

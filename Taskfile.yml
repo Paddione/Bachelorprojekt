@@ -316,6 +316,13 @@ tasks:
       - docker push {{.REGISTRY}}/billing-bot:latest
       - 'echo "✓ billing-bot image pushed"'
 
+  workspace:sso-bridge:build:
+    desc: Build and push sso-bridge image to local registry
+    cmds:
+      - docker build -t {{.REGISTRY}}/sso-bridge:latest sso-bridge/
+      - docker push {{.REGISTRY}}/sso-bridge:latest
+      - 'echo "✓ sso-bridge image pushed to {{.REGISTRY}}"'
+
   workspace:billing-setup:
     desc: Build and push billing-bot image (bot token + slash command provisioned automatically by billing-bot-init-job)
     deps: [workspace:billing-build]

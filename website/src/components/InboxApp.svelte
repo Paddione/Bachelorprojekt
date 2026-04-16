@@ -36,12 +36,17 @@
   const totalPending = $derived(Object.values(counts).reduce((a, b) => a + b, 0));
 
   async function reload() {
-    const p = new URLSearchParams({ status: activeStatus });
-    if (activeType) p.set('type', activeType);
-    const res = await fetch(`/api/admin/inbox?${p}`);
-    const data = await res.json() as { items: InboxItem[]; counts: Record<string, number> };
-    items = data.items;
-    counts = data.counts;
+    try {
+      const p = new URLSearchParams({ status: activeStatus });
+      if (activeType) p.set('type', activeType);
+      const res = await fetch(`/api/admin/inbox?${p}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { items: InboxItem[]; counts: Record<string, number> };
+      items = data.items;
+      counts = data.counts;
+    } catch (err) {
+      console.error('[InboxApp] reload failed:', err);
+    }
   }
 
   function setType(t: InboxType | '') {
@@ -68,7 +73,11 @@
         errors = { ...errors, [item.id]: data.error ?? 'Fehler' };
       } else {
         items = items.filter(i => i.id !== item.id);
-        counts = { ...counts, [item.type]: Math.max(0, (counts[item.type] ?? 1) - 1) };
+        if (activeStatus === 'pending') {
+          counts = { ...counts, [item.type]: Math.max(0, (counts[item.type] ?? 1) - 1) };
+        } else {
+          await reload();
+        }
         noteInputId = null;
         noteText = '';
       }

@@ -1,12 +1,6 @@
 /// <reference types="astro/client" />
 
 interface ImportMetaEnv {
-  // Mattermost
-  readonly MATTERMOST_WEBHOOK_URL: string;
-  readonly MATTERMOST_CHANNEL: string;
-  readonly MATTERMOST_URL: string;
-  readonly MATTERMOST_EXTERNAL_URL?: string;
-  readonly MATTERMOST_BOT_TOKEN: string;
   // Keycloak
   readonly KEYCLOAK_URL: string;
   readonly KEYCLOAK_REALM: string;
@@ -33,8 +27,6 @@ interface ImportMetaEnv {
   readonly VAULT_EXTERNAL_URL?: string;
   readonly WHITEBOARD_EXTERNAL_URL?: string;
   readonly WIKI_EXTERNAL_URL?: string;
-  // Mattermost signing
-  readonly MATTERMOST_SIGNING_CHANNEL?: string;
   // Nextcloud CalDAV
   readonly NEXTCLOUD_URL: string;
   readonly NEXTCLOUD_CALDAV_USER: string;

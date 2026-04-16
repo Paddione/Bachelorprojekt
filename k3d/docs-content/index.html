@@ -127,33 +127,41 @@
     }
 
     /* ---- Tables -------------------------------------------------------- */
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin: 1em 0;
+    #main table {
+      border-collapse: collapse !important;
+      width: 100% !important;
+      margin: 1em 0 !important;
     }
-    thead tr {
+    #main table thead tr {
       background: var(--dark-lighter) !important;
     }
-    #main thead th {
+    #main table thead th {
       color: var(--gold) !important;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.08em !important;
       text-transform: uppercase !important;
       border: 1px solid var(--dark-border) !important;
-      padding: 0.6em 0.9em;
+      padding: 0.6em 0.9em !important;
+      background: var(--dark-lighter) !important;
     }
-    tbody tr {
-      border-bottom: 1px solid var(--dark-border);
+    #main table tbody tr:nth-child(odd) {
+      background: var(--dark-light) !important;
     }
-    tbody tr:hover {
-      background: var(--gold-dim) !important;
+    #main table tbody tr:nth-child(even) {
+      background: var(--dark-lighter) !important;
     }
-    #main tbody td {
+    #main table tbody tr {
+      border-bottom: 1px solid var(--dark-border) !important;
+    }
+    #main table tbody tr:hover {
+      background: rgba(232, 200, 112, 0.18) !important;
+    }
+    #main table tbody td {
       border: 1px solid var(--dark-border) !important;
-      padding: 0.5em 0.9em;
+      padding: 0.5em 0.9em !important;
       color: var(--light) !important;
+      background: inherit !important;
     }
 
     /* ---- Code ---------------------------------------------------------- */
@@ -411,6 +419,51 @@
       line-height: 1.5;
     }
 
+    /* ---- Mermaid arrows & edges ---------------------------------------- */
+    .mermaid svg .edgePath .path,
+    .mermaid svg .flowchart-link,
+    .mermaid svg path.er.relationshipLine,
+    .mermaid svg line.er.relationshipLine,
+    .mermaid svg path[class*="relation"] {
+      stroke: #a8cce8 !important;
+      stroke-width: 2px !important;
+    }
+    .mermaid svg marker path,
+    .mermaid svg marker polygon,
+    .mermaid svg marker line {
+      fill: #a8cce8 !important;
+      stroke: #a8cce8 !important;
+    }
+    .mermaid svg .edgeLabel .label rect {
+      fill: var(--dark-light) !important;
+    }
+    .mermaid svg .edgeLabel span,
+    .mermaid svg .edgeLabel p {
+      color: var(--muted) !important;
+      background: var(--dark-light) !important;
+    }
+    /* ---- ER diagram ---------------------------------------------------- */
+    .mermaid svg .er.entityBox {
+      fill: var(--dark-lighter) !important;
+      stroke: var(--dark-border) !important;
+    }
+    .mermaid svg .er.entityLabel {
+      fill: var(--light) !important;
+    }
+    .mermaid svg .er.attributeBoxEven {
+      fill: var(--dark-light) !important;
+    }
+    .mermaid svg .er.attributeBoxOdd {
+      fill: #151e2e !important;
+    }
+    .mermaid svg .er.relationshipLabel {
+      fill: var(--muted) !important;
+    }
+    .mermaid svg .er.relationshipLabelBox {
+      fill: var(--dark-light) !important;
+      opacity: 1 !important;
+    }
+
     /* ---- Mermaid ------------------------------------------------------- */
     .mermaid-wrapper {
       position: relative;
@@ -645,6 +698,6 @@
   <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
   <script src="//cdn.jsdelivr.net/npm/panzoom@9.4.3/dist/panzoom.min.js"></script>
-  <script>mermaid.initialize({ startOnLoad: false, useMaxWidth: true, securityLevel: 'loose' });</script>
+  <script>mermaid.initialize({ startOnLoad: false, useMaxWidth: true, securityLevel: 'loose', theme: 'dark' });</script>
 </body>
 </html>

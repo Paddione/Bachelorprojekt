@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession, getLoginUrl } from '../../lib/auth';
+import { getCustomerByEmail, getThreadByCustomerId, listRoomsForCustomer } from '../../lib/messaging-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl('/portal'));
+
+const customer = await getCustomerByEmail(session.email);
+const thread = customer ? await getThreadByCustomerId(customer.id) : null;
+const rooms = customer ? await listRoomsForCustomer(customer.id) : [];
+---
+
+<Layout title="Mein Portal">
+  <main style="max-width:600px;margin:48px auto;padding:0 16px">
+    <h1>Willkommen, {session.given_name ?? session.name}</h1>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px">
+      <a href="/portal/nachrichten" style="display:flex;justify-content:space-between;align-items:center;background:#1e1e2e;border-radius:8px;padding:16px 20px;text-decoration:none;color:#e8e8f0">
+        <span>💬 Nachrichten</span>
+        <span style="color:#666;font-size:13px">{thread ? 'Konversation ansehen' : 'Neue Nachricht'} →</span>
+      </a>
+      {rooms.map(room => (
+        <a href={`/portal/raum/${room.id}`} style="display:flex;justify-content:space-between;align-items:center;background:#1e1e2e;border-radius:8px;padding:16px 20px;text-decoration:none;color:#e8e8f0">
+          <span>🏠 {room.name}</span>
+          <span style="color:#666;font-size:13px">Öffnen →</span>
+        </a>
+      ))}
+    </div>
+  </main>
+</Layout>

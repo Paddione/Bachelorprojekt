@@ -11,7 +11,7 @@ resources:
   - claude-code-config.yaml
   # Consolidated MCP pods (7 containers → 3 pods)
   - claude-code-mcp-core.yaml        # kubernetes + postgres + mattermost
-  - claude-code-mcp-apps.yaml        # nextcloud + invoiceninja
+  - claude-code-mcp-apps.yaml        # nextcloud
   - claude-code-mcp-auth.yaml        # keycloak (SSE, Java — separate for resource isolation)
   - claude-code-mcp-browser.yaml     # playwright (Browser interaction)
   # Standalone

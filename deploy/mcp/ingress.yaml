@@ -81,15 +81,6 @@ spec:
         - name: claude-code-mcp-apps
           port: 8000
 
-    # ── Invoice Ninja MCP ─────────────────────────────────────────
-    - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/invoiceninja`)
-      middlewares:
-        - name: mcp-chain
-      services:
-        - name: claude-code-mcp-apps
-          port: 8080
-
     # ── Keycloak MCP (SSE transport) ──────────────────────────────
     - kind: Rule
       match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/keycloak`)

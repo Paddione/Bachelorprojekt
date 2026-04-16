@@ -70,8 +70,6 @@ flowchart TB
 
         subgraph external ["Weitere Namespaces"]
             WEB["fa:fa-globe Website Astro + Messaging\nweb.localhost"]
-            PROM["fa:fa-chart-line Prometheus"]
-            GRAF["fa:fa-gauge Grafana"]
         end
     end
 
@@ -123,9 +121,6 @@ flowchart TB
     OC --> DB
     WEB --> DB
 
-    %% --- Monitoring ---
-    PROM -.-> GRAF
-
     %% --- SMTP ---
     NC -. "SMTP" .-> MP
     WEB -. "SMTP" .-> MP
@@ -140,8 +135,6 @@ flowchart TB
     click MP "#/services?id=mailpit-dev-mail" "Mailpit: SMTP-Testserver fuer Entwicklung. Faengt alle ausgehenden E-Mails ab (kein Versand). Web-UI zur Inspektion von Benachrichtigungen."
     click DB "#/architecture?id=datenbank-layout" "PostgreSQL 16 shared-db: 5 isolierte Datenbanken (keycloak, nextcloud, vaultwarden, website, pentest) mit eigenem User je Service."
     click WEB "#/services?id=website-astro-svelte" "Website: Astro + Svelte Unternehmenswebsite mit Messaging-System (Chat-Raeume, Inbox, DMs), OIDC-Login, Stripe-Checkout und Admin-Panel (/admin)."
-    click PROM "#/architecture?id=deployment-ablauf" "Prometheus: Metriken-Sammlung aller Kubernetes-Ressourcen. Speist DSGVO-Compliance-Dashboard."
-    click GRAF "#/architecture?id=deployment-ablauf" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
     click WHISPER "#/services?id=whisper-transkription-optional" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
     click EMB "#/services?id=embedding-text-vektorisierung" "Embedding: infinity-emb Text-Vektorisierung (BAAI/bge-base-en-v1.5) fuer Meeting-Transkript-Analyse."
     click REC "#/services?id=talk-recording-anruf-aufzeichnung" "Talk Recording: Firefox/geckodriver-basierte Anruf-Aufzeichnung fuer Nextcloud Talk."
@@ -164,7 +157,7 @@ flowchart TB
     class OC,MCP_K8S,MCP_PG,MCP_BR,MCP_GRAF,MCP_PROM,WHISPER,EMB ai_style
     class DB data_style
     class VW,MP,DOCS tools_style
-    class Traefik,WEB,PROM,GRAF infra_style
+    class Traefik,WEB infra_style
 ```
 
 ---
@@ -527,7 +520,6 @@ Die Init-Skripte in `shared-db` erstellen User und Datenbanken idempotent beim e
 |-----------|-------|
 | `workspace` | Alle Kernservices (Nextcloud, Keycloak, Vaultwarden, etc.) |
 | `website` | Astro + Svelte Unternehmenswebsite |
-| `monitoring` | Prometheus + Grafana Stack (optional) |
 | `argocd` | ArgoCD GitOps Controller (Produktion, Hub-Cluster) |
 | `cert-manager` | TLS-Zertifikate via Let's Encrypt (Produktion) |
 | `kube-system` | Traefik Ingress Controller (k3s built-in) |
@@ -580,7 +572,6 @@ flowchart TD
 
     H --> I["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
     H --> J["fa:fa-brain task mcp:deploy<br/>MCP Server Pods"]
-    H --> K["fa:fa-chart-line task workspace:monitoring<br/>Prometheus + Grafana"]
     H --> M["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
 
     style A fill:#0a1a0a,color:#b8e8b8
@@ -592,7 +583,6 @@ flowchart TD
     style G fill:#1a3d28,color:#e8c870
     style I fill:#1a3d28,color:#e8c870
     style J fill:#2a1654,color:#e8c870
-    style K fill:#083344,color:#e8c870
     style M fill:#083344,color:#e8c870
 ```
 

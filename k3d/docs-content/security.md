@@ -50,10 +50,6 @@ scripts/dsgvo-compliance-check.sh --json    # Fuer Grafana-Dashboard
 | D07 | Alle Container-Images sind Open-Source |
 | D08 | SMTP-Server ist Cluster-intern (mailpit, kein externer Relay) |
 
-### Grafana DSGVO-Dashboard
-
-Das Monitoring-Stack (`task workspace:monitoring`) installiert ein DSGVO-Compliance-Dashboard in Grafana, das die Ergebnisse der automatisierten Pruefung visualisiert.
-
 ## Pod Security Standards
 
 Der `workspace`-Namespace erzwingt Pod Security Standards:

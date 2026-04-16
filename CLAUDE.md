@@ -17,7 +17,7 @@ task cluster:delete              # Destroy cluster
 task cluster:start               # Start stopped cluster
 task cluster:stop                # Stop cluster (preserves state)
 task cluster:status              # Show cluster status, nodes, resource usage
-task workspace:up                # Full automated setup (Cluster + MVP + MCP + Monitoring + Billing)
+task workspace:up                # Full automated setup (Cluster + MVP + MCP)
 task workspace:deploy            # Deploy all workspace services (Kustomize)
 task workspace:validate          # Dry-run manifest validation
 task workspace:teardown          # Remove all services
@@ -138,10 +138,6 @@ graph TB
 
     subgraph website-ns ["Namespace: website"]
         WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
-    end
-
-    subgraph monitoring-ns ["Namespace: monitoring"]
-        PROM["fa:fa-chart-line Prometheus + Grafana"]
     end
 
     Traefik --> KC & NC & CO & HPB & OC & VW & WB & MP & DOCS & WEB

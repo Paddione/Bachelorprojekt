@@ -99,6 +99,15 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-pull-secret
+      # Lower ndots so FQDNs like shared-db.workspace.svc.cluster.local (4 dots)
+      # are resolved as absolute names without iterating through search-path suffixes.
+      # On clusters where the node inherits a home-router search domain (e.g. fritz.box),
+      # the default ndots:5 causes those lookups to time out and Node.js (musl libc)
+      # returns EAI_AGAIN — breaking the pg-pool connection on first use.
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "3"
       nodeSelector:
         kubernetes.io/arch: amd64
       affinity:

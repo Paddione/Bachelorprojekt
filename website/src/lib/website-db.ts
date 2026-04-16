@@ -1995,6 +1995,5 @@ export async function createAdminShortcut(url: string, label: string): Promise<A
 }
 
 export async function deleteAdminShortcut(id: string): Promise<void> {
-  await initAdminShortcutsTable();
   await pool.query('DELETE FROM admin_shortcuts WHERE id = $1', [id]);
 }

@@ -247,3 +247,40 @@ all_images() {
     return 1
   fi
 }
+
+@test "prod kustomize output has no workspace-secrets Secret with data" {
+  if ! command -v python3 &>/dev/null; then
+    skip "python3 not installed"
+  fi
+  if ! command -v kubectl &>/dev/null; then
+    skip "kubectl not installed"
+  fi
+
+  run python3 -c "
+import subprocess, sys, yaml
+
+overlays = ['${PROJECT_DIR}/prod', '${PROJECT_DIR}/prod-korczewski', '${PROJECT_DIR}/prod-mentolder']
+found = []
+for overlay in overlays:
+    try:
+        result = subprocess.run(
+            ['kubectl', 'kustomize', overlay],
+            capture_output=True, text=True, check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print(f'kustomize build failed for {overlay}: {e.stderr}', file=sys.stderr)
+        sys.exit(1)
+    for doc in yaml.safe_load_all(result.stdout):
+        if not doc:
+            continue
+        if (doc.get('kind') == 'Secret' and
+                doc.get('metadata', {}).get('name') == 'workspace-secrets' and
+                (doc.get('stringData') or doc.get('data'))):
+            found.append(overlay)
+if found:
+    print('workspace-secrets Secret with data found in: ' + ', '.join(found))
+    sys.exit(1)
+print('OK: no workspace-secrets Secret in prod overlays')
+"
+  assert_success
+}

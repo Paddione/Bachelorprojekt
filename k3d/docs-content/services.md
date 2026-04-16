@@ -1,16 +1,4 @@
-<div class="page-hero">
-  <span class="page-hero-icon">⚙️</span>
-  <div class="page-hero-body">
-    <div class="page-hero-title">Services</div>
-    <p class="page-hero-desc">Technische Referenz aller Kubernetes-Deployments: Images, Ports, Ressourcen, Abhängigkeiten und Manifest-Verweise.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">Für Administratoren</span>
-      <span class="page-hero-tag">Kubernetes Deployments</span>
-      <span class="page-hero-tag">Resource Limits</span>
-    </div>
-  </div>
-  <a href="#/" class="page-hero-back">← Übersicht</a>
-</div>
+# Services
 
 > **Hinweis für Mitarbeiter:** Eine verständliche Erklärung aller Dienste mit konkreten Anwendungsbeispielen findest Du im [Benutzerhandbuch](benutzerhandbuch.md). Diese Seite enthält die technischen Details für Administratoren.
 
@@ -32,26 +20,6 @@ Alle Services laufen als Kubernetes Deployments. Jeder Service hat definierte Re
 | Manifest | `k3d/keycloak.yaml` |
 
 OIDC-Provider fuer alle Services. Realm `workspace` wird beim Start automatisch importiert. Siehe [Keycloak & SSO](keycloak.md) fuer Details.
-
-### Mattermost (Chat)
-
-**Für Mitarbeiter:** Mattermost ist der Team-Chat. Hier kommunizierst Du mit Kollegen in Kanälen (themenbasierte Gruppen) oder per Direktnachricht. Du kannst Dateien teilen, auf Nachrichten reagieren und den Billing-Bot per `/billing`-Befehl nutzen.
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Image | `mattermost/mattermost-enterprise-edition:release-11.5` |
-| Port | 8065 |
-| URL | http://chat.localhost |
-| Datenbank | PostgreSQL (shared-db/mattermost) |
-| Storage | 20 Gi PVC (Dateien) |
-| Resources | 250m--1 CPU, 256Mi--1Gi RAM |
-| Manifest | `k3d/mattermost.yaml` |
-
-Team-Chat mit Channels, DMs, Threads, Webhooks, Slash-Commands. PostgreSQL FTS fuer Volltextsuche. OIDC-Login ueber mm-keycloak-proxy. Konfiguriert mit deutscher Sprache und Europe/Berlin Zeitzone.
-
-**Zugehoerige Manifeste:**
-- `k3d/mattermost-hpa.yaml` -- Horizontal Pod Autoscaler
-- `k3d/mm-keycloak-proxy.yaml` -- Nginx-Proxy fuer interne Keycloak-Kommunikation
 
 ### Nextcloud (Dateien + Talk)
 
@@ -112,7 +80,7 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 | Eigenschaft | Wert |
 |-------------|------|
 | Status-Seite | http://ai.localhost (MCP-Status-Dashboard) |
-| MCP-Server | 11 Server in separaten Pods |
+| MCP-Server | 9 Server in separaten Pods |
 | Backend | Anthropic API (Claude Sonnet 4) |
 | Manifest | `k3d/claude-code-config.yaml`, `k3d/claude-code-rbac.yaml` |
 
@@ -120,17 +88,12 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 
 | Pod / Manifest | Container | Funktion |
 |----------------|-----------|----------|
-| `claude-code-mcp-ops.yaml` | mcp-kubernetes, mcp-postgres, mcp-mattermost | Cluster-Management, DB-Abfragen, Chat-Integration |
+| `claude-code-mcp-ops.yaml` | mcp-kubernetes, mcp-postgres, mcp-meetings | Cluster-Management, DB-Abfragen, Meeting-Daten |
 | `claude-code-mcp-browser.yaml` | mcp-browser | Playwright Browser-Automatisierung |
-| `claude-code-mcp-apps.yaml` | mcp-nextcloud, mcp-invoiceninja | Dateien/Kalender, Rechnungen |
+| `claude-code-mcp-apps.yaml` | mcp-nextcloud | Dateien, Kalender, Kontakte |
 | `claude-code-mcp-auth.yaml` | mcp-keycloak | Benutzer-/Rollenverwaltung |
 | `claude-code-mcp-github.yaml` | mcp-github | GitHub Repos, Issues, PRs (PAT erforderlich) |
-| `claude-code-mcp-stripe.yaml` | mcp-stripe | Zahlungen, Abonnements |
-| `claude-code-mcp-grafana.yaml` | mcp-grafana | Grafana Dashboards und Metriken |
-| `claude-code-mcp-prometheus.yaml` | mcp-prometheus | PromQL-Abfragen, Cluster-Metriken |
-| `claude-code-mcp-kubernetes.yaml` | mcp-kubernetes (standalone) | Dedizierter Read-Only Kubernetes-MCP |
-| `claude-code-mcp-postgres.yaml` | mcp-postgres (standalone) | Dedizierter Datenbank-MCP |
-| `claude-code-mcp-mattermost.yaml` | mcp-mattermost (standalone) | Dedizierter Mattermost-MCP |
+| `claude-code-mcp-stripe.yaml` | mcp-stripe | Stripe-Zahlungen, Produkte, Abonnements |
 
 **Produktion (deploy/mcp/):**
 - `mcp-status.yaml` -- Health-Dashboard (nginx + healthcheck sidecar)
@@ -157,18 +120,6 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 
 CPU-basierte Spracherkennung mit dem Medium-Modell. GPU-Variante: `k3d/whisper-gpu.yaml`. Deploy: `task whisper:deploy`.
 
-### Embedding (Text-Vektorisierung)
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Image | `michaelf34/infinity:0.0.70` (infinity-emb) |
-| Port | 8080 |
-| Modell | BAAI/bge-base-en-v1.5 (768 Dimensionen) |
-| API | OpenAI-kompatibel (POST /embeddings) |
-| Manifest | `k3d/embedding.yaml` |
-
-CPU-basierte Text-Vektorisierung fuer Meeting-Transkript-Analyse. Wird intern von der Website fuer Meeting Insights genutzt.
-
 ### Talk Recording (Anruf-Aufzeichnung)
 
 | Eigenschaft | Wert |
@@ -194,38 +145,16 @@ Verbindet sich mit dem spreed-signaling-Server, nimmt am Anruf teil und uebertra
 
 ## Business-Services
 
-### Invoice Ninja (Rechnungen)
+### Stripe-Checkout
 
-**Für Mitarbeiter:** Invoice Ninja ist das Rechnungsprogramm. Hier erstellst Du Rechnungen, verwaltets Kunden und verfolgst Zahlungen. Du kannst auch direkt aus dem Chat (Mattermost) per `/billing invoice Kundenname` eine Rechnung erstellen lassen.
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Image | `invoiceninja/invoiceninja:5` + `nginx:1.27-alpine` (Sidecar) |
-| Port | 9000 (FPM) / 80 (Nginx) |
-| URL | http://billing.localhost (ueber oauth2-proxy) |
-| Datenbank | MariaDB 11 (eigene Instanz) |
-| Storage | 5 Gi (App) + 5 Gi (MariaDB) |
-| Manifest | `k3d/invoiceninja.yaml` |
-
-Rechnungserstellung mit Stripe-Integration. Zugriff ueber oauth2-proxy fuer Keycloak-SSO. Nginx-Sidecar serviert statische Dateien.
-
-**Zugehoerige Manifeste:**
-- `k3d/oauth2-proxy-invoiceninja.yaml` -- OAuth2-Proxy (quay.io/oauth2-proxy/oauth2-proxy:v7.9.0)
-- `k3d/billing-bot.yaml` -- Go-Bot fuer Mattermost-Integration
-- `k3d/billing-bot-init-job.yaml` -- Automatische Token/Slash-Command-Provisionierung
-
-### billing-bot
-
-**Für Mitarbeiter:** Der Billing-Bot ist ein automatischer Helfer im Chat. Wenn Du in Mattermost `/billing` eingibst, erledigt er Aufgaben wie das Erstellen von Rechnungen für Dich – ohne dass Du die Rechnungssoftware separat öffnen musst.
+**Für Mitarbeiter:** Zahlungen werden direkt ueber Stripe abgewickelt. Kunden bezahlen Leistungen per Kreditkarte oder SEPA auf der Leistungen-Seite oder ueber den CTA der Homepage. Es gibt keine separate Rechnungssoftware mehr — alle Zahlungsvorgaenge laufen ueber die Website-Stripe-Integration. Weitere Details: [Stripe-Integration](stripe.md).
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Image | `registry.localhost:5000/billing-bot:v1` |
-| Port | 8090 |
-| Resources | 50m CPU, 32--64Mi RAM |
-| Manifest | `k3d/billing-bot.yaml` |
-
-Go-Microservice: `/slash` (Slash-Command Handler), `/actions` (Interactive Messages), `/healthz`. Verbindet Mattermost mit Invoice Ninja.
+| Keys | `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY` (workspace-secrets) |
+| Checkout | Stripe-hosted Checkout Page |
+| Webhook | `/api/stripe/webhook` (checkout.session.completed) |
+| Konfiguration | Brand-Konfig (`mentolder.config.ts` / `korczewski.config.ts`) |
 
 ### Vaultwarden (Passwoerter)
 
@@ -261,7 +190,9 @@ Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 
 ## Infrastruktur-Services
 
-### shared-db (PostgreSQL + pgvector)
+### shared-db (PostgreSQL)
+
+**Für Mitarbeiter:** Die zentrale Datenbank. Du interagierst nicht direkt damit — sie laeuft im Hintergrund und speichert Daten aller Dienste sicher auf dem eigenen Server.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -271,7 +202,7 @@ Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 | Resources | 100m CPU, 256Mi RAM |
 | Manifest | `k3d/shared-db.yaml` |
 
-Gemeinsame PostgreSQL-16-Instanz mit pgvector-Erweiterung fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, mattermost, nextcloud und vaultwarden. pgvector ermoeglicht Vektorsuche fuer KI-Features (z. B. Embedding-Auswertungen). Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
+Gemeinsame PostgreSQL-16-Instanz fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, nextcloud, vaultwarden und website. Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
 
 ### Mailpit (Dev-Mail)
 
@@ -309,11 +240,22 @@ Static-Web-Server serviert die Docsify-Dokumentation aus einem Kubernetes Config
 | Resources | 50m CPU, 64--128Mi RAM |
 | Manifest | `k3d/oauth2-proxy-docs.yaml` |
 
-Keycloak-OIDC-Proxy vor dem Docs-Dienst. Entspricht dem gleichen Muster wie `oauth2-proxy-invoiceninja`. Benutzer werden zur Keycloak-Anmeldeseite weitergeleitet; nach erfolgreicher Authentifizierung wird die Anfrage an `docs:80` weitergeleitet.
+Keycloak-OIDC-Proxy vor dem Docs-Dienst. Benutzer werden zur Keycloak-Anmeldeseite weitergeleitet; nach erfolgreicher Authentifizierung wird die Anfrage an `docs:80` weitergeleitet.
+
+### Messaging (Chat + Inbox)
+
+**Für Mitarbeiter:** Das integrierte Messaging-System der Website bietet Chat-Raeume (themenbasierte Gruppen), Direktnachrichten zwischen Kunden und Admins sowie eine zentrale Inbox fuer eingehende Anfragen (Kontaktformulare, Buchungen, Bug-Reports). Erreichbar ueber das Benutzer-Portal nach dem Login.
+
+| Eigenschaft | Wert |
+|-------------|------|
+| Tabellen | `chat_rooms`, `chat_messages`, `message_threads`, `messages`, `inbox_items` |
+| Datenbank | PostgreSQL (shared-db/website) |
+| Ungelesen-Benachrichtigungen | `notify-unread-cronjob` (K8s CronJob) |
+| Manifest | Eingebettet in `k3d/website-schema.yaml` |
 
 ### Website (Astro + Svelte)
 
-**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular leitet Anfragen automatisch in den Mattermost-Chat weiter. Auf der Leistungen-Seite kann direkt per Stripe bezahlt werden.
+**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular leitet Anfragen in die Admin-Inbox weiter. Auf der Leistungen-Seite kann direkt per Stripe bezahlt werden.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -324,13 +266,15 @@ Keycloak-OIDC-Proxy vor dem Docs-Dienst. Entspricht dem gleichen Muster wie `oau
 | Deploy | `task website:deploy` |
 
 Multi-Brand-Unternehmenswebsite (mentolder / korczewski) mit:
-- **Kontaktformular** — leitet Anfragen via Mattermost-Webhook in den Chat
-- **Leistungen-Seite** — Preistabelle mit Stripe-Checkout (direkter Kauf ohne Invoice Ninja)
+- **Kontaktformular** — leitet Anfragen in die Admin-Inbox
+- **Leistungen-Seite** — Preistabelle mit Stripe-Checkout
 - **Homepage-CTA** — Stripe-Checkout-Button fuer das Haupt-Angebot
 - **OIDC-Login** — Keycloak SSO fuer Kunden und Administratoren
+- **Messaging** — Chat-Raeume, DMs, Inbox fuer eingehende Anfragen
 - **Admin-Panel** (`/admin`) — Brand-Konfiguration: Services, Leistungen, Site-Einstellungen, Rechtstexte, Referenzen
 - **Projektmanagement** (`/admin/projekte`) — Projekte, Teilprojekte und Aufgaben je Kunde; Gantt-Diagramm
-- **Bug-Reporting** — Formular mit Ticket-Tracking in der `website`-Datenbank
+- **Bug-Reporting** — Formular (`/admin/bugs`) mit Ticket-Tracking in der `website`-Datenbank
+- **Monitoring** (`/admin/monitoring`) — Live-Uebersicht Pod-Status, Ressourcen und Events
 
 Stripe-Keys werden als Kubernetes Secret injiziert. Setup: `task workspace:stripe-setup`. Siehe [Stripe-Integration](stripe.md).
 Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
@@ -338,16 +282,13 @@ Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 ## Ressourcen-Uebersicht
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#1d5c3a', 'pie4': '#2563a0', 'pie5': '#4c2d8a', 'pie6': '#374151', 'pie7': '#1d5c3a', 'pie8': '#7a3c00', 'pie9': '#0b5575', 'pie10': '#374151', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
-pie title RAM Requests (Gesamt ca. 3.0 Gi)
+%%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#2563a0', 'pie4': '#4c2d8a', 'pie5': '#374151', 'pie6': '#1d5c3a', 'pie7': '#0b5575', 'pie8': '#374151', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
+pie title RAM Requests (Gesamt ca. 1.8 Gi)
     "PostgreSQL (256 Mi)" : 256
-    "Mattermost (256 Mi)" : 256
     "Nextcloud (256 Mi)" : 256
     "Keycloak (512 Mi)" : 512
     "Claude Code (256 Mi)" : 256
     "Collabora (256 Mi)" : 256
-    "Invoice Ninja + MariaDB (416 Mi)" : 416
     "Talk HPB Stack (256 Mi)" : 256
-    "Embedding (256 Mi)" : 256
     "Sonstige (288 Mi)" : 288
 ```

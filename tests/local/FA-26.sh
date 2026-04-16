@@ -36,16 +36,12 @@ BUG_CHANNEL=$(kubectl get configmap website-config -n "$WEB_NAMESPACE" \
   -o jsonpath='{.data.BUG_REPORT_CHANNEL}' 2>/dev/null || echo "")
 assert_eq "$BUG_CHANNEL" "bugs" "FA-26" "T3" "BUG_REPORT_CHANNEL in website-config gesetzt"
 
-# ── T4: bugs channel (or fallback anfragen) present in Mattermost ─
-# mmctl requires a team name for `channel list`; iterate over all teams and
-# search each. grep -c always prints a number so no `|| echo "0"` fallback.
-TEAMS=$(kubectl exec -n "$MM_NAMESPACE" deploy/mattermost -- \
-  mmctl --local team list 2>/dev/null | grep -v "^There are" || true)
-CHAN_COUNT=0
-for team in $TEAMS; do
-  count=$(kubectl exec -n "$MM_NAMESPACE" deploy/mattermost -- \
-    mmctl --local channel list "$team" 2>/dev/null \
-    | grep -cE "^bugs$|^anfragen$" || true)
-  CHAN_COUNT=$((CHAN_COUNT + count))
-done
-assert_gt "$CHAN_COUNT" 0 "FA-26" "T4" "bugs- oder anfragen-Kanal in Mattermost vorhanden"
+# ── T4: Admin bug inbox API responds ─────────────────────────────
+if [[ "$WEB_READY" -gt 0 ]]; then
+  INBOX_RESP=$(kubectl exec -n "$WEB_NAMESPACE" deploy/website -- \
+    wget -qO /dev/null -S --spider http://localhost:4321/api/admin/bugs 2>&1 | grep -m1 "HTTP/" | awk '{print $2}' || echo "0")
+  # 401 is expected (no session) — confirms the endpoint exists
+  assert_gt "${INBOX_RESP:-0}" 0 "FA-26" "T4" "Admin-Bug-Inbox-Endpunkt antwortet (HTTP ${INBOX_RESP})"
+else
+  skip_test "FA-26" "T4" "Admin-Bug-Inbox-Endpunkt" "Website nicht bereit"
+fi

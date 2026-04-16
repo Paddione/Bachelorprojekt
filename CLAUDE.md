@@ -17,7 +17,7 @@ task cluster:delete              # Destroy cluster
 task cluster:start               # Start stopped cluster
 task cluster:stop                # Stop cluster (preserves state)
 task cluster:status              # Show cluster status, nodes, resource usage
-task workspace:up                # Full automated setup (Cluster + MVP + MCP + Monitoring + Billing)
+task workspace:up                # Full automated setup (Cluster + MVP + MCP)
 task workspace:deploy            # Deploy all workspace services (Kustomize)
 task workspace:validate          # Dry-run manifest validation
 task workspace:teardown          # Remove all services
@@ -38,7 +38,6 @@ task workspace:port-forward      # Forward shared-db to localhost:5432
 task workspace:post-setup        # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
 task workspace:stripe-setup      # Register Stripe as payment gateway in Invoice Ninja
 task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
-task workspace:monitoring        # Install Prometheus + Grafana + DSGVO dashboard (NFA-02)
 task workspace:dsgvo-check       # Run DSGVO compliance verification (NFA-01)
 task workspace:claude-code:setup    # Register MCP servers in Claude Code database
 ```
@@ -126,12 +125,11 @@ graph TB
         CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
         HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
         OC["fa:fa-brain Claude Code KI<br/>ai.localhost"]
-        IN["fa:fa-receipt Invoice Ninja<br/>billing.localhost"]
         VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
         WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
         MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
         DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
-        OAUTH[oauth2-proxy-invoiceninja]
+        OAUTH2[oauth2-proxy-docs]
         WHISPER["fa:fa-microphone Whisper<br/>Transkription"]
         JANUS[Janus + NATS + coturn]
         DB[("fa:fa-database PostgreSQL 16<br/>shared-db")]
@@ -141,18 +139,14 @@ graph TB
         WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
     end
 
-    subgraph monitoring-ns ["Namespace: monitoring"]
-        PROM["fa:fa-chart-line Prometheus + Grafana"]
-    end
+    Traefik --> KC & NC & CO & HPB & OC & VW & WB & MP & DOCS & WEB
 
-    Traefik --> KC & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
-
-    KC -. OIDC .-> NC & IN & OC
-    OAUTH --> KC
-    IN --> OAUTH
+    KC -. OIDC .-> NC & OC & VW & WEB
+    OAUTH2 --> KC
+    DOCS --> OAUTH2
     NC --> CO
     NC --> HPB --> JANUS
-    KC & NC & IN & OC --> DB
+    KC & NC & OC --> DB
     WEB --> DB
 ```
 
@@ -165,7 +159,6 @@ graph TB
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
 - **`website/`** -- Astro + Svelte website.
 - **`docs-site/`** -- Docsify index.html for the docs service.
-- **`grafana/`** -- DSGVO Compliance Dashboard JSON.
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.

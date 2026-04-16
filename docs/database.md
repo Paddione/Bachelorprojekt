@@ -9,9 +9,7 @@ Die Tabellenstrukturen werden durch Kubernetes-Init-Skripte idempotent angelegt 
 
 ## Website-Datenbank (`website`)
 
-Speichert die Meeting Knowledge Pipeline: Kunden, Meeting-Verlauf, Transkripte,
-Artefakte, KI-Insights, Vektor-Embeddings sowie Bug-Tickets, Service-Konfigurationen,
-das Projektmanagement und Website-Admin-Einstellungen.
+Speichert die Meeting Knowledge Pipeline, das Messaging-System sowie Website-Admin-Einstellungen: Kunden, Meeting-Verlauf, Transkripte, Artefakte, KI-Insights, Chat-Raeume, Nachrichten, Bug-Tickets, Service-Konfigurationen und Projektmanagement.
 
 ```mermaid
 erDiagram
@@ -21,8 +19,6 @@ erDiagram
         text        email                   UK
         text        phone
         text        company
-        text        outline_collection_id
-        text        mattermost_channel_id
         text        keycloak_user_id
         timestamptz created_at
         timestamptz updated_at
@@ -87,16 +83,6 @@ erDiagram
         timestamptz created_at
     }
 
-    meeting_embeddings {
-        uuid        id              PK
-        text        source_type
-        uuid        source_id
-        text        content_preview
-        vector      embedding
-        text        model
-        timestamptz created_at
-    }
-
     bug_tickets {
         text        ticket_id           PK
         text        status
@@ -141,6 +127,43 @@ erDiagram
         text        brand           PK
         jsonb       items_json
         timestamptz updated_at
+    }
+
+    inbox_items {
+        serial      id              PK
+        text        type
+        text        status
+        timestamptz created_at
+    }
+
+    message_threads {
+        serial      id              PK
+        uuid        customer_id     FK
+        text        subject
+        timestamptz created_at
+    }
+
+    messages {
+        serial      id              PK
+        int         thread_id       FK
+        text        sender_id
+        text        body
+        timestamptz created_at
+    }
+
+    chat_rooms {
+        serial      id              PK
+        text        name
+        text        created_by
+        timestamptz created_at
+    }
+
+    chat_messages {
+        serial      id              PK
+        int         room_id         FK
+        text        sender_id
+        text        body
+        timestamptz created_at
     }
 
     projects {
@@ -201,24 +224,21 @@ erDiagram
     projects         ||--o{ sub_projects         : "hat"
     projects         ||--o{ project_tasks        : "hat direkt"
     sub_projects     ||--o{ project_tasks        : "hat"
+    customers        ||--o{ message_threads      : "hat"
+    message_threads  ||--o{ messages             : "enthaelt"
+    chat_rooms       ||--o{ chat_messages        : "enthaelt"
 ```
-
-> **`meeting_embeddings`** referenziert Zeilen aus `transcripts`, `transcript_segments`,
-> `meeting_artifacts` oder `meeting_insights` ueber das Tupel `(source_type, source_id)` —
-> eine polymorphe Relation ohne Datenbank-FK. `source_type` nimmt einen der Werte
-> `'transcript'`, `'segment'`, `'artifact'` oder `'insight'` an.
 
 ### Tabellenbeschreibungen
 
 | Tabelle | Beschreibung |
 |---------|--------------|
-| `customers` | Kunden/Coachees — Referenzpunkte zu Keycloak, Mattermost-Channel und Outline-Collection |
+| `customers` | Kunden/Coachees — Referenzpunkt zu Keycloak (`keycloak_user_id`) |
 | `meetings` | Meeting-Verlauf mit Status-Lifecycle: `scheduled → active → ended → transcribed → finalized`; optional einem Projekt zugeordnet (`project_id`, nullable FK mit ON DELETE SET NULL) |
 | `transcripts` | Volltext-Transkripte aus Whisper (faster-whisper-medium) |
 | `transcript_segments` | Zeitgestempelte Segmente eines Transkripts mit optionalem Speaker-Label |
 | `meeting_artifacts` | Artefakte (Whiteboard-Export, Datei, Screenshot, Dokument) je Meeting |
 | `meeting_insights` | KI-generierte Einsichten: Zusammenfassung, Aktionspunkte, Themen, Sentiment, Coaching-Notizen |
-| `meeting_embeddings` | pgvector-Einbettungen (BAAI/bge-base-en-v1.5, 768 Dim.) fuer semantische Suche |
 | `bug_tickets` | Bug-Meldungen vom Website-Formular mit Status `open → resolved → archived` |
 | `service_config` | Angebots-Overrides je Brand (JSON) fuer das Admin-Panel |
 | `leistungen_config` | Leistungskategorien-Overrides je Brand (Preistabelle) fuer das Admin-Panel |
@@ -228,6 +248,11 @@ erDiagram
 | `projects` | Kundenprojekte mit Status-Lifecycle `entwurf → wartend → geplant → aktiv → erledigt → archiviert` |
 | `sub_projects` | Teilprojekte innerhalb eines Projekts (eine Ebene tief) mit identischen Attributen |
 | `project_tasks` | Aufgaben in Projekten oder Teilprojekten — `sub_project_id` IS NULL bedeutet direkte Projektzuordnung |
+| `inbox_items` | Eingehende Anfragen (Kontaktformular, Buchung, Bug-Report) mit Status `pending → actioned → archived` |
+| `message_threads` | Direkt-Nachrichtenthreads zwischen Kunden und Admins |
+| `messages` | Nachrichten innerhalb eines Threads |
+| `chat_rooms` | Themenbasierte Chat-Raeume (oeffentlich oder privat) |
+| `chat_messages` | Nachrichten in einem Chat-Raum mit Lesebestaetigung via `chat_message_reads` |
 
 ---
 

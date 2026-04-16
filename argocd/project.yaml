@@ -22,8 +22,6 @@ spec:
       server: "*"
     - namespace: website
       server: "*"
-    - namespace: monitoring
-      server: "*"
     - namespace: kube-system
       server: "*"
     - namespace: cert-manager

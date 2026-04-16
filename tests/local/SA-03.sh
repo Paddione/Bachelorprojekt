@@ -29,9 +29,16 @@ fi
 LOGS=$(kubectl logs -n "$NAMESPACE" --all-containers --tail=200 -l 'app in (keycloak,nextcloud)' 2>&1)
 assert_not_contains "$LOGS" "Testpassword123!" "SA-03" "T3" "Kein Klartext-Passwort in Logs"
 
-# T4: Short password rejected
-SHORT_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
-  -H "Authorization: Bearer ${MM_ADMIN_TOKEN}" -H "Content-Type: application/json" \
-  -d '{"username":"shortpwuser","email":"shortpw@test.local","password":"abc"}' \
-  "${MM_URL}/users")
-assert_eq "$SHORT_STATUS" "400" "SA-03" "T4" "Zu kurzes Passwort wird abgelehnt"
+# T4: Keycloak password policy enforced — short password rejected via user creation API
+KC_SHORT_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/openid-connect/token" \
+  -d "client_id=admin-cli&username=admin&password=${KEYCLOAK_ADMIN_PASSWORD:-devadmin}&grant_type=password" \
+  | jq -r '.access_token // empty')
+if [[ -n "$KC_SHORT_TOKEN" ]]; then
+  SHORT_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+    -H "Authorization: Bearer ${KC_SHORT_TOKEN}" -H "Content-Type: application/json" \
+    -d '{"username":"shortpwtest","email":"shortpw@test.local","enabled":true,"credentials":[{"type":"password","value":"abc","temporary":false}]}' \
+    "http://auth.localhost/admin/realms/workspace/users")
+  assert_eq "$SHORT_STATUS" "400" "SA-03" "T4" "Zu kurzes Passwort wird von Keycloak abgelehnt"
+else
+  skip_test "SA-03" "T4" "Passwort-Policy" "Kein Keycloak Admin-Token"
+fi

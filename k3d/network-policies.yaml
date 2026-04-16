@@ -105,21 +105,6 @@ spec:
         matchLabels:
           app.kubernetes.io/name: traefik
 ---
-# Prometheus-Scraping aus monitoring-Namespace erlauben
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-monitoring-ingress
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: monitoring
----
 # Website-Backend aus website-Namespace erlauben
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

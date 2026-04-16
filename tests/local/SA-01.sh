@@ -8,14 +8,13 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: All service ingresses are defined
-for svc in auth chat files office; do
+for svc in auth files office vault; do
   INGRESS=$(kubectl get ingress -n "$NAMESPACE" --no-headers 2>/dev/null | grep -c "${svc}" || echo "0")
   assert_gt "$INGRESS" 0 "SA-01" "T1-${svc}" "Ingress für ${svc}.localhost definiert"
 done
 
 # T2: Services reachable (via ingress or port-forward)
 for pair in "auth.localhost:${KC_URL:-http://auth.localhost}:200,302,303" \
-            "chat.localhost:${MM_URL%/api/v4}:200,302" \
             "files.localhost:${NC_URL:-http://files.localhost}:200,302,303"; do
   HOST="${pair%%:*}"
   REST="${pair#*:}"
@@ -39,13 +38,6 @@ if (( TOTAL_INGRESS > 0 )); then
 else
   _log_result "SA-01" "T3" "Ingress-Objekte vorhanden" "fail" "0" "Keine Ingress-Objekte gefunden"
 fi
-
-# T4: WebSocket upgrade support (Mattermost requires WSS)
-WS_UPGRADE=$(curl -s -D - -o /dev/null --max-time 5 \
-  -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Version: 13" \
-  -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
-  "http://chat.localhost/api/v4/websocket" 2>/dev/null | grep -ci "upgrade\|switching" || echo "0")
-assert_gt "$WS_UPGRADE" 0 "SA-01" "T4" "WebSocket-Upgrade für Mattermost unterstützt"
 
 # T5: Keycloak serves correct CORS/security headers
 KC_HEADERS=$(curl -s -D - -o /dev/null --max-time 10 "http://auth.localhost/realms/workspace" 2>/dev/null)

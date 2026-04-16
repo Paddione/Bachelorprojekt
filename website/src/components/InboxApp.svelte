@@ -35,6 +35,22 @@
 
   const totalPending = $derived(Object.values(counts).reduce((a, b) => a + b, 0));
 
+  const statusTabs: [string, string][] = [
+    ['pending', 'Offen'],
+    ['actioned', 'Erledigt'],
+    ['archived', 'Archiv'],
+  ];
+
+  const filterTabs = $derived<[string, string, number][]>([
+    ['', 'Alle', totalPending],
+    ['registration', 'Registrierung', counts.registration ?? 0],
+    ['booking', 'Buchung', counts.booking ?? 0],
+    ['contact', 'Kontakt', counts.contact ?? 0],
+    ['bug', 'Bug', counts.bug ?? 0],
+    ['meeting_finalize', 'Meeting', counts.meeting_finalize ?? 0],
+    ['user_message', 'Nachricht', counts.user_message ?? 0],
+  ]);
+
   async function reload() {
     try {
       const p = new URLSearchParams({ status: activeStatus });
@@ -118,7 +134,7 @@
   <aside class="sidebar">
     <h2>Inbox</h2>
     <div class="filter-group">
-      {#each ([['', 'Alle', totalPending], ['registration', 'Registrierung', counts.registration ?? 0], ['booking', 'Buchung', counts.booking ?? 0], ['contact', 'Kontakt', counts.contact ?? 0], ['bug', 'Bug', counts.bug ?? 0], ['meeting_finalize', 'Meeting', counts.meeting_finalize ?? 0], ['user_message', 'Nachricht', counts.user_message ?? 0]] as [t, label, count])}
+      {#each filterTabs as [t, label, count]}
         <button
           class="filter-btn {activeType === t ? 'active' : ''}"
           onclick={() => setType(t as InboxType | '')}
@@ -129,7 +145,7 @@
       {/each}
     </div>
     <div class="status-group">
-      {#each ([['pending','Offen'], ['actioned','Erledigt'], ['archived','Archiv']] as [s, label])}
+      {#each statusTabs as [s, label]}
         <button
           class="status-btn {activeStatus === s ? 'active' : ''}"
           onclick={() => setStatus(s as InboxStatus)}

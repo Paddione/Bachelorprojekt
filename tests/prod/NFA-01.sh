@@ -26,26 +26,6 @@ else
   assert_not_contains "$MCR_IMAGES" "mcr.microsoft.com" "NFA-01" "T2-mcr" "Keine Images von mcr.microsoft.com"
 fi
 
-# T3: Services don't phone home — check DNS/network policies
-# Verify no egress to known telemetry endpoints from Mattermost
-if [[ -n "${MM_URL:-}" ]]; then
-  # Try mmctl inside the pod first (more reliable than unauthenticated API)
-  MM_POD=$(kubectl get pod -n "$NAMESPACE" -l app=mattermost -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-  if [[ -n "$MM_POD" ]]; then
-    TELEMETRY=$(kubectl exec -n "$NAMESPACE" "$MM_POD" -- mmctl --local config get LogSettings.EnableDiagnostics 2>/dev/null | tr -d '[:space:]')
-    assert_eq "${TELEMETRY:-true}" "false" "NFA-01" "T3a" "Mattermost Telemetrie deaktiviert"
-
-    SEGMENT_KEY=$(kubectl exec -n "$NAMESPACE" "$MM_POD" -- mmctl --local config get AnalyticsSettings.SegmentDeveloperKey 2>/dev/null | tr -d '[:space:]')
-    assert_eq "${SEGMENT_KEY:-}" "" "NFA-01" "T3b" "Kein Segment Analytics-Key konfiguriert"
-  else
-    skip_test "NFA-01" "T3a" "Telemetrie-Check" "Kein Mattermost Pod gefunden"
-    skip_test "NFA-01" "T3b" "Analytics-Check" "Kein Mattermost Pod gefunden"
-  fi
-else
-  skip_test "NFA-01" "T3a" "Telemetrie-Check" "MM_URL nicht gesetzt"
-  skip_test "NFA-01" "T3b" "Analytics-Check" "MM_URL nicht gesetzt"
-fi
-
 # T4: Nextcloud has no external storage backends configured
 NC_OCC=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -- \
   setpriv --reuid=999 --regid=999 --clear-groups php occ config:list --output=json 2>/dev/null || echo "{}")

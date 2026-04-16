@@ -60,13 +60,7 @@ data:
           set $uri_path $http_x_forwarded_uri;
           set $allowed "";
 
-          if ($uri_path ~ "^/mattermost(/|$)") {
-            set $allowed "yes";
-          }
           if ($uri_path ~ "^/nextcloud(/|$)") {
-            set $allowed "yes";
-          }
-          if ($uri_path ~ "^/invoiceninja(/|$)") {
             set $allowed "yes";
           }
           if ($uri_path ~ "^/stripe(/|$)") {

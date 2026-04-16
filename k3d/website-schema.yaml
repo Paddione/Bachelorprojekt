@@ -10,12 +10,9 @@ data:
   init-meetings-schema.sh: |
     #!/bin/bash
     set -e
-    echo "Initializing meetings schema (pgvector + tables)..."
+    echo "Initializing meetings schema..."
 
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
-      -- Enable pgvector extension
-      CREATE EXTENSION IF NOT EXISTS vector;
-
       -- Customers (cross-reference to Keycloak, Mattermost)
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -91,18 +88,6 @@ data:
           created_at TIMESTAMPTZ DEFAULT now()
       );
 
-      -- Vector embeddings (pgvector)
-      CREATE TABLE IF NOT EXISTS meeting_embeddings (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          source_type TEXT NOT NULL
-              CHECK (source_type IN ('transcript','segment','artifact','insight')),
-          source_id UUID NOT NULL,
-          content_preview TEXT,
-          embedding vector(768),
-          model TEXT DEFAULT 'BAAI/bge-base-en-v1.5',
-          created_at TIMESTAMPTZ DEFAULT now()
-      );
-
       -- Bug report tickets (status tracking for /status page)
       CREATE TABLE IF NOT EXISTS bug_tickets (
           ticket_id       TEXT PRIMARY KEY,
@@ -128,27 +113,6 @@ data:
       CREATE INDEX IF NOT EXISTS idx_artifacts_meeting ON meeting_artifacts(meeting_id);
       CREATE INDEX IF NOT EXISTS idx_insights_meeting ON meeting_insights(meeting_id);
       CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
-      CREATE INDEX IF NOT EXISTS idx_embeddings_source ON meeting_embeddings(source_type, source_id);
-
-      -- Semantic search function for Claude Code MCP
-      CREATE OR REPLACE FUNCTION semantic_search(
-          query_embedding vector(768),
-          k INTEGER DEFAULT 5
-      )
-      RETURNS TABLE (
-          source_type TEXT,
-          source_id UUID,
-          content_preview TEXT,
-          similarity FLOAT
-      )
-      LANGUAGE sql STABLE AS $$
-          SELECT source_type, source_id, content_preview,
-                 1 - (embedding <=> query_embedding) AS similarity
-          FROM meeting_embeddings
-          WHERE embedding IS NOT NULL
-          ORDER BY embedding <=> query_embedding
-          LIMIT k;
-      $$;
 
       -- ── Messaging System ──────────────────────────────────────────────
 
@@ -158,6 +122,7 @@ data:
         status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','actioned','archived')),
         reference_id    TEXT,
         reference_table TEXT,
+        bug_ticket_id   TEXT REFERENCES bug_tickets(ticket_id) ON DELETE SET NULL,
         payload         JSONB,
         created_at      TIMESTAMPTZ DEFAULT now(),
         actioned_at     TIMESTAMPTZ,
@@ -178,10 +143,12 @@ data:
         thread_id            INT NOT NULL REFERENCES message_threads(id),
         sender_id            TEXT NOT NULL,
         sender_role          TEXT NOT NULL CHECK (sender_role IN ('admin','user')),
+        sender_customer_id   UUID REFERENCES customers(id) ON DELETE SET NULL,
         body                 TEXT NOT NULL,
         created_at           TIMESTAMPTZ DEFAULT now(),
         read_at              TIMESTAMPTZ,
-        notification_sent_at TIMESTAMPTZ
+        notification_sent_at TIMESTAMPTZ,
+        CHECK (sender_role = 'admin' OR sender_customer_id IS NOT NULL)
       );
       CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id, id ASC);
 
@@ -205,6 +172,7 @@ data:
         room_id              INT NOT NULL REFERENCES chat_rooms(id),
         sender_id            TEXT NOT NULL,
         sender_name          TEXT NOT NULL,
+        sender_customer_id   UUID REFERENCES customers(id) ON DELETE SET NULL,
         body                 TEXT NOT NULL,
         created_at           TIMESTAMPTZ DEFAULT now(),
         notification_sent_at TIMESTAMPTZ

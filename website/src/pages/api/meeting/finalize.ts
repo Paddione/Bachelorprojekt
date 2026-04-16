@@ -4,7 +4,7 @@ import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
 import {
   upsertCustomer, createMeeting, updateMeetingStatus,
-  saveTranscript, saveArtifact, saveInsight, generateMeetingEmbeddings,
+  saveTranscript, saveArtifact, saveInsight,
 } from '../../../lib/website-db';
 import { generateMeetingInsights } from '../../../lib/claude';
 
@@ -158,16 +158,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // ── 6. Generate embeddings (best-effort) ──────────────────────
-    try {
-      const embeddingCount = await generateMeetingEmbeddings(meeting.id);
-      if (embeddingCount > 0) results.push(`Embeddings: ${embeddingCount} Vektoren generiert`);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Embeddings: ${msg}`);
-    }
-
-    // ── 7b. Generate Claude AI insights (best-effort) ───────────────
+    // ── 6b. Generate Claude AI insights (best-effort) ───────────────
     if (transcriptText) {
       try {
         const artifactTexts = whiteboardArtifacts

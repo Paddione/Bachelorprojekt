@@ -1,8 +1,8 @@
 # ════════════════════════════════════════════════════════════════════════════
-# claude-code-mcp-core — Operational backbone: cluster, database, chat
+# claude-code-mcp-core — Operational backbone: cluster, database
 #
 # Containers share one network namespace → no DNS between them, all localhost.
-# Ports: 8080 (kubernetes), 3001 (postgres), 8000 (mattermost)
+# Ports: 8080 (kubernetes), 3001 (postgres)
 # ════════════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment
@@ -69,7 +69,7 @@ spec:
                   name: claude-code-secrets
                   key: SHARED_DB_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/mattermost"
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/postgres"
           ports:
             - containerPort: 3001
               name: postgres
@@ -87,40 +87,6 @@ spec:
             requests: { memory: 128Mi, cpu: 50m }
             limits:   { memory: 512Mi }
 
-        # ── Mattermost MCP (port 8000) ─────────────────────────────
-        - name: mattermost
-          image: legard/mcp-server-mattermost:latest
-          imagePullPolicy: Always
-          env:
-            - name: MCP_TRANSPORT
-              value: "http"
-            - name: MCP_HOST
-              value: "0.0.0.0"
-            - name: MCP_PORT
-              value: "8000"
-            - name: MATTERMOST_URL
-              value: "http://mattermost.workspace.svc.cluster.local:8065"
-            - name: MATTERMOST_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: claude-code-secrets
-                  key: MATTERMOST_TOKEN
-            - name: MATTERMOST_VERIFY_SSL
-              value: "false"
-          ports:
-            - containerPort: 8000
-              name: mattermost
-          readinessProbe:
-            httpGet: { path: /health, port: 8000 }
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          livenessProbe:
-            httpGet: { path: /health, port: 8000 }
-            initialDelaySeconds: 20
-            periodSeconds: 30
-          resources:
-            requests: { memory: 64Mi, cpu: 50m }
-            limits:   { memory: 256Mi }
 ---
 apiVersion: v1
 kind: Service
@@ -136,6 +102,3 @@ spec:
     - name: postgres
       port: 3001
       targetPort: 3001
-    - name: mattermost
-      port: 8000
-      targetPort: 8000

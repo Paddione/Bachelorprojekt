@@ -10,15 +10,12 @@ data:
   # ════════════════════════════════════════════════════════════════════
 
   OPENID_PROVIDER_URL: "http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/.well-known/openid-configuration"
-  MATTERMOST_WEBHOOK_URL: "http://mattermost.workspace.svc.cluster.local:8065/hooks/claude-code-alerts"
 
-  # Core pod: cluster + database + chat
+  # Core pod: cluster + database
   MCP_KUBERNETES_URL:   "http://claude-code-mcp-core:8080/mcp"
   MCP_POSTGRES_URL:     "http://claude-code-mcp-core:3001/mcp"
-  MCP_MATTERMOST_URL:   "http://claude-code-mcp-core:8000/mcp"
-  # Apps pod: files/calendar + billing
+  # Apps pod: files/calendar
   MCP_NEXTCLOUD_URL:    "http://claude-code-mcp-apps:8000/mcp"
-  MCP_INVOICENINJA_URL: "http://claude-code-mcp-apps:8080/mcp"
   # Auth pod: SSO management (SSE transport)
   MCP_KEYCLOAK_URL:     "http://claude-code-mcp-auth:8080/mcp/sse"
   # Browser pod: Playwright (Browser interaction)
@@ -32,10 +29,8 @@ data:
   # ════════════════════════════════════════════════════════════════════
 
   KEYCLOAK_INTERNAL_URL:     "http://keycloak.workspace.svc.cluster.local:8080"
-  MATTERMOST_INTERNAL_URL:   "http://mattermost.workspace.svc.cluster.local:8065"
   NEXTCLOUD_INTERNAL_URL:    "http://nextcloud.workspace.svc.cluster.local:80"
   NEXTCLOUD_WEBDAV_URL:      "http://nextcloud.workspace.svc.cluster.local:80/remote.php/dav"
-  INVOICENINJA_INTERNAL_URL: "http://invoiceninja.workspace.svc.cluster.local:80/api/v1"
   WEBSITE_INTERNAL_URL:      "http://website.website.svc.cluster.local:80"
   WHISPER_URL:               "http://whisper.workspace.svc.cluster.local:8000"
   TRAEFIK_API_URL:           "http://traefik.kube-system.svc.cluster.local:9000/api"
@@ -56,7 +51,7 @@ data:
       - Does NOT have: exec into pods, access secrets, delete resources
 
     Key namespaces to query:
-      - workspace (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja, Talk HPB)
+      - workspace (Keycloak, Nextcloud, Collabora, Talk HPB, Vaultwarden, Whisper)
       - website    (Astro website)
       - default     (Claude Code MCP servers)
       - kube-system (Traefik, CoreDNS)
@@ -77,12 +72,12 @@ data:
 
     Available databases (all read-only):
       - keycloak   → users, realms, sessions, clients
-      - mattermost → posts, channels, teams, users
       - nextcloud  → files, shares, users, calendar events (oc_ prefix tables)
       - vaultwarden → cipher items, collections, organizations
+      - website    → chat rooms, messages, meeting transcripts, inbox items
 
     Usage tips:
-      - Prefer mcp-keycloak or mcp-mattermost MCPs for structured access.
+      - Prefer mcp-keycloak MCP for structured Keycloak access.
       - Use this MCP for raw SQL queries, debugging, or cross-DB aggregations.
       - All connections enforce read-only via transaction_read_only=on.
 
@@ -101,34 +96,6 @@ data:
 
     Setup: Replace GITHUB_PAT placeholder in claude-code-secrets with a real token,
     then: kubectl rollout restart deployment/mcp-github
-
-  # ════════════════════════════════════════════════════════════════════
-  # GUIDE: mcp-mattermost  (port 8000, streamable-http)
-  # ════════════════════════════════════════════════════════════════════
-  GUIDE_MATTERMOST: |
-    Image: legard/mcp-server-mattermost
-    Transport: streamable-http → http://mcp-mattermost:8000/mcp
-    Auth: MATTERMOST_TOKEN from claude-code-secrets (bot token)
-    Server: mattermost.workspace.svc.cluster.local:8065
-
-    Current token: uses billing-bot token (dev placeholder).
-    For production: create a dedicated Claude Code bot in Mattermost:
-      Admin Console → Integrations → Bot Accounts → Add Bot Account
-      Name: claude-code | Role: Member | Post All + Read All Channels
-      Copy the generated token → update claude-code-secrets MATTERMOST_TOKEN
-      kubectl rollout restart deployment/mcp-mattermost
-
-    Key tools (37 total):
-      Channels: list_public_channels, list_my_channels, get_channel_by_name
-      Messages: post_message, get_channel_messages, search_messages
-      Users:    get_me, get_user_by_username, search_users
-      Threads:  get_thread, pin_message, add_reaction
-      Files:    upload_file, get_file_link
-
-    Common patterns:
-      - Post alert: post_message(channel_id, "🚨 Alert: ...")
-      - Find channel: get_channel_by_name(team_id, "general")
-      - Search logs: search_messages(terms="error", channel_id="...")
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-nextcloud  (port 8000, streamable-http)
@@ -186,31 +153,8 @@ data:
       Auth:     GET_AUTHENTICATION_FLOWS, GET_FLOW_EXECUTIONS
       IdP:      GET_IDENTITY_PROVIDERS, GET_IDENTITY_PROVIDER_MAPPERS
 
-    Realm in use: workspace (Keycloak, Mattermost, Nextcloud, Collabora, InvoiceNinja SSO)
+    Realm in use: workspace (Keycloak, Nextcloud, Collabora, Vaultwarden SSO)
     Admin realm:  master (admin-cli client lives here)
-
-  # ════════════════════════════════════════════════════════════════════
-  # GUIDE: mcp-invoiceninja  (port 8080, streamable-http via openapi-mcp)
-  # ════════════════════════════════════════════════════════════════════
-  GUIDE_INVOICENINJA: |
-    Image: ckanthony/openapi-mcp (OpenAPI → MCP bridge)
-    Transport: streamable-http → http://mcp-invoiceninja:8080/mcp
-    Auth: X-Api-Token header injected from claude-code-secrets INVOICENINJA_REQUEST_HEADERS
-    Spec: http://invoiceninja.workspace.svc.cluster.local/api/openapi.json
-    Base URL: http://invoiceninja.workspace.svc.cluster.local
-
-    If spec fetch fails at startup, check pod logs:
-      kubectl logs -n default deployment/mcp-invoiceninja
-    Fallback spec URL: https://raw.githubusercontent.com/invoiceninja/invoiceninja/v5-stable/openapi.yaml
-
-    Invoice Ninja API v1 direct access:
-      Base: http://invoiceninja.workspace.svc.cluster.local/api/v1
-      Auth: X-Api-Token: testrunnertoken2026
-      Key endpoints: /clients, /invoices, /quotes, /payments, /expenses, /projects, /tasks
-
-    Current API token: testrunnertoken2026
-    Rotate: Invoice Ninja → Settings → API Tokens → revoke + create new
-    Then update both INVOICENINJA_API_TOKEN and INVOICENINJA_REQUEST_HEADERS in claude-code-secrets.
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-browser  (port 3000, streamable-http)
@@ -229,7 +173,7 @@ data:
 
     Usage for platform verification:
       - Navigate to http://auth.localhost to check Keycloak
-      - Navigate to http://chat.localhost to check Mattermost
+      - Navigate to http://files.localhost to check Nextcloud
       - Verify SSO redirects between services
       - Capture visual state of UI components (e.g., Nextcloud Talk)
 
@@ -270,9 +214,9 @@ data:
       Success: 4242 4242 4242 4242 (any exp/CVC)
       Decline: 4000 0000 0000 0002
 
-    Integration: Invoice Ninja uses Stripe as payment gateway.
+    Integration: Website uses Stripe for direct checkout (no Invoice Ninja).
     Use this MCP to inspect payments, create ad-hoc checkout sessions,
-    or manage subscriptions outside of Invoice Ninja.
+    or manage subscriptions.
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: Traefik (no dedicated MCP — use kubernetes MCP + direct API)

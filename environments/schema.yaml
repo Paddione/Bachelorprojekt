@@ -94,17 +94,9 @@ env_vars:
     required: false
     default_dev: "http://files.localhost"
 
-  - name: MATTERMOST_EXTERNAL_URL
-    required: false
-    default_dev: "http://chat.localhost"
-
   - name: DOCS_URL
     required: false
     default_dev: "http://docs.localhost"
-
-  - name: BILLING_EXTERNAL_URL
-    required: false
-    default_dev: "http://billing.localhost"
 
   - name: AUTH_EXTERNAL_URL
     required: false
@@ -136,21 +128,6 @@ secrets:
   - name: KEYCLOAK_ADMIN_PASSWORD
     required: true
     generate: false
-
-  - name: MATTERMOST_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
-
-  - name: MATTERMOST_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
-  - name: MEETINGS_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
 
   - name: GITLAB_APP_ID
     required: true
@@ -186,37 +163,7 @@ secrets:
     generate: true
     length: 32
 
-  - name: INVOICENINJA_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
-
-  - name: INVOICENINJA_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
-  - name: INVOICENINJA_API_TOKEN
-    required: true
-    generate: true
-    length: 32
-
-  - name: INVOICENINJA_APP_KEY
-    required: true
-    generate: true
-    length: 32
-    encoding: base64
-
-  - name: INVOICENINJA_ADMIN_PASSWORD
-    required: true
-    generate: false
-
   - name: OAUTH2_PROXY_COOKIE_SECRET
-    required: true
-    generate: true
-    length: 32
-
-  - name: BILLING_BOT_MM_TOKEN
     required: true
     generate: true
     length: 32
@@ -267,16 +214,6 @@ secrets:
     required: true
     generate: false
 
-  - name: WORDPRESS_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
-  - name: WORDPRESS_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
-
   - name: DOCS_OIDC_SECRET
     required: true
     generate: true
@@ -299,10 +236,6 @@ secrets:
     generate: false
 
   - name: STRIPE_SECRET_KEY
-    required: false
-    generate: false
-
-  - name: GRAFANA_API_KEY
     required: false
     generate: false
 

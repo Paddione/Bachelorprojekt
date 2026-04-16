@@ -4,7 +4,7 @@
 
 | Kategorie | IDs | Beschreibung |
 |-----------|-----|--------------|
-| Funktional (FA) | FA-01 -- FA-25 | Messaging, Kanaele, Video, Dateien, Nutzerverwaltung, Benachrichtigungen, Suche, Homeoffice, Billing Bot, Website, Gast-Portal, Claude Code AI, Docs, Registration, OIDC, Booking, Meetings, Transkription, Outline, Vaultwarden, Whiteboard, Mailpit |
+| Funktional (FA) | FA-01 -- FA-25 | Messaging, Kanaele, Video, Dateien, Nutzerverwaltung, Benachrichtigungen, Suche, Homeoffice, Stripe-Checkout, Website, Gast-Portal, Claude Code AI, Docs, Registration, OIDC, Booking, Meetings, Transkription, Vaultwarden, Whiteboard, Mailpit |
 | Sicherheit (SA) | SA-01 -- SA-10 | SSO, Authentifizierung, Verschluesselung, Netzwerksicherheit, MCP-Auth |
 | Nicht-funktional (NFA) | NFA-01 -- NFA-09 | DSGVO/Datensouveraenitaet, Monitoring, Performance, Resilienz, Backup, Multi-Cluster |
 | Abnahmekriterien (AK) | AK-03, AK-04 | Akzeptanztests |

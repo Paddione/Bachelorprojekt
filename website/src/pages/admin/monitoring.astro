@@ -1,6 +1,11 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import MonitoringDashboard from '../../components/admin/MonitoringDashboard.svelte';
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const title = "Monitoring";
 const description = "Live Kubernetes metrics and cluster events";

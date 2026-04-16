@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 
 NAMESPACE="${NAMESPACE:-workspace}"
-_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/mattermost -- curl -s "$@" 2>/dev/null; }
+_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/keycloak -- curl -s "$@" 2>/dev/null; }
 
 # ── T1: Mailpit pod running ─────────────────────────────────────
 MP_READY=$(kubectl get deploy mailpit -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
@@ -15,7 +15,7 @@ MP_WEB=$(_kube_curl -o /dev/null -w '%{http_code}' "http://mailpit:8025/")
 assert_eq "$MP_WEB" "200" "FA-25" "T2" "Mailpit Web-UI erreichbar (HTTP 200)"
 
 # ── T3: Mailpit SMTP port reachable (1025) ──────────────────────
-SMTP_CHECK=$(kubectl exec -n "$NAMESPACE" deploy/mattermost -- \
+SMTP_CHECK=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -- \
   sh -c 'echo QUIT | nc -w 2 mailpit 1025 2>/dev/null | head -1')
 assert_contains "$SMTP_CHECK" "220" "FA-25" "T3" "Mailpit SMTP auf Port 1025 erreichbar (Banner 220)"
 

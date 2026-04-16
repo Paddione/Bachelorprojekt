@@ -103,10 +103,6 @@ all_images() {
   grep -q 'kind: Deployment' "$RENDERED"
 }
 
-@test "deployment: mattermost exists" {
-  grep -qE '^\s+name: mattermost$' "$RENDERED"
-}
-
 @test "deployment: nextcloud exists" {
   grep -qE '^\s+name: nextcloud$' "$RENDERED"
 }
@@ -123,20 +119,8 @@ all_images() {
   grep -qE '^\s+name: vaultwarden$' "$RENDERED"
 }
 
-@test "deployment: invoiceninja exists" {
-  grep -qE '^\s+name: invoiceninja$' "$RENDERED"
-}
-
 @test "deployment: mailpit exists" {
   grep -qE '^\s+name: mailpit$' "$RENDERED"
-}
-
-@test "deployment: billing-bot exists" {
-  grep -qE '^\s+name: billing-bot$' "$RENDERED"
-}
-
-@test "deployment: opensearch exists" {
-  grep -qE '^\s+name: opensearch$' "$RENDERED"
 }
 
 # ── Ingress ──────────────────────────────────────────────────────
@@ -148,7 +132,7 @@ all_images() {
 @test "ingress: all core hosts defined" {
   local hosts
   hosts=$(grep -oP 'host:\s*\K\S+' "$RENDERED" | sort -u)
-  for svc in auth chat files office billing vault mail; do
+  for svc in auth files office vault mail; do
     echo "$hosts" | grep -q "${svc}\." || {
       echo "Missing ingress host for: ${svc}"
       return 1
@@ -161,7 +145,7 @@ all_images() {
 @test "no core service images use :latest tag" {
   # MCP sidecar images may use :latest (upstream-controlled); skip those
   local latest_images
-  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|mattermost-mcp|nextcloud-mcp|curlimages/curl)' || true)
+  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl)' || true)
   if [[ -n "$latest_images" ]]; then
     echo "Core images using :latest: ${latest_images}"
     return 1
@@ -210,7 +194,7 @@ all_images() {
 # ── Services ─────────────────────────────────────────────────────
 
 @test "service for each core deployment exists" {
-  for svc in keycloak mattermost nextcloud shared-db collabora vaultwarden mailpit; do
+  for svc in keycloak nextcloud shared-db vaultwarden mailpit; do
     grep -qE "kind: Service" "$RENDERED" || {
       echo "No Service kind found"
       return 1
@@ -233,11 +217,6 @@ all_images() {
 }
 
 # ── HPA ──────────────────────────────────────────────────────────
-
-@test "HorizontalPodAutoscaler for mattermost exists" {
-  grep -q 'kind: HorizontalPodAutoscaler' "$RENDERED"
-  grep -q 'mattermost' "$RENDERED"
-}
 
 # ── Backup CronJob ───────────────────────────────────────────────
 

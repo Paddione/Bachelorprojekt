@@ -1,6 +1,6 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 
-const MM_URL = process.env.TEST_BASE_URL || 'http://localhost:8065';
+const KC_URL = process.env.TEST_KC_URL || 'http://auth.localhost';
 const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN ? `https://${process.env.NC_DOMAIN}` : 'http://files.localhost');
 const KC_USER = process.env.MM_TEST_USER || 'testuser1';
 const KC_PASS = process.env.MM_TEST_PASS || 'Testpassword123!';
@@ -19,36 +19,22 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     await context.close();
   });
 
-  test('T15: Mattermost SSO-Login via Keycloak', async () => {
-    await page.goto(`${MM_URL}/login`);
+  test('T15: Keycloak Login via OIDC', async () => {
+    await page.goto(`${KC_URL}/realms/workspace/account/`);
 
-    // Force-SSO: Traefik mattermost-force-sso middleware redirects /login →
-    // /oauth/gitlab/login which in turn redirects to Keycloak. If the chooser
-    // dialog pre-empts the redirect, click "in browser" first.
-    const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
-    try {
-      await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
-      await browserLink.click();
-    } catch {
-      // Redirect already landed on Keycloak — nothing to dismiss
-    }
-
-    // Should land on Keycloak login page — force-SSO redirect confirmed
+    // Should be on Keycloak login page
     await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 15_000 });
 
-    // Fill Keycloak credentials and attempt login
     await page.locator('#username, input[name="username"]').fill(KC_USER);
     await page.locator('#password, input[name="password"]').fill(KC_PASS);
     await page.locator('#kc-login, input[type="submit"]').click();
 
-    // Should redirect back to Mattermost OR show an error (invalid credentials in prod)
-    const channelOrError = page.locator('#channel_view').or(
-      page.locator('[class*="error"], [class*="invalid"], .alert')
-    );
+    // Should redirect to account page or show an error (invalid credentials in prod)
+    const accountOrError = page.locator('[class*="pf-v5"], [id="landingSignedIn"], [class*="error"], [class*="invalid"]');
     try {
-      await channelOrError.first().waitFor({ state: 'visible', timeout: 15_000 });
+      await accountOrError.first().waitFor({ state: 'visible', timeout: 15_000 });
     } catch {
-      // If neither appeared, just confirm we were redirected to Keycloak (already asserted above)
+      // If neither appeared, just confirm we stayed on Keycloak (already asserted above)
     }
   });
 
@@ -64,7 +50,6 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     await ssoBtn.click();
 
     // Keycloak may auto-redirect (session from T15) or show login form
-    // If the session didn't carry over, fill the Keycloak login form
     const kcLogin = page.locator('#kc-login, input[name="username"]');
     try {
       await page.waitForURL(/.*\/(files|apps\/dashboard).*/, { timeout: 8_000 });
@@ -95,7 +80,6 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
         .or(page.getByRole('link', { name: /keycloak|anmelden/i }).first());
       if (await ssoBtn.isVisible().catch(() => false)) {
         await ssoBtn.click();
-        // Keycloak session should auto-redirect — if login form appears, fill it
         try {
           await page.waitForURL(/.*\/(apps\/spreed|files|dashboard).*/, { timeout: 10_000 });
         } catch {
@@ -115,10 +99,10 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     ).toBeVisible({ timeout: 15_000 });
   });
 
-  test('T19: Cross-Service SSO (Mattermost → Nextcloud)', async () => {
+  test('T19: Cross-Service SSO (Keycloak → Nextcloud)', async () => {
     test.skip(!NC_URL, 'TEST_NC_URL nicht gesetzt');
 
-    // Already authenticated via Mattermost (T15) — Keycloak session active
+    // Already authenticated via Keycloak (T15) — session should carry over to Nextcloud
     await page.goto(`${NC_URL}/login`);
 
     const ssoBtn = page.locator('a[href*="oidc"], button:has-text("Keycloak")');

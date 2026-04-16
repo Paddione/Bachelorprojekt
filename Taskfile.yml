@@ -21,7 +21,6 @@ tasks:
       - mkdir -p data
       - k3d cluster create --config k3d-config.yaml
       - kubectl wait --for=condition=Ready nodes --all --timeout=120s
-      - task: namespaces:create
       - echo "✓ Cluster '{{.CLUSTER_NAME}}' is ready"
       - kubectl get nodes -o wide
 
@@ -58,86 +57,10 @@ tasks:
       - echo "=== Resource Usage ==="
       - docker stats --no-stream --format "table {{`{{.Name}}`}}\t{{`{{.CPUPerc}}`}}\t{{`{{.MemUsage}}`}}" $(docker ps -q --filter "label=app=k3d") 2>/dev/null || true
 
-  # ─────────────────────────────────────────────
-  # Namespace Management
-  # ─────────────────────────────────────────────
-  namespaces:create:
-    desc: Create monitoring namespace with PSS labels
-    cmds:
-      - |
-        kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
-        kubectl label namespace monitoring \
-          pod-security.kubernetes.io/enforce=baseline \
-          pod-security.kubernetes.io/warn=restricted \
-          --overwrite
-      - echo "✓ monitoring namespace ready"
-
-  # ─────────────────────────────────────────────
-  # Observability (required for NFA-02 compliance)
-  # ─────────────────────────────────────────────
-  observability:install:
-    desc: "Install Prometheus + Grafana stack (required for NFA-02, ~512MB RAM, ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-      - helm repo update
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stack \
-          --kube-context "${ENV_CONTEXT}" \
-          --namespace monitoring --create-namespace \
-          --set prometheus.prometheusSpec.resources.requests.memory=256Mi \
-          --set prometheus.prometheusSpec.resources.limits.memory=512Mi \
-          --set grafana.resources.requests.memory=128Mi \
-          --set grafana.resources.limits.memory=256Mi \
-          --set alertmanager.enabled=false \
-          --set prometheus.prometheusSpec.retention=6h \
-          --wait --timeout=300s
-      - echo "✓ Observability stack installed"
-      - 'echo "  Grafana: kubectl port-forward -n monitoring svc/kube-prometheus-grafana 3000:80"'
-      - 'echo "  Password: kubectl get secret -n monitoring kube-prometheus-grafana -o jsonpath=''{.data.admin-password}'' | base64 -d"'
-
-  workspace:monitoring:
-    desc: "Install observability and import DSGVO dashboard (required for NFA-02, ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - task: observability:install
-        vars: { ENV: "{{.ENV}}" }
-      # Import DSGVO Compliance Dashboard as a ConfigMap (Grafana sidecar auto-detects it)
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        kubectl --context "${ENV_CONTEXT}" create configmap grafana-dsgvo-dashboard \
-          --from-file=dsgvo-compliance.json=grafana/dsgvo-compliance-dashboard.json \
-          -n monitoring --dry-run=client -o yaml | \
-          kubectl --context "${ENV_CONTEXT}" label -f - --dry-run=client -o yaml --local grafana_dashboard=1 | \
-          kubectl --context "${ENV_CONTEXT}" apply -f -
-      - echo ""
-      - 'echo "✓ Monitoring ready (NFA-02 compliant)"'
-      - 'echo "  Grafana:            kubectl port-forward -n monitoring svc/kube-prometheus-grafana 3000:80"'
-      - 'echo "  Prometheus:         kubectl port-forward -n monitoring svc/kube-prometheus-prometheus 9090:9090"'
-      - 'echo "  DSGVO Dashboard:    Grafana → Dashboards → DSGVO Compliance Dashboard"'
-
-  workspace:monitoring:all-prods:
-    desc: Install observability stack on all production clusters (mentolder + korczewski)
-    cmds:
-      - task: workspace:monitoring
-        vars: { ENV: "mentolder" }
-      - task: workspace:monitoring
-        vars: { ENV: "korczewski" }
-
   workspace:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
     cmds:
       - bash scripts/dsgvo-compliance-check.sh
-
-  observability:remove:
-    desc: Remove observability stack to reclaim resources
-    cmds:
-      - helm uninstall kube-prometheus -n monitoring
-      - kubectl delete namespace monitoring --ignore-not-found
-      - echo "✓ Observability stack removed"
 
   # ─────────────────────────────────────────────
   # Ingress (k3s built-in Traefik)
@@ -266,13 +189,12 @@ tasks:
       - 'echo "   kubectl:  already configured for cluster ''{{.CLUSTER_NAME}}''"'
 
   workspace:up:
-    desc: "Full automated setup: Cluster -> MVP -> Office -> MCP -> Monitoring -> Billing"
+    desc: "Full automated setup: Cluster -> MVP -> Office -> MCP -> Billing"
     cmds:
       - task: cluster:create
       - task: workspace:deploy
       - task: workspace:office:deploy
       - task: mcp:deploy
-      - task: workspace:monitoring
       - task: workspace:post-setup
       - task: workspace:talk-setup
       - task: workspace:admin-users-setup
@@ -283,7 +205,6 @@ tasks:
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  MCP Status:   http://ai.localhost"'
-      - 'echo "  Monitoring:    http://localhost:3000 (Grafana)"'
 
   down:
     desc: "Tear down everything"

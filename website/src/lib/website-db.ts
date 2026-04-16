@@ -124,6 +124,34 @@ export interface MeetingWithDetails {
   }>;
 }
 
+export interface MeetingWithCustomer {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  meetingType: string;
+  status: string;
+  talkRoomToken: string | null;
+}
+
+export async function getMeetingByRoomToken(
+  roomToken: string,
+): Promise<MeetingWithCustomer | null> {
+  const result = await pool.query(
+    `SELECT m.id, m.customer_id AS "customerId",
+            c.name AS "customerName", c.email AS "customerEmail",
+            m.meeting_type AS "meetingType", m.status,
+            m.talk_room_token AS "talkRoomToken"
+     FROM meetings m
+     JOIN customers c ON m.customer_id = c.id
+     WHERE m.talk_room_token = $1
+     ORDER BY m.created_at DESC
+     LIMIT 1`,
+    [roomToken],
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function createMeeting(params: {
   customerId: string;
   meetingType: string;

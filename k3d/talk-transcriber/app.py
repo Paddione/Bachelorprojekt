@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-talk-transcriber -- Nextcloud Talk Live-Transkription
+talk-transcriber -- Nextcloud Talk Post-Meeting-Transkription
 Pollt alle CHUNK_SECONDS nach aktiven Calls, tritt headless bei,
-buffert Audio und schickt 5-s-Chunks an Whisper.
+buffert Audio und schickt Chunks an Whisper. Nach Gespraechsende
+wird das vollstaendige Transkript an die Website-API gesendet,
+die es in der Datenbank und in Nextcloud-Dateien speichert.
 """
 import asyncio, hashlib, hmac, os, subprocess, tempfile
 from contextlib import asynccontextmanager
@@ -19,6 +21,7 @@ NC_PASS      = os.environ["TRANSCRIBER_BOT_PASSWORD"]
 NC_SECRET    = os.environ.get("TRANSCRIBER_SECRET", "")
 NC_VERIFY    = os.environ.get("NC_VERIFY_SSL", "false").lower() == "true"
 WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
+WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
 MAX_SESSIONS = int(os.environ.get("MAX_SESSIONS", "3"))
 
@@ -185,20 +188,31 @@ async def run_session(token: str) -> None:
 
     await asyncio.sleep(5)  # let call establish in Firefox
 
-    async with httpx.AsyncClient(
-        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
-    ) as client:
-        try:
-            while token in sessions and sessions[token]:
-                chunk = await _record_chunk(sink)
-                if chunk:
-                    text = await _whisper(chunk)
-                    if text:
-                        await _post_chat(client, token, f"\U0001f3a4 {text}")
-        except asyncio.CancelledError:
-            pass
-        finally:
-            _teardown(token, display_num)
+    sessions[token] |= {
+        "transcript_parts": [],
+        "segments": [],
+        "chunk_offset": 0.0,
+    }
+
+    try:
+        while token in sessions and sessions[token]:
+            chunk = await _record_chunk(sink)
+            if chunk:
+                text, segs = await _whisper(chunk)
+                if text:
+                    sessions[token]["transcript_parts"].append(text)
+                    offset = sessions[token].get("chunk_offset", 0.0)
+                    for seg in segs:
+                        sessions[token]["segments"].append({
+                            "start": round(offset + seg.get("start", 0), 2),
+                            "end":   round(offset + seg.get("end",   0), 2),
+                            "text":  seg.get("text", "").strip(),
+                        })
+                    sessions[token]["chunk_offset"] = offset + CHUNK_S
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await _finalize_and_teardown(token, display_num)
 
 
 def _start_browser(env: dict) -> subprocess.Popen:
@@ -261,26 +275,23 @@ async def _record_chunk(sink: str) -> str | None:
     return path
 
 
-async def _whisper(audio_path: str) -> str:
+async def _whisper(audio_path: str) -> tuple[str, list]:
+    """Returns (full_text, segments) from Whisper. Segments contain start/end/text."""
     try:
         async with httpx.AsyncClient(timeout=30) as c:
             with open(audio_path, "rb") as f:
                 r = await c.post(
                     f"{WHISPER}/v1/audio/transcriptions",
                     files={"file": ("chunk.wav", f, "audio/wav")},
-                    data={"model": "whisper-1", "language": "de"},
+                    data={"model": "whisper-1", "language": "de",
+                          "response_format": "verbose_json"},
                 )
-            return r.json().get("text", "").strip() if r.is_success else ""
+            if r.is_success:
+                data = r.json()
+                return data.get("text", "").strip(), data.get("segments", [])
+            return "", []
     finally:
         Path(audio_path).unlink(missing_ok=True)
-
-
-async def _post_chat(client: httpx.AsyncClient, token: str, message: str) -> None:
-    await client.post(
-        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v1/chat/{token}",
-        headers={"OCS-APIRequest": "true"},
-        json={"message": message},
-    )
 
 
 # ---------- Cleanup -----------------------------------------------------------
@@ -305,12 +316,38 @@ def _cancel(token: str) -> None:
     s = sessions.get(token)
     if s and (t := s.get("task")):
         t.cancel()
-    # Do NOT pop from sessions here -- run_session finally calls _teardown
+    # Do NOT pop from sessions here -- run_session finally calls _finalize_and_teardown
 
 
-def _teardown(token: str, display_num: int | None = None) -> None:
+async def _finalize_and_teardown(token: str, display_num: int | None = None) -> None:
+    """POST accumulated transcript to website API, then release resources."""
+    s = sessions.get(token, {})
+    transcript_parts: list[str] = s.get("transcript_parts", [])
+    segments: list[dict] = s.get("segments", [])
+
+    if transcript_parts and WEBSITE_URL:
+        full_text = "\n".join(transcript_parts)
+        print(f"[{token}] saving transcript ({len(full_text)} chars, "
+              f"{len(segments)} segments)", flush=True)
+        try:
+            async with httpx.AsyncClient(timeout=30) as wc:
+                resp = await wc.post(
+                    f"{WEBSITE_URL}/api/meeting/save-transcript",
+                    json={
+                        "roomToken": token,
+                        "transcriptText": full_text,
+                        "segments": segments,
+                    },
+                )
+                if not resp.is_success:
+                    print(f"[{token}] save-transcript returned {resp.status_code}: "
+                          f"{resp.text[:200]}", flush=True)
+        except Exception as exc:
+            print(f"[{token}] failed to save transcript: {exc}", flush=True)
+    elif not transcript_parts:
+        print(f"[{token}] no transcript accumulated, skipping save", flush=True)
+
     s = sessions.pop(token, {})
-    # If display_num was passed and not in state (e.g. session init failed early), use it
     if display_num is not None and "display_num" not in s:
         s["display_num"] = display_num
     print(f"[{token}] stopping", flush=True)

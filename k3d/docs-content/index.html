@@ -31,7 +31,7 @@
 
     /* ---- Base ---------------------------------------------------------- */
     html, body {
-      background: #111827;
+      background: #111827 !important;
       color: var(--light);
       font-family: var(--font-sans);
     }
@@ -84,33 +84,37 @@
     }
     .content {
       color: var(--light);
+      max-width: 860px !important;
     }
 
     /* ---- Headings ------------------------------------------------------ */
-    h1 {
-      font-family: var(--font-serif);
-      font-weight: 700;
-      color: var(--gold-light);
-      border-bottom: 2px solid var(--dark-border);
-      padding-bottom: 0.4em;
-      margin-top: 0.5em;
+    #main h1 {
+      font-family: var(--font-serif) !important;
+      font-weight: 700 !important;
+      color: var(--gold-light) !important;
+      border-bottom: 2px solid var(--dark-border) !important;
+      padding-bottom: 0.4em !important;
+      margin-top: 0.5em !important;
     }
-    h2 {
-      font-family: var(--font-serif);
-      font-weight: 400;
-      color: var(--light);
-      border-bottom: 1px solid var(--gold);
-      padding-bottom: 0.25em;
+    #main h2 {
+      font-family: var(--font-serif) !important;
+      font-weight: 400 !important;
+      color: var(--light) !important;
+      border-bottom: 1px solid var(--gold) !important;
+      padding-bottom: 0.25em !important;
     }
-    h3 {
-      font-family: var(--font-sans);
-      font-weight: 600;
-      color: var(--light);
+    #main h3 {
+      font-family: var(--font-sans) !important;
+      font-weight: 600 !important;
+      color: var(--light) !important;
     }
-    h4 {
-      font-family: var(--font-sans);
-      font-weight: 500;
-      color: var(--muted);
+    #main h4 {
+      font-family: var(--font-sans) !important;
+      font-weight: 500 !important;
+      color: var(--muted) !important;
+    }
+    #main strong {
+      color: var(--light) !important;
     }
 
     /* ---- Links --------------------------------------------------------- */
@@ -131,12 +135,12 @@
     thead tr {
       background: var(--dark-lighter) !important;
     }
-    thead th {
+    #main thead th {
       color: var(--gold) !important;
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.08em;
-      text-transform: uppercase;
+      text-transform: uppercase !important;
       border: 1px solid var(--dark-border) !important;
       padding: 0.6em 0.9em;
     }
@@ -146,10 +150,10 @@
     tbody tr:hover {
       background: var(--gold-dim) !important;
     }
-    tbody td {
+    #main tbody td {
       border: 1px solid var(--dark-border) !important;
       padding: 0.5em 0.9em;
-      color: var(--light);
+      color: var(--light) !important;
     }
 
     /* ---- Code ---------------------------------------------------------- */

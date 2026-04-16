@@ -16,17 +16,11 @@ metadata:
 data:
   # Brand
   BRAND: "${BRAND_ID}"
-  # Mattermost
-  MATTERMOST_WEBHOOK_URL: ""
-  MATTERMOST_CHANNEL: "anfragen"
-  MATTERMOST_URL: "http://mattermost.workspace.svc.cluster.local:8065"
-  MATTERMOST_EXTERNAL_URL: "${MATTERMOST_EXTERNAL_URL}"
   DOCS_URL: "${DOCS_URL}"
   BILLING_EXTERNAL_URL: "${BILLING_EXTERNAL_URL}"
   AUTH_EXTERNAL_URL: "${AUTH_EXTERNAL_URL}"
   VAULT_EXTERNAL_URL: "${VAULT_EXTERNAL_URL}"
   WHITEBOARD_EXTERNAL_URL: "${WHITEBOARD_EXTERNAL_URL}"
-  WIKI_EXTERNAL_URL: "${WIKI_EXTERNAL_URL}"
   BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
   KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
@@ -57,12 +51,8 @@ data:
   NEXTCLOUD_URL: "http://nextcloud.workspace.svc.cluster.local"
   NEXTCLOUD_EXTERNAL_URL: "${NEXTCLOUD_EXTERNAL_URL}"
   NEXTCLOUD_ADMIN_USER: "admin"
-  NEXTCLOUD_ADMIN_PASS: "devnextcloudadmin"
   NEXTCLOUD_CALDAV_USER: "admin"
-  NEXTCLOUD_CALDAV_PASSWORD: "devnextcloudadmin"
   KEYCLOAK_FRONTEND_URL: "${KEYCLOAK_FRONTEND_URL}"
-  # Mattermost signing channel
-  MATTERMOST_SIGNING_CHANNEL: "signing"
   # Portal admin
   PORTAL_ADMIN_USERNAME: "gekko,paddione"
   CALENDAR_NAME: "personal"
@@ -75,10 +65,8 @@ data:
   # InvoiceNinja
   INVOICENINJA_URL: "http://invoiceninja.workspace.svc.cluster.local/api/v1"
   INVOICENINJA_API_TOKEN: ""
-  # Whisper + Outline
+  # Whisper
   WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
-  OUTLINE_URL: "http://outline.workspace.svc.cluster.local"
-  OUTLINE_API_KEY: ""
   ANTHROPIC_API_KEY: ""
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
@@ -101,6 +89,15 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-pull-secret
+      # Lower ndots so FQDNs like shared-db.workspace.svc.cluster.local (4 dots)
+      # are resolved as absolute names without iterating through search-path suffixes.
+      # On clusters where the node inherits a home-router search domain (e.g. fritz.box),
+      # the default ndots:5 causes those lookups to time out and Node.js (musl libc)
+      # returns EAI_AGAIN — breaking the pg-pool connection on first use.
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "3"
       nodeSelector:
         kubernetes.io/arch: amd64
       affinity:
@@ -127,11 +124,11 @@ spec:
                   key: WEBSITE_DB_PASSWORD
             - name: SESSIONS_DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
-            - name: MATTERMOST_BOT_TOKEN
+            - name: CRON_SECRET
               valueFrom:
                 secretKeyRef:
                   name: website-secrets
-                  key: MATTERMOST_BOT_TOKEN
+                  key: CRON_SECRET
             - name: WEBSITE_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
@@ -158,6 +155,16 @@ spec:
                   name: website-secrets
                   key: STRIPE_WEBHOOK_SECRET
                   optional: true
+            - name: NEXTCLOUD_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: NEXTCLOUD_ADMIN_PASS
+            - name: NEXTCLOUD_CALDAV_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: NEXTCLOUD_CALDAV_PASSWORD
           ports:
             - containerPort: 4321
           resources:
@@ -228,6 +235,10 @@ spec:
       activeDeadlineSeconds: 25
       template:
         spec:
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "3"
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:

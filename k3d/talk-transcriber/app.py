@@ -6,24 +6,39 @@ buffert Audio und schickt Chunks an Whisper. Nach Gespraechsende
 wird das vollstaendige Transkript an die Website-API gesendet,
 die es in der Datenbank und in Nextcloud-Dateien speichert.
 """
-import asyncio, hashlib, hmac, os, subprocess, tempfile
+import asyncio, hashlib, hmac, os, subprocess, tempfile, time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
+import psycopg2
 from fastapi import FastAPI, HTTPException, Request
 
-NC_PROTO     = os.environ.get("NC_PROTOCOL", "http")
-NC_HOST      = os.environ.get("NC_DOMAIN", "nextcloud")
-NC_URL       = f"{NC_PROTO}://{NC_HOST}"
-NC_USER      = "transcriber-bot"
-NC_PASS      = os.environ["TRANSCRIBER_BOT_PASSWORD"]
-NC_SECRET    = os.environ.get("TRANSCRIBER_SECRET", "")
-NC_VERIFY    = os.environ.get("NC_VERIFY_SSL", "false").lower() == "true"
+NC_PROTO      = os.environ.get("NC_PROTOCOL", "http")
+NC_HOST       = os.environ.get("NC_DOMAIN", "nextcloud")
+NC_URL        = f"{NC_PROTO}://{NC_HOST}"
+NC_USER       = "transcriber-bot"
+NC_PASS       = os.environ["TRANSCRIBER_BOT_PASSWORD"]
+NC_SECRET     = os.environ.get("TRANSCRIBER_SECRET", "")
+NC_VERIFY     = os.environ.get("NC_VERIFY_SSL", "false").lower() == "true"
+NC_ADMIN_USER = os.environ.get("NC_ADMIN_USER", "admin")
+NC_ADMIN_PASS = os.environ.get("NC_ADMIN_PASS", "")
 WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
 MAX_SESSIONS = int(os.environ.get("MAX_SESSIONS", "3"))
+AUTO_JOIN_INTERVAL = 30   # re-check for new rooms every 30 seconds
+
+# httpx timeout: DNS on this cluster can take up to 10s due to ndots:5 search path;
+# connect timeout must exceed that to avoid spurious ConnectTimeout errors.
+NC_TIMEOUT = httpx.Timeout(connect=30.0, read=30.0, write=30.0, pool=30.0)
+
+# Nextcloud DB access for system-wide room discovery
+NC_DB_HOST = os.environ.get("NC_DB_HOST", "shared-db")
+NC_DB_PORT = int(os.environ.get("NC_DB_PORT", "5432"))
+NC_DB_NAME = os.environ.get("NC_DB_NAME", "nextcloud")
+NC_DB_USER = os.environ.get("NC_DB_USER", "nextcloud")
+NC_DB_PASS = os.environ.get("NC_DB_PASS", "")
 
 _display_pool: list[int] = list(range(11, 100))  # X display numbers :11 through :99
 _pa_ok: bool = True  # last known PulseAudio state
@@ -33,13 +48,16 @@ _pa_ok: bool = True  # last known PulseAudio state
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    task = asyncio.create_task(poll_loop())
+    poll_task      = asyncio.create_task(poll_loop())
+    auto_join_task = asyncio.create_task(auto_join_loop())
     yield
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    poll_task.cancel()
+    auto_join_task.cancel()
+    for t in (poll_task, auto_join_task):
+        try:
+            await t
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(lifespan=lifespan)
@@ -97,48 +115,284 @@ async def webhook(request: Request) -> dict:
     return {"status": "ok"}
 
 
-# ---------- Polling -----------------------------------------------------------
+# ---------- DB helpers --------------------------------------------------------
+
+def _db_connect() -> "psycopg2.connection":
+    return psycopg2.connect(
+        host=NC_DB_HOST, port=NC_DB_PORT,
+        dbname=NC_DB_NAME, user=NC_DB_USER, password=NC_DB_PASS,
+        connect_timeout=5,
+    )
+
+
+def _db_get_meeting_resources(token: str, start_ts: int, end_ts: int) -> list:
+    """
+    Query the Nextcloud DB for files created/modified during the meeting window:
+    1. Whiteboard files (application/vnd.excalidraw+json)
+    2. Office file activity (file_created / file_changed via oc_activity)
+    3. Talk attachments shared in this room
+    """
+    if not NC_DB_PASS:
+        return []
+    conn = None
+    try:
+        conn = _db_connect()
+        resources = []
+        with conn.cursor() as cur:
+            # 1. Whiteboard files
+            cur.execute("""
+                SELECT fc.path, fc.mtime
+                FROM oc_filecache fc
+                JOIN oc_mimetypes mt ON mt.id = fc.mimetype
+                WHERE mt.mimetype = 'application/vnd.excalidraw+json'
+                  AND fc.mtime BETWEEN %s AND %s
+                LIMIT 20
+            """, (start_ts, end_ts))
+            for row in cur.fetchall():
+                path = row[0].removeprefix("files/")
+                resources.append({
+                    "type": "whiteboard",
+                    "name": path.split("/")[-1],
+                    "storagePath": path,
+                    "timestamp": row[1],
+                })
+
+            # 2. Office file activity
+            cur.execute("""
+                SELECT DISTINCT act.file, act.timestamp
+                FROM oc_activity act
+                WHERE act.app = 'files'
+                  AND act.type IN ('file_created', 'file_changed')
+                  AND act.timestamp BETWEEN %s AND %s
+                  AND (
+                      act.file LIKE '%.odt' OR act.file LIKE '%.docx' OR
+                      act.file LIKE '%.ods' OR act.file LIKE '%.xlsx' OR
+                      act.file LIKE '%.odp' OR act.file LIKE '%.pptx' OR
+                      act.file LIKE '%.pdf'
+                  )
+                LIMIT 20
+            """, (start_ts, end_ts))
+            for row in cur.fetchall():
+                resources.append({
+                    "type": "document",
+                    "name": row[0].split("/")[-1],
+                    "storagePath": row[0],
+                    "timestamp": row[1],
+                })
+
+            # 3. Talk attachments shared in this room
+            cur.execute("""
+                SELECT ta.object_type, ta.actor_id, ta.message_time
+                FROM oc_talk_rooms r
+                JOIN oc_talk_attachments ta ON ta.room_id = r.id
+                WHERE r.token = %s
+                  AND ta.message_time BETWEEN %s AND %s
+                LIMIT 20
+            """, (token, start_ts, end_ts))
+            for row in cur.fetchall():
+                resources.append({
+                    "type": "file",
+                    "name": f"Geteilte Datei ({row[0]}) von {row[1]}",
+                    "storagePath": None,
+                    "timestamp": row[2],
+                })
+
+        return resources
+    except Exception as exc:
+        print(f"[db-resources] {exc}", flush=True)
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+
+def _db_get_room_metadata(token: str) -> dict:
+    """
+    Return room name and participants (non-bot users with display name + email)
+    for a given room token. Used to pass context to the save-transcript endpoint
+    so it can auto-create a meeting when none exists.
+    """
+    if not NC_DB_PASS:
+        return {}
+    import json as _json
+    conn = None
+    try:
+        conn = _db_connect()
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, name FROM oc_talk_rooms WHERE token = %s", (token,))
+            row = cur.fetchone()
+            if not row:
+                return {}
+            room_id, room_name = row
+
+            cur.execute("""
+                SELECT DISTINCT a.actor_id
+                FROM oc_talk_attendees a
+                WHERE a.room_id = %s AND a.actor_type = 'users' AND a.actor_id != %s
+                LIMIT 10
+            """, (room_id, NC_USER))
+            user_ids = [r[0] for r in cur.fetchall()]
+
+            participants = []
+            for uid in user_ids:
+                cur.execute("SELECT data FROM oc_accounts WHERE uid = %s", (uid,))
+                acc = cur.fetchone()
+                if acc:
+                    try:
+                        data = _json.loads(acc[0])
+                        display_name = data.get("displayname", {}).get("value", uid)
+                        email = data.get("email", {}).get("value", "")
+                    except Exception:
+                        display_name = uid
+                        email = ""
+                    participants.append({"displayName": display_name, "email": email, "uid": uid})
+
+            return {"roomName": room_name, "participants": participants}
+    except Exception as exc:
+        print(f"[db-meta] {exc}", flush=True)
+        return {}
+    finally:
+        if conn:
+            conn.close()
+
+
+def _db_get_active_call_tokens() -> set[str]:
+    """
+    Query the Nextcloud DB for rooms that have at least one participant
+    with in_call != 0 and a recent last_ping (within 120s).
+    This replaces the HTTP API poll and avoids DNS/auth issues.
+    """
+    if not NC_DB_PASS:
+        return set()
+    conn = None
+    try:
+        conn = _db_connect()
+        with conn.cursor() as cur:
+            import time as _time
+            cur.execute("""
+                SELECT DISTINCT r.token
+                FROM oc_talk_rooms r
+                JOIN oc_talk_attendees a ON a.room_id = r.id
+                JOIN oc_talk_sessions s ON s.attendee_id = a.id
+                WHERE s.in_call != 0
+                  AND s.last_ping > %s
+            """, (int(_time.time()) - 120,))
+            return {row[0] for row in cur.fetchall()}
+    except Exception as exc:
+        print(f"[db-poll] {exc}", flush=True)
+        return set()
+    finally:
+        if conn:
+            conn.close()
+
+
+# ---------- Auto-join loop (slow, every AUTO_JOIN_INTERVAL seconds) -----------
+
+def _db_add_bot_to_missing_rooms() -> int:
+    """
+    Directly INSERT the transcriber-bot into every group/public Talk room
+    it is not yet a member of. Bypasses the admin HTTP API (which requires
+    the caller to be a moderator of the room).
+    Returns the number of rooms joined.
+    """
+    if not NC_DB_PASS:
+        return 0
+    conn = psycopg2.connect(
+        host=NC_DB_HOST, port=NC_DB_PORT,
+        dbname=NC_DB_NAME, user=NC_DB_USER, password=NC_DB_PASS,
+        connect_timeout=5,
+    )
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO oc_talk_attendees
+                    (room_id, actor_type, actor_id, participant_type)
+                SELECT r.id, 'users', %s, 3
+                FROM oc_talk_rooms r
+                WHERE r.type IN (2, 3)
+                  AND NOT EXISTS (
+                      SELECT 1 FROM oc_talk_attendees a
+                      WHERE a.room_id = r.id
+                        AND a.actor_type = 'users'
+                        AND a.actor_id = %s
+                  )
+                RETURNING room_id
+            """, (NC_USER, NC_USER))
+            added = cur.rowcount
+            if added > 0:
+                added_ids = [row[0] for row in cur.fetchall()]
+                cur.execute(
+                    "SELECT token FROM oc_talk_rooms WHERE id = ANY(%s)",
+                    (added_ids,)
+                )
+                for (token,) in cur.fetchall():
+                    print(f"[auto-join] added {NC_USER} to room {token}", flush=True)
+        conn.commit()
+    finally:
+        conn.close()
+    return added
+
+
+async def auto_join_loop() -> None:
+    """
+    Background loop: adds transcriber-bot to every group/public Talk room
+    it is not yet a member of. Uses direct DB INSERT to bypass the Talk API
+    restriction where admin can only manage rooms it's a moderator of.
+    """
+    if not NC_DB_PASS:
+        print("[auto-join] NC_DB_PASS not set, auto-join disabled", flush=True)
+        return
+    while True:
+        try:
+            added = await asyncio.get_event_loop().run_in_executor(
+                None, _db_add_bot_to_missing_rooms
+            )
+            if added:
+                print(f"[auto-join] joined {added} new room(s)", flush=True)
+        except Exception as exc:
+            print(f"[auto-join] {exc}", flush=True)
+        await asyncio.sleep(AUTO_JOIN_INTERVAL)
+
+
+# ---------- Poll loop (fast, every CHUNK_SECONDS) ----------------------------
 
 async def poll_loop() -> None:
+    """
+    Poll for active calls via DB query every CHUNK_SECONDS.
+    Uses oc_talk_sessions.in_call + last_ping to detect live calls.
+    This avoids the Nextcloud HTTP API entirely (no DNS / auth issues).
+    """
     global _pa_ok
-    async with httpx.AsyncClient(
-        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
-    ) as client:
-        while True:
-            try:
-                await tick(client)
-            except Exception as exc:
-                print(f"[poll] {exc}", flush=True)
-
-            # Check PulseAudio health
-            pa_proc = await asyncio.create_subprocess_exec(
-                "pactl", "info",
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL,
+    while True:
+        try:
+            live = await asyncio.get_event_loop().run_in_executor(
+                None, _db_get_active_call_tokens
             )
-            await pa_proc.wait()
-            _pa_ok = pa_proc.returncode == 0
-            if not _pa_ok:
-                print("[poll] WARNING: PulseAudio not responding", flush=True)
+            await tick(live)
+        except Exception as exc:
+            print(f"[poll] {exc}", flush=True)
 
-            await asyncio.sleep(CHUNK_S)
+        pa_proc = await asyncio.create_subprocess_exec(
+            "pactl", "info",
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        await pa_proc.wait()
+        _pa_ok = pa_proc.returncode == 0
+        if not _pa_ok:
+            print("[poll] WARNING: PulseAudio not responding", flush=True)
+
+        await asyncio.sleep(CHUNK_S)
 
 
-async def tick(client: httpx.AsyncClient) -> None:
-    r = await client.get(
-        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
-        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
-    )
-    r.raise_for_status()
-    rooms = r.json()["ocs"]["data"]
-
-    live = {rm["token"] for rm in rooms if rm.get("hasCall")}
+async def tick(live: set[str]) -> None:
     for token in set(sessions) - live:
         _cancel(token)
     for token in live - set(sessions):
         if len(sessions) >= MAX_SESSIONS:
             print(f"[poll] skipping {token}: max sessions ({MAX_SESSIONS}) reached", flush=True)
             break
+        print(f"[poll] detected active call in {token}", flush=True)
         sessions[token] = {}
         t = asyncio.create_task(run_session(token))
         sessions[token]["task"] = t
@@ -157,7 +411,6 @@ async def run_session(token: str) -> None:
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
 
-    # Load PulseAudio null-sink asynchronously (avoids blocking the event loop)
     pa_proc = await asyncio.create_subprocess_exec(
         "pactl", "load-module", "module-null-sink", f"sink_name={sink}",
         stdout=asyncio.subprocess.PIPE,
@@ -167,7 +420,6 @@ async def run_session(token: str) -> None:
     pa_stdout, _ = await pa_proc.communicate()
     module_id = pa_stdout.decode().strip()
 
-    # Credentials are passed via env so the script file contains no secrets
     browser_env = {
         **os.environ,
         "DISPLAY": display,
@@ -184,6 +436,7 @@ async def run_session(token: str) -> None:
         "sink": sink,
         "module_id": module_id,
         "display_num": display_num,
+        "started_at": int(time.time()),
     }
 
     await asyncio.sleep(5)  # let call establish in Firefox
@@ -216,11 +469,6 @@ async def run_session(token: str) -> None:
 
 
 def _start_browser(env: dict) -> subprocess.Popen:
-    """
-    Launch headless Firefox via Playwright.
-    Credentials are passed through environment variables --
-    the script file contains no sensitive data.
-    """
     script = (
         "import asyncio, os\n"
         "from playwright.async_api import async_playwright\n"
@@ -276,7 +524,6 @@ async def _record_chunk(sink: str) -> str | None:
 
 
 async def _whisper(audio_path: str) -> tuple[str, list]:
-    """Returns (full_text, segments) from Whisper. Segments contain start/end/text."""
     try:
         async with httpx.AsyncClient(timeout=30) as c:
             with open(audio_path, "rb") as f:
@@ -305,31 +552,35 @@ def _teardown_resources(s: dict) -> None:
                 pass
     if mid := s.get("module_id"):
         subprocess.run(["pactl", "unload-module", mid], capture_output=True)
-    # Return display number to pool
     if (num := s.get("display_num")) is not None:
         if num not in _display_pool:
             _display_pool.append(num)
 
 
 def _cancel(token: str) -> None:
-    """Cancel a session task; cleanup is handled by run_session's finally block."""
     s = sessions.get(token)
     if s and (t := s.get("task")):
         t.cancel()
-    # Do NOT pop from sessions here -- run_session finally calls _finalize_and_teardown
 
 
 async def _finalize_and_teardown(token: str, display_num: int | None = None) -> None:
-    """POST accumulated transcript to website API, then release resources."""
     s = sessions.get(token, {})
     transcript_parts: list[str] = s.get("transcript_parts", [])
     segments: list[dict] = s.get("segments", [])
 
     if transcript_parts and WEBSITE_URL:
         full_text = "\n".join(transcript_parts)
+        ended_at  = int(time.time())
+        started_at = s.get("started_at", ended_at)
         print(f"[{token}] saving transcript ({len(full_text)} chars, "
               f"{len(segments)} segments)", flush=True)
         try:
+            room_meta = await asyncio.get_event_loop().run_in_executor(
+                None, _db_get_room_metadata, token
+            )
+            resources = await asyncio.get_event_loop().run_in_executor(
+                None, _db_get_meeting_resources, token, started_at, ended_at
+            )
             async with httpx.AsyncClient(timeout=30) as wc:
                 resp = await wc.post(
                     f"{WEBSITE_URL}/api/meeting/save-transcript",
@@ -337,11 +588,17 @@ async def _finalize_and_teardown(token: str, display_num: int | None = None) -> 
                         "roomToken": token,
                         "transcriptText": full_text,
                         "segments": segments,
+                        "startedAt": started_at,
+                        "endedAt": ended_at,
+                        "resources": resources,
+                        **room_meta,
                     },
                 )
                 if not resp.is_success:
                     print(f"[{token}] save-transcript returned {resp.status_code}: "
                           f"{resp.text[:200]}", flush=True)
+                else:
+                    print(f"[{token}] transcript saved OK", flush=True)
         except Exception as exc:
             print(f"[{token}] failed to save transcript: {exc}", flush=True)
     elif not transcript_parts:

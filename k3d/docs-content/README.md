@@ -108,6 +108,11 @@
 <div class="home-section">
   <span class="home-section-label">Website &amp; Admin</span>
   <div class="home-grid">
+    <a href="https://web.korczewski.de/admin" class="home-card" target="_blank" rel="noopener">
+      <span class="home-card-icon">🖥️</span>
+      <span class="home-card-title">Admin-Menü</span>
+      <p class="home-card-desc">Zurück zum Website-Adminbereich</p>
+    </a>
     <a href="#/stripe" class="home-card">
       <span class="home-card-icon">💳</span>
       <span class="home-card-title">Stripe-Integration</span>

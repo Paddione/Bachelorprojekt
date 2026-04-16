@@ -1,3 +1,17 @@
+<div class="page-hero">
+  <span class="page-hero-icon">✅</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Tests</div>
+    <p class="page-hero-desc">Testframework, Testfall-Katalog (FA-01–FA-25, SA-01–SA-10, NFA-01–NFA-09, AK-03/04), Ausführung mit runner.sh und Report-Generierung.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Bash + Playwright</span>
+      <span class="page-hero-tag">k3d Cluster</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Tests
 
 ## Uebersicht
@@ -20,16 +34,16 @@ flowchart TB
     PR --> PBASH["fa:fa-terminal Bash-Tests ausfuehren"]
     PBASH --> JSON
 
-    style R fill:#2d6a4f,color:#fff
-    style L fill:#4a90d9,color:#fff
-    style PR fill:#d97706,color:#fff
-    style REP fill:#6b7280,color:#fff
-    style BOOT fill:#374151,color:#fff
-    style BASH fill:#8b5cf6,color:#fff
-    style PBASH fill:#8b5cf6,color:#fff
-    style PW fill:#0891b2,color:#fff
-    style JSON fill:#2d8659,color:#fff
-    style MD fill:#2d8659,color:#fff
+    style R fill:#0a1a0a,color:#b8e8b8
+    style L fill:#1b3766,color:#e8c870
+    style PR fill:#3a2000,color:#e8c870
+    style REP fill:#1f2937,color:#aabbcc
+    style BOOT fill:#1a1a2e,color:#aabbcc
+    style BASH fill:#2a1654,color:#e8c870
+    style PBASH fill:#2a1654,color:#e8c870
+    style PW fill:#083344,color:#e8c870
+    style JSON fill:#1a3d28,color:#e8c870
+    style MD fill:#1a3d28,color:#e8c870
 ```
 
 ## Ausfuehrung
@@ -80,11 +94,10 @@ flowchart TB
 | FA-19 | Outline Wiki | Wiki-Deployment, Keycloak-OIDC |
 | FA-20 | Finalisierung | Abschlusspruefungen |
 | FA-21 | Billing Workflows | Rechnungsworkflows |
-| FA-22 | Stripe Payment | Stripe als Zahlungsgateway |
+| FA-22 | Stripe Payment Gateway | Stripe als Zahlungsgateway in Invoice Ninja (nur Shell-Tests, kein Playwright-Spec) |
 | FA-23 | Vaultwarden | Passwort-Manager mit Keycloak SSO |
-| FA-24 | Whiteboard | Nextcloud Whiteboard (board.{domain}) |
+| FA-24 | Kollaboratives Whiteboard | Nextcloud Whiteboard (board.{domain}) |
 | FA-25 | Mailpit | Self-hosted SMTP-Server und Web-UI |
-| FA-26 | Bug Report Form | Fehler-Reporting Widget |
 
 ### Sicherheits-Tests (SA)
 
@@ -96,11 +109,7 @@ flowchart TB
 | SA-04--SA-07 | Autorisierung | Zugriffskontrolle und Berechtigungen |
 | SA-08 | SSO-Integration | Keycloak OIDC Flow |
 | SA-09 | Weitere Sicherheit | Zusaetzliche Sicherheitspruefungen |
-<<<<<<< HEAD
-| SA-10 | MCP-Authentifizierung | MCP-Server Auth-Proxy, Token-Validierung |
-=======
 | SA-10 | MCP-Endpunkt-Absicherung | ForwardAuth-Proxy, Bearer-Token, HTTP 401 ohne Token |
->>>>>>> origin/main
 
 ### Nicht-funktionale Tests (NFA)
 
@@ -113,8 +122,6 @@ flowchart TB
 | NFA-05 | Usability | Barrierefreiheit, UX |
 | NFA-06 | Datenbank-Konsistenz | DB-Integritaet |
 | NFA-07 | Logging & Monitoring | Log-Verfuegbarkeit |
-| NFA-08 | Backup & Recovery | Backup-CronJob, Verschluesselung, Wiederherstellung |
-| NFA-09 | Multi-Cluster | ArgoCD Sync, Cluster-Registrierung |
 
 ### Abnahme-Tests (AK)
 
@@ -158,7 +165,7 @@ siehe "Playwright gegen Produktion" unten.
 Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
 `Testpassword123!`), deaktiviert Onboarding/Tutorials, speichert Session.
 
-**Test-Specs (35 Dateien):**
+**Test-Specs (29 Dateien):**
 - `fa-01-messaging.spec.ts` -- DM- und Channel-Nachrichten
 - `fa-02-channels.spec.ts` -- Kanal-Erstellung, Berechtigungen
 - `fa-03-video.spec.ts` -- Nextcloud Talk / Signaling
@@ -176,23 +183,18 @@ Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
 - `fa-15-oidc.spec.ts` -- OIDC-Website-Login
 - `fa-16-booking.spec.ts` -- Kalender / Buchung
 - `fa-17-meeting.spec.ts` -- Meeting-Lifecycle
-- `fa-18-transcription.spec.ts` -- Whisper-Upload-API
+- `fa-18-transcription.spec.ts` -- Whisper-Upload-API (akzeptiert 404/405 für GET)
 - `fa-19-outline.spec.ts` -- Outline Wiki
 - `fa-20-finalize.spec.ts` -- Meeting-Finalisierung
 - `fa-21-billing.spec.ts` -- Service Catalog, Invoice-API
 - `fa-23-vaultwarden.spec.ts` -- Vaultwarden-Gesundheit
 - `fa-24-whiteboard.spec.ts` -- Whiteboard-Service
 - `fa-25-mailpit.spec.ts` -- Mailpit Web-UI und API
-- `fa-26-bug-report-form.spec.ts` -- Fehler-Reporting Widget
-- `fa-client-portal.spec.ts` -- Kunden-Portal (Login, Dokumente, Rechnungen)
-- `fa-document-signing.spec.ts` -- Dokumenten-Signierung
-- `fa-meeting-history.spec.ts` -- Meeting-Verlauf und Insights
-- `fa-slot-widget.spec.ts` -- Buchungs-Slot-Widget
 - `sa-02-auth.spec.ts` -- Falsches Passwort, SSO-Button
 - `sa-08-sso.spec.ts` -- Cross-Service-SSO (Browser)
 - `sa-10-mcp-auth.spec.ts` -- MCP-Statusseite ohne Auth
 - `nfa-05-usability.spec.ts` -- Mobile, Quick-Switcher
-- `integration-smoke.spec.ts` -- Cross-Service Smoke Tests
+- `integration-smoke.spec.ts` -- Cross-Service Smoke gegen Produktion
 
 **Hilfsfunktionen** (`specs/helpers.ts`):
 - `dismissOverlays(page)` -- Tour/Onboarding entfernen

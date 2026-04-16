@@ -1175,7 +1175,7 @@ tasks:
 
         echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
 
-        for user in keycloak mattermost nextcloud vaultwarden outline website; do
+        for user in keycloak mattermost nextcloud vaultwarden website; do
           key="${user^^}_DB_PASSWORD"
           pw=$(kubectl $context_flag get secret workspace-secrets -n workspace \
             -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d)
@@ -1843,40 +1843,6 @@ tasks:
       - echo ""
       - ip addr show wg0 2>/dev/null || echo "wg0 interface not found"
 
-  # ─────────────────────────────────────────────
-  # Outline (Knowledge Base)
-  # ─────────────────────────────────────────────
-  outline:deploy:
-    desc: Deploy Outline knowledge base
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-    cmds:
-      - kubectl apply -f k3d/outline.yaml
-      - |
-        echo "Waiting for Outline..."
-        kubectl rollout status deployment/outline -n workspace --timeout=180s
-      - echo ""
-      - echo "✓ Outline deployed"
-      - 'echo "  URL: http://wiki.{{.DEV_DOMAIN}}"'
-
-  outline:status:
-    desc: Show Outline deployment status
-    cmds:
-      - kubectl get pods -l app=outline -o wide
-      - kubectl get pvc outline-data
-
-  outline:logs:
-    desc: Tail Outline logs
-    cmds:
-      - kubectl logs deploy/outline -f --tail=50
-
-  outline:teardown:
-    desc: Remove Outline and its data
-    prompt: "This will delete Outline and all wiki data. Continue?"
-    cmds:
-      - kubectl delete -f k3d/outline.yaml --ignore-not-found
-      - echo "✓ Outline removed"
 
   # ─────────────────────────────────────────────
   # Cert-Manager — wildcard TLS via DNS-01/lego

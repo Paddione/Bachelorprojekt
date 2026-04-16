@@ -47,11 +47,6 @@ test.describe('Integration Smoke Tests', () => {
     expect(res.status()).toBe(200);
   });
 
-  test('Outline responds', async ({ request }) => {
-    const res = await request.get(`https://wiki.${DOMAIN}`);
-    expect(res.ok()).toBeTruthy();
-  });
-
   test('Docs site responds', async ({ request }) => {
     const res = await request.get(`https://docs.${DOMAIN}`);
     expect(res.ok()).toBeTruthy();

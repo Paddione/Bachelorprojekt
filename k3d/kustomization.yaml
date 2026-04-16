@@ -39,8 +39,6 @@ resources:
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
-  # Wiki
-  - outline.yaml
   # Anforderungs-Tracking
   - tracking.yaml
   # Transkription

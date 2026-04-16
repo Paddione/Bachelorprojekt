@@ -278,27 +278,6 @@ secrets:
     generate: true
     length: 32
 
-  # Outline
-  - name: OUTLINE_DB_PASSWORD
-    required: true
-    generate: true
-    length: 32
-
-  - name: OUTLINE_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
-  - name: OUTLINE_SECRET_KEY
-    required: true
-    generate: true
-    length: 64
-
-  - name: OUTLINE_UTILS_SECRET
-    required: true
-    generate: true
-    length: 32
-
   - name: DOCS_OIDC_SECRET
     required: true
     generate: true

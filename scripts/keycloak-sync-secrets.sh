@@ -50,7 +50,6 @@ declare -A CLIENT_MAP=(
   [VAULTWARDEN_OIDC_SECRET]="vaultwarden"
   [WEBSITE_OIDC_SECRET]="website"
   [CLAUDE_CODE_OIDC_SECRET]="claude-code"
-  [OUTLINE_OIDC_SECRET]="outline"
 )
 
 # ── Warte auf Keycloak-Rollout ────────────────────────────────────────

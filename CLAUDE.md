@@ -81,8 +81,6 @@ Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task 
 ### Optional Services
 ```bash
 task whisper:deploy              # Deploy faster-whisper transcription service
-task outline:deploy              # Deploy Outline knowledge base
-task outline:teardown            # Remove Outline and its data
 ```
 
 ### TLS & DNS (Production)

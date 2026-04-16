@@ -1,3 +1,17 @@
+<div class="page-hero">
+  <span class="page-hero-icon">✅</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Tests</div>
+    <p class="page-hero-desc">Testframework, Testfall-Katalog (FA-01–FA-25, SA-01–SA-10, NFA-01–NFA-09, AK-03/04), Ausführung mit runner.sh und Report-Generierung.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Bash + Playwright</span>
+      <span class="page-hero-tag">k3d Cluster</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Tests
 
 ## Uebersicht

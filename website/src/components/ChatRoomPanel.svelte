@@ -40,10 +40,15 @@
   async function openRoom(room: ChatRoom) {
     if (pollInterval) clearInterval(pollInterval);
     activeRoom = room;
-    const res = await fetch(`${messagesBaseUrl}/${room.id}/messages`);
-    const data = await res.json() as { messages: ChatMessage[] };
-    messages = data.messages;
-    lastId = messages.length ? messages[messages.length - 1].id : 0;
+    try {
+      const res = await fetch(`${messagesBaseUrl}/${room.id}/messages`);
+      const data = await res.json() as { messages: ChatMessage[] };
+      messages = data.messages;
+      lastId = messages.length ? messages[messages.length - 1].id : 0;
+    } catch {
+      messages = [];
+      lastId = 0;
+    }
     startPolling();
   }
 
@@ -66,7 +71,7 @@
 
   async function createRoom() {
     if (!newRoomName.trim()) return;
-    const res = await fetch('/api/admin/rooms', {
+    const res = await fetch(messagesBaseUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newRoomName.trim() }),

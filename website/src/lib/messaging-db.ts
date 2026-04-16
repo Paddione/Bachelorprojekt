@@ -236,6 +236,14 @@ export async function getThreadByCustomerId(customerId: string): Promise<Message
 
 // ── Room functions ────────────────────────────────────────────────────────────
 
+export async function getRoom(id: number): Promise<ChatRoom | null> {
+  const { rows } = await pool.query<ChatRoom>(
+    'SELECT * FROM chat_rooms WHERE id = $1',
+    [id],
+  );
+  return rows[0] ?? null;
+}
+
 export async function listRoomsForAdmin(): Promise<ChatRoom[]> {
   const { rows } = await pool.query<ChatRoom>(
     `SELECT r.*, count(m.customer_id) AS member_count

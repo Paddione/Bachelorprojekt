@@ -26,10 +26,15 @@
   async function openThread(thread: MessageThread) {
     activeThread = thread;
     loadingThread = true;
-    const res = await fetch(`${listUrl}/${thread.id}`);
-    const data = await res.json() as { messages: Message[] };
-    messages = data.messages;
-    loadingThread = false;
+    try {
+      const res = await fetch(`${listUrl}/${thread.id}`);
+      const data = await res.json() as { messages: Message[] };
+      messages = data.messages;
+    } catch {
+      messages = [];
+    } finally {
+      loadingThread = false;
+    }
   }
 
   async function sendReply() {

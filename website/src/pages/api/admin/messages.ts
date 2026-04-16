@@ -19,5 +19,5 @@ export const POST: APIRoute = async ({ request }) => {
   }
   const thread = await getOrCreateThreadForCustomer(customerId);
   const msg = await addMessage({ threadId: thread.id, senderId: session.sub, senderRole: 'admin', body: body.trim() });
-  return new Response(JSON.stringify({ thread, message: msg }), { headers: { 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify({ thread, message: msg }), { status: 201, headers: { 'Content-Type': 'application/json' } });
 };

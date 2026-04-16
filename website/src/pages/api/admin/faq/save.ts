@@ -12,24 +12,26 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const form = await request.formData();
   const g = (k: string) => (form.get(k) as string | null) ?? '';
 
-  const count = parseInt(g('faq_count') || '0', 10);
-  let items: FaqItem[] = Array.from({ length: count }, (_, i) => ({
+  const count = Math.max(0, parseInt(g('faq_count') || '0', 10) || 0);
+  const rawItems: FaqItem[] = Array.from({ length: count }, (_, i) => ({
     question: g(`faq_${i}_question`).trim(),
     answer: g(`faq_${i}_answer`).trim(),
-  })).filter(item => item.question);
+  }));
 
-  // Move up/down
+  // Reorder on raw indices BEFORE filtering (matching what the form rendered)
   const moveUp = form.get('move_up');
   const moveDown = form.get('move_down');
   if (moveUp !== null) {
     const idx = parseInt(moveUp as string, 10);
-    if (idx > 0) [items[idx - 1], items[idx]] = [items[idx], items[idx - 1]];
+    if (idx > 0 && idx < rawItems.length) [rawItems[idx - 1], rawItems[idx]] = [rawItems[idx], rawItems[idx - 1]];
   } else if (moveDown !== null) {
     const idx = parseInt(moveDown as string, 10);
-    if (idx < items.length - 1) [items[idx], items[idx + 1]] = [items[idx + 1], items[idx]];
+    if (idx >= 0 && idx < rawItems.length - 1) [rawItems[idx], rawItems[idx + 1]] = [rawItems[idx + 1], rawItems[idx]];
   }
 
-  // New entry
+  // Filter blank questions (= delete behavior), then add new entry
+  const items = rawItems.filter(item => item.question);
+
   const newQ = g('faq_new_question').trim();
   const newA = g('faq_new_answer').trim();
   if (newQ) items.push({ question: newQ, answer: newA });

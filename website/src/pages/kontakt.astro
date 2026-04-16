@@ -2,8 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import ContactHub from '../components/ContactHub.svelte';
 import { config } from '../config/index';
+import { getEffectiveKontakt } from '../lib/content';
 
-const { contact, kontakt } = config;
+const { contact } = config;
+const kontakt = await getEffectiveKontakt();
 
 const rawMode = Astro.url.searchParams.get('mode') ?? '';
 const initialMode = ['message', 'termin', 'callback'].includes(rawMode)

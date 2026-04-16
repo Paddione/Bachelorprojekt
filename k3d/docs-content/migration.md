@@ -1,3 +1,16 @@
+<div class="page-hero">
+  <span class="page-hero-icon">🚀</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Migration</div>
+    <p class="page-hero-desc">Upgrade-Pfade, Datenmigration aus Slack/Teams/Google Workspace, Rollback-Strategien und Import-Skripte.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Datenmigration</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Migration
 
 ## Uebersicht

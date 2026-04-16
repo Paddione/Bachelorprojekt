@@ -8,15 +8,17 @@ import { config } from '../config/index';
 import SlotWidget from '../components/SlotWidget.astro';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
-import { getEffectiveServices } from '../lib/content';
+import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq } from '../lib/content';
 
-const { homepage, faq, contact } = config;
+const { contact } = config;
+const homepage = await getEffectiveHomepage();
+const faq = await getEffectiveFaq();
 const allServices = await getEffectiveServices();
 const services = allServices.filter((s) => !s.hidden);
 
 let nextDay: DaySlots | null = null;
 try {
-  const slots = await getAvailableSlots();
+  const slots = await getAvailableSlots(undefined, process.env.BRAND_NAME || 'mentolder');
   nextDay = slots.length > 0 ? slots[0] : null;
 } catch {
   // CalDAV unreachable — widget hidden gracefully
@@ -24,7 +26,12 @@ try {
 ---
 
 <Layout title={config.meta.siteTitle}>
-  <Hero client:load />
+  <Hero
+    client:load
+    title={homepage.hero.title}
+    subtitle={homepage.hero.subtitle}
+    tagline={homepage.hero.tagline}
+  />
 
   {nextDay && <SlotWidget day={nextDay} />}
 

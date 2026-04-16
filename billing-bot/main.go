@@ -1,4 +1,4 @@
-// billing-bot bridges Mattermost interactive messages with the Invoice Ninja v5 API.
+// billing-bot bridges Mattermost interactive messages with the Stripe API.
 //
 // Endpoints:
 //   POST /slash    — Mattermost slash command (/billing, /call)
@@ -8,6 +8,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,17 +17,17 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	stripe "github.com/stripe/stripe-go/v85"
 )
 
 // ── Configuration ────────────────────────────────────────────────
 
 var (
 	listenAddr      = env("LISTEN_ADDR", ":8090")
-	invoiceNinjaURL = env("INVOICENINJA_URL", "http://invoiceninja:80")
-	invoiceNinjaKey = env("INVOICENINJA_API_TOKEN", "")
+	stripeSecretKey = env("STRIPE_SECRET_KEY", "")
 	mattermostURL   = env("MATTERMOST_URL", "http://mattermost:8065")
 	mattermostToken = env("MATTERMOST_BOT_TOKEN", "")
-	billingDomain   = env("BILLING_DOMAIN", "billing.localhost")
 
 	// Nextcloud Talk config (for /call command)
 	nextcloudURL       = env("NEXTCLOUD_URL", "http://nextcloud.workspace.svc.cluster.local:80")
@@ -43,6 +44,19 @@ func env(key, fallback string) string {
 	return fallback
 }
 
+// stripeDashboard returns the Stripe dashboard base URL (test vs. live)
+func stripeDashboard() string {
+	if strings.HasPrefix(stripeSecretKey, "sk_live_") {
+		return "https://dashboard.stripe.com"
+	}
+	return "https://dashboard.stripe.com/test"
+}
+
+// newSC creates a new Stripe client
+func newSC() *stripe.Client {
+	return stripe.NewClient(stripeSecretKey)
+}
+
 // ── Mattermost Types ─────────────────────────────────────────────
 
 type SlashRequest struct {
@@ -55,6 +69,11 @@ type SlashRequest struct {
 	Command     string `json:"command"`
 	Text        string `json:"text"`
 	ResponseURL string `json:"response_url"`
+}
+
+// Context returns a background context for use in Stripe API calls.
+func (r SlashRequest) Context() context.Context {
+	return context.Background()
 }
 
 type ActionRequest struct {
@@ -103,58 +122,6 @@ type UpdatePost struct {
 	Attachments []Attachment `json:"attachments,omitempty"`
 }
 
-// ── Invoice Ninja Types ──────────────────────────────────────────
-
-type INClient struct {
-	ID       string      `json:"id"`
-	Name     string      `json:"name"`
-	Contacts []INContact `json:"contacts"`
-}
-
-type INContact struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-}
-
-type INLineItem struct {
-	ProductKey string  `json:"product_key"`
-	Notes      string  `json:"notes"`
-	Cost       float64 `json:"cost"`
-	Quantity   float64 `json:"quantity"`
-}
-
-type INInvoice struct {
-	ID        string       `json:"id"`
-	Number    string       `json:"number"`
-	ClientID  string       `json:"client_id"`
-	Date      string       `json:"date"`
-	DueDate   string       `json:"due_date"`
-	Amount    float64      `json:"amount"`
-	LineItems []INLineItem `json:"line_items"`
-}
-
-type INQuote struct {
-	ID        string       `json:"id"`
-	Number    string       `json:"number"`
-	ClientID  string       `json:"client_id"`
-	Date      string       `json:"date"`
-	Amount    float64      `json:"amount"`
-	LineItems []INLineItem `json:"line_items"`
-}
-
-type INExpense struct {
-	ID       string  `json:"id"`
-	Number   string  `json:"number"`
-	ClientID string  `json:"client_id,omitempty"`
-	Amount   float64 `json:"amount"`
-	Category string  `json:"category"`
-}
-
-type INResponse[T any] struct {
-	Data T `json:"data"`
-}
-
 // ── Nextcloud Talk Types ─────────────────────────────────────────
 
 type NCRoomResponse struct {
@@ -167,18 +134,14 @@ type NCRoomResponse struct {
 
 // ── Nextcloud Talk ───────────────────────────────────────────────
 
-// createNextcloudRoom creates a fresh public Nextcloud Talk room named
-// "#<channelName> Call" and returns its token.
 func createNextcloudRoom(channelName string) (string, error) {
 	if nextcloudAdminPass == "" {
 		return "", fmt.Errorf("NEXTCLOUD_ADMIN_PASSWORD not configured")
 	}
-
 	body, _ := json.Marshal(map[string]interface{}{
 		"roomType": 3,
 		"roomName": "#" + channelName + " Call",
 	})
-
 	req, err := http.NewRequest("POST",
 		nextcloudURL+"/ocs/v2.php/apps/spreed/api/v4/room?format=json",
 		bytes.NewReader(body))
@@ -195,21 +158,17 @@ func createNextcloudRoom(channelName string) (string, error) {
 		return "", fmt.Errorf("call NC API: %w", err)
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		b, _ := io.ReadAll(resp.Body)
 		return "", fmt.Errorf("NC API returned %d: %s", resp.StatusCode, b)
 	}
-
 	var ncResp NCRoomResponse
 	if err := json.NewDecoder(resp.Body).Decode(&ncResp); err != nil {
 		return "", fmt.Errorf("decode NC response: %w", err)
 	}
-
 	if ncResp.OCS.Data.Token == "" {
 		return "", fmt.Errorf("NC API returned empty token")
 	}
-
 	return ncResp.OCS.Data.Token, nil
 }
 
@@ -219,13 +178,15 @@ func main() {
 	http.HandleFunc("/slash", handleSlash)
 	http.HandleFunc("/actions", handleAction)
 	http.HandleFunc("/dialog/client", handleClientDialog)
-	http.HandleFunc("/dialog/company", handleCompanyDialog)
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "ok")
 	})
 
 	log.Printf("billing-bot listening on %s", listenAddr)
+	if stripeSecretKey == "" {
+		log.Printf("WARNING: STRIPE_SECRET_KEY not set — billing commands will fail")
+	}
 	if nextcloudAdminPass == "" {
 		log.Printf("WARNING: NEXTCLOUD_ADMIN_PASSWORD not set — /call command will return errors")
 	}
@@ -239,7 +200,6 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-
 	req := SlashRequest{
 		Command:     r.FormValue("command"),
 		ChannelID:   r.FormValue("channel_id"),
@@ -251,17 +211,11 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var resp SlashResponse
-
 	switch {
 	case req.Command == "/call":
 		resp = handleCallCommand(req)
 	case req.Text == "" || req.Text == "help":
-		// Post interactive menu via Mattermost API so buttons are stored in DB.
-		// Ephemeral slash responses don't persist, which breaks button callbacks.
 		go postMenuViaMM(req)
-		resp = SlashResponse{ResponseType: "ephemeral"}
-	case req.Text == "setup":
-		go postSetupMenuViaMM(req)
 		resp = SlashResponse{ResponseType: "ephemeral"}
 	case strings.HasPrefix(req.Text, "client "):
 		resp = handleQuickClient(req)
@@ -278,21 +232,16 @@ func handleSlash(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// handleCallCommand handles the /call slash command.
-// It creates a fresh Nextcloud Talk room and returns an in-channel message
-// with a clickable "Join Call" card. On error it returns an ephemeral message.
 func handleCallCommand(req SlashRequest) SlashResponse {
 	token, err := createNextcloudRoom(req.ChannelName)
 	if err != nil {
-		log.Printf("handleCallCommand: createNextcloudRoom error: %v", err)
+		log.Printf("handleCallCommand: %v", err)
 		return SlashResponse{
 			ResponseType: "ephemeral",
-			Text:         "Fehler: Nextcloud Talk-Raum konnte nicht erstellt werden. Bitte versuche es erneut.",
+			Text:         "Fehler: Nextcloud Talk-Raum konnte nicht erstellt werden.",
 		}
 	}
-
 	callURL := fmt.Sprintf("%s://%s/apps/spreed/call/%s", scheme, ncDomain, token)
-
 	return SlashResponse{
 		ResponseType: "in_channel",
 		Attachments: []Attachment{
@@ -306,12 +255,8 @@ func handleCallCommand(req SlashRequest) SlashResponse {
 	}
 }
 
-// postMenuViaMM creates the interactive button menu as an ephemeral post
-// through the Mattermost REST API, which persists it in the DB so that
-// button click callbacks (DoPostAction) can find the post.
 func postMenuViaMM(req SlashRequest) {
 	actionURL := "http://billing-bot:8090/actions"
-
 	post := map[string]interface{}{
 		"channel_id": req.ChannelID,
 		"message":    "",
@@ -321,204 +266,37 @@ func postMenuViaMM(req SlashRequest) {
 					"text":  fmt.Sprintf("**Buchhaltung** — @%s\nWas moechtest du erstellen?", req.UserName),
 					"color": "#1E88E5",
 					"actions": []map[string]interface{}{
-						{"id": "createinvoice", "type": "button", "name": "Rechnung erstellen", "style": "primary", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_invoice"}}},
-						{"id": "createquote", "type": "button", "name": "Angebot erstellen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_quote"}}},
-						{"id": "createexpense", "type": "button", "name": "Ausgabe erfassen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_expense"}}},
-						{"id": "createclient", "type": "button", "name": "Kunde anlegen", "style": "success", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_client"}}},
-						{"id": "listclients", "type": "button", "name": "Kunden verwalten", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_clients"}}},
-						{"id": "listinvoices", "type": "button", "name": "Rechnungen anzeigen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_invoices"}}},
-						{"id": "opendashboard", "type": "button", "name": "Dashboard oeffnen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "open_dashboard"}}},
+						{"id": "createinvoice", "type": "button", "name": "Rechnung erstellen", "style": "primary",
+							"integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_invoice"}}},
+						{"id": "createquote", "type": "button", "name": "Angebot erstellen",
+							"integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_quote"}}},
+						{"id": "createclient", "type": "button", "name": "Kunde anlegen", "style": "success",
+							"integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_client"}}},
+						{"id": "listclients", "type": "button", "name": "Kunden verwalten",
+							"integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_clients"}}},
+						{"id": "listinvoices", "type": "button", "name": "Rechnungen anzeigen",
+							"integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_invoices"}}},
+						{"id": "opendashboard", "type": "button", "name": "Stripe Dashboard",
+							"integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "open_dashboard"}}},
 					},
 				},
 			},
 		},
 	}
-
-	body, err := json.Marshal(post)
-	if err != nil {
-		log.Printf("postMenuViaMM: marshal error: %v", err)
-		return
-	}
-
-	mmReq, err := http.NewRequest("POST", mattermostURL+"/api/v4/posts", bytes.NewReader(body))
-	if err != nil {
-		log.Printf("postMenuViaMM: request error: %v", err)
-		return
-	}
-	mmReq.Header.Set("Authorization", "Bearer "+mattermostToken)
-	mmReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(mmReq)
-	if err != nil {
-		log.Printf("postMenuViaMM: MM unreachable: %v", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		b, _ := io.ReadAll(resp.Body)
-		log.Printf("postMenuViaMM: MM API %d: %s", resp.StatusCode, string(b))
-	}
-}
-
-// postSetupMenuViaMM posts the setup/admin menu
-func postSetupMenuViaMM(req SlashRequest) {
-	actionURL := "http://billing-bot:8090/actions"
-
-	post := map[string]interface{}{
-		"channel_id": req.ChannelID,
-		"message":    "",
-		"props": map[string]interface{}{
-			"attachments": []map[string]interface{}{
-				{
-					"text":  fmt.Sprintf("**Einstellungen** — @%s\nWas moechtest du konfigurieren?", req.UserName),
-					"color": "#43A047",
-					"actions": []map[string]interface{}{
-						{"id": "setupcompany", "type": "button", "name": "Firmendaten bearbeiten", "style": "primary", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "setup_company"}}},
-						{"id": "createclient", "type": "button", "name": "Kunde anlegen", "style": "success", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "create_client"}}},
-						{"id": "listclients", "type": "button", "name": "Kunden verwalten", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "list_clients"}}},
-						{"id": "opendashboard", "type": "button", "name": "Dashboard oeffnen", "integration": map[string]interface{}{"url": actionURL, "context": map[string]string{"action": "open_dashboard"}}},
-					},
-				},
-			},
-		},
-	}
-
 	body, _ := json.Marshal(post)
 	mmReq, _ := http.NewRequest("POST", mattermostURL+"/api/v4/posts", bytes.NewReader(body))
 	mmReq.Header.Set("Authorization", "Bearer "+mattermostToken)
 	mmReq.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(mmReq)
 	if err != nil {
-		log.Printf("postSetupMenuViaMM: %v", err)
+		log.Printf("postMenuViaMM: %v", err)
 		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
 		b, _ := io.ReadAll(resp.Body)
-		log.Printf("postSetupMenuViaMM: MM %d: %s", resp.StatusCode, string(b))
+		log.Printf("postMenuViaMM: MM %d: %s", resp.StatusCode, string(b))
 	}
-}
-
-// openCompanyDialog opens a dialog pre-filled with current company settings
-func openCompanyDialog(req ActionRequest) {
-	triggerID := req.TriggerID
-	if triggerID == "" {
-		log.Printf("openCompanyDialog: no trigger_id")
-		return
-	}
-
-	// Fetch current company settings
-	var compResp struct {
-		Data struct {
-			Settings map[string]interface{} `json:"settings"`
-		} `json:"data"`
-	}
-	_ = inAPI("GET", "/api/v1/companies/1", nil, &compResp)
-	s := compResp.Data.Settings
-
-	getString := func(key string) string {
-		if v, ok := s[key]; ok && v != nil {
-			return fmt.Sprintf("%v", v)
-		}
-		return ""
-	}
-
-	dialog := map[string]interface{}{
-		"trigger_id": triggerID,
-		"url":        "http://billing-bot:8090/dialog/company",
-		"dialog": map[string]interface{}{
-			"callback_id":      "setup_company",
-			"title":            "Firmendaten",
-			"submit_label":     "Speichern",
-			"notify_on_cancel": false,
-			"elements": []map[string]interface{}{
-				{"display_name": "Firmenname", "name": "name", "type": "text", "default": getString("name"), "optional": false},
-				{"display_name": "E-Mail", "name": "email", "type": "text", "subtype": "email", "default": getString("email"), "optional": true},
-				{"display_name": "Telefon", "name": "phone", "type": "text", "default": getString("phone"), "optional": true},
-				{"display_name": "Website", "name": "website", "type": "text", "default": getString("website"), "optional": true},
-				{"display_name": "Strasse + Hausnr.", "name": "address1", "type": "text", "default": getString("address1"), "optional": true},
-				{"display_name": "Adresszusatz", "name": "address2", "type": "text", "default": getString("address2"), "optional": true},
-				{"display_name": "PLZ", "name": "postal_code", "type": "text", "default": getString("postal_code"), "optional": true},
-				{"display_name": "Ort", "name": "city", "type": "text", "default": getString("city"), "optional": true},
-				{"display_name": "USt-IdNr.", "name": "vat_number", "type": "text", "default": getString("vat_number"), "placeholder": "DE123456789", "optional": true},
-				{"display_name": "Steuernummer", "name": "id_number", "type": "text", "default": getString("id_number"), "optional": true},
-			},
-		},
-	}
-
-	body, _ := json.Marshal(dialog)
-	r, _ := http.NewRequest("POST", mattermostURL+"/api/v4/actions/dialogs/open", bytes.NewReader(body))
-	r.Header.Set("Authorization", "Bearer "+mattermostToken)
-	r.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(r)
-	if err != nil {
-		log.Printf("openCompanyDialog: %v", err)
-		return
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
-		b, _ := io.ReadAll(resp.Body)
-		log.Printf("openCompanyDialog: MM %d: %s", resp.StatusCode, string(b))
-	}
-}
-
-// handleCompanyDialog saves company settings to Invoice Ninja
-func handleCompanyDialog(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		UserID     string            `json:"user_id"`
-		ChannelID  string            `json:"channel_id"`
-		Submission map[string]string `json:"submission"`
-		Cancelled  bool              `json:"cancelled"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	if req.Cancelled {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	s := req.Submission
-	log.Printf("dialog/company: name=%s", s["name"])
-
-	settings := map[string]interface{}{
-		"name":        s["name"],
-		"email":       s["email"],
-		"phone":       s["phone"],
-		"website":     s["website"],
-		"address1":    s["address1"],
-		"address2":    s["address2"],
-		"postal_code": s["postal_code"],
-		"city":        s["city"],
-		"state":       "",
-		"country_id":  "276",
-		"vat_number":  s["vat_number"],
-		"id_number":   s["id_number"],
-		"currency_id": "3",
-		"language_id": "5",
-		"timezone_id": "18",
-	}
-
-	update := map[string]interface{}{"settings": settings}
-	var result map[string]interface{}
-	if err := inAPI("PUT", "/api/v1/companies/1", update, &result); err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"errors": map[string]string{"name": fmt.Sprintf("Fehler: %v", err)},
-		})
-		return
-	}
-
-	postToMM(req.ChannelID, fmt.Sprintf("Firmendaten aktualisiert: **%s**\n"+
-		"%s, %s %s\n"+
-		"USt-IdNr: %s | Steuernr: %s\n\n"+
-		"Weitere Details (Logo, Bankdaten, Zahlungsbedingungen): [Invoice Ninja Einstellungen](https://%s/#/settings/company_details)",
-		s["name"], s["address1"], s["postal_code"], s["city"],
-		s["vat_number"], s["id_number"], billingDomain))
-
-	w.WriteHeader(http.StatusOK)
 }
 
 // ── Interactive Action Handler ───────────────────────────────────
@@ -529,61 +307,126 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-
 	action := req.Context["action"]
 	log.Printf("action=%s user=%s channel=%s", action, req.UserName, req.ChannelID)
 
 	var resp ActionResponse
-
 	switch action {
 	case "create_invoice":
-		resp = actionCreateInvoice(req)
+		resp = actionCreateInvoice(r.Context(), req)
 	case "create_quote":
-		resp = actionCreateQuote(req)
-	case "create_expense":
-		resp = actionCreateExpense(req)
+		resp = actionCreateQuote(r.Context(), req)
 	case "create_client":
 		openClientDialog(req)
 		resp = ActionResponse{}
-	case "setup_company":
-		openCompanyDialog(req)
-		resp = ActionResponse{}
 	case "list_clients":
-		resp = actionListClients(req)
+		resp = actionListClients(r.Context(), req)
 	case "list_invoices":
-		resp = actionListInvoices(req)
+		resp = actionListInvoices(r.Context(), req)
 	case "open_dashboard":
 		resp = ActionResponse{
-			EphemeralText: fmt.Sprintf("Dashboard oeffnen: [Invoice Ninja](https://%s)", billingDomain),
+			EphemeralText: fmt.Sprintf("Stripe Dashboard oeffnen: [Invoices](%s/invoices) | [Customers](%s/customers)",
+				stripeDashboard(), stripeDashboard()),
 		}
 	default:
-		resp = ActionResponse{
-			EphemeralText: fmt.Sprintf("Unbekannte Aktion: `%s`", action),
-		}
+		resp = ActionResponse{EphemeralText: fmt.Sprintf("Unbekannte Aktion: `%s`", action)}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
 
+// ── Stripe Helpers ───────────────────────────────────────────────
+
+// stripeStatusLabel returns a German label for a Stripe invoice status
+func stripeStatusLabel(status stripe.InvoiceStatus) string {
+	switch status {
+	case stripe.InvoiceStatusDraft:
+		return "Entwurf"
+	case stripe.InvoiceStatusOpen:
+		return "Offen"
+	case stripe.InvoiceStatusPaid:
+		return "Bezahlt"
+	case stripe.InvoiceStatusVoid:
+		return "Storniert"
+	case stripe.InvoiceStatusUncollectible:
+		return "Uneinbringlich"
+	default:
+		return string(status)
+	}
+}
+
+// fmtUnixDate formats a Unix timestamp as YYYY-MM-DD
+func fmtUnixDate(ts int64) string {
+	if ts == 0 {
+		return ""
+	}
+	return time.Unix(ts, 0).UTC().Format("2006-01-02")
+}
+
+// stripeListCustomers returns up to 20 Stripe customers
+func stripeListCustomers(ctx context.Context) ([]*stripe.Customer, error) {
+	sc := newSC()
+	params := &stripe.CustomerListParams{}
+	params.Limit = stripe.Int64(20)
+
+	var customers []*stripe.Customer
+	var iterErr error
+	sc.V1Customers.List(ctx, params).All(ctx)(func(c *stripe.Customer, err error) bool {
+		if err != nil {
+			iterErr = err
+			return false
+		}
+		customers = append(customers, c)
+		return len(customers) < 20
+	})
+	if iterErr != nil {
+		return nil, iterErr
+	}
+	return customers, nil
+}
+
+// stripeCreateDraftInvoice creates an InvoiceItem + draft Invoice for a customer
+func stripeCreateDraftInvoice(ctx context.Context, customerID, description string, amountCents int64) (*stripe.Invoice, error) {
+	sc := newSC()
+
+	_, err := sc.V1InvoiceItems.Create(ctx, &stripe.InvoiceItemCreateParams{
+		Customer:    stripe.String(customerID),
+		Amount:      stripe.Int64(amountCents),
+		Currency:    stripe.String("eur"),
+		Description: stripe.String(description),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create invoice item: %w", err)
+	}
+
+	inv, err := sc.V1Invoices.Create(ctx, &stripe.InvoiceCreateParams{
+		Customer:         stripe.String(customerID),
+		CollectionMethod: stripe.String("send_invoice"),
+		DaysUntilDue:     stripe.Int64(30),
+		AutoAdvance:      stripe.Bool(false),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create invoice: %w", err)
+	}
+	return inv, nil
+}
+
 // ── Action Implementations ───────────────────────────────────────
 
-// openClientDialog triggers a Mattermost interactive dialog for client creation
 func openClientDialog(req ActionRequest) {
-	triggerID := req.TriggerID
-	if triggerID == "" {
+	if req.TriggerID == "" {
 		log.Printf("openClientDialog: no trigger_id")
 		return
 	}
-
 	dialog := map[string]interface{}{
-		"trigger_id": triggerID,
+		"trigger_id": req.TriggerID,
 		"url":        "http://billing-bot:8090/dialog/client",
 		"dialog": map[string]interface{}{
-			"callback_id":       "create_client",
-			"title":             "Kunde anlegen",
-			"submit_label":      "Anlegen",
-			"notify_on_cancel":  false,
+			"callback_id":      "create_client",
+			"title":            "Kunde anlegen",
+			"submit_label":     "Anlegen",
+			"notify_on_cancel": false,
 			"elements": []map[string]interface{}{
 				{"display_name": "Firmenname / Name", "name": "name", "type": "text", "placeholder": "Musterfirma GmbH", "optional": false},
 				{"display_name": "Ansprechpartner Vorname", "name": "first_name", "type": "text", "placeholder": "Max", "optional": true},
@@ -594,17 +437,14 @@ func openClientDialog(req ActionRequest) {
 				{"display_name": "PLZ", "name": "postal_code", "type": "text", "placeholder": "12345", "optional": true},
 				{"display_name": "Ort", "name": "city", "type": "text", "placeholder": "Berlin", "optional": true},
 				{"display_name": "USt-IdNr.", "name": "vat_number", "type": "text", "placeholder": "DE123456789", "optional": true},
-				{"display_name": "Notizen", "name": "notes", "type": "textarea", "placeholder": "Interne Notizen zum Kunden", "optional": true},
 			},
 		},
 	}
-
 	body, _ := json.Marshal(dialog)
-	req2, _ := http.NewRequest("POST", mattermostURL+"/api/v4/actions/dialogs/open", bytes.NewReader(body))
-	req2.Header.Set("Authorization", "Bearer "+mattermostToken)
-	req2.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req2)
+	r, _ := http.NewRequest("POST", mattermostURL+"/api/v4/actions/dialogs/open", bytes.NewReader(body))
+	r.Header.Set("Authorization", "Bearer "+mattermostToken)
+	r.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
 		log.Printf("openClientDialog: %v", err)
 		return
@@ -616,7 +456,6 @@ func openClientDialog(req ActionRequest) {
 	}
 }
 
-// handleClientDialog processes the submitted client creation dialog
 func handleClientDialog(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		UserID     string            `json:"user_id"`
@@ -632,10 +471,7 @@ func handleClientDialog(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-
 	s := req.Submission
-	log.Printf("dialog/client: name=%s user=%s", s["name"], req.UserID)
-
 	if s["name"] == "" {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -644,73 +480,228 @@ func handleClientDialog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := map[string]interface{}{
-		"name":        s["name"],
-		"address1":    s["address1"],
-		"city":        s["city"],
-		"postal_code": s["postal_code"],
-		"country_id":  "276", // Germany
-		"vat_number":  s["vat_number"],
-		"phone":       s["phone"],
-		"public_notes": s["notes"],
-		"contacts": []map[string]string{
-			{
-				"first_name": s["first_name"],
-				"last_name":  s["last_name"],
-				"email":      s["email"],
-				"phone":      s["phone"],
-			},
+	sc := newSC()
+	cParams := &stripe.CustomerCreateParams{
+		Name:  stripe.String(s["name"]),
+		Email: stripe.String(s["email"]),
+		Phone: stripe.String(s["phone"]),
+		Address: &stripe.AddressParams{
+			Line1:      stripe.String(s["address1"]),
+			City:       stripe.String(s["city"]),
+			PostalCode: stripe.String(s["postal_code"]),
+			Country:    stripe.String("DE"),
 		},
+		Metadata: map[string]string{
+			"vat_number": s["vat_number"],
+			"first_name": s["first_name"],
+			"last_name":  s["last_name"],
+		},
+		PreferredLocales: stripe.StringSlice([]string{"de"}),
 	}
-
-	var result INResponse[INClient]
-	if err := inAPI("POST", "/api/v1/clients", client, &result); err != nil {
+	c, err := sc.V1Customers.Create(r.Context(), cParams)
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"errors": map[string]string{"name": fmt.Sprintf("Fehler: %v", err)},
+			"errors": map[string]string{"name": fmt.Sprintf("Stripe Fehler: %v", err)},
 		})
 		return
 	}
 
-	// Post confirmation to channel
-	msg := fmt.Sprintf("Kunde **%s** angelegt von @%s\n"+
-		"Bearbeiten: [Invoice Ninja](https://%s/#/clients/%s/edit)",
-		result.Data.Name, req.UserID, billingDomain, result.Data.ID)
-
-	postToMM(req.ChannelID, msg)
-
+	postToMM(req.ChannelID, fmt.Sprintf(
+		"Kunde **%s** angelegt von @%s\nE-Mail: %s\n[Stripe Dashboard](%s/customers/%s)",
+		c.Name, req.UserID, c.Email, stripeDashboard(), c.ID,
+	))
 	w.WriteHeader(http.StatusOK)
 }
 
-// actionListClients returns a table of existing clients with edit links
-func actionListClients(req ActionRequest) ActionResponse {
-	clients, err := inListClients()
+func actionCreateInvoice(ctx context.Context, req ActionRequest) ActionResponse {
+	customers, err := stripeListCustomers(ctx)
+	if err != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Stripe Fehler: %v", err)}
+	}
+	if len(customers) == 0 {
+		return ActionResponse{EphemeralText: "Noch keine Kunden vorhanden. Bitte zuerst einen **Kunden anlegen**."}
+	}
+
+	c := customers[0]
+	inv, err := stripeCreateDraftInvoice(ctx, c.ID, "Dienstleistung (bitte in Stripe anpassen)", 0)
 	if err != nil {
 		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
 	}
-	if len(clients) == 0 {
+
+	return ActionResponse{
+		EphemeralText: fmt.Sprintf(
+			"Entwurf-Rechnung erstellt fuer **%s**.\n\nBearbeiten & Versenden: [Stripe Dashboard](%s/invoices/%s)\n\n_Passe Positionen, Betrag und Empfaenger direkt in Stripe an._",
+			c.Name, stripeDashboard(), inv.ID,
+		),
+	}
+}
+
+func actionCreateQuote(ctx context.Context, req ActionRequest) ActionResponse {
+	customers, err := stripeListCustomers(ctx)
+	if err != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Stripe Fehler: %v", err)}
+	}
+	if len(customers) == 0 {
+		return ActionResponse{EphemeralText: "Noch keine Kunden vorhanden. Bitte zuerst einen **Kunden anlegen**."}
+	}
+
+	c := customers[0]
+	sc := newSC()
+	q, err := sc.V1Quotes.Create(ctx, &stripe.QuoteCreateParams{
+		Customer: stripe.String(c.ID),
+		LineItems: []*stripe.QuoteCreateLineItemParams{
+			{
+				PriceData: &stripe.QuoteCreateLineItemPriceDataParams{
+					Currency:   stripe.String("eur"),
+					Product:    stripe.String(""),
+					UnitAmount: stripe.Int64(0),
+				},
+				Quantity: stripe.Int64(1),
+			},
+		},
+	})
+	if err != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
+	}
+
+	return ActionResponse{
+		EphemeralText: fmt.Sprintf(
+			"Angebot erstellt fuer **%s**.\n\nBearbeiten: [Stripe Dashboard](%s/quotes/%s)",
+			c.Name, stripeDashboard(), q.ID,
+		),
+	}
+}
+
+func actionListClients(ctx context.Context, req ActionRequest) ActionResponse {
+	customers, err := stripeListCustomers(ctx)
+	if err != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Stripe Fehler: %v", err)}
+	}
+	if len(customers) == 0 {
 		return ActionResponse{EphemeralText: "Noch keine Kunden vorhanden."}
 	}
 
 	var lines []string
-	lines = append(lines, "**Kunden:**\n")
-	lines = append(lines, "| Name | Kontakt | E-Mail | Bearbeiten |")
-	lines = append(lines, "|------|---------|--------|------------|")
-	for _, c := range clients {
-		contact := ""
-		email := ""
-		if len(c.Contacts) > 0 {
-			contact = strings.TrimSpace(c.Contacts[0].FirstName + " " + c.Contacts[0].LastName)
-			email = c.Contacts[0].Email
-		}
-		lines = append(lines, fmt.Sprintf("| %s | %s | %s | [Bearbeiten](https://%s/#/clients/%s/edit) |",
-			c.Name, contact, email, billingDomain, c.ID))
+	lines = append(lines, "**Kunden (Stripe):**\n")
+	lines = append(lines, "| Name | E-Mail | Dashboard |")
+	lines = append(lines, "|------|--------|-----------|")
+	for _, c := range customers {
+		lines = append(lines, fmt.Sprintf("| %s | %s | [Bearbeiten](%s/customers/%s) |",
+			c.Name, c.Email, stripeDashboard(), c.ID))
 	}
-
 	return ActionResponse{EphemeralText: strings.Join(lines, "\n")}
 }
 
-// postToMM sends a message to a channel via the Mattermost API
+func actionListInvoices(ctx context.Context, req ActionRequest) ActionResponse {
+	sc := newSC()
+	params := &stripe.InvoiceListParams{}
+	params.Limit = stripe.Int64(5)
+
+	var invoices []*stripe.Invoice
+	var iterErr error
+	sc.V1Invoices.List(ctx, params).All(ctx)(func(inv *stripe.Invoice, err error) bool {
+		if err != nil {
+			iterErr = err
+			return false
+		}
+		invoices = append(invoices, inv)
+		return len(invoices) < 5
+	})
+	if iterErr != nil {
+		return ActionResponse{EphemeralText: fmt.Sprintf("Stripe Fehler: %v", iterErr)}
+	}
+
+	if len(invoices) == 0 {
+		return ActionResponse{EphemeralText: "Noch keine Rechnungen vorhanden."}
+	}
+
+	var lines []string
+	lines = append(lines, "**Letzte Rechnungen (Stripe):**\n")
+	lines = append(lines, "| Nr. | Betrag | Status | Datum | Link |")
+	lines = append(lines, "|-----|--------|--------|-------|------|")
+	for _, inv := range invoices {
+		lines = append(lines, fmt.Sprintf("| %s | %.2f EUR | %s | %s | [Anzeigen](%s/invoices/%s) |",
+			inv.Number,
+			float64(inv.AmountDue)/100.0,
+			stripeStatusLabel(inv.Status),
+			fmtUnixDate(inv.Created),
+			stripeDashboard(), inv.ID,
+		))
+	}
+	return ActionResponse{EphemeralText: strings.Join(lines, "\n")}
+}
+
+// ── Quick Commands ───────────────────────────────────────────────
+
+func handleQuickClient(req SlashRequest) SlashResponse {
+	name := strings.TrimPrefix(req.Text, "client ")
+	if name == "" {
+		return SlashResponse{ResponseType: "ephemeral", Text: "Nutzung: `/billing client <Kundenname>`"}
+	}
+
+	sc := newSC()
+	c, err := sc.V1Customers.Create(req.Context(), &stripe.CustomerCreateParams{
+		Name: stripe.String(name),
+	})
+	if err != nil {
+		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Stripe Fehler: %v", err)}
+	}
+
+	return SlashResponse{
+		ResponseType: "in_channel",
+		Text: fmt.Sprintf(
+			"Kunde **%s** angelegt von @%s. [Stripe Dashboard](%s/customers/%s)",
+			name, req.UserName, stripeDashboard(), c.ID,
+		),
+	}
+}
+
+func handleQuickInvoice(req SlashRequest) SlashResponse {
+	clientName := strings.TrimPrefix(req.Text, "invoice ")
+	if clientName == "" {
+		return SlashResponse{ResponseType: "ephemeral", Text: "Nutzung: `/billing invoice <Kundenname>`"}
+	}
+
+	sc := newSC()
+	searchParams := &stripe.CustomerSearchParams{}
+	searchParams.Query = fmt.Sprintf(`name:"%s"`, clientName)
+	searchParams.Limit = stripe.Int64(1)
+
+	var found *stripe.Customer
+	var searchErr error
+	sc.V1Customers.Search(req.Context(), searchParams).All(req.Context())(func(c *stripe.Customer, err error) bool {
+		if err != nil {
+			searchErr = err
+			return false
+		}
+		found = c
+		return false
+	})
+	if searchErr != nil {
+		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Stripe Fehler: %v", searchErr)}
+	}
+
+	if found == nil {
+		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Kein Kunde mit Name `%s` gefunden.", clientName)}
+	}
+
+	inv, err := stripeCreateDraftInvoice(req.Context(), found.ID, "Dienstleistung", 0)
+	if err != nil {
+		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Fehler: %v", err)}
+	}
+
+	return SlashResponse{
+		ResponseType: "in_channel",
+		Text: fmt.Sprintf(
+			"Rechnung erstellt fuer **%s** von @%s\n[Stripe Dashboard](%s/invoices/%s)",
+			found.Name, req.UserName, stripeDashboard(), inv.ID,
+		),
+	}
+}
+
+// ── Mattermost Helpers ───────────────────────────────────────────
+
 func postToMM(channelID, message string) {
 	post := map[string]string{"channel_id": channelID, "message": message}
 	body, _ := json.Marshal(post)
@@ -723,250 +714,4 @@ func postToMM(channelID, message string) {
 		return
 	}
 	resp.Body.Close()
-}
-
-func actionCreateInvoice(req ActionRequest) ActionResponse {
-	// Get first available client, or prompt to create one
-	clients, err := inListClients()
-	if err != nil {
-		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler beim Laden der Kunden: %v", err)}
-	}
-	if len(clients) == 0 {
-		return ActionResponse{
-			EphemeralText: "Noch keine Kunden vorhanden. Bitte zuerst einen **Kunden anlegen**.",
-		}
-	}
-
-	today := time.Now().Format("2006-01-02")
-	due := time.Now().AddDate(0, 0, 30).Format("2006-01-02")
-
-	invoice := map[string]interface{}{
-		"client_id": clients[0].ID,
-		"date":      today,
-		"due_date":  due,
-		"line_items": []map[string]interface{}{
-			{
-				"product_key": "SERVICE",
-				"notes":       "Dienstleistung (bitte in Invoice Ninja anpassen)",
-				"cost":        0,
-				"quantity":    1,
-			},
-		},
-	}
-
-	var result INResponse[INInvoice]
-	if err := inAPI("POST", "/api/v1/invoices", invoice, &result); err != nil {
-		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
-	}
-
-	return ActionResponse{
-		EphemeralText: fmt.Sprintf(
-			"Rechnung **%s** erstellt fuer Kunde **%s**.\n"+
-				"Faellig am: %s\n\n"+
-				"Bearbeiten: [Invoice Ninja](http://%s/#/invoices/%s/edit)\n\n"+
-				"_Passe Positionen und Betraege direkt in Invoice Ninja an._",
-			result.Data.Number, clients[0].Name, due, billingDomain, result.Data.ID,
-		),
-	}
-}
-
-func actionCreateQuote(req ActionRequest) ActionResponse {
-	clients, err := inListClients()
-	if err != nil {
-		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
-	}
-	if len(clients) == 0 {
-		return ActionResponse{
-			EphemeralText: "Noch keine Kunden vorhanden. Bitte zuerst einen **Kunden anlegen**.",
-		}
-	}
-
-	today := time.Now().Format("2006-01-02")
-
-	quote := map[string]interface{}{
-		"client_id": clients[0].ID,
-		"date":      today,
-		"line_items": []map[string]interface{}{
-			{
-				"product_key": "SERVICE",
-				"notes":       "Angebot (bitte in Invoice Ninja anpassen)",
-				"cost":        0,
-				"quantity":    1,
-			},
-		},
-	}
-
-	var result INResponse[INQuote]
-	if err := inAPI("POST", "/api/v1/quotes", quote, &result); err != nil {
-		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
-	}
-
-	return ActionResponse{
-		EphemeralText: fmt.Sprintf(
-			"Angebot **%s** erstellt fuer Kunde **%s**.\n\n"+
-				"Bearbeiten: [Invoice Ninja](http://%s/#/quotes/%s/edit)",
-			result.Data.Number, clients[0].Name, billingDomain, result.Data.ID,
-		),
-	}
-}
-
-func actionCreateExpense(req ActionRequest) ActionResponse {
-	expense := map[string]interface{}{
-		"amount":        0,
-		"public_notes":  fmt.Sprintf("Ausgabe erfasst von @%s", req.UserName),
-		"private_notes": "Bitte Betrag und Kategorie in Invoice Ninja anpassen",
-		"date":          time.Now().Format("2006-01-02"),
-	}
-
-	var result INResponse[INExpense]
-	if err := inAPI("POST", "/api/v1/expenses", expense, &result); err != nil {
-		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
-	}
-
-	return ActionResponse{
-		EphemeralText: fmt.Sprintf(
-			"Ausgabe erfasst (ID: `%s`).\n\n"+
-				"Bearbeiten: [Invoice Ninja](http://%s/#/expenses/%s/edit)\n\n"+
-				"_Bitte Betrag und Kategorie anpassen._",
-			result.Data.ID, billingDomain, result.Data.ID,
-		),
-	}
-}
-
-func actionListInvoices(req ActionRequest) ActionResponse {
-	var result INResponse[[]INInvoice]
-	if err := inAPI("GET", "/api/v1/invoices?per_page=5&sort=created_at|desc", nil, &result); err != nil {
-		return ActionResponse{EphemeralText: fmt.Sprintf("Fehler: %v", err)}
-	}
-
-	if len(result.Data) == 0 {
-		return ActionResponse{EphemeralText: "Noch keine Rechnungen vorhanden."}
-	}
-
-	var lines []string
-	lines = append(lines, "**Letzte Rechnungen:**\n")
-	lines = append(lines, "| Nr. | Betrag | Datum | Link |")
-	lines = append(lines, "|-----|--------|-------|------|")
-	for _, inv := range result.Data {
-		lines = append(lines, fmt.Sprintf("| %s | %.2f EUR | %s | [Bearbeiten](http://%s/#/invoices/%s/edit) |",
-			inv.Number, inv.Amount, inv.Date, billingDomain, inv.ID))
-	}
-
-	return ActionResponse{
-		EphemeralText: strings.Join(lines, "\n"),
-	}
-}
-
-// ── Quick Commands (slash text) ──────────────────────────────────
-
-func handleQuickClient(req SlashRequest) SlashResponse {
-	name := strings.TrimPrefix(req.Text, "client ")
-	if name == "" {
-		return SlashResponse{ResponseType: "ephemeral", Text: "Nutzung: `/billing client <Kundenname>`"}
-	}
-
-	client := map[string]interface{}{
-		"name":     name,
-		"contacts": []map[string]string{{"first_name": name}},
-	}
-
-	var result INResponse[INClient]
-	if err := inAPI("POST", "/api/v1/clients", client, &result); err != nil {
-		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Fehler: %v", err)}
-	}
-
-	return SlashResponse{
-		ResponseType: "in_channel",
-		Text: fmt.Sprintf(
-			"Kunde **%s** angelegt von @%s. [Bearbeiten](http://%s/#/clients/%s)",
-			name, req.UserName, billingDomain, result.Data.ID,
-		),
-	}
-}
-
-func handleQuickInvoice(req SlashRequest) SlashResponse {
-	// /billing invoice <client-name>
-	clientName := strings.TrimPrefix(req.Text, "invoice ")
-	if clientName == "" {
-		return SlashResponse{ResponseType: "ephemeral", Text: "Nutzung: `/billing invoice <Kundenname>`"}
-	}
-
-	// Search for client by name
-	var result INResponse[[]INClient]
-	if err := inAPI("GET", fmt.Sprintf("/api/v1/clients?filter=%s&per_page=1", clientName), nil, &result); err != nil {
-		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Fehler: %v", err)}
-	}
-	if len(result.Data) == 0 {
-		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Kein Kunde mit Name `%s` gefunden.", clientName)}
-	}
-
-	today := time.Now().Format("2006-01-02")
-	due := time.Now().AddDate(0, 0, 30).Format("2006-01-02")
-
-	invoice := map[string]interface{}{
-		"client_id": result.Data[0].ID,
-		"date":      today,
-		"due_date":  due,
-		"line_items": []map[string]interface{}{
-			{"product_key": "SERVICE", "notes": "Dienstleistung", "cost": 0, "quantity": 1},
-		},
-	}
-
-	var invResult INResponse[INInvoice]
-	if err := inAPI("POST", "/api/v1/invoices", invoice, &invResult); err != nil {
-		return SlashResponse{ResponseType: "ephemeral", Text: fmt.Sprintf("Fehler: %v", err)}
-	}
-
-	return SlashResponse{
-		ResponseType: "in_channel",
-		Text: fmt.Sprintf(
-			"Rechnung **%s** erstellt fuer **%s** von @%s (faellig: %s)\n[Bearbeiten](http://%s/#/invoices/%s/edit)",
-			invResult.Data.Number, clientName, req.UserName, due, billingDomain, invResult.Data.ID,
-		),
-	}
-}
-
-// ── Invoice Ninja API Client ─────────────────────────────────────
-
-func inAPI(method, path string, body interface{}, target interface{}) error {
-	var bodyReader io.Reader
-	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return fmt.Errorf("JSON encode: %w", err)
-		}
-		bodyReader = bytes.NewReader(b)
-	}
-
-	req, err := http.NewRequest(method, invoiceNinjaURL+path, bodyReader)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("X-API-TOKEN", invoiceNinjaKey)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Requested-With", "XMLHttpRequest")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("Invoice Ninja unreachable: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("Invoice Ninja API %d: %s", resp.StatusCode, string(b))
-	}
-
-	if target != nil {
-		return json.NewDecoder(resp.Body).Decode(target)
-	}
-	return nil
-}
-
-func inListClients() ([]INClient, error) {
-	var result INResponse[[]INClient]
-	if err := inAPI("GET", "/api/v1/clients?per_page=20&sort=name|asc", nil, &result); err != nil {
-		return nil, err
-	}
-	return result.Data, nil
 }

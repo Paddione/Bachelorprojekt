@@ -18,16 +18,22 @@ import { ensureFolder, uploadFile } from '../../../lib/nextcloud-files';
 //   roomToken: string,
 //   transcriptText: string,
 //   segments?: Array<{ start: number, end: number, text: string }>,
+//   startedAt?: number,                                   // Unix timestamp (seconds)
+//   endedAt?: number,                                     // Unix timestamp (seconds)
 //   roomName?: string,                                    // NC Talk room name
-//   participants?: Array<{ displayName, email, uid }>     // non-bot room members
+//   participants?: Array<{ displayName, email, uid }>,    // non-bot room members
+//   resources?: Array<{ type, name, storagePath, timestamp }>  // files from meeting window
 // }
 export const POST: APIRoute = async ({ request }) => {
   let body: {
     roomToken?: string;
     transcriptText?: string;
     segments?: unknown[];
+    startedAt?: number;
+    endedAt?: number;
     roomName?: string;
     participants?: Array<{ displayName: string; email: string; uid: string }>;
+    resources?: Array<{ type: 'whiteboard' | 'document' | 'screenshot' | 'file'; name: string; storagePath: string | null; timestamp: number }>;
   };
   try {
     body = await request.json();
@@ -35,7 +41,11 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: 'Invalid JSON' }, 400);
   }
 
-  const { roomToken, transcriptText, segments = [], roomName, participants = [] } = body;
+  const {
+    roomToken, transcriptText, segments = [],
+    startedAt, endedAt,
+    roomName, participants = [], resources = [],
+  } = body;
 
   if (!roomToken || typeof roomToken !== 'string') {
     return json({ error: 'roomToken required' }, 400);
@@ -83,7 +93,10 @@ export const POST: APIRoute = async ({ request }) => {
 
   // ── 2. Mark meeting as ended ──────────────────────────────────────────────
   try {
-    await updateMeetingStatus(meeting.id, 'ended', { endedAt: new Date() });
+    await updateMeetingStatus(meeting.id, 'ended', {
+      startedAt: startedAt ? new Date(startedAt * 1000) : undefined,
+      endedAt:   endedAt   ? new Date(endedAt   * 1000) : new Date(),
+    });
     results.push('Meeting status → ended');
   } catch (err) {
     errors.push(`Status update: ${err instanceof Error ? err.message : String(err)}`);
@@ -142,6 +155,24 @@ export const POST: APIRoute = async ({ request }) => {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Nextcloud upload: ${msg}`);
     }
+  }
+
+  // ── 5. Save detected resources as artifacts ───────────────────────────────
+  if (resources.length > 0) {
+    for (const res of resources) {
+      try {
+        await saveArtifact({
+          meetingId: meeting.id,
+          artifactType: res.type,
+          name: res.name,
+          storagePath: res.storagePath ?? undefined,
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`Resource artifact (${res.name}): ${msg}`);
+      }
+    }
+    results.push(`Resources: ${resources.length} artifact(s) saved`);
   }
 
   return json({

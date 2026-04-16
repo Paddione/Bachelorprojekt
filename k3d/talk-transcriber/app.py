@@ -6,7 +6,7 @@ buffert Audio und schickt Chunks an Whisper. Nach Gespraechsende
 wird das vollstaendige Transkript an die Website-API gesendet,
 die es in der Datenbank und in Nextcloud-Dateien speichert.
 """
-import asyncio, hashlib, hmac, os, subprocess, tempfile
+import asyncio, hashlib, hmac, os, subprocess, tempfile, time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -123,6 +123,87 @@ def _db_connect() -> "psycopg2.connection":
         dbname=NC_DB_NAME, user=NC_DB_USER, password=NC_DB_PASS,
         connect_timeout=5,
     )
+
+
+def _db_get_meeting_resources(token: str, start_ts: int, end_ts: int) -> list:
+    """
+    Query the Nextcloud DB for files created/modified during the meeting window:
+    1. Whiteboard files (application/vnd.excalidraw+json)
+    2. Office file activity (file_created / file_changed via oc_activity)
+    3. Talk attachments shared in this room
+    """
+    if not NC_DB_PASS:
+        return []
+    conn = None
+    try:
+        conn = _db_connect()
+        resources = []
+        with conn.cursor() as cur:
+            # 1. Whiteboard files
+            cur.execute("""
+                SELECT fc.path, fc.mtime
+                FROM oc_filecache fc
+                JOIN oc_mimetypes mt ON mt.id = fc.mimetype
+                WHERE mt.mimetype = 'application/vnd.excalidraw+json'
+                  AND fc.mtime BETWEEN %s AND %s
+                LIMIT 20
+            """, (start_ts, end_ts))
+            for row in cur.fetchall():
+                path = row[0].removeprefix("files/")
+                resources.append({
+                    "type": "whiteboard",
+                    "name": path.split("/")[-1],
+                    "storagePath": path,
+                    "timestamp": row[1],
+                })
+
+            # 2. Office file activity
+            cur.execute("""
+                SELECT DISTINCT act.file, act.timestamp
+                FROM oc_activity act
+                WHERE act.app = 'files'
+                  AND act.type IN ('file_created', 'file_changed')
+                  AND act.timestamp BETWEEN %s AND %s
+                  AND (
+                      act.file LIKE '%.odt' OR act.file LIKE '%.docx' OR
+                      act.file LIKE '%.ods' OR act.file LIKE '%.xlsx' OR
+                      act.file LIKE '%.odp' OR act.file LIKE '%.pptx' OR
+                      act.file LIKE '%.pdf'
+                  )
+                LIMIT 20
+            """, (start_ts, end_ts))
+            for row in cur.fetchall():
+                resources.append({
+                    "type": "document",
+                    "name": row[0].split("/")[-1],
+                    "storagePath": row[0],
+                    "timestamp": row[1],
+                })
+
+            # 3. Talk attachments shared in this room
+            cur.execute("""
+                SELECT ta.object_type, ta.actor_id, ta.message_time
+                FROM oc_talk_rooms r
+                JOIN oc_talk_attachments ta ON ta.room_id = r.id
+                WHERE r.token = %s
+                  AND ta.message_time BETWEEN %s AND %s
+                LIMIT 20
+            """, (token, start_ts, end_ts))
+            for row in cur.fetchall():
+                resources.append({
+                    "type": "file",
+                    "name": f"Geteilte Datei ({row[0]}) von {row[1]}",
+                    "storagePath": None,
+                    "timestamp": row[2],
+                })
+
+        return resources
+    except Exception as exc:
+        print(f"[db-resources] {exc}", flush=True)
+        return []
+    finally:
+        if conn:
+            conn.close()
 
 
 def _db_get_room_metadata(token: str) -> dict:
@@ -355,6 +436,7 @@ async def run_session(token: str) -> None:
         "sink": sink,
         "module_id": module_id,
         "display_num": display_num,
+        "started_at": int(time.time()),
     }
 
     await asyncio.sleep(5)  # let call establish in Firefox
@@ -488,11 +570,16 @@ async def _finalize_and_teardown(token: str, display_num: int | None = None) -> 
 
     if transcript_parts and WEBSITE_URL:
         full_text = "\n".join(transcript_parts)
+        ended_at  = int(time.time())
+        started_at = s.get("started_at", ended_at)
         print(f"[{token}] saving transcript ({len(full_text)} chars, "
               f"{len(segments)} segments)", flush=True)
         try:
             room_meta = await asyncio.get_event_loop().run_in_executor(
                 None, _db_get_room_metadata, token
+            )
+            resources = await asyncio.get_event_loop().run_in_executor(
+                None, _db_get_meeting_resources, token, started_at, ended_at
             )
             async with httpx.AsyncClient(timeout=30) as wc:
                 resp = await wc.post(
@@ -501,6 +588,9 @@ async def _finalize_and_teardown(token: str, display_num: int | None = None) -> 
                         "roomToken": token,
                         "transcriptText": full_text,
                         "segments": segments,
+                        "startedAt": started_at,
+                        "endedAt": ended_at,
+                        "resources": resources,
                         **room_meta,
                     },
                 )

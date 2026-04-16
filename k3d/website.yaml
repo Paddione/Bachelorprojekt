@@ -57,9 +57,7 @@ data:
   NEXTCLOUD_URL: "http://nextcloud.workspace.svc.cluster.local"
   NEXTCLOUD_EXTERNAL_URL: "${NEXTCLOUD_EXTERNAL_URL}"
   NEXTCLOUD_ADMIN_USER: "admin"
-  NEXTCLOUD_ADMIN_PASS: "devnextcloudadmin"
   NEXTCLOUD_CALDAV_USER: "admin"
-  NEXTCLOUD_CALDAV_PASSWORD: "devnextcloudadmin"
   KEYCLOAK_FRONTEND_URL: "${KEYCLOAK_FRONTEND_URL}"
   # Mattermost signing channel
   MATTERMOST_SIGNING_CHANNEL: "signing"
@@ -158,6 +156,16 @@ spec:
                   name: website-secrets
                   key: STRIPE_WEBHOOK_SECRET
                   optional: true
+            - name: NEXTCLOUD_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: NEXTCLOUD_ADMIN_PASS
+            - name: NEXTCLOUD_CALDAV_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: NEXTCLOUD_CALDAV_PASSWORD
           ports:
             - containerPort: 4321
           resources:

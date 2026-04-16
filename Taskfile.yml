@@ -1184,7 +1184,35 @@ tasks:
         kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
       - task: keycloak:sync-secrets
         vars: { ENV: "{{.ENV}}" }
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
+
+  workspace:sync-db-passwords:
+    desc: "Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+
+        echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
+
+        for user in keycloak mattermost nextcloud vaultwarden outline website; do
+          key="${user^^}_DB_PASSWORD"
+          pw=$(kubectl $context_flag get secret workspace-secrets -n workspace \
+            -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d)
+          if [ -z "$pw" ]; then
+            echo "  SKIP ${user}: ${key} not found in workspace-secrets"
+            continue
+          fi
+          kubectl $context_flag exec -n workspace deployment/shared-db -- \
+            psql -U postgres -c "ALTER USER ${user} WITH PASSWORD '${pw}';" 2>&1 \
+            | sed "s/^/  ${user}: /"
+        done
+        echo "✓ DB passwords synced"
 
   keycloak:sync-secrets:
     desc: "Sync OIDC client secrets von workspace-secrets → Keycloak Admin API (ENV=dev|mentolder|korczewski)"
@@ -1224,7 +1252,7 @@ tasks:
         kubectl create configmap docs-content \
           --from-file=k3d/docs-content/ \
           --dry-run=client -o yaml -n workspace \
-          | kubectl apply -f - --context korczewski
+          | kubectl apply -f - --context korczewski --server-side --force-conflicts
       - kubectl rollout restart deployment/docs -n workspace --context korczewski
       - kubectl rollout status deployment/docs -n workspace --context korczewski --timeout=120s
       - echo '→ Updating docs-content ConfigMap on mentolder...'
@@ -1232,7 +1260,7 @@ tasks:
         kubectl create configmap docs-content \
           --from-file=k3d/docs-content/ \
           --dry-run=client -o yaml -n workspace \
-          | kubectl apply -f - --context mentolder
+          | kubectl apply -f - --context mentolder --server-side --force-conflicts
       - kubectl rollout restart deployment/docs -n workspace --context mentolder
       - kubectl rollout status deployment/docs -n workspace --context mentolder --timeout=120s
       - echo ''

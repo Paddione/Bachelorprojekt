@@ -48,7 +48,7 @@ func TestNoEmailHeader(t *testing.T) {
 	}
 }
 
-// TestAlreadyHasSession: authenticated request with session cookie proxies directly.
+// TestAlreadyHasSession: authenticated request with _sso_injected indicator proxies directly.
 func TestAlreadyHasSession(t *testing.T) {
 	mock := newMockIN(t, "", 200)
 	defer mock.Close()
@@ -56,7 +56,7 @@ func TestAlreadyHasSession(t *testing.T) {
 	handler := buildHandler(mock.URL)
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("X-Auth-Request-Email", "user@example.com")
-	req.AddCookie(&http.Cookie{Name: "laravel_session", Value: "existing-session"})
+	req.AddCookie(&http.Cookie{Name: ssoInjectedCookie, Value: "1"})
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -94,6 +94,21 @@ func TestCreateSession(t *testing.T) {
 	}
 	if !containsStr(cookie, "HttpOnly") {
 		t.Errorf("expected HttpOnly in cookie: %q", cookie)
+	}
+
+	// Also verify the _sso_injected indicator cookie is set with MaxAge.
+	found := false
+	for _, c := range w.Result().Cookies() {
+		if c.Name == ssoInjectedCookie {
+			found = true
+			if c.MaxAge != sessionMaxAge {
+				t.Errorf("want MaxAge=%d, got %d", sessionMaxAge, c.MaxAge)
+			}
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected %s cookie to be set", ssoInjectedCookie)
 	}
 }
 

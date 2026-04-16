@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+const ssoInjectedCookie = "_sso_injected"
+
+// sessionMaxAge must match Laravel's session.lifetime (default 120 min).
+// When this cookie expires, the bridge re-creates the IN session on the next request.
+const sessionMaxAge = 7200
+
 var (
 	listenAddr  = env("LISTEN_ADDR", ":8180")
 	inURL       = env("INVOICENINJA_URL", "http://invoiceninja:80")
@@ -52,6 +58,9 @@ func buildHandler(upstream string) http.Handler {
 
 func handle(w http.ResponseWriter, r *http.Request, proxy *httputil.ReverseProxy, upstream string) {
 	email := r.Header.Get("X-Auth-Request-Email")
+	_, hasInjected := r.Cookie(ssoInjectedCookie)
+	_, hasSession := r.Cookie(sessionName)
+	log.Printf("sso-bridge: %s %s email=%q injected=%v session=%v", r.Method, r.RequestURI, email, hasInjected == nil, hasSession == nil)
 
 	// No email → skip-auth path (static assets, webhooks). Proxy directly.
 	if email == "" {
@@ -59,8 +68,9 @@ func handle(w http.ResponseWriter, r *http.Request, proxy *httputil.ReverseProxy
 		return
 	}
 
-	// Already has a Laravel session cookie. Proxy directly.
-	if _, err := r.Cookie(sessionName); err == nil {
+	// SSO already injected for this session and the indicator cookie hasn't expired.
+	// Proxy directly — no need to create another session.
+	if hasInjected == nil {
 		proxy.ServeHTTP(w, r)
 		return
 	}
@@ -79,6 +89,14 @@ func handle(w http.ResponseWriter, r *http.Request, proxy *httputil.ReverseProxy
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     ssoInjectedCookie,
+		Value:    "1",
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   sessionMaxAge,
 	})
 	http.Redirect(w, r, r.RequestURI, http.StatusFound)
 }

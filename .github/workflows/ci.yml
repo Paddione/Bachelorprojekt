@@ -108,6 +108,56 @@ jobs:
       - name: Check for cross-environment drift
         run: bash scripts/env-validate.sh --drift --env-dir environments --strict
 
+  validate-prod-secrets:
+    name: Validate Prod Overlays Have No Dev Secrets
+    runs-on: ubuntu-latest
+    needs: [validate-manifests]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install kubectl
+        run: |
+          curl -sSL "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+
+      - name: Create CI dummy secrets
+        run: |
+          for f in k3d/secrets.yaml k3d/backup-secrets.yaml; do
+            if [ ! -f "$f" ]; then
+              printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\ntype: Opaque\nstringData:\n  PLACEHOLDER: ci-dummy\n' "$(basename "$f" .yaml)" > "$f"
+            fi
+          done
+
+      - name: Check prod overlays exclude workspace-secrets Secret
+        run: |
+          python3 - <<'EOF'
+          import subprocess, sys, yaml, glob, os
+
+          overlays = sorted(glob.glob('prod*'))
+          overlays = [o for o in overlays if os.path.isdir(o)]
+          found = []
+          for overlay in overlays:
+              result = subprocess.run(
+                  ['kubectl', 'kustomize', overlay],
+                  capture_output=True, text=True
+              )
+              if result.returncode != 0:
+                  print(f'ERROR: kustomize build failed for {overlay}:\n{result.stderr}', file=sys.stderr)
+                  sys.exit(1)
+              for doc in yaml.safe_load_all(result.stdout):
+                  if not doc:
+                      continue
+                  if (doc.get('kind') == 'Secret' and
+                          doc.get('metadata', {}).get('name') == 'workspace-secrets' and
+                          (doc.get('stringData') or doc.get('data'))):
+                      found.append(overlay)
+          if found:
+              print('FAIL: workspace-secrets Secret with data found in overlays: ' + ', '.join(found))
+              print('The $patch: delete in prod/kustomization.yaml may have been removed.')
+              sys.exit(1)
+          print('OK: workspace-secrets Secret absent from all prod overlays (' + str(len(overlays)) + ' checked)')
+          EOF
+
   unit-tests:
     name: BATS Unit Tests
     runs-on: ubuntu-latest

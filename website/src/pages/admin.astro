@@ -1,9 +1,12 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
-import { listBugTickets, listProjects, getDueFollowUps } from '../lib/website-db';
+import { listBugTickets, listProjects, getDueFollowUps, listAdminShortcuts } from '../lib/website-db';
+import type { AdminShortcut } from '../lib/website-db';
 import { getAllInvoices } from '../lib/invoiceninja';
 import { getAvailableSlots } from '../lib/caldav';
+import ServiceLinks from '../components/ServiceLinks.astro';
+import AdminShortcuts from '../components/admin/AdminShortcuts.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -17,6 +20,7 @@ let openInvoices      = 0;
 let openInvoiceAmount = 0;
 let dueFollowUps      = 0;
 let freeSlots         = 0;
+let shortcuts: AdminShortcut[] = [];
 
 await Promise.allSettled([
   listBugTickets({ status: 'open', brand: BRAND, limit: 1000 })
@@ -38,11 +42,34 @@ await Promise.allSettled([
         .filter(d => new Date(d.date) <= horizon)
         .reduce((s, d) => s + d.slots.length, 0);
     }),
+  listAdminShortcuts()
+    .then(s => { shortcuts = s; }),
 ]);
 
 function fmtCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
 }
+
+const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const docsUrl     = process.env.DOCS_URL ?? '';
+const billingUrl  = process.env.BILLING_EXTERNAL_URL ?? '';
+const authUrl     = process.env.AUTH_EXTERNAL_URL ?? '';
+const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
+const wikiUrl     = process.env.WIKI_EXTERNAL_URL ?? '';
+const adminLinks = [
+  ...(ncBase ? [
+    { href: `${ncBase}/apps/files/`,      label: 'Dateien',    icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`,   label: 'Kalender',   icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
+    { href: `${ncBase}/apps/files/`,      label: 'Whiteboard', icon: '🖊️' },
+  ] : []),
+  ...(wikiUrl     ? [{ href: wikiUrl,           label: 'Wiki',       icon: '📚' }] : []),
+  ...(billingUrl  ? [{ href: billingUrl,        label: 'Abrechnung', icon: '🧾' }] : []),
+  ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
+  ...(authUrl     ? [{ href: `${authUrl}/admin/`, label: 'Keycloak', icon: '🔑' }] : []),
+  ...(docsUrl     ? [{ href: docsUrl,           label: 'Docs',       icon: '📖' }] : []),
+];
 ---
 
 <AdminLayout title="Admin — Dashboard">
@@ -69,6 +96,10 @@ function fmtCurrency(n: number): string {
     </a>
   ))}
 </div>
+
+      <ServiceLinks links={adminLinks} heading="Dienste" />
+
+      <AdminShortcuts client:load links={shortcuts} />
 
     </div>
   </section>

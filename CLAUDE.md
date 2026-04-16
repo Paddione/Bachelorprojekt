@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates Mattermost (chat), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Invoice Ninja (billing), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
+**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Invoice Ninja (billing), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
 
 Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
@@ -36,7 +36,6 @@ task workspace:port-forward      # Forward shared-db to localhost:5432
 ### Post-Deploy Setup
 ```bash
 task workspace:post-setup        # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
-task workspace:billing-setup     # Build billing-bot image (token + slash command auto-provisioned)
 task workspace:stripe-setup      # Register Stripe as payment gateway in Invoice Ninja
 task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
 task workspace:monitoring        # Install Prometheus + Grafana + DSGVO dashboard (NFA-02)
@@ -51,7 +50,6 @@ task mcp:status                  # Show MCP pod and container status
 task mcp:logs -- <pod>/<ctr>     # Tail MCP container logs
 task mcp:restart -- core|apps|auth  # Restart an MCP pod
 task mcp:select                  # Interactive MCP server selector
-task mcp:mattermost-setup        # Create Claude Code channels in Mattermost
 task mcp:set-github-pat -- <tok> # Update GitHub PAT in claude-code-secrets
 ```
 
@@ -61,7 +59,6 @@ task website:deploy              # Build, import, and deploy website
 task website:dev                 # Astro dev server (hot-reload)
 task website:redeploy            # Rebuild and restart
 task website:status              # Show website deployment status
-task website:webhook:setup       # Create Mattermost webhook for contact form
 task website:teardown            # Remove website namespace
 ```
 
@@ -84,8 +81,6 @@ Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task 
 ### Optional Services
 ```bash
 task whisper:deploy              # Deploy faster-whisper transcription service
-task outline:deploy              # Deploy Outline knowledge base
-task outline:teardown            # Remove Outline and its data
 ```
 
 ### TLS & DNS (Production)
@@ -117,11 +112,6 @@ task config:show                 # Show current config variables
 
 Test IDs: `FA-01`--`FA-25` (functional), `SA-01`--`SA-10` (security), `NFA-01`--`NFA-09` (non-functional), `AK-03`, `AK-04` (acceptance).
 
-### Building the billing-bot (Go)
-```bash
-cd billing-bot && go build ./...
-```
-
 ## Architecture
 
 All services run as Kubernetes Deployments in the `workspace` namespace, fronted by Traefik (built-in k3s ingress). There is no docker-compose.
@@ -132,7 +122,6 @@ graph TB
 
     subgraph workspace ["Namespace: workspace"]
         KC["fa:fa-key Keycloak<br/>auth.localhost"]
-        MM["fa:fa-comments Mattermost<br/>chat.localhost"]
         NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
         CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
         HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
@@ -141,10 +130,7 @@ graph TB
         VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
         WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
         MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
-        OS["fa:fa-search OpenSearch"]
         DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
-        BB["fa:fa-robot billing-bot<br/>intern"]
-        PROXY[mm-keycloak-proxy]
         OAUTH[oauth2-proxy-invoiceninja]
         WHISPER["fa:fa-microphone Whisper<br/>Transkription"]
         JANUS[Janus + NATS + coturn]
@@ -152,31 +138,28 @@ graph TB
     end
 
     subgraph website-ns ["Namespace: website"]
-        WEB["fa:fa-globe Website Astro<br/>web.localhost"]
+        WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
     end
 
     subgraph monitoring-ns ["Namespace: monitoring"]
         PROM["fa:fa-chart-line Prometheus + Grafana"]
     end
 
-    Traefik --> KC & MM & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
 
-    KC -. OIDC .-> MM & NC & IN & OC
-    PROXY --> KC
-    MM --> PROXY
+    KC -. OIDC .-> NC & IN & OC
     OAUTH --> KC
     IN --> OAUTH
-    MM <--> BB <--> IN
     NC --> CO
     NC --> HPB --> JANUS
-    KC & MM & NC & IN & OC & OS --> DB
+    KC & NC & IN & OC --> DB
+    WEB --> DB
 ```
 
 ### Key components
 - **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the only deployment path.
 - **`prod/`** -- Production overlays/patches (TLS, resource limits, replicas, DDNS).
 - **`deploy/`** -- Alternative Skaffold-based deploy path (hot-reload for dev iteration). Contains `mcp/` for MCP server overlays.
-- **`billing-bot/`** -- Go microservice (`main.go`). Exposes `/slash`, `/actions`, `/healthz`.
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
@@ -190,7 +173,7 @@ graph TB
 - **Dev secrets**: `k3d/secrets.yaml` (dev values only -- never commit real credentials).
 - **Keycloak realm**: `k3d/realm-workspace-dev.json` (exported realm config loaded as ConfigMap).
 - **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (loaded as ConfigMap).
-- **SSO flow**: Keycloak is the OIDC provider; Mattermost, Nextcloud, Invoice Ninja, and Claude Code all authenticate through it.
+- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Invoice Ninja, and Claude Code all authenticate through it.
 
 ## CI/CD
 

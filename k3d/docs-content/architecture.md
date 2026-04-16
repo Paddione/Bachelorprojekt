@@ -40,7 +40,6 @@ flowchart TB
             NC["fa:fa-cloud Nextcloud + Talk\nfiles.localhost"]
             CO["fa:fa-file-word Collabora Online\noffice.localhost"]
             WB["fa:fa-chalkboard Whiteboard\nboard.localhost"]
-            OL["fa:fa-book Outline Wiki\nwiki.localhost"]
             REC["fa:fa-record-vinyl Talk Recording"]
         end
 
@@ -76,8 +75,6 @@ flowchart TB
         subgraph data ["fa:fa-database Datenhaltung"]
             DB[("PostgreSQL 16\nshared-db\n5 Datenbanken")]
             MARIA[("MariaDB 11\ninvoiceninja")]
-            OS[("OpenSearch\nVolltextsuche")]
-            REDIS[("Redis\nOutline Cache")]
         end
 
         subgraph external ["Weitere Namespaces"]
@@ -102,7 +99,6 @@ flowchart TB
     Traefik --> MP
     Traefik --> DOCS
     Traefik --> WEB
-    Traefik --> OL
 
     %% --- OIDC (Keycloak als IdP) ---
     KC -. "OIDC" .-> MM
@@ -110,7 +106,6 @@ flowchart TB
     KC -. "OIDC" .-> IN
     KC -. "OIDC" .-> OC
     KC -. "OIDC" .-> VW
-    KC -. "OIDC" .-> OL
     KC -. "OIDC" .-> WEB
 
     %% --- Auth Proxies ---
@@ -140,18 +135,13 @@ flowchart TB
     %% --- Recording ---
     NC --> REC
 
-    %% --- Search ---
-    MM --> OS
-
     %% --- Datenbanken ---
     KC --> DB
     MM --> DB
     NC --> DB
     VW --> DB
     OC --> DB
-    OL --> DB
     IN --> MARIA
-    OL --> REDIS
 
     %% --- Monitoring ---
     PROM -.-> GRAF
@@ -162,20 +152,18 @@ flowchart TB
     IN -. "SMTP" .-> MP
 
     %% --- Klickbare Nodes ---
-    click KC "#/keycloak" "Keycloak: Zentraler OIDC Identity Provider fuer SSO. Verwaltet Benutzer, Rollen und 8 OIDC-Clients. Speichert Sessions und Realm-Konfiguration in PostgreSQL."
-    click MM "#/services?id=mattermost-chat" "Mattermost: Team-Chat mit Channels, Threads und Dateifreigabe. Integriert OpenSearch fuer Volltextsuche, Webhooks fuer Automatisierung und Slash-Commands fuer billing-bot."
+    click KC "#/keycloak" "Keycloak: Zentraler OIDC Identity Provider fuer SSO. Verwaltet Benutzer, Rollen und 7 OIDC-Clients. Speichert Sessions und Realm-Konfiguration in PostgreSQL."
+    click MM "#/services?id=mattermost-chat" "Mattermost: Team-Chat mit Channels, Threads und Dateifreigabe. PostgreSQL FTS fuer Volltextsuche, Webhooks fuer Automatisierung und Slash-Commands fuer billing-bot."
     click NC "#/services?id=nextcloud-dateien-talk" "Nextcloud: Dateiverwaltung, Kalender, Kontakte und Videokonferenzen via Talk. WOPI-Integration mit Collabora fuer Office-Dokumente. WebRTC via HPB Stack."
     click CO "#/services?id=collabora-online-office" "Collabora Online: LibreOffice-basierter Office-Editor im Browser. Bearbeitet DOCX, XLSX, PPTX, ODT Dateien kollaborativ ueber WOPI-Protokoll mit Nextcloud."
     click OC "#/services?id=claude-code-ki-assistent" "Claude Code: KI-Assistent mit Claude Sonnet 4. Nutzt MCP-Server fuer Kubernetes-Verwaltung, Datenbank-Abfragen und Browser-Automatisierung. RBAC-gesichert."
     click IN "#/services?id=invoice-ninja-rechnungen" "Invoice Ninja: Rechnungserstellung, Kundenverwaltung und Zahlungsabwicklung via Stripe. Geschuetzt durch oauth2-proxy. Eigene MariaDB-Instanz."
     click VW "#/services?id=vaultwarden-passwoerter" "Vaultwarden: Self-hosted Bitwarden-kompatibler Passwort-Manager. Speichert verschluesselte Vault-Items in PostgreSQL. OIDC-Login via Keycloak."
     click BB "#/services?id=billing-bot" "billing-bot: Go-Microservice. Verbindet Mattermost Slash-Commands mit Invoice Ninja API fuer schnelle Rechnungs- und Kundenerstellung aus dem Chat."
-    click OL "#/services?id=outline-wiki-optional" "Outline: Kollaboratives Wiki fuer Teamwissen. Markdown-basiert mit Echtzeit-Bearbeitung, verschachtelten Dokumenten und Volltextsuche. Redis fuer Sessions."
     click WB "#/services?id=whiteboard" "Whiteboard: Nextcloud-integriertes Whiteboard fuer visuelle Zusammenarbeit. Echtzeit-Kollaboration ueber WebSockets."
     click MP "#/services?id=mailpit-dev-mail" "Mailpit: SMTP-Testserver fuer Entwicklung. Faengt alle ausgehenden E-Mails ab (kein Versand). Web-UI zur Inspektion von Benachrichtigungen."
-    click DB "#/architecture?id=datenbank-layout" "PostgreSQL 16 shared-db: 7 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, outline, website, pentest) mit eigenem User je Service."
+    click DB "#/architecture?id=datenbank-layout" "PostgreSQL 16 shared-db: 6 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, website, pentest) mit eigenem User je Service."
     click MARIA "#/architecture?id=datenbank-layout" "MariaDB 11: Dedizierte Instanz fuer Invoice Ninja (benoetigt MySQL-Kompatibilitaet)."
-    click OS "#/architecture?id=datenbank-layout" "OpenSearch 2.19: Elasticsearch-kompatibler Suchindex fuer Mattermost Volltextsuche und Autocomplete."
     click WEB "#/services?id=website-astro-svelte" "Website: Astro + Svelte Unternehmenswebsite mit Kontaktformular (Mattermost Webhook), OIDC-Login, Stripe-Checkout und Admin-Panel (/admin/projekte)."
     click PROM "#/architecture?id=deployment-ablauf" "Prometheus: Metriken-Sammlung aller Kubernetes-Ressourcen. Speist DSGVO-Compliance-Dashboard."
     click GRAF "#/architecture?id=deployment-ablauf" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
@@ -198,10 +186,10 @@ flowchart TB
     classDef infra_style fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 
     class KC,PROXY,OAUTH,OAUTH2 identity_style
-    class MM,NC,CO,WB,OL,REC collab_style
+    class MM,NC,CO,WB,REC collab_style
     class OC,MCP_K8S,MCP_PG,MCP_BR,MCP_GRAF,MCP_PROM,WHISPER,EMB ai_style
     class IN,BB billing_style
-    class DB,MARIA,OS,REDIS data_style
+    class DB,MARIA data_style
     class VW,MP,DOCS tools_style
     class Traefik,WEB,PROM,GRAF infra_style
 ```
@@ -270,7 +258,7 @@ sequenceDiagram
     Browser -->> User: ✅ Eingeloggt
 ```
 
-**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Outline, Website, Docs (8 Clients im Realm `workspace`)
+**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Website, Docs (7 Clients im Realm `workspace`)
 
 ---
 
@@ -558,12 +546,9 @@ erDiagram
     SHARED_DB ||--|| MM_SVC : "mattermost"
     SHARED_DB ||--|| NC_SVC : "nextcloud"
     SHARED_DB ||--|| VW_SVC : "vaultwarden"
-    SHARED_DB ||--|| OL_SVC : "outline"
     SHARED_DB ||--|| WEB_SVC : "website"
     SHARED_DB }|--|| MCP_PG : "alle DBs"
     MARIADB ||--|| IN_SVC : "invoiceninja"
-    OPENSEARCH ||--|| MM_SVC : "Suchindex"
-    REDIS ||--|| OL_SVC : "Sessions"
 
     SHARED_DB {
         text host "shared-db.workspace"
@@ -575,20 +560,10 @@ erDiagram
         text engine "MariaDB 11"
         text storage "5 Gi PVC"
     }
-    OPENSEARCH {
-        text host "opensearch"
-        text engine "OpenSearch 2.17"
-        text storage "5 Gi PVC"
-    }
-    REDIS {
-        text host "localhost"
-        text engine "Redis 7 Sidecar"
-    }
     KC_SVC { text service "Keycloak" }
     MM_SVC { text service "Mattermost" }
     NC_SVC { text service "Nextcloud" }
     VW_SVC { text service "Vaultwarden" }
-    OL_SVC { text service "Outline" }
     WEB_SVC { text service "Website" }
     IN_SVC { text service "Invoice Ninja" }
     MCP_PG { text service "MCP Postgres" }
@@ -601,10 +576,9 @@ Jede Datenbank hat einen eigenen User mit ausschliesslichem Zugriff auf seine Da
 | Datenbank | User | Service | Besonderheiten |
 |-----------|------|---------|----------------|
 | `keycloak` | `keycloak` | Keycloak | Realm-Export als ConfigMap |
-| `mattermost` | `mattermost` | Mattermost | + OpenSearch fuer Volltextsuche |
+| `mattermost` | `mattermost` | Mattermost | PostgreSQL FTS fuer Volltextsuche |
 | `nextcloud` | `nextcloud` | Nextcloud | Datei-Metadaten, Kalender, Kontakte |
 | `vaultwarden` | `vaultwarden` | Vaultwarden | Verschluesselte Vault-Items |
-| `outline` | `outline` | Outline | + Redis Sidecar fuer Sessions |
 | `website` | `website` | Website (Astro) | Meeting-Pipeline, Projektmgmt, Admin-Config — pgvector aktiviert |
 | `pentest` | `pentest` | Sicherheitstests | Isolierte DB fuer Pen-Tests |
 | `invoiceninja` | `invoiceninja` | Invoice Ninja | Separate MariaDB (MySQL-Kompatibilitaet) |
@@ -650,7 +624,6 @@ Traefik (k3s built-in) routet anhand von Host-Headern:
 | mail.localhost | mailpit | 8025 |
 | docs.localhost | docs | 80 |
 | web.localhost | website | 4321 |
-| wiki.localhost | outline | 3000 |
 
 Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 
@@ -665,8 +638,6 @@ Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 | invoiceninja-public | 5 Gi | Invoice Ninja |
 | invoiceninja-mariadb-data | 5 Gi | MariaDB |
 | vaultwarden-data | 5 Gi | Vaultwarden |
-| opensearch-data | 5 Gi | OpenSearch Index |
-| outline-data | 5 Gi | Outline Wiki |
 | backup-pvc | 1 Gi | Verschluesselte Backups |
 
 ## Deployment-Ablauf

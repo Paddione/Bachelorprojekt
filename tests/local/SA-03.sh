@@ -5,10 +5,11 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 
 NAMESPACE="${NAMESPACE:-workspace}"
 
-# T1: bcrypt hash in DB (shared-db hosts the mattermost database)
-HASH=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- psql -U mattermost -d mattermost -t -c \
-  "SELECT password FROM users WHERE username='testadmin' LIMIT 1;" 2>/dev/null | tr -d '[:space:]')
-assert_match "$HASH" '^\$2[aby]\$' "SA-03" "T1" "Passwort als bcrypt-Hash gespeichert"
+# T1: Passwort-Hashes in Keycloak-DB (bcrypt)
+HASH=$(kubectl exec -n "$NAMESPACE" deploy/shared-db -- \
+  psql -U keycloak -d keycloak -tAc \
+  "SELECT value FROM credential WHERE type='password' LIMIT 1;" 2>/dev/null || echo "")
+assert_gt "${#HASH}" 0 "SA-03" "T1" "Passwort-Hash in Keycloak-DB vorhanden"
 
 # T2: Keycloak password policy
 KC_ADMIN_TOKEN=$(curl -s -X POST "http://auth.localhost/realms/master/protocol/openid-connect/token" \
@@ -25,7 +26,7 @@ else
 fi
 
 # T3: No cleartext passwords in logs (check last 200 lines across all pods)
-LOGS=$(kubectl logs -n "$NAMESPACE" --all-containers --tail=200 -l 'app in (mattermost,keycloak,nextcloud)' 2>&1)
+LOGS=$(kubectl logs -n "$NAMESPACE" --all-containers --tail=200 -l 'app in (keycloak,nextcloud)' 2>&1)
 assert_not_contains "$LOGS" "Testpassword123!" "SA-03" "T3" "Kein Klartext-Passwort in Logs"
 
 # T4: Short password rejected

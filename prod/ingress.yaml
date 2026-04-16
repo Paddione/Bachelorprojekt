@@ -194,7 +194,7 @@ spec:
                 port:
                   number: 80
 ---
-# ── Restliche Services (meet, board, signaling, wiki) ──────────────
+# ── Restliche Services (meet, board, signaling) ─────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -207,7 +207,6 @@ spec:
         - meet.${PROD_DOMAIN}
         - board.${PROD_DOMAIN}
         - signaling.${PROD_DOMAIN}
-        - wiki.${PROD_DOMAIN}
         - bug.${PROD_DOMAIN}
       secretName: workspace-wildcard-tls
   rules:
@@ -249,15 +248,5 @@ spec:
             backend:
               service:
                 name: website
-                port:
-                  number: 80
-    - host: wiki.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: outline
                 port:
                   number: 80

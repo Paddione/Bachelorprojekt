@@ -62,8 +62,6 @@ patches:
   - path: patch-keycloak.yaml
   # Claude Code prod overrides
   - path: patch-claude-code-config.yaml
-  # Outline prod overrides
-  - path: patch-outline.yaml
   # Production SMTP and service config
   - path: patch-vaultwarden.yaml
   - path: patch-oauth2-proxy-docs.yaml

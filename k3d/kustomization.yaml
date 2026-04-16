@@ -11,9 +11,6 @@ resources:
   - website-schema.yaml
   # Kerndienste
   - keycloak.yaml
-  - mm-keycloak-proxy.yaml
-  - mattermost.yaml
-  - mattermost-hpa.yaml
   - nextcloud.yaml
   - nextcloud-redis.yaml
   - nextcloud-notify-push-ingress.yaml
@@ -27,21 +24,21 @@ resources:
   - whiteboard.yaml
   - talk-recording.yaml
   - vaultwarden.yaml
+  # Buchhaltung
+  - invoiceninja.yaml
+  - sso-bridge.yaml
+  - sso-auth-php.yaml
+  - oauth2-proxy-invoiceninja.yaml
   - oauth2-proxy-docs.yaml
-  - billing-bot.yaml
-  - billing-bot-init-job.yaml
-  # Suche (FA-07)
-  - opensearch.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-secrets.yaml
   - backup-cronjob.yaml
+  - notify-unread-cronjob.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
-  # Wiki
-  - outline.yaml
   # Anforderungs-Tracking
   - tracking.yaml
   # Transkription
@@ -55,7 +52,6 @@ resources:
   - claude-code-config.yaml
   - claude-code-mcp-ops.yaml
   - claude-code-mcp-browser.yaml
-  - claude-code-mcp-mattermost.yaml
   - claude-code-mcp-apps.yaml
   - claude-code-mcp-auth.yaml
   - claude-code-mcp-stripe.yaml
@@ -68,7 +64,6 @@ resources:
   - network-policies.yaml
   # Ingress
   - ingress.yaml
-  - mattermost-force-sso.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:
@@ -84,9 +79,9 @@ configMapGenerator:
   - name: nextcloud-extra-config
     files:
       - zz-extra.config.php=nextcloud-extra-config.php
-  - name: mattermost-proxy-config
+  - name: invoiceninja-nginx-config
     files:
-      - default.conf=mattermost-userinfo-proxy.conf
+      - default.conf=invoiceninja-nginx.conf
   - name: docs-content
     files:
       - docs-content/index.html

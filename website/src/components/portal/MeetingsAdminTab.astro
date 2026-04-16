@@ -1,5 +1,5 @@
 ---
-import { getMeetingsForClient, listProjects } from '../../lib/website-db';
+import { getMeetingsForClient, getCustomerByEmail, listProjects } from '../../lib/website-db';
 import type { Meeting, Project } from '../../lib/website-db';
 
 interface Props {
@@ -13,7 +13,10 @@ let meetings: Meeting[] = [];
 let projects: Project[] = [];
 try {
   meetings = await getMeetingsForClient(clientEmail, false); // all meetings
-  projects = await listProjects({ brand });
+  const customer = await getCustomerByEmail(clientEmail);
+  if (customer) {
+    projects = await listProjects({ brand, customerId: customer.id });
+  }
 } catch {
   // DB unavailable
 }

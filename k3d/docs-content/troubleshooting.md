@@ -1,16 +1,4 @@
-<div class="page-hero">
-  <span class="page-hero-icon">🔧</span>
-  <div class="page-hero-body">
-    <div class="page-hero-title">Fehlerbehebung</div>
-    <p class="page-hero-desc">Diagnose-Befehle, bekannte Probleme und Lösungsansätze für häufige Betriebssituationen im Workspace-Cluster.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">kubectl</span>
-      <span class="page-hero-tag">task-Befehle</span>
-      <span class="page-hero-tag">Logs &amp; Status</span>
-    </div>
-  </div>
-  <a href="#/" class="page-hero-back">← Übersicht</a>
-</div>
+# Fehlerbehebung
 
 ## Allgemeine Diagnose
 
@@ -81,14 +69,12 @@ task workspace:logs -- keycloak
 # Realm importiert?
 kubectl exec -n workspace deploy/keycloak -- /opt/keycloak/bin/kcadm.sh get realms --server http://localhost:8080 --realm master --user admin --password devadmin
 
-# Proxy-Logs pruefen (Mattermost)
-kubectl logs -n workspace deploy/mm-keycloak-proxy
+# Proxy-Logs pruefen (Docs SSO)
+kubectl logs -n workspace deploy/oauth2-proxy-docs
 ```
 
 **Haeufige Ursachen:**
 - **Realm nicht importiert:** `import-entrypoint.sh` Logs pruefen. Keycloak-Pod neu starten: `task workspace:restart -- keycloak`
-- **mm-keycloak-proxy nicht erreichbar:** `kubectl get pods -n workspace -l app=mm-keycloak-proxy`
-- **oauth2-proxy Fehler (Invoice Ninja):** `kubectl logs -n workspace deploy/oauth2-proxy-invoiceninja`
 - **oauth2-proxy Fehler (Docs):** `kubectl logs -n workspace deploy/oauth2-proxy-docs`
 
 ### Nextcloud OIDC Login fehlerhaft
@@ -105,44 +91,6 @@ task workspace:logs -- nextcloud
 **Loesung:** OIDC-Plugin neu installieren:
 ```bash
 task workspace:post-setup
-```
-
-### Docs SSO Login fehlerhaft (oauth2-proxy-docs)
-
-**Symptom:** Login auf docs.korczewski.de oder docs.mentolder.de schlaegt fehl (500, "unauthorized_client", oder Redirect-Loop).
-
-**Diagnose:**
-```bash
-# oauth2-proxy-docs Logs
-kubectl logs -n workspace deploy/oauth2-proxy-docs
-
-# Secret korrekt?
-kubectl get secret workspace-secrets -n workspace -o jsonpath='{.data.DOCS_OIDC_SECRET}' | base64 -d
-```
-
-**Haeufige Ursachen:**
-- **OIDC-Secret stimmt nicht:** Der Wert in `workspace-secrets.DOCS_OIDC_SECRET` muss mit dem Keycloak-Client-Secret des `docs`-Clients uebereinstimmen. Pruefen und korrigieren:
-  ```bash
-  kubectl patch secret workspace-secrets -n workspace --type=merge \
-    -p '{"stringData":{"DOCS_OIDC_SECRET":"<richtiger-wert>"}}'
-  kubectl rollout restart deployment/oauth2-proxy-docs -n workspace
-  ```
-- **Keycloak `docs`-Client fehlt:** Im Realm `workspace` muss ein OIDC-Client `docs` mit den korrekten Redirect-URIs existieren. Pruefen unter auth.{domain}/admin.
-- **Cookie-Kollision:** Falls mehrere Browser-Sessions gemischt werden, Cookies fuer die Domain loeschen.
-
-### Mattermost zeigt "Verbindung verloren"
-
-**Diagnose:**
-```bash
-task workspace:logs -- mattermost
-
-# WebSocket-Port erreichbar?
-curl -v http://chat.localhost/api/v4/system/ping
-```
-
-**Loesung:** Pod neu starten:
-```bash
-task workspace:restart -- mattermost
 ```
 
 ### Collabora zeigt leeren Editor
@@ -191,42 +139,6 @@ kubectl logs -n workspace deploy/nats
 - **coturn nicht erreichbar:** Port 3478 muss fuer UDP/TCP offen sein
 - **NATS nicht gestartet:** `kubectl get pods -n workspace -l app=nats`
 
-### billing-bot antwortet nicht auf /billing
-
-**Diagnose:**
-```bash
-# Bot-Logs
-task workspace:logs -- billing-bot
-
-# Health-Check
-kubectl exec -n workspace deploy/mattermost -- curl -s http://billing-bot:8090/healthz
-
-# Slash-Command konfiguriert?
-kubectl exec -n workspace deploy/mattermost -- mmctl --local command list
-```
-
-**Loesung:**
-```bash
-# Image neu bauen und deployen
-task workspace:billing-build
-task workspace:restart -- billing-bot
-```
-
-### OpenSearch nicht erreichbar
-
-**Diagnose:**
-```bash
-# OpenSearch-Logs
-task workspace:logs -- opensearch
-
-# Cluster-Health
-kubectl exec -n workspace deploy/opensearch -- curl -s localhost:9200/_cluster/health
-```
-
-**Haeufige Ursachen:**
-- **Zu wenig RAM:** OpenSearch benoetigt 512Mi. `kubectl describe pod -n workspace -l app=opensearch` fuer OOMKilled pruefen.
-- **vm.max_map_count zu niedrig:** Auf dem Host `sysctl vm.max_map_count=262144` setzen.
-
 ### TLS-Zertifikat wird nicht ausgestellt
 
 **Symptom:** `task cert:status` zeigt `READY: False`, Challenges bleiben `pending`.
@@ -269,27 +181,6 @@ kubectl logs -n cert-manager deploy/cert-manager-lego-webhook --tail=20
   kubectl delete challenge --all -n workspace
   ```
 
-### Mattermost OIDC-Login: "E-Mail bereits verknuepft"
-
-**Symptom:** "Mit dieser E-Mail-Adresse ist bereits ein Konto verknuepft, das nicht die Anmeldemethode gitlab verwendet."
-
-**Ursache:** Ein Mattermost-Account wurde mit E-Mail/Passwort erstellt, bevor OIDC (Keycloak) eingerichtet wurde.
-
-**Loesung:** Authservice des Benutzers in der Datenbank umstellen:
-```bash
-# Keycloak User-ID ermitteln
-task workspace:psql -- keycloak
-SELECT id, username FROM user_entity WHERE email='<email>';
-
-# Mattermost-User auf OIDC umstellen
-task workspace:psql -- mattermost
-UPDATE users
-SET authservice='gitlab', authdata='<keycloak-user-id>', password=''
-WHERE email='<email>';
-```
-
-Danach kann sich der Benutzer per Keycloak SSO anmelden.
-
 ### Website nicht erreichbar
 
 **Diagnose:**
@@ -327,8 +218,8 @@ shellcheck scripts/*.sh
 ```bash
 # psql-Shell oeffnen
 task workspace:psql -- keycloak
-task workspace:psql -- mattermost
 task workspace:psql -- nextcloud
+task workspace:psql -- website
 
 # Port-Forward fuer externe Tools (DBeaver, pgAdmin)
 task workspace:port-forward

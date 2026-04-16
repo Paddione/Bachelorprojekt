@@ -149,26 +149,11 @@ Direkter SQL-Zugriff auf die gemeinsame PostgreSQL-Instanz (`shared-db`) im Clus
 |--------|-------------|
 | `query` | SQL-Abfrage (nur lesend) gegen die gemeinsame Datenbank ausfuehren |
 
-> **Nur lesend** -- ausschliesslich `SELECT`-Abfragen. Alle Workspace-Datenbanken (Keycloak, Mattermost, Nextcloud, OpenSearch usw.) liegen auf dieser gemeinsamen Instanz und sind abfragbar.
+> **Nur lesend** -- ausschliesslich `SELECT`-Abfragen. Alle Workspace-Datenbanken (Keycloak, Nextcloud, Website usw.) liegen auf dieser gemeinsamen Instanz und sind abfragbar.
 
 ---
 
 > **Hinweis:** Alle folgenden MCP-Server sind sowohl im k3d-Cluster (via `k3d/claude-code-mcp-*.yaml`) als auch im Produktions-Overlay (`deploy/mcp/`) verfuegbar. Deploy: `task mcp:deploy` oder `task workspace:up`.
-
----
-
-## Mattermost (`mcp-mattermost`)
-
-Image: `legard/mcp-server-mattermost`
-Verbindet sich mit Mattermost ueber dessen REST-API mit einem Bot-Token.
-
-| Bereich | Abdeckung |
-|---------|-----------|
-| Kanaele | Auflisten, lesen, Nachrichten in Kanaele senden |
-| Direktnachrichten | DMs senden und lesen |
-| Teams | Teams und Mitgliedschaften auflisten |
-| Benutzer | Benutzerprofile nachschlagen |
-| Beitraege | Beitraege erstellen, lesen, darauf reagieren |
 
 ---
 
@@ -182,23 +167,6 @@ Verbindet sich mit Nextcloud ueber WebDAV/API.
 | Dateien | Dateien und Ordner auflisten, lesen, hochladen, verschieben, loeschen |
 | Kalender | Kalender auflisten, Termine lesen/erstellen/aktualisieren/loeschen (CalDAV) |
 | Kontakte | Adressbuecher auflisten, Kontakte lesen/erstellen/aktualisieren/loeschen (CardDAV) |
-
----
-
-## Invoice Ninja (`mcp-invoiceninja`)
-
-Image: `ckanthony/openapi-mcp` -- eine OpenAPI-zu-MCP-Bruecke.
-Stellt die gesamte Invoice Ninja REST-API als MCP-Tools bereit, gesteuert durch die `invoiceninja-openapi` ConfigMap. Die Tool-Liste spiegelt die Invoice Ninja API-Oberflaeche:
-
-| Bereich | Abdeckung |
-|---------|-----------|
-| Kunden | CRUD auf Kundendatensaetzen |
-| Rechnungen | Rechnungen erstellen, senden, archivieren, loeschen |
-| Angebote | Angebote erstellen und verwalten |
-| Zahlungen | Zahlungen erfassen und verwalten |
-| Produkte | Produkt-/Dienstleistungskatalog verwalten |
-| Ausgaben | Ausgaben erfassen |
-| Berichte | Finanzberichte generieren |
 
 ---
 
@@ -264,9 +232,7 @@ Erfordert einen Stripe Secret Key.
 | Kubernetes Read-Only | 7 | Cluster-Inspektion (Claude Code-seitig) |
 | PostgreSQL | 1 | Gemeinsame DB, nur lesender SQL-Zugriff |
 | — *nur deploy/mcp Overlay (laeuft nicht in k3d)* — | | |
-| Mattermost | ~5 Bereiche | Chat, Kanaele, DMs, Beitraege |
 | Nextcloud | ~3 Bereiche | Dateien, Kalender, Kontakte |
-| Invoice Ninja | ~7 Bereiche | Vollstaendige Billing-API via OpenAPI-Bruecke |
 | Keycloak | ~6 Bereiche | SSO Benutzer-/Gruppen-/Rollenverwaltung |
 | GitHub | ~6 Bereiche | Repos, Issues, PRs, Actions (PAT erforderlich) |
 | Stripe | ~7 Bereiche | Zahlungen, Rechnungen, Abonnements |

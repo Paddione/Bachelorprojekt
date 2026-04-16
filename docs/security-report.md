@@ -89,14 +89,12 @@ Der Workspace MVP ist eine selbst-gehostete Kollaborationsplattform auf Kubernet
 | `allow-intra-namespace-egress` | workspace, website | Pod-zu-Pod im Namespace erlaubt |
 | `allow-intra-namespace-ingress` | website | Intra-Namespace Ingress (CronJob → Website) |
 | `allow-traefik-ingress` | workspace, website | Traefik (kube-system) → alle Services |
-| `allow-monitoring-ingress` | workspace | Prometheus-Scraping aus monitoring |
 | `allow-mcp-external-egress` | workspace | mcp-github, mcp-stripe → HTTPS 443 extern |
 | `allow-egress-to-workspace` | website | Website-Pod → workspace-Services |
 
 **Risiko nach Härtung:** NIEDRIG.
 
-**Verbleibend:** PostgreSQL intern ohne TLS — mitigiert durch NetworkPolicy-Isolation. Monitoring-Namespace ohne eigene Policies (Helm-verwaltet).
-
+**Verbleibend:** PostgreSQL intern ohne TLS — mitigiert durch NetworkPolicy-Isolation.
 ---
 
 ### Schicht 4 — Transport (Transport)
@@ -330,7 +328,7 @@ Der Workspace MVP ist **DSGVO-konform by Design** — alle personenbezogenen Dat
 | Least-Privilege-Prinzip | Claude Code MCP: read-only auf Pods/Services/ConfigMaps; kein `pods/exec`, kein Secrets-Zugriff |
 | CI/CD-Sicherheitsprüfungen | GitHub Actions: kustomize-Validierung, kubeconform, yamllint, shellcheck, Secret-Detection, Image-Pinning |
 | Backup & Recovery | Tägliche verschlüsselte Backups (keycloak, mattermost, nextcloud); 30-Tage-Retention |
-| Automatisierte Compliance-Prüfung | `scripts/dsgvo-compliance-check.sh` — 12 Checks (D01–D12), Grafana-Dashboard-Integration |
+| Automatisierte Compliance-Prüfung | `scripts/dsgvo-compliance-check.sh` — 12 Checks (D01–D12) |
 
 ---
 
@@ -339,7 +337,7 @@ Der Workspace MVP ist **DSGVO-konform by Design** — alle personenbezogenen Dat
 Bei Feststellung einer Datenpanne gilt folgendes Verfahren:
 
 **Stufe 1 — Erkennung (0–4 Stunden):**
-- Monitoring-Alert (Grafana/Prometheus) oder manuelle Meldung
+- Manuelle Meldung oder automatisches Kubernetes-Alert
 - Erstbewertung: welche Daten betroffen, Umfang, potenzielle Ursache
 - Sofortmaßnahme: betroffenen Service isolieren (NetworkPolicy oder Deployment stoppen)
 - Dokumentation: Zeitpunkt, Art, erste Einschätzung
@@ -404,7 +402,7 @@ Vollständiges Verarbeitungsverzeichnis: [`docs/verarbeitungsverzeichnis.md`](ve
 
 ```bash
 scripts/dsgvo-compliance-check.sh           # Menschenlesbar (12 Checks D01–D12)
-scripts/dsgvo-compliance-check.sh --json    # JSON-Ausgabe für Grafana-Dashboard
+scripts/dsgvo-compliance-check.sh --json    # JSON-Ausgabe
 task workspace:dsgvo-check                  # Kurzbefehl
 ```
 
@@ -465,7 +463,6 @@ task workspace:dsgvo-check                  # Kurzbefehl
 | HOCH | PostgreSQL-TLS intern (cert-manager) | MITTEL |
 | HOCH | TLS minVersion: VersionTLS12 explizit in Traefik | NIEDRIG |
 | MITTEL | Cilium mit WireGuard für Pod-to-Pod-TLS (Service Mesh) | HOCH |
-| MITTEL | Monitoring-Namespace NetworkPolicies | NIEDRIG |
 | MITTEL | OPA Gatekeeper / Kyverno für Policy-Enforcement | MITTEL |
 | NIEDRIG | LUKS Full-Disk-Encryption auf Host-Ebene | MITTEL |
 | NIEDRIG | SBOM + Image-Vulnerability-Scanning (Trivy) | NIEDRIG |

@@ -225,7 +225,6 @@ Default-Deny auf allen Namespaces (`workspace`, `website`). Selektive Freigaben:
 | `allow-intra-namespace-egress` | workspace, website | Pod-zu-Pod im Namespace |
 | `allow-intra-namespace-ingress` | website | Intra-Namespace Ingress |
 | `allow-traefik-ingress` | workspace, website | Traefik aus kube-system |
-| `allow-monitoring-ingress` | workspace | Prometheus-Scraping |
 | `allow-mcp-external-egress` | workspace | mcp-github/mcp-stripe → HTTPS 443 |
 | `allow-egress-to-workspace` | website | Website → workspace Services |
 

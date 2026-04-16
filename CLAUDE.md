@@ -159,7 +159,6 @@ graph TB
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
 - **`website/`** -- Astro + Svelte website.
 - **`docs-site/`** -- Docsify index.html for the docs service.
-- **`grafana/`** -- DSGVO Compliance Dashboard JSON.
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.

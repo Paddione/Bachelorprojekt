@@ -80,7 +80,7 @@ Verifiziert DSGVO-Compliance des laufenden Clusters.
 
 ```bash
 scripts/dsgvo-compliance-check.sh           # Menschenlesbare Ausgabe
-scripts/dsgvo-compliance-check.sh --json    # JSON fuer Grafana
+scripts/dsgvo-compliance-check.sh --json    # JSON-Ausgabe
 ```
 
 **Pruefungen:**

@@ -1,4 +1,16 @@
-# Benutzerhandbuch – Workspace
+<div class="page-hero">
+  <span class="page-hero-icon">📋</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Benutzerhandbuch</div>
+    <p class="page-hero-desc">Willkommen im Workspace — alles was Du brauchst, um sofort loszulegen. Chat, Dateien, Videokonferenzen, KI-Assistent und mehr, erklärt ohne technisches Vorwissen.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Mitarbeiter</span>
+      <span class="page-hero-tag">Kein Vorwissen nötig</span>
+      <span class="page-hero-tag">Single Sign-On</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 Willkommen beim Workspace! Dieses Handbuch erklärt, welche Werkzeuge Dir zur Verfügung stehen, wofür Du sie nutzen kannst und wie Du einfache Aufgaben erledigst – ganz ohne technisches Vorwissen.
 
@@ -26,7 +38,26 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ## Die Dienste im Überblick
 
+### Schnellzugriff
+
+| Dienst | korczewski.de | mentolder.de |
+|--------|--------------|--------------|
+| Chat (Mattermost) | [chat.korczewski.de](https://chat.korczewski.de) | [chat.mentolder.de](https://chat.mentolder.de) |
+| Dateien & Kalender (Nextcloud) | [files.korczewski.de](https://files.korczewski.de) | [files.mentolder.de](https://files.mentolder.de) |
+| Videokonferenz (Nextcloud Talk) | [meet.korczewski.de](https://meet.korczewski.de) | [meet.mentolder.de](https://meet.mentolder.de) |
+| Whiteboard | [board.korczewski.de](https://board.korczewski.de) | [board.mentolder.de](https://board.mentolder.de) |
+| KI-Assistent (Claude) | [ai.korczewski.de](https://ai.korczewski.de) | [ai.mentolder.de](https://ai.mentolder.de) |
+| Wissensdatenbank (Outline) | [wiki.korczewski.de](https://wiki.korczewski.de) | [wiki.mentolder.de](https://wiki.mentolder.de) |
+| Dokumentation (Handbuch) | [docs.korczewski.de](https://docs.korczewski.de) | [docs.mentolder.de](https://docs.mentolder.de) |
+| Passwort-Safe (Vaultwarden) | [vault.korczewski.de](https://vault.korczewski.de) | [vault.mentolder.de](https://vault.mentolder.de) |
+| Rechnungen (Invoice Ninja) | [billing.korczewski.de](https://billing.korczewski.de) | [billing.mentolder.de](https://billing.mentolder.de) |
+| Login-Verwaltung (Keycloak) | [auth.korczewski.de](https://auth.korczewski.de) | [auth.mentolder.de](https://auth.mentolder.de) |
+
+---
+
 ### Chat (Mattermost)
+
+**Öffnen:** [chat.korczewski.de](https://chat.korczewski.de) · [chat.mentolder.de](https://chat.mentolder.de)
 
 **Wozu?** Schreiben, Diskutieren, Teamkommunikation – wie WhatsApp, aber für die Arbeit und sicher auf Deinen eigenen Servern.
 
@@ -44,6 +75,8 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 ---
 
 ### Dateien & Kalender (Nextcloud)
+
+**Öffnen:** [files.korczewski.de](https://files.korczewski.de) · [files.mentolder.de](https://files.mentolder.de)
 
 **Wozu?** Dein persönlicher Cloud-Speicher im Büro – wie Dropbox, aber sicher auf Deinen eigenen Servern.
 
@@ -63,6 +96,8 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ### Dokumente gemeinsam bearbeiten (Collabora Online Office)
 
+**Öffnen:** Direkt aus Nextcloud heraus – kein separater Link nötig.
+
 **Wozu?** Word, Excel und PowerPoint direkt im Browser bearbeiten – kein separates Programm nötig.
 
 **Was kannst Du tun?**
@@ -80,6 +115,8 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 ---
 
 ### Videokonferenz (Nextcloud Talk)
+
+**Öffnen:** [meet.korczewski.de](https://meet.korczewski.de) · [meet.mentolder.de](https://meet.mentolder.de)
 
 **Wozu?** Video- und Sprachanrufe direkt im Browser – wie Zoom oder Teams, aber auf Deinen eigenen Servern.
 
@@ -99,7 +136,21 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ---
 
+### Live-Transkription (Talk Transcriber)
+
+**Wozu?** Automatische Mitschrift laufender Videokonferenzen – der Dienst wandelt gesprochene Sprache in Text um, während das Meeting läuft.
+
+**Was kannst Du tun?**
+- Einen laufenden Nextcloud-Talk-Anruf automatisch transkribieren lassen
+- Die Mitschrift nach dem Meeting als Textdatei abrufen
+
+> Der Dienst arbeitet im Hintergrund und ist in Nextcloud Talk integriert.
+
+---
+
 ### Whiteboard
+
+**Öffnen:** [board.korczewski.de](https://board.korczewski.de) · [board.mentolder.de](https://board.mentolder.de)
 
 **Wozu?** Gemeinsam skizzieren, brainstormen und visualisieren – wie ein digitales Whiteboard in einer Besprechung.
 
@@ -111,6 +162,8 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 ---
 
 ### KI-Assistent (Claude)
+
+**Öffnen:** [ai.korczewski.de](https://ai.korczewski.de) · [ai.mentolder.de](https://ai.mentolder.de)
 
 **Wozu?** Ein intelligenter Assistent, der Dir bei Texten, Fragen und Aufgaben hilft.
 
@@ -131,6 +184,8 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ### Wissensdatenbank / Wiki (Outline)
 
+**Öffnen:** [wiki.korczewski.de](https://wiki.korczewski.de) · [wiki.mentolder.de](https://wiki.mentolder.de)
+
 **Wozu?** Das interne Nachschlagewerk des Teams – Anleitungen, Prozesse, Wissen aufschreiben und für alle zugänglich machen.
 
 **Was kannst Du tun?**
@@ -146,7 +201,21 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ---
 
+### Dokumentation & Handbuch
+
+**Öffnen:** [docs.korczewski.de](https://docs.korczewski.de) · [docs.mentolder.de](https://docs.mentolder.de)
+
+**Wozu?** Das technische und organisatorische Handbuch des Workspace – Installationsanleitungen, Architektur, Dienst-Beschreibungen und Fehlerbehebung.
+
+**Zugriff:** Die Dokumentation ist nur für angemeldete Benutzer zugänglich. Du wirst beim Öffnen automatisch zur Keycloak-Anmeldung weitergeleitet.
+
+> Dieses Handbuch, das Du gerade liest, läuft selbst auf dem Docs-Dienst.
+
+---
+
 ### Passwort-Safe (Vaultwarden)
+
+**Öffnen:** [vault.korczewski.de](https://vault.korczewski.de) · [vault.mentolder.de](https://vault.mentolder.de)
 
 **Wozu?** Passwörter sicher speichern und im Team teilen – auf Deinen eigenen Servern, nicht bei einem externen Anbieter.
 
@@ -163,6 +232,8 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 ---
 
 ### Rechnungen (Invoice Ninja)
+
+**Öffnen:** [billing.korczewski.de](https://billing.korczewski.de) · [billing.mentolder.de](https://billing.mentolder.de)
 
 **Wozu?** Rechnungen erstellen, Kunden verwalten und Zahlungen nachverfolgen.
 
@@ -225,3 +296,4 @@ Schreibe eine Nachricht im Mattermost-Kanal des Administrators oder schicke eine
 | Wissen im Team festhalten                     | **Outline (Wiki)**   |
 | Ein Passwort sicher aufbewahren               | **Vaultwarden**      |
 | Eine Rechnung erstellen                       | **Invoice Ninja**    |
+| Eine Besprechung automatisch transkribieren lassen | **Nextcloud Talk + Talk Transcriber** |

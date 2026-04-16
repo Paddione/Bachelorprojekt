@@ -23,17 +23,13 @@ spec:
           containers:
             - name: backup
               image: postgres:16.13-alpine
+              imagePullPolicy: Always
               env:
                 - name: KEYCLOAK_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: workspace-secrets
                       key: KEYCLOAK_DB_PASSWORD
-                - name: MATTERMOST_DB_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: MATTERMOST_DB_PASSWORD
                 - name: NEXTCLOUD_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -43,14 +39,18 @@ spec:
               args:
                 - |
                   set -e
+                  apk add --no-cache openssl >/dev/null 2>&1
                   STAMP=$(date +%Y%m%d-%H%M%S)
                   BACKUP_DIR=/backups/${STAMP}
                   mkdir -p "${BACKUP_DIR}"
 
                   # Dump each database (separate PostgreSQL instances)
                   for db in keycloak mattermost nextcloud; do
-                    PASSVAR=$(echo "${db}" | tr '[:lower:]' '[:upper:]')_DB_PASSWORD
-                    eval PASS=\$$PASSVAR
+                    case "${db}" in
+                      keycloak)   PASS="${KEYCLOAK_DB_PASSWORD}" ;;
+                      mattermost) PASS="${MATTERMOST_DB_PASSWORD}" ;;
+                      nextcloud)  PASS="${NEXTCLOUD_DB_PASSWORD}" ;;
+                    esac
                     echo "Backing up ${db}..."
                     PGPASSWORD="${PASS}" pg_dump -Fc \
                       -h "${db}-db" -U "${db}" -d "${db}" \

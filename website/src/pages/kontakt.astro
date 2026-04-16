@@ -1,9 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import ContactForm from '../components/ContactForm.svelte';
+import ContactHub from '../components/ContactHub.svelte';
 import { config } from '../config/index';
+import { getEffectiveKontakt } from '../lib/content';
 
-const { contact, kontakt } = config;
+const { contact } = config;
+const kontakt = await getEffectiveKontakt();
+
+const rawMode = Astro.url.searchParams.get('mode') ?? '';
+const initialMode = ['message', 'termin', 'callback'].includes(rawMode)
+  ? (rawMode as 'message' | 'termin' | 'callback')
+  : null;
+const initialServiceKey = Astro.url.searchParams.get('service') ?? undefined;
 ---
 
 <Layout title="Kontakt" description="Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren.">
@@ -16,7 +24,7 @@ const { contact, kontakt } = config;
 
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
         <div class="lg:col-span-3 bg-dark-light rounded-2xl border border-dark-lighter p-8">
-          <ContactForm client:load />
+          <ContactHub client:load initialMode={initialMode} initialServiceKey={initialServiceKey} />
         </div>
 
         <div class="lg:col-span-2 space-y-8">
@@ -59,22 +67,10 @@ const { contact, kontakt } = config;
             <div class="bg-dark-light rounded-2xl p-8 border border-dark-lighter">
               <h2 class="text-xl font-bold text-light mb-4 font-serif">Wie geht es weiter?</h2>
               <ol class="space-y-3 text-muted">
-                <li class="flex gap-3">
-                  <span class="text-gold font-bold">1.</span>
-                  <span>Sie schreiben mir über das Formular oder per E-Mail</span>
-                </li>
-                <li class="flex gap-3">
-                  <span class="text-gold font-bold">2.</span>
-                  <span>Ich melde mich innerhalb von 24 Stunden</span>
-                </li>
-                <li class="flex gap-3">
-                  <span class="text-gold font-bold">3.</span>
-                  <span>Wir vereinbaren ein Kennenlerngespräch</span>
-                </li>
-                <li class="flex gap-3">
-                  <span class="text-gold font-bold">4.</span>
-                  <span>Danach entscheiden Sie, ob wir zusammenarbeiten</span>
-                </li>
+                <li class="flex gap-3"><span class="text-gold font-bold">1.</span><span>Sie schreiben mir über das Formular oder per E-Mail</span></li>
+                <li class="flex gap-3"><span class="text-gold font-bold">2.</span><span>Ich melde mich innerhalb von 24 Stunden</span></li>
+                <li class="flex gap-3"><span class="text-gold font-bold">3.</span><span>Wir vereinbaren ein Kennenlerngespräch</span></li>
+                <li class="flex gap-3"><span class="text-gold font-bold">4.</span><span>Danach entscheiden Sie, ob wir zusammenarbeiten</span></li>
               </ol>
             </div>
           )}

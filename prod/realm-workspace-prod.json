@@ -395,24 +395,28 @@
       }
     },
     {
-      "clientId": "outline",
-      "name": "Outline",
+      "clientId": "docs",
+      "name": "Docs",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "${OUTLINE_OIDC_SECRET}",
+      "secret": "${DOCS_OIDC_SECRET}",
       "redirectUris": [
-        "https://wiki.${PROD_DOMAIN}/*",
-        "https://wiki.korczewski.de/*"
+        "https://${DOCS_DOMAIN}/oauth2/callback"
       ],
       "webOrigins": [
-        "https://wiki.${PROD_DOMAIN}",
-        "https://wiki.korczewski.de"
+        "https://${DOCS_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
       "publicClient": false,
+      "attributes": {
+        "oidc.ciba.grant.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true"
+      },
       "protocolMappers": [
         {
           "name": "email",

@@ -90,24 +90,11 @@ mkdir -p "$CERTS_DIR"
 
 if [[ ! -f "$CERT_FILE" ]]; then
   info "Fetching sealing certificate from cluster..."
-  # The upstream chart deploys the controller as Deployment/Service name 'sealed-secrets'
-  # (not 'sealed-secrets-controller'). Some clusters proxy the service endpoint unreliably,
-  # so fall back to a short-lived port-forward if --fetch-cert fails.
-  if ! kubeseal --controller-name=sealed-secrets \
-                --controller-namespace=sealed-secrets \
-                --context "$CONTEXT" \
-                --fetch-cert > "$CERT_FILE" 2>/dev/null; then
-    info "kubeseal --fetch-cert failed; falling back to port-forward"
-    kubectl --context "$CONTEXT" -n sealed-secrets port-forward svc/sealed-secrets 18080:8080 \
-      > /dev/null 2>&1 &
-    PF_PID=$!
-    trap 'kill $PF_PID 2>/dev/null || true' EXIT
-    sleep 1
-    curl -sSf http://localhost:18080/v1/cert.pem > "$CERT_FILE" \
-      || die "Failed to fetch sealing certificate (both methods). Is sealed-secrets installed?"
-    kill "$PF_PID" 2>/dev/null || true
-    trap - EXIT
-  fi
+  kubeseal --controller-name=sealed-secrets \
+           --controller-namespace=sealed-secrets \
+           --context "$CONTEXT" \
+           --fetch-cert > "$CERT_FILE" \
+    || die "Failed to fetch sealing certificate. Is sealed-secrets installed in the cluster?"
   info "Certificate saved to: ${CERT_FILE}"
 else
   info "Using existing certificate: ${CERT_FILE}"
@@ -136,10 +123,18 @@ SECRET_MANIFEST="${TMPDIR}/secret.yaml"
     [[ -z "${line// /}" ]] && continue
 
     # Parse KEY: "value" format
-    key=$(echo "$line" | sed 's/:.*//')
-    value=$(echo "$line" | sed 's/^[^:]*:[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')
+    # Use a more robust regex to handle keys with underscores and possible spaces
+    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
+      key="${BASH_REMATCH[1]}"
+      value="${BASH_REMATCH[2]}"
+      # Strip quotes from value
+      value="${value%\"}"
+      value="${value#\"}"
+      value="${value%\'}"
+      value="${value#\'}"
 
-    echo "  ${key}: \"${value}\""
+      echo "  ${key}: \"${value}\""
+    fi
   done < "$SECRETS_FILE"
 } > "$SECRET_MANIFEST"
 

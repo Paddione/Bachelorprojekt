@@ -4,6 +4,9 @@ import CookieConsent from '../components/CookieConsent.svelte';
 import BugReportWidget from '../components/BugReportWidget.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
+import { getEffectiveServices } from '../lib/content';
+
+const footerServices = (await getEffectiveServices().catch(() => config.services)).filter(s => !s.hidden);
 
 interface Props {
   title: string;
@@ -45,7 +48,7 @@ const { title, description = config.meta.siteDescription } = Astro.props;
           <div>
             <h3 class="text-lg font-semibold text-gold mb-4">Angebote</h3>
             <ul class="space-y-2 text-muted">
-              {config.services.map((s) => (
+              {footerServices.map((s) => (
                 <li><a href={`/${s.slug}`} class="hover:text-gold transition-colors">{s.title}</a></li>
               ))}
             </ul>
@@ -53,9 +56,12 @@ const { title, description = config.meta.siteDescription } = Astro.props;
           <div>
             <h3 class="text-lg font-semibold text-gold mb-4">Rechtliches</h3>
             <ul class="space-y-2 text-muted">
+              <li><a href="/referenzen" class="hover:text-gold transition-colors">Referenzen</a></li>
               <li><a href="/impressum" class="hover:text-gold transition-colors">Impressum</a></li>
               <li><a href="/datenschutz" class="hover:text-gold transition-colors">Datenschutz</a></li>
+              <li><a href="/meine-daten" class="hover:text-gold transition-colors">Meine Daten</a></li>
               <li><a href="/agb" class="hover:text-gold transition-colors">AGB</a></li>
+              <li><a href="/barrierefreiheit" class="hover:text-gold transition-colors">Barrierefreiheit</a></li>
               <li>
                 <button
                   type="button"

@@ -52,6 +52,7 @@ async function fetchEventsRaw(from: Date, to: Date): Promise<string[]> {
         Depth: '1',
       },
       body,
+      signal: AbortSignal.timeout(1500),
     });
 
     if (!res.ok) {
@@ -143,6 +144,68 @@ export interface ClientBooking {
   start: Date;
   end: Date;
   status: string;
+}
+
+export interface AdminBooking {
+  uid: string;
+  summary: string;
+  start: Date;
+  end: Date;
+  status: string;
+  attendeeEmail: string;
+  attendeeName: string;
+}
+
+export async function getAllBookings(): Promise<AdminBooking[]> {
+  const now = new Date();
+  const past = new Date(now);
+  past.setDate(past.getDate() - 90);
+  const future = new Date(now);
+  future.setDate(future.getDate() + BOOKING_HORIZON_DAYS);
+
+  const icals = await fetchEventsRaw(past, future);
+  const bookings: AdminBooking[] = [];
+
+  for (const ical of icals) {
+    const veventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/gi;
+    let eventMatch;
+
+    while ((eventMatch = veventRegex.exec(ical)) !== null) {
+      const block = eventMatch[1];
+
+      const attendeeLineMatch = block.match(/^ATTENDEE([^\r\n]*)/im);
+      if (!attendeeLineMatch) continue;
+
+      const attendeeLine = attendeeLineMatch[0];
+      const emailMatch = attendeeLine.match(/mailto:(.+)$/i);
+      if (!emailMatch) continue;
+      const attendeeEmail = emailMatch[1].trim();
+
+      const cnMatch = attendeeLine.match(/CN=([^;:]+)/i);
+      const attendeeName = cnMatch ? cnMatch[1].trim() : attendeeEmail;
+
+      const uid = extractICalProp(block, 'UID') || '';
+      const dtstart = extractICalProp(block, 'DTSTART');
+      const dtend = extractICalProp(block, 'DTEND');
+      const summary = extractICalProp(block, 'SUMMARY') || 'Termin';
+      const status = extractICalProp(block, 'STATUS') || 'CONFIRMED';
+
+      if (!dtstart) continue;
+
+      bookings.push({
+        uid,
+        summary,
+        start: parseICalDate(dtstart),
+        end: dtend ? parseICalDate(dtend) : new Date(parseICalDate(dtstart).getTime() + 3600000),
+        status,
+        attendeeEmail,
+        attendeeName,
+      });
+    }
+  }
+
+  bookings.sort((a, b) => a.start.getTime() - b.start.getTime());
+  return bookings;
 }
 
 export async function getClientBookings(clientEmail: string): Promise<ClientBooking[]> {
@@ -256,7 +319,7 @@ export async function createCalendarEvent(params: {
   end: Date;
   attendeeEmail?: string;
   attendeeName?: string;
-}): Promise<boolean> {
+}): Promise<{ uid: string } | null> {
   const uid = crypto.randomUUID();
   const formatDt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
@@ -289,11 +352,11 @@ END:VCALENDAR`;
       body: ical,
     });
 
-    if (res.ok || res.status === 201) return true;
+    if (res.ok || res.status === 201) return { uid: `${uid}@${BRAND_NAME}` };
     console.error('[caldav] Create event failed:', res.status, await res.text());
-    return false;
+    return null;
   } catch (err) {
     console.error('[caldav] Create event error:', err);
-    return false;
+    return null;
   }
 }

@@ -4,6 +4,7 @@
 - [Testanleitung](test-anleitung-korczewski.md)
 - **Für Administratoren**
 - [Architektur](architecture.md)
+- [Datenbankmodelle](database.md)
 - [Services](services.md)
 - [Keycloak & SSO](keycloak.md)
 - [Migration](migration.md)
@@ -14,3 +15,6 @@
 - [Fehlerbehebung](troubleshooting.md)
 - [Anforderungen](requirements.md)
 - [MCP Actions](mcp-actions.md)
+- **Website & Admin**
+- [Stripe-Integration](stripe.md)
+- [Projektmanagement-Admin](admin-projekte.md)

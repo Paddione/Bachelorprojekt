@@ -1,3 +1,17 @@
+<div class="page-hero">
+  <span class="page-hero-icon">✅</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Tests</div>
+    <p class="page-hero-desc">Testframework, Testfall-Katalog (FA-01–FA-25, SA-01–SA-10, NFA-01–NFA-09, AK-03/04), Ausführung mit runner.sh und Report-Generierung.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Bash + Playwright</span>
+      <span class="page-hero-tag">k3d Cluster</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Tests
 
 ## Uebersicht
@@ -20,16 +34,16 @@ flowchart TB
     PR --> PBASH["fa:fa-terminal Bash-Tests ausfuehren"]
     PBASH --> JSON
 
-    style R fill:#2d6a4f,color:#fff
-    style L fill:#4a90d9,color:#fff
-    style PR fill:#d97706,color:#fff
-    style REP fill:#6b7280,color:#fff
-    style BOOT fill:#374151,color:#fff
-    style BASH fill:#8b5cf6,color:#fff
-    style PBASH fill:#8b5cf6,color:#fff
-    style PW fill:#0891b2,color:#fff
-    style JSON fill:#2d8659,color:#fff
-    style MD fill:#2d8659,color:#fff
+    style R fill:#0a1a0a,color:#b8e8b8
+    style L fill:#1b3766,color:#e8c870
+    style PR fill:#3a2000,color:#e8c870
+    style REP fill:#1f2937,color:#aabbcc
+    style BOOT fill:#1a1a2e,color:#aabbcc
+    style BASH fill:#2a1654,color:#e8c870
+    style PBASH fill:#2a1654,color:#e8c870
+    style PW fill:#083344,color:#e8c870
+    style JSON fill:#1a3d28,color:#e8c870
+    style MD fill:#1a3d28,color:#e8c870
 ```
 
 ## Ausfuehrung
@@ -65,7 +79,7 @@ flowchart TB
 | FA-04 | Dateiablage | Nextcloud Upload/Download, Nextcloud-Integration |
 | FA-05 | Nutzerverwaltung | Benutzer anlegen/deaktivieren, Rollen, CSV-Import |
 | FA-06 | Benachrichtigungen | Push, Stummschaltung, Do-Not-Disturb |
-| FA-07 | Suche | Volltext, Kanal-/Benutzersuche, OpenSearch |
+| FA-07 | Suche | Volltext, Kanal-/Benutzersuche |
 | FA-08 | Homeoffice-Status | Status-Emojis, Custom-Status, Kalender |
 | FA-09 | Billing Bot | /billing Slash-Command, Invoice Ninja Integration |
 | FA-10 | Website | Astro-Deployment, Kontaktformular, Webhook |
@@ -77,7 +91,6 @@ flowchart TB
 | FA-16 | Buchungssystem | Booking Integration |
 | FA-17 | Meeting-Raeume | Raum-Management |
 | FA-18 | Transkription | Whisper Service |
-| FA-19 | Outline Wiki | Wiki-Deployment, Keycloak-OIDC |
 | FA-20 | Finalisierung | Abschlusspruefungen |
 | FA-21 | Billing Workflows | Rechnungsworkflows |
 | FA-22 | Stripe Payment Gateway | Stripe als Zahlungsgateway in Invoice Ninja (nur Shell-Tests, kein Playwright-Spec) |
@@ -143,7 +156,7 @@ siehe "Playwright gegen Produktion" unten.
 - `setup` -- Login-Flow, speichert Session in `.auth/user.json`
 - `chat` -- Mattermost-UI: FA-01, FA-02, FA-04, FA-06, FA-07, FA-08, FA-09, FA-11
 - `auth` -- Authentifizierung/SSO: FA-05, SA-02, SA-08
-- `website` -- Astro-Site + APIs: FA-10, FA-14 bis FA-21
+- `website` -- Astro-Site + APIs: FA-10, FA-14 bis FA-18, FA-20, FA-21
 - `services` -- Infra-Dienste: FA-03, FA-12, FA-13, FA-23, FA-24, FA-25, SA-10, NFA-05
 - `smoke` -- Cross-Service Integration Smoke Tests
 
@@ -151,7 +164,7 @@ siehe "Playwright gegen Produktion" unten.
 Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
 `Testpassword123!`), deaktiviert Onboarding/Tutorials, speichert Session.
 
-**Test-Specs (29 Dateien):**
+**Test-Specs (28 Dateien):**
 - `fa-01-messaging.spec.ts` -- DM- und Channel-Nachrichten
 - `fa-02-channels.spec.ts` -- Kanal-Erstellung, Berechtigungen
 - `fa-03-video.spec.ts` -- Nextcloud Talk / Signaling
@@ -170,7 +183,6 @@ Bootstrap in `tests/lib/k3d.sh` angelegt) mit `MM_TEST_PASS` (Standard
 - `fa-16-booking.spec.ts` -- Kalender / Buchung
 - `fa-17-meeting.spec.ts` -- Meeting-Lifecycle
 - `fa-18-transcription.spec.ts` -- Whisper-Upload-API (akzeptiert 404/405 für GET)
-- `fa-19-outline.spec.ts` -- Outline Wiki
 - `fa-20-finalize.spec.ts` -- Meeting-Finalisierung
 - `fa-21-billing.spec.ts` -- Service Catalog, Invoice-API
 - `fa-23-vaultwarden.spec.ts` -- Vaultwarden-Gesundheit

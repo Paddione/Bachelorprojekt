@@ -9,6 +9,7 @@ spec:
       containers:
         - name: seeder
           image: node:20-alpine
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -40,6 +41,41 @@ spec:
               bw create folder '{"name":"Services"}'
               bw create folder '{"name":"MCP Keys"}'
 
+              # Seed workspace service URLs (upsert: delete existing by name, then create)
+              upsert_login() {
+                local name="$1" uri="$2" notes="$3"
+                # Delete any existing item with the same name
+                local existing_id
+                existing_id=$(bw list items --search "$name" 2>/dev/null | jq -r ".[] | select(.name==\"$name\") | .id" | head -1)
+                [ -n "$existing_id" ] && bw delete item "$existing_id" 2>/dev/null || true
+                local item
+                item=$(bw get template item | jq \
+                  --arg n "$name" --arg u "$uri" --arg note "$notes" \
+                  '.type=1 | .name=$n | .notes=$note | .login.uris=[{"match":null,"uri":$u}]')
+                echo "$item" | bw encode | bw create item
+              }
+
+              MM="${MM_DOMAIN:-chat.mentolder.de}"
+              NC="${NC_DOMAIN:-files.mentolder.de}"
+              KC="${KC_DOMAIN:-auth.mentolder.de}"
+              BILLING="${BILLING_DOMAIN:-billing.mentolder.de}"
+              WEB="${WEB_DOMAIN:-web.mentolder.de}"
+              AI="${AI_DOMAIN:-ai.mentolder.de}"
+              DOCS="${DOCS_DOMAIN:-docs.mentolder.de}"
+              OFFICE="${OFFICE_DOMAIN:-office.mentolder.de}"
+
+              upsert_login "Mattermost — Chat"              "https://${MM}"               "Team-Chat und Kommunikation"
+              upsert_login "Nextcloud — Dateien"            "https://${NC}"               "Dateispeicher und Kollaboration"
+              upsert_login "Nextcloud Talk — Video"         "https://${NC}/apps/spreed"   "Video-/Sprachanrufe via Nextcloud Talk"
+              upsert_login "Whiteboard"                     "https://${NC}/apps/whiteboard" "Kollaboratives Whiteboard (Nextcloud-App, nicht board.* öffnen)"
+              upsert_login "Collabora Office"               "https://${OFFICE}"           "Online-Office (Word/Excel/Impress)"
+              upsert_login "Invoice Ninja — Abrechnung"     "https://${BILLING}"          "Rechnungen und Abrechnung (Login via Keycloak SSO)"
+              upsert_login "Keycloak — Benutzerverwaltung"  "https://${KC}"               "SSO und Benutzerverwaltung"
+              upsert_login "Portal — Kundenbereich"         "https://${WEB}/portal"       "Kundenportal (Login via Keycloak SSO)"
+              upsert_login "Admin — Website-Verwaltung"     "https://${WEB}/admin"        "Website-Admin (Login via Keycloak SSO)"
+              upsert_login "Claude Code KI"                 "https://${AI}"               "KI-Assistent"
+              upsert_login "Docs"                           "https://${DOCS}"             "Dokumentation"
+
               echo "Vaultwarden seeding completed successfully."
           env:
             - name: BW_EMAIL
@@ -52,5 +88,53 @@ spec:
                 secretKeyRef:
                   name: vaultwarden-seed-credentials
                   key: BW_PASSWORD
+            - name: MM_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: MM_DOMAIN
+                  optional: true
+            - name: NC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: NC_DOMAIN
+                  optional: true
+            - name: KC_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: KC_DOMAIN
+                  optional: true
+            - name: BILLING_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: BILLING_DOMAIN
+                  optional: true
+            - name: WEB_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: WEB_DOMAIN
+                  optional: true
+            - name: AI_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: AI_DOMAIN
+                  optional: true
+            - name: DOCS_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: DOCS_DOMAIN
+                  optional: true
+            - name: OFFICE_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: COLLABORA_DOMAIN
+                  optional: true
       restartPolicy: OnFailure
   backoffLimit: 2

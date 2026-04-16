@@ -1,39 +1,12 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import BookingForm from '../components/BookingForm.svelte';
-
-const initialDate = Astro.url.searchParams.get('date') ?? '';
-const initialStart = Astro.url.searchParams.get('start') ?? '';
-const initialEnd = Astro.url.searchParams.get('end') ?? '';
+// BR-4b91: /termin redirects to /kontakt?mode=termin, preserving ?date, ?start, ?end params
+const params = new URLSearchParams();
+params.set('mode', 'termin');
+const date = Astro.url.searchParams.get('date');
+const start = Astro.url.searchParams.get('start');
+const end = Astro.url.searchParams.get('end');
+if (date) params.set('date', date);
+if (start) params.set('start', start);
+if (end) params.set('end', end);
+return Astro.redirect(`/kontakt?${params.toString()}`, 301);
 ---
-
-<Layout title="Termin buchen" description="Buchen Sie einen Termin für ein kostenloses Erstgespräch, Rückruf oder Meeting.">
-  <section class="pt-28 pb-20 bg-dark">
-    <div class="max-w-4xl mx-auto px-6">
-      <div class="text-center mb-12">
-        <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Termin buchen</h1>
-        <p class="text-xl text-muted max-w-2xl mx-auto">
-          Wählen Sie einen freien Termin für ein Erstgespräch, einen Rückruf oder ein Meeting.
-          Nach Ihrer Anfrage erhalten Sie eine Bestätigung per E-Mail.
-        </p>
-      </div>
-
-      <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8">
-        <BookingForm
-          client:load
-          initialDate={initialDate}
-          initialStart={initialStart}
-          initialEnd={initialEnd}
-        />
-      </div>
-
-      <div class="mt-8 text-center">
-        <p class="text-muted">
-          Kein passender Termin dabei?
-          <a href="/kontakt" class="text-gold hover:underline font-medium">Schreiben Sie uns</a>
-          und wir finden gemeinsam eine Lösung.
-        </p>
-      </div>
-    </div>
-  </section>
-</Layout>

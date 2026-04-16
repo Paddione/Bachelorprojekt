@@ -34,7 +34,7 @@
         result = { success: false, message: data.error || 'Es ist ein Fehler aufgetreten.' };
       }
     } catch {
-      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es spater erneut.' };
+      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es später erneut.' };
     } finally {
       submitting = false;
     }

@@ -1,0 +1,192 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { listUsers } from '../../lib/keycloak';
+import type { KcUser } from '../../lib/keycloak';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+let users: KcUser[] = [];
+try {
+  users = await listUsers();
+} catch {
+  // Keycloak unavailable
+}
+---
+
+<AdminLayout title="Admin — Clients">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="mb-8 flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-light font-serif">Clients</h1>
+          <p class="text-muted mt-1">{users.length} Benutzer</p>
+        </div>
+        <div class="flex gap-3">
+          <button
+            id="new-client-btn"
+            class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors"
+          >
+            + Neuer Client
+          </button>
+        </div>
+      </div>
+
+      <!-- Neuer Client Formular (versteckt) -->
+      <div id="new-client-form" class="hidden mb-8 p-6 bg-dark-light rounded-xl border border-gold/30">
+        <h2 class="text-lg font-semibold text-light mb-4">Neuen Client einladen</h2>
+        <div id="new-client-error" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm"></div>
+        <div id="new-client-success" class="hidden mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm"></div>
+        <form id="new-client-form-el" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-muted mb-1">Vorname *</label>
+            <input
+              type="text"
+              name="firstName"
+              required
+              class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-muted mb-1">Nachname *</label>
+            <input
+              type="text"
+              name="lastName"
+              required
+              class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-muted mb-1">E-Mail *</label>
+            <input
+              type="email"
+              name="email"
+              required
+              class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-muted mb-1">Telefon</label>
+            <input
+              type="tel"
+              name="phone"
+              class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm text-muted mb-1">Unternehmen</label>
+            <input
+              type="text"
+              name="company"
+              class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+            />
+          </div>
+          <div class="sm:col-span-2 flex gap-3 justify-end">
+            <button
+              type="button"
+              id="cancel-new-client"
+              class="px-4 py-2 text-sm text-muted hover:text-light transition-colors"
+            >
+              Abbrechen
+            </button>
+            <button
+              type="submit"
+              id="submit-new-client"
+              class="px-5 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50"
+            >
+              Einladen & Passwort-Email senden
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="grid gap-4" data-testid="admin-client-list">
+        {users.map(user => (
+          <a
+            href={`/admin/${user.id}`}
+            class={`flex items-center gap-4 p-4 bg-dark-light rounded-xl border transition-colors ${user.enabled === false ? 'border-red-500/20 opacity-60' : 'border-dark-lighter hover:border-gold/40'}`}
+            data-testid="admin-client-item"
+          >
+            <div>
+              <p class="text-light font-medium">{user.firstName} {user.lastName}</p>
+              <p class="text-sm text-muted">{user.username} · {user.email ?? '—'}</p>
+            </div>
+            <div class="ml-auto flex items-center gap-3">
+              {user.enabled === false && (
+                <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">Deaktiviert</span>
+              )}
+              <span class="text-gold text-sm">→</span>
+            </div>
+          </a>
+        ))}
+        {users.length === 0 && (
+          <p class="text-muted">Keine Benutzer gefunden.</p>
+        )}
+      </div>
+    </div>
+  </section>
+</AdminLayout>
+
+<script>
+  const btn = document.getElementById('new-client-btn');
+  const form = document.getElementById('new-client-form');
+  const cancelBtn = document.getElementById('cancel-new-client');
+  const formEl = document.getElementById('new-client-form-el') as HTMLFormElement | null;
+  const errorEl = document.getElementById('new-client-error');
+  const successEl = document.getElementById('new-client-success');
+  const submitBtn = document.getElementById('submit-new-client') as HTMLButtonElement | null;
+
+  btn?.addEventListener('click', () => {
+    form?.classList.toggle('hidden');
+  });
+
+  cancelBtn?.addEventListener('click', () => {
+    form?.classList.add('hidden');
+    formEl?.reset();
+    errorEl?.classList.add('hidden');
+    successEl?.classList.add('hidden');
+  });
+
+  formEl?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!submitBtn) return;
+
+    errorEl?.classList.add('hidden');
+    successEl?.classList.add('hidden');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '...';
+
+    const data = Object.fromEntries(new FormData(formEl));
+    try {
+      const res = await fetch('/api/admin/clients/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok) {
+        if (successEl) {
+          successEl.textContent = `Client erstellt. Eine Passwort-Email wird gesendet.`;
+          successEl.classList.remove('hidden');
+        }
+        formEl.reset();
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        if (errorEl) {
+          errorEl.textContent = json.error || 'Fehler beim Erstellen des Clients.';
+          errorEl.classList.remove('hidden');
+        }
+      }
+    } catch {
+      if (errorEl) {
+        errorEl.textContent = 'Netzwerkfehler.';
+        errorEl.classList.remove('hidden');
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Einladen & Passwort-Email senden';
+    }
+  });
+</script>

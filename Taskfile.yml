@@ -76,12 +76,16 @@ tasks:
   # Observability (required for NFA-02 compliance)
   # ─────────────────────────────────────────────
   observability:install:
-    desc: Install Prometheus + Grafana stack (required for NFA-02, ~512MB RAM)
+    desc: "Install Prometheus + Grafana stack (required for NFA-02, ~512MB RAM, ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
       - helm repo update
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stack \
+          --kube-context "${ENV_CONTEXT}" \
           --namespace monitoring --create-namespace \
           --set prometheus.prometheusSpec.resources.requests.memory=256Mi \
           --set prometheus.prometheusSpec.resources.limits.memory=512Mi \
@@ -95,21 +99,33 @@ tasks:
       - 'echo "  Password: kubectl get secret -n monitoring kube-prometheus-grafana -o jsonpath=''{.data.admin-password}'' | base64 -d"'
 
   workspace:monitoring:
-    desc: Install observability and import DSGVO dashboard (required for NFA-02)
+    desc: "Install observability and import DSGVO dashboard (required for NFA-02, ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - task: observability:install
+        vars: { ENV: "{{.ENV}}" }
       # Import DSGVO Compliance Dashboard as a ConfigMap (Grafana sidecar auto-detects it)
       - |
-        kubectl create configmap grafana-dsgvo-dashboard \
+        source scripts/env-resolve.sh "{{.ENV}}"
+        kubectl --context "${ENV_CONTEXT}" create configmap grafana-dsgvo-dashboard \
           --from-file=dsgvo-compliance.json=grafana/dsgvo-compliance-dashboard.json \
           -n monitoring --dry-run=client -o yaml | \
-          kubectl label -f - --dry-run=client -o yaml --local grafana_dashboard=1 | \
-          kubectl apply -f -
+          kubectl --context "${ENV_CONTEXT}" label -f - --dry-run=client -o yaml --local grafana_dashboard=1 | \
+          kubectl --context "${ENV_CONTEXT}" apply -f -
       - echo ""
       - 'echo "✓ Monitoring ready (NFA-02 compliant)"'
       - 'echo "  Grafana:            kubectl port-forward -n monitoring svc/kube-prometheus-grafana 3000:80"'
       - 'echo "  Prometheus:         kubectl port-forward -n monitoring svc/kube-prometheus-prometheus 9090:9090"'
       - 'echo "  DSGVO Dashboard:    Grafana → Dashboards → DSGVO Compliance Dashboard"'
+
+  workspace:monitoring:all-prods:
+    desc: Install observability stack on all production clusters (mentolder + korczewski)
+    cmds:
+      - task: workspace:monitoring
+        vars: { ENV: "mentolder" }
+      - task: workspace:monitoring
+        vars: { ENV: "korczewski" }
 
   workspace:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
@@ -260,9 +276,7 @@ tasks:
       - task: workspace:post-setup
       - task: workspace:talk-setup
       - task: workspace:admin-users-setup
-      - task: workspace:billing-setup
       - task: workspace:stripe-setup
-      - task: workspace:connectors
       - task: workspace:call-setup
       - task: workspace:recording-setup
       - task: workspace:transcriber-setup
@@ -283,8 +297,8 @@ tasks:
   workspace:transcriber-build:
     desc: Build and push talk-transcriber image to local registry
     cmds:
-      - docker build -t {{.REGISTRY}}/talk-transcriber:v2 k3d/talk-transcriber/
-      - docker push {{.REGISTRY}}/talk-transcriber:v2
+      - docker build -t {{.REGISTRY}}/talk-transcriber:latest k3d/talk-transcriber/
+      - docker push {{.REGISTRY}}/talk-transcriber:latest
       - 'echo "✓ talk-transcriber image pushed to {{.REGISTRY}}"'
 
   workspace:transcriber-setup:
@@ -293,23 +307,37 @@ tasks:
     cmds:
       - bash scripts/transcriber-setup.sh
 
-  workspace:billing-build:
-    desc: Build and push billing-bot image to local registry
+  workspace:sso-bridge:build:
+    desc: Build and push sso-bridge image to local registry
     cmds:
-      - docker build -t {{.REGISTRY}}/billing-bot:latest billing-bot/
-      - docker push {{.REGISTRY}}/billing-bot:latest
-      - 'echo "✓ billing-bot image pushed"'
-
-  workspace:billing-setup:
-    desc: Build and push billing-bot image (bot token + slash command provisioned automatically by billing-bot-init-job)
-    deps: [workspace:billing-build]
-    cmds:
-      - 'echo "✓ billing-bot image built. Token and /billing slash command are provisioned automatically by billing-bot-init-job."'
+      - docker build -t {{.REGISTRY}}/sso-bridge:latest sso-bridge/
+      - docker push {{.REGISTRY}}/sso-bridge:latest
+      - 'echo "✓ sso-bridge image pushed to {{.REGISTRY}}"'
 
   workspace:stripe-setup:
     desc: Register Stripe as payment gateway in Invoice Ninja
     cmds:
       - bash scripts/stripe-setup.sh
+
+  workspace:theme:nextcloud:
+    desc: Apply dark+gold Nextcloud branding via OCC (idempotent)
+    vars:
+      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- su -s /bin/bash www-data -c"
+      BRAND: '{{.BRAND_NAME | default "mentolder"}}'
+      DOMAIN: '{{.PROD_DOMAIN | default "mentolder.localhost"}}'
+    cmds:
+      - "{{.NC_EXEC}} \"php occ config:app:set theming name --value='{{.BRAND}}'\""
+      - '{{.NC_EXEC}} "php occ config:app:set theming url            --value=https://web.{{.DOMAIN}}"'
+      - '{{.NC_EXEC}} "php occ config:app:set theming color          --value=#e8c870"'
+      - '{{.NC_EXEC}} "php occ config:app:set theming enforce-theme --value=dark"'
+      - echo "Nextcloud theme applied."
+
+  workspace:theme:
+    desc: Apply dark+gold theme to Nextcloud (idempotent, run after post-setup)
+    cmds:
+      - echo "=== Nextcloud Theme ==="
+      - task: workspace:theme:nextcloud
+      - echo "All themes applied."
 
   workspace:post-setup:
     desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair, notify_push)
@@ -378,6 +406,9 @@ tasks:
       - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
       - 'echo "  Transkription: stt_whisper2 → http://whisper:8000/v1"'
       - 'echo "  Aufnahme:      Talk-Room > ··· > Aufnahme starten"'
+      - echo ""
+      - echo "Applying Nextcloud branding..."
+      - task: workspace:theme:nextcloud
 
   workspace:whiteboard-setup:
     desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
@@ -406,6 +437,27 @@ tasks:
       - task: workspace:talk-setup
         vars: { ENV: "mentolder" }
       - task: workspace:talk-setup
+        vars: { ENV: "korczewski" }
+
+  workspace:talk-dns-fix:
+    desc: "Apply CoreDNS signaling override for a cluster (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        envsubst "\$PROD_DOMAIN" < prod/coredns-signaling-override.yaml \
+          | kubectl --context "${ENV_CONTEXT}" apply -f -
+        kubectl --context "${ENV_CONTEXT}" rollout restart deployment/coredns -n kube-system 2>/dev/null || \
+          kubectl --context "${ENV_CONTEXT}" rollout restart daemonset/coredns -n kube-system 2>/dev/null || true
+        echo "✓ CoreDNS signaling override applied for ${PROD_DOMAIN}"
+
+  workspace:talk-dns-fix:all-prods:
+    desc: Apply CoreDNS signaling override on all production clusters
+    cmds:
+      - task: workspace:talk-dns-fix
+        vars: { ENV: "mentolder" }
+      - task: workspace:talk-dns-fix
         vars: { ENV: "korczewski" }
 
   workspace:coturn:sync-secret:
@@ -552,23 +604,10 @@ tasks:
       - task: workspace:recording-setup
         vars: { ENV: "korczewski" }
 
-  workspace:connectors:
-    desc: Set up Mattermost service connectors (bookmarks + links to all workspace services)
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed. Run 'task workspace:deploy' first."
-    cmds:
-      - bash scripts/mattermost-connectors-setup.sh
-
   workspace:call-setup:
-    desc: "Register /call slash command in Mattermost (ENV=dev|mentolder|korczewski)"
+    desc: "Register /call slash command (ENV=dev|mentolder|korczewski)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
-    preconditions:
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed. Run 'task workspace:deploy' first."
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -607,6 +646,11 @@ tasks:
     desc: 'Open psql shell to shared-db (usage: task workspace:psql -- <dbname>, default: postgres)'
     cmds:
       - kubectl exec -it -n workspace deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
+
+  tracking:psql:
+    desc: 'Open psql shell with bachelorprojekt search_path (requirements tracking DB)'
+    cmds:
+      - kubectl exec -it -n workspace deploy/shared-db -- env PGOPTIONS="-c search_path=bachelorprojekt,public" psql -U postgres -d postgres
 
   workspace:port-forward:
     desc: 'Forward shared-db to localhost:5432'
@@ -647,6 +691,26 @@ tasks:
     cmds:
       - kubectl --context korczewski rollout restart deployment/{{.CLI_ARGS}} -n workspace
       - kubectl --context korczewski rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
+
+  mentolder:status:
+    desc: Show mentolder.de cluster status
+    cmds:
+      - kubectl --context mentolder get nodes -o wide
+      - echo ""
+      - kubectl --context mentolder get pods -n workspace -o wide
+      - echo ""
+      - kubectl --context mentolder get pods -n website -o wide 2>/dev/null || true
+
+  mentolder:logs:
+    desc: "Tail logs from a mentolder service (usage: task mentolder:logs -- <svc>)"
+    cmds:
+      - kubectl --context mentolder logs -n workspace deployment/{{.CLI_ARGS}} -f --tail=100
+
+  mentolder:restart:
+    desc: "Restart a mentolder service (usage: task mentolder:restart -- <svc>)"
+    cmds:
+      - kubectl --context mentolder rollout restart deployment/{{.CLI_ARGS}} -n workspace
+      - kubectl --context mentolder rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
 
   # ─────────────────────────────────────────────
   # Multi-Cluster Overview
@@ -1093,7 +1157,44 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
         echo "Waiting for shared-db..."
         kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
+      - task: keycloak:sync-secrets
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
+
+  workspace:sync-db-passwords:
+    desc: "Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+
+        echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
+
+        for user in keycloak mattermost nextcloud vaultwarden website; do
+          key="${user^^}_DB_PASSWORD"
+          pw=$(kubectl $context_flag get secret workspace-secrets -n workspace \
+            -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d)
+          if [ -z "$pw" ]; then
+            echo "  SKIP ${user}: ${key} not found in workspace-secrets"
+            continue
+          fi
+          kubectl $context_flag exec -n workspace deployment/shared-db -- \
+            psql -U postgres -c "ALTER USER ${user} WITH PASSWORD '${pw}';" 2>&1 \
+            | sed "s/^/  ${user}: /"
+        done
+        echo "✓ DB passwords synced"
+
+  keycloak:sync-secrets:
+    desc: "Sync OIDC client secrets von workspace-secrets → Keycloak Admin API (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/keycloak-sync-secrets.sh
 
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"
@@ -1118,50 +1219,34 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
-  docs:configmap:
-    desc: Build docs-content ConfigMap from local docs/ directory
+  docs:deploy:
+    desc: Deploy docs ConfigMap to both production clusters (korczewski + mentolder)
     cmds:
+      - echo '→ Updating docs-content ConfigMap on korczewski...'
       - |
         kubectl create configmap docs-content \
-          --from-file="index.html=docs-site/index.html" \
-          --from-file="README.md=docs/README.md" \
-          --from-file="_sidebar.md=docs/_sidebar.md" \
-          --from-file="architecture.md=docs/architecture.md" \
-          --from-file="services.md=docs/services.md" \
-          --from-file="keycloak.md=docs/keycloak.md" \
-          --from-file="migration.md=docs/migration.md" \
-          --from-file="scripts.md=docs/scripts.md" \
-          --from-file="tests.md=docs/tests.md" \
-          --from-file="security.md=docs/security.md" \
-          --from-file="troubleshooting.md=docs/troubleshooting.md" \
-          --from-file="requirements.md=docs/requirements.md" \
-          -n workspace --dry-run=client -o yaml | kubectl apply -f -
-
-  docs:deploy:
-    desc: Deploy Docsify docs site into the workspace namespace
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: 'No cluster running. Run "task cluster:create" first.'
-    cmds:
-      - task: docs:configmap
-      - kubectl apply -f k3d/docs.yaml -n workspace
-      - kubectl rollout status deployment/docs -n workspace --timeout=120s
+          --from-file=k3d/docs-content/ \
+          --dry-run=client -o yaml -n workspace \
+          | kubectl apply -f - --context korczewski --server-side --force-conflicts
+      - kubectl rollout restart deployment/docs -n workspace --context korczewski
+      - kubectl rollout status deployment/docs -n workspace --context korczewski --timeout=120s
+      - echo '→ Updating docs-content ConfigMap on mentolder...'
+      - |
+        kubectl create configmap docs-content \
+          --from-file=k3d/docs-content/ \
+          --dry-run=client -o yaml -n workspace \
+          | kubectl apply -f - --context mentolder --server-side --force-conflicts
+      - kubectl rollout restart deployment/docs -n workspace --context mentolder
+      - kubectl rollout status deployment/docs -n workspace --context mentolder --timeout=120s
       - echo ''
-      - 'echo "✓ Docs deployed"'
-      - 'echo "  URL: http://docs.localhost"'
+      - 'echo "✓ Docs deployed to both clusters"'
+      - 'echo "  https://docs.korczewski.de"'
+      - 'echo "  https://docs.mentolder.de"'
 
   docs:restart:
-    desc: Rebuild docs ConfigMap from local files and restart the docs pod
+    desc: Rebuild docs ConfigMap and restart pods on both production clusters
     cmds:
-      - task: docs:configmap
-      - kubectl rollout restart deployment/docs -n workspace
-      - kubectl rollout status deployment/docs -n workspace --timeout=120s
-      - echo '✓ Docs updated from local docs/ directory'
-
-  docs:integrate-mattermost:
-    desc: Integrate docs into Mattermost (channel bookmark + slash command)
-    cmds:
-      - bash scripts/mattermost-docs-integration.sh
+      - task: docs:deploy
 
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers
@@ -1226,24 +1311,6 @@ tasks:
       - kubectl rollout restart deployment/claude-code-mcp-{{.CLI_ARGS}}
       - kubectl rollout status deployment/claude-code-mcp-{{.CLI_ARGS}} --timeout=120s
 
-  mcp:mattermost-setup:
-    desc: Create admin-only Claude Code channels in all Mattermost teams
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-    cmds:
-      - |
-        echo "Generating Mattermost API token..."
-        TOKEN=$(kubectl exec -n workspace deploy/mattermost -- \
-          mmctl --local token generate axzgi6xawjrm7rucg39h97dfjw "claude-code-setup-$(date +%s)" 2>/dev/null | cut -d: -f1)
-        echo "Running Claude Code Mattermost setup..."
-        kubectl run claude-code-mm-setup --rm -i --restart=Never \
-          --image=python:3.12-alpine \
-          --env="MM_URL=http://mattermost.workspace.svc.cluster.local:8065" \
-          --env="MM_TOKEN=$TOKEN" \
-          -- python3 /dev/stdin < scripts/claude-code-mattermost-setup.py
-      - 'echo "✓ Claude Code channels created in all teams"'
-
   mcp:set-github-pat:
     desc: Update GITHUB_PAT in workspace-secrets (workspace namespace)
     cmds:
@@ -1283,10 +1350,10 @@ tasks:
 
         # Read token from k8s Secret (production context)
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context mentolder get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context "${ENV_CONTEXT}" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
-          echo "Deploy MCP first: task mcp:deploy"
+          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
           exit 1
         fi
 
@@ -1331,10 +1398,10 @@ tasks:
 
         # Read token from k8s Secret (production context)
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context mentolder get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context "${ENV_CONTEXT}" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
-          echo "Deploy MCP first: task mcp:deploy"
+          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
           exit 1
         fi
 
@@ -1378,10 +1445,10 @@ tasks:
 
         # Read token from k8s Secret (production context)
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context mentolder get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context "${ENV_CONTEXT}" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
-          echo "Deploy MCP first: task mcp:deploy"
+          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
           exit 1
         fi
 
@@ -1414,19 +1481,22 @@ tasks:
         echo "To remove:  claude mcp remove <name>"
 
   claude-code:rotate-tokens:
-    desc: Generate new MCP access tokens and update the Secret
+    desc: "Generate new MCP access tokens and update the Secret (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         NEW_CLUSTER=$(openssl rand -hex 32)
         NEW_BUSINESS=$(openssl rand -hex 32)
 
-        kubectl --context mentolder delete secret mcp-tokens 2>/dev/null || true
-        kubectl --context mentolder create secret generic mcp-tokens \
+        kubectl --context "${ENV_CONTEXT}" delete secret mcp-tokens 2>/dev/null || true
+        kubectl --context "${ENV_CONTEXT}" create secret generic mcp-tokens \
           --from-literal="CLUSTER_TOKEN=$NEW_CLUSTER" \
           --from-literal="BUSINESS_TOKEN=$NEW_BUSINESS"
 
-        kubectl --context mentolder rollout restart deployment/mcp-auth-proxy
-        kubectl --context mentolder rollout status deployment/mcp-auth-proxy --timeout=60s
+        kubectl --context "${ENV_CONTEXT}" rollout restart deployment/mcp-auth-proxy
+        kubectl --context "${ENV_CONTEXT}" rollout status deployment/mcp-auth-proxy --timeout=60s
 
         echo "MCP tokens rotated"
         echo ""
@@ -1538,11 +1608,22 @@ tasks:
         fi
         export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL
 
-        envsubst "\$WEBSITE_IMAGE \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$DOCS_URL \$BILLING_EXTERNAL_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$WIKI_EXTERNAL_URL" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
 
-        if [ -n "${DIGEST}" ]; then
+        # Dev-only: apply plaintext dev secrets (prod uses SealedSecrets — never overwrite)
+        if [ "{{.ENV}}" = "dev" ]; then
+          kubectl ${CTX_ARG} apply -f k3d/website-dev-secrets.yaml
+        fi
+
+        # Only pin to digest on pure-amd64 clusters; mixed-arch clusters (e.g. korczewski
+        # has both amd64 and arm64 nodes) need the multi-arch :latest tag because the
+        # push digest only covers the amd64 manifest, not the manifest list.
+        HAS_ARM=$(kubectl ${CTX_ARG} get nodes -o jsonpath='{range .items[*]}{.status.nodeInfo.architecture}{"\n"}{end}' 2>/dev/null | grep -c arm64 || true)
+        if [ -n "${DIGEST}" ] && [ "${HAS_ARM}" = "0" ]; then
           echo "Pinning deployment to ${IMAGE}@${DIGEST}..."
           kubectl ${CTX_ARG} -n website set image deployment/website "website=${IMAGE}@${DIGEST}"
+        elif [ -n "${DIGEST}" ]; then
+          echo "Mixed-arch cluster detected — skipping digest pin, using :latest"
         fi
 
         # For production: upgrade IngressRoute to HTTPS with letsencrypt
@@ -1554,12 +1635,6 @@ tasks:
 
         echo "Waiting for website..."
         kubectl ${CTX_ARG} -n website rollout status deployment/website --timeout=180s
-      - |
-        if [ "{{.ENV}}" = "dev" ]; then
-          task website:webhook:setup
-        else
-          echo "(skipping website:webhook:setup for non-dev env — manage webhooks on prod cluster manually)"
-        fi
       - echo ""
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -1768,133 +1843,6 @@ tasks:
       - echo ""
       - ip addr show wg0 2>/dev/null || echo "wg0 interface not found"
 
-  # ─────────────────────────────────────────────
-  # Outline (Knowledge Base)
-  # ─────────────────────────────────────────────
-  outline:deploy:
-    desc: Deploy Outline knowledge base
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-    cmds:
-      - kubectl apply -f k3d/outline.yaml
-      - |
-        echo "Waiting for Outline..."
-        kubectl rollout status deployment/outline -n workspace --timeout=180s
-      - echo ""
-      - echo "✓ Outline deployed"
-      - 'echo "  URL: http://wiki.{{.DEV_DOMAIN}}"'
-
-  outline:status:
-    desc: Show Outline deployment status
-    cmds:
-      - kubectl get pods -l app=outline -o wide
-      - kubectl get pvc outline-data
-
-  outline:logs:
-    desc: Tail Outline logs
-    cmds:
-      - kubectl logs deploy/outline -f --tail=50
-
-  outline:teardown:
-    desc: Remove Outline and its data
-    prompt: "This will delete Outline and all wiki data. Continue?"
-    cmds:
-      - kubectl delete -f k3d/outline.yaml --ignore-not-found
-      - echo "✓ Outline removed"
-
-  website:webhook:setup:
-    desc: Create Mattermost "anfragen" channel and configure webhook for the website
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: kubectl get deployment mattermost -n workspace > /dev/null 2>&1
-        msg: "Mattermost not deployed."
-    cmds:
-      - |
-        NAMESPACE="workspace"
-        MM_URL=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          printenv MM_SERVICESETTINGS_SITEURL 2>/dev/null || echo "http://chat.localhost")
-
-        echo "=== Website Webhook Setup ==="
-        echo "  Mattermost: ${MM_URL}"
-
-        # Get first team
-        TEAM=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local team list --json 2>/dev/null | \
-          python3 -c "import sys,json; print(json.load(sys.stdin)[0]['name'])")
-        echo "  Team: ${TEAM}"
-
-        # Create anfragen channel if not exists
-        CHANNEL_EXISTS=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
-          python3 -c "
-        import sys,json
-        channels = json.load(sys.stdin)
-        found = [c for c in channels if c.get('name') == 'anfragen']
-        print('yes' if found else 'no')
-        " 2>/dev/null || echo "no")
-
-        if [ "${CHANNEL_EXISTS}" = "no" ]; then
-          kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-            mmctl --local channel create \
-              --team "${TEAM}" \
-              --name "anfragen" \
-              --display-name "Anfragen" \
-              --purpose "Eingehende Kundenanfragen vom Website-Kontaktformular" \
-              2>/dev/null
-          echo "  Channel 'anfragen' created."
-        else
-          echo "  Channel 'anfragen' already exists."
-        fi
-
-        # Get channel ID
-        CHANNEL_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local channel list "${TEAM}" --json 2>/dev/null | \
-          python3 -c "
-        import sys,json
-        channels = json.load(sys.stdin)
-        ch = next(c for c in channels if c['name'] == 'anfragen')
-        print(ch['id'])
-        " 2>/dev/null)
-
-        # Get admin user ID for webhook
-        ADMIN_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local user list --json 2>/dev/null | \
-          python3 -c "
-        import sys,json
-        users = json.load(sys.stdin)
-        admin = next((u['id'] for u in users if 'system_admin' in u.get('roles','')), users[0]['id'])
-        print(admin)
-        " 2>/dev/null)
-
-        # Create incoming webhook
-        WEBHOOK_ID=$(kubectl exec -n "${NAMESPACE}" deploy/mattermost -- \
-          mmctl --local webhook create-incoming \
-            --channel "${CHANNEL_ID}" \
-            --user "${ADMIN_ID}" \
-            --display-name "Website-Bot" \
-            --description "Kontaktformular-Eingaenge von ${BRAND_NAME}" \
-            --json 2>/dev/null | \
-          python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'] if isinstance(d,dict) else d[0]['id'])" 2>/dev/null) || true
-
-        if [ -n "${WEBHOOK_ID}" ]; then
-          WEBHOOK_URL="${MM_URL}/hooks/${WEBHOOK_ID}"
-          echo "  Webhook created: ${WEBHOOK_URL}"
-
-          # Patch the website ConfigMap with the real webhook URL
-          kubectl patch configmap website-config -n website \
-            --type merge -p "{\"data\":{\"MATTERMOST_WEBHOOK_URL\":\"http://mattermost.workspace.svc.cluster.local:8065/hooks/${WEBHOOK_ID}\"}}" \
-            2>/dev/null && echo "  ConfigMap patched with webhook URL" || echo "  (website not deployed yet — deploy first, then re-run)"
-
-          # Restart website to pick up new config
-          kubectl rollout restart deployment/website -n website 2>/dev/null || true
-        else
-          echo "  WARNING: Could not create webhook — may already exist."
-          echo "  Check: kubectl exec -n workspace deploy/mattermost -- mmctl --local webhook list incoming"
-        fi
-      - echo ""
-      - echo "✓ Webhook setup complete"
 
   # ─────────────────────────────────────────────
   # Cert-Manager — wildcard TLS via DNS-01/lego
@@ -2067,11 +2015,6 @@ tasks:
   # ─────────────────────────────────────────────
   # Utility Scripts
   # ─────────────────────────────────────────────
-  billing-bot:setup:
-    desc: Build billing-bot image and push to local registry
-    cmds:
-      - bash scripts/billing-bot-setup.sh
-
   workspace:check-connectivity:
     desc: Test HTTPS reachability of all workspace services
     cmds:
@@ -2097,7 +2040,3 @@ tasks:
     cmds:
       - bash scripts/migrate.sh
 
-  workspace:anfragen-setup:
-    desc: Create anfragen channel and webhook in all Mattermost teams
-    cmds:
-      - bash scripts/mattermost-anfragen-setup.sh

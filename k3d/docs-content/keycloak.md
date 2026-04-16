@@ -1,10 +1,23 @@
-# Keycloak & SSO
+<div class="page-hero">
+  <span class="page-hero-icon">🔑</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Keycloak &amp; SSO</div>
+    <p class="page-hero-desc">Zentraler Identity Provider für alle Services. OIDC-Konfiguration, Realm-Setup, Client-Secrets und Single Sign-On Flows für Mattermost, Nextcloud, Invoice Ninja und die Website.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Keycloak 26.6</span>
+      <span class="page-hero-tag">OIDC / OAuth2</span>
+      <span class="page-hero-tag">Realm workspace</span>
+      <span class="page-hero-tag">Single Sign-On</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 ## Uebersicht
 
 Keycloak ist der zentrale Identity Provider fuer alle Services. Alle Anwendungen authentifizieren ueber OpenID Connect (OIDC) gegen den Realm `workspace`.
 
-- **Image:** `quay.io/keycloak/keycloak:24.0`
+- **Image:** `quay.io/keycloak/keycloak:26.6`
 - **URL:** http://auth.localhost
 - **Admin-Login:** admin / devadmin
 - **Realm:** `workspace`
@@ -12,6 +25,10 @@ Keycloak ist der zentrale Identity Provider fuer alle Services. Alle Anwendungen
 ## Realm-Konfiguration
 
 Der Realm `workspace` wird beim Keycloak-Start automatisch aus einer Template-Datei importiert. Umgebungsvariablen (OIDC-Secrets, Domains) werden per `import-entrypoint.sh` substituiert.
+
+**Produktions-Realms:**
+- `prod-korczewski/realm-workspace-korczewski.json` — Realm für korczewski.de
+- `prod-mentolder/realm-workspace-mentolder.json` — Realm für mentolder.de
 
 **Realm-Einstellungen:**
 - Anzeigename: "Workspace MVP (Dev)"
@@ -34,22 +51,23 @@ graph LR
     VW["fa:fa-lock Vaultwarden<br/>Client: vaultwarden"]
     WEB["fa:fa-globe Website<br/>Client: website"]
     OL["fa:fa-book Outline<br/>Client: outline"]
+    DOC["fa:fa-file-lines Docs<br/>Client: docs"]
 
-    KC --> MM & NC & IN & OC & VW & WEB & OL
+    KC --> MM & NC & IN & OC & VW & WEB & OL & DOC
 
-    classDef kc fill:#4a90d9,color:#fff,stroke:#2d6a9f
-    classDef collab fill:#2d8659,color:#fff,stroke:#1a5c3a
-    classDef ai fill:#8b5cf6,color:#fff,stroke:#6d3ad4
-    classDef billing fill:#d97706,color:#fff,stroke:#b45309
-    classDef tools fill:#0891b2,color:#fff,stroke:#0e7490
-    classDef infra fill:#374151,color:#fff,stroke:#1f2937
+    classDef kc fill:#1b3766,color:#e8c870,stroke:#2a5291
+    classDef collab fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
+    classDef ai fill:#2a1654,color:#e8c870,stroke:#3d2478
+    classDef billing fill:#3a2000,color:#e8c870,stroke:#5a3500
+    classDef tools fill:#083344,color:#e8c870,stroke:#0e4f68
+    classDef infra fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 
     class KC kc
     class MM,NC collab
     class IN billing
     class OC ai
     class VW tools
-    class WEB,OL infra
+    class WEB,OL,DOC infra
 ```
 
 | Client | Redirect URI | Secret-Variable |
@@ -61,6 +79,7 @@ graph LR
 | vaultwarden | `http://{VAULT_DOMAIN}/identity/connect/oidc-signin` | VAULTWARDEN_OIDC_SECRET |
 | website | `http://{WEB_DOMAIN}/*` | WEBSITE_OIDC_SECRET |
 | outline | `http://wiki.localhost/*` | OUTLINE_OIDC_SECRET |
+| docs | `https://{DOCS_DOMAIN}/oauth2/callback` | DOCS_OIDC_SECRET |
 
 Alle Clients verwenden `client-secret` als Authenticator und den Standard-Flow (Authorization Code). Scopes: `openid email profile`.
 
@@ -123,7 +142,7 @@ Konfiguriert ueber `k3d/nextcloud-oidc-dev.php` (als ConfigMap gemountet):
 
 ### Invoice Ninja
 
-Zugriff laeuft ueber einen oauth2-proxy (v7.6.0) als Reverse-Proxy:
+Zugriff laeuft ueber einen oauth2-proxy (v7.9.0) als Reverse-Proxy:
 
 - **Proxy-Port:** 4180
 - **Upstream:** `http://invoiceninja:80`
@@ -157,6 +176,17 @@ OIDC-Konfiguration ueber Umgebungsvariablen:
 - **Anzeigename:** Keycloak
 - Username-Claim: preferred_username
 
+### Docs
+
+Zugriff läuft über einen oauth2-proxy (v7.9.0) als Reverse-Proxy – identisches Muster wie Invoice Ninja:
+
+- **Proxy-Port:** 4180
+- **Upstream:** `http://docs:80`
+- **Code Challenge:** S256 (PKCE)
+- **Login-URL (Browser):** `https://auth.{PROD_DOMAIN}/...`
+- **Token/JWKS/UserInfo (Server):** `http://keycloak:8080/...` (intern)
+- Cookie-Name: `_oauth2_proxy_docs`
+
 ## Secrets-Management
 
 Alle OIDC-Secrets werden in `k3d/secrets.yaml` (Dev) bzw. `prod/secrets.yaml` (Prod) definiert und als Kubernetes Secret `workspace-secrets` bereitgestellt.
@@ -171,6 +201,7 @@ Alle OIDC-Secrets werden in `k3d/secrets.yaml` (Dev) bzw. `prod/secrets.yaml` (P
 - VAULTWARDEN_OIDC_SECRET
 - WEBSITE_OIDC_SECRET
 - OUTLINE_OIDC_SECRET
+- DOCS_OIDC_SECRET
 
 ## Dateien
 
@@ -184,3 +215,4 @@ Alle OIDC-Secrets werden in `k3d/secrets.yaml` (Dev) bzw. `prod/secrets.yaml` (P
 | `scripts/import-entrypoint.sh` | Variable-Substitution + Keycloak-Start |
 | `k3d/mm-keycloak-proxy.yaml` | Mattermost-Keycloak Nginx Proxy |
 | `k3d/oauth2-proxy-invoiceninja.yaml` | Invoice Ninja OAuth2-Proxy |
+| `k3d/oauth2-proxy-docs.yaml` | Docs OAuth2-Proxy |

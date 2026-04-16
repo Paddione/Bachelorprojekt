@@ -1,4 +1,16 @@
-# Fehlerbehebung
+<div class="page-hero">
+  <span class="page-hero-icon">🔧</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Fehlerbehebung</div>
+    <p class="page-hero-desc">Diagnose-Befehle, bekannte Probleme und Lösungsansätze für häufige Betriebssituationen im Workspace-Cluster.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">kubectl</span>
+      <span class="page-hero-tag">task-Befehle</span>
+      <span class="page-hero-tag">Logs &amp; Status</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 ## Allgemeine Diagnose
 
@@ -77,6 +89,7 @@ kubectl logs -n workspace deploy/mm-keycloak-proxy
 - **Realm nicht importiert:** `import-entrypoint.sh` Logs pruefen. Keycloak-Pod neu starten: `task workspace:restart -- keycloak`
 - **mm-keycloak-proxy nicht erreichbar:** `kubectl get pods -n workspace -l app=mm-keycloak-proxy`
 - **oauth2-proxy Fehler (Invoice Ninja):** `kubectl logs -n workspace deploy/oauth2-proxy-invoiceninja`
+- **oauth2-proxy Fehler (Docs):** `kubectl logs -n workspace deploy/oauth2-proxy-docs`
 
 ### Nextcloud OIDC Login fehlerhaft
 
@@ -93,6 +106,29 @@ task workspace:logs -- nextcloud
 ```bash
 task workspace:post-setup
 ```
+
+### Docs SSO Login fehlerhaft (oauth2-proxy-docs)
+
+**Symptom:** Login auf docs.korczewski.de oder docs.mentolder.de schlaegt fehl (500, "unauthorized_client", oder Redirect-Loop).
+
+**Diagnose:**
+```bash
+# oauth2-proxy-docs Logs
+kubectl logs -n workspace deploy/oauth2-proxy-docs
+
+# Secret korrekt?
+kubectl get secret workspace-secrets -n workspace -o jsonpath='{.data.DOCS_OIDC_SECRET}' | base64 -d
+```
+
+**Haeufige Ursachen:**
+- **OIDC-Secret stimmt nicht:** Der Wert in `workspace-secrets.DOCS_OIDC_SECRET` muss mit dem Keycloak-Client-Secret des `docs`-Clients uebereinstimmen. Pruefen und korrigieren:
+  ```bash
+  kubectl patch secret workspace-secrets -n workspace --type=merge \
+    -p '{"stringData":{"DOCS_OIDC_SECRET":"<richtiger-wert>"}}'
+  kubectl rollout restart deployment/oauth2-proxy-docs -n workspace
+  ```
+- **Keycloak `docs`-Client fehlt:** Im Realm `workspace` muss ein OIDC-Client `docs` mit den korrekten Redirect-URIs existieren. Pruefen unter auth.{domain}/admin.
+- **Cookie-Kollision:** Falls mehrere Browser-Sessions gemischt werden, Cookies fuer die Domain loeschen.
 
 ### Mattermost zeigt "Verbindung verloren"
 

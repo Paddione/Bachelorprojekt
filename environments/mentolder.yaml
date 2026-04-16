@@ -6,6 +6,7 @@ domain: mentolder.de
 env_vars:
   PROD_DOMAIN: mentolder.de
   BRAND_NAME: "Mentolder"
+  BRAND_ID: mentolder
   CONTACT_EMAIL: info@mentolder.de
   CONTACT_PHONE: "+49 151 508 32 601"
   CONTACT_CITY: "Lueneburg"
@@ -20,16 +21,26 @@ env_vars:
   INFRA_NAMESPACE: mentolder-infra
   TLS_SECRET_NAME: mentolder-tls
   SMTP_FROM: mentolder@mailbox.org
+  SMTP_HOST: smtp.mailbox.org
+  SMTP_PORT: "587"
   TURN_PUBLIC_IP: "178.104.169.206"
   TURN_NODE: "gekko-hetzner-2"
+  NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
+  MATTERMOST_EXTERNAL_URL: "https://chat.mentolder.de"
+  DOCS_URL: "https://docs.mentolder.de"
+  BILLING_EXTERNAL_URL: "https://billing.mentolder.de"
+  AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
+  VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
+  WHITEBOARD_EXTERNAL_URL: "https://board.mentolder.de"
+  WIKI_EXTERNAL_URL: "https://wiki.mentolder.de"
 
-overlay: prod
+overlay: prod-mentolder
 secrets_ref: sealed-secrets/mentolder.yaml
 
 setup_vars:
   KC_USER1_USERNAME: paddione
   KC_USER1_EMAIL: patrick@korczewski.de
   KC_USER1_PASSWORD: SEALED
-  KC_USER2_USERNAME: gekko
+  KC_USER2_USERNAME: quamain
   KC_USER2_EMAIL: quamain@web.de
   KC_USER2_PASSWORD: SEALED

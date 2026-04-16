@@ -25,6 +25,7 @@ spec:
       containers:
         - name: mailpit
           image: axllent/mailpit:v1.29
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -39,6 +40,11 @@ spec:
               name: smtp
             - containerPort: 8025
               name: http
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: data
+              mountPath: /data
           resources:
             requests:
               memory: 64Mi
@@ -46,6 +52,11 @@ spec:
             limits:
               memory: 256Mi
               cpu: "200m"
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

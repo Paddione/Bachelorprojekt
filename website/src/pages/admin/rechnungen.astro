@@ -1,0 +1,141 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { getAllBillingInvoices, stripeInvoiceDashboardUrl } from '../../lib/stripe-billing';
+import type { AdminBillingInvoice } from '../../lib/stripe-billing';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const statusFilter = Astro.url.searchParams.get('status') ?? '';
+
+let invoices: AdminBillingInvoice[] = [];
+let apiError = '';
+try {
+  invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
+} catch (err) {
+  console.error('[admin/rechnungen]', err);
+  apiError = 'Stripe nicht erreichbar.';
+}
+
+const today = new Date().toISOString().slice(0, 10);
+const totalOpen       = invoices.filter(i => i.amountRemaining > 0 && !['void','uncollectible'].includes(i.status)).reduce((s, i) => s + i.amountRemaining, 0);
+const totalPaid       = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amountPaid, 0);
+const countOverdue    = invoices.filter(i => i.status === 'open' && i.dueDate < today).length;
+
+function fmtCurrency(n: number): string {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
+}
+function fmtDate(s: string): string {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const STATUS_CLS: Record<string, string> = {
+  'draft':         'bg-slate-900/40 text-slate-300 border-slate-700',
+  'open':          'bg-blue-900/40 text-blue-300 border-blue-800',
+  'paid':          'bg-green-900/40 text-green-300 border-green-800',
+  'void':          'bg-dark border border-dark-lighter text-muted',
+  'uncollectible': 'bg-red-900/40 text-red-300 border-red-800',
+};
+
+const STATUS_TABS = [
+  { value: '',              label: 'Alle' },
+  { value: 'open',         label: 'Offen' },
+  { value: 'uncollectible',label: 'Überfällig' },
+  { value: 'paid',         label: 'Bezahlt' },
+  { value: 'draft',        label: 'Entwurf' },
+  { value: 'void',         label: 'Storniert' },
+];
+---
+
+<AdminLayout title="Admin — Rechnungen">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-light font-serif">Rechnungen</h1>
+        <p class="text-muted mt-1">{invoices.length} Rechnungen über alle Clients</p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        {[
+          { label: 'Offen',      value: fmtCurrency(totalOpen),  cls: totalOpen > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
+          { label: 'Bezahlt',    value: fmtCurrency(totalPaid),  cls: 'border-green-800' },
+          { label: 'Überfällig', value: countOverdue,            cls: countOverdue > 0 ? 'border-red-800' : 'border-dark-lighter' },
+          { label: 'Gesamt',     value: invoices.length,         cls: 'border-dark-lighter' },
+        ].map(s => (
+          <div class={`p-4 bg-dark-light rounded-xl border ${s.cls}`}>
+            <div class="text-xl font-bold text-light">{s.value}</div>
+            <div class="text-xs text-muted mt-0.5">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {apiError && (
+        <div class="mb-6 p-4 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm">{apiError}</div>
+      )}
+
+      <!-- Status filter tabs -->
+      <div class="flex gap-1 p-1 bg-dark-light rounded-lg border border-dark-lighter mb-6 w-fit flex-wrap">
+        {STATUS_TABS.map(t => (
+          <a href={`/admin/rechnungen${t.value ? '?status=' + t.value : ''}`}
+            class={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${statusFilter === t.value ? 'bg-gold text-dark' : 'text-muted hover:text-light'}`}>
+            {t.label}
+          </a>
+        ))}
+      </div>
+
+      <!-- Table -->
+      <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dark-lighter">
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Nr.</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Client</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Status</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Datum</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Betrag</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Offen</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Stripe</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.length === 0 ? (
+              <tr>
+                <td colspan="8" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+              </tr>
+            ) : invoices.map(inv => (
+              <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
+                <td class="px-4 py-3 text-sm text-light font-mono">#{inv.number}</td>
+                <td class="px-4 py-3 text-sm">
+                  <div class="text-light">{inv.customerName}</div>
+                  <div class="text-xs text-muted">{inv.customerEmail}</div>
+                </td>
+                <td class="px-4 py-3">
+                  <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[inv.status] ?? ''}`}>
+                    {inv.statusLabel}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap">{fmtDate(inv.date)}</td>
+                <td class={`px-4 py-3 text-sm whitespace-nowrap font-medium ${inv.status === 'uncollectible' ? 'text-red-400' : 'text-muted'}`}>
+                  {fmtDate(inv.dueDate)}{inv.status === 'uncollectible' ? ' ⚠' : ''}
+                </td>
+                <td class="px-4 py-3 text-sm text-light text-right font-medium">{fmtCurrency(inv.amountDue)}</td>
+                <td class={`px-4 py-3 text-sm text-right font-medium ${inv.amountRemaining > 0 ? 'text-yellow-400' : 'text-muted'}`}>
+                  {inv.amountRemaining > 0 ? fmtCurrency(inv.amountRemaining) : '—'}
+                </td>
+                <td class="px-4 py-3 text-sm text-right">
+                  <a href={stripeInvoiceDashboardUrl(inv.id)} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline">Stripe ↗</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</AdminLayout>

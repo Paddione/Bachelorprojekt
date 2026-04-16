@@ -10,11 +10,10 @@
   const types = [
     { value: 'allgemein', label: 'Allgemeine Anfrage' },
     { value: 'erstgespraech', label: 'Kostenloses Erstgespräch' },
-    { value: 'digital-cafe', label: 'Digital Café 50+' },
+    { value: 'digital-cafe', label: '50+ digital' },
     { value: 'coaching', label: 'Führungskräfte-Coaching' },
     { value: 'beratung', label: 'Unternehmensberatung' },
     { value: 'support', label: 'Support' },
-    { value: 'bug', label: 'Fehler melden (Bug Report)' },
     { value: 'feedback', label: 'Feedback' },
   ];
 
@@ -43,7 +42,7 @@
         result = { success: false, message: data.error || 'Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.' };
       }
     } catch {
-      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es spater erneut.' };
+      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es später erneut.' };
     } finally {
       submitting = false;
     }

@@ -1,3 +1,16 @@
+<div class="page-hero">
+  <span class="page-hero-icon">📜</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Skripte</div>
+    <p class="page-hero-desc">Referenz aller Bash-Hilfsskripte im <code>scripts/</code>-Verzeichnis: Setup, Migration, DSGVO-Checks, MCP-Registrierung und Stripe.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Bash</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Skripte
 
 Referenz aller Skripte im `scripts/`-Verzeichnis.
@@ -140,6 +153,15 @@ Konfiguriert Mattermost-Integrationen (Webhooks, Slash-Commands, Bot-Accounts) f
 scripts/mattermost-connectors-setup.sh
 ```
 
+### set-mattermost-theme.sh -- Mattermost Theme setzen
+
+Setzt das Dark+Gold-Custom-Theme fuer alle aktiven Nicht-Bot-Benutzer in Mattermost per REST-API. Idempotent und sicher fuer mehrfaches Ausfuehren. Liest das Admin-Passwort automatisch aus `workspace-secrets` oder nutzt den Standardwert (`devadmin`).
+
+```bash
+scripts/set-mattermost-theme.sh              # Namespace workspace (Standard)
+scripts/set-mattermost-theme.sh production   # alternativer Namespace
+```
+
 ### mattermost-anfragen-setup.sh -- Anfragen-Channel
 
 Erstellt einen "Anfragen"-Kanal und Incoming-Webhook in allen Mattermost-Teams fuer das Website-Kontaktformular.
@@ -164,12 +186,58 @@ Erstellt den `/meeting` Slash-Command in Mattermost fuer Meeting-Verwaltung (Ers
 scripts/meeting-slash-setup.sh
 ```
 
+### call-setup.sh -- /call Slash-Command
+
+Registriert den `/call` Slash-Command in allen Mattermost-Teams. Der Command zeigt auf den billing-bot-`/slash`-Endpunkt und erstellt einen Nextcloud Talk Video-Call-Raum. Erkennt die Mattermost-URL und generiert automatisch einen temporaeren Admin-Token via mmctl.
+
+```bash
+scripts/call-setup.sh
+MM_TOKEN=<token> scripts/call-setup.sh
+MM_URL=https://chat.example.com MM_TOKEN=<token> NAMESPACE=workspace scripts/call-setup.sh
+```
+
+| Variable | Beschreibung | Standard |
+|----------|-------------|---------|
+| `MM_URL` | Mattermost-URL | auto-detect via SiteURL |
+| `MM_TOKEN` | Personal Access Token | auto-generiert via mmctl |
+| `NAMESPACE` | Kubernetes-Namespace | `workspace` |
+| `KUBE_CONTEXT` | kubectl-Kontext | -- |
+
 ### recording-setup.sh -- Talk Recording konfigurieren
 
 Konfiguriert den Nextcloud Talk Recording-Service (spreed-Konfiguration, Recording-Secret).
 
 ```bash
 scripts/recording-setup.sh
+```
+
+### talk-hpb-setup.sh -- Nextcloud Talk HPB konfigurieren
+
+Verbindet den Nextcloud Talk-App mit dem spreed-signaling HPB, dem coturn TURN-Server und seinem STUN-Port. Liest `SIGNALING_SECRET` und `TURN_SECRET` aus dem `workspace-secrets`-Secret. Idempotent: ueberschreibt bei erneutem Ausfuehren nur die drei App-Config-Schlueessel.
+
+```bash
+scripts/talk-hpb-setup.sh
+NAMESPACE=workspace scripts/talk-hpb-setup.sh
+KUBE_CONTEXT=korczewski scripts/talk-hpb-setup.sh
+```
+
+Wendet zusaetzlich einen CoreDNS-Override an, damit der Nextcloud-PHP-Backend den signaling-Host intern aufloesung (wichtig fuer Produktionscluster hinter NAT).
+
+### transcriber-setup.sh -- Live-Transkription einrichten
+
+Legt den `transcriber-bot`-Nextcloud-User fuer den talk-transcriber-Pod an, registriert ihn als Talk-Bot (Webhook + Response) und aktiviert die Call-Transkription in spreed. Liest `TRANSCRIBER_BOT_PASSWORD` und `TRANSCRIBER_SECRET` aus `workspace-secrets`. Idempotent.
+
+```bash
+scripts/transcriber-setup.sh
+```
+
+### whiteboard-setup.sh -- Nextcloud Whiteboard konfigurieren
+
+Installiert und konfiguriert die Nextcloud Whiteboard-App und synchronisiert das JWT-Secret mit dem laufenden Whiteboard-Backend-Pod. Prueft vor dem Schreiben, ob das Secret im k8s-Secret und im Pod uebereinstimmt. Idempotent.
+
+```bash
+scripts/whiteboard-setup.sh
+NAMESPACE=workspace scripts/whiteboard-setup.sh
 ```
 
 ### check-updates.sh -- Image-Updates pruefen

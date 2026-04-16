@@ -120,6 +120,130 @@ spec:
         matchLabels:
           kubernetes.io/metadata.name: monitoring
 ---
+# Website-Backend aus website-Namespace erlauben
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values: ["website", "korczewski-website"]
+---
+# talk-transcriber → website-Namespace (save-transcript API)
+# Uses ipBlock for the service CIDR (10.43.0.0/16) because namespaceSelector
+# alone doesn't match ClusterIP traffic before DNAT.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-transcriber-to-website-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: talk-transcriber
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.43.0.0/16   # service CIDR
+    - ipBlock:
+        cidr: 10.42.0.0/16   # pod CIDR (post-DNAT)
+    ports:
+    - port: 80
+      protocol: TCP
+    - port: 4321
+      protocol: TCP
+---
+# workspace-Pods → Traefik (kube-system) für interne HTTPS-Calls (z.B. Talk HPB Backend-API)
+# Nextcloud Talk ruft signaling.korczewski.de intern über Traefik auf; CoreDNS löst
+# den Hostnamen auf die Traefik-ClusterIP auf, daher muss Egress auf Port 8443/8000 erlaubt sein.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik-egress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+    ports:
+    - port: 8443
+      protocol: TCP
+    - port: 8000
+      protocol: TCP
+---
+# spreed-signaling → Janus MCU (coturn namespace, port 8188 WebSocket)
+# Janus uses hostNetwork:true so its IP is a k3d node IP (172.19.0.0/16).
+# The namespace selector alone doesn't work for hostNetwork pods because the
+# traffic goes to a node IP rather than an overlay pod IP.
+# We allow the node network CIDR and the cluster service CIDR explicitly so
+# both direct node traffic (DNAT resolved) and ClusterIP traffic work.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-signaling-coturn-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: spreed-signaling
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: coturn
+    ports:
+    - port: 8188
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 172.19.0.0/16   # k3d node network (Janus hostNetwork IP)
+    ports:
+    - port: 8188
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 10.43.0.0/16    # cluster service CIDR (Janus ClusterIP)
+    ports:
+    - port: 8188
+      protocol: TCP
+---
+# Nextcloud → Collabora (workspace-office Namespace, WOPI Port 9980)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-collabora-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: nextcloud
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: workspace-office
+    ports:
+    - port: 9980
+      protocol: TCP
+---
 # MCP GitHub + Stripe: externe HTTPS-Verbindungen
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

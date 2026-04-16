@@ -40,6 +40,7 @@ spec:
       containers:
         - name: vaultwarden
           image: vaultwarden/server:1.35.3-alpine
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false

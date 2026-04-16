@@ -3,13 +3,27 @@
 // Triggered every minute by K8s CronJob -> POST /api/reminders/process.
 
 import pg from 'pg';
+import { resolve4 } from 'dns';
 import { sendEmail } from './email';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const REMINDERS_DB_URL = process.env.SESSIONS_DATABASE_URL
-  || 'postgresql://meetings:devmeetingsdb@shared-db.workspace.svc.cluster.local:5432/meetings';
+  || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
 
-const pool = new pg.Pool({ connectionString: REMINDERS_DB_URL });
+// Bypass musl libc getaddrinfo (connected UDP socket drops DNAT'd responses).
+function nodeLookup(
+  hostname: string,
+  _opts: unknown,
+  cb: (err: Error | null, addr: string, family: number) => void,
+) {
+  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+}
+
+// pg's PoolConfig type doesn't declare `lookup`, but pg-pool passes it through
+// to net.createConnection at runtime. Cast via unknown to satisfy tsc.
+const pool = new pg.Pool(
+  { connectionString: REMINDERS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig
+);
 
 let tableReady = false;
 async function ensureTable(): Promise<void> {

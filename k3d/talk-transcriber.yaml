@@ -1,6 +1,8 @@
-# ── Nextcloud Talk Live-Transkription ─────────────────────────────────────────
+# ── Nextcloud Talk Post-Meeting-Transkription ─────────────────────────────────
 # Pollt auf aktive Calls, tritt headless bei (Firefox + PulseAudio),
-# schickt 10-s-Chunks an Whisper, postet Transkripte in den Talk-Chat.
+# schickt Audio-Chunks an Whisper. Nach Gespraechsende sendet der Bot das
+# vollstaendige Transkript an die Website-API (/api/meeting/save-transcript),
+# die es in der Datenbank und als Markdown-Datei in Nextcloud speichert.
 # ──────────────────────────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
@@ -22,7 +24,8 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: transcriber
-          image: registry.localhost:5000/talk-transcriber:v2
+          image: registry.localhost:5000/talk-transcriber:latest
+          imagePullPolicy: Always
           env:
             - name: NC_DOMAIN
               value: "nextcloud"
@@ -38,6 +41,14 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: TRANSCRIBER_SECRET
+            - name: WEBSITE_URL
+              value: "http://website.website.svc.cluster.local"
+            - name: NC_VERIFY_SSL
+              value: "false"
+            - name: CHUNK_SECONDS
+              value: "5"
+            - name: MAX_SESSIONS
+              value: "3"
           ports:
             - containerPort: 8000
           securityContext:

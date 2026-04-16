@@ -1,3 +1,16 @@
+<div class="page-hero">
+  <span class="page-hero-icon">🧪</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Testanleitung</div>
+    <p class="page-hero-desc">Schritt-für-Schritt-Anleitung für Abnahmetests. Zugangsdaten, Service-Übersicht und zu prüfende Funktionen der Workspace-Plattform.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Mitarbeiter</span>
+      <span class="page-hero-tag">Abnahmetests</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Softwaretest Workspace – Anleitung für Testerinnen und Tester
 
 Herzlich willkommen und vielen Dank, dass Du Dir Zeit nimmst, die Workspace-Plattform
@@ -40,15 +53,17 @@ eingeloggt bist, wirst Du in den anderen automatisch erkannt.
 
 | Was?                                 | URL                              |
 |--------------------------------------|----------------------------------|
-| Zentraler Login (SSO)                | https://auth.korczewski.de       |
-| **Chat** (Mattermost)                | https://chat.korczewski.de       |
-| **Dateien & Kalender** (Nextcloud)   | https://files.korczewski.de      |
-| **Video­konferenz** (Nextcloud Talk) | https://meet.korczewski.de       |
+| Zentraler Login (SSO)                | [auth.korczewski.de](https://auth.korczewski.de) |
+| **Chat** (Mattermost)                | [chat.korczewski.de](https://chat.korczewski.de) |
+| **Dateien & Kalender** (Nextcloud)   | [files.korczewski.de](https://files.korczewski.de) |
+| **Video­konferenz** (Nextcloud Talk) | [meet.korczewski.de](https://meet.korczewski.de) |
 | **Office** (Word/Excel/PowerPoint)   | öffnet sich aus Nextcloud heraus |
-| **Whiteboard**                       | https://board.korczewski.de      |
-| **KI-Assistent** (Claude Code)       | https://ai.korczewski.de         |
-| **Wissensdatenbank** (Outline)       | https://wiki.korczewski.de       |
-| **Passwort-Safe** (Vaultwarden)      | https://vault.korczewski.de      |
+| **Whiteboard**                       | [board.korczewski.de](https://board.korczewski.de) |
+| **KI-Assistent** (Claude Code)       | [ai.korczewski.de](https://ai.korczewski.de) |
+| **Wissensdatenbank** (Outline)       | [wiki.korczewski.de](https://wiki.korczewski.de) |
+| **Passwort-Safe** (Vaultwarden)      | [vault.korczewski.de](https://vault.korczewski.de) |
+| **Dokumentation** (Handbuch)         | [docs.korczewski.de](https://docs.korczewski.de) |
+| **Bug-Meldung** (Fehler melden)      | [bug.korczewski.de](https://bug.korczewski.de) |
 
 Alle Dienste sind per HTTPS erreichbar und haben ein gültiges Zertifikat – Dein
 Browser sollte **keine** Sicherheitswarnung anzeigen. Falls doch: bitte
@@ -69,7 +84,7 @@ Am Ende dieser Anleitung findest Du einen **Rückmelde-Block** zum Ausfüllen.
 
 ### 1. Erster Login & Passwort ändern
 
-1. Öffne https://chat.korczewski.de
+1. Öffne [https://chat.korczewski.de](https://chat.korczewski.de)
 2. Klicke auf **"Anmelden mit Keycloak"**.
 3. Gib Deinen Benutzernamen (z. B. `martina.semmler`) und das Start-Passwort ein.
 4. Du wirst automatisch auf eine Seite geleitet, die Dich bittet, ein **neues
@@ -99,7 +114,7 @@ Nachrichten auf?
 
 ### 3. Dateien (Nextcloud)
 
-1. Öffne in einem **neuen Tab** https://files.korczewski.de
+1. Öffne in einem **neuen Tab** [https://files.korczewski.de](https://files.korczewski.de)
 2. Du solltest **ohne erneute Passwort-Eingabe** direkt in Nextcloud landen. Das
    ist das "Single Sign-On" in Aktion. Falls Du doch nochmal klicken musst:
    ganz normal, aber bitte kurz notieren.
@@ -130,7 +145,7 @@ oder Ihr Euch nicht gleichzeitig sehen könnt, bitte melden.
 
 ### 5. Videokonferenz (Nextcloud Talk)
 
-1. Öffne https://meet.korczewski.de
+1. Öffne [https://meet.korczewski.de](https://meet.korczewski.de)
 2. Klicke auf **"+ Neues Gespräch erstellen"**, vergib einen Namen
    (z. B. `Testmeeting`), und füge die beiden anderen Testnutzer als Teilnehmer
    hinzu.
@@ -146,14 +161,14 @@ oder Ihr Euch nicht gleichzeitig sehen könnt, bitte melden.
 
 ### 6. Whiteboard
 
-1. Öffne https://board.korczewski.de
+1. Öffne [https://board.korczewski.de](https://board.korczewski.de)
 2. Erstelle ein neues Board und male / schreibe ein bisschen.
 3. Teile den Board-Link (oder lade einen der anderen Tester ein, wenn die
    Oberfläche es anbietet) und schaut, ob Ihr gleichzeitig zeichnen könnt.
 
 ### 7. KI-Assistent (Claude Code)
 
-1. Öffne https://ai.korczewski.de
+1. Öffne [https://ai.korczewski.de](https://ai.korczewski.de)
 2. Logge Dich mit Deinem SSO-Account ein.
 3. Stelle eine einfache Frage, z. B.:
    * *"Fasse mir in drei Sätzen zusammen, was Nextcloud Talk ist."*
@@ -162,19 +177,27 @@ oder Ihr Euch nicht gleichzeitig sehen könnt, bitte melden.
 
 ### 8. Wiki / Wissensdatenbank (Outline)
 
-1. Öffne https://wiki.korczewski.de
+1. Öffne [https://wiki.korczewski.de](https://wiki.korczewski.de)
 2. Lege eine neue Seite an und schreibe 2–3 Sätze Testtext.
 3. Prüfe, ob die Seite für die anderen Tester sichtbar ist.
 
-### 9. Passwort-Safe (Vaultwarden)
+### 9. Dokumentation (Docs)
 
-1. Öffne https://vault.korczewski.de
+1. Öffne [https://docs.korczewski.de](https://docs.korczewski.de)
+2. Du wirst zur Keycloak-Anmeldeseite weitergeleitet – melde Dich mit Deinem SSO-Konto an.
+3. Nach dem Login siehst Du das interne Handbuch des Workspace.
+
+➡️ **Fragestellung:** Hat der SSO-Login funktioniert, ohne dass Du ein separates Passwort eingeben musstest?
+
+### 10. Passwort-Safe (Vaultwarden)
+
+1. Öffne [https://vault.korczewski.de](https://vault.korczewski.de)
 2. Registriere Dich **mit Deiner Test-E-Mail-Adresse** (Vaultwarden hat einen
    eigenen Master-Passwort-Flow – dieses Master-Passwort ist **nicht** dasselbe
    wie Dein SSO-Passwort, bitte extra notieren).
 3. Lege einen Test-Eintrag an, z. B. *"Test-Login für Beispielseite"*.
 
-### 10. Logout-Test
+### 11. Logout-Test
 
 1. Melde Dich in **einem** der Dienste ab (oben rechts auf Deinen Namen →
    "Abmelden").

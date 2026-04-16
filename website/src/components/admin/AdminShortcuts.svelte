@@ -5,7 +5,7 @@
     url: string;
     label: string;
     sortOrder: number;
-    createdAt: string;
+    createdAt: Date | string;
   }
 
   let { links: initialLinks }: { links: Shortcut[] } = $props();

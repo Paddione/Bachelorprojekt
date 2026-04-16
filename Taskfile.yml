@@ -205,7 +205,6 @@ tasks:
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
       - 'echo "  MCP Status:   http://ai.localhost"'
-      - 'echo "  Monitoring:    http://localhost:3000 (Grafana)"'
 
   down:
     desc: "Tear down everything"

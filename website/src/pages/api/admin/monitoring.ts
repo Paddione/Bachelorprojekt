@@ -1,14 +1,13 @@
 import type { APIRoute } from 'astro';
 import fs from 'node:fs/promises';
 import https from 'node:https';
+import { getSession, isAdmin } from '../../../lib/auth';
 
-export const GET: APIRoute = async ({ cookies, redirect }) => {
-  // Same admin session check used by all other admin API routes
-  const token = cookies.get('admin_session')?.value;
-  if (!token) {
-    return new Response('Unauthorized', { status: 401 });
+export const GET: APIRoute = async ({ request }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
-  // Simplified auth check; in reality, validate the token properly according to project standards
 
   try {
     const tokenPath = '/var/run/secrets/kubernetes.io/serviceaccount/token';

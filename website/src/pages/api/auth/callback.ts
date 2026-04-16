@@ -5,7 +5,7 @@ import { exchangeCode, isAdmin, setSessionCookie } from '../../../lib/auth';
 // Exchanges the authorization code for tokens and creates a session.
 export const GET: APIRoute = async ({ url }) => {
   const code = url.searchParams.get('code');
-  const state = url.searchParams.get('state') || '/';
+  const rawState = url.searchParams.get('state') || '/';
   const error = url.searchParams.get('error');
 
   if (error) {
@@ -32,10 +32,10 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  // If the caller requested a specific deep link (state !== '/'), honor it.
-  // Otherwise land admins on /admin and regular users on /portal.
-  const destination = state && state !== '/'
-    ? state
+  // Only use state as a redirect if it's an internal path — Keycloak also uses
+  // the state param for its own CSRF token when no state was supplied by us.
+  const destination = rawState.startsWith('/')
+    ? rawState
     : (isAdmin(result.user) ? '/admin' : '/portal');
 
   return new Response(null, {

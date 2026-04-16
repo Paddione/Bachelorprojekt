@@ -88,6 +88,7 @@ export const POST: APIRoute = async ({ request }) => {
       type: 'bug',
       referenceId: ticketId,
       referenceTable: 'bug_tickets',
+      bugTicketId: ticketId,
       payload: {
         ticketId,
         category,

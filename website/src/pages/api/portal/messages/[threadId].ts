@@ -28,6 +28,6 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (!thread || thread.customer_id !== customer.id) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404 });
   const { body } = await request.json() as { body: string };
   if (!body?.trim()) return new Response(JSON.stringify({ error: 'body required' }), { status: 400 });
-  const msg = await addMessage({ threadId, senderId: session.sub, senderRole: 'user', body: body.trim() });
+  const msg = await addMessage({ threadId, senderId: session.sub, senderRole: 'user', senderCustomerId: customer.id, body: body.trim() });
   return new Response(JSON.stringify({ message: msg }), { headers: { 'Content-Type': 'application/json' } });
 };

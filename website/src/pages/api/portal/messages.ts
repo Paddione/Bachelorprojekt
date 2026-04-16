@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
   const { body } = await request.json() as { body: string };
   if (!body?.trim()) return new Response(JSON.stringify({ error: 'body required' }), { status: 400 });
   const thread = await getOrCreateThreadForCustomer(customer.id);
-  const msg = await addMessage({ threadId: thread.id, senderId: session.sub, senderRole: 'user', body: body.trim() });
+  const msg = await addMessage({ threadId: thread.id, senderId: session.sub, senderRole: 'user', senderCustomerId: customer.id, body: body.trim() });
   await createInboxItem({
     type: 'user_message',
     referenceId: String(thread.id),

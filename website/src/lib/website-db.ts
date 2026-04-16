@@ -1,5 +1,5 @@
 // Meeting Knowledge Pipeline — PostgreSQL client.
-// Writes meeting data, transcripts, artifacts, and embeddings to the meetings DB.
+// Writes meeting data, transcripts, and artifacts to the meetings DB.
 // Uses the 'pg' npm package for direct database access.
 
 import pg from 'pg';
@@ -8,9 +8,6 @@ const { Pool } = pg;
 
 const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
-const EMBEDDING_URL = process.env.EMBEDDING_URL
-  || 'http://embedding.workspace.svc.cluster.local:8080';
-
 // Use Node.js's built-in DNS resolver (dns.resolve4) instead of musl libc's
 // getaddrinfo. musl opens a *connected* UDP socket to the ClusterIP, but after
 // kube-proxy DNAT the CoreDNS response arrives from the pod IP — a connected
@@ -285,86 +282,6 @@ export async function saveInsight(params: {
     [params.meetingId, params.insightType, params.content, params.generatedBy || 'system']
   );
   return result.rows[0].id;
-}
-
-// ── Embeddings ──────────────────────────────────────────────────────────────
-
-async function generateEmbedding(text: string): Promise<number[] | null> {
-  try {
-    const res = await fetch(`${EMBEDDING_URL}/embeddings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        input: [text],
-        model: 'BAAI/bge-base-en-v1.5',
-      }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.data?.[0]?.embedding || null;
-  } catch {
-    return null;
-  }
-}
-
-export async function generateMeetingEmbeddings(meetingId: string): Promise<number> {
-  let count = 0;
-
-  // Embed full transcript
-  const transcripts = await pool.query(
-    'SELECT id, full_text FROM transcripts WHERE meeting_id = $1', [meetingId]
-  );
-  for (const t of transcripts.rows) {
-    const embedding = await generateEmbedding(t.full_text.substring(0, 8000));
-    if (embedding) {
-      await pool.query(
-        `INSERT INTO meeting_embeddings (source_type, source_id, content_preview, embedding, model)
-         VALUES ('transcript', $1, $2, $3::vector, 'BAAI/bge-base-en-v1.5')`,
-        [t.id, t.full_text.substring(0, 200), JSON.stringify(embedding)]
-      );
-      count++;
-    }
-  }
-
-  // Embed transcript segments (in chunks of ~5 segments for context)
-  const segments = await pool.query(
-    `SELECT ts.id, ts.text, ts.start_time FROM transcript_segments ts
-     JOIN transcripts t ON ts.transcript_id = t.id
-     WHERE t.meeting_id = $1 ORDER BY ts.segment_index`, [meetingId]
-  );
-  const segRows = segments.rows;
-  for (let i = 0; i < segRows.length; i += 5) {
-    const chunk = segRows.slice(i, i + 5);
-    const chunkText = chunk.map((s: { text: string }) => s.text).join(' ');
-    const embedding = await generateEmbedding(chunkText);
-    if (embedding) {
-      await pool.query(
-        `INSERT INTO meeting_embeddings (source_type, source_id, content_preview, embedding, model)
-         VALUES ('segment', $1, $2, $3::vector, 'BAAI/bge-base-en-v1.5')`,
-        [chunk[0].id, chunkText.substring(0, 200), JSON.stringify(embedding)]
-      );
-      count++;
-    }
-  }
-
-  // Embed artifacts with text content
-  const artifacts = await pool.query(
-    'SELECT id, content_text FROM meeting_artifacts WHERE meeting_id = $1 AND content_text IS NOT NULL',
-    [meetingId]
-  );
-  for (const a of artifacts.rows) {
-    const embedding = await generateEmbedding(a.content_text.substring(0, 8000));
-    if (embedding) {
-      await pool.query(
-        `INSERT INTO meeting_embeddings (source_type, source_id, content_preview, embedding, model)
-         VALUES ('artifact', $1, $2, $3::vector, 'BAAI/bge-base-en-v1.5')`,
-        [a.id, a.content_text.substring(0, 200), JSON.stringify(embedding)]
-      );
-      count++;
-    }
-  }
-
-  return count;
 }
 
 // ── Meeting History ──────────────────────────────────────────────────────────

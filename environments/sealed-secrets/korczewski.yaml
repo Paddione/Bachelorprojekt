@@ -54,3 +54,17 @@ spec:
       name: workspace-secrets
       namespace: workspace
     type: Opaque
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: website-secrets
+  namespace: website
+spec:
+  encryptedData:
+    CRON_SECRET: AgCoRw2Jdu6SkpJFosNXYQY49y+8tnVK9z3SnvZmiZlH3ziUHhvWlTz3wItVFfbqJ2rEjMytwW9L06yDVJaoMLWVlr0/CYzHtieJaPixTmjFktIw6bcw0TyD7eKlblOAwBpC/q/mj6P/DSkJaNsUf9q837PKxYtmKrXhwGw14asJIsg/kgYMGfo5YJv533Z3AXFgnM/rekcKxMtsguPKDi9emVjnoDwR757HdlDYtx+3X8zgWvQNZ1+vPdzU3G3CdqJNATT+nO0OhxuuNAB4HSAKXxWcLCtyesLfe3sSaPeXZGqN/rhWYQp4oxXcpJkZsZ+KtOlZZgnFgCOW/DQQMrwS7UtuOwcGL5ddCbIIbCYUCwPj/3DQ2ZRUdN7kdDAjZdkHLusn3gAQSGbB/GpzLBxZAJiBSxIbzE7G0zX0/fYNdxX5/wCujcPc70Fbka+eg2MvgCWI+bdOEmokQdGbbTrCuPw/dK/V2uZD+vtQG5bDufJXnsXrMJt7OMIOzgB6or34AsfRrISTL+kN3sIeOFU4XH9FU5j6GisbrLCG/uhe49TWc3CnHFAqKlRxmuDi1HGVoA5wCTYAOTg9KTm54wlhr+koHbRD+Kfc5DRxew3MoEXQO6iuYUXrZkN3bjb4N1IhTS4SK3RTMybs1+AmcXpJLOUCV9N12tP8zdtR1wYHTAILpl96nzVeBnZlK1CQPSYP0Tx9SDiENhUFf/kMr7tLgpP7Evw+YF0Cou8+8G7fUIf8ZksAAvlAkvK3
+  template:
+    metadata:
+      name: website-secrets
+      namespace: website
+    type: Opaque

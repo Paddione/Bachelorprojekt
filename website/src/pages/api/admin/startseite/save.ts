@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       title: g('hero_title'),
       subtitle: g('hero_subtitle'),
     },
-    stats: [0, 1, 2, 3].map(i => ({
+    stats: Array.from({ length: parseInt(g('stats_count') || '4', 10) }, (_, i) => ({
       value: g(`stat_${i}_value`),
       label: g(`stat_${i}_label`),
     })),
@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     servicesSubheadline: g('services_subheadline'),
     whyMeHeadline: g('whyme_headline'),
     whyMeIntro: g('whyme_intro'),
-    whyMePoints: [0, 1, 2].map(i => ({
+    whyMePoints: Array.from({ length: parseInt(g('whyme_count') || '3', 10) }, (_, i) => ({
       title: g(`whyme_point_${i}_title`),
       text: g(`whyme_point_${i}_text`),
     })),

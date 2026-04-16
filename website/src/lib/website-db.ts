@@ -1818,6 +1818,7 @@ export interface HomepageHero {
 export interface WhyMePoint {
   title: string;
   text: string;
+  iconPath?: string;
 }
 
 export interface StatItem {

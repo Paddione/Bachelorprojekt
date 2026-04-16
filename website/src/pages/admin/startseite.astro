@@ -51,6 +51,7 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
       <!-- Stats -->
       <div class={sectionCls}>
         <h2 class="text-xl font-bold text-light font-serif">Statistiken (Trust-Indikatoren)</h2>
+        <input type="hidden" name="stats_count" value={hp.stats.length} />
         {hp.stats.map((stat, i) => (
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -90,6 +91,7 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
           <textarea name="whyme_intro" rows={3} class={`${inputCls} resize-none`}>{hp.whyMeIntro}</textarea>
         </div>
         <p class="text-xs font-semibold text-gold uppercase tracking-widest">3 Punkte</p>
+        <input type="hidden" name="whyme_count" value={hp.whyMePoints.length} />
         {hp.whyMePoints.map((pt, i) => (
           <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2">
             <div>

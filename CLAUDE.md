@@ -38,7 +38,6 @@ task workspace:port-forward      # Forward shared-db to localhost:5432
 task workspace:post-setup        # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
 task workspace:stripe-setup      # Register Stripe as payment gateway in Invoice Ninja
 task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
-task workspace:monitoring        # Install Prometheus + Grafana + DSGVO dashboard (NFA-02)
 task workspace:dsgvo-check       # Run DSGVO compliance verification (NFA-01)
 task workspace:claude-code:setup    # Register MCP servers in Claude Code database
 ```

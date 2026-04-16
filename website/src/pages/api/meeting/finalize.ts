@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import { getOrCreateCollection, createDocument } from '../../../lib/outline';
 import { postToChannel, notifyPipelineError } from '../../../lib/mattermost';
 import { getRecordingFile } from '../../../lib/talk';
 import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
@@ -10,7 +9,7 @@ import {
 } from '../../../lib/website-db';
 import { generateMeetingInsights } from '../../../lib/claude';
 
-// Finalize a meeting: collect artifacts, create Outline profile, trigger Claude Code.
+// Finalize a meeting: collect artifacts, trigger Claude Code.
 // Called by the Mattermost "Abschliessen" action or directly via API.
 //
 // Body: {
@@ -172,54 +171,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // ── 6. Create Outline documents ────────────────────────────────
-    try {
-      const collection = await getOrCreateCollection(
-        `Kunde: ${customerName}`,
-        `Kundenakte fuer ${customerName} (${customerEmail})`
-      );
-
-      if (collection) {
-        await upsertCustomer({
-          name: customerName,
-          email: customerEmail,
-          outlineCollectionId: collection.id,
-        });
-
-        results.push(`Outline-Kollektion: ${collection.url}`);
-
-        const profileDoc = await createDocument({
-          title: `Profil: ${customerName}`,
-          collectionId: collection.id,
-          text: `# Kundenprofil: ${customerName}\n\n## Kontaktdaten\n- **E-Mail:** ${customerEmail}\n- **Erstellt:** ${new Date().toLocaleDateString('de-DE')}\n\n## Coaching-Richtung\n_Wird durch Claude Code nach Meetings automatisch aktualisiert._\n\n---\n*Automatisch gepflegt durch Meeting-Pipeline.*\n`,
-        });
-        if (profileDoc) results.push(`Profil-Dokument: ${profileDoc.url}`);
-
-        const sessionTitle = `${meetingType || 'Meeting'} — ${sessionDate}`;
-        let sessionContent = `# ${sessionTitle}\n\n**Kunde:** ${customerName} (${customerEmail})\n**Datum:** ${sessionDate}\n**Typ:** ${meetingType || 'Nicht angegeben'}\n\n`;
-        if (transcriptText) sessionContent += `## Transkript\n\n${transcriptText}\n\n`;
-        if (whiteboardArtifacts.length > 0) {
-          sessionContent += `## Whiteboard-Artefakte\n\n`;
-          for (const wb of whiteboardArtifacts) {
-            const text = extractWhiteboardText(wb.data);
-            if (text) sessionContent += `### ${wb.name}\n${text}\n\n`;
-          }
-        }
-        sessionContent += `## Claude Code-Analyse\n\n_Analyse wird automatisch erstellt._\n\n---\n*Erstellt am ${new Date().toLocaleString('de-DE')}*\n`;
-
-        const sessionDoc = await createDocument({ title: sessionTitle, collectionId: collection.id, text: sessionContent });
-        if (sessionDoc) results.push(`Session-Dokument: ${sessionDoc.url}`);
-      } else {
-        errors.push('Outline nicht erreichbar');
-        await notifyPipelineError({ step: 'Outline-Dokumente erstellen', error: 'Outline API nicht erreichbar oder kein API-Key konfiguriert', customerName, meetingId });
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Outline: ${msg}`);
-      await notifyPipelineError({ step: 'Outline-Dokumente erstellen', error: msg, customerName, meetingId });
-    }
-
-    // ── 7. Generate embeddings (best-effort) ──────────────────────
+    // ── 6. Generate embeddings (best-effort) ──────────────────────
     try {
       const embeddingCount = await generateMeetingEmbeddings(meeting.id);
       if (embeddingCount > 0) results.push(`Embeddings: ${embeddingCount} Vektoren generiert`);

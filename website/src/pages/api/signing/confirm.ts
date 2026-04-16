@@ -9,12 +9,6 @@ import {
   SIGNED_DIR,
 } from '../../../lib/nextcloud-files';
 import { postToChannel } from '../../../lib/mattermost';
-import {
-  searchDocuments,
-  updateDocument,
-  createDocument,
-  getOrCreateCollection,
-} from '../../../lib/outline';
 
 const MATTERMOST_SIGNING_CHANNEL = process.env.MATTERMOST_SIGNING_CHANNEL || '';
 
@@ -31,8 +25,7 @@ const MATTERMOST_SIGNING_CHANNEL = process.env.MATTERMOST_SIGNING_CHANNEL || '';
  * 3. Computes SHA-256 hash of the file server-side.
  * 4. Moves the file from pending-signatures/ to signed/.
  * 5. Posts confirmation to Mattermost.
- * 6. Appends a record to the client's Outline signing log.
- * 7. Returns { success: true, hash: "<sha256>" }.
+ * 6. Returns { success: true, hash: "<sha256>" }.
  */
 export const POST: APIRoute = async ({ request }) => {
   // --- Authentication ---
@@ -142,39 +135,6 @@ export const POST: APIRoute = async ({ request }) => {
       } catch {
         // Non-fatal: continue even if Mattermost is unavailable
       }
-    }
-
-    // --- Outline signing log (non-fatal) ---
-    // Look for a collection named after the client, then find or create a signing-log document.
-    try {
-      const collectionName = `Kunde: ${displayName}`;
-      const collection = await getOrCreateCollection(collectionName);
-      if (collection) {
-        const logTitle = `Signaturprotokoll - ${username}`;
-        const existing = await searchDocuments(logTitle, collection.id);
-        const logEntry =
-          `\n| ${dateStr} ${timeStr} UTC | ${documentName} | \`${fileHash}\` |`;
-
-        if (existing.length > 0) {
-          // Append to the first matching document
-          await updateDocument(existing[0].id, logEntry, true);
-        } else {
-          // Create a new signing log document with a table header
-          const initialText =
-            `# ${logTitle}\n\n` +
-            `| Datum/Uhrzeit | Dokument | SHA-256 |\n` +
-            `|---|---|---|\n` +
-            `| ${dateStr} ${timeStr} UTC | ${documentName} | \`${fileHash}\` |`;
-          await createDocument({
-            title: logTitle,
-            text: initialText,
-            collectionId: collection.id,
-            publish: true,
-          });
-        }
-      }
-    } catch {
-      // Non-fatal: Outline logging failure must not block the signing response
     }
 
     return new Response(JSON.stringify({ success: true, hash: fileHash }), {

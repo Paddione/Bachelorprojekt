@@ -35,8 +35,6 @@ resources:
   - oauth2-proxy-docs.yaml
   - billing-bot.yaml
   - billing-bot-init-job.yaml
-  # Suche (FA-07)
-  - opensearch.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-secrets.yaml
@@ -45,8 +43,6 @@ resources:
   - mailpit.yaml
   # Dokumentation
   - docs.yaml
-  # Wiki
-  - outline.yaml
   # Anforderungs-Tracking
   - tracking.yaml
   # Transkription

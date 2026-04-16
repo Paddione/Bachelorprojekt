@@ -20,7 +20,6 @@ Die Workspace-Plattform laeuft vollstaendig self-hosted in einem Kubernetes-Clus
 | **Nextcloud Whiteboard** | board.{domain} | Whiteboard-Kollaboration |
 | **Invoice Ninja** | billing.{domain} | Buchhaltung, Rechnungen, Angebote (via OAuth2-Proxy) |
 | **Vaultwarden** | vault.{domain} | Team-Passwort-Manager (Bitwarden-kompatibel, SSO) |
-| **Outline** | wiki.{domain} | Wissensdatenbank / Wiki |
 | **Mailpit** | mail.{domain} | E-Mail-Testumgebung (SMTP Web-UI) |
 | **Dokumentation** | docs.{domain} | Plattform-Dokumentation (Docsify) |
 | **Website** | web.{domain} | Unternehmens-Website (Astro + Svelte) |
@@ -33,7 +32,6 @@ Alle Dienste nutzen **Keycloak SSO** — Nutzer melden sich einmal an und sind u
 | Dienst | Zweck |
 |--------|-------|
 | **shared-db** | PostgreSQL 16 mit pgvector — zentrale Datenbank fuer alle Services |
-| **OpenSearch** | Volltextsuche fuer Mattermost |
 | **Billing-Bot** | Mattermost-Bot fuer Invoice Ninja (`/billing` Slash-Command) |
 | **Whisper** | Sprache-zu-Text Transkription (faster-whisper) |
 | **Janus + NATS + coturn** | WebRTC-Infrastruktur fuer Nextcloud Talk |
@@ -73,7 +71,6 @@ Du hast Zugriff auf folgende MCP-Server (Model Context Protocol Tools):
 - `mattermost` — Kanaele, Nachrichten, Teams
 - `nextcloud` — Dateien, Shares, App-Konfiguration
 - `vaultwarden` — Vault-Metadaten
-- `outline` — Wiki-Seiten, Dokumente
 
 **Beispiel-Queries:**
 - Mattermost-Nutzer: `SELECT count(*) FROM Users WHERE DeleteAt = 0`
@@ -89,7 +86,7 @@ Du hast Zugriff auf folgende MCP-Server (Model Context Protocol Tools):
 
 | Tabelle | Inhalt |
 |---------|--------|
-| `customers` | Kundenstammdaten (Name, E-Mail, Keycloak/Mattermost/Outline IDs) |
+| `customers` | Kundenstammdaten (Name, E-Mail, Keycloak/Mattermost IDs) |
 | `meetings` | Meeting-Historie (Typ, Datum, Status, Talk-Room-Token) |
 | `transcripts` | Volltext-Transkripte (Whisper-generiert, Deutsch) |
 | `transcript_segments` | Zeitgestempelte Segmente (Start/Ende/Text/Sprecher) |
@@ -102,7 +99,6 @@ Du hast Zugriff auf folgende MCP-Server (Model Context Protocol Tools):
 **Workflow: Persistent Memory**
 1. **Vor dem Meeting:** Lies bisherige Transkripte und Insights des Kunden
 2. **Nach dem Meeting:** Erstelle Insights (Zusammenfassung, Aktionspunkte) und schreibe sie in `meeting_insights`
-3. **Outline-Pflege:** Aktualisiere Kundenprofil-Dokumente in Outline basierend auf neuen Erkenntnissen
 
 ### 4. Mattermost MCP (claude-code-mcp-mattermost:8000)
 **Wann nutzen:** Nachrichten lesen/senden, Kanaele verwalten, Team-Aktivitaet pruefen.
@@ -185,7 +181,6 @@ Keycloak ist der zentrale Identity Provider. Alle Services authentifizieren uebe
 - **Nextcloud** — OIDC-Login-Plugin
 - **Invoice Ninja** — geschuetzt durch OAuth2-Proxy
 - **Vaultwarden** — nativer SSO-Support
-- **Outline** — OIDC-Client
 
 ### Neuen Benutzer anlegen
 1. Oeffne Keycloak Admin-Konsole: `auth.{domain}`

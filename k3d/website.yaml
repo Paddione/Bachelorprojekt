@@ -26,7 +26,6 @@ data:
   AUTH_EXTERNAL_URL: "${AUTH_EXTERNAL_URL}"
   VAULT_EXTERNAL_URL: "${VAULT_EXTERNAL_URL}"
   WHITEBOARD_EXTERNAL_URL: "${WHITEBOARD_EXTERNAL_URL}"
-  WIKI_EXTERNAL_URL: "${WIKI_EXTERNAL_URL}"
   BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
   KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
@@ -73,10 +72,8 @@ data:
   # InvoiceNinja
   INVOICENINJA_URL: "http://invoiceninja.workspace.svc.cluster.local/api/v1"
   INVOICENINJA_API_TOKEN: ""
-  # Whisper + Outline
+  # Whisper
   WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
-  OUTLINE_URL: "http://outline.workspace.svc.cluster.local"
-  OUTLINE_API_KEY: ""
   ANTHROPIC_API_KEY: ""
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"

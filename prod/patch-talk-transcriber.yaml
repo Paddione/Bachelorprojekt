@@ -22,3 +22,14 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: NEXTCLOUD_ADMIN_PASSWORD
+            - name: NC_DB_HOST
+              value: "shared-db"
+            - name: NC_DB_NAME
+              value: "nextcloud"
+            - name: NC_DB_USER
+              value: "nextcloud"
+            - name: NC_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: NEXTCLOUD_DB_PASSWORD

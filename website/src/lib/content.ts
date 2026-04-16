@@ -1,7 +1,22 @@
 import { config } from '../config/index';
-import { getServiceConfig, getLeistungenConfig, getSiteSetting, getReferenzen } from './website-db';
+import {
+  getServiceConfig,
+  getLeistungenConfig,
+  getSiteSetting,
+  getReferenzen,
+  getHomepageContent,
+  getUebermichContent,
+  getFaqContent,
+  getKontaktContent,
+} from './website-db';
 import type { HomepageService, LeistungCategory } from '../config/types';
 import type { ReferenzItem } from './website-db';
+import type {
+  HomepageContent,
+  UebermichContent,
+  FaqItem,
+  KontaktContent,
+} from './website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
@@ -80,4 +95,41 @@ export async function getEffectiveLeistungen(): Promise<LeistungCategory[]> {
       services: mergedServices,
     };
   });
+}
+
+export async function getEffectiveHomepage(): Promise<HomepageContent> {
+  const db = await getHomepageContent(BRAND).catch(() => null);
+  const c = config.homepage;
+  // Fallback: BrandConfig.homepage has no hero sub-object, so title/tagline are
+  // hardcoded here. The admin UI (admin/startseite) overwrites this on first save.
+  if (!db) return {
+    hero: { title: 'Digital Coach &\nFührungskräfte-Mentor', subtitle: c.whyMeIntro, tagline: 'Praxisnah. Strukturiert. Auf Augenhöhe.' },
+    stats: c.stats,
+    servicesHeadline: c.servicesHeadline,
+    servicesSubheadline: c.servicesSubheadline,
+    whyMeHeadline: c.whyMeHeadline,
+    whyMeIntro: c.whyMeIntro,
+    whyMePoints: c.whyMePoints.map(p => ({ title: p.title, text: p.text })),
+    quote: c.quote,
+    quoteName: c.quoteName,
+  };
+  return db;
+}
+
+export async function getEffectiveUebermich(): Promise<UebermichContent> {
+  const db = await getUebermichContent(BRAND).catch(() => null);
+  if (!db) return config.uebermich;
+  return db;
+}
+
+export async function getEffectiveFaq(): Promise<FaqItem[]> {
+  const db = await getFaqContent(BRAND).catch(() => null);
+  if (!db) return config.faq;
+  return db;
+}
+
+export async function getEffectiveKontakt(): Promise<KontaktContent> {
+  const db = await getKontaktContent(BRAND).catch(() => null);
+  if (!db) return config.kontakt;
+  return db;
 }

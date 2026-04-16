@@ -1,0 +1,109 @@
+---
+import '../styles/global.css';
+import { config } from '../config/index';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const path = Astro.url.pathname;
+
+const navGroups = [
+  {
+    label: 'Übersicht',
+    items: [
+      { href: '/admin', label: 'Dashboard', icon: '📊' },
+    ],
+  },
+  {
+    label: 'Betrieb',
+    items: [
+      { href: '/admin/bugs',         label: 'Bugs',          icon: '🐛' },
+      { href: '/admin/termine',      label: 'Termine',       icon: '📅' },
+      { href: '/admin/clients',      label: 'Clients',       icon: '👥' },
+      { href: '/admin/mattermost',   label: 'Mattermost',    icon: '💬' },
+      { href: '/admin/projekte',     label: 'Projekte',      icon: '📋' },
+      { href: '/admin/zeiterfassung',label: 'Zeiterfassung', icon: '⏱️' },
+      { href: '/admin/rechnungen',   label: 'Rechnungen',    icon: '💶' },
+      { href: '/admin/followups',    label: 'Follow-ups',    icon: '🔔' },
+      { href: '/admin/kalender',     label: 'Kalender',      icon: '🗓️' },
+    ],
+  },
+  {
+    label: 'Website',
+    items: [
+      { href: '/admin/startseite',   label: 'Startseite',    icon: '🏠' },
+      { href: '/admin/uebermich',    label: 'Über mich',     icon: '🙋' },
+      { href: '/admin/angebote',     label: 'Angebote',      icon: '🛍️' },
+      { href: '/admin/faq',          label: 'FAQ',           icon: '❓' },
+      { href: '/admin/kontakt',      label: 'Kontakt',       icon: '✉️' },
+      { href: '/admin/referenzen',   label: 'Referenzen',    icon: '🏆' },
+      { href: '/admin/rechtliches',  label: 'Rechtliches',   icon: '⚖️' },
+    ],
+  },
+];
+
+function isActive(href: string): boolean {
+  if (href === '/admin') return path === '/admin';
+  return path.startsWith(href);
+}
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+    <title>{title} | Admin — {config.meta.siteTitle}</title>
+  </head>
+  <body class="min-h-screen bg-dark text-light flex">
+
+    <!-- Sidebar -->
+    <aside class="w-52 flex-shrink-0 min-h-screen bg-dark-light border-r border-dark-lighter flex flex-col">
+      <div class="px-4 py-5 border-b border-dark-lighter">
+        <a href="/admin" class="text-gold font-bold text-lg font-serif leading-tight">Admin</a>
+        <p class="text-xs text-muted mt-0.5">{config.meta.siteTitle}</p>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-5">
+        {navGroups.map(group => (
+          <div>
+            <p class="px-2 mb-1.5 text-xs font-semibold text-muted uppercase tracking-widest">{group.label}</p>
+            <ul class="space-y-0.5">
+              {group.items.map(item => (
+                <li>
+                  <a
+                    href={item.href}
+                    class={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-gold/10 text-gold'
+                        : 'text-muted hover:text-light hover:bg-dark-lighter'
+                    }`}
+                  >
+                    <span class="text-base leading-none">{item.icon}</span>
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+
+      <div class="px-4 py-4 border-t border-dark-lighter">
+        <a href="/" class="text-xs text-muted hover:text-gold transition-colors">← Website</a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 min-h-screen overflow-y-auto">
+      <slot />
+    </main>
+
+  </body>
+</html>

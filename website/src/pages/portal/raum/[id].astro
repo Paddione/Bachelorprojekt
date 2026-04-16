@@ -1,0 +1,26 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ChatRoomPanel from '../../../components/ChatRoomPanel.svelte';
+import { getSession, getLoginUrl } from '../../../lib/auth';
+import { getCustomerByEmail, listRoomsForCustomer } from '../../../lib/messaging-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+
+const customer = await getCustomerByEmail(session.email);
+if (!customer) return Astro.redirect('/portal');
+
+const rooms = await listRoomsForCustomer(customer.id);
+const roomId = parseInt(Astro.params.id!, 10);
+const room = rooms.find(r => r.id === roomId);
+if (!room) return Astro.redirect('/portal');
+---
+
+<Layout title={room.name}>
+  <div style="max-width:1000px;margin:48px auto;padding:0 16px;height:calc(100vh - 120px)">
+    <h2 style="margin-bottom:16px">{room.name}</h2>
+    <div style="height:calc(100% - 50px)">
+      <ChatRoomPanel rooms={[room]} role="user" messagesBaseUrl="/api/portal/rooms" client:load />
+    </div>
+  </div>
+</Layout>

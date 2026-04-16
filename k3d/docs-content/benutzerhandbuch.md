@@ -1,4 +1,16 @@
-# Benutzerhandbuch – Workspace
+<div class="page-hero">
+  <span class="page-hero-icon">📋</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Benutzerhandbuch</div>
+    <p class="page-hero-desc">Willkommen im Workspace — alles was Du brauchst, um sofort loszulegen. Chat, Dateien, Videokonferenzen, KI-Assistent und mehr, erklärt ohne technisches Vorwissen.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Mitarbeiter</span>
+      <span class="page-hero-tag">Kein Vorwissen nötig</span>
+      <span class="page-hero-tag">Single Sign-On</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
 
 Willkommen beim Workspace! Dieses Handbuch erklärt, welche Werkzeuge Dir zur Verfügung stehen, wofür Du sie nutzen kannst und wie Du einfache Aufgaben erledigst – ganz ohne technisches Vorwissen.
 

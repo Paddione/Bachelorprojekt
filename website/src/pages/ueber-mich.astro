@@ -2,8 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
+import { getEffectiveUebermich } from '../lib/content';
 
-const { uebermich, contact } = config;
+const { contact } = config;
+const uebermich = await getEffectiveUebermich();
 ---
 
 <Layout title="Über mich" description={`Über ${contact.name} – ${config.legal.tagline}`}>

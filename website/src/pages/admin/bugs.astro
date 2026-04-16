@@ -1,8 +1,8 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { listBugTickets } from '../../lib/meetings-db';
-import type { BugTicketRow } from '../../lib/meetings-db';
+import { listBugTickets } from '../../lib/website-db';
+import type { BugTicketRow } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
@@ -56,13 +56,9 @@ function filterLink(overrides: Partial<{ status: string; category: string; q: st
 }
 ---
 
-<Layout title="Admin — Bug Reports">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
+<AdminLayout title="Admin — Bug Reports">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-6xl mx-auto px-6">
-
-      <div class="mb-2">
-        <a href="/admin" class="text-muted hover:text-gold text-sm">← Zurück zur Übersicht</a>
-      </div>
 
       <div class="mb-8 flex items-center gap-4">
         <div>
@@ -155,64 +151,91 @@ function filterLink(overrides: Partial<{ status: string; category: string; q: st
                 </td>
               </tr>
             ) : tickets.map(ticket => (
-              <tr class={`border-b border-dark-lighter last:border-0 transition-opacity ${ticket.status === 'archived' ? 'opacity-40' : ''}`}>
-                <td class="px-4 py-3 font-mono text-xs text-gold whitespace-nowrap">{ticket.ticketId}</td>
-                <td class="px-4 py-3 text-sm text-light whitespace-nowrap">
-                  {CATEGORY_LABELS[ticket.category] ?? ticket.category}
-                </td>
-                <td class="px-4 py-3 text-sm text-muted">{ticket.reporterEmail}</td>
-                <td class="px-4 py-3 text-xs text-muted max-w-[180px] truncate" title={ticket.url ?? ''}>
-                  {ticket.url ? ticket.url.replace(/^https?:\/\//, '').slice(0, 35) + (ticket.url.length > 35 ? '…' : '') : '—'}
-                </td>
-                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap">{formatDate(ticket.createdAt)}</td>
-                <td class="px-4 py-3">
-                  {ticket.status === 'open' && (
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-300 border border-yellow-800 whitespace-nowrap">
-                      🕐 Offen
-                    </span>
-                  )}
-                  {ticket.status === 'resolved' && (
-                    <div>
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-green-900/40 text-green-300 border border-green-800 whitespace-nowrap">
-                        ✓ Erledigt
+              <>
+                <tr class={`border-b border-dark-lighter/50 transition-opacity ${ticket.status === 'archived' ? 'opacity-40' : ''}`}>
+                  <td class="px-4 pt-3 pb-1 font-mono text-xs text-gold whitespace-nowrap align-top">{ticket.ticketId}</td>
+                  <td class="px-4 pt-3 pb-1 text-sm text-light whitespace-nowrap align-top">
+                    {CATEGORY_LABELS[ticket.category] ?? ticket.category}
+                  </td>
+                  <td class="px-4 pt-3 pb-1 text-sm text-muted align-top">{ticket.reporterEmail}</td>
+                  <td class="px-4 pt-3 pb-1 text-xs text-muted max-w-[180px] truncate align-top" title={ticket.url ?? ''}>
+                    {ticket.url ? ticket.url.replace(/^https?:\/\//, '').slice(0, 35) + (ticket.url.length > 35 ? '…' : '') : '—'}
+                  </td>
+                  <td class="px-4 pt-3 pb-1 text-sm text-muted whitespace-nowrap align-top">{formatDate(ticket.createdAt)}</td>
+                  <td class="px-4 pt-3 pb-1 align-top">
+                    {ticket.status === 'open' && (
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-300 border border-yellow-800 whitespace-nowrap">
+                        🕐 Offen
                       </span>
-                      {ticket.resolutionNote && (
-                        <p class="text-xs text-muted mt-1 max-w-[200px]">
-                          {ticket.resolutionNote.slice(0, 80)}{ticket.resolutionNote.length > 80 ? '…' : ''}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  {ticket.status === 'archived' && (
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-dark border border-dark-lighter text-muted whitespace-nowrap">
-                      🗂 Archiviert
-                    </span>
-                  )}
-                </td>
-                <td class="px-4 py-3">
-                  {ticket.status === 'open' && (
-                    <div class="flex gap-2 justify-end">
-                      <button
-                        type="button"
-                        class="resolve-btn px-3 py-1 text-xs bg-green-900/30 text-green-300 border border-green-800 rounded hover:bg-green-900/50 transition-colors"
-                        data-ticket-id={ticket.ticketId}
-                      >
-                        Erledigt
-                      </button>
-                      <form method="post" action="/api/admin/bugs/archive">
-                        <input type="hidden" name="ticketId"  value={ticket.ticketId} />
-                        <input type="hidden" name="status"    value={statusFilter} />
-                        <input type="hidden" name="category"  value={categoryFilter} />
-                        <input type="hidden" name="q"         value={qFilter} />
-                        <button type="submit"
-                          class="px-3 py-1 text-xs bg-dark border border-dark-lighter text-muted rounded hover:text-light hover:border-gold/40 transition-colors">
-                          Archivieren
+                    )}
+                    {ticket.status === 'resolved' && (
+                      <div>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-green-900/40 text-green-300 border border-green-800 whitespace-nowrap">
+                          ✓ Erledigt
+                        </span>
+                        {ticket.resolutionNote && (
+                          <p class="text-xs text-muted mt-1 max-w-[200px]">
+                            {ticket.resolutionNote.slice(0, 80)}{ticket.resolutionNote.length > 80 ? '…' : ''}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {ticket.status === 'archived' && (
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-dark border border-dark-lighter text-muted whitespace-nowrap">
+                        🗂 Archiviert
+                      </span>
+                    )}
+                  </td>
+                  <td class="px-4 pt-3 pb-1 align-top">
+                    {ticket.status === 'open' && (
+                      <div class="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          class="resolve-btn px-3 py-1 text-xs bg-green-900/30 text-green-300 border border-green-800 rounded hover:bg-green-900/50 transition-colors"
+                          data-ticket-id={ticket.ticketId}
+                        >
+                          Erledigt
                         </button>
-                      </form>
-                    </div>
-                  )}
-                </td>
-              </tr>
+                        <form method="post" action="/api/admin/bugs/archive">
+                          <input type="hidden" name="ticketId"  value={ticket.ticketId} />
+                          <input type="hidden" name="status"    value={statusFilter} />
+                          <input type="hidden" name="category"  value={categoryFilter} />
+                          <input type="hidden" name="q"         value={qFilter} />
+                          <button type="submit"
+                            class="px-3 py-1 text-xs bg-dark border border-dark-lighter text-muted rounded hover:text-light hover:border-gold/40 transition-colors">
+                            Archivieren
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                {/* Description + screenshots sub-row */}
+                <tr class={`border-b border-dark-lighter last:border-0 transition-opacity ${ticket.status === 'archived' ? 'opacity-40' : ''}`}>
+                  <td colspan="7" class="px-4 pb-3 pt-0">
+                    <p class="text-sm text-light/80 leading-relaxed whitespace-pre-wrap">{ticket.description}</p>
+                    {ticket.screenshots && ticket.screenshots.length > 0 && (
+                      <div class="flex flex-wrap gap-2 mt-2">
+                        {ticket.screenshots.map((src, idx) => (
+                          <button
+                            type="button"
+                            class="lightbox-trigger block rounded overflow-hidden border border-dark-lighter hover:border-gold/60 transition-colors"
+                            data-src={src}
+                            data-idx={idx}
+                            aria-label={`Screenshot ${idx + 1} vergrößern`}
+                          >
+                            <img
+                              src={src}
+                              alt={`Screenshot ${idx + 1}`}
+                              class="h-20 w-auto object-cover block"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              </>
             ))}
           </tbody>
         </table>
@@ -220,6 +243,20 @@ function filterLink(overrides: Partial<{ status: string; category: string; q: st
 
     </div>
   </section>
+
+  {/* Lightbox */}
+  <div id="lightbox"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 p-4 cursor-zoom-out"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Screenshot Vollansicht"
+  >
+    <button type="button" id="lightbox-close"
+      class="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none bg-transparent border-0 cursor-pointer z-10"
+      aria-label="Schließen">✕</button>
+    <img id="lightbox-img" src="" alt="Screenshot Vollansicht"
+      class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl cursor-default" />
+  </div>
 
   {/* Resolve dialog */}
   <dialog id="resolve-dialog"
@@ -255,9 +292,10 @@ function filterLink(overrides: Partial<{ status: string; category: string; q: st
       </div>
     </form>
   </dialog>
-</Layout>
+</AdminLayout>
 
 <script>
+  // Resolve dialog
   const dialog = document.getElementById('resolve-dialog') as HTMLDialogElement;
   const ticketIdInput = document.getElementById('resolve-ticket-id') as HTMLInputElement;
   const ticketLabel = document.getElementById('resolve-dialog-ticket') as HTMLParagraphElement;
@@ -273,5 +311,42 @@ function filterLink(overrides: Partial<{ status: string; category: string; q: st
 
   document.getElementById('resolve-cancel')?.addEventListener('click', () => {
     dialog.close();
+  });
+
+  // Lightbox
+  const lightbox = document.getElementById('lightbox') as HTMLDivElement;
+  const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+
+  function openLightbox(src: string) {
+    lightboxImg.src = src;
+    lightbox.classList.remove('hidden');
+    lightbox.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.add('hidden');
+    lightbox.classList.remove('flex');
+    lightboxImg.src = '';
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.lightbox-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const src = btn.dataset.src ?? '';
+      if (src) openLightbox(src);
+    });
+  });
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.getElementById('lightbox-close')?.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) {
+      closeLightbox();
+    }
   });
 </script>

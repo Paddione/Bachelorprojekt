@@ -1,19 +1,5 @@
 # Dokumentation
 
-## Live-Dokumentation
-
-Die vollstaendige, menschenlesbare Dokumentation zu Architektur, Services, Migration und Betrieb:
-
-**[http://docs.localhost](http://docs.localhost)** (erfordert laufenden k3d-Cluster)
-
-## Anforderungen
-
-Alle Anforderungen sind in der Requirements-Uebersicht dokumentiert:
-
-| Datei | Beschreibung |
-|-------|--------------|
-| [Requirements Overview](requirements.md) | Vollstaendige Anforderungsdefinitionen (FA, SA, NFA, AK, Lieferobjekte) |
-
 ### Anforderungskategorien
 
 | Kategorie | IDs | Beschreibung |

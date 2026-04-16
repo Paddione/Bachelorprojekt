@@ -64,8 +64,9 @@ docs-site/
 node_modules/
 *.tmp
 *.bak
-docs/superpowers
+docs/superpowers/*
 !docs/superpowers/specs/
+!docs/superpowers/plans/
 files_chore.txt
 files_main.txt
 website/node_modules.task/

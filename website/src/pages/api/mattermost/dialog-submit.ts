@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { updatePost, replyToPost } from '../../../lib/mattermost';
 import { sendEmail } from '../../../lib/email';
-import { resolveBugTicket } from '../../../lib/website-db';
 
 const BRAND_INBOX: Record<string, string> = {
   mentolder: 'info@mentolder.de',
@@ -73,13 +72,6 @@ export const POST: APIRoute = async ({ request }) => {
       `**Erledigt (${now}):**\n> ${escapedNote}`;
 
     await updatePost(state.postId, updatedMessage);
-
-    // Update ticket status in DB (best-effort)
-    try {
-      await resolveBugTicket(state.ticketId, note);
-    } catch (err) {
-      console.warn('[dialog-submit] DB update failed (non-fatal):', err);
-    }
 
     // 2. Send email to the brand-appropriate inbox
     const toInbox = BRAND_INBOX[state.brand] ?? FALLBACK_INBOX;

@@ -1,0 +1,17 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import MonitoringDashboard from '../../components/admin/MonitoringDashboard.svelte';
+
+const title = "Monitoring";
+const description = "Live Kubernetes metrics and cluster events";
+---
+
+<AdminLayout title={title} description={description}>
+  <div class="space-y-6">
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">System Monitoring</h1>
+    </div>
+    
+    <MonitoringDashboard client:load />
+  </div>
+</AdminLayout>

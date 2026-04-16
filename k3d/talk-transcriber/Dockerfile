@@ -11,7 +11,8 @@ RUN pip install --no-cache-dir \
         fastapi \
         "uvicorn[standard]" \
         httpx \
-        playwright
+        playwright \
+        psycopg2-binary
 
 RUN playwright install firefox --with-deps
 

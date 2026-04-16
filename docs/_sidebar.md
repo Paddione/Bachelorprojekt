@@ -15,3 +15,6 @@
 - [Fehlerbehebung](troubleshooting.md)
 - [Anforderungen](requirements.md)
 - [MCP Actions](mcp-actions.md)
+- **Website & Admin**
+- [Stripe-Integration](stripe.md)
+- [Projektmanagement-Admin](admin-projekte.md)

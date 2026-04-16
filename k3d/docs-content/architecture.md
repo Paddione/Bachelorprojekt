@@ -1,10 +1,24 @@
+<div class="page-hero">
+  <span class="page-hero-icon">🏗️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-title">Architektur</div>
+    <p class="page-hero-desc">Systemübersicht, Kubernetes-Cluster-Topologie, Service-Abhängigkeiten und Infrastruktur-Design des Workspace MVP.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Kubernetes</span>
+      <span class="page-hero-tag">Mermaid Diagramm</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Architektur
 
 ## Systemuebersicht
 
 Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Deployments in einem k3d/k3s Cluster mit Traefik als Ingress Controller. Daten bleiben vollstaendig on-premises (DSGVO by Design).
 
-> **Tipp:** Die Service-Boxen im Diagramm sind klickbar und fuehren zu den Detail-Abschnitten weiter unten.
+> **Tipp:** Die Service-Boxen im Diagramm sind klickbar und fuehren zur jeweiligen Service-Dokumentation. Hover zeigt eine Kurzbeschreibung.
 
 ```mermaid
 flowchart TB
@@ -26,7 +40,6 @@ flowchart TB
             NC["fa:fa-cloud Nextcloud + Talk\nfiles.localhost"]
             CO["fa:fa-file-word Collabora Online\noffice.localhost"]
             WB["fa:fa-chalkboard Whiteboard\nboard.localhost"]
-            OL["fa:fa-book Outline Wiki\nwiki.localhost"]
             REC["fa:fa-record-vinyl Talk Recording"]
         end
 
@@ -62,8 +75,6 @@ flowchart TB
         subgraph data ["fa:fa-database Datenhaltung"]
             DB[("PostgreSQL 16\nshared-db\n5 Datenbanken")]
             MARIA[("MariaDB 11\ninvoiceninja")]
-            OS[("OpenSearch\nVolltextsuche")]
-            REDIS[("Redis\nOutline Cache")]
         end
 
         subgraph external ["Weitere Namespaces"]
@@ -88,7 +99,6 @@ flowchart TB
     Traefik --> MP
     Traefik --> DOCS
     Traefik --> WEB
-    Traefik --> OL
 
     %% --- OIDC (Keycloak als IdP) ---
     KC -. "OIDC" .-> MM
@@ -96,7 +106,6 @@ flowchart TB
     KC -. "OIDC" .-> IN
     KC -. "OIDC" .-> OC
     KC -. "OIDC" .-> VW
-    KC -. "OIDC" .-> OL
     KC -. "OIDC" .-> WEB
 
     %% --- Auth Proxies ---
@@ -126,18 +135,13 @@ flowchart TB
     %% --- Recording ---
     NC --> REC
 
-    %% --- Search ---
-    MM --> OS
-
     %% --- Datenbanken ---
     KC --> DB
     MM --> DB
     NC --> DB
     VW --> DB
     OC --> DB
-    OL --> DB
     IN --> MARIA
-    OL --> REDIS
 
     %% --- Monitoring ---
     PROM -.-> GRAF
@@ -148,31 +152,29 @@ flowchart TB
     IN -. "SMTP" .-> MP
 
     %% --- Klickbare Nodes ---
-    click KC "#keycloak" "Keycloak: Zentraler OIDC Identity Provider fuer SSO. Verwaltet Benutzer, Rollen und 8 OIDC-Clients. Speichert Sessions und Realm-Konfiguration in PostgreSQL."
-    click MM "#mattermost" "Mattermost: Team-Chat mit Channels, Threads und Dateifreigabe. Integriert OpenSearch fuer Volltextsuche, Webhooks fuer Automatisierung und Slash-Commands fuer billing-bot."
-    click NC "#nextcloud" "Nextcloud: Dateiverwaltung, Kalender, Kontakte und Videokonferenzen via Talk. WOPI-Integration mit Collabora fuer Office-Dokumente. WebRTC via HPB Stack."
-    click CO "#collabora" "Collabora Online: LibreOffice-basierter Office-Editor im Browser. Bearbeitet DOCX, XLSX, PPTX, ODT Dateien kollaborativ ueber WOPI-Protokoll mit Nextcloud."
-    click OC "#claude-code" "Claude Code: KI-Assistent mit Claude Sonnet 4. Nutzt MCP-Server fuer Kubernetes-Verwaltung, Datenbank-Abfragen und Browser-Automatisierung. RBAC-gesichert."
-    click IN "#invoice-ninja" "Invoice Ninja: Rechnungserstellung, Kundenverwaltung und Zahlungsabwicklung via Stripe. Geschuetzt durch oauth2-proxy. Eigene MariaDB-Instanz."
-    click VW "#vaultwarden" "Vaultwarden: Self-hosted Bitwarden-kompatibler Passwort-Manager. Speichert verschluesselte Vault-Items in PostgreSQL. OIDC-Login via Keycloak."
-    click BB "#billing-bot" "billing-bot: Go-Microservice. Verbindet Mattermost Slash-Commands mit Invoice Ninja API fuer schnelle Rechnungs- und Kundenerstellung aus dem Chat."
-    click OL "#outline" "Outline: Kollaboratives Wiki fuer Teamwissen. Markdown-basiert mit Echtzeit-Bearbeitung, verschachtelten Dokumenten und Volltextsuche. Redis fuer Sessions."
-    click WB "#whiteboard" "Whiteboard: Nextcloud-integriertes Whiteboard fuer visuelle Zusammenarbeit. Echtzeit-Kollaboration ueber WebSockets."
-    click MP "#mailpit" "Mailpit: SMTP-Testserver fuer Entwicklung. Faengt alle ausgehenden E-Mails ab (kein Versand). Web-UI zur Inspektion von Benachrichtigungen."
-    click DB "#datenbank-layout" "PostgreSQL 16 shared-db: 6 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, outline, meetings) mit eigenem User je Service."
-    click MARIA "#datenbank-layout" "MariaDB 11: Dedizierte Instanz fuer Invoice Ninja (benoetigt MySQL-Kompatibilitaet)."
-    click OS "#datenbank-layout" "OpenSearch 2.19: Elasticsearch-kompatibler Suchindex fuer Mattermost Volltextsuche und Autocomplete."
-    click WEB "#website" "Website: Astro + Svelte Unternehmenswebsite mit Kontaktformular (Mattermost Webhook) und OIDC-Login."
-    click PROM "#monitoring" "Prometheus: Metriken-Sammlung aller Kubernetes-Ressourcen. Speist DSGVO-Compliance-Dashboard."
-    click GRAF "#monitoring" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
-    click WHISPER "#whisper" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
-    click EMB "#embedding" "Embedding: infinity-emb Text-Vektorisierung (BAAI/bge-base-en-v1.5) fuer Meeting-Transkript-Analyse."
-    click REC "#talk-recording" "Talk Recording: Firefox/geckodriver-basierte Anruf-Aufzeichnung fuer Nextcloud Talk."
-    click SIG "#talk-hpb" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk Videokonferenzen."
-    click MCP_K8S "#claude-code" "MCP Kubernetes: Read-only Zugriff auf Pods, Deployments, Services, Logs. Kann Deployments neu starten (mit Genehmigung)."
-    click MCP_PG "#claude-code" "MCP Postgres: Superuser-Zugriff auf alle shared-db Datenbanken fuer Analyse und Debugging."
-    click MCP_GRAF "#claude-code" "MCP Grafana: Zugriff auf Grafana Dashboards und Metriken."
-    click MCP_PROM "#claude-code" "MCP Prometheus: Direkte PromQL-Abfragen fuer Cluster-Metriken."
+    click KC "#/keycloak" "Keycloak: Zentraler OIDC Identity Provider fuer SSO. Verwaltet Benutzer, Rollen und 7 OIDC-Clients. Speichert Sessions und Realm-Konfiguration in PostgreSQL."
+    click MM "#/services?id=mattermost-chat" "Mattermost: Team-Chat mit Channels, Threads und Dateifreigabe. PostgreSQL FTS fuer Volltextsuche, Webhooks fuer Automatisierung und Slash-Commands fuer billing-bot."
+    click NC "#/services?id=nextcloud-dateien-talk" "Nextcloud: Dateiverwaltung, Kalender, Kontakte und Videokonferenzen via Talk. WOPI-Integration mit Collabora fuer Office-Dokumente. WebRTC via HPB Stack."
+    click CO "#/services?id=collabora-online-office" "Collabora Online: LibreOffice-basierter Office-Editor im Browser. Bearbeitet DOCX, XLSX, PPTX, ODT Dateien kollaborativ ueber WOPI-Protokoll mit Nextcloud."
+    click OC "#/services?id=claude-code-ki-assistent" "Claude Code: KI-Assistent mit Claude Sonnet 4. Nutzt MCP-Server fuer Kubernetes-Verwaltung, Datenbank-Abfragen und Browser-Automatisierung. RBAC-gesichert."
+    click IN "#/services?id=invoice-ninja-rechnungen" "Invoice Ninja: Rechnungserstellung, Kundenverwaltung und Zahlungsabwicklung via Stripe. Geschuetzt durch oauth2-proxy. Eigene MariaDB-Instanz."
+    click VW "#/services?id=vaultwarden-passwoerter" "Vaultwarden: Self-hosted Bitwarden-kompatibler Passwort-Manager. Speichert verschluesselte Vault-Items in PostgreSQL. OIDC-Login via Keycloak."
+    click BB "#/services?id=billing-bot" "billing-bot: Go-Microservice. Verbindet Mattermost Slash-Commands mit Invoice Ninja API fuer schnelle Rechnungs- und Kundenerstellung aus dem Chat."
+    click WB "#/services?id=whiteboard" "Whiteboard: Nextcloud-integriertes Whiteboard fuer visuelle Zusammenarbeit. Echtzeit-Kollaboration ueber WebSockets."
+    click MP "#/services?id=mailpit-dev-mail" "Mailpit: SMTP-Testserver fuer Entwicklung. Faengt alle ausgehenden E-Mails ab (kein Versand). Web-UI zur Inspektion von Benachrichtigungen."
+    click DB "#/architecture?id=datenbank-layout" "PostgreSQL 16 shared-db: 6 isolierte Datenbanken (keycloak, mattermost, nextcloud, vaultwarden, website, pentest) mit eigenem User je Service."
+    click MARIA "#/architecture?id=datenbank-layout" "MariaDB 11: Dedizierte Instanz fuer Invoice Ninja (benoetigt MySQL-Kompatibilitaet)."
+    click WEB "#/services?id=website-astro-svelte" "Website: Astro + Svelte Unternehmenswebsite mit Kontaktformular (Mattermost Webhook), OIDC-Login, Stripe-Checkout und Admin-Panel (/admin/projekte)."
+    click PROM "#/architecture?id=deployment-ablauf" "Prometheus: Metriken-Sammlung aller Kubernetes-Ressourcen. Speist DSGVO-Compliance-Dashboard."
+    click GRAF "#/architecture?id=deployment-ablauf" "Grafana: Visualisierung der Prometheus-Metriken. Enthaelt DSGVO-Compliance-Dashboard (NFA-02)."
+    click WHISPER "#/services?id=whisper-transkription-optional" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
+    click EMB "#/services?id=embedding-text-vektorisierung" "Embedding: infinity-emb Text-Vektorisierung (BAAI/bge-base-en-v1.5) fuer Meeting-Transkript-Analyse."
+    click REC "#/services?id=talk-recording-anruf-aufzeichnung" "Talk Recording: Firefox/geckodriver-basierte Anruf-Aufzeichnung fuer Nextcloud Talk."
+    click SIG "#/services?id=talk-hpb-signaling" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk Videokonferenzen."
+    click MCP_K8S "#/services?id=claude-code-ki-assistent" "MCP Kubernetes: Read-only Zugriff auf Pods, Deployments, Services, Logs. Kann Deployments neu starten (mit Genehmigung)."
+    click MCP_PG "#/services?id=claude-code-ki-assistent" "MCP Postgres: Superuser-Zugriff auf alle shared-db Datenbanken fuer Analyse und Debugging."
+    click MCP_GRAF "#/services?id=claude-code-ki-assistent" "MCP Grafana: Zugriff auf Grafana Dashboards und Metriken."
+    click MCP_PROM "#/services?id=claude-code-ki-assistent" "MCP Prometheus: Direkte PromQL-Abfragen fuer Cluster-Metriken."
 
     %% --- Styles ---
     classDef identity_style fill:#1b3766,color:#e8c870,stroke:#2a5291
@@ -184,10 +186,10 @@ flowchart TB
     classDef infra_style fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 
     class KC,PROXY,OAUTH,OAUTH2 identity_style
-    class MM,NC,CO,WB,OL,REC collab_style
+    class MM,NC,CO,WB,REC collab_style
     class OC,MCP_K8S,MCP_PG,MCP_BR,MCP_GRAF,MCP_PROM,WHISPER,EMB ai_style
     class IN,BB billing_style
-    class DB,MARIA,OS,REDIS data_style
+    class DB,MARIA data_style
     class VW,MP,DOCS tools_style
     class Traefik,WEB,PROM,GRAF infra_style
 ```
@@ -256,7 +258,7 @@ sequenceDiagram
     Browser -->> User: ✅ Eingeloggt
 ```
 
-**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Outline, Website, Docs (8 Clients im Realm `workspace`)
+**Registrierte OIDC-Clients:** Mattermost, Nextcloud, Invoice Ninja, Claude Code, Vaultwarden, Website, Docs (7 Clients im Realm `workspace`)
 
 ---
 
@@ -366,12 +368,12 @@ sequenceDiagram
     rect rgba(139, 92, 246, 0.1)
         Note over User1,TURN: Phase 3: Medien-Uebertragung
         alt Direktverbindung moeglich
-            User1 <--> JANUS: Media (RTP/SRTP)
-            JANUS <--> User2: Media (RTP/SRTP)
+            User1 <<->> JANUS: Media (RTP/SRTP)
+            JANUS <<->> User2: Media (RTP/SRTP)
         else NAT/Firewall blockiert
-            User1 <--> TURN: TURN Relay
-            TURN <--> JANUS: Media weiterleiten
-            JANUS <--> User2: Media (RTP/SRTP)
+            User1 <<->> TURN: TURN Relay
+            TURN <<->> JANUS: Media weiterleiten
+            JANUS <<->> User2: Media (RTP/SRTP)
         end
     end
 ```
@@ -540,37 +542,31 @@ flowchart LR
 
 ```mermaid
 erDiagram
-    SHARED_DB["PostgreSQL 16 (shared-db) — 25 Gi PVC"] {
-        database keycloak "Realms, Benutzer, Sessions, Clients"
-        database mattermost "Teams, Kanaele, Nachrichten, Dateien"
-        database nextcloud "Dateien, Kalender, Kontakte, Freigaben"
-        database vaultwarden "Verschluesselte Tresore, Organisationen"
-        database outline "Dokumente, Sammlungen, Benutzer"
-    }
+    SHARED_DB ||--|| KC_SVC : "keycloak"
+    SHARED_DB ||--|| MM_SVC : "mattermost"
+    SHARED_DB ||--|| NC_SVC : "nextcloud"
+    SHARED_DB ||--|| VW_SVC : "vaultwarden"
+    SHARED_DB ||--|| WEB_SVC : "website"
+    SHARED_DB }|--|| MCP_PG : "alle DBs"
+    MARIADB ||--|| IN_SVC : "invoiceninja"
 
-    MARIADB["MariaDB 11 (invoiceninja-mariadb) — 5 Gi PVC"] {
-        database invoiceninja "Kunden, Rechnungen, Produkte, Zahlungen"
+    SHARED_DB {
+        text host "shared-db.workspace"
+        text engine "PostgreSQL 16"
+        text storage "25 Gi PVC"
     }
-
-    OPENSEARCH["OpenSearch 2.17 (opensearch) — 5 Gi PVC"] {
-        index mattermost_posts "Volltextindex aller Nachrichten"
-        index mattermost_channels "Kanal-Suchindex"
+    MARIADB {
+        text host "invoiceninja-mariadb"
+        text engine "MariaDB 11"
+        text storage "5 Gi PVC"
     }
-
-    REDIS["Redis 7 (Sidecar in Outline-Pod)"] {
-        db sessions "Outline Benutzer-Sessions"
-        db cache "Dokument-Render-Cache"
-    }
-
-    KC_SVC["Keycloak"] ||--|| SHARED_DB : "keycloak DB"
-    MM_SVC["Mattermost"] ||--|| SHARED_DB : "mattermost DB"
-    NC_SVC["Nextcloud"] ||--|| SHARED_DB : "nextcloud DB"
-    VW_SVC["Vaultwarden"] ||--|| SHARED_DB : "vaultwarden DB"
-    OL_SVC["Outline"] ||--|| SHARED_DB : "outline DB"
-    OL_SVC ||--|| REDIS : "Sessions + Cache"
-    IN_SVC["Invoice Ninja"] ||--|| MARIADB : "invoiceninja DB"
-    MM_SVC ||--|| OPENSEARCH : "Suchindex"
-    MCP_PG["MCP Postgres"] }|--|| SHARED_DB : "Superuser nur lesend"
+    KC_SVC { text service "Keycloak" }
+    MM_SVC { text service "Mattermost" }
+    NC_SVC { text service "Nextcloud" }
+    VW_SVC { text service "Vaultwarden" }
+    WEB_SVC { text service "Website" }
+    IN_SVC { text service "Invoice Ninja" }
+    MCP_PG { text service "MCP Postgres" }
 ```
 
 ### Datenbank-Isolation
@@ -580,10 +576,11 @@ Jede Datenbank hat einen eigenen User mit ausschliesslichem Zugriff auf seine Da
 | Datenbank | User | Service | Besonderheiten |
 |-----------|------|---------|----------------|
 | `keycloak` | `keycloak` | Keycloak | Realm-Export als ConfigMap |
-| `mattermost` | `mattermost` | Mattermost | + OpenSearch fuer Volltextsuche |
+| `mattermost` | `mattermost` | Mattermost | PostgreSQL FTS fuer Volltextsuche |
 | `nextcloud` | `nextcloud` | Nextcloud | Datei-Metadaten, Kalender, Kontakte |
 | `vaultwarden` | `vaultwarden` | Vaultwarden | Verschluesselte Vault-Items |
-| `outline` | `outline` | Outline | + Redis Sidecar fuer Sessions |
+| `website` | `website` | Website (Astro) | Meeting-Pipeline, Projektmgmt, Admin-Config — pgvector aktiviert |
+| `pentest` | `pentest` | Sicherheitstests | Isolierte DB fuer Pen-Tests |
 | `invoiceninja` | `invoiceninja` | Invoice Ninja | Separate MariaDB (MySQL-Kompatibilitaet) |
 
 Die Init-Skripte in `shared-db` erstellen User und Datenbanken idempotent beim ersten Start und synchronisieren Passwoerter bei Neustarts.
@@ -627,7 +624,6 @@ Traefik (k3s built-in) routet anhand von Host-Headern:
 | mail.localhost | mailpit | 8025 |
 | docs.localhost | docs | 80 |
 | web.localhost | website | 4321 |
-| wiki.localhost | outline | 3000 |
 
 Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 
@@ -642,8 +638,6 @@ Alle Domains werden zentral in `k3d/configmap-domains.yaml` definiert.
 | invoiceninja-public | 5 Gi | Invoice Ninja |
 | invoiceninja-mariadb-data | 5 Gi | MariaDB |
 | vaultwarden-data | 5 Gi | Vaultwarden |
-| opensearch-data | 5 Gi | OpenSearch Index |
-| outline-data | 5 Gi | Outline Wiki |
 | backup-pvc | 1 Gi | Verschluesselte Backups |
 
 ## Deployment-Ablauf

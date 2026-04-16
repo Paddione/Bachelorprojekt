@@ -1,0 +1,18 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import ChatRoomPanel from '../../components/ChatRoomPanel.svelte';
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+import { listRoomsForAdmin } from '../../lib/messaging-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl());
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const rooms = await listRoomsForAdmin();
+---
+
+<AdminLayout title="Räume">
+  <div style="height: calc(100vh - 120px)">
+    <ChatRoomPanel rooms={rooms} role="admin" messagesBaseUrl="/api/admin/rooms" client:load />
+  </div>
+</AdminLayout>

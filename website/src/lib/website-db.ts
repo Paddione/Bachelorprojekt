@@ -1950,3 +1950,51 @@ export async function getKontaktContent(brand: string): Promise<KontaktContent |
 export async function saveKontaktContent(brand: string, data: KontaktContent): Promise<void> {
   await setSiteSetting(brand, 'kontakt', JSON.stringify(data));
 }
+
+// ── Admin Shortcuts ──────────────────────────────────────────────────────────
+
+export interface AdminShortcut {
+  id: string;
+  url: string;
+  label: string;
+  sortOrder: number;
+  createdAt: Date;
+}
+
+async function initAdminShortcutsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_shortcuts (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      url        TEXT NOT NULL,
+      label      TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+export async function listAdminShortcuts(): Promise<AdminShortcut[]> {
+  await initAdminShortcutsTable();
+  const result = await pool.query(
+    `SELECT id, url, label, sort_order AS "sortOrder", created_at AS "createdAt"
+     FROM admin_shortcuts
+     ORDER BY created_at ASC`
+  );
+  return result.rows;
+}
+
+export async function createAdminShortcut(url: string, label: string): Promise<AdminShortcut> {
+  await initAdminShortcutsTable();
+  const result = await pool.query(
+    `INSERT INTO admin_shortcuts (url, label)
+     VALUES ($1, $2)
+     RETURNING id, url, label, sort_order AS "sortOrder", created_at AS "createdAt"`,
+    [url, label]
+  );
+  return result.rows[0];
+}
+
+export async function deleteAdminShortcut(id: string): Promise<void> {
+  await initAdminShortcutsTable();
+  await pool.query('DELETE FROM admin_shortcuts WHERE id = $1', [id]);
+}

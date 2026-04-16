@@ -60,33 +60,93 @@ function isActive(href: string): boolean {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
     <title>{title} | Admin — {config.meta.siteTitle}</title>
+    <script is:inline>
+  try {
+    if (localStorage.getItem('admin-sidebar-collapsed') === '1') {
+      document.documentElement.classList.add('sidebar-collapsed');
+    }
+  } catch (_) {}
+</script>
+<style>
+  #admin-sidebar {
+    width: 13rem;
+    transition: width 0.2s ease;
+    overflow: hidden;
+  }
+  html.sidebar-collapsed #admin-sidebar {
+    width: 3rem;
+  }
+  .sidebar-label {
+    transition: opacity 0.15s ease, max-width 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 200px;
+  }
+  html.sidebar-collapsed .sidebar-label {
+    opacity: 0;
+    max-width: 0;
+  }
+  .sidebar-group-label {
+    transition: opacity 0.15s ease, max-height 0.2s ease;
+    overflow: hidden;
+    max-height: 2rem;
+  }
+  html.sidebar-collapsed .sidebar-group-label {
+    opacity: 0;
+    max-height: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  html.sidebar-collapsed .sidebar-nav-item {
+    justify-content: center;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  html.sidebar-collapsed .sidebar-footer-link span {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    display: inline-block;
+  }
+</style>
   </head>
   <body class="min-h-screen bg-dark text-light flex">
 
     <!-- Sidebar -->
-    <aside class="w-52 flex-shrink-0 min-h-screen bg-dark-light border-r border-dark-lighter flex flex-col">
-      <div class="px-4 py-5 border-b border-dark-lighter">
-        <a href="/admin" class="text-gold font-bold text-lg font-serif leading-tight">Admin</a>
-        <p class="text-xs text-muted mt-0.5">{config.meta.siteTitle}</p>
+    <aside id="admin-sidebar" class="flex-shrink-0 min-h-screen bg-dark-light border-r border-dark-lighter flex flex-col">
+      <div class="px-3 py-5 border-b border-dark-lighter flex items-center gap-2 min-w-0">
+        <div class="flex-1 min-w-0">
+          <a href="/admin" class="sidebar-label text-gold font-bold text-lg font-serif leading-tight block">Admin</a>
+          <p class="sidebar-label text-xs text-muted mt-0.5">{config.meta.siteTitle}</p>
+        </div>
+        <button
+          id="sidebar-toggle"
+          title="Sidebar einklappen"
+          aria-label="Sidebar einklappen"
+          aria-expanded="false"
+          aria-controls="admin-sidebar"
+          class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-gold hover:text-gold-light transition-colors text-lg font-bold leading-none"
+        >‹</button>
       </div>
 
       <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-5">
         {navGroups.map(group => (
           <div>
-            <p class="px-2 mb-1.5 text-xs font-semibold text-muted uppercase tracking-widest">{group.label}</p>
+            <p class="sidebar-group-label px-2 mb-1.5 text-xs font-semibold text-muted uppercase tracking-widest">{group.label}</p>
             <ul class="space-y-0.5">
               {group.items.map(item => (
                 <li>
                   <a
                     href={item.href}
-                    class={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    title={item.label}
+                    class={`sidebar-nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive(item.href)
                         ? 'bg-gold/10 text-gold'
                         : 'text-muted hover:text-light hover:bg-dark-lighter'
                     }`}
                   >
-                    <span class="text-base leading-none">{item.icon}</span>
-                    {item.label}
+                    <span class="text-base leading-none flex-shrink-0">{item.icon}</span>
+                    <span class="sidebar-label">{item.label}</span>
                   </a>
                 </li>
               ))}
@@ -96,7 +156,10 @@ function isActive(href: string): boolean {
       </nav>
 
       <div class="px-4 py-4 border-t border-dark-lighter">
-        <a href="/" class="text-xs text-muted hover:text-gold transition-colors">← Website</a>
+        <a href="/" class="sidebar-footer-link flex items-center gap-1 text-xs text-muted hover:text-gold transition-colors whitespace-nowrap">
+          <span>←</span>
+          <span class="sidebar-label">Website</span>
+        </a>
       </div>
     </aside>
 
@@ -105,5 +168,25 @@ function isActive(href: string): boolean {
       <slot />
     </main>
 
+  <script is:inline>
+  (function() {
+    var btn = document.getElementById('sidebar-toggle');
+    if (!btn) return;
+    var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
+    btn.textContent = collapsed ? '›' : '‹';
+    btn.title = collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
+    btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+
+    btn.addEventListener('click', function() {
+      collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+      localStorage.setItem('admin-sidebar-collapsed', collapsed ? '1' : '0');
+      btn.textContent = collapsed ? '›' : '‹';
+      btn.title = collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
+      btn.setAttribute('aria-label', btn.title);
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    });
+  })();
+</script>
   </body>
 </html>

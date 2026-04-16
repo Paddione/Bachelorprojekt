@@ -26,7 +26,6 @@ WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
 MAX_SESSIONS = int(os.environ.get("MAX_SESSIONS", "3"))
-AUTO_JOIN_INTERVAL = 300  # re-check for new rooms every 5 minutes
 
 _display_pool: list[int] = list(range(11, 100))  # X display numbers :11 through :99
 _pa_ok: bool = True  # last known PulseAudio state
@@ -36,16 +35,13 @@ _pa_ok: bool = True  # last known PulseAudio state
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    poll_task      = asyncio.create_task(poll_loop())
-    auto_join_task = asyncio.create_task(auto_join_loop())
+    task = asyncio.create_task(poll_loop())
     yield
-    poll_task.cancel()
-    auto_join_task.cancel()
-    for t in (poll_task, auto_join_task):
-        try:
-            await t
-        except asyncio.CancelledError:
-            pass
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 app = FastAPI(lifespan=lifespan)
@@ -103,24 +99,38 @@ async def webhook(request: Request) -> dict:
     return {"status": "ok"}
 
 
-# ---------- Auto-join loop (slow, runs every AUTO_JOIN_INTERVAL seconds) ------
+# ---------- Polling -----------------------------------------------------------
 
-async def auto_join_loop() -> None:
-    """Separate loop that adds transcriber-bot to new rooms every 5 minutes."""
-    if not NC_ADMIN_PASS:
-        return
+async def poll_loop() -> None:
+    global _pa_ok
+    admin_client = (
+        httpx.AsyncClient(auth=(NC_ADMIN_USER, NC_ADMIN_PASS), verify=NC_VERIFY, timeout=10)
+        if NC_ADMIN_PASS else None
+    )
     async with httpx.AsyncClient(
-        auth=(NC_ADMIN_USER, NC_ADMIN_PASS), verify=NC_VERIFY, timeout=15
-    ) as admin_client:
-        async with httpx.AsyncClient(
-            auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=15
-        ) as bot_client:
+        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
+    ) as client:
+        try:
             while True:
                 try:
-                    await _auto_join_all_rooms(bot_client, admin_client)
+                    await tick(client, admin_client)
                 except Exception as exc:
-                    print(f"[auto-join] {exc}", flush=True)
-                await asyncio.sleep(AUTO_JOIN_INTERVAL)
+                    print(f"[poll] {exc}", flush=True)
+
+                pa_proc = await asyncio.create_subprocess_exec(
+                    "pactl", "info",
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL,
+                )
+                await pa_proc.wait()
+                _pa_ok = pa_proc.returncode == 0
+                if not _pa_ok:
+                    print("[poll] WARNING: PulseAudio not responding", flush=True)
+
+                await asyncio.sleep(CHUNK_S)
+        finally:
+            if admin_client:
+                await admin_client.aclose()
 
 
 async def _auto_join_all_rooms(
@@ -157,48 +167,13 @@ async def _auto_join_all_rooms(
                 print(f"[auto-join] added {NC_USER} to room {token}", flush=True)
 
 
-# ---------- Poll loop (fast, runs every CHUNK_SECONDS) -----------------------
+async def tick(client: httpx.AsyncClient, admin_client: httpx.AsyncClient | None) -> None:
+    if admin_client:
+        try:
+            await _auto_join_all_rooms(client, admin_client)
+        except Exception as exc:
+            print(f"[auto-join] {exc}", flush=True)
 
-async def poll_loop() -> None:
-    global _pa_ok
-    async with httpx.AsyncClient(
-        auth=(NC_USER, NC_PASS), verify=NC_VERIFY, timeout=10
-    ) as client:
-        while True:
-            try:
-                await tick(client)
-            except Exception as exc:
-                print(f"[poll] {exc}", flush=True)
-
-            pa_proc = await asyncio.create_subprocess_exec(
-                "pactl", "info",
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL,
-            )
-            await pa_proc.wait()
-            _pa_ok = pa_proc.returncode == 0
-            if not _pa_ok:
-                print("[poll] WARNING: PulseAudio not responding", flush=True)
-
-            await asyncio.sleep(CHUNK_S)
-
-
-async def _room_has_active_call(client: httpx.AsyncClient, token: str) -> bool:
-    """
-    Returns True if any participant in the room has inCall != 0.
-    This catches solo calls where hasCall may still be False.
-    """
-    r = await client.get(
-        f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room/{token}/participants",
-        headers={"OCS-APIRequest": "true", "Accept": "application/json"},
-    )
-    if not r.is_success:
-        return False
-    participants = r.json()["ocs"]["data"]
-    return any(p.get("inCall", 0) != 0 for p in participants)
-
-
-async def tick(client: httpx.AsyncClient) -> None:
     r = await client.get(
         f"{NC_URL}/ocs/v2.php/apps/spreed/api/v4/room",
         headers={"OCS-APIRequest": "true", "Accept": "application/json"},
@@ -206,28 +181,13 @@ async def tick(client: httpx.AsyncClient) -> None:
     r.raise_for_status()
     rooms = r.json()["ocs"]["data"]
 
-    # Primary signal: hasCall from room list.
-    # Fallback: check participants for rooms where hasCall might lag (solo calls).
-    live: set[str] = set()
-    for rm in rooms:
-        token = rm["token"]
-        if rm.get("hasCall"):
-            live.add(token)
-        else:
-            # Check participants to catch solo-caller edge case
-            try:
-                if await _room_has_active_call(client, token):
-                    live.add(token)
-            except Exception:
-                pass
-
+    live = {rm["token"] for rm in rooms if rm.get("hasCall")}
     for token in set(sessions) - live:
         _cancel(token)
     for token in live - set(sessions):
         if len(sessions) >= MAX_SESSIONS:
             print(f"[poll] skipping {token}: max sessions ({MAX_SESSIONS}) reached", flush=True)
             break
-        print(f"[poll] detected active call in {token}", flush=True)
         sessions[token] = {}
         t = asyncio.create_task(run_session(token))
         sessions[token]["task"] = t

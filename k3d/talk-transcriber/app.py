@@ -27,7 +27,7 @@ WHISPER      = os.environ.get("WHISPER_BASE_URL", "http://whisper:8000")
 WEBSITE_URL  = os.environ.get("WEBSITE_URL", "http://website.website.svc.cluster.local")
 CHUNK_S      = int(os.environ.get("CHUNK_SECONDS", "5"))
 MAX_SESSIONS = int(os.environ.get("MAX_SESSIONS", "3"))
-AUTO_JOIN_INTERVAL = 300  # re-check for new rooms every 5 minutes
+AUTO_JOIN_INTERVAL = 30  # re-check for new rooms every 30 seconds
 
 # Nextcloud DB access for system-wide room discovery
 NC_DB_HOST = os.environ.get("NC_DB_HOST", "shared-db")

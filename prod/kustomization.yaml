@@ -66,7 +66,6 @@ patches:
   - path: patch-outline.yaml
   # Production SMTP and service config
   - path: patch-vaultwarden.yaml
-  - path: patch-oauth2-proxy.yaml
   - path: patch-oauth2-proxy-docs.yaml
   # Pin amd64-only images to amd64 nodes
   - path: patch-amd64-only.yaml

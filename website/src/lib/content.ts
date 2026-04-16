@@ -100,6 +100,8 @@ export async function getEffectiveLeistungen(): Promise<LeistungCategory[]> {
 export async function getEffectiveHomepage(): Promise<HomepageContent> {
   const db = await getHomepageContent(BRAND).catch(() => null);
   const c = config.homepage;
+  // Fallback: BrandConfig.homepage has no hero sub-object, so title/tagline are
+  // hardcoded here. The admin UI (admin/startseite) overwrites this on first save.
   if (!db) return {
     hero: { title: 'Digital Coach &\nFührungskräfte-Mentor', subtitle: c.whyMeIntro, tagline: 'Praxisnah. Strukturiert. Auf Augenhöhe.' },
     stats: c.stats,

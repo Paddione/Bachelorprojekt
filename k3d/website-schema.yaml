@@ -152,6 +152,74 @@ data:
           LIMIT k;
       $$;
 
+      -- ── Messaging System ──────────────────────────────────────────────
+
+      CREATE TABLE IF NOT EXISTS inbox_items (
+        id              SERIAL PRIMARY KEY,
+        type            TEXT NOT NULL CHECK (type IN ('registration','booking','contact','bug','meeting_finalize','user_message')),
+        status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','actioned','archived')),
+        reference_id    TEXT,
+        reference_table TEXT,
+        payload         JSONB,
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        actioned_at     TIMESTAMPTZ,
+        actioned_by     TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_inbox_items_status ON inbox_items(status, created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS message_threads (
+        id              SERIAL PRIMARY KEY,
+        customer_id     UUID REFERENCES customers(id),
+        subject         TEXT,
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        last_message_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS messages (
+        id                   SERIAL PRIMARY KEY,
+        thread_id            INT NOT NULL REFERENCES message_threads(id),
+        sender_id            TEXT NOT NULL,
+        sender_role          TEXT NOT NULL CHECK (sender_role IN ('admin','user')),
+        body                 TEXT NOT NULL,
+        created_at           TIMESTAMPTZ DEFAULT now(),
+        read_at              TIMESTAMPTZ,
+        notification_sent_at TIMESTAMPTZ
+      );
+      CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id, id ASC);
+
+      CREATE TABLE IF NOT EXISTS chat_rooms (
+        id          SERIAL PRIMARY KEY,
+        name        TEXT NOT NULL,
+        created_by  TEXT NOT NULL,
+        created_at  TIMESTAMPTZ DEFAULT now(),
+        archived_at TIMESTAMPTZ
+      );
+
+      CREATE TABLE IF NOT EXISTS chat_room_members (
+        room_id     INT NOT NULL REFERENCES chat_rooms(id),
+        customer_id UUID NOT NULL REFERENCES customers(id),
+        joined_at   TIMESTAMPTZ DEFAULT now(),
+        PRIMARY KEY (room_id, customer_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id                   SERIAL PRIMARY KEY,
+        room_id              INT NOT NULL REFERENCES chat_rooms(id),
+        sender_id            TEXT NOT NULL,
+        sender_name          TEXT NOT NULL,
+        body                 TEXT NOT NULL,
+        created_at           TIMESTAMPTZ DEFAULT now(),
+        notification_sent_at TIMESTAMPTZ
+      );
+      CREATE INDEX IF NOT EXISTS idx_chat_messages_room ON chat_messages(room_id, id ASC);
+
+      CREATE TABLE IF NOT EXISTS chat_message_reads (
+        message_id  INT NOT NULL REFERENCES chat_messages(id),
+        customer_id UUID NOT NULL REFERENCES customers(id),
+        read_at     TIMESTAMPTZ DEFAULT now(),
+        PRIMARY KEY (message_id, customer_id)
+      );
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

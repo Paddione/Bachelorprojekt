@@ -17,3 +17,8 @@ spec:
               value: "https"
             - name: NC_VERIFY_SSL
               value: "true"
+            - name: NC_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: NEXTCLOUD_ADMIN_PASSWORD

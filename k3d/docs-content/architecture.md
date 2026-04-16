@@ -51,9 +51,12 @@ flowchart TB
             OC["fa:fa-brain Claude Code KI\nai.localhost"]
             MCP_K8S["MCP Kubernetes"]
             MCP_PG["MCP Postgres"]
+            MCP_MEET["MCP Meetings"]
+            MCP_NC["MCP Nextcloud"]
+            MCP_KC["MCP Keycloak"]
             MCP_BR["MCP Browser"]
-            MCP_GRAF["MCP Grafana"]
-            MCP_PROM["MCP Prometheus"]
+            MCP_STRIPE["MCP Stripe"]
+            MCP_GH["MCP GitHub"]
             WHISPER["fa:fa-microphone Whisper"]
             EMB["fa:fa-vector-square Embedding"]
         end
@@ -107,9 +110,12 @@ flowchart TB
     %% --- AI/MCP ---
     OC --> MCP_K8S
     OC --> MCP_PG
+    OC --> MCP_MEET
+    OC --> MCP_NC
+    OC --> MCP_KC
     OC --> MCP_BR
-    OC --> MCP_GRAF
-    OC --> MCP_PROM
+    OC --> MCP_STRIPE
+    OC --> MCP_GH
 
     %% --- Recording ---
     NC --> REC
@@ -141,8 +147,12 @@ flowchart TB
     click SIG "#/services?id=talk-hpb-signaling" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk Videokonferenzen."
     click MCP_K8S "#/services?id=claude-code-ki-assistent" "MCP Kubernetes: Read-only Zugriff auf Pods, Deployments, Services, Logs. Kann Deployments neu starten (mit Genehmigung)."
     click MCP_PG "#/services?id=claude-code-ki-assistent" "MCP Postgres: Superuser-Zugriff auf alle shared-db Datenbanken fuer Analyse und Debugging."
-    click MCP_GRAF "#/services?id=claude-code-ki-assistent" "MCP Grafana: Zugriff auf Grafana Dashboards und Metriken."
-    click MCP_PROM "#/services?id=claude-code-ki-assistent" "MCP Prometheus: Direkte PromQL-Abfragen fuer Cluster-Metriken."
+    click MCP_MEET "#/services?id=claude-code-ki-assistent" "MCP Meetings: Lese-/Schreibzugriff auf Meeting-Transkripte, Insights und Embeddings in der website-Datenbank."
+    click MCP_NC "#/services?id=claude-code-ki-assistent" "MCP Nextcloud: Dateien, Kalender und Kontakte via WebDAV/CalDAV/CardDAV."
+    click MCP_KC "#/services?id=claude-code-ki-assistent" "MCP Keycloak: Benutzer-, Gruppen- und Rollenverwaltung via SSE-Transport."
+    click MCP_BR "#/services?id=claude-code-ki-assistent" "MCP Browser: Playwright-basierte Browser-Automatisierung (Chromium) fuer UI-Tests und Screenshots."
+    click MCP_STRIPE "#/services?id=claude-code-ki-assistent" "MCP Stripe: Stripe-Zahlungen, Kunden, Abonnements und Checkout-Sessions."
+    click MCP_GH "#/services?id=claude-code-ki-assistent" "MCP GitHub: Repos, Issues, PRs und Code-Suche (PAT erforderlich, standardmaessig deaktiviert)."
 
     %% --- Styles ---
     classDef identity_style fill:#1b3766,color:#e8c870,stroke:#2a5291
@@ -154,7 +164,7 @@ flowchart TB
 
     class KC,OAUTH2 identity_style
     class NC,CO,WB,REC collab_style
-    class OC,MCP_K8S,MCP_PG,MCP_BR,MCP_GRAF,MCP_PROM,WHISPER,EMB ai_style
+    class OC,MCP_K8S,MCP_PG,MCP_MEET,MCP_NC,MCP_KC,MCP_BR,MCP_STRIPE,MCP_GH,WHISPER,EMB ai_style
     class DB data_style
     class VW,MP,DOCS tools_style
     class Traefik,WEB infra_style
@@ -445,8 +455,7 @@ sequenceDiagram
 | mcp-keycloak | quay.io/sshaaf/keycloak-mcp-server | Benutzer, Gruppen, Rollen, Sessions verwalten | Realm-Konfiguration aendern |
 | mcp-github | ghcr.io/github/github-mcp-server | Repos, Issues, PRs, Code-Suche (PAT erforderlich) | Admin-Rechte |
 | mcp-stripe | @stripe/agent-toolkit | Kunden, Zahlungen, Rechnungen, Abonnements | Kontoverwaltung |
-| mcp-grafana | mcp-grafana | Dashboards, Panels, Annotationen lesen | Dashboard-Erstellung |
-| mcp-prometheus | mcp-prometheus | PromQL-Abfragen, Metriken, Alerts lesen | Konfigurationsaenderungen |
+| mcp-meetings | @modelcontextprotocol/server-postgres | Meeting-Transkripte, Insights und Embeddings lesen/schreiben | Nur website-Datenbank |
 
 ---
 
@@ -586,7 +595,7 @@ flowchart TD
     style M fill:#083344,color:#e8c870
 ```
 
-Alternativ: `task workspace:up` fuer vollautomatisches Setup (Cluster + MVP + MCP + Monitoring + Billing).
+Alternativ: `task workspace:up` fuer vollautomatisches Setup (Cluster + MVP + MCP + Monitoring).
 
 ## Multi-Cluster (ArgoCD GitOps)
 

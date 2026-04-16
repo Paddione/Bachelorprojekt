@@ -80,7 +80,7 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 | Eigenschaft | Wert |
 |-------------|------|
 | Status-Seite | http://ai.localhost (MCP-Status-Dashboard) |
-| MCP-Server | 11 Server in separaten Pods |
+| MCP-Server | 9 Server in separaten Pods |
 | Backend | Anthropic API (Claude Sonnet 4) |
 | Manifest | `k3d/claude-code-config.yaml`, `k3d/claude-code-rbac.yaml` |
 
@@ -88,16 +88,11 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 
 | Pod / Manifest | Container | Funktion |
 |----------------|-----------|----------|
-| `claude-code-mcp-ops.yaml` | mcp-kubernetes, mcp-postgres | Cluster-Management, DB-Abfragen |
+| `claude-code-mcp-ops.yaml` | mcp-kubernetes, mcp-postgres, mcp-meetings | Cluster-Management, DB-Abfragen, Meeting-Daten |
 | `claude-code-mcp-browser.yaml` | mcp-browser | Playwright Browser-Automatisierung |
 | `claude-code-mcp-apps.yaml` | mcp-nextcloud | Dateien, Kalender, Kontakte |
 | `claude-code-mcp-auth.yaml` | mcp-keycloak | Benutzer-/Rollenverwaltung |
 | `claude-code-mcp-github.yaml` | mcp-github | GitHub Repos, Issues, PRs (PAT erforderlich) |
-| `claude-code-mcp-stripe.yaml` | mcp-stripe | Zahlungen, Abonnements |
-| `claude-code-mcp-grafana.yaml` | mcp-grafana | Grafana Dashboards und Metriken |
-| `claude-code-mcp-prometheus.yaml` | mcp-prometheus | PromQL-Abfragen, Cluster-Metriken |
-| `claude-code-mcp-kubernetes.yaml` | mcp-kubernetes (standalone) | Dedizierter Read-Only Kubernetes-MCP |
-| `claude-code-mcp-postgres.yaml` | mcp-postgres (standalone) | Dedizierter Datenbank-MCP |
 | `claude-code-mcp-stripe.yaml` | mcp-stripe | Stripe-Zahlungen, Produkte, Abonnements |
 
 **Produktion (deploy/mcp/):**
@@ -261,7 +256,7 @@ Keycloak-OIDC-Proxy vor dem Docs-Dienst. Benutzer werden zur Keycloak-Anmeldesei
 
 ### Messaging (Chat + Inbox)
 
-**Für Mitarbeiter:** Das integrierte Messaging-System der Website ersetzt Mattermost. Es bietet Chat-Raeume (themenbasierte Gruppen), Direktnachrichten zwischen Kunden und Admins sowie eine zentrale Inbox fuer eingehende Anfragen (Kontaktformulare, Buchungen, Bug-Reports). Erreichbar ueber das Benutzer-Portal nach dem Login.
+**Für Mitarbeiter:** Das integrierte Messaging-System der Website bietet Chat-Raeume (themenbasierte Gruppen), Direktnachrichten zwischen Kunden und Admins sowie eine zentrale Inbox fuer eingehende Anfragen (Kontaktformulare, Buchungen, Bug-Reports). Erreichbar ueber das Benutzer-Portal nach dem Login.
 
 | Eigenschaft | Wert |
 |-------------|------|

@@ -58,7 +58,6 @@ flowchart TB
             MCP_STRIPE["MCP Stripe"]
             MCP_GH["MCP GitHub"]
             WHISPER["fa:fa-microphone Whisper"]
-            EMB["fa:fa-vector-square Embedding"]
         end
 
         subgraph tools ["fa:fa-toolbox Werkzeuge"]
@@ -142,12 +141,11 @@ flowchart TB
     click DB "#/architecture?id=datenbank-layout" "PostgreSQL 16 shared-db: 5 isolierte Datenbanken (keycloak, nextcloud, vaultwarden, website, pentest) mit eigenem User je Service."
     click WEB "#/services?id=website-astro-svelte" "Website: Astro + Svelte Unternehmenswebsite mit Messaging-System (Chat-Raeume, Inbox, DMs), OIDC-Login, Stripe-Checkout und Admin-Panel (/admin)."
     click WHISPER "#/services?id=whisper-transkription-optional" "Whisper: faster-whisper Transkriptionsservice fuer Audio-zu-Text Konvertierung."
-    click EMB "#/services?id=embedding-text-vektorisierung" "Embedding: infinity-emb Text-Vektorisierung (BAAI/bge-base-en-v1.5) fuer Meeting-Transkript-Analyse."
     click REC "#/services?id=talk-recording-anruf-aufzeichnung" "Talk Recording: Firefox/geckodriver-basierte Anruf-Aufzeichnung fuer Nextcloud Talk."
     click SIG "#/services?id=talk-hpb-signaling" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk Videokonferenzen."
     click MCP_K8S "#/services?id=claude-code-ki-assistent" "MCP Kubernetes: Read-only Zugriff auf Pods, Deployments, Services, Logs. Kann Deployments neu starten (mit Genehmigung)."
     click MCP_PG "#/services?id=claude-code-ki-assistent" "MCP Postgres: Superuser-Zugriff auf alle shared-db Datenbanken fuer Analyse und Debugging."
-    click MCP_MEET "#/services?id=claude-code-ki-assistent" "MCP Meetings: Lese-/Schreibzugriff auf Meeting-Transkripte, Insights und Embeddings in der website-Datenbank."
+    click MCP_MEET "#/services?id=claude-code-ki-assistent" "MCP Meetings: Lese-/Schreibzugriff auf Meeting-Transkripte und Insights in der website-Datenbank."
     click MCP_NC "#/services?id=claude-code-ki-assistent" "MCP Nextcloud: Dateien, Kalender und Kontakte via WebDAV/CalDAV/CardDAV."
     click MCP_KC "#/services?id=claude-code-ki-assistent" "MCP Keycloak: Benutzer-, Gruppen- und Rollenverwaltung via SSE-Transport."
     click MCP_BR "#/services?id=claude-code-ki-assistent" "MCP Browser: Playwright-basierte Browser-Automatisierung (Chromium) fuer UI-Tests und Screenshots."
@@ -164,7 +162,7 @@ flowchart TB
 
     class KC,OAUTH2 identity_style
     class NC,CO,WB,REC collab_style
-    class OC,MCP_K8S,MCP_PG,MCP_MEET,MCP_NC,MCP_KC,MCP_BR,MCP_STRIPE,MCP_GH,WHISPER,EMB ai_style
+    class OC,MCP_K8S,MCP_PG,MCP_MEET,MCP_NC,MCP_KC,MCP_BR,MCP_STRIPE,MCP_GH,WHISPER ai_style
     class DB data_style
     class VW,MP,DOCS tools_style
     class Traefik,WEB infra_style
@@ -455,7 +453,7 @@ sequenceDiagram
 | mcp-keycloak | quay.io/sshaaf/keycloak-mcp-server | Benutzer, Gruppen, Rollen, Sessions verwalten | Realm-Konfiguration aendern |
 | mcp-github | ghcr.io/github/github-mcp-server | Repos, Issues, PRs, Code-Suche (PAT erforderlich) | Admin-Rechte |
 | mcp-stripe | @stripe/agent-toolkit | Kunden, Zahlungen, Rechnungen, Abonnements | Kontoverwaltung |
-| mcp-meetings | @modelcontextprotocol/server-postgres | Meeting-Transkripte, Insights und Embeddings lesen/schreiben | Nur website-Datenbank |
+| mcp-meetings | @modelcontextprotocol/server-postgres | Meeting-Transkripte und Insights lesen/schreiben | Nur website-Datenbank |
 
 ---
 
@@ -513,7 +511,7 @@ Jede Datenbank hat einen eigenen User mit ausschliesslichem Zugriff auf seine Da
 | `keycloak` | `keycloak` | Keycloak | Realm-Export als ConfigMap |
 | `nextcloud` | `nextcloud` | Nextcloud | Datei-Metadaten, Kalender, Kontakte |
 | `vaultwarden` | `vaultwarden` | Vaultwarden | Verschluesselte Vault-Items |
-| `website` | `website` | Website (Astro) | Meeting-Pipeline, Messaging, Projektmgmt, Admin-Config — pgvector aktiviert |
+| `website` | `website` | Website (Astro) | Meeting-Pipeline, Messaging, Projektmgmt, Admin-Config |
 | `pentest` | `pentest` | Sicherheitstests | Isolierte DB fuer Pen-Tests |
 
 Die Init-Skripte in `shared-db` erstellen User und Datenbanken idempotent beim ersten Start und synchronisieren Passwoerter bei Neustarts.

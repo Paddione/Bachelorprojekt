@@ -120,18 +120,6 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 
 CPU-basierte Spracherkennung mit dem Medium-Modell. GPU-Variante: `k3d/whisper-gpu.yaml`. Deploy: `task whisper:deploy`.
 
-### Embedding (Text-Vektorisierung)
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Image | `michaelf34/infinity:0.0.70` (infinity-emb) |
-| Port | 8080 |
-| Modell | BAAI/bge-base-en-v1.5 (768 Dimensionen) |
-| API | OpenAI-kompatibel (POST /embeddings) |
-| Manifest | `k3d/embedding.yaml` |
-
-CPU-basierte Text-Vektorisierung fuer Meeting-Transkript-Analyse. Wird intern von der Website fuer Meeting Insights genutzt.
-
 ### Talk Recording (Anruf-Aufzeichnung)
 
 | Eigenschaft | Wert |
@@ -202,7 +190,7 @@ Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 
 ## Infrastruktur-Services
 
-### shared-db (PostgreSQL + pgvector)
+### shared-db (PostgreSQL)
 
 **Für Mitarbeiter:** Die zentrale Datenbank. Du interagierst nicht direkt damit — sie laeuft im Hintergrund und speichert Daten aller Dienste sicher auf dem eigenen Server.
 
@@ -214,7 +202,7 @@ Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.
 | Resources | 100m CPU, 256Mi RAM |
 | Manifest | `k3d/shared-db.yaml` |
 
-Gemeinsame PostgreSQL-16-Instanz mit pgvector-Erweiterung fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, nextcloud, vaultwarden und website. pgvector ermoeglicht Vektorsuche fuer KI-Features (z. B. Embedding-Auswertungen). Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
+Gemeinsame PostgreSQL-16-Instanz fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, nextcloud, vaultwarden und website. Zugriff per `task workspace:psql -- <db>` oder Port-Forward via `task workspace:port-forward`.
 
 ### Mailpit (Dev-Mail)
 
@@ -295,13 +283,12 @@ Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 
 ```mermaid
 %%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#2563a0', 'pie4': '#4c2d8a', 'pie5': '#374151', 'pie6': '#1d5c3a', 'pie7': '#0b5575', 'pie8': '#374151', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
-pie title RAM Requests (Gesamt ca. 2.0 Gi)
+pie title RAM Requests (Gesamt ca. 1.8 Gi)
     "PostgreSQL (256 Mi)" : 256
     "Nextcloud (256 Mi)" : 256
     "Keycloak (512 Mi)" : 512
     "Claude Code (256 Mi)" : 256
     "Collabora (256 Mi)" : 256
     "Talk HPB Stack (256 Mi)" : 256
-    "Embedding (256 Mi)" : 256
     "Sonstige (288 Mi)" : 288
 ```

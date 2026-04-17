@@ -106,6 +106,45 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
         ))}
       </div>
 
+      <!-- Portrait -->
+      <div class={sectionCls}>
+        <h2 class="text-xl font-bold text-light font-serif">Porträtbild</h2>
+        <p class="text-xs text-muted">Wird im „Warum ich?"-Abschnitt der Startseite angezeigt.</p>
+        <div class="flex gap-6">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="avatar_type" value="image" class="accent-gold"
+              checked={hp.avatarType !== 'initials'} />
+            <span class="text-sm text-light">Foto-URL</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="avatar_type" value="initials" class="accent-gold"
+              checked={hp.avatarType === 'initials'} />
+            <span class="text-sm text-light">Initialen (kein Foto)</span>
+          </label>
+        </div>
+        <div id="avatar-image-field" class={hp.avatarType === 'initials' ? 'hidden' : ''}>
+          <label class={labelCls}>Bild-URL (z. B. /gerald.webp oder https://...)</label>
+          <input type="text" name="avatar_src" value={hp.avatarSrc ?? ''} class={inputCls}
+            placeholder="/gerald.webp" />
+        </div>
+        <div id="avatar-initials-field" class={hp.avatarType !== 'initials' ? 'hidden' : ''}>
+          <label class={labelCls}>Initialen (z. B. GK)</label>
+          <input type="text" name="avatar_initials" value={hp.avatarInitials ?? ''} class={`${inputCls} max-w-24`}
+            maxlength={3} placeholder="GK" />
+        </div>
+      </div>
+
+      <script>
+        const radios = document.querySelectorAll<HTMLInputElement>('input[name="avatar_type"]');
+        const imageField = document.getElementById('avatar-image-field');
+        const initialsField = document.getElementById('avatar-initials-field');
+        radios.forEach(r => r.addEventListener('change', () => {
+          const isImage = (document.querySelector<HTMLInputElement>('input[name="avatar_type"]:checked'))?.value === 'image';
+          imageField?.classList.toggle('hidden', !isImage);
+          initialsField?.classList.toggle('hidden', isImage);
+        }));
+      </script>
+
       <!-- Quote -->
       <div class={sectionCls}>
         <h2 class="text-xl font-bold text-light font-serif">Zitat</h2>

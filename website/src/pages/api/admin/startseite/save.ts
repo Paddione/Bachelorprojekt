@@ -29,6 +29,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       title: g(`whyme_point_${i}_title`),
       text: g(`whyme_point_${i}_text`),
     })),
+    avatarType: (g('avatar_type') || 'initials') as 'image' | 'initials',
+    avatarSrc: g('avatar_src') || undefined,
+    avatarInitials: g('avatar_initials') || undefined,
     quote: g('quote'),
     quoteName: g('quote_name'),
   });

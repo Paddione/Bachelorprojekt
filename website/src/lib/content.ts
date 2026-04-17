@@ -110,11 +110,17 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
     whyMeHeadline: c.whyMeHeadline,
     whyMeIntro: c.whyMeIntro,
     whyMePoints: c.whyMePoints.map(p => ({ title: p.title, text: p.text, iconPath: p.iconPath })),
+    avatarType: c.avatarType,
+    avatarSrc: c.avatarSrc,
+    avatarInitials: c.avatarInitials,
     quote: c.quote,
     quoteName: c.quoteName,
   };
   return {
     ...db,
+    avatarType: db.avatarType ?? c.avatarType,
+    avatarSrc: db.avatarSrc ?? c.avatarSrc,
+    avatarInitials: db.avatarInitials ?? c.avatarInitials,
     whyMePoints: db.whyMePoints.map((pt, i) => ({
       ...pt,
       iconPath: c.whyMePoints[i]?.iconPath,

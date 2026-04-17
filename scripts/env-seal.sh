@@ -17,6 +17,8 @@ set -euo pipefail
 
 ENV_NAME=""
 ENV_DIR="environments"
+FORCE=false
+_TEST_SCAN_FILE=""
 
 # ── Helpers ──────────────────────────────────────────────────────
 
@@ -32,6 +34,46 @@ info() {
 usage() {
   echo "Usage: $(basename "$0") --env <name> [--env-dir <path>]"
   exit 1
+}
+
+# ── Dev-value scanner ────────────────────────────────────────────
+
+scan_for_dev_values() {
+  local secrets_file="$1"
+  local dev_keys=()
+
+  while IFS= read -r line; do
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${line// /}" ]] && continue
+    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.+)$ ]]; then
+      local key="${BASH_REMATCH[1]}"
+      local value="${BASH_REMATCH[2]}"
+      value="${value%\"}"
+      value="${value%\'}"
+      value="${value#\"}"
+      value="${value#\'}"
+      value="${value// /}"
+      if [[ "$value" =~ ^dev[a-zA-Z] ]]; then
+        dev_keys+=("$key")
+      fi
+    fi
+  done < "$secrets_file"
+
+  if [[ ${#dev_keys[@]} -gt 0 ]]; then
+    echo "WARNING: The following secrets appear to contain dev placeholder values:"
+    for k in "${dev_keys[@]}"; do
+      echo "  ${k}"
+    done
+    echo ""
+    if [[ "$FORCE" == "true" ]]; then
+      echo "WARNING: --force specified, proceeding anyway."
+      return 0
+    fi
+    echo "ERROR: Refusing to seal dev placeholder values."
+    echo "Fix the values in ${secrets_file} or re-run with --force to override."
+    return 1
+  fi
+  return 0
 }
 
 # yaml_get <file> <key> — extract value for a top-level key
@@ -55,11 +97,24 @@ yaml_get() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --env)     ENV_NAME="$2"; shift 2 ;;
-    --env-dir) ENV_DIR="$2"; shift 2 ;;
-    *)         echo "Unknown option: $1"; usage ;;
+    --env)              ENV_NAME="$2"; shift 2 ;;
+    --env-dir)          ENV_DIR="$2"; shift 2 ;;
+    --force)            FORCE=true; shift ;;
+    --_test-dev-scan)   _TEST_SCAN_FILE="$2"; shift 2 ;;
+    *)                  echo "Unknown option: $1"; usage ;;
   esac
 done
+
+# ── Test-mode: only run the dev-value scan ───────────────────────
+
+if [[ -n "$_TEST_SCAN_FILE" ]]; then
+  if scan_for_dev_values "$_TEST_SCAN_FILE"; then
+    echo "OK: no dev placeholder values found"
+    exit 0
+  else
+    exit 1
+  fi
+fi
 
 [[ -z "$ENV_NAME" ]] && die "--env <name> is required"
 
@@ -99,6 +154,14 @@ if [[ ! -f "$CERT_FILE" ]]; then
 else
   info "Using existing certificate: ${CERT_FILE}"
 fi
+
+# ── Scan for dev placeholder values ─────────────────────────────
+
+info "Scanning secrets for dev placeholder values..."
+if ! scan_for_dev_values "$SECRETS_FILE"; then
+  exit 1
+fi
+info "No dev placeholder values detected."
 
 # ── Build temporary K8s Secret manifest ──────────────────────────
 

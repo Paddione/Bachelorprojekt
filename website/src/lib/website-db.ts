@@ -1897,6 +1897,9 @@ export interface HomepageContent {
   whyMeHeadline: string;
   whyMeIntro: string;
   whyMePoints: WhyMePoint[];
+  avatarType?: 'image' | 'initials';
+  avatarSrc?: string;
+  avatarInitials?: string;
   quote: string;
   quoteName: string;
 }

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { config } from '../config/index';
+import BugReportWidget from '../components/BugReportWidget.svelte';
 
 interface Props {
   title: string;
@@ -175,6 +176,7 @@ function isActive(href: string): boolean {
       <slot />
     </main>
 
+  <BugReportWidget client:load />
   <script is:inline>
   (function() {
     var btn = document.getElementById('sidebar-toggle');

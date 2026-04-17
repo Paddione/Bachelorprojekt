@@ -5,19 +5,31 @@ import FAQ from '../components/FAQ.svelte';
 import { getEffectiveServices } from '../lib/content';
 
 const { service } = Astro.params;
-const services = await getEffectiveServices();
-const svc = services.find((s) => s.slug === service && !s.hidden);
+const allServices = await getEffectiveServices();
+const visibleServices = allServices.filter((s) => !s.hidden);
+const svcIndex = visibleServices.findIndex((s) => s.slug === service);
+const svc = svcIndex !== -1 ? visibleServices[svcIndex] : null;
 
 if (!svc) {
   return Astro.redirect('/404');
 }
 
 const pc = svc.pageContent;
+const prevSvc = svcIndex > 0 ? visibleServices[svcIndex - 1] : null;
+const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex + 1] : null;
 ---
 
 <Layout title={svc.title} description={svc.description}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
+      <nav class="mb-6" aria-label="Breadcrumb">
+        <a href="/leistungen" class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-gold transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Alle Leistungen
+        </a>
+      </nav>
       <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">{svc.title}</p>
       <h1 class="text-4xl md:text-5xl font-bold text-light leading-tight mb-6 font-serif">{pc.headline}</h1>
       <p class="text-xl text-muted leading-relaxed max-w-3xl">{pc.intro}</p>
@@ -72,6 +84,32 @@ const pc = svc.pageContent;
 
   {pc.faq && pc.faq.length > 0 && (
     <FAQ items={pc.faq} title={`Häufige Fragen zu ${svc.title}`} client:visible />
+  )}
+
+  {(prevSvc || nextSvc) && (
+    <section class="py-10 bg-dark border-t border-dark-lighter">
+      <div class="max-w-4xl mx-auto px-6 flex items-center justify-between gap-4">
+        {prevSvc ? (
+          <a href={`/${prevSvc.slug}`} class="flex items-center gap-2 text-muted hover:text-gold transition-colors group">
+            <svg class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span class="text-sm font-medium">{prevSvc.title}</span>
+          </a>
+        ) : <span />}
+        <a href="/leistungen" class="text-xs font-semibold text-muted uppercase tracking-widest hover:text-gold transition-colors">
+          Alle Leistungen
+        </a>
+        {nextSvc ? (
+          <a href={`/${nextSvc.slug}`} class="flex items-center gap-2 text-muted hover:text-gold transition-colors group">
+            <span class="text-sm font-medium">{nextSvc.title}</span>
+            <svg class="w-5 h-5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        ) : <span />}
+      </div>
+    </section>
   )}
 
   <CallToAction client:visible />

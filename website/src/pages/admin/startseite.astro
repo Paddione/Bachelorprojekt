@@ -35,7 +35,7 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
       <div class={sectionCls}>
         <h2 class="text-xl font-bold text-light font-serif">Hero-Bereich</h2>
         <div>
-          <label class={labelCls}>Tagline (goldene Zeile oben)</label>
+          <label class={labelCls}>Kicker-Zeile (Mono-Text oben im Hero, z. B. „Digital Coaching · Führungskräfte-Beratung")</label>
           <input type="text" name="hero_tagline" value={hp.hero.tagline} class={inputCls} />
         </div>
         <div>
@@ -109,7 +109,7 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
       <!-- Portrait -->
       <div class={sectionCls}>
         <h2 class="text-xl font-bold text-light font-serif">Porträtbild</h2>
-        <p class="text-xs text-muted">Wird im „Warum ich?"-Abschnitt der Startseite angezeigt.</p>
+        <p class="text-xs text-muted">Wird im Hero-Bereich (rechte Spalte neben der Überschrift) angezeigt.</p>
         <div class="flex gap-6">
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="radio" name="avatar_type" value="image" class="accent-gold"

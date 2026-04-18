@@ -281,6 +281,50 @@ export async function listRoomsForCustomer(customerId: string): Promise<ChatRoom
   return rows;
 }
 
+export interface RoomInboxItem {
+  id: number;
+  name: string;
+  lastMessageBody: string | null;
+  lastMessageSenderName: string | null;
+  lastMessageAt: Date | null;
+  unreadCount: number;
+}
+
+export async function listRoomsWithInboxData(customerId: string): Promise<RoomInboxItem[]> {
+  const { rows } = await pool.query<RoomInboxItem>(
+    `SELECT
+       r.id,
+       r.name,
+       lm.body                AS "lastMessageBody",
+       lm.sender_name         AS "lastMessageSenderName",
+       lm.created_at          AS "lastMessageAt",
+       COALESCE(unread.cnt, 0)::int AS "unreadCount"
+     FROM chat_rooms r
+     JOIN chat_room_members m ON m.room_id = r.id AND m.customer_id = $1
+     LEFT JOIN LATERAL (
+       SELECT body, sender_name, created_at
+       FROM chat_messages
+       WHERE room_id = r.id
+       ORDER BY id DESC
+       LIMIT 1
+     ) lm ON true
+     LEFT JOIN LATERAL (
+       SELECT COUNT(*)::int AS cnt
+       FROM chat_messages cm
+       WHERE cm.room_id = r.id
+         AND (cm.sender_customer_id IS NULL OR cm.sender_customer_id <> $1)
+         AND NOT EXISTS (
+           SELECT 1 FROM chat_message_reads cr
+           WHERE cr.message_id = cm.id AND cr.customer_id = $1
+         )
+     ) unread ON true
+     WHERE r.archived_at IS NULL
+     ORDER BY COALESCE(lm.created_at, r.created_at) DESC`,
+    [customerId],
+  );
+  return rows;
+}
+
 export async function createRoom(name: string, createdBy: string): Promise<ChatRoom> {
   const { rows } = await pool.query<ChatRoom>(
     'INSERT INTO chat_rooms (name, created_by) VALUES ($1, $2) RETURNING *',

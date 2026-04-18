@@ -158,6 +158,11 @@ export const POST: APIRoute = async ({ request, params }) => {
         return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
       }
 
+      case 'close_user_message': {
+        await updateInboxItemStatus(id, 'actioned', session.preferred_username);
+        return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
+      }
+
       case 'finalize_meeting': {
         const p = item.payload as {
           customerName: string; customerEmail: string; meetingType: string;

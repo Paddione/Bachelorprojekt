@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { InboxItem, InboxType, InboxStatus } from '../lib/messaging-db';
+  import type { InboxItem, InboxType, InboxStatus, Message } from '../lib/messaging-db';
 
   // Server passes initial data via props to avoid a flash of empty content
   const { initialItems, initialCounts }: {
@@ -15,6 +15,13 @@
   let errors = $state<Record<number, string>>({});
   let noteInputId = $state<number | null>(null);
   let noteText = $state('');
+
+  // Thread inline view for user_message items
+  let expandedItemId = $state<number | null>(null);
+  let threadMessages = $state<Message[]>([]);
+  let threadLoading = $state(false);
+  let replyBody = $state('');
+  let replySending = $state(false);
 
   const TYPE_LABELS: Record<string, string> = {
     registration: 'Registrierung',
@@ -101,6 +108,48 @@
       errors = { ...errors, [item.id]: 'Netzwerkfehler' };
     } finally {
       loadingAction = null;
+    }
+  }
+
+  async function toggleThread(item: InboxItem) {
+    if (expandedItemId === item.id) {
+      expandedItemId = null;
+      threadMessages = [];
+      return;
+    }
+    expandedItemId = item.id;
+    threadMessages = [];
+    replyBody = '';
+    const threadId = item.reference_id;
+    if (!threadId) return;
+    threadLoading = true;
+    try {
+      const res = await fetch(`/api/admin/messages/${threadId}`);
+      if (res.ok) {
+        const data = await res.json() as { messages: Message[] };
+        threadMessages = data.messages;
+      }
+    } finally {
+      threadLoading = false;
+    }
+  }
+
+  async function sendReply(item: InboxItem) {
+    if (!replyBody.trim() || replySending || !item.reference_id) return;
+    replySending = true;
+    try {
+      const res = await fetch(`/api/admin/messages/${item.reference_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: replyBody.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { message: Message };
+        threadMessages = [...threadMessages, data.message];
+        replyBody = '';
+      }
+    } finally {
+      replySending = false;
     }
   }
 
@@ -211,7 +260,39 @@
                 <button class="btn-approve" disabled={loadingAction === item.id} onclick={() => executeAction(item, 'finalize_meeting')}>
                   {loadingAction === item.id ? '…' : '▶ Finalisieren'}
                 </button>
+              {:else if item.type === 'user_message'}
+                <button class="btn-chat" onclick={() => toggleThread(item)}>
+                  {expandedItemId === item.id ? '▲ Schließen' : '💬 Konversation'}
+                </button>
+                <button class="btn-secondary" disabled={loadingAction === item.id} onclick={() => executeAction(item, 'close_user_message')}>
+                  {loadingAction === item.id ? '…' : '✓ Erledigt'}
+                </button>
               {/if}
+            </div>
+          {/if}
+          {#if item.type === 'user_message' && expandedItemId === item.id}
+            <div class="thread-panel">
+              {#if threadLoading}
+                <p class="thread-loading">Lade Konversation…</p>
+              {:else if threadMessages.length === 0}
+                <p class="thread-empty">Keine Nachrichten.</p>
+              {:else}
+                <div class="thread-messages">
+                  {#each threadMessages as msg (msg.id)}
+                    <div class="thread-msg {msg.sender_role === 'admin' ? 'msg-admin' : 'msg-user'}">
+                      <span class="msg-role">{msg.sender_role === 'admin' ? 'Du' : 'Nutzer'}</span>
+                      <span class="msg-body">{msg.body}</span>
+                      <span class="msg-time">{relativeTime(msg.created_at)}</span>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+              <div class="thread-reply">
+                <textarea bind:value={replyBody} placeholder="Antwort schreiben…" rows="2" disabled={replySending}></textarea>
+                <button class="btn-primary" disabled={!replyBody.trim() || replySending} onclick={() => sendReply(item)}>
+                  {replySending ? '…' : 'Senden'}
+                </button>
+              </div>
             </div>
           {/if}
         </div>
@@ -251,4 +332,16 @@
   .note-wrap { margin-top: 10px; }
   .note-wrap textarea { width: 100%; background: #111827; color: #e8e8f0; border: 1px solid #374151; border-radius: 4px; padding: 8px; font-size: 13px; resize: vertical; box-sizing: border-box; }
   .note-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+  .btn-chat { background: #34d399; color: #000; padding: 5px 12px; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: 600; }
+  .thread-panel { margin-top: 12px; border-top: 1px solid #2a2a3e; padding-top: 12px; }
+  .thread-loading, .thread-empty { font-size: 12px; color: #666; margin: 0 0 8px; }
+  .thread-messages { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 10px; }
+  .thread-msg { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 6px; max-width: 80%; }
+  .msg-admin { background: #1e3a5f; align-self: flex-end; }
+  .msg-user { background: #1e2a1e; align-self: flex-start; }
+  .msg-role { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #888; }
+  .msg-body { font-size: 13px; color: #e8e8f0; white-space: pre-wrap; word-break: break-word; }
+  .msg-time { font-size: 10px; color: #555; align-self: flex-end; }
+  .thread-reply { display: flex; gap: 8px; align-items: flex-end; }
+  .thread-reply textarea { flex: 1; background: #111827; color: #e8e8f0; border: 1px solid #374151; border-radius: 4px; padding: 8px; font-size: 13px; resize: none; box-sizing: border-box; }
 </style>

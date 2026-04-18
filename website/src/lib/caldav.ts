@@ -250,8 +250,20 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
   return bookings;
 }
 
-// Compute available booking slots for a range of days
-export async function getAvailableSlots(fromDate?: Date): Promise<DaySlots[]> {
+// Compute available booking slots for a range of days.
+// When brand is provided, only whitelisted slots are returned (public booking view).
+// Without brand, all calendar-free slots are returned (admin overview).
+export async function getAvailableSlots(fromDate?: Date, brand?: string): Promise<DaySlots[]> {
+  let whitelistedSet: Set<string> | null = null;
+  if (brand) {
+    try {
+      const { getWhitelistedSlots } = await import('./website-db.js');
+      const wl = await getWhitelistedSlots(brand);
+      whitelistedSet = new Set(wl.map((w: { slotStart: Date }) => w.slotStart.toISOString()));
+    } catch {
+      // If whitelist table missing, fall back to showing all slots
+    }
+  }
   const now = new Date();
   const start = fromDate || now;
   const end = new Date(start);
@@ -283,13 +295,16 @@ export async function getAvailableSlots(fromDate?: Date): Promise<DaySlots[]> {
         );
 
         if (!hasConflict) {
+          const isoStart = slotStart.toISOString();
+          if (whitelistedSet !== null && !whitelistedSet.has(isoStart)) continue;
+
           const startHH = slotStart.getHours().toString().padStart(2, '0');
           const startMM = slotStart.getMinutes().toString().padStart(2, '0');
           const endHH = slotEnd.getHours().toString().padStart(2, '0');
           const endMM = slotEnd.getMinutes().toString().padStart(2, '0');
 
           slots.push({
-            start: slotStart.toISOString(),
+            start: isoStart,
             end: slotEnd.toISOString(),
             display: `${startHH}:${startMM} - ${endHH}:${endMM}`,
           });

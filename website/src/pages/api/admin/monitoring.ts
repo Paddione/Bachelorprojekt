@@ -2,6 +2,20 @@ import type { APIRoute } from 'astro';
 import { createK8sClient } from '../../../lib/k8s';
 import { getSession, isAdmin } from '../../../lib/auth';
 
+function parseCpuToNano(val: string): number {
+  if (val.endsWith('n')) return parseInt(val);
+  if (val.endsWith('u')) return parseInt(val) * 1_000;
+  if (val.endsWith('m')) return parseInt(val) * 1_000_000;
+  return parseInt(val) * 1_000_000_000; // whole cores e.g. "4"
+}
+
+function parseMemToKi(val: string): number {
+  if (val.endsWith('Ki')) return parseInt(val);
+  if (val.endsWith('Mi')) return parseInt(val) * 1024;
+  if (val.endsWith('Gi')) return parseInt(val) * 1024 * 1024;
+  return Math.round(parseInt(val) / 1024); // bytes fallback
+}
+
 export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
@@ -19,12 +33,14 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   try {
-    const [podsData, eventsData, podMetricsResult, nodeMetricsResult] = await Promise.allSettled([
-      k8s.get('/api/v1/namespaces/workspace/pods'),
-      k8s.get('/api/v1/namespaces/workspace/events'),
-      k8s.get('/apis/metrics.k8s.io/v1beta1/namespaces/workspace/pods'),
-      k8s.get('/apis/metrics.k8s.io/v1beta1/nodes'),
-    ]);
+    const [podsData, eventsData, podMetricsResult, nodeMetricsResult, nodeCapacityResult] =
+      await Promise.allSettled([
+        k8s.get('/api/v1/namespaces/workspace/pods'),
+        k8s.get('/api/v1/namespaces/workspace/events'),
+        k8s.get('/apis/metrics.k8s.io/v1beta1/namespaces/workspace/pods'),
+        k8s.get('/apis/metrics.k8s.io/v1beta1/nodes'),
+        k8s.get('/api/v1/nodes'),
+      ]);
 
     if (podsData.status === 'rejected') throw podsData.reason;
     if (eventsData.status === 'rejected') throw eventsData.reason;
@@ -94,10 +110,21 @@ export const GET: APIRoute = async ({ request }) => {
         };
       });
 
-    // Node metrics — N/A placeholder; fixed in Task 2
     let node = undefined;
-    if (metricsAvailable && nodeMetrics?.items?.length > 0) {
-      node = { cpu: 'N/A', memory: 'N/A' };
+    if (
+      metricsAvailable &&
+      nodeMetrics?.items?.length > 0 &&
+      nodeCapacityResult.status === 'fulfilled' &&
+      nodeCapacityResult.value?.items?.length > 0
+    ) {
+      const usage = nodeMetrics.items[0].usage;
+      const capacity = (nodeCapacityResult as PromiseFulfilledResult<any>).value.items[0].status.capacity;
+      const cpuPercent = Math.round((parseCpuToNano(usage.cpu) / parseCpuToNano(capacity.cpu)) * 100);
+      const memPercent = Math.round((parseMemToKi(usage.memory) / parseMemToKi(capacity.memory)) * 100);
+      node = {
+        cpu: `${Math.min(cpuPercent, 100)}%`,
+        memory: `${Math.min(memPercent, 100)}%`,
+      };
     }
 
     return new Response(

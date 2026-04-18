@@ -129,7 +129,7 @@
   }
 
   function parsePercent(val: string): number {
-    return Math.min(parseInt(val) || 0, 100);
+    return Math.min(parseInt(val, 10) || 0, 100);
   }
 </script>
 

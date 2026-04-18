@@ -10,45 +10,70 @@ interface Props {
 const { title } = Astro.props;
 const path = Astro.url.pathname;
 
+const icons: Record<string, string> = {
+  dashboard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
+  bug: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="3.5"/><path d="M8 5.5V3.5M5 7H2.5M11 7h2.5M5.5 5l-2-2M10.5 5l2-2M5 12l-2 1.5M11 12l2 1.5"/></svg>`,
+  microphone: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1.5" width="5" height="7" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5v2M6 14.5h4"/></svg>`,
+  calendar: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3"/></svg>`,
+  users: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5" r="2.5"/><path d="M1 14a4.5 4.5 0 0 1 9 0"/><circle cx="12" cy="5" r="2"/><path d="M14.5 13a3.5 3.5 0 0 0-3.5-3"/></svg>`,
+  message: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h12v8H9.5L8 13l-1.5-2H2z"/></svg>`,
+  home: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5l6.5-6 6.5 6"/><path d="M3.5 7.5v6.5h3.5v-4h2v4h3.5V7.5"/></svg>`,
+  clipboard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 2.5h5v2.5h-5V2.5z"/><rect x="3" y="2.5" width="10" height="12" rx="1"/><path d="M5.5 7.5h5M5.5 10.5h5M5.5 13.5h3"/></svg>`,
+  clock: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2.5 1.5"/></svg>`,
+  receipt: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.5h8v13l-2-1.5-2 1.5-2-1.5-2 1.5z"/><path d="M6 6h4M6 8.5h4M6 11h2"/></svg>`,
+  bell: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5a4 4 0 0 0-4 4c0 2.5-1.5 3.5-1.5 3.5h11S12 9 12 6.5a4 4 0 0 0-4-4z"/><path d="M7 13.5h2"/></svg>`,
+  calendar2: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3M5.5 10h1M8 10h1M10.5 10h1"/></svg>`,
+  monitor: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="9" rx="1"/><path d="M5 11.5l-.5 3h7l-.5-3M5.5 14.5h5"/></svg>`,
+  layout: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M2 7h12M6 7v6.5"/></svg>`,
+  person: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2.5 14.5a5.5 5.5 0 0 1 11 0"/></svg>`,
+  tag: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2.5h4.5l7 7a2 2 0 0 1 0 2.8l-2.2 2.2a2 2 0 0 1-2.8 0l-7-7V2.5z"/><circle cx="5.5" cy="5.5" r=".75" fill="currentColor" stroke="none"/></svg>`,
+  help: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M6.5 6a2 2 0 0 1 3.5 1c0 1.5-2 2-2 3M8 12.5v.5"/></svg>`,
+  mail: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 4.5l6 4.5 6-4.5"/></svg>`,
+  star: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l2 4 4.5.7-3.3 3.1.8 4.7L8 12l-4 2.5.8-4.7L1.5 6.7 6 6z"/></svg>`,
+  scale: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v13M3 4.5h10M2 14.5h12"/><path d="M5 4.5L2.5 10h5zM11 4.5L8.5 10h5z"/></svg>`,
+  inbox: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
+};
+
 const navGroups = [
   {
     label: 'Übersicht',
     items: [
-      { href: '/admin', label: 'Dashboard', icon: '📊' },
+      { href: '/admin', label: 'Dashboard', icon: 'dashboard' },
     ],
   },
   {
     label: 'Betrieb',
     items: [
-      { href: '/admin/bugs',         label: 'Bugs',          icon: '🐛' },
-      { href: '/admin/meetings',     label: 'Meetings',      icon: '🎙️' },
-      { href: '/admin/termine',      label: 'Termine',       icon: '📅' },
-      { href: '/admin/clients',      label: 'Clients',       icon: '👥' },
-      { href: '/admin/nachrichten',  label: 'Nachrichten',   icon: '💬' },
-      { href: '/admin/raeume',       label: 'Räume',         icon: '🏠' },
-      { href: '/admin/projekte',     label: 'Projekte',      icon: '📋' },
-      { href: '/admin/zeiterfassung',label: 'Zeiterfassung', icon: '⏱️' },
-      { href: '/admin/rechnungen',   label: 'Rechnungen',    icon: '💶' },
-      { href: '/admin/followups',    label: 'Follow-ups',    icon: '🔔' },
-      { href: '/admin/kalender',     label: 'Kalender',      icon: '🗓️' },
+      { href: '/admin/bugs',          label: 'Bugs',          icon: 'bug' },
+      { href: '/admin/meetings',      label: 'Meetings',      icon: 'microphone' },
+      { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
+      { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
+      { href: '/admin/nachrichten',   label: 'Nachrichten',   icon: 'message' },
+      { href: '/admin/raeume',        label: 'Räume',         icon: 'home' },
+      { href: '/admin/projekte',      label: 'Projekte',      icon: 'clipboard' },
+      { href: '/admin/zeiterfassung', label: 'Zeiterfassung', icon: 'clock' },
+      { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt' },
+      { href: '/admin/followups',     label: 'Follow-ups',    icon: 'bell' },
+      { href: '/admin/kalender',      label: 'Kalender',      icon: 'calendar2' },
     ],
   },
   {
     label: 'System',
     items: [
-      { href: '/admin/monitoring', label: 'Monitoring', icon: '🖥️' },
+      { href: '/admin/monitoring', label: 'Monitoring', icon: 'monitor' },
+      { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox' },
     ],
   },
   {
     label: 'Website',
     items: [
-      { href: '/admin/startseite',   label: 'Startseite',    icon: '🏠' },
-      { href: '/admin/uebermich',    label: 'Über mich',     icon: '🙋' },
-      { href: '/admin/angebote',     label: 'Angebote',      icon: '🛍️' },
-      { href: '/admin/faq',          label: 'FAQ',           icon: '❓' },
-      { href: '/admin/kontakt',      label: 'Kontakt',       icon: '✉️' },
-      { href: '/admin/referenzen',   label: 'Referenzen',    icon: '🏆' },
-      { href: '/admin/rechtliches',  label: 'Rechtliches',   icon: '⚖️' },
+      { href: '/admin/startseite',  label: 'Startseite',  icon: 'layout' },
+      { href: '/admin/uebermich',   label: 'Über mich',   icon: 'person' },
+      { href: '/admin/angebote',    label: 'Angebote',    icon: 'tag' },
+      { href: '/admin/faq',         label: 'FAQ',         icon: 'help' },
+      { href: '/admin/kontakt',     label: 'Kontakt',     icon: 'mail' },
+      { href: '/admin/referenzen',  label: 'Referenzen',  icon: 'star' },
+      { href: '/admin/rechtliches', label: 'Rechtliches', icon: 'scale' },
     ],
   },
 ];
@@ -57,6 +82,8 @@ function isActive(href: string): boolean {
   if (href === '/admin') return path === '/admin';
   return path.startsWith(href);
 }
+
+const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 ---
 
 <!doctype html>
@@ -67,94 +94,142 @@ function isActive(href: string): boolean {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <title>{title} | Admin — {config.meta.siteTitle}</title>
     <script is:inline>
-  try {
-    if (localStorage.getItem('admin-sidebar-collapsed') === '1') {
-      document.documentElement.classList.add('sidebar-collapsed');
-    }
-  } catch (_) {}
-</script>
-<style>
-  #admin-sidebar {
-    width: 13rem;
-    transition: width 0.2s ease;
-    overflow: hidden;
-  }
-  html.sidebar-collapsed #admin-sidebar {
-    width: 3rem;
-  }
-  .sidebar-label {
-    transition: opacity 0.15s ease, max-width 0.2s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    max-width: 200px;
-  }
-  html.sidebar-collapsed .sidebar-label {
-    opacity: 0;
-    max-width: 0;
-  }
-  .sidebar-group-label {
-    transition: opacity 0.15s ease, max-height 0.2s ease;
-    overflow: hidden;
-    max-height: 2rem;
-  }
-  html.sidebar-collapsed .sidebar-group-label {
-    opacity: 0;
-    max-height: 0;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  html.sidebar-collapsed .sidebar-nav-item {
-    justify-content: center;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-  html.sidebar-collapsed .sidebar-footer-link span {
-    opacity: 0;
-    max-width: 0;
-    overflow: hidden;
-    display: inline-block;
-  }
-</style>
+      try {
+        if (localStorage.getItem('admin-sidebar-collapsed') === '1') {
+          document.documentElement.classList.add('sidebar-collapsed');
+        }
+      } catch (_) {}
+    </script>
+    <style>
+      #admin-sidebar {
+        width: 13rem;
+        transition: width 0.2s ease;
+        overflow: hidden;
+      }
+      html.sidebar-collapsed #admin-sidebar {
+        width: 3rem;
+      }
+      .sidebar-label {
+        transition: opacity 0.15s ease, max-width 0.2s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 200px;
+      }
+      html.sidebar-collapsed .sidebar-label {
+        opacity: 0;
+        max-width: 0;
+      }
+      .sidebar-group-label {
+        transition: opacity 0.15s ease, max-height 0.2s ease;
+        overflow: hidden;
+        max-height: 2rem;
+      }
+      html.sidebar-collapsed .sidebar-group-label {
+        opacity: 0;
+        max-height: 0;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      html.sidebar-collapsed .sidebar-nav-item {
+        justify-content: center;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      html.sidebar-collapsed .sidebar-footer-link span {
+        opacity: 0;
+        max-width: 0;
+        overflow: hidden;
+        display: inline-block;
+      }
+      .sidebar-nav-item:not(.is-active):hover {
+        background: var(--ink-800) !important;
+        color: var(--fg) !important;
+      }
+      .sidebar-nav-item:not(.is-active):hover .nav-icon {
+        color: var(--brass) !important;
+      }
+      .nav-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+      .sidebar-footer-link:hover {
+        background: var(--ink-800);
+        color: var(--fg-soft);
+      }
+      .sidebar-footer-link.danger:hover {
+        background: rgba(248, 113, 113, 0.07);
+        color: #f87171;
+      }
+      #sidebar-toggle:hover {
+        background: var(--ink-800);
+        color: var(--brass);
+      }
+      /* Collapsed: show expand chevron, hide collapse chevron */
+      #icon-collapse { display: block; }
+      #icon-expand   { display: none; }
+      html.sidebar-collapsed #icon-collapse { display: none; }
+      html.sidebar-collapsed #icon-expand   { display: block; }
+    </style>
   </head>
-  <body class="min-h-screen bg-dark text-light flex">
+  <body style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
 
     <!-- Sidebar -->
-    <aside id="admin-sidebar" class="flex-shrink-0 min-h-screen bg-dark-light border-r border-dark-lighter flex flex-col">
-      <div class="px-3 py-5 border-b border-dark-lighter flex items-center gap-2 min-w-0">
-        <div class="flex-1 min-w-0">
-          <a href="/admin" class="sidebar-label text-gold font-bold text-lg font-serif leading-tight block">Admin</a>
-          <p class="sidebar-label text-xs text-muted mt-0.5">{config.meta.siteTitle}</p>
-        </div>
+    <aside id="admin-sidebar" style="flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
+
+      <!-- Header -->
+      <div style="padding:20px 14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; min-width:0;">
+        <a href="/admin" style="display:flex; align-items:center; gap:10px; text-decoration:none; flex:1; min-width:0; overflow:hidden;">
+          <div style="width:28px; height:28px; border-radius:7px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3); position:relative; flex-shrink:0;">
+            <div style="position:absolute; inset:6px; border-radius:2px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
+          </div>
+          <div class="sidebar-label" style="min-width:0;">
+            <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass); letter-spacing:-0.01em; display:block; line-height:1.2;">{brandWord}<span style="color:var(--mute);">.</span></span>
+            <span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.12em; text-transform:uppercase; display:block; margin-top:1px;">Admin</span>
+          </div>
+        </a>
         <button
           id="sidebar-toggle"
           title="Sidebar einklappen"
           aria-label="Sidebar einklappen"
-          aria-expanded="false"
+          aria-expanded="true"
           aria-controls="admin-sidebar"
-          class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-gold hover:text-gold-light transition-colors text-lg font-bold leading-none"
-        >‹</button>
+          style="flex-shrink:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer; color:var(--mute); border-radius:6px; transition:color 0.15s ease, background 0.15s ease;"
+        >
+          <svg id="icon-collapse" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:14px; height:14px;" aria-hidden="true">
+            <path d="M10 3l-5 5 5 5"/>
+          </svg>
+          <svg id="icon-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:14px; height:14px;" aria-hidden="true">
+            <path d="M6 3l5 5-5 5"/>
+          </svg>
+        </button>
       </div>
 
-      <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-5">
+      <!-- Nav -->
+      <nav style="flex:1; overflow-y:auto; padding:12px 8px; display:flex; flex-direction:column; gap:20px;">
         {navGroups.map(group => (
           <div>
-            <p class="sidebar-group-label px-2 mb-1.5 text-xs font-semibold text-muted uppercase tracking-widest">{group.label}</p>
-            <ul class="space-y-0.5">
+            <p class="sidebar-group-label" style="padding:0 10px; margin-bottom:4px; font-family:var(--font-mono); font-size:9px; font-weight:500; color:var(--mute-2); text-transform:uppercase; letter-spacing:0.14em;">{group.label}</p>
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:1px;">
               {group.items.map(item => (
                 <li>
                   <a
                     href={item.href}
                     title={item.label}
-                    class={`sidebar-nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    class={`sidebar-nav-item${isActive(item.href) ? ' is-active' : ''}`}
+                    style={`display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
                       isActive(item.href)
-                        ? 'bg-gold/10 text-gold'
-                        : 'text-muted hover:text-light hover:bg-dark-lighter'
+                        ? 'background:var(--brass-d); color:var(--brass);'
+                        : 'color:var(--fg-soft);'
                     }`}
                   >
-                    <span class="text-base leading-none flex-shrink-0">{item.icon}</span>
+                    <span
+                      class="nav-icon"
+                      style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${isActive(item.href) ? 'color:var(--brass);' : 'color:var(--mute);'}`}
+                      set:html={icons[item.icon]}
+                    />
                     <span class="sidebar-label">{item.label}</span>
                   </a>
                 </li>
@@ -164,43 +239,52 @@ function isActive(href: string): boolean {
         ))}
       </nav>
 
-      <div class="px-4 py-4 border-t border-dark-lighter flex flex-col gap-2">
-        <a href="/" class="sidebar-footer-link flex items-center gap-1 text-xs text-muted hover:text-gold transition-colors whitespace-nowrap">
-          <span>←</span>
+      <!-- Footer -->
+      <div style="padding:10px 8px 12px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:1px;">
+        <a href="/" class="sidebar-footer-link" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--mute); transition:background 0.1s ease, color 0.1s ease;">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
+            <path d="M10 3l-5 5 5 5M5 8h8"/>
+          </svg>
           <span class="sidebar-label">Website</span>
         </a>
-        <a href="/api/auth/logout" class="sidebar-footer-link flex items-center gap-1 text-xs text-muted hover:text-red-400 transition-colors whitespace-nowrap">
-          <span>⏻</span>
+        <a href="/api/auth/logout" class="sidebar-footer-link danger" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--mute); transition:background 0.1s ease, color 0.1s ease;">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
+            <path d="M6 12H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>
+            <path d="M10.5 11l3-3-3-3M13.5 8H6"/>
+          </svg>
           <span class="sidebar-label">Abmelden</span>
         </a>
       </div>
     </aside>
 
     <!-- Main -->
-    <main class="flex-1 min-h-screen overflow-y-auto">
+    <main style="flex:1; min-height:100vh; overflow-y:auto;">
       <slot />
     </main>
 
-  <BugReportWidget client:load />
-  <script is:inline>
-  (function() {
-    var btn = document.getElementById('sidebar-toggle');
-    if (!btn) return;
-    var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
-    btn.textContent = collapsed ? '›' : '‹';
-    btn.title = collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
-    btn.setAttribute('aria-label', btn.title);
-    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    <BugReportWidget client:load />
 
-    btn.addEventListener('click', function() {
-      collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
-      localStorage.setItem('admin-sidebar-collapsed', collapsed ? '1' : '0');
-      btn.textContent = collapsed ? '›' : '‹';
-      btn.title = collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
-      btn.setAttribute('aria-label', btn.title);
-      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-    });
-  })();
-</script>
+    <script is:inline>
+      (function() {
+        var btn = document.getElementById('sidebar-toggle');
+        if (!btn) return;
+        var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
+
+        function updateState(isCollapsed) {
+          var label = isCollapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
+          btn.title = label;
+          btn.setAttribute('aria-label', label);
+          btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        }
+
+        updateState(collapsed);
+
+        btn.addEventListener('click', function() {
+          collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+          localStorage.setItem('admin-sidebar-collapsed', collapsed ? '1' : '0');
+          updateState(collapsed);
+        });
+      })();
+    </script>
   </body>
 </html>

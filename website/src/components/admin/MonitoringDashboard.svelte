@@ -96,14 +96,20 @@
     }
   };
 
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && selectedEvent) closeModal();
+  }
+
   onMount(() => {
     fetchData();
-    refreshInterval = setInterval(fetchData, 15000); // refresh every 15s
+    refreshInterval = setInterval(fetchData, 15000);
+    window.addEventListener('keydown', handleKeydown);
   });
 
   onDestroy(() => {
     if (refreshInterval) clearInterval(refreshInterval);
     if (modalCloseTimer) clearTimeout(modalCloseTimer);
+    window.removeEventListener('keydown', handleKeydown);
   });
 
   $: runningCount = data?.pods.filter(p => p.phase === 'Running' || p.ready).length || 0;
@@ -265,7 +271,6 @@
 </div>
 
 {#if selectedEvent}
-  <svelte:window on:keydown={(e) => { if (e.key === 'Escape') closeModal(); }} />
   <!-- Modal backdrop -->
   <div
     class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"

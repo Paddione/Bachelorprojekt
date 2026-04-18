@@ -5,7 +5,7 @@ import { getSession, getLoginUrl } from '../../../lib/auth';
 import { getCustomerByEmail, listRoomsForCustomer } from '../../../lib/messaging-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 
 const customer = await getCustomerByEmail(session.email);
 if (!customer) return Astro.redirect('/portal');

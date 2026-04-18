@@ -5,7 +5,7 @@ import { getFileUrl, getClientFolderPath, PENDING_SIGNATURES_DIR, SIGNED_DIR } f
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
-  return Astro.redirect(getLoginUrl());
+  return Astro.redirect(getLoginUrl(Astro.url.pathname));
 }
 
 const documentPath = Astro.url.searchParams.get('path') ?? '';

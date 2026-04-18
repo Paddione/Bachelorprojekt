@@ -5,7 +5,7 @@ import { listFollowUps } from '../../lib/website-db';
 import type { FollowUp } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const showDone = Astro.url.searchParams.get('done') === '1';

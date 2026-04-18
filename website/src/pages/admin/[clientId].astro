@@ -13,7 +13,7 @@ import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
-  return Astro.redirect(getLoginUrl());
+  return Astro.redirect(getLoginUrl(Astro.url.pathname));
 }
 if (!isAdmin(session)) {
   return Astro.redirect('/portal');

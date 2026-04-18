@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     );
   }
 
-  let k8s;
+  let k8s: Awaited<ReturnType<typeof createK8sClient>>;
   try {
     k8s = await createK8sClient();
   } catch {

@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
   }
 
-  let k8s;
+  let k8s: Awaited<ReturnType<typeof createK8sClient>>;
   try {
     k8s = await createK8sClient();
   } catch {

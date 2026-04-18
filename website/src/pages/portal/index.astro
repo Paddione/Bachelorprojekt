@@ -6,9 +6,18 @@ import { getCustomerByEmail, getThreadByCustomerId, listRoomsForCustomer } from 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl('/portal'));
 
-const customer = await getCustomerByEmail(session.email);
-const thread = customer ? await getThreadByCustomerId(customer.id) : null;
-const rooms = customer ? await listRoomsForCustomer(customer.id) : [];
+let customer: Awaited<ReturnType<typeof getCustomerByEmail>> = null;
+let thread: Awaited<ReturnType<typeof getThreadByCustomerId>> = null;
+let rooms: Awaited<ReturnType<typeof listRoomsForCustomer>> = [];
+try {
+  customer = await getCustomerByEmail(session.email);
+  [thread, rooms] = await Promise.all([
+    customer ? getThreadByCustomerId(customer.id) : Promise.resolve(null),
+    customer ? listRoomsForCustomer(customer.id) : Promise.resolve([]),
+  ]);
+} catch (err) {
+  console.error('[portal] DB error:', err);
+}
 ---
 
 <Layout title="Mein Portal">

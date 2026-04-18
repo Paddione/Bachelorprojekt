@@ -8,10 +8,16 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
-const [initialItems, initialCounts] = await Promise.all([
-  listInboxItems({ status: 'pending' }),
-  countPendingByType(),
-]);
+let initialItems: Awaited<ReturnType<typeof listInboxItems>> = [];
+let initialCounts: Awaited<ReturnType<typeof countPendingByType>> = {};
+try {
+  [initialItems, initialCounts] = await Promise.all([
+    listInboxItems({ status: 'pending' }),
+    countPendingByType(),
+  ]);
+} catch (err) {
+  console.error('[admin/inbox] DB error:', err);
+}
 ---
 
 <AdminLayout title="Inbox">

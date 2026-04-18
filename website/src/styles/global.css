@@ -81,3 +81,30 @@ section {
   border-bottom: 1px solid var(--color-dark-lighter);
   padding: 0.5rem 1rem 0.5rem 0;
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .prose,
+  .prose h1, .prose h2, .prose h3, .prose h4,
+  .prose p, .prose li, .prose strong {
+    color: black !important;
+    background: transparent !important;
+  }
+  .prose a {
+    color: #333 !important;
+  }
+  .prose th {
+    color: black !important;
+    border-bottom-color: #ccc !important;
+  }
+  .prose td {
+    color: #333 !important;
+    border-bottom-color: #eee !important;
+  }
+  .prose hr {
+    border-color: #ccc !important;
+  }
+}

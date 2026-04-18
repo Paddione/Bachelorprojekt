@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request }) => {
   const ticketId = generateTicketId();
 
   try {
-    await insertBugTicket({
+    const rowCount = await insertBugTicket({
       ticketId,
       category,
       reporterEmail: session.email,
@@ -55,13 +55,16 @@ export const POST: APIRoute = async ({ request }) => {
       url: '/admin/monitoring',
       brand: BRAND,
     });
+    if (rowCount === 0) {
+      return jsonError('Ticket-ID-Kollision, bitte erneut versuchen', 500);
+    }
   } catch (err) {
     console.error('[bugs/create] DB error:', err);
     return jsonError('Datenbankfehler', 500);
   }
 
   return new Response(JSON.stringify({ ticketId }), {
-    status: 200,
+    status: 201,
     headers: { 'Content-Type': 'application/json' },
   });
 };

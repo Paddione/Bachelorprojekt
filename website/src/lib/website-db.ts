@@ -431,18 +431,19 @@ export async function insertBugTicket(params: {
   url?: string;
   brand: string;
   screenshots?: string[];
-}): Promise<void> {
+}): Promise<number> {
   await initBugTicketsTable();
   const screenshotsJson = params.screenshots && params.screenshots.length > 0
     ? JSON.stringify(params.screenshots)
     : null;
-  await pool.query(
+  const result = await pool.query(
     `INSERT INTO bug_tickets (ticket_id, category, reporter_email, description, url, brand, screenshots_json)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (ticket_id) DO NOTHING`,
     [params.ticketId, params.category, params.reporterEmail,
      params.description, params.url ?? null, params.brand, screenshotsJson]
   );
+  return result.rowCount ?? 0;
 }
 
 export async function resolveBugTicket(ticketId: string, resolutionNote: string): Promise<void> {

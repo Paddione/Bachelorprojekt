@@ -26,24 +26,31 @@ export const GET: APIRoute = async ({ request }) => {
       });
     }
 
-    const httpsAgent = new https.Agent({
-      ca: caCert,
-    });
-
-    const fetchK8s = async (path: string) => {
-      const res = await fetch(`https://kubernetes.default.svc${path}`, {
-        headers: {
-          Authorization: `Bearer ${k8sToken}`,
-          Accept: 'application/json',
-        },
-        // @ts-ignore - node-fetch specific
-        agent: httpsAgent,
+    const fetchK8s = (path: string): Promise<any> =>
+      new Promise((resolve, reject) => {
+        const req = https.request(
+          {
+            hostname: 'kubernetes.default.svc',
+            path,
+            method: 'GET',
+            headers: { Authorization: `Bearer ${k8sToken}`, Accept: 'application/json' },
+            ca: caCert,
+          },
+          (res) => {
+            let data = '';
+            res.on('data', (chunk: string) => { data += chunk; });
+            res.on('end', () => {
+              if (res.statusCode && res.statusCode >= 400) {
+                reject(new Error(`Kubernetes API error: ${res.statusCode} ${res.statusMessage}`));
+              } else {
+                try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+              }
+            });
+          }
+        );
+        req.on('error', reject);
+        req.end();
       });
-      if (!res.ok) {
-        throw new Error(`Kubernetes API error: ${res.status} ${res.statusText}`);
-      }
-      return res.json();
-    };
 
     // Parallel fetches
     const [podsData, eventsData, podMetricsResult, nodeMetricsResult] = await Promise.allSettled([

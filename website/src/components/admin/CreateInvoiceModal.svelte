@@ -54,6 +54,8 @@
   let error = $state('');
   let success = $state('');
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   // ── Derived ──────────────────────────────────────────────────────────────
   const selectedService = $derived(serviceOptions.find(s => s.key === selectedKey));
   const totalEur = $derived(((selectedService?.cents ?? 0) * quantity) / 100);
@@ -112,10 +114,11 @@
       const res = await fetch('/api/admin/clients-list');
       if (res.ok) {
         clients = await res.json();
-        clientsLoaded = true;
       }
     } catch {
       // combobox will show empty list; freetext still works
+    } finally {
+      clientsLoaded = true;
     }
   }
 
@@ -128,11 +131,20 @@
     error = '';
     success = '';
 
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      error = 'Menge muss mindestens 1 sein.';
+      return;
+    }
+
     const customerName = externalMode ? extName.trim() : (selectedClient?.name ?? '');
     const customerEmail = externalMode ? extEmail.trim() : (selectedClient?.email ?? '');
 
     if (!customerName || !customerEmail) {
       error = 'Bitte einen Kunden auswählen oder Kundendaten eingeben.';
+      return;
+    }
+    if (externalMode && !EMAIL_RE.test(customerEmail)) {
+      error = 'Bitte eine gültige E-Mail-Adresse eingeben.';
       return;
     }
     if (!selectedKey) {
@@ -163,6 +175,7 @@
       const data = await res.json();
       if (!res.ok || !data.success) {
         error = data.error ?? 'Unbekannter Fehler.';
+        submitting = false;
         return;
       }
 
@@ -171,10 +184,10 @@
         : `Rechnung ${data.data?.number ?? ''} erstellt.`;
 
       document.dispatchEvent(new CustomEvent('invoice-created'));
+      submitting = true;
       setTimeout(() => closeModal(), 1200);
     } catch {
       error = 'Netzwerkfehler. Bitte erneut versuchen.';
-    } finally {
       submitting = false;
     }
   }

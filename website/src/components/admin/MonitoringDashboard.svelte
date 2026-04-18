@@ -26,6 +26,18 @@
     fetchedAt: string;
   };
 
+  type Deployment = {
+    name: string;
+    desired: number;
+    ready: number;
+    available: number;
+    status: 'healthy' | 'degraded' | 'stopped';
+  };
+
+  type DeploymentAction =
+    | { type: 'restart'; deployment: Deployment }
+    | { type: 'scale'; deployment: Deployment };
+
   let data: MonitoringData | null = null;
   let loading = true;
   let error: string | null = null;
@@ -38,6 +50,13 @@
   let modalError: string | null = null;
   let modalSuccessId: string | null = null;
   let modalCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  let deployments: Deployment[] = [];
+  let deploymentsError: string | null = null;
+  let pendingAction: DeploymentAction | null = null;
+  let scaleTarget = 1;
+  let actionLoading = false;
+  let actionError: string | null = null;
 
   function openModal(event: KubeEvent) {
     if (modalCloseTimer) clearTimeout(modalCloseTimer);
@@ -84,17 +103,74 @@
     try {
       loading = true;
       error = null;
-      const response = await fetch('/api/admin/monitoring');
-      if (!response.ok) {
-        throw new Error(`Failed to fetch monitoring data: ${response.status} ${response.statusText}`);
+      const [monRes, depRes] = await Promise.allSettled([
+        fetch('/api/admin/monitoring'),
+        fetch('/api/admin/deployments'),
+      ]);
+
+      if (monRes.status === 'fulfilled' && monRes.value.ok) {
+        data = await monRes.value.json();
+      } else if (monRes.status === 'rejected') {
+        error = (monRes.reason as Error).message;
+      } else {
+        error = `Failed to fetch monitoring data: ${monRes.value.status} ${monRes.value.statusText}`;
       }
-      data = await response.json();
-    } catch (err: any) {
-      error = err.message;
+
+      if (depRes.status === 'fulfilled' && depRes.value.ok) {
+        const json = await depRes.value.json();
+        deployments = json.deployments ?? [];
+        deploymentsError = null;
+      } else {
+        deploymentsError = 'Deployments konnten nicht geladen werden.';
+      }
     } finally {
       loading = false;
     }
   };
+
+  function openAction(action: DeploymentAction) {
+    pendingAction = action;
+    scaleTarget = action.type === 'scale' ? action.deployment.desired : 1;
+    actionLoading = false;
+    actionError = null;
+  }
+
+  function closeAction() {
+    pendingAction = null;
+    actionError = null;
+  }
+
+  async function confirmAction() {
+    if (!pendingAction) return;
+    actionLoading = true;
+    actionError = null;
+    try {
+      const { type, deployment } = pendingAction;
+      const body = type === 'scale' ? JSON.stringify({ replicas: scaleTarget }) : '{}';
+      const res = await fetch(`/api/admin/deployments/${deployment.name}/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        actionError = json.error ?? 'Unbekannter Fehler';
+        return;
+      }
+      closeAction();
+      setTimeout(fetchData, 1000);
+    } catch {
+      actionError = 'Netzwerkfehler';
+    } finally {
+      actionLoading = false;
+    }
+  }
+
+  function deploymentStatusClass(status: Deployment['status']): string {
+    if (status === 'healthy') return 'bg-green-900/40 text-green-400';
+    if (status === 'degraded') return 'bg-orange-900/40 text-orange-400';
+    return 'bg-yellow-900/40 text-yellow-400';
+  }
 
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && selectedEvent) closeModal();
@@ -200,6 +276,58 @@
             </div>
           </div>
         </div>
+      {/if}
+    </div>
+
+    <!-- Deployments Section -->
+    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
+      <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter">
+        <h3 class="text-lg leading-6 font-medium text-light">Deployments</h3>
+      </div>
+      {#if deploymentsError}
+        <p class="px-4 py-4 text-sm text-red-500">{deploymentsError}</p>
+      {:else if deployments.length === 0}
+        <p class="px-4 py-4 text-sm text-gray-500 text-center">No deployments found in workspace.</p>
+      {:else}
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-dark-lighter text-xs text-muted text-left">
+              <th class="px-4 py-3 font-medium">Name</th>
+              <th class="px-3 py-3 font-medium">Ready</th>
+              <th class="px-3 py-3 font-medium">Replicas</th>
+              <th class="px-3 py-3 font-medium">Status</th>
+              <th class="px-4 py-3 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-dark-lighter">
+            {#each deployments as dep}
+              <tr class="hover:bg-dark transition-colors">
+                <td class="px-4 py-3 font-medium text-light">{dep.name}</td>
+                <td class="px-3 py-3 {dep.ready === dep.desired ? 'text-green-400' : 'text-orange-400'}">{dep.ready} / {dep.desired}</td>
+                <td class="px-3 py-3 text-muted">{dep.desired}</td>
+                <td class="px-3 py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {deploymentStatusClass(dep.status)}">
+                    {dep.status}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-right space-x-2">
+                  <button
+                    on:click={() => openAction({ type: 'restart', deployment: dep })}
+                    class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-blue-700 text-blue-400 hover:bg-blue-900/30 transition-colors"
+                  >
+                    ⟳ Restart
+                  </button>
+                  <button
+                    on:click={() => openAction({ type: 'scale', deployment: dep })}
+                    class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-purple-700 text-purple-400 hover:bg-purple-900/30 transition-colors"
+                  >
+                    ⇅ Scale
+                  </button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
       {/if}
     </div>
 
@@ -378,6 +506,82 @@
           </button>
         </div>
       {/if}
+    </div>
+  </div>
+{/if}
+
+{#if pendingAction}
+  <div
+    class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+    on:click|self={closeAction}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="action-modal-title"
+  >
+    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-md">
+      <div class="px-6 py-4 border-b border-dark-lighter flex items-center justify-between">
+        <h2 id="action-modal-title" class="text-lg font-semibold text-light">
+          {pendingAction.type === 'restart' ? 'Restart' : 'Scale'} Deployment
+        </h2>
+        <button on:click={closeAction} class="text-gray-400 hover:text-light transition-colors" aria-label="Schließen">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-6 py-4 space-y-4">
+        {#if pendingAction.type === 'restart'}
+          <p class="text-sm text-light">
+            Restart deployment <strong>{pendingAction.deployment.name}</strong>?
+          </p>
+          <p class="text-sm text-muted">
+            This triggers a rolling restart. Pods are recreated one by one — existing connections may drop briefly.
+          </p>
+        {:else}
+          <p class="text-sm text-light">
+            Set replicas for <strong>{pendingAction.deployment.name}</strong>
+            <span class="text-muted text-xs ml-1">(current: {pendingAction.deployment.desired})</span>
+          </p>
+          <div class="flex items-center gap-4">
+            <button
+              on:click={() => { if (scaleTarget > 0) scaleTarget -= 1; }}
+              disabled={scaleTarget <= 0}
+              class="w-8 h-8 rounded border border-dark-lighter text-light hover:bg-dark transition-colors text-lg flex items-center justify-center disabled:opacity-40"
+            >−</button>
+            <span class="text-light text-xl font-semibold w-8 text-center">{scaleTarget}</span>
+            <button
+              on:click={() => { if (scaleTarget < 10) scaleTarget += 1; }}
+              disabled={scaleTarget >= 10}
+              class="w-8 h-8 rounded border border-dark-lighter text-light hover:bg-dark transition-colors text-lg flex items-center justify-center disabled:opacity-40"
+            >+</button>
+          </div>
+          {#if scaleTarget === 0}
+            <p class="text-xs text-orange-400">
+              This will stop all pods for {pendingAction.deployment.name}.
+            </p>
+          {/if}
+        {/if}
+        {#if actionError}
+          <p class="text-sm text-red-500">{actionError}</p>
+        {/if}
+      </div>
+
+      <div class="px-6 py-4 border-t border-dark-lighter flex justify-end gap-3">
+        <button
+          on:click={closeAction}
+          class="px-4 py-2 text-sm rounded-md border border-dark-lighter text-light hover:bg-dark transition-colors"
+        >
+          Abbrechen
+        </button>
+        <button
+          on:click={confirmAction}
+          disabled={actionLoading}
+          class="px-4 py-2 text-sm rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 transition-colors"
+        >
+          {actionLoading ? 'Bitte warten…' : (pendingAction.type === 'restart' ? 'Restart' : 'Apply')}
+        </button>
+      </div>
     </div>
   </div>
 {/if}

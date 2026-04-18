@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { ChatRoom, ChatMessage } from '../lib/messaging-db';
 
+  type Member = { customer_id: string; name: string; email: string };
+  type Customer = { id: string; name: string; email: string };
+
   const {
     rooms: initialRooms,
     role,
@@ -14,6 +17,7 @@
   let rooms = $state<ChatRoom[]>(initialRooms);
   let activeRoom = $state<ChatRoom | null>(null);
   let messages = $state<ChatMessage[]>([]);
+  let members = $state<Member[]>([]);
   let newBody = $state('');
   let sending = $state(false);
   let lastId = $state(0);
@@ -22,12 +26,24 @@
   let showNewRoom = $state(false);
   let newRoomName = $state('');
 
+  let showMembers = $state(false);
+  let allCustomers = $state<Customer[]>([]);
+  let memberSearch = $state('');
+  let memberLoading = $state(false);
+
+  // Admin uses /api/admin/rooms/[id] (no /messages suffix)
+  // Portal uses /api/portal/rooms/[id]/messages
+  function roomUrl(roomId: number) {
+    return role === 'admin'
+      ? `${messagesBaseUrl}/${roomId}`
+      : `${messagesBaseUrl}/${roomId}/messages`;
+  }
+
   function startPolling() {
     if (pollInterval) clearInterval(pollInterval);
     pollInterval = setInterval(async () => {
       if (!activeRoom) return;
-      const url = `${messagesBaseUrl}/${activeRoom.id}/messages?after=${lastId}`;
-      const res = await fetch(url);
+      const res = await fetch(`${roomUrl(activeRoom.id)}?after=${lastId}`);
       if (!res.ok) return;
       const data = await res.json() as { messages: ChatMessage[] };
       if (data.messages.length > 0) {
@@ -40,13 +56,16 @@
   async function openRoom(room: ChatRoom) {
     if (pollInterval) clearInterval(pollInterval);
     activeRoom = room;
+    showMembers = false;
     try {
-      const res = await fetch(`${messagesBaseUrl}/${room.id}/messages`);
-      const data = await res.json() as { messages: ChatMessage[] };
+      const res = await fetch(roomUrl(room.id));
+      const data = await res.json() as { messages: ChatMessage[]; members?: Member[] };
       messages = data.messages;
+      members = data.members ?? [];
       lastId = messages.length ? messages[messages.length - 1].id : 0;
     } catch {
       messages = [];
+      members = [];
       lastId = 0;
     }
     startPolling();
@@ -55,7 +74,7 @@
   async function sendMessage() {
     if (!newBody.trim() || !activeRoom || sending) return;
     sending = true;
-    const res = await fetch(`${messagesBaseUrl}/${activeRoom.id}/messages`, {
+    const res = await fetch(roomUrl(activeRoom.id), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ body: newBody.trim() }),
@@ -83,6 +102,44 @@
       newRoomName = '';
     }
   }
+
+  async function openMembers() {
+    showMembers = !showMembers;
+    if (showMembers && allCustomers.length === 0) {
+      memberLoading = true;
+      try {
+        const res = await fetch('/api/admin/customers');
+        const data = await res.json() as { customers: Customer[] };
+        allCustomers = data.customers;
+      } finally {
+        memberLoading = false;
+      }
+    }
+  }
+
+  async function toggleMember(customer: Customer) {
+    if (!activeRoom) return;
+    const isMember = members.some(m => m.customer_id === customer.id);
+    const res = await fetch(`${messagesBaseUrl}/${activeRoom.id}/members`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId: customer.id, action: isMember ? 'remove' : 'add' }),
+    });
+    if (res.ok) {
+      if (isMember) {
+        members = members.filter(m => m.customer_id !== customer.id);
+      } else {
+        members = [...members, { customer_id: customer.id, name: customer.name, email: customer.email }];
+      }
+    }
+  }
+
+  let filteredCustomers = $derived(
+    allCustomers.filter(c =>
+      !memberSearch || c.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+      c.email.toLowerCase().includes(memberSearch.toLowerCase())
+    )
+  );
 
   function formatTime(date: Date | string): string {
     return new Date(date).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -127,7 +184,41 @@
     {#if !activeRoom}
       <p class="hint">Raum auswählen.</p>
     {:else}
-      <div class="chat-header">{activeRoom.name}</div>
+      <div class="chat-header">
+        <span>{activeRoom.name}</span>
+        {#if role === 'admin'}
+          <button class="btn-members" onclick={openMembers}>
+            👥 Mitglieder ({members.length})
+          </button>
+        {/if}
+      </div>
+
+      {#if showMembers && role === 'admin'}
+        <div class="members-panel">
+          <div class="members-search">
+            <input bind:value={memberSearch} placeholder="Kunde suchen…" />
+          </div>
+          {#if memberLoading}
+            <p class="members-hint">Lade…</p>
+          {:else if allCustomers.length === 0}
+            <p class="members-hint">Keine Kunden vorhanden.</p>
+          {:else}
+            <ul class="members-list">
+              {#each filteredCustomers as c (c.id)}
+                {@const isMember = members.some(m => m.customer_id === c.id)}
+                <li class="member-row {isMember ? 'is-member' : ''}">
+                  <span class="member-name">{c.name}</span>
+                  <span class="member-email">{c.email}</span>
+                  <button class="btn-toggle" onclick={() => toggleMember(c)}>
+                    {isMember ? '−' : '+'}
+                  </button>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      {/if}
+
       <div class="msg-list">
         {#each messages as msg (msg.id)}
           <div class="msg">
@@ -157,7 +248,20 @@
   .room-item:hover:not(.active) { background: #1e1e2e; }
   .empty, .hint { color: #555; font-size: 13px; padding: 16px; }
   .chat-view { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .chat-header { padding: 12px 16px; border-bottom: 1px solid #2a2a3e; font-weight: 600; font-size: 14px; }
+  .chat-header { padding: 10px 16px; border-bottom: 1px solid #2a2a3e; font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .btn-members { background: #374151; color: #ccc; border: none; border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  .btn-members:hover { background: #4b5563; }
+  .members-panel { border-bottom: 1px solid #2a2a3e; background: #13131f; max-height: 240px; display: flex; flex-direction: column; }
+  .members-search { padding: 8px 12px; border-bottom: 1px solid #2a2a3e; }
+  .members-search input { width: 100%; background: #1e1e2e; color: #e8e8f0; border: 1px solid #374151; border-radius: 4px; padding: 5px 8px; font-size: 12px; box-sizing: border-box; }
+  .members-hint { color: #555; font-size: 12px; padding: 10px 12px; margin: 0; }
+  .members-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+  .member-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid #1e1e2e; }
+  .member-row.is-member { background: #1a2435; }
+  .member-name { font-size: 12px; color: #e8e8f0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .member-email { font-size: 11px; color: #666; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-toggle { background: #374151; color: #e8e8f0; border: none; border-radius: 4px; padding: 2px 8px; font-size: 14px; cursor: pointer; font-weight: bold; flex-shrink: 0; }
+  .member-row.is-member .btn-toggle { background: #7f1d1d; color: #fca5a5; }
   .msg-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
   .msg { background: #1e1e2e; border-radius: 6px; padding: 8px 12px; }
   .msg-meta { font-size: 10px; color: #666; display: block; margin-bottom: 4px; }

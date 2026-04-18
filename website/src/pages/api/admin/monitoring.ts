@@ -79,7 +79,8 @@ export const GET: APIRoute = async ({ request }) => {
         const metrics = podMetrics.items.find((m: any) => m.metadata.name === pod.metadata.name);
         if (metrics && metrics.containers && metrics.containers.length > 0) {
            const cpuUsage = metrics.containers.reduce((acc: number, c: any) => {
-              const val = c.usage.cpu;
+              const val = c.usage?.cpu;
+              if (!val) return acc;
               if (val.endsWith('n')) return acc + parseInt(val) / 1000000;
               if (val.endsWith('u')) return acc + parseInt(val) / 1000;
               if (val.endsWith('m')) return acc + parseInt(val);
@@ -88,7 +89,8 @@ export const GET: APIRoute = async ({ request }) => {
            cpu = `${Math.round(cpuUsage)}m`;
 
            const memUsage = metrics.containers.reduce((acc: number, c: any) => {
-              const val = c.usage.memory;
+              const val = c.usage?.memory;
+              if (!val) return acc;
               if (val.endsWith('Ki')) return acc + parseInt(val) / 1024;
               if (val.endsWith('Mi')) return acc + parseInt(val);
               if (val.endsWith('Gi')) return acc + parseInt(val) * 1024;
@@ -109,10 +111,15 @@ export const GET: APIRoute = async ({ request }) => {
     });
 
     const events = eventsData.value.items
-      .sort((a: any, b: any) => new Date(b.lastTimestamp).getTime() - new Date(a.lastTimestamp).getTime())
+      .sort((a: any, b: any) => {
+        const tA = new Date(a.lastTimestamp ?? a.eventTime ?? 0).getTime();
+        const tB = new Date(b.lastTimestamp ?? b.eventTime ?? 0).getTime();
+        return tB - tA;
+      })
       .slice(0, 10)
       .map((event: any) => {
-        const ageMs = Date.now() - new Date(event.lastTimestamp).getTime();
+        const ts = event.lastTimestamp ?? event.eventTime;
+        const ageMs = ts ? Date.now() - new Date(ts).getTime() : 0;
         const ageMins = Math.floor(ageMs / 60000);
         const age = ageMins < 60 ? `${ageMins}m` : `${Math.floor(ageMins/60)}h`;
 

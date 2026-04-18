@@ -173,7 +173,10 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && selectedEvent) closeModal();
+    if (e.key === 'Escape') {
+      if (pendingAction) closeAction();
+      else if (selectedEvent) closeModal();
+    }
   }
 
   onMount(() => {
@@ -279,58 +282,6 @@
       {/if}
     </div>
 
-    <!-- Deployments Section -->
-    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
-      <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter">
-        <h3 class="text-lg leading-6 font-medium text-light">Deployments</h3>
-      </div>
-      {#if deploymentsError}
-        <p class="px-4 py-4 text-sm text-red-500">{deploymentsError}</p>
-      {:else if deployments.length === 0}
-        <p class="px-4 py-4 text-sm text-gray-500 text-center">No deployments found in workspace.</p>
-      {:else}
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-dark-lighter text-xs text-muted text-left">
-              <th class="px-4 py-3 font-medium">Name</th>
-              <th class="px-3 py-3 font-medium">Ready</th>
-              <th class="px-3 py-3 font-medium">Replicas</th>
-              <th class="px-3 py-3 font-medium">Status</th>
-              <th class="px-4 py-3 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-dark-lighter">
-            {#each deployments as dep}
-              <tr class="hover:bg-dark transition-colors">
-                <td class="px-4 py-3 font-medium text-light">{dep.name}</td>
-                <td class="px-3 py-3 {dep.ready === dep.desired ? 'text-green-400' : 'text-orange-400'}">{dep.ready} / {dep.desired}</td>
-                <td class="px-3 py-3 text-muted">{dep.desired}</td>
-                <td class="px-3 py-3">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {deploymentStatusClass(dep.status)}">
-                    {dep.status}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-right space-x-2">
-                  <button
-                    on:click={() => openAction({ type: 'restart', deployment: dep })}
-                    class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-blue-700 text-blue-400 hover:bg-blue-900/30 transition-colors"
-                  >
-                    ⟳ Restart
-                  </button>
-                  <button
-                    on:click={() => openAction({ type: 'scale', deployment: dep })}
-                    class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-purple-700 text-purple-400 hover:bg-purple-900/30 transition-colors"
-                  >
-                    ⇅ Scale
-                  </button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      {/if}
-    </div>
-
     <!-- Pods List -->
     <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
       <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter">
@@ -416,6 +367,58 @@
       No data available.
     </div>
   {/if}
+
+  <!-- Deployments Section -->
+  <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
+    <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter">
+      <h3 class="text-lg leading-6 font-medium text-light">Deployments</h3>
+    </div>
+    {#if deploymentsError}
+      <p class="px-4 py-4 text-sm text-red-500">{deploymentsError}</p>
+    {:else if deployments.length === 0}
+      <p class="px-4 py-4 text-sm text-gray-500 text-center">No deployments found in workspace.</p>
+    {:else}
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-dark-lighter text-xs text-muted text-left">
+            <th class="px-4 py-3 font-medium">Name</th>
+            <th class="px-3 py-3 font-medium">Ready</th>
+            <th class="px-3 py-3 font-medium">Replicas</th>
+            <th class="px-3 py-3 font-medium">Status</th>
+            <th class="px-4 py-3 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-dark-lighter">
+          {#each deployments as dep}
+            <tr class="hover:bg-dark transition-colors">
+              <td class="px-4 py-3 font-medium text-light">{dep.name}</td>
+              <td class="px-3 py-3 {dep.desired === 0 ? 'text-gray-400' : dep.ready === dep.desired ? 'text-green-400' : 'text-orange-400'}">{dep.ready} / {dep.desired}</td>
+              <td class="px-3 py-3 text-muted">{dep.desired}</td>
+              <td class="px-3 py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {deploymentStatusClass(dep.status)}">
+                  {dep.status}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right space-x-2">
+                <button
+                  on:click={() => openAction({ type: 'restart', deployment: dep })}
+                  class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-blue-700 text-blue-400 hover:bg-blue-900/30 transition-colors"
+                >
+                  ⟳ Restart
+                </button>
+                <button
+                  on:click={() => openAction({ type: 'scale', deployment: dep })}
+                  class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-purple-700 text-purple-400 hover:bg-purple-900/30 transition-colors"
+                >
+                  ⇅ Scale
+                </button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    {/if}
+  </div>
 </div>
 
 {#if selectedEvent}
@@ -518,7 +521,7 @@
     aria-modal="true"
     aria-labelledby="action-modal-title"
   >
-    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-md">
+    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-md" use:focusTrap tabindex="-1">
       <div class="px-6 py-4 border-b border-dark-lighter flex items-center justify-between">
         <h2 id="action-modal-title" class="text-lg font-semibold text-light">
           {pendingAction.type === 'restart' ? 'Restart' : 'Scale'} Deployment

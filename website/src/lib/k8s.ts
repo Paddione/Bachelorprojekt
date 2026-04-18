@@ -15,7 +15,7 @@ export async function createK8sClient(): Promise<K8sClient> {
       const bodyStr = body ? JSON.stringify(body) : undefined;
       const req = https.request(
         {
-          hostname: 'kubernetes.default.svc',
+          hostname: 'kubernetes.default.svc.cluster.local',
           path,
           method,
           headers: {

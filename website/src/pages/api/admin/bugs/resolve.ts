@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { resolveBugTicket } from '../../../../lib/website-db';
-import { buildBackUrl } from './_helpers';
+import { buildBackUrl, buildErrorUrl } from './_helpers';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -19,27 +19,18 @@ export const POST: APIRoute = async ({ request }) => {
   const backUrl = buildBackUrl({ status, category, q });
 
   if (!ticketId || !resolutionNote) {
-    return Response.redirect(
-      new URL(`${backUrl}${backUrl.includes('?') ? '&' : '?'}error=Ticket-ID+und+L%C3%B6sungshinweis+sind+erforderlich`, request.url),
-      303,
-    );
+    return Response.redirect(buildErrorUrl(backUrl, 'Ticket-ID+und+L%C3%B6sungshinweis+sind+erforderlich'), 303);
   }
   if (resolutionNote.length > 1000) {
-    return Response.redirect(
-      new URL(`${backUrl}${backUrl.includes('?') ? '&' : '?'}error=L%C3%B6sungshinweis+zu+lang+(max.+1000+Zeichen)`, request.url),
-      303,
-    );
+    return Response.redirect(buildErrorUrl(backUrl, 'L%C3%B6sungshinweis+zu+lang+(max.+1000+Zeichen)'), 303);
   }
 
   try {
     await resolveBugTicket(ticketId, resolutionNote);
   } catch (err) {
     console.error('[bugs/resolve] DB error:', err);
-    return Response.redirect(
-      new URL(`${backUrl}${backUrl.includes('?') ? '&' : '?'}error=Datenbankfehler`, request.url),
-      303,
-    );
+    return Response.redirect(buildErrorUrl(backUrl, 'Datenbankfehler'), 303);
   }
 
-  return Response.redirect(new URL(backUrl, request.url), 303);
+  return Response.redirect(backUrl, 303);
 };

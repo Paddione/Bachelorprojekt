@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, params }) => {
   }
 
   const { name } = params;
-  if (!name || !/^[a-z0-9-]+$/.test(name)) {
+  if (!name || name.length > 63 || !/^[a-z0-9-]+$/.test(name)) {
     return new Response(JSON.stringify({ error: 'Invalid deployment name' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -56,8 +56,13 @@ export const POST: APIRoute = async ({ request, params }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    const msg: string = error.message ?? 'Unknown error';
+    console.error('[deployments/scale]', msg);
+    const status = /K8s API 404/.test(msg) ? 404
+      : /K8s API 403/.test(msg) ? 403
+      : 500;
+    return new Response(JSON.stringify({ error: msg }), {
+      status,
       headers: { 'Content-Type': 'application/json' },
     });
   }

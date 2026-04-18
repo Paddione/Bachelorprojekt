@@ -10,7 +10,7 @@
     memory?: string;
   };
 
-  type Event = {
+  type KubeEvent = {
     type: string;
     reason: string;
     object: string;
@@ -20,7 +20,7 @@
 
   type MonitoringData = {
     pods: Pod[];
-    events: Event[];
+    events: KubeEvent[];
     node?: { cpu: string; memory: string };
     metricsAvailable: boolean;
     fetchedAt: string;
@@ -31,7 +31,7 @@
   let error: string | null = null;
   let refreshInterval: ReturnType<typeof setInterval>;
 
-  let selectedEvent: Event | null = null;
+  let selectedEvent: KubeEvent | null = null;
   let modalDescription = '';
   let modalCategory = 'fehler';
   let modalLoading = false;
@@ -39,7 +39,8 @@
   let modalSuccessId: string | null = null;
   let modalCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function openModal(event: Event) {
+  function openModal(event: KubeEvent) {
+    if (modalCloseTimer) clearTimeout(modalCloseTimer);
     selectedEvent = event;
     modalDescription = `${event.reason} on ${event.object}: ${event.message}`;
     modalCategory = 'fehler';
@@ -49,7 +50,7 @@
   }
 
   function closeModal() {
-    if (modalCloseTimer) clearTimeout(modalCloseTimer);
+    if (modalCloseTimer) { clearTimeout(modalCloseTimer); modalCloseTimer = null; }
     selectedEvent = null;
     modalSuccessId = null;
     modalError = null;
@@ -102,11 +103,18 @@
 
   onDestroy(() => {
     if (refreshInterval) clearInterval(refreshInterval);
+    if (modalCloseTimer) clearTimeout(modalCloseTimer);
   });
 
   $: runningCount = data?.pods.filter(p => p.phase === 'Running' || p.ready).length || 0;
   $: failedCount = data?.pods.filter(p => p.phase === 'Failed' || p.phase === 'Unknown' || p.phase === 'CrashLoopBackOff').length || 0;
   $: restartingCount = data?.pods.filter(p => !p.ready && p.phase !== 'Failed' && p.phase !== 'Succeeded').length || 0;
+
+  function focusTrap(node: HTMLElement) {
+    const prev = document.activeElement as HTMLElement | null;
+    node.focus();
+    return { destroy() { prev?.focus(); } };
+  }
 
   function getStatusColor(pod: Pod) {
     if (pod.phase === 'Failed' || pod.phase === 'CrashLoopBackOff' || pod.phase === 'Unknown') return 'border-red-500 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400';
@@ -257,15 +265,20 @@
 </div>
 
 {#if selectedEvent}
+  <svelte:window on:keydown={(e) => { if (e.key === 'Escape') closeModal(); }} />
   <!-- Modal backdrop -->
   <div
     class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
     on:click|self={closeModal}
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-title"
   >
-    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-lg">
+    <div
+      class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      use:focusTrap
+      tabindex="-1"
+    >
       <!-- Header -->
       <div class="px-6 py-4 border-b border-dark-lighter flex items-center justify-between">
         <h2 id="modal-title" class="text-lg font-semibold text-light">Bug Ticket erstellen</h2>

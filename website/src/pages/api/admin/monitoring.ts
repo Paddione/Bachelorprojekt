@@ -20,8 +20,8 @@ export const GET: APIRoute = async ({ request }) => {
       k8sToken = await fs.readFile(tokenPath, 'utf-8');
       caCert = await fs.readFile(caPath, 'utf-8');
     } catch (e) {
-      return new Response(JSON.stringify({ error: 'Kubernetes credentials not found' }), {
-        status: 500,
+      return new Response(JSON.stringify({ error: 'Kein Service-Account-Token gefunden. Bitte RBAC für den website-Pod konfigurieren.' }), {
+        status: 503,
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -147,7 +147,10 @@ export const GET: APIRoute = async ({ request }) => {
     });
 
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const msg = error.code === 'ECONNREFUSED'
+      ? 'Kubernetes API-Server nicht erreichbar. Bitte Netzwerkrichtlinien und RBAC prüfen.'
+      : error.message;
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

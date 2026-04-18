@@ -348,7 +348,7 @@ export async function listAllMeetings(opts?: {
            c.name AS "customerName", c.email AS "customerEmail",
            c.id AS "customerId",
            p.name AS "projectName", p.id AS "projectId",
-           EXISTS(SELECT 1 FROM meeting_transcripts t WHERE t.meeting_id = m.id) AS "hasTranscript",
+           EXISTS(SELECT 1 FROM transcripts t WHERE t.meeting_id = m.id) AS "hasTranscript",
            (SELECT COUNT(*) FROM meeting_artifacts a WHERE a.meeting_id = m.id)::int AS "artifactCount"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
@@ -392,7 +392,7 @@ export async function getMeetingDetail(meetingId: string): Promise<{
   const m = r.rows[0];
 
   const [tRow, aRows] = await Promise.all([
-    pool.query(`SELECT id, full_text AS "fullText" FROM meeting_transcripts WHERE meeting_id = $1 LIMIT 1`, [meetingId]),
+    pool.query(`SELECT id, full_text AS "fullText" FROM transcripts WHERE meeting_id = $1 LIMIT 1`, [meetingId]),
     pool.query(`SELECT id, artifact_type AS "artifactType", name, storage_path AS "storagePath", content_text AS "contentText" FROM meeting_artifacts WHERE meeting_id = $1 ORDER BY created_at`, [meetingId]),
   ]);
 

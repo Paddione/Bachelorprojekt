@@ -1,0 +1,189 @@
+---
+interface ProcessStep {
+  num: string;
+  title: string;
+  description: string;
+  heading: string;
+}
+
+interface Props {
+  steps: ProcessStep[];
+  eyebrow?: string;
+  headline?: string;
+}
+
+const {
+  steps,
+  eyebrow = 'So arbeiten wir',
+  headline = 'Vier ruhige Schritte.',
+} = Astro.props;
+---
+
+<section class="process" aria-labelledby="process-heading">
+  <div class="wrap">
+    <div class="process-grid">
+      <div class="process-label">
+        <p class="eyebrow">{eyebrow}</p>
+        <h2 id="process-heading">{headline}</h2>
+      </div>
+
+      <div class="steps-rail" role="list" aria-label="Prozessschritte">
+        {steps.map((step) => (
+          <div class="step" role="listitem">
+            <span class="step-dot" aria-hidden="true"></span>
+            <p class="step-num">{step.num}</p>
+            <h4>{step.heading}</h4>
+            <p class="step-desc">{step.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .process {
+    padding: 80px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, transparent, rgba(255,255,255,.015)),
+      var(--ink-900);
+  }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .process-grid {
+    display: grid;
+    grid-template-columns: 1fr 2.5fr;
+    gap: 64px;
+    align-items: center;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.8;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--fg);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  .steps-rail {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    position: relative;
+  }
+
+  /* Connecting line through all dots */
+  .steps-rail::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, var(--line), var(--brass) 20%, var(--brass) 80%, var(--line));
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .step {
+    position: relative;
+    padding-top: 40px;
+  }
+
+  .step-dot {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--ink-900);
+    border: 1px solid var(--brass);
+  }
+
+  .step-dot::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--brass);
+  }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0 0 8px;
+  }
+
+  h4 {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--mute);
+    margin: 0;
+  }
+
+  @media (max-width: 960px) {
+    .process-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .steps-rail {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 32px;
+    }
+
+    .steps-rail::before {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .wrap {
+      padding: 0 22px;
+    }
+  }
+</style>

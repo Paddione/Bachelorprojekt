@@ -17,26 +17,30 @@
   }
 </script>
 
-<section class="py-20 bg-dark-light">
-  <div class="max-w-3xl mx-auto px-6">
-    <h2 class="text-3xl md:text-4xl font-bold text-light text-center mb-12 font-serif">{title}</h2>
+<section class="faq-section" aria-labelledby="faq-heading">
+  <div class="faq-wrap">
+    <h2 id="faq-heading">{title}</h2>
 
-    <div class="space-y-4">
+    <div class="faq-list">
       {#each items as item, i}
-        <div class="bg-dark rounded-xl border border-dark-lighter overflow-hidden">
+        <div class="faq-item">
           <button
-            class="w-full text-left px-6 py-5 flex items-center justify-between gap-4 hover:bg-dark-lighter/50 transition-colors"
+            class="faq-btn"
             onclick={() => toggle(i)}
             aria-expanded={openIndex === i}
             aria-controls="faq-answer-{i}"
           >
-            <span class="text-lg font-semibold text-light">{item.question}</span>
+            <span class="faq-q">{item.question}</span>
             <svg
-              class="w-6 h-6 text-gold flex-shrink-0 transition-transform duration-300 {openIndex === i ? 'rotate-180' : ''}"
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              class="faq-chevron {openIndex === i ? 'open' : ''}"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
               aria-hidden="true"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              <path d="M19 9l-7 7-7-7"/>
             </svg>
           </button>
           <div
@@ -44,7 +48,7 @@
             role="region"
             aria-label={item.question}
             hidden={openIndex !== i}
-            class="px-6 pb-5 text-muted text-lg leading-relaxed border-t border-dark-lighter pt-4"
+            class="faq-answer"
           >
             {item.answer}
           </div>
@@ -53,3 +57,102 @@
     </div>
   </div>
 </section>
+
+<style>
+  .faq-section {
+    padding: 80px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .faq-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(28px, 3vw, 40px);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    text-align: center;
+    margin: 0 0 48px;
+    line-height: 1.1;
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .faq-item {
+    background: var(--ink-800);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+  }
+
+  .faq-item:has(.faq-btn[aria-expanded="true"]) {
+    border-color: var(--line-2);
+  }
+
+  .faq-btn {
+    width: 100%;
+    text-align: left;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .faq-btn:hover {
+    background: rgba(255,255,255,.03);
+  }
+
+  .faq-q {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--fg);
+    line-height: 1.4;
+  }
+
+  .faq-chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--brass);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .faq-chevron.open {
+    transform: rotate(180deg);
+  }
+
+  .faq-answer {
+    padding: 0 24px 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--mute);
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    margin-top: -1px;
+  }
+
+  @media (max-width: 640px) {
+    .faq-wrap {
+      padding: 0 22px;
+    }
+
+    .faq-section {
+      padding: 60px 0;
+    }
+  }
+</style>

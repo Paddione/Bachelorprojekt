@@ -1,45 +1,102 @@
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/inter/700.css';
-@import '@fontsource/merriweather/400.css';
-@import '@fontsource/merriweather/700.css';
 @import "tailwindcss";
 
 @theme {
-  /* ${BRAND_NAME} color palette — dark navy + gold */
-  --color-dark: #0f1623;
-  --color-dark-light: #1a2235;
-  --color-dark-lighter: #243049;
+  /* ── Legacy aliases (backwards compat for non-homepage pages) ── */
+  --color-dark: #0b111c;
+  --color-dark-light: #101826;
+  --color-dark-lighter: #17202e;
+  --color-gold: oklch(0.80 0.09 75);
+  --color-gold-light: oklch(0.86 0.09 75);
+  --color-gold-dim: oklch(0.80 0.09 75 / 0.14);
+  --color-light: #eef1f3;
+  --color-muted: #8c96a3;
+  --color-muted-dark: #6a727e;
 
-  --color-gold: #e8c870;
-  --color-gold-light: #f0d88a;
-  --color-gold-dim: rgba(232, 200, 112, 0.15);
+  /* Ink palette */
+  --color-ink-900: #0b111c;
+  --color-ink-850: #101826;
+  --color-ink-800: #17202e;
+  --color-ink-750: #1d2736;
 
-  --color-light: #e8e8f0;
-  --color-muted: #aabbcc;
-  --color-muted-dark: #8899aa;
+  /* Text */
+  --color-fg: #eef1f3;
+  --color-fg-soft: #cdd3d9;
+  --color-mute: #8c96a3;
+  --color-mute-2: #6a727e;
+
+  /* Brass accent */
+  --color-brass: oklch(0.80 0.09 75);
+  --color-brass-2: oklch(0.86 0.09 75);
+  --color-brass-d: oklch(0.80 0.09 75 / 0.14);
+
+  /* Sage accent */
+  --color-sage: oklch(0.80 0.06 160);
+
+  /* Hairlines */
+  --color-line: rgba(255, 255, 255, 0.07);
+  --color-line-2: rgba(255, 255, 255, 0.12);
 
   /* Typography */
-  --font-serif: 'Merriweather', 'Georgia', 'Times New Roman', serif;
-  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Spacing */
+  --radius: 22px;
+  --maxw: 1240px;
+}
+
+/* Shorthand CSS vars for inline style usage (not Tailwind) */
+:root {
+  --ink-900: var(--color-ink-900);
+  --ink-850: var(--color-ink-850);
+  --ink-800: var(--color-ink-800);
+  --ink-750: var(--color-ink-750);
+  --fg: var(--color-fg);
+  --fg-soft: var(--color-fg-soft);
+  --mute: var(--color-mute);
+  --mute-2: var(--color-mute-2);
+  --brass: var(--color-brass);
+  --brass-2: var(--color-brass-2);
+  --brass-d: var(--color-brass-d);
+  --sage: var(--color-sage);
+  --line: var(--color-line);
+  --line-2: var(--color-line-2);
+  --serif: var(--font-serif);
+  --sans: var(--font-sans);
+  --mono: var(--font-mono);
 }
 
 html {
-  font-size: 18px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-sans);
-  line-height: 1.7;
-  color: var(--color-light);
-  background-color: var(--color-dark);
+  font-size: 16px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--color-fg);
+  background-color: var(--color-ink-900);
   overflow-x: hidden;
 }
 
+/* Film grain overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity: 0.55;
+  mix-blend-mode: overlay;
+}
+
 :focus-visible {
-  outline: 3px solid var(--color-gold);
+  outline: 3px solid var(--color-brass);
   outline-offset: 2px;
 }
 
@@ -47,38 +104,45 @@ section {
   scroll-margin-top: 5rem;
 }
 
+/* Availability pulse animation */
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 oklch(0.80 0.06 160 / 0.6); }
+  70%  { box-shadow: 0 0 0 10px oklch(0.80 0.06 160 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.80 0.06 160 / 0); }
+}
+
 /* Prose overrides for dark theme (impressum, datenschutz) */
 .prose {
-  color: var(--color-light);
+  color: var(--color-fg);
 }
 .prose h1, .prose h2, .prose h3 {
-  color: var(--color-light);
+  color: var(--color-fg);
 }
 .prose p, .prose li {
-  color: var(--color-muted);
+  color: var(--color-mute);
 }
 .prose a {
-  color: var(--color-gold);
+  color: var(--color-brass);
 }
 .prose strong {
-  color: var(--color-light);
+  color: var(--color-fg);
 }
 .prose hr {
-  border-color: var(--color-dark-lighter);
+  border-color: var(--color-line-2);
 }
 .prose table {
   border-collapse: collapse;
   width: 100%;
 }
 .prose th {
-  color: var(--color-light);
-  border-bottom: 2px solid var(--color-dark-lighter);
+  color: var(--color-fg);
+  border-bottom: 2px solid var(--color-line-2);
   padding: 0.5rem 1rem 0.5rem 0;
   text-align: left;
 }
 .prose td {
-  color: var(--color-muted);
-  border-bottom: 1px solid var(--color-dark-lighter);
+  color: var(--color-mute);
+  border-bottom: 1px solid var(--color-line);
   padding: 0.5rem 1rem 0.5rem 0;
 }
 

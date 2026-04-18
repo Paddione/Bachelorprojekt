@@ -142,6 +142,7 @@ spec:
                     operator: NotIn
                     values:
                       - pk-hetzner
+                      - gekko-hetzner-4
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
@@ -452,4 +453,6 @@ spec:
   egress:
   - ports:
     - port: 443
+      protocol: TCP
+    - port: 6443
       protocol: TCP

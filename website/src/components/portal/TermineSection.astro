@@ -1,0 +1,75 @@
+---
+import type { ClientBooking } from '../../lib/caldav';
+
+interface Props {
+  bookings: ClientBooking[];
+}
+const { bookings } = Astro.props;
+
+const now = new Date();
+const upcoming = bookings.filter(b => b.start >= now && b.status !== 'CANCELLED');
+const past     = bookings.filter(b => b.start < now  || b.status === 'CANCELLED');
+---
+
+<div class="pt-10 pb-20 px-8 max-w-2xl">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold text-light font-serif">Termine</h2>
+    <a href="/termin" class="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-900 bg-brass px-4 py-2 rounded-full hover:bg-brass-2 transition-colors">
+      Neuen Termin buchen
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true">
+        <path d="M2 7h10M8 3l4 4-4 4"/>
+      </svg>
+    </a>
+  </div>
+
+  {bookings.length === 0 ? (
+    <p class="text-muted">Keine gebuchten Termine vorhanden.</p>
+  ) : (
+    <>
+      {upcoming.length > 0 && (
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-muted uppercase tracking-widest mb-3">Anstehend</h3>
+          <ul class="flex flex-col gap-2">
+            {upcoming.map(b => (
+              <li class="flex items-center gap-3 p-3 bg-dark-light rounded-xl border border-dark-lighter">
+                <div class="flex-1">
+                  <div class="text-sm font-medium text-light">{b.summary}</div>
+                  <div class="text-xs text-muted mt-0.5">
+                    {b.start.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    {' · '}
+                    {b.start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                    {' – '}
+                    {b.end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent">
+                  {b.status === 'TENTATIVE' ? 'Anfrage' : 'Bestätigt'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {past.length > 0 && (
+        <div>
+          <h3 class="text-xs font-semibold text-muted uppercase tracking-widest mb-3">Vergangene</h3>
+          <ul class="flex flex-col gap-2">
+            {past.map(b => (
+              <li class="flex items-center gap-3 p-3 bg-dark-light rounded-xl border border-dark-lighter opacity-50">
+                <div class="flex-1">
+                  <div class="text-sm text-light">{b.summary}</div>
+                  <div class="text-xs text-muted mt-0.5">
+                    {b.start.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </div>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-dark border border-dark-lighter text-muted">
+                  {b.status === 'CANCELLED' ? 'Abgesagt' : 'Vergangen'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  )}
+</div>

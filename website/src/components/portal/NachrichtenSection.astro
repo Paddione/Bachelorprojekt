@@ -1,0 +1,51 @@
+---
+import type { RoomInboxItem } from '../../lib/messaging-db';
+
+interface Props {
+  rooms: RoomInboxItem[];
+}
+const { rooms } = Astro.props;
+---
+
+<div class="pt-10 pb-20 px-8 max-w-2xl">
+  <h2 class="text-xl font-bold text-light font-serif mb-6">Nachrichten</h2>
+
+  {rooms.length === 0 ? (
+    <p class="text-muted">Keine Nachrichtenräume vorhanden.</p>
+  ) : (
+    <ul class="flex flex-col gap-2">
+      {rooms.map(room => (
+        <li>
+          <a href={`/portal/raum/${room.id}`}
+             class="flex items-center gap-3 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors">
+            <div class="w-9 h-9 rounded-full bg-dark border border-dark-lighter flex items-center justify-center font-bold font-mono text-sm text-muted flex-shrink-0">
+              {room.name.charAt(0).toUpperCase()}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-0.5">
+                <span class={`text-sm font-semibold truncate ${room.unreadCount > 0 ? 'text-light' : 'text-fg-soft'}`}>
+                  {room.name}
+                </span>
+                {room.lastMessageAt && (
+                  <span class="text-xs text-muted flex-shrink-0 ml-2">
+                    {new Date(room.lastMessageAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+                  </span>
+                )}
+              </div>
+              {room.lastMessageBody && (
+                <div class="text-xs text-muted truncate">
+                  {room.lastMessageSenderName ? `${room.lastMessageSenderName}: ` : ''}{room.lastMessageBody}
+                </div>
+              )}
+            </div>
+            {room.unreadCount > 0 && (
+              <span class="flex-shrink-0 bg-blue-500 text-white rounded-full text-xs font-bold px-2 py-0.5 font-mono leading-snug">
+                {room.unreadCount}
+              </span>
+            )}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>

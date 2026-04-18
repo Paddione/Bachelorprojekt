@@ -1,0 +1,59 @@
+---
+import { getCustomerInvoices } from '../../lib/stripe-billing';
+import type { BillingInvoice } from '../../lib/stripe-billing';
+
+interface Props {
+  clientEmail: string;
+}
+const { clientEmail } = Astro.props;
+
+let invoices: BillingInvoice[] = [];
+try { invoices = await getCustomerInvoices(clientEmail); } catch { /* Stripe unavailable */ }
+
+function fmtCurrency(n: number) {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
+}
+function fmtDate(s: string) {
+  if (!s) return '';
+  return new Date(s).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+function statusColor(s: string) {
+  if (s === 'paid')          return 'bg-green-500/20 text-green-400';
+  if (s === 'open')          return 'bg-accent/20 text-accent';
+  if (s === 'uncollectible') return 'bg-red-500/20 text-red-400';
+  return 'bg-dark-lighter text-muted';
+}
+---
+
+<div class="pt-10 pb-20 px-8 max-w-2xl">
+  <h2 class="text-xl font-bold text-light font-serif mb-6">Rechnungen</h2>
+
+  {invoices.length === 0 ? (
+    <p class="text-muted">Keine Rechnungen vorhanden.</p>
+  ) : (
+    <ul class="flex flex-col gap-2">
+      {invoices.map(inv => (
+        <li class="flex items-center gap-3 p-3 bg-dark-light rounded-xl border border-dark-lighter" data-testid="invoice-item">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-light">#{inv.number}</span>
+              <span class={`text-xs px-2 py-0.5 rounded-full ${statusColor(inv.status)}`}>{inv.statusLabel}</span>
+            </div>
+            <div class="text-xs text-muted mt-0.5">
+              {fmtDate(inv.date)}
+              {inv.dueDate && inv.status !== 'paid' && <span> · Fällig: {fmtDate(inv.dueDate)}</span>}
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="text-sm font-medium text-light">{fmtCurrency(inv.amountDue)}</div>
+            {inv.hostedUrl && inv.status !== 'paid' && (
+              <a href={inv.hostedUrl} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline mt-0.5 block">
+                Jetzt zahlen ↗
+              </a>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>

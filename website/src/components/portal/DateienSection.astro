@@ -1,0 +1,54 @@
+---
+import { listFiles, getClientFolderPath, getFileUrl } from '../../lib/nextcloud-files';
+import type { NcFile } from '../../lib/nextcloud-files';
+
+interface Props {
+  clientUsername: string;
+}
+const { clientUsername } = Astro.props;
+
+const clientFolder = getClientFolderPath(clientUsername);
+let files: NcFile[] = [];
+try {
+  files = (await listFiles(clientFolder)).filter(f => f.contentType !== 'httpd/unix-directory');
+} catch { /* Nextcloud unavailable */ }
+
+const ncExtUrl = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+
+function openInNcUrl(): string {
+  return ncExtUrl ? `${ncExtUrl}/apps/files/?dir=/Clients/${clientUsername}` : '#';
+}
+---
+
+<div class="pt-10 pb-20 px-8 max-w-2xl">
+  <h2 class="text-xl font-bold text-light font-serif mb-6">Dateien</h2>
+
+  {files.length === 0 ? (
+    <p class="text-muted">Keine Dateien vorhanden.</p>
+  ) : (
+    <ul class="flex flex-col gap-2">
+      {files.map(file => {
+        const downloadUrl = getFileUrl(file.path.replace(/^\/remote\.php\/dav\/files\/[^/]+\//, ''));
+        return (
+          <li class="flex items-center gap-3 p-3 bg-dark-light rounded-xl border border-dark-lighter">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-muted flex-shrink-0" aria-hidden="true">
+              <path d="M4 1.5h5l3 3v10H4z"/><path d="M9 1.5v3h3"/>
+            </svg>
+            <span class="flex-1 text-sm text-light truncate">{file.name}</span>
+            <span class="text-xs text-muted flex-shrink-0">{file.lastModified ? new Date(file.lastModified).toLocaleDateString('de-DE') : ''}</span>
+            <div class="flex gap-2 flex-shrink-0">
+              <a href={downloadUrl} download={file.name}
+                 class="text-xs text-muted hover:text-gold transition-colors px-2 py-1 rounded border border-dark-lighter hover:border-gold/40">
+                Laden
+              </a>
+              <a href={openInNcUrl()} target="_blank" rel="noopener noreferrer"
+                 class="text-xs text-muted hover:text-gold transition-colors px-2 py-1 rounded border border-dark-lighter hover:border-gold/40">
+                Öffnen ↗
+              </a>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</div>

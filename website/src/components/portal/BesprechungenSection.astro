@@ -1,0 +1,53 @@
+---
+import type { Meeting } from '../../lib/website-db';
+
+interface Props {
+  meetings: Meeting[];
+}
+const { meetings } = Astro.props;
+
+function fmtDate(d: Date | null | undefined): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function meetingLabel(m: Meeting): string {
+  const base = m.meetingType ? m.meetingType.replace(/-/g, ' ') : 'Besprechung';
+  const date = m.scheduledAt ?? m.createdAt;
+  return `${base} · ${fmtDate(date)}`;
+}
+---
+
+<div class="pt-10 pb-20 px-8 max-w-2xl">
+  <h2 class="text-xl font-bold text-light font-serif mb-6">Besprechungen</h2>
+
+  {meetings.length === 0 ? (
+    <p class="text-muted">Keine freigegebenen Besprechungen vorhanden.</p>
+  ) : (
+    <ul class="flex flex-col gap-3">
+      {meetings.map(m => (
+        <li class="p-4 bg-dark-light rounded-xl border border-dark-lighter">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold text-light">{meetingLabel(m)}</div>
+              {m.projectName && (
+                <div class="text-xs text-muted mt-0.5">Projekt: {m.projectName}</div>
+              )}
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-dark border border-dark-lighter text-muted flex-shrink-0 capitalize">
+              {m.status}
+            </span>
+          </div>
+          {m.released_at && (
+            <div class="mt-3 pt-3 border-t border-dark-lighter">
+              <a href={`/portal/besprechung/${m.id}`}
+                 class="inline-flex items-center gap-1.5 text-xs text-gold hover:underline">
+                Transkript ansehen →
+              </a>
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>

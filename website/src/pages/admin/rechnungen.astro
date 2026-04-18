@@ -13,7 +13,7 @@ const serviceOptions = Object.entries(SERVICES).map(([key, val]) => ({
 }));
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const statusFilter = Astro.url.searchParams.get('status') ?? '';
@@ -68,6 +68,12 @@ const STATUS_TABS = [
           <p class="text-muted mt-1">{invoices.length} Rechnungen über alle Clients</p>
         </div>
         <CreateInvoiceModal {serviceOptions} client:load />
+      </div>
+
+      <!-- Help box -->
+      <div class="mb-6 p-4 bg-blue-900/20 border border-blue-800/50 rounded-xl text-sm text-blue-200 space-y-1">
+        <p><strong class="text-blue-100">Rechnung erstellen:</strong> Klicke oben rechts auf <em>+ Neue Rechnung</em>. Wähle einen bestehenden Client oder gib Kundendaten manuell ein, wähle eine Leistung und bestätige — Stripe erstellt die Rechnung mit allen gesetzlichen Pflichtangaben (§ 14 UStG) und versendet optional eine E-Mail an den Kunden.</p>
+        <p><strong class="text-blue-100">E-Rechnung (XRechnung/ZUGFeRD):</strong> Noch nicht unterstützt. Für Kleinunternehmer derzeit nicht verpflichtend, ab 2028 für alle B2B-Umsätze erforderlich. Stripe-PDFs können manuell über das Stripe-Dashboard heruntergeladen werden.</p>
       </div>
 
       <!-- KPI Cards -->

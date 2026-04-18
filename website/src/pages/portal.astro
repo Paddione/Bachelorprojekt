@@ -20,7 +20,7 @@ import DiensteSection       from '../components/portal/DiensteSection.astro';
 import KontoSection         from '../components/portal/KontoSection.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 
 const section  = Astro.url.searchParams.get('section') ?? 'overview';
 const username = session.preferred_username ?? session.sub;

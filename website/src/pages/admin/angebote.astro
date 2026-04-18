@@ -5,7 +5,7 @@ import { getServiceConfig, getLeistungenConfig, getSiteSetting } from '../../lib
 import { mentolderConfig } from '../../config/brands/mentolder';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const BRAND = process.env.BRAND || 'mentolder';

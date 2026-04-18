@@ -10,7 +10,7 @@ import type { Project, SubProject, ProjectTask, Customer, TimeEntry, MeetingWith
 import ProjectMeetingsTab from '../../../components/admin/ProjectMeetingsTab.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const { id } = Astro.params;

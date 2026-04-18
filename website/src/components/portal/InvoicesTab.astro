@@ -1,11 +1,18 @@
 ---
-import { getCustomerInvoices } from '../../lib/stripe-billing';
+import { getCustomerInvoices, SERVICES } from '../../lib/stripe-billing';
 import type { BillingInvoice } from '../../lib/stripe-billing';
+import CreateInvoiceModal from '../admin/CreateInvoiceModal.svelte';
 
 interface Props {
   clientEmail: string;
 }
 const { clientEmail } = Astro.props;
+
+const serviceOptions = Object.entries(SERVICES).map(([key, val]) => ({
+  key,
+  name: val.name,
+  cents: val.cents,
+}));
 
 let invoices: BillingInvoice[] = [];
 try {
@@ -35,7 +42,16 @@ function statusColor(status: string): string {
 ---
 
 <div data-testid="invoices-tab">
-  <h3 class="text-lg font-semibold text-light mb-4">Ihre Rechnungen</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold text-light">Ihre Rechnungen</h3>
+    <CreateInvoiceModal
+      {serviceOptions}
+      prefillEmail={clientEmail}
+      buttonLabel="+ Rechnung stellen"
+      buttonVariant="ghost"
+      client:load
+    />
+  </div>
 
   {invoices.length === 0 ? (
     <p class="text-muted">Keine Rechnungen vorhanden.</p>
@@ -74,3 +90,7 @@ function statusColor(status: string): string {
     </ul>
   )}
 </div>
+
+<script>
+  document.addEventListener('invoice-created', () => window.location.reload());
+</script>

@@ -12,7 +12,7 @@ export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 403,
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }

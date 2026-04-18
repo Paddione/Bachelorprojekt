@@ -71,9 +71,7 @@ spec:
 
       syncPolicy:
         automated:
-          # Don't auto-delete resources removed from git — require manual prune
-          # to avoid accidental data loss on stateful services.
-          prune: false
+          prune: true
           # Automatically revert manual changes that drift from git state.
           selfHeal: true
         syncOptions:

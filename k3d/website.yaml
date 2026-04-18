@@ -71,6 +71,38 @@ data:
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
 ---
+# ── Monitoring RBAC ──────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: website
+  namespace: website
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: website-monitoring-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "events", "nodes"]
+    verbs: ["get", "list"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: website-monitoring-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: website-monitoring-reader
+subjects:
+  - kind: ServiceAccount
+    name: website
+    namespace: website
+---
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
@@ -87,6 +119,7 @@ spec:
       labels:
         app: website
     spec:
+      serviceAccountName: website
       imagePullSecrets:
         - name: ghcr-pull-secret
       # Lower ndots so FQDNs like shared-db.workspace.svc.cluster.local (4 dots)

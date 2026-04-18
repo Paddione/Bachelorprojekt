@@ -70,7 +70,7 @@
 <div class="space-y-6">
   <!-- Top Bar -->
   <div class="flex justify-between items-center">
-    <div class="text-sm text-gray-500 dark:text-gray-400">
+    <div class="text-sm text-muted">
       {#if data?.fetchedAt}
         Last updated: {new Date(data.fetchedAt).toLocaleTimeString()}
       {/if}
@@ -100,38 +100,38 @@
   {#if data}
     <!-- Summary Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 border-green-500">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Running / Ready</h3>
+      <div class="bg-dark-light border border-dark-lighter rounded-lg shadow p-4 border-l-4 border-green-500">
+        <h3 class="text-sm font-medium text-muted">Running / Ready</h3>
         <p class="mt-1 text-2xl font-semibold text-green-600 dark:text-green-400">{runningCount}</p>
       </div>
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 border-yellow-500">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending / Restarting</h3>
+      <div class="bg-dark-light border border-dark-lighter rounded-lg shadow p-4 border-l-4 border-yellow-500">
+        <h3 class="text-sm font-medium text-muted">Pending / Restarting</h3>
         <p class="mt-1 text-2xl font-semibold text-yellow-600 dark:text-yellow-400">{restartingCount}</p>
       </div>
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 border-red-500">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Failed / Unknown</h3>
+      <div class="bg-dark-light border border-dark-lighter rounded-lg shadow p-4 border-l-4 border-red-500">
+        <h3 class="text-sm font-medium text-muted">Failed / Unknown</h3>
         <p class="mt-1 text-2xl font-semibold text-red-600 dark:text-red-400">{failedCount}</p>
       </div>
       {#if data.metricsAvailable && data.node}
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 border-blue-500">
-          <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Node Resources</h3>
-          <p class="mt-1 text-sm text-gray-900 dark:text-white">CPU: {data.node.cpu}</p>
-          <p class="text-sm text-gray-900 dark:text-white">Mem: {data.node.memory}</p>
+        <div class="bg-dark-light border border-dark-lighter rounded-lg shadow p-4 border-l-4 border-blue-500">
+          <h3 class="text-sm font-medium text-muted">Node Resources</h3>
+          <p class="mt-1 text-sm text-light">CPU: {data.node.cpu}</p>
+          <p class="text-sm text-light">Mem: {data.node.memory}</p>
         </div>
       {/if}
     </div>
 
     <!-- Pods List -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-      <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Workloads</h3>
+    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
+      <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter">
+        <h3 class="text-lg leading-6 font-medium text-light">Workloads</h3>
       </div>
-      <ul class="divide-y divide-gray-200 dark:divide-gray-700 max-h-[500px] overflow-y-auto">
+      <ul class="divide-y divide-dark-lighter max-h-[500px] overflow-y-auto">
         {#each data.pods as pod}
-          <li class="px-4 py-4 sm:px-6 border-l-4 {getStatusColor(pod)} hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+          <li class="px-4 py-4 sm:px-6 border-l-4 {getStatusColor(pod)} hover:bg-dark transition-colors">
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{pod.name}</p>
+                <p class="text-sm font-medium text-light truncate">{pod.name}</p>
                 <div class="mt-1 flex items-center space-x-2 text-xs">
                   <span>{pod.phase}</span>
                   {#if pod.restarts > 0}
@@ -139,7 +139,7 @@
                   {/if}
                 </div>
               </div>
-              <div class="flex flex-col items-end text-sm text-gray-500 dark:text-gray-400">
+              <div class="flex flex-col items-end text-sm text-muted">
                 <p>CPU: {pod.cpu || '—'}</p>
                 <p>Mem: {pod.memory || '—'}</p>
               </div>
@@ -153,11 +153,11 @@
     </div>
 
     <!-- Events List -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-      <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Recent Events</h3>
+    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
+      <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter">
+        <h3 class="text-lg leading-6 font-medium text-light">Recent Events</h3>
       </div>
-      <ul class="divide-y divide-gray-200 dark:divide-gray-700 max-h-[400px] overflow-y-auto">
+      <ul class="divide-y divide-dark-lighter max-h-[400px] overflow-y-auto">
         {#each data.events as event}
           <li class="px-4 py-4 sm:px-6">
             <div class="flex items-start space-x-3">
@@ -173,10 +173,10 @@
                 {/if}
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                <p class="text-sm font-medium text-light">
                   {event.reason} <span class="text-gray-500 font-normal">on {event.object}</span>
                 </p>
-                <p class="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
+                <p class="text-sm text-muted truncate mt-1">
                   {event.message}
                 </p>
               </div>

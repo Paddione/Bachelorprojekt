@@ -2,7 +2,7 @@
 import PortalLayout from '../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../lib/auth';
 import { getCustomerByEmail, listRoomsWithInboxData } from '../lib/messaging-db';
-import { getMeetingsForClient, listProjectsForCustomer, getOrCreateOnboardingChecklist } from '../lib/website-db';
+import { getMeetingsForClient, listProjectsForCustomer, getOrCreateOnboardingChecklist, upsertCustomer } from '../lib/website-db';
 import { getClientBookings } from '../lib/caldav';
 import { getCustomerInvoices } from '../lib/stripe-billing';
 import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR } from '../lib/nextcloud-files';
@@ -35,6 +35,8 @@ const realm        = process.env.KEYCLOAK_REALM ?? 'workspace';
 let unreadMessages    = 0;
 let pendingSignatures = 0;
 
+// Ensure a customer record exists for every Keycloak user so room lookups work
+await upsertCustomer({ name: session.name, email: session.email, keycloakUserId: session.sub }).catch(() => null);
 const customer = await getCustomerByEmail(session.email).catch(() => null);
 if (customer) {
   const rooms = await listRoomsWithInboxData(customer.id).catch(() => []);

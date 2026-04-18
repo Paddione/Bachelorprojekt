@@ -38,8 +38,8 @@
     <!-- Brand mark -->
     <a href="/" class="brand" aria-label="{brandWord} Startseite">
       <div class="mark" aria-hidden="true">
-        <svg class="mark-m" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M0,14 L0,4 L3,4 L8,9 L13,4 L16,4 L16,14 L13,14 L13,6 L8,11 L3,6 L3,14 Z" fill="currentColor"/>
+        <svg class="mark-m" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <text x="16" y="24" text-anchor="middle" fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="24">m</text>
         </svg>
       </div>
       <span class="brand-name">{brandWord}<span class="brand-dot">.</span></span>
@@ -114,6 +114,21 @@
                   {/if}
                 </a>
 
+                {#if user.isAdmin}
+                  <a
+                    href="/portal"
+                    class="user-dropdown-item"
+                    onclick={() => (menuOpen = false)}
+                    role="menuitem"
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="8" cy="5" r="3"/>
+                      <path d="M2 15a6 6 0 0 1 12 0"/>
+                    </svg>
+                    Als Nutzer ansehen
+                  </a>
+                {/if}
+
                 <div class="user-dropdown-divider"></div>
 
                 <a href="/api/auth/logout" class="user-dropdown-item logout" role="menuitem">
@@ -176,6 +191,9 @@
             </div>
           </div>
           <a href={user.isAdmin ? '/admin' : '/portal'} onclick={() => (mobileOpen = false)} data-testid="nav-user-area">{user.isAdmin ? 'Admin' : 'Mein Portal'}</a>
+          {#if user.isAdmin}
+            <a href="/portal" onclick={() => (mobileOpen = false)}>Als Nutzer ansehen</a>
+          {/if}
           <a href="/api/auth/logout" onclick={() => (mobileOpen = false)} class="mobile-logout">Abmelden</a>
         {:else}
           <div class="mobile-divider"></div>

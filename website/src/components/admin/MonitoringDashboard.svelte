@@ -127,6 +127,10 @@
     if (!pod.ready || pod.phase === 'Pending' || pod.phase === 'ContainerCreating') return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10 text-yellow-700 dark:text-yellow-400';
     return 'border-green-500 bg-green-50 dark:bg-green-900/10 text-green-700 dark:text-green-400';
   }
+
+  function parsePercent(val: string): number {
+    return Math.min(parseInt(val) || 0, 100);
+  }
 </script>
 
 <div class="space-y-6">
@@ -177,8 +181,24 @@
       {#if data.metricsAvailable && data.node}
         <div class="bg-dark-light border border-dark-lighter rounded-lg shadow p-4 border-l-4 border-blue-500">
           <h3 class="text-sm font-medium text-muted">Node Resources</h3>
-          <p class="mt-1 text-sm text-light">CPU: {data.node.cpu}</p>
-          <p class="text-sm text-light">Mem: {data.node.memory}</p>
+          <div class="mt-2 space-y-2">
+            <div>
+              <div class="flex justify-between text-xs text-muted mb-1">
+                <span>CPU</span><span>{data.node.cpu}</span>
+              </div>
+              <div class="w-full bg-dark-lighter rounded-full h-1.5">
+                <div class="bg-blue-500 h-1.5 rounded-full" style="width: {parsePercent(data.node.cpu)}%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-muted mb-1">
+                <span>Mem</span><span>{data.node.memory}</span>
+              </div>
+              <div class="w-full bg-dark-lighter rounded-full h-1.5">
+                <div class="bg-purple-500 h-1.5 rounded-full" style="width: {parsePercent(data.node.memory)}%"></div>
+              </div>
+            </div>
+          </div>
         </div>
       {/if}
     </div>

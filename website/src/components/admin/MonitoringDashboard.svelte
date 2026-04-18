@@ -10,7 +10,7 @@
     memory?: string;
   };
 
-  type Event = {
+  type KubeEvent = {
     type: string;
     reason: string;
     object: string;
@@ -20,7 +20,7 @@
 
   type MonitoringData = {
     pods: Pod[];
-    events: Event[];
+    events: KubeEvent[];
     node?: { cpu: string; memory: string };
     metricsAvailable: boolean;
     fetchedAt: string;
@@ -30,6 +30,55 @@
   let loading = true;
   let error: string | null = null;
   let refreshInterval: ReturnType<typeof setInterval>;
+
+  let selectedEvent: KubeEvent | null = null;
+  let modalDescription = '';
+  let modalCategory = 'fehler';
+  let modalLoading = false;
+  let modalError: string | null = null;
+  let modalSuccessId: string | null = null;
+  let modalCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function openModal(event: KubeEvent) {
+    if (modalCloseTimer) clearTimeout(modalCloseTimer);
+    selectedEvent = event;
+    modalDescription = `${event.reason} on ${event.object}: ${event.message}`;
+    modalCategory = 'fehler';
+    modalLoading = false;
+    modalError = null;
+    modalSuccessId = null;
+  }
+
+  function closeModal() {
+    if (modalCloseTimer) { clearTimeout(modalCloseTimer); modalCloseTimer = null; }
+    selectedEvent = null;
+    modalSuccessId = null;
+    modalError = null;
+  }
+
+  async function submitTicket() {
+    if (!selectedEvent) return;
+    modalLoading = true;
+    modalError = null;
+    try {
+      const res = await fetch('/api/admin/bugs/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: modalDescription, category: modalCategory }),
+      });
+      const responseData = await res.json();
+      if (!res.ok) {
+        modalError = responseData.error ?? 'Unbekannter Fehler';
+        return;
+      }
+      modalSuccessId = responseData.ticketId;
+      modalCloseTimer = setTimeout(closeModal, 3000);
+    } catch {
+      modalError = 'Netzwerkfehler';
+    } finally {
+      modalLoading = false;
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -47,18 +96,31 @@
     }
   };
 
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && selectedEvent) closeModal();
+  }
+
   onMount(() => {
     fetchData();
-    refreshInterval = setInterval(fetchData, 15000); // refresh every 15s
+    refreshInterval = setInterval(fetchData, 15000);
+    window.addEventListener('keydown', handleKeydown);
   });
 
   onDestroy(() => {
     if (refreshInterval) clearInterval(refreshInterval);
+    if (modalCloseTimer) clearTimeout(modalCloseTimer);
+    window.removeEventListener('keydown', handleKeydown);
   });
 
   $: runningCount = data?.pods.filter(p => p.phase === 'Running' || p.ready).length || 0;
   $: failedCount = data?.pods.filter(p => p.phase === 'Failed' || p.phase === 'Unknown' || p.phase === 'CrashLoopBackOff').length || 0;
   $: restartingCount = data?.pods.filter(p => !p.ready && p.phase !== 'Failed' && p.phase !== 'Succeeded').length || 0;
+
+  function focusTrap(node: HTMLElement) {
+    const prev = document.activeElement as HTMLElement | null;
+    node.focus();
+    return { destroy() { prev?.focus(); } };
+  }
 
   function getStatusColor(pod: Pod) {
     if (pod.phase === 'Failed' || pod.phase === 'CrashLoopBackOff' || pod.phase === 'Unknown') return 'border-red-500 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400';
@@ -180,8 +242,18 @@
                   {event.message}
                 </p>
               </div>
-              <div class="flex-shrink-0 text-xs text-gray-500">
-                {event.age}
+              <div class="flex-shrink-0 flex items-center gap-2 text-xs text-gray-500">
+                <span>{event.age}</span>
+                <button
+                  on:click={() => openModal(event)}
+                  title="Bug Ticket erstellen"
+                  class="text-gray-400 hover:text-red-500 transition-colors"
+                  aria-label="Bug Ticket erstellen"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </button>
               </div>
             </div>
           </li>
@@ -197,3 +269,95 @@
     </div>
   {/if}
 </div>
+
+{#if selectedEvent}
+  <!-- Modal backdrop -->
+  <div
+    class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+    on:click|self={closeModal}
+  >
+    <div
+      class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      use:focusTrap
+      tabindex="-1"
+    >
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-dark-lighter flex items-center justify-between">
+        <h2 id="modal-title" class="text-lg font-semibold text-light">Bug Ticket erstellen</h2>
+        <button on:click={closeModal} class="text-gray-400 hover:text-light transition-colors" aria-label="Schließen">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-4 space-y-4">
+        <!-- Event summary -->
+        <p class="text-xs text-muted font-mono bg-dark rounded px-3 py-2">
+          {selectedEvent.type} · {selectedEvent.reason} · {selectedEvent.object}
+        </p>
+
+        {#if modalSuccessId}
+          <div class="text-sm text-green-500 space-y-1">
+            <p>Ticket erstellt: <strong>{modalSuccessId}</strong></p>
+            <a href="/admin/bugs" class="underline hover:text-green-400">Zur Ticket-Übersicht →</a>
+            <p class="text-xs text-muted">Schließt in 3 Sekunden…</p>
+          </div>
+        {:else}
+          <!-- Description -->
+          <div>
+            <label for="modal-desc" class="block text-sm font-medium text-light mb-1">Beschreibung</label>
+            <textarea
+              id="modal-desc"
+              bind:value={modalDescription}
+              rows={4}
+              maxlength={2000}
+              class="w-full rounded-md border border-dark-lighter bg-dark text-light text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label for="modal-cat" class="block text-sm font-medium text-light mb-1">Kategorie</label>
+            <select
+              id="modal-cat"
+              bind:value={modalCategory}
+              class="w-full rounded-md border border-dark-lighter bg-dark text-light text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="fehler">Fehler</option>
+              <option value="verbesserung">Verbesserung</option>
+              <option value="erweiterungswunsch">Erweiterungswunsch</option>
+            </select>
+          </div>
+
+          {#if modalError}
+            <p class="text-sm text-red-500">{modalError}</p>
+          {/if}
+        {/if}
+      </div>
+
+      <!-- Footer -->
+      {#if !modalSuccessId}
+        <div class="px-6 py-4 border-t border-dark-lighter flex justify-end gap-3">
+          <button
+            on:click={closeModal}
+            class="px-4 py-2 text-sm rounded-md border border-dark-lighter text-light hover:bg-dark transition-colors"
+          >
+            Abbrechen
+          </button>
+          <button
+            on:click={submitTicket}
+            disabled={modalLoading || !modalDescription.trim()}
+            class="px-4 py-2 text-sm rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 transition-colors"
+          >
+            {modalLoading ? 'Erstelle…' : 'Erstellen'}
+          </button>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}

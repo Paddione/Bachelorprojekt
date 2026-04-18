@@ -65,12 +65,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: modalDescription, category: modalCategory }),
       });
-      const data = await res.json();
+      const responseData = await res.json();
       if (!res.ok) {
-        modalError = data.error ?? 'Unbekannter Fehler';
+        modalError = responseData.error ?? 'Unbekannter Fehler';
         return;
       }
-      modalSuccessId = data.ticketId;
+      modalSuccessId = responseData.ticketId;
       modalCloseTimer = setTimeout(closeModal, 3000);
     } catch {
       modalError = 'Netzwerkfehler';

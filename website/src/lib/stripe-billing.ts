@@ -175,3 +175,52 @@ export async function getAllBillingInvoices(params?: {
     return { ...mapInvoice(inv), customerName: customer?.name ?? '—', customerEmail: customer?.email ?? '—' };
   });
 }
+
+export interface FullInvoice extends AdminBillingInvoice {
+  currency: string;
+  taxAmount: number;
+  subtotalExclTax: number;
+  buyerAddress: {
+    line1: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  } | null;
+  buyerVatId: string | null;
+  lines: Array<{ description: string; amountNet: number }>;
+}
+
+export async function getFullInvoice(invoiceId: string): Promise<FullInvoice | null> {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  const inv = await stripe.invoices.retrieve(invoiceId, {
+    expand: ['customer', 'lines'],
+  });
+  const customer = typeof inv.customer === 'object' && inv.customer !== null
+    ? (inv.customer as Stripe.Customer)
+    : null;
+
+  const addr = customer?.address;
+  const subtotalExcl = centsToEur(inv.subtotal_excluding_tax ?? inv.subtotal ?? 0);
+  const total = centsToEur(inv.total ?? 0);
+  const taxAmount = total - subtotalExcl;
+
+  return {
+    ...mapInvoice(inv),
+    customerName: customer?.name ?? '—',
+    customerEmail: customer?.email ?? '—',
+    currency: (inv.currency ?? 'eur').toUpperCase(),
+    taxAmount: Math.max(0, taxAmount),
+    subtotalExclTax: subtotalExcl,
+    buyerAddress: addr ? {
+      line1: addr.line1 ?? '',
+      city: addr.city ?? '',
+      postalCode: addr.postal_code ?? '',
+      country: addr.country ?? 'DE',
+    } : null,
+    buyerVatId: customer?.metadata?.vat_number ?? null,
+    lines: (inv.lines?.data ?? []).map(l => ({
+      description: l.description ?? '',
+      amountNet: (l.amount ?? 0) / 100,
+    })),
+  };
+}

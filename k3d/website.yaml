@@ -199,6 +199,36 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: NEXTCLOUD_CALDAV_PASSWORD
+            - name: SELLER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SELLER_NAME
+            - name: SELLER_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SELLER_ADDRESS
+            - name: SELLER_POSTAL_CODE
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SELLER_POSTAL_CODE
+            - name: SELLER_CITY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SELLER_CITY
+            - name: SELLER_COUNTRY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SELLER_COUNTRY
+            - name: SELLER_VAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SELLER_VAT_ID
           ports:
             - containerPort: 4321
           resources:

@@ -118,12 +118,13 @@ const STATUS_TABS = [
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Betrag</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Offen</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Stripe</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">E-Rechnung</th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colspan="8" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+                <td colspan="9" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
               </tr>
             ) : invoices.map(inv => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
@@ -147,6 +148,18 @@ const STATUS_TABS = [
                 </td>
                 <td class="px-4 py-3 text-sm text-right">
                   <a href={stripeInvoiceDashboardUrl(inv.id)} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline">Stripe ↗</a>
+                </td>
+                <td class="px-4 py-3 text-sm text-right">
+                  {['draft', 'void'].includes(inv.status) ? (
+                    <span class="text-xs text-muted/40">—</span>
+                  ) : (
+                    <a
+                      href={`/api/billing/invoice/${inv.id}/zugferd`}
+                      download
+                      class="text-xs text-green-400 hover:underline"
+                      title="ZUGFeRD XML herunterladen"
+                    >XML ↓</a>
+                  )}
                 </td>
               </tr>
             ))}

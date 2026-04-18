@@ -1,0 +1,42 @@
+---
+interface Props {
+  ncBase: string;
+  wikiUrl: string;
+  vaultUrl: string;
+  keycloakBase: string;
+}
+const { ncBase, wikiUrl, vaultUrl, keycloakBase } = Astro.props;
+
+const services = [
+  ...(ncBase ? [
+    { href: `${ncBase}/apps/files/`,      label: 'Dateien',    desc: 'Ihre Dokumente und Uploads', icon: '📁' },
+    { href: `${ncBase}/apps/calendar/`,   label: 'Kalender',   desc: 'Termine und Ereignisse',     icon: '📅' },
+    { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   desc: 'Adressbuch',                 icon: '👥' },
+    { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       desc: 'Video & Gruppen-Chat',       icon: '🎥' },
+    { href: `${ncBase}/apps/whiteboard/`, label: 'Whiteboard', desc: 'Gemeinsames Zeichenbrett',   icon: '🖊️' },
+  ] : []),
+  ...(wikiUrl  ? [{ href: wikiUrl,  label: 'Wiki',        desc: 'Dokumentation & Wissen', icon: '📚' }] : []),
+  ...(vaultUrl ? [{ href: vaultUrl, label: 'Passwörter',  desc: 'Vaultwarden Safe',       icon: '🔒' }] : []),
+];
+---
+
+<div class="pt-10 pb-20 px-8 max-w-3xl">
+  <h2 class="text-xl font-bold text-light font-serif mb-6">Alle Dienste</h2>
+
+  {services.length === 0 ? (
+    <p class="text-muted">Keine externen Dienste konfiguriert.</p>
+  ) : (
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {services.map(s => (
+        <a href={s.href} target="_blank" rel="noopener noreferrer"
+           class="flex items-start gap-3 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors">
+          <span class="text-2xl leading-none flex-shrink-0 mt-0.5">{s.icon}</span>
+          <div>
+            <div class="text-sm font-semibold text-light">{s.label}</div>
+            <div class="text-xs text-muted mt-0.5">{s.desc}</div>
+          </div>
+        </a>
+      ))}
+    </div>
+  )}
+</div>

@@ -1,75 +1,123 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import PortalLayout from '../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../lib/auth';
-import BookingsTab from '../components/portal/BookingsTab.astro';
-import InvoicesTab from '../components/portal/InvoicesTab.astro';
-import FilesTab from '../components/portal/FilesTab.astro';
-import SignaturesTab from '../components/portal/SignaturesTab.astro';
-import MeetingsTab from '../components/portal/MeetingsTab.astro';
-import ServiceLinks from '../components/ServiceLinks.astro';
+import { getCustomerByEmail, listRoomsWithInboxData } from '../lib/messaging-db';
+import { getMeetingsForClient, listProjectsForCustomer, getOrCreateOnboardingChecklist } from '../lib/website-db';
+import { getClientBookings } from '../lib/caldav';
+import { getCustomerInvoices } from '../lib/stripe-billing';
+import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR } from '../lib/nextcloud-files';
+
+import OverviewSection      from '../components/portal/OverviewSection.astro';
+import NachrichtenSection   from '../components/portal/NachrichtenSection.astro';
+import BesprechungenSection from '../components/portal/BesprechungenSection.astro';
+import DateienSection       from '../components/portal/DateienSection.astro';
+import TermineSection       from '../components/portal/TermineSection.astro';
+import ProjekteSection      from '../components/portal/ProjekteSection.astro';
+import RechnungenSection    from '../components/portal/RechnungenSection.astro';
+import SignaturesTab        from '../components/portal/SignaturesTab.astro';
+import OnboardingTab        from '../components/portal/OnboardingTab.astro';
+import DiensteSection       from '../components/portal/DiensteSection.astro';
+import KontoSection         from '../components/portal/KontoSection.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) {
-  return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl());
+
+const section  = Astro.url.searchParams.get('section') ?? 'overview';
+const username = session.preferred_username ?? session.sub;
+
+const ncBase       = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
+const wikiUrl      = process.env.WIKI_EXTERNAL_URL ?? '';
+const vaultUrl     = process.env.VAULT_EXTERNAL_URL ?? '';
+const keycloakBase = process.env.KEYCLOAK_FRONTEND_URL ?? '';
+const realm        = process.env.KEYCLOAK_REALM ?? 'workspace';
+
+// ── Badge counts (always fetched — needed for sidebar) ────────────
+let unreadMessages    = 0;
+let pendingSignatures = 0;
+
+const customer = await getCustomerByEmail(session.email).catch(() => null);
+if (customer) {
+  const rooms = await listRoomsWithInboxData(customer.id).catch(() => []);
+  unreadMessages = rooms.reduce((s, r) => s + r.unreadCount, 0);
 }
 
-const tab = Astro.url.searchParams.get('tab') ?? 'bookings';
+try {
+  const clientFolder = getClientFolderPath(username);
+  const pendingFiles = await listFiles(`${clientFolder}${PENDING_SIGNATURES_DIR}/`);
+  pendingSignatures  = pendingFiles.filter(f => f.contentType !== 'httpd/unix-directory').length;
+} catch { /* Nextcloud unavailable */ }
 
-const ncBase  = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
-const wikiUrl = process.env.WIKI_EXTERNAL_URL ?? '';
+// ── Section data (lazy — only what the active section needs) ──────
+let nextBooking: Awaited<ReturnType<typeof getClientBookings>>[number] | null = null;
+let openInvoices  = 0;
+let onboardingPct = 0;
 
-const portalLinks = [
-  ...(ncBase ? [
-    { href: `${ncBase}/apps/files/`,       label: 'Dateien',    icon: '📁' },
-    { href: `${ncBase}/apps/calendar/`,    label: 'Kalender',   icon: '📅' },
-    { href: `${ncBase}/apps/contacts/`,    label: 'Kontakte',   icon: '👥' },
-    { href: `${ncBase}/apps/spreed/`,      label: 'Talk',       icon: '🎥' },
-    { href: `${ncBase}/apps/files/`,       label: 'Whiteboard', icon: '🖊️' },
-  ] : []),
-  ...(wikiUrl ? [{ href: wikiUrl, label: 'Wiki', icon: '📚' }] : []),
-];
+if (section === 'overview') {
+  const [bookings, invoices, onboarding] = await Promise.allSettled([
+    getClientBookings(session.email),
+    getCustomerInvoices(session.email),
+    getOrCreateOnboardingChecklist(session.sub),
+  ]);
+  if (bookings.status === 'fulfilled') {
+    const now = new Date();
+    const upcoming = bookings.value.filter(b => b.start >= now && b.status !== 'CANCELLED');
+    nextBooking = upcoming[0] ?? null;
+  }
+  if (invoices.status === 'fulfilled') {
+    openInvoices = invoices.value.filter(
+      i => i.amountRemaining > 0 && !['void', 'uncollectible'].includes(i.status)
+    ).length;
+  }
+  if (onboarding.status === 'fulfilled' && onboarding.value.length) {
+    onboardingPct = Math.round(
+      (onboarding.value.filter(i => i.done).length / onboarding.value.length) * 100
+    );
+  }
+}
+
+const rooms = (section === 'nachrichten' && customer)
+  ? await listRoomsWithInboxData(customer.id).catch(() => [])
+  : [];
+
+const meetings = section === 'besprechungen'
+  ? await getMeetingsForClient(session.email, true).catch(() => [])
+  : [];
+
+const bookings = section === 'termine'
+  ? await getClientBookings(session.email).catch(() => [])
+  : [];
+
+const projects = section === 'projekte'
+  ? await listProjectsForCustomer(session.sub).catch(() => [])
+  : [];
 ---
 
-<Layout title="Mein Portal">
-  <section class="pt-28 pb-20 bg-dark min-h-screen">
-    <div class="max-w-5xl mx-auto px-6">
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-light font-serif">Willkommen, {session.name ?? session.preferred_username}</h1>
-        <p class="text-muted mt-1">{session.email}</p>
-      </div>
-
-      <ServiceLinks links={portalLinks} heading="Dienste" />
-
-      <!-- Tab navigation -->
-      <nav class="flex gap-1 mb-8 border-b border-dark-lighter overflow-x-auto" data-testid="portal-tabs">
-        {[
-          { id: 'bookings', label: 'Termine' },
-          { id: 'invoices', label: 'Rechnungen' },
-          { id: 'files', label: 'Dateien' },
-          { id: 'signatures', label: 'Zur Unterschrift' },
-          { id: 'meetings', label: 'Besprechungen' },
-        ].map(t => (
-          <a
-            href={`/portal?tab=${t.id}`}
-            class={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-              tab === t.id
-                ? 'text-gold border-b-2 border-gold'
-                : 'text-muted hover:text-light'
-            }`}
-          >
-            {t.label}
-          </a>
-        ))}
-      </nav>
-
-      <!-- Tab content -->
-      <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
-        {tab === 'bookings' && <BookingsTab clientEmail={session.email} />}
-        {tab === 'invoices' && <InvoicesTab clientEmail={session.email} />}
-        {tab === 'files' && <FilesTab clientUsername={session.preferred_username ?? session.sub} />}
-        {tab === 'signatures' && <SignaturesTab clientUsername={session.preferred_username ?? session.sub} />}
-        {tab === 'meetings' && <MeetingsTab clientEmail={session.email} />}
-      </div>
+<PortalLayout
+  title="Mein Portal"
+  {section}
+  {session}
+  {unreadMessages}
+  {pendingSignatures}
+>
+  {section === 'overview'       && <OverviewSection {session} {nextBooking} {openInvoices} {unreadMessages} {onboardingPct} {ncBase} {wikiUrl} {vaultUrl} />}
+  {section === 'nachrichten'    && <NachrichtenSection {rooms} />}
+  {section === 'besprechungen'  && <BesprechungenSection {meetings} />}
+  {section === 'dateien'        && <DateienSection clientUsername={username} />}
+  {section === 'unterschriften' && (
+    <div class="pt-10 pb-20 px-8 max-w-2xl">
+      <h2 class="text-xl font-bold text-light font-serif mb-6">Unterschriften</h2>
+      <SignaturesTab clientUsername={username} />
     </div>
-  </section>
-</Layout>
+  )}
+  {section === 'termine'        && <TermineSection {bookings} />}
+  {section === 'rechnungen'     && <RechnungenSection clientEmail={session.email} />}
+  {section === 'projekte'       && <ProjekteSection {projects} back={Astro.url.href} />}
+  {section === 'onboarding'     && (
+    <div class="pt-10 pb-20 px-8 max-w-xl">
+      <h2 class="text-xl font-bold text-light font-serif mb-6">Onboarding</h2>
+      <OnboardingTab keycloakUserId={session.sub} back={Astro.url.href} />
+    </div>
+  )}
+  {section === 'dienste'        && <DiensteSection {ncBase} {wikiUrl} {vaultUrl} {keycloakBase} />}
+  {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
+</PortalLayout>

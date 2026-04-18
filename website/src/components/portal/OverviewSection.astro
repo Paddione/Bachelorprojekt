@@ -1,0 +1,92 @@
+---
+import type { UserSession } from '../../lib/auth';
+import type { ClientBooking } from '../../lib/caldav';
+
+interface Props {
+  session: UserSession;
+  nextBooking: ClientBooking | null;
+  openInvoices: number;
+  unreadMessages: number;
+  onboardingPct: number;
+  ncBase: string;
+  wikiUrl: string;
+  vaultUrl: string;
+}
+
+const { session, nextBooking, openInvoices, unreadMessages, onboardingPct, ncBase, wikiUrl, vaultUrl } = Astro.props;
+
+const services = [
+  ...(ncBase ? [
+    { href: `${ncBase}/apps/files/`,       label: 'Dateien',    desc: 'Nextcloud' },
+    { href: `${ncBase}/apps/calendar/`,    label: 'Kalender',   desc: 'Nextcloud' },
+    { href: `${ncBase}/apps/spreed/`,      label: 'Talk',       desc: 'Video & Chat' },
+    { href: `${ncBase}/apps/whiteboard/`,  label: 'Whiteboard', desc: 'Nextcloud' },
+  ] : []),
+  ...(wikiUrl  ? [{ href: wikiUrl,  label: 'Wiki',       desc: 'Dokumentation' }] : []),
+  ...(vaultUrl ? [{ href: vaultUrl, label: 'Passwörter', desc: 'Vaultwarden' }] : []),
+];
+---
+
+<div class="pt-10 pb-20 px-8 max-w-4xl">
+  <h1 class="text-2xl font-bold text-light font-serif mb-6">Willkommen, {session.name.split(' ')[0]}</h1>
+
+  <!-- Stat cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+    <a href="/portal?section=termine" class="p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors">
+      <div class="text-base font-bold text-gold truncate">
+        {nextBooking ? nextBooking.start.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }) : '—'}
+      </div>
+      <div class="text-xs text-muted mt-0.5">Nächster Termin</div>
+    </a>
+    <a href="/portal?section=rechnungen" class={`p-4 bg-dark-light rounded-xl border hover:border-gold/40 transition-colors ${openInvoices > 0 ? 'border-amber-700/60' : 'border-dark-lighter'}`}>
+      <div class={`text-base font-bold ${openInvoices > 0 ? 'text-amber-400' : 'text-muted'}`}>{openInvoices > 0 ? `${openInvoices} offen` : 'Keine'}</div>
+      <div class="text-xs text-muted mt-0.5">Rechnungen</div>
+    </a>
+    <a href="/portal?section=nachrichten" class={`p-4 bg-dark-light rounded-xl border hover:border-gold/40 transition-colors ${unreadMessages > 0 ? 'border-blue-700/60' : 'border-dark-lighter'}`}>
+      <div class={`text-base font-bold ${unreadMessages > 0 ? 'text-blue-400' : 'text-muted'}`}>{unreadMessages > 0 ? `${unreadMessages} neu` : 'Keine'}</div>
+      <div class="text-xs text-muted mt-0.5">Nachrichten</div>
+    </a>
+    <a href="/portal?section=onboarding" class="p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors">
+      <div class={`text-base font-bold ${onboardingPct === 100 ? 'text-green-400' : 'text-light'}`}>{onboardingPct}%</div>
+      <div class="text-xs text-muted mt-0.5">Onboarding</div>
+    </a>
+  </div>
+
+  <!-- External services -->
+  {services.length > 0 && (
+    <div class="mb-8">
+      <p class="text-xs font-semibold text-muted uppercase tracking-widest mb-3">Externe Dienste</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {services.map(s => (
+          <a href={s.href} target="_blank" rel="noopener noreferrer"
+             class="flex flex-col items-center gap-1 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors text-center">
+            <span class="text-xs font-semibold text-light">{s.label}</span>
+            <span class="text-xs text-muted">{s.desc}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Upcoming booking -->
+  {nextBooking && (
+    <div>
+      <p class="text-xs font-semibold text-muted uppercase tracking-widest mb-3">Nächster Termin</p>
+      <div class="flex items-center gap-3 p-4 bg-dark-light rounded-xl border border-dark-lighter">
+        <div class="flex-1">
+          <div class="text-light font-medium">{nextBooking.summary}</div>
+          <div class="text-sm text-muted mt-1">
+            {nextBooking.start.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
+            {' · '}
+            {nextBooking.start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+            {' – '}
+            {nextBooking.end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent">
+          {nextBooking.status === 'TENTATIVE' ? 'Anfrage' : 'Bestätigt'}
+        </span>
+      </div>
+    </div>
+  )}
+</div>

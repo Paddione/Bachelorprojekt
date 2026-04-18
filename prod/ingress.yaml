@@ -98,11 +98,12 @@ spec:
                 port:
                   number: 80
 ---
-# ── Website (Astro) ─────────────────────────────────────────────────
+# ── Website (Astro) — Namespace: website (service lives there) ───────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: workspace-ingress-web
+  name: website-ingress-web
+  namespace: website
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-web@kubernetescrd"
 spec:

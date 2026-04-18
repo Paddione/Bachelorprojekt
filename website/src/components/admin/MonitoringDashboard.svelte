@@ -52,6 +52,7 @@
   let modalCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
   let deployments: Deployment[] = [];
+  let deploymentsLoading = true;
   let deploymentsError: string | null = null;
   let pendingAction: DeploymentAction | null = null;
   let scaleTarget = 1;
@@ -125,6 +126,7 @@
       }
     } finally {
       loading = false;
+      deploymentsLoading = false;
     }
   };
 
@@ -373,7 +375,9 @@
     <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter">
       <h3 class="text-lg leading-6 font-medium text-light">Deployments</h3>
     </div>
-    {#if deploymentsError}
+    {#if deploymentsLoading}
+      <p class="px-4 py-4 text-sm text-gray-500 text-center">Loading…</p>
+    {:else if deploymentsError}
       <p class="px-4 py-4 text-sm text-red-500">{deploymentsError}</p>
     {:else if deployments.length === 0}
       <p class="px-4 py-4 text-sm text-gray-500 text-center">No deployments found in workspace.</p>
@@ -517,11 +521,16 @@
   <div
     class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
     on:click|self={closeAction}
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="action-modal-title"
+    aria-hidden="true"
   >
-    <div class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-md" use:focusTrap tabindex="-1">
+    <div
+      class="bg-dark-light border border-dark-lighter rounded-lg shadow-xl w-full max-w-md"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="action-modal-title"
+      use:focusTrap
+      tabindex="-1"
+    >
       <div class="px-6 py-4 border-b border-dark-lighter flex items-center justify-between">
         <h2 id="action-modal-title" class="text-lg font-semibold text-light">
           {pendingAction.type === 'restart' ? 'Restart' : 'Scale'} Deployment

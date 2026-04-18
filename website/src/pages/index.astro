@@ -1,11 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.svelte';
-import ServiceCard from '../components/ServiceCard.svelte';
+import ServiceRow from '../components/ServiceRow.svelte';
 import CallToAction from '../components/CallToAction.svelte';
 import FAQ from '../components/FAQ.svelte';
-import { config } from '../config/index';
+import WhyMe from '../components/WhyMe.svelte';
+import Process from '../components/Process.astro';
 import SlotWidget from '../components/SlotWidget.astro';
+import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
 import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq } from '../lib/content';
@@ -23,128 +25,289 @@ try {
 } catch {
   // CalDAV unreachable — widget hidden gracefully
 }
+
+// Service metadata labels (the short tagline shown below service title)
+const serviceMeta: Record<string, string> = {
+  'digital-cafe': 'Einzeln · Gruppe · Pakete',
+  'coaching': 'Sparring auf Augenhöhe',
+  'beratung': 'Mittelstand · Verwaltung',
+  'ki-beratung': 'Strategie · Tool-Auswahl · Compliance',
+  'software-dev': 'Architektur · Review · Umsetzung',
+  'deployment': 'K8s · GitOps · Self-Hosted',
+};
+
+// Process steps (brand-appropriate, same for all brands currently)
+const processSteps = [
+  {
+    num: '01 — Erstgespräch',
+    heading: 'Kennenlernen',
+    description: '30 Minuten, kostenlos. Wir klären Ihre Situation und Ihre Herausforderung.',
+  },
+  {
+    num: '02 — Klarheit',
+    heading: 'Zieldefinition',
+    description: 'Gemeinsam entscheiden wir: Was ist das richtige Format, was der richtige Rahmen?',
+  },
+  {
+    num: '03 — Begleitung',
+    heading: 'Arbeitsphase',
+    description: 'Individuelle Sessions in Ihrem Tempo – online oder vor Ort in Lüneburg und Umgebung.',
+  },
+  {
+    num: '04 — Transfer',
+    heading: 'Nachhaltigkeit',
+    description: 'Was Sie hier lernen, bleibt bei Ihnen. Nicht als Wissen, sondern als Haltung.',
+  },
+];
 ---
 
 <Layout title={config.meta.siteTitle}>
+  <!-- Hero with Portrait -->
   <Hero
     client:load
     title={homepage.hero.title}
     subtitle={homepage.hero.subtitle}
     tagline={homepage.hero.tagline}
+    avatarType={homepage.avatarType}
+    avatarSrc={homepage.avatarSrc}
+    avatarInitials={homepage.avatarInitials}
+    personName={contact.name}
+    personRole={config.legal.jobtitle}
   />
 
-  {nextDay && <SlotWidget day={nextDay} />}
-
-  <!-- Trust indicators -->
-  <section class="py-12 bg-dark-light border-b border-dark-lighter">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        {homepage.stats.map((stat) => (
-          <div>
-            <p class="text-3xl font-bold text-gold">{stat.value}</p>
-            <p class="text-muted mt-1">{stat.label}</p>
-          </div>
-        ))}
-      </div>
+  <!-- Stats + Availability strip -->
+  <div class="strip" role="region" aria-label="Eckdaten und Verfügbarkeit">
+    <!-- Stats -->
+    <div class="stats" aria-label="Kennzahlen">
+      {homepage.stats.map((stat) => (
+        <div class="stat">
+          <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
+          <span class="stat-lab">{stat.label}</span>
+        </div>
+      ))}
     </div>
-  </section>
 
-  <!-- Services -->
-  <section id="angebote" class="py-20 bg-dark">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-center mb-14">
-        <h2 class="text-3xl md:text-4xl font-bold text-light mb-4 font-serif">{homepage.servicesHeadline}</h2>
-        <p class="text-xl text-muted max-w-2xl mx-auto">
-          {homepage.servicesSubheadline}
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {services.map((service) => (
-          <ServiceCard
-            title={service.title}
-            description={service.description}
-            icon={service.icon}
-            features={service.features}
-            href={`/${service.slug}`}
-            price={service.price}
-            stripeServiceKey={service.stripeServiceKey}
-            client:visible
-          />
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- Why me -->
-  <section class="py-20 bg-dark-light">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <div>
-          <h2 class="text-3xl md:text-4xl font-bold text-light mb-6 font-serif">{homepage.whyMeHeadline}</h2>
-          <p class="text-xl text-muted leading-relaxed mb-8">
-            {homepage.whyMeIntro}
+    <!-- Availability -->
+    {nextDay
+      ? <SlotWidget day={nextDay} />
+      : (
+        <div class="availability-placeholder">
+          <p style="color:var(--mute); font-size:14px;">
+            <a href="/termin" style="color:var(--brass); text-decoration:none;">Termine ansehen →</a>
           </p>
-          <div class="space-y-5">
-            {homepage.whyMePoints.map((point) => (
-              <div class="flex items-start gap-4">
-                <div class="w-10 h-10 bg-gold-dim rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                  <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={point.iconPath} />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold text-light">{point.title}</h3>
-                  <p class="text-muted">{point.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
+      )
+    }
+  </div>
 
-        <!-- Photo / Initials + Quote -->
-        <div class="flex flex-col items-center">
-          {homepage.avatarType === 'image' ? (
-            <div class="relative mb-8">
-              <img
-                src={homepage.avatarSrc}
-                alt={contact.name}
-                class="w-64 h-64 md:w-72 md:h-72 rounded-full object-cover border-3 border-gold shadow-lg shadow-gold-dim"
-                loading="lazy"
-              />
-            </div>
-          ) : (
-            <div class="mb-8 bg-dark rounded-2xl p-6 border border-dark-lighter">
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-gold-dim rounded-full flex items-center justify-center text-2xl">
-                  <span class="text-gold font-bold">{homepage.avatarInitials}</span>
-                </div>
-                <div>
-                  <p class="font-semibold text-light">{contact.name}</p>
-                  <p class="text-muted text-sm">{config.legal.tagline}</p>
-                  <p class="text-muted-dark text-sm">{contact.city}</p>
-                </div>
-              </div>
-            </div>
-          )}
-          <div class="bg-dark rounded-2xl p-8 border border-dark-lighter max-w-md">
-            <svg class="w-10 h-10 text-gold/30 mb-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11H10v10H0z" />
-            </svg>
-            <blockquote class="text-lg text-light leading-relaxed italic font-serif">
-              "{homepage.quote}"
-            </blockquote>
-            <p class="text-muted-dark mt-4 text-sm">{homepage.quoteName}</p>
-          </div>
+  <!-- Offers -->
+  <section id="angebote" class="section" aria-labelledby="offers-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Meine Angebote</p>
+          <h2 id="offers-heading">{homepage.servicesHeadline}</h2>
         </div>
+        <p class="section-intro">{homepage.servicesSubheadline}</p>
+      </div>
+
+      <div class="offers" role="list" aria-label="Angebote">
+        {services.map((service, i) => (
+          <div role="listitem">
+            <ServiceRow
+              num={String(i + 1).padStart(2, '0')}
+              title={service.title}
+              meta={serviceMeta[service.slug]}
+              description={service.description}
+              features={service.features}
+              price={service.price}
+              href={`/${service.slug}`}
+              stripeServiceKey={service.stripeServiceKey}
+              client:visible
+            />
+          </div>
+        ))}
       </div>
     </div>
   </section>
 
+  <!-- Why Me + Quote -->
+  <WhyMe
+    client:visible
+    headline={homepage.whyMeHeadline}
+    intro={homepage.whyMeIntro}
+    points={homepage.whyMePoints}
+    quote={homepage.quote}
+    quoteName={homepage.quoteName}
+    quoteRole={config.legal.jobtitle}
+  />
+
+  <!-- Process -->
+  <Process steps={processSteps} />
+
+  <!-- FAQ -->
   <FAQ items={faq.map((item) => ({
     ...item,
     answer: item.answer.replace('{city}', contact.city),
   }))} client:visible />
 
-  <CallToAction client:visible />
+  <!-- CTA -->
+  <CallToAction
+    client:visible
+    secondaryText={contact.email}
+    secondaryHref={`mailto:${contact.email}`}
+  />
 </Layout>
+
+<style>
+  /* Strip: stats + availability */
+  .strip {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-right: 1px solid var(--line);
+  }
+
+  .stat {
+    padding: 38px 28px;
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat:last-child {
+    border-right: none;
+  }
+
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 44px;
+    line-height: 1;
+    color: var(--fg);
+    letter-spacing: -0.02em;
+  }
+
+  /* em inside stat value = brass accent, non-italic */
+  .stat-num :global(em) {
+    color: var(--brass);
+    font-style: normal;
+  }
+
+  .stat-lab {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .availability-placeholder {
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Section layout */
+  .section {
+    padding: 120px 0;
+  }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .section-head {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 48px;
+    margin-bottom: 72px;
+    align-items: end;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.8;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 3.6vw, 48px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    max-width: 18ch;
+    margin: 0;
+  }
+
+  .section-intro {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--fg-soft);
+    max-width: 52ch;
+    margin: 0;
+  }
+
+  .offers {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media (max-width: 960px) {
+    .strip {
+      grid-template-columns: 1fr;
+    }
+
+    .stats {
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat:nth-child(2) {
+      border-right: none;
+    }
+
+    .section {
+      padding: 80px 0;
+    }
+
+    .section-head {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .wrap {
+      padding: 0 22px;
+    }
+  }
+</style>

@@ -8,41 +8,112 @@ interface Props {
 const { day } = Astro.props;
 
 const dateFormatted = new Date(day.date + 'T12:00:00').toLocaleDateString('de-DE', {
-  weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+  weekday: 'short', day: '2-digit', month: 'long',
 });
 ---
 
-<section class="py-10 bg-dark-light border-y border-dark-lighter" data-testid="slot-widget">
-  <div class="max-w-6xl mx-auto px-6">
-    <div class="flex flex-col md:flex-row md:items-center gap-6">
-      <div class="flex-shrink-0">
-        <p class="text-sm text-muted uppercase tracking-widest mb-1" data-testid="slot-widget-heading">Nächster freier Termin</p>
-        <h2 class="text-xl font-semibold text-light">
-          {dateFormatted}
-        </h2>
-      </div>
-      <div class="flex flex-wrap gap-3">
-        {day.slots.map((slot) => {
-          const parts = slot.display.split(' - ');
-          const [startHH, startMM] = (parts[0] ?? '').split(':');
-          const [endHH, endMM] = (parts[1] ?? '').split(':');
-          const href = `/termin?date=${day.date}&start=${startHH ?? '00'}:${startMM ?? '00'}&end=${endHH ?? '00'}:${endMM ?? '00'}`;
-          return (
-            <a
-              href={href}
-              data-testid="slot-pill"
-              class="px-4 py-2 rounded-full border border-gold/40 text-gold hover:bg-gold hover:text-dark font-medium text-sm transition-colors"
-            >
-              {slot.display}
-            </a>
-          );
-        })}
-      </div>
-      <div class="md:ml-auto flex-shrink-0">
-        <a href="/termin" class="text-muted hover:text-gold text-sm underline underline-offset-4 transition-colors">
-          Alle Termine anzeigen →
-        </a>
-      </div>
+<div class="availability" data-testid="slot-widget">
+  <div class="avail-row">
+    <span class="pulse" aria-hidden="true"></span>
+    <div>
+      <p class="avail-title">Nächste freie Termine</p>
+      <p class="avail-sub" data-testid="slot-widget-heading">
+        {dateFormatted} · kostenloses Erstgespräch (30 Min.)
+      </p>
     </div>
   </div>
-</section>
+  <div class="avail-slots">
+    {day.slots.slice(0, 4).map((slot) => {
+      const parts = slot.display.split(' - ');
+      const [startHH, startMM] = (parts[0] ?? '').split(':');
+      const [endHH, endMM] = (parts[1] ?? '').split(':');
+      const href = `/termin?date=${day.date}&start=${startHH ?? '00'}:${startMM ?? '00'}&end=${endHH ?? '00'}:${endMM ?? '00'}`;
+      const timeOnly = parts[0] ?? slot.display;
+      return (
+        <a
+          href={href}
+          data-testid="slot-pill"
+          class="slot-pill"
+          aria-label={`Termin um ${slot.display} buchen`}
+        >
+          {timeOnly}
+        </a>
+      );
+    })}
+    <a href="/termin" class="slot-pill slot-pill-all" aria-label="Alle Termine anzeigen">
+      → alle Termine
+    </a>
+  </div>
+</div>
+
+<style>
+  .availability {
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .avail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .pulse {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 0 0 oklch(0.80 0.06 160 / .6);
+    animation: pulse 2.2s infinite;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .avail-title {
+    font-weight: 600;
+    color: var(--fg);
+    font-size: 15px;
+    margin: 0 0 2px;
+  }
+
+  .avail-sub {
+    color: var(--mute);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .avail-slots {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .slot-pill {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    color: var(--fg-soft);
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .slot-pill:hover {
+    border-color: var(--brass);
+    color: var(--brass);
+  }
+
+  .slot-pill-all {
+    color: var(--mute);
+  }
+
+  @media (max-width: 640px) {
+    .availability {
+      padding: 24px 22px;
+    }
+  }
+</style>

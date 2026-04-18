@@ -47,10 +47,6 @@ spec:
           # as a multi-arch (amd64+arm64) image.
           image: ghcr.io/paddione/collabora-code:25.04.9.4.1-setcap
           imagePullPolicy: Always
-          # Always-pull so a rebuild of the same tag (when we bump the
-          # Dockerfile but keep the upstream version) is picked up by
-          # the next `kubectl rollout restart`.
-          imagePullPolicy: Always
           # - capabilities: in the bounding set so the kernel doesn't
           #   strip them on exec (file caps make them effective).
           # - SETUID/SETGID needed to write uid_map/gid_map after the

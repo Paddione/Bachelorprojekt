@@ -8,7 +8,12 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl());
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
-const rooms = await listRoomsForAdmin();
+let rooms: Awaited<ReturnType<typeof listRoomsForAdmin>> = [];
+try {
+  rooms = await listRoomsForAdmin();
+} catch (err) {
+  console.error('[admin/raeume] DB error:', err);
+}
 ---
 
 <AdminLayout title="Räume">

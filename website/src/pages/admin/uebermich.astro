@@ -4,7 +4,7 @@ import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getEffectiveUebermich } from '../../lib/content';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl());
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const saved = Astro.url.searchParams.get('saved') === '1';

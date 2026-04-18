@@ -99,6 +99,9 @@ export interface Meeting {
   id: string;
   customerId: string;
   status: string;
+  meetingType: string;
+  scheduledAt: Date | null;
+  createdAt: Date;
   released_at: Date | null;
   projectId: string | null;
   projectName: string | null;
@@ -300,6 +303,9 @@ export async function getMeetingsForClient(
   await initMeetingProjectLink();
   const baseSelect = `
     SELECT m.id, m.customer_id as "customerId", m.status, m.released_at,
+           m.meeting_type as "meetingType",
+           m.scheduled_at as "scheduledAt",
+           m.created_at   as "createdAt",
            m.project_id as "projectId", p.name as "projectName"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
@@ -1055,6 +1061,89 @@ export async function updateProjectTask(id: string, params: {
 
 export async function deleteProjectTask(id: string): Promise<void> {
   await pool.query('DELETE FROM project_tasks WHERE id=$1', [id]);
+}
+
+// ── Portal: user-scoped project access ───────────────────────────────────────
+
+export interface PortalProject {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  dueDate: Date | null;
+  tasks: PortalTask[];
+}
+
+export interface PortalTask {
+  id: string;
+  name: string;
+  status: string;
+  isUserTask: boolean;
+}
+
+export async function listProjectsForCustomer(keycloakUserId: string): Promise<PortalProject[]> {
+  await initProjectTables();
+
+  const cust = await pool.query<{ id: string }>(
+    `SELECT id FROM customers WHERE keycloak_user_id = $1 LIMIT 1`,
+    [keycloakUserId],
+  );
+  if (!cust.rows[0]) return [];
+  const customerId = cust.rows[0].id;
+
+  const projects = await pool.query<{ id: string; name: string; description: string | null; status: string; due_date: Date | null }>(
+    `SELECT id, name, description, status, due_date
+     FROM projects
+     WHERE customer_id = $1 AND status NOT IN ('archiviert')
+     ORDER BY created_at DESC`,
+    [customerId],
+  );
+
+  const result: PortalProject[] = [];
+  for (const p of projects.rows) {
+    const tasks = await pool.query<{ id: string; name: string; status: string; customer_id: string | null }>(
+      `SELECT id, name, status, customer_id FROM project_tasks WHERE project_id = $1 ORDER BY created_at ASC`,
+      [p.id],
+    );
+    result.push({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      status: p.status,
+      dueDate: p.due_date,
+      tasks: tasks.rows.map(t => ({
+        id: t.id,
+        name: t.name,
+        status: t.status,
+        isUserTask: t.customer_id === customerId,
+      })),
+    });
+  }
+  return result;
+}
+
+export async function togglePortalTaskDone(taskId: string, keycloakUserId: string): Promise<{ ok: boolean }> {
+  await initProjectTables();
+
+  const cust = await pool.query<{ id: string }>(
+    `SELECT id FROM customers WHERE keycloak_user_id = $1 LIMIT 1`,
+    [keycloakUserId],
+  );
+  if (!cust.rows[0]) return { ok: false };
+  const customerId = cust.rows[0].id;
+
+  const task = await pool.query<{ status: string }>(
+    `SELECT status FROM project_tasks WHERE id = $1 AND customer_id = $2`,
+    [taskId, customerId],
+  );
+  if (!task.rows[0]) return { ok: false };
+
+  const newStatus = task.rows[0].status === 'erledigt' ? 'aktiv' : 'erledigt';
+  await pool.query(
+    `UPDATE project_tasks SET status = $1, updated_at = now() WHERE id = $2`,
+    [newStatus, taskId],
+  );
+  return { ok: true };
 }
 
 // All customers for dropdowns ─────────────────────────────────────────────────

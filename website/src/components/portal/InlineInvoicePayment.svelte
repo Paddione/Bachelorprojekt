@@ -48,11 +48,11 @@
         appearance: { theme: 'night' },
       });
 
-      // Defer mount until after Svelte renders the container div
+      // Set state first so Svelte renders the container div, then mount
+      state = 'ready';
       await tick();
       const paymentElement = elementsInstance.create('payment');
       paymentElement.mount(`#payment-element-${invoiceId}`);
-      state = 'ready';
     } catch (e) {
       console.error('[InlineInvoicePayment]', e);
       errorMessage = 'Verbindung zu Stripe fehlgeschlagen.';

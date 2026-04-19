@@ -36,12 +36,6 @@ patches:
       name: workspace-ingress
     path: patches/ingress.yaml
 
-  # ── Mattermost: HTTPS SiteURL + OIDC endpoint ───────────────────
-  - target:
-      kind: Deployment
-      name: mattermost
-    path: patches/mattermost.yaml
-
   # ── Nextcloud: trusted domains + HTTPS ───────────────────────────
   - target:
       kind: Deployment
@@ -68,8 +62,6 @@ patches:
     path: patches/db-security.yaml
   - target:
       kind: Deployment
-      name: mattermost-db
-    path: patches/db-security.yaml
   - target:
       kind: Deployment
       name: nextcloud-db

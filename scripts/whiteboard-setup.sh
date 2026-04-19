@@ -12,7 +12,6 @@
 #
 # Environment:
 #   NAMESPACE  - Kubernetes namespace (default: workspace)
-#   SCHEME     - URL scheme (default: auto-detect from Mattermost SiteURL)
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -55,7 +54,7 @@ fi
 
 # ── Derive public URL from the whiteboard Ingress ─────────────────────────
 # The Ingress is authoritative: it's the URL the user's browser actually hits.
-# (Mattermost SITEURL and domain-config can be stale/unset on prod overlays.)
+# (Config can be stale/unset on prod overlays.)
 INGRESS_JSON=$(kubectl get ingress -n "${NAMESPACE}" -o json 2>/dev/null)
 INGRESS_HOST=$(printf '%s' "${INGRESS_JSON}" | \
   jq -r '.items[] as $i

@@ -27,7 +27,7 @@ task workspace:prod:deploy       # Deploy to k3s-production
 ### Daily Operations
 ```bash
 task workspace:status            # Show pod status, services, ingress, PVCs
-task workspace:logs -- <svc>     # Tail logs (e.g., keycloak, mattermost)
+task workspace:logs -- <svc>     # Tail logs (e.g., keycloak, nextcloud)
 task workspace:restart -- <svc>  # Restart a specific service
 task workspace:psql -- <db>      # Open psql shell to shared-db
 task workspace:port-forward      # Forward shared-db to localhost:5432

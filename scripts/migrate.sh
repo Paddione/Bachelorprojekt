@@ -3,9 +3,8 @@
 # migrate.sh — Workspace MVP Migration Assistant
 # ═══════════════════════════════════════════════════════════════════
 # Interaktives Menü zum Importieren und Exportieren von Daten:
-#   - Slack (Export-ZIP oder lokaler Cache) → Mattermost
-#   - Microsoft Teams (GDPR-Export) → Mattermost + Nextcloud
-#   - Google Workspace (Takeout-Export) → Mattermost + Nextcloud
+#   - Microsoft Teams (GDPR-Export) → Nextcloud
+#   - Google Workspace (Takeout-Export) → Nextcloud
 #   - Benutzer (CSV oder LDIF → Keycloak)
 #   - Selektiver Datenexport → ZIP-Archiv
 #
@@ -71,9 +70,6 @@ CFG_FILE="${SCRIPT_DIR}/.migrate-config"
 load_config() {
   [[ -f "$CFG_FILE" ]] && source "$CFG_FILE" || true
   # Defaults
-  MM_URL="${MM_URL:-}"
-  MM_ADMIN="${MM_ADMIN:-}"
-  MM_PASS="${MM_PASS:-}"
   NC_URL="${NC_URL:-}"
   NC_ADMIN="${NC_ADMIN:-}"
   NC_PASS="${NC_PASS:-}"
@@ -85,8 +81,6 @@ load_config() {
 save_config() {
   cat > "$CFG_FILE" << EOF
 # Workspace Migration Config — gespeicherte Verbindungsdaten
-MM_URL="${MM_URL}"
-MM_ADMIN="${MM_ADMIN}"
 NC_URL="${NC_URL}"
 NC_ADMIN="${NC_ADMIN}"
 KC_URL="${KC_URL}"
@@ -101,15 +95,6 @@ ask_connection_config() {
   echo "Angaben werden für diesen Lauf gespeichert (Passwörter ausgenommen)."
   echo ""
 
-  prompt "Mattermost URL [${MM_URL:-https://chat.example.com}]:"; read -r input
-  [[ -n "$input" ]] && MM_URL="$input"
-
-  prompt "Mattermost Admin-User [${MM_ADMIN:-admin}]:"; read -r input
-  [[ -n "$input" ]] && MM_ADMIN="$input"
-
-  read -rsp "$(echo -e "${YELLOW}▶${NC} Mattermost Admin-Passwort: ")" MM_PASS; echo
-
-  echo ""
   prompt "Nextcloud URL [${NC_URL:-https://files.example.com}]:"; read -r input
   [[ -n "$input" ]] && NC_URL="$input"
 
@@ -136,7 +121,7 @@ SCAN_RESULTS=()
 
 run_scan() {
   header "🔍 Suche nach lokalen Datenquellen..."
-  echo "Scanne: Slack, Teams, Google, Mattermost, Nextcloud..."
+  echo "Scanne: Teams, Google, Nextcloud..."
   echo ""
 
   while IFS= read -r line; do
@@ -168,19 +153,18 @@ show_main_menu() {
   echo ""
   echo -e "  ${BOLD}Importieren${NC}"
   echo -e "  ───────────"
-  echo -e "  ${BOLD}[1]${NC} 💬  Slack         → Mattermost"
-  echo -e "  ${BOLD}[2]${NC} 📹  MS Teams      → Mattermost + Nextcloud"
-  echo -e "  ${BOLD}[3]${NC} 🔵  Google        → Mattermost + Nextcloud"
-  echo -e "  ${BOLD}[4]${NC} 👥  Benutzer      → Keycloak (CSV / LDIF)"
+  echo -e "  ${BOLD}[1]${NC} 📹  MS Teams      → Nextcloud"
+  echo -e "  ${BOLD}[2]${NC} 🔵  Google        → Nextcloud"
+  echo -e "  ${BOLD}[3]${NC} 👥  Benutzer      → Keycloak (CSV / LDIF)"
   echo ""
   echo -e "  ${BOLD}Exportieren${NC}"
   echo -e "  ───────────"
-  echo -e "  ${BOLD}[5]${NC} 📦  Daten exportieren (selektiv → ZIP)"
+  echo -e "  ${BOLD}[4]${NC} 📦  Daten exportieren (selektiv → ZIP)"
   echo ""
   echo -e "  ${BOLD}Einstellungen${NC}"
   echo -e "  ─────────────"
-  echo -e "  ${BOLD}[6]${NC} 🔧  Server-Verbindung konfigurieren"
-  echo -e "  ${BOLD}[7]${NC} 🔍  Lokale Quellen scannen"
+  echo -e "  ${BOLD}[5]${NC} 🔧  Server-Verbindung konfigurieren"
+  echo -e "  ${BOLD}[6]${NC} 🔍  Lokale Quellen scannen"
   $DRY_RUN && \
   echo -e "  ${BOLD}[d]${NC} ▶   DRY-RUN deaktivieren" || \
   echo -e "  ${BOLD}[d]${NC} 👁   DRY-RUN aktivieren (Vorschau)"
@@ -234,40 +218,6 @@ pick_source() {
 }
 
 # ── Import-Flows ─────────────────────────────────────────────────────
-flow_slack() {
-  header "💬 Slack Import"
-  echo ""
-  echo "Benötigt: Slack-Export-ZIP (Workspace Admin → Settings → Export)"
-  echo "Oder:     Lokaler Slack-Cache (eingeschränkt, nur eigene Nachrichten)"
-  echo ""
-
-  local source
-  source=$(pick_source "slack") || return 1
-  [[ -z "$source" ]] && return 1
-
-  echo ""
-  info "Quelle: $source"
-  echo ""
-
-  [[ -z "$MM_URL" ]] && ask_connection_config
-
-  echo -e "${BOLD}Was soll importiert werden?${NC}"
-  echo "  [1] Nur Nachrichten und Kanäle → Mattermost"
-  echo "  [2] Vorschau (was wird importiert?)"
-  echo ""
-  prompt "Auswahl [1]:"; read -r choice
-  choice="${choice:-1}"
-
-  case "$choice" in
-    2) DRY_RUN=true ;;
-  esac
-
-  run_slack_import "$source" "$MM_URL" "$MM_ADMIN" "$MM_PASS"
-
-  $DRY_RUN || success "Slack-Import abgeschlossen!"
-  $DRY_RUN && info "DRY-RUN beendet — keine Änderungen vorgenommen"
-}
-
 flow_teams() {
   header "📹 Microsoft Teams Import"
   echo ""
@@ -287,29 +237,23 @@ flow_teams() {
   info "Quelle: $source"
   echo ""
 
-  [[ -z "$MM_URL" ]] && ask_connection_config
+  [[ -z "$NC_URL" ]] && ask_connection_config
 
   echo -e "${BOLD}Was soll importiert werden?${NC}"
-  echo "  [1] Alles (Chats → Mattermost, Dateien/Kalender/Kontakte → Nextcloud)"
-  echo "  [2] Nur Chats → Mattermost"
-  echo "  [3] Nur Dateien/Kalender/Kontakte → Nextcloud"
-  echo "  [4] Vorschau (was wird importiert?)"
+  echo "  [1] Dateien/Kalender/Kontakte → Nextcloud"
+  echo "  [2] Vorschau (was wird importiert?)"
   echo ""
   prompt "Auswahl [1]:"; read -r choice
   choice="${choice:-1}"
 
-  local do_mm=true do_nc=true
   case "$choice" in
-    2) do_nc=false ;;
-    3) do_mm=false ;;
-    4) DRY_RUN=true ;;
+    2) DRY_RUN=true ;;
   esac
 
-  local mm_url="" mm_user="" mm_pass="" nc_url="" nc_user="" nc_pass=""
-  $do_mm && { mm_url="$MM_URL"; mm_user="$MM_ADMIN"; mm_pass="$MM_PASS"; }
-  $do_nc && { nc_url="$NC_URL"; nc_user="$NC_ADMIN"; nc_pass="$NC_PASS"; }
+  local nc_url="" nc_user="" nc_pass=""
+  nc_url="$NC_URL"; nc_user="$NC_ADMIN"; nc_pass="$NC_PASS"
 
-  run_teams_import "$source" "$mm_url" "$mm_user" "$mm_pass" "$nc_url" "$nc_user" "$nc_pass"
+  run_teams_import "$source" "" "" "" "$nc_url" "$nc_user" "$nc_pass"
 
   $DRY_RUN || success "Teams-Import abgeschlossen!"
   $DRY_RUN && info "DRY-RUN beendet — keine Änderungen vorgenommen"
@@ -363,39 +307,32 @@ flow_google() {
   echo ""
 
   echo -e "${BOLD}Was soll importiert werden?${NC}"
-  echo "  [1] Alles (Chat → Mattermost, Drive/Kalender/Kontakte → Nextcloud)"
-  echo "  [2] Nur Google Chat → Mattermost"
-  echo "  [3] Nur Drive/Kalender/Kontakte → Nextcloud"
-  echo "  [4] Einzeln auswählen"
-  echo "  [5] Vorschau (was wird importiert?)"
+  echo "  [1] Drive/Kalender/Kontakte → Nextcloud"
+  echo "  [2] Einzeln auswählen"
+  echo "  [3] Vorschau (was wird importiert?)"
   echo ""
   prompt "Auswahl [1]:"; read -r choice
   choice="${choice:-1}"
 
-  local do_chat=true do_drive=true do_calendar=true do_contacts=true
+  local do_drive=true do_calendar=true do_contacts=true
 
   case "$choice" in
-    2) do_drive=false; do_calendar=false; do_contacts=false ;;
-    3) do_chat=false ;;
-    4)
+    2)
       echo ""
-      prompt "Google Chat importieren? [J/n]:"; read -r a; [[ "${a,,}" == "n" ]] && do_chat=false
       prompt "Google Drive importieren? [J/n]:"; read -r a; [[ "${a,,}" == "n" ]] && do_drive=false
       prompt "Kalender importieren? [J/n]:"; read -r a; [[ "${a,,}" == "n" ]] && do_calendar=false
       prompt "Kontakte importieren? [J/n]:"; read -r a; [[ "${a,,}" == "n" ]] && do_contacts=false
       ;;
-    5) DRY_RUN=true ;;
+    3) DRY_RUN=true ;;
   esac
 
-  if $do_chat && [[ -z "$MM_URL" ]]; then ask_connection_config; fi
-  if ($do_drive || $do_calendar || $do_contacts) && [[ -z "$NC_URL" ]]; then ask_connection_config; fi
+  [[ -z "$NC_URL" ]] && ask_connection_config
 
-  local mm_url="" mm_user="" mm_pass="" nc_url="" nc_user="" nc_pass=""
-  $do_chat && { mm_url="$MM_URL"; mm_user="$MM_ADMIN"; mm_pass="$MM_PASS"; }
-  ($do_drive || $do_calendar || $do_contacts) && { nc_url="$NC_URL"; nc_user="$NC_ADMIN"; nc_pass="$NC_PASS"; }
+  local nc_url="" nc_user="" nc_pass=""
+  nc_url="$NC_URL"; nc_user="$NC_ADMIN"; nc_pass="$NC_PASS"
 
-  run_google_import "$source" "$do_chat" "$do_drive" "$do_calendar" "$do_contacts" \
-    "$mm_url" "$mm_user" "$mm_pass" "$nc_url" "$nc_user" "$nc_pass"
+  run_google_import "$source" false "$do_drive" "$do_calendar" "$do_contacts" \
+    "" "" "" "$nc_url" "$nc_user" "$nc_pass"
 
   $DRY_RUN || success "Google-Import abgeschlossen!"
   $DRY_RUN && info "DRY-RUN beendet — keine Änderungen vorgenommen"
@@ -408,7 +345,7 @@ flow_export() {
   echo "Toggle: Nummer drücken zum An-/Abwählen, [s] zum Starten."
   echo ""
 
-  [[ -z "$MM_URL" || -z "$NC_URL" ]] && \
+  [[ -z "$NC_URL" ]] && \
     warn "Nicht alle Server konfiguriert — einige Exporte könnten fehlschlagen"
 
   NC_URL="${NC_URL:-}"; NC_USER="${NC_ADMIN:-}"; NC_PASS="${NC_PASS:-}"
@@ -431,12 +368,6 @@ flow_export() {
 test_connections() {
   header "🔗 Verbindungen testen"
   echo ""
-
-  if [[ -n "$MM_URL" ]]; then
-    local mm_status
-    mm_status=$(curl -s -o /dev/null -w "%{http_code}" "${MM_URL}/api/v4/system/ping" 2>/dev/null)
-    [[ "$mm_status" == "200" ]] && success "Mattermost: ${MM_URL} ✓" || warn "Mattermost: ${MM_URL} (HTTP ${mm_status})"
-  fi
 
   if [[ -n "$NC_URL" ]]; then
     local nc_status
@@ -479,7 +410,7 @@ fi
 load_config
 
 # Beim ersten Start: Verbindung konfigurieren
-if [[ -z "$MM_URL" ]] && [[ -z "$NC_URL" ]]; then
+if [[ -z "$NC_URL" ]]; then
   warn "Noch keine Server-Verbindung konfiguriert."
   ask_connection_config
 fi
@@ -490,7 +421,7 @@ if ! $NO_SCAN; then
 fi
 
 # Verbindungen testen
-if [[ -n "$MM_URL" ]] || [[ -n "$NC_URL" ]]; then
+if [[ -n "$NC_URL" ]]; then
   test_connections
 fi
 
@@ -500,13 +431,12 @@ while true; do
   prompt "Auswahl:"; read -r choice
 
   case "$choice" in
-    1) flow_slack ;;
-    2) flow_teams ;;
-    3) flow_google ;;
-    4) flow_users ;;
-    5) flow_export ;;
-    6) ask_connection_config; test_connections ;;
-    7) run_scan ;;
+    1) flow_teams ;;
+    2) flow_google ;;
+    3) flow_users ;;
+    4) flow_export ;;
+    5) ask_connection_config; test_connections ;;
+    6) run_scan ;;
     d|D) $DRY_RUN && { DRY_RUN=false; success "DRY-RUN deaktiviert — Änderungen werden vorgenommen"; } \
                    || { DRY_RUN=true;  warn "DRY-RUN aktiviert — keine Änderungen"; } ;;
     0|q|Q) echo ""; info "Auf Wiedersehen!"; exit 0 ;;

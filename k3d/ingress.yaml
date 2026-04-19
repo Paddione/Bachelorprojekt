@@ -16,9 +16,6 @@ spec:
                 port:
                   number: 8080
 
-    # Mattermost (chat.*) lives in its own Ingress (mattermost-force-sso.yaml)
-    # so the force-SSO redirect middleware can be scoped to just that host.
-
     # ── Nextcloud (Dateien) ──────────────────────────────────────────
     - host: files.localhost
       http:

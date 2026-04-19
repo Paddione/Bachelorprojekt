@@ -239,7 +239,7 @@ all_images() {
   violations=$(grep -B2 -A0 -i 'password' "$RENDERED" \
     | grep -i 'value:' \
     | grep -ivE 'valueFrom|secretKeyRef|configMapKeyRef|\$\(' \
-    | grep -ivE 'value: (admin|devadmin|invoiceninja|keycloak|postgres|nextcloud|mattermost|opensearch|outline|"")|value: [a-z]+@|value: "[0-9]+"' \
+    | grep -ivE 'value: (admin|devadmin|invoiceninja|keycloak|postgres|nextcloud|opensearch|outline|"")|value: [a-z]+@|value: "[0-9]+"' \
     | grep -ivE 'value: "?https?"?$|value: "?https?://' \
     || true)
   if [[ -n "$violations" ]]; then

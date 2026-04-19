@@ -43,7 +43,6 @@ err()  { echo -e "${RED}[KC-SYNC]${NC} $*"; }
 
 # ── OIDC-Client-Mapping: K8s-Secret-Key → Keycloak clientId ──────────
 declare -A CLIENT_MAP=(
-  [MATTERMOST_OIDC_SECRET]="mattermost"
   [NEXTCLOUD_OIDC_SECRET]="nextcloud"
   [INVOICENINJA_OIDC_SECRET]="invoiceninja"
   [DOCS_OIDC_SECRET]="docs"

@@ -1,13 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const mmURL      = process.env.TEST_BASE_URL || 'http://localhost:8065';
-const websiteURL = process.env.WEBSITE_URL  || 'http://localhost:4321';
-
-// Auto-derive MCP status URL from TEST_BASE_URL (chat.X → ai.X) when not explicitly set.
-// Example: https://chat.mentolder.de → https://ai.mentolder.de
-if (!process.env.MCP_STATUS_URL && process.env.TEST_BASE_URL) {
-  process.env.MCP_STATUS_URL = process.env.TEST_BASE_URL.replace(/\/\/[^.]+\./, '//ai.');
-}
+const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 export default defineConfig({
   testDir: './specs',
@@ -19,7 +12,7 @@ export default defineConfig({
     ['json', { outputFile: '../results/.tmp-e2e-results.json' }],
   ],
   use: {
-    baseURL: mmURL,
+    baseURL: websiteURL,
     ignoreHTTPSErrors: true,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
@@ -28,50 +21,6 @@ export default defineConfig({
   },
 
   projects: [
-    // ── Setup (logs in, stores session — required by chat + auth) ──
-    {
-      name: 'setup',
-      testMatch: /global-setup\.ts/,
-    },
-
-    // ── chat: Mattermost core UI ─────────────────────────────────
-    // Run: npx playwright test --project=chat
-    {
-      name: 'chat',
-      testMatch: [
-        '**/fa-01-*.spec.ts', // messaging
-        '**/fa-02-*.spec.ts', // channels
-        '**/fa-04-*.spec.ts', // file upload
-        '**/fa-06-*.spec.ts', // notifications
-        '**/fa-07-*.spec.ts', // search
-        '**/fa-08-*.spec.ts', // status
-        '**/fa-09-*.spec.ts', // billing bot (MM side)
-        '**/fa-11-*.spec.ts', // guest access
-      ],
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: mmURL,
-        storageState: '.auth/user.json',
-      },
-      dependencies: ['setup'],
-    },
-
-    // ── auth: Authentication & SSO flows ────────────────────────
-    // Run: npx playwright test --project=auth
-    {
-      name: 'auth',
-      testMatch: [
-        '**/fa-05-*.spec.ts', // user mgmt / SSO admin
-        '**/sa-02-*.spec.ts', // wrong-password, lockout
-        '**/sa-08-*.spec.ts', // cross-service SSO browser
-      ],
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: mmURL,
-      },
-      dependencies: ['setup'],
-    },
-
     // ── website: Astro site & backend APIs ───────────────────────
     // Run: npx playwright test --project=website
     {
@@ -95,7 +44,6 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: websiteURL,
       },
-      // no dependency on setup — doesn't need MM session
     },
 
     // ── services: Infrastructure & supporting services ───────────
@@ -105,7 +53,6 @@ export default defineConfig({
       testMatch: [
         '**/fa-03-*.spec.ts',  // Nextcloud Talk / video
         '**/fa-12-*.spec.ts',  // Claude Code / MCP status
-        '**/fa-13-*.spec.ts',  // docs
         '**/fa-23-*.spec.ts',  // Vaultwarden
         '**/fa-24-*.spec.ts',  // Whiteboard
         '**/fa-25-*.spec.ts',  // Mailpit
@@ -114,10 +61,8 @@ export default defineConfig({
       ],
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: mmURL,
-        storageState: '.auth/user.json',
+        baseURL: websiteURL,
       },
-      dependencies: ['setup'],
     },
 
     // ── smoke: Cross-service integration tests ──────────────────
@@ -127,9 +72,8 @@ export default defineConfig({
       testMatch: ['**/integration-smoke.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: mmURL,
+        baseURL: websiteURL,
       },
-      // no dependency on setup — handles its own auth
     },
   ],
 

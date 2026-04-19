@@ -100,7 +100,6 @@ tasks:
         echo ""
         echo "Production subdomains:"
         echo "  auth.${PROD_DOMAIN}    (Keycloak)"
-        echo "  chat.${PROD_DOMAIN}    (Mattermost)"
         echo "  files.${PROD_DOMAIN}   (Nextcloud)"
         echo "  office.${PROD_DOMAIN}  (Collabora)"
         echo "  board.${PROD_DOMAIN}   (Whiteboard)"
@@ -1110,7 +1109,7 @@ tasks:
 
         echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
 
-        for user in keycloak mattermost nextcloud vaultwarden website; do
+        for user in keycloak nextcloud vaultwarden website; do
           key="${user^^}_DB_PASSWORD"
           pw=$(kubectl $context_flag get secret workspace-secrets -n workspace \
             -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d)
@@ -1229,7 +1228,7 @@ tasks:
       - kubectl get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
 
   mcp:logs:
-    desc: "Tail logs for a container (usage: task mcp:logs -- core/mattermost or apps/nextcloud)"
+    desc: "Tail logs for a container (usage: task mcp:logs -- core/nextcloud or apps/stripe)"
     cmds:
       - |
         POD_PART=$(echo "{{.CLI_ARGS}}" | cut -d/ -f1)
@@ -1301,7 +1300,7 @@ tasks:
         OUTPUT="$PROJECT_DIR/settings.json"
 
         # Prefix server names with mcp- to avoid conflicts with local MCP servers
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
         echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
@@ -1344,7 +1343,7 @@ tasks:
         export BUSINESS_TOKEN="$TOKEN"
 
         OUTPUT="claude-code/${ROLE}-export.settings.json"
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"mattermost"/"mcp-mattermost"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
 
         echo "Exported settings to: $OUTPUT"
         echo "  Role: $ROLE"
@@ -1961,9 +1960,9 @@ tasks:
       - bash scripts/check-updates.sh
 
   workspace:create-guest:
-    desc: "Create a customer guest account in Keycloak + Mattermost (FA-11)"
+    desc: "Create a customer guest account in Keycloak (FA-11)"
     cmds:
-      - bash scripts/create-customer-guest.sh {{.CLI_ARGS}}
+      - echo "Script removed — Mattermost no longer used. Create users directly in Keycloak."
 
   workspace:import-users:
     desc: Import users from CSV or LDIF into Keycloak

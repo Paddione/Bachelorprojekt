@@ -8,13 +8,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mattermost-data-pvc
-spec:
-  storageClassName: local-path
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: nextcloud-app
 spec:
   storageClassName: local-path

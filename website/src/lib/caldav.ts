@@ -326,6 +326,52 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string): Promis
   return result;
 }
 
+async function findEventUrl(uid: string): Promise<string | null> {
+  const rawUid = uid.replace(/@.+$/, '');
+  const url = `${CALDAV_BASE}/${rawUid}.ics`;
+  try {
+    const res = await fetch(url, { method: 'HEAD', headers: { Authorization: getAuthHeader() } });
+    if (res.ok) return url;
+  } catch {}
+  return null;
+}
+
+export async function deleteCalendarEvent(uid: string): Promise<boolean> {
+  const url = await findEventUrl(uid);
+  if (!url) return false;
+  try {
+    const res = await fetch(url, { method: 'DELETE', headers: { Authorization: getAuthHeader() } });
+    return res.ok || res.status === 204;
+  } catch (err) {
+    console.error('[caldav] Delete event error:', err);
+    return false;
+  }
+}
+
+export async function updateCalendarEventStatus(uid: string, status: 'CANCELLED' | 'CONFIRMED'): Promise<boolean> {
+  const url = await findEventUrl(uid);
+  if (!url) return false;
+  try {
+    const getRes = await fetch(url, { headers: { Authorization: getAuthHeader() } });
+    if (!getRes.ok) return false;
+    let ical = await getRes.text();
+    if (/STATUS:/i.test(ical)) {
+      ical = ical.replace(/STATUS:[^\r\n]+/i, `STATUS:${status}`);
+    } else {
+      ical = ical.replace(/END:VEVENT/, `STATUS:${status}\r\nEND:VEVENT`);
+    }
+    const putRes = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: getAuthHeader(), 'Content-Type': 'text/calendar; charset=utf-8' },
+      body: ical,
+    });
+    return putRes.ok || putRes.status === 204;
+  } catch (err) {
+    console.error('[caldav] Update event status error:', err);
+    return false;
+  }
+}
+
 // Create a calendar event in Nextcloud
 export async function createCalendarEvent(params: {
   summary: string;

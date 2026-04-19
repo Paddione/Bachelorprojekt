@@ -154,7 +154,7 @@
   .chat-widget {
     position: fixed;
     bottom: 24px;
-    right: 24px;
+    right: 168px;
     z-index: 9000;
     display: flex;
     flex-direction: column;

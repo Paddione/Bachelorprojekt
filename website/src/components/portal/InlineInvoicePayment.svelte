@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy, tick } from 'svelte';
   import { loadStripe } from '@stripe/stripe-js';
   import type { Stripe, StripeElements } from '@stripe/stripe-js';
 
@@ -12,6 +13,12 @@
   let errorMessage = '';
   let stripeInstance: Stripe | null = null;
   let elementsInstance: StripeElements | null = null;
+
+  onDestroy(() => {
+    elementsInstance?.destroy();
+    stripeInstance = null;
+    elementsInstance = null;
+  });
 
   function formatCurrency(n: number): string {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
@@ -42,11 +49,12 @@
       });
 
       // Defer mount until after Svelte renders the container div
-      await new Promise<void>(r => setTimeout(r, 0));
+      await tick();
       const paymentElement = elementsInstance.create('payment');
       paymentElement.mount(`#payment-element-${invoiceId}`);
       state = 'ready';
-    } catch {
+    } catch (e) {
+      console.error('[InlineInvoicePayment]', e);
       errorMessage = 'Verbindung zu Stripe fehlgeschlagen.';
       state = 'error';
     }
@@ -58,7 +66,9 @@
     errorMessage = '';
     const { error } = await stripeInstance.confirmPayment({
       elements: elementsInstance,
-      confirmParams: {},
+      confirmParams: {
+        return_url: window.location.href,
+      },
       redirect: 'if_required',
     });
     if (error) {
@@ -70,14 +80,16 @@
   }
 
   function cancel() {
-    state = 'idle';
+    elementsInstance?.destroy();
     stripeInstance = null;
     elementsInstance = null;
+    state = 'idle';
   }
 </script>
 
 {#if state === 'idle'}
   <button
+    type="button"
     on:click={startPayment}
     class="mt-1 text-sm font-medium text-accent hover:text-accent/80 transition-colors"
   >
@@ -90,11 +102,9 @@
 {:else if state === 'ready' || state === 'paying'}
   <div class="mt-3 w-full">
     <div id="payment-element-{invoiceId}"></div>
-    {#if errorMessage}
-      <p class="mt-2 text-xs text-red-400">{errorMessage}</p>
-    {/if}
     <div class="mt-3 flex gap-2">
       <button
+        type="button"
         on:click={handleSubmit}
         disabled={state === 'paying'}
         class="px-4 py-2 bg-accent text-dark text-sm font-semibold rounded-lg disabled:opacity-50 transition-opacity"
@@ -102,6 +112,7 @@
         {state === 'paying' ? 'Wird verarbeitet…' : `${formatCurrency(amountDue)} zahlen`}
       </button>
       <button
+        type="button"
         on:click={cancel}
         disabled={state === 'paying'}
         class="px-4 py-2 text-sm text-muted hover:text-light transition-colors disabled:opacity-50"
@@ -124,7 +135,7 @@
         Alternativ: Stripe-Seite öffnen ↗
       </a>
     {/if}
-    <button on:click={() => { state = 'idle'; }} class="block text-xs text-muted hover:text-light transition-colors">
+    <button type="button" on:click={() => { state = 'idle'; }} class="block text-xs text-muted hover:text-light transition-colors">
       Erneut versuchen
     </button>
   </div>

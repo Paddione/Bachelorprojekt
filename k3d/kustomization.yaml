@@ -83,6 +83,7 @@ configMapGenerator:
       - docs-content/architecture.md
       - docs-content/database.md
       - docs-content/benutzerhandbuch.md
+      - docs-content/adminhandbuch.md
       - docs-content/keycloak.md
       - docs-content/mcp-actions.md
       - docs-content/migration.md

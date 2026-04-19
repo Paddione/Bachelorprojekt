@@ -79,7 +79,7 @@ erDiagram
         text        insight_type
         text        content
         text        generated_by
-        text        outline_document_id
+        text        doc_reference
         timestamptz created_at
     }
 

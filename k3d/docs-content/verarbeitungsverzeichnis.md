@@ -40,14 +40,14 @@
 
 | Feld | Wert |
 |------|------|
-| **Zweck** | Interne Kommunikation zwischen Teammitgliedern |
+| **Zweck** | Interne Kommunikation zwischen Teammitgliedern sowie zwischen Kunden und Administratoren |
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) |
-| **Betroffene Personen** | Nutzer der Mattermost-Instanz |
-| **Datenkategorien** | Nachrichteninhalte, Zeitstempel, Absender-User-ID, Kanal-Zugehörigkeit, Anhänge |
-| **Empfänger** | Keine Dritten — On-Premises (Mattermost im `workspace`-Namespace) |
+| **Betroffene Personen** | Registrierte Nutzer des Website-Portals (Mitarbeiter und Kunden) |
+| **Datenkategorien** | Nachrichteninhalte, Zeitstempel, Absender-User-ID, Raum-Zugehörigkeit, Gelesen-Status |
+| **Empfänger** | Keine Dritten — On-Premises (Messaging-System im `website`-Namespace, PostgreSQL `shared-db`) |
 | **Drittlandübermittlung** | Keine |
-| **Speicherdauer** | Konfigurierbar (Standard: unbegrenzt); auf Anfrage (Art. 17) löschbar |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO, NetworkPolicy-Isolation, Audit-Log `/api/v4/audits` |
+| **Speicherdauer** | Auf Anfrage (Art. 17) löschbar; ansonsten unbegrenzt gespeichert |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO, NetworkPolicy-Isolation, Zugriff nur nach Authentifizierung |
 
 ---
 
@@ -74,25 +74,25 @@
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Durchführung vorvertraglicher Maßnahmen) |
 | **Betroffene Personen** | Interessenten und Auftraggeber (Website-Besucher) |
 | **Datenkategorien** | Name, E-Mail-Adresse, gewählter Termin/Zeitslot, optionale Nachricht |
-| **Empfänger** | Keine Dritten — Weiterleitung intern via Mattermost-Webhook; CalDAV-Eintrag in Nextcloud |
+| **Empfänger** | Keine Dritten — Weiterleitung intern in die Admin-Inbox (`/admin/termine`); CalDAV-Eintrag in Nextcloud |
 | **Drittlandübermittlung** | Keine |
 | **Speicherdauer** | 3 Jahre (handelsrechtliche Aufbewahrungsfrist für vorvertragliche Korrespondenz) |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Mattermost-Webhook nur intern erreichbar (NetworkPolicy), keine externe Weitergabe |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO für Admin-Zugriff, NetworkPolicy-Isolation, keine externe Weitergabe |
 
 ---
 
-## VT-05: Rechnungsstellung und Buchführung
+## VT-05: Rechnungsstellung und Zahlungsabwicklung
 
 | Feld | Wert |
 |------|------|
-| **Zweck** | Erstellung, Verwaltung und Archivierung von Rechnungen |
-| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. c DSGVO (rechtliche Verpflichtung: § 257 HGB, § 14 UStG) |
-| **Betroffene Personen** | Auftraggeber (Rechnungsempfänger) |
-| **Datenkategorien** | Name, Unternehmensname, Rechnungsadresse, E-Mail, Leistungsbeschreibung, Beträge, Rechnungsnummer, Datum |
-| **Empfänger** | Keine Dritten — On-Premises (Invoice Ninja im `workspace`-Namespace) |
-| **Drittlandübermittlung** | Keine |
+| **Zweck** | Erstellung, Verwaltung und Archivierung von Rechnungen sowie Abwicklung von Online-Zahlungen |
+| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. c DSGVO (rechtliche Verpflichtung: § 257 HGB, § 14 UStG); Art. 6 Abs. 1 lit. b (Vertragserfüllung) |
+| **Betroffene Personen** | Auftraggeber (Rechnungsempfänger, Zahlende) |
+| **Datenkategorien** | Name, Unternehmensname, Rechnungsadresse, E-Mail, Leistungsbeschreibung, Beträge, Rechnungsnummer, Datum; Stripe-Checkout-Sitzungs-ID |
+| **Empfänger** | Rechnungsdaten: On-Premises (Website `website`-Namespace, PostgreSQL). Zahlungsabwicklung: **Stripe Inc.** (Auftragsverarbeiter gemäß Art. 28 DSGVO, EU-Standardvertragsklauseln) |
+| **Drittlandübermittlung** | Stripe: Datenübertragung in die USA auf Basis von EU-Standardvertragsklauseln (SCC) |
 | **Speicherdauer** | 10 Jahre (§ 257 HGB — gesetzliche Aufbewahrungspflicht für Buchungsbelege) |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO + OAuth2-Proxy, Rate-Limiting (30 req/s), NetworkPolicy-Isolation |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO für Admin-Zugriff, Stripe Hosted Checkout (keine Kartenddaten on-premises), Webhook-Signaturprüfung |
 
 ---
 
@@ -104,10 +104,10 @@
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen), hilfsweise Art. 6 Abs. 1 lit. f (berechtigtes Interesse an Anfragenbearbeitung) |
 | **Betroffene Personen** | Website-Besucher, die das Kontaktformular nutzen |
 | **Datenkategorien** | Name, E-Mail-Adresse, Nachrichteninhalt |
-| **Empfänger** | Keine Dritten — Weiterleitung intern via Mattermost-Webhook in den Kanal `anfragen` |
+| **Empfänger** | Keine Dritten — Weiterleitung intern in die Admin-Inbox (`/admin/inbox`, PostgreSQL `website`-Datenbank) |
 | **Drittlandübermittlung** | Keine |
 | **Speicherdauer** | 3 Jahre (Verjährungsfrist für Ansprüche aus vorvertraglichen Verhältnissen, § 195 BGB) |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Mattermost-Webhook nur intern erreichbar, keine Speicherung in externer Datenbank |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO für Admin-Zugriff auf Inbox, keine Speicherung in externer Datenbank, NetworkPolicy-Isolation |
 
 ---
 
@@ -117,4 +117,8 @@ Es findet **keine Übermittlung personenbezogener Daten in Drittländer** (auße
 
 ## Auftragsverarbeiter
 
-Keine Auftragsverarbeiter (Art. 28 DSGVO) — die Verarbeitung erfolgt vollständig durch den Verantwortlichen selbst auf eigener Infrastruktur.
+| Auftragsverarbeiter | Sitz | Zweck | Rechtsgrundlage |
+|---------------------|------|-------|-----------------|
+| **Stripe Inc.** | USA (EU-Niederlassung: Irland) | Online-Zahlungsabwicklung (Kreditkarte, SEPA) | EU-Standardvertragsklauseln (SCC) gem. Art. 46 Abs. 2 lit. c DSGVO |
+
+Alle übrigen Verarbeitungen erfolgen vollständig durch den Verantwortlichen selbst auf eigener On-Premises-Infrastruktur (kein weiterer Auftragsverarbeiter).

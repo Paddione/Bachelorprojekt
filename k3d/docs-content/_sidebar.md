@@ -1,20 +1,20 @@
 - [Home](/)
 - **Für Mitarbeiter**
 - [Benutzerhandbuch](benutzerhandbuch.md)
-- [Testanleitung](test-anleitung-korczewski.md)
 - **Für Administratoren**
+- [Administrator-Handbuch](adminhandbuch.md)
 - [Architektur](architecture.md)
-- [Datenbankmodelle](database.md)
 - [Services](services.md)
 - [Keycloak & SSO](keycloak.md)
+- [Datenbankmodelle](database.md)
+- [Sicherheit](security.md)
+- [Verarbeitungsverzeichnis (Art. 30)](verarbeitungsverzeichnis.md)
+- [Stripe-Integration](stripe.md)
+- [Projektmanagement-Admin](admin-projekte.md)
+- [MCP Actions](mcp-actions.md)
+- **Entwicklung & Betrieb**
 - [Migration](migration.md)
 - [Skripte](scripts.md)
 - [Tests](tests.md)
-- [Sicherheit](security.md)
-- [Verarbeitungsverzeichnis (Art. 30)](verarbeitungsverzeichnis.md)
 - [Fehlerbehebung](troubleshooting.md)
 - [Anforderungen](requirements.md)
-- [MCP Actions](mcp-actions.md)
-- **Website & Admin**
-- [Stripe-Integration](stripe.md)
-- [Projektmanagement-Admin](admin-projekte.md)

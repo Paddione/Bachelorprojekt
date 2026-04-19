@@ -1,16 +1,17 @@
 <div class="page-hero">
-  <span class="page-hero-icon">📋</span>
+  <span class="page-hero-icon">📖</span>
   <div class="page-hero-body">
     <div class="page-hero-title">Benutzerhandbuch</div>
-    <p class="page-hero-desc">Willkommen im Workspace — alles was Du brauchst, um sofort loszulegen. Chat, Dateien, Videokonferenzen, KI-Assistent und mehr, erklärt ohne technisches Vorwissen.</p>
+    <p class="page-hero-desc">Alle Werkzeuge des Workspace auf einen Blick – verständlich erklärt, ohne technisches Vorwissen.</p>
     <div class="page-hero-meta">
       <span class="page-hero-tag">Für Mitarbeiter</span>
-      <span class="page-hero-tag">Kein Vorwissen nötig</span>
-      <span class="page-hero-tag">Single Sign-On</span>
+      <span class="page-hero-tag">Einsteiger</span>
     </div>
   </div>
   <a href="#/" class="page-hero-back">← Übersicht</a>
 </div>
+
+# Benutzerhandbuch – Workspace
 
 Willkommen beim Workspace! Dieses Handbuch erklärt, welche Werkzeuge Dir zur Verfügung stehen, wofür Du sie nutzen kannst und wie Du einfache Aufgaben erledigst – ganz ohne technisches Vorwissen.
 
@@ -28,57 +29,57 @@ Du brauchst **nur einen einzigen Account** – mit diesem einen Login kommst Du 
 
 Alle Dienste sind über einen zentralen Login verbunden. Das bedeutet:
 
-- Du loggst Dich **einmal** ein – zum Beispiel in Mattermost.
-- Wenn Du dann Nextcloud, das Wiki oder den Passwort-Safe öffnest, bist Du dort **automatisch** angemeldet, ohne das Passwort erneut eingeben zu müssen.
+- Du loggst Dich **einmal** ein – zum Beispiel im Portal auf der Website.
+- Wenn Du dann Nextcloud, den Passwort-Safe oder die Dokumentation öffnest, bist Du dort **automatisch** angemeldet, ohne das Passwort erneut eingeben zu müssen.
 - Wenn Du Dich **abmeldest**, wirst Du aus allen Diensten gleichzeitig ausgeloggt.
 
 Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein System namens Keycloak bereitgestellt.
 
 ---
 
-## Die Dienste im Überblick
+## Dienstübersicht mit Links
 
-### Schnellzugriff
+| Dienst | Beschreibung | Link (Entwicklung) |
+|--------|-------------|---------------------|
+| **Portal / Nachrichten** | Chat, Direktnachrichten, Dokumente | [web.localhost/portal](http://web.localhost/portal) |
+| **Dateien & Kalender** | Cloud-Speicher, Kalender, Kontakte | [files.localhost](http://files.localhost) |
+| **Videokonferenz** | Meetings & Sprachanrufe (in Nextcloud) | [files.localhost](http://files.localhost) → Talk |
+| **Dokumente** | Gemeinsame Office-Bearbeitung | Öffnet sich aus Nextcloud heraus |
+| **Whiteboard** | Digitales Whiteboard | [board.localhost](http://board.localhost) |
+| **KI-Assistent** | Claude AI-Status & MCP-Dashboard | [ai.localhost](http://ai.localhost) |
+| **Passwort-Safe** | Sichere Passwortverwaltung | [vault.localhost](http://vault.localhost) |
+| **Dokumentation** | Dieses Handbuch und weitere Docs | [docs.localhost](http://docs.localhost) |
 
-| Dienst | korczewski.de | mentolder.de |
-|--------|--------------|--------------|
-| Chat (Mattermost) | [chat.korczewski.de](https://chat.korczewski.de) | [chat.mentolder.de](https://chat.mentolder.de) |
-| Dateien & Kalender (Nextcloud) | [files.korczewski.de](https://files.korczewski.de) | [files.mentolder.de](https://files.mentolder.de) |
-| Videokonferenz (Nextcloud Talk) | [meet.korczewski.de](https://meet.korczewski.de) | [meet.mentolder.de](https://meet.mentolder.de) |
-| Whiteboard | [board.korczewski.de](https://board.korczewski.de) | [board.mentolder.de](https://board.mentolder.de) |
-| KI-Assistent (Claude) | [ai.korczewski.de](https://ai.korczewski.de) | [ai.mentolder.de](https://ai.mentolder.de) |
-| Wissensdatenbank (Outline) | [wiki.korczewski.de](https://wiki.korczewski.de) | [wiki.mentolder.de](https://wiki.mentolder.de) |
-| Dokumentation (Handbuch) | [docs.korczewski.de](https://docs.korczewski.de) | [docs.mentolder.de](https://docs.mentolder.de) |
-| Passwort-Safe (Vaultwarden) | [vault.korczewski.de](https://vault.korczewski.de) | [vault.mentolder.de](https://vault.mentolder.de) |
-| Rechnungen (Invoice Ninja) | [billing.korczewski.de](https://billing.korczewski.de) | [billing.mentolder.de](https://billing.mentolder.de) |
-| Login-Verwaltung (Keycloak) | [auth.korczewski.de](https://auth.korczewski.de) | [auth.mentolder.de](https://auth.mentolder.de) |
+> In der Produktivumgebung ersetze `localhost` durch die Unternehmens-Domain (z. B. `files.meinunternehmen.de`).
 
 ---
 
-### Chat (Mattermost)
+## Die Dienste im Überblick
 
-**Öffnen:** [chat.korczewski.de](https://chat.korczewski.de) · [chat.mentolder.de](https://chat.mentolder.de)
+### Nachrichten & Chat (Portal)
 
-**Wozu?** Schreiben, Diskutieren, Teamkommunikation – wie WhatsApp, aber für die Arbeit und sicher auf Deinen eigenen Servern.
+**Wozu?** Schreiben, Diskutieren, Teamkommunikation – direkt im Benutzerportal der Unternehmenswebsite.
+
+**Zugang:** [web.localhost/portal](http://web.localhost/portal) → Nach dem Login automatisch verfügbar
 
 **Was kannst Du tun?**
-- Nachrichten in Kanälen (themenbasierten Gruppen) schreiben
-- Private Direktnachrichten an einzelne Kollegen senden
-- Dateien direkt in den Chat hochladen und teilen
-- Auf Nachrichten mit Emojis reagieren
-- Benachrichtigungen erhalten, wenn Dich jemand erwähnt (`@deinname`)
+- Nachrichten in **Räumen** (themenbasierte Gruppen) schreiben und lesen
+- **Direktnachrichten** an einzelne Kollegen oder Kunden senden
+- Ungelesene Nachrichten werden automatisch durch Benachrichtigungen markiert
+- Eingegangene Anfragen (Kontaktformulare, Buchungen) in der **Inbox** sehen
 
-**Tipps:**
-- Klicke links auf **"+"** um einem neuen Kanal beizutreten oder einen zu erstellen
-- Mit **`/billing`** kannst Du Rechnungen direkt aus dem Chat erstellen (mehr dazu weiter unten)
+**Räume:**
+1. Klicke im Portal auf **„Nachrichten"**
+2. Wähle einen vorhandenen Raum oder erstelle einen neuen
+3. Schreibe Deine Nachricht und sende sie ab
 
 ---
 
 ### Dateien & Kalender (Nextcloud)
 
-**Öffnen:** [files.korczewski.de](https://files.korczewski.de) · [files.mentolder.de](https://files.mentolder.de)
-
 **Wozu?** Dein persönlicher Cloud-Speicher im Büro – wie Dropbox, aber sicher auf Deinen eigenen Servern.
+
+**Zugang:** [files.localhost](http://files.localhost)
 
 **Was kannst Du tun?**
 - Dateien hochladen, herunterladen und mit Kollegen teilen
@@ -88,7 +89,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 - Kontakte verwalten
 
 **Dateien teilen:**
-1. Rechtsklick auf eine Datei oder einen Ordner → **"Teilen"**
+1. Rechtsklick auf eine Datei oder einen Ordner → **„Teilen"**
 2. Namen des Kollegen eingeben
 3. Berechtigungen festlegen (nur lesen / auch bearbeiten)
 
@@ -96,9 +97,9 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ### Dokumente gemeinsam bearbeiten (Collabora Online Office)
 
-**Öffnen:** Direkt aus Nextcloud heraus – kein separater Link nötig.
-
 **Wozu?** Word, Excel und PowerPoint direkt im Browser bearbeiten – kein separates Programm nötig.
+
+**Zugang:** Öffnet sich automatisch aus [Nextcloud](http://files.localhost) heraus – keine eigene Adresse nötig.
 
 **Was kannst Du tun?**
 - Neue Textdokumente, Tabellen oder Präsentationen erstellen
@@ -106,9 +107,9 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 - Gleichzeitig mit Kollegen am selben Dokument arbeiten – Du siehst in Echtzeit, was andere tippen
 
 **So öffnest Du ein Dokument:**
-1. Gehe zu **Nextcloud** (Dateien)
+1. Gehe zu **Nextcloud** ([files.localhost](http://files.localhost))
 2. Klicke auf eine Datei – sie öffnet sich automatisch im Editor
-3. Oder: Klicke auf **"+"** → **"Neues Dokument"**, um von vorne anzufangen
+3. Oder: Klicke auf **„+"** → **„Neues Dokument"**, um von vorne anzufangen
 
 > Collabora ist direkt in Nextcloud eingebettet. Du musst keine separate Webseite öffnen.
 
@@ -116,9 +117,9 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ### Videokonferenz (Nextcloud Talk)
 
-**Öffnen:** [meet.korczewski.de](https://meet.korczewski.de) · [meet.mentolder.de](https://meet.mentolder.de)
-
 **Wozu?** Video- und Sprachanrufe direkt im Browser – wie Zoom oder Teams, aber auf Deinen eigenen Servern.
+
+**Zugang:** [files.localhost](http://files.localhost) → **Talk** (linke Seitenleiste)
 
 **Was kannst Du tun?**
 - Einzelgespräche oder Gruppenmeetings starten
@@ -128,7 +129,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Meeting starten:**
 1. Gehe zu Nextcloud Talk
-2. Klicke auf **"+ Neues Gespräch erstellen"**
+2. Klicke auf **„+ Neues Gespräch erstellen"**
 3. Vergib einen Namen und füge Teilnehmer hinzu
 4. Starte den Anruf über das **Kamera-Symbol**
 
@@ -136,23 +137,11 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ---
 
-### Live-Transkription (Talk Transcriber)
-
-**Wozu?** Automatische Mitschrift laufender Videokonferenzen – der Dienst wandelt gesprochene Sprache in Text um, während das Meeting läuft.
-
-**Was kannst Du tun?**
-- Einen laufenden Nextcloud-Talk-Anruf automatisch transkribieren lassen
-- Die Mitschrift nach dem Meeting als Textdatei abrufen
-
-> Der Dienst arbeitet im Hintergrund und ist in Nextcloud Talk integriert.
-
----
-
 ### Whiteboard
 
-**Öffnen:** [board.korczewski.de](https://board.korczewski.de) · [board.mentolder.de](https://board.mentolder.de)
-
 **Wozu?** Gemeinsam skizzieren, brainstormen und visualisieren – wie ein digitales Whiteboard in einer Besprechung.
+
+**Zugang:** [board.localhost](http://board.localhost)
 
 **Was kannst Du tun?**
 - Freihand zeichnen, Formen und Text einfügen
@@ -163,9 +152,9 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ### KI-Assistent (Claude)
 
-**Öffnen:** [ai.korczewski.de](https://ai.korczewski.de) · [ai.mentolder.de](https://ai.mentolder.de)
-
 **Wozu?** Ein intelligenter Assistent, der Dir bei Texten, Fragen und Aufgaben hilft.
+
+**Zugang:** [ai.localhost](http://ai.localhost) (Status-Dashboard) – Claude Code wird lokal auf dem Rechner des Administrators ausgeführt.
 
 **Was kannst Du tun?**
 - Texte verfassen lassen (E-Mails, Zusammenfassungen, Berichte)
@@ -174,50 +163,19 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 - Daten zusammenfassen
 
 **Beispiel-Fragen:**
-- *"Schreibe eine freundliche Absage-E-Mail auf Deutsch."*
-- *"Fasse mir diesen Text in drei Sätzen zusammen."*
-- *"Was ist der Unterschied zwischen einer GmbH und einer UG?"*
+- *„Schreibe eine freundliche Absage-E-Mail auf Deutsch."*
+- *„Fasse mir diesen Text in drei Sätzen zusammen."*
+- *„Was ist der Unterschied zwischen einer GmbH und einer UG?"*
 
 > Der KI-Assistent ist nur für den Einsatz im internen Kontext gedacht. Gib keine sensiblen Kundendaten ein.
 
 ---
 
-### Wissensdatenbank / Wiki (Outline)
-
-**Öffnen:** [wiki.korczewski.de](https://wiki.korczewski.de) · [wiki.mentolder.de](https://wiki.mentolder.de)
-
-**Wozu?** Das interne Nachschlagewerk des Teams – Anleitungen, Prozesse, Wissen aufschreiben und für alle zugänglich machen.
-
-**Was kannst Du tun?**
-- Neue Seiten und Artikel anlegen
-- Seiten in Sammlungen (Ordner) organisieren
-- Andere Teammitglieder zum gemeinsamen Bearbeiten einladen
-- Die Volltextsuche nutzen, um schnell etwas zu finden
-
-**Neue Seite anlegen:**
-1. Klicke links auf eine Sammlung oder erstelle eine neue
-2. Klicke auf **"Neue Seite"**
-3. Schreibe Deinen Inhalt und speichere
-
----
-
-### Dokumentation & Handbuch
-
-**Öffnen:** [docs.korczewski.de](https://docs.korczewski.de) · [docs.mentolder.de](https://docs.mentolder.de)
-
-**Wozu?** Das technische und organisatorische Handbuch des Workspace – Installationsanleitungen, Architektur, Dienst-Beschreibungen und Fehlerbehebung.
-
-**Zugriff:** Die Dokumentation ist nur für angemeldete Benutzer zugänglich. Du wirst beim Öffnen automatisch zur Keycloak-Anmeldung weitergeleitet.
-
-> Dieses Handbuch, das Du gerade liest, läuft selbst auf dem Docs-Dienst.
-
----
-
 ### Passwort-Safe (Vaultwarden)
 
-**Öffnen:** [vault.korczewski.de](https://vault.korczewski.de) · [vault.mentolder.de](https://vault.mentolder.de)
-
 **Wozu?** Passwörter sicher speichern und im Team teilen – auf Deinen eigenen Servern, nicht bei einem externen Anbieter.
+
+**Zugang:** [vault.localhost](http://vault.localhost)
 
 **Was kannst Du tun?**
 - Passwörter und Zugangsdaten sicher verwahren
@@ -228,27 +186,6 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 > Vaultwarden ist kompatibel mit dem **Bitwarden**-Browser-Plugin, das Du Dir kostenlos installieren kannst.
 
 **Wichtig:** Du brauchst ein eigenes **Master-Passwort** für den Passwort-Safe. Dieses ist unabhängig von Deinem normalen Workspace-Passwort und sollte besonders sicher sein – schreib es Dir auf und verwahre es gut.
-
----
-
-### Rechnungen (Invoice Ninja)
-
-**Öffnen:** [billing.korczewski.de](https://billing.korczewski.de) · [billing.mentolder.de](https://billing.mentolder.de)
-
-**Wozu?** Rechnungen erstellen, Kunden verwalten und Zahlungen nachverfolgen.
-
-**Was kannst Du tun?**
-- Neue Kunden anlegen
-- Rechnungen erstellen und per E-Mail versenden
-- Den Status von Rechnungen einsehen (offen, bezahlt, überfällig)
-- Zahlungen per Stripe verarbeiten
-
-**Rechnungen aus dem Chat erstellen:**
-Tippe in Mattermost einfach:
-```
-/billing invoice Kundenname
-```
-Der Billing-Bot erstellt die Rechnung automatisch und schickt Dir den Link.
 
 ---
 
@@ -264,10 +201,11 @@ Nein. Alle Dienste haben gültige Sicherheitszertifikate. Eine Warnung ist ein Z
 
 ### Kann ich die Dienste auch auf dem Smartphone nutzen?
 
-Ja. Die meisten Dienste haben Apps:
-- **Mattermost**: App für iOS und Android verfügbar
+Ja. Mehrere Dienste haben offizielle Apps:
 - **Nextcloud**: App für iOS und Android verfügbar (Dateien, Kalender, Talk)
 - **Vaultwarden**: Bitwarden-App für iOS und Android kompatibel
+
+Das Portal und die meisten anderen Dienste sind außerdem als responsive Website im mobilen Browser nutzbar.
 
 ### Wer hat Zugriff auf meine Dateien und Nachrichten?
 
@@ -279,21 +217,19 @@ Ja – das ist genau der Zweck. Da alle Daten auf Deinen eigenen Servern liegen 
 
 ### Etwas funktioniert nicht – an wen wende ich mich?
 
-Schreibe eine Nachricht im Mattermost-Kanal des Administrators oder schicke eine E-Mail an den Systemverantwortlichen.
+Schreibe eine Nachricht im Portal-Chat an den Administrator oder schicke eine E-Mail an den Systemverantwortlichen. In der Produktivumgebung steht auch ein Bug-Report-Formular unter `/admin/bugs` bereit.
 
 ---
 
 ## Kurzübersicht: Welcher Dienst wofür?
 
-| Ich möchte…                                  | Dienst               |
-|----------------------------------------------|----------------------|
-| Eine Nachricht an einen Kollegen schicken     | **Mattermost**       |
-| Eine Datei teilen                             | **Nextcloud**        |
-| Gemeinsam an einem Dokument arbeiten          | **Nextcloud + Collabora** |
-| Ein Meeting starten                           | **Nextcloud Talk**   |
-| Ideen gemeinsam aufzeichnen                   | **Whiteboard**       |
-| Eine KI fragen                                | **Claude**           |
-| Wissen im Team festhalten                     | **Outline (Wiki)**   |
-| Ein Passwort sicher aufbewahren               | **Vaultwarden**      |
-| Eine Rechnung erstellen                       | **Invoice Ninja**    |
-| Eine Besprechung automatisch transkribieren lassen | **Nextcloud Talk + Talk Transcriber** |
+| Ich möchte…                                  | Dienst                    | Link |
+|----------------------------------------------|---------------------------|------|
+| Eine Nachricht an einen Kollegen schicken     | **Portal – Nachrichten**  | [Portal](http://web.localhost/portal) |
+| Eine Datei teilen                             | **Nextcloud**             | [files.localhost](http://files.localhost) |
+| Gemeinsam an einem Dokument arbeiten          | **Nextcloud + Collabora** | [files.localhost](http://files.localhost) |
+| Ein Meeting starten                           | **Nextcloud Talk**        | [files.localhost](http://files.localhost) |
+| Ideen gemeinsam aufzeichnen                   | **Whiteboard**            | [board.localhost](http://board.localhost) |
+| Eine KI fragen                                | **Claude**                | [ai.localhost](http://ai.localhost) |
+| Ein Passwort sicher aufbewahren               | **Vaultwarden**           | [vault.localhost](http://vault.localhost) |
+| Diese Dokumentation lesen                     | **Docs**                  | [docs.localhost](http://docs.localhost) |

@@ -11,7 +11,7 @@ import SignaturesTab from '../../components/portal/SignaturesTab.astro';
 import MeetingsAdminTab from '../../components/portal/MeetingsAdminTab.astro';
 import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
-import { listProjects } from '../../lib/website-db';
+import { listProjectsForCustomer } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -42,13 +42,10 @@ try {
 }
 const userRoleIds = new Set(userRoles.map(r => r.id));
 
-const brand = process.env.BRAND_NAME || 'mentolder';
 let clientProjects: { id: string; name: string }[] = [];
 try {
-  const allProjects = await listProjects({ brand });
-  clientProjects = allProjects
-    .filter(p => p.customerEmail === client.email)
-    .map(p => ({ id: p.id, name: p.name }));
+  const all = await listProjectsForCustomer(clientId);
+  clientProjects = all.map(p => ({ id: p.id, name: p.name }));
 } catch {
   // Projekte-Dropdown bleibt leer
 }

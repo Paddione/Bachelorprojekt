@@ -10,6 +10,8 @@ import FilesTab from '../../components/portal/FilesTab.astro';
 import SignaturesTab from '../../components/portal/SignaturesTab.astro';
 import MeetingsAdminTab from '../../components/portal/MeetingsAdminTab.astro';
 import OnboardingTab from '../../components/portal/OnboardingTab.astro';
+import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
+import { listProjects } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -39,6 +41,17 @@ try {
   // Keycloak unavailable
 }
 const userRoleIds = new Set(userRoles.map(r => r.id));
+
+const brand = process.env.BRAND_NAME || 'mentolder';
+let clientProjects: { id: string; name: string }[] = [];
+try {
+  const allProjects = await listProjects({ brand });
+  clientProjects = allProjects
+    .filter(p => p.customerEmail === client.email)
+    .map(p => ({ id: p.id, name: p.name }));
+} catch {
+  // Projekte-Dropdown bleibt leer
+}
 ---
 
 <AdminLayout title={`Admin — ${client.firstName ?? client.username}`}>
@@ -145,6 +158,7 @@ const userRoleIds = new Set(userRoles.map(r => r.id));
           { id: 'signatures', label: 'Zur Unterschrift' },
           { id: 'meetings', label: 'Besprechungen' },
           { id: 'onboarding', label: 'Onboarding' },
+          { id: 'book', label: 'Leistung buchen' },
         ].map(t => (
           <a
             href={`/admin/${clientId}?tab=${t.id}`}
@@ -177,6 +191,20 @@ const userRoleIds = new Set(userRoles.map(r => r.id));
             keycloakUserId={clientId}
             back={`/admin/${clientId}?tab=onboarding`}
           />
+        )}
+        {tab === 'book' && (
+          <div>
+            <p class="text-sm text-muted mb-4">
+              Legt eine Buchung direkt für {client.firstName ?? client.username} an — landet in der Inbox und sendet eine Bestätigungs-E-Mail.
+            </p>
+            <AdminBookingModal
+              client:load
+              prefillEmail={client.email ?? ''}
+              prefillName={`${client.firstName ?? ''} ${client.lastName ?? ''}`.trim()}
+              projects={clientProjects}
+              buttonLabel="Buchung anlegen"
+            />
+          </div>
         )}
       </div>
     </div>

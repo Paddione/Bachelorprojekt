@@ -58,6 +58,11 @@ website/.astro/
 # ── Worktrees ───────────────────────────────────
 .worktrees/
 
+# ── Claude Code local state (settings + hookify rules) ──
+.claude/*.local.md
+.claude/settings.local.json
+.claude/worktrees/
+
 # ── Misc ────────────────────────────────────────
 .git_corrupt/
 docs-site/
@@ -79,3 +84,4 @@ website/.superpowers.superpowers/
 .superpowers/
 .playwright-mcp/
 test-results/
+.worktrees/

@@ -41,12 +41,16 @@ try {
   bookings = allBookings;
   projects = allProjects;
   const uids = bookings.map(b => b.uid).filter(Boolean);
-  [bookingProjectMap, bookingInvoiceMap, bookingLeistungMap] = await Promise.all([
+  const [bpMap, biMap, blMap, cats] = await Promise.all([
     getBookingProjects(uids, brand),
     getBookingInvoices(uids, brand),
     getBookingLeistungen(uids, brand),
+    getEffectiveLeistungen(),
   ]);
-  leistungen = await getEffectiveLeistungen();
+  bookingProjectMap = bpMap;
+  bookingInvoiceMap = biMap;
+  bookingLeistungMap = blMap;
+  leistungen = cats;
 } catch (err) {
   console.error('[admin/termine] load failed:', err);
   calError = 'Kalender konnte nicht geladen werden.';
@@ -374,7 +378,7 @@ function formatTime(d: Date) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             projectId: sel.value || null,
-            leistungKey: sel.parentElement?.querySelector<HTMLSelectElement>('.booking-leistung-select')?.value || null,
+            leistungKey: sel.closest<HTMLElement>('[data-booking-uid]')?.querySelector<HTMLSelectElement>('.booking-leistung-select')?.value || null,
           }),
         });
         if (!res.ok) {
@@ -393,8 +397,7 @@ function formatTime(d: Date) {
     sel.addEventListener('change', async () => {
       const uid = sel.dataset.bookingUid;
       if (!uid) return;
-      const container = sel.parentElement; // the flex container div
-      const projectSel = container?.querySelector<HTMLSelectElement>('.booking-project-select');
+      const projectSel = sel.closest<HTMLElement>('[data-booking-uid]')?.querySelector<HTMLSelectElement>('.booking-project-select');
       const projectId = projectSel?.value || null;
       sel.disabled = true;
       try {

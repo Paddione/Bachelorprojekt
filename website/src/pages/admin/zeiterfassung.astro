@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { listAllTimeEntries, listProjects } from '../../lib/website-db';
+import { getLastTimeEntryRate, listAllTimeEntries, listProjects } from '../../lib/website-db';
 import type { TimeEntry, Project } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -16,6 +16,8 @@ const filterBillable = Astro.url.searchParams.get('billable') ?? '';
 let entries: TimeEntry[] = [];
 let projects: Project[]  = [];
 let dbError = '';
+
+const lastRate = await getLastTimeEntryRate();
 
 try {
   [entries, projects] = await Promise.all([
@@ -182,6 +184,20 @@ const labelCls  = 'block text-xs text-muted mb-1';
           <input type="date" name="entryDate" class={inputCls}
             value={new Date().toISOString().slice(0, 10)} />
         </div>
+      </div>
+      <div>
+        <label class={labelCls}>Stundensatz (€/h)</label>
+        <input
+          type="number"
+          name="rateCents"
+          min="0"
+          step="1"
+          required
+          class={inputCls}
+          placeholder="z.B. 100"
+          value={Math.round(lastRate / 100)}
+        />
+        <p class="text-xs text-muted mt-1">Betrag in Euro. Letzter Wert wurde vorbelegt.</p>
       </div>
       <div>
         <label class={labelCls}>Beschreibung</label>

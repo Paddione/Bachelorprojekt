@@ -373,11 +373,15 @@ const STATUS_TABS = [
     });
 
     deleteBtn.addEventListener('click', async () => {
-      await fetch(`/api/admin/billing/${currentInvoiceId}/item`, {
+      const res = await fetch(`/api/admin/billing/${currentInvoiceId}/item`, {
         method:  'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ invoiceItemId: item.invoiceItemId }),
       });
+      if (!res.ok) {
+        alert('Fehler beim Löschen der Position.');
+        return;
+      }
       tr.remove();
       recalcTotal();
     });

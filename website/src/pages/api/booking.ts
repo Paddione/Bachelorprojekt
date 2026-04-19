@@ -15,7 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey } = await request.json();
+    const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey, projectId, leistungKey } = await request.json();
 
     const isCallback = type === 'callback';
 
@@ -64,6 +64,7 @@ export const POST: APIRoute = async ({ request }) => {
         slotStart: slotStart ?? null, slotEnd: slotEnd ?? null,
         slotDisplay: slotDisplay ?? null, date: date ?? null,
         serviceKey: serviceKey ?? null, message: message ?? null,
+        projectId: projectId ?? null, leistungKey: leistungKey ?? null,
       },
     });
 

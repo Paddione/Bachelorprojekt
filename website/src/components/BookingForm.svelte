@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface TimeSlot {
     start: string;
     end: string;
@@ -37,6 +39,23 @@
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
   let agbAccepted = $state(false);
+
+  let portalProjects = $state<Array<{ id: string; name: string }>>([]);
+  let leistungenOptions = $state<Array<{ key: string; name: string; category: string }>>([]);
+  let selectedProjectId = $state('');
+  let selectedLeistungKey = $state('');
+
+  onMount(async () => {
+    try {
+      const res = await fetch('/api/leistungen');
+      if (res.ok) leistungenOptions = await res.json();
+    } catch { /* ignore */ }
+
+    try {
+      const res = await fetch('/api/portal/projekte');
+      if (res.ok) portalProjects = await res.json();
+    } catch { /* ignore */ }
+  });
 
   let isCallback = $derived(bookingType === 'callback');
   let showContactForm = $derived(isCallback || selectedSlot !== null);
@@ -104,6 +123,8 @@
           slotDisplay: selectedSlot?.display ?? null,
           date: selectedDate,
           serviceKey: serviceKey ?? null,
+          projectId: selectedProjectId || undefined,
+          leistungKey: selectedLeistungKey || undefined,
         }),
       });
 
@@ -278,6 +299,32 @@
           und akzeptiere sie. <span class="text-gold">*</span>
         </label>
       </div>
+
+      {#if leistungenOptions.length > 0 && bookingType !== 'callback'}
+        <div>
+          <label class="block text-sm text-muted mb-1">Leistung (optional)</label>
+          <select bind:value={selectedLeistungKey}
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+            <option value="">— Keine Leistung —</option>
+            {#each leistungenOptions as opt}
+              <option value={opt.key}>{opt.category} — {opt.name}</option>
+            {/each}
+          </select>
+        </div>
+
+        {#if portalProjects.length > 0}
+          <div>
+            <label class="block text-sm text-muted mb-1">Für welches Projekt? (optional)</label>
+            <select bind:value={selectedProjectId}
+              class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+              <option value="">— Kein Projekt —</option>
+              {#each portalProjects as p}
+                <option value={p.id}>{p.name}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
+      {/if}
 
       <button
         type="submit"

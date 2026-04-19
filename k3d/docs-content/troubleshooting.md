@@ -12,12 +12,11 @@ task workspace:status
 # Logs eines Service ansehen
 task workspace:logs -- <service>
 
-# Ingress-Controller pruefen
-task ingress:status
-
 # Erreichbarkeit aller Services testen
 scripts/check-connectivity.sh --local
 ```
+
+---
 
 ## Haeufige Probleme
 
@@ -53,9 +52,38 @@ kubectl logs <pod-name> -n workspace --previous
 ```
 
 **Haeufige Ursachen:**
-- **shared-db noch nicht bereit:** Services starten vor der Datenbank. `workspace:deploy` wartet automatisch, aber bei manuellem Deploy auf `kubectl rollout status deployment/shared-db -n workspace` warten.
+- **shared-db noch nicht bereit:** Services starten vor der Datenbank. Auf `kubectl rollout status deployment/shared-db -n workspace` warten.
 - **Fehlende Secrets:** `kubectl get secret workspace-secrets -n workspace` pruefen.
 - **Fehlende ConfigMaps:** `kubectl get configmap -n workspace` pruefen.
+- **Unzureichende Ressourcen:** `kubectl top nodes` und `kubectl top pods -n workspace` pruefen.
+
+### Service nicht erreichbar (502 / Connection refused)
+
+**Diagnose:**
+```bash
+# Ingress-Routing pruefen
+kubectl get ingress -n workspace
+kubectl describe ingress workspace-ingress -n workspace
+
+# Traefik-Logs
+kubectl logs -n kube-system -l app.kubernetes.io/name=traefik --tail=50
+
+# Service-Endpunkte pruefen
+kubectl get endpoints -n workspace
+```
+
+**Loesung:**
+```bash
+# Service neu starten
+task workspace:restart -- <service>
+
+# Erreichbarkeit pruefen
+scripts/check-connectivity.sh --local
+```
+
+---
+
+## Keycloak / SSO-Probleme
 
 ### Keycloak Login funktioniert nicht
 
@@ -67,15 +95,20 @@ kubectl logs <pod-name> -n workspace --previous
 task workspace:logs -- keycloak
 
 # Realm importiert?
-kubectl exec -n workspace deploy/keycloak -- /opt/keycloak/bin/kcadm.sh get realms --server http://localhost:8080 --realm master --user admin --password devadmin
+kubectl exec -n workspace deploy/keycloak -- \
+  /opt/keycloak/bin/kcadm.sh get realms \
+  --server http://localhost:8080 \
+  --realm master \
+  --user admin \
+  --password devadmin
 
-# Proxy-Logs pruefen (Docs SSO)
+# oauth2-proxy-Logs (Docs SSO)
 kubectl logs -n workspace deploy/oauth2-proxy-docs
 ```
 
 **Haeufige Ursachen:**
-- **Realm nicht importiert:** `import-entrypoint.sh` Logs pruefen. Keycloak-Pod neu starten: `task workspace:restart -- keycloak`
-- **oauth2-proxy Fehler (Docs):** `kubectl logs -n workspace deploy/oauth2-proxy-docs`
+- **Realm nicht importiert:** `import-entrypoint.sh`-Logs pruefen. Keycloak neu starten: `task workspace:restart -- keycloak`
+- **OIDC-Client nicht konfiguriert:** In Keycloak Admin → Clients pruefen, ob Redirect-URIs korrekt sind
 
 ### Nextcloud OIDC Login fehlerhaft
 
@@ -88,9 +121,41 @@ kubectl exec -n workspace deploy/nextcloud -- cat /var/www/html/config/oidc.conf
 task workspace:logs -- nextcloud
 ```
 
-**Loesung:** OIDC-Plugin neu installieren:
+**Loesung:**
 ```bash
+# OIDC-Plugin und Nextcloud-Apps neu konfigurieren
 task workspace:post-setup
+```
+
+### SSO-Secrets synchronisieren
+
+Falls OIDC-Client-Secrets in Keycloak und Kubernetes-Secrets nicht uebereinstimmen:
+
+```bash
+bash scripts/keycloak-sync-secrets.sh
+```
+
+---
+
+## Nextcloud
+
+### Nextcloud friert ein oder reagiert langsam
+
+```bash
+# Neu starten
+task workspace:restart -- nextcloud
+
+# Falls das nicht hilft: Logs auf Datenbankfehler pruefen
+task workspace:logs -- nextcloud
+```
+
+### occ-Befehl ausfuehren
+
+```bash
+kubectl exec -n workspace deploy/nextcloud \
+  -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups \
+  php occ <befehl>
 ```
 
 ### Collabora zeigt leeren Editor
@@ -117,7 +182,11 @@ kubectl exec -n workspace deploy/nextcloud -- su -s /bin/bash www-data -c \
 task workspace:restart -- collabora
 ```
 
-### Talk HPB / Video funktioniert nicht
+---
+
+## Talk HPB / Video
+
+### Video-Call funktioniert nicht
 
 **Diagnose:**
 ```bash
@@ -139,41 +208,114 @@ kubectl logs -n workspace deploy/nats
 - **coturn nicht erreichbar:** Port 3478 muss fuer UDP/TCP offen sein
 - **NATS nicht gestartet:** `kubectl get pods -n workspace -l app=nats`
 
-### TLS-Zertifikat wird nicht ausgestellt
+---
+
+## Vaultwarden
+
+### Vaultwarden nicht erreichbar
+
+```bash
+# Pod-Status
+kubectl get pods -n workspace -l app=vaultwarden
+
+# Logs
+task workspace:logs -- vaultwarden
+
+# Datenbank-Verbindung pruefen
+task workspace:psql -- vaultwarden
+```
+
+### Seed-Job fehlgeschlagen
+
+```bash
+# Job-Status
+kubectl get jobs -n workspace | grep seed
+
+# Logs des Seed-Jobs
+kubectl logs -n workspace job/vaultwarden-seed
+
+# Seed neu ausfuehren
+task workspace:vaultwarden:seed
+```
+
+---
+
+## PostgreSQL
+
+### Datenbankverbindung fehlgeschlagen
+
+```bash
+# shared-db Pod-Status
+kubectl get pods -n workspace -l app=shared-db
+
+# psql-Shell oeffnen
+task workspace:psql -- website
+task workspace:psql -- keycloak
+task workspace:psql -- nextcloud
+
+# Port-Forward fuer externe Tools (DBeaver, pgAdmin)
+task workspace:port-forward
+# Dann: psql -h localhost -p 5432 -U postgres
+```
+
+### Datenbank-Tabellen fehlen
+
+```bash
+task workspace:psql -- website
+\dt   # Alle Tabellen auflisten
+```
+
+Falls Website-Tabellen fehlen, Website-Deployment neu anstossen:
+```bash
+task workspace:restart -- website
+```
+
+---
+
+## Website
+
+### Website nicht erreichbar
+
+```bash
+task website:status
+task website:logs
+```
+
+**Loesung:** Image neu bauen und deployen:
+```bash
+task website:redeploy
+```
+
+### Website-Admin-Panel zeigt 403
+
+Keycloak-Rolle `workspace-admins` fuer den Benutzer pruefen:
+1. `auth.{DOMAIN}/admin` aufrufen
+2. Realm workspace → Benutzer → Rollen/Gruppen pruefen
+3. Benutzer der Gruppe `workspace-admins` zuweisen
+
+---
+
+## TLS-Zertifikat wird nicht ausgestellt
 
 **Symptom:** `task cert:status` zeigt `READY: False`, Challenges bleiben `pending`.
 
 **Diagnose:**
 ```bash
-# Zertifikat-Status
 task cert:status
-
-# Challenge-Details
 kubectl describe challenge -n workspace
-
-# Webhook-Logs
 kubectl logs -n cert-manager deploy/cert-manager-lego-webhook --tail=20
 ```
 
 **Haeufige Ursachen:**
 
-- **"some credentials information are missing: IPV64_API_KEY":** Der API-Key-Secret fehlt oder ist nicht korrekt konfiguriert. Loesung:
-  ```bash
-  task cert:secret -- <dein-ipv64-api-key>
-  ```
-  Dieser Befehl erstellt den Secret in `cert-manager` und `workspace` Namespaces und setzt die Umgebungsvariable auf dem Webhook-Pod.
+- **API-Key fehlt:** `task cert:secret -- <dein-ipv64-api-key>`
 
-- **Challenges bleiben in `pending` (DNS-Propagation):** TXT-Record-Propagation kann 1-5 Minuten dauern. Pruefen:
+- **DNS-Propagation:** TXT-Record-Propagation kann 1–5 Minuten dauern.
   ```bash
   nslookup -type=TXT _acme-challenge.<domain> 8.8.8.8
   ```
 
-- **Ingress erstellt eigene Zertifikate:** Falls die Annotation `cert-manager.io/cluster-issuer` am Ingress gesetzt ist, erstellt cert-manager ein separates Zertifikat pro Subdomain statt das Wildcard zu nutzen. Die Annotation entfernen:
-  ```bash
-  kubectl annotate ingress workspace-ingress -n workspace cert-manager.io/cluster-issuer-
-  ```
-
-- **Orphan-Challenges mit Finalizer:** Stuck Challenges loeschen:
+- **Stuck Challenges mit Finalizer:**
   ```bash
   kubectl get challenge -n workspace -o name | while read c; do
     kubectl patch "$c" -n workspace --type=merge -p '{"metadata":{"finalizers":null}}'
@@ -181,22 +323,12 @@ kubectl logs -n cert-manager deploy/cert-manager-lego-webhook --tail=20
   kubectl delete challenge --all -n workspace
   ```
 
-### Website nicht erreichbar
+---
 
-**Diagnose:**
-```bash
-task website:status
-task website:logs
-```
-
-**Loesung:** Image neu bauen:
-```bash
-task website:redeploy
-```
+## CI/CD-Probleme
 
 ### Manifeste sind ungueltig
 
-**Diagnose:**
 ```bash
 task workspace:validate
 ```
@@ -213,18 +345,20 @@ yamllint k3d/
 shellcheck scripts/*.sh
 ```
 
-## Datenbank-Zugriff
+### ArgoCD synchronisiert nicht
 
 ```bash
-# psql-Shell oeffnen
-task workspace:psql -- keycloak
-task workspace:psql -- nextcloud
-task workspace:psql -- website
+# Sync-Status pruefen
+task argocd:status
 
-# Port-Forward fuer externe Tools (DBeaver, pgAdmin)
-task workspace:port-forward
-# Dann: psql -h localhost -p 5432 -U postgres
+# Manuell synchronisieren
+task argocd:sync -- workspace-hetzner
+
+# Diff anzeigen
+task argocd:diff -- workspace-hetzner
 ```
+
+---
 
 ## Nuetzliche kubectl-Befehle
 
@@ -251,6 +385,8 @@ kubectl exec -it -n workspace deploy/<service> -- sh
 kubectl port-forward -n workspace svc/<service> <local-port>:<service-port>
 ```
 
+---
+
 ## Vollstaendiger Reset
 
 ```bash
@@ -259,6 +395,6 @@ task workspace:teardown
 task workspace:deploy
 
 # Alles zerstoeren und neu aufsetzen
-task clean
+task cluster:delete
 task workspace:up
 ```

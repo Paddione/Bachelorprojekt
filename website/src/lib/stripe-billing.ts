@@ -225,3 +225,203 @@ export async function getFullInvoice(invoiceId: string): Promise<FullInvoice | n
     })),
   };
 }
+
+export interface DraftInvoiceItem {
+  lineItemId: string;
+  invoiceItemId: string;
+  description: string;
+  hours: number;
+  rateCents: number;
+  amountCents: number;
+}
+
+export interface DraftInvoiceDetail extends AdminBillingInvoice {
+  period: string;
+  items: DraftInvoiceItem[];
+}
+
+export async function createMonthlyDraftInvoices(
+  groups: import('./website-db').UnbilledCustomerGroup[],
+  periodLabel: string
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  if (!process.env.STRIPE_SECRET_KEY) return result;
+
+  for (const group of groups) {
+    const customer = await getOrCreateCustomer({
+      name: group.customerName,
+      email: group.customerEmail,
+    });
+    if (!customer) continue;
+
+    const byProject = new Map<string, typeof group.entries>();
+    for (const entry of group.entries) {
+      if (!byProject.has(entry.projectId)) byProject.set(entry.projectId, []);
+      byProject.get(entry.projectId)!.push(entry);
+    }
+
+    const draft = await stripe.invoices.create({
+      customer: customer.id,
+      collection_method: 'send_invoice',
+      days_until_due: 14,
+      auto_advance: false,
+      description: `Zeitabrechnung ${periodLabel}`,
+    });
+
+    for (const [, entries] of byProject) {
+      const projectName  = entries[0].projectName;
+      const totalMinutes = entries.reduce((s, e) => s + e.minutes, 0);
+      const totalHours   = totalMinutes / 60;
+      const weightedRateCents = totalMinutes > 0
+        ? Math.round(entries.reduce((s, e) => s + e.rateCents * e.minutes, 0) / totalMinutes)
+        : 0;
+      const amountCents = Math.round(totalHours * weightedRateCents);
+
+      const descriptions = entries.map(e => e.description).filter(Boolean).join('; ');
+      const lineDescription = descriptions
+        ? `${projectName} — ${periodLabel}: ${descriptions}`
+        : `${projectName} — ${periodLabel}`;
+
+      await stripe.invoiceItems.create({
+        customer: customer.id,
+        invoice:  draft.id,
+        amount:   amountCents,
+        currency: 'eur',
+        description: lineDescription,
+        metadata: {
+          project_id:  entries[0].projectId,
+          hours:       totalHours.toFixed(2),
+          rate_cents:  weightedRateCents.toString(),
+        },
+      });
+    }
+
+    result.set(group.customerId, draft.id);
+  }
+  return result;
+}
+
+export async function getDraftInvoiceCount(): Promise<number> {
+  if (!process.env.STRIPE_SECRET_KEY) return 0;
+  const result = await stripe.invoices.list({ status: 'draft', limit: 100 });
+  return result.data.length;
+}
+
+export async function getDraftInvoices(): Promise<AdminBillingInvoice[]> {
+  if (!process.env.STRIPE_SECRET_KEY) return [];
+  const result = await stripe.invoices.list({
+    status: 'draft',
+    limit: 100,
+    expand: ['data.customer'],
+  });
+  return result.data.map(inv => {
+    const customer = typeof inv.customer === 'object' && inv.customer !== null
+      ? (inv.customer as Stripe.Customer)
+      : null;
+    return { ...mapInvoice(inv), customerName: customer?.name ?? '—', customerEmail: customer?.email ?? '—' };
+  });
+}
+
+export async function getDraftInvoiceDetail(invoiceId: string): Promise<DraftInvoiceDetail | null> {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  const inv = await stripe.invoices.retrieve(invoiceId, {
+    expand: ['customer', 'lines.data.invoice_item'],
+  });
+  if (inv.status !== 'draft') return null;
+
+  const customer = typeof inv.customer === 'object' && inv.customer !== null
+    ? (inv.customer as Stripe.Customer)
+    : null;
+
+  const items: DraftInvoiceItem[] = inv.lines.data.map(line => {
+    const ii            = line.invoice_item;
+    const invoiceItemId = typeof ii === 'string' ? ii : (ii as Stripe.InvoiceItem)?.id ?? '';
+    const meta          = (typeof ii === 'object' && ii) ? (ii as Stripe.InvoiceItem).metadata : {};
+    const rateCents     = parseInt(meta?.rate_cents ?? '0', 10);
+    const hours         = parseFloat(meta?.hours ?? '0');
+    return {
+      lineItemId:  line.id,
+      invoiceItemId,
+      description: line.description ?? '',
+      hours,
+      rateCents,
+      amountCents: line.amount,
+    };
+  });
+
+  const period = inv.description?.replace('Zeitabrechnung ', '') ?? '';
+
+  return {
+    ...mapInvoice(inv),
+    customerName: customer?.name ?? '—',
+    customerEmail: customer?.email ?? '—',
+    period,
+    items,
+  };
+}
+
+export async function updateDraftInvoiceItem(
+  invoiceItemId: string,
+  params: { description?: string; hours?: number; rateCents?: number }
+): Promise<void> {
+  if (!process.env.STRIPE_SECRET_KEY) return;
+  const { hours, rateCents } = params;
+  const amountCents = hours !== undefined && rateCents !== undefined
+    ? Math.round(hours * rateCents)
+    : undefined;
+
+  await stripe.invoiceItems.update(invoiceItemId, {
+    ...(params.description !== undefined ? { description: params.description } : {}),
+    ...(amountCents !== undefined        ? { amount: amountCents }             : {}),
+    ...((hours !== undefined || rateCents !== undefined) ? {
+      metadata: {
+        ...(hours     !== undefined ? { hours:      hours.toFixed(2)     } : {}),
+        ...(rateCents !== undefined ? { rate_cents: rateCents.toString() } : {}),
+      },
+    } : {}),
+  });
+}
+
+export async function addDraftInvoiceItem(
+  invoiceId:  string,
+  customerId: string,
+  params: { description: string; hours: number; rateCents: number }
+): Promise<void> {
+  if (!process.env.STRIPE_SECRET_KEY) return;
+  const amountCents = Math.round(params.hours * params.rateCents);
+  await stripe.invoiceItems.create({
+    customer: customerId,
+    invoice:  invoiceId,
+    amount:   amountCents,
+    currency: 'eur',
+    description: params.description,
+    metadata: {
+      hours:      params.hours.toFixed(2),
+      rate_cents: params.rateCents.toString(),
+    },
+  });
+}
+
+export async function deleteDraftInvoiceItem(invoiceItemId: string): Promise<void> {
+  if (!process.env.STRIPE_SECRET_KEY) return;
+  await stripe.invoiceItems.del(invoiceItemId);
+}
+
+export async function sendDraftInvoice(invoiceId: string): Promise<void> {
+  if (!process.env.STRIPE_SECRET_KEY) return;
+  await stripe.invoices.finalizeInvoice(invoiceId);
+  await stripe.invoices.sendInvoice(invoiceId);
+}
+
+export async function discardDraftInvoice(invoiceId: string): Promise<void> {
+  if (!process.env.STRIPE_SECRET_KEY) return;
+  const inv = await stripe.invoices.retrieve(invoiceId, {
+    expand: ['lines.data.invoice_item'],
+  });
+  for (const line of inv.lines.data) {
+    const ii   = line.invoice_item;
+    const iiId = typeof ii === 'string' ? ii : (ii as Stripe.InvoiceItem)?.id;
+    if (iiId) await stripe.invoiceItems.del(iiId).catch(() => {});
+  }
+  await stripe.invoices.del(invoiceId);
+}

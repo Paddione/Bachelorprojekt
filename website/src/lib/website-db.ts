@@ -460,12 +460,24 @@ export async function resolveBugTicket(ticketId: string, resolutionNote: string)
      WHERE ticket_id = $1 AND status = 'open'`,
     [ticketId, resolutionNote]
   );
+  await pool.query(
+    `UPDATE inbox_items
+     SET status = 'actioned', actioned_at = NOW()
+     WHERE bug_ticket_id = $1 AND status = 'pending'`,
+    [ticketId]
+  );
 }
 
 export async function archiveBugTicket(ticketId: string): Promise<void> {
   await initBugTicketsTable();
   await pool.query(
     `UPDATE bug_tickets SET status = 'archived' WHERE ticket_id = $1 AND status != 'archived'`,
+    [ticketId]
+  );
+  await pool.query(
+    `UPDATE inbox_items
+     SET status = 'archived', actioned_at = NOW()
+     WHERE bug_ticket_id = $1 AND status = 'pending'`,
     [ticketId]
   );
 }
@@ -511,6 +523,16 @@ export async function initBugTicketsTable(): Promise<void> {
   await pool.query(`
     ALTER TABLE bug_tickets
       ADD COLUMN IF NOT EXISTS screenshots_json JSONB
+  `);
+  // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
+  await pool.query(`
+    UPDATE inbox_items
+    SET status = CASE WHEN bt.status = 'archived' THEN 'archived' ELSE 'actioned' END,
+        actioned_at = NOW()
+    FROM bug_tickets bt
+    WHERE inbox_items.bug_ticket_id = bt.ticket_id
+      AND inbox_items.status = 'pending'
+      AND bt.status IN ('resolved', 'archived')
   `);
 }
 

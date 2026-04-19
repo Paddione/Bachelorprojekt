@@ -408,7 +408,11 @@ const STATUS_TABS = [
 
   async function discardDraft(invoiceId: string): Promise<void> {
     if (!confirm('Entwurf wirklich verwerfen? Die Zeiteinträge werden wieder als nicht abgerechnet markiert.')) return;
-    await fetch(`/api/admin/billing/${invoiceId}/discard`, { method: 'POST' });
+    const res = await fetch(`/api/admin/billing/${invoiceId}/discard`, { method: 'POST' });
+    if (!res.ok) {
+      alert('Fehler beim Verwerfen. Bitte erneut versuchen.');
+      return;
+    }
     document.querySelector(`[data-invoice-id="${invoiceId}"]`)?.remove();
     updateBadge(-1);
   }
@@ -443,7 +447,11 @@ const STATUS_TABS = [
   document.getElementById('editor-send-btn')!.addEventListener('click', async () => {
     if (!currentInvoiceId) return;
     if (!confirm('Rechnung jetzt finalisieren und versenden?')) return;
-    await fetch(`/api/admin/billing/${currentInvoiceId}/send`, { method: 'POST' });
+    const res = await fetch(`/api/admin/billing/${currentInvoiceId}/send`, { method: 'POST' });
+    if (!res.ok) {
+      alert('Fehler beim Versenden. Bitte erneut versuchen.');
+      return;
+    }
     dialog.close();
     document.querySelector(`[data-invoice-id="${currentInvoiceId}"]`)?.remove();
     updateBadge(-1);

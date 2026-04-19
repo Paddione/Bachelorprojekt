@@ -25,12 +25,18 @@ export const POST: APIRoute = async ({ request, params }) => {
   return new Response(null, { status: 204 });
 };
 
-export const PATCH: APIRoute = async ({ request }) => {
+export const PATCH: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
   const body = await request.json();
-  await updateDraftInvoiceItem(String(body.invoiceItemId), {
+  const invoiceItemId = String(body.invoiceItemId ?? '');
+  if (!invoiceItemId) return new Response(null, { status: 400 });
+
+  const item = await stripe.invoiceItems.retrieve(invoiceItemId);
+  if (item.invoice !== params.id) return new Response(null, { status: 403 });
+
+  await updateDraftInvoiceItem(invoiceItemId, {
     description: body.description !== undefined ? String(body.description) : undefined,
     hours:       body.hours       !== undefined ? parseFloat(String(body.hours))       : undefined,
     rateCents:   body.rateCents   !== undefined ? Math.round(parseFloat(String(body.rateCents)) * 100) : undefined,
@@ -38,11 +44,17 @@ export const PATCH: APIRoute = async ({ request }) => {
   return new Response(null, { status: 204 });
 };
 
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
 
   const body = await request.json();
-  await deleteDraftInvoiceItem(String(body.invoiceItemId));
+  const invoiceItemId = String(body.invoiceItemId ?? '');
+  if (!invoiceItemId) return new Response(null, { status: 400 });
+
+  const item = await stripe.invoiceItems.retrieve(invoiceItemId);
+  if (item.invoice !== params.id) return new Response(null, { status: 403 });
+
+  await deleteDraftInvoiceItem(invoiceItemId);
   return new Response(null, { status: 204 });
 };

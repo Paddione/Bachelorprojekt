@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: monthly-billing
-  namespace: website
+  namespace: workspace
 spec:
   schedule: "0 6 1 * *"
   concurrencyPolicy: Forbid
@@ -26,5 +26,5 @@ spec:
                 - name: CRON_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: website-secrets
+                      name: workspace-secrets
                       key: CRON_SECRET

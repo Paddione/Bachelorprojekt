@@ -36,5 +36,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  return Response.json({ created: invoiceMap.size, period: monthLabel });
+  const skipped = groups.length - invoiceMap.size;
+  return Response.json({ created: invoiceMap.size, skipped, period: monthLabel });
 };

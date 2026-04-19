@@ -33,5 +33,19 @@ export const POST: APIRoute = async ({ request }) => {
     console.log(`[stripe] Payment received: ${serviceKey} ${amountFormatted} from ${customerEmail} (${session.id})`);
   }
 
+  if (event.type === 'payment_intent.succeeded') {
+    const pi = event.data.object;
+    const invoiceId = pi.metadata?.invoice_id;
+    if (invoiceId) {
+      try {
+        await stripe.invoices.pay(invoiceId, { paid_out_of_band: true });
+        console.log(`[stripe] Invoice ${invoiceId} marked paid via payment_intent ${pi.id}`);
+      } catch (err) {
+        // Invoice may already be paid (e.g. webhook replayed) — log and continue
+        console.error(`[stripe] Failed to mark invoice ${invoiceId} as paid:`, err);
+      }
+    }
+  }
+
   return new Response('OK', { status: 200 });
 };

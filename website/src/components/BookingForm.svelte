@@ -137,6 +137,8 @@
         phone = '';
         message = '';
         selectedSlot = null;
+        selectedLeistungKey = '';
+        selectedProjectId = '';
       } else {
         result = { success: false, message: data.error || 'Es ist ein Fehler aufgetreten.' };
       }

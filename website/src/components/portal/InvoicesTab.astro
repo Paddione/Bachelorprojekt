@@ -2,6 +2,8 @@
 import { getCustomerInvoices, SERVICES } from '../../lib/stripe-billing';
 import type { BillingInvoice } from '../../lib/stripe-billing';
 import CreateInvoiceModal from '../admin/CreateInvoiceModal.svelte';
+import InlineInvoicePayment from '../portal/InlineInvoicePayment.svelte';
+const publishableKey = import.meta.env.STRIPE_PUBLISHABLE_KEY ?? '';
 
 interface Props {
   clientEmail: string;
@@ -78,11 +80,14 @@ function statusColor(status: string): string {
             {inv.amountRemaining > 0 && inv.amountRemaining !== inv.amountDue && (
               <div class="text-xs text-muted">Offen: {formatCurrency(inv.amountRemaining)}</div>
             )}
-            {inv.hostedUrl && inv.status !== 'paid' && (
-              <a href={inv.hostedUrl} target="_blank" rel="noopener"
-                 class="mt-1 inline-block text-xs text-blue-400 hover:underline">
-                Jetzt zahlen ↗
-              </a>
+            {inv.status !== 'paid' && (
+              <InlineInvoicePayment
+                invoiceId={inv.id}
+                amountDue={inv.amountDue}
+                hostedUrl={inv.hostedUrl}
+                {publishableKey}
+                client:load
+              />
             )}
           </div>
         </li>

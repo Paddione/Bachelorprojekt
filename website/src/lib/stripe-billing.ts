@@ -298,7 +298,7 @@ export async function createMonthlyDraftInvoices(
     }
 
     const refreshed = await stripe.invoices.retrieve(draft.id);
-    if ((refreshed.lines?.total_count ?? 0) === 0) {
+    if ((refreshed.lines?.data.length ?? 0) === 0) {
       await stripe.invoices.del(draft.id);
       continue;  // Kunden überspringen
     }

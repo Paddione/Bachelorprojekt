@@ -2,7 +2,9 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getLastTimeEntryRate, listAllTimeEntries, listProjects } from '../../lib/website-db';
+import { getEffectiveLeistungen } from '../../lib/content';
 import type { TimeEntry, Project } from '../../lib/website-db';
+import type { LeistungCategory } from '../../config/types';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -18,6 +20,18 @@ let projects: Project[]  = [];
 let dbError = '';
 
 const lastRate = await getLastTimeEntryRate();
+let leistungen: LeistungCategory[] = [];
+try {
+  leistungen = await getEffectiveLeistungen();
+} catch { /* ignore */ }
+
+// Map key → stundensatz_cents für client-seitiges Auto-fill
+const leistungRates: Record<string, number> = {};
+for (const cat of leistungen) {
+  for (const svc of cat.services) {
+    if (svc.stundensatz_cents != null && svc.stundensatz_cents > 0) leistungRates[svc.key] = svc.stundensatz_cents;
+  }
+}
 
 try {
   [entries, projects] = await Promise.all([
@@ -33,6 +47,9 @@ try {
 
 const totalMinutes    = entries.reduce((s, e) => s + e.minutes, 0);
 const billableMinutes = entries.filter(e => e.billable).reduce((s, e) => s + e.minutes, 0);
+const billableAmount  = entries
+  .filter(e => e.billable && e.rateCents > 0)
+  .reduce((sum, e) => sum + (e.minutes / 60) * (e.rateCents / 100), 0);
 
 function fmtMin(m: number): string {
   return `${Math.floor(m / 60)}h ${(m % 60).toString().padStart(2, '0')}m`;
@@ -53,7 +70,7 @@ const labelCls  = 'block text-xs text-muted mb-1';
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Zeiterfassung</h1>
-          <p class="text-muted mt-1">{fmtMin(totalMinutes)} gesamt · {fmtMin(billableMinutes)} abrechenbar</p>
+          <p class="text-muted mt-1">{fmtMin(totalMinutes)} gesamt · {fmtMin(billableMinutes)} abrechenbar · {billableAmount.toFixed(2)} € abr. Betrag</p>
         </div>
         <div class="flex gap-3">
           <a href="/api/admin/zeiterfassung/export?billable=true"
@@ -120,13 +137,14 @@ const labelCls  = 'block text-xs text-muted mb-1';
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Beschreibung</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Minuten</th>
               <th class="text-center px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Abr.</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Betrag</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Aktionen</th>
             </tr>
           </thead>
           <tbody>
             {entries.length === 0 ? (
               <tr>
-                <td colspan="7" class="px-4 py-10 text-center text-muted text-sm">Keine Einträge vorhanden.</td>
+                <td colspan="8" class="px-4 py-10 text-center text-muted text-sm">Keine Einträge vorhanden.</td>
               </tr>
             ) : entries.map(e => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
@@ -141,6 +159,11 @@ const labelCls  = 'block text-xs text-muted mb-1';
                 </td>
                 <td class="px-4 py-3 text-center text-sm">
                   {e.billable ? <span class="text-green-400">✓</span> : <span class="text-muted">—</span>}
+                </td>
+                <td class="px-4 py-3 text-sm text-right font-mono text-gold">
+                  {e.rateCents > 0
+                    ? `${((e.minutes / 60) * (e.rateCents / 100)).toFixed(2)} €`
+                    : <span class="text-muted">—</span>}
                 </td>
                 <td class="px-4 py-3 text-right">
                   <form method="post" action="/api/admin/zeiterfassung/delete">
@@ -174,6 +197,21 @@ const labelCls  = 'block text-xs text-muted mb-1';
           {projects.map(p => <option value={p.id}>{p.name}</option>)}
         </select>
       </div>
+      <div>
+        <label class={labelCls}>Leistung</label>
+        <select name="leistungKey" id="leistung-select" class={selectCls}>
+          <option value="">— Keine Leistung —</option>
+          {leistungen.map(cat => (
+            <optgroup label={`${cat.icon} ${cat.title}`}>
+              {cat.services.map(svc => (
+                <option value={svc.key} data-rate={svc.stundensatz_cents ?? 0}>
+                  {svc.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class={labelCls}>Minuten <span class="text-red-400">*</span></label>
@@ -189,6 +227,7 @@ const labelCls  = 'block text-xs text-muted mb-1';
         <label class={labelCls}>Stundensatz (€/h)</label>
         <input
           type="number"
+          id="rate-input"
           name="rateCents"
           min="0"
           step="1"
@@ -197,7 +236,7 @@ const labelCls  = 'block text-xs text-muted mb-1';
           placeholder="z.B. 100"
           value={Math.round(lastRate / 100)}
         />
-        <p class="text-xs text-muted mt-1">Betrag in Euro. Letzter Wert wurde vorbelegt.</p>
+        <p class="text-xs text-muted mt-1">Wird bei Leistungsauswahl automatisch befüllt. Manuell überschreibbar.</p>
       </div>
       <div>
         <label class={labelCls}>Beschreibung</label>
@@ -219,4 +258,12 @@ const labelCls  = 'block text-xs text-muted mb-1';
   const dialog = document.getElementById('create-dialog') as HTMLDialogElement;
   document.getElementById('create-btn')?.addEventListener('click', () => dialog.showModal());
   document.getElementById('create-cancel')?.addEventListener('click', () => dialog.close());
+
+  const leistungSelect = document.getElementById('leistung-select') as HTMLSelectElement;
+  const rateInput = document.getElementById('rate-input') as HTMLInputElement;
+  leistungSelect?.addEventListener('change', () => {
+    const selected = leistungSelect.options[leistungSelect.selectedIndex];
+    const rate = parseInt(selected.dataset.rate ?? '0', 10);
+    if (rate > 0) rateInput.value = String(Math.round(rate / 100));
+  });
 </script>

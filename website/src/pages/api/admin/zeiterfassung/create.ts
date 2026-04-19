@@ -43,6 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
       minutes,
       billable,
       rateCents,
+      leistungKey,
       entryDate: entryDate || undefined,
     });
   } catch (err) {

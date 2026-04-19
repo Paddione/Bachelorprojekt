@@ -7,6 +7,7 @@ import { getBookingProjects, listProjects, getBookingInvoices, getWhitelistedSlo
 import type { Project, BookingInvoiceInfo } from '../../lib/website-db';
 import { getEffectiveLeistungen } from '../../lib/content';
 import type { LeistungCategory } from '../../config/types';
+import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -87,6 +88,11 @@ function formatTime(d: Date) {
           <p class="text-muted mt-1">{bookings.length} gebucht · {totalSlots} generierte Slots · <span class="text-gold"><span id="released-counter">{releasedCount}</span> freigegeben</span></p>
         </div>
         <div class="flex gap-3">
+          <AdminBookingModal
+            client:load
+            projects={projects.map(p => ({ id: p.id, name: p.name }))}
+            buttonLabel="＋ Manuelle Buchung"
+          />
           <a
             href={calendarUrl}
             target="_blank"

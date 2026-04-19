@@ -68,11 +68,16 @@
     { value: 'termin', label: 'Termin vor Ort' },
   ];
 
+  let slotLoadError = $state(false);
+
   // Fetch available slots on mount
   if (typeof window !== 'undefined' && initialType !== 'callback') {
-    fetch('/api/calendar/slots')
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    fetch('/api/calendar/slots', { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => {
+        clearTimeout(timeoutId);
         if (Array.isArray(data)) {
           days = data;
           if (!initialDate && data.length > 0) selectedDate = data[0].date;
@@ -80,6 +85,8 @@
         loading = false;
       })
       .catch(() => {
+        clearTimeout(timeoutId);
+        slotLoadError = true;
         loading = false;
       });
   }
@@ -177,6 +184,10 @@
 
     {#if loading}
       <div class="text-muted py-8 text-center">Verfügbare Termine werden geladen...</div>
+    {:else if slotLoadError}
+      <div class="text-muted py-8 text-center bg-dark rounded-xl border border-dark-lighter">
+        Termine konnten nicht geladen werden. Bitte laden Sie die Seite neu oder kontaktieren Sie uns direkt.
+      </div>
     {:else if days.length === 0}
       <div class="text-muted py-8 text-center bg-dark rounded-xl border border-dark-lighter">
         Derzeit sind keine freien Termine verfügbar. Bitte kontaktieren Sie uns direkt.

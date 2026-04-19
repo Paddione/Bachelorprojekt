@@ -32,9 +32,10 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  // Only use state as a redirect if it's an internal path — Keycloak also uses
-  // the state param for its own CSRF token when no state was supplied by us.
-  const destination = rawState.startsWith('/')
+  // Only redirect to safe relative paths. Protocol-relative URLs like //evil.com
+  // start with "/" but would redirect off-site, so reject anything with "//".
+  const isSafePath = rawState.startsWith('/') && !rawState.startsWith('//') && !rawState.includes('\n') && !rawState.includes('\r');
+  const destination = isSafePath
     ? rawState
     : (isAdmin(result.user) ? '/admin' : '/portal');
 

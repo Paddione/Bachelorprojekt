@@ -25,14 +25,6 @@ try {
   leistungen = await getEffectiveLeistungen();
 } catch { /* ignore */ }
 
-// Map key → stundensatz_cents für client-seitiges Auto-fill
-const leistungRates: Record<string, number> = {};
-for (const cat of leistungen) {
-  for (const svc of cat.services) {
-    if (svc.stundensatz_cents != null && svc.stundensatz_cents > 0) leistungRates[svc.key] = svc.stundensatz_cents;
-  }
-}
-
 try {
   [entries, projects] = await Promise.all([
     listAllTimeEntries({

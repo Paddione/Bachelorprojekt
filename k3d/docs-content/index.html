@@ -595,6 +595,17 @@
         depth: 3
       },
       plugins: [
+        /* ---- Domain resolver: replaces {DOMAIN} and {PROTO} in markdown -- */
+        function(hook) {
+          var host   = window.location.hostname;
+          var domain = host.replace(/^docs\./, '');
+          var proto  = window.location.protocol.replace(':', '');
+          hook.beforeEach(function(content) {
+            return content
+              .replace(/\{DOMAIN\}/g, domain)
+              .replace(/\{PROTO\}/g, proto);
+          });
+        },
         /* ---- Mermaid Panzoom ------------------------------------------ */
         function(hook) {
           hook.doneEach(function() {

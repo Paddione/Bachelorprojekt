@@ -39,18 +39,16 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 ## Dienstübersicht mit Links
 
-| Dienst | Beschreibung | Link (Entwicklung) |
-|--------|-------------|---------------------|
-| **Portal / Nachrichten** | Chat, Direktnachrichten, Dokumente | [web.localhost/portal](http://web.localhost/portal) |
-| **Dateien & Kalender** | Cloud-Speicher, Kalender, Kontakte | [files.localhost](http://files.localhost) |
-| **Videokonferenz** | Meetings & Sprachanrufe (in Nextcloud) | [files.localhost](http://files.localhost) → Talk |
+| Dienst | Beschreibung | Link |
+|--------|-------------|------|
+| **Portal / Nachrichten** | Chat, Direktnachrichten, Dokumente | [{PROTO}://web.{DOMAIN}/portal]({PROTO}://web.{DOMAIN}/portal) |
+| **Dateien & Kalender** | Cloud-Speicher, Kalender, Kontakte | [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) |
+| **Videokonferenz** | Meetings & Sprachanrufe (in Nextcloud) | [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) → Talk |
 | **Dokumente** | Gemeinsame Office-Bearbeitung | Öffnet sich aus Nextcloud heraus |
-| **Whiteboard** | Digitales Whiteboard | [board.localhost](http://board.localhost) |
-| **KI-Assistent** | Claude AI-Status & MCP-Dashboard | [ai.localhost](http://ai.localhost) |
-| **Passwort-Safe** | Sichere Passwortverwaltung | [vault.localhost](http://vault.localhost) |
-| **Dokumentation** | Dieses Handbuch und weitere Docs | [docs.localhost](http://docs.localhost) |
-
-> In der Produktivumgebung ersetze `localhost` durch die Unternehmens-Domain (z. B. `files.meinunternehmen.de`).
+| **Whiteboard** | Digitales Whiteboard | [{PROTO}://board.{DOMAIN}]({PROTO}://board.{DOMAIN}) |
+| **KI-Assistent** | Claude AI-Status & MCP-Dashboard | [{PROTO}://ai.{DOMAIN}]({PROTO}://ai.{DOMAIN}) |
+| **Passwort-Safe** | Sichere Passwortverwaltung | [{PROTO}://vault.{DOMAIN}]({PROTO}://vault.{DOMAIN}) |
+| **Dokumentation** | Dieses Handbuch und weitere Docs | [{PROTO}://docs.{DOMAIN}]({PROTO}://docs.{DOMAIN}) |
 
 ---
 
@@ -60,7 +58,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Wozu?** Schreiben, Diskutieren, Teamkommunikation – direkt im Benutzerportal der Unternehmenswebsite.
 
-**Zugang:** [web.localhost/portal](http://web.localhost/portal) → Nach dem Login automatisch verfügbar
+**Zugang:** [{PROTO}://web.{DOMAIN}/portal]({PROTO}://web.{DOMAIN}/portal) → Nach dem Login automatisch verfügbar
 
 **Was kannst Du tun?**
 - Nachrichten in **Räumen** (themenbasierte Gruppen) schreiben und lesen
@@ -79,7 +77,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Wozu?** Dein persönlicher Cloud-Speicher im Büro – wie Dropbox, aber sicher auf Deinen eigenen Servern.
 
-**Zugang:** [files.localhost](http://files.localhost)
+**Zugang:** [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN})
 
 **Was kannst Du tun?**
 - Dateien hochladen, herunterladen und mit Kollegen teilen
@@ -99,7 +97,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Wozu?** Word, Excel und PowerPoint direkt im Browser bearbeiten – kein separates Programm nötig.
 
-**Zugang:** Öffnet sich automatisch aus [Nextcloud](http://files.localhost) heraus – keine eigene Adresse nötig.
+**Zugang:** Öffnet sich automatisch aus [Nextcloud]({PROTO}://files.{DOMAIN}) heraus – keine eigene Adresse nötig.
 
 **Was kannst Du tun?**
 - Neue Textdokumente, Tabellen oder Präsentationen erstellen
@@ -107,7 +105,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 - Gleichzeitig mit Kollegen am selben Dokument arbeiten – Du siehst in Echtzeit, was andere tippen
 
 **So öffnest Du ein Dokument:**
-1. Gehe zu **Nextcloud** ([files.localhost](http://files.localhost))
+1. Gehe zu **Nextcloud** ([{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}))
 2. Klicke auf eine Datei – sie öffnet sich automatisch im Editor
 3. Oder: Klicke auf **„+"** → **„Neues Dokument"**, um von vorne anzufangen
 
@@ -119,7 +117,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Wozu?** Video- und Sprachanrufe direkt im Browser – wie Zoom oder Teams, aber auf Deinen eigenen Servern.
 
-**Zugang:** [files.localhost](http://files.localhost) → **Talk** (linke Seitenleiste)
+**Zugang:** [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) → **Talk** (linke Seitenleiste)
 
 **Was kannst Du tun?**
 - Einzelgespräche oder Gruppenmeetings starten
@@ -141,7 +139,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Wozu?** Gemeinsam skizzieren, brainstormen und visualisieren – wie ein digitales Whiteboard in einer Besprechung.
 
-**Zugang:** [board.localhost](http://board.localhost)
+**Zugang:** [{PROTO}://board.{DOMAIN}]({PROTO}://board.{DOMAIN})
 
 **Was kannst Du tun?**
 - Freihand zeichnen, Formen und Text einfügen
@@ -154,7 +152,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Wozu?** Ein intelligenter Assistent, der Dir bei Texten, Fragen und Aufgaben hilft.
 
-**Zugang:** [ai.localhost](http://ai.localhost) (Status-Dashboard) – Claude Code wird lokal auf dem Rechner des Administrators ausgeführt.
+**Zugang:** [{PROTO}://ai.{DOMAIN}]({PROTO}://ai.{DOMAIN}) (Status-Dashboard) – Claude Code wird lokal auf dem Rechner des Administrators ausgeführt.
 
 **Was kannst Du tun?**
 - Texte verfassen lassen (E-Mails, Zusammenfassungen, Berichte)
@@ -175,7 +173,7 @@ Dieser zentrale Login nennt sich **Single Sign-On (SSO)** und wird durch ein Sys
 
 **Wozu?** Passwörter sicher speichern und im Team teilen – auf Deinen eigenen Servern, nicht bei einem externen Anbieter.
 
-**Zugang:** [vault.localhost](http://vault.localhost)
+**Zugang:** [{PROTO}://vault.{DOMAIN}]({PROTO}://vault.{DOMAIN})
 
 **Was kannst Du tun?**
 - Passwörter und Zugangsdaten sicher verwahren
@@ -217,7 +215,7 @@ Ja – das ist genau der Zweck. Da alle Daten auf Deinen eigenen Servern liegen 
 
 ### Etwas funktioniert nicht – an wen wende ich mich?
 
-Schreibe eine Nachricht im Portal-Chat an den Administrator oder schicke eine E-Mail an den Systemverantwortlichen. In der Produktivumgebung steht auch ein Bug-Report-Formular unter `/admin/bugs` bereit.
+Schreibe eine Nachricht im Portal-Chat an den Administrator oder schicke eine E-Mail an den Systemverantwortlichen. In der Produktivumgebung steht auch ein Bug-Report-Formular unter `{PROTO}://web.{DOMAIN}/admin/bugs` bereit.
 
 ---
 
@@ -225,11 +223,11 @@ Schreibe eine Nachricht im Portal-Chat an den Administrator oder schicke eine E-
 
 | Ich möchte…                                  | Dienst                    | Link |
 |----------------------------------------------|---------------------------|------|
-| Eine Nachricht an einen Kollegen schicken     | **Portal – Nachrichten**  | [Portal](http://web.localhost/portal) |
-| Eine Datei teilen                             | **Nextcloud**             | [files.localhost](http://files.localhost) |
-| Gemeinsam an einem Dokument arbeiten          | **Nextcloud + Collabora** | [files.localhost](http://files.localhost) |
-| Ein Meeting starten                           | **Nextcloud Talk**        | [files.localhost](http://files.localhost) |
-| Ideen gemeinsam aufzeichnen                   | **Whiteboard**            | [board.localhost](http://board.localhost) |
-| Eine KI fragen                                | **Claude**                | [ai.localhost](http://ai.localhost) |
-| Ein Passwort sicher aufbewahren               | **Vaultwarden**           | [vault.localhost](http://vault.localhost) |
-| Diese Dokumentation lesen                     | **Docs**                  | [docs.localhost](http://docs.localhost) |
+| Eine Nachricht an einen Kollegen schicken     | **Portal – Nachrichten**  | [{PROTO}://web.{DOMAIN}/portal]({PROTO}://web.{DOMAIN}/portal) |
+| Eine Datei teilen                             | **Nextcloud**             | [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) |
+| Gemeinsam an einem Dokument arbeiten          | **Nextcloud + Collabora** | [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) |
+| Ein Meeting starten                           | **Nextcloud Talk**        | [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) |
+| Ideen gemeinsam aufzeichnen                   | **Whiteboard**            | [{PROTO}://board.{DOMAIN}]({PROTO}://board.{DOMAIN}) |
+| Eine KI fragen                                | **Claude**                | [{PROTO}://ai.{DOMAIN}]({PROTO}://ai.{DOMAIN}) |
+| Ein Passwort sicher aufbewahren               | **Vaultwarden**           | [{PROTO}://vault.{DOMAIN}]({PROTO}://vault.{DOMAIN}) |
+| Diese Dokumentation lesen                     | **Docs**                  | [{PROTO}://docs.{DOMAIN}]({PROTO}://docs.{DOMAIN}) |

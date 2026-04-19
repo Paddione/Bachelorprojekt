@@ -19,19 +19,17 @@ Dieses Handbuch beschreibt die wichtigsten Administrationsaufgaben: Benutzer anl
 
 ## Dienstübersicht mit Admin-Links
 
-| Dienst | Funktion | Dev-URL | Admin-Zugang |
-|--------|----------|---------|--------------|
-| **Keycloak** | Benutzerverwaltung & SSO | [auth.localhost](http://auth.localhost) | [auth.localhost/admin](http://auth.localhost/admin) |
-| **Nextcloud** | Dateien, Kalender, Talk | [files.localhost](http://files.localhost) | [files.localhost/settings/admin](http://files.localhost/settings/admin) |
-| **Collabora** | Office-Editor (in NC eingebettet) | [office.localhost](http://office.localhost) | Konfiguration via Nextcloud |
-| **Whiteboard** | Digitales Whiteboard | [board.localhost](http://board.localhost) | — |
-| **Vaultwarden** | Passwort-Safe | [vault.localhost](http://vault.localhost) | [vault.localhost/admin](http://vault.localhost/admin) |
-| **Website / Portal** | Unternehmenswebsite + Messaging | [web.localhost](http://web.localhost) | [web.localhost/admin](http://web.localhost/admin) |
-| **Dokumentation** | Dieses Handbuch | [docs.localhost](http://docs.localhost) | SSO-geschützt (Keycloak) |
-| **Mailpit** | Ausgehende E-Mails (Dev) | [mail.localhost](http://mail.localhost) | Direktzugang (keine Auth) |
-| **Claude Code KI** | KI-Status & MCP-Dashboard | [ai.localhost](http://ai.localhost) | MCP-Status-Dashboard |
-
-> **Produktion:** Ersetze `localhost` durch Deine konfigurierte Domain (z. B. `auth.meinunternehmen.de`). Die Domain wird in `.env` als `PROD_DOMAIN` gesetzt.
+| Dienst | Funktion | URL | Admin-Zugang |
+|--------|----------|-----|--------------|
+| **Keycloak** | Benutzerverwaltung & SSO | [{PROTO}://auth.{DOMAIN}]({PROTO}://auth.{DOMAIN}) | [{PROTO}://auth.{DOMAIN}/admin]({PROTO}://auth.{DOMAIN}/admin) |
+| **Nextcloud** | Dateien, Kalender, Talk | [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) | [{PROTO}://files.{DOMAIN}/settings/admin]({PROTO}://files.{DOMAIN}/settings/admin) |
+| **Collabora** | Office-Editor (in NC eingebettet) | [{PROTO}://office.{DOMAIN}]({PROTO}://office.{DOMAIN}) | Konfiguration via Nextcloud |
+| **Whiteboard** | Digitales Whiteboard | [{PROTO}://board.{DOMAIN}]({PROTO}://board.{DOMAIN}) | — |
+| **Vaultwarden** | Passwort-Safe | [{PROTO}://vault.{DOMAIN}]({PROTO}://vault.{DOMAIN}) | [{PROTO}://vault.{DOMAIN}/admin]({PROTO}://vault.{DOMAIN}/admin) |
+| **Website / Portal** | Unternehmenswebsite + Messaging | [{PROTO}://web.{DOMAIN}]({PROTO}://web.{DOMAIN}) | [{PROTO}://web.{DOMAIN}/admin]({PROTO}://web.{DOMAIN}/admin) |
+| **Dokumentation** | Dieses Handbuch | [{PROTO}://docs.{DOMAIN}]({PROTO}://docs.{DOMAIN}) | SSO-geschützt (Keycloak) |
+| **Mailpit** | Ausgehende E-Mails (Dev) | [{PROTO}://mail.{DOMAIN}]({PROTO}://mail.{DOMAIN}) | Direktzugang (keine Auth) |
+| **Claude Code KI** | KI-Status & MCP-Dashboard | [{PROTO}://ai.{DOMAIN}]({PROTO}://ai.{DOMAIN}) | MCP-Status-Dashboard |
 
 ---
 
@@ -41,7 +39,7 @@ Alle Benutzerkonten werden zentral in Keycloak gepflegt. Jede Änderung gilt sof
 
 ### Neuen Benutzer anlegen
 
-1. Öffne [auth.localhost/admin](http://auth.localhost/admin) → Realm **workspace**
+1. Öffne [{PROTO}://auth.{DOMAIN}/admin]({PROTO}://auth.{DOMAIN}/admin) → Realm **workspace**
 2. Navigiere zu **Benutzer** → **Benutzer hinzufügen**
 3. Felder ausfüllen:
    - **Benutzername**: Kleinbuchstaben, kein Leerzeichen
@@ -71,35 +69,35 @@ Der Benutzer kann sich sofort nicht mehr anmelden. Daten bleiben erhalten.
 
 ## Website-Admin-Panel
 
-Das Admin-Panel ist erreichbar unter [web.localhost/admin](http://web.localhost/admin) (Keycloak-Login mit `workspace-admins`-Gruppe erforderlich).
+Das Admin-Panel ist erreichbar unter [{PROTO}://web.{DOMAIN}/admin]({PROTO}://web.{DOMAIN}/admin) (Keycloak-Login mit `workspace-admins`-Gruppe erforderlich).
 
 ### Verfügbare Admin-Bereiche
 
 | Bereich | Pfad | Funktion |
 |---------|------|----------|
-| **Startseite** | `/admin/startseite` | Startseiten-Texte und Hero-Bereich bearbeiten |
-| **Leistungen** | `/admin/angebote` | Dienstleistungen und Preise verwalten |
-| **Über mich** | `/admin/uebermich` | Profilseite bearbeiten |
-| **Referenzen** | `/admin/referenzen` | Kundenstimmen und Referenzen |
-| **FAQ** | `/admin/faq` | Häufig gestellte Fragen pflegen |
-| **Rechtliches** | `/admin/rechtliches` | Impressum, Datenschutz, AGB |
-| **Inbox** | `/admin/inbox` | Eingehende Kontaktanfragen |
-| **Nachrichten** | `/admin/nachrichten` | Direkte Nachrichten und Chat-Räume |
-| **Räume** | `/admin/raeume` | Chat-Räume verwalten |
-| **Kunden** | `/admin/clients` | Kundenverwaltung |
-| **Projekte** | `/admin/projekte` | Projektmanagement mit Gantt-Diagramm |
-| **Termine** | `/admin/termine` | Terminbuchungen und Kalender |
-| **Zeiterfassung** | `/admin/zeiterfassung` | Arbeitszeiterfassung |
-| **Rechnungen** | `/admin/rechnungen` | Rechnungen und Stripe-Zahlungen |
-| **Follow-ups** | `/admin/followups` | Wiedervorlagen und Erinnerungen |
-| **Meetings** | `/admin/meetings` | Aufgezeichnete Meetings und Transkripte |
-| **Kalender** | `/admin/kalender` | Kalenderübersicht |
-| **Monitoring** | `/admin/monitoring` | Live-Übersicht: Pod-Status und Ressourcen |
-| **Bugs** | `/admin/bugs` | Bug-Reports und Ticket-Tracking |
+| **Startseite** | [`/admin/startseite`]({PROTO}://web.{DOMAIN}/admin/startseite) | Startseiten-Texte und Hero-Bereich bearbeiten |
+| **Leistungen** | [`/admin/angebote`]({PROTO}://web.{DOMAIN}/admin/angebote) | Dienstleistungen und Preise verwalten |
+| **Über mich** | [`/admin/uebermich`]({PROTO}://web.{DOMAIN}/admin/uebermich) | Profilseite bearbeiten |
+| **Referenzen** | [`/admin/referenzen`]({PROTO}://web.{DOMAIN}/admin/referenzen) | Kundenstimmen und Referenzen |
+| **FAQ** | [`/admin/faq`]({PROTO}://web.{DOMAIN}/admin/faq) | Häufig gestellte Fragen pflegen |
+| **Rechtliches** | [`/admin/rechtliches`]({PROTO}://web.{DOMAIN}/admin/rechtliches) | Impressum, Datenschutz, AGB |
+| **Inbox** | [`/admin/inbox`]({PROTO}://web.{DOMAIN}/admin/inbox) | Eingehende Kontaktanfragen |
+| **Nachrichten** | [`/admin/nachrichten`]({PROTO}://web.{DOMAIN}/admin/nachrichten) | Direkte Nachrichten und Chat-Räume |
+| **Räume** | [`/admin/raeume`]({PROTO}://web.{DOMAIN}/admin/raeume) | Chat-Räume verwalten |
+| **Kunden** | [`/admin/clients`]({PROTO}://web.{DOMAIN}/admin/clients) | Kundenverwaltung |
+| **Projekte** | [`/admin/projekte`]({PROTO}://web.{DOMAIN}/admin/projekte) | Projektmanagement mit Gantt-Diagramm |
+| **Termine** | [`/admin/termine`]({PROTO}://web.{DOMAIN}/admin/termine) | Terminbuchungen und Kalender |
+| **Zeiterfassung** | [`/admin/zeiterfassung`]({PROTO}://web.{DOMAIN}/admin/zeiterfassung) | Arbeitszeiterfassung |
+| **Rechnungen** | [`/admin/rechnungen`]({PROTO}://web.{DOMAIN}/admin/rechnungen) | Rechnungen und Stripe-Zahlungen |
+| **Follow-ups** | [`/admin/followups`]({PROTO}://web.{DOMAIN}/admin/followups) | Wiedervorlagen und Erinnerungen |
+| **Meetings** | [`/admin/meetings`]({PROTO}://web.{DOMAIN}/admin/meetings) | Aufgezeichnete Meetings und Transkripte |
+| **Kalender** | [`/admin/kalender`]({PROTO}://web.{DOMAIN}/admin/kalender) | Kalenderübersicht |
+| **Monitoring** | [`/admin/monitoring`]({PROTO}://web.{DOMAIN}/admin/monitoring) | Live-Übersicht: Pod-Status und Ressourcen |
+| **Bugs** | [`/admin/bugs`]({PROTO}://web.{DOMAIN}/admin/bugs) | Bug-Reports und Ticket-Tracking |
 
 ### Kunden-Detail-Ansicht
 
-Unter `/admin/clients/{id}` ist eine umfassende Kundenübersicht verfügbar:
+Unter [`/admin/clients/{id}`]({PROTO}://web.{DOMAIN}/admin/clients) ist eine umfassende Kundenübersicht verfügbar:
 - Kontaktdaten und Kommunikationshistorie
 - Zugehörige Projekte und Aufgaben
 - Offene und bezahlte Rechnungen
@@ -110,7 +108,7 @@ Unter `/admin/clients/{id}` ist eine umfassende Kundenübersicht verfügbar:
 
 ## Stripe-Zahlungen
 
-Stripe ist die Zahlungsplattform für Leistungen und Rechnungen. Zahlungen werden auf der Leistungen-Seite oder über den CTA der Homepage abgewickelt.
+Stripe ist die Zahlungsplattform für Leistungen und Rechnungen. Zahlungen werden auf der [Leistungen-Seite]({PROTO}://web.{DOMAIN}/leistungen) oder über den CTA der Homepage abgewickelt.
 
 **Einrichtung (einmalig):**
 ```bash
@@ -120,7 +118,7 @@ task workspace:stripe-setup
 **Konfiguration:**
 - Stripe-Keys in `workspace-secrets` als Kubernetes Secret gespeichert
 - Webhook-Endpoint: `/api/stripe/webhook` (Ereignis: `checkout.session.completed`)
-- Zahlungsstatus in der Admin-Oberfläche unter `/admin/rechnungen`
+- Zahlungsstatus in der Admin-Oberfläche unter [`/admin/rechnungen`]({PROTO}://web.{DOMAIN}/admin/rechnungen)
 
 Weitere Details: [Stripe-Integration](stripe.md)
 
@@ -130,7 +128,7 @@ Weitere Details: [Stripe-Integration](stripe.md)
 
 ### Live-Monitoring im Admin-Panel
 
-Das Admin-Panel unter [web.localhost/admin/monitoring](http://web.localhost/admin/monitoring) zeigt:
+Das Admin-Panel unter [{PROTO}://web.{DOMAIN}/admin/monitoring]({PROTO}://web.{DOMAIN}/admin/monitoring) zeigt:
 - Status aller Kubernetes-Pods (laufend / fehler / neustart)
 - CPU- und RAM-Auslastung je Pod
 - Aktuelle Kubernetes-Events (Warnungen, Restarts)
@@ -213,7 +211,7 @@ Falls das nicht hilft: `task workspace:logs -- nextcloud` auf Datenbankfehler pr
 
 ### Keycloak-Login funktioniert nicht für einen Dienst
 
-1. Prüfe ob der Dienst als OIDC-Client in Keycloak registriert ist: [auth.localhost/admin](http://auth.localhost/admin) → Clients
+1. Prüfe ob der Dienst als OIDC-Client in Keycloak registriert ist: [{PROTO}://auth.{DOMAIN}/admin]({PROTO}://auth.{DOMAIN}/admin) → Clients
 2. Prüfe die Redirect-URIs des Clients
 3. Dienst neustarten: `task workspace:restart -- <dienst>`
 
@@ -223,19 +221,6 @@ Falls das nicht hilft: `task workspace:logs -- nextcloud` auf Datenbankfehler pr
 2. Ingress-Regel in `k3d/ingress.yaml` ergänzen
 3. `task workspace:validate` ausführen
 4. PR erstellen und nach Merge deployen: `task workspace:deploy`
-
-### Wie aktualisiere ich die Dokumentation?
-
-Die Docs-Seite lädt Markdown-Dateien aus `docs/`. Nach einer Änderung:
-```bash
-# Nach PR-Merge auf main:
-kubectl patch configmap docs-content -n workspace --patch-file /dev/stdin <<EOF
-... (Inhalt aus CI/Deploy-Skript)
-EOF
-kubectl rollout restart deployment/docs -n workspace
-```
-
-Weitere Details: Siehe [Docs-Deployment Referenz](../memory/reference_docs_deployment.md).
 
 ---
 

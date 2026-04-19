@@ -67,26 +67,9 @@
     }
     .sidebar-toggle {
       background: var(--dark) !important;
-      border: 1px solid var(--dark-border) !important;
-      border-left: none !important;
-      border-radius: 0 6px 6px 0 !important;
-      padding: 12px 10px !important;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-      top: 1.5rem !important;
-    }
-    .sidebar-toggle:hover {
-      background: var(--dark-lighter) !important;
-      border-color: var(--gold) !important;
     }
     .sidebar-toggle span {
-      background-color: var(--gold) !important;
-      height: 2px !important;
-      width: 18px !important;
-      display: block !important;
-      margin: 4px 0 !important;
-      border-radius: 1px !important;
-      transition: background-color 0.15s;
+      background-color: var(--muted) !important;
     }
     .app-name-link {
       color: var(--gold) !important;
@@ -612,6 +595,17 @@
         depth: 3
       },
       plugins: [
+        /* ---- Domain resolver: replaces {DOMAIN} and {PROTO} in markdown -- */
+        function(hook) {
+          var host   = window.location.hostname;
+          var domain = host.replace(/^docs\./, '');
+          var proto  = window.location.protocol.replace(':', '');
+          hook.beforeEach(function(content) {
+            return content
+              .replace(/\{DOMAIN\}/g, domain)
+              .replace(/\{PROTO\}/g, proto);
+          });
+        },
         /* ---- Mermaid Panzoom ------------------------------------------ */
         function(hook) {
           hook.doneEach(function() {

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Invoice Ninja (billing), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
+**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
 
 Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
@@ -21,7 +21,6 @@ task workspace:up                # Full automated setup (Cluster + MVP + MCP)
 task workspace:deploy            # Deploy all workspace services (Kustomize)
 task workspace:validate          # Dry-run manifest validation
 task workspace:teardown          # Remove all services
-task workspace:prod:deploy       # Deploy to k3s-production
 ```
 
 ### Daily Operations
@@ -36,10 +35,10 @@ task workspace:port-forward      # Forward shared-db to localhost:5432
 ### Post-Deploy Setup
 ```bash
 task workspace:post-setup        # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
-task workspace:stripe-setup      # Register Stripe as payment gateway in Invoice Ninja
+task workspace:stripe-setup      # Configure Stripe payment gateway
 task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
 task workspace:dsgvo-check       # Run DSGVO compliance verification (NFA-01)
-task workspace:claude-code:setup    # Register MCP servers in Claude Code database
+task claude-code:setup           # Register MCP servers in Claude Code database
 ```
 
 ### Claude Code MCP Servers
@@ -95,9 +94,6 @@ task ddns:teardown               # Remove DDNS updater
 
 ### Configuration
 ```bash
-task domain:set -- <domain>      # Change production domain in .env
-task brand:set -- <name>         # Change branding name in .env
-task email:set -- <email>        # Change contact email in .env
 task config:show                 # Show current config variables
 ```
 
@@ -153,7 +149,7 @@ graph TB
 ### Key components
 - **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the only deployment path.
 - **`prod/`** -- Production overlays/patches (TLS, resource limits, replicas, DDNS).
-- **`deploy/`** -- Alternative Skaffold-based deploy path (hot-reload for dev iteration). Contains `mcp/` for MCP server overlays.
+- **`deploy/`** -- Kustomize overlays for dev iteration. Contains `mcp/` for MCP server overlays.
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
@@ -166,7 +162,7 @@ graph TB
 - **Dev secrets**: `k3d/secrets.yaml` (dev values only -- never commit real credentials).
 - **Keycloak realm**: `k3d/realm-workspace-dev.json` (exported realm config loaded as ConfigMap).
 - **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (loaded as ConfigMap).
-- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Invoice Ninja, and Claude Code all authenticate through it.
+- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Vaultwarden, and Claude Code all authenticate through it.
 
 ## CI/CD
 
@@ -185,3 +181,26 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 5. Validate manifests before committing: `task workspace:validate`.
 6. After modifying Kubernetes manifests, run the relevant test(s): `./tests/runner.sh local <TEST-ID>`.
 7. Branch naming: `feature/*`, `fix/*`, `chore/*`.
+
+## Gotchas & Footguns
+
+Non-obvious repo behaviors. Violating these silently breaks things or hits the wrong cluster.
+
+### Environment targeting
+- **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work.
+- **ArgoCD tasks hardcode `--context mentolder`.** ArgoCD is a hub on the Hetzner cluster managing spoke clusters. Do not run `argocd:*` tasks expecting them to act on `korczewski`.
+
+### Kustomize overlays
+- **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.
+- **Never remove the `$patch: delete` block in `prod/kustomization.yaml`.** Its job is to strip the dev placeholder from `k3d/secrets.yaml` so SealedSecrets-managed secrets survive each deploy. Removing it overwrites production secrets with dev values.
+- **Collabora and CoTURN are NOT in the base kustomization.** `k3d/office-stack` and `k3d/coturn-stack` deploy via separate ArgoCD Applications (`argocd/applicationset-office.yaml`) and `task workspace:office:deploy`. A full bring-up order is `workspace:deploy` → `workspace:office:deploy` → CoTURN apply.
+- **Website image `:latest` is intentional** (`k3d/website.yaml`). CI warns about `:latest` elsewhere; do not "fix" the website tag to a digest — it is rebuilt and re-imported per deploy.
+
+### Scripts & env
+- **`scripts/env-resolve.sh` must be sourced, never executed.** It uses `return 1 2>/dev/null || exit 1`, so `bash scripts/env-resolve.sh` exits the parent shell and subsequent task commands never run. Always `source scripts/env-resolve.sh "$ENV"`.
+- **`envsubst` variable lists are hardcoded per task.** If you add a new `${VAR}` reference to a manifest, also add it to the `envsubst "\$VAR1 \$VAR2 ..."` list in every task that builds that manifest, or the placeholder stays literal and kubectl apply fails with an invalid manifest.
+- **`env:generate ENV=<target>` must run before `env:seal` and before deploying prod.** `talk-hpb-setup.sh` aborts on placeholder `MANAGED_EXTERNALLY` values if signaling/turn secrets were never generated.
+
+### Operational
+- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `kubectl rollout restart deploy/docs -n workspace --context <env>`. Applying the ConfigMap alone leaves the old content served.
+- **yamllint runs a 200-char line limit in CI only.** Long base64 strings or multiline patches that are fine locally will fail the `lint-yaml` job on PR. Run `yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' <file>` before pushing.

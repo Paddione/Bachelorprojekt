@@ -85,19 +85,33 @@ configMapGenerator:
       - docs-content/benutzerhandbuch.md
       - docs-content/adminhandbuch.md
       - docs-content/keycloak.md
-      - docs-content/mcp-actions.md
       - docs-content/migration.md
       - docs-content/requirements.md
       - docs-content/scripts.md
       - docs-content/security-report.md
       - docs-content/security.md
-      - docs-content/services.md
       - docs-content/test-anleitung-korczewski.md
       - docs-content/tests.md
       - docs-content/troubleshooting.md
       - docs-content/verarbeitungsverzeichnis.md
-      - docs-content/stripe.md
       - docs-content/admin-projekte.md
+      - docs-content/nextcloud.md
+      - docs-content/collabora.md
+      - docs-content/talk-hpb.md
+      - docs-content/claude-code.md
+      - docs-content/vaultwarden.md
+      - docs-content/website.md
+      - docs-content/whiteboard.md
+      - docs-content/mailpit.md
+      - docs-content/whisper.md
+      - docs-content/monitoring.md
+      - docs-content/shared-db.md
+      - docs-content/operations.md
+      - docs-content/environments.md
+      - docs-content/argocd.md
+      - docs-content/backup.md
+      - docs-content/dsgvo.md
+      - docs-content/contributing.md
 
 generatorOptions:
   disableNameSuffixHash: true

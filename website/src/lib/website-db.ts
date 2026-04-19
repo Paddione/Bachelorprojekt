@@ -541,6 +541,7 @@ export interface LeistungServiceOverride {
   unit?: string;
   desc?: string;
   highlight?: boolean;
+  stundensatz_cents?: number;
 }
 
 export interface LeistungCategoryOverride {
@@ -1214,6 +1215,8 @@ export async function exportProjectsFlat(brand: string): Promise<ProjectExportRo
 
 // ── Time Entries ──────────────────────────────────────────────────────────────
 
+let timeEntriesReady = false;
+
 export interface TimeEntry {
   id: string;
   projectId: string;
@@ -1224,12 +1227,14 @@ export interface TimeEntry {
   minutes: number;
   billable: boolean;
   rateCents: number;
+  leistungKey: string | null;
   stripeInvoiceId: string | null;
   entryDate: Date;
   createdAt: Date;
 }
 
 async function initTimeEntriesTable(): Promise<void> {
+  if (timeEntriesReady) return;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
       id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1253,6 +1258,10 @@ async function initTimeEntriesTable(): Promise<void> {
   await pool.query(`
     ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS stripe_invoice_id TEXT
   `);
+  await pool.query(`
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS leistung_key TEXT
+  `);
+  timeEntriesReady = true;
 }
 
 export async function getLastTimeEntryRate(): Promise<number> {
@@ -1270,12 +1279,13 @@ export async function createTimeEntry(params: {
   minutes: number;
   billable?: boolean;
   rateCents?: number;
+  leistungKey?: string;
   entryDate?: string;
 }): Promise<TimeEntry> {
   await initTimeEntriesTable();
   const result = await pool.query(
-    `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, rate_cents, entry_date)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, rate_cents, leistung_key, entry_date)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING
        id,
        project_id        AS "projectId",
@@ -1286,6 +1296,7 @@ export async function createTimeEntry(params: {
        minutes,
        billable,
        rate_cents        AS "rateCents",
+       leistung_key      AS "leistungKey",
        stripe_invoice_id AS "stripeInvoiceId",
        entry_date        AS "entryDate",
        created_at        AS "createdAt"`,
@@ -1296,6 +1307,7 @@ export async function createTimeEntry(params: {
       params.minutes,
       params.billable ?? true,
       params.rateCents ?? 0,
+      params.leistungKey ?? null,
       params.entryDate ?? null,
     ]
   );
@@ -1315,6 +1327,7 @@ export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
             te.billable,
             te.rate_cents        AS "rateCents",
             te.stripe_invoice_id AS "stripeInvoiceId",
+            te.leistung_key      AS "leistungKey",
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
@@ -1343,6 +1356,7 @@ export async function listAllTimeEntries(params?: {
             te.billable,
             te.rate_cents        AS "rateCents",
             te.stripe_invoice_id AS "stripeInvoiceId",
+            te.leistung_key      AS "leistungKey",
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
@@ -1876,6 +1890,9 @@ async function initBookingProjectLinks(): Promise<void> {
       PRIMARY KEY (caldav_uid, brand)
     )
   `);
+  await pool.query(`
+    ALTER TABLE booking_project_links ADD COLUMN IF NOT EXISTS leistung_key TEXT
+  `);
   bookingProjectLinksReady = true;
 }
 
@@ -1960,7 +1977,12 @@ export async function getBookingProjects(caldavUids: string[], brand: string): P
   return new Map(result.rows.map((r: { caldav_uid: string; project_id: string }) => [r.caldav_uid, r.project_id]));
 }
 
-export async function setBookingProject(caldavUid: string, projectId: string | null, brand: string): Promise<void> {
+export async function setBookingProject(
+  caldavUid: string,
+  projectId: string | null,
+  brand: string,
+  leistungKey?: string
+): Promise<void> {
   await initBookingProjectLinks();
   if (!projectId) {
     await pool.query(
@@ -1969,11 +1991,25 @@ export async function setBookingProject(caldavUid: string, projectId: string | n
     );
   } else {
     await pool.query(
-      `INSERT INTO booking_project_links (caldav_uid, brand, project_id) VALUES ($1, $2, $3)
-       ON CONFLICT (caldav_uid, brand) DO UPDATE SET project_id = EXCLUDED.project_id`,
-      [caldavUid, brand, projectId]
+      `INSERT INTO booking_project_links (caldav_uid, brand, project_id, leistung_key)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (caldav_uid, brand) DO UPDATE
+         SET project_id  = EXCLUDED.project_id,
+             leistung_key = EXCLUDED.leistung_key`,
+      [caldavUid, brand, projectId, leistungKey ?? null]
     );
   }
+}
+
+export async function getBookingLeistungen(caldavUids: string[], brand: string): Promise<Map<string, string>> {
+  if (caldavUids.length === 0) return new Map();
+  await initBookingProjectLinks();
+  const result = await pool.query(
+    `SELECT caldav_uid, leistung_key FROM booking_project_links
+     WHERE caldav_uid = ANY($1) AND brand = $2 AND leistung_key IS NOT NULL`,
+    [caldavUids, brand]
+  );
+  return new Map(result.rows.map((r: { caldav_uid: string; leistung_key: string }) => [r.caldav_uid, r.leistung_key]));
 }
 
 // ── Slot Whitelist ────────────────────────────────────────────────────────────

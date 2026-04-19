@@ -43,12 +43,30 @@ export const POST: APIRoute = async ({ request, params }) => {
         const fullName = `${p.firstName} ${p.lastName}`;
 
         const result = await createUser({ email: p.email, firstName: p.firstName, lastName: p.lastName, phone: p.phone, company: p.company });
-        if (!result.success || !result.userId) {
+
+        let userId = result.userId;
+
+        // If user already exists (e.g. partial failure on prior attempt), look up the existing user
+        // so we can still send the password reset and complete the approval.
+        if (!result.success && result.error?.includes('bereits')) {
+          const { listUsers } = await import('../../../../../lib/keycloak');
+          const allUsers = await listUsers();
+          const existing = allUsers.find(u => u.email?.toLowerCase() === p.email.toLowerCase());
+          if (existing) {
+            userId = existing.id;
+          } else {
+            return new Response(JSON.stringify({ error: `Keycloak-Fehler: ${result.error}` }), { status: 500 });
+          }
+        } else if (!result.success || !userId) {
           return new Response(JSON.stringify({ error: `Keycloak-Fehler: ${result.error}` }), { status: 500 });
         }
-        await sendPasswordResetEmail(result.userId);
-        await sendRegistrationApproved(p.email, fullName);
-        await upsertCustomer({ name: fullName, email: p.email, phone: p.phone, company: p.company, keycloakUserId: result.userId });
+
+        await sendPasswordResetEmail(userId);
+        // Emails are best-effort — upsertCustomer and inbox update must still succeed
+        sendRegistrationApproved(p.email, fullName).catch(err =>
+          console.error('[approve_registration] Failed to send approval email:', err)
+        );
+        await upsertCustomer({ name: fullName, email: p.email, phone: p.phone, company: p.company, keycloakUserId: userId });
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
         return new Response(JSON.stringify({ success: true, message: `${fullName} freigeschaltet` }), {
           headers: { 'Content-Type': 'application/json' },

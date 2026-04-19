@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { insertBugTicket } from '../../lib/website-db';
 import { createInboxItem } from '../../lib/messaging-db';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
@@ -27,6 +28,10 @@ function generateTicketId(): string {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`bug-report:${ip}`, 10, 60_000)) {
+    return jsonError('Zu viele Anfragen. Bitte warten Sie einen Moment.', 429);
+  }
   try {
     const formData = await request.formData();
 

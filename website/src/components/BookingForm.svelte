@@ -127,7 +127,7 @@
           message,
           slotStart: selectedSlot?.start ?? null,
           slotEnd: selectedSlot?.end ?? null,
-          slotDisplay: selectedSlot?.display ?? null,
+          slotDisplay: selectedSlot ? formatSlotTime(selectedSlot.start, selectedSlot.end) : null,
           date: selectedDate,
           serviceKey: serviceKey ?? null,
           projectId: selectedProjectId || undefined,
@@ -154,6 +154,15 @@
     } finally {
       submitting = false;
     }
+  }
+
+  // Format ISO timestamp in user's local timezone so slot times are correct
+  // regardless of server timezone (server runs UTC, users may be in CEST etc.)
+  function formatSlotTime(isoStart: string, isoEnd: string): string {
+    const fmt = (iso: string) => new Date(iso).toLocaleTimeString('de-DE', {
+      hour: '2-digit', minute: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+    return `${fmt(isoStart)} - ${fmt(isoEnd)}`;
   }
 
 </script>
@@ -220,7 +229,7 @@
                 : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted hover:text-light'}"
               onclick={() => selectSlot(slot)}
             >
-              {slot.display}
+              {formatSlotTime(slot.start, slot.end)}
             </button>
           {/each}
         </div>
@@ -228,7 +237,7 @@
 
       {#if selectedSlot}
         <p class="mt-4 text-gold font-medium" data-testid="selected-slot-display">
-          Gewählt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {selectedSlot.display}
+          Gewählt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {formatSlotTime(selectedSlot.start, selectedSlot.end)}
         </p>
       {/if}
     {/if}

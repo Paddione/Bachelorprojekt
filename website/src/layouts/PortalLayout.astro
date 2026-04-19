@@ -4,6 +4,7 @@ import { config } from '../config/index';
 import { isAdmin } from '../lib/auth';
 import type { UserSession } from '../lib/auth';
 import ChatWidget from '../components/ChatWidget.svelte';
+import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 
 interface Props {
   title: string;
@@ -239,5 +240,6 @@ const userIsAdmin   = isAdmin(session);
     </main>
 
     <ChatWidget client:load />
+    <SessionExpiryWarning client:load />
   </body>
 </html>

@@ -13,6 +13,9 @@ export const POST: APIRoute = async ({ request }) => {
   const isAdminUser = !!session && isAdmin(session);
   if (!isCron && !isAdminUser) return new Response(null, { status: 403 });
 
+  const url    = new URL(request.url);
+  const dryRun = url.searchParams.get('dryRun') === 'true';
+
   const body  = await request.json().catch(() => ({}));
   const now   = new Date();
   const year  = body.year  ?? (now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear());
@@ -24,18 +27,39 @@ export const POST: APIRoute = async ({ request }) => {
 
   const groups = await getUnbilledBillableEntriesByCustomer(year, month);
   if (groups.length === 0) {
-    return Response.json({ created: 0, message: 'Keine abrechenbaren Einträge gefunden.' });
+    return Response.json({ created: 0, dryRun, message: 'Keine abrechenbaren Einträge gefunden.' });
   }
 
-  const invoiceMap = await createMonthlyDraftInvoices(groups, monthLabel);
+  if (dryRun) {
+    const preview = groups.map(g => ({
+      customerName: g.customerName,
+      customerEmail: g.customerEmail,
+      entryCount: g.entries.length,
+      totalMinutes: g.entries.reduce((s, e) => s + e.minutes, 0),
+    }));
+    return Response.json({ dryRun: true, wouldCreate: groups.length, period: monthLabel, preview });
+  }
+
+  // Create invoices and immediately mark each customer's time entries to prevent
+  // duplicate invoices if the endpoint is called again before all entries are marked.
+  let created = 0;
+  let skipped = 0;
 
   for (const group of groups) {
-    const invoiceId = invoiceMap.get(group.customerId);
-    if (invoiceId) {
-      await setTimeEntryStripeInvoice(group.entries.map(e => e.id), invoiceId);
+    try {
+      const invoiceMap = await createMonthlyDraftInvoices([group], monthLabel);
+      const invoiceId = invoiceMap.get(group.customerId);
+      if (invoiceId) {
+        await setTimeEntryStripeInvoice(group.entries.map(e => e.id), invoiceId);
+        created++;
+      } else {
+        skipped++;
+      }
+    } catch (err) {
+      console.error(`[billing] Failed for customer ${group.customerId}:`, err);
+      skipped++;
     }
   }
 
-  const skipped = groups.length - invoiceMap.size;
-  return Response.json({ created: invoiceMap.size, skipped, period: monthLabel });
+  return Response.json({ created, skipped, period: monthLabel });
 };

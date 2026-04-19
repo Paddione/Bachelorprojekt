@@ -38,6 +38,8 @@ export const POST: APIRoute = async ({ request }) => {
     const invoiceId = pi.metadata?.invoice_id;
     if (invoiceId) {
       try {
+        // Mark the invoice as paid via the out-of-band path: the charge occurred through
+        // our separately created PaymentIntent; this records the settlement on the invoice.
         await stripe.invoices.pay(invoiceId, { paid_out_of_band: true });
         console.log(`[stripe] Invoice ${invoiceId} marked paid via payment_intent ${pi.id}`);
       } catch (err) {

@@ -56,15 +56,12 @@ export const POST: APIRoute = async ({ request }) => {
       ? invoice.customer
       : invoice.customer?.id ?? undefined;
 
-    const paymentIntent = await stripe.paymentIntents.create(
-      {
-        amount: invoice.amount_remaining,
-        currency: invoice.currency,
-        customer: customerId,
-        metadata: { invoice_id: invoiceId },
-      },
-      { idempotencyKey: `pay-invoice-${invoiceId}` }
-    );
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: invoice.amount_remaining,
+      currency: invoice.currency,
+      customer: customerId,
+      metadata: { invoice_id: invoiceId },
+    });
 
     return new Response(
       JSON.stringify({ clientSecret: paymentIntent.client_secret }),

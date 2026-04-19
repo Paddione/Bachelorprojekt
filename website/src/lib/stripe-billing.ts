@@ -325,7 +325,7 @@ export async function getDraftInvoices(): Promise<AdminBillingInvoice[]> {
 export async function getDraftInvoiceDetail(invoiceId: string): Promise<DraftInvoiceDetail | null> {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   const inv = await stripe.invoices.retrieve(invoiceId, {
-    expand: ['customer', 'lines.data.invoice_item'],
+    expand: ['customer'],
   });
   if (inv.status !== 'draft') return null;
 
@@ -334,11 +334,10 @@ export async function getDraftInvoiceDetail(invoiceId: string): Promise<DraftInv
     : null;
 
   const items: DraftInvoiceItem[] = inv.lines.data.map(line => {
-    const ii            = line.invoice_item;
-    const invoiceItemId = typeof ii === 'string' ? ii : (ii as Stripe.InvoiceItem)?.id ?? '';
-    const meta          = (typeof ii === 'object' && ii) ? (ii as Stripe.InvoiceItem).metadata : {};
-    const rateCents     = parseInt(meta?.rate_cents ?? '0', 10);
-    const hours         = parseFloat(meta?.hours ?? '0');
+    const invoiceItemId = line.parent?.invoice_item_details?.invoice_item ?? '';
+    const meta          = line.metadata ?? {};
+    const rateCents     = parseInt(meta.rate_cents ?? '0', 10);
+    const hours         = parseFloat(meta.hours ?? '0');
     return {
       lineItemId:  line.id,
       invoiceItemId,
@@ -415,12 +414,9 @@ export async function sendDraftInvoice(invoiceId: string): Promise<void> {
 
 export async function discardDraftInvoice(invoiceId: string): Promise<void> {
   if (!process.env.STRIPE_SECRET_KEY) return;
-  const inv = await stripe.invoices.retrieve(invoiceId, {
-    expand: ['lines.data.invoice_item'],
-  });
+  const inv = await stripe.invoices.retrieve(invoiceId);
   for (const line of inv.lines.data) {
-    const ii   = line.invoice_item;
-    const iiId = typeof ii === 'string' ? ii : (ii as Stripe.InvoiceItem)?.id;
+    const iiId = line.parent?.invoice_item_details?.invoice_item;
     if (iiId) await stripe.invoiceItems.del(iiId).catch(() => {});
   }
   await stripe.invoices.del(invoiceId);

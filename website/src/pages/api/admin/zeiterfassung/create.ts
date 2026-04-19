@@ -15,6 +15,16 @@ export const POST: APIRoute = async ({ request }) => {
   const entryDate    = form.get('entryDate') as string | null;
   const back         = form.get('_back') as string | null;
 
+  const rateCentsRaw = form.get('rateCents') as string;
+  const rateCents    = Math.round(parseFloat(rateCentsRaw || '0') * 100);
+  if (isNaN(rateCents) || rateCents < 0) {
+    const dest = back || '/admin/zeiterfassung';
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `${dest}?error=${encodeURIComponent('Ungültiger Stundensatz')}` },
+    });
+  }
+
   const minutes = parseInt(minutesRaw, 10);
   if (!projectId || isNaN(minutes) || minutes <= 0) {
     const dest = back || '/admin/zeiterfassung';
@@ -31,6 +41,7 @@ export const POST: APIRoute = async ({ request }) => {
       description: description || undefined,
       minutes,
       billable,
+      rateCents,
       entryDate: entryDate || undefined,
     });
   } catch (err) {

@@ -1223,6 +1223,8 @@ export interface TimeEntry {
   description: string | null;
   minutes: number;
   billable: boolean;
+  rateCents: number;
+  stripeInvoiceId: string | null;
   entryDate: Date;
   createdAt: Date;
 }
@@ -1230,19 +1232,35 @@ export interface TimeEntry {
 async function initTimeEntriesTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
-      id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id  UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-      task_id     UUID        REFERENCES project_tasks(id) ON DELETE SET NULL,
-      description TEXT,
-      minutes     INTEGER     NOT NULL CHECK (minutes > 0),
-      billable    BOOLEAN     NOT NULL DEFAULT true,
-      entry_date  DATE        NOT NULL DEFAULT CURRENT_DATE,
-      created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      project_id        UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      task_id           UUID        REFERENCES project_tasks(id) ON DELETE SET NULL,
+      description       TEXT,
+      minutes           INTEGER     NOT NULL CHECK (minutes > 0),
+      billable          BOOLEAN     NOT NULL DEFAULT true,
+      rate_cents        INTEGER     NOT NULL DEFAULT 0,
+      stripe_invoice_id TEXT,
+      entry_date        DATE        NOT NULL DEFAULT CURRENT_DATE,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS time_entries_project_id_idx ON time_entries(project_id)
   `);
+  await pool.query(`
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS rate_cents        INTEGER DEFAULT 0
+  `);
+  await pool.query(`
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS stripe_invoice_id TEXT
+  `);
+}
+
+export async function getLastTimeEntryRate(): Promise<number> {
+  await initTimeEntriesTable();
+  const result = await pool.query(
+    `SELECT rate_cents FROM time_entries ORDER BY created_at DESC LIMIT 1`
+  );
+  return result.rows[0]?.rate_cents ?? 0;
 }
 
 export async function createTimeEntry(params: {
@@ -1251,51 +1269,54 @@ export async function createTimeEntry(params: {
   description?: string;
   minutes: number;
   billable?: boolean;
+  rateCents?: number;
   entryDate?: string;
 }): Promise<TimeEntry> {
   await initTimeEntriesTable();
   const result = await pool.query(
-    `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, entry_date)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, rate_cents, entry_date)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING
        id,
-       project_id  AS "projectId",
-       ''          AS "projectName",
-       task_id     AS "taskId",
-       NULL        AS "taskName",
+       project_id        AS "projectId",
+       NULL::text        AS "projectName",
+       task_id           AS "taskId",
+       NULL::text        AS "taskName",
        description,
        minutes,
        billable,
-       entry_date  AS "entryDate",
-       created_at  AS "createdAt"`,
+       rate_cents        AS "rateCents",
+       stripe_invoice_id AS "stripeInvoiceId",
+       entry_date        AS "entryDate",
+       created_at        AS "createdAt"`,
     [
       params.projectId,
       params.taskId ?? null,
       params.description ?? null,
       params.minutes,
       params.billable ?? true,
+      params.rateCents ?? 0,
       params.entryDate ?? null,
     ]
   );
-  // Re-fetch with JOINs to get names
-  return (await listTimeEntries(params.projectId)).find(
-    (e) => e.id === result.rows[0].id
-  ) as TimeEntry;
+  return result.rows[0] as TimeEntry;
 }
 
 export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
   await initTimeEntriesTable();
   const result = await pool.query(
     `SELECT te.id,
-            te.project_id  AS "projectId",
-            p.name         AS "projectName",
-            te.task_id     AS "taskId",
-            pt.name        AS "taskName",
+            te.project_id        AS "projectId",
+            p.name               AS "projectName",
+            te.task_id           AS "taskId",
+            pt.name              AS "taskName",
             te.description,
             te.minutes,
             te.billable,
-            te.entry_date  AS "entryDate",
-            te.created_at  AS "createdAt"
+            te.rate_cents        AS "rateCents",
+            te.stripe_invoice_id AS "stripeInvoiceId",
+            te.entry_date        AS "entryDate",
+            te.created_at        AS "createdAt"
      FROM time_entries te
      JOIN projects      p  ON p.id  = te.project_id
      LEFT JOIN project_tasks pt ON pt.id = te.task_id
@@ -1313,15 +1334,17 @@ export async function listAllTimeEntries(params?: {
   await initTimeEntriesTable();
   const result = await pool.query(
     `SELECT te.id,
-            te.project_id  AS "projectId",
-            p.name         AS "projectName",
-            te.task_id     AS "taskId",
-            pt.name        AS "taskName",
+            te.project_id        AS "projectId",
+            p.name               AS "projectName",
+            te.task_id           AS "taskId",
+            pt.name              AS "taskName",
             te.description,
             te.minutes,
             te.billable,
-            te.entry_date  AS "entryDate",
-            te.created_at  AS "createdAt"
+            te.rate_cents        AS "rateCents",
+            te.stripe_invoice_id AS "stripeInvoiceId",
+            te.entry_date        AS "entryDate",
+            te.created_at        AS "createdAt"
      FROM time_entries te
      JOIN projects      p  ON p.id  = te.project_id
      LEFT JOIN project_tasks pt ON pt.id = te.task_id
@@ -1331,6 +1354,93 @@ export async function listAllTimeEntries(params?: {
     [params?.billable ?? null, params?.since ?? null]
   );
   return result.rows;
+}
+
+export async function setTimeEntryStripeInvoice(
+  ids: string[],
+  stripeInvoiceId: string | null
+): Promise<void> {
+  if (ids.length === 0) return;
+  await initTimeEntriesTable();
+  await pool.query(
+    `UPDATE time_entries SET stripe_invoice_id = $1 WHERE id = ANY($2::uuid[])`,
+    [stripeInvoiceId, ids]
+  );
+}
+
+export async function getTimeEntryIdsByInvoice(stripeInvoiceId: string): Promise<string[]> {
+  await initTimeEntriesTable();
+  const result = await pool.query<{ id: string }>(
+    `SELECT id FROM time_entries WHERE stripe_invoice_id = $1`,
+    [stripeInvoiceId]
+  );
+  return result.rows.map(r => r.id);
+}
+
+export interface UnbilledCustomerGroup {
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  entries: Array<{
+    id: string;
+    projectId: string;
+    projectName: string;
+    description: string | null;
+    minutes: number;
+    rateCents: number;
+    entryDate: Date;
+  }>;
+}
+
+export async function getUnbilledBillableEntriesByCustomer(
+  year: number,
+  month: number  // 1-12
+): Promise<UnbilledCustomerGroup[]> {
+  await initTimeEntriesTable();
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endDate   = new Date(year, month, 0).toISOString().slice(0, 10);
+  const result = await pool.query(
+    `SELECT te.id,
+            te.project_id        AS "projectId",
+            p.name               AS "projectName",
+            te.description,
+            te.minutes,
+            te.rate_cents        AS "rateCents",
+            te.entry_date        AS "entryDate",
+            c.id                 AS "customerId",
+            c.name               AS "customerName",
+            c.email              AS "customerEmail"
+     FROM time_entries te
+     JOIN projects  p ON p.id = te.project_id
+     JOIN customers c ON c.id = p.customer_id
+     WHERE te.billable = true
+       AND te.stripe_invoice_id IS NULL
+       AND te.entry_date BETWEEN $1 AND $2
+       AND p.customer_id IS NOT NULL`,
+    [startDate, endDate]
+  );
+
+  const byCustomer = new Map<string, UnbilledCustomerGroup>();
+  for (const row of result.rows) {
+    if (!byCustomer.has(row.customerId)) {
+      byCustomer.set(row.customerId, {
+        customerId: row.customerId,
+        customerName: row.customerName,
+        customerEmail: row.customerEmail,
+        entries: [],
+      });
+    }
+    byCustomer.get(row.customerId)!.entries.push({
+      id: row.id,
+      projectId: row.projectId,
+      projectName: row.projectName,
+      description: row.description,
+      minutes: row.minutes,
+      rateCents: row.rateCents,
+      entryDate: row.entryDate,
+    });
+  }
+  return [...byCustomer.values()];
 }
 
 // ── Meeting-Projekt-Verknüpfung ───────────────────────────────────────────────

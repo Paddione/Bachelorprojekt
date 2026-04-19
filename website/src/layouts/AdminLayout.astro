@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { config } from '../config/index';
 import BugReportWidget from '../components/BugReportWidget.svelte';
+import ChatWidget from '../components/ChatWidget.svelte';
 
 interface Props {
   title: string;
@@ -264,6 +265,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     </main>
 
     <BugReportWidget client:load />
+    <ChatWidget client:load />
 
     <script is:inline>
       (function() {

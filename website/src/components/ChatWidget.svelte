@@ -1,13 +1,11 @@
 <script lang="ts">
-  import type { ChatMessage } from '../lib/messaging-db';
+  import type { RoomInboxItem, ChatMessage } from '../lib/messaging-db';
 
-  interface DirectRoom { id: number; name: string; is_direct: boolean; direct_customer_id: string | null; unreadCount: number; }
-  interface Customer { id: string; name: string; email: string; }
   type AuthResponse = { authenticated: false } | { authenticated: true; user: { name: string; isAdmin: boolean } };
 
   let open = $state(false);
   let visible = $state(false);
-  let rooms = $state<DirectRoom[]>([]);
+  let rooms = $state<RoomInboxItem[]>([]);
   let activeRoomId = $state<number | null>(null);
   let messages = $state<ChatMessage[]>([]);
   let newBody = $state('');
@@ -19,20 +17,8 @@
   let pollInterval: ReturnType<typeof setInterval> | null = null;
   let msgContainer = $state<HTMLDivElement | null>(null);
 
-  let showPicker = $state(false);
-  let allCustomers = $state<Customer[]>([]);
-  let customerSearch = $state('');
-  let pickerLoading = $state(false);
-
   let totalUnread = $derived(rooms.reduce((sum, r) => sum + r.unreadCount, 0));
   let activeRoom = $derived(rooms.find(r => r.id === activeRoomId) ?? null);
-  let filteredCustomers = $derived(
-    allCustomers.filter(c =>
-      customerSearch === '' ||
-      c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-      c.email.toLowerCase().includes(customerSearch.toLowerCase())
-    )
-  );
 
   $effect(() => {
     initWidget();
@@ -54,9 +40,9 @@
         if (!dr.ok) return;
         const { room_id, customer_id } = await dr.json() as { room_id: number; customer_id: string };
         customerId = customer_id;
+        await loadRooms();
         activeRoomId = room_id;
         await loadMessages();
-        await loadRooms();
       }
       startPolling();
     } finally {
@@ -69,14 +55,12 @@
       const res = await fetch('/api/admin/rooms');
       if (!res.ok) return;
       const data = await res.json() as { rooms: Array<{ id: number; name: string; is_direct: boolean; direct_customer_id: string | null }> };
-      rooms = data.rooms
-        .filter(r => r.is_direct)
-        .map(r => ({ id: r.id, name: r.name, is_direct: r.is_direct, direct_customer_id: r.direct_customer_id, unreadCount: 0 }));
+      rooms = data.rooms.map(r => ({ id: r.id, name: r.name, is_direct: r.is_direct, direct_customer_id: r.direct_customer_id, lastMessageBody: null, lastMessageSenderName: null, lastMessageAt: null, unreadCount: 0 }));
     } else {
       const res = await fetch('/api/portal/rooms');
       if (!res.ok) return;
-      const data = await res.json() as { rooms: Array<{ id: number; name: string; lastMessageBody: string | null; unreadCount: number }> };
-      rooms = data.rooms.map(r => ({ id: r.id, name: r.name, is_direct: true, direct_customer_id: null, unreadCount: r.unreadCount }));
+      const data = await res.json() as { rooms: RoomInboxItem[] };
+      rooms = data.rooms;
     }
   }
 
@@ -152,34 +136,6 @@
   function isOwn(msg: ChatMessage) {
     return adminMode ? msg.sender_customer_id === null : msg.sender_customer_id === customerId;
   }
-
-  async function openPicker() {
-    showPicker = true;
-    customerSearch = '';
-    if (allCustomers.length === 0) {
-      pickerLoading = true;
-      try {
-        const res = await fetch('/api/admin/customers');
-        if (res.ok) {
-          const data = await res.json() as { customers: Customer[] };
-          allCustomers = data.customers;
-        }
-      } finally { pickerLoading = false; }
-    }
-  }
-
-  async function startDirectChat(customer: Customer) {
-    showPicker = false;
-    const res = await fetch('/api/admin/rooms/direct', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customerId: customer.id }),
-    });
-    if (!res.ok) return;
-    const { room_id } = await res.json() as { room_id: number };
-    await loadRooms();
-    await selectRoom(room_id);
-  }
 </script>
 
 {#if visible}
@@ -187,28 +143,21 @@
     {#if open}
       <div class="panel">
         <div class="hdr">
-          <span>💬 {adminMode ? (activeRoom?.name ?? 'Chats') : 'Chat mit Admin'}</span>
+          <span>💬 {activeRoom?.name ?? 'Chat'}</span>
           <button class="x" onclick={toggleOpen} aria-label="Schließen">✕</button>
         </div>
         <div class="body">
-          {#if adminMode}
-            <aside class="rooms">
-              <button class="new-chat" onclick={openPicker} title="Neuen Chat starten">＋</button>
-              {#each rooms as r (r.id)}
-                <button class="ri {activeRoomId === r.id ? 'active' : ''}" onclick={() => selectRoom(r.id)}>
-                  <span class="rn">{r.name}</span>
-                  {#if r.unreadCount > 0}<span class="badge">{r.unreadCount > 9 ? '9+' : r.unreadCount}</span>{/if}
-                </button>
-              {/each}
-              {#if rooms.length === 0}
-                <p class="no-chats">Noch keine Chats.<br/>Mit ＋ starten.</p>
-              {/if}
-            </aside>
-          {/if}
+          <aside class="rooms">
+            {#each rooms as r (r.id)}
+              <button class="ri {activeRoomId === r.id ? 'active' : ''}" onclick={() => selectRoom(r.id)}>
+                <span class="rn">{r.name}</span>
+                {#if r.unreadCount > 0}<span class="badge">{r.unreadCount > 9 ? '9+' : r.unreadCount}</span>{/if}
+              </button>
+            {/each}
+          </aside>
           <div class="msgs">
             <div class="list" bind:this={msgContainer}>
               {#if loading}<p class="hint">Lade…</p>
-              {:else if !activeRoomId}<p class="hint">Wähle einen Chat oder starte einen neuen.</p>
               {:else if messages.length === 0}<p class="hint">Noch keine Nachrichten.</p>
               {:else}
                 {#each messages as msg (msg.id)}
@@ -229,29 +178,6 @@
             </div>
           </div>
         </div>
-        {#if showPicker}
-          <div class="picker">
-            <div class="picker-hdr">
-              <span>Neuen Chat starten</span>
-              <button class="x" onclick={() => showPicker = false}>✕</button>
-            </div>
-            <input class="picker-search" bind:value={customerSearch} placeholder="Name oder E-Mail suchen…" autofocus />
-            <div class="picker-list">
-              {#if pickerLoading}
-                <p class="hint">Lade…</p>
-              {:else if filteredCustomers.length === 0}
-                <p class="hint">Keine Treffer.</p>
-              {:else}
-                {#each filteredCustomers as c (c.id)}
-                  <button class="picker-item" onclick={() => startDirectChat(c)}>
-                    <span class="pi-name">{c.name}</span>
-                    <span class="pi-email">{c.email}</span>
-                  </button>
-                {/each}
-              {/if}
-            </div>
-          </div>
-        {/if}
       </div>
     {/if}
     <button class="fab" onclick={toggleOpen} aria-label="Chat">
@@ -262,15 +188,12 @@
 {/if}
 
 <style>
-  .cw { position: fixed; bottom: 24px; right: 184px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-  .panel { width: 560px; height: 440px; background: #1a2235; border: 1px solid #243049; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,.5); overflow: hidden; position: relative; }
+  .cw { position: fixed; bottom: 24px; right: 90px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .panel { width: 560px; height: 440px; background: #1a2235; border: 1px solid #243049; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,.5); overflow: hidden; }
   .hdr { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #243049; font-size: 14px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
   .x { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
   .body { display: flex; flex: 1; min-height: 0; }
   .rooms { width: 160px; flex-shrink: 0; border-right: 1px solid #243049; overflow-y: auto; display: flex; flex-direction: column; }
-  .new-chat { width: 100%; background: #1e2a3a; border: none; border-bottom: 1px solid #243049; padding: 8px 12px; cursor: pointer; color: #e8c870; font-size: 18px; font-weight: 700; text-align: center; transition: background .15s; }
-  .new-chat:hover { background: #243049; }
-  .no-chats { font-size: 11px; color: #5566aa; text-align: center; padding: 12px 8px; line-height: 1.5; }
   .ri { width: 100%; background: transparent; border: none; border-bottom: 1px solid #1e2a3a; text-align: left; padding: 10px 12px; cursor: pointer; color: #aabbcc; font-size: 12px; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
   .ri.active { background: #243049; color: #e8e8f0; }
   .ri:hover:not(.active) { background: #1e2a3a; }
@@ -297,13 +220,4 @@
   .fab { position: relative; width: 52px; height: 52px; border-radius: 50%; background: #e8c870; color: #0f1623; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; transition: transform .15s, box-shadow .15s; }
   .fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,.5); }
   .dot { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; padding: 2px 5px; font-family: monospace; min-width: 18px; text-align: center; line-height: 1.4; pointer-events: none; }
-  .picker { position: absolute; inset: 0; background: #1a2235; border-radius: 12px; display: flex; flex-direction: column; z-index: 10; }
-  .picker-hdr { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #243049; font-size: 14px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; border-radius: 12px 12px 0 0; }
-  .picker-search { margin: 10px 12px; background: #0f1623; color: #e8e8f0; border: 1px solid #374151; border-radius: 8px; padding: 7px 10px; font-size: 13px; font-family: inherit; }
-  .picker-search:focus { outline: none; border-color: #e8c870; }
-  .picker-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
-  .picker-item { background: transparent; border: none; border-bottom: 1px solid #1e2a3a; padding: 10px 12px; cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 2px; transition: background .15s; }
-  .picker-item:hover { background: #1e2a3a; }
-  .pi-name { font-size: 13px; color: #e8e8f0; font-weight: 500; }
-  .pi-email { font-size: 11px; color: #5566aa; }
 </style>

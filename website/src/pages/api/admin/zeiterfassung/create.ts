@@ -13,6 +13,7 @@ export const POST: APIRoute = async ({ request }) => {
   const minutesRaw   = form.get('minutes') as string;
   const billable     = form.get('billable') === 'true';
   const entryDate    = form.get('entryDate') as string | null;
+  const leistungKey  = (form.get('leistungKey') as string | null) || undefined;
   const back         = form.get('_back') as string | null;
 
   const rateCentsRaw = form.get('rateCents') as string;

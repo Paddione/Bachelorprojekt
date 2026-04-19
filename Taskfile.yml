@@ -275,6 +275,7 @@ tasks:
       - '{{.NC_EXEC}} "php occ app:install contacts"     || true'
       - '{{.NC_EXEC}} "php occ app:install richdocuments" || true'
       - '{{.NC_EXEC}} "php occ app:install notify_push"  || true'
+      - '{{.NC_EXEC}} "php occ app:install spreed"       || true'
       - '{{.NC_EXEC}} "php occ app:enable spreed"        || true'
       - |
         {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"

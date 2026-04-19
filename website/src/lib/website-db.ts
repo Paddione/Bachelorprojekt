@@ -1368,6 +1368,15 @@ export async function setTimeEntryStripeInvoice(
   );
 }
 
+export async function getTimeEntryIdsByInvoice(stripeInvoiceId: string): Promise<string[]> {
+  await initTimeEntriesTable();
+  const result = await pool.query<{ id: string }>(
+    `SELECT id FROM time_entries WHERE stripe_invoice_id = $1`,
+    [stripeInvoiceId]
+  );
+  return result.rows.map(r => r.id);
+}
+
 export interface UnbilledCustomerGroup {
   customerId: string;
   customerName: string;

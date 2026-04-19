@@ -1,0 +1,48 @@
+import type { APIRoute } from 'astro';
+import { getSession, isAdmin } from '../../../../../lib/auth';
+import {
+  addDraftInvoiceItem,
+  updateDraftInvoiceItem,
+  deleteDraftInvoiceItem,
+} from '../../../../../lib/stripe-billing';
+import { stripe } from '../../../../../lib/stripe';
+
+export const POST: APIRoute = async ({ request, params }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
+
+  const body = await request.json();
+  const inv  = await stripe.invoices.retrieve(params.id!);
+  const customerId = typeof inv.customer === 'string'
+    ? inv.customer
+    : (inv.customer as { id: string } | null)?.id ?? '';
+
+  await addDraftInvoiceItem(params.id!, customerId, {
+    description: String(body.description ?? ''),
+    hours:       parseFloat(String(body.hours ?? '1')),
+    rateCents:   Math.round(parseFloat(String(body.rateCents ?? '0')) * 100),
+  });
+  return new Response(null, { status: 204 });
+};
+
+export const PATCH: APIRoute = async ({ request }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
+
+  const body = await request.json();
+  await updateDraftInvoiceItem(String(body.invoiceItemId), {
+    description: body.description !== undefined ? String(body.description) : undefined,
+    hours:       body.hours       !== undefined ? parseFloat(String(body.hours))       : undefined,
+    rateCents:   body.rateCents   !== undefined ? Math.round(parseFloat(String(body.rateCents)) * 100) : undefined,
+  });
+  return new Response(null, { status: 204 });
+};
+
+export const DELETE: APIRoute = async ({ request }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response(null, { status: 403 });
+
+  const body = await request.json();
+  await deleteDraftInvoiceItem(String(body.invoiceItemId));
+  return new Response(null, { status: 204 });
+};

@@ -153,12 +153,16 @@ data:
       CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id, id ASC);
 
       CREATE TABLE IF NOT EXISTS chat_rooms (
-        id          SERIAL PRIMARY KEY,
-        name        TEXT NOT NULL,
-        created_by  TEXT NOT NULL,
-        created_at  TIMESTAMPTZ DEFAULT now(),
-        archived_at TIMESTAMPTZ
+        id                  SERIAL PRIMARY KEY,
+        name                TEXT NOT NULL,
+        created_by          TEXT NOT NULL,
+        created_at          TIMESTAMPTZ DEFAULT now(),
+        archived_at         TIMESTAMPTZ,
+        is_direct           BOOLEAN NOT NULL DEFAULT FALSE,
+        direct_customer_id  UUID REFERENCES customers(id) ON DELETE SET NULL
       );
+      ALTER TABLE chat_rooms ADD COLUMN IF NOT EXISTS is_direct BOOLEAN NOT NULL DEFAULT FALSE;
+      ALTER TABLE chat_rooms ADD COLUMN IF NOT EXISTS direct_customer_id UUID REFERENCES customers(id) ON DELETE SET NULL;
 
       CREATE TABLE IF NOT EXISTS chat_room_members (
         room_id     INT NOT NULL REFERENCES chat_rooms(id),

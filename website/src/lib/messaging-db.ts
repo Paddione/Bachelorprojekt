@@ -143,6 +143,8 @@ export interface ChatRoom {
   created_by: string;
   created_at: Date;
   archived_at: Date | null;
+  is_direct: boolean;
+  direct_customer_id: string | null;
   member_count?: number;
 }
 
@@ -427,6 +429,46 @@ export async function getCustomerByEmail(email: string): Promise<{ id: string; n
     [email],
   );
   return rows[0] ?? null;
+}
+
+export async function getCustomerById(id: string): Promise<{ id: string; name: string; email: string } | null> {
+  const { rows } = await pool.query(
+    'SELECT id, name, email FROM customers WHERE id = $1',
+    [id],
+  );
+  return rows[0] ?? null;
+}
+
+export async function ensureDirectRoomForCustomer(
+  customerId: string,
+  customerName: string,
+  createdBy: string,
+): Promise<{ room_id: number; customer_id: string }> {
+  const existing = await pool.query<{ id: number }>(
+    'SELECT id FROM chat_rooms WHERE direct_customer_id = $1 AND is_direct = TRUE LIMIT 1',
+    [customerId],
+  );
+  if (existing.rows.length) return { room_id: existing.rows[0].id, customer_id: customerId };
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<ChatRoom>(
+      'INSERT INTO chat_rooms (name, created_by, is_direct, direct_customer_id) VALUES ($1, $2, TRUE, $3) RETURNING *',
+      [`Chat mit ${customerName}`, createdBy, customerId],
+    );
+    const room = rows[0];
+    await client.query(
+      'INSERT INTO chat_room_members (room_id, customer_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [room.id, customerId],
+    );
+    await client.query('COMMIT');
+    return { room_id: room.id, customer_id: customerId };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function listAllCustomers(): Promise<Array<{ id: string; name: string; email: string }>> {

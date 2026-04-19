@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Invoice Ninja (billing), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
+**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
 
 Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
@@ -21,7 +21,6 @@ task workspace:up                # Full automated setup (Cluster + MVP + MCP)
 task workspace:deploy            # Deploy all workspace services (Kustomize)
 task workspace:validate          # Dry-run manifest validation
 task workspace:teardown          # Remove all services
-task workspace:prod:deploy       # Deploy to k3s-production
 ```
 
 ### Daily Operations
@@ -36,10 +35,10 @@ task workspace:port-forward      # Forward shared-db to localhost:5432
 ### Post-Deploy Setup
 ```bash
 task workspace:post-setup        # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
-task workspace:stripe-setup      # Register Stripe as payment gateway in Invoice Ninja
+task workspace:stripe-setup      # Configure Stripe payment gateway
 task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
 task workspace:dsgvo-check       # Run DSGVO compliance verification (NFA-01)
-task workspace:claude-code:setup    # Register MCP servers in Claude Code database
+task claude-code:setup           # Register MCP servers in Claude Code database
 ```
 
 ### Claude Code MCP Servers
@@ -95,9 +94,6 @@ task ddns:teardown               # Remove DDNS updater
 
 ### Configuration
 ```bash
-task domain:set -- <domain>      # Change production domain in .env
-task brand:set -- <name>         # Change branding name in .env
-task email:set -- <email>        # Change contact email in .env
 task config:show                 # Show current config variables
 ```
 
@@ -153,7 +149,7 @@ graph TB
 ### Key components
 - **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the only deployment path.
 - **`prod/`** -- Production overlays/patches (TLS, resource limits, replicas, DDNS).
-- **`deploy/`** -- Alternative Skaffold-based deploy path (hot-reload for dev iteration). Contains `mcp/` for MCP server overlays.
+- **`deploy/`** -- Kustomize overlays for dev iteration. Contains `mcp/` for MCP server overlays.
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
@@ -166,7 +162,7 @@ graph TB
 - **Dev secrets**: `k3d/secrets.yaml` (dev values only -- never commit real credentials).
 - **Keycloak realm**: `k3d/realm-workspace-dev.json` (exported realm config loaded as ConfigMap).
 - **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (loaded as ConfigMap).
-- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Invoice Ninja, and Claude Code all authenticate through it.
+- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Vaultwarden, and Claude Code all authenticate through it.
 
 ## CI/CD
 

@@ -8,7 +8,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 NAMESPACE="${NAMESPACE:-workspace}"
 
 # T1: All service ingresses are defined
-for svc in auth files office vault; do
+for svc in auth files vault board meet; do
   INGRESS=$(kubectl get ingress -n "$NAMESPACE" --no-headers 2>/dev/null | grep -c "${svc}" || echo "0")
   assert_gt "$INGRESS" 0 "SA-01" "T1-${svc}" "Ingress für ${svc}.localhost definiert"
 done

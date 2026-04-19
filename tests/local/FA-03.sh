@@ -19,7 +19,7 @@ else
 fi
 
 # T2: Screen sharing capability — Janus WebRTC gateway has videoroom plugin
-JANUS_HEALTH=$(_kube_curl -o /dev/null -w '%{http_code}' "http://janus:8188" --max-time 5 || echo "000")
+JANUS_HEALTH=$(_kube_curl -o /dev/null -w '%{http_code}' "http://janus.coturn:8188" --max-time 5 || echo "000")
 if [[ "$JANUS_HEALTH" != "000" ]]; then
   _log_result "FA-03" "T2" "Janus WebRTC Gateway erreichbar (Bildschirmfreigabe-Voraussetzung)" "pass" "0"
 else
@@ -31,7 +31,7 @@ SIGNALING_CONF=$(kubectl exec -n "$NAMESPACE" deploy/spreed-signaling -- \
   cat /etc/signaling/server.conf 2>/dev/null || echo "")
 if [[ -n "$SIGNALING_CONF" ]]; then
   # TURN server uses either cluster-internal "coturn" name or the node IP with coturn NodePort
-  COTURN_NODEPORT=$(kubectl get svc coturn -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || echo "")
+  COTURN_NODEPORT=$(kubectl get svc coturn -n coturn -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || echo "")
   if echo "$SIGNALING_CONF" | grep -qE "coturn|:${COTURN_NODEPORT}"; then
     _log_result "FA-03" "T3a" "TURN-Server zeigt auf cluster-internen coturn" "pass" "0"
   else

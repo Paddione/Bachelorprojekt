@@ -127,7 +127,7 @@ function formatTime(d: Date) {
               {upcomingBookings.map(b => {
                 const inv = bookingInvoiceMap.get(b.uid);
                 return (
-                  <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" data-booking-uid={b.uid}>
+                  <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" data-booking-uid={b.uid} data-booking-summary={b.summary} data-booking-attendee-email={b.attendeeEmail} data-booking-attendee-name={b.attendeeName} data-booking-date={formatBookingDate(b.start)} data-booking-time={`${formatTime(b.start)} – ${formatTime(b.end)}`}>
                     <div class="flex items-start justify-between gap-4 flex-wrap">
                       <div>
                         <p class="text-light font-medium">{b.summary}</p>
@@ -180,9 +180,39 @@ function formatTime(d: Date) {
                               #{inv.invoiceNumber} · {inv.amount.toFixed(0)} EUR
                             </span>
                         )}
-                        <span class={`text-xs px-2 py-0.5 rounded-full ${b.status === 'TENTATIVE' ? 'bg-gold/20 text-gold' : 'bg-accent/20 text-accent'}`}>
+                        <span class={`booking-status-badge text-xs px-2 py-0.5 rounded-full ${b.status === 'TENTATIVE' ? 'bg-gold/20 text-gold' : 'bg-accent/20 text-accent'}`}>
                           {b.status === 'TENTATIVE' ? 'Anfrage' : 'Bestätigt'}
                         </span>
+                        {b.status === 'TENTATIVE' && (
+                          <button
+                            class="booking-confirm-btn text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-colors cursor-pointer whitespace-nowrap"
+                            data-booking-uid={b.uid}
+                            title="Termin bestätigen"
+                          >
+                            ✓ Bestätigen
+                          </button>
+                        )}
+                        <button
+                          class="booking-remind-btn text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted border border-dark-lighter hover:text-light hover:border-muted transition-colors cursor-pointer whitespace-nowrap"
+                          data-booking-uid={b.uid}
+                          title="Erinnerung per E-Mail senden"
+                        >
+                          ✉ Erinnerung
+                        </button>
+                        <button
+                          class="booking-cancel-btn text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted border border-dark-lighter hover:text-red-400 hover:border-red-400/30 transition-colors cursor-pointer whitespace-nowrap"
+                          data-booking-uid={b.uid}
+                          title="Termin absagen (bleibt im Kalender als Abgesagt)"
+                        >
+                          Absagen
+                        </button>
+                        <button
+                          class="booking-delete-btn text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted border border-dark-lighter hover:text-red-400 hover:border-red-400/30 transition-colors cursor-pointer whitespace-nowrap"
+                          data-booking-uid={b.uid}
+                          title="Termin endgültig löschen"
+                        >
+                          Löschen
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -255,6 +285,13 @@ function formatTime(d: Date) {
                         <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted">
                           {b.status === 'CANCELLED' ? 'Abgesagt' : 'Vergangen'}
                         </span>
+                        <button
+                          class="booking-delete-btn text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted border border-dark-lighter hover:text-red-400 hover:border-red-400/30 transition-colors cursor-pointer whitespace-nowrap"
+                          data-booking-uid={b.uid}
+                          title="Termin endgültig löschen"
+                        >
+                          Löschen
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -418,6 +455,140 @@ function formatTime(d: Date) {
       } finally {
         sel.disabled = false;
       }
+    });
+  });
+
+  // Delete booking
+  document.querySelectorAll<HTMLButtonElement>('.booking-delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const uid = btn.dataset.bookingUid;
+      if (!uid) return;
+      if (!confirm('Termin endgültig löschen? Dies kann nicht rückgängig gemacht werden.')) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        const res = await fetch(`/api/admin/bookings/${encodeURIComponent(uid)}/delete`, { method: 'DELETE' });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert(err.error || 'Löschen fehlgeschlagen.');
+          btn.disabled = false;
+          btn.textContent = 'Löschen';
+          return;
+        }
+        btn.closest<HTMLElement>('[data-booking-uid]')?.remove();
+      } catch {
+        alert('Netzwerkfehler beim Löschen.');
+        btn.disabled = false;
+        btn.textContent = 'Löschen';
+      }
+    });
+  });
+
+  // Cancel booking
+  document.querySelectorAll<HTMLButtonElement>('.booking-cancel-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const uid = btn.dataset.bookingUid;
+      if (!uid) return;
+      if (!confirm('Termin absagen? Er bleibt im Kalender als "Abgesagt" sichtbar.')) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        const res = await fetch(`/api/admin/bookings/${encodeURIComponent(uid)}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'CANCELLED' }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert(err.error || 'Absagen fehlgeschlagen.');
+          btn.disabled = false;
+          btn.textContent = 'Absagen';
+          return;
+        }
+        const card = btn.closest<HTMLElement>('[data-booking-uid]');
+        if (card) {
+          const badge = card.querySelector('.booking-status-badge');
+          if (badge) { badge.textContent = 'Abgesagt'; badge.className = 'booking-status-badge text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted'; }
+          card.classList.add('opacity-60');
+          btn.remove();
+          card.querySelector('.booking-confirm-btn')?.remove();
+          card.querySelector('.booking-remind-btn')?.remove();
+        }
+      } catch {
+        alert('Netzwerkfehler beim Absagen.');
+        btn.disabled = false;
+        btn.textContent = 'Absagen';
+      }
+    });
+  });
+
+  // Confirm booking (TENTATIVE → CONFIRMED)
+  document.querySelectorAll<HTMLButtonElement>('.booking-confirm-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const uid = btn.dataset.bookingUid;
+      if (!uid) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        const res = await fetch(`/api/admin/bookings/${encodeURIComponent(uid)}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'CONFIRMED' }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert(err.error || 'Bestätigen fehlgeschlagen.');
+          btn.disabled = false;
+          btn.textContent = '✓ Bestätigen';
+          return;
+        }
+        const card = btn.closest<HTMLElement>('[data-booking-uid]');
+        if (card) {
+          const badge = card.querySelector('.booking-status-badge');
+          if (badge) { badge.textContent = 'Bestätigt'; badge.className = 'booking-status-badge text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent'; }
+        }
+        btn.remove();
+      } catch {
+        alert('Netzwerkfehler beim Bestätigen.');
+        btn.disabled = false;
+        btn.textContent = '✓ Bestätigen';
+      }
+    });
+  });
+
+  // Send reminder email
+  document.querySelectorAll<HTMLButtonElement>('.booking-remind-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const uid = btn.dataset.bookingUid;
+      if (!uid) return;
+      const card = btn.closest<HTMLElement>('[data-booking-uid]');
+      const attendeeEmail = card?.dataset.bookingAttendeeEmail;
+      const attendeeName = card?.dataset.bookingAttendeeName;
+      const summary = card?.dataset.bookingSummary;
+      const dateDisplay = card?.dataset.bookingDate;
+      const timeDisplay = card?.dataset.bookingTime;
+      if (!attendeeEmail) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        const res = await fetch(`/api/admin/bookings/${encodeURIComponent(uid)}/remind`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ attendeeEmail, attendeeName, summary, dateDisplay, timeDisplay }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert(err.error || 'Erinnerung konnte nicht gesendet werden.');
+        } else {
+          btn.textContent = '✓ Gesendet';
+          setTimeout(() => { btn.textContent = '✉ Erinnerung'; btn.disabled = false; }, 3000);
+          return;
+        }
+      } catch {
+        alert('Netzwerkfehler beim Senden der Erinnerung.');
+      }
+      btn.disabled = false;
+      btn.textContent = '✉ Erinnerung';
     });
   });
 </script>

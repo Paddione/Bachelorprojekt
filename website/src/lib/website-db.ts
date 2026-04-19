@@ -1225,6 +1225,7 @@ export interface TimeEntry {
   minutes: number;
   billable: boolean;
   rateCents: number;
+  leistungKey: string | null;
   stripeInvoiceId: string | null;
   entryDate: Date;
   createdAt: Date;
@@ -1253,6 +1254,9 @@ async function initTimeEntriesTable(): Promise<void> {
   `);
   await pool.query(`
     ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS stripe_invoice_id TEXT
+  `);
+  await pool.query(`
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS leistung_key TEXT
   `);
 }
 
@@ -1876,6 +1880,9 @@ async function initBookingProjectLinks(): Promise<void> {
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (caldav_uid, brand)
     )
+  `);
+  await pool.query(`
+    ALTER TABLE booking_project_links ADD COLUMN IF NOT EXISTS leistung_key TEXT
   `);
   bookingProjectLinksReady = true;
 }

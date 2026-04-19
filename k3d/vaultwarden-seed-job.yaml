@@ -55,7 +55,6 @@ spec:
                 echo "$item" | bw encode | bw create item
               }
 
-              MM="${MM_DOMAIN:-chat.mentolder.de}"
               NC="${NC_DOMAIN:-files.mentolder.de}"
               KC="${KC_DOMAIN:-auth.mentolder.de}"
               BILLING="${BILLING_DOMAIN:-billing.mentolder.de}"
@@ -64,7 +63,6 @@ spec:
               DOCS="${DOCS_DOMAIN:-docs.mentolder.de}"
               OFFICE="${OFFICE_DOMAIN:-office.mentolder.de}"
 
-              upsert_login "Mattermost — Chat"              "https://${MM}"               "Team-Chat und Kommunikation"
               upsert_login "Nextcloud — Dateien"            "https://${NC}"               "Dateispeicher und Kollaboration"
               upsert_login "Nextcloud Talk — Video"         "https://${NC}/apps/spreed"   "Video-/Sprachanrufe via Nextcloud Talk"
               upsert_login "Whiteboard"                     "https://${NC}/apps/whiteboard" "Kollaboratives Whiteboard (Nextcloud-App, nicht board.* öffnen)"

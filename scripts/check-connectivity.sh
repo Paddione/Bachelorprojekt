@@ -22,10 +22,9 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 # Variablen aus .env laden (nur die benötigten)
-eval "$(grep -E '^(MM_DOMAIN|KC_DOMAIN|NC_DOMAIN|SIGNALING_DOMAIN|COLLABORA_DOMAIN)=' "$ENV_FILE")"
+eval "$(grep -E '^(KC_DOMAIN|NC_DOMAIN|SIGNALING_DOMAIN|COLLABORA_DOMAIN)=' "$ENV_FILE")"
 
 SERVICES=(
-  "$MM_DOMAIN|Mattermost"
   "$KC_DOMAIN|Keycloak"
   "$NC_DOMAIN|Nextcloud"
   "${SIGNALING_DOMAIN:-signaling.localhost}|Talk HPB"

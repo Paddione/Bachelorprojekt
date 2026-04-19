@@ -1,6 +1,6 @@
 # Workspace MVP
 
-Kubernetes-basierte Kollaborationsplattform fuer kleine Teams -- Mattermost (Chat), Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO), Claude Code (KI), Invoice Ninja (Rechnungen) und weitere Services auf k3d/k3s mit Traefik Ingress.
+Kubernetes-basierte Kollaborationsplattform fuer kleine Teams -- Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO), Claude Code (KI), Invoice Ninja (Rechnungen) und weitere Services auf k3d/k3s mit Traefik Ingress.
 
 ## Schnellstart
 
@@ -24,7 +24,6 @@ task workspace:up
 | Service | URL | Beschreibung |
 |---------|-----|--------------|
 | Keycloak (SSO) | http://auth.localhost | Identity Provider (admin / devadmin) |
-| Mattermost (Chat) | http://chat.localhost | Team-Chat |
 | Nextcloud (Dateien + Talk) | http://files.localhost | Dateien, Kalender, Kontakte, Video |
 | Collabora (Office) | http://office.localhost | WOPI-Backend fuer Nextcloud (kein eigenstaendiges UI — antwortet mit "OK") |
 | Talk HPB (Signaling) | http://signaling.localhost | WebRTC-Signaling (Janus + NATS + coturn) |
@@ -65,7 +64,6 @@ graph TB
 
         subgraph workspace ["fa:fa-cubes Namespace: workspace"]
             KC["fa:fa-key Keycloak<br/>auth.localhost"]
-            MM["fa:fa-comments Mattermost<br/>chat.localhost"]
             NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
             CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
             HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
@@ -76,7 +74,6 @@ graph TB
             MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
             DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
             BB["fa:fa-robot billing-bot<br/>intern"]
-            PROXY["fa:fa-shuffle mm-keycloak-proxy<br/>intern"]
             OAUTH["fa:fa-shield-halved oauth2-proxy<br/>Invoice Ninja"]
             WHISPER["fa:fa-microphone Whisper<br/>intern"]
             REC["fa:fa-record-vinyl Talk Recording<br/>intern"]
@@ -101,15 +98,12 @@ graph TB
     end
 
     User --> Traefik
-    Traefik --> KC & MM & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
 
-    KC -. OIDC .-> MM & NC & IN & OC & VW & WEB
-    PROXY --> KC
-    MM --> PROXY
+    KC -. OIDC .-> NC & IN & OC & VW & WEB
     OAUTH --> KC
     IN --> OAUTH
 
-    MM <--> BB
     BB <--> IN
 
     NC --> CO
@@ -118,7 +112,7 @@ graph TB
     HPB --- JANUS & NATS
     JANUS --- COTURN
 
-    KC & MM & NC & IN & OC & VW --> DB
+    KC & NC & IN & OC & VW --> DB
     PROM --> GRAF
 
     classDef identity fill:#4a90d9,color:#fff,stroke:#2d6a9f
@@ -129,8 +123,8 @@ graph TB
     classDef tools fill:#0891b2,color:#fff,stroke:#0e7490
     classDef infra fill:#374151,color:#fff,stroke:#1f2937
 
-    class KC,PROXY,OAUTH identity
-    class MM,NC,CO,WB,OL,HPB,JANUS,NATS,COTURN collab
+    class KC,OAUTH identity
+    class NC,CO,WB,OL,HPB,JANUS,NATS,COTURN collab
     class OC,WHISPER ai
     class IN,BB billing
     class DB,OS data
@@ -145,7 +139,7 @@ sequenceDiagram
     autonumber
 
     participant U as 👤 Benutzer
-    participant S as 💬 Service<br/>(Mattermost / Nextcloud / etc.)
+    participant S as 💬 Service<br/>(Nextcloud / Vaultwarden / etc.)
     participant KC as 🔑 Keycloak
     participant DB as 🗄️ PostgreSQL
 
@@ -245,7 +239,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task mcp:logs -- <pod>/<container>` | MCP-Container-Logs ansehen |
 | `task mcp:restart -- core\|apps\|auth` | MCP-Pod neu starten |
 | `task mcp:select` | Interaktiver MCP-Server-Selektor |
-| `task mcp:mattermost-setup` | Claude Code-Channels in Mattermost erstellen |
 | `task mcp:set-github-pat -- <token>` | GitHub PAT in claude-code-secrets aktualisieren |
 
 ### Vaultwarden
@@ -268,7 +261,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task website:restart` | Website-Pod neu starten |
 | `task website:redeploy` | Image neu bauen, importieren und neu starten |
 | `task website:teardown` | Website-Namespace loeschen (mit Bestaetigung) |
-| `task website:webhook:setup` | Mattermost-Webhook fuer Kontaktformular einrichten |
 
 ### ArgoCD (GitOps Multi-Cluster)
 
@@ -299,7 +291,6 @@ Alternativ alles automatisch: `task workspace:up`
 |--------|-------------|
 | `task docs:deploy` | Docsify Docs-Site deployen (git-sync) |
 | `task docs:restart` | Docs-Pod fuer neueste Inhalte neu starten |
-| `task docs:integrate-mattermost` | Docs in Mattermost integrieren (Bookmark + Slash-Command) |
 | `task docs:publish-api` | OpenAPI-Spec zu GitBook veroeffentlichen |
 
 ### Observability
@@ -376,7 +367,6 @@ Bachelorprojekt/
     sealed-secrets-controller.yaml # Sealed Secrets Controller
     ingress.yaml                # Traefik Ingress Rules
     keycloak.yaml               # Keycloak + Realm-Import
-    mattermost.yaml             # Mattermost + HPA
     nextcloud.yaml              # Nextcloud + Talk
     collabora.yaml              # Collabora Online
     talk-hpb.yaml               # Talk HPB (Signaling + Janus + NATS)
@@ -426,7 +416,6 @@ Bachelorprojekt/
   korczewski-website/           # Astro Website (korczewski.de, Branding-Variante)
   docs/                         # Projektdokumentation (Docsify-faehig)
   docs-site/                    # Docsify index.html
-  mattermost/                   # Mattermost Keycloak-Proxy Config
   grafana/                      # DSGVO Compliance Dashboard
   wireguard/                    # VPN-Konfigurationsvorlagen
 ```

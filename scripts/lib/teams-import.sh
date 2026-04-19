@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# teams-import.sh — Microsoft Teams → Mattermost + Nextcloud
+# teams-import.sh — Microsoft Teams → Nextcloud
 # ═══════════════════════════════════════════════════════════════════
 # Importiert aus zwei Quellen:
 #
@@ -13,7 +13,7 @@
 #    Unvollständig, aber nützlich wenn kein GDPR-Export verfügbar.
 #
 # Ausgabe:
-#   - Chats/Channel-Nachrichten → Mattermost (JSONL bulk import)
+#   - Dateien, Kalender, Kontakte → Nextcloud (WebDAV/CalDAV/CardDAV)
 #   - Dateien/Attachments       → Nextcloud (WebDAV upload)
 #   - Kalender                  → .ics Datei (Nextcloud Calendar)
 #   - Kontakte                  → .vcf Datei (Nextcloud Contacts)

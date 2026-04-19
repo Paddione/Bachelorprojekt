@@ -45,10 +45,9 @@ spec:
                   mkdir -p "${BACKUP_DIR}"
 
                   # Dump each database (separate PostgreSQL instances)
-                  for db in keycloak mattermost nextcloud; do
+                  for db in keycloak nextcloud; do
                     case "${db}" in
                       keycloak)   PASS="${KEYCLOAK_DB_PASSWORD}" ;;
-                      mattermost) PASS="${MATTERMOST_DB_PASSWORD}" ;;
                       nextcloud)  PASS="${NEXTCLOUD_DB_PASSWORD}" ;;
                     esac
                     echo "Backing up ${db}..."

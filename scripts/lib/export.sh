@@ -4,8 +4,6 @@
 # ═══════════════════════════════════════════════════════════════════
 # Exportiert Daten aus dem laufenden Workspace-Stack:
 #
-#   - Mattermost Nachrichten (JSONL via mmctl/API)
-#   - Mattermost Dateien (aus Volume)
 #   - Nextcloud Dateien (WebDAV)
 #   - Nextcloud Kalender (CalDAV → .ics)
 #   - Nextcloud Kontakte (CardDAV → .vcf)
@@ -29,15 +27,13 @@ export_check_deps() {
 
 # ── Toggle-Menü ──────────────────────────────────────────────────────
 EXPORT_MODULES=(
-  "mm_messages|Mattermost Nachrichten (Channels, DMs → JSONL)"
-  "mm_files|Mattermost Dateien (Uploads, Anhänge)"
   "nc_files|Nextcloud Dateien (User-Daten)"
   "nc_calendar|Nextcloud Kalender (→ .ics)"
   "nc_contacts|Nextcloud Kontakte (→ .vcf)"
   "kc_users|Keycloak Benutzer (→ CSV + LDIF)"
   "kc_realm|Keycloak Realm (→ JSON)"
 )
-EXPORT_ENABLED=(1 1 1 1 1 1 1)
+EXPORT_ENABLED=(1 1 1 1 1)
 
 show_export_menu() {
   echo ""
@@ -54,8 +50,8 @@ show_export_menu() {
   local all_on=true
   for e in "${EXPORT_ENABLED[@]}"; do [[ "$e" -eq 0 ]] && all_on=false; done
   $all_on && \
-    echo -e "  ${BOLD}[8]${NC}   Alles abwählen" || \
-    echo -e "  ${BOLD}[8]${NC}   Alles auswählen"
+    echo -e "  ${BOLD}[6]${NC}   Alles abwählen" || \
+    echo -e "  ${BOLD}[6]${NC}   Alles auswählen"
 
   echo ""
   echo -e "  ${BOLD}[s]${NC} Starten  ${BOLD}[q]${NC} Abbrechen"
@@ -68,11 +64,11 @@ run_export_menu() {
     prompt "Auswahl:"; read -r sel
 
     case "$sel" in
-      [1-7])
+      [1-5])
         local idx=$((sel - 1))
         [[ "${EXPORT_ENABLED[$idx]}" -eq 1 ]] && EXPORT_ENABLED[$idx]=0 || EXPORT_ENABLED[$idx]=1
         ;;
-      8)
+      6)
         local all_on=true
         for e in "${EXPORT_ENABLED[@]}"; do [[ "$e" -eq 0 ]] && all_on=false; done
         local new_val=1; $all_on && new_val=0
@@ -83,102 +79,6 @@ run_export_menu() {
       *) warn "Ungültige Auswahl" ;;
     esac
   done
-}
-
-# ── Mattermost Nachrichten ───────────────────────────────────────────
-export_mm_messages() {
-  local output_dir="$1"
-  mkdir -p "${output_dir}/mattermost"
-  info "Exportiere Mattermost-Nachrichten..."
-
-  if ${DRY_RUN:-false}; then
-    warn "[DRY-RUN] Würde Mattermost-Nachrichten exportieren"
-    return 0
-  fi
-
-  # Methode 1: mmctl (bevorzugt)
-  if command -v mmctl &>/dev/null; then
-    mmctl export create --format jsonl 2>/dev/null || true
-    sleep 3
-    local export_file
-    export_file=$(mmctl export list --json 2>/dev/null | jq -r '.[-1].data.path // empty')
-    if [[ -n "$export_file" ]]; then
-      mmctl export download "$export_file" --output "${output_dir}/mattermost/messages.jsonl" 2>/dev/null
-      success "Mattermost-Nachrichten exportiert (mmctl)"
-      return 0
-    fi
-  fi
-
-  # Methode 2: REST API Fallback
-  if [[ -n "${MM_URL:-}" && -n "${MM_ADMIN:-}" && -n "${MM_PASS:-}" ]]; then
-    local token
-    token=$(curl -s -X POST "${MM_URL}/api/v4/users/login" \
-      -H "Content-Type: application/json" \
-      -d "{\"login_id\":\"${MM_ADMIN}\",\"password\":\"${MM_PASS}\"}" \
-      -D - 2>/dev/null | grep -i "^token:" | awk '{print $2}' | tr -d '\r')
-
-    if [[ -n "$token" ]]; then
-      local teams
-      teams=$(curl -s "${MM_URL}/api/v4/teams" \
-        -H "Authorization: Bearer ${token}" 2>/dev/null)
-
-      local jsonl="${output_dir}/mattermost/messages.jsonl"
-      echo '{"type":"version","version":1}' > "$jsonl"
-
-      echo "$teams" | jq -r '.[].id' 2>/dev/null | while read -r team_id; do
-        [[ -z "$team_id" ]] && continue
-        local channels
-        channels=$(curl -s "${MM_URL}/api/v4/teams/${team_id}/channels" \
-          -H "Authorization: Bearer ${token}" 2>/dev/null)
-
-        echo "$channels" | jq -c '.[]' 2>/dev/null | while read -r ch; do
-          local ch_id
-          ch_id=$(echo "$ch" | jq -r '.id')
-
-          local posts
-          posts=$(curl -s "${MM_URL}/api/v4/channels/${ch_id}/posts?per_page=200" \
-            -H "Authorization: Bearer ${token}" 2>/dev/null)
-
-          echo "$posts" | jq -c '.posts // {} | to_entries[] | .value' 2>/dev/null | while read -r post; do
-            echo "$post" | jq -c '{type:"post",post:.}' >> "$jsonl"
-          done
-        done
-      done
-
-      success "Mattermost-Nachrichten exportiert (API)"
-    else
-      warn "Mattermost-Login fehlgeschlagen"
-    fi
-  else
-    warn "Mattermost-Export übersprungen — Zugangsdaten nicht konfiguriert"
-  fi
-}
-
-# ── Mattermost Dateien ───────────────────────────────────────────────
-export_mm_files() {
-  local output_dir="$1"
-  local storage="${STORAGE_PATH:-./data}"
-  local mm_data="${storage}/mattermost"
-
-  if [[ ! -d "$mm_data" ]]; then
-    warn "Mattermost-Datenverzeichnis nicht gefunden: $mm_data"
-    return 0
-  fi
-
-  info "Exportiere Mattermost-Dateien..."
-
-  if ${DRY_RUN:-false}; then
-    local count
-    count=$(find "$mm_data" -type f 2>/dev/null | wc -l)
-    warn "[DRY-RUN] Würde ${count} Dateien exportieren aus $mm_data"
-    return 0
-  fi
-
-  mkdir -p "${output_dir}/mattermost/files"
-  cp -r "${mm_data}/." "${output_dir}/mattermost/files/" 2>/dev/null || true
-  local count
-  count=$(find "${output_dir}/mattermost/files" -type f 2>/dev/null | wc -l)
-  success "Mattermost-Dateien exportiert: ${count} Dateien"
 }
 
 # ── Nextcloud Dateien ────────────────────────────────────────────────
@@ -403,13 +303,11 @@ run_export() {
   header "Export gestartet..."
   $DRY_RUN && warn "DRY-RUN Modus — keine Daten werden tatsächlich exportiert"
 
-  [[ "${EXPORT_ENABLED[0]}" -eq 1 ]] && export_mm_messages "$output_dir"
-  [[ "${EXPORT_ENABLED[1]}" -eq 1 ]] && export_mm_files "$output_dir"
-  [[ "${EXPORT_ENABLED[2]}" -eq 1 ]] && export_nc_files "$output_dir"
-  [[ "${EXPORT_ENABLED[3]}" -eq 1 ]] && export_nc_calendar "$output_dir"
-  [[ "${EXPORT_ENABLED[4]}" -eq 1 ]] && export_nc_contacts "$output_dir"
-  [[ "${EXPORT_ENABLED[5]}" -eq 1 ]] && export_keycloak_users "$output_dir"
-  [[ "${EXPORT_ENABLED[6]}" -eq 1 ]] && export_keycloak_realm "$output_dir"
+  [[ "${EXPORT_ENABLED[0]}" -eq 1 ]] && export_nc_files "$output_dir"
+  [[ "${EXPORT_ENABLED[1]}" -eq 1 ]] && export_nc_calendar "$output_dir"
+  [[ "${EXPORT_ENABLED[2]}" -eq 1 ]] && export_nc_contacts "$output_dir"
+  [[ "${EXPORT_ENABLED[3]}" -eq 1 ]] && export_keycloak_users "$output_dir"
+  [[ "${EXPORT_ENABLED[4]}" -eq 1 ]] && export_keycloak_realm "$output_dir"
 
   write_export_manifest "$output_dir"
 

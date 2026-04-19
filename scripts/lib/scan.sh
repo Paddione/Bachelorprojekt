@@ -144,34 +144,6 @@ scan_teams() {
   printf '%s\n' "${found[@]}"
 }
 
-# ── Mattermost (bestehende Instanz) ─────────────────────────────────
-scan_mattermost() {
-  local found=()
-  local search_paths=()
-
-  case "$OS_TYPE" in
-    macos)   search_paths+=("$HOME/Library/Application Support/Mattermost") ;;
-    linux)   search_paths+=("$HOME/.local/share/Mattermost" "$HOME/.config/Mattermost") ;;
-    wsl)
-      WIN_HOME=$(get_windows_home)
-      search_paths+=("${WIN_HOME}/AppData/Roaming/Mattermost")
-      ;;
-  esac
-
-  for path in "${search_paths[@]}"; do
-    [[ -d "$path" ]] && found+=("app:$path")
-  done
-
-  # mmctl bulk export ZIPs
-  for dir in "$HOME/Downloads" "${WIN_HOME:-}/Downloads"; do
-    [[ -d "$dir" ]] && while IFS= read -r zip; do
-      found+=("export_zip:$zip")
-    done < <(find "$dir" -maxdepth 2 -name "*mattermost*export*.zip" -o -name "*bulk*import*.zip" 2>/dev/null || true)
-  done
-
-  printf '%s\n' "${found[@]}"
-}
-
 # ── Nextcloud (bestehender Client-Sync) ──────────────────────────────
 scan_nextcloud() {
   local found=()
@@ -255,12 +227,6 @@ scan_all() {
     local kind="${hit%%:*}" path="${hit#*:}"
     results+=("teams_${kind}|📹 Teams (${kind})|${path}")
   done < <(scan_teams)
-
-  while IFS= read -r hit; do
-    [[ -z "$hit" ]] && continue
-    local kind="${hit%%:*}" path="${hit#*:}"
-    results+=("mm_${kind}|🟦 Mattermost (${kind})|${path}")
-  done < <(scan_mattermost)
 
   while IFS= read -r hit; do
     [[ -z "$hit" ]] && continue

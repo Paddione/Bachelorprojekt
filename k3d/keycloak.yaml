@@ -66,11 +66,6 @@ spec:
                   name: workspace-secrets
                   key: KEYCLOAK_ADMIN_PASSWORD
             # Realm-Import: Variablen werden von import-entrypoint.sh substituiert
-            - name: MATTERMOST_OIDC_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: MATTERMOST_OIDC_SECRET
             - name: NEXTCLOUD_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

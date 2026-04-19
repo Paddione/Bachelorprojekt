@@ -138,11 +138,6 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: KEYCLOAK_DB_PASSWORD
-            - name: MATTERMOST_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: MATTERMOST_DB_PASSWORD
             - name: NEXTCLOUD_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

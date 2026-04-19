@@ -31,7 +31,7 @@ flowchart LR
     end
 
     subgraph Ziele ["fa:fa-bullseye Ziele"]
-        MM["fa:fa-comments Mattermost<br/>Chat + Kanaele"]
+        MSG["fa:fa-comments Website Messaging<br/>Chat-Räume + Inbox"]
         NC["fa:fa-cloud Nextcloud<br/>Dateien + Kalender + Kontakte"]
         KC["fa:fa-key Keycloak<br/>Benutzerkonten"]
     end
@@ -41,7 +41,7 @@ flowchart LR
     GO --> M
     CSV --> M
 
-    M --> MM
+    M --> MSG
     M --> NC
     M --> KC
 
@@ -50,7 +50,7 @@ flowchart LR
     style GO fill:#1a3d28,color:#e8c870
     style CSV fill:#1f2937,color:#aabbcc
     style M fill:#1a1a2e,color:#aabbcc
-    style MM fill:#1a3d28,color:#e8c870
+    style MSG fill:#1a3d28,color:#e8c870
     style NC fill:#083344,color:#e8c870
     style KC fill:#1b3766,color:#e8c870
 ```
@@ -74,41 +74,41 @@ scripts/migrate.sh --dry-run
 
 | # | Aktion | Quelle | Ziel |
 |---|--------|--------|------|
-| 1 | Slack importieren | Slack Export ZIP | Mattermost (JSONL Bulk Import) |
-| 2 | Teams importieren | GDPR-Export oder lokaler Cache | Mattermost + Nextcloud |
-| 3 | Google importieren | Google Takeout | Mattermost + Nextcloud |
+| 1 | Slack importieren | Slack Export ZIP | Website Messaging (Chat-Räume via API) |
+| 2 | Teams importieren | GDPR-Export oder lokaler Cache | Website Messaging + Nextcloud |
+| 3 | Google importieren | Google Takeout | Website Messaging + Nextcloud |
 | 4 | Benutzer importieren | CSV oder LDIF | Keycloak |
-| 5 | Daten exportieren | Mattermost + Nextcloud + Keycloak | ZIP-Archiv |
+| 5 | Daten exportieren | Website Messaging + Nextcloud + Keycloak | ZIP-Archiv |
 | 6 | Server konfigurieren | -- | Verbindungsdaten setzen |
 | 7 | Quellen scannen | Lokales System | Erkennung vorhandener Exporte |
 
 ## Import-Details
 
-### Slack nach Mattermost
+### Slack nach Website Messaging
 
 **Skript:** `scripts/lib/slack-import.sh`
 
 - Akzeptiert Slack Export ZIP oder entpacktes Verzeichnis
-- Konvertiert zu Mattermost JSONL Bulk Import Format
+- Konvertiert Channels zu Chat-Räumen, Direktnachrichten zu DMs im Website-Messaging
 - Wandelt um: Channels, Benutzer, Nachrichten, Threads, Mentions, Links
-- Upload via `mmctl`
+- Import via Website-API (`/api/messaging/import`)
 
-### Microsoft Teams nach Mattermost + Nextcloud
+### Microsoft Teams nach Website Messaging + Nextcloud
 
 **Skript:** `scripts/lib/teams-import.sh`
 
 - Unterstuetzt GDPR-Datenexport (myaccount.microsoft.com) und lokalen Teams-Cache
 - Erkennt Export-Typ automatisch
-- Chat-Nachrichten nach Mattermost (JSONL)
+- Chat-Nachrichten nach Website Messaging (Chat-Räume)
 - Dateien nach Nextcloud (WebDAV)
 - Kalender nach .ics, Kontakte nach .vcf
 
-### Google Workspace nach Mattermost + Nextcloud
+### Google Workspace nach Website Messaging + Nextcloud
 
 **Skript:** `scripts/lib/google-import.sh`
 
 - Google Takeout Export (takeout.google.com)
-- Google Chat nach Mattermost (JSONL)
+- Google Chat nach Website Messaging (Chat-Räume)
 - Drive nach Nextcloud (WebDAV)
 - Kalender nach Nextcloud Calendar (CalDAV)
 - Kontakte nach Nextcloud Contacts (CardDAV)
@@ -144,7 +144,7 @@ Erstellt fehlende Gruppen automatisch. Setzt temporaere Passwoerter (Aenderung b
 
 Option 5 im Migrations-Assistenten erstellt ein ZIP-Archiv mit selektiv exportierten Daten:
 
-- **Mattermost:** Nachrichten (JSONL via mmctl/API), Dateien (aus Volume)
+- **Website Messaging:** Nachrichten und Räume (JSON via API)
 - **Nextcloud:** Dateien (WebDAV), Kalender (CalDAV/iCal), Kontakte (CardDAV/vCard)
 - **Keycloak:** Benutzer (CSV + LDIF), Realm-Konfiguration (JSON)
 
@@ -157,7 +157,6 @@ Option 5 im Migrations-Assistenten erstellt ein ZIP-Archiv mit selektiv exportie
 Scannt automatisch typische Speicherorte fuer vorhandene Exporte:
 - Slack: Cache und Download-Verzeichnisse
 - Teams: lokaler Cache und GDPR-Exporte
-- Mattermost: bestehende Installationen
 - Nextcloud: Desktop-Client-Synchronisierung
 - Google Takeout: Download-Verzeichnisse
 

@@ -136,10 +136,10 @@
     try {
       const res = await fetch('/api/calendar/slots');
       if (res.ok) {
-        daySlots = await res.json();
-        if (availableDates.length > 0) {
-          selectedDate = availableDates[0];
-        }
+        const loaded: DaySlots[] = await res.json();
+        daySlots = loaded;
+        const firstAvailable = loaded.find(d => d.slots.length > 0);
+        if (firstAvailable) selectedDate = firstAvailable.date;
       }
     } catch {
       slotsError = 'Slots konnten nicht geladen werden.';
@@ -199,6 +199,7 @@
       }
 
       success = 'Buchung erfolgreich angelegt.';
+      submitting = false;
       document.dispatchEvent(new CustomEvent('admin-booking-created'));
       setTimeout(() => closeModal(), 1500);
     } catch {

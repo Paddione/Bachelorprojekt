@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { config } from '../config/index';
+import { isAdmin } from '../lib/auth';
 import type { UserSession } from '../lib/auth';
 import ChatWidget from '../components/ChatWidget.svelte';
 
@@ -86,6 +87,7 @@ const navGroups: NavGroup[] = [
 const avatarInitial = (session.given_name || session.name || session.preferred_username || '?')[0].toUpperCase();
 const displayName   = session.given_name || session.name || session.preferred_username;
 const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
+const userIsAdmin   = isAdmin(session);
 ---
 
 <!doctype html>
@@ -186,6 +188,21 @@ const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 
       <!-- Footer -->
       <div style="padding:10px 8px 12px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:1px;">
+        {userIsAdmin && (
+          <a
+            href="/admin"
+            class="portal-footer-link"
+            style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--brass); transition:background 0.1s ease, color 0.1s ease;"
+          >
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
+              <rect x="2" y="2" width="5" height="5" rx="0.5"/>
+              <rect x="9" y="2" width="5" height="5" rx="0.5"/>
+              <rect x="2" y="9" width="5" height="5" rx="0.5"/>
+              <rect x="9" y="9" width="5" height="5" rx="0.5"/>
+            </svg>
+            <span>Admin</span>
+          </a>
+        )}
         <a
           href="/portal?section=konto"
           class={`portal-nav-item${section === 'konto' ? ' is-active' : ''} portal-footer-link`}

@@ -1276,7 +1276,19 @@ export async function createTimeEntry(params: {
   const result = await pool.query(
     `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, rate_cents, entry_date)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING id`,
+     RETURNING
+       id,
+       project_id        AS "projectId",
+       NULL::text        AS "projectName",
+       task_id           AS "taskId",
+       NULL::text        AS "taskName",
+       description,
+       minutes,
+       billable,
+       rate_cents        AS "rateCents",
+       stripe_invoice_id AS "stripeInvoiceId",
+       entry_date        AS "entryDate",
+       created_at        AS "createdAt"`,
     [
       params.projectId,
       params.taskId ?? null,
@@ -1287,9 +1299,7 @@ export async function createTimeEntry(params: {
       params.entryDate ?? null,
     ]
   );
-  return (await listTimeEntries(params.projectId)).find(
-    (e) => e.id === result.rows[0].id
-  ) as TimeEntry;
+  return result.rows[0] as TimeEntry;
 }
 
 export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
@@ -1396,7 +1406,8 @@ export async function getUnbilledBillableEntriesByCustomer(
      JOIN customers c ON c.id = p.customer_id
      WHERE te.billable = true
        AND te.stripe_invoice_id IS NULL
-       AND te.entry_date BETWEEN $1 AND $2`,
+       AND te.entry_date BETWEEN $1 AND $2
+       AND p.customer_id IS NOT NULL`,
     [startDate, endDate]
   );
 

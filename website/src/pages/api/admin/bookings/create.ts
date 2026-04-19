@@ -36,6 +36,10 @@ export const POST: APIRoute = async ({ request }) => {
     if (!type || !leistungKey?.trim()) {
       return new Response(JSON.stringify({ error: 'Typ und Leistung sind Pflichtfelder.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
+    const VALID_TYPES = new Set(['erstgespraech', 'callback', 'meeting', 'termin']);
+    if (!VALID_TYPES.has(type)) {
+      return new Response(JSON.stringify({ error: 'Ungültiger Typ.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
     if (!isCallback && (!slotStart || !slotEnd)) {
       return new Response(JSON.stringify({ error: 'Bitte einen Termin wählen.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
@@ -70,7 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
         slotDisplay: slotDisplay ?? null,
         date: date ?? null,
         serviceKey: leistungKey,
-        leistungKey,
+        leistungKey: leistungKey,
         message: message ?? null,
         projectId: projectId ?? null,
         adminCreated: true,

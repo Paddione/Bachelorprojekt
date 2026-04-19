@@ -1,8 +1,19 @@
 import type { APIRoute } from 'astro';
 import { stripe } from '../../../lib/stripe';
+import { getSession } from '../../../lib/auth';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // Auth check: require a valid session
+    const cookieHeader = request.headers.get('cookie');
+    const session = await getSession(cookieHeader);
+    if (!session) {
+      return new Response(
+        JSON.stringify({ error: 'Nicht authentifiziert.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const body = await request.json();
     const invoiceId: string = body?.invoiceId ?? '';
 
@@ -13,7 +24,26 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const invoice = await stripe.invoices.retrieve(invoiceId);
+    // Expand the customer so we can compare emails
+    const invoice = await stripe.invoices.retrieve(invoiceId, {
+      expand: ['customer'],
+    });
+
+    // Authorization check: session email must match the invoice customer email
+    // invoice.customer is Customer | DeletedCustomer | string | null after expand.
+    // DeletedCustomer has `deleted: true` and no email field.
+    const invoiceCustomerEmail =
+      invoice.customer !== null &&
+      typeof invoice.customer === 'object' &&
+      !invoice.customer.deleted
+        ? (invoice.customer as { email?: string | null }).email
+        : null;
+    if (!invoiceCustomerEmail || invoiceCustomerEmail !== session.email) {
+      return new Response(
+        JSON.stringify({ error: 'Zugriff verweigert.' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     if ((invoice.amount_remaining ?? 0) <= 0) {
       return new Response(
@@ -24,7 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const customerId = typeof invoice.customer === 'string'
       ? invoice.customer
-      : (invoice.customer as { id: string } | null)?.id;
+      : invoice.customer?.id ?? undefined;
 
     const paymentIntent = await stripe.paymentIntents.create(
       {

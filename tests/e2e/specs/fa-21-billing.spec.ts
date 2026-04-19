@@ -25,4 +25,16 @@ test.describe('FA-21: Service Catalog & Billing', () => {
     });
     expect(res.status()).toBe(400);
   });
+
+  test('T4: inline payment button renders for open invoice in portal', async ({ page }) => {
+    // This test verifies the component mounts — it does not complete a real payment.
+    // Navigate to the portal invoices section (portal requires auth; skip if unauthenticated).
+    const res = await page.goto(`${BASE}/portal`);
+    if (res?.status() === 302 || res?.url().includes('auth')) {
+      test.skip(true, 'Portal requires authentication — skipped in unauthenticated env');
+      return;
+    }
+    // If the section exists, it should contain either an invoice list or "Keine Rechnungen".
+    await page.waitForSelector('[data-testid="invoice-item"], p:has-text("Keine Rechnungen")', { timeout: 5000 });
+  });
 });

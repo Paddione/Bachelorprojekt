@@ -185,12 +185,14 @@
     fetchData();
     refreshInterval = setInterval(fetchData, 15000);
     window.addEventListener('keydown', handleKeydown);
+    return () => {
+      window.removeEventListener('keydown', handleKeydown);
+    };
   });
 
   onDestroy(() => {
     if (refreshInterval) clearInterval(refreshInterval);
     if (modalCloseTimer) clearTimeout(modalCloseTimer);
-    window.removeEventListener('keydown', handleKeydown);
   });
 
   $: runningCount = data?.pods.filter(p => p.phase === 'Running' || p.ready).length || 0;

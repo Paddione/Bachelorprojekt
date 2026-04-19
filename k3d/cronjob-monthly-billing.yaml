@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: monthly-billing
+  namespace: website
+spec:
+  schedule: "0 6 1 * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: trigger
+              image: curlimages/curl:8.7.1
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf -X POST \
+                    -H "Content-Type: application/json" \
+                    -H "X-Cron-Secret: $CRON_SECRET" \
+                    http://website.website.svc.cluster.local:4321/api/admin/billing/create-monthly-invoices
+              env:
+                - name: CRON_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: website-secrets
+                      key: CRON_SECRET

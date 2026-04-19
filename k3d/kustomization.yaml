@@ -31,6 +31,8 @@ resources:
   - backup-secrets.yaml
   - backup-cronjob.yaml
   - notify-unread-cronjob.yaml
+  # Abrechnung
+  - cronjob-monthly-billing.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
   # Dokumentation

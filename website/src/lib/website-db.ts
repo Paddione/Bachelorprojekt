@@ -2072,6 +2072,17 @@ export async function isSlotWhitelisted(brand: string, start: Date): Promise<boo
   return (result.rowCount ?? 0) > 0;
 }
 
+// Atomically removes the slot from the whitelist and returns true if it was
+// available (i.e. not already claimed by another concurrent booking).
+export async function claimSlot(brand: string, start: Date): Promise<boolean> {
+  await initSlotWhitelistTable();
+  const result = await pool.query(
+    'DELETE FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz RETURNING 1',
+    [brand, start]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function listBugTickets(filters: {
   status?: string;
   category?: string;
@@ -2271,4 +2282,34 @@ export async function createAdminShortcut(url: string, label: string): Promise<A
 export async function deleteAdminShortcut(id: string): Promise<void> {
   await initAdminShortcutsTable();
   await pool.query('DELETE FROM admin_shortcuts WHERE id = $1', [id]);
+}
+
+// ── DSGVO Audit Log ──────────────────────────────────────────────────────────
+
+async function initDsgvoAuditTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS dsgvo_audit_log (
+      id         BIGSERIAL PRIMARY KEY,
+      type       TEXT        NOT NULL,
+      name       TEXT        NOT NULL,
+      email      TEXT        NOT NULL,
+      ip_address TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      deadline   TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (created_at + INTERVAL '30 days') STORED
+    )
+  `);
+}
+
+export async function insertDsgvoRequest(params: {
+  type: string;
+  name: string;
+  email: string;
+  ipAddress?: string;
+}): Promise<void> {
+  await initDsgvoAuditTable();
+  await pool.query(
+    `INSERT INTO dsgvo_audit_log (type, name, email, ip_address)
+     VALUES ($1, $2, $3, $4)`,
+    [params.type, params.name, params.email, params.ipAddress ?? null]
+  );
 }

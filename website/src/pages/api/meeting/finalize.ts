@@ -4,7 +4,7 @@ import { transcribeAudio, formatTranscript } from '../../../lib/whisper';
 import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whiteboard';
 import {
   upsertCustomer, createMeeting, updateMeetingStatus,
-  saveTranscript, saveArtifact, saveInsight,
+  saveTranscript, saveArtifact, saveInsight, getMeetingByRoomToken,
 } from '../../../lib/website-db';
 import { generateMeetingInsights } from '../../../lib/claude';
 
@@ -37,6 +37,17 @@ export const POST: APIRoute = async ({ request }) => {
         JSON.stringify({ error: 'customerName and customerEmail required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
+    }
+
+    // ── 0. Idempotency check: if this room token was already finalized, return early ──
+    if (roomToken) {
+      const existing = await getMeetingByRoomToken(roomToken);
+      if (existing && existing.status === 'finalized') {
+        return new Response(
+          JSON.stringify({ success: true, results: ['Meeting bereits finalisiert (idempotent).'], alreadyFinalized: true }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // ── 1. Upsert customer in meetings DB ──────────────────────────

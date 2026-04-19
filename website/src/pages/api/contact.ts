@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
@@ -16,6 +17,12 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`contact:${ip}`, 5, 60_000)) {
+    return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie einen Moment.' }), {
+      status: 429, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   try {
     const body = await request.json();
     const { name, email, phone, type, message } = body;

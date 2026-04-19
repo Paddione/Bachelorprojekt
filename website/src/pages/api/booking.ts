@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
-import { isSlotWhitelisted } from '../../lib/website-db';
+import { claimSlot } from '../../lib/website-db';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
@@ -14,6 +15,12 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`booking:${ip}`, 5, 60_000)) {
+    return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie einen Moment.' }), {
+      status: 429, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   try {
     const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey, projectId, leistungKey } = await request.json();
 
@@ -32,13 +39,14 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Whitelist check: slot must be explicitly released by admin
+    // Atomically claim the slot: removes it from whitelist in one DB operation.
+    // Prevents race conditions where two users book the same slot simultaneously.
     if (!isCallback && slotStart) {
-      const whitelisted = await isSlotWhitelisted(BRAND_NAME, new Date(slotStart));
-      if (!whitelisted) {
+      const claimed = await claimSlot(BRAND_NAME, new Date(slotStart));
+      if (!claimed) {
         return new Response(
           JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 409, headers: { 'Content-Type': 'application/json' } }
         );
       }
     }

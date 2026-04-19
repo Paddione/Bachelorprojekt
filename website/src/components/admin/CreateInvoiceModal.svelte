@@ -44,7 +44,9 @@
   let extVat = $state('');
 
   // ── Service / qty ─────────────────────────────────────────────────────────
-  let selectedKey = $state(serviceOptions[0]?.key ?? '');
+  let selectedKey = $state(
+    (serviceOptions.find(s => s.cents > 0) ?? serviceOptions[0])?.key ?? ''
+  );
   let quantity = $state(1);
 
   // ── Misc ─────────────────────────────────────────────────────────────────
@@ -101,7 +103,7 @@
     extEmail = '';
     extCompany = '';
     extVat = '';
-    selectedKey = serviceOptions[0]?.key ?? '';
+    selectedKey = (serviceOptions.find(s => s.cents > 0) ?? serviceOptions[0])?.key ?? '';
     quantity = 1;
     notes = '';
     sendEmail = true;

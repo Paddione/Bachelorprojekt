@@ -116,18 +116,19 @@ export async function createBillingInvoice(params: {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   const service = SERVICES[params.serviceKey];
   const qty = params.quantity ?? 1;
-  await stripe.invoiceItems.create({
-    customer: params.customerId,
-    amount: service.cents * qty,
-    currency: 'eur',
-    description: `${service.name}${qty > 1 ? ` × ${qty}` : ''}`,
-  });
   const draft = await stripe.invoices.create({
     customer: params.customerId,
     collection_method: 'send_invoice',
     days_until_due: 30,
     auto_advance: false,
     description: params.notes ?? '',
+  });
+  await stripe.invoiceItems.create({
+    customer: params.customerId,
+    invoice: draft.id,
+    amount: service.cents * qty,
+    currency: 'eur',
+    description: `${service.name}${qty > 1 ? ` × ${qty}` : ''}`,
   });
   const finalized = await stripe.invoices.finalizeInvoice(draft.id);
   if (params.sendEmail) await stripe.invoices.sendInvoice(finalized.id);

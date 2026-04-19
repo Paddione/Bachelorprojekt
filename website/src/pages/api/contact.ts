@@ -41,10 +41,10 @@ export const POST: APIRoute = async ({ request }) => {
       payload: { name, email, phone: phone ?? null, type, typeLabel, message },
     });
 
-    // E-Mail-Benachrichtigung an Admin
+    // Admin email notification is best-effort — inbox item is the authoritative record
     if (CONTACT_EMAIL) {
       const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
-      await sendEmail({
+      sendEmail({
         to: CONTACT_EMAIL,
         subject: `[${typeLabel}] Neue Anfrage von ${name}`,
         replyTo: email,
@@ -57,7 +57,9 @@ ${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}
 <tr><td><strong>Typ</strong></td><td>${typeLabel}</td></tr>
 </table>
 <p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
-      });
+      }).catch(err => console.error('[contact] Failed to send admin notification email:', err));
+    } else {
+      console.warn('[contact] CONTACT_EMAIL not configured — admin notification skipped');
     }
 
     return new Response(

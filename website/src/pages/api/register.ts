@@ -27,8 +27,10 @@ export const POST: APIRoute = async ({ request }) => {
       payload: { firstName, lastName, email, phone: phone ?? null, company: company ?? null, message: message ?? null },
     });
 
-    // Send confirmation email to user
-    await sendRegistrationConfirmation(email, fullName);
+    // Confirmation email is best-effort — inbox item is the authoritative record
+    sendRegistrationConfirmation(email, fullName).catch(err =>
+      console.error('[register] Failed to send confirmation email:', err)
+    );
 
     return new Response(
       JSON.stringify({ success: true }),

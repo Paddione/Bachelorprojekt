@@ -16,6 +16,8 @@
   let adminMode = $state(false);
   let pollInterval: ReturnType<typeof setInterval> | null = null;
   let msgContainer = $state<HTMLDivElement | null>(null);
+  let sendError = $state('');
+  let authExpired = $state(false);
 
   let totalUnread = $derived(rooms.reduce((sum, r) => sum + r.unreadCount, 0));
   let activeRoom = $derived(rooms.find(r => r.id === activeRoomId) ?? null);
@@ -91,6 +93,11 @@
     pollInterval = setInterval(async () => {
       if (!activeRoomId) return;
       const res = await fetch(msgUrl(activeRoomId, lastId));
+      if (res.status === 401) {
+        clearInterval(pollInterval!); pollInterval = null;
+        authExpired = true;
+        return;
+      }
       if (!res.ok) return;
       const data = await res.json() as { messages: ChatMessage[] };
       if (data.messages.length > 0) {
@@ -110,14 +117,23 @@
   async function sendMessage() {
     if (!newBody.trim() || !activeRoomId || sending) return;
     sending = true;
-    const body = newBody.trim(); newBody = '';
+    sendError = '';
+    const body = newBody.trim();
     try {
       const url = adminMode ? `/api/admin/rooms/${activeRoomId}` : `/api/portal/rooms/${activeRoomId}/messages`;
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body }) });
       if (res.ok) {
+        newBody = '';
         const data = await res.json() as { message: ChatMessage };
         messages = [...messages, data.message]; lastId = data.message.id; scrollToBottom();
+      } else if (res.status === 401) {
+        authExpired = true;
+        clearInterval(pollInterval!); pollInterval = null;
+      } else {
+        sendError = 'Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.';
       }
+    } catch {
+      sendError = 'Verbindungsfehler. Bitte erneut versuchen.';
     } finally { sending = false; }
   }
 
@@ -156,26 +172,36 @@
             {/each}
           </aside>
           <div class="msgs">
-            <div class="list" bind:this={msgContainer}>
-              {#if loading}<p class="hint">Lade…</p>
-              {:else if messages.length === 0}<p class="hint">Noch keine Nachrichten.</p>
-              {:else}
-                {#each messages as msg (msg.id)}
-                  {@const own = isOwn(msg)}
-                  <div class="row {own ? 'own' : 'other'}">
-                    {#if !own}<span class="who">{msg.sender_name}</span>{/if}
-                    <div class="bbl">
-                      <span class="txt">{msg.body}</span>
-                      <span class="ts">{formatTime(msg.created_at)}</span>
+            {#if authExpired}
+              <div class="auth-expired">
+                <p>Sitzung abgelaufen.</p>
+                <a href="/api/auth/login">Erneut anmelden</a>
+              </div>
+            {:else}
+              <div class="list" bind:this={msgContainer}>
+                {#if loading}<p class="hint">Lade…</p>
+                {:else if messages.length === 0}<p class="hint">Noch keine Nachrichten.</p>
+                {:else}
+                  {#each messages as msg (msg.id)}
+                    {@const own = isOwn(msg)}
+                    <div class="row {own ? 'own' : 'other'}">
+                      {#if !own}<span class="who">{msg.sender_name}</span>{/if}
+                      <div class="bbl">
+                        <span class="txt">{msg.body}</span>
+                        <span class="ts">{formatTime(msg.created_at)}</span>
+                      </div>
                     </div>
-                  </div>
-                {/each}
+                  {/each}
+                {/if}
+              </div>
+              {#if sendError}
+                <p class="send-error">{sendError}</p>
               {/if}
-            </div>
-            <div class="bar">
-              <textarea bind:value={newBody} onkeydown={handleKeydown} placeholder="Nachricht… (Enter)" rows="2" disabled={sending || !activeRoomId}></textarea>
-              <button class="send" onclick={sendMessage} disabled={!newBody.trim() || sending || !activeRoomId}>{sending ? '…' : '➤'}</button>
-            </div>
+              <div class="bar">
+                <textarea bind:value={newBody} onkeydown={handleKeydown} placeholder="Nachricht… (Enter)" rows="2" disabled={sending || !activeRoomId}></textarea>
+                <button class="send" onclick={sendMessage} disabled={!newBody.trim() || sending || !activeRoomId}>{sending ? '…' : '➤'}</button>
+              </div>
+            {/if}
           </div>
         </div>
       </div>
@@ -220,4 +246,12 @@
   .fab { position: relative; width: 52px; height: 52px; border-radius: 50%; background: #e8c870; color: #0f1623; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; transition: transform .15s, box-shadow .15s; }
   .fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,.5); }
   .dot { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; padding: 2px 5px; font-family: monospace; min-width: 18px; text-align: center; line-height: 1.4; pointer-events: none; }
+  .auth-expired { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #aabbcc; font-size: 13px; }
+  .auth-expired a { color: #e8c870; text-decoration: underline; }
+  .send-error { font-size: 11px; color: #ef4444; padding: 2px 12px 0; margin: 0; }
+  @media (max-width: 600px) {
+    .cw { right: 8px; bottom: 16px; }
+    .panel { width: calc(100vw - 16px); height: 75vh; }
+    .rooms { width: 110px; }
+  }
 </style>

@@ -8,8 +8,8 @@ export const POST: APIRoute = async ({ request }) => {
   const body = await request.text();
 
   if (!webhookSecret) {
-    console.warn('[stripe/webhook] STRIPE_WEBHOOK_SECRET not configured — ignoring event');
-    return new Response('OK', { status: 200 });
+    console.error('[stripe/webhook] STRIPE_WEBHOOK_SECRET not configured — rejecting all events');
+    return new Response('Internal Server Error', { status: 500 });
   }
 
   let event;
@@ -38,8 +38,20 @@ export const POST: APIRoute = async ({ request }) => {
     const invoiceId = pi.metadata?.invoice_id;
     if (invoiceId) {
       try {
-        // Mark the invoice as paid via the out-of-band path: the charge occurred through
-        // our separately created PaymentIntent; this records the settlement on the invoice.
+        const invoice = await stripe.invoices.retrieve(invoiceId);
+        const piCustomerId = typeof pi.customer === 'string' ? pi.customer : pi.customer?.id;
+        const invCustomerId = typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer as { id?: string } | null)?.id;
+
+        if (piCustomerId !== invCustomerId) {
+          console.error(`[stripe] Customer mismatch for invoice ${invoiceId}: PI=${piCustomerId} Invoice=${invCustomerId}`);
+          return new Response('OK', { status: 200 });
+        }
+
+        if (pi.amount_received < (invoice.amount_remaining ?? 0)) {
+          console.error(`[stripe] Underpayment for invoice ${invoiceId}: received=${pi.amount_received} remaining=${invoice.amount_remaining}`);
+          return new Response('OK', { status: 200 });
+        }
+
         await stripe.invoices.pay(invoiceId, { paid_out_of_band: true });
         console.log(`[stripe] Invoice ${invoiceId} marked paid via payment_intent ${pi.id}`);
       } catch (err) {

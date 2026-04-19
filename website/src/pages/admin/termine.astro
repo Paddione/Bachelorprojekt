@@ -3,8 +3,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAvailableSlots, getAllBookings } from '../../lib/caldav';
 import type { DaySlots, AdminBooking } from '../../lib/caldav';
-import { getBookingProjects, listProjects, getBookingInvoices, getWhitelistedSlots } from '../../lib/website-db';
+import { getBookingProjects, listProjects, getBookingInvoices, getWhitelistedSlots, getBookingLeistungen } from '../../lib/website-db';
 import type { Project, BookingInvoiceInfo } from '../../lib/website-db';
+import { getEffectiveLeistungen } from '../../lib/content';
+import type { LeistungCategory } from '../../config/types';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -23,6 +25,8 @@ let days: DaySlots[] = [];
 let bookings: AdminBooking[] = [];
 let bookingProjectMap: Map<string, string> = new Map();
 let bookingInvoiceMap: Map<string, BookingInvoiceInfo> = new Map();
+let bookingLeistungMap: Map<string, string> = new Map();
+let leistungen: LeistungCategory[] = [];
 let projects: Project[] = [];
 let calError = '';
 
@@ -37,10 +41,12 @@ try {
   bookings = allBookings;
   projects = allProjects;
   const uids = bookings.map(b => b.uid).filter(Boolean);
-  [bookingProjectMap, bookingInvoiceMap] = await Promise.all([
+  [bookingProjectMap, bookingInvoiceMap, bookingLeistungMap] = await Promise.all([
     getBookingProjects(uids, brand),
     getBookingInvoices(uids, brand),
+    getBookingLeistungen(uids, brand),
   ]);
+  leistungen = await getEffectiveLeistungen();
 } catch (err) {
   console.error('[admin/termine] load failed:', err);
   calError = 'Kalender konnte nicht geladen werden.';
@@ -134,6 +140,23 @@ function formatTime(d: Date) {
                             ))}
                           </select>
                         )}
+                        {leistungen.length > 0 && (
+                          <select
+                            class="booking-leistung-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
+                            data-booking-uid={b.uid}
+                          >
+                            <option value="">— Keine Leistung —</option>
+                            {leistungen.map(cat => (
+                              <optgroup label={`${cat.icon} ${cat.title}`}>
+                                {cat.services.map(svc => (
+                                  <option value={svc.key} selected={bookingLeistungMap.get(b.uid) === svc.key}>
+                                    {svc.name}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </select>
+                        )}
                         {inv && (IN_PUBLIC_URL
                           ? <a
                               href={`${IN_PUBLIC_URL}/invoices/${inv.invoiceId}/edit`}
@@ -186,6 +209,23 @@ function formatTime(d: Date) {
                               <option value={p.id} selected={bookingProjectMap.get(b.uid) === p.id}>
                                 {p.name}
                               </option>
+                            ))}
+                          </select>
+                        )}
+                        {leistungen.length > 0 && (
+                          <select
+                            class="booking-leistung-select text-xs bg-dark border border-dark-lighter rounded-lg px-2 py-1 text-light focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none cursor-pointer"
+                            data-booking-uid={b.uid}
+                          >
+                            <option value="">— Keine Leistung —</option>
+                            {leistungen.map(cat => (
+                              <optgroup label={`${cat.icon} ${cat.title}`}>
+                                {cat.services.map(svc => (
+                                  <option value={svc.key} selected={bookingLeistungMap.get(b.uid) === svc.key}>
+                                    {svc.name}
+                                  </option>
+                                ))}
+                              </optgroup>
                             ))}
                           </select>
                         )}
@@ -332,13 +372,40 @@ function formatTime(d: Date) {
         const res = await fetch(`/api/bookings/${encodeURIComponent(uid)}/project`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ projectId: sel.value || null }),
+          body: JSON.stringify({
+            projectId: sel.value || null,
+            leistungKey: sel.parentElement?.querySelector<HTMLSelectElement>('.booking-leistung-select')?.value || null,
+          }),
         });
         if (!res.ok) {
           alert('Fehler beim Speichern der Projektzuordnung.');
         }
       } catch {
         alert('Netzwerkfehler beim Speichern.');
+      } finally {
+        sel.disabled = false;
+      }
+    });
+  });
+
+  // Booking leistung assignment
+  document.querySelectorAll<HTMLSelectElement>('.booking-leistung-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const uid = sel.dataset.bookingUid;
+      if (!uid) return;
+      const container = sel.parentElement; // the flex container div
+      const projectSel = container?.querySelector<HTMLSelectElement>('.booking-project-select');
+      const projectId = projectSel?.value || null;
+      sel.disabled = true;
+      try {
+        const res = await fetch(`/api/bookings/${encodeURIComponent(uid)}/project`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId, leistungKey: sel.value || null }),
+        });
+        if (!res.ok) alert('Fehler beim Speichern der Leistungszuordnung.');
+      } catch {
+        alert('Netzwerkfehler.');
       } finally {
         sel.disabled = false;
       }

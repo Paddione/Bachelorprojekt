@@ -188,7 +188,7 @@
 {/if}
 
 <style>
-  .cw { position: fixed; bottom: 24px; right: 90px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .cw { position: fixed; bottom: 24px; right: 184px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
   .panel { width: 560px; height: 440px; background: #1a2235; border: 1px solid #243049; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,.5); overflow: hidden; }
   .hdr { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #243049; font-size: 14px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
   .x { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }

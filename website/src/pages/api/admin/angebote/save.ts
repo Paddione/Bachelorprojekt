@@ -53,14 +53,19 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     id: cat.id,
     title: (form.get(`lk_${cat.id}_title`) as string) || cat.title,
     icon: (form.get(`lk_${cat.id}_icon`) as string) || cat.icon,
-    services: cat.services.map(svc => ({
-      key: svc.key,
-      name: (form.get(`lk_${cat.id}_${svc.key}_name`) as string) || svc.name,
-      price: (form.get(`lk_${cat.id}_${svc.key}_price`) as string) || svc.price,
-      unit: (form.get(`lk_${cat.id}_${svc.key}_unit`) as string ?? svc.unit),
-      desc: (form.get(`lk_${cat.id}_${svc.key}_desc`) as string) || svc.desc,
-      highlight: form.get(`lk_${cat.id}_${svc.key}_highlight`) === '1',
-    })),
+    services: cat.services.map(svc => {
+      const stundensatzEuro = parseFloat((form.get(`lk_${cat.id}_${svc.key}_stundensatz`) as string) || '0');
+      const stundensatz_cents = isNaN(stundensatzEuro) ? 0 : Math.round(stundensatzEuro * 100);
+      return {
+        key: svc.key,
+        name: (form.get(`lk_${cat.id}_${svc.key}_name`) as string) || svc.name,
+        price: (form.get(`lk_${cat.id}_${svc.key}_price`) as string) || svc.price,
+        unit: (form.get(`lk_${cat.id}_${svc.key}_unit`) as string ?? svc.unit),
+        desc: (form.get(`lk_${cat.id}_${svc.key}_desc`) as string) || svc.desc,
+        highlight: form.get(`lk_${cat.id}_${svc.key}_highlight`) === '1',
+        stundensatz_cents,
+      };
+    }),
   }));
 
   const priceListUrl = (form.get('price_list_url') as string)?.trim() ?? '';

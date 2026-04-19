@@ -276,6 +276,7 @@ export async function createMonthlyDraftInvoices(
         ? Math.round(entries.reduce((s, e) => s + e.rateCents * e.minutes, 0) / totalMinutes)
         : 0;
       const amountCents = Math.round(totalHours * weightedRateCents);
+      if (amountCents === 0) continue;
 
       const descriptions = entries.map(e => e.description).filter(Boolean).join('; ');
       const lineDescription = descriptions
@@ -296,6 +297,11 @@ export async function createMonthlyDraftInvoices(
       });
     }
 
+    const refreshed = await stripe.invoices.retrieve(draft.id);
+    if ((refreshed.lines?.total_count ?? 0) === 0) {
+      await stripe.invoices.del(draft.id);
+      continue;  // Kunden überspringen
+    }
     result.set(group.customerId, draft.id);
   }
   return result;
@@ -414,10 +420,9 @@ export async function sendDraftInvoice(invoiceId: string): Promise<void> {
 
 export async function discardDraftInvoice(invoiceId: string): Promise<void> {
   if (!process.env.STRIPE_SECRET_KEY) return;
-  const inv = await stripe.invoices.retrieve(invoiceId);
-  for (const line of inv.lines.data) {
-    const iiId = line.parent?.invoice_item_details?.invoice_item;
-    if (iiId) await stripe.invoiceItems.del(iiId).catch(() => {});
+  const items = await stripe.invoiceItems.list({ invoice: invoiceId, limit: 100 });
+  for (const item of items.data) {
+    await stripe.invoiceItems.del(item.id).catch(() => {});
   }
   await stripe.invoices.del(invoiceId);
 }

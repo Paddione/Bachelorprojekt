@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getAllBillingInvoices, stripeInvoiceDashboardUrl } from '../../lib/stripe-billing';
+import { getAllBillingInvoices, stripeInvoiceDashboardUrl, getDraftInvoices } from '../../lib/stripe-billing';
 import type { AdminBillingInvoice } from '../../lib/stripe-billing';
 import CreateInvoiceModal from '../../components/admin/CreateInvoiceModal.svelte';
 import { SERVICES } from '../../lib/stripe-billing';
@@ -25,6 +25,13 @@ try {
 } catch (err) {
   console.error('[admin/rechnungen]', err);
   apiError = 'Stripe nicht erreichbar.';
+}
+
+let draftInvoices: Awaited<ReturnType<typeof getDraftInvoices>> = [];
+try {
+  draftInvoices = await getDraftInvoices();
+} catch (err) {
+  console.error('[admin/rechnungen] getDraftInvoices', err);
 }
 
 const today = new Date().toISOString().slice(0, 10);
@@ -64,7 +71,17 @@ const STATUS_TABS = [
 
       <div class="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-light font-serif">Rechnungen</h1>
+          <h1 class="text-3xl font-bold text-light font-serif">
+            Rechnungen
+            <span
+              id="draft-badge"
+              class={draftInvoices.length > 0
+                ? "ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5"
+                : "hidden"}
+            >
+              {draftInvoices.length}
+            </span>
+          </h1>
           <p class="text-muted mt-1">{invoices.length} Rechnungen über alle Clients</p>
         </div>
         <CreateInvoiceModal {serviceOptions} client:load />
@@ -87,6 +104,48 @@ const STATUS_TABS = [
 
       {apiError && (
         <div class="mb-6 p-4 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm">{apiError}</div>
+      )}
+
+      <!-- Draft Invoice Section -->
+      {draftInvoices.length > 0 && (
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold text-light mb-4">
+            Ausstehende Monatsrechnungen
+            <span class="ml-2 text-sm font-normal text-muted">({draftInvoices.length})</span>
+          </h2>
+          <div class="space-y-3" id="draft-list">
+            {draftInvoices.map(inv => (
+              <div
+                class="bg-surface border border-border rounded-xl p-4 flex items-center justify-between gap-4"
+                data-invoice-id={inv.id}
+              >
+                <div>
+                  <p class="font-semibold text-light">{inv.customerName}</p>
+                  <p class="text-sm text-muted">{inv.customerEmail}</p>
+                  <p class="text-sm text-muted mt-1">
+                    Betrag: <span class="text-light font-medium">
+                      {inv.amountDue.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
+                    </span>
+                  </p>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                  <button
+                    class="open-draft-btn px-3 py-1.5 text-sm bg-surface-hover border border-border rounded-lg hover:border-gold transition-colors"
+                    data-id={inv.id}
+                  >
+                    Bearbeiten
+                  </button>
+                  <button
+                    class="discard-draft-btn px-3 py-1.5 text-sm text-red-400 border border-border rounded-lg hover:border-red-400 transition-colors"
+                    data-id={inv.id}
+                  >
+                    Verwerfen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       <!-- Status filter tabs -->
@@ -163,7 +222,239 @@ const STATUS_TABS = [
     </div>
   </section>
 
+  <dialog id="draft-editor" class="bg-surface border border-border rounded-2xl p-6 w-full max-w-3xl backdrop:bg-black/60">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-semibold text-light">Rechnung bearbeiten</h3>
+      <button id="editor-close" class="text-muted hover:text-light transition-colors text-xl" aria-label="Schließen">✕</button>
+    </div>
+
+    <p id="editor-customer" class="mb-4 text-sm text-muted"></p>
+
+    <table class="w-full text-sm mb-4">
+      <thead>
+        <tr class="text-muted border-b border-border">
+          <th class="text-left py-2 pr-3 font-medium">Beschreibung</th>
+          <th class="text-right py-2 px-3 font-medium w-24">Stunden</th>
+          <th class="text-right py-2 px-3 font-medium w-28">€/h</th>
+          <th class="text-right py-2 px-3 font-medium w-28">Betrag</th>
+          <th class="py-2 w-10"></th>
+        </tr>
+      </thead>
+      <tbody id="editor-items"></tbody>
+      <tfoot>
+        <tr class="border-t border-border font-semibold text-light">
+          <td colspan="3" class="py-3 pr-3">Gesamt</td>
+          <td class="py-3 px-3 text-right" id="editor-total"></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <button id="add-item-btn" class="text-sm text-gold hover:text-gold-light mb-6 transition-colors">
+      + Position hinzufügen
+    </button>
+
+    <div class="flex gap-3 justify-end">
+      <button id="editor-discard-btn"
+        class="px-4 py-2 text-sm text-red-400 border border-border rounded-lg hover:border-red-400 transition-colors">
+        Verwerfen
+      </button>
+      <button id="editor-send-btn"
+        class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">
+        Versenden
+      </button>
+    </div>
+  </dialog>
+
 <script>
   document.addEventListener('invoice-created', () => window.location.reload());
+</script>
+
+<script>
+  interface DraftItem {
+    invoiceItemId: string;
+    description: string;
+    hours: number;
+    rateCents: number;
+    amountCents: number;
+  }
+
+  let currentInvoiceId: string | null = null;
+
+  const dialog     = document.getElementById('draft-editor') as HTMLDialogElement;
+  const itemsBody  = document.getElementById('editor-items')!;
+  const totalCell  = document.getElementById('editor-total')!;
+  const customerEl = document.getElementById('editor-customer')!;
+
+  document.getElementById('editor-close')!.addEventListener('click', () => dialog.close());
+
+  function formatEur(cents: number): string {
+    return (cents / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+  }
+
+  function recalcTotal(): void {
+    let total = 0;
+    document.querySelectorAll<HTMLElement>('[data-amount]').forEach(el => {
+      total += parseInt(el.dataset.amount ?? '0', 10);
+    });
+    totalCell.textContent = formatEur(total);
+  }
+
+  function renderItem(item: DraftItem): HTMLTableRowElement {
+    const tr = document.createElement('tr');
+    tr.className = 'border-b border-border';
+    tr.dataset.itemId = item.invoiceItemId;
+
+    const descTd = document.createElement('td');
+    descTd.className = 'py-2 pr-3';
+    const descInput = document.createElement('input');
+    descInput.className = 'w-full bg-transparent text-light focus:outline-none focus:ring-1 focus:ring-gold rounded px-1';
+    descInput.dataset.field = 'description';
+    descInput.value = item.description;
+    descTd.appendChild(descInput);
+
+    const hoursTd = document.createElement('td');
+    hoursTd.className = 'py-2 px-3';
+    const hoursInput = document.createElement('input');
+    hoursInput.type = 'number';
+    hoursInput.min = '0';
+    hoursInput.step = '0.25';
+    hoursInput.className = 'w-full bg-transparent text-light text-right focus:outline-none focus:ring-1 focus:ring-gold rounded px-1';
+    hoursInput.dataset.field = 'hours';
+    hoursInput.value = item.hours.toFixed(2);
+    hoursTd.appendChild(hoursInput);
+
+    const rateTd = document.createElement('td');
+    rateTd.className = 'py-2 px-3';
+    const rateInput = document.createElement('input');
+    rateInput.type = 'number';
+    rateInput.min = '0';
+    rateInput.step = '1';
+    rateInput.className = 'w-full bg-transparent text-light text-right focus:outline-none focus:ring-1 focus:ring-gold rounded px-1';
+    rateInput.dataset.field = 'rate';
+    rateInput.value = (item.rateCents / 100).toFixed(0);
+    rateTd.appendChild(rateInput);
+
+    const amountTd = document.createElement('td');
+    amountTd.className = 'py-2 px-3 text-right text-light';
+    amountTd.dataset.amount = item.amountCents.toString();
+    amountTd.textContent = formatEur(item.amountCents);
+
+    const deleteTd = document.createElement('td');
+    deleteTd.className = 'py-2 pl-2';
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'text-red-400 hover:text-red-300 transition-colors';
+    deleteBtn.setAttribute('aria-label', 'Position löschen');
+    deleteBtn.textContent = '✕';
+    deleteTd.appendChild(deleteBtn);
+
+    tr.append(descTd, hoursTd, rateTd, amountTd, deleteTd);
+
+    [descInput, hoursInput, rateInput].forEach(input => {
+      input.addEventListener('change', async () => {
+        const desc      = descInput.value;
+        const hours     = parseFloat(hoursInput.value);
+        const rateCents = Math.round(parseFloat(rateInput.value) * 100);
+        const newAmount = Math.round(hours * rateCents);
+        amountTd.dataset.amount = newAmount.toString();
+        amountTd.textContent    = formatEur(newAmount);
+        recalcTotal();
+        await fetch(`/api/admin/billing/${currentInvoiceId}/item`, {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            invoiceItemId: item.invoiceItemId,
+            description:   desc,
+            hours,
+            rateCents:     parseFloat(rateInput.value),
+          }),
+        });
+      });
+    });
+
+    deleteBtn.addEventListener('click', async () => {
+      await fetch(`/api/admin/billing/${currentInvoiceId}/item`, {
+        method:  'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ invoiceItemId: item.invoiceItemId }),
+      });
+      tr.remove();
+      recalcTotal();
+    });
+
+    return tr;
+  }
+
+  async function openDraftEditor(invoiceId: string): Promise<void> {
+    currentInvoiceId = invoiceId;
+    itemsBody.replaceChildren();
+    const loadingRow = document.createElement('tr');
+    const loadingTd  = document.createElement('td');
+    loadingTd.colSpan = 5;
+    loadingTd.className = 'py-4 text-muted text-center';
+    loadingTd.textContent = 'Lade…';
+    loadingRow.appendChild(loadingTd);
+    itemsBody.appendChild(loadingRow);
+    dialog.showModal();
+
+    const res  = await fetch(`/api/admin/billing/${invoiceId}`);
+    const data = await res.json() as { customerName: string; period: string; items: DraftItem[] };
+
+    customerEl.textContent = `${data.customerName} — ${data.period}`;
+    itemsBody.replaceChildren();
+    data.items.forEach(item => itemsBody.appendChild(renderItem(item)));
+    recalcTotal();
+  }
+
+  async function discardDraft(invoiceId: string): Promise<void> {
+    if (!confirm('Entwurf wirklich verwerfen? Die Zeiteinträge werden wieder als nicht abgerechnet markiert.')) return;
+    await fetch(`/api/admin/billing/${invoiceId}/discard`, { method: 'POST' });
+    document.querySelector(`[data-invoice-id="${invoiceId}"]`)?.remove();
+    updateBadge(-1);
+  }
+
+  function updateBadge(delta: number): void {
+    const badge = document.getElementById('draft-badge');
+    if (!badge) return;
+    const count = Math.max(0, parseInt(badge.textContent ?? '0', 10) + delta);
+    badge.textContent = count.toString();
+    badge.classList.toggle('hidden', count === 0);
+  }
+
+  document.getElementById('draft-list')?.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+    const btn    = target.closest('button') as HTMLButtonElement | null;
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (!id) return;
+    if (btn.classList.contains('open-draft-btn'))    await openDraftEditor(id);
+    if (btn.classList.contains('discard-draft-btn')) await discardDraft(id);
+  });
+
+  document.getElementById('add-item-btn')!.addEventListener('click', async () => {
+    await fetch(`/api/admin/billing/${currentInvoiceId}/item`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ description: 'Neue Position', hours: 1, rateCents: 0 }),
+    });
+    if (currentInvoiceId) await openDraftEditor(currentInvoiceId);
+  });
+
+  document.getElementById('editor-send-btn')!.addEventListener('click', async () => {
+    if (!currentInvoiceId) return;
+    if (!confirm('Rechnung jetzt finalisieren und versenden?')) return;
+    await fetch(`/api/admin/billing/${currentInvoiceId}/send`, { method: 'POST' });
+    dialog.close();
+    document.querySelector(`[data-invoice-id="${currentInvoiceId}"]`)?.remove();
+    updateBadge(-1);
+    currentInvoiceId = null;
+  });
+
+  document.getElementById('editor-discard-btn')!.addEventListener('click', async () => {
+    if (!currentInvoiceId) return;
+    await discardDraft(currentInvoiceId);
+    dialog.close();
+    currentInvoiceId = null;
+  });
 </script>
 </AdminLayout>

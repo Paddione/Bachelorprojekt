@@ -30,3 +30,12 @@ fi
 
 skip_test "FA-21" "T3" "InvoiceNinja entfernt" "Invoice Ninja wurde aus dem Stack entfernt"
 skip_test "FA-21" "T4" "InvoiceNinja entfernt" "Invoice Ninja wurde aus dem Stack entfernt"
+
+# ── T5: invoice-payment-intent API validates missing invoiceId ────
+if [[ "$WEB_READY" -gt 0 ]]; then
+  PI_CODE=$(kubectl exec -n "$WEB_NS" deploy/website -- \
+    node -e "fetch('http://localhost:4321/api/stripe/invoice-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>console.log(r.status))" 2>/dev/null || echo "0")
+  assert_eq "$PI_CODE" "400" "FA-21" "T5" "invoice-payment-intent API validiert (400 bei leerem Body)"
+else
+  skip_test "FA-21" "T5" "invoice-payment-intent API" "Website nicht bereit"
+fi

@@ -22,7 +22,7 @@
     try {
       const res = await fetch('/api/auth/me');
       const data = await res.json() as AuthResponse;
-      if (!data.authenticated) return;
+      if (!data.authenticated || data.user.isAdmin) return;
       visible = true;
       await loadThread();
     } finally {

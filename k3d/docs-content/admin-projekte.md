@@ -1,16 +1,3 @@
-<div class="page-hero">
-  <span class="page-hero-icon">📊</span>
-  <div class="page-hero-body">
-    <div class="page-hero-title">Projektmanagement-Admin</div>
-    <p class="page-hero-desc">Admin-Panel für Projekte, Teilprojekte und Aufgaben je Brand und Kunde. Buchungen, Termine und Nutzerverwaltung mit Keycloak OIDC.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">Website &amp; Admin</span>
-      <span class="page-hero-tag">OIDC-gesichert</span>
-    </div>
-  </div>
-  <a href="#/" class="page-hero-back">← Übersicht</a>
-</div>
-
 # Projektmanagement-Admin
 
 Das Admin-Panel unter `/admin/projekte` erlaubt die Verwaltung von Projekten, Teilprojekten
@@ -22,9 +9,9 @@ und Aufgaben je Brand und Kunde. Zugriff erfordert eine Admin-Rolle (Keycloak OI
 
 | Brand | URL |
 |-------|-----|
-| mentolder | https://web.mentolder.de/admin/projekte |
-| korczewski | https://web.korczewski.de/admin/projekte |
-| Lokal | http://web.localhost/admin/projekte |
+| mentolder | `https://web.mentolder.de/admin/projekte` |
+| korczewski | `https://web.korczewski.de/admin/projekte` |
+| Lokal | `http://web.localhost/admin/projekte` |
 
 Berechtigung: Keycloak-Rolle `admin` oder `workspace-admin`. Ohne Login → Weiterleitung auf Keycloak SSO.
 

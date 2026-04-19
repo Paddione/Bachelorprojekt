@@ -1,143 +1,194 @@
-<div class="page-hero">
-  <span class="page-hero-icon">🛠️</span>
-  <div class="page-hero-body">
-    <div class="page-hero-title">Administrator-Handbuch</div>
-    <p class="page-hero-desc">Einrichtung, Betrieb und Verwaltung des Workspace – für Administratoren ohne Kubernetes-Vorkenntnisse.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">Für Administratoren</span>
-      <span class="page-hero-tag">Betrieb</span>
-    </div>
-  </div>
-  <a href="#/" class="page-hero-back">← Übersicht</a>
-</div>
+# Adminhandbuch — Workspace
 
-# Administrator-Handbuch – Workspace
+## Voraussetzungen
 
-Dieses Handbuch beschreibt die wichtigsten Administrationsaufgaben: Benutzer anlegen, Dienste überwachen, Backups verwalten und häufige Probleme beheben. Für tiefgehende technische Details zu Kubernetes-Manifesten und Architektur: [Architektur](architecture.md) und [Services](services.md).
+| Werkzeug | Zweck |
+|----------|-------|
+| Docker | Container-Runtime für k3d |
+| k3d | Lokaler Kubernetes-Cluster |
+| kubectl | Kubernetes CLI |
+| task (go-task) | Aufgaben-Orchestrierer |
+| git | Quellcode-Verwaltung |
+
+Für die Produktionsumgebung zusätzlich: Zugang zum k3s-Cluster (Hetzner) und `kubectl` mit gesetztem Kontext.
 
 ---
 
-## Dienstübersicht mit Admin-Links
+## Erstmalige Einrichtung
 
-| Dienst | Funktion | URL | Admin-Zugang |
-|--------|----------|-----|--------------|
-| **Keycloak** | Benutzerverwaltung & SSO | [{PROTO}://auth.{DOMAIN}]({PROTO}://auth.{DOMAIN}) | [{PROTO}://auth.{DOMAIN}/admin]({PROTO}://auth.{DOMAIN}/admin) |
-| **Nextcloud** | Dateien, Kalender, Talk | [{PROTO}://files.{DOMAIN}]({PROTO}://files.{DOMAIN}) | [{PROTO}://files.{DOMAIN}/settings/admin]({PROTO}://files.{DOMAIN}/settings/admin) |
-| **Collabora** | Office-Editor (in NC eingebettet) | [{PROTO}://office.{DOMAIN}]({PROTO}://office.{DOMAIN}) | Konfiguration via Nextcloud |
-| **Whiteboard** | Digitales Whiteboard | [{PROTO}://board.{DOMAIN}]({PROTO}://board.{DOMAIN}) | — |
-| **Vaultwarden** | Passwort-Safe | [{PROTO}://vault.{DOMAIN}]({PROTO}://vault.{DOMAIN}) | [{PROTO}://vault.{DOMAIN}/admin]({PROTO}://vault.{DOMAIN}/admin) |
-| **Website / Portal** | Unternehmenswebsite + Messaging | [{PROTO}://web.{DOMAIN}]({PROTO}://web.{DOMAIN}) | [{PROTO}://web.{DOMAIN}/admin]({PROTO}://web.{DOMAIN}/admin) |
-| **Dokumentation** | Dieses Handbuch | [{PROTO}://docs.{DOMAIN}]({PROTO}://docs.{DOMAIN}) | SSO-geschützt (Keycloak) |
-| **Mailpit** | Ausgehende E-Mails (Dev) | [{PROTO}://mail.{DOMAIN}]({PROTO}://mail.{DOMAIN}) | Direktzugang (keine Auth) |
-| **Claude Code KI** | KI-Status & MCP-Dashboard | [{PROTO}://ai.{DOMAIN}]({PROTO}://ai.{DOMAIN}) | MCP-Status-Dashboard |
+```bash
+git clone https://github.com/Paddione/Bachelorprojekt.git
+cd Bachelorprojekt
+
+# Cluster erstellen und Stack deployen
+task cluster:create
+task workspace:deploy
+
+# Post-Deploy-Setup (Nextcloud-Apps aktivieren: Kalender, Kontakte, OIDC, Collabora)
+task workspace:post-setup
+
+# Optionale Dienste
+task workspace:vaultwarden:seed   # Vaultwarden mit Secret-Templates befüllen
+task mcp:deploy                   # Claude Code MCP-Server-Pods deployen
+task website:deploy               # Astro-Website bauen und deployen
+```
+
+Alternativ als Einzeiler:
+
+```bash
+task workspace:up   # Cluster + MVP + MCP in einem Schritt
+```
 
 ---
 
-## Benutzer verwalten (Keycloak)
+## Dienste-Übersicht mit Admin-Links
+
+| Dienst | URL (Dev) | Admin-Zugang |
+|--------|-----------|--------------|
+| Keycloak | `auth.localhost` | `auth.localhost/admin` |
+| Nextcloud | `files.localhost` | `files.localhost/settings/admin` |
+| Collabora | `office.localhost` | Konfiguration via Nextcloud |
+| Whiteboard | `board.localhost` | — |
+| Vaultwarden | `vault.localhost` | `vault.localhost/admin` |
+| Website / Portal | `web.localhost` | `web.localhost/admin` |
+| Mailpit | `mail.localhost` | Direktzugang (keine Auth) |
+| KI-Assistent | `ai.localhost` | MCP-Status-Dashboard |
+| Dokumentation | `docs.localhost` | SSO-geschützt (Keycloak) |
+
+---
+
+## Benutzerverwaltung
+
+### Keycloak Admin-UI
 
 Alle Benutzerkonten werden zentral in Keycloak gepflegt. Jede Änderung gilt sofort für alle Dienste (SSO).
 
-### Neuen Benutzer anlegen
+Aufruf: `http://auth.localhost/admin` → Realm **workspace**
 
-1. Öffne [{PROTO}://auth.{DOMAIN}/admin]({PROTO}://auth.{DOMAIN}/admin) → Realm **workspace**
-2. Navigiere zu **Benutzer** → **Benutzer hinzufügen**
-3. Felder ausfüllen:
-   - **Benutzername**: Kleinbuchstaben, kein Leerzeichen
-   - **E-Mail**: Pflichtfeld für Benachrichtigungen
-   - **Vorname / Nachname**
-4. Reiter **Zugangsdaten** → Temporäres Passwort vergeben (Benutzer muss es beim ersten Login ändern)
-5. Reiter **Gruppen** → Benutzer der passenden Gruppe zuweisen:
-   - `workspace-users` – normaler Mitarbeiter-Zugang
-   - `workspace-admins` – Administratorzugang (Website-Admin-Panel, erweiterte Rechte)
+#### Neuen Benutzer anlegen
 
-### Passwort zurücksetzen
+1. Navigiere zu **Benutzer → Benutzer hinzufügen**
+2. Felder ausfüllen: Benutzername (Kleinbuchstaben, kein Leerzeichen), E-Mail, Vorname, Nachname
+3. Reiter **Zugangsdaten** → temporäres Passwort vergeben (Pflicht zur Änderung beim ersten Login)
+4. Reiter **Gruppen** → Benutzer zuweisen:
+   - `workspace-users` — normaler Mitarbeiter-Zugang
+   - `workspace-admins` — Administratorzugang (Website-Admin-Panel, erweiterte Rechte)
 
-1. Keycloak Admin → **Benutzer** → Benutzer auswählen
-2. Reiter **Zugangsdaten** → **Passwort zurücksetzen**
-3. Temporäres Passwort eingeben → **Temporär: Ja** → Speichern
+#### Passwort zurücksetzen
 
-Der Benutzer wird beim nächsten Login aufgefordert, ein neues Passwort zu setzen.
+Keycloak Admin → **Benutzer** → Benutzer auswählen → Reiter **Zugangsdaten** → **Passwort zurücksetzen** → temporäres Passwort eingeben → **Temporär: Ja** → Speichern.
 
-### Benutzer deaktivieren
+#### Benutzer deaktivieren
 
-1. Keycloak Admin → **Benutzer** → Benutzer auswählen
-2. Reiter **Details** → **Aktiviert**: Schalter ausschalten → Speichern
+Keycloak Admin → **Benutzer** → Benutzer auswählen → Reiter **Details** → Schalter **Aktiviert** ausschalten → Speichern. Der Benutzer kann sich sofort nicht mehr anmelden; Daten bleiben erhalten.
 
-Der Benutzer kann sich sofort nicht mehr anmelden. Daten bleiben erhalten.
+### Massenimport via CSV
+
+```bash
+scripts/import-users.sh --csv users.csv \
+  --url http://auth.localhost \
+  --admin admin \
+  --pass devadmin
+
+# Trockenlauf (keine Änderungen)
+scripts/import-users.sh --csv users.csv --dry-run
+```
+
+CSV-Format: `username,email,firstname,lastname`
+
+Fehlende Gruppen werden automatisch erstellt. Importierte Benutzer erhalten temporäre Passwörter.
+
+### Admin-User einrichten
+
+```bash
+scripts/admin-users-setup.sh
+```
+
+Provisioniert die in `.env` definierten Admin-Benutzer (`KC_USER1`, `KC_USER2`) im workspace-Realm. Idempotent — bei bereits vorhandenen Benutzern wird nur aktualisiert.
 
 ---
 
 ## Website-Admin-Panel
 
-Das Admin-Panel ist erreichbar unter [{PROTO}://web.{DOMAIN}/admin]({PROTO}://web.{DOMAIN}/admin) (Keycloak-Login mit `workspace-admins`-Gruppe erforderlich).
-
-### Verfügbare Admin-Bereiche
+Das Admin-Panel ist erreichbar unter `https://web.{DOMAIN}/admin` (Keycloak-Login mit `workspace-admins`-Gruppe erforderlich).
 
 | Bereich | Pfad | Funktion |
 |---------|------|----------|
-| **Startseite** | [`/admin/startseite`]({PROTO}://web.{DOMAIN}/admin/startseite) | Startseiten-Texte und Hero-Bereich bearbeiten |
-| **Leistungen** | [`/admin/angebote`]({PROTO}://web.{DOMAIN}/admin/angebote) | Dienstleistungen und Preise verwalten |
-| **Über mich** | [`/admin/uebermich`]({PROTO}://web.{DOMAIN}/admin/uebermich) | Profilseite bearbeiten |
-| **Referenzen** | [`/admin/referenzen`]({PROTO}://web.{DOMAIN}/admin/referenzen) | Kundenstimmen und Referenzen |
-| **FAQ** | [`/admin/faq`]({PROTO}://web.{DOMAIN}/admin/faq) | Häufig gestellte Fragen pflegen |
-| **Rechtliches** | [`/admin/rechtliches`]({PROTO}://web.{DOMAIN}/admin/rechtliches) | Impressum, Datenschutz, AGB |
-| **Inbox** | [`/admin/inbox`]({PROTO}://web.{DOMAIN}/admin/inbox) | Eingehende Kontaktanfragen |
-| **Nachrichten** | [`/admin/nachrichten`]({PROTO}://web.{DOMAIN}/admin/nachrichten) | Direkte Nachrichten und Chat-Räume |
-| **Räume** | [`/admin/raeume`]({PROTO}://web.{DOMAIN}/admin/raeume) | Chat-Räume verwalten |
-| **Kunden** | [`/admin/clients`]({PROTO}://web.{DOMAIN}/admin/clients) | Kundenverwaltung |
-| **Projekte** | [`/admin/projekte`]({PROTO}://web.{DOMAIN}/admin/projekte) | Projektmanagement mit Gantt-Diagramm |
-| **Termine** | [`/admin/termine`]({PROTO}://web.{DOMAIN}/admin/termine) | Terminbuchungen und Kalender |
-| **Zeiterfassung** | [`/admin/zeiterfassung`]({PROTO}://web.{DOMAIN}/admin/zeiterfassung) | Arbeitszeiterfassung |
-| **Rechnungen** | [`/admin/rechnungen`]({PROTO}://web.{DOMAIN}/admin/rechnungen) | Rechnungen und Stripe-Zahlungen |
-| **Follow-ups** | [`/admin/followups`]({PROTO}://web.{DOMAIN}/admin/followups) | Wiedervorlagen und Erinnerungen |
-| **Meetings** | [`/admin/meetings`]({PROTO}://web.{DOMAIN}/admin/meetings) | Aufgezeichnete Meetings und Transkripte |
-| **Kalender** | [`/admin/kalender`]({PROTO}://web.{DOMAIN}/admin/kalender) | Kalenderübersicht |
-| **Monitoring** | [`/admin/monitoring`]({PROTO}://web.{DOMAIN}/admin/monitoring) | Live-Übersicht: Pod-Status und Ressourcen |
-| **Bugs** | [`/admin/bugs`]({PROTO}://web.{DOMAIN}/admin/bugs) | Bug-Reports und Ticket-Tracking |
-
-### Kunden-Detail-Ansicht
-
-Unter [`/admin/clients/{id}`]({PROTO}://web.{DOMAIN}/admin/clients) ist eine umfassende Kundenübersicht verfügbar:
-- Kontaktdaten und Kommunikationshistorie
-- Zugehörige Projekte und Aufgaben
-- Offene und bezahlte Rechnungen
-- Direktnachrichten (DMs)
-- Gebuchte Leistungen
+| Inbox | `/admin/inbox` | Eingehende Kontaktanfragen |
+| Nachrichten | `/admin/nachrichten` | Chat-Räume und Direktnachrichten |
+| Räume | `/admin/raeume` | Chat-Räume verwalten |
+| Kunden | `/admin/clients` | Kundenverwaltung |
+| Projekte | `/admin/projekte` | Projektmanagement mit Gantt-Diagramm |
+| Termine | `/admin/termine` | Terminbuchungen und Kalender |
+| Zeiterfassung | `/admin/zeiterfassung` | Arbeitszeiterfassung |
+| Rechnungen | `/admin/rechnungen` | Rechnungen und Stripe-Zahlungen |
+| Meetings | `/admin/meetings` | Aufgezeichnete Meetings und Transkripte |
+| Monitoring | `/admin/monitoring` | Live-Übersicht: Pod-Status und Ressourcen |
+| Bugs | `/admin/bugs` | Bug-Reports und Ticket-Tracking |
+| Startseite | `/admin/startseite` | Startseiten-Texte bearbeiten |
+| Leistungen | `/admin/angebote` | Dienstleistungen und Preise |
 
 ---
 
-## Stripe-Zahlungen
+## Nextcloud-Administration
 
-Stripe ist die Zahlungsplattform für Leistungen und Rechnungen. Zahlungen werden auf der [Leistungen-Seite]({PROTO}://web.{DOMAIN}/leistungen) oder über den CTA der Homepage abgewickelt.
+### occ-Befehle ausführen
 
-**Einrichtung (einmalig):**
+```bash
+kubectl exec -n workspace deploy/nextcloud \
+  -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups \
+  php occ <befehl>
+```
+
+Nützliche occ-Befehle:
+
+```bash
+# App aktivieren
+php occ app:enable <app>
+
+# Nutzer-Storage-Limit setzen
+php occ user:setting <user> files quota <limit>
+
+# Wartungsmodus ein-/ausschalten
+php occ maintenance:mode --on
+php occ maintenance:mode --off
+
+# OIDC neu konfigurieren
+php occ config:app:set user_oidc ...
+```
+
+### Apps nach Deploy aktivieren
+
+```bash
+task workspace:post-setup
+```
+
+Aktiviert: Calendar, Contacts, OIDC-Login, Richdocuments (Collabora), Whiteboard, Talk.
+
+---
+
+## Stripe-Zahlungen einrichten
+
 ```bash
 task workspace:stripe-setup
 ```
 
-**Konfiguration:**
-- Stripe-Keys in `workspace-secrets` als Kubernetes Secret gespeichert
-- Webhook-Endpoint: `/api/stripe/webhook` (Ereignis: `checkout.session.completed`)
-- Zahlungsstatus in der Admin-Oberfläche unter [`/admin/rechnungen`]({PROTO}://web.{DOMAIN}/admin/rechnungen)
-
-Weitere Details: [Stripe-Integration](stripe.md)
+Registriert Stripe als Zahlungsgateway. Stripe-Keys werden in `workspace-secrets` als Kubernetes Secret gespeichert. Webhook-Endpunkt: `/api/stripe/webhook`.
 
 ---
 
-## Monitoring & Systemstatus
+## Monitoring & Observability
 
-### Live-Monitoring im Admin-Panel
+### Live-Übersicht im Admin-Panel
 
-Das Admin-Panel unter [{PROTO}://web.{DOMAIN}/admin/monitoring]({PROTO}://web.{DOMAIN}/admin/monitoring) zeigt:
-- Status aller Kubernetes-Pods (laufend / fehler / neustart)
-- CPU- und RAM-Auslastung je Pod
-- Aktuelle Kubernetes-Events (Warnungen, Restarts)
+Das Admin-Panel unter `web.{DOMAIN}/admin/monitoring` zeigt Pod-Status, CPU- und RAM-Auslastung sowie Kubernetes-Events.
 
-### Status über die Kommandozeile prüfen
+### Kommandozeile
 
 ```bash
-task workspace:status          # Pods, Services, Ingress, PVCs
-task workspace:logs -- keycloak   # Logs eines Services anzeigen
+task workspace:status              # Pods, Services, Ingress, PVCs
+task workspace:logs -- keycloak    # Logs eines Services anzeigen
 task workspace:logs -- nextcloud
 task workspace:logs -- website
 ```
@@ -145,82 +196,93 @@ task workspace:logs -- website
 ### Service neustarten
 
 ```bash
-task workspace:restart -- nextcloud    # Nextcloud neustarten
-task workspace:restart -- keycloak     # Keycloak neustarten
-task workspace:restart -- vaultwarden  # Vaultwarden neustarten
+task workspace:restart -- nextcloud
+task workspace:restart -- keycloak
+task workspace:restart -- vaultwarden
 ```
 
 ---
 
 ## Backups
 
-Backups werden automatisch per Kubernetes CronJob erstellt (`k3d/backup-cronjob.yaml`).
+Backups werden automatisch per Kubernetes CronJob erstellt.
 
-**Backup-Inhalt:**
-- PostgreSQL-Datenbank-Dumps (alle Datenbanken)
-- Nextcloud-Daten (Dateien)
-- Vaultwarden-Vault
-
-**Status prüfen:**
 ```bash
+# Status prüfen
 kubectl get cronjobs -n workspace
 kubectl get jobs -n workspace | grep backup
+
+# Manuelles Backup auslösen
+kubectl create job \
+  --from=cronjob/backup-job \
+  manual-backup-$(date +%Y%m%d) \
+  -n workspace
 ```
 
-**Manuelles Backup auslösen:**
-```bash
-kubectl create job --from=cronjob/backup-job manual-backup-$(date +%Y%m%d) -n workspace
-```
+Backup-Inhalt: PostgreSQL-Dumps (alle Datenbanken), Nextcloud-Dateien, Vaultwarden-Vault.
 
 ---
 
-## Häufige Aufgaben – Schnellreferenz
+## Routineaufgaben — Schnellreferenz
 
-| Aufgabe | Befehl / Ort |
-|---------|--------------|
+| Aufgabe | Befehl |
+|---------|--------|
 | Cluster starten | `task cluster:start` |
 | Alle Services deployen | `task workspace:deploy` |
-| Website neu bauen & deployen | `task website:redeploy` |
-| Post-Deploy-Setup (Nextcloud-Apps) | `task workspace:post-setup` |
+| Website neu bauen und deployen | `task website:redeploy` |
+| Post-Deploy-Setup | `task workspace:post-setup` |
 | Datenbankshell öffnen | `task workspace:psql -- website` |
 | Vaultwarden-Seed ausführen | `task workspace:vaultwarden:seed` |
 | DSGVO-Compliance prüfen | `task workspace:dsgvo-check` |
 | Alle Tests ausführen | `./tests/runner.sh local` |
+| Erreichbarkeit aller Services prüfen | `scripts/check-connectivity.sh --local` |
+| Container-Update-Status prüfen | `scripts/check-updates.sh` |
 
 ---
 
-## Häufig gestellte Fragen (Admin)
+## Produktions-Deployment (Hetzner / k3s)
 
-### Ein Service startet nicht – wie debugge ich?
+Im Produktionsbetrieb synchronisiert ArgoCD den Stack automatisch nach einem Git-Push auf `main`.
 
 ```bash
-task workspace:logs -- <servicename>    # Logs anzeigen
-kubectl describe pod -n workspace -l app=<servicename>   # Events prüfen
+# Manueller Sync
+task argocd:sync -- workspace-hetzner
+
+# Status aller Apps
+task argocd:status
+
+# Diff zwischen Git und Live-Zustand
+task argocd:diff -- workspace-hetzner
 ```
 
-Häufige Ursachen: Datenbankverbindung fehlgeschlagen, Secret nicht vorhanden, unzureichende Ressourcen.
+Umgebung wechseln: `KUBECONFIG` auf den Prod-Cluster setzen.
 
-### Nextcloud friert ein oder reagiert langsam
+---
 
-Nextcloud manchmal im Maintenance-Modus oder OPcache überlastet:
+## Häufige Admin-Fragen
+
+### Ein Service startet nicht
+
 ```bash
-task workspace:restart -- nextcloud
+task workspace:logs -- <service>
+kubectl describe pod -n workspace -l app=<service>
+kubectl get events -n workspace --sort-by='.lastTimestamp'
 ```
 
-Falls das nicht hilft: `task workspace:logs -- nextcloud` auf Datenbankfehler prüfen.
+Häufige Ursachen: Datenbankverbindung fehlgeschlagen, fehlendes Secret, unzureichende Ressourcen.
 
 ### Keycloak-Login funktioniert nicht für einen Dienst
 
-1. Prüfe ob der Dienst als OIDC-Client in Keycloak registriert ist: [{PROTO}://auth.{DOMAIN}/admin]({PROTO}://auth.{DOMAIN}/admin) → Clients
+1. Prüfe ob der Dienst als OIDC-Client in Keycloak registriert ist: `auth.{DOMAIN}/admin` → Clients
 2. Prüfe die Redirect-URIs des Clients
 3. Dienst neustarten: `task workspace:restart -- <dienst>`
 
 ### Wie füge ich eine neue Domain hinzu?
 
-1. `k3d/configmap-domains.yaml` und `prod/configmap-domains.yaml` anpassen
+1. `k3d/configmap-domains.yaml` anpassen
 2. Ingress-Regel in `k3d/ingress.yaml` ergänzen
 3. `task workspace:validate` ausführen
-4. PR erstellen und nach Merge deployen: `task workspace:deploy`
+4. PR erstellen und nach Merge deployen
 
 ---
 
@@ -230,12 +292,10 @@ Falls das nicht hilft: `task workspace:logs -- nextcloud` auf Datenbankfehler pr
 |-------|----------|
 | Systemarchitektur | [Architektur](architecture.md) |
 | Alle Services (technisch) | [Services](services.md) |
-| Keycloak & SSO konfigurieren | [Keycloak & SSO](keycloak.md) |
-| Datenbankmodelle | [Datenbankmodelle](database.md) |
+| Keycloak & SSO | [Keycloak](keycloak.md) |
+| Datenbankmodelle | [Datenbank](database.md) |
 | Sicherheit & DSGVO | [Sicherheit](security.md) |
-| Datenschutz-Verarbeitungsverzeichnis | [Verarbeitungsverzeichnis (Art. 30)](verarbeitungsverzeichnis.md) |
 | Projektmanagement (API) | [Projektmanagement-Admin](admin-projekte.md) |
-| Stripe-Integration | [Stripe](stripe.md) |
 | Skripte & Automatisierung | [Skripte](scripts.md) |
 | Fehlerbehebung | [Fehlerbehebung](troubleshooting.md) |
 | Testframework | [Tests](tests.md) |

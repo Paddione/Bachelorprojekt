@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         unit: (form.get(`lk_${cat.id}_${svc.key}_unit`) as string ?? svc.unit),
         desc: (form.get(`lk_${cat.id}_${svc.key}_desc`) as string) || svc.desc,
         highlight: form.get(`lk_${cat.id}_${svc.key}_highlight`) === '1',
-        ...(stundensatz_cents > 0 ? { stundensatz_cents } : {}),
+        stundensatz_cents,
       };
     }),
   }));

@@ -65,7 +65,6 @@ const adminLinks = [
     { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
     { href: `${ncBase}/apps/files/`,      label: 'Whiteboard', icon: '🖊️' },
   ] : []),
-  ...(wikiUrl     ? [{ href: wikiUrl,           label: 'Wiki',       icon: '📚' }] : []),
   ...(billingUrl  ? [{ href: billingUrl,        label: 'Abrechnung', icon: '🧾' }] : []),
   ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
   ...(authUrl     ? [{ href: `${authUrl}/admin/`, label: 'Keycloak', icon: '🔑' }] : []),

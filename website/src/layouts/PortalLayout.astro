@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { config } from '../config/index';
 import type { UserSession } from '../lib/auth';
+import ChatWidget from '../components/ChatWidget.svelte';
 
 interface Props {
   title: string;
@@ -220,5 +221,6 @@ const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       <slot />
     </main>
 
+    <ChatWidget client:load />
   </body>
 </html>

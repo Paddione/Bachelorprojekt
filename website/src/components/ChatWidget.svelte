@@ -18,6 +18,9 @@
   let msgContainer = $state<HTMLDivElement | null>(null);
   let sendError = $state('');
   let authExpired = $state(false);
+  let showPicker = $state(false);
+  let customers = $state<Array<{ id: string; name: string; email: string }>>([]);
+  let pickLoading = $state(false);
 
   let totalUnread = $derived(rooms.reduce((sum, r) => sum + r.unreadCount, 0));
   let activeRoom = $derived(rooms.find(r => r.id === activeRoomId) ?? null);
@@ -145,6 +148,30 @@
     setTimeout(() => { if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight; }, 50);
   }
 
+  async function openPicker() {
+    showPicker = true;
+    pickLoading = true;
+    const res = await fetch('/api/admin/customers');
+    if (res.ok) {
+      const data = await res.json() as { customers: Array<{ id: string; name: string; email: string }> };
+      customers = data.customers;
+    }
+    pickLoading = false;
+  }
+
+  async function startDirectChat(customerId: string) {
+    showPicker = false;
+    const res = await fetch('/api/admin/rooms/direct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId }),
+    });
+    if (!res.ok) return;
+    const { room_id } = await res.json() as { room_id: number };
+    await loadRooms();
+    await selectRoom(room_id);
+  }
+
   function formatTime(d: Date | string) {
     return new Date(d).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   }
@@ -164,12 +191,34 @@
         </div>
         <div class="body">
           <aside class="rooms">
+            {#if adminMode}
+              <button class="new-chat" onclick={openPicker} title="Neuen Chat starten">＋</button>
+            {/if}
             {#each rooms as r (r.id)}
               <button class="ri {activeRoomId === r.id ? 'active' : ''}" onclick={() => selectRoom(r.id)}>
                 <span class="rn">{r.name}</span>
                 {#if r.unreadCount > 0}<span class="badge">{r.unreadCount > 9 ? '9+' : r.unreadCount}</span>{/if}
               </button>
             {/each}
+            {#if showPicker}
+              <div class="picker">
+                <div class="picker-hdr">
+                  <span>Nutzer wählen</span>
+                  <button class="x" onclick={() => showPicker = false}>✕</button>
+                </div>
+                {#if pickLoading}
+                  <p class="hint">Lade…</p>
+                {:else if customers.length === 0}
+                  <p class="hint">Keine Nutzer</p>
+                {:else}
+                  {#each customers as c (c.id)}
+                    <button class="ri" onclick={() => startDirectChat(c.id)}>
+                      <span class="rn">{c.name}</span>
+                    </button>
+                  {/each}
+                {/if}
+              </div>
+            {/if}
           </aside>
           <div class="msgs">
             {#if authExpired}
@@ -219,7 +268,7 @@
   .hdr { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #243049; font-size: 14px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
   .x { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
   .body { display: flex; flex: 1; min-height: 0; }
-  .rooms { width: 160px; flex-shrink: 0; border-right: 1px solid #243049; overflow-y: auto; display: flex; flex-direction: column; }
+  .rooms { position: relative; width: 160px; flex-shrink: 0; border-right: 1px solid #243049; overflow-y: auto; display: flex; flex-direction: column; }
   .ri { width: 100%; background: transparent; border: none; border-bottom: 1px solid #1e2a3a; text-align: left; padding: 10px 12px; cursor: pointer; color: #aabbcc; font-size: 12px; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
   .ri.active { background: #243049; color: #e8e8f0; }
   .ri:hover:not(.active) { background: #1e2a3a; }
@@ -249,6 +298,10 @@
   .auth-expired { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #aabbcc; font-size: 13px; }
   .auth-expired a { color: #e8c870; text-decoration: underline; }
   .send-error { font-size: 11px; color: #ef4444; padding: 2px 12px 0; margin: 0; }
+  .new-chat { width: 100%; background: transparent; border: none; border-bottom: 1px solid #1e2a3a; padding: 8px 12px; cursor: pointer; color: #e8c870; font-size: 16px; font-weight: 700; text-align: center; }
+  .new-chat:hover { background: #1e2a3a; }
+  .picker { position: absolute; left: 0; top: 0; width: 160px; height: 100%; background: #1a2235; border-right: 1px solid #243049; display: flex; flex-direction: column; z-index: 10; overflow-y: auto; }
+  .picker-hdr { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #243049; font-size: 11px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
   @media (max-width: 600px) {
     .cw { right: 8px; bottom: 16px; }
     .panel { width: calc(100vw - 16px); height: 75vh; }

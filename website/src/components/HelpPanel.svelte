@@ -11,6 +11,8 @@
   } = $props();
 
   let open = $state(false);
+  let btnHovered = $state(false);
+  let closeBtnHovered = $state(false);
 
   const content = $derived(helpContent[context]?.[section] ?? null);
 
@@ -21,6 +23,8 @@
     if (e.key === 'Enter' || e.key === ' ') close();
   }
 </script>
+
+<svelte:window onkeydown={(e) => { if (e.key === 'Escape' && open) close(); }} />
 
 <!-- Floating Button -->
 <button
@@ -34,7 +38,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #4f46e5;
+    background: {btnHovered ? '#4338ca' : '#4f46e5'};
     color: #fff;
     border: none;
     cursor: pointer;
@@ -47,17 +51,17 @@
     font-family: var(--font-sans);
     transition: background 0.15s ease, transform 0.15s ease;
   "
-  onmouseenter={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#4338ca'}
-  onmouseleave={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#4f46e5'}
+  onmouseenter={() => { btnHovered = true; }}
+  onmouseleave={() => { btnHovered = false; }}
 >
   {open ? '✕' : '?'}
 </button>
 
 <!-- Mobile backdrop -->
 {#if open}
-  <!-- svelte-ignore a11y_interactive_supports_focus -->
   <div
     role="button"
+    tabindex="0"
     aria-label="Hilfe schließen"
     onclick={close}
     onkeydown={onBackdropKeydown}
@@ -75,7 +79,11 @@
 <!-- Slide-over Panel -->
 <div
   class="help-panel"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="help-panel-title"
   aria-hidden={!open}
+  inert={!open}
   style="
     position: fixed;
     top: 0;
@@ -102,7 +110,7 @@
     border-bottom: 1px solid var(--line);
     flex-shrink: 0;
   ">
-    <span style="font-size: 14px; font-weight: 600; color: var(--fg); font-family: var(--font-sans);">Hilfe</span>
+    <span id="help-panel-title" style="font-size: 14px; font-weight: 600; color: var(--fg); font-family: var(--font-sans);">Hilfe</span>
     <button
       onclick={close}
       aria-label="Hilfe schließen"
@@ -110,15 +118,15 @@
         background: none;
         border: none;
         cursor: pointer;
-        color: var(--mute);
+        color: {closeBtnHovered ? 'var(--fg)' : 'var(--mute)'};
         font-size: 18px;
         line-height: 1;
         padding: 2px 4px;
         border-radius: 4px;
         transition: color 0.1s ease;
       "
-      onmouseenter={(e) => (e.currentTarget as HTMLButtonElement).style.color = 'var(--fg)'}
-      onmouseleave={(e) => (e.currentTarget as HTMLButtonElement).style.color = 'var(--mute)'}
+      onmouseenter={() => { closeBtnHovered = true; }}
+      onmouseleave={() => { closeBtnHovered = false; }}
     >✕</button>
   </div>
 
@@ -126,13 +134,13 @@
   <div style="flex: 1; overflow-y: auto; padding: 16px;">
     {#if content}
       <!-- Section title -->
-      <p style="
+      <h3 style="
         font-size: 13px;
         font-weight: 600;
         color: #818cf8;
         margin: 0 0 6px;
         font-family: var(--font-sans);
-      ">{content.title}</p>
+      ">{content.title}</h3>
 
       <!-- Description -->
       <p style="
@@ -200,7 +208,7 @@
                 gap: 6px;
                 user-select: none;
               ">
-                <span style="font-size: 10px;">▶</span>
+                <span class="summary-arrow" style="font-size: 10px;">▶</span>
                 {guide.title}
               </summary>
               <ol style="
@@ -241,5 +249,15 @@
     .help-backdrop {
       display: block !important;
     }
+  }
+
+  .summary-arrow {
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+
+  details[open] .summary-arrow {
+    transform: rotate(90deg);
+    display: inline-block;
   }
 </style>

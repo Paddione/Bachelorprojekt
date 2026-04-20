@@ -13,6 +13,14 @@ const TYPE_DEFAULTS: Record<NotificationType, string> = {
   followup:     'false',
 };
 
+const SITE_URL = process.env.SITE_URL ?? '';
+
+function withInboxLink(html: string | undefined): string | undefined {
+  if (!html || !SITE_URL) return html;
+  const inboxUrl = `${SITE_URL}/admin/inbox`;
+  return `${html}<p style="margin-top:20px"><a href="${inboxUrl}" style="display:inline-block;background:#7c6ff7;color:#fff;padding:10px 22px;border-radius:25px;text-decoration:none;font-weight:bold">Zur Inbox</a></p>`;
+}
+
 export async function sendAdminNotification(params: {
   type: NotificationType;
   subject: string;
@@ -37,6 +45,6 @@ export async function sendAdminNotification(params: {
   const from =
     fromName && fromAddress ? `"${fromName.replace(/"/g, "'")}" <${fromAddress}>` : undefined;
 
-  const ok = await sendEmail({ to, subject: params.subject, text: params.text, html: params.html, replyTo: params.replyTo, from });
+  const ok = await sendEmail({ to, subject: params.subject, text: params.text, html: withInboxLink(params.html), replyTo: params.replyTo, from });
   if (!ok) console.warn(`[notifications] sendEmail failed for type="${params.type}" to="${to}"`);
 }

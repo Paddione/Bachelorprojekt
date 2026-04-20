@@ -344,4 +344,28 @@
   .msg-time { font-size: 10px; color: #555; align-self: flex-end; }
   .thread-reply { display: flex; gap: 8px; align-items: flex-end; }
   .thread-reply textarea { flex: 1; background: #111827; color: #e8e8f0; border: 1px solid #374151; border-radius: 4px; padding: 8px; font-size: 13px; resize: none; box-sizing: border-box; }
+
+  @media (max-width: 640px) {
+    .inbox-layout { flex-direction: column; gap: 0; height: auto; }
+    .sidebar { width: 100%; padding-bottom: 12px; border-bottom: 1px solid #2a2a3e; margin-bottom: 12px; }
+    .sidebar h2 { font-size: 16px; margin: 0 0 10px; }
+    .filter-group { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin-bottom: 10px; padding-bottom: 4px; scrollbar-width: none; }
+    .filter-group::-webkit-scrollbar { display: none; }
+    .filter-btn { flex-shrink: 0; white-space: nowrap; padding: 6px 10px; font-size: 12px; }
+    .status-group { width: 100%; }
+    .status-btn { padding: 7px 4px; font-size: 11px; }
+    .feed { overflow-y: visible; }
+    .card { padding: 12px; }
+    .card-body strong { font-size: 13px; }
+    .actions { gap: 6px; }
+    .actions button, .btn-approve, .btn-decline, .btn-secondary, .btn-primary, .btn-chat {
+      flex: 1; min-width: 0; padding: 8px 6px; font-size: 11px; text-align: center;
+    }
+    .thread-msg { max-width: 90%; }
+    .thread-reply { flex-direction: column; gap: 6px; }
+    .thread-reply textarea { width: 100%; box-sizing: border-box; }
+    .thread-reply .btn-primary { width: 100%; padding: 8px; }
+    .note-wrap textarea { font-size: 13px; }
+    .note-actions button { flex: 1; padding: 8px; }
+  }
 </style>

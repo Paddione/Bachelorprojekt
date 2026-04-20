@@ -4,6 +4,7 @@ import { config } from '../config/index';
 import { isAdmin } from '../lib/auth';
 import type { UserSession } from '../lib/auth';
 import ChatWidget from '../components/ChatWidget.svelte';
+import HelpPanel from '../components/HelpPanel.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 
 interface Props {
@@ -295,6 +296,7 @@ const userIsAdmin   = isAdmin(session);
       <slot />
     </main>
 
+    <HelpPanel client:load section={section} context="portal" />
     <ChatWidget client:load />
     <SessionExpiryWarning client:load />
 

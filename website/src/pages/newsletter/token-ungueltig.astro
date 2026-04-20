@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Link abgelaufen">
+  <section class="pt-24 pb-20 min-h-screen">
+    <div class="max-w-lg mx-auto px-6 text-center">
+      <div class="text-5xl mb-6">⚠</div>
+      <h1 class="text-3xl font-bold text-light font-serif mb-4">Link ungültig oder abgelaufen</h1>
+      <p class="text-muted mb-8">
+        Dieser Bestätigungslink ist nicht mehr gültig. Links laufen nach 48 Stunden ab.
+        Trage dich einfach erneut ein — du erhältst dann einen neuen Bestätigungslink.
+      </p>
+      <a href="/" class="inline-block px-6 py-2 bg-gold text-dark rounded-lg font-semibold hover:bg-gold/80 transition-colors">
+        Zur Startseite
+      </a>
+    </div>
+  </section>
+</Layout>

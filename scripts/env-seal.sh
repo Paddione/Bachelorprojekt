@@ -19,6 +19,7 @@ ENV_NAME=""
 ENV_DIR="environments"
 FORCE=false
 _TEST_SCAN_FILE=""
+_TEST_DUP_FILE=""
 
 # ── Helpers ──────────────────────────────────────────────────────
 
@@ -40,12 +41,12 @@ usage() {
 
 scan_for_dev_values() {
   local secrets_file="$1"
-  local dev_keys=()
+  local bad_keys=()
 
   while IFS= read -r line; do
     [[ "$line" =~ ^[[:space:]]*# ]] && continue
     [[ -z "${line// /}" ]] && continue
-    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.+)$ ]]; then
+    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
       local key="${BASH_REMATCH[1]}"
       local value="${BASH_REMATCH[2]}"
       value="${value%\"}"
@@ -53,15 +54,30 @@ scan_for_dev_values() {
       value="${value#\"}"
       value="${value#\'}"
       value="${value// /}"
-      if [[ "$value" =~ ^dev[a-zA-Z] ]]; then
-        dev_keys+=("$key")
-      fi
+
+      local is_bad=false
+
+      # dev-prefixed values (original check)
+      [[ "$value" =~ ^dev[a-zA-Z0-9_] ]] && is_bad=true
+
+      # _dev_placeholder or _placeholder suffix
+      [[ "$value" == *"_dev_placeholder"* ]] && is_bad=true
+      [[ "$value" == *"_placeholder" ]] && is_bad=true
+
+      # Explicit stub values
+      [[ "$value" == "not-configured" ]] && is_bad=true
+      [[ "$value" == "MANAGED_EXTERNALLY" ]] && is_bad=true
+
+      # Empty values are never valid secrets
+      [[ -z "$value" ]] && is_bad=true
+
+      $is_bad && bad_keys+=("$key")
     fi
   done < "$secrets_file"
 
-  if [[ ${#dev_keys[@]} -gt 0 ]]; then
+  if [[ ${#bad_keys[@]} -gt 0 ]]; then
     echo "WARNING: The following secrets appear to contain dev placeholder values:"
-    for k in "${dev_keys[@]}"; do
+    for k in "${bad_keys[@]}"; do
       echo "  ${k}"
     done
     echo ""
@@ -71,6 +87,37 @@ scan_for_dev_values() {
     fi
     echo "ERROR: Refusing to seal dev placeholder values."
     echo "Fix the values in ${secrets_file} or re-run with --force to override."
+    return 1
+  fi
+  return 0
+}
+
+# ── Duplicate key checker ─────────────────────────────────────────
+
+check_duplicate_keys() {
+  local secrets_file="$1"
+  [[ ! -f "$secrets_file" ]] && { echo "ERROR: File not found: ${secrets_file}"; return 1; }
+  local duplicates=()
+
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    duplicates+=("$key")
+  done < <(
+    grep -E '^[A-Za-z0-9_]+:' "$secrets_file" \
+      | sed 's/:.*//' \
+      | sort \
+      | uniq -d
+  )
+
+  if [[ ${#duplicates[@]} -gt 0 ]]; then
+    # Duplicate keys are always an error — unlike placeholder values, there is no
+    # valid reason to force-seal a structurally broken secrets file. Fix by removing
+    # the duplicate entries; the last value silently wins in YAML.
+    echo "ERROR: Duplicate keys found in ${secrets_file}:"
+    for k in "${duplicates[@]}"; do
+      echo "  ${k}"
+    done
+    echo "Remove duplicate entries — the last value silently wins in YAML."
     return 1
   fi
   return 0
@@ -101,6 +148,7 @@ while [[ $# -gt 0 ]]; do
     --env-dir)          ENV_DIR="$2"; shift 2 ;;
     --force)            FORCE=true; shift ;;
     --_test-dev-scan)   _TEST_SCAN_FILE="$2"; shift 2 ;;
+    --_test-dup-check)  _TEST_DUP_FILE="$2"; shift 2 ;;
     *)                  echo "Unknown option: $1"; usage ;;
   esac
 done
@@ -110,6 +158,15 @@ done
 if [[ -n "$_TEST_SCAN_FILE" ]]; then
   if scan_for_dev_values "$_TEST_SCAN_FILE"; then
     echo "OK: no dev placeholder values found"
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
+if [[ -n "$_TEST_DUP_FILE" ]]; then
+  if check_duplicate_keys "$_TEST_DUP_FILE"; then
+    echo "OK: no duplicate keys found"
     exit 0
   else
     exit 1
@@ -162,6 +219,12 @@ if ! scan_for_dev_values "$SECRETS_FILE"; then
   exit 1
 fi
 info "No dev placeholder values detected."
+
+info "Checking for duplicate keys..."
+if ! check_duplicate_keys "$SECRETS_FILE"; then
+  exit 1
+fi
+info "No duplicate keys detected."
 
 # ── Build temporary K8s Secret manifest ──────────────────────────
 

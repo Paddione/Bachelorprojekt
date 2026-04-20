@@ -34,6 +34,7 @@ const icons: Record<string, string> = {
   star: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l2 4 4.5.7-3.3 3.1.8 4.7L8 12l-4 2.5.8-4.7L1.5 6.7 6 6z"/></svg>`,
   scale: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v13M3 4.5h10M2 14.5h12"/><path d="M5 4.5L2.5 10h5zM11 4.5L8.5 10h5z"/></svg>`,
   inbox: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
+  palette: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5a6.5 6.5 0 1 0 2.5 12.5c.6-.3.5-1.1 0-1.5a1.5 1.5 0 0 1 1.1-2.5H13a2 2 0 0 0 2-2 6.5 6.5 0 0 0-7-6.5z"/><circle cx="5" cy="6.5" r=".75" fill="currentColor" stroke="none"/><circle cx="8" cy="4.5" r=".75" fill="currentColor" stroke="none"/><circle cx="11" cy="6.5" r=".75" fill="currentColor" stroke="none"/></svg>`,
 };
 
 const navGroups = [
@@ -54,6 +55,7 @@ const navGroups = [
       { href: '/admin/zeiterfassung', label: 'Zeiterfassung', icon: 'clock' },
       { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt' },
       { href: '/admin/followups',     label: 'Follow-ups',    icon: 'bell' },
+      { href: '/admin/newsletter',    label: 'Newsletter',    icon: 'mail' },
       { href: '/admin/kalender',      label: 'Kalender',      icon: 'calendar2' },
     ],
   },
@@ -74,6 +76,15 @@ const navGroups = [
       { href: '/admin/kontakt',     label: 'Kontakt',     icon: 'mail' },
       { href: '/admin/referenzen',  label: 'Referenzen',  icon: 'star' },
       { href: '/admin/rechtliches', label: 'Rechtliches', icon: 'scale' },
+    ],
+  },
+  {
+    label: 'Einstellungen',
+    items: [
+      { href: '/admin/einstellungen/benachrichtigungen', label: 'Benachrichtigungen', icon: 'bell' },
+      { href: '/admin/einstellungen/email',              label: 'E-Mail',              icon: 'mail' },
+      { href: '/admin/einstellungen/rechnungen',         label: 'Rechnungen',          icon: 'receipt' },
+      { href: '/admin/einstellungen/branding',           label: 'Branding',            icon: 'palette' },
     ],
   },
 ];
@@ -172,9 +183,81 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       #icon-expand   { display: none; }
       html.sidebar-collapsed #icon-collapse { display: none; }
       html.sidebar-collapsed #icon-expand   { display: block; }
+
+      /* Mobile */
+      #mobile-topbar  { display: none; }
+      #admin-backdrop { display: none; }
+
+      @media (max-width: 767px) {
+        #admin-sidebar {
+          position: fixed !important;
+          top: 0; left: 0; bottom: 0;
+          z-index: 100;
+          width: 13rem !important;
+          min-height: unset !important;
+          transform: translateX(-100%);
+          transition: transform 0.25s ease !important;
+        }
+        html.sidebar-collapsed #admin-sidebar {
+          width: 13rem !important;
+        }
+        #admin-sidebar.mobile-open {
+          transform: translateX(0) !important;
+        }
+        #admin-backdrop {
+          display: block !important;
+          position: fixed; inset: 0; z-index: 99;
+          background: rgba(0,0,0,0.55);
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.25s ease;
+        }
+        #admin-backdrop.visible { opacity: 1; pointer-events: auto; }
+        #mobile-topbar {
+          display: flex !important;
+          position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 101;
+          background: var(--ink-850); border-bottom: 1px solid var(--line);
+          align-items: center; padding: 0 12px; gap: 12px; flex-shrink: 0;
+        }
+        #admin-main { padding-top: 48px; min-height: calc(100vh - 48px) !important; }
+        #sidebar-toggle { display: none !important; }
+        .sidebar-label { opacity: 1 !important; max-width: 200px !important; }
+        html.sidebar-collapsed .sidebar-label { opacity: 1 !important; max-width: 200px !important; }
+        .sidebar-group-label { opacity: 1 !important; max-height: 2rem !important; margin: initial !important; padding: initial !important; }
+        html.sidebar-collapsed .sidebar-group-label { opacity: 1 !important; max-height: 2rem !important; }
+        html.sidebar-collapsed .sidebar-nav-item {
+          justify-content: flex-start !important;
+          padding-left: 10px !important; padding-right: 10px !important;
+        }
+      }
     </style>
   </head>
   <body style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
+
+    <!-- Mobile topbar -->
+    <div id="mobile-topbar">
+      <button
+        id="mobile-hamburger"
+        aria-label="Menü öffnen"
+        style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:none; border:none; cursor:pointer; color:var(--fg-soft); border-radius:8px; flex-shrink:0;"
+      >
+        <svg id="hamburger-icon-open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px;" aria-hidden="true">
+          <path d="M2 4h12M2 8h12M2 12h12"/>
+        </svg>
+        <svg id="hamburger-icon-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px; display:none;" aria-hidden="true">
+          <path d="M3 3l10 10M13 3L3 13"/>
+        </svg>
+      </button>
+      <a href="/admin" style="display:flex; align-items:center; gap:8px; text-decoration:none; flex:1; min-width:0;">
+        <div style="width:24px; height:24px; border-radius:6px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); position:relative; flex-shrink:0;">
+          <div style="position:absolute; inset:5px; border-radius:1px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
+        </div>
+        <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass);">{brandWord}<span style="color:var(--mute);">.</span></span>
+        <span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.1em; text-transform:uppercase;">Admin</span>
+      </a>
+    </div>
+
+    <!-- Mobile backdrop -->
+    <div id="admin-backdrop"></div>
 
     <!-- Sidebar -->
     <aside id="admin-sidebar" style="flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
@@ -259,7 +342,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     </aside>
 
     <!-- Main -->
-    <main style="flex:1; min-height:100vh; overflow-y:auto;">
+    <main id="admin-main" style="flex:1; min-height:100vh; overflow-y:auto;">
       <slot />
     </main>
 
@@ -270,23 +353,60 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     <script is:inline>
       (function() {
         var btn = document.getElementById('sidebar-toggle');
-        if (!btn) return;
-        var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
-
-        function updateState(isCollapsed) {
-          var label = isCollapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
-          btn.title = label;
-          btn.setAttribute('aria-label', label);
-          btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        if (btn) {
+          var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
+          function updateState(isCollapsed) {
+            var label = isCollapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
+            btn.title = label;
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+          }
+          updateState(collapsed);
+          btn.addEventListener('click', function() {
+            collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('admin-sidebar-collapsed', collapsed ? '1' : '0');
+            updateState(collapsed);
+          });
         }
 
-        updateState(collapsed);
+        // Mobile sidebar overlay
+        var hamburger = document.getElementById('mobile-hamburger');
+        var backdrop = document.getElementById('admin-backdrop');
+        var sidebar = document.getElementById('admin-sidebar');
+        var iconOpen = document.getElementById('hamburger-icon-open');
+        var iconClose = document.getElementById('hamburger-icon-close');
 
-        btn.addEventListener('click', function() {
-          collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
-          localStorage.setItem('admin-sidebar-collapsed', collapsed ? '1' : '0');
-          updateState(collapsed);
-        });
+        function openMobileSidebar() {
+          sidebar.classList.add('mobile-open');
+          backdrop.classList.add('visible');
+          if (iconOpen) iconOpen.style.display = 'none';
+          if (iconClose) iconClose.style.display = 'block';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü schließen');
+        }
+        function closeMobileSidebar() {
+          sidebar.classList.remove('mobile-open');
+          backdrop.classList.remove('visible');
+          if (iconOpen) iconOpen.style.display = 'block';
+          if (iconClose) iconClose.style.display = 'none';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü öffnen');
+        }
+
+        if (hamburger) {
+          hamburger.addEventListener('click', function() {
+            if (sidebar.classList.contains('mobile-open')) closeMobileSidebar();
+            else openMobileSidebar();
+          });
+        }
+        if (backdrop) backdrop.addEventListener('click', closeMobileSidebar);
+
+        // Close mobile sidebar on nav link click
+        if (sidebar) {
+          sidebar.querySelectorAll('a').forEach(function(a) {
+            a.addEventListener('click', function() {
+              if (window.innerWidth < 768) closeMobileSidebar();
+            });
+          });
+        }
       })();
     </script>
   </body>

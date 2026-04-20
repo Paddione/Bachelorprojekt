@@ -30,7 +30,7 @@ task workspace:up
 | Claude Code (KI) | http://ai.localhost | MCP-Status-Dashboard (Claude Code laeuft lokal) |
 | Invoice Ninja (Rechnungen) | http://billing.localhost | Rechnungsstellung |
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
-| Whiteboard | http://board.localhost | WebSocket-Backend fuer Nextcloud Whiteboard (kein eigenstaendiges UI) |
+| Whiteboard | http://files.localhost | In Nextcloud integriert (WebSocket-Backend board.localhost, kein eigenstaendiges UI) |
 | Mailpit (Dev-Mail) | http://mail.localhost | E-Mail-Testing (nur Dev) |
 | Docs | http://docs.localhost | Projektdokumentation (Docsify) |
 | Website | http://web.localhost | Astro + Svelte Webseite |

@@ -16,7 +16,6 @@ Du brauchst **nur einen einzigen Account** — mit diesem einen Login kommst Du 
 | Collabora Online | Browser-basiertes Office | öffnet aus Nextcloud |
 | Whiteboard | Kollaboratives Whiteboard | `board.{DOMAIN}` |
 | Vaultwarden | Passwort-Safe | `vault.{DOMAIN}` |
-| KI-Assistent | Claude Code Status-Dashboard | `ai.{DOMAIN}` |
 | Dokumentation | Dieses Handbuch | `docs.{DOMAIN}` |
 
 ---

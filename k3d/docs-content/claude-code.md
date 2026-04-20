@@ -1,8 +1,8 @@
-# Claude Code — KI-Assistent & MCP-Server
+# MCP-Server
 
 ## Übersicht
 
-**Claude Code** ist der KI-Assistent der Workspace-Plattform. Er läuft als CLI-Tool auf dem Entwicklerrechner und kommuniziert über die Anthropic API mit dem Claude-Modell. Die zugehörigen **MCP-Server** (Model Context Protocol) laufen als Kubernetes-Pods im Cluster und stellen Claude Code Werkzeuge bereit — etwa Zugriff auf den Cluster, die Datenbank, den Browser, GitHub oder Stripe.
+Die **MCP-Server** (Model Context Protocol) laufen als Kubernetes-Pods im Cluster und stellen Werkzeuge bereit — etwa Zugriff auf den Cluster, die Datenbank, den Browser, GitHub oder Stripe.
 
 | Eigenschaft | Wert |
 |-------------|------|

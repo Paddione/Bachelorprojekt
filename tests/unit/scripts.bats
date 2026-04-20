@@ -273,7 +273,7 @@ YAML
   local tmpdir
   tmpdir="$(mktemp -d)"
   cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
-STRIPE_SECRET_KEY: "sk_test_dev_placeholder"
+STRIPE_SECRET_KEY: "sk_test_placeholder"
 YAML
 
   run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"

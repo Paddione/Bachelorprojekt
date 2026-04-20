@@ -57,7 +57,7 @@ scan_for_dev_values() {
       local is_bad=false
 
       # dev-prefixed values (original check)
-      [[ "$value" =~ ^dev[a-zA-Z] ]] && is_bad=true
+      [[ "$value" =~ ^dev[a-zA-Z0-9_] ]] && is_bad=true
 
       # _dev_placeholder or _placeholder suffix
       [[ "$value" == *"_dev_placeholder"* ]] && is_bad=true

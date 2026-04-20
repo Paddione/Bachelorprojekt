@@ -2,7 +2,7 @@
 import { getSiteSetting } from './website-db';
 import { sendEmail } from './email';
 
-type NotificationType = 'registration' | 'booking' | 'contact' | 'bug' | 'message' | 'followup';
+export type NotificationType = 'registration' | 'booking' | 'contact' | 'bug' | 'message' | 'followup';
 
 const TYPE_DEFAULTS: Record<NotificationType, string> = {
   registration: 'true',
@@ -37,5 +37,6 @@ export async function sendAdminNotification(params: {
   const from =
     fromName && fromAddress ? `"${fromName}" <${fromAddress}>` : undefined;
 
-  await sendEmail({ to, subject: params.subject, text: params.text, html: params.html, replyTo: params.replyTo, from });
+  const ok = await sendEmail({ to, subject: params.subject, text: params.text, html: params.html, replyTo: params.replyTo, from });
+  if (!ok) console.warn(`[notifications] sendEmail failed for type="${params.type}" to="${to}"`);
 }

@@ -21,11 +21,11 @@ data:
       log_to_stdout = true
       debug_level = 4
       admin_secret = "devjanusadmin"
-      ice_lite = true
-      full_trickle = true
     }
     nat: {
       nice_debug = false
+      full_trickle = true
+      ice_lite = true
       nat_1_1_mapping = "${TURN_PUBLIC_IP}"
       keep_private_host = false
     }
@@ -73,6 +73,7 @@ spec:
         - name: janus
           image: canyan/janus-gateway:master_cefca79700bdadd32d759ce65ba3805552a4d312
           imagePullPolicy: Always
+          command: ["/usr/local/bin/janus", "--configs-folder", "/etc/janus"]
           ports:
             - containerPort: 8188
               hostPort: 8188

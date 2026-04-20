@@ -68,6 +68,7 @@ spec:
                   name: coturn-secrets
                   key: TURN_SECRET
           securityContext:
+            runAsUser: 0
             capabilities:
               add:
                 - NET_ADMIN

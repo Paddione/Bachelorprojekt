@@ -27,6 +27,8 @@ spec:
     metadata:
       labels:
         app: coturn
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/coturn: unconfined
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -65,6 +67,11 @@ spec:
                 secretKeyRef:
                   name: coturn-secrets
                   key: TURN_SECRET
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
           ports:
             - containerPort: 3478
               hostPort: 3478

@@ -114,12 +114,71 @@ const userIsAdmin   = isAdmin(session);
         background: rgba(248, 113, 113, 0.07);
         color: #f87171;
       }
+
+      /* Mobile */
+      #portal-mobile-topbar  { display: none; }
+      #portal-backdrop { display: none; }
+
+      @media (max-width: 767px) {
+        #portal-sidebar {
+          position: fixed !important;
+          top: 0; left: 0; bottom: 0;
+          z-index: 100;
+          width: 13rem !important;
+          min-height: unset !important;
+          transform: translateX(-100%);
+          transition: transform 0.25s ease;
+        }
+        #portal-sidebar.mobile-open {
+          transform: translateX(0);
+        }
+        #portal-backdrop {
+          display: block !important;
+          position: fixed; inset: 0; z-index: 99;
+          background: rgba(0,0,0,0.55);
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.25s ease;
+        }
+        #portal-backdrop.visible { opacity: 1; pointer-events: auto; }
+        #portal-mobile-topbar {
+          display: flex !important;
+          position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 101;
+          background: var(--ink-850); border-bottom: 1px solid var(--line);
+          align-items: center; padding: 0 12px; gap: 12px; flex-shrink: 0;
+        }
+        #portal-main { padding-top: 48px; min-height: calc(100vh - 48px) !important; }
+      }
     </style>
   </head>
   <body style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
 
+    <!-- Mobile topbar -->
+    <div id="portal-mobile-topbar">
+      <button
+        id="portal-hamburger"
+        aria-label="Menü öffnen"
+        style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:none; border:none; cursor:pointer; color:var(--fg-soft); border-radius:8px; flex-shrink:0;"
+      >
+        <svg id="portal-icon-open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px;" aria-hidden="true">
+          <path d="M2 4h12M2 8h12M2 12h12"/>
+        </svg>
+        <svg id="portal-icon-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px; display:none;" aria-hidden="true">
+          <path d="M3 3l10 10M13 3L3 13"/>
+        </svg>
+      </button>
+      <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+        <div style="width:28px; height:28px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <span style="font-family:var(--font-serif); font-size:13px; font-weight:600; color:var(--ink-900);">{avatarInitial}</span>
+        </div>
+        <span style="font-size:13px; font-weight:600; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{displayName}</span>
+      </div>
+    </div>
+
+    <!-- Mobile backdrop -->
+    <div id="portal-backdrop"></div>
+
     <!-- Sidebar -->
-    <aside style="width:13rem; flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
+    <aside id="portal-sidebar" style="width:13rem; flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
 
       <!-- Header: user avatar + info + brand link -->
       <div style="padding:20px 14px 16px; border-bottom:1px solid var(--line);">
@@ -232,11 +291,45 @@ const userIsAdmin   = isAdmin(session);
     </aside>
 
     <!-- Main -->
-    <main style="flex:1; min-height:100vh; overflow-y:auto;">
+    <main id="portal-main" style="flex:1; min-height:100vh; overflow-y:auto;">
       <slot />
     </main>
 
     <ChatWidget client:load />
     <SessionExpiryWarning client:load />
+
+    <script is:inline>
+      (function() {
+        var hamburger = document.getElementById('portal-hamburger');
+        var backdrop = document.getElementById('portal-backdrop');
+        var sidebar = document.getElementById('portal-sidebar');
+        var iconOpen = document.getElementById('portal-icon-open');
+        var iconClose = document.getElementById('portal-icon-close');
+
+        function openSidebar() {
+          sidebar.classList.add('mobile-open');
+          backdrop.classList.add('visible');
+          if (iconOpen) iconOpen.style.display = 'none';
+          if (iconClose) iconClose.style.display = 'block';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü schließen');
+        }
+        function closeSidebar() {
+          sidebar.classList.remove('mobile-open');
+          backdrop.classList.remove('visible');
+          if (iconOpen) iconOpen.style.display = 'block';
+          if (iconClose) iconClose.style.display = 'none';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü öffnen');
+        }
+
+        if (hamburger) hamburger.addEventListener('click', function() {
+          if (sidebar.classList.contains('mobile-open')) closeSidebar();
+          else openSidebar();
+        });
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+        if (sidebar) sidebar.querySelectorAll('a').forEach(function(a) {
+          a.addEventListener('click', function() { if (window.innerWidth < 768) closeSidebar(); });
+        });
+      })();
+    </script>
   </body>
 </html>

@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { config } from '../config/index';
 import BugReportWidget from '../components/BugReportWidget.svelte';
+import HelpPanel from '../components/HelpPanel.svelte';
 import ChatWidget from '../components/ChatWidget.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 
@@ -11,6 +12,14 @@ interface Props {
 
 const { title } = Astro.props;
 const path = Astro.url.pathname;
+
+function adminSection(p: string): string {
+  if (p === '/admin') return 'dashboard';
+  if (p.startsWith('/admin/einstellungen')) return 'einstellungen';
+  const match = p.match(/^\/admin\/([^/]+)/);
+  return match ? match[1] : 'dashboard';
+}
+const helpSection = adminSection(path);
 
 const icons: Record<string, string> = {
   dashboard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
@@ -346,6 +355,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       <slot />
     </main>
 
+    <HelpPanel client:load section={helpSection} context="admin" />
     <BugReportWidget client:load />
     <ChatWidget client:load />
     <SessionExpiryWarning client:load />

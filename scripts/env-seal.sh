@@ -40,12 +40,12 @@ usage() {
 
 scan_for_dev_values() {
   local secrets_file="$1"
-  local dev_keys=()
+  local bad_keys=()
 
   while IFS= read -r line; do
     [[ "$line" =~ ^[[:space:]]*# ]] && continue
     [[ -z "${line// /}" ]] && continue
-    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.+)$ ]]; then
+    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
       local key="${BASH_REMATCH[1]}"
       local value="${BASH_REMATCH[2]}"
       value="${value%\"}"
@@ -53,15 +53,30 @@ scan_for_dev_values() {
       value="${value#\"}"
       value="${value#\'}"
       value="${value// /}"
-      if [[ "$value" =~ ^dev[a-zA-Z] ]]; then
-        dev_keys+=("$key")
-      fi
+
+      local is_bad=false
+
+      # dev-prefixed values (original check)
+      [[ "$value" =~ ^dev[a-zA-Z] ]] && is_bad=true
+
+      # _dev_placeholder or _placeholder suffix
+      [[ "$value" == *"_dev_placeholder"* ]] && is_bad=true
+      [[ "$value" == *"_placeholder" ]] && is_bad=true
+
+      # Explicit stub values
+      [[ "$value" == "not-configured" ]] && is_bad=true
+      [[ "$value" == "MANAGED_EXTERNALLY" ]] && is_bad=true
+
+      # Empty values are never valid secrets
+      [[ -z "$value" ]] && is_bad=true
+
+      $is_bad && bad_keys+=("$key")
     fi
   done < "$secrets_file"
 
-  if [[ ${#dev_keys[@]} -gt 0 ]]; then
+  if [[ ${#bad_keys[@]} -gt 0 ]]; then
     echo "WARNING: The following secrets appear to contain dev placeholder values:"
-    for k in "${dev_keys[@]}"; do
+    for k in "${bad_keys[@]}"; do
       echo "  ${k}"
     done
     echo ""

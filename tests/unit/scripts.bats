@@ -254,3 +254,71 @@ YAML
   assert_output --partial "WARNING"
   rm -rf "$tmpdir"
 }
+
+@test "env-seal.sh rejects _dev_placeholder suffix values" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+GITHUB_PAT: "ghp_dev_placeholder"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
+  assert_failure
+  assert_output --partial "dev placeholder"
+  assert_output --partial "GITHUB_PAT"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh rejects _placeholder suffix values" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+STRIPE_SECRET_KEY: "sk_test_dev_placeholder"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
+  assert_failure
+  assert_output --partial "dev placeholder"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh rejects not-configured values" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+GITLAB_APP_ID: "not-configured"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
+  assert_failure
+  assert_output --partial "dev placeholder"
+  assert_output --partial "GITLAB_APP_ID"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh rejects MANAGED_EXTERNALLY values" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+KEYCLOAK_ADMIN_PASSWORD: "MANAGED_EXTERNALLY"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
+  assert_failure
+  assert_output --partial "dev placeholder"
+  assert_output --partial "KEYCLOAK_ADMIN_PASSWORD"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh rejects empty values" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+SMTP_PASSWORD: ""
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
+  assert_failure
+  assert_output --partial "SMTP_PASSWORD"
+  rm -rf "$tmpdir"
+}

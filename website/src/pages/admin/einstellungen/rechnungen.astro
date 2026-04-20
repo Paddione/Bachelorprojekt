@@ -38,7 +38,7 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
         </div>
         <div>
           <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">Steuersatz (%)</label>
-          <input type="number" name="invoice_tax_rate" value={s.invoice_tax_rate || '19'} min="0" max="100" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+          <input type="number" name="invoice_tax_rate" value={s.invoice_tax_rate || '19'} min="0" max="100" step="1" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
         </div>
       </div>
 

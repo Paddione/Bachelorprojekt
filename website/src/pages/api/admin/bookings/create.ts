@@ -91,14 +91,14 @@ export const POST: APIRoute = async ({ request }) => {
         : `Hallo ${clientName},\n\nIhr Termin wurde vom Admin eingetragen.\n\nTyp:     ${typeLabel}\nDatum:   ${dateFormatted}\nUhrzeit: ${slotDisplay}\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
     });
 
-    await sendAdminNotification({
+    sendAdminNotification({
       type: 'booking',
       subject: isCallback ? `[Admin-Buchung/Rückruf] ${clientName}` : `[Admin-Buchung: ${typeLabel}] ${clientName} am ${dateFormatted}`,
       text: isCallback
         ? `Admin-Buchung/Rückruf eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: Rückruf${phone ? `\nTelefon: ${phone}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
         : `Admin-Buchung eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${leistungKey ? `\nLeistung: ${leistungKey}` : ''}${projectId ? `\nProjekt: ${projectId}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`,
       replyTo: clientEmail,
-    });
+    }).catch(err => console.error('[admin/bookings/create] Failed to send admin notification:', err));
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {

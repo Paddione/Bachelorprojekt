@@ -35,7 +35,7 @@ export async function sendAdminNotification(params: {
   if ((enabled ?? TYPE_DEFAULTS[params.type]) === 'false') return;
 
   const from =
-    fromName && fromAddress ? `"${fromName}" <${fromAddress}>` : undefined;
+    fromName && fromAddress ? `"${fromName.replace(/"/g, "'")}" <${fromAddress}>` : undefined;
 
   const ok = await sendEmail({ to, subject: params.subject, text: params.text, html: params.html, replyTo: params.replyTo, from });
   if (!ok) console.warn(`[notifications] sendEmail failed for type="${params.type}" to="${to}"`);

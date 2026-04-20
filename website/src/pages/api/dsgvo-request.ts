@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
 import { sendEmail } from '../../lib/email';
+import { sendAdminNotification } from '../../lib/notifications';
 import { insertDsgvoRequest } from '../../lib/website-db';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -49,16 +49,12 @@ export const POST: APIRoute = async ({ request }) => {
     }).catch(err => console.error('[dsgvo-request] Failed to send confirmation email:', err));
 
     // 3. Admin-Benachrichtigung (best-effort)
-    if (CONTACT_EMAIL) {
-      sendEmail({
-        to: CONTACT_EMAIL,
-        subject: `[DSGVO] ${subject} von ${name}`,
-        text: `${subject}\n\nName: ${name}\nE-Mail: ${email}\nEingegangen: ${new Date().toLocaleString('de-DE')}\nFrist: ${deadline}\n\nBitte bearbeiten Sie diese Anfrage innerhalb von 30 Tagen gemäß Art. ${articleNum} DSGVO.`,
-        replyTo: email,
-      }).catch(err => console.error('[dsgvo-request] Failed to send admin notification:', err));
-    } else {
-      console.warn('[dsgvo-request] CONTACT_EMAIL not set — admin notification skipped');
-    }
+    sendAdminNotification({
+      type: 'contact',
+      subject: `[DSGVO] ${subject} von ${name}`,
+      text: `${subject}\n\nName: ${name}\nE-Mail: ${email}\nEingegangen: ${new Date().toLocaleString('de-DE')}\nFrist: ${deadline}\n\nBitte bearbeiten Sie diese Anfrage innerhalb von 30 Tagen gemäß Art. ${articleNum} DSGVO.`,
+      replyTo: email,
+    }).catch(err => console.error('[dsgvo-request] Failed to send admin notification:', err));
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { 'Content-Type': 'application/json' },

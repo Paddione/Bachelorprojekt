@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendRegistrationConfirmation } from '../../lib/email';
+import { sendAdminNotification } from '../../lib/notifications';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -38,6 +39,12 @@ export const POST: APIRoute = async ({ request }) => {
     sendRegistrationConfirmation(email, fullName).catch(err =>
       console.error('[register] Failed to send confirmation email:', err)
     );
+
+    sendAdminNotification({
+      type: 'registration',
+      subject: `[Neue Registrierung] ${fullName}`,
+      text: `Neue Registrierungsanfrage eingegangen.\n\nName: ${fullName}\nE-Mail: ${email}\n\nZum Bearbeiten: /admin/inbox`,
+    }).catch(err => console.error('[register] Failed to send admin notification:', err));
 
     return new Response(
       JSON.stringify({ success: true }),

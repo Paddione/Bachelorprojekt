@@ -95,8 +95,9 @@ export const POST: APIRoute = async ({ request }) => {
       type: 'booking',
       subject: isCallback ? `[Admin-Buchung/Rückruf] ${clientName}` : `[Admin-Buchung: ${typeLabel}] ${clientName} am ${dateFormatted}`,
       text: isCallback
-        ? `Admin-Buchung/Rückruf eingetragen für ${clientName}.`
-        : `Admin-Buchung eingetragen.\n\nKunde: ${clientName}\nTyp: ${typeLabel}\nDatum: ${dateFormatted}`,
+        ? `Admin-Buchung/Rückruf eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: Rückruf${phone ? `\nTelefon: ${phone}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
+        : `Admin-Buchung eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${leistungKey ? `\nLeistung: ${leistungKey}` : ''}${projectId ? `\nProjekt: ${projectId}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`,
+      replyTo: clientEmail,
     });
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });

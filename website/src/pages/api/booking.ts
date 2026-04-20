@@ -94,6 +94,7 @@ export const POST: APIRoute = async ({ request }) => {
       type: 'booking',
       subject: isCallback ? `[Rückruf] Anfrage von ${name}` : `[Terminanfrage: ${typeLabel}] ${name} am ${dateFormatted}`,
       text: adminText,
+      html: `<p>${adminText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`,
       replyTo: email,
     });
 

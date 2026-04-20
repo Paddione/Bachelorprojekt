@@ -43,7 +43,6 @@ data:
     }
   janus.plugin.videoroom.jcfg: |
     general: {
-      admin_key = "devvideoroomadmin"
     }
 ---
 apiVersion: apps/v1

@@ -47,6 +47,15 @@ spec:
         server: "{{server}}"
         namespace: coturn
 
+      ignoreDifferences:
+        - group: ""
+          kind: Secret
+          name: coturn-secrets
+          namespace: coturn
+          jsonPointers:
+            - /data/TURN_SECRET
+            - /data/SIGNALING_SECRET
+
       syncPolicy:
         automated:
           prune: false

@@ -29,12 +29,13 @@ interface SendEmailParams {
   html?: string;
   replyTo?: string;
   headers?: Record<string, string>;
+  from?: string;
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<boolean> {
   try {
     await transporter.sendMail({
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from: params.from ?? `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to: params.to,
       subject: params.subject,
       text: params.text,

@@ -17,12 +17,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     return new Response(JSON.stringify({ error: 'Ungültige E-Mail-Adresse' }), { status: 400 });
   }
 
-  await setSiteSetting(brand, 'notification_email', email);
-
-  for (const key of TOGGLE_KEYS) {
-    const val = form.get(key) === 'true' ? 'true' : 'false';
-    await setSiteSetting(brand, key, val);
-  }
+  await Promise.all([
+    setSiteSetting(brand, 'notification_email', email),
+    ...TOGGLE_KEYS.map(key => setSiteSetting(brand, key, form.get(key) === 'true' ? 'true' : 'false')),
+  ]);
 
   return redirect('/admin/einstellungen/benachrichtigungen?saved=1', 303);
 };

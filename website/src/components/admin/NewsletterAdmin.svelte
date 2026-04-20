@@ -76,9 +76,10 @@
   }
 
   $effect(() => {
+    // Read subFilter synchronously so Svelte 5 registers it as a dependency.
+    // loadSubscribers() is async; Svelte 5 only tracks synchronous reads.
+    void subFilter;
     if (activeTab === 'subscribers') loadSubscribers();
-    // subFilter is read inside loadSubscribers(), so Svelte 5 tracks it
-    // automatically — no second effect needed.
   });
 
   // ── Campaigns ─────────────────────────────────────────────────────────────────

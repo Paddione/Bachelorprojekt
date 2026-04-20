@@ -221,6 +221,7 @@ export async function updateCampaign(
   id: string,
   params: { subject?: string; html_body?: string }
 ): Promise<NewsletterCampaign | null> {
+  if (params.subject === undefined && params.html_body === undefined) return getCampaign(id);
   await ensureTables();
   const sets: string[] = ['updated_at = now()'];
   const values: unknown[] = [];

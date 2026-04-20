@@ -4,9 +4,9 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { isSlotWhitelisted } from '../../../../lib/website-db';
 import { createInboxItem } from '../../../../lib/messaging-db';
 import { sendEmail } from '../../../../lib/email';
+import { sendAdminNotification } from '../../../../lib/notifications';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
 
 const TYPE_LABELS: Record<string, string> = {
   erstgespraech: 'Kostenloses Erstgespräch',
@@ -91,18 +91,14 @@ export const POST: APIRoute = async ({ request }) => {
         : `Hallo ${clientName},\n\nIhr Termin wurde vom Admin eingetragen.\n\nTyp:     ${typeLabel}\nDatum:   ${dateFormatted}\nUhrzeit: ${slotDisplay}\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
     });
 
-    if (CONTACT_EMAIL) {
-      await sendEmail({
-        to: CONTACT_EMAIL,
-        subject: isCallback
-          ? `[Admin-Buchung/Rückruf] ${clientName}`
-          : `[Admin-Buchung: ${typeLabel}] ${clientName} am ${dateFormatted}`,
-        replyTo: clientEmail,
-        text: isCallback
-          ? `Admin-Buchung für ${clientName} (${clientEmail}).\nTyp: Rückruf\nTelefon: ${phone}${message ? `\n\nNachricht:\n${message}` : ''}`
-          : `Admin-Buchung für ${clientName} (${clientEmail}).\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}\nLeistung: ${leistungKey}${projectId ? `\nProjekt-ID: ${projectId}` : ''}${message ? `\n\nNachricht:\n${message}` : ''}`,
-      });
-    }
+    sendAdminNotification({
+      type: 'booking',
+      subject: isCallback ? `[Admin-Buchung/Rückruf] ${clientName}` : `[Admin-Buchung: ${typeLabel}] ${clientName} am ${dateFormatted}`,
+      text: isCallback
+        ? `Admin-Buchung/Rückruf eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: Rückruf${phone ? `\nTelefon: ${phone}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
+        : `Admin-Buchung eingetragen.\n\nKunde: ${clientName} (${clientEmail})\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${leistungKey ? `\nLeistung: ${leistungKey}` : ''}${projectId ? `\nProjekt: ${projectId}` : ''}${message ? `\n\nAnmerkungen:\n${message}` : ''}`,
+      replyTo: clientEmail,
+    }).catch(err => console.error('[admin/bookings/create] Failed to send admin notification:', err));
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err) {

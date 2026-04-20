@@ -1,0 +1,80 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { getSiteSetting } from '../../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const BRAND = process.env.BRAND || 'mentolder';
+const saved = Astro.url.searchParams.get('saved') === '1';
+
+const [email, reg, booking, contact, bug, message, followup] = await Promise.all([
+  getSiteSetting(BRAND, 'notification_email'),
+  getSiteSetting(BRAND, 'notify_registration'),
+  getSiteSetting(BRAND, 'notify_booking'),
+  getSiteSetting(BRAND, 'notify_contact'),
+  getSiteSetting(BRAND, 'notify_bug'),
+  getSiteSetting(BRAND, 'notify_message'),
+  getSiteSetting(BRAND, 'notify_followup'),
+]);
+
+const notifEmail = email ?? process.env.CONTACT_EMAIL ?? '';
+
+const toggles = [
+  { key: 'notify_registration', label: 'Neue Registrierung',  checked: (reg      ?? 'true')    === 'true' },
+  { key: 'notify_booking',      label: 'Neue Buchung',         checked: (booking  ?? 'true')    === 'true' },
+  { key: 'notify_contact',      label: 'Kontaktformular',      checked: (contact  ?? 'true')    === 'true' },
+  { key: 'notify_bug',          label: 'Neuer Bug-Report',     checked: (bug      ?? 'true')    === 'true' },
+  { key: 'notify_message',      label: 'Neue Nachricht',       checked: (message  ?? 'true')    === 'true' },
+  { key: 'notify_followup',     label: 'Follow-up fällig',     checked: (followup ?? 'false')   === 'true' },
+];
+---
+
+<AdminLayout title="Benachrichtigungen">
+  <div style="padding: 2rem; max-width: 640px;">
+    <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">Benachrichtigungen</h1>
+    <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">Admin-Benachrichtigungen werden an diese Adresse gesendet.</p>
+
+    {saved && (
+      <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; color: #86efac; font-size: 0.875rem;">
+        Einstellungen gespeichert.
+      </div>
+    )}
+
+    <form method="POST" action="/api/admin/einstellungen/benachrichtigungen">
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">
+          Benachrichtigungs-E-Mail
+        </label>
+        <input
+          type="email"
+          name="notification_email"
+          value={notifEmail}
+          required
+          style="width: 100%; background: var(--ink-800); border: 1px solid var(--line); border-radius: 8px; padding: 0.625rem 0.875rem; color: var(--fg); font-family: var(--font-mono); font-size: 0.875rem; outline: none;"
+        />
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <p style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.75rem;">Ereignistypen</p>
+        <div style="display: flex; flex-direction: column; gap: 0.625rem;">
+          {toggles.map(t => (
+            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--ink-850); border: 1px solid var(--line); border-radius: 8px; padding: 0.75rem 1rem; cursor: pointer;">
+              <span style="font-size: 0.875rem; color: var(--fg-soft);">{t.label}</span>
+              <input type="checkbox" name={t.key} value="true" checked={t.checked} style="width: 1rem; height: 1rem; accent-color: var(--brass); cursor: pointer;" />
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        style="background: var(--brass); color: var(--ink-900); border: none; border-radius: 8px; padding: 0.625rem 1.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer;"
+      >
+        Speichern
+      </button>
+    </form>
+  </div>
+</AdminLayout>

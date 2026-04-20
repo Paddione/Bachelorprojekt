@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
+import { sendAdminNotification } from '../../lib/notifications';
 import { claimSlot } from '../../lib/website-db';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
 
 const TYPE_LABELS: Record<string, string> = {
   erstgespraech: 'Kostenloses Erstgespräch',
@@ -85,24 +85,18 @@ export const POST: APIRoute = async ({ request }) => {
         : `Hallo ${name},\n\nvielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.\n\nIhr gewünschter Termin:\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}\n\nWir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
     });
 
-    // Admin notification email
-    if (CONTACT_EMAIL) {
-      const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
-      const adminText = isCallback
-        ? `Neue Rückruf-Anfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
-        : `Neue Terminanfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${message ? `\n\nAnmerkungen:\n${message}` : ''}`;
-      await sendEmail({
-        to: CONTACT_EMAIL,
-        subject: isCallback
-          ? `[Rückruf] Anfrage von ${name}`
-          : `[Terminanfrage: ${typeLabel}] ${name} am ${dateFormatted}`,
-        replyTo: email,
-        text: adminText,
-        html: isCallback
-          ? `<p>Neue Rückruf-Anfrage auf ${BRAND_NAME}.</p><table><tr><td><strong>Name</strong></td><td>${name}</td></tr><tr><td><strong>E-Mail</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}</table>${message ? `<p><strong>Anmerkungen:</strong><br>${message.replace(/\n/g, '<br>')}</p>` : ''}`
-          : `<p>Neue Terminanfrage auf ${BRAND_NAME}.</p><table><tr><td><strong>Name</strong></td><td>${name}</td></tr><tr><td><strong>E-Mail</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}<tr><td><strong>Typ</strong></td><td>${typeLabel}</td></tr><tr><td><strong>Datum</strong></td><td>${dateFormatted}</td></tr><tr><td><strong>Uhrzeit</strong></td><td>${slotDisplay}</td></tr></table>${message ? `<p><strong>Anmerkungen:</strong><br>${message.replace(/\n/g, '<br>')}</p>` : ''}`,
-      });
-    }
+    // Admin notification
+    const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
+    const adminText = isCallback
+      ? `Neue Rückruf-Anfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
+      : `Neue Terminanfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${message ? `\n\nAnmerkungen:\n${message}` : ''}`;
+    await sendAdminNotification({
+      type: 'booking',
+      subject: isCallback ? `[Rückruf] Anfrage von ${name}` : `[Terminanfrage: ${typeLabel}] ${name} am ${dateFormatted}`,
+      text: adminText,
+      html: `<p>${adminText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`,
+      replyTo: email,
+    });
 
     return new Response(
       JSON.stringify({ success: true }),

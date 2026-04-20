@@ -7,7 +7,7 @@
   - [Nextcloud (Dateien & Talk)](nextcloud)
   - [Collabora (Office)](collabora)
   - [Talk HPB (Signaling)](talk-hpb)
-  - [Claude Code (KI & MCP)](claude-code)
+  - [MCP-Server](claude-code)
   - [Vaultwarden (Passwörter)](vaultwarden)
   - [Website (Astro & Svelte)](website)
   - [Whiteboard](whiteboard)

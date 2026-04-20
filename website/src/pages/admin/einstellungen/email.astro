@@ -1,0 +1,63 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { getSiteSetting } from '../../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const BRAND = process.env.BRAND || 'mentolder';
+const saved = Astro.url.searchParams.get('saved') === '1';
+
+const [fromName, fromAddress] = await Promise.all([
+  getSiteSetting(BRAND, 'email_from_name'),
+  getSiteSetting(BRAND, 'email_from_address'),
+]);
+---
+
+<AdminLayout title="E-Mail">
+  <div style="padding: 2rem; max-width: 640px;">
+    <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">E-Mail</h1>
+    <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">Absender-Informationen für ausgehende E-Mails. SMTP-Zugangsdaten bleiben in den Umgebungsvariablen.</p>
+
+    {saved && (
+      <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; color: #86efac; font-size: 0.875rem;">
+        Einstellungen gespeichert.
+      </div>
+    )}
+
+    <form method="POST" action="/api/admin/einstellungen/email">
+      <div style="margin-bottom: 1.25rem;">
+        <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">
+          Absendername
+        </label>
+        <input
+          type="text"
+          name="email_from_name"
+          value={fromName ?? (process.env.FROM_NAME ?? process.env.BRAND_NAME ?? '')}
+          style="width: 100%; background: var(--ink-800); border: 1px solid var(--line); border-radius: 8px; padding: 0.625rem 0.875rem; color: var(--fg); font-family: var(--font-mono); font-size: 0.875rem; outline: none;"
+        />
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">
+          Absender-Adresse (From)
+        </label>
+        <input
+          type="email"
+          name="email_from_address"
+          value={fromAddress ?? (process.env.FROM_EMAIL ?? process.env.CONTACT_EMAIL ?? '')}
+          style="width: 100%; background: var(--ink-800); border: 1px solid var(--line); border-radius: 8px; padding: 0.625rem 0.875rem; color: var(--fg); font-family: var(--font-mono); font-size: 0.875rem; outline: none;"
+        />
+      </div>
+
+      <button
+        type="submit"
+        style="background: var(--brass); color: var(--ink-900); border: none; border-radius: 8px; padding: 0.625rem 1.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer;"
+      >
+        Speichern
+      </button>
+    </form>
+  </div>
+</AdminLayout>

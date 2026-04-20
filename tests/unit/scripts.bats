@@ -335,6 +335,7 @@ YAML
   run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dup-check "${tmpdir}/mysecrets.yaml"
   assert_failure
   assert_output --partial "KEYCLOAK_DB_PASSWORD"
+  assert_output --partial "Duplicate keys"
   rm -rf "$tmpdir"
 }
 

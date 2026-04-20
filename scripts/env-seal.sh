@@ -96,6 +96,7 @@ scan_for_dev_values() {
 
 check_duplicate_keys() {
   local secrets_file="$1"
+  [[ ! -f "$secrets_file" ]] && { echo "ERROR: File not found: ${secrets_file}"; return 1; }
   local duplicates=()
 
   while IFS= read -r key; do
@@ -109,6 +110,9 @@ check_duplicate_keys() {
   )
 
   if [[ ${#duplicates[@]} -gt 0 ]]; then
+    # Duplicate keys are always an error — unlike placeholder values, there is no
+    # valid reason to force-seal a structurally broken secrets file. Fix by removing
+    # the duplicate entries; the last value silently wins in YAML.
     echo "ERROR: Duplicate keys found in ${secrets_file}:"
     for k in "${duplicates[@]}"; do
       echo "  ${k}"

@@ -36,6 +36,7 @@
 
 - **Administration**
   - [Adminhandbuch](adminhandbuch)
+  - [Admin-Webinterface](admin-webinterface)
   - [Projekt-Verwaltung](admin-projekte)
 
 - **Entwicklung**

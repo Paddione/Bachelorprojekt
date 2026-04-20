@@ -19,6 +19,7 @@ ENV_NAME=""
 ENV_DIR="environments"
 FORCE=false
 _TEST_SCAN_FILE=""
+_TEST_DUP_FILE=""
 
 # ── Helpers ──────────────────────────────────────────────────────
 
@@ -91,6 +92,33 @@ scan_for_dev_values() {
   return 0
 }
 
+# ── Duplicate key checker ─────────────────────────────────────────
+
+check_duplicate_keys() {
+  local secrets_file="$1"
+  local duplicates=()
+
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    duplicates+=("$key")
+  done < <(
+    grep -E '^[A-Za-z0-9_]+:' "$secrets_file" \
+      | sed 's/:.*//' \
+      | sort \
+      | uniq -d
+  )
+
+  if [[ ${#duplicates[@]} -gt 0 ]]; then
+    echo "ERROR: Duplicate keys found in ${secrets_file}:"
+    for k in "${duplicates[@]}"; do
+      echo "  ${k}"
+    done
+    echo "Remove duplicate entries — the last value silently wins in YAML."
+    return 1
+  fi
+  return 0
+}
+
 # yaml_get <file> <key> — extract value for a top-level key
 yaml_get() {
   local file="$1" key="$2"
@@ -116,6 +144,7 @@ while [[ $# -gt 0 ]]; do
     --env-dir)          ENV_DIR="$2"; shift 2 ;;
     --force)            FORCE=true; shift ;;
     --_test-dev-scan)   _TEST_SCAN_FILE="$2"; shift 2 ;;
+    --_test-dup-check)  _TEST_DUP_FILE="$2"; shift 2 ;;
     *)                  echo "Unknown option: $1"; usage ;;
   esac
 done
@@ -125,6 +154,15 @@ done
 if [[ -n "$_TEST_SCAN_FILE" ]]; then
   if scan_for_dev_values "$_TEST_SCAN_FILE"; then
     echo "OK: no dev placeholder values found"
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
+if [[ -n "$_TEST_DUP_FILE" ]]; then
+  if check_duplicate_keys "$_TEST_DUP_FILE"; then
+    echo "OK: no duplicate keys found"
     exit 0
   else
     exit 1
@@ -177,6 +215,12 @@ if ! scan_for_dev_values "$SECRETS_FILE"; then
   exit 1
 fi
 info "No dev placeholder values detected."
+
+info "Checking for duplicate keys..."
+if ! check_duplicate_keys "$SECRETS_FILE"; then
+  exit 1
+fi
+info "No duplicate keys detected."
 
 # ── Build temporary K8s Secret manifest ──────────────────────────
 

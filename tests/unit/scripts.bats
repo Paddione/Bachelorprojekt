@@ -322,3 +322,33 @@ YAML
   assert_output --partial "SMTP_PASSWORD"
   rm -rf "$tmpdir"
 }
+
+@test "env-seal.sh rejects secrets file with duplicate keys" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+KEYCLOAK_DB_PASSWORD: "realpassword123"
+NEXTCLOUD_DB_PASSWORD: "anothersecret456"
+KEYCLOAK_DB_PASSWORD: "differentvalue789"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dup-check "${tmpdir}/mysecrets.yaml"
+  assert_failure
+  assert_output --partial "KEYCLOAK_DB_PASSWORD"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh accepts secrets file with no duplicate keys" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+KEYCLOAK_DB_PASSWORD: "realpassword123"
+NEXTCLOUD_DB_PASSWORD: "anothersecret456"
+SHARED_DB_PASSWORD: "thirdsecret789"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dup-check "${tmpdir}/mysecrets.yaml"
+  assert_success
+  assert_output --partial "OK"
+  rm -rf "$tmpdir"
+}

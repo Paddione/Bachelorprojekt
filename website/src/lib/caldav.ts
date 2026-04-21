@@ -251,21 +251,34 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
 }
 
 // Compute available booking slots for a range of days.
-// When brand is provided, only whitelisted slots are returned (public booking view).
-// Without brand, all calendar-free slots are returned (admin overview).
-export async function getAvailableSlots(fromDate?: Date, brand?: string): Promise<DaySlots[]> {
-  let whitelistedSet: Set<string> | null = null;
+// When brand is provided, slots are generated from admin-defined free time windows.
+// Without brand, all calendar-free slots in working hours are returned (admin overview).
+export async function getAvailableSlots(fromDate?: Date, brand?: string, slotDurationMin?: number): Promise<DaySlots[]> {
+  const duration = slotDurationMin ?? SLOT_DURATION_MIN;
+
+  // windowsMap: date string → array of {winStart, winEnd} (HH:MM strings)
+  let windowsMap: Map<string, Array<{ winStart: string; winEnd: string }>> | null = null;
   let vacationDays: Set<string> = new Set();
   const effectiveBrand = brand || process.env.BRAND || 'mentolder';
+
   if (brand) {
     try {
-      const { getWhitelistedSlots } = await import('./website-db.js');
-      const wl = await getWhitelistedSlots(brand);
-      whitelistedSet = new Set(wl.map((w: { slotStart: Date }) => w.slotStart.toISOString()));
+      const { getFreeTimeWindows } = await import('./website-db.js');
+      const fromStr = (fromDate || new Date()).toISOString().split('T')[0];
+      const horizonDate = new Date(fromDate || new Date());
+      horizonDate.setDate(horizonDate.getDate() + BOOKING_HORIZON_DAYS);
+      const toStr = horizonDate.toISOString().split('T')[0];
+      const windows = await getFreeTimeWindows(brand, fromStr, toStr);
+      windowsMap = new Map();
+      for (const w of windows) {
+        if (!windowsMap.has(w.date)) windowsMap.set(w.date, []);
+        windowsMap.get(w.date)!.push({ winStart: w.winStart, winEnd: w.winEnd });
+      }
     } catch {
-      // If whitelist table missing, fall back to showing all slots
+      // fall back to showing all slots if windows table missing
     }
   }
+
   try {
     const { getVacationPeriods } = await import('./website-db.js');
     const periods = await getVacationPeriods(effectiveBrand);
@@ -280,6 +293,7 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string): Promis
   } catch {
     // vacation periods unavailable — continue without them
   }
+
   const now = new Date();
   const start = fromDate || now;
   const end = new Date(start);
@@ -296,44 +310,65 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string): Promis
     const isoDay = dayOfWeek === 0 ? 7 : dayOfWeek;
     const dayStr = cursor.toISOString().split('T')[0];
 
-    if (WORK_DAYS.includes(isoDay) && !vacationDays.has(dayStr)) {
-      const slots: TimeSlot[] = [];
+    if (vacationDays.has(dayStr)) {
+      cursor.setDate(cursor.getDate() + 1);
+      continue;
+    }
 
-      for (let hour = WORK_START_HOUR; hour < WORK_END_HOUR; hour += SLOT_DURATION_MIN / 60) {
-        const slotStart = new Date(cursor);
-        slotStart.setHours(Math.floor(hour), (hour % 1) * 60, 0, 0);
-        const slotEnd = new Date(slotStart.getTime() + SLOT_DURATION_MIN * 60000);
+    const slots: TimeSlot[] = [];
 
-        if (slotStart.getTime() < now.getTime() + MIN_ADVANCE_HOURS * 3600000) continue;
+    if (windowsMap !== null) {
+      // Customer view: generate slots within admin-defined time windows
+      const dayWindows = windowsMap.get(dayStr) ?? [];
+      for (const win of dayWindows) {
+        const [wsh, wsm] = win.winStart.split(':').map(Number);
+        const [weh, wem] = win.winEnd.split(':').map(Number);
+        const winStartMin = wsh * 60 + wsm;
+        const winEndMin = weh * 60 + wem;
 
-        const hasConflict = events.some(
-          (ev) => ev.start < slotEnd && ev.end > slotStart
-        );
+        for (let t = winStartMin; t + duration <= winEndMin; t += duration) {
+          const slotStart = new Date(cursor);
+          slotStart.setHours(Math.floor(t / 60), t % 60, 0, 0);
+          const slotEnd = new Date(slotStart.getTime() + duration * 60000);
 
-        if (!hasConflict) {
-          const isoStart = slotStart.toISOString();
-          if (whitelistedSet !== null && !whitelistedSet.has(isoStart)) continue;
+          if (slotStart.getTime() < now.getTime() + MIN_ADVANCE_HOURS * 3600000) continue;
+          if (events.some((ev) => ev.start < slotEnd && ev.end > slotStart)) continue;
 
           const startHH = slotStart.getHours().toString().padStart(2, '0');
           const startMM = slotStart.getMinutes().toString().padStart(2, '0');
           const endHH = slotEnd.getHours().toString().padStart(2, '0');
           const endMM = slotEnd.getMinutes().toString().padStart(2, '0');
-
           slots.push({
-            start: isoStart,
+            start: slotStart.toISOString(),
             end: slotEnd.toISOString(),
             display: `${startHH}:${startMM} - ${endHH}:${endMM}`,
           });
         }
       }
+    } else if (WORK_DAYS.includes(isoDay)) {
+      // Admin overview: all calendar-free slots in configured working hours
+      for (let hour = WORK_START_HOUR; hour < WORK_END_HOUR; hour += duration / 60) {
+        const slotStart = new Date(cursor);
+        slotStart.setHours(Math.floor(hour), (hour % 1) * 60, 0, 0);
+        const slotEnd = new Date(slotStart.getTime() + duration * 60000);
 
-      if (slots.length > 0) {
-        result.push({
-          date: dayStr,
-          weekday: WEEKDAYS_DE[dayOfWeek],
-          slots,
+        if (slotStart.getTime() < now.getTime() + MIN_ADVANCE_HOURS * 3600000) continue;
+        if (events.some((ev) => ev.start < slotEnd && ev.end > slotStart)) continue;
+
+        const startHH = slotStart.getHours().toString().padStart(2, '0');
+        const startMM = slotStart.getMinutes().toString().padStart(2, '0');
+        const endHH = slotEnd.getHours().toString().padStart(2, '0');
+        const endMM = slotEnd.getMinutes().toString().padStart(2, '0');
+        slots.push({
+          start: slotStart.toISOString(),
+          end: slotEnd.toISOString(),
+          display: `${startHH}:${startMM} - ${endHH}:${endMM}`,
         });
       }
+    }
+
+    if (slots.length > 0) {
+      result.push({ date: dayStr, weekday: WEEKDAYS_DE[dayOfWeek], slots });
     }
 
     cursor.setDate(cursor.getDate() + 1);

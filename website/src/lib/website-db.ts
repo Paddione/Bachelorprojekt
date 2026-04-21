@@ -2124,6 +2124,83 @@ export async function claimSlot(brand: string, start: Date): Promise<boolean> {
   return (result.rowCount ?? 0) > 0;
 }
 
+// ── Free Time Windows ────────────────────────────────────────────────────────
+
+export interface FreeTimeWindow {
+  id: string;
+  date: string;     // YYYY-MM-DD
+  winStart: string; // HH:MM
+  winEnd: string;   // HH:MM
+}
+
+async function initFreeTimeWindowsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS free_time_windows (
+      id         TEXT        NOT NULL DEFAULT gen_random_uuid()::text,
+      brand      TEXT        NOT NULL,
+      date       DATE        NOT NULL,
+      win_start  TIME        NOT NULL,
+      win_end    TIME        NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (id)
+    )
+  `);
+}
+
+export async function getFreeTimeWindows(brand: string, fromDate?: string, toDate?: string): Promise<FreeTimeWindow[]> {
+  await initFreeTimeWindowsTable();
+  const result = await pool.query(
+    `SELECT id,
+            to_char(date, 'YYYY-MM-DD')   AS date,
+            to_char(win_start, 'HH24:MI') AS "winStart",
+            to_char(win_end,   'HH24:MI') AS "winEnd"
+     FROM free_time_windows
+     WHERE brand = $1
+       AND ($2::date IS NULL OR date >= $2::date)
+       AND ($3::date IS NULL OR date <= $3::date)
+     ORDER BY date ASC, win_start ASC`,
+    [brand, fromDate ?? null, toDate ?? null]
+  );
+  return result.rows;
+}
+
+export async function addFreeTimeWindow(brand: string, date: string, winStart: string, winEnd: string): Promise<string> {
+  await initFreeTimeWindowsTable();
+  const result = await pool.query(
+    `INSERT INTO free_time_windows (brand, date, win_start, win_end)
+     VALUES ($1, $2::date, $3::time, $4::time)
+     RETURNING id`,
+    [brand, date, winStart, winEnd]
+  );
+  return result.rows[0].id as string;
+}
+
+export async function removeFreeTimeWindow(brand: string, id: string): Promise<void> {
+  await initFreeTimeWindowsTable();
+  await pool.query(
+    'DELETE FROM free_time_windows WHERE id = $1 AND brand = $2',
+    [id, brand]
+  );
+}
+
+export async function isSlotInAnyWindow(brand: string, slotStart: Date, slotEnd: Date): Promise<boolean> {
+  await initFreeTimeWindowsTable();
+  const dateStr = slotStart.toISOString().split('T')[0];
+  const sh = slotStart.getHours().toString().padStart(2, '0');
+  const sm = slotStart.getMinutes().toString().padStart(2, '0');
+  const eh = slotEnd.getHours().toString().padStart(2, '0');
+  const em = slotEnd.getMinutes().toString().padStart(2, '0');
+  const result = await pool.query(
+    `SELECT 1 FROM free_time_windows
+     WHERE brand = $1
+       AND date = $2::date
+       AND win_start <= $3::time
+       AND win_end   >= $4::time`,
+    [brand, dateStr, `${sh}:${sm}`, `${eh}:${em}`]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function listBugTickets(filters: {
   status?: string;
   category?: string;

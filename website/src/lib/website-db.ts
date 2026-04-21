@@ -820,7 +820,10 @@ export interface ProjectTask {
   updatedAt: Date;
 }
 
+let projectTablesReady = false;
+
 async function initProjectTables(): Promise<void> {
+  if (projectTablesReady) return;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS projects (
       id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -870,6 +873,7 @@ async function initProjectTables(): Promise<void> {
       updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  projectTablesReady = true;
 }
 
 const PROJECT_SELECT = `
@@ -1277,6 +1281,7 @@ export interface TimeEntry {
 
 async function initTimeEntriesTable(): Promise<void> {
   if (timeEntriesReady) return;
+  await initProjectTables();
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
       id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),

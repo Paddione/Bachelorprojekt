@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: traefik-basic-auth
+  namespace: workspace
+data:
+  users: YWRtaW46JGFwcjEkbE14aTdQazQkUGRaWWNDMGE5eEVBMUl1NC5ZcEN6Lg==

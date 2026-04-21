@@ -13,8 +13,19 @@ data:
     echo "Initializing meetings schema..."
 
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
-      -- Customer number sequence (M0001, M0002, …)
-      CREATE SEQUENCE IF NOT EXISTS customer_number_seq START 1;
+      -- Customer number sequence (M0020, M0021, …)
+      CREATE SEQUENCE IF NOT EXISTS customer_number_seq START 20;
+
+      -- For existing deployments: ensure the next nextval() call returns at least 20.
+      -- Uses is_called to distinguish fresh sequences (next = last_value) from
+      -- used ones (next = last_value + 1) without advancing the sequence itself.
+      DO $$
+      BEGIN
+        IF (SELECT CASE WHEN is_called THEN last_value + 1 ELSE last_value END
+            FROM customer_number_seq) < 20 THEN
+          PERFORM setval('customer_number_seq', 20, false);
+        END IF;
+      END $$;
 
       -- Customers (cross-reference to Keycloak)
       CREATE TABLE IF NOT EXISTS customers (
@@ -32,6 +43,9 @@ data:
       ALTER TABLE customers ADD COLUMN IF NOT EXISTS customer_number TEXT UNIQUE;
       UPDATE customers SET customer_number = 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0') WHERE customer_number IS NULL;
       ALTER TABLE customers ALTER COLUMN customer_number SET DEFAULT 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0');
+
+      -- Enrollment tracking: allows admin to dismiss a pending enrollment without creating a portal account
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS enrollment_declined BOOLEAN NOT NULL DEFAULT FALSE;
 
       -- Meeting history
       CREATE TABLE IF NOT EXISTS meetings (

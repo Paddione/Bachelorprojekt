@@ -21,17 +21,67 @@ const [leistungen, priceListUrl] = await Promise.all([
         </p>
       </div>
 
-      {leistungenPricingHighlight && leistungenPricingHighlight.length > 0 && (
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-          {leistungenPricingHighlight.map((item) => (
-            <div class={`bg-dark-light rounded-2xl p-8 text-center ${item.highlight ? 'border-2 border-gold' : 'border border-dark-lighter'}`}>
-              <p class="text-muted text-lg mb-2">{item.label}</p>
-              <p class="text-4xl font-bold text-gold mb-2">{item.price}</p>
-              <p class="text-muted">{item.note}</p>
-            </div>
-          ))}
+      <!-- Erstgespräch hero -->
+      <div class="bg-dark-light rounded-2xl p-8 md:p-10 border border-gold/30 mb-12 text-center">
+        <p class="font-mono text-xs tracking-widest uppercase text-gold mb-3">Einstieg</p>
+        <h2 class="text-2xl md:text-3xl font-bold text-light mb-2 font-serif">Kostenloses Erstgespräch</h2>
+        <p class="text-muted mb-1">30 Minuten · kostenlos & unverbindlich</p>
+        <p class="text-muted max-w-xl mx-auto mb-6">
+          Wir klären gemeinsam, ob und wie ich Sie unterstützen kann.
+          Kein Verkaufsgespräch — ein ehrliches Kennenlernen.
+        </p>
+        <a href={leistungenCta.href} class="inline-block bg-gold hover:bg-gold-light text-dark px-8 py-3 rounded-full font-bold transition-colors uppercase tracking-wide text-sm">
+          Jetzt Erstgespräch buchen
+        </a>
+      </div>
+
+      <!-- Pricing comparison table -->
+      <div class="mb-16">
+        <h2 class="text-2xl md:text-3xl font-bold text-light mb-8 font-serif text-center">Coaching-Angebote im Überblick</h2>
+        <div class="overflow-x-auto rounded-2xl border border-dark-lighter">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr style="background:var(--ink-800);">
+                <th class="px-6 py-4 text-muted font-mono text-xs tracking-widest uppercase">Leistung</th>
+                <th class="px-6 py-4 text-gold font-mono text-xs tracking-widest uppercase text-center">Führungskräfte</th>
+                <th class="px-6 py-4 text-gold font-mono text-xs tracking-widest uppercase text-center">50+ Digital</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-t border-dark-lighter hover:bg-dark-light transition-colors">
+                <td class="px-6 py-4 text-light">Einzelstunde (60 Min.)</td>
+                <td class="px-6 py-4 text-center font-bold text-light">150 €</td>
+                <td class="px-6 py-4 text-center font-bold text-light">60 €</td>
+              </tr>
+              <tr class="border-t border-dark-lighter hover:bg-dark-light transition-colors" style="background:rgba(255,255,255,0.02)">
+                <td class="px-6 py-4 text-light">
+                  Paket S — 6 Sessions
+                  <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">Beliebt</span>
+                </td>
+                <td class="px-6 py-4 text-center font-bold text-gold">840 €</td>
+                <td class="px-6 py-4 text-center font-bold text-gold">330 €</td>
+              </tr>
+              <tr class="border-t border-dark-lighter hover:bg-dark-light transition-colors">
+                <td class="px-6 py-4 text-light">Paket M — 12 Sessions</td>
+                <td class="px-6 py-4 text-center font-bold text-light">1.560 €</td>
+                <td class="px-6 py-4 text-center font-bold text-light">600 €</td>
+              </tr>
+              <tr class="border-t border-dark-lighter hover:bg-dark-light transition-colors" style="background:rgba(255,255,255,0.02)">
+                <td class="px-6 py-4 text-muted">Erstgespräch (30 Min.)</td>
+                <td class="px-6 py-4 text-center text-muted">kostenlos</td>
+                <td class="px-6 py-4 text-center text-muted">kostenlos</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      )}
+        <p class="text-xs text-muted mt-3 text-center">
+          Alle Preise sind Nettopreise gemäß §&nbsp;19 UStG — kein Ausweis von Umsatzsteuer.
+        </p>
+        <p class="text-sm text-muted mt-2 text-center">
+          Für Unternehmenskunden (ab 3 Personen) erstelle ich gerne ein individuelles Angebot.
+          <a href="/kontakt" class="text-gold hover:underline ml-1">Anfrage stellen →</a>
+        </p>
+      </div>
 
       {leistungen.map((cat) => (
         <div id={cat.id} class="mb-16">

@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import { config } from '../config/index';
 import { getLegalPage } from '../lib/website-db';
 
-const { contact, legal, features } = config;
+const { contact, legal } = config;
 const BRAND = process.env.BRAND || 'mentolder';
 const customHtml = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
 ---
@@ -89,38 +89,41 @@ const customHtml = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
         </tbody>
       </table>
 
-      <h3>Kontaktformular</h3>
+      <h3>Kontaktformular und Terminbuchung</h3>
       <p>
-        Wenn Sie das Kontaktformular nutzen, werden Ihr Name, Ihre E-Mail-Adresse
-        und der Nachrichteninhalt verarbeitet, um Ihre Anfrage zu bearbeiten.
-        Die Daten werden intern über einen verschlüsselten Kanal weitergeleitet
-        und nicht an Dritte weitergegeben.
+        Wenn Sie das Kontaktformular nutzen oder einen Termin buchen, werden Ihr
+        Name, Ihre E-Mail-Adresse sowie der Nachrichteninhalt verarbeitet, um Ihre
+        Anfrage zu bearbeiten und den Termin zu koordinieren. Die Daten werden
+        intern weitergeleitet und nicht an Dritte weitergegeben.
       </p>
       <p>
-        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO. Speicherdauer: 3 Jahre.
+        Im Rahmen der Coaching-Leistungserbringung werden zudem Termindaten und
+        Sitzungsnotizen verarbeitet (ausschließlich intern, nicht weitergegeben)
+        sowie Rechnungsdaten gemäß gesetzlicher Aufbewahrungspflicht (10 Jahre).
       </p>
-
-      {features.hasBooking && (
-        <>
-          <h3>Terminbuchung</h3>
-          <p>
-            Bei der Buchung eines Termins werden Name, E-Mail-Adresse und der gewählte
-            Zeitslot verarbeitet. Die Daten werden ausschließlich zur Terminorganisation
-            genutzt und auf eigener Infrastruktur gespeichert.
-          </p>
-          <p>
-            Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen).
-            Speicherdauer: 3 Jahre.
-          </p>
-        </>
-      )}
+      <p>
+        Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung /
+        vorvertragliche Maßnahmen). Speicherdauer Kontaktdaten: 3 Jahre.
+      </p>
 
       <h3>Hosting</h3>
       <p>
-        Diese Website wird vollständig auf eigener Infrastruktur (On-Premises)
-        betrieben. Es werden keine Hosting-Dienste von Drittanbietern (AWS, Azure,
-        Google Cloud o. Ä.) genutzt. Es findet keine Übermittlung personenbezogener
-        Daten in Drittländer statt.
+        Diese Website und alle damit verbundenen Dienste werden auf Servern der
+        <strong>Hetzner Online GmbH</strong> (Deutschland) betrieben. Alle Daten
+        verbleiben innerhalb der Europäischen Union. Es findet keine Übermittlung
+        personenbezogener Daten an Server in Drittländern außerhalb der EU statt.
+      </p>
+      <p>
+        Eingesetzte Dienste (alle selbst gehostet auf Hetzner-Infrastruktur):
+      </p>
+      <ul>
+        <li>Nextcloud — Dokumentenablage, Kalender</li>
+        <li>Nextcloud Talk — Online-Coaching-Sitzungen per Video</li>
+        <li>Eigene Terminverwaltung und Rechnungsstellung</li>
+      </ul>
+      <p>
+        Es werden keine Dienste von Google (Analytics, Fonts, Maps), Meta (Facebook,
+        Instagram Pixel), Zoom, HubSpot oder sonstigen US-Anbietern eingesetzt.
       </p>
 
       <h2>4. Ihre Rechte als betroffene Person</h2>

@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import { config } from '../config/index';
 import { getLegalPage } from '../lib/website-db';
 
-const { contact, legal, services } = config;
+const { contact, legal } = config;
 const BRAND = process.env.BRAND || 'mentolder';
 const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
 ---
@@ -11,226 +11,114 @@ const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
 <Layout title="AGB">
   <section class="pt-28 pb-20">
     <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
-      <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
-
-      <h2>§ 1 Geltungsbereich</h2>
-      <p>
-        Diese Allgemeinen Geschäftsbedingungen gelten für alle Verträge zwischen
-        {contact.name}, {legal.tagline} (nachfolgend „Anbieter") und dessen Auftraggebern
-        (nachfolgend „Auftraggeber"). Abweichende Bedingungen des Auftraggebers werden nicht
-        anerkannt, es sei denn, der Anbieter stimmt ihrer Geltung ausdrücklich schriftlich zu.
+      <h1>Allgemeine Geschäftsbedingungen</h1>
+      <p class="text-muted text-sm">
+        Gültig für alle Coaching-Leistungen von {contact.name}, {legal.tagline} (nachfolgend „Coach").
       </p>
 
-      <h2>§ 2 Vertragsschluss und Leistungsumfang</h2>
+      <h2>§ 1 — Geltungsbereich</h2>
       <p>
-        Eine Buchungsanfrage oder Beauftragung stellt ein Angebot des Auftraggebers zum Abschluss
-        eines Vertrages dar. Der Vertrag kommt erst durch die schriftliche oder elektronische
-        Auftragsbestätigung des Anbieters zustande. Automatisch generierte Eingangsbestätigungen
-        gelten nicht als Vertragsannahme.
-      </p>
-      <p>
-        Dienstleistungen werden ausschließlich nach vorheriger schriftlicher Beauftragung durch
-        den Auftraggeber erbracht. Schriftliche Beauftragungen können per E-Mail oder in anderer
-        dokumentierter Form erfolgen. Änderungen oder Erweiterungen des Leistungsumfangs bedürfen
-        der schriftlichen Bestätigung durch den Anbieter.
+        Diese Allgemeinen Geschäftsbedingungen gelten für alle Verträge über Coaching-Leistungen
+        zwischen dem Coach und dem Auftraggeber. Abweichende Bedingungen des Auftraggebers werden
+        nicht anerkannt, es sei denn, der Coach stimmt diesen ausdrücklich schriftlich zu.
       </p>
 
-      <h2>§ 3 Leistungen</h2>
-      <p>Der Anbieter erbringt folgende Leistungen:</p>
+      <h2>§ 2 — Leistungsbeschreibung</h2>
+      <p>
+        Der Coach erbringt systemische Coaching-Leistungen zur professionellen Begleitung bei
+        beruflichen und organisationalen Entwicklungsthemen. Das Angebot umfasst Einzelsitzungen
+        sowie Paketleistungen gemäß der jeweils aktuell gültigen Preisliste auf
+        web.{legal.website}/leistungen.
+      </p>
+      <p>
+        Coaching ist kein Ersatz für Psychotherapie, medizinische Behandlung oder rechtliche
+        Beratung. Der Coach ist kein Therapeut und übt keine heilkundliche Tätigkeit aus.
+      </p>
+
+      <h2>§ 3 — Vertragsschluss</h2>
+      <p>Ein Vertrag kommt zustande durch:</p>
       <ul>
-        {services.map((s) => (
-          <li>
-            <strong>{s.title}</strong> – {s.description}
-            {s.price && s.price !== 'nach Vereinbarung' && (
-              <> (<span class="text-slate-500">{s.price}</span>)</>
-            )}
-          </li>
-        ))}
+        <li>Unterzeichnung eines individuellen Coaching-Vertrages, oder</li>
+        <li>Schriftliche Bestätigung (E-Mail) einer Buchung durch den Coach, oder</li>
+        <li>
+          Buchung über das Online-Buchungssystem unter web.{legal.website} in Verbindung
+          mit der Bestätigung der AGBs.
+        </li>
       </ul>
       <p>
-        Der genaue Leistungsumfang wird für jedes Engagement individuell vereinbart. Die
-        Leistungen können projekt- oder anlassbezogen beauftragt werden.
+        Mit Vertragsschluss bestätigt der Auftraggeber, diese AGBs gelesen und akzeptiert zu haben.
       </p>
 
-      <h2>§ 4 Vergütung und Zahlung</h2>
+      <h2>§ 4 — Preise und Zahlung</h2>
       <p>
-        Alle Preise verstehen sich in Euro. Der Anbieter ist Kleinunternehmer gemäß § 19 Abs. 1
-        UStG; es wird daher keine Umsatzsteuer ausgewiesen.
+        Es gelten die zum Zeitpunkt des Vertragsschlusses auf web.{legal.website}/leistungen
+        veröffentlichten Preise. Alle Preise sind Nettopreise. Der Coach ist Kleinunternehmer
+        gemäß § 19 UStG — es wird keine Umsatzsteuer ausgewiesen.
       </p>
+      <p><strong>Zahlungsbedingungen:</strong></p>
+      <ul>
+        <li>Einzelstunden: Zahlung innerhalb von 14 Tagen nach Rechnungsstellung</li>
+        <li>
+          Pakete: 50 % bei Vertragsbeginn, 50 % nach der Hälfte der vereinbarten Sessions
+        </li>
+        <li>Zahlungsweg: Überweisung auf das Geschäftskonto gemäß Rechnung</li>
+      </ul>
       <p>
-        <strong>Stundensätze:</strong> IT-Dienstleistungen (Entwicklung, Administration,
-        technischer Support) werden mit 70 Euro netto pro Stunde abgerechnet. Angefangene
-        Viertelstunden werden voll berechnet. Coaching-, Schulungs- und Beratungsleistungen
-        werden mit 150 Euro netto pro Stunde abgerechnet.
-      </p>
-      <p>
-        <strong>Anfahrtskosten:</strong> Für Fahrten zum Auftraggeber werden 0,60 Euro netto
-        pro gefahrenem Kilometer (Hin- und Rückfahrt) berechnet. Alternativ werden bei längeren
-        Anfahrten die tatsächlich anfallenden Reisekosten (Bahn, Flug, Hotel) erstattet.
-        Anfahrten innerhalb eines Umkreises von 10 km um den Geschäftssitz des Anbieters sind
-        kostenfrei. Anfahrtszeiten gelten als Teil der Stundenberechnung und werden zum
-        jeweiligen Stundensatz abgerechnet.
-      </p>
-      <p>
-        <strong>Abrechnung:</strong> Der Anbieter erstellt nach Abschluss eines Auftrags oder
-        nach Leistungserbringung eine Rechnung über die geleisteten Arbeitsstunden und
-        anfallende Anfahrtskosten. Die Zahlungsfrist beträgt 14 Tage nach Erhalt der Rechnung.
-        Die Zahlung erfolgt per Überweisung auf das vom Anbieter angegebene Konto.
-      </p>
-      <p>
-        Bei Paketen und Projekten werden Zahlungsmodalitäten individuell schriftlich vereinbart.
-        Bei Zahlungsverzug ist der Anbieter berechtigt, weitere Leistungen bis zum Ausgleich
-        des offenen Betrages zurückzuhalten sowie Verzugszinsen in Höhe von 9 Prozentpunkten
-        über dem Basiszinssatz gemäß § 288 BGB zu berechnen. Zusätzlich wird eine Mahngebühr
-        von 5 Euro je Mahnung fällig.
+        Bei Zahlungsverzug von mehr als 14 Tagen ist der Coach berechtigt, weitere Termine
+        bis zum Zahlungseingang auszusetzen.
       </p>
 
-      <h2>§ 5 Vertragslaufzeit und Kündigung</h2>
+      <h2>§ 5 — Absage und Stornierung</h2>
       <p>
-        Sofern nicht anders vereinbart, wird ein Vertrag zunächst für eine Mindestlaufzeit von
-        drei Monaten geschlossen. Nach Ablauf der Mindestlaufzeit verlängert sich der Vertrag
-        automatisch um jeweils einen Monat, sofern er nicht von einer der Parteien mit einer
-        Frist von einem Monat zum Monatsende schriftlich gekündigt wird.
+        Termine können bis 48 Stunden vor Sitzungsbeginn kostenfrei abgesagt oder verschoben
+        werden. Bei späterer Absage oder Nichterscheinen ohne Mitteilung wird die Sitzung als
+        durchgeführt berechnet.
       </p>
       <p>
-        Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt.
-        Für anlassbezogene Einzelaufträge ohne ausdrücklich vereinbarte Mindestlaufzeit
-        endet der Vertrag mit Abnahme der Leistung gemäß § 6.
-      </p>
-
-      <h2>§ 6 Abnahme von Leistungen</h2>
-      <p>
-        Nach Abschluss eines Projekts erfolgt eine schriftliche Abnahme durch den Auftraggeber.
-        Der Auftraggeber prüft die erbrachte Leistung innerhalb von 14 Tagen und teilt etwaige
-        Mängel schriftlich mit. Der Anbieter hat nach Eingang einer Mängelanzeige eine
-        Nachbesserungsfrist von 14 Tagen.
-      </p>
-      <p>
-        Erfolgt innerhalb der 14-tägigen Prüffrist keine schriftliche Rückmeldung, gilt die
-        Leistung als abgenommen.
+        Der Auftraggeber kann den Vertrag jederzeit mit einer Frist von 14 Tagen schriftlich
+        kündigen. Bereits erbrachte Leistungen werden anteilig in Rechnung gestellt. Bei Paketen
+        gilt das anteilige Honorar für durchgeführte Sessions.
       </p>
 
-      <h2>§ 7 Stornierung und Terminabsage</h2>
+      <h2>§ 6 — Vertraulichkeit</h2>
       <p>
-        Eine kostenfreie Stornierung ist bis 72 Stunden vor dem vereinbarten Termin möglich.
-        Die Stornierung muss in Textform (z. B. per E-Mail) erfolgen.
+        Der Coach verpflichtet sich zur strikten Vertraulichkeit über alle Inhalte der
+        Coaching-Sitzungen. Eine Weitergabe an Dritte erfolgt nur mit ausdrücklicher schriftlicher
+        Einwilligung des Auftraggebers oder aufgrund gesetzlicher Verpflichtung.
       </p>
       <p>
-        Bei einer Absage weniger als 72 Stunden vor dem Termin ist das vereinbarte Honorar
-        vollständig fällig, es sei denn, der Anbieter kann den Termin anderweitig vergeben.
-      </p>
-      <p>
-        Ausnahme: Bei nachgewiesener Erkrankung (ärztliches Attest innerhalb von 3 Werktagen)
-        entfällt die Ausfallgebühr; eine kostenfreie Neubuchung wird ermöglicht.
-      </p>
-      <p>
-        Der Anbieter behält sich vor, Termine bei eigener Verhinderung abzusagen. In diesem
-        Fall wird ein kostenfreier Ersatztermin angeboten. Schadensersatzansprüche des
-        Auftraggebers entstehen hieraus nicht.
+        Der Auftraggeber verpflichtet sich, keine Aufzeichnungen (Audio, Video) der Sitzungen
+        ohne Zustimmung des Coaches anzufertigen.
       </p>
 
-      <h2>§ 8 Widerrufsrecht</h2>
+      <h2>§ 7 — Haftung</h2>
       <p>
-        Verbrauchern steht ein gesetzliches Widerrufsrecht gemäß § 312g BGB zu. Die
-        Widerrufsfrist beträgt 14 Tage ab dem Tag des Vertragsschlusses.
+        Der Coach übernimmt keine Haftung für Entscheidungen, die der Coachee auf Basis der
+        Coaching-Gespräche trifft. Die Verantwortung für Entscheidungen verbleibt stets beim
+        Coachee.
       </p>
       <p>
-        Das Widerrufsrecht erlischt vorzeitig, wenn der Auftraggeber ausdrücklich zugestimmt
-        hat, dass der Anbieter mit der Ausführung der Dienstleistung vor Ablauf der
-        Widerrufsfrist beginnt, und der Auftraggeber bestätigt hat, dass er mit dem
-        vollständigen Erlöschen des Widerrufsrechts bei vollständiger Vertragserfüllung
-        einverstanden ist.
-      </p>
-      <p>
-        Zur Ausübung des Widerrufsrechts ist eine eindeutige Erklärung an folgende Adresse
-        zu richten:
-      </p>
-      <p>
-        {contact.name}<br />
-        {legal.street && <>{legal.street}<br /></>}
-        {legal.zip && <>{legal.zip} {contact.city}<br /></>}
-        {!legal.street && <>{contact.city}<br /></>}
-        {contact.email}
+        Bei technischen Ausfällen bei Online-Sitzungen, die außerhalb des Einflussbereichs des
+        Coaches liegen, wird ein Ersatztermin angeboten. Eine weitergehende Haftung ist
+        ausgeschlossen.
       </p>
 
-      <p><strong>Muster-Widerrufsformular</strong></p>
-      <blockquote>
-        <p>
-          An: {contact.name},{' '}
-          {legal.street && <>{legal.street}, </>}
-          {legal.zip && <>{legal.zip} </>}
-          {contact.city},{' '}
-          {contact.email}
-        </p>
-        <p>
-          Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über
-          die Erbringung der folgenden Dienstleistung (*):
-        </p>
-        <p>Bestellt am (*) / erhalten am (*):</p>
-        <p>Name des/der Verbraucher(s):</p>
-        <p>Anschrift des/der Verbraucher(s):</p>
-        <p>Datum:</p>
-        <p><em>(*) Unzutreffendes streichen.</em></p>
-      </blockquote>
-
-      <h2>§ 9 Haftung</h2>
+      <h2>§ 8 — Datenschutz</h2>
       <p>
-        Der Anbieter haftet unbeschränkt für Schäden aus der Verletzung des Lebens, des Körpers
-        oder der Gesundheit sowie für Schäden, die auf Vorsatz oder grober Fahrlässigkeit
-        beruhen.
-      </p>
-      <p>
-        Bei leichter Fahrlässigkeit haftet der Anbieter nur, sofern eine wesentliche
-        Vertragspflicht (Kardinalpflicht) verletzt wird. In diesem Fall ist die Haftung auf den
-        vorhersehbaren, vertragstypischen Schaden begrenzt.
-      </p>
-      <p>
-        Die Haftung des Anbieters ist zudem auf das Zweifache des Auftragswerts, maximal jedoch
-        10.000 Euro pro Schadensfall, begrenzt. Eine Haftung für entgangenen Gewinn, mittelbare
-        Schäden oder Folgeschäden ist ausgeschlossen, soweit gesetzlich zulässig. Die
-        Vorschriften des Produkthaftungsgesetzes bleiben unberührt.
+        Die Verarbeitung personenbezogener Daten erfolgt gemäß der Datenschutzerklärung unter
+        web.{legal.website}/datenschutz sowie den Bestimmungen der DSGVO.
       </p>
 
-      <h2>§ 10 Vertraulichkeit und Datenschutz</h2>
+      <h2>§ 9 — Schlussbestimmungen</h2>
       <p>
-        Der Anbieter verpflichtet sich, alle im Rahmen der Zusammenarbeit erhaltenen
-        Informationen und Daten des Auftraggebers vertraulich zu behandeln und nicht an Dritte
-        weiterzugeben. Diese Verpflichtung gilt auch nach Beendigung des Vertrags.
+        Es gilt das Recht der Bundesrepublik Deutschland. Erfüllungsort ist {contact.city}.
+        Sollten einzelne Bestimmungen unwirksam sein, bleibt die Gültigkeit der übrigen
+        Bestimmungen unberührt.
       </p>
       <p>
-        Personenbezogene Daten werden gemäß den Bestimmungen der DSGVO verarbeitet. Falls der
-        Anbieter personenbezogene Daten im Auftrag des Auftraggebers verarbeitet, verpflichten
-        sich die Parteien, eine Auftragsverarbeitungsvereinbarung gemäß Art. 28 DSGVO
-        abzuschließen. Einzelheiten entnehmen Sie bitte der{' '}
-        <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklärung</a>.
-      </p>
-
-      <h2>§ 11 Streitbeilegung</h2>
-      <p>
-        Bei Streitigkeiten verpflichten sich die Parteien, vor Anrufung eines Gerichts eine
-        Mediation durchzuführen, um eine einvernehmliche Lösung zu finden.
-      </p>
-      <p>
-        Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit.
-        Der Anbieter ist zur Teilnahme an einem Streitbeilegungsverfahren vor einer
-        Verbraucherschlichtungsstelle weder verpflichtet noch bereit.
-      </p>
-
-      <h2>§ 12 Schlussbestimmungen</h2>
-      <p>
-        Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
-        UN-Kaufrechts (CISG).
-      </p>
-      <p>
-        Für Kaufleute sowie juristische Personen des öffentlichen Rechts ist
-        {contact.city} als Gerichtsstand vereinbart.
-      </p>
-      <p>
-        Änderungen und Ergänzungen dieser AGB bedürfen der Schriftform. Sollten einzelne
-        Bestimmungen dieser AGB unwirksam sein oder werden, bleibt die Wirksamkeit der übrigen
-        Bestimmungen unberührt. Die unwirksame Bestimmung gilt als durch eine wirksame Regelung
-        ersetzt, die dem wirtschaftlichen Zweck der unwirksamen Bestimmung am nächsten kommt
-        (salvatorische Klausel).
+        Der Coach behält sich vor, diese AGBs mit einer Ankündigungsfrist von 30 Tagen zu
+        ändern. Die jeweils aktuell gültige Fassung ist auf web.{legal.website}/agb
+        veröffentlicht.
       </p>
 
       {customHtml && customHtml.trim() && (

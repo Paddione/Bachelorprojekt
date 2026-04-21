@@ -195,6 +195,30 @@ spec:
                 port:
                   number: 80
 ---
+# ── DocuSeal (E-Signaturen) ─────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-sign
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - sign.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: sign.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docuseal
+                port:
+                  number: 3000
+---
 # ── Restliche Services (meet, board, signaling) ─────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress

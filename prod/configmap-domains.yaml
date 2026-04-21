@@ -16,3 +16,4 @@ data:
   WEB_DOMAIN: "web.${PROD_DOMAIN}"
   WIKI_DOMAIN: "wiki.${PROD_DOMAIN}"
   AI_DOMAIN: "ai.${PROD_DOMAIN}"
+  SIGN_DOMAIN: "sign.${PROD_DOMAIN}"

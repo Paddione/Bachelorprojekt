@@ -71,3 +71,5 @@ patches:
   - path: patch-signaling-backend.yaml
   # Whisper: use public Docker image in production (registry.localhost not accessible)
   - path: patch-whisper.yaml
+  # Override traefik basic-auth with production credentials (replaces dev admin:admin hash)
+  - path: patch-traefik-basic-auth.yaml

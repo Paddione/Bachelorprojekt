@@ -19,13 +19,13 @@ if [[ -n "${PROD_DOMAIN:-}" ]]; then
   KC_URL="${KC_URL:-${PROTO}://auth.${PROD_DOMAIN}}"
   NC_URL="${NC_URL:-${PROTO}://files.${PROD_DOMAIN}}"
   COLLAB_URL="${COLLAB_URL:-${PROTO}://office.${PROD_DOMAIN}}"
-  MEET_URL="${MEET_URL:-${PROTO}://meet.${PROD_DOMAIN}}"
+  MEET_URL="${MEET_URL:-${PROTO}://files.${PROD_DOMAIN}/index.php/apps/spreed/}"
 else
   PROTO="${PROTO:-http}"
   KC_URL="${KC_URL:-${PROTO}://auth.localhost}"
   NC_URL="${NC_URL:-${PROTO}://files.localhost}"
   COLLAB_URL="${COLLAB_URL:-${PROTO}://office.localhost}"
-  MEET_URL="${MEET_URL:-${PROTO}://meet.localhost}"
+  MEET_URL="${MEET_URL:-${PROTO}://files.localhost/index.php/apps/spreed/}"
 fi
 
 export PROTO KC_URL NC_URL COLLAB_URL MEET_URL

@@ -86,12 +86,6 @@ spec:
                 secretKeyRef:
                   name: vaultwarden-seed-credentials
                   key: BW_PASSWORD
-            - name: MM_DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: MM_DOMAIN
-                  optional: true
             - name: NC_DOMAIN
               valueFrom:
                 configMapKeyRef:

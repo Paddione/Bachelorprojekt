@@ -3,10 +3,9 @@ kind: ConfigMap
 metadata:
   name: domain-config
 data:
-  MM_DOMAIN: "chat.${PROD_DOMAIN}"
   KC_DOMAIN: "auth.${PROD_DOMAIN}"
   NC_DOMAIN: "files.${PROD_DOMAIN}"
-  MEET_DOMAIN: "meet.${PROD_DOMAIN}"
+  MEET_DOMAIN: "files.${PROD_DOMAIN}/index.php/apps/spreed/"
   COLLABORA_DOMAIN: "office.${PROD_DOMAIN}"
   SIGNALING_DOMAIN: "signaling.${PROD_DOMAIN}"
   VAULT_DOMAIN: "vault.${PROD_DOMAIN}"
@@ -14,7 +13,6 @@ data:
   DOCS_DOMAIN: "docs.${PROD_DOMAIN}"
   BILLING_DOMAIN: "billing.${PROD_DOMAIN}"
   WEB_DOMAIN: "web.${PROD_DOMAIN}"
-  WIKI_DOMAIN: "wiki.${PROD_DOMAIN}"
   AI_DOMAIN: "ai.${PROD_DOMAIN}"
   SIGN_DOMAIN: "sign.${PROD_DOMAIN}"
   WHITEBOARD_DOMAIN: "files.${PROD_DOMAIN}/index.php/apps/files/personal"

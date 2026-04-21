@@ -129,16 +129,6 @@ secrets:
     required: true
     generate: false
 
-  - name: GITLAB_APP_ID
-    required: true
-    generate: false
-    description: "GitLab OAuth2 App ID for Keycloak OIDC identity provider"
-
-  - name: GITLAB_APP_SECRET
-    required: true
-    generate: false
-    description: "GitLab OAuth2 App Secret for Keycloak OIDC identity provider"
-
   - name: NEXTCLOUD_DB_PASSWORD
     required: true
     generate: true
@@ -204,11 +194,6 @@ secrets:
     length: 32
 
   - name: WEBSITE_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
-  - name: OUTLINE_OIDC_SECRET
     required: true
     generate: true
     length: 40

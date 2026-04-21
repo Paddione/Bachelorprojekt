@@ -330,7 +330,7 @@ function formatTime(d: Date) {
           {allDays.map(day => {
             const windows = windowsByDate.get(day.date) ?? [];
             return (
-              <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" data-date={day.date}>
+              <div class="window-card p-4 bg-dark-light rounded-xl border border-dark-lighter" data-date={day.date}>
                 <div class="flex items-center gap-3 mb-2">
                   <h3 class="text-light font-semibold text-sm">{day.weekday}</h3>
                   <span class="text-muted text-xs">{day.date}</span>
@@ -431,7 +431,7 @@ function formatTime(d: Date) {
     // ＋ Zeitraum button
     const addBtn = target.closest<HTMLButtonElement>('.window-add');
     if (addBtn) {
-      const card = addBtn.closest<HTMLElement>('[data-date]')!;
+      const card = addBtn.closest<HTMLElement>('.window-card')!;
       const form = card.querySelector<HTMLElement>('.window-add-form')!;
       form.style.display = 'flex';
       addBtn.style.display = 'none';
@@ -441,7 +441,7 @@ function formatTime(d: Date) {
     // Cancel form
     const cancelBtn = target.closest<HTMLButtonElement>('.window-cancel');
     if (cancelBtn) {
-      const card = cancelBtn.closest<HTMLElement>('[data-date]')!;
+      const card = cancelBtn.closest<HTMLElement>('.window-card')!;
       const form = card.querySelector<HTMLElement>('.window-add-form')!;
       form.style.display = 'none';
       const wb = card.querySelector<HTMLButtonElement>('.window-add')!;
@@ -452,7 +452,7 @@ function formatTime(d: Date) {
     // Save window
     const saveBtn = target.closest<HTMLButtonElement>('.window-save');
     if (saveBtn) {
-      const card = saveBtn.closest<HTMLElement>('[data-date]')!;
+      const card = saveBtn.closest<HTMLElement>('.window-card')!;
       const date = card.dataset.date!;
       const form = card.querySelector<HTMLElement>('.window-add-form')!;
       const winStart = form.querySelector<HTMLInputElement>('.window-start')!.value;

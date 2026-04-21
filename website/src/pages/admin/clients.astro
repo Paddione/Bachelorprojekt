@@ -3,6 +3,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listUsers } from '../../lib/keycloak';
 import type { KcUser } from '../../lib/keycloak';
+import { listAllCustomers } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -13,6 +14,16 @@ try {
   users = await listUsers();
 } catch {
   // Keycloak unavailable
+}
+
+const customerNumberByEmail = new Map<string, string>();
+try {
+  const dbCustomers = await listAllCustomers();
+  for (const c of dbCustomers) {
+    if (c.email && c.customer_number) customerNumberByEmail.set(c.email, c.customer_number);
+  }
+} catch {
+  // DB unavailable
 }
 ---
 
@@ -116,6 +127,11 @@ try {
             <div class="ml-auto flex items-center gap-3">
               {user.enabled === false && (
                 <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">Deaktiviert</span>
+              )}
+              {user.email && customerNumberByEmail.get(user.email) && (
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 font-mono">
+                  {customerNumberByEmail.get(user.email)}
+                </span>
               )}
               <span class="text-gold text-sm">→</span>
             </div>

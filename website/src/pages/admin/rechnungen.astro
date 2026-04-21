@@ -172,12 +172,13 @@ const STATUS_TABS = [
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Offen</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Stripe</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">E-Rechnung</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Drucken</th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colspan="9" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+                <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
               </tr>
             ) : invoices.map(inv => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
@@ -213,6 +214,15 @@ const STATUS_TABS = [
                       title="ZUGFeRD XML herunterladen"
                     >XML ↓</a>
                   )}
+                </td>
+                <td class="px-4 py-3 text-sm text-right">
+                  <a
+                    href={`/admin/billing/${inv.id}/drucken`}
+                    target="_blank"
+                    rel="noopener"
+                    class="text-xs text-yellow-400 hover:underline"
+                    title="Rechnung drucken / als PDF speichern"
+                  >Drucken ↗</a>
                 </td>
               </tr>
             ))}

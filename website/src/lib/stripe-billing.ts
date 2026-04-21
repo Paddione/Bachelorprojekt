@@ -2,6 +2,7 @@
 // Replaces invoiceninja.ts.
 import Stripe from 'stripe';
 import { stripe } from './stripe';
+import { getNextInvoiceNumber } from './website-db';
 
 export const SERVICES = {
   'erstgespraech':       { name: 'Kostenloses Erstgespräch',                         cents: 0,      unit: 'Einheit' },
@@ -67,7 +68,7 @@ function centsToEur(cents: number | null | undefined): number {
 function mapInvoice(inv: Stripe.Invoice): BillingInvoice {
   return {
     id: inv.id,
-    number: inv.number ?? '',
+    number: (inv.metadata?.internal_invoice_number ?? inv.number) ?? '',
     date: fromUnix(inv.created),
     dueDate: fromUnix(inv.due_date),
     amountDue: centsToEur(inv.amount_due),
@@ -116,12 +117,15 @@ export async function createBillingInvoice(params: {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   const service = SERVICES[params.serviceKey];
   const qty = params.quantity ?? 1;
+  const brand = process.env.BRAND || 'mentolder';
+  const internalNumber = await getNextInvoiceNumber(brand);
   const draft = await stripe.invoices.create({
     customer: params.customerId,
     collection_method: 'send_invoice',
     days_until_due: 30,
     auto_advance: false,
     description: params.notes ?? '',
+    metadata: { internal_invoice_number: internalNumber },
   });
   await stripe.invoiceItems.create({
     customer: params.customerId,
@@ -414,6 +418,11 @@ export async function deleteDraftInvoiceItem(invoiceItemId: string): Promise<voi
 
 export async function sendDraftInvoice(invoiceId: string): Promise<void> {
   if (!process.env.STRIPE_SECRET_KEY) return;
+  const brand = process.env.BRAND || 'mentolder';
+  const internalNumber = await getNextInvoiceNumber(brand);
+  await stripe.invoices.update(invoiceId, {
+    metadata: { internal_invoice_number: internalNumber },
+  });
   await stripe.invoices.finalizeInvoice(invoiceId);
   await stripe.invoices.sendInvoice(invoiceId);
 }

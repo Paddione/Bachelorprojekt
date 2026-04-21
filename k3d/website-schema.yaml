@@ -13,6 +13,9 @@ data:
     echo "Initializing meetings schema..."
 
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
+      -- Customer number sequence (M0001, M0002, …)
+      CREATE SEQUENCE IF NOT EXISTS customer_number_seq START 1;
+
       -- Customers (cross-reference to Keycloak)
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,6 +27,11 @@ data:
           created_at TIMESTAMPTZ DEFAULT now(),
           updated_at TIMESTAMPTZ DEFAULT now()
       );
+
+      -- Add customer_number to existing deployments
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS customer_number TEXT UNIQUE;
+      UPDATE customers SET customer_number = 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0') WHERE customer_number IS NULL;
+      ALTER TABLE customers ALTER COLUMN customer_number SET DEFAULT 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0');
 
       -- Meeting history
       CREATE TABLE IF NOT EXISTS meetings (

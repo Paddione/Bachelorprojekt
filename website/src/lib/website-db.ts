@@ -32,6 +32,7 @@ export interface Customer {
   id: string;
   name: string;
   email: string;
+  customer_number?: string;
 }
 
 export async function upsertCustomer(params: {
@@ -50,7 +51,7 @@ export async function upsertCustomer(params: {
        company = COALESCE(EXCLUDED.company, customers.company),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
        updated_at = now()
-     RETURNING id, name, email`,
+     RETURNING id, name, email, customer_number`,
     [params.name, params.email, params.phone, params.company,
      params.keycloakUserId]
   );
@@ -1192,7 +1193,7 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
 
 export async function listAllCustomers(): Promise<Customer[]> {
   const result = await pool.query(
-    `SELECT id, name, email FROM customers ORDER BY name ASC`
+    `SELECT id, name, email, customer_number FROM customers ORDER BY name ASC`
   );
   return result.rows;
 }
@@ -1595,7 +1596,7 @@ export async function getCustomerByEmail(
   email: string
 ): Promise<Customer | null> {
   const result = await pool.query(
-    `SELECT id, name, email FROM customers WHERE email = $1`,
+    `SELECT id, name, email, customer_number FROM customers WHERE email = $1`,
     [email]
   );
   return result.rows[0] ?? null;
@@ -2429,5 +2430,48 @@ export async function insertDsgvoRequest(params: {
     `INSERT INTO dsgvo_audit_log (type, name, email, ip_address)
      VALUES ($1, $2, $3, $4)`,
     [params.type, params.name, params.email, params.ipAddress ?? null]
+  );
+}
+
+// ── Invoice Counter ────────────────────────────────────────────────────────────
+
+let invoiceCountersReady = false;
+async function initInvoiceCountersTable(): Promise<void> {
+  if (invoiceCountersReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS invoice_counters (
+      brand   TEXT NOT NULL,
+      year    INT  NOT NULL,
+      counter INT  NOT NULL DEFAULT 0,
+      PRIMARY KEY (brand, year)
+    )
+  `);
+  invoiceCountersReady = true;
+}
+
+export async function getNextInvoiceNumber(brand: string): Promise<string> {
+  await initInvoiceCountersTable();
+  const year = new Date().getFullYear();
+  const result = await pool.query<{ counter: number }>(
+    `INSERT INTO invoice_counters (brand, year, counter)
+     VALUES ($1, $2, 1)
+     ON CONFLICT (brand, year)
+     DO UPDATE SET counter = invoice_counters.counter + 1
+     RETURNING counter`,
+    [brand, year]
+  );
+  const n = result.rows[0].counter;
+  return `RE-${year}-${String(n).padStart(4, '0')}`;
+}
+
+export async function seedInvoiceCounter(
+  brand: string, year: number, value: number
+): Promise<void> {
+  await initInvoiceCountersTable();
+  await pool.query(
+    `INSERT INTO invoice_counters (brand, year, counter)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (brand, year) DO NOTHING`,
+    [brand, year, value]
   );
 }

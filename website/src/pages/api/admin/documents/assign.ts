@@ -1,9 +1,44 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { getDocumentTemplate, createDocumentAssignment, updateDocumentTemplate } from '../../../../lib/documents-db';
+import { getDocumentTemplate, createDocumentAssignment } from '../../../../lib/documents-db';
 import { getCustomerByEmail } from '../../../../lib/website-db';
 import { createTemplate, createSubmission } from '../../../../lib/docuseal';
 import { getUserById } from '../../../../lib/keycloak';
+
+// Substitutes {{VARIABLE}} placeholders in the HTML with customer data.
+// Available variables that the Dokumenteneditor can use:
+//   {{KUNDENNAME}}    – full name from customers table
+//   {{KUNDENNUMMER}}  – customer number (e.g. M0042)
+//   {{EMAIL}}         – email address
+//   {{TELEFON}}       – phone number
+//   {{FIRMA}}         – company name
+//   {{VORNAME}}       – first name from Keycloak
+//   {{NACHNAME}}      – last name from Keycloak
+//   {{DATUM}}         – current date in German format (TT.MM.JJJJ)
+//   {{JAHR}}          – current year (JJJJ)
+function substituteVars(html: string, vars: {
+  name: string;
+  customerNumber: string;
+  email: string;
+  phone: string;
+  company: string;
+  firstName: string;
+  lastName: string;
+}): string {
+  const now = new Date();
+  const datum = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const jahr = now.getFullYear().toString();
+  return html
+    .replace(/\{\{KUNDENNAME\}\}/g, vars.name)
+    .replace(/\{\{KUNDENNUMMER\}\}/g, vars.customerNumber)
+    .replace(/\{\{EMAIL\}\}/g, vars.email)
+    .replace(/\{\{TELEFON\}\}/g, vars.phone)
+    .replace(/\{\{FIRMA\}\}/g, vars.company)
+    .replace(/\{\{VORNAME\}\}/g, vars.firstName)
+    .replace(/\{\{NACHNAME\}\}/g, vars.lastName)
+    .replace(/\{\{DATUM\}\}/g, datum)
+    .replace(/\{\{JAHR\}\}/g, jahr);
+}
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -29,19 +64,32 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Kundeneintrag nicht gefunden.' }), { status: 404 });
   }
 
-  // Create or reuse DocuSeal template
-  let dsTemplateId = template.docuseal_template_id;
-  if (!dsTemplateId) {
-    try {
-      dsTemplateId = await createTemplate(template.title, template.html_body);
-      await updateDocumentTemplate(template.id, { docuseal_template_id: dsTemplateId });
-    } catch (err) {
-      console.error('DocuSeal createTemplate error:', err);
-      return new Response(JSON.stringify({ error: 'DocuSeal-Vorlage konnte nicht erstellt werden.' }), { status: 502 });
-    }
+  // Substitute all {{VARIABLE}} placeholders with real customer data before
+  // sending to DocuSeal — each assignment gets its own rendered template so
+  // client-specific fields (name, number, date) are already embedded in the PDF.
+  const renderedHtml = substituteVars(template.html_body, {
+    name: customer.name,
+    customerNumber: customer.customer_number ?? '',
+    email: customer.email,
+    phone: customer.phone ?? '',
+    company: customer.company ?? '',
+    firstName: kcUser.firstName ?? '',
+    lastName: kcUser.lastName ?? '',
+  });
+
+  // Always create a fresh DocuSeal template per assignment so the embedded
+  // data is immutable for each client (never reuse the base template ID).
+  let dsTemplateId: number;
+  try {
+    dsTemplateId = await createTemplate(
+      `${template.title} — ${customer.name}`,
+      renderedHtml,
+    );
+  } catch (err) {
+    console.error('DocuSeal createTemplate error:', err);
+    return new Response(JSON.stringify({ error: 'DocuSeal-Vorlage konnte nicht erstellt werden.' }), { status: 502 });
   }
 
-  // Create submission in DocuSeal
   let submitter;
   try {
     submitter = await createSubmission({
@@ -57,6 +105,7 @@ export const POST: APIRoute = async ({ request }) => {
   const assignment = await createDocumentAssignment({
     customerId: customer.id,
     templateId: template.id,
+    dsTemplateId,
     submissionSlug: submitter.slug,
     embedSrc: submitter.embed_src,
   });

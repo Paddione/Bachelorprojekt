@@ -33,6 +33,8 @@ export interface Customer {
   name: string;
   email: string;
   customer_number?: string;
+  phone?: string;
+  company?: string;
 }
 
 export async function upsertCustomer(params: {
@@ -1661,7 +1663,7 @@ export async function getCustomerByEmail(
   email: string
 ): Promise<Customer | null> {
   const result = await pool.query(
-    `SELECT id, name, email, customer_number FROM customers WHERE email = $1`,
+    `SELECT id, name, email, customer_number, phone, company FROM customers WHERE email = $1`,
     [email]
   );
   return result.rows[0] ?? null;

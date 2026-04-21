@@ -177,6 +177,18 @@
               rows="18"
               class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y"
             ></textarea>
+            <p class="text-xs text-muted mt-1">
+              Verfügbare Platzhalter (werden beim Zuweisen automatisch befüllt):
+              <span class="font-mono text-gold/80">&#123;&#123;KUNDENNAME&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;KUNDENNUMMER&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;EMAIL&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;TELEFON&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;FIRMA&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;VORNAME&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;NACHNAME&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;DATUM&#125;&#125;</span>
+              <span class="font-mono text-gold/80">&#123;&#123;JAHR&#125;&#125;</span>
+            </p>
           </div>
           {#if composeMsg}
             <p class={`text-sm ${composeMsg.includes('Fehler') || composeMsg.includes('erforderlich') ? 'text-red-400' : 'text-green-400'}`}>{composeMsg}</p>

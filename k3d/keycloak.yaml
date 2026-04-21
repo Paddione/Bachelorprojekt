@@ -71,11 +71,6 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: NEXTCLOUD_OIDC_SECRET
-            - name: MM_DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: MM_DOMAIN
             - name: NC_DOMAIN
               valueFrom:
                 configMapKeyRef:
@@ -116,11 +111,6 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: CLAUDE_CODE_OIDC_SECRET
-            - name: OUTLINE_OIDC_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: OUTLINE_OIDC_SECRET
             - name: DOCS_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

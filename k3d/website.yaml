@@ -204,7 +204,7 @@ spec:
             - name: DOCUSEAL_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: workspace-secrets
+                  name: website-secrets
                   key: DOCUSEAL_API_TOKEN
             - name: DOCUSEAL_INTERNAL_URL
               value: "http://docuseal.workspace.svc.cluster.local:3000"

@@ -11,7 +11,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const body = await request.json() as { customerId?: string };
+  const body = await request.json() as { customerId?: string; firstName?: string; lastName?: string };
   if (!body.customerId) {
     return new Response(JSON.stringify({ error: 'customerId erforderlich' }), {
       status: 400, headers: { 'Content-Type': 'application/json' },
@@ -25,9 +25,14 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const spaceIdx = customer.name.indexOf(' ');
-  const firstName = spaceIdx > -1 ? customer.name.slice(0, spaceIdx) : customer.name;
-  const lastName = spaceIdx > -1 ? customer.name.slice(spaceIdx + 1) : '';
+  const firstName = body.firstName?.trim() || (() => {
+    const i = customer.name.lastIndexOf(' ');
+    return i > -1 ? customer.name.slice(0, i) : customer.name;
+  })();
+  const lastName = body.lastName?.trim() ?? (() => {
+    const i = customer.name.lastIndexOf(' ');
+    return i > -1 ? customer.name.slice(i + 1) : '';
+  })();
 
   const result = await createUser({
     email: customer.email,

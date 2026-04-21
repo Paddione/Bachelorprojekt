@@ -121,6 +121,37 @@ try {
         </form>
       </div>
 
+      <!-- Enrollment-Modal -->
+      <div id="enroll-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="w-full max-w-md mx-4 p-6 bg-dark-light rounded-xl border border-gold/30 shadow-2xl">
+          <h2 class="text-lg font-semibold text-light mb-1">Enrollment bestätigen</h2>
+          <p id="enroll-modal-email" class="text-sm text-muted mb-4"></p>
+          <div id="enroll-modal-error" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm"></div>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm text-muted mb-1">Vorname *</label>
+              <input id="enroll-first-name" type="text" required
+                class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none" />
+            </div>
+            <div>
+              <label class="block text-sm text-muted mb-1">Nachname</label>
+              <input id="enroll-last-name" type="text"
+                class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none" />
+            </div>
+          </div>
+          <div class="flex gap-3 justify-end">
+            <button id="enroll-modal-cancel" type="button"
+              class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">
+              Abbrechen
+            </button>
+            <button id="enroll-modal-confirm" type="button"
+              class="px-5 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50">
+              Enrollen &amp; Passwort-Email senden
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Ausstehende Enrollments -->
       {pendingEnrollments.length > 0 && (
         <div class="mb-8">
@@ -140,6 +171,7 @@ try {
                     class="enroll-btn px-3 py-1.5 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50"
                     data-id={e.id}
                     data-name={e.name}
+                    data-email={e.email}
                   >
                     Enrollen
                   </button>
@@ -249,34 +281,75 @@ try {
     }
   });
 
-  // Enrollment actions
+  // Enrollment modal
+  const enrollModal = document.getElementById('enroll-modal');
+  const enrollFirstName = document.getElementById('enroll-first-name') as HTMLInputElement | null;
+  const enrollLastName = document.getElementById('enroll-last-name') as HTMLInputElement | null;
+  const enrollModalEmail = document.getElementById('enroll-modal-email');
+  const enrollModalError = document.getElementById('enroll-modal-error');
+  const enrollModalConfirm = document.getElementById('enroll-modal-confirm') as HTMLButtonElement | null;
+  const enrollModalCancel = document.getElementById('enroll-modal-cancel');
+  let activeEnrollBtn: HTMLButtonElement | null = null;
+
+  function splitName(full: string): [string, string] {
+    const i = full.lastIndexOf(' ');
+    return i > -1 ? [full.slice(0, i), full.slice(i + 1)] : [full, ''];
+  }
+
+  function closeEnrollModal() {
+    enrollModal?.classList.add('hidden');
+    if (enrollModalError) { enrollModalError.textContent = ''; enrollModalError.classList.add('hidden'); }
+    activeEnrollBtn = null;
+  }
+
+  enrollModalCancel?.addEventListener('click', closeEnrollModal);
+  enrollModal?.addEventListener('click', (e) => { if (e.target === enrollModal) closeEnrollModal(); });
+
   document.querySelectorAll<HTMLButtonElement>('.enroll-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.dataset.id!;
+    btn.addEventListener('click', () => {
       const name = btn.dataset.name ?? '';
-      if (!confirm(`${name} enrollen und Passwort-Email senden?`)) return;
-      btn.disabled = true;
-      btn.textContent = '...';
-      try {
-        const res = await fetch('/api/admin/clients/enroll', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customerId: id }),
-        });
-        const json = await res.json().catch(() => ({})) as { error?: string; message?: string };
-        if (res.ok) {
-          btn.closest('[data-enrollment-id]')?.remove();
-        } else {
-          alert(json.error ?? 'Fehler beim Enrollen.');
-          btn.disabled = false;
-          btn.textContent = 'Enrollen';
-        }
-      } catch {
-        alert('Netzwerkfehler.');
-        btn.disabled = false;
-        btn.textContent = 'Enrollen';
-      }
+      const email = btn.dataset.email ?? '';
+      const [first, last] = splitName(name);
+      if (enrollFirstName) enrollFirstName.value = first;
+      if (enrollLastName) enrollLastName.value = last;
+      if (enrollModalEmail) enrollModalEmail.textContent = email;
+      enrollModal?.classList.remove('hidden');
+      enrollFirstName?.focus();
+      activeEnrollBtn = btn;
     });
+  });
+
+  enrollModalConfirm?.addEventListener('click', async () => {
+    if (!activeEnrollBtn || !enrollModalConfirm) return;
+    const id = activeEnrollBtn.dataset.id!;
+    const firstName = enrollFirstName?.value.trim() ?? '';
+    const lastName = enrollLastName?.value.trim() ?? '';
+    if (!firstName) {
+      if (enrollModalError) { enrollModalError.textContent = 'Vorname ist erforderlich.'; enrollModalError.classList.remove('hidden'); }
+      enrollFirstName?.focus();
+      return;
+    }
+    enrollModalConfirm.disabled = true;
+    enrollModalConfirm.textContent = '...';
+    try {
+      const res = await fetch('/api/admin/clients/enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId: id, firstName, lastName }),
+      });
+      const json = await res.json().catch(() => ({})) as { error?: string; message?: string };
+      if (res.ok) {
+        activeEnrollBtn.closest('[data-enrollment-id]')?.remove();
+        closeEnrollModal();
+      } else {
+        if (enrollModalError) { enrollModalError.textContent = json.error ?? 'Fehler beim Enrollen.'; enrollModalError.classList.remove('hidden'); }
+      }
+    } catch {
+      if (enrollModalError) { enrollModalError.textContent = 'Netzwerkfehler.'; enrollModalError.classList.remove('hidden'); }
+    } finally {
+      enrollModalConfirm.disabled = false;
+      enrollModalConfirm.textContent = 'Enrollen & Passwort-Email senden';
+    }
   });
 
   document.querySelectorAll<HTMLButtonElement>('.decline-btn').forEach(btn => {

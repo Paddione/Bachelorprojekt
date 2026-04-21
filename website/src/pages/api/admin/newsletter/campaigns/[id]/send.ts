@@ -5,6 +5,7 @@ import {
   getConfirmedSubscribers,
   markCampaignSent,
   createSendLog,
+  countSentCampaigns,
 } from '../../../../../../lib/newsletter-db';
 import { sendNewsletterCampaign } from '../../../../../../lib/email';
 
@@ -32,13 +33,17 @@ export const POST: APIRoute = async ({ request, params }) => {
   const prodDomain = process.env.PROD_DOMAIN || '';
   const baseUrl = prodDomain ? `https://web.${prodDomain}` : 'http://web.localhost';
 
+  const sentCount = await countSentCampaigns();
+  const ausgabe = String(sentCount + 1).padStart(2, '0');
+  const renderedHtml = campaign.html_body.replace(/\{\{AUSGABE\}\}/g, ausgabe);
+
   let sent = 0;
   for (const sub of subscribers) {
     const unsubscribeUrl = `${baseUrl}/api/newsletter/unsubscribe?token=${sub.unsubscribe_token}`;
     const ok = await sendNewsletterCampaign({
       to: sub.email,
       subject: campaign.subject,
-      html: campaign.html_body,
+      html: renderedHtml,
       unsubscribeUrl,
     });
     await createSendLog({

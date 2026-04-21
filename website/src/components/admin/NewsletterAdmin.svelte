@@ -120,6 +120,21 @@
   let showSendConfirm = $state(false);
   let confirmedCount = $state(0);
   let sending = $state(false);
+  let nextAusgabe = $state('');
+
+  async function loadNextAusgabe() {
+    try {
+      const res = await fetch('/api/admin/newsletter/campaigns');
+      if (!res.ok) return;
+      const all = await res.json() as { status: string }[];
+      const sentCount = all.filter((c) => c.status === 'sent').length;
+      nextAusgabe = String(sentCount + 1).padStart(2, '0');
+    } catch { /* ignore */ }
+  }
+
+  $effect(() => {
+    if (activeTab === 'compose') loadNextAusgabe();
+  });
 
   async function saveDraft() {
     if (!composeSubject.trim() || !composeHtml.trim()) {
@@ -312,43 +327,59 @@
 
 <!-- ── Compose tab ── -->
 {:else if activeTab === 'compose'}
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4">
+    <!-- Betreff -->
+    <div>
+      <label class="block text-sm text-muted mb-1">Betreff *</label>
+      <input
+        type="text" bind:value={composeSubject} placeholder="Betreff der E-Mail"
+        class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+      />
+    </div>
+
+    <!-- HTML editor — DIN-A4 width (794 px) -->
+    <div class="overflow-x-auto">
       <div>
-        <label class="block text-sm text-muted mb-1">Betreff *</label>
-        <input
-          type="text" bind:value={composeSubject} placeholder="Betreff der E-Mail"
-          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
-        />
-      </div>
-      <div class="flex flex-col flex-1">
         <label class="block text-sm text-muted mb-1">HTML-Inhalt *</label>
         <textarea
           bind:value={composeHtml}
           placeholder="<h1>Hallo!</h1><p>Dein Newsletter-Inhalt hier.</p>"
           rows="20"
-          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y"
+          style="width: 794px"
+          class="bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y"
         ></textarea>
-      </div>
-      {#if composeMsg}
-        <p class={`text-sm ${composeMsg.includes('Fehler') || composeMsg.includes('erforderlich') ? 'text-red-400' : 'text-green-400'}`}>{composeMsg}</p>
-      {/if}
-      <div class="flex gap-3">
-        <button onclick={saveDraft} disabled={composeSaving} class="px-4 py-2 bg-dark-lighter text-light rounded-lg text-sm font-medium hover:bg-dark-light transition-colors disabled:opacity-50">
-          {composeSaving ? 'Speichere…' : 'Als Draft speichern'}
-        </button>
-        <button onclick={openSendConfirm} disabled={sending} class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50">
-          {sending ? 'Sende…' : 'Senden'}
-        </button>
+        {#if nextAusgabe}
+          <p class="text-xs text-muted mt-1" style="width: 794px">
+            Platzhalter: <span class="font-mono text-gold/80">&#123;&#123;AUSGABE&#125;&#125;</span>
+            wird beim Versenden durch <span class="font-mono text-gold font-semibold">{nextAusgabe}</span> ersetzt.
+          </p>
+        {/if}
       </div>
     </div>
-    <div>
-      <p class="text-sm text-muted mb-1">Vorschau</p>
-      <iframe
-        srcdoc={composeHtml || '<p style="color:#666;font-family:sans-serif;padding:20px;">Vorschau erscheint hier…</p>'}
-        title="E-Mail Vorschau"
-        class="w-full h-[500px] rounded-xl border border-dark-lighter bg-white"
-      ></iframe>
+
+    {#if composeMsg}
+      <p class={`text-sm ${composeMsg.includes('Fehler') || composeMsg.includes('erforderlich') ? 'text-red-400' : 'text-green-400'}`}>{composeMsg}</p>
+    {/if}
+    <div class="flex gap-3">
+      <button onclick={saveDraft} disabled={composeSaving} class="px-4 py-2 bg-dark-lighter text-light rounded-lg text-sm font-medium hover:bg-dark-light transition-colors disabled:opacity-50">
+        {composeSaving ? 'Speichere…' : 'Als Draft speichern'}
+      </button>
+      <button onclick={openSendConfirm} disabled={sending} class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50">
+        {sending ? 'Sende…' : 'Senden'}
+      </button>
+    </div>
+
+    <!-- Preview — full DIN-A4 page (794 × 1123 px) -->
+    <div class="overflow-x-auto">
+      <div>
+        <p class="text-sm text-muted mb-1">Vorschau (DIN A4)</p>
+        <iframe
+          srcdoc={composeHtml || '<p style="color:#666;font-family:sans-serif;padding:20px;">Vorschau erscheint hier…</p>'}
+          title="E-Mail Vorschau"
+          style="width: 794px; height: 1123px"
+          class="rounded-xl border border-dark-lighter bg-white block"
+        ></iframe>
+      </div>
     </div>
   </div>
 {/if}

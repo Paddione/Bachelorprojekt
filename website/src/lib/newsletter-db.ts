@@ -253,6 +253,14 @@ export async function markCampaignSent(id: string, recipientCount: number): Prom
   );
 }
 
+export async function countSentCampaigns(): Promise<number> {
+  await ensureTables();
+  const result = await pool.query(
+    `SELECT COUNT(*)::int FROM newsletter_campaigns WHERE status = 'sent'`
+  );
+  return result.rows[0]?.count ?? 0;
+}
+
 // ── Send log ──────────────────────────────────────────────────────────────────
 
 export async function createSendLog(params: {

@@ -21,6 +21,7 @@ export interface DocumentTemplate {
   title: string;
   html_body: string;
   docuseal_template_id: number | null;
+  stand_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,7 +43,7 @@ export interface DocumentAssignment {
 
 export async function listDocumentTemplates(): Promise<DocumentTemplate[]> {
   const r = await pool.query(
-    `SELECT id, title, html_body, docuseal_template_id, created_at, updated_at
+    `SELECT id, title, html_body, docuseal_template_id, stand_date, created_at, updated_at
      FROM document_templates ORDER BY created_at DESC`,
   );
   return r.rows;
@@ -50,7 +51,7 @@ export async function listDocumentTemplates(): Promise<DocumentTemplate[]> {
 
 export async function getDocumentTemplate(id: string): Promise<DocumentTemplate | null> {
   const r = await pool.query(
-    `SELECT id, title, html_body, docuseal_template_id, created_at, updated_at
+    `SELECT id, title, html_body, docuseal_template_id, stand_date, created_at, updated_at
      FROM document_templates WHERE id = $1`,
     [id],
   );
@@ -64,7 +65,7 @@ export async function createDocumentTemplate(params: {
   const r = await pool.query(
     `INSERT INTO document_templates (title, html_body)
      VALUES ($1, $2)
-     RETURNING id, title, html_body, docuseal_template_id, created_at, updated_at`,
+     RETURNING id, title, html_body, docuseal_template_id, stand_date, created_at, updated_at`,
     [params.title, params.html_body],
   );
   return r.rows[0];
@@ -72,18 +73,19 @@ export async function createDocumentTemplate(params: {
 
 export async function updateDocumentTemplate(
   id: string,
-  params: { title?: string; html_body?: string; docuseal_template_id?: number },
+  params: { title?: string; html_body?: string; docuseal_template_id?: number; stand_date?: string | null },
 ): Promise<DocumentTemplate | null> {
   const sets: string[] = ['updated_at = now()'];
   const vals: unknown[] = [];
   if (params.title !== undefined) { vals.push(params.title); sets.push(`title = $${vals.length}`); }
   if (params.html_body !== undefined) { vals.push(params.html_body); sets.push(`html_body = $${vals.length}`); }
   if (params.docuseal_template_id !== undefined) { vals.push(params.docuseal_template_id); sets.push(`docuseal_template_id = $${vals.length}`); }
+  if (params.stand_date !== undefined) { vals.push(params.stand_date); sets.push(`stand_date = $${vals.length}`); }
   vals.push(id);
   const r = await pool.query(
     `UPDATE document_templates SET ${sets.join(', ')}
      WHERE id = $${vals.length}
-     RETURNING id, title, html_body, docuseal_template_id, created_at, updated_at`,
+     RETURNING id, title, html_body, docuseal_template_id, stand_date, created_at, updated_at`,
     vals,
   );
   return r.rows[0] ?? null;

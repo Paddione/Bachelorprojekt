@@ -237,6 +237,7 @@ data:
       );
 
       ALTER TABLE document_assignments ADD COLUMN IF NOT EXISTS docuseal_template_id INTEGER;
+      ALTER TABLE document_templates ADD COLUMN IF NOT EXISTS stand_date TEXT;
 
       CREATE INDEX IF NOT EXISTS idx_doc_assignments_customer ON document_assignments(customer_id);
       CREATE INDEX IF NOT EXISTS idx_doc_assignments_status ON document_assignments(status);

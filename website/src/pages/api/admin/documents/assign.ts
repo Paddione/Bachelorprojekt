@@ -5,39 +5,25 @@ import { getCustomerByEmail } from '../../../../lib/website-db';
 import { createTemplate, createSubmission } from '../../../../lib/docuseal';
 import { getUserById } from '../../../../lib/keycloak';
 
-// Substitutes {{VARIABLE}} placeholders in the HTML with customer data.
-// Available variables that the Dokumenteneditor can use:
-//   {{KUNDENNAME}}    – full name from customers table
-//   {{KUNDENNUMMER}}  – customer number (e.g. M0042)
-//   {{EMAIL}}         – email address
-//   {{TELEFON}}       – phone number
-//   {{FIRMA}}         – company name
-//   {{VORNAME}}       – first name from Keycloak
-//   {{NACHNAME}}      – last name from Keycloak
-//   {{DATUM}}         – current date in German format (TT.MM.JJJJ)
-//   {{JAHR}}          – current year (JJJJ)
-function substituteVars(html: string, vars: {
-  name: string;
+// Substitutes fixed {{VARIABLE}} placeholders in the HTML.
+// Fixed vars are embedded directly in the PDF — they cannot be changed by the signer.
+// Editable vars (KUNDENNAME, EMAIL, TELEFON, FIRMA, VORNAME, NACHNAME) are left as-is
+// so DocuSeal creates form fields for them; they are pre-filled via createSubmission values.
+//
+// Fixed:    {{KUNDENNUMMER}} {{DATUM}} {{JAHR}} {{Stand}}
+// Editable: {{KUNDENNAME}} {{EMAIL}} {{TELEFON}} {{FIRMA}} {{VORNAME}} {{NACHNAME}}
+function substituteFixedVars(html: string, vars: {
   customerNumber: string;
-  email: string;
-  phone: string;
-  company: string;
-  firstName: string;
-  lastName: string;
+  standDate: string;
 }): string {
   const now = new Date();
   const datum = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const jahr = now.getFullYear().toString();
   return html
-    .replace(/\{\{KUNDENNAME\}\}/g, vars.name)
     .replace(/\{\{KUNDENNUMMER\}\}/g, vars.customerNumber)
-    .replace(/\{\{EMAIL\}\}/g, vars.email)
-    .replace(/\{\{TELEFON\}\}/g, vars.phone)
-    .replace(/\{\{FIRMA\}\}/g, vars.company)
-    .replace(/\{\{VORNAME\}\}/g, vars.firstName)
-    .replace(/\{\{NACHNAME\}\}/g, vars.lastName)
     .replace(/\{\{DATUM\}\}/g, datum)
-    .replace(/\{\{JAHR\}\}/g, jahr);
+    .replace(/\{\{JAHR\}\}/g, jahr)
+    .replace(/\{\{Stand\}\}/g, vars.standDate);
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -64,18 +50,23 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Kundeneintrag nicht gefunden.' }), { status: 404 });
   }
 
-  // Substitute all {{VARIABLE}} placeholders with real customer data before
-  // sending to DocuSeal — each assignment gets its own rendered template so
-  // client-specific fields (name, number, date) are already embedded in the PDF.
-  const renderedHtml = substituteVars(template.html_body, {
-    name: customer.name,
+  // Substitute only fixed variables server-side. Customer-editable fields
+  // (KUNDENNAME, EMAIL, TELEFON, FIRMA, VORNAME, NACHNAME) are left as DocuSeal
+  // form fields so the signer can review and correct them before signing.
+  const renderedHtml = substituteFixedVars(template.html_body, {
     customerNumber: customer.customer_number ?? '',
-    email: customer.email,
-    phone: customer.phone ?? '',
-    company: customer.company ?? '',
-    firstName: kcUser.firstName ?? '',
-    lastName: kcUser.lastName ?? '',
+    standDate: template.stand_date ?? '',
   });
+
+  // Pre-fill editable DocuSeal fields with current customer data.
+  const prefillValues: Record<string, string> = {
+    KUNDENNAME: customer.name,
+    EMAIL: customer.email,
+    TELEFON: customer.phone ?? '',
+    FIRMA: customer.company ?? '',
+    VORNAME: kcUser.firstName ?? '',
+    NACHNAME: kcUser.lastName ?? '',
+  };
 
   // Always create a fresh DocuSeal template per assignment so the embedded
   // data is immutable for each client (never reuse the base template ID).
@@ -96,6 +87,7 @@ export const POST: APIRoute = async ({ request }) => {
       templateId: dsTemplateId,
       submitterEmail: kcUser.email,
       submitterName: `${kcUser.firstName ?? ''} ${kcUser.lastName ?? ''}`.trim() || kcUser.username,
+      prefillValues,
     });
   } catch (err) {
     console.error('DocuSeal createSubmission error:', err);

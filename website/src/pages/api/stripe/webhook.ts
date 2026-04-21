@@ -52,6 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
           return new Response('OK', { status: 200 });
         }
 
+
         await stripe.invoices.pay(invoiceId, { paid_out_of_band: true });
         console.log(`[stripe] Invoice ${invoiceId} marked paid via payment_intent ${pi.id}`);
       } catch (err) {

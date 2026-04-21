@@ -16,3 +16,4 @@ data:
   WEB_DOMAIN: "web.localhost"
   WIKI_DOMAIN: "wiki.localhost"
   AI_DOMAIN: "ai.localhost"
+  SIGN_DOMAIN: "sign.localhost"

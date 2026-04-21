@@ -1,11 +1,15 @@
 ---
 import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR, SIGNED_DIR } from '../../lib/nextcloud-files';
 import type { NcFile } from '../../lib/nextcloud-files';
+import { listAssignmentsForCustomer } from '../../lib/documents-db';
+import type { DocumentAssignment } from '../../lib/documents-db';
+import { getCustomerByEmail } from '../../lib/website-db';
 
 interface Props {
   clientUsername: string;
+  clientEmail?: string;
 }
-const { clientUsername } = Astro.props;
+const { clientUsername, clientEmail } = Astro.props;
 
 const clientFolder = getClientFolderPath(clientUsername);
 let pendingFiles: NcFile[] = [];
@@ -20,12 +24,31 @@ try {
   signedFiles = await listFiles(`${clientFolder}${SIGNED_DIR}/`);
   signedFiles = signedFiles.filter(f => f.contentType !== 'httpd/unix-directory');
 } catch { /* folder may not exist yet */ }
+
+// DocuSeal assignments
+let docusealPending: DocumentAssignment[] = [];
+let docusealCompleted: DocumentAssignment[] = [];
+
+try {
+  if (clientEmail) {
+    const customer = await getCustomerByEmail(clientEmail).catch(() => null);
+    if (customer) {
+      const allAssignments = await listAssignmentsForCustomer(customer.id);
+      docusealPending = allAssignments.filter(a => a.status === 'pending');
+      docusealCompleted = allAssignments.filter(a => a.status === 'completed');
+    }
+  }
+} catch { /* DB unavailable */ }
+
+function fmtDate(d: string) {
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
 ---
 
 <div data-testid="signatures-tab">
   <h3 class="text-lg font-semibold text-light mb-4">Zur Unterschrift</h3>
 
-  {pendingFiles.length > 0 ? (
+  {(pendingFiles.length > 0 || docusealPending.length > 0) ? (
     <div class="mb-6">
       <h4 class="text-sm text-gold uppercase tracking-widest mb-3">Ausstehend</h4>
       <ul class="space-y-2">
@@ -44,13 +67,25 @@ try {
             </li>
           );
         })}
+        {docusealPending.map(a => (
+          <li>
+            <a
+              href={`/portal/sign/${a.id}`}
+              data-testid="docuseal-pending-link"
+              class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-gold/30 hover:border-gold/60 transition-colors"
+            >
+              <span class="text-light">{a.template_title}</span>
+              <span class="ml-auto text-xs text-gold">Elektronisch unterschreiben →</span>
+            </a>
+          </li>
+        ))}
       </ul>
     </div>
   ) : (
     <p class="text-muted mb-6">Keine ausstehenden Dokumente.</p>
   )}
 
-  {signedFiles.length > 0 && (
+  {(signedFiles.length > 0 || docusealCompleted.length > 0) && (
     <div>
       <h4 class="text-sm text-muted uppercase tracking-widest mb-3">Unterzeichnet</h4>
       <ul class="space-y-2">
@@ -58,6 +93,12 @@ try {
           <li class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-dark-lighter" data-testid="signed-document-item">
             <span class="text-muted">{file.name}</span>
             <span class="ml-auto text-xs text-green-400">✓ Akzeptiert</span>
+          </li>
+        ))}
+        {docusealCompleted.map(a => (
+          <li class="flex items-center gap-3 p-3 bg-dark rounded-lg border border-dark-lighter" data-testid="docuseal-signed-item">
+            <span class="text-muted">{a.template_title}</span>
+            <span class="ml-auto text-xs text-green-400">✓ Elektronisch unterzeichnet {fmtDate(a.signed_at ?? a.assigned_at)}</span>
           </li>
         ))}
       </ul>

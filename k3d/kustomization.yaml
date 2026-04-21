@@ -24,6 +24,8 @@ resources:
   - whiteboard.yaml
   - talk-recording.yaml
   - vaultwarden.yaml
+  # E-Signatur
+  - docuseal.yaml
   # Buchhaltung
   - oauth2-proxy-docs.yaml
   # Backup (SA-07)

@@ -11,7 +11,9 @@ import SignaturesTab from '../../components/portal/SignaturesTab.astro';
 import MeetingsAdminTab from '../../components/portal/MeetingsAdminTab.astro';
 import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
+import ClientContractsPanel from '../../components/admin/ClientContractsPanel.svelte';
 import { listProjectsForCustomer, getCustomerByEmail } from '../../lib/website-db';
+import { getSubscriberByEmail } from '../../lib/newsletter-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -55,6 +57,16 @@ try {
   if (client.email) customerRecord = await getCustomerByEmail(client.email);
 } catch {
   // DB unavailable
+}
+
+let isNewsletterSubscribed = false;
+try {
+  if (client.email) {
+    const sub = await getSubscriberByEmail(client.email);
+    isNewsletterSubscribed = sub?.status === 'confirmed';
+  }
+} catch {
+  // newsletter DB unavailable
 }
 ---
 
@@ -196,6 +208,7 @@ try {
           { id: 'meetings', label: 'Besprechungen' },
           { id: 'onboarding', label: 'Onboarding' },
           { id: 'book', label: 'Leistung buchen' },
+          { id: 'vertraege', label: 'Verträge & Newsletter' },
         ].map(t => (
           <a
             href={`/admin/${clientId}?tab=${t.id}`}
@@ -221,7 +234,7 @@ try {
           />
         )}
         {tab === 'files' && <FilesTab clientUsername={client.username} />}
-        {tab === 'signatures' && <SignaturesTab clientUsername={client.username} />}
+        {tab === 'signatures' && <SignaturesTab clientUsername={client.username} clientEmail={client.email ?? ''} />}
         {tab === 'meetings' && <MeetingsAdminTab clientEmail={client.email ?? ''} />}
         {tab === 'onboarding' && (
           <OnboardingTab
@@ -242,6 +255,14 @@ try {
               buttonLabel="Buchung anlegen"
             />
           </div>
+        )}
+        {tab === 'vertraege' && (
+          <ClientContractsPanel
+            client:load
+            keycloakUserId={clientId}
+            clientEmail={client.email ?? ''}
+            isNewsletterSubscribed={isNewsletterSubscribed}
+          />
         )}
       </div>
     </div>

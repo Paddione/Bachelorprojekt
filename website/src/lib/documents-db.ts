@@ -30,6 +30,7 @@ export interface DocumentAssignment {
   customer_id: string;
   template_id: string;
   template_title: string;
+  docuseal_template_id: number | null;
   docuseal_submission_slug: string | null;
   docuseal_embed_src: string | null;
   status: 'pending' | 'completed' | 'expired';
@@ -97,18 +98,18 @@ export async function deleteDocumentTemplate(id: string): Promise<void> {
 export async function createDocumentAssignment(params: {
   customerId: string;
   templateId: string;
+  dsTemplateId: number;
   submissionSlug: string;
   embedSrc: string;
 }): Promise<DocumentAssignment> {
   const r = await pool.query(
     `INSERT INTO document_assignments
-       (customer_id, template_id, docuseal_submission_slug, docuseal_embed_src)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id, customer_id, template_id, docuseal_submission_slug,
+       (customer_id, template_id, docuseal_template_id, docuseal_submission_slug, docuseal_embed_src)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, customer_id, template_id, docuseal_template_id, docuseal_submission_slug,
                docuseal_embed_src, status, assigned_at, signed_at`,
-    [params.customerId, params.templateId, params.submissionSlug, params.embedSrc],
+    [params.customerId, params.templateId, params.dsTemplateId, params.submissionSlug, params.embedSrc],
   );
-  // fetch title for the returned object
   const row = r.rows[0];
   const tpl = await getDocumentTemplate(row.template_id);
   return { ...row, template_title: tpl?.title ?? '' };

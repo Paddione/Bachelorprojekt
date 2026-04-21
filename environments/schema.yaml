@@ -208,11 +208,6 @@ secrets:
     generate: true
     length: 40
 
-  - name: INVOICENINJA_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
   - name: OUTLINE_OIDC_SECRET
     required: true
     generate: true

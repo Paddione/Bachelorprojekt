@@ -172,8 +172,8 @@ spec:
                       -c "ALTER USER keycloak WITH PASSWORD '${KEYCLOAK_DB_PASSWORD}';" \
                       -c "ALTER USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';" \
                       -c "ALTER USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';" \
-                      -c "ALTER USER website WITH PASSWORD '${WEBSITE_DB_PASSWORD}';" \
-                      -c "ALTER USER docuseal WITH PASSWORD '${DOCUSEAL_DB_PASSWORD}';"
+                      -c "ALTER USER website WITH PASSWORD '${WEBSITE_DB_PASSWORD}';"
+                    psql -U postgres -c "DO \$\$ BEGIN IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'docuseal') THEN EXECUTE 'ALTER USER docuseal WITH PASSWORD ''${DOCUSEAL_DB_PASSWORD}'''; END IF; END \$\$;"
           ports:
             - containerPort: 5432
           volumeMounts:

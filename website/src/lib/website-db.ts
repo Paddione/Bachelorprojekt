@@ -50,12 +50,72 @@ export async function upsertCustomer(params: {
        phone = COALESCE(EXCLUDED.phone, customers.phone),
        company = COALESCE(EXCLUDED.company, customers.company),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
+       enrollment_declined = false,
        updated_at = now()
      RETURNING id, name, email, customer_number`,
     [params.name, params.email, params.phone, params.company,
      params.keycloakUserId]
   );
   return result.rows[0];
+}
+
+export interface PendingEnrollment {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  created_at: string;
+}
+
+export async function listPendingEnrollments(): Promise<PendingEnrollment[]> {
+  const result = await pool.query(
+    `SELECT id, name, email, phone, company, created_at
+     FROM customers
+     WHERE keycloak_user_id IS NULL AND enrollment_declined = false
+     ORDER BY created_at DESC`
+  );
+  return result.rows;
+}
+
+export async function declineEnrollment(id: string): Promise<void> {
+  await pool.query(
+    'UPDATE customers SET enrollment_declined = true WHERE id = $1',
+    [id]
+  );
+}
+
+export async function getCustomerFullById(id: string): Promise<{
+  id: string; name: string; email: string; phone?: string; company?: string; customer_number?: string;
+} | null> {
+  const result = await pool.query(
+    `SELECT id, name, email, phone, company, customer_number FROM customers WHERE id = $1`,
+    [id]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function setCustomerNumber(
+  customerId: string,
+  customerNumber: string | null
+): Promise<{ ok: boolean; error?: string }> {
+  if (customerNumber !== null && !/^M\d{4}$/.test(customerNumber)) {
+    return { ok: false, error: 'Ungültiges Format. Erwartet: M0020–M9999' };
+  }
+  if (customerNumber !== null) {
+    const dup = await pool.query(
+      'SELECT id FROM customers WHERE customer_number = $1 AND id != $2',
+      [customerNumber, customerId]
+    );
+    if (dup.rows.length > 0) {
+      return { ok: false, error: `${customerNumber} ist bereits vergeben.` };
+    }
+  }
+  await pool.query(
+    'UPDATE customers SET customer_number = $1 WHERE id = $2',
+    [customerNumber, customerId]
+  );
+  return { ok: true };
 }
 
 // ── Schema init ─────────────────────────────────────────────────────────────

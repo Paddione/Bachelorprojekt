@@ -3,7 +3,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { listUsers } from '../../lib/keycloak';
 import type { KcUser } from '../../lib/keycloak';
-import { listAllCustomers } from '../../lib/website-db';
+import { listAllCustomers, listPendingEnrollments } from '../../lib/website-db';
+import type { PendingEnrollment } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -22,6 +23,13 @@ try {
   for (const c of dbCustomers) {
     if (c.email && c.customer_number) customerNumberByEmail.set(c.email, c.customer_number);
   }
+} catch {
+  // DB unavailable
+}
+
+let pendingEnrollments: PendingEnrollment[] = [];
+try {
+  pendingEnrollments = await listPendingEnrollments();
 } catch {
   // DB unavailable
 }
@@ -112,6 +120,41 @@ try {
           </div>
         </form>
       </div>
+
+      <!-- Ausstehende Enrollments -->
+      {pendingEnrollments.length > 0 && (
+        <div class="mb-8">
+          <h2 class="text-lg font-semibold text-light mb-3">Ausstehende Enrollments <span class="text-sm font-normal text-muted ml-1">({pendingEnrollments.length})</span></h2>
+          <div class="grid gap-3" id="enrollment-list">
+            {pendingEnrollments.map(e => (
+              <div
+                class="flex items-center gap-4 p-4 bg-dark-light rounded-xl border border-gold/20"
+                data-enrollment-id={e.id}
+              >
+                <div class="flex-1 min-w-0">
+                  <p class="text-light font-medium">{e.name}</p>
+                  <p class="text-sm text-muted truncate">{e.email}{e.company ? ` · ${e.company}` : ''}{e.phone ? ` · ${e.phone}` : ''}</p>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  <button
+                    class="enroll-btn px-3 py-1.5 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50"
+                    data-id={e.id}
+                    data-name={e.name}
+                  >
+                    Enrollen
+                  </button>
+                  <button
+                    class="decline-btn px-3 py-1.5 bg-dark border border-dark-lighter text-muted rounded-lg text-sm hover:border-red-500/40 hover:text-red-400 transition-colors disabled:opacity-50"
+                    data-id={e.id}
+                  >
+                    Ablehnen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div class="grid gap-4" data-testid="admin-client-list">
         {users.map(user => (
@@ -204,5 +247,60 @@ try {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Einladen & Passwort-Email senden';
     }
+  });
+
+  // Enrollment actions
+  document.querySelectorAll<HTMLButtonElement>('.enroll-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id!;
+      const name = btn.dataset.name ?? '';
+      if (!confirm(`${name} enrollen und Passwort-Email senden?`)) return;
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        const res = await fetch('/api/admin/clients/enroll', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerId: id }),
+        });
+        const json = await res.json().catch(() => ({})) as { error?: string; message?: string };
+        if (res.ok) {
+          btn.closest('[data-enrollment-id]')?.remove();
+        } else {
+          alert(json.error ?? 'Fehler beim Enrollen.');
+          btn.disabled = false;
+          btn.textContent = 'Enrollen';
+        }
+      } catch {
+        alert('Netzwerkfehler.');
+        btn.disabled = false;
+        btn.textContent = 'Enrollen';
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.decline-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id!;
+      if (!confirm('Enrollment ablehnen?')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/clients/decline-enrollment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerId: id }),
+        });
+        if (res.ok) {
+          btn.closest('[data-enrollment-id]')?.remove();
+        } else {
+          const json = await res.json().catch(() => ({})) as { error?: string };
+          alert(json.error ?? 'Fehler.');
+          btn.disabled = false;
+        }
+      } catch {
+        alert('Netzwerkfehler.');
+        btn.disabled = false;
+      }
+    });
   });
 </script>

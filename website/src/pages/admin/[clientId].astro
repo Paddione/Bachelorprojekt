@@ -11,7 +11,7 @@ import SignaturesTab from '../../components/portal/SignaturesTab.astro';
 import MeetingsAdminTab from '../../components/portal/MeetingsAdminTab.astro';
 import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
-import { listProjectsForCustomer } from '../../lib/website-db';
+import { listProjectsForCustomer, getCustomerByEmail } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -48,6 +48,13 @@ try {
   clientProjects = all.map(p => ({ id: p.id, name: p.name }));
 } catch {
   // Projekte-Dropdown bleibt leer
+}
+
+let customerRecord: { id: string; customer_number?: string } | null = null;
+try {
+  if (client.email) customerRecord = await getCustomerByEmail(client.email);
+} catch {
+  // DB unavailable
 }
 ---
 
@@ -141,6 +148,39 @@ try {
                 <span class="text-sm text-light">{role.name}</span>
               </label>
             ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Kundennummer -->
+      {customerRecord && (
+        <div class="mb-6 p-4 bg-dark-light rounded-xl border border-dark-lighter" id="customer-number-section">
+          <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Kundennummer</h2>
+          <div class="flex items-center gap-3">
+            <span id="customer-number-display" class="font-mono text-light text-sm">
+              {customerRecord.customer_number ?? '—'}
+            </span>
+            <button
+              id="edit-customer-number-btn"
+              class="px-2 py-1 text-xs text-muted border border-dark-lighter rounded hover:border-gold/40 hover:text-light transition-colors"
+            >
+              Bearbeiten
+            </button>
+          </div>
+          <div id="customer-number-edit" class="hidden mt-3 flex items-center gap-2">
+            <input
+              id="customer-number-input"
+              type="text"
+              placeholder="M0020"
+              maxlength="5"
+              value={customerRecord.customer_number ?? ''}
+              data-customer-id={customerRecord.id}
+              class="w-28 bg-dark border border-dark-lighter rounded-lg px-3 py-1.5 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+            />
+            <button id="save-customer-number-btn" class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80 transition-colors">Speichern</button>
+            <button id="clear-customer-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-red-400 transition-colors">Entfernen</button>
+            <button id="cancel-customer-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-light transition-colors">Abbrechen</button>
+            <span id="customer-number-error" class="text-xs text-red-400 hidden"></span>
           </div>
         </div>
       )}
@@ -306,6 +346,54 @@ try {
     } finally {
       btn.disabled = false;
     }
+  });
+
+  // Customer number editing
+  const cnEditBtn = document.getElementById('edit-customer-number-btn');
+  const cnEditPanel = document.getElementById('customer-number-edit');
+  const cnDisplay = document.getElementById('customer-number-display');
+  const cnInput = document.getElementById('customer-number-input') as HTMLInputElement | null;
+  const cnError = document.getElementById('customer-number-error');
+
+  cnEditBtn?.addEventListener('click', () => {
+    cnEditPanel?.classList.toggle('hidden');
+  });
+  document.getElementById('cancel-customer-number-btn')?.addEventListener('click', () => {
+    cnEditPanel?.classList.add('hidden');
+    if (cnError) cnError.classList.add('hidden');
+  });
+
+  async function saveCustomerNumber(value: string | null) {
+    const customerId = cnInput?.dataset.customerId;
+    if (!customerId) return;
+    if (cnError) cnError.classList.add('hidden');
+    const saveBtn = document.getElementById('save-customer-number-btn') as HTMLButtonElement | null;
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '...'; }
+    try {
+      const res = await fetch('/api/admin/clients/set-customer-number', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId, customerNumber: value }),
+      });
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      if (res.ok) {
+        if (cnDisplay) cnDisplay.textContent = value ?? '—';
+        cnEditPanel?.classList.add('hidden');
+      } else {
+        if (cnError) { cnError.textContent = json.error ?? 'Fehler.'; cnError.classList.remove('hidden'); }
+      }
+    } catch {
+      if (cnError) { cnError.textContent = 'Netzwerkfehler.'; cnError.classList.remove('hidden'); }
+    } finally {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Speichern'; }
+    }
+  }
+
+  document.getElementById('save-customer-number-btn')?.addEventListener('click', () => {
+    saveCustomerNumber(cnInput?.value.trim() || null);
+  });
+  document.getElementById('clear-customer-number-btn')?.addEventListener('click', () => {
+    if (confirm('Kundennummer entfernen?')) saveCustomerNumber(null);
   });
 
   // Role checkboxes

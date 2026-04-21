@@ -27,7 +27,6 @@ data:
   KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
   KEYCLOAK_REALM: "workspace"
   KEYCLOAK_ADMIN_USER: "admin"
-  KEYCLOAK_ADMIN_PASSWORD: "devadmin"
   # SMTP (dev: Mailpit; prod: smtp.mailbox.org via env registry)
   SMTP_HOST: "${SMTP_HOST}"
   SMTP_PORT: "${SMTP_PORT}"
@@ -186,6 +185,11 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: STRIPE_WEBHOOK_SECRET
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
                   optional: true
             - name: NEXTCLOUD_ADMIN_PASS
               valueFrom:

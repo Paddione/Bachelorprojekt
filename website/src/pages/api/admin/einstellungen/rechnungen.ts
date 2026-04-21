@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { setSiteSetting } from '../../../../lib/website-db';
 
-const STRING_KEYS = ['invoice_prefix','invoice_sender_name','invoice_sender_street','invoice_sender_city','invoice_bank_iban','invoice_bank_bic','invoice_bank_name'] as const;
+const STRING_KEYS = ['invoice_sender_name','invoice_sender_street','invoice_sender_city','invoice_sender_phone','invoice_bank_iban','invoice_bank_bic','invoice_bank_name','invoice_vat_id','invoice_manager'] as const;
 const NUMBER_KEYS = ['invoice_payment_days','invoice_tax_rate'] as const;
 
 export const POST: APIRoute = async ({ request, redirect }) => {

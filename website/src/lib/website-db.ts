@@ -2431,3 +2431,46 @@ export async function insertDsgvoRequest(params: {
     [params.type, params.name, params.email, params.ipAddress ?? null]
   );
 }
+
+// ── Invoice Counter ────────────────────────────────────────────────────────────
+
+let invoiceCountersReady = false;
+async function initInvoiceCountersTable(): Promise<void> {
+  if (invoiceCountersReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS invoice_counters (
+      brand   TEXT NOT NULL,
+      year    INT  NOT NULL,
+      counter INT  NOT NULL DEFAULT 0,
+      PRIMARY KEY (brand, year)
+    )
+  `);
+  invoiceCountersReady = true;
+}
+
+export async function getNextInvoiceNumber(brand: string): Promise<string> {
+  await initInvoiceCountersTable();
+  const year = new Date().getFullYear();
+  const result = await pool.query<{ counter: number }>(
+    `INSERT INTO invoice_counters (brand, year, counter)
+     VALUES ($1, $2, 1)
+     ON CONFLICT (brand, year)
+     DO UPDATE SET counter = invoice_counters.counter + 1
+     RETURNING counter`,
+    [brand, year]
+  );
+  const n = result.rows[0].counter;
+  return `RE-${year}-${String(n).padStart(4, '0')}`;
+}
+
+export async function seedInvoiceCounter(
+  brand: string, year: number, value: number
+): Promise<void> {
+  await initInvoiceCountersTable();
+  await pool.query(
+    `INSERT INTO invoice_counters (brand, year, counter)
+     VALUES ($1, $2, $3)
+     ON CONFLICT DO NOTHING`,
+    [brand, year, value]
+  );
+}

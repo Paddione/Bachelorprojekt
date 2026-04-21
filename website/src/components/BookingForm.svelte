@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface TimeSlot {
     start: string;
     end: string;
@@ -38,7 +40,37 @@
   let result = $state<{ success: boolean; message: string } | null>(null);
   let agbAccepted = $state(false);
 
+  let portalProjects = $state<Array<{ id: string; name: string }>>([]);
+  let leistungenOptions = $state<Array<{ key: string; name: string; category: string; durationMin?: number }>>([]);
+  let selectedProjectId = $state('');
+  let selectedLeistungKey = $state('');
+  let leistungenLoaded = $state(false);
+
+  onMount(async () => {
+    try {
+      const res = await fetch('/api/leistungen');
+      if (res.ok) leistungenOptions = await res.json();
+    } catch { /* ignore */ } finally {
+      leistungenLoaded = true;
+    }
+
+    try {
+      const res = await fetch('/api/portal/projekte');
+      if (res.ok) portalProjects = await res.json();
+    } catch { /* ignore */ }
+  });
+
+  // Duration mapping per booking type (minutes)
+  const TYPE_DURATIONS: Record<string, number> = {
+    erstgespraech: 30,
+    meeting: 60,
+    termin: 60,
+  };
+
   let isCallback = $derived(bookingType === 'callback');
+  // Step 2 (leistung) is considered "done" when leistung is selected or none available
+  let leistungSelected = $derived(selectedLeistungKey !== '' || (leistungenLoaded && leistungenOptions.length === 0));
+  let showSlotSelection = $derived(!isCallback && leistungSelected);
   let showContactForm = $derived(isCallback || selectedSlot !== null);
   let currentDaySlots = $derived(days.find((d) => d.date === selectedDate));
 
@@ -49,21 +81,46 @@
     { value: 'termin', label: 'Termin vor Ort' },
   ];
 
-  // Fetch available slots on mount
-  if (typeof window !== 'undefined' && initialType !== 'callback') {
-    fetch('/api/calendar/slots')
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          days = data;
-          if (!initialDate && data.length > 0) selectedDate = data[0].date;
-        }
-        loading = false;
-      })
-      .catch(() => {
-        loading = false;
-      });
+  let slotLoadError = $state(false);
+  let slotsLoading = $state(false);
+
+  async function loadSlots() {
+    if (isCallback) return;
+    slotsLoading = true;
+    loading = true;
+    slotLoadError = false;
+    selectedSlot = null;
+    days = [];
+    const selectedLeistung = leistungenOptions.find(l => l.key === selectedLeistungKey);
+    const duration = selectedLeistung?.durationMin ?? TYPE_DURATIONS[bookingType] ?? undefined;
+    const params = new URLSearchParams();
+    if (duration) params.set('durationMin', String(duration));
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    try {
+      const r = await fetch(`/api/calendar/slots${params.size ? '?' + params.toString() : ''}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      const data = await r.json();
+      if (Array.isArray(data)) {
+        days = data;
+        if (!initialDate && data.length > 0) selectedDate = data[0].date;
+        else if (initialDate) selectedDate = initialDate;
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      slotLoadError = true;
+    } finally {
+      loading = false;
+      slotsLoading = false;
+    }
   }
+
+  // Load slots when leistung selection is ready
+  $effect(() => {
+    if (showSlotSelection && days.length === 0 && !slotsLoading && !slotLoadError) {
+      loadSlots();
+    }
+  });
 
   function selectSlot(slot: TimeSlot) {
     selectedSlot = slot;
@@ -101,9 +158,11 @@
           message,
           slotStart: selectedSlot?.start ?? null,
           slotEnd: selectedSlot?.end ?? null,
-          slotDisplay: selectedSlot?.display ?? null,
+          slotDisplay: selectedSlot ? formatSlotTime(selectedSlot.start, selectedSlot.end) : null,
           date: selectedDate,
           serviceKey: serviceKey ?? null,
+          projectId: selectedProjectId || undefined,
+          leistungKey: selectedLeistungKey || undefined,
         }),
       });
 
@@ -116,6 +175,8 @@
         phone = '';
         message = '';
         selectedSlot = null;
+        selectedLeistungKey = '';
+        selectedProjectId = '';
       } else {
         result = { success: false, message: data.error || 'Es ist ein Fehler aufgetreten.' };
       }
@@ -124,6 +185,15 @@
     } finally {
       submitting = false;
     }
+  }
+
+  // Format ISO timestamp in user's local timezone so slot times are correct
+  // regardless of server timezone (server runs UTC, users may be in CEST etc.)
+  function formatSlotTime(isoStart: string, isoEnd: string): string {
+    const fmt = (iso: string) => new Date(iso).toLocaleTimeString('de-DE', {
+      hour: '2-digit', minute: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+    return `${fmt(isoStart)} - ${fmt(isoEnd)}`;
   }
 
 </script>
@@ -139,7 +209,7 @@
           class="p-4 rounded-xl border text-left transition-all {bookingType === bt.value
             ? 'border-gold bg-gold-dim text-gold'
             : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted'}"
-          onclick={() => (bookingType = bt.value)}
+          onclick={() => { bookingType = bt.value; selectedLeistungKey = ''; selectedSlot = null; days = []; }}
         >
           {bt.label}
         </button>
@@ -147,16 +217,44 @@
     </div>
   </div>
 
-  <!-- Step 2: Choose date + slot (not needed for callback) -->
-  {#if !isCallback}
+  <!-- Step 2: Choose Leistung (not needed for callback) -->
+  {#if !isCallback && leistungenOptions.length > 0}
   <div>
-    <h3 class="text-xl font-semibold text-light mb-4">2. Termin wählen</h3>
+    <h3 class="text-xl font-semibold text-light mb-4">2. Gewünschte Leistung</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {#each leistungenOptions as opt}
+        <button
+          type="button"
+          class="p-4 rounded-xl border text-left transition-all {selectedLeistungKey === opt.key
+            ? 'border-gold bg-gold-dim text-gold'
+            : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted'}"
+          onclick={() => { selectedLeistungKey = opt.key; selectedSlot = null; days = []; }}
+        >
+          <div class="font-medium">{opt.name}</div>
+          <div class="text-xs mt-1 opacity-70">{opt.category}{opt.durationMin ? ` · ${opt.durationMin} Min.` : ''}</div>
+        </button>
+      {/each}
+    </div>
+    {#if !leistungenLoaded}
+      <p class="text-muted text-sm mt-3">Leistungen werden geladen…</p>
+    {/if}
+  </div>
+  {/if}
+
+  <!-- Step 3: Choose date + slot (not needed for callback, requires leistung selection) -->
+  {#if showSlotSelection}
+  <div>
+    <h3 class="text-xl font-semibold text-light mb-4">{leistungenOptions.length > 0 ? '3' : '2'}. Termin wählen</h3>
 
     {#if loading}
       <div class="text-muted py-8 text-center">Verfügbare Termine werden geladen...</div>
+    {:else if slotLoadError}
+      <div class="text-muted py-8 text-center bg-dark rounded-xl border border-dark-lighter">
+        Termine konnten nicht geladen werden. Bitte laden Sie die Seite neu oder kontaktieren Sie uns direkt.
+      </div>
     {:else if days.length === 0}
       <div class="text-muted py-8 text-center bg-dark rounded-xl border border-dark-lighter">
-        Derzeit sind keine freien Termine verfügbar. Bitte kontaktieren Sie uns direkt.
+        Derzeit sind keine freien Termine für diese Leistung verfügbar. Bitte kontaktieren Sie uns direkt.
       </div>
     {:else}
       <!-- Date tabs -->
@@ -186,7 +284,7 @@
                 : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted hover:text-light'}"
               onclick={() => selectSlot(slot)}
             >
-              {slot.display}
+              {formatSlotTime(slot.start, slot.end)}
             </button>
           {/each}
         </div>
@@ -194,17 +292,19 @@
 
       {#if selectedSlot}
         <p class="mt-4 text-gold font-medium" data-testid="selected-slot-display">
-          Gewählt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {selectedSlot.display}
+          Gewählt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {formatSlotTime(selectedSlot.start, selectedSlot.end)}
         </p>
       {/if}
     {/if}
   </div>
   {/if}
 
-  <!-- Step 3 (or Step 2 for callback): Contact details -->
+  <!-- Last step: Contact details -->
   {#if showContactForm}
     <form onsubmit={handleSubmit} class="space-y-6">
-      <h3 class="text-xl font-semibold text-light">{isCallback ? '2' : '3'}. Ihre Kontaktdaten</h3>
+      <h3 class="text-xl font-semibold text-light">
+        {#if isCallback}2{:else if leistungenOptions.length > 0}4{:else}3{/if}. Ihre Kontaktdaten
+      </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -278,6 +378,19 @@
           und akzeptiere sie. <span class="text-gold">*</span>
         </label>
       </div>
+
+      {#if portalProjects.length > 0}
+        <div>
+          <label class="block text-sm text-muted mb-1">Für welches Projekt? (optional)</label>
+          <select bind:value={selectedProjectId}
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+            <option value="">— Kein Projekt —</option>
+            {#each portalProjects as p}
+              <option value={p.id}>{p.name}</option>
+            {/each}
+          </select>
+        </div>
+      {/if}
 
       <button
         type="submit"

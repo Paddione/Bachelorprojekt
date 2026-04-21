@@ -14,7 +14,7 @@
 # Verarbeitungsverzeichnis (Art. 30 DSGVO)
 
 **Verantwortlicher:** Gemäß Impressum (`/impressum`)  
-**Letzte Aktualisierung:** 2026-04-13  
+**Letzte Aktualisierung:** 2026-04-20  
 **Plattform:** Workspace MVP — selbst-gehostete Kollaborationsplattform (On-Premises)
 
 > Dieses Verzeichnis wird geführt gemäß Art. 30 Abs. 1 DSGVO. Es dokumentiert alle Verarbeitungstätigkeiten, bei denen personenbezogene Daten verarbeitet werden.
@@ -28,7 +28,7 @@
 | **Zweck** | Identifikation und Zugriffskontrolle für die Plattform |
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung / vorvertragliche Maßnahmen) |
 | **Betroffene Personen** | Registrierte Nutzer der Plattform |
-| **Datenkategorien** | Name, E-Mail-Adresse, Passwort-Hash (PBKDF2-SHA512), Rollen/Berechtigungen, letzte Anmeldezeit |
+| **Datenkategorien** | Name, E-Mail-Adresse, Passwort-Hash (PBKDF2-SHA512), Rollen/Berechtigungen, letzte Anmeldezeit, optionaler TOTP-Secret |
 | **Empfänger** | Keine Dritten — On-Premises-Verarbeitung (Keycloak im `workspace`-Namespace) |
 | **Drittlandübermittlung** | Keine |
 | **Speicherdauer** | Bis zur Löschung des Nutzerkontos (Art. 17-Anfrage oder Admin-Aktion) |
@@ -40,14 +40,14 @@
 
 | Feld | Wert |
 |------|------|
-| **Zweck** | Interne Kommunikation zwischen Teammitgliedern |
+| **Zweck** | Interne Kommunikation zwischen Teammitgliedern sowie zwischen Kunden und Administratoren |
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) |
-| **Betroffene Personen** | Nutzer der Mattermost-Instanz |
-| **Datenkategorien** | Nachrichteninhalte, Zeitstempel, Absender-User-ID, Kanal-Zugehörigkeit, Anhänge |
-| **Empfänger** | Keine Dritten — On-Premises (Mattermost im `workspace`-Namespace) |
+| **Betroffene Personen** | Registrierte Nutzer des Website-Portals (Mitarbeiter und Kunden) |
+| **Datenkategorien** | Nachrichteninhalte, Zeitstempel, Absender-User-ID, Raum-Zugehörigkeit, Gelesen-Status |
+| **Empfänger** | Keine Dritten — On-Premises (Messaging-System im `website`-Namespace, PostgreSQL `shared-db`) |
 | **Drittlandübermittlung** | Keine |
-| **Speicherdauer** | Konfigurierbar (Standard: unbegrenzt); auf Anfrage (Art. 17) löschbar |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO, NetworkPolicy-Isolation, Audit-Log `/api/v4/audits` |
+| **Speicherdauer** | Auf Anfrage (Art. 17) löschbar; ansonsten bis zur Löschung des Nutzerkontos gespeichert |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO, NetworkPolicy-Isolation, Zugriff nur nach Authentifizierung |
 
 ---
 
@@ -58,11 +58,11 @@
 | **Zweck** | Speicherung und gemeinsame Bearbeitung von Dateien und Dokumenten |
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) |
 | **Betroffene Personen** | Nutzer der Nextcloud-Instanz |
-| **Datenkategorien** | Dateien (beliebige Inhalte), Dateinamen, Metadaten (Erstellungs-/Änderungsdatum, Eigentümer-ID), Freigabe-Links |
+| **Datenkategorien** | Dateien (beliebige Inhalte), Dateinamen, Metadaten (Erstellungs-/Änderungsdatum, Eigentümer-ID), Freigabe-Links, Kalendereinträge, Kontaktdaten |
 | **Empfänger** | Keine Dritten — On-Premises (Nextcloud im `workspace`-Namespace) |
 | **Drittlandübermittlung** | Keine |
 | **Speicherdauer** | Bis zur Löschung durch den Nutzer oder Administrator |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO, Nextcloud-Berechtigungssystem (Owner/Share), PVC-lokaler Storage |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO, Nextcloud-Berechtigungssystem (Owner/Share), PVC-lokaler Storage, verschlüsselte Backups (AES-256) |
 
 ---
 
@@ -74,29 +74,14 @@
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Durchführung vorvertraglicher Maßnahmen) |
 | **Betroffene Personen** | Interessenten und Auftraggeber (Website-Besucher) |
 | **Datenkategorien** | Name, E-Mail-Adresse, gewählter Termin/Zeitslot, optionale Nachricht |
-| **Empfänger** | Keine Dritten — Weiterleitung intern via Mattermost-Webhook; CalDAV-Eintrag in Nextcloud |
+| **Empfänger** | Keine Dritten — Weiterleitung intern in die Admin-Inbox (`/admin/termine`); optionaler CalDAV-Eintrag in Nextcloud |
 | **Drittlandübermittlung** | Keine |
 | **Speicherdauer** | 3 Jahre (handelsrechtliche Aufbewahrungsfrist für vorvertragliche Korrespondenz) |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Mattermost-Webhook nur intern erreichbar (NetworkPolicy), keine externe Weitergabe |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO für Admin-Zugriff, NetworkPolicy-Isolation, keine externe Weitergabe |
 
 ---
 
-## VT-05: Rechnungsstellung und Buchführung
-
-| Feld | Wert |
-|------|------|
-| **Zweck** | Erstellung, Verwaltung und Archivierung von Rechnungen |
-| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. c DSGVO (rechtliche Verpflichtung: § 257 HGB, § 14 UStG) |
-| **Betroffene Personen** | Auftraggeber (Rechnungsempfänger) |
-| **Datenkategorien** | Name, Unternehmensname, Rechnungsadresse, E-Mail, Leistungsbeschreibung, Beträge, Rechnungsnummer, Datum |
-| **Empfänger** | Keine Dritten — On-Premises (Invoice Ninja im `workspace`-Namespace) |
-| **Drittlandübermittlung** | Keine |
-| **Speicherdauer** | 10 Jahre (§ 257 HGB — gesetzliche Aufbewahrungspflicht für Buchungsbelege) |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO + OAuth2-Proxy, Rate-Limiting (30 req/s), NetworkPolicy-Isolation |
-
----
-
-## VT-06: Kontaktformular
+## VT-05: Kontaktformular
 
 | Feld | Wert |
 |------|------|
@@ -104,17 +89,70 @@
 | **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen), hilfsweise Art. 6 Abs. 1 lit. f (berechtigtes Interesse an Anfragenbearbeitung) |
 | **Betroffene Personen** | Website-Besucher, die das Kontaktformular nutzen |
 | **Datenkategorien** | Name, E-Mail-Adresse, Nachrichteninhalt |
-| **Empfänger** | Keine Dritten — Weiterleitung intern via Mattermost-Webhook in den Kanal `anfragen` |
+| **Empfänger** | Keine Dritten — Weiterleitung intern in die Admin-Inbox (`/admin/inbox`, PostgreSQL `website`-Datenbank) |
 | **Drittlandübermittlung** | Keine |
 | **Speicherdauer** | 3 Jahre (Verjährungsfrist für Ansprüche aus vorvertraglichen Verhältnissen, § 195 BGB) |
-| **Technische Schutzmaßnahmen** | TLS in Transit, Mattermost-Webhook nur intern erreichbar, keine Speicherung in externer Datenbank |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO für Admin-Zugriff auf Inbox, keine Speicherung in externer Datenbank, NetworkPolicy-Isolation |
 
 ---
 
-## Keine Drittlandübermittlung
+## VT-06: Passwort-Verwaltung (Vaultwarden)
 
-Es findet **keine Übermittlung personenbezogener Daten in Drittländer** (außerhalb der EU/EWR) statt. Die gesamte Plattform wird vollständig on-premises betrieben. Alle Komponenten sind Open-Source-Software, die ohne externe Datenübertragung betrieben wird.
+| Feld | Wert |
+|------|------|
+| **Zweck** | Sicheres Speichern und Verwalten von Zugangsdaten und Geheimnissen für das Team |
+| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung — Bereitstellung von Team-Infrastruktur) |
+| **Betroffene Personen** | Registrierte Nutzer der Vaultwarden-Instanz (Teammitglieder) |
+| **Datenkategorien** | Verschlüsselte Passwort-Einträge (Ende-zu-Ende-verschlüsselt durch Bitwarden-Client), Organisations-Metadaten, E-Mail-Adresse des Kontos |
+| **Empfänger** | Keine Dritten — On-Premises (Vaultwarden im `workspace`-Namespace, PostgreSQL `vaultwarden`-DB) |
+| **Drittlandübermittlung** | Keine |
+| **Speicherdauer** | Bis zur Löschung des Nutzerkontos oder der Einträge durch den Nutzer bzw. Administrator |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Ende-zu-Ende-Verschlüsselung (Bitwarden-Protokoll, AES-256), Keycloak OIDC SSO möglich, Admin-Token für Verwaltungszugriff |
+
+---
+
+## VT-07: KI-Assistent (Claude Code)
+
+| Feld | Wert |
+|------|------|
+| **Zweck** | KI-gestützte Entwicklungsunterstützung für Administratoren und Entwickler |
+| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung — Bereitstellung von Entwicklungswerkzeugen) |
+| **Betroffene Personen** | Administratoren und Entwickler, die Claude Code nutzen |
+| **Datenkategorien** | Prompts und Antworten (innerhalb der Session); kein persistentes Logging von Nutzerinteraktionen im Cluster |
+| **Empfänger** | **Anthropic Inc.** (USA) — Prompts werden zur Verarbeitung an die Anthropic API übertragen |
+| **Drittlandübermittlung** | Anthropic Inc. (USA): Datenübertragung auf Basis von EU-Standardvertragsklauseln (SCC) gemäß Art. 46 Abs. 2 lit. c DSGVO |
+| **Speicherdauer** | Session-gebunden — keine persistente Speicherung im Cluster nach Session-Ende |
+| **Technische Schutzmaßnahmen** | TLS in Transit (Anthropic API), OIDC-Authentifizierung für Claude Code Web UI, Basic Auth für AI-Status-Seite, RBAC (kein Zugriff auf Kubernetes Secrets) |
+
+> **Hinweis:** Claude Code ist ein **internes Werkzeug für Administratoren** — keine Nutzerdaten der Plattform werden automatisch an Anthropic übertragen. Nur explizit eingefügte Inhalte in Prompts werden verarbeitet.
+
+---
+
+## VT-08: Whiteboard
+
+| Feld | Wert |
+|------|------|
+| **Zweck** | Kollaborative visuelle Zusammenarbeit (Skizzen, Diagramme, Brainstorming) |
+| **Rechtsgrundlage** | Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) |
+| **Betroffene Personen** | Registrierte Nutzer, die das Whiteboard nutzen |
+| **Datenkategorien** | Whiteboard-Zeichendaten (Striche, Formen, Texte), Session-ID, Nutzer-ID (aus Keycloak JWT) |
+| **Empfänger** | Keine Dritten — On-Premises (Whiteboard im `workspace`-Namespace) |
+| **Drittlandübermittlung** | Keine |
+| **Speicherdauer** | Session-gebunden oder bis zur manuellen Löschung durch den Nutzer |
+| **Technische Schutzmaßnahmen** | TLS in Transit, Keycloak OIDC SSO, JWT-Signaturprüfung (HS256), NetworkPolicy-Isolation |
+
+---
+
+## Keine Drittlandübermittlung (Standardbetrieb)
+
+Im Standardbetrieb findet **keine Übermittlung personenbezogener Daten in Drittländer** (außerhalb der EU/EWR) statt. Die gesamte Plattform wird vollständig on-premises betrieben.
+
+**Ausnahme: VT-07 (Claude Code / Anthropic)** — Prompts werden an Anthropic Inc. (USA) übertragen. Dies betrifft ausschließlich Administratoren und Entwickler als interne Werkzeugnutzer (kein öffentlicher Dienst).
 
 ## Auftragsverarbeiter
 
-Keine Auftragsverarbeiter (Art. 28 DSGVO) — die Verarbeitung erfolgt vollständig durch den Verantwortlichen selbst auf eigener Infrastruktur.
+| Auftragsverarbeiter | Sitz | Zweck | Rechtsgrundlage |
+|---------------------|------|-------|-----------------|
+| **Anthropic Inc.** | USA | KI-Sprachmodell (Claude Code — internes Entwicklungswerkzeug) | EU-Standardvertragsklauseln (SCC) gem. Art. 46 Abs. 2 lit. c DSGVO |
+
+Alle übrigen Verarbeitungen erfolgen vollständig durch den Verantwortlichen selbst auf eigener On-Premises-Infrastruktur (kein weiterer Auftragsverarbeiter).

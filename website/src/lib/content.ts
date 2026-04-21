@@ -85,6 +85,7 @@ export async function getEffectiveLeistungen(): Promise<LeistungCategory[]> {
         unit: so.unit ?? svc.unit,
         desc: so.desc ?? svc.desc,
         highlight: so.highlight ?? svc.highlight,
+        stundensatz_cents: so.stundensatz_cents ?? svc.stundensatz_cents,
       };
     });
 

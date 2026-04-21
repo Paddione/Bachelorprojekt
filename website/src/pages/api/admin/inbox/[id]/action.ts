@@ -7,7 +7,9 @@ import { createCalendarEvent } from '../../../../../lib/caldav';
 import { createTalkRoom, inviteGuestByEmail } from '../../../../../lib/talk';
 import { scheduleReminder } from '../../../../../lib/reminders';
 import { sendRegistrationApproved, sendRegistrationDeclined, sendEmail } from '../../../../../lib/email';
-import { upsertCustomer, resolveBugTicket } from '../../../../../lib/website-db';
+import { upsertCustomer, resolveBugTicket, setBookingInvoice, createMeeting } from '../../../../../lib/website-db';
+import { getOrCreateCustomer, createBillingInvoice, SERVICES } from '../../../../../lib/stripe-billing';
+import type { ServiceKey } from '../../../../../lib/stripe-billing';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
@@ -43,12 +45,30 @@ export const POST: APIRoute = async ({ request, params }) => {
         const fullName = `${p.firstName} ${p.lastName}`;
 
         const result = await createUser({ email: p.email, firstName: p.firstName, lastName: p.lastName, phone: p.phone, company: p.company });
-        if (!result.success || !result.userId) {
+
+        let userId = result.userId;
+
+        // If user already exists (e.g. partial failure on prior attempt), look up the existing user
+        // so we can still send the password reset and complete the approval.
+        if (!result.success && result.error?.includes('bereits')) {
+          const { listUsers } = await import('../../../../../lib/keycloak');
+          const allUsers = await listUsers();
+          const existing = allUsers.find(u => u.email?.toLowerCase() === p.email.toLowerCase());
+          if (existing) {
+            userId = existing.id;
+          } else {
+            return new Response(JSON.stringify({ error: `Keycloak-Fehler: ${result.error}` }), { status: 500 });
+          }
+        } else if (!result.success || !userId) {
           return new Response(JSON.stringify({ error: `Keycloak-Fehler: ${result.error}` }), { status: 500 });
         }
-        await sendPasswordResetEmail(result.userId);
-        await sendRegistrationApproved(p.email, fullName);
-        await upsertCustomer({ name: fullName, email: p.email, phone: p.phone, company: p.company, keycloakUserId: result.userId });
+
+        await sendPasswordResetEmail(userId);
+        // Emails are best-effort — upsertCustomer and inbox update must still succeed
+        sendRegistrationApproved(p.email, fullName).catch(err =>
+          console.error('[approve_registration] Failed to send approval email:', err)
+        );
+        await upsertCustomer({ name: fullName, email: p.email, phone: p.phone, company: p.company, keycloakUserId: userId });
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
         return new Response(JSON.stringify({ success: true, message: `${fullName} freigeschaltet` }), {
           headers: { 'Content-Type': 'application/json' },
@@ -66,6 +86,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         const p = item.payload as {
           name: string; email: string; phone?: string; typeLabel: string;
           slotStart: string; slotEnd: string; slotDisplay: string; date: string;
+          serviceKey?: string; leistungKey?: string; projectId?: string;
         };
         const meetingStart = new Date(p.slotStart);
         const meetingEnd   = new Date(p.slotEnd);
@@ -108,7 +129,35 @@ export const POST: APIRoute = async ({ request, params }) => {
           html: `<p>Hallo ${p.name},</p><p><strong>Ihr Termin wurde bestätigt!</strong></p><table style="border-collapse:collapse;margin:16px 0"><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Typ</td><td>${p.typeLabel}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Datum</td><td>${dateFormatted}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Uhrzeit</td><td>${p.slotDisplay}</td></tr></table>${meetingLinkHtml}<p>Mit freundlichen Grüßen<br>${BRAND_NAME}</p>`,
         });
         statusParts.push('Bestätigungs-E-Mail versendet');
-        await upsertCustomer({ name: p.name, email: p.email, phone: p.phone });
+        const customer = await upsertCustomer({ name: p.name, email: p.email, phone: p.phone });
+
+        createMeeting({
+          customerId: customer.id,
+          meetingType: p.typeLabel,
+          scheduledAt: meetingStart,
+          talkRoomToken: room?.token ?? undefined,
+          projectId: p.projectId ?? undefined,
+        }).catch(err => console.error('[approve_booking] Failed to create meeting record:', err));
+
+        const svcKey = (p.serviceKey ?? p.leistungKey) as ServiceKey | undefined;
+        if (svcKey && svcKey in SERVICES && SERVICES[svcKey].cents > 0) {
+          const brand = process.env.BRAND || 'mentolder';
+          const stripeCustomer = await getOrCreateCustomer({ name: p.name, email: p.email, phone: p.phone });
+          if (stripeCustomer) {
+            const invoice = await createBillingInvoice({ customerId: stripeCustomer.id, serviceKey: svcKey });
+            if (invoice) {
+              statusParts.push(`Rechnung erstellt: ${invoice.number}`);
+              if (calEvent) {
+                await setBookingInvoice(calEvent.uid, brand, invoice.id, invoice.number, invoice.amountDue).catch(err =>
+                  console.error('[approve_booking] Failed to link invoice to booking:', err)
+                );
+              }
+            } else {
+              statusParts.push('Rechnung konnte nicht erstellt werden (Stripe nicht konfiguriert?)');
+            }
+          }
+        }
+
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
         return new Response(JSON.stringify({ success: true, details: statusParts }), {
           headers: { 'Content-Type': 'application/json' },

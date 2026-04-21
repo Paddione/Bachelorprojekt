@@ -56,6 +56,7 @@ const leistungen = mentolderConfig.leistungen.map(cat => {
         unit: so?.unit ?? svc.unit,
         desc: so?.desc ?? svc.desc,
         highlight: so?.highlight ?? svc.highlight,
+        stundensatz_cents: so?.stundensatz_cents ?? svc.stundensatz_cents ?? 0,
       };
     }),
   };
@@ -208,6 +209,18 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
                         <div>
                           <label class={labelCls}>Einheit</label>
                           <input type="text" name={`lk_${cat.id}_${svc.key}_unit`} value={svc.unit} class={inputCls} />
+                        </div>
+                        <div>
+                          <label class={labelCls}>Stundensatz (€/Std.)</label>
+                          <input
+                            type="number"
+                            name={`lk_${cat.id}_${svc.key}_stundensatz`}
+                            value={Math.round(svc.stundensatz_cents / 100)}
+                            min="0"
+                            step="1"
+                            class={inputCls}
+                            placeholder="z.B. 60"
+                          />
                         </div>
                         <div class="flex items-end pb-1">
                           <label class="flex items-center gap-2 text-sm text-muted cursor-pointer">

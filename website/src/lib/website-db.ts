@@ -32,6 +32,7 @@ export interface Customer {
   id: string;
   name: string;
   email: string;
+  customer_number?: string;
 }
 
 export async function upsertCustomer(params: {
@@ -50,7 +51,7 @@ export async function upsertCustomer(params: {
        company = COALESCE(EXCLUDED.company, customers.company),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
        updated_at = now()
-     RETURNING id, name, email`,
+     RETURNING id, name, email, customer_number`,
     [params.name, params.email, params.phone, params.company,
      params.keycloakUserId]
   );
@@ -460,12 +461,24 @@ export async function resolveBugTicket(ticketId: string, resolutionNote: string)
      WHERE ticket_id = $1 AND status = 'open'`,
     [ticketId, resolutionNote]
   );
+  await pool.query(
+    `UPDATE inbox_items
+     SET status = 'actioned', actioned_at = NOW()
+     WHERE bug_ticket_id = $1 AND status = 'pending'`,
+    [ticketId]
+  );
 }
 
 export async function archiveBugTicket(ticketId: string): Promise<void> {
   await initBugTicketsTable();
   await pool.query(
     `UPDATE bug_tickets SET status = 'archived' WHERE ticket_id = $1 AND status != 'archived'`,
+    [ticketId]
+  );
+  await pool.query(
+    `UPDATE inbox_items
+     SET status = 'archived', actioned_at = NOW()
+     WHERE bug_ticket_id = $1 AND status = 'pending'`,
     [ticketId]
   );
 }
@@ -512,6 +525,16 @@ export async function initBugTicketsTable(): Promise<void> {
     ALTER TABLE bug_tickets
       ADD COLUMN IF NOT EXISTS screenshots_json JSONB
   `);
+  // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
+  await pool.query(`
+    UPDATE inbox_items
+    SET status = CASE WHEN bt.status = 'archived' THEN 'archived' ELSE 'actioned' END,
+        actioned_at = NOW()
+    FROM bug_tickets bt
+    WHERE inbox_items.bug_ticket_id = bt.ticket_id
+      AND inbox_items.status = 'pending'
+      AND bt.status IN ('resolved', 'archived')
+  `);
 }
 
 // ── Service Config (Angebote Overrides) ──────────────────────────────────────
@@ -541,6 +564,7 @@ export interface LeistungServiceOverride {
   unit?: string;
   desc?: string;
   highlight?: boolean;
+  stundensatz_cents?: number;
 }
 
 export interface LeistungCategoryOverride {
@@ -643,6 +667,25 @@ export async function setSiteSetting(brand: string, key: string, value: string):
      ON CONFLICT (brand, key) DO UPDATE SET value = $3, updated_at = now()`,
     [brand, key, value]
   );
+}
+
+// ── Vacation / Blackout Periods ───────────────────────────────────────────────
+
+export interface VacationPeriod {
+  id: string;
+  start: string; // YYYY-MM-DD
+  end: string;   // YYYY-MM-DD
+  label: string;
+}
+
+export async function getVacationPeriods(brand: string): Promise<VacationPeriod[]> {
+  const raw = await getSiteSetting(brand, 'vacation_periods');
+  if (!raw) return [];
+  try { return JSON.parse(raw) as VacationPeriod[]; } catch { return []; }
+}
+
+export async function saveVacationPeriods(brand: string, periods: VacationPeriod[]): Promise<void> {
+  await setSiteSetting(brand, 'vacation_periods', JSON.stringify(periods));
 }
 
 // ── Legal Pages (admin-editable HTML content) ────────────────────────────────
@@ -1150,7 +1193,7 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
 
 export async function listAllCustomers(): Promise<Customer[]> {
   const result = await pool.query(
-    `SELECT id, name, email FROM customers ORDER BY name ASC`
+    `SELECT id, name, email, customer_number FROM customers ORDER BY name ASC`
   );
   return result.rows;
 }
@@ -1214,6 +1257,8 @@ export async function exportProjectsFlat(brand: string): Promise<ProjectExportRo
 
 // ── Time Entries ──────────────────────────────────────────────────────────────
 
+let timeEntriesReady = false;
+
 export interface TimeEntry {
   id: string;
   projectId: string;
@@ -1223,26 +1268,50 @@ export interface TimeEntry {
   description: string | null;
   minutes: number;
   billable: boolean;
+  rateCents: number;
+  leistungKey: string | null;
+  stripeInvoiceId: string | null;
   entryDate: Date;
   createdAt: Date;
 }
 
 async function initTimeEntriesTable(): Promise<void> {
+  if (timeEntriesReady) return;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
-      id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id  UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-      task_id     UUID        REFERENCES project_tasks(id) ON DELETE SET NULL,
-      description TEXT,
-      minutes     INTEGER     NOT NULL CHECK (minutes > 0),
-      billable    BOOLEAN     NOT NULL DEFAULT true,
-      entry_date  DATE        NOT NULL DEFAULT CURRENT_DATE,
-      created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      project_id        UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      task_id           UUID        REFERENCES project_tasks(id) ON DELETE SET NULL,
+      description       TEXT,
+      minutes           INTEGER     NOT NULL CHECK (minutes > 0),
+      billable          BOOLEAN     NOT NULL DEFAULT true,
+      rate_cents        INTEGER     NOT NULL DEFAULT 0,
+      stripe_invoice_id TEXT,
+      entry_date        DATE        NOT NULL DEFAULT CURRENT_DATE,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS time_entries_project_id_idx ON time_entries(project_id)
   `);
+  await pool.query(`
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS rate_cents        INTEGER DEFAULT 0
+  `);
+  await pool.query(`
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS stripe_invoice_id TEXT
+  `);
+  await pool.query(`
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS leistung_key TEXT
+  `);
+  timeEntriesReady = true;
+}
+
+export async function getLastTimeEntryRate(): Promise<number> {
+  await initTimeEntriesTable();
+  const result = await pool.query(
+    `SELECT rate_cents FROM time_entries ORDER BY created_at DESC LIMIT 1`
+  );
+  return result.rows[0]?.rate_cents ?? 0;
 }
 
 export async function createTimeEntry(params: {
@@ -1251,51 +1320,58 @@ export async function createTimeEntry(params: {
   description?: string;
   minutes: number;
   billable?: boolean;
+  rateCents?: number;
+  leistungKey?: string;
   entryDate?: string;
 }): Promise<TimeEntry> {
   await initTimeEntriesTable();
   const result = await pool.query(
-    `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, entry_date)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO time_entries (project_id, task_id, description, minutes, billable, rate_cents, leistung_key, entry_date)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING
        id,
-       project_id  AS "projectId",
-       ''          AS "projectName",
-       task_id     AS "taskId",
-       NULL        AS "taskName",
+       project_id        AS "projectId",
+       NULL::text        AS "projectName",
+       task_id           AS "taskId",
+       NULL::text        AS "taskName",
        description,
        minutes,
        billable,
-       entry_date  AS "entryDate",
-       created_at  AS "createdAt"`,
+       rate_cents        AS "rateCents",
+       leistung_key      AS "leistungKey",
+       stripe_invoice_id AS "stripeInvoiceId",
+       entry_date        AS "entryDate",
+       created_at        AS "createdAt"`,
     [
       params.projectId,
       params.taskId ?? null,
       params.description ?? null,
       params.minutes,
       params.billable ?? true,
+      params.rateCents ?? 0,
+      params.leistungKey ?? null,
       params.entryDate ?? null,
     ]
   );
-  // Re-fetch with JOINs to get names
-  return (await listTimeEntries(params.projectId)).find(
-    (e) => e.id === result.rows[0].id
-  ) as TimeEntry;
+  return result.rows[0] as TimeEntry;
 }
 
 export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
   await initTimeEntriesTable();
   const result = await pool.query(
     `SELECT te.id,
-            te.project_id  AS "projectId",
-            p.name         AS "projectName",
-            te.task_id     AS "taskId",
-            pt.name        AS "taskName",
+            te.project_id        AS "projectId",
+            p.name               AS "projectName",
+            te.task_id           AS "taskId",
+            pt.name              AS "taskName",
             te.description,
             te.minutes,
             te.billable,
-            te.entry_date  AS "entryDate",
-            te.created_at  AS "createdAt"
+            te.rate_cents        AS "rateCents",
+            te.stripe_invoice_id AS "stripeInvoiceId",
+            te.leistung_key      AS "leistungKey",
+            te.entry_date        AS "entryDate",
+            te.created_at        AS "createdAt"
      FROM time_entries te
      JOIN projects      p  ON p.id  = te.project_id
      LEFT JOIN project_tasks pt ON pt.id = te.task_id
@@ -1313,15 +1389,18 @@ export async function listAllTimeEntries(params?: {
   await initTimeEntriesTable();
   const result = await pool.query(
     `SELECT te.id,
-            te.project_id  AS "projectId",
-            p.name         AS "projectName",
-            te.task_id     AS "taskId",
-            pt.name        AS "taskName",
+            te.project_id        AS "projectId",
+            p.name               AS "projectName",
+            te.task_id           AS "taskId",
+            pt.name              AS "taskName",
             te.description,
             te.minutes,
             te.billable,
-            te.entry_date  AS "entryDate",
-            te.created_at  AS "createdAt"
+            te.rate_cents        AS "rateCents",
+            te.stripe_invoice_id AS "stripeInvoiceId",
+            te.leistung_key      AS "leistungKey",
+            te.entry_date        AS "entryDate",
+            te.created_at        AS "createdAt"
      FROM time_entries te
      JOIN projects      p  ON p.id  = te.project_id
      LEFT JOIN project_tasks pt ON pt.id = te.task_id
@@ -1331,6 +1410,93 @@ export async function listAllTimeEntries(params?: {
     [params?.billable ?? null, params?.since ?? null]
   );
   return result.rows;
+}
+
+export async function setTimeEntryStripeInvoice(
+  ids: string[],
+  stripeInvoiceId: string | null
+): Promise<void> {
+  if (ids.length === 0) return;
+  await initTimeEntriesTable();
+  await pool.query(
+    `UPDATE time_entries SET stripe_invoice_id = $1 WHERE id = ANY($2::uuid[])`,
+    [stripeInvoiceId, ids]
+  );
+}
+
+export async function getTimeEntryIdsByInvoice(stripeInvoiceId: string): Promise<string[]> {
+  await initTimeEntriesTable();
+  const result = await pool.query<{ id: string }>(
+    `SELECT id FROM time_entries WHERE stripe_invoice_id = $1`,
+    [stripeInvoiceId]
+  );
+  return result.rows.map(r => r.id);
+}
+
+export interface UnbilledCustomerGroup {
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  entries: Array<{
+    id: string;
+    projectId: string;
+    projectName: string;
+    description: string | null;
+    minutes: number;
+    rateCents: number;
+    entryDate: Date;
+  }>;
+}
+
+export async function getUnbilledBillableEntriesByCustomer(
+  year: number,
+  month: number  // 1-12
+): Promise<UnbilledCustomerGroup[]> {
+  await initTimeEntriesTable();
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endDate   = new Date(year, month, 0).toISOString().slice(0, 10);
+  const result = await pool.query(
+    `SELECT te.id,
+            te.project_id        AS "projectId",
+            p.name               AS "projectName",
+            te.description,
+            te.minutes,
+            te.rate_cents        AS "rateCents",
+            te.entry_date        AS "entryDate",
+            c.id                 AS "customerId",
+            c.name               AS "customerName",
+            c.email              AS "customerEmail"
+     FROM time_entries te
+     JOIN projects  p ON p.id = te.project_id
+     JOIN customers c ON c.id = p.customer_id
+     WHERE te.billable = true
+       AND te.stripe_invoice_id IS NULL
+       AND te.entry_date BETWEEN $1 AND $2
+       AND p.customer_id IS NOT NULL`,
+    [startDate, endDate]
+  );
+
+  const byCustomer = new Map<string, UnbilledCustomerGroup>();
+  for (const row of result.rows) {
+    if (!byCustomer.has(row.customerId)) {
+      byCustomer.set(row.customerId, {
+        customerId: row.customerId,
+        customerName: row.customerName,
+        customerEmail: row.customerEmail,
+        entries: [],
+      });
+    }
+    byCustomer.get(row.customerId)!.entries.push({
+      id: row.id,
+      projectId: row.projectId,
+      projectName: row.projectName,
+      description: row.description,
+      minutes: row.minutes,
+      rateCents: row.rateCents,
+      entryDate: row.entryDate,
+    });
+  }
+  return [...byCustomer.values()];
 }
 
 // ── Meeting-Projekt-Verknüpfung ───────────────────────────────────────────────
@@ -1430,7 +1596,7 @@ export async function getCustomerByEmail(
   email: string
 ): Promise<Customer | null> {
   const result = await pool.query(
-    `SELECT id, name, email FROM customers WHERE email = $1`,
+    `SELECT id, name, email, customer_number FROM customers WHERE email = $1`,
     [email]
   );
   return result.rows[0] ?? null;
@@ -1766,6 +1932,9 @@ async function initBookingProjectLinks(): Promise<void> {
       PRIMARY KEY (caldav_uid, brand)
     )
   `);
+  await pool.query(`
+    ALTER TABLE booking_project_links ADD COLUMN IF NOT EXISTS leistung_key TEXT
+  `);
   bookingProjectLinksReady = true;
 }
 
@@ -1850,7 +2019,12 @@ export async function getBookingProjects(caldavUids: string[], brand: string): P
   return new Map(result.rows.map((r: { caldav_uid: string; project_id: string }) => [r.caldav_uid, r.project_id]));
 }
 
-export async function setBookingProject(caldavUid: string, projectId: string | null, brand: string): Promise<void> {
+export async function setBookingProject(
+  caldavUid: string,
+  projectId: string | null,
+  brand: string,
+  leistungKey?: string
+): Promise<void> {
   await initBookingProjectLinks();
   if (!projectId) {
     await pool.query(
@@ -1859,11 +2033,25 @@ export async function setBookingProject(caldavUid: string, projectId: string | n
     );
   } else {
     await pool.query(
-      `INSERT INTO booking_project_links (caldav_uid, brand, project_id) VALUES ($1, $2, $3)
-       ON CONFLICT (caldav_uid, brand) DO UPDATE SET project_id = EXCLUDED.project_id`,
-      [caldavUid, brand, projectId]
+      `INSERT INTO booking_project_links (caldav_uid, brand, project_id, leistung_key)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (caldav_uid, brand) DO UPDATE
+         SET project_id  = EXCLUDED.project_id,
+             leistung_key = EXCLUDED.leistung_key`,
+      [caldavUid, brand, projectId, leistungKey ?? null]
     );
   }
+}
+
+export async function getBookingLeistungen(caldavUids: string[], brand: string): Promise<Map<string, string>> {
+  if (caldavUids.length === 0) return new Map();
+  await initBookingProjectLinks();
+  const result = await pool.query(
+    `SELECT caldav_uid, leistung_key FROM booking_project_links
+     WHERE caldav_uid = ANY($1) AND brand = $2 AND leistung_key IS NOT NULL`,
+    [caldavUids, brand]
+  );
+  return new Map(result.rows.map((r: { caldav_uid: string; leistung_key: string }) => [r.caldav_uid, r.leistung_key]));
 }
 
 // ── Slot Whitelist ────────────────────────────────────────────────────────────
@@ -1922,6 +2110,94 @@ export async function isSlotWhitelisted(brand: string, start: Date): Promise<boo
   const result = await pool.query(
     'SELECT 1 FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz',
     [brand, start]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+// Atomically removes the slot from the whitelist and returns true if it was
+// available (i.e. not already claimed by another concurrent booking).
+export async function claimSlot(brand: string, start: Date): Promise<boolean> {
+  await initSlotWhitelistTable();
+  const result = await pool.query(
+    'DELETE FROM slot_whitelist WHERE brand = $1 AND slot_start = $2::timestamptz RETURNING 1',
+    [brand, start]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+// ── Free Time Windows ────────────────────────────────────────────────────────
+
+export interface FreeTimeWindow {
+  id: string;
+  date: string;     // YYYY-MM-DD
+  winStart: string; // HH:MM
+  winEnd: string;   // HH:MM
+}
+
+async function initFreeTimeWindowsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS free_time_windows (
+      id         TEXT        NOT NULL DEFAULT gen_random_uuid()::text,
+      brand      TEXT        NOT NULL,
+      date       DATE        NOT NULL,
+      win_start  TIME        NOT NULL,
+      win_end    TIME        NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (id)
+    )
+  `);
+}
+
+export async function getFreeTimeWindows(brand: string, fromDate?: string, toDate?: string): Promise<FreeTimeWindow[]> {
+  await initFreeTimeWindowsTable();
+  const result = await pool.query(
+    `SELECT id,
+            to_char(date, 'YYYY-MM-DD')   AS date,
+            to_char(win_start, 'HH24:MI') AS "winStart",
+            to_char(win_end,   'HH24:MI') AS "winEnd"
+     FROM free_time_windows
+     WHERE brand = $1
+       AND ($2::date IS NULL OR date >= $2::date)
+       AND ($3::date IS NULL OR date <= $3::date)
+     ORDER BY date ASC, win_start ASC`,
+    [brand, fromDate ?? null, toDate ?? null]
+  );
+  return result.rows;
+}
+
+export async function addFreeTimeWindow(brand: string, date: string, winStart: string, winEnd: string): Promise<string> {
+  await initFreeTimeWindowsTable();
+  const result = await pool.query(
+    `INSERT INTO free_time_windows (brand, date, win_start, win_end)
+     VALUES ($1, $2::date, $3::time, $4::time)
+     RETURNING id`,
+    [brand, date, winStart, winEnd]
+  );
+  return result.rows[0].id as string;
+}
+
+export async function removeFreeTimeWindow(brand: string, id: string): Promise<void> {
+  await initFreeTimeWindowsTable();
+  await pool.query(
+    'DELETE FROM free_time_windows WHERE id = $1 AND brand = $2',
+    [id, brand]
+  );
+}
+
+export async function isSlotInAnyWindow(brand: string, slotStart: Date, slotEnd: Date): Promise<boolean> {
+  await initFreeTimeWindowsTable();
+  const dateStr = slotStart.toISOString().split('T')[0];
+  const sh = slotStart.getHours().toString().padStart(2, '0');
+  const sm = slotStart.getMinutes().toString().padStart(2, '0');
+  const eh = slotEnd.getHours().toString().padStart(2, '0');
+  const em = slotEnd.getMinutes().toString().padStart(2, '0');
+  const result = await pool.query(
+    `SELECT 1 FROM free_time_windows
+     WHERE brand = $1
+       AND date = $2::date
+       AND win_start <= $3::time
+       AND win_end   >= $4::time`,
+    [brand, dateStr, `${sh}:${sm}`, `${eh}:${em}`]
   );
   return (result.rowCount ?? 0) > 0;
 }
@@ -2125,4 +2401,77 @@ export async function createAdminShortcut(url: string, label: string): Promise<A
 export async function deleteAdminShortcut(id: string): Promise<void> {
   await initAdminShortcutsTable();
   await pool.query('DELETE FROM admin_shortcuts WHERE id = $1', [id]);
+}
+
+// ── DSGVO Audit Log ──────────────────────────────────────────────────────────
+
+async function initDsgvoAuditTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS dsgvo_audit_log (
+      id         BIGSERIAL PRIMARY KEY,
+      type       TEXT        NOT NULL,
+      name       TEXT        NOT NULL,
+      email      TEXT        NOT NULL,
+      ip_address TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      deadline   TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (created_at + INTERVAL '30 days') STORED
+    )
+  `);
+}
+
+export async function insertDsgvoRequest(params: {
+  type: string;
+  name: string;
+  email: string;
+  ipAddress?: string;
+}): Promise<void> {
+  await initDsgvoAuditTable();
+  await pool.query(
+    `INSERT INTO dsgvo_audit_log (type, name, email, ip_address)
+     VALUES ($1, $2, $3, $4)`,
+    [params.type, params.name, params.email, params.ipAddress ?? null]
+  );
+}
+
+// ── Invoice Counter ────────────────────────────────────────────────────────────
+
+let invoiceCountersReady = false;
+async function initInvoiceCountersTable(): Promise<void> {
+  if (invoiceCountersReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS invoice_counters (
+      brand   TEXT NOT NULL,
+      year    INT  NOT NULL,
+      counter INT  NOT NULL DEFAULT 0,
+      PRIMARY KEY (brand, year)
+    )
+  `);
+  invoiceCountersReady = true;
+}
+
+export async function getNextInvoiceNumber(brand: string): Promise<string> {
+  await initInvoiceCountersTable();
+  const year = new Date().getFullYear();
+  const result = await pool.query<{ counter: number }>(
+    `INSERT INTO invoice_counters (brand, year, counter)
+     VALUES ($1, $2, 1)
+     ON CONFLICT (brand, year)
+     DO UPDATE SET counter = invoice_counters.counter + 1
+     RETURNING counter`,
+    [brand, year]
+  );
+  const n = result.rows[0].counter;
+  return `RE-${year}-${String(n).padStart(4, '0')}`;
+}
+
+export async function seedInvoiceCounter(
+  brand: string, year: number, value: number
+): Promise<void> {
+  await initInvoiceCountersTable();
+  await pool.query(
+    `INSERT INTO invoice_counters (brand, year, counter)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (brand, year) DO NOTHING`,
+    [brand, year, value]
+  );
 }

@@ -1,3 +1,11 @@
+# Datenbank
+
+> Diese Seite wurde zu **[PostgreSQL (shared-db)](shared-db.md)** verschoben.
+
+**Datenbankmodelle und Schemas** finden Sie in den Abschnitten unten.
+
+---
+
 # Datenbankmodelle
 
 Alle im Repository definierten Schemas laufen auf `shared-db` (PostgreSQL 16).
@@ -79,7 +87,7 @@ erDiagram
         text        insight_type
         text        content
         text        generated_by
-        text        outline_document_id
+        text        doc_reference
         timestamptz created_at
     }
 

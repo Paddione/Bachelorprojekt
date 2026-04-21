@@ -2,6 +2,9 @@
 import '../styles/global.css';
 import { config } from '../config/index';
 import BugReportWidget from '../components/BugReportWidget.svelte';
+import HelpPanel from '../components/HelpPanel.svelte';
+import ChatWidget from '../components/ChatWidget.svelte';
+import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 
 interface Props {
   title: string;
@@ -9,6 +12,14 @@ interface Props {
 
 const { title } = Astro.props;
 const path = Astro.url.pathname;
+
+function adminSection(p: string): string {
+  if (p === '/admin') return 'dashboard';
+  if (p.startsWith('/admin/einstellungen')) return 'einstellungen';
+  const match = p.match(/^\/admin\/([^/]+)/);
+  return match ? match[1] : 'dashboard';
+}
+const helpSection = adminSection(path);
 
 const icons: Record<string, string> = {
   dashboard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
@@ -32,6 +43,7 @@ const icons: Record<string, string> = {
   star: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l2 4 4.5.7-3.3 3.1.8 4.7L8 12l-4 2.5.8-4.7L1.5 6.7 6 6z"/></svg>`,
   scale: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v13M3 4.5h10M2 14.5h12"/><path d="M5 4.5L2.5 10h5zM11 4.5L8.5 10h5z"/></svg>`,
   inbox: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
+  palette: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5a6.5 6.5 0 1 0 2.5 12.5c.6-.3.5-1.1 0-1.5a1.5 1.5 0 0 1 1.1-2.5H13a2 2 0 0 0 2-2 6.5 6.5 0 0 0-7-6.5z"/><circle cx="5" cy="6.5" r=".75" fill="currentColor" stroke="none"/><circle cx="8" cy="4.5" r=".75" fill="currentColor" stroke="none"/><circle cx="11" cy="6.5" r=".75" fill="currentColor" stroke="none"/></svg>`,
 };
 
 const navGroups = [
@@ -48,12 +60,10 @@ const navGroups = [
       { href: '/admin/meetings',      label: 'Meetings',      icon: 'microphone' },
       { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
       { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
-      { href: '/admin/nachrichten',   label: 'Nachrichten',   icon: 'message' },
-      { href: '/admin/raeume',        label: 'Räume',         icon: 'home' },
       { href: '/admin/projekte',      label: 'Projekte',      icon: 'clipboard' },
       { href: '/admin/zeiterfassung', label: 'Zeiterfassung', icon: 'clock' },
       { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt' },
-      { href: '/admin/followups',     label: 'Follow-ups',    icon: 'bell' },
+      { href: '/admin/newsletter',    label: 'Newsletter',    icon: 'mail' },
       { href: '/admin/kalender',      label: 'Kalender',      icon: 'calendar2' },
     ],
   },
@@ -74,6 +84,15 @@ const navGroups = [
       { href: '/admin/kontakt',     label: 'Kontakt',     icon: 'mail' },
       { href: '/admin/referenzen',  label: 'Referenzen',  icon: 'star' },
       { href: '/admin/rechtliches', label: 'Rechtliches', icon: 'scale' },
+    ],
+  },
+  {
+    label: 'Einstellungen',
+    items: [
+      { href: '/admin/einstellungen/benachrichtigungen', label: 'Benachrichtigungen', icon: 'bell' },
+      { href: '/admin/einstellungen/email',              label: 'E-Mail',              icon: 'mail' },
+      { href: '/admin/einstellungen/rechnungen',         label: 'Rechnungen',          icon: 'receipt' },
+      { href: '/admin/einstellungen/branding',           label: 'Branding',            icon: 'palette' },
     ],
   },
 ];
@@ -172,9 +191,81 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       #icon-expand   { display: none; }
       html.sidebar-collapsed #icon-collapse { display: none; }
       html.sidebar-collapsed #icon-expand   { display: block; }
+
+      /* Mobile */
+      #mobile-topbar  { display: none; }
+      #admin-backdrop { display: none; }
+
+      @media (max-width: 767px) {
+        #admin-sidebar {
+          position: fixed !important;
+          top: 0; left: 0; bottom: 0;
+          z-index: 100;
+          width: 13rem !important;
+          min-height: unset !important;
+          transform: translateX(-100%);
+          transition: transform 0.25s ease !important;
+        }
+        html.sidebar-collapsed #admin-sidebar {
+          width: 13rem !important;
+        }
+        #admin-sidebar.mobile-open {
+          transform: translateX(0) !important;
+        }
+        #admin-backdrop {
+          display: block !important;
+          position: fixed; inset: 0; z-index: 99;
+          background: rgba(0,0,0,0.55);
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.25s ease;
+        }
+        #admin-backdrop.visible { opacity: 1; pointer-events: auto; }
+        #mobile-topbar {
+          display: flex !important;
+          position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 101;
+          background: var(--ink-850); border-bottom: 1px solid var(--line);
+          align-items: center; padding: 0 12px; gap: 12px; flex-shrink: 0;
+        }
+        #admin-main { padding-top: 48px; min-height: calc(100vh - 48px) !important; }
+        #sidebar-toggle { display: none !important; }
+        .sidebar-label { opacity: 1 !important; max-width: 200px !important; }
+        html.sidebar-collapsed .sidebar-label { opacity: 1 !important; max-width: 200px !important; }
+        .sidebar-group-label { opacity: 1 !important; max-height: 2rem !important; margin: initial !important; padding: initial !important; }
+        html.sidebar-collapsed .sidebar-group-label { opacity: 1 !important; max-height: 2rem !important; }
+        html.sidebar-collapsed .sidebar-nav-item {
+          justify-content: flex-start !important;
+          padding-left: 10px !important; padding-right: 10px !important;
+        }
+      }
     </style>
   </head>
   <body style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
+
+    <!-- Mobile topbar -->
+    <div id="mobile-topbar">
+      <button
+        id="mobile-hamburger"
+        aria-label="Menü öffnen"
+        style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:none; border:none; cursor:pointer; color:var(--fg-soft); border-radius:8px; flex-shrink:0;"
+      >
+        <svg id="hamburger-icon-open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px;" aria-hidden="true">
+          <path d="M2 4h12M2 8h12M2 12h12"/>
+        </svg>
+        <svg id="hamburger-icon-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px; display:none;" aria-hidden="true">
+          <path d="M3 3l10 10M13 3L3 13"/>
+        </svg>
+      </button>
+      <a href="/admin" style="display:flex; align-items:center; gap:8px; text-decoration:none; flex:1; min-width:0;">
+        <div style="width:24px; height:24px; border-radius:6px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); position:relative; flex-shrink:0;">
+          <div style="position:absolute; inset:5px; border-radius:1px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
+        </div>
+        <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass);">{brandWord}<span style="color:var(--mute);">.</span></span>
+        <span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.1em; text-transform:uppercase;">Admin</span>
+      </a>
+    </div>
+
+    <!-- Mobile backdrop -->
+    <div id="admin-backdrop"></div>
 
     <!-- Sidebar -->
     <aside id="admin-sidebar" style="flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
@@ -241,11 +332,12 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 
       <!-- Footer -->
       <div style="padding:10px 8px 12px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:1px;">
-        <a href="/" class="sidebar-footer-link" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--mute); transition:background 0.1s ease, color 0.1s ease;">
+        <a href="/" class="sidebar-footer-link" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--fg-soft); transition:background 0.1s ease, color 0.1s ease;">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
-            <path d="M10 3l-5 5 5 5M5 8h8"/>
+            <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z"/>
+            <path d="M1.5 8h13M8 1.5C6.5 4 5.5 6 5.5 8s1 4 2.5 6.5M8 1.5C9.5 4 10.5 6 10.5 8s-1 4-2.5 6.5"/>
           </svg>
-          <span class="sidebar-label">Website</span>
+          <span class="sidebar-label">Zur Website</span>
         </a>
         <a href="/api/auth/logout" class="sidebar-footer-link danger" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--mute); transition:background 0.1s ease, color 0.1s ease;">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
@@ -258,32 +350,72 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     </aside>
 
     <!-- Main -->
-    <main style="flex:1; min-height:100vh; overflow-y:auto;">
+    <main id="admin-main" style="flex:1; min-height:100vh; overflow-y:auto;">
       <slot />
     </main>
 
+    <HelpPanel client:load section={helpSection} context="admin" />
     <BugReportWidget client:load />
+    <ChatWidget client:load />
+    <SessionExpiryWarning client:load />
 
     <script is:inline>
       (function() {
         var btn = document.getElementById('sidebar-toggle');
-        if (!btn) return;
-        var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
-
-        function updateState(isCollapsed) {
-          var label = isCollapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
-          btn.title = label;
-          btn.setAttribute('aria-label', label);
-          btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        if (btn) {
+          var collapsed = document.documentElement.classList.contains('sidebar-collapsed');
+          function updateState(isCollapsed) {
+            var label = isCollapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen';
+            btn.title = label;
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+          }
+          updateState(collapsed);
+          btn.addEventListener('click', function() {
+            collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('admin-sidebar-collapsed', collapsed ? '1' : '0');
+            updateState(collapsed);
+          });
         }
 
-        updateState(collapsed);
+        // Mobile sidebar overlay
+        var hamburger = document.getElementById('mobile-hamburger');
+        var backdrop = document.getElementById('admin-backdrop');
+        var sidebar = document.getElementById('admin-sidebar');
+        var iconOpen = document.getElementById('hamburger-icon-open');
+        var iconClose = document.getElementById('hamburger-icon-close');
 
-        btn.addEventListener('click', function() {
-          collapsed = document.documentElement.classList.toggle('sidebar-collapsed');
-          localStorage.setItem('admin-sidebar-collapsed', collapsed ? '1' : '0');
-          updateState(collapsed);
-        });
+        function openMobileSidebar() {
+          sidebar.classList.add('mobile-open');
+          backdrop.classList.add('visible');
+          if (iconOpen) iconOpen.style.display = 'none';
+          if (iconClose) iconClose.style.display = 'block';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü schließen');
+        }
+        function closeMobileSidebar() {
+          sidebar.classList.remove('mobile-open');
+          backdrop.classList.remove('visible');
+          if (iconOpen) iconOpen.style.display = 'block';
+          if (iconClose) iconClose.style.display = 'none';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü öffnen');
+        }
+
+        if (hamburger) {
+          hamburger.addEventListener('click', function() {
+            if (sidebar.classList.contains('mobile-open')) closeMobileSidebar();
+            else openMobileSidebar();
+          });
+        }
+        if (backdrop) backdrop.addEventListener('click', closeMobileSidebar);
+
+        // Close mobile sidebar on nav link click
+        if (sidebar) {
+          sidebar.querySelectorAll('a').forEach(function(a) {
+            a.addEventListener('click', function() {
+              if (window.innerWidth < 768) closeMobileSidebar();
+            });
+          });
+        }
       })();
     </script>
   </body>

@@ -89,7 +89,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
       for (const [email, { name, directIds, roomIds }] of byEmail) {
         const totalUnread = directIds.length + roomIds.length;
-        const portalUrl = `${SITE_URL}/portal/nachrichten`;
+        const portalUrl = `${SITE_URL}/portal?section=nachrichten`;
 
         await sendEmail({
           to: email,

@@ -1,0 +1,65 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { getSiteSetting } from '../../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const BRAND = process.env.BRAND || 'mentolder';
+const saved = Astro.url.searchParams.get('saved') === '1';
+
+const keys = ['brand_name','brand_contact_email','brand_phone','brand_logo_url','brand_social_linkedin','brand_social_instagram'] as const;
+const results = await Promise.all(keys.map(k => getSiteSetting(BRAND, k)));
+const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Record<typeof keys[number], string>;
+---
+
+<AdminLayout title="Branding & Kontakt">
+  <div style="padding: 2rem; max-width: 640px;">
+    <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">Branding & Kontakt</h1>
+    <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">Markenname, Kontaktdaten und Social-Media-Links.</p>
+
+    {saved && (
+      <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; color: #86efac; font-size: 0.875rem;">
+        Einstellungen gespeichert.
+      </div>
+    )}
+
+    <form method="POST" action="/api/admin/einstellungen/branding">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+        <div>
+          <label style="display:block;font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.5rem;">Markenname</label>
+          <input type="text" name="brand_name" value={s.brand_name || BRAND} style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.5rem;">Kontakt-E-Mail (öffentlich)</label>
+          <input type="email" name="brand_contact_email" value={s.brand_contact_email || `info@${BRAND}.de`} style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.5rem;">Telefonnummer</label>
+          <input type="tel" name="brand_phone" value={s.brand_phone} placeholder="+49 ..." style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.25rem;">
+        <label style="display:block;font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.5rem;">Logo-URL</label>
+        <input type="url" name="brand_logo_url" value={s.brand_logo_url} placeholder="https://..." style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+      </div>
+
+      <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Social Media</p>
+      <div style="display:flex;flex-direction:column;gap:0.625rem;margin-bottom:2rem;">
+        <div style="display:grid;grid-template-columns:80px 1fr;align-items:center;gap:0.75rem;">
+          <span style="font-size:0.8rem;color:var(--mute);">LinkedIn</span>
+          <input type="url" name="brand_social_linkedin" value={s.brand_social_linkedin} placeholder="https://linkedin.com/..." style="background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        </div>
+        <div style="display:grid;grid-template-columns:80px 1fr;align-items:center;gap:0.75rem;">
+          <span style="font-size:0.8rem;color:var(--mute);">Instagram</span>
+          <input type="url" name="brand_social_instagram" value={s.brand_social_instagram} placeholder="https://instagram.com/..." style="background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        </div>
+      </div>
+
+      <button type="submit" style="background:var(--brass);color:var(--ink-900);border:none;border-radius:8px;padding:0.625rem 1.5rem;font-size:0.875rem;font-weight:600;cursor:pointer;">Speichern</button>
+    </form>
+  </div>
+</AdminLayout>

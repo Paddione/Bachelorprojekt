@@ -25,11 +25,8 @@ export async function transcribeAudio(
   try {
     const formData = new FormData();
 
-    if (audioData instanceof Buffer) {
-      formData.append('file', new Blob([audioData]), filename);
-    } else {
-      formData.append('file', audioData, filename);
-    }
+    const blob: Blob = audioData instanceof Buffer ? new Blob([new Uint8Array(audioData)]) : audioData as Blob;
+    formData.append('file', blob, filename);
 
     formData.append('model', 'Systran/faster-whisper-medium');
     formData.append('language', language);

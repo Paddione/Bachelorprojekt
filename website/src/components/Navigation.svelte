@@ -39,7 +39,7 @@
     <a href="/" class="brand" aria-label="{brandWord} Startseite">
       <div class="mark" aria-hidden="true">
         <svg class="mark-m" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <text x="16" y="24" text-anchor="middle" fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="24">m</text>
+          <text x="16" y="22" text-anchor="middle" fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="18">m</text>
         </svg>
       </div>
       <span class="brand-name">{brandWord}<span class="brand-dot">.</span></span>
@@ -247,11 +247,12 @@
     box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3);
     position: relative;
     flex-shrink: 0;
+    overflow: hidden;
   }
 
   .mark-m {
     position: absolute;
-    inset: 7px;
+    inset: 1px;
     color: var(--ink-900);
     display: block;
   }

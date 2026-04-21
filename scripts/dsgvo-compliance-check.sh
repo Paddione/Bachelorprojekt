@@ -65,11 +65,11 @@ fi
 # ── Check 2: No external DNS calls from pods ─────────────────────
 echo "▸ Prüfe DNS-Auflösungen..."
 # Check that pods don't resolve external analytics/tracking domains
-EXTERNAL_DOMAINS="google-analytics.com telemetry.mattermost.com push-test.mattermost.com sentry.io"
+EXTERNAL_DOMAINS="google-analytics.com sentry.io"
 DNS_VIOLATIONS=""
 for domain in $EXTERNAL_DOMAINS; do
   # Try to resolve from inside a pod — if CoreDNS forwards it, it's a potential leak
-  RESOLVE=$(kubectl exec -n "$NAMESPACE" deploy/mattermost -c mattermost -- \
+  RESOLVE=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
     nslookup "$domain" 2>/dev/null | grep -c "Address:" 2>/dev/null || echo "0")
   if [[ "$RESOLVE" -gt 1 ]]; then
     DNS_VIOLATIONS="${DNS_VIOLATIONS} ${domain}"
@@ -114,27 +114,7 @@ else
   _check "D04" "Keycloak Audit-Events aktiviert" "warn" "Keycloak-Admin-Token konnte nicht abgerufen werden"
 fi
 
-# ── Check 5: Mattermost compliance/audit endpoint works ─────────
-echo "▸ Prüfe Mattermost Audit-Log..."
-MM_TOKEN="${MM_ADMIN_TOKEN:-}"
-if [[ -z "$MM_TOKEN" ]]; then
-  MM_TOKEN=$(curl -s -X POST -H "Content-Type: application/json" \
-    -d '{"login_id":"testadmin","password":"Testpassword123!"}' \
-    -D - "http://chat.localhost/api/v4/users/login" 2>/dev/null \
-    | grep -i '^token:' | tr -d '[:space:]' | cut -d: -f2 || echo "")
-fi
-if [[ -n "$MM_TOKEN" ]]; then
-  AUDIT_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
-    -H "Authorization: Bearer ${MM_TOKEN}" \
-    "http://chat.localhost/api/v4/audits?page=0&per_page=1" 2>/dev/null || echo "000")
-  if [[ "$AUDIT_STATUS" == "200" ]]; then
-    _check "D05" "Mattermost Audit-Log abrufbar" "pass"
-  else
-    _check "D05" "Mattermost Audit-Log abrufbar" "fail" "HTTP ${AUDIT_STATUS}"
-  fi
-else
-  _check "D05" "Mattermost Audit-Log abrufbar" "warn" "Kein Admin-Token verfügbar"
-fi
+# ── Check 5 (skipped — Mattermost removed) ──────────────────────
 
 # ── Check 6: No proprietary/tracking services in running pods ────
 echo "▸ Prüfe auf proprietäre Dienste..."
@@ -148,7 +128,7 @@ fi
 
 # ── Check 7: All services use open-source licenses ───────────────
 echo "▸ Prüfe Open-Source-Lizenzen..."
-LICENSE_IMAGES=$(echo "$IMAGES" | grep -ivE '(mattermost|nextcloud|keycloak|postgres|collabora|coturn|nats|janus|nginx|mailpit|busybox|signaling|axllent)' || true)
+LICENSE_IMAGES=$(echo "$IMAGES" | grep -ivE '(nextcloud|keycloak|postgres|collabora|coturn|nats|janus|nginx|mailpit|busybox|signaling|axllent)' || true)
 if [[ -z "$LICENSE_IMAGES" ]]; then
   _check "D07" "Alle Container-Images sind Open-Source-Projekte" "pass"
 else
@@ -157,10 +137,8 @@ fi
 
 # ── Check 8: SMTP is internal (not external mail relay) ──────────
 echo "▸ Prüfe E-Mail-Konfiguration..."
-SMTP_HOST=$(kubectl get deploy -n "$NAMESPACE" mattermost \
-  -o jsonpath='{range .spec.template.spec.containers[0].env[*]}{.name}={.value}{"\n"}{end}' 2>/dev/null \
-  | grep "MM_EMAILSETTINGS_SMTPSERVER" | cut -d= -f2 || echo "")
-if [[ "$SMTP_HOST" == "mailpit" || "$SMTP_HOST" == "localhost" || -z "$SMTP_HOST" ]]; then
+SMTP_HOST=$(kubectl get configmap -n "$NAMESPACE" website-env -o jsonpath='{.data.SMTP_HOST}' 2>/dev/null || echo "")
+if [[ "$SMTP_HOST" == "mailpit"* || "$SMTP_HOST" == "localhost" || -z "$SMTP_HOST" ]]; then
   _check "D08" "SMTP-Server ist cluster-intern (keine externen Mail-Relays)" "pass" "SMTP=${SMTP_HOST:-nicht konfiguriert}"
 else
   _check "D08" "SMTP-Server ist cluster-intern (keine externen Mail-Relays)" "warn" "SMTP=${SMTP_HOST}"

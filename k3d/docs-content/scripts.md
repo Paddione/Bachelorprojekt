@@ -1,218 +1,322 @@
-<div class="page-hero">
-  <span class="page-hero-icon">📜</span>
-  <div class="page-hero-body">
-    <div class="page-hero-title">Skripte</div>
-    <p class="page-hero-desc">Referenz aller Bash-Hilfsskripte im <code>scripts/</code>-Verzeichnis: Setup, Migration, DSGVO-Checks, MCP-Registrierung und Stripe.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">Für Administratoren</span>
-      <span class="page-hero-tag">Bash</span>
-    </div>
-  </div>
-  <a href="#/" class="page-hero-back">← Übersicht</a>
-</div>
+# Skripte-Referenz
 
-# Skripte
+Alle Bash-Hilfsskripte liegen im Verzeichnis `scripts/`. Sie können direkt aufgerufen oder über `task`-Tasks gestartet werden.
 
-Referenz aller Skripte im `scripts/`-Verzeichnis.
+---
 
-## Hauptskripte
+## admin-users-setup.sh
 
-### migrate.sh -- Migrations-Assistent
+**Zweck:** Provisioniert SSO-Admin-Benutzer in Keycloak.
 
-Interaktives Menue zum Import/Export von Workspace-Daten. Siehe [Migration](migration.md) fuer Details.
+Erstellt die in `.env` definierten Benutzer (`KC_USER1`, `KC_USER2`) im workspace-Realm. Idempotent — vorhandene Benutzer werden aktualisiert, nicht doppelt angelegt.
 
 ```bash
-scripts/migrate.sh              # Interaktives Menue
-scripts/migrate.sh --dry-run    # Trockenlauf
-scripts/migrate.sh --no-scan    # Ohne automatischen Scan
+bash scripts/admin-users-setup.sh
+
+# Mit anderem Environment
+ENV=mentolder bash scripts/admin-users-setup.sh
+
+# Via Task
+task workspace:admin-users-setup
 ```
 
-### import-users.sh -- Keycloak Benutzer-Import
+---
 
-Importiert Benutzer aus CSV- oder LDIF-Dateien in Keycloak.
+## check-connectivity.sh
+
+**Zweck:** Prüft die HTTPS-Erreichbarkeit aller Workspace-Dienste.
+
+Liest Domains aus `.env` und sendet HTTP-Anfragen an alle konfigurierten Endpunkte.
 
 ```bash
-scripts/import-users.sh --csv users.csv --url http://auth.localhost --admin admin --pass devadmin
-scripts/import-users.sh --ldif users.ldif --realm workspace --group team-a
-scripts/import-users.sh --csv users.csv --dry-run
+scripts/check-connectivity.sh           # Alle Dienste prüfen
+scripts/check-connectivity.sh --local   # Nur lokale Ports prüfen
 ```
 
-| Parameter | Beschreibung | Standard |
-|-----------|-------------|----------|
-| `--csv FILE` | CSV-Eingabedatei | -- |
-| `--ldif FILE` | LDIF-Eingabedatei | -- |
-| `--url URL` | Keycloak-URL | http://auth.localhost |
-| `--admin USER` | Admin-Benutzer | admin |
-| `--pass PASS` | Admin-Passwort | -- |
-| `--realm REALM` | Keycloak-Realm | workspace |
-| `--group GROUP` | Standardgruppe | -- |
-| `--dry-run` | Nur anzeigen | -- |
+---
 
-### create-customer-guest.sh -- Kunden-Gast-Account
+## check-updates.sh
 
-Erstellt einen Gast-Account in Keycloak (FA-11).
+**Zweck:** Vergleicht laufende Container-Image-Digests mit ihren Registries und meldet verfügbare Updates.
+
+Zeigt an, welche Services neuere Images haben und welche `:latest`-Images beim nächsten Neustart aktualisiert werden (imagePullPolicy: Always).
 
 ```bash
-scripts/create-customer-guest.sh --name "Max Mustermann" --email "max@example.com"
-scripts/create-customer-guest.sh --name "Test" --email "test@test.de" --dry-run
+bash scripts/check-updates.sh
+```
+
+---
+
+## dsgvo-compliance-check.sh
+
+**Zweck:** Prüft DSGVO-Compliance des Workspace (NFA-01).
+
+Überprüft: keine externen DNS-Auflösungen aus Pods, keine Container-Images von US-Cloud-Providern, keine Telemetrie-Abflüsse.
+
+```bash
+# Lesbare Ausgabe
+bash scripts/dsgvo-compliance-check.sh
+
+# JSON-Ausgabe für Grafana-Ingestion
+bash scripts/dsgvo-compliance-check.sh --json
+
+# Via Task
+task workspace:dsgvo-check
+```
+
+---
+
+## env-generate.sh
+
+**Zweck:** Generiert Secrets aus dem Schema für eine Umgebung.
+
+Liest den `secrets`-Abschnitt aus `environments/schema.yaml` und generiert zufällige Passwörter oder fragt interaktiv nach.
+
+```bash
+scripts/env-generate.sh --env <name>
+scripts/env-generate.sh --env production --env-dir environments/
+```
+
+---
+
+## env-resolve.sh
+
+**Zweck:** Löst alle Variablen einer Umgebung auf und exportiert sie als Shell-Umgebungsvariablen.
+
+Liest eine Umgebungsdatei zusammen mit Schema-Standardwerten.
+
+```bash
+source scripts/env-resolve.sh <env-name>
+source scripts/env-resolve.sh production environments/
+```
+
+---
+
+## env-seal.sh
+
+**Zweck:** Verschlüsselt Plaintext-Secrets zu einem SealedSecret.
+
+Liest Secrets aus `environments/.secrets/<name>.yaml`, baut ein temporäres K8s-Secret und verschlüsselt es mit `kubeseal`.
+
+```bash
+scripts/env-seal.sh --env <name>
+scripts/env-seal.sh --env production --env-dir environments/
+```
+
+---
+
+## env-validate.sh
+
+**Zweck:** Validiert Umgebungsdateien gegen `environments/schema.yaml` (Pre-Deploy-Gate).
+
+```bash
+scripts/env-validate.sh --env <name>
+scripts/env-validate.sh --env production --strict
+scripts/env-validate.sh --drift              # Drift aller Umgebungen prüfen
+scripts/env-validate.sh --env prod --schema-only
 ```
 
 | Parameter | Beschreibung |
 |-----------|-------------|
-| `--name "Name"` | Anzeigename des Kunden |
-| `--email "email"` | E-Mail-Adresse |
-| `--dry-run` | Nur anzeigen |
+| `--env <name>` | Umgebung validieren |
+| `--drift` | Alle Umgebungen auf Schema-Drift prüfen |
+| `--schema-only` | Nur Schema-Struktur prüfen |
+| `--strict` | Schlägt fehl bei unbekannten Schlüsseln |
 
-### setup.sh -- Voraussetzungen pruefen
+---
 
-Validiert, dass alle benoetigten Tools installiert sind.
+## import-entrypoint.sh
 
-```bash
-scripts/setup.sh            # Alle Voraussetzungen pruefen
-scripts/setup.sh --check    # Explizite Pruefung
-```
+**Zweck:** Interner Container-Entrypoint: ersetzt Umgebungsvariablen in `realm-workspace.json` und startet Keycloak mit `--import-realm`.
 
-**Prueft:** kubectl, docker, k3d, jq, curl, kustomize + Docker-Daemon-Status.
+Wird als Container-Command im Keycloak-Deployment verwendet, nicht direkt aufgerufen.
 
-### dsgvo-compliance-check.sh -- DSGVO-Pruefung
+---
 
-Verifiziert DSGVO-Compliance des laufenden Clusters.
+## import-users.sh
 
-```bash
-scripts/dsgvo-compliance-check.sh           # Menschenlesbare Ausgabe
-scripts/dsgvo-compliance-check.sh --json    # JSON-Ausgabe
-```
-
-**Pruefungen:**
-
-| ID | Pruefung |
-|----|---------|
-| D01 | Keine US-Cloud-Provider Container-Images (gcr.io, amazonaws, azurecr, mcr.microsoft) |
-| D02 | Keine externen Tracking-Domains (google-analytics, sentry.io) |
-| D03 | Alle PVCs sind lokal (keine Cloud-Storage-Klassen) |
-| D04 | Keycloak Audit Events aktiviert |
-| D05 | Website-API erreichbar (Health-Check) |
-| D06 | Keine proprietaeren Telemetrie-Dienste (datadog, newrelic, splunk, segment, mixpanel) |
-| D07 | Alle Container-Images sind Open-Source |
-| D08 | SMTP-Server ist Cluster-intern (mailpit/localhost) |
-
-### check-connectivity.sh -- Erreichbarkeitstest
-
-Testet HTTPS-Konnektivitaet aller Workspace-Services.
+**Zweck:** Importiert Benutzer aus CSV oder LDIF in Keycloak über die Admin REST API.
 
 ```bash
-scripts/check-connectivity.sh           # Produktions-Domains aus .env
-scripts/check-connectivity.sh --local   # Lokale localhost-Domains
+# CSV-Import
+scripts/import-users.sh --csv users.csv \
+  --url http://auth.localhost \
+  --admin admin \
+  --pass devadmin
+
+# LDIF-Import
+scripts/import-users.sh --ldif users.ldif --realm workspace
+
+# Trockenlauf
+scripts/import-users.sh --csv users.csv --dry-run
 ```
 
-### import-entrypoint.sh -- Keycloak Realm-Import
+| Parameter | Beschreibung |
+|-----------|-------------|
+| `--csv FILE` | CSV-Eingabedatei |
+| `--ldif FILE` | LDIF-Eingabedatei |
+| `--url URL` | Keycloak-URL (Standard: `http://auth.localhost`) |
+| `--admin USER` | Admin-Benutzer (Standard: `admin`) |
+| `--pass PASS` | Admin-Passwort |
+| `--realm REALM` | Realm (Standard: `workspace`) |
+| `--group GROUP` | Standardgruppe für importierte Benutzer |
+| `--dry-run` | Nur anzeigen, nicht importieren |
 
-Keycloak-Startskript: Substituiert Umgebungsvariablen (OIDC-Secrets, Domains) in der Realm-Template-Datei und startet Keycloak mit `--import-realm`. Wird als ConfigMap in den Keycloak-Pod gemountet.
+Fehlende Gruppen werden automatisch erstellt. Importierte Benutzer erhalten temporäre Passwörter (Änderung beim ersten Login erforderlich).
 
-### admin-users-setup.sh -- Admin-Benutzer einrichten
+---
 
-Erstellt Admin-Benutzer in Keycloak mit den erforderlichen Rollen und Berechtigungen.
+## keycloak-sync-secrets.sh
+
+**Zweck:** Synchronisiert OIDC-Client-Secrets aus dem K8s-Secret `workspace-secrets` in die Keycloak-Datenbank via Admin REST API.
+
+Idempotent — kann jederzeit mehrfach ausgeführt werden.
 
 ```bash
-scripts/admin-users-setup.sh
+bash scripts/keycloak-sync-secrets.sh
 ```
 
-### mcp-select.sh -- Interaktiver MCP-Server-Selektor
+---
 
-Interaktives TUI zum Aktivieren/Deaktivieren einzelner MCP-Server. Skaliert die Replica-Anzahl der ausgewaehlten MCP-Deployments.
+## mcp-select.sh
+
+**Zweck:** Interaktiver MCP-Server-Selektor. Generiert eine `.mcp.json` für Claude Code basierend auf der gewählten Umgebung und den MCP-Servern.
 
 ```bash
-scripts/mcp-select.sh
+bash scripts/mcp-select.sh
+
+# Via Task
+task mcp:select
 ```
 
-### setup-ha-cluster.sh -- HA-Cluster auf Hetzner
+---
 
-Bootstrapped einen 3-Node k3s HA-Cluster auf Hetzner Bare-Metal-Servern. Installiert k3s, konfiguriert etcd-HA und richtet alle Nodes ein.
+## migrate.sh
+
+**Zweck:** Interaktives Migrations-Werkzeug zum Import von Daten aus Slack, Microsoft Teams und Google Workspace sowie zum Export.
 
 ```bash
-scripts/setup-ha-cluster.sh
+# Interaktives Menü starten
+scripts/migrate.sh
+
+# Nur scannen (keine Migration)
+scripts/migrate.sh --no-scan
+
+# Trockenlauf
+scripts/migrate.sh --dry-run
 ```
 
-### recording-setup.sh -- Talk Recording konfigurieren
+Menü-Optionen:
 
-Konfiguriert den Nextcloud Talk Recording-Service (spreed-Konfiguration, Recording-Secret).
+| Nr. | Aktion | Quelle | Ziel |
+|-----|--------|--------|------|
+| 1 | Slack importieren | Slack Export ZIP | Website Messaging |
+| 2 | Teams importieren | GDPR-Export oder lokaler Cache | Website Messaging + Nextcloud |
+| 3 | Google importieren | Google Takeout | Website Messaging + Nextcloud |
+| 4 | Benutzer importieren | CSV oder LDIF | Keycloak |
+| 5 | Daten exportieren | Website Messaging + Nextcloud + Keycloak | ZIP-Archiv |
+| 6 | Server konfigurieren | — | Verbindungsdaten setzen |
+| 7 | Quellen scannen | Lokales System | Erkennung vorhandener Exporte |
+
+---
+
+## recording-setup.sh
+
+**Zweck:** Konfiguriert Nextcloud Talk für die Nutzung des Recording-Backends.
 
 ```bash
-scripts/recording-setup.sh
+bash scripts/recording-setup.sh
 ```
 
-### talk-hpb-setup.sh -- Nextcloud Talk HPB konfigurieren
+Muss ausgeführt werden, nachdem der `talk-recording`-Pod deployed und Nextcloud bereit ist.
+Optionale Umgebungsvariable: `KUBE_CONTEXT` (kubectl-Kontext, Standard: aktueller Kontext).
 
-Verbindet den Nextcloud Talk-App mit dem spreed-signaling HPB, dem coturn TURN-Server und seinem STUN-Port. Liest `SIGNALING_SECRET` und `TURN_SECRET` aus dem `workspace-secrets`-Secret. Idempotent: ueberschreibt bei erneutem Ausfuehren nur die drei App-Config-Schlueessel.
+---
+
+## seed-test-meetings.sh
+
+**Zweck:** Befüllt die Website-Datenbank mit Test-Meetings, Transkripten und Artefakten für Entwicklungszwecke.
 
 ```bash
-scripts/talk-hpb-setup.sh
-NAMESPACE=workspace scripts/talk-hpb-setup.sh
-KUBE_CONTEXT=korczewski scripts/talk-hpb-setup.sh
+bash scripts/seed-test-meetings.sh         # Test-Daten einfügen
+bash scripts/seed-test-meetings.sh --clean # Zuerst löschen, dann einfügen (idempotent)
 ```
 
-Wendet zusaetzlich einen CoreDNS-Override an, damit der Nextcloud-PHP-Backend den signaling-Host intern aufloesung (wichtig fuer Produktionscluster hinter NAT).
+---
 
-### transcriber-setup.sh -- Live-Transkription einrichten
+## setup-ha-cluster.sh
 
-Legt den `transcriber-bot`-Nextcloud-User fuer den talk-transcriber-Pod an, registriert ihn als Talk-Bot (Webhook + Response) und aktiviert die Call-Transkription in spreed. Liest `TRANSCRIBER_BOT_PASSWORD` und `TRANSCRIBER_SECRET` aus `workspace-secrets`. Idempotent.
+**Zweck:** Bootet einen 3-Knoten k3s HA-Cluster auf rohen Hetzner-Servern.
 
 ```bash
-scripts/transcriber-setup.sh
+bash scripts/setup-ha-cluster.sh
 ```
 
-### whiteboard-setup.sh -- Nextcloud Whiteboard konfigurieren
+Knotenkonfiguration und IP-Adressen werden im Skript-Header definiert.
 
-Installiert und konfiguriert die Nextcloud Whiteboard-App und synchronisiert das JWT-Secret mit dem laufenden Whiteboard-Backend-Pod. Prueft vor dem Schreiben, ob das Secret im k8s-Secret und im Pod uebereinstimmt. Idempotent.
+---
+
+## setup-wireguard.sh
+
+**Zweck:** Richtet einen WireGuard-Tunnel zwischen WSL2-Workstation und Hetzner-Knoten ein.
+
+Aktiviert die Workstation als GPU-Worker für den Prod-Cluster.
+
+```
+Subnetz: 10.13.13.0/24
+  10.13.13.1  Hetzner Node 1
+  10.13.13.2  WSL2 Workstation (GPU Worker)
+  10.13.13.3  Hetzner Node 2
+  10.13.13.4  Hetzner Node 3
+```
 
 ```bash
-scripts/whiteboard-setup.sh
-NAMESPACE=workspace scripts/whiteboard-setup.sh
+bash scripts/setup-wireguard.sh
 ```
 
-### check-updates.sh -- Image-Updates pruefen
+---
 
-Prueft alle Container-Images auf verfuegbare Updates und zeigt die aktuelle vs. neueste Version an.
+## setup.sh
+
+**Zweck:** Prüft alle Voraussetzungen für den Workspace MVP (Prerequisite Checker).
 
 ```bash
-scripts/check-updates.sh
+./scripts/setup.sh           # Prüfung ausführen (Standard)
+./scripts/setup.sh --check   # Explizit Prüfmodus
 ```
 
-### setup-wireguard.sh -- WireGuard VPN einrichten
+Prüft das Vorhandensein aller benötigten Werkzeuge: Docker, k3d, kubectl, task, git, curl, jq.
 
-Richtet WireGuard-VPN-Tunnel zwischen Cluster-Nodes ein (fuer Multi-Cluster-Szenarien).
+---
+
+## talk-hpb-setup.sh
+
+**Zweck:** Konfiguriert Nextcloud Talk für die Nutzung des spreed-signaling HPB, des coturn TURN-Servers und des STUN-Ports.
+
+Liest Secrets aus dem `workspace/workspace-secrets`-Secret, sodass Dev und Prod denselben Stack nutzen.
 
 ```bash
-scripts/setup-wireguard.sh
+bash scripts/talk-hpb-setup.sh
 ```
 
-## Umgebungs-Management (scripts/env-*)
+---
 
-Skripte zur Verwaltung umgebungsspezifischer Konfiguration und Secrets.
+## transcriber-setup.sh
 
-| Skript | Zweck |
-|--------|-------|
-| `env-generate.sh` | Generiert `.env`-Dateien aus Umgebungskonfiguration (`environments/*.yaml`) |
-| `env-resolve.sh` | Loest Variablen-Referenzen in Manifesten via `envsubst` auf |
-| `env-seal.sh` | Verschluesselt Secrets mit Sealed Secrets Controller |
-| `env-validate.sh` | Validiert Umgebungskonfiguration gegen das Schema (`environments/schema.yaml`) |
+**Zweck:** Legt den `transcriber-bot`-Nextcloud-Benutzer für den `talk-transcriber`-Pod an.
+
+Idempotent — bei bereits vorhandenem Benutzer wird nur das Passwort aktualisiert.
 
 ```bash
-scripts/env-validate.sh environments/mentolder.yaml    # Schema-Validierung
-scripts/env-generate.sh environments/mentolder.yaml    # .env generieren
-scripts/env-seal.sh environments/mentolder.yaml        # Secrets versiegeln
-scripts/env-resolve.sh prod/ environments/mentolder.yaml  # Manifeste ausfuellen
+bash scripts/transcriber-setup.sh
 ```
 
-## Bibliotheks-Skripte (scripts/lib/)
+---
 
-Diese Skripte werden von `migrate.sh` geladen und nicht direkt ausgefuehrt.
+## whiteboard-setup.sh
 
-| Skript | Zweck |
-|--------|-------|
-| `slack-import.sh` | Slack Export nach Nextcloud/Messaging konvertieren |
-| `teams-import.sh` | Teams GDPR-Export nach Nextcloud |
-| `google-import.sh` | Google Takeout nach Nextcloud (Drive, Calendar, Contacts) |
-| `export.sh` | Selektiver Datenexport in ZIP-Archiv |
-| `scan.sh` | Lokale Quellen-Erkennung (Slack, Teams, Google, etc.) |
-| `nextcloud-api.sh` | Nextcloud WebDAV/CalDAV/CardDAV Hilfsfunktionen |
+**Zweck:** Installiert und konfiguriert die Nextcloud Whiteboard-App und synchronisiert das JWT-Secret mit dem Whiteboard-Collaboration-Backend.
+
+```bash
+bash scripts/whiteboard-setup.sh
+```

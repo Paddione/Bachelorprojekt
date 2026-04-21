@@ -43,7 +43,6 @@ data:
     }
   janus.plugin.videoroom.jcfg: |
     general: {
-      admin_key = "devvideoroomadmin"
     }
 ---
 apiVersion: apps/v1
@@ -73,6 +72,7 @@ spec:
         - name: janus
           image: canyan/janus-gateway:master_cefca79700bdadd32d759ce65ba3805552a4d312
           imagePullPolicy: Always
+          command: ["/usr/local/bin/janus", "--configs-folder", "/etc/janus"]
           ports:
             - containerPort: 8188
               hostPort: 8188

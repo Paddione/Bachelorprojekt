@@ -29,12 +29,13 @@ interface SendEmailParams {
   html?: string;
   replyTo?: string;
   headers?: Record<string, string>;
+  from?: string;
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<boolean> {
   try {
     await transporter.sendMail({
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from: params.from ?? `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to: params.to,
       subject: params.subject,
       text: params.text,
@@ -123,5 +124,56 @@ ${FROM_NAME}`,
 <p>${replyText.replace(/\n/g, '<br>')}</p>
 <p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
     ...(threadId ? { headers: { 'X-Mattermost-Thread-Id': threadId } } : {}),
+  });
+}
+
+export async function sendNewsletterConfirmation(
+  email: string,
+  confirmUrl: string,
+): Promise<boolean> {
+  return sendEmail({
+    to: email,
+    subject: `Bitte bestätige deine Newsletter-Anmeldung bei ${FROM_NAME}`,
+    text: `Hallo,
+
+du hast dich für den Newsletter von ${FROM_NAME} angemeldet.
+
+Bitte bestätige deine E-Mail-Adresse innerhalb von 48 Stunden:
+${confirmUrl}
+
+Falls du dich nicht angemeldet hast, kannst du diese E-Mail ignorieren.
+
+Mit freundlichen Grüßen
+${FROM_NAME}`,
+    html: `<p>Hallo,</p>
+<p>du hast dich für den Newsletter von <strong>${FROM_NAME}</strong> angemeldet.</p>
+<p>Bitte bestätige deine E-Mail-Adresse innerhalb von 48 Stunden:</p>
+<p><a href="${confirmUrl}" style="display:inline-block;padding:10px 20px;background:#b8973a;color:#fff;text-decoration:none;border-radius:6px;">E-Mail bestätigen</a></p>
+<p style="font-size:12px;color:#888;">Oder kopiere diesen Link: ${confirmUrl}</p>
+<p>Falls du dich nicht angemeldet hast, kannst du diese E-Mail ignorieren.</p>
+<p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
+  });
+}
+
+export async function sendNewsletterCampaign(params: {
+  to: string;
+  subject: string;
+  html: string;
+  unsubscribeUrl: string;
+}): Promise<boolean> {
+  const footerHtml = `
+<hr style="margin:32px 0;border:none;border-top:1px solid #333;">
+<p style="font-size:12px;color:#888;">
+  Du erhältst diese E-Mail, weil du den Newsletter von ${FROM_NAME} abonniert hast.
+  <a href="${params.unsubscribeUrl}" style="color:#888;">Abmelden</a>
+</p>`;
+  const footerText = `\n\n---\nDu erhältst diese E-Mail, weil du den Newsletter von ${FROM_NAME} abonniert hast.\nAbmelden: ${params.unsubscribeUrl}`;
+  const htmlWithFooter = params.html + footerHtml;
+  const textWithFooter = params.html.replace(/<[^>]+>/g, '') + footerText;
+  return sendEmail({
+    to: params.to,
+    subject: params.subject,
+    text: textWithFooter,
+    html: htmlWithFooter,
   });
 }

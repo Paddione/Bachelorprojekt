@@ -48,11 +48,11 @@
         appearance: { theme: 'night' },
       });
 
-      // Defer mount until after Svelte renders the container div
+      // Set state first so Svelte renders the container div, then mount
+      state = 'ready';
       await tick();
       const paymentElement = elementsInstance.create('payment');
       paymentElement.mount(`#payment-element-${invoiceId}`);
-      state = 'ready';
     } catch (e) {
       console.error('[InlineInvoicePayment]', e);
       errorMessage = 'Verbindung zu Stripe fehlgeschlagen.';
@@ -64,15 +64,20 @@
     if (!stripeInstance || !elementsInstance) return;
     state = 'paying';
     errorMessage = '';
-    const { error } = await stripeInstance.confirmPayment({
-      elements: elementsInstance,
-      confirmParams: {
-        return_url: window.location.href,
-      },
-      redirect: 'if_required',
-    });
-    if (error) {
-      errorMessage = error.message ?? 'Zahlung fehlgeschlagen.';
+    const TIMEOUT_MS = 30000;
+    const timeoutPromise = new Promise<{ error: { message: string } }>(resolve =>
+      setTimeout(() => resolve({ error: { message: 'Zeitüberschreitung. Bitte prüfen Sie Ihre Verbindung und versuchen es erneut.' } }), TIMEOUT_MS)
+    );
+    const result = await Promise.race([
+      stripeInstance.confirmPayment({
+        elements: elementsInstance,
+        confirmParams: { return_url: window.location.href },
+        redirect: 'if_required',
+      }),
+      timeoutPromise,
+    ]);
+    if (result.error) {
+      errorMessage = result.error.message ?? 'Zahlung fehlgeschlagen.';
       state = 'error';
     } else {
       state = 'success';

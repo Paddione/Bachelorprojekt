@@ -13,18 +13,25 @@ data:
     echo "Initializing meetings schema..."
 
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
-      -- Customers (cross-reference to Keycloak, Mattermost)
+      -- Customer number sequence (M0001, M0002, …)
+      CREATE SEQUENCE IF NOT EXISTS customer_number_seq START 1;
+
+      -- Customers (cross-reference to Keycloak)
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name TEXT NOT NULL,
           email TEXT NOT NULL UNIQUE,
           phone TEXT,
           company TEXT,
-          mattermost_channel_id TEXT,
           keycloak_user_id TEXT,
           created_at TIMESTAMPTZ DEFAULT now(),
           updated_at TIMESTAMPTZ DEFAULT now()
       );
+
+      -- Add customer_number to existing deployments
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS customer_number TEXT UNIQUE;
+      UPDATE customers SET customer_number = 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0') WHERE customer_number IS NULL;
+      ALTER TABLE customers ALTER COLUMN customer_number SET DEFAULT 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0');
 
       -- Meeting history
       CREATE TABLE IF NOT EXISTS meetings (
@@ -153,12 +160,16 @@ data:
       CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id, id ASC);
 
       CREATE TABLE IF NOT EXISTS chat_rooms (
-        id          SERIAL PRIMARY KEY,
-        name        TEXT NOT NULL,
-        created_by  TEXT NOT NULL,
-        created_at  TIMESTAMPTZ DEFAULT now(),
-        archived_at TIMESTAMPTZ
+        id                  SERIAL PRIMARY KEY,
+        name                TEXT NOT NULL,
+        created_by          TEXT NOT NULL,
+        created_at          TIMESTAMPTZ DEFAULT now(),
+        archived_at         TIMESTAMPTZ,
+        is_direct           BOOLEAN NOT NULL DEFAULT FALSE,
+        direct_customer_id  UUID REFERENCES customers(id) ON DELETE SET NULL
       );
+      ALTER TABLE chat_rooms ADD COLUMN IF NOT EXISTS is_direct BOOLEAN NOT NULL DEFAULT FALSE;
+      ALTER TABLE chat_rooms ADD COLUMN IF NOT EXISTS direct_customer_id UUID REFERENCES customers(id) ON DELETE SET NULL;
 
       CREATE TABLE IF NOT EXISTS chat_room_members (
         room_id     INT NOT NULL REFERENCES chat_rooms(id),

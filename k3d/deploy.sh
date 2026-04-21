@@ -24,8 +24,6 @@ kubectl create configmap keycloak-import-script \
   --from-file="import-entrypoint.sh=$PROJECT_ROOT/scripts/import-entrypoint.sh" \
   -n workspace --dry-run=client -o yaml | kubectl apply -f -
 
-kubectl create configmap mattermost-proxy-config \
-  --from-file="default.conf=$PROJECT_ROOT/mattermost/userinfo-proxy.conf" \
   -n workspace --dry-run=client -o yaml | kubectl apply -f -
 
 # ── Kustomize Manifeste anwenden ─────────────────────────────────────
@@ -34,13 +32,11 @@ kubectl apply -k .
 
 # ── Datenbanken abwarten ────────────────────────────────────────────
 echo "[4/5] Warte auf Datenbanken..."
-for db in keycloak-db mattermost-db nextcloud-db; do
   kubectl rollout status deployment/$db -n workspace --timeout=120s
 done
 
 # ── Dienste abwarten ────────────────────────────────────────────────
 echo "[5/5] Warte auf Dienste (kann 2-3 Minuten dauern)..."
-for svc in keycloak mattermost nextcloud spreed-signaling janus coturn; do
   kubectl rollout status deployment/$svc -n workspace --timeout=300s 2>/dev/null || \
     echo "  WARNUNG: $svc noch nicht bereit — startet möglicherweise noch."
 done
@@ -57,7 +53,6 @@ echo "=== Deployment abgeschlossen ==="
 echo ""
 echo "Dienste:"
 echo "  Keycloak (SSO):       http://auth.localhost"
-echo "  Mattermost (Chat):    http://chat.localhost"
 echo "  Nextcloud (Dateien):  http://files.localhost"
 echo "  Talk HPB (Signaling): http://signaling.localhost"
 echo "  Collabora (Office):   http://office.localhost"

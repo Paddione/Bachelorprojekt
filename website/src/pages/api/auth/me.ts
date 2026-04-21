@@ -16,6 +16,7 @@ export const GET: APIRoute = async ({ request }) => {
   return new Response(
     JSON.stringify({
       authenticated: true,
+      expiresAt: session.expires_at,
       user: {
         name: session.name,
         email: session.email,

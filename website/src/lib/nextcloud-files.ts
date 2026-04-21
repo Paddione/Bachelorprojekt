@@ -174,6 +174,10 @@ export function getFileUrl(filePath: string): string {
  * e.g. "Clients/max.mustermann/"
  */
 export function getClientFolderPath(username: string): string {
+  // Whitelist: only allow safe username characters (Keycloak allows a-z, 0-9, .-_@)
+  if (!/^[a-zA-Z0-9._@-]+$/.test(username) || username.length > 200) {
+    throw new Error(`Invalid username for folder path: ${username}`);
+  }
   return `Clients/${username}/`;
 }
 

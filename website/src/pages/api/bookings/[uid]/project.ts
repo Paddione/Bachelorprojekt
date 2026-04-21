@@ -22,7 +22,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
     });
   }
 
-  let body: { projectId?: string | null };
+  let body: { projectId?: string | null; leistungKey?: string | null };
   try {
     body = await request.json();
   } catch {
@@ -33,7 +33,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
 
   const brand = process.env.BRAND_NAME || 'mentolder';
   try {
-    await setBookingProject(uid, body.projectId ?? null, brand);
+    await setBookingProject(uid, body.projectId ?? null, brand, body.leistungKey ?? undefined);
     return new Response(JSON.stringify({ ok: true }), {
       status: 200, headers: { 'Content-Type': 'application/json' },
     });

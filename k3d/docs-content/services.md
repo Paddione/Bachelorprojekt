@@ -69,11 +69,9 @@ Drei Deployments fuer WebRTC-Videokonferenzen:
 
 Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. Alle Konfigurationen ueber ConfigMaps inline im Manifest.
 
-## AI
+## MCP & KI-Integration
 
-### Claude Code (KI-Assistent)
-
-**Für Mitarbeiter:** Claude ist Dein interner KI-Assistent. Du kannst ihm Fragen stellen, Texte schreiben lassen, Zusammenfassungen anfordern oder Dir bei Aufgaben helfen lassen. Zugriff über die KI-Seite in Deinem Browser. Gib keine sensiblen Kundendaten in die KI ein.
+### Claude Code (MCP-Server)
 
 Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (Model Context Protocol) mit dem Kubernetes-Cluster interagiert. Es gibt kein Web-UI im Cluster -- stattdessen zeigt `ai.localhost` eine MCP-Status-Seite mit Health-Checks aller MCP-Server.
 

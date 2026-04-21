@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# google-import.sh — Google Takeout → Mattermost + Nextcloud
+# google-import.sh — Google Takeout → Nextcloud
 # ═══════════════════════════════════════════════════════════════════
 # Importiert aus einem Google Takeout Export (takeout.google.com):
 #
-#   - Google Chat  → Mattermost (JSONL bulk import)
+#   - Google Drive, Kalender, Kontakte → Nextcloud
 #   - Drive        → Nextcloud (WebDAV upload)
 #   - Kalender     → Nextcloud Calendar (CalDAV)
 #   - Kontakte     → Nextcloud Contacts (CardDAV)

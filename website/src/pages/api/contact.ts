@@ -1,8 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
-import { sendEmail } from '../../lib/email';
-
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
+import { sendAdminNotification } from '../../lib/notifications';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -16,6 +15,12 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`contact:${ip}`, 5, 60_000)) {
+    return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie einen Moment.' }), {
+      status: 429, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   try {
     const body = await request.json();
     const { name, email, phone, type, message } = body;
@@ -41,24 +46,15 @@ export const POST: APIRoute = async ({ request }) => {
       payload: { name, email, phone: phone ?? null, type, typeLabel, message },
     });
 
-    // E-Mail-Benachrichtigung an Admin
-    if (CONTACT_EMAIL) {
-      const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
-      await sendEmail({
-        to: CONTACT_EMAIL,
-        subject: `[${typeLabel}] Neue Anfrage von ${name}`,
-        replyTo: email,
-        text: `Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\n\nNachricht:\n${message}`,
-        html: `<p>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</p>
-<table>
-<tr><td><strong>Name</strong></td><td>${name}</td></tr>
-<tr><td><strong>E-Mail</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>
-${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}
-<tr><td><strong>Typ</strong></td><td>${typeLabel}</td></tr>
-</table>
-<p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
-      });
-    }
+    // Admin notification is best-effort — inbox item is the authoritative record
+    const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
+    sendAdminNotification({
+      type: 'contact',
+      subject: `[${typeLabel}] Neue Anfrage von ${name}`,
+      replyTo: email,
+      text: `Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\n\nNachricht:\n${message}`,
+      html: `<p><strong>Neue Anfrage über das Kontaktformular auf ${BRAND_NAME}.</strong></p><p>Name: ${name}<br>E-Mail: <a href="mailto:${email}">${email}</a>${phone ? `<br>Telefon: ${phone}` : ''}<br>Typ: ${typeLabel}</p><p><strong>Nachricht:</strong><br>${message.replace(/\n/g, '<br>')}</p>`,
+    }).catch(err => console.error('[contact] Failed to send admin notification:', err));
 
     return new Response(
       JSON.stringify({ success: true }),

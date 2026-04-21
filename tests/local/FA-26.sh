@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FA-26: Bug Report Form — Website + Mattermost bugs channel
+# FA-26: Bug Report Form — Website bug report endpoint
 # Tests: Website pod running, /api/bug-report endpoint reachable,
 #        bugs channel (or anfragen fallback) present, ConfigMap has env.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -9,7 +9,6 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
 WEB_NAMESPACE="${WEB_NAMESPACE:-website}"
-MM_NAMESPACE="${NAMESPACE:-workspace}"
 
 # ── T1: Website deployment running ───────────────────────────────
 WEB_READY=$(kubectl get deployment website -n "$WEB_NAMESPACE" \

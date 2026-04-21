@@ -60,30 +60,6 @@
   ],
   "clients": [
     {
-      "clientId": "mattermost",
-      "name": "Mattermost",
-      "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "${MATTERMOST_OIDC_SECRET}",
-      "redirectUris": [
-        "http://${MM_DOMAIN}/*"
-      ],
-      "webOrigins": [
-        "http://${MM_DOMAIN}"
-      ],
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "protocol": "openid-connect",
-      "publicClient": false,
-      "attributes": {
-        "oidc.ciba.grant.enabled": "false",
-        "oauth2.device.authorization.grant.enabled": "false",
-        "backchannel.logout.session.required": "true"
-      }
-    },
-    {
       "clientId": "docs",
       "name": "Docs",
       "enabled": true,

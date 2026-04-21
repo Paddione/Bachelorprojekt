@@ -1,21 +1,23 @@
 ---
 import '../styles/global.css';
 import { config } from '../config/index';
+import { isAdmin } from '../lib/auth';
 import type { UserSession } from '../lib/auth';
+import ChatWidget from '../components/ChatWidget.svelte';
+import HelpPanel from '../components/HelpPanel.svelte';
+import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 
 interface Props {
   title: string;
   section: string;
   session: UserSession;
-  unreadMessages: number;
   pendingSignatures: number;
 }
 
-const { title, section, session, unreadMessages, pendingSignatures } = Astro.props;
+const { title, section, session, pendingSignatures } = Astro.props;
 
 const icons: Record<string, string> = {
   overview:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
-  nachrichten:    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h12v8H9.5L8 13l-1.5-2H2z"/><path d="M5 6.5h6M5 8.5h4"/></svg>`,
   besprechungen:  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1.5" width="5" height="7" rx="2.5"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5v2M6 14.5h4"/></svg>`,
   dateien:        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h5.5L13 5.5V14H4V2z"/><path d="M9.5 2v3.5H13"/><path d="M6 8h4M6 10.5h4M6 13h2.5"/></svg>`,
   unterschriften: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5c1-2 2-4 3-3s0 3 1.5 2 2-3 3-2"/><path d="M2.5 13.5h11"/></svg>`,
@@ -49,7 +51,6 @@ const navGroups: NavGroup[] = [
   {
     label: 'Kommunikation',
     items: [
-      { id: 'nachrichten',   label: 'Nachrichten',   icon: 'nachrichten',   badge: unreadMessages },
       { id: 'besprechungen', label: 'Besprechungen', icon: 'besprechungen' },
     ],
   },
@@ -85,6 +86,7 @@ const navGroups: NavGroup[] = [
 const avatarInitial = (session.given_name || session.name || session.preferred_username || '?')[0].toUpperCase();
 const displayName   = session.given_name || session.name || session.preferred_username;
 const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
+const userIsAdmin   = isAdmin(session);
 ---
 
 <!doctype html>
@@ -113,12 +115,71 @@ const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
         background: rgba(248, 113, 113, 0.07);
         color: #f87171;
       }
+
+      /* Mobile */
+      #portal-mobile-topbar  { display: none; }
+      #portal-backdrop { display: none; }
+
+      @media (max-width: 767px) {
+        #portal-sidebar {
+          position: fixed !important;
+          top: 0; left: 0; bottom: 0;
+          z-index: 100;
+          width: 13rem !important;
+          min-height: unset !important;
+          transform: translateX(-100%);
+          transition: transform 0.25s ease;
+        }
+        #portal-sidebar.mobile-open {
+          transform: translateX(0);
+        }
+        #portal-backdrop {
+          display: block !important;
+          position: fixed; inset: 0; z-index: 99;
+          background: rgba(0,0,0,0.55);
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.25s ease;
+        }
+        #portal-backdrop.visible { opacity: 1; pointer-events: auto; }
+        #portal-mobile-topbar {
+          display: flex !important;
+          position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 101;
+          background: var(--ink-850); border-bottom: 1px solid var(--line);
+          align-items: center; padding: 0 12px; gap: 12px; flex-shrink: 0;
+        }
+        #portal-main { padding-top: 48px; min-height: calc(100vh - 48px) !important; }
+      }
     </style>
   </head>
   <body style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
 
+    <!-- Mobile topbar -->
+    <div id="portal-mobile-topbar">
+      <button
+        id="portal-hamburger"
+        aria-label="Menü öffnen"
+        style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:none; border:none; cursor:pointer; color:var(--fg-soft); border-radius:8px; flex-shrink:0;"
+      >
+        <svg id="portal-icon-open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px;" aria-hidden="true">
+          <path d="M2 4h12M2 8h12M2 12h12"/>
+        </svg>
+        <svg id="portal-icon-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px; display:none;" aria-hidden="true">
+          <path d="M3 3l10 10M13 3L3 13"/>
+        </svg>
+      </button>
+      <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+        <div style="width:28px; height:28px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <span style="font-family:var(--font-serif); font-size:13px; font-weight:600; color:var(--ink-900);">{avatarInitial}</span>
+        </div>
+        <span style="font-size:13px; font-weight:600; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{displayName}</span>
+      </div>
+    </div>
+
+    <!-- Mobile backdrop -->
+    <div id="portal-backdrop"></div>
+
     <!-- Sidebar -->
-    <aside style="width:13rem; flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
+    <aside id="portal-sidebar" style="width:13rem; flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
 
       <!-- Header: user avatar + info + brand link -->
       <div style="padding:20px 14px 16px; border-bottom:1px solid var(--line);">
@@ -185,6 +246,21 @@ const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 
       <!-- Footer -->
       <div style="padding:10px 8px 12px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:1px;">
+        {userIsAdmin && (
+          <a
+            href="/admin"
+            class="portal-footer-link"
+            style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--brass); transition:background 0.1s ease, color 0.1s ease;"
+          >
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
+              <rect x="2" y="2" width="5" height="5" rx="0.5"/>
+              <rect x="9" y="2" width="5" height="5" rx="0.5"/>
+              <rect x="2" y="9" width="5" height="5" rx="0.5"/>
+              <rect x="9" y="9" width="5" height="5" rx="0.5"/>
+            </svg>
+            <span>Admin</span>
+          </a>
+        )}
         <a
           href="/portal?section=konto"
           class={`portal-nav-item${section === 'konto' ? ' is-active' : ''} portal-footer-link`}
@@ -216,9 +292,46 @@ const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     </aside>
 
     <!-- Main -->
-    <main style="flex:1; min-height:100vh; overflow-y:auto;">
+    <main id="portal-main" style="flex:1; min-height:100vh; overflow-y:auto;">
       <slot />
     </main>
 
+    <HelpPanel client:load section={section} context="portal" />
+    <ChatWidget client:load />
+    <SessionExpiryWarning client:load />
+
+    <script is:inline>
+      (function() {
+        var hamburger = document.getElementById('portal-hamburger');
+        var backdrop = document.getElementById('portal-backdrop');
+        var sidebar = document.getElementById('portal-sidebar');
+        var iconOpen = document.getElementById('portal-icon-open');
+        var iconClose = document.getElementById('portal-icon-close');
+
+        function openSidebar() {
+          sidebar.classList.add('mobile-open');
+          backdrop.classList.add('visible');
+          if (iconOpen) iconOpen.style.display = 'none';
+          if (iconClose) iconClose.style.display = 'block';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü schließen');
+        }
+        function closeSidebar() {
+          sidebar.classList.remove('mobile-open');
+          backdrop.classList.remove('visible');
+          if (iconOpen) iconOpen.style.display = 'block';
+          if (iconClose) iconClose.style.display = 'none';
+          if (hamburger) hamburger.setAttribute('aria-label', 'Menü öffnen');
+        }
+
+        if (hamburger) hamburger.addEventListener('click', function() {
+          if (sidebar.classList.contains('mobile-open')) closeSidebar();
+          else openSidebar();
+        });
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+        if (sidebar) sidebar.querySelectorAll('a').forEach(function(a) {
+          a.addEventListener('click', function() { if (window.innerWidth < 768) closeSidebar(); });
+        });
+      })();
+    </script>
   </body>
 </html>

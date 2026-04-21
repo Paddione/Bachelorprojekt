@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../lib/auth';
-import { listBugTickets, listProjects, getDueFollowUps, listAdminShortcuts } from '../lib/website-db';
+import { listBugTickets, listProjects, listAdminShortcuts } from '../lib/website-db';
 import type { AdminShortcut } from '../lib/website-db';
 import { getAllBillingInvoices } from '../lib/stripe-billing';
 import { getAvailableSlots } from '../lib/caldav';
@@ -18,7 +18,6 @@ let openBugCount      = 0;
 let activeProjects    = 0;
 let openInvoices      = 0;
 let openInvoiceAmount = 0;
-let dueFollowUps      = 0;
 let freeSlots         = 0;
 let shortcuts: AdminShortcut[] = [];
 
@@ -33,8 +32,6 @@ await Promise.allSettled([
       openInvoices      = open.length;
       openInvoiceAmount = open.reduce((s, i) => s + i.amountRemaining, 0);
     }),
-  getDueFollowUps()
-    .then(f => { dueFollowUps = f.length; }),
   getAvailableSlots(new Date())
     .then(slots => {
       const horizon = new Date(); horizon.setDate(horizon.getDate() + 7);
@@ -65,10 +62,9 @@ const adminLinks = [
     { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
     { href: `${ncBase}/apps/files/`,      label: 'Whiteboard', icon: '🖊️' },
   ] : []),
-  ...(wikiUrl     ? [{ href: wikiUrl,           label: 'Wiki',       icon: '📚' }] : []),
   ...(billingUrl  ? [{ href: billingUrl,        label: 'Abrechnung', icon: '🧾' }] : []),
   ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
-  ...(authUrl     ? [{ href: `${authUrl}/admin/`, label: 'Keycloak', icon: '🔑' }] : []),
+  ...(authUrl     ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak', icon: '🔑' }] : []),
   ...(docsUrl     ? [{ href: docsUrl,           label: 'Docs',       icon: '📖' }] : []),
 ];
 ---
@@ -83,12 +79,11 @@ const adminLinks = [
       </div>
 
       <!-- KPI Banner -->
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
   {[
     { label: 'Aktive Projekte',   value: String(activeProjects),           href: '/admin/projekte',  cls: 'border-yellow-800' },
     { label: 'Offene Rechnungen', value: openInvoices > 0 ? `${openInvoices} (${fmtCurrency(openInvoiceAmount)})` : '0', href: '/admin/rechnungen', cls: openInvoices > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
     { label: 'Überfällige Bugs',   value: String(openBugCount),             href: '/admin/bugs',      cls: openBugCount > 0 ? 'border-red-800' : 'border-dark-lighter' },
-    { label: 'Follow-ups fällig', value: String(dueFollowUps),             href: '/admin/followups', cls: dueFollowUps > 0 ? 'border-red-800' : 'border-dark-lighter' },
     { label: 'Freie Slots (7 T)', value: String(freeSlots),                href: '/admin/termine',   cls: freeSlots > 0 ? 'border-green-800' : 'border-dark-lighter' },
   ].map(k => (
     <a href={k.href} class={`p-4 bg-dark-light rounded-xl border hover:border-gold/40 transition-colors ${k.cls}`}>

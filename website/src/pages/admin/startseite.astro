@@ -123,9 +123,19 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
           </label>
         </div>
         <div id="avatar-image-field" class={hp.avatarType === 'initials' ? 'hidden' : ''}>
-          <label class={labelCls}>Bild-URL (z. B. /gerald.webp oder https://...)</label>
-          <input type="text" name="avatar_src" value={hp.avatarSrc ?? ''} class={inputCls}
-            placeholder="/gerald.webp" />
+          <label class={labelCls}>Bild hochladen oder URL eingeben</label>
+          <div class="flex gap-2 items-center">
+            <input type="text" id="avatar_src_input" name="avatar_src" value={hp.avatarSrc ?? ''} class={`${inputCls} flex-1`}
+              placeholder="/gerald.webp oder https://..." />
+            <label class="px-3 py-2 bg-dark-lighter border border-dark-lighter rounded-lg text-sm text-light cursor-pointer hover:border-gold/50 whitespace-nowrap">
+              📷 Datei wählen
+              <input type="file" id="avatar_file_input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" />
+            </label>
+          </div>
+          <p id="avatar-upload-status" class="text-xs mt-1 text-muted hidden"></p>
+          {hp.avatarSrc?.startsWith('data:') && (
+            <img src={hp.avatarSrc} alt="Vorschau" class="mt-2 h-20 w-20 rounded-full object-cover border border-dark-lighter" />
+          )}
         </div>
         <div id="avatar-initials-field" class={hp.avatarType !== 'initials' ? 'hidden' : ''}>
           <label class={labelCls}>Initialen (z. B. GK)</label>
@@ -143,6 +153,33 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
           imageField?.classList.toggle('hidden', !isImage);
           initialsField?.classList.toggle('hidden', isImage);
         }));
+
+        const fileInput = document.getElementById('avatar_file_input') as HTMLInputElement | null;
+        const srcInput = document.getElementById('avatar_src_input') as HTMLInputElement | null;
+        const statusEl = document.getElementById('avatar-upload-status');
+        fileInput?.addEventListener('change', async () => {
+          const file = fileInput?.files?.[0];
+          if (!file || !srcInput || !statusEl) return;
+          statusEl.textContent = 'Lädt hoch…';
+          statusEl.className = 'text-xs mt-1 text-muted';
+          const fd = new FormData();
+          fd.append('file', file);
+          try {
+            const res = await fetch('/api/admin/startseite/upload-portrait', { method: 'POST', body: fd });
+            const data = await res.json() as { src?: string; error?: string };
+            if (!res.ok || data.error) {
+              statusEl.textContent = data.error ?? 'Upload fehlgeschlagen';
+              statusEl.className = 'text-xs mt-1 text-red-400';
+            } else {
+              srcInput.value = data.src!;
+              statusEl.textContent = '✓ Bild hochgeladen — bitte speichern';
+              statusEl.className = 'text-xs mt-1 text-green-400';
+            }
+          } catch {
+            statusEl.textContent = 'Netzwerkfehler beim Upload';
+            statusEl.className = 'text-xs mt-1 text-red-400';
+          }
+        });
       </script>
 
       <!-- Quote -->

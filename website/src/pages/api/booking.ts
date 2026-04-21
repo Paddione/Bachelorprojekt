@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
-import { isSlotWhitelisted } from '../../lib/website-db';
+import { sendAdminNotification } from '../../lib/notifications';
+import { isSlotInAnyWindow } from '../../lib/website-db';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
 
 const TYPE_LABELS: Record<string, string> = {
   erstgespraech: 'Kostenloses Erstgespräch',
@@ -14,8 +15,14 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`booking:${ip}`, 5, 60_000)) {
+    return new Response(JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie einen Moment.' }), {
+      status: 429, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   try {
-    const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey } = await request.json();
+    const { name, email, phone, type, message, slotStart, slotEnd, slotDisplay, date, serviceKey, projectId, leistungKey } = await request.json();
 
     const isCallback = type === 'callback';
 
@@ -32,13 +39,13 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Whitelist check: slot must be explicitly released by admin
-    if (!isCallback && slotStart) {
-      const whitelisted = await isSlotWhitelisted(BRAND_NAME, new Date(slotStart));
-      if (!whitelisted) {
+    // Validate that the requested slot falls within an admin-defined time window.
+    if (!isCallback && slotStart && slotEnd) {
+      const valid = await isSlotInAnyWindow(BRAND_NAME, new Date(slotStart), new Date(slotEnd));
+      if (!valid) {
         return new Response(
           JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 409, headers: { 'Content-Type': 'application/json' } }
         );
       }
     }
@@ -64,6 +71,7 @@ export const POST: APIRoute = async ({ request }) => {
         slotStart: slotStart ?? null, slotEnd: slotEnd ?? null,
         slotDisplay: slotDisplay ?? null, date: date ?? null,
         serviceKey: serviceKey ?? null, message: message ?? null,
+        projectId: projectId ?? null, leistungKey: leistungKey ?? null,
       },
     });
 
@@ -76,24 +84,18 @@ export const POST: APIRoute = async ({ request }) => {
         : `Hallo ${name},\n\nvielen Dank für Ihre Terminanfrage bei ${BRAND_NAME}.\n\nIhr gewünschter Termin:\n  Typ:     ${typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${slotDisplay}\n\nWir prüfen Ihre Anfrage und melden uns in Kürze mit einer Bestätigung.\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
     });
 
-    // Admin notification email
-    if (CONTACT_EMAIL) {
-      const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
-      const adminText = isCallback
-        ? `Neue Rückruf-Anfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
-        : `Neue Terminanfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${message ? `\n\nAnmerkungen:\n${message}` : ''}`;
-      await sendEmail({
-        to: CONTACT_EMAIL,
-        subject: isCallback
-          ? `[Rückruf] Anfrage von ${name}`
-          : `[Terminanfrage: ${typeLabel}] ${name} am ${dateFormatted}`,
-        replyTo: email,
-        text: adminText,
-        html: isCallback
-          ? `<p>Neue Rückruf-Anfrage auf ${BRAND_NAME}.</p><table><tr><td><strong>Name</strong></td><td>${name}</td></tr><tr><td><strong>E-Mail</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}</table>${message ? `<p><strong>Anmerkungen:</strong><br>${message.replace(/\n/g, '<br>')}</p>` : ''}`
-          : `<p>Neue Terminanfrage auf ${BRAND_NAME}.</p><table><tr><td><strong>Name</strong></td><td>${name}</td></tr><tr><td><strong>E-Mail</strong></td><td><a href="mailto:${email}">${email}</a></td></tr>${phone ? `<tr><td><strong>Telefon</strong></td><td>${phone}</td></tr>` : ''}<tr><td><strong>Typ</strong></td><td>${typeLabel}</td></tr><tr><td><strong>Datum</strong></td><td>${dateFormatted}</td></tr><tr><td><strong>Uhrzeit</strong></td><td>${slotDisplay}</td></tr></table>${message ? `<p><strong>Anmerkungen:</strong><br>${message.replace(/\n/g, '<br>')}</p>` : ''}`,
-      });
-    }
+    // Admin notification
+    const phoneInfo = phone ? `\nTelefon: ${phone}` : '';
+    const adminText = isCallback
+      ? `Neue Rückruf-Anfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}${message ? `\n\nAnmerkungen:\n${message}` : ''}`
+      : `Neue Terminanfrage auf ${BRAND_NAME}.\n\nName: ${name}\nE-Mail: ${email}${phoneInfo}\nTyp: ${typeLabel}\nDatum: ${dateFormatted}\nUhrzeit: ${slotDisplay}${message ? `\n\nAnmerkungen:\n${message}` : ''}`;
+    await sendAdminNotification({
+      type: 'booking',
+      subject: isCallback ? `[Rückruf] Anfrage von ${name}` : `[Terminanfrage: ${typeLabel}] ${name} am ${dateFormatted}`,
+      text: adminText,
+      html: `<p>${adminText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`,
+      replyTo: email,
+    });
 
     return new Response(
       JSON.stringify({ success: true }),

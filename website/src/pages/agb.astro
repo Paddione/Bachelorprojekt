@@ -21,12 +21,18 @@ const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
         anerkannt, es sei denn, der Anbieter stimmt ihrer Geltung ausdrücklich schriftlich zu.
       </p>
 
-      <h2>§ 2 Vertragsschluss</h2>
+      <h2>§ 2 Vertragsschluss und Leistungsumfang</h2>
       <p>
-        Eine Buchungsanfrage über die Website stellt ein Angebot des Auftraggebers zum Abschluss
+        Eine Buchungsanfrage oder Beauftragung stellt ein Angebot des Auftraggebers zum Abschluss
         eines Vertrages dar. Der Vertrag kommt erst durch die schriftliche oder elektronische
         Auftragsbestätigung des Anbieters zustande. Automatisch generierte Eingangsbestätigungen
         gelten nicht als Vertragsannahme.
+      </p>
+      <p>
+        Dienstleistungen werden ausschließlich nach vorheriger schriftlicher Beauftragung durch
+        den Auftraggeber erbracht. Schriftliche Beauftragungen können per E-Mail oder in anderer
+        dokumentierter Form erfolgen. Änderungen oder Erweiterungen des Leistungsumfangs bedürfen
+        der schriftlichen Bestätigung durch den Anbieter.
       </p>
 
       <h2>§ 3 Leistungen</h2>
@@ -42,28 +48,69 @@ const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
         ))}
       </ul>
       <p>
-        Der genaue Leistungsumfang wird für jedes Engagement individuell vereinbart.
-        Änderungen oder Erweiterungen des Leistungsumfangs bedürfen der schriftlichen Bestätigung
-        durch den Anbieter.
+        Der genaue Leistungsumfang wird für jedes Engagement individuell vereinbart. Die
+        Leistungen können projekt- oder anlassbezogen beauftragt werden.
       </p>
 
-      <h2>§ 4 Preise und Zahlung</h2>
+      <h2>§ 4 Vergütung und Zahlung</h2>
       <p>
         Alle Preise verstehen sich in Euro. Der Anbieter ist Kleinunternehmer gemäß § 19 Abs. 1
         UStG; es wird daher keine Umsatzsteuer ausgewiesen.
       </p>
       <p>
-        Bei Einzelsitzungen wird die Rechnung nach Buchungsbestätigung gestellt und ist innerhalb
-        von 7 Tagen fällig. Die Leistung beginnt nach Zahlungseingang. Bei Paketen und Projekten
-        werden Zahlungsmodalitäten individuell schriftlich vereinbart.
+        <strong>Stundensätze:</strong> IT-Dienstleistungen (Entwicklung, Administration,
+        technischer Support) werden mit 70 Euro netto pro Stunde abgerechnet. Angefangene
+        Viertelstunden werden voll berechnet. Coaching-, Schulungs- und Beratungsleistungen
+        werden mit 150 Euro netto pro Stunde abgerechnet.
       </p>
       <p>
+        <strong>Anfahrtskosten:</strong> Für Fahrten zum Auftraggeber werden 0,60 Euro netto
+        pro gefahrenem Kilometer (Hin- und Rückfahrt) berechnet. Alternativ werden bei längeren
+        Anfahrten die tatsächlich anfallenden Reisekosten (Bahn, Flug, Hotel) erstattet.
+        Anfahrten innerhalb eines Umkreises von 10 km um den Geschäftssitz des Anbieters sind
+        kostenfrei. Anfahrtszeiten gelten als Teil der Stundenberechnung und werden zum
+        jeweiligen Stundensatz abgerechnet.
+      </p>
+      <p>
+        <strong>Abrechnung:</strong> Der Anbieter erstellt nach Abschluss eines Auftrags oder
+        nach Leistungserbringung eine Rechnung über die geleisteten Arbeitsstunden und
+        anfallende Anfahrtskosten. Die Zahlungsfrist beträgt 14 Tage nach Erhalt der Rechnung.
         Die Zahlung erfolgt per Überweisung auf das vom Anbieter angegebene Konto.
+      </p>
+      <p>
+        Bei Paketen und Projekten werden Zahlungsmodalitäten individuell schriftlich vereinbart.
         Bei Zahlungsverzug ist der Anbieter berechtigt, weitere Leistungen bis zum Ausgleich
-        des offenen Betrages zurückzuhalten.
+        des offenen Betrages zurückzuhalten sowie Verzugszinsen in Höhe von 9 Prozentpunkten
+        über dem Basiszinssatz gemäß § 288 BGB zu berechnen. Zusätzlich wird eine Mahngebühr
+        von 5 Euro je Mahnung fällig.
       </p>
 
-      <h2>§ 5 Stornierung und Terminabsage</h2>
+      <h2>§ 5 Vertragslaufzeit und Kündigung</h2>
+      <p>
+        Sofern nicht anders vereinbart, wird ein Vertrag zunächst für eine Mindestlaufzeit von
+        drei Monaten geschlossen. Nach Ablauf der Mindestlaufzeit verlängert sich der Vertrag
+        automatisch um jeweils einen Monat, sofern er nicht von einer der Parteien mit einer
+        Frist von einem Monat zum Monatsende schriftlich gekündigt wird.
+      </p>
+      <p>
+        Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt.
+        Für anlassbezogene Einzelaufträge ohne ausdrücklich vereinbarte Mindestlaufzeit
+        endet der Vertrag mit Abnahme der Leistung gemäß § 6.
+      </p>
+
+      <h2>§ 6 Abnahme von Leistungen</h2>
+      <p>
+        Nach Abschluss eines Projekts erfolgt eine schriftliche Abnahme durch den Auftraggeber.
+        Der Auftraggeber prüft die erbrachte Leistung innerhalb von 14 Tagen und teilt etwaige
+        Mängel schriftlich mit. Der Anbieter hat nach Eingang einer Mängelanzeige eine
+        Nachbesserungsfrist von 14 Tagen.
+      </p>
+      <p>
+        Erfolgt innerhalb der 14-tägigen Prüffrist keine schriftliche Rückmeldung, gilt die
+        Leistung als abgenommen.
+      </p>
+
+      <h2>§ 7 Stornierung und Terminabsage</h2>
       <p>
         Eine kostenfreie Stornierung ist bis 72 Stunden vor dem vereinbarten Termin möglich.
         Die Stornierung muss in Textform (z. B. per E-Mail) erfolgen.
@@ -82,7 +129,7 @@ const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
         Auftraggebers entstehen hieraus nicht.
       </p>
 
-      <h2>§ 6 Widerrufsrecht</h2>
+      <h2>§ 8 Widerrufsrecht</h2>
       <p>
         Verbrauchern steht ein gesetzliches Widerrufsrecht gemäß § 312g BGB zu. Die
         Widerrufsfrist beträgt 14 Tage ab dem Tag des Vertragsschlusses.
@@ -126,7 +173,7 @@ const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
         <p><em>(*) Unzutreffendes streichen.</em></p>
       </blockquote>
 
-      <h2>§ 7 Haftung</h2>
+      <h2>§ 9 Haftung</h2>
       <p>
         Der Anbieter haftet unbeschränkt für Schäden aus der Verletzung des Lebens, des Körpers
         oder der Gesundheit sowie für Schäden, die auf Vorsatz oder grober Fahrlässigkeit
@@ -138,19 +185,38 @@ const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
         vorhersehbaren, vertragstypischen Schaden begrenzt.
       </p>
       <p>
-        Eine Haftung für entgangenen Gewinn, mittelbare Schäden oder Folgeschäden ist
-        ausgeschlossen, soweit gesetzlich zulässig. Die Vorschriften des
-        Produkthaftungsgesetzes bleiben unberührt.
+        Die Haftung des Anbieters ist zudem auf das Zweifache des Auftragswerts, maximal jedoch
+        10.000 Euro pro Schadensfall, begrenzt. Eine Haftung für entgangenen Gewinn, mittelbare
+        Schäden oder Folgeschäden ist ausgeschlossen, soweit gesetzlich zulässig. Die
+        Vorschriften des Produkthaftungsgesetzes bleiben unberührt.
       </p>
 
-      <h2>§ 8 Datenschutz</h2>
+      <h2>§ 10 Vertraulichkeit und Datenschutz</h2>
       <p>
-        Personenbezogene Daten werden gemäß den Bestimmungen der DSGVO verarbeitet.
-        Einzelheiten entnehmen Sie bitte der{' '}
+        Der Anbieter verpflichtet sich, alle im Rahmen der Zusammenarbeit erhaltenen
+        Informationen und Daten des Auftraggebers vertraulich zu behandeln und nicht an Dritte
+        weiterzugeben. Diese Verpflichtung gilt auch nach Beendigung des Vertrags.
+      </p>
+      <p>
+        Personenbezogene Daten werden gemäß den Bestimmungen der DSGVO verarbeitet. Falls der
+        Anbieter personenbezogene Daten im Auftrag des Auftraggebers verarbeitet, verpflichten
+        sich die Parteien, eine Auftragsverarbeitungsvereinbarung gemäß Art. 28 DSGVO
+        abzuschließen. Einzelheiten entnehmen Sie bitte der{' '}
         <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklärung</a>.
       </p>
 
-      <h2>§ 9 Schlussbestimmungen</h2>
+      <h2>§ 11 Streitbeilegung</h2>
+      <p>
+        Bei Streitigkeiten verpflichten sich die Parteien, vor Anrufung eines Gerichts eine
+        Mediation durchzuführen, um eine einvernehmliche Lösung zu finden.
+      </p>
+      <p>
+        Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit.
+        Der Anbieter ist zur Teilnahme an einem Streitbeilegungsverfahren vor einer
+        Verbraucherschlichtungsstelle weder verpflichtet noch bereit.
+      </p>
+
+      <h2>§ 12 Schlussbestimmungen</h2>
       <p>
         Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
         UN-Kaufrechts (CISG).
@@ -160,10 +226,11 @@ const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
         {contact.city} als Gerichtsstand vereinbart.
       </p>
       <p>
-        Sollten einzelne Bestimmungen dieser AGB unwirksam sein oder werden, bleibt die
-        Wirksamkeit der übrigen Bestimmungen unberührt. Die unwirksame Bestimmung gilt als durch
-        eine wirksame Regelung ersetzt, die dem wirtschaftlichen Zweck der unwirksamen Bestimmung
-        am nächsten kommt (salvatorische Klausel).
+        Änderungen und Ergänzungen dieser AGB bedürfen der Schriftform. Sollten einzelne
+        Bestimmungen dieser AGB unwirksam sein oder werden, bleibt die Wirksamkeit der übrigen
+        Bestimmungen unberührt. Die unwirksame Bestimmung gilt als durch eine wirksame Regelung
+        ersetzt, die dem wirtschaftlichen Zweck der unwirksamen Bestimmung am nächsten kommt
+        (salvatorische Klausel).
       </p>
 
       {customHtml && customHtml.trim() && (

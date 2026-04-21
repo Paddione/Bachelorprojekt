@@ -255,6 +255,8 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
 // Without brand, all calendar-free slots are returned (admin overview).
 export async function getAvailableSlots(fromDate?: Date, brand?: string): Promise<DaySlots[]> {
   let whitelistedSet: Set<string> | null = null;
+  let vacationDays: Set<string> = new Set();
+  const effectiveBrand = brand || process.env.BRAND || 'mentolder';
   if (brand) {
     try {
       const { getWhitelistedSlots } = await import('./website-db.js');
@@ -263,6 +265,20 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string): Promis
     } catch {
       // If whitelist table missing, fall back to showing all slots
     }
+  }
+  try {
+    const { getVacationPeriods } = await import('./website-db.js');
+    const periods = await getVacationPeriods(effectiveBrand);
+    for (const p of periods) {
+      const cur = new Date(p.start);
+      const endDate = new Date(p.end);
+      while (cur <= endDate) {
+        vacationDays.add(cur.toISOString().split('T')[0]);
+        cur.setDate(cur.getDate() + 1);
+      }
+    }
+  } catch {
+    // vacation periods unavailable — continue without them
   }
   const now = new Date();
   const start = fromDate || now;
@@ -278,9 +294,9 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string): Promis
   while (cursor < end) {
     const dayOfWeek = cursor.getDay();
     const isoDay = dayOfWeek === 0 ? 7 : dayOfWeek;
+    const dayStr = cursor.toISOString().split('T')[0];
 
-    if (WORK_DAYS.includes(isoDay)) {
-      const dayStr = cursor.toISOString().split('T')[0];
+    if (WORK_DAYS.includes(isoDay) && !vacationDays.has(dayStr)) {
       const slots: TimeSlot[] = [];
 
       for (let hour = WORK_START_HOUR; hour < WORK_END_HOUR; hour += SLOT_DURATION_MIN / 60) {

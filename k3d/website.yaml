@@ -63,9 +63,6 @@ data:
   WORK_DAYS: "1,2,3,4,5"
   BOOKING_HORIZON_DAYS: "21"
   MIN_ADVANCE_HOURS: "24"
-  # InvoiceNinja
-  INVOICENINJA_URL: "http://invoiceninja.workspace.svc.cluster.local/api/v1"
-  INVOICENINJA_API_TOKEN: ""
   # Whisper
   WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
   ANTHROPIC_API_KEY: ""

@@ -1300,7 +1300,7 @@ tasks:
         OUTPUT="$PROJECT_DIR/settings.json"
 
         # Prefix server names with mcp- to avoid conflicts with local MCP servers
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
         echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
@@ -1343,7 +1343,7 @@ tasks:
         export BUSINESS_TOKEN="$TOKEN"
 
         OUTPUT="claude-code/${ROLE}-export.settings.json"
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"invoiceninja"/"mcp-invoiceninja"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
 
         echo "Exported settings to: $OUTPUT"
         echo "  Role: $ROLE"

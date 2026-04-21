@@ -2470,7 +2470,7 @@ export async function seedInvoiceCounter(
   await pool.query(
     `INSERT INTO invoice_counters (brand, year, counter)
      VALUES ($1, $2, $3)
-     ON CONFLICT DO NOTHING`,
+     ON CONFLICT (brand, year) DO NOTHING`,
     [brand, year, value]
   );
 }

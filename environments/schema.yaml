@@ -265,6 +265,20 @@ secrets:
     required: false
     generate: false
 
+  - name: DOCUSEAL_SECRET_KEY_BASE
+    required: true
+    generate: true
+    length: 64
+
+  - name: DOCUSEAL_API_TOKEN
+    required: false
+    generate: false
+
+  - name: DOCUSEAL_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true

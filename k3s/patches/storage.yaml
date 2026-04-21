@@ -18,17 +18,3 @@ metadata:
   name: nextcloud-data-pvc
 spec:
   storageClassName: local-path
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: invoiceninja-data-pvc
-spec:
-  storageClassName: local-path
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: invoiceninja-mariadb-pvc
-spec:
-  storageClassName: local-path

@@ -207,6 +207,16 @@ secrets:
     generate: true
     length: 32
 
+  - name: TRANSCRIBER_BOT_PASSWORD
+    required: true
+    generate: true
+    length: 24
+
+  - name: TRANSCRIBER_SECRET
+    required: true
+    generate: true
+    length: 32
+
   - name: SMTP_PASSWORD
     required: true
     generate: false

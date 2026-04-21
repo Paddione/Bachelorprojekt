@@ -234,7 +234,7 @@ try {
           />
         )}
         {tab === 'files' && <FilesTab clientUsername={client.username} />}
-        {tab === 'signatures' && <SignaturesTab clientUsername={client.username} />}
+        {tab === 'signatures' && <SignaturesTab clientUsername={client.username} clientEmail={client.email ?? ''} />}
         {tab === 'meetings' && <MeetingsAdminTab clientEmail={client.email ?? ''} />}
         {tab === 'onboarding' && (
           <OnboardingTab

@@ -6,6 +6,7 @@ import { getMeetingsForClient, listProjectsForCustomer, getOrCreateOnboardingChe
 import { getClientBookings } from '../lib/caldav';
 import { getCustomerInvoices } from '../lib/stripe-billing';
 import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR } from '../lib/nextcloud-files';
+import { countPendingAssignmentsForCustomer } from '../lib/documents-db';
 
 import OverviewSection      from '../components/portal/OverviewSection.astro';
 import NachrichtenSection   from '../components/portal/NachrichtenSection.astro';
@@ -48,6 +49,11 @@ try {
   const pendingFiles = await listFiles(`${clientFolder}${PENDING_SIGNATURES_DIR}/`);
   pendingSignatures  = pendingFiles.filter(f => f.contentType !== 'httpd/unix-directory').length;
 } catch { /* Nextcloud unavailable */ }
+
+if (customer) {
+  const docusealPending = await countPendingAssignmentsForCustomer(customer.id).catch(() => 0);
+  pendingSignatures += docusealPending;
+}
 
 // ── Section data (lazy — only what the active section needs) ──────
 let nextBooking: Awaited<ReturnType<typeof getClientBookings>>[number] | null = null;
@@ -107,7 +113,7 @@ const projects = section === 'projekte'
   {section === 'unterschriften' && (
     <div class="pt-10 pb-20 px-8 max-w-2xl">
       <h2 class="text-xl font-bold text-light font-serif mb-6">Unterschriften</h2>
-      <SignaturesTab clientUsername={username} />
+      <SignaturesTab clientUsername={username} clientEmail={session.email} />
     </div>
   )}
   {section === 'termine'        && <TermineSection {bookings} />}

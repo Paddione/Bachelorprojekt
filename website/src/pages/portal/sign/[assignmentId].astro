@@ -1,0 +1,54 @@
+---
+import PortalLayout from '../../../layouts/PortalLayout.astro';
+import { getSession, getLoginUrl } from '../../../lib/auth';
+import { getCustomerByEmail } from '../../../lib/website-db';
+import { listAssignmentsForCustomer } from '../../../lib/documents-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+
+const { assignmentId } = Astro.params;
+if (!assignmentId) return Astro.redirect('/portal?section=unterschriften');
+
+const customer = await getCustomerByEmail(session.email).catch(() => null);
+if (!customer) return Astro.redirect('/portal?section=unterschriften');
+
+const assignments = await listAssignmentsForCustomer(customer.id).catch(() => []);
+const assignment = assignments.find(a => a.id === assignmentId);
+
+if (!assignment || assignment.status !== 'pending') {
+  return Astro.redirect('/portal?section=unterschriften');
+}
+
+const embedSrc = assignment.docuseal_embed_src;
+---
+
+<PortalLayout
+  title={`Unterschriften — ${assignment.template_title}`}
+  section="unterschriften"
+  session={session}
+  pendingSignatures={assignments.filter(a => a.status === 'pending').length}
+>
+  <section class="pt-6 pb-20 bg-dark min-h-screen">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="mb-6 flex items-center gap-3">
+        <a href="/portal?section=unterschriften" class="text-muted hover:text-light text-sm transition-colors">← Zurück</a>
+        <h1 class="text-2xl font-bold text-light font-serif">{assignment.template_title}</h1>
+      </div>
+      {embedSrc ? (
+        <div class="bg-white rounded-xl overflow-hidden" style="height: 80vh; min-height: 600px;">
+          <iframe
+            src={embedSrc}
+            title={`Dokument: ${assignment.template_title}`}
+            class="w-full h-full border-0"
+            allow="camera"
+          ></iframe>
+        </div>
+      ) : (
+        <div class="p-8 bg-dark-light rounded-xl border border-dark-lighter text-center">
+          <p class="text-muted">Das Dokument konnte nicht geladen werden. Bitte versuche es später erneut.</p>
+        </div>
+      )}
+    </div>
+  </section>
+</PortalLayout>

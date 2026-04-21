@@ -45,6 +45,17 @@ patches:
       metadata:
         name: workspace-secrets
       $patch: delete
+  # Drop dev-placeholder backup-passphrase — in production this secret is
+  # managed directly on the cluster (never reset by ArgoCD).
+  - target:
+      kind: Secret
+      name: backup-passphrase
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: backup-passphrase
+      $patch: delete
   # Drop k3d-only localhost ingresses — production uses per-service ingresses
   # in prod/ingress.yaml with real domains and TLS.
   - target:

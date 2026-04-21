@@ -10,7 +10,7 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 const BRAND = process.env.BRAND || 'mentolder';
 const saved = Astro.url.searchParams.get('saved') === '1';
 
-const keys = ['invoice_prefix','invoice_payment_days','invoice_tax_rate','invoice_sender_name','invoice_sender_street','invoice_sender_city','invoice_bank_iban','invoice_bank_bic','invoice_bank_name'] as const;
+const keys = ['invoice_payment_days','invoice_tax_rate','invoice_sender_name','invoice_sender_street','invoice_sender_city','invoice_sender_phone','invoice_bank_iban','invoice_bank_bic','invoice_bank_name','invoice_vat_id','invoice_manager'] as const;
 const results = await Promise.all(keys.map(k => getSiteSetting(BRAND, k)));
 const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Record<typeof keys[number], string>;
 ---
@@ -27,11 +27,11 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
     )}
 
     <form method="POST" action="/api/admin/einstellungen/rechnungen">
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-        <div>
-          <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">Nummernprefix</label>
-          <input type="text" name="invoice_prefix" value={s.invoice_prefix || 'RE-'} style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
-        </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1.5rem;font-family:var(--font-mono);font-size:0.75rem;color:var(--mute-2);">
+        Rechnungsnummern werden automatisch als <strong style="color:var(--fg);">RE-YYYY-NNNN</strong> generiert (z.B. RE-2026-0002).
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
         <div>
           <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">Zahlungsziel (Tage)</label>
           <input type="number" name="invoice_payment_days" value={s.invoice_payment_days || '14'} min="0" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
@@ -47,6 +47,7 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
         <input type="text" name="invoice_sender_name"   value={s.invoice_sender_name}   placeholder="Name / Firma"      style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
         <input type="text" name="invoice_sender_street" value={s.invoice_sender_street} placeholder="Straße, Hausnummer" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
         <input type="text" name="invoice_sender_city"   value={s.invoice_sender_city}   placeholder="PLZ Ort"           style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        <input type="text" name="invoice_sender_phone"  value={s.invoice_sender_phone}  placeholder="Telefon (für Footer)" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
       </div>
 
       <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Bankverbindung</p>
@@ -56,6 +57,12 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
           <input type="text" name="invoice_bank_bic"  value={s.invoice_bank_bic}  placeholder="BIC"      style="background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
           <input type="text" name="invoice_bank_name" value={s.invoice_bank_name} placeholder="Bankname" style="background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
         </div>
+      </div>
+
+      <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Rechtliche Angaben</p>
+      <div style="display:flex;flex-direction:column;gap:0.625rem;margin-bottom:2rem;">
+        <input type="text" name="invoice_vat_id"  value={s.invoice_vat_id}  placeholder="USt-ID (z.B. 33/023/05100)"  style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        <input type="text" name="invoice_manager" value={s.invoice_manager} placeholder="Geschäftsführer (Vollname)"   style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
       </div>
 
       <button type="submit" style="background:var(--brass);color:var(--ink-900);border:none;border-radius:8px;padding:0.625rem 1.5rem;font-size:0.875rem;font-weight:600;cursor:pointer;">Speichern</button>

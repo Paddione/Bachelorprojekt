@@ -1,0 +1,294 @@
+---
+import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+import { getFullInvoice } from '../../../../lib/stripe-billing';
+import { getSiteSetting } from '../../../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const invoiceId = Astro.params.id;
+if (!invoiceId) return Astro.redirect('/admin/rechnungen');
+
+const inv = await getFullInvoice(invoiceId);
+if (!inv) return Astro.redirect('/admin/rechnungen');
+
+const brand = process.env.BRAND || 'mentolder';
+
+const keys = [
+  'invoice_sender_name', 'invoice_sender_street', 'invoice_sender_city',
+  'invoice_sender_phone', 'invoice_bank_iban', 'invoice_bank_bic',
+  'invoice_bank_name', 'invoice_payment_days', 'invoice_tax_rate',
+  'invoice_vat_id', 'invoice_manager',
+] as const;
+const results = await Promise.all(keys.map(k => getSiteSetting(brand, k)));
+const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Record<typeof keys[number], string>;
+
+const senderName   = s.invoice_sender_name   || brand;
+const senderStreet = s.invoice_sender_street || '';
+const senderCity   = s.invoice_sender_city   || '';
+const senderPhone  = s.invoice_sender_phone  || '';
+const iban         = s.invoice_bank_iban     || '';
+const bic          = s.invoice_bank_bic      || '';
+const bankName     = s.invoice_bank_name     || '';
+const paymentDays  = s.invoice_payment_days  || '14';
+const taxRate      = parseFloat(s.invoice_tax_rate || '0');
+const vatId        = s.invoice_vat_id        || '';
+const manager      = s.invoice_manager       || '';
+
+const website = process.env.PUBLIC_DOMAIN
+  ? `www.${process.env.PUBLIC_DOMAIN}`
+  : `www.${brand}.de`;
+const email = process.env.CONTACT_EMAIL || `info@${brand}.de`;
+
+function fmtDate(iso: string): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function fmtEur(n: number): string {
+  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+const addr = inv.buyerAddress;
+---
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rechnung {inv.number}</title>
+  <style>
+    @page { size: A4; margin: 2cm; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      color: #000;
+      background: #fff;
+      padding: 2cm;
+      max-width: 21cm;
+      margin: 0 auto;
+    }
+    .no-print {
+      position: fixed; top: 1rem; right: 1rem;
+      background: #000; color: #fff;
+      border: none; padding: 0.5rem 1.25rem;
+      font-size: 10pt; cursor: pointer; border-radius: 4px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.2rem;
+    }
+    .rechnung-title {
+      font-size: 32pt;
+      font-weight: 400;
+      color: #aaa;
+      line-height: 1;
+    }
+    .logo-box {
+      background: #000;
+      color: #fff;
+      padding: 0.45rem 0.9rem;
+      text-align: center;
+      min-width: 170px;
+    }
+    .logo-name {
+      font-size: 16pt;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .logo-tagline {
+      font-size: 7pt;
+      color: #ccc;
+      border-top: 1px solid #555;
+      margin-top: 3px;
+      padding-top: 3px;
+      letter-spacing: 0.05em;
+    }
+    hr.thick { border: none; border-top: 2px solid #000; margin: 0.8rem 0; }
+    .sender-bar { font-weight: 700; font-size: 8pt; margin-bottom: 1.2rem; }
+    .address-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      gap: 2rem;
+    }
+    .recipient { flex: 1; line-height: 1.6; }
+    .invoice-meta { min-width: 230px; }
+    .invoice-meta table { width: 100%; border-collapse: collapse; }
+    .invoice-meta td { padding: 1px 0; line-height: 1.6; }
+    .invoice-meta td:first-child { font-weight: 700; padding-right: 0.75rem; white-space: nowrap; }
+    .date-right { text-align: right; margin-bottom: 1.5rem; }
+    .invoice-heading { font-weight: 700; font-size: 11pt; margin-bottom: 0.3rem; }
+    .accent-line { width: 2rem; border-top: 2.5px solid #000; margin-bottom: 1rem; }
+    .body-text { margin-bottom: 0.6rem; line-height: 1.5; }
+    table.positions { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    table.positions thead tr { background: #e8e8e8; }
+    table.positions th {
+      padding: 5px 8px; text-align: left; font-weight: 700;
+      border: 1px solid #ccc; font-size: 9pt;
+    }
+    table.positions th.right, table.positions td.right { text-align: right; }
+    table.positions td { padding: 5px 8px; border: 1px solid #ddd; vertical-align: top; line-height: 1.4; }
+    table.positions tr:nth-child(even) { background: #fafafa; }
+    .summary-wrap { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
+    table.summary { width: 280px; border-collapse: collapse; }
+    table.summary td { padding: 3px 8px; line-height: 1.6; }
+    table.summary td:first-child { text-align: right; padding-right: 1rem; }
+    table.summary td:last-child { text-align: right; white-space: nowrap; }
+    table.summary tr.total-row td {
+      font-weight: 700; background: #e8e8e8;
+      border-top: 1px solid #bbb; padding: 5px 8px;
+    }
+    .legal-note { font-weight: 700; font-size: 9pt; margin-bottom: 0.6rem; }
+    .payment-note { font-size: 9pt; margin-bottom: 1.5rem; color: #333; }
+    .footer { border-top: 1.5px solid #000; padding-top: 0.6rem; margin-top: 2rem; }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .footer-col { font-size: 7.5pt; line-height: 1.5; }
+    .footer-col .fc-label { font-weight: 700; margin-bottom: 2px; display: block; }
+  </style>
+</head>
+<body>
+
+  <button class="no-print" onclick="window.print()">Drucken / PDF speichern</button>
+
+  <div class="header">
+    <div class="rechnung-title">RECHNUNG</div>
+    <div class="logo-box">
+      <div class="logo-name">{senderName}</div>
+      <div class="logo-tagline">coaching — mentoring — consulting</div>
+    </div>
+  </div>
+
+  <hr class="thick" />
+
+  <div class="sender-bar">
+    {senderName} - {senderStreet} - {senderCity}
+  </div>
+
+  <div class="address-meta">
+    <div class="recipient">
+      <div>{inv.customerName}</div>
+      {addr && (
+        <>
+          <div>{addr.line1}</div>
+          <div>{addr.postalCode} {addr.city}</div>
+        </>
+      )}
+      <div>{inv.customerEmail}</div>
+    </div>
+    <div class="invoice-meta">
+      <table>
+        <tr><td>Rechnung Nr.:</td><td>{inv.number}</td></tr>
+        <tr><td>Rechnungsdatum:</td><td>{fmtDate(inv.date)}</td></tr>
+        <tr><td>Lieferdatum:</td><td>{fmtDate(inv.date)}</td></tr>
+        {inv.buyerVatId && <tr><td>USt-IdNr.:</td><td>{inv.buyerVatId}</td></tr>}
+        {manager && <tr><td>Ansprechpartner:</td><td>{manager}</td></tr>}
+      </table>
+    </div>
+  </div>
+
+  <div class="date-right">{fmtDate(inv.date)}</div>
+
+  <div class="invoice-heading">RECHNUNG NR. {inv.number}</div>
+  <div class="accent-line"></div>
+
+  <p class="body-text">Sehr geehrte Damen und Herren,</p>
+  <p class="body-text">
+    vielen Dank für Ihr Vertrauen. Wir stellen Ihnen hiermit folgende Leistungen in Rechnung:
+  </p>
+
+  <table class="positions">
+    <thead>
+      <tr>
+        <th style="width:3rem">Pos.</th>
+        <th>Beschreibung</th>
+        <th class="right" style="width:5rem">Menge</th>
+        <th class="right" style="width:7rem">Einzelpreis</th>
+        <th class="right" style="width:7rem">Gesamtpreis</th>
+      </tr>
+    </thead>
+    <tbody>
+      {inv.lines.map((line, i) => (
+        <tr>
+          <td>{i + 1}.</td>
+          <td>{line.description}</td>
+          <td class="right">—</td>
+          <td class="right">—</td>
+          <td class="right">{fmtEur(line.amountNet)} €</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <div class="summary-wrap">
+    <table class="summary">
+      <tr>
+        <td><strong>Summe Netto</strong></td>
+        <td>{fmtEur(inv.subtotalExclTax)} €</td>
+      </tr>
+      <tr>
+        <td>zzgl. USt. {taxRate}%</td>
+        <td>{fmtEur(inv.taxAmount)} €</td>
+      </tr>
+      <tr class="total-row">
+        <td>Gesamtsumme</td>
+        <td>{fmtEur(inv.amountDue)} €</td>
+      </tr>
+    </table>
+  </div>
+
+  {taxRate === 0 && (
+    <p class="legal-note">
+      Dieser Rechnungsbetrag enthält nach §19 Abs. 1 UStG keine USt.
+    </p>
+  )}
+
+  <p class="payment-note">
+    Zahlung innerhalb von {paymentDays} Tagen ab Rechnungseingang ohne Abzüge
+    unter Verwendung der Rechnungsnummer
+  </p>
+
+  <div class="accent-line"></div>
+
+  <p class="body-text">
+    Bei Rückfragen stehen wir selbstverständlich jederzeit gerne zur Verfügung.
+  </p>
+  <p class="body-text">Mit freundlichen Grüßen</p>
+
+  <div class="footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <span class="fc-label">{senderName}</span>
+        {senderStreet}<br />
+        {senderCity}
+      </div>
+      <div class="footer-col">
+        <span class="fc-label">&nbsp;</span>
+        {senderPhone && <>{senderPhone}<br /></>}
+        {website}<br />
+        {email}
+      </div>
+      <div class="footer-col">
+        <span class="fc-label">Bank: {bankName}</span>
+        IBAN: {iban}<br />
+        BIC: {bic}
+      </div>
+      <div class="footer-col">
+        <span class="fc-label">USt. ID: {vatId}</span>
+        {manager && <>Geschäftsführer:<br />{manager}</>}
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -49,19 +49,22 @@ export async function createSubmission(params: {
   templateId: number;
   submitterEmail: string;
   submitterName: string;
+  prefillValues?: Record<string, string>;
 }): Promise<DocuSealSubmitter> {
+  const submitter: Record<string, unknown> = {
+    role: 'First Party',
+    email: params.submitterEmail,
+    name: params.submitterName,
+    send_email: true,
+  };
+  if (params.prefillValues && Object.keys(params.prefillValues).length > 0) {
+    submitter.values = params.prefillValues;
+  }
   const res = await ds('/submissions', {
     method: 'POST',
     body: JSON.stringify({
       template_id: params.templateId,
-      submitters: [
-        {
-          role: 'First Party',
-          email: params.submitterEmail,
-          name: params.submitterName,
-          send_email: true,
-        },
-      ],
+      submitters: [submitter],
     }),
   });
   const data = await res.json() as DocuSealSubmitter[];

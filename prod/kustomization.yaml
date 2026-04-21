@@ -45,6 +45,26 @@ patches:
       metadata:
         name: workspace-secrets
       $patch: delete
+  # Drop k3d-only localhost ingresses — production uses per-service ingresses
+  # in prod/ingress.yaml with real domains and TLS.
+  - target:
+      kind: Ingress
+      name: workspace-ingress
+    patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress
+      $patch: delete
+  - target:
+      kind: Ingress
+      name: workspace-ingress-internal
+    patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-internal
+      $patch: delete
   # Override domains
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)

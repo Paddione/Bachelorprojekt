@@ -153,6 +153,19 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: WEBSITE_DB_PASSWORD
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    until pg_isready -U postgres; do sleep 2; done
+                    psql -U postgres \
+                      -c "ALTER USER keycloak WITH PASSWORD '${KEYCLOAK_DB_PASSWORD}';" \
+                      -c "ALTER USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';" \
+                      -c "ALTER USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';" \
+                      -c "ALTER USER website WITH PASSWORD '${WEBSITE_DB_PASSWORD}';"
           ports:
             - containerPort: 5432
           volumeMounts:

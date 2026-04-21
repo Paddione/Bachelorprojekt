@@ -3,8 +3,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAvailableSlots, getAllBookings } from '../../lib/caldav';
 import type { DaySlots, AdminBooking } from '../../lib/caldav';
-import { getBookingProjects, listProjects, getBookingInvoices, getWhitelistedSlots, getBookingLeistungen } from '../../lib/website-db';
-import type { Project, BookingInvoiceInfo } from '../../lib/website-db';
+import { getBookingProjects, listProjects, getBookingInvoices, getWhitelistedSlots, getBookingLeistungen, getVacationPeriods } from '../../lib/website-db';
+import type { Project, BookingInvoiceInfo, VacationPeriod } from '../../lib/website-db';
 import { getEffectiveLeistungen } from '../../lib/content';
 import type { LeistungCategory } from '../../config/types';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
@@ -30,6 +30,11 @@ let bookingLeistungMap: Map<string, string> = new Map();
 let leistungen: LeistungCategory[] = [];
 let projects: Project[] = [];
 let calError = '';
+let vacationPeriods: VacationPeriod[] = [];
+
+try {
+  vacationPeriods = await getVacationPeriods(brand).catch(() => []);
+} catch { /**/ }
 
 try {
   const [allSlots, allBookings, allProjects] = await Promise.all([
@@ -347,6 +352,28 @@ function formatTime(d: Date) {
       </div>
 
     </div>
+
+    <!-- Urlaubsplanung / Auszeiten -->
+    <div class="mt-12">
+      <h2 class="text-xl font-semibold text-light mb-4">Urlaubsplanung <span class="text-sm font-normal text-muted">/ Auszeiten</span></h2>
+      <p class="text-sm text-muted mb-4">Geblockte Zeiträume erscheinen nicht in der Buchungsansicht. Änderungen wirken sofort.</p>
+      <div id="vacation-list" class="space-y-2 mb-4">
+        {vacationPeriods.map((p, i) => (
+          <div class="vacation-row flex gap-2 items-center flex-wrap p-3 bg-dark-light rounded-lg border border-dark-lighter" data-id={p.id}>
+            <input type="text" class="vacation-label flex-1 min-w-32 bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none" value={p.label} placeholder="Bezeichnung (z.B. Sommerurlaub)" />
+            <input type="date" class="vacation-start bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none" value={p.start} />
+            <span class="text-muted text-sm">bis</span>
+            <input type="date" class="vacation-end bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none" value={p.end} />
+            <button class="vacation-remove text-xs px-2 py-1 bg-dark-lighter text-muted rounded hover:text-red-400 border border-dark-lighter">✕</button>
+          </div>
+        ))}
+      </div>
+      <button id="vacation-add" class="text-sm px-3 py-1.5 border border-dashed border-gold/30 text-gold/70 rounded-lg hover:border-gold/60 hover:text-gold transition-colors">＋ Zeitraum hinzufügen</button>
+      <button id="vacation-save" class="ml-3 text-sm px-4 py-1.5 bg-gold text-dark rounded-lg font-semibold hover:bg-gold/90 transition-colors">Speichern</button>
+      <span id="vacation-status" class="ml-3 text-sm hidden"></span>
+    </div>
+
+    </div>
   </section>
 </AdminLayout>
 
@@ -590,5 +617,49 @@ function formatTime(d: Date) {
       btn.disabled = false;
       btn.textContent = '✉ Erinnerung';
     });
+  });
+
+  // Vacation planning
+  const CLS = {
+    row: 'vacation-row flex gap-2 items-center flex-wrap p-3 bg-dark-light rounded-lg border border-dark-lighter',
+    input: 'bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none',
+  };
+
+  function makeVacationRow(): HTMLElement {
+    const div = document.createElement('div');
+    div.className = CLS.row;
+    const lbl = Object.assign(document.createElement('input'), { type: 'text', className: `vacation-label flex-1 min-w-32 ${CLS.input}`, placeholder: 'Bezeichnung (z.B. Sommerurlaub)' });
+    const s = Object.assign(document.createElement('input'), { type: 'date', className: `vacation-start ${CLS.input}` });
+    const sep = Object.assign(document.createElement('span'), { className: 'text-muted text-sm', textContent: 'bis' });
+    const e = Object.assign(document.createElement('input'), { type: 'date', className: `vacation-end ${CLS.input}` });
+    const rm = Object.assign(document.createElement('button'), { type: 'button', className: 'vacation-remove text-xs px-2 py-1 bg-dark-lighter text-muted rounded hover:text-red-400 border border-dark-lighter', textContent: '✕' });
+    div.append(lbl, s, sep, e, rm);
+    return div;
+  }
+
+  const vacList = document.getElementById('vacation-list')!;
+  vacList.addEventListener('click', e => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.vacation-remove');
+    if (btn) btn.closest('.vacation-row')?.remove();
+  });
+  document.getElementById('vacation-add')?.addEventListener('click', () => vacList.appendChild(makeVacationRow()));
+  document.getElementById('vacation-save')?.addEventListener('click', async () => {
+    const statusEl = document.getElementById('vacation-status')!;
+    const periods = Array.from(vacList.querySelectorAll<HTMLElement>('.vacation-row')).map(row => ({
+      label: (row.querySelector<HTMLInputElement>('.vacation-label')?.value ?? '').trim() || 'Auszeit',
+      start: row.querySelector<HTMLInputElement>('.vacation-start')?.value ?? '',
+      end: row.querySelector<HTMLInputElement>('.vacation-end')?.value ?? '',
+    })).filter(p => p.start && p.end && p.start <= p.end);
+    try {
+      const res = await fetch('/api/admin/urlaub/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ periods }) });
+      if (!res.ok) throw new Error();
+      statusEl.textContent = '✓ Gespeichert';
+      statusEl.className = 'ml-3 text-sm text-green-400';
+    } catch {
+      statusEl.textContent = 'Fehler beim Speichern';
+      statusEl.className = 'ml-3 text-sm text-red-400';
+    }
+    statusEl.classList.remove('hidden');
+    setTimeout(() => statusEl.classList.add('hidden'), 3000);
   });
 </script>

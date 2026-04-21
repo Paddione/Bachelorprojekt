@@ -197,11 +197,12 @@
         <div class="members-panel">
           <div class="members-search">
             <input bind:value={memberSearch} placeholder="Kunde suchen…" />
+            <p class="members-caption">Nur Kunden mit aktivem Portal-Zugang (SSO) werden angezeigt.</p>
           </div>
           {#if memberLoading}
             <p class="members-hint">Lade…</p>
           {:else if allCustomers.length === 0}
-            <p class="members-hint">Keine Kunden vorhanden.</p>
+            <p class="members-hint">Keine Kunden mit Portal-Zugang vorhanden.</p>
           {:else}
             <ul class="members-list">
               {#each filteredCustomers as c (c.id)}
@@ -255,6 +256,7 @@
   .members-search { padding: 8px 12px; border-bottom: 1px solid #2a2a3e; }
   .members-search input { width: 100%; background: #1e1e2e; color: #e8e8f0; border: 1px solid #374151; border-radius: 4px; padding: 5px 8px; font-size: 12px; box-sizing: border-box; }
   .members-hint { color: #555; font-size: 12px; padding: 10px 12px; margin: 0; }
+  .members-caption { color: #4b5563; font-size: 10px; margin: 4px 0 0; }
   .members-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
   .member-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid #1e1e2e; }
   .member-row.is-member { background: #1a2435; }

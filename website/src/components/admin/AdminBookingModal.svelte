@@ -79,6 +79,21 @@
   let slotsError = $state('');
   let selectedSlot = $state<TimeSlot | null>(null);
 
+  // Custom date/time mode for admin manual bookings
+  let useCustomTime = $state(false);
+  let customDate = $state('');
+  let customStartTime = $state('09:00');
+  let customDurationMin = $state(60);
+  const DURATIONS = [15, 30, 45, 60, 90, 120];
+
+  const customEndTime = $derived(() => {
+    if (!customDate || !customStartTime) return '';
+    const [h, m] = customStartTime.split(':').map(Number);
+    const end = new Date(customDate);
+    end.setHours(h, m + customDurationMin, 0, 0);
+    return `${end.getHours().toString().padStart(2,'0')}:${end.getMinutes().toString().padStart(2,'0')}`;
+  });
+
   const isCallback = $derived(bookingType === 'callback');
 
   const slotsForDate = $derived(
@@ -112,6 +127,10 @@
     message = '';
     selectedDate = '';
     selectedSlot = null;
+    useCustomTime = false;
+    customDate = '';
+    customStartTime = '09:00';
+    customDurationMin = 60;
     clientSearch = '';
     selectedClient = isPrefilled
       ? { id: '', name: prefillName || prefillEmail, email: prefillEmail }
@@ -166,8 +185,35 @@
 
     if (!clientEmail) { error = 'Bitte einen Client auswählen.'; return; }
     if (!leistungKey)  { error = 'Bitte eine Leistung auswählen.'; return; }
-    if (!isCallback && !selectedSlot) { error = 'Bitte einen Termin wählen.'; return; }
+    if (!isCallback) {
+      if (useCustomTime) {
+        if (!customDate || !customStartTime) { error = 'Bitte Datum und Uhrzeit eingeben.'; return; }
+      } else if (!selectedSlot) {
+        error = 'Bitte einen Termin wählen.'; return;
+      }
+    }
     if (isCallback && !phone.trim())  { error = 'Telefonnummer erforderlich.'; return; }
+
+    let slotStart: string | null = null;
+    let slotEnd: string | null = null;
+    let slotDisplay: string | null = null;
+    if (!isCallback) {
+      if (useCustomTime && customDate && customStartTime) {
+        const [h, m] = customStartTime.split(':').map(Number);
+        const start = new Date(customDate);
+        start.setHours(h, m, 0, 0);
+        const end = new Date(start.getTime() + customDurationMin * 60000);
+        slotStart = start.toISOString();
+        slotEnd = end.toISOString();
+        const eH = end.getHours().toString().padStart(2,'0');
+        const eM = end.getMinutes().toString().padStart(2,'0');
+        slotDisplay = `${customStartTime} – ${eH}:${eM}`;
+      } else {
+        slotStart = selectedSlot?.start ?? null;
+        slotEnd = selectedSlot?.end ?? null;
+        slotDisplay = selectedSlot?.display ?? null;
+      }
+    }
 
     submitting = true;
     try {
@@ -177,10 +223,10 @@
         type: bookingType,
         leistungKey,
         projectId: projectId || null,
-        slotStart: selectedSlot?.start ?? null,
-        slotEnd: selectedSlot?.end ?? null,
-        slotDisplay: selectedSlot?.display ?? null,
-        date: selectedDate || null,
+        slotStart,
+        slotEnd,
+        slotDisplay,
+        date: useCustomTime ? customDate : (selectedDate || null),
         phone: phone || null,
         message: message || null,
       };
@@ -322,41 +368,76 @@
         {/if}
 
         {#if !isCallback}
-          <div>
-            <label class="block text-xs text-muted uppercase tracking-wide mb-1">Datum</label>
-            {#if !slotsLoaded}
-              <p class="text-sm text-muted">Lade Slots…</p>
-            {:else if slotsError}
-              <p class="text-sm text-red-400">{slotsError}</p>
-            {:else if availableDates.length === 0}
-              <p class="text-sm text-muted">Keine freien Slots verfügbar.</p>
-            {:else}
-              <select
-                bind:value={selectedDate}
-                onchange={() => { selectedSlot = null; }}
-                class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
-              >
-                {#each daySlots.filter(d => d.slots.length > 0) as d}
-                  <option value={d.date}>{d.weekday}, {d.date}</option>
-                {/each}
-              </select>
-            {/if}
+          <div class="flex gap-3 text-sm mb-1">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" bind:group={useCustomTime} value={false} class="accent-gold" />
+              <span class="text-light">Aus freien Slots</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" bind:group={useCustomTime} value={true} class="accent-gold" />
+              <span class="text-light">Freier Termin</span>
+            </label>
           </div>
 
-          {#if selectedDate && slotsForDate.length > 0}
-            <div>
-              <label class="block text-xs text-muted uppercase tracking-wide mb-1">Uhrzeit</label>
-              <div class="flex flex-wrap gap-2">
-                {#each slotsForDate as slot}
-                  <button
-                    onclick={() => { selectedSlot = slot; }}
-                    class={`px-3 py-1.5 rounded-lg text-sm transition-colors ${selectedSlot?.start === slot.start ? 'bg-gold text-dark font-semibold' : 'bg-dark-light border border-dark-lighter text-light hover:border-gold/40'}`}
-                  >
-                    {slot.display}
-                  </button>
-                {/each}
+          {#if useCustomTime}
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-muted uppercase tracking-wide mb-1">Datum</label>
+                <input type="date" bind:value={customDate}
+                  class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs text-muted uppercase tracking-wide mb-1">Startzeit</label>
+                <input type="time" bind:value={customStartTime}
+                  class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none" />
               </div>
             </div>
+            <div>
+              <label class="block text-xs text-muted uppercase tracking-wide mb-1">Dauer</label>
+              <select bind:value={customDurationMin}
+                class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none">
+                {#each DURATIONS as d}
+                  <option value={d}>{d} Minuten{customDate && customStartTime ? ` (bis ${customEndTime()})` : ''}</option>
+                {/each}
+              </select>
+            </div>
+          {:else}
+            <div>
+              <label class="block text-xs text-muted uppercase tracking-wide mb-1">Datum</label>
+              {#if !slotsLoaded}
+                <p class="text-sm text-muted">Lade Slots…</p>
+              {:else if slotsError}
+                <p class="text-sm text-red-400">{slotsError}</p>
+              {:else if availableDates.length === 0}
+                <p class="text-sm text-muted">Keine freien Slots verfügbar.</p>
+              {:else}
+                <select
+                  bind:value={selectedDate}
+                  onchange={() => { selectedSlot = null; }}
+                  class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
+                >
+                  {#each daySlots.filter(d => d.slots.length > 0) as d}
+                    <option value={d.date}>{d.weekday}, {d.date}</option>
+                  {/each}
+                </select>
+              {/if}
+            </div>
+
+            {#if selectedDate && slotsForDate.length > 0}
+              <div>
+                <label class="block text-xs text-muted uppercase tracking-wide mb-1">Uhrzeit</label>
+                <div class="flex flex-wrap gap-2">
+                  {#each slotsForDate as slot}
+                    <button
+                      onclick={() => { selectedSlot = slot; }}
+                      class={`px-3 py-1.5 rounded-lg text-sm transition-colors ${selectedSlot?.start === slot.start ? 'bg-gold text-dark font-semibold' : 'bg-dark-light border border-dark-lighter text-light hover:border-gold/40'}`}
+                    >
+                      {slot.display}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+            {/if}
           {/if}
         {/if}
 

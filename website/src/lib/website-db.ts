@@ -668,6 +668,25 @@ export async function setSiteSetting(brand: string, key: string, value: string):
   );
 }
 
+// ── Vacation / Blackout Periods ───────────────────────────────────────────────
+
+export interface VacationPeriod {
+  id: string;
+  start: string; // YYYY-MM-DD
+  end: string;   // YYYY-MM-DD
+  label: string;
+}
+
+export async function getVacationPeriods(brand: string): Promise<VacationPeriod[]> {
+  const raw = await getSiteSetting(brand, 'vacation_periods');
+  if (!raw) return [];
+  try { return JSON.parse(raw) as VacationPeriod[]; } catch { return []; }
+}
+
+export async function saveVacationPeriods(brand: string, periods: VacationPeriod[]): Promise<void> {
+  await setSiteSetting(brand, 'vacation_periods', JSON.stringify(periods));
+}
+
 // ── Legal Pages (admin-editable HTML content) ────────────────────────────────
 
 export async function initLegalPagesTable(): Promise<void> {

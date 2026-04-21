@@ -472,7 +472,9 @@ export async function ensureDirectRoomForCustomer(
 }
 
 export async function listAllCustomers(): Promise<Array<{ id: string; name: string; email: string }>> {
-  const { rows } = await pool.query('SELECT id, name, email FROM customers ORDER BY name ASC');
+  const { rows } = await pool.query(
+    'SELECT id, name, email FROM customers WHERE keycloak_user_id IS NOT NULL ORDER BY name ASC'
+  );
   return rows;
 }
 

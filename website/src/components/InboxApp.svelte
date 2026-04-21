@@ -17,6 +17,7 @@
   let noteText = $state('');
 
   // Thread inline view for user_message items
+  let sidebarCollapsed = $state(false);
   let expandedItemId = $state<number | null>(null);
   let threadMessages = $state<Message[]>([]);
   let threadLoading = $state(false);
@@ -180,8 +181,14 @@
 
 <div class="inbox-layout">
   <!-- Sidebar -->
-  <aside class="sidebar">
-    <h2>Inbox</h2>
+  <aside class="sidebar {sidebarCollapsed ? 'collapsed' : ''}">
+    <div class="sidebar-header">
+      <h2>Inbox</h2>
+      <button class="btn-collapse" onclick={() => sidebarCollapsed = !sidebarCollapsed} title={sidebarCollapsed ? 'Einblenden' : 'Ausblenden'}>
+        {sidebarCollapsed ? '›' : '‹'}
+      </button>
+    </div>
+    {#if !sidebarCollapsed}
     <div class="filter-group">
       {#each filterTabs as [t, label, count]}
         <button
@@ -201,6 +208,7 @@
         >{label}</button>
       {/each}
     </div>
+    {/if}
   </aside>
 
   <!-- Feed -->
@@ -303,8 +311,13 @@
 
 <style>
   .inbox-layout { display: flex; gap: 24px; height: 100%; }
-  .sidebar { width: 200px; flex-shrink: 0; }
-  .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
+  .sidebar { width: 200px; flex-shrink: 0; transition: width 0.2s; }
+  .sidebar.collapsed { width: 36px; }
+  .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .sidebar h2 { font-size: 18px; margin: 0; white-space: nowrap; overflow: hidden; }
+  .sidebar.collapsed h2 { display: none; }
+  .btn-collapse { background: #1e1e2e; border: 1px solid #374151; color: #aaa; border-radius: 4px; padding: 2px 7px; font-size: 16px; cursor: pointer; line-height: 1; flex-shrink: 0; }
+  .btn-collapse:hover { background: #2a2a3e; color: #fff; }
   .filter-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
   .filter-btn { background: transparent; border: none; text-align: left; padding: 7px 10px; border-radius: 6px; cursor: pointer; color: #ccc; font-size: 13px; display: flex; justify-content: space-between; }
   .filter-btn.active { background: #2a2a3e; color: #fff; }
@@ -348,7 +361,9 @@
   @media (max-width: 640px) {
     .inbox-layout { flex-direction: column; gap: 0; height: auto; }
     .sidebar { width: 100%; padding-bottom: 12px; border-bottom: 1px solid #2a2a3e; margin-bottom: 12px; }
-    .sidebar h2 { font-size: 16px; margin: 0 0 10px; }
+    .sidebar.collapsed { width: 100%; }
+    .sidebar h2 { font-size: 16px; margin: 0; }
+    .sidebar-header { margin-bottom: 10px; }
     .filter-group { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin-bottom: 10px; padding-bottom: 4px; scrollbar-width: none; }
     .filter-group::-webkit-scrollbar { display: none; }
     .filter-btn { flex-shrink: 0; white-space: nowrap; padding: 6px 10px; font-size: 12px; }

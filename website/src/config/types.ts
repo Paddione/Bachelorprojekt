@@ -38,6 +38,7 @@ export interface LeistungService {
   desc: string;
   highlight?: boolean;
   stundensatz_cents?: number;
+  durationMin?: number;
 }
 
 export interface LeistungCategory {

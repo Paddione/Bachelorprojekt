@@ -1,10 +1,10 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getAvailableSlots, getAllBookings } from '../../lib/caldav';
-import type { DaySlots, AdminBooking } from '../../lib/caldav';
-import { getBookingProjects, listProjects, getBookingInvoices, getWhitelistedSlots, getBookingLeistungen, getVacationPeriods } from '../../lib/website-db';
-import type { Project, BookingInvoiceInfo, VacationPeriod } from '../../lib/website-db';
+import { getAllBookings } from '../../lib/caldav';
+import type { AdminBooking } from '../../lib/caldav';
+import { getBookingProjects, listProjects, getBookingInvoices, getBookingLeistungen, getVacationPeriods, getFreeTimeWindows } from '../../lib/website-db';
+import type { Project, BookingInvoiceInfo, VacationPeriod, FreeTimeWindow } from '../../lib/website-db';
 import { getEffectiveLeistungen } from '../../lib/content';
 import type { LeistungCategory } from '../../config/types';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
@@ -18,11 +18,12 @@ const calendarUrl = `https://${NC_DOMAIN}/apps/calendar`;
 const brand = process.env.BRAND_NAME || 'mentolder';
 const IN_PUBLIC_URL = process.env.INVOICENINJA_PUBLIC_URL || '';
 
+const WEEKDAYS_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+
 const now = new Date();
 const horizon = new Date(now);
 horizon.setDate(horizon.getDate() + 14);
 
-let days: DaySlots[] = [];
 let bookings: AdminBooking[] = [];
 let bookingProjectMap: Map<string, string> = new Map();
 let bookingInvoiceMap: Map<string, BookingInvoiceInfo> = new Map();
@@ -37,13 +38,10 @@ try {
 } catch { /**/ }
 
 try {
-  const [allSlots, allBookings, allProjects] = await Promise.all([
-    // Without brand: all generated slots (no whitelist filter) for admin overview
-    getAvailableSlots(now),
+  const [allBookings, allProjects] = await Promise.all([
     getAllBookings(),
     listProjects({ brand }),
   ]);
-  days = allSlots.filter(d => new Date(d.date) <= horizon);
   bookings = allBookings;
   projects = allProjects;
   const uids = bookings.map(b => b.uid).filter(Boolean);
@@ -62,15 +60,32 @@ try {
   calError = 'Kalender konnte nicht geladen werden.';
 }
 
-// Load whitelist and build a Set of whitelisted ISO start strings
-const whitelistedSlots = await getWhitelistedSlots(brand).catch(() => [] as { slotStart: Date }[]);
-const whitelistedSet = new Set(whitelistedSlots.map((w: { slotStart: Date }) => w.slotStart.toISOString()));
+// Generate all days for next 14 days (show every day, not just work days)
+const allDays: Array<{ date: string; weekday: string }> = [];
+{
+  const cur = new Date(now);
+  cur.setHours(0, 0, 0, 0);
+  while (cur <= horizon) {
+    const dayStr = cur.toISOString().split('T')[0];
+    allDays.push({ date: dayStr, weekday: WEEKDAYS_DE[cur.getDay()] });
+    cur.setDate(cur.getDate() + 1);
+  }
+}
 
-const totalSlots = days.reduce((sum, d) => sum + d.slots.length, 0);
-const releasedCount = days.reduce(
-  (sum, d) => sum + d.slots.filter(s => whitelistedSet.has(s.start)).length,
-  0
-);
+// Load time windows and group by date
+const timeWindowsList = await getFreeTimeWindows(
+  brand,
+  now.toISOString().split('T')[0],
+  horizon.toISOString().split('T')[0]
+).catch(() => [] as FreeTimeWindow[]);
+
+const windowsByDate = new Map<string, FreeTimeWindow[]>();
+for (const w of timeWindowsList) {
+  if (!windowsByDate.has(w.date)) windowsByDate.set(w.date, []);
+  windowsByDate.get(w.date)!.push(w);
+}
+
+const totalWindows = timeWindowsList.length;
 const upcomingBookings = bookings.filter(b => b.start >= now && b.status !== 'CANCELLED');
 const pastBookings = bookings.filter(b => b.start < now || b.status === 'CANCELLED');
 
@@ -90,7 +105,7 @@ function formatTime(d: Date) {
       <div class="mb-8 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Termine</h1>
-          <p class="text-muted mt-1">{bookings.length} gebucht · {totalSlots} generierte Slots · <span class="text-gold"><span id="released-counter">{releasedCount}</span> freigegeben</span></p>
+          <p class="text-muted mt-1">{bookings.length} gebucht · <span class="text-gold"><span id="windows-counter">{totalWindows}</span> Zeiträume freigegeben</span></p>
         </div>
         <div class="flex gap-3">
           <AdminBookingModal
@@ -307,47 +322,55 @@ function formatTime(d: Date) {
         )}
       </div>
 
-      <!-- Freie Slots (Whitelist-Verwaltung) -->
+      <!-- Freie Zeiträume -->
       <div>
-        <h2 class="text-xl font-semibold text-light mb-4">Freie Slots <span class="text-sm font-normal text-muted">(nächste 14 Tage)</span></h2>
+        <h2 class="text-xl font-semibold text-light mb-1">Freie Zeiträume <span class="text-sm font-normal text-muted">(nächste 14 Tage)</span></h2>
+        <p class="text-sm text-muted mb-4">Definiere Zeitfenster pro Tag. Kunden sehen automatisch alle Terminslots innerhalb dieser Fenster.</p>
 
-        {days.length === 0 && !calError && (
-          <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center">
-            Keine generierten Termine in den nächsten 14 Tagen.
-          </div>
-        )}
+        <div class="grid gap-3">
+          {allDays.map(day => {
+            const windows = windowsByDate.get(day.date) ?? [];
+            return (
+              <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" data-date={day.date}>
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-light font-semibold text-sm">{day.weekday}</h3>
+                  <span class="text-muted text-xs">{day.date}</span>
+                  {windows.length > 0 && (
+                    <span class="ml-auto text-xs text-gold">{windows.length} Zeitraum{windows.length !== 1 ? 'e' : ''}</span>
+                  )}
+                </div>
 
-        <div class="grid gap-4">
-          {days.map(day => (
-            <div class="p-5 bg-dark-light rounded-xl border border-dark-lighter">
-              <div class="flex items-center gap-3 mb-3">
-                <h3 class="text-light font-semibold">{day.weekday}</h3>
-                <span class="text-muted text-sm">{day.date}</span>
-                <span class="ml-auto text-xs text-muted">{day.slots.length} Slot{day.slots.length !== 1 ? 's' : ''}</span>
+                <div class="space-y-1.5 mb-2 windows-list">
+                  {windows.map(w => (
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-gold/5 rounded-lg border border-gold/20 window-entry" data-id={w.id}>
+                      <span class="text-gold font-mono text-sm">{w.winStart} – {w.winEnd}</span>
+                      <button
+                        class="window-remove ml-auto text-muted hover:text-red-400 transition-colors text-xs px-1"
+                        data-id={w.id}
+                        data-date={day.date}
+                        title="Zeitraum entfernen"
+                      >✕</button>
+                    </div>
+                  ))}
+                </div>
+
+                <div class="window-add-form hidden gap-2 items-center flex-wrap" style="display:none" data-date={day.date}>
+                  <input type="time" class="window-start bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none" value="09:00" />
+                  <span class="text-muted text-xs">bis</span>
+                  <input type="time" class="window-end bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none" value="12:00" />
+                  <button class="window-save text-xs px-3 py-1 bg-gold text-dark rounded font-semibold hover:bg-gold/90 transition-colors" data-date={day.date}>Speichern</button>
+                  <button class="window-cancel text-xs px-2 py-1 text-muted hover:text-light transition-colors">✕</button>
+                </div>
+
+                <button
+                  class="window-add text-xs px-3 py-1.5 border border-dashed border-gold/30 text-gold/60 rounded-lg hover:border-gold/60 hover:text-gold transition-colors"
+                  data-date={day.date}
+                >
+                  ＋ Zeitraum
+                </button>
               </div>
-              <div class="flex flex-wrap gap-2">
-                {day.slots.map(slot => {
-                  const released = whitelistedSet.has(slot.start);
-                  return (
-                    <button
-                      class={`slot-toggle px-3 py-1.5 rounded-lg text-sm font-mono border transition-colors cursor-pointer ${
-                        released
-                          ? 'bg-gold/10 text-gold border-gold/20 hover:bg-gold/20'
-                          : 'bg-dark-lighter text-muted border-dark-lighter hover:border-gold/30'
-                      }`}
-                      data-start={slot.start}
-                      data-end={slot.end}
-                      data-released={released ? 'true' : 'false'}
-                      title={released ? 'Freigabe zurückziehen' : 'Slot freigeben'}
-                    >
-                      {slot.display}
-                      {released && <span class="ml-1 opacity-60">×</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -378,62 +401,145 @@ function formatTime(d: Date) {
 </AdminLayout>
 
 <script>
-  // Whitelist slot toggle
-  document.querySelectorAll<HTMLButtonElement>('.slot-toggle').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const start = btn.dataset.start!;
-      const end   = btn.dataset.end!;
-      const isReleased = btn.dataset.released === 'true';
+  // ── Zeitraum-Verwaltung ────────────────────────────────────────────────────
 
-      btn.disabled = true;
-      btn.style.opacity = '0.5';
+  function updateWindowsCounter(delta: number) {
+    const el = document.getElementById('windows-counter');
+    if (el) el.textContent = String(Number(el.textContent) + delta);
+  }
+
+  function makeWindowEntry(id: string, winStart: string, winEnd: string, date: string): HTMLElement {
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-2 px-3 py-1.5 bg-gold/5 rounded-lg border border-gold/20 window-entry';
+    div.dataset.id = id;
+    const label = document.createElement('span');
+    label.className = 'text-gold font-mono text-sm';
+    label.textContent = `${winStart} – ${winEnd}`;
+    const btn = document.createElement('button');
+    btn.className = 'window-remove ml-auto text-muted hover:text-red-400 transition-colors text-xs px-1';
+    btn.dataset.id = id;
+    btn.dataset.date = date;
+    btn.title = 'Zeitraum entfernen';
+    btn.textContent = '✕';
+    div.append(label, btn);
+    return div;
+  }
+
+  // Show/hide add-form on "＋ Zeitraum" click
+  document.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+
+    // ＋ Zeitraum button
+    const addBtn = target.closest<HTMLButtonElement>('.window-add');
+    if (addBtn) {
+      const card = addBtn.closest<HTMLElement>('[data-date]')!;
+      const form = card.querySelector<HTMLElement>('.window-add-form')!;
+      form.style.display = 'flex';
+      addBtn.style.display = 'none';
+      return;
+    }
+
+    // Cancel form
+    const cancelBtn = target.closest<HTMLButtonElement>('.window-cancel');
+    if (cancelBtn) {
+      const card = cancelBtn.closest<HTMLElement>('[data-date]')!;
+      const form = card.querySelector<HTMLElement>('.window-add-form')!;
+      form.style.display = 'none';
+      const wb = card.querySelector<HTMLButtonElement>('.window-add')!;
+      wb.style.display = '';
+      return;
+    }
+
+    // Save window
+    const saveBtn = target.closest<HTMLButtonElement>('.window-save');
+    if (saveBtn) {
+      const card = saveBtn.closest<HTMLElement>('[data-date]')!;
+      const date = card.dataset.date!;
+      const form = card.querySelector<HTMLElement>('.window-add-form')!;
+      const winStart = form.querySelector<HTMLInputElement>('.window-start')!.value;
+      const winEnd   = form.querySelector<HTMLInputElement>('.window-end')!.value;
+
+      if (!winStart || !winEnd || winStart >= winEnd) {
+        alert('Bitte gültige Start- und Endzeit eingeben (Start muss vor Ende liegen).');
+        return;
+      }
+
+      saveBtn.textContent = '…';
+      saveBtn.disabled = true;
 
       try {
-        const res = await fetch(
-          isReleased ? '/api/admin/slots/remove' : '/api/admin/slots/add',
-          {
-            method: isReleased ? 'DELETE' : 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(isReleased ? { slotStart: start } : { slotStart: start, slotEnd: end }),
-          }
-        );
+        const res = await fetch('/api/admin/time-windows/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, winStart, winEnd }),
+        });
+        if (!res.ok) { alert('Fehler beim Speichern.'); return; }
+        const { id } = await res.json();
 
-        if (!res.ok) {
-          console.error('Slot toggle failed:', await res.text());
-          return;
-        }
+        const list = card.querySelector<HTMLElement>('.windows-list')!;
+        list.appendChild(makeWindowEntry(id, winStart, winEnd, date));
 
-        // Flip state
-        const nowReleased = !isReleased;
-        btn.dataset.released = nowReleased ? 'true' : 'false';
-
-        if (nowReleased) {
-          btn.classList.remove('bg-dark-lighter', 'text-muted', 'border-dark-lighter', 'hover:border-gold/30');
-          btn.classList.add('bg-gold/10', 'text-gold', 'border-gold/20', 'hover:bg-gold/20');
-          btn.title = 'Freigabe zurückziehen';
-          if (!btn.querySelector('.toggle-x')) {
-            const x = document.createElement('span');
-            x.className = 'ml-1 opacity-60 toggle-x';
-            x.textContent = '×';
-            btn.appendChild(x);
-          }
+        // Update badge
+        const badge = card.querySelector<HTMLElement>('.text-gold.ml-auto');
+        const count = card.querySelectorAll('.window-entry').length;
+        if (badge) {
+          badge.textContent = `${count} Zeitraum${count !== 1 ? 'e' : ''}`;
         } else {
-          btn.classList.remove('bg-gold/10', 'text-gold', 'border-gold/20', 'hover:bg-gold/20');
-          btn.classList.add('bg-dark-lighter', 'text-muted', 'border-dark-lighter', 'hover:border-gold/30');
-          btn.title = 'Slot freigeben';
-          btn.querySelector('.toggle-x')?.remove();
+          const header = card.querySelector<HTMLElement>('.flex.items-center.gap-3')!;
+          const newBadge = document.createElement('span');
+          newBadge.className = 'ml-auto text-xs text-gold';
+          newBadge.textContent = `${count} Zeitraum${count !== 1 ? 'e' : ''}`;
+          header.appendChild(newBadge);
         }
 
-        // Update released counter
-        const counterEl = document.getElementById('released-counter');
-        if (counterEl) {
-          counterEl.textContent = String(Number(counterEl.textContent) + (nowReleased ? 1 : -1));
-        }
+        updateWindowsCounter(1);
+        form.style.display = 'none';
+        const addBtnAfterSave = card.querySelector<HTMLButtonElement>('.window-add')!;
+        addBtnAfterSave.style.display = '';
+        // Reset time inputs
+        form.querySelector<HTMLInputElement>('.window-start')!.value = '09:00';
+        form.querySelector<HTMLInputElement>('.window-end')!.value = '12:00';
+      } catch {
+        alert('Netzwerkfehler.');
       } finally {
-        btn.disabled = false;
-        btn.style.opacity = '1';
+        saveBtn.textContent = 'Speichern';
+        saveBtn.disabled = false;
       }
-    });
+      return;
+    }
+
+    // Remove window
+    const removeBtn = target.closest<HTMLButtonElement>('.window-remove');
+    if (removeBtn) {
+      const id = removeBtn.dataset.id!;
+      removeBtn.disabled = true;
+      removeBtn.textContent = '…';
+      try {
+        const res = await fetch('/api/admin/time-windows/remove', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!res.ok) { alert('Fehler beim Entfernen.'); removeBtn.disabled = false; removeBtn.textContent = '✕'; return; }
+
+        const entry = removeBtn.closest<HTMLElement>('.window-entry')!;
+        const card  = entry.closest<HTMLElement>('[data-date]')!;
+        entry.remove();
+
+        const count = card.querySelectorAll('.window-entry').length;
+        const badge = card.querySelector<HTMLElement>('.text-gold.ml-auto');
+        if (badge) {
+          if (count === 0) badge.remove();
+          else badge.textContent = `${count} Zeitraum${count !== 1 ? 'e' : ''}`;
+        }
+
+        updateWindowsCounter(-1);
+      } catch {
+        alert('Netzwerkfehler.');
+        removeBtn.disabled = false;
+        removeBtn.textContent = '✕';
+      }
+    }
   });
 
   // Booking project assignment

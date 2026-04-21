@@ -1,7 +1,6 @@
 // website/src/pages/api/admin/bookings/create.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { isSlotWhitelisted } from '../../../../lib/website-db';
 import { createInboxItem } from '../../../../lib/messaging-db';
 import { sendEmail } from '../../../../lib/email';
 import { sendAdminNotification } from '../../../../lib/notifications';
@@ -45,13 +44,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
     if (isCallback && !phone?.trim()) {
       return new Response(JSON.stringify({ error: 'Telefonnummer ist bei Rückruf Pflicht.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    if (!isCallback && slotStart) {
-      const whitelisted = await isSlotWhitelisted(BRAND_NAME, new Date(slotStart));
-      if (!whitelisted) {
-        return new Response(JSON.stringify({ error: 'Dieser Slot ist nicht freigegeben.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-      }
     }
 
     const typeLabel = TYPE_LABELS[type] || type;

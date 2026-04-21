@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendEmail } from '../../lib/email';
 import { sendAdminNotification } from '../../lib/notifications';
-import { claimSlot } from '../../lib/website-db';
+import { isSlotInAnyWindow } from '../../lib/website-db';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
@@ -39,11 +39,10 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Atomically claim the slot: removes it from whitelist in one DB operation.
-    // Prevents race conditions where two users book the same slot simultaneously.
-    if (!isCallback && slotStart) {
-      const claimed = await claimSlot(BRAND_NAME, new Date(slotStart));
-      if (!claimed) {
+    // Validate that the requested slot falls within an admin-defined time window.
+    if (!isCallback && slotStart && slotEnd) {
+      const valid = await isSlotInAnyWindow(BRAND_NAME, new Date(slotStart), new Date(slotEnd));
+      if (!valid) {
         return new Response(
           JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),
           { status: 409, headers: { 'Content-Type': 'application/json' } }

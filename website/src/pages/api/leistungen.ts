@@ -5,7 +5,12 @@ export const GET: APIRoute = async () => {
   try {
     const cats = await getEffectiveLeistungen();
     const flat = cats.flatMap(cat =>
-      cat.services.map(svc => ({ key: svc.key, name: svc.name, category: cat.title }))
+      cat.services.map(svc => ({
+        key: svc.key,
+        name: svc.name,
+        category: cat.title,
+        durationMin: svc.durationMin ?? null,
+      }))
     );
     return new Response(JSON.stringify(flat), {
       status: 200,

@@ -32,6 +32,7 @@ export interface Customer {
   id: string;
   name: string;
   email: string;
+  customer_number?: string;
 }
 
 export async function upsertCustomer(params: {
@@ -50,7 +51,7 @@ export async function upsertCustomer(params: {
        company = COALESCE(EXCLUDED.company, customers.company),
        keycloak_user_id = COALESCE(EXCLUDED.keycloak_user_id, customers.keycloak_user_id),
        updated_at = now()
-     RETURNING id, name, email`,
+     RETURNING id, name, email, customer_number`,
     [params.name, params.email, params.phone, params.company,
      params.keycloakUserId]
   );
@@ -1192,7 +1193,7 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
 
 export async function listAllCustomers(): Promise<Customer[]> {
   const result = await pool.query(
-    `SELECT id, name, email FROM customers ORDER BY name ASC`
+    `SELECT id, name, email, customer_number FROM customers ORDER BY name ASC`
   );
   return result.rows;
 }
@@ -1595,7 +1596,7 @@ export async function getCustomerByEmail(
   email: string
 ): Promise<Customer | null> {
   const result = await pool.query(
-    `SELECT id, name, email FROM customers WHERE email = $1`,
+    `SELECT id, name, email, customer_number FROM customers WHERE email = $1`,
     [email]
   );
   return result.rows[0] ?? null;

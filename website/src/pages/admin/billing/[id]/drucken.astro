@@ -1,7 +1,7 @@
 ---
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
 import { getFullInvoice } from '../../../../lib/stripe-billing';
-import { getSiteSetting } from '../../../../lib/website-db';
+import { getSiteSetting, getCustomerByEmail } from '../../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -52,6 +52,9 @@ function fmtEur(n: number): string {
 }
 
 const addr = inv.buyerAddress;
+
+const dbCustomer = inv.customerEmail ? await getCustomerByEmail(inv.customerEmail).catch(() => null) : null;
+const customerNumber = dbCustomer?.customer_number ?? null;
 ---
 
 <!DOCTYPE html>
@@ -189,6 +192,7 @@ const addr = inv.buyerAddress;
     <div class="invoice-meta">
       <table>
         <tr><td>Rechnung Nr.:</td><td>{inv.number}</td></tr>
+        {customerNumber && <tr><td>Kunden-Nr.:</td><td>{customerNumber}</td></tr>}
         <tr><td>Rechnungsdatum:</td><td>{fmtDate(inv.date)}</td></tr>
         <tr><td>Lieferdatum:</td><td>{fmtDate(inv.date)}</td></tr>
         {inv.buyerVatId && <tr><td>USt-IdNr.:</td><td>{inv.buyerVatId}</td></tr>}

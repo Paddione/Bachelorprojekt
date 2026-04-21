@@ -264,7 +264,7 @@
 
 <style>
   .cw { position: fixed; bottom: 24px; right: 184px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-  .panel { width: 560px; height: 440px; background: #1a2235; border: 1px solid #243049; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,.5); overflow: hidden; }
+  .panel { width: min(560px, calc(100vw - 192px)); height: 440px; background: #1a2235; border: 1px solid #243049; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,.5); overflow: hidden; }
   .hdr { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #243049; font-size: 14px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
   .x { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
   .body { display: flex; flex: 1; min-height: 0; }
@@ -302,7 +302,7 @@
   .new-chat:hover { background: #1e2a3a; }
   .picker { position: absolute; left: 0; top: 0; width: 160px; height: 100%; background: #1a2235; border-right: 1px solid #243049; display: flex; flex-direction: column; z-index: 10; overflow-y: auto; }
   .picker-hdr { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #243049; font-size: 11px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
-  @media (max-width: 600px) {
+  @media (max-width: 767px) {
     .cw { right: 8px; bottom: 16px; }
     .panel { width: calc(100vw - 16px); height: 75vh; }
     .rooms { width: 110px; }

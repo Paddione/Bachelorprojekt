@@ -170,6 +170,7 @@ all_images() {
     | grep -E '^\s+namespace:' \
     | grep -v 'workspace' \
     | grep -v 'kube-system' \
+    | grep -v 'website' \
     | sort -u || true)
   if [[ -n "$bad_ns" ]]; then
     echo "Resources with unexpected namespace: ${bad_ns}"

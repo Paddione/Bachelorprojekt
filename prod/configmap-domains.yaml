@@ -17,3 +17,4 @@ data:
   WIKI_DOMAIN: "wiki.${PROD_DOMAIN}"
   AI_DOMAIN: "ai.${PROD_DOMAIN}"
   SIGN_DOMAIN: "sign.${PROD_DOMAIN}"
+  WHITEBOARD_DOMAIN: "files.${PROD_DOMAIN}/index.php/apps/files/personal"

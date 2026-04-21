@@ -89,7 +89,6 @@ const totalWindows = timeWindowsList.length;
 const upcomingBookings = bookings.filter(b => b.start >= now && b.status !== 'CANCELLED');
 const pastBookings = bookings.filter(b => b.start < now || b.status === 'CANCELLED');
 
-const WEEKDAYS_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 function formatBookingDate(d: Date) {
   return `${WEEKDAYS_DE[d.getDay()]}, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 }

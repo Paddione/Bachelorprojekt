@@ -31,8 +31,7 @@ env_vars:
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
   VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
   WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/apps/files"
-  STRIPE_PUBLISHABLE_KEY: "pk_live_51TOM2vPmjoQCVSEjX0mKUyfMoEJQssMbl2Me20WSiLJBj\
-    hIrxQJiesJrSw6GVlVetbJJ1cH7Wk0rOXHamMN5aVMD00gxhMrdoF"
+  STRIPE_PUBLISHABLE_KEY: "pk_live_51TOM2vPmjoQCVSEjX0mKUyfMoEJQssMbl2Me20WSiLJBjhIrxQJiesJrSw6GVlVetbJJ1cH7Wk0rOXHamMN5aVMD00gxhMrdoF"
 
 overlay: prod-mentolder
 secrets_ref: sealed-secrets/mentolder.yaml

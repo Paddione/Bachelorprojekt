@@ -43,15 +43,6 @@ log()  { echo -e "${GREEN}[KC-SYNC]${NC} $*"; }
 warn() { echo -e "${YELLOW}[KC-SYNC]${NC} $*"; }
 err()  { echo -e "${RED}[KC-SYNC]${NC} $*"; }
 
-# ── OIDC-Client-Mapping: K8s-Secret-Key → Keycloak clientId ──────────
-declare -A CLIENT_MAP=(
-  [NEXTCLOUD_OIDC_SECRET]="nextcloud"
-  [DOCS_OIDC_SECRET]="docs"
-  [VAULTWARDEN_OIDC_SECRET]="vaultwarden"
-  [WEBSITE_OIDC_SECRET]="website"
-  [CLAUDE_CODE_OIDC_SECRET]="claude-code"
-)
-
 # ── Warte auf Keycloak-Rollout ────────────────────────────────────────
 log "Warte auf Keycloak-Rollout..."
 # shellcheck disable=SC2086
@@ -103,60 +94,99 @@ else
   TEMPLATE_AVAILABLE=1
 fi
 
-# ── Secrets aus workspace-secrets lesen und in Keycloak schreiben ─────
-UPDATED=0
+# ── Build KV map for ${VAR} substitution ─────────────────────────────
+# Domain vars come from configmap/domain-config (same keys the pod sees).
+# Secret vars (*_OIDC_SECRET) come from secret/workspace-secrets.
+build_kv_map() {
+  # shellcheck disable=SC2086
+  kubectl $CONTEXT_FLAG get cm domain-config -n "$KC_NAMESPACE" \
+    -o jsonpath='{range .data}{@}{end}' 2>/dev/null \
+    | jq -r 'to_entries[] | "\(.key)=\(.value)"' 2>/dev/null || true
+
+  # shellcheck disable=SC2086
+  kubectl $CONTEXT_FLAG get secret workspace-secrets -n "$KC_NAMESPACE" \
+    -o json 2>/dev/null \
+    | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
+}
+
+KV_MAP=$(build_kv_map)
+if [ -z "$KV_MAP" ]; then
+  warn "KV-Map leer — domain-config oder workspace-secrets nicht lesbar."
+  exit 0
+fi
+
+# ── Upsert clients from the realm template ───────────────────────────
+CREATED=0
+SECRET_UPDATED=0
 SKIPPED=0
 FAILED=0
 
-for SECRET_KEY in "${!CLIENT_MAP[@]}"; do
-  CLIENT_ID="${CLIENT_MAP[$SECRET_KEY]}"
+if [ "$TEMPLATE_AVAILABLE" -eq 1 ]; then
+  while IFS= read -r RAW_CLIENT; do
+    [ -z "$RAW_CLIENT" ] && continue
 
-  # shellcheck disable=SC2086
-  SECRET_VAL=$(kubectl $CONTEXT_FLAG get secret workspace-secrets \
-    -n "$KC_NAMESPACE" \
-    -o jsonpath="{.data.${SECRET_KEY}}" 2>/dev/null \
-    | base64 -d 2>/dev/null || true)
+    CLIENT_ID=$(printf '%s' "$RAW_CLIENT" | jq -r '.clientId')
+    SUBBED=$(kc_substitute_placeholders "$RAW_CLIENT" "$KV_MAP")
 
-  if [[ -z "$SECRET_VAL" ]]; then
-    warn "  ${SECRET_KEY} nicht in workspace-secrets — Client '${CLIENT_ID}' übersprungen."
-    SKIPPED=$((SKIPPED + 1))
-    continue
-  fi
+    if ! kc_assert_no_placeholders "$SUBBED" > /dev/null 2>&1; then
+      err "  ✗ ${CLIENT_ID}: unresolved placeholders after substitution — skipping."
+      kc_assert_no_placeholders "$SUBBED" 2>&1 | sed 's/^/      /' || true
+      FAILED=$((FAILED + 1))
+      continue
+    fi
 
-  # Interne Keycloak-UUID des Clients ermitteln
-  CLIENT_UUID=$(curl -sk \
-    "${KC_URL}/admin/realms/${KC_REALM}/clients?clientId=${CLIENT_ID}&search=false" \
-    -H "Authorization: Bearer ${ADMIN_TOKEN}" \
-    | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
+    # Does the client already exist?
+    EXISTING_UUID=$(curl -sk \
+      "${KC_URL}/admin/realms/${KC_REALM}/clients?clientId=${CLIENT_ID}&search=false" \
+      -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+      | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
 
-  if [[ -z "$CLIENT_UUID" ]]; then
-    warn "  Client '${CLIENT_ID}' nicht in Keycloak gefunden — übersprungen."
-    SKIPPED=$((SKIPPED + 1))
-    continue
-  fi
-
-  # Secret setzen via PUT /clients/{uuid} (POST /client-secret regeneriert statt zu setzen!)
-  # Escape special chars for JSON string (backslash, double-quote).
-  SECRET_JSON=$(printf '%s' "$SECRET_VAL" | sed 's/\\/\\\\/g; s/"/\\"/g')
-  HTTP_STATUS=$(curl -sk \
-    -o /dev/null -w "%{http_code}" \
-    -X PUT "${KC_URL}/admin/realms/${KC_REALM}/clients/${CLIENT_UUID}" \
-    -H "Authorization: Bearer ${ADMIN_TOKEN}" \
-    -H "Content-Type: application/json" \
-    -d "{\"secret\":\"${SECRET_JSON}\"}" || echo "000")
-
-  if [[ "$HTTP_STATUS" =~ ^2 ]]; then
-    log "  ✓ ${CLIENT_ID} (${SECRET_KEY})"
-    UPDATED=$((UPDATED + 1))
-  else
-    err "  ✗ ${CLIENT_ID}: HTTP ${HTTP_STATUS}"
-    FAILED=$((FAILED + 1))
-  fi
-done
+    if [ -z "$EXISTING_UUID" ]; then
+      # Create missing client
+      HTTP_STATUS=$(curl -sk \
+        -o /dev/null -w "%{http_code}" \
+        -X POST "${KC_URL}/admin/realms/${KC_REALM}/clients" \
+        -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+        -H "Content-Type: application/json" \
+        -d "$SUBBED" || echo "000")
+      if [[ "$HTTP_STATUS" =~ ^2 ]]; then
+        log "  + ${CLIENT_ID} (created)"
+        CREATED=$((CREATED + 1))
+      else
+        err "  ✗ ${CLIENT_ID}: POST failed HTTP ${HTTP_STATUS}"
+        FAILED=$((FAILED + 1))
+      fi
+    else
+      # Secret-only reconciliation (presence-only policy — see design spec §3)
+      SECRET_VAL=$(printf '%s' "$SUBBED" | jq -r '.secret // empty')
+      if [ -z "$SECRET_VAL" ]; then
+        warn "  ${CLIENT_ID}: kein .secret nach Substitution — übersprungen."
+        SKIPPED=$((SKIPPED + 1))
+        continue
+      fi
+      SECRET_JSON=$(printf '%s' "$SECRET_VAL" | sed 's/\\/\\\\/g; s/"/\\"/g')
+      HTTP_STATUS=$(curl -sk \
+        -o /dev/null -w "%{http_code}" \
+        -X PUT "${KC_URL}/admin/realms/${KC_REALM}/clients/${EXISTING_UUID}" \
+        -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+        -H "Content-Type: application/json" \
+        -d "{\"secret\":\"${SECRET_JSON}\"}" || echo "000")
+      if [[ "$HTTP_STATUS" =~ ^2 ]]; then
+        log "  ✓ ${CLIENT_ID} (secret-updated)"
+        SECRET_UPDATED=$((SECRET_UPDATED + 1))
+      else
+        err "  ✗ ${CLIENT_ID}: PUT secret failed HTTP ${HTTP_STATUS}"
+        FAILED=$((FAILED + 1))
+      fi
+    fi
+  done < <(kc_extract_clients_from_template "$REALM_TMP")
+else
+  warn "TEMPLATE_AVAILABLE=0 — skipping template-driven upsert (no ConfigMap)."
+fi
 
 # ── Zusammenfassung ───────────────────────────────────────────────────
 echo ""
-log "Sync abgeschlossen: ${UPDATED} aktualisiert, ${SKIPPED} übersprungen, ${FAILED} fehlgeschlagen."
+log "Sync abgeschlossen: ${CREATED} erstellt, ${SECRET_UPDATED} secret-aktualisiert, ${SKIPPED} übersprungen, ${FAILED} fehlgeschlagen."
 
 if [[ $FAILED -gt 0 ]]; then
   warn "Einige Clients konnten nicht synchronisiert werden."

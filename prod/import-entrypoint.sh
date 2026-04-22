@@ -47,5 +47,10 @@ fi
 
 echo "[import-entrypoint] Realm JSON generiert: $OUTPUT"
 
-# Original Keycloak Entrypoint aufrufen
-exec /opt/keycloak/bin/kc.sh start --import-realm "$@"
+# KC 26 changed --import-realm to exit after import.
+# Use 'import' subcommand (idempotent, skips existing realms) then 'start'.
+/opt/keycloak/bin/kc.sh import --file "$OUTPUT" --override false
+
+echo "[import-entrypoint] Realm importiert (oder bereits vorhanden). Starte KC-Server..."
+
+exec /opt/keycloak/bin/kc.sh start "$@"

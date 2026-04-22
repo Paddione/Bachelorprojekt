@@ -20,6 +20,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV="${ENV:-dev}"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/lib/keycloak-helpers.sh"
 
 KC_NAMESPACE="${KC_NAMESPACE:-workspace}"
 KC_REALM="${KC_REALM:-workspace}"
@@ -84,6 +86,21 @@ if [[ -z "$ADMIN_TOKEN" ]]; then
   warn "(kcadm.sh set-password -r master --username admin --new-password \$NEU) oder"
   warn "workspace-secrets auf den alten Wert zurücksetzen."
   exit 0
+fi
+
+# ── Realm-Template ConfigMap ─────────────────────────────────────────
+REALM_TMP=$(mktemp)
+trap 'rm -f "$REALM_TMP"' EXIT
+
+# shellcheck disable=SC2086
+if ! kubectl $CONTEXT_FLAG get cm realm-template -n "$KC_NAMESPACE" \
+     -o jsonpath='{.data.realm-workspace\.json}' > "$REALM_TMP" 2>/dev/null \
+   || [ ! -s "$REALM_TMP" ]; then
+  warn "realm-template ConfigMap nicht gefunden — kann keine Clients aus Template lesen."
+  warn "Fallback: reiner Secret-Sync-Modus (nur PUT für existierende Clients)."
+  TEMPLATE_AVAILABLE=0
+else
+  TEMPLATE_AVAILABLE=1
 fi
 
 # ── Secrets aus workspace-secrets lesen und in Keycloak schreiben ─────

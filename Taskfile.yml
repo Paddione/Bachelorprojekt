@@ -1044,13 +1044,8 @@ tasks:
         if [ "{{.ENV}}" != "dev" ]; then
           active_ctx=$(kubectl config current-context 2>/dev/null || echo "")
           if [ "$active_ctx" != "$ENV_CONTEXT" ]; then
-            echo ""
-            echo "ERROR: kubectl context mismatch"
-            echo "  Expected : $ENV_CONTEXT  (from environments/{{.ENV}}.yaml)"
-            echo "  Active   : $active_ctx"
-            echo ""
-            echo "Fix: kubectl config use-context $ENV_CONTEXT"
-            exit 1
+            echo "Switching kubectl context: $active_ctx → $ENV_CONTEXT"
+            kubectl config use-context "$ENV_CONTEXT"
           fi
         fi
 

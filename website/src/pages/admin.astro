@@ -49,9 +49,9 @@ function fmtCurrency(n: number): string {
 
 const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
 const docsUrl     = process.env.DOCS_URL ?? '';
-const billingUrl  = process.env.BILLING_EXTERNAL_URL ?? '';
 const authUrl     = process.env.AUTH_EXTERNAL_URL ?? '';
 const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
+const wbUrl       = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
 const adminLinks = [
   { href: '/admin/inbox', label: 'Inbox', icon: '📬' },
   ...(ncBase ? [
@@ -59,9 +59,9 @@ const adminLinks = [
     { href: `${ncBase}/apps/calendar/`,   label: 'Kalender',   icon: '📅' },
     { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   icon: '👥' },
     { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
-    { href: `${ncBase}/apps/files/`,      label: 'Whiteboard', icon: '🖊️' },
   ] : []),
-  ...(billingUrl  ? [{ href: billingUrl,        label: 'Abrechnung', icon: '🧾' }] : []),
+  ...(wbUrl ? [{ href: wbUrl, label: 'Whiteboard', icon: '🖊️' }] : []),
+  { href: '/admin/rechnungen', label: 'Abrechnung', icon: '🧾' },
   ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
   ...(authUrl     ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak', icon: '🔑' }] : []),
   ...(docsUrl     ? [{ href: docsUrl,           label: 'Docs',       icon: '📖' }] : []),

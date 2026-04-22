@@ -67,14 +67,22 @@ KC_ADMIN_PASS=$(kubectl $CONTEXT_FLAG get secret workspace-secrets \
   | base64 -d 2>/dev/null || echo "devadmin")
 
 log "Hole Admin-Token von ${KC_URL}..."
+# --data-urlencode escapes special chars (& # + =) that otherwise corrupt the form body.
 ADMIN_TOKEN=$(curl -sk \
   -X POST "${KC_URL}/realms/master/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password&client_id=admin-cli&username=admin&password=${KC_ADMIN_PASS}" \
+  --data-urlencode "grant_type=password" \
+  --data-urlencode "client_id=admin-cli" \
+  --data-urlencode "username=admin" \
+  --data-urlencode "password=${KC_ADMIN_PASS}" \
   | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4 || true)
 
 if [[ -z "$ADMIN_TOKEN" ]]; then
   warn "Admin-Token nicht erhältlich — Sync wird übersprungen."
+  warn "Hinweis: Admin-Passwort in workspace-secrets muss mit dem Passwort des 'admin'-Users im"
+  warn "Keycloak-Realm 'master' übereinstimmen. Bei Drift: Passwort in Keycloak zurücksetzen"
+  warn "(kcadm.sh set-password -r master --username admin --new-password \$NEU) oder"
+  warn "workspace-secrets auf den alten Wert zurücksetzen."
   exit 0
 fi
 

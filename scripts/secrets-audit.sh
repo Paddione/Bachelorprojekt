@@ -82,7 +82,7 @@ GROUP_LABELS=(
   "WEBSITE_OIDC_SECRET"
   "STRIPE_SECRET_KEY"
   "STRIPE_WEBHOOK_SECRET"
-  "SMTP_PASS"
+  "SMTP_PASSWORD"
   "NEXTCLOUD_ADMIN_PASSWORD"
 )
 
@@ -95,7 +95,7 @@ GROUP_MEMBERS=(
   "workspace:workspace-secrets:WEBSITE_OIDC_SECRET|website:website-secrets:WEBSITE_OIDC_SECRET"
   "workspace:workspace-secrets:STRIPE_SECRET_KEY|website:website-secrets:STRIPE_SECRET_KEY"
   "workspace:workspace-secrets:STRIPE_WEBHOOK_SECRET|website:website-secrets:STRIPE_WEBHOOK_SECRET"
-  "workspace:workspace-secrets:SMTP_PASS|website:website-secrets:SMTP_PASS"
+  "workspace:workspace-secrets:SMTP_PASSWORD|website:website-secrets:SMTP_PASSWORD"
   "workspace:workspace-secrets:NEXTCLOUD_ADMIN_PASSWORD|website:website-secrets:NEXTCLOUD_ADMIN_PASS|website:website-secrets:NEXTCLOUD_CALDAV_PASSWORD"
 )
 
@@ -139,7 +139,6 @@ SOLO_LABELS=(
   "DOCUSEAL_SECRET_KEY_BASE"
   "DOCUSEAL_API_TOKEN"
   "DOCUSEAL_DB_PASSWORD"
-  "SMTP_PASSWORD"
   "KC_USER1_PASSWORD"
   "KC_USER2_PASSWORD"
   "GHCR_PAT"
@@ -174,7 +173,6 @@ SOLO_MEMBERS=(
   "workspace:workspace-secrets:DOCUSEAL_SECRET_KEY_BASE"
   "workspace:workspace-secrets:DOCUSEAL_API_TOKEN"
   "workspace:workspace-secrets:DOCUSEAL_DB_PASSWORD"
-  "workspace:workspace-secrets:SMTP_PASSWORD"
   "workspace:workspace-secrets:KC_USER1_PASSWORD"
   "workspace:workspace-secrets:KC_USER2_PASSWORD"
   "workspace:workspace-secrets:GHCR_PAT"

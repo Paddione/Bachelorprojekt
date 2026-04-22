@@ -8,7 +8,7 @@ env_vars:
   BRAND_NAME: "KORE"
   BRAND_ID: KORE
   CONTACT_EMAIL: info@korczewski.de
-  CONTACT_PHONE: "***"
+  CONTACT_PHONE: ""
   CONTACT_CITY: "Lüneburg"
   CONTACT_NAME: "Patrick Korczewski"
   LEGAL_STREET: "In der Twiet 4"

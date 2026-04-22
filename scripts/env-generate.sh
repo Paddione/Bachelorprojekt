@@ -68,6 +68,24 @@ schema_field() {
   ' "$file"
 }
 
+# env_file_var <file> <key> — read a scalar from the env_vars: section of an env file
+env_file_var() {
+  local file="$1" key="$2"
+  [[ -f "$file" ]] || return 0
+  awk -v keyname="$key" '
+    /^env_vars:/ { in_sect=1; next }
+    /^[a-z_]+:/ && !/^env_vars:/ { in_sect=0 }
+    in_sect && $0 ~ "^[[:space:]]+" keyname ":" {
+      val = $0
+      sub(/^[^:]*:[[:space:]]*/, "", val)
+      gsub(/^["'\'']|["'\'']$/, "", val)
+      sub(/[[:space:]]+$/, "", val)
+      print val
+      exit
+    }
+  ' "$file"
+}
+
 # ── Parse Arguments ──────────────────────────────────────────────
 
 [[ $# -eq 0 ]] && usage
@@ -83,6 +101,7 @@ done
 [[ -z "$ENV_NAME" ]] && die "--env <name> is required"
 
 SCHEMA="${ENV_DIR}/schema.yaml"
+ENV_FILE="${ENV_DIR}/${ENV_NAME}.yaml"
 SECRETS_DIR="${ENV_DIR}/.secrets"
 OUTPUT="${SECRETS_DIR}/${ENV_NAME}.yaml"
 
@@ -130,6 +149,15 @@ setup_keys=$(schema_keys "$SCHEMA" "setup_vars")
       echo "${key}: \"${value}\""
       info "  Generated: ${key} (${hex_len} hex chars)"
     else
+      # If the same key is defined in env_vars of the env file, copy it.
+      # This keeps SMTP_FROM/SMTP_USER from diverging via typo at the prompt.
+      env_value=$(env_file_var "$ENV_FILE" "$key")
+      if [[ -n "$env_value" ]]; then
+        echo "${key}: \"${env_value}\""
+        info "  Set: ${key} (copied from ${ENV_FILE})"
+        continue
+      fi
+
       echo "" >&2
       read -rp "Enter value for ${key}: " user_value </dev/tty
       if [[ -z "$user_value" ]]; then

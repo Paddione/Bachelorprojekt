@@ -63,13 +63,7 @@ spec:
           image: nextcloud:33-apache
           imagePullPolicy: Always
           securityContext:
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 33
             readOnlyRootFilesystem: false
-            capabilities:
-              drop: [ALL]
-              add: []
             seccompProfile:
               type: RuntimeDefault
           ports:

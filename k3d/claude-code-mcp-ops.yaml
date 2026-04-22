@@ -33,6 +33,9 @@ spec:
         - name: mcp-kubernetes
           image: node:22-alpine
           imagePullPolicy: Always
+          env:
+            - name: HOME
+              value: /tmp
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -94,6 +97,8 @@ spec:
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
           env:
+            - name: HOME
+              value: /tmp
             - name: SHARED_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -145,6 +150,8 @@ spec:
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
           env:
+            - name: HOME
+              value: /tmp
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

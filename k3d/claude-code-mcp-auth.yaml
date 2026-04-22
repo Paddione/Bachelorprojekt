@@ -19,8 +19,6 @@ spec:
         app: claude-code-mcp-auth
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -36,8 +34,6 @@ spec:
               value: "admin-cli"
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 65534
             capabilities:
               drop: ["ALL"]
           ports:

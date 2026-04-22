@@ -31,6 +31,8 @@ spec:
             capabilities:
               drop: ["ALL"]
           env:
+            - name: HOME
+              value: /tmp
             - name: NODE_OPTIONS
               value: "--dns-result-order=ipv4first"
           args:

@@ -27,32 +27,35 @@ spec:
         - name: oauth2-proxy
           image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
           imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
           args:
-            - --provider=keycloak-oidc
-            - --client-id=docs
-            - --client-secret=$(DOCS_OIDC_SECRET)
-            - --redirect-url=http://docs.localhost/oauth2/callback
-            - --oidc-issuer-url=http://keycloak:8080/realms/workspace
-            - --ssl-insecure-skip-verify=true
-            - --skip-oidc-discovery=true
-            - --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth
-            - --redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token
-            - --oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs
-            - --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo
-            - --upstream=http://docs:80
-            - --http-address=0.0.0.0:4180
-            - --cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)
-            - --cookie-secure=false
-            - --cookie-name=_oauth2_proxy_docs
-            - --email-domain=*
-            - --pass-access-token=true
-            - --pass-authorization-header=true
-            - --set-xauthrequest=true
-            - --skip-provider-button=true
-            - --code-challenge-method=S256
-            - --insecure-oidc-allow-unverified-email=true
-            - --oidc-extra-audience=docs
-            - --scope=openid email profile
+            - |
+              exec /bin/oauth2-proxy \
+                --provider=keycloak-oidc \
+                --client-id=docs \
+                --client-secret="$DOCS_OIDC_SECRET" \
+                --redirect-url=http://docs.localhost/oauth2/callback \
+                --oidc-issuer-url=http://keycloak:8080/realms/workspace \
+                --ssl-insecure-skip-verify=true \
+                --skip-oidc-discovery=true \
+                --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth \
+                --redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token \
+                --oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs \
+                --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo \
+                --upstream=http://docs:80 \
+                --http-address=0.0.0.0:4180 \
+                --cookie-secret="${OAUTH2_PROXY_COOKIE_SECRET:0:32}" \
+                --cookie-secure=false \
+                --cookie-name=_oauth2_proxy_docs \
+                --email-domain='*' \
+                --pass-access-token=true \
+                --pass-authorization-header=true \
+                --set-xauthrequest=true \
+                --skip-provider-button=true \
+                --code-challenge-method=S256 \
+                --insecure-oidc-allow-unverified-email=true \
+                --oidc-extra-audience=docs \
+                --scope='openid email profile'
           env:
             - name: DOCS_OIDC_SECRET
               valueFrom:

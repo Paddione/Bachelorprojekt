@@ -37,6 +37,8 @@ spec:
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
           env:
+            - name: HOME
+              value: /tmp
             # Optional: deployments without a Stripe account (e.g. mentolder)
             # leave this unset and the MCP server logs but stays up.
             - name: STRIPE_SECRET_KEY

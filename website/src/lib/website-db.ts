@@ -506,7 +506,7 @@ export async function insertBugTicket(params: {
     ? JSON.stringify(params.screenshots)
     : null;
   const result = await pool.query(
-    `INSERT INTO bug_tickets (ticket_id, category, reporter_email, description, url, brand, screenshots_json)
+    `INSERT INTO bugs.bug_tickets (ticket_id, category, reporter_email, description, url, brand, screenshots_json)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (ticket_id) DO NOTHING`,
     [params.ticketId, params.category, params.reporterEmail,
@@ -518,7 +518,7 @@ export async function insertBugTicket(params: {
 export async function resolveBugTicket(ticketId: string, resolutionNote: string): Promise<void> {
   await initBugTicketsTable();
   await pool.query(
-    `UPDATE bug_tickets
+    `UPDATE bugs.bug_tickets
      SET status = 'resolved', resolved_at = NOW(), resolution_note = $2
      WHERE ticket_id = $1 AND status = 'open'`,
     [ticketId, resolutionNote]
@@ -534,7 +534,7 @@ export async function resolveBugTicket(ticketId: string, resolutionNote: string)
 export async function archiveBugTicket(ticketId: string): Promise<void> {
   await initBugTicketsTable();
   await pool.query(
-    `UPDATE bug_tickets SET status = 'archived' WHERE ticket_id = $1 AND status != 'archived'`,
+    `UPDATE bugs.bug_tickets SET status = 'archived' WHERE ticket_id = $1 AND status != 'archived'`,
     [ticketId]
   );
   await pool.query(
@@ -560,7 +560,7 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
     `SELECT ticket_id as "ticketId", status, category,
             created_at as "createdAt", resolved_at as "resolvedAt",
             resolution_note as "resolutionNote"
-     FROM bug_tickets WHERE ticket_id = $1`,
+     FROM bugs.bug_tickets WHERE ticket_id = $1`,
     [ticketId]
   );
   return result.rows[0] ?? null;
@@ -569,8 +569,19 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
 // ── Bug Tickets Table Init ────────────────────────────────────────────────────
 
 export async function initBugTicketsTable(): Promise<void> {
+  await pool.query(`CREATE SCHEMA IF NOT EXISTS bugs AUTHORIZATION website`);
+  // One-time migration: move a pre-existing public.bug_tickets into bugs.
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS bug_tickets (
+    DO $mig$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'bug_tickets')
+         AND NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'bugs' AND tablename = 'bug_tickets') THEN
+        EXECUTE 'ALTER TABLE public.bug_tickets SET SCHEMA bugs';
+      END IF;
+    END $mig$
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bugs.bug_tickets (
       ticket_id       TEXT PRIMARY KEY,
       category        TEXT NOT NULL,
       reporter_email  TEXT NOT NULL,
@@ -584,7 +595,7 @@ export async function initBugTicketsTable(): Promise<void> {
     )
   `);
   await pool.query(`
-    ALTER TABLE bug_tickets
+    ALTER TABLE bugs.bug_tickets
       ADD COLUMN IF NOT EXISTS screenshots_json JSONB
   `);
   // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
@@ -592,7 +603,7 @@ export async function initBugTicketsTable(): Promise<void> {
     UPDATE inbox_items
     SET status = CASE WHEN bt.status = 'archived' THEN 'archived' ELSE 'actioned' END,
         actioned_at = NOW()
-    FROM bug_tickets bt
+    FROM bugs.bug_tickets bt
     WHERE inbox_items.bug_ticket_id = bt.ticket_id
       AND inbox_items.status = 'pending'
       AND bt.status IN ('resolved', 'archived')
@@ -2290,7 +2301,7 @@ export async function listBugTickets(filters: {
             resolved_at      AS "resolvedAt",
             resolution_note  AS "resolutionNote",
             screenshots_json AS "screenshots"
-     FROM bug_tickets
+     FROM bugs.bug_tickets
      WHERE ($1::text IS NULL OR brand = $1)
        AND ($2::text IS NULL OR status = $2)
        AND ($3::text IS NULL OR category = $3)

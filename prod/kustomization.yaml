@@ -144,7 +144,7 @@ patches:
   - path: patch-talk-transcriber.yaml
   # Override signaling backend URL for production (HTTPS + real domain)
   - path: patch-signaling-backend.yaml
-  # Whisper: use public Docker image in production (registry.localhost not accessible)
+  # Whisper: restore pre-#274 CPU request (500m in base fits dev; prod gets 2)
   - path: patch-whisper.yaml
   # Override traefik basic-auth with production credentials (replaces dev admin:admin hash)
   - path: patch-traefik-basic-auth.yaml

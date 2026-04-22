@@ -35,9 +35,9 @@ spec:
                   name: workspace-secrets
                   key: SMTP_PASSWORD
             - name: MAIL_FROM_ADDRESS
-              value: "nextcloud"
+              value: "${MAIL_FROM_LOCAL}"
             - name: MAIL_DOMAIN
-              value: "${PROD_DOMAIN}"
+              value: "${MAIL_FROM_DOMAIN}"
           readinessProbe:
             httpGet:
               httpHeaders:

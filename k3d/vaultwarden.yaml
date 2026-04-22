@@ -107,7 +107,10 @@ spec:
             - name: SMTP_SECURITY
               value: "off"
             - name: SMTP_FROM
-              value: "vaultwarden@workspace.local"
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_FROM
             - name: SMTP_FROM_NAME
               value: "Vaultwarden"
             - name: TZ

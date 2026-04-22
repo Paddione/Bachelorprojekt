@@ -286,13 +286,13 @@ YAML
   local tmpdir
   tmpdir="$(mktemp -d)"
   cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
-GITLAB_APP_ID: "not-configured"
+GITHUB_PAT: "not-configured"
 YAML
 
   run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dev-scan "${tmpdir}/mysecrets.yaml"
   assert_failure
   assert_output --partial "dev placeholder"
-  assert_output --partial "GITLAB_APP_ID"
+  assert_output --partial "GITHUB_PAT"
   rm -rf "$tmpdir"
 }
 
@@ -351,5 +351,114 @@ YAML
   run bash "${PROJECT_DIR}/scripts/env-seal.sh" --_test-dup-check "${tmpdir}/mysecrets.yaml"
   assert_success
   assert_output --partial "OK"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh completeness check rejects missing required secret key" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/schema.yaml" <<'YAML'
+version: 1
+secrets:
+  - name: REQUIRED_SECRET
+    required: true
+    generate: true
+    length: 32
+setup_vars: []
+YAML
+  cat > "${tmpdir}/secrets.yaml" <<'YAML'
+SOME_OTHER_KEY: "somevalue123"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" \
+    --_test-completeness "${tmpdir}/secrets.yaml" \
+    --_test-schema "${tmpdir}/schema.yaml"
+  assert_failure
+  assert_output --partial "REQUIRED_SECRET"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh completeness check rejects missing sealed setup_var" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/schema.yaml" <<'YAML'
+version: 1
+secrets: []
+setup_vars:
+  - name: KC_USER1_PASSWORD
+    required: true
+    sealed: true
+YAML
+  cat > "${tmpdir}/env.yaml" <<'YAML'
+KC_USER1_PASSWORD: SEALED
+YAML
+  cat > "${tmpdir}/secrets.yaml" <<'YAML'
+SOME_OTHER_KEY: "somevalue123"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" \
+    --_test-completeness "${tmpdir}/secrets.yaml" \
+    --_test-schema "${tmpdir}/schema.yaml" \
+    --_test-env-file "${tmpdir}/env.yaml"
+  assert_failure
+  assert_output --partial "KC_USER1_PASSWORD"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh completeness check passes when all required keys present" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/schema.yaml" <<'YAML'
+version: 1
+secrets:
+  - name: REQUIRED_SECRET
+    required: true
+    generate: true
+    length: 32
+setup_vars:
+  - name: KC_USER1_PASSWORD
+    required: true
+    sealed: true
+YAML
+  cat > "${tmpdir}/env.yaml" <<'YAML'
+KC_USER1_PASSWORD: SEALED
+YAML
+  cat > "${tmpdir}/secrets.yaml" <<'YAML'
+REQUIRED_SECRET: "realvalue123abc"
+KC_USER1_PASSWORD: "mypassword123"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" \
+    --_test-completeness "${tmpdir}/secrets.yaml" \
+    --_test-schema "${tmpdir}/schema.yaml" \
+    --_test-env-file "${tmpdir}/env.yaml"
+  assert_success
+  assert_output --partial "OK"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh completeness check skips non-SEALED setup_vars" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/schema.yaml" <<'YAML'
+version: 1
+secrets: []
+setup_vars:
+  - name: KC_USER1_PASSWORD
+    required: true
+    sealed: true
+YAML
+  cat > "${tmpdir}/env.yaml" <<'YAML'
+KC_USER1_PASSWORD: realpassword
+YAML
+  cat > "${tmpdir}/secrets.yaml" <<'YAML'
+SOME_OTHER_KEY: "somevalue123"
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" \
+    --_test-completeness "${tmpdir}/secrets.yaml" \
+    --_test-schema "${tmpdir}/schema.yaml" \
+    --_test-env-file "${tmpdir}/env.yaml"
+  assert_success
   rm -rf "$tmpdir"
 }

@@ -305,6 +305,21 @@ validate_env() {
           die "Sealed secret missing required key: ${key}"
         fi
       done <<< "$schema_secret_keys"
+
+      # Also check setup_vars marked sealed: true
+      local schema_setup_keys
+      schema_setup_keys=$(schema_keys "$SCHEMA" "setup_vars")
+
+      while IFS= read -r key; do
+        [[ -z "$key" ]] && continue
+        local sealed
+        sealed=$(schema_field "$SCHEMA" "setup_vars" "$key" "sealed")
+        [[ "$sealed" != "true" ]] && continue
+
+        if ! echo "$sealed_keys" | grep -qx "$key"; then
+          die "Sealed secret missing sealed setup_var: ${key}"
+        fi
+      done <<< "$schema_setup_keys"
     fi
   fi
 

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-seller-config
+  namespace: website
+data:
+  SELLER_NAME: "Gerald Korczewski"
+  SELLER_ADDRESS: "Ludwig-Erhard-Str. 18"
+  SELLER_POSTAL_CODE: "20459"
+  SELLER_CITY: "Hamburg"
+  SELLER_COUNTRY: "Deutschland"
+  SELLER_VAT_ID: "33/023/05100"

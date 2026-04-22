@@ -113,10 +113,6 @@ env_vars:
     required: true
     default_dev: "Coach, Berater, Trainer"
 
-  - name: LEGAL_CHAMBER
-    required: true
-    default_dev: "Entfaellt"
-
   - name: LEGAL_UST_ID
     required: true
     default_dev: "Nicht vorhanden"
@@ -361,7 +357,6 @@ env_vars:
   LEGAL_STREET: "Ludwig-Erhard-Str. 18"
   LEGAL_ZIP: "20459"
   LEGAL_JOBTITLE: "Coach, Berater, Trainer"
-  LEGAL_CHAMBER: "Entfaellt"
   LEGAL_UST_ID: "Kleinunternehmer gem. 19 Abs. 1 UStG"
   LEGAL_WEBSITE: mentolder.de
   WEBSITE_IMAGE: mentolder-website
@@ -403,7 +398,6 @@ env_vars:
   LEGAL_STREET: "FILL_FROM_ENV_KORCZEWSKI"
   LEGAL_ZIP: "FILL_FROM_ENV_KORCZEWSKI"
   LEGAL_JOBTITLE: "FILL_FROM_ENV_KORCZEWSKI"
-  LEGAL_CHAMBER: "FILL_FROM_ENV_KORCZEWSKI"
   LEGAL_UST_ID: "FILL_FROM_ENV_KORCZEWSKI"
   LEGAL_WEBSITE: korczewski.de
   WEBSITE_IMAGE: korczewski-website

@@ -5,8 +5,8 @@ domain: korczewski.de
 
 env_vars:
   PROD_DOMAIN: korczewski.de
-  BRAND_NAME: "Korczewski"
-  BRAND_ID: korczewski
+  BRAND_NAME: "KORE"
+  BRAND_ID: KORE
   CONTACT_EMAIL: info@korczewski.de
   CONTACT_PHONE: "***"
   CONTACT_CITY: "Lüneburg"
@@ -14,7 +14,6 @@ env_vars:
   LEGAL_STREET: "In der Twiet 4"
   LEGAL_ZIP: "21360"
   LEGAL_JOBTITLE: "Software Engineer, IT-Security-Berater"
-  LEGAL_CHAMBER: "Entfällt"
   LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
   LEGAL_WEBSITE: korczewski.de
   WEBSITE_IMAGE: korczewski-website
@@ -26,13 +25,11 @@ env_vars:
   TURN_PUBLIC_IP: "62.238.9.39"
   TURN_NODE: "pk-hetzner"
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
-  MATTERMOST_EXTERNAL_URL: "https://chat.korczewski.de"
   DOCS_URL: "https://docs.korczewski.de"
   BILLING_EXTERNAL_URL: "https://billing.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
-  WHITEBOARD_EXTERNAL_URL: "https://board.korczewski.de"
-  WIKI_EXTERNAL_URL: "https://wiki.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/index.php/apps/files/personal"
 
 overlay: prod-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml
@@ -41,6 +38,6 @@ setup_vars:
   KC_USER1_USERNAME: paddione
   KC_USER1_EMAIL: patrick@korczewski.de
   KC_USER1_PASSWORD: SEALED
-  KC_USER2_USERNAME: Christina.Wolf
-  KC_USER2_EMAIL: tina-merlin@web.de
+  KC_USER2_USERNAME: gekko
+  KC_USER2_EMAIL: quamain@web.de
   KC_USER2_PASSWORD: SEALED

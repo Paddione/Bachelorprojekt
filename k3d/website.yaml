@@ -44,7 +44,6 @@ data:
   LEGAL_STREET: "${LEGAL_STREET}"
   LEGAL_ZIP: "${LEGAL_ZIP}"
   LEGAL_JOBTITLE: "${LEGAL_JOBTITLE}"
-  LEGAL_CHAMBER: "${LEGAL_CHAMBER}"
   LEGAL_UST_ID: "${LEGAL_UST_ID}"
   LEGAL_WEBSITE: "${LEGAL_WEBSITE}"
   # Nextcloud
@@ -144,6 +143,15 @@ spec:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
           envFrom:
             - configMapRef:
                 name: website-config
@@ -210,33 +218,33 @@ spec:
               value: "http://docuseal.workspace.svc.cluster.local:3000"
             - name: SELLER_NAME
               valueFrom:
-                secretKeyRef:
-                  name: website-secrets
+                configMapKeyRef:
+                  name: website-seller-config
                   key: SELLER_NAME
             - name: SELLER_ADDRESS
               valueFrom:
-                secretKeyRef:
-                  name: website-secrets
+                configMapKeyRef:
+                  name: website-seller-config
                   key: SELLER_ADDRESS
             - name: SELLER_POSTAL_CODE
               valueFrom:
-                secretKeyRef:
-                  name: website-secrets
+                configMapKeyRef:
+                  name: website-seller-config
                   key: SELLER_POSTAL_CODE
             - name: SELLER_CITY
               valueFrom:
-                secretKeyRef:
-                  name: website-secrets
+                configMapKeyRef:
+                  name: website-seller-config
                   key: SELLER_CITY
             - name: SELLER_COUNTRY
               valueFrom:
-                secretKeyRef:
-                  name: website-secrets
+                configMapKeyRef:
+                  name: website-seller-config
                   key: SELLER_COUNTRY
             - name: SELLER_VAT_ID
               valueFrom:
-                secretKeyRef:
-                  name: website-secrets
+                configMapKeyRef:
+                  name: website-seller-config
                   key: SELLER_VAT_ID
           ports:
             - containerPort: 4321

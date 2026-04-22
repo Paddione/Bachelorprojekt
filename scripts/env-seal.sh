@@ -20,6 +20,9 @@ ENV_DIR="environments"
 FORCE=false
 _TEST_SCAN_FILE=""
 _TEST_DUP_FILE=""
+_TEST_COMPLETENESS_FILE=""
+_TEST_SCHEMA_FILE=""
+_TEST_COMPLETENESS_ENV_FILE=""
 
 # ── Helpers ──────────────────────────────────────────────────────
 
@@ -123,6 +126,40 @@ check_duplicate_keys() {
   return 0
 }
 
+# schema_keys <file> <section> — extract all "name:" values under a section
+schema_keys() {
+  local file="$1" section="$2"
+  awk -v sect="$section" '
+    /^[a-z_]+:/ { in_sect = ($0 ~ "^" sect ":"); next }
+    in_sect && /^[[:space:]]*- name:/ {
+      sub(/^[[:space:]]*- name:[[:space:]]*/, "")
+      gsub(/"/, "")
+      print
+    }
+  ' "$file"
+}
+
+# schema_field <file> <section> <key> <field> — get a field for a specific key
+schema_field() {
+  local file="$1" section="$2" key="$3" field="$4"
+  awk -v sect="$section" -v keyname="$key" -v fname="$field" '
+    /^[a-z_]+:/ { in_sect = ($0 ~ "^" sect ":"); next }
+    in_sect && /^[[:space:]]*- name:/ {
+      sub(/^[[:space:]]*- name:[[:space:]]*/, "")
+      gsub(/"/, "")
+      current_key = $0
+      next
+    }
+    in_sect && current_key == keyname && $0 ~ "^[[:space:]]+" fname ":" {
+      val = $0
+      sub(/^[^:]*:[[:space:]]*/, "", val)
+      gsub(/"/, "", val)
+      print val
+      exit
+    }
+  ' "$file"
+}
+
 # yaml_get <file> <key> — extract value for a top-level key
 yaml_get() {
   local file="$1" key="$2"
@@ -138,6 +175,59 @@ yaml_get() {
     | sed 's/[[:space:]]*$//'
 }
 
+# ── Schema completeness checker ──────────────────────────────────
+
+check_schema_completeness() {
+  local secrets_file="$1"
+  local schema_file="$2"
+  local env_file="${3:-}"
+  local missing=()
+
+  [[ ! -f "$schema_file" ]] && { echo "ERROR: Schema file not found: ${schema_file}"; return 1; }
+
+  # Check all required secrets keys
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    local required
+    required=$(schema_field "$schema_file" "secrets" "$key" "required")
+    [[ "$required" != "true" ]] && continue
+
+    if ! grep -qE "^${key}:" "$secrets_file"; then
+      missing+=("${key} (secrets)")
+    fi
+  done < <(schema_keys "$schema_file" "secrets")
+
+  # Check setup_vars marked sealed: true
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    local sealed
+    sealed=$(schema_field "$schema_file" "setup_vars" "$key" "sealed")
+    [[ "$sealed" != "true" ]] && continue
+
+    # Only require in .secrets if the env file marks it SEALED (or no env file)
+    if [[ -n "$env_file" && -f "$env_file" ]]; then
+      local env_val
+      env_val=$(yaml_get "$env_file" "$key")
+      [[ "$env_val" != "SEALED" ]] && continue
+    fi
+
+    if ! grep -qE "^${key}:" "$secrets_file"; then
+      missing+=("${key} (setup_vars, sealed: true)")
+    fi
+  done < <(schema_keys "$schema_file" "setup_vars")
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "ERROR: The following required keys are missing from ${secrets_file}:"
+    for k in "${missing[@]}"; do
+      echo "  ${k}"
+    done
+    echo ""
+    echo "Add the missing values to ${secrets_file} before sealing."
+    return 1
+  fi
+  return 0
+}
+
 # ── Parse Arguments ──────────────────────────────────────────────
 
 [[ $# -eq 0 ]] && usage
@@ -147,8 +237,11 @@ while [[ $# -gt 0 ]]; do
     --env)              ENV_NAME="$2"; shift 2 ;;
     --env-dir)          ENV_DIR="$2"; shift 2 ;;
     --force)            FORCE=true; shift ;;
-    --_test-dev-scan)   _TEST_SCAN_FILE="$2"; shift 2 ;;
-    --_test-dup-check)  _TEST_DUP_FILE="$2"; shift 2 ;;
+    --_test-dev-scan)        _TEST_SCAN_FILE="$2"; shift 2 ;;
+    --_test-dup-check)       _TEST_DUP_FILE="$2"; shift 2 ;;
+    --_test-completeness)    _TEST_COMPLETENESS_FILE="$2"; shift 2 ;;
+    --_test-schema)          _TEST_SCHEMA_FILE="$2"; shift 2 ;;
+    --_test-env-file)        _TEST_COMPLETENESS_ENV_FILE="$2"; shift 2 ;;
     *)                  echo "Unknown option: $1"; usage ;;
   esac
 done
@@ -173,10 +266,20 @@ if [[ -n "$_TEST_DUP_FILE" ]]; then
   fi
 fi
 
+if [[ -n "$_TEST_COMPLETENESS_FILE" ]]; then
+  if check_schema_completeness "$_TEST_COMPLETENESS_FILE" "$_TEST_SCHEMA_FILE" "$_TEST_COMPLETENESS_ENV_FILE"; then
+    echo "OK: all required schema keys present"
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
 [[ -z "$ENV_NAME" ]] && die "--env <name> is required"
 
 ENV_FILE="${ENV_DIR}/${ENV_NAME}.yaml"
 SECRETS_FILE="${ENV_DIR}/.secrets/${ENV_NAME}.yaml"
+SCHEMA="${ENV_DIR}/schema.yaml"
 CERTS_DIR="${ENV_DIR}/certs"
 CERT_FILE="${CERTS_DIR}/${ENV_NAME}.pem"
 SEALED_DIR="${ENV_DIR}/sealed-secrets"
@@ -225,6 +328,16 @@ if ! check_duplicate_keys "$SECRETS_FILE"; then
   exit 1
 fi
 info "No duplicate keys detected."
+
+info "Checking schema completeness..."
+if [[ -f "$SCHEMA" ]]; then
+  if ! check_schema_completeness "$SECRETS_FILE" "$SCHEMA" "$ENV_FILE"; then
+    exit 1
+  fi
+  info "Schema completeness verified."
+else
+  info "No schema file found at ${SCHEMA}, skipping completeness check."
+fi
 
 # ── Build temporary K8s Secret manifest ──────────────────────────
 

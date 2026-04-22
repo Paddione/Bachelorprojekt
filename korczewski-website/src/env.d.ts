@@ -10,7 +10,6 @@ interface ImportMetaEnv {
   readonly LEGAL_STREET: string;
   readonly LEGAL_ZIP: string;
   readonly LEGAL_JOBTITLE: string;
-  readonly LEGAL_CHAMBER: string;
   readonly LEGAL_UST_ID: string;
   readonly LEGAL_WEBSITE: string;
   readonly SITE_URL: string;

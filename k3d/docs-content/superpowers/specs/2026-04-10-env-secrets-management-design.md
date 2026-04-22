@@ -101,10 +101,6 @@ env_vars:
     required: true
     default_dev: "Coach, Berater, Trainer"
 
-  - name: LEGAL_CHAMBER
-    required: true
-    default_dev: "Entfaellt"
-
   - name: LEGAL_UST_ID
     required: true
     default_dev: "Nicht vorhanden"
@@ -299,7 +295,6 @@ env_vars:
   LEGAL_STREET: "Ludwig-Erhard-Str. 18"
   LEGAL_ZIP: "20459"
   LEGAL_JOBTITLE: "Coach, Berater, Trainer"
-  LEGAL_CHAMBER: "Entfaellt"
   LEGAL_UST_ID: "Kleinunternehmer gem. 19 Abs. 1 UStG"
   LEGAL_WEBSITE: mentolder.de
   WEBSITE_IMAGE: mentolder-website

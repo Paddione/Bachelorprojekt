@@ -101,6 +101,7 @@ mkdir -p "$SECRETS_DIR"
 info "Generating secrets for environment: ${ENV_NAME}"
 
 secret_keys=$(schema_keys "$SCHEMA" "secrets")
+setup_keys=$(schema_keys "$SCHEMA" "setup_vars")
 
 {
   echo "# Plaintext secrets for environment: ${ENV_NAME}"
@@ -116,7 +117,6 @@ secret_keys=$(schema_keys "$SCHEMA" "secrets")
     encoding=$(schema_field "$SCHEMA" "secrets" "$key" "encoding")
 
     if [[ "$generate" == "true" ]]; then
-      # Auto-generate random value
       hex_len=${length:-32}
       raw_value=$(openssl rand -hex "$hex_len")
 
@@ -130,7 +130,6 @@ secret_keys=$(schema_keys "$SCHEMA" "secrets")
       echo "${key}: \"${value}\""
       info "  Generated: ${key} (${hex_len} hex chars)"
     else
-      # Prompt user interactively
       echo "" >&2
       read -rp "Enter value for ${key}: " user_value </dev/tty
       if [[ -z "$user_value" ]]; then
@@ -140,6 +139,21 @@ secret_keys=$(schema_keys "$SCHEMA" "secrets")
       info "  Set: ${key} (user-provided)"
     fi
   done <<< "$secret_keys"
+
+  # Prompt for setup_vars that are sealed: true (passwords that live in the K8s secret)
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    sealed=$(schema_field "$SCHEMA" "setup_vars" "$key" "sealed")
+    [[ "$sealed" != "true" ]] && continue
+
+    echo "" >&2
+    read -rp "Enter value for ${key} (setup_var, sealed): " user_value </dev/tty
+    if [[ -z "$user_value" ]]; then
+      die "No value provided for sealed setup_var: ${key}"
+    fi
+    echo "${key}: \"${user_value}\""
+    info "  Set: ${key} (sealed setup_var, user-provided)"
+  done <<< "$setup_keys"
 } > "$OUTPUT"
 
 chmod 600 "$OUTPUT"

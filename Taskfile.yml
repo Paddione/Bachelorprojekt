@@ -1108,6 +1108,9 @@ tasks:
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
 
+        echo "Waiting for shared-db to be ready before syncing DB passwords..."
+        kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
+
         echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
 
         for user in keycloak nextcloud vaultwarden website docuseal; do

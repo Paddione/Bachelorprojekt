@@ -1084,8 +1084,12 @@ tasks:
           # senders the authenticated account does not own with 553).
           export MAIL_FROM_LOCAL="${SMTP_FROM%@*}"
           export MAIL_FROM_DOMAIN="${SMTP_FROM#*@}"
+          ENVSUBST_VARS="\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           kustomize build "$overlay/" \
-            | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN" \
+            | envsubst "$ENVSUBST_VARS" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
         fi
       - task: keycloak:sync-secrets

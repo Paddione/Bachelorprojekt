@@ -13,8 +13,6 @@ spec:
         app: whisper
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -23,8 +21,6 @@ spec:
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 65534
             capabilities:
               drop: ["ALL"]
           ports:

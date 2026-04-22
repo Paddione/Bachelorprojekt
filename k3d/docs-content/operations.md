@@ -132,10 +132,7 @@ task website:deploy       # 6. Astro-Website bauen und deployen
 | `task cert:install` | cert-manager + lego DNS-01 Webhook für Wildcard-Zertifikate installieren |
 | `task cert:secret -- <API_KEY>` | ipv64-API-Key als Secret speichern |
 | `task cert:status` | Wildcard-Zertifikat und ClusterIssuer-Status anzeigen |
-| `task ddns:deploy -- <api-key>` | DDNS-Updater CronJob deployen (nur für dynamische IP) |
-| `task ddns:trigger` | DDNS-Updater einmalig manuell auslösen |
-| `task ddns:status` | DDNS-Updater-Status und zuletzt bekannte IP anzeigen |
-| `task ddns:teardown` | DDNS-Updater entfernen (cert-manager und TLS-Zertifikate bleiben erhalten) |
+
 
 ---
 

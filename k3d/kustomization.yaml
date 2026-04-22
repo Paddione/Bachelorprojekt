@@ -13,7 +13,6 @@ resources:
   - keycloak.yaml
   - nextcloud.yaml
   - nextcloud-redis.yaml
-  - nextcloud-notify-push-ingress.yaml
   # Nextcloud Talk HPB + Whiteboard
   # NB: coturn + janus (k3d/coturn-stack) and Collabora
   # (k3d/office-stack) each live in their own ArgoCD Application
@@ -50,7 +49,6 @@ resources:
   - claude-code-config.yaml
   - claude-code-mcp-ops.yaml
   - claude-code-mcp-browser.yaml
-  - claude-code-mcp-apps.yaml
   - claude-code-mcp-auth.yaml
   - claude-code-mcp-stripe.yaml
   - claude-code-mcp-github.yaml

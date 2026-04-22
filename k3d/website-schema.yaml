@@ -1,6 +1,8 @@
 # ── Meeting Knowledge Pipeline — Schema ──────────────────────────────────────
 # Applied to the 'website' database in shared-db.
-# Mounted as a second init script (runs after init-databases.sh).
+# init-meetings-schema.sh  → mounted in docker-entrypoint-initdb.d (fresh DB only)
+# ensure-meetings-schema.sh → called from postStart on every startup (existing DB)
+# Both scripts are idempotent (IF NOT EXISTS / ADD COLUMN IF NOT EXISTS throughout).
 # ─────────────────────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ConfigMap
@@ -250,3 +252,225 @@ data:
     EOSQL
 
     echo "Meetings schema initialized."
+  ensure-meetings-schema.sh: |
+    #!/bin/bash
+    set -e
+    echo "Ensuring meetings schema is up to date..."
+
+    psql -v ON_ERROR_STOP=1 --username "postgres" --dbname website <<-'EOSQL'
+      CREATE SEQUENCE IF NOT EXISTS customer_number_seq START 20;
+
+      DO $$
+      BEGIN
+        IF (SELECT CASE WHEN is_called THEN last_value + 1 ELSE last_value END
+            FROM customer_number_seq) < 20 THEN
+          PERFORM setval('customer_number_seq', 20, false);
+        END IF;
+      END $$;
+
+      CREATE TABLE IF NOT EXISTS customers (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
+          phone TEXT,
+          company TEXT,
+          keycloak_user_id TEXT,
+          created_at TIMESTAMPTZ DEFAULT now(),
+          updated_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS customer_number TEXT UNIQUE;
+      UPDATE customers SET customer_number = 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0') WHERE customer_number IS NULL;
+      ALTER TABLE customers ALTER COLUMN customer_number SET DEFAULT 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0');
+
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS enrollment_declined BOOLEAN NOT NULL DEFAULT FALSE;
+
+      CREATE TABLE IF NOT EXISTS meetings (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id UUID NOT NULL REFERENCES customers(id),
+          meeting_type TEXT NOT NULL,
+          scheduled_at TIMESTAMPTZ,
+          started_at TIMESTAMPTZ,
+          ended_at TIMESTAMPTZ,
+          duration_seconds INTEGER,
+          talk_room_token TEXT,
+          recording_path TEXT,
+          status TEXT DEFAULT 'scheduled'
+              CHECK (status IN ('scheduled','active','ended','transcribed','finalized')),
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS transcripts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+          full_text TEXT NOT NULL,
+          language TEXT DEFAULT 'de',
+          whisper_model TEXT DEFAULT 'Systran/faster-whisper-medium',
+          duration_seconds NUMERIC,
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS transcript_segments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          transcript_id UUID NOT NULL REFERENCES transcripts(id) ON DELETE CASCADE,
+          segment_index INTEGER NOT NULL,
+          start_time NUMERIC NOT NULL,
+          end_time NUMERIC NOT NULL,
+          text TEXT NOT NULL,
+          speaker TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS meeting_artifacts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+          artifact_type TEXT NOT NULL
+              CHECK (artifact_type IN ('whiteboard','document','screenshot','file')),
+          name TEXT NOT NULL,
+          storage_path TEXT,
+          content_text TEXT,
+          metadata JSONB DEFAULT '{}',
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS meeting_insights (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+          insight_type TEXT NOT NULL
+              CHECK (insight_type IN ('summary','action_items','key_topics','sentiment','coaching_notes')),
+          content TEXT NOT NULL,
+          generated_by TEXT DEFAULT 'claude',
+          created_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS bug_tickets (
+          ticket_id       TEXT PRIMARY KEY,
+          status          TEXT NOT NULL DEFAULT 'open'
+              CHECK (status IN ('open', 'resolved', 'archived')),
+          category        TEXT NOT NULL,
+          reporter_email  TEXT NOT NULL,
+          description     TEXT NOT NULL,
+          url             TEXT,
+          brand           TEXT NOT NULL,
+          created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          resolved_at     TIMESTAMPTZ,
+          resolution_note TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_bug_tickets_status ON bug_tickets(status);
+
+      CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
+      CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);
+      CREATE INDEX IF NOT EXISTS idx_transcripts_meeting ON transcripts(meeting_id);
+      CREATE INDEX IF NOT EXISTS idx_segments_transcript ON transcript_segments(transcript_id);
+      CREATE INDEX IF NOT EXISTS idx_artifacts_meeting ON meeting_artifacts(meeting_id);
+      CREATE INDEX IF NOT EXISTS idx_insights_meeting ON meeting_insights(meeting_id);
+      CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+
+      CREATE TABLE IF NOT EXISTS inbox_items (
+        id              SERIAL PRIMARY KEY,
+        type            TEXT NOT NULL CHECK (type IN ('registration','booking','contact','bug','meeting_finalize','user_message')),
+        status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','actioned','archived')),
+        reference_id    TEXT,
+        reference_table TEXT,
+        bug_ticket_id   TEXT REFERENCES bug_tickets(ticket_id) ON DELETE SET NULL,
+        payload         JSONB,
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        actioned_at     TIMESTAMPTZ,
+        actioned_by     TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_inbox_items_status ON inbox_items(status, created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS message_threads (
+        id              SERIAL PRIMARY KEY,
+        customer_id     UUID REFERENCES customers(id),
+        subject         TEXT,
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        last_message_at TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS messages (
+        id                   SERIAL PRIMARY KEY,
+        thread_id            INT NOT NULL REFERENCES message_threads(id),
+        sender_id            TEXT NOT NULL,
+        sender_role          TEXT NOT NULL CHECK (sender_role IN ('admin','user')),
+        sender_customer_id   UUID REFERENCES customers(id) ON DELETE SET NULL,
+        body                 TEXT NOT NULL,
+        created_at           TIMESTAMPTZ DEFAULT now(),
+        read_at              TIMESTAMPTZ,
+        notification_sent_at TIMESTAMPTZ,
+        CHECK (sender_role = 'admin' OR sender_customer_id IS NOT NULL)
+      );
+      CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id, id ASC);
+
+      CREATE TABLE IF NOT EXISTS chat_rooms (
+        id                  SERIAL PRIMARY KEY,
+        name                TEXT NOT NULL,
+        created_by          TEXT NOT NULL,
+        created_at          TIMESTAMPTZ DEFAULT now(),
+        archived_at         TIMESTAMPTZ,
+        is_direct           BOOLEAN NOT NULL DEFAULT FALSE,
+        direct_customer_id  UUID REFERENCES customers(id) ON DELETE SET NULL
+      );
+      ALTER TABLE chat_rooms ADD COLUMN IF NOT EXISTS is_direct BOOLEAN NOT NULL DEFAULT FALSE;
+      ALTER TABLE chat_rooms ADD COLUMN IF NOT EXISTS direct_customer_id UUID REFERENCES customers(id) ON DELETE SET NULL;
+
+      CREATE TABLE IF NOT EXISTS chat_room_members (
+        room_id     INT NOT NULL REFERENCES chat_rooms(id),
+        customer_id UUID NOT NULL REFERENCES customers(id),
+        joined_at   TIMESTAMPTZ DEFAULT now(),
+        PRIMARY KEY (room_id, customer_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id                   SERIAL PRIMARY KEY,
+        room_id              INT NOT NULL REFERENCES chat_rooms(id),
+        sender_id            TEXT NOT NULL,
+        sender_name          TEXT NOT NULL,
+        sender_customer_id   UUID REFERENCES customers(id) ON DELETE SET NULL,
+        body                 TEXT NOT NULL,
+        created_at           TIMESTAMPTZ DEFAULT now(),
+        notification_sent_at TIMESTAMPTZ
+      );
+      CREATE INDEX IF NOT EXISTS idx_chat_messages_room ON chat_messages(room_id, id ASC);
+
+      CREATE TABLE IF NOT EXISTS chat_message_reads (
+        message_id  INT NOT NULL REFERENCES chat_messages(id),
+        customer_id UUID NOT NULL REFERENCES customers(id),
+        read_at     TIMESTAMPTZ DEFAULT now(),
+        PRIMARY KEY (message_id, customer_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS document_templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title TEXT NOT NULL,
+        html_body TEXT NOT NULL,
+        docuseal_template_id INTEGER,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS document_assignments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+        template_id UUID NOT NULL REFERENCES document_templates(id) ON DELETE CASCADE,
+        docuseal_submission_slug TEXT,
+        docuseal_embed_src TEXT,
+        status TEXT NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending', 'completed', 'expired')),
+        assigned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        signed_at TIMESTAMPTZ
+      );
+
+      ALTER TABLE document_assignments ADD COLUMN IF NOT EXISTS docuseal_template_id INTEGER;
+      ALTER TABLE document_templates ADD COLUMN IF NOT EXISTS stand_date TEXT;
+
+      CREATE INDEX IF NOT EXISTS idx_doc_assignments_customer ON document_assignments(customer_id);
+      CREATE INDEX IF NOT EXISTS idx_doc_assignments_status ON document_assignments(status);
+
+      GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
+      GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO website;
+    EOSQL
+
+    echo "Schema ensure complete."

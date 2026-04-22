@@ -237,6 +237,10 @@ secrets:
     required: false
     generate: false
 
+  - name: GHCR_PAT
+    required: false
+    generate: false
+
   - name: STRIPE_SECRET_KEY
     required: false
     generate: false

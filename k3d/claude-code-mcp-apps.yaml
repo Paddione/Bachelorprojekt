@@ -22,6 +22,8 @@ spec:
         runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         # ── Nextcloud MCP (port 8000) ──────────────────────────────
         - name: nextcloud

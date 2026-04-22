@@ -307,10 +307,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task cert:install` | cert-manager + lego DNS-01 Webhook installieren |
 | `task cert:secret -- <key>` | ipv64 API-Key als Secret speichern |
 | `task cert:status` | Wildcard-Zertifikat und ClusterIssuer Status |
-| `task ddns:deploy -- <key>` | DDNS-Updater CronJob deployen (dynamische IP) |
-| `task ddns:trigger` | DDNS-Update manuell ausloesen |
-| `task ddns:status` | DDNS-Status und letzte bekannte IP |
-| `task ddns:teardown` | DDNS-Updater entfernen |
 
 ### Konfiguration
 

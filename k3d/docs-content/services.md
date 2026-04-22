@@ -88,7 +88,6 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 |----------------|-----------|----------|
 | `claude-code-mcp-ops.yaml` | mcp-kubernetes, mcp-postgres, mcp-meetings | Cluster-Management, DB-Abfragen, Meeting-Daten |
 | `claude-code-mcp-browser.yaml` | mcp-browser | Playwright Browser-Automatisierung |
-| `claude-code-mcp-apps.yaml` | mcp-nextcloud | Dateien, Kalender, Kontakte |
 | `claude-code-mcp-auth.yaml` | mcp-keycloak | Benutzer-/Rollenverwaltung |
 | `claude-code-mcp-github.yaml` | mcp-github | GitHub Repos, Issues, PRs (PAT erforderlich) |
 | `claude-code-mcp-stripe.yaml` | mcp-stripe | Stripe-Zahlungen, Produkte, Abonnements |
@@ -96,7 +95,7 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 **Produktion (deploy/mcp/):**
 - `mcp-status.yaml` -- Health-Dashboard (nginx + healthcheck sidecar)
 - `mcp-auth-proxy.yaml` -- ForwardAuth-Proxy fuer Token-Validierung (RBAC)
-- Konsolidierte Pods: `claude-code-mcp-core.yaml`, `claude-code-mcp-apps.yaml`, `claude-code-mcp-auth.yaml`
+- Konsolidierte Pods: `claude-code-mcp-core.yaml`, `claude-code-mcp-auth.yaml`
 
 **Zugehoerige Manifeste:**
 - `k3d/claude-code-config.yaml` -- Umgebungskonfiguration (MCP-URLs, API-Keys)

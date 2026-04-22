@@ -28,7 +28,5 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: SMTP_PASSWORD
-            - name: SMTP_FROM
-              value: "vaultwarden@${PROD_DOMAIN}"
             - name: SMTP_FROM_NAME
               value: "Vaultwarden"

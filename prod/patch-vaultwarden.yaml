@@ -15,9 +15,9 @@ spec:
             - name: SMTP_HOST
               value: "smtp.mailbox.org"
             - name: SMTP_PORT
-              value: "465"
+              value: "587"
             - name: SMTP_SECURITY
-              value: "force_tls"
+              value: "starttls"
             - name: SMTP_USERNAME
               valueFrom:
                 secretKeyRef:

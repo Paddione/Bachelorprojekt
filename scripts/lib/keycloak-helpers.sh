@@ -41,3 +41,11 @@ kc_assert_no_placeholders() {
   fi
   return 0
 }
+
+# kc_extract_clients_from_template FILE
+#   Reads the realm template JSON at FILE and prints each element of the
+#   .clients[] array on its own line as compact JSON (NDJSON). Requires jq.
+kc_extract_clients_from_template() {
+  local file="$1"
+  jq -c '.clients[]' "$file"
+}

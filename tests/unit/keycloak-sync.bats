@@ -66,3 +66,35 @@ B=y'
   [[ "$output" == *'${A}'* ]]
   [[ "$output" == *'${B}'* ]]
 }
+
+# ── kc_extract_clients_from_template ────────────────────────────
+
+@test "kc_extract_clients_from_template emits one client JSON per line (NDJSON)" {
+  local fixture="${BATS_TEST_TMPDIR}/realm.json"
+  cat > "$fixture" <<'JSON'
+{
+  "realm": "workspace",
+  "clients": [
+    {"clientId": "alpha", "secret": "${A_SECRET}"},
+    {"clientId": "beta", "secret": "${B_SECRET}"}
+  ]
+}
+JSON
+
+  run kc_extract_clients_from_template "$fixture"
+  [ "$status" -eq 0 ]
+  # Expect two NDJSON lines, one per client.
+  [ "$(echo "$output" | wc -l)" -eq 2 ]
+  [[ "$(echo "$output" | sed -n '1p')" == *'"clientId":"alpha"'* ]]
+  [[ "$(echo "$output" | sed -n '2p')" == *'"clientId":"beta"'* ]]
+}
+
+@test "kc_extract_clients_from_template emits nothing for empty clients array" {
+  local fixture="${BATS_TEST_TMPDIR}/empty.json"
+  cat > "$fixture" <<'JSON'
+{"realm": "workspace", "clients": []}
+JSON
+  run kc_extract_clients_from_template "$fixture"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}

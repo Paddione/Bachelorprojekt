@@ -241,7 +241,7 @@ tasks:
   workspace:theme:nextcloud:
     desc: Apply dark+gold Nextcloud branding via OCC (idempotent)
     vars:
-      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- su -s /bin/bash www-data -c"
+      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- sh -c"
       BRAND: '{{.BRAND_NAME | default "mentolder"}}'
       DOMAIN: '{{.PROD_DOMAIN | default "mentolder.localhost"}}'
     cmds:
@@ -261,7 +261,7 @@ tasks:
   workspace:post-setup:
     desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair)
     vars:
-      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- su -s /bin/bash www-data -c"
+      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- sh -c"
       FILES_HOST: '{{.FILES_HOST | default "files.localhost"}}'
     cmds:
       - echo "Ensuring trusted_domains includes {{.FILES_HOST}}..."

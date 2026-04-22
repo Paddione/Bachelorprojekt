@@ -1575,6 +1575,39 @@ tasks:
 
         echo "Waiting for website..."
         kubectl ${CTX_ARG} -n website rollout status deployment/website --timeout=180s
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if [ "{{.ENV}}" = "dev" ]; then
+          SMOKE_URL="http://web.localhost/404"
+        else
+          SMOKE_URL="https://web.${PROD_DOMAIN}/404"
+        fi
+        echo ""
+        echo "Smoke check: ${SMOKE_URL} must not redirect to itself (would cause ERR_TOO_MANY_REDIRECTS)..."
+        HEADERS=$(curl -sS -I --max-redirs 0 --max-time 15 "${SMOKE_URL}" 2>/dev/null || true)
+        if [ -z "${HEADERS}" ]; then
+          echo "⚠ Smoke check skipped — ${SMOKE_URL} not reachable from this host."
+        else
+          STATUS=$(printf '%s\n' "${HEADERS}" | awk 'NR==1{print $2}')
+          LOCATION=$(printf '%s\n' "${HEADERS}" | awk 'tolower($1)=="location:"{print $2; exit}' | tr -d '\r')
+          case "${STATUS}" in
+            200|404)
+              echo "✓ /404 returns HTTP ${STATUS} (no redirect loop)"
+              ;;
+            30[12378])
+              if printf '%s' "${LOCATION}" | grep -qE '(^|/)404/?$'; then
+                echo "✗ /404 redirects to itself (${STATUS} → ${LOCATION}). ERR_TOO_MANY_REDIRECTS regression."
+                echo "  Ensure website/src/pages/404.astro exists so Astro serves a static 404 page."
+                exit 1
+              fi
+              echo "⚠ /404 responded ${STATUS} → ${LOCATION} (unexpected but not a self-loop)"
+              ;;
+            *)
+              echo "⚠ /404 returned HTTP '${STATUS:-<empty>}' — expected 200/404. Not failing deploy."
+              ;;
+          esac
+        fi
       - echo ""
       - |
         source scripts/env-resolve.sh "{{.ENV}}"

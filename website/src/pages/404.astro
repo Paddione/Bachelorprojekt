@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Seite nicht gefunden">
+  <section class="pt-28 pb-24">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <p style="font-family:var(--mono); font-size:12px; letter-spacing:0.22em; text-transform:uppercase; color:var(--brass); margin:0 0 24px;">
+        Fehler 404
+      </p>
+      <h1 style="font-family:var(--serif); font-size:clamp(2.75rem, 8vw, 5rem); color:var(--fg); line-height:1.08; letter-spacing:-0.01em; margin:0 0 24px;">
+        Seite nicht gefunden
+      </h1>
+      <p style="font-size:18px; color:var(--fg-soft); line-height:1.65; margin:0 0 40px;">
+        Die von Ihnen aufgerufene Seite existiert nicht oder wurde verschoben.
+      </p>
+      <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <a
+          href="/"
+          style="display:inline-block; padding:14px 28px; background:var(--brass); color:var(--ink-900); font-weight:600; text-decoration:none; border-radius:6px;"
+        >
+          Zur Startseite
+        </a>
+        <a
+          href="/leistungen"
+          style="display:inline-block; padding:14px 28px; background:transparent; color:var(--fg); font-weight:500; text-decoration:none; border:1px solid var(--line); border-radius:6px;"
+        >
+          Alle Leistungen
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

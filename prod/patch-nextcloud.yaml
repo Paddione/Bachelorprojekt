@@ -19,9 +19,9 @@ spec:
             - name: SMTP_HOST
               value: "smtp.mailbox.org"
             - name: SMTP_PORT
-              value: "465"
+              value: "587"
             - name: SMTP_SECURE
-              value: "ssl"
+              value: "tls"
             - name: SMTP_AUTHTYPE
               value: "LOGIN"
             - name: SMTP_NAME

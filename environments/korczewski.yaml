@@ -22,8 +22,8 @@ env_vars:
   SMTP_FROM: korczewski@mailbox.org
   SMTP_USER: mentolder@mailbox.org
   SMTP_HOST: smtp.mailbox.org
-  SMTP_PORT: "465"
-  SMTP_SECURE: "true"
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
   TURN_PUBLIC_IP: "62.238.9.39"
   TURN_NODE: "pk-hetzner"
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"

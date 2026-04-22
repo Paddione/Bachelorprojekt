@@ -31,10 +31,10 @@ env_vars:
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
   WHITEBOARD_EXTERNAL_URL: "https://files.korczewski.de/apps/files"
-  STRIPE_PUBLISHABLE_KEY: "pk_live_51RhKrcDGTY4NP8aeqnf69F1OVgNleqjLqR5ZHi8jkzlyx\
-    LiaTEnsY5xwhgPAVV7FdNb4eRnelIzt7DUj9TTAopXg00yyxjx03t"
-overlay: "prod-korczewski"
-secrets_ref: "sealed-secrets/korczewski.yaml"
+  STRIPE_PUBLISHABLE_KEY: "pk_live_51RhKrcDGTY4NP8aeqnf69F1OVgNleqjLqR5ZHi8jkzlyxLiaTEnsY5xwhgPAVV7FdNb4eRnelIzt7DUj9TTAopXg00yyxjx03t"
+
+overlay: prod-korczewski
+secrets_ref: sealed-secrets/korczewski.yaml
 
 setup_vars:
   KC_USER1_USERNAME: paddione

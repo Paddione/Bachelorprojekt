@@ -5,7 +5,6 @@ metadata:
   name: old-webspace-transport
   namespace: workspace
 spec:
-  serverName: ${PROD_DOMAIN}
   insecureSkipVerify: true
 ---
 apiVersion: v1
@@ -21,13 +20,18 @@ spec:
     - port: 443
       targetPort: 443
 ---
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: old-webspace
   namespace: workspace
-subsets:
+  labels:
+    kubernetes.io/service-name: old-webspace
+addressType: IPv4
+endpoints:
   - addresses:
-      - ip: 185.30.32.28
-    ports:
-      - port: 443
+      - 185.30.32.28
+    conditions:
+      ready: true
+ports:
+  - port: 443

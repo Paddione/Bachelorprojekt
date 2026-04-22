@@ -14,11 +14,22 @@ spec:
       labels:
         app: mcp-browser
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mcp-browser
           image: mcr.microsoft.com/playwright:v1.50.1-jammy
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           env:
             - name: NODE_OPTIONS
               value: "--dns-result-order=ipv4first"

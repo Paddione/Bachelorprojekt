@@ -14,11 +14,22 @@ spec:
       labels:
         app: mcp-github
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mcp-github
           image: ghcr.io/github/github-mcp-server:latest
           imagePullPolicy: Always
           args: ["http", "--port", "3002"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           env:
             - name: GITHUB_PERSONAL_ACCESS_TOKEN
               valueFrom:

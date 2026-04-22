@@ -6,6 +6,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: db-backup
+  namespace: workspace
   labels:
     app: db-backup
 spec:
@@ -40,6 +41,21 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: NEXTCLOUD_DB_PASSWORD
+                - name: VAULTWARDEN_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: VAULTWARDEN_DB_PASSWORD
+                - name: WEBSITE_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: WEBSITE_DB_PASSWORD
+                - name: DOCUSEAL_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: DOCUSEAL_DB_PASSWORD
               securityContext:
                 allowPrivilegeEscalation: false
                 runAsNonRoot: true
@@ -55,15 +71,18 @@ spec:
                   BACKUP_DIR=/backups/${STAMP}
                   mkdir -p "${BACKUP_DIR}"
 
-                  # Dump each database (separate PostgreSQL instances)
-                  for db in keycloak nextcloud; do
+                  # Dump all databases (all on shared-db instance)
+                  for db in keycloak nextcloud vaultwarden website docuseal; do
                     case "${db}" in
-                      keycloak)   PASS="${KEYCLOAK_DB_PASSWORD}" ;;
-                      nextcloud)  PASS="${NEXTCLOUD_DB_PASSWORD}" ;;
+                      keycloak)    PASS="${KEYCLOAK_DB_PASSWORD}" ;;
+                      nextcloud)   PASS="${NEXTCLOUD_DB_PASSWORD}" ;;
+                      vaultwarden) PASS="${VAULTWARDEN_DB_PASSWORD}" ;;
+                      website)     PASS="${WEBSITE_DB_PASSWORD}" ;;
+                      docuseal)    PASS="${DOCUSEAL_DB_PASSWORD}" ;;
                     esac
                     echo "Backing up ${db}..."
                     PGPASSWORD="${PASS}" pg_dump -Fc \
-                      -h "${db}-db" -U "${db}" -d "${db}" \
+                      -h shared-db -U "${db}" -d "${db}" \
                       > "${BACKUP_DIR}/${db}.dump"
                   done
 

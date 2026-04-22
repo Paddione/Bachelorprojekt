@@ -1,9 +1,8 @@
-# k3d/notify-unread-cronjob.yaml
-# Calls /api/cron/notify-unread every 6 hours to send 72h unread notification emails.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: notify-unread
+  namespace: workspace
 spec:
   schedule: "0 */6 * * *"
   concurrencyPolicy: Forbid
@@ -27,19 +26,13 @@ spec:
                 capabilities:
                   drop: ["ALL"]
               command:
-                - curl
-                - -s
-                - -o
-                - /dev/null
-                - -w
-                - "%{http_code}"
-                - -X
-                - POST
-                - -H
-                - "Authorization: Bearer $(CRON_SECRET)"
-                - -H
-                - "Content-Type: application/json"
-                - "http://website.website.svc.cluster.local:4321/api/cron/notify-unread"
+                - sh
+                - -c
+                - |
+                  curl -sf -X POST \
+                    -H "Authorization: Bearer $CRON_SECRET" \
+                    -H "Content-Type: application/json" \
+                    http://website.website.svc.cluster.local:4321/api/cron/notify-unread
               env:
                 - name: CRON_SECRET
                   valueFrom:

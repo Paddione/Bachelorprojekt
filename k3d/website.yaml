@@ -332,8 +332,13 @@ spec:
                   topologyKey: kubernetes.io/hostname
           containers:
             - name: trigger
-              image: curlimages/curl:latest
-              imagePullPolicy: Always
+              image: curlimages/curl:8.7.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
               command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
 ---

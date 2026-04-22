@@ -22,13 +22,6 @@ spec:
           type: RuntimeDefault
       nodeSelector:
         kubernetes.io/arch: amd64
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: node-role.kubernetes.io/control-plane
-                    operator: DoesNotExist
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.6

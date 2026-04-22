@@ -146,11 +146,17 @@ secrets:
     required: true
     generate: true
     length: 32
+    extra_namespaces:
+      - namespace: coturn
+        secret: coturn-secrets
 
   - name: TURN_SECRET
     required: true
     generate: true
     length: 32
+    extra_namespaces:
+      - namespace: coturn
+        secret: coturn-secrets
 
   - name: CRON_SECRET
     required: true
@@ -166,6 +172,9 @@ secrets:
     required: true
     generate: true
     length: 24
+    extra_namespaces:
+      - namespace: workspace-office
+        secret: collabora-secrets
 
   - name: WHITEBOARD_JWT_SECRET
     required: true
@@ -258,6 +267,33 @@ secrets:
     required: true
     generate: true
     length: 32
+
+  - name: MEETINGS_DB_PASSWORD
+    required: true
+    generate: true
+    length: 32
+
+  - name: STRIPE_WEBHOOK_SECRET
+    required: false
+    generate: false
+
+  # Website-namespace alias for SMTP_PASSWORD (synced cross-namespace as SMTP_PASS)
+  - name: SMTP_PASS
+    required: true
+    generate: false
+
+  - name: BACKUP_PASSPHRASE
+    required: true
+    generate: true
+    length: 32
+
+  - name: TRAEFIK_BASIC_AUTH_USERS
+    required: false
+    generate: false
+
+  - name: IPV64_API_KEY
+    required: false
+    generate: false
 
 setup_vars:
   - name: KC_USER1_USERNAME

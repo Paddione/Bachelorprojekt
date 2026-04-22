@@ -20,7 +20,7 @@ SCHEME="${SCHEME:-}"
 
 nc_occ() {
   kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
-    su -s /bin/bash www-data -c "$*"
+    sh -c "$*"
 }
 
 echo "=== Nextcloud Whiteboard Setup ==="

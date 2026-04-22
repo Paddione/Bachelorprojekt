@@ -78,7 +78,7 @@ TURN_JSON=$(jq -cn \
 # ── Apply to Nextcloud via occ ────────────────────────────────────────
 _occ() {
   kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
-    su -s /bin/bash www-data -c "$*"
+    sh -c "$*"
 }
 
 echo "  Konfiguriere spreed signaling_servers  → ${SIGNALING_URL}"

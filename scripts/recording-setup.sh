@@ -13,7 +13,7 @@ KUBE_CONTEXT="${KUBE_CONTEXT:-}"
 _kubectl() { kubectl ${KUBE_CONTEXT:+--context "$KUBE_CONTEXT"} "$@"; }
 _occ() {
   _kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
-    su -s /bin/bash www-data -c "$1" 2>&1
+    sh -c "$1" 2>&1
 }
 
 echo "=== Talk Recording Backend Setup ==="

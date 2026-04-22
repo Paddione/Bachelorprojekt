@@ -20,6 +20,11 @@ spec:
             app: db-backup
         spec:
           restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: backup
               image: postgres:16.13-alpine
@@ -35,6 +40,12 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: NEXTCLOUD_DB_PASSWORD
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
               command: ["/bin/sh", "-c"]
               args:
                 - |

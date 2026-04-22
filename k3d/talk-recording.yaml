@@ -27,6 +27,11 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: recording
           image: nextcloud/aio-talk-recording:20260409_094910
@@ -53,6 +58,12 @@ spec:
               value: "true"
             - name: SKIP_VERIFY
               value: "true"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 1234
           volumeMounts:

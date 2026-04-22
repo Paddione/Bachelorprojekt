@@ -17,6 +17,11 @@ spec:
       labels:
         app: claude-code-mcp-apps
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         # ── Nextcloud MCP (port 8000) ──────────────────────────────
         - name: nextcloud
@@ -35,6 +40,12 @@ spec:
                 secretKeyRef:
                   name: claude-code-secrets
                   key: NEXTCLOUD_PASSWORD
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 8000
           readinessProbe:

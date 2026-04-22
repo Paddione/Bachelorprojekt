@@ -17,6 +17,11 @@ spec:
       labels:
         app: claude-code-mcp-stripe
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mcp-stripe
           image: node:20-alpine
@@ -40,6 +45,12 @@ spec:
                   name: workspace-secrets
                   key: STRIPE_SECRET_KEY
                   optional: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 3003
           readinessProbe:

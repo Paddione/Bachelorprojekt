@@ -32,8 +32,11 @@ spec:
         app: docuseal
     spec:
       securityContext:
-        runAsNonRoot: false
+        runAsNonRoot: true
+        runAsUser: 1000
         fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: docuseal
           image: docuseal/docuseal:1.9.6
@@ -82,6 +85,12 @@ spec:
               value: "false"
             - name: TZ
               value: Europe/Berlin
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 3000
           volumeMounts:

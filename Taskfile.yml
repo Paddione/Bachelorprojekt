@@ -1065,8 +1065,8 @@ tasks:
         fi
 
         if [ "{{.ENV}}" = "dev" ]; then
-          # Dev: build from k3d base, apply locally
-          kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply -f -
+          # Dev: build from k3d base, apply locally (--server-side avoids 262KB annotation limit for large ConfigMaps)
+          kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply --server-side --force-conflicts -f -
         else
           # Prod: build from overlay, apply to target cluster
           # Apply SealedSecret first so the Secret is ready when pods start

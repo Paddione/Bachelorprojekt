@@ -48,6 +48,13 @@ spec:
         - name: fix-config-perms
           image: busybox:1.36
           imagePullPolicy: Always
+          # needs root: runs chown to set ownership for www-data (UID 33)
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           command: ["sh", "-c", "mkdir -p /var/www/html/config && chown 33:33 /var/www/html/config"]
           volumeMounts:
             - name: app
@@ -58,10 +65,11 @@ spec:
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 33
             readOnlyRootFilesystem: false
             capabilities:
               drop: [ALL]
-              add: ["SETUID", "SETGID"]
             seccompProfile:
               type: RuntimeDefault
           ports:
@@ -198,6 +206,8 @@ spec:
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 33
             readOnlyRootFilesystem: false
             capabilities:
               drop: [ALL]
@@ -235,6 +245,8 @@ spec:
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 33
             readOnlyRootFilesystem: false
             capabilities:
               drop: [ALL]

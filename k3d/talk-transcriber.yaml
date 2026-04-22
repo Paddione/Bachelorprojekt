@@ -22,6 +22,11 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: transcriber
           image: registry.localhost:5000/talk-transcriber:latest
@@ -53,6 +58,10 @@ spec:
             - containerPort: 8000
           securityContext:
             allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           resources:
             requests:
               memory: 512Mi

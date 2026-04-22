@@ -77,15 +77,15 @@ spec:
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
           env:
-            - name: HOME
-              value: /tmp
-            - name: NPM_CONFIG_PREFIX
-              value: /tmp/npm-global
             - name: SHARED_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: SHARED_DB_PASSWORD
+            - name: HOME
+              value: /tmp
+            - name: NPM_CONFIG_PREFIX
+              value: /tmp/npm-global
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -132,15 +132,15 @@ spec:
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
           env:
-            - name: HOME
-              value: /tmp
-            - name: NPM_CONFIG_PREFIX
-              value: /tmp/npm-global
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
                   key: WEBSITE_DB_PASSWORD
+            - name: HOME
+              value: /tmp
+            - name: NPM_CONFIG_PREFIX
+              value: /tmp/npm-global
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

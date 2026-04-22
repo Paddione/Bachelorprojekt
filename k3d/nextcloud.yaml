@@ -177,7 +177,7 @@ spec:
               subPath: signaling-proxy.conf
               readOnly: true
             - name: pentest-flag
-              mountPath: /var/www/html/pentest_flag.txt
+              mountPath: /var/www/html/data/pentest_flag.txt
               subPath: pentest_flag.txt
               readOnly: true
             - name: php-conf-d

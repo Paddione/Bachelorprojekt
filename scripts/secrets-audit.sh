@@ -148,8 +148,6 @@ SOLO_LABELS=(
   "coturn-secrets: SIGNALING_SECRET"
   "coturn-secrets: TURN_SECRET"
   "collabora-secrets: COLLABORA_ADMIN_PASSWORD"
-  "mcp-tokens: CLUSTER_TOKEN"
-  "mcp-tokens: BUSINESS_TOKEN"
 )
 
 SOLO_MEMBERS=(
@@ -183,9 +181,21 @@ SOLO_MEMBERS=(
   "coturn:coturn-secrets:SIGNALING_SECRET"
   "coturn:coturn-secrets:TURN_SECRET"
   "workspace-office:collabora-secrets:COLLABORA_ADMIN_PASSWORD"
-  "default:mcp-tokens:CLUSTER_TOKEN"
-  "default:mcp-tokens:BUSINESS_TOKEN"
 )
+
+# mcp-tokens only exists on the dev cluster (MCP servers are not deployed to
+# prod). Include the entries only when auditing dev so prod audits don't
+# surface "(secret not found in cluster)" false-positives.
+if [[ "$ENV" == "dev" ]]; then
+  SOLO_LABELS+=(
+    "mcp-tokens: CLUSTER_TOKEN"
+    "mcp-tokens: BUSINESS_TOKEN"
+  )
+  SOLO_MEMBERS+=(
+    "default:mcp-tokens:CLUSTER_TOKEN"
+    "default:mcp-tokens:BUSINESS_TOKEN"
+  )
+fi
 
 NUM_SOLOS=${#SOLO_LABELS[@]}
 

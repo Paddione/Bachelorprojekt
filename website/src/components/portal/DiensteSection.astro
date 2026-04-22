@@ -2,9 +2,10 @@
 interface Props {
   ncBase: string;
   vaultUrl: string;
+  wbUrl?: string;
   keycloakBase: string;
 }
-const { ncBase, vaultUrl, keycloakBase } = Astro.props;
+const { ncBase, vaultUrl, wbUrl = '', keycloakBase } = Astro.props;
 
 const services = [
   ...(ncBase ? [
@@ -12,8 +13,8 @@ const services = [
     { href: `${ncBase}/apps/calendar/`,   label: 'Kalender',   desc: 'Termine und Ereignisse',     icon: '📅' },
     { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   desc: 'Adressbuch',                 icon: '👥' },
     { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       desc: 'Video & Gruppen-Chat',       icon: '🎥' },
-    { href: `${ncBase}/apps/whiteboard/`, label: 'Whiteboard', desc: 'Gemeinsames Zeichenbrett',   icon: '🖊️' },
   ] : []),
+  ...(wbUrl ? [{ href: wbUrl, label: 'Whiteboard', desc: 'Gemeinsames Zeichenbrett', icon: '🖊️' }] : []),
   ...(vaultUrl ? [{ href: vaultUrl, label: 'Passwörter',  desc: 'Vaultwarden Safe',       icon: '🔒' }] : []),
 ];
 ---

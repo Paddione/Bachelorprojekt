@@ -57,7 +57,7 @@ fi
 
 # ── kubectl context ───────────────────────────────────────────────────────────
 case "$ENV" in
-  dev)        K_ARGS=() ;;
+  dev)        K_ARGS=(--context k3d-dev) ;;
   mentolder)  K_ARGS=(--context mentolder) ;;
   korczewski) K_ARGS=(--context korczewski) ;;
 esac
@@ -318,6 +318,11 @@ secret_exists() {
   "${K[@]}" get secret "$2" -n "$1" &>/dev/null
 }
 
+# ── Helper: check if a namespace exists ──────────────────────────────────────
+namespace_exists() {
+  "${K[@]}" get namespace "$1" &>/dev/null
+}
+
 # ── Helper: display value ────────────────────────────────────────────────────
 display_val() {
   local v="$1"
@@ -337,6 +342,25 @@ print_group() {
   local members_str="${GROUP_MEMBERS[$idx]}"
 
   IFS='|' read -ra MEMBERS <<< "$members_str"
+
+  # Skip group when a destination namespace is absent (e.g. workspace-office
+  # on dev without office-stack, coturn on dev without signaling). The source
+  # namespace is always assumed present — the pre-flight verifies `workspace`.
+  local skip_reason=""
+  for (( j=1; j<${#MEMBERS[@]}; j++ )); do
+    IFS=':' read -r ns secret key <<< "${MEMBERS[$j]}"
+    if ! namespace_exists "$ns"; then
+      skip_reason="namespace '$ns' absent"
+      break
+    fi
+  done
+
+  if [[ -n "$skip_reason" ]]; then
+    LAST_GROUP_MISMATCH=0
+    printf "${BLD}[%d]${RST} %-46s [%b]\n" "$num" "$label" "${YLW}${BLD}SKIPPED${RST}"
+    printf "    %s%s%s\n\n" "$DIM" "$skip_reason" "$RST"
+    return
+  fi
 
   # Collect values
   local -a VALS

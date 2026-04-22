@@ -68,15 +68,24 @@ spec:
             - name: SMTP_DOMAIN
               value: "sign.localhost"
             - name: SMTP_USERNAME
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_USER
             - name: SMTP_PASSWORD
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_PASSWORD
             - name: SMTP_AUTH_METHOD
               value: "none"
             - name: SMTP_ENABLE_STARTTLS_AUTO
               value: "false"
             - name: MAILER_FROM_EMAIL
-              value: "sign@workspace.local"
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_FROM
             - name: MAILER_FROM_NAME
               value: "Unterschriften"
             - name: RAILS_SERVE_STATIC_FILES

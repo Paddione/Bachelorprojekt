@@ -11,7 +11,7 @@ NAMESPACE="workspace"
 # Hilfsfunktion für occ-Kommandos im Nextcloud-Container
 _occ() {
   kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
-    su -s /bin/bash www-data -c "$1"
+    sh -c "$1"
 }
 
 _kubectl() {
@@ -34,10 +34,9 @@ echo "  Erstelle Nextcloud-User transcriber-bot..."
 # User anlegen (|| true = idempotent)
 # shellcheck disable=SC2086
 _kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
-  bash -c "export OC_PASS='${TRANSCRIBER_PASS}' && \
-    su -s /bin/bash www-data -c \
-    'php occ user:add --display-name=\"Live-Transkription\" \
-     --password-from-env transcriber-bot 2>/dev/null || true'"
+  sh -c "export OC_PASS='${TRANSCRIBER_PASS}' && \
+    php occ user:add --display-name='Live-Transkription' \
+     --password-from-env transcriber-bot 2>/dev/null || true"
 
 echo "  Registriere Talk-Bot..."
 

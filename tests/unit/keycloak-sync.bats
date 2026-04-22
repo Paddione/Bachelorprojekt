@@ -39,3 +39,9 @@ B=y'
   [ "$status" -eq 0 ]
   [ "$output" = "url=https://auth.localhost/path|q" ]
 }
+
+@test "kc_substitute_placeholders handles values containing '&' safely" {
+  run kc_substitute_placeholders 'greet=${MSG}' 'MSG=hello & goodbye'
+  [ "$status" -eq 0 ]
+  [ "$output" = "greet=hello & goodbye" ]
+}

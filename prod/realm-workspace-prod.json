@@ -18,36 +18,6 @@
       "email": "patrick@${PROD_DOMAIN}",
       "firstName": "Patrick",
       "lastName": "Korczewski",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "Plotterpapier11!$",
-          "temporary": false
-        }
-      ],
-      "realmRoles": [
-        "default-roles-workspace"
-      ],
-      "clientRoles": {
-        "realm-management": [
-          "realm-admin"
-        ]
-      }
-    },
-    {
-      "username": "patrick",
-      "enabled": true,
-      "emailVerified": true,
-      "email": "patrick2@${PROD_DOMAIN}",
-      "firstName": "Patrick",
-      "lastName": "Admin",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "0tizrHZ1uqYvptHmRn4xa5LD!",
-          "temporary": false
-        }
-      ],
       "realmRoles": [
         "default-roles-workspace"
       ],
@@ -64,13 +34,6 @@
       "email": "gekko@${PROD_DOMAIN}",
       "firstName": "Gekko",
       "lastName": "Admin",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "0tizrHZ1uqYvptHmRn4xa5LD!",
-          "temporary": false
-        }
-      ],
       "realmRoles": [
         "default-roles-workspace"
       ],

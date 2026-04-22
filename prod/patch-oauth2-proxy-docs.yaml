@@ -8,10 +8,10 @@ spec:
       containers:
         - name: oauth2-proxy
           args:
+            - "--config=/run/config/oauth2-extra.cfg"
             - "--provider=keycloak-oidc"
             - "--client-id=docs"
             - "--client-secret=$(DOCS_OIDC_SECRET)"
-            - "--cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)"
             - "--redirect-url=https://docs.${PROD_DOMAIN}/oauth2/callback"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
             - "--ssl-insecure-skip-verify=true"
@@ -39,8 +39,3 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: DOCS_OIDC_SECRET
-            - name: OAUTH2_PROXY_COOKIE_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: OAUTH2_PROXY_COOKIE_SECRET

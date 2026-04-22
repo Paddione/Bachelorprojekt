@@ -106,10 +106,6 @@ env_vars:
     required: false
     default_dev: "http://board.localhost"
 
-  - name: WIKI_EXTERNAL_URL
-    required: false
-    default_dev: "http://wiki.localhost"
-
   - name: STRIPE_PUBLISHABLE_KEY
     required: false
 

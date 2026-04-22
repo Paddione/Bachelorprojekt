@@ -27,7 +27,6 @@ const section  = Astro.url.searchParams.get('section') ?? 'overview';
 const username = session.preferred_username ?? session.sub;
 
 const ncBase       = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
-const wikiUrl      = process.env.WIKI_EXTERNAL_URL ?? '';
 const vaultUrl     = process.env.VAULT_EXTERNAL_URL ?? '';
 const keycloakBase = process.env.KEYCLOAK_FRONTEND_URL ?? '';
 const realm        = process.env.KEYCLOAK_REALM ?? 'workspace';
@@ -106,7 +105,7 @@ const projects = section === 'projekte'
   {session}
   {pendingSignatures}
 >
-  {section === 'overview'       && <OverviewSection {session} {nextBooking} {openInvoices} {unreadMessages} {onboardingPct} {ncBase} {wikiUrl} {vaultUrl} />}
+  {section === 'overview'       && <OverviewSection {session} {nextBooking} {openInvoices} {unreadMessages} {onboardingPct} {ncBase} {vaultUrl} />}
   {section === 'nachrichten'    && <NachrichtenSection {rooms} />}
   {section === 'besprechungen'  && <BesprechungenSection {meetings} />}
   {section === 'dateien'        && <DateienSection clientUsername={username} />}
@@ -125,6 +124,6 @@ const projects = section === 'projekte'
       <OnboardingTab keycloakUserId={session.sub} back={Astro.url.href} />
     </div>
   )}
-  {section === 'dienste'        && <DiensteSection {ncBase} {wikiUrl} {vaultUrl} {keycloakBase} />}
+  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {keycloakBase} />}
   {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
 </PortalLayout>

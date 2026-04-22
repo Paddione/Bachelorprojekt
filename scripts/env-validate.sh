@@ -168,9 +168,11 @@ run_drift() {
 
     while IFS= read -r key; do
       [[ -z "$key" ]] && continue
-      local val
+      local val required
       val=$(yaml_get "$ef" "$key")
       if [[ -z "$val" ]]; then
+        required=$(schema_field "$SCHEMA" "env_vars" "$key" "required")
+        [[ "$required" != "true" ]] && continue
         echo "DRIFT: ${ename} is missing env_var ${key}"
         ((drift_warnings++)) || true
       fi

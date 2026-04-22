@@ -1562,7 +1562,11 @@ tasks:
           echo "Pinning deployment to ${IMAGE}@${DIGEST}..."
           kubectl ${CTX_ARG} -n website set image deployment/website "website=${IMAGE}@${DIGEST}"
         elif [ -n "${DIGEST}" ]; then
-          echo "Mixed-arch cluster detected — skipping digest pin, using :latest"
+          # Without a digest pin the Deployment spec is unchanged, so `apply` is a
+          # no-op and the pod keeps its cached :latest image. Force a rollout so
+          # imagePullPolicy:Always actually pulls the freshly-pushed tag.
+          echo "Mixed-arch cluster detected — forcing rollout to pick up :latest"
+          kubectl ${CTX_ARG} -n website rollout restart deployment/website
         fi
 
         # For production: upgrade IngressRoute to HTTPS with letsencrypt

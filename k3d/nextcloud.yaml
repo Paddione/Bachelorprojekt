@@ -45,6 +45,28 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       initContainers:
+        - name: fix-data-perms
+          image: busybox:1.36
+          imagePullPolicy: Always
+          # Nextcloud refuses to start (HTTP 503) when the data dir is
+          # world-readable. local-path provisions PVCs as 2777, so we
+          # tighten it to 0770 and ensure www-data ownership here.
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - sh
+            - -c
+            - |
+              chown 33:33 /var/www/html/data
+              chmod 0770 /var/www/html/data
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/html/data
         - name: fix-config-perms
           image: busybox:1.36
           imagePullPolicy: Always

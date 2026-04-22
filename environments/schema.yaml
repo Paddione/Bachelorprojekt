@@ -46,10 +46,6 @@ env_vars:
     required: true
     default_dev: "Coach, Berater, Trainer"
 
-  - name: LEGAL_CHAMBER
-    required: true
-    default_dev: "Entfaellt"
-
   - name: LEGAL_UST_ID
     required: true
     default_dev: "Nicht vorhanden"
@@ -113,6 +109,9 @@ env_vars:
   - name: WIKI_EXTERNAL_URL
     required: false
     default_dev: "http://wiki.localhost"
+
+  - name: STRIPE_PUBLISHABLE_KEY
+    required: false
 
 secrets:
   - name: SHARED_DB_PASSWORD
@@ -266,6 +265,7 @@ setup_vars:
 
   - name: KC_USER1_PASSWORD
     required: true
+    sealed: true
 
   - name: KC_USER2_USERNAME
     required: false
@@ -275,3 +275,4 @@ setup_vars:
 
   - name: KC_USER2_PASSWORD
     required: false
+    sealed: true

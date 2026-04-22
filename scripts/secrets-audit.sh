@@ -136,12 +136,6 @@ SOLO_LABELS=(
   "website: STRIPE_PUBLISHABLE_KEY"
   "website: STRIPE_WEBHOOK_SECRET"
   "website: SMTP_PASS"
-  "website: SELLER_NAME"
-  "website: SELLER_ADDRESS"
-  "website: SELLER_POSTAL_CODE"
-  "website: SELLER_CITY"
-  "website: SELLER_COUNTRY"
-  "website: SELLER_VAT_ID"
   "backup-passphrase"
   "traefik-basic-auth: users (htpasswd)"
 )
@@ -171,12 +165,6 @@ SOLO_MEMBERS=(
   "website:website-secrets:STRIPE_PUBLISHABLE_KEY"
   "website:website-secrets:STRIPE_WEBHOOK_SECRET"
   "website:website-secrets:SMTP_PASS"
-  "website:website-secrets:SELLER_NAME"
-  "website:website-secrets:SELLER_ADDRESS"
-  "website:website-secrets:SELLER_POSTAL_CODE"
-  "website:website-secrets:SELLER_CITY"
-  "website:website-secrets:SELLER_COUNTRY"
-  "website:website-secrets:SELLER_VAT_ID"
   "workspace:backup-passphrase:backup-passphrase"
   "workspace:traefik-basic-auth:users"
 )
@@ -201,6 +189,12 @@ CM_LABELS=(
   "AI_DOMAIN"
   "SIGN_DOMAIN"
   "BILLING_DOMAIN"
+  "website: SELLER_NAME"
+  "website: SELLER_ADDRESS"
+  "website: SELLER_POSTAL_CODE"
+  "website: SELLER_CITY"
+  "website: SELLER_COUNTRY"
+  "website: SELLER_VAT_ID"
 )
 
 CM_MEMBERS=(
@@ -217,6 +211,12 @@ CM_MEMBERS=(
   "workspace:domain-config:AI_DOMAIN"
   "workspace:domain-config:SIGN_DOMAIN"
   "workspace:domain-config:BILLING_DOMAIN"
+  "website:website-seller-config:SELLER_NAME"
+  "website:website-seller-config:SELLER_ADDRESS"
+  "website:website-seller-config:SELLER_POSTAL_CODE"
+  "website:website-seller-config:SELLER_CITY"
+  "website:website-seller-config:SELLER_COUNTRY"
+  "website:website-seller-config:SELLER_VAT_ID"
 )
 
 NUM_CMS=${#CM_LABELS[@]}
@@ -244,15 +244,13 @@ secret_exists() {
   "${K[@]}" get secret "$2" -n "$1" &>/dev/null
 }
 
-# ── Helper: display value (truncated at 60 chars) ────────────────────────────
+# ── Helper: display value ────────────────────────────────────────────────────
 display_val() {
   local v="$1"
   if [[ -z "$v" ]]; then
     printf '%s(empty/not found)%s' "$YLW" "$RST"
-  elif [[ ${#v} -le 60 ]]; then
-    printf '%s' "$v"
   else
-    printf '%s...' "${v:0:57}"
+    printf '%s' "$v"
   fi
 }
 

@@ -18,7 +18,6 @@ patches:
       metadata:
         name: domain-config
       data:
-        MM_DOMAIN: "chat.${PROD_DOMAIN}"
         KC_DOMAIN: "auth.${PROD_DOMAIN}"
         NC_DOMAIN: "files.${PROD_DOMAIN}"
         SIGNALING_DOMAIN: "signaling.${PROD_DOMAIN}"

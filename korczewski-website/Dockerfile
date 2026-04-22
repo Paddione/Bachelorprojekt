@@ -18,7 +18,6 @@ ARG CONTACT_NAME
 ARG LEGAL_STREET
 ARG LEGAL_ZIP
 ARG LEGAL_JOBTITLE
-ARG LEGAL_CHAMBER
 ARG LEGAL_UST_ID
 ARG LEGAL_WEBSITE
 ENV PROD_DOMAIN=$PROD_DOMAIN
@@ -30,10 +29,9 @@ ENV CONTACT_NAME=$CONTACT_NAME
 ENV LEGAL_STREET=$LEGAL_STREET
 ENV LEGAL_ZIP=$LEGAL_ZIP
 ENV LEGAL_JOBTITLE=$LEGAL_JOBTITLE
-ENV LEGAL_CHAMBER=$LEGAL_CHAMBER
 ENV LEGAL_UST_ID=$LEGAL_UST_ID
 ENV LEGAL_WEBSITE=$LEGAL_WEBSITE
-RUN find src -type f \( -name "*.astro" -o -name "*.ts" -o -name "*.js" -o -name "*.svelte" -o -name "*.css" \) -exec sh -c 'envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_PHONE \$CONTACT_CITY \$CONTACT_NAME \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_CHAMBER \$LEGAL_UST_ID \$LEGAL_WEBSITE" < "$1" > "$1.tmp" && mv "$1.tmp" "$1"' _ {} \;
+RUN find src -type f \( -name "*.astro" -o -name "*.ts" -o -name "*.js" -o -name "*.svelte" -o -name "*.css" \) -exec sh -c 'envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_PHONE \$CONTACT_CITY \$CONTACT_NAME \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE" < "$1" > "$1.tmp" && mv "$1.tmp" "$1"' _ {} \;
 
 RUN npm run build
 
@@ -49,4 +47,5 @@ ENV HOST=0.0.0.0
 ENV PORT=4321
 EXPOSE 4321
 
+USER node
 CMD ["node", "./dist/server/entry.mjs"]

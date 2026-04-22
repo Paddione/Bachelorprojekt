@@ -72,7 +72,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shared-db
-  namespace: workspace
   labels:
     app: shared-db
 spec:

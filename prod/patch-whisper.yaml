@@ -2,11 +2,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: whisper
-  namespace: workspace
 spec:
   template:
     spec:
       containers:
         - name: whisper
-          image: fedirz/faster-whisper-server:latest-cpu
-          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "8"

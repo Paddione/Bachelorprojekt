@@ -93,7 +93,6 @@ configMapGenerator:
       - docs-content/scripts.md
       - docs-content/security-report.md
       - docs-content/security.md
-      - docs-content/test-anleitung-korczewski.md
       - docs-content/tests.md
       - docs-content/troubleshooting.md
       - docs-content/verarbeitungsverzeichnis.md

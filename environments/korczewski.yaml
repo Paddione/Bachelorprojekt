@@ -26,10 +26,9 @@ env_vars:
   TURN_NODE: "pk-hetzner"
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
   DOCS_URL: "https://docs.korczewski.de"
-  BILLING_EXTERNAL_URL: "https://billing.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
-  WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/index.php/apps/files/personal"
+  WHITEBOARD_EXTERNAL_URL: "https://files.korczewski.de/index.php/apps/whiteboard/"
 
 overlay: prod-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml

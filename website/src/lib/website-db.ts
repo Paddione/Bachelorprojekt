@@ -406,6 +406,7 @@ export async function listAllMeetings(opts?: {
   unassignedOnly?: boolean;
   limit?: number;
 }): Promise<AdminMeeting[]> {
+  await initMeetingProjectLink();
   const where = opts?.unassignedOnly
     ? `WHERE c.name LIKE '%@unknown.local%' OR m.meeting_type = 'Talk-Session'`
     : '';
@@ -445,6 +446,7 @@ export async function getMeetingDetail(meetingId: string): Promise<{
   transcript: { id: string; fullText: string } | null;
   artifacts: Array<{ id: string; artifactType: string; name: string; storagePath: string | null; contentText: string | null }>;
 } | null> {
+  await initMeetingProjectLink();
   const r = await pool.query(`
     SELECT m.id, m.meeting_type AS "meetingType", m.status,
            m.talk_room_token AS "talkRoomToken",

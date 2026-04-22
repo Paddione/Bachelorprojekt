@@ -76,11 +76,6 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: NC_DOMAIN
-            - name: BILLING_DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: BILLING_DOMAIN
             - name: WEBSITE_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

@@ -22,7 +22,6 @@ interface ImportMetaEnv {
   readonly NEXTCLOUD_ADMIN_PASS?: string;
   readonly NEXTCLOUD_EXTERNAL_URL?: string;
   readonly DOCS_URL?: string;
-  readonly BILLING_EXTERNAL_URL?: string;
   readonly AUTH_EXTERNAL_URL?: string;
   readonly VAULT_EXTERNAL_URL?: string;
   readonly WHITEBOARD_EXTERNAL_URL?: string;

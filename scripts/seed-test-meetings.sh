@@ -189,4 +189,4 @@ ORDER BY m.created_at DESC;
 "
 
 echo ""
-echo "✓ Done. Open https://web.mentolder.de/admin/meetings to verify."
+echo "✓ Done. Open http://web.localhost/admin/meetings to verify."

@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const siteUrl = (process.env.SITE_URL || 'https://web.mentolder.de').replace(/\/$/, '');
+    const siteUrl = (process.env.SITE_URL || 'http://web.localhost').replace(/\/$/, '');
     const url = await createCheckoutSession({
       serviceKey,
       successUrl: `${siteUrl}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,

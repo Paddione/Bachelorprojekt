@@ -55,12 +55,12 @@ spec:
                 echo "$item" | bw encode | bw create item
               }
 
-              NC="${NC_DOMAIN:-files.mentolder.de}"
-              KC="${KC_DOMAIN:-auth.mentolder.de}"
-              WEB="${WEB_DOMAIN:-web.mentolder.de}"
-              AI="${AI_DOMAIN:-ai.mentolder.de}"
-              DOCS="${DOCS_DOMAIN:-docs.mentolder.de}"
-              OFFICE="${OFFICE_DOMAIN:-office.mentolder.de}"
+              NC="${NC_DOMAIN:-files.localhost}"
+              KC="${KC_DOMAIN:-auth.localhost}"
+              WEB="${WEB_DOMAIN:-web.localhost}"
+              AI="${AI_DOMAIN:-ai.localhost}"
+              DOCS="${DOCS_DOMAIN:-docs.localhost}"
+              OFFICE="${OFFICE_DOMAIN:-office.localhost}"
 
               upsert_login "Nextcloud — Dateien"            "https://${NC}"               "Dateispeicher und Kollaboration"
               upsert_login "Nextcloud Talk — Video"         "https://${NC}/apps/spreed"   "Video-/Sprachanrufe via Nextcloud Talk"

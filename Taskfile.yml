@@ -1113,6 +1113,7 @@ tasks:
 
         echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
 
+        nc_needs_restart=0
         for user in keycloak nextcloud vaultwarden website docuseal; do
           key="${user^^}_DB_PASSWORD"
           pw=$(kubectl $context_flag get secret workspace-secrets -n workspace \
@@ -1121,10 +1122,49 @@ tasks:
             echo "  SKIP ${user}: ${key} not found in workspace-secrets"
             continue
           fi
+
+          # Nextcloud persists its DB password inside config.php on the PVC.
+          # When the secret rotates (e.g. sealed-secrets reseal), the PVC copy
+          # drifts — and the Nextcloud bootstrap opens a DB connection before
+          # `occ` can run, so `occ config:system:set dbpassword` cannot recover
+          # the state (this is the PR #282 outage shape). Patch config.php
+          # in-place via PHP (stdin-piped, special chars safe) BEFORE ALTER
+          # USER; if we actually changed it, rollout-restart nextcloud after
+          # the loop so it picks the file up cleanly.
+          if [ "$user" = "nextcloud" ]; then
+            nc_pod=$(kubectl $context_flag -n workspace get pod -l app=nextcloud \
+              -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            if [ -n "$nc_pod" ]; then
+              current_pw=$(kubectl $context_flag -n workspace exec "$nc_pod" -c nextcloud -- \
+                php -r 'if(!file_exists("/var/www/html/config/config.php")){exit;}$CONFIG=[];include "/var/www/html/config/config.php";echo $CONFIG["dbpassword"]??"";' 2>/dev/null || true)
+              if [ -z "$current_pw" ]; then
+                echo "  nextcloud-config.php: config.php missing or malformed — skipping in-place sync"
+              elif [ "$current_pw" = "$pw" ]; then
+                echo "  nextcloud-config.php: already in sync"
+              else
+                echo "  nextcloud-config.php: dbpassword drifted → patching in-place"
+                if printf '%s' "$pw" | kubectl $context_flag -n workspace exec -i "$nc_pod" -c nextcloud -- \
+                  php -r '$p="/var/www/html/config/config.php";$CONFIG=[];include $p;if(!isset($CONFIG["dbpassword"])){fwrite(STDERR,"refusing to write: existing config has no dbpassword\n");exit(1);}$CONFIG["dbpassword"]=stream_get_contents(STDIN);file_put_contents($p,"<?php\n\$CONFIG = ".var_export($CONFIG,true).";\n");' 2>&1 | sed "s/^/    /"; then
+                  nc_needs_restart=1
+                else
+                  echo "    (config.php patch failed — falling through to ALTER USER; pod may need manual repair)"
+                fi
+              fi
+            else
+              echo "  nextcloud-config.php: no nextcloud pod found — skipping config.php sync (ALTER USER below may strand the pod until config.php is repaired)"
+            fi
+          fi
+
           kubectl $context_flag exec -n workspace deployment/shared-db -- \
             psql -U postgres -c "ALTER USER ${user} WITH PASSWORD '$(printf "%s" "$pw" | sed "s/'/''/g")';" 2>&1 \
             | sed "s/^/  ${user}: /"
         done
+
+        if [ "$nc_needs_restart" = 1 ]; then
+          echo "Restarting nextcloud to pick up patched config.php..."
+          kubectl $context_flag -n workspace rollout restart deployment/nextcloud
+          kubectl $context_flag -n workspace rollout status deployment/nextcloud --timeout=180s
+        fi
         echo "✓ DB passwords synced"
 
   keycloak:sync:

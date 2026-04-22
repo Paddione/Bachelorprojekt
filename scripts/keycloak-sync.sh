@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════════
-# keycloak-sync-secrets.sh — Sync OIDC client secrets → Keycloak Admin API
+# keycloak-sync.sh — Sync OIDC clients + secrets → Keycloak Admin API
 #
 # workspace-secrets ist die einzige Wahrheitsquelle für OIDC-Secrets.
 # Dieses Script liest alle *_OIDC_SECRET-Werte aus dem K8s-Secret und
@@ -8,9 +8,9 @@
 # Idempotent — kann jederzeit mehrfach ausgeführt werden.
 #
 # Usage:
-#   bash scripts/keycloak-sync-secrets.sh
-#   ENV=mentolder bash scripts/keycloak-sync-secrets.sh
-#   task keycloak:sync-secrets ENV=mentolder
+#   bash scripts/keycloak-sync.sh
+#   ENV=mentolder bash scripts/keycloak-sync.sh
+#   task keycloak:sync ENV=mentolder
 # ═══════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -143,5 +143,5 @@ log "Sync abgeschlossen: ${UPDATED} aktualisiert, ${SKIPPED} übersprungen, ${FA
 
 if [[ $FAILED -gt 0 ]]; then
   warn "Einige Clients konnten nicht synchronisiert werden."
-  warn "Manuelle Prüfung: task keycloak:sync-secrets ENV=${ENV}"
+  warn "Manuelle Prüfung: task keycloak:sync ENV=${ENV}"
 fi

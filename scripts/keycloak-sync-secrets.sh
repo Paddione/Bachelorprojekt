@@ -118,13 +118,15 @@ for SECRET_KEY in "${!CLIENT_MAP[@]}"; do
     continue
   fi
 
-  # Secret setzen via POST /clients/{uuid}/client-secret
+  # Secret setzen via PUT /clients/{uuid} (POST /client-secret regeneriert statt zu setzen!)
+  # Escape special chars for JSON string (backslash, double-quote).
+  SECRET_JSON=$(printf '%s' "$SECRET_VAL" | sed 's/\\/\\\\/g; s/"/\\"/g')
   HTTP_STATUS=$(curl -sk \
     -o /dev/null -w "%{http_code}" \
-    -X POST "${KC_URL}/admin/realms/${KC_REALM}/clients/${CLIENT_UUID}/client-secret" \
+    -X PUT "${KC_URL}/admin/realms/${KC_REALM}/clients/${CLIENT_UUID}" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "Content-Type: application/json" \
-    -d "{\"type\":\"secret\",\"value\":\"${SECRET_VAL}\"}" || echo "000")
+    -d "{\"secret\":\"${SECRET_JSON}\"}" || echo "000")
 
   if [[ "$HTTP_STATUS" =~ ^2 ]]; then
     log "  ✓ ${CLIENT_ID} (${SECRET_KEY})"

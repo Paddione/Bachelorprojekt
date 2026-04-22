@@ -86,11 +86,19 @@ for src_key, export_name in (
 env_vars = env_file.get("env_vars") or {}
 for entry in schema.get("env_vars") or []:
     name = entry["name"]
-    v = env_vars.get(name)
-    if (v is None or v == "") and is_dev:
-        v = entry.get("default_dev")
-    if v is not None and v != "":
-        emit(name, v)
+    if name in env_vars:
+        v = env_vars[name]
+        if (v is None or v == "") and is_dev:
+            dv = entry.get("default_dev")
+            if dv is not None:
+                v = dv
+        # Emit explicit keys even when blank so callers under `set -u`
+        # don't trip on e.g. CONTACT_PHONE="" in environments/korczewski.yaml.
+        emit(name, v if v is not None else "")
+    elif is_dev:
+        dv = entry.get("default_dev")
+        if dv is not None:
+            emit(name, dv)
 
 setup_vars = env_file.get("setup_vars") or {}
 for entry in schema.get("setup_vars") or []:

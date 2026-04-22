@@ -23,7 +23,7 @@ env_vars:
     validate: "^.+@.+$"
 
   - name: CONTACT_PHONE
-    required: true
+    required: false
     default_dev: "+49 000 000 00 000"
 
   - name: CONTACT_CITY
@@ -156,6 +156,13 @@ secrets:
     generate: true
     length: 40
 
+  # The following signaling keys are NOT managed by this schema:
+  #   SESSION_HASHKEY, SESSION_BLOCKKEY, CLIENTS_INTERNALSECRET, TURN_APIKEY
+  # They are hardcoded directly in the spreed-signaling Deployment env
+  # (k3d/talk-hpb.yaml, prod/patch-signaling-backend.yaml). Rationale:
+  # they only need to be stable within a pod's lifetime, and TURN_APIKEY
+  # is unused because the REST API auth uses TURN_SECRET. If these ever
+  # become rotated secrets, promote them into this section.
   - name: SIGNALING_SECRET
     required: true
     generate: true

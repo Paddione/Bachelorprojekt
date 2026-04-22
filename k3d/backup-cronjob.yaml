@@ -56,6 +56,11 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: DOCUSEAL_DB_PASSWORD
+                - name: BACKUP_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: BACKUP_PASSPHRASE
               securityContext:
                 allowPrivilegeEscalation: false
                 runAsNonRoot: true
@@ -86,16 +91,13 @@ spec:
                       > "${BACKUP_DIR}/${db}.dump"
                   done
 
-                  # Encrypt with AES-256
-                  PASSFILE=/secrets/backup-passphrase
-                  if [ -f "${PASSFILE}" ]; then
-                    for f in "${BACKUP_DIR}"/*.dump; do
-                      openssl enc -aes-256-cbc -salt -pbkdf2 \
-                        -in "${f}" -out "${f}.enc" \
-                        -pass "file:${PASSFILE}"
-                      rm "${f}"
-                    done
-                  fi
+                  # Encrypt with AES-256 using BACKUP_PASSPHRASE from workspace-secrets
+                  for f in "${BACKUP_DIR}"/*.dump; do
+                    openssl enc -aes-256-cbc -salt -pbkdf2 \
+                      -in "${f}" -out "${f}.enc" \
+                      -pass env:BACKUP_PASSPHRASE
+                    rm "${f}"
+                  done
 
                   # Retention: remove backups older than 30 days
                   find /backups -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +
@@ -105,9 +107,6 @@ spec:
               volumeMounts:
                 - name: backup-storage
                   mountPath: /backups
-                - name: backup-secrets
-                  mountPath: /secrets
-                  readOnly: true
               resources:
                 requests:
                   memory: 256Mi
@@ -119,7 +118,3 @@ spec:
             - name: backup-storage
               persistentVolumeClaim:
                 claimName: backup-pvc
-            - name: backup-secrets
-              secret:
-                secretName: backup-passphrase
-                optional: true

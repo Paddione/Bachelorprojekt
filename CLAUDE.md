@@ -12,15 +12,17 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
 ### Cluster & Deployment
 ```bash
-task cluster:create              # Create k3d cluster (k3d-config.yaml)
-task cluster:delete              # Destroy cluster
-task cluster:start               # Start stopped cluster
-task cluster:stop                # Stop cluster (preserves state)
-task cluster:status              # Show cluster status, nodes, resource usage
-task workspace:up                # Full automated setup (Cluster + MVP + MCP)
-task workspace:deploy            # Deploy all workspace services (Kustomize)
-task workspace:validate          # Dry-run manifest validation
-task workspace:teardown          # Remove all services
+task cluster:create                        # Create k3d cluster (k3d-config.yaml)
+task cluster:delete                        # Destroy cluster
+task cluster:start                         # Start stopped cluster
+task cluster:stop                          # Stop cluster (preserves state)
+task cluster:status                        # Show cluster status, nodes, resource usage
+task workspace:up                          # Full automated setup (Cluster + MVP + MCP)
+task workspace:deploy                      # Deploy workspace (default ENV=dev)
+task workspace:deploy ENV=mentolder        # Deploy to mentolder prod cluster
+task workspace:deploy ENV=korczewski       # Deploy to korczewski prod cluster
+task workspace:validate                    # Dry-run manifest validation
+task workspace:teardown                    # Remove all services
 ```
 
 ### Daily Operations
@@ -34,11 +36,13 @@ task workspace:port-forward      # Forward shared-db to localhost:5432
 
 ### Post-Deploy Setup
 ```bash
-task workspace:post-setup        # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
-task workspace:stripe-setup      # Configure Stripe payment gateway
-task workspace:vaultwarden:seed  # Seed Vaultwarden with production secret templates
-task workspace:dsgvo-check       # Run DSGVO compliance verification (NFA-01)
-task claude-code:setup           # Register MCP servers in Claude Code database
+task workspace:office:deploy ENV=<env>    # Deploy Collabora (separate overlay — required for full bring-up)
+task workspace:post-setup                 # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
+task workspace:stripe-setup               # Configure Stripe payment gateway
+task workspace:vaultwarden:seed           # Seed Vaultwarden with production secret templates
+task workspace:dsgvo-check                # Run DSGVO compliance verification (NFA-01)
+task claude-code:setup -- cluster         # Generate Claude Code settings.json for platform admin
+task claude-code:setup -- business        # Generate Claude Code settings.json for business user
 ```
 
 ### Claude Code MCP Servers
@@ -89,9 +93,16 @@ task cert:status                 # Show wildcard cert and ClusterIssuer status
 
 ```
 
-### Configuration
+### Environments & Secrets
 ```bash
-task config:show                 # Show current config variables
+task env:validate ENV=<env>      # Validate an env file against environments/schema.yaml
+task env:validate:all            # Validate all env files
+task env:show ENV=<env>          # Print resolved environments/<env>.yaml
+task env:init ENV=<new>          # Scaffold a new environments/<new>.yaml from schema
+task env:generate ENV=<env>      # Generate fresh secrets into environments/.secrets/<env>.yaml
+task env:seal ENV=<env>          # Encrypt .secrets/<env>.yaml → environments/sealed-secrets/<env>.yaml
+task env:fetch-cert ENV=<env>    # Fetch a cluster's sealing cert into environments/certs/<env>.pem
+task config:show ENV=<env>       # Show resolved PROD_DOMAIN/BRAND_NAME/CONTACT_EMAIL for an env
 ```
 
 ### Testing
@@ -122,8 +133,11 @@ graph TB
         WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
         MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
         DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
+        DS["fa:fa-file-signature DocuSeal<br/>sign.localhost"]
+        TR["fa:fa-list-check Tracking<br/>tracking.localhost"]
         OAUTH2[oauth2-proxy-docs]
         WHISPER["fa:fa-microphone Whisper<br/>Transkription"]
+        TRBOT["fa:fa-closed-captioning Talk Transcriber"]
         JANUS[Janus + NATS + coturn]
         DB[("fa:fa-database PostgreSQL 16<br/>shared-db")]
     end
@@ -132,34 +146,44 @@ graph TB
         WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
     end
 
-    Traefik --> KC & NC & CO & HPB & OC & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & OC & VW & WB & MP & DOCS & DS & TR & WEB
 
-    KC -. OIDC .-> NC & OC & VW & WEB
+    KC -. OIDC .-> NC & OC & VW & WEB & DS & TR
     OAUTH2 --> KC
     DOCS --> OAUTH2
     NC --> CO
     NC --> HPB --> JANUS
-    KC & NC & OC --> DB
+    HPB --> TRBOT --> WHISPER
+    KC & NC & OC & DS & TR --> DB
     WEB --> DB
 ```
 
 ### Key components
 - **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the only deployment path.
-- **`prod/`** -- Production overlays/patches (TLS, resource limits, replicas, DDNS).
+- **`prod/`** -- Shared production patches (TLS, resource limits, replicas, DDNS) consumed by the env-specific overlays. Never apply directly.
+- **`prod-mentolder/`, `prod-korczewski/`** -- Per-env overlays referenced by `ENV_OVERLAY` in `environments/<env>.yaml`. This is what `workspace:deploy` actually applies in prod.
+- **`environments/`** -- Config & secrets registry:
+  - `environments/<env>.yaml` -- per-env config (domain, context, env_vars, setup_vars), read by `scripts/env-resolve.sh`.
+  - `environments/.secrets/<env>.yaml` -- plaintext secrets (gitignored; only used as input to `env:seal`).
+  - `environments/sealed-secrets/<env>.yaml` -- encrypted SealedSecret (committed; applied before manifests).
+  - `environments/schema.yaml` -- authoritative list of every env/setup var; validated by `env:validate`.
+  - `environments/certs/` -- per-cluster sealing certs fetched via `env:fetch-cert`.
 - **`deploy/`** -- Kustomize overlays for dev iteration. Contains `mcp/` for MCP server overlays.
+- **`argocd/`** -- ArgoCD AppProject + three ApplicationSets (`applicationset.yaml`, `applicationset-office.yaml`, `applicationset-coturn.yaml`) and the `install/` CMP sidecar.
 - **`claude-code/`** -- Claude Code configuration and system prompt.
-- **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, etc.
+- **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
 - **`website/`** -- Astro + Svelte website.
 - **`docs-site/`** -- Docsify index.html for the docs service.
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.
-- **Parameterized branding**: `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL` in `.env`, injected via `envsubst`.
-- **Dev secrets**: `k3d/secrets.yaml` (dev values only -- never commit real credentials).
-- **Keycloak realm**: `k3d/realm-workspace-dev.json` (exported realm config loaded as ConfigMap).
-- **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (loaded as ConfigMap).
-- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Vaultwarden, and Claude Code all authenticate through it.
+- **Per-env config**: `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL`, `ENV_CONTEXT`, `ENV_OVERLAY`, SMTP, etc. live in `environments/<env>.yaml`. `scripts/env-resolve.sh` exports them; tasks then `envsubst` them into manifests.
+- **Prod secrets**: plaintext in `environments/.secrets/<env>.yaml` (gitignored) → `task env:seal ENV=<env>` → committed SealedSecret in `environments/sealed-secrets/<env>.yaml`. `workspace:deploy` applies the SealedSecret before manifests.
+- **Dev secrets**: `k3d/secrets.yaml` (dev values only — never commit real credentials). The `prod/` overlay strips this via `$patch: delete` so sealed secrets survive.
+- **Keycloak realm**: dev uses `k3d/realm-workspace-dev.json`; each prod overlay provides its own `realm-workspace-<env>.json`.
+- **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (dev) / `prod/nextcloud-oidc-prod.php` (prod), both loaded as ConfigMap.
+- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Vaultwarden, DocuSeal, Tracking, the website, and Claude Code all authenticate through it.
 
 ## CI/CD
 
@@ -190,7 +214,7 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 ### Kustomize overlays
 - **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.
 - **Never remove the `$patch: delete` block in `prod/kustomization.yaml`.** Its job is to strip the dev placeholder from `k3d/secrets.yaml` so SealedSecrets-managed secrets survive each deploy. Removing it overwrites production secrets with dev values.
-- **Collabora and CoTURN are NOT in the base kustomization.** `k3d/office-stack` and `k3d/coturn-stack` deploy via separate ArgoCD Applications (`argocd/applicationset-office.yaml`) and `task workspace:office:deploy`. A full bring-up order is `workspace:deploy` → `workspace:office:deploy` → CoTURN apply.
+- **Collabora and CoTURN are NOT in the base kustomization.** `k3d/office-stack` and `k3d/coturn-stack` deploy via separate ArgoCD Applications (`argocd/applicationset-office.yaml`, `argocd/applicationset-coturn.yaml`) and `task workspace:office:deploy`. A full bring-up order is `workspace:deploy` → `workspace:office:deploy` → CoTURN apply.
 - **Website image `:latest` is intentional** (`k3d/website.yaml`). CI warns about `:latest` elsewhere; do not "fix" the website tag to a digest — it is rebuilt and re-imported per deploy.
 
 ### Scripts & env

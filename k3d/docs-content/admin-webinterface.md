@@ -163,7 +163,6 @@ Wiedervorlagen und Erinnerungsaufgaben mit Kundenbezug.
 - Follow-up-Liste einsehen (offen / erledigt / überfällig)
 - Neues Follow-up mit Fälligkeitsdatum erstellen
 - Als erledigt markieren oder löschen
-- Mattermost-Benachrichtigung manuell auslösen
 - Kontaktdaten des zugehörigen Kunden direkt einsehen
 
 ---

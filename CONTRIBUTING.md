@@ -117,18 +117,15 @@ Services sind erreichbar unter:
 | Service | URL | Zugangsdaten |
 |---------|-----|--------------|
 | Keycloak (SSO) | http://auth.localhost | admin / devadmin |
-| Mattermost (Chat) | http://chat.localhost | -- |
 | Nextcloud (Dateien + Talk) | http://files.localhost | -- |
 | Collabora (Office) | http://office.localhost | -- |
 | Talk HPB (Signaling) | http://signaling.localhost | -- |
 | Claude Code (KI) | http://ai.localhost | -- |
-| Invoice Ninja (Rechnungen) | http://billing.localhost | -- |
 | Vaultwarden (Passwoerter) | http://vault.localhost | -- |
 | Whiteboard | http://board.localhost | -- |
 | Mailpit (Dev-Mail) | http://mail.localhost | -- |
 | Docs | http://docs.localhost | -- |
 | Website | http://web.localhost | -- |
-| Outline (Wiki) | http://wiki.localhost | -- |
 
 ### Tests ausfuehren
 

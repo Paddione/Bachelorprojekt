@@ -2,18 +2,22 @@
 # ═══════════════════════════════════════════════════════════════════
 # env-resolve.sh — Resolve and export all variables for an environment
 # ═══════════════════════════════════════════════════════════════════
-# Reads an environment file + schema defaults and exports all
-# variables as shell environment variables.
+# Reads an environment file + schema defaults and exports all variables
+# as shell environment variables, using python3/PyYAML so multi-line
+# strings, quoted scalars, and block scalars all resolve correctly.
+# (The previous grep/awk implementation silently truncated values that
+# spanned multiple lines — notably STRIPE_PUBLISHABLE_KEY using YAML
+# line-continuation — to the first line.)
 #
 # Usage:
 #   source scripts/env-resolve.sh <env-name> [env-dir]
 #
 # Exports:
-#   - All env_vars as shell variables (e.g. export PROD_DOMAIN=mentolder.de)
-#   - All setup_vars as shell variables
 #   - ENV_CONTEXT — kubectl context from environment file
 #   - ENV_DOMAIN  — domain from environment file
 #   - ENV_OVERLAY — overlay from environment file (empty if not set)
+#   - All schema env_vars, with default_dev fallback for dev envs
+#   - All schema setup_vars (no dev fallback)
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -40,104 +44,65 @@ if [[ ! -f "$_ENV_FILE" ]]; then
   return 1 2>/dev/null || exit 1
 fi
 
-# ── Helpers (prefixed to avoid namespace collisions) ─────────────
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "ERROR: python3 not found (required for YAML parsing)" >&2
+  return 1 2>/dev/null || exit 1
+fi
 
-# _resolve_yaml_get <file> <key> — extract value for a key
-_resolve_yaml_get() {
-  local file="$1" key="$2"
-  local line
-  line=$(grep -E "^[[:space:]]*${key}:" "$file" 2>/dev/null | head -1) || true
-  if [[ -z "$line" ]]; then
-    return 0
-  fi
-  echo "$line" \
-    | sed 's/^[^:]*:[[:space:]]*//' \
-    | sed 's/^["'"'"']//' \
-    | sed 's/["'"'"']$//' \
-    | sed 's/[[:space:]]*$//'
-}
+# ── Build export block via python3/PyYAML ────────────────────────
 
-# _resolve_schema_keys <file> <section> — extract all "name:" values under a section
-_resolve_schema_keys() {
-  local file="$1" section="$2"
-  awk -v sect="$section" '
-    /^[a-z_]+:/ { in_sect = ($0 ~ "^" sect ":"); next }
-    in_sect && /^[[:space:]]*- name:/ {
-      sub(/^[[:space:]]*- name:[[:space:]]*/, "")
-      gsub(/"/, "")
-      print
-    }
-  ' "$file"
-}
+_exports=$(SCHEMA="$_SCHEMA" ENV_FILE="$_ENV_FILE" python3 <<'PY'
+import os, shlex, sys
+try:
+    import yaml
+except ImportError:
+    sys.stderr.write("ERROR: PyYAML not installed (pip install pyyaml)\n")
+    sys.exit(1)
 
-# _resolve_schema_field <file> <section> <key> <field>
-_resolve_schema_field() {
-  local file="$1" section="$2" key="$3" field="$4"
-  awk -v sect="$section" -v keyname="$key" -v fname="$field" '
-    /^[a-z_]+:/ { in_sect = ($0 ~ "^" sect ":"); next }
-    in_sect && /^[[:space:]]*- name:/ {
-      sub(/^[[:space:]]*- name:[[:space:]]*/, "")
-      gsub(/"/, "")
-      current_key = $0
-      next
-    }
-    in_sect && current_key == keyname && $0 ~ "^[[:space:]]+" fname ":" {
-      val = $0
-      sub(/^[^:]*:[[:space:]]*/, "", val)
-      gsub(/"/, "", val)
-      print val
-      exit
-    }
-  ' "$file"
-}
+with open(os.environ["SCHEMA"]) as f:
+    schema = yaml.safe_load(f) or {}
+with open(os.environ["ENV_FILE"]) as f:
+    env_file = yaml.safe_load(f) or {}
 
-# ── Detect if this is a dev environment ──────────────────────────
+is_dev = env_file.get("environment") == "dev"
 
-_env_type=$(_resolve_yaml_get "$_ENV_FILE" "environment")
-_is_dev=false
-[[ "$_env_type" == "dev" ]] && _is_dev=true
 
-# ── Export convenience vars ──────────────────────────────────────
+def emit(name, value):
+    # Always export convenience vars (empty ok); skip env/setup vars
+    # with no value to match the original shell-script behaviour.
+    print(f"export {name}={shlex.quote(str(value))}")
 
-ENV_CONTEXT=$(_resolve_yaml_get "$_ENV_FILE" "context")
-ENV_DOMAIN=$(_resolve_yaml_get "$_ENV_FILE" "domain")
-ENV_OVERLAY=$(_resolve_yaml_get "$_ENV_FILE" "overlay")
-export ENV_CONTEXT ENV_DOMAIN ENV_OVERLAY
 
-# ── Export env_vars ──────────────────────────────────────────────
+# Convenience vars — exported even when empty so callers can reference
+# them under `set -u` without tripping.
+for src_key, export_name in (
+    ("context", "ENV_CONTEXT"),
+    ("domain", "ENV_DOMAIN"),
+    ("overlay", "ENV_OVERLAY"),
+):
+    v = env_file.get(src_key)
+    emit(export_name, v if v is not None else "")
 
-_env_keys=$(_resolve_schema_keys "$_SCHEMA" "env_vars")
+env_vars = env_file.get("env_vars") or {}
+for entry in schema.get("env_vars") or []:
+    name = entry["name"]
+    v = env_vars.get(name)
+    if (v is None or v == "") and is_dev:
+        v = entry.get("default_dev")
+    if v is not None and v != "":
+        emit(name, v)
 
-while IFS= read -r _key; do
-  [[ -z "$_key" ]] && continue
+setup_vars = env_file.get("setup_vars") or {}
+for entry in schema.get("setup_vars") or []:
+    name = entry["name"]
+    v = setup_vars.get(name)
+    if v is not None and v != "":
+        emit(name, v)
+PY
+)
 
-  _val=$(_resolve_yaml_get "$_ENV_FILE" "$_key")
-
-  # Dev environments fall back to default_dev from schema
-  if [[ -z "$_val" && "$_is_dev" == "true" ]]; then
-    _val=$(_resolve_schema_field "$_SCHEMA" "env_vars" "$_key" "default_dev")
-  fi
-
-  if [[ -n "$_val" ]]; then
-    export "${_key}=${_val}"
-  fi
-done <<< "$_env_keys"
-
-# ── Export setup_vars ────────────────────────────────────────────
-
-_setup_keys=$(_resolve_schema_keys "$_SCHEMA" "setup_vars")
-
-while IFS= read -r _key; do
-  [[ -z "$_key" ]] && continue
-
-  _val=$(_resolve_yaml_get "$_ENV_FILE" "$_key")
-
-  if [[ -n "$_val" ]]; then
-    export "${_key}=${_val}"
-  fi
-done <<< "$_setup_keys"
+eval "$_exports"
 
 # ── Cleanup internal vars ───────────────────────────────────────
 
-unset _ENV_NAME _ENV_DIR _SCHEMA _ENV_FILE _env_type _is_dev
-unset _env_keys _setup_keys _key _val
+unset _ENV_NAME _ENV_DIR _SCHEMA _ENV_FILE _exports

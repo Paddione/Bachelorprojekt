@@ -6,6 +6,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: shared-db-pvc
+  namespace: workspace
 spec:
   storageClassName: local-path
   accessModes: [ReadWriteOnce]
@@ -17,6 +18,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: shared-db-init
+  namespace: workspace
 data:
   init-databases.sh: |
     #!/bin/bash
@@ -70,6 +72,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shared-db
+  namespace: workspace
   labels:
     app: shared-db
 spec:
@@ -243,6 +246,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: shared-db
+  namespace: workspace
 spec:
   selector:
     app: shared-db
@@ -255,6 +259,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: keycloak-db
+  namespace: workspace
 spec:
   selector:
     app: shared-db
@@ -266,6 +271,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nextcloud-db
+  namespace: workspace
 spec:
   selector:
     app: shared-db

@@ -12,10 +12,21 @@ spec:
       labels:
         app: whisper
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: whisper
           image: registry.localhost:5000/faster-whisper:latest
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 8000
           resources:

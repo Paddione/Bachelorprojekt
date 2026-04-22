@@ -88,6 +88,9 @@ spec:
         fsGroup: 999
         runAsUser: 999
         runAsGroup: 999
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         # Selbstsigniertes TLS-Zertifikat für interne PostgreSQL-Verbindungen
         # erzeugen. Zertifikat lebt im emptyDir → bei jedem Pod-Restart neu
@@ -97,6 +100,12 @@ spec:
         - name: generate-tls-cert
           image: pgvector/pgvector:0.8.0-pg16
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop: ["ALL"]
           command: [bash, -c]
           args:
             - |
@@ -115,6 +124,12 @@ spec:
         - name: postgres
           image: pgvector/pgvector:0.8.0-pg16
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop: ["ALL"]
           args:
             - "postgres"
             - "-c"

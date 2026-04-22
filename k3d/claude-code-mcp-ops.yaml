@@ -23,6 +23,11 @@ spec:
         app: claude-code-mcp-ops
     spec:
       serviceAccountName: claude-code-agent
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         # ─── Kubernetes MCP (port 3000) ──────────────────────────
         - name: mcp-kubernetes
@@ -43,6 +48,12 @@ spec:
                 --port 3000 \
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 3000
           readinessProbe:
@@ -88,6 +99,12 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: SHARED_DB_PASSWORD
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 3001
           readinessProbe:
@@ -133,6 +150,12 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: WEBSITE_DB_PASSWORD
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 3002
           readinessProbe:

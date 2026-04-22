@@ -64,6 +64,8 @@ data:
   # Whisper
   WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
   ANTHROPIC_API_KEY: ""
+  # Stripe (publishable key is not secret — env-specific, injected via ConfigMap)
+  STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY}"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
 ---
@@ -185,8 +187,8 @@ spec:
                   key: STRIPE_SECRET_KEY
             - name: STRIPE_PUBLISHABLE_KEY
               valueFrom:
-                secretKeyRef:
-                  name: website-secrets
+                configMapKeyRef:
+                  name: website-config
                   key: STRIPE_PUBLISHABLE_KEY
             - name: STRIPE_WEBHOOK_SECRET
               valueFrom:

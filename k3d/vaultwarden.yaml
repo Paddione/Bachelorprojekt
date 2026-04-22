@@ -71,10 +71,18 @@ spec:
                   name: domain-config
                   key: VAULT_DOMAIN
             # ── SSO via Keycloak ──────────────────────────────────
+            # Bitwarden/Vaultwarden speichert Accounts nach E-Mail; der Master-
+            # Passwort-Flow ist unvermeidbar (Vault-Verschlüsselung). SSO hier
+            # ersetzt nur das Login-Passwort — die E-Mail wird aus dem OIDC-
+            # Token vorbefüllt, nicht manuell abgefragt.
             - name: SSO_ENABLED
               value: "true"
             - name: SSO_ONLY
-              value: "false"
+              value: "true"
+            - name: SSO_PKCE
+              value: "true"
+            - name: SSO_SCOPES
+              value: "email profile"
             - name: SSO_CLIENT_ID
               value: "vaultwarden"
             - name: SSO_CLIENT_SECRET
@@ -84,6 +92,8 @@ spec:
                   key: VAULTWARDEN_OIDC_SECRET
             - name: SSO_AUTHORITY
               value: "http://keycloak:8080/realms/workspace"
+            - name: SIGNUPS_ALLOWED
+              value: "true"
             - name: KC_DOMAIN
               valueFrom:
                 configMapKeyRef:

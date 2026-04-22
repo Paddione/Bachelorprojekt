@@ -228,6 +228,9 @@ secrets:
   - name: SMTP_PASSWORD
     required: true
     generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: DOCS_OIDC_SECRET
     required: true
@@ -279,11 +282,6 @@ secrets:
 
   - name: STRIPE_WEBHOOK_SECRET
     required: false
-    generate: false
-
-  # Website-namespace alias for SMTP_PASSWORD (synced cross-namespace as SMTP_PASS)
-  - name: SMTP_PASS
-    required: true
     generate: false
 
   - name: BACKUP_PASSPHRASE

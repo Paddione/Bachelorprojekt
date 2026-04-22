@@ -30,7 +30,6 @@ data:
   SMTP_PORT: "${SMTP_PORT}"
   SMTP_SECURE: "${SMTP_SECURE}"
   SMTP_USER: "${SMTP_USER}"
-  SMTP_PASS: ""
   FROM_EMAIL: "${CONTACT_EMAIL}"
   FROM_NAME: "${BRAND_NAME}"
   # Legal / Impressum
@@ -177,7 +176,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: website-secrets
-                  key: SMTP_PASS
+                  key: SMTP_PASSWORD
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:

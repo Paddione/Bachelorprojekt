@@ -166,14 +166,14 @@ Fehlende Gruppen werden automatisch erstellt. Importierte Benutzer erhalten temp
 
 ---
 
-## keycloak-sync-secrets.sh
+## keycloak-sync.sh
 
-**Zweck:** Synchronisiert OIDC-Client-Secrets aus dem K8s-Secret `workspace-secrets` in die Keycloak-Datenbank via Admin REST API.
+**Zweck:** Synchronisiert OIDC-Clients + Secrets aus dem `realm-template` ConfigMap und `workspace-secrets` in die Keycloak-Datenbank via Admin REST API. Fehlende Clients werden per POST angelegt; existierende bekommen nur ihr Secret aktualisiert.
 
 Idempotent — kann jederzeit mehrfach ausgeführt werden.
 
 ```bash
-bash scripts/keycloak-sync-secrets.sh
+bash scripts/keycloak-sync.sh
 ```
 
 ---

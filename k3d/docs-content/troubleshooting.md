@@ -132,7 +132,7 @@ task workspace:post-setup
 Falls OIDC-Client-Secrets in Keycloak und Kubernetes-Secrets nicht uebereinstimmen:
 
 ```bash
-bash scripts/keycloak-sync-secrets.sh
+bash scripts/keycloak-sync.sh
 ```
 
 ---

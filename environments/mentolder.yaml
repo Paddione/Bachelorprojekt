@@ -13,7 +13,7 @@ env_vars:
   CONTACT_NAME: "Gerald Korczewski"
   LEGAL_STREET: "Ludwig-Erhard-Str. 18"
   LEGAL_ZIP: "20459"
-  LEGAL_JOBTITLE: "Coach, Berater, Trainer"
+  LEGAL_JOBTITLE: "Coach und digitaler Begleiter"
   LEGAL_UST_ID: "33/023/05100"
   LEGAL_WEBSITE: mentolder.de
   WEBSITE_IMAGE: mentolder-website
@@ -27,7 +27,6 @@ env_vars:
   TURN_NODE: "gekko-hetzner-2"
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
   DOCS_URL: "https://docs.mentolder.de"
-  BILLING_EXTERNAL_URL: "https://billing.mentolder.de"
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
   VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
   WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/apps/files"

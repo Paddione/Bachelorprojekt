@@ -98,10 +98,6 @@ env_vars:
     required: false
     default_dev: "http://docs.localhost"
 
-  - name: BILLING_EXTERNAL_URL
-    required: false
-    default_dev: "http://billing.localhost"
-
   - name: AUTH_EXTERNAL_URL
     required: false
     default_dev: "http://auth.localhost"

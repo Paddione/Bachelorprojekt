@@ -26,7 +26,6 @@ patches:
         VAULT_DOMAIN: "vault.${PROD_DOMAIN}"
         MAIL_DOMAIN: "mail.${PROD_DOMAIN}"
         DOCS_DOMAIN: "docs.${PROD_DOMAIN}"
-        BILLING_DOMAIN: "billing.${PROD_DOMAIN}"
         WEB_DOMAIN: "web.${PROD_DOMAIN}"
 
   # ── Ingress: production domains + Traefik ────────────────────────

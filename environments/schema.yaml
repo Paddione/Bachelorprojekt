@@ -217,14 +217,6 @@ secrets:
     required: true
     generate: false
 
-  - name: CLAUDE_CODE_ADMIN_EMAIL
-    required: true
-    generate: false
-
-  - name: CLAUDE_CODE_ADMIN_PASSWORD
-    required: true
-    generate: false
-
   - name: DOCS_OIDC_SECRET
     required: true
     generate: true

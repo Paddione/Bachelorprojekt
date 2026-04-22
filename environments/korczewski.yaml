@@ -19,7 +19,7 @@ env_vars:
   WEBSITE_IMAGE: korczewski-website
   INFRA_NAMESPACE: korczewski-infra
   TLS_SECRET_NAME: korczewski-tls
-  SMTP_FROM: korczewski@mailbox.org
+  SMTP_FROM: mentolder@mailbox.org
   SMTP_USER: mentolder@mailbox.org
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"

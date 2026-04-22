@@ -10,17 +10,18 @@ interface Props {
   onboardingPct: number;
   ncBase: string;
   vaultUrl: string;
+  wbUrl?: string;
 }
 
-const { session, nextBooking, openInvoices, unreadMessages, onboardingPct, ncBase, vaultUrl } = Astro.props;
+const { session, nextBooking, openInvoices, unreadMessages, onboardingPct, ncBase, vaultUrl, wbUrl = '' } = Astro.props;
 
 const services = [
   ...(ncBase ? [
     { href: `${ncBase}/apps/files/`,       label: 'Dateien',    desc: 'Nextcloud' },
     { href: `${ncBase}/apps/calendar/`,    label: 'Kalender',   desc: 'Nextcloud' },
     { href: `${ncBase}/apps/spreed/`,      label: 'Talk',       desc: 'Video & Chat' },
-    { href: `${ncBase}/apps/whiteboard/`,  label: 'Whiteboard', desc: 'Nextcloud' },
   ] : []),
+  ...(wbUrl ? [{ href: wbUrl, label: 'Whiteboard', desc: 'Nextcloud' }] : []),
   ...(vaultUrl ? [{ href: vaultUrl, label: 'Passwörter', desc: 'Vaultwarden' }] : []),
 ];
 ---

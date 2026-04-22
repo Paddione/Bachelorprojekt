@@ -64,6 +64,11 @@ spec:
           imagePullPolicy: Always
           securityContext:
             readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 33
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
           ports:

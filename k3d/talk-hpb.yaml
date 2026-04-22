@@ -210,6 +210,12 @@ spec:
         - name: signaling
           image: strukturag/nextcloud-spreed-signaling:2.1.1
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
           env:
             - name: CONFIG
               value: /etc/signaling/server.conf

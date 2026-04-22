@@ -69,7 +69,7 @@ Das Chat-System ist direkt in die Website eingebaut (nicht als separater Service
 Falls aktiviert:
 - Termine buchen (über Nextcloud Calendar API)
 - Kalender-Integration
-- Rechnungsstellung (über InvoiceNinja)
+- Rechnungsstellung (über Stripe)
 
 ### Admin-Interface
 - Admin-Nutzer (konfiguriert via `PORTAL_ADMIN_USERNAME` in ConfigMap)

@@ -149,8 +149,6 @@ SOLO_LABELS=(
   "coturn-secrets: SIGNALING_SECRET"
   "coturn-secrets: TURN_SECRET"
   "collabora-secrets: COLLABORA_ADMIN_PASSWORD"
-  "claude-code-secrets: NEXTCLOUD_USERNAME"
-  "claude-code-secrets: NEXTCLOUD_PASSWORD"
   "mcp-tokens: CLUSTER_TOKEN"
   "mcp-tokens: BUSINESS_TOKEN"
 )
@@ -187,8 +185,6 @@ SOLO_MEMBERS=(
   "coturn:coturn-secrets:SIGNALING_SECRET"
   "coturn:coturn-secrets:TURN_SECRET"
   "workspace-office:collabora-secrets:COLLABORA_ADMIN_PASSWORD"
-  "workspace:claude-code-secrets:NEXTCLOUD_USERNAME"
-  "workspace:claude-code-secrets:NEXTCLOUD_PASSWORD"
   "default:mcp-tokens:CLUSTER_TOKEN"
   "default:mcp-tokens:BUSINESS_TOKEN"
 )

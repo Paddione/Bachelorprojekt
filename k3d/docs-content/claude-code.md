@@ -292,5 +292,4 @@ kubectl describe pod -n workspace <pod-name>
 | Claude Code verbindet nicht | Falsche MCP-Server-URL | `claude-code-config.yaml` prüfen; Pod erreichbar? (`kubectl port-forward`) |
 | GitHub-Aktionen schlagen fehl | PAT abgelaufen oder fehlt | `task mcp:set-github-pat -- <neuer-token>` |
 | Keycloak-Aktionen scheitern | Bearer-Token ungültig | Neues Token von Keycloak holen; SSE-Transport erfordert gültige Session |
-| Nextcloud-Aktionen schlagen fehl | Falsche Anmeldedaten | `claude-code-secrets` prüfen: `NEXTCLOUD_USERNAME`, `NEXTCLOUD_PASSWORD` |
 | Grafana/Prometheus nicht erreichbar | `replicas: 0` | Manifest anpassen (`replicas: 1`) und `task mcp:deploy` ausführen |

@@ -155,15 +155,12 @@ Eingehende Mails sind unter http://mail.localhost einsehbar.
 
 ### Sidecars im Pod
 
-Das Nextcloud-Deployment enthält drei Container in einem Pod:
+Das Nextcloud-Deployment enthält zwei Container in einem Pod:
 
 | Container | Funktion |
 |-----------|----------|
 | `nextcloud` | Hauptanwendung (Apache) |
 | `nextcloud-cron` | Führt `cron.php` alle 5 Minuten aus |
-| `notify-push` | WebSocket-Server für Client-Push (Port 7867) |
-
-Der `notify-push`-Sidecar wartet auf das Vorhandensein des `notify_push`-Binaries (wird erst nach `post-setup` installiert) und hat daher absichtlich keine Readiness-Probe.
 
 ---
 
@@ -221,10 +218,3 @@ kubectl exec -n workspace deploy/nextcloud -c nextcloud -- \
 - Pod-Status: `kubectl get pods -n workspace | grep collabora`
 - WOPI-URL im Nextcloud Admin-Panel korrekt gesetzt?
 - Logs: `task workspace:logs -- collabora`
-
-### notify_push-Fehler
-
-- Redis-Verbindung prüfen: `kubectl exec -n workspace deploy/nextcloud-redis -- redis-cli ping`
-- `notify_push`-App installiert? Erst nach `post-setup` verfügbar
-- Sidecar-Logs: `kubectl logs -n workspace deploy/nextcloud -c notify-push`
-- Ingress-Pfad `/push` auf `files.localhost` muss auf Service `nextcloud-push:7867` zeigen

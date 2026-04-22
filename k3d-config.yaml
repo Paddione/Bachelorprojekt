@@ -5,7 +5,7 @@ kind: Simple
 metadata:
   name: dev
 servers: 1
-agents: 5
+agents: 0
 kubeAPI:
   host: "127.0.0.1"
   hostIP: "127.0.0.1"
@@ -20,12 +20,12 @@ ports:
       - loadbalancer
   - port: 8080:30080
     nodeFilters:
-      - agents:*
+      - server:0
 # Local volume mount for fast I/O during development
 volumes:
   - volume: ${PWD}/data:/mnt/data
     nodeFilters:
-      - agents:*
+      - server:0
 # Environment variables for all nodes
 env:
   - envVar: K3S_DEBUG=false

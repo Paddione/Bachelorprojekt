@@ -83,6 +83,7 @@ spec:
       namespace: workspace-office
     type: Opaque
 ---
+# website-secrets: SealedSecret ownership claimed 2026-04-22 (deleted bootstrap Secret so controller could take over)
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret

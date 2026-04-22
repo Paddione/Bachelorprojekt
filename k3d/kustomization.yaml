@@ -76,6 +76,9 @@ configMapGenerator:
     files:
       - zz-extra.config.php=nextcloud-extra-config.php
   - name: docs-content
+    options:
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
     files:
       - docs-content/index.html
       - docs-content/README.md

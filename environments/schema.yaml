@@ -251,6 +251,14 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: SMTP_FROM
+    required: true
+    generate: false
+
+  - name: SMTP_USER
+    required: true
+    generate: false
+
   - name: DOCS_OIDC_SECRET
     required: true
     generate: true

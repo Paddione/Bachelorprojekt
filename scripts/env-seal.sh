@@ -401,52 +401,40 @@ seal_extra_namespace_secrets() {
   local cert_file="$3"
   local output_file="$4"
 
-  # Collect unique "namespace|secret" pairs and their keys from schema
-  declare -A ns_keys=()  # ns_keys["namespace|secret"]="KEY1 KEY2 ..."
+  # Parse schema via python/PyYAML — handles optional dest_key (destination key
+  # name in the target Secret, defaults to source key name). Emits one line per
+  # (src_key, namespace, secret, dest_key) tuple, tab-separated.
+  local entries
+  entries=$(SCHEMA="$schema_file" python3 <<'PY'
+import os, sys, yaml
+with open(os.environ["SCHEMA"]) as f:
+    schema = yaml.safe_load(f) or {}
+for entry in schema.get("secrets") or []:
+    src = entry["name"]
+    for mapping in entry.get("extra_namespaces") or []:
+        ns = mapping["namespace"]
+        sec = mapping["secret"]
+        dest = mapping.get("dest_key") or src
+        print(f"{src}\t{ns}\t{sec}\t{dest}")
+PY
+)
 
-  local in_secrets=0 current_key="" current_ns="" current_secret=""
-  while IFS= read -r line; do
-    # Track which section we're in — only top-level (unindented) keys change section
-    if [[ "$line" =~ ^secrets: ]]; then
-      in_secrets=1; continue
-    fi
-    if [[ "$in_secrets" -eq 1 && "$line" =~ ^[a-z_] && ! "$line" =~ ^[[:space:]] ]]; then
-      in_secrets=0
-    fi
-    [[ "$in_secrets" -eq 0 ]] && continue
-
-    # Capture secret name
-    if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*name:[[:space:]]*([A-Za-z0-9_]+) ]]; then
-      current_key="${BASH_REMATCH[1]}"
-      current_ns=""
-      current_secret=""
-      continue
-    fi
-
-    # Inside an extra_namespaces block ("- namespace: X" or "  namespace: X")
-    if [[ "$line" =~ ^[[:space:]]*(-[[:space:]]+)?namespace:[[:space:]]*([A-Za-z0-9_-]+) ]]; then
-      current_ns="${BASH_REMATCH[2]}"
-    fi
-    if [[ "$line" =~ ^[[:space:]]*secret:[[:space:]]*([A-Za-z0-9_-]+) ]]; then
-      current_secret="${BASH_REMATCH[1]}"
-    fi
-
-    # When we have both ns + secret, record the key
-    if [[ -n "$current_key" && -n "$current_ns" && -n "$current_secret" ]]; then
-      local pair="${current_ns}|${current_secret}"
-      if [[ -v ns_keys[$pair] ]]; then
-        ns_keys["$pair"]="${ns_keys[$pair]} ${current_key}"
-      else
-        ns_keys["$pair"]="${current_key}"
-      fi
-      current_ns=""
-      current_secret=""
-    fi
-  done < "$schema_file"
-
-  if [[ ${#ns_keys[@]} -eq 0 ]]; then
+  if [[ -z "$entries" ]]; then
     return 0
   fi
+
+  # Group entries by (namespace, secret); each entry is "src:=:dest"
+  declare -A ns_map=()
+  while IFS=$'\t' read -r src ns sec dest; do
+    [[ -z "$src" ]] && continue
+    local pair="${ns}|${sec}"
+    local mapping="${src}:=:${dest}"
+    if [[ -v ns_map[$pair] ]]; then
+      ns_map["$pair"]="${ns_map[$pair]} ${mapping}"
+    else
+      ns_map["$pair"]="${mapping}"
+    fi
+  done <<< "$entries"
 
   # Read all plaintext secrets into an associative array
   declare -A secret_vals
@@ -461,14 +449,15 @@ seal_extra_namespace_secrets() {
   done < "$secrets_file"
 
   # Seal one SealedSecret per (namespace, secret) pair
-  for pair in "${!ns_keys[@]}"; do
+  for pair in "${!ns_map[@]}"; do
     local ns="${pair%%|*}"
     local sname="${pair##*|}"
-    local keys="${ns_keys[$pair]}"
+    local mappings="${ns_map[$pair]}"
 
     local tmp_manifest
     tmp_manifest=$(mktemp)
 
+    local dest_list=""
     {
       echo "apiVersion: v1"
       echo "kind: Secret"
@@ -477,14 +466,17 @@ seal_extra_namespace_secrets() {
       echo "  namespace: ${ns}"
       echo "type: Opaque"
       echo "stringData:"
-      for k in $keys; do
-        local val="${secret_vals[$k]:-}"
-        [[ -z "$val" ]] && { echo "WARNING: key ${k} not found in secrets file — skipping ${sname}" >&2; continue; }
-        echo "  ${k}: \"${val}\""
+      for m in $mappings; do
+        local src="${m%%:=:*}"
+        local dest="${m##*:=:}"
+        local val="${secret_vals[$src]:-}"
+        [[ -z "$val" ]] && { echo "WARNING: key ${src} not found in secrets file — skipping ${dest} in ${sname}" >&2; continue; }
+        echo "  ${dest}: \"${val}\""
+        dest_list="${dest_list} ${dest}"
       done
     } > "$tmp_manifest"
 
-    info "Encrypting ${ns}/${sname} (keys: ${keys}) with kubeseal..."
+    info "Encrypting ${ns}/${sname} (keys:${dest_list}) with kubeseal..."
     {
       echo "---"
       kubeseal --cert "$cert_file" --format yaml < "$tmp_manifest"

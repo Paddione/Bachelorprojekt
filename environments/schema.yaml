@@ -131,6 +131,9 @@ secrets:
   - name: KEYCLOAK_ADMIN_PASSWORD
     required: true
     generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: NEXTCLOUD_DB_PASSWORD
     required: true
@@ -140,6 +143,13 @@ secrets:
   - name: NEXTCLOUD_ADMIN_PASSWORD
     required: true
     generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+        dest_key: NEXTCLOUD_ADMIN_PASS
+      - namespace: website
+        secret: website-secrets
+        dest_key: NEXTCLOUD_CALDAV_PASSWORD
 
   - name: NEXTCLOUD_OIDC_SECRET
     required: true
@@ -166,6 +176,9 @@ secrets:
     required: true
     generate: true
     length: 48
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: OAUTH2_PROXY_COOKIE_SECRET
     required: true
@@ -204,11 +217,17 @@ secrets:
     required: true
     generate: true
     length: 32
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: WEBSITE_OIDC_SECRET
     required: true
     generate: true
     length: 40
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: RECORDING_SECRET
     required: true
@@ -260,6 +279,9 @@ secrets:
   - name: STRIPE_SECRET_KEY
     required: false
     generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: DOCUSEAL_SECRET_KEY_BASE
     required: true
@@ -269,6 +291,9 @@ secrets:
   - name: DOCUSEAL_API_TOKEN
     required: false
     generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: DOCUSEAL_DB_PASSWORD
     required: true
@@ -283,6 +308,9 @@ secrets:
   - name: STRIPE_WEBHOOK_SECRET
     required: false
     generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: BACKUP_PASSPHRASE
     required: true

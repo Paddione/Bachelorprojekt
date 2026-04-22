@@ -9,11 +9,10 @@ interface Props {
   unreadMessages: number;
   onboardingPct: number;
   ncBase: string;
-  wikiUrl: string;
   vaultUrl: string;
 }
 
-const { session, nextBooking, openInvoices, unreadMessages, onboardingPct, ncBase, wikiUrl, vaultUrl } = Astro.props;
+const { session, nextBooking, openInvoices, unreadMessages, onboardingPct, ncBase, vaultUrl } = Astro.props;
 
 const services = [
   ...(ncBase ? [

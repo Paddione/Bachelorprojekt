@@ -50,10 +50,15 @@ sealed_keys() {
   python3 - "$file" <<'EOF'
 import sys, yaml
 with open(sys.argv[1]) as f:
-    doc = yaml.safe_load(f)
-enc = doc.get('spec', {}).get('encryptedData', {})
-for k in sorted(enc.keys()):
-    print(k)
+    docs = list(yaml.safe_load_all(f))
+for doc in docs:
+    if not doc:
+        continue
+    if doc.get('metadata', {}).get('name') != 'workspace-secrets':
+        continue
+    enc = doc.get('spec', {}).get('encryptedData', {})
+    for k in sorted(enc.keys()):
+        print(k)
 EOF
 }
 

@@ -1,11 +1,10 @@
 ---
 interface Props {
   ncBase: string;
-  wikiUrl: string;
   vaultUrl: string;
   keycloakBase: string;
 }
-const { ncBase, wikiUrl, vaultUrl, keycloakBase } = Astro.props;
+const { ncBase, vaultUrl, keycloakBase } = Astro.props;
 
 const services = [
   ...(ncBase ? [

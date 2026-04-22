@@ -142,8 +142,13 @@ SOLO_LABELS=(
   "SMTP_PASSWORD"
   "KC_USER1_PASSWORD"
   "KC_USER2_PASSWORD"
+  "GHCR_PAT"
+  "IPV64_API_KEY"
   "backup-passphrase"
   "traefik-basic-auth: users (htpasswd)"
+  "coturn-secrets: SIGNALING_SECRET"
+  "coturn-secrets: TURN_SECRET"
+  "collabora-secrets: COLLABORA_ADMIN_PASSWORD"
 )
 
 SOLO_MEMBERS=(
@@ -171,8 +176,13 @@ SOLO_MEMBERS=(
   "workspace:workspace-secrets:SMTP_PASSWORD"
   "workspace:workspace-secrets:KC_USER1_PASSWORD"
   "workspace:workspace-secrets:KC_USER2_PASSWORD"
+  "workspace:workspace-secrets:GHCR_PAT"
+  "workspace:workspace-secrets:IPV64_API_KEY"
   "workspace:backup-passphrase:backup-passphrase"
   "workspace:traefik-basic-auth:users"
+  "coturn:coturn-secrets:SIGNALING_SECRET"
+  "coturn:coturn-secrets:TURN_SECRET"
+  "workspace-office:collabora-secrets:COLLABORA_ADMIN_PASSWORD"
 )
 
 NUM_SOLOS=${#SOLO_LABELS[@]}

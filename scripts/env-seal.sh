@@ -381,13 +381,121 @@ SECRET_MANIFEST="${TMPDIR}/secret.yaml"
 
 mkdir -p "$SEALED_DIR"
 
-info "Encrypting secrets with kubeseal..."
+info "Encrypting workspace-secrets with kubeseal..."
 
 kubeseal --cert "$CERT_FILE" \
          --format yaml \
          < "$SECRET_MANIFEST" \
          > "$OUTPUT" \
   || die "kubeseal encryption failed"
+
+# ── Seal extra-namespace secrets (extra_namespaces in schema) ────
+#
+# For each unique (namespace, secret) pair declared in schema's
+# extra_namespaces, build a Secret manifest containing only the
+# relevant keys and append it as an additional YAML document.
+
+seal_extra_namespace_secrets() {
+  local schema_file="$1"
+  local secrets_file="$2"
+  local cert_file="$3"
+  local output_file="$4"
+
+  # Collect unique "namespace|secret" pairs and their keys from schema
+  declare -A ns_keys=()  # ns_keys["namespace|secret"]="KEY1 KEY2 ..."
+
+  local in_secrets=0 current_key="" current_ns="" current_secret=""
+  while IFS= read -r line; do
+    # Track which section we're in — only top-level (unindented) keys change section
+    if [[ "$line" =~ ^secrets: ]]; then
+      in_secrets=1; continue
+    fi
+    if [[ "$in_secrets" -eq 1 && "$line" =~ ^[a-z_] && ! "$line" =~ ^[[:space:]] ]]; then
+      in_secrets=0
+    fi
+    [[ "$in_secrets" -eq 0 ]] && continue
+
+    # Capture secret name
+    if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*name:[[:space:]]*([A-Za-z0-9_]+) ]]; then
+      current_key="${BASH_REMATCH[1]}"
+      current_ns=""
+      current_secret=""
+      continue
+    fi
+
+    # Inside an extra_namespaces block ("- namespace: X" or "  namespace: X")
+    if [[ "$line" =~ ^[[:space:]]*(-[[:space:]]+)?namespace:[[:space:]]*([A-Za-z0-9_-]+) ]]; then
+      current_ns="${BASH_REMATCH[2]}"
+    fi
+    if [[ "$line" =~ ^[[:space:]]*secret:[[:space:]]*([A-Za-z0-9_-]+) ]]; then
+      current_secret="${BASH_REMATCH[1]}"
+    fi
+
+    # When we have both ns + secret, record the key
+    if [[ -n "$current_key" && -n "$current_ns" && -n "$current_secret" ]]; then
+      local pair="${current_ns}|${current_secret}"
+      if [[ -v ns_keys[$pair] ]]; then
+        ns_keys["$pair"]="${ns_keys[$pair]} ${current_key}"
+      else
+        ns_keys["$pair"]="${current_key}"
+      fi
+      current_ns=""
+      current_secret=""
+    fi
+  done < "$schema_file"
+
+  if [[ ${#ns_keys[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  # Read all plaintext secrets into an associative array
+  declare -A secret_vals
+  while IFS= read -r line; do
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${line// /}" ]] && continue
+    if [[ "$line" =~ ^([A-Za-z0-9_]+):[[:space:]]*(.*)$ ]]; then
+      local k="${BASH_REMATCH[1]}" v="${BASH_REMATCH[2]}"
+      v="${v%\"}"; v="${v#\"}"; v="${v%\'}"; v="${v#\'}"
+      secret_vals["$k"]="$v"
+    fi
+  done < "$secrets_file"
+
+  # Seal one SealedSecret per (namespace, secret) pair
+  for pair in "${!ns_keys[@]}"; do
+    local ns="${pair%%|*}"
+    local sname="${pair##*|}"
+    local keys="${ns_keys[$pair]}"
+
+    local tmp_manifest
+    tmp_manifest=$(mktemp)
+
+    {
+      echo "apiVersion: v1"
+      echo "kind: Secret"
+      echo "metadata:"
+      echo "  name: ${sname}"
+      echo "  namespace: ${ns}"
+      echo "type: Opaque"
+      echo "stringData:"
+      for k in $keys; do
+        local val="${secret_vals[$k]:-}"
+        [[ -z "$val" ]] && { echo "WARNING: key ${k} not found in secrets file — skipping ${sname}" >&2; continue; }
+        echo "  ${k}: \"${val}\""
+      done
+    } > "$tmp_manifest"
+
+    info "Encrypting ${ns}/${sname} (keys: ${keys}) with kubeseal..."
+    {
+      echo "---"
+      kubeseal --cert "$cert_file" --format yaml < "$tmp_manifest"
+    } >> "$output_file" \
+      || die "kubeseal encryption failed for ${ns}/${sname}"
+
+    rm -f "$tmp_manifest"
+  done
+}
+
+seal_extra_namespace_secrets "$SCHEMA" "$SECRETS_FILE" "$CERT_FILE" "$OUTPUT"
 
 info "SealedSecret written to: ${OUTPUT}"
 info "This file is safe to commit to git."

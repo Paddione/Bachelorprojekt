@@ -104,7 +104,8 @@ tasks:
         echo "  office.${PROD_DOMAIN}  (Collabora)"
         echo "  board.${PROD_DOMAIN}   (Whiteboard)"
         echo "  vault.${PROD_DOMAIN}   (Vaultwarden)"
-        echo "  web.${PROD_DOMAIN}     (Website - Astro, inkl. Stripe-Abrechnung unter /admin/rechnungen)"
+        echo "  billing.${PROD_DOMAIN} (Invoice Ninja)"
+        echo "  web.${PROD_DOMAIN}     (Website - Astro)"
 
   # ─────────────────────────────────────────────
   # Utilities
@@ -1110,7 +1111,7 @@ tasks:
             continue
           fi
           kubectl $context_flag exec -n workspace deployment/shared-db -- \
-            psql -U postgres -c "ALTER USER ${user} WITH PASSWORD '$(echo "$pw" | sed "s/'/''/g")';" 2>&1 \
+            psql -U postgres -c "ALTER USER ${user} WITH PASSWORD '${pw}';" 2>&1 \
             | sed "s/^/  ${user}: /"
         done
         echo "✓ DB passwords synced"
@@ -1546,7 +1547,7 @@ tasks:
         fi
         export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL
 
-        envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$WIKI_EXTERNAL_URL" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$DOCS_URL \$BILLING_EXTERNAL_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$STRIPE_PUBLISHABLE_KEY" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
         kubectl ${CTX_ARG} apply -f k3d/website-seller-config.yaml
 
         # Dev-only: apply plaintext dev secrets (prod uses SealedSecrets — never overwrite)

@@ -76,6 +76,62 @@ patches:
       metadata:
         name: workspace-ingress-internal
       $patch: delete
+  # API-only MCP servers (GitHub, Stripe, Browser) run on the dev cluster only.
+  # They reach the same external APIs from anywhere, so no prod deployment needed.
+  - target:
+      kind: Deployment
+      name: mcp-github
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mcp-github
+      $patch: delete
+  - target:
+      kind: Service
+      name: mcp-github
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: mcp-github
+      $patch: delete
+  - target:
+      kind: Deployment
+      name: claude-code-mcp-stripe
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: claude-code-mcp-stripe
+      $patch: delete
+  - target:
+      kind: Service
+      name: claude-code-mcp-stripe
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: claude-code-mcp-stripe
+      $patch: delete
+  - target:
+      kind: Deployment
+      name: mcp-browser
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mcp-browser
+      $patch: delete
+  - target:
+      kind: Service
+      name: mcp-browser
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: mcp-browser
+      $patch: delete
   # Override domains
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)
@@ -89,7 +145,6 @@ patches:
   - path: patch-oauth2-proxy-docs.yaml
   # Pin amd64-only images to amd64 nodes
   - path: patch-amd64-only.yaml
-  - path: patch-mcp-browser.yaml
   # Collabora lives in the workspace-office namespace via its own
   # ArgoCD Application (argocd/applicationset-office.yaml) — no
   # patch target on this overlay.

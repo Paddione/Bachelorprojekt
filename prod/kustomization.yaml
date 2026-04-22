@@ -81,7 +81,6 @@ patches:
   # Override ingress (add TLS + real hostnames)
   - path: ingress.yaml
   - path: patch-nextcloud.yaml
-  - path: patch-nextcloud-notify-push.yaml
   - path: patch-keycloak.yaml
   # Claude Code prod overrides
   - path: patch-claude-code-config.yaml

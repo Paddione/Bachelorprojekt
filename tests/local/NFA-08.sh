@@ -21,9 +21,9 @@ else
   _log_result "NFA-08" "T3" "cert-manager Tasks in Taskfile vorhanden" "fail" "0" "Kein cert: Task gefunden"
 fi
 
-# ── T4: DDNS updater manifest exists ────────────────────────────
-assert_eq "$(test -f "${PROJECT_DIR}/prod/ddns-updater.yaml" && echo "exists" || echo "missing")" "exists" \
-  "NFA-08" "T4" "DDNS-Updater Manifest vorhanden"
+# ── T4: Wildcard cert manifest exists ───────────────────────────
+assert_eq "$(test -f "${PROJECT_DIR}/prod/wildcard-certificate.yaml" && echo "exists" || echo "missing")" "exists" \
+  "NFA-08" "T4" "Wildcard-TLS-Manifest vorhanden"
 
 # ── T5: .env or domain config supports PROD_DOMAIN ──────────────
 if grep -q "PROD_DOMAIN" "${PROJECT_DIR}/.env" 2>/dev/null || \

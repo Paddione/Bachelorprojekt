@@ -216,6 +216,7 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: DOCUSEAL_API_TOKEN
+                  optional: true
             - name: DOCUSEAL_INTERNAL_URL
               value: "http://docuseal.workspace.svc.cluster.local:3000"
             - name: SELLER_NAME

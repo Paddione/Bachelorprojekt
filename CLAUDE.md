@@ -86,10 +86,7 @@ task whisper:deploy              # Deploy faster-whisper transcription service
 task cert:install                # Install cert-manager + lego DNS-01 webhook
 task cert:secret -- <key>        # Store ipv64 API key as Secret
 task cert:status                 # Show wildcard cert and ClusterIssuer status
-task ddns:deploy -- <key>        # Deploy DDNS updater CronJob (dynamic IP)
-task ddns:trigger                # Manually trigger DDNS update
-task ddns:status                 # Show DDNS status and last known IP
-task ddns:teardown               # Remove DDNS updater
+
 ```
 
 ### Configuration

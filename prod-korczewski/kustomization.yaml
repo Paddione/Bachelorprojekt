@@ -15,3 +15,6 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 
+patches:
+  - path: patch-oauth2-proxy-args.yaml
+

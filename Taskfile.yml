@@ -260,10 +260,9 @@ tasks:
       - echo "All themes applied."
 
   workspace:post-setup:
-    desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair, notify_push)
+    desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair)
     vars:
       NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- su -s /bin/bash www-data -c"
-      PUSH_URL: '{{.PUSH_URL | default "http://files.localhost/push"}}'
       FILES_HOST: '{{.FILES_HOST | default "files.localhost"}}'
     cmds:
       - echo "Ensuring trusted_domains includes {{.FILES_HOST}}..."
@@ -273,7 +272,6 @@ tasks:
       - '{{.NC_EXEC}} "php occ app:install calendar"     || true'
       - '{{.NC_EXEC}} "php occ app:install contacts"     || true'
       - '{{.NC_EXEC}} "php occ app:install richdocuments" || true'
-      - '{{.NC_EXEC}} "php occ app:install notify_push"  || true'
       - '{{.NC_EXEC}} "php occ app:install spreed"       || true'
       - '{{.NC_EXEC}} "php occ app:enable spreed"        || true'
       - |
@@ -296,21 +294,6 @@ tasks:
       - '{{.NC_EXEC}} "php occ db:add-missing-primary-keys"      || true'
       - '{{.NC_EXEC}} "php occ maintenance:repair --include-expensive" || true'
       - echo ""
-      - echo "Restarting pod so notify_push sidecar picks up the installed binary..."
-      - kubectl rollout restart -n workspace deployment/nextcloud
-      - kubectl rollout status  -n workspace deployment/nextcloud --timeout=5m
-      - echo "Waiting for notify_push sidecar to serve /push (up to 60s)..."
-      - |
-        for i in $(seq 1 12); do
-          if kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
-             curl -fsS http://127.0.0.1:7867/test/cookie >/dev/null 2>&1; then
-            echo "notify_push ready"; break
-          fi
-          sleep 5
-        done
-      - echo "Registering notify_push URL with Nextcloud..."
-      - '{{.NC_EXEC}} "php occ notify_push:setup {{.PUSH_URL}}" || true'
-      - echo ""
       - echo "Registering AppAPI manual-install daemon (no docker required)..."
       - |
         {{.NC_EXEC}} "php occ app_api:daemon:register manual-k8s 'Manual (Kubernetes)' manual-install http 0 http://127.0.0.1" || true
@@ -321,7 +304,6 @@ tasks:
       - 'echo "  Contacts:    http://files.localhost/apps/contacts"'
       - 'echo "  Talk:        http://files.localhost/apps/spreed"'
       - 'echo "  Collabora:   WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
-      - 'echo "  notify_push: {{.PUSH_URL}}"'
       - 'echo "  Whiteboard:    http://board.localhost (Talk-Tab in jedem Room)"'
       - 'echo "  Forms:         http://files.localhost/apps/forms"'
       - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
@@ -454,7 +436,15 @@ tasks:
             pod-security.kubernetes.io/enforce=privileged \
             pod-security.kubernetes.io/warn=privileged --overwrite
         fi
-        TOKEN=$(gh auth token)
+        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        if [[ "{{.ENV}}" == "dev" ]]; then
+          TOKEN=$(gh auth token)
+        elif [[ -f "$SECRETS_FILE" ]]; then
+          TOKEN=$(grep -E '^GHCR_PAT:' "$SECRETS_FILE" | sed 's/^GHCR_PAT:[[:space:]]*//' | tr -d '"')
+        fi
+        if [[ -z "$TOKEN" ]]; then
+          echo "ERROR: GHCR_PAT not found in $SECRETS_FILE" >&2; exit 1
+        fi
         kubectl $context_flag create secret docker-registry ghcr-pull-secret \
           --namespace=workspace-office \
           --docker-server=ghcr.io \
@@ -1109,7 +1099,7 @@ tasks:
 
         echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
 
-        for user in keycloak nextcloud vaultwarden website; do
+        for user in keycloak nextcloud vaultwarden website docuseal; do
           key="${user^^}_DB_PASSWORD"
           pw=$(kubectl $context_flag get secret workspace-secrets -n workspace \
             -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d)
@@ -1492,17 +1482,30 @@ tasks:
         echo "✓ Pushed ${IMAGE}:latest"
 
   website:pull-secret:
-    desc: Create/update ghcr-pull-secret in website + workspace namespaces on hetzner (uses gh CLI token)
+    desc: Create/update ghcr-pull-secret in website + workspace namespaces (ENV=dev|mentolder|korczewski)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
-        TOKEN=$(gh auth token)
+        source scripts/env-resolve.sh "{{.ENV}}"
+        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        if [[ "{{.ENV}}" == "dev" ]]; then
+          TOKEN=$(gh auth token)
+        elif [[ -f "$SECRETS_FILE" ]]; then
+          TOKEN=$(grep -E '^GHCR_PAT:' "$SECRETS_FILE" | sed 's/^GHCR_PAT:[[:space:]]*//' | tr -d '"')
+        fi
+        if [[ -z "$TOKEN" ]]; then
+          echo "ERROR: GHCR_PAT not found in $SECRETS_FILE" >&2; exit 1
+        fi
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
         for NS in website workspace; do
-          kubectl --context mentolder create secret docker-registry ghcr-pull-secret \
+          kubectl $CTX_FLAG create secret docker-registry ghcr-pull-secret \
             --namespace="$NS" \
             --docker-server=ghcr.io \
             --docker-username=Paddione \
             --docker-password="$TOKEN" \
-            --dry-run=client -o yaml | kubectl --context mentolder apply -f -
+            --dry-run=client -o yaml | kubectl $CTX_FLAG apply -f -
           echo "✓ ghcr-pull-secret updated in $NS namespace"
         done
 
@@ -1781,52 +1784,6 @@ tasks:
   # ─────────────────────────────────────────────
   # Cert-Manager — wildcard TLS via DNS-01/lego
   # ─────────────────────────────────────────────
-  # ─────────────────────────────────────────────
-  # DDNS Updater (optional — skip if static IP)
-  # ─────────────────────────────────────────────
-  ddns:deploy:
-    desc: "Deploy DDNS updater CronJob (dynamic IP only). Usage: task ddns:deploy -- <ipv64-api-key>"
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-      - sh: '[ -n "{{.CLI_ARGS}}" ]'
-        msg: "Usage: task ddns:deploy -- <your-ipv64-api-key>"
-    cmds:
-      - |
-        kubectl create secret generic ddns-ipv64-key \
-          --namespace workspace \
-          --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
-          --dry-run=client -o yaml | kubectl apply -f -
-      - kubectl apply -f prod/ddns-updater.yaml
-      - echo "✓ DDNS updater deployed (runs every 5 min, only calls API on IP change)"
-
-  ddns:trigger:
-    desc: Manually trigger the DDNS updater once (force an immediate IP check)
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
-    cmds:
-      - |
-        kubectl create job ddns-manual-$(date +%s) \
-          --from=cronjob/ddns-updater \
-          -n workspace
-      - echo "✓ Manual job created — run 'task ddns:status' to see result"
-
-  ddns:status:
-    desc: Show DDNS updater status and last known IP
-    cmds:
-      - kubectl get cronjob ddns-updater -n workspace 2>/dev/null || echo "(ddns-updater not deployed)"
-      - 'kubectl get configmap ddns-last-ip -n workspace -o jsonpath=''Last known IP: {.data.ip}{"\n"}'' 2>/dev/null || true'
-      - kubectl get jobs -n workspace -l job-name --sort-by=.metadata.creationTimestamp 2>/dev/null | tail -5
-
-  ddns:teardown:
-    desc: Remove the DDNS updater (keeps cert-manager and TLS certs intact)
-    prompt: "Remove the DDNS updater CronJob and its secret?"
-    cmds:
-      - kubectl delete -f prod/ddns-updater.yaml --ignore-not-found
-      - kubectl delete secret ddns-ipv64-key -n workspace --ignore-not-found
-      - echo "✓ DDNS updater removed"
-
   cert:install:
     desc: Install cert-manager + lego DNS-01 webhook for wildcard certs
     preconditions:

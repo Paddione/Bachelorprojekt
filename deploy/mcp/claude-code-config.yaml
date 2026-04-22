@@ -14,8 +14,6 @@ data:
   # Core pod: cluster + database
   MCP_KUBERNETES_URL:   "http://claude-code-mcp-core:8080/mcp"
   MCP_POSTGRES_URL:     "http://claude-code-mcp-core:3001/mcp"
-  # Apps pod: files/calendar
-  MCP_NEXTCLOUD_URL:    "http://claude-code-mcp-apps:8000/mcp"
   # Auth pod: SSO management (SSE transport)
   MCP_KEYCLOAK_URL:     "http://claude-code-mcp-auth:8080/mcp/sse"
   # Browser pod: Playwright (Browser interaction)
@@ -96,34 +94,6 @@ data:
 
     Setup: Replace GITHUB_PAT placeholder in claude-code-secrets with a real token,
     then: kubectl rollout restart deployment/mcp-github
-
-  # ════════════════════════════════════════════════════════════════════
-  # GUIDE: mcp-nextcloud  (port 8000, streamable-http)
-  # ════════════════════════════════════════════════════════════════════
-  GUIDE_NEXTCLOUD: |
-    Image: ghcr.io/cbcoutinho/nextcloud-mcp-server
-    Transport: streamable-http → http://mcp-nextcloud:8000/mcp
-    Health: http://mcp-nextcloud:8000/health/ready
-    Auth: NEXTCLOUD_USERNAME + NEXTCLOUD_PASSWORD from claude-code-secrets
-    Host: nextcloud.workspace.svc.cluster.local
-
-    Current credentials: admin / devnextcloudadmin (dev placeholder).
-    For production: generate an App Password in Nextcloud:
-      Settings → Security → App passwords → Create new app password "claude-code"
-      Update claude-code-secrets NEXTCLOUD_PASSWORD
-      kubectl rollout restart deployment/mcp-nextcloud
-
-    Capabilities (90+ tools across 8 categories):
-      Files/WebDAV: list_files, read_file, write_file, delete_file, move_file
-      Calendar:     list_calendars, list_events, create_event, update_event
-      Contacts:     list_address_books, list_contacts, create_contact
-      Notes:        list_notes, get_note, create_note, search_notes
-      Deck (kanban): list_boards, list_cards, create_card, assign_card
-      Sharing:      create_share, list_shares, update_share
-      Tables:       list_tables, get_rows, add_row
-      Cookbook:     list_recipes, get_recipe, import_recipe_from_url
-
-    WebDAV direct URL: http://nextcloud.workspace.svc.cluster.local/remote.php/dav/files/admin/
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-keycloak  (port 8080, SSE transport)

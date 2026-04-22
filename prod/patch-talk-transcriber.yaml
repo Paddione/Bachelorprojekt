@@ -8,6 +8,8 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/arch: amd64
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: transcriber
           image: ghcr.io/paddione/talk-transcriber:latest

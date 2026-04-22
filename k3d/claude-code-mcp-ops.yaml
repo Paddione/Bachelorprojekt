@@ -29,55 +29,34 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        # ─── Kubernetes MCP (port 3000) ──────────────────────────
+        # ─── Kubernetes MCP (port 8080) ──────────────────────────
+        # Pre-built image — no runtime GitHub download needed.
         - name: mcp-kubernetes
-          image: node:22-alpine
+          image: quay.io/containers/kubernetes_mcp_server:latest
           imagePullPolicy: Always
-          env:
-            - name: HOME
-              value: /tmp
-            - name: NPM_CONFIG_PREFIX
-              value: /tmp/npm-global
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              set -e
-              ARCH=$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x86_64/')
-              wget -qO- "https://github.com/strowk/mcp-k8s-go/releases/latest/download/mcp-k8s-go_Linux_${ARCH}.tar.gz" | tar xz -C /tmp mcp-k8s-go
-              chmod +x /tmp/mcp-k8s-go
-              npm install -g supergateway
-              exec /tmp/npm-global/bin/supergateway \
-                --stdio "/tmp/mcp-k8s-go --readonly" \
-                --outputTransport streamableHttp \
-                --port 3000 \
-                --streamableHttpPath /mcp \
-                --healthEndpoint /health
+          args: ["--port", "8080", "--stateless", "--cluster-provider", "in-cluster"]
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 65534
             capabilities:
               drop: ["ALL"]
           ports:
-            - containerPort: 3000
+            - containerPort: 8080
           readinessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 60
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 90
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 20
             periodSeconds: 30
           resources:
             requests:
-              memory: 128Mi
-              cpu: "100m"
+              memory: 64Mi
+              cpu: "50m"
             limits:
-              memory: 512Mi
+              memory: 256Mi
               cpu: "500m"
         # ─── PostgreSQL MCP (port 3001) ──────────────────────────
         # Connects to the shared PostgreSQL superuser DB so it can
@@ -199,8 +178,8 @@ spec:
     app: claude-code-mcp-ops
   ports:
     - name: mcp-kubernetes
-      port: 3000
-      targetPort: 3000
+      port: 8080
+      targetPort: 8080
     - name: mcp-postgres
       port: 3001
       targetPort: 3001

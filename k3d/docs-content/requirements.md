@@ -64,7 +64,7 @@ Vollständige Anforderungsdefinitionen des Workspace MVP — funktionale (FA-01�
 | NFA-06 | Wartbarkeit | Gesamtes System als Kubernetes-Container. Updates via Rolling-Deployment. Konfiguration versioniert (GitOps). | 1) Alle Services via kubectl/Kustomize steuerbar; 2) Konfiguration vollständig in Git; 3) Log-Zugriff via kubectl logs | T1: kubectl rollout restart → Rolling Update ohne Fehler; T2: Liveness-Probes konfiguriert |
 | NFA-07 | Lizenz | Alle Softwarekomponenten unter anerkannten Open-Source-Lizenzen (MIT, AGPL-3.0, MPL-2.0, Apache 2.0, PostgreSQL License). | 1) Nextcloud (AGPL-3.0); 2) Keycloak (Apache 2.0); 3) PostgreSQL (PostgreSQL License); 4) Keine kommerziellen Lizenzen | T1: Keine proprietären Container-Images; T2: Alle Images haben stabile Release-Tags |
 | NFA-08 | Produktions-Deployment | Deployment auf Hetzner-Server mit k3s. Eigene Domain. Wildcard-TLS via Let's Encrypt (cert-manager + DNS-01). | 1) k3s-Cluster auf Hetzner erreichbar; 2) Alle Services unter *.{domain} erreichbar; 3) Wildcard-TLS-Zertifikat gültig | T1: kubectl get nodes → Ready; T2: TLS-Zertifikat gültig; T3: cert-manager Pod running |
-| NFA-09 | Dynamisches DNS (DDNS) | CronJob aktualisiert DNS-Einträge bei dynamischer IP-Änderung (ipv64.net). | 1) DDNS-CronJob deployed; 2) DNS-Eintrag zeigt auf aktuelle IP; 3) Manueller Trigger funktioniert | T1: CronJob ddns-updater vorhanden; T2: ipv64-Secret existiert |
+| NFA-09 | Statisches DNS | Beide Produktionscluster (korczewski, mentolder) nutzen statische IPs — DNS-Einträge werden einmalig in ipv64.net gesetzt, kein DDNS-CronJob notwendig. | DNS-Eintrag zeigt auf korrekte statische IP | T1: A-Record in ipv64.net stimmt mit Server-IP überein |
 
 ---
 

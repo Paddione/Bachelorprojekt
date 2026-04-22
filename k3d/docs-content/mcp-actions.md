@@ -157,19 +157,6 @@ Direkter SQL-Zugriff auf die gemeinsame PostgreSQL-Instanz (`shared-db`) im Clus
 
 ---
 
-## Nextcloud (`mcp-nextcloud`)
-
-Image: `ghcr.io/cbcoutinho/nextcloud-mcp-server`
-Verbindet sich mit Nextcloud ueber WebDAV/API.
-
-| Bereich | Abdeckung |
-|---------|-----------|
-| Dateien | Dateien und Ordner auflisten, lesen, hochladen, verschieben, loeschen |
-| Kalender | Kalender auflisten, Termine lesen/erstellen/aktualisieren/loeschen (CalDAV) |
-| Kontakte | Adressbuecher auflisten, Kontakte lesen/erstellen/aktualisieren/loeschen (CardDAV) |
-
----
-
 ## Keycloak (`mcp-keycloak`)
 
 Image: `quay.io/sshaaf/keycloak-mcp-server`
@@ -232,7 +219,6 @@ Erfordert einen Stripe Secret Key.
 | Kubernetes Read-Only | 7 | Cluster-Inspektion (Claude Code-seitig) |
 | PostgreSQL | 1 | Gemeinsame DB, nur lesender SQL-Zugriff |
 | — *nur deploy/mcp Overlay (laeuft nicht in k3d)* — | | |
-| Nextcloud | ~3 Bereiche | Dateien, Kalender, Kontakte |
 | Keycloak | ~6 Bereiche | SSO Benutzer-/Gruppen-/Rollenverwaltung |
 | GitHub | ~6 Bereiche | Repos, Issues, PRs, Actions (PAT erforderlich) |
 | Stripe | ~7 Bereiche | Zahlungen, Rechnungen, Abonnements |

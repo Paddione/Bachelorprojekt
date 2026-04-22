@@ -23,7 +23,6 @@ Alle MCP-Server laufen als Deployments im `workspace`-Namespace. Die Verbindungs
 |------------|---------------|----------|---------|
 | **mcp-ops** (Kubernetes) | `claude-code-mcp-ops` | Kubernetes-Cluster lesen, Deployments neustarten/skalieren | aktiv |
 | **mcp-ops** (PostgreSQL) | `claude-code-mcp-ops` | SQL-Lesezugriff auf shared-db | aktiv |
-| **mcp-apps** (Nextcloud) | `claude-code-mcp-apps` | Dateien, Kalender, Kontakte via WebDAV/CalDAV/CardDAV | aktiv |
 | **mcp-auth** (Keycloak) | `claude-code-mcp-auth` | Benutzerverwaltung, Gruppen, Rollen, Sessions | aktiv |
 | **mcp-browser** (Playwright) | `mcp-browser` | Browser-Automatisierung mit headless Chromium | aktiv |
 | **mcp-github** | `mcp-github` | Repos, Issues, PRs, Actions (PAT erforderlich) | inaktiv (replicas: 0) |
@@ -36,10 +35,9 @@ Alle MCP-Server laufen als Deployments im `workspace`-Namespace. Die Verbindungs
 Die URLs der MCP-Server (`claude-code-config.yaml`):
 
 ```yaml
-MCP_KUBERNETES_URL: "http://claude-code-mcp-ops:3000/mcp"
+MCP_KUBERNETES_URL: "http://claude-code-mcp-ops:8080/mcp"
 MCP_POSTGRES_URL:   "http://claude-code-mcp-ops:3001/mcp"
 MCP_MEETINGS_URL:   "http://claude-code-mcp-ops:3002/mcp"
-MCP_NEXTCLOUD_URL:  "http://claude-code-mcp-apps:8000/mcp"
 MCP_KEYCLOAK_URL:   "http://claude-code-mcp-auth:8080/mcp/sse"
 MCP_BROWSER_URL:    "http://mcp-browser:3000/mcp"
 MCP_GITHUB_URL:     "http://mcp-github:3002/mcp"
@@ -187,18 +185,6 @@ Vollständige Browser-Automatisierung via `@playwright/mcp` (Microsoft). Führt 
 | `browser_evaluate` | JavaScript auf der Seite ausführen |
 
 > Typischer Ablauf: `browser_navigate` → `browser_snapshot` → Interaktion → `browser_take_screenshot` zur Verifikation.
-
----
-
-### Nextcloud (`mcp-apps`)
-
-Image: `ghcr.io/cbcoutinho/nextcloud-mcp-server`. Verbindet sich mit Nextcloud über WebDAV/CalDAV/CardDAV.
-
-| Bereich | Abdeckung |
-|---------|-----------|
-| Dateien | Dateien und Ordner auflisten, lesen, hochladen, verschieben, löschen |
-| Kalender | Kalender auflisten, Termine lesen/erstellen/aktualisieren/löschen (CalDAV) |
-| Kontakte | Adressbücher auflisten, Kontakte lesen/erstellen/aktualisieren/löschen (CardDAV) |
 
 ---
 

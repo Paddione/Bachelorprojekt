@@ -20,6 +20,7 @@ env_vars:
   INFRA_NAMESPACE: korczewski-infra
   TLS_SECRET_NAME: korczewski-tls
   SMTP_FROM: korczewski@mailbox.org
+  SMTP_USER: mentolder@mailbox.org
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   TURN_PUBLIC_IP: "62.238.9.39"
@@ -29,7 +30,8 @@ env_vars:
   BILLING_EXTERNAL_URL: "https://billing.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
-  WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/index.php/apps/files/personal"
+  WHITEBOARD_EXTERNAL_URL: "https://files.korczewski.de/apps/files"
+  STRIPE_PUBLISHABLE_KEY: "pk_live_51RhKrcDGTY4NP8aeqnf69F1OVgNleqjLqR5ZHi8jkzlyxLiaTEnsY5xwhgPAVV7FdNb4eRnelIzt7DUj9TTAopXg00yyxjx03t"
 
 overlay: prod-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml

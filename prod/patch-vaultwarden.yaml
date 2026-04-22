@@ -22,7 +22,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: SMTP_FROM
+                  key: SMTP_USER
             - name: SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:

@@ -70,6 +70,10 @@ env_vars:
     required: true
     default_dev: "noreply@localhost"
 
+  - name: SMTP_USER
+    required: true
+    default_dev: "noreply@localhost"
+
   - name: SMTP_HOST
     required: true
     default_dev: "mailpit.workspace.svc.cluster.local"
@@ -93,6 +97,10 @@ env_vars:
   - name: DOCS_URL
     required: false
     default_dev: "http://docs.localhost"
+
+  - name: BILLING_EXTERNAL_URL
+    required: false
+    default_dev: "http://billing.localhost"
 
   - name: AUTH_EXTERNAL_URL
     required: false

@@ -23,37 +23,11 @@ spec:
         runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
-      initContainers:
-        - name: write-cookie-secret
-          image: busybox:1.36
-          imagePullPolicy: Always
-          # oauth2-proxy image is distroless (no shell). Write a TOML config with
-          # the cookie_secret truncated to 32 bytes (env-generate produces 64-char hex
-          # which is too long for AES — needs exactly 16, 24, or 32 bytes).
-          command: ["/bin/sh", "-c"]
-          args:
-            - printf 'cookie_secret = "%s"\n' "${OAUTH2_PROXY_COOKIE_SECRET:0:32}" > /run/config/oauth2-extra.cfg
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 65534
-            capabilities:
-              drop: ["ALL"]
-          env:
-            - name: OAUTH2_PROXY_COOKIE_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: OAUTH2_PROXY_COOKIE_SECRET
-          volumeMounts:
-            - name: oauth2-config
-              mountPath: /run/config
       containers:
         - name: oauth2-proxy
           image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
           imagePullPolicy: Always
           args:
-            - --config=/run/config/oauth2-extra.cfg
             - --provider=keycloak-oidc
             - --client-id=docs
             - --client-secret=$(DOCS_OIDC_SECRET)
@@ -67,6 +41,7 @@ spec:
             - --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo
             - --upstream=http://docs:80
             - --http-address=0.0.0.0:4180
+            - --cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)
             - --cookie-secure=false
             - --cookie-name=_oauth2_proxy_docs
             - --email-domain=*
@@ -84,6 +59,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: DOCS_OIDC_SECRET
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -114,13 +94,6 @@ spec:
             limits:
               memory: 128Mi
               cpu: "200m"
-          volumeMounts:
-            - name: oauth2-config
-              mountPath: /run/config
-              readOnly: true
-      volumes:
-        - name: oauth2-config
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

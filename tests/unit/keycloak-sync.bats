@@ -45,3 +45,24 @@ B=y'
   [ "$status" -eq 0 ]
   [ "$output" = "greet=hello & goodbye" ]
 }
+
+# ── kc_assert_no_placeholders ───────────────────────────────────
+
+@test "kc_assert_no_placeholders returns 0 when no \${...} present" {
+  run kc_assert_no_placeholders 'fully resolved string'
+  [ "$status" -eq 0 ]
+}
+
+@test "kc_assert_no_placeholders returns non-zero when \${VAR} remains" {
+  run kc_assert_no_placeholders 'still has ${LEFTOVER}'
+  [ "$status" -ne 0 ]
+  [[ "$output" == *'LEFTOVER'* ]]
+}
+
+@test "kc_assert_no_placeholders reports all unresolved vars, sorted unique" {
+  run kc_assert_no_placeholders '${B} and ${A} and ${B}'
+  [ "$status" -ne 0 ]
+  # Output should mention A and B exactly once each.
+  [[ "$output" == *'${A}'* ]]
+  [[ "$output" == *'${B}'* ]]
+}

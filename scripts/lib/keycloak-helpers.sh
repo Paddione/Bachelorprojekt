@@ -24,3 +24,20 @@ kc_substitute_placeholders() {
   done <<< "$kv"
   printf '%s' "$out"
 }
+
+# kc_assert_no_placeholders INPUT
+#   Exits non-zero (returns 1) if INPUT still contains any ${NAME} token
+#   where NAME matches [A-Z0-9_]+. Prints each offending token on its own
+#   line (sorted, deduped) before returning.
+kc_assert_no_placeholders() {
+  local input="$1"
+  local leftover
+  leftover=$(printf '%s' "$input" | grep -oE '\$\{[A-Z0-9_]+\}' | sort -u || true)
+  if [ -n "$leftover" ]; then
+    printf 'unresolved placeholders:\n%s\n' "$leftover" >&2
+    # bats `run` captures both stdout and stderr into $output, so mirror to stdout.
+    printf 'unresolved placeholders:\n%s\n' "$leftover"
+    return 1
+  fi
+  return 0
+}

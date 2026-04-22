@@ -92,7 +92,7 @@ export const POST: APIRoute = async ({ request }) => {
     await createInboxItem({
       type: 'bug',
       referenceId: ticketId,
-      referenceTable: 'bug_tickets',
+      referenceTable: 'bugs.bug_tickets',
       bugTicketId: ticketId,
       payload: {
         ticketId,

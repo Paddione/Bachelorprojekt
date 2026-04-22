@@ -29,7 +29,6 @@ resources:
   - oauth2-proxy-docs.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
-  - backup-secrets.yaml
   - backup-cronjob.yaml
   - notify-unread-cronjob.yaml
   # Abrechnung

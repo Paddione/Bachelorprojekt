@@ -31,12 +31,11 @@ Automatische Datenbank-Backups werden uber einen Kubernetes CronJob ausgefuhrt (
 - Kapazitat: 1 Gi
 - AccessMode: `ReadWriteOnce`
 
-**`k3d/backup-secrets.yaml`** -- Secret mit Passphrase:
+**Passphrase:** Key `BACKUP_PASSPHRASE` aus `workspace-secrets` (SealedSecret):
 
-- Secret-Name: `backup-passphrase`
-- Key: `backup-passphrase` -- Passphrase fur die AES-256-Verschlusselung
-- Wird als Datei unter `/secrets/backup-passphrase` im Container eingebunden
-- Optional: Ohne dieses Secret werden Backups unverschlusselt gespeichert
+- Dev: Platzhalter in `k3d/secrets.yaml`
+- Prod: versiegelt in `environments/sealed-secrets/<env>.yaml`
+- Der CronJob liest den Wert uber die Umgebungsvariable `BACKUP_PASSPHRASE` und ubergibt sie als `-pass env:BACKUP_PASSPHRASE` an openssl
 
 ---
 

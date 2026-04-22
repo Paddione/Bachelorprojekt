@@ -68,17 +68,6 @@ spec:
     average: 20
     burst: 40
 ---
-# ── Rate-Limiting: Invoice Ninja ───────────────────────────────────
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: rate-limit-billing
-  namespace: workspace
-spec:
-  rateLimit:
-    average: 30
-    burst: 60
----
 # ── Rate-Limiting: Website (öffentlich) ───────────────────────────
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

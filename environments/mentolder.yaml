@@ -27,7 +27,6 @@ env_vars:
   TURN_NODE: "gekko-hetzner-2"
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
   DOCS_URL: "https://docs.mentolder.de"
-  BILLING_EXTERNAL_URL: "https://billing.mentolder.de"
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
   VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
   WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/apps/files"

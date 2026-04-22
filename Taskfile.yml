@@ -1092,7 +1092,7 @@ tasks:
             | envsubst "$ENVSUBST_VARS" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
         fi
-      - task: keycloak:sync-secrets
+      - task: keycloak:sync
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:sync-db-passwords
         vars: { ENV: "{{.ENV}}" }
@@ -1127,12 +1127,20 @@ tasks:
         done
         echo "✓ DB passwords synced"
 
-  keycloak:sync-secrets:
-    desc: "Sync OIDC client secrets von workspace-secrets → Keycloak Admin API (ENV=dev|mentolder|korczewski)"
+  keycloak:sync:
+    desc: "Sync OIDC clients + secrets von realm-template → Keycloak Admin API (ENV=dev|mentolder|korczewski)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - ENV={{.ENV}} bash scripts/keycloak-sync-secrets.sh
+      - ENV={{.ENV}} bash scripts/keycloak-sync.sh
+
+  keycloak:sync-secrets:
+    desc: "Alias für keycloak:sync (backwards-compat, wird in Folge-PR entfernt)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - task: keycloak:sync
+        vars: { ENV: "{{.ENV}}" }
 
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"

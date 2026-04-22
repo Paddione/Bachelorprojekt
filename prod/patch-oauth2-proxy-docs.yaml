@@ -11,6 +11,7 @@ spec:
             - "--provider=keycloak-oidc"
             - "--client-id=docs"
             - "--client-secret=$(DOCS_OIDC_SECRET)"
+            - "--cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)"
             - "--redirect-url=https://docs.${PROD_DOMAIN}/oauth2/callback"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
             - "--ssl-insecure-skip-verify=true"
@@ -21,7 +22,6 @@ spec:
             - "--profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo"
             - "--upstream=http://docs:80"
             - "--http-address=0.0.0.0:4180"
-            - "--cookie-secret=$(OAUTH2_PROXY_COOKIE_SECRET)"
             - "--cookie-secure=true"
             - "--cookie-name=_oauth2_proxy_docs"
             - "--email-domain=*"
@@ -33,3 +33,14 @@ spec:
             - "--insecure-oidc-allow-unverified-email=true"
             - "--oidc-extra-audience=docs"
             - "--scope=openid email profile"
+          env:
+            - name: DOCS_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: DOCS_OIDC_SECRET
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET

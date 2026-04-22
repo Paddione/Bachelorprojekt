@@ -1050,7 +1050,15 @@ tasks:
         fi
 
         if [ "{{.ENV}}" = "dev" ]; then
-          # Dev: build from k3d base, apply locally (--server-side avoids 262KB annotation limit for large ConfigMaps)
+          # Deploy shared-db prerequisites + shared-db first so dependent services don't crash-loop
+          kubectl apply -f k3d/namespace.yaml
+          kubectl apply -f k3d/secrets.yaml
+          kubectl apply -f k3d/configmap-domains.yaml
+          kubectl apply -f k3d/website-schema.yaml
+          kubectl apply -f k3d/shared-db.yaml
+          echo "Waiting for shared-db to be ready before deploying dependent services..."
+          kubectl rollout status deployment/shared-db -n workspace --timeout=120s
+          # Full apply (idempotent — updates configs, adds remaining services)
           kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL" | kubectl apply --server-side --force-conflicts -f -
         else
           # Prod: build from overlay, apply to target cluster
@@ -1065,17 +1073,17 @@ tasks:
             done
           fi
 
+          # Deploy shared-db first (base manifest); full overlay apply below patches it via --server-side --force-conflicts
+          kubectl --context "$ENV_CONTEXT" apply -f k3d/namespace.yaml
+          kubectl --context "$ENV_CONTEXT" apply -f k3d/shared-db.yaml
+          echo "Waiting for shared-db to be ready before deploying dependent services..."
+          kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n workspace --timeout=120s
+
           overlay="${ENV_OVERLAY:-prod}"
           kustomize build "$overlay/" \
             | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SMTP_FROM" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
         fi
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        context_flag=""
-        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
-        echo "Waiting for shared-db..."
-        kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
       - task: keycloak:sync-secrets
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:sync-db-passwords

@@ -25,7 +25,6 @@ for var in \
     WEBSITE_OIDC_SECRET \
     DOCS_OIDC_SECRET \
     NC_DOMAIN \
-    BILLING_DOMAIN \
     VAULT_DOMAIN \
     AI_DOMAIN \
     WEB_DOMAIN \

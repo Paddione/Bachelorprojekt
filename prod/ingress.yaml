@@ -98,31 +98,6 @@ spec:
                 port:
                   number: 80
 ---
-# ── Website (Astro) — Namespace: website (service lives there) ───────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: website-ingress-web
-  namespace: website
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-web@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - web.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
-  rules:
-    - host: web.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: website
-                port:
-                  number: 80
----
 # ── Docs — Keycloak SSO (oauth2-proxy) ─────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -225,5 +200,29 @@ spec:
             backend:
               service:
                 name: website
+                port:
+                  number: 80
+---
+# ── Tracking (Bachelorprojekt) ──────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-tracking
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - tracking.${PROD_DOMAIN}
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: tracking.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bachelorprojekt
                 port:
                   number: 80

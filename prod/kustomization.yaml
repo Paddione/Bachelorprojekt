@@ -67,6 +67,15 @@ patches:
       metadata:
         name: workspace-ingress-internal
       $patch: delete
+  - target:
+      kind: Ingress
+      name: bachelorprojekt
+    patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: bachelorprojekt
+      $patch: delete
   # API-only MCP servers (GitHub, Stripe, Browser) run on the dev cluster only.
   # They reach the same external APIs from anywhere, so no prod deployment needed.
   - target:

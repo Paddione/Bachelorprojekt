@@ -18,9 +18,14 @@ spec:
   #   workspace-domain           Production domain (e.g. mentolder.de)
   #   workspace-brand            Brand name (e.g. Mentolder)
   #   workspace-email            Contact email
-  #   workspace-infra-namespace  Traefik middleware namespace (usually workspace-infra)
-  #   workspace-tls-secret       TLS wildcard secret name (usually workspace-wildcard-tls)
+  #   workspace-infra-namespace  Traefik middleware namespace (e.g. mentolder-infra)
+  #   workspace-tls-secret       TLS wildcard secret name (e.g. mentolder-tls)
   #   workspace-smtp-from        SMTP sender address
+  #   workspace-website-image    Website container image name (e.g. mentolder-website)
+  #   workspace-kc-user1-username  Keycloak admin user 1 username
+  #   workspace-kc-user1-email     Keycloak admin user 1 email
+  #   workspace-kc-user2-username  Keycloak admin user 2 username
+  #   workspace-kc-user2-email     Keycloak admin user 2 email
   generators:
     - clusters:
         selector:
@@ -64,6 +69,16 @@ spec:
               value: "{{metadata.annotations.workspace-turn-ip}}"
             - name: TURN_NODE
               value: "{{metadata.annotations.workspace-turn-node}}"
+            - name: WEBSITE_IMAGE
+              value: "{{metadata.annotations.workspace-website-image}}"
+            - name: KC_USER1_USERNAME
+              value: "{{metadata.annotations.workspace-kc-user1-username}}"
+            - name: KC_USER1_EMAIL
+              value: "{{metadata.annotations.workspace-kc-user1-email}}"
+            - name: KC_USER2_USERNAME
+              value: "{{metadata.annotations.workspace-kc-user2-username}}"
+            - name: KC_USER2_EMAIL
+              value: "{{metadata.annotations.workspace-kc-user2-email}}"
 
       destination:
         server: "{{server}}"

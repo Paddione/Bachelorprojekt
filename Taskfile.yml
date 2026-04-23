@@ -739,9 +739,11 @@ tasks:
           --system-namespace argocd 2>/dev/null || \
           argocd cluster add hetzner --yes --name hetzner 2>/dev/null || true
         # Patch the cluster Secret with workspace labels and annotations
+        # Anchored match: a bare `cluster-` prefix also matches cluster-korczewski,
+        # which sorts first alphabetically and causes the wrong Secret to be patched.
         HETZNER_SECRET=$(kubectl --context mentolder get secret -n argocd \
           -l argocd.argoproj.io/secret-type=cluster \
-          --no-headers 2>/dev/null | grep -E "^hetzner|cluster-" | awk '{print $1}' | head -1)
+          --no-headers 2>/dev/null | awk '{print $1}' | grep -E "^(hetzner|cluster-mentolder|in-cluster)$" | head -1)
         if [ -n "$HETZNER_SECRET" ]; then
           kubectl --context mentolder patch secret "$HETZNER_SECRET" -n argocd --type=json -p="[
             {\"op\":\"add\",\"path\":\"/metadata/labels/workspace\",\"value\":\"true\"},

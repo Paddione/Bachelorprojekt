@@ -60,6 +60,105 @@
   ],
   "clients": [
     {
+      "clientId": "nextcloud",
+      "name": "Nextcloud",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${NEXTCLOUD_OIDC_SECRET}",
+      "redirectUris": [
+        "https://${NC_DOMAIN}/apps/oidc_login/oidc",
+        "https://${NC_DOMAIN}/index.php/apps/oidc_login/oidc",
+        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak",
+        "https://${NC_DOMAIN}/index.php/apps/sociallogin/custom_oidc/keycloak"
+      ],
+      "webOrigins": [
+        "https://${NC_DOMAIN}"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "email",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "username",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "website",
+      "name": "Website",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${WEBSITE_OIDC_SECRET}",
+      "redirectUris": [
+        "https://${WEB_DOMAIN}/*"
+      ],
+      "webOrigins": [
+        "https://${WEB_DOMAIN}"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "email",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "username",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
       "clientId": "vaultwarden",
       "name": "Vaultwarden",
       "enabled": true,

@@ -1,0 +1,154 @@
+# ═══════════════════════════════════════════════════════════════════
+# OAuth2 Proxy — Keycloak SSO gateway for the Traefik dashboard
+# ForwardAuth mode: authenticates via /oauth2/auth (202/401). Traefik's
+# errors middleware redirects 401s to /oauth2/sign_in.
+# Access is restricted to the emails listed in authenticated-emails-file.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-traefik-allowed-emails
+data:
+  # Admin allow-list. Must match users' Keycloak email addresses.
+  allowed-emails: |
+    patrick@korczewski.de
+    quamain@web.de
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-traefik
+  labels:
+    app: oauth2-proxy-traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy-traefik
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy-traefik
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: write-cookie-secret
+          image: busybox:1.36
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - printf 'cookie_secret = "%s"\n' "$(printf '%s' "$OAUTH2_PROXY_COOKIE_SECRET" | cut -c1-32)" > /run/config/oauth2-extra.cfg
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
+          imagePullPolicy: Always
+          args:
+            - --config=/run/config/oauth2-extra.cfg
+            - --provider=keycloak-oidc
+            - --client-id=traefik-dashboard
+            - --client-secret=$(TRAEFIK_OIDC_SECRET)
+            - --redirect-url=http://traefik.localhost/oauth2/callback
+            - --oidc-issuer-url=http://keycloak:8080/realms/workspace
+            - --ssl-insecure-skip-verify=true
+            - --skip-oidc-discovery=true
+            - --login-url=http://auth.localhost/realms/workspace/protocol/openid-connect/auth
+            - --redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token
+            - --oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs
+            - --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo
+            - --upstream=static://202
+            - --reverse-proxy=true
+            - --http-address=0.0.0.0:4180
+            - --cookie-secure=false
+            - --cookie-name=_oauth2_proxy_traefik
+            - --authenticated-emails-file=/etc/oauth2/allowed-emails
+            - --pass-access-token=true
+            - --pass-authorization-header=true
+            - --set-xauthrequest=true
+            - --skip-provider-button=true
+            - --code-challenge-method=S256
+            - --insecure-oidc-allow-unverified-email=true
+            - --oidc-extra-audience=traefik-dashboard
+            - --scope=openid email profile
+            - --whitelist-domain=traefik.localhost
+          env:
+            - name: TRAEFIK_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: TRAEFIK_OIDC_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+              readOnly: true
+            - name: allowed-emails
+              mountPath: /etc/oauth2
+              readOnly: true
+      volumes:
+        - name: oauth2-config
+          emptyDir: {}
+        - name: allowed-emails
+          configMap:
+            name: oauth2-proxy-traefik-allowed-emails
+            items:
+              - key: allowed-emails
+                path: allowed-emails
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-traefik
+spec:
+  selector:
+    app: oauth2-proxy-traefik
+  ports:
+    - port: 4180
+      targetPort: 4180

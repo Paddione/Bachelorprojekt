@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-traefik
+spec:
+  template:
+    spec:
+      containers:
+        - name: oauth2-proxy
+          args:
+            - "--config=/run/config/oauth2-extra.cfg"
+            - "--provider=keycloak-oidc"
+            - "--client-id=traefik-dashboard"
+            - "--client-secret=$(TRAEFIK_OIDC_SECRET)"
+            - "--redirect-url=https://traefik.${PROD_DOMAIN}/oauth2/callback"
+            - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
+            - "--ssl-insecure-skip-verify=true"
+            - "--skip-oidc-discovery=true"
+            - "--login-url=https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"
+            - "--redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token"
+            - "--oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs"
+            - "--profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo"
+            - "--upstream=static://202"
+            - "--reverse-proxy=true"
+            - "--http-address=0.0.0.0:4180"
+            - "--cookie-secure=true"
+            - "--cookie-name=_oauth2_proxy_traefik"
+            - "--authenticated-emails-file=/etc/oauth2/allowed-emails"
+            - "--pass-access-token=true"
+            - "--pass-authorization-header=true"
+            - "--set-xauthrequest=true"
+            - "--skip-provider-button=true"
+            - "--code-challenge-method=S256"
+            - "--insecure-oidc-allow-unverified-email=true"
+            - "--oidc-extra-audience=traefik-dashboard"
+            - "--scope=openid email profile"
+            - "--whitelist-domain=traefik.${PROD_DOMAIN}"
+          env:
+            - name: TRAEFIK_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: TRAEFIK_OIDC_SECRET

@@ -1120,6 +1120,18 @@ tasks:
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:sync-db-passwords
         vars: { ENV: "{{.ENV}}" }
+      # Re-align Nextcloud Talk's spreed app config with the real SIGNALING_SECRET/
+      # TURN_SECRET in workspace-secrets on every deploy. Without this, a rotated
+      # SealedSecret leaves Talk pointing at stale secrets and calls fail to join
+      # the HPB. Gated on non-dev because the coturn stack only exists in prod.
+      # workspace:deploy has already switched kubectl context to ENV_CONTEXT, so
+      # workspace:coturn:sync-secret (which uses the active context) targets the
+      # right cluster.
+      - |
+        if [ "{{.ENV}}" != "dev" ]; then
+          task workspace:coturn:sync-secret || true
+          task workspace:talk-setup ENV="{{.ENV}}"
+        fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
 
   workspace:sync-db-passwords:

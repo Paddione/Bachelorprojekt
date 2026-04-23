@@ -801,6 +801,14 @@ tasks:
         echo "Registered clusters:"
         argocd cluster list 2>/dev/null || kubectl --context mentolder get secrets -n argocd \
           -l argocd.argoproj.io/secret-type=cluster -o custom-columns='NAME:.metadata.name,LABELS:.metadata.labels'
+      # Re-apply ApplicationSet manifests so template changes (e.g. new annotations
+      # wired through to overlays) take effect without a separate `argocd:apps:apply`.
+      - |
+        echo ""
+        echo "Re-applying ApplicationSet manifests..."
+        kubectl --context mentolder apply -f argocd/applicationset.yaml
+        kubectl --context mentolder apply -f argocd/applicationset-coturn.yaml
+        kubectl --context mentolder apply -f argocd/applicationset-office.yaml
 
   argocd:apps:apply:
     desc: Apply AppProject and ApplicationSet (creates workspace-hetzner + workspace-korczewski apps)

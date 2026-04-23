@@ -16,17 +16,20 @@
 set -euo pipefail
 
 NAMESPACE="${NAMESPACE:-workspace}"
+CONTEXT="${CONTEXT:-}"
 SCHEME="${SCHEME:-}"
 
+KUBECTL="kubectl ${CONTEXT:+--context ${CONTEXT}}"
+
 nc_occ() {
-  kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
+  $KUBECTL exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
     sh -c "$*"
 }
 
 echo "=== Nextcloud Whiteboard Setup ==="
 
 # ── Read the JWT secret from the k8s Secret the backend uses ──────────────
-JWT_SECRET=$(kubectl get secret workspace-secrets -n "${NAMESPACE}" \
+JWT_SECRET=$($KUBECTL get secret workspace-secrets -n "${NAMESPACE}" \
   -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' 2>/dev/null | base64 -d || true)
 
 if [ -z "${JWT_SECRET}" ]; then
@@ -37,7 +40,7 @@ fi
 # Sanity check: the running backend must use the same value. If someone rotated
 # the Secret without restarting the Deployment, the live pod would still use
 # the old value and we'd paper over the drift here.
-BACKEND_SECRET=$(kubectl exec -n "${NAMESPACE}" deploy/whiteboard -- \
+BACKEND_SECRET=$($KUBECTL exec -n "${NAMESPACE}" deploy/whiteboard -- \
   sh -c 'printf %s "$JWT_SECRET_KEY"' 2>/dev/null || true)
 
 if [ -z "${BACKEND_SECRET}" ]; then
@@ -48,14 +51,14 @@ fi
 if [ "${JWT_SECRET}" != "${BACKEND_SECRET}" ]; then
   echo "FEHLER: WHITEBOARD_JWT_SECRET im k8s Secret stimmt nicht mit dem laufenden"
   echo "       whiteboard-Pod überein. Pod neu starten:"
-  echo "       kubectl rollout restart -n ${NAMESPACE} deploy/whiteboard"
+  echo "       ${KUBECTL} rollout restart -n ${NAMESPACE} deploy/whiteboard"
   exit 1
 fi
 
 # ── Derive public URL from the whiteboard Ingress ─────────────────────────
 # The Ingress is authoritative: it's the URL the user's browser actually hits.
 # (Config can be stale/unset on prod overlays.)
-INGRESS_JSON=$(kubectl get ingress -n "${NAMESPACE}" -o json 2>/dev/null)
+INGRESS_JSON=$($KUBECTL get ingress -n "${NAMESPACE}" -o json 2>/dev/null)
 INGRESS_HOST=$(printf '%s' "${INGRESS_JSON}" | \
   jq -r '.items[] as $i
     | $i.spec.rules[]?

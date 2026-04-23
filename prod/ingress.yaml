@@ -123,30 +123,6 @@ spec:
                 port:
                   number: 80
 ---
-# ── Mailpit (Dev SMTP) — BasicAuth (internes Tool) ──────────────────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: workspace-ingress-mail
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-basic-auth-internal@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - mail.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
-  rules:
-    - host: mail.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mailpit
-                port:
-                  number: 8025
----
 # ── Docs — Keycloak SSO (oauth2-proxy) ─────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress

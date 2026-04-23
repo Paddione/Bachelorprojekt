@@ -21,8 +21,8 @@ mkdir -p "$(dirname "$OUTPUT")"
 cp "$TEMPLATE" "$OUTPUT"
 for var in NEXTCLOUD_OIDC_SECRET \
            VAULTWARDEN_OIDC_SECRET WEBSITE_OIDC_SECRET CLAUDE_CODE_OIDC_SECRET \
-           DOCS_OIDC_SECRET TRAEFIK_OIDC_SECRET \
-           NC_DOMAIN WEB_DOMAIN VAULT_DOMAIN DOCS_DOMAIN TRAEFIK_DOMAIN; do
+           DOCS_OIDC_SECRET TRAEFIK_OIDC_SECRET MAIL_OIDC_SECRET \
+           NC_DOMAIN WEB_DOMAIN VAULT_DOMAIN DOCS_DOMAIN TRAEFIK_DOMAIN MAIL_DOMAIN; do
   eval val="\${${var}:-}"
   if [ -z "$val" ]; then
     echo "[import-entrypoint] WARNUNG: ${var} ist nicht gesetzt!"

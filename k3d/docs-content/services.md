@@ -92,7 +92,6 @@ Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (M
 | `claude-code-mcp-stripe.yaml` | mcp-stripe | Stripe-Zahlungen, Produkte, Abonnements |
 
 **Produktion (deploy/mcp/):**
-- `mcp-status.yaml` -- Health-Dashboard (nginx + healthcheck sidecar)
 - `mcp-auth-proxy.yaml` -- ForwardAuth-Proxy fuer Token-Validierung (RBAC)
 - Konsolidierte Pods: `claude-code-mcp-core.yaml`, `claude-code-mcp-auth.yaml`
 

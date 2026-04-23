@@ -25,10 +25,6 @@ Alle MCP-Server laufen als Deployments im `workspace`-Namespace. Die Verbindungs
 | **mcp-browser** (Playwright) | `mcp-browser` | Browser-Automatisierung mit headless Chromium | aktiv |
 | **mcp-github** | `mcp-github` | Repos, Issues, PRs, Actions (PAT erforderlich) | inaktiv (replicas: 0) |
 | **mcp-stripe** | `claude-code-mcp-stripe` | Zahlungen, Rechnungen, Abonnements | aktiv |
-| **mcp-grafana** | `mcp-grafana` | Grafana-Dashboards und Metriken | inaktiv (replicas: 0) |
-| **mcp-prometheus** | `mcp-prometheus` | Prometheus-Abfragen | inaktiv (replicas: 0) |
-| **mcp-kubernetes** (standalone) | `mcp-kubernetes` | Read-Only Kubernetes-Inspektion | aktiv |
-| **mcp-postgres** (standalone) | `mcp-postgres` | Read-Only PostgreSQL-Zugriff | aktiv |
 
 Die URLs der MCP-Server (`claude-code-config.yaml`):
 

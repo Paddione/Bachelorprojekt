@@ -120,7 +120,6 @@ Services sind erreichbar unter:
 | Nextcloud (Dateien + Talk) | http://files.localhost | -- |
 | Collabora (Office) | http://office.localhost | -- |
 | Talk HPB (Signaling) | http://signaling.localhost | -- |
-| Claude Code (KI) | http://ai.localhost | -- |
 | Vaultwarden (Passwoerter) | http://vault.localhost | -- |
 | Whiteboard | http://board.localhost | -- |
 | Mailpit (Dev-Mail) | http://mail.localhost | -- |

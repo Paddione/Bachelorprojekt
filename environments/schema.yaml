@@ -295,11 +295,6 @@ secrets:
     generate: true
     length: 40
 
-  - name: CLAUDE_CODE_WEBUI_SECRET_KEY
-    required: true
-    generate: true
-    length: 48
-
   # External service keys (user-provided)
   - name: GITHUB_PAT
     required: false

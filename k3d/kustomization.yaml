@@ -58,8 +58,6 @@ resources:
   - claude-code-mcp-github.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
-  # Traefik Dev-Middlewares
-  - traefik-middlewares-dev.yaml
   # Netzwerksicherheit (L3)
   - network-policies.yaml
   # Ingress

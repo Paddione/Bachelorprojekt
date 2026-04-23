@@ -15,6 +15,7 @@ data:
   AI_DOMAIN: "ai.${PROD_DOMAIN}"
   SIGN_DOMAIN: "sign.${PROD_DOMAIN}"
   WHITEBOARD_DOMAIN: "board.${PROD_DOMAIN}"
+  TRAEFIK_DOMAIN: "traefik.${PROD_DOMAIN}"
   # Env-registry values (substituted from environments/<env>.yaml at deploy time)
   PROD_DOMAIN: "${PROD_DOMAIN}"
   WEBSITE_IMAGE: "${WEBSITE_IMAGE}"

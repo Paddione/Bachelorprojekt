@@ -114,6 +114,10 @@ env_vars:
     required: false
     default_dev: "http://board.localhost"
 
+  - name: TRAEFIK_EXTERNAL_URL
+    required: false
+    default_dev: "http://traefik.localhost"
+
   - name: STRIPE_PUBLISHABLE_KEY
     required: false
 
@@ -267,6 +271,11 @@ secrets:
     generate: false
 
   - name: DOCS_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
+  - name: TRAEFIK_OIDC_SECRET
     required: true
     generate: true
     length: 40

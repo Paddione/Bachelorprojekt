@@ -12,6 +12,7 @@ resources:
   - tlsoption.yaml
   - old-webspace.yaml
   - ingress.yaml
+  - traefik-dashboard.yaml
 
 # Production ConfigMaps (override base realm + OIDC, add scripts from deploy.sh)
 configMapGenerator:
@@ -133,6 +134,7 @@ patches:
   - path: patch-vaultwarden.yaml
   - path: patch-docuseal.yaml
   - path: patch-oauth2-proxy-docs.yaml
+  - path: patch-oauth2-proxy-traefik.yaml
   # Pin amd64-only images to amd64 nodes
   - path: patch-amd64-only.yaml
   # Collabora lives in the workspace-office namespace via its own

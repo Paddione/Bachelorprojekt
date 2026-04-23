@@ -15,6 +15,7 @@ data:
   WEB_DOMAIN: "web.localhost"
   AI_DOMAIN: "ai.localhost"
   SIGN_DOMAIN: "sign.localhost"
+  TRAEFIK_DOMAIN: "traefik.localhost"
   # Env-registry values (dev defaults — prod overlay overrides these)
   PROD_DOMAIN: "localhost"
   WEBSITE_IMAGE: "workspace-website"

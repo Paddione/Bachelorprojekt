@@ -52,6 +52,7 @@ const docsUrl     = process.env.DOCS_URL ?? '';
 const authUrl     = process.env.AUTH_EXTERNAL_URL ?? '';
 const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
 const wbUrl       = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
+const traefikUrl  = process.env.TRAEFIK_EXTERNAL_URL ?? '';
 const adminLinks = [
   { href: '/admin/inbox', label: 'Inbox', icon: '📬' },
   ...(ncBase ? [
@@ -65,6 +66,7 @@ const adminLinks = [
   ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
   ...(authUrl     ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak', icon: '🔑' }] : []),
   ...(docsUrl     ? [{ href: docsUrl,           label: 'Docs',       icon: '📖' }] : []),
+  ...(traefikUrl  ? [{ href: traefikUrl,        label: 'Traefik',    icon: '🛣️' }] : []),
 ];
 ---
 

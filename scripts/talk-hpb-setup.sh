@@ -96,10 +96,14 @@ _occ "php occ config:app:set spreed turn_servers --value='${TURN_JSON}'" > /dev/
 # Dieser Rewrite leitet signaling.<domain> intern zur Traefik-ClusterIP um.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COREDNS_OVERRIDE="${SCRIPT_DIR}/../prod/coredns-signaling-override.yaml"
-if [ -f "${COREDNS_OVERRIDE}" ] && [ "${SIGNALING_HOST}" != *"localhost"* ]; then
+if [[ -f "${COREDNS_OVERRIDE}" && "${SIGNALING_HOST}" != *localhost* ]]; then
   echo "  Wende CoreDNS-Override an (${SIGNALING_HOST} → traefik intern) ..."
   kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} apply -f "${COREDNS_OVERRIDE}"
   kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} rollout restart deployment/coredns -n kube-system > /dev/null 2>&1 || true
+  # Block until CoreDNS is fully rolled — otherwise the verification _occ calls
+  # below race the rollout and hit the ~seconds window where a DNS lookup for
+  # nextcloud-db can land on a not-ready / terminating endpoint and time out.
+  kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} rollout status deployment/coredns -n kube-system --timeout=60s > /dev/null 2>&1 || true
 fi
 
 # ── Verification ──────────────────────────────────────────────────────

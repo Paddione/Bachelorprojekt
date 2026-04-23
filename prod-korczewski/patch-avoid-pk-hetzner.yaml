@@ -1,0 +1,83 @@
+# Keep networking-sensitive workloads off pk-hetzner on korczewski.
+#
+# pk-hetzner is the remote Hetzner control-plane node (62.238.9.39); the rest
+# of the cluster sits on the home LAN (192.168.100.0/24). Cross-node pod
+# traffic FROM pk-hetzner TO k3w-{1,2,3} is currently broken at the CNI/VXLAN
+# layer — pods there cannot reach ClusterIPs or pod IPs on LAN workers, while
+# node-level traffic across the underlay still works fine. Until the underlay
+# partition is fixed (needs SSH to pk-hetzner to inspect flannel/iptables),
+# any workload that talks to NATS or spreed-signaling via ClusterIP must not
+# schedule onto pk-hetzner.
+#
+# Scope is deliberately narrow: workloads that MUST run on pk-hetzner
+# (coturn, janus — hostNetwork + public IP) are not patched. amd64-only
+# constraints on talk-{recording,transcriber} still apply; with pk-hetzner
+# excluded they land on k3s-{1,2,3}.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values: ["pk-hetzner"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spreed-signaling
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values: ["pk-hetzner"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: talk-transcriber
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values: ["pk-hetzner"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: talk-recording
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values: ["pk-hetzner"]

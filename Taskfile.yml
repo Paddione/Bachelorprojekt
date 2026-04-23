@@ -750,11 +750,16 @@ tasks:
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-domain\",\"value\":\"${PROD_DOMAIN}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-brand\",\"value\":\"${BRAND_NAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"workspace-infra\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"workspace-wildcard-tls\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"${INFRA_NAMESPACE}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"${TLS_SECRET_NAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-ip\",\"value\":\"${TURN_PUBLIC_IP}\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-node\",\"value\":\"${TURN_NODE}\"}
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-node\",\"value\":\"${TURN_NODE}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-website-image\",\"value\":\"${WEBSITE_IMAGE}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user1-username\",\"value\":\"${KC_USER1_USERNAME}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user1-email\",\"value\":\"${KC_USER1_EMAIL}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-username\",\"value\":\"${KC_USER2_USERNAME}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-email\",\"value\":\"${KC_USER2_EMAIL}\"}
           ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
           echo "  ✓ hetzner registered and annotated"
         else
@@ -776,11 +781,16 @@ tasks:
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-domain\",\"value\":\"${PROD_DOMAIN}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-brand\",\"value\":\"${BRAND_NAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"workspace-infra\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"workspace-wildcard-tls\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-infra-namespace\",\"value\":\"${INFRA_NAMESPACE}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-tls-secret\",\"value\":\"${TLS_SECRET_NAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-smtp-from\",\"value\":\"${SMTP_FROM}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-ip\",\"value\":\"${TURN_PUBLIC_IP}\"},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-node\",\"value\":\"${TURN_NODE}\"}
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-turn-node\",\"value\":\"${TURN_NODE}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-website-image\",\"value\":\"${WEBSITE_IMAGE}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user1-username\",\"value\":\"${KC_USER1_USERNAME}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user1-email\",\"value\":\"${KC_USER1_EMAIL}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-username\",\"value\":\"${KC_USER2_USERNAME}\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-email\",\"value\":\"${KC_USER2_EMAIL}\"}
           ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
           echo "  ✓ korczewski registered and annotated"
         else

@@ -52,8 +52,7 @@ Bevor eine Anfrage den eigentlichen Service erreicht, durchläuft sie Traefik-Mi
 |------------|-----------|----------|
 | `https-redirect` | Alle Services (Produktion) | HTTP → HTTPS erzwingen |
 | `security-headers` | Alle Services | OWASP-Security-Header setzen |
-| `basic-auth-internal` | Mailpit | HTTP Basic Auth |
-| `oauth2-proxy` | Docs | Keycloak SSO-Gateway |
+| `oauth2-proxy` | Docs, Mailpit, Traefik Dashboard | Keycloak SSO-Gateway |
 | `rate-limit-*` | Keycloak, Nextcloud, Website | Anfragen-Drosselung |
 
 ## Netzwerksicherheit
@@ -105,10 +104,8 @@ Alle externen Services erhalten folgende HTTP-Security-Header:
 
 ### Zugriffsschutz interner Dienste
 
-- **Mailpit** (`mail.*`): HTTP Basic Auth über `basic-auth-internal`-Middleware (Secret `traefik-basic-auth`)
+- **Mailpit** (`mail.*`): Keycloak OIDC über `oauth2-proxy-mailpit` (ForwardAuth), Zugang auf Admin-E-Mail-Adressen beschränkt
 - **Docs** (`docs.*`): Keycloak SSO via oauth2-proxy — nur authentifizierte Nutzer können die Dokumentation lesen
-- Dev-Credentials: `admin:admin` (nur k3d-Entwicklungsumgebung)
-- Produktion: `htpasswd -nb <user> <password>` zum Generieren der Basic-Auth-Credentials
 
 ### Rate-Limiting (Produktion)
 

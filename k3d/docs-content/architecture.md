@@ -240,14 +240,12 @@ Traefik ist der einzige Ingress Controller (k3s built-in, im `kube-system`-Names
 
 ### Middlewares
 
-In der Entwicklungsumgebung (`k3d/traefik-middlewares-dev.yaml`) ist eine einzige Middleware aktiv:
-
-- **`basic-auth-internal`** -- HTTP Basic Auth fuer interne Dienste (Secret `traefik-basic-auth`)
-
-In Produktion (`prod/traefik-middlewares.yaml`) kommen zusaetzlich hinzu:
+In Produktion (`prod/traefik-middlewares.yaml`) sind folgende Middlewares aktiv:
 
 - **Security-Header-Middleware** (HSTS, X-Frame-Options, CSP)
 - **HTTPS-Redirect-Middleware** (HTTP → HTTPS)
+
+Fuer interne Admin-Dienste (`mail.*`, `traefik.*`, `docs.*`) erfolgt die Zugriffskontrolle nicht mehr ueber HTTP Basic Auth, sondern ueber dedizierte `oauth2-proxy`-Instanzen mit Keycloak-SSO (ForwardAuth-Muster).
 
 ---
 

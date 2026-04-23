@@ -13,7 +13,6 @@ data:
   MAIL_DOMAIN: "mail.localhost"
   DOCS_DOMAIN: "docs.localhost"
   WEB_DOMAIN: "web.localhost"
-  AI_DOMAIN: "ai.localhost"
   SIGN_DOMAIN: "sign.localhost"
   TRAEFIK_DOMAIN: "traefik.localhost"
   # Env-registry values (dev defaults — prod overlay overrides these)

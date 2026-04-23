@@ -26,7 +26,6 @@ for var in \
     DOCS_OIDC_SECRET \
     NC_DOMAIN \
     VAULT_DOMAIN \
-    AI_DOMAIN \
     WEB_DOMAIN \
     DOCS_DOMAIN \
     PROD_DOMAIN; do

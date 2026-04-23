@@ -22,7 +22,6 @@ ArgoCD tasks hardcode `--context mentolder` — do not run them expecting korcze
 | Nextcloud | files.localhost | files.mentolder.de |
 | Collabora | office.localhost | office.mentolder.de |
 | Vaultwarden | vault.localhost | vault.mentolder.de |
-| Claude Code | ai.localhost | ai.mentolder.de |
 | Website (Astro) | web.localhost | web.mentolder.de |
 | Mailpit (dev only) | mail.localhost | — |
 | Docs | docs.localhost | docs.mentolder.de |

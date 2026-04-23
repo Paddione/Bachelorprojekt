@@ -58,7 +58,6 @@ spec:
               NC="${NC_DOMAIN:-files.localhost}"
               KC="${KC_DOMAIN:-auth.localhost}"
               WEB="${WEB_DOMAIN:-web.localhost}"
-              AI="${AI_DOMAIN:-ai.localhost}"
               DOCS="${DOCS_DOMAIN:-docs.localhost}"
               OFFICE="${OFFICE_DOMAIN:-office.localhost}"
 
@@ -70,7 +69,6 @@ spec:
               upsert_login "Keycloak — Benutzerverwaltung"  "https://${KC}"               "SSO und Benutzerverwaltung"
               upsert_login "Portal — Kundenbereich"         "https://${WEB}/portal"       "Kundenportal (Login via Keycloak SSO)"
               upsert_login "Admin — Website-Verwaltung"     "https://${WEB}/admin"        "Website-Admin (Login via Keycloak SSO)"
-              upsert_login "Claude Code KI"                 "https://${AI}"               "KI-Assistent"
               upsert_login "Docs"                           "https://${DOCS}"             "Dokumentation"
 
               echo "Vaultwarden seeding completed successfully."
@@ -102,12 +100,6 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: WEB_DOMAIN
-                  optional: true
-            - name: AI_DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: AI_DOMAIN
                   optional: true
             - name: DOCS_DOMAIN
               valueFrom:

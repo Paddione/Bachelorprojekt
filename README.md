@@ -27,7 +27,6 @@ task workspace:up
 | Nextcloud (Dateien + Talk) | http://files.localhost | Dateien, Kalender, Kontakte, Video |
 | Collabora (Office) | http://office.localhost | WOPI-Backend fuer Nextcloud (kein eigenstaendiges UI — antwortet mit "OK") |
 | Talk HPB (Signaling) | http://signaling.localhost | WebRTC-Signaling (Janus + NATS + coturn) |
-| Claude Code (KI) | http://ai.localhost | MCP-Status-Dashboard (Claude Code laeuft lokal) |
 | Invoice Ninja (Rechnungen) | http://billing.localhost | Rechnungsstellung |
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
 | Whiteboard | http://files.localhost | In Nextcloud integriert (WebSocket-Backend board.localhost, kein eigenstaendiges UI) |
@@ -67,7 +66,6 @@ graph TB
             NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
             CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
             HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
-            OC["fa:fa-brain Claude Code KI<br/>ai.localhost"]
             IN["fa:fa-receipt Invoice Ninja<br/>billing.localhost"]
             VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
             WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
@@ -98,9 +96,9 @@ graph TB
     end
 
     User --> Traefik
-    Traefik --> KC & NC & CO & HPB & OC & IN & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & IN & VW & WB & MP & DOCS & WEB
 
-    KC -. OIDC .-> NC & IN & OC & VW & WEB
+    KC -. OIDC .-> NC & IN & VW & WEB
     OAUTH --> KC
     IN --> OAUTH
 
@@ -112,7 +110,7 @@ graph TB
     HPB --- JANUS & NATS
     JANUS --- COTURN
 
-    KC & NC & IN & OC & VW --> DB
+    KC & NC & IN & VW --> DB
     PROM --> GRAF
 
     classDef identity fill:#4a90d9,color:#fff,stroke:#2d6a9f

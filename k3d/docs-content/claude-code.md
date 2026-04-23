@@ -6,12 +6,10 @@ Die **MCP-Server** (Model Context Protocol) laufen als Kubernetes-Pods im Cluste
 
 | Eigenschaft | Wert |
 |-------------|------|
-| URL | `http://ai.localhost` — MCP-Status-Dashboard (kein vollständiges KI-UI) |
 | Namespace | `workspace` |
-| Authentifizierung | Keycloak SSO (OIDC) |
 | Sprache | Deutsch (konfiguriert im System-Prompt) |
 
-> **Hinweis:** `http://ai.localhost` zeigt nur ein einfaches Statusdashboard. Die eigentliche KI-Interaktion erfolgt über `claude` im Terminal des Entwicklers.
+> **Hinweis:** Claude Code läuft lokal als CLI/Desktop/IDE-Client. Die MCP-Server laufen als Pods im Cluster und sind nur clusterintern erreichbar.
 
 ---
 

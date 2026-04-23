@@ -16,9 +16,8 @@ resources:
   # Standalone
   - claude-code-mcp-github.yaml      # replicas=0 — task mcp:set-github-pat to enable
   - claude-code-mcp-stripe.yaml      # Stripe payment MCP — replace STRIPE_SECRET_KEY to activate
-  # Auth + Status
+  # Auth
   - mcp-tokens.yaml             # Bearer tokens for Claude Code access
   - mcp-auth-proxy.yaml         # ForwardAuth proxy (token validation + role enforcement)
-  - mcp-status.yaml             # Health status page (replaces Claude Code WebUI)
   # Ingress — exposes MCP servers via mcp-*.localhost for external clients
   - ingress.yaml

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FA-12: Claude Code AI Assistant — MCP Infrastructure, ForwardAuth, Status Page
+# FA-12: Claude Code AI Assistant — MCP Infrastructure, ForwardAuth
 # (Replaces former Claude Code AI Assistant tests)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
@@ -19,10 +19,6 @@ assert_gt "${APPS_READY:-0}" "0" "FA-12" "T2" "MCP-Apps-Pod running (readyReplic
 # ── T3: MCP auth pod running ────────────────────────────────────
 AUTH_READY=$(kubectl get deploy claude-code-mcp-auth -n "$MCP_NS" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
 assert_gt "${AUTH_READY:-0}" "0" "FA-12" "T3" "MCP-Auth-Pod running (readyReplicas > 0)"
-
-# ── T4: MCP status page deployed ────────────────────────────────
-STATUS_READY=$(kubectl get deploy mcp-status -n "$MCP_NS" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
-assert_gt "${STATUS_READY:-0}" "0" "FA-12" "T4" "MCP-Statusseite deployed (readyReplicas > 0)"
 
 # ── T5: MCP ForwardAuth proxy deployed ──────────────────────────
 AUTH_PROXY_READY=$(kubectl get deploy mcp-auth-proxy -n "$MCP_NS" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")

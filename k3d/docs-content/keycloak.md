@@ -56,7 +56,6 @@ graph LR
 | Client-ID | Service | Redirect-URI | Secret-Variable | Besonderheiten |
 |-----------|---------|--------------|-----------------|----------------|
 | `nextcloud` | Nextcloud | `http://{NC_DOMAIN}/apps/oidc_login/oidc` | `NEXTCLOUD_OIDC_SECRET` | Attribut-Mapping: preferred_username, name, email |
-| `claude-code` | Claude Code MCP | `http://{AI_DOMAIN}/*` | `CLAUDE_CODE_OIDC_SECRET` | Für MCP-Server-Authentifizierung |
 | `vaultwarden` | Vaultwarden | `http://{VAULT_DOMAIN}/identity/connect/oidc-signin` | `VAULTWARDEN_OIDC_SECRET` | SSO optional, Passwort-Login bleibt Fallback |
 | `website` | Astro-Website / Chat | `http://{WEB_DOMAIN}/*` | `WEBSITE_OIDC_SECRET` | Authorization Code + PKCE |
 | `docs` | Docs (über oauth2-proxy) | `http://{DOCS_DOMAIN}/oauth2/callback` | `DOCS_OIDC_SECRET` | PKCE S256, Zugriff nur für eingeloggte User |
@@ -158,7 +157,6 @@ Keycloak importiert den Realm nur einmalig (beim ersten Start mit leerer Datenba
 | `NC_DOMAIN` | ConfigMap `domain-config` |
 | `WEB_DOMAIN` | ConfigMap `domain-config` |
 | `VAULT_DOMAIN` | ConfigMap `domain-config` |
-| `AI_DOMAIN` | ConfigMap `domain-config` |
 | `DOCS_DOMAIN` | ConfigMap `domain-config` |
 
 ## Betrieb

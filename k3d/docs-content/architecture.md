@@ -52,7 +52,6 @@ flowchart TB
         end
 
         subgraph ai ["fa:fa-robot KI & Automatisierung"]
-            OC["fa:fa-brain Claude Code\nai.localhost"]
             WHISPER["fa:fa-microphone Whisper\n(optional)"]
             MCP["MCP-Server\n(k8s, pg, browser,\nnc, kc, github)"]
         end
@@ -74,11 +73,11 @@ flowchart TB
 
     %% Ingress
     User --> Traefik
-    Traefik --> KC & NC & CO & SIG & OC & VW & WB & MP & OAUTH2 & WEB
+    Traefik --> KC & NC & CO & SIG & VW & WB & MP & OAUTH2 & WEB
     OAUTH2 --> DOCS
 
     %% OIDC
-    KC -. "OIDC" .-> NC & OC & VW & WEB
+    KC -. "OIDC" .-> NC & VW & WEB
     OAUTH2 --> KC
 
     %% Zusammenarbeit
@@ -91,7 +90,6 @@ flowchart TB
     JANUS --- COTURN
 
     %% KI
-    OC --> MCP
     NC -. "optional" .-> WHISPER
 
     %% Datenbanken
@@ -108,7 +106,6 @@ flowchart TB
     click KC "#/keycloak" "Keycloak: Zentraler OIDC Identity Provider. Verwaltet Benutzer, Rollen und OIDC-Clients."
     click NC "#/services?id=nextcloud-dateien-talk" "Nextcloud: Dateiverwaltung, Kalender, Kontakte, Talk-Videokonferenzen."
     click CO "#/services?id=collabora-online-office" "Collabora Online: LibreOffice-basierter Browser-Editor via WOPI."
-    click OC "#/services?id=claude-code-ki-assistent" "Claude Code: KI-Assistent mit MCP-Servern fuer Cluster-Management."
     click VW "#/services?id=vaultwarden-passwoerter" "Vaultwarden: Self-hosted Bitwarden-kompatibler Passwort-Manager."
     click WB "#/services?id=whiteboard" "Whiteboard: Echtzeit-Kollaborations-Whiteboard."
     click MP "#/services?id=mailpit-dev-mail" "Mailpit: SMTP-Testserver fuer Entwicklung."
@@ -127,7 +124,7 @@ flowchart TB
 
     class KC,OAUTH2 identity_style
     class NC,CO,WB,REC collab_style
-    class OC,MCP,WHISPER ai_style
+    class MCP,WHISPER ai_style
     class DB data_style
     class VW,MP,DOCS tools_style
     class Traefik,WEB infra_style
@@ -191,7 +188,6 @@ flowchart LR
         NC["Nextcloud"]
         CO_PROXY["(→ office NS)"]
         SIG["spreed-signaling"]
-        OC["Claude Code"]
         VW["Vaultwarden"]
         DB["shared-db"]
         TRX["talk-transcriber"]
@@ -236,7 +232,6 @@ Traefik ist der einzige Ingress Controller (k3s built-in, im `kube-system`-Names
 | `office.localhost` | collabora | 9980 |
 | `signaling.localhost` | spreed-signaling | 8080 |
 | `meet.localhost` | spreed-signaling | 8080 |
-| `ai.localhost` | claude-code | 8080 |
 | `vault.localhost` | vaultwarden | 80 |
 | `board.localhost` | whiteboard | 3002 |
 | `mail.localhost` | mailpit | 8025 |

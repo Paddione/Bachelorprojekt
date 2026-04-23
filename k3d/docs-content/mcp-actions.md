@@ -4,7 +4,7 @@
     <div class="page-hero-title">MCP Actions</div>
     <p class="page-hero-desc">Referenz aller Aktionen, die Claude Code über die verbundenen MCP-Server ausführen kann: Kubernetes, Postgres, Browser, GitHub, Stripe.</p>
     <div class="page-hero-meta">
-      <span class="page-hero-tag">Claude Code KI</span>
+      <span class="page-hero-tag">Claude Code</span>
       <span class="page-hero-tag">MCP Server</span>
     </div>
   </div>

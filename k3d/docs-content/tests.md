@@ -56,7 +56,7 @@ task workspace:deploy
 | FA-09 | Billing-Infrastruktur — Manifest-Validierung (übersprungen, nicht mehr aktiv) |
 | FA-10 | Kundenanfragen-Kontaktformular — Website-Kontaktformular + Admin-Inbox |
 | FA-11 | Kunden-Portal — Infrastruktur und Keycloak-Integration |
-| FA-12 | Claude Code AI Assistant — MCP-Infrastruktur, ForwardAuth, Statusseite |
+| FA-12 | Claude Code AI Assistant — MCP-Infrastruktur, ForwardAuth |
 | FA-13 | Dokumentation — Docs-Service-Infrastruktur |
 | FA-14 | User Registration Flow — Registrierungsseite der Website |
 | FA-15 | OIDC Website Login — Auth-Endpunkte, Keycloak-Client |

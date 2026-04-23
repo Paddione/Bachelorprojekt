@@ -78,7 +78,7 @@ spec:
                 port:
                   number: 3000
 ---
-# ─── Interne Tools — BasicAuth (Mailpit, Docs, MCP-Status) ───────────
+# ─── Interne Tools — BasicAuth (Mailpit, Docs) ───────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -107,13 +107,3 @@ spec:
                 name: oauth2-proxy-docs
                 port:
                   number: 4180
-    - host: ai.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mcp-status
-                port:
-                  number: 80

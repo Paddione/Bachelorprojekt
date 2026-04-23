@@ -202,7 +202,6 @@ tasks:
       - task: workspace:transcriber-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
-      - 'echo "  MCP Status:   http://ai.localhost"'
 
   down:
     desc: "Tear down everything"
@@ -1279,19 +1278,18 @@ tasks:
       - kubectl rollout status deployment/claude-code-mcp-apps --timeout=90s
       - kubectl rollout status deployment/claude-code-mcp-auth --timeout=120s
       - kubectl rollout status deployment/mcp-auth-proxy --timeout=60s
-      - kubectl rollout status deployment/mcp-status --timeout=60s
-      - 'echo "✓ All MCP pods deployed (3 pods + auth proxy + status page)"'
+      - 'echo "✓ All MCP pods deployed (3 pods + auth proxy)"'
       - task: mcp:status
 
   mcp:status:
     desc: Show status of all Claude Code MCP pods and containers
     cmds:
       - 'echo "=== MCP Pods ==="'
-      - kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-github,mcp-auth-proxy,mcp-status)' -o wide
+      - kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-github,mcp-auth-proxy)' -o wide
       - 'echo ""'
       - 'echo "=== Container Status (per pod) ==="'
       - |
-        for pod in $(kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-auth-proxy,mcp-status)' -o name 2>/dev/null); do
+        for pod in $(kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-auth-proxy)' -o name 2>/dev/null); do
           echo "  $pod:"
           kubectl get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}'
         done

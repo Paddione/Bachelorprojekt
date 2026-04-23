@@ -73,11 +73,10 @@ Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. All
 
 ### Claude Code (MCP-Server)
 
-Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (Model Context Protocol) mit dem Kubernetes-Cluster interagiert. Es gibt kein Web-UI im Cluster -- stattdessen zeigt `ai.localhost` eine MCP-Status-Seite mit Health-Checks aller MCP-Server.
+Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (Model Context Protocol) mit dem Kubernetes-Cluster interagiert. Die MCP-Server laufen als Pods im Cluster; kein Web-UI ist oeffentlich exponiert.
 
 | Eigenschaft | Wert |
 |-------------|------|
-| Status-Seite | http://ai.localhost (MCP-Status-Dashboard) |
 | MCP-Server | 9 Server in separaten Pods |
 | Backend | Anthropic API (Claude Sonnet 4) |
 | Manifest | `k3d/claude-code-config.yaml`, `k3d/claude-code-rbac.yaml` |

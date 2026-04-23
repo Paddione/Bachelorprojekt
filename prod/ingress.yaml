@@ -171,30 +171,6 @@ spec:
                 port:
                   number: 4180
 ---
-# ── MCP-Status — BasicAuth (AI-Infrastruktur) ──────────────────────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: workspace-ingress-ai
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-basic-auth-internal@kubernetescrd"
-spec:
-  tls:
-    - hosts:
-        - ai.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
-  rules:
-    - host: ai.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mcp-status
-                port:
-                  number: 80
----
 # ── DocuSeal (E-Signaturen) ─────────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress

@@ -21,8 +21,6 @@ Die Workspace-Plattform laeuft vollstaendig self-hosted in einem Kubernetes-Clus
 | **Mailpit** | mail.{domain} | E-Mail-Testumgebung (SMTP Web-UI) |
 | **Dokumentation** | docs.{domain} | Plattform-Dokumentation (Docsify) |
 | **Website** | web.{domain} | Unternehmens-Website (Astro + Svelte + Chat/Messaging) |
-| **Claude Code (du)** | ai.{domain} | KI-Assistent & MCP Status-Dashboard |
-
 Alle Dienste nutzen **Keycloak SSO** — Nutzer melden sich einmal an und sind ueberall eingeloggt.
 
 ### Zusaetzliche Backend-Dienste (ohne eigene Subdomain)

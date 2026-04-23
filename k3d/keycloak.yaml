@@ -96,11 +96,6 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: VAULT_DOMAIN
-            - name: AI_DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: AI_DOMAIN
             - name: CLAUDE_CODE_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

@@ -59,7 +59,7 @@ Dev-Services erreichbar unter:
 | Keycloak (SSO) | `http://auth.localhost` | admin / devadmin |
 | Nextcloud | `http://files.localhost` | — |
 | Collabora | `http://office.localhost` | — |
-| Claude Code (KI) | `http://ai.localhost` | — |
+| Claude Code (MCP) | (kein Web-UI) | — |
 | Vaultwarden | `http://vault.localhost` | — |
 | Whiteboard | `http://board.localhost` | — |
 | Mailpit | `http://mail.localhost` | — |

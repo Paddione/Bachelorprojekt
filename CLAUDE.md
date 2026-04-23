@@ -128,7 +128,6 @@ graph TB
         NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
         CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
         HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
-        OC["fa:fa-brain Claude Code KI<br/>ai.localhost"]
         VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
         WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
         MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
@@ -146,15 +145,15 @@ graph TB
         WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
     end
 
-    Traefik --> KC & NC & CO & HPB & OC & VW & WB & MP & DOCS & DS & TR & WEB
+    Traefik --> KC & NC & CO & HPB & VW & WB & MP & DOCS & DS & TR & WEB
 
-    KC -. OIDC .-> NC & OC & VW & WEB & DS & TR
+    KC -. OIDC .-> NC & VW & WEB & DS & TR
     OAUTH2 --> KC
     DOCS --> OAUTH2
     NC --> CO
     NC --> HPB --> JANUS
     HPB --> TRBOT --> WHISPER
-    KC & NC & OC & DS & TR --> DB
+    KC & NC & DS & TR --> DB
     WEB --> DB
 ```
 

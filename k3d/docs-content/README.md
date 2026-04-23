@@ -30,7 +30,7 @@ task workspace:post-setup # Nextcloud-Apps aktivieren (Kalender, Kontakte, OIDC,
 | Nextcloud | http://files.localhost | https://files.korczewski.de | Dateien, Kalender, Talk |
 | Collabora | http://office.localhost | https://office.korczewski.de | Office-Suite (WOPI-Backend) |
 | Talk HPB | http://signaling.localhost | https://signaling.korczewski.de | WebRTC-Signaling |
-| Claude Code | http://ai.localhost | https://ai.korczewski.de | KI-Assistent (MCP-Status) |
+| Claude Code | (kein Web-UI) | (kein Web-UI) | KI-Assistent (MCP-Server, lokal) |
 | Vaultwarden | http://vault.localhost | https://vault.korczewski.de | Passwort-Manager |
 | Whiteboard | http://board.localhost | https://board.korczewski.de | Kollaboratives Whiteboard |
 | Mailpit | http://mail.localhost | -- (nur Dev) | E-Mail-Testing |
@@ -55,7 +55,6 @@ graph TB
             NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
             CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
             HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
-            OC["fa:fa-brain Claude Code KI<br/>ai.localhost"]
             VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
             WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
             MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
@@ -82,16 +81,16 @@ graph TB
     end
 
     User --> Traefik
-    Traefik --> KC & NC & CO & HPB & OC & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & VW & WB & MP & DOCS & WEB
 
-    KC -. OIDC .-> NC & OC & VW & WEB
+    KC -. OIDC .-> NC & VW & WEB
 
     NC --> CO
     NC --> HPB
     HPB --- JANUS & NATS
     JANUS --- COTURN
 
-    KC & NC & OC & VW --> DB
+    KC & NC & VW --> DB
     WEB --> DB
     PROM --> GRAF
 

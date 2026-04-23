@@ -68,7 +68,7 @@ Alle Services ohne native OIDC-Unterstützung sind hinter einem `oauth2-proxy` g
 Nutzt die native Bitwarden-API-Authentifizierung. Zusätzlich kann OIDC für den Admin-Bereich konfiguriert werden.
 
 **Basic Auth (interne Tools):**
-Mailpit und Claude Code MCP-Status sind über Traefik Basic Auth (`basic-auth-internal`) geschützt. Der Basic-Auth-Mechanismus ist eine zweite Verteidigungslinie für Dienste, die keine eigene Authentifizierung haben.
+Mailpit ist über Traefik Basic Auth (`basic-auth-internal`) geschützt. Der Basic-Auth-Mechanismus ist eine zweite Verteidigungslinie für Dienste, die keine eigene Authentifizierung haben.
 
 **Keycloak Brute-Force-Schutz:**
 Aktiviert im Realm `workspace`. Passwort-Policy: mind. 12 Zeichen, Groß-/Kleinbuchstaben, Ziffern, Sonderzeichen. Hash-Algorithmus: PBKDF2-SHA512.

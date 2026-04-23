@@ -47,6 +47,12 @@ spec:
         server: "{{server}}"
         namespace: coturn
 
+      # The coturn-secrets Secret carries placeholders in git and is
+      # populated on the live cluster by the SealedSecret controller
+      # (prod) or `task workspace:coturn:sync-secret` (bootstrap).
+      # ArgoCD skips the Secret entirely via `Skip=true` on the resource
+      # itself (see k3d/coturn-stack/secret.yaml); these ignoreDifferences
+      # entries remain as belt-and-braces for any drift-detection UI.
       ignoreDifferences:
         - group: ""
           kind: Secret

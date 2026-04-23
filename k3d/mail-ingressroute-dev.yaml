@@ -1,0 +1,55 @@
+# k3d/mail-ingressroute-dev.yaml
+# Mailpit — OIDC-protected via oauth2-proxy (dev, HTTP only)
+# Flow: ForwardAuth → 202 (pass) or 401 → errors middleware → sign_in → Keycloak
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mailpit-auth
+  namespace: workspace
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-mailpit.workspace.svc.cluster.local:4180/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - X-Auth-Request-Access-Token
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mailpit-errors
+  namespace: workspace
+spec:
+  errors:
+    status:
+      - "401"
+    service:
+      name: oauth2-proxy-mailpit
+      port: 4180
+    query: "/oauth2/sign_in?rd={scheme}://{host}{url}"
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mailpit-dev
+  namespace: workspace
+spec:
+  entryPoints:
+    - web
+  routes:
+    # oauth2-proxy endpoints — no auth middleware
+    - match: Host(`mail.localhost`) && PathPrefix(`/oauth2`)
+      kind: Rule
+      services:
+        - name: oauth2-proxy-mailpit
+          port: 4180
+    # Mailpit UI — require auth
+    - match: Host(`mail.localhost`)
+      kind: Rule
+      middlewares:
+        - name: mailpit-errors
+        - name: mailpit-auth
+      services:
+        - name: mailpit
+          port: 8025

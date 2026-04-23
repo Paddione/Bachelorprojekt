@@ -121,6 +121,16 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: TRAEFIK_DOMAIN
+            - name: MAIL_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: MAIL_OIDC_SECRET
+            - name: MAIL_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: MAIL_DOMAIN
             - name: TZ
               value: Europe/Berlin
           ports:

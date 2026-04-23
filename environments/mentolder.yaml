@@ -32,6 +32,7 @@ env_vars:
   VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
   WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/apps/files"
   TRAEFIK_EXTERNAL_URL: "https://traefik.mentolder.de"
+  MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   STRIPE_PUBLISHABLE_KEY: "pk_live_51TOM2vPmjoQCVSEjX0mKUyfMoEJQssMbl2Me20WSiLJBjhIrxQJiesJrSw6GVlVetbJJ1cH7Wk0rOXHamMN5aVMD00gxhMrdoF"
 
 overlay: prod-mentolder

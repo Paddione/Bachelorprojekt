@@ -78,25 +78,13 @@ spec:
                 port:
                   number: 3000
 ---
-# ─── Interne Tools — BasicAuth (Mailpit, Docs) ───────────
+# ─── Interne Tools (Docs, oauth2-proxy-protected) ────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress-internal
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-basic-auth-internal@kubernetescrd"
 spec:
   rules:
-    - host: mail.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mailpit
-                port:
-                  number: 8025
     - host: docs.localhost
       http:
         paths:

@@ -49,7 +49,7 @@ Alle Dienste sind über Subdomains erreichbar. Ein Fokus des Tests sollte auf de
 | **Vaultwarden** | `vault.korczewski.de` | Native Bitwarden-API |
 | **Collabora** | `office.korczewski.de` | OIDC (Keycloak) + WOPI-Protokoll |
 | **Claude Code** | `ai.korczewski.de` | **Traefik Basic Auth** |
-| **Mailpit** | `mail.korczewski.de` | **Traefik Basic Auth** |
+| **Mailpit** | `mail.korczewski.de` | **oauth2-proxy** (Keycloak OIDC Gateway) |
 | **Dokumentation** | `docs.korczewski.de` | **oauth2-proxy** (Keycloak OIDC Gateway) |
 | **Website/Chat** | `web.korczewski.de` | Keycloak OIDC SSO |
 | **Whiteboard** | `board.korczewski.de` | Keycloak OIDC SSO |
@@ -67,8 +67,8 @@ Alle Services ohne native OIDC-Unterstützung sind hinter einem `oauth2-proxy` g
 **Vaultwarden:**
 Nutzt die native Bitwarden-API-Authentifizierung. Zusätzlich kann OIDC für den Admin-Bereich konfiguriert werden.
 
-**Basic Auth (interne Tools):**
-Mailpit ist über Traefik Basic Auth (`basic-auth-internal`) geschützt. Der Basic-Auth-Mechanismus ist eine zweite Verteidigungslinie für Dienste, die keine eigene Authentifizierung haben.
+**Admin-Tools (OIDC-Gating):**
+Mailpit ist über OIDC (Keycloak + oauth2-proxy-mailpit) geschützt. Nur admin-gelistete E-Mail-Adressen erhalten Zugang. Das frühere HTTP Basic Auth (`basic-auth-internal`) wurde vollständig entfernt.
 
 **Keycloak Brute-Force-Schutz:**
 Aktiviert im Realm `workspace`. Passwort-Policy: mind. 12 Zeichen, Groß-/Kleinbuchstaben, Ziffern, Sonderzeichen. Hash-Algorithmus: PBKDF2-SHA512.
@@ -187,7 +187,7 @@ Vollständige Testspezifikationen und Acceptance-Kriterien: [tests.md](tests.md)
 | Brute-Force auf Keycloak | MITTEL | HOCH | HOCH | Rate-Limiting (20 req/s) + Brute-Force-Detection |
 | Privilege Escalation im Container | NIEDRIG | HOCH | HOCH | SecurityContexts, Pod Security Standards |
 | PostgreSQL ohne TLS (intern) | NIEDRIG | MITTEL | MITTEL | Mitigiert durch NetworkPolicy-Isolation |
-| Unauthentifizierter Zugriff auf interne Tools | MITTEL | MITTEL | MITTEL | Basic Auth auf Mailpit, Docs, AI-Status |
+| Unauthentifizierter Zugriff auf interne Tools | MITTEL | MITTEL | MITTEL | oauth2-proxy/Keycloak-OIDC auf Mailpit, Docs, Traefik-Dashboard |
 | K8s-API-Zugriff ohne kubectl-Auth | SEHR NIEDRIG | SEHR HOCH | MITTEL | kubeconfig erforderlich, kein Dashboard deployed |
 
 ---

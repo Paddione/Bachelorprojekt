@@ -29,6 +29,9 @@ resources:
   - oauth2-proxy-docs.yaml
   # Traefik dashboard SSO gateway
   - oauth2-proxy-traefik.yaml
+  # Mailpit SSO gateway
+  - oauth2-proxy-mailpit.yaml
+  - mail-ingressroute-dev.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-cronjob.yaml
@@ -55,8 +58,6 @@ resources:
   - claude-code-mcp-github.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
-  # Traefik Dev-Middlewares
-  - traefik-middlewares-dev.yaml
   # Netzwerksicherheit (L3)
   - network-policies.yaml
   # Ingress

@@ -18,16 +18,19 @@ mkdir -p "$(dirname "$OUTPUT")"
 # Alle ${VAR} Referenzen im JSON durch aktuelle Env-Werte ersetzen (sed-basiert)
 cp "$TEMPLATE" "$OUTPUT"
 for var in \
-    \
     NEXTCLOUD_OIDC_SECRET \
     VAULTWARDEN_OIDC_SECRET \
     CLAUDE_CODE_OIDC_SECRET \
     WEBSITE_OIDC_SECRET \
     DOCS_OIDC_SECRET \
+    TRAEFIK_OIDC_SECRET \
+    MAIL_OIDC_SECRET \
     NC_DOMAIN \
     VAULT_DOMAIN \
     WEB_DOMAIN \
     DOCS_DOMAIN \
+    TRAEFIK_DOMAIN \
+    MAIL_DOMAIN \
     PROD_DOMAIN; do
   eval val="\${${var}:-}"
   if [ -z "$val" ]; then

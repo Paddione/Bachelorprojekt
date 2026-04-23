@@ -118,6 +118,10 @@ env_vars:
     required: false
     default_dev: "http://traefik.localhost"
 
+  - name: MAIL_EXTERNAL_URL
+    required: false
+    default_dev: "http://mail.localhost"
+
   - name: STRIPE_PUBLISHABLE_KEY
     required: false
 
@@ -280,6 +284,11 @@ secrets:
     generate: true
     length: 40
 
+  - name: MAIL_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
   # Claude Code
   - name: CLAUDE_CODE_OIDC_SECRET
     required: true
@@ -340,10 +349,6 @@ secrets:
     required: true
     generate: true
     length: 32
-
-  - name: TRAEFIK_BASIC_AUTH_USERS
-    required: false
-    generate: false
 
   - name: IPV64_API_KEY
     required: false

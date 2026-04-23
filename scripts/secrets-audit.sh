@@ -136,7 +136,6 @@ SOLO_LABELS=(
   "TRANSCRIBER_BOT_PASSWORD"
   "TRANSCRIBER_SECRET"
   "CLAUDE_CODE_OIDC_SECRET"
-  "CLAUDE_CODE_WEBUI_SECRET_KEY"
   "GITHUB_PAT"
   "DOCUSEAL_SECRET_KEY_BASE"
   "DOCUSEAL_API_TOKEN"
@@ -170,7 +169,6 @@ SOLO_MEMBERS=(
   "workspace:workspace-secrets:TRANSCRIBER_BOT_PASSWORD"
   "workspace:workspace-secrets:TRANSCRIBER_SECRET"
   "workspace:workspace-secrets:CLAUDE_CODE_OIDC_SECRET"
-  "workspace:workspace-secrets:CLAUDE_CODE_WEBUI_SECRET_KEY"
   "workspace:workspace-secrets:GITHUB_PAT"
   "workspace:workspace-secrets:DOCUSEAL_SECRET_KEY_BASE"
   "workspace:workspace-secrets:DOCUSEAL_API_TOKEN"
@@ -184,6 +182,18 @@ SOLO_MEMBERS=(
   "coturn:coturn-secrets:TURN_SECRET"
   "workspace-office:collabora-secrets:COLLABORA_ADMIN_PASSWORD"
 )
+
+# CLAUDE_CODE_WEBUI_SECRET_KEY only exists on prod clusters (sealed secret).
+# k3d/secrets.yaml has no dev placeholder, so skip it on dev to avoid a
+# constant "(empty/not found)" false-positive.
+if [[ "$ENV" != "dev" ]]; then
+  SOLO_LABELS+=(
+    "CLAUDE_CODE_WEBUI_SECRET_KEY"
+  )
+  SOLO_MEMBERS+=(
+    "workspace:workspace-secrets:CLAUDE_CODE_WEBUI_SECRET_KEY"
+  )
+fi
 
 # mcp-tokens only exists on the dev cluster (MCP servers are not deployed to
 # prod). Include the entries only when auditing dev so prod audits don't

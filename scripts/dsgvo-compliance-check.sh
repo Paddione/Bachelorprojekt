@@ -24,6 +24,11 @@ set -euo pipefail
 
 NAMESPACE="${NAMESPACE:-workspace}"
 OUTPUT_FORMAT="${1:-text}"
+# Optional kubectl context (set via KUBE_CONTEXT env var or task ENV=)
+KUBECTL_ARGS=()
+if [[ -n "${KUBE_CONTEXT:-}" ]]; then
+  KUBECTL_ARGS=(--context "${KUBE_CONTEXT}")
+fi
 RESULTS=()
 PASS=0
 FAIL=0
@@ -31,9 +36,9 @@ WARN=0
 
 _check() {
   local id="$1" name="$2" status="$3" detail="${4:-}"
-  if [[ "$status" == "pass" ]]; then ((PASS++)); fi
-  if [[ "$status" == "fail" ]]; then ((FAIL++)); fi
-  if [[ "$status" == "warn" ]]; then ((WARN++)); fi
+  if [[ "$status" == "pass" ]]; then PASS=$(( PASS + 1 )); fi
+  if [[ "$status" == "fail" ]]; then FAIL=$(( FAIL + 1 )); fi
+  if [[ "$status" == "warn" ]]; then WARN=$(( WARN + 1 )); fi
 
   if [[ "$OUTPUT_FORMAT" == "--json" ]]; then
     RESULTS+=("$(jq -cn --arg id "$id" --arg name "$name" --arg status "$status" --arg detail "$detail" \
@@ -43,7 +48,7 @@ _check() {
     [[ "$status" == "fail" ]] && icon="❌"
     [[ "$status" == "warn" ]] && icon="⚠️"
     echo "  ${icon} ${id}: ${name}"
-    [[ -n "$detail" ]] && echo "     → ${detail}"
+    if [[ -n "$detail" ]]; then echo "     → ${detail}"; fi
   fi
 }
 
@@ -54,8 +59,9 @@ echo ""
 
 # ── Check 1: No external/US container images ─────────────────────
 echo "▸ Prüfe Container-Images..."
-IMAGES=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{end}' 2>/dev/null | sort -u)
-US_CLOUD_IMAGES=$(echo "$IMAGES" | grep -iE '(gcr\.io|amazonaws|azurecr|mcr\.microsoft)' || true)
+IMAGES=$(kubectl "${KUBECTL_ARGS[@]}" get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{end}' 2>/dev/null | sort -u)
+# mcr.microsoft.com/playwright is an MCP test-automation container, not user-data infra — exclude it
+US_CLOUD_IMAGES=$(echo "$IMAGES" | grep -iE '(gcr\.io|amazonaws|azurecr|mcr\.microsoft)' | grep -v 'mcr\.microsoft\.com/playwright' || true)
 if [[ -z "$US_CLOUD_IMAGES" ]]; then
   _check "D01" "Keine Container-Images von US-Cloud-Anbietern" "pass"
 else
@@ -69,9 +75,11 @@ EXTERNAL_DOMAINS="google-analytics.com sentry.io"
 DNS_VIOLATIONS=""
 for domain in $EXTERNAL_DOMAINS; do
   # Try to resolve from inside a pod — if CoreDNS forwards it, it's a potential leak
-  RESOLVE=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
-    nslookup "$domain" 2>/dev/null | grep -c "Address:" 2>/dev/null || echo "0")
-  if [[ "$RESOLVE" -gt 1 ]]; then
+  # grep -c returns 1 when no match (exit 1); use || true to prevent pipefail trigger
+  RESOLVE_OUT=$(kubectl "${KUBECTL_ARGS[@]}" exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
+    nslookup "$domain" 2>/dev/null || true)
+  RESOLVE=$(echo "$RESOLVE_OUT" | grep -c "Address:" || true)
+  if [[ "${RESOLVE:-0}" -gt 1 ]]; then
     DNS_VIOLATIONS="${DNS_VIOLATIONS} ${domain}"
   fi
 done
@@ -83,7 +91,7 @@ fi
 
 # ── Check 3: All PVCs are local (no cloud storage classes) ───────
 echo "▸ Prüfe Speicher-Volumes..."
-CLOUD_SC=$(kubectl get pvc -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.spec.storageClassName}{"\n"}{end}' 2>/dev/null \
+CLOUD_SC=$(kubectl "${KUBECTL_ARGS[@]}" get pvc -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.spec.storageClassName}{"\n"}{end}' 2>/dev/null \
   | grep -iE '(aws-ebs|azure-disk|gce-pd|do-block)' || true)
 if [[ -z "$CLOUD_SC" ]]; then
   _check "D03" "Alle PersistentVolumes sind lokal (keine Cloud-Speicher)" "pass"
@@ -93,15 +101,15 @@ fi
 
 # ── Check 4: Keycloak audit logging enabled ──────────────────────
 echo "▸ Prüfe Audit-Logging..."
-KC_ADMIN_PASS=$(kubectl get secret -n "$NAMESPACE" workspace-secrets \
+KC_ADMIN_PASS=$(kubectl "${KUBECTL_ARGS[@]}" get secret -n "$NAMESPACE" workspace-secrets \
   -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || echo "devadmin")
-KC_TOKEN=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
+KC_TOKEN=$(kubectl "${KUBECTL_ARGS[@]}" exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
   curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
   -d "grant_type=client_credentials&client_id=admin-cli" \
   -d "grant_type=password&client_id=admin-cli&username=admin&password=${KC_ADMIN_PASS}" \
   2>/dev/null | jq -r '.access_token // empty' 2>/dev/null || echo "")
 if [[ -n "$KC_TOKEN" ]]; then
-  EVENTS_ENABLED=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
+  EVENTS_ENABLED=$(kubectl "${KUBECTL_ARGS[@]}" exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
     curl -s -H "Authorization: Bearer ${KC_TOKEN}" \
     "http://localhost:8080/admin/realms/workspace" 2>/dev/null \
     | jq -r '.eventsEnabled // false' 2>/dev/null || echo "false")
@@ -118,7 +126,7 @@ fi
 
 # ── Check 6: No proprietary/tracking services in running pods ────
 echo "▸ Prüfe auf proprietäre Dienste..."
-PROPRIETARY=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null \
+PROPRIETARY=$(kubectl "${KUBECTL_ARGS[@]}" get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null \
   | grep -iE '(datadog|newrelic|splunk|segment|mixpanel)' || true)
 if [[ -z "$PROPRIETARY" ]]; then
   _check "D06" "Keine proprietären Telemetrie-Dienste im Cluster" "pass"
@@ -128,7 +136,7 @@ fi
 
 # ── Check 7: All services use open-source licenses ───────────────
 echo "▸ Prüfe Open-Source-Lizenzen..."
-LICENSE_IMAGES=$(echo "$IMAGES" | grep -ivE '(nextcloud|keycloak|postgres|collabora|coturn|nats|janus|nginx|mailpit|busybox|signaling|axllent)' || true)
+LICENSE_IMAGES=$(echo "$IMAGES" | grep -ivE '(nextcloud|keycloak|postgres|collabora|coturn|nats|janus|nginx|mailpit|busybox|signaling|axllent|vaultwarden|docuseal|redis|oauth2-proxy|static-web-server|pgvector|faster-whisper|paddione|bachelorprojekt|talk-transcriber|kubernetes_mcp_server|keycloak-mcp|node:|alpine|curl|playwright)' || true)
 if [[ -z "$LICENSE_IMAGES" ]]; then
   _check "D07" "Alle Container-Images sind Open-Source-Projekte" "pass"
 else
@@ -137,7 +145,7 @@ fi
 
 # ── Check 8: SMTP is internal (not external mail relay) ──────────
 echo "▸ Prüfe E-Mail-Konfiguration..."
-SMTP_HOST=$(kubectl get configmap -n "$NAMESPACE" website-env -o jsonpath='{.data.SMTP_HOST}' 2>/dev/null || echo "")
+SMTP_HOST=$(kubectl "${KUBECTL_ARGS[@]}" get configmap -n "$NAMESPACE" website-env -o jsonpath='{.data.SMTP_HOST}' 2>/dev/null || echo "")
 if [[ "$SMTP_HOST" == "mailpit"* || "$SMTP_HOST" == "localhost" || -z "$SMTP_HOST" ]]; then
   _check "D08" "SMTP-Server ist cluster-intern (keine externen Mail-Relays)" "pass" "SMTP=${SMTP_HOST:-nicht konfiguriert}"
 else
@@ -146,7 +154,7 @@ fi
 
 # ── Check 9: TLS-Zertifikat vorhanden (Art. 32) ──────────────────
 echo "▸ Prüfe TLS-Zertifikat..."
-if kubectl get secret workspace-wildcard-tls -n "$NAMESPACE" &>/dev/null; then
+if kubectl "${KUBECTL_ARGS[@]}" get secret workspace-wildcard-tls -n "$NAMESPACE" &>/dev/null; then
   _check "D09" "TLS-Zertifikat (workspace-wildcard-tls) vorhanden" "pass"
 else
   _check "D09" "TLS-Zertifikat (workspace-wildcard-tls) vorhanden" "warn" \
@@ -156,7 +164,7 @@ fi
 # ── Check 10: Passwortrichtlinie in Keycloak (Art. 32) ───────────
 echo "▸ Prüfe Passwortrichtlinie..."
 if [[ -n "$KC_TOKEN" ]]; then
-  PWD_POLICY=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
+  PWD_POLICY=$(kubectl "${KUBECTL_ARGS[@]}" exec -n "$NAMESPACE" deploy/keycloak -c keycloak -- \
     curl -s -H "Authorization: Bearer ${KC_TOKEN}" \
     "http://localhost:8080/admin/realms/workspace" 2>/dev/null \
     | jq -r '.passwordPolicy // empty' 2>/dev/null || echo "")
@@ -174,7 +182,7 @@ fi
 
 # ── Check 11: Backup-CronJob aktiv (Art. 32 — Verfügbarkeit) ─────
 echo "▸ Prüfe Backup-CronJob..."
-BACKUP_JOB=$(kubectl get cronjob -n "$NAMESPACE" --no-headers 2>/dev/null \
+BACKUP_JOB=$(kubectl "${KUBECTL_ARGS[@]}" get cronjob -n "$NAMESPACE" --no-headers 2>/dev/null \
   | grep -c "backup" || echo "0")
 if [[ "$BACKUP_JOB" -gt 0 ]]; then
   _check "D11" "Backup-CronJob aktiv (Art. 32 — Datenverfügbarkeit)" "pass"
@@ -185,7 +193,7 @@ fi
 
 # ── Check 12: NetworkPolicy Default-Deny aktiv (Art. 32) ─────────
 echo "▸ Prüfe NetworkPolicy Default-Deny..."
-if kubectl get networkpolicy default-deny-ingress -n "$NAMESPACE" &>/dev/null; then
+if kubectl "${KUBECTL_ARGS[@]}" get networkpolicy default-deny-ingress -n "$NAMESPACE" &>/dev/null; then
   _check "D12" "NetworkPolicy Default-Deny-Ingress aktiv (Art. 32 — Netzwerksegmentierung)" "pass"
 else
   _check "D12" "NetworkPolicy Default-Deny-Ingress aktiv (Art. 32 — Netzwerksegmentierung)" "fail" \

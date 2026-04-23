@@ -59,8 +59,14 @@ tasks:
 
   workspace:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - bash scripts/dsgvo-compliance-check.sh
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:-}"
+        [ -n "$CTX" ] && export KUBECONFIG_CONTEXT="$CTX"
+        KUBE_CONTEXT="${CTX}" bash scripts/dsgvo-compliance-check.sh
 
   # ─────────────────────────────────────────────
   # Ingress (k3s built-in Traefik)

@@ -21,7 +21,7 @@
 
 ## 1. Systemübersicht
 
-Das Workspace MVP ist eine Kubernetes-basierte Kollaborationsumgebung (K3s/K3d), die verschiedene Dienste (Chat/Messaging, Dateiverwaltung, IAM, Office, Passwort-Manager, KI-Assistent) integriert.
+Das Workspace MVP ist eine Kubernetes-basierte Kollaborationsumgebung (K3s/K3d), die verschiedene Dienste (Chat/Messaging, Dateiverwaltung, IAM, Office, Passwort-Manager) integriert.
 
 **Kernkomponenten:**
 
@@ -48,7 +48,6 @@ Alle Dienste sind über Subdomains erreichbar. Ein Fokus des Tests sollte auf de
 | **Nextcloud** | `files.korczewski.de` | Native Auth + OIDC (Keycloak) |
 | **Vaultwarden** | `vault.korczewski.de` | Native Bitwarden-API |
 | **Collabora** | `office.korczewski.de` | OIDC (Keycloak) + WOPI-Protokoll |
-| **Claude Code** | `ai.korczewski.de` | **Traefik Basic Auth** |
 | **Mailpit** | `mail.korczewski.de` | **oauth2-proxy** (Keycloak OIDC Gateway) |
 | **Dokumentation** | `docs.korczewski.de` | **oauth2-proxy** (Keycloak OIDC Gateway) |
 | **Website/Chat** | `web.korczewski.de` | Keycloak OIDC SSO |

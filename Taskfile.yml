@@ -240,15 +240,19 @@ tasks:
   workspace:theme:nextcloud:
     desc: Apply dark+gold Nextcloud branding via OCC (idempotent)
     vars:
-      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- sh -c"
-      BRAND: '{{.BRAND_NAME | default "mentolder"}}'
-      DOMAIN: '{{.PROD_DOMAIN | default "mentolder.localhost"}}'
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - "{{.NC_EXEC}} \"php occ config:app:set theming name --value='{{.BRAND}}'\""
-      - '{{.NC_EXEC}} "php occ config:app:set theming url            --value=https://web.{{.DOMAIN}}"'
-      - '{{.NC_EXEC}} "php occ config:app:set theming color          --value=#e8c870"'
-      - '{{.NC_EXEC}} "php occ config:app:set theming enforce-theme --value=dark"'
-      - echo "Nextcloud theme applied."
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NC_EXEC="kubectl exec --context ${ENV_CONTEXT} -n workspace -c nextcloud deploy/nextcloud -- sh -c"
+        BRAND="${BRAND_NAME:-mentolder}"
+        DOMAIN="${PROD_DOMAIN:-localhost}"
+        $NC_EXEC "php occ config:system:set trusted_domains 1 --value=files.${DOMAIN}" || true
+        $NC_EXEC "php occ config:app:set theming name --value='${BRAND}'"
+        $NC_EXEC "php occ config:app:set theming url            --value=https://web.${DOMAIN}"
+        $NC_EXEC "php occ config:app:set theming color          --value=#e8c870"
+        $NC_EXEC "php occ config:app:set theming enforce-theme --value=dark"
+        echo "Nextcloud theme applied."
 
   workspace:theme:
     desc: Apply dark+gold theme to Nextcloud (idempotent, run after post-setup)
@@ -260,66 +264,61 @@ tasks:
   workspace:post-setup:
     desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair)
     vars:
-      NC_EXEC: "kubectl exec -n workspace -c nextcloud deploy/nextcloud -- sh -c"
-      FILES_HOST: '{{.FILES_HOST | default "files.localhost"}}'
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - echo "Ensuring trusted_domains includes {{.FILES_HOST}}..."
-      - '{{.NC_EXEC}} "php occ config:system:set trusted_domains 1 --value={{.FILES_HOST}}" || true'
-      - echo "Enabling Nextcloud apps..."
-      - '{{.NC_EXEC}} "php occ app:install oidc_login"   || true'
-      - '{{.NC_EXEC}} "php occ app:install calendar"     || true'
-      - '{{.NC_EXEC}} "php occ app:install contacts"     || true'
-      - '{{.NC_EXEC}} "php occ app:install richdocuments" || true'
-      - '{{.NC_EXEC}} "php occ app:install spreed"       || true'
-      - '{{.NC_EXEC}} "php occ app:enable spreed"        || true'
       - |
-        {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
-      - echo ""
-      - echo "Installing Nextcloud collaboration apps (Whiteboard, Forms, Transcription)..."
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NC_EXEC="kubectl exec --context ${ENV_CONTEXT} -n workspace -c nextcloud deploy/nextcloud -- sh -c"
+        FILES_HOST=$(echo "${NEXTCLOUD_EXTERNAL_URL:-files.localhost}" | sed -E 's|^https?://||' | sed -E 's|/.*$||')
+
+        echo "Ensuring trusted_domains includes ${FILES_HOST}..."
+        $NC_EXEC "php occ config:system:set trusted_domains 1 --value=${FILES_HOST}" || true
+        $NC_EXEC "php occ config:system:set overwriteprotocol --value=https" || true
+        $NC_EXEC "php occ config:system:set overwritehost --value=${FILES_HOST}" || true
+        $NC_EXEC "php occ config:system:set overwrite.cli.url --value=https://${FILES_HOST}" || true
+
+        echo "Enabling Nextcloud apps..."
+        $NC_EXEC "php occ app:install oidc_login"   || true
+        $NC_EXEC "php occ app:install calendar"     || true
+        $NC_EXEC "php occ app:install contacts"     || true
+        $NC_EXEC "php occ app:install richdocuments" || true
+        $NC_EXEC "php occ app:install spreed"       || true
+        $NC_EXEC "php occ app:enable spreed"        || true
+
+        $NC_EXEC "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
+
+        echo "Installing Nextcloud collaboration apps (Whiteboard, Forms, Transcription)..."
+        $NC_EXEC "php occ app:install forms" || true
+        $NC_EXEC "php occ config:app:set richdocuments wopi_allowlist --value='10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'"
+        $NC_EXEC "php occ app:install assistant"    || true
+        $NC_EXEC "php occ app:install stt_whisper2" || true
+        $NC_EXEC "php occ config:app:set stt_whisper2 url     --value=http://whisper:8000/v1"
+        $NC_EXEC "php occ config:app:set stt_whisper2 api_key --value=local"
+
+        echo "Running hardening (DB indices, missing columns, MIME repair)..."
+        $NC_EXEC "php occ db:add-missing-indices"           || true
+        $NC_EXEC "php occ db:add-missing-columns"           || true
+        $NC_EXEC "php occ db:add-missing-primary-keys"      || true
+        $NC_EXEC "php occ maintenance:repair --include-expensive" || true
+
+        echo "Registering AppAPI manual-install daemon..."
+        $NC_EXEC "php occ app_api:daemon:register manual-k8s 'Manual (Kubernetes)' manual-install http 0 http://127.0.0.1" || true
+        $NC_EXEC "php occ config:app:set app_api default_daemon_config --value=manual-k8s" || true
+
+        echo "✓ Nextcloud apps enabled + hardening applied"
       - task: workspace:whiteboard-setup
-      - '{{.NC_EXEC}} "php occ app:install forms" || true'
-      - |
-        {{.NC_EXEC}} "php occ config:app:set richdocuments wopi_allowlist \
-          --value='10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'"
-      - '{{.NC_EXEC}} "php occ app:install assistant"    || true'
-      - '{{.NC_EXEC}} "php occ app:install stt_whisper2" || true'
-      - '{{.NC_EXEC}} "php occ config:app:set stt_whisper2 url     --value=http://whisper:8000/v1"'
-      - '{{.NC_EXEC}} "php occ config:app:set stt_whisper2 api_key --value=local"'
-      - echo ""
-      - echo "Running hardening (DB indices, missing columns, MIME repair)..."
-      - '{{.NC_EXEC}} "php occ db:add-missing-indices"           || true'
-      - '{{.NC_EXEC}} "php occ db:add-missing-columns"           || true'
-      - '{{.NC_EXEC}} "php occ db:add-missing-primary-keys"      || true'
-      - '{{.NC_EXEC}} "php occ maintenance:repair --include-expensive" || true'
-      - echo ""
-      - echo "Registering AppAPI manual-install daemon (no docker required)..."
-      - |
-        {{.NC_EXEC}} "php occ app_api:daemon:register manual-k8s 'Manual (Kubernetes)' manual-install http 0 http://127.0.0.1" || true
-      - '{{.NC_EXEC}} "php occ config:app:set app_api default_daemon_config --value=manual-k8s" || true'
-      - echo ""
-      - 'echo "✓ Nextcloud apps enabled + hardening applied"'
-      - 'echo "  Calendar:    http://files.localhost/apps/calendar"'
-      - 'echo "  Contacts:    http://files.localhost/apps/contacts"'
-      - 'echo "  Talk:        http://files.localhost/apps/spreed"'
-      - 'echo "  Collabora:   WOPI -> collabora.workspace-office.svc.cluster.local:9980"'
-      - 'echo "  Whiteboard:    http://board.localhost (Talk-Tab in jedem Room)"'
-      - 'echo "  Forms:         http://files.localhost/apps/forms"'
-      - 'echo "  WOPI:          Allowlist 10/8,172.16/12,192.168/16 (Collabora cross-ns)"'
-      - 'echo "  Transkription: stt_whisper2 → http://whisper:8000/v1"'
-      - 'echo "  Aufnahme:      Talk-Room > ··· > Aufnahme starten"'
-      - echo ""
-      - echo "Applying Nextcloud branding..."
+        vars: { ENV: "{{.ENV}}" }
       - task: workspace:theme:nextcloud
+        vars: { ENV: "{{.ENV}}" }
 
   workspace:whiteboard-setup:
     desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
-    preconditions:
-      - sh: kubectl get deployment nextcloud -n workspace > /dev/null 2>&1
-        msg: "Nextcloud not deployed."
-      - sh: kubectl get deployment whiteboard -n workspace > /dev/null 2>&1
-        msg: "whiteboard not deployed. Run 'task workspace:deploy' first."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - bash scripts/whiteboard-setup.sh
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CONTEXT="${ENV_CONTEXT}" bash scripts/whiteboard-setup.sh
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"

@@ -50,11 +50,6 @@ test.describe('Integration Smoke Tests', () => {
     expect(res.ok()).toBeTruthy();
   });
 
-  test('MCP status responds', async ({ request }) => {
-    const res = await request.get(`https://ai.${DOMAIN}`);
-    expect(res.ok()).toBeTruthy();
-  });
-
   // ── SSO Login Flow ────────────────────────────────────────────
   test('Keycloak login page is reachable', async ({ page }) => {
     await page.goto(`https://auth.${DOMAIN}/realms/workspace/account/`);

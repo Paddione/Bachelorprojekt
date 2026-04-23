@@ -2,6 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getMeetingDetail, assignMeeting, listProjects } from '../../../lib/website-db';
+import { getFileUrl } from '../../../lib/nextcloud-files';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -212,7 +213,7 @@ function artifactIcon(type: string) {
                     </div>
                     {a.storagePath && (
                       <a
-                        href={`https://files.mentolder.de/remote.php/dav/files/admin/${a.storagePath}`}
+                        href={getFileUrl(a.storagePath)}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="text-xs px-2 py-1 rounded border border-gold/30 text-gold hover:bg-gold/10 transition-colors shrink-0"

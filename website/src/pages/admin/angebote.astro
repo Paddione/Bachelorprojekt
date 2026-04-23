@@ -8,6 +8,7 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
+const ncBase      = (process.env.NEXTCLOUD_EXTERNAL_URL ?? 'https://files.mentolder.de').replace(/\/$/, '');
 const BRAND = process.env.BRAND || 'mentolder';
 const saved = Astro.url.searchParams.get('saved') === '1';
 
@@ -165,7 +166,7 @@ const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter spac
           <div class={sectionCls}>
             <p class="text-sm text-muted mb-3">URL zu einer downloadbaren Preisliste (z.B. PDF in Nextcloud). Wird als Download-Button auf der Leistungen-Seite angezeigt.</p>
             <label class={labelCls}>URL zur Preisliste (leer lassen um Button zu verstecken)</label>
-            <input type="text" name="price_list_url" value={priceListUrl ?? ''} placeholder="https://files.mentolder.de/s/..." class={inputCls} />
+            <input type="text" name="price_list_url" value={priceListUrl ?? ''} placeholder={`${ncBase}/s/...`} class={inputCls} />
           </div>
         </div>
 

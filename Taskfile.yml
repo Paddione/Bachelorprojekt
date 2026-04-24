@@ -335,7 +335,7 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        if [ ! -f website/public/systembrett/systembrett-template.whiteboard ]; then
+        if [ ! -f website/public/systembrett/systembrett.whiteboard ]; then
           echo "Template missing — generating..."
           node scripts/systembrett-generate.mjs
         fi

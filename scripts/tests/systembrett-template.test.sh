@@ -3,9 +3,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TEMPLATE="${REPO_ROOT}/website/public/systembrett/systembrett-template.whiteboard"
+TEMPLATE="${REPO_ROOT}/website/public/systembrett/systembrett.whiteboard"
 
-echo "=== systembrett-template.whiteboard validator ==="
+echo "=== systembrett.whiteboard validator ==="
 
 test -f "${TEMPLATE}" || { echo "FAIL: template not found at ${TEMPLATE}"; exit 1; }
 echo "  ✓ template file exists"

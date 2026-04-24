@@ -5,7 +5,7 @@ Eine digitale Version des klassischen Systembretts — für Familien-, Team- und
 ## Eine Sitzung starten
 
 1. In Nextcloud Files den Ordner **Coaching** öffnen.
-2. Die Datei `systembrett-template.whiteboard` markieren → **Drei-Punkte-Menü** → **Kopieren**.
+2. Die Datei `systembrett.whiteboard` markieren → **Drei-Punkte-Menü** → **Kopieren**.
 3. Die Kopie umbenennen, z. B. `Familie-Müller-2026-04-24.whiteboard`.
 4. Im Talk-Call das Whiteboard teilen: im Chat-Bereich auf **+** klicken → **Datei anhängen** → die frisch kopierte Datei wählen.
 

@@ -9,8 +9,8 @@
 # Environment:
 #   KUBE_CONTEXT — kubectl context; defaults to current context
 #   NAMESPACE    — defaults to "workspace"
-#   TEMPLATE_SRC — path to systembrett-template.whiteboard
-#                  (defaults to website/public/systembrett/systembrett-template.whiteboard
+#   TEMPLATE_SRC — path to systembrett.whiteboard
+#                  (defaults to website/public/systembrett/systembrett.whiteboard
 #                   relative to the repo root)
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
@@ -19,11 +19,12 @@ NAMESPACE="${NAMESPACE:-workspace}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEMPLATE_SRC="${TEMPLATE_SRC:-${REPO_ROOT}/website/public/systembrett/systembrett-template.whiteboard}"
+TEMPLATE_SRC="${TEMPLATE_SRC:-${REPO_ROOT}/website/public/systembrett/systembrett.whiteboard}"
 
 NC_USER="admin"
 NC_FOLDER="Coaching"
-NC_FILENAME="systembrett-template.whiteboard"
+NC_FILENAME="systembrett.whiteboard"
+NC_LEGACY_FILENAME="systembrett-template.whiteboard"
 
 _kubectl() { kubectl ${KUBE_CONTEXT:+--context "$KUBE_CONTEXT"} "$@"; }
 _occ() {
@@ -54,6 +55,9 @@ echo "  Ziel-Pod:   ${NC_POD}"
 echo "  Ziel-Pfad:  ${NC_FILE_PATH}"
 
 _occ "mkdir -p '${NC_FOLDER_PATH}' && chown -R www-data:www-data '${NC_FOLDER_PATH}'"
+
+# Drop legacy filename if present so coaches don't see two copies.
+_occ "rm -f '${NC_FOLDER_PATH}/${NC_LEGACY_FILENAME}'"
 
 _kubectl cp "${TEMPLATE_SRC}" \
   "${NAMESPACE}/${NC_POD}:${NC_FILE_PATH}" -c nextcloud

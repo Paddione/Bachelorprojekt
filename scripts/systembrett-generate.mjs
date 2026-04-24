@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generates website/public/systembrett/systembrett-template.whiteboard.
+// Generates website/public/systembrett/systembrett.whiteboard.
 // Path B layout: 15 Systembrett primitives as canvas elements on a left-edge
 // tray, plus 5 category headers and a usage hint in the work area.
 //
@@ -436,7 +436,7 @@ const scene = {
 // Write output
 // ──────────────────────────────────────────────────────────────────────────────
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const outPath   = resolve(__dirname, "../website/public/systembrett/systembrett-template.whiteboard");
+const outPath   = resolve(__dirname, "../website/public/systembrett/systembrett.whiteboard");
 
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, JSON.stringify(scene, null, 2), "utf8");

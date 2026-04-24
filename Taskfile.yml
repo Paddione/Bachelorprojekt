@@ -314,6 +314,8 @@ tasks:
         echo "✓ Nextcloud apps enabled + hardening applied"
       - task: workspace:whiteboard-setup
         vars: { ENV: "{{.ENV}}" }
+      - task: workspace:systembrett-setup
+        vars: { ENV: "{{.ENV}}" }
       - task: workspace:theme:nextcloud
         vars: { ENV: "{{.ENV}}" }
 
@@ -325,6 +327,19 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CONTEXT="${ENV_CONTEXT}" bash scripts/whiteboard-setup.sh
+
+  workspace:systembrett-setup:
+    desc: Upload Systembrett Whiteboard template into admin's Coaching/ folder (ENV=dev|mentolder|korczewski)
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if [ ! -f website/public/systembrett/systembrett-template.whiteboard ]; then
+          echo "Template missing — generating..."
+          node scripts/systembrett-generate.mjs
+        fi
+        KUBE_CONTEXT="${ENV_CONTEXT}" bash scripts/systembrett-setup.sh
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"

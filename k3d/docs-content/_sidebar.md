@@ -33,6 +33,7 @@
 
 - **Benutzerhandbuch**
   - [Für Endnutzer](benutzerhandbuch)
+  - [Systembrett im Whiteboard](systembrett)
 
 - **Administration**
   - [Adminhandbuch](adminhandbuch)

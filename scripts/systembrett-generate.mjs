@@ -308,16 +308,35 @@ push(makeDiamond({ groupId: "piece-ziel",
   cx: TX, cy: 400, size: 30,
   fill: BRASS, stroke: BRASS }));
 
-// Gefühl: organic heart outline via polyline
+// Gefühl: organic heart outline via freedraw (spec requires pen-like organic curves)
 {
   const g = "piece-gefuehl";
-  // Heart outline relative to offset origin, ~22×20 px
+  // Heart outline as freedraw points relative to element origin, ~22×20 px
+  // freedraw element: x/y is the top-left anchor; points are relative offsets.
   const pts = [
     [11, 0], [14, -3], [19, -3], [22, 0], [22, 4],
     [11, 16], [0, 4], [0, 0], [3, -3], [8, -3], [11, 0],
   ];
-  push(makePolyline({ groupId: g, ox: TX - 11, oy: 434,
-    points: pts, stroke: BRASS_2, strokeWidth: 2 }));
+  push({
+    ...base(),
+    type:               "freedraw",
+    x:                  TX - 11,
+    y:                  434,
+    width:              22,
+    height:             19,
+    strokeColor:        BRASS_2,
+    backgroundColor:    "transparent",
+    fillStyle:          "hachure",
+    strokeWidth:        2,
+    strokeStyle:        "solid",
+    roughness:          0,
+    opacity:            100,
+    groupIds:           [g],
+    points:             pts,
+    pressures:          pts.map(() => 0.5),
+    simulatePressure:   false,
+    lastCommittedPoint: null,
+  });
 }
 
 // Hindernis: jagged polygon outline
@@ -375,11 +394,11 @@ push({
   ...base(),
   id:           nextId("hint"),
   type:         "text",
-  x:            230,
+  x:            220,
   y:            20,
   width:        460,
   height:       22,
-  text:         "Alt + ziehen = Kopie · rechts platzieren und benennen",
+  text:         "Alt+ziehen = Kopie · rechts platzieren und benennen",
   fontSize:     14,
   fontFamily:   3,
   textAlign:    "left",
@@ -388,7 +407,7 @@ push({
   opacity:      55,
   customData:   null,
   containerId:  null,
-  originalText: "Alt + ziehen = Kopie · rechts platzieren und benennen",
+  originalText: "Alt+ziehen = Kopie · rechts platzieren und benennen",
   lineHeight:   1.25,
   baseline:     18,
 });

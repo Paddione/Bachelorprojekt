@@ -249,26 +249,28 @@ const elements = [];
 const push = (...els) => elements.push(...els);
 
 // ── PERSONEN ──────────────────────────────────────────────────────────────────
+// Tri-coloured figures to hint at different roles (self/other/third party).
+// Coaches rename/recolor as needed during a session.
 push(makeCategoryHeader(20, "PERSONEN"));
 
-// Person groß: filled brass circle (r=20) + small dark notch on the right edge
+// Person groß: brass (primary) r=20
 {
   const g = "piece-person-gross";
   push(makeCircle({ groupId: g, cx: TX, cy: 60, r: 20, fill: BRASS, strokeWidth: 0 }));
   push(makeRect({   groupId: g, x: TX + 14, y: 57, w: 8, h: 6, fill: DARK, stroke: DARK, strokeWidth: 0 }));
 }
 
-// Person mittel: r=15
+// Person mittel: sage (second party) r=15
 {
   const g = "piece-person-mittel";
-  push(makeCircle({ groupId: g, cx: TX, cy: 108, r: 15, fill: BRASS, strokeWidth: 0 }));
+  push(makeCircle({ groupId: g, cx: TX, cy: 108, r: 15, fill: SAGE, strokeWidth: 0 }));
   push(makeRect({   groupId: g, x: TX + 10, y: 106, w: 6, h: 4, fill: DARK, stroke: DARK, strokeWidth: 0 }));
 }
 
-// Person klein: r=11
+// Person klein: brass-2 (third party) r=11
 {
   const g = "piece-person-klein";
-  push(makeCircle({ groupId: g, cx: TX, cy: 144, r: 11, fill: BRASS, strokeWidth: 0 }));
+  push(makeCircle({ groupId: g, cx: TX, cy: 144, r: 11, fill: BRASS_2, strokeWidth: 0 }));
   push(makeRect({   groupId: g, x: TX + 7, y: 142, w: 5, h: 3, fill: DARK, stroke: DARK, strokeWidth: 0 }));
 }
 
@@ -306,34 +308,39 @@ push(makeDiamond({ groupId: "piece-ziel",
   cx: TX, cy: 400, size: 30,
   fill: BRASS, stroke: BRASS }));
 
-// Gefühl: organic heart outline via freedraw (spec requires pen-like organic curves)
+// Gefühl: cloud/blob outline in brass-2 — smoothed polyline.
+// Matches the design mockup's organic flower/cloud silhouette.
 {
-  const g = "piece-gefuehl";
-  // Heart outline as freedraw points relative to element origin, ~22×20 px
-  // freedraw element: x/y is the top-left anchor; points are relative offsets.
+  const g   = "piece-gefuehl";
   const pts = [
-    [11, 0], [14, -3], [19, -3], [22, 0], [22, 4],
-    [11, 16], [0, 4], [0, 0], [3, -3], [8, -3], [11, 0],
+    [10, 4], [13, 1], [17, 1], [20, 4], [20, 8],
+    [17, 15], [10, 16], [3, 15], [0, 8], [0, 4],
+    [3, 1], [7, 1], [10, 4],
   ];
+  const xs = pts.map(p => p[0]);
+  const ys = pts.map(p => p[1]);
   push({
     ...base(),
-    type:               "freedraw",
-    x:                  TX - 11,
-    y:                  434,
-    width:              22,
-    height:             19,
+    type:               "line",
+    x:                  TX - 10,
+    y:                  436,
+    width:              Math.max(...xs) - Math.min(...xs),
+    height:             Math.max(...ys) - Math.min(...ys),
     strokeColor:        BRASS_2,
     backgroundColor:    "transparent",
     fillStyle:          "hachure",
-    strokeWidth:        2,
+    strokeWidth:        1.8,
     strokeStyle:        "solid",
     roughness:          0,
     opacity:            100,
+    roundness:          { type: 2 },
     groupIds:           [g],
     points:             pts,
-    pressures:          pts.map(() => 0.5),
-    simulatePressure:   false,
     lastCommittedPoint: null,
+    startBinding:       null,
+    endBinding:         null,
+    startArrowhead:     null,
+    endArrowhead:       null,
   });
 }
 

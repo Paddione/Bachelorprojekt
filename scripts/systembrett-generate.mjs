@@ -31,8 +31,8 @@ const now      = () => 1745492800000; // fixed timestamp keeps output determinis
 // ──────────────────────────────────────────────────────────────────────────────
 // Base element — every shape merges this
 // ──────────────────────────────────────────────────────────────────────────────
-const base = () => ({
-  id:           nextId(),
+const base = (prefix = "el") => ({
+  id:           nextId(prefix),
   angle:        0,
   strokeColor:  NEUTRAL,
   backgroundColor: "transparent",
@@ -62,8 +62,7 @@ const base = () => ({
 /** Category header text (special customData role). */
 function makeCategoryHeader(y, text) {
   return {
-    ...base(),
-    id:             nextId("hdr"),
+    ...base("hdr"),
     type:           "text",
     x:              20,
     y,
@@ -221,8 +220,7 @@ function makePolyline({ groupId, ox, oy, points, stroke, strokeWidth,
 function makeLabel({ groupId, x, y, text, fontSize = 16,
   stroke = NEUTRAL, opacity = 100 }) {
   return {
-    ...base(),
-    id:            nextId("lbl"),
+    ...base("lbl"),
     type:          "text",
     x, y,
     width:         fontSize,
@@ -391,8 +389,7 @@ push(makeArrow({ groupId: "piece-einfluss",
 
 // ── Work-area usage hint ───────────────────────────────────────────────────────
 push({
-  ...base(),
-  id:           nextId("hint"),
+  ...base("hint"),
   type:         "text",
   x:            220,
   y:            20,

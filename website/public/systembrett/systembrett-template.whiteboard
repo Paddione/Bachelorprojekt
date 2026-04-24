@@ -4,7 +4,7 @@
   "source": "mentolder-systembrett",
   "elements": [
     {
-      "id": "hdr-002",
+      "id": "hdr-001",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "transparent",
@@ -43,7 +43,7 @@
       "baseline": 14
     },
     {
-      "id": "el-003",
+      "id": "el-002",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "#d7b06a",
@@ -73,7 +73,7 @@
       "height": 40
     },
     {
-      "id": "el-004",
+      "id": "el-003",
       "angle": 0,
       "strokeColor": "#0b111c",
       "backgroundColor": "#0b111c",
@@ -103,7 +103,7 @@
       "height": 6
     },
     {
-      "id": "el-005",
+      "id": "el-004",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "#d7b06a",
@@ -133,7 +133,7 @@
       "height": 30
     },
     {
-      "id": "el-006",
+      "id": "el-005",
       "angle": 0,
       "strokeColor": "#0b111c",
       "backgroundColor": "#0b111c",
@@ -163,7 +163,7 @@
       "height": 4
     },
     {
-      "id": "el-007",
+      "id": "el-006",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "#d7b06a",
@@ -193,7 +193,7 @@
       "height": 22
     },
     {
-      "id": "el-008",
+      "id": "el-007",
       "angle": 0,
       "strokeColor": "#0b111c",
       "backgroundColor": "#0b111c",
@@ -223,7 +223,7 @@
       "height": 3
     },
     {
-      "id": "hdr-010",
+      "id": "hdr-008",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "transparent",
@@ -262,7 +262,7 @@
       "baseline": 14
     },
     {
-      "id": "el-011",
+      "id": "el-009",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "transparent",
@@ -292,7 +292,7 @@
       "height": 30
     },
     {
-      "id": "el-012",
+      "id": "el-010",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "#d7b06a",
@@ -322,7 +322,7 @@
       "height": 10
     },
     {
-      "id": "el-013",
+      "id": "el-011",
       "angle": 0,
       "strokeColor": "#cdd3d9",
       "backgroundColor": "transparent",
@@ -352,7 +352,7 @@
       "height": 30
     },
     {
-      "id": "lbl-015",
+      "id": "lbl-012",
       "angle": 0,
       "strokeColor": "#cdd3d9",
       "backgroundColor": "transparent",
@@ -391,7 +391,7 @@
       "baseline": 14
     },
     {
-      "id": "hdr-017",
+      "id": "hdr-013",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "transparent",
@@ -430,7 +430,7 @@
       "baseline": 14
     },
     {
-      "id": "el-018",
+      "id": "el-014",
       "angle": 0,
       "strokeColor": "#9bc0a8",
       "backgroundColor": "#9bc0a8",
@@ -462,7 +462,7 @@
       "height": 30
     },
     {
-      "id": "el-019",
+      "id": "el-015",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "#d7b06a",
@@ -492,7 +492,7 @@
       "height": 30
     },
     {
-      "id": "el-020",
+      "id": "el-016",
       "angle": 0,
       "strokeColor": "#e8c884",
       "backgroundColor": "transparent",
@@ -583,7 +583,7 @@
       "lastCommittedPoint": null
     },
     {
-      "id": "el-021",
+      "id": "el-017",
       "angle": 0,
       "strokeColor": "#cdd3d9",
       "backgroundColor": "transparent",
@@ -660,7 +660,7 @@
       "endArrowhead": null
     },
     {
-      "id": "hdr-023",
+      "id": "hdr-018",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "transparent",
@@ -699,7 +699,7 @@
       "baseline": 14
     },
     {
-      "id": "el-024",
+      "id": "el-019",
       "angle": 0,
       "strokeColor": "#9bc0a8",
       "backgroundColor": "#9bc0a8",
@@ -731,7 +731,7 @@
       "height": 28
     },
     {
-      "id": "el-025",
+      "id": "el-020",
       "angle": 0,
       "strokeColor": "#cdd3d9",
       "backgroundColor": "transparent",
@@ -761,7 +761,7 @@
       "height": 28
     },
     {
-      "id": "hdr-027",
+      "id": "hdr-021",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "transparent",
@@ -800,7 +800,7 @@
       "baseline": 14
     },
     {
-      "id": "el-028",
+      "id": "el-022",
       "angle": 0,
       "strokeColor": "#cdd3d9",
       "backgroundColor": "transparent",
@@ -845,7 +845,7 @@
       "endArrowhead": null
     },
     {
-      "id": "el-029",
+      "id": "el-023",
       "angle": 0,
       "strokeColor": "#cdd3d9",
       "backgroundColor": "transparent",
@@ -890,7 +890,7 @@
       "endArrowhead": null
     },
     {
-      "id": "el-030",
+      "id": "el-024",
       "angle": 0,
       "strokeColor": "#d7b06a",
       "backgroundColor": "transparent",
@@ -935,7 +935,7 @@
       "endArrowhead": "arrow"
     },
     {
-      "id": "el-031",
+      "id": "el-025",
       "angle": 0,
       "strokeColor": "#c46a5a",
       "backgroundColor": "transparent",
@@ -996,7 +996,7 @@
       "endArrowhead": null
     },
     {
-      "id": "hint-033",
+      "id": "hint-026",
       "angle": 0,
       "strokeColor": "#cdd3d9",
       "backgroundColor": "transparent",

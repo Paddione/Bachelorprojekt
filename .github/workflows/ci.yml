@@ -181,6 +181,9 @@ jobs:
       - name: Run BATS unit tests
         run: ./tests/unit/lib/bats-core/bin/bats --formatter tap tests/unit/
 
+      - name: Validate Systembrett template
+        run: ./scripts/tests/systembrett-template.test.sh
+
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest

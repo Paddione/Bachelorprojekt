@@ -22,7 +22,7 @@ test "${VERSION}" = "2" || { echo "FAIL: version=${VERSION}, want 2"; exit 1; }
 echo "  ✓ version=2"
 
 # Count elements marked with groupIds starting with 'piece-' (our tray pieces)
-PIECE_COUNT=$(jq '[.elements[] | select((.groupIds // []) | any(startswith("piece-")))] | map(.groupIds[0]) | unique | length' "${TEMPLATE}")
+PIECE_COUNT=$(jq '[.elements[] | .groupIds[]? | select(startswith("piece-"))] | unique | length' "${TEMPLATE}")
 test "${PIECE_COUNT}" = "15" || { echo "FAIL: piece group count=${PIECE_COUNT}, want 15"; exit 1; }
 echo "  ✓ 15 distinct tray piece groups"
 

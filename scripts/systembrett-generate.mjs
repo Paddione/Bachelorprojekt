@@ -425,7 +425,8 @@ const scene = {
   source:  "mentolder-systembrett",
   elements,
   appState: {
-    viewBackgroundColor: "#0b111c",
+    // mentolder --ink-800 (navy) — same token as the website's mid-depth surface.
+    viewBackgroundColor: "#17202e",
     gridSize:            null,
   },
   files:        {},

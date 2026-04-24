@@ -1035,6 +1035,7 @@
   ],
   "appState": {
     "viewBackgroundColor": "#17202e",
+    "theme": "dark",
     "gridSize": null
   },
   "files": {},

@@ -426,7 +426,10 @@ const scene = {
   elements,
   appState: {
     // mentolder --ink-800 (navy) — same token as the website's mid-depth surface.
+    // theme:"dark" is required — without it Excalidraw forces a white canvas
+    // regardless of viewBackgroundColor.
     viewBackgroundColor: "#17202e",
+    theme:               "dark",
     gridSize:            null,
   },
   files:        {},

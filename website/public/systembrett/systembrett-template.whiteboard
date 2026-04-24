@@ -105,8 +105,8 @@
     {
       "id": "el-004",
       "angle": 0,
-      "strokeColor": "#d7b06a",
-      "backgroundColor": "#d7b06a",
+      "strokeColor": "#9bc0a8",
+      "backgroundColor": "#9bc0a8",
       "fillStyle": "solid",
       "strokeWidth": 0,
       "strokeStyle": "solid",
@@ -165,8 +165,8 @@
     {
       "id": "el-006",
       "angle": 0,
-      "strokeColor": "#d7b06a",
-      "backgroundColor": "#d7b06a",
+      "strokeColor": "#e8c884",
+      "backgroundColor": "#e8c884",
       "fillStyle": "solid",
       "strokeWidth": 0,
       "strokeStyle": "solid",
@@ -497,7 +497,7 @@
       "strokeColor": "#e8c884",
       "backgroundColor": "transparent",
       "fillStyle": "hachure",
-      "strokeWidth": 2,
+      "strokeWidth": 1.8,
       "strokeStyle": "solid",
       "roughness": 0,
       "opacity": 100,
@@ -505,7 +505,9 @@
         "piece-gefuehl"
       ],
       "frameId": null,
-      "roundness": null,
+      "roundness": {
+        "type": 2
+      },
       "seed": 1031,
       "version": 1,
       "versionNonce": 1032,
@@ -515,72 +517,70 @@
       "customData": null,
       "boundElements": null,
       "isDeleted": false,
-      "type": "freedraw",
-      "x": 89,
-      "y": 434,
-      "width": 22,
-      "height": 19,
+      "type": "line",
+      "x": 90,
+      "y": 436,
+      "width": 20,
+      "height": 15,
       "points": [
         [
-          11,
-          0
-        ],
-        [
-          14,
-          -3
-        ],
-        [
-          19,
-          -3
-        ],
-        [
-          22,
-          0
-        ],
-        [
-          22,
+          10,
           4
         ],
         [
-          11,
+          13,
+          1
+        ],
+        [
+          17,
+          1
+        ],
+        [
+          20,
+          4
+        ],
+        [
+          20,
+          8
+        ],
+        [
+          17,
+          15
+        ],
+        [
+          10,
           16
         ],
         [
+          3,
+          15
+        ],
+        [
+          0,
+          8
+        ],
+        [
           0,
           4
         ],
         [
-          0,
-          0
-        ],
-        [
           3,
-          -3
+          1
         ],
         [
-          8,
-          -3
+          7,
+          1
         ],
         [
-          11,
-          0
+          10,
+          4
         ]
       ],
-      "pressures": [
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5
-      ],
-      "simulatePressure": false,
-      "lastCommittedPoint": null
+      "lastCommittedPoint": null,
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": null
     },
     {
       "id": "el-017",

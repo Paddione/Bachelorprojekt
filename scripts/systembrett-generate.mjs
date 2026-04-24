@@ -248,6 +248,27 @@ const TX = 100; // tray horizontal centre
 const elements = [];
 const push = (...els) => elements.push(...els);
 
+// ── BACKDROP ──────────────────────────────────────────────────────────────────
+// Big locked rectangle drawn first (= bottom of z-order) so the tray + canvas
+// always sit on a mentolder-navy surface. We also set viewBackgroundColor, but
+// Nextcloud Whiteboard's Excalidraw wrapper ignores it in light mode — this
+// element guarantees the visual regardless of theme.
+push({
+  ...base("bg"),
+  type:            "rectangle",
+  x:               -2000,
+  y:               -2000,
+  width:           6000,
+  height:          4000,
+  strokeColor:     "#17202e",
+  backgroundColor: "#17202e",
+  fillStyle:       "solid",
+  strokeWidth:     0,
+  roundness:       null,
+  locked:          true,
+  groupIds:        ["backdrop"],
+});
+
 // ── PERSONEN ──────────────────────────────────────────────────────────────────
 // Tri-coloured figures to hint at different roles (self/other/third party).
 // Coaches rename/recolor as needed during a session.

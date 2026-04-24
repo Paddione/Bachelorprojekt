@@ -2,6 +2,7 @@
 
 **Date:** 2026-04-24
 **Status:** Approved — ready for implementation planning
+**Status note (2026-04-24):** Path A (embed-first) was ruled out by the Task 1 verification — Nextcloud Whiteboard stores libraries per-user, not per-document. Shipping Path B (canvas-tray) per the pre-agreed fallback. See `docs/superpowers/plans/2026-04-24-systembrett-verification-findings.md`.
 **Target:** mentolder.de coaching platform, Nextcloud Whiteboard inside Talk calls
 
 ## 1. Purpose
@@ -19,7 +20,7 @@ A single template must cover all five common Systembrett use cases:
 
 ### In scope (v1)
 
-- One `.whiteboard` template file with an embedded Excalidraw library of 14 primitive pieces across 5 categories.
+- One `.whiteboard` template file with an embedded Excalidraw library of 15 primitive pieces across 5 categories.
 - Distribution via a Nextcloud folder readable by all coach accounts; coaches duplicate the template per session.
 - A documented "Wie starte ich eine Sitzung" flow in `docs-site/`.
 - A 5-minute pre-implementation verification that embedded `libraryItems` survive per-user opens in Nextcloud Whiteboard.
@@ -35,7 +36,7 @@ A single template must cover all five common Systembrett use cases:
 
 ### Path A — Embed-first (primary)
 
-One template whiteboard file with all 14 pieces embedded as `libraryItems` in the Excalidraw scene. When any user opens the board, the native Excalidraw library panel auto-populates with the full toolkit. Zero per-user setup, works on desktop and mobile (responsive panel).
+One template whiteboard file with all 15 pieces embedded as `libraryItems` in the Excalidraw scene. When any user opens the board, the native Excalidraw library panel auto-populates with the full toolkit. Zero per-user setup, works on desktop and mobile (responsive panel).
 
 ### Verification before commitment (5 min)
 
@@ -46,7 +47,7 @@ One template whiteboard file with all 14 pieces embedded as `libraryItems` in th
 
 ### Path B — Hybrid (pre-agreed fallback)
 
-Canvas-fixed "stamp tray" along the left edge of the template board containing the same 14 pieces as ordinary (non-library) elements, plus the library for users who have imported it. Coaches Alt-drag from the tray to duplicate pieces into the work area. The tray elements are locked so they can't be accidentally moved; only copies move. Guaranteed cross-user visibility since everything lives as canvas content.
+Canvas-fixed "stamp tray" along the left edge of the template board containing the same 15 pieces as ordinary (non-library) elements, plus the library for users who have imported it. Coaches Alt-drag from the tray to duplicate pieces into the work area. The tray elements are locked so they can't be accidentally moved; only copies move. Guaranteed cross-user visibility since everything lives as canvas content.
 
 ### Path C — Fork (deferred)
 
@@ -54,7 +55,7 @@ Forking Nextcloud Whiteboard to add a custom drawer component. Not worth the mai
 
 ## 4. Component inventory
 
-14 unlabeled primitives in 5 categories. Rationale for unlabeled: the same primitive plays "Mutter" in one session, "innerer Kritiker" in another, and "Mitarbeiter·in" in a third. Pre-baked names would force context-specific variants and explode the toolkit.
+15 unlabeled primitives in 5 categories. Rationale for unlabeled: the same primitive plays "Mutter" in one session, "innerer Kritiker" in another, and "Mitarbeiter·in" in a third. Pre-baked names would force context-specific variants and explode the toolkit.
 
 ### 4.1 Personen (3)
 
@@ -106,7 +107,7 @@ Rahmen sit underneath figures in z-order.
 
 ## 5. Coverage
 
-The 14 primitives must support each of the five contexts from a single toolbox:
+The 15 primitives must support each of the five contexts from a single toolbox:
 
 | Context | Pieces used |
 |---|---|
@@ -157,9 +158,9 @@ Both coach and client interact simultaneously via the whiteboard collaboration b
 
 - **Pre-commitment verification** (see §3). Gate between Path A and Path B.
 - **Acceptance for the shipped template:**
-  - Coach account opens the template; library drawer shows all 14 pieces categorized.
+  - Coach account opens the template; library drawer shows all 15 pieces categorized.
   - Client joining the same board via Talk sees the same library drawer on first load (Path A) or the on-canvas stamp tray (Path B).
-  - Spot-check: one representative scene from each of the five contexts can be constructed using only the 14 primitives.
+  - Spot-check: one representative scene from each of the five contexts can be constructed using only the 15 primitives.
 - **Regression check:** after running the seed script, `ls` the shared Nextcloud folder via `occ` and confirm the file is present with the expected size.
 
 ## 10. Open questions for implementation

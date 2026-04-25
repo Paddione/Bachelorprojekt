@@ -32,32 +32,39 @@ fi
 
 echo "Registering Talk bot for ${ENV} → ${WEBHOOK_URL}"
 
-INSTALL_OUT="$(kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
-  php occ talk:bot:install \
-    "Systemisches Brett" \
-    "${SECRET}" \
-    "${WEBHOOK_URL}" \
-    "Stellt das Systemische Brett auf /brett bereit" \
-    "webhook" 2>&1)" || true
-
-if echo "${INSTALL_OUT}" | grep -qiE 'already.*exists|installiert'; then
-  echo "Bot already installed — skipping install."
-else
-  echo "${INSTALL_OUT}"
-fi
-
-# Enable globally for all conversations.
-echo "Enabling bot for all conversations..."
+# Idempotency: check whether the bot is already installed.
+# Prefer this over grepping install output (talk:bot:install error strings differ
+# across Nextcloud Talk versions and locales).
 LIST_OUT="$(kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
-  php occ talk:bot:list)"
+  php occ talk:bot:list 2>&1)"
 BOT_ID="$(echo "${LIST_OUT}" | awk '/Systemisches Brett/ {print $1; exit}')"
+
+if [[ -n "${BOT_ID}" ]]; then
+  echo "Bot already installed (id=${BOT_ID}) — skipping install."
+else
+  # Per Nextcloud Talk Bots API, the feature is set via --feature, not a
+  # 5th positional argument. Talk 17+ accepts: webhook, response, event.
+  kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
+    php occ talk:bot:install \
+      --feature webhook \
+      "Systemisches Brett" \
+      "${SECRET}" \
+      "${WEBHOOK_URL}" \
+      "Stellt das Systemische Brett auf /brett bereit"
+
+  # Re-list to capture the assigned id.
+  LIST_OUT="$(kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
+    php occ talk:bot:list 2>&1)"
+  BOT_ID="$(echo "${LIST_OUT}" | awk '/Systemisches Brett/ {print $1; exit}')"
+fi
 
 if [[ -z "${BOT_ID}" ]]; then
   echo "ERROR: could not find bot id after install" >&2
   exit 1
 fi
 
-kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
-  php occ talk:bot:setup "${BOT_ID}" --feature all || true
+# talk:bot:install (without --no-setup) automatically enables the bot for all
+# conversations. talk:bot:setup is only needed to enable for specific
+# conversation tokens, which isn't what we want here.
 
 echo "Done. Bot ID: ${BOT_ID}"

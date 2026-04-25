@@ -152,6 +152,77 @@ async function readState(room) {
   return rows[0]?.state ?? { figures: [] };
 }
 
+const DEBOUNCE_MS = 1000;
+
+// Server-side authoritative figure list per room (mirrors connected clients' state).
+// Each room holds a Map<id, figure>.
+const figureMaps = new Map();   // roomToken -> Map<id, figure>
+
+function ensureFigureMap(room) {
+  if (!figureMaps.has(room)) figureMaps.set(room, new Map());
+  return figureMaps.get(room);
+}
+
+function applyMutation(room, msg) {
+  const figs = ensureFigureMap(room);
+  switch (msg.type) {
+    case 'add':
+      if (msg.fig && typeof msg.fig.id === 'string') figs.set(msg.fig.id, msg.fig);
+      break;
+    case 'move':
+      if (figs.has(msg.id)) {
+        const f = figs.get(msg.id);
+        figs.set(msg.id, { ...f, x: msg.x, z: msg.z });
+      }
+      break;
+    case 'update':
+      if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object') {
+        figs.set(msg.id, { ...figs.get(msg.id), ...msg.changes });
+      }
+      break;
+    case 'delete':
+      figs.delete(msg.id);
+      break;
+    case 'clear':
+      figs.clear();
+      break;
+  }
+}
+
+function buildStateFromMutations(room) {
+  const figs = figureMaps.get(room);
+  if (!figs) return null;
+  return { figures: Array.from(figs.values()) };
+}
+
+async function persistState(room) {
+  const state = buildStateFromMutations(room);
+  if (!state) return;
+  await pool.query(
+    `INSERT INTO brett_rooms (room_token, state, last_modified_at)
+         VALUES ($1, $2, now())
+     ON CONFLICT (room_token)
+     DO UPDATE SET state = EXCLUDED.state, last_modified_at = EXCLUDED.last_modified_at`,
+    [room, state]
+  );
+}
+
+function schedulePersist(room) {
+  if (pending.has(room)) clearTimeout(pending.get(room));
+  pending.set(room, setTimeout(() => {
+    pending.delete(room);
+    persistState(room).catch(err => console.error('[brett] persist:', err));
+  }, DEBOUNCE_MS));
+}
+
+async function flushImmediate(room) {
+  if (pending.has(room)) {
+    clearTimeout(pending.get(room));
+    pending.delete(room);
+  }
+  await persistState(room);
+}
+
 wss.on('connection', (ws) => {
   ws.on('message', async (raw) => {
     try {
@@ -161,26 +232,48 @@ wss.on('connection', (ws) => {
       if (msg.type === 'join' && typeof msg.room === 'string' && msg.room) {
         if (ws._room) leaveRoom(ws);
         joinRoom(ws, msg.room);
-        const state = await readState(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures || [] }));
+
+        // Hydrate authoritative state from DB on first join in this pod.
+        if (!figureMaps.has(msg.room)) {
+          const state = await readState(msg.room);
+          const figs = ensureFigureMap(msg.room);
+          for (const f of state.figures || []) {
+            if (f && typeof f.id === 'string') figs.set(f.id, f);
+          }
+        }
+
+        const state = buildStateFromMutations(msg.room);
+        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures }));
         broadcastInfo(msg.room);
         return;
       }
 
       const room = ws._room;
-      if (!room) return;                     // ignore mutations before join
+      if (!room) return;
 
-      // Re-broadcast valid mutation types only.
       if (['add','move','update','delete','clear'].includes(msg.type)) {
+        applyMutation(room, msg);
         broadcast(room, msg, ws);
-        // Persistence is wired in the next task.
+        if (msg.type === 'clear') {
+          flushImmediate(room).catch(err => console.error('[brett] flush:', err));
+        } else {
+          schedulePersist(room);
+        }
       }
-    } catch (err) { console.error('[brett] ws message handler error:', err.message); }
+    } catch (err) {
+      console.error('[brett] ws message handler error:', err.message);
+    }
   });
 
-  ws.on('close', () => {
+  ws.on('close', async () => {
     const room = leaveRoom(ws);
-    if (room && rooms.has(room)) broadcastInfo(room);
+    if (!room) return;
+    if (rooms.has(room)) {
+      broadcastInfo(room);
+    } else {
+      // Last client gone: flush any pending state and free the figure map.
+      try { await flushImmediate(room); } finally { figureMaps.delete(room); }
+    }
   });
 
   ws.on('error', (err) => console.error('[brett] ws error:', err.message));

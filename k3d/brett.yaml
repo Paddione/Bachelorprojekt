@@ -25,6 +25,8 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: brett
           image: ghcr.io/paddione/workspace-brett:latest

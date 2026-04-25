@@ -287,4 +287,19 @@ wss.on('connection', (ws) => {
   ws.on('error', (err) => console.error('[brett] ws error:', err.message));
 });
 
+// ─── Graceful Shutdown ───────────────────────────────────────────
+async function shutdown(signal) {
+  console.log(`[brett] ${signal} received, flushing...`);
+  for (const room of pending.keys()) {
+    try { await flushImmediate(room); } catch (err) { console.error('[brett] shutdown flush:', err); }
+  }
+  server.close(() => {
+    pool.end().finally(() => process.exit(0));
+  });
+  setTimeout(() => process.exit(1), 25_000).unref();   // safety net under 30s grace
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
+
 module.exports = { app, server, pool, wss };

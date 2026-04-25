@@ -1,9 +1,11 @@
 // HMAC verification for incoming Talk bot webhooks, and signed replies.
 // Per Nextcloud Talk Bots API:
-//   - Header X-Nextcloud-Talk-Random: nonce
-//   - Header X-Nextcloud-Talk-Signature: hex SHA256(random + body) using shared secret
-//   - Replies: POST to /ocs/v2.php/apps/spreed/api/v1/bot/<token>/message
-//             with the same headers, signing (random + body) of the OUTGOING request
+//   Incoming webhook (Nextcloud → bot):
+//     - X-Nextcloud-Talk-Random: nonce
+//     - X-Nextcloud-Talk-Signature: hex SHA256(random + body) using shared secret
+//   Outgoing reply (bot → /ocs/v2.php/apps/spreed/api/v1/bot/<token>/message):
+//     - X-Nextcloud-Talk-Bot-Random: nonce
+//     - X-Nextcloud-Talk-Bot-Signature: hex SHA256(random + body) using same secret
 
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
@@ -47,8 +49,8 @@ export async function postBotReply(
           'Content-Type': 'application/json',
           'OCS-APIRequest': 'true',
           Accept: 'application/json',
-          'X-Nextcloud-Talk-Random': random,
-          'X-Nextcloud-Talk-Signature': signature,
+          'X-Nextcloud-Talk-Bot-Random': random,
+          'X-Nextcloud-Talk-Bot-Signature': signature,
         },
         body,
       }

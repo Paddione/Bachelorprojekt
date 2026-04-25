@@ -1778,18 +1778,41 @@ tasks:
   # Brett (Systemisches Whiteboard)
   # ─────────────────────────────────────────────
   brett:build:
-    desc: "Build brett image and import into k3d cluster"
-    cmds:
-      - docker build -t workspace-brett:latest brett/
-      - k3d image import workspace-brett:latest -c {{.CLUSTER_NAME}}
-      - echo "✓ brett image imported into k3d cluster"
-
-  brett:deploy:
-    desc: "Build, import, and roll out brett (ENV=dev|mentolder|korczewski)"
+    desc: "Build brett image (and import into k3d in dev)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
+      - docker build -t workspace-brett:latest brett/
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          k3d image import workspace-brett:latest -c {{.CLUSTER_NAME}}
+          echo "✓ brett image imported into k3d cluster"
+        else
+          docker tag workspace-brett:latest ghcr.io/paddione/workspace-brett:latest
+          echo "✓ brett image built and tagged for ghcr.io (run 'task brett:push ENV={{.ENV}}' to publish)"
+        fi
+
+  brett:push:
+    desc: "Build and push brett image to ghcr.io (for production)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
       - task: brett:build
+        vars: { ENV: "{{.ENV}}" }
+      - docker push ghcr.io/paddione/workspace-brett:latest
+      - echo "✓ Pushed ghcr.io/paddione/workspace-brett:latest"
+
+  brett:deploy:
+    desc: "Build, import/push, and roll out brett (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          task brett:build ENV={{.ENV}}
+        else
+          task brett:push ENV={{.ENV}}
+        fi
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""

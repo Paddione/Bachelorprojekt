@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systemisches Brett</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+  #toolbar {
+    background: #16213e;
+    border-bottom: 1px solid #0f3460;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    z-index: 10;
+    flex-shrink: 0;
+    min-height: 52px;
+  }
+
+  .tlabel {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .figure-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #0f3460;
+    background: #0f3460;
+    color: #e0e0e0;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .figure-btn:hover { background: #1a4a8a; border-color: #4a90d9; }
+
+  .color-swatch {
+    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; flex-shrink: 0;
+  }
+  .color-swatch:hover { transform: scale(1.2); }
+  .color-swatch.active { border-color: #fff; transform: scale(1.15); }
+
+  .sep { width: 1px; height: 26px; background: #0f3460; flex-shrink: 0; }
+
+  /* Scale controls */
+  #scale-section {
+    display: flex; align-items: center; gap: 8px;
+  }
+  #scale-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 90px; height: 4px;
+    background: #0f3460;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  #scale-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #4a90d9;
+    cursor: pointer;
+    border: 2px solid #1a1a2e;
+  }
+  #scale-val {
+    font-size: 12px; color: #aaa; min-width: 28px; text-align: right;
+  }
+  .size-btn {
+    padding: 4px 8px; font-size: 11px; border-radius: 5px;
+    border: 1px solid #0f3460; background: #0f2040; color: #aaa;
+    cursor: pointer; transition: all 0.12s;
+  }
+  .size-btn:hover { background: #1a3060; color: #e0e0e0; }
+
+  /* Rotation controls */
+  #rot-section { display: flex; align-items: center; gap: 6px; }
+  .rot-btn {
+    padding: 5px 9px; font-size: 14px; border-radius: 6px;
+    border: 1px solid #0f3460; background: #0f2040; color: #ccc;
+    cursor: pointer; transition: all 0.12s; line-height: 1;
+  }
+  .rot-btn:hover { background: #1a4a8a; color: #fff; }
+
+  #btn-delete {
+    padding: 6px 12px;
+    border: 1px solid #5a1a1a; background: #3a1010; color: #ff6b6b;
+    border-radius: 7px; cursor: pointer; font-size: 13px; transition: all 0.15s;
+  }
+  #btn-delete:hover { background: #5a2020; border-color: #ff4444; }
+
+  #btn-reset {
+    padding: 6px 12px;
+    border: 1px solid #0f3460; background: #0f2040; color: #888;
+    border-radius: 7px; cursor: pointer; font-size: 13px; transition: all 0.15s;
+  }
+  #btn-reset:hover { background: #1a3060; color: #e0e0e0; }
+
+  .io-btn {
+    padding: 6px 12px;
+    border: 1px solid #0f3460; background: #0f2040; color: #aaa;
+    border-radius: 7px; cursor: pointer; font-size: 13px; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .io-btn:hover { background: #1a3060; color: #e0e0e0; }
+  .io-btn.save { border-color: #1a4a1a; background: #0f2a0f; color: #6be0a0; }
+  .io-btn.save:hover { background: #1a3a1a; }
+
+  #confirm-modal {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.65); z-index: 200; align-items: center; justify-content: center;
+  }
+  #confirm-modal.visible { display: flex; }
+  #confirm-box {
+    background: #16213e; border: 1px solid #0f3460; border-radius: 12px;
+    padding: 22px 26px; width: 290px; text-align: center;
+  }
+  #confirm-box p { font-size: 14px; color: #ccc; margin-bottom: 18px; line-height: 1.5; }
+  #confirm-box .modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+  #load-input { display: none; }
+
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #label-modal {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center;
+  }
+  #label-modal.visible { display: flex; }
+  #label-box {
+    background: #16213e; border: 1px solid #0f3460; border-radius: 12px;
+    padding: 22px 26px; width: 310px;
+  }
+  #label-box h3 { font-size: 13px; font-weight: 500; margin-bottom: 14px; color: #aaa; }
+  #label-input {
+    width: 100%; background: #0f1e3a; border: 1px solid #0f3460; color: #e0e0e0;
+    font-size: 15px; padding: 9px 11px; border-radius: 8px; outline: none;
+  }
+  #label-input:focus { border-color: #4a90d9; }
+  #label-modal-btns { display: flex; gap: 10px; margin-top: 14px; justify-content: flex-end; }
+  .modal-btn {
+    padding: 7px 18px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    border: 1px solid #0f3460; background: #0f3460; color: #e0e0e0; transition: all 0.15s;
+  }
+  .modal-btn:hover { background: #1a4a8a; }
+  .modal-btn.primary { background: #4a90d9; border-color: #4a90d9; }
+  .modal-btn.primary:hover { background: #5aa0e9; }
+
+  #hint {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: #444; pointer-events: none; text-align: center; line-height: 1.7; white-space: nowrap;
+  }
+  #selected-info {
+    position: absolute; bottom: 12px; right: 14px;
+    font-size: 12px; color: #777; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <span class="tlabel">Figur</span>
+
+  <button class="figure-btn" data-type="pawn">
+    <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="4" r="3" fill="none" stroke="#e0e0e0" stroke-width="1.3"/><rect x="4.5" y="7" width="5" height="5" rx="1" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
+    Figur
+  </button>
+  <button class="figure-btn" data-type="triangle">
+    <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 13,13 1,13" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
+    Kegel
+  </button>
+  <button class="figure-btn" data-type="square">
+    <svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
+    Säule
+  </button>
+  <button class="figure-btn" data-type="diamond">
+    <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 13,7 7,13 1,7" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
+    Raute
+  </button>
+
+  <div class="sep"></div>
+  <span class="tlabel">Farbe</span>
+  <div style="display:flex;gap:5px;align-items:center;">
+    <div class="color-swatch active" data-color="#e06b6b" style="background:#e06b6b;"></div>
+    <div class="color-swatch" data-color="#6ba8e0" style="background:#6ba8e0;"></div>
+    <div class="color-swatch" data-color="#6be0a0" style="background:#6be0a0;"></div>
+    <div class="color-swatch" data-color="#e0c06b" style="background:#e0c06b;"></div>
+    <div class="color-swatch" data-color="#c06be0" style="background:#c06be0;"></div>
+    <div class="color-swatch" data-color="#e0906b" style="background:#e0906b;"></div>
+    <div class="color-swatch" data-color="#e0e0e0" style="background:#e0e0e0;"></div>
+  </div>
+
+  <div class="sep"></div>
+  <span class="tlabel">Größe</span>
+  <div id="scale-section">
+    <button class="size-btn" data-scale="0.6">S</button>
+    <button class="size-btn" data-scale="1.0">M</button>
+    <button class="size-btn" data-scale="1.5">L</button>
+    <input type="range" id="scale-slider" min="0.3" max="2.5" step="0.05" value="1.0">
+    <span id="scale-val">1.0×</span>
+  </div>
+
+  <div class="sep"></div>
+  <span class="tlabel">Drehen</span>
+  <div id="rot-section">
+    <button class="rot-btn" data-rot="-15" title="Links drehen">↺</button>
+    <button class="rot-btn" data-rot="15" title="Rechts drehen">↻</button>
+  </div>
+
+  <div class="sep"></div>
+  <button id="btn-delete">✕ Löschen</button>
+
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+    <button class="io-btn save" id="btn-save">↓ Speichern</button>
+    <button class="io-btn" id="btn-load">↑ Laden</button>
+    <input type="file" id="load-input" accept=".json">
+    <button id="btn-reset">Brett leeren</button>
+  </div>
+</div>
+
+<div id="canvas-container">
+  <canvas id="three-canvas"></canvas>
+  <div id="hint">
+    LMB: Figur ziehen &nbsp;|&nbsp; RMB / 2-Finger: Brett drehen &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
+  </div>
+  <div id="selected-info"></div>
+</div>
+
+<div id="confirm-modal">
+  <div id="confirm-box">
+    <p id="confirm-text">Alle Figuren entfernen?</p>
+    <div class="modal-btns">
+      <button class="modal-btn" id="confirm-no">Abbrechen</button>
+      <button class="modal-btn primary" id="confirm-yes">Ja, leeren</button>
+    </div>
+  </div>
+</div>
+
+<div id="label-modal">
+  <div id="label-box">
+    <h3>Beschriftung</h3>
+    <input id="label-input" type="text" placeholder="Name oder Rolle …" maxlength="40"/>
+    <div id="label-modal-btns">
+      <button class="modal-btn" id="label-cancel">Abbrechen</button>
+      <button class="modal-btn primary" id="label-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="/three.min.js"></script>
+<script>
+(function(){
+
+// ─── Cluster integration config ──────────────────────────────────
+const params   = new URLSearchParams(window.location.search);
+const ROOM     = params.get('room') || 'standalone';
+const API      = '/api';
+const SYNC_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://')
+               + location.host + '/sync';
+
+function findFigById(id) {
+  return figures.find(f => f.id === id) || null;
+}
+function figToJSON(fig) {
+  return {
+    id:    fig.id,
+    type:  fig.type,
+    color: fig.color,
+    label: fig.label || '',
+    scale: fig.scale,
+    rotY:  fig.rotY,
+    x:     fig.mesh.position.x,
+    z:     fig.mesh.position.z,
+  };
+}
+
+const container = document.getElementById('canvas-container');
+const canvas    = document.getElementById('three-canvas');
+
+// ── Renderer ──────────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// ── Scene ─────────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1a2e);
+scene.fog = new THREE.Fog(0x1a1a2e, 65, 120);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
+const orbit = { theta: 0.4, phi: 0.72, radius: 38 };
+function updateCamera() {
+  camera.position.set(
+    orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
+    orbit.radius * Math.cos(orbit.phi),
+    orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta)
+  );
+  camera.lookAt(0, 0, 0);
+}
+updateCamera();
+
+// ── Lights ────────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+sun.position.set(10, 20, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left:-28, right:28, top:28, bottom:-28, near:0.5, far:80 });
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x8090ff, 0.3);
+fill.position.set(-8, 5, -10);
+scene.add(fill);
+
+// ── Board ─────────────────────────────────────────────────────────────────────
+const BW = 36, BD = 28;
+const boardMesh = new THREE.Mesh(
+  new THREE.BoxGeometry(BW, 0.5, BD),
+  new THREE.MeshStandardMaterial({ color: 0x2a1f14, roughness: 0.85, metalness: 0.05 })
+);
+boardMesh.receiveShadow = true;
+boardMesh.position.y = -0.25;
+scene.add(boardMesh);
+
+const edgeMesh = new THREE.Mesh(
+  new THREE.BoxGeometry(BW+0.6, 0.7, BD+0.6),
+  new THREE.MeshStandardMaterial({ color: 0x1a1008, roughness: 0.9 })
+);
+edgeMesh.position.y = -0.35;
+scene.add(edgeMesh);
+
+scene.add(new THREE.GridHelper(Math.max(BW,BD), 12, 0x3a2a18, 0x3a2a18));
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let figures = [];
+let selectedFigure = null;
+let currentColor = '#e06b6b';
+let pendingLabelFig = null;
+
+// ── Geometry helpers ──────────────────────────────────────────────────────────
+function hex2col(h){ return new THREE.Color(h); }
+
+// Create a face-marking sprite (dot on front face)
+function makeFaceMarker(col) {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext('2d');
+  // bright face dot
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(32,32,20,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.arc(32,32,13,0,Math.PI*2); ctx.fill();
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(0.55, 0.55, 1);
+  return sprite;
+}
+
+// Arrow chevron on base indicating forward direction
+function makeDirectionArrow(col) {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0.38);
+  shape.lineTo(0.22, 0);
+  shape.lineTo(0.10, 0.08);
+  shape.lineTo(0.10, -0.30);
+  shape.lineTo(-0.10, -0.30);
+  shape.lineTo(-0.10, 0.08);
+  shape.lineTo(-0.22, 0);
+  shape.closePath();
+  const geo = new THREE.ShapeGeometry(shape);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthTest: false });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.set(0, 0.21, -0.7);
+  return mesh;
+}
+
+// ── Figure construction ───────────────────────────────────────────────────────
+function buildFigure(type, color) {
+  const col  = hex2col(color);
+  const dark = col.clone().multiplyScalar(0.45);
+  const mat  = new THREE.MeshStandardMaterial({ color: col,  roughness: 0.38, metalness: 0.12 });
+  const back = new THREE.MeshStandardMaterial({ color: dark, roughness: 0.55, metalness: 0.08 });
+
+  const group = new THREE.Group();
+
+  if (type === 'pawn') {
+    // Body: front bright, back dark using two half-cylinders
+    const bodyF = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 1.75, 24, 1, false, 0, Math.PI), mat);
+    const bodyB = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 1.75, 24, 1, false, Math.PI, Math.PI), back);
+    bodyF.position.y = 0.875; bodyB.position.y = 0.875;
+    bodyF.castShadow = true; bodyB.castShadow = true;
+
+    // Head: front bright hemisphere, back dark
+    const headF = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 16, 0, Math.PI, 0, Math.PI), mat);
+    const headB = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 16, Math.PI, Math.PI, 0, Math.PI), back);
+    headF.position.y = 2.0; headB.position.y = 2.0;
+    headF.castShadow = true; headB.castShadow = true;
+
+    group.add(bodyF, bodyB, headF, headB);
+
+    // Face marker
+    const dot = makeFaceMarker(color);
+    dot.position.set(0, 2.0, 0.53);
+    group.add(dot);
+
+  } else if (type === 'triangle') {
+    // Cone: 3-sided, front half bright
+    const coneF = new THREE.Mesh(new THREE.ConeGeometry(0.88, 2.15, 16, 1, false, 0, Math.PI), mat);
+    const coneB = new THREE.Mesh(new THREE.ConeGeometry(0.88, 2.15, 16, 1, false, Math.PI, Math.PI), back);
+    coneF.position.y = 1.075; coneB.position.y = 1.075;
+    coneF.castShadow = true; coneB.castShadow = true;
+
+    // Front face stripe
+    const stripeGeo = new THREE.PlaneGeometry(0.25, 1.3);
+    const stripeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthTest: false });
+    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+    stripe.position.set(0, 1.1, 0.86);
+    stripe.rotation.y = 0;
+
+    group.add(coneF, coneB, stripe);
+
+  } else if (type === 'square') {
+    // Box: front face bright, sides/back darker
+    const frontMat = mat.clone();
+    const sideMat  = new THREE.MeshStandardMaterial({ color: col.clone().multiplyScalar(0.7), roughness: 0.45 });
+    const backMat2 = back.clone();
+    const topMat   = new THREE.MeshStandardMaterial({ color: col.clone().multiplyScalar(0.85), roughness: 0.4 });
+
+    // Box with per-face materials [+x, -x, +y, -y, +z(front), -z(back)]
+    const boxGeo = new THREE.BoxGeometry(1.18, 2.0, 1.18);
+    const boxMats = [ sideMat, sideMat, topMat, back, frontMat, backMat2 ];
+    const box = new THREE.Mesh(boxGeo, boxMats);
+    box.position.y = 1.0; box.castShadow = true;
+
+    // Front face vertical stripe
+    const strGeo = new THREE.PlaneGeometry(0.22, 1.4);
+    const strMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, depthTest: false });
+    const stripe = new THREE.Mesh(strGeo, strMat);
+    stripe.position.set(0, 1.0, 0.6);
+    group.add(box, stripe);
+
+  } else if (type === 'diamond') {
+    // Octahedron: front vertices bright, back dark via two halves
+    const octF = new THREE.Mesh(new THREE.OctahedronGeometry(1.05, 0), mat);
+    octF.position.y = 1.05; octF.castShadow = true;
+    group.add(octF);
+
+    // Front face indicator
+    const dot = makeFaceMarker(color);
+    dot.position.set(0, 1.05, 1.0);
+    dot.scale.set(0.45, 0.45, 1);
+    group.add(dot);
+  }
+
+  // Base disc
+  const baseMat = new THREE.MeshStandardMaterial({ color: dark, roughness: 0.7 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.18, 32), baseMat);
+  base.position.y = 0.09; base.castShadow = true;
+  group.add(base);
+
+  // Direction arrow on base
+  const arrow = makeDirectionArrow(color);
+  group.add(arrow);
+
+  return group;
+}
+
+// ── Text label sprite ─────────────────────────────────────────────────────────
+function makeTextSprite(text) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,256,64);
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  if (ctx.roundRect) ctx.roundRect(4,10,248,46,10); else ctx.rect(4,10,248,46);
+  ctx.fill();
+  ctx.font = 'bold 24px Segoe UI, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(text.length > 18 ? text.slice(0,17)+'…' : text, 128, 36);
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sp = new THREE.Sprite(mat);
+  sp.scale.set(4, 1, 1);
+  return sp;
+}
+
+// ── Add / update figure ───────────────────────────────────────────────────────
+function addFigure(type, color, x, z, label, scale, rotY, id) {
+  const mesh = buildFigure(type, color);
+  mesh.position.set(x, 0, z);
+  mesh.scale.setScalar(scale || 1.0);
+  mesh.rotation.y = rotY || 0;
+  scene.add(mesh);
+
+  const fig = { type, color, mesh, label: label||'', sprite: null, scale: scale||1.0, rotY: rotY||0 };
+  fig.id = id || `fig_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  if (fig.label) { attachLabel(fig); }
+  figures.push(fig);
+  return fig;
+}
+
+function attachLabel(fig) {
+  if (fig.sprite) { fig.mesh.remove(fig.sprite); fig.sprite.material.map.dispose(); fig.sprite.material.dispose(); fig.sprite = null; }
+  if (!fig.label) return;
+  const sp = makeTextSprite(fig.label);
+  // Position above figure, independent of scale (divide by scale so world-height stays constant)
+  const h = 4.2 / (fig.scale || 1.0);
+  sp.position.set(0, h, 0);
+  fig.mesh.add(sp);
+  fig.sprite = sp;
+}
+
+function setLabel(fig, text) {
+  fig.label = text;
+  attachLabel(fig);
+}
+
+function setScale(fig, s) {
+  fig.scale = s;
+  fig.mesh.scale.setScalar(s);
+  attachLabel(fig); // reposition label
+}
+
+function setRotY(fig, rad) {
+  fig.rotY = rad;
+  fig.mesh.rotation.y = rad;
+}
+
+// ── Selection ring ────────────────────────────────────────────────────────────
+let selRing = null;
+function showSelRing(fig) {
+  clearSelRing();
+  const geo = new THREE.TorusGeometry(1.05, 0.07, 8, 48);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+  selRing = new THREE.Mesh(geo, mat);
+  selRing.rotation.x = Math.PI/2;
+  selRing.position.y = 0.22;
+  fig.mesh.add(selRing);
+}
+function clearSelRing() {
+  if (selRing && selRing.parent) selRing.parent.remove(selRing);
+  selRing = null;
+}
+
+function selectFigure(fig) {
+  selectedFigure = fig;
+  clearSelRing();
+  const slider = document.getElementById('scale-slider');
+  const scaleVal = document.getElementById('scale-val');
+  if (fig) {
+    showSelRing(fig);
+    slider.value = fig.scale;
+    scaleVal.textContent = fig.scale.toFixed(1)+'×';
+    document.getElementById('selected-info').textContent = fig.label ? `Ausgewählt: ${fig.label}` : 'Figur ausgewählt';
+  } else {
+    slider.value = 1.0;
+    scaleVal.textContent = '1.0×';
+    document.getElementById('selected-info').textContent = '';
+  }
+}
+
+// ── Toolbar wiring ────────────────────────────────────────────────────────────
+document.querySelectorAll('.figure-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const x = (Math.random()-0.5)*(BW-4);
+    const z = (Math.random()-0.5)*(BD-4);
+    const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
+    selectFigure(fig);
+    openLabelModal(fig);
+  });
+});
+
+document.querySelectorAll('.color-swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+    currentColor = sw.dataset.color;
+    if (selectedFigure) recolorFigure(selectedFigure, currentColor);
+  });
+});
+
+function recolorFigure(fig, color) {
+  fig.color = color;
+  const newMesh = buildFigure(fig.type, color);
+  newMesh.position.copy(fig.mesh.position);
+  newMesh.rotation.y = fig.rotY;
+  newMesh.scale.setScalar(fig.scale);
+  scene.remove(fig.mesh);
+  scene.add(newMesh);
+  fig.mesh = newMesh;
+  if (fig.label) attachLabel(fig);
+  selectFigure(fig);
+}
+
+const scaleSlider = document.getElementById('scale-slider');
+const scaleVal    = document.getElementById('scale-val');
+scaleSlider.addEventListener('input', () => {
+  const s = parseFloat(scaleSlider.value);
+  scaleVal.textContent = s.toFixed(1)+'×';
+  if (selectedFigure) setScale(selectedFigure, s);
+});
+
+document.querySelectorAll('[data-scale]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const s = parseFloat(btn.dataset.scale);
+    scaleSlider.value = s;
+    scaleVal.textContent = s.toFixed(1)+'×';
+    if (selectedFigure) setScale(selectedFigure, s);
+  });
+});
+
+document.querySelectorAll('[data-rot]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!selectedFigure) return;
+    const deg = parseInt(btn.dataset.rot);
+    setRotY(selectedFigure, selectedFigure.rotY + deg * Math.PI/180);
+  });
+});
+
+document.getElementById('btn-delete').addEventListener('click', () => {
+  if (!selectedFigure) return;
+  scene.remove(selectedFigure.mesh);
+  figures = figures.filter(f => f !== selectedFigure);
+  clearSelRing(); selectedFigure = null;
+  document.getElementById('selected-info').textContent = '';
+});
+
+// ── Custom confirm modal ───────────────────────────────────────────────────────
+const confirmModal = document.getElementById('confirm-modal');
+let confirmCallback = null;
+document.getElementById('confirm-yes').addEventListener('click', () => {
+  confirmModal.classList.remove('visible');
+  if (confirmCallback) { confirmCallback(); confirmCallback = null; }
+});
+document.getElementById('confirm-no').addEventListener('click', () => {
+  confirmModal.classList.remove('visible'); confirmCallback = null;
+});
+function askConfirm(text, cb) {
+  document.getElementById('confirm-text').textContent = text;
+  confirmCallback = cb;
+  confirmModal.classList.add('visible');
+}
+
+function clearBoard() {
+  figures.forEach(f => { scene.remove(f.mesh); });
+  figures = []; clearSelRing(); selectedFigure = null;
+  document.getElementById('selected-info').textContent = '';
+}
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  askConfirm('Alle Figuren entfernen?', clearBoard);
+});
+
+// ── Save / Load ───────────────────────────────────────────────────────────────
+document.getElementById('btn-save').addEventListener('click', () => {
+  const data = {
+    version: 1,
+    figures: figures.map(f => ({
+      type:  f.type,
+      color: f.color,
+      label: f.label,
+      scale: f.scale,
+      rotY:  f.rotY,
+      x:     f.mesh.position.x,
+      z:     f.mesh.position.z
+    }))
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const ts   = new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  a.href = url; a.download = `brett_${ts}.json`;
+  a.click(); URL.revokeObjectURL(url);
+});
+
+document.getElementById('btn-load').addEventListener('click', () => {
+  document.getElementById('load-input').click();
+});
+
+document.getElementById('load-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if (!data.figures || !Array.isArray(data.figures)) throw new Error('Ungültiges Format');
+      askConfirm(`"${file.name}" laden? Das aktuelle Brett wird ersetzt.`, () => {
+        clearBoard();
+        data.figures.forEach(f => {
+          addFigure(f.type, f.color, f.x || 0, f.z || 0, f.label || '', f.scale || 1.0, f.rotY || 0);
+        });
+      });
+    } catch(err) {
+      alert('Fehler beim Laden: ' + err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+// ── Label modal ───────────────────────────────────────────────────────────────
+const modal      = document.getElementById('label-modal');
+const labelInput = document.getElementById('label-input');
+
+function openLabelModal(fig) {
+  pendingLabelFig = fig;
+  labelInput.value = fig.label || '';
+  modal.classList.add('visible');
+  setTimeout(() => labelInput.focus(), 40);
+}
+document.getElementById('label-confirm').addEventListener('click', () => {
+  if (pendingLabelFig) setLabel(pendingLabelFig, labelInput.value.trim());
+  modal.classList.remove('visible'); pendingLabelFig = null;
+});
+document.getElementById('label-cancel').addEventListener('click', () => {
+  modal.classList.remove('visible'); pendingLabelFig = null;
+});
+labelInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter')  document.getElementById('label-confirm').click();
+  if (e.key === 'Escape') document.getElementById('label-cancel').click();
+});
+
+// ── Raycasting helpers ────────────────────────────────────────────────────────
+const raycaster   = new THREE.Raycaster();
+const boardPlane  = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+
+function getNDC(e) {
+  const r = canvas.getBoundingClientRect();
+  return new THREE.Vector2(
+    ((e.clientX-r.left)/r.width)*2-1,
+    -((e.clientY-r.top)/r.height)*2+1
+  );
+}
+function pickFigure(ndc) {
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects(figures.map(f=>f.mesh), true);
+  if (!hits.length) return null;
+  const obj = hits[0].object;
+  return figures.find(f => {
+    if (f.mesh === obj) return true;
+    let p = obj.parent;
+    while (p) { if (p === f.mesh) return true; p = p.parent; }
+    return false;
+  }) || null;
+}
+function pickBoard(ndc) {
+  raycaster.setFromCamera(ndc, camera);
+  const t = new THREE.Vector3();
+  raycaster.ray.intersectPlane(boardPlane, t);
+  return t;
+}
+
+// ── Mouse / touch ─────────────────────────────────────────────────────────────
+let drag   = { on: false, fig: null };
+let rmbOn  = false;
+let lastClick = { fig: null, time: 0 };
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+canvas.addEventListener('mousedown', e => {
+  if (modal.classList.contains('visible')) return;
+  if (e.button === 2) {
+    rmbOn = true;
+    orbit.startX = e.clientX; orbit.startY = e.clientY;
+    return;
+  }
+  if (e.button === 0) {
+    const ndc = getNDC(e);
+    const fig = pickFigure(ndc);
+    if (fig) {
+      const now = Date.now();
+      if (lastClick.fig === fig && now-lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; return; }
+      lastClick = { fig, time: now };
+      selectFigure(fig);
+      drag = { on: true, fig };
+    } else {
+      selectFigure(null); lastClick.fig = null;
+    }
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (rmbOn) {
+    const dx = e.clientX - orbit.startX;
+    const dy = e.clientY - orbit.startY;
+    orbit.theta -= dx * 0.008;
+    orbit.phi = Math.max(0.12, Math.min(Math.PI/2.05, orbit.phi + dy*0.008));
+    orbit.startX = e.clientX; orbit.startY = e.clientY;
+    updateCamera(); return;
+  }
+  if (drag.on && drag.fig) {
+    const pos = pickBoard(getNDC(e));
+    if (pos) {
+      drag.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
+      drag.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  if (e.button === 2) rmbOn = false;
+  if (e.button === 0) drag = { on:false, fig:null };
+});
+
+canvas.addEventListener('wheel', e => {
+  orbit.radius = Math.max(10, Math.min(75, orbit.radius + e.deltaY*0.05));
+  updateCamera(); e.preventDefault();
+}, { passive: false });
+
+// Touch
+let tPrev = null;
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    const fig = pickFigure(getNDC({clientX:t.clientX,clientY:t.clientY}));
+    if (fig) { selectFigure(fig); drag={on:true,fig}; }
+    else selectFigure(null);
+  }
+  if (e.touches.length === 2) {
+    tPrev = { x:(e.touches[0].clientX+e.touches[1].clientX)/2, y:(e.touches[0].clientY+e.touches[1].clientY)/2 };
+  }
+  e.preventDefault();
+},{passive:false});
+
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length === 1 && drag.on && drag.fig) {
+    const t = e.touches[0];
+    const pos = pickBoard(getNDC({clientX:t.clientX,clientY:t.clientY}));
+    if (pos) {
+      drag.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
+      drag.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
+    }
+  }
+  if (e.touches.length === 2 && tPrev) {
+    const cx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+    const cy=(e.touches[0].clientY+e.touches[1].clientY)/2;
+    orbit.theta -= (cx-tPrev.x)*0.01;
+    orbit.phi = Math.max(0.12, Math.min(Math.PI/2.05, orbit.phi+(cy-tPrev.y)*0.01));
+    tPrev={x:cx,y:cy}; updateCamera();
+  }
+  e.preventDefault();
+},{passive:false});
+
+canvas.addEventListener('touchend', () => { drag={on:false,fig:null}; tPrev=null; });
+
+// ── Resize ────────────────────────────────────────────────────────────────────
+function onResize() {
+  const w=container.clientWidth, h=container.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', onResize); onResize();
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+function animate() {
+  requestAnimationFrame(animate);
+  const t = performance.now()*0.001;
+  figures.forEach((fig,i) => {
+    if (fig === selectedFigure) fig.mesh.position.y = Math.sin(t*2+i)*0.07;
+    else fig.mesh.position.y = 0;
+  });
+  renderer.render(scene, camera);
+}
+animate();
+
+})();
+</script>
+</body>
+</html>

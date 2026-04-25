@@ -46,7 +46,7 @@ else
   # 5th positional argument. Talk 17+ accepts: webhook, response, event.
   kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
     php occ talk:bot:install \
-      --feature webhook \
+      --feature webhook --feature response \
       "Systemisches Brett" \
       "${SECRET}" \
       "${WEBHOOK_URL}" \

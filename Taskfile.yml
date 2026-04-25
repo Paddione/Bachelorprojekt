@@ -1656,7 +1656,7 @@ tasks:
         fi
         export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL
 
-        envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$STRIPE_PUBLISHABLE_KEY" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
+        envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$STRIPE_PUBLISHABLE_KEY \$BRETT_DOMAIN" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
         kubectl ${CTX_ARG} apply -f k3d/website-seller-config.yaml
 
         # Dev-only: apply plaintext dev secrets (prod uses SealedSecrets — never overwrite)
@@ -1773,6 +1773,71 @@ tasks:
     cmds:
       - kubectl delete namespace website --ignore-not-found --timeout=60s
       - echo "✓ Website namespace deleted"
+
+  # ─────────────────────────────────────────────
+  # Brett (Systemisches Whiteboard)
+  # ─────────────────────────────────────────────
+  brett:build:
+    desc: "Build brett image (and import into k3d in dev)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - docker build -t workspace-brett:latest brett/
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          k3d image import workspace-brett:latest -c {{.CLUSTER_NAME}}
+          echo "✓ brett image imported into k3d cluster"
+        else
+          docker tag workspace-brett:latest ghcr.io/paddione/workspace-brett:latest
+          echo "✓ brett image built and tagged for ghcr.io (run 'task brett:push ENV={{.ENV}}' to publish)"
+        fi
+
+  brett:push:
+    desc: "Build and push brett image to ghcr.io (for production)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - task: brett:build
+        vars: { ENV: "{{.ENV}}" }
+      - docker push ghcr.io/paddione/workspace-brett:latest
+      - echo "✓ Pushed ghcr.io/paddione/workspace-brett:latest"
+
+  brett:deploy:
+    desc: "Build, import/push, and roll out brett (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          task brett:build ENV={{.ENV}}
+        else
+          task brett:push ENV={{.ENV}}
+        fi
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        kubectl $CTX_FLAG rollout restart deploy/brett -n workspace
+        kubectl $CTX_FLAG rollout status  deploy/brett -n workspace
+
+  brett:bot-setup:
+    desc: "Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)"
+    cmds:
+      - bash scripts/brett-bot-setup.sh
+    preconditions:
+      - sh: '[[ -n "${ENV:-}" ]]'
+        msg: "ENV= must be set (dev|mentolder|korczewski)"
+
+  brett:logs:
+    desc: "Tail brett logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        kubectl $CTX_FLAG logs -n workspace -l app=brett --tail=200 -f
 
   # ─────────────────────────────────────────────
   # Whisper (Transcription Service)

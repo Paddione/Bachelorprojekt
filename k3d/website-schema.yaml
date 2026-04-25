@@ -257,6 +257,34 @@ data:
       CREATE INDEX IF NOT EXISTS idx_doc_assignments_customer ON document_assignments(customer_id);
       CREATE INDEX IF NOT EXISTS idx_doc_assignments_status ON document_assignments(status);
 
+      -- ── Systemisches Brett ──────────────────────────────────────────
+
+      -- Layer 1: live state per Talk room. Overwritten as figures move.
+      CREATE TABLE IF NOT EXISTS brett_rooms (
+          room_token       TEXT PRIMARY KEY,
+          state            JSONB NOT NULL DEFAULT '{"figures":[]}'::jsonb,
+          last_modified_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      -- Layer 2: manual snapshots. Immutable, named, optionally linked to a customer.
+      CREATE TABLE IF NOT EXISTS brett_snapshots (
+          id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          room_token  TEXT,
+          customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+          name        TEXT NOT NULL,
+          state       JSONB NOT NULL,
+          created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_brett_snapshots_customer
+          ON brett_snapshots(customer_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_brett_snapshots_room
+          ON brett_snapshots(room_token, created_at DESC);
+
+      -- Idempotency for auto-post on Talk-roomed meeting creation.
+      ALTER TABLE meetings
+          ADD COLUMN IF NOT EXISTS brett_link_posted_at TIMESTAMPTZ;
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -504,6 +532,34 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_doc_assignments_customer ON document_assignments(customer_id);
       CREATE INDEX IF NOT EXISTS idx_doc_assignments_status ON document_assignments(status);
+
+      -- ── Systemisches Brett ──────────────────────────────────────────
+
+      -- Layer 1: live state per Talk room. Overwritten as figures move.
+      CREATE TABLE IF NOT EXISTS brett_rooms (
+          room_token       TEXT PRIMARY KEY,
+          state            JSONB NOT NULL DEFAULT '{"figures":[]}'::jsonb,
+          last_modified_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      -- Layer 2: manual snapshots. Immutable, named, optionally linked to a customer.
+      CREATE TABLE IF NOT EXISTS brett_snapshots (
+          id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          room_token  TEXT,
+          customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+          name        TEXT NOT NULL,
+          state       JSONB NOT NULL,
+          created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_brett_snapshots_customer
+          ON brett_snapshots(customer_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_brett_snapshots_room
+          ON brett_snapshots(room_token, created_at DESC);
+
+      -- Idempotency for auto-post on Talk-roomed meeting creation.
+      ALTER TABLE meetings
+          ADD COLUMN IF NOT EXISTS brett_link_posted_at TIMESTAMPTZ;
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

@@ -2555,3 +2555,18 @@ export async function seedInvoiceCounter(
     [brand, year, value]
   );
 }
+
+// ── Brett ────────────────────────────────────────────────────────────────────
+
+// Atomically claim the right to post the brett link for a meeting exactly once.
+// Returns true if this caller won the claim (and should post), false if already posted.
+export async function claimBrettLinkPost(meetingId: string): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE meetings
+        SET brett_link_posted_at = now()
+      WHERE id = $1 AND brett_link_posted_at IS NULL
+      RETURNING id`,
+    [meetingId]
+  );
+  return result.rowCount === 1;
+}

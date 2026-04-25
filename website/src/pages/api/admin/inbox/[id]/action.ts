@@ -4,10 +4,10 @@ import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getInboxItem, updateInboxItemStatus } from '../../../../../lib/messaging-db';
 import { createUser, sendPasswordResetEmail } from '../../../../../lib/keycloak';
 import { createCalendarEvent } from '../../../../../lib/caldav';
-import { createTalkRoom, inviteGuestByEmail } from '../../../../../lib/talk';
+import { createTalkRoom, inviteGuestByEmail, sendChatMessage } from '../../../../../lib/talk';
 import { scheduleReminder } from '../../../../../lib/reminders';
 import { sendRegistrationApproved, sendRegistrationDeclined, sendEmail } from '../../../../../lib/email';
-import { upsertCustomer, resolveBugTicket, setBookingInvoice, createMeeting } from '../../../../../lib/website-db';
+import { upsertCustomer, resolveBugTicket, setBookingInvoice, createMeeting, claimBrettLinkPost } from '../../../../../lib/website-db';
 import { getOrCreateCustomer, createBillingInvoice, SERVICES } from '../../../../../lib/stripe-billing';
 import type { ServiceKey } from '../../../../../lib/stripe-billing';
 
@@ -131,13 +131,24 @@ export const POST: APIRoute = async ({ request, params }) => {
         statusParts.push('Bestätigungs-E-Mail versendet');
         const customer = await upsertCustomer({ name: p.name, email: p.email, phone: p.phone });
 
-        createMeeting({
+        const meeting = await createMeeting({
           customerId: customer.id,
           meetingType: p.typeLabel,
           scheduledAt: meetingStart,
           talkRoomToken: room?.token ?? undefined,
           projectId: p.projectId ?? undefined,
-        }).catch(err => console.error('[approve_booking] Failed to create meeting record:', err));
+        }).catch(err => { console.error('[approve_booking] Failed to create meeting record:', err); return null; });
+
+        // Auto-post the systemisches Brett link into the new Talk room (idempotent).
+        try {
+          if (meeting && room && await claimBrettLinkPost(meeting.id)) {
+            const brettDomain = process.env.BRETT_DOMAIN || 'brett.localhost';
+            const url = `https://${brettDomain}/?room=${encodeURIComponent(room.token)}`;
+            await sendChatMessage(room.token, `🎯 Systemisches Brett für diese Sitzung: ${url}`);
+          }
+        } catch (err) {
+          console.error('[brett] auto-post failed (non-fatal):', err);
+        }
 
         const svcKey = (p.serviceKey ?? p.leistungKey) as ServiceKey | undefined;
         if (svcKey && svcKey in SERVICES && SERVICES[svcKey].cents > 0) {

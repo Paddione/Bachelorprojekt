@@ -175,3 +175,28 @@ export async function deleteTalkRoom(roomToken: string): Promise<boolean> {
     return false;
   }
 }
+
+// Post a chat message into a Talk conversation as the admin user.
+// Used for the auto-post on Talk-roomed meeting creation.
+export async function sendChatMessage(roomToken: string, message: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${NC_URL}/ocs/v2.php/apps/spreed/api/v1/chat/${roomToken}`, {
+      method: 'POST',
+      headers: {
+        Authorization: getAuthHeader(),
+        'Content-Type': 'application/json',
+        'OCS-APIRequest': 'true',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ message, replyTo: 0 }),
+    });
+    if (!res.ok) {
+      console.error('[talk] sendChatMessage failed:', res.status, await res.text());
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[talk] sendChatMessage error:', err);
+    return false;
+  }
+}

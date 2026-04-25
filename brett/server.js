@@ -106,4 +106,82 @@ const server = app.listen(PORT, () => {
   console.log(`brett listening on :${PORT}`);
 });
 
-module.exports = { app, server, pool };
+// ─── WebSocket sync ──────────────────────────────────────────────
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ server, path: '/sync' });
+
+// roomToken -> Set<WebSocket>
+const rooms = new Map();
+// roomToken -> NodeJS.Timeout (debounced persistence)
+const pending = new Map();
+
+function joinRoom(ws, room) {
+  ws._room = room;
+  if (!rooms.has(room)) rooms.set(room, new Set());
+  rooms.get(room).add(ws);
+}
+
+function leaveRoom(ws) {
+  const room = ws._room;
+  if (!room || !rooms.has(room)) return;
+  rooms.get(room).delete(ws);
+  if (rooms.get(room).size === 0) rooms.delete(room);
+  return room;
+}
+
+function broadcast(room, msg, exclude) {
+  const json = JSON.stringify(msg);
+  const peers = rooms.get(room);
+  if (!peers) return;
+  for (const peer of peers) {
+    if (peer !== exclude && peer.readyState === WebSocket.OPEN) peer.send(json);
+  }
+}
+
+function broadcastInfo(room) {
+  const count = rooms.get(room)?.size ?? 0;
+  broadcast(room, { type: 'info', count });
+}
+
+async function readState(room) {
+  const { rows } = await pool.query(
+    'SELECT state FROM brett_rooms WHERE room_token = $1',
+    [room]
+  );
+  return rows[0]?.state ?? { figures: [] };
+}
+
+wss.on('connection', (ws) => {
+  ws.on('message', async (raw) => {
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return; }
+
+    if (msg.type === 'join' && typeof msg.room === 'string' && msg.room) {
+      if (ws._room) leaveRoom(ws);
+      joinRoom(ws, msg.room);
+      const state = await readState(msg.room);
+      ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures || [] }));
+      broadcastInfo(msg.room);
+      return;
+    }
+
+    const room = ws._room;
+    if (!room) return;                     // ignore mutations before join
+
+    // Re-broadcast valid mutation types only.
+    if (['add','move','update','delete','clear'].includes(msg.type)) {
+      broadcast(room, msg, ws);
+      // Persistence is wired in the next task.
+    }
+  });
+
+  ws.on('close', () => {
+    const room = leaveRoom(ws);
+    if (room && rooms.has(room)) broadcastInfo(room);
+  });
+
+  ws.on('error', (err) => console.error('[brett] ws error:', err.message));
+});
+
+module.exports = { app, server, pool, wss };

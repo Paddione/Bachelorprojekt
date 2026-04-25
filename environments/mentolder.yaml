@@ -34,6 +34,7 @@ env_vars:
   TRAEFIK_EXTERNAL_URL: "https://traefik.mentolder.de"
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   STRIPE_PUBLISHABLE_KEY: "pk_live_51TOM2vPmjoQCVSEjX0mKUyfMoEJQssMbl2Me20WSiLJBjhIrxQJiesJrSw6GVlVetbJJ1cH7Wk0rOXHamMN5aVMD00gxhMrdoF"
+  BRETT_DOMAIN: brett.mentolder.de
 
 overlay: prod-mentolder
 secrets_ref: sealed-secrets/mentolder.yaml

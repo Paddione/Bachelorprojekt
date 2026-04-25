@@ -34,6 +34,7 @@ env_vars:
   TRAEFIK_EXTERNAL_URL: "https://traefik.korczewski.de"
   MAIL_EXTERNAL_URL: "https://mail.korczewski.de"
   STRIPE_PUBLISHABLE_KEY: "pk_live_51RhKrcDGTY4NP8aeqnf69F1OVgNleqjLqR5ZHi8jkzlyxLiaTEnsY5xwhgPAVV7FdNb4eRnelIzt7DUj9TTAopXg00yyxjx03t"
+  BRETT_DOMAIN: brett.korczewski.de
 
 overlay: prod-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml

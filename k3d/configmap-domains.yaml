@@ -26,3 +26,4 @@ data:
   KC_USER1_EMAIL: "admin@localhost"
   KC_USER2_USERNAME: ""
   KC_USER2_EMAIL: ""
+  BRETT_DOMAIN: "brett.localhost"

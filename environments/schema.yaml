@@ -125,6 +125,10 @@ env_vars:
   - name: STRIPE_PUBLISHABLE_KEY
     required: false
 
+  - name: BRETT_DOMAIN
+    required: true
+    default_dev: "brett.localhost"
+
 secrets:
   - name: SHARED_DB_PASSWORD
     required: true
@@ -348,6 +352,14 @@ secrets:
   - name: IPV64_API_KEY
     required: false
     generate: false
+
+  - name: BRETT_BOT_SECRET
+    required: true
+    generate: true
+    length: 48
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
 setup_vars:
   - name: KC_USER1_USERNAME

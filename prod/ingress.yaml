@@ -226,3 +226,27 @@ spec:
                 name: bachelorprojekt
                 port:
                   number: 80
+---
+# ── Systemisches Brett (3D) ─────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-brett
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - brett.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: brett.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: brett
+                port:
+                  number: 3000

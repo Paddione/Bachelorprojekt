@@ -1775,6 +1775,48 @@ tasks:
       - echo "✓ Website namespace deleted"
 
   # ─────────────────────────────────────────────
+  # Brett (Systemisches Whiteboard)
+  # ─────────────────────────────────────────────
+  brett:build:
+    desc: "Build brett image and import into k3d cluster"
+    cmds:
+      - docker build -t workspace-brett:latest brett/
+      - k3d image import workspace-brett:latest -c {{.CLUSTER_NAME}}
+      - echo "✓ brett image imported into k3d cluster"
+
+  brett:deploy:
+    desc: "Build, import, and roll out brett (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - task: brett:build
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        kubectl $CTX_FLAG rollout restart deploy/brett -n workspace
+        kubectl $CTX_FLAG rollout status  deploy/brett -n workspace
+
+  brett:bot-setup:
+    desc: "Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)"
+    cmds:
+      - bash scripts/brett-bot-setup.sh
+    preconditions:
+      - sh: '[[ -n "${ENV:-}" ]]'
+        msg: "ENV= must be set (dev|mentolder|korczewski)"
+
+  brett:logs:
+    desc: "Tail brett logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        kubectl $CTX_FLAG logs -n workspace -l app=brett --tail=200 -f
+
+  # ─────────────────────────────────────────────
   # Whisper (Transcription Service)
   # ─────────────────────────────────────────────
   whisper:deploy:

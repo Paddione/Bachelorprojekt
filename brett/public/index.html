@@ -222,7 +222,8 @@
   <div class="sep"></div>
   <button id="btn-delete">✕ Löschen</button>
 
-  <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+  <div id="sync-status" style="font-size:12px; color:#6be0a0; margin-left:auto; margin-right:8px;">Verbinde …</div>
+  <div style="display:flex;gap:8px;align-items:center;">
     <button class="io-btn save" id="btn-save">↓ Speichern</button>
     <button class="io-btn" id="btn-load">↑ Laden</button>
     <input type="file" id="load-input" accept=".json">
@@ -285,6 +286,96 @@ function figToJSON(fig) {
     z:     fig.mesh.position.z,
   };
 }
+
+// ─── WebSocket sync ──────────────────────────────────────────────
+let ws = null;
+let syncOpen = false;
+let applyingRemote = false;
+let participantCount = 1;
+
+function setStatus(text) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = text;
+}
+
+function send(msg) {
+  if (syncOpen && ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg));
+  }
+}
+
+function applySnapshot(figList) {
+  applyingRemote = true;
+  try {
+    figures.slice().forEach(f => { scene.remove(f.mesh); });
+    figures.length = 0;
+    for (const f of figList) {
+      addFigure(f.type, f.color, f.x, f.z, f.label || '', f.scale || 1.0, f.rotY || 0, f.id);
+    }
+    selectFigure(null);
+  } finally { applyingRemote = false; }
+}
+
+function applyRemote(msg) {
+  applyingRemote = true;
+  try {
+    if (msg.type === 'add' && msg.fig && !findFigById(msg.fig.id)) {
+      addFigure(msg.fig.type, msg.fig.color, msg.fig.x, msg.fig.z,
+                msg.fig.label, msg.fig.scale, msg.fig.rotY, msg.fig.id);
+    } else if (msg.type === 'move') {
+      const f = findFigById(msg.id);
+      if (f) { f.mesh.position.x = msg.x; f.mesh.position.z = msg.z; }
+    } else if (msg.type === 'update') {
+      const f = findFigById(msg.id);
+      if (f && msg.changes) {
+        if (msg.changes.label !== undefined) setLabel(f, msg.changes.label);
+        if (msg.changes.scale !== undefined) setScale(f, msg.changes.scale);
+        if (msg.changes.rotY  !== undefined) setRotY (f, msg.changes.rotY);
+        if (msg.changes.color !== undefined) recolorFigure(f, msg.changes.color);
+      }
+    } else if (msg.type === 'delete') {
+      const f = findFigById(msg.id);
+      if (f) {
+        scene.remove(f.mesh);
+        const i = figures.indexOf(f);
+        if (i >= 0) figures.splice(i, 1);
+        if (selectedFigure === f) { clearSelRing(); selectedFigure = null; }
+      }
+    } else if (msg.type === 'clear') {
+      clearBoard();
+    }
+  } finally { applyingRemote = false; }
+}
+
+function connect() {
+  if (ROOM === 'standalone') {
+    setStatus('Standalone (kein Sync)');
+    return;
+  }
+  setStatus('Verbinde …');
+  ws = new WebSocket(SYNC_URL);
+  ws.onopen = () => {
+    syncOpen = true;
+    ws.send(JSON.stringify({ type: 'join', room: ROOM }));
+    setStatus('Verbunden ✓');
+  };
+  ws.onmessage = (event) => {
+    let msg;
+    try { msg = JSON.parse(event.data); } catch { return; }
+    if (msg.type === 'snapshot') applySnapshot(msg.figures || []);
+    else if (msg.type === 'info') {
+      participantCount = msg.count;
+      setStatus(`Verbunden ✓ — ${participantCount} Teilnehmer`);
+    } else applyRemote(msg);
+  };
+  ws.onclose = () => {
+    syncOpen = false;
+    setStatus('Verbindung getrennt — versuche neu …');
+    setTimeout(connect, 3000);
+  };
+  ws.onerror = () => setStatus('Verbindungsfehler');
+}
+connect();
 
 const container = document.getElementById('canvas-container');
 const canvas    = document.getElementById('three-canvas');
@@ -580,6 +671,7 @@ document.querySelectorAll('.figure-btn').forEach(btn => {
     const x = (Math.random()-0.5)*(BW-4);
     const z = (Math.random()-0.5)*(BD-4);
     const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
+    send({ type: 'add', fig: figToJSON(fig) });
     selectFigure(fig);
     openLabelModal(fig);
   });
@@ -605,6 +697,7 @@ function recolorFigure(fig, color) {
   fig.mesh = newMesh;
   if (fig.label) attachLabel(fig);
   selectFigure(fig);
+  if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { color } });
 }
 
 const scaleSlider = document.getElementById('scale-slider');
@@ -612,7 +705,10 @@ const scaleVal    = document.getElementById('scale-val');
 scaleSlider.addEventListener('input', () => {
   const s = parseFloat(scaleSlider.value);
   scaleVal.textContent = s.toFixed(1)+'×';
-  if (selectedFigure) setScale(selectedFigure, s);
+  if (selectedFigure) {
+    setScale(selectedFigure, s);
+    if (!applyingRemote) send({ type: 'update', id: selectedFigure.id, changes: { scale: s } });
+  }
 });
 
 document.querySelectorAll('[data-scale]').forEach(btn => {
@@ -620,7 +716,10 @@ document.querySelectorAll('[data-scale]').forEach(btn => {
     const s = parseFloat(btn.dataset.scale);
     scaleSlider.value = s;
     scaleVal.textContent = s.toFixed(1)+'×';
-    if (selectedFigure) setScale(selectedFigure, s);
+    if (selectedFigure) {
+      setScale(selectedFigure, s);
+      if (!applyingRemote) send({ type: 'update', id: selectedFigure.id, changes: { scale: s } });
+    }
   });
 });
 
@@ -629,15 +728,18 @@ document.querySelectorAll('[data-rot]').forEach(btn => {
     if (!selectedFigure) return;
     const deg = parseInt(btn.dataset.rot);
     setRotY(selectedFigure, selectedFigure.rotY + deg * Math.PI/180);
+    if (!applyingRemote) send({ type: 'update', id: selectedFigure.id, changes: { rotY: selectedFigure.rotY } });
   });
 });
 
 document.getElementById('btn-delete').addEventListener('click', () => {
   if (!selectedFigure) return;
+  const id = selectedFigure.id;
   scene.remove(selectedFigure.mesh);
   figures = figures.filter(f => f !== selectedFigure);
   clearSelRing(); selectedFigure = null;
   document.getElementById('selected-info').textContent = '';
+  send({ type: 'delete', id });
 });
 
 // ── Custom confirm modal ───────────────────────────────────────────────────────
@@ -663,7 +765,10 @@ function clearBoard() {
 }
 
 document.getElementById('btn-reset').addEventListener('click', () => {
-  askConfirm('Alle Figuren entfernen?', clearBoard);
+  askConfirm('Alle Figuren entfernen?', () => {
+    clearBoard();
+    if (!applyingRemote) send({ type: 'clear' });
+  });
 });
 
 // ── Save / Load ───────────────────────────────────────────────────────────────
@@ -724,7 +829,10 @@ function openLabelModal(fig) {
   setTimeout(() => labelInput.focus(), 40);
 }
 document.getElementById('label-confirm').addEventListener('click', () => {
-  if (pendingLabelFig) setLabel(pendingLabelFig, labelInput.value.trim());
+  if (pendingLabelFig) {
+    setLabel(pendingLabelFig, labelInput.value.trim());
+    if (!applyingRemote) send({ type: 'update', id: pendingLabelFig.id, changes: { label: pendingLabelFig.label } });
+  }
   modal.classList.remove('visible'); pendingLabelFig = null;
 });
 document.getElementById('label-cancel').addEventListener('click', () => {
@@ -794,6 +902,14 @@ canvas.addEventListener('mousedown', e => {
   }
 });
 
+let lastMoveSentAt = 0;
+function sendMoveThrottled(fig) {
+  const now = performance.now();
+  if (now - lastMoveSentAt < 30) return;
+  lastMoveSentAt = now;
+  send({ type: 'move', id: fig.id, x: fig.mesh.position.x, z: fig.mesh.position.z });
+}
+
 canvas.addEventListener('mousemove', e => {
   if (rmbOn) {
     const dx = e.clientX - orbit.startX;
@@ -808,13 +924,19 @@ canvas.addEventListener('mousemove', e => {
     if (pos) {
       drag.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
       drag.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
+      if (!applyingRemote) sendMoveThrottled(drag.fig);
     }
   }
 });
 
 canvas.addEventListener('mouseup', e => {
   if (e.button === 2) rmbOn = false;
-  if (e.button === 0) drag = { on:false, fig:null };
+  if (e.button === 0) {
+    if (drag.on && drag.fig && !applyingRemote) {
+      send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
+    }
+    drag = { on:false, fig:null };
+  }
 });
 
 canvas.addEventListener('wheel', e => {
@@ -844,6 +966,7 @@ canvas.addEventListener('touchmove', e => {
     if (pos) {
       drag.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
       drag.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
+      if (!applyingRemote) sendMoveThrottled(drag.fig);
     }
   }
   if (e.touches.length === 2 && tPrev) {
@@ -856,7 +979,12 @@ canvas.addEventListener('touchmove', e => {
   e.preventDefault();
 },{passive:false});
 
-canvas.addEventListener('touchend', () => { drag={on:false,fig:null}; tPrev=null; });
+canvas.addEventListener('touchend', () => {
+  if (drag.on && drag.fig && !applyingRemote) {
+    send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
+  }
+  drag={on:false,fig:null}; tPrev=null;
+});
 
 // ── Resize ────────────────────────────────────────────────────────────────────
 function onResize() {

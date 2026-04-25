@@ -1,7 +1,7 @@
 {
   "realm": "workspace",
   "enabled": true,
-  "displayName": "Korczewski Workspace",
+  "displayName": "KORE Workspace",
   "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
@@ -12,10 +12,10 @@
   "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and hashAlgorithm(pbkdf2-sha512)",
   "users": [
     {
-      "username": "Paddione",
+      "username": "paddione",
       "enabled": true,
       "emailVerified": true,
-      "email": "patrick@${PROD_DOMAIN}",
+      "email": "${KC_USER1_EMAIL}",
       "firstName": "Patrick",
       "lastName": "Korczewski",
       "realmRoles": [
@@ -31,7 +31,7 @@
       "username": "gekko",
       "enabled": true,
       "emailVerified": true,
-      "email": "gekko@${PROD_DOMAIN}",
+      "email": "${KC_USER2_EMAIL}",
       "firstName": "Gekko",
       "lastName": "Admin",
       "realmRoles": [
@@ -53,13 +53,10 @@
       "secret": "${NEXTCLOUD_OIDC_SECRET}",
       "redirectUris": [
         "https://${NC_DOMAIN}/apps/oidc_login/oidc",
-        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak",
-        "https://files.mentolder.de/apps/oidc_login/oidc",
-        "https://files.mentolder.de/apps/sociallogin/custom_oidc/keycloak"
+        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
       ],
       "webOrigins": [
-        "https://${NC_DOMAIN}",
-        "https://files.mentolder.de"
+        "https://${NC_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -104,12 +101,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${WEBSITE_OIDC_SECRET}",
       "redirectUris": [
-        "https://${WEB_DOMAIN}/*",
-        "https://web.mentolder.de/*"
+        "https://${WEB_DOMAIN}/*"
       ],
       "webOrigins": [
-        "https://${WEB_DOMAIN}",
-        "https://web.mentolder.de"
+        "https://${WEB_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -154,12 +149,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${VAULTWARDEN_OIDC_SECRET}",
       "redirectUris": [
-        "https://${VAULT_DOMAIN}/identity/connect/oidc-signin",
-        "https://vault.mentolder.de/identity/connect/oidc-signin"
+        "https://${VAULT_DOMAIN}/identity/connect/oidc-signin"
       ],
       "webOrigins": [
-        "https://${VAULT_DOMAIN}",
-        "https://vault.mentolder.de"
+        "https://${VAULT_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

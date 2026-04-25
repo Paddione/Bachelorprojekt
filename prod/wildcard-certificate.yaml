@@ -4,7 +4,7 @@ metadata:
   name: workspace-wildcard
   namespace: workspace
 spec:
-  secretName: workspace-wildcard-tls
+  secretName: ${TLS_SECRET_NAME}
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

@@ -13,7 +13,7 @@ spec:
   tls:
     - hosts:
         - ${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: ${PROD_DOMAIN}
       http:
@@ -37,7 +37,7 @@ spec:
   tls:
     - hosts:
         - auth.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: auth.${PROD_DOMAIN}
       http:
@@ -61,7 +61,7 @@ spec:
   tls:
     - hosts:
         - files.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: files.${PROD_DOMAIN}
       http:
@@ -85,7 +85,7 @@ spec:
   tls:
     - hosts:
         - vault.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: vault.${PROD_DOMAIN}
       http:
@@ -109,7 +109,7 @@ spec:
   tls:
     - hosts:
         - docs.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: docs.${PROD_DOMAIN}
       http:
@@ -133,7 +133,7 @@ spec:
   tls:
     - hosts:
         - sign.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: sign.${PROD_DOMAIN}
       http:
@@ -160,7 +160,7 @@ spec:
         - board.${PROD_DOMAIN}
         - signaling.${PROD_DOMAIN}
         - bug.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: meet.${PROD_DOMAIN}
       http:
@@ -214,7 +214,7 @@ spec:
   tls:
     - hosts:
         - tracking.${PROD_DOMAIN}
-      secretName: workspace-wildcard-tls
+      secretName: ${TLS_SECRET_NAME}
   rules:
     - host: tracking.${PROD_DOMAIN}
       http:

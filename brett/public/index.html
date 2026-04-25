@@ -130,8 +130,6 @@
   #confirm-box p { font-size: 14px; color: #ccc; margin-bottom: 18px; line-height: 1.5; }
   #confirm-box .modal-btns { display: flex; gap: 10px; justify-content: center; }
 
-  #load-input { display: none; }
-
   canvas { display: block; width: 100%; height: 100%; }
 
   #label-modal {
@@ -226,7 +224,6 @@
   <div style="display:flex;gap:8px;align-items:center;">
     <button class="io-btn save" id="btn-save">↓ Speichern</button>
     <button class="io-btn" id="btn-load">↑ Laden</button>
-    <input type="file" id="load-input" accept=".json">
     <button id="btn-reset">Brett leeren</button>
   </div>
 </div>
@@ -256,6 +253,23 @@
     <div id="label-modal-btns">
       <button class="modal-btn" id="label-cancel">Abbrechen</button>
       <button class="modal-btn primary" id="label-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="save-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#16213e;border:1px solid #0f3460;border-radius:12px;padding:22px 26px;width:340px;">
+    <h3 style="font-size:13px;font-weight:500;margin-bottom:14px;color:#aaa;">Brett speichern</h3>
+    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Klient</label>
+    <select id="save-customer" style="width:100%;background:#0f1e3a;border:1px solid #0f3460;color:#e0e0e0;padding:8px 10px;border-radius:8px;margin-bottom:12px;">
+      <option value="">— kein Klient —</option>
+    </select>
+    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Name</label>
+    <input id="save-name" type="text" placeholder="z.B. vor Intervention" maxlength="200"
+           style="width:100%;background:#0f1e3a;border:1px solid #0f3460;color:#e0e0e0;padding:9px 11px;border-radius:8px;outline:none;">
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
+      <button class="modal-btn" id="save-cancel">Abbrechen</button>
+      <button class="modal-btn primary" id="save-ok">Speichern</button>
     </div>
   </div>
 </div>
@@ -778,50 +792,78 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 });
 
 // ── Save / Load ───────────────────────────────────────────────────────────────
-document.getElementById('btn-save').addEventListener('click', () => {
-  const data = {
-    version: 1,
-    figures: figures.map(f => ({
-      type:  f.type,
-      color: f.color,
-      label: f.label,
-      scale: f.scale,
-      rotY:  f.rotY,
-      x:     f.mesh.position.x,
-      z:     f.mesh.position.z
-    }))
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const ts   = new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
-  a.href = url; a.download = `brett_${ts}.json`;
-  a.click(); URL.revokeObjectURL(url);
+const saveModal     = document.getElementById('save-modal');
+const saveCustomer  = document.getElementById('save-customer');
+const saveName      = document.getElementById('save-name');
+
+let customersCache = null;
+async function loadCustomers() {
+  if (customersCache) return customersCache;
+  const res = await fetch(`${API}/customers`);
+  customersCache = res.ok ? await res.json() : [];
+  return customersCache;
+}
+
+async function fillCustomerDropdown(selectEl) {
+  const list = await loadCustomers();
+  // Keep first option ("— kein Klient —" or similar), drop dynamic ones.
+  while (selectEl.options.length > 1) selectEl.remove(1);
+  for (const c of list) {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    selectEl.appendChild(opt);
+  }
+}
+
+async function preselectCustomerForRoom(selectEl) {
+  if (ROOM === 'standalone') return;
+  // Pick the most-recent snapshot's customer for this room, if any.
+  try {
+    const res = await fetch(`${API}/snapshots?room=${encodeURIComponent(ROOM)}`);
+    if (!res.ok) return;
+    const list = await res.json();
+    const last = list.find(s => s.customer_id);
+    if (last) selectEl.value = last.customer_id;
+  } catch {}
+}
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+  await fillCustomerDropdown(saveCustomer);
+  saveCustomer.value = '';
+  await preselectCustomerForRoom(saveCustomer);
+  saveName.value = '';
+  saveModal.style.display = 'flex';
+  setTimeout(() => saveName.focus(), 40);
 });
 
-document.getElementById('btn-load').addEventListener('click', () => {
-  document.getElementById('load-input').click();
+document.getElementById('save-cancel').addEventListener('click', () => {
+  saveModal.style.display = 'none';
 });
 
-document.getElementById('load-input').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = evt => {
-    try {
-      const data = JSON.parse(evt.target.result);
-      if (!data.figures || !Array.isArray(data.figures)) throw new Error('Ungültiges Format');
-      askConfirm(`"${file.name}" laden? Das aktuelle Brett wird ersetzt.`, () => {
-        clearBoard();
-        data.figures.forEach(f => {
-          addFigure(f.type, f.color, f.x || 0, f.z || 0, f.label || '', f.scale || 1.0, f.rotY || 0);
-        });
-      });
-    } catch(err) {
-      alert('Fehler beim Laden: ' + err.message);
-    }
-    e.target.value = '';
+document.getElementById('save-ok').addEventListener('click', async () => {
+  const name = saveName.value.trim();
+  if (!name) { saveName.focus(); return; }
+  const body = {
+    room_token:  ROOM === 'standalone' ? null : ROOM,
+    customer_id: saveCustomer.value || null,
+    name,
+    state: { figures: figures.map(figToJSON) },
   };
-  reader.readAsText(file);
+  const res = await fetch(`${API}/snapshots`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (res.ok) {
+    saveModal.style.display = 'none';
+    setStatus(`Gespeichert ✓`);
+    setTimeout(() => {
+      if (syncOpen) setStatus(`Verbunden ✓ — ${participantCount} Teilnehmer`);
+    }, 2000);
+  } else {
+    alert(`Speichern fehlgeschlagen: ${res.status}`);
+  }
 });
 
 // ── Label modal ───────────────────────────────────────────────────────────────

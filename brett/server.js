@@ -288,13 +288,18 @@ wss.on('connection', (ws) => {
 });
 
 // ─── Graceful Shutdown ───────────────────────────────────────────
+let shuttingDown = false;
 async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
   console.log(`[brett] ${signal} received, flushing...`);
   for (const room of pending.keys()) {
     try { await flushImmediate(room); } catch (err) { console.error('[brett] shutdown flush:', err); }
   }
   server.close(() => {
-    pool.end().finally(() => process.exit(0));
+    pool.end()
+      .catch(err => console.error('[brett] pool.end:', err.message))
+      .finally(() => process.exit(0));
   });
   setTimeout(() => process.exit(1), 25_000).unref();   // safety net under 30s grace
 }

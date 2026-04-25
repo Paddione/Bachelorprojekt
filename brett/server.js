@@ -109,7 +109,7 @@ const server = app.listen(PORT, () => {
 // ─── WebSocket sync ──────────────────────────────────────────────
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ server, path: '/sync' });
+const wss = new WebSocket.Server({ server, path: '/sync', maxPayload: 64 * 1024 });
 
 // roomToken -> Set<WebSocket>
 const rooms = new Map();
@@ -154,26 +154,28 @@ async function readState(room) {
 
 wss.on('connection', (ws) => {
   ws.on('message', async (raw) => {
-    let msg;
-    try { msg = JSON.parse(raw); } catch { return; }
+    try {
+      let msg;
+      try { msg = JSON.parse(raw); } catch { return; }
 
-    if (msg.type === 'join' && typeof msg.room === 'string' && msg.room) {
-      if (ws._room) leaveRoom(ws);
-      joinRoom(ws, msg.room);
-      const state = await readState(msg.room);
-      ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures || [] }));
-      broadcastInfo(msg.room);
-      return;
-    }
+      if (msg.type === 'join' && typeof msg.room === 'string' && msg.room) {
+        if (ws._room) leaveRoom(ws);
+        joinRoom(ws, msg.room);
+        const state = await readState(msg.room);
+        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures || [] }));
+        broadcastInfo(msg.room);
+        return;
+      }
 
-    const room = ws._room;
-    if (!room) return;                     // ignore mutations before join
+      const room = ws._room;
+      if (!room) return;                     // ignore mutations before join
 
-    // Re-broadcast valid mutation types only.
-    if (['add','move','update','delete','clear'].includes(msg.type)) {
-      broadcast(room, msg, ws);
-      // Persistence is wired in the next task.
-    }
+      // Re-broadcast valid mutation types only.
+      if (['add','move','update','delete','clear'].includes(msg.type)) {
+        broadcast(room, msg, ws);
+        // Persistence is wired in the next task.
+      }
+    } catch (err) { console.error('[brett] ws message handler error:', err.message); }
   });
 
   ws.on('close', () => {

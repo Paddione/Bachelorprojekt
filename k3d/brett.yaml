@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: brett
-          image: workspace-brett:latest
+          image: ghcr.io/paddione/workspace-brett:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

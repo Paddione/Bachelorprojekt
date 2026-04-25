@@ -1782,14 +1782,13 @@ tasks:
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - docker build -t workspace-brett:latest brett/
+      - docker build -t ghcr.io/paddione/workspace-brett:latest brett/
       - |
         if [ "{{.ENV}}" = "dev" ]; then
-          k3d image import workspace-brett:latest -c {{.CLUSTER_NAME}}
+          k3d image import ghcr.io/paddione/workspace-brett:latest -c {{.CLUSTER_NAME}}
           echo "✓ brett image imported into k3d cluster"
         else
-          docker tag workspace-brett:latest ghcr.io/paddione/workspace-brett:latest
-          echo "✓ brett image built and tagged for ghcr.io (run 'task brett:push ENV={{.ENV}}' to publish)"
+          echo "✓ brett image built (run 'task brett:push ENV={{.ENV}}' to publish)"
         fi
 
   brett:push:

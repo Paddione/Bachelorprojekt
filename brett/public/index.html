@@ -339,7 +339,7 @@ function applyRemote(msg) {
         scene.remove(f.mesh);
         const i = figures.indexOf(f);
         if (i >= 0) figures.splice(i, 1);
-        if (selectedFigure === f) { clearSelRing(); selectedFigure = null; }
+        if (selectedFigure === f) selectFigure(null);
       }
     } else if (msg.type === 'clear') {
       clearBoard();
@@ -375,7 +375,6 @@ function connect() {
   };
   ws.onerror = () => setStatus('Verbindungsfehler');
 }
-connect();
 
 const container = document.getElementById('canvas-container');
 const canvas    = document.getElementById('three-canvas');
@@ -696,7 +695,14 @@ function recolorFigure(fig, color) {
   scene.add(newMesh);
   fig.mesh = newMesh;
   if (fig.label) attachLabel(fig);
-  selectFigure(fig);
+  if (!applyingRemote) {
+    selectFigure(fig);
+  } else if (selectedFigure === fig) {
+    // Locally-selected figure was recolored remotely: keep selection but reattach
+    // the ring to the new mesh (the old mesh was removed from the scene above).
+    clearSelRing();
+    showSelRing(fig);
+  }
   if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { color } });
 }
 
@@ -1005,6 +1011,8 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+connect();
 
 })();
 </script>

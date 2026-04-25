@@ -167,7 +167,9 @@ function applyMutation(room, msg) {
   const figs = ensureFigureMap(room);
   switch (msg.type) {
     case 'add':
-      if (msg.fig && typeof msg.fig.id === 'string') figs.set(msg.fig.id, msg.fig);
+      if (msg.fig && typeof msg.fig.id === 'string' && figs.size < 200) {
+        figs.set(msg.fig.id, msg.fig);
+      }
       break;
     case 'move':
       if (figs.has(msg.id)) {
@@ -176,8 +178,9 @@ function applyMutation(room, msg) {
       }
       break;
     case 'update':
-      if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object') {
-        figs.set(msg.id, { ...figs.get(msg.id), ...msg.changes });
+      if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object' && !Array.isArray(msg.changes)) {
+        const { id: _ignoredId, ...safeChanges } = msg.changes;
+        figs.set(msg.id, { ...figs.get(msg.id), ...safeChanges });
       }
       break;
     case 'delete':
@@ -271,8 +274,13 @@ wss.on('connection', (ws) => {
     if (rooms.has(room)) {
       broadcastInfo(room);
     } else {
-      // Last client gone: flush any pending state and free the figure map.
-      try { await flushImmediate(room); } finally { figureMaps.delete(room); }
+      // Last client gone: flush any pending state and free the figure map,
+      // but only if no new client joined the room during the flush.
+      try {
+        await flushImmediate(room);
+      } finally {
+        if (!rooms.has(room)) figureMaps.delete(room);
+      }
     }
   });
 

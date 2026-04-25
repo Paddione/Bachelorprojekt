@@ -274,6 +274,21 @@
   </div>
 </div>
 
+<div id="load-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#16213e;border:1px solid #0f3460;border-radius:12px;padding:22px 26px;width:380px;max-height:80vh;display:flex;flex-direction:column;">
+    <h3 style="font-size:13px;font-weight:500;margin-bottom:14px;color:#aaa;">Brett laden</h3>
+    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Filter</label>
+    <select id="load-filter" style="width:100%;background:#0f1e3a;border:1px solid #0f3460;color:#e0e0e0;padding:8px 10px;border-radius:8px;margin-bottom:12px;">
+      <option value="room">Alle Snapshots dieses Raums</option>
+    </select>
+    <div id="load-list" style="overflow:auto;flex:1;border:1px solid #0f3460;border-radius:8px;padding:8px;min-height:120px;">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
+      <button class="modal-btn" id="load-cancel">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <script src="/three.min.js"></script>
 <script>
 (function(){
@@ -864,6 +879,105 @@ document.getElementById('save-ok').addEventListener('click', async () => {
   } else {
     alert(`Speichern fehlgeschlagen: ${res.status}`);
   }
+});
+
+const loadModal  = document.getElementById('load-modal');
+const loadFilter = document.getElementById('load-filter');
+const loadList   = document.getElementById('load-list');
+
+function clearChildren(el) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+}
+
+function placeholderRow(text, color) {
+  const div = document.createElement('div');
+  div.style.cssText = `color:${color};font-size:12px;`;
+  div.textContent = text;
+  return div;
+}
+
+async function fillLoadFilter() {
+  const list = await loadCustomers();
+  // Keep first ("Raum") option, drop dynamic ones.
+  while (loadFilter.options.length > 1) loadFilter.remove(1);
+  for (const c of list) {
+    const opt = document.createElement('option');
+    opt.value = `customer:${c.id}`;
+    opt.textContent = c.name;
+    loadFilter.appendChild(opt);
+  }
+}
+
+async function refreshLoadList() {
+  clearChildren(loadList);
+  loadList.appendChild(placeholderRow('— wird geladen —', '#666'));
+
+  const v = loadFilter.value;
+  let url;
+  if (v === 'room') {
+    if (ROOM === 'standalone') {
+      clearChildren(loadList);
+      loadList.appendChild(placeholderRow('Standalone — kein Raum.', '#888'));
+      return;
+    }
+    url = `${API}/snapshots?room=${encodeURIComponent(ROOM)}`;
+  } else {
+    const customerId = v.replace(/^customer:/, '');
+    url = `${API}/snapshots?customer_id=${encodeURIComponent(customerId)}`;
+  }
+  const res = await fetch(url);
+  const list = res.ok ? await res.json() : [];
+
+  clearChildren(loadList);
+  if (!list.length) {
+    loadList.appendChild(placeholderRow('Keine Snapshots.', '#888'));
+    return;
+  }
+
+  for (const s of list) {
+    const row = document.createElement('button');
+    row.style.cssText = 'display:flex;justify-content:space-between;width:100%;background:#0f2040;border:1px solid #0f3460;color:#e0e0e0;padding:8px 10px;border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:13px;text-align:left;';
+
+    const nameEl = document.createElement('span');
+    nameEl.textContent = s.name;       // textContent escapes automatically
+
+    const dateEl = document.createElement('span');
+    dateEl.style.color = '#888';
+    dateEl.textContent = new Date(s.created_at).toLocaleString('de-DE', {
+      dateStyle: 'short', timeStyle: 'short',
+    });
+
+    row.appendChild(nameEl);
+    row.appendChild(dateEl);
+    row.addEventListener('click', () => loadSnapshot(s.id));
+    loadList.appendChild(row);
+  }
+}
+
+async function loadSnapshot(id) {
+  const res = await fetch(`${API}/snapshots/${encodeURIComponent(id)}`);
+  if (!res.ok) { alert('Snapshot konnte nicht geladen werden.'); return; }
+  const snap = await res.json();
+  const figs = (snap.state && snap.state.figures) || [];
+
+  // Broadcast: clear, then add each figure, so peers see the load.
+  send({ type: 'clear' });
+  applySnapshot(figs);
+  for (const f of figs) {
+    send({ type: 'add', fig: f });
+  }
+  loadModal.style.display = 'none';
+}
+
+document.getElementById('btn-load').addEventListener('click', async () => {
+  await fillLoadFilter();
+  loadFilter.value = 'room';
+  await refreshLoadList();
+  loadModal.style.display = 'flex';
+});
+loadFilter.addEventListener('change', refreshLoadList);
+document.getElementById('load-cancel').addEventListener('click', () => {
+  loadModal.style.display = 'none';
 });
 
 // ── Label modal ───────────────────────────────────────────────────────────────

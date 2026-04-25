@@ -27,6 +27,18 @@ spec:
           type: RuntimeDefault
       imagePullSecrets:
         - name: ghcr-pull-secret
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - pk-hetzner
+                      - gekko-hetzner-4
       containers:
         - name: brett
           image: ghcr.io/paddione/workspace-brett:latest

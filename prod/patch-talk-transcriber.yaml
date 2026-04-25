@@ -16,7 +16,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: NC_DOMAIN
-              value: "files.mentolder.de"
+              value: "files.${PROD_DOMAIN}"
             - name: NC_PROTOCOL
               value: "https"
             - name: NC_VERIFY_SSL
@@ -38,4 +38,4 @@ spec:
                   name: workspace-secrets
                   key: NEXTCLOUD_DB_PASSWORD
             - name: WEBSITE_URL
-              value: "https://web.mentolder.de"
+              value: "https://web.${PROD_DOMAIN}"

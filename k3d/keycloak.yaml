@@ -50,6 +50,18 @@ spec:
                   key: KEYCLOAK_DB_PASSWORD
             - name: KC_HOSTNAME
               value: "http://auth.localhost"
+            - name: PROD_DOMAIN
+              value: "localhost"
+            - name: KC_USER1_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: KC_USER1_EMAIL
+            - name: KC_USER2_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: KC_USER2_EMAIL
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
               value: "true"
             - name: KC_HTTP_ENABLED

@@ -17,7 +17,8 @@ NAMESPACE="${NAMESPACE:-workspace}"
 ROOM="brett-test-$(date +%s)"
 
 # Use kubectl exec to a pod with curl to reach the brett service in-cluster.
-_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/keycloak -- curl -s "$@" 2>/dev/null; }
+# nextcloud has curl and lives in the same namespace; keycloak does not ship curl.
+_kube_curl() { kubectl exec -n "$NAMESPACE" deploy/nextcloud -- curl -s "$@" 2>/dev/null; }
 
 # ── T1: brett pod running ───────────────────────────────────────
 BRETT_READY=$(kubectl get deploy brett -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
@@ -54,7 +55,7 @@ assert_contains "$LIST_RESP" "$SNAP_ID" "FA-27" "T7" "Snapshot-Liste für Raum e
 
 # ── T8: WebSocket /sync upgrades and returns a snapshot frame ────
 # Use python3 with websocket-client; if not available, skip with a soft pass.
-WS_OUT=$(kubectl exec -n "$NAMESPACE" deploy/keycloak -- sh -c '
+WS_OUT=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -- sh -c '
   command -v python3 >/dev/null || { echo SKIP_NO_PYTHON; exit 0; }
   python3 -c "import websocket" 2>/dev/null || { echo SKIP_NO_WSCLIENT; exit 0; }
   python3 - <<PY

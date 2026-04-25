@@ -47,7 +47,7 @@ spec:
                   name: workspace-secrets
                   key: WEBSITE_DB_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=prefer"
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=disable"
           ports:
             - containerPort: 3000
           readinessProbe:

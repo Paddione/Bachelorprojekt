@@ -3,6 +3,9 @@
 const express = require('express');
 const { Pool } = require('pg');
 
+const asyncHandler = fn => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 if (!process.env.DATABASE_URL) {
@@ -13,6 +16,8 @@ if (!process.env.DATABASE_URL) {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
 });
 
 const app = express();
@@ -22,7 +27,7 @@ app.use(express.static('public', { maxAge: '5m' }));
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
 
 // Live state for a room.
-app.get('/api/state', async (req, res) => {
+app.get('/api/state', asyncHandler(async (req, res) => {
   const room = String(req.query.room || '');
   if (!room) return res.status(400).json({ error: 'room required' });
   const { rows } = await pool.query(
@@ -30,18 +35,18 @@ app.get('/api/state', async (req, res) => {
     [room]
   );
   res.json(rows[0]?.state ?? { figures: [] });
-});
+}));
 
 // Customer dropdown source.
-app.get('/api/customers', async (_req, res) => {
+app.get('/api/customers', asyncHandler(async (_req, res) => {
   const { rows } = await pool.query(
     'SELECT id, name FROM customers ORDER BY name ASC'
   );
   res.json(rows);
-});
+}));
 
 // List snapshots, optionally filtered.
-app.get('/api/snapshots', async (req, res) => {
+app.get('/api/snapshots', asyncHandler(async (req, res) => {
   const room = req.query.room ? String(req.query.room) : null;
   const customerId = req.query.customer_id ? String(req.query.customer_id) : null;
   if (!room && !customerId) {
@@ -60,10 +65,10 @@ app.get('/api/snapshots', async (req, res) => {
     args
   );
   res.json(rows);
-});
+}));
 
 // Load one snapshot.
-app.get('/api/snapshots/:id', async (req, res) => {
+app.get('/api/snapshots/:id', asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id, name, state, customer_id, room_token, created_at
        FROM brett_snapshots WHERE id = $1`,
@@ -71,10 +76,10 @@ app.get('/api/snapshots/:id', async (req, res) => {
   );
   if (!rows[0]) return res.status(404).json({ error: 'not found' });
   res.json(rows[0]);
-});
+}));
 
 // Create a snapshot.
-app.post('/api/snapshots', async (req, res) => {
+app.post('/api/snapshots', asyncHandler(async (req, res) => {
   const { room_token, customer_id, name, state } = req.body || {};
   if (!name || typeof name !== 'string' || name.length > 200) {
     return res.status(400).json({ error: 'name required (≤200 chars)' });
@@ -89,7 +94,7 @@ app.post('/api/snapshots', async (req, res) => {
     [room_token || null, customer_id || null, name, state]
   );
   res.status(201).json({ id: rows[0].id });
-});
+}));
 
 // Generic error handler so we never leak stack traces.
 app.use((err, _req, res, _next) => {

@@ -38,6 +38,8 @@ resources:
   - notify-unread-cronjob.yaml
   # Abrechnung
   - cronjob-monthly-billing.yaml
+  # Systemisches Brett
+  - brett.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
   # Dokumentation

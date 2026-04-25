@@ -34,6 +34,7 @@
 - **Benutzerhandbuch**
   - [Für Endnutzer](benutzerhandbuch)
   - [Systembrett im Whiteboard](systembrett)
+  - [Systemisches Brett (3D)](systemisches-brett)
 
 - **Administration**
   - [Adminhandbuch](adminhandbuch)

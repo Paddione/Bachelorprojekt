@@ -1,0 +1,78 @@
+# ═══════════════════════════════════════════════════════════════════
+# Brett — 3D systemic-board pod. Static HTML + REST + WebSocket sync.
+# Persists to shared-db (website DB). Single replica by design (in-memory
+# rooms map). See docs/superpowers/specs/2026-04-25-systemisches-brett-design.md
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brett
+  labels:
+    app: brett
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: brett
+  template:
+    metadata:
+      labels:
+        app: brett
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: brett
+          image: workspace-brett:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: PORT
+              value: "3000"
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: WEBSITE_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db:5432/website?sslmode=prefer"
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet: { path: /healthz, port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 3000 }
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: "100m"
+            limits:
+              memory: 512Mi
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brett
+spec:
+  selector:
+    app: brett
+  ports:
+    - port: 3000
+      targetPort: 3000

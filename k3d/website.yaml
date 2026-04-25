@@ -65,6 +65,8 @@ data:
   ANTHROPIC_API_KEY: ""
   # Stripe (publishable key is not secret — env-specific, injected via ConfigMap)
   STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY}"
+  # Brett
+  BRETT_DOMAIN: "${BRETT_DOMAIN}"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
 ---
@@ -248,6 +250,11 @@ spec:
                 configMapKeyRef:
                   name: website-seller-config
                   key: SELLER_VAT_ID
+            - name: BRETT_BOT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: BRETT_BOT_SECRET
           ports:
             - containerPort: 4321
           resources:

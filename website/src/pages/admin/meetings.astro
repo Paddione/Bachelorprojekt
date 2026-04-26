@@ -421,10 +421,6 @@ function statusColor(s: string) {
         pollModalConfirm.disabled = isCustom ? pollCustomQ.value.trim().length < 2 : false;
       });
     });
-    pollCustomQ.addEventListener('input', () => {
-      const sel = pollTemplateList.querySelector<HTMLInputElement>('input[name=poll-template]:checked');
-      if (sel?.value === 'custom') pollModalConfirm.disabled = pollCustomQ.value.trim().length < 2;
-    });
   }
 
   function renderStatusBars(results: PollResults | null) {
@@ -513,6 +509,10 @@ function statusColor(s: string) {
   });
   pollModalCancel.addEventListener('click', hidePollModal);
   pollModal.addEventListener('click', (e) => { if (e.target === pollModal) hidePollModal(); });
+  pollCustomQ.addEventListener('input', () => {
+    const sel = pollTemplateList.querySelector<HTMLInputElement>('input[name=poll-template]:checked');
+    if (sel?.value === 'custom') pollModalConfirm.disabled = pollCustomQ.value.trim().length < 2;
+  });
 
   pollModalConfirm.addEventListener('click', async () => {
     const selected = pollTemplateList.querySelector<HTMLInputElement>('input[name=poll-template]:checked');

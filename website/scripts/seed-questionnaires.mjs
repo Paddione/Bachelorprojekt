@@ -120,11 +120,234 @@ async function seedThomasKilmann() {
   }
 }
 
+// ── Riemann-Thomann ───────────────────────────────────────────────
+// 48 Ja/Nein questions, 4 personality axes.
+// Only "Ja" answers contribute to dimension score.
+
+const RT_DIM_NAMES = ['Distanz', 'Nähe', 'Dauer', 'Wechsel'];
+// Questions that map to each dimension (Ja = +1, Nein = null)
+const RT_DIM_QUESTIONS = {
+  'Distanz': [1, 4, 11, 12, 22, 25, 29, 30, 35, 38, 45, 48],
+  'Nähe':    [3, 8, 9, 16, 19, 23, 26, 32, 37, 43, 44, 46],
+  'Dauer':   [2, 7, 10, 14, 17, 18, 24, 28, 34, 39, 41, 47],
+  'Wechsel': [5, 6, 13, 15, 20, 21, 27, 31, 33, 36, 40, 42],
+};
+
+const RT_QUESTIONS = [
+  { pos: 1,  text: 'Ich bleibe lieber innerlich distanziert zu anderen Menschen.' },
+  { pos: 2,  text: 'Ich mache gern eine Aufgabe zu Ende.' },
+  { pos: 3,  text: 'Ich kann gut mit Anderen mitfühlen.' },
+  { pos: 4,  text: 'Ich bin ein guter Beobachter.' },
+  { pos: 5,  text: 'Mir kommen häufig neue Ideen, ich bin gedanklich beweglich.' },
+  { pos: 6,  text: 'Ich lasse mich schnell ablenken.' },
+  { pos: 7,  text: 'Ich freue mich, wenn alles so bleibt, wie es ist.' },
+  { pos: 8,  text: 'Es fällt mir leicht, für Andere da zu sein, ich bin dann nicht so wichtig.' },
+  { pos: 9,  text: 'Ich höre gern zu und habe ein offenes Ohr für Andere.' },
+  { pos: 10, text: 'Ich bin sehr verlässlich und gewissenhaft.' },
+  { pos: 11, text: 'Ich nehme auch kleine Unterschiede und Zwischentöne wahr.' },
+  { pos: 12, text: 'Ich fühle mich wohl und sicherer, wenn ich allein bin.' },
+  { pos: 13, text: 'Schnell wechselnde, intensive Gefühle mag ich.' },
+  { pos: 14, text: 'Bevor ich entscheide und handle, denke ich lange darüber nach.' },
+  { pos: 15, text: 'Beschränkungen und Eingrenzungen mag ich nicht.' },
+  { pos: 16, text: 'Aus Angst, andere zu verlieren, stimme ich häufig zu und sage ja.' },
+  { pos: 17, text: 'Ich kontrolliere lieber als dass ich vertraue.' },
+  { pos: 18, text: 'Aufträge erledige ich zuverlässig und hundertprozentig.' },
+  { pos: 19, text: 'Ich setze mich nicht so gern durch gegen Andere.' },
+  { pos: 20, text: 'Ich bin spontan, charmant und lebensfroh.' },
+  { pos: 21, text: 'Meine Meinung kann ich schnell neuen Erfordernissen anpassen.' },
+  { pos: 22, text: 'Fakten sind mir wichtiger als Bauchentscheidungen.' },
+  { pos: 23, text: 'Ich lasse mich eher ausnutzen als mich durchzusetzen.' },
+  { pos: 24, text: 'Auf mich kann man sich immer verlassen.' },
+  { pos: 25, text: 'Ich bin öfter grüblerisch oder schlechter Stimmung.' },
+  { pos: 26, text: 'Ich kann schnell Vertrauen aufbauen.' },
+  { pos: 27, text: 'Ich habe keine Geduld und warte ungern.' },
+  { pos: 28, text: 'Ich vermeide wenn möglich, unvorbereitet in Situationen zu gehen.' },
+  { pos: 29, text: 'Ich fühle mich häufiger unsicher und bin ängstlich.' },
+  { pos: 30, text: 'Sicher ist sicher – ist ein Motto von mir.' },
+  { pos: 31, text: 'Ich lasse mich ungern auf eine Aussage "festnageln".' },
+  { pos: 32, text: 'Wenn ich allein bin, fehlt mir die Nähe zu Anderen.' },
+  { pos: 33, text: 'Ich bin eine Stimmungskanone, kann gut Andere unterhalten.' },
+  { pos: 34, text: 'Ich werde ärgerlich, wenn sich Andere nicht an Regeln halten.' },
+  { pos: 35, text: 'Ich bin guter Analytiker und erfasse schnell Zusammenhänge.' },
+  { pos: 36, text: 'Ich mag es, wenn es erotisch "knistert".' },
+  { pos: 37, text: 'Ich fühle mich eher schwermütig als locker und gut gelaunt.' },
+  { pos: 38, text: 'Ich entscheide lieber rational als aus dem "Bauch heraus".' },
+  { pos: 39, text: 'Ich bin sehr belastbar und halte Stress gut aus.' },
+  { pos: 40, text: 'Ich bin in meiner Aufmerksamkeit eher sprunghaft.' },
+  { pos: 41, text: 'Unklare und unsichere Situationen machen mich unsicher.' },
+  { pos: 42, text: 'Ich freue mich mehr über Neues und Spannendes als über Routine.' },
+  { pos: 43, text: 'Mich können Andere schnell auf ihre Seite ziehen.' },
+  { pos: 44, text: 'Ich mag, wenn man in Harmonie miteinander ist.' },
+  { pos: 45, text: 'Immer in Kontakt zu sein strengt mich an.' },
+  { pos: 46, text: 'Auseinandersetzungen meide ich eher.' },
+  { pos: 47, text: 'Ich bin zuverlässig und halte Versprechen wenn möglich ein.' },
+  { pos: 48, text: 'Ich komme besser mit mir allein zurecht, als mit anderen.' },
+];
+
+async function seedRiemannThomann() {
+  const tpl = await pool.query(
+    `INSERT INTO questionnaire_templates (title, description, instructions, status)
+     VALUES ($1,$2,$3,'published') RETURNING id`,
+    [
+      'Selbsteinschätzung nach Riemann-Thomann',
+      'Misst Persönlichkeitsachsen in 4 Dimensionen: Distanz, Nähe, Dauer, Wechsel.',
+      'Lesen Sie die Sätze durch und entscheiden Sie so spontan wie möglich, ob die Aussage auf Sie zutrifft (Ja) oder nicht (Nein). Fühlen Sie, wie Sie Situationen erleben — nicht danach, was attraktiv erscheint.',
+    ],
+  );
+  const tplId = tpl.rows[0].id;
+
+  const dimIdsByName = {};
+  for (let i = 0; i < RT_DIM_NAMES.length; i++) {
+    const d = await pool.query(
+      `INSERT INTO questionnaire_dimensions (template_id, name, position) VALUES ($1,$2,$3) RETURNING id`,
+      [tplId, RT_DIM_NAMES[i], i],
+    );
+    dimIdsByName[RT_DIM_NAMES[i]] = d.rows[0].id;
+  }
+
+  // Build a reverse lookup: question position → dimension id (for Ja option)
+  const qPosToDimId = {};
+  for (const [dimName, positions] of Object.entries(RT_DIM_QUESTIONS)) {
+    for (const pos of positions) {
+      qPosToDimId[pos] = dimIdsByName[dimName];
+    }
+  }
+
+  for (const q of RT_QUESTIONS) {
+    const r = await pool.query(
+      `INSERT INTO questionnaire_questions (template_id, position, question_text, question_type)
+       VALUES ($1,$2,$3,'ja_nein') RETURNING id`,
+      [tplId, q.pos, q.text],
+    );
+    const qId = r.rows[0].id;
+    await pool.query(
+      `INSERT INTO questionnaire_answer_options (question_id, option_key, label, dimension_id, weight)
+       VALUES ($1,'Ja','Ja',$2,1), ($1,'Nein','Nein',NULL,1)`,
+      [qId, qPosToDimId[q.pos] ?? null],
+    );
+  }
+}
+
+// ── Inneres Funktionsmodell ───────────────────────────────────────
+// 50 Likert-5 questions, 5 "Antreiber" dimensions.
+// score = sum(answers) × 2. Thresholds: 60 = mittel, 80 = kritisch.
+
+const IFM_DIM_NAMES = ['Sei perfekt!', 'Beeil dich!', 'Streng dich an!', 'Mach es allen recht!', 'Sei stark!'];
+const IFM_DIM_QUESTIONS = {
+  'Sei perfekt!':          [1, 8, 11, 13, 23, 24, 33, 38, 43, 47],
+  'Beeil dich!':           [3, 12, 14, 19, 21, 27, 32, 39, 42, 48],
+  'Streng dich an!':       [5, 6, 10, 18, 25, 29, 34, 37, 44, 50],
+  'Mach es allen recht!':  [2, 7, 15, 17, 28, 30, 35, 36, 45, 46],
+  'Sei stark!':            [4, 9, 16, 20, 22, 26, 31, 40, 41, 49],
+};
+
+const IFM_QUESTIONS = [
+  { pos: 1,  text: 'Wann immer ich eine Arbeit mache, mache ich sie gründlich.' },
+  { pos: 2,  text: 'Ich fühle mich verantwortlich, dass diejenigen, die mit mir zu tun haben, sich wohl fühlen.' },
+  { pos: 3,  text: 'Ich bin ständig auf Trab.' },
+  { pos: 4,  text: 'Anderen gegenüber zeige ich meine Schwächen nicht gerne.' },
+  { pos: 5,  text: 'Wenn ich raste, roste ich.' },
+  { pos: 6,  text: 'Häufig gebrauche ich den Satz: „Es ist schwierig, etwas so genau zu sagen".' },
+  { pos: 7,  text: 'Ich sage oft mehr, als eigentlich nötig wäre.' },
+  { pos: 8,  text: 'Es fällt mir schwer, Leute zu akzeptieren, die nicht genau sind.' },
+  { pos: 9,  text: 'Es fällt mir schwer, Gefühle zu zeigen.' },
+  { pos: 10, text: '„Nur nicht lockerlassen", ist meine Devise.' },
+  { pos: 11, text: 'Wenn ich eine Meinung äußere, begründe ich sie auch.' },
+  { pos: 12, text: 'Wenn ich einen Wunsch habe, erfülle ich ihn mir schnell.' },
+  { pos: 13, text: 'Ich liefere einen Bericht erst ab, wenn ich ihn mehrere Male überarbeitet habe.' },
+  { pos: 14, text: 'Leute, die „herumtrödeln", regen mich auf.' },
+  { pos: 15, text: 'Es ist mir wichtig, von den anderen akzeptiert zu werden.' },
+  { pos: 16, text: 'Ich habe eher eine harte Schale, aber einen weichen Kern.' },
+  { pos: 17, text: 'Ich versuche oft herauszufinden, was andere von mir erwarten, um mich danach zu richten.' },
+  { pos: 18, text: 'Leute, die unbekümmert in den Tag hineinleben, kann ich nur schwer verstehen.' },
+  { pos: 19, text: 'Bei Diskussionen unterbreche ich oft die anderen.' },
+  { pos: 20, text: 'Ich löse meine Probleme selber.' },
+  { pos: 21, text: 'Aufgaben erledige ich möglichst rasch.' },
+  { pos: 22, text: 'Im Umgang mit anderen bin ich auf Distanz bedacht.' },
+  { pos: 23, text: 'Ich sollte viele Aufgaben noch besser erledigen.' },
+  { pos: 24, text: 'Ich kümmere mich persönlich auch um nebensächliche Dinge.' },
+  { pos: 25, text: 'Erfolge fallen nicht vom Himmel; ich muss sie hart erarbeiten.' },
+  { pos: 26, text: 'Für dumme Fehler habe ich wenig Verständnis.' },
+  { pos: 27, text: 'Ich schätze es, wenn andere auf meine Fragen rasch und bündig antworten.' },
+  { pos: 28, text: 'Es ist mir wichtig, von anderen zu erfahren, ob ich meine Sache gut gemacht habe.' },
+  { pos: 29, text: 'Wenn ich eine Aufgabe einmal begonnen habe, führe ich sie auch zu Ende.' },
+  { pos: 30, text: 'Ich stelle meine Wünsche und Bedürfnisse zugunsten anderer Personen zurück.' },
+  { pos: 31, text: 'Ich bin anderen gegenüber oft hart, um von ihnen nicht verletzt zu werden.' },
+  { pos: 32, text: 'Ich trommle oft ungeduldig mit den Fingern auf den Tisch.' },
+  { pos: 33, text: 'Beim Erklären von Sachverhalten verwende ich gerne die klare Aufzählung: Erstens..., zweitens..., drittens...' },
+  { pos: 34, text: 'Ich glaube, dass die meisten Dinge nicht so einfach sind, wie viele meinen.' },
+  { pos: 35, text: 'Es ist mir unangenehm, andere Leute zu kritisieren.' },
+  { pos: 36, text: 'Bei Diskussionen nicke ich häufig mit dem Kopf.' },
+  { pos: 37, text: 'Ich strenge mich an, um meine Ziele zu erreichen.' },
+  { pos: 38, text: 'Mein Gesichtsausdruck ist eher ernst.' },
+  { pos: 39, text: 'Ich bin nervös.' },
+  { pos: 40, text: 'So schnell kann mich nichts erschüttern.' },
+  { pos: 41, text: 'Ich sage oft: „Macht mal vorwärts."' },
+  { pos: 42, text: 'Ich sage oft: „Genau", „exakt", „klar", „logisch" o.Ä.' },
+  { pos: 43, text: 'Ich sage oft: „Das verstehe ich nicht ..."' },
+  { pos: 44, text: 'Ich sage eher: „Könnten Sie es nicht einmal versuchen?" als: „Versuchen Sie es einmal."' },
+  { pos: 45, text: 'Ich bin diplomatisch.' },
+  { pos: 46, text: 'Ich versuche, die an mich gestellten Erwartungen zu übertreffen.' },
+  { pos: 47, text: 'Beim Telefonieren bearbeite ich nebenbei oft noch Akten o.Ä.' },
+  { pos: 48, text: '„Auf die Zähne beißen" heißt meine Devise.' },
+  { pos: 49, text: 'Ich komme besser mit mir allein zurecht, als mit anderen.' },
+  { pos: 50, text: 'Trotz enormer Anstrengung will mir vieles einfach nicht gelingen.' },
+];
+
+async function seedInneresFunktionsmodell() {
+  const tpl = await pool.query(
+    `INSERT INTO questionnaire_templates (title, description, instructions, status)
+     VALUES ($1,$2,$3,'published') RETURNING id`,
+    [
+      'Inneres Funktionsmodell (Kahler/Caspers)',
+      'Misst die Ausprägung von 5 inneren Antreibern auf einer Skala bis 100.',
+      'Beantworten Sie die Aussagen mit Hilfe der Bewertungsskala 1–5, so wie Sie sich im Moment selbst sehen. Die Aussage trifft auf mich zu: 1 = gar nicht, 2 = kaum, 3 = etwas, 4 = ziemlich, 5 = voll und ganz. Bitte antworten Sie möglichst spontan und seien Sie ehrlich zu sich selbst.',
+    ],
+  );
+  const tplId = tpl.rows[0].id;
+
+  const dimIdsByName = {};
+  for (let i = 0; i < IFM_DIM_NAMES.length; i++) {
+    const d = await pool.query(
+      `INSERT INTO questionnaire_dimensions
+       (template_id, name, position, threshold_mid, threshold_high, score_multiplier)
+       VALUES ($1,$2,$3,60,80,2) RETURNING id`,
+      [tplId, IFM_DIM_NAMES[i], i],
+    );
+    dimIdsByName[IFM_DIM_NAMES[i]] = d.rows[0].id;
+  }
+
+  const qPosToDimId = {};
+  for (const [dimName, positions] of Object.entries(IFM_DIM_QUESTIONS)) {
+    for (const pos of positions) {
+      qPosToDimId[pos] = dimIdsByName[dimName];
+    }
+  }
+
+  for (const q of IFM_QUESTIONS) {
+    const r = await pool.query(
+      `INSERT INTO questionnaire_questions (template_id, position, question_text, question_type)
+       VALUES ($1,$2,$3,'likert_5') RETURNING id`,
+      [tplId, q.pos, q.text],
+    );
+    const qId = r.rows[0].id;
+    for (const val of ['1','2','3','4','5']) {
+      await pool.query(
+        `INSERT INTO questionnaire_answer_options (question_id, option_key, label, dimension_id, weight)
+         VALUES ($1,$2,$3,$4,1)`,
+        [qId, val, val, qPosToDimId[q.pos] ?? null],
+      );
+    }
+  }
+}
+
 // Main
 (async () => {
   try {
     await seedIfAbsent('Konflikttypen-Fragebogen (Thomas/Kilmann)', seedThomasKilmann);
-    console.log('Thomas/Kilmann done.');
+    await seedIfAbsent('Selbsteinschätzung nach Riemann-Thomann', seedRiemannThomann);
+    await seedIfAbsent('Inneres Funktionsmodell (Kahler/Caspers)', seedInneresFunktionsmodell);
+    console.log('\nAll instruments seeded successfully.');
   } catch (err) {
     console.error('Seed error:', err);
     process.exit(1);

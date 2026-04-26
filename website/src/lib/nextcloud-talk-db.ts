@@ -72,3 +72,48 @@ export async function listActiveCallRooms(): Promise<ActiveCallRoom[]> {
     return [];
   }
 }
+
+const BRETT_BOT_NAME = 'Systemisches Brett';
+
+// Look up the brett bot's server-side id from oc_talk_bots_server.
+async function getBrettBotId(): Promise<number | null> {
+  try {
+    const { rows } = await getPool().query<{ id: string }>(
+      `SELECT id FROM oc_talk_bots_server WHERE name = $1 LIMIT 1`,
+      [BRETT_BOT_NAME]
+    );
+    return rows.length === 0 ? null : parseInt(rows[0].id, 10);
+  } catch (err) {
+    console.error('[nc-talk-db] getBrettBotId failed:', err);
+    return null;
+  }
+}
+
+// Ensure the brett bot is enabled for the given conversation. Talk's
+// `talk:bot:install` does NOT auto-enable a bot for every room — each room
+// needs an explicit row in oc_talk_bots_conversation, normally created by
+// `talk:bot:setup BOT_ID TOKEN`. Without this row, bot-reply HMAC fails
+// with HTTP 401. We mirror that one-row insert here so /admin/brett/broadcast
+// works for rooms the operator hasn't set up manually.
+export async function ensureBrettBotEnabledForRoom(roomToken: string): Promise<boolean> {
+  const botId = await getBrettBotId();
+  if (botId === null) {
+    console.error('[nc-talk-db] brett bot not found in oc_talk_bots_server');
+    return false;
+  }
+  try {
+    await getPool().query(
+      `INSERT INTO oc_talk_bots_conversation (bot_id, token, state)
+       SELECT $1::bigint, $2::text, 1::smallint
+       WHERE NOT EXISTS (
+         SELECT 1 FROM oc_talk_bots_conversation
+         WHERE bot_id = $1::bigint AND token = $2::text
+       )`,
+      [botId, roomToken]
+    );
+    return true;
+  } catch (err) {
+    console.error('[nc-talk-db] ensureBrettBotEnabledForRoom failed:', err);
+    return false;
+  }
+}

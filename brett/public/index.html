@@ -78,6 +78,29 @@
   #scale-val {
     font-size: 12px; color: #aaa; min-width: 28px; text-align: right;
   }
+
+  /* Zoom controls */
+  #zoom-section { display: flex; align-items: center; gap: 8px; }
+  #zoom-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80px; height: 4px;
+    background: #0f3460;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  #zoom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #6be0a0;
+    cursor: pointer;
+    border: 2px solid #1a1a2e;
+  }
+  #zoom-val {
+    font-size: 12px; color: #aaa; min-width: 32px; text-align: right;
+  }
   .size-btn {
     padding: 4px 8px; font-size: 11px; border-radius: 5px;
     border: 1px solid #0f3460; background: #0f2040; color: #aaa;
@@ -220,6 +243,15 @@
   <div class="sep"></div>
   <button id="btn-delete">✕ Löschen</button>
 
+  <div class="sep"></div>
+  <span class="tlabel">Zoom</span>
+  <div id="zoom-section">
+    <button class="size-btn" id="zoom-out" title="Herauszoomen">−</button>
+    <input type="range" id="zoom-slider" min="12" max="75" step="0.5" value="44">
+    <button class="size-btn" id="zoom-in" title="Heranzoomen">+</button>
+    <span id="zoom-val">44</span>
+  </div>
+
   <div id="sync-status" style="font-size:12px; color:#6be0a0; margin-left:auto; margin-right:8px;">Verbinde …</div>
   <div style="display:flex;gap:8px;align-items:center;">
     <button class="io-btn save" id="btn-save">↓ Speichern</button>
@@ -231,7 +263,7 @@
 <div id="canvas-container">
   <canvas id="three-canvas"></canvas>
   <div id="hint">
-    LMB: Figur ziehen &nbsp;|&nbsp; RMB / 2-Finger: Brett drehen &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
+    LMB: Figur ziehen &nbsp;|&nbsp; RMB / 2-Finger: Blickwinkel drehen &nbsp;|&nbsp; Rad / Zoom-Slider: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
   </div>
   <div id="selected-info"></div>
 </div>
@@ -420,7 +452,7 @@ scene.background = new THREE.Color(0x1a1a2e);
 scene.fog = new THREE.Fog(0x1a1a2e, 65, 120);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
-const orbit = { theta: 0.4, phi: 0.72, radius: 38 };
+const orbit = { theta: 0, phi: 0.95, radius: 44 };
 function updateCamera() {
   camera.position.set(
     orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
@@ -445,9 +477,83 @@ scene.add(fill);
 
 // ── Board ─────────────────────────────────────────────────────────────────────
 const BW = 36, BD = 28;
+
+// Procedural wood texture — seeded LCG so grain is deterministic across sessions
+function makeWoodTexture() {
+  const W = 512, H = 512;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  // Base: dark warm brown
+  ctx.fillStyle = '#2d1a0b';
+  ctx.fillRect(0, 0, W, H);
+
+  // Lengthwise warmth gradient
+  const lg = ctx.createLinearGradient(0, 0, W, 0);
+  lg.addColorStop(0,   'rgba(25,12,2,0.25)');
+  lg.addColorStop(0.35,'rgba(55,28,6,0.12)');
+  lg.addColorStop(0.65,'rgba(45,22,5,0.18)');
+  lg.addColorStop(1,   'rgba(20,10,1,0.22)');
+  ctx.fillStyle = lg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Seeded pseudo-random (avoids Math.random so texture is stable on reload)
+  let seed = 0x4d2a7c1b;
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+    return (seed >>> 0) / 0xffffffff;
+  }
+
+  // Horizontal grain lines (= along board's long axis in world space)
+  for (let i = 0; i < 90; i++) {
+    const y0  = (i / 90) * H + (rand() - 0.5) * (H / 90 * 0.5);
+    const gw  = 0.4 + rand() * 2.2;
+    const a   = 0.04 + rand() * 0.13;
+    const dark = rand() > 0.42;
+    ctx.lineWidth   = gw;
+    ctx.strokeStyle = dark
+      ? `rgba(5,1,0,${(a * 1.6).toFixed(3)})`
+      : `rgba(150,75,22,${a.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.moveTo(0, y0 + (rand() - 0.5) * 3);
+    for (let x = 0; x <= W; x += 6 + rand() * 10) {
+      ctx.lineTo(x, y0 + Math.sin(x * 0.007 + i * 0.9) * 3.5 + (rand() - 0.5) * 1.2);
+    }
+    ctx.stroke();
+  }
+
+  // 1–2 subtle knot shadows
+  const knots = 1 + Math.floor(rand() * 2);
+  for (let k = 0; k < knots; k++) {
+    const kx = W * (0.15 + rand() * 0.7);
+    const ky = H * (0.1  + rand() * 0.8);
+    const rx = 12 + rand() * 18;
+    const ry =  8 + rand() * 10;
+    const gr = ctx.createRadialGradient(kx, ky, 0, kx, ky, Math.max(rx, ry) * 1.4);
+    gr.addColorStop(0,   'rgba(4,1,0,0.55)');
+    gr.addColorStop(0.35,'rgba(4,1,0,0.25)');
+    gr.addColorStop(1,   'rgba(4,1,0,0)');
+    ctx.fillStyle = gr;
+    ctx.save();
+    ctx.translate(kx, ky);
+    ctx.scale(1, ry / rx);
+    ctx.beginPath();
+    ctx.arc(0, 0, rx * 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  return tex;
+}
+
+const woodTex = makeWoodTexture();
+
 const boardMesh = new THREE.Mesh(
   new THREE.BoxGeometry(BW, 0.5, BD),
-  new THREE.MeshStandardMaterial({ color: 0x2a1f14, roughness: 0.85, metalness: 0.05 })
+  new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.92, metalness: 0.0 })
 );
 boardMesh.receiveShadow = true;
 boardMesh.position.y = -0.25;
@@ -455,12 +561,10 @@ scene.add(boardMesh);
 
 const edgeMesh = new THREE.Mesh(
   new THREE.BoxGeometry(BW+0.6, 0.7, BD+0.6),
-  new THREE.MeshStandardMaterial({ color: 0x1a1008, roughness: 0.9 })
+  new THREE.MeshStandardMaterial({ color: 0x1e1006, roughness: 0.95, metalness: 0.0 })
 );
 edgeMesh.position.y = -0.35;
 scene.add(edgeMesh);
-
-scene.add(new THREE.GridHelper(Math.max(BW,BD), 12, 0x3a2a18, 0x3a2a18));
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let figures = [];
@@ -1101,9 +1205,23 @@ canvas.addEventListener('mouseup', e => {
   }
 });
 
+const zoomSlider = document.getElementById('zoom-slider');
+const zoomVal    = document.getElementById('zoom-val');
+
+function setZoom(r) {
+  orbit.radius = Math.max(12, Math.min(75, r));
+  zoomSlider.value = orbit.radius;
+  zoomVal.textContent = Math.round(orbit.radius);
+  updateCamera();
+}
+
+zoomSlider.addEventListener('input', () => setZoom(parseFloat(zoomSlider.value)));
+document.getElementById('zoom-in').addEventListener('click',  () => setZoom(orbit.radius - 4));
+document.getElementById('zoom-out').addEventListener('click', () => setZoom(orbit.radius + 4));
+
 canvas.addEventListener('wheel', e => {
-  orbit.radius = Math.max(10, Math.min(75, orbit.radius + e.deltaY*0.05));
-  updateCamera(); e.preventDefault();
+  setZoom(orbit.radius + e.deltaY * 0.05);
+  e.preventDefault();
 }, { passive: false });
 
 // Touch

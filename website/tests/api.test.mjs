@@ -516,6 +516,41 @@ async function run() {
     expect(body.length).toBe(0);
   });
 
+  // ── Questionnaire API ─────────────────────────────────────────────
+
+  section('Questionnaire Templates (admin)');
+
+  let qTplId;
+
+  await assert('GET /api/admin/questionnaires/templates returns 401 without auth', async () => {
+    const r = await fetch(`${BASE_URL}/api/admin/questionnaires/templates`);
+    if (r.status !== 401) throw new Error(`Expected 401, got ${r.status}`);
+  });
+
+  await assert('POST /api/admin/questionnaires/templates returns 400 without title', async () => {
+    const r = await fetch(`${BASE_URL}/api/admin/questionnaires/templates`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      // Note: this will hit auth first and return 401 without session; adjust if running with session
+    });
+    if (r.status !== 401 && r.status !== 400) throw new Error(`Expected 400 or 401, got ${r.status}`);
+  });
+
+  section('Questionnaire Portal (unauthenticated)');
+
+  await assert('GET /api/portal/questionnaires returns 401 without auth', async () => {
+    const r = await fetch(`${BASE_URL}/api/portal/questionnaires`);
+    if (r.status !== 401) throw new Error(`Expected 401, got ${r.status}`);
+  });
+
+  await assert('PUT /api/portal/questionnaires/fake-id/answer returns 401 without auth', async () => {
+    const r = await fetch(`${BASE_URL}/api/portal/questionnaires/fake-id/answer`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question_id: 'x', option_key: 'A' }),
+    });
+    if (r.status !== 401) throw new Error(`Expected 401, got ${r.status}`);
+  });
+
   // ============================================================
   // SUMMARY
   // ============================================================

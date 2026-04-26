@@ -181,5 +181,17 @@ export function getClientFolderPath(username: string): string {
   return `Clients/${username}/`;
 }
 
+/**
+ * Delete a file from Nextcloud (WebDAV DELETE).
+ */
+export async function deleteFile(filePath: string): Promise<boolean> {
+  const url = davUrl(filePath);
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: { Authorization: authHeader() },
+  });
+  return res.status === 204 || res.status === 200;
+}
+
 export const PENDING_SIGNATURES_DIR = 'pending-signatures';
 export const SIGNED_DIR = 'signed';

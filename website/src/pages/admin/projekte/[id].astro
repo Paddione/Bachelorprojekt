@@ -5,8 +5,9 @@ import {
   getProject, listSubProjects, listDirectTasks, listSubProjectTasks, listAllCustomers,
   listTimeEntries, getProjectTotalMinutes,
   listMeetingsForProject, listUnassignedMeetingsForCustomer,
+  listProjectAttachments,
 } from '../../../lib/website-db';
-import type { Project, SubProject, ProjectTask, Customer, TimeEntry, MeetingWithDetails } from '../../../lib/website-db';
+import type { Project, SubProject, ProjectTask, Customer, TimeEntry, MeetingWithDetails, ProjectAttachment } from '../../../lib/website-db';
 import ProjectMeetingsTab from '../../../components/admin/ProjectMeetingsTab.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -26,6 +27,7 @@ let timeEntries: TimeEntry[] = [];
 let timeStats: { total: number; billable: number } = { total: 0, billable: 0 };
 let meetings: MeetingWithDetails[] = [];
 let unassignedMeetings: Array<{ id: string; meetingType: string; status: string; createdAt: Date }> = [];
+let attachments: ProjectAttachment[] = [];
 let dbError = '';
 
 try {
@@ -37,11 +39,12 @@ try {
         project.customerId ? listUnassignedMeetingsForCustomer(project.customerId) : Promise.resolve([]),
       ]);
     } else {
-      [subProjects, directTasks, timeEntries, timeStats] = await Promise.all([
+      [subProjects, directTasks, timeEntries, timeStats, attachments] = await Promise.all([
         listSubProjects(id),
         listDirectTasks(id),
         listTimeEntries(id),
         getProjectTotalMinutes(id),
+        listProjectAttachments(id),
       ]);
     }
   }
@@ -466,6 +469,67 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
               </div>
             )}
           </section>
+
+          {/* ── Anhänge ── */}
+          <section class="mt-10" id="attachments-section">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="text-xl font-semibold text-light font-serif">Anhänge</h2>
+                <p class="text-muted text-sm mt-0.5">{attachments.length} {attachments.length === 1 ? 'Datei' : 'Dateien'}</p>
+              </div>
+              <button type="button" id="upload-btn"
+                class="px-3 py-1.5 bg-gold hover:bg-gold-light text-dark text-sm font-semibold rounded-lg transition-colors">
+                + Datei anhängen
+              </button>
+            </div>
+
+            {attachments.length === 0 ? (
+              <p class="text-muted text-sm">Noch keine Anhänge.</p>
+            ) : (
+              <div class="bg-dark-light rounded-xl border border-dark-lighter overflow-hidden">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-dark-lighter">
+                      <th class="text-left px-4 py-2 text-xs text-muted uppercase tracking-wide font-medium">Dateiname</th>
+                      <th class="text-left px-4 py-2 text-xs text-muted uppercase tracking-wide font-medium">Typ</th>
+                      <th class="text-right px-4 py-2 text-xs text-muted uppercase tracking-wide font-medium">Größe</th>
+                      <th class="text-left px-4 py-2 text-xs text-muted uppercase tracking-wide font-medium">Hochgeladen</th>
+                      <th class="px-4 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attachments.map(a => (
+                      <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
+                        <td class="px-4 py-3 text-sm text-light max-w-[220px] truncate">{a.filename}</td>
+                        <td class="px-4 py-3 text-xs text-muted">{a.mimeType.split('/')[1] ?? a.mimeType}</td>
+                        <td class="px-4 py-3 text-xs text-muted text-right font-mono">
+                          {a.fileSize < 1024 ? `${a.fileSize} B`
+                            : a.fileSize < 1024 * 1024 ? `${(a.fileSize / 1024).toFixed(1)} KB`
+                            : `${(a.fileSize / 1024 / 1024).toFixed(1)} MB`}
+                        </td>
+                        <td class="px-4 py-3 text-xs text-muted whitespace-nowrap">
+                          {new Date(a.uploadedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        </td>
+                        <td class="px-4 py-3">
+                          <div class="flex gap-3 justify-end">
+                            <a href={`/api/admin/projekte/attachments/download?id=${a.id}`}
+                              class="text-xs text-gold hover:text-gold-light transition-colors">
+                              ↓ Download
+                            </a>
+                            <form method="post" action="/api/admin/projekte/attachments/delete" class="delete-attachment-form">
+                              <input type="hidden" name="id"    value={a.id} />
+                              <input type="hidden" name="_back" value={`/admin/projekte/${project.id}`} />
+                              <button type="submit" class="text-xs text-red-400/60 hover:text-red-400 transition-colors">Löschen</button>
+                            </form>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
           </>
           )}
         </>
@@ -601,6 +665,25 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
       <div class="flex gap-3 justify-end pt-2">
         <button type="button" id="time-create-cancel" class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
         <button type="submit" class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  {/* ── Upload attachment dialog ── */}
+  <dialog id="upload-dialog" class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-md backdrop:bg-black/60">
+    <h2 class="text-lg font-semibold text-light mb-4 font-serif">Datei anhängen</h2>
+    <form method="post" action="/api/admin/projekte/attachments/upload" enctype="multipart/form-data" class="space-y-4">
+      <input type="hidden" name="projectId" value={project?.id ?? ''} />
+      <input type="hidden" name="_back"     value={`/admin/projekte/${project?.id ?? ''}`} />
+      <div>
+        <label class={labelCls}>Datei <span class="text-red-400">*</span></label>
+        <input type="file" name="file" required
+          class="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-gold/20 file:text-gold hover:file:bg-gold/30 file:cursor-pointer cursor-pointer" />
+        <p class="text-xs text-muted mt-1">Max. 50 MB</p>
+      </div>
+      <div class="flex gap-3 justify-end pt-2">
+        <button type="button" id="upload-cancel" class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
+        <button type="submit" class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">Hochladen</button>
       </div>
     </form>
   </dialog>
@@ -747,6 +830,18 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
       if (!confirm('Aufgabe löschen?')) e.preventDefault();
     });
   });
+
+  // ── Delete attachment confirm ──
+  document.querySelectorAll('.delete-attachment-form').forEach(form => {
+    form.addEventListener('submit', e => {
+      if (!confirm('Anhang wirklich löschen?')) e.preventDefault();
+    });
+  });
+
+  // ── Upload dialog ──
+  const uploadDialog = document.getElementById('upload-dialog') as HTMLDialogElement;
+  document.getElementById('upload-btn')?.addEventListener('click', () => uploadDialog.showModal());
+  document.getElementById('upload-cancel')?.addEventListener('click', () => uploadDialog.close());
 
   // ── Zeit buchen dialog ──
   const timeDialog = document.getElementById('time-create-dialog') as HTMLDialogElement;

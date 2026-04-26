@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { createProjectTask } from '../../../../lib/website-db';
+import { siteRedirect } from '../../../../lib/redirect';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -20,15 +21,15 @@ export const POST: APIRoute = async ({ request }) => {
   const back          = form.get('_back')?.toString()                || '/admin/projekte';
 
   if (!projectId || !name) {
-    return Response.redirect(new URL(`${back}?error=Pflichtfelder+fehlen`, request.url), 303);
+    return siteRedirect(`${back}?error=Pflichtfelder+fehlen`);
   }
 
   try {
     await createProjectTask({ projectId, subProjectId, name, description, notes, startDate, dueDate, status, priority, customerId });
   } catch (err) {
     console.error('[projekttasks/create]', err);
-    return Response.redirect(new URL(`${back}?error=Datenbankfehler`, request.url), 303);
+    return siteRedirect(`${back}?error=Datenbankfehler`);
   }
 
-  return Response.redirect(new URL(back, request.url), 303);
+  return siteRedirect(back);
 };

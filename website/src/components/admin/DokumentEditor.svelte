@@ -149,7 +149,7 @@
 
 {#if activeSection === 'newsletter'}
   <NewsletterAdmin />
-{:else}
+{:else if activeSection === 'vorlagen'}
   <!-- ── Vertragsvorlagen ── -->
   <div>
     {#if !showCompose}

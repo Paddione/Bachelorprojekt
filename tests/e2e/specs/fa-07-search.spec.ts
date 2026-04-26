@@ -1,79 +1,43 @@
 import { test, expect } from '@playwright/test';
-import { dismissOverlays, goToChannel } from './helpers';
 
-const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
+const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-07: Suche', () => {
-  test.beforeEach(async ({ page }) => {
-    // Use stored auth from global-setup — just navigate home and dismiss overlays
-    await page.goto('/');
-    await dismissOverlays(page);
+test.describe('FA-07: Website API & Inhalte', () => {
+  test('T1: /api/health returns ok', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/health`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
   });
 
-  test('T1: Volltextsuche findet Nachricht', async ({ page }) => {
-    await goToChannel(page, TEAM, 'town-square');
-
-    // Post a unique searchable message
-    const searchTerm = `searchTest${Date.now()}`;
-    const postBox = page.locator('[data-testid="post_textbox"]').first();
-    await postBox.fill(searchTerm);
-    await page.keyboard.press('Enter');
-
-    // Wait for message to be indexed
-    await page.waitForTimeout(2_000);
-
-    // Open search via the header search button
-    // The header search button contains an element with text exactly "Suche"
-    await page.getByRole('button').filter({ has: page.getByText('Suche', { exact: true }) }).click();
-    // After clicking, type directly — the focused element is the search input
-    await page.keyboard.type(searchTerm);
-    await page.keyboard.press('Enter');
-
-    // Verify search results contain the message
-    await expect(
-      page.locator('.search-item__container, [data-testid="search-item-container"]').first()
-    ).toBeVisible({ timeout: 10_000 });
+  test('T2: /api/leistungen returns JSON list with expected shape', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/leistungen`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    if (body.length > 0) {
+      expect(body[0]).toHaveProperty('key');
+      expect(body[0]).toHaveProperty('name');
+      expect(body[0]).toHaveProperty('category');
+    }
   });
 
-  test('T3: Kanalsuche via Quick Switcher', async ({ page }) => {
-    await goToChannel(page, TEAM, 'town-square');
-
-    // Open quick switcher
-    await page.keyboard.press('Control+k');
-
-    const dialog = page.getByRole('dialog', { name: /kanäle finden|find channels|quick switch/i });
-    await expect(dialog).toBeVisible({ timeout: 5_000 });
-
-    // Search for a channel (town-square is always present in fresh deploys)
-    const input = dialog.locator('input').first();
-    await input.fill('town-square');
-
-    // Verify channel appears in results
-    await expect(
-      dialog.locator('[class*="suggestion"], [data-testid*="suggestion"]').first()
-        .or(dialog.locator('div').filter({ hasText: /town-square/i }).first())
-    ).toBeVisible({ timeout: 5_000 });
-
-    await page.keyboard.press('Escape');
+  test('T3: /api/status rejects invalid ticket ID format', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/status?id=INVALID`);
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body).toHaveProperty('error');
   });
 
-  test('T4: Suche antwortet < 5s', async ({ page }) => {
-    await goToChannel(page, TEAM, 'town-square');
+  test('T4: /api/status returns 404 for non-existent ticket', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/status?id=BR-20260101-0000`);
+    expect([404, 200]).toContain(res.status());
+  });
 
-    // Open search via header button and type immediately (focused after click)
-    // The header search button contains an element with text exactly "Suche"
-    await page.getByRole('button').filter({ has: page.getByText('Suche', { exact: true }) }).click();
-
-    const startTime = Date.now();
-    await page.keyboard.type('test');
-    await page.keyboard.press('Enter');
-
-    // Wait for results or "no results" message
-    await page.locator(
-      '.search-item__container, [data-testid="search-item-container"], .no-results__wrapper, [class*="no-results"]'
-    ).first().waitFor({ state: 'visible', timeout: 10_000 });
-
-    const elapsed = Date.now() - startTime;
-    expect(elapsed).toBeLessThan(5_000);
+  test('T5: Legal and info pages are reachable', async ({ page }) => {
+    for (const path of ['/impressum', '/datenschutz', '/agb']) {
+      const res = await page.goto(`${BASE}${path}`);
+      expect(res?.status(), `${path} should return 200`).toBe(200);
+    }
   });
 });

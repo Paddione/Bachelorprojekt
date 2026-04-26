@@ -2,13 +2,13 @@
 # Production Ingress — per-Service mit Traefik-Middlewares
 # ═══════════════════════════════════════════════════════════════════
 
-# ── Apex Domain → Old Webspace ─────────────────────────────────────
+# ── Apex Domain → web.PROD_DOMAIN (permanent redirect) ─────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress-apex
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-redirect-apex-to-web@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:

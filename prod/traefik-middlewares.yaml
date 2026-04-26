@@ -78,3 +78,15 @@ spec:
   rateLimit:
     average: 200
     burst: 400
+---
+# ── Apex → Website redirect ────────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-apex-to-web
+  namespace: workspace
+spec:
+  redirectRegex:
+    regex: "^https?://${PROD_DOMAIN}(.*)"
+    replacement: "https://web.${PROD_DOMAIN}$1"
+    permanent: true

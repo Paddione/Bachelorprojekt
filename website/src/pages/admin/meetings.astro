@@ -194,11 +194,19 @@ function statusColor(s: string) {
       <h2 class="text-xl font-serif text-light mb-2">&#x1F4CA; Umfrage starten</h2>
       <p class="text-sm text-muted mb-4">Frage w&#xE4;hlen und in alle aktiven Calls posten.</p>
       <div id="poll-template-list" class="flex flex-col gap-2 mb-4"></div>
-      <div id="poll-custom-wrap" class="hidden mb-4">
-        <label class="block text-xs text-muted mb-1 uppercase tracking-wide">Eigene Frage</label>
-        <input id="poll-custom-question" type="text" maxlength="200"
-          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-sm text-light focus:outline-none focus:border-gold"
-          placeholder="Ihre Frage&#x2026;" />
+      <div id="poll-editor-wrap" class="hidden mb-4 space-y-3 bg-dark rounded-xl border border-dark-lighter p-3">
+        <div>
+          <label class="block text-xs text-muted mb-1 uppercase tracking-wide">Frage</label>
+          <input id="poll-editor-question" type="text" maxlength="200"
+            class="w-full bg-dark-light border border-dark-lighter rounded-lg px-3 py-2 text-sm text-light focus:outline-none focus:border-gold"
+            placeholder="Ihre Frage&#x2026;" />
+        </div>
+        <div id="poll-editor-options-wrap" class="hidden">
+          <label class="block text-xs text-muted mb-1 uppercase tracking-wide">Antwortoptionen</label>
+          <div id="poll-editor-options" class="flex flex-col gap-1.5"></div>
+          <button type="button" id="poll-editor-add-option"
+            class="mt-2 text-xs text-gold hover:text-gold/70">+ Option hinzuf&#xFC;gen</button>
+        </div>
       </div>
       <div id="poll-modal-result" class="hidden mb-4 text-sm text-yellow-400"></div>
       <div class="flex gap-2 justify-end">
@@ -357,8 +365,11 @@ function statusColor(s: string) {
   const pollModalCancel    = document.getElementById('poll-modal-cancel') as HTMLButtonElement;
   const pollModalConfirm   = document.getElementById('poll-modal-confirm') as HTMLButtonElement;
   const pollModalResult    = document.getElementById('poll-modal-result')!;
-  const pollCustomWrap     = document.getElementById('poll-custom-wrap')!;
-  const pollCustomQ        = document.getElementById('poll-custom-question') as HTMLInputElement;
+  const pollEditorWrap     = document.getElementById('poll-editor-wrap')!;
+  const pollEditorQuestion = document.getElementById('poll-editor-question') as HTMLInputElement;
+  const pollEditorOptsWrap = document.getElementById('poll-editor-options-wrap')!;
+  const pollEditorOpts     = document.getElementById('poll-editor-options')!;
+  const pollEditorAddOpt   = document.getElementById('poll-editor-add-option') as HTMLButtonElement;
   const pollTemplateList   = document.getElementById('poll-template-list')!;
   const pollStatusPanel    = document.getElementById('poll-status-panel')!;
   const pollStatusQuestion = document.getElementById('poll-status-question')!;
@@ -377,6 +388,35 @@ function statusColor(s: string) {
 
   let activePollId: string | null = null;
   let pollRefreshTimer: ReturnType<typeof setInterval> | null = null;
+  let currentPollKind: string = 'text';
+
+  function addOptionField(value = '') {
+    const row = document.createElement('div');
+    row.className = 'flex gap-1.5';
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.maxLength = 100; inp.value = value;
+    inp.placeholder = 'Option…';
+    inp.className = 'flex-1 bg-dark-light border border-dark-lighter rounded-lg px-3 py-1.5 text-sm text-light focus:outline-none focus:border-gold';
+    inp.addEventListener('input', validatePollEditor);
+    const del = document.createElement('button');
+    del.type = 'button'; del.textContent = '\xD7';
+    del.className = 'px-2 text-muted hover:text-red-400 text-lg leading-none';
+    del.addEventListener('click', () => { row.remove(); validatePollEditor(); });
+    row.append(inp, del);
+    pollEditorOpts.appendChild(row);
+  }
+
+  function validatePollEditor() {
+    const q = pollEditorQuestion.value.trim();
+    if (q.length < 2) { pollModalConfirm.disabled = true; return; }
+    if (currentPollKind === 'multiple_choice') {
+      const filled = Array.from(pollEditorOpts.querySelectorAll<HTMLInputElement>('input'))
+        .filter(i => i.value.trim().length > 0);
+      pollModalConfirm.disabled = filled.length < 2;
+    } else {
+      pollModalConfirm.disabled = false;
+    }
+  }
 
   function renderTemplatePicker() {
     pollTemplateList.replaceChildren();
@@ -416,9 +456,24 @@ function statusColor(s: string) {
 
     pollTemplateList.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach(radio => {
       radio.addEventListener('change', () => {
-        const isCustom = radio.value === 'custom';
-        pollCustomWrap.classList.toggle('hidden', !isCustom);
-        pollModalConfirm.disabled = isCustom ? pollCustomQ.value.trim().length < 2 : false;
+        pollEditorOpts.replaceChildren();
+        if (radio.value === 'custom') {
+          currentPollKind = 'text';
+          pollEditorQuestion.value = '';
+          pollEditorOptsWrap.classList.add('hidden');
+        } else {
+          const tpl = (POLL_TEMPLATES_DATA as PollTemplate[])[parseInt(radio.value, 10)];
+          currentPollKind = tpl.kind;
+          pollEditorQuestion.value = tpl.question;
+          if (tpl.kind === 'multiple_choice' && tpl.options) {
+            tpl.options.forEach(opt => addOptionField(opt));
+            pollEditorOptsWrap.classList.remove('hidden');
+          } else {
+            pollEditorOptsWrap.classList.add('hidden');
+          }
+        }
+        pollEditorWrap.classList.remove('hidden');
+        validatePollEditor();
       });
     });
   }
@@ -486,8 +541,11 @@ function statusColor(s: string) {
     pollModal.classList.remove('flex');
     pollModalResult.classList.add('hidden');
     pollTemplateList.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach(r => { r.checked = false; });
-    pollCustomWrap.classList.add('hidden');
-    pollCustomQ.value = '';
+    pollEditorWrap.classList.add('hidden');
+    pollEditorQuestion.value = '';
+    pollEditorOpts.replaceChildren();
+    pollEditorOptsWrap.classList.add('hidden');
+    currentPollKind = 'text';
     pollModalConfirm.disabled = true;
     pollModalConfirm.textContent = '\u{1F4CA} Umfrage starten';
   }
@@ -509,21 +567,18 @@ function statusColor(s: string) {
   });
   pollModalCancel.addEventListener('click', hidePollModal);
   pollModal.addEventListener('click', (e) => { if (e.target === pollModal) hidePollModal(); });
-  pollCustomQ.addEventListener('input', () => {
-    const sel = pollTemplateList.querySelector<HTMLInputElement>('input[name=poll-template]:checked');
-    if (sel?.value === 'custom') pollModalConfirm.disabled = pollCustomQ.value.trim().length < 2;
-  });
+  pollEditorQuestion.addEventListener('input', validatePollEditor);
+  pollEditorAddOpt.addEventListener('click', () => { addOptionField(); validatePollEditor(); });
 
   pollModalConfirm.addEventListener('click', async () => {
     const selected = pollTemplateList.querySelector<HTMLInputElement>('input[name=poll-template]:checked');
     if (!selected) return;
-    let question: string, kind: string, options: string[] | null;
-    if (selected.value === 'custom') {
-      question = pollCustomQ.value.trim(); kind = 'text'; options = null;
-    } else {
-      const tpl = (POLL_TEMPLATES_DATA as PollTemplate[])[parseInt(selected.value, 10)];
-      question = tpl.question; kind = tpl.kind; options = tpl.options;
-    }
+    const question = pollEditorQuestion.value.trim();
+    const kind = currentPollKind;
+    const options: string[] | null = kind === 'multiple_choice'
+      ? Array.from(pollEditorOpts.querySelectorAll<HTMLInputElement>('input'))
+          .map(i => i.value.trim()).filter(Boolean)
+      : null;
     pollModalConfirm.disabled = true;
     pollModalConfirm.textContent = '…';
     try {

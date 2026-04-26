@@ -15,6 +15,7 @@ import NachrichtenSection   from '../components/portal/NachrichtenSection.astro'
 import BesprechungenSection from '../components/portal/BesprechungenSection.astro';
 import DateienSection       from '../components/portal/DateienSection.astro';
 import TermineSection       from '../components/portal/TermineSection.astro';
+import KalenderSection      from '../components/portal/KalenderSection.astro';
 import ProjekteSection      from '../components/portal/ProjekteSection.astro';
 import RechnungenSection    from '../components/portal/RechnungenSection.astro';
 import SignaturesTab        from '../components/portal/SignaturesTab.astro';
@@ -28,6 +29,12 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 
 const section  = Astro.url.searchParams.get('section') ?? 'overview';
 const username = session.preferred_username ?? session.sub;
+const now      = new Date();
+
+const calYearQ  = parseInt(Astro.url.searchParams.get('year')  ?? '', 10);
+const calMonthQ = parseInt(Astro.url.searchParams.get('month') ?? '', 10);
+const calYear   = isNaN(calYearQ)  ? now.getFullYear()  : calYearQ;
+const calMonth  = isNaN(calMonthQ) ? now.getMonth() + 1 : Math.max(1, Math.min(12, calMonthQ));
 
 const ncBase       = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
 const vaultUrl     = process.env.VAULT_EXTERNAL_URL ?? '';
@@ -96,11 +103,11 @@ const meetings = section === 'besprechungen'
   ? await getMeetingsForClient(session.email, true).catch(() => [])
   : [];
 
-const bookings = section === 'termine'
+const bookings = (section === 'termine' || section === 'kalender')
   ? await getClientBookings(session.email).catch(() => [])
   : [];
 
-const projects = section === 'projekte'
+const projects = (section === 'projekte' || section === 'kalender')
   ? await listProjectsForCustomer(session.sub).catch(() => [])
   : [];
 
@@ -126,6 +133,7 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
       <SignaturesTab clientUsername={username} clientEmail={session.email} />
     </div>
   )}
+  {section === 'kalender'       && <KalenderSection {bookings} {projects} year={calYear} month={calMonth} />}
   {section === 'termine'        && <TermineSection {bookings} />}
   {section === 'rechnungen'     && <RechnungenSection clientEmail={session.email} />}
   {section === 'projekte'       && <ProjekteSection {projects} back={Astro.url.href} />}

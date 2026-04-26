@@ -948,6 +948,17 @@ async function initProjectTables(): Promise<void> {
       updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS project_attachments (
+      id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      project_id  UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      filename    TEXT        NOT NULL,
+      nc_path     TEXT        NOT NULL,
+      mime_type   TEXT        NOT NULL DEFAULT 'application/octet-stream',
+      file_size   BIGINT      NOT NULL DEFAULT 0,
+      uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
   projectTablesReady = true;
 }
 
@@ -1183,6 +1194,61 @@ export async function updateProjectTask(id: string, params: {
 
 export async function deleteProjectTask(id: string): Promise<void> {
   await pool.query('DELETE FROM project_tasks WHERE id=$1', [id]);
+}
+
+// Project Attachments ─────────────────────────────────────────────────────────
+
+export interface ProjectAttachment {
+  id: string;
+  projectId: string;
+  filename: string;
+  ncPath: string;
+  mimeType: string;
+  fileSize: number;
+  uploadedAt: Date;
+}
+
+export async function listProjectAttachments(projectId: string): Promise<ProjectAttachment[]> {
+  await initProjectTables();
+  const r = await pool.query(
+    `SELECT id, project_id AS "projectId", filename, nc_path AS "ncPath",
+            mime_type AS "mimeType", file_size AS "fileSize", uploaded_at AS "uploadedAt"
+     FROM project_attachments WHERE project_id=$1 ORDER BY uploaded_at DESC`,
+    [projectId]
+  );
+  return r.rows;
+}
+
+export async function getProjectAttachment(id: string): Promise<ProjectAttachment | null> {
+  await initProjectTables();
+  const r = await pool.query(
+    `SELECT id, project_id AS "projectId", filename, nc_path AS "ncPath",
+            mime_type AS "mimeType", file_size AS "fileSize", uploaded_at AS "uploadedAt"
+     FROM project_attachments WHERE id=$1`,
+    [id]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function createProjectAttachment(params: {
+  projectId: string; filename: string; ncPath: string; mimeType: string; fileSize: number;
+}): Promise<string> {
+  await initProjectTables();
+  const r = await pool.query(
+    `INSERT INTO project_attachments (project_id, filename, nc_path, mime_type, file_size)
+     VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+    [params.projectId, params.filename, params.ncPath, params.mimeType, params.fileSize]
+  );
+  return r.rows[0].id;
+}
+
+export async function deleteProjectAttachmentRecord(id: string): Promise<string | null> {
+  await initProjectTables();
+  const r = await pool.query(
+    'DELETE FROM project_attachments WHERE id=$1 RETURNING nc_path',
+    [id]
+  );
+  return r.rows[0]?.nc_path ?? null;
 }
 
 // ── Portal: user-scoped project access ───────────────────────────────────────

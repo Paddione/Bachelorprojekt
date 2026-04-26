@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { deleteSubProject } from '../../../../lib/website-db';
+import { siteRedirect } from '../../../../lib/redirect';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -11,15 +12,15 @@ export const POST: APIRoute = async ({ request }) => {
   const back = form.get('_back')?.toString()      || '/admin/projekte';
 
   if (!id) {
-    return Response.redirect(new URL(`${back}?error=ID+fehlt`, request.url), 303);
+    return siteRedirect(`${back}?error=ID+fehlt`);
   }
 
   try {
     await deleteSubProject(id);
   } catch (err) {
     console.error('[subprojekte/delete]', err);
-    return Response.redirect(new URL(`${back}?error=Datenbankfehler`, request.url), 303);
+    return siteRedirect(`${back}?error=Datenbankfehler`);
   }
 
-  return Response.redirect(new URL(back, request.url), 303);
+  return siteRedirect(back);
 };

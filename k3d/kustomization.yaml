@@ -32,6 +32,8 @@ resources:
   # Mailpit SSO gateway
   - oauth2-proxy-mailpit.yaml
   - mail-ingressroute-dev.yaml
+  # Brett SSO gateway
+  - oauth2-proxy-brett.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-cronjob.yaml

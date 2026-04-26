@@ -2050,6 +2050,44 @@ export async function listTasksInMonth(year: number, month: number): Promise<Cal
   return result.rows;
 }
 
+export interface CalendarProject {
+  id: string;
+  name: string;
+  status: string;
+  priority: string;
+  customerId: string | null;
+  customerName: string | null;
+  startDate: Date | null;
+  dueDate: Date | null;
+}
+
+export async function listProjectsInMonth(year: number, month: number, brand?: string): Promise<CalendarProject[]> {
+  await initProjectTables();
+  const firstDay = `${year}-${String(month).padStart(2, '0')}-01`;
+  const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+  const result = await pool.query<CalendarProject>(
+    `SELECT p.id,
+            p.name,
+            p.status,
+            p.priority,
+            p.customer_id  AS "customerId",
+            c.name         AS "customerName",
+            p.start_date   AS "startDate",
+            p.due_date     AS "dueDate"
+     FROM projects p
+     LEFT JOIN customers c ON c.id = p.customer_id
+     WHERE p.status NOT IN ('archiviert', 'erledigt')
+       AND ($1::text IS NULL OR p.brand = $1)
+       AND (
+         (p.start_date BETWEEN $2::date AND $3::date)
+         OR (p.due_date BETWEEN $2::date AND $3::date)
+       )
+     ORDER BY COALESCE(p.start_date, p.due_date) ASC`,
+    [brand ?? null, firstDay, lastDay]
+  );
+  return result.rows;
+}
+
 // ── Bug Ticket List ───────────────────────────────────────────────────────────
 
 export interface BugTicketRow {

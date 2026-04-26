@@ -295,13 +295,15 @@ data:
           status      TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'locked')),
           room_tokens TEXT[] NOT NULL DEFAULT '{}',
           created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-          locked_at   TIMESTAMPTZ
+          locked_at   TIMESTAMPTZ,
+          CONSTRAINT polls_mc_options_not_null
+              CHECK (kind != 'multiple_choice' OR options IS NOT NULL)
       );
 
       CREATE TABLE IF NOT EXISTS poll_answers (
           id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           poll_id      UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
-          answer       TEXT NOT NULL,
+          answer       TEXT NOT NULL CHECK (char_length(answer) <= 1000),
           submitted_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
 
@@ -594,13 +596,15 @@ data:
           status      TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'locked')),
           room_tokens TEXT[] NOT NULL DEFAULT '{}',
           created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-          locked_at   TIMESTAMPTZ
+          locked_at   TIMESTAMPTZ,
+          CONSTRAINT polls_mc_options_not_null
+              CHECK (kind != 'multiple_choice' OR options IS NOT NULL)
       );
 
       CREATE TABLE IF NOT EXISTS poll_answers (
           id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           poll_id      UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
-          answer       TEXT NOT NULL,
+          answer       TEXT NOT NULL CHECK (char_length(answer) <= 1000),
           submitted_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
 

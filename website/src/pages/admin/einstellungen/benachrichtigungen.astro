@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminEinstellungenTabs from '../../../components/AdminEinstellungenTabs.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getSiteSetting } from '../../../lib/website-db';
 
@@ -33,6 +34,7 @@ const toggles = [
 ---
 
 <AdminLayout title="Benachrichtigungen">
+  <AdminEinstellungenTabs current={Astro.url.pathname} />
   <div style="padding: 2rem; max-width: 640px;">
     <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">Benachrichtigungen</h1>
     <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">Admin-Benachrichtigungen werden an diese Adresse gesendet.</p>

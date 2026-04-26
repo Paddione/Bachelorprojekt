@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminEinstellungenTabs from '../../../components/AdminEinstellungenTabs.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getSiteSetting } from '../../../lib/website-db';
 
@@ -17,6 +18,7 @@ const [fromName, fromAddress] = await Promise.all([
 ---
 
 <AdminLayout title="E-Mail">
+  <AdminEinstellungenTabs current={Astro.url.pathname} />
   <div style="padding: 2rem; max-width: 640px;">
     <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">E-Mail</h1>
     <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">Absender-Informationen für Admin-Benachrichtigungen. Bestätigungs-E-Mails an Kunden verwenden weiterhin die Umgebungsvariablen (FROM_NAME, FROM_EMAIL).</p>

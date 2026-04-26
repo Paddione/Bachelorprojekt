@@ -17,6 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
   const status      = form.get('status')?.toString()             || 'entwurf';
   const priority    = form.get('priority')?.toString()           || 'mittel';
   const customerId  = form.get('customerId')?.toString().trim()  ?? '';
+  const adminId     = form.get('adminId')?.toString().trim()    ?? '';
   const back        = form.get('_back')?.toString()              || '/admin/projekte';
 
   if (!id || !name) {
@@ -24,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    await updateProjectTask(id, { name, description, notes, startDate, dueDate, status, priority, customerId });
+    await updateProjectTask(id, { name, description, notes, startDate, dueDate, status, priority, customerId, adminId });
   } catch (err) {
     console.error('[projekttasks/update]', err);
     return siteRedirect(`${back}?error=Datenbankfehler`);

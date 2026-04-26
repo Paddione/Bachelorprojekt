@@ -2,7 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import {
-  getProject, listSubProjects, listDirectTasks, listSubProjectTasks, listAllCustomers,
+  getProject, listSubProjects, listDirectTasks, listSubProjectTasks, listAllCustomers, listAdminUsers,
   listTimeEntries, getProjectTotalMinutes,
   listMeetingsForProject, listUnassignedMeetingsForCustomer,
   listProjectAttachments,
@@ -23,6 +23,7 @@ let project: Project | null = null;
 let subProjects: SubProject[] = [];
 let directTasks: ProjectTask[] = [];
 let customers: Customer[] = [];
+let admins: Customer[] = [];
 let timeEntries: TimeEntry[] = [];
 let timeStats: { total: number; billable: number } = { total: 0, billable: 0 };
 let meetings: MeetingWithDetails[] = [];
@@ -31,7 +32,7 @@ let attachments: ProjectAttachment[] = [];
 let dbError = '';
 
 try {
-  [project, customers] = await Promise.all([getProject(id), listAllCustomers()]);
+  [project, customers, admins] = await Promise.all([getProject(id), listAllCustomers(), listAdminUsers()]);
   if (project) {
     if (tab === 'besprechungen') {
       [meetings, unassignedMeetings] = await Promise.all([
@@ -105,14 +106,14 @@ const sectionCls  = 'bg-dark-light rounded-2xl border border-dark-lighter p-6';
 const spJson = JSON.stringify(subProjects.map(sp => ({
   id: sp.id, name: sp.name, description: sp.description ?? '',
   notes: sp.notes ?? '', startDate: isoDate(sp.startDate), dueDate: isoDate(sp.dueDate),
-  status: sp.status, priority: sp.priority, customerId: sp.customerId ?? '',
+  status: sp.status, priority: sp.priority, customerId: sp.customerId ?? '', adminId: sp.adminId ?? '',
 }))).replace(/</g, '\\u003c');
 
 const allTasksFlat = [...directTasks, ...Object.values(spTasks).flat()];
 const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
   id: t.id, name: t.name, description: t.description ?? '',
   notes: t.notes ?? '', startDate: isoDate(t.startDate), dueDate: isoDate(t.dueDate),
-  status: t.status, priority: t.priority, customerId: t.customerId ?? '',
+  status: t.status, priority: t.priority, customerId: t.customerId ?? '', adminId: t.adminId ?? '',
   subProjectId: t.subProjectId ?? '',
 }))).replace(/</g, '\\u003c');
 ---
@@ -220,14 +221,25 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
                     <input type="date" name="dueDate" value={isoDate(project.dueDate)} class={inputCls} />
                   </div>
                 </div>
-                <div>
-                  <label class={labelCls}>Verantwortlicher (Kunde)</label>
-                  <select name="customerId" class={selectCls}>
-                    <option value="">— kein Kunde —</option>
-                    {customers.map(c => (
-                      <option value={c.id} selected={c.id === project!.customerId}>{c.name} ({c.email})</option>
-                    ))}
-                  </select>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class={labelCls}>Verantwortlicher Kunde</label>
+                    <select name="customerId" class={selectCls}>
+                      <option value="">— kein Kunde —</option>
+                      {customers.map(c => (
+                        <option value={c.id} selected={c.id === project!.customerId}>{c.name} ({c.customer_number ?? c.email})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label class={labelCls}>Verantwortlicher Admin</label>
+                    <select name="adminId" class={selectCls}>
+                      <option value="">— kein Admin —</option>
+                      {admins.map(a => (
+                        <option value={a.id} selected={a.id === project!.adminId}>{a.name} ({a.admin_number ?? a.email})</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label class={labelCls}>Beschreibung</label>
@@ -570,12 +582,21 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
         <div><label class={labelCls}>Startdatum</label><input type="date" name="startDate" class={inputCls} /></div>
         <div><label class={labelCls}>Fälligkeitsdatum</label><input type="date" name="dueDate" class={inputCls} /></div>
       </div>
-      <div>
-        <label class={labelCls}>Verantwortlicher (Kunde)</label>
-        <select name="customerId" class={selectCls}>
-          <option value="">— kein Kunde —</option>
-          {customers.map(c => <option value={c.id}>{c.name} ({c.email})</option>)}
-        </select>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class={labelCls}>Verantwortlicher Kunde</label>
+          <select name="customerId" class={selectCls}>
+            <option value="">— kein Kunde —</option>
+            {customers.map(c => <option value={c.id}>{c.name} ({c.customer_number ?? c.email})</option>)}
+          </select>
+        </div>
+        <div>
+          <label class={labelCls}>Verantwortlicher Admin</label>
+          <select name="adminId" class={selectCls}>
+            <option value="">— kein Admin —</option>
+            {admins.map(a => <option value={a.id}>{a.name} ({a.admin_number ?? a.email})</option>)}
+          </select>
+        </div>
       </div>
       <div><label class={labelCls}>Beschreibung</label><textarea name="description" rows="2" maxlength="2000" class={`${inputCls} resize-none`}></textarea></div>
       <div><label class={labelCls}>Notizen</label><textarea name="notes" rows="2" maxlength="4000" class={`${inputCls} resize-none`}></textarea></div>
@@ -609,11 +630,19 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
         <div><label class={labelCls}>Startdatum</label><input type="date" name="startDate" id="edit-sp-startDate" class={inputCls} /></div>
         <div><label class={labelCls}>Fälligkeitsdatum</label><input type="date" name="dueDate" id="edit-sp-dueDate" class={inputCls} /></div>
       </div>
-      <div><label class={labelCls}>Verantwortlicher (Kunde)</label>
-        <select name="customerId" id="edit-sp-customerId" class={selectCls}>
-          <option value="">— kein Kunde —</option>
-          {customers.map(c => <option value={c.id}>{c.name} ({c.email})</option>)}
-        </select>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class={labelCls}>Verantwortlicher Kunde</label>
+          <select name="customerId" id="edit-sp-customerId" class={selectCls}>
+            <option value="">— kein Kunde —</option>
+            {customers.map(c => <option value={c.id}>{c.name} ({c.customer_number ?? c.email})</option>)}
+          </select>
+        </div>
+        <div><label class={labelCls}>Verantwortlicher Admin</label>
+          <select name="adminId" id="edit-sp-adminId" class={selectCls}>
+            <option value="">— kein Admin —</option>
+            {admins.map(a => <option value={a.id}>{a.name} ({a.admin_number ?? a.email})</option>)}
+          </select>
+        </div>
       </div>
       <div><label class={labelCls}>Beschreibung</label><textarea name="description" id="edit-sp-description" rows="2" maxlength="2000" class={`${inputCls} resize-none`}></textarea></div>
       <div><label class={labelCls}>Notizen</label><textarea name="notes" id="edit-sp-notes" rows="2" maxlength="4000" class={`${inputCls} resize-none`}></textarea></div>
@@ -713,11 +742,19 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
         <div><label class={labelCls}>Startdatum</label><input type="date" name="startDate" id="task-startDate" class={inputCls} /></div>
         <div><label class={labelCls}>Fälligkeitsdatum</label><input type="date" name="dueDate" id="task-dueDate" class={inputCls} /></div>
       </div>
-      <div><label class={labelCls}>Verantwortlicher (Kunde)</label>
-        <select name="customerId" id="task-customerId" class={selectCls}>
-          <option value="">— kein Kunde —</option>
-          {customers.map(c => <option value={c.id}>{c.name} ({c.email})</option>)}
-        </select>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class={labelCls}>Verantwortlicher Kunde</label>
+          <select name="customerId" id="task-customerId" class={selectCls}>
+            <option value="">— kein Kunde —</option>
+            {customers.map(c => <option value={c.id}>{c.name} ({c.customer_number ?? c.email})</option>)}
+          </select>
+        </div>
+        <div><label class={labelCls}>Verantwortlicher Admin</label>
+          <select name="adminId" id="task-adminId" class={selectCls}>
+            <option value="">— kein Admin —</option>
+            {admins.map(a => <option value={a.id}>{a.name} ({a.admin_number ?? a.email})</option>)}
+          </select>
+        </div>
       </div>
       <div><label class={labelCls}>Beschreibung</label><textarea name="description" id="task-description" rows="2" maxlength="2000" class={`${inputCls} resize-none`}></textarea></div>
       <div><label class={labelCls}>Notizen</label><textarea name="notes" id="task-notes" rows="2" maxlength="4000" class={`${inputCls} resize-none`}></textarea></div>
@@ -776,6 +813,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
       document.getElementById('edit-sp-status').value      = sp.status;
       document.getElementById('edit-sp-priority').value    = sp.priority;
       document.getElementById('edit-sp-customerId').value  = sp.customerId;
+      document.getElementById('edit-sp-adminId').value     = sp.adminId;
       editSpDialog.showModal();
     });
   });
@@ -799,7 +837,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
       ? '/api/admin/projekttasks/create'
       : '/api/admin/projekttasks/update';
 
-    const fields = ['id','name','description','notes','startDate','dueDate','status','priority','customerId','subProjectId','projectId'];
+    const fields = ['id','name','description','notes','startDate','dueDate','status','priority','customerId','adminId','subProjectId','projectId'];
     fields.forEach(f => {
       const el = document.getElementById(`task-${f}`);
       if (el) el.value = (data && data[f] != null ? data[f] : (f === 'status' ? 'entwurf' : f === 'priority' ? 'mittel' : ''));

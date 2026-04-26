@@ -14,11 +14,26 @@ spec:
               value: "587"
             - name: SMTP_DOMAIN
               value: "sign.${PROD_DOMAIN}"
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_USER
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_PASSWORD
             - name: SMTP_AUTH_METHOD
               value: "login"
             - name: SMTP_ENABLE_STARTTLS_AUTO
               value: "true"
             # mailbox.org rejects senders the authenticated account does not own (553),
-            # so MAILER_FROM_EMAIL in the base uses workspace-secrets/SMTP_FROM.
+            # so MAILER_FROM_EMAIL must match the SMTP user.
+            - name: MAILER_FROM_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: SMTP_FROM
             - name: MAILER_FROM_NAME
               value: "${BRAND_NAME} Unterschriften"

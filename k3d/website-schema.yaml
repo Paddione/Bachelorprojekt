@@ -49,6 +49,10 @@ data:
       -- Enrollment tracking: allows admin to dismiss a pending enrollment without creating a portal account
       ALTER TABLE customers ADD COLUMN IF NOT EXISTS enrollment_declined BOOLEAN NOT NULL DEFAULT FALSE;
 
+      -- Admin users: separate role and number from regular customers
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS admin_number TEXT UNIQUE;
+
       -- Meeting history
       CREATE TABLE IF NOT EXISTS meetings (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

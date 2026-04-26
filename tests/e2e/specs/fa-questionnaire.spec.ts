@@ -13,9 +13,9 @@ test.describe('FA-Questionnaire: Fragebögen', () => {
     expect([401, 403]).toContain(res.status());
   });
 
-  test('T3: /api/portal/questionnaires/:id/answer requires authentication', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/portal/questionnaires/test-id/answer`, {
-      data: { questionId: 'q1', answer: 'test' },
+  test('T3: /api/portal/questionnaires/:id/answer requires authentication (PUT)', async ({ request }) => {
+    const res = await request.put(`${BASE}/api/portal/questionnaires/test-id/answer`, {
+      data: { question_id: 'q1', option_key: 'test' },
     });
     expect([401, 403]).toContain(res.status());
   });

@@ -15,18 +15,13 @@ jobs:
 
       - name: Install kubectl + kubeconform
         run: |
-          curl -sSL "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
           curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
             | sudo tar xz -C /usr/local/bin kubeconform
 
       - name: Create CI dummy secrets
-        run: |
-          for f in k3d/secrets.yaml k3d/backup-secrets.yaml; do
-            if [ ! -f "$f" ]; then
-              echo -e "apiVersion: v1\nkind: Secret\nmetadata:\n  name: $(basename $f .yaml)\ntype: Opaque\nstringData:\n  PLACEHOLDER: ci-dummy" > "$f"
-            fi
-          done
+        run: bash scripts/ci-dummy-secrets.sh
 
       - name: Validate kustomize output
         run: |
@@ -54,10 +49,11 @@ jobs:
       - name: Install yamllint
         run: pip install yamllint
 
-      - name: Lint k3d manifests
+      - name: Lint k3d and prod manifests
         run: |
-          yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' \
-            k3d/*.yaml
+          find k3d/ prod/ prod-mentolder/ prod-korczewski/ -maxdepth 1 -name '*.yaml' \
+            | sort \
+            | xargs yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}'
 
   lint-scripts:
     name: Lint Shell Scripts
@@ -70,8 +66,8 @@ jobs:
 
       - name: Check scripts
         run: |
-          shellcheck -x scripts/*.sh k3d/*.sh tests/lib/*.sh || true
-          echo "Shellcheck completed"
+          shellcheck -x -S warning scripts/*.sh k3d/*.sh tests/lib/*.sh
+          echo "Shellcheck passed"
 
   test-configs:
     name: Validate Configs
@@ -80,10 +76,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Validate realm JSON
+      - name: Validate realm JSON files
         run: |
-          python3 -c "import json; json.load(open('k3d/realm-workspace-dev.json'))"
-          echo "realm-workspace-dev.json is valid JSON"
+          for f in k3d/realm-workspace-dev.json \
+                   prod/realm-workspace-prod.json \
+                   prod-mentolder/realm-workspace-mentolder.json \
+                   prod-korczewski/realm-workspace-korczewski.json; do
+            python3 -c "import json; json.load(open('$f'))" && echo "$f is valid JSON"
+          done
 
       - name: Validate PHP config
         run: |
@@ -117,24 +117,18 @@ jobs:
 
       - name: Install kubectl
         run: |
-          curl -sSL "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
 
       - name: Create CI dummy secrets
-        run: |
-          for f in k3d/secrets.yaml k3d/backup-secrets.yaml; do
-            if [ ! -f "$f" ]; then
-              printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: %s\ntype: Opaque\nstringData:\n  PLACEHOLDER: ci-dummy\n' "$(basename "$f" .yaml)" > "$f"
-            fi
-          done
+        run: bash scripts/ci-dummy-secrets.sh
 
       - name: Check prod overlays exclude workspace-secrets Secret
         run: |
           python3 - <<'EOF'
           import subprocess, sys, yaml, glob, os
 
-          overlays = sorted(glob.glob('prod*'))
-          overlays = [o for o in overlays if os.path.isdir(o)]
+          overlays = sorted(o for o in glob.glob('prod-*') if os.path.isdir(o))
           found = []
           for overlay in overlays:
               result = subprocess.run(
@@ -171,12 +165,7 @@ jobs:
         run: sudo apt-get install -y jq
 
       - name: Create CI dummy secrets
-        run: |
-          for f in k3d/secrets.yaml k3d/backup-secrets.yaml; do
-            if [ ! -f "$f" ]; then
-              echo -e "apiVersion: v1\nkind: Secret\nmetadata:\n  name: $(basename $f .yaml)\ntype: Opaque\nstringData:\n  PLACEHOLDER: ci-dummy" > "$f"
-            fi
-          done
+        run: bash scripts/ci-dummy-secrets.sh
 
       - name: Run BATS unit tests
         run: ./tests/unit/lib/bats-core/bin/bats --formatter tap tests/unit/
@@ -192,18 +181,23 @@ jobs:
 
       - name: Check image pinning in k3d manifests
         run: |
-          if grep -r ':latest' k3d/*.yaml 2>/dev/null; then
-            echo "WARNING: Some k3d manifests use :latest tags"
-          else
-            echo "All images are version-pinned"
-          fi
+          # Several dev images (MCP servers, whisper, locally-built services) intentionally
+          # use :latest. This step is advisory only — it reports which images are unpinned.
+          pinned=true
+          for f in k3d/*.yaml; do
+            if grep -q ':latest' "$f"; then
+              echo "INFO: $f contains :latest tag(s)"
+              pinned=false
+            fi
+          done
+          $pinned && echo "All images are version-pinned" || echo "WARNING: some images use :latest (see above)"
 
       - name: Check for secrets in code
         run: |
-          if grep -rn 'password.*=.*[^$]' k3d/*.yaml --include='*.yaml' \
+          if grep -rn 'password.*=.*[^$]' k3d/*.yaml \
                | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}' \
                | grep -iv '^\s*#'; then
-            echo "WARNING: Possible hardcoded secrets found"
-          else
-            echo "No hardcoded secrets detected"
+            echo "ERROR: Possible hardcoded secrets found (see above)"
+            exit 1
           fi
+          echo "No hardcoded secrets detected"

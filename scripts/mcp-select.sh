@@ -35,8 +35,6 @@ echo ""
 read -rp "Environment [1]: " env_choice
 env_choice="${env_choice:-1}"
 
-NAMESPACE="workspace"
-
 case "$env_choice" in
   1) BASE_DOMAIN="workspace.svc.cluster.local" ;;
   2) BASE_DOMAIN="workspace.svc.cluster.local" ;;

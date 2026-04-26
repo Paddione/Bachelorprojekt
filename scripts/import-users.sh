@@ -296,7 +296,7 @@ import_csv() {
 import_ldif() {
   info "Importiere LDIF: $INPUT_FILE"
   local count=0 errors=0
-  local username="" email="" display_name="" first_name="" last_name="" dn=""
+  local username="" email="" display_name="" first_name="" last_name=""
 
   flush_ldif_entry() {
     [[ -z "$username" ]] && return
@@ -309,7 +309,7 @@ import_ldif() {
     else
       ((errors++)) || true
     fi
-    username=""; email=""; display_name=""; first_name=""; last_name=""; dn=""
+    username=""; email=""; display_name=""; first_name=""; last_name=""
   }
 
   while IFS= read -r line || [[ -n "$line" ]]; do
@@ -325,7 +325,7 @@ import_ldif() {
     value="${line#*: }"
 
     case "${key,,}" in
-      dn)          dn="$value" ;;
+      dn)          ;; # distinguished name not used for import
       uid)         username="$value" ;;
       mail)        email="$value" ;;
       cn)          display_name="$value" ;;

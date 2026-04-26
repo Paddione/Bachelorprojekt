@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { POLL_TEMPLATES, buildResultsBotMessage } from './poll-db.js';
+import { POLL_TEMPLATES, buildResultsBotMessage } from './poll-db';
 
 test('POLL_TEMPLATES: has 5 entries', () => {
   assert.equal(POLL_TEMPLATES.length, 5);

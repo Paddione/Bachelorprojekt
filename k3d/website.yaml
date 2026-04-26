@@ -255,6 +255,15 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: BRETT_BOT_SECRET
+            # Nextcloud Talk DB connection — used by /api/admin/brett/broadcast
+            # to find rooms with active calls (OCS API is user-scoped and only
+            # lists rooms the configured admin is a participant of, which misses
+            # most ongoing calls). Read-only query against oc_talk_rooms.
+            - name: NEXTCLOUD_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: NEXTCLOUD_DB_PASSWORD
           ports:
             - containerPort: 4321
           resources:

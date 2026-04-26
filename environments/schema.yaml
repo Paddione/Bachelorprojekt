@@ -151,6 +151,9 @@ secrets:
     required: true
     generate: true
     length: 32
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: NEXTCLOUD_ADMIN_PASSWORD
     required: true

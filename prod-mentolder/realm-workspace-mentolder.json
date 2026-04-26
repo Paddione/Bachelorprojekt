@@ -10,6 +10,17 @@
   "editUsernameAllowed": false,
   "bruteForceProtected": true,
   "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and hashAlgorithm(pbkdf2-sha512)",
+  "smtpServer": {
+    "host": "${SMTP_HOST}",
+    "port": "${SMTP_PORT}",
+    "ssl": "false",
+    "starttls": "true",
+    "auth": "true",
+    "user": "${SMTP_USER}",
+    "password": "${SMTP_PASSWORD}",
+    "from": "${SMTP_FROM}",
+    "fromDisplayName": "Workspace MVP (Mentolder)"
+  },
   "users": [
     {
       "username": "paddione",

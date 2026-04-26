@@ -63,15 +63,6 @@ spec:
         - name: claude-code-mcp-core
           port: 3001
 
-    # ── Nextcloud MCP ─────────────────────────────────────────────
-    - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/nextcloud`)
-      middlewares:
-        - name: mcp-chain
-      services:
-        - name: claude-code-mcp-apps
-          port: 8000
-
     # ── Keycloak MCP (SSE transport) ──────────────────────────────
     - kind: Rule
       match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/keycloak`)

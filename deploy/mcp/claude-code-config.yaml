@@ -27,8 +27,6 @@ data:
   # ════════════════════════════════════════════════════════════════════
 
   KEYCLOAK_INTERNAL_URL:     "http://keycloak.workspace.svc.cluster.local:8080"
-  NEXTCLOUD_INTERNAL_URL:    "http://nextcloud.workspace.svc.cluster.local:80"
-  NEXTCLOUD_WEBDAV_URL:      "http://nextcloud.workspace.svc.cluster.local:80/remote.php/dav"
   WEBSITE_INTERNAL_URL:      "http://website.website.svc.cluster.local:80"
   WHISPER_URL:               "http://whisper.workspace.svc.cluster.local:8000"
   TRAEFIK_API_URL:           "http://traefik.kube-system.svc.cluster.local:9000/api"
@@ -49,7 +47,7 @@ data:
       - Does NOT have: exec into pods, access secrets, delete resources
 
     Key namespaces to query:
-      - workspace (Keycloak, Nextcloud, Collabora, Talk HPB, Vaultwarden, Whisper)
+      - workspace (Keycloak, Collabora, Talk HPB, Vaultwarden, Whisper)
       - website    (Astro website)
       - default     (Claude Code MCP servers)
       - kube-system (Traefik, CoreDNS)
@@ -70,7 +68,6 @@ data:
 
     Available databases (all read-only):
       - keycloak   → users, realms, sessions, clients
-      - nextcloud  → files, shares, users, calendar events (oc_ prefix tables)
       - vaultwarden → cipher items, collections, organizations
       - website    → chat rooms, messages, meeting transcripts, inbox items
 
@@ -123,7 +120,7 @@ data:
       Auth:     GET_AUTHENTICATION_FLOWS, GET_FLOW_EXECUTIONS
       IdP:      GET_IDENTITY_PROVIDERS, GET_IDENTITY_PROVIDER_MAPPERS
 
-    Realm in use: workspace (Keycloak, Nextcloud, Collabora, Vaultwarden SSO)
+    Realm in use: workspace (Keycloak, Collabora, Vaultwarden SSO)
     Admin realm:  master (admin-cli client lives here)
 
   # ════════════════════════════════════════════════════════════════════
@@ -143,9 +140,8 @@ data:
 
     Usage for platform verification:
       - Navigate to http://auth.localhost to check Keycloak
-      - Navigate to http://files.localhost to check Nextcloud
       - Verify SSO redirects between services
-      - Capture visual state of UI components (e.g., Nextcloud Talk)
+      - Capture visual state of UI components (e.g., Whiteboard)
 
     Note: The browser runs inside the cluster and has internal access to
     all .localhost domains via the cluster's internal network.

@@ -161,8 +161,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: restore
-          image: postgres:16.13-alpine
-          imagePullPolicy: Always
+          image: pgvector/pgvector:0.8.0-pg16
+          imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
             - |

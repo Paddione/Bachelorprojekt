@@ -41,11 +41,11 @@ spec:
               name: mcp
           readinessProbe:
             httpGet: { path: /health, port: 3000 }
-            initialDelaySeconds: 45
+            initialDelaySeconds: 120
             periodSeconds: 10
           livenessProbe:
             httpGet: { path: /health, port: 3000 }
-            initialDelaySeconds: 60
+            initialDelaySeconds: 180
             periodSeconds: 30
           resources:
             requests: { memory: 512Mi, cpu: 200m }

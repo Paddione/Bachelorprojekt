@@ -27,3 +27,4 @@ data:
   KC_USER2_USERNAME: ""
   KC_USER2_EMAIL: ""
   BRETT_DOMAIN: "brett.localhost"
+  AI_DOMAIN: "ai.localhost"

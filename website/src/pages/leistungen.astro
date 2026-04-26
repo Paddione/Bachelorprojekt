@@ -4,7 +4,7 @@ import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
 import { getEffectiveLeistungen, getPriceListUrl } from '../lib/content';
 
-const { leistungenCta, leistungenPricingHighlight } = config;
+const { leistungenCta, leistungenPricingHighlight, contact } = config;
 const [leistungen, priceListUrl] = await Promise.all([
   getEffectiveLeistungen(),
   getPriceListUrl(),
@@ -160,7 +160,7 @@ const [leistungen, priceListUrl] = await Promise.all([
     </div>
   </section>
 
-  <CallToAction client:visible />
+  <CallToAction client:visible secondaryText={contact.email} secondaryHref={`mailto:${contact.email}`} />
 </Layout>
 
 <script>

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPoll } from '../../../../lib/poll-db';
+import { getPoll } from '../../../lib/poll-db';
 
 export const GET: APIRoute = async ({ params }) => {
   const poll = await getPoll(params.id!);

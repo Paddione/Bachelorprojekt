@@ -12,6 +12,9 @@ const initialMode = ['message', 'termin', 'callback'].includes(rawMode)
   ? (rawMode as 'message' | 'termin' | 'callback')
   : null;
 const initialServiceKey = Astro.url.searchParams.get('service') ?? undefined;
+const initialDate  = Astro.url.searchParams.get('date')  ?? '';
+const initialStart = Astro.url.searchParams.get('start') ?? '';
+const initialEnd   = Astro.url.searchParams.get('end')   ?? '';
 ---
 
 <Layout title="Kontakt" description="Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren.">
@@ -24,7 +27,7 @@ const initialServiceKey = Astro.url.searchParams.get('service') ?? undefined;
 
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
         <div class="lg:col-span-3 bg-dark-light rounded-2xl border border-dark-lighter p-8">
-          <ContactHub client:load initialMode={initialMode} initialServiceKey={initialServiceKey} />
+          <ContactHub client:load initialMode={initialMode} initialServiceKey={initialServiceKey} {initialDate} {initialStart} {initialEnd} />
         </div>
 
         <div class="lg:col-span-2 space-y-8">

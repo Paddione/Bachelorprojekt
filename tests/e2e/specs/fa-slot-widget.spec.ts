@@ -12,29 +12,23 @@ test.describe('Slot Widget', () => {
     await expect(widget.or(placeholder).first()).toBeVisible({ timeout: 10_000 });
   });
 
-  test('T2 – slot pills link to /termin with params (skipped if no slots)', async ({ page }) => {
-    await page.goto('/');
-    const firstPill = page.locator('[data-testid="slot-pill"]').first();
-    const hasSlots = await firstPill.isVisible({ timeout: 3_000 }).catch(() => false);
-    if (!hasSlots) {
-      test.skip(true, 'No available slots — slot widget not rendered');
-      return;
-    }
-    const href = await firstPill.getAttribute('href');
-    expect(href).toMatch(/\/termin\?date=\d{4}-\d{2}-\d{2}&start=\d{2}:\d{2}&end=\d{2}:\d{2}/);
+  test('T2 – /termin passes date/start/end params to booking form', async ({ page }) => {
+    // The slot pill href format is /termin?date=...&start=...&end=...
+    // Verify /termin preserves these params when redirecting to /kontakt.
+    // This is always testable regardless of CalDAV availability.
+    await page.goto('/termin?date=2026-12-15&start=09:00&end=09:30');
+    await expect(page).toHaveURL(/\/kontakt/);
+    await expect(page).toHaveURL(/mode=termin/);
+    await expect(page).toHaveURL(/date=2026-12-15/);
   });
 
-  test('T3 – clicking slot pill pre-fills booking form (skipped if no slots)', async ({ page }) => {
-    await page.goto('/');
-    const firstPill = page.locator('[data-testid="slot-pill"]').first();
-    const hasSlots = await firstPill.isVisible({ timeout: 3_000 }).catch(() => false);
-    if (!hasSlots) {
-      test.skip(true, 'No available slots — slot widget not rendered');
-      return;
-    }
-    const href = await firstPill.getAttribute('href');
-    expect(href).not.toBeNull();
-    await page.goto(href!);
-    await expect(page.locator('[data-testid="selected-slot-display"]')).toBeVisible();
+  test('T3 – slot URL pre-fills booking form and skips to contact details', async ({ page }) => {
+    // Navigate to the booking page with a pre-filled slot (the URL that slot pills generate).
+    // With initialStart/initialEnd set, the form should skip slot selection and show contact fields.
+    await page.goto('/kontakt?mode=termin&date=2026-12-15&start=09:00&end=09:30');
+    // Termin tab should be active
+    await expect(page.getByRole('button', { name: /termin buchen/i })).toBeVisible({ timeout: 10_000 });
+    // With a pre-selected slot, the contact form fields appear without manual selection
+    await expect(page.locator('#b-name')).toBeVisible({ timeout: 15_000 });
   });
 });

@@ -11,7 +11,10 @@
 // so it can post to any conversation regardless of admin participation.
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listActiveCallRooms } from '../../../../lib/nextcloud-talk-db';
+import {
+  listActiveCallRooms,
+  ensureBrettBotEnabledForRoom,
+} from '../../../../lib/nextcloud-talk-db';
 import { postBotReply } from '../../../../lib/brett-bot';
 
 const BRETT_DOMAIN = process.env.BRETT_DOMAIN || 'brett.localhost';
@@ -44,6 +47,10 @@ export const POST: APIRoute = async ({ request }) => {
   const rooms = await listActiveCallRooms();
   const results = await Promise.all(
     rooms.map(async (r) => {
+      // Talk's bot-reply endpoint returns 401 unless the bot is explicitly
+      // enabled for the conversation. talk:bot:install does not enable it
+      // for every room automatically, so make sure the row exists first.
+      await ensureBrettBotEnabledForRoom(r.token);
       const ok = await postBotReply(
         r.token,
         `🎯 Systemisches Brett: ${brettUrlFor(r.token)}`,

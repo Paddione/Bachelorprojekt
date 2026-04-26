@@ -47,6 +47,32 @@ patches:
       metadata:
         name: workspace-secrets
       $patch: delete
+  # Drop dev-placeholder backup-passphrase — in production this secret is
+  # managed directly on the cluster (never reset by ArgoCD).
+  - target:
+      kind: Secret
+      name: backup-passphrase
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: backup-passphrase
+      $patch: delete
+  # Drop dev-placeholder vaultwarden-seed-credentials — the file lives in k3d/
+  # as an operator template (BW_PASSWORD: CHANGE_ME_AFTER_FIRST_LOGIN). It is
+  # not currently referenced by k3d/kustomization.yaml, but this $patch: delete
+  # entry is defensive: if the file is ever added to the base, the prod overlay
+  # will still strip it so `kubectl apply -k prod-*` cannot overwrite the real
+  # admin credentials set on the cluster after first login.
+  - target:
+      kind: Secret
+      name: vaultwarden-seed-credentials
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: vaultwarden-seed-credentials
+      $patch: delete
   # Drop k3d-only localhost ingresses — production uses per-service ingresses
   # in prod/ingress.yaml with real domains and TLS.
   - target:

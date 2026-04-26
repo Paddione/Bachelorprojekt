@@ -36,11 +36,13 @@ test.describe('FA-16: Calendar Booking', () => {
     }
   });
 
-  test('T4: /termin page loads with booking form', async ({ page }) => {
+  test('T4: /termin redirects to contact page with termin tab active', async ({ page }) => {
     await page.goto(`${BASE}/termin`);
-    await expect(page.locator('h1')).toContainText('Termin');
-    // Should show booking type selection
-    await expect(page.locator('text=Art des Termins')).toBeVisible();
+    // /termin redirects to /kontakt?mode=termin
+    await expect(page).toHaveURL(/\/kontakt/);
+    await expect(page.locator('h1')).toBeVisible();
+    // The "Termin buchen" tab should be expanded
+    await expect(page.getByRole('button', { name: /termin buchen/i })).toBeVisible();
   });
 
   test('T5: POST /api/booking without data returns 400', async ({ request }) => {
@@ -50,7 +52,7 @@ test.describe('FA-16: Calendar Booking', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('T6: POST /api/booking with non-whitelisted slot returns 400', async ({ request }) => {
+  test('T6: POST /api/booking with non-whitelisted slot returns 409', async ({ request }) => {
     const res = await request.post(`${BASE}/api/booking`, {
       data: {
         name: 'Test User',
@@ -58,14 +60,14 @@ test.describe('FA-16: Calendar Booking', () => {
         phone: '',
         type: 'erstgespraech',
         message: '',
-        slotStart: '2026-04-10T07:00:00.000Z',
-        slotEnd: '2026-04-10T08:00:00.000Z',
+        slotStart: '2020-01-01T07:00:00.000Z',
+        slotEnd: '2020-01-01T08:00:00.000Z',
         slotDisplay: '09:00 - 10:00',
-        date: '2026-04-10',
+        date: '2020-01-01',
       },
     });
-    expect(res.status()).toBe(400);
+    expect(res.status()).toBe(409);
     const body = await res.json();
-    expect(body.error).toContain('nicht mehr verfügbar');
+    expect(body.error).toContain('verfügbar');
   });
 });

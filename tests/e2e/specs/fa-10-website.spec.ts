@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
-  
+
   // -- Website Structure --
   test('T1: Landing page loads', async ({ page }) => {
     const res = await page.goto(BASE);
@@ -18,7 +18,6 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
       '/ueber-mich',
       '/kontakt',
       '/leistungen',
-      '/termin',
       '/registrieren',
     ];
     for (const path of pages) {
@@ -30,7 +29,8 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
   test('T3: Navigation is functional', async ({ page }) => {
     await page.goto(BASE);
     await expect(page.locator('nav')).toBeVisible();
-    await expect(page.locator('nav a[href="/leistungen"]')).toBeVisible();
+    // Nav links the contact and services pages
+    await expect(page.locator('nav a[href="/kontakt"]')).toBeVisible();
   });
 
   // -- Contact Form --
@@ -41,21 +41,22 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
 
   test('T5: Contact form has all required fields', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    await expect(page.locator('#type')).toBeVisible();
-    await expect(page.locator('#name')).toBeVisible();
-    await expect(page.locator('#email')).toBeVisible();
-    await expect(page.locator('#message')).toBeVisible();
+    // Open "Nachricht schreiben" tab to reveal the message form
+    await page.getByRole('button', { name: /nachricht schreiben/i }).click();
+    await expect(page.getByRole('combobox', { name: /wie können wir/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /ihr name/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /e-mail-adresse/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /ihre nachricht/i })).toBeVisible();
   });
 
   test('T6: Valid form submission succeeds', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    await page.locator('#name').fill('Test E2E User');
-    await page.locator('#email').fill('test-e2e@example.de');
-    await page.locator('#message').fill('Dies ist eine automatisierte Testnachricht.');
+    await page.getByRole('button', { name: /nachricht schreiben/i }).click();
+    await page.getByRole('textbox', { name: /ihr name/i }).fill('Test E2E User');
+    await page.getByRole('textbox', { name: /e-mail-adresse/i }).fill('test-e2e@example.de');
+    await page.getByRole('textbox', { name: /ihre nachricht/i }).fill('Dies ist eine automatisierte Testnachricht.');
     await page.getByRole('button', { name: /nachricht senden/i }).click();
-
-    // Wait for success message
-    await expect(page.locator('text=Vielen Dank')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Vielen Dank')).toBeVisible({ timeout: 10_000 });
   });
 
   test('T7: Sidebar shows contact information', async ({ page }) => {

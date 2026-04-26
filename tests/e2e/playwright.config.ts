@@ -36,7 +36,6 @@ export default defineConfig({
         '**/fa-15-*.spec.ts',      // OIDC login
         '**/fa-16-*.spec.ts',      // calendar / booking
         '**/fa-17-*.spec.ts',      // meeting lifecycle
-        '**/fa-18-*.spec.ts',      // transcription upload
         '**/fa-20-*.spec.ts',      // meeting finalization
         '**/fa-21-*.spec.ts',      // service catalog & billing
         '**/fa-26-*.spec.ts',      // bug report form
@@ -59,6 +58,7 @@ export default defineConfig({
       name: 'services',
       testMatch: [
         '**/fa-03-*.spec.ts',  // Nextcloud Talk / video
+        '**/fa-18-*.spec.ts',  // transcription service (cluster-internal URL)
         '**/fa-23-*.spec.ts',  // Vaultwarden
         '**/fa-24-*.spec.ts',  // Whiteboard
         '**/fa-25-*.spec.ts',  // Mailpit

@@ -188,32 +188,39 @@ try {
         </div>
       )}
 
-      <div class="grid gap-4" data-testid="admin-client-list">
-        {users.map(user => (
-          <a
-            href={`/admin/${user.id}`}
-            class={`flex items-center gap-4 p-4 bg-dark-light rounded-xl border transition-colors ${user.enabled === false ? 'border-red-500/20 opacity-60' : 'border-dark-lighter hover:border-gold/40'}`}
-            data-testid="admin-client-item"
-          >
-            <div>
-              <p class="text-light font-medium">{user.firstName} {user.lastName}</p>
-              <p class="text-sm text-muted">{user.username} · {user.email ?? '—'}</p>
-            </div>
-            <div class="ml-auto flex items-center gap-3">
-              {user.enabled === false && (
-                <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">Deaktiviert</span>
-              )}
-              {user.email && customerNumberByEmail.get(user.email) && (
-                <span class="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 font-mono">
-                  {customerNumberByEmail.get(user.email)}
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="admin-client-list">
+        {users.map(user => {
+          const initial = ((user.firstName || user.lastName || user.username || '?')[0]).toUpperCase();
+          const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
+          const custNum = user.email ? customerNumberByEmail.get(user.email) : undefined;
+          return (
+            <a
+              href={`/admin/${user.id}`}
+              class={`group flex flex-col gap-3 p-4 bg-dark-light rounded-xl border transition-all duration-150 ${user.enabled === false ? 'border-red-500/20 opacity-60' : 'border-dark-lighter hover:border-gold/40'}`}
+              data-testid="admin-client-item"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div style="width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.18), 0 0 0 1px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                  <span style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:var(--ink-900); line-height:1;">{initial}</span>
+                </div>
+                {user.enabled === false && (
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 leading-none mt-0.5">off</span>
+                )}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-light truncate leading-snug">{fullName}</p>
+                <p class="text-xs text-muted truncate mt-0.5">{user.email ?? user.username}</p>
+              </div>
+              {custNum && (
+                <span class="self-start text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 font-mono leading-none">
+                  {custNum}
                 </span>
               )}
-              <span class="text-gold text-sm">→</span>
-            </div>
-          </a>
-        ))}
+            </a>
+          );
+        })}
         {users.length === 0 && (
-          <p class="text-muted">Keine Benutzer gefunden.</p>
+          <p class="text-muted col-span-full">Keine Benutzer gefunden.</p>
         )}
       </div>
     </div>

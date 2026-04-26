@@ -112,6 +112,13 @@ const userIsAdmin   = isAdmin(session);
       .portal-nav-item:not(.is-active):hover .nav-icon {
         color: var(--brass) !important;
       }
+      .portal-nav-tile:not(.is-active):hover {
+        background: var(--ink-800) !important;
+        color: var(--fg) !important;
+      }
+      .portal-nav-tile:not(.is-active):hover .nav-icon {
+        color: var(--brass) !important;
+      }
       .portal-footer-link:hover {
         background: var(--ink-800);
         color: var(--fg-soft);
@@ -130,7 +137,7 @@ const userIsAdmin   = isAdmin(session);
           position: fixed !important;
           top: 0; left: 0; bottom: 0;
           z-index: 100;
-          width: 13rem !important;
+          width: 14rem !important;
           min-height: unset !important;
           transform: translateX(-100%);
           transition: transform 0.25s ease;
@@ -184,7 +191,7 @@ const userIsAdmin   = isAdmin(session);
     <div id="portal-backdrop"></div>
 
     <!-- Sidebar -->
-    <aside id="portal-sidebar" style="width:13rem; flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
+    <aside id="portal-sidebar" style="width:14rem; flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
 
       <!-- Header: user avatar + info + brand link -->
       <div style="padding:20px 14px 16px; border-bottom:1px solid var(--line);">
@@ -208,43 +215,41 @@ const userIsAdmin   = isAdmin(session);
       </div>
 
       <!-- Nav -->
-      <nav style="flex:1; overflow-y:auto; padding:12px 8px; display:flex; flex-direction:column; gap:18px;">
+      <nav style="flex:1; overflow-y:auto; padding:10px 8px; display:flex; flex-direction:column; gap:10px;">
         {navGroups.map(group => (
           <div>
             {group.label && (
-              <p style="padding:0 10px; margin-bottom:4px; font-family:var(--font-mono); font-size:9px; font-weight:500; color:var(--mute-2); text-transform:uppercase; letter-spacing:0.14em;">{group.label}</p>
+              <p style="padding:0 3px; margin-bottom:5px; font-family:var(--font-mono); font-size:8px; font-weight:500; color:var(--mute-2); text-transform:uppercase; letter-spacing:0.14em;">{group.label}</p>
             )}
-            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:1px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
               {group.items.map(item => {
                 const active = section === item.id;
                 return (
-                  <li>
-                    <a
-                      href={`/portal?section=${item.id}`}
-                      title={item.label}
-                      class={`portal-nav-item${active ? ' is-active' : ''}`}
-                      style={`display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
-                        active
-                          ? 'background:var(--brass-d); color:var(--brass);'
-                          : 'color:var(--fg-soft);'
-                      }`}
-                    >
-                      <span
-                        class="nav-icon"
-                        style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${active ? 'color:var(--brass);' : 'color:var(--mute);'}`}
-                        set:html={icons[item.icon]}
-                      />
-                      <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span style="flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--brass); color:var(--ink-900); font-family:var(--font-mono); font-size:10px; font-weight:700; line-height:1;">
-                          {item.badge > 99 ? '99+' : item.badge}
-                        </span>
-                      )}
-                    </a>
-                  </li>
+                  <a
+                    href={`/portal?section=${item.id}`}
+                    title={item.label}
+                    class={`portal-nav-tile${active ? ' is-active' : ''}`}
+                    style={`position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:5px; padding:9px 4px 8px; border-radius:8px; text-decoration:none; transition:background 0.1s ease, color 0.1s ease; ${
+                      active
+                        ? 'background:var(--brass-d); color:var(--brass);'
+                        : 'color:var(--fg-soft);'
+                    }`}
+                  >
+                    <span
+                      class="nav-icon"
+                      style={`width:18px; height:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color 0.1s ease; ${active ? 'color:var(--brass);' : 'color:var(--mute);'}`}
+                      set:html={icons[item.icon]}
+                    />
+                    <span style={`font-family:var(--font-sans); font-size:9.5px; font-weight:500; line-height:1.25; text-align:center; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-word; width:100%; ${active ? 'color:var(--brass);' : 'color:inherit;'}`}>{item.label}</span>
+                    {item.badge !== undefined && item.badge > 0 && (
+                      <span style="position:absolute; top:4px; right:4px; min-width:14px; height:14px; padding:0 3px; border-radius:999px; background:var(--brass); color:var(--ink-900); font-family:var(--font-mono); font-size:8px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
+                  </a>
                 );
               })}
-            </ul>
+            </div>
           </div>
         ))}
       </nav>

@@ -190,72 +190,48 @@
 
   #canvas-container { position: relative; flex: 1; overflow: hidden; min-height: 0; }
 
-  /* ── Globe widget ───────────────────────────────────────────────────── */
-  #globe-widget {
+  /* ── Minimap widget ─────────────────────────────────────────────────── */
+  #minimap-widget {
     position: fixed; bottom: 20px; right: 20px; z-index: 50;
     background: rgba(7, 14, 38, 0.95);
     border: 1px solid #1a3060;
-    border-radius: 14px;
-    padding: 10px 11px 11px;
-    width: 176px;
+    border-radius: 12px;
+    padding: 8px 10px 10px;
+    width: 180px;
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.03);
     user-select: none;
   }
-  #globe-header {
+  #minimap-header {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
   }
-  #globe-title {
+  #minimap-title {
     font-size: 10px; color: #3a6090;
     text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
   }
-  #globe-modes { display: flex; gap: 3px; }
-  .globe-mode-btn {
-    padding: 2px 6px; font-size: 13px; line-height: 1.4;
-    border: 1px solid #162a50; background: #0b1830; color: #2a4870;
-    border-radius: 4px; cursor: pointer; transition: all 0.12s; font-family: inherit;
+  #minimap-toggle {
+    background: none; border: none; color: #3a5878; cursor: pointer;
+    font-size: 12px; padding: 0; line-height: 1; font-family: inherit;
+    transition: color 0.12s, transform 0.15s; width: 18px; text-align: center;
   }
-  .globe-mode-btn:hover { color: #5a80b8; border-color: #2a4070; }
-  .globe-mode-btn.active { background: #0f2d5e; color: #4a90d9; border-color: #2a5898; }
-  #globe-canvas-wrap {
-    width: 150px; height: 150px; border-radius: 50%; overflow: hidden;
-    margin: 0 auto 9px; cursor: grab;
-    border: 1px solid #1a3060;
-    box-shadow: inset 0 0 28px rgba(0,0,0,0.75), 0 0 18px rgba(20,60,160,0.22), 0 3px 10px rgba(0,0,0,0.6);
+  #minimap-toggle:hover { color: #7aaac8; }
+  #minimap-widget.collapsed #minimap-body { display: none; }
+  #minimap-widget.collapsed #minimap-toggle { transform: rotate(-90deg); }
+  #minimap-wrap {
+    position: relative; width: 158px; height: 123px;
+    border: 1px solid #1a3060; border-radius: 6px; overflow: hidden;
+    cursor: crosshair;
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
   }
-  #globe-canvas-wrap:active { cursor: grabbing; }
-  .globe-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-  .globe-lbl {
-    font-size: 9.5px; color: #3a5878;
-    text-transform: uppercase; letter-spacing: 0.07em;
-    min-width: 46px; font-weight: 600;
+  #minimap-canvas, #minimap-ui {
+    position: absolute; top: 0; left: 0; width: 158px; height: 123px;
   }
-  #globe-scale-slider, #globe-speed-slider {
-    -webkit-appearance: none; appearance: none;
-    flex: 1; height: 3px; background: #0e2a50; border-radius: 2px; outline: none; cursor: pointer;
+  #minimap-ui { pointer-events: none; }
+  #minimap-foot {
+    font-size: 9px; color: #243550; text-align: center;
+    margin-top: 5px; letter-spacing: 0.04em;
   }
-  #globe-scale-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
-    background: #4a90d9; cursor: pointer; border: 2px solid #08122a;
-    box-shadow: 0 0 6px rgba(74,144,217,0.6);
-  }
-  #globe-speed-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
-    background: #6be0a0; cursor: pointer; border: 2px solid #08122a;
-    box-shadow: 0 0 6px rgba(107,224,160,0.5);
-  }
-  #globe-scale-val, #globe-speed-val {
-    font-size: 10.5px; color: #6a8caa; min-width: 30px; text-align: right;
-    font-variant-numeric: tabular-nums;
-  }
-  #globe-reset {
-    width: 100%; margin-top: 4px; padding: 5px;
-    background: #0b1830; border: 1px solid #162a50; color: #3a5878;
-    border-radius: 6px; cursor: pointer; font-size: 11px;
-    transition: all 0.14s; font-family: inherit;
-  }
-  #globe-reset:hover { background: #142840; color: #7aaac8; border-color: #2a4a70; }
 </style>
 </head>
 <body>
@@ -332,34 +308,23 @@
 <div id="canvas-container">
   <canvas id="three-canvas"></canvas>
   <div id="hint">
-    LMB: Figur ziehen &nbsp;|&nbsp; RMB / 2-Finger: Blickwinkel drehen &nbsp;|&nbsp; Rad / Zoom-Slider: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
+    LMB: Figur ziehen &nbsp;|&nbsp; RMB / 2-Finger: Blickwinkel drehen &nbsp;|&nbsp; MMB: Brett verschieben &nbsp;|&nbsp; Rad / Zoom-Slider: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
   </div>
   <div id="selected-info"></div>
 </div>
 
-<div id="globe-widget">
-  <div id="globe-header">
-    <span id="globe-title">Ansicht</span>
-    <div id="globe-modes">
-      <button class="globe-mode-btn active" data-mode="solid" title="Solid">●</button>
-      <button class="globe-mode-btn" data-mode="wireframe" title="Gitter">◎</button>
-      <button class="globe-mode-btn" data-mode="both" title="Kombination">◉</button>
+<div id="minimap-widget">
+  <div id="minimap-header">
+    <span id="minimap-title">Übersicht</span>
+    <button id="minimap-toggle" title="Ein-/Ausblenden">▾</button>
+  </div>
+  <div id="minimap-body">
+    <div id="minimap-wrap">
+      <canvas id="minimap-canvas"></canvas>
+      <canvas id="minimap-ui"></canvas>
     </div>
+    <div id="minimap-foot">Klick · Ziehen: Ansicht navigieren</div>
   </div>
-  <div id="globe-canvas-wrap">
-    <canvas id="globe-canvas"></canvas>
-  </div>
-  <div class="globe-row">
-    <span class="globe-lbl">Skala</span>
-    <input type="range" id="globe-scale-slider" min="0.1" max="3" step="0.01" value="1">
-    <span id="globe-scale-val">1.00×</span>
-  </div>
-  <div class="globe-row">
-    <span class="globe-lbl">Rotation</span>
-    <input type="range" id="globe-speed-slider" min="0" max="2" step="0.05" value="0.3">
-    <span id="globe-speed-val">0.3×</span>
-  </div>
-  <button id="globe-reset">↺ Zurücksetzen</button>
 </div>
 
 <div id="confirm-modal">
@@ -418,8 +383,6 @@
 <script src="/three.min.js"></script>
 <script>
 (function(){
-
-let globeSyncFn = null;
 
 // ─── Cluster integration config ──────────────────────────────────
 const params   = new URLSearchParams(window.location.search);
@@ -1327,7 +1290,6 @@ function setZoom(r) {
   zoomSlider.value = orbit.radius;
   zoomVal.textContent = Math.round(orbit.radius);
   updateCamera();
-  if (globeSyncFn) globeSyncFn(orbit.radius);
 }
 
 zoomSlider.addEventListener('input', () => setZoom(parseFloat(zoomSlider.value)));
@@ -1401,165 +1363,90 @@ function animate() {
 }
 animate();
 
-// ── Globe Widget ──────────────────────────────────────────────────────────────
+// ── Minimap Widget ────────────────────────────────────────────────────────────
 {
-  const DEFAULT_ZOOM = 44;
+  // Frustum half-extents: board is ±18 (X) / ±14 (Z), +2 units margin each side
+  const HALF_X = 20, HALF_Z = 16;
+  const MW = 158, MH = 123;
 
-  const gCvs = document.getElementById('globe-canvas');
-  const gR = new THREE.WebGLRenderer({ canvas: gCvs, antialias: true, alpha: true });
-  gR.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  gR.setSize(150, 150);
+  const mCvs = document.getElementById('minimap-canvas');
+  const mR = new THREE.WebGLRenderer({ canvas: mCvs, antialias: false });
+  mR.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  mR.setSize(MW, MH);
+  mR.shadowMap.enabled = false;
 
-  const gSc = new THREE.Scene();
-  const gCam = new THREE.PerspectiveCamera(42, 1, 0.1, 50);
-  gCam.position.z = 3.2;
+  // Top-down orthographic camera; up=(0,0,-1) so world -Z points to screen top
+  const mCam = new THREE.OrthographicCamera(-HALF_X, HALF_X, HALF_Z, -HALF_Z, 0.1, 200);
+  mCam.up.set(0, 0, -1);
+  mCam.position.set(0, 80, 0);
+  mCam.lookAt(0, 0, 0);
 
-  // Atmosphere halo (BackSide sphere slightly larger)
-  gSc.add(new THREE.Mesh(
-    new THREE.SphereGeometry(1.16, 32, 24),
-    new THREE.MeshBasicMaterial({ color: 0x1848a0, transparent: true, opacity: 0.15, side: THREE.BackSide })
-  ));
+  // 2D overlay for crosshair / viewport indicator
+  const mUi = document.getElementById('minimap-ui');
+  mUi.width = MW; mUi.height = MH;
+  const mCtx = mUi.getContext('2d');
 
-  gSc.add(new THREE.AmbientLight(0x334477, 0.85));
-  const gSun = new THREE.DirectionalLight(0xaabbff, 1.9);
-  gSun.position.set(4, 2, 4);
-  gSc.add(gSun);
-  const gFill = new THREE.DirectionalLight(0x112244, 0.55);
-  gFill.position.set(-3, -1, -3);
-  gSc.add(gFill);
-
-  const gGeo = new THREE.SphereGeometry(1, 48, 32);
-
-  function makeGlobeTex() {
-    const W = 512, H = 256;
-    const cv = document.createElement('canvas');
-    cv.width = W; cv.height = H;
-    const c = cv.getContext('2d');
-    // Ocean
-    c.fillStyle = '#091c42'; c.fillRect(0, 0, W, H);
-    const grd = c.createRadialGradient(W*.3, H*.3, 0, W*.5, H*.5, W*.7);
-    grd.addColorStop(0, 'rgba(30,70,140,0.28)');
-    grd.addColorStop(1, 'rgba(4,10,28,0.28)');
-    c.fillStyle = grd; c.fillRect(0, 0, W, H);
-    // Land blobs (approximate equirectangular positions)
-    c.fillStyle = '#2b5c19';
-    const el = (cx, cy, rx, ry, rot) => {
-      c.save(); c.translate(cx, cy); if (rot) c.rotate(rot);
-      c.beginPath(); c.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    };
-    el(80, 80, 38, 30, -0.3); el(65, 55, 20, 18, -0.1);   // North America
-    el(100, 165, 18, 32, 0.2);                              // South America
-    el(238, 68, 18, 20, 0); el(245, 145, 26, 48, 0);        // Europe + Africa
-    el(268, 90, 12, 14, 0.3);                               // Middle East
-    el(330, 55, 65, 42, -0.1); el(310, 38, 24, 14, 0);      // Asia
-    el(385, 55, 18, 16, 0);                                 // East Asia
-    el(295, 112, 14, 20, 0);                                // India
-    el(388, 172, 30, 22, 0.1);                              // Australia
-    el(155, 28, 18, 14, 0);                                 // Greenland
-    // Ice caps
-    c.fillStyle = 'rgba(200,225,248,0.82)'; c.fillRect(0, 0, W, 16);
-    c.fillStyle = 'rgba(210,235,252,0.88)'; c.fillRect(0, H - 18, W, 18);
-    // Polar atmosphere tint
-    const atm = c.createLinearGradient(0, 0, 0, H);
-    atm.addColorStop(0, 'rgba(60,120,220,0.12)');
-    atm.addColorStop(0.5, 'rgba(60,120,220,0)');
-    atm.addColorStop(1, 'rgba(60,120,220,0.12)');
-    c.fillStyle = atm; c.fillRect(0, 0, W, H);
-    const tex = new THREE.CanvasTexture(cv);
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
-    return tex;
+  function drawMinimapOverlay() {
+    mCtx.clearRect(0, 0, MW, MH);
+    const px = (orbit.panX / (HALF_X * 2) + 0.5) * MW;
+    const py = (orbit.panZ / (HALF_Z * 2) + 0.5) * MH;
+    // Viewport circle (size scales with zoom radius)
+    const vr = Math.max(5, (orbit.radius / 75) * Math.min(MW, MH) * 0.38);
+    mCtx.beginPath();
+    mCtx.arc(px, py, vr, 0, Math.PI * 2);
+    mCtx.strokeStyle = 'rgba(74,144,217,0.55)';
+    mCtx.lineWidth = 1;
+    mCtx.stroke();
+    // Crosshair lines
+    mCtx.strokeStyle = 'rgba(74,144,217,0.9)';
+    mCtx.lineWidth = 1;
+    mCtx.beginPath();
+    mCtx.moveTo(px - 8, py); mCtx.lineTo(px + 8, py);
+    mCtx.moveTo(px, py - 8); mCtx.lineTo(px, py + 8);
+    mCtx.stroke();
+    // Center dot
+    mCtx.beginPath();
+    mCtx.arc(px, py, 2.5, 0, Math.PI * 2);
+    mCtx.fillStyle = '#4a90d9';
+    mCtx.fill();
   }
 
-  const gSolMat = new THREE.MeshStandardMaterial({ map: makeGlobeTex(), roughness: 0.52, metalness: 0.06 });
-  const gSolMesh = new THREE.Mesh(gGeo, gSolMat);
-
-  const gWireGeo = new THREE.WireframeGeometry(new THREE.SphereGeometry(1.004, 20, 14));
-  const gWireMesh = new THREE.LineSegments(gWireGeo,
-    new THREE.LineBasicMaterial({ color: 0x4a90d9, transparent: true, opacity: 0.38 }));
-
-  const gGrp = new THREE.Group();
-  gSc.add(gGrp);
-
-  let gSF = 1.0, gRS = 0.3, gMode = 'solid';
-  let gDrag = false, gDS = {x: 0, y: 0};
-  let gMR = {x: 0, y: 0}, gAR = 0, gLT = 0;
-
-  function applyGlobeMode(m) {
-    gMode = m;
-    gGrp.remove(gSolMesh, gWireMesh);
-    gSolMat.transparent = m === 'both';
-    gSolMat.opacity = m === 'both' ? 0.76 : 1.0;
-    gSolMat.needsUpdate = true;
-    if (m !== 'wireframe') gGrp.add(gSolMesh);
-    if (m !== 'solid')     gGrp.add(gWireMesh);
-    document.querySelectorAll('.globe-mode-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.mode === m));
+  function animMinimap() {
+    requestAnimationFrame(animMinimap);
+    mR.render(scene, mCam);
+    drawMinimapOverlay();
   }
+  animMinimap();
 
-  function applyGlobeScale(f, fromExternal) {
-    gSF = Math.max(0.1, Math.min(3.0, f));
-    gGrp.scale.setScalar(gSF);
-    document.getElementById('globe-scale-slider').value = gSF;
-    document.getElementById('globe-scale-val').textContent = gSF.toFixed(2) + '×';
-    if (!fromExternal) setZoom(DEFAULT_ZOOM / gSF);
-  }
+  // Click / drag to navigate
+  const mWrap = document.getElementById('minimap-wrap');
+  let mDrag = false, mDS = { x: 0, y: 0 };
 
-  // Called by setZoom when zoom changes via other controls
-  globeSyncFn = function(radius) {
-    applyGlobeScale(Math.max(0.1, Math.min(3.0, DEFAULT_ZOOM / radius)), true);
-  };
-
-  document.getElementById('globe-scale-slider').addEventListener('input', e =>
-    applyGlobeScale(parseFloat(e.target.value)));
-
-  document.getElementById('globe-speed-slider').addEventListener('input', e => {
-    gRS = parseFloat(e.target.value);
-    document.getElementById('globe-speed-val').textContent = gRS.toFixed(1) + '×';
-  });
-
-  document.querySelectorAll('.globe-mode-btn').forEach(btn =>
-    btn.addEventListener('click', () => applyGlobeMode(btn.dataset.mode)));
-
-  document.getElementById('globe-reset').addEventListener('click', () => {
-    applyGlobeScale(1.0);
-    gRS = 0.3;
-    document.getElementById('globe-speed-slider').value = 0.3;
-    document.getElementById('globe-speed-val').textContent = '0.3×';
-    applyGlobeMode('solid');
-    gMR = {x: 0, y: 0}; gAR = 0;
-  });
-
-  const gWrap = document.getElementById('globe-canvas-wrap');
-  gWrap.addEventListener('mousedown', e => {
-    gDrag = true; gDS = {x: e.clientX, y: e.clientY};
+  mWrap.addEventListener('mousedown', e => {
+    mDrag = true;
+    mDS = { x: e.clientX, y: e.clientY };
+    const rect = mWrap.getBoundingClientRect();
+    orbit.panX = ((e.clientX - rect.left) / rect.width  - 0.5) * 2 * HALF_X;
+    orbit.panZ = ((e.clientY - rect.top)  / rect.height - 0.5) * 2 * HALF_Z;
+    updateCamera();
     e.preventDefault(); e.stopPropagation();
   });
+
   window.addEventListener('mousemove', e => {
-    if (!gDrag) return;
-    gMR.y += (e.clientX - gDS.x) * 0.018;
-    gMR.x = Math.max(-1.5, Math.min(1.5, gMR.x + (e.clientY - gDS.y) * 0.018));
-    gDS = {x: e.clientX, y: e.clientY};
+    if (!mDrag) return;
+    const rect = mWrap.getBoundingClientRect();
+    orbit.panX += (e.clientX - mDS.x) / rect.width  * 2 * HALF_X;
+    orbit.panZ += (e.clientY - mDS.y) / rect.height * 2 * HALF_Z;
+    mDS = { x: e.clientX, y: e.clientY };
+    updateCamera();
   });
-  window.addEventListener('mouseup', () => { gDrag = false; });
 
-  gWrap.addEventListener('wheel', e => {
-    applyGlobeScale(gSF - e.deltaY * 0.003);
-    e.preventDefault(); e.stopPropagation();
-  }, { passive: false });
+  window.addEventListener('mouseup', () => { mDrag = false; });
 
-  function animGlobe(t) {
-    requestAnimationFrame(animGlobe);
-    const dt = Math.min((t - gLT) * 0.001, 0.05); gLT = t;
-    if (!gDrag) gAR += gRS * dt;
-    gGrp.rotation.y = gAR + gMR.y;
-    gGrp.rotation.x = gMR.x;
-    gR.render(gSc, gCam);
-  }
-  requestAnimationFrame(animGlobe);
-
-  applyGlobeMode('solid');
-  globeSyncFn(orbit.radius);
+  // Collapse / expand
+  document.getElementById('minimap-toggle').addEventListener('click', () => {
+    document.getElementById('minimap-widget').classList.toggle('collapsed');
+  });
 }
 
 connect();

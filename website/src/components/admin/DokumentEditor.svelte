@@ -1,5 +1,6 @@
 <script lang="ts">
   import NewsletterAdmin from './NewsletterAdmin.svelte';
+  import QuestionnaireTemplateEditor from './QuestionnaireTemplateEditor.svelte';
 
   type Template = {
     id: string;
@@ -11,7 +12,7 @@
     updated_at: string;
   };
 
-  let activeSection: 'newsletter' | 'vorlagen' = $state('newsletter');
+  let activeSection: 'newsletter' | 'vorlagen' | 'fragebögen' = $state('newsletter');
 
   // ── Vertragsvorlagen ──────────────────────────────────────────────
   let templates: Template[] = $state([]);
@@ -140,6 +141,10 @@
     onclick={() => activeSection = 'vorlagen'}
     class={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeSection === 'vorlagen' ? 'text-gold border-b-2 border-gold -mb-px bg-dark-light' : 'text-muted hover:text-light'}`}
   >Vertragsvorlagen</button>
+  <button
+    onclick={() => activeSection = 'fragebögen'}
+    class={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeSection === 'fragebögen' ? 'text-gold border-b-2 border-gold -mb-px bg-dark-light' : 'text-muted hover:text-light'}`}
+  >Fragebögen</button>
 </div>
 
 {#if activeSection === 'newsletter'}
@@ -285,4 +290,6 @@
       </div>
     {/if}
   </div>
+{:else if activeSection === 'fragebögen'}
+  <QuestionnaireTemplateEditor />
 {/if}

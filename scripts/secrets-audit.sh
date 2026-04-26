@@ -84,6 +84,11 @@ GROUP_LABELS=(
   "STRIPE_WEBHOOK_SECRET"
   "SMTP_PASSWORD"
   "NEXTCLOUD_ADMIN_PASSWORD"
+  "NEXTCLOUD_DB_PASSWORD"
+  "WEBSITE_DB_PASSWORD"
+  "DOCUSEAL_API_TOKEN"
+  "BRETT_BOT_SECRET"
+  "IPV64_API_KEY"
 )
 
 GROUP_MEMBERS=(
@@ -97,6 +102,11 @@ GROUP_MEMBERS=(
   "workspace:workspace-secrets:STRIPE_WEBHOOK_SECRET|website:website-secrets:STRIPE_WEBHOOK_SECRET"
   "workspace:workspace-secrets:SMTP_PASSWORD|website:website-secrets:SMTP_PASSWORD"
   "workspace:workspace-secrets:NEXTCLOUD_ADMIN_PASSWORD|website:website-secrets:NEXTCLOUD_ADMIN_PASS|website:website-secrets:NEXTCLOUD_CALDAV_PASSWORD"
+  "workspace:workspace-secrets:NEXTCLOUD_DB_PASSWORD|website:website-secrets:NEXTCLOUD_DB_PASSWORD"
+  "workspace:workspace-secrets:WEBSITE_DB_PASSWORD|website:website-secrets:WEBSITE_DB_PASSWORD"
+  "workspace:workspace-secrets:DOCUSEAL_API_TOKEN|website:website-secrets:DOCUSEAL_API_TOKEN"
+  "workspace:workspace-secrets:BRETT_BOT_SECRET|website:website-secrets:BRETT_BOT_SECRET"
+  "workspace:workspace-secrets:IPV64_API_KEY|cert-manager:ipv64-api-key:IPV64_API_KEY"
 )
 
 GROUP_RESTARTS=(
@@ -110,6 +120,11 @@ GROUP_RESTARTS=(
   "website:website"
   "website:website"
   "website:website"
+  "website:website"
+  "website:website"
+  "website:website"
+  "website:website"
+  "cert-manager:cert-manager-lego-webhook"
 )
 
 NUM_GROUPS=${#GROUP_LABELS[@]}
@@ -120,7 +135,6 @@ NUM_GROUPS=${#GROUP_LABELS[@]}
 SOLO_LABELS=(
   "KEYCLOAK_DB_PASSWORD"
   "NEXTCLOUD_OIDC_SECRET"
-  "NEXTCLOUD_DB_PASSWORD"
   "MEETINGS_DB_PASSWORD"
   "DOCS_OIDC_SECRET"
   "TRAEFIK_OIDC_SECRET"
@@ -131,29 +145,23 @@ SOLO_LABELS=(
   "VAULTWARDEN_DB_PASSWORD"
   "VAULTWARDEN_ADMIN_TOKEN"
   "VAULTWARDEN_OIDC_SECRET"
-  "WEBSITE_DB_PASSWORD"
   "RECORDING_SECRET"
   "TRANSCRIBER_BOT_PASSWORD"
   "TRANSCRIBER_SECRET"
   "CLAUDE_CODE_OIDC_SECRET"
+  "CLAUDE_CODE_WEBUI_SECRET_KEY"
   "GITHUB_PAT"
-  "DOCUSEAL_SECRET_KEY_BASE"
-  "DOCUSEAL_API_TOKEN"
-  "DOCUSEAL_DB_PASSWORD"
   "GHCR_PAT"
-  "IPV64_API_KEY"
+  "DOCUSEAL_SECRET_KEY_BASE"
+  "DOCUSEAL_DB_PASSWORD"
   "SMTP_FROM"
   "SMTP_USER"
   "BACKUP_PASSPHRASE"
-  "coturn-secrets: SIGNALING_SECRET"
-  "coturn-secrets: TURN_SECRET"
-  "collabora-secrets: COLLABORA_ADMIN_PASSWORD"
 )
 
 SOLO_MEMBERS=(
   "workspace:workspace-secrets:KEYCLOAK_DB_PASSWORD"
   "workspace:workspace-secrets:NEXTCLOUD_OIDC_SECRET"
-  "workspace:workspace-secrets:NEXTCLOUD_DB_PASSWORD"
   "workspace:workspace-secrets:MEETINGS_DB_PASSWORD"
   "workspace:workspace-secrets:DOCS_OIDC_SECRET"
   "workspace:workspace-secrets:TRAEFIK_OIDC_SECRET"
@@ -164,36 +172,19 @@ SOLO_MEMBERS=(
   "workspace:workspace-secrets:VAULTWARDEN_DB_PASSWORD"
   "workspace:workspace-secrets:VAULTWARDEN_ADMIN_TOKEN"
   "workspace:workspace-secrets:VAULTWARDEN_OIDC_SECRET"
-  "workspace:workspace-secrets:WEBSITE_DB_PASSWORD"
   "workspace:workspace-secrets:RECORDING_SECRET"
   "workspace:workspace-secrets:TRANSCRIBER_BOT_PASSWORD"
   "workspace:workspace-secrets:TRANSCRIBER_SECRET"
   "workspace:workspace-secrets:CLAUDE_CODE_OIDC_SECRET"
+  "workspace:workspace-secrets:CLAUDE_CODE_WEBUI_SECRET_KEY"
   "workspace:workspace-secrets:GITHUB_PAT"
-  "workspace:workspace-secrets:DOCUSEAL_SECRET_KEY_BASE"
-  "workspace:workspace-secrets:DOCUSEAL_API_TOKEN"
-  "workspace:workspace-secrets:DOCUSEAL_DB_PASSWORD"
   "workspace:workspace-secrets:GHCR_PAT"
-  "workspace:workspace-secrets:IPV64_API_KEY"
+  "workspace:workspace-secrets:DOCUSEAL_SECRET_KEY_BASE"
+  "workspace:workspace-secrets:DOCUSEAL_DB_PASSWORD"
   "workspace:workspace-secrets:SMTP_FROM"
   "workspace:workspace-secrets:SMTP_USER"
   "workspace:workspace-secrets:BACKUP_PASSPHRASE"
-  "coturn:coturn-secrets:SIGNALING_SECRET"
-  "coturn:coturn-secrets:TURN_SECRET"
-  "workspace-office:collabora-secrets:COLLABORA_ADMIN_PASSWORD"
 )
-
-# CLAUDE_CODE_WEBUI_SECRET_KEY only exists on prod clusters (sealed secret).
-# k3d/secrets.yaml has no dev placeholder, so skip it on dev to avoid a
-# constant "(empty/not found)" false-positive.
-if [[ "$ENV" != "dev" ]]; then
-  SOLO_LABELS+=(
-    "CLAUDE_CODE_WEBUI_SECRET_KEY"
-  )
-  SOLO_MEMBERS+=(
-    "workspace:workspace-secrets:CLAUDE_CODE_WEBUI_SECRET_KEY"
-  )
-fi
 
 # mcp-tokens only exists on the dev cluster (MCP servers are not deployed to
 # prod). Include the entries only when auditing dev so prod audits don't

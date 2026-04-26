@@ -1105,6 +1105,8 @@ tasks:
           # Apply SealedSecret first so the Secret is ready when pods start
           sealed="environments/sealed-secrets/{{.ENV}}.yaml"
           if [ -f "$sealed" ]; then
+            # cert-manager namespace must exist for the ipv64-api-key SealedSecret
+            kubectl --context "$ENV_CONTEXT" create namespace cert-manager --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
             kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
             echo "Waiting for SealedSecret to be decrypted..."
             for i in $(seq 1 30); do
@@ -2044,7 +2046,7 @@ tasks:
       - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key>'' to store credentials"'
 
   cert:secret:
-    desc: "Store the ipv64 API key as a Secret (usage: task cert:secret -- <API_KEY>)"
+    desc: "Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml)"
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running."

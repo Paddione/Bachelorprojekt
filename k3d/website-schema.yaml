@@ -285,6 +285,34 @@ data:
       ALTER TABLE meetings
           ADD COLUMN IF NOT EXISTS brett_link_posted_at TIMESTAMPTZ;
 
+      -- ── Live Poll System ──────────────────────────────────────────
+
+      CREATE TABLE IF NOT EXISTS polls (
+          id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          question    TEXT NOT NULL,
+          kind        TEXT NOT NULL CHECK (kind IN ('multiple_choice', 'text')),
+          options     TEXT[],
+          status      TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'locked')),
+          room_tokens TEXT[] NOT NULL DEFAULT '{}',
+          created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+          locked_at   TIMESTAMPTZ,
+          CONSTRAINT polls_mc_options_not_null
+              CHECK (kind != 'multiple_choice' OR options IS NOT NULL)
+      );
+
+      CREATE TABLE IF NOT EXISTS poll_answers (
+          id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          poll_id      UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+          answer       TEXT NOT NULL CHECK (char_length(answer) <= 1000),
+          submitted_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_poll_answers_poll
+          ON poll_answers(poll_id, submitted_at DESC);
+
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
+          ON polls ((true)) WHERE status = 'open';
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -560,6 +588,34 @@ data:
       -- Idempotency for auto-post on Talk-roomed meeting creation.
       ALTER TABLE meetings
           ADD COLUMN IF NOT EXISTS brett_link_posted_at TIMESTAMPTZ;
+
+      -- ── Live Poll System ──────────────────────────────────────────
+
+      CREATE TABLE IF NOT EXISTS polls (
+          id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          question    TEXT NOT NULL,
+          kind        TEXT NOT NULL CHECK (kind IN ('multiple_choice', 'text')),
+          options     TEXT[],
+          status      TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'locked')),
+          room_tokens TEXT[] NOT NULL DEFAULT '{}',
+          created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+          locked_at   TIMESTAMPTZ,
+          CONSTRAINT polls_mc_options_not_null
+              CHECK (kind != 'multiple_choice' OR options IS NOT NULL)
+      );
+
+      CREATE TABLE IF NOT EXISTS poll_answers (
+          id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          poll_id      UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+          answer       TEXT NOT NULL CHECK (char_length(answer) <= 1000),
+          submitted_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_poll_answers_poll
+          ON poll_answers(poll_id, submitted_at DESC);
+
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
+          ON polls ((true)) WHERE status = 'open';
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

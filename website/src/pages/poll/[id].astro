@@ -1,0 +1,195 @@
+---
+import { getPoll } from '../../lib/poll-db';
+const { id } = Astro.params;
+const poll = await getPoll(id!);
+const isLocked = !poll || poll.status === 'locked';
+const resultsUrl = `/poll/${id}/results`;
+---
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Umfrage</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b111c; color: #e8e4dc;
+      font-family: 'Geist', system-ui, sans-serif;
+      min-height: 100svh; display: flex; align-items: center;
+      justify-content: center; padding: 24px;
+    }
+    .card {
+      background: #131b2a; border-radius: 12px; padding: 32px;
+      max-width: 400px; width: 100%; text-align: center;
+    }
+    .eyebrow {
+      font-size: 11px; color: #9bc0a8; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 22px; font-weight: 600; line-height: 1.35;
+      margin-bottom: 24px; font-family: 'Newsreader', Georgia, serif;
+    }
+    .opt-btn {
+      display: block; width: 100%; padding: 14px;
+      border-radius: 8px; border: 1px solid #2a3547;
+      background: transparent; color: #e8e4dc; font-size: 15px;
+      cursor: pointer; margin-bottom: 10px;
+      text-align: center; transition: background 0.15s, border-color 0.15s;
+    }
+    .opt-btn:hover { background: #1e2d43; }
+    .opt-btn.selected { border-color: #d7b06a; color: #d7b06a; }
+    textarea {
+      width: 100%; background: #1a2538; border: 1px solid #2a3547;
+      border-radius: 8px; padding: 12px; color: #e8e4dc;
+      font-size: 14px; resize: vertical; min-height: 96px; font-family: inherit;
+    }
+    .submit-btn {
+      width: 100%; padding: 14px; border-radius: 8px; border: none;
+      background: #d7b06a; color: #0b111c; font-size: 15px;
+      font-weight: 600; cursor: pointer; margin-top: 12px;
+      transition: opacity 0.15s;
+    }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .muted { font-size: 12px; color: #6b7a8f; margin-top: 16px; }
+    .big-icon { font-size: 48px; margin-bottom: 16px; }
+    .chosen-badge {
+      margin-top: 16px; padding: 10px 14px; border-radius: 8px;
+      border: 1px solid #2a3547; font-size: 13px;
+    }
+    a { color: #d7b06a; }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    {isLocked ? (
+      <>
+        <div class="big-icon">&#x1F512;</div>
+        <h1>Umfrage geschlossen</h1>
+        <p class="muted">Die Abstimmung wurde beendet.</p>
+        {poll && (
+          <p style="margin-top:16px"><a href={resultsUrl}>&#x2192; Ergebnisse ansehen</a></p>
+        )}
+      </>
+    ) : (
+      <>
+        <p class="eyebrow">Umfrage</p>
+        <h1>{poll!.question}</h1>
+        {poll!.kind === 'multiple_choice' ? (
+          <div id="mc-options">
+            {poll!.options!.map(opt => (
+              <button class="opt-btn" data-option={opt} type="button">{opt}</button>
+            ))}
+          </div>
+        ) : (
+          <textarea id="text-answer" placeholder="Ihre Antwort&#x2026;" maxlength="1000"></textarea>
+        )}
+        <button class="submit-btn" id="submit-btn" type="button" disabled>
+          Absenden
+        </button>
+        <p class="muted">Anonym &#xB7; Einmalig</p>
+      </>
+    )}
+  </div>
+
+  <script define:vars={{ pollId: id, pollKind: poll?.kind ?? 'text', isLocked }}>
+    // Prevent duplicate submission in the same browser session
+    if (!isLocked && sessionStorage.getItem('poll_submitted_' + pollId)) {
+      const card = document.getElementById('card');
+      card.replaceChildren();
+      const icon = document.createElement('div');
+      icon.className = 'big-icon';
+      icon.textContent = '✅';
+      const msg = document.createElement('h1');
+      msg.style.cssText = 'font-size:18px;font-family:serif';
+      msg.textContent = 'Sie haben bereits abgestimmt.';
+      const sub = document.createElement('p');
+      sub.className = 'muted';
+      sub.textContent = 'Ihre Antwort wurde anonym erfasst.';
+      card.append(icon, msg, sub);
+    }
+
+    if (pollKind === 'text') {
+      const ta = document.getElementById('text-answer');
+      const btn = document.getElementById('submit-btn');
+      if (ta && btn) {
+        ta.addEventListener('input', () => { btn.disabled = ta.value.trim().length === 0; });
+      }
+    } else {
+      document.querySelectorAll('.opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          document.getElementById('submit-btn').disabled = false;
+        });
+      });
+    }
+
+    document.getElementById('submit-btn')?.addEventListener('click', async () => {
+      const answer = pollKind === 'multiple_choice'
+        ? document.querySelector('.opt-btn.selected')?.dataset.option
+        : document.getElementById('text-answer')?.value.trim();
+      if (!answer) return;
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = '…';
+
+      try {
+        const res = await fetch('/api/poll/' + pollId + '/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answer }),
+        });
+
+        if (res.ok) {
+          sessionStorage.setItem('poll_submitted_' + pollId, '1');
+          const card = document.getElementById('card');
+          card.replaceChildren();
+
+          const icon = document.createElement('div');
+          icon.className = 'big-icon';
+          icon.textContent = '✅';
+
+          const heading = document.createElement('h1');
+          heading.style.cssText = 'font-size:18px;font-family:serif';
+          heading.textContent = 'Danke für Ihre Antwort!';
+
+          const sub = document.createElement('p');
+          sub.className = 'muted';
+          sub.textContent = 'Ihre Antwort wurde anonym erfasst. Der Moderator teilt die Ergebnisse mit der Gruppe.';
+
+          const badge = document.createElement('div');
+          badge.className = 'chosen-badge';
+          badge.textContent = 'Sie haben gewählt: ';
+          const strong = document.createElement('strong');
+          strong.style.color = '#d7b06a';
+          strong.textContent = pollKind === 'multiple_choice' ? answer : 'Ihre Antwort';
+          badge.appendChild(strong);
+
+          card.append(icon, heading, sub, badge);
+        } else if (res.status === 409) {
+          const card = document.getElementById('card');
+          card.replaceChildren();
+          const icon = document.createElement('div');
+          icon.className = 'big-icon';
+          icon.textContent = '\u{1F512}';
+          const msg = document.createElement('h1');
+          msg.style.cssText = 'font-size:18px;font-family:serif';
+          msg.textContent = 'Umfrage geschlossen';
+          card.append(icon, msg);
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Absenden';
+          alert('Fehler beim Absenden. Bitte versuchen Sie es erneut.');
+        }
+      } catch {
+        btn.disabled = false;
+        btn.textContent = 'Absenden';
+        alert('Netzwerkfehler. Bitte versuchen Sie es erneut.');
+      }
+    });
+  </script>
+</body>
+</html>

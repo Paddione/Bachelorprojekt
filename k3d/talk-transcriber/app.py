@@ -75,6 +75,43 @@ async def health() -> dict:
     }
 
 
+# ---------- Internal admin endpoints (cluster-internal, no HMAC) -------------
+
+@app.get("/admin/sessions")
+async def admin_sessions() -> dict:
+    return {"sessions": list(sessions.keys())}
+
+
+@app.post("/admin/start")
+async def admin_start(request: Request) -> dict:
+    data = await request.json()
+    token = data.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="token required")
+    if token in sessions:
+        return {"status": "already_running", "token": token}
+    if len(sessions) >= MAX_SESSIONS:
+        return {"status": "rejected", "reason": "max sessions reached"}
+    sessions[token] = {}
+    t = asyncio.create_task(run_session(token))
+    sessions[token]["task"] = t
+    print(f"[admin] manually started transcription for {token}", flush=True)
+    return {"status": "started", "token": token}
+
+
+@app.post("/admin/stop")
+async def admin_stop(request: Request) -> dict:
+    data = await request.json()
+    token = data.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="token required")
+    if token not in sessions:
+        return {"status": "not_running", "token": token}
+    _cancel(token)
+    print(f"[admin] manually stopped transcription for {token}", flush=True)
+    return {"status": "stopped", "token": token}
+
+
 # ---------- Webhook (Nextcloud Talk Bot API) ----------------------------------
 
 @app.post("/webhook")

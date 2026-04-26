@@ -68,6 +68,11 @@ function statusColor(s: string) {
             title="Umfrage in alle laufenden Talk-Calls posten">
             &#x1F4CA; Umfrage starten
           </button>
+          <button id="btn-transcription"
+            class="px-4 py-2 bg-dark-light text-light rounded-lg text-sm font-semibold border border-dark-lighter hover:border-gold/40"
+            title="Transkription für laufende Talk-Calls steuern">
+            🎙 Transkription
+          </button>
           <button id="btn-all"
             class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold">
             Alle
@@ -238,6 +243,32 @@ function statusColor(s: string) {
 
   <!-- Templates data island -->
   <script id="poll-templates-data" type="application/json" set:html={pollTemplatesJson}></script>
+
+  <!-- ── Transkription Modal ─────────────────────────────────────────── -->
+  <div id="transcription-modal"
+       class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-dark-light rounded-2xl border border-dark-lighter max-w-lg w-full p-6 shadow-xl">
+      <h2 class="text-xl font-serif text-light mb-2">🎙 Transkription</h2>
+      <p class="text-sm text-muted mb-4" id="transcription-modal-intro">Lade laufende Calls…</p>
+
+      <ul id="transcription-modal-rooms"
+          class="max-h-64 overflow-y-auto space-y-1 mb-5 text-sm text-light"></ul>
+
+      <div id="transcription-modal-result" class="hidden mb-4 text-sm"></div>
+
+      <div class="flex justify-end gap-2">
+        <button id="transcription-modal-cancel"
+          class="px-4 py-2 bg-dark rounded-lg border border-dark-lighter text-sm text-muted hover:text-light">
+          Schlie&#xDF;en
+        </button>
+        <button id="transcription-modal-start-all"
+          class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/90 disabled:opacity-40 disabled:cursor-not-allowed"
+          disabled>
+          &#x25B6; Alle starten
+        </button>
+      </div>
+    </div>
+  </div>
 </AdminLayout>
 
 <script>
@@ -661,4 +692,160 @@ function statusColor(s: string) {
   qrModal.addEventListener('click', (e) => {
     if (e.target === qrModal) { qrModal.classList.add('hidden'); qrModal.classList.remove('flex'); }
   });
+
+  // ─── Transkription ─────────────────────────────────────────────────────────
+  const btnTranscription     = document.getElementById('btn-transcription')!;
+  const trModal              = document.getElementById('transcription-modal')!;
+  const trModalIntro         = document.getElementById('transcription-modal-intro')!;
+  const trModalRooms         = document.getElementById('transcription-modal-rooms')!;
+  const trModalResult        = document.getElementById('transcription-modal-result')!;
+  const trModalCancel        = document.getElementById('transcription-modal-cancel') as HTMLButtonElement;
+  const trModalStartAll      = document.getElementById('transcription-modal-start-all') as HTMLButtonElement;
+
+  type TrRoom = { token: string; displayName: string };
+
+  let trRooms: TrRoom[] = [];
+  let trActiveSessions: string[] = [];
+
+  function openTrModal() {
+    trModal.classList.remove('hidden');
+    trModal.classList.add('flex');
+  }
+  function closeTrModal() {
+    trModal.classList.add('hidden');
+    trModal.classList.remove('flex');
+    trModalResult.classList.add('hidden');
+    trModalResult.textContent = '';
+  }
+
+  async function renderTrRooms() {
+    trModalRooms.replaceChildren();
+    if (trRooms.length === 0) return;
+
+    for (const r of trRooms) {
+      const isActive = trActiveSessions.includes(r.token);
+      const li = document.createElement('li');
+      li.className = 'flex items-center justify-between px-3 py-2 bg-dark rounded border border-dark-lighter gap-3';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'flex-1 truncate text-light text-sm';
+      nameSpan.textContent = r.displayName || r.token;
+
+      const statusSpan = document.createElement('span');
+      statusSpan.className = isActive
+        ? 'text-xs px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-400/20 shrink-0'
+        : 'text-xs px-1.5 py-0.5 rounded bg-dark-lighter text-muted border border-dark-lighter shrink-0';
+      statusSpan.textContent = isActive ? '🟢 Aktiv' : '⚫ Inaktiv';
+
+      const actionBtn = document.createElement('button');
+      actionBtn.dataset.token = r.token;
+      actionBtn.dataset.action = isActive ? 'stop' : 'start';
+      actionBtn.className = isActive
+        ? 'px-2 py-1 text-xs rounded border border-red-400/30 text-red-400 hover:bg-red-400/10 shrink-0'
+        : 'px-2 py-1 text-xs rounded border border-gold/30 text-gold hover:bg-gold/10 shrink-0';
+      actionBtn.textContent = isActive ? 'Stop' : 'Start';
+      actionBtn.addEventListener('click', () => toggleTrSession(r.token, isActive ? 'stop' : 'start', li));
+
+      li.append(nameSpan, statusSpan, actionBtn);
+      trModalRooms.appendChild(li);
+    }
+  }
+
+  async function toggleTrSession(token: string, action: 'start' | 'stop', li: HTMLLIElement) {
+    const btn = li.querySelector('button') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      const res = await fetch('/api/admin/transcription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, action }),
+      });
+      const data = await res.json() as { status?: string; error?: string };
+      if (res.ok) {
+        if (action === 'start') {
+          trActiveSessions = [...trActiveSessions.filter(t => t !== token), token];
+        } else {
+          trActiveSessions = trActiveSessions.filter(t => t !== token);
+        }
+        renderTrRooms();
+        updateStartAllBtn();
+      } else {
+        btn.disabled = false;
+        btn.textContent = action === 'start' ? 'Start' : 'Stop';
+        trModalResult.className = 'mb-4 text-sm text-red-400';
+        trModalResult.textContent = data.error ?? 'Fehler';
+        trModalResult.classList.remove('hidden');
+      }
+    } catch {
+      btn.disabled = false;
+      btn.textContent = action === 'start' ? 'Start' : 'Stop';
+      trModalResult.className = 'mb-4 text-sm text-red-400';
+      trModalResult.textContent = 'Netzwerkfehler';
+      trModalResult.classList.remove('hidden');
+    }
+  }
+
+  function updateStartAllBtn() {
+    const inactive = trRooms.filter(r => !trActiveSessions.includes(r.token));
+    trModalStartAll.disabled = inactive.length === 0;
+    trModalStartAll.textContent = inactive.length > 0
+      ? `▶ Alle starten (${inactive.length})`
+      : '✓ Alle aktiv';
+  }
+
+  async function loadTrData() {
+    trModalIntro.textContent = 'Lade laufende Calls…';
+    trModalRooms.replaceChildren();
+    trModalStartAll.disabled = true;
+    try {
+      const res = await fetch('/api/admin/transcription');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { rooms: TrRoom[]; activeSessions: string[] };
+      trRooms = data.rooms ?? [];
+      trActiveSessions = data.activeSessions ?? [];
+
+      if (trRooms.length === 0) {
+        trModalIntro.textContent = 'Aktuell läuft kein Talk-Call.';
+        return;
+      }
+      trModalIntro.textContent = `${trRooms.length} laufende(r) Call(s) — Transkription steuern:`;
+      await renderTrRooms();
+      updateStartAllBtn();
+    } catch (err) {
+      trModalIntro.textContent = 'Fehler beim Laden der Calls.';
+      console.error(err);
+    }
+  }
+
+  trModalStartAll.addEventListener('click', async () => {
+    const inactive = trRooms.filter(r => !trActiveSessions.includes(r.token));
+    trModalStartAll.disabled = true;
+    trModalStartAll.textContent = '…';
+    const results = await Promise.all(
+      inactive.map(r =>
+        fetch('/api/admin/transcription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: r.token, action: 'start' }),
+        }).then(res => res.ok ? r.token : null)
+      )
+    );
+    const started = results.filter(Boolean) as string[];
+    trActiveSessions = [...new Set([...trActiveSessions, ...started])];
+    await renderTrRooms();
+    updateStartAllBtn();
+    if (started.length > 0) {
+      trModalResult.className = 'mb-4 text-sm text-green-400';
+      trModalResult.textContent = `✓ Transkription für ${started.length} Call(s) gestartet.`;
+      trModalResult.classList.remove('hidden');
+    }
+  });
+
+  btnTranscription.addEventListener('click', () => {
+    openTrModal();
+    loadTrData();
+  });
+  trModalCancel.addEventListener('click', closeTrModal);
+  trModal.addEventListener('click', (e) => { if (e.target === trModal) closeTrModal(); });
 </script>

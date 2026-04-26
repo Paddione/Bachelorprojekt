@@ -221,10 +221,10 @@ export async function upsertQDimension(params: {
     const r = await pool.query(
       `UPDATE questionnaire_dimensions
        SET name=$1, position=$2, threshold_mid=$3, threshold_high=$4, score_multiplier=$5
-       WHERE id=$6
+       WHERE id=$6 AND template_id=$7
        RETURNING id, template_id, name, position, threshold_mid, threshold_high, score_multiplier, created_at`,
       [params.name, params.position, params.thresholdMid ?? null, params.thresholdHigh ?? null,
-       params.scoreMultiplier ?? 1, params.id],
+       params.scoreMultiplier ?? 1, params.id, params.templateId],
     );
     return r.rows[0];
   }
@@ -296,7 +296,8 @@ export async function listQAnswerOptionsForTemplate(templateId: string): Promise
     `SELECT ao.id, ao.question_id, ao.option_key, ao.label, ao.dimension_id, ao.weight
      FROM questionnaire_answer_options ao
      JOIN questionnaire_questions q ON q.id = ao.question_id
-     WHERE q.template_id = $1`,
+     WHERE q.template_id = $1
+     ORDER BY ao.question_id, ao.option_key`,
     [templateId],
   );
   return r.rows;
@@ -305,13 +306,23 @@ export async function listQAnswerOptionsForTemplate(templateId: string): Promise
 export async function replaceQAnswerOptions(questionId: string, options: Array<{
   optionKey: string; label: string; dimensionId: string | null; weight: number;
 }>): Promise<void> {
-  await pool.query(`DELETE FROM questionnaire_answer_options WHERE question_id = $1`, [questionId]);
-  for (const opt of options) {
-    await pool.query(
-      `INSERT INTO questionnaire_answer_options (question_id, option_key, label, dimension_id, weight)
-       VALUES ($1,$2,$3,$4,$5)`,
-      [questionId, opt.optionKey, opt.label, opt.dimensionId ?? null, opt.weight],
-    );
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`DELETE FROM questionnaire_answer_options WHERE question_id = $1`, [questionId]);
+    for (const opt of options) {
+      await client.query(
+        `INSERT INTO questionnaire_answer_options (question_id, option_key, label, dimension_id, weight)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [questionId, opt.optionKey, opt.label, opt.dimensionId ?? null, opt.weight],
+      );
+    }
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
   }
 }
 

@@ -292,6 +292,8 @@ tasks:
         $NC_EXEC "php occ app:enable spreed"        || true
 
         $NC_EXEC "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
+        COLLAB_SCHEME=https; [[ "{{.ENV}}" == "dev" ]] && COLLAB_SCHEME=http
+        $NC_EXEC "php occ config:app:set richdocuments public_wopi_url --value=${COLLAB_SCHEME}://office.${PROD_DOMAIN}"
 
         echo "Installing Nextcloud collaboration apps (Whiteboard, Forms, Transcription)..."
         $NC_EXEC "php occ app:install forms" || true

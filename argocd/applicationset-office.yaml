@@ -65,8 +65,9 @@ spec:
           - ServerSideApply=true
           - RespectIgnoreDifferences=true
 
-      # The collabora-secrets Secret carries a placeholder in git and
-      # is populated on the live cluster by `task workspace:office:sync-secret`.
+      # The collabora-secrets Secret carries a placeholder in git and is
+      # managed on the live cluster by the SealedSecrets controller via the
+      # environments/sealed-secrets/<env>.yaml block (applied by workspace:deploy).
       # Never sync its /data from git.
       ignoreDifferences:
         - group: ""

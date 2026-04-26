@@ -12,6 +12,7 @@ import MeetingsAdminTab from '../../components/portal/MeetingsAdminTab.astro';
 import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
 import ClientContractsPanel from '../../components/admin/ClientContractsPanel.svelte';
+import ClientQuestionnairesPanel from '../../components/admin/ClientQuestionnairesPanel.svelte';
 import { listProjectsForCustomer, getCustomerByEmail } from '../../lib/website-db';
 import { getSubscriberByEmail } from '../../lib/newsletter-db';
 
@@ -209,6 +210,7 @@ try {
           { id: 'onboarding', label: 'Onboarding' },
           { id: 'book', label: 'Leistung buchen' },
           { id: 'vertraege', label: 'Verträge & Newsletter' },
+          { id: 'fragebögen', label: 'Fragebögen' },
         ].map(t => (
           <a
             href={`/admin/${clientId}?tab=${t.id}`}
@@ -262,6 +264,12 @@ try {
             keycloakUserId={clientId}
             clientEmail={client.email ?? ''}
             isNewsletterSubscribed={isNewsletterSubscribed}
+          />
+        )}
+        {tab === 'fragebögen' && (
+          <ClientQuestionnairesPanel
+            client:load
+            keycloakUserId={clientId}
           />
         )}
       </div>

@@ -1,0 +1,55 @@
+---
+// website/src/pages/portal/fragebogen/[assignmentId].astro
+import PortalLayout from '../../../layouts/PortalLayout.astro';
+import { getSession, getLoginUrl } from '../../../lib/auth';
+import { getCustomerByEmail } from '../../../lib/website-db';
+import {
+  getQAssignment, getQTemplate,
+  listQQuestions, listQAnswers,
+  countPendingQAssignmentsForCustomer,
+} from '../../../lib/questionnaire-db';
+import QuestionnaireWizard from '../../../components/portal/QuestionnaireWizard.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+
+const { assignmentId } = Astro.params;
+if (!assignmentId) return Astro.redirect('/portal');
+
+const customer = await getCustomerByEmail(session.email).catch(() => null);
+if (!customer) return Astro.redirect('/portal');
+
+const assignment = await getQAssignment(assignmentId).catch(() => null);
+if (!assignment || assignment.customer_id !== customer.id) return Astro.redirect('/portal');
+
+if (assignment.status === 'submitted' || assignment.status === 'reviewed') {
+  return Astro.redirect('/portal?section=fragebögen');
+}
+
+const tpl = await getQTemplate(assignment.template_id).catch(() => null);
+const [questions, answers] = await Promise.all([
+  listQQuestions(assignment.template_id),
+  listQAnswers(assignment.id),
+]);
+const pendingCount = await countPendingQAssignmentsForCustomer(customer.id).catch(() => 0);
+---
+
+<PortalLayout
+  title={`Fragebogen — ${assignment.template_title}`}
+  section="fragebögen"
+  session={session}
+  pendingSignatures={pendingCount}
+>
+  <section class="pt-6 pb-20 bg-dark min-h-screen">
+    <div class="max-w-3xl mx-auto px-6">
+      <QuestionnaireWizard
+        client:load
+        assignmentId={assignmentId}
+        title={assignment.template_title}
+        instructions={tpl?.instructions ?? ''}
+        questions={questions}
+        initialAnswers={answers}
+      />
+    </div>
+  </section>
+</PortalLayout>

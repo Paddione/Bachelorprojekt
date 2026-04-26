@@ -745,37 +745,37 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
   // ── Sub-project accordion toggle ──
   document.querySelectorAll('.sp-toggle').forEach(el => {
     el.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('button, form')) return;
-      const spId   = (el as HTMLElement).dataset.sp;
-      const panel  = document.getElementById(`sp-tasks-${spId}`);
-      const icon   = el.querySelector('span');
+      if (e.target.closest('button, form')) return;
+      const spId  = el.dataset.sp;
+      const panel = document.getElementById(`sp-tasks-${spId}`);
+      const icon  = el.querySelector('span');
       panel?.classList.toggle('hidden');
       if (icon) icon.textContent = panel?.classList.contains('hidden') ? '▶' : '▼';
     });
   });
 
   // ── New sub-project dialog ──
-  const newSpDialog = document.getElementById('new-sp-dialog') as HTMLDialogElement;
+  const newSpDialog = document.getElementById('new-sp-dialog');
   document.getElementById('new-sp-btn')?.addEventListener('click', () => newSpDialog.showModal());
   document.getElementById('new-sp-cancel')?.addEventListener('click', () => newSpDialog.close());
 
   // ── Edit sub-project dialog ──
-  const editSpDialog = document.getElementById('edit-sp-dialog') as HTMLDialogElement;
+  const editSpDialog = document.getElementById('edit-sp-dialog');
   document.getElementById('edit-sp-cancel')?.addEventListener('click', () => editSpDialog.close());
   document.querySelectorAll('.edit-sp-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const spId = (btn as HTMLElement).dataset.sp;
-      const sp   = subProjects.find((s: any) => s.id === spId);
+      const spId = btn.dataset.sp;
+      const sp   = subProjects.find(s => s.id === spId);
       if (!sp) return;
-      (document.getElementById('edit-sp-id')          as HTMLInputElement).value    = sp.id;
-      (document.getElementById('edit-sp-name')        as HTMLInputElement).value    = sp.name;
-      (document.getElementById('edit-sp-description') as HTMLTextAreaElement).value = sp.description;
-      (document.getElementById('edit-sp-notes')       as HTMLTextAreaElement).value = sp.notes;
-      (document.getElementById('edit-sp-startDate')   as HTMLInputElement).value    = sp.startDate;
-      (document.getElementById('edit-sp-dueDate')     as HTMLInputElement).value    = sp.dueDate;
-      (document.getElementById('edit-sp-status')      as HTMLSelectElement).value   = sp.status;
-      (document.getElementById('edit-sp-priority')    as HTMLSelectElement).value   = sp.priority;
-      (document.getElementById('edit-sp-customerId')  as HTMLSelectElement).value   = sp.customerId;
+      document.getElementById('edit-sp-id').value          = sp.id;
+      document.getElementById('edit-sp-name').value        = sp.name;
+      document.getElementById('edit-sp-description').value = sp.description;
+      document.getElementById('edit-sp-notes').value       = sp.notes;
+      document.getElementById('edit-sp-startDate').value   = sp.startDate;
+      document.getElementById('edit-sp-dueDate').value     = sp.dueDate;
+      document.getElementById('edit-sp-status').value      = sp.status;
+      document.getElementById('edit-sp-priority').value    = sp.priority;
+      document.getElementById('edit-sp-customerId').value  = sp.customerId;
       editSpDialog.showModal();
     });
   });
@@ -788,37 +788,35 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
   });
 
   // ── Task dialog (create + edit) ──
-  const taskDialog = document.getElementById('task-dialog') as HTMLDialogElement;
-  const taskForm   = document.getElementById('task-form')   as HTMLFormElement;
+  const taskDialog = document.getElementById('task-dialog');
+  const taskForm   = document.getElementById('task-form');
   document.getElementById('task-cancel')?.addEventListener('click', () => taskDialog.close());
 
-  function openTaskDialog(mode: 'create' | 'edit', data?: any) {
-    const title = document.getElementById('task-dialog-title') as HTMLElement;
-    title.textContent = mode === 'create' ? 'Neue Aufgabe' : 'Aufgabe bearbeiten';
+  function openTaskDialog(mode, data) {
+    document.getElementById('task-dialog-title').textContent =
+      mode === 'create' ? 'Neue Aufgabe' : 'Aufgabe bearbeiten';
     taskForm.action = mode === 'create'
       ? '/api/admin/projekttasks/create'
       : '/api/admin/projekttasks/update';
 
     const fields = ['id','name','description','notes','startDate','dueDate','status','priority','customerId','subProjectId','projectId'];
     fields.forEach(f => {
-      const el = document.getElementById(`task-${f}`) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
-      if (el) el.value = data?.[f] ?? (f === 'status' ? 'entwurf' : f === 'priority' ? 'mittel' : '');
+      const el = document.getElementById(`task-${f}`);
+      if (el) el.value = (data && data[f] != null ? data[f] : (f === 'status' ? 'entwurf' : f === 'priority' ? 'mittel' : ''));
     });
     taskDialog.showModal();
   }
 
   document.querySelectorAll('.new-task-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const spId     = (btn as HTMLElement).dataset.sp ?? '';
-      const projId   = (btn as HTMLElement).dataset.project ?? '';
-      openTaskDialog('create', { projectId: projId, subProjectId: spId });
+      openTaskDialog('create', { projectId: btn.dataset.project ?? '', subProjectId: btn.dataset.sp ?? '' });
     });
   });
 
   document.querySelectorAll('.edit-task-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const tid  = (btn as HTMLElement).dataset.task;
-      const task = allTasks.find((t: any) => t.id === tid);
+      const tid  = btn.dataset.task;
+      const task = allTasks.find(t => t.id === tid);
       if (!task) return;
       openTaskDialog('edit', task);
     });
@@ -839,17 +837,16 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
   });
 
   // ── Upload dialog ──
-  const uploadDialog = document.getElementById('upload-dialog') as HTMLDialogElement;
+  const uploadDialog = document.getElementById('upload-dialog');
   document.getElementById('upload-btn')?.addEventListener('click', () => uploadDialog.showModal());
   document.getElementById('upload-cancel')?.addEventListener('click', () => uploadDialog.close());
 
   // ── Zeit buchen dialog ──
-  const timeDialog = document.getElementById('time-create-dialog') as HTMLDialogElement;
+  const timeDialog = document.getElementById('time-create-dialog');
   document.getElementById('time-create-btn')?.addEventListener('click', () => {
-    // Set entryDate client-side to avoid UTC-offset giving yesterday's date
-    const dateInput = timeDialog.querySelector<HTMLInputElement>('input[name="entryDate"]');
+    const dateInput = timeDialog.querySelector('input[name="entryDate"]');
     if (dateInput && !dateInput.value) {
-      dateInput.value = new Date().toLocaleDateString('sv'); // sv locale → YYYY-MM-DD in local time
+      dateInput.value = new Date().toLocaleDateString('sv');
     }
     timeDialog.showModal();
   });

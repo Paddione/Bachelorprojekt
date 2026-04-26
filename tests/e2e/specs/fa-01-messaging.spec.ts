@@ -1,28 +1,32 @@
 import { test, expect } from '@playwright/test';
-import { goToDM, goToChannel } from './helpers';
 
-const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
+const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-01: Messaging (Echtzeit)', () => {
-  test('T1: DM senden und empfangen', async ({ page }) => {
-    await goToDM(page, TEAM, process.env.MM_TEST_DM_USER || 'quamain');
-
-    const msg = `e2e-dm-${Date.now()}`;
-    await page.locator('#post_textbox').fill(msg);
-    await page.locator('#post_textbox').press('Enter');
-
-    await expect(page.locator('.post-message__text, .post__content p, [id^="postMessageText_"]').last())
-      .toContainText(msg, { timeout: 10_000 });
+test.describe('FA-01: Messaging (Portal Nachrichten & Räume)', () => {
+  test('T1: /api/portal/rooms requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/portal/rooms`);
+    expect([401, 403]).toContain(res.status());
   });
 
-  test('T3: Channel-Nachricht senden', async ({ page }) => {
-    await goToChannel(page, TEAM, 'town-square');
+  test('T2: /api/portal/nachrichten requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/portal/nachrichten`);
+    expect([401, 403]).toContain(res.status());
+  });
 
-    const msg = `e2e-channel-${Date.now()}`;
-    await page.locator('#post_textbox').fill(msg);
-    await page.locator('#post_textbox').press('Enter');
+  test('T3: /api/portal/rooms/ensure-direct requires authentication', async ({ request }) => {
+    const res = await request.post(`${BASE}/api/portal/rooms/ensure-direct`, {
+      data: { targetCustomerId: 'test' },
+    });
+    expect([401, 403]).toContain(res.status());
+  });
 
-    await expect(page.locator('.post-message__text, .post__content p, [id^="postMessageText_"]').last())
-      .toContainText(msg, { timeout: 10_000 });
+  test('T4: /api/portal/rooms/:id/messages requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/portal/rooms/999/messages`);
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('T5: Portal Nachrichten section redirects unauthenticated users', async ({ page }) => {
+    await page.goto(`${BASE}/portal?section=nachrichten`);
+    await expect(page).not.toHaveURL(/\/portal/);
   });
 });

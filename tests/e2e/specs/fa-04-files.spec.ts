@@ -1,28 +1,36 @@
 import { test, expect } from '@playwright/test';
-import { goToChannel } from './helpers';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
 
-const TEAM = process.env.MM_TEST_TEAM || 'mentolder';
+const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-04: Dateiablage', () => {
-  test('T1: Datei über UI hochladen', async ({ page }) => {
-    await goToChannel(page, TEAM, 'town-square');
+test.describe('FA-04: Dateiablage (Projektanhänge)', () => {
+  test('T1: /api/portal/projekte requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/portal/projekte`);
+    expect([401, 403]).toContain(res.status());
+  });
 
-    const tmpFile = path.join(os.tmpdir(), `e2e-upload-${Date.now()}.txt`);
-    fs.writeFileSync(tmpFile, 'E2E test file content');
-
-    const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(tmpFile);
-
-    await expect(page.locator('.file-preview')).toBeVisible({ timeout: 10_000 });
-    await page.keyboard.press('Enter');
-
-    await expect(page.locator('.post-image__column').last()).toBeVisible({
-      timeout: 10_000,
+  test('T2: /api/admin/projekte/attachments/upload requires admin auth', async ({ request }) => {
+    const res = await request.post(`${BASE}/api/admin/projekte/attachments/upload`, {
+      data: {},
     });
+    expect([401, 403]).toContain(res.status());
+  });
 
-    fs.unlinkSync(tmpFile);
+  test('T3: /api/admin/projekte/attachments/delete requires admin auth', async ({ request }) => {
+    const res = await request.post(`${BASE}/api/admin/projekte/attachments/delete`, {
+      data: {},
+    });
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('T4: /api/admin/projekte/create requires admin auth', async ({ request }) => {
+    const res = await request.post(`${BASE}/api/admin/projekte/create`, {
+      data: {},
+    });
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('T5: Portal Projekte section redirects unauthenticated users', async ({ page }) => {
+    await page.goto(`${BASE}/portal?section=projekte`);
+    await expect(page).not.toHaveURL(/\/portal/);
   });
 });

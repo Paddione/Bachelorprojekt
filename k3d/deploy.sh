@@ -24,20 +24,18 @@ kubectl create configmap keycloak-import-script \
   --from-file="import-entrypoint.sh=$PROJECT_ROOT/scripts/import-entrypoint.sh" \
   -n workspace --dry-run=client -o yaml | kubectl apply -f -
 
-  -n workspace --dry-run=client -o yaml | kubectl apply -f -
-
 # ── Kustomize Manifeste anwenden ─────────────────────────────────────
 echo "[3/5] Kubernetes-Manifeste anwenden..."
 kubectl apply -k .
 
 # ── Datenbanken abwarten ────────────────────────────────────────────
 echo "[4/5] Warte auf Datenbanken..."
-  kubectl rollout status deployment/$db -n workspace --timeout=120s
-done
+kubectl rollout status deployment/shared-db -n workspace --timeout=120s
 
 # ── Dienste abwarten ────────────────────────────────────────────────
 echo "[5/5] Warte auf Dienste (kann 2-3 Minuten dauern)..."
-  kubectl rollout status deployment/$svc -n workspace --timeout=300s 2>/dev/null || \
+for svc in keycloak nextcloud vaultwarden docuseal tracking; do
+  kubectl rollout status "deployment/$svc" -n workspace --timeout=300s 2>/dev/null || \
     echo "  WARNUNG: $svc noch nicht bereit — startet möglicherweise noch."
 done
 

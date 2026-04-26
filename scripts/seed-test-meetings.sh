@@ -133,6 +133,7 @@ ON CONFLICT (id) DO NOTHING;
 
 # ── Insert artifacts ──────────────────────────────────────────────────────────
 
+# shellcheck disable=SC2140
 psql_file "
 INSERT INTO meeting_artifacts (id, meeting_id, artifact_type, name, storage_path, content_text)
 VALUES

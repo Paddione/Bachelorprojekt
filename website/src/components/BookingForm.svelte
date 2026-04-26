@@ -89,7 +89,8 @@
     slotsLoading = true;
     loading = true;
     slotLoadError = false;
-    selectedSlot = null;
+    // Don't reset selectedSlot here — onclick handlers that trigger a reload (leistung/type change)
+    // already set selectedSlot = null before this runs, preserving URL-pre-filled slots.
     days = [];
     const selectedLeistung = leistungenOptions.find(l => l.key === selectedLeistungKey);
     const duration = selectedLeistung?.durationMin ?? TYPE_DURATIONS[bookingType] ?? undefined;

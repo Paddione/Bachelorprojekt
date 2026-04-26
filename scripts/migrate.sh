@@ -68,6 +68,7 @@ done
 CFG_FILE="${SCRIPT_DIR}/.migrate-config"
 
 load_config() {
+  # shellcheck source=/dev/null
   [[ -f "$CFG_FILE" ]] && source "$CFG_FILE" || true
   # Defaults
   NC_URL="${NC_URL:-}"
@@ -283,6 +284,7 @@ flow_users() {
   local mode
   [[ "$fmt" == "2" ]] && mode="ldif" || mode="csv"
 
+  # shellcheck disable=SC2097,SC2098,SC2046
   KC_URL="$KC_URL" KC_ADMIN="$KC_ADMIN" KEYCLOAK_ADMIN_PASSWORD="$KC_PASS" \
     "${SCRIPT_DIR}/import-users.sh" "--${mode}" "$file_path" \
     --url "$KC_URL" --admin "$KC_ADMIN" --pass "$KC_PASS" \

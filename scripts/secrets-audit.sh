@@ -183,17 +183,12 @@ SOLO_MEMBERS=(
   "workspace-office:collabora-secrets:COLLABORA_ADMIN_PASSWORD"
 )
 
-# CLAUDE_CODE_WEBUI_SECRET_KEY only exists on prod clusters (sealed secret).
-# k3d/secrets.yaml has no dev placeholder, so skip it on dev to avoid a
-# constant "(empty/not found)" false-positive.
-if [[ "$ENV" != "dev" ]]; then
-  SOLO_LABELS+=(
-    "CLAUDE_CODE_WEBUI_SECRET_KEY"
-  )
-  SOLO_MEMBERS+=(
-    "workspace:workspace-secrets:CLAUDE_CODE_WEBUI_SECRET_KEY"
-  )
-fi
+SOLO_LABELS+=(
+  "CLAUDE_CODE_WEBUI_SECRET_KEY"
+)
+SOLO_MEMBERS+=(
+  "workspace:workspace-secrets:CLAUDE_CODE_WEBUI_SECRET_KEY"
+)
 
 # mcp-tokens only exists on the dev cluster (MCP servers are not deployed to
 # prod). Include the entries only when auditing dev so prod audits don't

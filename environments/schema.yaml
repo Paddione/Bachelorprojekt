@@ -302,6 +302,11 @@ secrets:
     generate: true
     length: 40
 
+  - name: CLAUDE_CODE_WEBUI_SECRET_KEY
+    required: true
+    generate: true
+    length: 48
+
   # External service keys (user-provided)
   - name: GITHUB_PAT
     required: false
@@ -355,6 +360,9 @@ secrets:
   - name: IPV64_API_KEY
     required: false
     generate: false
+    extra_namespaces:
+      - namespace: cert-manager
+        secret: ipv64-api-key
 
   - name: BRETT_BOT_SECRET
     required: true

@@ -1256,8 +1256,8 @@ canvas.addEventListener('mousemove', e => {
     const dx = e.clientX - orbit.startX;
     const dy = e.clientY - orbit.startY;
     const f = orbit.radius * 0.01;
-    orbit.panX -= dx * f * Math.cos(orbit.theta) - dy * f * Math.sin(orbit.theta);
-    orbit.panZ -= dx * f * (-Math.sin(orbit.theta)) + dy * f * (-Math.cos(orbit.theta));
+    orbit.panX += dx * f * Math.cos(orbit.theta) - dy * f * Math.sin(orbit.theta);
+    orbit.panZ += dx * f * (-Math.sin(orbit.theta)) + dy * f * (-Math.cos(orbit.theta));
     orbit.startX = e.clientX; orbit.startY = e.clientY;
     updateCamera(); return;
   }

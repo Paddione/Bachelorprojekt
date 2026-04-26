@@ -177,3 +177,47 @@ export async function sendNewsletterCampaign(params: {
     html: htmlWithFooter,
   });
 }
+
+export async function sendQuestionnaireAssigned(params: {
+  clientEmail: string;
+  clientName: string;
+  questionnaireTitle: string;
+  portalUrl: string;
+}): Promise<boolean> {
+  return sendEmail({
+    to: params.clientEmail,
+    subject: `Neuer Fragebogen für Sie: ${params.questionnaireTitle}`,
+    text: `Hallo ${params.clientName},
+
+ein neuer Fragebogen wurde Ihnen zugewiesen: ${params.questionnaireTitle}
+
+Sie können ihn jetzt in Ihrem Portal ausfüllen:
+${params.portalUrl}
+
+Mit freundlichen Grüßen
+${FROM_NAME}`,
+    html: `<p>Hallo ${params.clientName},</p>
+<p>ein neuer Fragebogen wurde Ihnen zugewiesen: <strong>${params.questionnaireTitle}</strong></p>
+<p><a href="${params.portalUrl}" style="display:inline-block;padding:10px 20px;background:#b8973a;color:#fff;text-decoration:none;border-radius:6px;">Fragebogen ausfüllen</a></p>
+<p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`,
+  });
+}
+
+export async function sendQuestionnaireSubmitted(params: {
+  adminEmail: string;
+  clientName: string;
+  questionnaireTitle: string;
+  auswertungUrl: string;
+}): Promise<boolean> {
+  return sendEmail({
+    to: params.adminEmail,
+    subject: `Fragebogen eingereicht: ${params.questionnaireTitle} — ${params.clientName}`,
+    text: `${params.clientName} hat den Fragebogen "${params.questionnaireTitle}" ausgefüllt.
+
+Auswertung: ${params.auswertungUrl}
+
+${FROM_NAME}`,
+    html: `<p><strong>${params.clientName}</strong> hat den Fragebogen <strong>${params.questionnaireTitle}</strong> ausgefüllt.</p>
+<p><a href="${params.auswertungUrl}">Auswertung ansehen →</a></p>`,
+  });
+}

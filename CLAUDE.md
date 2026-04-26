@@ -34,6 +34,15 @@ task workspace:psql -- <db>      # Open psql shell to shared-db
 task workspace:port-forward      # Forward shared-db to localhost:5432
 ```
 
+### Backup & Restore
+```bash
+task workspace:backup                                    # Trigger immediate backup
+task workspace:backup:list                               # List available backup timestamps
+task workspace:restore -- <db> <timestamp>               # Restore one DB (keycloak|nextcloud|vaultwarden|website|docuseal)
+task workspace:restore -- all <timestamp>                # Restore all DBs from one snapshot
+# Prod: append -- --context mentolder|korczewski to any of the above
+```
+
 ### Post-Deploy Setup
 ```bash
 task workspace:office:deploy ENV=<env>    # Deploy Collabora (separate overlay — required for full bring-up)

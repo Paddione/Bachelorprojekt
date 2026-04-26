@@ -255,6 +255,11 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: BRETT_BOT_SECRET
+            - name: STALENESS_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: STALENESS_WEBHOOK_SECRET
             # Nextcloud Talk DB connection — used by /api/admin/brett/broadcast
             # to find rooms with active calls (OCS API is user-scoped and only
             # lists rooms the configured admin is a participant of, which misses

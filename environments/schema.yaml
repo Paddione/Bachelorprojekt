@@ -377,6 +377,13 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: STALENESS_WEBHOOK_SECRET
+    required: true
+    generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true

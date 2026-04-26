@@ -38,6 +38,23 @@
     | { type: 'restart'; deployment: Deployment }
     | { type: 'scale'; deployment: Deployment };
 
+  type StalenessStatus = 'ok' | 'warning' | 'stale';
+
+  type StalenessFinding = {
+    system: string;
+    status: StalenessStatus;
+    issue: string;
+    recommendation?: string;
+  };
+
+  type StalenessReportData = {
+    id: number;
+    createdAt: string;
+    summary: string;
+    issueCount: number;
+    reportJson: { findings: StalenessFinding[]; generated_at: string };
+  };
+
   let data: MonitoringData | null = null;
   let loading = true;
   let error: string | null = null;
@@ -58,6 +75,9 @@
   let scaleTarget = 1;
   let actionLoading = false;
   let actionError: string | null = null;
+
+  let stalenessReport: StalenessReportData | null = null;
+  let stalenessLoading = true;
 
   function openModal(event: KubeEvent) {
     if (modalCloseTimer) clearTimeout(modalCloseTimer);
@@ -181,8 +201,20 @@
     }
   }
 
+  async function fetchStaleness() {
+    try {
+      const res = await fetch('/api/admin/staleness-report');
+      if (res.ok) stalenessReport = await res.json();
+    } catch {
+      // noop — card shows "no data"
+    } finally {
+      stalenessLoading = false;
+    }
+  }
+
   onMount(() => {
     fetchData();
+    fetchStaleness();
     refreshInterval = setInterval(fetchData, 15000);
     window.addEventListener('keydown', handleKeydown);
     return () => {
@@ -371,6 +403,49 @@
       No data available.
     </div>
   {/if}
+
+  <!-- Staleness Report -->
+  <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
+    <div class="px-4 py-5 sm:px-6 border-b border-dark-lighter flex items-center justify-between">
+      <h3 class="text-lg leading-6 font-medium text-light">Staleness Report</h3>
+      {#if stalenessReport}
+        <span class="text-xs text-muted">
+          Letzter Audit: {new Date(stalenessReport.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </span>
+      {/if}
+    </div>
+    {#if stalenessLoading}
+      <p class="px-4 py-4 text-sm text-gray-500 text-center">Lade…</p>
+    {:else if !stalenessReport}
+      <p class="px-4 py-4 text-sm text-gray-500 text-center">Noch kein Bericht vorhanden. Der erste erscheint nach dem wöchentlichen Audit.</p>
+    {:else}
+      <div class="px-4 py-3 border-b border-dark-lighter flex items-center gap-3 flex-wrap">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded text-sm font-semibold {stalenessReport.issueCount === 0 ? 'bg-green-900/40 text-green-400' : stalenessReport.issueCount <= 3 ? 'bg-orange-900/40 text-orange-400' : 'bg-red-900/40 text-red-400'}">
+          {stalenessReport.issueCount === 0 ? 'Alle Systeme aktuell' : `${stalenessReport.issueCount} System${stalenessReport.issueCount !== 1 ? 'e' : ''} braucht Aufmerksamkeit`}
+        </span>
+        <span class="text-sm text-muted">{stalenessReport.summary}</span>
+      </div>
+      <ul class="divide-y divide-dark-lighter max-h-[400px] overflow-y-auto">
+        {#each (stalenessReport.reportJson?.findings ?? []) as finding}
+          <li class="px-4 py-3 flex items-start gap-3">
+            <span class="flex-shrink-0 w-2 h-2 rounded-full mt-1.5 {finding.status === 'ok' ? 'bg-green-500' : finding.status === 'warning' ? 'bg-orange-500' : 'bg-red-500'}"></span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-light">{finding.system}</p>
+              {#if finding.status !== 'ok'}
+                <p class="text-xs text-muted mt-0.5">{finding.issue}</p>
+                {#if finding.recommendation}
+                  <p class="text-xs text-blue-400 mt-0.5">{finding.recommendation}</p>
+                {/if}
+              {/if}
+            </div>
+            <span class="flex-shrink-0 text-xs px-1.5 py-0.5 rounded {finding.status === 'ok' ? 'text-green-400' : finding.status === 'warning' ? 'text-orange-400' : 'text-red-400'}">
+              {finding.status}
+            </span>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </div>
 
   <!-- Deployments Section -->
   <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">

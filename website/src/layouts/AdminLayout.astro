@@ -10,6 +10,13 @@ interface Props {
   title: string;
 }
 
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  matches?: string[];
+}
+
 const { title } = Astro.props;
 const path = Astro.url.pathname;
 
@@ -46,7 +53,7 @@ const icons: Record<string, string> = {
   palette: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5a6.5 6.5 0 1 0 2.5 12.5c.6-.3.5-1.1 0-1.5a1.5 1.5 0 0 1 1.1-2.5H13a2 2 0 0 0 2-2 6.5 6.5 0 0 0-7-6.5z"/><circle cx="5" cy="6.5" r=".75" fill="currentColor" stroke="none"/><circle cx="8" cy="4.5" r=".75" fill="currentColor" stroke="none"/><circle cx="11" cy="6.5" r=".75" fill="currentColor" stroke="none"/></svg>`,
 };
 
-const navGroups = [
+const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Übersicht',
     items: [
@@ -71,32 +78,29 @@ const navGroups = [
     items: [
       { href: '/admin/monitoring', label: 'Monitoring', icon: 'monitor' },
       { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox' },
-    ],
-  },
-  {
-    label: 'Website',
-    items: [
-      { href: '/admin/startseite',  label: 'Startseite',  icon: 'layout' },
-      { href: '/admin/uebermich',   label: 'Über mich',   icon: 'person' },
-      { href: '/admin/angebote',    label: 'Angebote',    icon: 'tag' },
-      { href: '/admin/faq',         label: 'FAQ',         icon: 'help' },
-      { href: '/admin/kontakt',     label: 'Kontakt',     icon: 'mail' },
-      { href: '/admin/referenzen',  label: 'Referenzen',  icon: 'star' },
-      { href: '/admin/rechtliches', label: 'Rechtliches', icon: 'scale' },
+      {
+        href: '/admin/startseite',
+        label: 'Website',
+        icon: 'layout',
+        matches: ['/admin/startseite', '/admin/uebermich', '/admin/angebote', '/admin/faq', '/admin/kontakt', '/admin/referenzen', '/admin/rechtliches'],
+      },
     ],
   },
   {
     label: 'Einstellungen',
     items: [
-      { href: '/admin/einstellungen/benachrichtigungen', label: 'Benachrichtigungen', icon: 'bell' },
-      { href: '/admin/einstellungen/email',              label: 'E-Mail',              icon: 'mail' },
-      { href: '/admin/einstellungen/rechnungen',         label: 'Rechnungen',          icon: 'receipt' },
-      { href: '/admin/einstellungen/branding',           label: 'Branding',            icon: 'palette' },
+      {
+        href: '/admin/einstellungen/benachrichtigungen',
+        label: 'Einstellungen',
+        icon: 'bell',
+        matches: ['/admin/einstellungen/'],
+      },
     ],
   },
 ];
 
-function isActive(href: string): boolean {
+function isActive(href: string, matches?: string[]): boolean {
+  if (matches) return matches.some(m => path === m || path.startsWith(m));
   if (href === '/admin') return path === '/admin';
   return path.startsWith(href);
 }
@@ -308,16 +312,16 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
                   <a
                     href={item.href}
                     title={item.label}
-                    class={`sidebar-nav-item${isActive(item.href) ? ' is-active' : ''}`}
+                    class={`sidebar-nav-item${isActive(item.href, item.matches) ? ' is-active' : ''}`}
                     style={`display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
-                      isActive(item.href)
+                      isActive(item.href, item.matches)
                         ? 'background:var(--brass-d); color:var(--brass);'
                         : 'color:var(--fg-soft);'
                     }`}
                   >
                     <span
                       class="nav-icon"
-                      style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${isActive(item.href) ? 'color:var(--brass);' : 'color:var(--mute);'}`}
+                      style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${isActive(item.href, item.matches) ? 'color:var(--brass);' : 'color:var(--mute);'}`}
                       set:html={icons[item.icon]}
                     />
                     <span class="sidebar-label">{item.label}</span>

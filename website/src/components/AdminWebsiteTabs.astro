@@ -1,0 +1,25 @@
+---
+interface Props {
+  current: string;
+}
+const { current } = Astro.props;
+const tabs = [
+  { href: '/admin/startseite', label: 'Startseite' },
+  { href: '/admin/uebermich', label: 'Über mich' },
+  { href: '/admin/angebote', label: 'Angebote' },
+  { href: '/admin/faq', label: 'FAQ' },
+  { href: '/admin/kontakt', label: 'Kontakt' },
+  { href: '/admin/referenzen', label: 'Referenzen' },
+  { href: '/admin/rechtliches', label: 'Rechtliches' },
+];
+---
+<div style="border-bottom: 1px solid var(--line); padding: 0 2rem; display: flex; gap: 0; overflow-x: auto; flex-shrink: 0;">
+  {tabs.map(tab => (
+    <a
+      href={tab.href}
+      style={`display: inline-flex; align-items: center; padding: 12px 16px; font-size: 13px; font-weight: 500; border-bottom: 2px solid ${current === tab.href ? 'var(--brass)' : 'transparent'}; color: ${current === tab.href ? 'var(--brass)' : 'var(--fg-soft)'}; text-decoration: none; white-space: nowrap; transition: color 0.15s ease, border-color 0.15s ease; margin-bottom: -1px;`}
+    >
+      {tab.label}
+    </a>
+  ))}
+</div>

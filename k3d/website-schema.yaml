@@ -317,6 +317,15 @@ data:
       CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
           ON polls ((true)) WHERE status = 'open';
 
+      -- ── Staleness Reports ─────────────────────────────────────────────────
+      CREATE TABLE IF NOT EXISTS staleness_reports (
+          id          SERIAL PRIMARY KEY,
+          created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+          report_json JSONB NOT NULL,
+          summary     TEXT NOT NULL DEFAULT '',
+          issue_count INTEGER NOT NULL DEFAULT 0
+      );
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -620,6 +629,15 @@ data:
 
       CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
           ON polls ((true)) WHERE status = 'open';
+
+      -- ── Staleness Reports ─────────────────────────────────────────────────
+      CREATE TABLE IF NOT EXISTS staleness_reports (
+          id          SERIAL PRIMARY KEY,
+          created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+          report_json JSONB NOT NULL,
+          summary     TEXT NOT NULL DEFAULT '',
+          issue_count INTEGER NOT NULL DEFAULT 0
+      );
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

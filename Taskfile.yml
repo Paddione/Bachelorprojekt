@@ -589,6 +589,21 @@ tasks:
       - 'echo "Connect: psql -h localhost -p 5432 -U postgres"'
       - kubectl port-forward -n workspace svc/shared-db 5432:5432
 
+  workspace:backup:
+    desc: "Trigger an immediate database backup (usage: task workspace:backup [-- --context <ctx>])"
+    cmds:
+      - bash scripts/backup-restore.sh trigger {{.CLI_ARGS}}
+
+  workspace:backup:list:
+    desc: "List available database backup timestamps (usage: task workspace:backup:list [-- --context <ctx>])"
+    cmds:
+      - bash scripts/backup-restore.sh list {{.CLI_ARGS}}
+
+  workspace:restore:
+    desc: "Restore a database from backup (usage: task workspace:restore -- <db> <timestamp> [--context <ctx>])"
+    cmds:
+      - bash scripts/backup-restore.sh restore {{.CLI_ARGS}}
+
   workspace:teardown:
     desc: Remove all Workspace MVP resources
     prompt: "This will delete the workspace namespace and all data. Continue?"

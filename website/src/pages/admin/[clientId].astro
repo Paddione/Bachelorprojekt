@@ -196,6 +196,7 @@ try {
         </div>
       )}
 
+
       <!-- Kundennummer / Admin-Nummer -->
       {customerRecord && (
         <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -624,6 +625,7 @@ try {
   document.getElementById('flag-as-admin-btn')?.addEventListener('click', (e) => {
     flagUser(e.currentTarget as HTMLButtonElement);
   });
+
 
   // Role checkboxes
   document.querySelectorAll<HTMLInputElement>('.role-checkbox').forEach(cb => {

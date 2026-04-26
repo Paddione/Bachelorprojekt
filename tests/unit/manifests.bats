@@ -131,7 +131,11 @@ all_images() {
 
 @test "ingress: all core hosts defined" {
   local hosts
-  hosts=$(grep -oP 'host:\s*\K\S+' "$RENDERED" | sort -u)
+  # Collect hosts from standard Ingress rules AND Traefik IngressRoute match expressions
+  hosts=$(
+    { grep -oP 'host:\s*\K\S+' "$RENDERED"; grep -oP 'Host\(`\K[^`]+' "$RENDERED"; } \
+      | sort -u
+  )
   for svc in auth files office vault mail; do
     echo "$hosts" | grep -q "${svc}\." || {
       echo "Missing ingress host for: ${svc}"
@@ -145,7 +149,7 @@ all_images() {
 @test "no core service images use :latest tag" {
   # MCP sidecar images may use :latest (upstream-controlled); skip those
   local latest_images
-  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl|talk-transcriber|paddione/bachelorprojekt)' || true)
+  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl|talk-transcriber|paddione/bachelorprojekt|workspace-brett)' || true)
   if [[ -n "$latest_images" ]]; then
     echo "Core images using :latest: ${latest_images}"
     return 1

@@ -61,6 +61,7 @@
   let refreshInterval: ReturnType<typeof setInterval>;
 
   let selectedEvent: KubeEvent | null = null;
+  let selectedFinding: StalenessFinding | null = null;
   let modalDescription = '';
   let modalCategory = 'fehler';
   let modalLoading = false;
@@ -82,7 +83,19 @@
   function openModal(event: KubeEvent) {
     if (modalCloseTimer) clearTimeout(modalCloseTimer);
     selectedEvent = event;
+    selectedFinding = null;
     modalDescription = `${event.reason} on ${event.object}: ${event.message}`;
+    modalCategory = 'fehler';
+    modalLoading = false;
+    modalError = null;
+    modalSuccessId = null;
+  }
+
+  function openFindingModal(finding: StalenessFinding) {
+    if (modalCloseTimer) clearTimeout(modalCloseTimer);
+    selectedFinding = finding;
+    selectedEvent = null;
+    modalDescription = `Staleness: ${finding.system} – Status: ${finding.status}: ${finding.issue}${finding.recommendation ? ` Empfehlung: ${finding.recommendation}` : ''}`;
     modalCategory = 'fehler';
     modalLoading = false;
     modalError = null;
@@ -92,12 +105,13 @@
   function closeModal() {
     if (modalCloseTimer) { clearTimeout(modalCloseTimer); modalCloseTimer = null; }
     selectedEvent = null;
+    selectedFinding = null;
     modalSuccessId = null;
     modalError = null;
   }
 
   async function submitTicket() {
-    if (!selectedEvent) return;
+    if (!selectedEvent && !selectedFinding) return;
     modalLoading = true;
     modalError = null;
     try {
@@ -438,9 +452,23 @@
                 {/if}
               {/if}
             </div>
-            <span class="flex-shrink-0 text-xs px-1.5 py-0.5 rounded {finding.status === 'ok' ? 'text-green-400' : finding.status === 'warning' ? 'text-orange-400' : 'text-red-400'}">
-              {finding.status}
-            </span>
+            <div class="flex-shrink-0 flex items-center gap-2">
+              <span class="text-xs px-1.5 py-0.5 rounded {finding.status === 'ok' ? 'text-green-400' : finding.status === 'warning' ? 'text-orange-400' : 'text-red-400'}">
+                {finding.status}
+              </span>
+              {#if finding.status !== 'ok'}
+                <button
+                  on:click={() => openFindingModal(finding)}
+                  title="Bug Ticket erstellen"
+                  class="text-gray-400 hover:text-red-500 transition-colors"
+                  aria-label="Bug Ticket erstellen"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              {/if}
+            </div>
           </li>
         {/each}
       </ul>
@@ -502,7 +530,7 @@
   </div>
 </div>
 
-{#if selectedEvent}
+{#if selectedEvent || selectedFinding}
   <!-- Modal backdrop -->
   <div
     class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
@@ -528,10 +556,16 @@
 
       <!-- Body -->
       <div class="px-6 py-4 space-y-4">
-        <!-- Event summary -->
-        <p class="text-xs text-muted font-mono bg-dark rounded px-3 py-2">
-          {selectedEvent.type} · {selectedEvent.reason} · {selectedEvent.object}
-        </p>
+        <!-- Source summary -->
+        {#if selectedEvent}
+          <p class="text-xs text-muted font-mono bg-dark rounded px-3 py-2">
+            {selectedEvent.type} · {selectedEvent.reason} · {selectedEvent.object}
+          </p>
+        {:else if selectedFinding}
+          <p class="text-xs text-muted font-mono bg-dark rounded px-3 py-2">
+            Staleness · {selectedFinding.system} · {selectedFinding.status}
+          </p>
+        {/if}
 
         {#if modalSuccessId}
           <div class="text-sm text-green-500 space-y-1">

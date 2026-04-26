@@ -296,6 +296,11 @@ secrets:
     generate: true
     length: 40
 
+  - name: BRETT_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
   # Claude Code
   - name: CLAUDE_CODE_OIDC_SECRET
     required: true

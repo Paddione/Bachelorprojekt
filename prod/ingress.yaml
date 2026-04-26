@@ -227,7 +227,7 @@ spec:
                 port:
                   number: 80
 ---
-# ── Systemisches Brett (3D) ─────────────────────────────────────────
+# ── Systemisches Brett (3D) — SSO via oauth2-proxy ─────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -247,6 +247,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: brett
+                name: oauth2-proxy-brett
                 port:
-                  number: 3000
+                  number: 4180

@@ -1,136 +1,122 @@
 # Backup & Wiederherstellung
 
-## Uberblick
+## Überblick
 
-Automatische Datenbank-Backups werden uber einen Kubernetes CronJob ausgefuhrt (`k3d/backup-cronjob.yaml`):
+Automatische Datenbank-Backups laufen täglich als Kubernetes CronJob (`k3d/backup-cronjob.yaml`):
 
-- **Zeitplan:** Taglich um 02:00 UTC
-- **Gesicherte Datenbanken:** `keycloak` und `nextcloud` (separate PostgreSQL-Instanzen per pg_dump)
-- **Verschlusselung:** AES-256-CBC mit eigenem Passphrase-Secret
-- **Aufbewahrung:** 30 Tage (altere Backups werden automatisch geloscht)
-- **Speicherort:** PersistentVolumeClaim `backup-pvc` (1 Gi, ReadWriteOnce)
-- **Sicherheitsanforderung:** SA-07 (tagliche Backups mit Verschlusselung)
+- **Zeitplan:** Täglich um 02:00 UTC
+- **Gesicherte Datenbanken:** `keycloak`, `nextcloud`, `vaultwarden`, `website`, `docuseal`
+- **Verschlüsselung:** AES-256-CBC mit PBKDF2 (Passphrase aus `workspace-secrets`)
+- **Aufbewahrung:** 30 Tage (automatische Bereinigung)
+- **Speicherort:** PVC `backup-pvc` (1 Gi, ReadWriteOnce) im Namespace `workspace`
+- **Sicherheitsanforderung:** SA-07 (tägliche Backups mit Verschlüsselung)
 
----
-
-## Backup-Konfiguration
-
-**`k3d/backup-cronjob.yaml`** -- CronJob-Manifest:
-
-- Zeitplan: `0 2 * * *` (02:00 UTC taglich)
-- Image: `postgres:16.13-alpine`
-- Pro Datenbank wird `pg_dump -Fc` (custom format, komprimiert) ausgefuhrt
-- Nach dem Dump werden alle `.dump`-Dateien mit `openssl enc -aes-256-cbc -pbkdf2` verschlusselt
-- Unverschlusselte `.dump`-Dateien werden unmittelbar nach der Verschlusselung geloscht
-- Backups alter als 30 Tage werden automatisch bereinigt (`find /backups -mtime +30 -exec rm -rf`)
-- Erfolgreiche/fehlgeschlagene Jobs: jeweils 3 Historieneintr age
-
-**`k3d/backup-pvc.yaml`** -- PersistentVolumeClaim:
-
-- Name: `backup-pvc`
-- Kapazitat: 1 Gi
-- AccessMode: `ReadWriteOnce`
-
-**Passphrase:** Key `BACKUP_PASSPHRASE` aus `workspace-secrets` (SealedSecret):
-
-- Dev: Platzhalter in `k3d/secrets.yaml`
-- Prod: versiegelt in `environments/sealed-secrets/<env>.yaml`
-- Der CronJob liest den Wert uber die Umgebungsvariable `BACKUP_PASSPHRASE` und ubergibt sie als `-pass env:BACKUP_PASSPHRASE` an openssl
+> **Hinweis:** Datei-PVCs (Nextcloud-Dateien, Vaultwarden-Anhänge, DocuSeal-Dokumente)
+> werden **nicht** automatisch gesichert — nur die Datenbankdaten.
 
 ---
 
 ## Was wird gesichert
 
-| Datenbank | Host im Cluster | Benutzer | Inhalt |
-|-----------|----------------|---------|--------|
-| `keycloak` | `keycloak-db` | `keycloak` | SSO-Konfiguration, Benutzer, Realms, Clients |
-| `nextcloud` | `nextcloud-db` | `nextcloud` | Nextcloud-Metadaten, Dateiindex, Kalender, Kontakte |
-
-**Nicht gesichert:**
-
-- **Nextcloud-Dateien** (PVC `nextcloud-data`) -- nur Datenbankmetadaten werden gesichert
-- **Vaultwarden-Daten** -- separates Backup erforderlich
-- **Website-Datenbank** -- separates Backup erforderlich
+| Datenbank    | Inhalt                                              |
+|--------------|-----------------------------------------------------|
+| `keycloak`   | SSO-Konfiguration, Benutzer, Realms, Clients        |
+| `nextcloud`  | Datei-Index, Kalender, Kontakte, Metadaten          |
+| `vaultwarden`| Passwort-Vault-Struktur (nicht: Datei-Anhänge)      |
+| `website`    | Website-Anwendungsdatenbank                         |
+| `docuseal`   | Signaturprozesse, Vorlagen (nicht: Dokumentendateien)|
 
 ---
 
-## Manuelles Backup
-
-Um ein sofortiges Backup ausserhalb des Zeitplans auszufuhren:
+## Backup-Status prüfen
 
 ```bash
-# Keycloak-Datenbank manuell sichern
-kubectl exec -n workspace deploy/keycloak-db -- \
-  pg_dump -Fc -U keycloak -d keycloak | gzip > keycloak-backup-$(date +%Y%m%d).gz
+# Verfügbare Backup-Zeitstempel anzeigen
+task workspace:backup:list
 
-# Nextcloud-Datenbank manuell sichern
-kubectl exec -n workspace deploy/nextcloud-db -- \
-  pg_dump -Fc -U nextcloud -d nextcloud | gzip > nextcloud-backup-$(date +%Y%m%d).gz
+# Oder mit Prod-Context
+task workspace:backup:list -- --context mentolder
+
+# CronJob- und Job-Status
+kubectl get cronjobs -n workspace
+kubectl get jobs -n workspace | grep db-backup
+kubectl logs -n workspace -l app=db-backup --tail=50
 ```
 
-Oder uber die psql-Shell:
+---
+
+## Manuelles Backup auslösen
 
 ```bash
-task workspace:psql -- keycloak   # Keycloak-DB-Shell
-task workspace:psql -- nextcloud  # Nextcloud-DB-Shell
+# Sofort-Backup starten (außerhalb des Zeitplans)
+task workspace:backup
+
+# Prod-Cluster
+task workspace:backup -- --context mentolder
+task workspace:backup -- --context korczewski
 ```
+
+Das Skript erstellt einen Job aus dem CronJob-Template und folgt den Logs.
 
 ---
 
 ## Wiederherstellung
 
-> **Achtung:** Eine Wiederherstellung uberschreibt alle vorhandenen Daten. Services vorher stoppen, um Datenkonsistenz zu gewahrleisten.
+> **Achtung:** Die Wiederherstellung **löscht** die Datenbank und stellt sie neu auf.
+> Alle aktuellen Daten gehen verloren. Services vorher stoppen, um inkonsistente
+> Schreibvorgänge zu vermeiden.
 
-**Schritt 1: Backup-Datei identifizieren und entschlusseln**
+### Schritt 1 — Verfügbare Backups auflisten
 
 ```bash
-# Verfugbare Backups auflisten
-kubectl exec -n workspace <backup-pod> -- ls -lh /backups/
-
-# Verschlusseltes Backup entschlusseln (lokale Kopie)
-openssl enc -d -aes-256-cbc -pbkdf2 \
-  -in keycloak.dump.enc -out keycloak.dump \
-  -pass pass:<PASSPHRASE>
+task workspace:backup:list
+# Ausgabe: Zeitstempel, z.B. 20260427-020001
 ```
 
-**Schritt 2: Backup-Datei in Pod kopieren**
+### Schritt 2 — Service stoppen (empfohlen)
 
 ```bash
-kubectl cp keycloak.dump workspace/<keycloak-db-pod>:/tmp/keycloak.dump
+kubectl scale deployment/<service> -n workspace --replicas=0
+# z.B. für nextcloud:
+kubectl scale deployment/nextcloud -n workspace --replicas=0
 ```
 
-**Schritt 3: Datenbank wiederherstellen**
+### Schritt 3 — Datenbank wiederherstellen
 
 ```bash
-# Bestehende Datenbank leeren und neu erstellen
-kubectl exec -n workspace deploy/keycloak-db -- \
-  bash -c "dropdb -U keycloak keycloak && createdb -U keycloak keycloak"
+# Einzelne Datenbank
+task workspace:restore -- nextcloud 20260427-020001
 
-# Backup einspielen (pg_restore fur custom format)
-kubectl exec -n workspace deploy/keycloak-db -- \
-  pg_restore -U keycloak -d keycloak /tmp/keycloak.dump
+# Alle Datenbanken auf einmal
+task workspace:restore -- all 20260427-020001
+
+# Prod-Cluster (mit Context + ohne Bestätigungsprompt)
+task workspace:restore -- nextcloud 20260427-020001 --context mentolder -y
 ```
 
-**Schritt 4: Abhangige Services neu starten**
+Das Restore-Skript (`scripts/backup-restore.sh restore`) führt folgende Schritte durch:
+
+1. Entschlüsselt die `.dump.enc`-Datei mit dem `BACKUP_PASSPHRASE`-Secret
+2. Trennt aktive Verbindungen zur Zieldatenbank
+3. Löscht die bestehende Datenbank (`dropdb`)
+4. Erstellt eine neue leere Datenbank (`createdb`)
+5. Spielt das Dump ein (`pg_restore --no-owner --exit-on-error`)
+6. Löscht die temporäre entschlüsselte Dump-Datei
+
+### Schritt 4 — Service neu starten
 
 ```bash
-task workspace:restart -- keycloak
 task workspace:restart -- nextcloud
+# oder: kubectl scale deployment/nextcloud -n workspace --replicas=1
 ```
 
 ---
 
-## Backup-Status pruefen
+## Direktzugriff auf Backup-PVC
+
+Für manuelle Inspektion der gespeicherten Backups:
 
 ```bash
-# CronJob-Ausfuhrungen anzeigen
-kubectl get cronjobs -n workspace
-kubectl get jobs -n workspace | grep db-backup
-
-# Logs des letzten Backup-Jobs
-kubectl logs -n workspace -l app=db-backup --tail=50
-
-# Gespeicherte Backups auflisten (uber einen temporaren Pod)
 kubectl run --rm -it backup-check --image=busybox \
   --overrides='{"spec":{"volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"containers":[{"name":"c","image":"busybox","command":["ls","-lRh","/backups"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}]}}' \
   --restart=Never -n workspace
@@ -138,43 +124,41 @@ kubectl run --rm -it backup-check --image=busybox \
 
 ---
 
-## Nextcloud-Dateien sichern
+## Nextcloud-Dateien sichern (manuell)
 
-Die Nextcloud-Dateidaten liegen auf einem separaten PVC (`nextcloud-data`) und werden vom automatischen Backup **nicht** erfasst. Fur eine vollstandige Sicherung:
-
-**Option 1: kubectl cp (fur kleinere Datenmengen)**
-
-```bash
-kubectl cp workspace/<nextcloud-pod>:/var/www/html/data /lokal/nextcloud-backup/
-```
-
-**Option 2: Nextcloud-Wartungsmodus + Volume-Backup**
+Nextcloud-Benutzerdaten liegen auf `nextcloud-data-pvc` und werden **nicht** automatisch gesichert.
+Für eine vollständige Sicherung:
 
 ```bash
-# Nextcloud in Wartungsmodus versetzen
+# Nextcloud in Wartungsmodus
 kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
   su -s /bin/bash www-data -c "php occ maintenance:mode --on"
 
-# Volume-Snapshot oder PVC-Backup mit eigenem Tool (z.B. Velero)
+# Datei-Backup per kubectl cp
+kubectl cp workspace/$(kubectl get pod -n workspace -l app=nextcloud -o name | head -1 | cut -d/ -f2):/var/www/html/data ./nextcloud-data-backup-$(date +%Y%m%d)/
 
 # Wartungsmodus beenden
 kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
   su -s /bin/bash www-data -c "php occ maintenance:mode --off"
 ```
 
-**Option 3: Nextcloud Admin-Oberflache**
-
-Nextcloud -> Einstellungen -> Administration -> Grundeinstellungen -> Backup-App (falls installiert).
-
 ---
 
 ## Aufbewahrungsstrategie
 
-| Kategorie | Aufbewahrung |
-|-----------|-------------|
-| Automatische Datenbank-Backups | 30 Tage (automatische Bereinigung) |
-| Job-Historieneintrage (erfolgreich) | 3 Jobs |
-| Job-Historieneintrage (fehlgeschlagen) | 3 Jobs |
-| Nextcloud-Dateien | Manuell (kein automatisches Backup) |
+| Kategorie                          | Aufbewahrung                    |
+|------------------------------------|----------------------------------|
+| Automatische DB-Backups            | 30 Tage (automatische Bereinigung) |
+| Job-Historieneinträge (erfolgreich) | 3 Jobs                          |
+| Job-Historieneinträge (fehlgeschlagen) | 3 Jobs                       |
+| Nextcloud-Dateien                  | Manuell (kein Automatik-Backup) |
 
-Fur langerfristige Aufbewahrung empfiehlt sich ein externer Backup-Dienst (z.B. S3-kompatibel, Backblaze B2) mit regelmasiger Kopie der `/backups/`-Verzeichnisse.
+---
+
+## Backup-Passphrase verwalten
+
+- **Dev:** Platzhalter in `k3d/secrets.yaml` (`BACKUP_PASSPHRASE: "devbackuppassphrase1234567890abcd"`)
+- **Prod:** Versiegelt in `environments/sealed-secrets/<env>.yaml`, angewendet vor dem Deploy
+- **Rotation:** `task env:generate ENV=<env>` → `task env:seal ENV=<env>` → Deploy
+
+Die Passphrase wird ausschließlich aus `workspace-secrets` gelesen — nie im Klartext in Logs oder Manifesten.

@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminWebsiteTabs from '../../components/AdminWebsiteTabs.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getEffectiveFaq } from '../../lib/content';
 
@@ -15,6 +16,7 @@ const labelCls = 'block text-xs text-muted mb-1';
 ---
 
 <AdminLayout title="Admin — FAQ">
+  <AdminWebsiteTabs current={Astro.url.pathname} />
   <section class="pt-10 pb-20 px-8 max-w-4xl">
 
     <div class="mb-8">

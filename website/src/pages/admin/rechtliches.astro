@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminWebsiteTabs from '../../components/AdminWebsiteTabs.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getLegalPage } from '../../lib/website-db';
 import { config } from '../../config/index';
@@ -33,6 +34,7 @@ wenden Sie sich bitte direkt an uns.</p>`;
 ---
 
 <AdminLayout title="Admin — Rechtliches">
+  <AdminWebsiteTabs current={Astro.url.pathname} />
   <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
 

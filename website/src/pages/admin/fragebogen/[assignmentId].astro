@@ -1,0 +1,171 @@
+---
+// website/src/pages/admin/fragebogen/[assignmentId].astro
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import {
+  getQAssignment, listQDimensions, listQQuestions,
+  listQAnswerOptionsForTemplate, listQAnswers,
+} from '../../../lib/questionnaire-db';
+import { computeScores } from '../../../lib/compute-scores';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const { assignmentId } = Astro.params;
+if (!assignmentId) return Astro.redirect('/admin');
+
+const assignment = await getQAssignment(assignmentId).catch(() => null);
+if (!assignment) return Astro.redirect('/admin');
+
+const [dimensions, questions, allOptions, answers] = await Promise.all([
+  listQDimensions(assignment.template_id),
+  listQQuestions(assignment.template_id),
+  listQAnswerOptionsForTemplate(assignment.template_id),
+  listQAnswers(assignment.id),
+]);
+
+const scores = computeScores(dimensions, allOptions, answers);
+const answerMap = new Map(answers.map(a => [a.question_id, a.option_key]));
+
+function levelColor(level: string | null) {
+  if (level === 'kritisch') return '#ef4444';
+  if (level === 'mittel') return '#f59e0b';
+  if (level === 'förderlich') return '#22c55e';
+  return '#b8a06a';
+}
+
+function fmtDate(d: string | null) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?? 1), 1);
+---
+
+<AdminLayout title={`Auswertung — ${assignment.template_title}`}>
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-3xl mx-auto px-6">
+
+      <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <a href="javascript:history.back()" class="text-muted text-sm hover:text-light mb-2 block">← Zurück</a>
+          <h1 class="text-2xl font-bold text-light font-serif">{assignment.template_title}</h1>
+          <p class="text-muted mt-1 text-sm">
+            Eingereicht: {fmtDate(assignment.submitted_at)}
+          </p>
+        </div>
+        <span class={`px-3 py-1 rounded-full border text-sm ${
+          assignment.status === 'reviewed' ? 'bg-green-500/10 text-green-400 border-green-500/20'
+          : assignment.status === 'submitted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+          : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+        }`}>
+          {assignment.status === 'reviewed' ? 'Besprochen' : assignment.status === 'submitted' ? 'Eingereicht' : assignment.status}
+        </span>
+      </div>
+
+      <!-- Score bars -->
+      {scores.length > 0 && (
+        <div class="mb-8 p-6 bg-dark-light rounded-xl border border-dark-lighter">
+          <h2 class="text-sm font-medium text-muted uppercase tracking-wide mb-4">Auswertung</h2>
+          <div class="flex flex-col gap-4">
+            {scores.map(score => {
+              const pct = Math.min((score.final_score / Math.max(maxScore * (score.threshold_high ? 1 : 1), 100)) * 100, 100);
+              const color = levelColor(score.level);
+              return (
+                <div>
+                  <div class="flex justify-between items-baseline mb-1.5">
+                    <span class="text-light text-sm">{score.name}</span>
+                    <span class="text-sm font-mono" style={`color: ${color}`}>
+                      {score.final_score}
+                      {score.level && ` · ${score.level}`}
+                    </span>
+                  </div>
+                  <div class="h-2 bg-dark rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                      style={`width: ${pct}%; background-color: ${color}`}></div>
+                  </div>
+                  {score.threshold_mid !== null && score.threshold_high !== null && (
+                    <div class="flex gap-3 mt-1">
+                      <span class="text-xs text-green-400">■ &lt;{score.threshold_mid} förderlich</span>
+                      <span class="text-xs text-amber-400">■ &lt;{score.threshold_high} mittel</span>
+                      <span class="text-xs text-red-400">■ ≥{score.threshold_high} kritisch</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <!-- Raw answers -->
+      <div class="mb-8 p-6 bg-dark-light rounded-xl border border-dark-lighter">
+        <h2 class="text-sm font-medium text-muted uppercase tracking-wide mb-4">Einzelantworten ({answers.length}/{questions.length})</h2>
+        <div class="flex flex-col gap-3">
+          {questions.map((q, i) => {
+            const chosen = answerMap.get(q.id);
+            return (
+              <div class="border-b border-dark-lighter pb-3 last:border-0 last:pb-0">
+                <p class="text-muted text-xs mb-1">Frage {i + 1}</p>
+                <p class="text-light text-sm whitespace-pre-line mb-1">{q.question_text}</p>
+                {chosen ? (
+                  <span class="inline-block px-2 py-0.5 bg-gold/10 text-gold border border-gold/20 rounded text-xs">
+                    Gewählt: {chosen}
+                  </span>
+                ) : (
+                  <span class="text-muted text-xs italic">Nicht beantwortet</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <!-- Coach notes + status -->
+      <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter" id="notes-section">
+        <h2 class="text-sm font-medium text-muted uppercase tracking-wide mb-4">Coach-Notizen</h2>
+        <textarea
+          id="coach-notes"
+          rows="5"
+          placeholder="Notizen und Interpretation…"
+          class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none resize-y mb-3"
+        >{assignment.coach_notes}</textarea>
+        <div class="flex gap-3">
+          <button id="save-notes-btn"
+            class="px-4 py-2 bg-dark border border-dark-lighter text-light rounded-lg text-sm hover:border-gold/40 transition-colors">
+            Notizen speichern
+          </button>
+          {assignment.status !== 'reviewed' && (
+            <button id="mark-reviewed-btn"
+              class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80">
+              Als besprochen markieren ✓
+            </button>
+          )}
+        </div>
+        <p id="notes-msg" class="text-xs mt-2 hidden"></p>
+      </div>
+
+    </div>
+  </section>
+</AdminLayout>
+
+<script define:vars={{ assignmentId }}>
+  const notesEl = document.getElementById('coach-notes');
+  const msgEl = document.getElementById('notes-msg');
+
+  async function saveNotes(status) {
+    const body = { coach_notes: notesEl.value };
+    if (status) body.status = status;
+    const r = await fetch(`/api/admin/questionnaires/assignments/${assignmentId}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    msgEl.textContent = r.ok ? 'Gespeichert.' : 'Fehler beim Speichern.';
+    msgEl.className = `text-xs mt-2 ${r.ok ? 'text-green-400' : 'text-red-400'}`;
+    msgEl.classList.remove('hidden');
+    if (status === 'reviewed' && r.ok) window.location.reload();
+  }
+
+  document.getElementById('save-notes-btn')?.addEventListener('click', () => saveNotes(null));
+  document.getElementById('mark-reviewed-btn')?.addEventListener('click', () => saveNotes('reviewed'));
+</script>

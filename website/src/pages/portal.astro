@@ -7,6 +7,8 @@ import { getClientBookings } from '../lib/caldav';
 import { getCustomerInvoices } from '../lib/stripe-billing';
 import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR } from '../lib/nextcloud-files';
 import { countPendingAssignmentsForCustomer } from '../lib/documents-db';
+import { countPendingQAssignmentsForCustomer, listQAssignmentsForCustomer } from '../lib/questionnaire-db';
+import type { QAssignment } from '../lib/questionnaire-db';
 
 import OverviewSection      from '../components/portal/OverviewSection.astro';
 import NachrichtenSection   from '../components/portal/NachrichtenSection.astro';
@@ -19,6 +21,7 @@ import SignaturesTab        from '../components/portal/SignaturesTab.astro';
 import OnboardingTab        from '../components/portal/OnboardingTab.astro';
 import DiensteSection       from '../components/portal/DiensteSection.astro';
 import KontoSection         from '../components/portal/KontoSection.astro';
+import FragebogenSection    from '../components/portal/FragebogenSection.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -33,8 +36,9 @@ const keycloakBase = process.env.KEYCLOAK_FRONTEND_URL ?? '';
 const realm        = process.env.KEYCLOAK_REALM ?? 'workspace';
 
 // ── Badge counts (always fetched — needed for sidebar) ────────────
-let unreadMessages    = 0;
-let pendingSignatures = 0;
+let unreadMessages        = 0;
+let pendingSignatures     = 0;
+let pendingQuestionnaires = 0;
 
 // Ensure a customer record exists for every Keycloak user so room lookups work
 await upsertCustomer({ name: session.name, email: session.email, keycloakUserId: session.sub }).catch(() => null);
@@ -53,6 +57,7 @@ try {
 if (customer) {
   const docusealPending = await countPendingAssignmentsForCustomer(customer.id).catch(() => 0);
   pendingSignatures += docusealPending;
+  pendingQuestionnaires = await countPendingQAssignmentsForCustomer(customer.id).catch(() => 0);
 }
 
 // ── Section data (lazy — only what the active section needs) ──────
@@ -98,6 +103,10 @@ const bookings = section === 'termine'
 const projects = section === 'projekte'
   ? await listProjectsForCustomer(session.sub).catch(() => [])
   : [];
+
+const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
+  ? await listQAssignmentsForCustomer(customer.id).catch(() => [])
+  : [];
 ---
 
 <PortalLayout
@@ -105,6 +114,7 @@ const projects = section === 'projekte'
   {section}
   {session}
   {pendingSignatures}
+  {pendingQuestionnaires}
 >
   {section === 'overview'       && <OverviewSection {session} {nextBooking} {openInvoices} {unreadMessages} {onboardingPct} {ncBase} {vaultUrl} {wbUrl} />}
   {section === 'nachrichten'    && <NachrichtenSection {rooms} />}
@@ -125,6 +135,7 @@ const projects = section === 'projekte'
       <OnboardingTab keycloakUserId={session.sub} back={Astro.url.href} />
     </div>
   )}
+  {section === 'fragebögen'     && <FragebogenSection assignments={questionnaires} />}
   {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {wbUrl} {keycloakBase} />}
   {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
 </PortalLayout>

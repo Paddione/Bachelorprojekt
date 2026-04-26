@@ -33,6 +33,8 @@ export interface Customer {
   name: string;
   email: string;
   customer_number?: string;
+  admin_number?: string;
+  is_admin?: boolean;
   phone?: string;
   company?: string;
 }
@@ -88,10 +90,11 @@ export async function declineEnrollment(id: string): Promise<void> {
 }
 
 export async function getCustomerFullById(id: string): Promise<{
-  id: string; name: string; email: string; phone?: string; company?: string; customer_number?: string;
+  id: string; name: string; email: string; phone?: string; company?: string;
+  customer_number?: string; admin_number?: string; is_admin?: boolean;
 } | null> {
   const result = await pool.query(
-    `SELECT id, name, email, phone, company, customer_number FROM customers WHERE id = $1`,
+    `SELECT id, name, email, phone, company, customer_number, admin_number, is_admin FROM customers WHERE id = $1`,
     [id]
   );
   return result.rows[0] ?? null;
@@ -118,6 +121,33 @@ export async function setCustomerNumber(
     [customerNumber, customerId]
   );
   return { ok: true };
+}
+
+export async function setAdminNumber(
+  customerId: string,
+  adminNumber: string | null
+): Promise<{ ok: boolean; error?: string }> {
+  if (adminNumber !== null && !/^A\d{4}$/.test(adminNumber)) {
+    return { ok: false, error: 'Ungültiges Format. Erwartet: A0001–A9999' };
+  }
+  if (adminNumber !== null) {
+    const dup = await pool.query(
+      'SELECT id FROM customers WHERE admin_number = $1 AND id != $2',
+      [adminNumber, customerId]
+    );
+    if (dup.rows.length > 0) {
+      return { ok: false, error: `${adminNumber} ist bereits vergeben.` };
+    }
+  }
+  await pool.query(
+    'UPDATE customers SET admin_number = $1 WHERE id = $2',
+    [adminNumber, customerId]
+  );
+  return { ok: true };
+}
+
+export async function setIsAdmin(customerId: string, isAdmin: boolean): Promise<void> {
+  await pool.query('UPDATE customers SET is_admin = $1 WHERE id = $2', [isAdmin, customerId]);
 }
 
 // ── Schema init ─────────────────────────────────────────────────────────────
@@ -853,6 +883,9 @@ export interface Project {
   customerId: string | null;
   customerName: string | null;
   customerEmail: string | null;
+  adminId: string | null;
+  adminName: string | null;
+  adminEmail: string | null;
   subProjectCount: number;
   taskCount: number;
   createdAt: Date;
@@ -872,6 +905,9 @@ export interface SubProject {
   customerId: string | null;
   customerName: string | null;
   customerEmail: string | null;
+  adminId: string | null;
+  adminName: string | null;
+  adminEmail: string | null;
   taskCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -891,6 +927,9 @@ export interface ProjectTask {
   customerId: string | null;
   customerName: string | null;
   customerEmail: string | null;
+  adminId: string | null;
+  adminName: string | null;
+  adminEmail: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -911,6 +950,7 @@ async function initProjectTables(): Promise<void> {
       status      TEXT        NOT NULL DEFAULT 'entwurf',
       priority    TEXT        NOT NULL DEFAULT 'mittel',
       customer_id UUID        REFERENCES customers(id) ON DELETE SET NULL,
+      admin_id    UUID        REFERENCES customers(id) ON DELETE SET NULL,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
     )
@@ -927,6 +967,7 @@ async function initProjectTables(): Promise<void> {
       status      TEXT        NOT NULL DEFAULT 'entwurf',
       priority    TEXT        NOT NULL DEFAULT 'mittel',
       customer_id UUID        REFERENCES customers(id) ON DELETE SET NULL,
+      admin_id    UUID        REFERENCES customers(id) ON DELETE SET NULL,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
     )
@@ -944,6 +985,7 @@ async function initProjectTables(): Promise<void> {
       status         TEXT        NOT NULL DEFAULT 'entwurf',
       priority       TEXT        NOT NULL DEFAULT 'mittel',
       customer_id    UUID        REFERENCES customers(id) ON DELETE SET NULL,
+      admin_id       UUID        REFERENCES customers(id) ON DELETE SET NULL,
       created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
     )
@@ -959,6 +1001,12 @@ async function initProjectTables(): Promise<void> {
       uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  // Migrations for existing deployments
+  await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false`);
+  await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS admin_number TEXT UNIQUE`);
+  await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES customers(id) ON DELETE SET NULL`);
+  await pool.query(`ALTER TABLE sub_projects ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES customers(id) ON DELETE SET NULL`);
+  await pool.query(`ALTER TABLE project_tasks ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES customers(id) ON DELETE SET NULL`);
   projectTablesReady = true;
 }
 
@@ -968,11 +1016,14 @@ const PROJECT_SELECT = `
          p.status,      p.priority,
          p.customer_id  AS "customerId",
          c.name         AS "customerName", c.email AS "customerEmail",
+         p.admin_id     AS "adminId",
+         a.name         AS "adminName",   a.email AS "adminEmail",
          (SELECT COUNT(*)::int FROM sub_projects  sp WHERE sp.project_id = p.id) AS "subProjectCount",
          (SELECT COUNT(*)::int FROM project_tasks pt WHERE pt.project_id = p.id) AS "taskCount",
          p.created_at   AS "createdAt",  p.updated_at AS "updatedAt"
   FROM projects p
   LEFT JOIN customers c ON p.customer_id = c.id
+  LEFT JOIN customers a ON p.admin_id    = a.id
 `;
 
 const PROJECT_ORDER = `
@@ -1009,31 +1060,33 @@ export async function getProject(id: string): Promise<Project | null> {
 
 export async function createProject(params: {
   brand: string; name: string; description?: string; notes?: string;
-  startDate?: string; dueDate?: string; status: string; priority: string; customerId?: string;
+  startDate?: string; dueDate?: string; status: string; priority: string;
+  customerId?: string; adminId?: string;
 }): Promise<string> {
   await initProjectTables();
   const result = await pool.query(
-    `INSERT INTO projects (brand, name, description, notes, start_date, due_date, status, priority, customer_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+    `INSERT INTO projects (brand, name, description, notes, start_date, due_date, status, priority, customer_id, admin_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
     [params.brand, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null]
+     params.status, params.priority, params.customerId || null, params.adminId || null]
   );
   return result.rows[0].id;
 }
 
 export async function updateProject(id: string, params: {
   name: string; description?: string; notes?: string;
-  startDate?: string; dueDate?: string; status: string; priority: string; customerId?: string;
+  startDate?: string; dueDate?: string; status: string; priority: string;
+  customerId?: string; adminId?: string;
 }): Promise<void> {
   await pool.query(
     `UPDATE projects
      SET name=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
-         status=$7, priority=$8, customer_id=$9, updated_at=now()
+         status=$7, priority=$8, customer_id=$9, admin_id=$10, updated_at=now()
      WHERE id=$1`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null]
+     params.status, params.priority, params.customerId || null, params.adminId || null]
   );
 }
 
@@ -1049,10 +1102,13 @@ const SUBPROJECT_SELECT = `
          sp.status,    sp.priority,
          sp.customer_id AS "customerId",
          c.name         AS "customerName", c.email AS "customerEmail",
+         sp.admin_id    AS "adminId",
+         a.name         AS "adminName",   a.email AS "adminEmail",
          COUNT(pt.id)::int AS "taskCount",
          sp.created_at AS "createdAt", sp.updated_at AS "updatedAt"
   FROM sub_projects sp
-  LEFT JOIN customers     c  ON sp.customer_id   = c.id
+  LEFT JOIN customers     c  ON sp.customer_id    = c.id
+  LEFT JOIN customers     a  ON sp.admin_id       = a.id
   LEFT JOIN project_tasks pt ON pt.sub_project_id = sp.id
 `;
 
@@ -1068,7 +1124,7 @@ export async function listSubProjects(projectId: string): Promise<SubProject[]> 
   const result = await pool.query(
     `${SUBPROJECT_SELECT}
      WHERE sp.project_id=$1
-     GROUP BY sp.id, c.name, c.email
+     GROUP BY sp.id, c.name, c.email, a.name, a.email
      ${SUBPROJECT_ORDER}`,
     [projectId]
   );
@@ -1080,7 +1136,7 @@ export async function getSubProject(id: string): Promise<SubProject | null> {
   const result = await pool.query(
     `${SUBPROJECT_SELECT}
      WHERE sp.id=$1
-     GROUP BY sp.id, c.name, c.email`,
+     GROUP BY sp.id, c.name, c.email, a.name, a.email`,
     [id]
   );
   return result.rows[0] ?? null;
@@ -1088,32 +1144,34 @@ export async function getSubProject(id: string): Promise<SubProject | null> {
 
 export async function createSubProject(params: {
   projectId: string; name: string; description?: string; notes?: string;
-  startDate?: string; dueDate?: string; status: string; priority: string; customerId?: string;
+  startDate?: string; dueDate?: string; status: string; priority: string;
+  customerId?: string; adminId?: string;
 }): Promise<string> {
   await initProjectTables();
   const result = await pool.query(
     `INSERT INTO sub_projects
-       (project_id, name, description, notes, start_date, due_date, status, priority, customer_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+       (project_id, name, description, notes, start_date, due_date, status, priority, customer_id, admin_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
     [params.projectId, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null]
+     params.status, params.priority, params.customerId || null, params.adminId || null]
   );
   return result.rows[0].id;
 }
 
 export async function updateSubProject(id: string, params: {
   name: string; description?: string; notes?: string;
-  startDate?: string; dueDate?: string; status: string; priority: string; customerId?: string;
+  startDate?: string; dueDate?: string; status: string; priority: string;
+  customerId?: string; adminId?: string;
 }): Promise<void> {
   await pool.query(
     `UPDATE sub_projects
      SET name=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
-         status=$7, priority=$8, customer_id=$9, updated_at=now()
+         status=$7, priority=$8, customer_id=$9, admin_id=$10, updated_at=now()
      WHERE id=$1`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null]
+     params.status, params.priority, params.customerId || null, params.adminId || null]
   );
 }
 
@@ -1130,9 +1188,12 @@ const TASK_SELECT = `
          pt.status,    pt.priority,
          pt.customer_id AS "customerId",
          c.name         AS "customerName", c.email AS "customerEmail",
+         pt.admin_id    AS "adminId",
+         a.name         AS "adminName",    a.email AS "adminEmail",
          pt.created_at AS "createdAt", pt.updated_at AS "updatedAt"
   FROM project_tasks pt
   LEFT JOIN customers c ON pt.customer_id = c.id
+  LEFT JOIN customers a ON pt.admin_id    = a.id
 `;
 
 const TASK_ORDER = `
@@ -1162,33 +1223,35 @@ export async function listSubProjectTasks(subProjectId: string): Promise<Project
 
 export async function createProjectTask(params: {
   projectId: string; subProjectId?: string; name: string; description?: string; notes?: string;
-  startDate?: string; dueDate?: string; status: string; priority: string; customerId?: string;
+  startDate?: string; dueDate?: string; status: string; priority: string;
+  customerId?: string; adminId?: string;
 }): Promise<string> {
   await initProjectTables();
   const result = await pool.query(
     `INSERT INTO project_tasks
-       (project_id, sub_project_id, name, description, notes, start_date, due_date, status, priority, customer_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+       (project_id, sub_project_id, name, description, notes, start_date, due_date, status, priority, customer_id, admin_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
     [params.projectId, params.subProjectId || null, params.name,
      params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null]
+     params.status, params.priority, params.customerId || null, params.adminId || null]
   );
   return result.rows[0].id;
 }
 
 export async function updateProjectTask(id: string, params: {
   name: string; description?: string; notes?: string;
-  startDate?: string; dueDate?: string; status: string; priority: string; customerId?: string;
+  startDate?: string; dueDate?: string; status: string; priority: string;
+  customerId?: string; adminId?: string;
 }): Promise<void> {
   await pool.query(
     `UPDATE project_tasks
      SET name=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
-         status=$7, priority=$8, customer_id=$9, updated_at=now()
+         status=$7, priority=$8, customer_id=$9, admin_id=$10, updated_at=now()
      WHERE id=$1`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null]
+     params.status, params.priority, params.customerId || null, params.adminId || null]
   );
 }
 
@@ -1338,7 +1401,20 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
 
 export async function listAllCustomers(): Promise<Customer[]> {
   const result = await pool.query(
-    `SELECT id, name, email, customer_number FROM customers ORDER BY name ASC`
+    `SELECT id, name, email, customer_number, is_admin, admin_number
+     FROM customers
+     WHERE is_admin = false OR is_admin IS NULL
+     ORDER BY name ASC`
+  );
+  return result.rows;
+}
+
+export async function listAdminUsers(): Promise<Customer[]> {
+  const result = await pool.query(
+    `SELECT id, name, email, admin_number, is_admin
+     FROM customers
+     WHERE is_admin = true
+     ORDER BY name ASC`
   );
   return result.rows;
 }
@@ -1742,7 +1818,7 @@ export async function getCustomerByEmail(
   email: string
 ): Promise<Customer | null> {
   const result = await pool.query(
-    `SELECT id, name, email, customer_number, phone, company FROM customers WHERE email = $1`,
+    `SELECT id, name, email, customer_number, admin_number, is_admin, phone, company FROM customers WHERE email = $1`,
     [email]
   );
   return result.rows[0] ?? null;

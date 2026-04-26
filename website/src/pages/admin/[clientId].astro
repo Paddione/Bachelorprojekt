@@ -53,7 +53,7 @@ try {
   // Projekte-Dropdown bleibt leer
 }
 
-let customerRecord: { id: string; customer_number?: string } | null = null;
+let customerRecord: { id: string; customer_number?: string; admin_number?: string; is_admin?: boolean } | null = null;
 try {
   if (client.email) customerRecord = await getCustomerByEmail(client.email);
 } catch {
@@ -165,35 +165,92 @@ try {
         </div>
       )}
 
-      <!-- Kundennummer -->
+      <!-- Kundennummer / Admin-Nummer -->
       {customerRecord && (
-        <div class="mb-6 p-4 bg-dark-light rounded-xl border border-dark-lighter" id="customer-number-section">
-          <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Kundennummer</h2>
-          <div class="flex items-center gap-3">
-            <span id="customer-number-display" class="font-mono text-light text-sm">
-              {customerRecord.customer_number ?? '—'}
-            </span>
-            <button
-              id="edit-customer-number-btn"
-              class="px-2 py-1 text-xs text-muted border border-dark-lighter rounded hover:border-gold/40 hover:text-light transition-colors"
-            >
-              Bearbeiten
-            </button>
-          </div>
-          <div id="customer-number-edit" class="hidden mt-3 flex items-center gap-2">
-            <input
-              id="customer-number-input"
-              type="text"
-              placeholder="M0020"
-              maxlength="5"
-              value={customerRecord.customer_number ?? ''}
-              data-customer-id={customerRecord.id}
-              class="w-28 bg-dark border border-dark-lighter rounded-lg px-3 py-1.5 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
-            />
-            <button id="save-customer-number-btn" class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80 transition-colors">Speichern</button>
-            <button id="clear-customer-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-red-400 transition-colors">Entfernen</button>
-            <button id="cancel-customer-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-light transition-colors">Abbrechen</button>
-            <span id="customer-number-error" class="text-xs text-red-400 hidden"></span>
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Kundennummer (nur für Nicht-Admins) -->
+          {!customerRecord.is_admin && (
+            <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" id="customer-number-section">
+              <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Kundennummer</h2>
+              <div class="flex items-center gap-3">
+                <span id="customer-number-display" class="font-mono text-light text-sm">
+                  {customerRecord.customer_number ?? '—'}
+                </span>
+                <button
+                  id="edit-customer-number-btn"
+                  class="px-2 py-1 text-xs text-muted border border-dark-lighter rounded hover:border-gold/40 hover:text-light transition-colors"
+                >
+                  Bearbeiten
+                </button>
+              </div>
+              <div id="customer-number-edit" class="hidden mt-3 flex items-center gap-2">
+                <input
+                  id="customer-number-input"
+                  type="text"
+                  placeholder="M0020"
+                  maxlength="5"
+                  value={customerRecord.customer_number ?? ''}
+                  data-customer-id={customerRecord.id}
+                  class="w-28 bg-dark border border-dark-lighter rounded-lg px-3 py-1.5 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+                />
+                <button id="save-customer-number-btn" class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80 transition-colors">Speichern</button>
+                <button id="clear-customer-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-red-400 transition-colors">Entfernen</button>
+                <button id="cancel-customer-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-light transition-colors">Abbrechen</button>
+                <span id="customer-number-error" class="text-xs text-red-400 hidden"></span>
+              </div>
+            </div>
+          )}
+
+          <!-- Admin-Nummer (nur für Admins) -->
+          {customerRecord.is_admin && (
+            <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter" id="admin-number-section">
+              <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Admin-Nummer</h2>
+              <div class="flex items-center gap-3">
+                <span id="admin-number-display" class="font-mono text-light text-sm">
+                  {customerRecord.admin_number ?? '—'}
+                </span>
+                <button
+                  id="edit-admin-number-btn"
+                  class="px-2 py-1 text-xs text-muted border border-dark-lighter rounded hover:border-gold/40 hover:text-light transition-colors"
+                >
+                  Bearbeiten
+                </button>
+              </div>
+              <div id="admin-number-edit" class="hidden mt-3 flex items-center gap-2">
+                <input
+                  id="admin-number-input"
+                  type="text"
+                  placeholder="A0001"
+                  maxlength="5"
+                  value={customerRecord.admin_number ?? ''}
+                  data-customer-id={customerRecord.id}
+                  class="w-28 bg-dark border border-dark-lighter rounded-lg px-3 py-1.5 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none"
+                />
+                <button id="save-admin-number-btn" class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80 transition-colors">Speichern</button>
+                <button id="clear-admin-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-red-400 transition-colors">Entfernen</button>
+                <button id="cancel-admin-number-btn" class="px-3 py-1.5 text-xs text-muted hover:text-light transition-colors">Abbrechen</button>
+                <span id="admin-number-error" class="text-xs text-red-400 hidden"></span>
+              </div>
+            </div>
+          )}
+
+          <!-- Admin-Status umschalten -->
+          <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter">
+            <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Rolle</h2>
+            <div class="flex items-center gap-3">
+              <span class={`text-xs px-2 py-0.5 rounded-full border ${customerRecord.is_admin ? 'bg-blue-900/40 text-blue-300 border-blue-800' : 'bg-dark border-dark-lighter text-muted'}`}>
+                {customerRecord.is_admin ? 'Admin' : 'Kunde'}
+              </span>
+              <button
+                id="toggle-admin-btn"
+                data-customer-id={customerRecord.id}
+                data-is-admin={customerRecord.is_admin ? 'true' : 'false'}
+                class="px-2 py-1 text-xs text-muted border border-dark-lighter rounded hover:border-gold/40 hover:text-light transition-colors"
+              >
+                {customerRecord.is_admin ? 'Als Kunde markieren' : 'Als Admin markieren'}
+              </button>
+              <span id="toggle-admin-error" class="text-xs text-red-400 hidden"></span>
+            </div>
           </div>
         </div>
       )}
@@ -423,6 +480,83 @@ try {
   });
   document.getElementById('clear-customer-number-btn')?.addEventListener('click', () => {
     if (confirm('Kundennummer entfernen?')) saveCustomerNumber(null);
+  });
+
+  // ── Admin number ──
+  const anEditBtn   = document.getElementById('edit-admin-number-btn');
+  const anEditPanel = document.getElementById('admin-number-edit');
+  const anDisplay   = document.getElementById('admin-number-display');
+  const anInput     = document.getElementById('admin-number-input') as HTMLInputElement | null;
+  const anError     = document.getElementById('admin-number-error');
+
+  anEditBtn?.addEventListener('click', () => {
+    anEditPanel?.classList.toggle('hidden');
+  });
+  document.getElementById('cancel-admin-number-btn')?.addEventListener('click', () => {
+    anEditPanel?.classList.add('hidden');
+    if (anError) { anError.textContent = ''; anError.classList.add('hidden'); }
+  });
+
+  async function saveAdminNumber(value: string | null) {
+    const saveBtn = document.getElementById('save-admin-number-btn') as HTMLButtonElement | null;
+    const customerId = anInput?.dataset.customerId;
+    if (!customerId) return;
+    if (saveBtn) saveBtn.disabled = true;
+    try {
+      const res = await fetch('/api/admin/clients/set-admin-number', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId, adminNumber: value }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (anError) { anError.textContent = data.error ?? 'Fehler'; anError.classList.remove('hidden'); }
+      } else {
+        if (anDisplay) anDisplay.textContent = value ?? '—';
+        if (anInput) anInput.value = value ?? '';
+        anEditPanel?.classList.add('hidden');
+        if (anError) { anError.textContent = ''; anError.classList.add('hidden'); }
+      }
+    } catch {
+      if (anError) { anError.textContent = 'Netzwerkfehler'; anError.classList.remove('hidden'); }
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+    }
+  }
+
+  document.getElementById('save-admin-number-btn')?.addEventListener('click', () => {
+    saveAdminNumber(anInput?.value.trim() || null);
+  });
+  document.getElementById('clear-admin-number-btn')?.addEventListener('click', () => {
+    if (confirm('Admin-Nummer entfernen?')) saveAdminNumber(null);
+  });
+
+  // ── Toggle admin/customer role ──
+  document.getElementById('toggle-admin-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('toggle-admin-btn') as HTMLButtonElement | null;
+    const errEl = document.getElementById('toggle-admin-error');
+    if (!btn) return;
+    const customerId = btn.dataset.customerId;
+    const currentIsAdmin = btn.dataset.isAdmin === 'true';
+    if (!customerId) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/admin/clients/set-is-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId, isAdmin: !currentIsAdmin }),
+      });
+      if (res.ok) {
+        location.reload();
+      } else {
+        const data = await res.json();
+        if (errEl) { errEl.textContent = data.error ?? 'Fehler'; errEl.classList.remove('hidden'); }
+      }
+    } catch {
+      if (errEl) { errEl.textContent = 'Netzwerkfehler'; errEl.classList.remove('hidden'); }
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   // Role checkboxes

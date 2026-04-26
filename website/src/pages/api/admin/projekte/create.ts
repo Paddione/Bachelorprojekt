@@ -17,6 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
   const status      = form.get('status')?.toString()             || 'entwurf';
   const priority    = form.get('priority')?.toString()           || 'mittel';
   const customerId  = form.get('customerId')?.toString().trim()  ?? '';
+  const adminId     = form.get('adminId')?.toString().trim()    ?? '';
 
   if (!name) {
     return siteRedirect('/admin/projekte?error=Name+ist+erforderlich');
@@ -24,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   let id: string;
   try {
-    id = await createProject({ brand, name, description, notes, startDate, dueDate, status, priority, customerId });
+    id = await createProject({ brand, name, description, notes, startDate, dueDate, status, priority, customerId, adminId });
   } catch (err) {
     console.error('[projekte/create]', err);
     return siteRedirect('/admin/projekte?error=Datenbankfehler');

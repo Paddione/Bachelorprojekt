@@ -41,6 +41,8 @@ const vaultUrl     = process.env.VAULT_EXTERNAL_URL ?? '';
 const wbUrl        = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
 const keycloakBase = process.env.KEYCLOAK_FRONTEND_URL ?? '';
 const realm        = process.env.KEYCLOAK_REALM ?? 'workspace';
+const bretDomain   = process.env.BRETT_DOMAIN ?? '';
+const bretUrl      = bretDomain ? `https://${bretDomain}` : '';
 
 // ── Badge counts (always fetched — needed for sidebar) ────────────
 let unreadMessages        = 0;
@@ -144,6 +146,6 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
     </div>
   )}
   {section === 'fragebögen'     && <FragebogenSection assignments={questionnaires} />}
-  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {wbUrl} {keycloakBase} />}
+  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {wbUrl} {bretUrl} {keycloakBase} />}
   {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
 </PortalLayout>

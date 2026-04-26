@@ -42,7 +42,7 @@ spec:
       containers:
         - name: brett
           image: ghcr.io/paddione/workspace-brett:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

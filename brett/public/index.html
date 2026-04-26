@@ -548,14 +548,14 @@ scene.background = new THREE.Color(0x1a1a2e);
 scene.fog = new THREE.Fog(0x1a1a2e, 65, 120);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
-const orbit = { theta: 0, phi: 0.95, radius: 44 };
+const orbit = { theta: 0, phi: 0.95, radius: 44, panX: 0, panZ: 0 };
 function updateCamera() {
   camera.position.set(
-    orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
+    orbit.panX + orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
     orbit.radius * Math.cos(orbit.phi),
-    orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta)
+    orbit.panZ + orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta)
   );
-  camera.lookAt(0, 0, 0);
+  camera.lookAt(orbit.panX, 0, orbit.panZ);
 }
 updateCamera();
 
@@ -1242,11 +1242,19 @@ let lastClick = { fig: null, time: 0 };
 
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
+let panOn = false;
+canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('mousedown', e => {
   if (modal.classList.contains('visible')) return;
   if (e.button === 2) {
     rmbOn = true;
     orbit.startX = e.clientX; orbit.startY = e.clientY;
+    return;
+  }
+  if (e.button === 1) {
+    panOn = true;
+    orbit.startX = e.clientX; orbit.startY = e.clientY;
+    e.preventDefault();
     return;
   }
   if (e.button === 0) {
@@ -1281,6 +1289,15 @@ canvas.addEventListener('mousemove', e => {
     orbit.startX = e.clientX; orbit.startY = e.clientY;
     updateCamera(); return;
   }
+  if (panOn) {
+    const dx = e.clientX - orbit.startX;
+    const dy = e.clientY - orbit.startY;
+    const f = orbit.radius * 0.01;
+    orbit.panX -= dx * f * Math.cos(orbit.theta) - dy * f * Math.sin(orbit.theta);
+    orbit.panZ -= dx * f * (-Math.sin(orbit.theta)) + dy * f * (-Math.cos(orbit.theta));
+    orbit.startX = e.clientX; orbit.startY = e.clientY;
+    updateCamera(); return;
+  }
   if (drag.on && drag.fig) {
     const pos = pickBoard(getNDC(e));
     if (pos) {
@@ -1293,6 +1310,7 @@ canvas.addEventListener('mousemove', e => {
 
 canvas.addEventListener('mouseup', e => {
   if (e.button === 2) rmbOn = false;
+  if (e.button === 1) panOn = false;
   if (e.button === 0) {
     if (drag.on && drag.fig && !applyingRemote) {
       send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });

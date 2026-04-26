@@ -83,7 +83,6 @@ spec:
             - --pass-access-token=true
             - --pass-authorization-header=true
             - --set-xauthrequest=true
-            - --skip-provider-button=true
             - --code-challenge-method=S256
             - --insecure-oidc-allow-unverified-email=true
             - --oidc-extra-audience=traefik-dashboard

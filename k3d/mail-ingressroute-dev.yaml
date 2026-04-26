@@ -27,7 +27,7 @@ spec:
     service:
       name: oauth2-proxy-mailpit
       port: 4180
-    query: "/oauth2/sign_in?rd={scheme}://{host}{url}"
+    query: "/oauth2/sign_in?rd={url}"
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

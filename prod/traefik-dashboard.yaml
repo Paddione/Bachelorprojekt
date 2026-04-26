@@ -3,10 +3,11 @@
 # Flow:
 #   1. Browser hits https://traefik.<domain>/
 #   2. ForwardAuth middleware calls oauth2-proxy /oauth2/auth → 202 or 401
-#   3. On 401, the errors middleware serves oauth2-proxy /oauth2/sign_in
-#      which presents a sign-in link to /oauth2/start?rd=<original>
-#   4. /oauth2/start redirects to Keycloak, user authenticates, returns
-#      via /oauth2/callback; session cookie is set; user retries /
+#   3. On 401, the errors middleware fetches /oauth2/sign_in?rd=<original>
+#      and serves the HTML sign-in button page ({url} = full original URL)
+#   4. User clicks "Sign in with Keycloak" → /oauth2/start sets CSRF cookie
+#      and redirects to Keycloak; user authenticates; /oauth2/callback sets
+#      session cookie and redirects back to <original>
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
@@ -34,7 +35,7 @@ spec:
     service:
       name: oauth2-proxy-traefik
       port: 4180
-    query: "/oauth2/sign_in?rd={scheme}://{host}{url}"
+    query: "/oauth2/sign_in?rd={url}"
 ---
 # Redirect https://traefik.<domain>/  →  /dashboard/ (the actual dashboard URL)
 apiVersion: traefik.io/v1alpha1

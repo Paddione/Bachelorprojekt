@@ -176,6 +176,42 @@ export async function deleteTalkRoom(roomToken: string): Promise<boolean> {
   }
 }
 
+// List Talk rooms that currently have an active call.
+// Returns rooms visible to the configured admin user where the call flag is set.
+export interface ActiveCallRoom {
+  token: string;
+  name: string;
+  displayName: string;
+  callStartTime?: number;
+}
+
+export async function listActiveCallRooms(): Promise<ActiveCallRoom[]> {
+  try {
+    const res = await ocsApi('GET', '/room');
+    if (!res.ok) {
+      console.error('[talk] List rooms failed:', res.status, await res.text());
+      return [];
+    }
+    const data = await res.json();
+    const rooms: unknown = data?.ocs?.data;
+    if (!Array.isArray(rooms)) return [];
+
+    return rooms
+      .filter((r): r is Record<string, unknown> => r !== null && typeof r === 'object')
+      .filter((r) => r.hasCall === true || (typeof r.callFlag === 'number' && r.callFlag > 0))
+      .map((r) => ({
+        token: String(r.token ?? ''),
+        name: String(r.name ?? ''),
+        displayName: String(r.displayName ?? r.name ?? ''),
+        callStartTime: typeof r.callStartTime === 'number' ? r.callStartTime : undefined,
+      }))
+      .filter((r) => r.token);
+  } catch (err) {
+    console.error('[talk] List rooms error:', err);
+    return [];
+  }
+}
+
 // Post a chat message into a Talk conversation as the admin user.
 // Used for the auto-post on Talk-roomed meeting creation.
 export async function sendChatMessage(roomToken: string, message: string): Promise<boolean> {

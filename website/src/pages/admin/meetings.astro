@@ -56,6 +56,11 @@ function statusColor(s: string) {
           </p>
         </div>
         <div class="flex gap-2">
+          <button id="btn-brett"
+            class="px-4 py-2 bg-dark-light text-light rounded-lg text-sm font-semibold border border-dark-lighter hover:border-gold/40"
+            title="Systemisches Brett in alle laufenden Talk-Calls posten">
+            🎯 Brett für alle
+          </button>
           <button id="btn-all"
             class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold">
             Alle
@@ -123,11 +128,131 @@ function statusColor(s: string) {
       </div>
     </div>
   </section>
+
+  <!-- ── Brett-Broadcast Modal ──────────────────────────────────────────── -->
+  <div id="brett-modal"
+       class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-dark-light rounded-2xl border border-dark-lighter max-w-lg w-full p-6 shadow-xl">
+      <h2 class="text-xl font-serif text-light mb-2">🎯 Systemisches Brett</h2>
+      <p class="text-sm text-muted mb-4" id="brett-modal-intro">Lade laufende Calls…</p>
+
+      <ul id="brett-modal-rooms"
+          class="max-h-64 overflow-y-auto space-y-1 mb-5 text-sm text-light"></ul>
+
+      <div id="brett-modal-result" class="hidden mb-4 text-sm"></div>
+
+      <div class="flex justify-end gap-2">
+        <button id="brett-modal-cancel"
+          class="px-4 py-2 bg-dark rounded-lg border border-dark-lighter text-sm text-muted hover:text-light">
+          Abbrechen
+        </button>
+        <button id="brett-modal-confirm"
+          class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/90 disabled:opacity-40 disabled:cursor-not-allowed"
+          disabled>
+          Senden
+        </button>
+      </div>
+    </div>
+  </div>
 </AdminLayout>
 
 <script>
   const btnAll = document.getElementById('btn-all')!;
   const btnUA  = document.getElementById('btn-unassigned')!;
+  const btnBrett = document.getElementById('btn-brett')!;
+  const modal = document.getElementById('brett-modal')!;
+  const modalIntro = document.getElementById('brett-modal-intro')!;
+  const modalRooms = document.getElementById('brett-modal-rooms')!;
+  const modalResult = document.getElementById('brett-modal-result')!;
+  const modalCancel = document.getElementById('brett-modal-cancel') as HTMLButtonElement;
+  const modalConfirm = document.getElementById('brett-modal-confirm') as HTMLButtonElement;
+
+  type ActiveRoom = { token: string; name: string; displayName: string };
+
+  function openModal() {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    modalResult.classList.add('hidden');
+    modalResult.textContent = '';
+    modalConfirm.disabled = true;
+    modalConfirm.textContent = 'Senden';
+  }
+
+  function renderRooms(rooms: ActiveRoom[]) {
+    modalRooms.replaceChildren();
+    for (const r of rooms) {
+      const li = document.createElement('li');
+      li.className = 'px-3 py-2 bg-dark rounded border border-dark-lighter';
+      li.textContent = r.displayName || r.name || r.token;
+      modalRooms.appendChild(li);
+    }
+  }
+
+  async function loadActiveCalls() {
+    modalIntro.textContent = 'Lade laufende Calls…';
+    modalRooms.replaceChildren();
+    modalConfirm.disabled = true;
+
+    try {
+      const res = await fetch('/api/admin/brett/broadcast');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { rooms: ActiveRoom[] };
+      const rooms = data.rooms ?? [];
+
+      if (rooms.length === 0) {
+        modalIntro.textContent = 'Aktuell läuft kein Talk-Call.';
+        return;
+      }
+
+      modalIntro.textContent =
+        `Brett-Link wird in folgende ${rooms.length} laufende(n) Call(s) gepostet:`;
+      renderRooms(rooms);
+      modalConfirm.disabled = false;
+    } catch (err) {
+      modalIntro.textContent = 'Fehler beim Laden der Calls.';
+      console.error(err);
+    }
+  }
+
+  async function broadcast() {
+    modalConfirm.disabled = true;
+    modalConfirm.textContent = 'Sende…';
+    try {
+      const res = await fetch('/api/admin/brett/broadcast', { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { total: number; sent: number; failed: number };
+      modalResult.classList.remove('hidden');
+      if (data.failed === 0) {
+        modalResult.className = 'mb-4 text-sm text-green-400';
+        modalResult.textContent = `✓ Brett-Link an ${data.sent} Call(s) gesendet.`;
+      } else {
+        modalResult.className = 'mb-4 text-sm text-yellow-400';
+        modalResult.textContent = `${data.sent}/${data.total} gesendet, ${data.failed} fehlgeschlagen.`;
+      }
+      modalConfirm.textContent = 'Schließen';
+      modalConfirm.disabled = false;
+      modalConfirm.onclick = closeModal;
+    } catch (err) {
+      modalResult.classList.remove('hidden');
+      modalResult.className = 'mb-4 text-sm text-red-400';
+      modalResult.textContent = 'Senden fehlgeschlagen.';
+      modalConfirm.textContent = 'Senden';
+      modalConfirm.disabled = false;
+      console.error(err);
+    }
+  }
+
+  btnBrett.addEventListener('click', () => {
+    modalConfirm.onclick = broadcast;
+    openModal();
+    loadActiveCalls();
+  });
+  modalCancel.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
   function setActive(btn: HTMLElement, other: HTMLElement) {
     btn.className   = 'px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold';

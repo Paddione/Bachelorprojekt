@@ -10,7 +10,7 @@ const BOT_SECRET = process.env.BRETT_BOT_SECRET || '';
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
   }
 
   const existing = await getActivePoll();
@@ -23,18 +23,18 @@ export const POST: APIRoute = async ({ request }) => {
 
   let body: unknown;
   try { body = await request.json(); } catch {
-    return new Response(JSON.stringify({ error: 'invalid JSON' }), { status: 400 });
+    return new Response(JSON.stringify({ error: 'invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
   const { question, kind, options } = (body ?? {}) as Record<string, unknown>;
 
   if (!question || typeof question !== 'string' || question.trim().length < 2) {
-    return new Response(JSON.stringify({ error: 'question required (min 2 chars)' }), { status: 400 });
+    return new Response(JSON.stringify({ error: 'question required (min 2 chars)' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
   if (kind !== 'multiple_choice' && kind !== 'text') {
-    return new Response(JSON.stringify({ error: 'kind must be multiple_choice or text' }), { status: 400 });
+    return new Response(JSON.stringify({ error: 'kind must be multiple_choice or text' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
   if (kind === 'multiple_choice' && (!Array.isArray(options) || options.length < 2)) {
-    return new Response(JSON.stringify({ error: 'multiple_choice requires >= 2 options' }), { status: 400 });
+    return new Response(JSON.stringify({ error: 'multiple_choice requires >= 2 options' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
   const rooms = await listActiveCallRooms();

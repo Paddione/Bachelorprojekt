@@ -9,7 +9,7 @@ const BOT_SECRET = process.env.BRETT_BOT_SECRET || '';
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
   }
 
   const poll = await lockPoll(params.id!);
@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   const results = await getResults(poll.id);
   if (!results) {
-    return new Response(JSON.stringify({ error: 'results unavailable' }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'results unavailable' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 
   const resultsUrl = `${SITE_URL}/poll/${poll.id}/results`;

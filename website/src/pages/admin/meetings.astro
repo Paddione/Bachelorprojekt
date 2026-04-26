@@ -79,6 +79,31 @@ function statusColor(s: string) {
         </div>
       </div>
 
+      <!-- Aktive Umfrage -->
+      <div id="poll-status-panel" class="hidden mb-6">
+        <div class="bg-dark-light rounded-2xl border border-dark-lighter p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <span class="text-xs text-muted uppercase tracking-wide">Aktive Umfrage</span>
+              <p id="poll-status-question" class="font-serif text-light mt-0.5 text-sm"></p>
+            </div>
+            <span id="poll-status-count" class="text-sm text-muted ml-4 flex-shrink-0"></span>
+          </div>
+          <div id="poll-status-bars" class="flex flex-col gap-2 mb-4 text-sm"></div>
+          <div class="flex gap-2 justify-end">
+            <button id="poll-qr-btn"
+              class="px-3 py-1.5 text-sm rounded-lg border border-dark-lighter text-muted hover:text-light">
+              QR-Code zeigen
+            </button>
+            <button id="poll-share-btn"
+              class="px-3 py-1.5 text-sm rounded-lg bg-gold text-dark font-semibold hover:bg-gold/90">
+              &#x1F4E4; Ergebnisse teilen &amp; schlie&#xDF;en
+            </button>
+          </div>
+          <p id="poll-status-msg" class="hidden text-sm text-muted mt-2 text-right"></p>
+        </div>
+      </div>
+
       <!-- Liste -->
       <div class="space-y-2" id="meeting-list">
         {meetings.length === 0 && (
@@ -186,31 +211,6 @@ function statusColor(s: string) {
           &#x1F4CA; Umfrage starten
         </button>
       </div>
-    </div>
-  </div>
-
-  <!-- ── Poll Status Panel ────────────────────────────────────────── -->
-  <div id="poll-status-panel" class="hidden max-w-6xl mx-auto px-6 mt-4 pb-6">
-    <div class="bg-dark-light rounded-2xl border border-dark-lighter p-4">
-      <div class="flex items-start justify-between mb-3">
-        <div>
-          <span class="text-xs text-muted uppercase tracking-wide">Aktive Umfrage</span>
-          <p id="poll-status-question" class="font-serif text-light mt-0.5 text-sm"></p>
-        </div>
-        <span id="poll-status-count" class="text-sm text-muted ml-4 flex-shrink-0"></span>
-      </div>
-      <div id="poll-status-bars" class="flex flex-col gap-2 mb-4 text-sm"></div>
-      <div class="flex gap-2 justify-end">
-        <button id="poll-qr-btn"
-          class="px-3 py-1.5 text-sm rounded-lg border border-dark-lighter text-muted hover:text-light">
-          QR-Code zeigen
-        </button>
-        <button id="poll-share-btn"
-          class="px-3 py-1.5 text-sm rounded-lg bg-gold text-dark font-semibold hover:bg-gold/90">
-          &#x1F4E4; Ergebnisse teilen &amp; schlie&#xDF;en
-        </button>
-      </div>
-      <p id="poll-status-msg" class="hidden text-sm text-muted mt-2 text-right"></p>
     </div>
   </div>
 

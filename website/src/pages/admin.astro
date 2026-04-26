@@ -54,6 +54,8 @@ const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
 const wbUrl       = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
 const traefikUrl  = process.env.TRAEFIK_EXTERNAL_URL ?? '';
 const mailUrl     = process.env.MAIL_EXTERNAL_URL ?? '';
+const bretDomain  = process.env.BRETT_DOMAIN ?? '';
+const bretUrl     = bretDomain ? `https://${bretDomain}` : '';
 const adminLinks = [
   { href: '/admin/inbox', label: 'Inbox', icon: '📬' },
   ...(ncBase ? [
@@ -62,7 +64,8 @@ const adminLinks = [
     { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   icon: '👥' },
     { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
   ] : []),
-  ...(wbUrl ? [{ href: wbUrl, label: 'Whiteboard', icon: '🖊️' }] : []),
+  ...(wbUrl    ? [{ href: wbUrl,    label: 'Whiteboard', icon: '🖊️' }] : []),
+  ...(bretUrl  ? [{ href: bretUrl,  label: 'Brett',      icon: '🪄' }] : []),
   { href: '/admin/rechnungen', label: 'Abrechnung', icon: '🧾' },
   ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
   ...(authUrl     ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak', icon: '🔑' }] : []),

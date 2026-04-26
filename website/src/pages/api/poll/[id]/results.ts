@@ -1,8 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getResults } from '../../../../lib/poll-db';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const GET: APIRoute = async ({ params }) => {
-  const results = await getResults(params.id!);
+  if (!params.id || !UUID_RE.test(params.id)) {
+    return new Response(JSON.stringify({ error: 'not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+  }
+  const results = await getResults(params.id);
   if (!results) {
     return new Response(JSON.stringify({ error: 'not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
   }

@@ -310,6 +310,9 @@ data:
       CREATE INDEX IF NOT EXISTS idx_poll_answers_poll
           ON poll_answers(poll_id, submitted_at DESC);
 
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
+          ON polls ((true)) WHERE status = 'open';
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -610,6 +613,9 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_poll_answers_poll
           ON poll_answers(poll_id, submitted_at DESC);
+
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
+          ON polls ((true)) WHERE status = 'open';
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

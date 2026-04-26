@@ -94,12 +94,6 @@ const resultsUrl = `/poll/${id}/results`;
   </div>
 
   <script define:vars={{ pollId: id, pollKind: poll?.kind ?? 'text', isLocked }}>
-    function escText(s) {
-      const d = document.createElement('span');
-      d.textContent = s;
-      return d.textContent;
-    }
-
     // Prevent duplicate submission in the same browser session
     if (!isLocked && sessionStorage.getItem('poll_submitted_' + pollId)) {
       const card = document.getElementById('card');

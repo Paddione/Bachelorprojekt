@@ -45,6 +45,9 @@ export default defineConfig({
         '**/fa-client-portal.spec.ts', // client portal auth-gate
         '**/fa-meeting-history.spec.ts',  // meeting history & release
         '**/fa-document-signing.spec.ts', // document signing flow
+        '**/fa-admin-monitoring.spec.ts',     // admin monitoring page auth
+        '**/fa-admin-newsletter.spec.ts',     // admin newsletter page auth
+        '**/fa-admin-backup-settings.spec.ts', // admin backup settings auth
       ],
       use: {
         ...devices['Desktop Chrome'],

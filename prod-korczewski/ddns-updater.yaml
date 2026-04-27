@@ -148,14 +148,16 @@ spec:
                   done
 
                   # Persist new IP — non-fatal; DNS update already succeeded above
-                  if curl -sf --cacert "$CACERT" \
+                  PATCH_STATUS=$(curl -s --cacert "$CACERT" \
                     -H "Authorization: Bearer $TOKEN" \
                     -H "Content-Type: application/merge-patch+json" \
                     -X PATCH \
                     "$KUBE/api/v1/namespaces/$NS/configmaps/ddns-last-ip" \
-                    -d "{\"data\":{\"ip\":\"$CURRENT_IP\"}}" > /dev/null 2>&1; then
+                    -d "{\"data\":{\"ip\":\"$CURRENT_IP\"}}" \
+                    -o /dev/null -w "%{http_code}" || echo "000")
+                  if [ "$PATCH_STATUS" = "200" ] || [ "$PATCH_STATUS" = "201" ]; then
                     echo "✓ $DDNS_HOSTNAME -> $CURRENT_IP"
                   else
-                    echo "WARN: failed to persist IP to ConfigMap; next run will re-check" >&2
+                    echo "WARN: failed to persist IP to ConfigMap (HTTP $PATCH_STATUS); next run will re-check" >&2
                     echo "✓ $DDNS_HOSTNAME -> $CURRENT_IP (DNS updated)"
                   fi

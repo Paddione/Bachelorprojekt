@@ -35,9 +35,9 @@ export async function getCustomerByEmail(brand: string, email: string): Promise<
   return r.rows[0] ? mapCustomer(r.rows[0]) : null;
 }
 
-export async function getCustomerById(id: string): Promise<Customer | null> {
+export async function getCustomerById(brand: string, id: string): Promise<Customer | null> {
   await initBillingTables();
-  const r = await pool.query(`SELECT * FROM billing_customers WHERE id=$1`, [id]);
+  const r = await pool.query(`SELECT * FROM billing_customers WHERE id=$1 AND brand=$2`, [id, brand]);
   return r.rows[0] ? mapCustomer(r.rows[0]) : null;
 }
 

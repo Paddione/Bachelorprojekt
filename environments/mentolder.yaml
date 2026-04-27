@@ -5,6 +5,7 @@ domain: mentolder.de
 
 env_vars:
   PROD_DOMAIN: mentolder.de
+  CLUSTER_ENV: mentolder
   BRAND_NAME: "Mentolder"
   BRAND_ID: mentolder
   CONTACT_EMAIL: info@mentolder.de

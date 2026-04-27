@@ -16,6 +16,8 @@ metadata:
 data:
   # Brand
   BRAND: "${BRAND_ID}"
+  PROD_DOMAIN: "${PROD_DOMAIN}"
+  CLUSTER_ENV: "${CLUSTER_ENV}"
   DOCS_URL: "${DOCS_URL}"
   AUTH_EXTERNAL_URL: "${AUTH_EXTERNAL_URL}"
   VAULT_EXTERNAL_URL: "${VAULT_EXTERNAL_URL}"
@@ -83,7 +85,25 @@ metadata:
   name: website-monitoring-reader
 rules:
   - apiGroups: [""]
-    resources: ["pods", "events", "nodes"]
+    resources: ["pods", "events", "nodes", "namespaces", "configmaps", "persistentvolumeclaims", "services", "secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: ["batch"]
+    resources: ["cronjobs", "jobs"]
+    verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list"]
+  - apiGroups: ["traefik.io", "traefik.containo.us"]
+    resources: ["ingressroutes"]
     verbs: ["get", "list"]
   - apiGroups: ["metrics.k8s.io"]
     resources: ["pods", "nodes"]
@@ -260,6 +280,11 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: STALENESS_WEBHOOK_SECRET
+            - name: MONITORING_WEBHOOK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: MONITORING_WEBHOOK_TOKEN
             # Nextcloud Talk DB connection — used by /api/admin/brett/broadcast
             # to find rooms with active calls (OCS API is user-scoped and only
             # lists rooms the configured admin is a participant of, which misses

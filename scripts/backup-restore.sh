@@ -72,10 +72,10 @@ case "${CMD:-}" in
     echo "Backups on backup-pvc (newest first):"
     POD="backup-list-$$"
     # Only show YYYYMMDD-HHMMSS directories (not debug/log files)
-    OVERRIDES='{"spec":{"restartPolicy":"Never","volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"containers":[{"name":"c","image":"busybox","command":["/bin/sh","-c","find /backups -maxdepth 1 -mindepth 1 -type d -name '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]' | xargs -I{} basename {} | sort -r"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}]}}'
+    OVERRIDES='{"spec":{"restartPolicy":"Never","volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"containers":[{"name":"c","image":"busybox","command":["/bin/sh","-c","find /backups -maxdepth 1 -mindepth 1 -type d -name '"'"'[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]'"'"' | xargs -I{} basename {} | sort -r"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}]}}'
     $KC run "$POD" -n "$NS" --restart=Never --image=busybox \
       --overrides="$OVERRIDES" --quiet 2>/dev/null || true
-    for i in $(seq 1 30); do
+    for _ in $(seq 1 30); do
       PHASE=$($KC get pod -n "$NS" "$POD" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
       [[ "$PHASE" == "Succeeded" || "$PHASE" == "Failed" ]] && break
       sleep 1
@@ -137,7 +137,7 @@ case "${CMD:-}" in
     for db in "${DBS[@]}"; do
       echo ""
       echo "--> Restoring ${db} from ${TS}..."
-      DB_PASS_KEY=$(_db_pass_key "$db")
+      _db_pass_key "$db" >/dev/null
       JOB="db-restore-${db}-$$"
 
       $KC apply -n "$NS" -f - <<YAML

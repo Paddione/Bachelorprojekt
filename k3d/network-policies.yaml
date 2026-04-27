@@ -247,6 +247,79 @@ spec:
     - port: 443
       protocol: TCP
 ---
+# MCP monolith (default ns) → workspace services (shared-db:5432, keycloak:8080)
+# Includes both service CIDR (ClusterIP before DNAT) and pod CIDR (after DNAT)
+# because k3s evaluates egress rules post-DNAT when packet hits pod IP
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mcp-monolith-to-workspace-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: claude-code-mcp-monolith
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.43.0.0/16  # service CIDR (ClusterIP)
+    - ipBlock:
+        cidr: 10.42.0.0/16  # pod CIDR (after kube-proxy DNAT)
+    ports:
+    - port: 5432
+      protocol: TCP
+    - port: 8080
+      protocol: TCP
+---
+# shared-db: allow ingress from MCP monolith in default namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mcp-monolith-to-shared-db-ingress
+  namespace: workspace
+spec:
+  podSelector:
+    matchLabels:
+      app: shared-db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+      podSelector:
+        matchLabels:
+          app: claude-code-mcp-monolith
+    ports:
+    - port: 5432
+      protocol: TCP
+---
+# keycloak: allow ingress from MCP monolith in default namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mcp-monolith-to-keycloak-ingress
+  namespace: workspace
+spec:
+  podSelector:
+    matchLabels:
+      app: keycloak
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+      podSelector:
+        matchLabels:
+          app: claude-code-mcp-monolith
+    ports:
+    - port: 8080
+      protocol: TCP
+---
 # brett: ingress from Traefik on 3000
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

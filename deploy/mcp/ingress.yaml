@@ -43,6 +43,7 @@ metadata:
   name: mcp-gateway
 spec:
   entryPoints:
+    - web
     - websecure
   routes:
     # ── Kubernetes MCP ────────────────────────────────────────────
@@ -98,6 +99,3 @@ spec:
       services:
         - name: mcp-stripe
           port: 3003
-
-  tls:
-    certResolver: letsencrypt

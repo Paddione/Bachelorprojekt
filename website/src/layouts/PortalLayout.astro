@@ -177,13 +177,14 @@ const userIsAdmin   = isAdmin(session);
               <a
                 href={`/portal?section=${item.id}`}
                 class={`portal-nav-item${active ? ' is-active' : ''}`}
+                aria-current={active ? 'page' : undefined}
                 style={`display:flex; align-items:center; gap:9px; padding:7px 9px; border-radius:7px; text-decoration:none; font-size:12.5px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
                   active ? 'background:var(--brass-d); color:var(--brass);' : 'color:var(--mute);'
                 }`}
               >
                 <span
                   class="nav-icon"
-                  style={`width:15px; height:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color 0.1s ease; ${active ? 'color:var(--brass);' : ''}`}
+                  style={`width:15px; height:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color 0.1s ease; ${active ? 'color:var(--brass);' : 'color:var(--mute);'}`}
                   set:html={icons[item.icon]}
                 />
                 <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{item.label}</span>

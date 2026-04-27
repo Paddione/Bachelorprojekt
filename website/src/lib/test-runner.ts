@@ -137,7 +137,7 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
     );
     if (files.length > 0) {
       // pick most recent by name (timestamp-sorted)
-      const latest = files.sort().at(-1)!;
+      const latest = files.sort()[files.length - 1];
       startJsonlTail(`${resultsDir}/${latest}`);
     }
   };
@@ -167,7 +167,7 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
           )
         : [];
       if (files.length > 0) {
-        const latest = files.sort().at(-1)!;
+        const latest = files.sort()[files.length - 1];
         const raw = JSON.parse(await readFile(`${resultsDir}/${latest}`, 'utf-8'));
         summary = raw.summary ?? summary;
       }

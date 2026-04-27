@@ -20,13 +20,13 @@ export const GET: APIRoute = async ({ request, url }) => {
     if (format === 'md') {
       const mdFiles = candidates.filter((f) => f.endsWith('.md')).sort();
       if (mdFiles.length === 0) return new Response('No report found', { status: 404 });
-      const content = await readFile(`${resultsDir}/${mdFiles.at(-1)}`, 'utf-8');
+      const content = await readFile(`${resultsDir}/${mdFiles[mdFiles.length - 1]}`, 'utf-8');
       return new Response(content, { headers: { 'Content-Type': 'text/markdown' } });
     }
 
     const jsonFiles = candidates.filter((f) => f.endsWith('.json')).sort();
     if (jsonFiles.length === 0) return new Response('No report found', { status: 404 });
-    const content = await readFile(`${resultsDir}/${jsonFiles.at(-1)}`, 'utf-8');
+    const content = await readFile(`${resultsDir}/${jsonFiles[jsonFiles.length - 1]}`, 'utf-8');
     return new Response(content, { headers: { 'Content-Type': 'application/json' } });
   } catch {
     return new Response('Results not available', { status: 404 });

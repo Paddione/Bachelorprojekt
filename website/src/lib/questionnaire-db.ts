@@ -104,8 +104,12 @@ async function seedSystemTestTemplates(): Promise<void> {
   );
   if ((existing.rows[0]?.cnt ?? 0) > 0) return;
 
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
   // ── Template 1: Admin-Funktionen ─────────────────────────────────────────
-  const tpl1 = await pool.query(
+  const tpl1 = await client.query(
     `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
      VALUES ($1,$2,$3,'published',true)
      RETURNING id`,
@@ -182,7 +186,7 @@ async function seedSystemTestTemplates(): Promise<void> {
 
   for (let i = 0; i < adminSteps.length; i++) {
     const [text, expected, url, role] = adminSteps[i];
-    await pool.query(
+    await client.query(
       `INSERT INTO questionnaire_questions
          (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
        VALUES ($1,$2,$3,'test_step',$4,$5,$6)`,
@@ -191,7 +195,7 @@ async function seedSystemTestTemplates(): Promise<void> {
   }
 
   // ── Template 2: Nutzerfunktionen + Externe Dienste ────────────────────────
-  const tpl2 = await pool.query(
+  const tpl2 = await client.query(
     `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
      VALUES ($1,$2,$3,'published',true)
      RETURNING id`,
@@ -268,12 +272,20 @@ async function seedSystemTestTemplates(): Promise<void> {
 
   for (let i = 0; i < userSteps.length; i++) {
     const [text, expected, url, role] = userSteps[i];
-    await pool.query(
+    await client.query(
       `INSERT INTO questionnaire_questions
          (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
        VALUES ($1,$2,$3,'test_step',$4,$5,$6)`,
       [t2, i + 1, text, expected, url, role],
     );
+  }
+
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
   }
 }
 
@@ -355,11 +367,25 @@ async function initDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_test_status (
       question_id UUID PRIMARY KEY REFERENCES questionnaire_questions(id) ON DELETE CASCADE,
-      last_result TEXT NOT NULL,
+      last_result TEXT NOT NULL CHECK (last_result IN ('erfüllt', 'teilweise', 'nicht_erfüllt')),
       last_result_at TIMESTAMPTZ NOT NULL,
       last_success_at TIMESTAMPTZ,
       last_assignment_id UUID
     )
+  `);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'questionnaire_test_status_last_result_check'
+          AND conrelid = 'questionnaire_test_status'::regclass
+      ) THEN
+        ALTER TABLE questionnaire_test_status
+          ADD CONSTRAINT questionnaire_test_status_last_result_check
+          CHECK (last_result IN ('erfüllt', 'teilweise', 'nicht_erfüllt'));
+      END IF;
+    END$$
   `);
   await seedSystemTestTemplates();
 }

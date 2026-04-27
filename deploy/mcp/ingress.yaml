@@ -52,7 +52,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: claude-code-mcp-core
+        - name: claude-code-mcp-monolith
           port: 8080
 
     # ── PostgreSQL MCP ────────────────────────────────────────────
@@ -61,7 +61,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: claude-code-mcp-core
+        - name: claude-code-mcp-monolith
           port: 3001
 
     # ── Keycloak MCP (SSE transport) ──────────────────────────────
@@ -70,8 +70,8 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: claude-code-mcp-auth
-          port: 8080
+        - name: claude-code-mcp-monolith
+          port: 8081
 
     # ── Browser MCP (Playwright) ──────────────────────────────────
     - kind: Rule
@@ -79,7 +79,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: claude-code-mcp-browser
+        - name: claude-code-mcp-monolith
           port: 3000
 
     # ── GitHub MCP ────────────────────────────────────────────────
@@ -88,7 +88,7 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: mcp-github
+        - name: claude-code-mcp-monolith
           port: 3002
 
     # ── Stripe MCP ────────────────────────────────────────────────
@@ -97,5 +97,5 @@ spec:
       middlewares:
         - name: mcp-chain
       services:
-        - name: mcp-stripe
+        - name: claude-code-mcp-monolith
           port: 3003

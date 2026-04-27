@@ -56,12 +56,12 @@ task claude-code:setup -- business        # Generate Claude Code settings.json f
 
 ### Claude Code MCP Servers
 ```bash
-task mcp:deploy                  # Deploy all MCP pods (core + apps + auth)
-task mcp:status                  # Show MCP pod and container status
-task mcp:logs -- <pod>/<ctr>     # Tail MCP container logs
-task mcp:restart -- core|apps|auth  # Restart an MCP pod
-task mcp:select                  # Interactive MCP server selector
-task mcp:set-github-pat -- <tok> # Update GitHub PAT in claude-code-secrets
+task mcp:deploy                       # Deploy MCP monolith pod + auth proxy
+task mcp:status                       # Show MCP pod and container status
+task mcp:logs -- <container>          # Tail logs (e.g., postgres|browser|github|stripe|keycloak|kubernetes)
+task mcp:restart                      # Restart the MCP monolith pod
+task mcp:select                       # Interactive MCP server selector
+task mcp:set-github-pat -- <tok>      # Update GitHub PAT in claude-code-secrets
 ```
 
 ### Website (Astro + Svelte)

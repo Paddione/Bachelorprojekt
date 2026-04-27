@@ -1321,27 +1321,25 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
-      - 'echo "Deploying Claude Code MCP pods..."'
+      - 'echo "Deploying Claude Code MCP monolith..."'
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME" | kubectl apply -f -
       - 'echo "Waiting for pods to roll out..."'
-      - kubectl rollout status deployment/claude-code-mcp-core --timeout=120s
-      - kubectl rollout status deployment/claude-code-mcp-browser --timeout=90s
-      - kubectl rollout status deployment/claude-code-mcp-auth --timeout=120s
+      - kubectl rollout status deployment/claude-code-mcp-monolith --timeout=120s
       - kubectl rollout status deployment/mcp-auth-proxy --timeout=60s
-      - 'echo "✓ All MCP pods deployed (3 pods + auth proxy)"'
+      - 'echo "✓ MCP monolith deployed (1 pod + auth proxy)"'
       - task: mcp:status
 
   mcp:status:
     desc: Show status of all Claude Code MCP pods and containers
     cmds:
       - 'echo "=== MCP Pods ==="'
-      - kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-github,mcp-auth-proxy)' -o wide
+      - kubectl get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o wide
       - 'echo ""'
       - 'echo "=== Container Status (per pod) ==="'
       - |
-        for pod in $(kubectl get pods -l 'app in (claude-code-mcp-core,claude-code-mcp-apps,claude-code-mcp-auth,mcp-auth-proxy)' -o name 2>/dev/null); do
+        for pod in $(kubectl get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o name 2>/dev/null); do
           echo "  $pod:"
           kubectl get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}'
         done
@@ -1350,34 +1348,33 @@ tasks:
       - kubectl get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
 
   mcp:logs:
-    desc: "Tail logs for a container (usage: task mcp:logs -- core/postgres or apps/stripe)"
+    desc: "Tail logs for a container in the MCP monolith (usage: task mcp:logs -- <container>, e.g. postgres|browser|github|stripe|keycloak|kubernetes)"
     cmds:
       - |
-        POD_PART=$(echo "{{.CLI_ARGS}}" | cut -d/ -f1)
-        CONTAINER=$(echo "{{.CLI_ARGS}}" | cut -d/ -f2)
+        CONTAINER="{{.CLI_ARGS}}"
         if [ -z "$CONTAINER" ]; then
-          kubectl logs deployment/claude-code-mcp-$POD_PART -f --tail=50 --all-containers
+          kubectl logs deployment/claude-code-mcp-monolith -f --tail=50 --all-containers
         else
-          kubectl logs deployment/claude-code-mcp-$POD_PART -c $CONTAINER -f --tail=50
+          kubectl logs deployment/claude-code-mcp-monolith -c "$CONTAINER" -f --tail=50
         fi
 
   mcp:restart:
-    desc: "Restart an MCP pod (usage: task mcp:restart -- core|apps|auth)"
+    desc: "Restart the MCP monolith pod"
     cmds:
-      - kubectl rollout restart deployment/claude-code-mcp-{{.CLI_ARGS}}
-      - kubectl rollout status deployment/claude-code-mcp-{{.CLI_ARGS}} --timeout=120s
+      - kubectl rollout restart deployment/claude-code-mcp-monolith
+      - kubectl rollout status deployment/claude-code-mcp-monolith --timeout=120s
 
   mcp:set-github-pat:
-    desc: Update GITHUB_PAT in workspace-secrets (workspace namespace)
+    desc: Update GITHUB_PAT in claude-code-secrets (default namespace)
     cmds:
       - |
         if [ -z "{{.CLI_ARGS}}" ]; then
           echo "Usage: task mcp:set-github-pat -- ghp_yourtoken"
           exit 1
         fi
-      - kubectl patch secret workspace-secrets -n workspace --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
-      - kubectl rollout restart deployment/mcp-github -n workspace
-      - 'echo "✓ GitHub PAT updated and mcp-github restarted"'
+      - kubectl patch secret claude-code-secrets --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
+      - kubectl rollout restart deployment/claude-code-mcp-monolith
+      - 'echo "✓ GitHub PAT updated and claude-code-mcp-monolith restarted"'
 
   # ─────────────────────────────────────────────
   # Claude Code Setup

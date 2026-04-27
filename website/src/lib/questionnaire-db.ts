@@ -410,7 +410,7 @@ export async function updateQTemplate(id: string, params: {
   const r = await pool.query(
     `UPDATE questionnaire_templates SET ${sets.join(', ')}
      WHERE id = $${vals.length}
-     RETURNING id, title, description, instructions, status, created_at, updated_at`,
+     RETURNING id, title, description, instructions, status, is_system_test, created_at, updated_at`,
     vals,
   );
   return r.rows[0] ?? null;

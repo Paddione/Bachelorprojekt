@@ -74,6 +74,9 @@
       position: editing.questions.length + 1,
       question_text: '', question_type: type,
       answer_options: defaultOptions(type),
+      test_expected_result: null,
+      test_function_url: null,
+      test_role: null,
     }];
   }
 
@@ -271,6 +274,7 @@
                 <label class="block text-xs text-muted mb-1">Rolle</label>
                 <select bind:value={q.test_role}
                   class="w-full bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none">
+                  <option value={null}>— keine —</option>
                   <option value="admin">Admin</option>
                   <option value="user">Nutzer</option>
                 </select>

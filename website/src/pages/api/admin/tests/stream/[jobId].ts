@@ -19,6 +19,11 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const stream = new ReadableStream({
     start(controller) {
+      let closed = false;
+      const safeClose = () => {
+        if (!closed) { closed = true; controller.close(); }
+      };
+
       // Replay buffered events for late consumers
       for (const line of job.stdoutBuffer) {
         controller.enqueue(fmt('log', JSON.stringify({ line })));
@@ -27,19 +32,20 @@ export const GET: APIRoute = async ({ params, request }) => {
         controller.enqueue(fmt('result', JSON.stringify(result)));
       }
 
+      // Re-check status after replaying buffer — job may have finished mid-replay
       if (job.status !== 'running') {
-        // Job already finished — send done immediately
         controller.enqueue(fmt('done', JSON.stringify({ summary: job.summary })));
-        controller.close();
+        safeClose();
         return;
       }
 
       // Register listener for live events
       const listener = (event: string, data: string) => {
+        if (closed) return;
         controller.enqueue(fmt(event, data));
         if (event === 'done') {
           job.listeners.delete(listener);
-          controller.close();
+          safeClose();
         }
       };
       job.listeners.add(listener);
@@ -47,7 +53,7 @@ export const GET: APIRoute = async ({ params, request }) => {
       // Clean up if client disconnects
       request.signal.addEventListener('abort', () => {
         job.listeners.delete(listener);
-        controller.close();
+        safeClose();
       });
     },
   });

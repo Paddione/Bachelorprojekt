@@ -25,19 +25,7 @@ spec:
     regex:
       - "^/[^/]+"
 ---
-# ── Strip Authorization header before forwarding to MCP backends ─
-# Required because GitHub and Stripe MCPs interpret Authorization as OAuth
-# and reject our cluster Bearer token with "bad request"
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: mcp-strip-auth-header
-spec:
-  headers:
-    customRequestHeaders:
-      Authorization: ""
----
-# ── Middleware chain: auth → strip auth header → strip path prefix ─
+# ── Middleware chain: auth + strip + security headers ────────────
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -46,7 +34,6 @@ spec:
   chain:
     middlewares:
       - name: mcp-forwardauth
-      - name: mcp-strip-auth-header
       - name: mcp-strip-service-prefix
 ---
 # ── IngressRoute: path-based routing to all MCP servers ──────────

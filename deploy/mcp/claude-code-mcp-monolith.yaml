@@ -23,6 +23,27 @@ spec:
         app: claude-code-mcp-monolith
     spec:
       serviceAccountName: claude-code-agent
+      initContainers:
+        # Download github-mcp-server binary so the node github container can
+        # run it in stdio mode (HTTP mode requires OAuth which supergateway
+        # clients can't satisfy). Distroless image has no cp, so wget instead.
+        - name: github-binary
+          image: alpine:3.21
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              wget -qO /tmp/github-mcp-server.tar.gz \
+                https://github.com/github/github-mcp-server/releases/download/v1.0.3/github-mcp-server_Linux_x86_64.tar.gz && \
+              tar -xzf /tmp/github-mcp-server.tar.gz -C /github-bin github-mcp-server && \
+              chmod +x /github-bin/github-mcp-server && \
+              echo "github-mcp-server ready"
+          volumeMounts:
+            - name: github-bin
+              mountPath: /github-bin
+      volumes:
+        - name: github-bin
+          emptyDir: {}
       containers:
         # ── Kubernetes MCP (port 8080) ──────────────────────────────
         - name: kubernetes
@@ -128,10 +149,22 @@ spec:
             limits:   { memory: 1Gi, cpu: 500m }
 
         # ── GitHub MCP (port 3002) ──────────────────────────────────
+        # Uses stdio mode via supergateway to bypass the HTTP-mode OAuth
+        # requirement. Binary copied from the github-mcp-server image by
+        # the github-binary init container.
         - name: github
-          image: ghcr.io/github/github-mcp-server:v1.0.3
-          imagePullPolicy: IfNotPresent
-          args: ["http", "--port", "3002"]
+          image: node:20-alpine
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              npm install -g supergateway 2>&1 | tail -3
+              exec supergateway \
+                --stdio "/github-bin/github-mcp-server stdio" \
+                --outputTransport streamableHttp \
+                --port 3002 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
           env:
             - name: GITHUB_PERSONAL_ACCESS_TOKEN
               valueFrom:
@@ -142,13 +175,15 @@ spec:
             - containerPort: 3002
               name: github
           readinessProbe:
-            tcpSocket:
-              port: 3002
-            initialDelaySeconds: 5
+            httpGet: { path: /health, port: 3002 }
+            initialDelaySeconds: 30
             periodSeconds: 10
           resources:
-            requests: { memory: 64Mi, cpu: 50m }
+            requests: { memory: 128Mi, cpu: 50m }
             limits:   { memory: 256Mi }
+          volumeMounts:
+            - name: github-bin
+              mountPath: /github-bin
 
         # ── Stripe MCP (port 3003) ──────────────────────────────────
         - name: stripe

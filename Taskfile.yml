@@ -638,6 +638,19 @@ tasks:
       - kubectl --context korczewski rollout restart deployment/{{.CLI_ARGS}} -n workspace
       - kubectl --context korczewski rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
 
+  korczewski:traefik:apply:
+    desc: Apply (or re-apply) the Traefik ingress controller on korczewski (run once on bootstrap or after manifest changes)
+    cmds:
+      - |
+        # Remove finalizer from the stuck old Helm LoadBalancer service if still present
+        if kubectl --context korczewski get svc traefik -n kube-system -o jsonpath='{.metadata.finalizers}' 2>/dev/null | grep -q load-balancer-cleanup; then
+          echo "Removing stuck finalizer from old traefik LoadBalancer service..."
+          kubectl --context korczewski patch svc traefik -n kube-system -p '{"metadata":{"finalizers":[]}}' --type=merge
+        fi
+      - kubectl --context korczewski delete svc traefik-svc -n kube-system --ignore-not-found
+      - kubectl --context korczewski apply -f prod-korczewski/traefik.yaml
+      - kubectl --context korczewski rollout status deployment/traefik-manual -n kube-system --timeout=60s
+
   mentolder:status:
     desc: Show mentolder.de cluster status
     cmds:

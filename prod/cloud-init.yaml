@@ -117,6 +117,6 @@ runcmd:
   # Install Traefik via Helm
   - su - patrick -c "helm repo add traefik https://traefik.github.io/charts"
   - su - patrick -c "helm repo update"
-  - su - patrick -c "KUBECONFIG=/home/patrick/.kube/config helm install traefik traefik/traefik -n kube-system --set ports.web.hostPort=80 --set ports.websecure.hostPort=443 --set deployment.kind=DaemonSet --set ingressRoute.dashboard.enabled=false"
+  - su - patrick -c "KUBECONFIG=/home/patrick/.kube/config helm install traefik traefik/traefik -n kube-system --set ports.web.hostPort=80 --set ports.websecure.hostPort=443 --set deployment.kind=DaemonSet --set ingressRoute.dashboard.enabled=false --set providers.kubernetesingress.ingressClass=traefik"
 
 final_message: "k3s control plane ready on $(hostname) - $(date)"

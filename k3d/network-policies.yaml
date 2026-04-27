@@ -87,7 +87,10 @@ spec:
   - from:
     - podSelector: {}
 ---
-# Traefik-Ingress aus kube-system erlauben
+# Traefik-Ingress aus kube-system erlauben.
+# Traefik läuft im hostNetwork-Modus (podIP = 192.168.100.1), sendet aber via
+# flannel.1 mit src-IP 10.42.0.0 (VTEP des Control-Plane-Nodes). Deshalb
+# muss neben dem namespaceSelector auch der ipBlock für den VTEP freigegeben werden.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -104,6 +107,8 @@ spec:
       podSelector:
         matchLabels:
           app.kubernetes.io/name: traefik
+    - ipBlock:
+        cidr: 10.42.0.0/32
 ---
 # Website-Backend aus website-Namespace erlauben
 apiVersion: networking.k8s.io/v1

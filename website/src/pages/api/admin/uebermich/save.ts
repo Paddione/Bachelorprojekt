@@ -10,8 +10,18 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
   if (request.headers.get('content-type')?.includes('application/json')) {
-    const body = await request.json() as UebermichContent;
-    await saveUebermichContent(BRAND, body);
+    let body: UebermichContent;
+    try {
+      body = await request.json() as UebermichContent;
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    try {
+      await saveUebermichContent(BRAND, body);
+    } catch (err) {
+      console.error('[uebermich/save] DB error:', err);
+      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   }
 

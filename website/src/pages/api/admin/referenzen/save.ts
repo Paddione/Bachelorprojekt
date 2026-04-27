@@ -10,14 +10,25 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const BRAND = process.env.BRAND || 'mentolder';
 
   if (request.headers.get('content-type')?.includes('application/json')) {
-    const items = await request.json() as ReferenzItem[];
-    await saveReferenzen(BRAND, items);
+    let items: ReferenzItem[];
+    try {
+      items = await request.json() as ReferenzItem[];
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    try {
+      await saveReferenzen(BRAND, items);
+    } catch (err) {
+      console.error('[referenzen/save] DB error:', err);
+      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   }
 
   const form = await request.formData();
   const items: ReferenzItem[] = [];
   let i = 0;
+  // Collect existing entries (by index) unless marked for deletion
   while (form.has(`ref_${i}_id`)) {
     const deleted = form.get(`ref_${i}_delete`) === '1';
     if (!deleted) {
@@ -32,6 +43,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     }
     i++;
   }
+  // Add new entry if name provided
   const newName = (form.get('new_name') as string)?.trim();
   if (newName) items.push({
     id: crypto.randomUUID(),

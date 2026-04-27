@@ -2935,6 +2935,9 @@ export interface CustomSection {
 }
 
 let customSectionsReady = false;
+// NOTE: Custom sections are not brand-scoped (unlike other content tables).
+// This is intentional for the current single-brand deployment. If multi-brand
+// support is needed, add a brand TEXT column and filter all queries accordingly.
 async function initCustomSectionsTable(): Promise<void> {
   if (customSectionsReady) return;
   await pool.query(`

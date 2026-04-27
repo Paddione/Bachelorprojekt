@@ -12,8 +12,18 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const BRAND = process.env.BRAND || 'mentolder';
 
   if (request.headers.get('content-type')?.includes('application/json')) {
-    const body = await request.json() as Record<LegalKey, string>;
-    await Promise.all(PAGES.map(key => saveLegalPage(BRAND, key, body[key] ?? '')));
+    let body: Record<LegalKey, string>;
+    try {
+      body = await request.json() as Record<LegalKey, string>;
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    try {
+      await Promise.all(PAGES.map(key => saveLegalPage(BRAND, key, body[key] ?? '')));
+    } catch (err) {
+      console.error('[rechtliches/save] DB error:', err);
+      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   }
 

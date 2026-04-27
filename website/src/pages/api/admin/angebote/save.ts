@@ -16,21 +16,35 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const BRAND = process.env.BRAND || 'mentolder';
 
   if (request.headers.get('content-type')?.includes('application/json')) {
-    const body = await request.json() as {
-      services: ServiceOverride[];
-      leistungen: LeistungCategoryOverride[];
-      priceListUrl: string;
-    };
-    await Promise.all([
-      saveServiceConfig(BRAND, body.services),
-      saveLeistungenConfig(BRAND, body.leistungen),
-      setSiteSetting(BRAND, 'price_list_url', body.priceListUrl ?? ''),
-    ]);
+    let body: { services: ServiceOverride[]; leistungen: LeistungCategoryOverride[]; priceListUrl: string };
+    try {
+      body = await request.json() as {
+        services: ServiceOverride[];
+        leistungen: LeistungCategoryOverride[];
+        priceListUrl: string;
+      };
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (!Array.isArray(body.services) || !Array.isArray(body.leistungen)) {
+      return new Response(JSON.stringify({ error: 'services and leistungen are required arrays' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    try {
+      await Promise.all([
+        saveServiceConfig(BRAND, body.services),
+        saveLeistungenConfig(BRAND, body.leistungen),
+        setSiteSetting(BRAND, 'price_list_url', body.priceListUrl ?? ''),
+      ]);
+    } catch (err) {
+      console.error('[angebote/save] DB error:', err);
+      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   }
 
   const form = await request.formData();
 
+  // ── Services (card fields + pageContent) ──────────────────────────────────
   const serviceOverrides: ServiceOverride[] = mentolderConfig.services.map(s => {
     const features = ((form.get(`${s.slug}_features`) as string) ?? '').split('\n').map(f => f.trim()).filter(Boolean);
     const forWhom = ((form.get(`${s.slug}_pc_forWhom`) as string) ?? '').split('\n').map(f => f.trim()).filter(Boolean);
@@ -53,6 +67,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     };
   });
 
+  // ── Leistungen (pricing table) ─────────────────────────────────────────────
   const leistungenOverrides: LeistungCategoryOverride[] = mentolderConfig.leistungen.map(cat => ({
     id: cat.id,
     title: (form.get(`lk_${cat.id}_title`) as string) || cat.title,

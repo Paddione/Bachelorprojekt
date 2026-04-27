@@ -9,6 +9,11 @@ env_vars:
     default_dev: "localhost"
     validate: "^[a-z0-9.-]+$"
 
+  - name: CLUSTER_ENV
+    required: true
+    default_dev: "dev"
+    validate: "^[a-z0-9-]+$"
+
   - name: BRAND_NAME
     required: true
     default_dev: "Workspace"
@@ -400,6 +405,13 @@ secrets:
         secret: website-secrets
 
   - name: STALENESS_WEBHOOK_SECRET
+    required: true
+    generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: MONITORING_WEBHOOK_TOKEN
     required: true
     generate: false
     extra_namespaces:

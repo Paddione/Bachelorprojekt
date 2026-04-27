@@ -5,6 +5,7 @@ domain: korczewski.de
 
 env_vars:
   PROD_DOMAIN: korczewski.de
+  CLUSTER_ENV: korczewski
   BRAND_NAME: "KORE"
   BRAND_ID: korczewski
   CONTACT_EMAIL: info@korczewski.de

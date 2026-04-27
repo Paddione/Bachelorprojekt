@@ -27,8 +27,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: tracking-ui
-          image: ghcr.io/paddione/bachelorprojekt:latest
-          imagePullPolicy: Always
+          image: ghcr.io/paddione/bachelorprojekt@sha256:5e9e584bff33031c89137d4cf1232d737d2030f3443633e2a0786a90fe83ab63
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           env:

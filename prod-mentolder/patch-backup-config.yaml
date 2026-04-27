@@ -5,4 +5,4 @@ metadata:
   namespace: workspace
 data:
   BRAND: "mentolder"
-  FILEN_DEFAULT_UPLOAD_PATH: "/workspace-backups/mentolder"
+  FILEN_DEFAULT_UPLOAD_PATH: "/Backup"

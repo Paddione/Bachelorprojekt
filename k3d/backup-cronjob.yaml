@@ -190,6 +190,7 @@ spec:
 
                   OBSCURED=$(rclone obscure "${FILEN_PASSWORD}")
                   export RCLONE_WEBDAV_URL=https://webdav.filen.io
+                  export RCLONE_WEBDAV_VENDOR=other
                   export RCLONE_WEBDAV_USER="${FILEN_EMAIL}"
                   export RCLONE_WEBDAV_PASS="${OBSCURED}"
 

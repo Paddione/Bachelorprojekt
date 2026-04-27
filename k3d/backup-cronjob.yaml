@@ -21,6 +21,7 @@ spec:
             app: db-backup
         spec:
           restartPolicy: OnFailure
+          # Co-locate with shared-db to avoid cross-node CNI routing issues.
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -35,8 +36,10 @@ spec:
               type: RuntimeDefault
           containers:
             - name: backup
-              image: postgres:16.13-alpine
-              imagePullPolicy: Always
+              # Debian-based image: has openssl pre-installed (unlike postgres-alpine).
+              # IfNotPresent avoids pulling on every run in case DNS is unreliable.
+              image: pgvector/pgvector:0.8.0-pg16
+              imagePullPolicy: IfNotPresent
               env:
                 - name: KEYCLOAK_DB_PASSWORD
                   valueFrom:
@@ -78,7 +81,9 @@ spec:
               args:
                 - |
                   set -e
-                  apk add --no-cache openssl >/dev/null 2>&1
+                  # Wait for pod network to settle; ClusterIP routes via kube-proxy
+                  # take a few seconds to become active for newly started pods.
+                  sleep 15
                   STAMP=$(date +%Y%m%d-%H%M%S)
                   BACKUP_DIR=/backups/${STAMP}
                   mkdir -p "${BACKUP_DIR}"

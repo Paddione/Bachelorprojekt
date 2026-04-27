@@ -43,6 +43,7 @@ metadata:
   name: mcp-gateway
 spec:
   entryPoints:
+    - web
     - websecure
   routes:
     # ── Kubernetes MCP ────────────────────────────────────────────
@@ -62,15 +63,6 @@ spec:
       services:
         - name: claude-code-mcp-core
           port: 3001
-
-    # ── Nextcloud MCP ─────────────────────────────────────────────
-    - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/nextcloud`)
-      middlewares:
-        - name: mcp-chain
-      services:
-        - name: claude-code-mcp-apps
-          port: 8000
 
     # ── Keycloak MCP (SSE transport) ──────────────────────────────
     - kind: Rule
@@ -107,6 +99,3 @@ spec:
       services:
         - name: mcp-stripe
           port: 3003
-
-  tls:
-    certResolver: letsencrypt

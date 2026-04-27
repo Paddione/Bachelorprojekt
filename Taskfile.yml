@@ -1327,7 +1327,7 @@ tasks:
         kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME" | kubectl apply -f -
       - 'echo "Waiting for pods to roll out..."'
       - kubectl rollout status deployment/claude-code-mcp-core --timeout=120s
-      - kubectl rollout status deployment/claude-code-mcp-apps --timeout=90s
+      - kubectl rollout status deployment/claude-code-mcp-browser --timeout=90s
       - kubectl rollout status deployment/claude-code-mcp-auth --timeout=120s
       - kubectl rollout status deployment/mcp-auth-proxy --timeout=60s
       - 'echo "✓ All MCP pods deployed (3 pods + auth proxy)"'
@@ -1350,7 +1350,7 @@ tasks:
       - kubectl get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
 
   mcp:logs:
-    desc: "Tail logs for a container (usage: task mcp:logs -- core/nextcloud or apps/stripe)"
+    desc: "Tail logs for a container (usage: task mcp:logs -- core/postgres or apps/stripe)"
     cmds:
       - |
         POD_PART=$(echo "{{.CLI_ARGS}}" | cut -d/ -f1)
@@ -1422,13 +1422,56 @@ tasks:
         OUTPUT="$PROJECT_DIR/settings.json"
 
         # Prefix server names with mcp- to avoid conflicts with local MCP servers
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
         echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
         echo ""
         echo "Configured servers:"
         python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$OUTPUT"
+
+  gemini:setup:
+    desc: "Generate Gemini CLI settings.json (usage: task gemini:setup -- cluster|business)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ROLE="{{.CLI_ARGS}}"
+        if [ "$ROLE" != "cluster" ] && [ "$ROLE" != "business" ]; then
+          ROLE="cluster"
+        fi
+
+        # Read token from k8s Secret
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        
+        TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
+        TOKEN=$(kubectl $context_flag get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        
+        if [ -z "$TOKEN" ]; then
+          echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
+          echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
+          exit 1
+        fi
+
+        DOMAIN_NAME="${PROD_DOMAIN}"
+        [ "$DOMAIN_NAME" = "localhost" ] && DOMAIN_NAME="mcp.localhost" || DOMAIN_NAME="mcp.${DOMAIN_NAME}"
+
+        SETTINGS_FILE="$HOME/.gemini/settings.json"
+        mkdir -p "$(dirname "$SETTINGS_FILE")"
+
+        # Generate and merge settings using external scripts to avoid YAML HEREDOC issues
+        export DOMAIN="$DOMAIN_NAME"
+        export TOKEN="$TOKEN"
+        python3 scripts/gemini-mcp-gen.py | python3 scripts/gemini-settings-merge.py "$SETTINGS_FILE"
+
+        echo "Gemini CLI settings updated in $SETTINGS_FILE"
+        echo "  Role: $ROLE"
+        echo "  MCP endpoint: https://${DOMAIN_NAME}"
+        echo ""
+        echo "Configured servers:"
+        python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$SETTINGS_FILE"
 
   claude-code:export:
     desc: "Export a ready-to-use settings.json for another user (usage: task claude-code:export -- cluster|business)"
@@ -1465,7 +1508,7 @@ tasks:
         export BUSINESS_TOKEN="$TOKEN"
 
         OUTPUT="claude-code/${ROLE}-export.settings.json"
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"meetings"/"mcp-meetings"/;s/"nextcloud"/"mcp-nextcloud"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
 
         echo "Exported settings to: $OUTPUT"
         echo "  Role: $ROLE"

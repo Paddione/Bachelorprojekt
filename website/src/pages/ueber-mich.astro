@@ -68,5 +68,5 @@ const uebermich = await getEffectiveUebermich();
     </div>
   </section>
 
-  <CallToAction client:visible />
+  <CallToAction client:visible secondaryText={contact.email} secondaryHref={`mailto:${contact.email}`} />
 </Layout>

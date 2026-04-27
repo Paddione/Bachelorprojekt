@@ -18,10 +18,12 @@
     age: string;
   };
 
+  type ClusterNode = { name: string; cpu: string; memory: string };
+
   type MonitoringData = {
     pods: Pod[];
     events: KubeEvent[];
-    node?: { cpu: string; memory: string };
+    nodes?: ClusterNode[];
     metricsAvailable: boolean;
     fetchedAt: string;
   };
@@ -294,7 +296,7 @@
 
   {#if data}
     <!-- Summary Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-dark-light border border-dark-lighter rounded-lg shadow p-4 border-l-4 border-green-500">
         <h3 class="text-sm font-medium text-muted">Running / Ready</h3>
         <p class="mt-1 text-2xl font-semibold text-green-600 dark:text-green-400">{runningCount}</p>
@@ -307,30 +309,49 @@
         <h3 class="text-sm font-medium text-muted">Failed / Unknown</h3>
         <p class="mt-1 text-2xl font-semibold text-red-600 dark:text-red-400">{failedCount}</p>
       </div>
-      {#if data.metricsAvailable && data.node}
-        <div class="bg-dark-light border border-dark-lighter rounded-lg shadow p-4 border-l-4 border-blue-500">
-          <h3 class="text-sm font-medium text-muted">Node Resources</h3>
-          <div class="mt-2 space-y-2">
-            <div>
-              <div class="flex justify-between text-xs text-muted mb-1">
-                <span>CPU</span><span>{data.node.cpu}</span>
-              </div>
-              <div class="w-full bg-dark-lighter rounded-full h-1.5">
-                <div class="bg-blue-500 h-1.5 rounded-full" style="width: {parsePercent(data.node.cpu)}%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between text-xs text-muted mb-1">
-                <span>Mem</span><span>{data.node.memory}</span>
-              </div>
-              <div class="w-full bg-dark-lighter rounded-full h-1.5">
-                <div class="bg-purple-500 h-1.5 rounded-full" style="width: {parsePercent(data.node.memory)}%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      {/if}
     </div>
+
+    <!-- Cluster Nodes -->
+    {#if data.metricsAvailable && data.nodes && data.nodes.length > 0}
+      <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
+        <div class="px-4 py-4 border-b border-dark-lighter">
+          <h3 class="text-lg leading-6 font-medium text-light">Cluster Nodes</h3>
+        </div>
+        <div class="divide-y divide-dark-lighter">
+          {#each data.nodes as node}
+            <div class="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div class="flex-shrink-0 w-full sm:w-48">
+                <p class="text-sm font-medium text-light truncate" title={node.name}>{node.name}</p>
+              </div>
+              <div class="flex-1 grid grid-cols-2 gap-4">
+                <div>
+                  <div class="flex justify-between text-xs text-muted mb-1">
+                    <span>CPU</span><span>{node.cpu}</span>
+                  </div>
+                  <div class="w-full bg-dark-lighter rounded-full h-1.5">
+                    <div
+                      class="h-1.5 rounded-full {parsePercent(node.cpu) >= 85 ? 'bg-red-500' : parsePercent(node.cpu) >= 65 ? 'bg-orange-400' : 'bg-blue-500'}"
+                      style="width: {parsePercent(node.cpu)}%"
+                    ></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs text-muted mb-1">
+                    <span>Memory</span><span>{node.memory}</span>
+                  </div>
+                  <div class="w-full bg-dark-lighter rounded-full h-1.5">
+                    <div
+                      class="h-1.5 rounded-full {parsePercent(node.memory) >= 85 ? 'bg-red-500' : parsePercent(node.memory) >= 65 ? 'bg-orange-400' : 'bg-purple-500'}"
+                      style="width: {parsePercent(node.memory)}%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
 
     <!-- Pods List -->
     <div class="bg-dark-light border border-dark-lighter rounded-lg shadow overflow-hidden">
@@ -511,15 +532,17 @@
               <td class="px-4 py-3 text-right space-x-2">
                 <button
                   on:click={() => openAction({ type: 'restart', deployment: dep })}
+                  title="Rolling restart"
                   class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-blue-700 text-blue-400 hover:bg-blue-900/30 transition-colors"
                 >
                   ⟳ Restart
                 </button>
                 <button
                   on:click={() => openAction({ type: 'scale', deployment: dep })}
-                  class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded border border-purple-700 text-purple-400 hover:bg-purple-900/30 transition-colors"
+                  title="Set replica count"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded bg-purple-900/30 border border-purple-600 text-purple-300 hover:bg-purple-800/50 hover:text-purple-200 transition-colors"
                 >
-                  ⇅ Scale
+                  ⇅ Scale ({dep.desired})
                 </button>
               </td>
             </tr>

@@ -79,7 +79,7 @@ Alle Kubernetes NetworkPolicies sind in `k3d/network-policies.yaml` definiert:
 - **Default-Deny:** Alle Pods blockieren standardmäßig Ingress und Egress
 - **Intra-Namespace:** Kommunikation zwischen Pods im Namespace `workspace` ist erlaubt
 - **Traefik-Ingress:** Traefik (kube-system) darf alle Services im workspace-Namespace erreichen
-- **Egress-Kontrolle:** Nur spezifische Pods (mcp-github, claude-code-mcp-stripe) dürfen Verbindungen ins öffentliche Internet (Port 443) aufbauen
+- **Egress-Kontrolle:** Nur spezifische Pods (mcp-github) dürfen Verbindungen ins öffentliche Internet (Port 443) aufbauen
 - **Collabora:** Nextcloud → Collabora (Port 9980, WOPI-Protokoll) explizit erlaubt
 - **Signaling:** spreed-signaling → Janus MCU (coturn-Namespace, Port 8188) explizit erlaubt
 

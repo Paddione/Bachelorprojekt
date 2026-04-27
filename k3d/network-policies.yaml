@@ -229,17 +229,15 @@ spec:
     - port: 9980
       protocol: TCP
 ---
-# MCP GitHub + Stripe: externe HTTPS-Verbindungen
+# MCP GitHub: externe HTTPS-Verbindungen
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-mcp-external-egress
 spec:
   podSelector:
-    matchExpressions:
-    - key: app
-      operator: In
-      values: [mcp-github, claude-code-mcp-stripe]
+    matchLabels:
+      app: mcp-github
   policyTypes:
   - Egress
   egress:

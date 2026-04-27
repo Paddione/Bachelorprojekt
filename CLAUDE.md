@@ -58,7 +58,7 @@ task claude-code:setup -- business        # Generate Claude Code settings.json f
 ```bash
 task mcp:deploy                       # Deploy MCP monolith pod + auth proxy
 task mcp:status                       # Show MCP pod and container status
-task mcp:logs -- <container>          # Tail logs (e.g., postgres|browser|github|stripe|keycloak|kubernetes)
+task mcp:logs -- <container>          # Tail logs (e.g., postgres|browser|github|keycloak|kubernetes)
 task mcp:restart                      # Restart the MCP monolith pod
 task mcp:select                       # Interactive MCP server selector
 task mcp:set-github-pat -- <tok>      # Update GitHub PAT in claude-code-secrets

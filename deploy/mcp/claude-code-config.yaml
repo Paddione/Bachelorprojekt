@@ -16,7 +16,6 @@ data:
   MCP_KEYCLOAK_URL:     "http://claude-code-mcp-monolith:8081/mcp/sse"
   MCP_BROWSER_URL:      "http://claude-code-mcp-monolith:3000/mcp"
   MCP_GITHUB_URL:       "http://claude-code-mcp-monolith:3002/mcp"
-  MCP_STRIPE_URL:       "http://claude-code-mcp-monolith:3003/mcp"
 
   # ════════════════════════════════════════════════════════════════════
   # INTERNAL SERVICE URLS (for direct API calls bypassing MCP)
@@ -141,44 +140,6 @@ data:
 
     Note: The browser runs inside the cluster and has internal access to
     all .localhost domains via the cluster's internal network.
-
-  # ════════════════════════════════════════════════════════════════════
-  # GUIDE: mcp-stripe  (port 3003, streamable-http via supergateway)
-  # ════════════════════════════════════════════════════════════════════
-  GUIDE_STRIPE: |
-    Image: node:20-alpine + @stripe/agent-toolkit + supergateway
-    Transport: streamable-http → http://claude-code-mcp-monolith:3003/mcp
-    Auth: STRIPE_SECRET_KEY from claude-code-secrets
-
-    Setup: Replace STRIPE_SECRET_KEY placeholder in claude-code-secrets with a
-    real Stripe API key (sk_test_... for dev), then restart:
-      task mcp:restart
-
-    Capabilities:
-      Customers: list, create, update, delete, search
-      Products:  list, create, update, delete
-      Prices:    list, create, update
-      Invoices:  list, create, update, send, void, finalize
-      Payments:  list, retrieve, create payment intents
-      Subscriptions: list, create, update, cancel
-      Checkout:  create sessions (hosted payment pages)
-      Refunds:   create, list
-      Balance:   retrieve current balance
-      Disputes:  list, retrieve
-
-    Payment methods configured in Stripe Dashboard:
-      1. Credit Card (default)
-      2. PayPal (Settings > Payment Methods)
-      3. SEPA Direct Debit / Lastschrift
-      4. Bank Transfer / Überweisung
-
-    Test cards: https://docs.stripe.com/testing#cards
-      Success: 4242 4242 4242 4242 (any exp/CVC)
-      Decline: 4000 0000 0000 0002
-
-    Integration: Website uses Stripe for direct checkout (no Invoice Ninja).
-    Use this MCP to inspect payments, create ad-hoc checkout sessions,
-    or manage subscriptions.
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: Traefik (no dedicated MCP — use kubernetes MCP + direct API)

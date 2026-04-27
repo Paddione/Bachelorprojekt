@@ -173,7 +173,7 @@ Der `workspace`-Namespace setzt ein **Default-Deny-Modell** (Ingress und Egress)
 | `allow-collabora-egress` | Egress | Nextcloud → Collabora (Port 9980, `workspace-office` NS) |
 | `allow-signaling-coturn-egress` | Egress | spreed-signaling → Janus (Port 8188, `coturn` NS + Node-IP) |
 | `allow-transcriber-to-website-egress` | Egress | talk-transcriber → Website-Service (Port 80/4321) |
-| `allow-mcp-external-egress` | Egress | mcp-github, mcp-stripe → externe HTTPS (Port 443) |
+| `allow-mcp-external-egress` | Egress | mcp-github → externe HTTPS (Port 443) |
 
 ### Kommunikationsmatrix
 

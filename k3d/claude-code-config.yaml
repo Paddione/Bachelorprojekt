@@ -10,4 +10,3 @@ data:
   MCP_KEYCLOAK_URL: "http://claude-code-mcp-auth:8080/mcp/sse"
   MCP_BROWSER_URL: "http://mcp-browser:3000/mcp"
   MCP_GITHUB_URL: "http://mcp-github:3002/mcp"
-  MCP_STRIPE_URL: "http://claude-code-mcp-stripe:3003/mcp"

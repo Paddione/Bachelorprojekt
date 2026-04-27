@@ -18,7 +18,6 @@ SERVERS=(
   "meetings|claude-code-mcp-ops|3002|/mcp|Meeting transcripts and insights"
   "nextcloud|claude-code-mcp-apps|8000|/sse|Nextcloud file management"
   "keycloak|claude-code-mcp-auth|8080|/sse|Keycloak SSO/OIDC"
-  "stripe|claude-code-mcp-stripe|3000|/mcp|Stripe payment gateway"
   "browser|mcp-browser|3000|/mcp|Playwright browser automation"
   "github|mcp-github|3000|/mcp|GitHub repository integration"
 )

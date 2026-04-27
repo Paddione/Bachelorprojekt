@@ -36,8 +36,9 @@ task workspace:post-setup # Nextcloud-Apps aktivieren (Kalender, Kontakte, OIDC,
 | Mailpit | http://mail.localhost | -- (nur Dev) | E-Mail-Testing |
 | Docs | http://docs.localhost | https://docs.korczewski.de | Diese Dokumentation |
 | Website | http://web.localhost | https://web.mentolder.de | Astro+Svelte Website |
+| DocuSeal | http://sign.localhost | https://sign.korczewski.de | E-Signatur fuer Vertraege |
+| Tracking | http://tracking.localhost | https://tracking.korczewski.de | Anforderungs-Tracking (Bachelorprojekt) |
 | Whisper | -- (intern) | -- (intern) | Sprach-Transkription (optional) |
-| Monitoring | -- | -- | Prometheus + Grafana (optional) |
 
 ## Architektur
 
@@ -57,9 +58,13 @@ graph TB
             HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
             VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
             WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
+            DS["fa:fa-file-signature DocuSeal<br/>sign.localhost"]
+            TR["fa:fa-list-check Tracking<br/>tracking.localhost"]
             MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
             DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
+            OAUTH2["oauth2-proxy-docs"]
             WHISPER["fa:fa-microphone Whisper<br/>intern"]
+            TRBOT["fa:fa-closed-captioning Talk Transcriber"]
 
             subgraph HPB-Stack ["fa:fa-video Talk HPB Stack"]
                 JANUS["Janus Gateway"]
@@ -73,26 +78,24 @@ graph TB
         subgraph website-ns ["Namespace: website"]
             WEB["fa:fa-globe Website Astro<br/>web.localhost"]
         end
-
-        subgraph monitoring-ns ["Namespace: monitoring"]
-            PROM["fa:fa-chart-line Prometheus"]
-            GRAF["fa:fa-gauge Grafana"]
-        end
     end
 
     User --> Traefik
-    Traefik --> KC & NC & CO & HPB & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & VW & WB & DS & TR & MP & WEB
+    Traefik --> OAUTH2
+    OAUTH2 --> DOCS
 
-    KC -. OIDC .-> NC & VW & WEB
+    KC -. OIDC .-> NC & VW & WEB & DS & TR
+    OAUTH2 --> KC
 
     NC --> CO
     NC --> HPB
     HPB --- JANUS & NATS
+    HPB --> TRBOT
     JANUS --- COTURN
 
-    KC & NC & VW --> DB
+    KC & NC & VW & DS & TR --> DB
     WEB --> DB
-    PROM --> GRAF
 
     classDef identity fill:#4a90d9,color:#fff,stroke:#2d6a9f
     classDef collab fill:#2d8659,color:#fff,stroke:#1a5c3a
@@ -101,12 +104,12 @@ graph TB
     classDef tools fill:#0891b2,color:#fff,stroke:#0e7490
     classDef infra fill:#374151,color:#fff,stroke:#1f2937
 
-    class KC identity
+    class KC,OAUTH2 identity
     class NC,CO,WB,HPB,JANUS,NATS,COTURN collab
-    class OC,WHISPER ai
+    class WHISPER,TRBOT ai
     class DB data
-    class VW,MP,DOCS tools
-    class Traefik,WEB,PROM,GRAF infra
+    class VW,MP,DOCS,DS,TR tools
+    class Traefik,WEB infra
 ```
 
 ## SSO-Ablauf
@@ -149,15 +152,15 @@ flowchart LR
     A["fa:fa-server task cluster:create"] --> B["fa:fa-rocket task workspace:deploy"]
     B --> C{"fa:fa-code-branch Optionale Schritte"}
     C --> D["fa:fa-brain task mcp:deploy<br/>MCP-Server"]
-    C --> E["fa:fa-chart-line task workspace:monitoring<br/>Prometheus + Grafana"]
-    C --> F["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
+    C --> E["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
+    C --> F["fa:fa-credit-card task workspace:stripe-setup<br/>Stripe Gateway"]
     C --> G["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
 
     style A fill:#2d6a4f,color:#fff
     style B fill:#2d6a4f,color:#fff
     style D fill:#8b5cf6,color:#fff
-    style E fill:#0891b2,color:#fff
-    style F fill:#2d8659,color:#fff
+    style E fill:#2d8659,color:#fff
+    style F fill:#d97706,color:#fff
     style G fill:#0891b2,color:#fff
 ```
 

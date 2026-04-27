@@ -41,7 +41,10 @@ flowchart TB
             NC["fa:fa-cloud Nextcloud + Talk\nfiles.localhost"]
             CO["fa:fa-file-word Collabora Online\noffice.localhost"]
             WB["fa:fa-chalkboard Whiteboard\nboard.localhost"]
+            DS["fa:fa-file-signature DocuSeal\nsign.localhost"]
+            TR["fa:fa-list-check Tracking\ntracking.localhost"]
             REC["fa:fa-record-vinyl Talk Recording"]
+            TRBOT["fa:fa-closed-captioning Talk Transcriber"]
         end
 
         subgraph video ["fa:fa-video Talk HPB Stack"]
@@ -63,7 +66,7 @@ flowchart TB
         end
 
         subgraph data ["fa:fa-database Datenhaltung"]
-            DB[("PostgreSQL 16\nshared-db\n5 Datenbanken")]
+            DB[("PostgreSQL 16\nshared-db\n6 Datenbanken")]
         end
 
         subgraph website_ns ["Namespace: website"]
@@ -73,11 +76,11 @@ flowchart TB
 
     %% Ingress
     User --> Traefik
-    Traefik --> KC & NC & CO & SIG & VW & WB & MP & OAUTH2 & WEB
+    Traefik --> KC & NC & CO & SIG & VW & WB & DS & TR & MP & OAUTH2 & WEB
     OAUTH2 --> DOCS
 
     %% OIDC
-    KC -. "OIDC" .-> NC & VW & WEB
+    KC -. "OIDC" .-> NC & VW & WEB & DS & TR
     OAUTH2 --> KC
 
     %% Zusammenarbeit
@@ -88,6 +91,7 @@ flowchart TB
     SIG --- NATS
     SIG --> JANUS
     JANUS --- COTURN
+    SIG --> TRBOT
 
     %% KI
     NC -. "optional" .-> WHISPER
@@ -97,6 +101,8 @@ flowchart TB
     NC --> DB
     VW --> DB
     WEB --> DB
+    DS --> DB
+    TR --> DB
 
     %% SMTP
     NC -. "SMTP" .-> MP
@@ -109,7 +115,7 @@ flowchart TB
     click VW "#/services?id=vaultwarden-passwoerter" "Vaultwarden: Self-hosted Bitwarden-kompatibler Passwort-Manager."
     click WB "#/services?id=whiteboard" "Whiteboard: Echtzeit-Kollaborations-Whiteboard."
     click MP "#/services?id=mailpit-dev-mail" "Mailpit: SMTP-Testserver fuer Entwicklung."
-    click DB "#/architecture?id=datenbankmodell" "PostgreSQL 16: 5 isolierte Datenbanken mit eigenem User je Service."
+    click DB "#/architecture?id=datenbankmodell" "PostgreSQL 16: 6 isolierte Datenbanken mit eigenem User je Service."
     click WEB "#/services?id=website-astro-svelte" "Website: Astro + Svelte mit Messaging, OIDC-Login und Admin-Panel."
     click WHISPER "#/services?id=whisper-transkription-optional" "Whisper: faster-whisper Audio-zu-Text Transkription."
     click SIG "#/services?id=talk-hpb-signaling" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk."
@@ -123,8 +129,8 @@ flowchart TB
     classDef infra_style fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
 
     class KC,OAUTH2 identity_style
-    class NC,CO,WB,REC collab_style
-    class MCP,WHISPER ai_style
+    class NC,CO,WB,DS,TR,REC collab_style
+    class MCP,WHISPER,TRBOT ai_style
     class DB data_style
     class VW,MP,DOCS tools_style
     class Traefik,WEB infra_style
@@ -136,7 +142,7 @@ flowchart TB
 
 | Namespace | Services | Pod Security Standard |
 |-----------|----------|-----------------------|
-| `workspace` | Keycloak, Nextcloud, Collabora, Vaultwarden, Claude Code, Mailpit, Docs, Talk HPB, Whiteboard, Whisper, MCP-Server, shared-db | enforce: **baseline** / warn: restricted |
+| `workspace` | Keycloak, Nextcloud, Collabora, Vaultwarden, Claude Code, Mailpit, Docs, Talk HPB, Whiteboard, DocuSeal, Tracking, Whisper, Talk Transcriber, MCP-Server, shared-db | enforce: **baseline** / warn: restricted |
 | `website` | Astro + Svelte Website (Messaging, Admin-Panel) | Standard |
 | `workspace-office` | Collabora Online (eigener Namespace wegen privilegierten Containern) | Privileged |
 | `coturn` | Janus Gateway, NATS, coturn (eigener Namespace, hostNetwork) | Privileged |
@@ -234,6 +240,8 @@ Traefik ist der einzige Ingress Controller (k3s built-in, im `kube-system`-Names
 | `meet.localhost` | spreed-signaling | 8080 |
 | `vault.localhost` | vaultwarden | 80 |
 | `board.localhost` | whiteboard | 3002 |
+| `sign.localhost` | docuseal | 3000 |
+| `tracking.localhost` | tracking | 8000 |
 | `mail.localhost` | mailpit | 8025 |
 | `docs.localhost` | oauth2-proxy → docs | 80 |
 | `web.localhost` | website | 4321 |

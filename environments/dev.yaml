@@ -7,6 +7,7 @@ env_vars:
   # Dev uses default_dev from schema.yaml for most values.
   # Override only where the dev default differs from schema:
   WEBSITE_IMAGE: workspace-website
+  STRIPE_PUBLISHABLE_KEY: "pk_test_51TOM42PUk3CEcKeXroPmb66WOqEzsHvdoscFzvWh693iFhTx91uCWcAwUBGE9m8XxU7rhoHgsHQZtc9DVdQpoSkZ00v4ueou4z"
 
 # Dev secrets: generated from schema defaults at deploy time.
 secrets_mode: plaintext

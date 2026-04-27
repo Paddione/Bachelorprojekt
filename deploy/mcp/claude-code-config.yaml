@@ -16,6 +16,7 @@ data:
   MCP_KEYCLOAK_URL:     "http://claude-code-mcp-monolith:8081/mcp/sse"
   MCP_BROWSER_URL:      "http://claude-code-mcp-monolith:3000/mcp"
   MCP_GITHUB_URL:       "http://claude-code-mcp-monolith:3002/mcp"
+  MCP_STRIPE_URL:       "http://claude-code-mcp-monolith:3003/mcp"
 
   # ════════════════════════════════════════════════════════════════════
   # INTERNAL SERVICE URLS (for direct API calls bypassing MCP)
@@ -140,6 +141,34 @@ data:
 
     Note: The browser runs inside the cluster and has internal access to
     all .localhost domains via the cluster's internal network.
+
+  # ════════════════════════════════════════════════════════════════════
+  # GUIDE: mcp-stripe  (port 3003, streamable-http)
+  # ════════════════════════════════════════════════════════════════════
+  GUIDE_STRIPE: |
+    Image: node:20-alpine + @stripe/mcp (--tools=all)
+    Transport: streamable-http → http://claude-code-mcp-monolith:3003/mcp
+    Auth: STRIPE_SECRET_KEY from claude-code-secrets
+
+    Key: uses the TEST key (sk_test_...) — safe for development and staging.
+    All data created here is isolated in the Stripe test environment.
+
+    Capabilities (full Stripe API surface via MCP tools):
+      Customers:  list, create, retrieve, update
+      Invoices:   list, create, finalize, send, void, retrieve, pay
+      Products:   list, create, retrieve, update
+      Prices:     list, create, retrieve
+      PaymentIntents: list, create, retrieve, confirm, cancel
+      Subscriptions:  list, create, retrieve, update, cancel
+      Refunds:    create, retrieve
+      Checkout:   create session
+      Webhooks:   list, retrieve endpoint config
+
+    Usage tips:
+      - Use test card 4242 4242 4242 4242 (any future expiry, any CVC) to pay invoices.
+      - Test card 4000 0025 0000 3155 triggers 3D Secure auth flow.
+      - Invoices finalized in test mode produce real PDFs and hosted URLs.
+      - Stripe Dashboard (test mode): https://dashboard.stripe.com/test
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: Traefik (no dedicated MCP — use kubernetes MCP + direct API)

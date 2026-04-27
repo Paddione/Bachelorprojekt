@@ -1344,8 +1344,10 @@ tasks:
           -o jsonpath='{.data.GITHUB_PAT}' 2>/dev/null | base64 -d || echo "ghp_placeholder")
         KEYCLOAK_ADMIN_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n workspace \
           -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "admin")
-        export SHARED_DB_PASSWORD GITHUB_PAT KEYCLOAK_ADMIN_PASSWORD
-        kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$KEYCLOAK_ADMIN_PASSWORD" | kubectl $CTX apply -f -
+        STRIPE_SECRET_KEY=$(kubectl $CTX get secret workspace-secrets -n workspace \
+          -o jsonpath='{.data.STRIPE_SECRET_KEY}' 2>/dev/null | base64 -d || echo "sk_test_placeholder")
+        export SHARED_DB_PASSWORD GITHUB_PAT KEYCLOAK_ADMIN_PASSWORD STRIPE_SECRET_KEY
+        kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$KEYCLOAK_ADMIN_PASSWORD \$STRIPE_SECRET_KEY" | kubectl $CTX apply -f -
         # Create mcp-tokens only on first deploy — never overwrite real tokens
         if ! kubectl $CTX get secret mcp-tokens -n default &>/dev/null; then
           kubectl $CTX create secret generic mcp-tokens \
@@ -1450,7 +1452,7 @@ tasks:
         OUTPUT="$PROJECT_DIR/settings.json"
 
         # Prefix server names with mcp- to avoid conflicts with local MCP servers
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
         echo "Claude Code settings written to $OUTPUT"
         echo "  Role: $ROLE"
         echo "  MCP endpoint: https://mcp.${PROD_DOMAIN}"
@@ -1548,7 +1550,7 @@ tasks:
         export BUSINESS_TOKEN="$TOKEN"
 
         OUTPUT="claude-code/${ROLE}-export.settings.json"
-        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/' > "$OUTPUT"
+        envsubst < "$TEMPLATE" | sed 's/"kubernetes"/"mcp-kubernetes"/;s/"postgres"/"mcp-postgres"/;s/"keycloak"/"mcp-keycloak"/;s/"browser"/"mcp-browser"/;s/"github"/"mcp-github"/;s/"stripe"/"mcp-stripe"/' > "$OUTPUT"
 
         echo "Exported settings to: $OUTPUT"
         echo "  Role: $ROLE"

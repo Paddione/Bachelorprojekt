@@ -202,6 +202,10 @@ spec:
               readOnly: true
             - name: php-conf-d
               mountPath: /usr/local/etc/php/conf.d
+            - name: db-config
+              mountPath: /var/www/html/config/zz-db.config.php
+              subPath: zz-db.config.php
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /status.php
@@ -262,6 +266,10 @@ spec:
               mountPath: /var/www/html/config/zz-extra.config.php
               subPath: zz-extra.config.php
               readOnly: true
+            - name: db-config
+              mountPath: /var/www/html/config/zz-db.config.php
+              subPath: zz-db.config.php
+              readOnly: true
           resources:
             requests:
               cpu: "50m"
@@ -289,6 +297,9 @@ spec:
             name: pentest-filesystem-flag
         - name: php-conf-d
           emptyDir: {}
+        - name: db-config
+          configMap:
+            name: nextcloud-db-config
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -321,3 +332,12 @@ spec:
   ports:
     - port: 80
       targetPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-db-config
+data:
+  zz-db.config.php: |
+    <?php
+    $CONFIG = ['dbpassword' => getenv('POSTGRES_PASSWORD')];

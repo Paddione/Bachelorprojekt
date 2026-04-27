@@ -1,4 +1,14 @@
-import type { FullInvoice } from './stripe-billing';
+// Local type — only the fields used in generateZugferdXml
+interface FullInvoice {
+  number: string;
+  date: string;
+  amountDue: number;
+  subtotalExclTax: number;
+  taxAmount: number;
+  currency: string;
+  customerName: string;
+  customerEmail: string;
+}
 
 function esc(s: string | null | undefined): string {
   return String(s ?? '')

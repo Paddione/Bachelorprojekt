@@ -26,7 +26,6 @@
     "pdfkit": "^0.18.0",
     "pg": "^8.20.0",
     "qrcode": "^1.5.4",
-    "stripe": "^22.0.1",
     "svelte": "^5.0.0"
   },
   "devDependencies": {

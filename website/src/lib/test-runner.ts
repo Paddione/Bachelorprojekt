@@ -73,9 +73,12 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
   });
 
   const args = ['tests/runner.sh', tier, ...testIds];
-  const env = { ...process.env, PROD_DOMAIN: prodDomain };
+  const env = { ...process.env, PROD_DOMAIN: prodDomain, CLUSTER_ENV: cluster };
 
   const proc = spawn('bash', args, { cwd: '/app', env });
+
+  // Consume stderr to prevent pipe backpressure deadlock on test failures
+  proc.stderr!.resume();
 
   const emit = (event: string, data: string) => {
     for (const listener of job.listeners) {
@@ -139,15 +142,17 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
     }
   };
 
+  // Ensure results dir exists so the watcher can always be established
+  const { mkdirSync } = await import('fs');
+  mkdirSync(resultsDir, { recursive: true });
+
   let dirWatcher: ReturnType<typeof watch> | null = null;
-  if (existsSync(resultsDir)) {
-    checkForJsonl();
-    dirWatcher = watch(resultsDir, (_, filename) => {
-      if (filename?.startsWith(`.tmp-${tier}-`) && filename.endsWith('.jsonl')) {
-        startJsonlTail(`${resultsDir}/${filename}`);
-      }
-    });
-  }
+  checkForJsonl();
+  dirWatcher = watch(resultsDir, (_, filename) => {
+    if (filename?.startsWith(`.tmp-${tier}-`) && filename.endsWith('.jsonl')) {
+      startJsonlTail(`${resultsDir}/${filename}`);
+    }
+  });
 
   proc.on('exit', async (code) => {
     jsonlWatcher?.close();

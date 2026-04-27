@@ -129,6 +129,20 @@ env_vars:
     required: true
     default_dev: "brett.localhost"
 
+  - name: WEBSITE_HOST
+    required: true
+    default_dev: "web.localhost"
+    validate: "^[a-z0-9.-]+(:[0-9]+)?$"
+
+  - name: WEBSITE_SITE_URL
+    required: true
+    default_dev: "http://web.localhost"
+
+  # Used as OIDC issuer URL in the website ConfigMap — missing breaks SSO
+  - name: KEYCLOAK_FRONTEND_URL
+    required: true
+    default_dev: "http://auth.localhost"
+
 secrets:
   - name: SHARED_DB_PASSWORD
     required: true

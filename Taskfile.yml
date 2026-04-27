@@ -1657,6 +1657,7 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
         docker build --no-cache -t "${IMAGE}:latest" \
+          -f website/Dockerfile \
           --build-arg PROD_DOMAIN="${PROD_DOMAIN}" \
           --build-arg BRAND_NAME="${BRAND_NAME}" \
           --build-arg CONTACT_EMAIL="${CONTACT_EMAIL}" \
@@ -1668,7 +1669,7 @@ tasks:
           --build-arg LEGAL_JOBTITLE="${LEGAL_JOBTITLE}" \
           --build-arg LEGAL_UST_ID="${LEGAL_UST_ID}" \
           --build-arg LEGAL_WEBSITE="${LEGAL_WEBSITE}" \
-          website/
+          .
         echo "✓ Docker image built: ${IMAGE}:latest"
 
   website:build:import:

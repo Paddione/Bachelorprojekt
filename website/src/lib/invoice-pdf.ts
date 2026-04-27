@@ -74,8 +74,9 @@ export async function generateInvoicePdf(p: {
       try { doc.image(LOGO, L, 47, { width: 42, height: 42 }); } catch { /* skip */ }
     }
 
+    const brandName = process.env.BRAND_NAME || 'mentolder';
     doc.font('Times-Italic').fontSize(18).fillColor(C.ink)
-       .text('mentolder', 102, 55, { continued: true, lineBreak: false });
+       .text(brandName, 102, 55, { continued: true, lineBreak: false });
     doc.fillColor(C.brass).text('.', { lineBreak: false });
 
     doc.font('Helvetica').fontSize(8).fillColor(C.inkMute).text(seller.name, 102, 76);

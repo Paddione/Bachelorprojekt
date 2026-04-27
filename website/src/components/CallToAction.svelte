@@ -17,8 +17,8 @@
     subtitle = 'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit. Wo stehen Sie – und wie könnte eine Zusammenarbeit konkret aussehen?',
     primaryText = 'Termin vorschlagen',
     primaryHref = '/kontakt',
-    secondaryText = 'info@mentolder.de',
-    secondaryHref = 'mailto:info@mentolder.de',
+    secondaryText = '',
+    secondaryHref = '',
   }: Props = $props();
 </script>
 

@@ -204,13 +204,9 @@ export const POST: APIRoute = async ({ request, params }) => {
         }
         const p = item.payload as { ticketId: string; reporterEmail: string; brand: string };
         await resolveBugTicket(p.ticketId, resolveNote);
-        const BRAND_INBOX: Record<string, string> = {
-          mentolder: `info@mentolder.de`,
-          korczewski: `info@korczewski.de`,
-        };
-        const fallbackEmail = PROD_DOMAIN ? `info@${PROD_DOMAIN}` : 'info@mentolder.de';
+        const toEmail = PROD_DOMAIN ? `info@${PROD_DOMAIN}` : `info@${p.brand}.de`;
         await sendEmail({
-          to: BRAND_INBOX[p.brand] ?? fallbackEmail,
+          to: toEmail,
           subject: `[${p.ticketId}] Erledigt`,
           text: `Ticket ${p.ticketId} wurde als erledigt markiert.\n\nNotiz:\n${resolveNote}`,
           replyTo: p.reporterEmail,

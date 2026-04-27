@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { saveServiceConfig, saveLeistungenConfig, setSiteSetting } from '../../../../lib/website-db';
 import type { ServiceOverride, LeistungCategoryOverride } from '../../../../lib/website-db';
-import { mentolderConfig } from '../../../../config/brands/mentolder';
+import { config } from '../../../../config/index';
 
 function parseJson<T>(raw: string | null, fallback: T): T {
   if (!raw?.trim()) return fallback;
@@ -45,7 +45,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const form = await request.formData();
 
   // ── Services (card fields + pageContent) ──────────────────────────────────
-  const serviceOverrides: ServiceOverride[] = mentolderConfig.services.map(s => {
+  const serviceOverrides: ServiceOverride[] = config.services.map(s => {
     const features = ((form.get(`${s.slug}_features`) as string) ?? '').split('\n').map(f => f.trim()).filter(Boolean);
     const forWhom = ((form.get(`${s.slug}_pc_forWhom`) as string) ?? '').split('\n').map(f => f.trim()).filter(Boolean);
     return {
@@ -68,7 +68,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   });
 
   // ── Leistungen (pricing table) ─────────────────────────────────────────────
-  const leistungenOverrides: LeistungCategoryOverride[] = mentolderConfig.leistungen.map(cat => ({
+  const leistungenOverrides: LeistungCategoryOverride[] = config.leistungen.map(cat => ({
     id: cat.id,
     title: (form.get(`lk_${cat.id}_title`) as string) || cat.title,
     icon: (form.get(`lk_${cat.id}_icon`) as string) || cat.icon,

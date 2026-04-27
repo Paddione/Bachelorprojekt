@@ -45,9 +45,14 @@ export default defineConfig({
         '**/fa-client-portal.spec.ts', // client portal auth-gate
         '**/fa-meeting-history.spec.ts',  // meeting history & release
         '**/fa-document-signing.spec.ts', // document signing flow
-        '**/fa-admin-monitoring.spec.ts',     // admin monitoring page auth
-        '**/fa-admin-newsletter.spec.ts',     // admin newsletter page auth
-        '**/fa-admin-backup-settings.spec.ts', // admin backup settings auth
+        '**/fa-admin-monitoring.spec.ts',       // admin monitoring page auth
+        '**/fa-admin-newsletter.spec.ts',       // admin newsletter page auth
+        '**/fa-admin-backup-settings.spec.ts',  // admin backup settings auth
+        '**/fa-public-pages.spec.ts',           // public static & legal pages
+        '**/fa-admin-inhalte.spec.ts',          // unified content editor + legacy stubs
+        '**/fa-admin-billing-system.spec.ts',   // native SEPA billing, EÜR, UStVA
+        '**/fa-admin-crm.spec.ts',              // CRM: termine, followups, projekte, rooms, meetings
+        '**/fa-admin-settings.spec.ts',         // settings: email, rechnungen, branding, benachrichtigungen
       ],
       use: {
         ...devices['Desktop Chrome'],

@@ -110,6 +110,19 @@ spec:
               value: "admin-cli"
             - name: QUARKUS_HTTP_PORT
               value: "8081"
+            # Allow any authenticated MCP client (auth is enforced by the Traefik ForwardAuth proxy)
+            - name: QUARKUS_HTTP_AUTH_PERMISSION_MCP_POLICY
+              value: "permit"
+            # Use admin service account for Keycloak Admin API (ROPC via admin-cli)
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_USERNAME
+              value: "admin"
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_GRANT_TYPE
+              value: "PASSWORD"
           ports:
             - containerPort: 8081
               name: keycloak

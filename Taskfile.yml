@@ -1324,7 +1324,19 @@ tasks:
       - 'echo "Deploying Claude Code MCP monolith..."'
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME" | kubectl apply -f -
+        # Pull runtime secrets from workspace-secrets so claude-code-secrets stays in sync.
+        # Falls back to placeholders on a fresh cluster before workspace-secrets exists.
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        SHARED_DB_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n workspace \
+          -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || echo "devshareddb")
+        GITHUB_PAT=$(kubectl $CTX get secret workspace-secrets -n workspace \
+          -o jsonpath='{.data.GITHUB_PAT}' 2>/dev/null | base64 -d || echo "ghp_placeholder")
+        STRIPE_SECRET_KEY=$(kubectl $CTX get secret workspace-secrets -n workspace \
+          -o jsonpath='{.data.STRIPE_SECRET_KEY}' 2>/dev/null | base64 -d || echo "sk_test_placeholder")
+        KEYCLOAK_ADMIN_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n workspace \
+          -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "admin")
+        export SHARED_DB_PASSWORD GITHUB_PAT STRIPE_SECRET_KEY KEYCLOAK_ADMIN_PASSWORD
+        kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$STRIPE_SECRET_KEY \$KEYCLOAK_ADMIN_PASSWORD" | kubectl apply -f -
       - 'echo "Waiting for pods to roll out..."'
       - kubectl rollout status deployment/claude-code-mcp-monolith --timeout=120s
       - kubectl rollout status deployment/mcp-auth-proxy --timeout=60s

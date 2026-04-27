@@ -6,18 +6,18 @@ import { getNextInvoiceNumber } from './website-db';
 import { config } from '../config/index.js';
 
 export const SERVICES = {
-  'erstgespraech':       { name: 'Kostenloses Erstgespräch',                         cents: 0,      unit: 'Einheit' },
-  'callback':            { name: 'Rückruf',                                          cents: 0,      unit: 'Einheit' },
-  'meeting':             { name: 'Online-Meeting',                                    cents: 0,      unit: 'Einheit' },
-  'termin':              { name: 'Termin vor Ort',                                    cents: 0,      unit: 'Einheit' },
-  'digital-cafe-einzel': { name: '50+ digital — Einzelbegleitung',                   cents: 6000,   unit: 'Stunde' },
-  'digital-cafe-gruppe': { name: '50+ digital — Kleine Gruppe',                      cents: 4000,   unit: 'Person/Stunde' },
-  'digital-cafe-5er':    { name: '50+ digital — 5er-Paket',                          cents: 27000,  unit: 'Paket' },
-  'digital-cafe-10er':   { name: '50+ digital — 10er-Paket',                         cents: 50000,  unit: 'Paket' },
-  'coaching-session':    { name: 'Führungskräfte-Coaching — Einzelsession (90 Min.)', cents: 15000,  unit: 'Session' },
-  'coaching-6er':        { name: 'Führungskräfte-Coaching — 6er-Paket',              cents: 80000,  unit: 'Paket' },
-  'coaching-intensiv':   { name: 'Führungskräfte-Coaching — Intensiv-Tag (6 Std.)',   cents: 50000,  unit: 'Tag' },
-  'beratung-tag':        { name: 'Unternehmensberatung — Tagessatz',                  cents: 100000, unit: 'Tag' },
+  'erstgespraech':       { name: 'Kostenloses Erstgespräch',                          cents: 0,      unit: 'Einheit',       stripePriceId: null },
+  'callback':            { name: 'Rückruf',                                           cents: 0,      unit: 'Einheit',       stripePriceId: null },
+  'meeting':             { name: 'Online-Meeting',                                     cents: 0,      unit: 'Einheit',       stripePriceId: null },
+  'termin':              { name: 'Termin vor Ort',                                     cents: 0,      unit: 'Einheit',       stripePriceId: null },
+  'digital-cafe-einzel': { name: '50+ digital — Einzelbegleitung',                    cents: 6000,   unit: 'Stunde',        stripePriceId: 'price_1TQpf1PmjoQCVSEjnmgFkS8K' },
+  'digital-cafe-gruppe': { name: '50+ digital — Kleine Gruppe',                       cents: 4000,   unit: 'Person/Stunde', stripePriceId: 'price_1TQpf1PmjoQCVSEjJ4owABi3' },
+  'digital-cafe-5er':    { name: '50+ digital — 5er-Paket',                           cents: 27000,  unit: 'Paket',         stripePriceId: 'price_1TQpf2PmjoQCVSEjXXJ8yzjL' },
+  'digital-cafe-10er':   { name: '50+ digital — 10er-Paket',                          cents: 50000,  unit: 'Paket',         stripePriceId: 'price_1TQpf3PmjoQCVSEjEaHsjWdy' },
+  'coaching-session':    { name: 'Führungskräfte-Coaching — Einzelsession (90 Min.)', cents: 15000,  unit: 'Session',       stripePriceId: 'price_1TQpf3PmjoQCVSEj7wrNVb5P' },
+  'coaching-6er':        { name: 'Führungskräfte-Coaching — 6er-Paket',               cents: 80000,  unit: 'Paket',         stripePriceId: 'price_1TQpf4PmjoQCVSEjVYaoLJR4' },
+  'coaching-intensiv':   { name: 'Führungskräfte-Coaching — Intensiv-Tag (6 Std.)',   cents: 50000,  unit: 'Tag',           stripePriceId: 'price_1TQpf4PmjoQCVSEjLybAjVOi' },
+  'beratung-tag':        { name: 'Unternehmensberatung — Tagessatz',                   cents: 100000, unit: 'Tag',           stripePriceId: 'price_1TQpf5PmjoQCVSEjy1MDFQRL' },
 } as const;
 
 export type ServiceKey = keyof typeof SERVICES;
@@ -131,9 +131,10 @@ export async function createBillingInvoice(params: {
   await stripe.invoiceItems.create({
     customer: params.customerId,
     invoice: draft.id,
-    amount: service.cents * qty,
-    currency: 'eur',
-    description: `${service.name}${qty > 1 ? ` × ${qty}` : ''}`,
+    ...(service.stripePriceId
+      ? { price: service.stripePriceId, quantity: qty }
+      : { amount: service.cents * qty, currency: 'eur', description: `${service.name}${qty > 1 ? ` × ${qty}` : ''}` }
+    ),
   });
   const finalized = await stripe.invoices.finalizeInvoice(draft.id);
   if (params.sendEmail) await stripe.invoices.sendInvoice(finalized.id);
@@ -146,12 +147,10 @@ export async function createBillingQuote(params: {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   const service = SERVICES[params.serviceKey];
   const qty = params.quantity ?? 1;
-  // QuoteCreateParams.LineItem requires a pre-created price (no inline price_data).
-  const product = await stripe.products.create({ name: service.name });
-  const price = await stripe.prices.create({ product: product.id, unit_amount: service.cents, currency: 'eur' });
+  if (!service.stripePriceId) return null;
   const q = await stripe.quotes.create({
     customer: params.customerId,
-    line_items: [{ price: price.id, quantity: qty }],
+    line_items: [{ price: service.stripePriceId, quantity: qty }],
     description: params.notes ?? '',
   });
   return { id: q.id, status: q.status, amountTotal: centsToEur(q.amount_total) };

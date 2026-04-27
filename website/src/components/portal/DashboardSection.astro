@@ -1,0 +1,129 @@
+---
+import type { UserSession } from '../../lib/auth';
+
+interface Props {
+  session: UserSession;
+  pendingSignatures: number;
+  pendingQuestionnaires: number;
+  ncBase: string;
+  vaultUrl: string;
+  wbUrl?: string;
+}
+
+const { session, pendingSignatures, pendingQuestionnaires, ncBase, vaultUrl, wbUrl = '' } = Astro.props;
+
+const firstName = session.given_name?.trim()
+  || session.name?.split(' ')[0]?.trim()
+  || session.preferred_username
+  || 'dort';
+
+const tiles = [
+  { id: 'dateien',     label: 'Dateien',     desc: 'Dokumente & Freigaben',   badge: 0,
+    icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h5.5L13 5.5V14H4V2z"/><path d="M9.5 2v3.5H13"/><path d="M6 8h4M6 10.5h4M6 13h2.5"/></svg>` },
+  { id: 'vertraege',   label: 'Verträge',    desc: '',                        badge: pendingSignatures,
+    icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5c1-2 2-4 3-3s0 3 1.5 2 2-3 3-2"/><path d="M2.5 13.5h11"/></svg>` },
+  { id: 'fragebögen', label: 'Fragebögen',  desc: '',                        badge: pendingQuestionnaires,
+    icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1.5" width="11" height="13" rx="1"/><path d="M5.5 5.5h5M5.5 8h3"/><circle cx="8" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>` },
+  { id: 'kalender',    label: 'Kalender',    desc: 'Termine & Meeting-Links', badge: 0,
+    icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3M5.5 10h1M8 10h1M10.5 10h1"/></svg>` },
+  { id: 'rechnungen',  label: 'Rechnungen',  desc: '',                        badge: 0,
+    icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.5h8v13l-2-1.5-2 1.5-2-1.5-2 1.5z"/><path d="M6 6h4M6 8.5h4M6 11h2"/></svg>` },
+  { id: 'buchung',     label: 'Buchung',     desc: 'Termin anfragen',         badge: 0,
+    icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v2.5l1.5 1.5"/></svg>` },
+];
+
+const externalServices = [
+  ...(ncBase   ? [{ href: ncBase,   label: 'Nextcloud',   desc: 'Dateien & Kalender' }] : []),
+  ...(vaultUrl ? [{ href: vaultUrl, label: 'Vaultwarden', desc: 'Passwörter'         }] : []),
+  ...(wbUrl    ? [{ href: wbUrl,    label: 'Whiteboard',  desc: 'Skizzen & Boards'   }] : []),
+];
+
+const hasPending = pendingSignatures > 0 || pendingQuestionnaires > 0;
+---
+
+<div style="padding: 32px 32px 48px; max-width: 800px;">
+
+  <h1 style="font-size:22px; font-weight:700; color:var(--fg); letter-spacing:-0.02em; margin-bottom:4px;">
+    Dashboard
+  </h1>
+  <p style="font-size:13px; color:var(--mute); margin-bottom:28px;">
+    Willkommen zurück, {firstName}.{hasPending ? ' Es warten Aufgaben auf Sie.' : ''}
+  </p>
+
+  {pendingSignatures > 0 && (
+    <a href="/portal?section=vertraege"
+       class="dash-alert"
+       style="display:flex; align-items:center; gap:12px; padding:12px 16px; margin-bottom:10px; background:var(--brass-d); border:1px solid rgba(202,166,87,0.25); border-radius:10px; text-decoration:none; transition:border-color 0.1s ease;"
+    >
+      <span style="display:flex; align-items:center; justify-content:center; width:14px; height:14px; flex-shrink:0; color:var(--brass);" set:html={`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5c1-2 2-4 3-3s0 3 1.5 2 2-3 3-2"/><path d="M2.5 13.5h11"/></svg>`} />
+      <span style="font-size:13px; color:var(--fg-soft); flex:1;">
+        <strong style="color:var(--brass); font-weight:600;">{pendingSignatures} {pendingSignatures === 1 ? 'Vertrag' : 'Verträge'}</strong> warten auf Ihre Unterschrift
+      </span>
+      <span style="font-size:12px; font-weight:600; color:var(--brass);">Ansehen →</span>
+    </a>
+  )}
+
+  {pendingQuestionnaires > 0 && (
+    <a href="/portal?section=fragebögen"
+       class="dash-alert"
+       style="display:flex; align-items:center; gap:12px; padding:12px 16px; margin-bottom:10px; background:var(--brass-d); border:1px solid rgba(202,166,87,0.25); border-radius:10px; text-decoration:none; transition:border-color 0.1s ease;"
+    >
+      <span style="display:flex; align-items:center; justify-content:center; width:14px; height:14px; flex-shrink:0; color:var(--brass);" set:html={`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1.5" width="11" height="13" rx="1"/><path d="M5.5 5.5h5M5.5 8h3"/><circle cx="8" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>`} />
+      <span style="font-size:13px; color:var(--fg-soft); flex:1;">
+        <strong style="color:var(--brass); font-weight:600;">{pendingQuestionnaires} {pendingQuestionnaires === 1 ? 'Fragebogen' : 'Fragebögen'}</strong> noch nicht ausgefüllt
+      </span>
+      <span style="font-size:12px; font-weight:600; color:var(--brass);">Ansehen →</span>
+    </a>
+  )}
+
+  {hasPending && <div style="height:18px;" />}
+
+  <p style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--mute-2); margin-bottom:10px;">Ihr Bereich</p>
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:28px;">
+    {tiles.map(tile => (
+      <a href={`/portal?section=${tile.id}`}
+         class="dash-tile"
+         style="display:flex; flex-direction:column; gap:6px; padding:14px 14px 12px; background:var(--ink-800); border:1px solid var(--line); border-radius:10px; text-decoration:none; transition:background 0.12s ease, border-color 0.12s ease;"
+      >
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:7px; background:rgba(255,255,255,0.05); color:var(--brass);" set:html={tile.icon} />
+          {tile.badge > 0 && (
+            <span style="padding:2px 7px; border-radius:5px; background:var(--brass-d); color:var(--brass); font-size:10px; font-weight:700; font-family:var(--font-mono);">
+              {tile.badge}
+            </span>
+          )}
+        </div>
+        <div style="font-size:12.5px; font-weight:600; color:var(--fg-soft);">{tile.label}</div>
+        {tile.desc && <div style="font-size:11px; color:var(--mute);">{tile.desc}</div>}
+        {tile.badge > 0 && !tile.desc && (
+          <div style="font-size:11px; color:var(--brass);">{tile.badge} ausstehend</div>
+        )}
+      </a>
+    ))}
+  </div>
+
+  {externalServices.length > 0 && (
+    <>
+      <p style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--mute-2); margin-bottom:10px;">Dienste</p>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+        {externalServices.map(svc => (
+          <a href={svc.href} target="_blank" rel="noopener noreferrer"
+             style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--ink-850); border:1px solid var(--line); border-radius:8px; text-decoration:none; transition:background 0.1s ease;"
+          >
+            <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+              <span style="font-size:12px; font-weight:600; color:var(--fg-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{svc.label}</span>
+              <span style="font-size:10.5px; color:var(--mute);">{svc.desc}</span>
+            </div>
+            <span style="margin-left:auto; font-size:13px; color:var(--mute-2); flex-shrink:0;">↗</span>
+          </a>
+        ))}
+      </div>
+    </>
+  )}
+
+</div>
+
+<style>
+  .dash-tile:hover { background: var(--ink-750) !important; border-color: rgba(202,166,87,0.22) !important; }
+  .dash-alert:hover { border-color: rgba(202,166,87,0.5) !important; }
+</style>

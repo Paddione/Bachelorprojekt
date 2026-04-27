@@ -2,15 +2,13 @@
 import PortalLayout from '../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../lib/auth';
 import { getCustomerByEmail, listRoomsWithInboxData } from '../lib/messaging-db';
-import { getMeetingsForClient, listProjectsForCustomer, getOrCreateOnboardingChecklist, upsertCustomer } from '../lib/website-db';
+import { getMeetingsForClient, listProjectsForCustomer, upsertCustomer } from '../lib/website-db';
 import { getClientBookings } from '../lib/caldav';
-import { getCustomerInvoices } from '../lib/stripe-billing';
 import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR } from '../lib/nextcloud-files';
 import { countPendingAssignmentsForCustomer } from '../lib/documents-db';
 import { countPendingQAssignmentsForCustomer, listQAssignmentsForCustomer } from '../lib/questionnaire-db';
 import type { QAssignment } from '../lib/questionnaire-db';
 
-import OverviewSection      from '../components/portal/OverviewSection.astro';
 import NachrichtenSection   from '../components/portal/NachrichtenSection.astro';
 import BesprechungenSection from '../components/portal/BesprechungenSection.astro';
 import DateienSection       from '../components/portal/DateienSection.astro';
@@ -23,11 +21,16 @@ import OnboardingTab        from '../components/portal/OnboardingTab.astro';
 import DiensteSection       from '../components/portal/DiensteSection.astro';
 import KontoSection         from '../components/portal/KontoSection.astro';
 import FragebogenSection    from '../components/portal/FragebogenSection.astro';
+import DashboardSection     from '../components/portal/DashboardSection.astro';
+import BuchungSection       from '../components/portal/BuchungSection.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 
-const section  = Astro.url.searchParams.get('section') ?? 'overview';
+const rawSection = Astro.url.searchParams.get('section') ?? 'overview';
+const section = rawSection === 'unterschriften' ? 'vertraege'
+              : rawSection === 'dashboard'      ? 'overview'
+              : rawSection;
 const username = session.preferred_username ?? session.sub;
 const now      = new Date();
 
@@ -70,33 +73,6 @@ if (customer) {
 }
 
 // ── Section data (lazy — only what the active section needs) ──────
-let nextBooking: Awaited<ReturnType<typeof getClientBookings>>[number] | null = null;
-let openInvoices  = 0;
-let onboardingPct = 0;
-
-if (section === 'overview') {
-  const [bookings, invoices, onboarding] = await Promise.allSettled([
-    getClientBookings(session.email),
-    getCustomerInvoices(session.email),
-    getOrCreateOnboardingChecklist(session.sub),
-  ]);
-  if (bookings.status === 'fulfilled') {
-    const now = new Date();
-    const upcoming = bookings.value.filter(b => b.start >= now && b.status !== 'CANCELLED');
-    nextBooking = upcoming[0] ?? null;
-  }
-  if (invoices.status === 'fulfilled') {
-    openInvoices = invoices.value.filter(
-      i => i.amountRemaining > 0 && !['void', 'uncollectible'].includes(i.status)
-    ).length;
-  }
-  if (onboarding.status === 'fulfilled' && onboarding.value.length) {
-    onboardingPct = Math.round(
-      (onboarding.value.filter(i => i.done).length / onboarding.value.length) * 100
-    );
-  }
-}
-
 const rooms = (section === 'nachrichten' && customer)
   ? await listRoomsWithInboxData(customer.id).catch(() => [])
   : [];
@@ -125,13 +101,13 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
   {pendingSignatures}
   {pendingQuestionnaires}
 >
-  {section === 'overview'       && <OverviewSection {session} {nextBooking} {openInvoices} {unreadMessages} {onboardingPct} {ncBase} {vaultUrl} {wbUrl} />}
+  {section === 'overview'       && <DashboardSection {session} {pendingSignatures} {pendingQuestionnaires} {ncBase} {vaultUrl} {wbUrl} />}
   {section === 'nachrichten'    && <NachrichtenSection {rooms} />}
   {section === 'besprechungen'  && <BesprechungenSection {meetings} />}
   {section === 'dateien'        && <DateienSection clientUsername={username} />}
-  {section === 'unterschriften' && (
+  {section === 'vertraege' && (
     <div class="pt-10 pb-20 px-8 max-w-2xl">
-      <h2 class="text-xl font-bold text-light font-serif mb-6">Unterschriften</h2>
+      <h2 class="text-xl font-bold text-light font-serif mb-6">Verträge</h2>
       <SignaturesTab clientUsername={username} clientEmail={session.email} />
     </div>
   )}
@@ -148,4 +124,5 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
   {section === 'fragebögen'     && <FragebogenSection assignments={questionnaires} />}
   {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {wbUrl} {bretUrl} {keycloakBase} />}
   {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
+  {section === 'buchung'        && <BuchungSection ncBase={ncBase} />}
 </PortalLayout>

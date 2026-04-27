@@ -3,8 +3,10 @@ import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import FAQ from '../components/FAQ.svelte';
 import { getEffectiveServices } from '../lib/content';
+import { config } from '../config/index';
 
 const { service } = Astro.params;
+const { contact } = config;
 const allServices = await getEffectiveServices();
 const visibleServices = allServices.filter((s) => !s.hidden);
 const svcIndex = visibleServices.findIndex((s) => s.slug === service);
@@ -112,5 +114,5 @@ const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex
     </section>
   )}
 
-  <CallToAction client:visible />
+  <CallToAction client:visible secondaryText={contact.email} secondaryHref={`mailto:${contact.email}`} />
 </Layout>

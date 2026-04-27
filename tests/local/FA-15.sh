@@ -4,15 +4,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
-WEB_NS="${WEB_NS:-website}"
+WEB_NAMESPACE="${WEB_NAMESPACE:-website}"
 KC_NS="${KC_NS:-workspace}"
 
 # ── T1: /api/auth/login redirects (302) ──────────────────────────
-WEB_READY=$(kubectl get deployment website -n "$WEB_NS" \
+WEB_READY=$(kubectl get deployment website -n "$WEB_NAMESPACE" \
   -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
 
 if [[ "$WEB_READY" -gt 0 ]]; then
-  AUTH_CODE=$(kubectl exec -n "$WEB_NS" deploy/website -- \
+  AUTH_CODE=$(kubectl exec -n "$WEB_NAMESPACE" deploy/website -- \
     node -e "fetch('http://localhost:4321/api/auth/login',{redirect:'manual'}).then(r=>console.log(r.status))" 2>/dev/null || echo "0")
   assert_eq "$AUTH_CODE" "302" "FA-15" "T1" "/api/auth/login gibt 302 zurueck"
 else
@@ -21,7 +21,7 @@ fi
 
 # ── T2: /api/auth/me returns unauthenticated ─────────────────────
 if [[ "$WEB_READY" -gt 0 ]]; then
-  ME_RESULT=$(kubectl exec -n "$WEB_NS" deploy/website -- \
+  ME_RESULT=$(kubectl exec -n "$WEB_NAMESPACE" deploy/website -- \
     node -e "fetch('http://localhost:4321/api/auth/me').then(r=>r.json()).then(d=>console.log(d.authenticated))" 2>/dev/null || echo "")
   assert_eq "$ME_RESULT" "false" "FA-15" "T2" "/api/auth/me gibt authenticated:false"
 else
@@ -54,7 +54,7 @@ else
 fi
 
 # ── T4: WEBSITE_OIDC_SECRET in ConfigMap ──────────────────────────
-OIDC_SEC=$(kubectl get configmap website-config -n "$WEB_NS" \
+OIDC_SEC=$(kubectl get configmap website-config -n "$WEB_NAMESPACE" \
   -o jsonpath='{.data.WEBSITE_OIDC_SECRET}' 2>/dev/null || echo "")
 if [[ -n "$OIDC_SEC" && "$OIDC_SEC" != "" ]]; then
   assert_eq "set" "set" "FA-15" "T4" "WEBSITE_OIDC_SECRET konfiguriert"

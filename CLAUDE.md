@@ -122,7 +122,8 @@ task config:show ENV=<env>       # Show resolved PROD_DOMAIN/BRAND_NAME/CONTACT_
 ./tests/runner.sh report             # Generate Markdown report
 ```
 
-Test IDs: `FA-01`--`FA-27` (functional), `SA-01`--`SA-10` (security), `NFA-01`--`NFA-09` (non-functional), `AK-03`, `AK-04` (acceptance).
+Test IDs: `FA-01`--`FA-29` (functional), `SA-01`--`SA-10` (security), `NFA-01`--`NFA-09` (non-functional), `AK-03`, `AK-04` (acceptance).
+Note: FA-01..FA-09, FA-22, SA-06, SA-09 are skipped (Mattermost/InvoiceNinja removed from stack).
 
 ## Architecture
 

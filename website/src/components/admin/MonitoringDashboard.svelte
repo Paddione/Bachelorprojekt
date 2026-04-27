@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import TestResultsPanel from './TestResultsPanel.svelte';
 
   type Pod = {
     name: string;
@@ -494,6 +495,11 @@
         {/each}
       </ul>
     {/if}
+  </div>
+
+  <!-- System test results -->
+  <div class="mb-8 p-6 bg-dark-light rounded-xl border border-dark-lighter">
+    <TestResultsPanel />
   </div>
 
   <!-- Deployments Section -->

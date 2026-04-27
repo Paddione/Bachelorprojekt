@@ -1,6 +1,6 @@
 <!-- website/src/components/admin/TestResultsPanel.svelte -->
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
 
   type TestStep = {
     question_id: string;
@@ -41,8 +41,13 @@
       const r = await fetch('/api/admin/test-results');
       if (r.ok) {
         results = await r.json();
-        // Auto-expand all on first load
-        expandedTemplates = new Set(results.map(r => r.template_id));
+        // Expand all on first load; on refresh preserve collapsed state, remove stale IDs
+        const incoming = new Set(results.map(r => r.template_id));
+        if (expandedTemplates.size === 0) {
+          expandedTemplates = new Set(incoming);
+        } else {
+          expandedTemplates = new Set([...expandedTemplates].filter(id => incoming.has(id)));
+        }
       } else {
         error = `Fehler ${r.status}`;
       }
@@ -54,6 +59,7 @@
   }
 
   onMount(() => { load(); });
+  onDestroy(() => { if (modalCloseTimer) clearTimeout(modalCloseTimer); });
 
   function fmtDate(d: string | null) {
     if (!d) return null;
@@ -200,13 +206,15 @@
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 flex-wrap mb-0.5">
                     <span class="text-muted text-xs">#{step.position}</span>
-                    <span class={`px-1.5 py-0 rounded text-xs border ${
-                      step.test_role === 'admin'
-                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                    }`}>
-                      {step.test_role === 'admin' ? 'Admin' : 'Nutzer'}
-                    </span>
+                    {#if step.test_role}
+                      <span class={`px-1.5 py-0 rounded text-xs border ${
+                        step.test_role === 'admin'
+                          ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      }`}>
+                        {step.test_role === 'admin' ? 'Admin' : 'Nutzer'}
+                      </span>
+                    {/if}
                     {#if step.test_function_url}
                       <a href={step.test_function_url} target="_blank" rel="noopener noreferrer"
                         class="text-xs text-gold hover:underline truncate max-w-[200px]">
@@ -219,7 +227,7 @@
                   <div class="flex items-center gap-3 mt-1 flex-wrap">
                     {#if step.last_result}
                       <span class={`text-xs px-2 py-0.5 rounded border ${resultClasses(step.last_result)}`}>
-                        {resultLabel(step.last_result)}{step.last_result_at ? ` · ${fmtDate(step.last_result_at)}` : ''}
+                        {resultLabel(step.last_result)}{(step.last_result !== 'erfüllt' && step.last_result_at) ? ` · ${fmtDate(step.last_result_at)}` : ''}
                       </span>
                     {/if}
                     {#if step.last_success_at && step.last_result !== 'erfüllt'}

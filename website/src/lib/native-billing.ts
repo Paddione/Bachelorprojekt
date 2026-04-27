@@ -69,30 +69,40 @@ export async function createInvoice(p: {
 
   const netAmount = p.lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
   const taxRate   = p.taxMode === 'kleinunternehmer' ? 0 : (p.taxRate ?? 19);
-  const taxAmount = Math.round(netAmount * taxRate) / 100;
+  const taxAmount = Math.round(netAmount * (taxRate / 100) * 100) / 100;
   const grossAmount = netAmount + taxAmount;
   const paymentRef = number.replace('RE-', 'RG');
 
-  const r = await pool.query(
-    `INSERT INTO billing_invoices (brand, number, customer_id, issue_date, due_date,
-       service_period_start, service_period_end, tax_mode, net_amount, tax_rate,
-       tax_amount, gross_amount, notes, payment_reference)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-    [p.brand, number, p.customerId, p.issueDate,
-     dueDate.toISOString().split('T')[0],
-     p.servicePeriodStart??null, p.servicePeriodEnd??null,
-     p.taxMode, netAmount, taxRate, taxAmount, grossAmount,
-     p.notes??null, paymentRef]
-  );
-  const inv = r.rows[0];
-  await Promise.all(p.lines.map(l =>
-    pool.query(
-      `INSERT INTO billing_invoice_line_items (invoice_id,description,quantity,unit,unit_price,net_amount)
-       VALUES ($1,$2,$3,$4,$5,$6)`,
-      [inv.id, l.description, l.quantity, l.unit??null, l.unitPrice, l.quantity*l.unitPrice]
-    )
-  ));
-  return mapInvoice(inv);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const r = await client.query(
+      `INSERT INTO billing_invoices (brand, number, customer_id, issue_date, due_date,
+         service_period_start, service_period_end, tax_mode, net_amount, tax_rate,
+         tax_amount, gross_amount, notes, payment_reference)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      [p.brand, number, p.customerId, p.issueDate,
+       dueDate.toISOString().split('T')[0],
+       p.servicePeriodStart??null, p.servicePeriodEnd??null,
+       p.taxMode, netAmount, taxRate, taxAmount, grossAmount,
+       p.notes??null, paymentRef]
+    );
+    const inv = r.rows[0];
+    await Promise.all(p.lines.map(l =>
+      client.query(
+        `INSERT INTO billing_invoice_line_items (invoice_id,description,quantity,unit,unit_price,net_amount)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [inv.id, l.description, l.quantity, l.unit??null, l.unitPrice, l.quantity*l.unitPrice]
+      )
+    ));
+    await client.query('COMMIT');
+    return mapInvoice(inv);
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function getInvoice(id: string): Promise<Invoice | null> {
@@ -101,28 +111,33 @@ export async function getInvoice(id: string): Promise<Invoice | null> {
   return r.rows[0] ? mapInvoice(r.rows[0]) : null;
 }
 
-export async function finalizeInvoice(id: string): Promise<Invoice> {
+export async function finalizeInvoice(id: string): Promise<Invoice | null> {
+  await initBillingTables();
   const r = await pool.query(
-    `UPDATE billing_invoices SET status='open', locked=true, updated_at=now() WHERE id=$1 RETURNING *`, [id]
+    `UPDATE billing_invoices SET status='open', locked=true, updated_at=now()
+     WHERE id=$1 AND status='draft' RETURNING *`, [id]
   );
-  return mapInvoice(r.rows[0]);
+  return r.rows[0] ? mapInvoice(r.rows[0]) : null;
 }
 
-export async function markInvoicePaid(id: string, p: { paidAt: string; paidAmount: number }): Promise<Invoice> {
+export async function markInvoicePaid(id: string, p: { paidAt: string; paidAmount: number }): Promise<Invoice | null> {
+  await initBillingTables();
   const r = await pool.query(
-    `UPDATE billing_invoices SET status='paid', paid_at=$2, paid_amount=$3, updated_at=now() WHERE id=$1 RETURNING *`,
+    `UPDATE billing_invoices SET status='paid', paid_at=$2, paid_amount=$3, updated_at=now()
+     WHERE id=$1 AND status='open' RETURNING *`,
     [id, p.paidAt, p.paidAmount]
   );
-  return mapInvoice(r.rows[0]);
+  return r.rows[0] ? mapInvoice(r.rows[0]) : null;
 }
 
 function mapInvoice(row: Record<string, unknown>): Invoice {
+  const toDate = (v: unknown) => v ? (v as Date).toISOString().split('T')[0] : undefined;
   return {
     id: row.id as string, brand: row.brand as string,
     number: row.number as string, status: row.status as string,
     customerId: row.customer_id as string,
-    issueDate: String(row.issue_date).split('T')[0],
-    dueDate:   String(row.due_date).split('T')[0],
+    issueDate: toDate(row.issue_date)!,
+    dueDate:   toDate(row.due_date)!,
     taxMode:   row.tax_mode as string,
     netAmount: Number(row.net_amount),
     taxRate:   Number(row.tax_rate),
@@ -130,12 +145,12 @@ function mapInvoice(row: Record<string, unknown>): Invoice {
     grossAmount: Number(row.gross_amount),
     notes: (row.notes as string) ?? undefined,
     paymentReference: (row.payment_reference as string) ?? undefined,
-    paidAt: row.paid_at ? String(row.paid_at).split('T')[0] : undefined,
+    paidAt: toDate(row.paid_at),
     paidAmount: row.paid_amount ? Number(row.paid_amount) : undefined,
     locked: Boolean(row.locked),
     cancelledInvoiceId: (row.cancels_invoice_id as string) ?? undefined,
-    servicePeriodStart: row.service_period_start ? String(row.service_period_start).split('T')[0] : undefined,
-    servicePeriodEnd: row.service_period_end ? String(row.service_period_end).split('T')[0] : undefined,
+    servicePeriodStart: toDate(row.service_period_start),
+    servicePeriodEnd: toDate(row.service_period_end),
   };
 }
 

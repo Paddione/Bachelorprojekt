@@ -25,9 +25,11 @@ it('creates, finalizes and marks invoice paid', async () => {
   expect(inv.status).toBe('draft');
 
   const finalized = await finalizeInvoice(inv.id);
-  expect(finalized.status).toBe('open');
-  expect(finalized.locked).toBe(true);
+  expect(finalized).not.toBeNull();
+  expect(finalized!.status).toBe('open');
+  expect(finalized!.locked).toBe(true);
 
   const paid = await markInvoicePaid(inv.id, { paidAt: '2025-09-15', paidAmount: 60 });
-  expect(paid.status).toBe('paid');
+  expect(paid).not.toBeNull();
+  expect(paid!.status).toBe('paid');
 });

@@ -55,6 +55,8 @@ spec:
                 echo "$item" | bw encode | bw create item
               }
 
+              # NC, KC, WEB, DOCS, OFFICE are shell-local aliases resolved from
+              # *_DOMAIN env vars at runtime — NOT Taskfile envsubst targets.
               NC="${NC_DOMAIN:-files.localhost}"
               KC="${KC_DOMAIN:-auth.localhost}"
               WEB="${WEB_DOMAIN:-web.localhost}"

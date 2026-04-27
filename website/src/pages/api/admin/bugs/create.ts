@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { insertBugTicket } from '../../../../lib/website-db';
+import { config } from '../../../../config/index.js';
 
-const BRAND = process.env.BRAND || 'mentolder';
+const BRAND = config.brand;
 const VALID_CATEGORIES = new Set(['fehler', 'verbesserung', 'erweiterungswunsch']);
 
 function jsonError(message: string, status: number): Response {

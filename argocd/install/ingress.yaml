@@ -1,20 +1,6 @@
 # Exposes ArgoCD web UI at argocd.${PROD_DOMAIN}.
-# cert-manager (ClusterIssuer: letsencrypt-prod) issues a dedicated certificate
-# in the argocd namespace — avoids cross-namespace TLS secret sharing.
+# TLS secret is reflected from workspace/workspace-wildcard-tls by reflector.
 # ArgoCD server runs in --insecure mode; Traefik terminates TLS.
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: argocd-tls
-  namespace: argocd
-spec:
-  secretName: argocd-tls
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-  dnsNames:
-    - "argocd.${PROD_DOMAIN}"
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -26,7 +12,7 @@ spec:
   tls:
     - hosts:
         - argocd.${PROD_DOMAIN}
-      secretName: argocd-tls
+      secretName: workspace-wildcard-tls
   rules:
     - host: argocd.${PROD_DOMAIN}
       http:

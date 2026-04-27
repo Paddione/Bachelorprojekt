@@ -1,12 +1,3 @@
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: coturn-tls
-  namespace: coturn
-spec:
-  secretName: coturn-tls
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-  dnsNames:
-    - "turn.${PROD_DOMAIN}"
+# TLS for coturn is provided by the workspace wildcard cert reflected via
+# reflector (emberstack) from workspace/workspace-wildcard-tls.
+# No dedicated Certificate object needed here.

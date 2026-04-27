@@ -5,6 +5,12 @@ metadata:
   namespace: workspace
 spec:
   secretName: ${TLS_SECRET_NAME}
+  secretTemplate:
+    annotations:
+      reflector.v1.emberstack.eu/reflection-allowed: "true"
+      reflector.v1.emberstack.eu/reflection-allowed-namespaces: "argocd,coturn"
+      reflector.v1.emberstack.eu/reflection-auto-enabled: "true"
+      reflector.v1.emberstack.eu/reflection-auto-namespaces: "argocd,coturn"
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

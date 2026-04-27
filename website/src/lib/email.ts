@@ -22,6 +22,11 @@ const transporter = nodemailer.createTransport({
   ...(SMTP_USER ? { auth: { user: SMTP_USER, pass: SMTP_PASS } } : {}),
 });
 
+interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+}
+
 interface SendEmailParams {
   to: string;
   subject: string;
@@ -30,6 +35,7 @@ interface SendEmailParams {
   replyTo?: string;
   headers?: Record<string, string>;
   from?: string;
+  attachments?: EmailAttachment[];
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<boolean> {
@@ -42,6 +48,7 @@ export async function sendEmail(params: SendEmailParams): Promise<boolean> {
       html: params.html,
       replyTo: params.replyTo,
       headers: params.headers,
+      attachments: params.attachments,
     });
     return true;
   } catch (err) {

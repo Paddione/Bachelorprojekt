@@ -39,4 +39,4 @@ data:
     [turn]
     apikey = @@TURN_APIKEY@@
     secret = @@TURN_SECRET@@
-    servers = turn:turn.${PROD_DOMAIN}:3478?transport=udp,turn:turn.${PROD_DOMAIN}:3478?transport=tcp
+    servers = turn:turn.${PROD_DOMAIN}:3478?transport=udp,turn:turn.${PROD_DOMAIN}:3478?transport=tcp,turns:turn.${PROD_DOMAIN}:5349?transport=tcp

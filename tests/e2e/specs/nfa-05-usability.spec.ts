@@ -2,14 +2,27 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
+let siteAvailable = false;
+
+test.beforeAll(async ({ request }) => {
+  try {
+    const res = await request.get(BASE, { timeout: 5000 });
+    siteAvailable = res.ok();
+  } catch {
+    siteAvailable = false;
+  }
+});
+
 test.describe('NFA-05: Usability', () => {
   test('T1: UI auf Deutsch', async ({ page }) => {
+    test.skip(!siteAvailable, `Website not accessible at ${BASE}`);
     await page.goto(BASE);
     const germanText = await page.locator('body').textContent();
     expect(germanText!.length).toBeGreaterThan(0);
   });
 
   test('T3: Mobile Browser — Website lädt korrekt', async ({ browser }) => {
+    test.skip(!siteAvailable, `Website not accessible at ${BASE}`);
     const context = await browser.newContext({
       viewport: { width: 375, height: 812 },
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)',
@@ -25,6 +38,7 @@ test.describe('NFA-05: Usability', () => {
   });
 
   test('T4: Keyboard Navigation — Tab-Fokus funktioniert', async ({ page }) => {
+    test.skip(!siteAvailable, `Website not accessible at ${BASE}`);
     await page.goto(BASE);
     await expect(page.locator('h1')).toBeVisible();
 

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges">
+    <defs>
+      <linearGradient id="bg32" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a2436"></stop>
+        <stop offset="60%" stop-color="#101826"></stop>
+        <stop offset="100%" stop-color="#0a0f18"></stop>
+      </linearGradient>
+      <linearGradient id="brass32" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f0d28c"></stop>
+        <stop offset="45%" stop-color="#d7b06a"></stop>
+        <stop offset="100%" stop-color="#8a6a2a"></stop>
+      </linearGradient>
+      <linearGradient id="brassRing32" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#f4dc9a"></stop>
+        <stop offset="50%" stop-color="#c89a4a"></stop>
+        <stop offset="100%" stop-color="#7a5a1a"></stop>
+      </linearGradient>
+      
+    </defs>
+    <rect width="32" height="32" rx="7" ry="7" fill="url(#bg32)"></rect>
+    <rect x="1" y="1" width="30" height="30" rx="6" ry="6" fill="none" stroke="#c89a4a" stroke-width="1"></rect>
+    
+      <g fill="#e8c884">
+        
+        <rect x="6" y="10" width="20" height="3"></rect>
+        
+        <rect x="6" y="10" width="4" height="14"></rect>
+        
+        <rect x="14" y="10" width="4" height="14"></rect>
+        
+        <rect x="22" y="10" width="4" height="14"></rect>
+      </g>
+  </svg>

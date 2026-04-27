@@ -1,4 +1,4 @@
-const SITE_URL = (process.env.SITE_URL ?? 'http://localhost:4321').replace(/\/$/, '');
+const SITE_URL = (process.env.SITE_URL ?? 'http://localhost:4321').replace(/\/$/, ''); // dev fallback
 
 export function buildBackUrl(filters: { status: string; category: string; q: string }): string {
   const params = new URLSearchParams();

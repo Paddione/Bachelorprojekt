@@ -2,6 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getMeetingDetail, assignMeeting, listProjects } from '../../../lib/website-db';
+import { config } from '../../../config/index';
 import { getFileUrl } from '../../../lib/nextcloud-files';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -33,7 +34,7 @@ if (Astro.request.method === 'POST') {
 const meeting = await getMeetingDetail(id!);
 if (!meeting) return Astro.redirect('/admin/meetings');
 
-const projects = await listProjects({ brand: 'mentolder' }).catch(() => []);
+const projects = await listProjects({ brand: config.brand }).catch(() => []);
 
 const isUnassigned = meeting.customerEmail.endsWith('@unknown.local');
 

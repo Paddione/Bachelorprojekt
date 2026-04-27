@@ -26,4 +26,15 @@ test.describe('Client Portal', () => {
     await page.goto('/admin');
     await expect(page.locator('body')).not.toContainText('404');
   });
+
+  test('T5 – /portal/raum/:id redirects unauthenticated users to login', async ({ page }) => {
+    await page.goto('/portal/raum/999');
+    await expect(page).not.toHaveURL('/portal/raum/999');
+  });
+
+  test('T6 – /portal/raum/:id does not return a 404', async ({ page }) => {
+    const res = await page.goto('/portal/raum/999');
+    await expect(page.locator('body')).not.toContainText('404');
+    expect(res?.status()).not.toBe(500);
+  });
 });

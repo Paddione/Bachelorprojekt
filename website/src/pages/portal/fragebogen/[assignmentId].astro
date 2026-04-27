@@ -41,7 +41,7 @@ const pendingCount = await countPendingQAssignmentsForCustomer(customer.id).catc
   pendingSignatures={0}
   pendingQuestionnaires={pendingCount}
 >
-  <section class="pt-6 pb-20 bg-dark min-h-screen">
+  <section class="pt-6 pb-20 bg-dark min-h-screen" data-testid="questionnaire-page">
     <div class="max-w-3xl mx-auto px-6">
       <QuestionnaireWizard
         client:load

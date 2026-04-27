@@ -2,7 +2,7 @@
   <span class="page-hero-icon">🤖</span>
   <div class="page-hero-body">
     <div class="page-hero-title">MCP Actions</div>
-    <p class="page-hero-desc">Referenz aller Aktionen, die Claude Code über die verbundenen MCP-Server ausführen kann: Kubernetes, Postgres, Browser, GitHub, Stripe.</p>
+    <p class="page-hero-desc">Referenz aller Aktionen, die Claude Code über die verbundenen MCP-Server ausführen kann: Kubernetes, Postgres, Browser, GitHub.</p>
     <div class="page-hero-meta">
       <span class="page-hero-tag">Claude Code</span>
       <span class="page-hero-tag">MCP Server</span>
@@ -186,23 +186,6 @@ Image: `ghcr.io/github/github-mcp-server` (offizieller GitHub MCP-Server)
 | Code | Code durchsuchen, Dateiinhalte lesen, Commits abrufen |
 | Actions | Workflow-Laeufe und Jobs auflisten |
 | Releases | Releases auflisten und abrufen |
-
----
-
-## Stripe (`mcp-stripe`)
-
-Image: `@stripe/agent-toolkit` (offizieller Stripe MCP)
-Erfordert einen Stripe Secret Key.
-
-| Bereich | Abdeckung |
-|---------|-----------|
-| Kunden | Kunden erstellen, auflisten, abrufen |
-| Zahlungsabsichten | Payment Intents erstellen und bestaetigen |
-| Rechnungen | Rechnungen erstellen, senden, stornieren |
-| Abonnements | Abonnements erstellen und verwalten |
-| Produkte & Preise | Produktkatalog und Preisgestaltung verwalten |
-| Rueckerstattungen | Rueckerstattungen ausstellen und auflisten |
-| Kontostand | Kontostand abrufen |
 
 ---
 

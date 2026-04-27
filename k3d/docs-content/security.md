@@ -73,12 +73,12 @@ Alle Namespaces (`workspace`, `website`) haben Default-Deny für Ingress **und**
 | `allow-traefik-ingress` | Eingehend | Alle Pods ← Traefik (kube-system) |
 | `allow-website-ingress` | Eingehend | workspace-Pods ← website-Namespace |
 | `allow-collabora-egress` | Ausgehend | Nextcloud → Collabora (Port 9980, WOPI) |
-| `allow-mcp-external-egress` | Ausgehend | mcp-github, mcp-stripe → Internet (Port 443) |
+| `allow-mcp-external-egress` | Ausgehend | mcp-github → Internet (Port 443) |
 | `allow-traefik-egress` | Ausgehend | Alle Pods → Traefik intern (Port 8443/8000) |
 | `allow-signaling-coturn-egress` | Ausgehend | spreed-signaling → Janus MCU (Port 8188) |
 | `allow-transcriber-to-website-egress` | Ausgehend | talk-transcriber → website (Port 80/4321) |
 
-> **Wichtig:** Internet-Egress ist nur für dedizierte MCP-Server (`mcp-github`, `claude-code-mcp-stripe`) auf Port 443 erlaubt. Alle übrigen Pods sind vom öffentlichen Internet isoliert.
+> **Wichtig:** Internet-Egress ist nur für den MCP-Server `mcp-github` auf Port 443 erlaubt. Alle übrigen Pods sind vom öffentlichen Internet isoliert.
 
 ```bash
 # NetworkPolicies anzeigen

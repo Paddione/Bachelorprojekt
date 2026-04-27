@@ -619,7 +619,7 @@ export async function initBugTicketsTable(): Promise<void> {
       reporter_email  TEXT NOT NULL,
       description     TEXT NOT NULL,
       url             TEXT,
-      brand           TEXT NOT NULL DEFAULT 'mentolder',
+      brand           TEXT NOT NULL,
       status          TEXT NOT NULL DEFAULT 'open',
       created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
       resolved_at     TIMESTAMPTZ,
@@ -629,6 +629,10 @@ export async function initBugTicketsTable(): Promise<void> {
   await pool.query(`
     ALTER TABLE bugs.bug_tickets
       ADD COLUMN IF NOT EXISTS screenshots_json JSONB
+  `);
+  await pool.query(`
+    ALTER TABLE bugs.bug_tickets
+      ALTER COLUMN brand DROP DEFAULT
   `);
   // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
   await pool.query(`

@@ -2,10 +2,11 @@ import type { APIRoute } from 'astro';
 import { insertBugTicket } from '../../lib/website-db';
 import { createInboxItem } from '../../lib/messaging-db';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
+import { config } from '../../config/index.js';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
-const BRAND = process.env.BRAND || 'mentolder';
+const BRAND = config.brand;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const CATEGORY_LABELS: Record<string, string> = {

@@ -175,6 +175,7 @@ spec:
                 capabilities:
                   drop: ["ALL"]
               command: ["/bin/sh", "-c"]
+              # STAMP and UPLOAD_PATH below are read from /staging at runtime — NOT envsubst targets.
               args:
                 - |
                   if [ -z "${FILEN_EMAIL}" ] || [ -z "${FILEN_PASSWORD}" ]; then

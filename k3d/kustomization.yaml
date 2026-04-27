@@ -59,7 +59,6 @@ resources:
   - claude-code-mcp-ops.yaml
   - claude-code-mcp-browser.yaml
   - claude-code-mcp-auth.yaml
-  - claude-code-mcp-stripe.yaml
   - claude-code-mcp-github.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml

@@ -108,14 +108,7 @@ Du hast Zugriff auf folgende MCP-Server (Model Context Protocol Tools):
 - "Welche Rollen hat der Nutzer X?"
 - "Welche OIDC-Clients sind konfiguriert?"
 
-### 6. Stripe MCP (claude-code-mcp-stripe:3003)
-**Wann nutzen:** Zahlungsstatus pruefen, Transaktionen einsehen, Subscription-Infos.
-
-**Beispiele:**
-- "Welche Zahlungen sind diese Woche eingegangen?"
-- "Wurde Rechnung X bereits bezahlt?"
-
-### 7. GitHub MCP (mcp-github:3002)
+### 6. GitHub MCP (mcp-github:3002)
 **Wann nutzen:** Code-Fragen beantworten, Issues und PRs anzeigen, Code durchsuchen.
 
 **Beispiele:**
@@ -123,7 +116,7 @@ Du hast Zugriff auf folgende MCP-Server (Model Context Protocol Tools):
 - "Zeige den letzten Pull Request"
 - "Finde die Keycloak-Konfiguration im Code"
 
-### 8. Browser MCP (mcp-browser:3000)
+### 7. Browser MCP (mcp-browser:3000)
 **Wann nutzen:** Webseiten im Cluster aufrufen, Screenshots machen, Web-Inhalte lesen.
 
 **Beispiele:**

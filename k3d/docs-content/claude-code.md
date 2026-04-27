@@ -2,7 +2,7 @@
 
 ## Übersicht
 
-Die **MCP-Server** (Model Context Protocol) laufen als Kubernetes-Pods im Cluster und stellen Werkzeuge bereit — etwa Zugriff auf den Cluster, die Datenbank, den Browser, GitHub oder Stripe.
+Die **MCP-Server** (Model Context Protocol) laufen als Kubernetes-Pods im Cluster und stellen Werkzeuge bereit — etwa Zugriff auf den Cluster, die Datenbank, den Browser oder GitHub.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -24,7 +24,6 @@ Alle MCP-Server laufen als Deployments im `workspace`-Namespace. Die Verbindungs
 | **mcp-auth** (Keycloak) | `claude-code-mcp-auth` | Benutzerverwaltung, Gruppen, Rollen, Sessions | aktiv |
 | **mcp-browser** (Playwright) | `mcp-browser` | Browser-Automatisierung mit headless Chromium | aktiv |
 | **mcp-github** | `mcp-github` | Repos, Issues, PRs, Actions (PAT erforderlich) | inaktiv (replicas: 0) |
-| **mcp-stripe** | `claude-code-mcp-stripe` | Zahlungen, Rechnungen, Abonnements | aktiv |
 
 Die URLs der MCP-Server (`claude-code-config.yaml`):
 
@@ -35,7 +34,6 @@ MCP_MEETINGS_URL:   "http://claude-code-mcp-ops:3002/mcp"
 MCP_KEYCLOAK_URL:   "http://claude-code-mcp-auth:8080/mcp/sse"
 MCP_BROWSER_URL:    "http://mcp-browser:3000/mcp"
 MCP_GITHUB_URL:     "http://mcp-github:3002/mcp"
-MCP_STRIPE_URL:     "http://claude-code-mcp-stripe:3003/mcp"
 ```
 
 ---
@@ -218,22 +216,6 @@ task mcp:set-github-pat -- <token>
 
 ---
 
-### Stripe (`mcp-stripe`)
-
-Image: `@stripe/agent-toolkit` (offizieller Stripe MCP). Erfordert einen Stripe Secret Key in `workspace-secrets`.
-
-| Bereich | Abdeckung |
-|---------|-----------|
-| Kunden | Kunden erstellen, auflisten, abrufen |
-| Zahlungsabsichten | Payment Intents erstellen und bestätigen |
-| Rechnungen | Rechnungen erstellen, senden, stornieren |
-| Abonnements | Abonnements erstellen und verwalten |
-| Produkte & Preise | Produktkatalog und Preisgestaltung verwalten |
-| Rückerstattungen | Rückerstattungen ausstellen und auflisten |
-| Kontostand | Kontostand abrufen |
-
----
-
 ### Grafana & Prometheus (optional)
 
 Beide Server sind im Manifest vorhanden (`claude-code-mcp-grafana.yaml`, `claude-code-mcp-prometheus.yaml`), aber standardmäßig deaktiviert (`replicas: 0`). Sie werden aktiviert, wenn Grafana und Prometheus im Cluster deployed sind.
@@ -252,7 +234,7 @@ task mcp:deploy                # Alle MCP-Pods deployen
 task claude-code:setup         # MCP-Server in Claude Code Datenbank registrieren
 ```
 
-Die Datei `k3d/claude-code-config.yaml` (ConfigMap `claude-code-config`) definiert alle MCP-Server-URLs. Anmeldedaten für Nextcloud, Keycloak und Stripe werden aus `claude-code-secrets` bzw. `workspace-secrets` bezogen — nie direkt in der ConfigMap gespeichert.
+Die Datei `k3d/claude-code-config.yaml` (ConfigMap `claude-code-config`) definiert alle MCP-Server-URLs. Anmeldedaten für Keycloak werden aus `claude-code-secrets` bezogen — nie direkt in der ConfigMap gespeichert.
 
 ---
 

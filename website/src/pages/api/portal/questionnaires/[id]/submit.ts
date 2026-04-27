@@ -26,7 +26,7 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   await updateQAssignment(assignment.id, { status: 'submitted' });
   // Update test status tracking (no-op for non-test_step templates)
-  await updateTestStatuses(assignment.id).catch(err =>
+  await updateTestStatuses(assignment.id).catch((err: unknown) =>
     console.error('[submit] updateTestStatuses failed:', err),
   );
 

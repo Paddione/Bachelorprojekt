@@ -10,7 +10,7 @@ it('generates a non-empty PDF buffer', async () => {
       paymentReference:'RG20250001', locked:true,
     },
     lines: [{ description:'Coaching 1h', quantity:1, unitPrice:60, netAmount:60 }],
-    customer: { id:'c1', brand:'test', name:'Max Mustermann', email:'max@test.de', country:'DE' },
+    customer: { name:'Max Mustermann', email:'max@test.de', country:'DE' },
     seller: {
       name:'Gerald Korczewski', address:'Musterstr. 1', postalCode:'32312',
       city:'Lübbecke', country:'DE', vatId:'', taxNumber:'33/023/05100',

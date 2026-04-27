@@ -1,0 +1,18 @@
+# Exclude large directories not needed for Docker build
+website/node_modules
+website/dist
+website/.env
+website/.env.*
+!website/.env.example
+
+# Exclude non-essential top-level dirs to keep build context lean
+.git
+.github
+argocd
+docs-site
+environments/.secrets
+prod
+prod-mentolder
+prod-korczewski
+deploy
+scripts/env-resolve.sh

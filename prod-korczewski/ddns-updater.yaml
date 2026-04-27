@@ -113,6 +113,11 @@ spec:
                   NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
                   KUBE=https://kubernetes.default.svc
 
+                  # Diagnostic: test API server reachability
+                  KUBE_IP=$(getent hosts kubernetes.default.svc 2>/dev/null | awk '{print $1}' || echo "unresolved")
+                  KUBE_TEST=$(curl -sk --cacert "$CACERT" --max-time 3 "$KUBE/healthz" -o /dev/null -w "%{http_code}" || echo "000")
+                  echo "API server ($KUBE_IP) /healthz: $KUBE_TEST"
+
                   LAST_IP=$(curl -sf --cacert "$CACERT" \
                     -H "Authorization: Bearer $TOKEN" \
                     "$KUBE/api/v1/namespaces/$NS/configmaps/ddns-last-ip" \

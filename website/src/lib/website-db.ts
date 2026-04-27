@@ -3120,3 +3120,39 @@ export async function initTaxMonitorTables(): Promise<void> {
   `);
   taxModeTableReady = true;
 }
+
+let eurTablesReady = false;
+export async function initEurTables(): Promise<void> {
+  if (eurTablesReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS eur_bookings (
+      id            BIGSERIAL PRIMARY KEY,
+      brand         TEXT NOT NULL,
+      booking_date  DATE NOT NULL,
+      type          TEXT NOT NULL,
+      category      TEXT NOT NULL,
+      description   TEXT NOT NULL,
+      net_amount    NUMERIC(12,2) NOT NULL,
+      vat_amount    NUMERIC(12,2) NOT NULL DEFAULT 0,
+      invoice_id    TEXT REFERENCES billing_invoices(id),
+      receipt_path  TEXT,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS assets (
+      id                   BIGSERIAL PRIMARY KEY,
+      brand                TEXT NOT NULL,
+      description          TEXT NOT NULL,
+      purchase_date        DATE NOT NULL,
+      net_purchase_price   NUMERIC(12,2) NOT NULL,
+      vat_paid             NUMERIC(12,2) NOT NULL,
+      useful_life_months   INT NOT NULL,
+      correction_start_date DATE,
+      is_gwg               BOOLEAN NOT NULL DEFAULT false,
+      receipt_path         TEXT,
+      created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  eurTablesReady = true;
+}

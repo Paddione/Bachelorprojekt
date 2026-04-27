@@ -1,5 +1,6 @@
 import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
 import { checkAndApplyTaxModeSwitch } from './tax-monitor';
+import { addBooking } from './eur-bookkeeping';
 
 export { initBillingTables };
 
@@ -118,12 +119,21 @@ export async function finalizeInvoice(id: string): Promise<Invoice | null> {
     `UPDATE billing_invoices SET status='open', locked=true, updated_at=now()
      WHERE id=$1 AND status='draft' RETURNING *`, [id]
   );
-  if (r.rows[0]) {
-    const inv = mapInvoice(r.rows[0]);
-    await checkAndApplyTaxModeSwitch(inv.brand, id);
-    return inv;
-  }
-  return null;
+  if (!r.rows[0]) return null;
+  const row = r.rows[0];
+  const inv = mapInvoice(row);
+  await checkAndApplyTaxModeSwitch(inv.brand, id);
+  await addBooking({
+    brand:       inv.brand,
+    bookingDate: inv.issueDate,
+    type:        'income',
+    category:    'rechnungsstellung',
+    description: `Rechnung ${inv.number}`,
+    netAmount:   inv.netAmount,
+    vatAmount:   inv.taxAmount,
+    invoiceId:   inv.id,
+  });
+  return inv;
 }
 
 export async function markInvoicePaid(id: string, p: { paidAt: string; paidAmount: number }): Promise<Invoice | null> {

@@ -1,0 +1,67 @@
+# k3d/traefik-dashboard-dev.yaml
+# Traefik Dashboard (api@internal) — OIDC-protected via oauth2-proxy (dev, HTTP only)
+# Flow: ForwardAuth → 202 (pass) or 401 → errors middleware → sign_in → Keycloak
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: traefik-dashboard-auth
+  namespace: workspace
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-traefik.workspace.svc.cluster.local:4180/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - X-Auth-Request-Access-Token
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: traefik-dashboard-errors
+  namespace: workspace
+spec:
+  errors:
+    status:
+      - "401"
+    service:
+      name: oauth2-proxy-traefik
+      port: 4180
+    query: "/oauth2/sign_in?rd={url}"
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: traefik-dashboard-redirect-root
+  namespace: workspace
+spec:
+  redirectRegex:
+    regex: "^http://([^/]+)/?$"
+    replacement: "http://$1/dashboard/"
+    permanent: false
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard-dev
+  namespace: workspace
+spec:
+  entryPoints:
+    - web
+  routes:
+    # oauth2-proxy endpoints — no auth middleware
+    - match: Host(`traefik.localhost`) && PathPrefix(`/oauth2`)
+      kind: Rule
+      services:
+        - name: oauth2-proxy-traefik
+          port: 4180
+    # Dashboard + API — require auth. Redirects bare `/` to `/dashboard/`.
+    - match: Host(`traefik.localhost`)
+      kind: Rule
+      middlewares:
+        - name: traefik-dashboard-redirect-root
+        - name: traefik-dashboard-errors
+        - name: traefik-dashboard-auth
+      services:
+        - name: api@internal
+          kind: TraefikService

@@ -17,7 +17,7 @@ jobs:
         run: |
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz \
             | sudo tar xz -C /usr/local/bin kubeconform
 
       - name: Create CI dummy secrets
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Install yamllint
-        run: pip install yamllint
+        run: pip install yamllint==1.35.1
 
       - name: Lint k3d and prod manifests
         run: |
@@ -62,7 +62,9 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Install shellcheck
-        run: sudo apt-get install -y shellcheck
+        run: |
+          curl -sSL https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz \
+            | tar -xJf - --strip-components=1 -C /usr/local/bin shellcheck-v0.10.0/shellcheck
 
       - name: Check scripts
         run: |

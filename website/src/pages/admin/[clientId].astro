@@ -165,6 +165,37 @@ try {
         </div>
       )}
 
+      <!-- Rolle zuweisen (kein DB-Eintrag vorhanden) -->
+      {!customerRecord && client.email && (
+        <div class="mb-6 p-4 bg-dark-light rounded-xl border border-amber-700/40">
+          <h2 class="text-sm font-medium text-muted mb-2 uppercase tracking-wide">Rolle</h2>
+          <p class="text-sm text-muted mb-3">Noch keine Rolle zugewiesen.</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button
+              id="flag-as-customer-btn"
+              data-keycloak-user-id={clientId}
+              data-email={client.email}
+              data-name={`${client.firstName ?? ''} ${client.lastName ?? ''}`.trim() || client.email}
+              data-is-admin="false"
+              class="px-3 py-1.5 bg-dark border border-dark-lighter text-muted rounded-lg text-sm hover:border-gold/40 hover:text-light transition-colors"
+            >
+              Als Kunde markieren
+            </button>
+            <button
+              id="flag-as-admin-btn"
+              data-keycloak-user-id={clientId}
+              data-email={client.email}
+              data-name={`${client.firstName ?? ''} ${client.lastName ?? ''}`.trim() || client.email}
+              data-is-admin="true"
+              class="px-3 py-1.5 bg-blue-900/30 border border-blue-700/40 text-blue-300 rounded-lg text-sm hover:bg-blue-900/50 transition-colors"
+            >
+              Als Admin markieren
+            </button>
+            <span id="flag-user-error" class="text-xs text-red-400 hidden"></span>
+          </div>
+        </div>
+      )}
+
       <!-- Kundennummer / Admin-Nummer -->
       {customerRecord && (
         <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -557,6 +588,41 @@ try {
     } finally {
       btn.disabled = false;
     }
+  });
+
+  // Flag user (create customer record + set role)
+  async function flagUser(btn: HTMLButtonElement) {
+    const errEl = document.getElementById('flag-user-error');
+    const keycloakUserId = btn.dataset.keycloakUserId;
+    const email = btn.dataset.email;
+    const name = btn.dataset.name;
+    const isAdmin = btn.dataset.isAdmin === 'true';
+    btn.disabled = true;
+    if (errEl) errEl.classList.add('hidden');
+    try {
+      const res = await fetch('/api/admin/clients/flag-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keycloakUserId, email, name, isAdmin }),
+      });
+      if (res.ok) {
+        location.reload();
+      } else {
+        const data = await res.json();
+        if (errEl) { errEl.textContent = data.error ?? 'Fehler'; errEl.classList.remove('hidden'); }
+      }
+    } catch {
+      if (errEl) { errEl.textContent = 'Netzwerkfehler'; errEl.classList.remove('hidden'); }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('flag-as-customer-btn')?.addEventListener('click', (e) => {
+    flagUser(e.currentTarget as HTMLButtonElement);
+  });
+  document.getElementById('flag-as-admin-btn')?.addEventListener('click', (e) => {
+    flagUser(e.currentTarget as HTMLButtonElement);
   });
 
   // Role checkboxes

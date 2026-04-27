@@ -17,7 +17,11 @@ WORKDIR /app
 # Tools needed by test runner scripts
 RUN apk add --no-cache bash curl jq && \
     KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt) && \
-    curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    KUBECTL_ARCH=$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/') && \
+    curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" && \
+    curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256" && \
+    echo "$(cat kubectl.sha256)  kubectl" | sha256sum -c && \
+    rm kubectl.sha256 && \
     chmod +x kubectl && mv kubectl /usr/local/bin/kubectl
 
 # Only copy the built output (server + client assets)

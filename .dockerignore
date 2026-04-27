@@ -11,8 +11,25 @@ website/.env.*
 argocd
 docs-site
 environments/.secrets
+environments/sealed-secrets
+environments/certs
 prod
 prod-mentolder
 prod-korczewski
 deploy
-scripts/env-resolve.sh
+scripts
+whisper
+brett
+korczewski-website
+vault-exports
+billing-bot
+docker
+wireguard
+memory
+mcp-browser
+
+# Exclude test artifacts that don't belong in the runtime image
+tests/e2e/node_modules
+tests/e2e/test-results
+tests/results
+tests/unit/lib

@@ -1,0 +1,35 @@
+# Exclude large directories not needed for Docker build
+website/node_modules
+website/dist
+website/.env
+website/.env.*
+!website/.env.example
+
+# Exclude non-essential top-level dirs to keep build context lean
+.git
+.github
+argocd
+docs-site
+environments/.secrets
+environments/sealed-secrets
+environments/certs
+prod
+prod-mentolder
+prod-korczewski
+deploy
+scripts
+whisper
+brett
+korczewski-website
+vault-exports
+billing-bot
+docker
+wireguard
+memory
+mcp-browser
+
+# Exclude test artifacts that don't belong in the runtime image
+tests/e2e/node_modules
+tests/e2e/test-results
+tests/results
+tests/unit/lib

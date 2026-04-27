@@ -2787,3 +2787,125 @@ export async function getLatestStalenessReport(): Promise<StalenessReport | null
     issueCount: row.issue_count,
   };
 }
+
+// ── Test Runs ────────────────────────────────────────────────────────────────
+
+export interface TestRun {
+  id: string;
+  tier: string;
+  testIds: string | null;
+  cluster: string;
+  startedAt: string;
+  finishedAt: string | null;
+  status: 'running' | 'done' | 'error';
+  pass: number | null;
+  fail: number | null;
+  skip: number | null;
+  durationMs: number | null;
+}
+
+async function initTestRunsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS test_runs (
+      id           TEXT PRIMARY KEY,
+      tier         TEXT NOT NULL,
+      test_ids     TEXT,
+      cluster      TEXT NOT NULL,
+      started_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+      finished_at  TIMESTAMPTZ,
+      status       TEXT NOT NULL DEFAULT 'running',
+      pass         INT,
+      fail         INT,
+      skip         INT,
+      duration_ms  INT
+    )
+  `);
+}
+
+export async function saveTestRun(params: {
+  id: string;
+  tier: string;
+  testIds: string | null;
+  cluster: string;
+}): Promise<void> {
+  await initTestRunsTable();
+  await pool.query(
+    `INSERT INTO test_runs (id, tier, test_ids, cluster) VALUES ($1, $2, $3, $4)`,
+    [params.id, params.tier, params.testIds, params.cluster]
+  );
+}
+
+export async function updateTestRun(params: {
+  id: string;
+  status: 'done' | 'error';
+  pass: number;
+  fail: number;
+  skip: number;
+  durationMs: number;
+}): Promise<void> {
+  await pool.query(
+    `UPDATE test_runs
+     SET status = $2, finished_at = now(), pass = $3, fail = $4, skip = $5, duration_ms = $6
+     WHERE id = $1`,
+    [params.id, params.status, params.pass, params.fail, params.skip, params.durationMs]
+  );
+}
+
+export async function listTestRuns(limit = 20): Promise<TestRun[]> {
+  await initTestRunsTable();
+  const result = await pool.query(
+    `SELECT id, tier, test_ids AS "testIds", cluster,
+            started_at AS "startedAt", finished_at AS "finishedAt",
+            status, pass, fail, skip, duration_ms AS "durationMs"
+     FROM test_runs ORDER BY started_at DESC LIMIT $1`,
+    [limit]
+  );
+  return result.rows;
+}
+
+// ── Playwright Reports ───────────────────────────────────────────────────────
+
+export interface PlaywrightReport {
+  id: number;
+  createdAt: string;
+  html: string;
+}
+
+async function initPlaywrightReportsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS playwright_reports (
+      id         SERIAL PRIMARY KEY,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      html       TEXT NOT NULL
+    )
+  `);
+}
+
+export async function savePlaywrightReport(html: string): Promise<number> {
+  await initPlaywrightReportsTable();
+  const result = await pool.query(
+    `INSERT INTO playwright_reports (html) VALUES ($1) RETURNING id`,
+    [html]
+  );
+  // Keep only last 5
+  await pool.query(
+    `DELETE FROM playwright_reports WHERE id NOT IN (
+       SELECT id FROM playwright_reports ORDER BY created_at DESC LIMIT 5
+     )`
+  );
+  return result.rows[0].id;
+}
+
+export async function getLatestPlaywrightReport(): Promise<PlaywrightReport | null> {
+  await initPlaywrightReportsTable();
+  const result = await pool.query(
+    `SELECT id, created_at AS "createdAt", html
+     FROM playwright_reports ORDER BY created_at DESC LIMIT 1`
+  );
+  if (result.rows.length === 0) return null;
+  return {
+    id: result.rows[0].id,
+    createdAt: result.rows[0].createdAt.toISOString(),
+    html: result.rows[0].html,
+  };
+}

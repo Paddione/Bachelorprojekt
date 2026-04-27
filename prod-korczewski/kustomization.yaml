@@ -5,6 +5,7 @@ namespace: workspace
 # Inherit full prod overlay (k3d base + all prod patches)
 resources:
   - ../prod
+  - ddns-updater.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:

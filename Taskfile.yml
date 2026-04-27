@@ -1273,6 +1273,17 @@ tasks:
     cmds:
       - kubectl logs -n workspace job/vaultwarden-seed
 
+  workspace:shortcuts:seed:
+    desc: "Seed default admin shortcuts into website DB (usage: task workspace:shortcuts:seed ENV=mentolder|korczewski)"
+    cmds:
+      - |
+        CTX_FLAG=""
+        if [ "{{.ENV}}" != "dev" ] && [ -n "{{.ENV}}" ]; then
+          source scripts/env-resolve.sh "{{.ENV}}"
+          CTX_FLAG="--context $ENV_CONTEXT"
+        fi
+        bash scripts/seed-admin-shortcuts.sh $CTX_FLAG
+
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────

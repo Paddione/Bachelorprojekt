@@ -28,6 +28,7 @@ RUN apk add --no-cache bash curl jq && \
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./
+COPY --from=build /app/src/assets ./src/assets
 
 # Copy test suite for in-cluster test runner
 COPY --chown=node:node tests ./tests

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import ClusterTab from './monitoring/ClusterTab.svelte';
+  import DeploymentsTab from './monitoring/DeploymentsTab.svelte';
 
   // Tab components (imported once each sub-component is created)
   // import OverviewTab from './monitoring/OverviewTab.svelte';
-  // import ClusterTab from './monitoring/ClusterTab.svelte';
-  // import DeploymentsTab from './monitoring/DeploymentsTab.svelte';
   // import TestsTab from './monitoring/TestsTab.svelte';
   // import BerichteTab from './monitoring/BerichteTab.svelte';
 
@@ -55,14 +55,12 @@
       <p class="text-muted text-sm">OverviewTab — coming in next task</p>
       <!-- <OverviewTab on:navigate={(e) => setTab(e.detail)} /> -->
     {:else if activeTab === 'cluster'}
-      <p class="text-muted text-sm">ClusterTab — coming in next task</p>
-      <!-- <ClusterTab /> -->
+      <ClusterTab />
     {:else if activeTab === 'tests'}
       <p class="text-muted text-sm">TestsTab — coming in next task</p>
       <!-- <TestsTab /> -->
     {:else if activeTab === 'deployments'}
-      <p class="text-muted text-sm">DeploymentsTab — coming in next task</p>
-      <!-- <DeploymentsTab /> -->
+      <DeploymentsTab />
     {:else if activeTab === 'berichte'}
       <p class="text-muted text-sm">BerichteTab — coming in next task</p>
       <!-- <BerichteTab /> -->

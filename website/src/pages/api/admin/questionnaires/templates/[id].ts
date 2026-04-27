@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import {
   getQTemplate, updateQTemplate, deleteQTemplate,
-  listQDimensions, upsertQDimension, deleteQDimension,
-  listQQuestions, upsertQQuestion, deleteQQuestion,
+  listQDimensions, upsertQDimension,
+  listQQuestions, upsertQQuestion,
   replaceQAnswerOptions,
 } from '../../../../../lib/questionnaire-db';
 

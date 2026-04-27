@@ -1742,10 +1742,9 @@ tasks:
           KEYCLOAK_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
           task website:build ENV={{.ENV}}
           echo "Pushing ${IMAGE}:latest..."
-          docker push "${IMAGE}:latest" | tee /tmp/website-push.log
-          DIGEST=$(grep -oE 'sha256:[a-f0-9]{64}' /tmp/website-push.log | tail -1)
-          rm -f /tmp/website-push.log
-          [ -z "${DIGEST}" ] && { echo "ERROR: could not read digest from push"; exit 1; }
+          docker push "${IMAGE}:latest"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}:latest" 2>/dev/null | grep -oE 'sha256:[a-f0-9]{64}' | head -1)
+          [ -z "${DIGEST}" ] && { echo "ERROR: could not read digest after push"; exit 1; }
           echo "✓ Pushed digest: ${DIGEST}"
         fi
         export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL

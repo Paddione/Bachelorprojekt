@@ -207,9 +207,9 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              npm install -g supergateway @stripe/agent-toolkit 2>&1
+              npm install -g supergateway 2>&1
               exec npx supergateway \
-                --stdio "stripe-agent-toolkit mcp" \
+                --stdio "npx -y @stripe/mcp" \
                 --outputTransport streamableHttp \
                 --port 3003 \
                 --streamableHttpPath /mcp \

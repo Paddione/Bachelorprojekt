@@ -1743,7 +1743,7 @@ tasks:
           task website:build ENV={{.ENV}}
           echo "Pushing ${IMAGE}:latest..."
           docker push "${IMAGE}:latest"
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}:latest" 2>/dev/null | grep -oE 'sha256:[a-f0-9]{64}' | head -1)
+          DIGEST=$(docker inspect --format='{{`{{index .RepoDigests 0}}`}}' "${IMAGE}:latest" 2>/dev/null | grep -oE 'sha256:[a-f0-9]{64}' | head -1)
           [ -z "${DIGEST}" ] && { echo "ERROR: could not read digest after push"; exit 1; }
           echo "✓ Pushed digest: ${DIGEST}"
         fi

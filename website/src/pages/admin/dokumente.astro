@@ -1,21 +1,7 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import DokumentEditor from '../../components/admin/DokumentEditor.svelte';
-
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
+return Astro.redirect('/admin/inhalte?tab=newsletter', 301);
 ---
-
-<AdminLayout title="Admin — Dokumenteneditor">
-  <section class="pt-10 pb-20 bg-dark min-h-screen">
-    <div class="max-w-5xl mx-auto px-6">
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-light font-serif">Dokumenteneditor</h1>
-        <p class="text-muted mt-1">Newsletter, Kampagnen und Vertragsvorlagen verwalten</p>
-      </div>
-      <DokumentEditor client:load />
-    </div>
-  </section>
-</AdminLayout>

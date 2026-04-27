@@ -1,7 +1,7 @@
 <script lang="ts">
   let { initialData }: { initialData: Record<string, string> } = $props();
 
-  let data = $state({ ...initialData });
+  let data = $state(structuredClone(initialData));
   let saving = $state(false);
   let msg = $state('');
   let msgOk = $state(true);

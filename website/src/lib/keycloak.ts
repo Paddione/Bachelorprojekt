@@ -87,6 +87,10 @@ export async function createUser(params: CreateUserParams): Promise<{ success: b
 
 export async function sendPasswordResetEmail(userId: string): Promise<boolean> {
   const res = await kcApi('PUT', `/users/${userId}/execute-actions-email`, ['UPDATE_PASSWORD']);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.error(`Keycloak execute-actions-email failed: ${res.status} ${body}`);
+  }
   return res.ok;
 }
 
@@ -123,7 +127,16 @@ export async function updateUser(userId: string, params: {
   email?: string;
   enabled?: boolean;
 }): Promise<boolean> {
-  const res = await kcApi('PUT', `/users/${encodeURIComponent(userId)}`, params);
+  const payload: Record<string, unknown> = { ...params };
+  if (params.email !== undefined) {
+    payload.username = params.email.toLowerCase();
+    payload.emailVerified = true;
+  }
+  const res = await kcApi('PUT', `/users/${encodeURIComponent(userId)}`, payload);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.error(`Keycloak updateUser failed: ${res.status} ${body}`);
+  }
   return res.ok;
 }
 

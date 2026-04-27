@@ -11,16 +11,12 @@ data:
 
   OPENID_PROVIDER_URL: "http://keycloak.workspace.svc.cluster.local:8080/realms/workspace/.well-known/openid-configuration"
 
-  # Core pod: cluster + database
-  MCP_KUBERNETES_URL:   "http://claude-code-mcp-core:8080/mcp"
-  MCP_POSTGRES_URL:     "http://claude-code-mcp-core:3001/mcp"
-  # Auth pod: SSO management (SSE transport)
-  MCP_KEYCLOAK_URL:     "http://claude-code-mcp-auth:8080/mcp/sse"
-  # Browser pod: Playwright (Browser interaction)
-  MCP_BROWSER_URL:      "http://claude-code-mcp-browser:3000/mcp"
-  # Standalone
-  MCP_GITHUB_URL:       "http://mcp-github:3002/mcp"
-  MCP_STRIPE_URL:       "http://mcp-stripe:3003/mcp"
+  MCP_KUBERNETES_URL:   "http://claude-code-mcp-monolith:8080/mcp"
+  MCP_POSTGRES_URL:     "http://claude-code-mcp-monolith:3001/mcp"
+  MCP_KEYCLOAK_URL:     "http://claude-code-mcp-monolith:8081/mcp/sse"
+  MCP_BROWSER_URL:      "http://claude-code-mcp-monolith:3000/mcp"
+  MCP_GITHUB_URL:       "http://claude-code-mcp-monolith:3002/mcp"
+  MCP_STRIPE_URL:       "http://claude-code-mcp-monolith:3003/mcp"
 
   # ════════════════════════════════════════════════════════════════════
   # INTERNAL SERVICE URLS (for direct API calls bypassing MCP)
@@ -36,8 +32,8 @@ data:
   # GUIDE: mcp-kubernetes  (port 3000, streamable-http)
   # ════════════════════════════════════════════════════════════════════
   GUIDE_KUBERNETES: |
-    Image: mcpk8s/server
-    Transport: streamable-http → http://mcp-kubernetes:3000/mcp
+    Image: quay.io/containers/kubernetes_mcp_server
+    Transport: streamable-http → http://claude-code-mcp-monolith:8080/mcp
     Auth: none (uses claude-code-agent ServiceAccount, ClusterRole bound)
 
     Capabilities:
@@ -61,8 +57,8 @@ data:
   # GUIDE: mcp-postgres  (port 3001, streamable-http)
   # ════════════════════════════════════════════════════════════════════
   GUIDE_POSTGRES: |
-    Image: mcp/postgres (read-only)
-    Transport: streamable-http → http://mcp-postgres:3001/mcp
+    Image: node:20-alpine + @modelcontextprotocol/server-postgres (read-only)
+    Transport: streamable-http → http://claude-code-mcp-monolith:3001/mcp
     Auth: SHARED_DB_PASSWORD from claude-code-secrets
     Host: shared-db.workspace.svc.cluster.local:5432
 
@@ -81,7 +77,7 @@ data:
   # ════════════════════════════════════════════════════════════════════
   GUIDE_GITHUB: |
     Image: ghcr.io/github/github-mcp-server
-    Transport: streamable-http → http://mcp-github:3002/mcp
+    Transport: streamable-http → http://claude-code-mcp-monolith:3002/mcp
     Auth: GITHUB_PAT from claude-code-secrets (set before deploying)
 
     Required PAT scopes: repo (read), pull_requests (read), issues (read/write)
@@ -90,15 +86,15 @@ data:
     create/update issues and PR comments, search code.
 
     Setup: Replace GITHUB_PAT placeholder in claude-code-secrets with a real token,
-    then: kubectl rollout restart deployment/mcp-github
+    then: task mcp:set-github-pat -- ghp_yourtoken
 
   # ════════════════════════════════════════════════════════════════════
   # GUIDE: mcp-keycloak  (port 8080, SSE transport)
   # ════════════════════════════════════════════════════════════════════
   GUIDE_KEYCLOAK: |
     Image: quay.io/sshaaf/keycloak-mcp-server
-    Transport: SSE → http://mcp-keycloak:8080/mcp/sse  ← NOTE: SSE, not streamable-http
-    Health: http://mcp-keycloak:8080/q/health
+    Transport: SSE → http://claude-code-mcp-monolith:8081/mcp/sse  ← NOTE: SSE, not streamable-http
+    Health: http://claude-code-mcp-monolith:8081/q/health
     Auth: JWT Bearer token (see below)
 
     ⚠️  This MCP uses JWT passthrough auth. You MUST obtain a Keycloak token
@@ -128,7 +124,7 @@ data:
   # ════════════════════════════════════════════════════════════════════
   GUIDE_BROWSER: |
     Image: mcr.microsoft.com/playwright (Chromium/Firefox/Webkit)
-    Transport: streamable-http → http://mcp-browser:3000/mcp
+    Transport: streamable-http → http://claude-code-mcp-monolith:3000/mcp
 
     Capabilities:
       - navigate (URL)
@@ -151,12 +147,12 @@ data:
   # ════════════════════════════════════════════════════════════════════
   GUIDE_STRIPE: |
     Image: node:20-alpine + @stripe/agent-toolkit + supergateway
-    Transport: streamable-http → http://mcp-stripe:3003/mcp
+    Transport: streamable-http → http://claude-code-mcp-monolith:3003/mcp
     Auth: STRIPE_SECRET_KEY from claude-code-secrets
 
     Setup: Replace STRIPE_SECRET_KEY placeholder in claude-code-secrets with a
     real Stripe API key (sk_test_... for dev), then restart:
-      kubectl rollout restart deployment/mcp-stripe
+      task mcp:restart
 
     Capabilities:
       Customers: list, create, update, delete, search

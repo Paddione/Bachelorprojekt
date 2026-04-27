@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { readdir, readFile } from 'fs/promises';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 
-export const GET: APIRoute = async ({ params, request, url }) => {
+export const GET: APIRoute = async ({ request, url }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
     return new Response('Unauthorized', { status: 401 });

@@ -53,10 +53,15 @@
       "secret": "${NEXTCLOUD_OIDC_SECRET}",
       "redirectUris": [
         "http://${NC_DOMAIN}/apps/oidc_login/oidc",
-        "http://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
+        "http://${NC_DOMAIN}/index.php/apps/oidc_login/oidc",
+        "https://${NC_DOMAIN}/apps/oidc_login/oidc",
+        "https://${NC_DOMAIN}/index.php/apps/oidc_login/oidc",
+        "http://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak",
+        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
       ],
       "webOrigins": [
-        "http://${NC_DOMAIN}"
+        "http://${NC_DOMAIN}",
+        "https://${NC_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

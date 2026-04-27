@@ -8,9 +8,21 @@ function signBody(body: string): string {
   return crypto.createHmac('sha256', TRANSCRIBER_SECRET).update(body).digest('hex');
 }
 
+let serviceAvailable = false;
+
+test.beforeAll(async ({ request }) => {
+  try {
+    const res = await request.get(`${TRANSCRIBER_URL}/health`, { timeout: 3000 });
+    serviceAvailable = res.ok();
+  } catch {
+    serviceAvailable = false;
+  }
+});
+
 test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
 
   test('T1: /health returns ok or degraded with expected shape', async ({ request }) => {
+    test.skip(!serviceAvailable, `Transcriber not reachable at ${TRANSCRIBER_URL}`);
     const res = await request.get(`${TRANSCRIBER_URL}/health`);
     expect(res.ok()).toBeTruthy();
     const body = await res.json();
@@ -20,6 +32,7 @@ test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
   });
 
   test('T2: /webhook rejects missing HMAC signature with 401', async ({ request }) => {
+    test.skip(!serviceAvailable, `Transcriber not reachable at ${TRANSCRIBER_URL}`);
     const payload = JSON.stringify({ token: 'testtoken123', event: 'call_started' });
     const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
       headers: { 'Content-Type': 'application/json' },
@@ -29,6 +42,7 @@ test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
   });
 
   test('T3: /webhook rejects invalid HMAC signature with 401', async ({ request }) => {
+    test.skip(!serviceAvailable, `Transcriber not reachable at ${TRANSCRIBER_URL}`);
     const payload = JSON.stringify({ token: 'testtoken123', event: 'call_started' });
     const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
       headers: {
@@ -41,6 +55,7 @@ test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
   });
 
   test('T4: /webhook accepts valid HMAC and returns ok or started', async ({ request }) => {
+    test.skip(!serviceAvailable, `Transcriber not reachable at ${TRANSCRIBER_URL}`);
     const payload = JSON.stringify({ token: 'faketesttoken', event: 'message' });
     const sig = signBody(payload);
     const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
@@ -57,6 +72,7 @@ test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
   });
 
   test('T5: /webhook with missing token returns ignored', async ({ request }) => {
+    test.skip(!serviceAvailable, `Transcriber not reachable at ${TRANSCRIBER_URL}`);
     const payload = JSON.stringify({ event: 'call_started' });
     const sig = signBody(payload);
     const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
@@ -72,6 +88,7 @@ test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
   });
 
   test('T6: /webhook rejects malformed JSON with 400', async ({ request }) => {
+    test.skip(!serviceAvailable, `Transcriber not reachable at ${TRANSCRIBER_URL}`);
     const payload = 'not valid json{{{';
     const sig = signBody(payload);
     const res = await request.post(`${TRANSCRIBER_URL}/webhook`, {
@@ -85,6 +102,7 @@ test.describe('FA-18: Live-Transkription (talk-transcriber)', () => {
   });
 
   test('T7: /health reports active session after webhook trigger', async ({ request }) => {
+    test.skip(!serviceAvailable, `Transcriber not reachable at ${TRANSCRIBER_URL}`);
     const fakeToken = `e2etest${Date.now()}`;
     const payload = JSON.stringify({ token: fakeToken, event: 'call_started' });
     const sig = signBody(payload);

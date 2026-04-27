@@ -99,7 +99,7 @@ export async function generateInvoicePdf(p: {
 
     // Payment details
     doc.fontSize(8).fillColor('#333');
-    doc.text(`Bitte überweisen Sie den Betrag unter Angabe des Verwendungszwecks "${inv.paymentReference}" auf:`);
+    doc.text(`Bitte überweisen Sie den Betrag unter Angabe des Verwendungszwecks "${inv.paymentReference ?? inv.number}" auf:`);
     doc.text(`${seller.bankName} · IBAN: ${seller.iban} · BIC: ${seller.bic}`).moveDown(0.5);
 
     // §19 notice or VAT ID

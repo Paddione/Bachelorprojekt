@@ -164,8 +164,9 @@ spec:
                   memory: 512Mi
                   cpu: "1"
             - name: filen-upload
-              # rclone handles WebDAV uploads; waits for backup container signal via staging emptyDir.
-              image: rclone/rclone:1.68
+              # Uses @filen/cli (Node.js) — rclone has no native Filen backend and
+              # webdav.filen.io resolves to 127.0.0.1 (local desktop-app only).
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               securityContext:
                 allowPrivilegeEscalation: false
@@ -186,16 +187,14 @@ spec:
                   STAMP=$(cat /staging/.done)
                   UPLOAD_PATH=$(cat /staging/.filen_path)
 
+                  echo "Installing Filen CLI..."
+                  export HOME=/tmp
+                  npm install -g @filen/cli --prefix /tmp/npm-global --silent 2>&1 | tail -3
+                  export PATH="/tmp/npm-global/bin:$PATH"
+
                   echo "Uploading ${STAMP} to Filen: ${UPLOAD_PATH}/${STAMP}/"
-
-                  OBSCURED=$(rclone obscure "${FILEN_PASSWORD}")
-                  mkdir -p /tmp/rclone
-                  printf '[filen]\ntype = filen\nemail = %s\npassword = %s\n' \
-                    "${FILEN_EMAIL}" "${OBSCURED}" > /tmp/rclone/rclone.conf
-
-                  rclone copy "/backups/${STAMP}/" "filen:${UPLOAD_PATH}/${STAMP}/" \
-                    --config /tmp/rclone/rclone.conf \
-                    --stats-one-line \
+                  filen --email "${FILEN_EMAIL}" --password "${FILEN_PASSWORD}" \
+                    upload "/backups/${STAMP}/" "${UPLOAD_PATH}/${STAMP}/" \
                     || echo "WARNING: Filen upload failed — local backup intact"
 
                   echo "Filen upload done"
@@ -221,11 +220,11 @@ spec:
                   readOnly: true
               resources:
                 requests:
-                  memory: 64Mi
-                  cpu: "50m"
+                  memory: 256Mi
+                  cpu: "100m"
                 limits:
-                  memory: 128Mi
-                  cpu: "200m"
+                  memory: 512Mi
+                  cpu: "500m"
           volumes:
             - name: backup-storage
               persistentVolumeClaim:

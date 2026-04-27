@@ -5,8 +5,7 @@
   import TestsTab from './monitoring/TestsTab.svelte';
 
   import OverviewTab from './monitoring/OverviewTab.svelte';
-  // Tab components (imported once each sub-component is created)
-  // import BerichteTab from './monitoring/BerichteTab.svelte';
+  import BerichteTab from './monitoring/BerichteTab.svelte';
 
   type Tab = 'overview' | 'cluster' | 'tests' | 'deployments' | 'berichte';
 
@@ -60,8 +59,7 @@
     {:else if activeTab === 'deployments'}
       <DeploymentsTab />
     {:else if activeTab === 'berichte'}
-      <p class="text-muted text-sm">BerichteTab — coming in next task</p>
-      <!-- <BerichteTab /> -->
+      <BerichteTab />
     {/if}
   </div>
 </div>

@@ -189,13 +189,12 @@ spec:
                   echo "Uploading ${STAMP} to Filen: ${UPLOAD_PATH}/${STAMP}/"
 
                   OBSCURED=$(rclone obscure "${FILEN_PASSWORD}")
-                  export RCLONE_WEBDAV_URL=https://webdav.filen.io
-                  export RCLONE_WEBDAV_VENDOR=other
-                  export RCLONE_WEBDAV_USER="${FILEN_EMAIL}"
-                  export RCLONE_WEBDAV_PASS="${OBSCURED}"
+                  mkdir -p /tmp/rclone
+                  printf '[filen]\ntype = filen\nemail = %s\npassword = %s\n' \
+                    "${FILEN_EMAIL}" "${OBSCURED}" > /tmp/rclone/rclone.conf
 
-                  rclone copy "/backups/${STAMP}/" ":webdav:${UPLOAD_PATH}/${STAMP}/" \
-                    --no-traverse \
+                  rclone copy "/backups/${STAMP}/" "filen:${UPLOAD_PATH}/${STAMP}/" \
+                    --config /tmp/rclone/rclone.conf \
                     --stats-one-line \
                     || echo "WARNING: Filen upload failed — local backup intact"
 

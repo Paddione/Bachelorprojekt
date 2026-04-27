@@ -71,16 +71,16 @@ case "${CMD:-}" in
   list)
     echo "Backups on backup-pvc (newest first):"
     POD="backup-list-$$"
-    OVERRIDES='{"spec":{"restartPolicy":"Never","volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"containers":[{"name":"c","image":"busybox","command":["ls","-1t","/backups"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}]}}'
+    # Only show YYYYMMDD-HHMMSS directories (not debug/log files)
+    OVERRIDES='{"spec":{"restartPolicy":"Never","volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"containers":[{"name":"c","image":"busybox","command":["/bin/sh","-c","find /backups -maxdepth 1 -mindepth 1 -type d -name '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]' | xargs -I{} basename {} | sort -r"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}]}}'
     $KC run "$POD" -n "$NS" --restart=Never --image=busybox \
       --overrides="$OVERRIDES" --quiet 2>/dev/null || true
-    # Wait for the pod to complete
     for i in $(seq 1 30); do
       PHASE=$($KC get pod -n "$NS" "$POD" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
       [[ "$PHASE" == "Succeeded" || "$PHASE" == "Failed" ]] && break
       sleep 1
     done
-    $KC logs -n "$NS" "$POD" 2>/dev/null | sort -r || echo "(no backups found)"
+    $KC logs -n "$NS" "$POD" 2>/dev/null || echo "(no backups found)"
     $KC delete pod -n "$NS" "$POD" --ignore-not-found >/dev/null 2>&1 || true
     ;;
 
@@ -114,7 +114,7 @@ case "${CMD:-}" in
       DBS=("$DB")
     fi
 
-    CTX_DISPLAY="${CTX_FLAG:---$(${KC} config current-context 2>/dev/null || echo "current")}"
+    CTX_DISPLAY="${CTX_FLAG:-$(kubectl config current-context 2>/dev/null || echo "current")}"
     echo ""
     echo "==================================================="
     echo " WORKSPACE DATABASE RESTORE"
@@ -154,9 +154,17 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: shared-db
+              topologyKey: kubernetes.io/hostname
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
+        fsGroup: 65534
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -167,7 +175,7 @@ spec:
           args:
             - |
               set -e
-              apk add --no-cache openssl >/dev/null 2>&1
+              sleep 15
               ENC="/backups/${TS}/${db}.dump.enc"
               [ -f "\$ENC" ] || { echo "ERROR: \$ENC not found in backup"; exit 1; }
               openssl enc -d -aes-256-cbc -pbkdf2 -in "\$ENC" -out /tmp/${db}.dump -pass env:BACKUP_PASSPHRASE
@@ -175,7 +183,7 @@ spec:
               PGPASSWORD="\$SHARED_DB_PASSWORD" psql -h shared-db -U postgres -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${db}' AND pid<>pg_backend_pid();" -t 2>&1 | tail -3
               PGPASSWORD="\$SHARED_DB_PASSWORD" dropdb -h shared-db -U postgres --if-exists ${db}
               PGPASSWORD="\$SHARED_DB_PASSWORD" createdb -h shared-db -U postgres -O ${db} ${db}
-              PGPASSWORD="\$SHARED_DB_PASSWORD" pg_restore -h shared-db -U postgres -d ${db} --no-owner --role=${db} --exit-on-error /tmp/${db}.dump
+              PGPASSWORD="\$SHARED_DB_PASSWORD" pg_restore -h shared-db -U postgres -d ${db} --no-owner --exit-on-error /tmp/${db}.dump
               rm /tmp/${db}.dump
               echo "✓ ${db} restored from \$ENC"
           env:
@@ -212,19 +220,15 @@ spec:
             claimName: backup-pvc
 YAML
 
-      echo "    Waiting for restore pod to start..."
-      sleep 4
-      $KC logs -n "$NS" -l "job-name=${JOB}" -f --tail=200 2>/dev/null || true
-
-      SUCCEEDED=$($KC get job -n "$NS" "$JOB" -o jsonpath='{.status.succeeded}' 2>/dev/null || echo 0)
-      FAILED=$($KC get job -n "$NS" "$JOB" -o jsonpath='{.status.failed}' 2>/dev/null || echo 0)
-      if [[ "${SUCCEEDED}" == "1" ]]; then
-        echo "    ✓ ${db} restored"
-      else
-        echo "    ERROR: ${db} restore failed (succeeded=${SUCCEEDED} failed=${FAILED})"
-        echo "    Logs: kubectl logs -n $NS -l job-name=${JOB}"
+      echo "    Waiting for restore job to complete (up to 5 min)..."
+      # Wait up to 300s for completion
+      if ! $KC wait -n "$NS" job/"$JOB" --for=condition=Complete --timeout=300s 2>/dev/null; then
+        FAILED=$($KC get job -n "$NS" "$JOB" -o jsonpath='{.status.failed}' 2>/dev/null || echo "?")
+        echo "    ERROR: ${db} restore job did not complete (failed=${FAILED})"
+        echo "    Check: kubectl get pods -n $NS -l job-name=${JOB}"
         exit 1
       fi
+      echo "    ✓ ${db} restored"
     done
 
     echo ""

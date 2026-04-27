@@ -9,6 +9,7 @@ resources:
   - cluster-issuer.yaml
   - reflector.yaml
   - wildcard-certificate.yaml
+  - ingressclass.yaml
   - traefik-middlewares.yaml
   - tlsoption.yaml
   - old-webspace.yaml

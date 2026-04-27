@@ -16,7 +16,7 @@ if os.path.exists(settings_file):
 else:
     data = {}
 
-data["mcpServers"] = mcp_servers
+data.setdefault("mcpServers", {}).update(mcp_servers)
 
 with open(settings_file, "w") as f:
     json.dump(data, f, indent=2)

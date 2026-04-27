@@ -4,8 +4,8 @@
   import DeploymentsTab from './monitoring/DeploymentsTab.svelte';
   import TestsTab from './monitoring/TestsTab.svelte';
 
+  import OverviewTab from './monitoring/OverviewTab.svelte';
   // Tab components (imported once each sub-component is created)
-  // import OverviewTab from './monitoring/OverviewTab.svelte';
   // import BerichteTab from './monitoring/BerichteTab.svelte';
 
   type Tab = 'overview' | 'cluster' | 'tests' | 'deployments' | 'berichte';
@@ -52,8 +52,7 @@
   <!-- Tab content -->
   <div class="pt-5">
     {#if activeTab === 'overview'}
-      <p class="text-muted text-sm">OverviewTab — coming in next task</p>
-      <!-- <OverviewTab on:navigate={(e) => setTab(e.detail)} /> -->
+      <OverviewTab on:navigate={(e) => setTab(e.detail)} />
     {:else if activeTab === 'cluster'}
       <ClusterTab />
     {:else if activeTab === 'tests'}

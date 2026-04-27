@@ -171,16 +171,18 @@
     <!-- Question -->
     <div class="mb-6 p-6 bg-dark-light rounded-xl border border-dark-lighter">
       {#if current.question_type === 'test_step'}
-        <!-- Role badge -->
-        <div class="flex items-center gap-2 mb-4">
-          <span class={`px-2.5 py-0.5 rounded-full border text-xs font-semibold ${
-            current.test_role === 'admin'
-              ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-          }`}>
-            {current.test_role === 'admin' ? '🔧 Admin-Schritt' : '👤 Nutzer-Schritt'}
-          </span>
-        </div>
+        {#if current.test_role}
+          <!-- Role badge -->
+          <div class="flex items-center gap-2 mb-4">
+            <span class={`px-2.5 py-0.5 rounded-full border text-xs font-semibold ${
+              current.test_role === 'admin'
+                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            }`}>
+              {current.test_role === 'admin' ? '🔧 Admin-Schritt' : '👤 Nutzer-Schritt'}
+            </span>
+          </div>
+        {/if}
         <!-- What to test -->
         <p class="text-xs text-muted uppercase tracking-wide mb-1">Was zu testen:</p>
         <p class="text-light text-base mb-4 font-medium">{current.question_text}</p>
@@ -354,7 +356,7 @@
       {/if}
     </div>
 
-    {#if allAnswered && questions.every(q => q.question_type === 'test_step')}
+    {#if allAnswered && questions.some(q => q.question_type === 'test_step')}
       <div class="mt-4 flex justify-end">
         <button
           onclick={submit}

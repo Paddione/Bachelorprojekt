@@ -69,8 +69,28 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
       { href: '/admin/projekte',      label: 'Projekte',      icon: 'clipboard' },
       { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt' },
-      { href: '/admin/dokumente',     label: 'Dokumenteneditor', icon: 'mail' },
       { href: '/admin/kalender',      label: 'Kalender',      icon: 'calendar2' },
+    ],
+  },
+  {
+    label: 'Inhalte',
+    items: [
+      {
+        href: '/admin/inhalte',
+        label: 'Inhalte',
+        icon: 'layout',
+        matches: [
+          '/admin/inhalte',
+          '/admin/startseite',
+          '/admin/uebermich',
+          '/admin/angebote',
+          '/admin/faq',
+          '/admin/kontakt',
+          '/admin/referenzen',
+          '/admin/rechtliches',
+          '/admin/dokumente',
+        ],
+      },
     ],
   },
   {
@@ -78,12 +98,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/admin/monitoring', label: 'Monitoring', icon: 'monitor' },
       { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox' },
-      {
-        href: '/admin/startseite',
-        label: 'Website',
-        icon: 'layout',
-        matches: ['/admin/startseite', '/admin/uebermich', '/admin/angebote', '/admin/faq', '/admin/kontakt', '/admin/referenzen', '/admin/rechtliches'],
-      },
     ],
   },
   {

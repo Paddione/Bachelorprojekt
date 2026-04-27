@@ -9,6 +9,22 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
+  if (request.headers.get('content-type')?.includes('application/json')) {
+    let items: FaqItem[];
+    try {
+      items = await request.json() as FaqItem[];
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    try {
+      await saveFaqContent(BRAND, items);
+    } catch (err) {
+      console.error('[faq/save] DB error:', err);
+      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+  }
+
   const form = await request.formData();
   const g = (k: string) => (form.get(k) as string | null) ?? '';
 
@@ -31,7 +47,6 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   // Filter blank questions (= delete behavior), then add new entry
   const items = rawItems.filter(item => item.question);
-
   const newQ = g('faq_new_question').trim();
   const newA = g('faq_new_answer').trim();
   if (newQ) items.push({ question: newQ, answer: newA });

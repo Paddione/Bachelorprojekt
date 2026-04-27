@@ -6,29 +6,48 @@ import { mentolderConfig } from '../../../../config/brands/mentolder';
 
 function parseJson<T>(raw: string | null, fallback: T): T {
   if (!raw?.trim()) return fallback;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
+  try { return JSON.parse(raw) as T; } catch { return fallback; }
 }
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) {
-    return new Response('Forbidden', { status: 403 });
+  if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
+
+  const BRAND = process.env.BRAND || 'mentolder';
+
+  if (request.headers.get('content-type')?.includes('application/json')) {
+    let body: { services: ServiceOverride[]; leistungen: LeistungCategoryOverride[]; priceListUrl: string };
+    try {
+      body = await request.json() as {
+        services: ServiceOverride[];
+        leistungen: LeistungCategoryOverride[];
+        priceListUrl: string;
+      };
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (!Array.isArray(body.services) || !Array.isArray(body.leistungen)) {
+      return new Response(JSON.stringify({ error: 'services and leistungen are required arrays' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    try {
+      await Promise.all([
+        saveServiceConfig(BRAND, body.services),
+        saveLeistungenConfig(BRAND, body.leistungen),
+        setSiteSetting(BRAND, 'price_list_url', body.priceListUrl ?? ''),
+      ]);
+    } catch (err) {
+      console.error('[angebote/save] DB error:', err);
+      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   }
 
   const form = await request.formData();
-  const BRAND = process.env.BRAND || 'mentolder';
 
   // ── Services (card fields + pageContent) ──────────────────────────────────
   const serviceOverrides: ServiceOverride[] = mentolderConfig.services.map(s => {
-    const features = ((form.get(`${s.slug}_features`) as string) ?? '')
-      .split('\n').map(f => f.trim()).filter(Boolean);
-    const forWhom = ((form.get(`${s.slug}_pc_forWhom`) as string) ?? '')
-      .split('\n').map(f => f.trim()).filter(Boolean);
-
+    const features = ((form.get(`${s.slug}_features`) as string) ?? '').split('\n').map(f => f.trim()).filter(Boolean);
+    const forWhom = ((form.get(`${s.slug}_pc_forWhom`) as string) ?? '').split('\n').map(f => f.trim()).filter(Boolean);
     return {
       slug: s.slug,
       title: (form.get(`${s.slug}_title`) as string) || s.title,
@@ -69,13 +88,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   }));
 
   const priceListUrl = (form.get('price_list_url') as string)?.trim() ?? '';
-
   await Promise.all([
     saveServiceConfig(BRAND, serviceOverrides),
     saveLeistungenConfig(BRAND, leistungenOverrides),
-    priceListUrl
-      ? setSiteSetting(BRAND, 'price_list_url', priceListUrl)
-      : setSiteSetting(BRAND, 'price_list_url', ''),
+    priceListUrl ? setSiteSetting(BRAND, 'price_list_url', priceListUrl) : setSiteSetting(BRAND, 'price_list_url', ''),
   ]);
 
   return redirect('/admin/angebote?saved=1', 303);

@@ -1,0 +1,75 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import InhalteEditor from '../../components/admin/InhalteEditor.svelte';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import {
+  getEffectiveHomepage,
+  getEffectiveUebermich,
+  getEffectiveServices,
+  getEffectiveLeistungen,
+  getPriceListUrl,
+  getEffectiveFaq,
+  getEffectiveKontakt,
+  getEffectiveReferenzen,
+} from '../../lib/content';
+import { getLegalPage, listCustomSections } from '../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const BRAND = import.meta.env.BRAND || process.env.BRAND || 'mentolder';
+
+const [
+  startseite,
+  uebermich,
+  services,
+  leistungen,
+  priceListUrl,
+  faq,
+  kontakt,
+  referenzen,
+  impressum,
+  datenschutz,
+  agb,
+  barrierefreiheit,
+  customSections,
+] = await Promise.all([
+  getEffectiveHomepage(),
+  getEffectiveUebermich(),
+  getEffectiveServices(),
+  getEffectiveLeistungen(),
+  getPriceListUrl().then(u => u ?? ''),
+  getEffectiveFaq(),
+  getEffectiveKontakt(),
+  getEffectiveReferenzen(),
+  getLegalPage(BRAND, 'impressum-zusatz').then(v => v ?? ''),
+  getLegalPage(BRAND, 'datenschutz').then(v => v ?? ''),
+  getLegalPage(BRAND, 'agb').then(v => v ?? ''),
+  getLegalPage(BRAND, 'barrierefreiheit').then(v => v ?? ''),
+  listCustomSections(),
+]);
+
+const initialData = {
+  startseite,
+  uebermich,
+  services,
+  leistungen,
+  priceListUrl,
+  faq,
+  kontakt,
+  referenzen,
+  rechtliches: { 'impressum-zusatz': impressum, datenschutz, agb, barrierefreiheit },
+  customSections,
+};
+---
+
+<AdminLayout title="Admin — Inhalte">
+  <section class="pt-0 pb-0 bg-dark min-h-screen">
+    <div class="px-8 pt-8 mb-2">
+      <h1 class="text-3xl font-bold text-light font-serif">Inhalte</h1>
+      <p class="text-muted mt-1 text-sm">Website, Newsletter, Fragebögen und Vertragsvorlagen</p>
+    </div>
+    <InhalteEditor {initialData} client:load />
+  </section>
+</AdminLayout>

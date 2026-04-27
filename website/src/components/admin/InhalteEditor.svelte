@@ -1,0 +1,237 @@
+<script lang="ts">
+  import NewsletterAdmin from './NewsletterAdmin.svelte';
+  import QuestionnaireTemplateEditor from './QuestionnaireTemplateEditor.svelte';
+  import VertragsvorlagenSection from './inhalte/VertragsvorlagenSection.svelte';
+  import StartseiteSection from './inhalte/StartseiteSection.svelte';
+  import UebermichSection from './inhalte/UebermichSection.svelte';
+  import AngeboteSection from './inhalte/AngeboteSection.svelte';
+  import FaqSection from './inhalte/FaqSection.svelte';
+  import KontaktSection from './inhalte/KontaktSection.svelte';
+  import ReferenzenSection from './inhalte/ReferenzenSection.svelte';
+  import RechtlichesSection from './inhalte/RechtlichesSection.svelte';
+  import CustomSection from './inhalte/CustomSection.svelte';
+  import type {
+    HomepageContent,
+    UebermichContent,
+    FaqItem,
+    KontaktContent,
+    ReferenzItem,
+    CustomSection as CustomSectionType,
+    ServiceOverride,
+    LeistungCategoryOverride,
+  } from '../../lib/website-db';
+
+  type InitialData = {
+    startseite: HomepageContent;
+    uebermich: UebermichContent;
+    services: ServiceOverride[];
+    leistungen: LeistungCategoryOverride[];
+    priceListUrl: string;
+    faq: FaqItem[];
+    kontakt: KontaktContent;
+    referenzen: ReferenzItem[];
+    rechtliches: Record<string, string>;
+    customSections: CustomSectionType[];
+  };
+
+  let { initialData }: { initialData: InitialData } = $props();
+
+  type PrimaryTab = 'website' | 'newsletter' | 'fragebogen' | 'vertraege';
+  type WebsiteSection = string;
+
+  function readParam<T extends string>(key: string, fallback: T): T {
+    if (typeof window === 'undefined') return fallback;
+    return (new URLSearchParams(window.location.search).get(key) as T) ?? fallback;
+  }
+
+  let activeTab = $state<PrimaryTab>(readParam('tab', 'website') as PrimaryTab);
+  let activeSection = $state<WebsiteSection>(readParam('section', 'startseite'));
+  let customSections = $state(initialData.customSections);
+
+  // New custom section dialog state
+  let showNewDialog = $state(false);
+  let newTitle = $state('');
+  let newSlug = $state('');
+  let newFields = $state<Array<{ name: string; label: string; type: 'text' | 'textarea' | 'url'; required: boolean }>>([]);
+  let newSaving = $state(false);
+  let newMsg = $state('');
+
+  $effect(() => {
+    const params = new URLSearchParams();
+    params.set('tab', activeTab);
+    if (activeTab === 'website') params.set('section', activeSection);
+    history.replaceState(null, '', `?${params.toString()}`);
+  });
+
+  function switchTab(tab: PrimaryTab) {
+    activeTab = tab;
+    if (tab === 'website' && !activeSection) activeSection = 'startseite';
+  }
+
+  function addField() {
+    newFields = [...newFields, { name: '', label: '', type: 'text', required: false }];
+  }
+  function removeField(i: number) {
+    newFields = newFields.filter((_, idx) => idx !== i);
+  }
+
+  async function createSection() {
+    if (!newTitle.trim() || !newSlug.trim()) { newMsg = 'Titel und Slug erforderlich.'; return; }
+    newSaving = true; newMsg = '';
+    try {
+      const res = await fetch('/api/admin/inhalte/custom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle.trim(), slug: newSlug.trim(), fields: newFields }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        customSections = [...customSections, data];
+        showNewDialog = false;
+        newTitle = ''; newSlug = ''; newFields = [];
+        activeSection = data.slug;
+      } else { newMsg = data.error ?? 'Fehler.'; }
+    } catch { newMsg = 'Verbindungsfehler.'; }
+    finally { newSaving = false; }
+  }
+
+  function onCustomDeleted(slug: string) {
+    customSections = customSections.filter(s => s.slug !== slug);
+    activeSection = 'startseite';
+  }
+
+  const SECTION_LABELS: Record<string, string> = {
+    startseite: 'Startseite',
+    uebermich: 'Über mich',
+    angebote: 'Angebote',
+    faq: 'FAQ',
+    kontakt: 'Kontakt',
+    referenzen: 'Referenzen',
+    rechtliches: 'Rechtliches',
+  };
+
+  const tabBtnCls = (active: boolean) =>
+    `px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${active ? 'border-gold text-gold' : 'border-transparent text-muted hover:text-light'}`;
+  const secBtnCls = (active: boolean) =>
+    `px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${active ? 'border-green-500 text-green-400' : 'border-transparent text-muted hover:text-light'}`;
+</script>
+
+<div>
+  <!-- Primary tabs -->
+  <div class="flex gap-0 border-b border-dark-lighter overflow-x-auto flex-shrink-0">
+    <button onclick={() => switchTab('website')} class={tabBtnCls(activeTab === 'website')}>🌐 Website</button>
+    <button onclick={() => switchTab('newsletter')} class={tabBtnCls(activeTab === 'newsletter')}>✉️ Newsletter</button>
+    <button onclick={() => switchTab('fragebogen')} class={tabBtnCls(activeTab === 'fragebogen')}>📋 Fragebögen</button>
+    <button onclick={() => switchTab('vertraege')} class={tabBtnCls(activeTab === 'vertraege')}>📄 Verträge</button>
+  </div>
+
+  <!-- Website: secondary tab bar -->
+  {#if activeTab === 'website'}
+    <div class="flex items-center gap-0 border-b border-dark-lighter/60 overflow-x-auto bg-dark/30 flex-shrink-0">
+      {#each Object.keys(SECTION_LABELS) as sec}
+        <button onclick={() => activeSection = sec} class={secBtnCls(activeSection === sec)}>
+          {SECTION_LABELS[sec]}
+        </button>
+      {/each}
+      {#each customSections as cs}
+        <button onclick={() => activeSection = cs.slug} class={secBtnCls(activeSection === cs.slug)}>
+          {cs.title} ★
+        </button>
+      {/each}
+      <button onclick={() => showNewDialog = true} class="ml-2 px-3 py-1.5 text-xs text-blue-400 border border-blue-400/30 rounded-md hover:bg-blue-400/10 my-1 flex-shrink-0">+ Abschnitt</button>
+    </div>
+  {/if}
+
+  <!-- Content area -->
+  <div class="max-w-4xl px-8">
+    {#if activeTab === 'website'}
+      {#if activeSection === 'startseite'}
+        <StartseiteSection initialData={initialData.startseite} />
+      {:else if activeSection === 'uebermich'}
+        <UebermichSection initialData={initialData.uebermich} />
+      {:else if activeSection === 'angebote'}
+        <AngeboteSection
+          initialServices={initialData.services}
+          initialLeistungen={initialData.leistungen}
+          initialPriceListUrl={initialData.priceListUrl}
+        />
+      {:else if activeSection === 'faq'}
+        <FaqSection initialData={initialData.faq} />
+      {:else if activeSection === 'kontakt'}
+        <KontaktSection initialData={initialData.kontakt} />
+      {:else if activeSection === 'referenzen'}
+        <ReferenzenSection initialData={initialData.referenzen} />
+      {:else if activeSection === 'rechtliches'}
+        <RechtlichesSection initialData={initialData.rechtliches} />
+      {:else}
+        {@const cs = customSections.find(s => s.slug === activeSection)}
+        {#if cs}
+          <CustomSection section={cs} onDeleted={() => onCustomDeleted(cs.slug)} />
+        {/if}
+      {/if}
+    {:else if activeTab === 'newsletter'}
+      <div class="pt-6 pb-20">
+        <NewsletterAdmin />
+      </div>
+    {:else if activeTab === 'fragebogen'}
+      <div class="pt-6 pb-20">
+        <QuestionnaireTemplateEditor />
+      </div>
+    {:else if activeTab === 'vertraege'}
+      <div class="pt-6 pb-20">
+        <VertragsvorlagenSection />
+      </div>
+    {/if}
+  </div>
+</div>
+
+<!-- New custom section dialog -->
+{#if showNewDialog}
+  <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-lg space-y-4">
+      <h3 class="text-lg font-bold text-light font-serif">Neuer Website-Abschnitt</h3>
+
+      <div>
+        <label class="block text-xs text-muted mb-1">Titel *</label>
+        <input type="text" bind:value={newTitle} class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:outline-none focus:border-gold/50" placeholder="z.B. Mein Angebot 2026" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Slug * (URL-safe, z.B. mein-angebot)</label>
+        <input type="text" bind:value={newSlug} class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm font-mono focus:outline-none focus:border-gold/50" placeholder="mein-angebot" />
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <label class="text-xs text-muted">Felder</label>
+          <button onclick={addField} class="text-xs text-blue-400 hover:text-blue-300">+ Feld</button>
+        </div>
+        {#each newFields as field, i}
+          <div class="flex gap-2 mb-2 items-center">
+            <input type="text" bind:value={field.name} placeholder="name (key)" class="flex-1 px-2 py-1.5 bg-dark border border-dark-lighter rounded-lg text-light text-xs font-mono focus:outline-none focus:border-gold/50" />
+            <input type="text" bind:value={field.label} placeholder="Label" class="flex-1 px-2 py-1.5 bg-dark border border-dark-lighter rounded-lg text-light text-xs focus:outline-none focus:border-gold/50" />
+            <select bind:value={field.type} class="px-2 py-1.5 bg-dark border border-dark-lighter rounded-lg text-light text-xs focus:outline-none focus:border-gold/50">
+              <option value="text">text</option>
+              <option value="textarea">textarea</option>
+              <option value="url">url</option>
+            </select>
+            <label class="flex items-center gap-1 text-xs text-muted">
+              <input type="checkbox" bind:checked={field.required} class="accent-gold" /> Pflicht
+            </label>
+            <button onclick={() => removeField(i)} class="text-red-400 text-xs hover:text-red-300">✕</button>
+          </div>
+        {/each}
+      </div>
+
+      {#if newMsg}
+        <p class="text-red-400 text-sm">{newMsg}</p>
+      {/if}
+
+      <div class="flex gap-3 justify-end">
+        <button onclick={() => { showNewDialog = false; newMsg = ''; }} class="px-4 py-2 text-muted text-sm hover:text-light">Abbrechen</button>
+        <button onclick={createSection} disabled={newSaving} class="px-4 py-2 bg-gold text-dark font-semibold rounded-lg text-sm hover:bg-gold/80 disabled:opacity-50">
+          {newSaving ? 'Erstelle…' : 'Erstellen'}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}

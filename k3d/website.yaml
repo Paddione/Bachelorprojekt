@@ -85,7 +85,7 @@ metadata:
   name: website-monitoring-reader
 rules:
   - apiGroups: [""]
-    resources: ["pods", "events", "nodes", "namespaces", "configmaps", "persistentvolumeclaims", "services", "secrets"]
+    resources: ["pods", "events", "nodes", "namespaces", "configmaps", "persistentvolumeclaims", "services"]
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["pods"]

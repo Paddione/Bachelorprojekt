@@ -88,6 +88,8 @@ GROUP_LABELS=(
   "WEBSITE_DB_PASSWORD"
   "DOCUSEAL_API_TOKEN"
   "BRETT_BOT_SECRET"
+  "STALENESS_WEBHOOK_SECRET"
+  "MONITORING_WEBHOOK_TOKEN"
   "IPV64_API_KEY"
 )
 
@@ -106,6 +108,8 @@ GROUP_MEMBERS=(
   "workspace:workspace-secrets:WEBSITE_DB_PASSWORD|website:website-secrets:WEBSITE_DB_PASSWORD"
   "workspace:workspace-secrets:DOCUSEAL_API_TOKEN|website:website-secrets:DOCUSEAL_API_TOKEN"
   "workspace:workspace-secrets:BRETT_BOT_SECRET|website:website-secrets:BRETT_BOT_SECRET"
+  "workspace:workspace-secrets:STALENESS_WEBHOOK_SECRET|website:website-secrets:STALENESS_WEBHOOK_SECRET"
+  "workspace:workspace-secrets:MONITORING_WEBHOOK_TOKEN|website:website-secrets:MONITORING_WEBHOOK_TOKEN"
   "workspace:workspace-secrets:IPV64_API_KEY|cert-manager:ipv64-api-key:IPV64_API_KEY"
 )
 
@@ -113,6 +117,8 @@ GROUP_RESTARTS=(
   "coturn:coturn coturn:janus"
   "coturn:coturn coturn:janus"
   "workspace-office:collabora"
+  "website:website"
+  "website:website"
   "website:website"
   "website:website"
   "website:website"
@@ -139,6 +145,7 @@ SOLO_LABELS=(
   "DOCS_OIDC_SECRET"
   "TRAEFIK_OIDC_SECRET"
   "MAIL_OIDC_SECRET"
+  "BRETT_OIDC_SECRET"
   "OAUTH2_PROXY_COOKIE_SECRET"
   "SHARED_DB_PASSWORD"
   "WHITEBOARD_JWT_SECRET"
@@ -157,6 +164,8 @@ SOLO_LABELS=(
   "SMTP_FROM"
   "SMTP_USER"
   "BACKUP_PASSPHRASE"
+  "FILEN_EMAIL"
+  "FILEN_PASSWORD"
 )
 
 SOLO_MEMBERS=(
@@ -166,6 +175,7 @@ SOLO_MEMBERS=(
   "workspace:workspace-secrets:DOCS_OIDC_SECRET"
   "workspace:workspace-secrets:TRAEFIK_OIDC_SECRET"
   "workspace:workspace-secrets:MAIL_OIDC_SECRET"
+  "workspace:workspace-secrets:BRETT_OIDC_SECRET"
   "workspace:workspace-secrets:OAUTH2_PROXY_COOKIE_SECRET"
   "workspace:workspace-secrets:SHARED_DB_PASSWORD"
   "workspace:workspace-secrets:WHITEBOARD_JWT_SECRET"
@@ -184,6 +194,8 @@ SOLO_MEMBERS=(
   "workspace:workspace-secrets:SMTP_FROM"
   "workspace:workspace-secrets:SMTP_USER"
   "workspace:workspace-secrets:BACKUP_PASSPHRASE"
+  "workspace:workspace-secrets:FILEN_EMAIL"
+  "workspace:workspace-secrets:FILEN_PASSWORD"
 )
 
 # mcp-tokens only exists on the dev cluster (MCP servers are not deployed to

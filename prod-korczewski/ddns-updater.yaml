@@ -41,6 +41,28 @@ metadata:
 data:
   ip: ""
 ---
+---
+# Allows ddns-updater pods to reach the Kubernetes API server (10.43.0.1:443),
+# which sits inside the 10.0.0.0/8 block excluded by allow-internet-egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ddns-updater-apiserver-egress
+  namespace: workspace
+spec:
+  podSelector:
+    matchLabels:
+      app: ddns-updater
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.43.0.1/32
+      ports:
+        - protocol: TCP
+          port: 443
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -54,6 +76,9 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            app: ddns-updater
         spec:
           serviceAccountName: ddns-updater
           restartPolicy: OnFailure

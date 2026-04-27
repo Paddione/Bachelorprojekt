@@ -12,5 +12,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - secret.yaml
+  - coturn-cert.yaml
   - coturn.yaml
   - janus.yaml

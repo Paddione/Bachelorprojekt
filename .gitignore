@@ -88,3 +88,4 @@ test-results/
 memory
 whisper
 environments/Assets
+.claude/settings.json

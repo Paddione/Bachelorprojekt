@@ -3102,3 +3102,21 @@ export async function initBillingTables(): Promise<void> {
   `);
   billingTablesReady = true;
 }
+
+let taxModeTableReady = false;
+export async function initTaxMonitorTables(): Promise<void> {
+  if (taxModeTableReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tax_mode_changes (
+      id            BIGSERIAL PRIMARY KEY,
+      brand         TEXT NOT NULL,
+      changed_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      from_mode     TEXT NOT NULL,
+      to_mode       TEXT NOT NULL,
+      trigger_invoice_id TEXT,
+      year_revenue_at_change NUMERIC(12,2),
+      notes         TEXT
+    )
+  `);
+  taxModeTableReady = true;
+}

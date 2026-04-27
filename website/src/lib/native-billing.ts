@@ -1,4 +1,5 @@
 import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
+import { checkAndApplyTaxModeSwitch } from './tax-monitor';
 
 export { initBillingTables };
 
@@ -117,7 +118,12 @@ export async function finalizeInvoice(id: string): Promise<Invoice | null> {
     `UPDATE billing_invoices SET status='open', locked=true, updated_at=now()
      WHERE id=$1 AND status='draft' RETURNING *`, [id]
   );
-  return r.rows[0] ? mapInvoice(r.rows[0]) : null;
+  if (r.rows[0]) {
+    const inv = mapInvoice(r.rows[0]);
+    await checkAndApplyTaxModeSwitch(inv.brand, id);
+    return inv;
+  }
+  return null;
 }
 
 export async function markInvoicePaid(id: string, p: { paidAt: string; paidAmount: number }): Promise<Invoice | null> {

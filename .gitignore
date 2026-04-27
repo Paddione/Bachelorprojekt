@@ -87,3 +87,4 @@ test-results/
 .worktrees/
 memory
 whisper
+environments/Assets

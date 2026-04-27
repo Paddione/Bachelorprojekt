@@ -41,16 +41,19 @@ graph LR
     VW["fa:fa-lock Vaultwarden\nclient: vaultwarden"]
     WEB["fa:fa-globe Website\nclient: website"]
     DOCS["fa:fa-file-lines Docs\nclient: docs"]
+    BRETT["fa:fa-chalkboard Brett\nclient: brett"]
+    MAIL["fa:fa-envelope Mailpit\nclient: mailpit-admin"]
+    TRAEFIK["fa:fa-globe Traefik\nclient: traefik-dashboard"]
 
-    KC --> NC & CC & VW & WEB & DOCS
+    KC --> NC & CC & VW & WEB & DOCS & BRETT & MAIL & TRAEFIK
 
     classDef kc fill:#4a90d9,color:#fff,stroke:#2d6a9f
     classDef service fill:#2d8659,color:#fff,stroke:#1a5c3a
     classDef infra fill:#374151,color:#fff,stroke:#1f2937
 
     class KC kc
-    class NC,CC,VW service
-    class WEB,DOCS infra
+    class NC,CC,VW,BRETT service
+    class WEB,DOCS,MAIL,TRAEFIK infra
 ```
 
 | Client-ID | Service | Redirect-URI | Secret-Variable | Besonderheiten |
@@ -58,7 +61,11 @@ graph LR
 | `nextcloud` | Nextcloud | `http://{NC_DOMAIN}/apps/oidc_login/oidc` | `NEXTCLOUD_OIDC_SECRET` | Attribut-Mapping: preferred_username, name, email |
 | `vaultwarden` | Vaultwarden | `http://{VAULT_DOMAIN}/identity/connect/oidc-signin` | `VAULTWARDEN_OIDC_SECRET` | SSO optional, Passwort-Login bleibt Fallback |
 | `website` | Astro-Website / Chat | `http://{WEB_DOMAIN}/*` | `WEBSITE_OIDC_SECRET` | Authorization Code + PKCE |
-| `docs` | Docs (über oauth2-proxy) | `http://{DOCS_DOMAIN}/oauth2/callback` | `DOCS_OIDC_SECRET` | PKCE S256, Zugriff nur für eingeloggte User |
+| `docs` | Docs (ueber oauth2-proxy) | `http://{DOCS_DOMAIN}/oauth2/callback` | `DOCS_OIDC_SECRET` | PKCE S256, Zugriff nur fuer eingeloggte User |
+| `brett` | Systemisches Brett | `http://{BRETT_DOMAIN}/*` | `BRETT_OIDC_SECRET` | Coaching-Board, Authorization Code Flow |
+| `mailpit-admin` | Mailpit (Dev-Mail) | `http://{MAIL_DOMAIN}/oauth2/callback` | `MAILPIT_OIDC_SECRET` | oauth2-proxy, nur Dev |
+| `traefik-dashboard` | Traefik Dashboard | `http://traefik.localhost/oauth2/callback` | `TRAEFIK_OIDC_SECRET` | oauth2-proxy, Admin-Zugriff |
+| `claude-code` | Claude Code MCP | intern | `CLAUDE_CODE_OIDC_SECRET` | Service-Account fuer MCP-Server |
 
 Alle Clients verwenden `client_secret_basic` als Authenticator und den Standard Authorization Code Flow. Scopes: `openid email profile`.
 

@@ -20,6 +20,7 @@ SERVERS=(
   "keycloak|claude-code-mcp-auth|8080|/sse|Keycloak SSO/OIDC"
   "browser|mcp-browser|3000|/mcp|Playwright browser automation"
   "github|mcp-github|3000|/mcp|GitHub repository integration"
+  "stripe|claude-code-mcp-monolith|3003|/mcp|Stripe billing and payment management"
 )
 
 # ── Environment selection ───────────────────────────────────────────

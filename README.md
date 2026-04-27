@@ -1,6 +1,6 @@
 # Workspace MVP
 
-Kubernetes-basierte Kollaborationsplattform fuer kleine Teams -- Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO), Claude Code (KI), Invoice Ninja (Rechnungen) und weitere Services auf k3d/k3s mit Traefik Ingress.
+Kubernetes-basierte Kollaborationsplattform fuer kleine Teams -- Nextcloud (Dateien + Talk Video + Collabora Office), Keycloak (SSO), Claude Code (KI), DocuSeal (Vertraege), Vaultwarden (Passwoerter) und weitere Services auf k3d/k3s mit Traefik Ingress.
 
 ## Schnellstart
 
@@ -13,7 +13,7 @@ git clone https://github.com/Paddione/Bachelorprojekt.git && cd Bachelorprojekt
 task cluster:create && task workspace:deploy
 ```
 
-Oder alles auf einmal (Cluster + MVP + MCP + Monitoring + Billing):
+Oder alles auf einmal (Cluster + MVP + MCP):
 
 ```bash
 task workspace:up
@@ -27,9 +27,10 @@ task workspace:up
 | Nextcloud (Dateien + Talk) | http://files.localhost | Dateien, Kalender, Kontakte, Video |
 | Collabora (Office) | http://office.localhost | WOPI-Backend fuer Nextcloud (kein eigenstaendiges UI — antwortet mit "OK") |
 | Talk HPB (Signaling) | http://signaling.localhost | WebRTC-Signaling (Janus + NATS + coturn) |
-| Invoice Ninja (Rechnungen) | http://billing.localhost | Rechnungsstellung |
 | Vaultwarden (Passwoerter) | http://vault.localhost | Passwort-Manager (Bitwarden-kompatibel) |
-| Whiteboard | http://files.localhost | In Nextcloud integriert (WebSocket-Backend board.localhost, kein eigenstaendiges UI) |
+| Whiteboard | http://board.localhost | Kollaboratives Whiteboard + Systemisches Brett |
+| DocuSeal (E-Signatur) | http://sign.localhost | Vertragsunterzeichnung |
+| Tracking | http://tracking.localhost | Anforderungs-Tracking (Bachelorprojekt) |
 | Mailpit (Dev-Mail) | http://mail.localhost | E-Mail-Testing (nur Dev) |
 | Docs | http://docs.localhost | Projektdokumentation (Docsify) |
 | Website | http://web.localhost | Astro + Svelte Webseite |
@@ -66,15 +67,16 @@ graph TB
             NC["fa:fa-cloud Nextcloud + Talk<br/>files.localhost"]
             CO["fa:fa-file-word Collabora Online<br/>office.localhost"]
             HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
-            IN["fa:fa-receipt Invoice Ninja<br/>billing.localhost"]
             VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
             WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
+            DS["fa:fa-file-signature DocuSeal<br/>sign.localhost"]
+            TR["fa:fa-list-check Tracking<br/>tracking.localhost"]
             MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
             DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
-            BB["fa:fa-robot billing-bot<br/>intern"]
-            OAUTH["fa:fa-shield-halved oauth2-proxy<br/>Invoice Ninja"]
+            OAUTH2["oauth2-proxy-docs"]
             WHISPER["fa:fa-microphone Whisper<br/>intern"]
             REC["fa:fa-record-vinyl Talk Recording<br/>intern"]
+            TRBOT["fa:fa-closed-captioning Talk Transcriber"]
 
             subgraph HPB-Stack ["fa:fa-video Talk HPB Stack"]
                 JANUS["Janus Gateway"]
@@ -88,46 +90,39 @@ graph TB
         subgraph website-ns ["Namespace: website"]
             WEB["fa:fa-globe Website Astro<br/>web.localhost"]
         end
-
-        subgraph monitoring-ns ["Namespace: monitoring"]
-            PROM["fa:fa-chart-line Prometheus"]
-            GRAF["fa:fa-gauge Grafana"]
-        end
     end
 
     User --> Traefik
-    Traefik --> KC & NC & CO & HPB & IN & VW & WB & MP & DOCS & WEB
+    Traefik --> KC & NC & CO & HPB & VW & WB & DS & TR & MP & WEB
+    Traefik --> OAUTH2
+    OAUTH2 --> DOCS
 
-    KC -. OIDC .-> NC & IN & VW & WEB
-    OAUTH --> KC
-    IN --> OAUTH
-
-    BB <--> IN
+    KC -. OIDC .-> NC & VW & WEB & DS & TR
+    OAUTH2 --> KC
 
     NC --> CO
     NC --> HPB
     NC --> REC
     HPB --- JANUS & NATS
+    HPB --> TRBOT --> WHISPER
     JANUS --- COTURN
 
-    KC & NC & IN & VW --> DB
-    PROM --> GRAF
+    KC & NC & VW & DS & TR --> DB
+    WEB --> DB
 
     classDef identity fill:#4a90d9,color:#fff,stroke:#2d6a9f
     classDef collab fill:#2d8659,color:#fff,stroke:#1a5c3a
     classDef ai fill:#8b5cf6,color:#fff,stroke:#6d3ad4
-    classDef billing fill:#d97706,color:#fff,stroke:#b45309
     classDef data fill:#6b7280,color:#fff,stroke:#4b5563
     classDef tools fill:#0891b2,color:#fff,stroke:#0e7490
     classDef infra fill:#374151,color:#fff,stroke:#1f2937
 
-    class KC,OAUTH identity
-    class NC,CO,WB,OL,HPB,JANUS,NATS,COTURN collab
-    class OC,WHISPER ai
-    class IN,BB billing
-    class DB,OS data
-    class VW,MP,DOCS,REC tools
-    class Traefik,WEB,PROM,GRAF infra
+    class KC,OAUTH2 identity
+    class NC,CO,WB,HPB,JANUS,NATS,COTURN collab
+    class WHISPER,TRBOT ai
+    class DB data
+    class VW,MP,DOCS,REC,DS,TR tools
+    class Traefik,WEB infra
 ```
 
 ### SSO-Ablauf (OIDC)
@@ -170,20 +165,16 @@ flowchart LR
     A["fa:fa-server task cluster:create"] --> B["fa:fa-rocket task workspace:deploy"]
     B --> C{"fa:fa-code-branch Optionale Schritte"}
     C --> D["fa:fa-brain task mcp:deploy<br/>MCP-Server"]
-    C --> E["fa:fa-chart-line task workspace:monitoring<br/>Prometheus + Grafana"]
-    C --> F["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
-    C --> G["fa:fa-receipt task workspace:billing-setup<br/>billing-bot Image"]
-    C --> H["fa:fa-credit-card task workspace:stripe-setup<br/>Stripe Gateway"]
-    C --> I["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
+    C --> E["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
+    C --> F["fa:fa-credit-card task workspace:stripe-setup<br/>Stripe Gateway"]
+    C --> G["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
 
     style A fill:#2d6a4f,color:#fff
     style B fill:#2d6a4f,color:#fff
     style D fill:#8b5cf6,color:#fff
-    style E fill:#0891b2,color:#fff
-    style F fill:#2d8659,color:#fff
-    style G fill:#d97706,color:#fff
-    style H fill:#d97706,color:#fff
-    style I fill:#0891b2,color:#fff
+    style E fill:#2d8659,color:#fff
+    style F fill:#d97706,color:#fff
+    style G fill:#0891b2,color:#fff
 ```
 
 Alternativ alles automatisch: `task workspace:up`
@@ -205,7 +196,7 @@ Alternativ alles automatisch: `task workspace:up`
 
 | Befehl | Beschreibung |
 |--------|-------------|
-| `task workspace:up` | Vollautomatisch: Cluster + MVP + MCP + Monitoring + Billing |
+| `task workspace:up` | Vollautomatisch: Cluster + MVP + MCP |
 | `task workspace:deploy` | Alle Workspace-Services deployen |
 | `task workspace:status` | Pod-Status, Services, Ingress, PVCs anzeigen |
 | `task workspace:logs -- <svc>` | Logs eines Service ansehen |
@@ -216,16 +207,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task workspace:psql -- <db>` | psql-Shell zur shared-db oeffnen |
 | `task workspace:port-forward` | shared-db auf localhost:5432 weiterleiten |
 | `task workspace:dsgvo-check` | DSGVO-Compliance-Pruefung ausfuehren |
-| `task workspace:monitoring` | Prometheus + Grafana + DSGVO-Dashboard installieren |
-| `task workspace:prod:deploy` | Produktions-Deployment auf k3s-production |
-
-### Billing & Invoice Ninja
-
-| Befehl | Beschreibung |
-|--------|-------------|
-| `task workspace:billing-build` | billing-bot Docker-Image bauen und pushen |
-| `task workspace:billing-setup` | billing-bot Image bauen (Token + Slash-Command automatisch) |
-| `task workspace:stripe-setup` | Stripe als Payment Gateway in Invoice Ninja registrieren |
 
 ### Claude Code & MCP-Server
 
@@ -290,13 +271,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task docs:deploy` | Docsify Docs-Site deployen (git-sync) |
 | `task docs:restart` | Docs-Pod fuer neueste Inhalte neu starten |
 | `task docs:publish-api` | OpenAPI-Spec zu GitBook veroeffentlichen |
-
-### Observability
-
-| Befehl | Beschreibung |
-|--------|-------------|
-| `task observability:install` | Prometheus + Grafana Stack installieren |
-| `task observability:remove` | Observability Stack entfernen |
 
 ### TLS & DNS (Produktion)
 
@@ -365,22 +339,21 @@ Bachelorprojekt/
     collabora.yaml              # Collabora Online
     talk-hpb.yaml               # Talk HPB (Signaling + Janus + NATS)
     talk-recording.yaml         # Talk Anruf-Aufzeichnung
-    coturn.yaml                 # TURN/STUN Server
+    talk-transcriber/           # Talk Transcriber (Deno, Talk → Website)
     claude-code-config.yaml     # Claude Code Konfiguration
     claude-code-rbac.yaml       # Kubernetes RBAC fuer MCP-Zugriff
-    claude-code-mcp-*.yaml      # MCP-Server Manifeste (13 Server)
-    invoiceninja.yaml           # Invoice Ninja + OAuth2-Proxy
-    billing-bot.yaml            # billing-bot Deployment
+    claude-code-mcp-*.yaml      # MCP-Server Manifeste
     vaultwarden.yaml            # Vaultwarden Passwort-Manager
-    vaultwarden-seed-*.yaml     # Vaultwarden Seed-Jobs + Credentials
     whiteboard.yaml             # Kollaboratives Whiteboard
-    meetings-schema.yaml        # Meeting-Datenbank-Schema
+    docuseal.yaml               # E-Signatur (DocuSeal)
+    tracking.yaml               # Anforderungs-Tracking (Bachelorprojekt)
+    brett.yaml                  # Systemisches Brett (Coaching-Board)
+    website-schema.yaml         # Website-Datenbank-Schema (idempotent)
     mailpit.yaml                # Dev-Mailserver
     whisper.yaml                # Transkriptions-Service
     docs.yaml                   # Docsify Docs-Site
     website.yaml                # Astro Website
-    korczewski-website.yaml     # Korczewski-Website (Branding-Variante)
-    shared-db.yaml              # PostgreSQL 16 (eine DB pro Service)
+    shared-db.yaml              # PostgreSQL 16 (shared, 6 Datenbanken)
     backup-*.yaml               # Backup CronJob, PVC, Secrets
     realm-workspace-dev.json    # Keycloak Realm-Konfiguration
     nextcloud-oidc-dev.php      # Nextcloud OIDC-Konfiguration
@@ -400,7 +373,6 @@ Bachelorprojekt/
     install/                    # ArgoCD Installation + CMP-Plugin
   deploy/                       # Skaffold-basierter Deploy-Pfad (Dev-Iteration)
     mcp/                        # MCP-Server Kustomize Overlays
-  billing-bot/                  # Go-Microservice (main.go) -- /slash, /actions, /healthz
   claude-code/                  # Claude Code Konfiguration + System-Prompt
   scripts/                      # Bash-Utility-Skripte (Migration, Import, DSGVO, MCP, Env)
   tests/                        # Automatisierte Tests (Bash + Playwright + BATS)
@@ -410,8 +382,6 @@ Bachelorprojekt/
   korczewski-website/           # Astro Website (korczewski.de, Branding-Variante)
   docs/                         # Projektdokumentation (Docsify-faehig)
   docs-site/                    # Docsify index.html
-  grafana/                      # DSGVO Compliance Dashboard
-  wireguard/                    # VPN-Konfigurationsvorlagen
 ```
 
 ## Regeln fuer dieses Monorepo

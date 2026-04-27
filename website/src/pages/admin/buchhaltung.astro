@@ -1,0 +1,19 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import EurReport from '../../components/admin/EurReport.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+const year = new Date().getFullYear();
+---
+<AdminLayout title="Buchhaltung / EÜR">
+  <div style="padding:2rem;max-width:720px;">
+    <h1 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--fg);margin-bottom:2rem;">Buchhaltung / EÜR {year}</h1>
+    <EurReport {year} client:load />
+    <p style="margin-top:1.5rem;font-size:0.8rem;color:var(--mute-2);">
+      Buchungen werden automatisch bei Rechnungsversand und -zahlung angelegt. Manuelle Ausgabenbuchungen können über die API ergänzt werden.
+    </p>
+  </div>
+</AdminLayout>

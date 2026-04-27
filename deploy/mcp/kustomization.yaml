@@ -12,7 +12,7 @@ resources:
   # Consolidated MCP pods (all containers in one pod for resource efficiency)
   - claude-code-mcp-monolith.yaml
   # Auth
-  - mcp-tokens.yaml             # Bearer tokens for Claude Code access
+  # mcp-tokens managed separately — created once via task claude-code:rotate-tokens, never overwritten by deploy
   - mcp-auth-proxy.yaml         # ForwardAuth proxy (token validation + role enforcement)
   # Ingress — exposes MCP servers via mcp-*.localhost for external clients
   - ingress.yaml

@@ -3,6 +3,7 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import AdminEinstellungenTabs from '../../../components/AdminEinstellungenTabs.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getSiteSetting } from '../../../lib/website-db';
+import { getTaxMode } from '../../../lib/tax-monitor';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -12,7 +13,10 @@ const BRAND = process.env.BRAND || 'mentolder';
 const saved = Astro.url.searchParams.get('saved') === '1';
 
 const keys = ['invoice_payment_days','invoice_tax_rate','invoice_sender_name','invoice_sender_street','invoice_sender_city','invoice_sender_phone','invoice_bank_iban','invoice_bank_bic','invoice_bank_name','invoice_vat_id','invoice_manager'] as const;
-const results = await Promise.all(keys.map(k => getSiteSetting(BRAND, k)));
+const [results, taxMode] = await Promise.all([
+  Promise.all(keys.map(k => getSiteSetting(BRAND, k))),
+  getTaxMode(BRAND),
+]);
 const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Record<typeof keys[number], string>;
 ---
 
@@ -29,6 +33,32 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
     )}
 
     <form method="POST" action="/api/admin/einstellungen/rechnungen">
+      <!-- Tax mode toggle -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+        <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Steuer-Modus (§ 19 UStG)</p>
+        <div style="display:flex;gap:0.75rem;">
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="tax_mode" value="kleinunternehmer" checked={taxMode === 'kleinunternehmer'} style="display:none;" class="tax-radio" />
+            <div class={`tax-option ${taxMode === 'kleinunternehmer' ? 'tax-option--active' : ''}`}
+                 style={`border:1px solid ${taxMode === 'kleinunternehmer' ? 'var(--brass)' : 'var(--line)'};border-radius:8px;padding:0.75rem;background:${taxMode === 'kleinunternehmer' ? 'rgba(181,140,86,0.08)' : 'rgba(255,255,255,0.02)'};`}>
+              <p style="font-family:var(--font-mono);font-size:0.8rem;font-weight:600;color:var(--fg);margin-bottom:0.25rem;">Kleinunternehmer</p>
+              <p style="font-size:0.75rem;color:var(--mute);line-height:1.4;">§ 19 UStG — keine Umsatzsteuer auf Rechnungen. Grenze: 25.000 €/Jahr.</p>
+            </div>
+          </label>
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="tax_mode" value="regelbesteuerung" checked={taxMode === 'regelbesteuerung'} style="display:none;" class="tax-radio" />
+            <div class={`tax-option ${taxMode === 'regelbesteuerung' ? 'tax-option--active' : ''}`}
+                 style={`border:1px solid ${taxMode === 'regelbesteuerung' ? 'var(--brass)' : 'var(--line)'};border-radius:8px;padding:0.75rem;background:${taxMode === 'regelbesteuerung' ? 'rgba(181,140,86,0.08)' : 'rgba(255,255,255,0.02)'};`}>
+              <p style="font-family:var(--font-mono);font-size:0.8rem;font-weight:600;color:var(--fg);margin-bottom:0.25rem;">Regelbesteuerung</p>
+              <p style="font-size:0.75rem;color:var(--mute);line-height:1.4;">USt ausweisen & abführen. Vorsteuerabzug möglich.</p>
+            </div>
+          </label>
+        </div>
+        <p style="font-size:0.7rem;color:var(--mute-2);margin-top:0.625rem;">
+          Jahresumsatz-Übersicht: <a href="/admin/steuer" style="color:var(--brass);text-decoration:none;">Steuerauswertung →</a>
+        </p>
+      </div>
+
       <div style="background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1.5rem;font-family:var(--font-mono);font-size:0.75rem;color:var(--mute-2);">
         Rechnungsnummern werden automatisch als <strong style="color:var(--fg);">RE-YYYY-NNNN</strong> generiert (z.B. RE-2026-0002).
       </div>
@@ -71,3 +101,16 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
     </form>
   </div>
 </AdminLayout>
+
+<script>
+  document.querySelectorAll('.tax-radio').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.tax-radio').forEach(r => {
+        const card = r.nextElementSibling as HTMLElement;
+        const active = (r as HTMLInputElement).checked;
+        card.style.borderColor = active ? 'var(--brass)' : 'var(--line)';
+        card.style.background  = active ? 'rgba(181,140,86,0.08)' : 'rgba(255,255,255,0.02)';
+      });
+    });
+  });
+</script>

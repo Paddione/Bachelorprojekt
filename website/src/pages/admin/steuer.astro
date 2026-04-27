@@ -1,7 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import TaxMonitorWidget from '../../components/admin/TaxMonitorWidget.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getUstvaExport, getTaxMode } from '../../lib/tax-monitor';
+import { getUstvaExport, getTaxMode, getMonthlyBreakdown, THRESHOLD_KLEIN, THRESHOLD_WARNING } from '../../lib/tax-monitor';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -9,23 +10,81 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const brand   = process.env.BRAND || 'mentolder';
 const year    = new Date().getFullYear();
-const taxMode = await getTaxMode(brand);
-const quarters = await Promise.all([1,2,3,4].map(q => getUstvaExport(brand, year, q)));
+const currentMonth = new Date().getMonth() + 1;
+const [taxMode, quarters, monthly] = await Promise.all([
+  getTaxMode(brand),
+  Promise.all([1,2,3,4].map(q => getUstvaExport(brand, year, q))),
+  getMonthlyBreakdown(brand, year),
+]);
+
+const monthNames = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+const fmt = (n: number) => n.toFixed(2).replace('.', ',') + ' €';
+
+function barColor(status: string) {
+  if (status === 'hard' || status === 'exceeded') return '#ef4444';
+  if (status === 'warning') return '#f59e0b';
+  return '#22c55e';
+}
 ---
 
 <AdminLayout title="Steuerauswertung">
-  <div style="padding:2rem;max-width:720px;">
-    <h1 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--fg);margin-bottom:0.25rem;">Steuerauswertung {year}</h1>
-    <p style="color:var(--mute);font-size:0.875rem;margin-bottom:2rem;">
-      Aktueller Modus: <strong>{taxMode === 'kleinunternehmer' ? '§ 19 UStG (Kleinunternehmer)' : 'Regelbesteuerung'}</strong>
+  <div style="padding:2rem;max-width:760px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:0.25rem;">
+      <h1 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--fg);">Steuerauswertung {year}</h1>
+      <a href="/admin/einstellungen/rechnungen" style="font-size:0.75rem;color:var(--brass);text-decoration:none;">
+        Modus ändern →
+      </a>
+    </div>
+    <p style="color:var(--mute);font-size:0.875rem;margin-bottom:1.5rem;">
+      Aktueller Modus: <strong style="color:var(--fg);">{taxMode === 'kleinunternehmer' ? '§ 19 UStG (Kleinunternehmer)' : 'Regelbesteuerung'}</strong>
     </p>
+
+    <!-- Live widget: progress bar toward limit -->
+    <TaxMonitorWidget client:load />
+
+    <!-- Monthly revenue overview -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem;">
+      <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:1rem;">
+        Monatlicher Umsatz & kumulierter Jahresverlauf
+      </p>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        {monthly.map(m => {
+          const pct = Math.min(100, (m.cumulative / THRESHOLD_KLEIN) * 100);
+          const color = barColor(m.status);
+          const isFuture = m.month > currentMonth;
+          return (
+            <div style={`opacity:${isFuture ? '0.4' : '1'}`}>
+              <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.2rem;">
+                <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--mute-2);width:2.5rem;flex-shrink:0;">{monthNames[m.month-1]}</span>
+                <div style="flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+                  <div style={`height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width 0.3s;`}></div>
+                </div>
+                <span style={`font-family:var(--font-mono);font-size:0.7rem;width:5.5rem;text-align:right;color:${color};flex-shrink:0;`}>
+                  {fmt(m.cumulative)}
+                </span>
+                <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--mute-2);width:4.5rem;text-align:right;flex-shrink:0;">
+                  +{fmt(m.net)}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style="display:flex;gap:1.5rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--line);font-size:0.7rem;color:var(--mute-2);font-family:var(--font-mono);">
+        <span>Warnung: {fmt(THRESHOLD_WARNING)}</span>
+        <span>Grenze §19: {fmt(THRESHOLD_KLEIN)}</span>
+      </div>
+    </div>
+
+    <!-- Quarterly UStVA -->
+    <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Quartalsauswertung (UStVA)</p>
     {quarters.map(q => (
-      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:8px;padding:1rem;margin-bottom:0.75rem;">
         <p style="font-family:var(--font-mono);font-size:0.75rem;text-transform:uppercase;color:var(--mute-2);margin-bottom:0.5rem;">{q.period}</p>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;font-size:0.875rem;">
-          <div><span style="color:var(--mute);">Umsatz 0%</span><br/>{q.revenue0.toFixed(2)} €</div>
-          <div><span style="color:var(--mute);">Umsatz 19%</span><br/>{q.revenue19.toFixed(2)} €</div>
-          <div><span style="color:var(--mute);">USt 19%</span><br/>{q.tax19.toFixed(2)} €</div>
+          <div><span style="color:var(--mute);font-size:0.75rem;">Umsatz 0%</span><br/>{fmt(q.revenue0)}</div>
+          <div><span style="color:var(--mute);font-size:0.75rem;">Umsatz 19%</span><br/>{fmt(q.revenue19)}</div>
+          <div><span style="color:var(--mute);font-size:0.75rem;">USt 19%</span><br/>{fmt(q.tax19)}</div>
         </div>
         <a href={`/api/admin/tax-monitor/ustvaexport?year=${year}&quarter=${q.period.split('/')[0].replace('Q','')}&format=csv`}
            style="font-size:0.75rem;color:var(--brass);text-decoration:none;margin-top:0.5rem;display:inline-block;">

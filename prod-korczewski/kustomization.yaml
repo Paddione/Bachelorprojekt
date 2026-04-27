@@ -18,3 +18,4 @@ generatorOptions:
 # korczewski-specific workload placement — see patch file for rationale.
 patches:
   - path: patch-avoid-pk-hetzner.yaml
+  - path: patch-backup-config.yaml

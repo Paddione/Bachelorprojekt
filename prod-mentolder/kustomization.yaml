@@ -15,3 +15,5 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 
+patches:
+  - path: patch-backup-config.yaml

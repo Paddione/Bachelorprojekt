@@ -37,6 +37,7 @@ resources:
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-cronjob.yaml
+  - backup-config.yaml
   - notify-unread-cronjob.yaml
   # Abrechnung
   - cronjob-monthly-billing.yaml

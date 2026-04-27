@@ -41,8 +41,8 @@ spec:
                       - gekko-hetzner-4
       containers:
         - name: brett
-          image: ghcr.io/paddione/workspace-brett@sha256:6da26554199fd2030813712f1d04436ce659b403c418cd59a744921c6bf93858
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/paddione/workspace-brett@sha256:0601cb9f85735f7f8a6287e97dc34a5f3c09beec93b18abe83812affb1f3bc48
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

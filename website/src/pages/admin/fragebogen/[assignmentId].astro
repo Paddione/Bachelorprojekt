@@ -29,7 +29,7 @@ const tpl = await getQTemplate(assignment.template_id).catch(() => null);
 const isSystemTest = tpl?.is_system_test ?? false;
 
 const scores = computeScores(dimensions, allOptions, answers);
-const answerMap = new Map(answers.map(a => [a.question_id, a.option_key]));
+const answerMap = new Map(answers.map(a => [a.question_id, a]));
 
 function levelColor(level: string | null) {
   if (level === 'kritisch') return '#ef4444';
@@ -109,7 +109,7 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
         </h2>
         <div class="flex flex-col gap-3">
           {questions.map((q, i) => {
-            const answer = answers.find(a => a.question_id === q.id);
+            const answer = answerMap.get(q.id);
             const chosen = answer?.option_key ?? null;
             const details = answer?.details_text ?? null;
 
@@ -128,13 +128,15 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
                 <div class="border-b border-dark-lighter pb-4 last:border-0 last:pb-0">
                   <div class="flex items-center gap-2 mb-2 flex-wrap">
                     <span class="text-muted text-xs">Schritt {i + 1}</span>
-                    <span class={`px-2 py-0.5 rounded text-xs border ${
-                      q.test_role === 'admin'
-                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                    }`}>
-                      {q.test_role === 'admin' ? 'Admin' : 'Nutzer'}
-                    </span>
+                    {q.test_role && (
+                      <span class={`px-2 py-0.5 rounded text-xs border ${
+                        q.test_role === 'admin'
+                          ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      }`}>
+                        {q.test_role === 'admin' ? 'Admin' : 'Nutzer'}
+                      </span>
+                    )}
                     {q.test_function_url && (
                       <a href={q.test_function_url} target="_blank" rel="noopener noreferrer"
                         class="text-xs text-gold hover:underline">{q.test_function_url}</a>

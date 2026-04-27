@@ -1,4 +1,4 @@
-import { pool, initBillingTables } from './website-db';
+import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
 
 export { initBillingTables };
 
@@ -39,6 +39,104 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
   await initBillingTables();
   const r = await pool.query(`SELECT * FROM billing_customers WHERE id=$1`, [id]);
   return r.rows[0] ? mapCustomer(r.rows[0]) : null;
+}
+
+export interface InvoiceLine {
+  description: string; quantity: number; unitPrice: number; unit?: string;
+}
+
+export interface Invoice {
+  id: string; brand: string; number: string; status: string;
+  customerId: string; issueDate: string; dueDate: string;
+  taxMode: string; netAmount: number; taxRate: number;
+  taxAmount: number; grossAmount: number; notes?: string;
+  paymentReference?: string; paidAt?: string; paidAmount?: number;
+  locked: boolean; cancelledInvoiceId?: string;
+  servicePeriodStart?: string; servicePeriodEnd?: string;
+}
+
+export async function createInvoice(p: {
+  brand: string; customerId: string; issueDate: string; dueDays: number;
+  taxMode: 'kleinunternehmer' | 'regelbesteuerung';
+  taxRate?: number; lines: InvoiceLine[]; notes?: string;
+  servicePeriodStart?: string; servicePeriodEnd?: string;
+}): Promise<Invoice> {
+  await initBillingTables();
+  const number = await getNextInvoiceNumber(p.brand);
+  const issueDate = new Date(p.issueDate);
+  const dueDate = new Date(issueDate);
+  dueDate.setDate(dueDate.getDate() + p.dueDays);
+
+  const netAmount = p.lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+  const taxRate   = p.taxMode === 'kleinunternehmer' ? 0 : (p.taxRate ?? 19);
+  const taxAmount = Math.round(netAmount * taxRate) / 100;
+  const grossAmount = netAmount + taxAmount;
+  const paymentRef = number.replace('RE-', 'RG');
+
+  const r = await pool.query(
+    `INSERT INTO billing_invoices (brand, number, customer_id, issue_date, due_date,
+       service_period_start, service_period_end, tax_mode, net_amount, tax_rate,
+       tax_amount, gross_amount, notes, payment_reference)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+    [p.brand, number, p.customerId, p.issueDate,
+     dueDate.toISOString().split('T')[0],
+     p.servicePeriodStart??null, p.servicePeriodEnd??null,
+     p.taxMode, netAmount, taxRate, taxAmount, grossAmount,
+     p.notes??null, paymentRef]
+  );
+  const inv = r.rows[0];
+  await Promise.all(p.lines.map(l =>
+    pool.query(
+      `INSERT INTO billing_invoice_line_items (invoice_id,description,quantity,unit,unit_price,net_amount)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [inv.id, l.description, l.quantity, l.unit??null, l.unitPrice, l.quantity*l.unitPrice]
+    )
+  ));
+  return mapInvoice(inv);
+}
+
+export async function getInvoice(id: string): Promise<Invoice | null> {
+  await initBillingTables();
+  const r = await pool.query(`SELECT * FROM billing_invoices WHERE id=$1`, [id]);
+  return r.rows[0] ? mapInvoice(r.rows[0]) : null;
+}
+
+export async function finalizeInvoice(id: string): Promise<Invoice> {
+  const r = await pool.query(
+    `UPDATE billing_invoices SET status='open', locked=true, updated_at=now() WHERE id=$1 RETURNING *`, [id]
+  );
+  return mapInvoice(r.rows[0]);
+}
+
+export async function markInvoicePaid(id: string, p: { paidAt: string; paidAmount: number }): Promise<Invoice> {
+  const r = await pool.query(
+    `UPDATE billing_invoices SET status='paid', paid_at=$2, paid_amount=$3, updated_at=now() WHERE id=$1 RETURNING *`,
+    [id, p.paidAt, p.paidAmount]
+  );
+  return mapInvoice(r.rows[0]);
+}
+
+function mapInvoice(row: Record<string, unknown>): Invoice {
+  return {
+    id: row.id as string, brand: row.brand as string,
+    number: row.number as string, status: row.status as string,
+    customerId: row.customer_id as string,
+    issueDate: String(row.issue_date).split('T')[0],
+    dueDate:   String(row.due_date).split('T')[0],
+    taxMode:   row.tax_mode as string,
+    netAmount: Number(row.net_amount),
+    taxRate:   Number(row.tax_rate),
+    taxAmount: Number(row.tax_amount),
+    grossAmount: Number(row.gross_amount),
+    notes: (row.notes as string) ?? undefined,
+    paymentReference: (row.payment_reference as string) ?? undefined,
+    paidAt: row.paid_at ? String(row.paid_at).split('T')[0] : undefined,
+    paidAmount: row.paid_amount ? Number(row.paid_amount) : undefined,
+    locked: Boolean(row.locked),
+    cancelledInvoiceId: (row.cancels_invoice_id as string) ?? undefined,
+    servicePeriodStart: row.service_period_start ? String(row.service_period_start).split('T')[0] : undefined,
+    servicePeriodEnd: row.service_period_end ? String(row.service_period_end).split('T')[0] : undefined,
+  };
 }
 
 function mapCustomer(row: Record<string, unknown>): Customer {

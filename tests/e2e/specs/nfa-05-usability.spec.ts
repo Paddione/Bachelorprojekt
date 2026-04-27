@@ -32,7 +32,8 @@ test.describe('NFA-05: Usability', () => {
     const res = await page.goto(BASE);
     expect(res?.status()).toBe(200);
     await expect(page.locator('h1')).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('nav')).toBeVisible({ timeout: 5_000 });
+    // On mobile the desktop nav is hidden; the hamburger toggle is visible instead
+    await expect(page.locator('button.mobile-toggle')).toBeVisible({ timeout: 5_000 });
 
     await context.close();
   });

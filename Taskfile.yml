@@ -1337,6 +1337,13 @@ tasks:
           -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "admin")
         export SHARED_DB_PASSWORD GITHUB_PAT STRIPE_SECRET_KEY KEYCLOAK_ADMIN_PASSWORD
         kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$STRIPE_SECRET_KEY \$KEYCLOAK_ADMIN_PASSWORD" | kubectl $CTX apply -f -
+        # Create mcp-tokens only on first deploy — never overwrite real tokens
+        if ! kubectl $CTX get secret mcp-tokens -n default &>/dev/null; then
+          kubectl $CTX create secret generic mcp-tokens \
+            --from-literal="CLUSTER_TOKEN=dev-cluster-token-placeholder" \
+            --from-literal="BUSINESS_TOKEN=dev-business-token-placeholder"
+          echo "⚠ mcp-tokens created with placeholders — run 'task claude-code:rotate-tokens ENV={{.ENV}}' to set real tokens"
+        fi
       - 'echo "Waiting for pods to roll out..."'
       - |
         source scripts/env-resolve.sh "{{.ENV}}"

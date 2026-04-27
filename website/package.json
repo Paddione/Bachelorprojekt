@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
     "test": "node tests/api.test.mjs",
-    "test:api": "node tests/api.test.mjs"
+    "test:api": "node tests/api.test.mjs",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.87.0",

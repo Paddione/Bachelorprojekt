@@ -106,9 +106,9 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
   {section === 'nachrichten'    && <NachrichtenSection {rooms} />}
   {section === 'besprechungen'  && <BesprechungenSection {meetings} />}
   {section === 'dateien'        && <DateienSection clientUsername={username} />}
-  {(section === 'vertraege' || section === 'unterschriften') && (
+  {section === 'vertraege' && (
     <div class="pt-10 pb-20 px-8 max-w-2xl">
-      <h2 class="text-xl font-bold text-light font-serif mb-6">Unterschriften</h2>
+      <h2 class="text-xl font-bold text-light font-serif mb-6">Verträge</h2>
       <SignaturesTab clientUsername={username} clientEmail={session.email} />
     </div>
   )}

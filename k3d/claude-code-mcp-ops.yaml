@@ -33,7 +33,7 @@ spec:
         # Pre-built image — no runtime GitHub download needed.
         - name: mcp-kubernetes
           image: quay.io/containers/kubernetes_mcp_server@sha256:a7186e4a8dc4e2995fd142d8d9eb428bff192918ef3a211aeddfe7b9d318ea7b
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           args: ["--port", "8080", "--stateless", "--cluster-provider", "in-cluster"]
           securityContext:
             allowPrivilegeEscalation: false

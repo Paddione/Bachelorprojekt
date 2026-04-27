@@ -1,11 +1,21 @@
 <!-- website/src/components/portal/QuestionnaireWizard.svelte -->
 <script lang="ts">
+  type QuestionData = {
+    id: string;
+    position: number;
+    question_text: string;
+    question_type: string;
+    test_expected_result?: string | null;
+    test_function_url?: string | null;
+    test_role?: string | null;
+  };
+
   type Props = {
     assignmentId: string;
     title: string;
     instructions: string;
-    questions: Array<{ id: string; position: number; question_text: string; question_type: string }>;
-    initialAnswers: Array<{ question_id: string; option_key: string }>;
+    questions: QuestionData[];
+    initialAnswers: Array<{ question_id: string; option_key: string; details_text?: string | null }>;
   };
   const { assignmentId, title, instructions, questions, initialAnswers }: Props = $props();
 
@@ -13,6 +23,12 @@
   let answers = $state<Record<string, string>>(
     Object.fromEntries(initialAnswers.map(a => [a.question_id, a.option_key]))
   );
+  let testDetails = $state<Record<string, string>>(
+    Object.fromEntries(
+      initialAnswers.filter(a => a.details_text).map(a => [a.question_id, a.details_text!])
+    )
+  );
+  let pendingTestOption = $state('');
   let currentIndex = $state(0);
   let phase: 'intro' | 'question' | 'done' = $state(initialAnswers.length === 0 ? 'intro' : 'question');
   let saving = $state(false);
@@ -24,6 +40,11 @@
     const firstUnanswered = questions.findIndex(q => !(q.id in answers));
     currentIndex = firstUnanswered >= 0 ? firstUnanswered : questions.length - 1;
   }
+
+  $effect(() => {
+    const qId = questions[currentIndex]?.id;
+    pendingTestOption = qId ? (answers[qId] ?? '') : '';
+  });
 
   const current = $derived(questions[currentIndex]);
   const answered = $derived(Object.keys(answers).length);
@@ -47,6 +68,35 @@
           await new Promise(r => setTimeout(r, 200));
           currentIndex++;
         }
+      } else {
+        const d = await r.json().catch(() => ({}));
+        error = d.error ?? 'Fehler beim Speichern.';
+      }
+    } catch {
+      error = 'Netzwerkfehler.';
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function saveTestStep(questionId: string) {
+    const optionKey = pendingTestOption || answers[questionId];
+    if (!optionKey) return;
+    saving = true; error = '';
+    try {
+      const r = await fetch(`/api/portal/questionnaires/${assignmentId}/answer`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question_id: questionId,
+          option_key: optionKey,
+          details_text: testDetails[questionId] ?? null,
+        }),
+      });
+      if (r.ok) {
+        answers[questionId] = optionKey;
+        pendingTestOption = '';
+        if (currentIndex < questions.length - 1) currentIndex++;
       } else {
         const d = await r.json().catch(() => ({}));
         error = d.error ?? 'Fehler beim Speichern.';
@@ -120,7 +170,70 @@
 
     <!-- Question -->
     <div class="mb-6 p-6 bg-dark-light rounded-xl border border-dark-lighter">
-      {#if current.question_type === 'ab_choice'}
+      {#if current.question_type === 'test_step'}
+        <!-- Role badge -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class={`px-2.5 py-0.5 rounded-full border text-xs font-semibold ${
+            current.test_role === 'admin'
+              ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+          }`}>
+            {current.test_role === 'admin' ? '🔧 Admin-Schritt' : '👤 Nutzer-Schritt'}
+          </span>
+        </div>
+        <!-- What to test -->
+        <p class="text-xs text-muted uppercase tracking-wide mb-1">Was zu testen:</p>
+        <p class="text-light text-base mb-4 font-medium">{current.question_text}</p>
+        <!-- Expected result -->
+        {#if current.test_expected_result}
+          <div class="mb-4 p-3 rounded-lg bg-dark border border-dark-lighter">
+            <p class="text-xs text-muted uppercase tracking-wide mb-1">Erwartetes Ergebnis:</p>
+            <p class="text-muted text-sm">{current.test_expected_result}</p>
+          </div>
+        {/if}
+        <!-- Function link -->
+        {#if current.test_function_url}
+          <a href={current.test_function_url} target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 text-gold text-xs hover:underline mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+              <path d="M6.5 2.5h-4v11h11v-4M9.5 2.5H13.5V6.5M13.5 2.5L7 9"/>
+            </svg>
+            Funktion öffnen
+          </a>
+        {/if}
+        <!-- Result options -->
+        <p class="text-xs text-muted uppercase tracking-wide mb-2">Testergebnis:</p>
+        <div class="flex flex-col gap-2 mb-4">
+          {#each [
+            { key: 'erfüllt', label: 'Test erfüllt', cls: 'border-green-500 bg-green-900/20 text-green-400' },
+            { key: 'teilweise', label: 'Test zum Teil erfüllt', cls: 'border-amber-500 bg-amber-900/20 text-amber-400' },
+            { key: 'nicht_erfüllt', label: 'Test nicht erfüllt', cls: 'border-red-500 bg-red-900/20 text-red-400' },
+          ] as opt}
+            {@const isChosen = (pendingTestOption || answers[current.id]) === opt.key}
+            <button
+              onclick={() => { pendingTestOption = opt.key; }}
+              disabled={saving}
+              class={`text-left px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer flex items-center gap-3 ${
+                isChosen ? opt.cls : 'border-dark-lighter bg-dark text-muted hover:border-gold/40 hover:text-light'
+              } ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              <span class={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${isChosen ? 'border-current' : 'border-muted/40'}`}></span>
+              {opt.label}
+            </button>
+          {/each}
+        </div>
+        <!-- Details textarea -->
+        <div>
+          <label class="block text-xs text-muted mb-1">Details / Beobachtungen (optional)</label>
+          <textarea
+            value={testDetails[current.id] ?? ''}
+            oninput={(e) => { testDetails[current.id] = (e.target as HTMLTextAreaElement).value; }}
+            rows="3"
+            placeholder="Fehlermeldungen, Screenshots-Hinweise oder Beobachtungen…"
+            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none resize-y"
+          ></textarea>
+        </div>
+      {:else if current.question_type === 'ab_choice'}
         <p class="text-muted text-xs mb-3">Wählen Sie die Aussage, die besser auf Sie zutrifft:</p>
         <div class="flex flex-col gap-3">
           {#each abOptions(current.question_text) as opt}
@@ -200,12 +313,26 @@
     <!-- Navigation -->
     <div class="flex justify-between items-center">
       <button
-        onclick={() => currentIndex = Math.max(0, currentIndex - 1)}
+        onclick={() => { currentIndex = Math.max(0, currentIndex - 1); }}
         disabled={currentIndex === 0}
         class="px-4 py-2 border border-dark-lighter text-muted rounded-lg text-sm hover:text-light disabled:opacity-30 transition-colors cursor-pointer"
       >← Zurück</button>
 
-      {#if currentIndex < questions.length - 1}
+      {#if current.question_type === 'test_step'}
+        {#if currentIndex < questions.length - 1}
+          <button
+            onclick={() => saveTestStep(current.id)}
+            disabled={saving || (!pendingTestOption && !(current.id in answers))}
+            class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 disabled:opacity-40 transition-colors cursor-pointer"
+          >{saving ? 'Speichere…' : 'Speichern & Weiter →'}</button>
+        {:else}
+          <button
+            onclick={() => saveTestStep(current.id)}
+            disabled={saving || (!pendingTestOption && !(current.id in answers))}
+            class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 disabled:opacity-40 transition-colors cursor-pointer"
+          >{saving ? 'Speichere…' : 'Letzten Schritt speichern ✓'}</button>
+        {/if}
+      {:else if currentIndex < questions.length - 1}
         <button
           onclick={() => currentIndex++}
           disabled={!(current.id in answers)}
@@ -226,6 +353,18 @@
         </div>
       {/if}
     </div>
+
+    {#if allAnswered && questions.every(q => q.question_type === 'test_step')}
+      <div class="mt-4 flex justify-end">
+        <button
+          onclick={submit}
+          disabled={submitting}
+          class="px-6 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 disabled:opacity-40 transition-colors cursor-pointer"
+        >
+          {submitting ? 'Wird abgesendet…' : 'Testprotokoll absenden ✓'}
+        </button>
+      </div>
+    {/if}
   </div>
 
 {:else if phase === 'done'}

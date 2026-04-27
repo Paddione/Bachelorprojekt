@@ -4,6 +4,7 @@ import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAllBillingInvoices, stripeInvoiceDashboardUrl, getDraftInvoices } from '../../lib/stripe-billing';
 import type { AdminBillingInvoice } from '../../lib/stripe-billing';
 import CreateInvoiceModal from '../../components/admin/CreateInvoiceModal.svelte';
+import TaxMonitorWidget from '../../components/admin/TaxMonitorWidget.svelte';
 import { SERVICES } from '../../lib/stripe-billing';
 
 const serviceOptions = Object.entries(SERVICES).map(([key, val]) => ({
@@ -68,6 +69,8 @@ const STATUS_TABS = [
 <AdminLayout title="Admin — Rechnungen">
   <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-6xl mx-auto px-6">
+
+      <TaxMonitorWidget client:load />
 
       <div class="mb-8 flex items-start justify-between gap-4">
         <div>

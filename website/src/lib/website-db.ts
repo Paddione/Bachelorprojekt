@@ -24,7 +24,7 @@ function nodeLookup(
 // pg's PoolConfig type doesn't declare `lookup`, but pg-pool passes it through
 // to net.createConnection at runtime. Cast via unknown to satisfy tsc.
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
-const pool = new Pool(poolConfig);
+export const pool = new Pool(poolConfig);
 
 // ── Customer ────────────────────────────────────────────────────────────────
 
@@ -3016,4 +3016,143 @@ export async function updateCustomSection(slug: string, params: {
 export async function deleteCustomSection(slug: string): Promise<void> {
   await initCustomSectionsTable();
   await pool.query('DELETE FROM website_custom_sections WHERE slug = $1', [slug]);
+}
+
+// ── Billing Tables ───────────────────────────────────────────────────────────
+
+let billingTablesReady = false;
+export async function initBillingTables(): Promise<void> {
+  if (billingTablesReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_customers (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      brand         TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      email         TEXT NOT NULL,
+      company       TEXT,
+      address_line1 TEXT,
+      city          TEXT,
+      postal_code   TEXT,
+      country       TEXT NOT NULL DEFAULT 'DE',
+      vat_number    TEXT,
+      sepa_iban     TEXT,
+      sepa_bic      TEXT,
+      sepa_mandate_ref  TEXT,
+      sepa_mandate_date DATE,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE (brand, email)
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_invoices (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      brand         TEXT NOT NULL,
+      number        TEXT NOT NULL UNIQUE,
+      status        TEXT NOT NULL DEFAULT 'draft',
+      customer_id   TEXT NOT NULL REFERENCES billing_customers(id),
+      issue_date    DATE NOT NULL,
+      due_date      DATE NOT NULL,
+      service_period_start DATE,
+      service_period_end   DATE,
+      tax_mode      TEXT NOT NULL,
+      net_amount    NUMERIC(12,2) NOT NULL,
+      tax_rate      NUMERIC(5,2)  NOT NULL DEFAULT 0,
+      tax_amount    NUMERIC(12,2) NOT NULL DEFAULT 0,
+      gross_amount  NUMERIC(12,2) NOT NULL,
+      notes         TEXT,
+      payment_reference TEXT,
+      paid_at       TIMESTAMPTZ,
+      paid_amount   NUMERIC(12,2),
+      locked        BOOLEAN NOT NULL DEFAULT false,
+      cancels_invoice_id TEXT REFERENCES billing_invoices(id),
+      retain_until  DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '10 years'),
+      pdf_path      TEXT,
+      zugferd_xml   TEXT,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_invoice_line_items (
+      id          BIGSERIAL PRIMARY KEY,
+      invoice_id  TEXT NOT NULL REFERENCES billing_invoices(id) ON DELETE CASCADE,
+      description TEXT NOT NULL,
+      quantity    NUMERIC(10,2) NOT NULL DEFAULT 1,
+      unit        TEXT,
+      unit_price  NUMERIC(12,2) NOT NULL,
+      net_amount  NUMERIC(12,2) NOT NULL
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_quotes (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      brand         TEXT NOT NULL,
+      number        TEXT NOT NULL UNIQUE,
+      status        TEXT NOT NULL DEFAULT 'draft',
+      customer_id   TEXT NOT NULL REFERENCES billing_customers(id),
+      issue_date    DATE NOT NULL,
+      valid_until   DATE,
+      net_amount    NUMERIC(12,2) NOT NULL,
+      tax_rate      NUMERIC(5,2)  NOT NULL DEFAULT 0,
+      gross_amount  NUMERIC(12,2) NOT NULL,
+      notes         TEXT,
+      converted_to_invoice_id TEXT REFERENCES billing_invoices(id),
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  billingTablesReady = true;
+}
+
+let taxModeTableReady = false;
+export async function initTaxMonitorTables(): Promise<void> {
+  if (taxModeTableReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tax_mode_changes (
+      id            BIGSERIAL PRIMARY KEY,
+      brand         TEXT NOT NULL,
+      changed_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      from_mode     TEXT NOT NULL,
+      to_mode       TEXT NOT NULL,
+      trigger_invoice_id TEXT,
+      year_revenue_at_change NUMERIC(12,2),
+      notes         TEXT
+    )
+  `);
+  taxModeTableReady = true;
+}
+
+let eurTablesReady = false;
+export async function initEurTables(): Promise<void> {
+  if (eurTablesReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS eur_bookings (
+      id            BIGSERIAL PRIMARY KEY,
+      brand         TEXT NOT NULL,
+      booking_date  DATE NOT NULL,
+      type          TEXT NOT NULL,
+      category      TEXT NOT NULL,
+      description   TEXT NOT NULL,
+      net_amount    NUMERIC(12,2) NOT NULL,
+      vat_amount    NUMERIC(12,2) NOT NULL DEFAULT 0,
+      invoice_id    TEXT REFERENCES billing_invoices(id),
+      receipt_path  TEXT,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS assets (
+      id                   BIGSERIAL PRIMARY KEY,
+      brand                TEXT NOT NULL,
+      description          TEXT NOT NULL,
+      purchase_date        DATE NOT NULL,
+      net_purchase_price   NUMERIC(12,2) NOT NULL,
+      vat_paid             NUMERIC(12,2) NOT NULL,
+      useful_life_months   INT NOT NULL,
+      correction_start_date DATE,
+      is_gwg               BOOLEAN NOT NULL DEFAULT false,
+      receipt_path         TEXT,
+      created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  eurTablesReady = true;
 }

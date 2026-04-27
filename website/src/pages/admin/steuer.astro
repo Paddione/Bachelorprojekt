@@ -1,0 +1,37 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { getUstvaExport, getTaxMode } from '../../lib/tax-monitor';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const brand   = process.env.BRAND || 'mentolder';
+const year    = new Date().getFullYear();
+const taxMode = await getTaxMode(brand);
+const quarters = await Promise.all([1,2,3,4].map(q => getUstvaExport(brand, year, q)));
+---
+
+<AdminLayout title="Steuerauswertung">
+  <div style="padding:2rem;max-width:720px;">
+    <h1 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--fg);margin-bottom:0.25rem;">Steuerauswertung {year}</h1>
+    <p style="color:var(--mute);font-size:0.875rem;margin-bottom:2rem;">
+      Aktueller Modus: <strong>{taxMode === 'kleinunternehmer' ? '§ 19 UStG (Kleinunternehmer)' : 'Regelbesteuerung'}</strong>
+    </p>
+    {quarters.map(q => (
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+        <p style="font-family:var(--font-mono);font-size:0.75rem;text-transform:uppercase;color:var(--mute-2);margin-bottom:0.5rem;">{q.period}</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;font-size:0.875rem;">
+          <div><span style="color:var(--mute);">Umsatz 0%</span><br/>{q.revenue0.toFixed(2)} €</div>
+          <div><span style="color:var(--mute);">Umsatz 19%</span><br/>{q.revenue19.toFixed(2)} €</div>
+          <div><span style="color:var(--mute);">USt 19%</span><br/>{q.tax19.toFixed(2)} €</div>
+        </div>
+        <a href={`/api/admin/tax-monitor/ustvaexport?year=${year}&quarter=${q.period.split('/')[0].replace('Q','')}&format=csv`}
+           style="font-size:0.75rem;color:var(--brass);text-decoration:none;margin-top:0.5rem;display:inline-block;">
+          CSV exportieren ↓
+        </a>
+      </div>
+    ))}
+  </div>
+</AdminLayout>

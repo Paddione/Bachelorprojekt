@@ -17,12 +17,14 @@ task cluster:delete                        # Destroy cluster
 task cluster:start                         # Start stopped cluster
 task cluster:stop                          # Stop cluster (preserves state)
 task cluster:status                        # Show cluster status, nodes, resource usage
-task workspace:up                          # Full automated setup (Cluster + MVP + MCP)
+task workspace:up                          # Full automated setup (Cluster + MVP + Office + MCP + Billing + post-config)
 task workspace:deploy                      # Deploy workspace (default ENV=dev)
 task workspace:deploy ENV=mentolder        # Deploy to mentolder prod cluster
 task workspace:deploy ENV=korczewski       # Deploy to korczewski prod cluster
 task workspace:validate                    # Dry-run manifest validation
 task workspace:teardown                    # Remove all services
+task sealed-secrets:install                # Install Sealed Secrets controller via Helm
+task sealed-secrets:status                 # Show Sealed Secrets controller status
 ```
 
 ### Daily Operations
@@ -32,6 +34,14 @@ task workspace:logs -- <svc>     # Tail logs (e.g., keycloak, nextcloud)
 task workspace:restart -- <svc>  # Restart a specific service
 task workspace:psql -- <db>      # Open psql shell to shared-db
 task workspace:port-forward      # Forward shared-db to localhost:5432
+# Env-specific shorthands (equivalent to workspace:* with the matching ENV=)
+task mentolder:status            # Show mentolder cluster status
+task mentolder:logs -- <svc>     # Tail mentolder logs
+task mentolder:restart -- <svc>  # Restart mentolder service
+task korczewski:status           # Show korczewski cluster status
+task korczewski:logs -- <svc>    # Tail korczewski logs
+task korczewski:restart -- <svc> # Restart korczewski service
+task clusters:status             # Show status of all clusters at once
 ```
 
 ### Backup & Restore
@@ -47,11 +57,26 @@ task workspace:restore -- all <timestamp>                # Restore all DBs from 
 ```bash
 task workspace:office:deploy ENV=<env>    # Deploy Collabora (separate overlay — required for full bring-up)
 task workspace:post-setup                 # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
+task workspace:talk-setup                 # Configure Nextcloud Talk HPB signaling + coturn
+task workspace:call-setup                 # Configure Nextcloud Talk call settings
+task workspace:recording-setup            # Configure Talk recording backend
+task workspace:whiteboard-setup           # Install + configure Nextcloud Whiteboard app
+task workspace:systembrett-setup          # Set up Brett (Systembrett) integration in Nextcloud
+task workspace:admin-users-setup          # Create default admin users
+task workspace:transcriber-setup          # Set up talk-transcriber bot + Whisper
+task workspace:transcriber-build          # Build talk-transcriber Docker image
 task workspace:stripe-setup               # Configure Stripe payment gateway
 task workspace:vaultwarden:seed           # Seed Vaultwarden with production secret templates
 task workspace:dsgvo-check                # Run DSGVO compliance verification (NFA-01)
 task claude-code:setup -- cluster         # Generate Claude Code settings.json for platform admin
 task claude-code:setup -- business        # Generate Claude Code settings.json for business user
+task gemini:setup -- cluster|business     # Generate Gemini CLI settings.json (parallel to claude-code:setup)
+```
+
+### Docs
+```bash
+task docs:deploy ENV=<env>               # Deploy docs ConfigMap to both prod clusters
+task docs:restart ENV=<env>              # Force-restart docs pod after ConfigMap update
 ```
 
 ### Claude Code MCP Servers
@@ -91,7 +116,32 @@ Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task 
 
 ### Optional Services
 ```bash
-task whisper:deploy              # Deploy faster-whisper transcription service
+task whisper:deploy              # Deploy faster-whisper transcription service (in-cluster)
+task whisper:status              # Show Whisper pod status
+task whisper:logs                # Tail Whisper logs
+task gpu-worker:start            # Start GPU-accelerated Whisper on local workstation
+task gpu-worker:stop             # Stop the GPU worker
+task gpu-worker:status           # Show GPU worker status
+task gpu-worker:logs             # Tail GPU worker logs
+task gpu-worker:switch-dev       # Switch dev cluster to use local GPU worker
+task gpu-worker:switch-prod      # Switch prod cluster to use local GPU worker
+```
+
+### Brett (Systembrett)
+```bash
+task brett:build                 # Build Brett image (and import into k3d in dev)
+task brett:push                  # Push Brett image to registry
+task brett:deploy ENV=<env>      # Build, import/push, and roll out Brett
+task brett:bot-setup ENV=<env>   # Register /brett slash command in Nextcloud Talk
+task brett:logs ENV=<env>        # Tail Brett logs
+```
+
+### HA Cluster (High Availability)
+```bash
+task ha:setup                    # Bootstrap 3-node k3s HA cluster on Hetzner (run once)
+task ha:import-image -- <path> <image:tag>  # Build and import image to all HA nodes
+task ha:cert-renew               # Renew HA cluster certificates
+task ha:status                   # Show HA cluster status
 ```
 
 ### TLS & DNS (Production)
@@ -99,7 +149,6 @@ task whisper:deploy              # Deploy faster-whisper transcription service
 task cert:install                # Install cert-manager + lego DNS-01 webhook
 task cert:secret -- <key>        # Store ipv64 API key as Secret
 task cert:status                 # Show wildcard cert and ClusterIssuer status
-
 ```
 
 ### Environments & Secrets
@@ -120,10 +169,13 @@ task config:show ENV=<env>       # Show resolved PROD_DOMAIN/BRAND_NAME/CONTACT_
 ./tests/runner.sh local <TEST-ID>    # Single test (e.g., SA-08, FA-03)
 ./tests/runner.sh local --verbose    # Verbose output
 ./tests/runner.sh report             # Generate Markdown report
+task test:unit                        # Run BATS unit tests (assertion lib, scripts, configs)
+task test:manifests                   # Validate kustomize output structure (no cluster needed)
+task test:all                         # Run all offline tests: unit + manifests + dry-run
 ```
 
 Test IDs: `FA-01`--`FA-29` (functional), `SA-01`--`SA-10` (security), `NFA-01`--`NFA-09` (non-functional), `AK-03`, `AK-04` (acceptance).
-Note: FA-01..FA-09, FA-22, SA-06, SA-09 are skipped (Mattermost/InvoiceNinja removed from stack).
+Note: FA-01..FA-08, FA-09 (InvoiceNinja bucket), FA-22, SA-06, SA-09 are fully skipped (Mattermost/InvoiceNinja removed from stack). Many other tests have individual test cases conditionally skipped.
 
 ## Architecture
 
@@ -140,6 +192,7 @@ graph TB
         HPB["fa:fa-video Talk HPB Signaling<br/>signaling.localhost"]
         VW["fa:fa-lock Vaultwarden<br/>vault.localhost"]
         WB["fa:fa-chalkboard Whiteboard<br/>board.localhost"]
+        BRETT["fa:fa-sitemap Brett 3D Board<br/>brett.localhost"]
         MP["fa:fa-envelope Mailpit<br/>mail.localhost"]
         DOCS["fa:fa-file-lines Docs<br/>docs.localhost"]
         DS["fa:fa-file-signature DocuSeal<br/>sign.localhost"]
@@ -155,15 +208,16 @@ graph TB
         WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
     end
 
-    Traefik --> KC & NC & CO & HPB & VW & WB & MP & DOCS & DS & TR & WEB
+    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & TR & WEB
 
-    KC -. OIDC .-> NC & VW & WEB & DS & TR
+    KC -. OIDC .-> NC & VW & WEB & DS & TR & BRETT
     OAUTH2 --> KC
     DOCS --> OAUTH2
     NC --> CO
     NC --> HPB --> JANUS
     HPB --> TRBOT --> WHISPER
     KC & NC & DS & TR --> DB
+    BRETT --> DB
     WEB --> DB
 ```
 
@@ -179,6 +233,7 @@ graph TB
   - `environments/certs/` -- per-cluster sealing certs fetched via `env:fetch-cert`.
 - **`deploy/`** -- Kustomize overlays for dev iteration. Contains `mcp/` for MCP server overlays.
 - **`argocd/`** -- ArgoCD AppProject + three ApplicationSets (`applicationset.yaml`, `applicationset-office.yaml`, `applicationset-coturn.yaml`) and the `install/` CMP sidecar.
+- **`brett/`** -- Node.js 3D systemic-constellation board (Systembrett) at `brett.localhost`; deployed as `k3d/brett.yaml`.
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
@@ -232,5 +287,5 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **`env:generate ENV=<target>` must run before `env:seal` and before deploying prod.** `talk-hpb-setup.sh` aborts on placeholder `MANAGED_EXTERNALLY` values if signaling/turn secrets were never generated.
 
 ### Operational
-- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `kubectl rollout restart deploy/docs -n workspace --context <env>`. Applying the ConfigMap alone leaves the old content served.
+- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy ENV=<env>` then `task docs:restart ENV=<env>`. Applying the ConfigMap alone leaves the old content served.
 - **yamllint runs a 200-char line limit in CI only.** Long base64 strings or multiline patches that are fine locally will fail the `lint-yaml` job on PR. Run `yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' <file>` before pushing.

@@ -1,0 +1,107 @@
+# Monthly CronJob that copies workspace-wildcard-tls to argocd and coturn namespaces.
+# Uses the K8s API via curl + ServiceAccount token — no kubectl image needed.
+# Runs on the 1st of each month, well within Let's Encrypt's 90-day cert lifetime.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tls-sync
+  namespace: workspace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tls-sync
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tls-sync
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tls-sync
+subjects:
+  - kind: ServiceAccount
+    name: tls-sync
+    namespace: workspace
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tls-sync
+  namespace: workspace
+spec:
+  schedule: "0 3 1 * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: tls-sync
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: sync
+              image: curlimages/curl:8.7.1@sha256:25d29daeb9b14b89e2fa8cc17c70e4b188bca1466086907c2d9a4b56b59d8e21
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                  CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                  API=https://kubernetes.default.svc
+
+                  CRT=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                    "$API/api/v1/namespaces/workspace/secrets/workspace-wildcard-tls" \
+                    | tr -d '\n' \
+                    | grep -o '"tls\.crt": *"[^"]*"' \
+                    | grep -o '"[^"]*"$' | tr -d '"')
+                  KEY=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                    "$API/api/v1/namespaces/workspace/secrets/workspace-wildcard-tls" \
+                    | tr -d '\n' \
+                    | grep -o '"tls\.key": *"[^"]*"' \
+                    | grep -o '"[^"]*"$' | tr -d '"')
+
+                  BODY="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"workspace-wildcard-tls\"},\"type\":\"kubernetes.io/tls\",\"data\":{\"tls.crt\":\"$CRT\",\"tls.key\":\"$KEY\"}}"
+
+                  for NS in argocd coturn workspace-office; do
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" --cacert "$CA" \
+                      -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$NS/secrets/workspace-wildcard-tls")
+                    if [ "$STATUS" = "200" ]; then
+                      curl -sf --cacert "$CA" -X PATCH \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/strategic-merge-patch+json" \
+                        "$API/api/v1/namespaces/$NS/secrets/workspace-wildcard-tls" \
+                        -d "$BODY" > /dev/null
+                    else
+                      curl -sf --cacert "$CA" -X POST \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/json" \
+                        "$API/api/v1/namespaces/$NS/secrets" \
+                        -d "$BODY" > /dev/null
+                    fi
+                    echo "synced workspace-wildcard-tls -> $NS"
+                  done
+              resources:
+                requests:
+                  memory: 16Mi
+                  cpu: 10m
+                limits:
+                  memory: 32Mi
+                  cpu: 50m

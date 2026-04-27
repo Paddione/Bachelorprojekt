@@ -99,4 +99,4 @@ spec:
       volumes:
         - name: coturn-tls
           secret:
-            secretName: coturn-tls
+            secretName: workspace-wildcard-tls

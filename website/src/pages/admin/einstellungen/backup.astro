@@ -1,0 +1,57 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminEinstellungenTabs from '../../../components/AdminEinstellungenTabs.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { getSiteSetting } from '../../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const BRAND = process.env.BRAND || 'mentolder';
+const saved = Astro.url.searchParams.get('saved') === '1';
+
+const filenUploadPath = await getSiteSetting(BRAND, 'filen_upload_path');
+const defaultPath = `/workspace-backups/${BRAND}`;
+---
+
+<AdminLayout title="Backup">
+  <AdminEinstellungenTabs current={Astro.url.pathname} />
+  <div style="padding: 2rem; max-width: 640px;">
+    <h1 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--fg); margin-bottom: 0.25rem;">Backup</h1>
+    <p style="color: var(--mute); font-size: 0.875rem; margin-bottom: 2rem;">Konfiguration des Filen-Upload-Pfads für automatische Datenbank-Backups. Zugangsdaten (API-Key, Verschlüsselungspasswort) werden in Kubernetes Secrets verwaltet und sind hier nicht einsehbar oder änderbar.</p>
+
+    {saved && (
+      <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; color: #86efac; font-size: 0.875rem;">
+        Einstellungen gespeichert.
+      </div>
+    )}
+
+    <form method="POST" action="/api/admin/einstellungen/backup">
+      <div style="margin-bottom: 2rem;">
+        <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">
+          Filen Upload-Pfad
+        </label>
+        <input
+          type="text"
+          name="filen_upload_path"
+          value={filenUploadPath ?? defaultPath}
+          style="width: 100%; background: var(--ink-800); border: 1px solid var(--line); border-radius: 8px; padding: 0.625rem 0.875rem; color: var(--fg); font-family: var(--font-mono); font-size: 0.875rem; outline: none;"
+        />
+        <p style="color: var(--mute); font-size: 0.75rem; margin-top: 0.5rem;">Absoluter Pfad im Filen-Drive, in den Backups hochgeladen werden. Muss mit <code style="font-family: var(--font-mono);">/</code> beginnen.</p>
+      </div>
+
+      <div style="background: var(--ink-800); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
+        <p style="color: var(--mute-2); font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Hinweis</p>
+        <p style="color: var(--mute); font-size: 0.8rem; margin: 0;">Filen-Zugangsdaten (E-Mail, Passwort, 2FA-Seed) werden ausschließlich in Kubernetes Secrets gespeichert und sind nicht über dieses Panel zugänglich. Änderungen an den Zugangsdaten müssen direkt im Cluster vorgenommen werden.</p>
+      </div>
+
+      <button
+        type="submit"
+        style="background: var(--brass); color: var(--ink-900); border: none; border-radius: 8px; padding: 0.625rem 1.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer;"
+      >
+        Speichern
+      </button>
+    </form>
+  </div>
+</AdminLayout>

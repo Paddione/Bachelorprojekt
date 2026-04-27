@@ -72,6 +72,28 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: BACKUP_PASSPHRASE
+                - name: BRAND
+                  valueFrom:
+                    configMapKeyRef:
+                      name: backup-config
+                      key: BRAND
+                - name: FILEN_DEFAULT_UPLOAD_PATH
+                  valueFrom:
+                    configMapKeyRef:
+                      name: backup-config
+                      key: FILEN_DEFAULT_UPLOAD_PATH
+                - name: FILEN_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_EMAIL
+                      optional: true
+                - name: FILEN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_PASSWORD
+                      optional: true
               securityContext:
                 allowPrivilegeEscalation: false
                 runAsNonRoot: true
@@ -115,11 +137,25 @@ spec:
                   # Retention: remove backups older than 30 days
                   find /backups -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +
 
+                  # Resolve runtime upload path: DB value wins, ConfigMap default is fallback
+                  FILEN_PATH=$(PGPASSWORD="${WEBSITE_DB_PASSWORD}" \
+                    psql -h shared-db -U website -d website -t -q \
+                    -c "SELECT value FROM site_settings WHERE brand='${BRAND}' AND key='filen_upload_path'" \
+                    2>/dev/null) || FILEN_PATH=""
+                  FILEN_PATH=$(printf '%s' "${FILEN_PATH}" | tr -d ' \n')
+                  FILEN_PATH="${FILEN_PATH:-${FILEN_DEFAULT_UPLOAD_PATH}}"
+
+                  # Signal filen-upload container: path + stamp
+                  printf '%s' "${FILEN_PATH}" > /staging/.filen_path
+                  printf '%s' "${STAMP}"      > /staging/.done
+
                   echo "Backup complete: ${BACKUP_DIR}"
-                  ls -lh "${BACKUP_DIR}"/
+                  ls -lh "${BACKUP_DIR}/"
               volumeMounts:
                 - name: backup-storage
                   mountPath: /backups
+                - name: staging
+                  mountPath: /staging
               resources:
                 requests:
                   memory: 256Mi
@@ -127,7 +163,72 @@ spec:
                 limits:
                   memory: 512Mi
                   cpu: "1"
+            - name: filen-upload
+              # rclone handles WebDAV uploads; waits for backup container signal via staging emptyDir.
+              image: rclone/rclone:1.68
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  if [ -z "${FILEN_EMAIL}" ] || [ -z "${FILEN_PASSWORD}" ]; then
+                    echo "Filen not configured — skipping remote backup"
+                    until [ -f /staging/.done ]; do sleep 2; done
+                    exit 0
+                  fi
+
+                  echo "Waiting for local backup to complete..."
+                  until [ -f /staging/.done ]; do sleep 2; done
+
+                  STAMP=$(cat /staging/.done)
+                  UPLOAD_PATH=$(cat /staging/.filen_path)
+
+                  echo "Uploading ${STAMP} to Filen: ${UPLOAD_PATH}/${STAMP}/"
+
+                  OBSCURED=$(rclone obscure "${FILEN_PASSWORD}")
+                  export RCLONE_WEBDAV_URL=https://webdav.filen.io
+                  export RCLONE_WEBDAV_USER="${FILEN_EMAIL}"
+                  export RCLONE_WEBDAV_PASS="${OBSCURED}"
+
+                  rclone copy "/backups/${STAMP}/" ":webdav:${UPLOAD_PATH}/${STAMP}/" \
+                    --no-traverse \
+                    --stats-one-line \
+                    || echo "WARNING: Filen upload failed — local backup intact"
+
+                  echo "Filen upload done"
+              env:
+                - name: FILEN_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_EMAIL
+                      optional: true
+                - name: FILEN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_PASSWORD
+                      optional: true
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                  readOnly: true
+                - name: staging
+                  mountPath: /staging
+                  readOnly: true
+              resources:
+                requests:
+                  memory: 64Mi
+                  cpu: "50m"
+                limits:
+                  memory: 128Mi
+                  cpu: "200m"
           volumes:
             - name: backup-storage
               persistentVolumeClaim:
                 claimName: backup-pvc
+            - name: staging
+              emptyDir: {}

@@ -362,6 +362,14 @@ secrets:
     generate: true
     length: 32
 
+  - name: FILEN_EMAIL
+    required: false
+    generate: false
+
+  - name: FILEN_PASSWORD
+    required: false
+    generate: false
+
   - name: IPV64_API_KEY
     required: false
     generate: false

@@ -1,5 +1,6 @@
 // Nextcloud CalDAV helper.
 // Fetches events from the admin's calendar and computes free time slots.
+import { config } from '../config/index.js';
 
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 const NC_USER = process.env.NEXTCLOUD_CALDAV_USER || 'admin';
@@ -259,7 +260,7 @@ export async function getAvailableSlots(fromDate?: Date, brand?: string, slotDur
   // windowsMap: date string → array of {winStart, winEnd} (HH:MM strings)
   let windowsMap: Map<string, Array<{ winStart: string; winEnd: string }>> | null = null;
   let vacationDays: Set<string> = new Set();
-  const effectiveBrand = brand || process.env.BRAND || 'mentolder';
+  const effectiveBrand = brand || config.brand;
 
   if (brand) {
     try {

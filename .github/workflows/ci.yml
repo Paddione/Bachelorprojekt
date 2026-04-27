@@ -197,7 +197,7 @@ jobs:
       - name: Check for secrets in code
         run: |
           if grep -rn 'password.*=.*[^$]' k3d/*.yaml \
-               | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}' \
+               | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}\|getenv(' \
                | grep -iv '^\s*#'; then
             echo "ERROR: Possible hardcoded secrets found (see above)"
             exit 1

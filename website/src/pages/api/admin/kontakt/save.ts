@@ -1,12 +1,19 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { saveKontaktContent } from '../../../../lib/website-db';
+import type { KontaktContent } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
+
+  if (request.headers.get('content-type')?.includes('application/json')) {
+    const body = await request.json() as KontaktContent;
+    await saveKontaktContent(BRAND, body);
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+  }
 
   const form = await request.formData();
   const g = (k: string) => (form.get(k) as string | null) ?? '';

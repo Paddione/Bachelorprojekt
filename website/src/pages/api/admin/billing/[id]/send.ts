@@ -25,7 +25,8 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   // Load seller settings
   const settingKeys = ['invoice_sender_name','invoice_sender_street','invoice_sender_city',
-    'invoice_bank_iban','invoice_bank_bic','invoice_bank_name','invoice_vat_id'] as const;
+    'invoice_bank_iban','invoice_bank_bic','invoice_bank_name','invoice_vat_id',
+    'invoice_sender_phone'] as const;
   const [settingVals, customer] = await Promise.all([
     Promise.all(settingKeys.map(k => getSiteSetting(brand, k))),
     getCustomerById(brand, draftCheck.rows[0].customer_id),
@@ -48,6 +49,9 @@ export const POST: APIRoute = async ({ request, params }) => {
     iban:       s.invoice_bank_iban,
     bic:        s.invoice_bank_bic,
     bankName:   s.invoice_bank_name,
+    email:      process.env.CONTACT_EMAIL || '',
+    phone:      s.invoice_sender_phone || '',
+    website:    process.env.LEGAL_WEBSITE || process.env.PROD_DOMAIN || '',
   };
 
   // Load email/pdf templates from site_settings

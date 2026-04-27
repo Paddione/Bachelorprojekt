@@ -1,6 +1,6 @@
 import { it, expect, beforeAll } from 'vitest';
 import { initBillingTables, createCustomer, getCustomerByEmail } from './native-billing';
-import { createInvoice, getInvoice, finalizeInvoice, markInvoicePaid } from './native-billing';
+import { createInvoice, finalizeInvoice, markInvoicePaid } from './native-billing';
 
 beforeAll(async () => { await initBillingTables(); });
 

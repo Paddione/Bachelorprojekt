@@ -25,9 +25,9 @@ spec:
     regex:
       - "^/[^/]+"
 ---
-# ── Strip Authorization header before forwarding to MCP backends ─
-# Required because GitHub and Stripe MCPs interpret Authorization as OAuth
-# and reject our cluster Bearer token with "bad request"
+# ── Fix request headers before forwarding to MCP backends ────────
+# Strip Authorization: GitHub and Stripe MCPs treat it as OAuth and reject it.
+# Force Accept: Gemini CLI 0.39.1 omits this on follow-up requests, causing 406.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -36,6 +36,7 @@ spec:
   headers:
     customRequestHeaders:
       Authorization: ""
+      Accept: "application/json, text/event-stream"
 ---
 # ── Middleware chain: auth → strip auth header → strip path prefix ─
 apiVersion: traefik.io/v1alpha1

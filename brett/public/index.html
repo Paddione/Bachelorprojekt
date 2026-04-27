@@ -232,17 +232,6 @@
     font-size: 9px; color: #243550; text-align: center;
     margin-top: 5px; letter-spacing: 0.04em;
   }
-  #minimap-presets {
-    display: flex; gap: 4px; margin-top: 6px;
-  }
-  .preset-btn {
-    flex: 1; padding: 4px 0; font-size: 10px; font-weight: 600;
-    border-radius: 5px; border: 1px solid #1a3060; background: #08142a;
-    color: #3a6090; cursor: pointer; transition: all 0.12s; letter-spacing: 0.04em;
-    font-family: inherit; line-height: 1;
-  }
-  .preset-btn:hover { background: #1a3060; color: #7aaac8; }
-  .preset-btn.flash { background: #1a4a8a; color: #e0e0e0; transition: none; }
 </style>
 </head>
 <body>
@@ -319,7 +308,7 @@
 <div id="canvas-container">
   <canvas id="three-canvas"></canvas>
   <div id="hint">
-    LMB: Figur auswählen/bewegen &nbsp;|&nbsp; RMB halten: Figur drehen &nbsp;|&nbsp; Minimap LMB: Neigung &nbsp;|&nbsp; Minimap MMB: Verschieben &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
+    LMB: Figur ziehen &nbsp;|&nbsp; RMB auf Figur: ausrichten &nbsp;|&nbsp; RMB auf Fläche: Blickwinkel &nbsp;|&nbsp; MMB: Brett verschieben &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
   </div>
   <div id="selected-info"></div>
 </div>
@@ -334,12 +323,7 @@
       <canvas id="minimap-canvas"></canvas>
       <canvas id="minimap-ui"></canvas>
     </div>
-    <div id="minimap-presets">
-      <button class="preset-btn" data-preset="0" title="LMB: Linke Ansicht · MMB: Winkel speichern">L</button>
-      <button class="preset-btn" data-preset="1" title="LMB: Startansicht · MMB: Winkel speichern">⌂</button>
-      <button class="preset-btn" data-preset="2" title="LMB: Rechte Ansicht · MMB: Winkel speichern">R</button>
-    </div>
-    <div id="minimap-foot">LMB: Pan · MMB: Neigung · Tasten: Ansicht</div>
+    <div id="minimap-foot">Klick · Ziehen: Ansicht navigieren</div>
   </div>
 </div>
 
@@ -1215,13 +1199,35 @@ function pickBoard(ndc) {
 }
 
 // ── Mouse / touch ─────────────────────────────────────────────────────────────
-let drag    = { on: false, fig: null };
-let rotDrag = { on: false, fig: null, startX: 0 };
+let drag   = { on: false, fig: null };
+let rmbOn  = false;
+let rotFig = null, rotStartX = 0, rotFigStartY = 0;
 let lastClick = { fig: null, time: 0 };
 
 canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+let panOn = false;
+canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('mousedown', e => {
   if (modal.classList.contains('visible')) return;
+  if (e.button === 2) {
+    const ndc = getNDC(e);
+    const fig = pickFigure(ndc);
+    if (fig) {
+      selectFigure(fig);
+      rotFig = fig; rotStartX = e.clientX; rotFigStartY = fig.rotY;
+    } else {
+      rmbOn = true;
+      orbit.startX = e.clientX; orbit.startY = e.clientY;
+    }
+    return;
+  }
+  if (e.button === 1) {
+    panOn = true;
+    orbit.startX = e.clientX; orbit.startY = e.clientY;
+    e.preventDefault();
+    return;
+  }
   if (e.button === 0) {
     const ndc = getNDC(e);
     const fig = pickFigure(ndc);
@@ -1233,13 +1239,6 @@ canvas.addEventListener('mousedown', e => {
       drag = { on: true, fig };
     } else {
       selectFigure(null); lastClick.fig = null;
-    }
-  } else if (e.button === 2) {
-    const ndc = getNDC(e);
-    const fig = pickFigure(ndc);
-    if (fig) {
-      selectFigure(fig);
-      rotDrag = { on: true, fig, startX: e.clientX };
     }
   }
 });
@@ -1253,6 +1252,31 @@ function sendMoveThrottled(fig) {
 }
 
 canvas.addEventListener('mousemove', e => {
+  if (rotFig) {
+    const dx = e.clientX - rotStartX;
+    const raw = rotFigStartY + dx * 0.018;
+    const SNAP = Math.PI / 4;
+    const nearest = Math.round(raw / SNAP) * SNAP;
+    setRotY(rotFig, Math.abs(raw - nearest) < 0.14 ? nearest : raw);
+    return;
+  }
+  if (rmbOn) {
+    const dx = e.clientX - orbit.startX;
+    const dy = e.clientY - orbit.startY;
+    orbit.theta -= dx * 0.008;
+    orbit.phi = Math.max(0.12, Math.min(Math.PI/2.05, orbit.phi + dy*0.008));
+    orbit.startX = e.clientX; orbit.startY = e.clientY;
+    updateCamera(); return;
+  }
+  if (panOn) {
+    const dx = e.clientX - orbit.startX;
+    const dy = e.clientY - orbit.startY;
+    const f = orbit.radius * 0.01;
+    orbit.panX += dx * f * Math.cos(orbit.theta) + dy * f * Math.sin(orbit.theta);
+    orbit.panZ += dx * f * (-Math.sin(orbit.theta)) + dy * f * Math.cos(orbit.theta);
+    orbit.startX = e.clientX; orbit.startY = e.clientY;
+    updateCamera(); return;
+  }
   if (drag.on && drag.fig) {
     const pos = pickBoard(getNDC(e));
     if (pos) {
@@ -1261,28 +1285,25 @@ canvas.addEventListener('mousemove', e => {
       if (!applyingRemote) sendMoveThrottled(drag.fig);
     }
   }
-  if (rotDrag.on && rotDrag.fig) {
-    const dx = e.clientX - rotDrag.startX;
-    rotDrag.startX = e.clientX;
-    const fig = rotDrag.fig;
-    setRotY(fig, fig.rotY + dx * 0.02);
-    if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } });
-  }
 });
 
-function cleanupCanvasDrag(button) {
-  if (button === 0 || button === undefined) {
+canvas.addEventListener('mouseup', e => {
+  if (e.button === 2) {
+    rmbOn = false;
+    if (rotFig) {
+      const SNAP = Math.PI / 4;
+      setRotY(rotFig, Math.round(rotFig.rotY / SNAP) * SNAP);
+      if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
+    }
+    rotFig = null;
+  }
+  if (e.button === 1) panOn = false;
+  if (e.button === 0) {
     if (drag.on && drag.fig && !applyingRemote) {
       send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
     }
-    drag = { on: false, fig: null };
+    drag = { on:false, fig:null };
   }
-  if (button === 2 || button === undefined) {
-    rotDrag = { on: false, fig: null, startX: 0 };
-  }
-}
-canvas.addEventListener('mouseup', e => {
-  cleanupCanvasDrag(e.button);
 });
 
 const zoomSlider = document.getElementById('zoom-slider');
@@ -1421,78 +1442,30 @@ animate();
   }
   animMinimap();
 
-  // Click / drag to navigate — LMB: pan, MMB: orbit
+  // Click / drag to navigate
   const mWrap = document.getElementById('minimap-wrap');
-  let mDrag = false, mDragMode = null, mDS = { x: 0, y: 0 };
+  let mDrag = false, mDS = { x: 0, y: 0 };
 
-  mWrap.addEventListener('contextmenu', e => e.preventDefault());
   mWrap.addEventListener('mousedown', e => {
-    if (e.button === 0) {
-      mDrag = true; mDragMode = 'orbit';
-      mDS = { x: e.clientX, y: e.clientY };
-    } else if (e.button === 1) {
-      mDrag = true; mDragMode = 'pan';
-      mDS = { x: e.clientX, y: e.clientY };
-      const rect = mWrap.getBoundingClientRect();
-      orbit.panX = ((e.clientX - rect.left) / rect.width  - 0.5) * 2 * HALF_X;
-      orbit.panZ = ((e.clientY - rect.top)  / rect.height - 0.5) * 2 * HALF_Z;
-      updateCamera();
-    }
+    mDrag = true;
+    mDS = { x: e.clientX, y: e.clientY };
+    const rect = mWrap.getBoundingClientRect();
+    orbit.panX = ((e.clientX - rect.left) / rect.width  - 0.5) * 2 * HALF_X;
+    orbit.panZ = ((e.clientY - rect.top)  / rect.height - 0.5) * 2 * HALF_Z;
+    updateCamera();
     e.preventDefault(); e.stopPropagation();
   });
-
-  mWrap.addEventListener('wheel', e => {
-    setZoom(orbit.radius + e.deltaY * 0.05);
-    e.preventDefault(); e.stopPropagation();
-  }, { passive: false });
 
   window.addEventListener('mousemove', e => {
-    if (mDrag) {
-      if (mDragMode === 'orbit') {
-        orbit.theta -= (e.clientX - mDS.x) * 0.008;
-        orbit.phi = Math.max(0.12, Math.min(Math.PI/2.05, orbit.phi + (e.clientY - mDS.y) * 0.008));
-      } else if (mDragMode === 'pan') {
-        const rect = mWrap.getBoundingClientRect();
-        orbit.panX += (e.clientX - mDS.x) / rect.width  * 2 * HALF_X;
-        orbit.panZ += (e.clientY - mDS.y) / rect.height * 2 * HALF_Z;
-      }
-      mDS = { x: e.clientX, y: e.clientY };
-      updateCamera();
-    }
+    if (!mDrag) return;
+    const rect = mWrap.getBoundingClientRect();
+    orbit.panX += (e.clientX - mDS.x) / rect.width  * 2 * HALF_X;
+    orbit.panZ += (e.clientY - mDS.y) / rect.height * 2 * HALF_Z;
+    mDS = { x: e.clientX, y: e.clientY };
+    updateCamera();
   });
 
-  window.addEventListener('mouseup', e => {
-    mDrag = false; mDragMode = null;
-    cleanupCanvasDrag(e.button);
-  });
-
-  // Preset camera buttons
-  const camPresets = [
-    { theta: -Math.PI/2, phi: 0.95, radius: 44, panX: 0, panZ: 0 },
-    { theta: 0,          phi: 0.95, radius: 44, panX: 0, panZ: 0 },
-    { theta:  Math.PI/2, phi: 0.95, radius: 44, panX: 0, panZ: 0 },
-  ];
-
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    const idx = parseInt(btn.dataset.preset);
-    btn.addEventListener('click', () => {
-      const p = camPresets[idx];
-      orbit.theta = p.theta; orbit.phi = p.phi;
-      orbit.panX  = p.panX;  orbit.panZ = p.panZ;
-      setZoom(p.radius);
-      updateCamera();
-      btn.classList.add('flash');
-      setTimeout(() => btn.classList.remove('flash'), 250);
-    });
-    btn.addEventListener('mousedown', e => {
-      if (e.button === 1) {
-        camPresets[idx] = { theta: orbit.theta, phi: orbit.phi, radius: orbit.radius, panX: orbit.panX, panZ: orbit.panZ };
-        btn.classList.add('flash');
-        setTimeout(() => btn.classList.remove('flash'), 350);
-        e.preventDefault(); e.stopPropagation();
-      }
-    });
-  });
+  window.addEventListener('mouseup', () => { mDrag = false; });
 
   // Collapse / expand
   document.getElementById('minimap-toggle').addEventListener('click', () => {

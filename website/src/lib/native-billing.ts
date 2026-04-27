@@ -15,7 +15,7 @@ export async function createCustomer(p: {
   vatNumber?: string;
 }): Promise<Customer> {
   await initBillingTables();
-  const r = await pool.query<Customer>(
+  const r = await pool.query(
     `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
      ON CONFLICT (brand, email) DO UPDATE

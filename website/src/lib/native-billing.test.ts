@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { it, expect, beforeAll } from 'vitest';
 import { initBillingTables, createCustomer, getCustomerByEmail } from './native-billing';
 
 beforeAll(async () => { await initBillingTables(); });

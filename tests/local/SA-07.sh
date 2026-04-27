@@ -37,3 +37,13 @@ assert_eq "$DUMPALL_CHECK" "1" "SA-07" "T4" "pg_dumpall (Cluster-Backup) funktio
 # T5: Nextcloud data directory has content
 NC_FILES=$(kubectl exec -n "$NAMESPACE" deploy/nextcloud -c nextcloud -- ls /var/www/html/data/ 2>/dev/null | wc -l || echo "0")
 assert_gt "$NC_FILES" 0 "SA-07" "T5" "Nextcloud Datenverzeichnis nicht leer"
+
+# T6: db-backup CronJob exists
+CJ_COUNT=$(kubectl get cronjob db-backup -n "$NAMESPACE" -o name 2>/dev/null | wc -l)
+assert_gt "$CJ_COUNT" 0 "SA-07" "T6" "CronJob db-backup vorhanden"
+
+# T7: filen-upload container uses @filen/cli (node:22-alpine), not rclone
+FILEN_IMAGE=$(kubectl get cronjob db-backup -n "$NAMESPACE" \
+  -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[?(@.name=="filen-upload")].image}' \
+  2>/dev/null || echo "")
+assert_contains "$FILEN_IMAGE" "node" "SA-07" "T7" "filen-upload nutzt node-Image (@filen/cli), nicht rclone (${FILEN_IMAGE})"

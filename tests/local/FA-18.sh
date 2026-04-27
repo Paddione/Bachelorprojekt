@@ -5,6 +5,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
 WS_NS="${WS_NS:-workspace}"
+WEB_NAMESPACE="${WEB_NAMESPACE:-website}"
 
 # ── T1: Whisper pod running ───────────────────────────────────────
 WH_READY=$(kubectl get deployment whisper -n "$WS_NS" \
@@ -29,6 +30,6 @@ SVC_COUNT=$(kubectl get svc whisper -n "$WS_NS" -o name 2>/dev/null | wc -l)
 assert_gt "$SVC_COUNT" 0 "FA-18" "T3" "Whisper-Service definiert"
 
 # ── T4: WHISPER_URL in website ConfigMap ──────────────────────────
-WH_URL=$(kubectl get configmap website-config -n website \
+WH_URL=$(kubectl get configmap website-config -n "$WEB_NAMESPACE" \
   -o jsonpath='{.data.WHISPER_URL}' 2>/dev/null || echo "")
 assert_contains "$WH_URL" "whisper" "FA-18" "T4" "WHISPER_URL in Website-ConfigMap"

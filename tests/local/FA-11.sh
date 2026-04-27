@@ -6,6 +6,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
 NAMESPACE="${NAMESPACE:-workspace}"
+WEB_NAMESPACE="${WEB_NAMESPACE:-website}"
 
 # ── T1: create-customer-guest.sh existiert und ist ausführbar ───
 GUEST_SCRIPT="${SCRIPT_DIR}/../scripts/create-customer-guest.sh"
@@ -30,6 +31,6 @@ KC_DOMAIN=$(kubectl get configmap domain-config -n "$NAMESPACE" \
 assert_contains "$KC_DOMAIN" "localhost" "FA-11" "T4" "KC_DOMAIN in domain-config gesetzt (${KC_DOMAIN})"
 
 # ── T5: Website deployment running ────────────────────────────────
-WEB_READY=$(kubectl get deployment website -n website \
+WEB_READY=$(kubectl get deployment website -n "$WEB_NAMESPACE" \
   -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
 assert_gt "$WEB_READY" 0 "FA-11" "T5" "Website-Deployment laeuft (readyReplicas > 0)"

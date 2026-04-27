@@ -110,25 +110,34 @@ export const GET: APIRoute = async ({ request }) => {
         };
       });
 
-    let node = undefined;
+    const nodes: Array<{ name: string; cpu: string; memory: string }> = [];
     if (
       metricsAvailable &&
       nodeMetrics?.items?.length > 0 &&
       nodeCapacityResult.status === 'fulfilled' &&
       nodeCapacityResult.value?.items?.length > 0
     ) {
-      const usage = nodeMetrics.items[0].usage;
-      const capacity = (nodeCapacityResult as PromiseFulfilledResult<any>).value.items[0].status.capacity;
-      const cpuPercent = Math.round((parseCpuToNano(usage.cpu) / parseCpuToNano(capacity.cpu)) * 100);
-      const memPercent = Math.round((parseMemToKi(usage.memory) / parseMemToKi(capacity.memory)) * 100);
-      node = {
-        cpu: `${Math.min(cpuPercent, 100)}%`,
-        memory: `${Math.min(memPercent, 100)}%`,
-      };
+      const capacityItems = (nodeCapacityResult as PromiseFulfilledResult<any>).value.items;
+      for (const nodeMetric of nodeMetrics.items) {
+        const nodeName = nodeMetric.metadata.name;
+        const capacityItem = capacityItems.find((n: any) => n.metadata.name === nodeName);
+        if (!capacityItem) continue;
+        const cpuPercent = Math.round(
+          (parseCpuToNano(nodeMetric.usage.cpu) / parseCpuToNano(capacityItem.status.capacity.cpu)) * 100
+        );
+        const memPercent = Math.round(
+          (parseMemToKi(nodeMetric.usage.memory) / parseMemToKi(capacityItem.status.capacity.memory)) * 100
+        );
+        nodes.push({
+          name: nodeName,
+          cpu: `${Math.min(cpuPercent, 100)}%`,
+          memory: `${Math.min(memPercent, 100)}%`,
+        });
+      }
     }
 
     return new Response(
-      JSON.stringify({ pods, events, ...(node && { node }), metricsAvailable, fetchedAt: new Date().toISOString() }),
+      JSON.stringify({ pods, events, nodes, metricsAvailable, fetchedAt: new Date().toISOString() }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {

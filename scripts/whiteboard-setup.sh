@@ -59,16 +59,20 @@ fi
 # The Ingress is authoritative: it's the URL the user's browser actually hits.
 # (Config can be stale/unset on prod overlays.)
 INGRESS_JSON=$($KUBECTL get ingress -n "${NAMESPACE}" -o json 2>/dev/null)
-INGRESS_HOST=$(printf '%s' "${INGRESS_JSON}" | \
-  jq -r '.items[] as $i
-    | $i.spec.rules[]?
-    | select(.http.paths[]?.backend.service.name == "whiteboard")
-    | .host' | head -n1)
-INGRESS_TLS=$(printf '%s' "${INGRESS_JSON}" | \
-  jq -r --arg h "${INGRESS_HOST}" '.items[] as $i
-    | $i.spec.rules[]?
-    | select(.http.paths[]?.backend.service.name == "whiteboard")
-    | ($i.spec.tls // [] | map(.hosts[]?) | index($h) != null)' | head -n1)
+# Prefer TLS-backed rules: stale *.localhost dev ingresses also match the
+# "whiteboard" backend and would win over prod ones by insertion order.
+read -r INGRESS_HOST INGRESS_TLS < <(printf '%s' "${INGRESS_JSON}" | \
+  jq -r '
+    [.items[] as $i
+      | $i.spec.rules[]?
+      | select(.http.paths[]?.backend.service.name == "whiteboard")
+      | .host as $h
+      | {host: $h,
+         hasTLS: ($i.spec.tls // [] | map(.hosts[]?) | index($h) != null)}]
+    | sort_by(if .hasTLS then 0 else 1 end)
+    | first // empty
+    | "\(.host) \(.hasTLS)"
+  ')
 
 if [ -z "${INGRESS_HOST}" ]; then
   echo "FEHLER: Keine Ingress-Regel mit backend service 'whiteboard' im Namespace"

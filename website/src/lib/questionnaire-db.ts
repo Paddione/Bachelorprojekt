@@ -370,7 +370,7 @@ initDb().catch(err => console.error('[questionnaire-db] initDb error:', err));
 
 export async function listQTemplates(): Promise<QTemplate[]> {
   const r = await pool.query(
-    `SELECT id, title, description, instructions, status, created_at, updated_at
+    `SELECT id, title, description, instructions, status, is_system_test, created_at, updated_at
      FROM questionnaire_templates ORDER BY created_at DESC`,
   );
   return r.rows;
@@ -378,7 +378,7 @@ export async function listQTemplates(): Promise<QTemplate[]> {
 
 export async function getQTemplate(id: string): Promise<QTemplate | null> {
   const r = await pool.query(
-    `SELECT id, title, description, instructions, status, created_at, updated_at
+    `SELECT id, title, description, instructions, status, is_system_test, created_at, updated_at
      FROM questionnaire_templates WHERE id = $1`,
     [id],
   );

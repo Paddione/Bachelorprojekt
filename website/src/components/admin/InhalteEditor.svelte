@@ -2,6 +2,7 @@
   import NewsletterAdmin from './NewsletterAdmin.svelte';
   import QuestionnaireTemplateEditor from './QuestionnaireTemplateEditor.svelte';
   import VertragsvorlagenSection from './inhalte/VertragsvorlagenSection.svelte';
+  import RechnungsvorlagenSection from './inhalte/RechnungsvorlagenSection.svelte';
   import StartseiteSection from './inhalte/StartseiteSection.svelte';
   import UebermichSection from './inhalte/UebermichSection.svelte';
   import AngeboteSection from './inhalte/AngeboteSection.svelte';
@@ -34,9 +35,17 @@
     customSections: CustomSectionType[];
   };
 
-  let { initialData }: { initialData: InitialData } = $props();
+  let { initialData, rechnungsvorlagen }: { initialData: InitialData; rechnungsvorlagen: RechnungsvorlagenData } = $props();
 
-  type PrimaryTab = 'website' | 'newsletter' | 'fragebogen' | 'vertraege';
+  type RechnungsvorlagenData = {
+    invoice_intro_text: string;
+    invoice_kleinunternehmer_notice: string;
+    invoice_outro_text: string;
+    invoice_email_subject: string;
+    invoice_email_body: string;
+  };
+
+  type PrimaryTab = 'website' | 'newsletter' | 'fragebogen' | 'vertraege' | 'rechnungen';
   type WebsiteSection = string;
 
   function readParam<T extends string>(key: string, fallback: T): T {
@@ -123,6 +132,7 @@
     <button onclick={() => switchTab('newsletter')} class={tabBtnCls(activeTab === 'newsletter')}>✉️ Newsletter</button>
     <button onclick={() => switchTab('fragebogen')} class={tabBtnCls(activeTab === 'fragebogen')}>📋 Fragebögen</button>
     <button onclick={() => switchTab('vertraege')} class={tabBtnCls(activeTab === 'vertraege')}>📄 Verträge</button>
+    <button onclick={() => switchTab('rechnungen')} class={tabBtnCls(activeTab === 'rechnungen')}>🧾 Rechnungen</button>
   </div>
 
   <!-- Website: secondary tab bar -->
@@ -180,6 +190,10 @@
     {:else if activeTab === 'vertraege'}
       <div class="pt-6 pb-20">
         <VertragsvorlagenSection />
+      </div>
+    {:else if activeTab === 'rechnungen'}
+      <div class="pt-6 pb-20">
+        <RechnungsvorlagenSection initialData={rechnungsvorlagen} />
       </div>
     {/if}
   </div>

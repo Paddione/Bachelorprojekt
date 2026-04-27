@@ -12,7 +12,7 @@ import {
   getEffectiveKontakt,
   getEffectiveReferenzen,
 } from '../../lib/content';
-import { getLegalPage, listCustomSections } from '../../lib/website-db';
+import { getLegalPage, listCustomSections, getSiteSetting } from '../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -50,6 +50,29 @@ const [
   listCustomSections(),
 ]);
 
+const RECHNUNG_KEYS = [
+  'invoice_intro_text',
+  'invoice_kleinunternehmer_notice',
+  'invoice_outro_text',
+  'invoice_email_subject',
+  'invoice_email_body',
+] as const;
+
+const RECHNUNG_DEFAULTS: Record<typeof RECHNUNG_KEYS[number], string> = {
+  invoice_intro_text: 'für folgende Leistungen stelle ich Ihnen in Rechnung:',
+  invoice_kleinunternehmer_notice:
+    'Kein Ausweis der Umsatzsteuer aufgrund der Anwendung der Kleinunternehmerregelung gemäß § 19 UStG.',
+  invoice_outro_text: 'Vielen Dank für Ihr Vertrauen!',
+  invoice_email_subject: 'Rechnung {{number}}',
+  invoice_email_body:
+    'Sehr geehrte/r {{customer_name}},\n\nanbei erhalten Sie Rechnung {{number}} über {{gross_amount}} €.\n\nBitte überweisen Sie den Betrag bis {{due_date}} unter Angabe des Verwendungszwecks „{{payment_reference}}".\n\nMit freundlichen Grüßen\n{{seller_name}}',
+};
+
+const rechnungsResults = await Promise.all(RECHNUNG_KEYS.map(k => getSiteSetting(BRAND, k)));
+const rechnungsvorlagen = Object.fromEntries(
+  RECHNUNG_KEYS.map((k, i) => [k, rechnungsResults[i] ?? RECHNUNG_DEFAULTS[k]])
+) as Record<typeof RECHNUNG_KEYS[number], string>;
+
 const initialData = {
   startseite,
   uebermich,
@@ -70,6 +93,6 @@ const initialData = {
       <h1 class="text-3xl font-bold text-light font-serif">Inhalte</h1>
       <p class="text-muted mt-1 text-sm">Website, Newsletter, Fragebögen und Vertragsvorlagen</p>
     </div>
-    <InhalteEditor {initialData} client:load />
+    <InhalteEditor {initialData} {rechnungsvorlagen} client:load />
   </section>
 </AdminLayout>

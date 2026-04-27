@@ -66,6 +66,25 @@ export async function checkAndApplyTaxModeSwitch(brand: string, invoiceId: strin
   return false;
 }
 
+export async function getMonthlyBreakdown(brand: string, year: number): Promise<{
+  month: number; net: number; cumulative: number; status: TaxThresholdStatus;
+}[]> {
+  const r = await pool.query(
+    `SELECT EXTRACT(MONTH FROM issue_date)::int AS month, COALESCE(SUM(net_amount),0)::numeric AS net
+     FROM billing_invoices
+     WHERE brand=$1 AND EXTRACT(YEAR FROM issue_date)=$2
+       AND status IN ('open','paid')
+     GROUP BY month ORDER BY month`,
+    [brand, year]
+  );
+  const byMonth = Object.fromEntries(r.rows.map((row: { month: number; net: string }) => [row.month, Number(row.net)]));
+  let cumulative = 0;
+  return Array.from({ length: 12 }, (_, i) => {
+    cumulative += byMonth[i + 1] ?? 0;
+    return { month: i + 1, net: byMonth[i + 1] ?? 0, cumulative, status: checkThreshold(cumulative) };
+  });
+}
+
 export async function getUstvaExport(brand: string, year: number, quarter?: number): Promise<{
   period: string; taxMode: string; revenue0: number; revenue7: number; revenue19: number;
   tax7: number; tax19: number; totalTax: number;

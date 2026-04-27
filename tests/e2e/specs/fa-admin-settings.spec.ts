@@ -61,8 +61,8 @@ test.describe('FA: Admin settings pages', () => {
     expect([401, 403]).toContain(res.status());
   });
 
-  test('POST /api/admin/shortcuts/delete returns 401/403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/shortcuts/delete`, { data: { id: 1 } });
+  test('DELETE /api/admin/shortcuts/delete returns 401/403 without auth', async ({ request }) => {
+    const res = await request.delete(`${BASE}/api/admin/shortcuts/delete`, { data: { id: 1 } });
     expect([401, 403]).toContain(res.status());
   });
 

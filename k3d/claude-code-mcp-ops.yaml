@@ -32,7 +32,7 @@ spec:
         # ─── Kubernetes MCP (port 8080) ──────────────────────────
         # Pre-built image — no runtime GitHub download needed.
         - name: mcp-kubernetes
-          image: quay.io/containers/kubernetes_mcp_server@sha256:fae7dae4972a7af5708dc29767ee890adfba6a73a6356ef2933c578ee954882a
+          image: quay.io/containers/kubernetes_mcp_server@sha256:7c36722a6cbfd06b0662ce2237a19f563643988ad6669a9cfeac677b26adf591
           imagePullPolicy: IfNotPresent
           args: ["--port", "8080", "--stateless", "--cluster-provider", "in-cluster"]
           securityContext:

@@ -4,7 +4,7 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import {
   getQAssignment, listQDimensions, listQQuestions,
-  listQAnswerOptionsForTemplate, listQAnswers,
+  listQAnswerOptionsForTemplate, listQAnswers, getQTemplate,
 } from '../../../lib/questionnaire-db';
 import { computeScores } from '../../../lib/compute-scores';
 
@@ -25,8 +25,11 @@ const [dimensions, questions, allOptions, answers] = await Promise.all([
   listQAnswers(assignment.id),
 ]);
 
+const tpl = await getQTemplate(assignment.template_id).catch(() => null);
+const isSystemTest = tpl?.is_system_test ?? false;
+
 const scores = computeScores(dimensions, allOptions, answers);
-const answerMap = new Map(answers.map(a => [a.question_id, a.option_key]));
+const answerMap = new Map(answers.map(a => [a.question_id, a]));
 
 function levelColor(level: string | null) {
   if (level === 'kritisch') return '#ef4444';
@@ -99,12 +102,67 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
         </div>
       )}
 
-      <!-- Raw answers -->
+      <!-- Answers / Test results -->
       <div class="mb-8 p-6 bg-dark-light rounded-xl border border-dark-lighter">
-        <h2 class="text-sm font-medium text-muted uppercase tracking-wide mb-4">Einzelantworten ({answers.length}/{questions.length})</h2>
+        <h2 class="text-sm font-medium text-muted uppercase tracking-wide mb-4">
+          {isSystemTest ? 'Testergebnisse' : 'Einzelantworten'} ({answers.length}/{questions.length})
+        </h2>
         <div class="flex flex-col gap-3">
           {questions.map((q, i) => {
-            const chosen = answerMap.get(q.id);
+            const answer = answerMap.get(q.id);
+            const chosen = answer?.option_key ?? null;
+            const details = answer?.details_text ?? null;
+
+            if (q.question_type === 'test_step') {
+              const resultColor =
+                chosen === 'erfüllt' ? '#22c55e'
+                : chosen === 'teilweise' ? '#f59e0b'
+                : chosen === 'nicht_erfüllt' ? '#ef4444'
+                : '#6b7280';
+              const resultLabel =
+                chosen === 'erfüllt' ? 'Test erfüllt'
+                : chosen === 'teilweise' ? 'Test zum Teil erfüllt'
+                : chosen === 'nicht_erfüllt' ? 'Test nicht erfüllt'
+                : null;
+              return (
+                <div class="border-b border-dark-lighter pb-4 last:border-0 last:pb-0">
+                  <div class="flex items-center gap-2 mb-2 flex-wrap">
+                    <span class="text-muted text-xs">Schritt {i + 1}</span>
+                    {q.test_role && (
+                      <span class={`px-2 py-0.5 rounded text-xs border ${
+                        q.test_role === 'admin'
+                          ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      }`}>
+                        {q.test_role === 'admin' ? 'Admin' : 'Nutzer'}
+                      </span>
+                    )}
+                    {q.test_function_url && (
+                      <a href={q.test_function_url} target="_blank" rel="noopener noreferrer"
+                        class="text-xs text-gold hover:underline">{q.test_function_url}</a>
+                    )}
+                  </div>
+                  <p class="text-light text-sm font-medium mb-1">{q.question_text}</p>
+                  {q.test_expected_result && (
+                    <p class="text-muted text-xs mb-2 italic">Erwartet: {q.test_expected_result}</p>
+                  )}
+                  {chosen ? (
+                    <div>
+                      <span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold"
+                        style={`color: ${resultColor}; border-color: ${resultColor}40; background-color: ${resultColor}15`}>
+                        {resultLabel}
+                      </span>
+                      {details && (
+                        <p class="text-muted text-xs mt-1 whitespace-pre-line">{details}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <span class="text-muted text-xs italic">Noch nicht getestet</span>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <div class="border-b border-dark-lighter pb-3 last:border-0 last:pb-0">
                 <p class="text-muted text-xs mb-1">Frage {i + 1}</p>

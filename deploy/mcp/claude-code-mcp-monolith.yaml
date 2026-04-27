@@ -110,7 +110,9 @@ spec:
               value: "admin-cli"
             - name: QUARKUS_HTTP_PORT
               value: "8081"
-            # Allow any authenticated MCP client (auth is enforced by the Traefik ForwardAuth proxy)
+            # Allow any authenticated MCP client (auth is enforced by the Traefik ForwardAuth proxy).
+            # The mcp-strip-auth-header Traefik middleware strips the Bearer token before the request
+            # reaches this container, so Quarkus OIDC never sees a token to introspect.
             - name: QUARKUS_HTTP_AUTH_PERMISSION_MCP_POLICY
               value: "permit"
             # Use admin service account for Keycloak Admin API (ROPC via admin-cli)
@@ -207,7 +209,7 @@ spec:
             - |
               npm install -g supergateway @stripe/agent-toolkit 2>&1
               exec npx supergateway \
-                --stdio "npx -y @stripe/agent-toolkit mcp" \
+                --stdio "stripe-agent-toolkit mcp" \
                 --outputTransport streamableHttp \
                 --port 3003 \
                 --streamableHttpPath /mcp \

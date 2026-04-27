@@ -16,7 +16,8 @@ const pool = new pg.Pool(
   { connectionString: DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig,
 );
 
-export type QuestionType = 'ab_choice' | 'ja_nein' | 'likert_5';
+export type QuestionType = 'ab_choice' | 'ja_nein' | 'likert_5' | 'test_step';
+export type TestStepResult = 'erfüllt' | 'teilweise' | 'nicht_erfüllt';
 export type AssignmentStatus = 'pending' | 'in_progress' | 'submitted' | 'reviewed';
 
 export interface QTemplate {
@@ -25,6 +26,7 @@ export interface QTemplate {
   description: string;
   instructions: string;
   status: 'draft' | 'published' | 'archived';
+  is_system_test: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +48,9 @@ export interface QQuestion {
   position: number;
   question_text: string;
   question_type: QuestionType;
+  test_expected_result: string | null;
+  test_function_url: string | null;
+  test_role: 'admin' | 'user' | null;
   created_at: string;
 }
 
@@ -75,7 +80,213 @@ export interface QAnswer {
   assignment_id: string;
   question_id: string;
   option_key: string;
+  details_text: string | null;
   saved_at: string;
+}
+
+export interface QTestStatus {
+  question_id: string;
+  template_id: string;
+  template_title: string;
+  question_text: string;
+  test_expected_result: string | null;
+  test_function_url: string | null;
+  test_role: 'admin' | 'user' | null;
+  position: number;
+  last_result: TestStepResult | null;
+  last_result_at: string | null;
+  last_success_at: string | null;
+}
+
+async function seedSystemTestTemplates(): Promise<void> {
+  const existing = await pool.query(
+    `SELECT COUNT(*)::int AS cnt FROM questionnaire_templates WHERE is_system_test = true`,
+  );
+  if ((existing.rows[0]?.cnt ?? 0) > 0) return;
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+  // ── Template 1: Admin-Funktionen ─────────────────────────────────────────
+  const tpl1 = await client.query(
+    `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
+     VALUES ($1,$2,$3,'published',true)
+     RETURNING id`,
+    [
+      'System-Testprotokoll: Admin-Funktionen',
+      'Vollständiger Testdurchlauf aller Admin-Interaktionen (zwei Browser-Profile: Admin + Testnutzer).',
+      'Führe jeden Schritt mit dem Admin-Browser-Profil durch, sofern nicht anders angegeben. Wähle das Ergebnis und trage bei Bedarf Details ein.',
+    ],
+  );
+  const t1 = tpl1.rows[0].id as string;
+
+  const adminSteps: Array<[string, string, string, 'admin' | 'user']> = [
+    ['SSO-Login als Administrator durchführen',
+     'Weiterleitung zum Admin-Dashboard nach Keycloak-Authentifizierung; Sitzung wird korrekt gesetzt.',
+     '/admin', 'admin'],
+    ['Dashboard aufrufen und Übersichtskennzahlen prüfen',
+     'KPIs (Clients, offene Bugs, Meetings u. a.) werden korrekt geladen und angezeigt.',
+     '/admin', 'admin'],
+    ['Neuen Client anlegen',
+     'Client erscheint in der Clientliste; Pflichtfelder werden serverseitig validiert.',
+     '/admin/clients', 'admin'],
+    ['Meeting anlegen und speichern',
+     'Meeting erscheint in der Meetingliste mit korrekten Datums- und Teilnehmerinfos.',
+     '/admin/meetings', 'admin'],
+    ['Termin anlegen',
+     'Termin wird gespeichert und ist in der Terminliste sichtbar.',
+     '/admin/termine', 'admin'],
+    ['Projekt anlegen und einem Client zuordnen',
+     'Projekt erscheint in der Projektliste und ist dem Client korrekt zugeordnet.',
+     '/admin/projekte', 'admin'],
+    ['Rechnung erstellen und PDF-Vorschau aufrufen',
+     'Rechnung wird angelegt; PDF-Vorschau lädt ohne Fehler.',
+     '/admin/rechnungen', 'admin'],
+    ['Dokument im Dokumenteneditor anlegen und Inhalt speichern',
+     'Dokument wird gespeichert und kann wieder geöffnet werden.',
+     '/admin/dokumente', 'admin'],
+    ['Admin-Kalender öffnen und Terminanzeige prüfen',
+     'Kalender lädt; vorhandene Termine werden korrekt dargestellt.',
+     '/admin/kalender', 'admin'],
+    ['Inbox öffnen und mindestens ein Item als erledigt markieren',
+     'Item wechselt den Status; Inbox-Counter aktualisiert sich korrekt.',
+     '/admin/inbox', 'admin'],
+    ['Website-Startseite im Admin bearbeiten und Änderung speichern',
+     'Änderungen werden persistiert; öffentliche Seite zeigt den aktualisierten Inhalt.',
+     '/admin/website/startseite', 'admin'],
+    ['Neues Fragebogen-Template anlegen (Titel, mind. 1 Frage)',
+     'Template wird gespeichert und erscheint in der Template-Liste.',
+     '/admin/fragebogen', 'admin'],
+    ['Veröffentlichtes Fragebogen-Template einem Client zuweisen',
+     'Assignment wird erstellt; Client sieht den Fragebogen im Portal (ggf. E-Mail-Benachrichtigung).',
+     '/admin/clients', 'admin'],
+    ['Aus dem Monitoring-Dashboard ein Bug-Ticket erstellen',
+     'Ticket mit Format BR-YYYYMMDD-xxxx wird angelegt und ist unter Bugs sichtbar.',
+     '/admin/monitoring', 'admin'],
+    ['Offenes Bug-Ticket als erledigt markieren (mit Auflösungsnotiz)',
+     'Ticket-Status wechselt auf "resolved"; Auflösungsnotiz wird gespeichert.',
+     '/admin/bugs', 'admin'],
+    ['Monitoring — Pod-Statusliste prüfen',
+     'Alle Pods zeigen "Running" oder "Healthy"; keine dauerhaften CrashLoops sichtbar.',
+     '/admin/monitoring', 'admin'],
+    ['Monitoring — ein Deployment per Rolling Restart neu starten',
+     'Restart-Trigger wird bestätigt; Pod kommt wieder hoch (Status Ready).',
+     '/admin/monitoring', 'admin'],
+    ['Staleness-Report im Monitoring aufrufen und Befunde lesen',
+     'Bericht wird geladen; Empfehlungen oder OK-Status je System sind sichtbar.',
+     '/admin/monitoring', 'admin'],
+    ['Admin-Einstellungen öffnen und Konfiguration speichern',
+     'Einstellungen werden persistiert und nach Reload korrekt geladen.',
+     '/admin/einstellungen', 'admin'],
+    ['Auf eine Nutzer-Chat-Nachricht aus der Inbox antworten',
+     'Antwort wird gesendet; Nutzer sieht die Antwort im Chat-Widget (Schritt 13/15 in Protokoll 2).',
+     '/admin/inbox', 'admin'],
+  ];
+
+  for (let i = 0; i < adminSteps.length; i++) {
+    const [text, expected, url, role] = adminSteps[i];
+    await client.query(
+      `INSERT INTO questionnaire_questions
+         (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
+       VALUES ($1,$2,$3,'test_step',$4,$5,$6)`,
+      [t1, i + 1, text, expected, url, role],
+    );
+  }
+
+  // ── Template 2: Nutzerfunktionen + Externe Dienste ────────────────────────
+  const tpl2 = await client.query(
+    `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
+     VALUES ($1,$2,$3,'published',true)
+     RETURNING id`,
+    [
+      'System-Testprotokoll: Nutzerfunktionen + Externe Dienste',
+      'Vollständiger Testdurchlauf aller nutzerorientierten Funktionen. Testnutzer-Browser-Profil + Admin-Profil für markierte Schritte.',
+      'Führe Schritte mit dem Testnutzer-Browser durch, sofern nicht "Admin" angegeben. Für Admin-Schritte: zum Admin-Tab wechseln, Schritt ausführen, zurückwechseln.',
+    ],
+  );
+  const t2 = tpl2.rows[0].id as string;
+
+  const userSteps: Array<[string, string, string, 'admin' | 'user']> = [
+    ['Als Testnutzer per Keycloak SSO im Portal anmelden',
+     'Login-Flow läuft durch; Weiterleitung zum Portal-Dashboard ohne Fehlermeldung.',
+     '/portal', 'user'],
+    ['Portal-Dashboard laden und Inhalte prüfen',
+     'Dashboard zeigt zugewiesene Fragebögen, Dokumente und Projekte des Nutzers.',
+     '/portal', 'user'],
+    ['Zugewiesenen Fragebogen im Portal vollständig ausfüllen und absenden',
+     'Fragebogen-Status wechselt auf "eingereicht"; Bestätigungsseite erscheint.',
+     '/portal', 'user'],
+    ['Als Admin das Ergebnis des eingereichten Fragebogens prüfen',
+     'Auswertung mit Einzelantworten und Scoring-Dimensionen korrekt dargestellt.',
+     '/admin/clients', 'admin'],
+    ['Als Testnutzer Nextcloud per Keycloak SSO öffnen',
+     'Automatischer Login ohne zusätzliche Credentials; Dateiansicht lädt vollständig.',
+     'https://files.localhost', 'user'],
+    ['Testdatei in Nextcloud hochladen',
+     'Datei erscheint in der Dateiliste; Fortschrittsbalken läuft durch.',
+     'https://files.localhost', 'user'],
+    ['Nextcloud-Kalender öffnen und Ansicht laden',
+     'Kalender-App öffnet; Monats- oder Wochenansicht wird ohne Fehler angezeigt.',
+     'https://files.localhost/apps/calendar', 'user'],
+    ['Nextcloud-Kontakte öffnen und Kontaktliste prüfen',
+     'Kontakte-App öffnet; Kontaktliste wird geladen.',
+     'https://files.localhost/apps/contacts', 'user'],
+    ['In Nextcloud Talk einen Raum öffnen und Kamera/Mikrofon freigeben',
+     'Signaling-Verbindung wird hergestellt; lokales Video erscheint im Raum.',
+     'https://files.localhost/apps/talk', 'user'],
+    ['Eine Office-Datei via Collabora Online in Nextcloud öffnen und bearbeiten',
+     'Collabora-Editor öffnet innerhalb der Dateiansicht; Änderungen werden gespeichert.',
+     'https://files.localhost', 'user'],
+    ['Als Testnutzer Vaultwarden per Keycloak SSO öffnen',
+     'Automatischer Login; Passwort-Tresor wird vollständig geladen.',
+     'https://vault.localhost', 'user'],
+    ['Neuen Passwort-Eintrag in Vaultwarden anlegen und speichern',
+     'Eintrag erscheint in der Tresorübersicht; Passwort ist abrufbar.',
+     'https://vault.localhost', 'user'],
+    ['Im Website-Chat-Widget als Testnutzer eine Nachricht senden',
+     'Nachricht erscheint im Chat-Verlauf; Admin sieht sie in der Inbox (Admin-Tab prüfen).',
+     'https://web.localhost', 'user'],
+    ['Als Admin auf die Nutzer-Chat-Nachricht antworten (Schritt 13)',
+     'Antwort wird gesendet; Nutzer-Chat-Widget zeigt die Admin-Antwort.',
+     '/admin/inbox', 'admin'],
+    ['Im Testnutzer-Browser prüfen, ob die Admin-Antwort erscheint',
+     'Admin-Antwort ist im Chat-Widget des Nutzers sichtbar ohne Seitenreload.',
+     'https://web.localhost', 'user'],
+    ['Keycloak Account-Verwaltung als Testnutzer öffnen',
+     'Profil-Daten sind einsehbar; Passwort-Änderung und Sitzungsverwaltung zugänglich.',
+     'https://auth.localhost/realms/workspace/account', 'user'],
+    ['Zur Unterschrift zugesendetes Dokument in DocuSeal unterzeichnen',
+     'Signatur wird gespeichert; Dokument-Status wechselt auf "Abgeschlossen".',
+     'https://sign.localhost', 'user'],
+    ['Als Admin die Signatur des Dokuments in DocuSeal prüfen',
+     'Signaturstatus wird angezeigt; Dokument ist als "Completed" markiert.',
+     'https://sign.localhost', 'admin'],
+    ['Öffentliche Website-Startseite im Browser aufrufen',
+     'Startseite lädt vollständig; alle Sektionen und Bilder werden angezeigt.',
+     'https://web.localhost', 'user'],
+    ['Kontaktformular auf der Website ausfüllen und absenden',
+     'Formular wird validiert; Bestätigung erscheint; Admin erhält Benachrichtigung.',
+     'https://web.localhost', 'user'],
+  ];
+
+  for (let i = 0; i < userSteps.length; i++) {
+    const [text, expected, url, role] = userSteps[i];
+    await client.query(
+      `INSERT INTO questionnaire_questions
+         (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
+       VALUES ($1,$2,$3,'test_step',$4,$5,$6)`,
+      [t2, i + 1, text, expected, url, role],
+    );
+  }
+
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function initDb() {
@@ -144,6 +355,39 @@ async function initDb() {
       UNIQUE (assignment_id, question_id)
     )
   `);
+  // Migrations for test_step question type
+  await pool.query(`ALTER TABLE questionnaire_questions
+    ADD COLUMN IF NOT EXISTS test_expected_result TEXT,
+    ADD COLUMN IF NOT EXISTS test_function_url TEXT,
+    ADD COLUMN IF NOT EXISTS test_role TEXT`);
+  await pool.query(`ALTER TABLE questionnaire_answers
+    ADD COLUMN IF NOT EXISTS details_text TEXT`);
+  await pool.query(`ALTER TABLE questionnaire_templates
+    ADD COLUMN IF NOT EXISTS is_system_test BOOLEAN NOT NULL DEFAULT false`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS questionnaire_test_status (
+      question_id UUID PRIMARY KEY REFERENCES questionnaire_questions(id) ON DELETE CASCADE,
+      last_result TEXT NOT NULL CHECK (last_result IN ('erfüllt', 'teilweise', 'nicht_erfüllt')),
+      last_result_at TIMESTAMPTZ NOT NULL,
+      last_success_at TIMESTAMPTZ,
+      last_assignment_id UUID
+    )
+  `);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'questionnaire_test_status_last_result_check'
+          AND conrelid = 'questionnaire_test_status'::regclass
+      ) THEN
+        ALTER TABLE questionnaire_test_status
+          ADD CONSTRAINT questionnaire_test_status_last_result_check
+          CHECK (last_result IN ('erfüllt', 'teilweise', 'nicht_erfüllt'));
+      END IF;
+    END$$
+  `);
+  await seedSystemTestTemplates();
 }
 
 initDb().catch(err => console.error('[questionnaire-db] initDb error:', err));
@@ -152,7 +396,7 @@ initDb().catch(err => console.error('[questionnaire-db] initDb error:', err));
 
 export async function listQTemplates(): Promise<QTemplate[]> {
   const r = await pool.query(
-    `SELECT id, title, description, instructions, status, created_at, updated_at
+    `SELECT id, title, description, instructions, status, is_system_test, created_at, updated_at
      FROM questionnaire_templates ORDER BY created_at DESC`,
   );
   return r.rows;
@@ -160,7 +404,7 @@ export async function listQTemplates(): Promise<QTemplate[]> {
 
 export async function getQTemplate(id: string): Promise<QTemplate | null> {
   const r = await pool.query(
-    `SELECT id, title, description, instructions, status, created_at, updated_at
+    `SELECT id, title, description, instructions, status, is_system_test, created_at, updated_at
      FROM questionnaire_templates WHERE id = $1`,
     [id],
   );
@@ -192,7 +436,7 @@ export async function updateQTemplate(id: string, params: {
   const r = await pool.query(
     `UPDATE questionnaire_templates SET ${sets.join(', ')}
      WHERE id = $${vals.length}
-     RETURNING id, title, description, instructions, status, created_at, updated_at`,
+     RETURNING id, title, description, instructions, status, is_system_test, created_at, updated_at`,
     vals,
   );
   return r.rows[0] ?? null;
@@ -246,7 +490,8 @@ export async function deleteQDimension(id: string): Promise<void> {
 
 export async function listQQuestions(templateId: string): Promise<QQuestion[]> {
   const r = await pool.query(
-    `SELECT id, template_id, position, question_text, question_type, created_at
+    `SELECT id, template_id, position, question_text, question_type,
+            test_expected_result, test_function_url, test_role, created_at
      FROM questionnaire_questions WHERE template_id = $1 ORDER BY position`,
     [templateId],
   );
@@ -256,22 +501,30 @@ export async function listQQuestions(templateId: string): Promise<QQuestion[]> {
 export async function upsertQQuestion(params: {
   id?: string; templateId: string; position: number;
   questionText: string; questionType: QuestionType;
+  testExpectedResult?: string | null;
+  testFunctionUrl?: string | null;
+  testRole?: 'admin' | 'user' | null;
 }): Promise<QQuestion> {
+  const returning = `RETURNING id, template_id, position, question_text, question_type,
+                     test_expected_result, test_function_url, test_role, created_at`;
   if (params.id) {
     const r = await pool.query(
       `UPDATE questionnaire_questions
-       SET position=$1, question_text=$2, question_type=$3
-       WHERE id=$4
-       RETURNING id, template_id, position, question_text, question_type, created_at`,
-      [params.position, params.questionText, params.questionType, params.id],
+       SET position=$1, question_text=$2, question_type=$3,
+           test_expected_result=$4, test_function_url=$5, test_role=$6
+       WHERE id=$7 ${returning}`,
+      [params.position, params.questionText, params.questionType,
+       params.testExpectedResult ?? null, params.testFunctionUrl ?? null,
+       params.testRole ?? null, params.id],
     );
     return r.rows[0];
   }
   const r = await pool.query(
-    `INSERT INTO questionnaire_questions (template_id, position, question_text, question_type)
-     VALUES ($1,$2,$3,$4)
-     RETURNING id, template_id, position, question_text, question_type, created_at`,
-    [params.templateId, params.position, params.questionText, params.questionType],
+    `INSERT INTO questionnaire_questions
+       (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) ${returning}`,
+    [params.templateId, params.position, params.questionText, params.questionType,
+     params.testExpectedResult ?? null, params.testFunctionUrl ?? null, params.testRole ?? null],
   );
   return r.rows[0];
 }
@@ -404,22 +657,88 @@ export async function countPendingQAssignmentsForCustomer(customerId: string): P
 // ── Answers ───────────────────────────────────────────────────────
 
 export async function upsertQAnswer(params: {
-  assignmentId: string; questionId: string; optionKey: string;
+  assignmentId: string; questionId: string; optionKey: string; detailsText?: string | null;
 }): Promise<void> {
   await pool.query(
-    `INSERT INTO questionnaire_answers (assignment_id, question_id, option_key, saved_at)
-     VALUES ($1, $2, $3, now())
+    `INSERT INTO questionnaire_answers (assignment_id, question_id, option_key, details_text, saved_at)
+     VALUES ($1, $2, $3, $4, now())
      ON CONFLICT (assignment_id, question_id)
-     DO UPDATE SET option_key = EXCLUDED.option_key, saved_at = now()`,
-    [params.assignmentId, params.questionId, params.optionKey],
+     DO UPDATE SET option_key = EXCLUDED.option_key, details_text = EXCLUDED.details_text, saved_at = now()`,
+    [params.assignmentId, params.questionId, params.optionKey, params.detailsText ?? null],
   );
 }
 
 export async function listQAnswers(assignmentId: string): Promise<QAnswer[]> {
   const r = await pool.query(
-    `SELECT id, assignment_id, question_id, option_key, saved_at
+    `SELECT id, assignment_id, question_id, option_key, details_text, saved_at
      FROM questionnaire_answers WHERE assignment_id = $1`,
     [assignmentId],
   );
   return r.rows;
+}
+
+export async function updateTestStatuses(assignmentId: string): Promise<void> {
+  const r = await pool.query(
+    `SELECT qa.question_id, qa.option_key, qa.saved_at
+     FROM questionnaire_answers qa
+     JOIN questionnaire_questions qq ON qq.id = qa.question_id
+     WHERE qa.assignment_id = $1 AND qq.question_type = 'test_step'`,
+    [assignmentId],
+  );
+  if (r.rows.length === 0) return;
+  for (const row of r.rows) {
+    await pool.query(
+      `INSERT INTO questionnaire_test_status
+         (question_id, last_result, last_result_at, last_success_at, last_assignment_id)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (question_id) DO UPDATE SET
+         last_result = EXCLUDED.last_result,
+         last_result_at = EXCLUDED.last_result_at,
+         last_success_at = CASE
+           WHEN EXCLUDED.last_result = 'erfüllt' THEN EXCLUDED.last_result_at
+           ELSE questionnaire_test_status.last_success_at
+         END,
+         last_assignment_id = EXCLUDED.last_assignment_id`,
+      [row.question_id, row.option_key, row.saved_at,
+       row.option_key === 'erfüllt' ? row.saved_at : null, assignmentId],
+    );
+  }
+}
+
+export async function listTestStatusesForMonitoring(): Promise<{
+  template_id: string; template_title: string; questions: QTestStatus[];
+}[]> {
+  const r = await pool.query(
+    `SELECT qt.id AS template_id, qt.title AS template_title,
+            qq.id AS question_id, qq.position, qq.question_text,
+            qq.test_expected_result, qq.test_function_url, qq.test_role,
+            ts.last_result, ts.last_result_at, ts.last_success_at
+     FROM questionnaire_templates qt
+     JOIN questionnaire_questions qq ON qq.template_id = qt.id
+     LEFT JOIN questionnaire_test_status ts ON ts.question_id = qq.id
+     WHERE qt.is_system_test = true AND qq.question_type = 'test_step'
+     ORDER BY qt.created_at, qq.position`,
+  );
+  const byTemplate = new Map<string, { template_id: string; template_title: string; questions: QTestStatus[] }>();
+  for (const row of r.rows) {
+    if (!byTemplate.has(row.template_id)) {
+      byTemplate.set(row.template_id, {
+        template_id: row.template_id, template_title: row.template_title, questions: [],
+      });
+    }
+    byTemplate.get(row.template_id)!.questions.push({
+      question_id: row.question_id,
+      template_id: row.template_id,
+      template_title: row.template_title,
+      question_text: row.question_text,
+      test_expected_result: row.test_expected_result,
+      test_function_url: row.test_function_url,
+      test_role: row.test_role,
+      position: row.position,
+      last_result: row.last_result,
+      last_result_at: row.last_result_at,
+      last_success_at: row.last_success_at,
+    });
+  }
+  return Array.from(byTemplate.values());
 }

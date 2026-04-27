@@ -2,7 +2,14 @@
 <script lang="ts">
   type Dim = { id?: string; name: string; position: number; threshold_mid: number | null; threshold_high: number | null; score_multiplier: number };
   type AnswerOpt = { option_key: string; label: string; dimension_id: string | null; weight: number };
-  type Question = { id?: string; position: number; question_text: string; question_type: 'ab_choice' | 'ja_nein' | 'likert_5'; answer_options: AnswerOpt[] };
+  type Question = {
+    id?: string; position: number; question_text: string;
+    question_type: 'ab_choice' | 'ja_nein' | 'likert_5' | 'test_step';
+    answer_options: AnswerOpt[];
+    test_expected_result?: string | null;
+    test_function_url?: string | null;
+    test_role?: 'admin' | 'user' | null;
+  };
   type Tpl = { id: string; title: string; description: string; instructions: string; status: string; dimensions: Dim[]; questions: Question[] };
 
   let templates: { id: string; title: string; status: string }[] = $state([]);
@@ -56,6 +63,7 @@
       { option_key: 'Ja', label: 'Ja', dimension_id: null, weight: 1 },
       { option_key: 'Nein', label: 'Nein', dimension_id: null, weight: 1 },
     ];
+    if (type === 'test_step') return [];
     return ['1','2','3','4','5'].map(k => ({ option_key: k, label: k, dimension_id: null, weight: 1 }));
   }
 
@@ -66,6 +74,9 @@
       position: editing.questions.length + 1,
       question_text: '', question_type: type,
       answer_options: defaultOptions(type),
+      test_expected_result: null,
+      test_function_url: null,
+      test_role: null,
     }];
   }
 
@@ -238,29 +249,54 @@
             class="w-full bg-dark border border-dark-lighter rounded px-2 py-1.5 text-light text-sm focus:border-gold outline-none resize-y mb-2"></textarea>
           <select
             value={q.question_type}
-            onchange={(e) => changeQuestionType(i, (e.target as HTMLSelectElement).value as 'ab_choice'|'ja_nein'|'likert_5')}
+            onchange={(e) => changeQuestionType(i, (e.target as HTMLSelectElement).value as Question['question_type'])}
             class="bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none mb-2"
           >
             <option value="ab_choice">A/B-Wahl</option>
             <option value="ja_nein">Ja/Nein</option>
             <option value="likert_5">Likert 1–5</option>
+            <option value="test_step">Test-Schritt</option>
           </select>
           <!-- Answer option → dimension mapping -->
-          <div class="flex flex-col gap-1">
-            {#each q.answer_options as opt}
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-muted w-8">{opt.option_key}</span>
-                <select bind:value={opt.dimension_id}
-                  class="flex-1 bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-xs focus:border-gold outline-none">
-                  <option value={null}>— keine Dimension —</option>
-                  {#each editing.dimensions as dim}
-                    <option value={dim.id ?? ''}>{dim.name}</option>
-                  {/each}
-                </select>
-                <input type="number" bind:value={opt.weight} min="1" class="w-12 bg-dark border border-dark-lighter rounded px-1 py-1 text-light text-xs focus:border-gold outline-none" title="Gewichtung" />
+          {#if q.question_type === 'test_step'}
+            <div class="flex flex-col gap-2 mt-2">
+              <div>
+                <label class="block text-xs text-muted mb-1">Erwartetes Ergebnis *</label>
+                <textarea bind:value={q.test_expected_result} rows="2" placeholder="Was soll nach dem Test zu sehen sein?"
+                  class="w-full bg-dark border border-dark-lighter rounded px-2 py-1.5 text-light text-sm focus:border-gold outline-none resize-y"></textarea>
               </div>
-            {/each}
-          </div>
+              <div>
+                <label class="block text-xs text-muted mb-1">Funktions-URL</label>
+                <input bind:value={q.test_function_url} placeholder="z. B. /admin/monitoring"
+                  class="w-full bg-dark border border-dark-lighter rounded px-2 py-1.5 text-light text-sm focus:border-gold outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs text-muted mb-1">Rolle</label>
+                <select bind:value={q.test_role}
+                  class="w-full bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-sm focus:border-gold outline-none">
+                  <option value={null}>— keine —</option>
+                  <option value="admin">Admin</option>
+                  <option value="user">Nutzer</option>
+                </select>
+              </div>
+            </div>
+          {:else}
+            <div class="flex flex-col gap-1">
+              {#each q.answer_options as opt}
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-muted w-8">{opt.option_key}</span>
+                  <select bind:value={opt.dimension_id}
+                    class="flex-1 bg-dark border border-dark-lighter rounded px-2 py-1 text-light text-xs focus:border-gold outline-none">
+                    <option value={null}>— keine Dimension —</option>
+                    {#each editing.dimensions as dim}
+                      <option value={dim.id ?? ''}>{dim.name}</option>
+                    {/each}
+                  </select>
+                  <input type="number" bind:value={opt.weight} min="1" class="w-12 bg-dark border border-dark-lighter rounded px-1 py-1 text-light text-xs focus:border-gold outline-none" title="Gewichtung" />
+                </div>
+              {/each}
+            </div>
+          {/if}
         </div>
       {/each}
     </div>

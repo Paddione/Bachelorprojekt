@@ -2125,7 +2125,7 @@ tasks:
     desc: "Import einvoice-sidecar image into k3d cluster"
     deps: [einvoice-sidecar:build]
     cmds:
-      - k3d image import einvoice-sidecar:dev -c "{{.K3D_CLUSTER | default \"workspace\"}}"
+      - k3d image import einvoice-sidecar:dev -c "{{.K3D_CLUSTER | default "workspace"}}"
 
   einvoice-sidecar:logs:
     desc: "Tail einvoice-sidecar logs"

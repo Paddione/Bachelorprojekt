@@ -486,6 +486,16 @@
 (function () {
     'use strict';
 
+    const PIPELINE_STEPS = [
+        { title: 'Deploy Workspace',    cmd: 'workspace:deploy' },
+        { title: 'Deploy Office Stack', cmd: 'workspace:office:deploy' },
+        { title: 'Deploy MCP',          cmd: 'mcp:deploy' },
+        { title: 'Post-Setup',          cmd: 'workspace:post-setup' },
+        { title: 'Talk Setup',          cmd: 'workspace:talk-setup' },
+        { title: 'Recording Setup',     cmd: 'workspace:recording-setup' },
+        { title: 'Transcriber Setup',   cmd: 'workspace:transcriber-setup' },
+    ];
+
     // ── Data ───────────────────────────────────────────────────────────────
     const QUICK_STEPS = [
         { n: 1, title: 'Create the dev cluster',       cmd: 'cluster:create' },
@@ -503,47 +513,42 @@
     };
 
     const GROUPS = [
-        { cat: 'Environment & Secrets', icon: '🔑', accent: ACCENTS.env, items: [
-            { title: 'Validate All Envs',    cmd: 'env:validate:all', desc: 'Check all environment files against the schema' },
-            { title: 'Init New Env',         cmd: 'env:init',         desc: 'Scaffold a new environments/<ENV>.yaml from the schema' },
-            { title: 'Validate Env',         cmd: 'env:validate',     desc: 'Validate the selected environment file' },
-            { title: 'Show Env Config',      cmd: 'env:show',         desc: 'Print the resolved config for the selected env' },
-            { title: 'Generate Secrets',     cmd: 'env:generate',     desc: 'Generate fresh random secrets into .secrets/<ENV>.yaml',
-              dangerous: true, dangerMsg: 'Generates new random secrets. Any running deployment using the old secrets will break until redeployed.' },
-            { title: 'Seal Secrets',         cmd: 'env:seal',         desc: 'Encrypt plaintext secrets → SealedSecret (commits to git)',
-              dangerous: true, dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
-        ]},
+        // pipeline sentinel — rendered separately
+        { cat: 'Full Deploy Pipeline', icon: '🚀', accent: ACCENTS.workspace,
+          pipeline: true, items: [] },
+
         { cat: 'Cluster', icon: '⚙️', accent: ACCENTS.cluster, items: [
-            { title: 'Create Cluster',   cmd: 'cluster:create', desc: 'Bootstrap a new k3d dev cluster' },
-            { title: 'Start Cluster',    cmd: 'cluster:start',  desc: 'Resume a stopped k3d cluster' },
-            { title: 'Stop Cluster',     cmd: 'cluster:stop',   desc: 'Pause the running cluster (preserves state)' },
-            { title: 'Cluster Status',   cmd: 'cluster:status', desc: 'Show nodes, pods and resource usage' },
-            { title: 'HA Status',        cmd: 'ha:status',      desc: 'Show status of the 3-node HA cluster' },
+            { title: 'Create Cluster',  cmd: 'cluster:create', desc: 'Bootstrap a new k3d dev cluster' },
+            { title: 'Start Cluster',   cmd: 'cluster:start',  desc: 'Resume a stopped k3d cluster' },
+            { title: 'Stop Cluster',    cmd: 'cluster:stop',   desc: 'Pause the running cluster (preserves state)' },
+            { title: 'Cluster Status',  cmd: 'cluster:status', desc: 'Show nodes, pods and resource usage' },
+            { title: 'HA Status',       cmd: 'ha:status',      desc: 'Show status of the 3-node HA cluster' },
         ]},
-        { cat: 'Workspace', icon: '🚀', accent: ACCENTS.workspace, items: [
-            { title: 'Preflight Check',     cmd: 'workspace:preflight',    desc: 'Verify prerequisites before deploying' },
-            { title: 'Validate Manifests',  cmd: 'workspace:validate',     desc: 'Dry-run kustomize build + kubeconform' },
-            { title: 'Full Bring-Up',       cmd: 'workspace:up',           desc: 'Cluster + MVP + Office + MCP + post-config in one shot' },
-            { title: 'Deploy Workspace',    cmd: 'workspace:deploy',       desc: 'Apply all workspace manifests to the selected cluster' },
-            { title: 'Deploy Office Stack', cmd: 'workspace:office:deploy',desc: 'Deploy Collabora (run after workspace:deploy)' },
-            { title: 'Workspace Status',    cmd: 'workspace:status',       desc: 'Show pods, services, ingress and PVCs' },
+        { cat: 'Workspace', icon: '🏗️', accent: ACCENTS.workspace, items: [
+            { title: 'Preflight Check',     cmd: 'workspace:preflight',     desc: 'Verify prerequisites before deploying' },
+            { title: 'Validate Manifests',  cmd: 'workspace:validate',      desc: 'Dry-run kustomize build + kubeconform' },
+            { title: 'Deploy Workspace',    cmd: 'workspace:deploy',        desc: 'Apply all workspace manifests to the selected cluster' },
+            { title: 'Deploy Office Stack', cmd: 'workspace:office:deploy', desc: 'Deploy Collabora (run after workspace:deploy)' },
+            { title: 'Workspace Status',    cmd: 'workspace:status',        desc: 'Show pods, services, ingress and PVCs' },
         ]},
         { cat: 'Post-Deploy', icon: '🔧', accent: ACCENTS.post, items: [
-            { title: 'Post-Setup',    cmd: 'workspace:post-setup', desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
-            { title: 'Talk Setup',    cmd: 'workspace:talk-setup', desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
-            { title: 'Keycloak Sync', cmd: 'keycloak:sync',        desc: 'Sync realm config and OIDC clients to Keycloak' },
-        ]},
-        { cat: 'ArgoCD', icon: '♾️', accent: ACCENTS.argocd, items: [
-            { title: 'ArgoCD Status',     cmd: 'argocd:status',     desc: 'Show sync/health of all apps across all clusters' },
-            { title: 'Apply Apps',        cmd: 'argocd:apps:apply', desc: 'Apply AppProject and ApplicationSet manifests' },
-            { title: 'Bootstrap ArgoCD',  cmd: 'argocd:setup',      desc: 'Full ArgoCD install + cluster registration (run once)',
-              dangerous: true, dangerMsg: 'Bootstraps ArgoCD from scratch. Should only be run once on a fresh hub cluster.' },
+            { title: 'Post-Setup',        cmd: 'workspace:post-setup',        desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
+            { title: 'Talk Setup',        cmd: 'workspace:talk-setup',        desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
+            { title: 'Recording Setup',   cmd: 'workspace:recording-setup',   desc: 'Configure Talk recording backend' },
+            { title: 'Transcriber Setup', cmd: 'workspace:transcriber-setup', desc: 'Set up talk-transcriber bot + Whisper' },
+            { title: 'Keycloak Sync',     cmd: 'keycloak:sync',               desc: 'Sync realm config and OIDC clients to Keycloak' },
         ]},
         { cat: 'Website', icon: '🌐', accent: ACCENTS.website, items: [
             { title: 'Build Website',  cmd: 'website:build',  desc: 'Run Astro build for the selected env' },
             { title: 'Deploy Website', cmd: 'website:deploy', desc: 'Build, import and roll out the website pod' },
             { title: 'Website Status', cmd: 'website:status', desc: 'Show website deployment status' },
             { title: 'Dev Server',     cmd: 'website:dev',    desc: 'Start Astro dev server with hot-reload (streams until stopped)' },
+        ]},
+        { cat: 'ArgoCD', icon: '♾️', accent: ACCENTS.argocd, items: [
+            { title: 'ArgoCD Status',    cmd: 'argocd:status',     desc: 'Show sync/health of all apps across all clusters' },
+            { title: 'Apply Apps',       cmd: 'argocd:apps:apply', desc: 'Apply AppProject and ApplicationSet manifests' },
+            { title: 'Bootstrap ArgoCD', cmd: 'argocd:setup',      desc: 'Full ArgoCD install + cluster registration (run once)',
+              dangerous: true, dangerMsg: 'Bootstraps ArgoCD from scratch. Only run on a fresh hub cluster.' },
         ]},
         { cat: 'Daily Operations', icon: '📊', accent: ACCENTS.ops, items: [
             { title: 'Workspace Status',   cmd: 'workspace:status',             desc: 'Quick overview of all pods and services' },
@@ -554,9 +559,9 @@
               argInputs: [{ id: 'arg-restart-svc', placeholder: 'service name  e.g. keycloak', required: true }] },
         ]},
         { cat: 'MCP / Claude Code', icon: '🤖', accent: ACCENTS.mcp, items: [
-            { title: 'Deploy MCP',         cmd: 'mcp:deploy',       desc: 'Deploy the MCP monolith pod + auth proxy' },
-            { title: 'MCP Status',         cmd: 'mcp:status',       desc: 'Show MCP pod and container status' },
-            { title: 'Claude Code Setup',  cmd: 'claude-code:setup',desc: 'Generate Claude Code settings.json',
+            { title: 'Deploy MCP',        cmd: 'mcp:deploy',        desc: 'Deploy the MCP monolith pod + auth proxy' },
+            { title: 'MCP Status',        cmd: 'mcp:status',        desc: 'Show MCP pod and container status' },
+            { title: 'Claude Code Setup', cmd: 'claude-code:setup', desc: 'Generate Claude Code settings.json',
               argInputs: [{ id: 'arg-cc-mode', placeholder: 'cluster  or  business', required: true }] },
         ]},
         { cat: 'User & Data', icon: '👥', accent: ACCENTS.users, items: [
@@ -565,32 +570,77 @@
             { title: 'Data Migration',    cmd: 'workspace:migrate',       desc: 'Interactive data migration assistant' },
         ]},
         { cat: 'Backup & Restore', icon: '💾', accent: ACCENTS.backup, items: [
-            { title: 'Trigger Backup',  cmd: 'workspace:backup',      desc: 'Run an immediate backup of all databases' },
-            { title: 'List Backups',    cmd: 'workspace:backup:list', desc: 'Show available backup timestamps' },
-            { title: 'Restore from Backup', cmd: 'workspace:restore', desc: 'Overwrite a database from a backup snapshot',
+            { title: 'Trigger Backup',      cmd: 'workspace:backup',      desc: 'Run an immediate backup of all databases' },
+            { title: 'List Backups',        cmd: 'workspace:backup:list', desc: 'Show available backup timestamps' },
+            { title: 'Restore from Backup', cmd: 'workspace:restore',     desc: 'Overwrite a database from a backup snapshot',
               dangerous: true, dangerMsg: 'Overwrites the selected database with backup data. This cannot be undone.',
               argInputs: [
                 { id: 'arg-restore-db', placeholder: 'keycloak / nextcloud / all', required: true },
-                { id: 'arg-restore-ts', placeholder: 'timestamp from List Backups',required: true },
+                { id: 'arg-restore-ts', placeholder: 'timestamp from List Backups', required: true },
               ] },
         ]},
         { cat: 'Testing', icon: '🧪', accent: ACCENTS.testing, items: [
-            { title: 'Unit Tests',      cmd: 'test:unit',      desc: 'Run BATS unit tests (assertion lib, scripts, configs)' },
-            { title: 'Manifest Tests',  cmd: 'test:manifests', desc: 'Validate kustomize output structure (no cluster needed)' },
-            { title: 'All Offline Tests',cmd: 'test:all',      desc: 'Unit + manifests + dry-run' },
+            { title: 'Unit Tests',        cmd: 'test:unit',      desc: 'Run BATS unit tests (assertion lib, scripts, configs)' },
+            { title: 'Manifest Tests',    cmd: 'test:manifests', desc: 'Validate kustomize output structure (no cluster needed)' },
+            { title: 'All Offline Tests', cmd: 'test:all',       desc: 'Unit + manifests + dry-run' },
         ]},
-        { cat: 'Prerequisites', icon: '🔩', accent: ACCENTS.prereq, items: [
-            { title: 'Install Hooks', cmd: 'hooks:install', desc: 'Install git hooks for this repo' },
+        { cat: 'Environment & Secrets', icon: '🔑', accent: ACCENTS.env, items: [
+            { title: 'Validate All Envs', cmd: 'env:validate:all', desc: 'Check all environment files against the schema' },
+            { title: 'Init New Env',      cmd: 'env:init',         desc: 'Scaffold a new environments/<ENV>.yaml from the schema' },
+            { title: 'Validate Env',      cmd: 'env:validate',     desc: 'Validate the selected environment file' },
+            { title: 'Show Env Config',   cmd: 'env:show',         desc: 'Print the resolved config for the selected env' },
+            { title: 'Generate Secrets',  cmd: 'env:generate',     desc: 'Generate fresh random secrets into .secrets/<ENV>.yaml',
+              dangerous: true, dangerMsg: 'Generates new random secrets. Running services will break until redeployed with the new secrets.' },
+            { title: 'Seal Secrets',      cmd: 'env:seal',         desc: 'Encrypt plaintext secrets into a SealedSecret and commit to git',
+              dangerous: true, dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
         ]},
-        { cat: '⚠️  Danger Zone', icon: '', accent: '#c0392b', dangerZone: true, collapsed: true, items: [
+
+        // First-time bootstrap — collapsed by default
+        { cat: 'From Scratch (First-Time Only)', icon: '🧱', accent: '#7c6af5',
+          scratchZone: true, collapsed: true, items: [
+            { title: '1. Create Dev Cluster',
+              cmd: 'cluster:create',
+              desc: 'Bootstrap k3d dev cluster. Skip for prod — use ha:setup on Hetzner nodes instead.' },
+            { title: '2. Install Sealed Secrets',
+              cmd: 'sealed-secrets:install',
+              desc: 'Install Bitnami Sealed Secrets controller via Helm. Required before env:seal will work.' },
+            { title: '3. Fetch Sealing Cert',
+              cmd: 'env:fetch-cert',
+              desc: 'Download the cluster public key into environments/certs/. Run after Sealed Secrets is installed.' },
+            { title: '4. Generate Secrets',
+              cmd: 'env:generate',
+              desc: 'Generate fresh random passwords into .secrets/<ENV>.yaml. Run once per new env, then seal immediately.',
+              dangerous: true,
+              dangerMsg: 'Generates new random secrets. Any running deployment using old secrets will break until redeployed.' },
+            { title: '5. Seal Secrets',
+              cmd: 'env:seal',
+              desc: 'Encrypt .secrets/<ENV>.yaml into a SealedSecret committed to git. Must be done before workspace:deploy.',
+              dangerous: true,
+              dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
+        ]},
+
+        // Destructive operations — collapsed, with when/never guidance
+        { cat: '⚠️  Danger Zone', icon: '', accent: '#c0392b',
+          dangerZone: true, collapsed: true,
+          useWhen: [
+              'Deliberate teardown of a dev cluster',
+              'Migrating to a new cluster (only after verifying a recent backup)',
+              'Full reset after an unrecoverable failed deploy on dev',
+          ],
+          neverWhen: [
+              'ENV is set to mentolder or korczewski (production)',
+              'No backup taken in the last 24 h',
+              'Any doubt — ask first',
+          ],
+          items: [
             { title: 'Teardown Workspace', cmd: 'workspace:teardown', dangerous: true,
-              desc: 'Delete workspace namespace + all data',
+              desc: 'Delete workspace namespace + all data. Use to wipe dev or start fresh. Never on prod without a verified backup.',
               dangerMsg: 'Deletes the entire workspace namespace and ALL its data. Cannot be undone.' },
             { title: 'Delete Cluster',     cmd: 'cluster:delete',     dangerous: true,
-              desc: 'Destroy the k3d cluster entirely',
+              desc: 'Destroy the k3d cluster entirely. Dev only — never on prod Hetzner nodes. All PVCs and configs are lost.',
               dangerMsg: 'Destroys the k3d cluster and every resource inside it. Cannot be undone.' },
             { title: 'Nuke Everything',    cmd: 'down',                dangerous: true,
-              desc: 'Teardown workspace + delete cluster in one go',
+              desc: 'Teardown workspace + delete cluster in one go. Dev only. Total reset.',
               dangerMsg: 'Tears down the workspace AND deletes the cluster. Total reset. Cannot be undone.' },
         ]},
     ];

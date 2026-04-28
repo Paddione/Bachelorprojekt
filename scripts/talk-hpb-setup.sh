@@ -81,6 +81,10 @@ _occ() {
     sh -c "$*"
 }
 
+echo "  Warte auf Nextcloud Deployment (max 300s) ..."
+kubectl ${KUBE_CONTEXT:+--context $KUBE_CONTEXT} rollout status deployment/nextcloud \
+  -n "${NAMESPACE}" --timeout=300s
+
 echo "  Konfiguriere spreed signaling_servers  → ${SIGNALING_URL}"
 _occ "php occ config:app:set spreed signaling_servers --value='${SIGNALING_JSON}'" > /dev/null
 

@@ -1014,6 +1014,13 @@ tasks:
       - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
 
+  workspace:preflight:
+    desc: "Pre-deploy checklist — secrets, SealedSecrets, overlay, cluster health (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/pre-deploy-check.sh "{{.ENV}}"
+
   # ─────────────────────────────────────────────
   # Environment Management
   # ─────────────────────────────────────────────

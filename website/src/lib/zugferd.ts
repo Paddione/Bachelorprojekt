@@ -184,6 +184,9 @@ const XR_CII_GUIDELINE =
   'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3.0';
 
 export function generateXRechnungCii(p: EInvoiceInput): string {
+  if (!p.customer.leitwegId) {
+    throw new Error('XRechnung verlangt eine Leitweg-ID (BT-10) auf dem Käufer.');
+  }
   const isKlein = p.invoice.taxMode === 'kleinunternehmer';
   const currency = 'EUR';
   const fmt2 = (n: number) => n.toFixed(2);
@@ -257,7 +260,7 @@ export function generateXRechnungCii(p: EInvoiceInput): string {
   </rsm:ExchangedDocument>
   <rsm:SupplyChainTradeTransaction>${lineXml}
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>${esc(p.customer.leitwegId!)}</ram:BuyerReference>
+      <ram:BuyerReference>${esc(p.customer.leitwegId)}</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>${esc(p.seller.name)}</ram:Name>
         <ram:PostalTradeAddress>

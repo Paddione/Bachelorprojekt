@@ -52,4 +52,22 @@ describe('generateEInvoiceXml', () => {
     const noLeitweg = { ...baseInput, customer: { ...baseInput.customer, leitwegId: undefined } };
     expect(() => generateEInvoiceXml('xrechnung-cii', noLeitweg)).toThrow(/Leitweg-ID/);
   });
+
+  it('xrechnung-cii element order: lines → agreement → delivery → settlement', () => {
+    const xml = generateEInvoiceXml('xrechnung-cii', baseInput);
+    const idxLines      = xml.indexOf('<ram:IncludedSupplyChainTradeLineItem>');
+    const idxAgreement  = xml.indexOf('<ram:ApplicableHeaderTradeAgreement>');
+    const idxDelivery   = xml.indexOf('<ram:ApplicableHeaderTradeDelivery');
+    const idxSettlement = xml.indexOf('<ram:ApplicableHeaderTradeSettlement>');
+    expect(idxLines).toBeGreaterThan(0);
+    expect(idxLines).toBeLessThan(idxAgreement);
+    expect(idxAgreement).toBeLessThan(idxDelivery);
+    expect(idxDelivery).toBeLessThan(idxSettlement);
+  });
+
+  it('xrechnung-cii throws when called directly without leitwegId', async () => {
+    const { generateXRechnungCii } = await import('./zugferd');
+    const noLeitweg = { ...baseInput, customer: { ...baseInput.customer, leitwegId: undefined } };
+    expect(() => generateXRechnungCii(noLeitweg)).toThrow(/Leitweg-ID/);
+  });
 });

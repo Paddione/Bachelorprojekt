@@ -1,10 +1,10 @@
 // Leitweg-ID nach Spezifikation der Koordinierungsstelle für IT-Standards (KoSIT) v2.0.2:
 // <Grobadressierung>[-<Feinadressierung>]-<Prüfziffer>
 //   Grobadressierung: 2..12 Zeichen, [A-Z0-9]
-//   Feinadressierung: 0..30 Zeichen, [A-Z0-9._-] (optional, mit eigenem Bindestrich davor)
+//   Feinadressierung: 1..30 Zeichen, erstes [A-Z0-9], danach [A-Z0-9._-] (optional, mit eigenem Bindestrich davor)
 //   Prüfziffer: genau 2 Ziffern
 // Gesamtlänge inkl. Trennstriche: max 46 Zeichen.
-const LEITWEG_RE = /^[A-Z0-9]{2,12}(-[A-Z0-9._-]{0,30})?-\d{2}$/;
+const LEITWEG_RE = /^[A-Z0-9]{2,12}(-[A-Z0-9][A-Z0-9._-]{0,29})?-\d{2}$/;
 
 export interface LeitwegResult { ok: boolean; reason?: string }
 

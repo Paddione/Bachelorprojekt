@@ -1159,6 +1159,12 @@ tasks:
     cmds:
       - kubectl logs -n workspace job/vaultwarden-seed
 
+  billing:validate-einvoice:
+    desc: "Validate an XML or PDF e-invoice via Mustangproject (in Docker)"
+    cmds:
+      - bash website/tests/fixtures/mustang.sh validate {{.CLI_ARGS}}
+    silent: false
+
   workspace:shortcuts:seed:
     desc: "Seed default admin shortcuts into website DB (usage: task workspace:shortcuts:seed ENV=mentolder|korczewski)"
     cmds:

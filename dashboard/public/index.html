@@ -57,6 +57,27 @@
         #env-select:focus { outline: 1px solid var(--primary); }
         #env-select.prod { border-color: var(--warn); color: #ffb060; }
 
+        #ctx-btn {
+            flex-shrink: 0; background: var(--bg4); border: 1px solid var(--border);
+            color: var(--text-dim); padding: 4px 9px; border-radius: var(--radius);
+            font-size: 11px; cursor: pointer; white-space: nowrap; transition: background .1s, color .1s, border-color .15s;
+        }
+        #ctx-btn:hover { background: var(--bg3); color: var(--text); }
+        #ctx-btn.ok   { border-color: var(--success); color: var(--success); }
+        #ctx-btn.fail { border-color: var(--error);   color: var(--error); }
+        #ctx-feedback {
+            font-size: 10px; color: var(--text-dim); margin-top: 5px;
+            min-height: 14px; line-height: 1.4; transition: color .2s;
+        }
+        #ctx-feedback.ok   { color: var(--success); }
+        #ctx-feedback.fail { color: var(--error); }
+        #live-ctx {
+            font-size: 10px; font-family: monospace; color: var(--text-dim);
+            margin-top: 3px; min-height: 13px; line-height: 1.4;
+        }
+        #live-ctx .ctx-ok   { color: var(--success); }
+        #live-ctx .ctx-warn { color: var(--warn); }
+
         #prod-banner {
             display: none; margin-top: 8px; padding: 6px 10px;
             background: #2d1f00; border: 1px solid #6b4400;
@@ -456,7 +477,10 @@
                 <option value="mentolder">mentolder — PRODUCTION</option>
                 <option value="korczewski">korczewski — PRODUCTION</option>
             </select>
+            <button id="ctx-btn" title="Switch kubectl context to k3d-dev">⇌ ctx</button>
         </div>
+        <div id="ctx-feedback"></div>
+        <div id="live-ctx"></div>
         <div id="prod-banner">
             ⚠️  Production environment selected.<br>
             Destructive tasks will affect live data and real users.
@@ -719,12 +743,72 @@
         document.getElementById('quickstart').classList.toggle('open');
     });
 
-    // ── ENV selector ───────────────────────────────────────────────────────
-    const envSelect = document.getElementById('env-select');
+    // ── ENV selector & context switcher ───────────────────────────────────
+    const envSelect   = document.getElementById('env-select');
+    const ctxBtn      = document.getElementById('ctx-btn');
+    const ctxFeedback = document.getElementById('ctx-feedback');
+    const liveCtxEl   = document.getElementById('live-ctx');
+
+    const ENV_CTX = { dev: 'k3d-dev', mentolder: 'mentolder', korczewski: 'korczewski' };
+
+    let liveContext  = null;   // current kubectl context reported by server
+    let ctxConfirmed = false;  // true after ctx switch succeeds or user clicks "Run Anyway"
+
+    function ctxMatchesEnv() {
+        return liveContext !== null && liveContext === ENV_CTX[envSelect.value];
+    }
+
+    function updateLiveCtxDisplay() {
+        liveCtxEl.textContent = '';
+        if (!liveContext) return;
+        const expected = ENV_CTX[envSelect.value];
+        liveCtxEl.appendChild(document.createTextNode('ctx: '));
+        const val = document.createElement('span');
+        val.textContent = liveContext;
+        val.className = liveContext === expected ? 'ctx-ok' : 'ctx-warn';
+        liveCtxEl.appendChild(val);
+        if (liveContext !== expected) {
+            const exp = document.createElement('span');
+            exp.className = 'ctx-warn';
+            exp.textContent = ' (expects ' + expected + ')';
+            liveCtxEl.appendChild(exp);
+        }
+    }
+
+    function updateCtxBtnTitle() {
+        const ctx = ENV_CTX[envSelect.value] || envSelect.value;
+        ctxBtn.title = 'Switch kubectl context to ' + ctx;
+    }
+    updateCtxBtnTitle();
+
+    let ctxFeedbackTimer = null;
+    function showCtxFeedback(ok, msg) {
+        ctxFeedback.textContent = msg;
+        ctxFeedback.className = ok ? 'ok' : 'fail';
+        ctxBtn.className = ok ? 'ok' : 'fail';
+        clearTimeout(ctxFeedbackTimer);
+        ctxFeedbackTimer = setTimeout(() => {
+            ctxFeedback.textContent = '';
+            ctxFeedback.className = '';
+            ctxBtn.className = '';
+        }, 3000);
+    }
+
+    ctxBtn.addEventListener('click', () => {
+        ctxBtn.disabled = true;
+        socket.emit('switch-context', { env: envSelect.value });
+    });
+
     envSelect.addEventListener('change', () => {
         const isProd = envSelect.value !== 'dev';
         document.getElementById('prod-banner').classList.toggle('visible', isProd);
         envSelect.classList.toggle('prod', isProd);
+        updateCtxBtnTitle();
+        updateLiveCtxDisplay();
+        ctxConfirmed = false;
+        ctxFeedback.textContent = '';
+        ctxFeedback.className = '';
+        ctxBtn.className = '';
         // Re-hydrate skip state and re-render pipeline checkboxes for the new ENV.
         // applySkipUiForEnv is defined in the pipeline section (Task 3); guard for
         // initial load when it does not yet exist.
@@ -1339,12 +1423,36 @@
     // ── Confirmation modal ─────────────────────────────────────────────────
     let pending = null;
 
+    const modalIcon    = document.getElementById('modal-icon');
+    const modalTitle   = document.getElementById('modal-title');
+    const modalCmd     = document.getElementById('modal-cmd');
+    const modalMsg     = document.getElementById('modal-msg');
+    const modalConfirm = document.getElementById('modal-confirm');
+
     function showModal(item, args) {
-        const env = envSelect.value;
+        const env   = envSelect.value;
         const label = 'task ' + item.cmd + (args.length ? '  ' + args.join(' ') : '') + '   [ENV=' + env + ']';
-        document.getElementById('modal-cmd').textContent = label;
-        document.getElementById('modal-msg').textContent = item.dangerMsg;
-        pending = { cmd: item.cmd, args };
+        modalIcon.textContent    = '⚠️';
+        modalTitle.textContent   = 'Confirm Dangerous Operation';
+        modalCmd.textContent     = label;
+        modalMsg.textContent     = item.dangerMsg;
+        modalConfirm.textContent = 'Yes, Proceed';
+        pending = { cmd: item.cmd, args, ctxConfirm: false };
+        document.getElementById('modal-overlay').classList.add('visible');
+    }
+
+    function showCtxModal(command, args) {
+        const env      = envSelect.value;
+        const expected = ENV_CTX[env];
+        const current  = liveContext || 'unknown';
+        modalIcon.textContent    = '⚠️';
+        modalTitle.textContent   = 'kubectl context not switched';
+        modalCmd.textContent     = 'ENV ' + env + '  →  cluster ' + expected + '  /  current ctx: ' + current;
+        modalMsg.textContent     = 'You selected ENV ' + env + ' which targets the ' + expected +
+            ' cluster, but your kubectl context is currently set to "' + current + '". ' +
+            'Use the ⇌ ctx button to switch first, or run anyway against the active context.';
+        modalConfirm.textContent = 'Run Anyway';
+        pending = { cmd: command, args, ctxConfirm: true };
         document.getElementById('modal-overlay').classList.add('visible');
     }
 
@@ -1355,7 +1463,11 @@
 
     document.getElementById('modal-cancel').addEventListener('click', closeModal);
     document.getElementById('modal-confirm').addEventListener('click', () => {
-        const p = pending; closeModal(); if (p) runTask(p.cmd, p.args);
+        const p = pending;
+        closeModal();
+        if (!p) return;
+        if (p.ctxConfirm) ctxConfirmed = true;
+        runTask(p.cmd, p.args);
     });
     document.getElementById('modal-overlay').addEventListener('click', (e) => {
         if (e.target === document.getElementById('modal-overlay')) closeModal();
@@ -1381,6 +1493,10 @@
 
     function runTask(command, args) {
         if (running) return;
+        if (!ctxConfirmed && !ctxMatchesEnv()) {
+            showCtxModal(command, args);
+            return;
+        }
         running = true;
         setButtons(true);
         stopBtn.style.display = 'inline-block';
@@ -1399,13 +1515,43 @@
     // ── Socket ─────────────────────────────────────────────────────────────
     const connDot = document.getElementById('conn-dot');
 
+    let wasDisconnected = false;
+
     socket.on('connect', () => {
         connDot.className = 'connected';
-        if (!running) { statusEl.className = ''; statusEl.textContent = 'Ready'; }
+        if (wasDisconnected && running) {
+            // Server restarted mid-task — reset client state so UI is usable again.
+            running = false;
+            setButtons(false);
+            stopBtn.style.display = 'none';
+            if (pipeline.active) abortPipeline();
+            statusEl.className = 'fail';
+            statusEl.textContent = 'Reconnected — previous task was lost (server restarted)';
+        } else if (!running) {
+            statusEl.className = '';
+            statusEl.textContent = 'Ready';
+        }
+        wasDisconnected = false;
     });
     socket.on('disconnect', () => {
+        wasDisconnected = true;
         connDot.className = 'disconnected';
         statusEl.className = 'fail'; statusEl.textContent = 'Disconnected from server';
+    });
+
+    socket.on('current-context', ({ ctx }) => {
+        liveContext = ctx || null;
+        updateLiveCtxDisplay();
+    });
+
+    socket.on('context-result', ({ ok, ctx, msg }) => {
+        ctxBtn.disabled = false;
+        if (ok) {
+            ctxConfirmed = true;
+            showCtxFeedback(true, '✓ context → ' + ctx);
+        } else {
+            showCtxFeedback(false, '✗ ' + (msg || 'failed'));
+        }
     });
 
     socket.on('log', ({ type, data }) => {

@@ -73,17 +73,14 @@ export const GET: APIRoute = async ({ request, url }) => {
 
   const rows = result.rows.map(r => ({
     invoiceNumber:    r.number,
-    amount:           Math.round((r.gross_amount - (r.paid_amount ?? 0)) * 100) / 100,
+    amount:           Math.round((Number(r.gross_amount) - Number(r.paid_amount ?? 0)) * 100) / 100,
     paymentReference: r.payment_reference ?? undefined,
     customerName:     r.customer_name,
     sepaIban:         r.sepa_iban ?? undefined,
     sepaBic:          r.sepa_bic ?? undefined,
     sepaMandateRef:   r.sepa_mandate_ref ?? undefined,
     sepaMandateDate:  r.sepa_mandate_date
-      ? (() => {
-          const d = r.sepa_mandate_date!;
-          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        })()
+      ? r.sepa_mandate_date.toISOString().slice(0, 10)
       : undefined,
   }));
 

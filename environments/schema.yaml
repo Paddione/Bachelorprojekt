@@ -63,6 +63,16 @@ env_vars:
     required: true
     default_dev: "workspace-website"
 
+  - name: EINVOICE_SIDECAR_ENABLED
+    required: false
+    default_dev: "false"
+    description: "Enable Mustangproject sidecar for PDF/A-3 + factur-x.xml embedding"
+
+  - name: EINVOICE_SIDECAR_URL
+    required: false
+    default_dev: "http://einvoice-sidecar.workspace.svc.cluster.local"
+    description: "Cluster URL for the einvoice-sidecar"
+
   - name: INFRA_NAMESPACE
     required: true
     default_dev: "workspace-infra"

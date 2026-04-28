@@ -105,13 +105,31 @@ spec:
           args:
             - --providers.kubernetesingress
             - --providers.kubernetescrd
+            # Traefik runs in kube-system but every Ingress/IngressRoute
+            # references middlewares living in the `workspace` ns
+            # (e.g. `workspace-security-headers@kubernetescrd`). Without
+            # cross-namespace lookup the kubernetescrd provider rejects
+            # those refs and Traefik returns 404 for every host.
+            - --providers.kubernetescrd.allowCrossNamespace=true
+            - --providers.kubernetesingress.allowExternalNameServices=true
             - --entrypoints.web.address=:80
             - --entrypoints.websecure.address=:443
             - --entrypoints.traefik.address=:9000
             - --api.dashboard=true
             - --ping=true
             - --accesslog=true
-            - --providers.kubernetesingress.ingressclass=traefik
+            # NOTE: do NOT set --providers.kubernetesingress.ingressclass.
+            # The flag forces legacy annotation-based class matching, which
+            # silently drops every Ingress that uses the modern
+            # `spec.ingressClassName: traefik` (i.e. all of ours). Traefik
+            # already binds to the IngressClass via its controller name
+            # (`traefik.io/ingress-controller`).
+            # pk-hetzner is the only public-IP node; pin Ingress
+            # status.loadBalancer.ingress to the single real public IP
+            # so kubectl get ingress reports something usable instead
+            # of the stale 7-IP DaemonSet list inherited from a previous
+            # Helm install.
+            - --providers.kubernetesingress.ingressendpoint.ip=62.238.9.39
           ports:
             - name: web
               containerPort: 80

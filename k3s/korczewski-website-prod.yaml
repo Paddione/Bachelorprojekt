@@ -1,12 +1,17 @@
-# ── Production IngressRoute for korczewski-website ──────────────────────────
-# HTTPS + Let's Encrypt via Traefik certResolver
-# Deployment uses image ghcr.io/paddione/workspace-website:latest (shared image).
-# injected via the ConfigMap in k3d/korczewski-website.yaml.
+# ── Production IngressRoute for korczewski website ──────────────────────────
+# HTTPS via the manually-issued wildcard cert in `korczewski-tls`. No
+# certResolver: korczewski runs Traefik with hostNetwork on pk-hetzner
+# without ACME configured — using `letsencrypt` here makes Traefik try
+# (and fail) to issue a fresh cert on every restart and ignores the
+# wildcard secret. The deployment lives in the `website` namespace
+# (shared with mentolder); there is no `korczewski-website` namespace.
+#
+# Apply: kubectl --context korczewski apply -f k3s/korczewski-website-prod.yaml
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: korczewski-website
-  namespace: korczewski-website
+  name: website
+  namespace: website
 spec:
   entryPoints:
     - websecure
@@ -14,7 +19,7 @@ spec:
     - kind: Rule
       match: Host(`web.korczewski.de`)
       services:
-        - name: korczewski-website
+        - name: website
           port: 80
   tls:
     secretName: korczewski-tls

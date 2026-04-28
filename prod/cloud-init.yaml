@@ -117,6 +117,10 @@ runcmd:
   # Install Traefik via Helm
   - su - patrick -c "helm repo add traefik https://traefik.github.io/charts"
   - su - patrick -c "helm repo update"
-  - su - patrick -c "KUBECONFIG=/home/patrick/.kube/config helm install traefik traefik/traefik -n kube-system --set ports.web.hostPort=80 --set ports.websecure.hostPort=443 --set deployment.kind=DaemonSet --set ingressRoute.dashboard.enabled=false --set providers.kubernetesingress.ingressClass=traefik"
+  # The Traefik chart creates an IngressClass named "traefik" by default;
+  # we deliberately do NOT pass --set providers.kubernetesingress.ingressClass=traefik
+  # because the live mentolder install does not have that arg either, and
+  # adding it would force a chart upgrade just to match the docs.
+  - su - patrick -c "KUBECONFIG=/home/patrick/.kube/config helm install traefik traefik/traefik -n kube-system --set ports.web.hostPort=80 --set ports.websecure.hostPort=443 --set deployment.kind=DaemonSet --set ingressRoute.dashboard.enabled=false"
 
 final_message: "k3s control plane ready on $(hostname) - $(date)"

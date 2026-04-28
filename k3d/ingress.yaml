@@ -1,4 +1,9 @@
 # ─── Workspace Dev-Ingress ──────────────────────────────────────────
+# DEV-ONLY (*.localhost). Production overlays (prod/, prod-mentolder/,
+# prod-korczewski/) drop these via `$patch: delete` and substitute the
+# real-domain ingresses defined in `prod/ingress.yaml`. Do NOT
+# `kubectl apply -f k3d/ingress.yaml` against a prod cluster — always
+# go through `task workspace:deploy ENV=<env>` / kustomize.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

@@ -96,6 +96,53 @@ export const POST: APIRoute = async ({ request, params }) => {
       ? (draftRow.service_period_start as Date).toISOString().split('T')[0] : undefined,
     servicePeriodEnd: draftRow.service_period_end
       ? (draftRow.service_period_end as Date).toISOString().split('T')[0] : undefined,
+    leitwegId: draftRow.leitweg_id ?? undefined,
+  };
+
+  const invoiceInput = {
+    number: tempInvoice.number,
+    issueDate: tempInvoice.issueDate,
+    dueDate: tempInvoice.dueDate,
+    currency: 'EUR',
+    taxMode: tempInvoice.taxMode as 'kleinunternehmer' | 'regelbesteuerung',
+    servicePeriodStart: tempInvoice.servicePeriodStart,
+    servicePeriodEnd: tempInvoice.servicePeriodEnd,
+    paymentReference: tempInvoice.paymentReference,
+    notes: tempInvoice.notes,
+    lines: lines.map(l => ({
+      description: l.description,
+      quantity: l.quantity,
+      unit: l.unit || 'C62',
+      unitPrice: l.unitPrice,
+      netAmount: l.netAmount,
+      taxRate: tempInvoice.taxMode === 'kleinunternehmer' ? 0 : tempInvoice.taxRate,
+      taxCategory: (tempInvoice.taxMode === 'kleinunternehmer' ? 'E' : 'S') as 'E' | 'S',
+    })),
+    netTotal: tempInvoice.netAmount,
+    taxTotal: tempInvoice.taxAmount,
+    grossTotal: tempInvoice.grossAmount,
+    seller: {
+      name: seller.name,
+      address: seller.address,
+      postalCode: seller.postalCode,
+      city: seller.city,
+      country: seller.country,
+      vatId: seller.vatId || undefined,
+      taxNumber: seller.taxNumber || undefined,
+      contactEmail: seller.email || 'noreply@mentolder.de',
+      iban: seller.iban,
+      bic: seller.bic || undefined,
+    },
+    buyer: {
+      name: customer.name || customer.company || 'Unbekannt',
+      email: customer.email,
+      address: customer.addressLine1 || undefined,
+      postalCode: customer.postalCode || undefined,
+      city: customer.city || undefined,
+      country: customer.country || 'DE',
+      vatId: customer.vatNumber || undefined,
+      leitwegId: draftRow.leitweg_id || customer.defaultLeitwegId || undefined,
+    },
   };
 
   let xml: string;
@@ -121,6 +168,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     actor: { userId: session.sub, email: session.email },
     pdfBlob: pdf,
     pdfMime: 'application/pdf',
+    invoiceInput,
   });
   if (!finalized) return new Response('Failed to finalize invoice', { status: 409 });
 

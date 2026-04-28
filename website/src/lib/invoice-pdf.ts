@@ -299,3 +299,13 @@ export async function generateInvoicePdf(p: {
     doc.end();
   });
 }
+
+import { createSidecarClient, sidecarBaseUrlFromEnv } from './einvoice/sidecar-client';
+
+export async function embedFacturX(rawPdf: Buffer, facturXXml: string): Promise<Buffer> {
+  const enabled = process.env.EINVOICE_SIDECAR_ENABLED === 'true';
+  if (!enabled) return rawPdf;
+  const client = createSidecarClient(sidecarBaseUrlFromEnv());
+  const out = await client.embed(rawPdf, facturXXml);
+  return out.pdf;
+}

@@ -263,26 +263,33 @@ all_images() {
 
   run python3 -c "
 import subprocess, sys, yaml, glob, os
+from concurrent.futures import ThreadPoolExecutor
 
 overlays = sorted(glob.glob('${PROJECT_DIR}/prod*'))
 overlays = [o for o in overlays if os.path.isdir(o)]
-found = []
-for overlay in overlays:
+
+def check_overlay(overlay):
     try:
         result = subprocess.run(
             ['kubectl', 'kustomize', overlay],
             capture_output=True, text=True, check=True
         )
+        for doc in yaml.safe_load_all(result.stdout):
+            if not doc:
+                continue
+            if (doc.get('kind') == 'Secret' and
+                    doc.get('metadata', {}).get('name') == 'workspace-secrets' and
+                    (doc.get('stringData') or doc.get('data'))):
+                return overlay
     except subprocess.CalledProcessError as e:
         print(f'kustomize build failed for {overlay}: {e.stderr}', file=sys.stderr)
         sys.exit(1)
-    for doc in yaml.safe_load_all(result.stdout):
-        if not doc:
-            continue
-        if (doc.get('kind') == 'Secret' and
-                doc.get('metadata', {}).get('name') == 'workspace-secrets' and
-                (doc.get('stringData') or doc.get('data'))):
-            found.append(overlay)
+    return None
+
+with ThreadPoolExecutor() as executor:
+    results = list(executor.map(check_overlay, overlays))
+
+found = [r for r in results if r is not None]
 if found:
     print('workspace-secrets Secret with data found in: ' + ', '.join(found))
     sys.exit(1)

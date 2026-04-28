@@ -7,170 +7,26 @@ on:
     branches: [main]
 
 jobs:
-  validate-manifests:
-    name: Validate Kubernetes Manifests
+  offline-tests:
+    name: Offline Tests (Manifests, Configs, Unit)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install kubectl + kubeconform
-        run: |
-          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
-            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz \
-            | sudo tar xz -C /usr/local/bin kubeconform
-
-      - name: Create CI dummy secrets
-        run: bash scripts/ci-dummy-secrets.sh
-
-      - name: Validate kustomize output
-        run: |
-          kubectl kustomize k3d/ > /dev/null
-          kubectl kustomize k3d/office-stack/ > /dev/null
-          kubectl kustomize k3d/coturn-stack/ > /dev/null
-          echo "Kustomize build succeeded"
-
-      - name: Validate manifests with kubeconform
-        run: |
-          for tree in k3d/ k3d/office-stack/ k3d/coturn-stack/; do
-            kubectl kustomize "$tree" | kubeconform -strict -summary \
-              -kubernetes-version 1.31.0 \
-              -schema-location default \
-              -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
-          done
-          echo "Manifest validation passed"
-
-  lint-yaml:
-    name: Lint YAML
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install yamllint
-        run: pip install yamllint==1.35.1
-
-      - name: Lint k3d and prod manifests
-        run: |
-          find k3d/ prod/ prod-mentolder/ prod-korczewski/ -maxdepth 1 -name '*.yaml' \
-            | sort \
-            | xargs yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}'
-
-  lint-scripts:
-    name: Lint Shell Scripts
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install shellcheck
-        run: |
-          curl -sSL https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz \
-            | tar -xJf - --strip-components=1 -C /usr/local/bin shellcheck-v0.10.0/shellcheck
-
-      - name: Check scripts
-        run: |
-          shellcheck -x -S warning scripts/*.sh k3d/*.sh tests/lib/*.sh
-          echo "Shellcheck passed"
-
-  test-configs:
-    name: Validate Configs
-    runs-on: ubuntu-latest
-    needs: [validate-manifests]
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Validate realm JSON files
-        run: |
-          for f in k3d/realm-workspace-dev.json \
-                   prod/realm-workspace-prod.json \
-                   prod-mentolder/realm-workspace-mentolder.json \
-                   prod-korczewski/realm-workspace-korczewski.json; do
-            python3 -c "import json; json.load(open('$f'))" && echo "$f is valid JSON"
-          done
-
-      - name: Validate PHP config
-        run: |
-          php -l k3d/nextcloud-oidc-dev.php
-          echo "PHP config is syntactically valid"
-
-  validate-environments:
-    name: Validate Environment Configs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Validate all environments against schema
-        run: |
-          for f in environments/*.yaml; do
-            name="$(basename "$f" .yaml)"
-            [ "$name" = "schema" ] && continue
-            echo "--- Validating: $name ---"
-            bash scripts/env-validate.sh --env "$name" --env-dir environments --schema-only
-          done
-
-      - name: Check for cross-environment drift
-        run: bash scripts/env-validate.sh --drift --env-dir environments --strict
-
-  validate-prod-secrets:
-    name: Validate Prod Overlays Have No Dev Secrets
-    runs-on: ubuntu-latest
-    needs: [validate-manifests]
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install kubectl
-        run: |
-          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
-            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-
-      - name: Create CI dummy secrets
-        run: bash scripts/ci-dummy-secrets.sh
-
-      - name: Check prod overlays exclude workspace-secrets Secret
-        run: |
-          python3 - <<'EOF'
-          import subprocess, sys, yaml, glob, os
-
-          overlays = sorted(o for o in glob.glob('prod-*') if os.path.isdir(o))
-          found = []
-          for overlay in overlays:
-              result = subprocess.run(
-                  ['kubectl', 'kustomize', overlay],
-                  capture_output=True, text=True
-              )
-              if result.returncode != 0:
-                  print(f'ERROR: kustomize build failed for {overlay}:\n{result.stderr}', file=sys.stderr)
-                  sys.exit(1)
-              for doc in yaml.safe_load_all(result.stdout):
-                  if not doc:
-                      continue
-                  if (doc.get('kind') == 'Secret' and
-                          doc.get('metadata', {}).get('name') == 'workspace-secrets' and
-                          (doc.get('stringData') or doc.get('data'))):
-                      found.append(overlay)
-          if found:
-              print('FAIL: workspace-secrets Secret with data found in overlays: ' + ', '.join(found))
-              print('The $patch: delete in prod/kustomization.yaml may have been removed.')
-              sys.exit(1)
-          print('OK: workspace-secrets Secret absent from all prod overlays (' + str(len(overlays)) + ' checked)')
-          EOF
-
-  unit-tests:
-    name: BATS Unit Tests
-    runs-on: ubuntu-latest
-    needs: [validate-manifests]
     steps:
       - uses: actions/checkout@v5
         with:
           submodules: recursive
 
       - name: Install dependencies
-        run: sudo apt-get install -y jq
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq curl python3-pip
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
-      - name: Run BATS unit tests
-        run: ./tests/unit/lib/bats-core/bin/bats --formatter tap tests/unit/
+      - name: Run all offline tests
+        run: task test:all
 
       - name: Validate Systembrett template
         run: ./scripts/tests/systembrett-template.test.sh

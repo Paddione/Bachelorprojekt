@@ -30,13 +30,15 @@ source "${SCRIPT_DIR}/lib/k3d.sh"
 # ── Argument parsing ─────────────────────────────────────────────
 TIER=""
 SPECIFIC_TESTS=()
+export JOBS="${JOBS:-1}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     local|prod|report) TIER="$1"; shift ;;
     --verbose) export VERBOSE="true"; shift ;;
+    -j|--jobs) export JOBS="$2"; shift 2 ;;
     -h|--help)
-      echo "Usage: $0 <local|prod|report> [TEST_IDS...] [--verbose]"
+      echo "Usage: $0 <local|prod|report> [TEST_IDS...] [--verbose] [-j|--jobs N]"
       exit 0 ;;
     *)
       SPECIFIC_TESTS+=("$1"); shift ;;
@@ -63,22 +65,64 @@ check_prereqs() {
 # ── Run test files ───────────────────────────────────────────────
 run_test_files() {
   local test_dir="$1"
-  local files=()
+  local all_files=()
 
   if (( ${#SPECIFIC_TESTS[@]} > 0 )); then
     for test_id in "${SPECIFIC_TESTS[@]}"; do
-      local f="${test_dir}/${test_id}.sh"
-      [[ -f "$f" ]] && files+=("$f")
+      # Support both .sh and .bats extensions
+      if [[ -f "${test_dir}/${test_id}.sh" ]]; then
+        all_files+=("${test_dir}/${test_id}.sh")
+      elif [[ -f "${test_dir}/${test_id}.bats" ]]; then
+        all_files+=("${test_dir}/${test_id}.bats")
+      fi
     done
   else
-    for f in "${test_dir}"/*.sh; do
-      [[ -f "$f" ]] && files+=("$f")
-    done
+    # Find both .sh and .bats files
+    while IFS= read -r -d '' f; do
+      all_files+=("$f")
+    done < <(find "${test_dir}" -maxdepth 1 \( -name "*.sh" -o -name "*.bats" \) -print0 | sort -z)
   fi
 
-  for f in "${files[@]}"; do
+  local parallel_files=()
+  local serial_files=()
+  for f in "${all_files[@]}"; do
+    # NFA tests (Non-Functional Requirements) often involve destructive actions
+    # like killing pods or stress testing, so they run sequentially.
+    if [[ $(basename "$f") =~ ^NFA- ]] || [[ "$JOBS" -le 1 ]]; then
+      serial_files+=("$f")
+    else
+      parallel_files+=("$f")
+    fi
+  done
+
+  # 1. Parallel Block
+  if (( ${#parallel_files[@]} > 0 )); then
+    echo "▶ Starte ${#parallel_files[@]} Tests parallel (${JOBS} Jobs)..."
+    local running=0
+    for f in "${parallel_files[@]}"; do
+      local test_name
+      test_name=$(basename "$f")
+      (
+        if [[ "$f" == *.bats ]]; then
+          "${SCRIPT_DIR}/unit/lib/bats-core/bin/bats" "$f" > /dev/null 2>&1
+        else
+          bash "$f" > /dev/null 2>&1
+        fi
+      ) &
+      ((running++))
+      if (( running >= JOBS )); then
+        wait -n
+        ((running--))
+      fi
+    done
+    wait
+    echo "✓ Parallele Tests abgeschlossen."
+  fi
+
+  # 2. Serial Block
+  for f in "${serial_files[@]}"; do
     local test_name
-    test_name=$(basename "$f" .sh)
+    test_name=$(basename "$f")
     echo ""
     echo "━━━ ${test_name} ━━━"
     # Re-establish port-forwards if they died (e.g. after NFA-03 pod kill)
@@ -90,7 +134,12 @@ run_test_files() {
         fi
       fi
     fi
-    bash "$f"
+    
+    if [[ "$f" == *.bats ]]; then
+      "${SCRIPT_DIR}/unit/lib/bats-core/bin/bats" "$f"
+    else
+      bash "$f"
+    fi
   done
 }
 

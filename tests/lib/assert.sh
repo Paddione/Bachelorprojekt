@@ -36,6 +36,9 @@ _log_result() {
     ((_ASSERT_FAIL++)) || true
     echo -e "  ${_A_RED}✗${_A_NC} ${req}/${test_id}: ${desc}"
     [[ -n "$detail" ]] && echo -e "    ${_A_RED}→ ${detail}${_A_NC}"
+    if [[ "${ASSERT_EXIT_ON_FAIL:-}" == "true" ]]; then
+      return 1
+    fi
   else
     ((_ASSERT_SKIP++)) || true
     [[ "${VERBOSE:-}" == "true" ]] && echo -e "  ${_A_YELLOW}⊘${_A_NC} ${req}/${test_id}: ${desc} (skipped)" || true

@@ -193,7 +193,7 @@ tasks:
       - 'echo "   kubectl:  already configured for cluster ''{{.CLUSTER_NAME}}''"'
 
   workspace:up:
-    desc: "Full automated setup: Cluster -> MVP -> Office -> MCP -> Billing"
+    desc: "Full automated setup: Cluster -> MVP -> Office -> MCP -> Post-config"
     cmds:
       - task: cluster:create
       - task: workspace:deploy
@@ -202,12 +202,38 @@ tasks:
       - task: workspace:post-setup
       - task: workspace:talk-setup
       - task: workspace:admin-users-setup
-      - task: workspace:stripe-setup
       - task: workspace:call-setup
       - task: workspace:recording-setup
       - task: workspace:transcriber-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
+
+  workspace:setup:
+    desc: "Full deploy on existing cluster: preflight -> deploy -> office -> mcp -> post-config (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/pre-deploy-check.sh "{{.ENV}}"
+      - task: workspace:deploy
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:office:deploy
+        vars: { ENV: "{{.ENV}}" }
+      - task: mcp:deploy
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:post-setup
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:talk-setup
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:admin-users-setup
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:call-setup
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:recording-setup
+        vars: { ENV: "{{.ENV}}" }
+      - task: workspace:transcriber-setup
+        vars: { ENV: "{{.ENV}}" }
+      - echo ""
+      - 'echo "✓ Workspace fully deployed and configured ({{.ENV}})"'
 
   down:
     desc: "Tear down everything"
@@ -227,9 +253,13 @@ tasks:
 
   workspace:transcriber-setup:
     desc: Build talk-transcriber image and create transcriber-bot Nextcloud user
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     deps: [workspace:transcriber-build]
     cmds:
       - bash scripts/transcriber-setup.sh
+      - 'echo ""'
+      - 'echo "  Next → task workspace:vaultwarden:seed  (optional — seeds production secret templates)"'
 
   workspace:sso-bridge:build:
     desc: Build and push sso-bridge image to local registry
@@ -237,11 +267,6 @@ tasks:
       - docker build -t {{.REGISTRY}}/sso-bridge:latest sso-bridge/
       - docker push {{.REGISTRY}}/sso-bridge:latest
       - 'echo "✓ sso-bridge image pushed to {{.REGISTRY}}"'
-
-  workspace:stripe-setup:
-    desc: Configure Stripe keys for the website billing integration
-    cmds:
-      - bash scripts/stripe-setup.sh
 
   workspace:theme:nextcloud:
     desc: Apply dark+gold Nextcloud branding via OCC (idempotent)
@@ -320,6 +345,8 @@ tasks:
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:theme:nextcloud
         vars: { ENV: "{{.ENV}}" }
+      - 'echo ""'
+      - 'echo "  Next → task workspace:talk-setup ENV={{.ENV}}"'
 
   workspace:whiteboard-setup:
     desc: Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)
@@ -353,6 +380,8 @@ tasks:
         export KUBE_CONTEXT=""
         [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
         bash scripts/talk-hpb-setup.sh
+      - 'echo ""'
+      - 'echo "  Next → task workspace:admin-users-setup ENV={{.ENV}}"'
 
   workspace:talk-setup:all-prods:
     desc: Run workspace:talk-setup against every non-dev environment (mentolder + korczewski)
@@ -515,6 +544,8 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kubectl $context_flag rollout status deploy/collabora -n workspace-office --timeout=300s
       - task: workspace:office:sync-secret
+      - 'echo ""'
+      - 'echo "  Next → task mcp:deploy ENV={{.ENV}}"'
 
   workspace:recording-setup:
     desc: "Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)"
@@ -526,6 +557,8 @@ tasks:
         export KUBE_CONTEXT=""
         [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
         bash scripts/recording-setup.sh
+      - 'echo ""'
+      - 'echo "  Next → task workspace:transcriber-setup ENV={{.ENV}}"'
 
   workspace:recording-setup:all-prods:
     desc: Configure Talk recording backend on all production clusters (mentolder + korczewski)
@@ -544,6 +577,8 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}" || true
         bash scripts/call-setup.sh
+      - 'echo ""'
+      - 'echo "  Next → task workspace:recording-setup ENV={{.ENV}}"'
 
   workspace:call-setup:all-prods:
     desc: Register /call slash command in both production clusters (mentolder + korczewski)
@@ -1007,6 +1042,8 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         bash scripts/admin-users-setup.sh
+      - 'echo ""'
+      - 'echo "  Next → task workspace:call-setup ENV={{.ENV}}"'
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
@@ -1188,6 +1225,8 @@ tasks:
           task workspace:talk-setup ENV="{{.ENV}}"
         fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
+      - 'echo ""'
+      - 'echo "  Next → task workspace:office:deploy ENV={{.ENV}}"'
 
   workspace:sync-db-passwords:
     desc: "Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)"
@@ -1383,6 +1422,8 @@ tasks:
         kubectl $CTX rollout status deployment/mcp-auth-proxy --timeout=60s
       - 'echo "✓ MCP monolith deployed (1 pod + auth proxy)"'
       - task: mcp:status
+      - 'echo ""'
+      - 'echo "  Next → task workspace:post-setup ENV={{.ENV}}"'
 
   mcp:status:
     desc: Show status of all Claude Code MCP pods and containers
@@ -1854,6 +1895,8 @@ tasks:
         else
           echo "✓ Website deployed — URL: https://${PROD_DOMAIN}"
         fi
+      - 'echo ""'
+      - 'echo "  Next → task brett:deploy ENV={{.ENV}}"'
 
   website:dev:
     desc: Run Astro dev server locally (hot-reload)
@@ -1943,6 +1986,8 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
         kubectl $CTX_FLAG rollout restart deploy/brett -n workspace
         kubectl $CTX_FLAG rollout status  deploy/brett -n workspace
+      - 'echo ""'
+      - 'echo "  Next → task brett:bot-setup ENV={{.ENV}}"'
 
   brett:bot-setup:
     desc: "Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)"

@@ -3184,6 +3184,8 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
       ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
   `);
+  await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS leitweg_id VARCHAR(46)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_billing_customers_leitweg ON billing_customers(leitweg_id) WHERE leitweg_id IS NOT NULL`);
   await initBillingAuditTable();
   await installInvoiceImmutabilityTriggers();
   billingTablesReady = true;

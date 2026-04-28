@@ -1,4 +1,4 @@
-import { it, expect, beforeAll } from 'vitest';
+import { it, expect, beforeAll, describe } from 'vitest';
 import { initBillingTables, createCustomer, getCustomerByEmail } from './native-billing';
 import { createInvoice, finalizeInvoice, markInvoicePaid } from './native-billing';
 import { getBillingAuditLog } from './billing-audit';
@@ -96,6 +96,19 @@ it('rejects mutation of locked invoice line items', async () => {
   await expect(
     pool.query(`DELETE FROM billing_invoices WHERE id=$1`, [inv.id])
   ).rejects.toThrow(/GoBD/);
+});
+
+describe.skipIf(!process.env.DATABASE_URL)('leitweg_id schema', () => {
+  it('hat leitweg_id Spalte (max 46 chars, B2G optional)', async () => {
+    await initBillingTables();
+    const r = await pool.query(
+      `SELECT column_name, character_maximum_length
+         FROM information_schema.columns
+        WHERE table_name='billing_customers' AND column_name='leitweg_id'`
+    );
+    expect(r.rows).toHaveLength(1);
+    expect(r.rows[0].character_maximum_length).toBe(46);
+  });
 });
 
 it('billing-audit returns events newest-first', async () => {

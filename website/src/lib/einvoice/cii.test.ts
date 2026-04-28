@@ -55,3 +55,44 @@ describe('generateCII — Regelbesteuerung 19%', () => {
     expect(xml).not.toContain('§ 19 UStG');
   });
 });
+
+describe('generateCII — mixed rates', () => {
+  it('emits one ApplicableTradeTax per (rate, category) bucket', () => {
+    const xml = generateCII({
+      number: 'R-2026-0050', issueDate: '2026-04-20', dueDate: '2026-05-04',
+      currency: 'EUR', taxMode: 'regelbesteuerung',
+      lines: [
+        { description: 'Buch', quantity: 2, unit: 'C62', unitPrice: 25,  netAmount: 50,  taxRate: 7,  taxCategory: 'S' },
+        { description: 'Service', quantity: 1, unit: 'C62', unitPrice: 100, netAmount: 100, taxRate: 19, taxCategory: 'S' },
+      ],
+      netTotal: 150, taxTotal: 22.5, grossTotal: 172.5,
+      seller: { ...baseSeller, vatId: 'DE123456789' },
+      buyer: { name: 'Buchladen', email: 'b@x.de', country: 'DE' },
+    });
+    const seven = xml.match(/<ram:RateApplicablePercent>7\.00<\/ram:RateApplicablePercent>/g);
+    const nineteen = xml.match(/<ram:RateApplicablePercent>19\.00<\/ram:RateApplicablePercent>/g);
+    expect(seven?.length).toBe(2);   // 1 bucket + 1 line
+    expect(nineteen?.length).toBe(2);
+    expect(xml).toContain('<ram:BasisAmount>50.00</ram:BasisAmount>');
+    expect(xml).toContain('<ram:BasisAmount>100.00</ram:BasisAmount>');
+  });
+});
+
+describe('generateCII — reverse-charge B2B EU', () => {
+  it('adds reverse-charge note and emits CategoryCode AE with 0% rate', () => {
+    const xml = generateCII({
+      number: 'R-2026-0080', issueDate: '2026-04-25', dueDate: '2026-05-09',
+      currency: 'EUR', taxMode: 'regelbesteuerung',
+      lines: [
+        { description: 'Cross-border B2B service', quantity: 1, unit: 'C62',
+          unitPrice: 1000, netAmount: 1000, taxRate: 0, taxCategory: 'AE' },
+      ],
+      netTotal: 1000, taxTotal: 0, grossTotal: 1000,
+      seller: { ...baseSeller, vatId: 'DE123456789' },
+      buyer: { name: 'NL Buyer BV', email: 'x@y.nl', country: 'NL', vatId: 'NL123456789B01' },
+    });
+    expect(xml).toContain('Reverse charge');
+    expect(xml).toContain('<ram:CategoryCode>AE</ram:CategoryCode>');
+    expect(xml).toContain('<ram:CalculatedAmount>0.00</ram:CalculatedAmount>');
+  });
+});

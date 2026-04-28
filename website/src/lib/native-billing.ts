@@ -10,6 +10,7 @@ export interface Customer {
   company?: string; addressLine1?: string; city?: string;
   postalCode?: string; country: string; vatNumber?: string;
   sepaIban?: string; sepaBic?: string;
+  sepaMandateRef?: string; sepaMandateDate?: string;
   defaultLeitwegId?: string;
 }
 
@@ -307,6 +308,10 @@ function mapCustomer(row: Record<string, unknown>): Customer {
     vatNumber: (row.vat_number as string) ?? undefined,
     sepaIban: (row.sepa_iban as string) ?? undefined,
     sepaBic: (row.sepa_bic as string) ?? undefined,
+    sepaMandateRef: (row.sepa_mandate_ref as string) ?? undefined,
+    sepaMandateDate: (row.sepa_mandate_date instanceof Date
+      ? row.sepa_mandate_date.toISOString().split('T')[0]
+      : (row.sepa_mandate_date as string) ?? undefined),
     defaultLeitwegId: (row.default_leitweg_id as string) ?? undefined,
   };
 }

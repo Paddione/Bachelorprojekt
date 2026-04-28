@@ -1,4 +1,5 @@
 import { pool, initEurTables } from './website-db';
+import { skrAccountFor } from './skr';
 
 // ---- EÜR Booking types ----
 
@@ -6,15 +7,31 @@ export interface EurBooking {
   id: number; brand: string; bookingDate: string; type: string;
   category: string; description: string; netAmount: number;
   vatAmount: number; invoiceId?: string; receiptPath?: string;
+  belegnummer?: string; skrKonto?: string;
 }
 
-export async function addBooking(p: Omit<EurBooking, 'id'>): Promise<EurBooking> {
+export async function addBooking(
+  p: Omit<EurBooking, 'id' | 'belegnummer' | 'skrKonto'> & {
+    belegnummer?: string;
+    skrKonto?: string;
+    taxMode?: string;
+  }
+): Promise<EurBooking> {
   await initEurTables();
+  const beleg = p.belegnummer
+    ?? (p.invoiceId ? `INV-${p.invoiceId.slice(0, 8)}` : `MAN-${Date.now()}`);
+  const skr = p.skrKonto ?? skrAccountFor({
+    taxMode: p.taxMode ?? 'regelbesteuerung',
+    type: p.type,
+    category: p.category,
+  });
   const r = await pool.query(
-    `INSERT INTO eur_bookings (brand,booking_date,type,category,description,net_amount,vat_amount,invoice_id,receipt_path)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+    `INSERT INTO eur_bookings
+       (brand,booking_date,type,category,description,net_amount,vat_amount,invoice_id,receipt_path,belegnummer,skr_konto)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
     [p.brand, p.bookingDate, p.type, p.category, p.description,
-     p.netAmount, p.vatAmount, p.invoiceId??null, p.receiptPath??null]
+     p.netAmount, p.vatAmount, p.invoiceId ?? null, p.receiptPath ?? null,
+     beleg, skr]
   );
   return mapBooking(r.rows[0]);
 }
@@ -54,6 +71,8 @@ function mapBooking(row: Record<string, unknown>): EurBooking {
     netAmount: Number(row.net_amount), vatAmount: Number(row.vat_amount),
     invoiceId: (row.invoice_id as string) ?? undefined,
     receiptPath: (row.receipt_path as string) ?? undefined,
+    belegnummer: (row.belegnummer as string) ?? undefined,
+    skrKonto: (row.skr_konto as string) ?? undefined,
   };
 }
 

@@ -115,13 +115,17 @@ export const POST: APIRoute = async ({ request, params }) => {
     return new Response('PDF generation failed', { status: 500 });
   }
 
-  // Finalize (transitions to open+locked — do this after generation)
-  const finalized = await finalizeInvoice(id);
+  // Finalize (transitions to open+locked — do this after generation).
+  // Persists hash, PDF blob, and audit row in one go.
+  const finalized = await finalizeInvoice(id, {
+    actor: { userId: session.sub, email: session.email },
+    pdfBlob: pdf,
+    pdfMime: 'application/pdf',
+  });
   if (!finalized) return new Response('Failed to finalize invoice', { status: 409 });
 
-  // Store ZUGFeRD XML + PDF reference
   await pool.query(
-    `UPDATE billing_invoices SET zugferd_xml=$2, updated_at=now() WHERE id=$1`, [id, xml]
+    `UPDATE billing_invoices SET zugferd_xml=$2 WHERE id=$1`, [id, xml]
   );
 
   // Interpolate and send email

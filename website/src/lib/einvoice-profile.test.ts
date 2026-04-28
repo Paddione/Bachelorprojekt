@@ -70,4 +70,39 @@ describe('generateEInvoiceXml', () => {
     const noLeitweg = { ...baseInput, customer: { ...baseInput.customer, leitwegId: undefined } };
     expect(() => generateXRechnungCii(noLeitweg)).toThrow(/Leitweg-ID/);
   });
+
+  it('xrechnung-ubl mappt BT-1/BT-2/BT-5/BT-9/BT-10/BT-31 + IBAN', () => {
+    const xml = generateEInvoiceXml('xrechnung-ubl', baseInput);
+    expect(xml).toContain('<cbc:ID>RE-2026-0001</cbc:ID>');
+    expect(xml).toContain('<cbc:IssueDate>2026-04-28</cbc:IssueDate>');
+    expect(xml).toContain('<cbc:DueDate>2026-05-12</cbc:DueDate>');
+    expect(xml).toContain('<cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>');
+    expect(xml).toContain('<cbc:BuyerReference>991-01234-44</cbc:BuyerReference>');
+    expect(xml).toContain('<cbc:CompanyID schemeID="VAT">DE123456789</cbc:CompanyID>');
+    expect(xml).toContain('<cbc:ID>DE02120300000000202051</cbc:ID>');
+  });
+  it('xrechnung-ubl CustomizationID ist XRechnung 3.0', () => {
+    const xml = generateEInvoiceXml('xrechnung-ubl', baseInput);
+    expect(xml).toMatch(/<cbc:CustomizationID>urn:cen\.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3\.0<\/cbc:CustomizationID>/);
+  });
+
+  it('xrechnung-ubl throws when called directly without leitwegId', async () => {
+    const { generateXRechnungUbl } = await import('./xrechnung-ubl');
+    const noLeitweg = { ...baseInput, customer: { ...baseInput.customer, leitwegId: undefined } };
+    expect(() => generateXRechnungUbl(noLeitweg)).toThrow(/Leitweg-ID/);
+  });
+
+  it('xrechnung-ubl element order: header → parties → totals → lines', () => {
+    const xml = generateEInvoiceXml('xrechnung-ubl', baseInput);
+    const idxCust    = xml.indexOf('<cbc:CustomizationID>');
+    const idxSup     = xml.indexOf('<cac:AccountingSupplierParty>');
+    const idxBuy     = xml.indexOf('<cac:AccountingCustomerParty>');
+    const idxTotal   = xml.indexOf('<cac:LegalMonetaryTotal>');
+    const idxLines   = xml.indexOf('<cac:InvoiceLine>');
+    expect(idxCust).toBeGreaterThan(0);
+    expect(idxCust).toBeLessThan(idxSup);
+    expect(idxSup).toBeLessThan(idxBuy);
+    expect(idxBuy).toBeLessThan(idxTotal);
+    expect(idxTotal).toBeLessThan(idxLines);
+  });
 });

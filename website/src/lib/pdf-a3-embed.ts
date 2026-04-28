@@ -1,4 +1,4 @@
-import { PDFDocument, PDFName, PDFArray, PDFDict, PDFHexString, PDFRawStream, PDFString, PDFNumber } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFDict, PDFHexString, PDFString, PDFNumber } from 'pdf-lib';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';

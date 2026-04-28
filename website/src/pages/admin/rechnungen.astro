@@ -49,20 +49,22 @@ function fmtDate(s: string): string {
 }
 
 const STATUS_CLS: Record<string, string> = {
-  'draft':         'bg-slate-900/40 text-slate-300 border-slate-700',
-  'open':          'bg-blue-900/40 text-blue-300 border-blue-800',
-  'paid':          'bg-green-900/40 text-green-300 border-green-800',
-  'void':          'bg-dark border border-dark-lighter text-muted',
-  'uncollectible': 'bg-red-900/40 text-red-300 border-red-800',
+  'draft':          'bg-slate-900/40 text-slate-300 border-slate-700',
+  'open':           'bg-blue-900/40 text-blue-300 border-blue-800',
+  'partially_paid': 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
+  'paid':           'bg-green-900/40 text-green-300 border-green-800',
+  'void':           'bg-dark border border-dark-lighter text-muted',
+  'uncollectible':  'bg-red-900/40 text-red-300 border-red-800',
 };
 
 const STATUS_TABS = [
-  { value: '',              label: 'Alle' },
-  { value: 'open',         label: 'Offen' },
-  { value: 'uncollectible',label: 'Überfällig' },
-  { value: 'paid',         label: 'Bezahlt' },
-  { value: 'draft',        label: 'Entwurf' },
-  { value: 'void',         label: 'Storniert' },
+  { value: '',               label: 'Alle' },
+  { value: 'open',           label: 'Offen' },
+  { value: 'partially_paid', label: 'Teilbezahlt' },
+  { value: 'uncollectible',  label: 'Überfällig' },
+  { value: 'paid',           label: 'Bezahlt' },
+  { value: 'draft',          label: 'Entwurf' },
+  { value: 'void',           label: 'Storniert' },
 ];
 ---
 
@@ -219,11 +221,20 @@ const STATUS_TABS = [
                   )}
                 </td>
                 <td class="px-4 py-3 text-sm text-right">
+                  {['open', 'partially_paid', 'uncollectible'].includes(inv.status) && (
+                    <button
+                      class="text-xs text-yellow-400 hover:underline"
+                      data-record-payment
+                      data-invoice-id={inv.id}
+                      data-invoice-number={inv.number}
+                      data-outstanding={inv.amountRemaining}
+                    >Zahlung ↑</button>
+                  )}
                   <a
                     href={`/admin/billing/${inv.id}/drucken`}
                     target="_blank"
                     rel="noopener"
-                    class="text-xs text-yellow-400 hover:underline"
+                    class="ml-2 text-xs text-yellow-400 hover:underline"
                     title="Rechnung drucken / als PDF speichern"
                   >Drucken ↗</a>
                 </td>
@@ -234,6 +245,8 @@ const STATUS_TABS = [
       </div>
     </div>
   </section>
+
+  <div id="payment-modal-mount"></div>
 
   <dialog id="draft-editor" class="bg-surface border border-border rounded-2xl p-6 w-full max-w-3xl backdrop:bg-black/60">
     <div class="flex items-center justify-between mb-6">
@@ -281,6 +294,26 @@ const STATUS_TABS = [
 
 <script>
   document.addEventListener('invoice-created', () => window.location.reload());
+</script>
+
+<script>
+  import RecordPaymentModal from '../../components/admin/RecordPaymentModal.svelte';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-record-payment]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mount = document.getElementById('payment-modal-mount')!;
+      const app = new RecordPaymentModal({
+        target: mount,
+        props: {
+          invoiceId: btn.dataset.invoiceId!,
+          invoiceNumber: btn.dataset.invoiceNumber!,
+          outstanding: Number(btn.dataset.outstanding!),
+          onClose: () => app.$destroy(),
+          onSaved: () => { app.$destroy(); window.location.reload(); },
+        },
+      });
+    });
+  });
 </script>
 
 <script>

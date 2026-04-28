@@ -1,12 +1,12 @@
-import PDFDocument from 'pdfkit';
 import { pool, getSiteSetting, initBillingTables } from './website-db';
-import { getInvoice, getCustomerById, type Invoice } from './native-billing';
+import { getInvoice, getCustomerById, type Invoice, type Customer } from './native-billing';
+import { generateDunningPdf, type InvoicePdfCustomer, type InvoicePdfSeller } from './invoice-pdf';
 import { archiveBillingPdf } from './billing-archive';
 import { sendEmail } from './email';
 import { logBillingEvent } from './billing-audit';
 
 export interface PendingDunning {
-  id: number;
+  id: string;
   invoiceId: string;
   invoiceNumber: string;
   level: number;
@@ -22,16 +22,8 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function iso(d: Date): string {
-  return d.toISOString().split('T')[0];
-}
-
 function fmt(n: number): string {
   return n.toFixed(2).replace('.', ',') + ' €';
-}
-
-function fmtDate(v: string): string {
-  return v.split('-').reverse().join('.');
 }
 
 async function numberSetting(brand: string, key: string, fallback: number): Promise<number> {
@@ -43,58 +35,65 @@ async function numberSetting(brand: string, key: string, fallback: number): Prom
 async function buildDunningPdf(params: {
   brand: string;
   invoice: Invoice;
-  customerName: string;
-  customerAddress?: string;
-  customerPostalCode?: string;
-  customerCity?: string;
+  customer: Customer;
   level: number;
   outstanding: number;
   feeAmount: number;
   interestAmount: number;
 }): Promise<Buffer> {
-  const [senderName, senderStreet, senderCity] = await Promise.all([
+  const [senderName, senderStreet, senderCity, senderZip, senderCountry, senderVat, senderIban, senderBic, senderBank, senderEmail, senderPhone] = await Promise.all([
     getSiteSetting(params.brand, 'invoice_sender_name'),
     getSiteSetting(params.brand, 'invoice_sender_street'),
     getSiteSetting(params.brand, 'invoice_sender_city'),
+    getSiteSetting(params.brand, 'invoice_sender_zip'),
+    getSiteSetting(params.brand, 'invoice_sender_country'),
+    getSiteSetting(params.brand, 'invoice_sender_vat_id'),
+    getSiteSetting(params.brand, 'invoice_sender_iban'),
+    getSiteSetting(params.brand, 'invoice_sender_bic'),
+    getSiteSetting(params.brand, 'invoice_sender_bank'),
+    getSiteSetting(params.brand, 'invoice_sender_email'),
+    getSiteSetting(params.brand, 'invoice_sender_phone'),
   ]);
 
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
-    const chunks: Buffer[] = [];
-    doc.on('data', (c: Buffer) => chunks.push(c));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+  const customer: InvoicePdfCustomer = {
+    name: params.customer.name,
+    company: params.customer.company,
+    addressLine1: params.customer.addressLine1,
+    city: params.customer.city,
+    postalCode: params.customer.postalCode,
+    country: params.customer.landIso,
+    email: params.customer.email,
+  };
 
-    doc.font('Helvetica-Bold').fontSize(18).text(`Mahnung ${params.level}`);
-    doc.moveDown(0.5);
-    doc.font('Helvetica').fontSize(10);
-    if (senderName) doc.text(senderName);
-    if (senderStreet) doc.text(senderStreet);
-    if (senderCity) doc.text(senderCity);
-    doc.moveDown();
-    doc.text(params.customerName);
-    if (params.customerAddress) doc.text(params.customerAddress);
-    if (params.customerPostalCode || params.customerCity) {
-      doc.text(`${params.customerPostalCode ?? ''} ${params.customerCity ?? ''}`.trim());
-    }
-    doc.moveDown();
-    doc.text(`Rechnungsnummer: ${params.invoice.number}`);
-    doc.text(`Fällig seit: ${fmtDate(params.invoice.dueDate)}`);
-    doc.text(`Datum: ${fmtDate(iso(new Date()))}`);
-    doc.moveDown();
-    doc.text(
-      `Trotz Fälligkeit ist zur Rechnung ${params.invoice.number} noch ein Betrag offen. ` +
-      `Bitte überweisen Sie den Gesamtbetrag unter Angabe des Verwendungszwecks ${params.invoice.paymentReference ?? params.invoice.number}.`
-    );
-    doc.moveDown();
-    doc.text(`Offener Rechnungsbetrag: ${fmt(params.outstanding)}`);
-    doc.text(`Mahngebühr: ${fmt(params.feeAmount)}`);
-    doc.text(`Verzugszins: ${fmt(params.interestAmount)}`);
-    doc.moveDown(0.5);
-    doc.font('Helvetica-Bold').text(`Zu zahlender Gesamtbetrag: ${fmt(params.outstanding + params.feeAmount + params.interestAmount)}`);
-    doc.moveDown();
-    doc.font('Helvetica').text('Bitte begleichen Sie den Betrag unverzüglich.');
-    doc.end();
+  const seller: InvoicePdfSeller = {
+    name: senderName || params.brand,
+    address: senderStreet || '',
+    postalCode: senderZip || '',
+    city: senderCity || '',
+    country: senderCountry || 'DE',
+    vatId: senderVat || '',
+    taxNumber: '', // optional
+    iban: senderIban || '',
+    bic: senderBic || '',
+    bankName: senderBank || '',
+    email: senderEmail || undefined,
+    phone: senderPhone || undefined,
+  };
+
+  return generateDunningPdf({
+    dunning: {
+      id: '', // not needed for PDF
+      invoiceId: params.invoice.id,
+      brand: params.brand,
+      level: params.level,
+      generatedAt: new Date().toISOString(),
+      feeAmount: params.feeAmount,
+      interestAmount: params.interestAmount,
+      outstandingAtGeneration: params.outstanding,
+    },
+    invoice: params.invoice,
+    customer,
+    seller,
   });
 }
 
@@ -145,10 +144,7 @@ export async function runDunningDetection(brand: string): Promise<{ generated: n
     const pdf = await buildDunningPdf({
       brand,
       invoice,
-      customerName: customer.name || customer.company || customer.email,
-      customerAddress: customer.addressLine1,
-      customerPostalCode: customer.postalCode,
-      customerCity: customer.city,
+      customer,
       level: nextLevel,
       outstanding,
       feeAmount,
@@ -205,7 +201,7 @@ export async function listPendingDunnings(brand: string): Promise<PendingDunning
     [brand]
   );
   return r.rows.map((row: Record<string, unknown>) => ({
-    id: Number(row.id),
+    id: row.id as string,
     invoiceId: row.invoice_id as string,
     invoiceNumber: row.invoice_number as string,
     level: Number(row.level),
@@ -218,7 +214,7 @@ export async function listPendingDunnings(brand: string): Promise<PendingDunning
   }));
 }
 
-export async function sendDunning(id: number, actorEmail: string): Promise<boolean> {
+export async function sendDunning(id: string, actorEmail: string): Promise<boolean> {
   const r = await pool.query(
     `SELECT d.id, d.level, d.invoice_id, d.fee_amount, d.interest_amount, d.outstanding_at_generation,
             i.number, i.payment_reference, c.email, c.name
@@ -253,3 +249,4 @@ export async function sendDunning(id: number, actorEmail: string): Promise<boole
   });
   return true;
 }
+

@@ -1,34 +1,31 @@
 import { generateZugferdXmlFromNative, generateXRechnungCii, type ZugferdNativeInput } from './zugferd';
 import { generateXRechnungUbl } from './xrechnung-ubl';
 import { validateLeitwegId } from './leitweg';
+import type { EInvoiceInput, EInvoiceProfile } from './einvoice-types';
 
-export type EInvoiceProfile = 'factur-x-minimum' | 'xrechnung-cii' | 'xrechnung-ubl';
+export type { EInvoiceProfile, EInvoiceCustomer, EInvoiceSeller, EInvoiceLine, EInvoiceInput } from './einvoice-types';
 
-export interface EInvoiceCustomer {
-  name: string; email: string;
-  addressLine1?: string; postalCode?: string; city?: string; country?: string;
-  leitwegId?: string;
-}
-
-export interface EInvoiceSeller {
-  name: string; address: string; postalCode: string; city: string;
-  country: string; vatId: string; iban?: string; bic?: string;
-}
-
-export interface EInvoiceLine {
-  description: string; quantity: number; unitPrice: number; unit?: string;
-}
-
-export interface EInvoiceInput {
-  invoice: {
-    number: string; issueDate: string; dueDate: string;
-    grossAmount: number; netAmount: number; taxAmount: number;
-    taxMode: 'kleinunternehmer' | 'regelbesteuerung'; taxRate: number;
-    paymentReference?: string;
+function toZugferdNativeInput(p: EInvoiceInput): ZugferdNativeInput {
+  return {
+    invoice: {
+      number: p.invoice.number,
+      issueDate: p.invoice.issueDate,
+      grossAmount: p.invoice.grossAmount,
+      netAmount: p.invoice.netAmount,
+      taxAmount: p.invoice.taxAmount,
+      taxMode: p.invoice.taxMode,
+      taxRate: p.invoice.taxRate,
+    },
+    lines: p.lines.map(l => ({
+      description: l.description,
+      netAmount: l.quantity * l.unitPrice,
+    })),
+    customer: { name: p.customer.name, email: p.customer.email },
+    seller: {
+      name: p.seller.name, address: p.seller.address, postalCode: p.seller.postalCode,
+      city: p.seller.city, country: p.seller.country, vatId: p.seller.vatId,
+    },
   };
-  lines: EInvoiceLine[];
-  customer: EInvoiceCustomer;
-  seller: EInvoiceSeller;
 }
 
 export function generateEInvoiceXml(profile: EInvoiceProfile, p: EInvoiceInput): string {
@@ -40,7 +37,7 @@ export function generateEInvoiceXml(profile: EInvoiceProfile, p: EInvoiceInput):
   }
   switch (profile) {
     case 'factur-x-minimum':
-      return generateZugferdXmlFromNative(p as unknown as ZugferdNativeInput);
+      return generateZugferdXmlFromNative(toZugferdNativeInput(p));
     case 'xrechnung-cii':
       return generateXRechnungCii(p);
     case 'xrechnung-ubl':

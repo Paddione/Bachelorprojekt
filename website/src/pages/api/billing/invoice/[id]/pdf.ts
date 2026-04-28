@@ -44,7 +44,7 @@ export const GET: APIRoute = async ({ request, params }) => {
     } catch (e) {
       return new Response((e as Error).message, { status: 422 });
     }
-    return new Response(pdf, {
+    return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

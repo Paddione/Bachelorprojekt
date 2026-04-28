@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { finalizeInvoice, getCustomerById } from '../../../../../lib/native-billing';
-import { generateInvoicePdf, type InvoicePdfSeller } from '../../../../../lib/invoice-pdf';
+import { generateInvoicePdf, type InvoicePdfSeller, type InvoicePdfCustomer } from '../../../../../lib/invoice-pdf';
 import { generateFacturX } from '../../../../../lib/einvoice/factur-x';
 import { sendEmail } from '../../../../../lib/email';
 import { pool, getSiteSetting, initBillingTables } from '../../../../../lib/website-db';
@@ -154,8 +154,18 @@ export const POST: APIRoute = async ({ request, params }) => {
   let pdf: Buffer;
   try {
     xml = generateFacturX(invoiceInput);
+    const pdfCustomer = {
+      name: customer.name,
+      email: customer.email,
+      company: customer.company,
+      addressLine1: customer.addressLine1,
+      city: customer.city,
+      postalCode: customer.postalCode,
+      landIso: customer.landIso,
+      vatNumber: customer.vatNumber,
+    };
     pdf = await generateInvoicePdf({
-      invoice: tempInvoice, lines, customer, seller,
+      invoice: tempInvoice, lines, customer: pdfCustomer, seller,
       templateTexts: {
         introText: tmpl.invoice_intro_text || undefined,
         kleinunternehmerNotice: tmpl.invoice_kleinunternehmer_notice || undefined,

@@ -192,11 +192,23 @@ export const POST: APIRoute = async ({ request, params }) => {
     vars
   );
 
+  const attachments: any[] = [{ filename: `${finalized.number}.pdf`, content: pdf }];
+  if (finalized.leitwegId) {
+    const r = await pool.query<{ xrechnung_xml: string | null }>(`SELECT xrechnung_xml FROM billing_invoices WHERE id=$1`, [id]);
+    if (r.rows[0]?.xrechnung_xml) {
+      attachments.push({
+        filename: `xrechnung-${finalized.number}.xml`,
+        content: Buffer.from(r.rows[0].xrechnung_xml, 'utf8'),
+        contentType: 'application/xml',
+      });
+    }
+  }
+
   const sent = await sendEmail({
     to: customer.email,
     subject,
     text: body,
-    attachments: [{ filename: `${finalized.number}.pdf`, content: pdf }],
+    attachments,
   });
 
   if (!sent) {

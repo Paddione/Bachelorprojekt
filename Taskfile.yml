@@ -201,12 +201,12 @@ tasks:
       - task: mcp:deploy
       - task: workspace:post-setup
       - task: workspace:talk-setup
-      - task: workspace:admin-users-setup
       - task: workspace:call-setup
       - task: workspace:recording-setup
       - task: workspace:transcriber-setup
       - echo ""
       - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
+      - 'echo "  Optional → task workspace:admin-users-setup   (provision SSO admin users in Keycloak)"'
 
   workspace:setup:
     desc: "Full deploy on existing cluster: preflight -> deploy -> office -> mcp -> post-config (ENV=dev|mentolder|korczewski)"
@@ -224,8 +224,6 @@ tasks:
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:talk-setup
         vars: { ENV: "{{.ENV}}" }
-      - task: workspace:admin-users-setup
-        vars: { ENV: "{{.ENV}}" }
       - task: workspace:call-setup
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:recording-setup
@@ -234,6 +232,7 @@ tasks:
         vars: { ENV: "{{.ENV}}" }
       - echo ""
       - 'echo "✓ Workspace fully deployed and configured ({{.ENV}})"'
+      - 'echo "  Optional → task workspace:admin-users-setup ENV={{.ENV}}   (provision SSO admin users in Keycloak)"'
 
   down:
     desc: "Tear down everything"
@@ -381,7 +380,8 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
         bash scripts/talk-hpb-setup.sh
       - 'echo ""'
-      - 'echo "  Next → task workspace:admin-users-setup ENV={{.ENV}}"'
+      - 'echo "  Next → task workspace:call-setup ENV={{.ENV}}"'
+      - 'echo "  Optional → task workspace:admin-users-setup ENV={{.ENV}}"'
 
   workspace:talk-setup:all-prods:
     desc: Run workspace:talk-setup against every non-dev environment (mentolder + korczewski)
@@ -1418,8 +1418,8 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        kubectl $CTX rollout status deployment/claude-code-mcp-monolith --timeout=120s
-        kubectl $CTX rollout status deployment/mcp-auth-proxy --timeout=60s
+        kubectl $CTX rollout status deployment/claude-code-mcp-monolith --timeout=300s
+        kubectl $CTX rollout status deployment/mcp-auth-proxy --timeout=120s
       - 'echo "✓ MCP monolith deployed (1 pod + auth proxy)"'
       - task: mcp:status
       - 'echo ""'

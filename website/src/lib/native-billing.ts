@@ -67,7 +67,7 @@ export interface Invoice {
   supplyType?: string;
 }
 
-export async function createInvoice(p: {
+export async function createInvoice(params: {
   brand: string; customerId: string; issueDate: string; dueDays: number;
   taxMode: 'kleinunternehmer' | 'regelbesteuerung';
   taxRate?: number; lines: InvoiceLine[]; notes?: string;
@@ -77,6 +77,17 @@ export async function createInvoice(p: {
   supplyType?: string;
 }): Promise<Invoice> {
   await initBillingTables();
+  // Reverse charge enforcement
+  let p = params;
+  const hasAeLines = (p.lines as Array<InvoiceLine & { taxCategory?: string }>)
+    .some(l => l.taxCategory === 'AE');
+  if (hasAeLines) {
+    const customer = await getCustomerById(p.brand, p.customerId);
+    if (!customer?.vatNumber) {
+      throw new Error('Reverse charge (AE) requires a VAT ID on the customer');
+    }
+    if (!p.supplyType) p = { ...p, supplyType: 'eu_b2b_services' };
+  }
   const currency = (p.currency ?? 'EUR').toUpperCase();
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error(`Invalid currency code: ${p.currency}`);
   let currencyRate: number | null = null;

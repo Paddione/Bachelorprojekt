@@ -21,3 +21,32 @@ it('generates a non-empty PDF buffer', async () => {
   expect(buf.length).toBeGreaterThan(1000);
   expect(buf.slice(0,4).toString()).toBe('%PDF');
 });
+
+it('includes reverse charge notice when supplyType is eu_b2b_services', async () => {
+  const { generateInvoicePdf } = await import('./invoice-pdf');
+  const baseInvoice = {
+    id: 'inv-rc', brand: 'test', number: 'RE-2026-0099',
+    status: 'open', customerId: 'c1',
+    issueDate: '2026-04-28', dueDate: '2026-05-12',
+    taxMode: 'regelbesteuerung', netAmount: 500, taxRate: 0,
+    taxAmount: 0, grossAmount: 500, locked: true,
+    currency: 'EUR', currencyRate: null,
+    netAmountEur: 500, grossAmountEur: 500,
+    supplyType: 'eu_b2b_services',
+  };
+  const baseSeller = {
+    name: 'Test GmbH', address: 'Musterstr 1', postalCode: '10115',
+    city: 'Berlin', country: 'DE', vatId: 'DE123456789',
+    taxNumber: '12/345/67890', iban: 'DE89370400440532013000',
+    bic: 'COBADEFFXXX', bankName: 'Commerzbank',
+  };
+  const pdf = await generateInvoicePdf({
+    invoice: baseInvoice as any,
+    lines: [{ description: 'Consulting', quantity: 1, unitPrice: 500, netAmount: 500 }],
+    customer: { name: 'Acme SA', email: 'acme@fr.com', country: 'FR', vatNumber: 'FR12345678901' },
+    seller: baseSeller,
+  });
+  // PDF is binary; extract text via toString and check notice substring
+  const text = pdf.toString('latin1');
+  expect(text).toContain('13b');
+});

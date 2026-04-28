@@ -194,3 +194,30 @@ it('createInvoice with EUR sets currencyRate null and eur = net', async () => {
   expect(inv.currencyRate).toBeNull();
   expect(inv.netAmountEur).toBe(120);
 });
+
+it('createInvoice with AE line requires buyer vatNumber on customer', async () => {
+  const c = await createCustomer({
+    brand: 'test', name: 'EU Corp', email: `eucorp-${Date.now()}@test.eu`,
+    // NO vatNumber
+  });
+  await expect(createInvoice({
+    brand: 'test', customerId: c.id,
+    issueDate: '2026-04-28', dueDays: 30,
+    taxMode: 'regelbesteuerung', taxRate: 0,
+    lines: [{ description: 'Consulting', quantity: 1, unitPrice: 500, taxCategory: 'AE' }],
+  })).rejects.toThrow('Reverse charge (AE) requires a VAT ID on the customer');
+});
+
+it('createInvoice with AE line sets supplyType eu_b2b_services automatically', async () => {
+  const c = await createCustomer({
+    brand: 'test', name: 'EU Corp 2', email: `eucorp2-${Date.now()}@test.eu`,
+    vatNumber: 'FR12345678901',
+  });
+  const inv = await createInvoice({
+    brand: 'test', customerId: c.id,
+    issueDate: '2026-04-28', dueDays: 30,
+    taxMode: 'regelbesteuerung', taxRate: 0,
+    lines: [{ description: 'Consulting', quantity: 1, unitPrice: 500, taxCategory: 'AE' }],
+  });
+  expect(inv.supplyType).toBe('eu_b2b_services');
+});

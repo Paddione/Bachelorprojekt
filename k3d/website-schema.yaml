@@ -659,3 +659,68 @@ data:
     EOSQL
 
     echo "Schema ensure complete."
+  ensure-bachelorprojekt-schema.sh: |
+    #!/bin/bash
+    set -e
+    echo "Ensuring bachelorprojekt schema is up to date..."
+
+    psql -v ON_ERROR_STOP=1 --username "postgres" --dbname postgres <<-'EOSQL'
+      CREATE SCHEMA IF NOT EXISTS bachelorprojekt;
+
+      CREATE TABLE IF NOT EXISTS bachelorprojekt.requirements (
+        id          TEXT PRIMARY KEY,
+        category    TEXT NOT NULL,
+        name        TEXT NOT NULL,
+        description TEXT,
+        criteria    TEXT,
+        test_case   TEXT,
+        created_at  TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE TABLE IF NOT EXISTS bachelorprojekt.pipeline (
+        id         SERIAL PRIMARY KEY,
+        req_id     TEXT NOT NULL REFERENCES bachelorprojekt.requirements(id) ON DELETE CASCADE,
+        stage      TEXT NOT NULL CHECK (stage IN ('idea','implementation','testing','documentation','archive')),
+        entered_at TIMESTAMPTZ DEFAULT now(),
+        notes      TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS bachelorprojekt.test_results (
+        id      SERIAL PRIMARY KEY,
+        req_id  TEXT NOT NULL REFERENCES bachelorprojekt.requirements(id) ON DELETE CASCADE,
+        result  TEXT NOT NULL CHECK (result IN ('pass','fail','skip')),
+        run_at  TIMESTAMPTZ DEFAULT now(),
+        details TEXT
+      );
+
+      CREATE OR REPLACE VIEW bachelorprojekt.v_pipeline_status AS
+      SELECT
+        r.id, r.name, r.category,
+        COALESCE(p.stage, 'idea') AS current_stage,
+        p.entered_at AS stage_since
+      FROM bachelorprojekt.requirements r
+      LEFT JOIN bachelorprojekt.pipeline p
+        ON p.req_id = r.id
+        AND p.entered_at = (
+          SELECT MAX(p2.entered_at) FROM bachelorprojekt.pipeline p2 WHERE p2.req_id = r.id
+        );
+
+      CREATE OR REPLACE VIEW bachelorprojekt.v_progress_summary AS
+      SELECT current_stage AS stage, COUNT(*) AS count
+      FROM bachelorprojekt.v_pipeline_status
+      GROUP BY current_stage
+      ORDER BY ARRAY_POSITION(ARRAY['idea','implementation','testing','documentation','archive'], current_stage);
+
+      CREATE OR REPLACE VIEW bachelorprojekt.v_open_issues AS
+      SELECT *
+      FROM bachelorprojekt.v_pipeline_status
+      WHERE current_stage != 'archive'
+      ORDER BY category, id;
+
+      CREATE OR REPLACE VIEW bachelorprojekt.v_latest_tests AS
+      SELECT DISTINCT ON (req_id) req_id, result, run_at, details
+      FROM bachelorprojekt.test_results
+      ORDER BY req_id, run_at DESC;
+    EOSQL
+
+    echo "Bachelorprojekt schema ensure complete."

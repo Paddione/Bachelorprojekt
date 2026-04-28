@@ -19,7 +19,7 @@ env_vars:
   LEGAL_WEBSITE: mentolder.de
   WEBSITE_IMAGE: mentolder-website
   INFRA_NAMESPACE: mentolder-infra
-  TLS_SECRET_NAME: mentolder-tls
+  TLS_SECRET_NAME: workspace-wildcard-tls
   SMTP_FROM: mentolder@mailbox.org
   SMTP_USER: mentolder@mailbox.org
   SMTP_HOST: smtp.mailbox.org

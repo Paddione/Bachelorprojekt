@@ -26,16 +26,9 @@
       "username": "paddione",
       "enabled": true,
       "emailVerified": true,
-      "email": "patrick@korczewski.de",
+      "email": "${KC_USER1_EMAIL}",
       "firstName": "Patrick",
       "lastName": "Korczewski",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "PASSWORD_FROM_SECRETS",
-          "temporary": false
-        }
-      ],
       "realmRoles": [
         "default-roles-workspace"
       ],
@@ -52,13 +45,6 @@
       "email": "quamain@web.de",
       "firstName": "Gerald",
       "lastName": "Korczewski",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "PASSWORD_FROM_SECRETS",
-          "temporary": false
-        }
-      ],
       "realmRoles": [
         "default-roles-workspace"
       ],

@@ -781,6 +781,19 @@
             row.className = 'pipeline-step';
             row.id = 'ps-row-' + i;
 
+            const check = document.createElement('div');
+            check.className = 'ps-check';
+            check.id = 'ps-check-' + i;
+            check.title = 'Toggle active/inactive for this step';
+            check.dataset.cmd = step.cmd;
+            check.addEventListener('click', (ev) => {
+                ev.stopPropagation();           // do not trigger row-click run
+                if (pipeline.active) return;    // freeze toggles mid-run
+                toggleSkipForCmd(step.cmd);
+                applySkipUiForEnv();
+                updatePipelineStartBtnState();
+            });
+
             const dot = document.createElement('div');
             dot.className = 'ps-dot ps-pend';
             dot.id = 'ps-dot-' + i;
@@ -799,11 +812,14 @@
 
             info.appendChild(name);
             info.appendChild(cmd);
+            row.appendChild(check);
             row.appendChild(dot);
             row.appendChild(info);
-            row.addEventListener('click', () => {
+            row.addEventListener('click', (ev) => {
                 if (running) return;
-                startPipelineFrom(i);
+                // Guard: clicks on the checkbox are handled by its own listener.
+                if (ev.target.classList && ev.target.classList.contains('ps-check')) return;
+                startPipelineFrom(i);   // explicit row-click runs that step even if marked inactive
             });
             body.appendChild(row);
         });
@@ -811,6 +827,11 @@
         section.appendChild(body);
         sectionsEl.appendChild(section);
     }());
+
+    // Hydrate per-ENV skip set and render checkbox state on first load.
+    hydrateSkipStateForActiveEnv();
+    applySkipUiForEnv();
+    updatePipelineStartBtnState();
 
     GROUPS.forEach((group) => {
         if (group.pipeline) return; // rendered by buildPipelineSection above
@@ -1038,6 +1059,25 @@
     function clearSkipsForActiveEnv() {
         skipState.cmds = new Set();
         saveSkipSet(skipState.env, skipState.cmds);
+    }
+
+    function applySkipUiForEnv() {
+        PIPELINE_STEPS.forEach((step, i) => {
+            const row   = document.getElementById('ps-row-' + i);
+            const check = document.getElementById('ps-check-' + i);
+            if (!row || !check) return;   // section may not be built yet on first hydrate
+            const inactive = skipState.cmds.has(step.cmd);
+            row.classList.toggle('inactive', inactive);
+            check.classList.toggle('checked', !inactive);
+        });
+    }
+
+    function updatePipelineStartBtnState() {
+        const btn = document.getElementById('pipeline-start-btn');
+        if (!btn) return;
+        const allInactive = PIPELINE_STEPS.every(s => skipState.cmds.has(s.cmd));
+        btn.disabled = allInactive;
+        btn.title = allInactive ? 'All steps inactive — toggle at least one to enable' : '';
     }
 
     // ── Pipeline state & tracker panel ────────────────────────────────────

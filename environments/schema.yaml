@@ -63,6 +63,16 @@ env_vars:
     required: true
     default_dev: "workspace-website"
 
+  - name: EINVOICE_SIDECAR_ENABLED
+    required: false
+    default_dev: "false"
+    description: "Enable Mustangproject sidecar for PDF/A-3 + factur-x.xml embedding"
+
+  - name: EINVOICE_SIDECAR_URL
+    required: false
+    default_dev: "http://einvoice-sidecar.workspace.svc.cluster.local"
+    description: "Cluster URL for the einvoice-sidecar"
+
   - name: INFRA_NAMESPACE
     required: true
     default_dev: "workspace-infra"
@@ -372,6 +382,30 @@ secrets:
   - name: STRIPE_WEBHOOK_SECRET
     required: false
     generate: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: SEPA_CREDITOR_IBAN
+    required: false
+    generate: false
+    description: "IBAN of the creditor account for SEPA direct debit (Lastschrift)"
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: SEPA_CREDITOR_BIC
+    required: false
+    generate: false
+    description: "BIC of the creditor bank for SEPA direct debit"
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: SEPA_CREDITOR_ID
+    required: false
+    generate: false
+    description: "Gläubiger-Identifikationsnummer (e.g. DE98ZZZ09999999999)"
     extra_namespaces:
       - namespace: website
         secret: website-secrets

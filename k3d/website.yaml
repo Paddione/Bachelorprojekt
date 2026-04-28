@@ -216,6 +216,24 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: STRIPE_WEBHOOK_SECRET
+            - name: SEPA_CREDITOR_IBAN
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SEPA_CREDITOR_IBAN
+                  optional: true
+            - name: SEPA_CREDITOR_BIC
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SEPA_CREDITOR_BIC
+                  optional: true
+            - name: SEPA_CREDITOR_ID
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: SEPA_CREDITOR_ID
+                  optional: true
             - name: KEYCLOAK_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:

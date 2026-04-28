@@ -21,3 +21,21 @@ describe('skrAccountFor', () => {
     expect(skrAccountFor({ taxMode: 'regelbesteuerung', type: 'vat_refund', category: 'ust-erstattung' })).toBe('1781');
   });
 });
+
+describe('skrAccountFor — Plan F accounts', () => {
+  it('returns 8338 for eu_b2b_services income', () => {
+    expect(skrAccountFor({ taxMode: 'regelbesteuerung', type: 'income', category: 'eu_b2b_services' })).toBe('8338');
+  });
+  it('returns 8338 for eu_b2b_goods income', () => {
+    expect(skrAccountFor({ taxMode: 'regelbesteuerung', type: 'income', category: 'eu_b2b_goods' })).toBe('8338');
+  });
+  it('returns 8120 for drittland_export income', () => {
+    expect(skrAccountFor({ taxMode: 'regelbesteuerung', type: 'income', category: 'drittland_export' })).toBe('8120');
+  });
+  it('returns 2668 for positive kursdifferenz income', () => {
+    expect(skrAccountFor({ taxMode: 'regelbesteuerung', type: 'income', category: 'kursdifferenz_gewinn' })).toBe('2668');
+  });
+  it('returns 4930 for negative kursdifferenz expense', () => {
+    expect(skrAccountFor({ taxMode: 'regelbesteuerung', type: 'expense', category: 'kursdifferenz_verlust' })).toBe('4930');
+  });
+});

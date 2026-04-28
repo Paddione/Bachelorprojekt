@@ -4,6 +4,7 @@ context: k3d-dev
 domain: localhost
 
 env_vars:
+  EINVOICE_SIDECAR_ENABLED: "true"
   # Dev uses default_dev from schema.yaml for most values.
   # Override only where the dev default differs from schema:
   WEBSITE_IMAGE: workspace-website

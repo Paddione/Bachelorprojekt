@@ -42,6 +42,7 @@ resources:
   - notify-unread-cronjob.yaml
   # Abrechnung
   - cronjob-monthly-billing.yaml
+  - einvoice-sidecar.yaml
   # Systemisches Brett
   - brett.yaml
   # Dev-Werkzeuge

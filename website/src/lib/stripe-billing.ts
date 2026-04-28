@@ -75,6 +75,7 @@ export interface FullInvoice extends AdminBillingInvoice {
 const STATUS_LABELS: Record<string, string> = {
   draft:         'Entwurf',
   open:          'Offen',
+  partially_paid: 'Teilbezahlt',
   paid:          'Bezahlt',
   void:          'Storniert',
   cancelled:     'Storniert',

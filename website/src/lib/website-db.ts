@@ -3119,6 +3119,7 @@ export async function initBillingTables(): Promise<void> {
       UNIQUE (brand, email)
     )
   `);
+  await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS default_leitweg_id TEXT`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoices (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -3148,6 +3149,37 @@ export async function initBillingTables(): Promise<void> {
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS leitweg_id TEXT`);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS factur_x_xml TEXT`);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS xrechnung_xml TEXT`);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS pdf_a3_blob BYTEA`);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS einvoice_validated_at TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS einvoice_validation_report JSONB`);
+  await pool.query(`
+    ALTER TABLE billing_invoices
+      ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'regular',
+      ADD COLUMN IF NOT EXISTS parent_invoice_id TEXT REFERENCES billing_invoices(id),
+      ADD COLUMN IF NOT EXISTS dunning_level SMALLINT NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ
+  `);
+  await pool.query(`
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_invoices_kind_chk'
+      ) THEN
+        ALTER TABLE billing_invoices
+          ADD CONSTRAINT billing_invoices_kind_chk
+          CHECK (kind IN ('regular','prepayment','final','gutschrift'));
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_invoices_dunning_chk'
+      ) THEN
+        ALTER TABLE billing_invoices
+          ADD CONSTRAINT billing_invoices_dunning_chk
+          CHECK (dunning_level BETWEEN 0 AND 3);
+      END IF;
+    END $$
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoice_line_items (
       id          BIGSERIAL PRIMARY KEY,
@@ -3158,6 +3190,24 @@ export async function initBillingTables(): Promise<void> {
       unit_price  NUMERIC(12,2) NOT NULL,
       net_amount  NUMERIC(12,2) NOT NULL
     )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_invoice_payments (
+      id           BIGSERIAL PRIMARY KEY,
+      invoice_id   TEXT NOT NULL REFERENCES billing_invoices(id),
+      brand        TEXT NOT NULL,
+      paid_at      DATE NOT NULL,
+      amount       NUMERIC(12,2) NOT NULL CHECK (amount <> 0),
+      method       TEXT NOT NULL,
+      reference    TEXT,
+      recorded_by  TEXT NOT NULL,
+      notes        TEXT,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS billing_invoice_payments_invoice_idx
+      ON billing_invoice_payments (invoice_id)
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_quotes (
@@ -3183,6 +3233,57 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS pdf_mime       TEXT,
       ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
       ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
+  `);
+  // Plan F: currency, supply_type, EUR equivalents
+  await pool.query(`
+    ALTER TABLE billing_invoices
+      ADD COLUMN IF NOT EXISTS currency        TEXT NOT NULL DEFAULT 'EUR',
+      ADD COLUMN IF NOT EXISTS currency_rate   NUMERIC(12,6),
+      ADD COLUMN IF NOT EXISTS net_amount_eur  NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS gross_amount_eur NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS supply_type     TEXT
+  `);
+  // Plan F: EU supply + export evidence
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_nachweis (
+      id           BIGSERIAL PRIMARY KEY,
+      invoice_id   TEXT NOT NULL REFERENCES billing_invoices(id),
+      brand        TEXT NOT NULL,
+      type         TEXT NOT NULL,
+      received_at  DATE,
+      document_ref TEXT,
+      notes        TEXT,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  // Plan F: VAT ID validation log
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vat_id_validations (
+      id                  BIGSERIAL PRIMARY KEY,
+      customer_id         TEXT REFERENCES billing_customers(id),
+      vat_id              TEXT NOT NULL,
+      country_code        CHAR(2) NOT NULL,
+      valid               BOOLEAN NOT NULL,
+      vies_name           TEXT,
+      vies_address        TEXT,
+      request_identifier  TEXT,
+      validated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  // Plan F: indexes for new child tables
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS billing_nachweis_invoice_idx
+      ON billing_nachweis (invoice_id)
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vat_id_validations_customer_idx
+      ON vat_id_validations (customer_id)
+      WHERE customer_id IS NOT NULL
+  `);
+  // Plan F: billing_invoice_payments — rate at payment time
+  await pool.query(`
+    ALTER TABLE billing_invoice_payments
+      ADD COLUMN IF NOT EXISTS payment_currency_rate NUMERIC(12,6)
   `);
   await initBillingAuditTable();
   await installInvoiceImmutabilityTriggers();

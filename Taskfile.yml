@@ -8,6 +8,16 @@ vars:
 
 tasks:
   # ─────────────────────────────────────────────
+  # Dashboard
+  # ─────────────────────────────────────────────
+  dashboard:
+    desc: Start the local task execution dashboard
+    dir: dashboard
+    cmds:
+      - npm install
+      - node server.js
+
+  # ─────────────────────────────────────────────
   # Cluster Lifecycle
   # ─────────────────────────────────────────────
   cluster:create:

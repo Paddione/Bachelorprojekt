@@ -11,7 +11,7 @@ export interface ViesResult {
 }
 
 export function parseVatIdCountry(vatId: string): string {
-  if (!/^[A-Z]{2}/.test(vatId)) throw new Error('Invalid VAT ID format: must start with 2-letter country code');
+  if (!/^[A-Z]{2}/.test(vatId)) throw new Error('Invalid VAT ID format');
   return vatId.slice(0, 2);
 }
 
@@ -24,7 +24,7 @@ export async function checkViesVatId(p: {
   const vatNumber = p.vatId.slice(2);
   const body: Record<string, string> = { countryCode: cc, vatNumber };
   if (p.requesterVatId) {
-    body.requesterCountryCode = 'DE';
+    body.requesterCountryCode = parseVatIdCountry(p.requesterVatId);
     body.requesterVatNumber = p.requesterVatId.slice(2);
   }
 

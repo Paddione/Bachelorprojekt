@@ -1,6 +1,8 @@
 import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
 import { checkAndApplyTaxModeSwitch } from './tax-monitor';
 import { addBooking } from './eur-bookkeeping';
+import { canonicalInvoiceForHash, sha256Hex, type HashableLine } from './invoice-hash';
+import { logBillingEvent, type BillingActor } from './billing-audit';
 
 export { initBillingTables };
 
@@ -113,15 +115,69 @@ export async function getInvoice(id: string): Promise<Invoice | null> {
   return r.rows[0] ? mapInvoice(r.rows[0]) : null;
 }
 
-export async function finalizeInvoice(id: string): Promise<Invoice | null> {
+export interface FinalizeOpts {
+  actor?: BillingActor;
+  pdfBlob?: Buffer;
+  pdfMime?: string;
+}
+
+export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Promise<Invoice | null> {
   await initBillingTables();
-  const r = await pool.query(
-    `UPDATE billing_invoices SET status='open', locked=true, updated_at=now()
-     WHERE id=$1 AND status='draft' RETURNING *`, [id]
-  );
-  if (!r.rows[0]) return null;
-  const row = r.rows[0];
-  const inv = mapInvoice(row);
+
+  const client = await pool.connect();
+  let inv: Invoice;
+  let hash: string;
+  try {
+    await client.query('BEGIN');
+    const upd = await client.query(
+      `UPDATE billing_invoices
+         SET status='open', locked=true, finalized_at=now(), updated_at=now()
+       WHERE id=$1 AND status='draft' RETURNING *`,
+      [id]
+    );
+    if (!upd.rows[0]) { await client.query('ROLLBACK'); return null; }
+    const row = upd.rows[0];
+    inv = mapInvoice(row);
+    const linesR = await client.query(
+      `SELECT id, description, quantity, unit_price, net_amount, unit
+         FROM billing_invoice_line_items WHERE invoice_id=$1 ORDER BY id`,
+      [id]
+    );
+    const lines: HashableLine[] = linesR.rows.map((l: Record<string, unknown>) => ({
+      id: Number(l.id),
+      description: l.description as string,
+      quantity: Number(l.quantity),
+      unitPrice: Number(l.unit_price),
+      netAmount: Number(l.net_amount),
+      unit: (l.unit as string) ?? undefined,
+    }));
+    hash = sha256Hex(canonicalInvoiceForHash({
+      id: inv.id, number: inv.number, brand: inv.brand, customerId: inv.customerId,
+      issueDate: inv.issueDate, dueDate: inv.dueDate,
+      servicePeriodStart: inv.servicePeriodStart, servicePeriodEnd: inv.servicePeriodEnd,
+      taxMode: inv.taxMode, netAmount: inv.netAmount,
+      taxRate: inv.taxRate, taxAmount: inv.taxAmount, grossAmount: inv.grossAmount,
+    }, lines));
+    await client.query(
+      `UPDATE billing_invoices
+         SET hash_sha256=$2,
+             pdf_blob=$3,
+             pdf_mime=$4,
+             pdf_size_bytes=$5
+       WHERE id=$1`,
+      [id, hash,
+       opts.pdfBlob ?? null,
+       opts.pdfMime ?? (opts.pdfBlob ? 'application/pdf' : null),
+       opts.pdfBlob?.length ?? null]
+    );
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+
   await checkAndApplyTaxModeSwitch(inv.brand, id);
   await addBooking({
     brand:       inv.brand,
@@ -132,18 +188,42 @@ export async function finalizeInvoice(id: string): Promise<Invoice | null> {
     netAmount:   inv.netAmount,
     vatAmount:   inv.taxAmount,
     invoiceId:   inv.id,
+    belegnummer: inv.number,
+    taxMode:     inv.taxMode,
+  });
+  await logBillingEvent({
+    invoiceId: id,
+    action: 'finalize',
+    actor: opts.actor,
+    fromStatus: 'draft',
+    toStatus: 'open',
+    metadata: { hash, pdfBytes: opts.pdfBlob?.length ?? null },
   });
   return inv;
 }
 
-export async function markInvoicePaid(id: string, p: { paidAt: string; paidAmount: number }): Promise<Invoice | null> {
+export async function markInvoicePaid(
+  id: string,
+  p: { paidAt: string; paidAmount: number },
+  actor?: BillingActor,
+): Promise<Invoice | null> {
   await initBillingTables();
   const r = await pool.query(
     `UPDATE billing_invoices SET status='paid', paid_at=$2, paid_amount=$3, updated_at=now()
      WHERE id=$1 AND status='open' RETURNING *`,
     [id, p.paidAt, p.paidAmount]
   );
-  return r.rows[0] ? mapInvoice(r.rows[0]) : null;
+  if (!r.rows[0]) return null;
+  const inv = mapInvoice(r.rows[0]);
+  await logBillingEvent({
+    invoiceId: id,
+    action: 'mark_paid',
+    actor,
+    fromStatus: 'open',
+    toStatus: 'paid',
+    metadata: { paidAt: p.paidAt, paidAmount: p.paidAmount },
+  });
+  return inv;
 }
 
 function mapInvoice(row: Record<string, unknown>): Invoice {

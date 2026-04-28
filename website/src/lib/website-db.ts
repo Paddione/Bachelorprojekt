@@ -3020,6 +3020,82 @@ export async function deleteCustomSection(slug: string): Promise<void> {
 
 // ── Billing Tables ───────────────────────────────────────────────────────────
 
+async function initBillingAuditTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_audit_log (
+      id            BIGSERIAL PRIMARY KEY,
+      invoice_id    TEXT NOT NULL REFERENCES billing_invoices(id),
+      action        TEXT NOT NULL,
+      actor_user_id TEXT,
+      actor_email   TEXT,
+      from_status   TEXT,
+      to_status     TEXT,
+      reason        TEXT,
+      metadata      JSONB,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_billing_audit_invoice ON billing_audit_log(invoice_id, created_at DESC)`);
+}
+
+async function installInvoiceImmutabilityTriggers(): Promise<void> {
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION billing_invoices_immutable() RETURNS trigger AS $fn$
+    BEGIN
+      IF OLD.locked = true THEN
+        IF NEW.net_amount   IS DISTINCT FROM OLD.net_amount   OR
+           NEW.tax_rate     IS DISTINCT FROM OLD.tax_rate     OR
+           NEW.tax_amount   IS DISTINCT FROM OLD.tax_amount   OR
+           NEW.gross_amount IS DISTINCT FROM OLD.gross_amount OR
+           NEW.tax_mode     IS DISTINCT FROM OLD.tax_mode     OR
+           NEW.customer_id  IS DISTINCT FROM OLD.customer_id  OR
+           NEW.issue_date   IS DISTINCT FROM OLD.issue_date   OR
+           NEW.due_date     IS DISTINCT FROM OLD.due_date     OR
+           NEW.number       IS DISTINCT FROM OLD.number       OR
+           NEW.brand        IS DISTINCT FROM OLD.brand        OR
+           (OLD.hash_sha256 IS NOT NULL AND NEW.hash_sha256 IS DISTINCT FROM OLD.hash_sha256)
+        THEN
+          RAISE EXCEPTION 'GoBD: locked invoice % cannot be modified', OLD.id;
+        END IF;
+      END IF;
+      RETURN NEW;
+    END $fn$ LANGUAGE plpgsql;
+  `);
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION billing_invoices_no_delete() RETURNS trigger AS $fn$
+    BEGIN
+      IF OLD.locked = true THEN
+        RAISE EXCEPTION 'GoBD: locked invoice % cannot be deleted', OLD.id;
+      END IF;
+      RETURN OLD;
+    END $fn$ LANGUAGE plpgsql;
+  `);
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION billing_lines_immutable() RETURNS trigger AS $fn$
+    DECLARE inv_locked boolean;
+    BEGIN
+      SELECT locked INTO inv_locked FROM billing_invoices
+        WHERE id = COALESCE(NEW.invoice_id, OLD.invoice_id);
+      IF inv_locked = true THEN
+        RAISE EXCEPTION 'GoBD: cannot modify lines of locked invoice %', COALESCE(NEW.invoice_id, OLD.invoice_id);
+      END IF;
+      RETURN COALESCE(NEW, OLD);
+    END $fn$ LANGUAGE plpgsql;
+  `);
+  await pool.query(`DROP TRIGGER IF EXISTS billing_invoices_immutable_trg ON billing_invoices`);
+  await pool.query(`CREATE TRIGGER billing_invoices_immutable_trg
+    BEFORE UPDATE ON billing_invoices
+    FOR EACH ROW EXECUTE FUNCTION billing_invoices_immutable()`);
+  await pool.query(`DROP TRIGGER IF EXISTS billing_invoices_no_delete_trg ON billing_invoices`);
+  await pool.query(`CREATE TRIGGER billing_invoices_no_delete_trg
+    BEFORE DELETE ON billing_invoices
+    FOR EACH ROW EXECUTE FUNCTION billing_invoices_no_delete()`);
+  await pool.query(`DROP TRIGGER IF EXISTS billing_lines_immutable_trg ON billing_invoice_line_items`);
+  await pool.query(`CREATE TRIGGER billing_lines_immutable_trg
+    BEFORE INSERT OR UPDATE OR DELETE ON billing_invoice_line_items
+    FOR EACH ROW EXECUTE FUNCTION billing_lines_immutable()`);
+}
+
 let billingTablesReady = false;
 export async function initBillingTables(): Promise<void> {
   if (billingTablesReady) return;
@@ -3100,6 +3176,16 @@ export async function initBillingTables(): Promise<void> {
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  await pool.query(`
+    ALTER TABLE billing_invoices
+      ADD COLUMN IF NOT EXISTS hash_sha256    TEXT,
+      ADD COLUMN IF NOT EXISTS pdf_blob       BYTEA,
+      ADD COLUMN IF NOT EXISTS pdf_mime       TEXT,
+      ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
+      ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
+  `);
+  await initBillingAuditTable();
+  await installInvoiceImmutabilityTriggers();
   billingTablesReady = true;
 }
 
@@ -3138,6 +3224,11 @@ export async function initEurTables(): Promise<void> {
       receipt_path  TEXT,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
+  `);
+  await pool.query(`
+    ALTER TABLE eur_bookings
+      ADD COLUMN IF NOT EXISTS belegnummer TEXT,
+      ADD COLUMN IF NOT EXISTS skr_konto   TEXT
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS assets (

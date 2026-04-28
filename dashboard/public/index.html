@@ -760,9 +760,22 @@
         chevron.className = 'section-chevron';
         chevron.textContent = '▶';
 
+        const resetLink = document.createElement('span');
+        resetLink.className = 'pipeline-reset';
+        resetLink.textContent = '↺ reset';
+        resetLink.title = 'Re-activate every step for the current ENV';
+        resetLink.addEventListener('click', (ev) => {
+            ev.stopPropagation();          // do not toggle section open/close
+            if (pipeline.active) return;   // freeze during a run
+            clearSkipsForActiveEnv();
+            applySkipUiForEnv();
+            updatePipelineStartBtnState();
+        });
+
         header.appendChild(iconEl);
         header.appendChild(nameEl);
         header.appendChild(countEl);
+        header.appendChild(resetLink);
         header.appendChild(chevron);
         header.addEventListener('click', () => section.classList.toggle('open'));
         section.appendChild(header);

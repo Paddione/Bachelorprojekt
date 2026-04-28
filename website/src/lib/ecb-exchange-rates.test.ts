@@ -32,6 +32,11 @@ describe('fetchEcbRates', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }));
     await expect(fetchEcbRates()).rejects.toThrow('ECB rate fetch failed: 503');
   });
+
+  it('propagates network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('DNS failure')));
+    await expect(fetchEcbRates()).rejects.toThrow('DNS failure');
+  });
 });
 
 describe('eurPer', () => {

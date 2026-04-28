@@ -965,7 +965,7 @@
     let running = false;
 
     function setButtons(disabled) {
-        document.querySelectorAll('.task-card:not(.dangerous), .run-btn').forEach((el) => {
+        document.querySelectorAll('.task-card:not(.dangerous), .run-btn, #dryrun-btn').forEach((el) => {
             el.style.pointerEvents = disabled ? 'none' : '';
             el.style.opacity = disabled ? '0.45' : '';
         });

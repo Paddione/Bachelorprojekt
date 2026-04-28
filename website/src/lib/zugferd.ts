@@ -45,3 +45,9 @@ export function generateZugferdXmlFromNative(input: any): string {
   };
   return generateFacturX(mapped);
 }
+
+import type { EInvoiceInput } from './einvoice-profile';
+
+export function generateXRechnungCii(_p: EInvoiceInput): string {
+  throw new Error('not implemented'); // siehe Task 4
+}

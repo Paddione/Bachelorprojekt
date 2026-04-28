@@ -450,7 +450,7 @@
     <div id="tracker-panel">
         <div id="tracker-header">
             <span class="tracker-title">Deploy Pipeline</span>
-            <span class="tracker-sub" id="tracker-sub">Step 0 of 7</span>
+            <span class="tracker-sub" id="tracker-sub">Ready</span>
         </div>
         <div id="tracker-steps"></div>
         <div id="countdown-bar">
@@ -498,10 +498,11 @@
 
     // ── Data ───────────────────────────────────────────────────────────────
     const QUICK_STEPS = [
-        { n: 1, title: 'Create the dev cluster',       cmd: 'cluster:create' },
-        { n: 2, title: 'Deploy the full workspace',    cmd: 'workspace:up' },
-        { n: 3, title: 'Run post-deploy setup',        cmd: 'workspace:post-setup' },
-        { n: 4, title: 'Check everything is healthy',  cmd: 'workspace:status' },
+        { n: 1, title: 'Select ENV in the sidebar',            cmd: '(pick dev / mentolder / korczewski)' },
+        { n: 2, title: 'Validate manifests first (optional)',  cmd: 'workspace:validate' },
+        { n: 3, title: 'Click Start Full Pipeline',            cmd: '(Full Deploy Pipeline section)' },
+        { n: 4, title: 'Skip or abort steps as needed',        cmd: '(countdown bar in main panel)' },
+        { n: 5, title: 'Check everything is healthy',          cmd: 'workspace:status' },
     ];
 
     // Accent colors per section key

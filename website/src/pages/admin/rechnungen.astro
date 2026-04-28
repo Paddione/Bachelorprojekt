@@ -2,6 +2,7 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAllBillingInvoices, stripeInvoiceDashboardUrl, getDraftInvoices } from '../../lib/stripe-billing';
+import { listPendingDunnings, type PendingDunning } from '../../lib/invoice-dunning';
 import type { AdminBillingInvoice } from '../../lib/stripe-billing';
 import CreateInvoiceModal from '../../components/admin/CreateInvoiceModal.svelte';
 import TaxMonitorWidget from '../../components/admin/TaxMonitorWidget.svelte';
@@ -21,12 +22,24 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 const statusFilter = Astro.url.searchParams.get('status') ?? '';
 
 let invoices: AdminBillingInvoice[] = [];
+let pendingDunnings: PendingDunning[] = [];
 let apiError = '';
-try {
-  invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
-} catch (err) {
-  console.error('[admin/rechnungen]', err);
-  apiError = 'Stripe nicht erreichbar.';
+const brand = process.env.BRAND || 'mentolder';
+
+if (statusFilter === 'mahnwesen') {
+  try {
+    pendingDunnings = await listPendingDunnings(brand);
+  } catch (err) {
+    console.error('[admin/rechnungen] listPendingDunnings', err);
+    apiError = 'Mahnwesen konnte nicht geladen werden.';
+  }
+} else {
+  try {
+    invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
+  } catch (err) {
+    console.error('[admin/rechnungen]', err);
+    apiError = 'Stripe nicht erreichbar.';
+  }
 }
 
 let draftInvoices: Awaited<ReturnType<typeof getDraftInvoices>> = [];
@@ -64,6 +77,7 @@ const STATUS_TABS = [
   { value: 'partially_paid', label: 'Teilbezahlt' },
   { value: 'uncollectible',  label: 'Überfällig' },
   { value: 'paid',           label: 'Bezahlt' },
+  { value: 'mahnwesen',      label: 'Mahnwesen' },
   { value: 'draft',          label: 'Entwurf' },
   { value: 'void',           label: 'Storniert' },
 ];
@@ -183,11 +197,53 @@ const STATUS_TABS = [
             </tr>
           </thead>
           <tbody>
-            {invoices.length === 0 ? (
-              <tr>
-                <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
-              </tr>
-            ) : invoices.map(inv => (
+            {statusFilter === 'mahnwesen' ? (
+              pendingDunnings.length === 0 ? (
+                <tr>
+                  <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine ausstehenden Mahnungen.</td>
+                </tr>
+              ) : pendingDunnings.map(d => (
+                <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
+                  <td class="px-4 py-3 text-sm text-light font-mono">#{d.invoiceNumber}</td>
+                  <td class="px-4 py-3 text-sm">
+                    <div class="text-light">{d.customerName}</div>
+                    <div class="text-xs text-muted">{d.customerEmail}</div>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs px-2 py-0.5 rounded-full border border-red-800 bg-red-900/40 text-red-300">
+                      Mahnung {d.level}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-muted">Ausstehend</td>
+                  <td class="px-4 py-3 text-sm text-red-400 font-medium">SOFORT</td>
+                  <td class="px-4 py-3 text-sm text-light text-right font-medium">
+                    {fmtCurrency(d.outstanding + d.feeAmount + d.interestAmount)}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-right text-yellow-400 font-medium">{fmtCurrency(d.outstanding)}</td>
+                  <td class="px-4 py-3 text-sm text-right">—</td>
+                  <td class="px-4 py-3 text-sm text-right">—</td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    <button
+                      class="text-xs text-yellow-400 hover:underline"
+                      data-send-dunning
+                      data-id={d.id}
+                      data-level={d.level}
+                    >Versenden ↑</button>
+                    <a
+                      href={`/admin/billing/dunning/${d.id}/drucken`}
+                      target="_blank"
+                      rel="noopener"
+                      class="ml-2 text-xs text-yellow-400 hover:underline"
+                    >Drucken ↗</a>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              invoices.length === 0 ? (
+                <tr>
+                  <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+                </tr>
+              ) : invoices.map(inv => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
                 <td class="px-4 py-3 text-sm text-light font-mono">#{inv.number}</td>
                 <td class="px-4 py-3 text-sm">
@@ -314,6 +370,33 @@ const STATUS_TABS = [
           onSaved: () => { app.$destroy(); window.location.reload(); },
         },
       });
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-send-dunning]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const level = btn.dataset.level;
+      if (!confirm(`Mahnung ${level} jetzt an den Kunden versenden?`)) return;
+      
+      btn.disabled = true;
+      btn.textContent = 'Sendet…';
+      
+      try {
+        const res = await fetch(`/api/admin/billing/dunning/${id}/send`, { method: 'POST' });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert('Fehler beim Versenden der Mahnung.');
+          btn.disabled = false;
+          btn.textContent = 'Versenden ↑';
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Netzwerkfehler.');
+        btn.disabled = false;
+        btn.textContent = 'Versenden ↑';
+      }
     });
   });
 </script>

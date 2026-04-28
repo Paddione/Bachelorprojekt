@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: billing-dunning-detection
+  namespace: workspace
+spec:
+  schedule: "0 6 * * *" # Daily at 06:00
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: detector
+            image: curlimages/curl:latest
+            command:
+            - /bin/sh
+            - -c
+            - "curl -s -X POST http://website.workspace.svc.cluster.local/api/admin/billing/dunning/run -H \"X-Cron-Secret: ${CRON_SECRET}\" || exit 1"
+            env:
+            - name: CRON_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: CRON_SECRET
+          restartPolicy: OnFailure

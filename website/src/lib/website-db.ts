@@ -2706,26 +2706,40 @@ async function initInvoiceCountersTable(): Promise<void> {
     CREATE TABLE IF NOT EXISTS invoice_counters (
       brand   TEXT NOT NULL,
       year    INT  NOT NULL,
+      kind    TEXT NOT NULL DEFAULT 'invoice',
       counter INT  NOT NULL DEFAULT 0,
-      PRIMARY KEY (brand, year)
+      PRIMARY KEY (brand, year, kind)
     )
+  `);
+  await pool.query(`
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='invoice_counters' AND column_name='kind'
+      ) THEN
+        ALTER TABLE invoice_counters ADD COLUMN kind TEXT NOT NULL DEFAULT 'invoice';
+        ALTER TABLE invoice_counters DROP CONSTRAINT invoice_counters_pkey;
+        ALTER TABLE invoice_counters ADD PRIMARY KEY (brand, year, kind);
+      END IF;
+    END $$
   `);
   invoiceCountersReady = true;
 }
 
-export async function getNextInvoiceNumber(brand: string): Promise<string> {
+export async function getNextInvoiceNumber(brand: string, kind: 'invoice' | 'gutschrift' = 'invoice'): Promise<string> {
   await initInvoiceCountersTable();
   const year = new Date().getFullYear();
   const result = await pool.query<{ counter: number }>(
-    `INSERT INTO invoice_counters (brand, year, counter)
-     VALUES ($1, $2, 1)
-     ON CONFLICT (brand, year)
+    `INSERT INTO invoice_counters (brand, year, kind, counter)
+     VALUES ($1, $2, $3, 1)
+     ON CONFLICT (brand, year, kind)
      DO UPDATE SET counter = invoice_counters.counter + 1
      RETURNING counter`,
-    [brand, year]
+    [brand, year, kind]
   );
   const n = result.rows[0].counter;
-  return `RE-${year}-${String(n).padStart(4, '0')}`;
+  const prefix = kind === 'gutschrift' ? 'GS' : 'RE';
+  return `${prefix}-${year}-${String(n).padStart(4, '0')}`;
 }
 
 export async function seedInvoiceCounter(
@@ -3199,7 +3213,12 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'regular',
       ADD COLUMN IF NOT EXISTS parent_invoice_id TEXT REFERENCES billing_invoices(id),
       ADD COLUMN IF NOT EXISTS dunning_level SMALLINT NOT NULL DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ
+      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS currency CHAR(3) NOT NULL DEFAULT 'EUR',
+      ADD COLUMN IF NOT EXISTS currency_rate NUMERIC(12,6),
+      ADD COLUMN IF NOT EXISTS net_amount_eur  NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS gross_amount_eur NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS supply_type     TEXT
   `);
   await pool.query(`
     DO $$ BEGIN
@@ -3220,29 +3239,20 @@ export async function initBillingTables(): Promise<void> {
     END $$
   `);
   await pool.query(`
-    ALTER TABLE billing_invoices
-      ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'regular',
-      ADD COLUMN IF NOT EXISTS parent_invoice_id TEXT REFERENCES billing_invoices(id),
-      ADD COLUMN IF NOT EXISTS dunning_level SMALLINT NOT NULL DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ
-  `);
-  await pool.query(`
-    DO $$ BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname='billing_invoices_kind_chk'
-      ) THEN
-        ALTER TABLE billing_invoices
-          ADD CONSTRAINT billing_invoices_kind_chk
-          CHECK (kind IN ('regular','prepayment','final','gutschrift'));
-      END IF;
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname='billing_invoices_dunning_chk'
-      ) THEN
-        ALTER TABLE billing_invoices
-          ADD CONSTRAINT billing_invoices_dunning_chk
-          CHECK (dunning_level BETWEEN 0 AND 3);
-      END IF;
-    END $$
+    CREATE TABLE IF NOT EXISTS billing_invoice_dunnings (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      invoice_id    TEXT NOT NULL REFERENCES billing_invoices(id),
+      brand         TEXT NOT NULL,
+      level         SMALLINT NOT NULL,
+      generated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+      sent_at       TIMESTAMPTZ,
+      sent_by       TEXT,
+      fee_amount    NUMERIC(12,2) NOT NULL DEFAULT 0,
+      interest_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      outstanding_at_generation NUMERIC(12,2) NOT NULL,
+      pdf_path      TEXT,
+      UNIQUE (invoice_id, level)
+    )
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoice_line_items (
@@ -3297,15 +3307,6 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS pdf_mime       TEXT,
       ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
       ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
-  `);
-  // Plan F: currency, supply_type, EUR equivalents
-  await pool.query(`
-    ALTER TABLE billing_invoices
-      ADD COLUMN IF NOT EXISTS currency        TEXT NOT NULL DEFAULT 'EUR',
-      ADD COLUMN IF NOT EXISTS currency_rate   NUMERIC(12,6),
-      ADD COLUMN IF NOT EXISTS net_amount_eur  NUMERIC(12,2),
-      ADD COLUMN IF NOT EXISTS gross_amount_eur NUMERIC(12,2),
-      ADD COLUMN IF NOT EXISTS supply_type     TEXT
   `);
   // Plan F: EU supply + export evidence
   await pool.query(`

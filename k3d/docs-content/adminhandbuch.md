@@ -189,6 +189,34 @@ task workspace:stripe-setup
 
 Registriert Stripe als Zahlungs-Gateway in der Website-Brand-Konfiguration. Stripe-Keys werden als Secret ausgerollt (in Dev direkt, in Produktion als SealedSecret in `environments/sealed-secrets/<env>.yaml`). Webhook-Endpunkt: `/api/stripe/webhook`. Details: [Stripe](stripe.md).
 
+### E-Rechnung (XRechnung / ZUGFeRD)
+
+Drei Profile stehen zur Auswahl beim Versand und Download:
+
+| Profil | Verwendung | URL |
+|---|---|---|
+| `factur-x-minimum` | B2C / interne Archivierung | `/api/billing/invoice/<id>/pdf?profile=factur-x-minimum` |
+| `xrechnung-cii` | B2G (Bund/Länder), CII-Syntax | `/api/billing/invoice/<id>/pdf?profile=xrechnung-cii` |
+| `xrechnung-ubl` | B2G, UBL-2.1-Syntax (z. B. ZRE/OZG-RE) | `/api/billing/invoice/<id>/pdf?profile=xrechnung-ubl` |
+
+Für `xrechnung-*` muss die **Leitweg-ID** des Empfängers im Kundenstamm gesetzt sein
+(Format `<grob>-[<fein>-]<prüfziffer>` nach KoSIT 2.0.2). Sonst antwortet die API mit HTTP 422.
+
+**Leitweg-ID setzen:** `PATCH /api/admin/billing/customers/<customer-id>/leitweg` mit
+`{ "leitwegId": "991-01234-44" }` oder `{ "leitwegId": null }` zum Entfernen. Validierung
+erfolgt serverseitig.
+
+**XML statt PDF:** `/api/billing/invoice/<id>/zugferd?profile=<profile>` liefert nur das XML.
+
+**Validierung lokaler Dateien:**
+
+```bash
+task billing:validate-einvoice -- ./rechnung.pdf
+task billing:validate-einvoice -- ./factur-x.xml
+```
+
+Erwartet: `Mustang … is a valid E-Invoice (Factur-X / XRechnung).`
+
 ---
 
 ## Monitoring & Observability

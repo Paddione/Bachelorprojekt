@@ -3149,6 +3149,31 @@ export async function initBillingTables(): Promise<void> {
     )
   `);
   await pool.query(`
+    ALTER TABLE billing_invoices
+      ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'regular',
+      ADD COLUMN IF NOT EXISTS parent_invoice_id TEXT REFERENCES billing_invoices(id),
+      ADD COLUMN IF NOT EXISTS dunning_level SMALLINT NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ
+  `);
+  await pool.query(`
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_invoices_kind_chk'
+      ) THEN
+        ALTER TABLE billing_invoices
+          ADD CONSTRAINT billing_invoices_kind_chk
+          CHECK (kind IN ('regular','prepayment','final','gutschrift'));
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_invoices_dunning_chk'
+      ) THEN
+        ALTER TABLE billing_invoices
+          ADD CONSTRAINT billing_invoices_dunning_chk
+          CHECK (dunning_level BETWEEN 0 AND 3);
+      END IF;
+    END $$
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoice_line_items (
       id          BIGSERIAL PRIMARY KEY,
       invoice_id  TEXT NOT NULL REFERENCES billing_invoices(id) ON DELETE CASCADE,
@@ -3158,6 +3183,24 @@ export async function initBillingTables(): Promise<void> {
       unit_price  NUMERIC(12,2) NOT NULL,
       net_amount  NUMERIC(12,2) NOT NULL
     )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_invoice_payments (
+      id           BIGSERIAL PRIMARY KEY,
+      invoice_id   TEXT NOT NULL REFERENCES billing_invoices(id),
+      brand        TEXT NOT NULL,
+      paid_at      DATE NOT NULL,
+      amount       NUMERIC(12,2) NOT NULL CHECK (amount <> 0),
+      method       TEXT NOT NULL,
+      reference    TEXT,
+      recorded_by  TEXT NOT NULL,
+      notes        TEXT,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS billing_invoice_payments_invoice_idx
+      ON billing_invoice_payments (invoice_id)
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_quotes (

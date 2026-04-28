@@ -1,0 +1,57 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { getUstvaKennzahlen, buildUstvaXml } from '../../../lib/elster-xml';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session || !isAdmin(session)) return Astro.redirect('/admin');
+
+const brand = process.env.BRAND || 'mentolder';
+const year = new Date().getFullYear();
+const period = 1; // Default January
+
+const kennzahlen = await getUstvaKennzahlen({ brand, year, period });
+const xml = buildUstvaXml(kennzahlen, { brand, year, period });
+---
+
+<AdminLayout title="Admin — ELSTER Dashboard">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-4xl mx-auto px-6">
+      <h1 class="text-3xl font-bold text-light font-serif mb-8">ELSTER Dashboard</h1>
+      
+      <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6 mb-8">
+        <h2 class="text-xl font-semibold text-light mb-4">Umsatzsteuer-Voranmeldung (UStVA)</h2>
+        <p class="text-muted mb-6">Zeitraum: {period}/{year}</p>
+        
+        <div class="grid grid-cols-2 gap-4 mb-8">
+          <div class="p-4 bg-dark rounded-xl border border-dark-lighter">
+            <div class="text-xs text-muted uppercase">Kennzahl 81 (19 %)</div>
+            <div class="text-xl font-bold text-light">{kennzahlen.kz81.toFixed(2)} €</div>
+          </div>
+          <div class="p-4 bg-dark rounded-xl border border-dark-lighter">
+            <div class="text-xs text-muted uppercase">Kennzahl 86 (7 %)</div>
+            <div class="text-xl font-bold text-light">{kennzahlen.kz86.toFixed(2)} €</div>
+          </div>
+          <div class="p-4 bg-dark rounded-xl border border-dark-lighter">
+            <div class="text-xs text-muted uppercase">Kennzahl 66 (Vorsteuer)</div>
+            <div class="text-xl font-bold text-light">{kennzahlen.kz66.toFixed(2)} €</div>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <button class="px-4 py-2 bg-gold text-dark font-semibold rounded-lg hover:bg-gold/90 transition-colors">
+            XML generieren
+          </button>
+          <button disabled class="px-4 py-2 bg-dark-lighter text-muted font-semibold rounded-lg cursor-not-allowed" title="Zertifikat fehlt">
+            An ELSTER senden
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
+        <h2 class="text-lg font-semibold text-light mb-4">XML Vorschau</h2>
+        <pre class="bg-dark p-4 rounded-xl border border-dark-lighter overflow-x-auto text-xs text-green-400"><code>{xml}</code></pre>
+      </div>
+    </div>
+  </section>
+</AdminLayout>

@@ -53,6 +53,13 @@ task workspace:restore -- all <timestamp>                # Restore all DBs from 
 # Prod: append -- --context mentolder|korczewski to any of the above
 ```
 
+### Database Management
+```bash
+task workspace:db:start ENV=<env>                        # Start or restart shared-db (scale up if at 0)
+task workspace:db:drop -- <dbname> ENV=<env>             # Drop a database (asks for confirmation)
+task workspace:db:restore -- <db> <timestamp> ENV=<env>  # List backups then restore (db: keycloak|nextcloud|vaultwarden|website|docuseal|all)
+```
+
 ### Post-Deploy Setup
 ```bash
 task workspace:office:deploy ENV=<env>    # Deploy Collabora (separate overlay — required for full bring-up)

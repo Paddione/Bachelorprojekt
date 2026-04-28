@@ -86,37 +86,6 @@
         }
         #prod-banner.visible { display: block; }
 
-        /* Quick-start guide */
-        #quickstart {
-            flex-shrink: 0; border-bottom: 1px solid var(--border);
-            background: var(--bg2);
-        }
-        #qs-header {
-            display: flex; align-items: center; gap: 6px;
-            padding: 7px 16px; cursor: pointer; user-select: none;
-            font-size: 11px; color: var(--text-dim); text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        #qs-header:hover { color: var(--text); }
-        #qs-chevron { font-size: 9px; transition: transform 0.15s; display: inline-block; }
-        #quickstart.open #qs-chevron { transform: rotate(90deg); }
-        #qs-body { display: none; padding: 0 16px 12px; }
-        #quickstart.open #qs-body { display: block; }
-        .qs-step {
-            display: flex; align-items: flex-start; gap: 8px;
-            padding: 5px 0; border-bottom: 1px solid var(--border);
-        }
-        .qs-step:last-child { border-bottom: none; }
-        .qs-num {
-            flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
-            background: var(--primary-dim); color: var(--primary);
-            font-size: 10px; font-weight: 700; display: flex;
-            align-items: center; justify-content: center; margin-top: 1px;
-        }
-        .qs-text { flex: 1; }
-        .qs-title { font-size: 12px; color: var(--text); }
-        .qs-cmd { font-family: monospace; font-size: 10px; color: var(--text-dim); }
-
         /* Sections */
         #sidebar-scroll { flex: 1; overflow-y: auto; padding: 6px 0 24px; }
         .section { }
@@ -162,7 +131,7 @@
         }
         .task-desc {
             font-size: 11px; color: var(--text-mid); line-height: 1.4;
-            padding: 2px 10px 6px 21px; /* align under title */
+            padding: 2px 10px 6px 21px;
         }
         .task-card.dangerous .task-title { color: #e07070; }
         .task-card.dangerous .task-cmd   { color: #a05050; }
@@ -298,148 +267,6 @@
         }
         #dryrun-btn.active #dryrun-badge { display: inline; }
 
-        /* ── Step tracker panel ──────────────────────────────── */
-        #tracker-panel {
-            background: var(--bg2); border-bottom: 1px solid var(--border);
-            flex-shrink: 0; display: none;
-        }
-        #tracker-panel.visible { display: block; }
-        #tracker-header {
-            display: flex; align-items: center; gap: 10px;
-            padding: 7px 16px 4px; font-size: 11px;
-        }
-        .tracker-title { font-weight: 600; color: var(--text); }
-        .tracker-sub   { color: var(--text-dim); font-size: 10px; }
-        #tracker-steps {
-            display: flex; padding: 0 12px 8px; overflow-x: auto; scrollbar-width: none;
-        }
-        #tracker-steps::-webkit-scrollbar { display: none; }
-        .t-step {
-            display: flex; flex-direction: column; align-items: center;
-            min-width: 72px; padding: 4px; position: relative; cursor: pointer;
-        }
-        .t-step:not(:last-child)::after {
-            content: ''; position: absolute; top: 11px;
-            left: calc(50% + 12px); width: calc(100% - 24px); height: 1px;
-            background: var(--border);
-        }
-        .t-step.done:not(:last-child)::after { background: var(--success); }
-        .t-dot {
-            width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 9px; font-weight: 700; margin-bottom: 3px;
-        }
-        .t-dot-done { background: var(--success); color: #000; }
-        .t-dot-run  { background: var(--warn); color: #000;
-                      animation: tdpulse .8s ease-in-out infinite alternate; }
-        .t-dot-pend { background: var(--bg4); color: var(--text-dim);
-                      border: 1px solid var(--border); }
-        .t-dot-skip { background: var(--bg3); color: var(--text-dim);
-                      border: 1px dashed #555; }
-        @keyframes tdpulse { from { opacity:.6; } to { opacity:1; } }
-        .t-label {
-            font-size: 9px; color: var(--text-mid); text-align: center;
-            line-height: 1.3; white-space: nowrap;
-        }
-        .t-label.running { color: var(--warn); font-weight: 600; }
-        .t-label.done    { color: var(--success); }
-        .t-label.skipped { color: var(--text-dim); text-decoration: line-through; }
-        #countdown-bar {
-            display: none; margin: 0 16px 8px; padding: 6px 12px;
-            border-radius: var(--radius); align-items: center; gap: 10px; font-size: 11px;
-        }
-        #countdown-bar.success {
-            display: flex; background: #1a2a10; border: 1px solid #3a5020;
-        }
-        #countdown-bar.failure {
-            display: flex; background: var(--danger-dim); border: 1px solid var(--danger-border);
-        }
-        #cd-text { flex: 1; }
-        #countdown-bar.success #cd-text { color: #8dd06a; }
-        #countdown-bar.failure #cd-text { color: #e07070; }
-        .cd-next { font-weight: 600; color: #b0e080; }
-        .cd-btn {
-            padding: 3px 10px; border-radius: var(--radius);
-            font-size: 10px; cursor: pointer; border: 1px solid; white-space: nowrap;
-        }
-        #cd-skip  { background: #2a3a1a; color: #8dd06a; border-color: #3a5020; }
-        #cd-skip:hover  { background: #3a4a2a; }
-        #cd-retry { background: var(--primary-dim); color: var(--primary); border-color: #2a5080; }
-        #cd-retry:hover { background: #2a4a62; }
-        #cd-abort { background: var(--danger-dim); color: #e07070; border-color: var(--danger-border); }
-        #cd-abort:hover { background: #3a1515; }
-
-        /* ── Sidebar pipeline steps ───────────────────────────── */
-        .pipeline-step {
-            display: flex; align-items: center; gap: 8px;
-            padding: 5px 8px; border-radius: var(--radius);
-            margin-bottom: 2px; font-size: 11px; cursor: pointer;
-        }
-        .pipeline-step:hover { background: var(--bg3); }
-        .ps-dot {
-            width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 8px; font-weight: 700;
-        }
-        .ps-done { background: var(--success); color: #000; }
-        .ps-run  { background: var(--warn); color: #000;
-                   animation: tdpulse .8s ease-in-out infinite alternate; }
-        .ps-pend { background: var(--bg4); color: var(--text-dim); border: 1px solid var(--border); }
-        .ps-skip { background: var(--bg3); color: var(--text-dim); border: 1px dashed #555; }
-        .ps-info { flex: 1; min-width: 0; }
-        .ps-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ps-cmd  { font-family: monospace; font-size: 9px; color: var(--text-dim); }
-        #pipeline-start-btn {
-            width: calc(100% - 20px); margin: 4px 10px 6px;
-            background: #1a3a26; color: var(--success); border: 1px solid #2a5a36;
-            padding: 5px 10px; border-radius: var(--radius); font-size: 11px;
-            font-weight: 600; cursor: pointer; text-align: center; display: block;
-        }
-        #pipeline-start-btn:hover    { background: #254a30; }
-        #pipeline-start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        /* ── Pipeline step active/inactive checkbox ───────────── */
-        .ps-check {
-            width: 14px; height: 14px; flex-shrink: 0;
-            border: 1px solid var(--border); border-radius: 3px;
-            background: var(--bg3); cursor: pointer; position: relative;
-            display: flex; align-items: center; justify-content: center;
-            transition: border-color .12s ease, background .12s ease;
-        }
-        .ps-check:hover { border-color: var(--primary); }
-        .ps-check.checked {
-            background: #3ec9a7; border-color: #3ec9a7;
-        }
-        .ps-check.checked::after {
-            content: '✓'; color: #0a1a14; font-size: 10px; font-weight: 700;
-            line-height: 1;
-        }
-
-        /* ── Inactive (skipped) step — pulsing glow ───────────── */
-        @keyframes pipelineGlow {
-            0%, 100% { box-shadow: 0 0 2px rgba(62, 201, 167, 0.35); }
-            50%      { box-shadow: 0 0 10px rgba(62, 201, 167, 0.85),
-                                   inset 0 0 0 1px rgba(62, 201, 167, 0.6); }
-        }
-        .pipeline-step.inactive {
-            animation: pipelineGlow 2s ease-in-out infinite;
-        }
-        .pipeline-step.inactive .ps-name,
-        .pipeline-step.inactive .ps-cmd { opacity: 0.55; }
-        .pipeline-step.inactive .ps-dot.ps-pend {
-            background: transparent; border: 1px solid #3ec9a7; color: #3ec9a7;
-        }
-
-        /* ── Pipeline section header reset link ───────────────── */
-        .pipeline-reset {
-            font-size: 10px; color: var(--text-dim); cursor: pointer;
-            margin-left: 6px; padding: 1px 5px; border-radius: 3px;
-            border: 1px solid transparent;
-        }
-        .pipeline-reset:hover {
-            color: var(--text); border-color: var(--border);
-        }
-
         /* ── From-scratch zone ────────────────────────────────── */
         .section.scratch-section .section-header { color: #9a8af5; }
         .section.scratch-section.open .section-header { color: #b0a0ff; }
@@ -487,15 +314,6 @@
         </div>
     </div>
 
-    <!-- Quick-start guide -->
-    <div id="quickstart" class="open">
-        <div id="qs-header">
-            <span id="qs-chevron">▶</span>
-            <span>Quick Start — Typical Workflow</span>
-        </div>
-        <div id="qs-body"></div>
-    </div>
-
     <div id="sidebar-scroll">
         <div id="task-sections"></div>
     </div>
@@ -511,20 +329,6 @@
         </button>
         <button id="stop-btn" class="ctrl-btn">■ Stop</button>
         <button id="clear-btn" class="ctrl-btn">Clear</button>
-    </div>
-    <!-- ── Step tracker panel (visible only during pipeline run) ── -->
-    <div id="tracker-panel">
-        <div id="tracker-header">
-            <span class="tracker-title">Deploy Pipeline</span>
-            <span class="tracker-sub" id="tracker-sub">Ready</span>
-        </div>
-        <div id="tracker-steps"></div>
-        <div id="countdown-bar">
-            <span id="cd-text"></span>
-            <button class="cd-btn" id="cd-retry">&#8634; Retry</button>
-            <button class="cd-btn" id="cd-skip">Skip &#8594;</button>
-            <button class="cd-btn" id="cd-abort">&#10005; Abort</button>
-        </div>
     </div>
     <div id="terminal-wrap">
         <div id="terminal-header">
@@ -552,38 +356,15 @@
 (function () {
     'use strict';
 
-    const PIPELINE_STEPS = [
-        { title: 'Deploy Workspace',    cmd: 'workspace:deploy' },
-        { title: 'Deploy Office Stack', cmd: 'workspace:office:deploy' },
-        { title: 'Deploy MCP',          cmd: 'mcp:deploy' },
-        { title: 'Post-Setup',          cmd: 'workspace:post-setup' },
-        { title: 'Talk Setup',          cmd: 'workspace:talk-setup' },
-        { title: 'Recording Setup',     cmd: 'workspace:recording-setup' },
-        { title: 'Transcriber Setup',   cmd: 'workspace:transcriber-setup' },
-    ];
-
     // ── Data ───────────────────────────────────────────────────────────────
-    const QUICK_STEPS = [
-        { n: 1, title: 'Select ENV in the sidebar',            cmd: '(pick dev / mentolder / korczewski)' },
-        { n: 2, title: 'Validate manifests first (optional)',  cmd: 'workspace:validate' },
-        { n: 3, title: 'Click Start Full Pipeline',            cmd: '(Full Deploy Pipeline section)' },
-        { n: 4, title: 'Skip or abort steps as needed',        cmd: '(countdown bar in main panel)' },
-        { n: 5, title: 'Check everything is healthy',          cmd: 'workspace:status' },
-    ];
-
-    // Accent colors per section key
     const ACCENTS = {
         env: '#7c6af5', cluster: '#4d9de0', workspace: '#3ec9a7',
         post: '#d4894a', argocd: '#9b59b6', website: '#2ecc71',
         ops: '#e0b84d', mcp: '#e056a0', users: '#56a0e0',
-        backup: '#56c0e0', testing: '#9de04d', prereq: '#888',
+        backup: '#56c0e0', testing: '#9de04d',
     };
 
     const GROUPS = [
-        // pipeline sentinel — rendered separately
-        { cat: 'Full Deploy Pipeline', icon: '🚀', accent: ACCENTS.workspace,
-          pipeline: true, items: [] },
-
         { cat: 'Cluster', icon: '⚙️', accent: ACCENTS.cluster, items: [
             { title: 'Create Cluster',  cmd: 'cluster:create', desc: 'Bootstrap a new k3d dev cluster' },
             { title: 'Start Cluster',   cmd: 'cluster:start',  desc: 'Resume a stopped k3d cluster' },
@@ -644,6 +425,18 @@
               argInputs: [
                 { id: 'arg-restore-db', placeholder: 'keycloak / nextcloud / all', required: true },
                 { id: 'arg-restore-ts', placeholder: 'timestamp from List Backups', required: true },
+              ] },
+        ]},
+        { cat: 'Database', icon: '🗄️', accent: ACCENTS.backup, items: [
+            { title: 'Start / Restart DB', cmd: 'workspace:db:start', desc: 'Scale up shared-db if at 0 replicas, otherwise restart the pod' },
+            { title: 'Drop Database',      cmd: 'workspace:db:drop',  desc: 'Permanently drop a named database from shared-db',
+              dangerous: true, dangerMsg: 'Permanently drops the database. All data will be lost and cannot be recovered unless a backup exists.',
+              argInputs: [{ id: 'arg-drop-db', placeholder: 'database name (e.g. nextcloud)', required: true }] },
+            { title: 'List & Restore',     cmd: 'workspace:db:restore', desc: 'Print available backup timestamps then restore the selected database',
+              dangerous: true, dangerMsg: 'Overwrites the selected database with backup data. This cannot be undone.',
+              argInputs: [
+                { id: 'arg-dbrestore-db', placeholder: 'keycloak / nextcloud / all', required: true },
+                { id: 'arg-dbrestore-ts', placeholder: 'timestamp from the list above', required: true },
               ] },
         ]},
         { cat: 'Testing', icon: '🧪', accent: ACCENTS.testing, items: [
@@ -710,38 +503,7 @@
               desc: 'Teardown workspace + delete cluster in one go. Dev only. Total reset.',
               dangerMsg: 'Tears down the workspace AND deletes the cluster. Total reset. Cannot be undone.' },
         ]},
-    ]
-
-    // ── Quick-start ────────────────────────────────────────────────────────
-    const qsBody = document.getElementById('qs-body');
-    QUICK_STEPS.forEach((step) => {
-        const row = document.createElement('div');
-        row.className = 'qs-step';
-
-        const num = document.createElement('span');
-        num.className = 'qs-num';
-        num.textContent = String(step.n);
-
-        const txt = document.createElement('div');
-        txt.className = 'qs-text';
-
-        const title = document.createElement('div');
-        title.className = 'qs-title';
-        title.textContent = step.title;
-
-        const cmd = document.createElement('div');
-        cmd.className = 'qs-cmd';
-        cmd.textContent = 'task ' + step.cmd;
-
-        txt.appendChild(title);
-        txt.appendChild(cmd);
-        row.appendChild(num);
-        row.appendChild(txt);
-        qsBody.appendChild(row);
-    });
-    document.getElementById('qs-header').addEventListener('click', () => {
-        document.getElementById('quickstart').classList.toggle('open');
-    });
+    ];
 
     // ── ENV selector & context switcher ───────────────────────────────────
     const envSelect   = document.getElementById('env-select');
@@ -751,8 +513,8 @@
 
     const ENV_CTX = { dev: 'k3d-dev', mentolder: 'mentolder', korczewski: 'korczewski' };
 
-    let liveContext  = null;   // current kubectl context reported by server
-    let ctxConfirmed = false;  // true after ctx switch succeeds or user clicks "Run Anyway"
+    let liveContext  = null;
+    let ctxConfirmed = false;
 
     function ctxMatchesEnv() {
         return liveContext !== null && liveContext === ENV_CTX[envSelect.value];
@@ -809,133 +571,18 @@
         ctxFeedback.textContent = '';
         ctxFeedback.className = '';
         ctxBtn.className = '';
-        // Re-hydrate skip state and re-render pipeline checkboxes for the new ENV.
-        // applySkipUiForEnv is defined in the pipeline section (Task 3); guard for
-        // initial load when it does not yet exist.
-        hydrateSkipStateForActiveEnv();
-        if (typeof applySkipUiForEnv === 'function') applySkipUiForEnv();
     });
 
     // ── Build task sidebar ─────────────────────────────────────────────────
     const sectionsEl = document.getElementById('task-sections');
 
-    // ── Build pipeline sidebar section ─────────────────────────────────────
-    (function buildPipelineSection() {
-        const section = document.createElement('div');
-        section.className = 'section open';
-        section.id = 'pipeline-section';
-
-        const header = document.createElement('div');
-        header.className = 'section-header';
-
-        const iconEl = document.createElement('span');
-        iconEl.className = 'section-icon';
-        iconEl.textContent = '🚀';
-
-        const nameEl = document.createElement('span');
-        nameEl.className = 'section-name';
-        nameEl.textContent = 'Full Deploy Pipeline';
-
-        const countEl = document.createElement('span');
-        countEl.className = 'section-count';
-        countEl.textContent = String(PIPELINE_STEPS.length);
-
-        const chevron = document.createElement('span');
-        chevron.className = 'section-chevron';
-        chevron.textContent = '▶';
-
-        const resetLink = document.createElement('span');
-        resetLink.className = 'pipeline-reset';
-        resetLink.textContent = '↺ reset';
-        resetLink.title = 'Re-activate every step for the current ENV';
-        resetLink.addEventListener('click', (ev) => {
-            ev.stopPropagation();          // do not toggle section open/close
-            if (pipeline.active) return;   // freeze during a run
-            clearSkipsForActiveEnv();
-            applySkipUiForEnv();
-            updatePipelineStartBtnState();
-        });
-
-        header.appendChild(iconEl);
-        header.appendChild(nameEl);
-        header.appendChild(countEl);
-        header.appendChild(resetLink);
-        header.appendChild(chevron);
-        header.addEventListener('click', () => section.classList.toggle('open'));
-        section.appendChild(header);
-
-        const body = document.createElement('div');
-        body.className = 'section-body';
-
-        const startBtn = document.createElement('button');
-        startBtn.id = 'pipeline-start-btn';
-        startBtn.textContent = '▶ Start Full Pipeline';
-        startBtn.addEventListener('click', () => startPipeline());
-        body.appendChild(startBtn);
-
-        PIPELINE_STEPS.forEach((step, i) => {
-            const row = document.createElement('div');
-            row.className = 'pipeline-step';
-            row.id = 'ps-row-' + i;
-
-            const check = document.createElement('div');
-            check.className = 'ps-check';
-            check.id = 'ps-check-' + i;
-            check.title = 'Toggle active/inactive for this step';
-            check.dataset.cmd = step.cmd;
-            check.addEventListener('click', (ev) => {
-                ev.stopPropagation();           // do not trigger row-click run
-                // Allow toggling even mid-run: the pipeline uses a snapshot (pipeline.skipped)
-                // taken at start, so this only affects the next run.
-                toggleSkipForCmd(step.cmd);
-                applySkipUiForEnv();
-                updatePipelineStartBtnState();
-            });
-
-            const dot = document.createElement('div');
-            dot.className = 'ps-dot ps-pend';
-            dot.id = 'ps-dot-' + i;
-            dot.textContent = String(i + 1);
-
-            const info = document.createElement('div');
-            info.className = 'ps-info';
-
-            const name = document.createElement('div');
-            name.className = 'ps-name';
-            name.textContent = step.title;
-
-            const cmd = document.createElement('div');
-            cmd.className = 'ps-cmd';
-            cmd.textContent = 'task ' + step.cmd;
-
-            info.appendChild(name);
-            info.appendChild(cmd);
-            row.appendChild(check);
-            row.appendChild(dot);
-            row.appendChild(info);
-            row.addEventListener('click', (ev) => {
-                if (running) return;
-                // Guard: clicks on the checkbox are handled by its own listener.
-                if (ev.target.classList && ev.target.classList.contains('ps-check')) return;
-                startPipelineFrom(i);   // explicit row-click runs that step even if marked inactive
-            });
-            body.appendChild(row);
-        });
-
-        section.appendChild(body);
-        sectionsEl.appendChild(section);
-    }());
-
     GROUPS.forEach((group) => {
-        if (group.pipeline) return; // rendered by buildPipelineSection above
-
         const section = document.createElement('div');
         section.className = 'section'
             + (group.dangerZone  ? ' danger-section'  : '')
             + (group.scratchZone ? ' scratch-section' : '');
         if (!group.collapsed) section.classList.add('open');
 
-        // Header
         const header = document.createElement('div');
         header.className = 'section-header';
 
@@ -965,7 +612,6 @@
         const body = document.createElement('div');
         body.className = 'section-body';
 
-        // Determine inner wrapper
         let wrap = body;
         if (group.dangerZone) {
             const box = document.createElement('div');
@@ -1101,326 +747,6 @@
         dryrunBtn.classList.toggle('active', dryRunActive);
     });
 
-    // ── Per-ENV skip-set persistence ──────────────────────────────────────
-    // Storage key: dashboard.pipeline.skipped.<env>
-    // Stored value: JSON array of step `cmd` strings (robust to PIPELINE_STEPS reordering).
-    // In-memory `skipState` mirrors localStorage for the *currently selected* ENV.
-    const SKIP_KEY_PREFIX = 'dashboard.pipeline.skipped.';
-    const skipState = { env: null, cmds: new Set() };
-
-    // Hydrate per-ENV skip state now that skipState is declared.
-    hydrateSkipStateForActiveEnv();
-    applySkipUiForEnv();
-    updatePipelineStartBtnState();
-
-    function getActiveEnv() {
-        // envSelect is defined earlier in the file (line ~681).
-        return envSelect.value;
-    }
-
-    function skipStorageKey(env) {
-        return SKIP_KEY_PREFIX + env;
-    }
-
-    function loadSkipSet(env) {
-        try {
-            const raw = localStorage.getItem(skipStorageKey(env));
-            if (!raw) return new Set();
-            const arr = JSON.parse(raw);
-            if (!Array.isArray(arr)) return new Set();
-            // Self-heal: drop any cmd no longer present in PIPELINE_STEPS.
-            const valid = new Set(PIPELINE_STEPS.map(s => s.cmd));
-            return new Set(arr.filter(c => typeof c === 'string' && valid.has(c)));
-        } catch (e) {
-            return new Set();
-        }
-    }
-
-    function saveSkipSet(env, cmdSet) {
-        try {
-            localStorage.setItem(skipStorageKey(env), JSON.stringify([...cmdSet]));
-        } catch (e) { /* quota / privacy mode — silently no-op */ }
-    }
-
-    function hydrateSkipStateForActiveEnv() {
-        const env = getActiveEnv();
-        skipState.env = env;
-        skipState.cmds = loadSkipSet(env);
-    }
-
-    function toggleSkipForCmd(cmd) {
-        if (skipState.cmds.has(cmd)) skipState.cmds.delete(cmd);
-        else skipState.cmds.add(cmd);
-        saveSkipSet(skipState.env, skipState.cmds);
-    }
-
-    function clearSkipsForActiveEnv() {
-        skipState.cmds = new Set();
-        saveSkipSet(skipState.env, skipState.cmds);
-    }
-
-    function applySkipUiForEnv() {
-        PIPELINE_STEPS.forEach((step, i) => {
-            const row   = document.getElementById('ps-row-' + i);
-            const check = document.getElementById('ps-check-' + i);
-            if (!row || !check) return;   // section may not be built yet on first hydrate
-            const inactive = skipState.cmds.has(step.cmd);
-            row.classList.toggle('inactive', inactive);
-            check.classList.toggle('checked', !inactive);
-        });
-    }
-
-    function updatePipelineStartBtnState() {
-        const btn = document.getElementById('pipeline-start-btn');
-        if (!btn) return;
-        const allInactive = PIPELINE_STEPS.every(s => skipState.cmds.has(s.cmd));
-        btn.disabled = allInactive;
-        btn.title = allInactive ? 'All steps inactive — toggle at least one to enable' : '';
-    }
-
-    // ── Pipeline state & tracker panel ────────────────────────────────────
-    const pipeline = {
-        active:      false,
-        current:     0,
-        skipped:     new Set(),
-        cdTimer:     null,
-        cdRemaining: 0,
-    };
-
-    const trackerPanel     = document.getElementById('tracker-panel');
-    const trackerSub       = document.getElementById('tracker-sub');
-    const trackerStepsEl   = document.getElementById('tracker-steps');
-    const countdownBar     = document.getElementById('countdown-bar');
-    const cdText           = document.getElementById('cd-text');
-    const cdSkipBtn        = document.getElementById('cd-skip');
-    const cdRetryBtn       = document.getElementById('cd-retry');
-    const cdAbortBtn       = document.getElementById('cd-abort');
-    const pipelineStartBtn = document.getElementById('pipeline-start-btn');
-
-    function dotStateClass(i) {
-        if (pipeline.skipped.has(i))   return 't-dot-skip';
-        if (i < pipeline.current)      return 't-dot-done';
-        if (i === pipeline.current)    return 't-dot-run';
-        return 't-dot-pend';
-    }
-
-    function labelStateClass(i) {
-        if (pipeline.skipped.has(i))   return 'skipped';
-        if (i < pipeline.current)      return 'done';
-        if (i === pipeline.current)    return 'running';
-        return '';
-    }
-
-    function buildTrackerSteps() {
-        trackerStepsEl.textContent = '';
-        PIPELINE_STEPS.forEach((step, i) => {
-            const div = document.createElement('div');
-            div.className = 't-step' + (i < pipeline.current && !pipeline.skipped.has(i) ? ' done' : '');
-            div.id = 'ts-' + i;
-
-            const dot = document.createElement('div');
-            dot.className = 't-dot ' + dotStateClass(i);
-            dot.id = 'td-' + i;
-            if (pipeline.skipped.has(i))        dot.textContent = '⊘';
-            else if (i < pipeline.current)      dot.textContent = '✓';
-            else if (i === pipeline.current)    dot.textContent = '▶';
-            else                                dot.textContent = String(i + 1);
-
-            const lbl = document.createElement('div');
-            lbl.className = 't-label ' + labelStateClass(i);
-            lbl.id = 'tl-' + i;
-            lbl.textContent = step.cmd.replace('workspace:', '');
-
-            div.appendChild(dot);
-            div.appendChild(lbl);
-            trackerStepsEl.appendChild(div);
-        });
-        trackerSub.textContent = 'Step ' + (pipeline.current + 1) + ' of ' + PIPELINE_STEPS.length;
-    }
-
-    function updateSidebarDots() {
-        PIPELINE_STEPS.forEach((_, i) => {
-            const dot = document.getElementById('ps-dot-' + i);
-            if (!dot) return;
-            if (pipeline.skipped.has(i)) {
-                dot.className = 'ps-dot ps-skip';
-                dot.textContent = '⊘';
-            } else if (i < pipeline.current) {
-                dot.className = 'ps-dot ps-done';
-                dot.textContent = '✓';
-            } else if (i === pipeline.current) {
-                dot.className = 'ps-dot ps-run';
-                dot.textContent = '▶';
-            } else {
-                dot.className = 'ps-dot ps-pend';
-                dot.textContent = String(i + 1);
-            }
-        });
-    }
-
-    function clearCountdown() {
-        if (pipeline.cdTimer) {
-            clearInterval(pipeline.cdTimer);
-            pipeline.cdTimer = null;
-        }
-    }
-
-    function nextNonSkipped(from) {
-        let idx = from;
-        while (idx < PIPELINE_STEPS.length && pipeline.skipped.has(idx)) idx++;
-        return idx;
-    }
-
-    function startPipeline() {
-        // Snapshot the current skip set into index-based form for the runner.
-        const skippedIdx = new Set();
-        PIPELINE_STEPS.forEach((s, i) => {
-            if (skipState.cmds.has(s.cmd)) skippedIdx.add(i);
-        });
-
-        // Find first non-skipped step. If all are skipped, refuse to start.
-        let start = 0;
-        while (start < PIPELINE_STEPS.length && skippedIdx.has(start)) start++;
-        if (start >= PIPELINE_STEPS.length) return;   // Start button is disabled in this state anyway
-
-        pipeline.active  = true;
-        pipeline.current = start;
-        pipeline.skipped = skippedIdx;
-        countdownBar.className = '';
-        trackerPanel.classList.add('visible');
-        buildTrackerSteps();
-        updateSidebarDots();
-        runTask(PIPELINE_STEPS[start].cmd, []);
-    }
-
-    function startPipelineFrom(index) {
-        // Snapshot skip set, but NEVER mark `index` itself as skipped — explicit
-        // row-click is treated as "run this one anyway" intent (per spec).
-        const skippedIdx = new Set();
-        PIPELINE_STEPS.forEach((s, i) => {
-            if (i !== index && skipState.cmds.has(s.cmd)) skippedIdx.add(i);
-        });
-
-        pipeline.active  = true;
-        pipeline.current = index;
-        pipeline.skipped = skippedIdx;
-        countdownBar.className = '';
-        trackerPanel.classList.add('visible');
-        buildTrackerSteps();
-        updateSidebarDots();
-        runTask(PIPELINE_STEPS[index].cmd, []);
-    }
-
-    function advanceToNextStep() {
-        const next = nextNonSkipped(pipeline.current);
-        if (next >= PIPELINE_STEPS.length) {
-            pipelineComplete();
-            return;
-        }
-        pipeline.current = next;
-        buildTrackerSteps();
-        updateSidebarDots();
-        runTask(PIPELINE_STEPS[next].cmd, []);
-    }
-
-    function pipelineComplete() {
-        pipeline.active = false;
-        countdownBar.className = '';
-        trackerSub.textContent = 'Complete ✓';
-        updateSidebarDots();
-        updatePipelineStartBtnState();
-    }
-
-    function abortPipeline() {
-        clearCountdown();
-        pipeline.active = false;
-        countdownBar.className = '';
-        trackerPanel.classList.remove('visible');
-        PIPELINE_STEPS.forEach((_, i) => {
-            const dot = document.getElementById('ps-dot-' + i);
-            if (dot) {
-                dot.className = 'ps-dot ps-pend';
-                dot.textContent = String(i + 1);
-            }
-        });
-        updatePipelineStartBtnState();
-    }
-
-    function startCountdown(success) {
-        clearCountdown();
-        pipeline.cdRemaining = 5;
-
-        if (success) {
-            countdownBar.className = 'countdown-bar success';
-            cdSkipBtn.style.display  = 'inline-block';
-            cdRetryBtn.style.display = 'none';
-        } else {
-            countdownBar.className = 'countdown-bar failure';
-            cdSkipBtn.style.display  = 'inline-block';
-            cdRetryBtn.style.display = 'inline-block';
-        }
-
-        const finishedIdx = success ? pipeline.current - 1 : pipeline.current;
-        const nextIdx     = success ? nextNonSkipped(pipeline.current) : -1;
-
-        function refreshLabel() {
-            const finishedCmd = PIPELINE_STEPS[finishedIdx].cmd;
-            if (success) {
-                const nextCmd = nextIdx < PIPELINE_STEPS.length
-                    ? PIPELINE_STEPS[nextIdx].cmd : null;
-                cdText.textContent = nextCmd
-                    ? '✓ ' + finishedCmd + ' succeeded — autoruns next: '
-                      + nextCmd + ' in ' + pipeline.cdRemaining + ' s'
-                    : '✓ ' + finishedCmd + ' succeeded — pipeline complete';
-            } else {
-                cdText.textContent = '✗ ' + finishedCmd
-                    + ' failed — retry or skip?';
-            }
-        }
-        refreshLabel();
-
-        if (success && nextIdx >= PIPELINE_STEPS.length) {
-            pipelineComplete();
-            return;
-        }
-        if (!success) return; // no auto-advance on failure
-
-        pipeline.cdTimer = setInterval(() => {
-            pipeline.cdRemaining--;
-            if (pipeline.cdRemaining <= 0) {
-                clearCountdown();
-                countdownBar.className = '';
-                advanceToNextStep();
-            } else {
-                refreshLabel();
-            }
-        }, 1000);
-    }
-
-    // Skip: mark the upcoming step as skipped then advance via advanceToNextStep
-    cdSkipBtn.addEventListener('click', () => {
-        clearCountdown();
-        countdownBar.className = '';
-        const upcomingIdx = nextNonSkipped(pipeline.current);
-        if (upcomingIdx < PIPELINE_STEPS.length) {
-            pipeline.skipped.add(upcomingIdx);
-        }
-        buildTrackerSteps();
-        updateSidebarDots();
-        advanceToNextStep();
-    });
-
-    // Retry: re-run the failed step
-    cdRetryBtn.addEventListener('click', () => {
-        clearCountdown();
-        countdownBar.className = '';
-        buildTrackerSteps();
-        updateSidebarDots();
-        runTask(PIPELINE_STEPS[pipeline.current].cmd, []);
-    });
-
-    cdAbortBtn.addEventListener('click', () => abortPipeline());
-
     // ── Confirmation modal ─────────────────────────────────────────────────
     let pending = null;
 
@@ -1459,9 +785,6 @@
 
     function closeModal() {
         document.getElementById('modal-overlay').classList.remove('visible');
-        // If a pipeline was started but its task never ran (ctx modal was shown and cancelled),
-        // pipeline.active is stuck true with running=false. Abort it so checkboxes work.
-        if (pending && pipeline.active && !running) abortPipeline();
         pending = null;
     }
 
@@ -1491,8 +814,6 @@
             el.style.pointerEvents = disabled ? 'none' : '';
             el.style.opacity = disabled ? '0.45' : '';
         });
-        const psBtn = document.getElementById('pipeline-start-btn');
-        if (psBtn) psBtn.disabled = disabled;
     }
 
     function runTask(command, args) {
@@ -1518,17 +839,14 @@
 
     // ── Socket ─────────────────────────────────────────────────────────────
     const connDot = document.getElementById('conn-dot');
-
     let wasDisconnected = false;
 
     socket.on('connect', () => {
         connDot.className = 'connected';
         if (wasDisconnected && running) {
-            // Server restarted mid-task — reset client state so UI is usable again.
             running = false;
             setButtons(false);
             stopBtn.style.display = 'none';
-            if (pipeline.active) abortPipeline();
             statusEl.className = 'fail';
             statusEl.textContent = 'Reconnected — previous task was lost (server restarted)';
         } else if (!running) {
@@ -1548,8 +866,6 @@
 
     socket.on('current-context', ({ ctx }) => {
         liveContext = ctx || null;
-        // On first connect, snap the ENV selector to match the live context so
-        // the guard doesn't immediately block every task with a modal.
         if (!initialCtxApplied && liveContext && CTX_ENV[liveContext]) {
             initialCtxApplied = true;
             const matched = CTX_ENV[liveContext];
@@ -1559,9 +875,6 @@
                 document.getElementById('prod-banner').classList.toggle('visible', isProd);
                 envSelect.classList.toggle('prod', isProd);
                 updateCtxBtnTitle();
-                hydrateSkipStateForActiveEnv();
-                if (typeof applySkipUiForEnv === 'function') applySkipUiForEnv();
-                updatePipelineStartBtnState();
             }
             ctxConfirmed = true;
         }
@@ -1606,19 +919,6 @@
             ? 'Ready — last task succeeded ✓'
             : 'Ready — last task failed (code ' + code + ')';
         termLabel.textContent = 'Output';
-
-        if (!pipeline.active) return;
-
-        if (code === 0) {
-            pipeline.current++;
-            buildTrackerSteps();
-            updateSidebarDots();
-            startCountdown(true);
-        } else {
-            buildTrackerSteps();
-            updateSidebarDots();
-            startCountdown(false);
-        }
     });
 }());
 </script>

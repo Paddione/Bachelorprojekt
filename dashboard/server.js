@@ -27,6 +27,7 @@ const ALLOWED_COMMANDS = new Set([
   'workspace:recording-setup', 'workspace:transcriber-setup', 'workspace:whiteboard-setup',
   'workspace:logs', 'workspace:restart', 'workspace:check-connectivity',
   'workspace:backup', 'workspace:backup:list', 'workspace:restore',
+  'workspace:db:start', 'workspace:db:drop', 'workspace:db:restore',
   'workspace:teardown',
   'workspace:create-guest', 'workspace:import-users', 'workspace:migrate',
   'argocd:setup', 'argocd:status', 'argocd:apps:apply',
@@ -36,7 +37,7 @@ const ALLOWED_COMMANDS = new Set([
 ]);
 
 // These go-task commands have `prompt:` and need --yes to avoid blocking on stdin
-const PROMPT_COMMANDS = new Set(['cluster:delete', 'workspace:teardown', 'down']);
+const PROMPT_COMMANDS = new Set(['cluster:delete', 'workspace:teardown', 'down', 'workspace:db:drop']);
 
 const VALID_ENV = /^(dev|mentolder|korczewski)$/;
 

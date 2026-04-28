@@ -3109,7 +3109,7 @@ export async function initBillingTables(): Promise<void> {
       address_line1 TEXT,
       city          TEXT,
       postal_code   TEXT,
-      country       TEXT NOT NULL DEFAULT 'DE',
+      land_iso      CHAR(2) NOT NULL DEFAULT 'DE',
       vat_number    TEXT,
       sepa_iban     TEXT,
       sepa_bic      TEXT,
@@ -3120,6 +3120,43 @@ export async function initBillingTables(): Promise<void> {
     )
   `);
   await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS default_leitweg_id TEXT`);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='billing_customers' AND column_name='country'
+      ) THEN
+        ALTER TABLE billing_customers RENAME COLUMN country TO land_iso;
+      END IF;
+    END $$
+  `);
+  await pool.query(`
+    ALTER TABLE billing_customers
+      ADD COLUMN IF NOT EXISTS typ TEXT NOT NULL DEFAULT 'Kunde'
+  `);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_customers_typ_chk'
+      ) THEN
+        ALTER TABLE billing_customers
+          ADD CONSTRAINT billing_customers_typ_chk CHECK (typ IN ('Kunde'));
+      END IF;
+      IF EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_customers_brand_email_key'
+      ) THEN
+        ALTER TABLE billing_customers DROP CONSTRAINT billing_customers_brand_email_key;
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_customers_brand_email_typ_key'
+      ) THEN
+        ALTER TABLE billing_customers
+          ADD CONSTRAINT billing_customers_brand_email_typ_key UNIQUE (brand, email, typ);
+      END IF;
+    END $$
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoices (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,

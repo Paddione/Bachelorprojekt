@@ -21,6 +21,7 @@ export interface RecordPaymentInput {
   recordedBy: string;
   reference?: string;
   notes?: string;
+  paymentCurrencyRate?: number;
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -59,10 +60,10 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
 
     const ins = await client.query(
       `INSERT INTO billing_invoice_payments
-         (invoice_id, brand, paid_at, amount, method, reference, recorded_by, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+         (invoice_id, brand, paid_at, amount, method, reference, recorded_by, notes, payment_currency_rate)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
       [p.invoiceId, inv.brand, p.paidAt, p.amount, p.method,
-       p.reference ?? null, p.recordedBy, p.notes ?? null],
+       p.reference ?? null, p.recordedBy, p.notes ?? null, p.paymentCurrencyRate ?? null],
     );
     const payRow = ins.rows[0];
 
@@ -102,6 +103,29 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
       belegnummer: inv.number,
       taxMode:     inv.tax_mode,
     });
+
+    // Kursdifferenz: only when invoice is in foreign currency and a different payment rate is provided
+    const invCurrency = inv.currency ?? 'EUR';
+    const invoiceRate = inv.currency_rate != null ? Number(inv.currency_rate) : null;
+    if (invCurrency !== 'EUR' && invoiceRate !== null && p.paymentCurrencyRate !== undefined) {
+      const rateDiff = p.paymentCurrencyRate - invoiceRate;
+      const kdAmount = Math.round(p.amount * rateDiff * 100) / 100;
+      if (Math.abs(kdAmount) >= 0.01) {
+        const isGain = kdAmount > 0;
+        await addBooking({
+          brand:       inv.brand,
+          bookingDate: p.paidAt,
+          type:        isGain ? 'income' : 'expense',
+          category:    isGain ? 'kursdifferenz_gewinn' : 'kursdifferenz_verlust',
+          description: `Kursdifferenz ${inv.number} (${invCurrency})`,
+          netAmount:   Math.abs(kdAmount),
+          vatAmount:   0,
+          invoiceId:   p.invoiceId,
+          belegnummer: inv.number,
+          taxMode:     inv.tax_mode,
+        });
+      }
+    }
 
     return {
       id: Number(payRow.id), invoiceId: payRow.invoice_id,

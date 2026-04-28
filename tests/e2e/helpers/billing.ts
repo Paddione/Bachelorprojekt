@@ -32,18 +32,19 @@ export async function adminLogin(page: Page) {
   await page.waitForURL(`${BASE}/admin`, { timeout: 15000 });
 }
 
-export async function createTestInvoice(request: APIRequestContext, opts: { gross: number }) {
+export async function createTestInvoice(page: Page, opts: { gross: number }) {
   // First we need a customer.
   const brand = 'test';
   const email = `test-${Date.now()}@example.de`;
-  const customerRes = await request.post(`${BASE}/api/admin/clients/create`, {
+  
+  const customerRes = await page.request.post(`${BASE}/api/admin/clients/create`, {
     data: { brand, name: 'Test Customer', email }
   });
   expect(customerRes.status()).toBe(201);
   const { id: customerId } = await customerRes.json();
 
   // Now create the invoice
-  const res = await request.post(`${BASE}/api/admin/billing/create-invoice`, {
+  const res = await page.request.post(`${BASE}/api/admin/billing/create-invoice`, {
     data: {
       brand,
       customerId,
@@ -57,8 +58,8 @@ export async function createTestInvoice(request: APIRequestContext, opts: { gros
   return await res.json();
 }
 
-export async function finalizeInvoiceViaAPI(request: APIRequestContext, id: string) {
-  const res = await request.post(`${BASE}/api/admin/billing/${id}/send`, {
+export async function finalizeInvoiceViaAPI(page: Page, id: string) {
+  const res = await page.request.post(`${BASE}/api/admin/billing/${id}/send`, {
     data: { finalizeOnly: true }
   });
   expect(res.status()).toBe(200);

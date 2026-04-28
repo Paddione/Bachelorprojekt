@@ -199,7 +199,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: website
+                name: bug-tracker
                 port:
                   number: 80
 ---

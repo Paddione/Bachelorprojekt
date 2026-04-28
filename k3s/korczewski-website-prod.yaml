@@ -17,4 +17,4 @@ spec:
         - name: korczewski-website
           port: 80
   tls:
-    certResolver: letsencrypt
+    secretName: korczewski-tls

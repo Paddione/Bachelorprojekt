@@ -3,6 +3,9 @@ import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import type { Invoice } from './native-billing';
+import { embedFacturXIntoPdfA3, type FacturXLevel } from './pdf-a3-embed';
+import { generateEInvoiceXml, type EInvoiceProfile } from './einvoice-profile';
+import type { EInvoiceInput } from './einvoice-types';
 
 // Resolve logo from several candidate paths: cwd-relative (production container),
 // then source-relative (dev / test). Falls back to null → logo block is silently skipped.
@@ -34,7 +37,7 @@ export interface InvoicePdfLine {
 }
 export interface InvoicePdfCustomer {
   name: string; company?: string; addressLine1?: string; city?: string; postalCode?: string;
-  landIso: string; vatNumber?: string; email: string;
+  country: string; vatNumber?: string; email: string;
 }
 export interface InvoicePdfSeller {
   name: string; address: string; postalCode: string; city: string; country: string;
@@ -51,6 +54,7 @@ export async function generateInvoicePdf(p: {
   invoice: Invoice; lines: InvoicePdfLine[];
   customer: InvoicePdfCustomer; seller: InvoicePdfSeller;
   templateTexts?: InvoicePdfTemplateTexts;
+  profile?: EInvoiceProfile;
 }): Promise<Buffer> {
   const supplyTypeForMeta = (p.invoice as any).supplyType as string | undefined;
   const supplyNoticeMap: Record<string, string> = {
@@ -67,7 +71,8 @@ export async function generateInvoicePdf(p: {
   const docSubject = supplyTypeForMeta && supplyTypeTagMap[supplyTypeForMeta]
     ? supplyTypeTagMap[supplyTypeForMeta]
     : undefined;
-  return new Promise((resolve, reject) => {
+
+  const basePdf = await new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: p.invoice.number, Author: p.seller.name, ...(docSubject ? { Subject: docSubject } : {}) } });
     const chunks: Buffer[] = [];
     doc.on('data', (c: Buffer) => chunks.push(c));
@@ -242,6 +247,11 @@ export async function generateInvoicePdf(p: {
       totRow('USt (§ 19 UStG)', '— €', true);
     }
 
+    // Reverse Charge / Export notices
+    if (supplyTypeForMeta && supplyNoticeMap[supplyTypeForMeta]) {
+      totRow('Hinweis', supplyNoticeMap[supplyTypeForMeta], true);
+    }
+
     y += 2;
     doc.moveTo(TLX, y).lineTo(R, y).strokeColor(C.brass).lineWidth(0.75).stroke();
     y += 7;
@@ -257,18 +267,10 @@ export async function generateInvoicePdf(p: {
       doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
          .text(kleinNote, L, y, { width: W });
       y = doc.y + 6;
-    } else {
-      if (seller.vatId) {
-        doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
-           .text(`USt-IdNr.: ${seller.vatId}`, L, y, { width: W });
-        y = doc.y + 4;
-      }
-      const supplyType = (inv as any).supplyType as string | undefined;
-      if (supplyType && supplyNoticeMap[supplyType]) {
-        doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
-           .text(supplyNoticeMap[supplyType], L, y, { width: W });
-        y = doc.y + 6;
-      }
+    } else if (seller.vatId) {
+      doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
+         .text(`USt-IdNr.: ${seller.vatId}`, L, y);
+      y = doc.y + 6;
     }
 
     doc.font('Helvetica').fontSize(8.5).fillColor(C.inkSoft)
@@ -320,6 +322,22 @@ export async function generateInvoicePdf(p: {
     if (seller.website) { doc.text(seller.website, kx, kl, { width: fcw }); }
 
     doc.end();
+  });
+
+  // ── PDF/A-3 post-processing: embed e-invoice XML ────────────────────────
+  const profile = p.profile ?? 'factur-x-minimum';
+  const xml = generateEInvoiceXml(profile, p as unknown as EInvoiceInput);
+  const attachmentName = profile === 'factur-x-minimum' ? 'factur-x.xml' : 'xrechnung.xml';
+  const PROFILE_LEVEL: Record<EInvoiceProfile, FacturXLevel> = {
+    'factur-x-minimum': 'MINIMUM',
+    'xrechnung-cii':    'XRECHNUNG',
+    'xrechnung-ubl':    'XRECHNUNG',
+  };
+  return embedFacturXIntoPdfA3(basePdf, xml, {
+    conformanceLevel: PROFILE_LEVEL[profile],
+    invoiceNumber: p.invoice.number,
+    attachmentName,
+    modificationDate: new Date(p.invoice.issueDate),
   });
 }
 

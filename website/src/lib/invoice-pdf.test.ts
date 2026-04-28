@@ -11,7 +11,7 @@ it('generates a non-empty PDF buffer', async () => {
       currency:'EUR', currencyRate:null, netAmountEur:60, grossAmountEur:60,
     },
     lines: [{ description:'Coaching 1h', quantity:1, unitPrice:60, netAmount:60 }],
-    customer: { name:'Max Mustermann', email:'max@test.de', landIso:'DE' },
+    customer: { name:'Max Mustermann', email:'max@test.de', country:'DE' },
     seller: {
       name:'Gerald Korczewski', address:'Musterstr. 1', postalCode:'32312',
       city:'Lübbecke', country:'DE', vatId:'', taxNumber:'33/023/05100',
@@ -23,7 +23,6 @@ it('generates a non-empty PDF buffer', async () => {
 });
 
 it('includes reverse charge notice when supplyType is eu_b2b_services', async () => {
-  const { generateInvoicePdf } = await import('./invoice-pdf');
   const baseInvoice = {
     id: 'inv-rc', brand: 'test', number: 'RE-2026-0099',
     status: 'open', customerId: 'c1',
@@ -49,4 +48,20 @@ it('includes reverse charge notice when supplyType is eu_b2b_services', async ()
   // PDF is binary; extract text via toString and check notice substring
   const text = pdf.toString('latin1');
   expect(text).toContain('13b');
+});
+
+it('PDF enthält factur-x.xml als Anhang', async () => {
+  const pdf = await generateInvoicePdf({
+    invoice: { number: 'RE-9', issueDate: '2026-04-28', dueDate: '2026-05-12',
+               grossAmount: 119, netAmount: 100, taxAmount: 19,
+               taxMode: 'regelbesteuerung', taxRate: 19, paymentReference: 'RG9' } as never,
+    lines: [{ description: 'X', quantity: 1, unitPrice: 100, netAmount: 100 }],
+    customer: { name: 'C', email: 'c@d.de', country: 'DE' },
+    seller: { name: 'mentolder', address: 'A', postalCode: '1', city: 'K',
+              country: 'DE', vatId: 'DE1', email: 'rechnung@mentolder.de',
+              taxNumber: '', iban: '', bic: '', bankName: '' },
+    profile: 'factur-x-minimum',
+  });
+  expect(pdf.toString('latin1')).toContain('factur-x.xml');
+  expect(pdf.toString('latin1')).toContain('/AFRelationship /Alternative');
 });

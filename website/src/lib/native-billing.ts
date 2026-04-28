@@ -354,3 +354,77 @@ function mapCustomer(row: Record<string, unknown>): Customer {
     defaultLeitwegId: (row.default_leitweg_id as string) ?? undefined,
   };
 }
+
+import type { EInvoiceInput } from './einvoice-types';
+
+/**
+ * Loads a finalized invoice and assembles the EInvoiceInput payload used by
+ * the e-invoice generators (Factur-X minimum, XRechnung CII, XRechnung UBL).
+ * Seller data is sourced from process.env (SELLER_* with BRAND_NAME fallback).
+ */
+export async function getInvoiceForEInvoice(id: string): Promise<EInvoiceInput | null> {
+  await initBillingTables();
+  const r = await pool.query(
+    `SELECT i.*, c.name AS c_name, c.email AS c_email, c.address_line1 AS c_addr,
+            c.postal_code AS c_zip, c.city AS c_city, c.leitweg_id AS c_leitweg
+       FROM billing_invoices i
+       JOIN billing_customers c ON c.id = i.customer_id
+      WHERE i.id = $1`,
+    [id]
+  );
+  const row = r.rows[0];
+  if (!row) return null;
+  const lines = (
+    await pool.query(
+      `SELECT * FROM billing_invoice_line_items WHERE invoice_id = $1 ORDER BY id`,
+      [id]
+    )
+  ).rows;
+
+  const toIsoDate = (v: unknown): string => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (typeof v === 'string') return v.slice(0, 10);
+    return String(v);
+  };
+
+  return {
+    invoice: {
+      number: row.number,
+      issueDate: toIsoDate(row.issue_date),
+      dueDate: toIsoDate(row.due_date),
+      grossAmount: Number(row.gross_amount),
+      netAmount: Number(row.net_amount),
+      taxAmount: Number(row.tax_amount),
+      taxMode: row.tax_mode,
+      taxRate: Number(row.tax_rate),
+      paymentReference: row.payment_reference ?? undefined,
+    },
+    lines: lines.map((l) => ({
+      description: l.description,
+      quantity: Number(l.quantity),
+      unitPrice: Number(l.unit_price),
+      unit: l.unit ?? 'C62',
+    })),
+    customer: {
+      name: row.c_name,
+      email: row.c_email,
+      addressLine1: row.c_addr ?? undefined,
+      postalCode: row.c_zip ?? undefined,
+      city: row.c_city ?? undefined,
+      country: 'DE',
+      leitwegId: row.c_leitweg ?? undefined,
+    },
+    seller: {
+      name:       process.env.SELLER_NAME        || process.env.BRAND_NAME || 'Unbekannt',
+      address:    process.env.SELLER_ADDRESS     || '',
+      postalCode: process.env.SELLER_POSTAL_CODE || '',
+      city:       process.env.SELLER_CITY        || '',
+      country:    process.env.SELLER_COUNTRY     || 'DE',
+      vatId:      process.env.SELLER_VAT_ID      || '',
+      iban:       process.env.SELLER_IBAN        || undefined,
+      bic:        process.env.SELLER_BIC         || undefined,
+      email:      process.env.SELLER_EMAIL       || undefined,
+      phone:      process.env.SELLER_PHONE       || undefined,
+    },
+  };
+}

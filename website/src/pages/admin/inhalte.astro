@@ -73,7 +73,7 @@ const rechnungsvorlagen = Object.fromEntries(
   RECHNUNG_KEYS.map((k, i) => [k, rechnungsResults[i] ?? RECHNUNG_DEFAULTS[k]])
 ) as Record<typeof RECHNUNG_KEYS[number], string>;
 
-const initialData = {
+const initialData = JSON.parse(JSON.stringify({
   startseite,
   uebermich,
   services,
@@ -84,7 +84,7 @@ const initialData = {
   referenzen,
   rechtliches: { 'impressum-zusatz': impressum, datenschutz, agb, barrierefreiheit },
   customSections,
-};
+}));
 ---
 
 <AdminLayout title="Admin — Inhalte">

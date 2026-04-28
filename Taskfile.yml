@@ -201,7 +201,6 @@ tasks:
       - task: mcp:deploy
       - task: workspace:post-setup
       - task: workspace:talk-setup
-      - task: workspace:call-setup
       - task: workspace:recording-setup
       - task: workspace:transcriber-setup
       - echo ""
@@ -223,8 +222,6 @@ tasks:
       - task: workspace:post-setup
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:talk-setup
-        vars: { ENV: "{{.ENV}}" }
-      - task: workspace:call-setup
         vars: { ENV: "{{.ENV}}" }
       - task: workspace:recording-setup
         vars: { ENV: "{{.ENV}}" }
@@ -380,7 +377,7 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
         bash scripts/talk-hpb-setup.sh
       - 'echo ""'
-      - 'echo "  Next → task workspace:call-setup ENV={{.ENV}}"'
+      - 'echo "  Next → task workspace:recording-setup ENV={{.ENV}}"'
       - 'echo "  Optional → task workspace:admin-users-setup ENV={{.ENV}}"'
 
   workspace:talk-setup:all-prods:
@@ -566,26 +563,6 @@ tasks:
       - task: workspace:recording-setup
         vars: { ENV: "mentolder" }
       - task: workspace:recording-setup
-        vars: { ENV: "korczewski" }
-
-  workspace:call-setup:
-    desc: "Register /call slash command (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}" || true
-        bash scripts/call-setup.sh
-      - 'echo ""'
-      - 'echo "  Next → task workspace:recording-setup ENV={{.ENV}}"'
-
-  workspace:call-setup:all-prods:
-    desc: Register /call slash command in both production clusters (mentolder + korczewski)
-    cmds:
-      - task: workspace:call-setup
-        vars: { ENV: "mentolder" }
-      - task: workspace:call-setup
         vars: { ENV: "korczewski" }
 
   workspace:status:
@@ -1043,7 +1020,7 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         bash scripts/admin-users-setup.sh
       - 'echo ""'
-      - 'echo "  Next → task workspace:call-setup ENV={{.ENV}}"'
+      - 'echo "  Done. Re-run any specific setup task as needed."'
 
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run

@@ -3234,6 +3234,47 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
       ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
   `);
+  // Plan F: currency, supply_type, EUR equivalents
+  await pool.query(`
+    ALTER TABLE billing_invoices
+      ADD COLUMN IF NOT EXISTS currency        TEXT NOT NULL DEFAULT 'EUR',
+      ADD COLUMN IF NOT EXISTS currency_rate   NUMERIC(12,6),
+      ADD COLUMN IF NOT EXISTS net_amount_eur  NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS gross_amount_eur NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS supply_type     TEXT
+  `);
+  // Plan F: EU supply + export evidence
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_nachweis (
+      id           BIGSERIAL PRIMARY KEY,
+      invoice_id   TEXT NOT NULL REFERENCES billing_invoices(id),
+      brand        TEXT NOT NULL,
+      type         TEXT NOT NULL,
+      received_at  DATE,
+      document_ref TEXT,
+      notes        TEXT,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  // Plan F: VAT ID validation log
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vat_id_validations (
+      id                  BIGSERIAL PRIMARY KEY,
+      customer_id         TEXT REFERENCES billing_customers(id),
+      vat_id              TEXT NOT NULL,
+      country_code        CHAR(2) NOT NULL,
+      valid               BOOLEAN NOT NULL,
+      vies_name           TEXT,
+      vies_address        TEXT,
+      request_identifier  TEXT,
+      validated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  // Plan F: billing_invoice_payments — rate at payment time
+  await pool.query(`
+    ALTER TABLE billing_invoice_payments
+      ADD COLUMN IF NOT EXISTS payment_currency_rate NUMERIC(12,6)
+  `);
   await initBillingAuditTable();
   await installInvoiceImmutabilityTriggers();
   billingTablesReady = true;

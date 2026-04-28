@@ -134,3 +134,26 @@ it('billing-audit returns events newest-first', async () => {
   expect(log[0].action).toBe('mark_paid');
   expect(log[1].action).toBe('finalize');
 });
+
+it('billing_invoices has currency, supply_type, EUR amount columns', async () => {
+  await initBillingTables();
+  const r = await pool.query(`
+    SELECT column_name FROM information_schema.columns
+    WHERE table_name='billing_invoices'
+    AND column_name IN ('currency','currency_rate','net_amount_eur','gross_amount_eur','supply_type')
+  `);
+  const cols = r.rows.map((x: { column_name: string }) => x.column_name).sort();
+  expect(cols).toEqual(['currency','currency_rate','gross_amount_eur','net_amount_eur','supply_type'].sort());
+});
+
+it('billing_nachweis table exists', async () => {
+  await initBillingTables();
+  const r = await pool.query(`SELECT to_regclass('billing_nachweis')`);
+  expect(r.rows[0].to_regclass).toBe('billing_nachweis');
+});
+
+it('vat_id_validations table exists', async () => {
+  await initBillingTables();
+  const r = await pool.query(`SELECT to_regclass('vat_id_validations')`);
+  expect(r.rows[0].to_regclass).toBe('vat_id_validations');
+});

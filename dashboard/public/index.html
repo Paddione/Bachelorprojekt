@@ -885,7 +885,8 @@
             check.dataset.cmd = step.cmd;
             check.addEventListener('click', (ev) => {
                 ev.stopPropagation();           // do not trigger row-click run
-                if (pipeline.active) return;    // freeze toggles mid-run
+                // Allow toggling even mid-run: the pipeline uses a snapshot (pipeline.skipped)
+                // taken at start, so this only affects the next run.
                 toggleSkipForCmd(step.cmd);
                 applySkipUiForEnv();
                 updatePipelineStartBtnState();
@@ -1458,6 +1459,9 @@
 
     function closeModal() {
         document.getElementById('modal-overlay').classList.remove('visible');
+        // If a pipeline was started but its task never ran (ctx modal was shown and cancelled),
+        // pipeline.active is stuck true with running=false. Abort it so checkboxes work.
+        if (pending && pipeline.active && !running) abortPipeline();
         pending = null;
     }
 
@@ -1539,8 +1543,28 @@
         statusEl.className = 'fail'; statusEl.textContent = 'Disconnected from server';
     });
 
+    const CTX_ENV = { 'k3d-dev': 'dev', 'mentolder': 'mentolder', 'korczewski': 'korczewski' };
+    let initialCtxApplied = false;
+
     socket.on('current-context', ({ ctx }) => {
         liveContext = ctx || null;
+        // On first connect, snap the ENV selector to match the live context so
+        // the guard doesn't immediately block every task with a modal.
+        if (!initialCtxApplied && liveContext && CTX_ENV[liveContext]) {
+            initialCtxApplied = true;
+            const matched = CTX_ENV[liveContext];
+            if (envSelect.value !== matched) {
+                envSelect.value = matched;
+                const isProd = matched !== 'dev';
+                document.getElementById('prod-banner').classList.toggle('visible', isProd);
+                envSelect.classList.toggle('prod', isProd);
+                updateCtxBtnTitle();
+                hydrateSkipStateForActiveEnv();
+                if (typeof applySkipUiForEnv === 'function') applySkipUiForEnv();
+                updatePipelineStartBtnState();
+            }
+            ctxConfirmed = true;
+        }
         updateLiveCtxDisplay();
     });
 

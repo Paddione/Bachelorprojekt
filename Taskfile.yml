@@ -2114,6 +2114,25 @@ tasks:
       - echo '✓ API spec published to GitBook'
 
   # ─────────────────────────────────────────────
+  # E-Invoice Sidecar
+  # ─────────────────────────────────────────────
+  einvoice-sidecar:build:
+    desc: "Build the einvoice-sidecar Docker image"
+    cmds:
+      - docker build -t einvoice-sidecar:dev docker/einvoice-sidecar
+
+  einvoice-sidecar:import:
+    desc: "Import einvoice-sidecar image into k3d cluster"
+    deps: [einvoice-sidecar:build]
+    cmds:
+      - k3d image import einvoice-sidecar:dev -c "{{.K3D_CLUSTER | default \"workspace\"}}"
+
+  einvoice-sidecar:logs:
+    desc: "Tail einvoice-sidecar logs"
+    cmds:
+      - kubectl -n workspace logs -l app=einvoice-sidecar --tail=200 -f
+
+  # ─────────────────────────────────────────────
   # Utility Scripts
   # ─────────────────────────────────────────────
   workspace:check-connectivity:

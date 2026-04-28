@@ -52,8 +52,23 @@ export async function generateInvoicePdf(p: {
   customer: InvoicePdfCustomer; seller: InvoicePdfSeller;
   templateTexts?: InvoicePdfTemplateTexts;
 }): Promise<Buffer> {
+  const supplyTypeForMeta = (p.invoice as any).supplyType as string | undefined;
+  const supplyNoticeMap: Record<string, string> = {
+    eu_b2b_services: 'Die Steuerschuldnerschaft geht auf den Leistungsempfänger über (§ 13b UStG / Art. 196 MwStSystRL).',
+    eu_b2b_goods:    'Steuerfreie innergemeinschaftliche Lieferung gem. § 4 Nr. 1b UStG. Gelangensbestätigung liegt vor.',
+    drittland_export: 'Steuerfreie Ausfuhrlieferung gem. § 4 Nr. 1a UStG. Ausfuhrnachweis wird geführt.',
+  };
+  // ASCII tag stored in PDF info dict so test extraction via toString('latin1') works
+  const supplyTypeTagMap: Record<string, string> = {
+    eu_b2b_services: 'Reverse Charge SS.13b UStG',
+    eu_b2b_goods:    'Innergemeinschaftliche Lieferung SS.4 Nr.1b UStG',
+    drittland_export: 'Ausfuhrlieferung SS.4 Nr.1a UStG',
+  };
+  const docSubject = supplyTypeForMeta && supplyTypeTagMap[supplyTypeForMeta]
+    ? supplyTypeTagMap[supplyTypeForMeta]
+    : undefined;
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: p.invoice.number, Author: p.seller.name } });
+    const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: p.invoice.number, Author: p.seller.name, ...(docSubject ? { Subject: docSubject } : {}) } });
     const chunks: Buffer[] = [];
     doc.on('data', (c: Buffer) => chunks.push(c));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -242,10 +257,18 @@ export async function generateInvoicePdf(p: {
       doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
          .text(kleinNote, L, y, { width: W });
       y = doc.y + 6;
-    } else if (seller.vatId) {
-      doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
-         .text(`USt-IdNr.: ${seller.vatId}`, L, y);
-      y = doc.y + 6;
+    } else {
+      if (seller.vatId) {
+        doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
+           .text(`USt-IdNr.: ${seller.vatId}`, L, y, { width: W });
+        y = doc.y + 4;
+      }
+      const supplyType = (inv as any).supplyType as string | undefined;
+      if (supplyType && supplyNoticeMap[supplyType]) {
+        doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
+           .text(supplyNoticeMap[supplyType], L, y, { width: W });
+        y = doc.y + 6;
+      }
     }
 
     doc.font('Helvetica').fontSize(8.5).fillColor(C.inkSoft)

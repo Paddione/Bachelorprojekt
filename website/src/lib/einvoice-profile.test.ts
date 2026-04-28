@@ -9,7 +9,8 @@ const baseInput = {
   customer: { name: 'Stadt Beispiel', email: 'rechnungen@beispiel.de', leitwegId: '991-01234-44',
               addressLine1: 'Marktplatz 1', postalCode: '12345', city: 'Beispielstadt', country: 'DE' },
   seller: { name: 'mentolder', address: 'Hauptstr. 1', postalCode: '54321', city: 'Köln',
-            country: 'DE', vatId: 'DE123456789', iban: 'DE02120300000000202051', bic: 'BYLADEM1001' },
+            country: 'DE', vatId: 'DE123456789', iban: 'DE02120300000000202051', bic: 'BYLADEM1001',
+            email: 'rechnung@mentolder.de', phone: '+49 221 1234567' },
 };
 
 describe('generateEInvoiceXml', () => {
@@ -78,7 +79,7 @@ describe('generateEInvoiceXml', () => {
     expect(xml).toContain('<cbc:DueDate>2026-05-12</cbc:DueDate>');
     expect(xml).toContain('<cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>');
     expect(xml).toContain('<cbc:BuyerReference>991-01234-44</cbc:BuyerReference>');
-    expect(xml).toContain('<cbc:CompanyID schemeID="VAT">DE123456789</cbc:CompanyID>');
+    expect(xml).toContain('<cbc:CompanyID>DE123456789</cbc:CompanyID>');
     expect(xml).toContain('<cbc:ID>DE02120300000000202051</cbc:ID>');
   });
   it('xrechnung-ubl CustomizationID ist XRechnung 3.0', () => {
@@ -105,4 +106,27 @@ describe('generateEInvoiceXml', () => {
     expect(idxBuy).toBeLessThan(idxTotal);
     expect(idxTotal).toBeLessThan(idxLines);
   });
+});
+
+import { validateWithMustang, mustangAvailable } from './mustang.test-helper';
+
+describe.skipIf(!mustangAvailable)('Mustang validation', () => {
+  it('factur-x-minimum XML ist Mustang-valide', () => {
+    const xml = generateEInvoiceXml('factur-x-minimum', baseInput);
+    const r = validateWithMustang(xml, 'xml');
+    if (!r.ok) console.error(r.output);
+    expect(r.ok).toBe(true);
+  }, 60_000);
+  it('xrechnung-cii XML ist Mustang-valide', () => {
+    const xml = generateEInvoiceXml('xrechnung-cii', baseInput);
+    const r = validateWithMustang(xml, 'xml');
+    if (!r.ok) console.error(r.output);
+    expect(r.ok).toBe(true);
+  }, 60_000);
+  it('xrechnung-ubl XML ist Mustang-valide', () => {
+    const xml = generateEInvoiceXml('xrechnung-ubl', baseInput);
+    const r = validateWithMustang(xml, 'xml');
+    if (!r.ok) console.error(r.output);
+    expect(r.ok).toBe(true);
+  }, 60_000);
 });

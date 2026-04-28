@@ -89,9 +89,6 @@ export function generateZugferdXmlFromNative(p: ZugferdNativeInput): string {
       <ram:SellerTradeParty>
         <ram:Name>${esc(p.seller.name)}</ram:Name>
         <ram:PostalTradeAddress>
-          <ram:PostcodeCode>${esc(p.seller.postalCode)}</ram:PostcodeCode>
-          <ram:LineOne>${esc(p.seller.address)}</ram:LineOne>
-          <ram:CityName>${esc(p.seller.city)}</ram:CityName>
           <ram:CountryID>${esc(p.seller.country)}</ram:CountryID>
         </ram:PostalTradeAddress>${p.seller.vatId ? `
         <ram:SpecifiedTaxRegistration>
@@ -105,13 +102,6 @@ export function generateZugferdXmlFromNative(p: ZugferdNativeInput): string {
     <ram:ApplicableHeaderTradeDelivery/>
     <ram:ApplicableHeaderTradeSettlement>
       <ram:InvoiceCurrencyCode>${currency}</ram:InvoiceCurrencyCode>
-      <ram:ApplicableTradeTax>
-        <ram:CalculatedAmount>${taxTotal}</ram:CalculatedAmount>
-        <ram:TypeCode>VAT</ram:TypeCode>
-        <ram:BasisAmount>${taxBasis}</ram:BasisAmount>
-        <ram:CategoryCode>${isKlein ? 'E' : 'S'}</ram:CategoryCode>
-        <ram:RateApplicablePercent>${taxRate}</ram:RateApplicablePercent>
-      </ram:ApplicableTradeTax>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:TaxBasisTotalAmount>${taxBasis}</ram:TaxBasisTotalAmount>
         <ram:TaxTotalAmount currencyID="${currency}">${taxTotal}</ram:TaxTotalAmount>
@@ -153,9 +143,6 @@ export function generateZugferdXml(inv: FullInvoice, seller: ZugferdSellerConfig
       <ram:SellerTradeParty>
         <ram:Name>${esc(seller.name)}</ram:Name>
         <ram:PostalTradeAddress>
-          <ram:PostcodeCode>${esc(seller.postalCode)}</ram:PostcodeCode>
-          <ram:LineOne>${esc(seller.address)}</ram:LineOne>
-          <ram:CityName>${esc(seller.city)}</ram:CityName>
           <ram:CountryID>${esc(seller.country)}</ram:CountryID>
         </ram:PostalTradeAddress>${seller.vatId ? `
         <ram:SpecifiedTaxRegistration>
@@ -186,6 +173,9 @@ const XR_CII_GUIDELINE =
 export function generateXRechnungCii(p: EInvoiceInput): string {
   if (!p.customer.leitwegId) {
     throw new Error('XRechnung verlangt eine Leitweg-ID (BT-10) auf dem Käufer.');
+  }
+  if (!p.seller.email) {
+    throw new Error('XRechnung verlangt eine Verkäufer-E-Mail (BT-34) zum Senden über PEPPOL.');
   }
   const isKlein = p.invoice.taxMode === 'kleinunternehmer';
   const currency = 'EUR';
@@ -247,6 +237,9 @@ export function generateXRechnungCii(p: EInvoiceInput): string {
   xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100"
   xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100">
   <rsm:ExchangedDocumentContext>
+    <ram:BusinessProcessSpecifiedDocumentContextParameter>
+      <ram:ID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ram:ID>
+    </ram:BusinessProcessSpecifiedDocumentContextParameter>
     <ram:GuidelineSpecifiedDocumentContextParameter>
       <ram:ID>${XR_CII_GUIDELINE}</ram:ID>
     </ram:GuidelineSpecifiedDocumentContextParameter>
@@ -263,12 +256,20 @@ export function generateXRechnungCii(p: EInvoiceInput): string {
       <ram:BuyerReference>${esc(p.customer.leitwegId)}</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>${esc(p.seller.name)}</ram:Name>
+        <ram:DefinedTradeContact>
+          <ram:PersonName>${esc(p.seller.name)}</ram:PersonName>${p.seller.phone ? `
+          <ram:TelephoneUniversalCommunication><ram:CompleteNumber>${esc(p.seller.phone)}</ram:CompleteNumber></ram:TelephoneUniversalCommunication>` : ''}
+          <ram:EmailURIUniversalCommunication><ram:URIID>${esc(p.seller.email)}</ram:URIID></ram:EmailURIUniversalCommunication>
+        </ram:DefinedTradeContact>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>${esc(p.seller.postalCode)}</ram:PostcodeCode>
           <ram:LineOne>${esc(p.seller.address)}</ram:LineOne>
           <ram:CityName>${esc(p.seller.city)}</ram:CityName>
           <ram:CountryID>${esc(p.seller.country)}</ram:CountryID>
         </ram:PostalTradeAddress>
+        <ram:URIUniversalCommunication>
+          <ram:URIID schemeID="EM">${esc(p.seller.email)}</ram:URIID>
+        </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">${esc(p.seller.vatId)}</ram:ID>
         </ram:SpecifiedTaxRegistration>
@@ -281,6 +282,9 @@ export function generateXRechnungCii(p: EInvoiceInput): string {
           <ram:CityName>${esc(p.customer.city ?? '')}</ram:CityName>
           <ram:CountryID>${esc(p.customer.country ?? 'DE')}</ram:CountryID>
         </ram:PostalTradeAddress>
+        <ram:URIUniversalCommunication>
+          <ram:URIID schemeID="EM">${esc(p.customer.email)}</ram:URIID>
+        </ram:URIUniversalCommunication>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
     <ram:ApplicableHeaderTradeDelivery/>

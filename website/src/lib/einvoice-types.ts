@@ -11,6 +11,8 @@ export interface EInvoiceCustomer {
 export interface EInvoiceSeller {
   name: string; address: string; postalCode: string; city: string;
   country: string; vatId: string; iban?: string; bic?: string;
+  email?: string;  // BT-34 / BG-6
+  phone?: string;  // BG-6 contact
 }
 
 export interface EInvoiceLine {

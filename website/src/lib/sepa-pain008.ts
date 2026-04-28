@@ -93,3 +93,42 @@ export function buildPain008(
   </CstmrDrctDbtInitn>
 </Document>`;
 }
+
+export interface MandateValidationResult {
+  valid: SepaDebitEntry[];
+  skipped: Array<{ invoiceNumber: string; reason: string }>;
+}
+
+export function validateMandates(
+  rows: Array<{
+    invoiceNumber: string;
+    amount: number;
+    paymentReference: string | undefined;
+    customerName: string;
+    sepaIban: string | undefined;
+    sepaBic: string | undefined;
+    sepaMandateRef: string | undefined;
+    sepaMandateDate: string | undefined;
+  }>
+): MandateValidationResult {
+  const valid: SepaDebitEntry[] = [];
+  const skipped: Array<{ invoiceNumber: string; reason: string }> = [];
+
+  for (const row of rows) {
+    if (!row.sepaIban)        { skipped.push({ invoiceNumber: row.invoiceNumber, reason: 'missing IBAN' }); continue; }
+    if (!row.sepaBic)         { skipped.push({ invoiceNumber: row.invoiceNumber, reason: 'missing BIC' }); continue; }
+    if (!row.sepaMandateRef)  { skipped.push({ invoiceNumber: row.invoiceNumber, reason: 'missing mandate reference' }); continue; }
+    if (!row.sepaMandateDate) { skipped.push({ invoiceNumber: row.invoiceNumber, reason: 'missing mandate date' }); continue; }
+    valid.push({
+      endToEndId:    row.paymentReference ?? row.invoiceNumber,
+      amount:        row.amount,
+      mandateId:     row.sepaMandateRef,
+      mandateDate:   row.sepaMandateDate,
+      debtorName:    row.customerName,
+      debtorIban:    row.sepaIban,
+      debtorBic:     row.sepaBic,
+      invoiceNumber: row.invoiceNumber,
+    });
+  }
+  return { valid, skipped };
+}

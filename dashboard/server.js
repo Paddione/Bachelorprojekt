@@ -40,6 +40,12 @@ const PROMPT_COMMANDS = new Set(['cluster:delete', 'workspace:teardown', 'down']
 
 const VALID_ENV = /^(dev|mentolder|korczewski)$/;
 
+const ENV_CONTEXT_MAP = {
+  dev: 'k3d-dev',
+  mentolder: 'mentolder',
+  korczewski: 'korczewski',
+};
+
 function isArgSafe(arg) {
   if (typeof arg !== 'string' || arg.length > 64) return false;
   if (arg === '--') return true;
@@ -112,6 +118,36 @@ io.on('connection', (socket) => {
       socket.emit('log', { type: 'error', data: `\n[Dashboard] Process error: ${err.message}\n` });
       activeProcess = null;
       socket.emit('task-finished', { code: 1 });
+    });
+  });
+
+  function emitCurrentContext() {
+    const p = spawn('kubectl', ['config', 'current-context'], { env: process.env });
+    let out = '';
+    p.stdout.on('data', (d) => { out += d.toString(); });
+    p.on('close', () => { socket.emit('current-context', { ctx: out.trim() }); });
+  }
+  emitCurrentContext();
+
+  socket.on('switch-context', ({ env }) => {
+    if (typeof env !== 'string' || !VALID_ENV.test(env)) {
+      socket.emit('context-result', { ok: false, msg: 'Invalid environment' });
+      return;
+    }
+    const ctx = ENV_CONTEXT_MAP[env];
+    const proc = spawn('kubectl', ['config', 'use-context', ctx], {
+      env: process.env,
+      cwd: path.join(__dirname, '..'),
+    });
+    let out = '';
+    proc.stdout.on('data', (d) => { out += d.toString(); });
+    proc.stderr.on('data', (d) => { out += d.toString(); });
+    proc.on('close', (code) => {
+      socket.emit('context-result', { ok: code === 0, ctx, msg: out.trim() });
+      if (code === 0) emitCurrentContext();
+    });
+    proc.on('error', (err) => {
+      socket.emit('context-result', { ok: false, ctx, msg: err.message });
     });
   });
 

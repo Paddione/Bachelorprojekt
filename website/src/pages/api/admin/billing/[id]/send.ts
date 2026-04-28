@@ -97,6 +97,11 @@ export const POST: APIRoute = async ({ request, params }) => {
     servicePeriodEnd: draftRow.service_period_end
       ? (draftRow.service_period_end as Date).toISOString().split('T')[0] : undefined,
     leitwegId: draftRow.leitweg_id ?? undefined,
+    currency: (draftRow.currency as string) ?? 'EUR',
+    currencyRate: draftRow.currency_rate != null ? Number(draftRow.currency_rate) : null,
+    netAmountEur: draftRow.net_amount_eur != null ? Number(draftRow.net_amount_eur) : Number(draftRow.net_amount),
+    grossAmountEur: draftRow.gross_amount_eur != null ? Number(draftRow.gross_amount_eur) : Number(draftRow.gross_amount),
+    supplyType: (draftRow.supply_type as string) ?? undefined,
   };
 
   const invoiceInput = {

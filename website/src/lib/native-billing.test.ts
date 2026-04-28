@@ -157,3 +157,40 @@ it('vat_id_validations table exists', async () => {
   const r = await pool.query(`SELECT to_regclass('vat_id_validations')`);
   expect(r.rows[0].to_regclass).toBe('vat_id_validations');
 });
+
+import { vi, afterEach } from 'vitest';
+
+afterEach(() => vi.restoreAllMocks());
+
+it('createInvoice with USD stores currency_rate and eur amounts', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    text: async () => `<?xml version="1.0"?><gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube><Cube time="2026-04-28"><Cube currency="USD" rate="1.1398"/></Cube></Cube></gesmes:Envelope>`,
+  }));
+  const c = await createCustomer({ brand: 'test', name: 'US Corp', email: `uscorp-${Date.now()}@test.com` });
+  const inv = await createInvoice({
+    brand: 'test', customerId: c.id,
+    issueDate: '2026-04-28', dueDays: 30,
+    taxMode: 'regelbesteuerung', taxRate: 19,
+    currency: 'USD',
+    lines: [{ description: 'Service', quantity: 1, unitPrice: 1000 }],
+  });
+  expect(inv.currency).toBe('USD');
+  expect(inv.currencyRate).toBeCloseTo(1 / 1.1398, 4);
+  // net = 1000 USD, netAmountEur ≈ 877.35 EUR
+  expect(inv.netAmountEur).toBeCloseTo(1000 / 1.1398, 1);
+  expect(inv.grossAmountEur).toBeCloseTo(1190 / 1.1398, 1);
+});
+
+it('createInvoice with EUR sets currencyRate null and eur = net', async () => {
+  const c = await createCustomer({ brand: 'test', name: 'Local GmbH', email: `local-${Date.now()}@test.de` });
+  const inv = await createInvoice({
+    brand: 'test', customerId: c.id,
+    issueDate: '2026-04-28', dueDays: 14,
+    taxMode: 'kleinunternehmer',
+    lines: [{ description: 'Coaching', quantity: 1, unitPrice: 120 }],
+  });
+  expect(inv.currency).toBe('EUR');
+  expect(inv.currencyRate).toBeNull();
+  expect(inv.netAmountEur).toBe(120);
+});

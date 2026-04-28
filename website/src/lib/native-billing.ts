@@ -48,6 +48,7 @@ export async function getCustomerById(brand: string, id: string): Promise<Custom
 
 export interface InvoiceLine {
   description: string; quantity: number; unitPrice: number; unit?: string;
+  taxCategory?: string;
 }
 
 export interface Invoice {
@@ -59,6 +60,11 @@ export interface Invoice {
   locked: boolean; cancelledInvoiceId?: string;
   servicePeriodStart?: string; servicePeriodEnd?: string;
   leitwegId?: string;
+  currency: string;
+  currencyRate: number | null;
+  netAmountEur: number;
+  grossAmountEur: number;
+  supplyType?: string;
 }
 
 export async function createInvoice(p: {
@@ -67,8 +73,17 @@ export async function createInvoice(p: {
   taxRate?: number; lines: InvoiceLine[]; notes?: string;
   servicePeriodStart?: string; servicePeriodEnd?: string;
   leitwegId?: string;
+  currency?: string;
+  supplyType?: string;
 }): Promise<Invoice> {
   await initBillingTables();
+  const currency = p.currency ?? 'EUR';
+  let currencyRate: number | null = null;
+  if (currency !== 'EUR') {
+    const { fetchEcbRates, eurPer } = await import('./ecb-exchange-rates');
+    const rates = await fetchEcbRates();
+    currencyRate = eurPer(currency, rates);
+  }
   const number = await getNextInvoiceNumber(p.brand);
   const issueDate = new Date(p.issueDate);
   const dueDate = new Date(issueDate);
@@ -78,6 +93,8 @@ export async function createInvoice(p: {
   const taxRate   = p.taxMode === 'kleinunternehmer' ? 0 : (p.taxRate ?? 19);
   const taxAmount = Math.round(netAmount * (taxRate / 100) * 100) / 100;
   const grossAmount = netAmount + taxAmount;
+  const netAmountEur  = currencyRate !== null ? Math.round(netAmount * currencyRate * 100) / 100 : netAmount;
+  const grossAmountEur = currencyRate !== null ? Math.round(grossAmount * currencyRate * 100) / 100 : grossAmount;
   const paymentRef = number.replace('RE-', 'RG');
 
   const client = await pool.connect();
@@ -86,13 +103,15 @@ export async function createInvoice(p: {
     const r = await client.query(
       `INSERT INTO billing_invoices (brand, number, customer_id, issue_date, due_date,
          service_period_start, service_period_end, tax_mode, net_amount, tax_rate,
-         tax_amount, gross_amount, notes, payment_reference, leitweg_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+         tax_amount, gross_amount, notes, payment_reference, leitweg_id,
+         currency, currency_rate, net_amount_eur, gross_amount_eur, supply_type)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`,
       [p.brand, number, p.customerId, p.issueDate,
        dueDate.toISOString().split('T')[0],
        p.servicePeriodStart??null, p.servicePeriodEnd??null,
        p.taxMode, netAmount, taxRate, taxAmount, grossAmount,
-       p.notes??null, paymentRef, p.leitwegId??null]
+       p.notes??null, paymentRef, p.leitwegId??null,
+       currency, currencyRate, netAmountEur, grossAmountEur, p.supplyType??null]
     );
     const inv = r.rows[0];
     await Promise.all(p.lines.map(l =>
@@ -293,6 +312,11 @@ function mapInvoice(row: Record<string, unknown>): Invoice {
     servicePeriodStart: toDate(row.service_period_start),
     servicePeriodEnd: toDate(row.service_period_end),
     leitwegId: (row.leitweg_id as string) ?? undefined,
+    currency: (row.currency as string) ?? 'EUR',
+    currencyRate: row.currency_rate != null ? Number(row.currency_rate) : null,
+    netAmountEur: row.net_amount_eur != null ? Number(row.net_amount_eur) : Number(row.net_amount),
+    grossAmountEur: row.gross_amount_eur != null ? Number(row.gross_amount_eur) : Number(row.gross_amount),
+    supplyType: (row.supply_type as string) ?? undefined,
   };
 }
 

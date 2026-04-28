@@ -8,6 +8,7 @@ it('generates a non-empty PDF buffer', async () => {
       customerId:'c1', issueDate:'2025-09-01', dueDate:'2025-09-15',
       taxMode:'kleinunternehmer', netAmount:60, taxRate:0, taxAmount:0, grossAmount:60,
       paymentReference:'RG20250001', locked:true,
+      currency:'EUR', currencyRate:null, netAmountEur:60, grossAmountEur:60,
     },
     lines: [{ description:'Coaching 1h', quantity:1, unitPrice:60, netAmount:60 }],
     customer: { name:'Max Mustermann', email:'max@test.de', country:'DE' },

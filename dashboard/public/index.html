@@ -926,11 +926,6 @@
         sectionsEl.appendChild(section);
     }());
 
-    // Hydrate per-ENV skip set and render checkbox state on first load.
-    hydrateSkipStateForActiveEnv();
-    applySkipUiForEnv();
-    updatePipelineStartBtnState();
-
     GROUPS.forEach((group) => {
         if (group.pipeline) return; // rendered by buildPipelineSection above
 
@@ -1112,6 +1107,11 @@
     // In-memory `skipState` mirrors localStorage for the *currently selected* ENV.
     const SKIP_KEY_PREFIX = 'dashboard.pipeline.skipped.';
     const skipState = { env: null, cmds: new Set() };
+
+    // Hydrate per-ENV skip state now that skipState is declared.
+    hydrateSkipStateForActiveEnv();
+    applySkipUiForEnv();
+    updatePipelineStartBtnState();
 
     function getActiveEnv() {
         // envSelect is defined earlier in the file (line ~681).

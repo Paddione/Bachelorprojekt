@@ -276,6 +276,51 @@ spec:
               memory: 64Mi
             limits:
               memory: 256Mi
+        # ── notify_push sidecar: iOS VoIP wakeup push daemon ────────
+        # Waits until occ app:install notify_push has placed the binary,
+        # then runs it. Reads DB + Redis config from the shared app PVC.
+        # Apache in the main container proxies /push/ → localhost:7867.
+        - name: notify-push
+          image: nextcloud:33-apache
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 33
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              ARCH=$(uname -m)
+              BIN="/var/www/html/apps/notify_push/bin/${ARCH}/notify_push"
+              until [ -x "$BIN" ]; do
+                echo "notify_push: waiting for binary at $BIN"
+                sleep 30
+              done
+              exec "$BIN" /var/www/html
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/html
+            - name: db-config
+              mountPath: /var/www/html/config/zz-db.config.php
+              subPath: zz-db.config.php
+              readOnly: true
+            - name: extra-config
+              mountPath: /var/www/html/config/zz-extra.config.php
+              subPath: zz-extra.config.php
+              readOnly: true
+          ports:
+            - containerPort: 7867
+          resources:
+            requests:
+              cpu: "50m"
+              memory: 32Mi
+            limits:
+              memory: 128Mi
       volumes:
         - name: app
           persistentVolumeClaim:
@@ -321,6 +366,8 @@ data:
     ProxyPreserveHost Off
     ProxyPass        "/api/v1/" "http://spreed-signaling:8080/api/v1/"
     ProxyPassReverse "/api/v1/" "http://spreed-signaling:8080/api/v1/"
+    ProxyPass        /push/     http://127.0.0.1:7867/push/
+    ProxyPassReverse /push/     http://127.0.0.1:7867/push/
 ---
 apiVersion: v1
 kind: Service

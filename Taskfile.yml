@@ -346,6 +346,10 @@ tasks:
         $NC_EXEC "php occ app:install spreed"       || true
         $NC_EXEC "php occ app:enable spreed"        || true
 
+        echo "Installing notify_push (client-push / Talk wakeup)..."
+        $NC_EXEC "php occ app:install notify_push" || true
+        $NC_EXEC "php occ notify_push:setup https://${FILES_HOST}" || true
+
         $NC_EXEC "php occ config:app:set richdocuments wopi_url --value=http://collabora.workspace-office.svc.cluster.local:9980"
         COLLAB_SCHEME=https; [[ "{{.ENV}}" == "dev" ]] && COLLAB_SCHEME=http
         $NC_EXEC "php occ config:app:set richdocuments public_wopi_url --value=${COLLAB_SCHEME}://office.${PROD_DOMAIN}"
@@ -649,6 +653,59 @@ tasks:
     desc: "Restore a database from backup (usage: task workspace:restore -- <db> <timestamp> [--context <ctx>])"
     cmds:
       - bash scripts/backup-restore.sh restore {{.CLI_ARGS}}
+
+  workspace:db:start:
+    desc: "Ensure shared-db is running; scale up if at 0 replicas, otherwise restart (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx=""
+        [ "{{.ENV}}" != "dev" ] && ctx="--context $ENV_CONTEXT"
+        replicas=$(kubectl $ctx get deploy/shared-db -n workspace -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
+        if [ "$replicas" = "0" ]; then
+          echo "shared-db scaled to 0 — scaling up..."
+          kubectl $ctx scale deployment/shared-db -n workspace --replicas=1
+        else
+          echo "shared-db at $replicas replica(s) — restarting pod..."
+          kubectl $ctx rollout restart deployment/shared-db -n workspace
+        fi
+        kubectl $ctx rollout status deployment/shared-db -n workspace --timeout=120s
+        echo "✓ shared-db ready"
+
+  workspace:db:drop:
+    desc: "Drop a database from shared-db (usage: task workspace:db:drop -- <dbname> [ENV=...])"
+    prompt: "This permanently drops the database. Proceed?"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx=""
+        [ "{{.ENV}}" != "dev" ] && ctx="--context $ENV_CONTEXT"
+        dbname="{{.CLI_ARGS}}"
+        if [ -z "$dbname" ]; then
+          echo "ERROR: specify a database name: task workspace:db:drop -- <dbname>"
+          exit 1
+        fi
+        kubectl $ctx exec -n workspace deploy/shared-db -- \
+          psql -U postgres -c "DROP DATABASE IF EXISTS \"${dbname}\";"
+        echo "✓ Database '${dbname}' dropped"
+
+  workspace:db:restore:
+    desc: "List available backups then restore a database (usage: task workspace:db:restore -- <db> <timestamp> [ENV=...])"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_arg=""
+        [ "{{.ENV}}" != "dev" ] && ctx_arg="--context $ENV_CONTEXT"
+        echo "Available backups:"
+        bash scripts/backup-restore.sh list $ctx_arg
+        echo ""
+        bash scripts/backup-restore.sh restore {{.CLI_ARGS}} $ctx_arg
 
   workspace:teardown:
     desc: Remove all Workspace MVP resources

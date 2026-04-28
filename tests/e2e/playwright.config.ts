@@ -89,6 +89,18 @@ export default defineConfig({
         baseURL: websiteURL,
       },
     },
+
+    // ── ios: iPhone WebKit (Safari) simulation ───────────────────
+    // Run: npx playwright test --project=ios
+    // Requires: npx playwright install webkit
+    {
+      name: 'ios',
+      testMatch: ['**/fa-03-*.spec.ts', '**/fa-ios-*.spec.ts'],
+      use: {
+        ...devices['iPhone 15'],
+        baseURL: websiteURL,
+      },
+    },
   ],
 
   outputDir: '../results/playwright-traces',

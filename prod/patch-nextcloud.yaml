@@ -7,6 +7,13 @@ spec:
     spec:
       containers:
         - name: nextcloud
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: "200m"
+            limits:
+              memory: 2Gi
+              cpu: "2"
           env:
             - name: OVERWRITEPROTOCOL
               value: "https"

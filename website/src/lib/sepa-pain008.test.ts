@@ -70,4 +70,15 @@ describe('buildPain008', () => {
   it('throws when entries array is empty', () => {
     expect(() => buildPain008(creditor, '2024-02-01', [])).toThrow('at least one entry');
   });
+
+  it('escapes XML-special characters in string fields', () => {
+    const xml = buildPain008(creditor, '2024-02-01', [{
+      ...entry,
+      debtorName: 'Müller & Co <GmbH>',
+      invoiceNumber: 'RE-"2024"-001',
+    }]);
+    expect(xml).toContain('M\xfcller &amp; Co &lt;GmbH&gt;');
+    expect(xml).toContain('RE-&quot;2024&quot;-001');
+    expect(xml).not.toContain('<GmbH>');
+  });
 });

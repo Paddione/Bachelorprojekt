@@ -683,6 +683,11 @@
         const isProd = envSelect.value !== 'dev';
         document.getElementById('prod-banner').classList.toggle('visible', isProd);
         envSelect.classList.toggle('prod', isProd);
+        // Re-hydrate skip state and re-render pipeline checkboxes for the new ENV.
+        // applySkipUiForEnv is defined in the pipeline section (Task 3); guard for
+        // initial load when it does not yet exist.
+        hydrateSkipStateForActiveEnv();
+        if (typeof applySkipUiForEnv === 'function') applySkipUiForEnv();
     });
 
     // ── Build task sidebar ─────────────────────────────────────────────────
@@ -939,6 +944,59 @@
         dryRunActive = !dryRunActive;
         dryrunBtn.classList.toggle('active', dryRunActive);
     });
+
+    // ── Per-ENV skip-set persistence ──────────────────────────────────────
+    // Storage key: dashboard.pipeline.skipped.<env>
+    // Stored value: JSON array of step `cmd` strings (robust to PIPELINE_STEPS reordering).
+    // In-memory `skipState` mirrors localStorage for the *currently selected* ENV.
+    const SKIP_KEY_PREFIX = 'dashboard.pipeline.skipped.';
+    const skipState = { env: null, cmds: new Set() };
+
+    function getActiveEnv() {
+        // envSelect is defined earlier in the file (line ~681).
+        return envSelect.value;
+    }
+
+    function skipStorageKey(env) {
+        return SKIP_KEY_PREFIX + env;
+    }
+
+    function loadSkipSet(env) {
+        try {
+            const raw = localStorage.getItem(skipStorageKey(env));
+            if (!raw) return new Set();
+            const arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return new Set();
+            // Self-heal: drop any cmd no longer present in PIPELINE_STEPS.
+            const valid = new Set(PIPELINE_STEPS.map(s => s.cmd));
+            return new Set(arr.filter(c => typeof c === 'string' && valid.has(c)));
+        } catch (e) {
+            return new Set();
+        }
+    }
+
+    function saveSkipSet(env, cmdSet) {
+        try {
+            localStorage.setItem(skipStorageKey(env), JSON.stringify([...cmdSet]));
+        } catch (e) { /* quota / privacy mode — silently no-op */ }
+    }
+
+    function hydrateSkipStateForActiveEnv() {
+        const env = getActiveEnv();
+        skipState.env = env;
+        skipState.cmds = loadSkipSet(env);
+    }
+
+    function toggleSkipForCmd(cmd) {
+        if (skipState.cmds.has(cmd)) skipState.cmds.delete(cmd);
+        else skipState.cmds.add(cmd);
+        saveSkipSet(skipState.env, skipState.cmds);
+    }
+
+    function clearSkipsForActiveEnv() {
+        skipState.cmds = new Set();
+        saveSkipSet(skipState.env, skipState.cmds);
+    }
 
     // ── Pipeline state & tracker panel ────────────────────────────────────
     const pipeline = {

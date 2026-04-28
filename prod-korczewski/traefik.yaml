@@ -114,6 +114,7 @@ spec:
             - --providers.kubernetesingress.allowExternalNameServices=true
             - --entrypoints.web.address=:80
             - --entrypoints.websecure.address=:443
+            - --entryPoints.websecure.http.tls=true
             - --entrypoints.traefik.address=:9000
             - --api.dashboard=true
             - --ping=true

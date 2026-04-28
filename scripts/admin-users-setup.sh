@@ -22,8 +22,10 @@ source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
 # ── Config ─────────────────────────────────────────────────────────────
 KC_NAMESPACE="${KC_NAMESPACE:-workspace}"
 KC_DEPLOY="${KC_DEPLOY:-keycloak}"
+KC_SERVICE="${KC_SERVICE:-keycloak}"
 KC_REALM="${KC_REALM:-workspace}"
-KC_INTERNAL_URL="http://keycloak.${KC_NAMESPACE}.svc.cluster.local:8080"
+KC_LOCAL_PORT="${KC_LOCAL_PORT:-18080}"
+KC_INTERNAL_URL="http://localhost:${KC_LOCAL_PORT}"
 
 # Read admin password from Kubernetes secret (production) or fall back to dev default
 KC_ADMIN_PASS=$(kubectl get secret workspace-secrets -n "$KC_NAMESPACE" \
@@ -49,10 +51,22 @@ KC_USER2_PASSWORD="${KC_USER2_PASSWORD:-}"
 log "Waiting for Keycloak to be ready..."
 kubectl rollout status deployment/"$KC_DEPLOY" -n "$KC_NAMESPACE" --timeout=120s
 
-# ── Helper: run curl inside Keycloak pod ──────────────────────────────
+# ── Port-forward to Keycloak (the keycloak image has no curl) ──────────
+command -v curl >/dev/null 2>&1 || err "curl not found on the local machine — required to talk to Keycloak"
+
+log "Opening port-forward to svc/${KC_SERVICE} on localhost:${KC_LOCAL_PORT}..."
+kubectl port-forward -n "$KC_NAMESPACE" "svc/${KC_SERVICE}" "${KC_LOCAL_PORT}:8080" >/dev/null 2>&1 &
+KC_PF_PID=$!
+cleanup_pf() { kill "$KC_PF_PID" 2>/dev/null || true; wait "$KC_PF_PID" 2>/dev/null || true; }
+trap cleanup_pf EXIT
+
+for _ in $(seq 1 30); do
+  curl -sf -o /dev/null "${KC_INTERNAL_URL}/realms/master/.well-known/openid-configuration" && break
+  sleep 1
+done
+
 _kc_curl() {
-  kubectl exec -n "$KC_NAMESPACE" deploy/"$KC_DEPLOY" -- \
-    curl -sf "$@"
+  curl -sf "$@"
 }
 
 # ── Get admin token ────────────────────────────────────────────────────

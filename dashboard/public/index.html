@@ -377,6 +377,48 @@
         #pipeline-start-btn:hover    { background: #254a30; }
         #pipeline-start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* ── Pipeline step active/inactive checkbox ───────────── */
+        .ps-check {
+            width: 14px; height: 14px; flex-shrink: 0;
+            border: 1px solid var(--border); border-radius: 3px;
+            background: var(--bg3); cursor: pointer; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color .12s ease, background .12s ease;
+        }
+        .ps-check:hover { border-color: var(--primary); }
+        .ps-check.checked {
+            background: #3ec9a7; border-color: #3ec9a7;
+        }
+        .ps-check.checked::after {
+            content: '✓'; color: #0a1a14; font-size: 10px; font-weight: 700;
+            line-height: 1;
+        }
+
+        /* ── Inactive (skipped) step — pulsing glow ───────────── */
+        @keyframes pipelineGlow {
+            0%, 100% { box-shadow: 0 0 2px rgba(62, 201, 167, 0.35); }
+            50%      { box-shadow: 0 0 10px rgba(62, 201, 167, 0.85),
+                                   inset 0 0 0 1px rgba(62, 201, 167, 0.6); }
+        }
+        .pipeline-step.inactive {
+            animation: pipelineGlow 2s ease-in-out infinite;
+        }
+        .pipeline-step.inactive .ps-name,
+        .pipeline-step.inactive .ps-cmd { opacity: 0.55; }
+        .pipeline-step.inactive .ps-dot.ps-pend {
+            background: transparent; border: 1px solid #3ec9a7; color: #3ec9a7;
+        }
+
+        /* ── Pipeline section header reset link ───────────────── */
+        .pipeline-reset {
+            font-size: 10px; color: var(--text-dim); cursor: pointer;
+            margin-left: 6px; padding: 1px 5px; border-radius: 3px;
+            border: 1px solid transparent;
+        }
+        .pipeline-reset:hover {
+            color: var(--text); border-color: var(--border);
+        }
+
         /* ── From-scratch zone ────────────────────────────────── */
         .section.scratch-section .section-header { color: #9a8af5; }
         .section.scratch-section.open .section-header { color: #b0a0ff; }

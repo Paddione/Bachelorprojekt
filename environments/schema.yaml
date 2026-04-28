@@ -140,18 +140,6 @@ env_vars:
   - name: STRIPE_PUBLISHABLE_KEY
     required: false
 
-  - name: SEPA_CREDITOR_IBAN
-    required: false
-    description: "IBAN of the creditor account for SEPA direct debit (Lastschrift)"
-
-  - name: SEPA_CREDITOR_BIC
-    required: false
-    description: "BIC of the creditor bank for SEPA direct debit"
-
-  - name: SEPA_CREDITOR_ID
-    required: false
-    description: "Gläubiger-Identifikationsnummer (e.g. DE98ZZZ09999999999)"
-
   - name: BRETT_DOMAIN
     required: true
     default_dev: "brett.localhost"

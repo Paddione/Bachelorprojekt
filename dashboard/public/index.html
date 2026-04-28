@@ -687,9 +687,90 @@
     // ── Build task sidebar ─────────────────────────────────────────────────
     const sectionsEl = document.getElementById('task-sections');
 
-    GROUPS.forEach((group) => {
+    // ── Build pipeline sidebar section ─────────────────────────────────────
+    (function buildPipelineSection() {
         const section = document.createElement('div');
-        section.className = 'section' + (group.dangerZone ? ' danger-section' : '');
+        section.className = 'section open';
+        section.id = 'pipeline-section';
+
+        const header = document.createElement('div');
+        header.className = 'section-header';
+
+        const iconEl = document.createElement('span');
+        iconEl.className = 'section-icon';
+        iconEl.textContent = '🚀';
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'section-name';
+        nameEl.textContent = 'Full Deploy Pipeline';
+
+        const countEl = document.createElement('span');
+        countEl.className = 'section-count';
+        countEl.textContent = String(PIPELINE_STEPS.length);
+
+        const chevron = document.createElement('span');
+        chevron.className = 'section-chevron';
+        chevron.textContent = '▶';
+
+        header.appendChild(iconEl);
+        header.appendChild(nameEl);
+        header.appendChild(countEl);
+        header.appendChild(chevron);
+        header.addEventListener('click', () => section.classList.toggle('open'));
+        section.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'section-body';
+
+        const startBtn = document.createElement('button');
+        startBtn.id = 'pipeline-start-btn';
+        startBtn.textContent = '▶ Start Full Pipeline';
+        startBtn.addEventListener('click', () => startPipeline());
+        body.appendChild(startBtn);
+
+        PIPELINE_STEPS.forEach((step, i) => {
+            const row = document.createElement('div');
+            row.className = 'pipeline-step';
+            row.id = 'ps-row-' + i;
+
+            const dot = document.createElement('div');
+            dot.className = 'ps-dot ps-pend';
+            dot.id = 'ps-dot-' + i;
+            dot.textContent = String(i + 1);
+
+            const info = document.createElement('div');
+            info.className = 'ps-info';
+
+            const name = document.createElement('div');
+            name.className = 'ps-name';
+            name.textContent = step.title;
+
+            const cmd = document.createElement('div');
+            cmd.className = 'ps-cmd';
+            cmd.textContent = 'task ' + step.cmd;
+
+            info.appendChild(name);
+            info.appendChild(cmd);
+            row.appendChild(dot);
+            row.appendChild(info);
+            row.addEventListener('click', () => {
+                if (running) return;
+                startPipelineFrom(i);
+            });
+            body.appendChild(row);
+        });
+
+        section.appendChild(body);
+        sectionsEl.appendChild(section);
+    }());
+
+    GROUPS.forEach((group) => {
+        if (group.pipeline) return; // rendered by buildPipelineSection above
+
+        const section = document.createElement('div');
+        section.className = 'section'
+            + (group.dangerZone  ? ' danger-section'  : '')
+            + (group.scratchZone ? ' scratch-section' : '');
         if (!group.collapsed) section.classList.add('open');
 
         // Header
@@ -722,15 +803,49 @@
         const body = document.createElement('div');
         body.className = 'section-body';
 
-        const wrap = group.dangerZone
-            ? (() => { const d = document.createElement('div'); d.className = 'danger-zone-wrap'; return d; })()
-            : body;
+        // Determine inner wrapper
+        let wrap = body;
+        if (group.dangerZone) {
+            const box = document.createElement('div');
+            box.className = 'danger-zone-wrap';
+
+            const guide = document.createElement('p');
+            guide.className = 'danger-guidance';
+            guide.textContent = 'These tasks permanently destroy data or infrastructure.'
+                + ' Always run workspace:backup first and verify the timestamp.';
+            box.appendChild(guide);
+
+            const whenBlock = document.createElement('div');
+            whenBlock.className = 'danger-when-block';
+            const useLines = group.useWhen.map((s) => '✅ ' + s).join('\n');
+            const neverLines = group.neverWhen.map((s) => '❌ ' + s).join('\n');
+            whenBlock.textContent = useLines + '\n\n' + neverLines;
+            box.appendChild(whenBlock);
+
+            wrap = box;
+        } else if (group.scratchZone) {
+            const box = document.createElement('div');
+            box.className = 'scratch-zone-wrap';
+
+            const note = document.createElement('p');
+            note.className = 'scratch-note';
+            note.textContent = '⚠ Run these only once on a brand-new cluster.';
+            box.appendChild(note);
+
+            const pre = document.createElement('p');
+            pre.className = 'scratch-prereq';
+            pre.textContent = 'Prerequisites: Docker, k3d, kubectl, kubeseal, and task must be installed locally.'
+                + '\nDo NOT run on an existing cluster — re-generating or re-sealing secrets on a live'
+                + ' cluster breaks running services until redeployed.';
+            box.appendChild(pre);
+
+            wrap = box;
+        }
 
         group.items.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'task-card' + (item.dangerous ? ' dangerous' : '');
 
-            // Top row: accent bar + title + cmd + optional danger tag
             const top = document.createElement('div');
             top.className = 'task-card-top';
 
@@ -762,7 +877,6 @@
             }
             card.appendChild(top);
 
-            // Description
             if (item.desc) {
                 const descEl = document.createElement('div');
                 descEl.className = 'task-desc';
@@ -770,7 +884,6 @@
                 card.appendChild(descEl);
             }
 
-            // Arg inputs or click-to-run
             if (item.argInputs && item.argInputs.length > 0) {
                 const argRow = document.createElement('div');
                 argRow.className = 'task-arg-row';
@@ -812,7 +925,7 @@
             wrap.appendChild(card);
         });
 
-        if (group.dangerZone) body.appendChild(wrap);
+        if (group.dangerZone || group.scratchZone) body.appendChild(wrap);
         section.appendChild(body);
         sectionsEl.appendChild(section);
     });

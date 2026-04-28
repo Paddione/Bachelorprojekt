@@ -1,6 +1,5 @@
 import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
 import { checkAndApplyTaxModeSwitch } from './tax-monitor';
-import { addBooking } from './eur-bookkeeping';
 import { canonicalInvoiceForHash, sha256Hex, type HashableLine } from './invoice-hash';
 import { logBillingEvent, type BillingActor } from './billing-audit';
 
@@ -179,18 +178,6 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
   }
 
   await checkAndApplyTaxModeSwitch(inv.brand, id);
-  await addBooking({
-    brand:       inv.brand,
-    bookingDate: inv.issueDate,
-    type:        'income',
-    category:    'rechnungsstellung',
-    description: `Rechnung ${inv.number}`,
-    netAmount:   inv.netAmount,
-    vatAmount:   inv.taxAmount,
-    invoiceId:   inv.id,
-    belegnummer: inv.number,
-    taxMode:     inv.taxMode,
-  });
   await logBillingEvent({
     invoiceId: id,
     action: 'finalize',
@@ -202,28 +189,42 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
   return inv;
 }
 
+import { recordPayment } from './invoice-payments';
+
 export async function markInvoicePaid(
   id: string,
   p: { paidAt: string; paidAmount: number },
   actor?: BillingActor,
 ): Promise<Invoice | null> {
   await initBillingTables();
-  const r = await pool.query(
-    `UPDATE billing_invoices SET status='paid', paid_at=$2, paid_amount=$3, updated_at=now()
-     WHERE id=$1 AND status='open' RETURNING *`,
-    [id, p.paidAt, p.paidAmount]
+  const cur = await pool.query(
+    `SELECT status FROM billing_invoices WHERE id=$1`, [id],
   );
-  if (!r.rows[0]) return null;
-  const inv = mapInvoice(r.rows[0]);
+  if (!cur.rows[0]) return null;
+  if (cur.rows[0].status === 'paid') return getInvoice(id);
+  if (cur.rows[0].status !== 'open' && cur.rows[0].status !== 'partially_paid') {
+    return null;
+  }
+
+  const fromStatus = cur.rows[0].status;
+  await recordPayment({
+    invoiceId:  id,
+    paidAt:     p.paidAt,
+    amount:     p.paidAmount,
+    method:     'legacy',
+    recordedBy: actor?.userId ?? 'system',
+    notes:      'markInvoicePaid shim',
+  });
+  const after = await getInvoice(id);
   await logBillingEvent({
     invoiceId: id,
     action: 'mark_paid',
     actor,
-    fromStatus: 'open',
-    toStatus: 'paid',
+    fromStatus,
+    toStatus: after?.status ?? 'paid',
     metadata: { paidAt: p.paidAt, paidAmount: p.paidAmount },
   });
-  return inv;
+  return after;
 }
 
 function mapInvoice(row: Record<string, unknown>): Invoice {

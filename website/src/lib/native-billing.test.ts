@@ -14,7 +14,7 @@ it('creates and retrieves a customer', async () => {
   expect(found?.name).toBe('Max Mustermann');
 });
 
-it('finalize stores hash, persists PDF, writes audit row, populates EÜR fields', async () => {
+it('finalize stores hash, persists PDF, writes audit row (no EÜR booking yet)', async () => {
   const customer = await createCustomer({
     brand: 'test', name: 'Erika M', email: `erika-${Date.now()}@test.de`,
   });
@@ -54,11 +54,33 @@ it('finalize stores hash, persists PDF, writes audit row, populates EÜR fields'
   expect(fin!.fromStatus).toBe('draft');
   expect(fin!.toStatus).toBe('open');
 
-  const eur = await pool.query(
-    `SELECT belegnummer, skr_konto FROM eur_bookings WHERE invoice_id=$1`, [inv.id]
+  const eurAfterFinalize = await pool.query(
+    `SELECT COUNT(*)::int AS n FROM eur_bookings WHERE invoice_id=$1`, [inv.id],
   );
-  expect(eur.rows[0].belegnummer).toBe(inv.number);
-  expect(eur.rows[0].skr_konto).toBe('8195');
+  expect(eurAfterFinalize.rows[0].n).toBe(0);  // PR-A: bookings emit on payment, not finalize
+});
+
+import { recordPayment, listPayments } from './invoice-payments';
+
+it('markInvoicePaid records a single full-gross payment', async () => {
+  const c = await createCustomer({ brand: 'test', name: 'F', email: `f-${Date.now()}@t.de` });
+  const inv = await createInvoice({
+    brand: 'test', customerId: c.id,
+    issueDate: '2026-01-15', dueDays: 14, taxMode: 'kleinunternehmer',
+    lines: [{ description: 'Z', quantity: 1, unitPrice: 50 }],
+  });
+  await finalizeInvoice(inv.id, {
+    actor: { userId: 'a', email: 'a@t.de' },
+    pdfBlob: Buffer.from('%PDF'), pdfMime: 'application/pdf',
+  });
+  const paid = await markInvoicePaid(inv.id, { paidAt: '2026-02-01', paidAmount: 50 },
+    { userId: 'a', email: 'a@t.de' });
+  expect(paid!.status).toBe('paid');
+
+  const list = await listPayments(inv.id);
+  expect(list).toHaveLength(1);
+  expect(list[0].amount).toBe(50);
+  expect(list[0].method).toBe('legacy');
 });
 
 it('markInvoicePaid records audit row', async () => {

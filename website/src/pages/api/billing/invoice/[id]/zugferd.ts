@@ -1,42 +1,16 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getFullInvoice } from '../../../../../lib/stripe-billing';
-import { generateZugferdXml, sellerConfigFromEnv } from '../../../../../lib/zugferd';
+import { pool } from '../../../../../lib/website-db';
 
-export const GET: APIRoute = async ({ request, params }) => {
-  const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const invoiceId = params.id;
-  if (!invoiceId) {
-    return new Response(JSON.stringify({ error: 'Missing invoice ID' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const inv = await getFullInvoice(invoiceId);
-  if (!inv) {
-    return new Response(JSON.stringify({ error: 'Invoice not found or Stripe not configured' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const seller = sellerConfigFromEnv();
-  const xml = generateZugferdXml(inv, seller);
-  const filename = `erechnung-${inv.number || invoiceId}.xml`;
-
-  return new Response(xml, {
+export const GET: APIRoute = async ({ params }) => {
+  const r = await pool.query<{ factur_x_xml: string | null; number: string }>(
+    `SELECT factur_x_xml, number FROM billing_invoices WHERE id = $1`, [params.id]
+  );
+  if (r.rowCount === 0 || !r.rows[0].factur_x_xml) return new Response('not found', { status: 404 });
+  return new Response(r.rows[0].factur_x_xml, {
     status: 200,
     headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${filename}"`,
+      'content-type': 'application/xml',
+      'content-disposition': `attachment; filename="factur-x-${r.rows[0].number}.xml"`,
     },
   });
 };

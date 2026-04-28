@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { finalizeInvoice, getCustomerById } from '../../../../../lib/native-billing';
 import { generateInvoicePdf, type InvoicePdfSeller } from '../../../../../lib/invoice-pdf';
-import { generateZugferdXmlFromNative } from '../../../../../lib/zugferd';
+import { generateFacturX } from '../../../../../lib/einvoice/factur-x';
 import { sendEmail } from '../../../../../lib/email';
 import { pool, getSiteSetting, initBillingTables } from '../../../../../lib/website-db';
 
@@ -148,7 +148,7 @@ export const POST: APIRoute = async ({ request, params }) => {
   let xml: string;
   let pdf: Buffer;
   try {
-    xml = generateZugferdXmlFromNative({ invoice: tempInvoice, lines, customer, seller: zugferdSeller });
+    xml = generateFacturX(invoiceInput);
     pdf = await generateInvoicePdf({
       invoice: tempInvoice, lines, customer, seller,
       templateTexts: {

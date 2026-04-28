@@ -42,6 +42,7 @@
   let extEmail = $state('');
   let extCompany = $state('');
   let extVat = $state('');
+  let extLeitwegId = $state('');
 
   // ── Service / qty ─────────────────────────────────────────────────────────
   let selectedKey = $state(
@@ -161,6 +162,7 @@
         email: customerEmail,
         company: externalMode ? extCompany || undefined : undefined,
         vatNumber: externalMode ? extVat || undefined : undefined,
+        leitwegId: externalMode ? extLeitwegId || undefined : undefined,
         serviceKey: selectedKey,
         quantity,
         notes: notes.trim() || undefined,
@@ -310,6 +312,11 @@
                 <div>
                   <label class="block text-xs text-muted mb-1">USt-ID</label>
                   <input type="text" bind:value={extVat} placeholder="DE123456789"
+                    class="w-full px-3 py-2 bg-dark-light border border-dark-lighter rounded-lg text-sm text-light placeholder:text-muted focus:outline-none focus:border-gold/50" />
+                </div>
+                <div>
+                  <label class="block text-xs text-muted mb-1">Leitweg-ID</label>
+                  <input type="text" bind:value={extLeitwegId} placeholder="04011000-1234512345-67"
                     class="w-full px-3 py-2 bg-dark-light border border-dark-lighter rounded-lg text-sm text-light placeholder:text-muted focus:outline-none focus:border-gold/50" />
                 </div>
               </div>

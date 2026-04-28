@@ -1,4 +1,4 @@
-import { it, expect, beforeAll } from 'vitest';
+import { it, expect, beforeAll, vi, afterEach } from 'vitest';
 import { initBillingTables, createCustomer, createInvoice, finalizeInvoice } from './native-billing';
 import { recordPayment, listPayments } from './invoice-payments';
 import { pool } from './website-db';
@@ -95,4 +95,72 @@ it('emits proportional EÜR booking on payment', async () => {
   expect(e.rows).toHaveLength(1);
   expect(Number(e.rows[0].net_amount)).toBeCloseTo(50, 2);
   expect(Number(e.rows[0].vat_amount)).toBeCloseTo(9.50, 2);
+});
+
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+it('records Kursdifferenz booking when paymentCurrencyRate differs from invoice rate', async () => {
+  // Mock ECB for invoice creation at 1 USD = 0.92 EUR
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    text: async () => `<?xml version="1.0"?><gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube><Cube time="2026-04-28"><Cube currency="USD" rate="1.0870"/></Cube></Cube></gesmes:Envelope>`,
+  }));
+  const c = await createCustomer({ brand: 'test', name: 'USD Corp', email: `usdcorp-${Date.now()}@test.com` });
+  const inv = await createInvoice({
+    brand: 'test', customerId: c.id,
+    issueDate: '2026-04-28', dueDays: 30,
+    taxMode: 'kleinunternehmer', currency: 'USD',
+    lines: [{ description: 'License', quantity: 1, unitPrice: 1000 }],
+  });
+  // invoice rate: 1/1.087 ≈ 0.92 EUR/USD
+  await finalizeInvoice(inv.id, { actor: { userId: 'u1', email: 'u@t.de' } });
+
+  // Payment at a different rate: 1 USD = 0.95 EUR → Kursdifferenzgewinn
+  const payment = await recordPayment({
+    invoiceId: inv.id, paidAt: '2026-05-15', amount: 1000,
+    method: 'bank', recordedBy: 'admin',
+    paymentCurrencyRate: 0.95,
+  });
+  expect(payment.id).toBeGreaterThan(0);
+
+  // A Kursdifferenz EUR booking should exist
+  const kdBookings = await pool.query(
+    `SELECT category, net_amount, skr_konto FROM eur_bookings WHERE invoice_id=$1 AND category LIKE 'kursdifferenz%'`,
+    [inv.id],
+  );
+  expect(kdBookings.rows).toHaveLength(1);
+  // 1000 USD * (0.95 - 0.92) = +30 EUR gain
+  expect(Number(kdBookings.rows[0].net_amount)).toBeCloseTo(30, 0);
+  expect(kdBookings.rows[0].category).toBe('kursdifferenz_gewinn');
+  expect(kdBookings.rows[0].skr_konto).toBe('2668');
+});
+
+it('records independent Kursdifferenz bookings for two partial payments at different rates', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    text: async () => `<?xml version="1.0"?><gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><Cube><Cube time="2026-04-28"><Cube currency="USD" rate="1.0870"/></Cube></Cube></gesmes:Envelope>`,
+  }));
+  const c = await createCustomer({ brand: 'test', name: 'USD Partial', email: `usdpartial-${Date.now()}@test.com` });
+  const inv = await createInvoice({
+    brand: 'test', customerId: c.id,
+    issueDate: '2026-04-28', dueDays: 30,
+    taxMode: 'kleinunternehmer', currency: 'USD',
+    lines: [{ description: 'License', quantity: 1, unitPrice: 1000 }],
+  });
+  await finalizeInvoice(inv.id, { actor: { userId: 'u1', email: 'u@t.de' } });
+
+  // First partial: 500 USD at 0.95 EUR/USD → gain of 500*(0.95-0.92)=15 EUR
+  await recordPayment({ invoiceId: inv.id, paidAt: '2026-05-01', amount: 500, method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.95 });
+  // Second partial: 500 USD at 0.90 EUR/USD → loss of 500*(0.92-0.90)=10 EUR
+  await recordPayment({ invoiceId: inv.id, paidAt: '2026-05-15', amount: 500, method: 'bank', recordedBy: 'admin', paymentCurrencyRate: 0.90 });
+
+  const kdBookings = await pool.query(
+    `SELECT category, net_amount FROM eur_bookings WHERE invoice_id=$1 AND category LIKE 'kursdifferenz%' ORDER BY booking_date`,
+    [inv.id],
+  );
+  expect(kdBookings.rows).toHaveLength(2);
+  expect(kdBookings.rows[0].category).toBe('kursdifferenz_gewinn');
+  expect(Number(kdBookings.rows[0].net_amount)).toBeCloseTo(15, 0);
+  expect(kdBookings.rows[1].category).toBe('kursdifferenz_verlust');
+  expect(Number(kdBookings.rows[1].net_amount)).toBeCloseTo(10, 0);
 });

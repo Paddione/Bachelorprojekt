@@ -7,316 +7,709 @@
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
-            --bg: #1e1e1e;
-            --text: #d4d4d4;
-            --primary: #007acc;
-            --success: #4ec9b0;
-            --error: #f44747;
-            --warning: #ce9178;
-            --border: #333;
+            --bg: #1a1b1e; --bg2: #212226; --bg3: #2a2b30; --bg4: #323338;
+            --text: #d0d0d0; --text-dim: #777; --text-mid: #aaa;
+            --primary: #4d9de0; --primary-dim: #1e3a52;
+            --success: #3ec9a7; --error: #e05252; --warn: #d4894a;
+            --border: #2e2f34;
+            --accent-env: #7c6af5; --accent-cluster: #4d9de0;
+            --accent-workspace: #3ec9a7; --accent-post: #d4894a;
+            --accent-argocd: #9b59b6; --accent-website: #2ecc71;
+            --accent-ops: #e0b84d; --accent-mcp: #e056a0;
+            --accent-users: #56a0e0; --accent-backup: #56c0e0;
+            --accent-test: #9de04d; --accent-prereq: #888;
+            --danger: #c0392b; --danger-dim: #2a1010; --danger-border: #6a1515;
+            --radius: 6px;
         }
+        *, *::before, *::after { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg); color: var(--text);
+            margin: 0; display: flex; height: 100vh; overflow: hidden; font-size: 13px;
         }
+
+        /* ── Sidebar ────────────────────────────────────── */
         #sidebar {
-            width: 300px;
+            width: 340px; min-width: 280px; flex-shrink: 0;
             border-right: 1px solid var(--border);
-            overflow-y: auto;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            display: flex; flex-direction: column; overflow: hidden;
         }
-        #main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        #sidebar-top {
+            flex-shrink: 0; background: var(--bg2);
+            border-bottom: 1px solid var(--border); padding: 14px 16px 10px;
+        }
+        #app-title {
+            font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--text-dim); margin: 0 0 12px;
+        }
+
+        /* ENV selector */
+        .env-row { display: flex; align-items: center; gap: 8px; }
+        .env-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+        #env-select {
+            flex: 1; background: var(--bg3); border: 1px solid var(--border);
+            color: var(--text); padding: 5px 8px; border-radius: var(--radius);
+            font-size: 12px; cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23777'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 8px center;
+            padding-right: 24px;
+        }
+        #env-select:focus { outline: 1px solid var(--primary); }
+        #env-select.prod { border-color: var(--warn); color: #ffb060; }
+
+        #prod-banner {
+            display: none; margin-top: 8px; padding: 6px 10px;
+            background: #2d1f00; border: 1px solid #6b4400;
+            border-radius: var(--radius); font-size: 11px; color: #ffb060;
+            line-height: 1.4;
+        }
+        #prod-banner.visible { display: block; }
+
+        /* Quick-start guide */
+        #quickstart {
+            flex-shrink: 0; border-bottom: 1px solid var(--border);
+            background: var(--bg2);
+        }
+        #qs-header {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 16px; cursor: pointer; user-select: none;
+            font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #qs-header:hover { color: var(--text); }
+        #qs-chevron { font-size: 9px; transition: transform 0.15s; display: inline-block; }
+        #quickstart.open #qs-chevron { transform: rotate(90deg); }
+        #qs-body { display: none; padding: 0 16px 12px; }
+        #quickstart.open #qs-body { display: block; }
+        .qs-step {
+            display: flex; align-items: flex-start; gap: 8px;
+            padding: 5px 0; border-bottom: 1px solid var(--border);
+        }
+        .qs-step:last-child { border-bottom: none; }
+        .qs-num {
+            flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--primary-dim); color: var(--primary);
+            font-size: 10px; font-weight: 700; display: flex;
+            align-items: center; justify-content: center; margin-top: 1px;
+        }
+        .qs-text { flex: 1; }
+        .qs-title { font-size: 12px; color: var(--text); }
+        .qs-cmd { font-family: monospace; font-size: 10px; color: var(--text-dim); }
+
+        /* Sections */
+        #sidebar-scroll { flex: 1; overflow-y: auto; padding: 6px 0 24px; }
+        .section { }
+        .section-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 16px; cursor: pointer; user-select: none;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--text-dim); transition: background 0.1s;
+        }
+        .section-header:hover { background: var(--bg3); color: var(--text); }
+        .section-icon { font-size: 13px; line-height: 1; }
+        .section-name { flex: 1; }
+        .section-chevron { font-size: 9px; transition: transform 0.15s; }
+        .section.open .section-chevron { transform: rotate(90deg); }
+        .section-count {
+            font-size: 10px; color: #444; background: var(--bg3);
+            padding: 1px 5px; border-radius: 8px;
+        }
+        .section-body { display: none; padding: 2px 10px 6px; }
+        .section.open .section-body { display: block; }
+
+        /* Task card */
+        .task-card {
+            border-radius: var(--radius); margin-bottom: 3px;
+            border: 1px solid transparent;
+            transition: background 0.1s, border-color 0.1s;
+            cursor: pointer; padding: 0;
+        }
+        .task-card:hover { background: var(--bg3); border-color: var(--border); }
+        .task-card.dangerous:hover { background: var(--danger-dim); border-color: var(--danger-border); }
+        .task-card-top {
+            display: flex; align-items: center; gap: 8px; padding: 6px 10px 3px;
+        }
+        .task-accent { width: 3px; height: 30px; border-radius: 2px; flex-shrink: 0; }
+        .task-info { flex: 1; min-width: 0; }
+        .task-title {
+            font-size: 12px; font-weight: 500; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .task-cmd {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 10px; color: var(--text-dim); margin-top: 1px;
+        }
+        .task-desc {
+            font-size: 11px; color: var(--text-mid); line-height: 1.4;
+            padding: 2px 10px 6px 21px; /* align under title */
+        }
+        .task-card.dangerous .task-title { color: #e07070; }
+        .task-card.dangerous .task-cmd   { color: #a05050; }
+        .task-danger-tag {
+            font-size: 9px; background: var(--danger); color: #fff;
+            padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
+        }
+
+        /* Arg inputs inside card */
+        .task-arg-row {
+            display: flex; gap: 5px; padding: 2px 10px 7px 21px; flex-wrap: wrap;
+        }
+        .arg-input {
+            flex: 1; min-width: 80px;
+            background: var(--bg); border: 1px solid #3a3a3a;
+            color: var(--text); padding: 4px 8px;
+            border-radius: 4px; font-family: monospace; font-size: 11px;
+        }
+        .arg-input:focus { outline: 1px solid var(--primary); border-color: var(--primary); }
+        .arg-input.error { border-color: var(--error); }
+        .run-btn {
+            background: var(--primary); color: #fff; border: none;
+            padding: 4px 12px; border-radius: 4px; font-size: 11px;
+            cursor: pointer; flex-shrink: 0; font-weight: 500;
+        }
+        .run-btn:hover { filter: brightness(1.15); }
+        .run-btn.danger { background: var(--danger); }
+        .run-btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; }
+
+        /* Danger zone */
+        .danger-zone-wrap {
+            border: 1px solid var(--danger-border); background: var(--danger-dim);
+            border-radius: var(--radius); padding: 6px; margin: 2px 0;
+        }
+        .section.danger-section .section-header { color: #c04040; }
+        .section.danger-section.open .section-header { color: #e05050; }
+        .section.danger-section .section-count { background: var(--danger-dim); color: #7a2020; }
+
+        /* ── Main area ──────────────────────────────────── */
+        #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+        #topbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 16px; background: var(--bg2);
+            border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+        #conn-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #555; flex-shrink: 0; transition: background 0.3s;
+        }
+        #conn-dot.connected { background: var(--success); }
+        #conn-dot.disconnected { background: var(--error); }
+        #status {
+            flex: 1; font-size: 12px; color: var(--text-dim);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        #status.running { color: var(--warn); font-style: italic; }
+        #status.ok   { color: var(--success); }
+        #status.fail { color: var(--error); }
+
+        .ctrl-btn {
+            background: var(--bg4); color: var(--text-mid); border: 1px solid var(--border);
+            padding: 4px 12px; border-radius: var(--radius); font-size: 12px; cursor: pointer;
+        }
+        .ctrl-btn:hover { background: var(--bg3); color: var(--text); }
+        #stop-btn { background: var(--error); color: #fff; border-color: var(--error); display: none; }
+        #stop-btn:hover { filter: brightness(1.15); }
+
+        /* Terminal */
+        #terminal-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #terminal-header {
+            padding: 5px 16px; background: var(--bg2); font-size: 11px;
+            color: var(--text-dim); border-bottom: 1px solid var(--border);
+            font-family: monospace; display: flex; gap: 8px;
         }
         #terminal {
-            flex: 1;
-            background: #000;
-            color: #fff;
-            padding: 1rem;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            border-top: 1px solid var(--border);
+            flex: 1; background: #0e0e10; color: #e0e0e0;
+            padding: 12px 16px; font-family: 'Consolas','Monaco','Courier New',monospace;
+            font-size: 12px; overflow-y: auto; white-space: pre-wrap;
+            word-break: break-all; line-height: 1.55;
         }
-        .section {
-            margin-bottom: 1.5rem;
-        }
-        .section-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            color: #888;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 2px;
-        }
-        .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        button {
-            background: #333;
-            color: #ccc;
-            border: none;
-            padding: 6px 10px;
-            text-align: left;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #444;
-            color: #fff;
-        }
-        button:active {
-            background: var(--primary);
-        }
-        button.running {
-            background: var(--warning);
-            color: #000;
-        }
-        #controls {
-            padding: 1rem;
-            background: #252526;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .env-input {
-            background: #3c3c3c;
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .stdout { color: #fff; }
-        .stderr { color: var(--text); } /* Make stderr look like normal text by default */
-        .info { color: var(--primary); font-weight: bold; }
+        .stdout  { color: #e0e0e0; }
+        .stderr  { color: #b0b0b0; }
+        .info    { color: var(--primary); font-weight: bold; }
         .success { color: var(--success); font-weight: bold; }
-        .error { color: var(--error); font-weight: bold; }
-        .warning { color: #fff; border-left: 2px solid var(--warning); padding-left: 4px; }
-        
-        #stop-btn {
-            background: var(--error);
-            color: white;
-            padding: 6px 15px;
+        .error   { color: var(--error); font-weight: bold; }
+        .warning { color: var(--warn); border-left: 2px solid var(--warn); padding-left: 5px; }
+
+        /* ── Modal ──────────────────────────────────────── */
+        #modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75); z-index: 200;
+            align-items: center; justify-content: center;
         }
+        #modal-overlay.visible { display: flex; }
+        #modal-box {
+            background: var(--bg2); border: 1px solid var(--danger-border);
+            border-radius: 10px; padding: 24px 26px; max-width: 460px; width: 90%;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+        }
+        #modal-icon { font-size: 28px; margin-bottom: 8px; }
+        #modal-title { margin: 0 0 12px; color: #e05050; font-size: 15px; font-weight: 600; }
+        #modal-cmd {
+            font-family: monospace; background: #111; border: 1px solid #333;
+            border-radius: 4px; padding: 7px 12px; font-size: 12px;
+            color: #ffd700; margin-bottom: 10px; word-break: break-all;
+        }
+        #modal-msg { color: var(--text-mid); font-size: 12px; line-height: 1.6; margin-bottom: 18px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        #modal-cancel {
+            background: var(--bg4); color: var(--text-mid); border: 1px solid var(--border);
+            padding: 8px 20px; border-radius: var(--radius); cursor: pointer; font-size: 13px;
+        }
+        #modal-cancel:hover { background: var(--bg3); color: var(--text); }
+        #modal-confirm {
+            background: var(--danger); color: #fff; border: none;
+            padding: 8px 20px; border-radius: var(--radius); cursor: pointer;
+            font-size: 13px; font-weight: 600;
+        }
+        #modal-confirm:hover { filter: brightness(1.15); }
     </style>
 </head>
 <body>
-    <div id="sidebar">
-        <h2>Tasks</h2>
-        
-        <div class="section">
-            <div class="section-title">Global Env</div>
-            <div style="display: flex; gap: 5px; align-items: center;">
-                <label>ENV=</label>
-                <input type="text" id="env-val" class="env-input" value="dev" style="width: 80px;">
-            </div>
-        </div>
 
-        <div id="task-sections"></div>
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<div id="sidebar">
+    <div id="sidebar-top">
+        <p id="app-title">Workspace Dashboard</p>
+        <div class="env-row">
+            <span class="env-label">Target ENV</span>
+            <select id="env-select">
+                <option value="dev">dev — local k3d cluster</option>
+                <option value="mentolder">mentolder — PRODUCTION</option>
+                <option value="korczewski">korczewski — PRODUCTION</option>
+            </select>
+        </div>
+        <div id="prod-banner">
+            ⚠️  Production environment selected.<br>
+            Destructive tasks will affect live data and real users.
+        </div>
     </div>
 
-    <div id="main">
-        <div id="controls">
-            <span id="status">Ready</span>
-            <button id="stop-btn" style="display: none;">Stop Task</button>
-            <button onclick="document.getElementById('terminal').innerHTML = ''">Clear Logs</button>
+    <!-- Quick-start guide -->
+    <div id="quickstart" class="open">
+        <div id="qs-header">
+            <span id="qs-chevron">▶</span>
+            <span>Quick Start — Typical Workflow</span>
+        </div>
+        <div id="qs-body"></div>
+    </div>
+
+    <div id="sidebar-scroll">
+        <div id="task-sections"></div>
+    </div>
+</div>
+
+<!-- ── Main ─────────────────────────────────────────────────── -->
+<div id="main">
+    <div id="topbar">
+        <span id="conn-dot" title="Socket connection"></span>
+        <span id="status">Connecting…</span>
+        <button id="stop-btn" class="ctrl-btn">■ Stop</button>
+        <button id="clear-btn" class="ctrl-btn">Clear</button>
+    </div>
+    <div id="terminal-wrap">
+        <div id="terminal-header">
+            <span id="term-label">Output</span>
         </div>
         <div id="terminal"></div>
     </div>
+</div>
 
-    <script>
-        const socket = io();
-        const terminal = document.getElementById('terminal');
-        const status = document.getElementById('status');
-        const stopBtn = document.getElementById('stop-btn');
-        const envInput = document.getElementById('env-val');
+<!-- ── Confirmation modal ───────────────────────────────────── -->
+<div id="modal-overlay" role="dialog" aria-modal="true">
+    <div id="modal-box">
+        <div id="modal-icon">⚠️</div>
+        <p id="modal-title">Confirm Dangerous Operation</p>
+        <div id="modal-cmd"></div>
+        <div id="modal-msg"></div>
+        <div class="modal-actions">
+            <button id="modal-cancel">Cancel</button>
+            <button id="modal-confirm">Yes, Proceed</button>
+        </div>
+    </div>
+</div>
 
-        const tasks = [
-            { 
-                cat: "0. Prerequisites", 
-                items: [
-                    { label: "hooks:install", cmd: "hooks:install" }
-                ]
-            },
-            {
-                cat: "1. Environment & Secrets",
-                items: [
-                    { label: "env:validate:all (Group)", cmd: "env:validate:all" },
-                    { label: "env:init", cmd: "env:init", args: ["ENV=${ENV}"] },
-                    { label: "env:validate", cmd: "env:validate", args: ["ENV=${ENV}"] },
-                    { label: "env:show", cmd: "env:show", args: ["ENV=${ENV}"] },
-                    { label: "env:generate", cmd: "env:generate", args: ["ENV=${ENV}"] },
-                    { label: "env:seal", cmd: "env:seal", args: ["ENV=${ENV}"] }
-                ]
-            },
-            {
-                cat: "2. Cluster Bootstrap",
-                items: [
-                    { label: "up (Shortcut/Group)", cmd: "up" },
-                    { label: "cluster:create", cmd: "cluster:create" },
-                    { label: "cluster:status", cmd: "cluster:status" },
-                    { label: "ha:status", cmd: "ha:status" }
-                ]
-            },
-            {
-                cat: "4. Workspace",
-                items: [
-                    { label: "workspace:setup (Group)", cmd: "workspace:setup", args: ["ENV=${ENV}"] },
-                    { label: "workspace:preflight", cmd: "workspace:preflight", args: ["ENV=${ENV}"] },
-                    { label: "workspace:validate", cmd: "workspace:validate" },
-                    { label: "workspace:up", cmd: "workspace:up" },
-                    { label: "workspace:deploy", cmd: "workspace:deploy", args: ["ENV=${ENV}"] },
-                    { label: "workspace:status", cmd: "workspace:status" },
-                    { label: "workspace:office:deploy", cmd: "workspace:office:deploy", args: ["ENV=${ENV}"] }
-                ]
-            },
-            {
-                cat: "12. User & Data",
-                items: [
-                    { label: "workspace:migrate (Group)", cmd: "workspace:migrate" },
-                    { label: "workspace:create-guest", cmd: "workspace:create-guest" },
-                    { label: "workspace:import-users", cmd: "workspace:import-users" }
-                ]
-            },
-            {
-                cat: "13. Backup & Restore",
-                items: [
-                    { label: "workspace:backup (Group)", cmd: "workspace:backup" },
-                    { label: "workspace:backup:list", cmd: "workspace:backup:list" }
-                ]
-            },
-            {
-                cat: "3. ArgoCD",
-                items: [
-                    { label: "argocd:setup (Group)", cmd: "argocd:setup" },
-                    { label: "argocd:status", cmd: "argocd:status" },
-                    { label: "argocd:apps:apply", cmd: "argocd:apps:apply" }
-                ]
-            },
-            {
-                cat: "5. Post-Deploy",
-                items: [
-                    { label: "workspace:post-setup (Group)", cmd: "workspace:post-setup" },
-                    { label: "workspace:talk-setup", cmd: "workspace:talk-setup", args: ["ENV=${ENV}"] },
-                    { label: "keycloak:sync", cmd: "keycloak:sync", args: ["ENV=${ENV}"] }
-                ]
-            },
-            {
-                cat: "9. MCP / Claude",
-                items: [
-                    { label: "mcp:deploy (Group)", cmd: "mcp:deploy" },
-                    { label: "mcp:status", cmd: "mcp:status" },
-                    { label: "claude-code:setup", cmd: "claude-code:setup" }
-                ]
-            },
-            {
-                cat: "11. Daily Operations",
-                items: [
-                    { label: "workspace:status (Group)", cmd: "workspace:status" },
-                    { label: "workspace:logs", cmd: "workspace:logs" },
-                    { label: "workspace:restart", cmd: "workspace:restart" },
-                    { label: "workspace:check-connectivity", cmd: "workspace:check-connectivity" }
-                ]
-            },
-            {
-                cat: "6. Website",
-                items: [
-                    { label: "website:deploy (Group)", cmd: "website:deploy", args: ["ENV=${ENV}"] },
-                    { label: "website:dev", cmd: "website:dev" },
-                    { label: "website:build", cmd: "website:build", args: ["ENV=${ENV}"] },
-                    { label: "website:status", cmd: "website:status" }
-                ]
-            },
-            {
-                cat: "14. Testing",
-                items: [
-                    { label: "test:all (Group)", cmd: "test:all" },
-                    { label: "test:unit", cmd: "test:unit" },
-                    { label: "test:manifests", cmd: "test:manifests" }
-                ]
-            },
-            {
-                cat: "15. Teardown",
-                items: [
-                    { label: "down (Group)", cmd: "down" },
-                    { label: "workspace:teardown", cmd: "workspace:teardown" },
-                    { label: "cluster:delete", cmd: "cluster:delete" }
-                ]
+<script>
+(function () {
+    'use strict';
+
+    // ── Data ───────────────────────────────────────────────────────────────
+    const QUICK_STEPS = [
+        { n: 1, title: 'Create the dev cluster',       cmd: 'cluster:create' },
+        { n: 2, title: 'Deploy the full workspace',    cmd: 'workspace:up' },
+        { n: 3, title: 'Run post-deploy setup',        cmd: 'workspace:post-setup' },
+        { n: 4, title: 'Check everything is healthy',  cmd: 'workspace:status' },
+    ];
+
+    // Accent colors per section key
+    const ACCENTS = {
+        env: '#7c6af5', cluster: '#4d9de0', workspace: '#3ec9a7',
+        post: '#d4894a', argocd: '#9b59b6', website: '#2ecc71',
+        ops: '#e0b84d', mcp: '#e056a0', users: '#56a0e0',
+        backup: '#56c0e0', testing: '#9de04d', prereq: '#888',
+    };
+
+    const GROUPS = [
+        { cat: 'Environment & Secrets', icon: '🔑', accent: ACCENTS.env, items: [
+            { title: 'Validate All Envs',    cmd: 'env:validate:all', desc: 'Check all environment files against the schema' },
+            { title: 'Init New Env',         cmd: 'env:init',         desc: 'Scaffold a new environments/<ENV>.yaml from the schema' },
+            { title: 'Validate Env',         cmd: 'env:validate',     desc: 'Validate the selected environment file' },
+            { title: 'Show Env Config',      cmd: 'env:show',         desc: 'Print the resolved config for the selected env' },
+            { title: 'Generate Secrets',     cmd: 'env:generate',     desc: 'Generate fresh random secrets into .secrets/<ENV>.yaml',
+              dangerous: true, dangerMsg: 'Generates new random secrets. Any running deployment using the old secrets will break until redeployed.' },
+            { title: 'Seal Secrets',         cmd: 'env:seal',         desc: 'Encrypt plaintext secrets → SealedSecret (commits to git)',
+              dangerous: true, dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
+        ]},
+        { cat: 'Cluster', icon: '⚙️', accent: ACCENTS.cluster, items: [
+            { title: 'Create Cluster',   cmd: 'cluster:create', desc: 'Bootstrap a new k3d dev cluster' },
+            { title: 'Start Cluster',    cmd: 'cluster:start',  desc: 'Resume a stopped k3d cluster' },
+            { title: 'Stop Cluster',     cmd: 'cluster:stop',   desc: 'Pause the running cluster (preserves state)' },
+            { title: 'Cluster Status',   cmd: 'cluster:status', desc: 'Show nodes, pods and resource usage' },
+            { title: 'HA Status',        cmd: 'ha:status',      desc: 'Show status of the 3-node HA cluster' },
+        ]},
+        { cat: 'Workspace', icon: '🚀', accent: ACCENTS.workspace, items: [
+            { title: 'Preflight Check',     cmd: 'workspace:preflight',    desc: 'Verify prerequisites before deploying' },
+            { title: 'Validate Manifests',  cmd: 'workspace:validate',     desc: 'Dry-run kustomize build + kubeconform' },
+            { title: 'Full Bring-Up',       cmd: 'workspace:up',           desc: 'Cluster + MVP + Office + MCP + post-config in one shot' },
+            { title: 'Deploy Workspace',    cmd: 'workspace:deploy',       desc: 'Apply all workspace manifests to the selected cluster' },
+            { title: 'Deploy Office Stack', cmd: 'workspace:office:deploy',desc: 'Deploy Collabora (run after workspace:deploy)' },
+            { title: 'Workspace Status',    cmd: 'workspace:status',       desc: 'Show pods, services, ingress and PVCs' },
+        ]},
+        { cat: 'Post-Deploy', icon: '🔧', accent: ACCENTS.post, items: [
+            { title: 'Post-Setup',    cmd: 'workspace:post-setup', desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
+            { title: 'Talk Setup',    cmd: 'workspace:talk-setup', desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
+            { title: 'Keycloak Sync', cmd: 'keycloak:sync',        desc: 'Sync realm config and OIDC clients to Keycloak' },
+        ]},
+        { cat: 'ArgoCD', icon: '♾️', accent: ACCENTS.argocd, items: [
+            { title: 'ArgoCD Status',     cmd: 'argocd:status',     desc: 'Show sync/health of all apps across all clusters' },
+            { title: 'Apply Apps',        cmd: 'argocd:apps:apply', desc: 'Apply AppProject and ApplicationSet manifests' },
+            { title: 'Bootstrap ArgoCD',  cmd: 'argocd:setup',      desc: 'Full ArgoCD install + cluster registration (run once)',
+              dangerous: true, dangerMsg: 'Bootstraps ArgoCD from scratch. Should only be run once on a fresh hub cluster.' },
+        ]},
+        { cat: 'Website', icon: '🌐', accent: ACCENTS.website, items: [
+            { title: 'Build Website',  cmd: 'website:build',  desc: 'Run Astro build for the selected env' },
+            { title: 'Deploy Website', cmd: 'website:deploy', desc: 'Build, import and roll out the website pod' },
+            { title: 'Website Status', cmd: 'website:status', desc: 'Show website deployment status' },
+            { title: 'Dev Server',     cmd: 'website:dev',    desc: 'Start Astro dev server with hot-reload (streams until stopped)' },
+        ]},
+        { cat: 'Daily Operations', icon: '📊', accent: ACCENTS.ops, items: [
+            { title: 'Workspace Status',   cmd: 'workspace:status',             desc: 'Quick overview of all pods and services' },
+            { title: 'Check Connectivity', cmd: 'workspace:check-connectivity', desc: 'Ping all service endpoints and report health' },
+            { title: 'Tail Logs',          cmd: 'workspace:logs',               desc: 'Stream live logs for a service (Stop to exit)',
+              argInputs: [{ id: 'arg-logs-svc', placeholder: 'service name  e.g. nextcloud', required: true }] },
+            { title: 'Restart Service',    cmd: 'workspace:restart',            desc: 'Rolling restart a deployment',
+              argInputs: [{ id: 'arg-restart-svc', placeholder: 'service name  e.g. keycloak', required: true }] },
+        ]},
+        { cat: 'MCP / Claude Code', icon: '🤖', accent: ACCENTS.mcp, items: [
+            { title: 'Deploy MCP',         cmd: 'mcp:deploy',       desc: 'Deploy the MCP monolith pod + auth proxy' },
+            { title: 'MCP Status',         cmd: 'mcp:status',       desc: 'Show MCP pod and container status' },
+            { title: 'Claude Code Setup',  cmd: 'claude-code:setup',desc: 'Generate Claude Code settings.json',
+              argInputs: [{ id: 'arg-cc-mode', placeholder: 'cluster  or  business', required: true }] },
+        ]},
+        { cat: 'User & Data', icon: '👥', accent: ACCENTS.users, items: [
+            { title: 'Create Guest User', cmd: 'workspace:create-guest',  desc: 'Add a guest account to Keycloak + Nextcloud' },
+            { title: 'Import Users',      cmd: 'workspace:import-users',  desc: 'Bulk-import users from a CSV file' },
+            { title: 'Data Migration',    cmd: 'workspace:migrate',       desc: 'Interactive data migration assistant' },
+        ]},
+        { cat: 'Backup & Restore', icon: '💾', accent: ACCENTS.backup, items: [
+            { title: 'Trigger Backup',  cmd: 'workspace:backup',      desc: 'Run an immediate backup of all databases' },
+            { title: 'List Backups',    cmd: 'workspace:backup:list', desc: 'Show available backup timestamps' },
+            { title: 'Restore from Backup', cmd: 'workspace:restore', desc: 'Overwrite a database from a backup snapshot',
+              dangerous: true, dangerMsg: 'Overwrites the selected database with backup data. This cannot be undone.',
+              argInputs: [
+                { id: 'arg-restore-db', placeholder: 'keycloak / nextcloud / all', required: true },
+                { id: 'arg-restore-ts', placeholder: 'timestamp from List Backups',required: true },
+              ] },
+        ]},
+        { cat: 'Testing', icon: '🧪', accent: ACCENTS.testing, items: [
+            { title: 'Unit Tests',      cmd: 'test:unit',      desc: 'Run BATS unit tests (assertion lib, scripts, configs)' },
+            { title: 'Manifest Tests',  cmd: 'test:manifests', desc: 'Validate kustomize output structure (no cluster needed)' },
+            { title: 'All Offline Tests',cmd: 'test:all',      desc: 'Unit + manifests + dry-run' },
+        ]},
+        { cat: 'Prerequisites', icon: '🔩', accent: ACCENTS.prereq, items: [
+            { title: 'Install Hooks', cmd: 'hooks:install', desc: 'Install git hooks for this repo' },
+        ]},
+        { cat: '⚠️  Danger Zone', icon: '', accent: '#c0392b', dangerZone: true, collapsed: true, items: [
+            { title: 'Teardown Workspace', cmd: 'workspace:teardown', dangerous: true,
+              desc: 'Delete workspace namespace + all data',
+              dangerMsg: 'Deletes the entire workspace namespace and ALL its data. Cannot be undone.' },
+            { title: 'Delete Cluster',     cmd: 'cluster:delete',     dangerous: true,
+              desc: 'Destroy the k3d cluster entirely',
+              dangerMsg: 'Destroys the k3d cluster and every resource inside it. Cannot be undone.' },
+            { title: 'Nuke Everything',    cmd: 'down',                dangerous: true,
+              desc: 'Teardown workspace + delete cluster in one go',
+              dangerMsg: 'Tears down the workspace AND deletes the cluster. Total reset. Cannot be undone.' },
+        ]},
+    ];
+
+    // ── Quick-start ────────────────────────────────────────────────────────
+    const qsBody = document.getElementById('qs-body');
+    QUICK_STEPS.forEach((step) => {
+        const row = document.createElement('div');
+        row.className = 'qs-step';
+
+        const num = document.createElement('span');
+        num.className = 'qs-num';
+        num.textContent = String(step.n);
+
+        const txt = document.createElement('div');
+        txt.className = 'qs-text';
+
+        const title = document.createElement('div');
+        title.className = 'qs-title';
+        title.textContent = step.title;
+
+        const cmd = document.createElement('div');
+        cmd.className = 'qs-cmd';
+        cmd.textContent = 'task ' + step.cmd;
+
+        txt.appendChild(title);
+        txt.appendChild(cmd);
+        row.appendChild(num);
+        row.appendChild(txt);
+        qsBody.appendChild(row);
+    });
+    document.getElementById('qs-header').addEventListener('click', () => {
+        document.getElementById('quickstart').classList.toggle('open');
+    });
+
+    // ── ENV selector ───────────────────────────────────────────────────────
+    const envSelect = document.getElementById('env-select');
+    envSelect.addEventListener('change', () => {
+        const isProd = envSelect.value !== 'dev';
+        document.getElementById('prod-banner').classList.toggle('visible', isProd);
+        envSelect.classList.toggle('prod', isProd);
+    });
+
+    // ── Build task sidebar ─────────────────────────────────────────────────
+    const sectionsEl = document.getElementById('task-sections');
+
+    GROUPS.forEach((group) => {
+        const section = document.createElement('div');
+        section.className = 'section' + (group.dangerZone ? ' danger-section' : '');
+        if (!group.collapsed) section.classList.add('open');
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'section-header';
+
+        const iconEl = document.createElement('span');
+        iconEl.className = 'section-icon';
+        iconEl.textContent = group.icon;
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'section-name';
+        nameEl.textContent = group.cat;
+
+        const chevron = document.createElement('span');
+        chevron.className = 'section-chevron';
+        chevron.textContent = '▶';
+
+        const countEl = document.createElement('span');
+        countEl.className = 'section-count';
+        countEl.textContent = String(group.items.length);
+
+        header.appendChild(iconEl);
+        header.appendChild(nameEl);
+        header.appendChild(countEl);
+        header.appendChild(chevron);
+        header.addEventListener('click', () => section.classList.toggle('open'));
+        section.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'section-body';
+
+        const wrap = group.dangerZone
+            ? (() => { const d = document.createElement('div'); d.className = 'danger-zone-wrap'; return d; })()
+            : body;
+
+        group.items.forEach((item) => {
+            const card = document.createElement('div');
+            card.className = 'task-card' + (item.dangerous ? ' dangerous' : '');
+
+            // Top row: accent bar + title + cmd + optional danger tag
+            const top = document.createElement('div');
+            top.className = 'task-card-top';
+
+            const accentBar = document.createElement('div');
+            accentBar.className = 'task-accent';
+            accentBar.style.background = item.dangerous ? '#c0392b' : group.accent;
+
+            const info = document.createElement('div');
+            info.className = 'task-info';
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'task-title';
+            titleEl.textContent = item.title;
+
+            const cmdEl = document.createElement('div');
+            cmdEl.className = 'task-cmd';
+            cmdEl.textContent = 'task ' + item.cmd;
+
+            info.appendChild(titleEl);
+            info.appendChild(cmdEl);
+            top.appendChild(accentBar);
+            top.appendChild(info);
+
+            if (item.dangerous) {
+                const tag = document.createElement('span');
+                tag.className = 'task-danger-tag';
+                tag.textContent = 'DESTRUCTIVE';
+                top.appendChild(tag);
             }
-        ];
+            card.appendChild(top);
 
-        const sectionsContainer = document.getElementById('task-sections');
-        tasks.forEach(group => {
-            const section = document.createElement('div');
-            section.className = 'section';
-            section.innerHTML = `<div class="section-title">${group.cat}</div>`;
-            const list = document.createElement('div');
-            list.className = 'task-list';
-            
-            group.items.forEach(item => {
-                const btn = document.createElement('button');
-                btn.innerText = item.label;
-                btn.onclick = () => runTask(item.cmd, item.args || []);
-                list.appendChild(btn);
-            });
-            
-            section.appendChild(list);
-            sectionsContainer.appendChild(section);
+            // Description
+            if (item.desc) {
+                const descEl = document.createElement('div');
+                descEl.className = 'task-desc';
+                descEl.textContent = item.desc;
+                card.appendChild(descEl);
+            }
+
+            // Arg inputs or click-to-run
+            if (item.argInputs && item.argInputs.length > 0) {
+                const argRow = document.createElement('div');
+                argRow.className = 'task-arg-row';
+
+                const inputEls = item.argInputs.map((def) => {
+                    const inp = document.createElement('input');
+                    inp.type = 'text';
+                    inp.className = 'arg-input';
+                    inp.id = def.id;
+                    inp.placeholder = def.placeholder;
+                    argRow.appendChild(inp);
+                    return { el: inp, required: !!def.required };
+                });
+
+                const runBtn = document.createElement('button');
+                runBtn.className = 'run-btn' + (item.dangerous ? ' danger' : '');
+                runBtn.textContent = 'Run';
+                runBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    for (const { el, required } of inputEls) {
+                        if (required && !el.value.trim()) {
+                            el.classList.add('error');
+                            el.focus();
+                            setTimeout(() => el.classList.remove('error'), 1500);
+                            return;
+                        }
+                    }
+                    const args = ['--', ...inputEls.map(({ el }) => el.value.trim()).filter(Boolean)];
+                    item.dangerous ? showModal(item, args) : runTask(item.cmd, args);
+                });
+                argRow.appendChild(runBtn);
+                card.appendChild(argRow);
+            } else {
+                card.addEventListener('click', () => {
+                    item.dangerous ? showModal(item, []) : runTask(item.cmd, []);
+                });
+            }
+
+            wrap.appendChild(card);
         });
 
-        function runTask(command, rawArgs) {
-            const env = envInput.value;
-            const args = rawArgs.map(arg => arg.replace('${ENV}', env));
-            
-            status.innerText = `Running: task ${command}`;
-            stopBtn.style.display = 'inline-block';
-            
-            socket.emit('run-task', { 
-                command, 
-                args,
-                envVars: { ENV: env }
-            });
+        if (group.dangerZone) body.appendChild(wrap);
+        section.appendChild(body);
+        sectionsEl.appendChild(section);
+    });
+
+    // ── Confirmation modal ─────────────────────────────────────────────────
+    let pending = null;
+
+    function showModal(item, args) {
+        const env = envSelect.value;
+        const label = 'task ' + item.cmd + (args.length ? '  ' + args.join(' ') : '') + '   [ENV=' + env + ']';
+        document.getElementById('modal-cmd').textContent = label;
+        document.getElementById('modal-msg').textContent = item.dangerMsg;
+        pending = { cmd: item.cmd, args };
+        document.getElementById('modal-overlay').classList.add('visible');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').classList.remove('visible');
+        pending = null;
+    }
+
+    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+    document.getElementById('modal-confirm').addEventListener('click', () => {
+        const p = pending; closeModal(); if (p) runTask(p.cmd, p.args);
+    });
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modal-overlay')) closeModal();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    // ── Task execution ─────────────────────────────────────────────────────
+    const terminal  = document.getElementById('terminal');
+    const statusEl  = document.getElementById('status');
+    const stopBtn   = document.getElementById('stop-btn');
+    const termLabel = document.getElementById('term-label');
+    const socket    = io();
+    let running = false;
+
+    function setButtons(disabled) {
+        document.querySelectorAll('.task-card:not(.dangerous), .run-btn').forEach((el) => {
+            el.style.pointerEvents = disabled ? 'none' : '';
+            el.style.opacity = disabled ? '0.45' : '';
+        });
+    }
+
+    function runTask(command, args) {
+        if (running) return;
+        running = true;
+        setButtons(true);
+        stopBtn.style.display = 'inline-block';
+        statusEl.className = 'running';
+        statusEl.textContent = 'Running: task ' + command + '  [ENV=' + envSelect.value + ']';
+        termLabel.textContent = 'task ' + command;
+        socket.emit('run-task', { command, args, envVars: { ENV: envSelect.value } });
+    }
+
+    stopBtn.addEventListener('click', () => socket.emit('stop-task'));
+    document.getElementById('clear-btn').addEventListener('click', () => { terminal.textContent = ''; });
+
+    // ── Socket ─────────────────────────────────────────────────────────────
+    const connDot = document.getElementById('conn-dot');
+
+    socket.on('connect', () => {
+        connDot.className = 'connected';
+        if (!running) { statusEl.className = ''; statusEl.textContent = 'Ready'; }
+    });
+    socket.on('disconnect', () => {
+        connDot.className = 'disconnected';
+        statusEl.className = 'fail'; statusEl.textContent = 'Disconnected from server';
+    });
+
+    socket.on('log', ({ type, data }) => {
+        const span = document.createElement('span');
+        const lower = data.toLowerCase();
+        let cls = type;
+        if (type === 'stderr') {
+            const isErr  = lower.includes('error') || lower.includes('fehler') ||
+                           lower.includes('failed') || lower.includes('exit status 1');
+            const isWarn = !isErr && (lower.includes('warning') || data.includes('⚠') ||
+                           lower.includes('deprecated') || lower.includes('hint:') ||
+                           lower.includes('note:') || lower.includes('hinweis:') ||
+                           lower.includes('violate podsecurity'));
+            cls = isErr ? 'error' : isWarn ? 'warning' : 'stderr';
         }
+        span.className = cls;
+        span.textContent = data;
+        terminal.appendChild(span);
+        terminal.scrollTop = terminal.scrollHeight;
+    });
 
-        stopBtn.onclick = () => {
-            socket.emit('stop-task');
-        };
-
-        socket.on('log', ({ type, data }) => {
-            const span = document.createElement('span');
-            
-            // Smarter type detection for warnings/errors within the stream
-            let finalType = type;
-            if (data.toLowerCase().includes('warning') || data.includes('⚠')) {
-                finalType = 'warning';
-            } else if (data.toLowerCase().includes('error') || data.toLowerCase().includes('fehler')) {
-                finalType = 'error';
-            }
-
-            span.className = finalType;
-            span.innerText = data;
-            terminal.appendChild(span);
-            terminal.scrollTop = terminal.scrollHeight;
-        });
-
-        socket.on('task-finished', ({ code }) => {
-            status.innerText = code === 0 ? 'Ready (Last task success)' : 'Ready (Last task failed)';
-            stopBtn.style.display = 'none';
-        });
-    </script>
+    socket.on('task-finished', ({ code }) => {
+        running = false;
+        setButtons(false);
+        stopBtn.style.display = 'none';
+        statusEl.className = code === 0 ? 'ok' : 'fail';
+        statusEl.textContent = code === 0
+            ? 'Ready — last task succeeded ✓'
+            : 'Ready — last task failed (code ' + code + ')';
+        termLabel.textContent = 'Output';
+    });
+}());
+</script>
 </body>
 </html>

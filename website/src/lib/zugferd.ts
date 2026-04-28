@@ -61,7 +61,6 @@ export function generateZugferdXmlFromNative(p: ZugferdNativeInput): string {
   const grandTotal = fmt(p.invoice.grossAmount);
   const taxBasis   = isKlein ? grandTotal : fmt(p.invoice.netAmount);
   const taxTotal   = isKlein ? '0.00' : fmt(p.invoice.taxAmount);
-  const taxRate    = isKlein ? '0' : fmt(p.invoice.taxRate);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rsm:CrossIndustryInvoice

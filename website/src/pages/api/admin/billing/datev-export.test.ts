@@ -50,3 +50,67 @@ describe('GET /api/admin/billing/datev-export', () => {
     expect(res.headers.get('Content-Disposition')).toContain('datev-');
   });
 });
+
+// --- datev-email tests ---
+vi.mock('../../../../lib/email', () => ({
+  sendEmail: vi.fn().mockResolvedValue(true),
+}));
+
+import { POST } from './datev-email';
+import { sendEmail } from '../../../../lib/email';
+
+describe('POST /api/admin/billing/datev-email', () => {
+  beforeEach(() => {
+    vi.mocked(getSession).mockResolvedValue(mockSession as any);
+    vi.mocked(isAdmin).mockReturnValue(true);
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    vi.mocked(getSession).mockResolvedValue(null);
+    const req = new Request('http://localhost/api/admin/billing/datev-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
+      body: JSON.stringify({ year: 2026, month: 1, to: 'stb@example.de' }),
+    });
+    const res = await POST({ request: req } as any);
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 when year missing', async () => {
+    const req = new Request('http://localhost/api/admin/billing/datev-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
+      body: JSON.stringify({ month: 1, to: 'stb@example.de' }),
+    });
+    const res = await POST({ request: req } as any);
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when recipient email missing', async () => {
+    const req = new Request('http://localhost/api/admin/billing/datev-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
+      body: JSON.stringify({ year: 2026, month: 1 }),
+    });
+    const res = await POST({ request: req } as any);
+    expect(res.status).toBe(400);
+  });
+
+  it('calls sendEmail with CSV attachment and returns 200', async () => {
+    const req = new Request('http://localhost/api/admin/billing/datev-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: 'session=test' },
+      body: JSON.stringify({ year: 2026, month: 1, to: 'stb@example.de' }),
+    });
+    const res = await POST({ request: req } as any);
+    expect(res.status).toBe(200);
+    expect(vi.mocked(sendEmail)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'stb@example.de',
+        attachments: expect.arrayContaining([
+          expect.objectContaining({ filename: expect.stringMatching(/\.csv$/) }),
+        ]),
+      }),
+    );
+  });
+});

@@ -34,7 +34,7 @@ export interface InvoicePdfLine {
 }
 export interface InvoicePdfCustomer {
   name: string; company?: string; addressLine1?: string; city?: string; postalCode?: string;
-  country: string; vatNumber?: string; email: string;
+  landIso: string; vatNumber?: string; email: string;
 }
 export interface InvoicePdfSeller {
   name: string; address: string; postalCode: string; city: string; country: string;

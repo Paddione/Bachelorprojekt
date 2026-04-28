@@ -8,7 +8,7 @@ export { initBillingTables };
 export interface Customer {
   id: string; brand: string; name: string; email: string;
   company?: string; addressLine1?: string; city?: string;
-  postalCode?: string; country: string; vatNumber?: string;
+  postalCode?: string; landIso: string; vatNumber?: string;
   sepaIban?: string; sepaBic?: string;
   sepaMandateRef?: string; sepaMandateDate?: string;
   defaultLeitwegId?: string;
@@ -21,9 +21,9 @@ export async function createCustomer(p: {
 }): Promise<Customer> {
   await initBillingTables();
   const r = await pool.query(
-    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-     ON CONFLICT (brand, email) DO UPDATE
+    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number, typ)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'Kunde')
+     ON CONFLICT (brand, email, typ) DO UPDATE
        SET name=EXCLUDED.name, company=EXCLUDED.company,
            address_line1=EXCLUDED.address_line1, city=EXCLUDED.city,
            postal_code=EXCLUDED.postal_code, vat_number=EXCLUDED.vat_number
@@ -340,7 +340,7 @@ function mapCustomer(row: Record<string, unknown>): Customer {
     addressLine1: (row.address_line1 as string) ?? undefined,
     city: (row.city as string) ?? undefined,
     postalCode: (row.postal_code as string) ?? undefined,
-    country: (row.country as string) ?? 'DE',
+    landIso: (row.land_iso as string) ?? 'DE',
     vatNumber: (row.vat_number as string) ?? undefined,
     sepaIban: (row.sepa_iban as string) ?? undefined,
     sepaBic: (row.sepa_bic as string) ?? undefined,

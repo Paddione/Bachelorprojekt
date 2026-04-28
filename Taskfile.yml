@@ -14,6 +14,7 @@ tasks:
     desc: Start the local task execution dashboard
     dir: dashboard
     cmds:
+      - pkill -f "node server.js" 2>/dev/null || true
       - npm install
       - node server.js
 

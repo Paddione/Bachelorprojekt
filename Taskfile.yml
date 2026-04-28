@@ -309,10 +309,10 @@ tasks:
         BRAND="${BRAND_NAME:-mentolder}"
         DOMAIN="${PROD_DOMAIN:-localhost}"
         $NC_EXEC "php occ config:system:set trusted_domains 1 --value=files.${DOMAIN}" || true
-        $NC_EXEC "php occ config:app:set theming name --value='${BRAND}'"
-        $NC_EXEC "php occ config:app:set theming url            --value=https://web.${DOMAIN}"
-        $NC_EXEC "php occ config:app:set theming color          --value=#e8c870"
-        $NC_EXEC "php occ config:app:set theming enforce-theme --value=dark"
+        $NC_EXEC "php occ config:app:set theming name --value='${BRAND}'"           || true
+        $NC_EXEC "php occ config:app:set theming url            --value=https://web.${DOMAIN}" || true
+        $NC_EXEC "php occ config:app:set theming color          --value=#e8c870"   || true
+        $NC_EXEC "php occ config:app:set theming enforce-theme --value=dark"       || true
         echo "Nextcloud theme applied."
 
   workspace:theme:

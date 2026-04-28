@@ -1,4 +1,4 @@
-import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
+import { pool, initBillingTables, getNextInvoiceNumber, getSiteSetting } from './website-db';
 import { getCustomerById, type Invoice } from './native-billing';
 import { addBooking } from './eur-bookkeeping';
 import { generateInvoicePdf, type InvoicePdfSeller } from './invoice-pdf';
@@ -140,30 +140,34 @@ export async function generateCreditNotePdf(invoiceId: string): Promise<Buffer |
   if (!inv) return null;
   const customer = await getCustomerById(inv.brand, inv.customer_id);
   if (!customer) return null;
-  const [linesR, senderName, senderStreet, senderCity, iban, bic, bankName, vatId, phone] = await Promise.all([
-    pool.query(`SELECT * FROM billing_invoice_line_items WHERE invoice_id=$1 ORDER BY id`, [invoiceId]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_sender_name'`, [inv.brand]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_sender_street'`, [inv.brand]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_sender_city'`, [inv.brand]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_bank_iban'`, [inv.brand]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_bank_bic'`, [inv.brand]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_bank_name'`, [inv.brand]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_vat_id'`, [inv.brand]),
-    pool.query(`SELECT value FROM site_settings WHERE brand=$1 AND key='invoice_sender_phone'`, [inv.brand]),
+  const linesR = await pool.query(`SELECT * FROM billing_invoice_line_items WHERE invoice_id=$1 ORDER BY id`, [invoiceId]);
+  const [senderName, senderStreet, senderCity, senderZip, senderCountry, senderVat, senderIban, senderBic, senderBank, senderEmail, senderPhone] = await Promise.all([
+    getSiteSetting(inv.brand, 'invoice_sender_name'),
+    getSiteSetting(inv.brand, 'invoice_sender_street'),
+    getSiteSetting(inv.brand, 'invoice_sender_city'),
+    getSiteSetting(inv.brand, 'invoice_sender_zip'),
+    getSiteSetting(inv.brand, 'invoice_sender_country'),
+    getSiteSetting(inv.brand, 'invoice_sender_vat_id'),
+    getSiteSetting(inv.brand, 'invoice_bank_iban'),
+    getSiteSetting(inv.brand, 'invoice_bank_bic'),
+    getSiteSetting(inv.brand, 'invoice_bank_name'),
+    getSiteSetting(inv.brand, 'invoice_sender_email'),
+    getSiteSetting(inv.brand, 'invoice_sender_phone'),
   ]);
-  const city = String(senderCity.rows[0]?.value ?? '');
+
   const seller: InvoicePdfSeller = {
-    name: String(senderName.rows[0]?.value ?? ''),
-    address: String(senderStreet.rows[0]?.value ?? ''),
-    postalCode: city.split(' ')[0] ?? '',
-    city: city.split(' ').slice(1).join(' '),
-    country: 'DE',
-    vatId: String(vatId.rows[0]?.value ?? ''),
+    name: senderName || inv.brand,
+    address: senderStreet || '',
+    postalCode: senderZip || '',
+    city: senderCity || '',
+    country: senderCountry || 'DE',
+    vatId: senderVat || '',
     taxNumber: '',
-    iban: String(iban.rows[0]?.value ?? ''),
-    bic: String(bic.rows[0]?.value ?? ''),
-    bankName: String(bankName.rows[0]?.value ?? ''),
-    phone: String(phone.rows[0]?.value ?? ''),
+    iban: senderIban || '',
+    bic: senderBic || '',
+    bankName: senderBank || '',
+    email: senderEmail || undefined,
+    phone: senderPhone || undefined,
   };
   const pdf = await generateInvoicePdf({
     invoice: {

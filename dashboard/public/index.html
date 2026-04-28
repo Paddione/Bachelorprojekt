@@ -931,6 +931,15 @@
         sectionsEl.appendChild(section);
     });
 
+    // ── Dry-run toggle ─────────────────────────────────────────────────────
+    let dryRunActive = false;
+    const dryrunBtn = document.getElementById('dryrun-btn');
+
+    dryrunBtn.addEventListener('click', () => {
+        dryRunActive = !dryRunActive;
+        dryrunBtn.classList.toggle('active', dryRunActive);
+    });
+
     // ── Pipeline state & tracker panel ────────────────────────────────────
     const pipeline = {
         active:      false,
@@ -1028,7 +1037,7 @@
         pipeline.active  = true;
         pipeline.current = 0;
         pipeline.skipped = new Set();
-        countdownBar.className = 'countdown-bar';
+        countdownBar.className = '';
         trackerPanel.classList.add('visible');
         buildTrackerSteps();
         updateSidebarDots();
@@ -1039,7 +1048,7 @@
         pipeline.active  = true;
         pipeline.current = index;
         pipeline.skipped = new Set();
-        countdownBar.className = 'countdown-bar';
+        countdownBar.className = '';
         trackerPanel.classList.add('visible');
         buildTrackerSteps();
         updateSidebarDots();
@@ -1060,7 +1069,7 @@
 
     function pipelineComplete() {
         pipeline.active = false;
-        countdownBar.className = 'countdown-bar';
+        countdownBar.className = '';
         trackerSub.textContent = 'Complete ✓';
         updateSidebarDots();
     }
@@ -1068,7 +1077,7 @@
     function abortPipeline() {
         clearCountdown();
         pipeline.active = false;
-        countdownBar.className = 'countdown-bar';
+        countdownBar.className = '';
         trackerPanel.classList.remove('visible');
         PIPELINE_STEPS.forEach((_, i) => {
             const dot = document.getElementById('ps-dot-' + i);
@@ -1122,7 +1131,7 @@
             pipeline.cdRemaining--;
             if (pipeline.cdRemaining <= 0) {
                 clearCountdown();
-                countdownBar.className = 'countdown-bar';
+                countdownBar.className = '';
                 advanceToNextStep();
             } else {
                 refreshLabel();
@@ -1130,32 +1139,23 @@
         }, 1000);
     }
 
-    // Skip: mark the upcoming step as skipped, advance past it
+    // Skip: mark the upcoming step as skipped then advance via advanceToNextStep
     cdSkipBtn.addEventListener('click', () => {
         clearCountdown();
-        countdownBar.className = 'countdown-bar';
+        countdownBar.className = '';
         const upcomingIdx = nextNonSkipped(pipeline.current);
         if (upcomingIdx < PIPELINE_STEPS.length) {
             pipeline.skipped.add(upcomingIdx);
-            pipeline.current = upcomingIdx + 1;
         }
         buildTrackerSteps();
         updateSidebarDots();
-        const afterSkip = nextNonSkipped(pipeline.current);
-        if (afterSkip >= PIPELINE_STEPS.length) {
-            pipelineComplete();
-        } else {
-            pipeline.current = afterSkip;
-            buildTrackerSteps();
-            updateSidebarDots();
-            runTask(PIPELINE_STEPS[afterSkip].cmd, []);
-        }
+        advanceToNextStep();
     });
 
     // Retry: re-run the failed step
     cdRetryBtn.addEventListener('click', () => {
         clearCountdown();
-        countdownBar.className = 'countdown-bar';
+        countdownBar.className = '';
         buildTrackerSteps();
         updateSidebarDots();
         runTask(PIPELINE_STEPS[pipeline.current].cmd, []);
@@ -1212,9 +1212,12 @@
         setButtons(true);
         stopBtn.style.display = 'inline-block';
         statusEl.className = 'running';
-        statusEl.textContent = 'Running: task ' + command + '  [ENV=' + envSelect.value + ']';
-        termLabel.textContent = 'task ' + command;
-        socket.emit('run-task', { command, args, envVars: { ENV: envSelect.value } });
+        const envLabel = 'ENV=' + envSelect.value + (dryRunActive ? ', DRY_RUN=true' : '');
+        statusEl.textContent = 'Running: task ' + command + '  [' + envLabel + ']';
+        termLabel.textContent = 'task ' + command + '  [' + envLabel + ']';
+        const envVars = { ENV: envSelect.value };
+        if (dryRunActive) envVars.DRY_RUN = 'true';
+        socket.emit('run-task', { command, args, envVars });
     }
 
     stopBtn.addEventListener('click', () => socket.emit('stop-task'));

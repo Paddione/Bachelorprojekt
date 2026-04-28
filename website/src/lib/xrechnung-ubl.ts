@@ -12,6 +12,9 @@ export function generateXRechnungUbl(p: EInvoiceInput): string {
   if (!p.customer.leitwegId) {
     throw new Error('XRechnung verlangt eine Leitweg-ID (BT-10) auf dem Käufer.');
   }
+  if (!p.seller.email) {
+    throw new Error('XRechnung verlangt eine Verkäufer-E-Mail (BT-34) zum Senden über PEPPOL.');
+  }
   const isKlein = p.invoice.taxMode === 'kleinunternehmer';
   const taxCat = isKlein ? 'E' : 'S';
   const taxRate = isKlein ? 0 : p.invoice.taxRate;
@@ -63,6 +66,7 @@ export function generateXRechnungUbl(p: EInvoiceInput): string {
   <cbc:BuyerReference>${esc(p.customer.leitwegId)}</cbc:BuyerReference>
   <cac:AccountingSupplierParty>
     <cac:Party>
+      <cbc:EndpointID schemeID="EM">${esc(p.seller.email)}</cbc:EndpointID>
       <cac:PostalAddress>
         <cbc:StreetName>${esc(p.seller.address)}</cbc:StreetName>
         <cbc:CityName>${esc(p.seller.city)}</cbc:CityName>
@@ -70,16 +74,22 @@ export function generateXRechnungUbl(p: EInvoiceInput): string {
         <cac:Country><cbc:IdentificationCode>${esc(p.seller.country)}</cbc:IdentificationCode></cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID schemeID="VAT">${esc(p.seller.vatId)}</cbc:CompanyID>
+        <cbc:CompanyID>${esc(p.seller.vatId)}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
         <cbc:RegistrationName>${esc(p.seller.name)}</cbc:RegistrationName>
       </cac:PartyLegalEntity>
+      <cac:Contact>
+        <cbc:Name>${esc(p.seller.name)}</cbc:Name>${p.seller.phone ? `
+        <cbc:Telephone>${esc(p.seller.phone)}</cbc:Telephone>` : ''}
+        <cbc:ElectronicMail>${esc(p.seller.email)}</cbc:ElectronicMail>
+      </cac:Contact>
     </cac:Party>
   </cac:AccountingSupplierParty>
   <cac:AccountingCustomerParty>
     <cac:Party>
+      <cbc:EndpointID schemeID="EM">${esc(p.customer.email)}</cbc:EndpointID>
       <cac:PostalAddress>
         <cbc:StreetName>${esc(p.customer.addressLine1 ?? '')}</cbc:StreetName>
         <cbc:CityName>${esc(p.customer.city ?? '')}</cbc:CityName>

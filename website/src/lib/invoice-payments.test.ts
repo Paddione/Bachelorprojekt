@@ -97,7 +97,7 @@ it('emits proportional EÜR booking on payment', async () => {
   expect(Number(e.rows[0].vat_amount)).toBeCloseTo(9.50, 2);
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 it('records Kursdifferenz booking when paymentCurrencyRate differs from invoice rate', async () => {
   // Mock ECB for invoice creation at 1 USD = 0.92 EUR

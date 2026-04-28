@@ -3335,7 +3335,47 @@ export async function initBillingTables(): Promise<void> {
       validated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
-  // Plan F: indexes for new child tables
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_suppliers (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      brand         TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      email         TEXT,
+      land_iso      CHAR(2) NOT NULL DEFAULT 'DE',
+      ustidnr       TEXT,
+      steuernummer  TEXT,
+      iban          TEXT,
+      bic           TEXT,
+      bank_name     TEXT,
+      address       TEXT,
+      typ           TEXT DEFAULT 'Lieferant',
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CONSTRAINT billing_suppliers_brand_name_key UNIQUE (brand, name)
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS supplier_invoices (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      brand         TEXT NOT NULL,
+      supplier_id   TEXT NOT NULL REFERENCES billing_suppliers(id),
+      invoice_number TEXT,
+      invoice_date  DATE NOT NULL,
+      leistungsdatum DATE,
+      net_amount    NUMERIC(12,2) NOT NULL,
+      vat_amount    NUMERIC(12,2) NOT NULL DEFAULT 0,
+      gross_amount  NUMERIC(12,2) NOT NULL,
+      vat_rate      NUMERIC(5,2)  NOT NULL DEFAULT 0,
+      currency      CHAR(3) NOT NULL DEFAULT 'EUR',
+      description   TEXT,
+      pdf_path      TEXT,
+      status        TEXT NOT NULL DEFAULT 'open',
+      paid_at       DATE,
+      locked        BOOLEAN NOT NULL DEFAULT false,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);  // Plan F: indexes for new child tables
   await pool.query(`
     CREATE INDEX IF NOT EXISTS billing_nachweis_invoice_idx
       ON billing_nachweis (invoice_id)

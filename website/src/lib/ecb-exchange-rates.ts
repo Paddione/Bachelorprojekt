@@ -3,7 +3,7 @@ const ECB_URL = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
 export type RateMap = Record<string, number>;
 
 export async function fetchEcbRates(): Promise<RateMap> {
-  const res = await fetch(ECB_URL);
+  const res = await fetch(ECB_URL, { signal: AbortSignal.timeout(5000) });
   if (!res.ok) throw new Error(`ECB rate fetch failed: ${res.status}`);
   const xml = await res.text();
   const map: RateMap = { EUR: 1 };

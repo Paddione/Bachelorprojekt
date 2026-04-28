@@ -77,7 +77,8 @@ export async function createInvoice(p: {
   supplyType?: string;
 }): Promise<Invoice> {
   await initBillingTables();
-  const currency = p.currency ?? 'EUR';
+  const currency = (p.currency ?? 'EUR').toUpperCase();
+  if (!/^[A-Z]{3}$/.test(currency)) throw new Error(`Invalid currency code: ${p.currency}`);
   let currencyRate: number | null = null;
   if (currency !== 'EUR') {
     const { fetchEcbRates, eurPer } = await import('./ecb-exchange-rates');

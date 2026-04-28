@@ -65,6 +65,8 @@ export interface Invoice {
   netAmountEur: number;
   grossAmountEur: number;
   supplyType?: string;
+  kind: 'regular' | 'prepayment' | 'final' | 'gutschrift';
+  parentInvoiceId?: string;
 }
 
 export async function createInvoice(params: {
@@ -75,6 +77,8 @@ export async function createInvoice(params: {
   leitwegId?: string;
   currency?: string;
   supplyType?: string;
+  kind?: 'regular' | 'prepayment' | 'final' | 'gutschrift';
+  parentInvoiceId?: string;
 }): Promise<Invoice> {
   await initBillingTables();
   // Reverse charge enforcement
@@ -108,6 +112,7 @@ export async function createInvoice(params: {
   const netAmountEur  = currencyRate !== null ? Math.round(netAmount * currencyRate * 100) / 100 : netAmount;
   const grossAmountEur = currencyRate !== null ? Math.round(grossAmount * currencyRate * 100) / 100 : grossAmount;
   const paymentRef = number.replace('RE-', 'RG');
+  const kind = p.kind ?? 'regular';
 
   const client = await pool.connect();
   try {
@@ -116,14 +121,16 @@ export async function createInvoice(params: {
       `INSERT INTO billing_invoices (brand, number, customer_id, issue_date, due_date,
          service_period_start, service_period_end, tax_mode, net_amount, tax_rate,
          tax_amount, gross_amount, notes, payment_reference, leitweg_id,
-         currency, currency_rate, net_amount_eur, gross_amount_eur, supply_type)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`,
+         currency, currency_rate, net_amount_eur, gross_amount_eur, supply_type,
+         kind, parent_invoice_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
       [p.brand, number, p.customerId, p.issueDate,
        dueDate.toISOString().split('T')[0],
        p.servicePeriodStart??null, p.servicePeriodEnd??null,
        p.taxMode, netAmount, taxRate, taxAmount, grossAmount,
        p.notes??null, paymentRef, p.leitwegId??null,
-       currency, currencyRate, netAmountEur, grossAmountEur, p.supplyType??null]
+       currency, currencyRate, netAmountEur, grossAmountEur, p.supplyType??null,
+       kind, p.parentInvoiceId??null]
     );
     const inv = r.rows[0];
     await Promise.all(p.lines.map(l =>

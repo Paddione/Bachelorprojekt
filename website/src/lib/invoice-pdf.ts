@@ -45,6 +45,7 @@ export interface InvoicePdfSeller {
   email?: string; phone?: string; website?: string;
 }
 export interface InvoicePdfTemplateTexts {
+  title?: string;
   introText?: string;
   kleinunternehmerNotice?: string;
   outroText?: string;
@@ -239,7 +240,8 @@ export async function generateInvoicePdf(p: {
     doc.fillColor(C.brass).text('.', { lineBreak: false });
 
     doc.font('Helvetica').fontSize(8).fillColor(C.inkMute).text(seller.name, 102, 76);
-    doc.font('Helvetica').fontSize(7.5).fillColor(C.brass).text('RECHNUNG', 102, 89);
+    const docTitle = templateTexts?.title ?? (inv.kind === 'gutschrift' ? 'GUTSCHRIFT' : 'RECHNUNG');
+    doc.font('Helvetica').fontSize(7.5).fillColor(C.brass).text(docTitle, 102, 89);
 
     // Right meta block (number prominent, then dates)
     doc.font('Helvetica-Bold').fontSize(10).fillColor(C.ink)

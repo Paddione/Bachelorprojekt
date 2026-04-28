@@ -440,8 +440,25 @@
     <div id="topbar">
         <span id="conn-dot" title="Socket connection"></span>
         <span id="status">Connecting…</span>
+        <button id="dryrun-btn" title="Toggle dry-run mode — passes DRY_RUN=true to tasks">
+            📋 DRY RUN <span id="dryrun-badge">ON</span>
+        </button>
         <button id="stop-btn" class="ctrl-btn">■ Stop</button>
         <button id="clear-btn" class="ctrl-btn">Clear</button>
+    </div>
+    <!-- ── Step tracker panel (visible only during pipeline run) ── -->
+    <div id="tracker-panel">
+        <div id="tracker-header">
+            <span class="tracker-title">Deploy Pipeline</span>
+            <span class="tracker-sub" id="tracker-sub">Step 0 of 7</span>
+        </div>
+        <div id="tracker-steps"></div>
+        <div id="countdown-bar">
+            <span id="cd-text"></span>
+            <button class="cd-btn" id="cd-retry">&#8634; Retry</button>
+            <button class="cd-btn" id="cd-skip">Skip &#8594;</button>
+            <button class="cd-btn" id="cd-abort">&#10005; Abort</button>
+        </div>
     </div>
     <div id="terminal-wrap">
         <div id="terminal-header">

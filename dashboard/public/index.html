@@ -155,9 +155,9 @@
             {
                 cat: "1. Environment & Secrets",
                 items: [
+                    { label: "env:validate:all (Group)", cmd: "env:validate:all" },
                     { label: "env:init", cmd: "env:init", args: ["ENV=${ENV}"] },
                     { label: "env:validate", cmd: "env:validate", args: ["ENV=${ENV}"] },
-                    { label: "env:validate:all", cmd: "env:validate:all" },
                     { label: "env:show", cmd: "env:show", args: ["ENV=${ENV}"] },
                     { label: "env:generate", cmd: "env:generate", args: ["ENV=${ENV}"] },
                     { label: "env:seal", cmd: "env:seal", args: ["ENV=${ENV}"] }
@@ -166,18 +166,18 @@
             {
                 cat: "2. Cluster Bootstrap",
                 items: [
+                    { label: "up (Shortcut/Group)", cmd: "up" },
                     { label: "cluster:create", cmd: "cluster:create" },
                     { label: "cluster:status", cmd: "cluster:status" },
-                    { label: "up (Shortcut)", cmd: "up" },
                     { label: "ha:status", cmd: "ha:status" }
                 ]
             },
             {
                 cat: "4. Workspace",
                 items: [
+                    { label: "workspace:setup (Group)", cmd: "workspace:setup", args: ["ENV=${ENV}"] },
                     { label: "workspace:preflight", cmd: "workspace:preflight", args: ["ENV=${ENV}"] },
                     { label: "workspace:validate", cmd: "workspace:validate" },
-                    { label: "workspace:setup", cmd: "workspace:setup", args: ["ENV=${ENV}"] },
                     { label: "workspace:up", cmd: "workspace:up" },
                     { label: "workspace:deploy", cmd: "workspace:deploy", args: ["ENV=${ENV}"] },
                     { label: "workspace:status", cmd: "workspace:status" },
@@ -187,22 +187,22 @@
             {
                 cat: "12. User & Data",
                 items: [
+                    { label: "workspace:migrate (Group)", cmd: "workspace:migrate" },
                     { label: "workspace:create-guest", cmd: "workspace:create-guest" },
-                    { label: "workspace:import-users", cmd: "workspace:import-users" },
-                    { label: "workspace:migrate", cmd: "workspace:migrate" }
+                    { label: "workspace:import-users", cmd: "workspace:import-users" }
                 ]
             },
             {
                 cat: "13. Backup & Restore",
                 items: [
-                    { label: "workspace:backup", cmd: "workspace:backup" },
+                    { label: "workspace:backup (Group)", cmd: "workspace:backup" },
                     { label: "workspace:backup:list", cmd: "workspace:backup:list" }
                 ]
             },
             {
                 cat: "3. ArgoCD",
                 items: [
-                    { label: "argocd:setup", cmd: "argocd:setup" },
+                    { label: "argocd:setup (Group)", cmd: "argocd:setup" },
                     { label: "argocd:status", cmd: "argocd:status" },
                     { label: "argocd:apps:apply", cmd: "argocd:apps:apply" }
                 ]
@@ -210,7 +210,7 @@
             {
                 cat: "5. Post-Deploy",
                 items: [
-                    { label: "workspace:post-setup", cmd: "workspace:post-setup" },
+                    { label: "workspace:post-setup (Group)", cmd: "workspace:post-setup" },
                     { label: "workspace:talk-setup", cmd: "workspace:talk-setup", args: ["ENV=${ENV}"] },
                     { label: "keycloak:sync", cmd: "keycloak:sync", args: ["ENV=${ENV}"] }
                 ]
@@ -218,7 +218,7 @@
             {
                 cat: "9. MCP / Claude",
                 items: [
-                    { label: "mcp:deploy", cmd: "mcp:deploy" },
+                    { label: "mcp:deploy (Group)", cmd: "mcp:deploy" },
                     { label: "mcp:status", cmd: "mcp:status" },
                     { label: "claude-code:setup", cmd: "claude-code:setup" }
                 ]
@@ -226,6 +226,7 @@
             {
                 cat: "11. Daily Operations",
                 items: [
+                    { label: "workspace:status (Group)", cmd: "workspace:status" },
                     { label: "workspace:logs", cmd: "workspace:logs" },
                     { label: "workspace:restart", cmd: "workspace:restart" },
                     { label: "workspace:check-connectivity", cmd: "workspace:check-connectivity" }
@@ -234,6 +235,7 @@
             {
                 cat: "6. Website",
                 items: [
+                    { label: "website:deploy (Group)", cmd: "website:deploy", args: ["ENV=${ENV}"] },
                     { label: "website:dev", cmd: "website:dev" },
                     { label: "website:build", cmd: "website:build", args: ["ENV=${ENV}"] },
                     { label: "website:status", cmd: "website:status" }
@@ -242,16 +244,16 @@
             {
                 cat: "14. Testing",
                 items: [
+                    { label: "test:all (Group)", cmd: "test:all" },
                     { label: "test:unit", cmd: "test:unit" },
-                    { label: "test:manifests", cmd: "test:manifests" },
-                    { label: "test:all", cmd: "test:all" }
+                    { label: "test:manifests", cmd: "test:manifests" }
                 ]
             },
             {
                 cat: "15. Teardown",
                 items: [
+                    { label: "down (Group)", cmd: "down" },
                     { label: "workspace:teardown", cmd: "workspace:teardown" },
-                    { label: "down", cmd: "down" },
                     { label: "cluster:delete", cmd: "cluster:delete" }
                 ]
             }

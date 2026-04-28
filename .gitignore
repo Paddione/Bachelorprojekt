@@ -89,3 +89,4 @@ memory
 whisper
 environments/Assets
 .claude/settings.json
+.claude/scheduled_tasks.lock

@@ -177,3 +177,9 @@ export function generateZugferdXml(inv: FullInvoice, seller: ZugferdSellerConfig
   </rsm:SupplyChainTradeTransaction>
 </rsm:CrossIndustryInvoice>`;
 }
+
+import type { EInvoiceInput } from './einvoice-profile';
+
+export function generateXRechnungCii(_p: EInvoiceInput): string {
+  throw new Error('not implemented'); // siehe Task 4
+}

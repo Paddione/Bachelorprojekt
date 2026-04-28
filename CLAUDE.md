@@ -58,7 +58,6 @@ task workspace:restore -- all <timestamp>                # Restore all DBs from 
 task workspace:office:deploy ENV=<env>    # Deploy Collabora (separate overlay — required for full bring-up)
 task workspace:post-setup                 # Enable Nextcloud apps (calendar, contacts, OIDC, Collabora)
 task workspace:talk-setup                 # Configure Nextcloud Talk HPB signaling + coturn
-task workspace:call-setup                 # Configure Nextcloud Talk call settings
 task workspace:recording-setup            # Configure Talk recording backend
 task workspace:whiteboard-setup           # Install + configure Nextcloud Whiteboard app
 task workspace:systembrett-setup          # Set up Brett (Systembrett) integration in Nextcloud

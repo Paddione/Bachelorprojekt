@@ -299,11 +299,26 @@
         socket.on('log', ({ type, data }) => {
             const span = document.createElement('span');
             
-            // Smarter type detection for warnings/errors within the stream
+            // Neutralize warnings and typical stderr info patterns
             let finalType = type;
-            if (data.toLowerCase().includes('warning') || data.includes('⚠')) {
+            const lowerData = data.toLowerCase();
+            
+            const isWarning = lowerData.includes('warning') || 
+                              data.includes('⚠') || 
+                              lowerData.includes('note:') ||
+                              lowerData.includes('hint:') ||
+                              lowerData.includes('hinweis:') ||
+                              lowerData.includes('deprecated') ||
+                              lowerData.includes('violate podsecurity');
+
+            const isError = lowerData.includes('error') || 
+                            lowerData.includes('fehler') || 
+                            lowerData.includes('failed') ||
+                            lowerData.includes('exit status 1');
+
+            if (isWarning && !isError) {
                 finalType = 'warning';
-            } else if (data.toLowerCase().includes('error') || data.toLowerCase().includes('fehler')) {
+            } else if (isError) {
                 finalType = 'error';
             }
 

@@ -817,8 +817,8 @@
 
             const whenBlock = document.createElement('div');
             whenBlock.className = 'danger-when-block';
-            const useLines = group.useWhen.map((s) => '✅ ' + s).join('\n');
-            const neverLines = group.neverWhen.map((s) => '❌ ' + s).join('\n');
+            const useLines = (group.useWhen || []).map((s) => '✅ ' + s).join('\n');
+            const neverLines = (group.neverWhen || []).map((s) => '❌ ' + s).join('\n');
             whenBlock.textContent = useLines + '\n\n' + neverLines;
             box.appendChild(whenBlock);
 

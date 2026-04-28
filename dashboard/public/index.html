@@ -1174,20 +1174,38 @@
     }
 
     function startPipeline() {
+        // Snapshot the current skip set into index-based form for the runner.
+        const skippedIdx = new Set();
+        PIPELINE_STEPS.forEach((s, i) => {
+            if (skipState.cmds.has(s.cmd)) skippedIdx.add(i);
+        });
+
+        // Find first non-skipped step. If all are skipped, refuse to start.
+        let start = 0;
+        while (start < PIPELINE_STEPS.length && skippedIdx.has(start)) start++;
+        if (start >= PIPELINE_STEPS.length) return;   // Start button is disabled in this state anyway
+
         pipeline.active  = true;
-        pipeline.current = 0;
-        pipeline.skipped = new Set();
+        pipeline.current = start;
+        pipeline.skipped = skippedIdx;
         countdownBar.className = '';
         trackerPanel.classList.add('visible');
         buildTrackerSteps();
         updateSidebarDots();
-        runTask(PIPELINE_STEPS[0].cmd, []);
+        runTask(PIPELINE_STEPS[start].cmd, []);
     }
 
     function startPipelineFrom(index) {
+        // Snapshot skip set, but NEVER mark `index` itself as skipped — explicit
+        // row-click is treated as "run this one anyway" intent (per spec).
+        const skippedIdx = new Set();
+        PIPELINE_STEPS.forEach((s, i) => {
+            if (i !== index && skipState.cmds.has(s.cmd)) skippedIdx.add(i);
+        });
+
         pipeline.active  = true;
         pipeline.current = index;
-        pipeline.skipped = new Set();
+        pipeline.skipped = skippedIdx;
         countdownBar.className = '';
         trackerPanel.classList.add('visible');
         buildTrackerSteps();
@@ -1212,6 +1230,7 @@
         countdownBar.className = '';
         trackerSub.textContent = 'Complete ✓';
         updateSidebarDots();
+        updatePipelineStartBtnState();
     }
 
     function abortPipeline() {
@@ -1226,6 +1245,7 @@
                 dot.textContent = String(i + 1);
             }
         });
+        updatePipelineStartBtnState();
     }
 
     function startCountdown(success) {

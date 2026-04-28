@@ -3,7 +3,7 @@
 
   let { initialData }: { initialData: ReferenzItem[] } = $props();
 
-  let items = $state(structuredClone(initialData));
+  let items = $state(JSON.parse(JSON.stringify(initialData)));
   let saving = $state(false);
   let msg = $state('');
   let msgOk = $state(true);

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { finalizeInvoice, getCustomerById } from '../../../../../lib/native-billing';
-import { generateInvoicePdf, type InvoicePdfSeller, type InvoicePdfCustomer } from '../../../../../lib/invoice-pdf';
+import { generateInvoicePdf, type InvoicePdfSeller } from '../../../../../lib/invoice-pdf';
 import { generateFacturX } from '../../../../../lib/einvoice/factur-x';
 import { sendEmail } from '../../../../../lib/email';
 import { pool, getSiteSetting, initBillingTables } from '../../../../../lib/website-db';

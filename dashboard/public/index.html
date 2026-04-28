@@ -930,6 +930,238 @@
         sectionsEl.appendChild(section);
     });
 
+    // ── Pipeline state & tracker panel ────────────────────────────────────
+    const pipeline = {
+        active:      false,
+        current:     0,
+        skipped:     new Set(),
+        cdTimer:     null,
+        cdRemaining: 0,
+    };
+
+    const trackerPanel     = document.getElementById('tracker-panel');
+    const trackerSub       = document.getElementById('tracker-sub');
+    const trackerStepsEl   = document.getElementById('tracker-steps');
+    const countdownBar     = document.getElementById('countdown-bar');
+    const cdText           = document.getElementById('cd-text');
+    const cdSkipBtn        = document.getElementById('cd-skip');
+    const cdRetryBtn       = document.getElementById('cd-retry');
+    const cdAbortBtn       = document.getElementById('cd-abort');
+    const pipelineStartBtn = document.getElementById('pipeline-start-btn');
+
+    function dotStateClass(i) {
+        if (pipeline.skipped.has(i))   return 't-dot-skip';
+        if (i < pipeline.current)      return 't-dot-done';
+        if (i === pipeline.current)    return 't-dot-run';
+        return 't-dot-pend';
+    }
+
+    function labelStateClass(i) {
+        if (pipeline.skipped.has(i))   return 'skipped';
+        if (i < pipeline.current)      return 'done';
+        if (i === pipeline.current)    return 'running';
+        return '';
+    }
+
+    function buildTrackerSteps() {
+        trackerStepsEl.textContent = '';
+        PIPELINE_STEPS.forEach((step, i) => {
+            const div = document.createElement('div');
+            div.className = 't-step' + (i < pipeline.current && !pipeline.skipped.has(i) ? ' done' : '');
+            div.id = 'ts-' + i;
+
+            const dot = document.createElement('div');
+            dot.className = 't-dot ' + dotStateClass(i);
+            dot.id = 'td-' + i;
+            if (pipeline.skipped.has(i))        dot.textContent = '⊘';
+            else if (i < pipeline.current)      dot.textContent = '✓';
+            else if (i === pipeline.current)    dot.textContent = '▶';
+            else                                dot.textContent = String(i + 1);
+
+            const lbl = document.createElement('div');
+            lbl.className = 't-label ' + labelStateClass(i);
+            lbl.id = 'tl-' + i;
+            lbl.textContent = step.cmd.replace('workspace:', '');
+
+            div.appendChild(dot);
+            div.appendChild(lbl);
+            trackerStepsEl.appendChild(div);
+        });
+        trackerSub.textContent = 'Step ' + (pipeline.current + 1) + ' of ' + PIPELINE_STEPS.length;
+    }
+
+    function updateSidebarDots() {
+        PIPELINE_STEPS.forEach((_, i) => {
+            const dot = document.getElementById('ps-dot-' + i);
+            if (!dot) return;
+            if (pipeline.skipped.has(i)) {
+                dot.className = 'ps-dot ps-skip';
+                dot.textContent = '⊘';
+            } else if (i < pipeline.current) {
+                dot.className = 'ps-dot ps-done';
+                dot.textContent = '✓';
+            } else if (i === pipeline.current) {
+                dot.className = 'ps-dot ps-run';
+                dot.textContent = '▶';
+            } else {
+                dot.className = 'ps-dot ps-pend';
+                dot.textContent = String(i + 1);
+            }
+        });
+    }
+
+    function clearCountdown() {
+        if (pipeline.cdTimer) {
+            clearInterval(pipeline.cdTimer);
+            pipeline.cdTimer = null;
+        }
+    }
+
+    function nextNonSkipped(from) {
+        let idx = from;
+        while (idx < PIPELINE_STEPS.length && pipeline.skipped.has(idx)) idx++;
+        return idx;
+    }
+
+    function startPipeline() {
+        pipeline.active  = true;
+        pipeline.current = 0;
+        pipeline.skipped = new Set();
+        countdownBar.className = 'countdown-bar';
+        trackerPanel.classList.add('visible');
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[0].cmd, []);
+    }
+
+    function startPipelineFrom(index) {
+        pipeline.active  = true;
+        pipeline.current = index;
+        pipeline.skipped = new Set();
+        countdownBar.className = 'countdown-bar';
+        trackerPanel.classList.add('visible');
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[index].cmd, []);
+    }
+
+    function advanceToNextStep() {
+        const next = nextNonSkipped(pipeline.current);
+        if (next >= PIPELINE_STEPS.length) {
+            pipelineComplete();
+            return;
+        }
+        pipeline.current = next;
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[next].cmd, []);
+    }
+
+    function pipelineComplete() {
+        pipeline.active = false;
+        countdownBar.className = 'countdown-bar';
+        trackerSub.textContent = 'Complete ✓';
+        updateSidebarDots();
+    }
+
+    function abortPipeline() {
+        clearCountdown();
+        pipeline.active = false;
+        countdownBar.className = 'countdown-bar';
+        trackerPanel.classList.remove('visible');
+        PIPELINE_STEPS.forEach((_, i) => {
+            const dot = document.getElementById('ps-dot-' + i);
+            if (dot) {
+                dot.className = 'ps-dot ps-pend';
+                dot.textContent = String(i + 1);
+            }
+        });
+    }
+
+    function startCountdown(success) {
+        clearCountdown();
+        pipeline.cdRemaining = 5;
+
+        if (success) {
+            countdownBar.className = 'countdown-bar success';
+            cdSkipBtn.style.display  = 'inline-block';
+            cdRetryBtn.style.display = 'none';
+        } else {
+            countdownBar.className = 'countdown-bar failure';
+            cdSkipBtn.style.display  = 'inline-block';
+            cdRetryBtn.style.display = 'inline-block';
+        }
+
+        const finishedIdx = success ? pipeline.current - 1 : pipeline.current;
+        const nextIdx     = success ? nextNonSkipped(pipeline.current) : -1;
+
+        function refreshLabel() {
+            const finishedCmd = PIPELINE_STEPS[finishedIdx].cmd;
+            if (success) {
+                const nextCmd = nextIdx < PIPELINE_STEPS.length
+                    ? PIPELINE_STEPS[nextIdx].cmd : null;
+                cdText.textContent = nextCmd
+                    ? '✓ ' + finishedCmd + ' succeeded — autoruns next: '
+                      + nextCmd + ' in ' + pipeline.cdRemaining + ' s'
+                    : '✓ ' + finishedCmd + ' succeeded — pipeline complete';
+            } else {
+                cdText.textContent = '✗ ' + finishedCmd
+                    + ' failed — retry or skip?';
+            }
+        }
+        refreshLabel();
+
+        if (success && nextIdx >= PIPELINE_STEPS.length) {
+            pipelineComplete();
+            return;
+        }
+        if (!success) return; // no auto-advance on failure
+
+        pipeline.cdTimer = setInterval(() => {
+            pipeline.cdRemaining--;
+            if (pipeline.cdRemaining <= 0) {
+                clearCountdown();
+                countdownBar.className = 'countdown-bar';
+                advanceToNextStep();
+            } else {
+                refreshLabel();
+            }
+        }, 1000);
+    }
+
+    // Skip: mark the upcoming step as skipped, advance past it
+    cdSkipBtn.addEventListener('click', () => {
+        clearCountdown();
+        countdownBar.className = 'countdown-bar';
+        const upcomingIdx = nextNonSkipped(pipeline.current);
+        if (upcomingIdx < PIPELINE_STEPS.length) {
+            pipeline.skipped.add(upcomingIdx);
+            pipeline.current = upcomingIdx + 1;
+        }
+        buildTrackerSteps();
+        updateSidebarDots();
+        const afterSkip = nextNonSkipped(pipeline.current);
+        if (afterSkip >= PIPELINE_STEPS.length) {
+            pipelineComplete();
+        } else {
+            pipeline.current = afterSkip;
+            buildTrackerSteps();
+            updateSidebarDots();
+            runTask(PIPELINE_STEPS[afterSkip].cmd, []);
+        }
+    });
+
+    // Retry: re-run the failed step
+    cdRetryBtn.addEventListener('click', () => {
+        clearCountdown();
+        countdownBar.className = 'countdown-bar';
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[pipeline.current].cmd, []);
+    });
+
+    cdAbortBtn.addEventListener('click', () => abortPipeline());
+
     // ── Confirmation modal ─────────────────────────────────────────────────
     let pending = null;
 
@@ -969,6 +1201,8 @@
             el.style.pointerEvents = disabled ? 'none' : '';
             el.style.opacity = disabled ? '0.45' : '';
         });
+        const psBtn = document.getElementById('pipeline-start-btn');
+        if (psBtn) psBtn.disabled = disabled;
     }
 
     function runTask(command, args) {
@@ -1025,6 +1259,19 @@
             ? 'Ready — last task succeeded ✓'
             : 'Ready — last task failed (code ' + code + ')';
         termLabel.textContent = 'Output';
+
+        if (!pipeline.active) return;
+
+        if (code === 0) {
+            pipeline.current++;
+            buildTrackerSteps();
+            updateSidebarDots();
+            startCountdown(true);
+        } else {
+            buildTrackerSteps();
+            updateSidebarDots();
+            startCountdown(false);
+        }
     });
 }());
 </script>

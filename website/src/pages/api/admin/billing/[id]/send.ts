@@ -144,7 +144,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       address: customer.addressLine1 || undefined,
       postalCode: customer.postalCode || undefined,
       city: customer.city || undefined,
-      country: customer.country || 'DE',
+      country: customer.landIso || 'DE',
       vatId: customer.vatNumber || undefined,
       leitwegId: draftRow.leitweg_id || customer.defaultLeitwegId || undefined,
     },

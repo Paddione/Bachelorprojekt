@@ -251,6 +251,20 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
        opts.pdfMime ?? (opts.pdfBlob ? 'application/pdf' : null),
        opts.pdfBlob?.length ?? null]
     );
+
+    if (opts.pdfBlob) {
+      const { archiveBillingPdf } = await import('./billing-archive');
+      const pdfPath = await archiveBillingPdf({
+        brand: inv.brand,
+        invoiceNumber: inv.number,
+        filename: `${inv.number}.pdf`,
+        content: opts.pdfBlob,
+      });
+      if (pdfPath) {
+        await client.query(`UPDATE billing_invoices SET pdf_path=$2 WHERE id=$1`, [id, pdfPath]);
+      }
+    }
+
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');

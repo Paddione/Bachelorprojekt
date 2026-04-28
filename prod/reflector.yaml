@@ -66,28 +66,27 @@ spec:
                   CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
                   API=https://kubernetes.default.svc
 
-                  CRT=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
-                    "$API/api/v1/namespaces/workspace/secrets/workspace-wildcard-tls" \
-                    | tr -d '\n' \
-                    | grep -o '"tls\.crt": *"[^"]*"' \
-                    | grep -o '"[^"]*"$' | tr -d '"')
-                  KEY=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
-                    "$API/api/v1/namespaces/workspace/secrets/workspace-wildcard-tls" \
-                    | tr -d '\n' \
-                    | grep -o '"tls\.key": *"[^"]*"' \
-                    | grep -o '"[^"]*"$' | tr -d '"')
-
-                  BODY="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"workspace-wildcard-tls\"},\"type\":\"kubernetes.io/tls\",\"data\":{\"tls.crt\":\"$CRT\",\"tls.key\":\"$KEY\"}}"
-
-                  for NS in argocd coturn workspace-office; do
+                  sync_secret() {
+                    SRC_NS="$1" SRC="$2" DST="$3" NS="$4"
+                    CRT=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$SRC_NS/secrets/$SRC" \
+                      | tr -d '\n' \
+                      | grep -o '"tls\.crt": *"[^"]*"' \
+                      | grep -o '"[^"]*"$' | tr -d '"')
+                    KEY=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$SRC_NS/secrets/$SRC" \
+                      | tr -d '\n' \
+                      | grep -o '"tls\.key": *"[^"]*"' \
+                      | grep -o '"[^"]*"$' | tr -d '"')
+                    BODY="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"$DST\"},\"type\":\"kubernetes.io/tls\",\"data\":{\"tls.crt\":\"$CRT\",\"tls.key\":\"$KEY\"}}"
                     STATUS=$(curl -s -o /dev/null -w "%{http_code}" --cacert "$CA" \
                       -H "Authorization: Bearer $TOKEN" \
-                      "$API/api/v1/namespaces/$NS/secrets/workspace-wildcard-tls")
+                      "$API/api/v1/namespaces/$NS/secrets/$DST")
                     if [ "$STATUS" = "200" ]; then
                       curl -sf --cacert "$CA" -X PATCH \
                         -H "Authorization: Bearer $TOKEN" \
                         -H "Content-Type: application/strategic-merge-patch+json" \
-                        "$API/api/v1/namespaces/$NS/secrets/workspace-wildcard-tls" \
+                        "$API/api/v1/namespaces/$NS/secrets/$DST" \
                         -d "$BODY" > /dev/null
                     else
                       curl -sf --cacert "$CA" -X POST \
@@ -96,7 +95,17 @@ spec:
                         "$API/api/v1/namespaces/$NS/secrets" \
                         -d "$BODY" > /dev/null
                     fi
-                    echo "synced workspace-wildcard-tls -> $NS"
+                    echo "synced $SRC_NS/$SRC -> $NS/$DST"
+                  }
+
+                  # workspace-wildcard-tls → argocd, coturn (used by argocd-server-ingress)
+                  for NS in argocd coturn; do
+                    sync_secret workspace workspace-wildcard-tls workspace-wildcard-tls "$NS"
+                  done
+
+                  # korczewski-tls (cert-manager source) → workspace-office, website
+                  for NS in workspace-office website; do
+                    sync_secret workspace korczewski-tls korczewski-tls "$NS"
                   done
               resources:
                 requests:

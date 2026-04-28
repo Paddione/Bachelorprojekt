@@ -309,9 +309,12 @@ function mapCustomer(row: Record<string, unknown>): Customer {
     sepaIban: (row.sepa_iban as string) ?? undefined,
     sepaBic: (row.sepa_bic as string) ?? undefined,
     sepaMandateRef: (row.sepa_mandate_ref as string) ?? undefined,
-    sepaMandateDate: (row.sepa_mandate_date instanceof Date
-      ? row.sepa_mandate_date.toISOString().split('T')[0]
-      : (row.sepa_mandate_date as string) ?? undefined),
+    sepaMandateDate: (() => {
+      const md = row.sepa_mandate_date;
+      if (md instanceof Date)
+        return `${md.getFullYear()}-${String(md.getMonth() + 1).padStart(2, '0')}-${String(md.getDate()).padStart(2, '0')}`;
+      return (md as string | null) ?? undefined;
+    })(),
     defaultLeitwegId: (row.default_leitweg_id as string) ?? undefined,
   };
 }

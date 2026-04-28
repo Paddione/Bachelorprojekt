@@ -31,6 +31,23 @@ describe('generateEInvoiceXml', () => {
     expect(xml).toContain('xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"');
   });
 
+  it('xrechnung-cii enthält Pflichtfelder BT-1, BT-2, BT-5, BT-9, BT-10, BT-31, BG-16', () => {
+    const xml = generateEInvoiceXml('xrechnung-cii', baseInput);
+    expect(xml).toContain('<ram:ID>RE-2026-0001</ram:ID>');                           // BT-1
+    expect(xml).toContain('format="102">20260428');                                    // BT-2
+    expect(xml).toContain('<ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>');   // BT-5
+    expect(xml).toContain('format="102">20260512');                                    // BT-9 DueDate
+    expect(xml).toContain('<ram:BuyerReference>991-01234-44</ram:BuyerReference>');    // BT-10
+    expect(xml).toContain('<ram:ID schemeID="VA">DE123456789</ram:ID>');               // BT-31
+    expect(xml).toContain('<ram:IBANID>DE02120300000000202051</ram:IBANID>');          // BG-16 BT-84
+  });
+  it('xrechnung-cii Line-Items mappen BT-126/BT-129/BT-131', () => {
+    const xml = generateEInvoiceXml('xrechnung-cii', baseInput);
+    expect(xml).toContain('<ram:LineID>1</ram:LineID>');                                  // BT-126
+    expect(xml).toMatch(/<ram:BilledQuantity unitCode="HUR">1<\/ram:BilledQuantity>/);    // BT-129
+    expect(xml).toMatch(/<ram:LineTotalAmount>100\.00<\/ram:LineTotalAmount>/);           // BT-131
+  });
+
   it('lehnt xrechnung-cii ab ohne Leitweg-ID (B2G-Pflicht)', () => {
     const noLeitweg = { ...baseInput, customer: { ...baseInput.customer, leitwegId: undefined } };
     expect(() => generateEInvoiceXml('xrechnung-cii', noLeitweg)).toThrow(/Leitweg-ID/);

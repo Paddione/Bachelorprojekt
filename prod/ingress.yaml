@@ -159,7 +159,6 @@ spec:
         - meet.${PROD_DOMAIN}
         - board.${PROD_DOMAIN}
         - signaling.${PROD_DOMAIN}
-        - bug.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
     - host: meet.${PROD_DOMAIN}
@@ -192,18 +191,11 @@ spec:
                 name: spreed-signaling
                 port:
                   number: 8080
-    - host: bug.${PROD_DOMAIN}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: bug-tracker
-                port:
-                  number: 80
 ---
 # ── Tracking (Bachelorprojekt) ──────────────────────────────────────
+# Bug-Tracking läuft inzwischen direkt im Website-Admin-Panel
+# (`/admin/bugs`, Schema `bugs.bug_tickets`); ein separater
+# `bug-tracker`-Service / `bug.${PROD_DOMAIN}`-Host existiert nicht.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

@@ -107,6 +107,12 @@ build_kv_map() {
   kubectl $CONTEXT_FLAG get secret workspace-secrets -n "$KC_NAMESPACE" \
     -o json 2>/dev/null \
     | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
+
+  # WEBSITE_OIDC_SECRET lives in website-secrets (website namespace), not workspace-secrets.
+  # shellcheck disable=SC2086
+  kubectl $CONTEXT_FLAG get secret website-secrets -n website \
+    -o json 2>/dev/null \
+    | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
 }
 
 KV_MAP=$(build_kv_map)

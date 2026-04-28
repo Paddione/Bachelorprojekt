@@ -98,9 +98,12 @@ task website:teardown            # Remove website namespace
 ```
 
 ### ArgoCD — GitOps Multi-Cluster Federation
+**HUB-ONLY**: ALL `argocd:*` tasks run exclusively against `--context mentolder`.
+`ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
+Tasks live in `Taskfile.argocd.yml` (included under the `argocd` namespace).
 ```bash
-task argocd:setup                # Full setup: install → login → register clusters → apply apps (run once)
-task argocd:install              # Install ArgoCD on hetzner hub cluster
+task argocd:setup                # Full setup: install → login → register clusters → apply apps (run once on fresh hub)
+task argocd:install              # Install ArgoCD on mentolder hub cluster
 task argocd:password             # Print initial admin password
 task argocd:ui                   # Port-forward ArgoCD UI to http://localhost:8090
 task argocd:login                # Log in with argocd CLI
@@ -272,7 +275,7 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 
 ### Environment targeting
 - **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work.
-- **ArgoCD tasks hardcode `--context mentolder`.** ArgoCD is a hub on the Hetzner cluster managing spoke clusters. Do not run `argocd:*` tasks expecting them to act on `korczewski`.
+- **ArgoCD tasks are hub-only and enforce it.** All `argocd:*` tasks live in `Taskfile.argocd.yml` and have a `_hub-guard` precondition that aborts with a clear error if the `mentolder` context is unreachable. `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
 
 ### Kustomize overlays
 - **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.

@@ -49,10 +49,21 @@ if [ -z "${BACKEND_SECRET}" ]; then
 fi
 
 if [ "${JWT_SECRET}" != "${BACKEND_SECRET}" ]; then
-  echo "FEHLER: WHITEBOARD_JWT_SECRET im k8s Secret stimmt nicht mit dem laufenden"
-  echo "       whiteboard-Pod überein. Pod neu starten:"
-  echo "       ${KUBECTL} rollout restart -n ${NAMESPACE} deploy/whiteboard"
-  exit 1
+  echo "  HINWEIS: Secret-Drift erkannt — starte whiteboard-Pod neu..."
+  $KUBECTL rollout restart -n "${NAMESPACE}" deploy/whiteboard
+  $KUBECTL rollout status -n "${NAMESPACE}" deploy/whiteboard --timeout=120s
+
+  # Re-read from the freshly-started pod
+  BACKEND_SECRET=$($KUBECTL exec -n "${NAMESPACE}" deploy/whiteboard -- \
+    sh -c 'printf %s "$JWT_SECRET_KEY"' 2>/dev/null || true)
+
+  if [ "${JWT_SECRET}" != "${BACKEND_SECRET}" ]; then
+    echo "FEHLER: Secret-Drift nach Neustart noch vorhanden."
+    echo "       k8s-Secret: ${#JWT_SECRET} Zeichen"
+    echo "       Pod-Wert:   ${#BACKEND_SECRET} Zeichen"
+    exit 1
+  fi
+  echo "  Secret nach Neustart synchron."
 fi
 
 # ── Derive public URL from the whiteboard Ingress ─────────────────────────

@@ -7,8 +7,8 @@
     initialPriceListUrl: string;
   } = $props();
 
-  let services = $state(structuredClone(initialServices));
-  let leistungen = $state(structuredClone(initialLeistungen));
+  let services = $state(JSON.parse(JSON.stringify(initialServices)));
+  let leistungen = $state(JSON.parse(JSON.stringify(initialLeistungen)));
   let priceListUrl = $state(initialPriceListUrl);
   let saving = $state(false);
   let msg = $state('');

@@ -3,7 +3,7 @@
 
   let { initialData }: { initialData: HomepageContent } = $props();
 
-  let data = $state(structuredClone(initialData));
+  let data = $state(JSON.parse(JSON.stringify(initialData)));
   let saving = $state(false);
   let msg = $state('');
   let msgOk = $state(true);

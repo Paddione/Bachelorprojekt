@@ -1,7 +1,7 @@
 <script lang="ts">
   let { initialData }: { initialData: Record<string, string> } = $props();
 
-  let data = $state(structuredClone(initialData));
+  let data = $state(JSON.parse(JSON.stringify(initialData)));
   let saving = $state(false);
   let msg = $state('');
   let msgOk = $state(true);

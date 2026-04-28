@@ -32,3 +32,26 @@ describe('generateCII — Kleinunternehmer §19 UStG', () => {
     expect(xml).toContain('<ram:TaxTotalAmount currencyID="EUR">0.00</ram:TaxTotalAmount>');
   });
 });
+
+describe('generateCII — Regelbesteuerung 19%', () => {
+  it('emits EN 16931 CII with one tax bucket and seller VAT-ID', () => {
+    const xml = generateCII({
+      number: 'R-2026-0042', issueDate: '2026-04-15', dueDate: '2026-04-29',
+      currency: 'EUR', taxMode: 'regelbesteuerung',
+      lines: [
+        { description: 'Beratung', quantity: 4, unit: 'HUR', unitPrice: 150, netAmount: 600, taxRate: 19, taxCategory: 'S' },
+      ],
+      netTotal: 600, taxTotal: 114, grossTotal: 714,
+      seller: { ...baseSeller, vatId: 'DE123456789' },
+      buyer: { name: 'Acme GmbH', email: 'buyer@acme.de', country: 'DE', vatId: 'DE987654321' },
+    });
+    expect(xml).toContain('<ram:CategoryCode>S</ram:CategoryCode>');
+    expect(xml).toContain('<ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>');
+    expect(xml).toContain('<ram:CalculatedAmount>114.00</ram:CalculatedAmount>');
+    expect(xml).toContain('<ram:BasisAmount>600.00</ram:BasisAmount>');
+    expect(xml).toContain('<ram:GrandTotalAmount>714.00</ram:GrandTotalAmount>');
+    expect(xml).toContain('schemeID="VA">DE123456789');
+    expect(xml).toContain('schemeID="VA">DE987654321');
+    expect(xml).not.toContain('§ 19 UStG');
+  });
+});

@@ -16,12 +16,15 @@ app.use(express.static('public'));
 const ALLOWED_COMMANDS = new Set([
   'hooks:install',
   'env:validate:all', 'env:init', 'env:validate', 'env:show', 'env:generate', 'env:seal',
+  'env:fetch-cert',
   'cluster:create', 'cluster:start', 'cluster:stop', 'cluster:status', 'cluster:delete',
   'ha:status',
+  'sealed-secrets:install', 'sealed-secrets:status',
   'up', 'down',
   'workspace:preflight', 'workspace:validate', 'workspace:up',
   'workspace:deploy', 'workspace:status', 'workspace:office:deploy',
   'workspace:post-setup', 'workspace:talk-setup', 'keycloak:sync',
+  'workspace:recording-setup', 'workspace:transcriber-setup', 'workspace:whiteboard-setup',
   'workspace:logs', 'workspace:restart', 'workspace:check-connectivity',
   'workspace:backup', 'workspace:backup:list', 'workspace:restore',
   'workspace:teardown',
@@ -79,6 +82,9 @@ io.on('connection', (socket) => {
     const safeEnv = { ...process.env };
     if (typeof envVars?.ENV === 'string' && VALID_ENV.test(envVars.ENV)) {
       safeEnv.ENV = envVars.ENV;
+    }
+    if (envVars?.DRY_RUN === 'true') {
+      safeEnv.DRY_RUN = 'true';
     }
 
     // Pass --yes for tasks that have go-task `prompt:` so they don't block on stdin

@@ -262,6 +262,143 @@
             font-size: 13px; font-weight: 600;
         }
         #modal-confirm:hover { filter: brightness(1.15); }
+
+        /* ── Dry-run toggle ─────────────────────────────────── */
+        #dryrun-btn {
+            background: #1e3050; color: #6ab0e0; border: 1px solid #2a5080;
+            padding: 4px 12px; border-radius: var(--radius); font-size: 12px;
+            cursor: pointer; display: flex; align-items: center; gap: 5px;
+            white-space: nowrap;
+        }
+        #dryrun-btn.active { background: #1a3860; color: #80d0ff; border-color: var(--primary); }
+        #dryrun-badge {
+            font-size: 9px; background: var(--primary); color: #000;
+            padding: 1px 4px; border-radius: 3px; font-weight: 700; display: none;
+        }
+        #dryrun-btn.active #dryrun-badge { display: inline; }
+
+        /* ── Step tracker panel ──────────────────────────────── */
+        #tracker-panel {
+            background: var(--bg2); border-bottom: 1px solid var(--border);
+            flex-shrink: 0; display: none;
+        }
+        #tracker-panel.visible { display: block; }
+        #tracker-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 7px 16px 4px; font-size: 11px;
+        }
+        .tracker-title { font-weight: 600; color: var(--text); }
+        .tracker-sub   { color: var(--text-dim); font-size: 10px; }
+        #tracker-steps {
+            display: flex; padding: 0 12px 8px; overflow-x: auto; scrollbar-width: none;
+        }
+        #tracker-steps::-webkit-scrollbar { display: none; }
+        .t-step {
+            display: flex; flex-direction: column; align-items: center;
+            min-width: 72px; padding: 4px; position: relative; cursor: pointer;
+        }
+        .t-step:not(:last-child)::after {
+            content: ''; position: absolute; top: 11px;
+            left: calc(50% + 12px); width: calc(100% - 24px); height: 1px;
+            background: var(--border);
+        }
+        .t-step.done:not(:last-child)::after { background: var(--success); }
+        .t-dot {
+            width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 700; margin-bottom: 3px;
+        }
+        .t-dot-done { background: var(--success); color: #000; }
+        .t-dot-run  { background: var(--warn); color: #000;
+                      animation: tdpulse .8s ease-in-out infinite alternate; }
+        .t-dot-pend { background: var(--bg4); color: var(--text-dim);
+                      border: 1px solid var(--border); }
+        .t-dot-skip { background: var(--bg3); color: var(--text-dim);
+                      border: 1px dashed #555; }
+        @keyframes tdpulse { from { opacity:.6; } to { opacity:1; } }
+        .t-label {
+            font-size: 9px; color: var(--text-mid); text-align: center;
+            line-height: 1.3; white-space: nowrap;
+        }
+        .t-label.running { color: var(--warn); font-weight: 600; }
+        .t-label.done    { color: var(--success); }
+        .t-label.skipped { color: var(--text-dim); text-decoration: line-through; }
+        #countdown-bar {
+            display: none; margin: 0 16px 8px; padding: 6px 12px;
+            border-radius: var(--radius); align-items: center; gap: 10px; font-size: 11px;
+        }
+        #countdown-bar.success {
+            display: flex; background: #1a2a10; border: 1px solid #3a5020;
+        }
+        #countdown-bar.failure {
+            display: flex; background: var(--danger-dim); border: 1px solid var(--danger-border);
+        }
+        #cd-text { flex: 1; }
+        #countdown-bar.success #cd-text { color: #8dd06a; }
+        #countdown-bar.failure #cd-text { color: #e07070; }
+        .cd-next { font-weight: 600; color: #b0e080; }
+        .cd-btn {
+            padding: 3px 10px; border-radius: var(--radius);
+            font-size: 10px; cursor: pointer; border: 1px solid; white-space: nowrap;
+        }
+        #cd-skip  { background: #2a3a1a; color: #8dd06a; border-color: #3a5020; }
+        #cd-skip:hover  { background: #3a4a2a; }
+        #cd-retry { background: var(--primary-dim); color: var(--primary); border-color: #2a5080; }
+        #cd-retry:hover { background: #2a4a62; }
+        #cd-abort { background: var(--danger-dim); color: #e07070; border-color: var(--danger-border); }
+        #cd-abort:hover { background: #3a1515; }
+
+        /* ── Sidebar pipeline steps ───────────────────────────── */
+        .pipeline-step {
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 8px; border-radius: var(--radius);
+            margin-bottom: 2px; font-size: 11px; cursor: pointer;
+        }
+        .pipeline-step:hover { background: var(--bg3); }
+        .ps-dot {
+            width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 8px; font-weight: 700;
+        }
+        .ps-done { background: var(--success); color: #000; }
+        .ps-run  { background: var(--warn); color: #000;
+                   animation: tdpulse .8s ease-in-out infinite alternate; }
+        .ps-pend { background: var(--bg4); color: var(--text-dim); border: 1px solid var(--border); }
+        .ps-skip { background: var(--bg3); color: var(--text-dim); border: 1px dashed #555; }
+        .ps-info { flex: 1; min-width: 0; }
+        .ps-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ps-cmd  { font-family: monospace; font-size: 9px; color: var(--text-dim); }
+        #pipeline-start-btn {
+            width: calc(100% - 20px); margin: 4px 10px 6px;
+            background: #1a3a26; color: var(--success); border: 1px solid #2a5a36;
+            padding: 5px 10px; border-radius: var(--radius); font-size: 11px;
+            font-weight: 600; cursor: pointer; text-align: center; display: block;
+        }
+        #pipeline-start-btn:hover    { background: #254a30; }
+        #pipeline-start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ── From-scratch zone ────────────────────────────────── */
+        .section.scratch-section .section-header { color: #9a8af5; }
+        .section.scratch-section.open .section-header { color: #b0a0ff; }
+        .section.scratch-section .section-count { background: #1a1630; color: #5a4ab0; }
+        .scratch-zone-wrap {
+            border: 1px solid #3d3560; background: #1a1630;
+            border-radius: var(--radius); padding: 6px; margin: 2px 0;
+        }
+        .scratch-note {
+            font-size: 11px; color: #9a8af5; padding: 4px 6px 4px; line-height: 1.5;
+        }
+        .scratch-prereq {
+            font-size: 10px; color: #a090e0; padding: 0 6px 8px; line-height: 1.5;
+        }
+
+        /* ── Danger zone guidance text ────────────────────────── */
+        .danger-guidance {
+            font-size: 11px; color: #e07070; padding: 4px 6px 2px; line-height: 1.5;
+        }
+        .danger-when-block {
+            font-size: 10px; color: #c05050; padding: 2px 6px 8px; line-height: 1.7;
+        }
     </style>
 </head>
 <body>
@@ -303,8 +440,25 @@
     <div id="topbar">
         <span id="conn-dot" title="Socket connection"></span>
         <span id="status">Connecting…</span>
+        <button id="dryrun-btn" title="Toggle dry-run mode — passes DRY_RUN=true to tasks">
+            📋 DRY RUN <span id="dryrun-badge">ON</span>
+        </button>
         <button id="stop-btn" class="ctrl-btn">■ Stop</button>
         <button id="clear-btn" class="ctrl-btn">Clear</button>
+    </div>
+    <!-- ── Step tracker panel (visible only during pipeline run) ── -->
+    <div id="tracker-panel">
+        <div id="tracker-header">
+            <span class="tracker-title">Deploy Pipeline</span>
+            <span class="tracker-sub" id="tracker-sub">Ready</span>
+        </div>
+        <div id="tracker-steps"></div>
+        <div id="countdown-bar">
+            <span id="cd-text"></span>
+            <button class="cd-btn" id="cd-retry">&#8634; Retry</button>
+            <button class="cd-btn" id="cd-skip">Skip &#8594;</button>
+            <button class="cd-btn" id="cd-abort">&#10005; Abort</button>
+        </div>
     </div>
     <div id="terminal-wrap">
         <div id="terminal-header">
@@ -344,10 +498,11 @@
 
     // ── Data ───────────────────────────────────────────────────────────────
     const QUICK_STEPS = [
-        { n: 1, title: 'Create the dev cluster',       cmd: 'cluster:create' },
-        { n: 2, title: 'Deploy the full workspace',    cmd: 'workspace:up' },
-        { n: 3, title: 'Run post-deploy setup',        cmd: 'workspace:post-setup' },
-        { n: 4, title: 'Check everything is healthy',  cmd: 'workspace:status' },
+        { n: 1, title: 'Select ENV in the sidebar',            cmd: '(pick dev / mentolder / korczewski)' },
+        { n: 2, title: 'Validate manifests first (optional)',  cmd: 'workspace:validate' },
+        { n: 3, title: 'Click Start Full Pipeline',            cmd: '(Full Deploy Pipeline section)' },
+        { n: 4, title: 'Skip or abort steps as needed',        cmd: '(countdown bar in main panel)' },
+        { n: 5, title: 'Check everything is healthy',          cmd: 'workspace:status' },
     ];
 
     // Accent colors per section key
@@ -378,11 +533,11 @@
             { title: 'Workspace Status',    cmd: 'workspace:status',        desc: 'Show pods, services, ingress and PVCs' },
         ]},
         { cat: 'Post-Deploy', icon: '🔧', accent: ACCENTS.post, items: [
-            { title: 'Post-Setup',        cmd: 'workspace:post-setup',       desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
-            { title: 'Talk Setup',        cmd: 'workspace:talk-setup',       desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
-            { title: 'Recording Setup',   cmd: 'workspace:recording-setup',  desc: 'Configure Talk recording backend' },
-            { title: 'Transcriber Setup', cmd: 'workspace:transcriber-setup',desc: 'Set up talk-transcriber bot + Whisper' },
-            { title: 'Keycloak Sync',     cmd: 'keycloak:sync',              desc: 'Sync realm config and OIDC clients to Keycloak' },
+            { title: 'Post-Setup',        cmd: 'workspace:post-setup',        desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
+            { title: 'Talk Setup',        cmd: 'workspace:talk-setup',        desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
+            { title: 'Recording Setup',   cmd: 'workspace:recording-setup',   desc: 'Configure Talk recording backend' },
+            { title: 'Transcriber Setup', cmd: 'workspace:transcriber-setup', desc: 'Set up talk-transcriber bot + Whisper' },
+            { title: 'Keycloak Sync',     cmd: 'keycloak:sync',               desc: 'Sync realm config and OIDC clients to Keycloak' },
         ]},
         { cat: 'Website', icon: '🌐', accent: ACCENTS.website, items: [
             { title: 'Build Website',  cmd: 'website:build',  desc: 'Run Astro build for the selected env' },
@@ -533,9 +688,90 @@
     // ── Build task sidebar ─────────────────────────────────────────────────
     const sectionsEl = document.getElementById('task-sections');
 
-    GROUPS.forEach((group) => {
+    // ── Build pipeline sidebar section ─────────────────────────────────────
+    (function buildPipelineSection() {
         const section = document.createElement('div');
-        section.className = 'section' + (group.dangerZone ? ' danger-section' : '');
+        section.className = 'section open';
+        section.id = 'pipeline-section';
+
+        const header = document.createElement('div');
+        header.className = 'section-header';
+
+        const iconEl = document.createElement('span');
+        iconEl.className = 'section-icon';
+        iconEl.textContent = '🚀';
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'section-name';
+        nameEl.textContent = 'Full Deploy Pipeline';
+
+        const countEl = document.createElement('span');
+        countEl.className = 'section-count';
+        countEl.textContent = String(PIPELINE_STEPS.length);
+
+        const chevron = document.createElement('span');
+        chevron.className = 'section-chevron';
+        chevron.textContent = '▶';
+
+        header.appendChild(iconEl);
+        header.appendChild(nameEl);
+        header.appendChild(countEl);
+        header.appendChild(chevron);
+        header.addEventListener('click', () => section.classList.toggle('open'));
+        section.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'section-body';
+
+        const startBtn = document.createElement('button');
+        startBtn.id = 'pipeline-start-btn';
+        startBtn.textContent = '▶ Start Full Pipeline';
+        startBtn.addEventListener('click', () => startPipeline());
+        body.appendChild(startBtn);
+
+        PIPELINE_STEPS.forEach((step, i) => {
+            const row = document.createElement('div');
+            row.className = 'pipeline-step';
+            row.id = 'ps-row-' + i;
+
+            const dot = document.createElement('div');
+            dot.className = 'ps-dot ps-pend';
+            dot.id = 'ps-dot-' + i;
+            dot.textContent = String(i + 1);
+
+            const info = document.createElement('div');
+            info.className = 'ps-info';
+
+            const name = document.createElement('div');
+            name.className = 'ps-name';
+            name.textContent = step.title;
+
+            const cmd = document.createElement('div');
+            cmd.className = 'ps-cmd';
+            cmd.textContent = 'task ' + step.cmd;
+
+            info.appendChild(name);
+            info.appendChild(cmd);
+            row.appendChild(dot);
+            row.appendChild(info);
+            row.addEventListener('click', () => {
+                if (running) return;
+                startPipelineFrom(i);
+            });
+            body.appendChild(row);
+        });
+
+        section.appendChild(body);
+        sectionsEl.appendChild(section);
+    }());
+
+    GROUPS.forEach((group) => {
+        if (group.pipeline) return; // rendered by buildPipelineSection above
+
+        const section = document.createElement('div');
+        section.className = 'section'
+            + (group.dangerZone  ? ' danger-section'  : '')
+            + (group.scratchZone ? ' scratch-section' : '');
         if (!group.collapsed) section.classList.add('open');
 
         // Header
@@ -568,15 +804,49 @@
         const body = document.createElement('div');
         body.className = 'section-body';
 
-        const wrap = group.dangerZone
-            ? (() => { const d = document.createElement('div'); d.className = 'danger-zone-wrap'; return d; })()
-            : body;
+        // Determine inner wrapper
+        let wrap = body;
+        if (group.dangerZone) {
+            const box = document.createElement('div');
+            box.className = 'danger-zone-wrap';
+
+            const guide = document.createElement('p');
+            guide.className = 'danger-guidance';
+            guide.textContent = 'These tasks permanently destroy data or infrastructure.'
+                + ' Always run workspace:backup first and verify the timestamp.';
+            box.appendChild(guide);
+
+            const whenBlock = document.createElement('div');
+            whenBlock.className = 'danger-when-block';
+            const useLines = (group.useWhen || []).map((s) => '✅ ' + s).join('\n');
+            const neverLines = (group.neverWhen || []).map((s) => '❌ ' + s).join('\n');
+            whenBlock.textContent = useLines + '\n\n' + neverLines;
+            box.appendChild(whenBlock);
+
+            wrap = box;
+        } else if (group.scratchZone) {
+            const box = document.createElement('div');
+            box.className = 'scratch-zone-wrap';
+
+            const note = document.createElement('p');
+            note.className = 'scratch-note';
+            note.textContent = '⚠ Run these only once on a brand-new cluster.';
+            box.appendChild(note);
+
+            const pre = document.createElement('p');
+            pre.className = 'scratch-prereq';
+            pre.textContent = 'Prerequisites: Docker, k3d, kubectl, kubeseal, and task must be installed locally.'
+                + '\nDo NOT run on an existing cluster — re-generating or re-sealing secrets on a live'
+                + ' cluster breaks running services until redeployed.';
+            box.appendChild(pre);
+
+            wrap = box;
+        }
 
         group.items.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'task-card' + (item.dangerous ? ' dangerous' : '');
 
-            // Top row: accent bar + title + cmd + optional danger tag
             const top = document.createElement('div');
             top.className = 'task-card-top';
 
@@ -608,7 +878,6 @@
             }
             card.appendChild(top);
 
-            // Description
             if (item.desc) {
                 const descEl = document.createElement('div');
                 descEl.className = 'task-desc';
@@ -616,7 +885,6 @@
                 card.appendChild(descEl);
             }
 
-            // Arg inputs or click-to-run
             if (item.argInputs && item.argInputs.length > 0) {
                 const argRow = document.createElement('div');
                 argRow.className = 'task-arg-row';
@@ -658,10 +926,242 @@
             wrap.appendChild(card);
         });
 
-        if (group.dangerZone) body.appendChild(wrap);
+        if (group.dangerZone || group.scratchZone) body.appendChild(wrap);
         section.appendChild(body);
         sectionsEl.appendChild(section);
     });
+
+    // ── Dry-run toggle ─────────────────────────────────────────────────────
+    let dryRunActive = false;
+    const dryrunBtn = document.getElementById('dryrun-btn');
+
+    dryrunBtn.addEventListener('click', () => {
+        dryRunActive = !dryRunActive;
+        dryrunBtn.classList.toggle('active', dryRunActive);
+    });
+
+    // ── Pipeline state & tracker panel ────────────────────────────────────
+    const pipeline = {
+        active:      false,
+        current:     0,
+        skipped:     new Set(),
+        cdTimer:     null,
+        cdRemaining: 0,
+    };
+
+    const trackerPanel     = document.getElementById('tracker-panel');
+    const trackerSub       = document.getElementById('tracker-sub');
+    const trackerStepsEl   = document.getElementById('tracker-steps');
+    const countdownBar     = document.getElementById('countdown-bar');
+    const cdText           = document.getElementById('cd-text');
+    const cdSkipBtn        = document.getElementById('cd-skip');
+    const cdRetryBtn       = document.getElementById('cd-retry');
+    const cdAbortBtn       = document.getElementById('cd-abort');
+    const pipelineStartBtn = document.getElementById('pipeline-start-btn');
+
+    function dotStateClass(i) {
+        if (pipeline.skipped.has(i))   return 't-dot-skip';
+        if (i < pipeline.current)      return 't-dot-done';
+        if (i === pipeline.current)    return 't-dot-run';
+        return 't-dot-pend';
+    }
+
+    function labelStateClass(i) {
+        if (pipeline.skipped.has(i))   return 'skipped';
+        if (i < pipeline.current)      return 'done';
+        if (i === pipeline.current)    return 'running';
+        return '';
+    }
+
+    function buildTrackerSteps() {
+        trackerStepsEl.textContent = '';
+        PIPELINE_STEPS.forEach((step, i) => {
+            const div = document.createElement('div');
+            div.className = 't-step' + (i < pipeline.current && !pipeline.skipped.has(i) ? ' done' : '');
+            div.id = 'ts-' + i;
+
+            const dot = document.createElement('div');
+            dot.className = 't-dot ' + dotStateClass(i);
+            dot.id = 'td-' + i;
+            if (pipeline.skipped.has(i))        dot.textContent = '⊘';
+            else if (i < pipeline.current)      dot.textContent = '✓';
+            else if (i === pipeline.current)    dot.textContent = '▶';
+            else                                dot.textContent = String(i + 1);
+
+            const lbl = document.createElement('div');
+            lbl.className = 't-label ' + labelStateClass(i);
+            lbl.id = 'tl-' + i;
+            lbl.textContent = step.cmd.replace('workspace:', '');
+
+            div.appendChild(dot);
+            div.appendChild(lbl);
+            trackerStepsEl.appendChild(div);
+        });
+        trackerSub.textContent = 'Step ' + (pipeline.current + 1) + ' of ' + PIPELINE_STEPS.length;
+    }
+
+    function updateSidebarDots() {
+        PIPELINE_STEPS.forEach((_, i) => {
+            const dot = document.getElementById('ps-dot-' + i);
+            if (!dot) return;
+            if (pipeline.skipped.has(i)) {
+                dot.className = 'ps-dot ps-skip';
+                dot.textContent = '⊘';
+            } else if (i < pipeline.current) {
+                dot.className = 'ps-dot ps-done';
+                dot.textContent = '✓';
+            } else if (i === pipeline.current) {
+                dot.className = 'ps-dot ps-run';
+                dot.textContent = '▶';
+            } else {
+                dot.className = 'ps-dot ps-pend';
+                dot.textContent = String(i + 1);
+            }
+        });
+    }
+
+    function clearCountdown() {
+        if (pipeline.cdTimer) {
+            clearInterval(pipeline.cdTimer);
+            pipeline.cdTimer = null;
+        }
+    }
+
+    function nextNonSkipped(from) {
+        let idx = from;
+        while (idx < PIPELINE_STEPS.length && pipeline.skipped.has(idx)) idx++;
+        return idx;
+    }
+
+    function startPipeline() {
+        pipeline.active  = true;
+        pipeline.current = 0;
+        pipeline.skipped = new Set();
+        countdownBar.className = '';
+        trackerPanel.classList.add('visible');
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[0].cmd, []);
+    }
+
+    function startPipelineFrom(index) {
+        pipeline.active  = true;
+        pipeline.current = index;
+        pipeline.skipped = new Set();
+        countdownBar.className = '';
+        trackerPanel.classList.add('visible');
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[index].cmd, []);
+    }
+
+    function advanceToNextStep() {
+        const next = nextNonSkipped(pipeline.current);
+        if (next >= PIPELINE_STEPS.length) {
+            pipelineComplete();
+            return;
+        }
+        pipeline.current = next;
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[next].cmd, []);
+    }
+
+    function pipelineComplete() {
+        pipeline.active = false;
+        countdownBar.className = '';
+        trackerSub.textContent = 'Complete ✓';
+        updateSidebarDots();
+    }
+
+    function abortPipeline() {
+        clearCountdown();
+        pipeline.active = false;
+        countdownBar.className = '';
+        trackerPanel.classList.remove('visible');
+        PIPELINE_STEPS.forEach((_, i) => {
+            const dot = document.getElementById('ps-dot-' + i);
+            if (dot) {
+                dot.className = 'ps-dot ps-pend';
+                dot.textContent = String(i + 1);
+            }
+        });
+    }
+
+    function startCountdown(success) {
+        clearCountdown();
+        pipeline.cdRemaining = 5;
+
+        if (success) {
+            countdownBar.className = 'countdown-bar success';
+            cdSkipBtn.style.display  = 'inline-block';
+            cdRetryBtn.style.display = 'none';
+        } else {
+            countdownBar.className = 'countdown-bar failure';
+            cdSkipBtn.style.display  = 'inline-block';
+            cdRetryBtn.style.display = 'inline-block';
+        }
+
+        const finishedIdx = success ? pipeline.current - 1 : pipeline.current;
+        const nextIdx     = success ? nextNonSkipped(pipeline.current) : -1;
+
+        function refreshLabel() {
+            const finishedCmd = PIPELINE_STEPS[finishedIdx].cmd;
+            if (success) {
+                const nextCmd = nextIdx < PIPELINE_STEPS.length
+                    ? PIPELINE_STEPS[nextIdx].cmd : null;
+                cdText.textContent = nextCmd
+                    ? '✓ ' + finishedCmd + ' succeeded — autoruns next: '
+                      + nextCmd + ' in ' + pipeline.cdRemaining + ' s'
+                    : '✓ ' + finishedCmd + ' succeeded — pipeline complete';
+            } else {
+                cdText.textContent = '✗ ' + finishedCmd
+                    + ' failed — retry or skip?';
+            }
+        }
+        refreshLabel();
+
+        if (success && nextIdx >= PIPELINE_STEPS.length) {
+            pipelineComplete();
+            return;
+        }
+        if (!success) return; // no auto-advance on failure
+
+        pipeline.cdTimer = setInterval(() => {
+            pipeline.cdRemaining--;
+            if (pipeline.cdRemaining <= 0) {
+                clearCountdown();
+                countdownBar.className = '';
+                advanceToNextStep();
+            } else {
+                refreshLabel();
+            }
+        }, 1000);
+    }
+
+    // Skip: mark the upcoming step as skipped then advance via advanceToNextStep
+    cdSkipBtn.addEventListener('click', () => {
+        clearCountdown();
+        countdownBar.className = '';
+        const upcomingIdx = nextNonSkipped(pipeline.current);
+        if (upcomingIdx < PIPELINE_STEPS.length) {
+            pipeline.skipped.add(upcomingIdx);
+        }
+        buildTrackerSteps();
+        updateSidebarDots();
+        advanceToNextStep();
+    });
+
+    // Retry: re-run the failed step
+    cdRetryBtn.addEventListener('click', () => {
+        clearCountdown();
+        countdownBar.className = '';
+        buildTrackerSteps();
+        updateSidebarDots();
+        runTask(PIPELINE_STEPS[pipeline.current].cmd, []);
+    });
+
+    cdAbortBtn.addEventListener('click', () => abortPipeline());
 
     // ── Confirmation modal ─────────────────────────────────────────────────
     let pending = null;
@@ -698,10 +1198,12 @@
     let running = false;
 
     function setButtons(disabled) {
-        document.querySelectorAll('.task-card:not(.dangerous), .run-btn').forEach((el) => {
+        document.querySelectorAll('.task-card:not(.dangerous), .run-btn, #dryrun-btn').forEach((el) => {
             el.style.pointerEvents = disabled ? 'none' : '';
             el.style.opacity = disabled ? '0.45' : '';
         });
+        const psBtn = document.getElementById('pipeline-start-btn');
+        if (psBtn) psBtn.disabled = disabled;
     }
 
     function runTask(command, args) {
@@ -710,9 +1212,12 @@
         setButtons(true);
         stopBtn.style.display = 'inline-block';
         statusEl.className = 'running';
-        statusEl.textContent = 'Running: task ' + command + '  [ENV=' + envSelect.value + ']';
-        termLabel.textContent = 'task ' + command;
-        socket.emit('run-task', { command, args, envVars: { ENV: envSelect.value } });
+        const envLabel = 'ENV=' + envSelect.value + (dryRunActive ? ', DRY_RUN=true' : '');
+        statusEl.textContent = 'Running: task ' + command + '  [' + envLabel + ']';
+        termLabel.textContent = 'task ' + command + '  [' + envLabel + ']';
+        const envVars = { ENV: envSelect.value };
+        if (dryRunActive) envVars.DRY_RUN = 'true';
+        socket.emit('run-task', { command, args, envVars });
     }
 
     stopBtn.addEventListener('click', () => socket.emit('stop-task'));
@@ -758,6 +1263,19 @@
             ? 'Ready — last task succeeded ✓'
             : 'Ready — last task failed (code ' + code + ')';
         termLabel.textContent = 'Output';
+
+        if (!pipeline.active) return;
+
+        if (code === 0) {
+            pipeline.current++;
+            buildTrackerSteps();
+            updateSidebarDots();
+            startCountdown(true);
+        } else {
+            buildTrackerSteps();
+            updateSidebarDots();
+            startCountdown(false);
+        }
     });
 }());
 </script>

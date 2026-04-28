@@ -149,8 +149,19 @@ tasks:
   # ─────────────────────────────────────────────
   test:unit:
     desc: Run BATS unit tests (assertion lib, scripts, configs)
+    deps:
+      - test:unit:assert
+      - test:unit:scripts
+
+  test:unit:assert:
+    internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/assert_lib.bats tests/unit/scripts.bats
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/assert_lib.bats
+
+  test:unit:scripts:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
 
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)
@@ -161,27 +172,32 @@ tasks:
     desc: Dry-run key tasks to catch Taskfile syntax errors
     cmds:
       - |
-        PASS=0; FAIL=0
-        for t in workspace:deploy workspace:status workspace:teardown workspace:validate \
-                 workspace:post-setup config:show website:deploy mcp:deploy; do
-          if task --dry "$t" > /dev/null 2>&1; then
-            echo "  ✓ $t"
-            PASS=$((PASS + 1))
-          else
-            echo "  ✗ $t (dry-run failed)"
-            FAIL=$((FAIL + 1))
-          fi
+        TASKS="workspace:deploy workspace:status workspace:teardown workspace:validate \
+               workspace:post-setup config:show website:deploy mcp:deploy"
+        FAIL=0
+        for t in $TASKS; do
+          (
+            if task --dry "$t" > /dev/null 2>&1; then
+              echo "  ✓ $t"
+            else
+              echo "  ✗ $t (dry-run failed)"
+              touch .dry-run-fail
+            fi
+          ) &
         done
-        echo ""
-        echo "Dry-run: ${PASS} passed, ${FAIL} failed"
-        [[ $FAIL -eq 0 ]]
+        wait
+        if [[ -f .dry-run-fail ]]; then
+          rm .dry-run-fail
+          exit 1
+        fi
+        echo "Dry-run: All tasks parsed successfully"
 
   test:all:
     desc: "Run all offline tests: unit + manifests + dry-run"
-    cmds:
-      - task: test:unit
-      - task: test:manifests
-      - task: test:dry-run
+    deps:
+      - test:unit
+      - test:manifests
+      - test:dry-run
 
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"

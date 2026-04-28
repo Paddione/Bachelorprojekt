@@ -3270,6 +3270,16 @@ export async function initBillingTables(): Promise<void> {
       validated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  // Plan F: indexes for new child tables
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS billing_nachweis_invoice_idx
+      ON billing_nachweis (invoice_id)
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vat_id_validations_customer_idx
+      ON vat_id_validations (customer_id)
+      WHERE customer_id IS NOT NULL
+  `);
   // Plan F: billing_invoice_payments — rate at payment time
   await pool.query(`
     ALTER TABLE billing_invoice_payments

@@ -253,7 +253,8 @@ CREATE TABLE capital_goods (
 - On tax mode switch: iterate capital goods where `acquisition_date > NOW() - (afa_months || ' months')::interval`
 - Bagatellgrenze §44 UStDV: skip if `input_vat <= 1000`
 - Correction amount: `input_vat * remaining_months / afa_months`
-- Emit as `addBooking(type='vat_correction')` with signed amount
+- Direction: switch Kleinunternehmer → Regelbesteuerung = positive booking (Vorsteuer reclaim); switch Regelbesteuerung → Kleinunternehmer = negative booking (Vorsteuer repayment)
+- Emit as `addBooking(type='vat_correction')` with signed amount per above
 
 **GewSt-Kalkulator** (pure frontend, no DB):
 - Input: Gewerbeertrag, Hinzurechnungen, Kürzungen, Hebesatz (default 417 % Lübbecke)

@@ -80,7 +80,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     sepaBic:          r.sepa_bic ?? undefined,
     sepaMandateRef:   r.sepa_mandate_ref ?? undefined,
     sepaMandateDate:  r.sepa_mandate_date
-      ? r.sepa_mandate_date.toISOString().slice(0, 10)
+      ? (() => { const d = r.sepa_mandate_date!; return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()
       : undefined,
   }));
 

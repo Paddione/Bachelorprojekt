@@ -40,9 +40,10 @@ err()  { echo -e "${RED}[ERR]${NC}   $*"; exit 1; }
 : "${KC_USER1_USERNAME:?KC_USER1_USERNAME not set — check environments/${ENV}.yaml}"
 : "${KC_USER1_EMAIL:?KC_USER1_EMAIL not set — check environments/${ENV}.yaml}"
 : "${KC_USER1_PASSWORD:?KC_USER1_PASSWORD not set — check environments/${ENV}.yaml}"
-: "${KC_USER2_USERNAME:?KC_USER2_USERNAME not set — check environments/${ENV}.yaml}"
-: "${KC_USER2_EMAIL:?KC_USER2_EMAIL not set — check environments/${ENV}.yaml}"
-: "${KC_USER2_PASSWORD:?KC_USER2_PASSWORD not set — check environments/${ENV}.yaml}"
+# KC_USER2_* is optional — provisioned only when all three vars are set.
+KC_USER2_USERNAME="${KC_USER2_USERNAME:-}"
+KC_USER2_EMAIL="${KC_USER2_EMAIL:-}"
+KC_USER2_PASSWORD="${KC_USER2_PASSWORD:-}"
 
 # ── Wait for Keycloak ──────────────────────────────────────────────────
 log "Waiting for Keycloak to be ready..."
@@ -138,12 +139,18 @@ echo ""
 log "Provisioning SSO admin users in realm '${KC_REALM}'..."
 
 upsert_user "$KC_USER1_USERNAME" "$KC_USER1_EMAIL" "$KC_USER1_PASSWORD"
-upsert_user "$KC_USER2_USERNAME" "$KC_USER2_EMAIL" "$KC_USER2_PASSWORD"
+if [[ -n "$KC_USER2_USERNAME" && -n "$KC_USER2_EMAIL" && -n "$KC_USER2_PASSWORD" ]]; then
+  upsert_user "$KC_USER2_USERNAME" "$KC_USER2_EMAIL" "$KC_USER2_PASSWORD"
+else
+  warn "KC_USER2_* not set in environments/${ENV}.yaml — skipping second admin user"
+fi
 
 echo ""
 log "═══════════════════════════════════════════"
 log "  SSO admin users provisioned"
 log "  User 1: ${KC_USER1_USERNAME} (${KC_USER1_EMAIL})"
-log "  User 2: ${KC_USER2_USERNAME} (${KC_USER2_EMAIL})"
+if [[ -n "$KC_USER2_USERNAME" ]]; then
+  log "  User 2: ${KC_USER2_USERNAME} (${KC_USER2_EMAIL})"
+fi
 log "  Realm:  ${KC_REALM}"
 log "═══════════════════════════════════════════"

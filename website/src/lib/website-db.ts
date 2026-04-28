@@ -3116,7 +3116,8 @@ export async function initBillingTables(): Promise<void> {
       sepa_mandate_ref  TEXT,
       sepa_mandate_date DATE,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-      UNIQUE (brand, email)
+      typ           TEXT NOT NULL DEFAULT 'Kunde',
+      CONSTRAINT billing_customers_brand_email_typ_key UNIQUE (brand, email, typ)
     )
   `);
   await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS default_leitweg_id TEXT`);
@@ -3125,7 +3126,8 @@ export async function initBillingTables(): Promise<void> {
     BEGIN
       IF EXISTS (
         SELECT 1 FROM information_schema.columns
-        WHERE table_name='billing_customers' AND column_name='country'
+        WHERE table_schema='public'
+          AND table_name='billing_customers' AND column_name='country'
       ) THEN
         ALTER TABLE billing_customers RENAME COLUMN country TO land_iso;
       END IF;

@@ -3,6 +3,9 @@ import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import type { Invoice } from './native-billing';
+import { embedFacturXIntoPdfA3, type FacturXLevel } from './pdf-a3-embed';
+import { generateEInvoiceXml, type EInvoiceProfile } from './einvoice-profile';
+import type { EInvoiceInput } from './einvoice-types';
 
 // Resolve logo from several candidate paths: cwd-relative (production container),
 // then source-relative (dev / test). Falls back to null → logo block is silently skipped.
@@ -51,8 +54,9 @@ export async function generateInvoicePdf(p: {
   invoice: Invoice; lines: InvoicePdfLine[];
   customer: InvoicePdfCustomer; seller: InvoicePdfSeller;
   templateTexts?: InvoicePdfTemplateTexts;
+  profile?: EInvoiceProfile;
 }): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
+  const basePdf = await new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: p.invoice.number, Author: p.seller.name } });
     const chunks: Buffer[] = [];
     doc.on('data', (c: Buffer) => chunks.push(c));
@@ -297,6 +301,22 @@ export async function generateInvoicePdf(p: {
     if (seller.website) { doc.text(seller.website, kx, kl, { width: fcw }); }
 
     doc.end();
+  });
+
+  // ── PDF/A-3 post-processing: embed e-invoice XML ────────────────────────
+  const profile = p.profile ?? 'factur-x-minimum';
+  const xml = generateEInvoiceXml(profile, p as unknown as EInvoiceInput);
+  const attachmentName = profile === 'factur-x-minimum' ? 'factur-x.xml' : 'xrechnung.xml';
+  const PROFILE_LEVEL: Record<EInvoiceProfile, FacturXLevel> = {
+    'factur-x-minimum': 'MINIMUM',
+    'xrechnung-cii':    'XRECHNUNG',
+    'xrechnung-ubl':    'XRECHNUNG',
+  };
+  return embedFacturXIntoPdfA3(basePdf, xml, {
+    conformanceLevel: PROFILE_LEVEL[profile],
+    invoiceNumber: p.invoice.number,
+    attachmentName,
+    modificationDate: new Date(p.invoice.issueDate),
   });
 }
 

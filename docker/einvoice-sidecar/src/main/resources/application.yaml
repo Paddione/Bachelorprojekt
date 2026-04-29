@@ -1,0 +1,14 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: einvoice-sidecar
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 60MB
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

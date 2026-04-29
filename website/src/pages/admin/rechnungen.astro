@@ -2,9 +2,11 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getAllBillingInvoices, stripeInvoiceDashboardUrl, getDraftInvoices } from '../../lib/stripe-billing';
+import { listPendingDunnings, type PendingDunning } from '../../lib/invoice-dunning';
 import type { AdminBillingInvoice } from '../../lib/stripe-billing';
 import CreateInvoiceModal from '../../components/admin/CreateInvoiceModal.svelte';
 import TaxMonitorWidget from '../../components/admin/TaxMonitorWidget.svelte';
+import DatevExportWidget from '../../components/admin/DatevExportWidget.svelte';
 import { SERVICES } from '../../lib/stripe-billing';
 
 const serviceOptions = Object.entries(SERVICES).map(([key, val]) => ({
@@ -20,12 +22,24 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 const statusFilter = Astro.url.searchParams.get('status') ?? '';
 
 let invoices: AdminBillingInvoice[] = [];
+let pendingDunnings: PendingDunning[] = [];
 let apiError = '';
-try {
-  invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
-} catch (err) {
-  console.error('[admin/rechnungen]', err);
-  apiError = 'Stripe nicht erreichbar.';
+const brand = process.env.BRAND || 'mentolder';
+
+if (statusFilter === 'mahnwesen') {
+  try {
+    pendingDunnings = await listPendingDunnings(brand);
+  } catch (err) {
+    console.error('[admin/rechnungen] listPendingDunnings', err);
+    apiError = 'Mahnwesen konnte nicht geladen werden.';
+  }
+} else {
+  try {
+    invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
+  } catch (err) {
+    console.error('[admin/rechnungen]', err);
+    apiError = 'Stripe nicht erreichbar.';
+  }
 }
 
 let draftInvoices: Awaited<ReturnType<typeof getDraftInvoices>> = [];
@@ -49,20 +63,23 @@ function fmtDate(s: string): string {
 }
 
 const STATUS_CLS: Record<string, string> = {
-  'draft':         'bg-slate-900/40 text-slate-300 border-slate-700',
-  'open':          'bg-blue-900/40 text-blue-300 border-blue-800',
-  'paid':          'bg-green-900/40 text-green-300 border-green-800',
-  'void':          'bg-dark border border-dark-lighter text-muted',
-  'uncollectible': 'bg-red-900/40 text-red-300 border-red-800',
+  'draft':          'bg-slate-900/40 text-slate-300 border-slate-700',
+  'open':           'bg-blue-900/40 text-blue-300 border-blue-800',
+  'partially_paid': 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
+  'paid':           'bg-green-900/40 text-green-300 border-green-800',
+  'void':           'bg-dark border border-dark-lighter text-muted',
+  'uncollectible':  'bg-red-900/40 text-red-300 border-red-800',
 };
 
 const STATUS_TABS = [
-  { value: '',              label: 'Alle' },
-  { value: 'open',         label: 'Offen' },
-  { value: 'uncollectible',label: 'Überfällig' },
-  { value: 'paid',         label: 'Bezahlt' },
-  { value: 'draft',        label: 'Entwurf' },
-  { value: 'void',         label: 'Storniert' },
+  { value: '',               label: 'Alle' },
+  { value: 'open',           label: 'Offen' },
+  { value: 'partially_paid', label: 'Teilbezahlt' },
+  { value: 'uncollectible',  label: 'Überfällig' },
+  { value: 'paid',           label: 'Bezahlt' },
+  { value: 'mahnwesen',      label: 'Mahnwesen' },
+  { value: 'draft',          label: 'Entwurf' },
+  { value: 'void',           label: 'Storniert' },
 ];
 ---
 
@@ -71,6 +88,7 @@ const STATUS_TABS = [
     <div class="max-w-6xl mx-auto px-6">
 
       <TaxMonitorWidget client:load />
+      <DatevExportWidget client:load />
 
       <div class="mb-8 flex items-start justify-between gap-4">
         <div>
@@ -179,11 +197,53 @@ const STATUS_TABS = [
             </tr>
           </thead>
           <tbody>
-            {invoices.length === 0 ? (
-              <tr>
-                <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
-              </tr>
-            ) : invoices.map(inv => (
+            {statusFilter === 'mahnwesen' ? (
+              pendingDunnings.length === 0 ? (
+                <tr>
+                  <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine ausstehenden Mahnungen.</td>
+                </tr>
+              ) : pendingDunnings.map(d => (
+                <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
+                  <td class="px-4 py-3 text-sm text-light font-mono">#{d.invoiceNumber}</td>
+                  <td class="px-4 py-3 text-sm">
+                    <div class="text-light">{d.customerName}</div>
+                    <div class="text-xs text-muted">{d.customerEmail}</div>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs px-2 py-0.5 rounded-full border border-red-800 bg-red-900/40 text-red-300">
+                      Mahnung {d.level}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-muted">Ausstehend</td>
+                  <td class="px-4 py-3 text-sm text-red-400 font-medium">SOFORT</td>
+                  <td class="px-4 py-3 text-sm text-light text-right font-medium">
+                    {fmtCurrency(d.outstanding + d.feeAmount + d.interestAmount)}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-right text-yellow-400 font-medium">{fmtCurrency(d.outstanding)}</td>
+                  <td class="px-4 py-3 text-sm text-right">—</td>
+                  <td class="px-4 py-3 text-sm text-right">—</td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    <button
+                      class="text-xs text-yellow-400 hover:underline"
+                      data-send-dunning
+                      data-id={d.id}
+                      data-level={d.level}
+                    >Versenden ↑</button>
+                    <a
+                      href={`/admin/billing/dunning/${d.id}/drucken`}
+                      target="_blank"
+                      rel="noopener"
+                      class="ml-2 text-xs text-yellow-400 hover:underline"
+                    >Drucken ↗</a>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              invoices.length === 0 ? (
+                <tr>
+                  <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+                </tr>
+              ) : invoices.map(inv => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
                 <td class="px-4 py-3 text-sm text-light font-mono">#{inv.number}</td>
                 <td class="px-4 py-3 text-sm">
@@ -219,11 +279,20 @@ const STATUS_TABS = [
                   )}
                 </td>
                 <td class="px-4 py-3 text-sm text-right">
+                  {['open', 'partially_paid', 'uncollectible'].includes(inv.status) && (
+                    <button
+                      class="text-xs text-yellow-400 hover:underline"
+                      data-record-payment
+                      data-invoice-id={inv.id}
+                      data-invoice-number={inv.number}
+                      data-outstanding={inv.amountRemaining}
+                    >Zahlung ↑</button>
+                  )}
                   <a
                     href={`/admin/billing/${inv.id}/drucken`}
                     target="_blank"
                     rel="noopener"
-                    class="text-xs text-yellow-400 hover:underline"
+                    class="ml-2 text-xs text-yellow-400 hover:underline"
                     title="Rechnung drucken / als PDF speichern"
                   >Drucken ↗</a>
                 </td>
@@ -234,6 +303,8 @@ const STATUS_TABS = [
       </div>
     </div>
   </section>
+
+  <div id="payment-modal-mount"></div>
 
   <dialog id="draft-editor" class="bg-surface border border-border rounded-2xl p-6 w-full max-w-3xl backdrop:bg-black/60">
     <div class="flex items-center justify-between mb-6">
@@ -281,6 +352,53 @@ const STATUS_TABS = [
 
 <script>
   document.addEventListener('invoice-created', () => window.location.reload());
+</script>
+
+<script>
+  import RecordPaymentModal from '../../components/admin/RecordPaymentModal.svelte';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-record-payment]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mount = document.getElementById('payment-modal-mount')!;
+      const app = new RecordPaymentModal({
+        target: mount,
+        props: {
+          invoiceId: btn.dataset.invoiceId!,
+          invoiceNumber: btn.dataset.invoiceNumber!,
+          outstanding: Number(btn.dataset.outstanding!),
+          onClose: () => app.$destroy(),
+          onSaved: () => { app.$destroy(); window.location.reload(); },
+        },
+      });
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-send-dunning]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const level = btn.dataset.level;
+      if (!confirm(`Mahnung ${level} jetzt an den Kunden versenden?`)) return;
+      
+      btn.disabled = true;
+      btn.textContent = 'Sendet…';
+      
+      try {
+        const res = await fetch(`/api/admin/billing/dunning/${id}/send`, { method: 'POST' });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert('Fehler beim Versenden der Mahnung.');
+          btn.disabled = false;
+          btn.textContent = 'Versenden ↑';
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Netzwerkfehler.');
+        btn.disabled = false;
+        btn.textContent = 'Versenden ↑';
+      }
+    });
+  });
 </script>
 
 <script>

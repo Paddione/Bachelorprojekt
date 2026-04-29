@@ -8,7 +8,7 @@ it('generates valid ZUGFeRD XML for Kleinunternehmer', () => {
     customer: { name:'Max Mustermann', email:'max@test.de' },
     seller: { name:'Gerald', address:'Str 1', postalCode:'32312', city:'Lübbecke', country:'DE', vatId:'' },
   });
-  expect(xml).toContain('urn:factur-x.eu:1p0:minimum');
+  expect(xml).toContain('urn:cen.eu:en16931:2017');
   expect(xml).toContain('RE-2025-0001');
   expect(xml).not.toContain('SpecifiedTaxRegistration'); // no USt for Kleinunternehmer
 });

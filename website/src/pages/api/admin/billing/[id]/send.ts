@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { finalizeInvoice, getCustomerById } from '../../../../../lib/native-billing';
 import { generateInvoicePdf, type InvoicePdfSeller } from '../../../../../lib/invoice-pdf';
-import { generateZugferdXmlFromNative } from '../../../../../lib/zugferd';
+import { generateFacturX } from '../../../../../lib/einvoice/factur-x';
 import { sendEmail } from '../../../../../lib/email';
 import { pool, getSiteSetting, initBillingTables } from '../../../../../lib/website-db';
 
@@ -96,14 +96,78 @@ export const POST: APIRoute = async ({ request, params }) => {
       ? (draftRow.service_period_start as Date).toISOString().split('T')[0] : undefined,
     servicePeriodEnd: draftRow.service_period_end
       ? (draftRow.service_period_end as Date).toISOString().split('T')[0] : undefined,
+    leitwegId: draftRow.leitweg_id ?? undefined,
+    currency: (draftRow.currency as string) ?? 'EUR',
+    currencyRate: draftRow.currency_rate != null ? Number(draftRow.currency_rate) : null,
+    netAmountEur: draftRow.net_amount_eur != null ? Number(draftRow.net_amount_eur) : Number(draftRow.net_amount),
+    grossAmountEur: draftRow.gross_amount_eur != null ? Number(draftRow.gross_amount_eur) : Number(draftRow.gross_amount),
+    supplyType: (draftRow.supply_type as string) ?? undefined,
+    kind: ((draftRow.kind as string) ?? 'regular') as 'regular' | 'prepayment' | 'final' | 'gutschrift',
+    parentInvoiceId: (draftRow.parent_invoice_id as string) ?? undefined,
+  };
+
+  const invoiceInput = {
+    number: tempInvoice.number,
+    issueDate: tempInvoice.issueDate,
+    dueDate: tempInvoice.dueDate,
+    currency: 'EUR',
+    taxMode: tempInvoice.taxMode as 'kleinunternehmer' | 'regelbesteuerung',
+    servicePeriodStart: tempInvoice.servicePeriodStart,
+    servicePeriodEnd: tempInvoice.servicePeriodEnd,
+    paymentReference: tempInvoice.paymentReference,
+    notes: tempInvoice.notes,
+    lines: lines.map(l => ({
+      description: l.description,
+      quantity: l.quantity,
+      unit: l.unit || 'C62',
+      unitPrice: l.unitPrice,
+      netAmount: l.netAmount,
+      taxRate: tempInvoice.taxMode === 'kleinunternehmer' ? 0 : tempInvoice.taxRate,
+      taxCategory: (tempInvoice.taxMode === 'kleinunternehmer' ? 'E' : 'S') as 'E' | 'S',
+    })),
+    netTotal: tempInvoice.netAmount,
+    taxTotal: tempInvoice.taxAmount,
+    grossTotal: tempInvoice.grossAmount,
+    seller: {
+      name: seller.name,
+      address: seller.address,
+      postalCode: seller.postalCode,
+      city: seller.city,
+      country: seller.country,
+      vatId: seller.vatId || undefined,
+      taxNumber: seller.taxNumber || undefined,
+      contactEmail: seller.email || 'noreply@mentolder.de',
+      iban: seller.iban,
+      bic: seller.bic || undefined,
+    },
+    buyer: {
+      name: customer.name || customer.company || 'Unbekannt',
+      email: customer.email,
+      address: customer.addressLine1 || undefined,
+      postalCode: customer.postalCode || undefined,
+      city: customer.city || undefined,
+      country: customer.landIso || 'DE',
+      vatId: customer.vatNumber || undefined,
+      leitwegId: draftRow.leitweg_id || customer.defaultLeitwegId || undefined,
+    },
   };
 
   let xml: string;
   let pdf: Buffer;
   try {
-    xml = generateZugferdXmlFromNative({ invoice: tempInvoice, lines, customer, seller: zugferdSeller });
+    xml = generateFacturX(invoiceInput);
+    const pdfCustomer = {
+      name: customer.name,
+      email: customer.email,
+      company: customer.company,
+      addressLine1: customer.addressLine1,
+      city: customer.city,
+      postalCode: customer.postalCode,
+      country: customer.landIso ?? 'DE',
+      vatNumber: customer.vatNumber,
+    };
     pdf = await generateInvoicePdf({
-      invoice: tempInvoice, lines, customer, seller,
+      invoice: tempInvoice, lines, customer: pdfCustomer, seller,
       templateTexts: {
         introText: tmpl.invoice_intro_text || undefined,
         kleinunternehmerNotice: tmpl.invoice_kleinunternehmer_notice || undefined,
@@ -121,6 +185,7 @@ export const POST: APIRoute = async ({ request, params }) => {
     actor: { userId: session.sub, email: session.email },
     pdfBlob: pdf,
     pdfMime: 'application/pdf',
+    invoiceInput,
   });
   if (!finalized) return new Response('Failed to finalize invoice', { status: 409 });
 
@@ -144,11 +209,23 @@ export const POST: APIRoute = async ({ request, params }) => {
     vars
   );
 
+  const attachments: any[] = [{ filename: `${finalized.number}.pdf`, content: pdf }];
+  if (finalized.leitwegId) {
+    const r = await pool.query<{ xrechnung_xml: string | null }>(`SELECT xrechnung_xml FROM billing_invoices WHERE id=$1`, [id]);
+    if (r.rows[0]?.xrechnung_xml) {
+      attachments.push({
+        filename: `xrechnung-${finalized.number}.xml`,
+        content: Buffer.from(r.rows[0].xrechnung_xml, 'utf8'),
+        contentType: 'application/xml',
+      });
+    }
+  }
+
   const sent = await sendEmail({
     to: customer.email,
     subject,
     text: body,
-    attachments: [{ filename: `${finalized.number}.pdf`, content: pdf }],
+    attachments,
   });
 
   if (!sent) {

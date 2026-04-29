@@ -332,6 +332,35 @@
         }
         #dryrun-btn.active #dryrun-badge { display: inline; }
 
+        /* ── Chain runner ─────────────────────────────────────── */
+        .chain-btn {
+            background: transparent; color: var(--text-dim);
+            border: 1px solid var(--border); padding: 2px 8px;
+            border-radius: 10px; font-size: 10px; cursor: pointer;
+            text-transform: none; letter-spacing: 0;
+            font-weight: 500; line-height: 1.4;
+        }
+        .chain-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--primary); }
+        .chain-btn.active {
+            background: #1e3050; color: #80d0ff; border-color: var(--primary);
+        }
+        .chain-progress {
+            font-size: 10px; color: #80d0ff; font-weight: 600;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        #autochain-btn {
+            background: #2a1f3d; color: #b094e0; border: 1px solid #4a3a6a;
+            padding: 5px 12px; border-radius: var(--radius); font-size: 12px;
+            cursor: pointer; display: flex; align-items: center; gap: 5px;
+            white-space: nowrap;
+        }
+        #autochain-btn.active { background: #3a2860; color: #d0b0ff; border-color: #7c6af5; }
+        #autochain-badge {
+            font-size: 9px; background: #7c6af5; color: #fff;
+            padding: 1px 4px; border-radius: 3px; font-weight: 700; display: none;
+        }
+        #autochain-btn.active #autochain-badge { display: inline; }
+
         /* ── From-scratch zone ────────────────────────────────── */
         .section.scratch-section .section-header { color: #9a8af5; }
         .section.scratch-section.open .section-header { color: #b0a0ff; }
@@ -378,6 +407,9 @@
         </div>
         <button id="dryrun-btn" title="Toggle dry-run mode — passes DRY_RUN=true to tasks">
             📋 DRY RUN <span id="dryrun-badge">ON</span>
+        </button>
+        <button id="autochain-btn" title="When a group chain finishes successfully, automatically continue with the next group's chain">
+            🔗 AUTO-CHAIN <span id="autochain-badge">ON</span>
         </button>
         <button id="stop-btn" class="ctrl-btn">■ Stop</button>
         <button id="clear-btn" class="ctrl-btn">Clear</button>
@@ -827,10 +859,31 @@
         ctxBtn.className = '';
     });
 
+    // ── Chain runner: which tasks may run unattended ──────────────────────
+    // Skip tasks that need user input, are destructive (need per-task confirmation),
+    // or stream forever (logs / dev servers / port-forwards / interactive shells).
+    const NON_CHAINABLE_PATTERNS = [
+        /:logs$/, /:dev$/, /:port-forward$/, /:psql$/, /^tracking:psql$/,
+        /^up$/, /:up$/, /:select$/, /^website:dev$/,
+    ];
+    function isChainable(item) {
+        if (item.dangerous) return false;
+        if (item.argInputs && item.argInputs.some((a) => a.required)) return false;
+        if (NON_CHAINABLE_PATTERNS.some((re) => re.test(item.cmd))) return false;
+        return true;
+    }
+    function groupHasChainable(group) {
+        if (group.dangerZone || group.scratchZone) return false;
+        return group.items.some(isChainable);
+    }
+
+    // Map of groupIndex → { btn, progressEl } for live updates
+    const chainCtrls = new Map();
+
     // ── Build task grid ───────────────────────────────────────────────────
     const sectionsEl = document.getElementById('task-sections');
 
-    GROUPS.forEach((group) => {
+    GROUPS.forEach((group, groupIdx) => {
         const section = document.createElement('div');
         section.className = 'section'
             + (group.dangerZone  ? ' danger-section'  : '')
@@ -859,6 +912,36 @@
         header.appendChild(iconEl);
         header.appendChild(nameEl);
         header.appendChild(countEl);
+
+        if (groupHasChainable(group)) {
+            const chainable = group.items.filter(isChainable);
+            const progressEl = document.createElement('span');
+            progressEl.className = 'chain-progress';
+
+            const chainBtn = document.createElement('button');
+            chainBtn.className = 'chain-btn';
+            chainBtn.textContent = '▶ all (' + chainable.length + ')';
+            chainBtn.title = 'Run all ' + chainable.length + ' eligible tasks in '
+                + group.cat + ' sequentially. Skips tasks that need input, '
+                + 'are destructive, or stream forever.';
+            chainBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (chainGroupIndex === groupIdx) {
+                    cancelChain('Chain cancelled by user');
+                } else if (chainGroupIndex >= 0 || running) {
+                    // Another chain or task is active — let user know
+                    statusEl.className = 'fail';
+                    statusEl.textContent = 'Cannot start chain: a task is already running';
+                } else {
+                    if (!section.classList.contains('open')) section.classList.add('open');
+                    startChain(groupIdx);
+                }
+            });
+            header.appendChild(progressEl);
+            header.appendChild(chainBtn);
+            chainCtrls.set(groupIdx, { btn: chainBtn, progressEl });
+        }
+
         header.appendChild(chevron);
         header.addEventListener('click', () => section.classList.toggle('open'));
         section.appendChild(header);
@@ -1001,6 +1084,97 @@
         dryrunBtn.classList.toggle('active', dryRunActive);
     });
 
+    // ── Auto-chain toggle ──────────────────────────────────────────────────
+    let autoChainActive = false;
+    const autochainBtn = document.getElementById('autochain-btn');
+
+    autochainBtn.addEventListener('click', () => {
+        autoChainActive = !autoChainActive;
+        autochainBtn.classList.toggle('active', autoChainActive);
+    });
+
+    // ── Chain runner ───────────────────────────────────────────────────────
+    // chainQueue holds the items still pending in the *current* group chain.
+    // When chainGroupIndex >= 0 a chain is active; task-finished advances it.
+    let chainQueue = [];
+    let chainGroupIndex = -1;
+    let chainTotal = 0;
+
+    function setChainBtnState(groupIdx, active) {
+        const ctrl = chainCtrls.get(groupIdx);
+        if (!ctrl) return;
+        ctrl.btn.classList.toggle('active', active);
+        if (active) {
+            ctrl.btn.textContent = '■ stop chain';
+            ctrl.btn.title = 'Cancel this group chain (current task keeps running until it finishes or you press Stop)';
+        } else {
+            const chainable = GROUPS[groupIdx].items.filter(isChainable);
+            ctrl.btn.textContent = '▶ all (' + chainable.length + ')';
+            ctrl.btn.title = 'Run all ' + chainable.length + ' eligible tasks in '
+                + GROUPS[groupIdx].cat + ' sequentially.';
+            ctrl.progressEl.textContent = '';
+        }
+    }
+
+    function updateChainProgress() {
+        if (chainGroupIndex < 0) return;
+        const ctrl = chainCtrls.get(chainGroupIndex);
+        if (!ctrl) return;
+        const done = chainTotal - chainQueue.length;
+        ctrl.progressEl.textContent = done + '/' + chainTotal;
+    }
+
+    function startChain(groupIdx) {
+        const group = GROUPS[groupIdx];
+        if (!group) return;
+        const items = group.items.filter(isChainable);
+        if (items.length === 0) return;
+        chainGroupIndex = groupIdx;
+        chainQueue = items.slice();
+        chainTotal = items.length;
+        setChainBtnState(groupIdx, true);
+        updateChainProgress();
+        runNextInChain();
+    }
+
+    function runNextInChain() {
+        if (chainGroupIndex < 0) return;
+        if (chainQueue.length === 0) {
+            const finishedIdx = chainGroupIndex;
+            setChainBtnState(finishedIdx, false);
+            chainGroupIndex = -1;
+            chainTotal = 0;
+            if (autoChainActive) {
+                // Find next eligible group; skip danger/scratch and empty ones.
+                for (let i = finishedIdx + 1; i < GROUPS.length; i++) {
+                    if (groupHasChainable(GROUPS[i])) {
+                        startChain(i);
+                        return;
+                    }
+                }
+                statusEl.className = 'ok';
+                statusEl.textContent = 'Auto-chain finished — no more eligible groups ✓';
+            }
+            return;
+        }
+        const item = chainQueue.shift();
+        updateChainProgress();
+        runTask(item.cmd, []);
+    }
+
+    function cancelChain(reason) {
+        if (chainGroupIndex < 0) return;
+        const idx = chainGroupIndex;
+        chainQueue = [];
+        chainGroupIndex = -1;
+        chainTotal = 0;
+        setChainBtnState(idx, false);
+        if (reason) {
+            statusEl.className = 'fail';
+            statusEl.textContent = reason;
+        }
+    }
+
     // ── Terminal collapse toggle ───────────────────────────────────────────
     const terminalPane = document.getElementById('terminal-pane');
     const termToggle   = document.getElementById('term-toggle');
@@ -1072,7 +1246,14 @@
         pending = null;
     }
 
-    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+    // If a modal is dismissed without confirming during a chain, the chain would
+    // otherwise hang waiting for a task-finished event that will never fire.
+    function dismissModal() {
+        if (pending && chainGroupIndex >= 0) cancelChain('Chain aborted — modal dismissed');
+        closeModal();
+    }
+
+    document.getElementById('modal-cancel').addEventListener('click', dismissModal);
     document.getElementById('modal-confirm').addEventListener('click', () => {
         const p = pending;
         closeModal();
@@ -1081,9 +1262,9 @@
         runTask(p.cmd, p.args, { skipFootgun: !!p.footgunConfirm });
     });
     document.getElementById('modal-overlay').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('modal-overlay')) closeModal();
+        if (e.target === document.getElementById('modal-overlay')) dismissModal();
     });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismissModal(); });
 
     // ── Task execution ─────────────────────────────────────────────────────
     const terminal  = document.getElementById('terminal');
@@ -1124,7 +1305,10 @@
         socket.emit('run-task', { command, args, envVars });
     }
 
-    stopBtn.addEventListener('click', () => socket.emit('stop-task'));
+    stopBtn.addEventListener('click', () => {
+        if (chainGroupIndex >= 0) cancelChain('Chain stopped');
+        socket.emit('stop-task');
+    });
     document.getElementById('clear-btn').addEventListener('click', () => { terminal.textContent = ''; });
 
     // ── Socket ─────────────────────────────────────────────────────────────
@@ -1210,6 +1394,16 @@
             ? 'Ready — last task succeeded ✓'
             : 'Ready — last task failed (code ' + code + ')';
         termLabel.textContent = 'Output';
+
+        // Advance an active chain. Stop on failure so we don't pile dependent
+        // tasks on top of a broken state.
+        if (chainGroupIndex >= 0) {
+            if (code === 0) {
+                runNextInChain();
+            } else {
+                cancelChain('Chain stopped — task failed (code ' + code + ')');
+            }
+        }
     });
 }());
 </script>

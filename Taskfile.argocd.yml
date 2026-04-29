@@ -132,7 +132,7 @@ tasks:
           kubectl --context mentolder patch secret "$HETZNER_SECRET" -n argocd --type=json -p="[
             {\"op\":\"add\",\"path\":\"/metadata/labels/workspace\",\"value\":\"true\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations\",\"value\":{}},
-            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-overlay\",\"value\":\"prod\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-overlay\",\"value\":\"prod-mentolder\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-domain\",\"value\":\"${PROD_DOMAIN}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-brand\",\"value\":\"${BRAND_NAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},

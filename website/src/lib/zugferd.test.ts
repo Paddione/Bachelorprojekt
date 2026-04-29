@@ -21,5 +21,5 @@ it('generates valid ZUGFeRD XML for Regelbesteuerung', () => {
     seller: { name:'Gerald', address:'Str 1', postalCode:'32312', city:'Lübbecke', country:'DE', vatId:'DE123456789' },
   });
   expect(xml).toContain('DE123456789');
-  expect(xml).toContain('19.00');
+  expect(xml).toContain('11.40'); // taxTotalAmount for 19% VAT on 60€
 });

@@ -102,6 +102,8 @@ export const POST: APIRoute = async ({ request, params }) => {
     netAmountEur: draftRow.net_amount_eur != null ? Number(draftRow.net_amount_eur) : Number(draftRow.net_amount),
     grossAmountEur: draftRow.gross_amount_eur != null ? Number(draftRow.gross_amount_eur) : Number(draftRow.gross_amount),
     supplyType: (draftRow.supply_type as string) ?? undefined,
+    kind: ((draftRow.kind as string) ?? 'regular') as 'regular' | 'prepayment' | 'final' | 'gutschrift',
+    parentInvoiceId: (draftRow.parent_invoice_id as string) ?? undefined,
   };
 
   const invoiceInput = {
@@ -161,7 +163,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       addressLine1: customer.addressLine1,
       city: customer.city,
       postalCode: customer.postalCode,
-      landIso: customer.landIso,
+      country: customer.landIso ?? 'DE',
       vatNumber: customer.vatNumber,
     };
     pdf = await generateInvoicePdf({

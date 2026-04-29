@@ -2,6 +2,7 @@ import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
 import { checkAndApplyTaxModeSwitch } from './tax-monitor';
 import { canonicalInvoiceForHash, sha256Hex, type HashableLine } from './invoice-hash';
 import { logBillingEvent, type BillingActor } from './billing-audit';
+import { validateLeitwegId, formatLeitwegId } from './leitweg';
 
 export { initBillingTables };
 
@@ -10,6 +11,7 @@ export interface Customer {
   company?: string; addressLine1?: string; city?: string;
   postalCode?: string; landIso: string; vatNumber?: string;
   sepaIban?: string; sepaBic?: string;
+  leitwegId?: string;
   sepaMandateRef?: string; sepaMandateDate?: string;
   defaultLeitwegId?: string;
 }
@@ -17,21 +19,42 @@ export interface Customer {
 export async function createCustomer(p: {
   brand: string; name: string; email: string; company?: string;
   addressLine1?: string; city?: string; postalCode?: string;
-  vatNumber?: string;
+  vatNumber?: string; leitwegId?: string;
 }): Promise<Customer> {
   await initBillingTables();
   const r = await pool.query(
-    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number, typ)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'Kunde')
+    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number, typ, leitweg_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'Kunde',$9)
      ON CONFLICT (brand, email, typ) DO UPDATE
        SET name=EXCLUDED.name, company=EXCLUDED.company,
            address_line1=EXCLUDED.address_line1, city=EXCLUDED.city,
-           postal_code=EXCLUDED.postal_code, vat_number=EXCLUDED.vat_number
+           postal_code=EXCLUDED.postal_code, vat_number=EXCLUDED.vat_number,
+           leitweg_id=EXCLUDED.leitweg_id
      RETURNING *`,
     [p.brand, p.name, p.email, p.company??null, p.addressLine1??null,
-     p.city??null, p.postalCode??null, p.vatNumber??null]
+     p.city??null, p.postalCode??null, p.vatNumber??null, p.leitwegId??null]
   );
   return mapCustomer(r.rows[0]);
+}
+
+export async function setBillingCustomerLeitwegId(
+  id: string,
+  raw: string | null,
+): Promise<{ ok: true; value: string | null } | { ok: false; reason: string }> {
+  await initBillingTables();
+  if (raw === null || raw === '') {
+    await pool.query(`UPDATE billing_customers SET leitweg_id = NULL WHERE id = $1`, [id]);
+    return { ok: true, value: null };
+  }
+  const v = validateLeitwegId(raw);
+  if (!v.ok) return { ok: false, reason: v.reason ?? 'Format ungültig' };
+  const value = formatLeitwegId(raw);
+  const r = await pool.query(
+    `UPDATE billing_customers SET leitweg_id = $1 WHERE id = $2 RETURNING id`,
+    [value, id],
+  );
+  if (r.rowCount === 0) return { ok: false, reason: 'Kunde nicht gefunden' };
+  return { ok: true, value };
 }
 
 export async function getCustomerByEmail(brand: string, email: string): Promise<Customer | null> {
@@ -287,6 +310,7 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
 
 import { recordPayment } from './invoice-payments';
 
+
 export async function markInvoicePaid(
   id: string,
   p: { paidAt: string; paidAmount: number },
@@ -350,6 +374,8 @@ function mapInvoice(row: Record<string, unknown>): Invoice {
     netAmountEur: row.net_amount_eur != null ? Number(row.net_amount_eur) : Number(row.net_amount),
     grossAmountEur: row.gross_amount_eur != null ? Number(row.gross_amount_eur) : Number(row.gross_amount),
     supplyType: (row.supply_type as string) ?? undefined,
+    kind: ((row.kind as string) ?? 'regular') as 'regular' | 'prepayment' | 'final' | 'gutschrift',
+    parentInvoiceId: (row.parent_invoice_id as string) ?? undefined,
   };
 }
 
@@ -365,6 +391,7 @@ function mapCustomer(row: Record<string, unknown>): Customer {
     vatNumber: (row.vat_number as string) ?? undefined,
     sepaIban: (row.sepa_iban as string) ?? undefined,
     sepaBic: (row.sepa_bic as string) ?? undefined,
+    leitwegId: (row.leitweg_id as string) ?? undefined,
     sepaMandateRef: (row.sepa_mandate_ref as string) ?? undefined,
     sepaMandateDate: (() => {
       const md = row.sepa_mandate_date;

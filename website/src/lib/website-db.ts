@@ -3308,6 +3308,8 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
       ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
   `);
+  await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS leitweg_id VARCHAR(46)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_billing_customers_leitweg ON billing_customers(leitweg_id) WHERE leitweg_id IS NOT NULL`);
   // Plan F: EU supply + export evidence
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_nachweis (
@@ -3375,7 +3377,7 @@ export async function initBillingTables(): Promise<void> {
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
-  `);  // Plan F: indexes for new child tables
+  `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS billing_nachweis_invoice_idx
       ON billing_nachweis (invoice_id)

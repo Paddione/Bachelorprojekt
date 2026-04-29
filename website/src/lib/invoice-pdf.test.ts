@@ -9,6 +9,7 @@ it('generates a non-empty PDF buffer', async () => {
       taxMode:'kleinunternehmer', netAmount:60, taxRate:0, taxAmount:0, grossAmount:60,
       paymentReference:'RG20250001', locked:true,
       currency:'EUR', currencyRate:null, netAmountEur:60, grossAmountEur:60,
+      kind: 'regular' as const,
     },
     lines: [{ description:'Coaching 1h', quantity:1, unitPrice:60, netAmount:60 }],
     customer: { name:'Max Mustermann', email:'max@test.de', country:'DE' },
@@ -21,6 +22,7 @@ it('generates a non-empty PDF buffer', async () => {
   expect(buf.length).toBeGreaterThan(1000);
   expect(buf.slice(0,4).toString()).toBe('%PDF');
 });
+
 
 it('includes reverse charge notice when supplyType is eu_b2b_services', async () => {
   const baseInvoice = {
@@ -49,6 +51,7 @@ it('includes reverse charge notice when supplyType is eu_b2b_services', async ()
   const text = pdf.toString('latin1');
   expect(text).toContain('13b');
 });
+
 
 it('PDF enthält factur-x.xml als Anhang', async () => {
   const pdf = await generateInvoicePdf({

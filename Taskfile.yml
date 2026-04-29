@@ -2133,6 +2133,12 @@ tasks:
     cmds:
       - k3d image import einvoice-sidecar:dev -c "{{.K3D_CLUSTER | default "workspace"}}"
 
+  einvoice-sidecar:push:
+    desc: "Build and push einvoice-sidecar image to ghcr.io"
+    cmds:
+      - docker build -t ghcr.io/paddione/einvoice-sidecar:latest docker/einvoice-sidecar
+      - docker push ghcr.io/paddione/einvoice-sidecar:latest
+
   einvoice-sidecar:logs:
     desc: "Tail einvoice-sidecar logs"
     cmds:

@@ -1,7 +1,20 @@
-import { it, expect } from 'vitest';
+import { it, expect, beforeAll } from 'vitest';
 import { getYearRevenue, checkThreshold, TaxThresholdStatus } from './tax-monitor';
+import { initTaxMonitorTables } from './website-db';
 
-it('returns 0 revenue for empty brand', async () => {
+let dbOk = false;
+beforeAll(async () => {
+  try {
+    await Promise.race([
+      initTaxMonitorTables(),
+      new Promise<never>((_, r) => setTimeout(() => r(new Error('db timeout')), 3000)),
+    ]);
+    dbOk = true;
+  } catch { /* DB not available in this environment */ }
+}, 5000);
+
+it('returns 0 revenue for empty brand', async (ctx) => {
+  if (!dbOk) return ctx.skip();
   const r = await getYearRevenue('test-empty', 2025);
   expect(r).toBe(0);
 });

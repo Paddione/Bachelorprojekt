@@ -145,23 +145,13 @@ const STATUS_TABS = [
                   <p class="text-sm text-muted">{inv.customerEmail}</p>
                   <p class="text-sm text-muted mt-1">
                     Betrag: <span class="text-light font-medium">
-                      {inv.amountDue.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
+                      {inv.amountDue.toFixed(2).replace('.', ',') + ' €'}
                     </span>
                   </p>
                 </div>
                 <div class="flex gap-2 flex-shrink-0">
-                  <button
-                    class="open-draft-btn px-3 py-1.5 text-sm bg-surface-hover border border-border rounded-lg hover:border-gold transition-colors"
-                    data-id={inv.id}
-                  >
-                    Bearbeiten
-                  </button>
-                  <button
-                    class="discard-draft-btn px-3 py-1.5 text-sm text-red-400 border border-border rounded-lg hover:border-red-400 transition-colors"
-                    data-id={inv.id}
-                  >
-                    Verwerfen
-                  </button>
+                  <button class="open-draft-btn px-3 py-1.5 text-sm bg-surface-hover border border-border rounded-lg hover:border-gold transition-colors" data-id={inv.id}>Bearbeiten</button>
+                  <button class="discard-draft-btn px-3 py-1.5 text-sm text-red-400 border border-border rounded-lg hover:border-red-400 transition-colors" data-id={inv.id}>Verwerfen</button>
                 </div>
               </div>
             ))}
@@ -297,7 +287,7 @@ const STATUS_TABS = [
                   >Drucken ↗</a>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>

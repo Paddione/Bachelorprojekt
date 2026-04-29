@@ -24,7 +24,7 @@ spec:
             - name: NEXTCLOUD_TRUSTED_DOMAINS
               value: "files.${PROD_DOMAIN} localhost"
             - name: SMTP_HOST
-              value: "smtp.mailbox.org"
+              value: "${SMTP_HOST}"
             - name: SMTP_PORT
               value: "587"
             - name: SMTP_SECURE

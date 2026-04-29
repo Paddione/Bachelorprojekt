@@ -42,9 +42,19 @@
 </script>
 
 <div class="pt-8 pb-20 space-y-6 max-w-2xl">
-  <div>
-    <h2 class="text-lg font-bold text-light font-serif mb-1">Rechnungsvorlagen</h2>
-    <p class="text-sm text-muted">Texte, die in PDF-Rechnungen und E-Mails verwendet werden.</p>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-bold text-light font-serif mb-1">Rechnungsvorlagen</h2>
+      <p class="text-sm text-muted">Texte, die in PDF-Rechnungen und E-Mails verwendet werden.</p>
+    </div>
+    <div class="flex gap-2 shrink-0 pt-1">
+      <a href="/api/admin/inhalte/rechnungsvorlagen/preview?kind=invoice" target="_blank" rel="noopener"
+         class="px-3 py-1.5 text-xs font-mono uppercase tracking-widest border border-dark-lighter rounded-md text-muted hover:text-gold hover:border-gold/50">Vorschau Rechnung</a>
+      <a href="/api/admin/inhalte/rechnungsvorlagen/preview?kind=dunning1" target="_blank" rel="noopener"
+         class="px-3 py-1.5 text-xs font-mono uppercase tracking-widest border border-dark-lighter rounded-md text-muted hover:text-gold hover:border-gold/50">Mahnung 1</a>
+      <a href="/api/admin/inhalte/rechnungsvorlagen/preview?kind=dunning2" target="_blank" rel="noopener"
+         class="px-3 py-1.5 text-xs font-mono uppercase tracking-widest border border-dark-lighter rounded-md text-muted hover:text-gold hover:border-gold/50">Mahnung 2</a>
+    </div>
   </div>
 
   <div class="space-y-4">

@@ -301,7 +301,11 @@ spec:
                 echo "notify_push: waiting for binary at $BIN"
                 sleep 30
               done
-              exec "$BIN" /var/www/html
+              until [ -r "/var/www/html/config/config.php" ]; do
+                echo "notify_push: waiting for config.php"
+                sleep 10
+              done
+              exec "$BIN" /var/www/html/config/config.php
           volumeMounts:
             - name: app
               mountPath: /var/www/html

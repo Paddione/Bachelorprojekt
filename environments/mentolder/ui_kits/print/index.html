@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8" />
+<title>Mentolder — Print Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<style>
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--ink-900);color:var(--fg);font-family:var(--sans);padding:40px;}
+h1{font-family:var(--serif);font-weight:350;font-size:36px;letter-spacing:-0.02em;margin:0 0 8px;}
+h1 em{font-style:italic;color:var(--brass-2);}
+.lede{color:var(--fg-soft);max-width:60ch;font-size:16px;line-height:1.6;margin:0 0 32px;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:1200px;}
+.tile{background:var(--ink-850);border:1px solid var(--line-2);border-radius:18px;overflow:hidden;text-decoration:none;color:inherit;display:block;}
+.tile iframe{width:100%;height:520px;border:0;background:#dad4c8;display:block;pointer-events:none;}
+.tile .meta{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+.tile h3{font-family:var(--serif);font-size:20px;font-weight:400;letter-spacing:-0.01em;margin:0;}
+.tile .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;}
+.tile:hover{border-color:var(--brass);}
+</style></head><body>
+<h1>Print &amp; document <em>kit.</em></h1>
+<p class="lede">Rechnung, Vertrag, Fragebogen und Newsletter — eine warme Paper-Palette mit demselben Brass-Akzent wie die Website. Klick öffnet das Dokument.</p>
+<div class="grid">
+  <a class="tile" href="invoice.html"><iframe src="invoice.html"></iframe><div class="meta"><h3>Rechnung</h3><span class="k">A4 · Tabelle · §19</span></div></a>
+  <a class="tile" href="contract.html"><iframe src="contract.html"></iframe><div class="meta"><h3>Coaching-Vertrag</h3><span class="k">A4 · 7 Klauseln</span></div></a>
+  <a class="tile" href="questionnaire.html"><iframe src="questionnaire.html"></iframe><div class="meta"><h3>Fragebogen</h3><span class="k">A4 · Vor Erstgespräch</span></div></a>
+  <a class="tile" href="newsletter.html"><iframe src="newsletter.html"></iframe><div class="meta"><h3>Newsletter</h3><span class="k">Email · 640 px</span></div></a>
+</div>
+</body></html>

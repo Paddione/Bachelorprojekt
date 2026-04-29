@@ -1,0 +1,20 @@
+<!doctype html>
+<html><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+body{margin:0;padding:32px;background:var(--ink-900);display:flex;gap:30px;align-items:center;}
+.frame{width:130px;aspect-ratio:4/5;border-radius:4px;overflow:hidden;position:relative;background:var(--ink-800);
+  box-shadow: 0 40px 80px -30px rgba(0,0,0,.75), 0 2px 0 0 rgba(255,255,255,.04), inset 0 0 0 1px var(--line-2);}
+.frame::after{ content:""; position:absolute; left:0; right:0; top:0; height:1px;
+  background:linear-gradient(to right, transparent, oklch(0.80 0.09 75 / .7) 30%, oklch(0.80 0.09 75 / .7) 70%, transparent);}
+.card{background:var(--ink-850);border:1px solid var(--line-2);border-radius:22px;padding:20px;width:200px;}
+.card2{background:var(--ink-800);border-radius:22px;padding:20px;width:200px;
+  background:radial-gradient(circle at 0% 0%, oklch(0.80 0.09 75 / .12), transparent 50%), var(--ink-800);
+  border:1px solid var(--line-2);}
+.lab{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);}
+.t{font-family:var(--serif);color:var(--fg);font-size:18px;margin-top:8px;}
+</style></head><body>
+<div><div class="frame"></div><div class="lab" style="margin-top:10px;">Portrait · big drop + inset</div></div>
+<div class="card"><div class="lab">Card · hairline only</div><div class="t">No drop shadow.</div></div>
+<div class="card2"><div class="lab">Quote · radial brass</div><div class="t">Inner glow, hairline.</div></div>
+</body></html>

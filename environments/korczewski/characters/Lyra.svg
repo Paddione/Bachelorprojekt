@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200" width="120" height="200">
+  
+  <ellipse cx="60" cy="196" rx="22" ry="5" fill="rgba(0,0,0,.4)"></ellipse>
+  <path d="M38,46 Q24,68 22,110 Q20,140 24,168 Q26,176 30,170 Q28,144 32,115 Q38,86 46,64" fill="#B89010"></path>
+  <path d="M82,46 Q96,66 96,108 Q96,138 90,162" fill="#B89010"></path>
+  <path d="M44,134 L40,194 Q48,198 56,196 L58,138 Z" fill="#5A3A1A"></path>
+  <path d="M76,134 L80,194 Q72,198 64,196 L62,138 Z" fill="#5A3A1A"></path>
+  <path d="M42,76 Q34,96 36,136 L84,136 Q86,96 78,76 Z" fill="#4A3020"></path>
+  <path d="M54,80 L66,80 L64,136 L56,136 Z" fill="#D4A870"></path>
+  <path d="M54,80 Q48,88 42,96 L42,136" stroke="#5A4028" stroke-width="2" fill="none"></path>
+  <path d="M66,80 Q72,88 78,96 L78,136" stroke="#5A4028" stroke-width="2" fill="none"></path>
+  <rect x="38" y="130" width="44" height="8" rx="3" fill="#3A2210"></rect>
+  <rect x="62" y="129" width="10" height="10" rx="2" fill="#4A3018"></rect>
+  <rect x="50" y="130" width="8" height="8" rx="2" fill="#4A3018"></rect>
+  <line x1="44" y1="78" x2="76" y2="110" stroke="#6B4A22" stroke-width="2.5"></line>
+  <rect x="80" y="75" width="10" height="35" rx="4" fill="#3A2210"></rect>
+  <line x1="83" y1="78" x2="83" y2="106" stroke="#C8A840" stroke-width="1"></line>
+  <line x1="87" y1="78" x2="87" y2="106" stroke="#C8A840" stroke-width="1"></line>
+  <path d="M81,76 Q84,72 87,76" fill="#8B1A1A"></path>
+  <path d="M81,80 Q84,76 87,80" fill="#8B1A1A"></path>
+  <rect x="54" y="64" width="12" height="15" rx="5" fill="#E8B880"></rect>
+  <ellipse cx="60" cy="54" rx="21" ry="23" fill="#F0C07A"></ellipse>
+  <ellipse cx="52" cy="51" rx="3.5" ry="3.8" fill="#0D2A0D"></ellipse>
+  <ellipse cx="68" cy="51" rx="3.5" ry="3.8" fill="#0D2A0D"></ellipse>
+  <circle cx="51" cy="50" r="2" fill="#2A8A2A"></circle>
+  <circle cx="67" cy="50" r="2" fill="#2A8A2A"></circle>
+  <circle cx="52" cy="50" r="1" fill="white"></circle>
+  <circle cx="68" cy="50" r="1" fill="white"></circle>
+  <path d="M48,45 Q52,42 56,45" stroke="#7A5A10" stroke-width="1.5" fill="none"></path>
+  <path d="M64,45 Q68,42 72,45" stroke="#7A5A10" stroke-width="1.5" fill="none"></path>
+  <path d="M56,62 Q60,65 64,62" stroke="#B07040" stroke-width="1.2" fill="none"></path>
+  <circle cx="50" cy="59" r="1" fill="#A07040" fill-opacity=".5"></circle>
+  <circle cx="54" cy="61" r=".8" fill="#A07040" fill-opacity=".5"></circle>
+  <circle cx="70" cy="59" r="1" fill="#A07040" fill-opacity=".5"></circle>
+  <circle cx="66" cy="61" r=".8" fill="#A07040" fill-opacity=".5"></circle>
+  <path d="M40,46 Q34,26 38,10 Q44,2 60,0 Q76,2 82,10 Q86,26 80,46" fill="#D4A820"></path>
+  <path d="M80,42 Q90,48 88,60 Q86,68 82,70" stroke="#C0981A" stroke-width="4" fill="none" stroke-linecap="round"></path>
+  <path d="M50,6 Q56,2 66,4" stroke="#FFDA50" stroke-width="2.5" fill="none" stroke-opacity=".5"></path>
+  <path d="M42,80 Q26,96 24,118 Q26,126 34,122 Q38,106 48,94" fill="#4A3020"></path>
+  <path d="M78,80 Q90,94 92,114 Q90,120 82,117 Q80,102 70,92" fill="#4A3020"></path>
+  <path d="M20,95 Q10,110 16,130" stroke="#6B4A22" stroke-width="3" fill="none" stroke-linecap="round"></path>
+  <line x1="20" y1="95" x2="16" y2="130" stroke="#C8A840" stroke-width="1" stroke-dasharray="2,3"></line>
+</svg>

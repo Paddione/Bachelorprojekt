@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+body{margin:0;padding:24px;background:var(--ink-900);}
+.row{display:flex;flex-direction:column;gap:10px;}
+.line{display:flex;align-items:center;gap:18px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;}
+.swatch{width:42px;height:42px;border-radius:8px;border:1px solid var(--line-2);flex:0 0 42px;}
+.name{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;flex:0 0 100px;}
+.hex{font-family:var(--mono);font-size:11px;color:var(--mute);flex:0 0 90px;}
+.sample{font-family:var(--sans);font-size:14px;}
+</style></head><body>
+<div class="row">
+  <div class="line"><span class="swatch" style="background:#eef1f3"></span><span class="name" style="color:#eef1f3">fg</span><span class="hex">#eef1f3</span><span class="sample" style="color:#eef1f3">Primary text · Newsreader headlines</span></div>
+  <div class="line"><span class="swatch" style="background:#cdd3d9"></span><span class="name" style="color:#cdd3d9">fg-soft</span><span class="hex">#cdd3d9</span><span class="sample" style="color:#cdd3d9">Body copy · ledes</span></div>
+  <div class="line"><span class="swatch" style="background:#8c96a3"></span><span class="name" style="color:#8c96a3">mute</span><span class="hex">#8c96a3</span><span class="sample" style="color:#8c96a3">Captions · meta · feature lists</span></div>
+  <div class="line"><span class="swatch" style="background:#6a727e"></span><span class="name" style="color:#6a727e">mute-2</span><span class="hex">#6a727e</span><span class="sample" style="color:#6a727e">Footer micro · deep meta</span></div>
+</div>
+</body></html>

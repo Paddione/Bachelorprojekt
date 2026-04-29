@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8" />
+<title>Mentolder — Fragebogen</title>
+<link rel="stylesheet" href="print.css" />
+<style>
+.q{padding:22px 0;border-bottom:1px solid var(--paper-line);}
+.q:last-child{border-bottom:none;}
+.q .num{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:#A8823A;text-transform:uppercase;}
+.q .qt{font-family:var(--serif);font-size:20px;font-weight:400;letter-spacing:-0.01em;color:var(--paper-ink);margin:6px 0 4px;line-height:1.25;}
+.q .help{color:var(--paper-mute);font-size:13px;margin:4px 0 14px;line-height:1.55;}
+.choices{display:flex;flex-direction:column;gap:8px;}
+.choice{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--paper-line);border-radius:10px;background:var(--paper);font-size:14px;color:var(--paper-ink);cursor:pointer;}
+.choice .box{width:16px;height:16px;border:1.5px solid #A8823A;border-radius:4px;flex:0 0 16px;display:inline-block;}
+.choice.checked{border-color:#A8823A;background:rgba(168,130,58,.08);}
+.choice.checked .box{background:#A8823A;position:relative;}
+.choice.checked .box::after{content:"";position:absolute;left:3px;top:0;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.field{width:100%;border:1px solid var(--paper-line);border-radius:10px;background:var(--paper);padding:12px 14px;font-family:var(--sans);font-size:14px;color:var(--paper-ink);min-height:80px;}
+.field.short{min-height:auto;}
+.scale{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.scale .s{aspect-ratio:1/1;border:1px solid var(--paper-line);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--paper-mute);}
+.scale .s.on{background:#A8823A;color:#fff;border-color:#A8823A;}
+.scale-l{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--paper-mute);text-transform:uppercase;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="page">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div class="brand-row"><img src="../../assets/logo-mark.png" alt="" /><span class="name">mentolder<span class="dot">.</span></span></div>
+    <div style="text-align:right;">
+      <div class="eyebrow-print">Vorbereitung Erstgespräch</div>
+      <div class="kicker-print" style="margin-top:6px;">10 Minuten · ehrlich, nicht perfekt</div>
+    </div>
+  </div>
+
+  <hr class="rule" style="margin:32px 0 28px;" />
+
+  <h1 class="print">Damit unser Gespräch nicht <em>bei Null beginnt.</em></h1>
+  <p class="muted" style="margin-top:14px;font-size:14px;line-height:1.65;max-width:60ch;">
+    Bevor wir uns sehen, möchte ich Ihre Situation grob verstehen. Beantworten Sie bitte nur das, was sich für Sie passend anfühlt — Lücken sind kein Problem.
+  </p>
+
+  <div style="margin-top:30px;">
+
+    <div class="q">
+      <div class="num">01 — Kontext</div>
+      <div class="qt">Wo stehen Sie aktuell beruflich?</div>
+      <div class="help">Eine bis drei Sätze reichen.</div>
+      <div class="field">Ich leite seit 8 Jahren den Bereich Vertrieb in einem mittelständischen Industrie-Unternehmen. Aktuell überlege ich, mich auf eine Geschäftsführungs-Position bei einem ehemaligen Wettbewerber zu bewerben.</div>
+    </div>
+
+    <div class="q">
+      <div class="num">02 — Anlass</div>
+      <div class="qt">Was hat Sie heute zu mir geführt?</div>
+      <div class="choices">
+        <label class="choice checked"><span class="box"></span>Ich denke über eine berufliche Veränderung nach.</label>
+        <label class="choice"><span class="box"></span>Ich bereite mich auf ein konkretes Gespräch vor.</label>
+        <label class="choice"><span class="box"></span>Ich möchte mein Profil schärfen — ohne Wechsel-Druck.</label>
+        <label class="choice"><span class="box"></span>Etwas anderes (gerne unten beschreiben).</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div class="num">03 — Selbsteinschätzung</div>
+      <div class="qt">Wie klar fühlen Sie sich aktuell über Ihre nächste Station?</div>
+      <div class="scale">
+        <div class="s">1</div><div class="s">2</div><div class="s">3</div><div class="s on">4</div><div class="s">5</div><div class="s">6</div><div class="s">7</div>
+      </div>
+      <div class="scale-l"><span>Diffus</span><span>Glasklar</span></div>
+    </div>
+
+    <div class="q">
+      <div class="num">04 — Erwartung</div>
+      <div class="qt">Was wäre für Sie ein gutes Ergebnis unserer Zusammenarbeit?</div>
+      <div class="field">Ich möchte wissen, ob ich für die GF-Rolle wirklich geeignet bin — und falls ja, wie ich mich im Bewerbungsprozess so präsentiere, dass meine Stärken klar werden.</div>
+    </div>
+
+    <div class="q">
+      <div class="num">05 — Sonstiges</div>
+      <div class="qt">Gibt es etwas, das ich vorab wissen sollte?</div>
+      <div class="help">Persönliche Themen, Gesundheit, Familie — alles, was Einfluss auf Tempo und Format hat.</div>
+      <div class="field short" style="min-height:48px;"></div>
+    </div>
+
+  </div>
+
+  <div class="foot-print">
+    <div><h5>Versand</h5><p>info@mentolder.de</p><p>oder im Erstgespräch besprechen</p></div>
+    <div><h5>Vertraulichkeit</h5><p>Alle Angaben bleiben streng vertraulich</p><p>(§ 4 Coaching-Vertrag)</p></div>
+    <div><h5>Mentolder</h5><p>Gerald Korczewski</p><p>Lüneburg · DE</p></div>
+  </div>
+</div>
+</body></html>

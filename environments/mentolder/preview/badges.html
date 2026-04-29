@@ -1,0 +1,18 @@
+<!doctype html>
+<html><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+body{margin:0;padding:26px;background:var(--ink-900);font-family:var(--sans);}
+.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);display:inline-flex;align-items:center;gap:10px;}
+.eyebrow::before{content:"";width:22px;height:1px;background:currentColor;opacity:.8;}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg);background:rgba(11,17,28,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;}
+.tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 3px oklch(0.80 0.06 160 / .18);}
+.pulse{display:inline-flex;align-items:center;gap:10px;font-family:var(--sans);font-size:13px;color:var(--fg);}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 0 oklch(0.80 0.06 160 / .6);animation:pulse 2.2s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 oklch(0.80 0.06 160 / .6);}70%{box-shadow:0 0 0 10px oklch(0.80 0.06 160 / 0);}100%{box-shadow:0 0 0 0 oklch(0.80 0.06 160 / 0);}}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);}
+</style></head><body>
+<div class="row"><span class="eyebrow">Meine Angebote</span><span class="tag">Anno 2026 · Lüneburg</span><span class="pulse"><span class="dot"></span>Nächste freie Termine</span></div>
+<div class="row" style="margin-top:14px;"><span class="kicker">01 — Erstgespräch</span><span class="kicker">GK · 01</span><span class="kicker">© 2026 Mentolder</span></div>
+</body></html>

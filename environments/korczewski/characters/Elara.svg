@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200" width="120" height="200">
+  
+  <ellipse cx="60" cy="196" rx="22" ry="5" fill="rgba(0,0,0,.4)"></ellipse>
+  <path d="M38,48 Q26,70 28,120 Q30,142 34,160 Q36,166 40,160 Q38,135 42,108 Q46,82 50,62" fill="#7A0E0E"></path>
+  <path d="M82,48 Q94,65 90,105 Q88,130 86,150" fill="#7A0E0E"></path>
+  <path d="M34,142 Q28,188 36,194 Q60,200 84,194 Q92,188 86,142 Z" fill="#1E6B1E"></path>
+  <path d="M37,146 Q32,186 40,192 Q60,197 80,192 Q88,186 83,146 Z" fill="#2A8C2A"></path>
+  <path d="M46,150 Q44,178 48,190" stroke="#3DAD3D" stroke-width="1.5" fill="none" stroke-opacity=".5"></path>
+  <path d="M60,152 Q58,182 60,192" stroke="#3DAD3D" stroke-width="1" fill="none" stroke-opacity=".35"></path>
+  <rect x="38" y="137" width="44" height="8" rx="4" fill="#143D14"></rect>
+  <rect x="56" y="138" width="8" height="6" rx="2" fill="#C8F76A"></rect>
+  <path d="M46,80 Q38,100 38,138 L82,138 Q82,100 74,80 Z" fill="#2A8C2A"></path>
+  <path d="M52,82 L68,82 L66,138 L54,138 Z" fill="#E8A87C"></path>
+  <rect x="54" y="66" width="12" height="16" rx="5" fill="#E8A87C"></rect>
+  <ellipse cx="60" cy="56" rx="21" ry="23" fill="#F0B890"></ellipse>
+  <ellipse cx="52" cy="53" rx="3.5" ry="4" fill="#1A0A05"></ellipse>
+  <ellipse cx="68" cy="53" rx="3.5" ry="4" fill="#1A0A05"></ellipse>
+  <circle cx="53.5" cy="52" r="1" fill="white"></circle>
+  <circle cx="69.5" cy="52" r="1" fill="white"></circle>
+  <path d="M48,47 Q52,44 56,47" stroke="#8B1A1A" stroke-width="1.5" fill="none"></path>
+  <path d="M64,47 Q68,44 72,47" stroke="#8B1A1A" stroke-width="1.5" fill="none"></path>
+  <path d="M57,63 Q60,66 63,63" stroke="#C07050" stroke-width="1.2" fill="none"></path>
+  <ellipse cx="45" cy="61" rx="5" ry="3" fill="#FFB8A0" fill-opacity=".45"></ellipse>
+  <ellipse cx="75" cy="61" rx="5" ry="3" fill="#FFB8A0" fill-opacity=".45"></ellipse>
+  <path d="M40,48 Q34,28 38,12 Q44,2 60,0 Q76,2 82,12 Q86,28 80,48" fill="#9B1515"></path>
+  <path d="M48,8 Q54,3 62,5" stroke="#CC3030" stroke-width="2" fill="none" stroke-opacity=".4"></path>
+  <path d="M46,86 Q30,102 28,126 Q30,132 36,129 Q40,110 50,96" fill="#E8A87C"></path>
+  <path d="M74,86 Q90,100 92,118 Q90,124 85,121 Q82,106 72,95" fill="#E8A87C"></path>
+</svg>

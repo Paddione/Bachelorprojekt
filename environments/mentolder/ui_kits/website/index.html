@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8" />
+<title>Mentolder — Website UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css" />
+<link rel="stylesheet" href="kit.css" />
+</head>
+<body>
+
+<header class="kit-head">
+  <div class="kit-brand">
+    <img src="../../assets/logo-mark.png" alt="" />
+    <span class="kit-name">mentolder<span class="dot">.</span></span>
+    <span class="kit-tag">Website UI Kit</span>
+  </div>
+  <p class="kit-lede">Live components used across the Mentolder website. Every block here is copy-paste-ready and references only tokens from <code>colors_and_type.css</code>.</p>
+</header>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">01 — Navigation</span><h2>Top bar</h2></div>
+
+  <div class="kit-frame">
+    <nav class="nav">
+      <a class="nav-brand" href="#"><img src="../../assets/logo-mark.png" alt="" /><span>mentolder<span class="dot">.</span></span></a>
+      <ul class="nav-links">
+        <li><a href="#" class="active">Mentoring</a></li>
+        <li><a href="#">Coaching</a></li>
+        <li><a href="#">Über mich</a></li>
+        <li><a href="#">Briefe</a></li>
+      </ul>
+      <a class="btn btn-primary btn-sm" href="#">Termin sichern <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+    </nav>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">02 — Buttons</span><h2>Actions &amp; links</h2></div>
+
+  <div class="kit-grid kit-grid-3">
+    <div class="kit-cell">
+      <span class="kit-label">Primary</span>
+      <a class="btn btn-primary" href="#">Termin sichern <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      <a class="btn btn-primary btn-sm" href="#">Anmelden</a>
+    </div>
+    <div class="kit-cell">
+      <span class="kit-label">Secondary</span>
+      <a class="btn btn-secondary" href="#">Mehr lesen</a>
+      <a class="btn btn-ghost" href="#">Zurück</a>
+    </div>
+    <div class="kit-cell">
+      <span class="kit-label">Inline link</span>
+      <a class="link" href="#">Brief abonnieren</a>
+      <a class="link link-arrow" href="#">Alle Themen <span aria-hidden>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">03 — Forms</span><h2>Fields &amp; inputs</h2></div>
+
+  <div class="kit-grid kit-grid-2">
+    <form class="form-card" onsubmit="event.preventDefault();">
+      <div class="form-row"><label>Name</label><input type="text" value="Andrea Müller" /></div>
+      <div class="form-row"><label>E-Mail</label><input type="email" placeholder="ihre@email.de" /></div>
+      <div class="form-row"><label>Anliegen</label><textarea rows="3" placeholder="Worüber möchten Sie sprechen?"></textarea></div>
+      <div class="form-row form-check">
+        <label class="check"><input type="checkbox" checked /><span class="box"></span>Ich habe die Datenschutz­erklärung gelesen.</label>
+      </div>
+      <button class="btn btn-primary" type="submit">Anfrage senden</button>
+    </form>
+
+    <div class="form-card">
+      <span class="t-eyebrow">Newsletter</span>
+      <h3 class="t-h3-serif" style="margin-top:10px;">Monatlicher Brief.</h3>
+      <p class="t-body" style="margin-top:6px;">Eine Mail pro Monat. Drei Fragen, ein Gedanke, kein Marketing-Geräusch.</p>
+      <div class="inline-input">
+        <input type="email" placeholder="ihre@email.de" />
+        <button class="btn btn-primary btn-sm">Abonnieren</button>
+      </div>
+      <p class="t-small" style="margin-top:12px;">Jederzeit kündbar. Kein Spam — Ehrenwort.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">04 — Cards</span><h2>Editorial blocks</h2></div>
+
+  <div class="kit-grid kit-grid-3">
+
+    <article class="card card-offer">
+      <span class="badge">Paket S</span>
+      <h3 class="t-h3-serif">Erste <em>Klarheit.</em></h3>
+      <p class="t-body">Drei Sessions, ein klares Profil. Für alle, die einen Schritt vor sich sehen — aber noch nicht den Weg.</p>
+      <dl class="card-meta">
+        <div><dt>Sessions</dt><dd>3 × 90 Min.</dd></div>
+        <div><dt>Investition</dt><dd>450 €</dd></div>
+      </dl>
+      <a class="link link-arrow" href="#">Details <span aria-hidden>→</span></a>
+    </article>
+
+    <article class="card card-offer card-accent">
+      <span class="badge badge-brass">Paket M · beliebt</span>
+      <h3 class="t-h3-serif">Strategischer <em>Wechsel.</em></h3>
+      <p class="t-body">Sechs Sessions plus Intensiv-Tag. Profil-Schärfung, Headhunter-Vorbereitung, Verhandlung — Ende-zu-Ende.</p>
+      <dl class="card-meta">
+        <div><dt>Sessions</dt><dd>6 + Intensiv</dd></div>
+        <div><dt>Investition</dt><dd>1.450 €</dd></div>
+      </dl>
+      <a class="link link-arrow" href="#">Details <span aria-hidden>→</span></a>
+    </article>
+
+    <article class="card card-offer">
+      <span class="badge">Paket L</span>
+      <h3 class="t-h3-serif">Begleitete <em>Transition.</em></h3>
+      <p class="t-body">Sechs Monate, monatliche Sessions plus Verfügbarkeit zwischendurch. Für die ersten 100 Tage in einer neuen Rolle.</p>
+      <dl class="card-meta">
+        <div><dt>Sessions</dt><dd>monatlich</dd></div>
+        <div><dt>Investition</dt><dd>auf Anfrage</dd></div>
+      </dl>
+      <a class="link link-arrow" href="#">Details <span aria-hidden>→</span></a>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">05 — Quote &amp; testimonials</span><h2>Social proof</h2></div>
+
+  <div class="kit-grid kit-grid-2">
+    <figure class="quote">
+      <blockquote>Gerald hat in vier Sessions geschafft, woran ich Monate gescheitert bin: mir die Frage zu stellen, die ich vermieden habe.</blockquote>
+      <figcaption>
+        <span class="quote-name">Andrea Müller</span>
+        <span class="quote-role">Geschäftsführerin · mittelständischer Industrie-Zulieferer</span>
+      </figcaption>
+    </figure>
+
+    <figure class="quote quote-compact">
+      <blockquote>Kein Buzzword-Coaching. Klare Fragen, klare Notizen, klare Schritte.</blockquote>
+      <figcaption>
+        <span class="quote-name">Thomas K.</span>
+        <span class="quote-role">Bereichsleiter · Norddeutschland</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">06 — Stats &amp; meta</span><h2>Numbers, badges, lists</h2></div>
+
+  <div class="kit-grid kit-grid-4 kit-stat-grid">
+    <div class="stat"><div class="t-stat"><em>22</em></div><div class="stat-label">Jahre Vertrieb &amp; Führung</div></div>
+    <div class="stat"><div class="t-stat"><em>140+</em></div><div class="stat-label">Begleitete Mandate</div></div>
+    <div class="stat"><div class="t-stat"><em>96%</em></div><div class="stat-label">Empfehlungs­quote</div></div>
+    <div class="stat"><div class="t-stat"><em>04</em></div><div class="stat-label">Wochen bis erste Klarheit</div></div>
+  </div>
+
+  <div class="kit-grid kit-grid-3" style="margin-top:32px;">
+    <ul class="bullet-list">
+      <li><span class="bullet">·</span>Kostenloses Erstgespräch (45 Min.)</li>
+      <li><span class="bullet">·</span>Persönlich in Lüneburg oder online</li>
+      <li><span class="bullet">·</span>Vertraulichkeit · §4 Coaching-Vertrag</li>
+      <li><span class="bullet">·</span>Keine Erfolgs­garantie — dafür Klartext</li>
+    </ul>
+
+    <div class="badges">
+      <span class="badge">Verfügbar Mai</span>
+      <span class="badge badge-brass">3 Plätze frei</span>
+      <span class="badge badge-ghost">Online &amp; vor Ort</span>
+      <span class="badge badge-sage">Kleinunternehmer §19</span>
+    </div>
+
+    <div class="meta-block">
+      <span class="t-kicker">Region</span>
+      <p class="t-body" style="margin-top:6px;">Lüneburg · Hamburg<br/>Hannover · online überall</p>
+      <span class="t-kicker" style="margin-top:18px;display:block;">Sprache</span>
+      <p class="t-body" style="margin-top:6px;">Deutsch · English on request</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">07 — Process</span><h2>Numbered steps</h2></div>
+
+  <ol class="steps">
+    <li class="step"><span class="step-num">01</span><div><h4>Erstgespräch</h4><p>45 Minuten, kostenlos. Wir schauen, ob Chemie und Anlass passen — sonst empfehle ich jemand anderen.</p></div></li>
+    <li class="step"><span class="step-num">02</span><div><h4>Auftrag schärfen</h4><p>Wir formulieren das Ziel so präzise, dass Sie es selbst in einem Satz sagen können. Ohne diesen Satz fangen wir nicht an.</p></div></li>
+    <li class="step"><span class="step-num">03</span><div><h4>Sessions</h4><p>Drei bis sechs Termine, je 90 Minuten. Strukturiert, dokumentiert, mit Hausaufgaben — die Sie wirklich machen.</p></div></li>
+    <li class="step"><span class="step-num">04</span><div><h4>Übergabe</h4><p>Eine schriftliche Zusammenfassung, ein Rückspiegel-Termin nach 90 Tagen. Dann sind Sie selbst dran.</p></div></li>
+  </ol>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">08 — FAQ</span><h2>Accordion</h2></div>
+
+  <div class="faq">
+    <details class="faq-item" open><summary>Für wen ist das nichts?<span class="chev"></span></summary><div class="faq-body">Für Menschen in akuten Krisen — da hilft Therapie. Für reine Bewerbungs-Optimierung — dafür gibt es bessere Spezialisten. Für Coaching-Touristen, die monatelang reden ohne zu entscheiden.</div></details>
+    <details class="faq-item"><summary>Wie schnell bekomme ich einen Termin?<span class="chev"></span></summary><div class="faq-body">Erstgespräche meist innerhalb von zwei Wochen. Reguläre Sessions je nach Auslastung — aktuell 3 Plätze frei für Mai.</div></details>
+    <details class="faq-item"><summary>Online oder persönlich?<span class="chev"></span></summary><div class="faq-body">Beides funktioniert. Mein Eindruck: die ersten zwei Termine persönlich, danach hybrid. Wer in Hamburg, Hannover oder Lüneburg sitzt, bekommt das leicht hin.</div></details>
+    <details class="faq-item"><summary>Was passiert mit meinen Daten?<span class="chev"></span></summary><div class="faq-body">Notizen bleiben handschriftlich oder verschlüsselt. Keine Cloud-Tools mit US-Servern. Nach Mandatsende werden Unterlagen auf Wunsch vernichtet.</div></details>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="kit-section">
+  <div class="kit-section-head"><span class="t-eyebrow">09 — Footer</span><h2>Page foot</h2></div>
+
+  <div class="kit-frame kit-frame-dark">
+    <footer class="footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="nav-brand" href="#"><img src="../../assets/logo-mark.png" alt="" /><span>mentolder<span class="dot">.</span></span></a>
+          <p class="t-body" style="margin-top:14px;max-width:34ch;">Mentoring &amp; Coaching für erfahrene Führungskräfte. Lüneburg, seit 2019.</p>
+        </div>
+        <div class="footer-cols">
+          <div><h5>Angebot</h5><ul><li><a href="#">Mentoring</a></li><li><a href="#">Coaching</a></li><li><a href="#">Pakete</a></li><li><a href="#">Erstgespräch</a></li></ul></div>
+          <div><h5>Über</h5><ul><li><a href="#">Gerald</a></li><li><a href="#">Werte</a></li><li><a href="#">Briefe</a></li></ul></div>
+          <div><h5>Rechtliches</h5><ul><li><a href="#">Impressum</a></li><li><a href="#">Datenschutz</a></li><li><a href="#">AGB</a></li></ul></div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Mentolder · Gerald Korczewski · Lüneburg</span>
+        <span class="t-mono">v. 2026.04 — handgemacht in Niedersachsen</span>
+      </div>
+    </footer>
+  </div>
+</section>
+
+<footer class="kit-foot">
+  <span class="t-mono t-small">Mentolder Website UI Kit · 2026.04</span>
+</footer>
+
+</body></html>

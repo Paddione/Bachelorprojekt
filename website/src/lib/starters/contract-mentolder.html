@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8" />
+<title>Mentolder — Coaching-Vertrag</title>
+<link rel="stylesheet" href="/brand/mentolder/colors_and_type.css" />
+<link rel="stylesheet" href="/brand/mentolder/print.css" />
+<style>
+.contract h3{margin-top:22px;}
+.contract p{margin:8px 0;color:#3a4150;line-height:1.65;}
+.contract ul{margin:8px 0;padding-left:18px;color:#3a4150;}
+.contract li{margin:4px 0;line-height:1.6;}
+.sign{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:48px;}
+.sign .line{height:1px;background:var(--paper-line);margin-top:48px;}
+.sign .lab{margin-top:8px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-mute);}
+.clause{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#A8823A;display:block;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div class="page contract">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div class="brand-row"><img src="/icon-128.png" alt="" /><span class="name">mentolder<span class="dot">.</span></span></div>
+    <div style="text-align:right;">
+      <div class="eyebrow-print">Coaching-Vertrag</div>
+      <h2 class="print" style="margin-top:8px;">Nr. {{KUNDENNUMMER}}</h2>
+      <div class="kicker-print" style="margin-top:6px;">Lüneburg · {{DATUM}}</div>
+    </div>
+  </div>
+
+  <hr class="rule" style="margin:32px 0 28px;" />
+
+  <h1 class="print">Vereinbarung über <em>Führungskräfte-Coaching.</em></h1>
+  <p class="muted" style="margin-top:14px;font-size:14px;line-height:1.65;max-width:60ch;">
+    zwischen <strong>Gerald Korczewski</strong> (im Folgenden „Coach"), Bardowicker Straße 14, 21335 Lüneburg, und <strong>{{KUNDENNAME}}</strong> (im Folgenden „Klient/in"), {{FIRMA}}, {{ADRESSE}}.
+  </p>
+
+  <h3 class="print"><span class="clause">§ 1 — Gegenstand</span>Was ich für Sie tue.</h3>
+  <p>Der Coach begleitet die/den Klienten/in in sechs (6) Coaching-Sessions à 90 Minuten zur strategischen Neuausrichtung der beruflichen Position. Inhalte sind Profil-Schärfung, Vorbereitung auf Headhunter-Gespräche, Karriere-Strategie und Timing.</p>
+
+  <h3 class="print"><span class="clause">§ 2 — Zeitraum &amp; Format</span>Wann und wie wir arbeiten.</h3>
+  <p>Die Sessions finden zwischen dem <strong>{{STARTDATUM}}</strong> und dem <strong>{{ENDDATUM}}</strong> statt — wahlweise persönlich in Lüneburg oder online per Videokonferenz. Termine werden gemeinsam abgestimmt; eine Verschiebung mit weniger als 48 Stunden Vorlauf wird voll berechnet.</p>
+
+  <h3 class="print"><span class="clause">§ 3 — Vergütung</span>Was Sie investieren.</h3>
+  <ul>
+    <li>Paket S — 6 Sessions: <strong>{{BETRAG}} netto</strong> (Kleinunternehmer §19 UStG)</li>
+    <li>Fällig in zwei Raten: 50 % nach Vertragsschluss, 50 % nach der dritten Session.</li>
+    <li>Reisekosten außerhalb von Lüneburg nach Aufwand, vorab abgestimmt.</li>
+  </ul>
+
+  <h3 class="print"><span class="clause">§ 4 — Vertraulichkeit</span>Was zwischen uns bleibt.</h3>
+  <p>Alle Inhalte der Sessions sind streng vertraulich. Der Coach verpflichtet sich, keinerlei Informationen ohne ausdrückliche schriftliche Zustimmung der/des Klienten/in an Dritte weiterzugeben. Diese Verpflichtung gilt unbefristet über das Ende der Zusammenarbeit hinaus.</p>
+
+  <h3 class="print"><span class="clause">§ 5 — Verantwortung</span>Was Coaching nicht ersetzt.</h3>
+  <p>Coaching ist Begleitung, keine Therapie und keine Rechts- oder Steuerberatung. Entscheidungen trifft die/der Klient/in eigenverantwortlich. Der Coach übernimmt keine Erfolgsgarantie für berufliche Veränderungen.</p>
+
+  <h3 class="print"><span class="clause">§ 6 — Kündigung</span>Wenn es nicht passt.</h3>
+  <p>Beide Parteien können den Vertrag jederzeit schriftlich kündigen. Bereits durchgeführte Sessions werden anteilig abgerechnet; nicht begonnene Sessions werden nicht in Rechnung gestellt.</p>
+
+  <h3 class="print"><span class="clause">§ 7 — Schlussbestimmungen</span>Zur Vollständigkeit.</h3>
+  <p>Es gilt deutsches Recht. Gerichtsstand ist Lüneburg. Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im Übrigen wirksam.</p>
+
+  <div class="sign">
+    <div><div class="line"></div><div class="lab">Gerald Korczewski · Coach</div></div>
+    <div><div class="line"></div><div class="lab">{{VORNAME}} {{NACHNAME}} · Klient/in</div></div>
+  </div>
+
+  <div class="foot-print">
+    <div><h5>Mentolder</h5><p>Gerald Korczewski</p><p>Bardowicker Straße 14</p><p>21335 Lüneburg</p></div>
+    <div><h5>Kontakt</h5><p>info@mentolder.de</p><p>+49 151 508 32 601</p><p>mentolder.de</p></div>
+    <div><h5>Rechtliches</h5><p>USt-IdNr. DE123456789</p><p>§19 UStG · Kleinunternehmer</p><p>Stand {{Stand}}</p></div>
+  </div>
+</div>
+</body></html>

@@ -93,6 +93,6 @@ const initialData = JSON.parse(JSON.stringify({
       <h1 class="text-3xl font-bold text-light font-serif">Inhalte</h1>
       <p class="text-muted mt-1 text-sm">Website, Newsletter, Fragebögen und Vertragsvorlagen</p>
     </div>
-    <InhalteEditor {initialData} {rechnungsvorlagen} client:load />
+    <InhalteEditor {initialData} {rechnungsvorlagen} brand={BRAND} client:load />
   </section>
 </AdminLayout>

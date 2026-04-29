@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Kore — Dienstleistungsvertrag</title>
+<link rel="stylesheet" href="/brand/korczewski/colors_and_type.css">
+<link rel="stylesheet" href="/brand/korczewski/app.css">
+<style>
+  body{padding:48px 28px 96px;}
+
+  .contract{max-width:880px; margin:0 auto; background:var(--paper); color:var(--ink-text); border-radius:var(--r-paper); box-shadow:var(--shadow-paper); position:relative; overflow:hidden;}
+  .contract::before{content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(50% 35% at 100% 0%, rgba(200,247,106,.16), transparent 60%), radial-gradient(45% 35% at 0% 100%, rgba(91,212,208,.10), transparent 60%); z-index:0;}
+  .contract > *{position:relative; z-index:1;}
+
+  .cover{padding:64px 64px 56px; border-bottom:1px solid var(--line-paper); display:grid; grid-template-columns:1fr auto; gap:32px; align-items:flex-start;}
+  .cover img{display:block;}
+  .cover .id{text-align:right;}
+  .cover .id .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--copper-print);}
+  .cover .id .num{font-family:var(--mono); font-size:14px; color:var(--ink-text); margin-top:6px; letter-spacing:.06em;}
+  .cover .id .v{font-family:var(--mono); font-size:11px; color:var(--ink-mute); margin-top:6px;}
+
+  .cover .title{grid-column:1 / -1; margin-top:36px;}
+  .cover .title .eye{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--copper-print); display:inline-flex; gap:10px; align-items:center;}
+  .cover .title .eye::before{content:""; width:22px; height:1px; background:currentColor;}
+  .cover .title h1{font-family:var(--serif); font-weight:400; font-size:64px; letter-spacing:-0.025em; line-height:1.02; margin:14px 0 0; max-width:18ch;}
+  .cover .title h1 em{font-style:italic; color:var(--copper-print);}
+  .cover .title .lede{font-family:var(--sans); font-size:16px; line-height:1.55; color:var(--ink-soft); margin:18px 0 0; max-width:60ch;}
+
+  .parties{grid-column:1 / -1; margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:32px;}
+  .party{padding:22px 24px; background:rgba(15,8,28,.04); border:1px solid var(--line-paper); border-radius:12px;}
+  .party .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute);}
+  .party .nm{font-family:var(--serif); font-size:24px; margin-top:8px; letter-spacing:-0.01em;}
+  .party .nm em{font-style:italic; color:var(--copper-print);}
+  .party .meta{font-family:var(--mono); font-size:11px; line-height:1.7; color:var(--ink-mute); margin-top:8px; letter-spacing:.04em;}
+  .party .role{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper-print); margin-top:10px;}
+
+  .body-c{padding:48px 64px;}
+  .body-c .preamble{font-family:var(--serif); font-style:italic; font-size:18px; line-height:1.6; color:var(--ink-soft); padding:24px 28px; border-left:2px solid var(--copper-print); margin-bottom:40px;}
+  .body-c .preamble em{color:var(--copper-print); font-style:italic;}
+
+  .clause{display:grid; grid-template-columns:80px 1fr; gap:24px; padding:24px 0; border-top:1px solid var(--line-paper);}
+  .clause:first-of-type{border-top:0; padding-top:0;}
+  .clause .num{font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--copper-print); text-transform:uppercase; padding-top:4px;}
+  .clause h3{font-family:var(--serif); font-weight:400; font-size:24px; letter-spacing:-0.01em; margin:0 0 10px;}
+  .clause h3 em{font-style:italic; color:var(--copper-print);}
+  .clause p{font-family:var(--sans); font-size:14.5px; line-height:1.65; color:var(--ink-text); margin:0 0 10px;}
+  .clause p:last-child{margin-bottom:0;}
+  .clause em.kw{font-style:italic; color:var(--copper-print);}
+  .clause .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px;}
+  .clause .term{padding:14px 16px; background:rgba(15,8,28,.04); border-radius:8px; border:1px solid var(--line-paper);}
+  .clause .term .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-mute);}
+  .clause .term .v{font-family:var(--serif); font-size:22px; margin-top:4px; letter-spacing:-0.005em; color:var(--ink-text);}
+  .clause .term .v em{font-style:italic; color:var(--copper-print);}
+  .clause .term .v .u{font-family:var(--mono); font-size:11px; color:var(--ink-mute); margin-left:3px;}
+
+  .clause ul{margin:6px 0 0; padding:0; list-style:none;}
+  .clause ul li{font-family:var(--sans); font-size:14.5px; line-height:1.65; color:var(--ink-text); padding:6px 0 6px 22px; position:relative;}
+  .clause ul li::before{content:""; position:absolute; left:0; top:14px; width:12px; height:1px; background:var(--copper-print);}
+
+  .sigs{padding:48px 64px 56px; border-top:1px solid var(--line-paper); display:grid; grid-template-columns:1fr 1fr; gap:48px;}
+  .sig-box .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute);}
+  .sig-box .line{margin-top:42px; padding-bottom:8px; border-bottom:1px solid var(--ink-text); font-family:"Instrument Serif", Georgia, serif; font-style:italic; font-size:32px; color:var(--copper-print); letter-spacing:0;}
+  .sig-box .name{font-family:var(--mono); font-size:11px; color:var(--ink-text); margin-top:10px; letter-spacing:.06em;}
+  .sig-box .name b{font-family:var(--sans); font-size:14px; color:var(--ink-text); display:block; margin-bottom:2px; font-weight:500; letter-spacing:0;}
+  .sig-box .role{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-mute); margin-top:4px;}
+  .sig-box .meta{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line-paper); font-family:var(--mono); font-size:10px; line-height:1.6; color:var(--ink-mute); letter-spacing:.04em;}
+
+  .foot-rule{padding:18px 64px 28px; display:flex; justify-content:space-between; gap:18px; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-mute); border-top:1px solid var(--line-paper);}
+</style>
+</head>
+<body>
+<main>
+  <article class="contract">
+    <div class="cover">
+      <img src="/brand/korczewski/logo-lockup-light.svg" width="200" height="60" alt="Kore">
+      <div class="id">
+        <div class="lab">Dienstleistungsvertrag</div>
+        <div class="num">{{KUNDENNUMMER}}</div>
+        <div class="v">Stand {{Stand}} · {{DATUM}}</div>
+      </div>
+
+      <div class="title">
+        <span class="eye">Reliability retainer · 12 Monate</span>
+        <h1>Zuverlässiger Betrieb, <em>in Ihrem Auftrag.</em></h1>
+        <p class="lede">
+          Ein verständlicher Rahmenvertrag für den laufenden Betrieb Ihrer Infrastruktur. Klare SLOs, transparente Vergütung, keine Überraschungen.
+        </p>
+      </div>
+
+      <div class="parties">
+        <div class="party">
+          <div class="lab">Auftragnehmer</div>
+          <div class="nm">Kore<em>.</em></div>
+          <div class="meta">K. KORCZEWSKI<br>BERLIN · DE<br>USt-ID DE-348-991-204</div>
+          <div class="role">Vertreten durch K. Korczewski</div>
+        </div>
+        <div class="party">
+          <div class="lab">Auftraggeber</div>
+          <div class="nm">{{FIRMA}}</div>
+          <div class="meta">{{ADRESSE}}<br>{{EMAIL}}</div>
+          <div class="role">Vertreten durch {{KUNDENNAME}}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="body-c">
+      <div class="preamble">
+        Die Parteien wollen die Infrastruktur <em>stabil,</em> die Bereitschaftszeiten <em>ruhig</em> und das Runbook so verständlich halten, dass ein Junior-SRE einen P2-Vorfall allein um 03:00 Uhr lösen kann. Dieses Dokument hält fest, was jede Partei tut, wann und zu welchem Preis.
+      </div>
+
+      <div class="clause">
+        <span class="num">§01</span>
+        <div>
+          <h3>Leistungs<em>umfang</em></h3>
+          <p>Der Auftragnehmer betreibt die unter <em class="kw">{{CLUSTER_ID}}</em> geführte Infrastruktur, einschließlich Control Plane, Worker Nodes und der im Repository des Auftraggebers verwalteten Manifeste.</p>
+          <ul>
+            <li>Sicherstellung der Control-Plane-Verfügbarkeit gemäß den SLOs in §03.</li>
+            <li>Aktualisierung des Runbooks innerhalb von sieben Kalendertagen nach jeder Änderung.</li>
+            <li>Triage und Behebung von Incidents gemäß den Reaktionszeiten in §04.</li>
+            <li>Übergabe aller Artefakte im Klartextformat bei Vertragsende — kein Vendor Lock-in.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="clause">
+        <span class="num">§02</span>
+        <div>
+          <h3>Laufzeit &amp; <em>Vergütung</em></h3>
+          <p>Der Vertrag läuft für zwölf Kalendermonate ab dem Startdatum und verlängert sich anschließend monatlich. Beide Parteien können mit dreißig Tagen schriftlicher Frist kündigen.</p>
+          <div class="grid2">
+            <div class="term"><div class="k">Startdatum</div><div class="v">{{STARTDATUM}}</div></div>
+            <div class="term"><div class="k">Laufzeit</div><div class="v">12<span class="u">Mo</span> · auto-renew</div></div>
+            <div class="term"><div class="k">Monatliches Retainer</div><div class="v">{{BETRAG}}<span class="u">/Mo</span></div></div>
+            <div class="term"><div class="k">Incident-Rate</div><div class="v">{{STUNDENSATZ}}<span class="u">/h</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clause">
+        <span class="num">§03</span>
+        <div>
+          <h3>Service Level <em>Objectives</em></h3>
+          <p>Gemessen monatlich, zum Kalendermonatsende, in der Zeitzone Europe/Berlin.</p>
+          <div class="grid2">
+            <div class="term"><div class="k">Control-Plane-Verfügbarkeit</div><div class="v">99.95<span class="u">%</span></div></div>
+            <div class="term"><div class="k">P1-Bestätigung</div><div class="v">≤ 15<span class="u">min</span></div></div>
+            <div class="term"><div class="k">P1-Erstreaktion</div><div class="v">≤ 30<span class="u">min</span></div></div>
+            <div class="term"><div class="k">Runbook-Aktualität</div><div class="v">≤ 7<span class="u">Tage</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clause">
+        <span class="num">§04</span>
+        <div>
+          <h3>Bereitschaft &amp; <em>Reaktionszeiten</em></h3>
+          <p>Die Bereitschaft des Auftragnehmers umfasst <em class="kw">07:00–23:00 Europe/Berlin</em>, sieben Tage die Woche. Außerhalb dieses Fensters werden P1-Incidents innerhalb von dreißig Minuten bestätigt; niedrigere Prioritäten folgen am nächsten Werktag.</p>
+        </div>
+      </div>
+
+      <div class="clause">
+        <span class="num">§05</span>
+        <div>
+          <h3>Vertraulichkeit &amp; <em>Datenschutz</em></h3>
+          <p>Der Auftragnehmer behandelt alle Konfigurationen, Manifeste und Incident-Details als vertraulich. Keine Produktionsdaten werden außerhalb der EU ohne vorherige schriftliche Zustimmung verarbeitet.</p>
+        </div>
+      </div>
+
+      <div class="clause">
+        <span class="num">§06</span>
+        <div>
+          <h3>Haftung &amp; <em>Haftungsbeschränkung</em></h3>
+          <p>Die Gesamthaftung des Auftragnehmers ist auf die in den vorangegangenen zwölf Monaten gezahlten Vergütungen begrenzt. Diese Beschränkung gilt nicht bei Vorsatz oder grober Fahrlässigkeit.</p>
+        </div>
+      </div>
+
+      <div class="clause">
+        <span class="num">§07</span>
+        <div>
+          <h3>Anwendbares <em>Recht</em></h3>
+          <p>Es gilt deutsches Recht. Ausschließlicher Gerichtsstand ist Berlin.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sigs">
+      <div class="sig-box">
+        <div class="lab">Für Kore.</div>
+        <div class="line">K. Korczewski</div>
+        <div class="name"><b>K. Korczewski</b><span>Operator · Gründer</span></div>
+        <div class="role">Unterzeichnet in Berlin</div>
+        <div class="meta">{{DATUM}}</div>
+      </div>
+      <div class="sig-box">
+        <div class="lab">Für {{FIRMA}}</div>
+        <div class="line" style="color:var(--ink-mute);border-bottom-style:dashed;"></div>
+        <div class="name" style="margin-top:0;"><b>{{VORNAME}} {{NACHNAME}}</b><span>{{TELEFON}}</span></div>
+        <div class="role">{{EMAIL}}</div>
+        <div class="meta">Ort, Datum</div>
+      </div>
+    </div>
+
+    <div class="foot-rule">
+      <span>Seite 1 / 1</span>
+      <span>Dienstleistungsvertrag · {{KUNDENNUMMER}}</span>
+      <span>Stand {{Stand}}</span>
+    </div>
+  </article>
+</main>
+</body>
+</html>

@@ -35,7 +35,7 @@
     customSections: CustomSectionType[];
   };
 
-  let { initialData, rechnungsvorlagen }: { initialData: InitialData; rechnungsvorlagen: RechnungsvorlagenData } = $props();
+  let { initialData, rechnungsvorlagen, brand = 'mentolder' }: { initialData: InitialData; rechnungsvorlagen: RechnungsvorlagenData; brand?: string } = $props();
 
   type RechnungsvorlagenData = {
     invoice_intro_text: string;
@@ -186,6 +186,18 @@
     {:else if activeTab === 'fragebogen'}
       <div class="pt-6 pb-20">
         <QuestionnaireTemplateEditor />
+        <div class="mt-8 pt-6 border-t border-dark-lighter/60">
+          <p class="text-xs text-muted mb-2 font-mono uppercase tracking-widest">Druckvorlage</p>
+          <a
+            href="/brand/{brand}/starters/questionnaire.html"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 text-sm text-muted hover:text-gold transition-colors"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M17 17H17.01M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 8v6m-3-3h6"/></svg>
+            Branded Druckvorlage öffnen &amp; drucken
+          </a>
+        </div>
       </div>
     {:else if activeTab === 'vertraege'}
       <div class="pt-6 pb-20">

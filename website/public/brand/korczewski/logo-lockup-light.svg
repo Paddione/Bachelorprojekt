@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" width="320" height="96">
+  <defs>
+    <radialGradient id="coreGlowP" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C8F76A" stop-opacity="0.55"></stop>
+      <stop offset="100%" stop-color="#6B8B1F" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <rect x="8" y="8" width="80" height="80" rx="18" ry="18" fill="#EDE6D8"></rect>
+  <circle cx="48" cy="48" r="26" fill="url(#coreGlowP)"></circle>
+  <circle cx="48" cy="48" r="20" fill="none" stroke="#6B8B1F" stroke-opacity=".25" stroke-width="1"></circle>
+  <circle cx="48" cy="48" r="14" fill="none" stroke="#6B8B1F" stroke-opacity=".4" stroke-width="1"></circle>
+  <g stroke="#6B8B1F" stroke-linecap="round" fill="none">
+    <line x1="33" y1="18" x2="33" y2="78" stroke-width="6.5"></line>
+    <line x1="34" y1="48" x2="70" y2="22" stroke-width="6"></line>
+    <line x1="34" y1="48" x2="70" y2="74" stroke-width="6"></line>
+  </g>
+  <circle cx="34" cy="48" r="5" fill="#8FBE2E"></circle>
+  <circle cx="34" cy="48" r="8" fill="none" stroke="#8FBE2E" stroke-opacity=".5" stroke-width="1"></circle>
+  <text x="106" y="62" font-family="Instrument Serif, Georgia, serif" font-size="42" font-weight="400" fill="#16101E" letter-spacing="-0.5">Kore<tspan fill="#6B8B1F">.</tspan></text>
+</svg>

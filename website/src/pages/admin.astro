@@ -56,22 +56,36 @@ const traefikUrl  = process.env.TRAEFIK_EXTERNAL_URL ?? '';
 const mailUrl     = process.env.MAIL_EXTERNAL_URL ?? '';
 const bretDomain  = process.env.BRETT_DOMAIN ?? '';
 const bretUrl     = bretDomain ? `https://${bretDomain}` : '';
+const SVG = {
+  inbox:      `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
+  folder:     `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5h5L8 3h6.5v9.5a1 1 0 0 1-1 1h-12a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"/></svg>`,
+  calendar:   `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3"/></svg>`,
+  contacts:   `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5" r="2.5"/><path d="M1 14a4.5 4.5 0 0 1 9 0"/><circle cx="12" cy="5" r="2"/><path d="M14.5 13a3.5 3.5 0 0 0-3.5-3"/></svg>`,
+  video:      `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="9" height="8" rx="1"/><path d="M10 6.5l4-2v7l-4-2"/></svg>`,
+  brett:      `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M8 5v6M5 8h6"/></svg>`,
+  receipt:    `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.5h8v13l-2-1.5-2 1.5-2-1.5-2 1.5z"/><path d="M6 6h4M6 8.5h4M6 11h2"/></svg>`,
+  lock:       `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="8" rx="1"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/></svg>`,
+  key:        `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="7" r="3.5"/><path d="M8.5 9.5l5.5 5.5M11 12l2-2"/></svg>`,
+  book:       `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3"/><path d="M3 2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1"/><path d="M8 6h3M8 9h3"/></svg>`,
+  network:    `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="3" r="1.5"/><circle cx="2.5" cy="12" r="1.5"/><circle cx="13.5" cy="12" r="1.5"/><path d="M8 4.5v3M8 7.5l-4.5 3M8 7.5l4.5 3"/></svg>`,
+  mail:       `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 4.5l6 4.5 6-4.5"/></svg>`,
+};
+
 const adminLinks = [
-  { href: '/admin/inbox', label: 'Inbox', icon: '📬' },
+  { href: '/admin/inbox', label: 'Inbox', icon: SVG.inbox },
   ...(ncBase ? [
-    { href: `${ncBase}/apps/files/`,      label: 'Dateien',    icon: '📁' },
-    { href: `${ncBase}/apps/calendar/`,   label: 'Kalender',   icon: '📅' },
-    { href: `${ncBase}/apps/contacts/`,   label: 'Kontakte',   icon: '👥' },
-    { href: `${ncBase}/apps/spreed/`,     label: 'Talk',       icon: '🎥' },
+    { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: SVG.folder },
+    { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: SVG.calendar },
+    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte', icon: SVG.contacts },
+    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: SVG.video },
   ] : []),
-  ...(wbUrl    ? [{ href: wbUrl,    label: 'Whiteboard', icon: '🖊️' }] : []),
-  ...(bretUrl  ? [{ href: bretUrl,  label: 'Brett',      icon: '🪄' }] : []),
-  { href: '/admin/rechnungen', label: 'Abrechnung', icon: '🧾' },
-  ...(vaultUrl    ? [{ href: vaultUrl,          label: 'Passwörter', icon: '🔐' }] : []),
-  ...(authUrl     ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak', icon: '🔑' }] : []),
-  ...(docsUrl     ? [{ href: docsUrl,           label: 'Docs',       icon: '📖' }] : []),
-  ...(traefikUrl  ? [{ href: traefikUrl,        label: 'Traefik',    icon: '🛣️' }] : []),
-  ...(mailUrl     ? [{ href: mailUrl,            label: 'Mailpit',    icon: '✉️' }] : []),
+  ...(bretUrl  ? [{ href: bretUrl, label: 'Brett', icon: SVG.brett }] : []),
+  { href: '/admin/rechnungen', label: 'Abrechnung', icon: SVG.receipt },
+  ...(vaultUrl   ? [{ href: vaultUrl,                                 label: 'Passwörter', icon: SVG.lock }] : []),
+  ...(authUrl    ? [{ href: `${authUrl}/admin/workspace/console/`,    label: 'Keycloak',   icon: SVG.key }] : []),
+  ...(docsUrl    ? [{ href: docsUrl,                                  label: 'Docs',       icon: SVG.book }] : []),
+  ...(traefikUrl ? [{ href: traefikUrl,                               label: 'Traefik',    icon: SVG.network }] : []),
+  ...(mailUrl    ? [{ href: mailUrl,                                  label: 'Mailpit',    icon: SVG.mail }] : []),
 ];
 ---
 

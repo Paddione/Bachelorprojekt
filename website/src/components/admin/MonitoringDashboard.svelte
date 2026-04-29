@@ -2,19 +2,20 @@
   import { onMount } from 'svelte';
   import ClusterTab from './monitoring/ClusterTab.svelte';
   import DeploymentsTab from './monitoring/DeploymentsTab.svelte';
-  import TestsTab from './monitoring/TestsTab.svelte';
-
+  import TasksTab from './monitoring/TasksTab.svelte';
   import OverviewTab from './monitoring/OverviewTab.svelte';
-  import BerichteTab from './monitoring/BerichteTab.svelte';
+  import BugsTab from './monitoring/BugsTab.svelte';
+  import TrackingTab from './monitoring/TrackingTab.svelte';
 
-  type Tab = 'overview' | 'cluster' | 'tests' | 'deployments' | 'berichte';
+  export let trackingUrl: string = '';
+
+  type Tab = 'overview' | 'cluster' | 'deployments' | 'tasks' | 'bugs' | 'tracking';
 
   let activeTab: Tab = 'overview';
 
-  // Allow deep-linking via hash: /admin/monitoring#tests
   onMount(() => {
     const hash = location.hash.slice(1) as Tab;
-    if (['overview', 'cluster', 'tests', 'deployments', 'berichte'].includes(hash)) {
+    if (['overview', 'cluster', 'deployments', 'tasks', 'bugs', 'tracking'].includes(hash)) {
       activeTab = hash;
     }
   });
@@ -25,11 +26,12 @@
   }
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'overview', label: 'Übersicht' },
-    { id: 'cluster', label: 'Cluster' },
-    { id: 'tests', label: 'Tests' },
-    { id: 'deployments', label: 'Deployments' },
-    { id: 'berichte', label: 'Berichte' },
+    { id: 'overview',     label: 'Übersicht' },
+    { id: 'cluster',      label: 'Cluster' },
+    { id: 'deployments',  label: 'Deployments' },
+    { id: 'tasks',        label: 'Tasks' },
+    { id: 'bugs',         label: 'Bugs' },
+    { id: 'tracking',     label: 'Tracking' },
   ];
 </script>
 
@@ -54,12 +56,14 @@
       <OverviewTab on:navigate={(e) => setTab(e.detail)} />
     {:else if activeTab === 'cluster'}
       <ClusterTab />
-    {:else if activeTab === 'tests'}
-      <TestsTab />
     {:else if activeTab === 'deployments'}
       <DeploymentsTab />
-    {:else if activeTab === 'berichte'}
-      <BerichteTab />
+    {:else if activeTab === 'tasks'}
+      <TasksTab />
+    {:else if activeTab === 'bugs'}
+      <BugsTab />
+    {:else if activeTab === 'tracking'}
+      <TrackingTab {trackingUrl} />
     {/if}
   </div>
 </div>

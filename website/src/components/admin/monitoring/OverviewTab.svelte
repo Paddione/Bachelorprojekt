@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
 
-  const dispatch = createEventDispatcher<{ navigate: 'cluster' | 'tests' | 'deployments' | 'berichte' }>();
+  const dispatch = createEventDispatcher<{ navigate: 'cluster' | 'tasks' | 'deployments' }>();
 
   type Pod = { phase: string; ready: boolean; restarts: number };
   type Deployment = { status: 'healthy' | 'degraded' | 'stopped'; name: string };
@@ -47,7 +47,7 @@
   }
 
   async function startTests() {
-    dispatch('navigate', 'tests');
+    dispatch('navigate', 'tasks');
     // Give the tab a moment to mount, then trigger the run
     await fetch('/api/admin/tests/run', {
       method: 'POST',
@@ -109,7 +109,7 @@
       <div class="text-xs text-gray-500 mt-1 truncate">{firstDegraded ? firstDegraded.name : 'alle healthy'}</div>
     </button>
 
-    <button on:click={() => dispatch('navigate', 'tests')}
+    <button on:click={() => dispatch('navigate', 'tasks')}
       class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-left hover:border-gray-500 transition-colors">
       <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Letzter Testlauf</div>
       {#if lastTestRun}
@@ -125,7 +125,7 @@
       {/if}
     </button>
 
-    <button on:click={() => dispatch('navigate', 'berichte')}
+    <button on:click={() => dispatch('navigate', 'tasks')}
       class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-left hover:border-gray-500 transition-colors">
       <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Staleness</div>
       <div class="text-2xl font-bold font-mono {stalenessColor}">{stalenessStatus}</div>
@@ -164,7 +164,7 @@
     <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
       <div class="flex justify-between items-center mb-3">
         <span class="text-sm font-semibold text-gray-200">Staleness-Bericht</span>
-        <button on:click={() => dispatch('navigate', 'berichte')} class="text-xs text-blue-400 hover:text-blue-300">→ Berichte</button>
+        <button on:click={() => dispatch('navigate', 'tasks')} class="text-xs text-blue-400 hover:text-blue-300">→ Tasks</button>
       </div>
       {#if stalenessReport?.reportJson?.findings}
         <div class="space-y-1.5">
@@ -190,7 +190,7 @@
         <span class="text-sm font-semibold text-gray-200">
           Letzter Testlauf{lastTestRun ? ` — ${lastTestRun.tier} · ${new Date(lastTestRun.startedAt).toLocaleString('de-DE')}` : ''}
         </span>
-        <button on:click={() => dispatch('navigate', 'tests')} class="text-xs text-blue-400 hover:text-blue-300">→ Tests</button>
+        <button on:click={() => dispatch('navigate', 'tasks')} class="text-xs text-blue-400 hover:text-blue-300">→ Tasks</button>
       </div>
       {#if lastTestRun}
         <div class="flex gap-2 flex-wrap">

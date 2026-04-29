@@ -56,7 +56,7 @@
     try {
       const res = await fetch('/api/auth/me');
       const data = await res.json() as { authenticated: boolean; user?: { isAdmin: boolean } };
-      if (!data.authenticated || data.user?.isAdmin) return;
+      if (!data.authenticated) return;
       visible = true;
       await loadAssignments();
     } finally {
@@ -369,7 +369,7 @@
 {/if}
 
 <style>
-  .qw { position: fixed; bottom: 24px; right: 24px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .qw { position: fixed; bottom: 24px; right: 184px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
   .panel { width: min(420px, calc(100vw - 32px)); max-height: 580px; background: #1a2235; border: 1px solid #243049; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,.5); overflow: hidden; }
 
   .hdr { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #243049; font-size: 14px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
@@ -461,7 +461,7 @@
   .dot { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; padding: 2px 5px; font-family: monospace; min-width: 18px; text-align: center; line-height: 1.4; pointer-events: none; }
 
   @media (max-width: 767px) {
-    .qw { right: 8px; bottom: 16px; }
+    .qw { right: 8px; bottom: 80px; }
     .panel { width: calc(100vw - 16px); max-height: 70vh; }
   }
 </style>

@@ -13,7 +13,7 @@ spec:
             - name: SSO_AUTHORITY
               value: "https://auth.${PROD_DOMAIN}/realms/workspace"
             - name: SMTP_HOST
-              value: "smtp.mailbox.org"
+              value: "${SMTP_HOST}"
             - name: SMTP_PORT
               value: "587"
             - name: SMTP_SECURITY

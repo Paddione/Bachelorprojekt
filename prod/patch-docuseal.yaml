@@ -9,7 +9,7 @@ spec:
         - name: docuseal
           env:
             - name: SMTP_ADDRESS
-              value: "smtp.mailbox.org"
+              value: "${SMTP_HOST}"
             - name: SMTP_PORT
               value: "587"
             - name: SMTP_DOMAIN

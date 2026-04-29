@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { resolve4 } from 'dns';
+import { SYSTEM_TEST_TEMPLATES, type SystemTestTemplate } from './system-test-seed-data';
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
@@ -107,185 +108,39 @@ async function seedSystemTestTemplates(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-  // ── Template 1: Admin-Funktionen ─────────────────────────────────────────
-  const tpl1 = await client.query(
-    `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
-     VALUES ($1,$2,$3,'published',true)
-     RETURNING id`,
-    [
-      'System-Testprotokoll: Admin-Funktionen',
-      'Vollständiger Testdurchlauf aller Admin-Interaktionen (zwei Browser-Profile: Admin + Testnutzer).',
-      'Führe jeden Schritt mit dem Admin-Browser-Profil durch, sofern nicht anders angegeben. Wähle das Ergebnis und trage bei Bedarf Details ein.',
-    ],
-  );
-  const t1 = tpl1.rows[0].id as string;
-
-  const adminSteps: Array<[string, string, string, 'admin' | 'user']> = [
-    ['SSO-Login als Administrator durchführen',
-     'Weiterleitung zum Admin-Dashboard nach Keycloak-Authentifizierung; Sitzung wird korrekt gesetzt.',
-     '/admin', 'admin'],
-    ['Dashboard aufrufen und Übersichtskennzahlen prüfen',
-     'KPIs (Clients, offene Bugs, Meetings u. a.) werden korrekt geladen und angezeigt.',
-     '/admin', 'admin'],
-    ['Neuen Client anlegen',
-     'Client erscheint in der Clientliste; Pflichtfelder werden serverseitig validiert.',
-     '/admin/clients', 'admin'],
-    ['Meeting anlegen und speichern',
-     'Meeting erscheint in der Meetingliste mit korrekten Datums- und Teilnehmerinfos.',
-     '/admin/meetings', 'admin'],
-    ['Termin anlegen',
-     'Termin wird gespeichert und ist in der Terminliste sichtbar.',
-     '/admin/termine', 'admin'],
-    ['Projekt anlegen und einem Client zuordnen',
-     'Projekt erscheint in der Projektliste und ist dem Client korrekt zugeordnet.',
-     '/admin/projekte', 'admin'],
-    ['Rechnung erstellen und PDF-Vorschau aufrufen',
-     'Rechnung wird angelegt; PDF-Vorschau lädt ohne Fehler.',
-     '/admin/rechnungen', 'admin'],
-    ['Dokument im Dokumenteneditor anlegen und Inhalt speichern',
-     'Dokument wird gespeichert und kann wieder geöffnet werden.',
-     '/admin/dokumente', 'admin'],
-    ['Admin-Kalender öffnen und Terminanzeige prüfen',
-     'Kalender lädt; vorhandene Termine werden korrekt dargestellt.',
-     '/admin/kalender', 'admin'],
-    ['Inbox öffnen und mindestens ein Item als erledigt markieren',
-     'Item wechselt den Status; Inbox-Counter aktualisiert sich korrekt.',
-     '/admin/inbox', 'admin'],
-    ['Website-Startseite im Admin bearbeiten und Änderung speichern',
-     'Änderungen werden persistiert; öffentliche Seite zeigt den aktualisierten Inhalt.',
-     '/admin/website/startseite', 'admin'],
-    ['Neues Fragebogen-Template anlegen (Titel, mind. 1 Frage)',
-     'Template wird gespeichert und erscheint in der Template-Liste.',
-     '/admin/fragebogen', 'admin'],
-    ['Veröffentlichtes Fragebogen-Template einem Client zuweisen',
-     'Assignment wird erstellt; Client sieht den Fragebogen im Portal (ggf. E-Mail-Benachrichtigung).',
-     '/admin/clients', 'admin'],
-    ['Aus dem Monitoring-Dashboard ein Bug-Ticket erstellen',
-     'Ticket mit Format BR-YYYYMMDD-xxxx wird angelegt und ist unter Bugs sichtbar.',
-     '/admin/monitoring', 'admin'],
-    ['Offenes Bug-Ticket als erledigt markieren (mit Auflösungsnotiz)',
-     'Ticket-Status wechselt auf "resolved"; Auflösungsnotiz wird gespeichert.',
-     '/admin/bugs', 'admin'],
-    ['Monitoring — Pod-Statusliste prüfen',
-     'Alle Pods zeigen "Running" oder "Healthy"; keine dauerhaften CrashLoops sichtbar.',
-     '/admin/monitoring', 'admin'],
-    ['Monitoring — ein Deployment per Rolling Restart neu starten',
-     'Restart-Trigger wird bestätigt; Pod kommt wieder hoch (Status Ready).',
-     '/admin/monitoring', 'admin'],
-    ['Staleness-Report im Monitoring aufrufen und Befunde lesen',
-     'Bericht wird geladen; Empfehlungen oder OK-Status je System sind sichtbar.',
-     '/admin/monitoring', 'admin'],
-    ['Admin-Einstellungen öffnen und Konfiguration speichern',
-     'Einstellungen werden persistiert und nach Reload korrekt geladen.',
-     '/admin/einstellungen', 'admin'],
-    ['Auf eine Nutzer-Chat-Nachricht aus der Inbox antworten',
-     'Antwort wird gesendet; Nutzer sieht die Antwort im Chat-Widget (Schritt 13/15 in Protokoll 2).',
-     '/admin/inbox', 'admin'],
-  ];
-
-  for (let i = 0; i < adminSteps.length; i++) {
-    const [text, expected, url, role] = adminSteps[i];
-    await client.query(
-      `INSERT INTO questionnaire_questions
-         (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
-       VALUES ($1,$2,$3,'test_step',$4,$5,$6)`,
-      [t1, i + 1, text, expected, url, role],
-    );
-  }
-
-  // ── Template 2: Nutzerfunktionen + Externe Dienste ────────────────────────
-  const tpl2 = await client.query(
-    `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
-     VALUES ($1,$2,$3,'published',true)
-     RETURNING id`,
-    [
-      'System-Testprotokoll: Nutzerfunktionen + Externe Dienste',
-      'Vollständiger Testdurchlauf aller nutzerorientierten Funktionen. Testnutzer-Browser-Profil + Admin-Profil für markierte Schritte.',
-      'Führe Schritte mit dem Testnutzer-Browser durch, sofern nicht "Admin" angegeben. Für Admin-Schritte: zum Admin-Tab wechseln, Schritt ausführen, zurückwechseln.',
-    ],
-  );
-  const t2 = tpl2.rows[0].id as string;
-
-  const userSteps: Array<[string, string, string, 'admin' | 'user']> = [
-    ['Als Testnutzer per Keycloak SSO im Portal anmelden',
-     'Login-Flow läuft durch; Weiterleitung zum Portal-Dashboard ohne Fehlermeldung.',
-     '/portal', 'user'],
-    ['Portal-Dashboard laden und Inhalte prüfen',
-     'Dashboard zeigt zugewiesene Fragebögen, Dokumente und Projekte des Nutzers.',
-     '/portal', 'user'],
-    ['Zugewiesenen Fragebogen im Portal vollständig ausfüllen und absenden',
-     'Fragebogen-Status wechselt auf "eingereicht"; Bestätigungsseite erscheint.',
-     '/portal', 'user'],
-    ['Als Admin das Ergebnis des eingereichten Fragebogens prüfen',
-     'Auswertung mit Einzelantworten und Scoring-Dimensionen korrekt dargestellt.',
-     '/admin/clients', 'admin'],
-    ['Als Testnutzer Nextcloud per Keycloak SSO öffnen',
-     'Automatischer Login ohne zusätzliche Credentials; Dateiansicht lädt vollständig.',
-     'https://files.localhost', 'user'],
-    ['Testdatei in Nextcloud hochladen',
-     'Datei erscheint in der Dateiliste; Fortschrittsbalken läuft durch.',
-     'https://files.localhost', 'user'],
-    ['Nextcloud-Kalender öffnen und Ansicht laden',
-     'Kalender-App öffnet; Monats- oder Wochenansicht wird ohne Fehler angezeigt.',
-     'https://files.localhost/apps/calendar', 'user'],
-    ['Nextcloud-Kontakte öffnen und Kontaktliste prüfen',
-     'Kontakte-App öffnet; Kontaktliste wird geladen.',
-     'https://files.localhost/apps/contacts', 'user'],
-    ['In Nextcloud Talk einen Raum öffnen und Kamera/Mikrofon freigeben',
-     'Signaling-Verbindung wird hergestellt; lokales Video erscheint im Raum.',
-     'https://files.localhost/apps/talk', 'user'],
-    ['Eine Office-Datei via Collabora Online in Nextcloud öffnen und bearbeiten',
-     'Collabora-Editor öffnet innerhalb der Dateiansicht; Änderungen werden gespeichert.',
-     'https://files.localhost', 'user'],
-    ['Als Testnutzer Vaultwarden per Keycloak SSO öffnen',
-     'Automatischer Login; Passwort-Tresor wird vollständig geladen.',
-     'https://vault.localhost', 'user'],
-    ['Neuen Passwort-Eintrag in Vaultwarden anlegen und speichern',
-     'Eintrag erscheint in der Tresorübersicht; Passwort ist abrufbar.',
-     'https://vault.localhost', 'user'],
-    ['Im Website-Chat-Widget als Testnutzer eine Nachricht senden',
-     'Nachricht erscheint im Chat-Verlauf; Admin sieht sie in der Inbox (Admin-Tab prüfen).',
-     'https://web.localhost', 'user'],
-    ['Als Admin auf die Nutzer-Chat-Nachricht antworten (Schritt 13)',
-     'Antwort wird gesendet; Nutzer-Chat-Widget zeigt die Admin-Antwort.',
-     '/admin/inbox', 'admin'],
-    ['Im Testnutzer-Browser prüfen, ob die Admin-Antwort erscheint',
-     'Admin-Antwort ist im Chat-Widget des Nutzers sichtbar ohne Seitenreload.',
-     'https://web.localhost', 'user'],
-    ['Keycloak Account-Verwaltung als Testnutzer öffnen',
-     'Profil-Daten sind einsehbar; Passwort-Änderung und Sitzungsverwaltung zugänglich.',
-     'https://auth.localhost/realms/workspace/account', 'user'],
-    ['Zur Unterschrift zugesendetes Dokument in DocuSeal unterzeichnen',
-     'Signatur wird gespeichert; Dokument-Status wechselt auf "Abgeschlossen".',
-     'https://sign.localhost', 'user'],
-    ['Als Admin die Signatur des Dokuments in DocuSeal prüfen',
-     'Signaturstatus wird angezeigt; Dokument ist als "Completed" markiert.',
-     'https://sign.localhost', 'admin'],
-    ['Öffentliche Website-Startseite im Browser aufrufen',
-     'Startseite lädt vollständig; alle Sektionen und Bilder werden angezeigt.',
-     'https://web.localhost', 'user'],
-    ['Kontaktformular auf der Website ausfüllen und absenden',
-     'Formular wird validiert; Bestätigung erscheint; Admin erhält Benachrichtigung.',
-     'https://web.localhost', 'user'],
-  ];
-
-  for (let i = 0; i < userSteps.length; i++) {
-    const [text, expected, url, role] = userSteps[i];
-    await client.query(
-      `INSERT INTO questionnaire_questions
-         (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
-       VALUES ($1,$2,$3,'test_step',$4,$5,$6)`,
-      [t2, i + 1, text, expected, url, role],
-    );
-  }
-
+    for (const tpl of SYSTEM_TEST_TEMPLATES) {
+      await insertSystemTestTemplate(client, tpl);
+    }
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
   } finally {
     client.release();
+  }
+}
+
+async function insertSystemTestTemplate(
+  client: pg.PoolClient,
+  tpl: SystemTestTemplate,
+): Promise<void> {
+  const r = await client.query(
+    `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
+     VALUES ($1, $2, $3, 'published', true)
+     RETURNING id`,
+    [tpl.title, tpl.description, tpl.instructions],
+  );
+  const templateId = r.rows[0].id as string;
+
+  for (let i = 0; i < tpl.steps.length; i++) {
+    const s = tpl.steps[i];
+    await client.query(
+      `INSERT INTO questionnaire_questions
+         (template_id, position, question_text, question_type,
+          test_expected_result, test_function_url, test_role)
+       VALUES ($1, $2, $3, 'test_step', $4, $5, $6)`,
+      [templateId, i + 1, s.question_text, s.expected_result, s.test_function_url, s.test_role],
+    );
   }
 }
 

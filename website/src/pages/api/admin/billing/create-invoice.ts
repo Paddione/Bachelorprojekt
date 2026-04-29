@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../../../lib/auth';
-import { createInvoice, type InvoiceLine } from '../../../../../lib/native-billing';
-import { getCustomerByEmail, createCustomer } from '../../../../../lib/native-billing';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { createInvoice, type InvoiceLine } from '../../../../lib/native-billing';
+import { getCustomerByEmail, createCustomer } from '../../../../lib/native-billing';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

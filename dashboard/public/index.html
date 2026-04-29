@@ -25,101 +25,179 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: var(--bg); color: var(--text);
-            margin: 0; display: flex; height: 100vh; overflow: hidden; font-size: 13px;
+            margin: 0; display: flex; flex-direction: column;
+            height: 100vh; overflow: hidden; font-size: 13px;
         }
 
-        /* ── Sidebar ────────────────────────────────────── */
-        #sidebar {
-            width: 340px; min-width: 280px; flex-shrink: 0;
-            border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-        #sidebar-top {
+        /* ── Topbar ───────────────────────────────────────────── */
+        #topbar {
             flex-shrink: 0; background: var(--bg2);
-            border-bottom: 1px solid var(--border); padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        #topbar-main {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 16px;
         }
         #app-title {
             font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-            text-transform: uppercase; color: var(--text-dim); margin: 0 0 12px;
+            text-transform: uppercase; color: var(--text-dim);
+            margin: 0; flex-shrink: 0;
         }
 
         /* ENV selector */
-        .env-row { display: flex; align-items: center; gap: 8px; }
+        .env-row { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .env-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
         #env-select {
-            flex: 1; background: var(--bg3); border: 1px solid var(--border);
+            background: var(--bg3); border: 1px solid var(--border);
             color: var(--text); padding: 5px 8px; border-radius: var(--radius);
             font-size: 12px; cursor: pointer; appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23777'/%3E%3C/svg%3E");
             background-repeat: no-repeat; background-position: right 8px center;
-            padding-right: 24px;
+            padding-right: 24px; min-width: 220px;
         }
         #env-select:focus { outline: 1px solid var(--primary); }
         #env-select.prod { border-color: var(--warn); color: #ffb060; }
 
         #ctx-btn {
             flex-shrink: 0; background: var(--bg4); border: 1px solid var(--border);
-            color: var(--text-dim); padding: 4px 9px; border-radius: var(--radius);
-            font-size: 11px; cursor: pointer; white-space: nowrap; transition: background .1s, color .1s, border-color .15s;
+            color: var(--text-dim); padding: 5px 9px; border-radius: var(--radius);
+            font-size: 11px; cursor: pointer; white-space: nowrap;
+            transition: background .1s, color .1s, border-color .15s;
         }
         #ctx-btn:hover { background: var(--bg3); color: var(--text); }
         #ctx-btn.ok   { border-color: var(--success); color: var(--success); }
         #ctx-btn.fail { border-color: var(--error);   color: var(--error); }
-        #ctx-feedback {
-            font-size: 10px; color: var(--text-dim); margin-top: 5px;
-            min-height: 14px; line-height: 1.4; transition: color .2s;
+
+        #status-block {
+            display: flex; align-items: center; gap: 10px;
+            flex: 1; min-width: 0;
         }
+        #conn-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #555; flex-shrink: 0; transition: background 0.3s;
+        }
+        #conn-dot.connected { background: var(--success); }
+        #conn-dot.disconnected { background: var(--error); }
+        #status {
+            flex: 1; font-size: 12px; color: var(--text-dim);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        #status.running { color: var(--warn); font-style: italic; }
+        #status.ok   { color: var(--success); }
+        #status.fail { color: var(--error); }
+
+        .ctrl-btn {
+            background: var(--bg4); color: var(--text-mid); border: 1px solid var(--border);
+            padding: 5px 12px; border-radius: var(--radius); font-size: 12px; cursor: pointer;
+        }
+        .ctrl-btn:hover { background: var(--bg3); color: var(--text); }
+        #stop-btn {
+            background: var(--error); color: #fff; border-color: var(--error);
+            display: none;
+        }
+        #stop-btn:hover { filter: brightness(1.15); }
+
+        #topbar-meta {
+            display: flex; gap: 16px; align-items: center;
+            padding: 0 16px 6px;
+            font-size: 11px; line-height: 1.4;
+            min-height: 14px;
+        }
+        #ctx-feedback { color: var(--text-dim); transition: color .2s; }
         #ctx-feedback.ok   { color: var(--success); }
         #ctx-feedback.fail { color: var(--error); }
-        #live-ctx {
-            font-size: 10px; font-family: monospace; color: var(--text-dim);
-            margin-top: 3px; min-height: 13px; line-height: 1.4;
-        }
+        #live-ctx { font-family: monospace; color: var(--text-dim); }
         #live-ctx .ctx-ok   { color: var(--success); }
         #live-ctx .ctx-warn { color: var(--warn); }
 
         #prod-banner {
-            display: none; margin-top: 8px; padding: 6px 10px;
-            background: #2d1f00; border: 1px solid #6b4400;
-            border-radius: var(--radius); font-size: 11px; color: #ffb060;
-            line-height: 1.4;
+            display: none; padding: 6px 16px;
+            background: #2d1f00; border-top: 1px solid #6b4400;
+            font-size: 11px; color: #ffb060; line-height: 1.4;
         }
         #prod-banner.visible { display: block; }
 
-        /* Sections */
-        #sidebar-scroll { flex: 1; overflow-y: auto; padding: 6px 0 24px; }
-        .section { }
+        /* ── ENV/ctx footgun banner (silent-deploy-to-prod warning) ─── */
+        #footgun-banner {
+            display: none; padding: 8px 16px;
+            font-size: 12px; line-height: 1.5;
+            border-top: 1px solid transparent;
+            align-items: center; gap: 12px;
+        }
+        #footgun-banner.visible { display: flex; }
+        #footgun-banner.red {
+            background: #3a0a0a; border-top-color: #6a1515; color: #ff8080;
+        }
+        #footgun-banner.amber {
+            background: #2d1f00; border-top-color: #6b4400; color: #ffb060;
+        }
+        #footgun-banner code {
+            background: rgba(0,0,0,0.4); padding: 1px 5px;
+            border-radius: 3px; font-family: monospace;
+        }
+        #footgun-banner .footgun-text { flex: 1; min-width: 0; }
+        #footgun-banner button {
+            background: rgba(0,0,0,0.35); color: inherit;
+            border: 1px solid currentColor; padding: 4px 10px;
+            border-radius: 4px; font-size: 11px; cursor: pointer;
+            white-space: nowrap;
+        }
+        #footgun-banner button:hover { background: rgba(0,0,0,0.55); }
+
+        /* ── Content / Task Grid ──────────────────────────────── */
+        #content {
+            flex: 1; overflow-y: auto; padding: 14px;
+            background: var(--bg);
+        }
+        #task-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 12px;
+            align-items: start;
+        }
+
+        /* Sections become self-contained grid cards */
+        .section {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+        }
         .section-header {
             display: flex; align-items: center; gap: 8px;
-            padding: 6px 16px; cursor: pointer; user-select: none;
+            padding: 10px 14px; cursor: pointer; user-select: none;
             font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
             color: var(--text-dim); transition: background 0.1s;
+            border-bottom: 1px solid transparent;
         }
+        .section.open .section-header { border-bottom-color: var(--border); }
         .section-header:hover { background: var(--bg3); color: var(--text); }
-        .section-icon { font-size: 13px; line-height: 1; }
-        .section-name { flex: 1; }
+        .section-icon { font-size: 14px; line-height: 1; }
+        .section-name { flex: 1; font-weight: 600; }
         .section-chevron { font-size: 9px; transition: transform 0.15s; }
         .section.open .section-chevron { transform: rotate(90deg); }
         .section-count {
-            font-size: 10px; color: #444; background: var(--bg3);
-            padding: 1px 5px; border-radius: 8px;
+            font-size: 10px; color: #555; background: var(--bg3);
+            padding: 2px 6px; border-radius: 8px;
         }
-        .section-body { display: none; padding: 2px 10px 6px; }
+        .section-body { display: none; padding: 8px; }
         .section.open .section-body { display: block; }
 
         /* Task card */
         .task-card {
-            border-radius: var(--radius); margin-bottom: 3px;
+            border-radius: var(--radius); margin-bottom: 4px;
             border: 1px solid transparent;
             transition: background 0.1s, border-color 0.1s;
             cursor: pointer; padding: 0;
         }
+        .task-card:last-child { margin-bottom: 0; }
         .task-card:hover { background: var(--bg3); border-color: var(--border); }
         .task-card.dangerous:hover { background: var(--danger-dim); border-color: var(--danger-border); }
         .task-card-top {
-            display: flex; align-items: center; gap: 8px; padding: 6px 10px 3px;
+            display: flex; align-items: center; gap: 8px; padding: 7px 10px 4px;
         }
-        .task-accent { width: 3px; height: 30px; border-radius: 2px; flex-shrink: 0; }
+        .task-accent { width: 3px; height: 28px; border-radius: 2px; flex-shrink: 0; }
         .task-info { flex: 1; min-width: 0; }
         .task-title {
             font-size: 12px; font-weight: 500; color: var(--text);
@@ -128,10 +206,11 @@
         .task-cmd {
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 10px; color: var(--text-dim); margin-top: 1px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .task-desc {
             font-size: 11px; color: var(--text-mid); line-height: 1.4;
-            padding: 2px 10px 6px 21px;
+            padding: 2px 10px 7px 21px;
         }
         .task-card.dangerous .task-title { color: #e07070; }
         .task-card.dangerous .task-cmd   { color: #a05050; }
@@ -170,43 +249,29 @@
         .section.danger-section.open .section-header { color: #e05050; }
         .section.danger-section .section-count { background: var(--danger-dim); color: #7a2020; }
 
-        /* ── Main area ──────────────────────────────────── */
-        #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-
-        #topbar {
-            display: flex; align-items: center; gap: 12px;
-            padding: 8px 16px; background: var(--bg2);
-            border-bottom: 1px solid var(--border); flex-shrink: 0;
+        /* ── Terminal pane (collapsible bottom) ───────────────── */
+        #terminal-pane {
+            flex-shrink: 0; height: 35vh;
+            display: flex; flex-direction: column;
+            border-top: 1px solid var(--border);
+            transition: height 0.18s ease;
         }
-        #conn-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: #555; flex-shrink: 0; transition: background 0.3s;
-        }
-        #conn-dot.connected { background: var(--success); }
-        #conn-dot.disconnected { background: var(--error); }
-        #status {
-            flex: 1; font-size: 12px; color: var(--text-dim);
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        #status.running { color: var(--warn); font-style: italic; }
-        #status.ok   { color: var(--success); }
-        #status.fail { color: var(--error); }
-
-        .ctrl-btn {
-            background: var(--bg4); color: var(--text-mid); border: 1px solid var(--border);
-            padding: 4px 12px; border-radius: var(--radius); font-size: 12px; cursor: pointer;
-        }
-        .ctrl-btn:hover { background: var(--bg3); color: var(--text); }
-        #stop-btn { background: var(--error); color: #fff; border-color: var(--error); display: none; }
-        #stop-btn:hover { filter: brightness(1.15); }
-
-        /* Terminal */
-        #terminal-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #terminal-pane.collapsed { height: 30px; }
+        #terminal-pane.collapsed #terminal { display: none; }
         #terminal-header {
-            padding: 5px 16px; background: var(--bg2); font-size: 11px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 16px; background: var(--bg2); font-size: 11px;
             color: var(--text-dim); border-bottom: 1px solid var(--border);
-            font-family: monospace; display: flex; gap: 8px;
+            font-family: monospace; flex-shrink: 0;
+            user-select: none;
         }
+        #term-spacer { flex: 1; }
+        #term-toggle {
+            background: var(--bg4); color: var(--text-dim); border: 1px solid var(--border);
+            padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
+            font-family: inherit;
+        }
+        #term-toggle:hover { background: var(--bg3); color: var(--text); }
         #terminal {
             flex: 1; background: #0e0e10; color: #e0e0e0;
             padding: 12px 16px; font-family: 'Consolas','Monaco','Courier New',monospace;
@@ -220,7 +285,7 @@
         .error   { color: var(--error); font-weight: bold; }
         .warning { color: var(--warn); border-left: 2px solid var(--warn); padding-left: 5px; }
 
-        /* ── Modal ──────────────────────────────────────── */
+        /* ── Modal ────────────────────────────────────────────── */
         #modal-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.75); z-index: 200;
@@ -253,10 +318,10 @@
         }
         #modal-confirm:hover { filter: brightness(1.15); }
 
-        /* ── Dry-run toggle ─────────────────────────────────── */
+        /* ── Dry-run toggle ───────────────────────────────────── */
         #dryrun-btn {
             background: #1e3050; color: #6ab0e0; border: 1px solid #2a5080;
-            padding: 4px 12px; border-radius: var(--radius); font-size: 12px;
+            padding: 5px 12px; border-radius: var(--radius); font-size: 12px;
             cursor: pointer; display: flex; align-items: center; gap: 5px;
             white-space: nowrap;
         }
@@ -282,20 +347,21 @@
             font-size: 10px; color: #a090e0; padding: 0 6px 8px; line-height: 1.5;
         }
 
-        /* ── Danger zone guidance text ────────────────────────── */
+        /* ── Danger zone guidance ─────────────────────────────── */
         .danger-guidance {
             font-size: 11px; color: #e07070; padding: 4px 6px 2px; line-height: 1.5;
         }
         .danger-when-block {
             font-size: 10px; color: #c05050; padding: 2px 6px 8px; line-height: 1.7;
+            white-space: pre-line;
         }
     </style>
 </head>
 <body>
 
-<!-- ── Sidebar ──────────────────────────────────────────────── -->
-<div id="sidebar">
-    <div id="sidebar-top">
+<!-- ── Topbar (full-width) ───────────────────────────────────── -->
+<header id="topbar">
+    <div id="topbar-main">
         <p id="app-title">Workspace Dashboard</p>
         <div class="env-row">
             <span class="env-label">Target ENV</span>
@@ -306,39 +372,42 @@
             </select>
             <button id="ctx-btn" title="Switch kubectl context to k3d-dev">⇌ ctx</button>
         </div>
-        <div id="ctx-feedback"></div>
-        <div id="live-ctx"></div>
-        <div id="prod-banner">
-            ⚠️  Production environment selected.<br>
-            Destructive tasks will affect live data and real users.
+        <div id="status-block">
+            <span id="conn-dot" title="Socket connection"></span>
+            <span id="status">Connecting…</span>
         </div>
-    </div>
-
-    <div id="sidebar-scroll">
-        <div id="task-sections"></div>
-    </div>
-</div>
-
-<!-- ── Main ─────────────────────────────────────────────────── -->
-<div id="main">
-    <div id="topbar">
-        <span id="conn-dot" title="Socket connection"></span>
-        <span id="status">Connecting…</span>
         <button id="dryrun-btn" title="Toggle dry-run mode — passes DRY_RUN=true to tasks">
             📋 DRY RUN <span id="dryrun-badge">ON</span>
         </button>
         <button id="stop-btn" class="ctrl-btn">■ Stop</button>
         <button id="clear-btn" class="ctrl-btn">Clear</button>
     </div>
-    <div id="terminal-wrap">
-        <div id="terminal-header">
-            <span id="term-label">Output</span>
-        </div>
-        <div id="terminal"></div>
+    <div id="topbar-meta">
+        <div id="ctx-feedback"></div>
+        <div id="live-ctx"></div>
     </div>
-</div>
+    <div id="prod-banner">
+        ⚠️  Production environment selected. Destructive tasks will affect live data and real users.
+    </div>
+    <div id="footgun-banner"></div>
+</header>
 
-<!-- ── Confirmation modal ───────────────────────────────────── -->
+<!-- ── Task grid (full-width, multi-column) ──────────────────── -->
+<main id="content">
+    <div id="task-sections"></div>
+</main>
+
+<!-- ── Terminal (collapsible bottom pane) ────────────────────── -->
+<section id="terminal-pane">
+    <div id="terminal-header">
+        <span id="term-label">Output</span>
+        <span id="term-spacer"></span>
+        <button id="term-toggle" title="Collapse/expand the terminal pane">▼ collapse</button>
+    </div>
+    <div id="terminal"></div>
+</section>
+
+<!-- ── Confirmation modal ────────────────────────────────────── -->
 <div id="modal-overlay" role="dialog" aria-modal="true">
     <div id="modal-box">
         <div id="modal-icon">⚠️</div>
@@ -364,13 +433,36 @@
         backup: '#56c0e0', testing: '#9de04d',
     };
 
+    // Commands that target the live cluster — gated by the footgun banner.
+    // (ENV=dev with prod kubectl context shows a red modal before running these.)
+    const PROD_GATE_COMMANDS = new Set([
+        'workspace:deploy', 'workspace:office:deploy', 'workspace:teardown',
+        'workspace:db:drop', 'workspace:db:restore', 'workspace:restore',
+        'workspace:post-setup', 'workspace:talk-setup', 'workspace:recording-setup',
+        'workspace:transcriber-setup', 'workspace:whiteboard-setup',
+        'workspace:systembrett-setup', 'workspace:admin-users-setup',
+        'workspace:vaultwarden:seed', 'workspace:sync-db-passwords',
+        'workspace:create-guest', 'workspace:import-users', 'workspace:migrate',
+        'keycloak:sync', 'keycloak:sync-secrets',
+        'argocd:setup', 'argocd:install', 'argocd:apps:apply',
+        'argocd:cluster:register', 'argocd:sync',
+        'docs:deploy', 'docs:restart',
+        'mcp:deploy', 'mcp:restart',
+        'website:deploy',
+        'whisper:deploy',
+        'brett:deploy', 'brett:bot-setup',
+        'cert:install',
+        'gpu-worker:switch-prod',
+        'env:seal', 'env:generate',
+    ]);
+
     const GROUPS = [
         { cat: 'Cluster', icon: '⚙️', accent: ACCENTS.cluster, items: [
-            { title: 'Create Cluster',  cmd: 'cluster:create', desc: 'Bootstrap a new k3d dev cluster' },
-            { title: 'Start Cluster',   cmd: 'cluster:start',  desc: 'Resume a stopped k3d cluster' },
-            { title: 'Stop Cluster',    cmd: 'cluster:stop',   desc: 'Pause the running cluster (preserves state)' },
-            { title: 'Cluster Status',  cmd: 'cluster:status', desc: 'Show nodes, pods and resource usage' },
-            { title: 'HA Status',       cmd: 'ha:status',      desc: 'Show status of the 3-node HA cluster' },
+            { title: 'Create Cluster',      cmd: 'cluster:create',  desc: 'Bootstrap a new k3d dev cluster' },
+            { title: 'Start Cluster',       cmd: 'cluster:start',   desc: 'Resume a stopped k3d cluster' },
+            { title: 'Stop Cluster',        cmd: 'cluster:stop',    desc: 'Pause the running cluster (preserves state)' },
+            { title: 'Cluster Status',      cmd: 'cluster:status',  desc: 'Show nodes, pods and resource usage' },
+            { title: 'All Clusters Status', cmd: 'clusters:status', desc: 'Status across dev + mentolder + korczewski at once' },
         ]},
         { cat: 'Workspace', icon: '🏗️', accent: ACCENTS.workspace, items: [
             { title: 'Preflight Check',     cmd: 'workspace:preflight',     desc: 'Verify prerequisites before deploying' },
@@ -378,44 +470,41 @@
             { title: 'Deploy Workspace',    cmd: 'workspace:deploy',        desc: 'Apply all workspace manifests to the selected cluster' },
             { title: 'Deploy Office Stack', cmd: 'workspace:office:deploy', desc: 'Deploy Collabora (run after workspace:deploy)' },
             { title: 'Workspace Status',    cmd: 'workspace:status',        desc: 'Show pods, services, ingress and PVCs' },
+            { title: 'Full Bring-Up',       cmd: 'workspace:up',            desc: 'Cluster + MVP + Office + MCP + Billing + post-config (everything)' },
         ]},
         { cat: 'Post-Deploy', icon: '🔧', accent: ACCENTS.post, items: [
-            { title: 'Post-Setup',        cmd: 'workspace:post-setup',        desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
-            { title: 'Talk Setup',        cmd: 'workspace:talk-setup',        desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
-            { title: 'Recording Setup',   cmd: 'workspace:recording-setup',   desc: 'Configure Talk recording backend' },
-            { title: 'Transcriber Setup', cmd: 'workspace:transcriber-setup', desc: 'Set up talk-transcriber bot + Whisper' },
-            { title: 'Keycloak Sync',     cmd: 'keycloak:sync',               desc: 'Sync realm config and OIDC clients to Keycloak' },
+            { title: 'Post-Setup',            cmd: 'workspace:post-setup',         desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
+            { title: 'Talk Setup',            cmd: 'workspace:talk-setup',         desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
+            { title: 'Recording Setup',       cmd: 'workspace:recording-setup',    desc: 'Configure Talk recording backend' },
+            { title: 'Whiteboard Setup',      cmd: 'workspace:whiteboard-setup',   desc: 'Install + configure Nextcloud Whiteboard app' },
+            { title: 'Systembrett Setup',     cmd: 'workspace:systembrett-setup',  desc: 'Set up Brett (Systembrett) integration in Nextcloud Talk' },
+            { title: 'Transcriber Setup',     cmd: 'workspace:transcriber-setup',  desc: 'Set up talk-transcriber bot + Whisper' },
+            { title: 'Keycloak Sync',         cmd: 'keycloak:sync',                desc: 'Sync realm config and OIDC clients to Keycloak' },
+            { title: 'Keycloak Sync Secrets', cmd: 'keycloak:sync-secrets',        desc: 'Push updated Keycloak client secrets to the live cluster' },
         ]},
-        { cat: 'Website', icon: '🌐', accent: ACCENTS.website, items: [
-            { title: 'Build Website',  cmd: 'website:build',  desc: 'Run Astro build for the selected env' },
-            { title: 'Deploy Website', cmd: 'website:deploy', desc: 'Build, import and roll out the website pod' },
-            { title: 'Website Status', cmd: 'website:status', desc: 'Show website deployment status' },
-            { title: 'Dev Server',     cmd: 'website:dev',    desc: 'Start Astro dev server with hot-reload (streams until stopped)' },
+        { cat: 'Compliance & Hardening', icon: '🛡️', accent: ACCENTS.users, items: [
+            { title: 'DSGVO Check',       cmd: 'workspace:dsgvo-check',       desc: 'Run DSGVO/GDPR compliance verification (NFA-01)' },
+            { title: 'Vaultwarden Seed',  cmd: 'workspace:vaultwarden:seed',  desc: 'Seed production Vaultwarden with secret templates (run once after a fresh prod deploy)' },
+            { title: 'Sync DB Passwords', cmd: 'workspace:sync-db-passwords', desc: 'Reconcile Postgres role passwords with Kubernetes secrets after rotation' },
+            { title: 'Admin Users Setup', cmd: 'workspace:admin-users-setup', desc: 'Create the default admin users in Keycloak / Nextcloud' },
         ]},
-        { cat: 'ArgoCD', icon: '♾️', accent: ACCENTS.argocd, items: [
-            { title: 'ArgoCD Status',    cmd: 'argocd:status',     desc: 'Show sync/health of all apps across all clusters' },
-            { title: 'Apply Apps',       cmd: 'argocd:apps:apply', desc: 'Apply AppProject and ApplicationSet manifests' },
-            { title: 'Bootstrap ArgoCD', cmd: 'argocd:setup',      desc: 'Full ArgoCD install + cluster registration (run once)',
-              dangerous: true, dangerMsg: 'Bootstraps ArgoCD from scratch. Only run on a fresh hub cluster.' },
+        { cat: 'User & Data', icon: '👥', accent: ACCENTS.users, items: [
+            { title: 'Create Guest User', cmd: 'workspace:create-guest', desc: 'Add a guest account to Keycloak + Nextcloud' },
+            { title: 'Import Users',      cmd: 'workspace:import-users', desc: 'Bulk-import users from a CSV file' },
+            { title: 'Data Migration',    cmd: 'workspace:migrate',      desc: 'Interactive data migration assistant' },
         ]},
         { cat: 'Daily Operations', icon: '📊', accent: ACCENTS.ops, items: [
             { title: 'Workspace Status',   cmd: 'workspace:status',             desc: 'Quick overview of all pods and services' },
             { title: 'Check Connectivity', cmd: 'workspace:check-connectivity', desc: 'Ping all service endpoints and report health' },
+            { title: 'Check Updates',      cmd: 'workspace:check-updates',      desc: 'Show available image updates across the workspace' },
             { title: 'Tail Logs',          cmd: 'workspace:logs',               desc: 'Stream live logs for a service (Stop to exit)',
               argInputs: [{ id: 'arg-logs-svc', placeholder: 'service name  e.g. nextcloud', required: true }] },
             { title: 'Restart Service',    cmd: 'workspace:restart',            desc: 'Rolling restart a deployment',
               argInputs: [{ id: 'arg-restart-svc', placeholder: 'service name  e.g. keycloak', required: true }] },
-        ]},
-        { cat: 'MCP / Claude Code', icon: '🤖', accent: ACCENTS.mcp, items: [
-            { title: 'Deploy MCP',        cmd: 'mcp:deploy',        desc: 'Deploy the MCP monolith pod + auth proxy' },
-            { title: 'MCP Status',        cmd: 'mcp:status',        desc: 'Show MCP pod and container status' },
-            { title: 'Claude Code Setup', cmd: 'claude-code:setup', desc: 'Generate Claude Code settings.json',
-              argInputs: [{ id: 'arg-cc-mode', placeholder: 'cluster  or  business', required: true }] },
-        ]},
-        { cat: 'User & Data', icon: '👥', accent: ACCENTS.users, items: [
-            { title: 'Create Guest User', cmd: 'workspace:create-guest',  desc: 'Add a guest account to Keycloak + Nextcloud' },
-            { title: 'Import Users',      cmd: 'workspace:import-users',  desc: 'Bulk-import users from a CSV file' },
-            { title: 'Data Migration',    cmd: 'workspace:migrate',       desc: 'Interactive data migration assistant' },
+            { title: 'Open psql Shell',    cmd: 'workspace:psql',               desc: 'Open a psql session against shared-db (db name as arg)',
+              argInputs: [{ id: 'arg-psql-db', placeholder: 'db name  e.g. nextcloud', required: true }] },
+            { title: 'Tracking psql',      cmd: 'tracking:psql',                desc: 'Open psql against the tracking database' },
+            { title: 'Port-Forward DB',    cmd: 'workspace:port-forward',       desc: 'Forward shared-db to localhost:5432 (Stop to release)' },
         ]},
         { cat: 'Backup & Restore', icon: '💾', accent: ACCENTS.backup, items: [
             { title: 'Trigger Backup',      cmd: 'workspace:backup',      desc: 'Run an immediate backup of all databases' },
@@ -439,19 +528,100 @@
                 { id: 'arg-dbrestore-ts', placeholder: 'timestamp from the list above', required: true },
               ] },
         ]},
+        { cat: 'Website', icon: '🌐', accent: ACCENTS.website, items: [
+            { title: 'Build Website',  cmd: 'website:build',  desc: 'Run Astro build for the selected env' },
+            { title: 'Deploy Website', cmd: 'website:deploy', desc: 'Build, import and roll out the website pod' },
+            { title: 'Website Status', cmd: 'website:status', desc: 'Show website deployment status' },
+            { title: 'Dev Server',     cmd: 'website:dev',    desc: 'Start Astro dev server with hot-reload (streams until stopped)' },
+        ]},
+        { cat: 'ArgoCD', icon: '♾️', accent: ACCENTS.argocd, items: [
+            { title: 'ArgoCD Status',     cmd: 'argocd:status',           desc: 'Show sync/health of all apps across all clusters' },
+            { title: 'Apply Apps',        cmd: 'argocd:apps:apply',       desc: 'Apply AppProject and ApplicationSet manifests' },
+            { title: 'Sync App',          cmd: 'argocd:sync',             desc: 'Manually trigger an app sync',
+              argInputs: [{ id: 'arg-argocd-sync', placeholder: 'app name  e.g. workspace-hetzner', required: true }] },
+            { title: 'Diff App',          cmd: 'argocd:diff',             desc: 'Show diff between git and live state',
+              argInputs: [{ id: 'arg-argocd-diff', placeholder: 'app name  e.g. workspace-hetzner', required: true }] },
+            { title: 'Print Password',    cmd: 'argocd:password',         desc: 'Print initial admin password' },
+            { title: 'Register Clusters', cmd: 'argocd:cluster:register', desc: 'Register hetzner + korczewski clusters with workspace labels' },
+            { title: 'Bootstrap ArgoCD',  cmd: 'argocd:setup',            desc: 'Full ArgoCD install + cluster registration (run once)',
+              dangerous: true, dangerMsg: 'Bootstraps ArgoCD from scratch. Only run on a fresh hub cluster.' },
+            { title: 'Install ArgoCD',    cmd: 'argocd:install',          desc: 'Install ArgoCD on mentolder hub cluster',
+              dangerous: true, dangerMsg: 'Installs ArgoCD on the hub cluster. Only run on a fresh hub.' },
+        ]},
+        { cat: 'MCP / AI Tooling', icon: '🤖', accent: ACCENTS.mcp, items: [
+            { title: 'Deploy MCP',          cmd: 'mcp:deploy',        desc: 'Deploy the MCP monolith pod + auth proxy' },
+            { title: 'MCP Status',          cmd: 'mcp:status',        desc: 'Show MCP pod and container status' },
+            { title: 'MCP Logs',            cmd: 'mcp:logs',          desc: 'Tail logs for a specific MCP container',
+              argInputs: [{ id: 'arg-mcp-logs', placeholder: 'container  e.g. github / postgres / browser', required: true }] },
+            { title: 'MCP Restart',         cmd: 'mcp:restart',       desc: 'Restart the MCP monolith pod' },
+            { title: 'MCP Server Selector', cmd: 'mcp:select',        desc: 'Interactive MCP server selector' },
+            { title: 'Claude Code Setup',   cmd: 'claude-code:setup', desc: 'Generate Claude Code settings.json',
+              argInputs: [{ id: 'arg-cc-mode', placeholder: 'cluster  or  business', required: true }] },
+            { title: 'Gemini Setup',        cmd: 'gemini:setup',      desc: 'Generate Gemini CLI settings.json',
+              argInputs: [{ id: 'arg-gem-mode', placeholder: 'cluster  or  business', required: true }] },
+        ]},
+        { cat: 'VPN & GPU Worker', icon: '🛰️', accent: ACCENTS.argocd, items: [
+            { title: 'WireGuard Setup',   cmd: 'wireguard:setup',         desc: 'Initialize the WireGuard tunnel that connects the local GPU worker to the prod cluster' },
+            { title: 'WireGuard Up',      cmd: 'wireguard:up',            desc: 'Bring the WireGuard tunnel online' },
+            { title: 'WireGuard Down',    cmd: 'wireguard:down',          desc: 'Tear the WireGuard tunnel down' },
+            { title: 'WireGuard Status',  cmd: 'wireguard:status',        desc: 'Show tunnel handshake state and peer info' },
+            { title: 'GPU Worker Start',  cmd: 'gpu-worker:start',        desc: 'Start the local GPU worker process' },
+            { title: 'GPU Worker Stop',   cmd: 'gpu-worker:stop',         desc: 'Stop the local GPU worker process' },
+            { title: 'GPU Worker Status', cmd: 'gpu-worker:status',       desc: 'Show GPU worker pid + tunnel state' },
+            { title: 'GPU Worker Logs',   cmd: 'gpu-worker:logs',         desc: 'Tail GPU worker logs (Stop to exit)' },
+            { title: 'Switch Dev → GPU',  cmd: 'gpu-worker:switch-dev',   desc: 'Point dev cluster Whisper at the local GPU worker' },
+            { title: 'Switch Prod → GPU', cmd: 'gpu-worker:switch-prod',
+              desc: 'Point prod cluster Whisper at the local GPU worker',
+              dangerous: true, dangerMsg: 'Reroutes prod transcription to your local GPU. Stopping the worker will break prod transcription until reverted.' },
+        ]},
+        { cat: 'Transcription', icon: '🎙️', accent: ACCENTS.testing, items: [
+            { title: 'Deploy Whisper', cmd: 'whisper:deploy', desc: 'Deploy faster-whisper transcription service in-cluster' },
+            { title: 'Whisper Status', cmd: 'whisper:status', desc: 'Show Whisper pod status' },
+            { title: 'Whisper Logs',   cmd: 'whisper:logs',   desc: 'Tail Whisper logs (Stop to exit)' },
+        ]},
+        { cat: 'E-Invoice (Billing)', icon: '🧾', accent: ACCENTS.post, items: [
+            { title: 'Validate Output',      cmd: 'billing:validate-einvoice', desc: 'Validate generated ZUGFeRD/XRechnung output without a full cluster run' },
+            { title: 'Sidecar Build',        cmd: 'einvoice-sidecar:build',    desc: 'Build the e-invoice sidecar Docker image' },
+            { title: 'Sidecar Import (dev)', cmd: 'einvoice-sidecar:import',   desc: 'Import the local image into the k3d registry' },
+            { title: 'Sidecar Push (prod)',  cmd: 'einvoice-sidecar:push',     desc: 'Push the sidecar image to the prod registry' },
+            { title: 'Sidecar Logs',         cmd: 'einvoice-sidecar:logs',     desc: 'Tail e-invoice sidecar logs in the workspace namespace' },
+        ]},
+        { cat: 'Brett (Systembrett)', icon: '🧩', accent: ACCENTS.users, items: [
+            { title: 'Build',     cmd: 'brett:build',     desc: 'Build the Brett image (and import into k3d in dev)' },
+            { title: 'Push',      cmd: 'brett:push',      desc: 'Push Brett image to the registry' },
+            { title: 'Deploy',    cmd: 'brett:deploy',    desc: 'Build, import/push, and roll out Brett' },
+            { title: 'Bot Setup', cmd: 'brett:bot-setup', desc: 'Register the /brett slash command in Nextcloud Talk' },
+            { title: 'Logs',      cmd: 'brett:logs',      desc: 'Tail Brett logs (Stop to exit)' },
+        ]},
+        { cat: 'TLS & DNS', icon: '🔐', accent: ACCENTS.argocd, items: [
+            { title: 'Install cert-manager', cmd: 'cert:install', desc: 'Install cert-manager + lego DNS-01 webhook',
+              dangerous: true, dangerMsg: 'Installs cert-manager into the cluster. Run once per cluster.' },
+            { title: 'Cert Status',          cmd: 'cert:status',  desc: 'Show wildcard cert and ClusterIssuer status' },
+        ]},
+        { cat: 'Docs Site', icon: '📚', accent: ACCENTS.website, items: [
+            { title: 'Deploy Docs ConfigMap', cmd: 'docs:deploy',  desc: 'Push the docs ConfigMap to the selected cluster (ArgoCD does NOT auto-sync this)' },
+            { title: 'Restart Docs Pod',      cmd: 'docs:restart', desc: 'Force-restart the docs pod after a ConfigMap update' },
+        ]},
+        { cat: 'HA Cluster', icon: '🛠️', accent: ACCENTS.cluster, items: [
+            { title: 'HA Status',         cmd: 'ha:status',     desc: 'Show node health for the 3-node HA cluster' },
+            { title: 'Renew Certs',       cmd: 'ha:cert-renew', desc: 'Renew HA cluster certificates' },
+            { title: 'Bootstrap HA',      cmd: 'ha:setup',      desc: 'Bootstrap the 3-node k3s HA cluster on Hetzner (run once)',
+              dangerous: true, dangerMsg: 'Bootstraps the HA cluster from scratch. Run once on fresh Hetzner nodes only.' },
+        ]},
         { cat: 'Testing', icon: '🧪', accent: ACCENTS.testing, items: [
             { title: 'Unit Tests',        cmd: 'test:unit',      desc: 'Run BATS unit tests (assertion lib, scripts, configs)' },
             { title: 'Manifest Tests',    cmd: 'test:manifests', desc: 'Validate kustomize output structure (no cluster needed)' },
             { title: 'All Offline Tests', cmd: 'test:all',       desc: 'Unit + manifests + dry-run' },
         ]},
         { cat: 'Environment & Secrets', icon: '🔑', accent: ACCENTS.env, items: [
-            { title: 'Validate All Envs', cmd: 'env:validate:all', desc: 'Check all environment files against the schema' },
-            { title: 'Init New Env',      cmd: 'env:init',         desc: 'Scaffold a new environments/<ENV>.yaml from the schema' },
-            { title: 'Validate Env',      cmd: 'env:validate',     desc: 'Validate the selected environment file' },
-            { title: 'Show Env Config',   cmd: 'env:show',         desc: 'Print the resolved config for the selected env' },
-            { title: 'Generate Secrets',  cmd: 'env:generate',     desc: 'Generate fresh random secrets into .secrets/<ENV>.yaml',
+            { title: 'Validate All Envs',     cmd: 'env:validate:all',     desc: 'Check all environment files against the schema' },
+            { title: 'Init New Env',          cmd: 'env:init',             desc: 'Scaffold a new environments/<ENV>.yaml from the schema' },
+            { title: 'Validate Env',          cmd: 'env:validate',         desc: 'Validate the selected environment file' },
+            { title: 'Show Env Config',       cmd: 'env:show',             desc: 'Print the resolved config for the selected env' },
+            { title: 'Sealed Secrets Status', cmd: 'sealed-secrets:status',desc: 'Show Sealed Secrets controller status (must be installed before env:seal works)' },
+            { title: 'Generate Secrets',      cmd: 'env:generate',         desc: 'Generate fresh random secrets into .secrets/<ENV>.yaml',
               dangerous: true, dangerMsg: 'Generates new random secrets. Running services will break until redeployed with the new secrets.' },
-            { title: 'Seal Secrets',      cmd: 'env:seal',         desc: 'Encrypt plaintext secrets into a SealedSecret and commit to git',
+            { title: 'Seal Secrets',          cmd: 'env:seal',             desc: 'Encrypt plaintext secrets into a SealedSecret and commit to git',
               dangerous: true, dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
         ]},
 
@@ -477,6 +647,9 @@
               desc: 'Encrypt .secrets/<ENV>.yaml into a SealedSecret committed to git. Must be done before workspace:deploy.',
               dangerous: true,
               dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
+            { title: '6. Deploy Workspace',
+              cmd: 'workspace:deploy',
+              desc: 'Apply all manifests to the cluster. After this, run Post-Deploy → Compliance & Hardening.' },
         ]},
 
         // Destructive operations — collapsed, with when/never guidance
@@ -505,11 +678,34 @@
         ]},
     ];
 
+    // ── Small DOM helper — keeps the footgun banner XSS-free ───────────────
+    function el(tag, attrs, children) {
+        const node = document.createElement(tag);
+        if (attrs) for (const k in attrs) {
+            if (k === 'class') node.className = attrs[k];
+            else if (k === 'onclick') node.addEventListener('click', attrs[k]);
+            else node.setAttribute(k, attrs[k]);
+        }
+        if (children !== undefined && children !== null) {
+            const arr = Array.isArray(children) ? children : [children];
+            arr.forEach((c) => {
+                if (c === null || c === undefined) return;
+                node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+            });
+        }
+        return node;
+    }
+
+    function clearChildren(node) {
+        while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
     // ── ENV selector & context switcher ───────────────────────────────────
     const envSelect   = document.getElementById('env-select');
     const ctxBtn      = document.getElementById('ctx-btn');
     const ctxFeedback = document.getElementById('ctx-feedback');
     const liveCtxEl   = document.getElementById('live-ctx');
+    const footgunEl   = document.getElementById('footgun-banner');
 
     const ENV_CTX = { dev: 'k3d-dev', mentolder: 'mentolder', korczewski: 'korczewski' };
 
@@ -521,19 +717,76 @@
     }
 
     function updateLiveCtxDisplay() {
-        liveCtxEl.textContent = '';
+        clearChildren(liveCtxEl);
         if (!liveContext) return;
         const expected = ENV_CTX[envSelect.value];
         liveCtxEl.appendChild(document.createTextNode('ctx: '));
-        const val = document.createElement('span');
-        val.textContent = liveContext;
-        val.className = liveContext === expected ? 'ctx-ok' : 'ctx-warn';
+        const val = el('span', { class: liveContext === expected ? 'ctx-ok' : 'ctx-warn' }, liveContext);
         liveCtxEl.appendChild(val);
         if (liveContext !== expected) {
-            const exp = document.createElement('span');
-            exp.className = 'ctx-warn';
-            exp.textContent = ' (expects ' + expected + ')';
-            liveCtxEl.appendChild(exp);
+            liveCtxEl.appendChild(el('span', { class: 'ctx-warn' }, ' (expects ' + expected + ')'));
+        }
+    }
+
+    // ── ENV/ctx footgun banner ─────────────────────────────────────────────
+    // The dangerous case: ENV=dev (or unset) but kubectl is on a prod cluster.
+    // Several tasks default ENV=dev silently, which means workspace:deploy
+    // can target the live prod cluster with dev manifests if the user forgets
+    // ENV=. The reverse mismatch (prod ENV, dev ctx) is amber, not red.
+    function isFootgunRed() {
+        return liveContext !== null
+            && envSelect.value === 'dev'
+            && (liveContext === 'mentolder' || liveContext === 'korczewski');
+    }
+
+    function updateFootgunBanner() {
+        clearChildren(footgunEl);
+        footgunEl.className = '';
+        if (!liveContext) return;
+        const env = envSelect.value;
+        const expected = ENV_CTX[env];
+
+        if (env === 'dev' && (liveContext === 'mentolder' || liveContext === 'korczewski')) {
+            footgunEl.className = 'visible red';
+            const text = el('div', { class: 'footgun-text' }, [
+                '🚨 ',
+                el('strong', null, [
+                    'ENV=dev but kubectl is on ',
+                    el('code', null, liveContext),
+                ]),
+                ' — tasks like ',
+                el('code', null, 'workspace:deploy'),
+                ' default to ',
+                el('code', null, 'ENV=dev'),
+                ' when unset, but the dev/prod context mismatch check only runs for non-dev ENVs. ',
+                'You can silently apply dev manifests to the live prod cluster. Switch one of them first.',
+            ]);
+            const fixEnv = el('button', { onclick: () => {
+                envSelect.value = liveContext;
+                envSelect.dispatchEvent(new Event('change'));
+            }}, 'Set ENV=' + liveContext);
+            const fixCtx = el('button', { onclick: () => {
+                ctxBtn.disabled = true;
+                socket.emit('switch-context', { env: 'dev' });
+            }}, 'Switch ctx → k3d-dev');
+            footgunEl.appendChild(text);
+            footgunEl.appendChild(fixEnv);
+            footgunEl.appendChild(fixCtx);
+        } else if (env !== 'dev' && liveContext === 'k3d-dev') {
+            footgunEl.className = 'visible amber';
+            const text = el('div', { class: 'footgun-text' }, [
+                '⚠️ ENV=' + env + ' (prod) but kubectl is on ',
+                el('code', null, 'k3d-dev'),
+                '. Switch ctx to ',
+                el('code', null, expected),
+                ' before running deploy/restart tasks.',
+            ]);
+            const fixCtx = el('button', { onclick: () => {
+                ctxBtn.disabled = true;
+                socket.emit('switch-context', { env });
+            }}, 'Switch ctx → ' + expected);
+            footgunEl.appendChild(text);
+            footgunEl.appendChild(fixCtx);
         }
     }
 
@@ -567,13 +820,14 @@
         envSelect.classList.toggle('prod', isProd);
         updateCtxBtnTitle();
         updateLiveCtxDisplay();
+        updateFootgunBanner();
         ctxConfirmed = false;
         ctxFeedback.textContent = '';
         ctxFeedback.className = '';
         ctxBtn.className = '';
     });
 
-    // ── Build task sidebar ─────────────────────────────────────────────────
+    // ── Build task grid ───────────────────────────────────────────────────
     const sectionsEl = document.getElementById('task-sections');
 
     GROUPS.forEach((group) => {
@@ -747,6 +1001,18 @@
         dryrunBtn.classList.toggle('active', dryRunActive);
     });
 
+    // ── Terminal collapse toggle ───────────────────────────────────────────
+    const terminalPane = document.getElementById('terminal-pane');
+    const termToggle   = document.getElementById('term-toggle');
+
+    function setTerminalCollapsed(collapsed) {
+        terminalPane.classList.toggle('collapsed', collapsed);
+        termToggle.textContent = collapsed ? '▲ expand' : '▼ collapse';
+    }
+    termToggle.addEventListener('click', () => {
+        setTerminalCollapsed(!terminalPane.classList.contains('collapsed'));
+    });
+
     // ── Confirmation modal ─────────────────────────────────────────────────
     let pending = null;
 
@@ -764,7 +1030,7 @@
         modalCmd.textContent     = label;
         modalMsg.textContent     = item.dangerMsg;
         modalConfirm.textContent = 'Yes, Proceed';
-        pending = { cmd: item.cmd, args, ctxConfirm: false };
+        pending = { cmd: item.cmd, args, ctxConfirm: false, footgunConfirm: false };
         document.getElementById('modal-overlay').classList.add('visible');
     }
 
@@ -779,7 +1045,25 @@
             ' cluster, but your kubectl context is currently set to "' + current + '". ' +
             'Use the ⇌ ctx button to switch first, or run anyway against the active context.';
         modalConfirm.textContent = 'Run Anyway';
-        pending = { cmd: command, args, ctxConfirm: true };
+        pending = { cmd: command, args, ctxConfirm: true, footgunConfirm: false };
+        document.getElementById('modal-overlay').classList.add('visible');
+    }
+
+    function showFootgunModal(command, args) {
+        modalIcon.textContent    = '🚨';
+        modalTitle.textContent   = 'ENV=dev with prod kubectl context';
+        modalCmd.textContent     = 'task ' + command +
+            (args.length ? '  ' + args.join(' ') : '') +
+            '   [ENV=dev, ctx=' + (liveContext || 'unknown') + ']';
+        modalMsg.textContent     =
+            command + ' targets the live cluster. Your kubectl context is on ' +
+            (liveContext || 'unknown') + ' (production), but ENV is set to dev — ' +
+            'so this task will use dev manifests (e.g. dev secrets, dev domains) ' +
+            'against the prod cluster. This almost always means you forgot to set ENV. ' +
+            'Either switch ENV to ' + (liveContext || 'a prod env') + ' first, ' +
+            'or confirm to run anyway.';
+        modalConfirm.textContent = 'Run Anyway';
+        pending = { cmd: command, args, ctxConfirm: false, footgunConfirm: true };
         document.getElementById('modal-overlay').classList.add('visible');
     }
 
@@ -794,7 +1078,7 @@
         closeModal();
         if (!p) return;
         if (p.ctxConfirm) ctxConfirmed = true;
-        runTask(p.cmd, p.args);
+        runTask(p.cmd, p.args, { skipFootgun: !!p.footgunConfirm });
     });
     document.getElementById('modal-overlay').addEventListener('click', (e) => {
         if (e.target === document.getElementById('modal-overlay')) closeModal();
@@ -816,15 +1100,21 @@
         });
     }
 
-    function runTask(command, args) {
+    function runTask(command, args, opts) {
+        opts = opts || {};
         if (running) return;
         if (!ctxConfirmed && !ctxMatchesEnv()) {
             showCtxModal(command, args);
             return;
         }
+        if (!opts.skipFootgun && isFootgunRed() && PROD_GATE_COMMANDS.has(command)) {
+            showFootgunModal(command, args);
+            return;
+        }
         running = true;
         setButtons(true);
         stopBtn.style.display = 'inline-block';
+        if (terminalPane.classList.contains('collapsed')) setTerminalCollapsed(false);
         statusEl.className = 'running';
         const envLabel = 'ENV=' + envSelect.value + (dryRunActive ? ', DRY_RUN=true' : '');
         statusEl.textContent = 'Running: task ' + command + '  [' + envLabel + ']';
@@ -879,6 +1169,7 @@
             ctxConfirmed = true;
         }
         updateLiveCtxDisplay();
+        updateFootgunBanner();
     });
 
     socket.on('context-result', ({ ok, ctx, msg }) => {

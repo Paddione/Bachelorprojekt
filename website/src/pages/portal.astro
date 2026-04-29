@@ -41,7 +41,6 @@ const calMonth  = isNaN(calMonthQ) ? now.getMonth() + 1 : Math.max(1, Math.min(1
 
 const ncBase       = (process.env.NEXTCLOUD_EXTERNAL_URL ?? '').replace(/\/$/, '');
 const vaultUrl     = process.env.VAULT_EXTERNAL_URL ?? '';
-const wbUrl        = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
 const keycloakBase = process.env.KEYCLOAK_FRONTEND_URL ?? '';
 const realm        = process.env.KEYCLOAK_REALM ?? 'workspace';
 const bretDomain   = process.env.BRETT_DOMAIN ?? '';
@@ -101,7 +100,7 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
   {pendingSignatures}
   {pendingQuestionnaires}
 >
-  {section === 'overview'       && <DashboardSection {session} {pendingSignatures} {pendingQuestionnaires} {ncBase} {vaultUrl} {wbUrl} />}
+  {section === 'overview'       && <DashboardSection {session} {pendingSignatures} {pendingQuestionnaires} {ncBase} {vaultUrl} />}
   {section === 'nachrichten'    && <NachrichtenSection {rooms} />}
   {section === 'besprechungen'  && <BesprechungenSection {meetings} />}
   {section === 'dateien'        && <DateienSection clientUsername={username} />}
@@ -122,7 +121,7 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
     </div>
   )}
   {section === 'fragebögen'     && <FragebogenSection assignments={questionnaires} />}
-  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {wbUrl} {bretUrl} {keycloakBase} />}
+  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {bretUrl} {keycloakBase} />}
   {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
   {section === 'buchung'        && <BuchungSection ncBase={ncBase} />}
 </PortalLayout>

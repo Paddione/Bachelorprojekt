@@ -5,6 +5,7 @@ import BugReportWidget from '../components/BugReportWidget.svelte';
 import HelpPanel from '../components/HelpPanel.svelte';
 import ChatWidget from '../components/ChatWidget.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
+import { countPendingByType } from '../lib/messaging-db';
 
 interface Props {
   title: string;
@@ -15,6 +16,7 @@ interface NavItem {
   label: string;
   icon: string;
   matches?: string[];
+  badge?: number;
 }
 
 const { title } = Astro.props;
@@ -63,7 +65,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Betrieb',
     items: [
-      { href: '/admin/bugs',          label: 'Bugs',          icon: 'bug' },
       { href: '/admin/meetings',      label: 'Meetings',      icon: 'microphone' },
       { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
       { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
@@ -97,7 +98,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: 'System',
     items: [
       { href: '/admin/monitoring', label: 'Monitoring', icon: 'monitor' },
-      { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox' },
+      { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox', badge: inboxPending },
     ],
   },
   {
@@ -120,6 +121,12 @@ function isActive(href: string, matches?: string[]): boolean {
 }
 
 const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
+
+let inboxPending = 0;
+try {
+  const counts = await countPendingByType();
+  inboxPending = Object.values(counts).reduce((a, b) => a + b, 0);
+} catch { /* ignore if messaging-db unavailable */ }
 ---
 
 <!doctype html>
@@ -327,7 +334,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
                     href={item.href}
                     title={item.label}
                     class={`sidebar-nav-item${isActive(item.href, item.matches) ? ' is-active' : ''}`}
-                    style={`display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
+                    style={`display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:10px; text-decoration:none; font-size:13px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
                       isActive(item.href, item.matches)
                         ? 'background:var(--brass-d); color:var(--brass);'
                         : 'color:var(--fg-soft);'
@@ -338,7 +345,10 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
                       style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${isActive(item.href, item.matches) ? 'color:var(--brass);' : 'color:var(--mute);'}`}
                       set:html={icons[item.icon]}
                     />
-                    <span class="sidebar-label">{item.label}</span>
+                    <span class="sidebar-label" style="flex:1;">{item.label}</span>
+                    {item.badge ? (
+                      <span class="sidebar-label" style="flex-shrink:0; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--brass-d); color:var(--brass); font-family:var(--font-mono); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">{item.badge}</span>
+                    ) : null}
                   </a>
                 </li>
               ))}

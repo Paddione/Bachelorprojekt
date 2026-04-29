@@ -11,6 +11,10 @@ interface Props {
 }
 
 const { links, heading } = Astro.props;
+
+function isSvg(icon: string) {
+  return icon.trimStart().startsWith('<svg');
+}
 ---
 
 {links.length > 0 && (
@@ -27,9 +31,17 @@ const { links, heading } = Astro.props;
           target={external ? '_blank' : undefined}
           rel={external ? 'noopener noreferrer' : undefined}
           data-testid={`service-link-${link.label}`}
-          class="flex flex-col items-center gap-1.5 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors text-center"
+          class="flex flex-col items-center gap-2 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors text-center"
         >
-          <span class="text-2xl leading-none">{link.icon}</span>
+          {isSvg(link.icon) ? (
+            <span
+              class="text-muted"
+              style="width:20px; height:20px; display:flex; align-items:center; justify-content:center;"
+              set:html={link.icon}
+            />
+          ) : (
+            <span class="text-xl leading-none">{link.icon}</span>
+          )}
           <span class="text-xs font-medium text-muted">{link.label}</span>
         </a>
         );

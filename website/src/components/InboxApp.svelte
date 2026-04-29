@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { InboxItem, InboxType, InboxStatus, Message } from '../lib/messaging-db';
 
-  // Server passes initial data via props to avoid a flash of empty content
   const { initialItems, initialCounts }: {
     initialItems: InboxItem[];
     initialCounts: Record<string, number>;
@@ -9,7 +8,6 @@
 
   let items = $state<InboxItem[]>(initialItems);
   let counts = $state<Record<string, number>>(initialCounts);
-  let activeType = $state<InboxType | ''>('');
   let activeStatus = $state<InboxStatus>('pending');
   let loadingAction = $state<number | null>(null);
   let errors = $state<Record<number, string>>({});
@@ -17,7 +15,6 @@
   let noteText = $state('');
 
   // Thread inline view for user_message items
-  let sidebarCollapsed = $state(false);
   let expandedItemId = $state<number | null>(null);
   let threadMessages = $state<Message[]>([]);
   let threadLoading = $state(false);
@@ -43,26 +40,15 @@
 
   const totalPending = $derived(Object.values(counts).reduce((a, b) => a + b, 0));
 
-  const statusTabs: [string, string][] = [
+  const statusTabs: [InboxStatus, string][] = [
     ['pending', 'Offen'],
     ['actioned', 'Erledigt'],
     ['archived', 'Archiv'],
   ];
 
-  const filterTabs = $derived<[string, string, number][]>([
-    ['', 'Alle', totalPending],
-    ['registration', 'Registrierung', counts.registration ?? 0],
-    ['booking', 'Buchung', counts.booking ?? 0],
-    ['contact', 'Kontakt', counts.contact ?? 0],
-    ['bug', 'Bug', counts.bug ?? 0],
-    ['meeting_finalize', 'Meeting', counts.meeting_finalize ?? 0],
-    ['user_message', 'Nachricht', counts.user_message ?? 0],
-  ]);
-
   async function reload() {
     try {
       const p = new URLSearchParams({ status: activeStatus });
-      if (activeType) p.set('type', activeType);
       const res = await fetch(`/api/admin/inbox?${p}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { items: InboxItem[]; counts: Record<string, number> };
@@ -71,11 +57,6 @@
     } catch (err) {
       console.error('[InboxApp] reload failed:', err);
     }
-  }
-
-  function setType(t: InboxType | '') {
-    activeType = t;
-    reload();
   }
 
   function setStatus(s: InboxStatus) {
@@ -179,40 +160,27 @@
   }
 </script>
 
-<div class="inbox-layout">
-  <!-- Sidebar -->
-  <aside class="sidebar {sidebarCollapsed ? 'collapsed' : ''}">
-    <div class="sidebar-header">
-      <h2>Inbox</h2>
-      <button class="btn-collapse" onclick={() => sidebarCollapsed = !sidebarCollapsed} title={sidebarCollapsed ? 'Einblenden' : 'Ausblenden'}>
-        {sidebarCollapsed ? '›' : '‹'}
-      </button>
+<div class="inbox-wrap">
+  <!-- Header with count + status tabs -->
+  <div class="inbox-header">
+    <div class="inbox-title-row">
+      <h2 class="inbox-title">Eingehend</h2>
+      {#if totalPending > 0}
+        <span class="inbox-count">{totalPending}</span>
+      {/if}
     </div>
-    {#if !sidebarCollapsed}
-    <div class="filter-group">
-      {#each filterTabs as [t, label, count]}
-        <button
-          class="filter-btn {activeType === t ? 'active' : ''}"
-          onclick={() => setType(t as InboxType | '')}
-        >
-          {label}
-          {#if count > 0}<span class="badge">{count}</span>{/if}
-        </button>
-      {/each}
-    </div>
-    <div class="status-group">
+    <div class="status-tabs">
       {#each statusTabs as [s, label]}
         <button
-          class="status-btn {activeStatus === s ? 'active' : ''}"
-          onclick={() => setStatus(s as InboxStatus)}
+          class="status-tab {activeStatus === s ? 'active' : ''}"
+          onclick={() => setStatus(s)}
         >{label}</button>
       {/each}
     </div>
-    {/if}
-  </aside>
+  </div>
 
   <!-- Feed -->
-  <main class="feed">
+  <div class="feed">
     {#if items.length === 0}
       <p class="empty">Keine Einträge.</p>
     {:else}
@@ -306,26 +274,19 @@
         </div>
       {/each}
     {/if}
-  </main>
+  </div>
 </div>
 
 <style>
-  .inbox-layout { display: flex; gap: 24px; height: 100%; }
-  .sidebar { width: 200px; flex-shrink: 0; transition: width 0.2s; }
-  .sidebar.collapsed { width: 36px; }
-  .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .sidebar h2 { font-size: 18px; margin: 0; white-space: nowrap; overflow: hidden; }
-  .sidebar.collapsed h2 { display: none; }
-  .btn-collapse { background: #1e1e2e; border: 1px solid #374151; color: #aaa; border-radius: 4px; padding: 2px 7px; font-size: 16px; cursor: pointer; line-height: 1; flex-shrink: 0; }
-  .btn-collapse:hover { background: #2a2a3e; color: #fff; }
-  .filter-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
-  .filter-btn { background: transparent; border: none; text-align: left; padding: 7px 10px; border-radius: 6px; cursor: pointer; color: #ccc; font-size: 13px; display: flex; justify-content: space-between; }
-  .filter-btn.active { background: #2a2a3e; color: #fff; }
-  .filter-btn:hover:not(.active) { background: #1e1e2e; }
-  .badge { background: #7c6ff7; color: #fff; border-radius: 10px; padding: 0 6px; font-size: 11px; }
-  .status-group { display: flex; gap: 4px; }
-  .status-btn { flex: 1; background: #1e1e2e; border: none; padding: 5px; border-radius: 4px; cursor: pointer; color: #999; font-size: 12px; }
-  .status-btn.active { background: #2a2a3e; color: #fff; }
+  .inbox-wrap { display: flex; flex-direction: column; gap: 0; height: 100%; }
+  .inbox-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .inbox-title-row { display: flex; align-items: center; gap: 8px; }
+  .inbox-title { font-size: 18px; font-weight: 600; margin: 0; }
+  .inbox-count { background: #7c6ff7; color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 12px; font-weight: 700; }
+  .status-tabs { display: flex; gap: 4px; }
+  .status-tab { background: #1e1e2e; border: none; padding: 5px 14px; border-radius: 6px; cursor: pointer; color: #999; font-size: 12px; font-weight: 500; }
+  .status-tab.active { background: #2a2a3e; color: #fff; }
+  .status-tab:hover:not(.active) { background: #252535; color: #ccc; }
   .feed { flex: 1; overflow-y: auto; }
   .empty { color: #666; text-align: center; margin-top: 48px; }
   .card { background: #1e1e2e; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
@@ -359,16 +320,9 @@
   .thread-reply textarea { flex: 1; background: #111827; color: #e8e8f0; border: 1px solid #374151; border-radius: 4px; padding: 8px; font-size: 13px; resize: none; box-sizing: border-box; }
 
   @media (max-width: 640px) {
-    .inbox-layout { flex-direction: column; gap: 0; height: auto; }
-    .sidebar { width: 100%; padding-bottom: 12px; border-bottom: 1px solid #2a2a3e; margin-bottom: 12px; }
-    .sidebar.collapsed { width: 100%; }
-    .sidebar h2 { font-size: 16px; margin: 0; }
-    .sidebar-header { margin-bottom: 10px; }
-    .filter-group { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin-bottom: 10px; padding-bottom: 4px; scrollbar-width: none; }
-    .filter-group::-webkit-scrollbar { display: none; }
-    .filter-btn { flex-shrink: 0; white-space: nowrap; padding: 6px 10px; font-size: 12px; }
-    .status-group { width: 100%; }
-    .status-btn { padding: 7px 4px; font-size: 11px; }
+    .inbox-header { flex-direction: column; align-items: flex-start; }
+    .status-tabs { width: 100%; }
+    .status-tab { flex: 1; text-align: center; padding: 7px 4px; }
     .feed { overflow-y: visible; }
     .card { padding: 12px; }
     .card-body strong { font-size: 13px; }

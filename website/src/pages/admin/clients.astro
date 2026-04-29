@@ -43,7 +43,18 @@ try {
           <h1 class="text-3xl font-bold text-light font-serif">Clients</h1>
           <p class="text-muted mt-1">{users.length} Benutzer</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-2">
+          <!-- View toggle -->
+          <div class="flex border border-dark-lighter rounded-lg overflow-hidden" id="view-toggle">
+            <button id="view-grid-btn" title="Kachelansicht"
+              class="px-3 py-2 bg-gold text-dark transition-colors" aria-pressed="true">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>
+            </button>
+            <button id="view-list-btn" title="Listenansicht"
+              class="px-3 py-2 bg-dark-light text-muted hover:text-light transition-colors" aria-pressed="false">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+            </button>
+          </div>
           <button
             id="new-client-btn"
             class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors"
@@ -188,46 +199,120 @@ try {
         </div>
       )}
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="admin-client-list">
-        {users.map(user => {
-          const initial = ((user.firstName || user.lastName || user.username || '?')[0]).toUpperCase();
-          const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
-          const custNum = user.email ? customerNumberByEmail.get(user.email) : undefined;
-          return (
-            <a
-              href={`/admin/${user.id}`}
-              class={`group flex flex-col gap-3 p-4 bg-dark-light rounded-xl border transition-all duration-150 ${user.enabled === false ? 'border-red-500/20 opacity-60' : 'border-dark-lighter hover:border-gold/40'}`}
-              data-testid="admin-client-item"
-            >
-              <div class="flex items-start justify-between gap-2">
-                <div style="width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.18), 0 0 0 1px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                  <span style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:var(--ink-900); line-height:1;">{initial}</span>
+      <!-- Client list (grid/list switchable) -->
+      <div id="client-list-container" data-testid="admin-client-list">
+
+        <!-- Grid view -->
+        <div id="client-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {users.map(user => {
+            const initial = ((user.firstName || user.lastName || user.username || '?')[0]).toUpperCase();
+            const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
+            const custNum = user.email ? customerNumberByEmail.get(user.email) : undefined;
+            return (
+              <a
+                href={`/admin/${user.id}`}
+                class={`group flex flex-col gap-3 p-4 bg-dark-light rounded-xl border transition-all duration-150 ${user.enabled === false ? 'border-red-500/20 opacity-60' : 'border-dark-lighter hover:border-gold/40'}`}
+                data-testid="admin-client-item"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div style="width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.18), 0 0 0 1px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:var(--ink-900); line-height:1;">{initial}</span>
+                  </div>
+                  {user.enabled === false && (
+                    <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 leading-none mt-0.5">off</span>
+                  )}
                 </div>
-                {user.enabled === false && (
-                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 leading-none mt-0.5">off</span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-semibold text-light truncate leading-snug">{fullName}</p>
+                  <p class="text-xs text-muted truncate mt-0.5">{user.email ?? user.username}</p>
+                </div>
+                {custNum && (
+                  <span class="self-start text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 font-mono leading-none">
+                    {custNum}
+                  </span>
                 )}
+              </a>
+            );
+          })}
+          {users.length === 0 && (
+            <p class="text-muted col-span-full">Keine Benutzer gefunden.</p>
+          )}
+        </div>
+
+        <!-- List view (hidden by default) -->
+        <div id="client-list-view" class="hidden">
+          {users.length === 0 ? (
+            <p class="text-muted">Keine Benutzer gefunden.</p>
+          ) : (
+            <div class="rounded-xl border border-dark-lighter overflow-hidden">
+              <!-- Header -->
+              <div class="grid grid-cols-[44px_1fr_180px_120px_80px] gap-3 px-4 py-2.5 bg-dark-light border-b border-dark-lighter text-xs font-medium text-muted uppercase tracking-wide">
+                <span></span>
+                <span>Name</span>
+                <span>E-Mail</span>
+                <span>Kundennr.</span>
+                <span>Status</span>
               </div>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-light truncate leading-snug">{fullName}</p>
-                <p class="text-xs text-muted truncate mt-0.5">{user.email ?? user.username}</p>
-              </div>
-              {custNum && (
-                <span class="self-start text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 font-mono leading-none">
-                  {custNum}
-                </span>
-              )}
-            </a>
-          );
-        })}
-        {users.length === 0 && (
-          <p class="text-muted col-span-full">Keine Benutzer gefunden.</p>
-        )}
+              {users.map(user => {
+                const initial = ((user.firstName || user.lastName || user.username || '?')[0]).toUpperCase();
+                const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
+                const custNum = user.email ? customerNumberByEmail.get(user.email) : undefined;
+                return (
+                  <a
+                    href={`/admin/${user.id}`}
+                    class={`grid grid-cols-[44px_1fr_180px_120px_80px] gap-3 px-4 py-3 border-b border-dark-lighter/50 last:border-0 items-center transition-colors ${user.enabled === false ? 'opacity-60' : 'hover:bg-dark-light'}`}
+                    data-testid="admin-client-item"
+                  >
+                    <div style="width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                      <span style="font-family:var(--font-serif); font-size:13px; font-weight:600; color:var(--ink-900); line-height:1;">{initial}</span>
+                    </div>
+                    <span class="text-sm font-medium text-light truncate">{fullName}</span>
+                    <span class="text-xs text-muted truncate">{user.email ?? user.username}</span>
+                    <span class="text-xs font-mono text-gold truncate">{custNum ?? '—'}</span>
+                    <span class={`text-xs px-1.5 py-0.5 rounded-full self-center ${user.enabled === false ? 'bg-red-500/20 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
+                      {user.enabled === false ? 'off' : 'aktiv'}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   </section>
 </AdminLayout>
 
 <script>
+  // View toggle
+  const gridBtn = document.getElementById('view-grid-btn');
+  const listBtn = document.getElementById('view-list-btn');
+  const gridView = document.getElementById('client-grid');
+  const listView = document.getElementById('client-list-view');
+  const STORAGE_KEY = 'admin-clients-view';
+
+  function applyView(mode: 'grid' | 'list') {
+    const isGrid = mode === 'grid';
+    gridView?.classList.toggle('hidden', !isGrid);
+    listView?.classList.toggle('hidden', isGrid);
+    gridBtn?.classList.toggle('bg-gold', isGrid);
+    gridBtn?.classList.toggle('text-dark', isGrid);
+    gridBtn?.classList.toggle('bg-dark-light', !isGrid);
+    gridBtn?.classList.toggle('text-muted', !isGrid);
+    listBtn?.classList.toggle('bg-gold', !isGrid);
+    listBtn?.classList.toggle('text-dark', !isGrid);
+    listBtn?.classList.toggle('bg-dark-light', isGrid);
+    listBtn?.classList.toggle('text-muted', isGrid);
+    gridBtn?.setAttribute('aria-pressed', isGrid ? 'true' : 'false');
+    listBtn?.setAttribute('aria-pressed', isGrid ? 'false' : 'true');
+  }
+
+  const saved = (localStorage.getItem(STORAGE_KEY) ?? 'grid') as 'grid' | 'list';
+  applyView(saved);
+
+  gridBtn?.addEventListener('click', () => { applyView('grid'); localStorage.setItem(STORAGE_KEY, 'grid'); });
+  listBtn?.addEventListener('click', () => { applyView('list'); localStorage.setItem(STORAGE_KEY, 'list'); });
+
   const btn = document.getElementById('new-client-btn');
   const form = document.getElementById('new-client-form');
   const cancelBtn = document.getElementById('cancel-new-client');

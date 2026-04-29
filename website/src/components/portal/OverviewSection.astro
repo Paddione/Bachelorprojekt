@@ -10,10 +10,9 @@ interface Props {
   onboardingPct: number;
   ncBase: string;
   vaultUrl: string;
-  wbUrl?: string;
 }
 
-const { session, nextBooking, openInvoices, unreadMessages, onboardingPct, ncBase, vaultUrl, wbUrl = '' } = Astro.props;
+const { session, nextBooking, openInvoices, unreadMessages, onboardingPct, ncBase, vaultUrl } = Astro.props;
 
 const services = [
   ...(ncBase ? [
@@ -21,7 +20,6 @@ const services = [
     { href: `${ncBase}/apps/calendar/`,    label: 'Kalender',   desc: 'Nextcloud' },
     { href: `${ncBase}/apps/spreed/`,      label: 'Talk',       desc: 'Video & Chat' },
   ] : []),
-  ...(wbUrl ? [{ href: wbUrl, label: 'Whiteboard', desc: 'Nextcloud' }] : []),
   ...(vaultUrl ? [{ href: vaultUrl, label: 'Passwörter', desc: 'Vaultwarden' }] : []),
 ];
 ---

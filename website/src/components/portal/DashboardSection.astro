@@ -7,10 +7,9 @@ interface Props {
   pendingQuestionnaires: number;
   ncBase: string;
   vaultUrl: string;
-  wbUrl?: string;
 }
 
-const { session, pendingSignatures, pendingQuestionnaires, ncBase, vaultUrl, wbUrl = '' } = Astro.props;
+const { session, pendingSignatures, pendingQuestionnaires, ncBase, vaultUrl } = Astro.props;
 
 const firstName = session.given_name?.trim()
   || session.name?.split(' ')[0]?.trim()
@@ -35,7 +34,6 @@ const tiles = [
 const externalServices = [
   ...(ncBase   ? [{ href: ncBase,   label: 'Nextcloud',   desc: 'Dateien & Kalender' }] : []),
   ...(vaultUrl ? [{ href: vaultUrl, label: 'Vaultwarden', desc: 'Passwörter'         }] : []),
-  ...(wbUrl    ? [{ href: wbUrl,    label: 'Whiteboard',  desc: 'Skizzen & Boards'   }] : []),
 ];
 
 const hasPending = pendingSignatures > 0 || pendingQuestionnaires > 0;

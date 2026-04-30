@@ -14,7 +14,7 @@ spec:
     - websecure
   routes:
     # oauth2-proxy endpoints (sign-in, callback, sign_out, auth) — no auth middleware
-    - match: Host(`traefik.${PROD_DOMAIN}`) && PathPrefix(`/oauth2`)
+    - match: (Host(`traefik.${PROD_DOMAIN}`) || Host(`dashboard.${PROD_DOMAIN}`)) && PathPrefix(`/oauth2`)
       kind: Rule
       middlewares:
         - name: hsts-headers
@@ -23,7 +23,7 @@ spec:
         - name: oauth2-proxy-traefik
           port: 4180
     # Dashboard + API — require auth. Redirects bare `/` to `/dashboard/`.
-    - match: Host(`traefik.${PROD_DOMAIN}`)
+    - match: Host(`traefik.${PROD_DOMAIN}`) || Host(`dashboard.${PROD_DOMAIN}`)
       kind: Rule
       middlewares:
         - name: hsts-headers

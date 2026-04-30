@@ -240,10 +240,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${TRAEFIK_OIDC_SECRET}",
       "redirectUris": [
-        "https://${TRAEFIK_DOMAIN}/oauth2/callback"
+        "https://${TRAEFIK_DOMAIN}/oauth2/callback",
+        "https://${DASHBOARD_DOMAIN}/oauth2/callback"
       ],
       "webOrigins": [
-        "https://${TRAEFIK_DOMAIN}"
+        "https://${TRAEFIK_DOMAIN}",
+        "https://${DASHBOARD_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

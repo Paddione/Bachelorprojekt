@@ -50,13 +50,13 @@ spec:
     - web
   routes:
     # oauth2-proxy endpoints — no auth middleware
-    - match: Host(`traefik.localhost`) && PathPrefix(`/oauth2`)
+    - match: (Host(`traefik.localhost`) || Host(`dashboard.localhost`)) && PathPrefix(`/oauth2`)
       kind: Rule
       services:
         - name: oauth2-proxy-traefik
           port: 4180
     # Dashboard + API — require auth. Redirects bare `/` to `/dashboard/`.
-    - match: Host(`traefik.localhost`)
+    - match: Host(`traefik.localhost`) || Host(`dashboard.localhost`)
       kind: Rule
       middlewares:
         - name: traefik-dashboard-redirect-root

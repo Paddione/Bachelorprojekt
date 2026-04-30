@@ -181,7 +181,7 @@ tasks:
     cmds:
       - |
         TASKS="workspace:deploy workspace:status workspace:teardown workspace:validate \
-               workspace:post-setup config:show website:deploy mcp:deploy"
+               workspace:post-setup config:show"
         FAIL=0
         for t in $TASKS; do
           (

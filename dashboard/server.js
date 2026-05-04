@@ -1,3 +1,9 @@
+// LOCAL ADMIN DASHBOARD ONLY.
+// This file binds to 127.0.0.1 and runs `task` commands directly. It MUST NOT
+// be deployed inside the cluster or exposed on the public internet. The
+// internet-facing dashboard lives in dashboard/web/ and is a separate Node app
+// without a `task` runner. See:
+// docs/superpowers/specs/2026-05-04-deployed-dashboard-with-ticket-thread-design.md
 'use strict';
 
 const express = require('express');

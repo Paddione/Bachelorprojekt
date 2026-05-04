@@ -21,21 +21,35 @@ export const POST: APIRoute = async ({ request }) => {
   const client = new EgressClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 
   if (action === 'start') {
-    const info = await client.startRoomCompositeEgress(
-      ROOM_NAME,
-      new EncodedFileOutput({
-        fileType: EncodedFileType.MP4,
-        filepath: `/recordings/${ROOM_NAME}-${Date.now()}.mp4`,
-      }),
-    );
-    return new Response(JSON.stringify({ egressId: info.egressId }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    try {
+      const info = await client.startRoomCompositeEgress(
+        ROOM_NAME,
+        new EncodedFileOutput({
+          fileType: EncodedFileType.MP4,
+          filepath: `/recordings/${ROOM_NAME}-${Date.now()}.mp4`,
+        }),
+      );
+      return new Response(JSON.stringify({ egressId: info.egressId }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
   }
 
   if (action === 'stop' && egressId) {
-    await client.stopEgress(egressId);
+    try {
+      await client.stopEgress(egressId);
+    } catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

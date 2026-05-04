@@ -89,6 +89,13 @@ runcmd:
   - ufw allow 5349/tcp     # coturn TURNS (TLS TURN — iOS/iPhone)
   - ufw allow 49152:49252/udp  # coturn TURN relay port range
   - ufw allow 2379:2380/tcp
+  # LiveKit ports — Hetzner host firewall blocks inter-node traffic on every
+  # port except 80/443 by default. Without these the host-network livekit-server
+  # pod is unreachable from Traefik on other nodes (see k3d/livekit.yaml).
+  - ufw allow 7880/tcp     # LiveKit signaling (HTTP/WS)
+  - ufw allow 7881/tcp     # LiveKit RTC TCP fallback
+  - ufw allow 50000:60000/udp  # LiveKit RTC media range
+  - ufw allow 30000:40000/udp  # LiveKit TURN relay range
   - ufw --force enable
 
   # Services

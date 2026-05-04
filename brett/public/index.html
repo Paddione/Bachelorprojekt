@@ -30,20 +30,18 @@
   }
 
   .figure-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1px solid #0f3460;
-    background: #0f3460;
-    color: #e0e0e0;
-    border-radius: 7px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.15s;
-    white-space: nowrap;
+    width: 56px; height: 84px;
+    background: #102540;
+    border: 1px solid #2c4d80;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px; cursor: pointer;
+    transition: background .15s, border-color .15s;
   }
   .figure-btn:hover { background: #1a4a8a; border-color: #4a90d9; }
+  .figure-btn.active { border-color: #ffd84a; box-shadow: 0 0 0 1px #ffd84a inset; }
+  .figure-btn .figure-art { display: block; width: 100%; height: 100%; }
+  .figure-btn .figure-art svg { width: 100%; height: 100%; }
 
   .color-swatch {
     width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
@@ -239,21 +237,17 @@
 <div id="toolbar">
   <span class="tlabel">Figur</span>
 
-  <button class="figure-btn" data-type="pawn">
-    <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="4" r="3" fill="none" stroke="#e0e0e0" stroke-width="1.3"/><rect x="4.5" y="7" width="5" height="5" rx="1" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
-    Figur
+  <button class="figure-btn" data-type="figure-01" aria-label="Figur I" title="Figur I">
+    <span class="figure-art" data-art-slot="figure-01"></span>
   </button>
-  <button class="figure-btn" data-type="triangle">
-    <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 13,13 1,13" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
-    Kegel
+  <button class="figure-btn" data-type="figure-02" aria-label="Figur II" title="Figur II">
+    <span class="figure-art" data-art-slot="figure-02"></span>
   </button>
-  <button class="figure-btn" data-type="square">
-    <svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
-    Säule
+  <button class="figure-btn" data-type="figure-03" aria-label="Figur III" title="Figur III">
+    <span class="figure-art" data-art-slot="figure-03"></span>
   </button>
-  <button class="figure-btn" data-type="diamond">
-    <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 13,7 7,13 1,7" fill="none" stroke="#e0e0e0" stroke-width="1.3"/></svg>
-    Raute
+  <button class="figure-btn" data-type="figure-04" aria-label="Figur IV" title="Figur IV">
+    <span class="figure-art" data-art-slot="figure-04"></span>
   </button>
 
   <div class="sep"></div>
@@ -625,6 +619,67 @@ const edgeMesh = new THREE.Mesh(
 edgeMesh.position.y = -0.35;
 scene.add(edgeMesh);
 
+// ── Art library bootstrap ────────────────────────────────────────────────
+let ART_MANIFEST = null;
+const characterIds = new Set();
+const characterTextures = new Map();   // id → THREE.CanvasTexture
+
+function svgToImage(svgText) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svgText], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload  = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+async function loadCharacterTexture(id) {
+  if (characterTextures.has(id)) return characterTextures.get(id);
+  const meta = ART_MANIFEST.assets.find(a => a.id === id);
+  const svgText = await fetch('/art-library/' + meta.files.figurine).then(r => r.text());
+  const img = await svgToImage(svgText);
+  const c = document.createElement('canvas'); c.width = 240; c.height = 400;
+  c.getContext('2d').drawImage(img, 0, 0, 240, 400);
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  tex.needsUpdate = true;
+  characterTextures.set(id, tex);
+  return tex;
+}
+
+async function bootArtLibrary() {
+  try {
+    const r = await fetch('/art-library/manifest.json');
+    if (!r.ok) throw new Error('no manifest');
+    ART_MANIFEST = await r.json();
+    for (const a of ART_MANIFEST.assets) {
+      if (a.kind === 'character') characterIds.add(a.id);
+    }
+    await Promise.all([...characterIds].map(loadCharacterTexture));
+    console.log('[art] loaded', characterIds.size, 'characters');
+    for (const id of characterIds) {
+      const slot = document.querySelector(`.figure-art[data-art-slot="${id}"]`);
+      if (!slot) continue;
+      const meta = ART_MANIFEST.assets.find(a => a.id === id);
+      const svgText = await fetch('/art-library/' + meta.files.figurine).then(r => r.text());
+      const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+      const svgNode = doc.documentElement;
+      while (slot.firstChild) slot.removeChild(slot.firstChild);
+      slot.appendChild(document.importNode(svgNode, true));
+    }
+  } catch (e) {
+    console.warn('[art] manifest unavailable, using legacy shapes', e.message);
+    ART_MANIFEST = null;
+  } finally {
+    window.__ART_READY__ = true;
+    window.characterIds = characterIds;
+  }
+}
+
+bootArtLibrary();
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let figures = [];
 let selectedFigure = null;
@@ -679,82 +734,69 @@ function buildFigure(type, color) {
 
   const group = new THREE.Group();
 
-  if (type === 'pawn') {
-    // Body: front bright, back dark using two half-cylinders
+  if (characterIds.has(type)) {
+    // Sprite path: figurine SVG as a billboard, mounted on the existing base disc.
+    const tex = characterTextures.get(type);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, transparent: true, depthTest: true,
+    }));
+    sprite.scale.set(2.0, 3.4, 1);     // matches 120×200 figurine viewBox aspect
+    sprite.position.y = 1.7;
+    sprite.castShadow = false;          // baked shadow lives in the SVG; base provides ground shadow
+    group.add(sprite);
+  } else if (type === 'pawn') {
+    // Legacy path — kept verbatim for back-compat with old snapshots.
     const bodyF = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 1.75, 24, 1, false, 0, Math.PI), mat);
     const bodyB = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 1.75, 24, 1, false, Math.PI, Math.PI), back);
     bodyF.position.y = 0.875; bodyB.position.y = 0.875;
     bodyF.castShadow = true; bodyB.castShadow = true;
-
-    // Head: front bright hemisphere, back dark
     const headF = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 16, 0, Math.PI, 0, Math.PI), mat);
     const headB = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 16, Math.PI, Math.PI, 0, Math.PI), back);
     headF.position.y = 2.0; headB.position.y = 2.0;
     headF.castShadow = true; headB.castShadow = true;
-
     group.add(bodyF, bodyB, headF, headB);
-
-    // Face marker
-    const dot = makeFaceMarker(color);
-    dot.position.set(0, 2.0, 0.53);
-    group.add(dot);
-
+    const dot = makeFaceMarker(color); dot.position.set(0, 2.0, 0.53); group.add(dot);
   } else if (type === 'triangle') {
-    // Cone: 3-sided, front half bright
     const coneF = new THREE.Mesh(new THREE.ConeGeometry(0.88, 2.15, 16, 1, false, 0, Math.PI), mat);
     const coneB = new THREE.Mesh(new THREE.ConeGeometry(0.88, 2.15, 16, 1, false, Math.PI, Math.PI), back);
     coneF.position.y = 1.075; coneB.position.y = 1.075;
     coneF.castShadow = true; coneB.castShadow = true;
-
-    // Front face stripe
     const stripeGeo = new THREE.PlaneGeometry(0.25, 1.3);
     const stripeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthTest: false });
     const stripe = new THREE.Mesh(stripeGeo, stripeMat);
     stripe.position.set(0, 1.1, 0.86);
-    stripe.rotation.y = 0;
-
     group.add(coneF, coneB, stripe);
-
   } else if (type === 'square') {
-    // Box: front face bright, sides/back darker
     const frontMat = mat.clone();
     const sideMat  = new THREE.MeshStandardMaterial({ color: col.clone().multiplyScalar(0.7), roughness: 0.45 });
     const backMat2 = back.clone();
     const topMat   = new THREE.MeshStandardMaterial({ color: col.clone().multiplyScalar(0.85), roughness: 0.4 });
-
-    // Box with per-face materials [+x, -x, +y, -y, +z(front), -z(back)]
     const boxGeo = new THREE.BoxGeometry(1.18, 2.0, 1.18);
     const boxMats = [ sideMat, sideMat, topMat, back, frontMat, backMat2 ];
     const box = new THREE.Mesh(boxGeo, boxMats);
     box.position.y = 1.0; box.castShadow = true;
-
-    // Front face vertical stripe
     const strGeo = new THREE.PlaneGeometry(0.22, 1.4);
     const strMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, depthTest: false });
     const stripe = new THREE.Mesh(strGeo, strMat);
     stripe.position.set(0, 1.0, 0.6);
     group.add(box, stripe);
-
   } else if (type === 'diamond') {
-    // Octahedron: front vertices bright, back dark via two halves
     const octF = new THREE.Mesh(new THREE.OctahedronGeometry(1.05, 0), mat);
     octF.position.y = 1.05; octF.castShadow = true;
     group.add(octF);
-
-    // Front face indicator
-    const dot = makeFaceMarker(color);
-    dot.position.set(0, 1.05, 1.0);
-    dot.scale.set(0.45, 0.45, 1);
-    group.add(dot);
+    const dot = makeFaceMarker(color); dot.position.set(0, 1.05, 1.0); dot.scale.set(0.45, 0.45, 1); group.add(dot);
+  } else {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8),
+      new THREE.MeshBasicMaterial({ color: 0xff00ff }));
+    m.position.y = 0.5; group.add(m);
   }
 
-  // Base disc
+  // Existing base disc + direction arrow — unchanged for ALL types.
   const baseMat = new THREE.MeshStandardMaterial({ color: dark, roughness: 0.7 });
   const base = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.18, 32), baseMat);
   base.position.y = 0.09; base.castShadow = true;
   group.add(base);
 
-  // Direction arrow on base
   const arrow = makeDirectionArrow(color);
   group.add(arrow);
 
@@ -795,6 +837,9 @@ function addFigure(type, color, x, z, label, scale, rotY, id) {
   figures.push(fig);
   return fig;
 }
+
+window.addFigure = addFigure;
+window.figures = figures;
 
 function attachLabel(fig) {
   if (fig.sprite) { fig.mesh.remove(fig.sprite); fig.sprite.material.map.dispose(); fig.sprite.material.dispose(); fig.sprite = null; }

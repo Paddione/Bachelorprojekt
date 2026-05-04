@@ -218,8 +218,6 @@ spec:
             - name: http
               containerPort: 8080
           env:
-            - name: LIVEKIT_URL
-              value: "ws://livekit-server:7880"
             - name: API_KEY
               valueFrom:
                 secretKeyRef:
@@ -230,8 +228,16 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: LIVEKIT_API_SECRET
-            - name: REDIS_URL
-              value: "redis://livekit-redis:6379"
+            - name: INGRESS_CONFIG_BODY
+              value: |
+                api_key: $(API_KEY)
+                api_secret: $(API_SECRET)
+                ws_url: ws://livekit-server:7880
+                redis:
+                  address: livekit-redis:6379
+                rtmp:
+                  port: 1935
+                http_relay_port: 8080
           resources:
             requests:
               memory: 128Mi

@@ -2044,6 +2044,35 @@ tasks:
         '
 
   # ─────────────────────────────────────────────
+  # Autonomous Browser Agent (Local LLM Reasoning)
+  # ─────────────────────────────────────────────
+  browser-agent:init:
+    desc: Initialize local LLM for browser reasoning (GPT-OSS 20B)
+    cmds:
+      - docker exec -it ollama-gpu ollama pull mistral  # Using mistral as proxy for GPT-OSS 20B in demo
+      - echo "✓ LLM model pulled"
+
+  browser-agent:connect:
+    desc: Connect k3d cluster to local LLM and browser agent tools
+    cmds:
+      - |
+        LLM_IP=$(docker inspect ollama-gpu -f '{{ "{{" }}(index .NetworkSettings.Networks "k3d-dev").IPAddress{{ "}}" }}' 2>/dev/null)
+        if [ -z "$LLM_IP" ]; then
+          echo "ERROR: ollama-gpu not connected to k3d-dev network. Is it running?"
+          exit 1
+        fi
+        sed "s/__HOST_IP__/$LLM_IP/g" k3d/llm-gpu.yaml | kubectl apply -n workspace -f -
+      - kubectl apply -n workspace -f k3d/claude-code-mcp-browser.yaml
+      - echo "✓ Browser agent connectivity established"
+
+  browser-agent:status:
+    desc: Check status of browser agent components
+    cmds:
+      - kubectl get pods -n workspace -l app=mcp-browser
+      - docker exec -it ollama-gpu ollama list
+      - 'curl -sf http://localhost:11435/api/tags > /dev/null && echo "LLM Gateway: OK" || echo "LLM Gateway: DOWN"'
+
+  # ─────────────────────────────────────────────
   # GPU Worker (External Whisper with NVIDIA CUDA)
   # ─────────────────────────────────────────────
   gpu-worker:start:
@@ -2056,15 +2085,24 @@ tasks:
     cmds:
       - docker compose -f docker-compose.gpu-worker.yaml up -d
       - |
-        echo "Waiting for GPU Whisper to be healthy..."
+        echo "Waiting for GPU services (Whisper + Ollama)..."
+        WHISPER_READY=false
+        OLLAMA_READY=false
         for i in $(seq 1 60); do
-          if curl -sf http://localhost:8800/health > /dev/null 2>&1; then
+          if [ "$WHISPER_READY" = false ] && curl -sf http://localhost:8800/health > /dev/null 2>&1; then
             echo "✓ GPU Whisper is ready"
+            WHISPER_READY=true
+          fi
+          if [ "$OLLAMA_READY" = false ] && curl -sf http://localhost:11435/api/tags > /dev/null 2>&1; then
+            echo "✓ GPU Ollama is ready"
+            OLLAMA_READY=true
+          fi
+          if [ "$WHISPER_READY" = true ] && [ "$OLLAMA_READY" = true ]; then
             exit 0
           fi
           sleep 5
         done
-        echo "WARNING: GPU Whisper not healthy after 5 minutes (model may still be downloading)"
+        echo "WARNING: Some GPU services not healthy after 5 minutes"
 
   gpu-worker:stop:
     desc: Stop the GPU Whisper worker

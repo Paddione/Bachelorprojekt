@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway
+spec:
+  # No selector: manually managed Endpoints point to external GPU worker
+  ports:
+    - port: 11434
+      targetPort: 11434
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway
+subsets:
+  - addresses:
+      - ip: __HOST_IP__
+    ports:
+      - port: 11434

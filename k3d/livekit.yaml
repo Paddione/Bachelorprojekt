@@ -124,15 +124,6 @@ spec:
       # resolvable from inside the pod even though the host's resolver isn't.
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/hostname
-                    operator: In
-                    values:
-                      - gekko-hetzner-3
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -140,7 +131,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: livekit
-          image: livekit/livekit-server:v1.8.3
+          image: livekit/livekit-server:v1.11.0
           args:
             - --config=/etc/livekit/config.yaml
           ports:
@@ -289,7 +280,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: ingress
-          image: livekit/ingress:v1.4.3
+          image: livekit/ingress:v1.5.0
           ports:
             - name: rtmp
               containerPort: 1935
@@ -376,7 +367,7 @@ spec:
     spec:
       containers:
         - name: egress
-          image: livekit/egress:v1.8.4
+          image: livekit/egress:v1.9.0
           env:
             - name: EGRESS_CONFIG_BODY
               value: |

@@ -44,6 +44,8 @@ resources:
   - cronjob-monthly-billing.yaml
   - cronjob-dunning-detection.yaml
   - einvoice-sidecar.yaml
+  # LiveKit — self-hosted WebRTC livestreaming
+  - livekit.yaml
   # Systemisches Brett
   - brett.yaml
   # Dev-Werkzeuge

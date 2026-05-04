@@ -28,3 +28,5 @@ data:
   KC_USER2_USERNAME: ""
   KC_USER2_EMAIL: ""
   BRETT_DOMAIN: "brett.localhost"
+  LIVEKIT_DOMAIN: "livekit.localhost"
+  STREAM_DOMAIN: "stream.localhost"

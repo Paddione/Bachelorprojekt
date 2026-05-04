@@ -15,6 +15,40 @@ configMapGenerator:
     behavior: replace
     files:
       - realm-workspace.json=realm-workspace-mentolder.json
+  - name: art-library
+    options:
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+    files:
+      - manifest.json=../art-library/sets/mentolder/manifest.json
+      - tokens.css=../art-library/sets/mentolder/tokens.css
+
+      - characters_digital50.portrait.svg=../art-library/sets/mentolder/characters/digital50.portrait.svg
+      - characters_digital50.figurine.svg=../art-library/sets/mentolder/characters/digital50.figurine.svg
+      - characters_leadership.portrait.svg=../art-library/sets/mentolder/characters/leadership.portrait.svg
+      - characters_leadership.figurine.svg=../art-library/sets/mentolder/characters/leadership.figurine.svg
+      - characters_consulting.portrait.svg=../art-library/sets/mentolder/characters/consulting.portrait.svg
+      - characters_consulting.figurine.svg=../art-library/sets/mentolder/characters/consulting.figurine.svg
+
+      - props_compass.svg=../art-library/sets/mentolder/props/compass.svg
+      - props_handshake.svg=../art-library/sets/mentolder/props/handshake.svg
+      - props_briefcase.svg=../art-library/sets/mentolder/props/briefcase.svg
+      - props_bookmark.svg=../art-library/sets/mentolder/props/bookmark.svg
+      - props_chat.svg=../art-library/sets/mentolder/props/chat.svg
+      - props_spark.svg=../art-library/sets/mentolder/props/spark.svg
+
+      - terrain_sur-01.svg=../art-library/sets/mentolder/terrain/sur-01.svg
+      - terrain_sur-02.svg=../art-library/sets/mentolder/terrain/sur-02.svg
+      - terrain_sur-03.svg=../art-library/sets/mentolder/terrain/sur-03.svg
+      - terrain_sur-04.svg=../art-library/sets/mentolder/terrain/sur-04.svg
+      - terrain_sur-05.svg=../art-library/sets/mentolder/terrain/sur-05.svg
+      - terrain_sur-06.svg=../art-library/sets/mentolder/terrain/sur-06.svg
+
+      - logos_mark.svg=../art-library/sets/mentolder/logos/mark.svg
+      - logos_lockup-dark.svg=../art-library/sets/mentolder/logos/lockup-dark.svg
+      - logos_lockup-light.svg=../art-library/sets/mentolder/logos/lockup-light.svg
+      - logos_app-icon.svg=../art-library/sets/mentolder/logos/app-icon.svg
+      - logos_brass-pulse.svg=../art-library/sets/mentolder/logos/brass-pulse.svg
 generatorOptions:
   disableNameSuffixHash: true
 

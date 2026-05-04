@@ -439,6 +439,10 @@ secrets:
       - namespace: cert-manager
         secret: ipv64-api-key
 
+  - name: IPV64_UPDATE_HASH
+    required: false
+    generate: false
+
   - name: BRETT_BOT_SECRET
     required: true
     generate: true

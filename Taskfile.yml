@@ -2004,9 +2004,9 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         SECRETS="environments/.secrets/{{.ENV}}.yaml"
-        [ -f "$SECRETS" ] || { echo "Plaintext secrets not found at $SECRETS — cannot read IPV64_API_KEY" >&2; exit 1; }
-        KEY=$(awk -F': ' '/^IPV64_API_KEY:/ {gsub(/"/,"",$2); print $2}' "$SECRETS")
-        [ -n "$KEY" ] || { echo "IPV64_API_KEY missing from $SECRETS" >&2; exit 1; }
+        [ -f "$SECRETS" ] || { echo "Plaintext secrets not found at $SECRETS — cannot read IPV64_UPDATE_HASH" >&2; exit 1; }
+        KEY=$(awk -F': ' '/^IPV64_UPDATE_HASH:/ {gsub(/"/,"",$2); print $2}' "$SECRETS")
+        [ -n "$KEY" ] || { echo "IPV64_UPDATE_HASH missing from $SECRETS (this is the domain_update_hash from ipv64.net, not the account API key)" >&2; exit 1; }
         echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → {{.PIN_IP}}"
         echo "(set APPLY=true to actually run the calls; otherwise this just prints them)"
         for SUB in livekit stream; do

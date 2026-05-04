@@ -56,6 +56,13 @@ tasks:
     cmds:
       - kubectl --context {{.ENV}} -n workspace logs deploy/dashboard-web --tail=200 -f
 
+  dashboard:web:dev:
+    desc: Run dashboard-web locally on http://localhost:3001 (no auth, no PG/k8s required)
+    dir: dashboard/web
+    cmds:
+      - npm install
+      - PORT=3001 NO_AUTH=true node server.js
+
   dashboard:bootstrap-korczewski:
     desc: "One-shot: provision read-only SA on korczewski + seal kubeconfig into mentolder secrets"
     cmds:
@@ -206,6 +213,12 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:art-library:
+    desc: "Validate every art-library/sets/* manifest"
+    cmds:
+      - cd art-library/_tooling && npm install --silent
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/test_art_library_manifest.bats
 
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)

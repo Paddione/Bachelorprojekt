@@ -144,6 +144,10 @@ env_vars:
     required: true
     default_dev: "brett.localhost"
 
+  - name: DASHBOARD_DOMAIN
+    required: true
+    default_dev: "dashboard.localhost"
+
   - name: WEBSITE_HOST
     required: true
     default_dev: "web.localhost"

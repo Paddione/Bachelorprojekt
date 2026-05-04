@@ -30,6 +30,7 @@ for var in \
     WEB_DOMAIN \
     DOCS_DOMAIN \
     TRAEFIK_DOMAIN \
+    DASHBOARD_DOMAIN \
     MAIL_DOMAIN \
     PROD_DOMAIN \
     KC_USER1_EMAIL \

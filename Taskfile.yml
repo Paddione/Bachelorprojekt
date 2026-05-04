@@ -25,6 +25,39 @@ tasks:
       - npm install
       - node server.js
 
+  dashboard:web:build:
+    desc: Build dashboard-web image and push to ghcr.io
+    vars:
+      TAG: '{{.TAG | default "0.1.0"}}'
+    cmds:
+      - docker build -t ghcr.io/paddione/workspace-dashboard:{{.TAG}} -f docker/Dockerfile.dashboard-web .
+      - docker push ghcr.io/paddione/workspace-dashboard:{{.TAG}}
+      - 'echo "✓ Pushed ghcr.io/paddione/workspace-dashboard:{{.TAG}}"'
+
+  dashboard:web:deploy:
+    desc: Deploy dashboard-web to mentolder (SSO-gated operator dashboard)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ]'
+        msg: "dashboard:web only deploys to mentolder, got ENV={{.ENV}}"
+    cmds:
+      - task workspace:deploy ENV={{.ENV}}
+      - kubectl --context mentolder -n workspace rollout restart deploy/dashboard-web
+      - kubectl --context mentolder -n workspace rollout restart deploy/oauth2-proxy-dashboard
+      - kubectl --context mentolder -n workspace rollout status deploy/dashboard-web --timeout=120s
+      - 'echo "✓ Deployed at https://dashboard.mentolder.de"'
+
+  dashboard:web:logs:
+    desc: Tail dashboard-web logs on mentolder
+    cmds:
+      - kubectl --context mentolder -n workspace logs deploy/dashboard-web --tail=200 -f
+
+  dashboard:bootstrap-korczewski:
+    desc: "One-shot: provision read-only SA on korczewski + seal kubeconfig into mentolder secrets"
+    cmds:
+      - bash scripts/dashboard-bootstrap-korczewski.sh
+
   # ─────────────────────────────────────────────
   # Cluster Lifecycle
   # ─────────────────────────────────────────────
@@ -2268,6 +2301,7 @@ tasks:
   # ─────────────────────────────────────────────
   workspace:check-connectivity:
     desc: Test HTTPS reachability of all workspace services
+    ignore_error: true
     cmds:
       - bash scripts/check-connectivity.sh
 

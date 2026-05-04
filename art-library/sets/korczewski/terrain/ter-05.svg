@@ -1,0 +1,23 @@
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="snow-g" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0%" stop-color="#E8EEF2"/><stop offset="100%" stop-color="#A8B6C0"/>
+  </linearGradient></defs>
+  <rect width="120" height="80" fill="url(#snow-g)"/>
+  <circle cx="3" cy="5" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="12" cy="12" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="21" cy="19" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="30" cy="26" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="39" cy="33" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="48" cy="40" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="57" cy="47" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="66" cy="54" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="75" cy="61" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="84" cy="68" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="93" cy="0" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="102" cy="7" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="111" cy="14" r="1.5" fill="#fff" opacity="0.9"/>
+  <circle cx="0" cy="21" r="1.5" fill="#fff" opacity="0.9"/>
+  <path d="M10,50 Q30,44 50,50" stroke="#fff" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M55,58 Q75,52 95,58" stroke="#fff" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M100,66 Q120,60 140,66" stroke="#fff" stroke-width="2" fill="none" opacity="0.7"/>
+</svg>

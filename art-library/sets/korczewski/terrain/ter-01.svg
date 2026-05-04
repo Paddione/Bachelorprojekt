@@ -1,0 +1,73 @@
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="80" fill="#22542F"/>
+  <g transform="translate(0,12)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(13,25)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(18,38)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(31,51)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(36,64)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(49,13)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(54,26)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(67,39)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(72,52)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(85,65)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(90,14)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(103,27)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(108,40)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+  <g transform="translate(1,53)">
+      <path d="M0,8 L4,-2 L8,8 Z" fill="#3D8A4F"/>
+      <path d="M2,4 L4,-4 L6,4 Z" fill="#5BA862"/>
+      <rect x="3" y="8" width="2" height="3" fill="#5A3618"/>
+    </g>
+</svg>

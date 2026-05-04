@@ -1,0 +1,27 @@
+<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" class="ch-figurine">
+  <defs>
+    <radialGradient id="fig-shadow-k" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figkorrin-robe" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#221932"/>
+      <stop offset="50%" stop-color="#3A3148"/>
+      <stop offset="100%" stop-color="#221932"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="60" cy="192" rx="32" ry="6" fill="url(#fig-shadow-k)"/>
+  <path d="M34,170 Q30,120 50,90 L70,90 Q90,120 86,170 Z" fill="url(#figkorrin-robe)"/>
+  <path d="M60,94 L60,170" stroke="#221932" stroke-width="1" opacity="0.8"/>
+  <path d="M40,100 Q50,76 60,72 Q70,76 80,100 Q70,90 60,90 Q50,90 40,100 Z" fill="#221932"/>
+  <g transform="translate(60,140)">
+    <path d="M-3,-2 Q-3,-5 0,-5 Q3,-5 3,-2 L4,1 L-4,1 Z" fill="#D8AE5A"/>
+    <rect x="-1" y="1" width="2" height="1.5" fill="#D8AE5A"/>
+  </g>
+  <circle cx="60" cy="110" r="3" fill="#5BD4D0" opacity="0.6"/>
+  <ellipse cx="60" cy="76" rx="12" ry="13" fill="#C8966E"/>
+  <path d="M48,80 Q60,72 72,80 Q72,68 60,64 Q48,68 48,80 Z" fill="#221932" opacity="0.6"/>
+  <path d="M55,80 Q57,82 59,80" stroke="#1A1326" stroke-width="0.8" fill="none"/>
+  <path d="M61,80 Q63,82 65,80" stroke="#1A1326" stroke-width="0.8" fill="none"/>
+  <circle cx="60" cy="74" r="1" fill="#5BD4D0"/>
+</svg>

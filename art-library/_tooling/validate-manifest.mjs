@@ -49,7 +49,12 @@ for (const setName of sets) {
     ids.add(a.id);
     for (const [slot, rel] of Object.entries(a.files)) {
       const full = join(setDir, rel);
-      if (!existsSync(full)) { console.error(`✗ ${setName}: ${a.id}.files.${slot} → missing ${rel}`); failures++; }
+      // Also resolve ConfigMap-flat names (e.g. "props_chest.svg" → "props/chest.svg")
+      const m = rel.match(/^([a-z]+)_(.+)$/);
+      const altFull = m ? join(setDir, m[1], m[2]) : null;
+      if (!existsSync(full) && !(altFull && existsSync(altFull))) {
+        console.error(`✗ ${setName}: ${a.id}.files.${slot} → missing ${rel}`); failures++;
+      }
     }
   }
   if (failures === 0) console.log(`✓ ${setName}: ${manifest.assets.length} assets, all files exist`);

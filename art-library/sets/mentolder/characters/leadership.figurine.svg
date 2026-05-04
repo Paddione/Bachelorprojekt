@@ -1,0 +1,27 @@
+<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" class="ch-figurine">
+  <defs>
+    <radialGradient id="figl-bg" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#d7b06a" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#0b111c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figl-brass" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f0d28c"/>
+      <stop offset="100%" stop-color="#8a6a2a"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="200" rx="8" fill="#17202e"/>
+  <rect width="120" height="200" rx="8" fill="url(#figl-bg)"/>
+  <line x1="40" y1="0" x2="40" y2="200" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <line x1="80" y1="0" x2="80" y2="200" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <line x1="0" y1="67" x2="120" y2="67" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <line x1="0" y1="133" x2="120" y2="133" stroke="rgba(255,255,255,0.10)" stroke-width="0.5"/>
+  <g stroke="url(#figl-brass)" stroke-width="6" stroke-linecap="round" fill="none">
+    <path d="M30,60 L90,140"/>
+    <path d="M90,60 L30,140"/>
+  </g>
+  <circle cx="60" cy="100" r="10" fill="#17202e" stroke="#f0d28c" stroke-width="2"/>
+  <circle cx="60" cy="100" r="4" fill="#f0d28c"/>
+  <circle cx="30" cy="60" r="4" fill="#f0d28c"/>
+  <circle cx="90" cy="60" r="4" fill="#f0d28c"/>
+  <text x="10" y="186" font-family='"Geist Mono", monospace' font-size="7" letter-spacing="1.5" fill="#a8c9b0" opacity="0.6">FÜHRUNG</text>
+</svg>

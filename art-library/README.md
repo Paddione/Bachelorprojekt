@@ -7,8 +7,8 @@ the SVG files referenced from it.
 
 At deploy time, a Kustomize `configMapGenerator` materializes the active
 set into a workspace-namespace ConfigMap named `art-library`. Both Brett
-and dashboard-web mount it at `/public/art-library/` (optional; pods boot
-fine without it).
+and dashboard-web mount it at `/app/public/art-library/` (Kubernetes `mountPath`;
+served at the URL path `/art-library/`). Pods boot fine without it (`optional: true`).
 
 ## Adding a new set
 

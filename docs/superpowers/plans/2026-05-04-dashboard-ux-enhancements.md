@@ -1,3 +1,164 @@
+# Dashboard UX Enhancements Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add language toggle (EN/DE), tab visibility/ordering via a gear panel, resizable log panel, and copy-to-clipboard to the vanilla JS dashboard at `dashboard/web/`.
+
+**Architecture:** Pure client-side changes — three files only (`index.html`, `app.js`, `style.css`). `state.tabs` drives nav rendering dynamically; a `TRANSLATIONS` dict + `t()` helper replaces all hardcoded UI strings; the log panel gains a drag handle div with pointer capture for resize.
+
+**Tech Stack:** Vanilla JS (ES2020), CSS, Express static serving. Node built-in test runner for server-side tests (unchanged). No frontend test framework exists — UI verified manually.
+
+---
+
+## File Map
+
+| File | What changes |
+|---|---|
+| `dashboard/web/public/index.html` | Remove hardcoded nav buttons; add `<nav id="tabs"></nav>`, `EN`/`DE` buttons, `⚙` button |
+| `dashboard/web/public/app.js` | Full rewrite: `TRANSLATIONS`, `t()`, extended state, `renderNav()`, `renderSettings()`, translated render functions, resizable log, copy button |
+| `dashboard/web/public/style.css` | Add `.lang-toggle`, `.settings-panel`, `.tab-row`, `.log-container`, `.log-handle` rules; update `pre.logs` |
+
+Server files (`server.js`, `lib/`) are **not touched**.
+
+---
+
+## Task 1: Create feature branch
+
+**Files:**
+- (git only)
+
+- [ ] **Step 1: Create and switch to feature branch**
+
+```bash
+git checkout main && git pull && git checkout -b feature/dashboard-ux-enhancements
+```
+
+Expected: `Switched to a new branch 'feature/dashboard-ux-enhancements'`
+
+---
+
+## Task 2: CSS additions
+
+**Files:**
+- Modify: `dashboard/web/public/style.css`
+
+- [ ] **Step 1: Append new rules to style.css**
+
+Open `dashboard/web/public/style.css` and append the following after the last existing line:
+
+```css
+/* ── Language toggle ────────────────────────────────────────────────────── */
+.lang-toggle { display: flex; gap: .25rem; margin-left: .5rem; }
+.lang-toggle .btn { padding: .25rem .5rem; }
+.lang-toggle .btn.active { background: #3a4252; border-color: #4a5262; }
+
+/* ── Settings panel ─────────────────────────────────────────────────────── */
+.settings-panel {
+  position: fixed; top: 2.75rem; right: 1rem; z-index: 100;
+  background: #161b22; border: 1px solid #3a4252; border-radius: 6px;
+  padding: .75rem 1rem; min-width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,.5);
+}
+.settings-panel h3 {
+  margin: 0 0 .5rem; font-size: .85rem; opacity: .7;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.tab-row { display: flex; align-items: center; gap: .4rem; margin: .25rem 0; }
+.tab-row label { flex: 1; cursor: pointer; }
+.tab-row button { padding: .1rem .4rem; font-size: .8rem; }
+
+/* ── Log resize ─────────────────────────────────────────────────────────── */
+.log-container { display: flex; flex-direction: column; }
+.log-handle {
+  height: 6px; background: #2a313c; cursor: ns-resize;
+  border-radius: 3px 3px 0 0; margin-top: .5rem;
+}
+.log-handle:hover { background: #3a4252; }
+pre.logs { height: 40vh; max-height: none; }
+```
+
+- [ ] **Step 2: Run server tests to confirm no regression**
+
+```bash
+cd dashboard/web && node --test test/*.test.js
+```
+
+Expected: all tests pass (CSS changes cannot break server tests).
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add dashboard/web/public/style.css
+git commit -m "style(dashboard): add lang-toggle, settings-panel, log-handle CSS"
+```
+
+---
+
+## Task 3: Update index.html
+
+**Files:**
+- Modify: `dashboard/web/public/index.html`
+
+- [ ] **Step 1: Replace the full content of index.html**
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Workspace dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Workspace</h1>
+    <nav id="tabs"></nav>
+    <label class="ctx" id="cluster-label">
+      cluster:
+      <select id="context">
+        <option value="mentolder" selected>mentolder</option>
+        <option value="korczewski">korczewski</option>
+      </select>
+    </label>
+    <div class="lang-toggle">
+      <button id="lang-en" class="btn active">EN</button>
+      <button id="lang-de" class="btn">DE</button>
+    </div>
+    <button id="settings-btn" class="btn" title="Settings">⚙</button>
+  </header>
+  <main id="main"></main>
+  <script src="app.js"></script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Run server tests**
+
+```bash
+cd dashboard/web && node --test test/*.test.js
+```
+
+Expected: all pass.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add dashboard/web/public/index.html
+git commit -m "feat(dashboard): remove static nav buttons, add lang + settings controls to topbar"
+```
+
+---
+
+## Task 4: Rewrite app.js
+
+**Files:**
+- Modify: `dashboard/web/public/app.js`
+
+This is the main task. Replace the entire file content.
+
+- [ ] **Step 1: Replace the full content of app.js**
+
+```js
 'use strict';
 
 // ── Translations ────────────────────────────────────────────────────────────
@@ -339,7 +500,7 @@ async function renderPods() {
 // ── Logs ───────────────────────────────────────────────────────────────────
 async function renderLogs() {
   const podInput = el('input', { type: 'text', placeholder: t('ph_pod'), style: 'min-width:24rem;' });
-  const pre = el('pre', { class: 'logs', data: { placeholder: 'true' } }, t('no_logs'));
+  const pre = el('pre', { class: 'logs' }, t('no_logs'));
 
   const fetchBtn = el('button', {
     class: 'btn',
@@ -347,21 +508,16 @@ async function renderLogs() {
       const pod = podInput.value.trim();
       if (!pod) return;
       pre.textContent = t('fetching');
-      pre.dataset.placeholder = 'true';
       try {
         pre.textContent = await api(`/api/k8s/logs?context=${state.context}&pod=${encodeURIComponent(pod)}`);
-        pre.dataset.placeholder = 'false';
-      } catch (e) {
-        pre.textContent = e.message;
-        pre.dataset.placeholder = 'false';
-      }
+      } catch (e) { pre.textContent = e.message; }
     } },
   }, t('btn_fetch'));
 
   const copyBtn = el('button', { class: 'btn' }, t('btn_copy'));
   copyBtn.addEventListener('click', () => {
-    if (pre.dataset.placeholder === 'true') return;
     const txt = pre.textContent;
+    if (txt === t('no_logs') || txt === t('fetching')) return;
     navigator.clipboard.writeText(txt).then(() => {
       copyBtn.textContent = t('btn_copied');
       setTimeout(() => { copyBtn.textContent = t('btn_copy'); }, 1500);
@@ -452,12 +608,105 @@ $('#lang-de').addEventListener('click', () => {
 
 $('#settings-btn').addEventListener('click', () => {
   state.settingsOpen = !state.settingsOpen;
-  if (!state.settingsOpen) {
-    closeSettings();
-  } else {
-    renderSettings();
-  }
+  renderSettings();
 });
 
 renderNav();
 render();
+```
+
+- [ ] **Step 2: Run server tests**
+
+```bash
+cd dashboard/web && node --test test/*.test.js
+```
+
+Expected: all tests pass (app.js is browser-only, server tests are unaffected).
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add dashboard/web/public/app.js
+git commit -m "feat(dashboard): translations, dynamic nav, settings panel, resizable log, copy button"
+```
+
+---
+
+## Task 5: Manual browser verification
+
+The dashboard server must be running. Start it:
+
+```bash
+cd dashboard/web && PORT=3000 PORTAL_ADMIN_USERNAME=admin node server.js
+```
+
+Then open `http://localhost:3000` in a browser (the auth guard checks the `X-Auth-Request-User` header — in dev this defaults to pass through if no reverse proxy is in front, or set the env var to match your username).
+
+- [ ] **Verify language toggle**
+  - Click `DE` — nav tabs, column headers, buttons all switch to German
+  - Click `EN` — everything reverts to English
+
+- [ ] **Verify settings panel**
+  - Click `⚙` — panel appears with four tab rows, each with checkbox and ↑/↓
+  - Uncheck `Logs` — Logs tab disappears from nav
+  - Re-check `Logs` — Logs tab reappears
+  - Click `↓` on Tickets row — Tickets moves below Pods & services
+  - Click outside the panel — it closes
+  - Click `⚙` again — panel reopens with current state
+
+- [ ] **Verify log resize**
+  - Navigate to Logs tab
+  - Enter any pod name and click Fetch (or just use the handle on the placeholder text)
+  - Hover over the thin bar above the log area — cursor becomes `ns-resize`
+  - Drag upward — log panel grows taller; drag down — it shrinks to min 120px
+
+- [ ] **Verify copy button**
+  - On the Logs tab with no content, Copy button exists but does nothing (placeholder text guard)
+  - After fetching logs, click Copy — button briefly shows `Copied ✓`, content is in clipboard
+
+- [ ] **Verify polling still works**
+  - Open a ticket detail view — background polling every 15s continues (no regression)
+
+---
+
+## Task 6: Push branch and open PR
+
+- [ ] **Step 1: Push feature branch**
+
+```bash
+git push -u origin feature/dashboard-ux-enhancements
+```
+
+- [ ] **Step 2: Open PR**
+
+```bash
+gh pr create \
+  --title "feat(dashboard): language toggle, tab config, resizable logs, copy button" \
+  --body "$(cat <<'EOF'
+## Summary
+- EN/DE language toggle in topbar; all UI strings translated via \`TRANSLATIONS\` dict + \`t()\` helper
+- Gear panel (⚙) to show/hide and reorder tabs; changes take effect immediately, no persistence
+- Resizable log panel via drag handle at top edge (\`pointerdown/move/up\` with pointer capture)
+- Copy-to-clipboard button next to Fetch in Logs tab
+
+## Test plan
+- [ ] Click DE / EN, verify all labels switch
+- [ ] Open ⚙, hide a tab, move another, click outside to close
+- [ ] Drag log handle up/down, verify resize and 120px minimum
+- [ ] Fetch logs then click Copy, verify clipboard content and button feedback
+- [ ] \`node --test test/*.test.js\` passes
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+---
+
+## Self-review notes
+
+- **Spec coverage:** All four features covered: language ✓, tab config ✓, log resize ✓, copy ✓
+- **No persistence:** Correctly excluded (reset on reload) ✓
+- **Type consistency:** `t(key)` used uniformly; `state.tabs[i].labelKey` referenced consistently
+- **Disabled attribute:** The `el()` helper needed a `v !== null` guard for `disabled` — added in Task 4 Step 1 (`else if (v !== null) { e.setAttribute(k, v); }`)
+- **`t()` defined after `state`:** `state` is const-initialized before `t()` is ever called; safe ✓

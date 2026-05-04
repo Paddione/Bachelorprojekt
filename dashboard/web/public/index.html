@@ -9,19 +9,19 @@
 <body>
   <header class="topbar">
     <h1>Workspace</h1>
-    <nav id="tabs">
-      <button data-tab="tickets" class="active">Tickets</button>
-      <button data-tab="pods">Pods &amp; services</button>
-      <button data-tab="logs">Logs</button>
-      <button data-tab="argocd">ArgoCD</button>
-    </nav>
-    <label class="ctx">
+    <nav id="tabs"></nav>
+    <label class="ctx" id="cluster-label">
       cluster:
       <select id="context">
         <option value="mentolder" selected>mentolder</option>
         <option value="korczewski">korczewski</option>
       </select>
     </label>
+    <div class="lang-toggle">
+      <button id="lang-en" class="btn active">EN</button>
+      <button id="lang-de" class="btn">DE</button>
+    </div>
+    <button id="settings-btn" class="btn" title="Settings">⚙</button>
   </header>
   <main id="main"></main>
   <script src="app.js"></script>

@@ -6,7 +6,7 @@
 // no inline SVGs in the HTML. This script reads the JSX source files directly and
 // generates static SVGs by substituting palette values.
 
-import { readFileSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 

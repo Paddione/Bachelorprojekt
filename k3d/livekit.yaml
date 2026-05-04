@@ -73,7 +73,10 @@ data:
       tcp_port: 7881
       port_range_start: 50000
       port_range_end: 60000
-      use_external_ip: false
+      # With hostNetwork: true the pod sees the node's interfaces directly,
+      # so STUN-discovered srflx == bound IP. Leaving this enabled also lets
+      # LiveKit fall back to STUN if the node ever ends up behind NAT.
+      use_external_ip: true
     redis:
       address: livekit-redis:6379
     turn:
@@ -102,6 +105,24 @@ spec:
       labels:
         app: livekit-server
     spec:
+      # WebRTC media uses UDP 50000-60000 + TCP 7881. The Service can't
+      # publish a 10k-port UDP range, so the pod shares the node's network
+      # namespace and binds those ports directly on the host. This locks
+      # LiveKit to one node — the nodeAffinity below pins it to gekko-hetzner-3,
+      # which the wildcard `livekit.${PROD_DOMAIN}` DNS round-robin already
+      # includes. ClusterFirstWithHostNet keeps cluster DNS (e.g. livekit-redis)
+      # resolvable from inside the pod even though the host's resolver isn't.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - gekko-hetzner-3
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

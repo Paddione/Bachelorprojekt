@@ -411,6 +411,9 @@
         <button id="autochain-btn" title="When a group chain finishes successfully, automatically continue with the next group's chain">
             🔗 AUTO-CHAIN <span id="autochain-badge">ON</span>
         </button>
+        <button id="groups-btn" title="Show or hide task groups">
+            ☰ Groups <span id="groups-badge">HIDDEN</span>
+        </button>
         <button id="stop-btn" class="ctrl-btn">■ Stop</button>
         <button id="clear-btn" class="ctrl-btn">Clear</button>
     </div>
@@ -424,6 +427,11 @@
     <div id="footgun-banner"></div>
 </header>
 
+<!-- ── Groups visibility panel ───────────────────────────────── -->
+<div id="groups-panel">
+    <div class="groups-panel-title">Show / Hide Groups</div>
+</div>
+
 <!-- ── Task grid (full-width, multi-column) ──────────────────── -->
 <main id="content">
     <div id="task-sections"></div>
@@ -434,6 +442,7 @@
     <div id="terminal-header">
         <span id="term-label">Output</span>
         <span id="term-spacer"></span>
+        <button id="copy-log-btn" title="Copy log output to clipboard">⎘ Copy</button>
         <button id="term-toggle" title="Collapse/expand the terminal pane">▼ collapse</button>
     </div>
     <div id="terminal"></div>
@@ -882,6 +891,7 @@
 
     // ── Build task grid ───────────────────────────────────────────────────
     const sectionsEl = document.getElementById('task-sections');
+    const sectionEls = [];   // indexed by groupIdx for groups panel
 
     GROUPS.forEach((group, groupIdx) => {
         const section = document.createElement('div');
@@ -1073,7 +1083,106 @@
         if (group.dangerZone || group.scratchZone) body.appendChild(wrap);
         section.appendChild(body);
         sectionsEl.appendChild(section);
+        sectionEls.push(section);
     });
+
+    // ── Groups visibility panel ────────────────────────────────────────────
+    const GROUPS_LS_KEY = 'dashboard-hidden-groups';
+    const groupsBtn     = document.getElementById('groups-btn');
+    const groupsBadge   = document.getElementById('groups-badge');
+    const groupsPanel   = document.getElementById('groups-panel');
+
+    let hiddenGroups = new Set(JSON.parse(localStorage.getItem(GROUPS_LS_KEY) || '[]'));
+
+    function applyGroupVisibility() {
+        GROUPS.forEach((_, i) => {
+            sectionEls[i].style.display = hiddenGroups.has(i) ? 'none' : '';
+        });
+        const count = hiddenGroups.size;
+        groupsBadge.textContent = count + ' hidden';
+        groupsBtn.classList.toggle('has-hidden', count > 0);
+    }
+
+    function saveHiddenGroups() {
+        localStorage.setItem(GROUPS_LS_KEY, JSON.stringify([...hiddenGroups]));
+    }
+
+    function buildGroupsPanel() {
+        // Clear existing checkboxes (keep title div)
+        while (groupsPanel.children.length > 1) groupsPanel.removeChild(groupsPanel.lastChild);
+
+        GROUPS.forEach((group, i) => {
+            const row = document.createElement('label');
+            row.className = 'group-row';
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = !hiddenGroups.has(i);
+            cb.addEventListener('change', () => {
+                if (cb.checked) hiddenGroups.delete(i);
+                else hiddenGroups.add(i);
+                saveHiddenGroups();
+                applyGroupVisibility();
+            });
+
+            const icon = document.createTextNode((group.icon ? group.icon + '  ' : '') + group.cat);
+            row.appendChild(cb);
+            row.appendChild(icon);
+            groupsPanel.appendChild(row);
+        });
+
+        const footer = document.createElement('div');
+        footer.className = 'groups-panel-footer';
+
+        const showAll = document.createElement('button');
+        showAll.textContent = 'Show all';
+        showAll.addEventListener('click', () => {
+            hiddenGroups.clear();
+            saveHiddenGroups();
+            applyGroupVisibility();
+            buildGroupsPanel();
+        });
+
+        const hideAll = document.createElement('button');
+        hideAll.textContent = 'Hide all';
+        hideAll.addEventListener('click', () => {
+            GROUPS.forEach((_, i) => hiddenGroups.add(i));
+            saveHiddenGroups();
+            applyGroupVisibility();
+            buildGroupsPanel();
+        });
+
+        footer.appendChild(showAll);
+        footer.appendChild(hideAll);
+        groupsPanel.appendChild(footer);
+    }
+
+    function positionGroupsPanel() {
+        const rect = groupsBtn.getBoundingClientRect();
+        groupsPanel.style.top  = (rect.bottom + 4) + 'px';
+        groupsPanel.style.right = (window.innerWidth - rect.right) + 'px';
+        groupsPanel.style.left = '';
+    }
+
+    groupsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = groupsPanel.classList.contains('visible');
+        if (open) {
+            groupsPanel.classList.remove('visible');
+        } else {
+            buildGroupsPanel();
+            positionGroupsPanel();
+            groupsPanel.classList.add('visible');
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!groupsPanel.contains(e.target) && e.target !== groupsBtn) {
+            groupsPanel.classList.remove('visible');
+        }
+    });
+
+    applyGroupVisibility();
 
     // ── Dry-run toggle ─────────────────────────────────────────────────────
     let dryRunActive = false;
@@ -1310,6 +1419,30 @@
         socket.emit('stop-task');
     });
     document.getElementById('clear-btn').addEventListener('click', () => { terminal.textContent = ''; });
+
+    // ── Copy log to clipboard ──────────────────────────────────────────────
+    const copyLogBtn = document.getElementById('copy-log-btn');
+    let copyFeedbackTimer = null;
+
+    copyLogBtn.addEventListener('click', () => {
+        const text = [...terminal.querySelectorAll('span')].map((s) => s.textContent).join('');
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            copyLogBtn.textContent = '✓ Copied';
+            copyLogBtn.classList.add('copied');
+            clearTimeout(copyFeedbackTimer);
+            copyFeedbackTimer = setTimeout(() => {
+                copyLogBtn.textContent = '⎘ Copy';
+                copyLogBtn.classList.remove('copied');
+            }, 2000);
+        }).catch(() => {
+            copyLogBtn.textContent = '✗ Failed';
+            clearTimeout(copyFeedbackTimer);
+            copyFeedbackTimer = setTimeout(() => {
+                copyLogBtn.textContent = '⎘ Copy';
+            }, 2000);
+        });
+    });
 
     // ── Socket ─────────────────────────────────────────────────────────────
     const connDot = document.getElementById('conn-dot');

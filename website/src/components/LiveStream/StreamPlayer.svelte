@@ -6,13 +6,112 @@
   import StreamReactions from './StreamReactions.svelte';
   import StreamHandRaise from './StreamHandRaise.svelte';
 
-  let { livekitUrl, isHost = false }: { livekitUrl: string; isHost?: boolean } = $props();
+  let { livekitUrl, isHost = false, publishMode = 'view' }
+    : { livekitUrl: string; isHost?: boolean; publishMode?: 'view' | 'browser' } = $props();
 
   type State = 'loading' | 'offline' | 'live' | 'error';
   let state = $state<State>('loading');
   let errorMsg = $state('');
   let room = $state<Room | null>(null);
   let videoEl: HTMLVideoElement;
+  let previewEl: HTMLVideoElement;
+
+  let camOn = $state(false);
+  let micOn = $state(false);
+  let screenOn = $state(false);
+  let publishBusy = $state(false);
+  let publishError = $state('');
+  let endingStream = $state(false);
+  // Number of *other* participants currently publishing video (Ingress / another host).
+  // Used to block the host from starting a competing stream.
+  let remoteVideoPublishers = $state(0);
+
+  const showPublishUI = $derived(isHost && publishMode === 'browser');
+  const otherStreamActive = $derived(remoteVideoPublishers > 0);
+  const publishLocked = $derived(otherStreamActive && !camOn && !screenOn && !micOn);
+
+  function recountRemoteVideo(r: Room) {
+    let count = 0;
+    r.remoteParticipants.forEach((p) => {
+      const hasVideo = Array.from(p.videoTrackPublications.values()).some((pub) => !!pub.track);
+      if (hasVideo) count++;
+    });
+    remoteVideoPublishers = count;
+  }
+
+  async function withBusy(fn: () => Promise<void>) {
+    if (!room) return;
+    publishBusy = true;
+    publishError = '';
+    try {
+      await fn();
+    } catch (e) {
+      publishError = (e as Error).message ?? String(e);
+    } finally {
+      publishBusy = false;
+    }
+  }
+
+  async function toggleCam() {
+    if (publishLocked) return;
+    await withBusy(async () => {
+      const next = !camOn;
+      await room!.localParticipant.setCameraEnabled(next);
+      camOn = next;
+      attachLocalCamera();
+    });
+  }
+
+  async function toggleMic() {
+    if (publishLocked) return;
+    await withBusy(async () => {
+      const next = !micOn;
+      await room!.localParticipant.setMicrophoneEnabled(next);
+      micOn = next;
+    });
+  }
+
+  async function toggleScreen() {
+    if (publishLocked) return;
+    await withBusy(async () => {
+      const next = !screenOn;
+      await room!.localParticipant.setScreenShareEnabled(next);
+      screenOn = next;
+    });
+  }
+
+  async function endActiveStream() {
+    if (endingStream) return;
+    endingStream = true;
+    publishError = '';
+    try {
+      const res = await fetch('/api/stream/end', { method: 'POST' });
+      if (!res.ok) {
+        publishError = 'Stream beenden fehlgeschlagen.';
+        return;
+      }
+      // Server has removed publishers; LiveKit will fire ParticipantDisconnected
+      // events that recountRemoteVideo() handles. As a belt-and-suspenders measure,
+      // recount immediately so the UI unlocks even if events are slow.
+      if (room) recountRemoteVideo(room);
+    } catch (e) {
+      publishError = (e as Error).message ?? String(e);
+    } finally {
+      endingStream = false;
+    }
+  }
+
+  function attachLocalCamera() {
+    if (!room || !previewEl) return;
+    const pub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+    const track = pub?.videoTrack;
+    if (track) {
+      track.attach(previewEl);
+      state = 'live';
+    } else {
+      previewEl.srcObject = null;
+    }
+  }
 
   $effect(() => {
     let mounted = true;
@@ -29,9 +128,20 @@
             track.attach(videoEl);
             if (mounted) state = 'live';
           }
+          if (mounted) recountRemoteVideo(r);
         });
         r.on(RoomEvent.TrackUnsubscribed, (track) => {
           track.detach();
+          if (mounted) recountRemoteVideo(r);
+        });
+        r.on(RoomEvent.ParticipantDisconnected, () => {
+          if (mounted) recountRemoteVideo(r);
+        });
+        r.on(RoomEvent.TrackPublished, () => {
+          if (mounted) recountRemoteVideo(r);
+        });
+        r.on(RoomEvent.TrackUnpublished, () => {
+          if (mounted) recountRemoteVideo(r);
         });
         r.on(RoomEvent.Disconnected, () => {
           if (mounted) state = 'offline';
@@ -40,8 +150,13 @@
         await r.connect(livekitUrl, token);
         if (mounted) {
           room = r;
-          // If no tracks yet, show offline; tracks arriving will flip to live
-          state = r.remoteParticipants.size === 0 ? 'offline' : 'live';
+          recountRemoteVideo(r);
+          // Host in browser-publish mode needs the control bar before any tracks exist.
+          if (isHost && publishMode === 'browser') {
+            state = 'live';
+          } else {
+            state = r.remoteParticipants.size === 0 ? 'offline' : 'live';
+          }
         }
       } catch (e) {
         if (mounted) { state = 'error'; errorMsg = String(e); }
@@ -71,10 +186,72 @@
     <div class="flex flex-col bg-black">
       <div class="relative flex-1">
         <!-- svelte-ignore a11y_media_has_caption -->
-        <video bind:this={videoEl} autoplay playsinline class="w-full h-full object-contain"></video>
-        <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">● LIVE</span>
+        <video
+          bind:this={videoEl}
+          autoplay
+          playsinline
+          class="w-full h-full object-contain"
+          class:hidden={showPublishUI && camOn}
+        ></video>
+        {#if showPublishUI}
+          <!-- svelte-ignore a11y_media_has_caption -->
+          <video
+            bind:this={previewEl}
+            autoplay
+            playsinline
+            muted
+            class="w-full h-full object-contain"
+            class:hidden={!camOn}
+          ></video>
+        {/if}
+        {#if camOn || micOn || screenOn || !showPublishUI}
+          <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">● LIVE</span>
+        {/if}
       </div>
-      <div class="flex items-center gap-3 px-4 py-3 bg-dark-light border-t border-dark-lighter">
+      {#if showPublishUI && otherStreamActive}
+        <div class="flex items-start gap-3 px-4 py-3 bg-amber-950/40 border-t border-amber-800/60 text-sm">
+          <span class="text-amber-300">⚠️</span>
+          <div class="flex-1">
+            <p class="text-amber-100 font-semibold">Es läuft bereits ein Livestream.</p>
+            <p class="text-amber-200/80 text-xs mt-0.5">
+              Beende den aktuellen Stream (z.&nbsp;B. OBS oder einen anderen Browser-Sender), bevor du einen neuen startest.
+            </p>
+          </div>
+          <button
+            onclick={endActiveStream}
+            disabled={endingStream}
+            class="px-3 py-1.5 rounded-lg border border-amber-500 text-amber-100 text-xs font-semibold hover:bg-amber-500 hover:text-dark transition-colors disabled:opacity-50"
+          >{endingStream ? 'Beende…' : 'Aktuellen Stream beenden'}</button>
+        </div>
+      {/if}
+      <div class="flex flex-wrap items-center gap-3 px-4 py-3 bg-dark-light border-t border-dark-lighter">
+        {#if showPublishUI}
+          <button
+            onclick={toggleCam}
+            disabled={publishBusy || publishLocked}
+            title={publishLocked ? 'Beende zuerst den laufenden Stream.' : ''}
+            class="px-3 py-1.5 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                   {camOn ? 'bg-gold text-dark border-gold' : 'bg-dark border-dark-lighter text-light hover:border-gold'}"
+          >📹 {camOn ? 'Kamera aus' : 'Kamera an'}</button>
+          <button
+            onclick={toggleMic}
+            disabled={publishBusy || publishLocked}
+            title={publishLocked ? 'Beende zuerst den laufenden Stream.' : ''}
+            class="px-3 py-1.5 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                   {micOn ? 'bg-gold text-dark border-gold' : 'bg-dark border-dark-lighter text-light hover:border-gold'}"
+          >🎤 {micOn ? 'Mikro aus' : 'Mikro an'}</button>
+          <button
+            onclick={toggleScreen}
+            disabled={publishBusy || publishLocked}
+            title={publishLocked ? 'Beende zuerst den laufenden Stream.' : ''}
+            class="px-3 py-1.5 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                   {screenOn ? 'bg-gold text-dark border-gold' : 'bg-dark border-dark-lighter text-light hover:border-gold'}"
+          >🖥️ {screenOn ? 'Bildschirm aus' : 'Bildschirm teilen'}</button>
+          {#if publishError}
+            <span class="text-xs text-red-400">{publishError}</span>
+          {/if}
+          <span class="ml-auto"></span>
+        {/if}
         <StreamReactions {room} />
         <StreamHandRaise {room} {isHost} />
       </div>

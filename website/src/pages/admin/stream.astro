@@ -8,7 +8,11 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const livekitDomain = process.env.LIVEKIT_DOMAIN || 'livekit.localhost';
-const livekitUrl = `ws://${livekitDomain}`;
+// Plain ws:// only for *.localhost dev; everything else (prod TLS) needs wss://
+// or the HTTPS page blocks the connection as mixed content.
+const livekitUrl = livekitDomain.endsWith('.localhost')
+  ? `ws://${livekitDomain}`
+  : `wss://${livekitDomain}`;
 const streamDomain = process.env.STREAM_DOMAIN || 'stream.localhost';
 const rtmpKey = process.env.LIVEKIT_RTMP_KEY || 'devrtmpkey123456';
 ---
@@ -19,8 +23,26 @@ const rtmpKey = process.env.LIVEKIT_RTMP_KEY || 'devrtmpkey123456';
       <h1 class="text-xl font-bold text-light font-serif">Livestream</h1>
     </div>
 
-    <!-- RTMP credentials card -->
-    <div class="bg-dark-light border border-dark-lighter rounded-xl p-5">
+    <!-- Mode selector -->
+    <div class="flex gap-2" role="tablist" aria-label="Sendemodus">
+      <button
+        type="button"
+        data-mode-btn="browser"
+        role="tab"
+        aria-selected="true"
+        class="px-4 py-2 rounded-lg text-sm font-semibold border bg-gold text-dark border-gold transition-colors"
+      >📹 Im Browser senden</button>
+      <button
+        type="button"
+        data-mode-btn="obs"
+        role="tab"
+        aria-selected="false"
+        class="px-4 py-2 rounded-lg text-sm font-semibold border bg-dark border-dark-lighter text-light hover:border-gold transition-colors"
+      >🎬 Mit OBS (RTMP)</button>
+    </div>
+
+    <!-- OBS / RTMP credentials card -->
+    <div data-pane="obs" hidden class="bg-dark-light border border-dark-lighter rounded-xl p-5">
       <h2 class="text-sm font-semibold text-light mb-3">OBS / RTMP Zugangsdaten</h2>
       <div class="space-y-2 text-sm">
         <div>
@@ -41,55 +63,99 @@ const rtmpKey = process.env.LIVEKIT_RTMP_KEY || 'devrtmpkey123456';
       <div class="flex items-center gap-4">
         <button
           id="recording-btn"
-          class="px-4 py-2 rounded-lg text-sm font-semibold bg-dark border border-dark-lighter text-light hover:border-gold transition-colors"
-          onclick="toggleRecording()"
+          type="button"
+          class="px-4 py-2 rounded-lg text-sm font-semibold bg-dark border border-dark-lighter text-light hover:border-gold transition-colors disabled:opacity-50"
         >● Aufzeichnung starten</button>
         <span id="recording-status" class="text-sm text-muted"></span>
       </div>
     </div>
 
-    <!-- Live preview + host controls -->
+    <!--
+      Single player instance: serves both tabs.
+      Publish controls live inside the component; the host can ignore them when sending via OBS.
+      A second instance would collide on the publisher identity in the LiveKit room.
+    -->
     <StreamPlayer
       client:load
       livekitUrl={livekitUrl}
       isHost={true}
+      publishMode="browser"
     />
   </div>
 </AdminLayout>
 
 <script>
-  let egressId = null;
-  const btn = document.getElementById('recording-btn');
-  const status = document.getElementById('recording-status');
+  // Mode switcher: show one pane group at a time. Both panes per group share data-pane="<mode>".
+  const modeButtons = document.querySelectorAll<HTMLButtonElement>('[data-mode-btn]');
+  const panes = document.querySelectorAll<HTMLElement>('[data-pane]');
+  function selectMode(mode: string) {
+    modeButtons.forEach((b) => {
+      const active = b.getAttribute('data-mode-btn') === mode;
+      b.setAttribute('aria-selected', String(active));
+      b.classList.toggle('bg-gold', active);
+      b.classList.toggle('text-dark', active);
+      b.classList.toggle('border-gold', active);
+      b.classList.toggle('bg-dark', !active);
+      b.classList.toggle('border-dark-lighter', !active);
+      b.classList.toggle('text-light', !active);
+    });
+    panes.forEach((p) => {
+      p.hidden = p.getAttribute('data-pane') !== mode;
+    });
+  }
+  modeButtons.forEach((b) => {
+    b.addEventListener('click', () => {
+      const mode = b.getAttribute('data-mode-btn');
+      if (mode) selectMode(mode);
+    });
+  });
+
+  // Recording control — typed and null-safe.
+  let egressId: string | null = null;
+  const recordingBtn = document.getElementById('recording-btn') as HTMLButtonElement | null;
+  const recordingStatus = document.getElementById('recording-status');
 
   async function toggleRecording() {
-    if (!egressId) {
-      btn.disabled = true;
-      const res = await fetch('/api/stream/recording', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start' }),
-      });
-      const data = await res.json();
-      if (data.egressId) {
+    if (!recordingBtn || !recordingStatus) return;
+    recordingBtn.disabled = true;
+    try {
+      if (!egressId) {
+        const res = await fetch('/api/stream/recording', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'start' }),
+        });
+        const data = await res.json() as { egressId?: string; error?: string };
+        if (!res.ok || !data.egressId) {
+          recordingStatus.textContent = data.error ?? 'Aufzeichnung konnte nicht gestartet werden.';
+          recordingStatus.classList.add('text-red-400');
+          return;
+        }
         egressId = data.egressId;
-        btn.textContent = '⏹ Aufzeichnung stoppen';
-        btn.classList.add('border-red-500', 'text-red-400');
-        status.textContent = 'Aufzeichnung läuft…';
+        recordingBtn.textContent = '⏹ Aufzeichnung stoppen';
+        recordingBtn.classList.add('border-red-500', 'text-red-400');
+        recordingStatus.classList.remove('text-red-400');
+        recordingStatus.textContent = 'Aufzeichnung läuft…';
+      } else {
+        const res = await fetch('/api/stream/recording', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'stop', egressId }),
+        });
+        if (!res.ok) {
+          recordingStatus.textContent = 'Stoppen fehlgeschlagen.';
+          recordingStatus.classList.add('text-red-400');
+          return;
+        }
+        egressId = null;
+        recordingBtn.textContent = '● Aufzeichnung starten';
+        recordingBtn.classList.remove('border-red-500', 'text-red-400');
+        recordingStatus.classList.remove('text-red-400');
+        recordingStatus.textContent = 'Aufzeichnung gespeichert in /recordings/';
       }
-      btn.disabled = false;
-    } else {
-      btn.disabled = true;
-      await fetch('/api/stream/recording', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'stop', egressId }),
-      });
-      egressId = null;
-      btn.textContent = '● Aufzeichnung starten';
-      btn.classList.remove('border-red-500', 'text-red-400');
-      status.textContent = 'Aufzeichnung gespeichert in /recordings/';
-      btn.disabled = false;
+    } finally {
+      recordingBtn.disabled = false;
     }
   }
+  recordingBtn?.addEventListener('click', toggleRecording);
 </script>

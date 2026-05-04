@@ -7,7 +7,11 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 
 const livekitDomain = process.env.LIVEKIT_DOMAIN || 'livekit.localhost';
-const livekitUrl = `ws://${livekitDomain}`;
+// Plain ws:// only for *.localhost dev; everything else (prod TLS) needs wss://
+// or the HTTPS page blocks the connection as mixed content.
+const livekitUrl = livekitDomain.endsWith('.localhost')
+  ? `ws://${livekitDomain}`
+  : `wss://${livekitDomain}`;
 ---
 
 <Layout title="Livestream">

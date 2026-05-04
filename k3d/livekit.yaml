@@ -186,6 +186,53 @@ spec:
                 port:
                   number: 7880
 ---
+# CORS middleware: livekit-client in the browser fetches /rtc/v1/validate
+# from the website origin before opening the wss:// connection. Without these
+# headers the cross-origin request is blocked and the WebSocket never opens.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: livekit-cors
+  namespace: workspace
+spec:
+  headers:
+    accessControlAllowOriginList:
+      - "https://web.${PROD_DOMAIN}"
+    accessControlAllowMethods:
+      - GET
+      - POST
+      - OPTIONS
+    accessControlAllowHeaders:
+      - "*"
+    accessControlExposeHeaders:
+      - "*"
+    accessControlMaxAge: 100
+    accessControlAllowCredentials: true
+    addVaryHeader: true
+---
+# HTTPS entry for LiveKit. The plain HTTP Ingress above stays for local/legacy
+# clients (e.g. server-to-server calls inside the cluster); browsers must use
+# wss:// from the HTTPS website, which requires this websecure router with
+# the wildcard cert and the CORS middleware.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: livekit-server
+  namespace: workspace
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`livekit.${PROD_DOMAIN}`)
+      services:
+        - name: livekit-server
+          port: 7880
+      middlewares:
+        - name: livekit-cors
+  tls:
+    secretName: workspace-wildcard-tls
+---
 
 # ── LiveKit Ingress (RTMP → WebRTC) ──────────────────────────────
 apiVersion: apps/v1

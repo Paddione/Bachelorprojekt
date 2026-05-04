@@ -6,6 +6,9 @@ namespace: workspace
 resources:
   - ../prod
   - ddns-updater.yaml
+  - dashboard-web.yaml
+  - oauth2-proxy-dashboard.yaml
+  - ingress-dashboard.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:

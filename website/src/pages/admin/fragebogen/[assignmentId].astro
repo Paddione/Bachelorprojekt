@@ -61,9 +61,13 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
         <span class={`px-3 py-1 rounded-full border text-sm ${
           assignment.status === 'reviewed' ? 'bg-green-500/10 text-green-400 border-green-500/20'
           : assignment.status === 'submitted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+          : assignment.status === 'dismissed' ? 'bg-red-500/10 text-red-400 border-red-500/20'
           : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
         }`}>
-          {assignment.status === 'reviewed' ? 'Besprochen' : assignment.status === 'submitted' ? 'Eingereicht' : assignment.status}
+          {assignment.status === 'reviewed' ? 'Besprochen'
+            : assignment.status === 'submitted' ? 'Eingereicht'
+            : assignment.status === 'dismissed' ? 'Abgelehnt'
+            : assignment.status}
         </span>
       </div>
 
@@ -107,6 +111,12 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
         <h2 class="text-sm font-medium text-muted uppercase tracking-wide mb-4">
           {isSystemTest ? 'Testergebnisse' : 'Einzelantworten'} ({answers.length}/{questions.length})
         </h2>
+        {isSystemTest && (
+          <p class="text-muted text-xs mb-4">
+            Nicht erfüllte oder teilweise erfüllte Tests können direkt als Bug-Ticket erfasst werden. Die Tickets erscheinen im
+            <a href="/admin/monitoring" class="text-gold hover:underline">Monitoring → Bugs</a>.
+          </p>
+        )}
         <div class="flex flex-col gap-3">
           {questions.map((q, i) => {
             const answer = answerMap.get(q.id);
@@ -118,14 +128,25 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
                 chosen === 'erfüllt' ? '#22c55e'
                 : chosen === 'teilweise' ? '#f59e0b'
                 : chosen === 'nicht_erfüllt' ? '#ef4444'
+                : chosen === 'skipped' ? '#d97706'
                 : '#6b7280';
               const resultLabel =
                 chosen === 'erfüllt' ? 'Test erfüllt'
                 : chosen === 'teilweise' ? 'Test zum Teil erfüllt'
                 : chosen === 'nicht_erfüllt' ? 'Test nicht erfüllt'
+                : chosen === 'skipped' ? 'Übersprungen'
                 : null;
+              const canFileBug = chosen === 'nicht_erfüllt' || chosen === 'teilweise';
+              const bugDesc = [
+                `[Systemtest] ${assignment.template_title} — Schritt ${i + 1}`,
+                `Test: ${q.question_text}`,
+                q.test_expected_result ? `Erwartet: ${q.test_expected_result}` : null,
+                resultLabel ? `Ergebnis: ${resultLabel}` : null,
+                details ? `Beobachtungen: ${details}` : null,
+                `Referenz: /admin/fragebogen/${assignment.id}`,
+              ].filter(Boolean).join('\n');
               return (
-                <div class="border-b border-dark-lighter pb-4 last:border-0 last:pb-0">
+                <div class="border-b border-dark-lighter pb-4 last:border-0 last:pb-0" id={`step-${q.id}`}>
                   <div class="flex items-center gap-2 mb-2 flex-wrap">
                     <span class="text-muted text-xs">Schritt {i + 1}</span>
                     {q.test_role && (
@@ -146,19 +167,31 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
                   {q.test_expected_result && (
                     <p class="text-muted text-xs mb-2 italic">Erwartet: {q.test_expected_result}</p>
                   )}
-                  {chosen ? (
-                    <div>
-                      <span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold"
-                        style={`color: ${resultColor}; border-color: ${resultColor}40; background-color: ${resultColor}15`}>
-                        {resultLabel}
-                      </span>
-                      {details && (
-                        <p class="text-muted text-xs mt-1 whitespace-pre-line">{details}</p>
-                      )}
-                    </div>
-                  ) : (
-                    <span class="text-muted text-xs italic">Noch nicht getestet</span>
-                  )}
+                  <div class="flex items-start gap-3 flex-wrap">
+                    {chosen ? (
+                      <div class="flex-1">
+                        <span class="inline-block px-2 py-0.5 rounded border text-xs font-semibold"
+                          style={`color: ${resultColor}; border-color: ${resultColor}40; background-color: ${resultColor}15`}>
+                          {resultLabel}
+                        </span>
+                        {details && (
+                          <p class="text-muted text-xs mt-1 whitespace-pre-line">{details}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <span class="text-muted text-xs italic flex-1">Noch nicht getestet</span>
+                    )}
+                    {canFileBug && (
+                      <button
+                        class="file-bug-btn px-2.5 py-1 text-xs border border-red-500/30 text-red-400 rounded hover:bg-red-500/10 transition-colors flex-shrink-0"
+                        data-desc={bugDesc}
+                        data-step-id={q.id}
+                      >
+                        Bug erfassen
+                      </button>
+                    )}
+                  </div>
+                  <div id={`bug-result-${q.id}`} class="mt-2 text-xs hidden"></div>
                 </div>
               );
             }
@@ -167,7 +200,16 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
               <div class="border-b border-dark-lighter pb-3 last:border-0 last:pb-0">
                 <p class="text-muted text-xs mb-1">Frage {i + 1}</p>
                 <p class="text-light text-sm whitespace-pre-line mb-1">{q.question_text}</p>
-                {chosen ? (
+                {chosen === 'skipped' ? (
+                  <div>
+                    <span class="inline-block px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-xs">
+                      Übersprungen
+                    </span>
+                    {details && (
+                      <p class="text-muted text-xs mt-1">Grund: {details}</p>
+                    )}
+                  </div>
+                ) : chosen ? (
                   <span class="inline-block px-2 py-0.5 bg-gold/10 text-gold border border-gold/20 rounded text-xs">
                     Gewählt: {chosen}
                   </span>
@@ -177,6 +219,39 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <!-- Dismiss reason (if dismissed) -->
+      {assignment.status === 'dismissed' && (
+        <div class="mb-8 p-5 bg-red-500/5 rounded-xl border border-red-500/20">
+          <h2 class="text-sm font-medium text-red-400 uppercase tracking-wide mb-2">Fragebogen abgelehnt</h2>
+          {(assignment as any).dismiss_reason ? (
+            <p class="text-muted text-sm">Begründung: {(assignment as any).dismiss_reason}</p>
+          ) : (
+            <p class="text-muted text-sm italic">Keine Begründung angegeben.</p>
+          )}
+        </div>
+      )}
+
+      <!-- Bug filing modal (hidden) -->
+      <div id="bug-modal" class="fixed inset-0 bg-black/70 items-center justify-center z-50 hidden" role="dialog">
+        <div class="bg-dark-light border border-dark-lighter rounded-xl p-6 w-full max-w-lg mx-4 space-y-4">
+          <h3 class="text-light font-semibold">Bug-Ticket erfassen</h3>
+          <textarea id="bug-desc-input" rows="7"
+            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none resize-y font-mono"
+          ></textarea>
+          <p id="bug-modal-error" class="text-red-400 text-xs hidden"></p>
+          <div class="flex gap-2 justify-end">
+            <button id="bug-modal-cancel"
+              class="px-4 py-2 text-sm text-muted hover:text-light transition-colors cursor-pointer">
+              Abbrechen
+            </button>
+            <button id="bug-modal-submit"
+              class="px-4 py-2 bg-red-700 text-white rounded-lg text-sm font-semibold hover:bg-red-600 cursor-pointer">
+              Ticket erstellen
+            </button>
+          </div>
         </div>
       </div>
 
@@ -226,4 +301,70 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
 
   document.getElementById('save-notes-btn')?.addEventListener('click', () => saveNotes(null));
   document.getElementById('mark-reviewed-btn')?.addEventListener('click', () => saveNotes('reviewed'));
+
+  // Bug filing
+  const bugModal = document.getElementById('bug-modal');
+  const bugDescInput = document.getElementById('bug-desc-input');
+  const bugModalError = document.getElementById('bug-modal-error');
+  let activeBugStepId = null;
+
+  document.querySelectorAll('.file-bug-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeBugStepId = btn.dataset.stepId;
+      bugDescInput.value = btn.dataset.desc || '';
+      bugModalError.classList.add('hidden');
+      bugModal.classList.remove('hidden');
+      bugModal.classList.add('flex');
+    });
+  });
+
+  document.getElementById('bug-modal-cancel')?.addEventListener('click', closeBugModal);
+  bugModal?.addEventListener('click', (e) => { if (e.target === bugModal) closeBugModal(); });
+
+  function closeBugModal() {
+    bugModal.classList.add('hidden');
+    bugModal.classList.remove('flex');
+    activeBugStepId = null;
+  }
+
+  document.getElementById('bug-modal-submit')?.addEventListener('click', async () => {
+    const desc = bugDescInput.value.trim();
+    if (!desc) { bugModalError.textContent = 'Beschreibung darf nicht leer sein.'; bugModalError.classList.remove('hidden'); return; }
+    const submitBtn = document.getElementById('bug-modal-submit');
+    submitBtn.textContent = '…';
+    submitBtn.disabled = true;
+    bugModalError.classList.add('hidden');
+    try {
+      const r = await fetch('/api/admin/bugs/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc, category: 'fehler' }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.ticketId) {
+        const resultEl = document.getElementById(`bug-result-${activeBugStepId}`);
+        if (resultEl) {
+          resultEl.textContent = `Ticket erstellt: ${data.ticketId}`;
+          const link = document.createElement('a');
+          link.href = '/admin/bugs';
+          link.textContent = data.ticketId;
+          link.className = 'underline text-gold';
+          resultEl.textContent = 'Ticket erstellt: ';
+          resultEl.appendChild(link);
+          resultEl.className = 'mt-2 text-xs text-green-400';
+        }
+        document.querySelector(`[data-step-id="${activeBugStepId}"].file-bug-btn`)?.remove();
+        closeBugModal();
+      } else {
+        bugModalError.textContent = data.error || 'Fehler beim Erstellen.';
+        bugModalError.classList.remove('hidden');
+      }
+    } catch {
+      bugModalError.textContent = 'Netzwerkfehler.';
+      bugModalError.classList.remove('hidden');
+    } finally {
+      submitBtn.textContent = 'Ticket erstellen';
+      submitBtn.disabled = false;
+    }
+  });
 </script>

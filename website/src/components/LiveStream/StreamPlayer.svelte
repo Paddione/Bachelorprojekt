@@ -9,8 +9,11 @@
   let { livekitUrl, isHost = false, publishMode = 'view' }
     : { livekitUrl: string; isHost?: boolean; publishMode?: 'view' | 'browser' } = $props();
 
-  type State = 'loading' | 'offline' | 'live' | 'error';
-  let state = $state<State>('loading');
+  // 'idle' = waiting for user gesture before connecting (Chrome's autoplay
+  // policy blocks the AudioContext that Room.connect() creates internally
+  // unless the call originates from a click/tap).
+  type State = 'idle' | 'loading' | 'offline' | 'live' | 'error';
+  let state = $state<State>('idle');
   let errorMsg = $state('');
   let room = $state<Room | null>(null);
   let videoEl: HTMLVideoElement;
@@ -113,57 +116,59 @@
     }
   }
 
-  $effect(() => {
-    let mounted = true;
+  let mounted = $state(true);
 
-    async function connect() {
-      try {
-        const res = await fetch('/api/stream/token', { method: 'POST' });
-        if (!res.ok) { state = 'error'; errorMsg = 'Authentifizierung fehlgeschlagen.'; return; }
-        const { token } = await res.json();
+  async function startConnection() {
+    if (state !== 'idle' && state !== 'error') return;
+    state = 'loading';
+    errorMsg = '';
+    try {
+      const res = await fetch('/api/stream/token', { method: 'POST' });
+      if (!res.ok) { state = 'error'; errorMsg = 'Authentifizierung fehlgeschlagen.'; return; }
+      const { token } = await res.json();
 
-        const r = new Room();
-        r.on(RoomEvent.TrackSubscribed, (track) => {
-          if (track.kind === Track.Kind.Video && videoEl) {
-            track.attach(videoEl);
-            if (mounted) state = 'live';
-          }
-          if (mounted) recountRemoteVideo(r);
-        });
-        r.on(RoomEvent.TrackUnsubscribed, (track) => {
-          track.detach();
-          if (mounted) recountRemoteVideo(r);
-        });
-        r.on(RoomEvent.ParticipantDisconnected, () => {
-          if (mounted) recountRemoteVideo(r);
-        });
-        r.on(RoomEvent.TrackPublished, () => {
-          if (mounted) recountRemoteVideo(r);
-        });
-        r.on(RoomEvent.TrackUnpublished, () => {
-          if (mounted) recountRemoteVideo(r);
-        });
-        r.on(RoomEvent.Disconnected, () => {
-          if (mounted) state = 'offline';
-        });
-
-        await r.connect(livekitUrl, token);
-        if (mounted) {
-          room = r;
-          recountRemoteVideo(r);
-          // Host in browser-publish mode needs the control bar before any tracks exist.
-          if (isHost && publishMode === 'browser') {
-            state = 'live';
-          } else {
-            state = r.remoteParticipants.size === 0 ? 'offline' : 'live';
-          }
+      const r = new Room();
+      r.on(RoomEvent.TrackSubscribed, (track) => {
+        if (track.kind === Track.Kind.Video && videoEl) {
+          track.attach(videoEl);
+          if (mounted) state = 'live';
         }
-      } catch (e) {
-        if (mounted) { state = 'error'; errorMsg = String(e); }
-      }
-    }
+        if (mounted) recountRemoteVideo(r);
+      });
+      r.on(RoomEvent.TrackUnsubscribed, (track) => {
+        track.detach();
+        if (mounted) recountRemoteVideo(r);
+      });
+      r.on(RoomEvent.ParticipantDisconnected, () => {
+        if (mounted) recountRemoteVideo(r);
+      });
+      r.on(RoomEvent.TrackPublished, () => {
+        if (mounted) recountRemoteVideo(r);
+      });
+      r.on(RoomEvent.TrackUnpublished, () => {
+        if (mounted) recountRemoteVideo(r);
+      });
+      r.on(RoomEvent.Disconnected, () => {
+        if (mounted) state = 'offline';
+      });
 
-    connect();
+      await r.connect(livekitUrl, token);
+      if (mounted) {
+        room = r;
+        recountRemoteVideo(r);
+        // Host in browser-publish mode needs the control bar before any tracks exist.
+        if (isHost && publishMode === 'browser') {
+          state = 'live';
+        } else {
+          state = r.remoteParticipants.size === 0 ? 'offline' : 'live';
+        }
+      }
+    } catch (e) {
+      if (mounted) { state = 'error'; errorMsg = String(e); }
+    }
+  }
+
+  $effect(() => {
     return () => {
       mounted = false;
       room?.disconnect();
@@ -171,11 +176,32 @@
   });
 </script>
 
-{#if state === 'loading'}
+{#if state === 'idle'}
+  <div class="flex flex-col items-center justify-center gap-4 min-h-[360px] bg-dark-light border border-dark-lighter rounded-xl">
+    <button
+      type="button"
+      onclick={startConnection}
+      class="px-6 py-3 rounded-lg bg-gold text-dark font-semibold text-base hover:bg-gold/90 transition-colors"
+    >▶ {showPublishUI ? 'Live-Studio öffnen' : 'Stream verbinden'}</button>
+    <p class="text-xs text-muted max-w-md text-center px-4">
+      {showPublishUI
+        ? 'Klicke, um deine Kamera/Mikro-Kontrollen zu laden. Browser-Audio wird erst nach Klick aktiviert.'
+        : 'Klicke, um den Stream zu starten. Browser-Audio wird erst nach Klick aktiviert.'}
+    </p>
+  </div>
+
+{:else if state === 'loading'}
   <div class="flex items-center justify-center min-h-[360px] text-muted">Verbinde…</div>
 
 {:else if state === 'error'}
-  <StreamOffline message={errorMsg} />
+  <div class="flex flex-col items-center justify-center gap-4 min-h-[360px] bg-dark-light border border-dark-lighter rounded-xl">
+    <StreamOffline message={errorMsg} />
+    <button
+      type="button"
+      onclick={startConnection}
+      class="px-4 py-2 rounded-lg border border-dark-lighter text-light text-sm font-semibold hover:border-gold transition-colors"
+    >Erneut versuchen</button>
+  </div>
 
 {:else if state === 'offline'}
   <StreamOffline />

@@ -27,6 +27,21 @@ const TRANSLATIONS = {
     resolution_note: 'Resolution note:',
     reopen_reason: 'Reopen reason:',
     archive_confirm: 'Archive this ticket?',
+    tab_art:        'Art Library',
+    art_kind_all:   'all',
+    art_kind_character: 'characters',
+    art_kind_prop:  'props',
+    art_kind_terrain: 'terrain',
+    art_kind_logo:  'logos',
+    art_search_ph:  'search assets…',
+    art_palette:    'Palette',
+    art_download:   'Download',
+    art_no_assets:  'No art library configured for this environment.',
+    art_copied:     'Copied ✓',
+    art_tags:       'Tags',
+    art_id:         'ID',
+    art_kind:       'Kind',
+    art_no_palette: '(no palette)',
   },
   de: {
     tab_tickets: 'Tickets',      tab_pods: 'Pods & Dienste',
@@ -53,6 +68,21 @@ const TRANSLATIONS = {
     resolution_note: 'Lösungshinweis:',
     reopen_reason: 'Grund für Wiedereröffnung:',
     archive_confirm: 'Dieses Ticket archivieren?',
+    tab_art:        'Bibliothek',
+    art_kind_all:   'alle',
+    art_kind_character: 'Figuren',
+    art_kind_prop:  'Requisiten',
+    art_kind_terrain: 'Untergründe',
+    art_kind_logo:  'Logos',
+    art_search_ph:  'Assets suchen…',
+    art_palette:    'Palette',
+    art_download:   'Herunterladen',
+    art_no_assets:  'Keine Kunstbibliothek für diese Umgebung konfiguriert.',
+    art_copied:     'Kopiert ✓',
+    art_tags:       'Tags',
+    art_id:         'ID',
+    art_kind:       'Art',
+    art_no_palette: '(keine Palette)',
   },
 };
 
@@ -101,6 +131,7 @@ const state = {
     { id: 'pods',    labelKey: 'tab_pods',    visible: true },
     { id: 'logs',    labelKey: 'tab_logs',    visible: true },
     { id: 'argocd',  labelKey: 'tab_argocd',  visible: true },
+    { id: 'art',     labelKey: 'tab_art',     visible: true },
   ],
 };
 
@@ -426,7 +457,16 @@ async function render() {
   else if (state.tab === 'pods')  await renderPods();
   else if (state.tab === 'logs')  await renderLogs();
   else if (state.tab === 'argocd') await renderArgoCD();
+  else if (state.tab === 'art')   await renderArt();
   setPolling();
+}
+
+// ── Art Library ──────────────────────────────────────────────────────────
+async function renderArt() {
+  setMain(el('div', { class: 'art-pane' }, [
+    el('h2', {}, t('tab_art')),
+    el('div', { class: 'mute' }, 'Loading…'),
+  ]));
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────

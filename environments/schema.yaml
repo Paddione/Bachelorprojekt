@@ -456,6 +456,21 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: LIVEKIT_API_KEY
+    required: true
+    generate: true
+    length: 16
+
+  - name: LIVEKIT_API_SECRET
+    required: true
+    generate: true
+    length: 32
+
+  - name: LIVEKIT_RTMP_KEY
+    required: true
+    generate: true
+    length: 16
+
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true

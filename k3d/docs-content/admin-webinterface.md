@@ -8,11 +8,12 @@ Das Admin-Panel ist die zentrale Verwaltungsoberfläche der Website. Es ermögli
 
 | Umgebung | URL |
 |----------|-----|
-| Lokal (k3d) | `http://web.localhost/admin` |
-| mentolder.de | `https://web.mentolder.de/admin` |
-| korczewski.de | `https://web.korczewski.de/admin` |
+| mentolder | `https://web.mentolder.de/admin` |
+| korczewski | `https://web.korczewski.de/admin` |
 
-**Voraussetzung:** Keycloak-Konto mit der Gruppe `workspace-admins`. Ohne Login erfolgt automatische Weiterleitung zur Keycloak-Anmeldeseite. Benutzer ohne Admin-Rechte werden auf das Kundenportal (`/portal`) weitergeleitet.
+> Für Entwicklung steht zusätzlich `http://web.localhost/admin` im lokalen k3d-Cluster zur Verfügung.
+
+**Voraussetzung:** Workspace-Konto mit der Gruppe `workspace-admins`. Ohne Login wirst Du zur zentralen Anmeldeseite (Keycloak SSO) weitergeleitet. Konten ohne Admin-Rechte werden automatisch auf das Kundenportal (`/portal`) gelenkt.
 
 ---
 
@@ -326,12 +327,13 @@ Editor für rechtlich relevante Seiten mit HTML-Eingabefeldern.
 
 ### Weiterleitung auf /portal statt /admin
 
-Die Keycloak-Gruppe `workspace-admins` fehlt. Behebung:
+Die Workspace-Gruppe `workspace-admins` fehlt für dieses Konto. Behebung im Keycloak Admin-UI:
 
-```
-Keycloak Admin → auth.localhost/admin → Realm: workspace
-→ Benutzer → [Benutzer auswählen] → Gruppen → workspace-admins zuweisen
-```
+1. `https://auth.{DOMAIN}/admin` öffnen (z. B. `https://auth.mentolder.de/admin`)
+2. Realm **workspace** wählen
+3. **Benutzer** → den betreffenden Benutzer öffnen
+4. Reiter **Gruppen** → `workspace-admins` zuweisen
+5. Benutzer aus- und wieder einloggen lassen
 
 ### Admin-Panel lädt nicht / 500-Fehler
 

@@ -2,23 +2,23 @@
 
 ## Willkommen
 
-Der Workspace ist eine sichere, betriebsinterne Plattform für die tägliche Zusammenarbeit im Team. Alle Daten werden ausschließlich auf eigenen Servern gespeichert — nichts davon gelangt zu externen Anbietern wie Microsoft, Google oder Dropbox.
+Der Workspace ist Deine sichere, betriebsinterne Plattform für die tägliche Zusammenarbeit im Team. Alle Daten werden ausschließlich auf eigenen Servern in Deutschland gespeichert — nichts davon gelangt zu externen Anbietern wie Microsoft, Google oder Dropbox. Die Plattform ist DSGVO-konform aufgebaut.
 
-Du brauchst **nur einen einzigen Account** — mit diesem einen Login kommst Du in alle Dienste (Single Sign-On über Keycloak).
+Du brauchst **nur einen einzigen Account**: ein Login öffnet alle Dienste (Single Sign-On über Keycloak).
 
 ### Verfügbare Dienste
 
 | Dienst | Beschreibung | Adresse |
 |--------|-------------|---------|
-| Portal / Nachrichten | Persönliche Startseite, Chat, Direktnachrichten, Inbox | `web.{DOMAIN}/portal` |
-| Nextcloud | Dateien, Kalender, Kontakte | `files.{DOMAIN}` |
-| Nextcloud Talk | Video-Calls und Meetings | `files.{DOMAIN}` → Talk |
+| Portal / Nachrichten | Persönliche Startseite, Chat, Direktnachrichten, Inbox | `https://web.{DOMAIN}/portal` |
+| Nextcloud | Dateien, Kalender, Kontakte | `https://files.{DOMAIN}` |
+| Nextcloud Talk | Video-Calls und Meetings | in Nextcloud → Talk |
 | Collabora Online | Browser-basiertes Office | öffnet aus Nextcloud |
-| Whiteboard | Kollaboratives Whiteboard | `board.{DOMAIN}` |
-| Vaultwarden | Passwort-Safe | `vault.{DOMAIN}` |
-| Dokumentation | Dieses Handbuch | `docs.{DOMAIN}` |
+| Whiteboard | Kollaboratives Whiteboard | `https://board.{DOMAIN}` |
+| Vaultwarden | Passwort-Safe | `https://vault.{DOMAIN}` |
+| Dokumentation | Dieses Handbuch | `https://docs.{DOMAIN}` |
 
-`{DOMAIN}` steht für Deine Umgebung: `localhost` (lokal), `mentolder.de` oder `korczewski.de`. Das Protokoll ist `http` lokal und `https` in der Produktion.
+`{DOMAIN}` ist die Domain Deiner Umgebung — typischerweise **`mentolder.de`** oder **`korczewski.de`**. Beispiel: für mentolder erreichst Du das Portal unter `https://web.mentolder.de/portal`. Frage Deinen Administrator, falls Du unsicher bist, welche Domain für Dich gilt.
 
 ---
 
@@ -26,19 +26,23 @@ Du brauchst **nur einen einzigen Account** — mit diesem einen Login kommst Du 
 
 ### Schritt-für-Schritt
 
-1. Rufe das Portal auf: `https://web.{DOMAIN}/portal`
-2. Klicke auf **„Anmelden"** in der Navigation
-3. Du wirst zur zentralen Login-Seite weitergeleitet (Keycloak)
-4. Gib Benutzername und Passwort ein
-5. Nach erfolgreichem Login bist Du in allen Diensten automatisch angemeldet (Single Sign-On)
+1. Rufe das Portal in Deinem Browser auf — z. B. `https://web.mentolder.de/portal` oder `https://web.korczewski.de/portal`.
+2. Klicke oben rechts auf **„Anmelden"**.
+3. Du wirst zur zentralen Login-Seite weitergeleitet (Keycloak).
+4. Gib Benutzername und Passwort ein, die Du vom Administrator erhalten hast.
+5. Nach erfolgreichem Login bist Du in allen Diensten automatisch angemeldet (Single Sign-On).
+
+> **Tipp:** Setze ein Lesezeichen auf das Portal — von dort aus erreichst Du alle weiteren Dienste mit einem Klick.
 
 ### Passwort vergessen
 
-Klicke auf der Login-Seite auf **„Passwort vergessen"**. Du erhältst eine E-Mail mit einem Reset-Link. Alternativ wende Dich an den Administrator.
+Klicke auf der Login-Seite auf **„Passwort vergessen?"**. Du erhältst eine E-Mail mit einem Reset-Link, der nur kurze Zeit gültig ist. Findet sich keine E-Mail im Posteingang, prüfe den Spam-Ordner — andernfalls wende Dich an den Administrator.
 
 ### Passwort ändern
 
 Rufe `https://auth.{DOMAIN}/realms/workspace/account` auf, melde Dich an und wähle **„Passwort"**. Das neue Passwort gilt sofort für alle Dienste.
+
+> **Sicherheitshinweis:** Verwende für den Workspace ein einzigartiges, starkes Passwort. Speichere es im Vaultwarden-Tresor (siehe unten), nicht im Browser.
 
 ---
 
@@ -163,13 +167,13 @@ Das Whiteboard ermöglicht gemeinsames Zeichnen und Visualisieren im Browser. Au
 
 ### Technisches Problem melden
 
-Nutze das Bug-Report-Formular im Portal. Tickets werden automatisch an den Administrator weitergeleitet und dort zentral bearbeitet.
+Nutze das Bug-Report-Formular direkt im Portal — es ist über den Hilfe-Button am Bildschirmrand erreichbar. Tickets gehen automatisch an den Administrator und werden dort zentral bearbeitet.
 
-Alternativ über den Chat: schreibe eine Nachricht an den Administrator im Portal unter **Nachrichten**.
+Für nicht-technische Fragen: schreibe eine Nachricht an den Administrator im Portal unter **Nachrichten**.
 
 ### Dokumentation
 
-Die vollständige Dokumentation ist unter `https://docs.{DOMAIN}` erreichbar. Der Zugriff ist an Deinen Keycloak-Login gekoppelt.
+Die vollständige Dokumentation findest Du unter `https://docs.{DOMAIN}` (z. B. `https://docs.mentolder.de`). Der Zugriff ist an Deinen Workspace-Login gekoppelt.
 
 ---
 

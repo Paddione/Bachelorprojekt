@@ -1,44 +1,56 @@
-# Workspace MVP
+# Workspace
 
-Das Workspace MVP ist eine Kubernetes-basierte, selbst gehostete Kollaborationsplattform fuer kleine Teams, entwickelt im Rahmen einer Bachelorarbeit. Die Plattform integriert Dateiablage, Video-Kommunikation, Passwort-Management, KI-Unterstuetzung und weitere Dienste unter einem einheitlichen Single Sign-On. Alle Daten verbleiben auf eigenen Servern -- DSGVO-konform by Design.
+Der Workspace ist eine selbst gehostete, Kubernetes-basierte Kollaborationsplattform für kleine Teams. Sie bündelt Dateiablage, Video-Kommunikation, Office-Suite, Passwort-Management, KI-Unterstützung und weitere Dienste hinter einem einheitlichen Single Sign-On. Alle Daten verbleiben in Deutschland auf eigenen Servern — DSGVO-konform by Design.
 
-## Schnellstart
+## Für Endnutzer
 
-Voraussetzungen: [Docker](https://www.docker.com/), [k3d](https://k3d.io), [kubectl](https://kubernetes.io/docs/tasks/tools/), [task](https://taskfile.dev)
+- [Benutzerhandbuch](benutzerhandbuch) — Erster Login, Portal, Nextcloud, Talk, Vaultwarden, Whiteboard
+- Portal: `https://web.mentolder.de/portal` bzw. `https://web.korczewski.de/portal`
+
+## Für Administratoren
+
+- [Adminhandbuch](adminhandbuch) — Betrieb, Benutzerverwaltung, Backups, Updates
+- [Admin-Webinterface](admin-webinterface) — Vollständige Referenz aller Admin-Bereiche
+- [Projekt-Verwaltung](admin-projekte) — Projekte, Teilprojekte, Aufgaben, Gantt
+
+## Service-Endpunkte (Produktion)
+
+`{DOMAIN}` ist `mentolder.de` oder `korczewski.de`.
+
+| Service | URL | Beschreibung |
+|---------|-----|--------------|
+| Portal & Website | `https://web.{DOMAIN}` | Astro + Svelte Portal mit Chat, Buchung, Rechnungen |
+| Keycloak (SSO) | `https://auth.{DOMAIN}` | Zentrale Anmeldung (OIDC) |
+| Nextcloud | `https://files.{DOMAIN}` | Dateien, Kalender, Kontakte, Talk |
+| Collabora Online | `https://office.{DOMAIN}` | Office im Browser (öffnet aus Nextcloud) |
+| Talk HPB | `https://signaling.{DOMAIN}` | WebRTC-Signaling für Videocalls |
+| LiveKit Stream | `https://livekit.{DOMAIN}` · `https://stream.{DOMAIN}` | Livestream / Webinare (Server + RTMP-Ingest) |
+| Vaultwarden | `https://vault.{DOMAIN}` | Passwort-Manager (Bitwarden-kompatibel) |
+| Whiteboard | `https://board.{DOMAIN}` | Kollaboratives Zeichnen |
+| DocuSeal | `https://sign.{DOMAIN}` | E-Signatur für Verträge |
+| Dokumentation | `https://docs.{DOMAIN}` | Diese Dokumentation |
+| Whisper | (intern) | Automatische Transkription |
+| Claude Code | (Plattform-Backend) | KI-Assistent über MCP-Server |
+
+> **Entwicklung:** Auf einem lokalen k3d-Cluster sind dieselben Dienste unter `*.localhost` (HTTP statt HTTPS) erreichbar. Details: [Beitragen & CI/CD](contributing).
+
+## Schnellstart (Entwicklung)
+
+Voraussetzungen: [Docker](https://www.docker.com/), [k3d](https://k3d.io), [kubectl](https://kubernetes.io/docs/tasks/tools/), [task](https://taskfile.dev).
 
 ```bash
 git clone https://github.com/Paddione/Bachelorprojekt.git
 cd Bachelorprojekt
-
-# Cluster erstellen + alle Services automatisch deployen
-task workspace:up
+task workspace:up      # Cluster erstellen + alle Services deployen
 ```
 
-Oder schrittweise:
+Schrittweise:
 
 ```bash
-task cluster:create       # k3d-Cluster anlegen
-task workspace:deploy     # Alle Services deployen (Kustomize)
-task workspace:post-setup # Nextcloud-Apps aktivieren (Kalender, Kontakte, OIDC, Collabora)
+task cluster:create        # k3d-Cluster anlegen
+task workspace:deploy      # Alle Services deployen (Kustomize)
+task workspace:post-setup  # Nextcloud-Apps aktivieren (Kalender, Kontakte, OIDC, Collabora)
 ```
-
-## Service-Endpunkte
-
-| Service | URL (Dev) | URL (Prod) | Beschreibung |
-|---------|-----------|------------|--------------|
-| Keycloak (SSO) | http://auth.localhost | https://auth.korczewski.de | Identity Provider, OIDC |
-| Nextcloud | http://files.localhost | https://files.korczewski.de | Dateien, Kalender, Talk |
-| Collabora | http://office.localhost | https://office.korczewski.de | Office-Suite (WOPI-Backend) |
-| Talk HPB | http://signaling.localhost | https://signaling.korczewski.de | WebRTC-Signaling |
-| Claude Code | (kein Web-UI) | (kein Web-UI) | KI-Assistent (MCP-Server, lokal) |
-| Vaultwarden | http://vault.localhost | https://vault.korczewski.de | Passwort-Manager |
-| Whiteboard | http://board.localhost | https://board.korczewski.de | Kollaboratives Whiteboard |
-| Mailpit | http://mail.localhost | -- (nur Dev) | E-Mail-Testing |
-| Docs | http://docs.localhost | https://docs.korczewski.de | Diese Dokumentation |
-| Website | http://web.localhost | https://web.mentolder.de | Astro+Svelte Website |
-| DocuSeal | http://sign.localhost | https://sign.korczewski.de | E-Signatur fuer Vertraege |
-| Tracking | http://tracking.localhost | https://tracking.korczewski.de | Anforderungs-Tracking (Bachelorprojekt) |
-| Whisper | -- (intern) | -- (intern) | Sprach-Transkription (optional) |
 
 ## Architektur
 
@@ -124,16 +136,16 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     rect rgba(74, 144, 217, 0.1)
-        U->>S: Zugriff auf geschuetzte Seite
+        U->>S: Zugriff auf geschützte Seite
         S->>KC: Redirect zu /auth (OIDC Authorization Request)
         KC->>U: Login-Formular
         U->>KC: Credentials eingeben
     end
 
     rect rgba(45, 134, 89, 0.1)
-        KC->>DB: Credentials pruefen
+        KC->>DB: Credentials prüfen
         DB-->>KC: OK
-        KC->>U: Redirect zurueck mit Authorization Code
+        KC->>U: Redirect zurück mit Authorization Code
     end
 
     rect rgba(139, 92, 246, 0.1)
@@ -141,7 +153,7 @@ sequenceDiagram
         S->>KC: Token-Austausch (Code + Access Token + ID Token)
         KC-->>S: Tokens
         S->>S: Benutzer anlegen / Session erstellen
-        S-->>U: Zugriff gewaehrt
+        S-->>U: Zugriff gewährt
     end
 ```
 
@@ -170,11 +182,11 @@ Alternativ alles automatisch: `task workspace:up`
 
 | Abschnitt | Beschreibung |
 |-----------|-------------|
-| [Architektur](architecture) | Systemuebersicht, Datenfluss, Netzwerk |
+| [Architektur](architecture) | Systemübersicht, Datenfluss, Netzwerk |
 | [Services](services) | Kubernetes-Services und ihr Zusammenspiel |
 | [Keycloak & SSO](keycloak) | Identity Management, OIDC-Clients, Realm-Konfiguration |
 | [Datenbank](database) | PostgreSQL-Schema, Datenbankzugriffe |
 | [Sicherheit](security) | Sicherheitsrichtlinien, TLS, Secrets-Management |
 | [Skripte](scripts) | Referenz aller Bash-Skripte und Parameter |
-| [DSGVO](dsgvo) | Datenschutz, Datensouveraenitaet, Compliance-Pruefung |
+| [DSGVO](dsgvo) | Datenschutz, Datensouveränität, Compliance-Prüfung |
 | [Administration](adminhandbuch) | Betrieb, Monitoring, Backup, Troubleshooting |

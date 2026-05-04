@@ -232,12 +232,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${TRAEFIK_OIDC_SECRET}",
       "redirectUris": [
-        "http://${TRAEFIK_DOMAIN}/oauth2/callback",
-        "http://${DASHBOARD_DOMAIN}/oauth2/callback"
+        "http://${TRAEFIK_DOMAIN}/oauth2/callback"
       ],
       "webOrigins": [
-        "http://${TRAEFIK_DOMAIN}",
-        "http://${DASHBOARD_DOMAIN}"
+        "http://${TRAEFIK_DOMAIN}"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

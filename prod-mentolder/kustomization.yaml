@@ -5,6 +5,9 @@ namespace: workspace
 # Inherit full prod overlay (k3d base + all prod patches)
 resources:
   - ../prod
+  - dashboard-web.yaml
+  - oauth2-proxy-dashboard.yaml
+  - ingress-dashboard.yaml
 
 # Override realm with mentolder-specific config
 configMapGenerator:

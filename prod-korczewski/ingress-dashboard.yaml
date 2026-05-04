@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dashboard
+  namespace: workspace
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${DASHBOARD_DOMAIN}`)
+      kind: Rule
+      middlewares:
+        - name: hsts-headers
+        - name: security-headers
+      services:
+        - name: oauth2-proxy-dashboard
+          port: 4180
+  tls:
+    secretName: ${TLS_SECRET_NAME}

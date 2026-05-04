@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Workspace dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Workspace</h1>
+    <nav id="tabs">
+      <button data-tab="tickets" class="active">Tickets</button>
+      <button data-tab="pods">Pods &amp; services</button>
+      <button data-tab="logs">Logs</button>
+      <button data-tab="argocd">ArgoCD</button>
+    </nav>
+    <label class="ctx">
+      cluster:
+      <select id="context">
+        <option value="mentolder" selected>mentolder</option>
+        <option value="korczewski">korczewski</option>
+      </select>
+    </label>
+  </header>
+  <main id="main"></main>
+  <script src="app.js"></script>
+</body>
+</html>

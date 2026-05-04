@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (!assignment || assignment.customer_id !== customer.id) {
     return new Response(JSON.stringify({ error: 'Nicht gefunden.' }), { status: 404 });
   }
-  if (assignment.status === 'submitted' || assignment.status === 'reviewed') {
+  if (assignment.status === 'submitted' || assignment.status === 'reviewed' || assignment.status === 'dismissed') {
     return new Response(JSON.stringify({ error: 'Bereits abgesendet.' }), { status: 409 });
   }
 

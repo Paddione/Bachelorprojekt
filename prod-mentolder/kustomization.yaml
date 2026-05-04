@@ -16,6 +16,7 @@ configMapGenerator:
     files:
       - realm-workspace.json=realm-workspace-mentolder.json
   - name: art-library
+    behavior: replace
     options:
       annotations:
         argocd.argoproj.io/sync-options: ServerSideApply=true

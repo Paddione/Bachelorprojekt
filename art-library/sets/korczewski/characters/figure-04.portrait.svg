@@ -1,0 +1,56 @@
+<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" class="ch-portrait">
+  <defs>
+    <radialGradient id="brann-bg" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#E26B6B" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#0F0B18" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="brann-armor" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#A8B0BB"/>
+      <stop offset="50%" stop-color="#6B7480"/>
+      <stop offset="100%" stop-color="#3C434C"/>
+    </linearGradient>
+    <linearGradient id="brann-beard" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#C26A2A"/>
+      <stop offset="100%" stop-color="#7A3A14"/>
+    </linearGradient>
+    <linearGradient id="brann-horn" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#E8DCC0"/>
+      <stop offset="100%" stop-color="#9A8A66"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="300" fill="url(#brann-bg)"/>
+  <ellipse cx="50" cy="240" rx="40" ry="38" fill="url(#brann-armor)"/>
+  <ellipse cx="190" cy="240" rx="40" ry="38" fill="url(#brann-armor)"/>
+  <circle cx="28" cy="232" r="1.5" fill="#3C434C"/>
+  <circle cx="36" cy="234" r="1.5" fill="#3C434C"/>
+  <circle cx="44" cy="236" r="1.5" fill="#3C434C"/>
+  <circle cx="52" cy="238" r="1.5" fill="#3C434C"/>
+  <circle cx="184" cy="232" r="1.5" fill="#3C434C"/>
+  <circle cx="192" cy="230" r="1.5" fill="#3C434C"/>
+  <circle cx="200" cy="228" r="1.5" fill="#3C434C"/>
+  <circle cx="208" cy="226" r="1.5" fill="#3C434C"/>
+  <path d="M70,260 Q70,220 120,210 Q170,220 170,260 L170,300 L70,300 Z" fill="url(#brann-armor)"/>
+  <path d="M120,240 L114,254 L106,254 L114,262 L110,276 L120,268 L130,276 L126,262 L134,254 L126,254 Z" fill="#E26B6B"/>
+  <path d="M76,160 Q80,120 120,108 Q160,120 164,160 L164,180 L76,180 Z" fill="url(#brann-armor)"/>
+  <path d="M120,108 L120,180" stroke="#3C434C" stroke-width="2" opacity="0.7"/>
+  <rect x="86" y="146" width="68" height="8" rx="2" fill="#3C434C"/>
+  <circle cx="104" cy="150" r="2" fill="#E26B6B"/>
+  <circle cx="136" cy="150" r="2" fill="#E26B6B"/>
+  <path d="M76,156 Q40,130 30,90 Q40,110 50,128 Q60,140 76,148 Z" fill="url(#brann-horn)"/>
+  <path d="M164,156 Q200,130 210,90 Q200,110 190,128 Q180,140 164,148 Z" fill="url(#brann-horn)"/>
+  <path d="M68,148 Q50,130 40,108" stroke="#9A8A66" stroke-width="0.8" fill="none" opacity="0.7"/>
+  <path d="M172,148 Q190,130 200,108" stroke="#9A8A66" stroke-width="0.8" fill="none" opacity="0.7"/>
+  <path d="M86,180 Q100,200 96,250 Q108,240 110,260 Q120,250 130,260 Q132,240 144,250 Q140,200 154,180 Z" fill="url(#brann-beard)"/>
+  <ellipse cx="105" cy="232" rx="6" ry="2" fill="#A8B0BB"/>
+  <ellipse cx="135" cy="232" rx="6" ry="2" fill="#A8B0BB"/>
+  <ellipse cx="105" cy="248" rx="5" ry="1.5" fill="#7A3A14"/>
+  <ellipse cx="135" cy="248" rx="5" ry="1.5" fill="#7A3A14"/>
+  <path d="M92,198 Q92,220 94,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M99,202 Q99,220 101,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M106,206 Q106,220 108,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M113,198 Q113,220 115,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M120,202 Q120,220 122,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M127,206 Q127,220 129,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M134,198 Q134,220 136,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+  <path d="M141,202 Q141,220 143,240" stroke="#7A3A14" stroke-width="0.6" fill="none" opacity="0.5"/>
+</svg>

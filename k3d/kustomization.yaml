@@ -125,6 +125,42 @@ configMapGenerator:
       - docs-content/backup.md
       - docs-content/dsgvo.md
       - docs-content/contributing.md
+  - name: art-library
+    options:
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+    files:
+      - manifest.json=../art-library/sets/korczewski/manifest.json
+      - tokens.css=../art-library/sets/korczewski/tokens.css
+
+      - characters_figure-01.portrait.svg=../art-library/sets/korczewski/characters/figure-01.portrait.svg
+      - characters_figure-01.figurine.svg=../art-library/sets/korczewski/characters/figure-01.figurine.svg
+      - characters_figure-02.portrait.svg=../art-library/sets/korczewski/characters/figure-02.portrait.svg
+      - characters_figure-02.figurine.svg=../art-library/sets/korczewski/characters/figure-02.figurine.svg
+      - characters_figure-03.portrait.svg=../art-library/sets/korczewski/characters/figure-03.portrait.svg
+      - characters_figure-03.figurine.svg=../art-library/sets/korczewski/characters/figure-03.figurine.svg
+      - characters_figure-04.portrait.svg=../art-library/sets/korczewski/characters/figure-04.portrait.svg
+      - characters_figure-04.figurine.svg=../art-library/sets/korczewski/characters/figure-04.figurine.svg
+
+      - props_chest.svg=../art-library/sets/korczewski/props/chest.svg
+      - props_torch.svg=../art-library/sets/korczewski/props/torch.svg
+      - props_potion.svg=../art-library/sets/korczewski/props/potion.svg
+      - props_key.svg=../art-library/sets/korczewski/props/key.svg
+      - props_scroll.svg=../art-library/sets/korczewski/props/scroll.svg
+      - props_coin.svg=../art-library/sets/korczewski/props/coin.svg
+
+      - terrain_ter-01.svg=../art-library/sets/korczewski/terrain/ter-01.svg
+      - terrain_ter-02.svg=../art-library/sets/korczewski/terrain/ter-02.svg
+      - terrain_ter-03.svg=../art-library/sets/korczewski/terrain/ter-03.svg
+      - terrain_ter-04.svg=../art-library/sets/korczewski/terrain/ter-04.svg
+      - terrain_ter-05.svg=../art-library/sets/korczewski/terrain/ter-05.svg
+      - terrain_ter-06.svg=../art-library/sets/korczewski/terrain/ter-06.svg
+
+      - logos_mark.svg=../art-library/sets/korczewski/logos/mark.svg
+      - logos_lockup-dark.svg=../art-library/sets/korczewski/logos/lockup-dark.svg
+      - logos_lockup-light.svg=../art-library/sets/korczewski/logos/lockup-light.svg
+      - logos_app-icon.svg=../art-library/sets/korczewski/logos/app-icon.svg
+      - logos_radar-pulse.svg=../art-library/sets/korczewski/logos/radar-pulse.svg
 
 generatorOptions:
   disableNameSuffixHash: true

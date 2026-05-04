@@ -119,6 +119,9 @@ spec:
             - name: korczewski-kubeconfig
               mountPath: /var/run/dashboard
               readOnly: true
+            - name: art-library
+              mountPath: /app/public/art-library
+              readOnly: true
           readinessProbe:
             httpGet: { path: /healthz, port: 3000 }
             initialDelaySeconds: 5
@@ -140,6 +143,10 @@ spec:
           secret:
             secretName: dashboard-korczewski-kubeconfig
             defaultMode: 0400
+            optional: true
+        - name: art-library
+          configMap:
+            name: art-library
             optional: true
 ---
 apiVersion: v1

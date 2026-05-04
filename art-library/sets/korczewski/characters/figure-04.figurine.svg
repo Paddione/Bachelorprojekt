@@ -1,0 +1,35 @@
+<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" class="ch-figurine">
+  <defs>
+    <radialGradient id="fig-shadow-b" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figbrann-armor" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#3C434C"/>
+      <stop offset="50%" stop-color="#A8B0BB"/>
+      <stop offset="100%" stop-color="#3C434C"/>
+    </linearGradient>
+    <linearGradient id="figbrann-beard" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#7A3A14"/>
+      <stop offset="50%" stop-color="#C26A2A"/>
+      <stop offset="100%" stop-color="#7A3A14"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="60" cy="192" rx="32" ry="6" fill="url(#fig-shadow-b)"/>
+  <path d="M32,170 Q28,130 42,108 L78,108 Q92,130 88,170 Z" fill="url(#figbrann-armor)"/>
+  <rect x="32" y="140" width="56" height="5" fill="#3C434C"/>
+  <rect x="58" y="139" width="4" height="7" fill="#C26A2A"/>
+  <path d="M60,124 L56,132 L52,132 L57,138 L54,148 L60,144 L66,148 L63,138 L68,132 L64,132 Z" fill="#E26B6B"/>
+  <ellipse cx="36" cy="112" rx="14" ry="11" fill="url(#figbrann-armor)"/>
+  <ellipse cx="84" cy="112" rx="14" ry="11" fill="url(#figbrann-armor)"/>
+  <path d="M48,98 Q54,120 52,140 Q58,134 60,142 Q62,134 68,140 Q66,120 72,98 Z" fill="url(#figbrann-beard)"/>
+  <ellipse cx="55" cy="128" rx="3" ry="1" fill="#A8B0BB"/>
+  <ellipse cx="65" cy="128" rx="3" ry="1" fill="#A8B0BB"/>
+  <path d="M46,90 Q48,72 60,68 Q72,72 74,90 L74,98 L46,98 Z" fill="url(#figbrann-armor)"/>
+  <path d="M60,68 L60,98" stroke="#3C434C" stroke-width="1"/>
+  <rect x="50" y="84" width="20" height="3" rx="1" fill="#3C434C"/>
+  <circle cx="55" cy="85.5" r="0.8" fill="#E26B6B"/>
+  <circle cx="65" cy="85.5" r="0.8" fill="#E26B6B"/>
+  <path d="M46,86 Q30,76 24,60 Q30,72 36,80 Q42,84 46,86 Z" fill="#E8DCC0"/>
+  <path d="M74,86 Q90,76 96,60 Q90,72 84,80 Q78,84 74,86 Z" fill="#E8DCC0"/>
+</svg>

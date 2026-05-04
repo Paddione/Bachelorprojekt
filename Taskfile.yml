@@ -56,6 +56,13 @@ tasks:
     cmds:
       - kubectl --context {{.ENV}} -n workspace logs deploy/dashboard-web --tail=200 -f
 
+  dashboard:web:dev:
+    desc: Run dashboard-web locally on http://localhost:3001 (no auth, no PG/k8s required)
+    dir: dashboard/web
+    cmds:
+      - npm install
+      - PORT=3001 NO_AUTH=true node server.js
+
   dashboard:bootstrap-korczewski:
     desc: "One-shot: provision read-only SA on korczewski + seal kubeconfig into mentolder secrets"
     cmds:
@@ -206,6 +213,12 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:art-library:
+    desc: "Validate every art-library/sets/* manifest"
+    cmds:
+      - cd art-library/_tooling && npm install --silent
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/test_art_library_manifest.bats
 
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)
@@ -911,7 +924,7 @@ tasks:
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
     cmds:
-      - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
+      - kubectl kustomize k3d/ --load-restrictor=LoadRestrictionsNone | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
 
   workspace:preflight:
@@ -1034,7 +1047,7 @@ tasks:
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
           # Full apply (idempotent — updates configs, adds remaining services)
-          kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN" | kubectl apply --server-side --force-conflicts -f -
+          kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN" | kubectl apply --server-side --force-conflicts -f -
         else
           # Prod: build from overlay, apply to target cluster
           # Apply SealedSecret first so the Secret is ready when pods start
@@ -1068,7 +1081,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN \$DASHBOARD_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN"
-          kustomize build "$overlay/" \
+          kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
             | envsubst "$ENVSUBST_VARS" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
         fi

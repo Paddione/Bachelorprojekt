@@ -1,0 +1,47 @@
+{
+  "version": "2026-05-04",
+  "brand": "korczewski",
+  "tokens": {
+    "ink-900": "#120D1C",
+    "copper":  "#C8F76A",
+    "teal":    "#5BD4D0"
+  },
+  "assets": [
+    { "id": "figure-01", "kind": "character", "name_de": "Figur I",  "name_en": "Figure I",
+      "tags": ["magic","feminine","robe"],
+      "palette": { "skin": "#F2D2B8", "hair": "#C0341D", "dress": "#3D8A4F", "trim": "#C8F76A" },
+      "files": { "portrait": "characters_figure-01.portrait.svg", "figurine": "characters_figure-01.figurine.svg" } },
+    { "id": "figure-02", "kind": "character", "name_de": "Figur II", "name_en": "Figure II",
+      "tags": ["support","hooded","contemplative"],
+      "palette": { "skin": "#C8966E", "robe": "#3A3148", "trim": "#D8AE5A", "inner": "#5BD4D0" },
+      "files": { "portrait": "characters_figure-02.portrait.svg", "figurine": "characters_figure-02.figurine.svg" } },
+    { "id": "figure-03", "kind": "character", "name_de": "Figur III", "name_en": "Figure III",
+      "tags": ["rogue","masked","slim"],
+      "palette": { "skin": "#E8C5A3", "hat": "#15101F", "coat": "#5C2E2A", "mask": "#0F0B18", "trim": "#C8F76A" },
+      "files": { "portrait": "characters_figure-03.portrait.svg", "figurine": "characters_figure-03.figurine.svg" } },
+    { "id": "figure-04", "kind": "character", "name_de": "Figur IV", "name_en": "Figure IV",
+      "tags": ["tank","armored","broad"],
+      "palette": { "armor": "#6B7480", "armor2": "#3C434C", "beard": "#C26A2A", "horn": "#E8DCC0", "trim": "#C8F76A" },
+      "files": { "portrait": "characters_figure-04.portrait.svg", "figurine": "characters_figure-04.figurine.svg" } },
+
+    { "id": "prop-chest",  "kind": "prop", "name_de": "Truhe",       "name_en": "Chest",  "tags": ["item","container","loot"],     "files": { "icon": "props_chest.svg" } },
+    { "id": "prop-torch",  "kind": "prop", "name_de": "Fackel",      "name_en": "Torch",  "tags": ["light","fire"],                "files": { "icon": "props_torch.svg" } },
+    { "id": "prop-potion", "kind": "prop", "name_de": "Trank",       "name_en": "Potion", "tags": ["item","consumable","magic"],   "files": { "icon": "props_potion.svg" } },
+    { "id": "prop-key",    "kind": "prop", "name_de": "Schlüssel",   "name_en": "Key",    "tags": ["item","unlock"],               "files": { "icon": "props_key.svg" } },
+    { "id": "prop-scroll", "kind": "prop", "name_de": "Schriftrolle","name_en": "Scroll", "tags": ["item","magic","knowledge"],    "files": { "icon": "props_scroll.svg" } },
+    { "id": "prop-coin",   "kind": "prop", "name_de": "Münze",       "name_en": "Coin",   "tags": ["currency","marker"],           "files": { "icon": "props_coin.svg" } },
+
+    { "id": "ter-01", "kind": "terrain", "name_de": "Wald",      "name_en": "Forest", "tags": ["nature","forest","green"], "files": { "swatch": "terrain_ter-01.svg" } },
+    { "id": "ter-02", "kind": "terrain", "name_de": "Stein",     "name_en": "Stone",  "tags": ["stone","ground","gray"],    "files": { "swatch": "terrain_ter-02.svg" } },
+    { "id": "ter-03", "kind": "terrain", "name_de": "Wasser",    "name_en": "Water",  "tags": ["water","blue"],             "files": { "swatch": "terrain_ter-03.svg" } },
+    { "id": "ter-04", "kind": "terrain", "name_de": "Holzdiele", "name_en": "Wood",   "tags": ["wood","indoor"],            "files": { "swatch": "terrain_ter-04.svg" } },
+    { "id": "ter-05", "kind": "terrain", "name_de": "Schnee",    "name_en": "Snow",   "tags": ["cold","white"],             "files": { "swatch": "terrain_ter-05.svg" } },
+    { "id": "ter-06", "kind": "terrain", "name_de": "Sand",      "name_en": "Sand",   "tags": ["desert","warm"],            "files": { "swatch": "terrain_ter-06.svg" } },
+
+    { "id": "logo-mark",         "kind": "logo", "name_de": "Marke",                       "name_en": "Mark",          "tags": ["logo","brand","square"],    "animated": false, "files": { "svg": "logos_mark.svg" } },
+    { "id": "logo-lockup-dark",  "kind": "logo", "name_de": "Wortmarke · Dunkel",          "name_en": "Lockup · Dark", "tags": ["logo","brand","wordmark"],  "animated": false, "files": { "svg": "logos_lockup-dark.svg" } },
+    { "id": "logo-lockup-light", "kind": "logo", "name_de": "Wortmarke · Hell",            "name_en": "Lockup · Light","tags": ["logo","brand","wordmark"],  "animated": false, "files": { "svg": "logos_lockup-light.svg" } },
+    { "id": "logo-app-icon",     "kind": "logo", "name_de": "App-Icon · Vollständiges K",  "name_en": "App Icon",      "tags": ["logo","brand","icon"],      "animated": false, "files": { "svg": "logos_app-icon.svg" } },
+    { "id": "logo-radar-pulse",  "kind": "logo", "name_de": "Animiert · Radar-Pulse",      "name_en": "Radar Pulse",   "tags": ["logo","brand","animated"],  "animated": true,  "files": { "svg": "logos_radar-pulse.svg" } }
+  ]
+}

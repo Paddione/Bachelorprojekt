@@ -1441,7 +1441,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: dashboard-web
-          image: registry.gekko-hetzner.local:5000/dashboard-web:0.1.0
+          image: ghcr.io/paddione/workspace-dashboard:0.1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -1686,9 +1686,9 @@ Find an existing `dashboard:`-namespaced task (or the alphabetically appropriate
     vars:
       TAG: '{{.TAG | default "0.1.0"}}'
     cmds:
-      - docker build -t registry.gekko-hetzner.local:5000/dashboard-web:{{.TAG}} -f docker/Dockerfile.dashboard-web .
-      - docker push registry.gekko-hetzner.local:5000/dashboard-web:{{.TAG}}
-      - 'echo "✓ Pushed registry.gekko-hetzner.local:5000/dashboard-web:{{.TAG}}"'
+      - docker build -t ghcr.io/paddione/workspace-dashboard:{{.TAG}} -f docker/Dockerfile.dashboard-web .
+      - docker push ghcr.io/paddione/workspace-dashboard:{{.TAG}}
+      - 'echo "✓ Pushed ghcr.io/paddione/workspace-dashboard:{{.TAG}}"'
 
   dashboard:web:deploy:
     desc: "Deploy dashboard-web to mentolder (web-facing operator dashboard)"
@@ -1895,12 +1895,12 @@ Expected: image pushed to registry.
 
 - [ ] **Step 2: Capture digest**
 
-Run: `docker inspect --format='{{index .RepoDigests 0}}' registry.gekko-hetzner.local:5000/dashboard-web:0.1.0`
-Take the resulting `registry.gekko-hetzner.local:5000/dashboard-web@sha256:...` value.
+Run: `docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/paddione/workspace-dashboard:0.1.0`
+Take the resulting `ghcr.io/paddione/workspace-dashboard@sha256:...` value.
 
 - [ ] **Step 3: Pin in manifest**
 
-In `prod-mentolder/dashboard-web.yaml`, replace the `image:` line with `image: registry.gekko-hetzner.local:5000/dashboard-web@sha256:...`.
+In `prod-mentolder/dashboard-web.yaml`, replace the `image:` line with `image: ghcr.io/paddione/workspace-dashboard@sha256:...`.
 
 - [ ] **Step 4: Commit pinned digest**
 

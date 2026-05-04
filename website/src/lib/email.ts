@@ -228,3 +228,20 @@ ${FROM_NAME}`,
 <p><a href="${params.auswertungUrl}">Auswertung ansehen →</a></p>`,
   });
 }
+
+export async function sendQuestionnaireDismissed(params: {
+  adminEmail: string;
+  clientName: string;
+  questionnaireTitle: string;
+  reason: string;
+}): Promise<boolean> {
+  const reasonLine = params.reason ? `\nGrund: ${params.reason}` : '';
+  return sendEmail({
+    to: params.adminEmail,
+    subject: `Fragebogen abgelehnt: ${params.questionnaireTitle} — ${params.clientName}`,
+    text: `${params.clientName} hat den Fragebogen "${params.questionnaireTitle}" abgelehnt.${reasonLine}
+
+${FROM_NAME}`,
+    html: `<p><strong>${params.clientName}</strong> hat den Fragebogen <strong>${params.questionnaireTitle}</strong> abgelehnt.</p>${params.reason ? `<p>Grund: ${params.reason}</p>` : ''}`,
+  });
+}

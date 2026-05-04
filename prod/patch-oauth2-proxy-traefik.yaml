@@ -34,7 +34,6 @@ spec:
             - "--oidc-extra-audience=traefik-dashboard"
             - "--scope=openid email profile"
             - "--whitelist-domain=traefik.${PROD_DOMAIN}"
-            - "--whitelist-domain=dashboard.${PROD_DOMAIN}"
           env:
             - name: TRAEFIK_OIDC_SECRET
               valueFrom:

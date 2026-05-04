@@ -71,6 +71,7 @@ data:
   BRETT_DOMAIN: "${BRETT_DOMAIN}"
   # LiveKit
   LIVEKIT_DOMAIN: "${LIVEKIT_DOMAIN}"
+  STREAM_DOMAIN: "${STREAM_DOMAIN}"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
 ---
@@ -317,7 +318,7 @@ spec:
             - name: STREAM_DOMAIN
               valueFrom:
                 configMapKeyRef:
-                  name: domain-config
+                  name: website-config
                   key: STREAM_DOMAIN
             - name: LIVEKIT_API_KEY
               valueFrom:

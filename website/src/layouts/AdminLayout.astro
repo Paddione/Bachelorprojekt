@@ -56,6 +56,12 @@ const icons: Record<string, string> = {
   broadcast: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 1 0 8"/><path d="M6 8a6 6 0 0 0 0 8"/><circle cx="12" cy="12" r="2"/><path d="M21 5a11 11 0 0 1 0 14"/><path d="M3 5a11 11 0 0 0 0 14"/></svg>`,
 };
 
+let inboxPending = 0;
+try {
+  const counts = await countPendingByType();
+  inboxPending = Object.values(counts).reduce((a, b) => a + b, 0);
+} catch { /* ignore if messaging-db unavailable */ }
+
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Übersicht',
@@ -123,12 +129,6 @@ function isActive(href: string, matches?: string[]): boolean {
 }
 
 const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
-
-let inboxPending = 0;
-try {
-  const counts = await countPendingByType();
-  inboxPending = Object.values(counts).reduce((a, b) => a + b, 0);
-} catch { /* ignore if messaging-db unavailable */ }
 ---
 
 <!doctype html>

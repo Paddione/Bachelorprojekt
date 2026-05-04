@@ -1870,6 +1870,124 @@ tasks:
       - kubectl logs deploy/whisper -f --tail=50
 
   # ─────────────────────────────────────────────
+  # LiveKit (Livestream — Browser-Publishing + OBS RTMP)
+  # ─────────────────────────────────────────────
+  livekit:status:
+    desc: "Show LiveKit pods, services, ingress, and recordings (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        echo "=== Pods ===" && kubectl $CTX_FLAG -n workspace get pods \
+          -l 'app in (livekit-server,livekit-ingress,livekit-egress,livekit-redis)' -o wide
+        echo "=== Service / Ingress ===" && kubectl $CTX_FLAG -n workspace get svc,ingress,ingressroute,middleware \
+          -l 'app in (livekit-server,livekit-ingress)' 2>/dev/null
+        kubectl $CTX_FLAG -n workspace get svc livekit-server livekit-ingress-rtmp 2>/dev/null
+        kubectl $CTX_FLAG -n workspace get ingressroute livekit-server middleware/livekit-cors 2>/dev/null
+        echo "=== Recordings PVC ===" && kubectl $CTX_FLAG -n workspace get pvc livekit-recordings-pvc 2>/dev/null
+        echo "=== Recordings count ==="
+        kubectl $CTX_FLAG -n workspace exec deployment/livekit-egress -- sh -c 'ls /recordings/ 2>/dev/null | wc -l' 2>/dev/null \
+          || echo "(egress pod not ready)"
+
+  livekit:logs:
+    desc: "Tail LiveKit logs (ENV=dev|mentolder|korczewski; CLI_ARGS = server|ingress|egress|redis, default: server)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+      COMP: '{{.CLI_ARGS | default "server"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        case "{{.COMP}}" in
+          server|ingress|egress|redis) DEPLOY="livekit-{{.COMP}}" ;;
+          *) echo "Unknown component: {{.COMP}} (use server|ingress|egress|redis)" >&2; exit 1 ;;
+        esac
+        kubectl $CTX_FLAG -n workspace logs deployment/$DEPLOY --tail=200 -f
+
+  livekit:recordings:
+    desc: "List recorded streams in the egress PVC (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        kubectl $CTX_FLAG -n workspace exec deployment/livekit-egress -- ls -lh /recordings/
+
+  livekit:end-stream:
+    desc: "Forcibly end the active livestream — restarts livekit-server, which closes the room and disconnects all publishers (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX_FLAG=""
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        # Preferred path is POST /api/stream/end via the Admin UI (deletes
+        # ingresses + removes publishers without dropping subscribers). This
+        # task is the in-cluster fallback when the website is unreachable —
+        # restarting livekit-server closes every room cleanly. Re-establishes
+        # in <30s via Redis-persisted room state.
+        echo "Restarting livekit-server — all active sessions will be terminated."
+        kubectl $CTX_FLAG -n workspace rollout restart deployment/livekit-server
+        kubectl $CTX_FLAG -n workspace rollout status deployment/livekit-server --timeout=120s
+
+  livekit:dns-pin:
+    desc: "Print the ipv64 API calls that pin livekit/stream subdomains to a single node (run with --apply to actually invoke). ENV=dev|mentolder|korczewski"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+      # Default pin target is the gekko-hetzner-3 mentolder IP from k3d/livekit.yaml nodeAffinity.
+      PIN_IP: '{{.PIN_IP | default "46.225.125.59"}}'
+      APPLY: '{{.APPLY | default "false"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        SECRETS="environments/.secrets/{{.ENV}}.yaml"
+        [ -f "$SECRETS" ] || { echo "Plaintext secrets not found at $SECRETS — cannot read IPV64_API_KEY" >&2; exit 1; }
+        KEY=$(awk -F': ' '/^IPV64_API_KEY:/ {gsub(/"/,"",$2); print $2}' "$SECRETS")
+        [ -n "$KEY" ] || { echo "IPV64_API_KEY missing from $SECRETS" >&2; exit 1; }
+        echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → {{.PIN_IP}}"
+        echo "(set APPLY=true to actually run the calls; otherwise this just prints them)"
+        for SUB in livekit stream; do
+          URL="https://ipv64.net/update.php?key=$KEY&domain=${SUB}.${PROD_DOMAIN}&ip={{.PIN_IP}}"
+          REDACTED=$(echo "$URL" | sed "s/key=$KEY/key=***REDACTED***/")
+          echo "  curl -sS \"$REDACTED\""
+          if [ "{{.APPLY}}" = "true" ]; then
+            curl -sS "$URL"
+            echo
+          fi
+        done
+        if [ "{{.APPLY}}" != "true" ]; then
+          echo ""
+          echo "Re-run with APPLY=true to invoke."
+        fi
+
+  livekit:firewall-open:
+    desc: "Open LiveKit ports (7880/tcp, 7881/tcp, 50000-60000/udp, 30000-40000/udp) on a Hetzner node via SSH (NODE=<ip>)"
+    vars:
+      NODE: '{{.NODE}}'
+      SSH_KEY: '{{.SSH_KEY | default "$HOME/.ssh/id_ed25519_hetzner"}}'
+    preconditions:
+      - sh: '[ -n "{{.NODE}}" ]'
+        msg: "Usage: task livekit:firewall-open NODE=<ip>"
+      - sh: '[ -f "{{.SSH_KEY}}" ]'
+        msg: "SSH key not found at {{.SSH_KEY}}"
+    cmds:
+      - |
+        ssh -i {{.SSH_KEY}} -o StrictHostKeyChecking=accept-new root@{{.NODE}} '
+          ufw allow 7880/tcp comment "LiveKit signaling (HTTP/WS)" &&
+          ufw allow 7881/tcp comment "LiveKit RTC TCP fallback" &&
+          ufw allow 50000:60000/udp comment "LiveKit RTC media range" &&
+          ufw allow 30000:40000/udp comment "LiveKit TURN relay range" &&
+          ufw status numbered | grep -E "7880|7881|50000|30000"
+        '
+
+  # ─────────────────────────────────────────────
   # GPU Worker (External Whisper with NVIDIA CUDA)
   # ─────────────────────────────────────────────
   gpu-worker:start:

@@ -7,6 +7,7 @@
   - [Nextcloud (Dateien & Talk)](nextcloud)
   - [Collabora (Office)](collabora)
   - [Talk HPB (Signaling)](talk-hpb)
+  - [Livestream (LiveKit)](livestream)
   - [E-Invoice (ZUGFeRD & XRechnung)](einvoice)
   - [MCP-Server](claude-code)
   - [Vaultwarden (Passwörter)](vaultwarden)

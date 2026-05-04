@@ -104,6 +104,20 @@ task website:status              # Show website deployment status
 task website:teardown            # Remove website namespace
 ```
 
+### Livestream (LiveKit — WebRTC + OBS)
+Admin-Steuerseite `/admin/stream`, Zuschauer-Seite `/portal/stream`.
+`livekit-server` läuft auf `hostNetwork` und ist via `nodeAffinity` auf eine Pin-Node fixiert (mentolder: `gekko-hetzner-3`/`46.225.125.59`).
+```bash
+task livekit:status ENV=<env>            # Pods, Services, Ingress, Recording-Anzahl
+task livekit:logs ENV=<env>              # Tail livekit-server logs (default)
+task livekit:logs ENV=<env> -- ingress   # Tail livekit-ingress (RTMP)
+task livekit:logs ENV=<env> -- egress    # Tail livekit-egress (Recording)
+task livekit:recordings ENV=<env>        # MP4-Liste im egress PVC
+task livekit:end-stream ENV=<env>        # Notfall: livekit-server neu starten (Raum schließen)
+task livekit:dns-pin ENV=<env>           # Druckt ipv64-API-Calls für DNS-Pinning (APPLY=true zum Ausführen)
+task livekit:firewall-open NODE=<ip>     # Öffnet ufw 7880/7881/tcp + 50000-60000/udp + 30000-40000/udp via SSH
+```
+
 ### ArgoCD — GitOps Multi-Cluster Federation
 **HUB-ONLY**: ALL `argocd:*` tasks run exclusively against `--context mentolder`.
 `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
@@ -210,6 +224,9 @@ graph TB
         WHISPER["fa:fa-microphone Whisper<br/>Transkription"]
         TRBOT["fa:fa-closed-captioning Talk Transcriber"]
         JANUS[Janus + NATS + coturn]
+        LK["fa:fa-broadcast-tower LiveKit Server<br/>livekit.localhost (hostNet)"]
+        LKI["fa:fa-tower-broadcast LiveKit Ingress<br/>stream.localhost (RTMP)"]
+        LKE["fa:fa-record-vinyl LiveKit Egress<br/>(recording)"]
         DB[("fa:fa-database PostgreSQL 16<br/>shared-db")]
     end
 
@@ -217,7 +234,7 @@ graph TB
         WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
     end
 
-    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & TR & WEB
+    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & TR & WEB & LK & LKI
 
     KC -. OIDC .-> NC & VW & WEB & DS & TR & BRETT
     OAUTH2 --> KC
@@ -225,6 +242,9 @@ graph TB
     NC --> CO
     NC --> HPB --> JANUS
     HPB --> TRBOT --> WHISPER
+    WEB --> LK
+    LKI --> LK
+    LK --> LKE
     KC & NC & DS & TR --> DB
     BRETT --> DB
     WEB --> DB
@@ -298,3 +318,4 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 ### Operational
 - **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy ENV=<env>` then `task docs:restart ENV=<env>`. Applying the ConfigMap alone leaves the old content served.
 - **yamllint runs a 200-char line limit in CI only.** Long base64 strings or multiline patches that are fine locally will fail the `lint-yaml` job on PR. Run `yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' <file>` before pushing.
+- **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.

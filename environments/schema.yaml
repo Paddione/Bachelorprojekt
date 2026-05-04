@@ -319,6 +319,11 @@ secrets:
     generate: true
     length: 40
 
+  - name: DASHBOARD_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
   - name: TRAEFIK_OIDC_SECRET
     required: true
     generate: true

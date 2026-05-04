@@ -19,6 +19,18 @@ Deploy a web-accessible, SSO-gated, admin-only dashboard for the mentolder works
 - Not a ticket-intake form. Filing tickets stays on `web.mentolder.de` via the existing `bug-report.ts` flow.
 - Not multi-tenant. One admin allowlist (`PORTAL_ADMIN_USERNAME`), one cluster pair, one DB.
 
+## Pre-migration: free up `dashboard.${PROD_DOMAIN}`
+
+Today, `dashboard.${PROD_DOMAIN}` is a second hostname for the Traefik admin UI (`prod/traefik-dashboard.yaml`), authenticated via `oauth2-proxy-traefik` against a Keycloak client named `traefik-dashboard`. The Keycloak client's redirect URI is mistakenly templated against `${DASHBOARD_DOMAIN}` rather than `${TRAEFIK_DOMAIN}`.
+
+Three small edits free the hostname:
+
+1. `prod/traefik-dashboard.yaml`: remove `Host(\`dashboard.${PROD_DOMAIN}\`)` from both the `/oauth2` rule and the catch-all rule. Traefik UI ends up reachable only at `traefik.${PROD_DOMAIN}`.
+2. `prod/patch-oauth2-proxy-traefik.yaml`: remove the `--whitelist-domain=dashboard.${PROD_DOMAIN}` arg.
+3. `k3d/realm-workspace-dev.json` and `prod-mentolder/realm-workspace-mentolder.json`: in the `traefik-dashboard` client, change the redirect URI templates from `${DASHBOARD_DOMAIN}` to `${TRAEFIK_DOMAIN}` (both vars are already in `prod/import-entrypoint.sh` and `k3d/realm-import-entrypoint.sh`'s envsubst list).
+
+After those edits, `dashboard.${PROD_DOMAIN}` is unrouted and the Keycloak `dashboard` client name is unused — both available for the new app.
+
 ## Architecture
 
 ```

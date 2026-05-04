@@ -314,6 +314,16 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: NEXTCLOUD_DB_PASSWORD
+            - name: STREAM_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: STREAM_DOMAIN
+            - name: LIVEKIT_RTMP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LIVEKIT_RTMP_KEY
           ports:
             - containerPort: 4321
           resources:

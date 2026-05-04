@@ -1,0 +1,45 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import StreamPlayer from '../../components/LiveStream/StreamPlayer.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const livekitDomain = process.env.LIVEKIT_DOMAIN || 'livekit.localhost';
+const livekitUrl = `ws://${livekitDomain}`;
+const streamDomain = process.env.STREAM_DOMAIN || 'stream.localhost';
+const rtmpKey = process.env.LIVEKIT_RTMP_KEY || 'devrtmpkey123456';
+---
+
+<AdminLayout title="Stream">
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-bold text-light font-serif">Livestream</h1>
+    </div>
+
+    <!-- RTMP credentials card -->
+    <div class="bg-dark-light border border-dark-lighter rounded-xl p-5">
+      <h2 class="text-sm font-semibold text-light mb-3">OBS / RTMP Zugangsdaten</h2>
+      <div class="space-y-2 text-sm">
+        <div>
+          <span class="text-muted">Server URL</span>
+          <code class="block mt-1 bg-dark px-3 py-2 rounded text-gold font-mono">rtmp://{streamDomain}/live</code>
+        </div>
+        <div>
+          <span class="text-muted">Stream Key</span>
+          <code class="block mt-1 bg-dark px-3 py-2 rounded text-gold font-mono">{rtmpKey}</code>
+        </div>
+      </div>
+      <p class="text-xs text-muted mt-3">Trage diese Daten in OBS → Einstellungen → Stream → Benutzerdefinierter RTMP-Server ein.</p>
+    </div>
+
+    <!-- Live preview + host controls -->
+    <StreamPlayer
+      client:load
+      livekitUrl={livekitUrl}
+      isHost={true}
+    />
+  </div>
+</AdminLayout>

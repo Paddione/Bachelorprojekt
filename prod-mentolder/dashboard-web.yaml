@@ -82,6 +82,8 @@ spec:
         app: dashboard-web
     spec:
       serviceAccountName: dashboard-web
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

@@ -1051,6 +1051,13 @@ tasks:
         if [ "{{.ENV}}" != "dev" ]; then
           task workspace:coturn:sync-secret || true
           task workspace:talk-setup ENV="{{.ENV}}"
+          # Re-pin LiveKit DNS after every prod deploy so the livekit/stream
+          # subdomains always resolve to the livekit node (nodeAffinity pin).
+          # Without pinning, round-robin DNS routes ~66 % of signalling WS
+          # connections through cross-node Traefik, causing NegotiationError.
+          if [ "{{.ENV}}" = "mentolder" ]; then
+            task livekit:dns-pin ENV="{{.ENV}}" APPLY=true || true
+          fi
         fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
       - 'echo ""'

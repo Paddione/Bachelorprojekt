@@ -1,7 +1,7 @@
 // website/src/pages/api/stream/recording.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
-import { EgressClient, EncodedFileType } from 'livekit-server-sdk';
+import { EgressClient, EncodedFileOutput, EncodedFileType } from 'livekit-server-sdk';
 
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY || 'devlivekit';
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET || 'devlivekitsecret1234567890abcdef';
@@ -21,12 +21,13 @@ export const POST: APIRoute = async ({ request }) => {
   const client = new EgressClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 
   if (action === 'start') {
-    const info = await client.startRoomCompositeEgress(ROOM_NAME, {
-      file: {
+    const info = await client.startRoomCompositeEgress(
+      ROOM_NAME,
+      new EncodedFileOutput({
         fileType: EncodedFileType.MP4,
         filepath: `/recordings/${ROOM_NAME}-${Date.now()}.mp4`,
-      },
-    });
+      }),
+    );
     return new Response(JSON.stringify({ egressId: info.egressId }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

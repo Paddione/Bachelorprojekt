@@ -319,10 +319,20 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: STREAM_DOMAIN
+            - name: LIVEKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: LIVEKIT_API_KEY
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: LIVEKIT_API_SECRET
             - name: LIVEKIT_RTMP_KEY
               valueFrom:
                 secretKeyRef:
-                  name: workspace-secrets
+                  name: website-secrets
                   key: LIVEKIT_RTMP_KEY
           ports:
             - containerPort: 4321

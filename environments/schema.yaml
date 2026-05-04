@@ -460,16 +460,25 @@ secrets:
     required: true
     generate: true
     length: 16
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: LIVEKIT_API_SECRET
     required: true
     generate: true
     length: 32
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   - name: LIVEKIT_RTMP_KEY
     required: true
     generate: true
     length: 16
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
 setup_vars:
   - name: KC_USER1_USERNAME

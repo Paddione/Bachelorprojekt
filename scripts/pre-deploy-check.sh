@@ -283,7 +283,7 @@ fi
 
 # Kustomize build dry-run (catches missing patches, bad refs)
 info "Running kustomize build dry-run on ${OVERLAY_DIR}/ ..."
-if kustomize build "${OVERLAY_DIR}/" >/dev/null 2>/tmp/kustomize-build-err; then
+if kustomize build "${OVERLAY_DIR}/" --load-restrictor=LoadRestrictionsNone >/dev/null 2>/tmp/kustomize-build-err; then
   pass "kustomize build ${OVERLAY_DIR}/ succeeded"
 else
   fail "kustomize build ${OVERLAY_DIR}/ failed:"

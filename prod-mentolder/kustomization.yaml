@@ -55,3 +55,4 @@ generatorOptions:
 
 patches:
   - path: patch-backup-config.yaml
+  - path: patch-livekit.yaml

@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getAllBillingInvoices, stripeInvoiceDashboardUrl, getDraftInvoices } from '../../lib/stripe-billing';
+import { getAllBillingInvoices, getDraftInvoices } from '../../lib/stripe-billing';
 import { listPendingDunnings, type PendingDunning } from '../../lib/invoice-dunning';
 import type { AdminBillingInvoice } from '../../lib/stripe-billing';
 import CreateInvoiceModal from '../../components/admin/CreateInvoiceModal.svelte';
@@ -38,7 +38,7 @@ if (statusFilter === 'mahnwesen') {
     invoices = await getAllBillingInvoices({ status: statusFilter || undefined, perPage: 200 });
   } catch (err) {
     console.error('[admin/rechnungen]', err);
-    apiError = 'Stripe nicht erreichbar.';
+    apiError = 'Datenbank nicht erreichbar.';
   }
 }
 
@@ -181,7 +181,6 @@ const STATUS_TABS = [
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Betrag</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Offen</th>
-              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Stripe</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">E-Rechnung</th>
               <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Drucken</th>
             </tr>
@@ -190,7 +189,7 @@ const STATUS_TABS = [
             {statusFilter === 'mahnwesen' ? (
               pendingDunnings.length === 0 ? (
                 <tr>
-                  <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine ausstehenden Mahnungen.</td>
+                  <td colspan="9" class="px-4 py-10 text-center text-muted text-sm">Keine ausstehenden Mahnungen.</td>
                 </tr>
               ) : pendingDunnings.map(d => (
                 <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
@@ -211,7 +210,6 @@ const STATUS_TABS = [
                   </td>
                   <td class="px-4 py-3 text-sm text-right text-yellow-400 font-medium">{fmtCurrency(d.outstanding)}</td>
                   <td class="px-4 py-3 text-sm text-right">—</td>
-                  <td class="px-4 py-3 text-sm text-right">—</td>
                   <td class="px-4 py-3 text-sm text-right">
                     <button
                       class="text-xs text-yellow-400 hover:underline"
@@ -231,7 +229,7 @@ const STATUS_TABS = [
             ) : (
               invoices.length === 0 ? (
                 <tr>
-                  <td colspan="10" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
+                  <td colspan="9" class="px-4 py-10 text-center text-muted text-sm">Keine Rechnungen gefunden.</td>
                 </tr>
               ) : invoices.map(inv => (
               <tr class="border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors">
@@ -252,9 +250,6 @@ const STATUS_TABS = [
                 <td class="px-4 py-3 text-sm text-light text-right font-medium">{fmtCurrency(inv.amountDue)}</td>
                 <td class={`px-4 py-3 text-sm text-right font-medium ${inv.amountRemaining > 0 ? 'text-yellow-400' : 'text-muted'}`}>
                   {inv.amountRemaining > 0 ? fmtCurrency(inv.amountRemaining) : '—'}
-                </td>
-                <td class="px-4 py-3 text-sm text-right">
-                  <a href={stripeInvoiceDashboardUrl(inv.id)} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline">Stripe ↗</a>
                 </td>
                 <td class="px-4 py-3 text-sm text-right">
                   {['draft', 'void'].includes(inv.status) ? (

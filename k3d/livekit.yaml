@@ -175,7 +175,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   rules:
-    - host: "${LIVEKIT_DOMAIN}"
+    - host: "livekit.${PROD_DOMAIN}"
       http:
         paths:
           - path: /

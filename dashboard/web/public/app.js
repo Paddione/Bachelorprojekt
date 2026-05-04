@@ -462,11 +462,181 @@ async function render() {
 }
 
 // ── Art Library ──────────────────────────────────────────────────────────
+const ART_STATE = { manifest: null, filterKind: 'all', filterTags: new Set(), q: '', selectedId: null };
+
+function injectSvg(target, svgText) {
+  while (target.firstChild) target.removeChild(target.firstChild);
+  const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  const node = doc.documentElement;
+  if (node && node.nodeName.toLowerCase() === 'svg') {
+    target.appendChild(document.importNode(node, true));
+  }
+}
+
 async function renderArt() {
-  setMain(el('div', { class: 'art-pane' }, [
-    el('h2', {}, t('tab_art')),
-    el('div', { class: 'mute' }, 'Loading…'),
-  ]));
+  if (!ART_STATE.manifest && ART_STATE.manifest !== 'missing') {
+    try {
+      const r = await fetch('/art-library/manifest.json');
+      if (!r.ok) throw new Error(String(r.status));
+      ART_STATE.manifest = await r.json();
+    } catch (_) {
+      ART_STATE.manifest = 'missing';
+    }
+  }
+
+  if (ART_STATE.manifest === 'missing') {
+    setMain(el('div', { class: 'art-pane art-empty' }, [
+      el('h2', {}, t('tab_art')),
+      el('p', { class: 'mute' }, t('art_no_assets')),
+    ]));
+    return;
+  }
+
+  const manifest = ART_STATE.manifest;
+  const kinds = ['all', 'character', 'prop', 'terrain', 'logo'];
+  const allTags = [...new Set(manifest.assets.flatMap(a => a.tags))].sort();
+
+  const filtered = manifest.assets.filter(a => {
+    if (ART_STATE.filterKind !== 'all' && a.kind !== ART_STATE.filterKind) return false;
+    if (ART_STATE.filterTags.size > 0 && !a.tags.some(tag => ART_STATE.filterTags.has(tag))) return false;
+    if (ART_STATE.q) {
+      const q = ART_STATE.q.toLowerCase();
+      if (!a.id.toLowerCase().includes(q) &&
+          !(a.name_de || '').toLowerCase().includes(q) &&
+          !(a.name_en || '').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const byKind = { character: [], prop: [], terrain: [], logo: [] };
+  for (const a of filtered) byKind[a.kind].push(a);
+
+  const kindChips = el('div', { class: 'art-kinds' },
+    kinds.map(k => el('button', {
+      class: 'art-chip' + (ART_STATE.filterKind === k ? ' active' : ''),
+      on: { click: () => { ART_STATE.filterKind = k; renderArt(); } },
+    }, t('art_kind_' + k))));
+
+  const tagChips = el('div', { class: 'art-tags' }, allTags.map(tag =>
+    el('button', {
+      class: 'art-tag' + (ART_STATE.filterTags.has(tag) ? ' active' : ''),
+      on: { click: () => {
+        if (ART_STATE.filterTags.has(tag)) ART_STATE.filterTags.delete(tag);
+        else ART_STATE.filterTags.add(tag);
+        renderArt();
+      } },
+    }, tag)));
+
+  const search = el('input', { class: 'art-search', type: 'text', placeholder: t('art_search_ph'), value: ART_STATE.q });
+  search.addEventListener('input', () => { ART_STATE.q = search.value; renderArt(); });
+
+  const sections = [];
+  for (const kind of ['character', 'prop', 'terrain', 'logo']) {
+    if (byKind[kind].length === 0) continue;
+    sections.push(
+      el('h3', { class: 'art-section' }, `${t('art_kind_' + kind)} (${byKind[kind].length})`),
+      el('div', { class: 'art-grid' }, byKind[kind].map((a, i) => buildArtCard(a, i + 1))),
+    );
+  }
+
+  if (sections.length === 0) {
+    sections.push(el('p', { class: 'mute' }, '(no matches)'));
+  }
+
+  const selected = ART_STATE.selectedId
+    ? manifest.assets.find(a => a.id === ART_STATE.selectedId)
+    : null;
+  const panel = selected ? buildArtPanel(selected) : null;
+
+  setMain(el('div', { class: 'art-pane' + (selected ? ' art-pane--with-panel' : '') }, [
+    el('div', { class: 'art-main' }, [
+      el('div', { class: 'art-toolbar' }, [search, kindChips]),
+      el('div', { class: 'art-tag-row' }, tagChips),
+      ...sections,
+    ]),
+    panel,
+  ].filter(Boolean)));
+}
+
+function primarySlot(asset) {
+  return asset.kind === 'character' ? asset.files.portrait
+       : asset.kind === 'prop'      ? asset.files.icon
+       : asset.kind === 'terrain'   ? asset.files.swatch
+       :                              asset.files.svg;
+}
+
+function buildArtCard(asset, index) {
+  const card = el('button', {
+    class: 'art-card' + (ART_STATE.selectedId === asset.id ? ' active' : ''),
+    on: { click: () => { ART_STATE.selectedId = asset.id; renderArt(); } },
+  }, [
+    el('span', { class: 'art-card-idx' }, String(index).padStart(2, '0')),
+    el('div', { class: 'art-card-art' }),
+  ]);
+  fetch('/art-library/' + primarySlot(asset))
+    .then(r => r.text())
+    .then(svg => {
+      const target = card.querySelector('.art-card-art');
+      if (target) injectSvg(target, svg);
+    })
+    .catch(() => {});
+  return card;
+}
+
+function buildArtPanel(asset) {
+  const close = el('button', { class: 'art-panel-close',
+    on: { click: () => { ART_STATE.selectedId = null; renderArt(); } } }, '×');
+
+  const primary = el('div', { class: 'art-panel-art' });
+  fetch('/art-library/' + primarySlot(asset))
+    .then(r => r.text())
+    .then(svg => injectSvg(primary, svg))
+    .catch(() => {});
+
+  const tagRow = el('div', { class: 'art-panel-tags' },
+    asset.tags.map(tg => el('span', { class: 'art-tag' }, tg)));
+
+  const palette = asset.palette
+    ? el('div', { class: 'art-panel-palette' }, Object.entries(asset.palette).map(([key, hex]) =>
+        el('button', {
+          class: 'art-palette-row',
+          on: { click: async (e) => {
+            await navigator.clipboard.writeText(hex);
+            const btn = e.currentTarget;
+            const hexSpan = btn.querySelector('.art-palette-hex');
+            const prev = hexSpan.textContent;
+            hexSpan.textContent = t('art_copied');
+            setTimeout(() => { hexSpan.textContent = prev; }, 1200);
+          } },
+        }, [
+          el('span', { class: 'art-palette-swatch', style: `background:${hex}` }),
+          el('span', { class: 'art-palette-key' }, key),
+          el('span', { class: 'art-palette-hex' }, hex),
+        ])))
+    : el('p', { class: 'mute' }, t('art_no_palette'));
+
+  const downloads = el('div', { class: 'art-panel-downloads' },
+    Object.entries(asset.files).map(([slot, rel]) =>
+      el('a', { class: 'btn', href: '/art-library/' + rel, download: rel.split('/').pop() },
+        `${t('art_download')} ${slot}.svg`)));
+
+  const displayName = state.lang === 'de'
+    ? (asset.name_de || asset.id)
+    : (asset.name_en || asset.name_de || asset.id);
+
+  return el('aside', { class: 'art-panel' }, [
+    close,
+    primary,
+    el('h3', {}, displayName),
+    el('dl', { class: 'art-panel-meta' }, [
+      el('dt', {}, t('art_id')),   el('dd', {}, asset.id),
+      el('dt', {}, t('art_kind')), el('dd', {}, t('art_kind_' + asset.kind)),
+      el('dt', {}, t('art_tags')), el('dd', {}, tagRow),
+    ]),
+    el('h4', {}, t('art_palette')),
+    palette,
+    downloads,
+  ]);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────

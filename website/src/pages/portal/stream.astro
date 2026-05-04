@@ -1,0 +1,24 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getSession, getLoginUrl } from '../../lib/auth';
+import StreamPlayer from '../../components/LiveStream/StreamPlayer.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+
+const livekitDomain = process.env.LIVEKIT_DOMAIN || 'livekit.localhost';
+const livekitUrl = `ws://${livekitDomain}`;
+---
+
+<Layout title="Livestream">
+  <section class="pt-28 pb-20 bg-dark min-h-screen">
+    <div class="max-w-6xl mx-auto px-6">
+      <h1 class="text-2xl font-bold text-light mb-6 font-serif">Livestream</h1>
+      <StreamPlayer
+        client:load
+        livekitUrl={livekitUrl}
+        isHost={false}
+      />
+    </div>
+  </section>
+</Layout>

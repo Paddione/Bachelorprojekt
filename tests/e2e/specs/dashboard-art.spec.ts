@@ -4,8 +4,8 @@
 // or these will assert redirect behaviour only.
 import { test, expect } from '@playwright/test';
 
-const URL = process.env.DASHBOARD_URL || 'https://dashboard.korczewski.de';
-const URL_MENTOLDER = process.env.DASHBOARD_URL_MENTOLDER || 'https://dashboard.mentolder.de';
+const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://dashboard.korczewski.de';
+const DASHBOARD_URL_MENTOLDER = process.env.DASHBOARD_URL_MENTOLDER || 'https://dashboard.mentolder.de';
 const COOKIE = process.env.DASHBOARD_COOKIE || '';
 
 function useAuthCookie(page: import('@playwright/test').Page) {
@@ -14,7 +14,7 @@ function useAuthCookie(page: import('@playwright/test').Page) {
   return page.context().addCookies([{
     name: name.trim(),
     value: rest.join('=').trim(),
-    domain: new URL(URL).hostname,
+    domain: new URL(DASHBOARD_URL).hostname,
     path: '/',
     secure: true,
     httpOnly: true,
@@ -23,7 +23,7 @@ function useAuthCookie(page: import('@playwright/test').Page) {
 }
 
 test('art tab button is present in the nav after login', async ({ page }) => {
-  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  await page.goto(DASHBOARD_URL, { waitUntil: 'domcontentloaded' });
   if (!COOKIE) {
     // Without auth the dashboard redirects to Keycloak — just check the redirect happens
     await expect(page).toHaveURL(/auth\.|realms\/workspace/, { timeout: 15_000 });
@@ -37,7 +37,7 @@ test('art tab button is present in the nav after login', async ({ page }) => {
 
 test('art tab is visible and renders art cards', async ({ page }) => {
   if (!COOKIE) { test.skip(); return; }
-  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  await page.goto(DASHBOARD_URL, { waitUntil: 'domcontentloaded' });
   await useAuthCookie(page);
   await page.reload();
   await page.click('button:has-text("Art Library"), button:has-text("Bibliothek")');
@@ -48,7 +48,7 @@ test('art tab is visible and renders art cards', async ({ page }) => {
 
 test('clicking a card opens the side panel with palette swatches', async ({ page }) => {
   if (!COOKIE) { test.skip(); return; }
-  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  await page.goto(DASHBOARD_URL, { waitUntil: 'domcontentloaded' });
   await useAuthCookie(page);
   await page.reload();
   await page.click('button:has-text("Art Library"), button:has-text("Bibliothek")');
@@ -61,7 +61,7 @@ test('clicking a card opens the side panel with palette swatches', async ({ page
 test('mentolder context shows empty-state (no art library)', async ({ page }) => {
   if (!COOKIE) { test.skip(); return; }
   // Use mentolder domain cookie if separate env provided
-  await page.goto(URL_MENTOLDER, { waitUntil: 'domcontentloaded' });
+  await page.goto(DASHBOARD_URL_MENTOLDER, { waitUntil: 'domcontentloaded' });
   const redirected = page.url().includes('auth.') || page.url().includes('realms/workspace');
   if (redirected) { test.skip(); return; }
   await page.click('button:has-text("Art Library"), button:has-text("Bibliothek")');

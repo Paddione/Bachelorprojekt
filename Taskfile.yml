@@ -924,7 +924,7 @@ tasks:
   workspace:validate:
     desc: Validate k3d manifests with kustomize dry-run
     cmds:
-      - kubectl kustomize k3d/ | kubectl apply --dry-run=client -f -
+      - kubectl kustomize k3d/ --load-restrictor=LoadRestrictionsNone | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
 
   workspace:preflight:
@@ -1047,7 +1047,7 @@ tasks:
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
           # Full apply (idempotent — updates configs, adds remaining services)
-          kustomize build k3d/ | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN" | kubectl apply --server-side --force-conflicts -f -
+          kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN" | kubectl apply --server-side --force-conflicts -f -
         else
           # Prod: build from overlay, apply to target cluster
           # Apply SealedSecret first so the Secret is ready when pods start
@@ -1081,7 +1081,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN \$DASHBOARD_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN"
-          kustomize build "$overlay/" \
+          kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
             | envsubst "$ENVSUBST_VARS" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
         fi

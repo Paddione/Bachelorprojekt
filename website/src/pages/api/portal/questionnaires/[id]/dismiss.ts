@@ -2,6 +2,9 @@ import type { APIRoute } from 'astro';
 import { getSession } from '../../../../../lib/auth';
 import { getCustomerByEmail } from '../../../../../lib/website-db';
 import { getQAssignment, dismissQAssignment } from '../../../../../lib/questionnaire-db';
+import { sendQuestionnaireDismissed } from '../../../../../lib/email';
+
+const ADMIN_EMAIL = process.env.CONTACT_EMAIL || process.env.FROM_EMAIL || '';
 
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -25,6 +28,16 @@ export const POST: APIRoute = async ({ request, params }) => {
   } catch { /* no body */ }
 
   await dismissQAssignment(assignment.id, reason);
+
+  if (ADMIN_EMAIL) {
+    const clientName = session.name || session.email;
+    await sendQuestionnaireDismissed({
+      adminEmail: ADMIN_EMAIL,
+      clientName,
+      questionnaireTitle: assignment.template_title,
+      reason,
+    }).catch(() => null);
+  }
 
   return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
 };

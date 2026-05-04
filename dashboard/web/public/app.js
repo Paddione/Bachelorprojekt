@@ -339,7 +339,7 @@ async function renderPods() {
 // ── Logs ───────────────────────────────────────────────────────────────────
 async function renderLogs() {
   const podInput = el('input', { type: 'text', placeholder: t('ph_pod'), style: 'min-width:24rem;' });
-  const pre = el('pre', { class: 'logs' }, t('no_logs'));
+  const pre = el('pre', { class: 'logs', data: { placeholder: 'true' } }, t('no_logs'));
 
   const fetchBtn = el('button', {
     class: 'btn',
@@ -347,16 +347,21 @@ async function renderLogs() {
       const pod = podInput.value.trim();
       if (!pod) return;
       pre.textContent = t('fetching');
+      pre.dataset.placeholder = 'true';
       try {
         pre.textContent = await api(`/api/k8s/logs?context=${state.context}&pod=${encodeURIComponent(pod)}`);
-      } catch (e) { pre.textContent = e.message; }
+        pre.dataset.placeholder = 'false';
+      } catch (e) {
+        pre.textContent = e.message;
+        pre.dataset.placeholder = 'false';
+      }
     } },
   }, t('btn_fetch'));
 
   const copyBtn = el('button', { class: 'btn' }, t('btn_copy'));
   copyBtn.addEventListener('click', () => {
+    if (pre.dataset.placeholder === 'true') return;
     const txt = pre.textContent;
-    if (txt === t('no_logs') || txt === t('fetching')) return;
     navigator.clipboard.writeText(txt).then(() => {
       copyBtn.textContent = t('btn_copied');
       setTimeout(() => { copyBtn.textContent = t('btn_copy'); }, 1500);
@@ -447,7 +452,11 @@ $('#lang-de').addEventListener('click', () => {
 
 $('#settings-btn').addEventListener('click', () => {
   state.settingsOpen = !state.settingsOpen;
-  renderSettings();
+  if (!state.settingsOpen) {
+    closeSettings();
+  } else {
+    renderSettings();
+  }
 });
 
 renderNav();

@@ -28,17 +28,27 @@ function fmtDate(d: string) {
       <p class="text-xs font-semibold text-muted uppercase tracking-widest mb-3">Ausstehend</p>
       <ul class="space-y-3">
         {pending.map(a => (
-          <li>
+          <li class="flex items-center gap-2">
             <a href={`/portal/fragebogen/${a.id}`}
-               class="flex items-center justify-between gap-4 p-4 bg-dark-light rounded-xl border border-gold/30 hover:border-gold/60 transition-colors group">
-              <div>
-                <div class="text-light font-medium group-hover:text-gold transition-colors">{a.template_title}</div>
+               class="flex-1 flex items-center justify-between gap-4 p-4 bg-dark-light rounded-xl border border-gold/30 hover:border-gold/60 transition-colors group min-w-0">
+              <div class="min-w-0">
+                <div class="text-light font-medium group-hover:text-gold transition-colors truncate">{a.template_title}</div>
                 <div class="text-xs text-muted mt-0.5">Zugewiesen am {fmtDate(a.assigned_at)}</div>
               </div>
               <span class={`text-xs px-2 py-0.5 rounded-full shrink-0 ${a.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'}`}>
                 {a.status === 'in_progress' ? 'In Bearbeitung' : 'Ausstehend'}
               </span>
             </a>
+            <button
+              data-dismiss-id={a.id}
+              title="Fragebogen ablehnen"
+              class="dismiss-btn shrink-0 p-2 rounded-lg text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer border border-transparent hover:border-red-500/20"
+              aria-label="Fragebogen ablehnen"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+              </svg>
+            </button>
           </li>
         ))}
       </ul>
@@ -87,3 +97,32 @@ function fmtDate(d: string) {
     </div>
   )}
 </div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.dismiss-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.dismissId;
+      if (!id) return;
+      const reason = window.prompt('Grund für die Ablehnung (optional):') ?? null;
+      if (reason === null) return; // cancelled
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/portal/questionnaires/${id}/dismiss`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        });
+        if (r.ok) {
+          window.location.reload();
+        } else {
+          const d = await r.json().catch(() => ({})) as { error?: string };
+          alert(d.error ?? 'Fehler beim Ablehnen.');
+          btn.disabled = false;
+        }
+      } catch {
+        alert('Netzwerkfehler.');
+        btn.disabled = false;
+      }
+    });
+  });
+</script>

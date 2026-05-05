@@ -1,0 +1,12 @@
+{
+  "pr_number": 530,
+  "title": "inline sRGB ICC so PDF/A-3 invoices render in prod",
+  "description": "## Summary\n\n`pdf-a3-embed.ts` was reading `website/src/assets/sRGB.icc` at runtime via `readFileSync(fileURLToPath(import.meta.url) + '..')`. Vite/Astro does not track `readFileSync()`-based asset loads, so the file was **never copied into `website/dist/`**. The first invoice render in the deployed pod would have crashed with `ENOENT '../assets/sRGB.icc'`, blowing up the OutputIntent that PDF/A-3 (and Factur-X / XRechnung e-invoicing) requires.\n\n## Fix\n\n- `website/src/lib/srgb-icc.ts`: 3 KB profile inlined as a base64 constant; `Uint8Array` exported. Bundler keeps it, no FS at runtime.\n- `website/src/lib/pdf-a3-embed.ts`: imports `SRGB_ICC` directly; drops the `node:fs` / `node:url` / `node:path` imports that existed only for this read.\n- `scripts/build-srgb-icc.mjs`: regenerates `srgb-icc.ts` from the canonical `.icc` (run after replacing the profile binary).\n\n`website/src/assets/sRGB.icc` remains as source-of-truth for regeneration; the embedded SHA-256 in the generated `.ts` documents which build of the profile is shipped.\n\n## Verification\n\n- `npx tsc --noEmit` clean.\n- `npm run build` succeeds; `dist/server/chunks/invoice-pdf_*.mjs` grew from 7 KB → 30 KB and now contains `SRGB_ICC_BASE64` literal — no more reference to a missing asset path.\n\n## Test plan\n\n- [ ] `task feature:website` (deploy to mentolder + korczewski).\n- [ ] Render an invoice on each cluster and confirm the OutputIntent survives (no 5xx, downloaded PDF passes a Factur-X validator).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "billing",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T22:05:18Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -1,0 +1,12 @@
+{
+  "pr_number": 493,
+  "title": "Kore homepage + PR-driven project timeline",
+  "description": "## Summary\n\n- **Kore homepage live at `web.korczewski.de`** — replaces the shared mentolder layout with a distinct Kore design-system page (KoreSubNav, KoreHero with live cluster ticker, KorePillars ×4, KoreTimeline, KoreBugs, KoreTeam, KoreContact, KoreFooter). Mentolder homepage unchanged.\n- **PR-driven project timeline** — every merged PR triggers a GitHub Action that writes `tracking/pending/<pr>.json`; a 5-min CronJob drains it into `bachelorprojekt.features` (449 historical PRs backfilled). Live paginated feed via `/api/timeline`.\n- **Schema** — `bachelorprojekt.features` + `v_timeline` view (tracking-DB); `bugs.bug_tickets.fixed_in_pr` + `fixed_at` (website-DB). Applied to live cluster.\n\n## Key decisions\n\n- `index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` — zero impact on mentolder build.\n- `/api/cluster/status` returns live node/pod/brand counts (25 s cache) with a static fallback; live wiring to dashboard is a Phase 5 follow-up.\n- `TRACKING_DB_URL` added to both SealedSecrets (mentolder + korczewski) so the CronJob connects to shared-db from within the cluster.\n\n## Test Plan\n\n- [x] 7/7 unit tests (`node --test scripts/track-pr.test.mjs`) pass\n- [x] `tsc --noEmit` clean (no new errors)\n- [x] `BRAND_ID=korczewski` build succeeds; `BRAND_ID=mentolder` build succeeds\n- [x] `https://web.korczewski.de/` → 200, title \"Kore. — Self-hosted, vor Ihren Augen.\"\n- [x] `https://web.mentolder.de/` → 200, 0 `.w-hero` occurrences (mentolder untouched)\n- [x] `bachelorprojekt.v_timeline` returns 449 rows on live cluster\n- [ ] Playwright spec: `KORCZEWSKI_URL=https://web.korczewski.de/ npx playwright test tests/e2e/specs/korczewski-home.spec.ts`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "korczewski",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-05T05:21:41Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

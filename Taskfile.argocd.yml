@@ -112,8 +112,6 @@ tasks:
     preconditions:
       - sh: command -v argocd > /dev/null 2>&1
         msg: "argocd CLI not found. Run 'task argocd:login' first."
-      - sh: kubectl --context korczewski cluster-info > /dev/null 2>&1
-        msg: "korczewski context not reachable."
     cmds:
       # ── Hetzner (in-cluster — ArgoCD manages its own cluster) ──
       - |
@@ -131,8 +129,11 @@ tasks:
         if [ -n "$HETZNER_SECRET" ]; then
           kubectl --context mentolder patch secret "$HETZNER_SECRET" -n argocd --type=json -p="[
             {\"op\":\"add\",\"path\":\"/metadata/labels/workspace\",\"value\":\"true\"},
+            {\"op\":\"add\",\"path\":\"/metadata/labels/workspace-office\",\"value\":\"true\"},
+            {\"op\":\"add\",\"path\":\"/metadata/labels/workspace-coturn\",\"value\":\"true\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations\",\"value\":{}},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-overlay\",\"value\":\"prod-mentolder\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-namespace\",\"value\":\"workspace\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-domain\",\"value\":\"${PROD_DOMAIN}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-brand\",\"value\":\"${BRAND_NAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
@@ -147,15 +148,19 @@ tasks:
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-username\",\"value\":\"${KC_USER2_USERNAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-email\",\"value\":\"${KC_USER2_EMAIL}\"}
           ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
-          echo "  ✓ hetzner registered and annotated"
+          echo "  ✓ hetzner registered and annotated (workspace-office + workspace-coturn labels set)"
         else
           echo "  ✗ Could not find hetzner cluster Secret — register manually"
         fi
-      # ── Korczewski (external spoke cluster) ──
+      # ── Korczewski (now co-hosted in the unified mentolder cluster at pk-hetzner's external IP) ──
+      # The korczewski cluster was disbanded and all nodes merged into the mentolder cluster.
+      # korczewski workloads deploy to workspace-korczewski namespace on the same physical cluster,
+      # accessed via pk-hetzner's public API endpoint (62.238.9.39:6443).
+      # Credentials: argocd-korczewski ServiceAccount in kube-system (cluster-admin).
+      # No workspace-office / workspace-coturn labels — korczewski shares mentolder's Collabora + coturn.
       - |
         source scripts/env-resolve.sh "korczewski"
-        echo "Registering k3s-production (korczewski spoke)..."
-        argocd cluster add k3s-production --yes --name korczewski 2>/dev/null || true
+        echo "Annotating korczewski cluster secret (uses mentolder cluster at pk-hetzner:6443)..."
         KORCZ_SECRET=$(kubectl --context mentolder get secret -n argocd \
           -l argocd.argoproj.io/secret-type=cluster \
           --no-headers 2>/dev/null | grep "korczewski" | awk '{print $1}' | head -1)
@@ -164,6 +169,7 @@ tasks:
             {\"op\":\"add\",\"path\":\"/metadata/labels/workspace\",\"value\":\"true\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations\",\"value\":{}},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-overlay\",\"value\":\"prod-korczewski\"},
+            {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-namespace\",\"value\":\"workspace-korczewski\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-domain\",\"value\":\"${PROD_DOMAIN}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-brand\",\"value\":\"${BRAND_NAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-email\",\"value\":\"${CONTACT_EMAIL}\"},
@@ -178,9 +184,11 @@ tasks:
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-username\",\"value\":\"${KC_USER2_USERNAME}\"},
             {\"op\":\"add\",\"path\":\"/metadata/annotations/workspace-kc-user2-email\",\"value\":\"${KC_USER2_EMAIL}\"}
           ]" 2>/dev/null || echo "  (patch skipped — annotations may already exist)"
-          echo "  ✓ korczewski registered and annotated"
+          echo "  ✓ korczewski annotated (namespace=workspace-korczewski, no office/coturn labels)"
         else
-          echo "  ✗ Could not find korczewski cluster Secret — register manually"
+          echo "  ✗ Could not find korczewski cluster Secret — create it manually"
+          echo "  Hint: the korczewski cluster is the mentolder cluster at https://62.238.9.39:6443"
+          echo "  SA token: kubectl get secret argocd-korczewski-token -n kube-system -o jsonpath='{.data.token}' | base64 -d"
         fi
       - |
         echo ""

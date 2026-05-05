@@ -336,7 +336,10 @@ tasks:
       ENV: '{{.ENV | default "dev"}}'
     deps: [workspace:transcriber-build]
     cmds:
-      - bash scripts/transcriber-setup.sh
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        export KUBE_CONTEXT="${ENV_CONTEXT:-}"
+        bash scripts/transcriber-setup.sh
       - 'echo ""'
       - 'echo "  Next → task workspace:vaultwarden:seed  (optional — seeds production secret templates)"'
 
@@ -669,13 +672,23 @@ tasks:
 
   workspace:logs:
     desc: "Tail logs for a workspace service (usage: task workspace:logs -- <service>)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl logs -n workspace deploy/{{.CLI_ARGS}} -f --tail=50
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        kubectl $CTX logs -n workspace deploy/{{.CLI_ARGS}} -f --tail=50
 
   workspace:psql:
     desc: 'Open psql shell to shared-db (usage: task workspace:psql -- <dbname>, default: postgres)'
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl exec -it -n workspace deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        kubectl $CTX exec -it -n workspace deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
 
   tracking:psql:
     desc: 'Open psql shell with bachelorprojekt search_path (requirements tracking DB)'
@@ -684,9 +697,14 @@ tasks:
 
   workspace:port-forward:
     desc: 'Forward shared-db to localhost:5432'
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
       - 'echo "Connect: psql -h localhost -p 5432 -U postgres"'
-      - kubectl port-forward -n workspace svc/shared-db 5432:5432
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        kubectl $CTX port-forward -n workspace svc/shared-db 5432:5432
 
   workspace:backup:
     desc: "Trigger an immediate database backup (usage: task workspace:backup [-- --context <ctx>])"
@@ -1322,48 +1340,66 @@ tasks:
 
   mcp:status:
     desc: Show status of all Claude Code MCP pods and containers
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
-      - 'echo "=== MCP Pods ==="'
-      - kubectl get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o wide
-      - 'echo ""'
-      - 'echo "=== Container Status (per pod) ==="'
       - |
-        for pod in $(kubectl get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o name 2>/dev/null); do
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        echo "=== MCP Pods ==="
+        kubectl $CTX get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o wide
+        echo ""
+        echo "=== Container Status (per pod) ==="
+        for pod in $(kubectl $CTX get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o name 2>/dev/null); do
           echo "  $pod:"
-          kubectl get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}'
+          kubectl $CTX get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}'
         done
-      - 'echo ""'
-      - 'echo "=== MCP Endpoints ==="'
-      - kubectl get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
+        echo ""
+        echo "=== MCP Endpoints ==="
+        kubectl $CTX get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
 
   mcp:logs:
     desc: "Tail logs for a container in the MCP monolith (usage: task mcp:logs -- <container>, e.g. postgres|browser|github|keycloak|kubernetes)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
         CONTAINER="{{.CLI_ARGS}}"
         if [ -z "$CONTAINER" ]; then
-          kubectl logs deployment/claude-code-mcp-monolith -f --tail=50 --all-containers
+          kubectl $CTX logs deployment/claude-code-mcp-monolith -f --tail=50 --all-containers
         else
-          kubectl logs deployment/claude-code-mcp-monolith -c "$CONTAINER" -f --tail=50
+          kubectl $CTX logs deployment/claude-code-mcp-monolith -c "$CONTAINER" -f --tail=50
         fi
 
   mcp:restart:
     desc: "Restart the MCP monolith pod"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
-      - kubectl rollout restart deployment/claude-code-mcp-monolith
-      - kubectl rollout status deployment/claude-code-mcp-monolith --timeout=120s
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        kubectl $CTX rollout restart deployment/claude-code-mcp-monolith
+        kubectl $CTX rollout status deployment/claude-code-mcp-monolith --timeout=120s
 
   mcp:set-github-pat:
-    desc: Update GITHUB_PAT in claude-code-secrets (default namespace)
+    desc: Update GITHUB_PAT in claude-code-secrets
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
         if [ -z "{{.CLI_ARGS}}" ]; then
           echo "Usage: task mcp:set-github-pat -- ghp_yourtoken"
           exit 1
         fi
-      - kubectl patch secret claude-code-secrets --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
-      - kubectl rollout restart deployment/claude-code-mcp-monolith
-      - 'echo "✓ GitHub PAT updated and claude-code-mcp-monolith restarted"'
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        kubectl $CTX patch secret claude-code-secrets --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
+        kubectl $CTX rollout restart deployment/claude-code-mcp-monolith
+        echo "✓ GitHub PAT updated and claude-code-mcp-monolith restarted"
 
   # ─────────────────────────────────────────────
   # Claude Code Setup
@@ -2369,17 +2405,17 @@ tasks:
     desc: Test HTTPS reachability of all workspace services
     ignore_error: true
     cmds:
-      - bash scripts/check-connectivity.sh
+      - bash scripts/check-connectivity.sh {{.ENV | default "dev"}}
 
   workspace:check-updates:
     desc: Compare running container images against registry for available updates
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - bash scripts/check-updates.sh
-
-  workspace:create-guest:
-    desc: "Create a customer guest account in Keycloak (FA-11)"
-    cmds:
-      - echo "Script removed — Mattermost no longer used. Create users directly in Keycloak."
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        export KUBE_CONTEXT="${ENV_CONTEXT:-}"
+        bash scripts/check-updates.sh
 
   workspace:import-users:
     desc: Import users from CSV or LDIF into Keycloak

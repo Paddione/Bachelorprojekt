@@ -161,10 +161,10 @@ spec:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: kubernetes.io/hostname
-                    operator: NotIn
+                    operator: In
                     values:
-                      - pk-hetzner
-                      - gekko-hetzner-4
+                      - gekko-hetzner-2
+                      - gekko-hetzner-3
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest

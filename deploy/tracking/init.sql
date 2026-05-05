@@ -87,6 +87,21 @@ CREATE INDEX IF NOT EXISTS idx_features_merged_at ON bachelorprojekt.features (m
 CREATE INDEX IF NOT EXISTS idx_features_category  ON bachelorprojekt.features (category);
 CREATE INDEX IF NOT EXISTS idx_features_brand     ON bachelorprojekt.features (brand);
 
+-- Self-heal pre-existing tables that predate the UNIQUE constraint on pr_number.
+-- Without this, ON CONFLICT (pr_number) in the ingest script fails with
+-- "no unique or exclusion constraint matching the ON CONFLICT specification".
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'features_pr_number_key'
+      AND conrelid = 'bachelorprojekt.features'::regclass
+  ) THEN
+    ALTER TABLE bachelorprojekt.features
+      ADD CONSTRAINT features_pr_number_key UNIQUE (pr_number);
+  END IF;
+END $$;
+
 -- Public-facing project timeline view (no cross-DB join — bugs_fixed computed in API layer)
 CREATE OR REPLACE VIEW bachelorprojekt.v_timeline AS
 SELECT

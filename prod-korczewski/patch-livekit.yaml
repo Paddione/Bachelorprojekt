@@ -1,11 +1,9 @@
-# Pin all livekit-* Deployments to k3s-3.
+# Pin all livekit-* Deployments to gekko-hetzner-4 (178.104.159.79).
 #
-# livekit-server uses hostNetwork: true with the pinned public IP
-# 192.168.100.4 (k3s-3 wg0). livekit-redis is co-located so livekit-server
-# reaches it on the same node (intra-node pod traffic works fine across
-# the CNI partition). livekit-egress / livekit-ingress connect to redis
-# via ClusterIP — they must also live on k3s-3, otherwise the Hetzner →
-# home-worker pod-network path (broken) takes them down.
+# livekit-server uses hostNetwork: true; on a Hetzner node STUN discovers
+# the real public IP. All four components are co-located so livekit-egress /
+# livekit-ingress reach livekit-server and livekit-redis via normal DNS
+# (CoreDNS is reachable from Hetzner nodes).
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -23,22 +21,7 @@ spec:
                   - key: kubernetes.io/hostname
                     operator: In
                     values:
-                      - k3s-3
-      # k3s-3 is a home worker: CoreDNS ClusterIP (10.43.0.10) is unreachable
-      # due to the Flannel/WireGuard CNI partition. livekit-server uses
-      # hostNetwork and calls STUN (stun1.l.google.com) at startup to detect
-      # its external IP — that lookup goes to CoreDNS and times out.
-      # Override to public DNS so the STUN lookup succeeds.
-      # livekit-redis is a ClusterIP → kube-proxy on k3s-3 DNATs it to the
-      # local pod, so the alias still works without CoreDNS.
-      dnsPolicy: "None"
-      dnsConfig:
-        nameservers:
-          - "8.8.8.8"
-          - "8.8.4.4"
-      hostAliases:
-        - ip: 10.43.167.113   # livekit-redis ClusterIP → pod on k3s-3
-          hostnames: [livekit-redis]
+                      - gekko-hetzner-4
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -56,7 +39,7 @@ spec:
                   - key: kubernetes.io/hostname
                     operator: In
                     values:
-                      - k3s-3
+                      - gekko-hetzner-4
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -74,15 +57,7 @@ spec:
                   - key: kubernetes.io/hostname
                     operator: In
                     values:
-                      - k3s-3
-      # CoreDNS lives on Hetzner; the WireGuard/Flannel double-hop is broken
-      # so DNS lookups from k3s-3 pods time out. Pin the only two hostnames
-      # egress dials to addresses kube-proxy can DNAT locally on k3s-3.
-      hostAliases:
-        - ip: 10.43.167.113   # livekit-redis ClusterIP -> backed by pod on k3s-3
-          hostnames: [livekit-redis]
-        - ip: 192.168.100.4   # livekit-server hostNetwork on k3s-3 wg0
-          hostnames: [livekit-server]
+                      - gekko-hetzner-4
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -100,9 +75,4 @@ spec:
                   - key: kubernetes.io/hostname
                     operator: In
                     values:
-                      - k3s-3
-      hostAliases:
-        - ip: 10.43.167.113
-          hostnames: [livekit-redis]
-        - ip: 192.168.100.4
-          hostnames: [livekit-server]
+                      - gekko-hetzner-4

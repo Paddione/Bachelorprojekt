@@ -33,9 +33,10 @@ let trackingPool: import('pg').Pool | null = null;
 function getTrackingPool(): import('pg').Pool {
   if (trackingPool) return trackingPool;
   const url = process.env.TRACKING_DB_URL
+    || process.env.SESSIONS_DATABASE_URL
     || process.env.DATABASE_URL?.replace(/\/[^/?]+(\?|$)/, '/postgres$1');
   if (!url) throw new Error('TRACKING_DB_URL not set');
-  trackingPool = new Pool({ connectionString: url, max: 4 } as import('pg').PoolConfig);
+  trackingPool = new Pool({ connectionString: url, lookup: nodeLookup, max: 4 } as unknown as import('pg').PoolConfig);
   return trackingPool;
 }
 

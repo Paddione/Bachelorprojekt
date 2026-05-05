@@ -326,6 +326,33 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats --formatter tap tests/unit/
 
+  test:e2e:
+    desc: "Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)"
+    dir: tests/e2e
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "test:e2e requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  WEBSITE_URL=https://web.mentolder.de  PROD_DOMAIN=mentolder.de ;;
+          korczewski) WEBSITE_URL=https://web.korczewski.de PROD_DOMAIN=korczewski.de ;;
+        esac
+        export WEBSITE_URL PROD_DOMAIN
+        [ -d node_modules ] || npm ci
+        npx playwright install chromium webkit >/dev/null 2>&1 || true
+        npx playwright test {{.CLI_ARGS}}
+
+  test:e2e:all-prods:
+    desc: "Run Playwright e2e suite against mentolder + korczewski"
+    cmds:
+      - task: test:e2e
+        vars: { ENV: "mentolder" }
+      - task: test:e2e
+        vars: { ENV: "korczewski" }
+
   # ─────────────────────────────────────────────
   # Quick Start
   # ─────────────────────────────────────────────

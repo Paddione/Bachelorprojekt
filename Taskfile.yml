@@ -127,11 +127,6 @@ tasks:
       - npm install
       - PORT=3001 NO_AUTH=true node server.js
 
-  dashboard:bootstrap-korczewski:
-    desc: "One-shot: provision read-only SA on korczewski + seal kubeconfig into mentolder secrets"
-    cmds:
-      - bash scripts/dashboard-bootstrap-korczewski.sh
-
   # ─────────────────────────────────────────────
   # Cluster Lifecycle
   # ─────────────────────────────────────────────
@@ -973,33 +968,6 @@ tasks:
         kubectl $CTX rollout restart deployment/{{.CLI_ARGS}} -n "$NS"
         kubectl $CTX rollout status deployment/{{.CLI_ARGS}} -n "$NS" --timeout=120s
 
-  # NOTE: per-env shorthand tasks (korczewski:status / mentolder:logs / etc.)
-  # were dropped 2026-05-05 in favour of the ENV-parametrised versions:
-  #   task workspace:status  ENV=korczewski
-  #   task workspace:logs    ENV=mentolder -- nextcloud
-  #   task workspace:restart ENV=korczewski -- brett
-  # `korczewski:traefik:apply` and `korczewski:enroll-ha` survive because they
-  # run truly korczewski-specific bootstraps that don't generalise.
-
-  korczewski:traefik:apply:
-    desc: Apply (or re-apply) the Traefik ingress controller on korczewski (run once on bootstrap or after manifest changes)
-    cmds:
-      - |
-        # Remove finalizer from the stuck old Helm LoadBalancer service if still present
-        if kubectl --context korczewski get svc traefik -n kube-system -o jsonpath='{.metadata.finalizers}' 2>/dev/null | grep -q load-balancer-cleanup; then
-          echo "Removing stuck finalizer from old traefik LoadBalancer service..."
-          kubectl --context korczewski patch svc traefik -n kube-system -p '{"metadata":{"finalizers":[]}}' --type=merge
-        fi
-      - kubectl --context korczewski delete svc traefik-svc -n kube-system --ignore-not-found
-      - kubectl --context korczewski apply -f prod-korczewski/traefik.yaml
-      - kubectl --context korczewski rollout status deployment/traefik-manual -n kube-system --timeout=60s
-
-  # mentolder:status / mentolder:logs / mentolder:restart removed 2026-05-05.
-  # Use the ENV-parametrised tasks instead:
-  #   task workspace:status  ENV=mentolder
-  #   task workspace:logs    ENV=mentolder -- nextcloud
-  #   task workspace:restart ENV=mentolder -- nextcloud
-
   # ─────────────────────────────────────────────
   # Multi-Cluster Overview
   # ─────────────────────────────────────────────
@@ -1032,11 +1000,6 @@ tasks:
     desc: Bootstrap 3-node k3s HA cluster on Hetzner (run once)
     cmds:
       - ./scripts/setup-ha-cluster.sh
-
-  korczewski:enroll-ha:
-    desc: Convert korczewski to 3-node HA control-plane (pk-hetzner-2 + pk-hetzner-3)
-    cmds:
-      - ./scripts/enroll-korczewski-ha.sh
 
   ha:import-image:
     desc: "Build a local Docker image and import to all HA nodes (usage: task ha:import-image -- <path> <image:tag>)"
@@ -2366,32 +2329,6 @@ tasks:
   # ─────────────────────────────────────────────
   # Autonomous Browser Agent (Local LLM Reasoning)
   # ─────────────────────────────────────────────
-  browser-agent:init:
-    desc: Initialize local LLM for browser reasoning (GPT-OSS 20B)
-    cmds:
-      - docker exec -it ollama-gpu ollama pull mistral  # Using mistral as proxy for GPT-OSS 20B in demo
-      - echo "✓ LLM model pulled"
-
-  browser-agent:connect:
-    desc: Connect k3d cluster to local LLM and browser agent tools
-    cmds:
-      - |
-        LLM_IP=$(docker inspect ollama-gpu -f '{{ "{{" }}(index .NetworkSettings.Networks "k3d-dev").IPAddress{{ "}}" }}' 2>/dev/null)
-        if [ -z "$LLM_IP" ]; then
-          echo "ERROR: ollama-gpu not connected to k3d-dev network. Is it running?"
-          exit 1
-        fi
-        sed "s/__HOST_IP__/$LLM_IP/g" k3d/llm-gpu.yaml | kubectl apply -n workspace -f -
-      - kubectl apply -n workspace -f k3d/claude-code-mcp-browser.yaml
-      - echo "✓ Browser agent connectivity established"
-
-  browser-agent:status:
-    desc: Check status of browser agent components
-    cmds:
-      - kubectl get pods -n workspace -l app=mcp-browser
-      - docker exec -it ollama-gpu ollama list
-      - 'curl -sf http://localhost:11435/api/tags > /dev/null && echo "LLM Gateway: OK" || echo "LLM Gateway: DOWN"'
-
   # ─────────────────────────────────────────────
   # GPU Worker (External Whisper with NVIDIA CUDA)
   # ─────────────────────────────────────────────

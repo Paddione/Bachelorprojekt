@@ -241,6 +241,76 @@ export const mentolderConfig: BrandConfig = {
         faq: [],
       },
     },
+    {
+      slug: 'ki-transition',
+      title: 'KI-Transition Coaching',
+      description: 'Orientierung im digitalen Wandel. Für IT-Fachkräfte, Führungskräfte und Unternehmen, die sich neu ausrichten wollen, wenn KI Berufsbilder verändert.',
+      icon: '🤖',
+      features: [
+        'Standortbestimmung & Kompetenz-Analyse',
+        'Strukturierter Unlearning-Prozess',
+        'Neuorientierung & Strategie für die KI-Zukunft',
+        'Team-Workshops & Change-Begleitung',
+      ],
+      price: 'Ab 150 € / Session',
+      stripeServiceKey: 'coaching-session',
+      pageContent: {
+        headline: 'Wenn das Vertraute geht – und das Neue wartet.',
+        intro: 'Mehr Software entsteht durch KI. Weniger durch Menschen. Das verändert Berufsbilder schneller als je zuvor – in der IT, im Management, in der Verwaltung. Ich begleite Sie und Ihr Team beim bewussten Loslassen und beim mutigen Schritt in die neue Arbeitswelt.',
+        forWhom: [
+          'Sie in der IT arbeiten und merken, dass KI Ihre bisherigen Aufgaben übernimmt',
+          'Sie als Führungskraft Ihr Team durch den KI-Wandel führen möchten',
+          'Sie sich neu orientieren und nicht wissen, wo Sie anfangen sollen',
+          'Ihr Unternehmen KI einführen will, aber die Mitarbeiter noch nicht mitgehen',
+          'Sie Altes loslassen möchten, aber nicht wissen, wie',
+          'Sie eine klare Strategie für Ihre persönliche oder unternehmerische KI-Zukunft suchen',
+        ],
+        sections: [
+          {
+            title: 'Standortbestimmung',
+            items: [
+              'Analyse Ihrer aktuellen Fähigkeiten & Rolle',
+              'Welche Kompetenzen bleiben wertvoll?',
+              'Wo liegen blinde Flecken?',
+              'Persönliche KI-Readiness einschätzen',
+            ],
+          },
+          {
+            title: 'Unlearning-Prozess',
+            items: [
+              'Alte Denk- und Arbeitsmuster erkennen',
+              'Bewusst loslassen – strukturiert & begleitet',
+              'Psychologische Widerstände verstehen',
+              'Raum schaffen für Neues',
+            ],
+          },
+          {
+            title: 'Neuorientierung & Strategie',
+            items: [
+              'Neue Rollen & Kompetenzfelder identifizieren',
+              'Persönliche Lernstrategie entwickeln',
+              'KI als Werkzeug – nicht als Bedrohung',
+              'Konkrete nächste Schritte definieren',
+            ],
+          },
+          {
+            title: 'Für Unternehmen',
+            items: [
+              'Team-Workshops: KI-Readiness',
+              'Change-Begleitung im Transformationsprozess',
+              'Führungskräfte-Sparring zum Thema KI',
+              'Nachhaltige Lernkultur aufbauen',
+            ],
+          },
+        ],
+        pricing: [
+          { label: 'Einzelsession (90 Min.)', price: '150 €', unit: 'pro Session' },
+          { label: 'Paket 6 Sessions', price: '800 €', unit: 'statt 900 €', highlight: true },
+          { label: 'Unternehmen & Teams', price: 'auf Anfrage', unit: 'ab 5 Personen möglich' },
+        ],
+        faq: [],
+      },
+    },
   ],
   leistungen: [
     {

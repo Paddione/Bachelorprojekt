@@ -9,15 +9,17 @@
   let { livekitUrl, isHost = false, publishMode = 'view' }
     : { livekitUrl: string; isHost?: boolean; publishMode?: 'view' | 'browser' } = $props();
 
-  // 'idle' = waiting for user gesture before connecting (Chrome's autoplay
-  // policy blocks the AudioContext that Room.connect() creates internally
-  // unless the call originates from a click/tap).
   type State = 'idle' | 'loading' | 'offline' | 'live' | 'error';
   let state = $state<State>('idle');
   let errorMsg = $state('');
   let room = $state<Room | null>(null);
-  let videoEl: HTMLVideoElement;
-  let previewEl: HTMLVideoElement;
+
+  // Admin local preview elements
+  let localScreenEl: HTMLVideoElement;
+  let localCamEl: HTMLVideoElement;
+  // Viewer remote track elements
+  let remoteScreenEl: HTMLVideoElement;
+  let remoteCamEl: HTMLVideoElement;
 
   let camOn = $state(false);
   let micOn = $state(false);
@@ -25,13 +27,27 @@
   let publishBusy = $state(false);
   let publishError = $state('');
   let endingStream = $state(false);
-  // Number of *other* participants currently publishing video (Ingress / another host).
-  // Used to block the host from starting a competing stream.
   let remoteVideoPublishers = $state(0);
+  let hasRemoteScreen = $state(false);
+  let hasRemoteCam = $state(false);
+
+  // Resolution selector — applies the next time a track is enabled
+  type Resolution = '480' | '720' | '1080';
+  let resolution = $state<Resolution>('720');
+  const RESOLUTIONS: Record<Resolution, { width: number; height: number; frameRate: number }> = {
+    '480':  { width: 854,  height: 480,  frameRate: 30 },
+    '720':  { width: 1280, height: 720,  frameRate: 30 },
+    '1080': { width: 1920, height: 1080, frameRate: 30 },
+  };
 
   const showPublishUI = $derived(isHost && publishMode === 'browser');
   const otherStreamActive = $derived(remoteVideoPublishers > 0);
   const publishLocked = $derived(otherStreamActive && !camOn && !screenOn && !micOn);
+
+  // Viewer PiP: cam is small only when screen share is also active
+  const viewerCamIsPip = $derived(hasRemoteScreen && hasRemoteCam);
+  // Admin PiP: cam is small only when screen share is also active
+  const adminCamIsPip = $derived(screenOn && camOn);
 
   function recountRemoteVideo(r: Room) {
     let count = 0;
@@ -59,9 +75,9 @@
     if (publishLocked) return;
     await withBusy(async () => {
       const next = !camOn;
-      await room!.localParticipant.setCameraEnabled(next);
+      await room!.localParticipant.setCameraEnabled(next, next ? { resolution: RESOLUTIONS[resolution] } : undefined);
       camOn = next;
-      attachLocalCamera();
+      attachLocalTracks();
     });
   }
 
@@ -78,8 +94,9 @@
     if (publishLocked) return;
     await withBusy(async () => {
       const next = !screenOn;
-      await room!.localParticipant.setScreenShareEnabled(next);
+      await room!.localParticipant.setScreenShareEnabled(next, next ? { resolution: RESOLUTIONS[resolution] } : undefined);
       screenOn = next;
+      attachLocalTracks();
     });
   }
 
@@ -93,9 +110,6 @@
         publishError = 'Stream beenden fehlgeschlagen.';
         return;
       }
-      // Server has removed publishers; LiveKit will fire ParticipantDisconnected
-      // events that recountRemoteVideo() handles. As a belt-and-suspenders measure,
-      // recount immediately so the UI unlocks even if events are slow.
       if (room) recountRemoteVideo(room);
     } catch (e) {
       publishError = (e as Error).message ?? String(e);
@@ -104,15 +118,21 @@
     }
   }
 
-  function attachLocalCamera() {
-    if (!room || !previewEl) return;
-    const pub = room.localParticipant.getTrackPublication(Track.Source.Camera);
-    const track = pub?.videoTrack;
-    if (track) {
-      track.attach(previewEl);
-      state = 'live';
-    } else {
-      previewEl.srcObject = null;
+  function attachLocalTracks() {
+    if (!room) return;
+    const screenPub = room.localParticipant.getTrackPublication(Track.Source.ScreenShare);
+    const screenTrack = screenPub?.videoTrack;
+    if (screenTrack && localScreenEl) {
+      screenTrack.attach(localScreenEl);
+    } else if (localScreenEl) {
+      localScreenEl.srcObject = null;
+    }
+    const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+    const camTrack = camPub?.videoTrack;
+    if (camTrack && localCamEl) {
+      camTrack.attach(localCamEl);
+    } else if (localCamEl) {
+      localCamEl.srcObject = null;
     }
   }
 
@@ -129,14 +149,22 @@
 
       const r = new Room();
       r.on(RoomEvent.TrackSubscribed, (track) => {
-        if (track.kind === Track.Kind.Video && videoEl) {
-          track.attach(videoEl);
+        if (track.kind === Track.Kind.Video) {
+          if (track.source === Track.Source.ScreenShare && remoteScreenEl) {
+            track.attach(remoteScreenEl);
+            if (mounted) hasRemoteScreen = true;
+          } else if (track.source === Track.Source.Camera && remoteCamEl) {
+            track.attach(remoteCamEl);
+            if (mounted) hasRemoteCam = true;
+          }
           if (mounted) state = 'live';
         }
         if (mounted) recountRemoteVideo(r);
       });
       r.on(RoomEvent.TrackUnsubscribed, (track) => {
         track.detach();
+        if (track.source === Track.Source.ScreenShare && mounted) hasRemoteScreen = false;
+        if (track.source === Track.Source.Camera && mounted) hasRemoteCam = false;
         if (mounted) recountRemoteVideo(r);
       });
       r.on(RoomEvent.ParticipantDisconnected, () => {
@@ -156,7 +184,6 @@
       if (mounted) {
         room = r;
         recountRemoteVideo(r);
-        // Host in browser-publish mode needs the control bar before any tracks exist.
         if (isHost && publishMode === 'browser') {
           state = 'live';
         } else {
@@ -210,30 +237,61 @@
   <div class="grid grid-cols-[1fr_300px] h-[560px] bg-dark rounded-xl overflow-hidden border border-dark-lighter">
     <!-- Video + controls -->
     <div class="flex flex-col bg-black">
-      <div class="relative flex-1">
-        <!-- svelte-ignore a11y_media_has_caption -->
-        <video
-          bind:this={videoEl}
-          autoplay
-          playsinline
-          class="w-full h-full object-contain"
-          class:hidden={showPublishUI && camOn}
-        ></video>
+      <div class="relative flex-1 overflow-hidden">
+
         {#if showPublishUI}
+          <!-- Admin local preview — screen share fills background -->
           <!-- svelte-ignore a11y_media_has_caption -->
           <video
-            bind:this={previewEl}
-            autoplay
-            playsinline
-            muted
+            bind:this={localScreenEl}
+            autoplay playsinline muted
             class="w-full h-full object-contain"
-            class:hidden={!camOn}
+            class:hidden={!screenOn}
           ></video>
+          <!-- Camera: PiP bottom-left when screen active, full otherwise -->
+          <div class="{!camOn ? 'hidden' : ''} {adminCamIsPip
+            ? 'absolute bottom-3 left-3 w-48 h-28 rounded-lg overflow-hidden border border-white/20 shadow-lg'
+            : 'w-full h-full'}">
+            <!-- svelte-ignore a11y_media_has_caption -->
+            <video
+              bind:this={localCamEl}
+              autoplay playsinline muted
+              class="w-full h-full {adminCamIsPip ? 'object-cover' : 'object-contain'}"
+            ></video>
+          </div>
+          {#if !screenOn && !camOn}
+            <div class="w-full h-full flex items-center justify-center text-muted text-sm">
+              Kamera oder Bildschirm aktivieren
+            </div>
+          {/if}
+
+        {:else}
+          <!-- Viewer: remote screen share fills background -->
+          <!-- svelte-ignore a11y_media_has_caption -->
+          <video
+            bind:this={remoteScreenEl}
+            autoplay playsinline
+            class="w-full h-full object-contain"
+            class:hidden={!hasRemoteScreen}
+          ></video>
+          <!-- Remote camera: PiP when screen active, full otherwise -->
+          <div class="{!hasRemoteCam ? 'hidden' : ''} {viewerCamIsPip
+            ? 'absolute bottom-3 left-3 w-48 h-28 rounded-lg overflow-hidden border border-white/20 shadow-lg'
+            : 'w-full h-full'}">
+            <!-- svelte-ignore a11y_media_has_caption -->
+            <video
+              bind:this={remoteCamEl}
+              autoplay playsinline
+              class="w-full h-full {viewerCamIsPip ? 'object-cover' : 'object-contain'}"
+            ></video>
+          </div>
         {/if}
-        {#if camOn || micOn || screenOn || !showPublishUI}
+
+        {#if camOn || micOn || screenOn || (!showPublishUI && (hasRemoteScreen || hasRemoteCam))}
           <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">● LIVE</span>
         {/if}
       </div>
+
       {#if showPublishUI && otherStreamActive}
         <div class="flex items-start gap-3 px-4 py-3 bg-amber-950/40 border-t border-amber-800/60 text-sm">
           <span class="text-amber-300">⚠️</span>
@@ -250,6 +308,7 @@
           >{endingStream ? 'Beende…' : 'Aktuellen Stream beenden'}</button>
         </div>
       {/if}
+
       <div class="flex flex-wrap items-center gap-3 px-4 py-3 bg-dark-light border-t border-dark-lighter">
         {#if showPublishUI}
           <button
@@ -273,6 +332,21 @@
             class="px-3 py-1.5 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed
                    {screenOn ? 'bg-gold text-dark border-gold' : 'bg-dark border-dark-lighter text-light hover:border-gold'}"
           >🖥️ {screenOn ? 'Bildschirm aus' : 'Bildschirm teilen'}</button>
+
+          <!-- Resolution selector -->
+          <label class="flex items-center gap-1.5 text-sm text-muted">
+            <span>Qualität</span>
+            <select
+              bind:value={resolution}
+              class="bg-dark border border-dark-lighter text-light text-xs rounded px-2 py-1 cursor-pointer hover:border-gold transition-colors"
+              title="Max. Auflösung (gilt beim nächsten Aktivieren)"
+            >
+              <option value="480">480p</option>
+              <option value="720">720p</option>
+              <option value="1080">1080p</option>
+            </select>
+          </label>
+
           {#if publishError}
             <span class="text-xs text-red-400">{publishError}</span>
           {/if}

@@ -856,6 +856,11 @@ tasks:
     cmds:
       - ./scripts/setup-ha-cluster.sh
 
+  korczewski:enroll-ha:
+    desc: Convert korczewski to 3-node HA control-plane (pk-hetzner-2 + pk-hetzner-3)
+    cmds:
+      - ./scripts/enroll-korczewski-ha.sh
+
   ha:import-image:
     desc: "Build a local Docker image and import to all HA nodes (usage: task ha:import-image -- <path> <image:tag>)"
     vars:

@@ -1,4 +1,11 @@
 #cloud-config
+# Usage: paste as Hetzner server "User data" when creating a NEW node.
+# Hetzner's cloud-init runs as root before you have SSH access, so root login
+# is open at that point. After this runs, root SSH is disabled and only
+# the "patrick" user is allowed. scripts/setup-ha-cluster.sh therefore must
+# target fresh servers BEFORE cloud-init finishes, or use the patrick user.
+# This config provisions a standalone control-plane node (cluster-init: true).
+# To join additional nodes to an existing cluster use setup-ha-cluster.sh instead.
 users:
   - default
   - name: patrick
@@ -104,6 +111,7 @@ runcmd:
   - systemctl restart sshd
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
+  - systemctl enable --now iscsid
 
   # Install k3s
   - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -

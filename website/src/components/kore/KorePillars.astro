@@ -1,4 +1,6 @@
 ---
+import KoreTopology from './KoreTopology.svelte';
+
 type Pillar = { title: string; em: string; body: string; tags: string[]; svgPath?: string };
 const pillars: Pillar[] = [
   {
@@ -53,26 +55,7 @@ const pillars: Pillar[] = [
     ))}
   </div>
 
-  <figure class="w-topology" aria-labelledby="topology-caption">
-    <div class="w-topology-frame">
-      <img
-        src="/brand/korczewski/kore-assets/topology-12node.svg"
-        alt="Cluster-Topologie: sechs Hetzner-Control-Planes in Helsinki und sechs Worker im Home-LAN, verbunden über einen WireGuard-Tunnel durch pk-hetzner."
-        loading="lazy"
-        decoding="async"
-        width="960"
-        height="500"
-      />
-    </div>
-    <figcaption id="topology-caption">
-      <span class="cap-num">Fig. 01</span>
-      <span class="cap-text">
-        Topologie des Produktiv-Clusters: 6 Control-Planes (Hetzner&nbsp;Helsinki) und 6 Worker
-        (Home-LAN, DE), gekoppelt durch <em class="em">wg0</em> über <em class="em">pk-hetzner</em>.
-        System-Pods bleiben Hetzner-seitig, Nutzer-Workloads laufen auf den Workern.
-      </span>
-    </figcaption>
-  </figure>
+  <KoreTopology client:load />
 </section>
 
 <style>
@@ -83,58 +66,5 @@ const pillars: Pillar[] = [
     :global(.w-services) {
       grid-template-columns: repeat(2, 1fr) !important;
     }
-  }
-
-  .w-topology {
-    margin: 56px 0 0;
-    padding: 0;
-  }
-
-  .w-topology-frame {
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.07));
-    border-radius: 6px;
-    background:
-      linear-gradient(180deg, rgba(200, 247, 106, 0.015), transparent 60%),
-      var(--ink-850, #1a1326);
-    padding: 28px 32px;
-    overflow: hidden;
-  }
-
-  .w-topology-frame img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .w-topology figcaption {
-    display: flex;
-    gap: 18px;
-    align-items: baseline;
-    margin-top: 16px;
-    padding: 0 4px;
-  }
-
-  .w-topology .cap-num {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--copper);
-    flex-shrink: 0;
-    padding-top: 2px;
-  }
-
-  .w-topology .cap-text {
-    font-family: var(--sans);
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: var(--mute);
-    max-width: 78ch;
-  }
-
-  @media (max-width: 720px) {
-    .w-topology { margin-top: 40px; }
-    .w-topology-frame { padding: 16px 14px; }
-    .w-topology figcaption { flex-direction: column; gap: 6px; }
   }
 </style>

@@ -1,0 +1,12 @@
+{
+  "pr_number": 523,
+  "title": "Kore design system handoff — favicons, OG image, accurate topology",
+  "description": "## Summary\nImports the actionable assets from the Kore Design System bundle (`api.anthropic.com/v1/design/h/EOSMen_0zegvBwAhn_IwoQ`) into the `korczewski` brand surface and wires them into the layout for `web.korczewski.de`.\n\n- **Favicon set** — `<` mark with lime backglow on aubergine ink. SVG + 16/32/180/192/512 PNGs + `site.webmanifest`. Browsers no longer fall back to the Astro default tab icon.\n- **Open Graph image** (1200×630, re-rasterized at correct dimensions with brand fonts loaded) — so shared links on LinkedIn/WhatsApp/Slack render the hero \"Kubernetes, *quietly run for you.*\" with the four-stat row, instead of an empty card.\n- **Accurate 12-node topology** — replaces the old 3-node placeholder with a real diagram of the unified mentolder cluster: 6 Hetzner CPs in Helsinki + 6 home-LAN workers (k3s/k3w), WireGuard hub via `pk-hetzner`, the Flannel/VXLAN partition called out, real IPs/OS/arch, per-CP roles (ArgoCD, CoreDNS, LiveKit pin, oauth2-proxy).\n- **Logo lockup fix** — removes the leftover vertical stick from `logo-lockup-light.svg` so the K matches the cleaner App-Icon variant the brand landed on (chat2 carryover).\n\nLayout.astro emits the Kore favicons, manifest, theme-color, OG/Twitter meta, and Instrument Serif + JetBrains Mono only when `brand=\"korczewski-kore\"` — mentolder is untouched.\n\n## Test plan\n- [ ] Deploy to mentolder + korczewski via `task feature:website`\n- [ ] Open `https://web.korczewski.de` and confirm the Kore tab favicon appears (no Astro default)\n- [ ] Run a LinkedIn / Slack unfurl preview against `https://web.korczewski.de` and confirm the OG image renders\n- [ ] Confirm the topology figure on the homepage shows the new 12-node layout (zoom/pan still work)\n- [ ] Open `https://web.mentolder.de` and confirm the mentolder favicon and meta tags are unchanged\n- [ ] `task workspace:validate ENV=mentolder`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "kore",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-05T19:44:11Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -1,0 +1,12 @@
+{
+  "pr_number": 519,
+  "title": "Quick Attack panel — arbitrary domain/IP probes",
+  "description": "## Summary\n\n- Adds a new **⚔️ Quick Attack** sidebar section to the local pentest dashboard\n- User types any domain and/or IPv4/IPv6 address; 9 parameterised recon/vuln probes fire against it (Ping+HTTP, Nmap Top-100, Nmap Full, HTTP Headers, SSL/TLS, WhatWeb, Nikto, Nuclei, Dir Brute)\n- Pure frontend change — commands built client-side, submitted to existing `POST /api/scan/run`; no backend changes\n\n## Test Plan\n\n- [ ] Navigate to Quick Attack in sidebar — section renders, \"Fill at least one field…\" hint shown\n- [ ] Type a domain (e.g. `example.com`) — target/URL info appears, all 9 Run buttons become active\n- [ ] Run **HTTP Headers** probe — terminal streams curl output, shows `● done` on completion\n- [ ] Run **Nmap Full** probe, click Kill — stream stops, `[killed by user]` appended, running indicator clears\n- [ ] Click **→ Finding** after a completed probe — navigates to Findings section with pre-filled title\n- [ ] Clear domain, enter an IP (`1.2.3.4`) — URL shows `http://1.2.3.4`, probes still work\n- [ ] Edit target fields while scan is idle — terminal output is not wiped\n- [ ] DevTools console shows no JS errors throughout\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "pentest",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T16:05:43Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

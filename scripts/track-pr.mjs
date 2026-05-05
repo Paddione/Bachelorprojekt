@@ -42,6 +42,17 @@ export function parsePr(pr) {
 }
 
 export async function writeRowToDb(row, pgClient) {
+  // Drop requirement_id if it doesn't exist in bachelorprojekt.requirements —
+  // otherwise the FK rejects the row and the PR never lands in the timeline.
+  let requirementId = row.requirement_id;
+  if (requirementId) {
+    const { rowCount } = await pgClient.query(
+      'SELECT 1 FROM bachelorprojekt.requirements WHERE id = $1',
+      [requirementId]
+    );
+    if (rowCount === 0) requirementId = null;
+  }
+
   await pgClient.query(
     `INSERT INTO bachelorprojekt.features
        (pr_number, title, description, category, scope, brand,
@@ -57,7 +68,7 @@ export async function writeRowToDb(row, pgClient) {
        merged_at = EXCLUDED.merged_at,
        merged_by = EXCLUDED.merged_by`,
     [row.pr_number, row.title, row.description, row.category, row.scope, row.brand,
-     row.requirement_id, row.merged_at, row.merged_by]
+     requirementId, row.merged_at, row.merged_by]
   );
 
   for (const ticketId of row.bug_refs) {

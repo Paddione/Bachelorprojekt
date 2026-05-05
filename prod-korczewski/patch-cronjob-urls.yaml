@@ -1,0 +1,68 @@
+# Cronjobs in workspace-korczewski need to call services in their own
+# namespace (website-korczewski / workspace-korczewski). Base manifests
+# in k3d/ hardcode "workspace.svc.cluster.local" / "website.svc.cluster.local"
+# which silently end up calling mentolder's services. These patches rewrite
+# the URLs to the korczewski-local equivalents.
+#
+# Note: tracking-import is intentionally cross-namespace (writes to
+# mentolder's shared-db). It is NOT patched here. Cross-ns access is
+# allowed by the NetworkPolicy in workspace ns.
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: billing-dunning-detection
+  namespace: workspace
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: detector
+              command:
+                - /bin/sh
+                - -c
+                - 'curl -s -X POST http://website.website-korczewski.svc.cluster.local/api/admin/billing/dunning/run -H "X-Cron-Secret: ${CRON_SECRET}" || exit 1'
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: notify-unread
+  namespace: workspace
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: notify
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf -X POST \
+                    -H "Authorization: Bearer $CRON_SECRET" \
+                    -H "Content-Type: application/json" \
+                    http://website.website-korczewski.svc.cluster.local:4321/api/cron/notify-unread
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: monthly-billing
+  namespace: workspace
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: trigger
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf -X POST \
+                    -H "Content-Type: application/json" \
+                    -H "X-Cron-Secret: $CRON_SECRET" \
+                    http://website.website-korczewski.svc.cluster.local:4321/api/admin/billing/create-monthly-invoices

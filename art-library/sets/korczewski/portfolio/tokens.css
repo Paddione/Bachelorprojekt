@@ -1,0 +1,216 @@
+/* =========================================================================
+   Kore Design System — colors_and_type.css
+   Drop-in stylesheet. Loads fonts and exposes all design tokens.
+   ========================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* ---------- Color · Aubergine Ink (deep purple-black) ------------------ */
+  --ink-900: #120D1C;
+  --ink-850: #1A1326;
+  --ink-800: #221932;
+  --ink-750: #2C2240;
+  --ink-700: #3A2E52;
+
+  /* ---------- Color · Plasma Lime (brand accent) ------------------------- */
+  --copper:        #C8F76A;   /* legacy var name kept for token compat = lime */
+  --copper-2:      #D8FF8A;   /* hover / lighter */
+  --copper-soft:   #E6FFB0;   /* tints, decorative */
+  --copper-print:  #6B8B1F;   /* print-safe ink for paper docs */
+  --copper-deep:   #2A3A0C;   /* text on lime fills */
+  --copper-tint:   rgba(200,247,106,.08);
+  --copper-tint-2: rgba(200,247,106,.14);
+
+  /* aliased semantic names for clarity */
+  --lime:         var(--copper);
+  --lime-2:       var(--copper-2);
+  --lime-print:   var(--copper-print);
+  --lime-deep:    var(--copper-deep);
+
+  /* ---------- Color · Cyan (healthy / paid / secondary) ------------------ */
+  --teal:        #5BD4D0;
+  --teal-2:      #82E2DF;
+  --teal-print:  #2C8682;
+  --teal-tint:   rgba(91,212,208,.10);
+  --cyan:        var(--teal);
+  --cyan-2:      var(--teal-2);
+  --cyan-print:  var(--teal-print);
+
+  /* ---------- Color · Bone Paper (warm off-white, no yellow) ------------- */
+  --paper:    #EDE6D8;
+  --paper-2:  #E2DACA;
+  --paper-3:  #D2C9B6;
+
+  /* ---------- Color · Foreground / utility ------------------------------- */
+  --fg:       #ECEFF3;
+  --fg-soft:  #C6CCD4;
+  --mute:     #8A93A0;
+  --mute-2:   #69707B;
+
+  --ink-text:   #16101E;       /* on paper */
+  --ink-soft:   #382E48;
+  --ink-mute:   #6A5F7A;
+  --ink-mute-2: #948AA0;
+
+  --line:    rgba(255,255,255,.07);
+  --line-2:  rgba(255,255,255,.12);
+  --line-3:  rgba(255,255,255,.20);
+  --line-paper: rgba(15,23,36,.10);
+
+  /* ---------- Color · Semantic ------------------------------------------ */
+  --ok:      var(--teal);
+  --warn:    var(--copper);
+  --fail:    #E26B6B;
+  --info:    #6FA8D8;
+
+  /* ---------- Type families --------------------------------------------- */
+  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --sans:  "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---------- Type · semantic roles ------------------------------------- */
+  --fs-display: 64px;   --lh-display: 1.02; --ls-display: -0.02em;
+  --fs-h1: 48px;        --lh-h1: 1.05;      --ls-h1: -0.02em;
+  --fs-h2: 34px;        --lh-h2: 1.1;       --ls-h2: -0.02em;
+  --fs-h3: 24px;        --lh-h3: 1.2;       --ls-h3: -0.01em;
+  --fs-h4: 18px;        --lh-h4: 1.3;       --ls-h4: -0.005em;
+  --fs-lede: 17px;      --lh-lede: 1.55;
+  --fs-body: 15px;      --lh-body: 1.55;
+  --fs-small: 13px;     --lh-small: 1.5;
+  --fs-eyebrow: 11px;   --lh-eyebrow: 1.4;  --ls-eyebrow: 0.18em;
+  --fs-mono: 12.5px;    --lh-mono: 1.6;
+
+  /* ---------- Spacing (4px base) ---------------------------------------- */
+  --s-0: 0;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+  --s-24: 96px;
+  --s-32: 128px;
+
+  /* ---------- Radii ------------------------------------------------------ */
+  --r-pill: 999px;
+  --r-tile: 22px;
+  --r-card: 16px;
+  --r-input: 10px;
+  --r-paper: 4px;
+  --r-chip: 6px;
+
+  /* ---------- Shadow / elevation ---------------------------------------- */
+  --shadow-1: 0 12px 24px -12px rgba(0,0,0,.5);
+  --shadow-2: 0 30px 60px -30px rgba(0,0,0,.6);
+  --shadow-paper: 0 30px 80px -30px rgba(15,8,28,.7);
+  --shadow-press: 0 4px 8px -4px rgba(0,0,0,.5);
+  --inner-copper: inset 0 1px 0 rgba(255,255,255,.25);
+  --inner-line:   inset 0 1px 0 var(--copper);
+
+  /* ---------- Motion ----------------------------------------------------- */
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+}
+
+/* =========================================================================
+   Base type roles — use these classes instead of raw font-size.
+   ========================================================================= */
+
+.h-display, h1.display {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+}
+h1, .h1 {
+  font-family: var(--serif); font-weight: 400;
+  font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1);
+}
+h2, .h2 {
+  font-family: var(--serif); font-weight: 400;
+  font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2);
+}
+h3, .h3 {
+  font-family: var(--serif); font-weight: 400;
+  font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3);
+}
+h4, .h4 {
+  font-family: var(--sans); font-weight: 600;
+  font-size: var(--fs-h4); line-height: var(--lh-h4); letter-spacing: var(--ls-h4);
+}
+.lede, p.lede {
+  font-family: var(--sans); font-weight: 400;
+  font-size: var(--fs-lede); line-height: var(--lh-lede); color: var(--fg-soft);
+}
+body, p, .body {
+  font-family: var(--sans); font-weight: 400;
+  font-size: var(--fs-body); line-height: var(--lh-body);
+}
+.small {
+  font-size: var(--fs-small); line-height: var(--lh-small);
+}
+.mono, code, kbd, samp {
+  font-family: var(--mono);
+  font-size: var(--fs-mono);
+  line-height: var(--lh-mono);
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--copper);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: "";
+  width: 22px; height: 1px;
+  background: currentColor;
+  display: inline-block;
+}
+.eyebrow.no-rule::before { display: none; }
+
+/* italic emphasis used for product/service names */
+em, .em {
+  font-style: italic;
+  color: var(--copper-2);
+  font-weight: 400;
+}
+
+/* =========================================================================
+   Surfaces
+   ========================================================================= */
+
+.surface-dark { background: var(--ink-900); color: var(--fg); }
+.surface-paper { background: var(--paper); color: var(--ink-text); }
+
+/* Film grain — apply to body or hero containers */
+.grain::before {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: .55;
+  mix-blend-mode: overlay;
+  z-index: 0;
+}
+
+/* =========================================================================
+   Reset-ish bits
+   ========================================================================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+a { color: inherit; }
+button { font: inherit; }

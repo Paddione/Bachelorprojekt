@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kore — Patch notes 1.30</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../../styles/app.css">
+<style>
+  body{padding:48px 28px 96px;}
+  .nl{max-width:760px; margin:0 auto; position:relative; z-index:2;}
+  .masthead{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding-bottom:22px; border-bottom:1px solid var(--line-2);}
+  .masthead .brand{display:flex; align-items:center; gap:14px; font-family:var(--serif); font-size:30px; letter-spacing:-0.01em;}
+  .masthead .brand .dot{color:var(--copper);}
+  .masthead .meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); text-align:right; line-height:1.7;}
+  .issue{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper); margin-top:48px;}
+  h1.title{font-family:var(--serif); font-weight:400; font-size:64px; line-height:1.02; letter-spacing:-0.025em; margin:14px 0 0; max-width:14ch;}
+  h1.title em{font-style:italic; color:var(--copper-2);}
+  p.lede{font-family:var(--sans); font-size:18px; color:var(--fg-soft); line-height:1.55; margin:24px 0 0; max-width:60ch;}
+  .by{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-top:24px;}
+  .by b{color:var(--fg); font-weight:500;}
+  .hr{height:1px; background:var(--line); margin:48px 0;}
+
+  .toc{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:32px;}
+  .toc a{display:flex; flex-direction:column; gap:4px; padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:var(--ink-850); text-decoration:none; transition:all 200ms var(--ease);}
+  .toc a:hover{border-color:var(--copper); background:var(--ink-800);}
+  .toc .n{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper);}
+  .toc .t{font-family:var(--serif); font-size:18px; color:var(--fg); letter-spacing:-0.005em;}
+
+  h2.sec{font-family:var(--serif); font-weight:400; font-size:34px; letter-spacing:-0.02em; margin:0 0 6px;}
+  h2.sec em{font-style:italic; color:var(--copper-2);}
+  .sec-eye{display:flex; align-items:baseline; gap:14px; margin-bottom:18px;}
+  .sec-eye .num{font-family:var(--mono); font-size:11px; letter-spacing:.18em; color:var(--copper); text-transform:uppercase;}
+
+  .change{display:grid; grid-template-columns:80px 1fr; gap:18px; padding:22px 0; border-top:1px solid var(--line);}
+  .change .tag{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; padding:3px 8px; border-radius:6px; height:fit-content; text-align:center; line-height:1.4;}
+  .change .tag.add{background:rgba(200,247,106,.12); color:var(--copper); border:1px solid rgba(200,247,106,.3);}
+  .change .tag.fix{background:rgba(91,212,208,.10); color:var(--teal); border:1px solid rgba(91,212,208,.25);}
+  .change .tag.brk{background:rgba(226,107,107,.10); color:#E26B6B; border:1px solid rgba(226,107,107,.25);}
+  .change .tag.dep{background:rgba(255,255,255,.04); color:var(--mute); border:1px solid var(--line-2);}
+  .change h3{font-family:var(--serif); font-weight:400; font-size:21px; letter-spacing:-0.01em; margin:0 0 6px;}
+  .change h3 em{font-style:italic; color:var(--copper-2);}
+  .change p{font-family:var(--sans); font-size:15px; line-height:1.55; color:var(--fg-soft); margin:0;}
+  .change code{font-family:var(--mono); font-size:12.5px; padding:1px 6px; background:var(--ink-850); border:1px solid var(--line); border-radius:4px; color:var(--copper-2);}
+  .change .who{margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mute);}
+
+  .pull{padding:28px 32px; border:1px solid var(--line); border-radius:16px; background:var(--ink-850); position:relative; overflow:hidden; margin:32px 0;}
+  .pull::after{content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(70% 80% at 100% 0%, rgba(200,247,106,.08), transparent 60%);}
+  .pull > *{position:relative;}
+  .pull blockquote{font-family:var(--serif); font-style:italic; font-size:22px; line-height:1.45; color:var(--fg); margin:0 0 14px; padding-left:18px; border-left:2px solid var(--copper);}
+  .pull .who{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute);}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:24px 0;}
+  .stat{padding:18px; background:var(--ink-800); border-radius:12px; box-shadow:inset 0 1px 0 var(--copper);}
+  .stat .lab{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute);}
+  .stat .v{font-family:var(--serif); font-size:28px; color:var(--fg); margin-top:6px; letter-spacing:-0.01em; line-height:1;}
+  .stat .v em{font-style:italic; color:var(--copper-2);}
+  .stat .v .u{font-family:var(--mono); font-size:11px; color:var(--mute); margin-left:3px;}
+
+  .upgrade{padding:28px 32px; border:1px solid var(--line-2); border-radius:14px; background:var(--ink-900); margin-top:18px;}
+  .upgrade .lab{font-family:var(--mono); font-size:10px; letter-spacing:.18em; color:var(--copper); text-transform:uppercase;}
+  .upgrade pre{font-family:var(--mono); font-size:13px; line-height:1.7; color:var(--fg-soft); margin:14px 0 0; padding:18px; background:var(--ink-850); border-radius:10px; border:1px solid var(--line); overflow-x:auto;}
+  .upgrade pre b{color:var(--copper); font-weight:500;}
+
+  .foot{margin-top:64px; padding-top:32px; border-top:1px solid var(--line); display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:32px;}
+  .foot .col h5{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); margin:0 0 12px;}
+  .foot .col a{display:block; font-family:var(--sans); font-size:13.5px; color:var(--fg-soft); padding:4px 0; text-decoration:none;}
+  .foot .col a:hover{color:var(--copper);}
+  .foot .signoff{font-family:var(--serif); font-style:italic; font-size:18px; color:var(--fg-soft); line-height:1.5;}
+  .foot .signoff em{color:var(--copper-2);}
+  .foot .sig{margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute);}
+  .foot .sig b{color:var(--fg-soft);}
+</style>
+</head>
+<body>
+<main>
+  <article class="nl">
+    <header class="masthead">
+      <div class="brand"><img src="../../assets/logo-mark.svg" width="40" height="40">Kore<span class="dot">.</span> Notes</div>
+      <div class="meta">Issue 014<br>28 April 2026<br>Berlin · ord-1</div>
+    </header>
+
+    <span class="issue">Issue 014 — Patch notes · v1.30</span>
+    <h1 class="title">Quietly faster, <em>and a little stranger.</em></h1>
+    <p class="lede">
+      Three weeks of work, four breaking changes you can probably ignore, and one new
+      command you won't be able to live without. Here is what landed in v1.30.
+    </p>
+    <div class="by">By <b>K. Korczewski</b> · 11 min read</div>
+
+    <div class="toc">
+      <a href="#1"><span class="n">§01</span><span class="t">Scheduling, redone</span></a>
+      <a href="#2"><span class="n">§02</span><span class="t">Runbook diff view</span></a>
+      <a href="#3"><span class="n">§03</span><span class="t">Breaking changes</span></a>
+    </div>
+
+    <div class="hr"></div>
+
+    <section id="1">
+      <div class="sec-eye"><span class="num">§01</span></div>
+      <h2 class="sec">Scheduling, <em>redone.</em></h2>
+      <p class="lede" style="font-size:16px; max-width:60ch;">
+        We rewrote the scheduler to read like English. Predicates are now first-class
+        objects, and the explainer no longer lies about preferred-but-not-required.
+      </p>
+
+      <div class="change">
+        <span class="tag add">Added</span>
+        <div>
+          <h3>Predicate <em>composition</em></h3>
+          <p>Combine predicates with <code>any()</code>, <code>all()</code>, and <code>not()</code>. The scheduler explainer prints the boolean tree on a single line of mono.</p>
+          <div class="who">— K.K. · #4421</div>
+        </div>
+      </div>
+      <div class="change">
+        <span class="tag add">Added</span>
+        <div>
+          <h3>Topology <em>spread budgets</em></h3>
+          <p>Set a percentage budget per zone instead of a hard count. The scheduler will redistribute on cordon without re-evaluating preferences.</p>
+        </div>
+      </div>
+      <div class="change">
+        <span class="tag fix">Fixed</span>
+        <div>
+          <h3>Preempt loop on tainted nodes</h3>
+          <p>A pod that landed on a freshly-tainted node could trigger a preempt of itself within the same scheduling cycle. Closes <code>#3892</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="pull">
+      <blockquote>The scheduler explainer is the first kubectl command I run during an incident now. It tells me <em>why</em>, not just what.</blockquote>
+      <span class="who">— Maya Oduya, Head of Platform · Tradesman</span>
+    </div>
+
+    <section id="2">
+      <div class="sec-eye"><span class="num">§02</span></div>
+      <h2 class="sec">Runbook <em>diff view.</em></h2>
+      <p class="lede" style="font-size:16px; max-width:60ch;">
+        Three lines of code, three weeks of design. The runbook now shows you what
+        changed since the last incident — including who edited each step and why.
+      </p>
+
+      <div class="stats">
+        <div class="stat"><div class="lab">P95 explain</div><div class="v">38<span class="u">ms</span></div></div>
+        <div class="stat"><div class="lab">Runbook diffs</div><div class="v"><em>14</em></div></div>
+        <div class="stat"><div class="lab">Closed issues</div><div class="v">62</div></div>
+        <div class="stat"><div class="lab">New contributors</div><div class="v">3</div></div>
+      </div>
+    </section>
+
+    <section id="3">
+      <div class="sec-eye"><span class="num">§03</span></div>
+      <h2 class="sec">Breaking <em>changes.</em></h2>
+
+      <div class="change">
+        <span class="tag brk">Breaking</span>
+        <div>
+          <h3>The <code>--legacy-explain</code> flag is gone</h3>
+          <p>It was deprecated in v1.27 and produced output nobody parsed correctly. The new explainer is the only path.</p>
+        </div>
+      </div>
+      <div class="change">
+        <span class="tag dep">Deprecated</span>
+        <div>
+          <h3>Imperative <code>kore taint</code></h3>
+          <p>Use the declarative taint manifest. We will remove the imperative form in v1.32.</p>
+        </div>
+      </div>
+
+      <div class="upgrade">
+        <span class="lab">Upgrade — paste this in your runbook</span>
+<pre><b>$</b> kore upgrade --to 1.30 --dry-run
+<b>→</b> reading control plane state…
+<b>✓</b> 14 manifests parseable
+<b>✓</b> 3 charts compatible
+<b>!</b> 1 deprecation warning · kore taint
+<b>$</b> kore upgrade --to 1.30 --confirm</pre>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div>
+        <div class="signoff">Until next month — keep the pager <em>quiet.</em></div>
+        <div class="sig">— <b>K.K.</b> · Berlin · 28.04.26</div>
+      </div>
+      <div class="col">
+        <h5>Read more</h5>
+        <a>Full changelog →</a>
+        <a>Migration guide</a>
+        <a>v1.31 roadmap</a>
+      </div>
+      <div class="col">
+        <h5>Subscribe</h5>
+        <a>Email · monthly</a>
+        <a>RSS / Atom</a>
+        <a>Forward this issue</a>
+      </div>
+    </footer>
+  </article>
+</main>
+</body>
+</html>

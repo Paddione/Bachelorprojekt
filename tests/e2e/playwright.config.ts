@@ -65,17 +65,36 @@ export default defineConfig({
     {
       name: 'services',
       testMatch: [
-        '**/fa-03-*.spec.ts',  // Nextcloud Talk / video
-        '**/fa-18-*.spec.ts',  // transcription service (cluster-internal URL)
-        '**/fa-23-*.spec.ts',  // Vaultwarden
-        '**/fa-24-*.spec.ts',  // Whiteboard
-        '**/fa-25-*.spec.ts',  // Mailpit
-        '**/sa-08-*.spec.ts',  // SSO integration browser flow
-        '**/nfa-05-*.spec.ts', // usability / mobile
+        '**/fa-03-*.spec.ts',    // Nextcloud Talk / video
+        '**/fa-18-*.spec.ts',    // transcription service (cluster-internal URL)
+        '**/fa-23-*.spec.ts',    // Vaultwarden
+        '**/fa-24-*.spec.ts',    // Whiteboard
+        '**/fa-25-*.spec.ts',    // Mailpit
+        '**/fa-27-*.spec.ts',    // Systemisches Brett service
+        '**/fa-29-*.spec.ts',    // Requirements Tracking UI
+        '**/fa-livekit.spec.ts', // LiveKit / Livestream auth-gating
+        '**/sa-02-*.spec.ts',    // Authentication (wrong password → Keycloak error)
+        '**/sa-08-*.spec.ts',    // SSO integration browser flow
+        '**/nfa-05-*.spec.ts',   // usability / mobile
       ],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: websiteURL,
+      },
+    },
+
+    // ── korczewski: Korczewski-brand & cross-cluster specs ───────
+    // Run: npx playwright test --project=korczewski
+    {
+      name: 'korczewski',
+      testMatch: [
+        '**/korczewski-home.spec.ts',  // Kore brand homepage
+        '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
+        '**/dashboard-art.spec.ts',    // Dashboard art-library tab
+      ],
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
       },
     },
 

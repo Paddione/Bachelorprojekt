@@ -1,0 +1,12 @@
+{
+  "pr_number": 528,
+  "title": "add KI-Transition Coaching service to mentolder",
+  "description": "## Summary\nNew service tile + dedicated page on mentolder for IT specialists, leadership, and organisations navigating the AI-driven shift in roles.\n\n- New `ki-transition` slug in `mentolder.ts` with full \\`pageContent\\` (headline, intro, forWhom, four sections, pricing, faq).\n- Pricing: 150 € / 90-min session, 800 € / 6-session package (highlighted), on-request for teams ≥5.\n- Reuses the existing `coaching-session` Stripe service key.\n- Adds the \\`ki-transition\\` row to the homepage service-meta map so the tile renders \\\"Unlearning · Neuorientierung · Strategie\\\" on `web.mentolder.de`.\n- mentolder-only — korczewski's brand config is unchanged.\n\n## Test plan\n- [x] Astro dev build picks up the new service (\\`task website:dev\\`)\n- [ ] Live verification on `https://web.mentolder.de` after `task feature:website`\n- [ ] Stripe checkout still resolves \\`coaching-session\\` for the new tile\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T21:28:32Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

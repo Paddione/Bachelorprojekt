@@ -17,6 +17,10 @@ configMapGenerator:
     behavior: replace
     files:
       - realm-workspace.json=realm-workspace-korczewski.json
+  - name: nextcloud-extra-config
+    behavior: replace
+    files:
+      - zz-extra.config.php=nextcloud-extra-config-korczewski.php
 generatorOptions:
   disableNameSuffixHash: true
 
@@ -81,6 +85,7 @@ patches:
   - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
   - path: patch-cronjob-urls.yaml
+  - path: patch-mcp-config.yaml
   # Cluster-scoped resources are owned exclusively by workspace-hetzner (mentolder).
   # Both overlays deploy to the same physical cluster, so rendering these here
   # causes ArgoCD SharedResourceWarning — suppress them from korczewski.

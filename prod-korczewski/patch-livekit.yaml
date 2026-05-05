@@ -1,3 +1,12 @@
+# Pin all livekit-* Deployments to k3s-3.
+#
+# livekit-server uses hostNetwork: true with the pinned public IP
+# 192.168.100.4 (k3s-3 wg0). livekit-redis is co-located so livekit-server
+# reaches it on the same node (intra-node pod traffic works fine across
+# the CNI partition). livekit-egress / livekit-ingress connect to redis
+# via ClusterIP — they must also live on k3s-3, otherwise the Hetzner →
+# home-worker pod-network path (broken) takes them down.
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,6 +29,42 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: livekit-redis
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - k3s-3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-egress
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - k3s-3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-ingress
   namespace: workspace
 spec:
   template:

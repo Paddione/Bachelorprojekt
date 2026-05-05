@@ -335,6 +335,8 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: LIVEKIT_RTMP_KEY
+            - name: LIVEKIT_SERVICE_URL
+              value: "http://livekit-server.workspace.svc.cluster.local:7880"
           ports:
             - containerPort: 4321
           resources:

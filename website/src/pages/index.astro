@@ -21,7 +21,7 @@ import KoreHero     from '../components/kore/KoreHero.svelte';
 import KoreTimeline from '../components/kore/KoreTimeline.svelte';
 import { listTimeline } from '../lib/website-db';
 
-const BRAND_ID = process.env.BRAND_ID ?? 'mentolder';
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const initialTimeline = BRAND_ID === 'korczewski'
   ? await listTimeline({ limit: 20 }).catch(() => [])
   : [];

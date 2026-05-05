@@ -8,5 +8,10 @@ data:
   SELLER_ADDRESS: "Ludwig-Erhard-Str. 18"
   SELLER_POSTAL_CODE: "20459"
   SELLER_CITY: "Hamburg"
-  SELLER_COUNTRY: "Deutschland"
-  SELLER_VAT_ID: "33/023/05100"
+  # ISO 3166-1 alpha-2 — required by EN 16931 schematron (BR-CL-14 / Zod string.length(2)).
+  SELLER_COUNTRY: "DE"
+  # Empty: Kleinunternehmer (§19 UStG) has no VAT ID. The previous value
+  # 33/023/05100 was a Steuernummer mislabelled as a VAT ID — it now lives
+  # in SELLER_TAX_NUMBER and is emitted as schemeID="FC" (BT-32).
+  SELLER_VAT_ID: ""
+  SELLER_TAX_NUMBER: "33/023/05100"

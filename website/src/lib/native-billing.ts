@@ -468,6 +468,7 @@ export async function getInvoiceForEInvoice(id: string): Promise<EInvoiceInput |
       city:       process.env.SELLER_CITY        || '',
       country:    process.env.SELLER_COUNTRY     || 'DE',
       vatId:      process.env.SELLER_VAT_ID      || '',
+      taxNumber:  process.env.SELLER_TAX_NUMBER  || undefined,
       iban:       process.env.SELLER_IBAN        || undefined,
       bic:        process.env.SELLER_BIC         || undefined,
       email:      process.env.SELLER_EMAIL       || undefined,

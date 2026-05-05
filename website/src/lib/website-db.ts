@@ -3140,6 +3140,20 @@ async function initBillingAuditTable(): Promise<void> {
 }
 
 async function installInvoiceImmutabilityTriggers(): Promise<void> {
+  try {
+    await installInvoiceImmutabilityTriggersInner();
+  } catch (err) {
+    // 42501 = insufficient_privilege. Triggers/functions exist from a prior
+    // deploy under a different role (e.g. postgres superuser); current role
+    // can't replace them but they enforce the same invariants. Leaving them
+    // alone is correct — `initBillingTables` runs on every billing call so a
+    // hard error here would break the entire billing API in production.
+    if ((err as { code?: string } | null)?.code === '42501') return;
+    throw err;
+  }
+}
+
+async function installInvoiceImmutabilityTriggersInner(): Promise<void> {
   await pool.query(`
     CREATE OR REPLACE FUNCTION billing_invoices_immutable() RETURNS trigger AS $fn$
     BEGIN

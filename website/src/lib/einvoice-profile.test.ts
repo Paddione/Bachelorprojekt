@@ -72,6 +72,35 @@ describe('generateEInvoiceXml', () => {
     expect(() => generateXRechnungCii(noLeitweg)).toThrow(/Leitweg-ID/);
   });
 
+  // BR-CO-26 / BR-E-02: Kleinunternehmer (no VAT ID) must still expose a
+  // Seller tax registration. Steuernummer goes in schemeID="FC" — the live
+  // production-path generators (factur-x-minimum and xrechnung-cii) both
+  // need to honour it.
+  const kleinTaxNumberInput = {
+    ...baseInput,
+    invoice: { ...baseInput.invoice, taxMode: 'kleinunternehmer' as const, taxRate: 0, taxAmount: 0, grossAmount: baseInput.invoice.netAmount },
+    lines: [{ description: 'Coaching', quantity: 1, unitPrice: 100, unit: 'HUR' }],
+    seller: { ...baseInput.seller, vatId: '', taxNumber: '33/023/05100' },
+  };
+
+  it('factur-x-minimum (Kleinunternehmer): emits SellerTradeParty/ID + FC-scheme registration when only taxNumber is set', () => {
+    const xml = generateEInvoiceXml('factur-x-minimum', kleinTaxNumberInput);
+    expect(xml).toContain('<ram:SpecifiedTaxRegistration><ram:ID schemeID="FC">33/023/05100</ram:ID></ram:SpecifiedTaxRegistration>');
+    expect(xml).toContain('<ram:ID>33/023/05100</ram:ID>');
+    expect(xml).not.toContain('schemeID="VA">');
+  });
+
+  it('xrechnung-cii (Kleinunternehmer): emits FC-scheme registration when only taxNumber is set', () => {
+    const xml = generateEInvoiceXml('xrechnung-cii', kleinTaxNumberInput);
+    expect(xml).toContain('<ram:ID schemeID="FC">33/023/05100</ram:ID>');
+    expect(xml).not.toContain('schemeID="VA">');
+  });
+
+  it('xrechnung-ubl (Kleinunternehmer): emits FC TaxScheme when only taxNumber is set', () => {
+    const xml = generateEInvoiceXml('xrechnung-ubl', kleinTaxNumberInput);
+    expect(xml).toMatch(/<cbc:CompanyID>33\/023\/05100<\/cbc:CompanyID>\s*<cac:TaxScheme><cbc:ID>FC<\/cbc:ID><\/cac:TaxScheme>/);
+  });
+
   it('xrechnung-ubl mappt BT-1/BT-2/BT-5/BT-9/BT-10/BT-31 + IBAN', () => {
     const xml = generateEInvoiceXml('xrechnung-ubl', baseInput);
     expect(xml).toContain('<cbc:ID>RE-2026-0001</cbc:ID>');

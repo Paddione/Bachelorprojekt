@@ -79,3 +79,60 @@ patches:
                         - k3w-3
   - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
+  # Cluster-scoped resources are owned exclusively by workspace-hetzner (mentolder).
+  # Both overlays deploy to the same physical cluster, so rendering these here
+  # causes ArgoCD SharedResourceWarning — suppress them from korczewski.
+  - target:
+      kind: ClusterIssuer
+      name: letsencrypt-prod
+    patch: |-
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+      $patch: delete
+  - target:
+      kind: ClusterRole
+      name: tls-sync
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: tls-sync
+      $patch: delete
+  - target:
+      kind: ClusterRoleBinding
+      name: tls-sync
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: tls-sync
+      $patch: delete
+  - target:
+      kind: ClusterRole
+      name: claude-code-agent
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: claude-code-agent
+      $patch: delete
+  - target:
+      kind: ClusterRoleBinding
+      name: claude-code-agent
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: claude-code-agent
+      $patch: delete
+  - target:
+      kind: IngressClass
+      name: traefik
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: IngressClass
+      metadata:
+        name: traefik
+      $patch: delete

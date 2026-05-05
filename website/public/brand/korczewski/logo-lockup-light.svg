@@ -10,7 +10,6 @@
   <circle cx="48" cy="48" r="20" fill="none" stroke="#6B8B1F" stroke-opacity=".25" stroke-width="1"></circle>
   <circle cx="48" cy="48" r="14" fill="none" stroke="#6B8B1F" stroke-opacity=".4" stroke-width="1"></circle>
   <g stroke="#6B8B1F" stroke-linecap="round" fill="none">
-    <line x1="33" y1="18" x2="33" y2="78" stroke-width="6.5"></line>
     <line x1="34" y1="48" x2="70" y2="22" stroke-width="6"></line>
     <line x1="34" y1="48" x2="70" y2="74" stroke-width="6"></line>
   </g>

@@ -139,8 +139,8 @@
         alt="Cluster-Topologie: sechs Hetzner-Control-Planes in Helsinki und sechs Worker im Home-LAN, verbunden über einen WireGuard-Tunnel durch pk-hetzner."
         draggable="false"
         decoding="async"
-        width="960"
-        height="500"
+        width="1280"
+        height="820"
       />
     </div>
 
@@ -201,7 +201,7 @@
     display: block;
     width: 100%;
     height: auto;
-    max-width: 960px;
+    max-width: 1100px;
     pointer-events: none;
     -webkit-user-drag: none;
   }

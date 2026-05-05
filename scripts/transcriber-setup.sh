@@ -6,7 +6,10 @@
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-NAMESPACE="workspace"
+# Honour WORKSPACE_NAMESPACE (exported by env-resolve.sh / the Taskfile) so
+# `task workspace:transcriber-setup ENV=korczewski` registers the bot in
+# workspace-korczewski instead of mentolder's `workspace`.
+NAMESPACE="${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 
 # Hilfsfunktion für occ-Kommandos im Nextcloud-Container
 _occ() {

@@ -14,7 +14,11 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-NAMESPACES=("workspace" "website" "monitoring")
+# When invoked from `task workspace:check-updates ENV=korczewski`, the Taskfile
+# sources env-resolve.sh which exports WORKSPACE_NAMESPACE / WEBSITE_NAMESPACE.
+# Fall back to the historic defaults so a bare `bash check-updates.sh` still
+# works against the dev cluster.
+NAMESPACES=("${WORKSPACE_NAMESPACE:-workspace}" "${WEBSITE_NAMESPACE:-website}" "monitoring")
 
 UPDATES_AVAILABLE=0   # versioned images with confirmed newer digest
 RESTARTABLE=0         # :latest images that will pull fresh on restart

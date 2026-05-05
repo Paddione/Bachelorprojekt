@@ -1,0 +1,12 @@
+{
+  "pr_number": 499,
+  "title": "allow cross-ns egress + rewrite cronjob URLs",
+  "description": "## Summary\n- Adds NetworkPolicies in `workspace-korczewski` permitting egress to `workspace` and `website-korczewski` namespaces.\n- Adds NetworkPolicy in `workspace` permitting ingress to shared-db from `workspace-korczewski`.\n- Patches korczewski cronjob URLs (billing-dunning-detection, notify-unread, monthly-billing) to target `website.website-korczewski.svc.cluster.local` instead of mentolder's namespace.\n\n## Why\nOn the unified cluster, korczewski cronjobs were crashlooping with ECONNREFUSED. Two root causes:\n1. URLs hardcoded `workspace.svc.cluster.local` / `website.svc.cluster.local` → silently called mentolder.\n2. `default-deny-egress` + `allow-internet-egress` (excludes RFC1918) blocked all in-cluster cross-ns traffic. tracking-import (intentionally cross-ns to mentolder shared-db) and billing/notify (which should hit korczewski's website) all failed.\n\nVerified live: tracking-import job 29632750 completed (`ingested 6 rows`); curl test from a Hetzner-pinned pod resolves website.website-korczewski and gets HTTP 403 (auth rejection — proves connectivity).\n\n## Test plan\n- [x] Cross-ns DB connectivity: tracking-import succeeds on workspace-korczewski (was failing for >1h)\n- [x] kustomize build prod-korczewski/ succeeds\n- [ ] After ArgoCD syncs: billing-dunning-detection, notify-unread, monthly-billing complete successfully on workspace-korczewski schedule",
+  "category": "fix",
+  "scope": "korczewski",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-05T07:12:17Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

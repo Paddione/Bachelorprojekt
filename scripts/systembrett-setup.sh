@@ -7,15 +7,18 @@
 # Safe to re-run: file is overwritten, scan is idempotent.
 #
 # Environment:
-#   KUBE_CONTEXT — kubectl context; defaults to current context
-#   NAMESPACE    — defaults to "workspace"
+#   KUBE_CONTEXT        — kubectl context; defaults to current context
+#   NAMESPACE           — defaults to $WORKSPACE_NAMESPACE (from env-resolve.sh)
+#                         falling back to "workspace"
+#   WORKSPACE_NAMESPACE — exported by `source scripts/env-resolve.sh <env>`;
+#                         used as the namespace fallback for ENV=korczewski
 #   TEMPLATE_SRC — path to systembrett.whiteboard
 #                  (defaults to website/public/systembrett/systembrett.whiteboard
 #                   relative to the repo root)
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-workspace}"
+NAMESPACE="${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

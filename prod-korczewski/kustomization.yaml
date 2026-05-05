@@ -9,6 +9,7 @@ resources:
   - dashboard-web.yaml
   - oauth2-proxy-dashboard.yaml
   - ingress-dashboard.yaml
+  - netpol-cross-namespace.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:
@@ -16,6 +17,10 @@ configMapGenerator:
     behavior: replace
     files:
       - realm-workspace.json=realm-workspace-korczewski.json
+  - name: nextcloud-extra-config
+    behavior: replace
+    files:
+      - zz-extra.config.php=nextcloud-extra-config-korczewski.php
 generatorOptions:
   disableNameSuffixHash: true
 
@@ -37,6 +42,18 @@ generatorOptions:
 # patch-livekit.yaml (hostNetwork + pinned public IP). Traefik on pk-hetzner
 # reaches livekit-server via WireGuard because it uses the host network.
 patches:
+  # Switch recordings PVC from local-path to longhorn so it survives node reschedules.
+  # One-time live migration: delete livekit-recordings-pvc on the cluster, then re-sync.
+  - target:
+      kind: PersistentVolumeClaim
+      name: livekit-recordings-pvc
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: livekit-recordings-pvc
+      spec:
+        storageClassName: longhorn
   - target:
       kind: Deployment
     patch: |-
@@ -79,6 +96,8 @@ patches:
                         - k3w-3
   - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
+  - path: patch-cronjob-urls.yaml
+  - path: patch-mcp-config.yaml
   # Cluster-scoped resources are owned exclusively by workspace-hetzner (mentolder).
   # Both overlays deploy to the same physical cluster, so rendering these here
   # causes ArgoCD SharedResourceWarning — suppress them from korczewski.

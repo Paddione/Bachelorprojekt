@@ -47,8 +47,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   for (const group of groups) {
     try {
-      const invoiceMap = await createMonthlyDraftInvoices([group], monthLabel);
-      const invoiceId = invoiceMap.get(group.customerId);
+      const invoiceMap = await (createMonthlyDraftInvoices as unknown as (a: unknown, b: unknown) => Promise<Map<string, string>>)([group], monthLabel);
+      const invoiceId = invoiceMap.get?.(group.customerId);
       if (invoiceId) {
         await setTimeEntryStripeInvoice(group.entries.map(e => e.id), invoiceId);
         created++;

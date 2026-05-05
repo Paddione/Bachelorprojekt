@@ -1,0 +1,12 @@
+{
+  "pr_number": 496,
+  "title": "add livekit-redis hostAlias to livekit-server",
+  "description": "## Summary\n\n- `dnsPolicy: None` (added in #495) fixed the STUN external-IP lookup but broke Kubernetes service resolution — `livekit-server` tries to connect to `livekit-redis` by hostname at startup and now gets `no such host` from Google DNS.\n- Add `hostAliases` for `livekit-redis` (ClusterIP `10.43.167.113`) to the `livekit-server` pod spec. kube-proxy on k3s-3 DNATs the ClusterIP to the local pod, so no CoreDNS involvement is needed. Same pattern already in use for `livekit-egress` and `livekit-ingress`.\n\n## Test plan\n\n- [ ] ArgoCD syncs `workspace-korczewski` cleanly\n- [ ] korczewski `livekit-server` pod starts without CrashLoopBackOff\n- [ ] `livekit-server` logs show successful Redis connection and RTC config validation\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "korczewski",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-05T06:15:26Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

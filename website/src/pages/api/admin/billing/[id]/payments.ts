@@ -43,7 +43,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       method:     body.method as 'sepa'|'cash'|'bank'|'other',
       reference:  body.reference,
       notes:      body.notes,
-      recordedBy: session.user?.email ?? session.user?.id ?? 'admin',
+      recordedBy: session.email ?? session.sub ?? 'admin',
     });
     return new Response(JSON.stringify({ payment }), {
       status: 201, headers: { 'Content-Type': 'application/json' },

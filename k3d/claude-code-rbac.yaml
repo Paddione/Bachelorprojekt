@@ -60,6 +60,9 @@ subjects:
   - kind: ServiceAccount
     name: claude-code-agent
     namespace: workspace
+  - kind: ServiceAccount
+    name: claude-code-agent
+    namespace: workspace-korczewski
 roleRef:
   kind: ClusterRole
   name: claude-code-agent

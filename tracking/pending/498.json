@@ -1,0 +1,12 @@
+{
+  "pr_number": 498,
+  "title": "use ${TLS_SECRET_NAME} for IngressRoute TLS + WORKSPACE_NAMESPACE in ApplicationSet",
+  "description": "## Summary\n\n- Fix livekit IngressRoute to use `${TLS_SECRET_NAME}` instead of hardcoded `workspace-wildcard-tls` — the korczewski env uses `korczewski-tls`, causing Traefik TLS config errors and a broken livekit route\n- Re-applied `argocd/applicationset.yaml` via `task argocd:apps:apply` — the live ApplicationSet was missing `WORKSPACE_NAMESPACE` in the CMP plugin env, leaving `${WORKSPACE_NAMESPACE}` unresolved in all Ingress middleware annotations (`workspace-redirect-https@kubernetescrd` etc.). Traefik v3 drops routes where any referenced middleware doesn't exist, causing HTTP 404 for all services in both namespaces\n\n## Root cause\n\nThe `applicationset.yaml` had `WORKSPACE_NAMESPACE` added in git but the live ApplicationSet on the cluster was never updated (`task argocd:apps:apply` was not re-run). ArgoCD's CMP envsubst didn't substitute the variable, so every Ingress got literal `${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd` in its middleware annotation.\n\n## Fix applied\n\n1. `task argocd:apps:apply` — pushed updated ApplicationSet to cluster (immediate fix, no code change needed)\n2. `k3d/livekit.yaml` — replaced hardcoded `workspace-wildcard-tls` with `${TLS_SECRET_NAME}`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "livekit",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T06:49:47Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

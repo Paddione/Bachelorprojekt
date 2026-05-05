@@ -9,6 +9,11 @@
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
   "bruteForceProtected": true,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "maxDeltaTimeSeconds": 43200,
+  "minimumQuickLoginWaitSeconds": 60,
   "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and hashAlgorithm(pbkdf2-sha512)",
   "smtpServer": {
     "host": "${SMTP_HOST}",
@@ -114,10 +119,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${WEBSITE_OIDC_SECRET}",
       "redirectUris": [
-        "https://${WEB_DOMAIN}/*"
+        "https://${WEB_DOMAIN}/*",
+        "https://web.korczewski.de/*"
       ],
       "webOrigins": [
-        "https://${WEB_DOMAIN}"
+        "https://${WEB_DOMAIN}",
+        "https://web.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

@@ -253,7 +253,7 @@ spec:
       middlewares:
         - name: livekit-cors
   tls:
-    secretName: workspace-wildcard-tls
+    secretName: ${TLS_SECRET_NAME}
 ---
 
 # ── LiveKit Ingress (RTMP → WebRTC) ──────────────────────────────

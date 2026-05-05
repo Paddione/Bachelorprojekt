@@ -310,7 +310,6 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
 
 import { recordPayment } from './invoice-payments';
 
-
 export async function markInvoicePaid(
   id: string,
   p: { paidAt: string; paidAmount: number },

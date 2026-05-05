@@ -38,6 +38,9 @@ env_vars:
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   STRIPE_PUBLISHABLE_KEY: "pk_live_51TOM2vPmjoQCVSEjX0mKUyfMoEJQssMbl2Me20WSiLJBjhIrxQJiesJrSw6GVlVetbJJ1cH7Wk0rOXHamMN5aVMD00gxhMrdoF"
   BRETT_DOMAIN: brett.mentolder.de
+  LIVEKIT_DOMAIN: livekit.mentolder.de
+  LIVEKIT_PIN_IP: "46.225.125.59"
+  STREAM_DOMAIN: stream.mentolder.de
   DASHBOARD_DOMAIN: dashboard.mentolder.de
   WEBSITE_HOST: web.mentolder.de
   WEBSITE_SITE_URL: "https://web.mentolder.de"

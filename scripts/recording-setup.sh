@@ -7,7 +7,10 @@
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-workspace}"
+# Honour WORKSPACE_NAMESPACE (exported by env-resolve.sh / the Taskfile) so
+# `task workspace:recording-setup ENV=korczewski` configures korczewski's
+# Nextcloud, not mentolder's `workspace`.
+NAMESPACE="${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-}"
 
 _kubectl() { kubectl ${KUBE_CONTEXT:+--context "$KUBE_CONTEXT"} "$@"; }

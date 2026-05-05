@@ -23,7 +23,6 @@ it('generates a non-empty PDF buffer', async () => {
   expect(buf.slice(0,4).toString()).toBe('%PDF');
 });
 
-
 it('includes reverse charge notice when supplyType is eu_b2b_services', async () => {
   const baseInvoice = {
     id: 'inv-rc', brand: 'test', number: 'RE-2026-0099',

@@ -1,0 +1,12 @@
+{
+  "pr_number": 504,
+  "title": "fix cross-namespace service URL bugs for workspace-korczewski",
+  "description": "## Summary\n\nThree bugs where `workspace-korczewski` services connected to wrong-namespace endpoints or advertised dead URLs — all silent failures.\n\n- **mcp-auth Keycloak URL** hardcoded to `keycloak.workspace.svc.cluster.local`, so korczewski's Keycloak MCP was authenticating against _mentolder's_ Keycloak. Changed base to relative `http://keycloak:8080` — resolves correctly in each namespace.\n- **claude-code-config dead MCP URLs** — prod overlay deletes `mcp-browser` and `mcp-github` in korczewski, but ConfigMap still advertised their service URLs. Added `patch-mcp-config.yaml` to clear `MCP_BROWSER_URL` / `MCP_GITHUB_URL` in the korczewski overlay.\n- **Nextcloud Redis host** hardcoded to `nextcloud-redis.workspace.svc.cluster.local`, so korczewski Nextcloud used mentolder's Redis for distributed cache and file locking. Created `nextcloud-extra-config-korczewski.php` with the correct FQDN and unique `serverid`.\n\n## Test plan\n\n- [ ] ArgoCD syncs `workspace-korczewski` and `claude-code-mcp-auth` pod restarts pointing to `http://keycloak:8080`\n- [ ] `kubectl get cm claude-code-config -n workspace-korczewski -o yaml` shows empty `MCP_BROWSER_URL` / `MCP_GITHUB_URL`\n- [ ] `kubectl get cm nextcloud-extra-config -n workspace-korczewski -o yaml` shows `nextcloud-redis.workspace-korczewski.svc.cluster.local`\n- [ ] Nextcloud on korczewski.de can log in (Redis reachable)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "mcp",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T09:39:28Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

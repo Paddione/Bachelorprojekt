@@ -97,4 +97,27 @@ test.describe('Integration Smoke Tests', () => {
     // 200 = fully operational; 503 = ingress alive but NATS backend unavailable
     expect([200, 503]).toContain(res.status());
   });
+
+  // ── New k3d Services ──────────────────────────────────────────
+  test('Brett systemisches Brett healthz is reachable', async ({ request }) => {
+    const res = await request.get(`https://brett.${DOMAIN}/healthz`);
+    expect(res.status()).toBe(200);
+  });
+
+  test('DocuSeal document signing is reachable', async ({ request }) => {
+    const res = await request.get(`https://sign.${DOMAIN}`);
+    // 200 = public UI; 301/302 = redirect; 401 = auth-protected
+    expect([200, 301, 302, 401]).toContain(res.status());
+  });
+
+  test('Requirements Tracking UI is reachable', async ({ request }) => {
+    const res = await request.get(`https://tracking.${DOMAIN}`);
+    expect([200, 301, 302, 401]).toContain(res.status());
+  });
+
+  test('LiveKit server ingress is reachable', async ({ request }) => {
+    const res = await request.get(`https://livekit.${DOMAIN}/`, { timeout: 10_000 });
+    // LiveKit returns 404/426 on HTTP root — both confirm the ingress is alive
+    expect([200, 404, 426]).toContain(res.status());
+  });
 });

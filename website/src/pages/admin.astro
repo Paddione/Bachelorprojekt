@@ -87,36 +87,120 @@ const adminLinks = [
   ...(traefikUrl ? [{ href: traefikUrl,                               label: 'Traefik',    icon: SVG.network }] : []),
   ...(mailUrl    ? [{ href: mailUrl,                                  label: 'Mailpit',    icon: SVG.mail }] : []),
 ];
+
+const isKore = BRAND === 'korczewski';
+const now = new Date();
+const stand = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+const datum = now.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' });
+
+const kpis = [
+  {
+    label: 'Aktive Projekte',
+    value: String(activeProjects),
+    href: '/admin/projekte',
+    state: activeProjects > 0 ? 'is-warn' : '',
+    suffix: 'laufend',
+  },
+  {
+    label: 'Offene Rechnungen',
+    value: String(openInvoices),
+    unit: openInvoices > 0 ? fmtCurrency(openInvoiceAmount) : '',
+    href: '/admin/rechnungen',
+    state: openInvoices > 0 ? 'is-warn' : '',
+    suffix: openInvoices > 0 ? 'noch nicht bezahlt' : 'alles bezahlt',
+  },
+  {
+    label: 'Überfällige Bugs',
+    value: String(openBugCount),
+    href: '/admin/bugs',
+    state: openBugCount > 0 ? 'is-fail' : '',
+    suffix: openBugCount > 0 ? 'in Bearbeitung' : 'sauber',
+  },
+  {
+    label: 'Freie Slots · 7T',
+    value: String(freeSlots),
+    href: '/admin/termine',
+    state: freeSlots > 0 ? 'is-ok' : '',
+    suffix: freeSlots > 0 ? 'buchbar' : 'voll',
+  },
+];
 ---
-
 <AdminLayout title="Admin — Dashboard">
-  <section class="pt-10 pb-20 bg-dark min-h-screen">
-    <div class="max-w-5xl mx-auto px-6">
+  {isKore ? (
+    <main class="ka-page">
+      <header class="ka-section-head">
+        <span class="ka-num">01 / Übersicht</span>
+        <h1>Heute, <em>{datum.split(',')[0].toLowerCase()}</em>.</h1>
+        <span class="ka-hint">Stand {stand} · KORCZEWSKI</span>
+      </header>
 
-      <div class="mb-10">
-        <h1 class="text-3xl font-bold text-light font-serif">Admin</h1>
-        <p class="text-muted mt-1">Verwaltung & Werkzeuge</p>
+      <div class="ka-kpi-row">
+        {kpis.map(k => (
+          <a href={k.href} class={`ka-kpi ${k.state}`}>
+            <span class="ka-kpi-lab">{k.label}</span>
+            <span class="ka-kpi-v">
+              {k.value}
+              {k.unit && <span class="ka-kpi-u">{k.unit}</span>}
+            </span>
+            <span class="ka-kpi-s">{k.suffix}</span>
+          </a>
+        ))}
       </div>
 
-      <!-- KPI Banner -->
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-  {[
-    { label: 'Aktive Projekte',   value: String(activeProjects),           href: '/admin/projekte',  cls: 'border-yellow-800' },
-    { label: 'Offene Rechnungen', value: openInvoices > 0 ? `${openInvoices} (${fmtCurrency(openInvoiceAmount)})` : '0', href: '/admin/rechnungen', cls: openInvoices > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
-    { label: 'Überfällige Bugs',   value: String(openBugCount),             href: '/admin/bugs',      cls: openBugCount > 0 ? 'border-red-800' : 'border-dark-lighter' },
-    { label: 'Freie Slots (7 T)', value: String(freeSlots),                href: '/admin/termine',   cls: freeSlots > 0 ? 'border-green-800' : 'border-dark-lighter' },
-  ].map(k => (
-    <a href={k.href} class={`p-4 bg-dark-light rounded-xl border hover:border-gold/40 transition-colors ${k.cls}`}>
-      <div class="text-xl font-bold text-light">{k.value}</div>
-      <div class="text-xs text-muted mt-0.5">{k.label}</div>
-    </a>
-  ))}
-</div>
+      <section class="ka-card ka-card--lime" style="margin-bottom:14px;">
+        <span class="ka-card-eye">Dienste</span>
+        <h3 class="ka-card-title">Werkzeuge & <em>externe Konten</em></h3>
+        <p style="margin-top:10px; color:var(--fg-soft); font-size:14px;">
+          Direktzugriff auf Nextcloud, Keycloak, Vaultwarden und die anderen
+          Dienste hinter dem Workspace. Alle Links verlangen erneutes SSO.
+        </p>
+        <div class="ka-services" style="margin-top:24px;">
+          {adminLinks.map(l => (
+            <a href={l.href} class="ka-service" target={l.href.startsWith('http') ? '_blank' : undefined} rel={l.href.startsWith('http') ? 'noopener' : undefined}>
+              <span class="ka-service-glyph" set:html={l.icon} />
+              <span>{l.label}</span>
+            </a>
+          ))}
+        </div>
+      </section>
 
-      <ServiceLinks links={adminLinks} heading="Dienste" />
+      <section class="ka-card" style="margin-bottom:14px;">
+        <span class="ka-card-eye">Schnellzugriffe</span>
+        <h3 class="ka-card-title">Eigene <em>Verknüpfungen</em></h3>
+        <div style="margin-top:18px;">
+          <AdminShortcuts client:load links={shortcuts} />
+        </div>
+      </section>
+    </main>
+  ) : (
+    <section class="pt-10 pb-20 bg-dark min-h-screen">
+      <div class="max-w-5xl mx-auto px-6">
 
-      <AdminShortcuts client:load links={shortcuts} />
+        <div class="mb-10">
+          <h1 class="text-3xl font-bold text-light font-serif">Admin</h1>
+          <p class="text-muted mt-1">Verwaltung & Werkzeuge</p>
+        </div>
 
-    </div>
-  </section>
+        <!-- KPI Banner -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          {[
+            { label: 'Aktive Projekte',   value: String(activeProjects),           href: '/admin/projekte',  cls: 'border-yellow-800' },
+            { label: 'Offene Rechnungen', value: openInvoices > 0 ? `${openInvoices} (${fmtCurrency(openInvoiceAmount)})` : '0', href: '/admin/rechnungen', cls: openInvoices > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
+            { label: 'Überfällige Bugs',   value: String(openBugCount),             href: '/admin/bugs',      cls: openBugCount > 0 ? 'border-red-800' : 'border-dark-lighter' },
+            { label: 'Freie Slots (7 T)', value: String(freeSlots),                href: '/admin/termine',   cls: freeSlots > 0 ? 'border-green-800' : 'border-dark-lighter' },
+          ].map(k => (
+            <a href={k.href} class={`p-4 bg-dark-light rounded-xl border hover:border-gold/40 transition-colors ${k.cls}`}>
+              <div class="text-xl font-bold text-light">{k.value}</div>
+              <div class="text-xs text-muted mt-0.5">{k.label}</div>
+            </a>
+          ))}
+        </div>
+
+        <ServiceLinks links={adminLinks} heading="Dienste" />
+
+        <AdminShortcuts client:load links={shortcuts} />
+
+      </div>
+    </section>
+  )}
 </AdminLayout>

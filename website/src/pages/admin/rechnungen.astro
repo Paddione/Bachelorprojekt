@@ -363,10 +363,10 @@ const STATUS_TABS = [
       const id = btn.dataset.id;
       const level = btn.dataset.level;
       if (!confirm(`Mahnung ${level} jetzt an den Kunden versenden?`)) return;
-      
+
       btn.disabled = true;
       btn.textContent = 'Sendet…';
-      
+
       try {
         const res = await fetch(`/api/admin/billing/dunning/${id}/send`, { method: 'POST' });
         if (res.ok) {

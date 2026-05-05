@@ -11,11 +11,14 @@
 # Safe to re-run: each step is idempotent.
 #
 # Environment:
-#   NAMESPACE  - Kubernetes namespace (default: workspace)
+#   NAMESPACE           - Kubernetes namespace (default: $WORKSPACE_NAMESPACE
+#                         when set by env-resolve.sh, otherwise "workspace")
+#   WORKSPACE_NAMESPACE - exported by `source scripts/env-resolve.sh <env>`;
+#                         used as the namespace fallback for ENV=korczewski
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-workspace}"
+NAMESPACE="${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 CONTEXT="${CONTEXT:-}"
 SCHEME="${SCHEME:-}"
 

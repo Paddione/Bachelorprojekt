@@ -17,10 +17,17 @@ const legalWebsite = legal.website || 'korczewski.de';
 
   <div class="w-team">
     <div class="who">
-      <div class="portrait">
-        <div class="initials">PK</div>
-        <div class="id"><b>{contactName}</b><br/>Operator · {contactCity}</div>
-      </div>
+      <figure class="portrait">
+        <img
+          src="/brand/korczewski/kore-assets/portrait-placeholder.svg"
+          alt={`Portrait-Platzhalter — ${contactName}. Aufnahme folgt.`}
+          loading="lazy"
+          decoding="async"
+          width="400"
+          height="500"
+        />
+        <figcaption class="id"><b>{contactName}</b><br/>Operator · {contactCity}</figcaption>
+      </figure>
     </div>
     <div class="bio-col">
       <span class="role">Operator · founder</span>
@@ -56,31 +63,29 @@ const legalWebsite = legal.website || 'korczewski.de';
     display: flex;
     flex-direction: column;
     gap: 16px;
+    margin: 0;
+    padding: 0;
+    max-width: 320px;
   }
 
-  .initials {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    background: var(--copper, #b87333);
-    color: var(--bg, #0f0f0f);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--serif);
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+  .portrait img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 30px 80px -30px rgba(15, 8, 28, 0.7);
   }
 
   .id {
     font-size: 14px;
     color: var(--mute);
     line-height: 1.6;
+    font-family: var(--sans);
   }
 
   .id b {
     color: var(--fg);
+    font-weight: 500;
   }
 
   .bio-col {
@@ -154,8 +159,7 @@ const legalWebsite = legal.website || 'korczewski.de';
     }
 
     .portrait {
-      flex-direction: row;
-      align-items: center;
+      max-width: 240px;
     }
   }
 </style>

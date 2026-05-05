@@ -11,9 +11,11 @@ const footerServices = (await getEffectiveServices().catch(() => config.services
 interface Props {
   title: string;
   description?: string;
+  brand?: string;
 }
 
-const { title, description = config.meta.siteDescription } = Astro.props;
+const { title, description = config.meta.siteDescription, brand } = Astro.props;
+const isKore = brand === 'korczewski-kore';
 
 const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 ---
@@ -29,8 +31,9 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <title>{title} | {config.meta.siteTitle}</title>
+    {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
   </head>
-  <body class="min-h-screen flex flex-col" style="background:var(--ink-900); color:var(--fg);">
+  <body class={`min-h-screen flex flex-col${isKore ? ' kore' : ''}`} style="background:var(--ink-900); color:var(--fg);">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded" style="background:var(--brass); color:var(--ink-900); font-weight:600;">
       Zum Hauptinhalt springen
     </a>

@@ -234,10 +234,10 @@
   <StreamOffline />
 
 {:else if state === 'live' && room}
-  <div class="grid grid-cols-[1fr_300px] h-[560px] bg-dark rounded-xl overflow-hidden border border-dark-lighter">
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] bg-dark rounded-xl overflow-hidden border border-dark-lighter">
     <!-- Video + controls -->
-    <div class="flex flex-col bg-black">
-      <div class="relative flex-1 overflow-hidden">
+    <div class="flex flex-col bg-black min-h-0">
+      <div class="relative overflow-hidden" style="aspect-ratio: 16/9; min-height: 240px;">
 
         {#if showPublishUI}
           <!-- Admin local preview — screen share fills background -->

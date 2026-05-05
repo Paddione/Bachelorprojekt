@@ -39,7 +39,7 @@
   }
 </script>
 
-<div class="flex flex-col h-full bg-dark-light border-l border-dark-lighter">
+<div class="flex flex-col h-[280px] lg:h-full bg-dark-light border-l lg:border-l border-t lg:border-t-0 border-dark-lighter">
   <div class="px-3 py-2 border-b border-dark-lighter text-sm font-semibold text-light">
     Chat <span class="text-muted font-normal">({room.numParticipants} online)</span>
   </div>

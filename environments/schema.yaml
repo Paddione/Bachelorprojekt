@@ -499,6 +499,11 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: TRACKING_DB_URL
+    required: true
+    generate: false
+    description: "PostgreSQL connection URL for the tracking-import CronJob"
+
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true

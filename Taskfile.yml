@@ -695,6 +695,21 @@ tasks:
     cmds:
       - kubectl exec -it -n workspace deploy/shared-db -- env PGOPTIONS="-c search_path=bachelorprojekt,public" psql -U postgres -d postgres
 
+  tracking:backfill:
+    desc: 'Backfill bachelorprojekt.features from all closed PRs (idempotent)'
+    cmds:
+      - bash scripts/backfill-features.sh
+
+  tracking:backfill:dry:
+    desc: 'Dry-run backfill (prints first 3 parsed rows, writes nothing)'
+    cmds:
+      - bash scripts/backfill-features.sh --dry-run
+
+  tracking:ingest:local:
+    desc: 'Manually drain tracking/pending into shared-db (requires TRACKING_DB_URL env var)'
+    cmds:
+      - node scripts/track-pr.mjs --ingest
+
   workspace:port-forward:
     desc: 'Forward shared-db to localhost:5432'
     vars:

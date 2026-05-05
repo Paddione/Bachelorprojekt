@@ -54,6 +54,7 @@ resources:
   - docs.yaml
   # Anforderungs-Tracking
   - tracking.yaml
+  - tracking-import-cronjob.yaml
   # Transkription
   - whisper.yaml
   # Live-Transkription Bot

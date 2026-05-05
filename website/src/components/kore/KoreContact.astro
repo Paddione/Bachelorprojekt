@@ -1,0 +1,246 @@
+---
+import { config } from '../../config/index';
+import type { DaySlots } from '../../lib/caldav';
+
+const { contact } = config;
+
+const contactEmail = contact.email || 'p.korczewski@gmail.com';
+const contactCity = contact.city || 'Lüneburg';
+
+let nextDay: DaySlots | null = null;
+try {
+  const { getAvailableSlots } = await import('../../lib/caldav');
+  const slots = await getAvailableSlots(undefined, process.env.BRAND_NAME || 'korczewski');
+  nextDay = slots.length > 0 ? slots[0] : null;
+} catch {
+  // CalDAV unreachable — show fallback
+}
+
+// Build slot hrefs the same way SlotWidget does
+function slotHref(day: DaySlots, slot: DaySlots['slots'][number]): string {
+  const parts = slot.display.split(' - ');
+  const [startHH, startMM] = (parts[0] ?? '').split(':');
+  const [endHH, endMM] = (parts[1] ?? '').split(':');
+  return `/termin?date=${day.date}&start=${startHH ?? '00'}:${startMM ?? '00'}&end=${endHH ?? '00'}:${endMM ?? '00'}`;
+}
+
+const dateFormatted = nextDay
+  ? new Date(nextDay.date + 'T12:00:00').toLocaleDateString('de-DE', {
+      weekday: 'long', day: '2-digit', month: 'long',
+    })
+  : null;
+---
+
+<section class="w-section" id="contact">
+  <div class="head">
+    <span class="num">— / 04</span>
+    <h2>Mit einem <em class="em">Menschen sprechen,</em> innerhalb einer Woche.</h2>
+    <span class="hint">Kein Formular · keine Funnel</span>
+  </div>
+
+  <div class="w-contact">
+    <div class="panel">
+      <h3>Die direkte <em class="em">Linie.</em></h3>
+      <p class="intro-p">E-Mail oder Signal. Antworten innerhalb eines Werktags.</p>
+
+      <div class="row">
+        <span class="lab">E-Mail</span>
+        <span class="v">
+          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+          <span class="small">PGP-Key auf Anfrage</span>
+        </span>
+      </div>
+      <div class="row">
+        <span class="lab">Ort</span>
+        <span class="v">
+          {contactCity}
+          <span class="small">remote &amp; vor Ort im Hamburger Raum</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="booker">
+      <span class="lab">Nächster Termin</span>
+      <h3>30-Minuten <em class="em">Kennenlernen.</em></h3>
+      {nextDay ? (
+        <>
+          <p class="date-line">{dateFormatted}</p>
+          <div class="slots">
+            {nextDay.slots.slice(0, 6).map((slot) => {
+              const parts = slot.display.split(' - ');
+              const timeOnly = parts[0] ?? slot.display;
+              return (
+                <a href={slotHref(nextDay!, slot)} class="slot">
+                  <span class="day">{nextDay!.weekday}</span>
+                  <span class="time">{timeOnly}</span>
+                </a>
+              );
+            })}
+          </div>
+          <a href="/termin" class="all-link">Alle Termine anzeigen →</a>
+        </>
+      ) : (
+        <p class="note">
+          Aktuell keine freien Slots geladen.{' '}
+          <a href="/termin" style="color:var(--copper);">Kalender öffnen →</a>
+        </p>
+      )}
+      <p class="note">Alle Zeiten Europe/Berlin. Kalender-Bestätigung innerhalb einer Stunde.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .w-contact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
+  }
+
+  .panel,
+  .booker {
+    border: 1px solid var(--line-2, rgba(255,255,255,.08));
+    border-radius: 12px;
+    padding: 36px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .panel h3,
+  .booker h3 {
+    font-family: var(--serif);
+    font-size: clamp(22px, 2.5vw, 30px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 8px 0 20px;
+    color: var(--fg);
+  }
+
+  .intro-p {
+    font-size: 14px;
+    color: var(--mute);
+    margin: 0 0 28px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line-2, rgba(255,255,255,.08));
+    align-items: start;
+  }
+
+  .lab {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--mute);
+    padding-top: 2px;
+  }
+
+  .v {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 14px;
+    color: var(--fg);
+  }
+
+  .v a {
+    color: var(--copper, #b87333);
+    text-decoration: none;
+  }
+
+  .v a:hover {
+    text-decoration: underline;
+  }
+
+  .small {
+    font-size: 12px;
+    color: var(--mute);
+  }
+
+  /* Booker panel */
+  .booker .lab {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .date-line {
+    font-size: 13px;
+    color: var(--mute);
+    margin: -12px 0 20px;
+  }
+
+  .slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 16px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.08));
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    gap: 2px;
+  }
+
+  .slot:hover {
+    border-color: var(--copper, #b87333);
+    background: var(--copper-a10, rgba(184,115,51,.08));
+  }
+
+  .slot .day {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mute);
+  }
+
+  .slot .time {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .all-link {
+    font-size: 13px;
+    color: var(--copper, #b87333);
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+
+  .all-link:hover {
+    text-decoration: underline;
+  }
+
+  .note {
+    font-size: 12px;
+    color: var(--mute);
+    margin: 4px 0 0;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    .w-contact {
+      grid-template-columns: 1fr;
+    }
+
+    .panel,
+    .booker {
+      padding: 28px 24px;
+    }
+  }
+</style>

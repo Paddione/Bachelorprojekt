@@ -344,3 +344,16 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy ENV=<env>` then `task docs:restart ENV=<env>`. Applying the ConfigMap alone leaves the old content served.
 - **yamllint runs a 200-char line limit in CI only.** Long base64 strings or multiline patches that are fine locally will fail the `lint-yaml` job on PR. Run `yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' <file>` before pushing.
 - **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
+
+### Korczewski homepage uses the Kore design system (different from mentolder)
+
+`web.korczewski.de` and `web.mentolder.de` no longer share a layout. `website/src/pages/index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` and renders the components under `website/src/components/kore/` for the `korczewski` brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.
+
+The Kore homepage shows a live PR-driven timeline:
+- Every merged PR triggers `.github/workflows/track-pr.yml` → writes `tracking/pending/<pr>.json` to main.
+- The `tracking-import` CronJob in workspace ns drains pending into `bachelorprojekt.features` every 5 minutes.
+- The homepage reads `bachelorprojekt.v_timeline` (joined to `bugs.bug_tickets.fixed_in_pr` for fix counts) via `/api/timeline`.
+
+To backfill historical PRs: `task tracking:backfill && task tracking:ingest:local` (the latter requires `TRACKING_DB_URL` from a port-forward to shared-db).
+
+The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRAND_ID` in local dev — `index.astro` reads both with `process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'`.

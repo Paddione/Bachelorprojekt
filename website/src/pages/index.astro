@@ -11,6 +11,20 @@ import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
 import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq } from '../lib/content';
+import KoreSubNav   from '../components/kore/KoreSubNav.astro';
+import KorePillars  from '../components/kore/KorePillars.astro';
+import KoreBugs     from '../components/kore/KoreBugs.astro';
+import KoreTeam     from '../components/kore/KoreTeam.astro';
+import KoreContact  from '../components/kore/KoreContact.astro';
+import KoreFooter   from '../components/kore/KoreFooter.astro';
+import KoreHero     from '../components/kore/KoreHero.svelte';
+import KoreTimeline from '../components/kore/KoreTimeline.svelte';
+import { listTimeline } from '../lib/website-db';
+
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const initialTimeline = BRAND_ID === 'korczewski'
+  ? await listTimeline({ limit: 20 }).catch(() => [])
+  : [];
 
 const { contact } = config;
 const homepage = await getEffectiveHomepage();
@@ -61,103 +75,117 @@ const processSteps = [
 ];
 ---
 
-<Layout title={config.meta.siteTitle}>
-  <!-- Hero with Portrait -->
-  <Hero
-    client:load
-    title={homepage.hero.title}
-    subtitle={homepage.hero.subtitle}
-    tagline={homepage.hero.tagline}
-    avatarType={homepage.avatarType}
-    avatarSrc={homepage.avatarSrc}
-    avatarInitials={homepage.avatarInitials}
-    personName={contact.name}
-    personRole={config.legal.jobtitle}
-  />
+{BRAND_ID === 'korczewski' ? (
+  <Layout title="Kore. — Self-hosted, vor Ihren Augen." brand="korczewski-kore">
+    <style is:global>@import '../styles/kore-website.css';</style>
+    <KoreSubNav />
+    <KoreHero client:load />
+    <KorePillars />
+    <KoreTimeline client:load initialRows={initialTimeline} />
+    <KoreBugs />
+    <KoreTeam />
+    <KoreContact />
+    <KoreFooter />
+  </Layout>
+) : (
+  <Layout title={config.meta.siteTitle}>
+    <!-- Hero with Portrait -->
+    <Hero
+      client:load
+      title={homepage.hero.title}
+      subtitle={homepage.hero.subtitle}
+      tagline={homepage.hero.tagline}
+      avatarType={homepage.avatarType}
+      avatarSrc={homepage.avatarSrc}
+      avatarInitials={homepage.avatarInitials}
+      personName={contact.name}
+      personRole={config.legal.jobtitle}
+    />
 
-  <!-- Stats + Availability strip -->
-  <div class="strip" role="region" aria-label="Eckdaten und Verfügbarkeit">
-    <!-- Stats -->
-    <div class="stats" aria-label="Kennzahlen">
-      {homepage.stats.map((stat) => (
-        <div class="stat">
-          <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
-          <span class="stat-lab">{stat.label}</span>
-        </div>
-      ))}
-    </div>
-
-    <!-- Availability -->
-    {nextDay
-      ? <SlotWidget day={nextDay} />
-      : (
-        <div class="availability-placeholder">
-          <p style="color:var(--mute); font-size:14px;">
-            <a href="/termin" style="color:var(--brass); text-decoration:none;">Termine ansehen →</a>
-          </p>
-        </div>
-      )
-    }
-  </div>
-
-  <!-- Offers -->
-  <section id="angebote" class="section" aria-labelledby="offers-heading">
-    <div class="wrap">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Meine Angebote</p>
-          <h2 id="offers-heading">{homepage.servicesHeadline}</h2>
-        </div>
-        <p class="section-intro">{homepage.servicesSubheadline}</p>
-      </div>
-
-      <div class="offers" role="list" aria-label="Angebote">
-        {services.map((service, i) => (
-          <div role="listitem">
-            <ServiceRow
-              num={String(i + 1).padStart(2, '0')}
-              title={service.title}
-              meta={serviceMeta[service.slug]}
-              description={service.description}
-              features={service.features}
-              price={service.price}
-              href={`/${service.slug}`}
-              stripeServiceKey={service.stripeServiceKey}
-              client:visible
-            />
+    <!-- Stats + Availability strip -->
+    <div class="strip" role="region" aria-label="Eckdaten und Verfügbarkeit">
+      <!-- Stats -->
+      <div class="stats" aria-label="Kennzahlen">
+        {homepage.stats.map((stat) => (
+          <div class="stat">
+            <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
+            <span class="stat-lab">{stat.label}</span>
           </div>
         ))}
       </div>
+
+      <!-- Availability -->
+      {nextDay
+        ? <SlotWidget day={nextDay} />
+        : (
+          <div class="availability-placeholder">
+            <p style="color:var(--mute); font-size:14px;">
+              <a href="/termin" style="color:var(--brass); text-decoration:none;">Termine ansehen →</a>
+            </p>
+          </div>
+        )
+      }
     </div>
-  </section>
 
-  <!-- Why Me + Quote -->
-  <WhyMe
-    client:visible
-    headline={homepage.whyMeHeadline}
-    intro={homepage.whyMeIntro}
-    points={homepage.whyMePoints}
-    quote={homepage.quote}
-    quoteName={homepage.quoteName}
-    quoteRole={config.legal.jobtitle}
-  />
+    <!-- Offers -->
+    <section id="angebote" class="section" aria-labelledby="offers-heading">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Meine Angebote</p>
+            <h2 id="offers-heading">{homepage.servicesHeadline}</h2>
+          </div>
+          <p class="section-intro">{homepage.servicesSubheadline}</p>
+        </div>
 
-  <!-- Process -->
-  <Process steps={processSteps} />
+        <div class="offers" role="list" aria-label="Angebote">
+          {services.map((service, i) => (
+            <div role="listitem">
+              <ServiceRow
+                num={String(i + 1).padStart(2, '0')}
+                title={service.title}
+                meta={serviceMeta[service.slug]}
+                description={service.description}
+                features={service.features}
+                price={service.price}
+                href={`/${service.slug}`}
+                stripeServiceKey={service.stripeServiceKey}
+                client:visible
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
 
-  <!-- FAQ -->
-  <FAQ items={faq.map((item) => ({
-    ...item,
-    answer: item.answer.replace('{city}', contact.city),
-  }))} client:visible />
+    <!-- Why Me + Quote -->
+    <WhyMe
+      client:visible
+      headline={homepage.whyMeHeadline}
+      intro={homepage.whyMeIntro}
+      points={homepage.whyMePoints}
+      quote={homepage.quote}
+      quoteName={homepage.quoteName}
+      quoteRole={config.legal.jobtitle}
+    />
 
-  <!-- CTA -->
-  <CallToAction
-    client:visible
-    secondaryText={contact.email}
-    secondaryHref={`mailto:${contact.email}`}
-  />
-</Layout>
+    <!-- Process -->
+    <Process steps={processSteps} />
+
+    <!-- FAQ -->
+    <FAQ items={faq.map((item) => ({
+      ...item,
+      answer: item.answer.replace('{city}', contact.city),
+    }))} client:visible />
+
+    <!-- CTA -->
+    <CallToAction
+      client:visible
+      secondaryText={contact.email}
+      secondaryHref={`mailto:${contact.email}`}
+    />
+  </Layout>
+)}
 
 <style>
   /* Strip: stats + availability */

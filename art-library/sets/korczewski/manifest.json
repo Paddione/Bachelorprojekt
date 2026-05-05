@@ -1,0 +1,22 @@
+{
+  "version": "2026-05-05",
+  "brand": "korczewski-kore",
+  "source": "anthropic-design-BqxMXwsTiIaYMbqOsCwrOg",
+  "tokens": {
+    "ink-900": "#120D1C",
+    "copper":  "#C8F76A",
+    "teal":    "#5BD4D0"
+  },
+  "fonts": ["Instrument Serif", "Geist", "JetBrains Mono"],
+  "stylesheets": ["colors_and_type.css", "styles/website.css", "styles/app.css"],
+  "assets": [
+    { "id": "logo-mark",         "kind": "logo",         "files": { "svg": "assets/logo-mark.svg" } },
+    { "id": "logo-lockup-dark",  "kind": "logo",         "files": { "svg": "assets/logo-lockup-dark.svg" } },
+    { "id": "logo-lockup-light", "kind": "logo",         "files": { "svg": "assets/logo-lockup-light.svg" } },
+    { "id": "k8s-wheel",         "kind": "illustration", "files": { "svg": "assets/k8s-wheel.svg" } },
+    { "id": "topology-3node",    "kind": "illustration", "files": { "svg": "assets/topology-3node.svg" } }
+  ],
+  "ui_kits": ["website", "app", "documents"],
+  "preview_count": 22,
+  "portfolio_set": "portfolio/manifest.json"
+}

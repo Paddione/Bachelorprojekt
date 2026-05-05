@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8"><title>Mentolder · Slot Widget</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="../styles/website.css">
+<style>body{background:var(--ink-900);color:var(--fg);padding:40px;font-family:var(--sans);}
+@keyframes pulse{0%{box-shadow:0 0 0 0 oklch(0.80 0.06 160 / .6);}70%{box-shadow:0 0 0 8px oklch(0.80 0.06 160 / 0);}100%{box-shadow:0 0 0 0 oklch(0.80 0.06 160 / 0);}}
+</style>
+</head><body>
+<div class="availability" style="max-width:480px;border:1px solid var(--line);">
+  <div class="avail-row">
+    <span class="pulse" style="width:10px;height:10px;border-radius:50%;background:var(--sage);animation:pulse 2.2s infinite;flex-shrink:0;margin-top:5px;display:inline-block;"></span>
+    <div>
+      <p class="avail-title">Nächste freie Termine</p>
+      <p class="avail-sub">Mo, 06. Mai 2026 · kostenloses Erstgespräch (30 Min.)</p>
+    </div>
+  </div>
+  <div class="avail-slots">
+    <a href="#" class="slot-pill">09:00</a>
+    <a href="#" class="slot-pill">10:30</a>
+    <a href="#" class="slot-pill">14:00</a>
+    <a href="#" class="slot-pill slot-pill-all">→ alle Termine</a>
+  </div>
+</div>
+</body></html>

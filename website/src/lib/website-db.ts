@@ -26,6 +26,76 @@ function nodeLookup(
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
+// ── Tracking DB (bachelorprojekt schema) ────────────────────────────────────
+
+let trackingPool: import('pg').Pool | null = null;
+
+function getTrackingPool(): import('pg').Pool {
+  if (trackingPool) return trackingPool;
+  const url = process.env.TRACKING_DB_URL
+    || process.env.DATABASE_URL?.replace(/\/[^/?]+(\?|$)/, '/postgres$1');
+  if (!url) throw new Error('TRACKING_DB_URL not set');
+  trackingPool = new Pool({ connectionString: url, max: 4 } as import('pg').PoolConfig);
+  return trackingPool;
+}
+
+export type TimelineRow = {
+  id: number;
+  day: string;
+  pr_number: number | null;
+  title: string;
+  description: string | null;
+  category: string;
+  scope: string | null;
+  brand: string | null;
+  requirement_id: string | null;
+  requirement_name: string | null;
+  bugs_fixed: number;
+};
+
+export async function listTimeline(opts: {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  brand?: string;
+} = {}): Promise<TimelineRow[]> {
+  const limit = Math.min(opts.limit ?? 20, 100);
+  const offset = opts.offset ?? 0;
+
+  const tPool = getTrackingPool();
+  const where: string[] = [];
+  const params: unknown[] = [];
+  if (opts.category) { params.push(opts.category); where.push(`category = $${params.length}`); }
+  if (opts.brand)    { params.push(opts.brand);    where.push(`(brand = $${params.length} OR brand IS NULL)`); }
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+  params.push(limit, offset);
+
+  const rows = (await tPool.query(
+    `SELECT id, to_char(day,'YYYY-MM-DD') AS day, pr_number, title, description,
+            category, scope, brand, requirement_id, requirement_name
+       FROM bachelorprojekt.v_timeline
+       ${whereSql}
+      ORDER BY merged_at DESC
+      LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
+  )).rows as Omit<TimelineRow, 'bugs_fixed'>[];
+
+  const prNumbers = rows.map(r => r.pr_number).filter((n): n is number => n != null);
+  const bugCounts = new Map<number, number>();
+  if (prNumbers.length > 0) {
+    const counts = (await pool.query(
+      `SELECT fixed_in_pr AS pr, COUNT(*)::int AS n
+         FROM bugs.bug_tickets
+        WHERE fixed_in_pr = ANY($1::int[])
+        GROUP BY fixed_in_pr`,
+      [prNumbers],
+    )).rows as { pr: number; n: number }[];
+    for (const c of counts) bugCounts.set(c.pr, c.n);
+  }
+
+  return rows.map(r => ({ ...r, bugs_fixed: r.pr_number ? (bugCounts.get(r.pr_number) ?? 0) : 0 }));
+}
+
 // ── Customer ────────────────────────────────────────────────────────────────
 
 export interface Customer {
@@ -591,7 +661,8 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
   const result = await pool.query(
     `SELECT ticket_id as "ticketId", status, category,
             created_at as "createdAt", resolved_at as "resolvedAt",
-            resolution_note as "resolutionNote"
+            resolution_note as "resolutionNote",
+            fixed_in_pr as "fixedInPr", fixed_at as "fixedAt"
      FROM bugs.bug_tickets WHERE ticket_id = $1`,
     [ticketId]
   );
@@ -634,6 +705,17 @@ export async function initBugTicketsTable(): Promise<void> {
     ALTER TABLE bugs.bug_tickets
       ALTER COLUMN brand DROP DEFAULT
   `);
+  await pool.query(
+    `ALTER TABLE bugs.bug_tickets
+       ADD COLUMN IF NOT EXISTS fixed_in_pr   INTEGER`
+  );
+  await pool.query(
+    `ALTER TABLE bugs.bug_tickets
+       ADD COLUMN IF NOT EXISTS fixed_at      TIMESTAMPTZ`
+  );
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr)`
+  );
   // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
   await pool.query(`
     UPDATE inbox_items
@@ -2182,6 +2264,8 @@ export interface BugTicketRow {
   resolvedAt: Date | null;
   resolutionNote: string | null;
   screenshots: string[] | null;
+  fixedInPr?: number | null;
+  fixedAt?: Date | null;
 }
 
 let bookingProjectLinksReady = false;
@@ -2486,7 +2570,9 @@ export async function listBugTickets(filters: {
             created_at       AS "createdAt",
             resolved_at      AS "resolvedAt",
             resolution_note  AS "resolutionNote",
-            screenshots_json AS "screenshots"
+            screenshots_json AS "screenshots",
+            fixed_in_pr      AS "fixedInPr",
+            fixed_at         AS "fixedAt"
      FROM bugs.bug_tickets
      WHERE ($1::text IS NULL OR brand = $1)
        AND ($2::text IS NULL OR status = $2)

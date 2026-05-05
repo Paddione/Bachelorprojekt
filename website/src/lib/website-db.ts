@@ -26,6 +26,76 @@ function nodeLookup(
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
+// ── Tracking DB (bachelorprojekt schema) ────────────────────────────────────
+
+let trackingPool: import('pg').Pool | null = null;
+
+function getTrackingPool(): import('pg').Pool {
+  if (trackingPool) return trackingPool;
+  const url = process.env.TRACKING_DB_URL
+    || process.env.DATABASE_URL?.replace(/\/[^/?]+(\?|$)/, '/postgres$1');
+  if (!url) throw new Error('TRACKING_DB_URL not set');
+  trackingPool = new Pool({ connectionString: url, max: 4 } as import('pg').PoolConfig);
+  return trackingPool;
+}
+
+export type TimelineRow = {
+  id: number;
+  day: string;
+  pr_number: number | null;
+  title: string;
+  description: string | null;
+  category: string;
+  scope: string | null;
+  brand: string | null;
+  requirement_id: string | null;
+  requirement_name: string | null;
+  bugs_fixed: number;
+};
+
+export async function listTimeline(opts: {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  brand?: string;
+} = {}): Promise<TimelineRow[]> {
+  const limit = Math.min(opts.limit ?? 20, 100);
+  const offset = opts.offset ?? 0;
+
+  const tPool = getTrackingPool();
+  const where: string[] = [];
+  const params: unknown[] = [];
+  if (opts.category) { params.push(opts.category); where.push(`category = $${params.length}`); }
+  if (opts.brand)    { params.push(opts.brand);    where.push(`(brand = $${params.length} OR brand IS NULL)`); }
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+  params.push(limit, offset);
+
+  const rows = (await tPool.query(
+    `SELECT id, to_char(day,'YYYY-MM-DD') AS day, pr_number, title, description,
+            category, scope, brand, requirement_id, requirement_name
+       FROM bachelorprojekt.v_timeline
+       ${whereSql}
+      ORDER BY merged_at DESC
+      LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
+  )).rows as Omit<TimelineRow, 'bugs_fixed'>[];
+
+  const prNumbers = rows.map(r => r.pr_number).filter((n): n is number => n != null);
+  const bugCounts = new Map<number, number>();
+  if (prNumbers.length > 0) {
+    const counts = (await pool.query(
+      `SELECT fixed_in_pr AS pr, COUNT(*)::int AS n
+         FROM bugs.bug_tickets
+        WHERE fixed_in_pr = ANY($1::int[])
+        GROUP BY fixed_in_pr`,
+      [prNumbers],
+    )).rows as { pr: number; n: number }[];
+    for (const c of counts) bugCounts.set(c.pr, c.n);
+  }
+
+  return rows.map(r => ({ ...r, bugs_fixed: r.pr_number ? (bugCounts.get(r.pr_number) ?? 0) : 0 }));
+}
+
 // ── Customer ────────────────────────────────────────────────────────────────
 
 export interface Customer {

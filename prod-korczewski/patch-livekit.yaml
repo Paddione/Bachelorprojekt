@@ -60,6 +60,14 @@ spec:
                     operator: In
                     values:
                       - k3s-3
+      # CoreDNS lives on Hetzner; the WireGuard/Flannel double-hop is broken
+      # so DNS lookups from k3s-3 pods time out. Pin the only two hostnames
+      # egress dials to addresses kube-proxy can DNAT locally on k3s-3.
+      hostAliases:
+        - ip: 10.43.167.113   # livekit-redis ClusterIP -> backed by pod on k3s-3
+          hostnames: [livekit-redis]
+        - ip: 192.168.100.4   # livekit-server hostNetwork on k3s-3 wg0
+          hostnames: [livekit-server]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -78,3 +86,8 @@ spec:
                     operator: In
                     values:
                       - k3s-3
+      hostAliases:
+        - ip: 10.43.167.113
+          hostnames: [livekit-redis]
+        - ip: 192.168.100.4
+          hostnames: [livekit-server]

@@ -8,6 +8,23 @@ metadata:
 spec:
   template:
     spec:
+      # Pin to Hetzner nodes. Home workers (k3s-1/2/3, k3w-1/2/3) sit behind
+      # the WireGuard CNI partition and cannot reach CoreDNS, so apt-get in
+      # the install-cmp-tools init container hangs forever on DNS.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - gekko-hetzner-2
+                      - gekko-hetzner-3
+                      - gekko-hetzner-4
+                      - pk-hetzner
+                      - pk-hetzner-2
+                      - pk-hetzner-3
       volumes:
         - name: custom-tools
           emptyDir: {}

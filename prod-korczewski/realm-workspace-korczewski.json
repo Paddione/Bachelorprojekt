@@ -69,7 +69,10 @@
       "secret": "${NEXTCLOUD_OIDC_SECRET}",
       "redirectUris": [
         "https://${NC_DOMAIN}/apps/oidc_login/oidc",
-        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak"
+        "https://${NC_DOMAIN}/apps/sociallogin/custom_oidc/keycloak",
+        "https://${NC_DOMAIN}/index.php/apps/oidc_login/oidc",
+        "https://${NC_DOMAIN}/index.php/apps/sociallogin/custom_oidc/keycloak",
+        "https://${NC_DOMAIN}/*"
       ],
       "webOrigins": [
         "https://${NC_DOMAIN}"

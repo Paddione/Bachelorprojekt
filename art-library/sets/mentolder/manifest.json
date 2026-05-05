@@ -1,15 +1,43 @@
 {
-  "version": "2026-05-05",
+  "version": "2026-05-04",
   "brand": "mentolder",
-  "source": "live-snapshot-web.mentolder.de",
   "tokens": {
-    "bg": "#0b111c",
-    "brass": "#cda260",
-    "sage": "oklch(0.80 0.06 160)"
+    "ink-900": "#0b111c",
+    "brass":   "#d7b06a",
+    "sage":    "#a8c9b0"
   },
-  "fonts": ["Newsreader", "Geist", "Geist Mono"],
-  "stylesheets": ["colors_and_type.css", "styles/website.css"],
-  "ui_kits": ["website"],
-  "preview_count": 8,
-  "portfolio_set": "portfolio/manifest.json"
+  "assets": [
+    { "id": "digital50",  "kind": "character", "name_de": "50+ Digital",              "name_en": "50+ Digital",
+      "tags": ["coaching","digital","einsteiger"],
+      "palette": { "ink": "#0b111c", "surface": "#101826", "accent": "#d7b06a", "accent2": "#f0d28c", "soft": "#a8c9b0" },
+      "files": { "portrait": "characters_digital50.portrait.svg", "figurine": "characters_digital50.figurine.svg" } },
+    { "id": "leadership", "kind": "character", "name_de": "Führungskräfte-Coaching",   "name_en": "Leadership Coaching",
+      "tags": ["coaching","fuehrung","sparring"],
+      "palette": { "ink": "#0b111c", "surface": "#17202e", "accent": "#d7b06a", "accent2": "#f0d28c", "soft": "#a8c9b0" },
+      "files": { "portrait": "characters_leadership.portrait.svg", "figurine": "characters_leadership.figurine.svg" } },
+    { "id": "consulting",  "kind": "character", "name_de": "Unternehmensberatung",      "name_en": "Business Consulting",
+      "tags": ["beratung","strategie","roadmap"],
+      "palette": { "ink": "#0b111c", "surface": "#1d2736", "accent": "#d7b06a", "accent2": "#f0d28c", "soft": "#6fa8d8" },
+      "files": { "portrait": "characters_consulting.portrait.svg", "figurine": "characters_consulting.figurine.svg" } },
+
+    { "id": "prop-compass",   "kind": "prop", "name_de": "Orientierung", "name_en": "Compass",   "tags": ["strategie","klarheit"],        "files": { "icon": "props_compass.svg" } },
+    { "id": "prop-handshake", "kind": "prop", "name_de": "Begleitung",   "name_en": "Handshake", "tags": ["coaching","sparring"],          "files": { "icon": "props_handshake.svg" } },
+    { "id": "prop-briefcase", "kind": "prop", "name_de": "Beratung",     "name_en": "Briefcase", "tags": ["beratung","unternehmen"],       "files": { "icon": "props_briefcase.svg" } },
+    { "id": "prop-bookmark",  "kind": "prop", "name_de": "Methode",      "name_en": "Bookmark",  "tags": ["werkzeug","notiz"],             "files": { "icon": "props_bookmark.svg" } },
+    { "id": "prop-chat",      "kind": "prop", "name_de": "Erstgespräch", "name_en": "Chat",      "tags": ["kontakt","kostenlos"],          "files": { "icon": "props_chat.svg" } },
+    { "id": "prop-spark",     "kind": "prop", "name_de": "Veränderung",  "name_en": "Spark",     "tags": ["transfer","haltung","impact"],  "files": { "icon": "props_spark.svg" } },
+
+    { "id": "sur-01", "kind": "terrain", "name_de": "Tinte · Tief",     "name_en": "Deep Ink",       "tags": ["substrat","dunkel","tief"],   "files": { "swatch": "terrain_sur-01.svg" } },
+    { "id": "sur-02", "kind": "terrain", "name_de": "Messing-Halo",     "name_en": "Brass Halo",     "tags": ["hero","cta","warm"],          "files": { "swatch": "terrain_sur-02.svg" } },
+    { "id": "sur-03", "kind": "terrain", "name_de": "Stille-Blau",      "name_en": "Still Blue",     "tags": ["schatten","tiefe","blau"],    "files": { "swatch": "terrain_sur-03.svg" } },
+    { "id": "sur-04", "kind": "terrain", "name_de": "Hairline-Gitter",  "name_en": "Hairline Grid",  "tags": ["strip","karte","gitter"],     "files": { "swatch": "terrain_sur-04.svg" } },
+    { "id": "sur-05", "kind": "terrain", "name_de": "Duotone · Porträt","name_en": "Portrait Wash",  "tags": ["bild","portrait","warm"],      "files": { "swatch": "terrain_sur-05.svg" } },
+    { "id": "sur-06", "kind": "terrain", "name_de": "Salbei-Puls",      "name_en": "Sage Pulse",     "tags": ["availability","live","sage"],"files": { "swatch": "terrain_sur-06.svg" } },
+
+    { "id": "logo-mark",         "kind": "logo", "name_de": "Marke",                 "name_en": "Mark",          "tags": ["logo","brand","square"],   "animated": false, "files": { "svg": "logos_mark.svg" } },
+    { "id": "logo-lockup-dark",  "kind": "logo", "name_de": "Wortmarke · Dunkel",    "name_en": "Lockup · Dark", "tags": ["logo","brand","wordmark"],  "animated": false, "files": { "svg": "logos_lockup-dark.svg" } },
+    { "id": "logo-lockup-light", "kind": "logo", "name_de": "Wortmarke · Hell",      "name_en": "Lockup · Light","tags": ["logo","brand","wordmark"],  "animated": false, "files": { "svg": "logos_lockup-light.svg" } },
+    { "id": "logo-app-icon",     "kind": "logo", "name_de": "App-Icon",              "name_en": "App Icon",      "tags": ["logo","brand","icon"],      "animated": false, "files": { "svg": "logos_app-icon.svg" } },
+    { "id": "logo-brass-pulse",  "kind": "logo", "name_de": "Animiert · Brass-Puls", "name_en": "Brass Pulse",   "tags": ["logo","brand","animated"],  "animated": true,  "files": { "svg": "logos_brass-pulse.svg" } }
+  ]
 }

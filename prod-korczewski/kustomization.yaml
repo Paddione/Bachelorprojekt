@@ -42,6 +42,18 @@ generatorOptions:
 # patch-livekit.yaml (hostNetwork + pinned public IP). Traefik on pk-hetzner
 # reaches livekit-server via WireGuard because it uses the host network.
 patches:
+  # Switch recordings PVC from local-path to longhorn so it survives node reschedules.
+  # One-time live migration: delete livekit-recordings-pvc on the cluster, then re-sync.
+  - target:
+      kind: PersistentVolumeClaim
+      name: livekit-recordings-pvc
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: livekit-recordings-pvc
+      spec:
+        storageClassName: longhorn
   - target:
       kind: Deployment
     patch: |-

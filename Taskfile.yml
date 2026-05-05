@@ -250,10 +250,11 @@ tasks:
         echo "Dry-run: All tasks parsed successfully"
 
   test:all:
-    desc: "Run all offline tests: unit + manifests + dry-run"
+    desc: "Run all offline tests: unit + manifests + art-library + dry-run"
     deps:
       - test:unit
       - test:manifests
+      - test:art-library
       - test:dry-run
 
   test:ci:

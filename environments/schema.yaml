@@ -154,6 +154,14 @@ env_vars:
     required: true
     default_dev: "brett.localhost"
 
+  - name: LIVEKIT_DOMAIN
+    required: true
+    default_dev: "livekit.localhost"
+
+  - name: STREAM_DOMAIN
+    required: true
+    default_dev: "stream.localhost"
+
   - name: DASHBOARD_DOMAIN
     required: true
     default_dev: "dashboard.localhost"

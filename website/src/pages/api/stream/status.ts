@@ -4,7 +4,7 @@ import { RoomServiceClient } from 'livekit-server-sdk';
 
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY || 'devlivekit';
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET || 'devlivekitsecret1234567890abcdef';
-const LIVEKIT_URL = `http://${process.env.LIVEKIT_DOMAIN || 'livekit.localhost'}`;
+const LIVEKIT_URL = process.env.LIVEKIT_SERVICE_URL || `http://${process.env.LIVEKIT_DOMAIN || 'livekit.localhost'}`;
 const ROOM_NAME = 'main-stream';
 
 export const GET: APIRoute = async () => {

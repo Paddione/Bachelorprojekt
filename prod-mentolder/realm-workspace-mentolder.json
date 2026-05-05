@@ -119,10 +119,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${WEBSITE_OIDC_SECRET}",
       "redirectUris": [
-        "https://${WEB_DOMAIN}/*"
+        "https://${WEB_DOMAIN}/*",
+        "https://web.korczewski.de/*"
       ],
       "webOrigins": [
-        "https://${WEB_DOMAIN}"
+        "https://${WEB_DOMAIN}",
+        "https://web.korczewski.de"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

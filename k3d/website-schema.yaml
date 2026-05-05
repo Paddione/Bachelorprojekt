@@ -672,7 +672,7 @@ data:
     set -e
     echo "Ensuring bachelorprojekt schema is up to date..."
 
-    psql -v ON_ERROR_STOP=1 --username "postgres" --dbname postgres <<-'EOSQL'
+    psql -v ON_ERROR_STOP=1 --username "postgres" --dbname website <<-'EOSQL'
       CREATE SCHEMA IF NOT EXISTS bachelorprojekt;
 
       CREATE TABLE IF NOT EXISTS bachelorprojekt.requirements (
@@ -729,6 +729,44 @@ data:
       SELECT DISTINCT ON (req_id) req_id, result, run_at, details
       FROM bachelorprojekt.test_results
       ORDER BY req_id, run_at DESC;
+
+      CREATE TABLE IF NOT EXISTS bachelorprojekt.features (
+        id             SERIAL PRIMARY KEY,
+        pr_number      INTEGER,
+        title          TEXT NOT NULL,
+        description    TEXT,
+        category       TEXT NOT NULL DEFAULT 'feature',
+        scope          TEXT,
+        brand          TEXT,
+        requirement_id TEXT REFERENCES bachelorprojekt.requirements(id) ON DELETE SET NULL,
+        merged_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+        merged_by      TEXT,
+        status         TEXT NOT NULL DEFAULT 'merged',
+        created_at     TIMESTAMPTZ DEFAULT now()
+      );
+
+      CREATE OR REPLACE VIEW bachelorprojekt.v_timeline AS
+      SELECT f.id,
+             f.merged_at::date AS day,
+             f.merged_at,
+             f.pr_number,
+             f.title,
+             f.description,
+             f.category,
+             f.scope,
+             f.brand,
+             f.requirement_id,
+             r.name AS requirement_name,
+             r.category AS requirement_category
+        FROM bachelorprojekt.features f
+        LEFT JOIN bachelorprojekt.requirements r ON r.id = f.requirement_id
+       ORDER BY f.merged_at DESC;
+
+      GRANT USAGE ON SCHEMA bachelorprojekt TO website;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA bachelorprojekt TO website;
+      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA bachelorprojekt TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA bachelorprojekt GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA bachelorprojekt GRANT USAGE, SELECT ON SEQUENCES TO website;
     EOSQL
 
     echo "Bachelorprojekt schema ensure complete."

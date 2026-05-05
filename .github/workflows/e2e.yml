@@ -36,9 +36,13 @@ jobs:
           - cluster: mentolder
             website_url: https://web.mentolder.de
             prod_domain: mentolder.de
+            contact_email: info@mentolder.de
+            contact_phone: "+49 151 508 32 601"
           - cluster: korczewski
             website_url: https://web.korczewski.de
             prod_domain: korczewski.de
+            contact_email: info@korczewski.de
+            contact_phone: ""
     env:
       SELECTED_CLUSTER: ${{ inputs.cluster }}
       EVENT_NAME: ${{ github.event_name }}
@@ -78,24 +82,35 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         working-directory: tests/e2e
         env:
+          # Primary URLs
           WEBSITE_URL: ${{ matrix.website_url }}
           PROD_DOMAIN: ${{ matrix.prod_domain }}
+          # Per-service URL overrides — without these the specs fall back to
+          # *.localhost defaults and ECONNREFUSED on the runner.
+          TEST_KC_URL: https://auth.${{ matrix.prod_domain }}
+          TEST_NC_URL: https://files.${{ matrix.prod_domain }}
+          TEST_SIGNALING_URL: https://signaling.${{ matrix.prod_domain }}
+          NC_DOMAIN: files.${{ matrix.prod_domain }}
+          SIGNALING_DOMAIN: signaling.${{ matrix.prod_domain }}
+          VAULT_URL: https://vault.${{ matrix.prod_domain }}
+          MAIL_URL: https://mail.${{ matrix.prod_domain }}
+          BOARD_URL: https://board.${{ matrix.prod_domain }}
+          BRETT_URL: https://brett.${{ matrix.prod_domain }}
+          TRACKING_URL: https://tracking.${{ matrix.prod_domain }}
+          DASHBOARD_URL: https://dashboard.${{ matrix.prod_domain }}
+          # Per-cluster brand assertions
+          CONTACT_EMAIL: ${{ matrix.contact_email }}
+          CONTACT_PHONE: ${{ matrix.contact_phone }}
+          # Auth
           MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
           MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
         run: npx playwright test
 
-      - name: Upload Playwright report
+      - name: Upload results (traces + JSON report)
         if: always() && steps.gate.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.cluster }}
-          path: tests/e2e/playwright-report
+          name: playwright-results-${{ matrix.cluster }}
+          path: tests/results
           retention-days: 14
-
-      - name: Upload traces on failure
-        if: failure() && steps.gate.outputs.skip != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-traces-${{ matrix.cluster }}
-          path: tests/results/playwright-traces
-          retention-days: 14
+          if-no-files-found: ignore

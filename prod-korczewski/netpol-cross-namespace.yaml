@@ -1,0 +1,39 @@
+# Cross-namespace egress for workspace-korczewski.
+#
+# Cronjobs in workspace-korczewski need to reach:
+#   - shared-db.workspace.svc.cluster.local (tracking-import writes
+#     feature events into mentolder's bachelorprojekt.features by design)
+#   - website.website-korczewski.svc.cluster.local (billing-dunning-
+#     detection, notify-unread, monthly-billing trigger korczewski's
+#     own website API)
+#
+# default-deny-egress + allow-internet-egress (which excludes RFC1918)
+# block these by default. Without this policy the cronjobs crashloop
+# with ECONNREFUSED.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-workspace
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: workspace
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-website-korczewski
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: website-korczewski

@@ -9,6 +9,7 @@ resources:
   - dashboard-web.yaml
   - oauth2-proxy-dashboard.yaml
   - ingress-dashboard.yaml
+  - netpol-cross-namespace.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:
@@ -79,6 +80,7 @@ patches:
                         - k3w-3
   - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
+  - path: patch-cronjob-urls.yaml
   # Cluster-scoped resources are owned exclusively by workspace-hetzner (mentolder).
   # Both overlays deploy to the same physical cluster, so rendering these here
   # causes ArgoCD SharedResourceWarning — suppress them from korczewski.

@@ -484,10 +484,10 @@
         'workspace:systembrett-setup', 'workspace:admin-users-setup',
         'workspace:vaultwarden:seed', 'workspace:sync-db-passwords',
         'workspace:create-guest', 'workspace:import-users', 'workspace:migrate',
-        'keycloak:sync', 'keycloak:sync-secrets',
+        'keycloak:sync',
         'argocd:setup', 'argocd:install', 'argocd:apps:apply',
         'argocd:cluster:register', 'argocd:sync',
-        'docs:deploy', 'docs:restart',
+        'docs:deploy',
         'mcp:deploy', 'mcp:restart',
         'website:deploy',
         'whisper:deploy',
@@ -520,8 +520,7 @@
             { title: 'Whiteboard Setup',      cmd: 'workspace:whiteboard-setup',   desc: 'Install + configure Nextcloud Whiteboard app' },
             { title: 'Systembrett Setup',     cmd: 'workspace:systembrett-setup',  desc: 'Set up Brett (Systembrett) integration in Nextcloud Talk' },
             { title: 'Transcriber Setup',     cmd: 'workspace:transcriber-setup',  desc: 'Set up talk-transcriber bot + Whisper' },
-            { title: 'Keycloak Sync',         cmd: 'keycloak:sync',                desc: 'Sync realm config and OIDC clients to Keycloak' },
-            { title: 'Keycloak Sync Secrets', cmd: 'keycloak:sync-secrets',        desc: 'Push updated Keycloak client secrets to the live cluster' },
+            { title: 'Keycloak Sync',         cmd: 'keycloak:sync',                desc: 'Sync realm config + OIDC clients and push regenerated client secrets to the live cluster' },
         ]},
         { cat: 'Compliance & Hardening', icon: '🛡️', accent: ACCENTS.users, items: [
             { title: 'DSGVO Check',       cmd: 'workspace:dsgvo-check',       desc: 'Run DSGVO/GDPR compliance verification (NFA-01)' },
@@ -640,8 +639,7 @@
             { title: 'Cert Status',          cmd: 'cert:status',  desc: 'Show wildcard cert and ClusterIssuer status' },
         ]},
         { cat: 'Docs Site', icon: '📚', accent: ACCENTS.website, items: [
-            { title: 'Deploy Docs ConfigMap', cmd: 'docs:deploy',  desc: 'Push the docs ConfigMap to the selected cluster (ArgoCD does NOT auto-sync this)' },
-            { title: 'Restart Docs Pod',      cmd: 'docs:restart', desc: 'Force-restart the docs pod after a ConfigMap update' },
+            { title: 'Deploy Docs ConfigMap', cmd: 'docs:deploy',  desc: 'Push the docs ConfigMap to both prod clusters and restart the docs pods (ArgoCD does NOT auto-sync this)' },
         ]},
         { cat: 'HA Cluster', icon: '🛠️', accent: ACCENTS.cluster, items: [
             { title: 'HA Status',         cmd: 'ha:status',     desc: 'Show node health for the 3-node HA cluster' },

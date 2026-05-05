@@ -291,6 +291,11 @@ spec:
                 configMapKeyRef:
                   name: website-seller-config
                   key: SELLER_VAT_ID
+            - name: SELLER_TAX_NUMBER
+              valueFrom:
+                configMapKeyRef:
+                  name: website-seller-config
+                  key: SELLER_TAX_NUMBER
             - name: BRETT_BOT_SECRET
               valueFrom:
                 secretKeyRef:

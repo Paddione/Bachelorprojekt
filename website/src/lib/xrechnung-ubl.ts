@@ -73,11 +73,15 @@ export function generateXRechnungUbl(p: EInvoiceInput): string {
         <cbc:PostalZone>${esc(p.seller.postalCode)}</cbc:PostalZone>
         <cac:Country><cbc:IdentificationCode>${esc(p.seller.country)}</cbc:IdentificationCode></cac:Country>
       </cac:PostalAddress>
-      <cac:PartyTaxScheme>
+${p.seller.vatId ? `      <cac:PartyTaxScheme>
         <cbc:CompanyID>${esc(p.seller.vatId)}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
-      <cac:PartyLegalEntity>
+` : ''}${p.seller.taxNumber ? `      <cac:PartyTaxScheme>
+        <cbc:CompanyID>${esc(p.seller.taxNumber)}</cbc:CompanyID>
+        <cac:TaxScheme><cbc:ID>FC</cbc:ID></cac:TaxScheme>
+      </cac:PartyTaxScheme>
+` : ''}      <cac:PartyLegalEntity>
         <cbc:RegistrationName>${esc(p.seller.name)}</cbc:RegistrationName>
       </cac:PartyLegalEntity>
       <cac:Contact>

@@ -18,7 +18,7 @@ export interface ZugferdNativeInput {
   invoice: { number: string; issueDate: string; grossAmount: number; netAmount: number; taxAmount: number; taxMode: string; taxRate: number };
   lines: Array<{ description: string; netAmount: number }>;
   customer: { name: string; email: string };
-  seller: { name: string; address: string; postalCode: string; city: string; country: string; vatId: string };
+  seller: { name: string; address: string; postalCode: string; city: string; country: string; vatId: string; taxNumber?: string };
 }
 
 export function generateZugferdXml(): string {
@@ -63,6 +63,7 @@ export function generateZugferdXmlFromNative(input: any): string {
       city: input.seller.city,
       country: input.seller.country,
       vatId: input.seller.vatId || undefined,
+      taxNumber: input.seller.taxNumber || undefined,
       contactEmail: 'contact@example.com',
       iban: 'DE12345678901234567890',
     },
@@ -162,7 +163,8 @@ export function generateXRechnungCii(p: EInvoiceInput): string {
   <rsm:SupplyChainTradeTransaction>${lineXml}
     <ram:ApplicableHeaderTradeAgreement>
       <ram:BuyerReference>${esc(p.customer.leitwegId)}</ram:BuyerReference>
-      <ram:SellerTradeParty>
+      <ram:SellerTradeParty>${!p.seller.vatId && p.seller.taxNumber ? `
+        <ram:ID>${esc(p.seller.taxNumber)}</ram:ID>` : ''}
         <ram:Name>${esc(p.seller.name)}</ram:Name>
         <ram:DefinedTradeContact>
           <ram:PersonName>${esc(p.seller.name)}</ram:PersonName>${p.seller.phone ? `
@@ -177,10 +179,13 @@ export function generateXRechnungCii(p: EInvoiceInput): string {
         </ram:PostalTradeAddress>
         <ram:URIUniversalCommunication>
           <ram:URIID schemeID="EM">${esc(p.seller.email)}</ram:URIID>
-        </ram:URIUniversalCommunication>
+        </ram:URIUniversalCommunication>${p.seller.vatId ? `
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">${esc(p.seller.vatId)}</ram:ID>
-        </ram:SpecifiedTaxRegistration>
+        </ram:SpecifiedTaxRegistration>` : ''}${p.seller.taxNumber ? `
+        <ram:SpecifiedTaxRegistration>
+          <ram:ID schemeID="FC">${esc(p.seller.taxNumber)}</ram:ID>
+        </ram:SpecifiedTaxRegistration>` : ''}
       </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
         <ram:Name>${esc(p.customer.name)}</ram:Name>

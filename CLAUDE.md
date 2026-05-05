@@ -159,9 +159,28 @@ task brett:bot-setup ENV=<env>   # Register /brett slash command in Nextcloud Ta
 task brett:logs ENV=<env>        # Tail Brett logs
 ```
 
-### HA Cluster (High Availability)
+### Unified Cluster (High Availability — 12 nodes)
+The mentolder cluster is the single unified production cluster. The separate korczewski
+cluster was disbanded (2026-05-05) and all its nodes joined mentolder.
+
+**Node layout:**
+- Control-planes (6): `gekko-hetzner-2/3/4` (Hetzner Helsinki) + `pk-hetzner/pk-hetzner-2/3` (Hetzner Helsinki)
+- Workers (6): `k3s-1/2/3` + `k3w-1/2/3` (home LAN via WireGuard through pk-hetzner hub)
+
+**WireGuard mesh:** pk-hetzner (192.168.100.1) is the hub. All home workers use 192.168.100.x.
+k3s-1=.20, k3s-2=.11, k3s-3=.12, k3w-1=.4(.11 old), k3w-2=.3, k3w-3=.13, pk-hetzner-2=.21, pk-hetzner-3=.22.
+The mentolder Hetzner nodes reach home workers via wg0 tunnel through pk-hetzner.
+
+**CNI partition:** Flannel VXLAN does NOT route between Hetzner nodes and home workers.
+Mitigation: keep system pods (CoreDNS, ArgoCD, etc.) on Hetzner nodes via nodeAffinity.
+Home workers host user workloads only — pod-to-pod across the WireGuard double-hop is broken.
+
+**korczewski workloads** (`korczewski.de`) run in `workspace-korczewski` namespace on the same
+cluster, managed by ArgoCD via the `cluster-korczewski` secret pointing to `62.238.9.39:6443`
+(pk-hetzner's API endpoint) using the `argocd-korczewski` ServiceAccount.
+
 ```bash
-task ha:setup                    # Bootstrap 3-node k3s HA cluster on Hetzner (run once)
+task ha:setup                    # Bootstrap 3-node k3s HA cluster on Hetzner (run once — historical)
 task ha:import-image -- <path> <image:tag>  # Build and import image to all HA nodes
 task ha:cert-renew               # Renew HA cluster certificates
 task ha:status                   # Show HA cluster status
@@ -303,6 +322,12 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 ### Environment targeting
 - **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work.
 - **ArgoCD tasks are hub-only and enforce it.** All `argocd:*` tasks live in `Taskfile.argocd.yml` and have a `_hub-guard` precondition that aborts with a clear error if the `mentolder` context is unreachable. `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
+- **korczewski context still exists but points to the same physical cluster.** The `korczewski` kubeconfig context (62.238.9.39:6443 = pk-hetzner) now resolves to the unified mentolder cluster. `ENV=korczewski` in Taskfile tasks routes correctly. korczewski workloads land in `workspace-korczewski` namespace, not `workspace`.
+
+### Unified cluster node placement
+- **System pods (CoreDNS, ArgoCD, etc.) must run on Hetzner nodes.** Home workers (k3s-1/2/3, k3w-1/2/3) have a CNI partition: Flannel VXLAN from Hetzner nodes cannot route to home worker pod IPs (192.168.100.x VTEPs require a WireGuard double-hop through pk-hetzner that iptables FORWARD allows but VXLAN encapsulation doesn't traverse correctly). CoreDNS is pinned to Hetzner nodes via nodeAffinity in the deployment. If CoreDNS drifts to a home worker, cluster DNS fails from Hetzner pods.
+- **pk-hetzner is the WireGuard hub for home workers.** Do not remove pk-hetzner from the cluster or change its wg0 config without updating all home worker peers. Its wg0 IP (192.168.100.1) is the gateway for k3s-1/2/3/k3w-1/2/3.
+- **korczewski.de ingresses route via Traefik on mentolder.** The `workspace-korczewski` namespace on mentolder serves korczewski.de. Traefik on the mentolder Hetzner nodes handles ingress for both domains.
 
 ### Kustomize overlays
 - **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.

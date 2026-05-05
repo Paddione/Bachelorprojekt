@@ -566,6 +566,23 @@ spec:
     - ipBlock:
         cidr: 10.43.0.0/16
 ---
+# LiveKit management port: kube-router enforces egress NetworkPolicies AFTER iptables DNAT.
+# livekit-server uses hostNetwork so its endpoint IP is the node IP (not in pod/service CIDR).
+# Allowing port 7880 by port (not destination) covers the post-DNAT node IP.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-livekit-management-egress
+  namespace: website
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 7880
+      protocol: TCP
+---
 # SMTP Egress: Website-Pod darf externen SMTP-Server erreichen (Mailpit dev / mailbox.org prod)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

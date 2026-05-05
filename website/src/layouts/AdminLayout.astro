@@ -129,6 +129,8 @@ function isActive(href: string, matches?: string[]): boolean {
 }
 
 const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
+const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+const isKore = brandId === 'korczewski';
 ---
 
 <!doctype html>
@@ -139,7 +141,9 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    {!isKore && <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />}
+    {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
+    {isKore && <link rel="stylesheet" href="/brand/korczewski/kore-app.css" />}
     <title>{title} | Admin — {config.meta.siteTitle}</title>
     <script is:inline>
       try {
@@ -265,7 +269,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       }
     </style>
   </head>
-  <body style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
+  <body class={isKore ? 'kore' : ''} style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
 
     <!-- Mobile topbar -->
     <div id="mobile-topbar">
@@ -282,11 +286,19 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
         </svg>
       </button>
       <a href="/admin" style="display:flex; align-items:center; gap:8px; text-decoration:none; flex:1; min-width:0;">
-        <div style="width:24px; height:24px; border-radius:6px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); position:relative; flex-shrink:0;">
-          <div style="position:absolute; inset:5px; border-radius:1px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
-        </div>
-        <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass);">{brandWord}<span style="color:var(--mute);">.</span></span>
-        <span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.1em; text-transform:uppercase;">Admin</span>
+        {isKore ? (
+          <div class="ka-brand-mark" style="width:24px; height:24px; border-radius:6px;" />
+        ) : (
+          <div style="width:24px; height:24px; border-radius:6px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); position:relative; flex-shrink:0;">
+            <div style="position:absolute; inset:5px; border-radius:1px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
+          </div>
+        )}
+        {isKore ? (
+          <span class="ka-brand-word" style="font-size:14px;">{brandWord}<span class="ka-dot">.</span></span>
+        ) : (
+          <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass);">{brandWord}<span style="color:var(--mute);">.</span></span>
+        )}
+        <span style={`font-family:var(--font-mono); font-size:9px; color:${isKore ? 'var(--mute)' : 'var(--mute)'}; letter-spacing:0.14em; text-transform:uppercase;`}>Admin</span>
       </a>
     </div>
 
@@ -299,12 +311,25 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
       <!-- Header -->
       <div style="padding:20px 14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; min-width:0;">
         <a href="/admin" style="display:flex; align-items:center; gap:10px; text-decoration:none; flex:1; min-width:0; overflow:hidden;">
-          <div style="width:28px; height:28px; border-radius:7px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3); position:relative; flex-shrink:0;">
-            <div style="position:absolute; inset:6px; border-radius:2px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
-          </div>
+          {isKore ? (
+            <div class="ka-brand-mark" />
+          ) : (
+            <div style="width:28px; height:28px; border-radius:7px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3); position:relative; flex-shrink:0;">
+              <div style="position:absolute; inset:6px; border-radius:2px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
+            </div>
+          )}
           <div class="sidebar-label" style="min-width:0;">
-            <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass); letter-spacing:-0.01em; display:block; line-height:1.2;">{brandWord}<span style="color:var(--mute);">.</span></span>
-            <span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.12em; text-transform:uppercase; display:block; margin-top:1px;">Admin</span>
+            {isKore ? (
+              <Fragment>
+                <span class="ka-brand-word">{brandWord}<span class="ka-dot">.</span></span>
+                <span class="ka-brand-tag">Admin</span>
+              </Fragment>
+            ) : (
+              <Fragment>
+                <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass); letter-spacing:-0.01em; display:block; line-height:1.2;">{brandWord}<span style="color:var(--mute);">.</span></span>
+                <span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.12em; text-transform:uppercase; display:block; margin-top:1px;">Admin</span>
+              </Fragment>
+            )}
           </div>
         </a>
         <button
@@ -323,6 +348,15 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
           </svg>
         </button>
       </div>
+
+      {isKore && (
+        <div class="sidebar-label" style="padding:10px 14px 12px; border-bottom:1px solid var(--line);">
+          <span class="ka-ticker" id="ka-cluster-ticker" data-fallback>
+            <span class="ka-ticker-dot"></span>
+            <b>live</b>&nbsp;<span style="color:var(--mute);">cluster</span>
+          </span>
+        </div>
+      )}
 
       <!-- Nav -->
       <nav style="flex:1; overflow-y:auto; padding:12px 8px; display:flex; flex-direction:column; gap:20px;">
@@ -444,6 +478,36 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
               if (window.innerWidth < 768) closeMobileSidebar();
             });
           });
+        }
+
+        // Cluster ticker (kore brand only) — uses textContent + createElement, no innerHTML
+        var ticker = document.getElementById('ka-cluster-ticker');
+        if (ticker) {
+          var refresh = function() {
+            var ctrl = new AbortController();
+            var t = setTimeout(function() { ctrl.abort(); }, 3000);
+            fetch('/api/cluster/status', { signal: ctrl.signal })
+              .then(function(r) { return r.ok ? r.json() : null; })
+              .then(function(s) {
+                clearTimeout(t);
+                if (!s || typeof s.nodes !== 'number' || typeof s.pods !== 'number') return;
+                while (ticker.firstChild) ticker.removeChild(ticker.firstChild);
+                var dot = document.createElement('span');
+                dot.className = 'ka-ticker-dot';
+                ticker.appendChild(dot);
+                var nodesB = document.createElement('b');
+                nodesB.textContent = String(s.nodes);
+                ticker.appendChild(nodesB);
+                ticker.appendChild(document.createTextNode(' Nodes '));
+                var pods = document.createElement('span');
+                pods.style.color = 'var(--mute)';
+                pods.textContent = String('· ' + s.pods + ' Pods');
+                ticker.appendChild(pods);
+              })
+              .catch(function() { clearTimeout(t); });
+          };
+          refresh();
+          setInterval(refresh, 30000);
         }
       })();
     </script>

@@ -15,6 +15,8 @@ export interface EmbedOptions {
 
 const ICC_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'sRGB.icc');
 
+const BRAND_TAG = `${process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'}-billing`;
+
 function pdfDate(d: Date): string {
   const p = (n: number, w = 2) => String(n).padStart(w, '0');
   const tz = -d.getTimezoneOffset();
@@ -41,10 +43,10 @@ function buildXmp(opts: EmbedOptions, modDate: Date): string {
                                   xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#"
                                   pdfaid:part="3" pdfaid:conformance="B">
       <dc:title><rdf:Alt><rdf:li xml:lang="x-default">Rechnung ${escapeXml(opts.invoiceNumber)}</rdf:li></rdf:Alt></dc:title>
-      <xmp:CreatorTool>mentolder-billing</xmp:CreatorTool>
+      <xmp:CreatorTool>${BRAND_TAG}</xmp:CreatorTool>
       <xmp:CreateDate>${iso}</xmp:CreateDate>
       <xmp:ModifyDate>${iso}</xmp:ModifyDate>
-      <pdf:Producer>pdf-lib + mentolder-billing</pdf:Producer>
+      <pdf:Producer>pdf-lib + ${BRAND_TAG}</pdf:Producer>
       <fx:DocumentType>INVOICE</fx:DocumentType>
       <fx:DocumentFileName>${escapeXml(fileName)}</fx:DocumentFileName>
       <fx:Version>1.0</fx:Version>
@@ -162,7 +164,7 @@ export async function embedFacturXIntoPdfA3(
 
   // Document Info dict
   pdf.setTitle(`Rechnung ${opts.invoiceNumber}`);
-  pdf.setProducer('pdf-lib + mentolder-billing');
+  pdf.setProducer(`pdf-lib + ${BRAND_TAG}`);
   pdf.setCreationDate(modDate);
   pdf.setModificationDate(modDate);
 

@@ -300,10 +300,9 @@ graph TB
 ## CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
-- Manifest validation: `kustomize build` + `kubeconform` (K8s 1.31.0)
-- YAML linting: `yamllint` (200-char line limit)
-- Shell linting: `shellcheck` on all scripts
-- Config validation: JSON (realm), PHP (OIDC), secret detection, image pinning checks
+- Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
+- Systembrett template validation
+- Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
 
 ## Development Rules
 
@@ -342,7 +341,7 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 
 ### Operational
 - **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy ENV=<env>` then `task docs:restart ENV=<env>`. Applying the ConfigMap alone leaves the old content served.
-- **yamllint runs a 200-char line limit in CI only.** Long base64 strings or multiline patches that are fine locally will fail the `lint-yaml` job on PR. Run `yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' <file>` before pushing.
+- **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.
 - **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
 
 ### Korczewski homepage uses the Kore design system (different from mentolder)

@@ -1107,6 +1107,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN \$DASHBOARD_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE"
           kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
             | envsubst "$ENVSUBST_VARS" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -

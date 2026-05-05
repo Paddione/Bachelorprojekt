@@ -88,6 +88,8 @@ spec:
               value: "{{metadata.annotations.workspace-kc-user2-username}}"
             - name: KC_USER2_EMAIL
               value: "{{metadata.annotations.workspace-kc-user2-email}}"
+            - name: WORKSPACE_NAMESPACE
+              value: "{{metadata.annotations.workspace-namespace}}"
 
       destination:
         server: "{{server}}"

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" width="320" height="96">
+  <defs>
+    <radialGradient id="coreGlowL" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E6FFB0" stop-opacity="0.85"></stop>
+      <stop offset="50%" stop-color="#C8F76A" stop-opacity="0.45"></stop>
+      <stop offset="100%" stop-color="#C8F76A" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="coreLimeL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D8FF8A"></stop>
+      <stop offset="100%" stop-color="#8FBE2E"></stop>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="80" height="80" rx="18" ry="18" fill="#1A1326"></rect>
+  <circle cx="48" cy="48" r="26" fill="url(#coreGlowL)"></circle>
+  <circle cx="48" cy="48" r="20" fill="none" stroke="#C8F76A" stroke-opacity=".22" stroke-width="1"></circle>
+  <circle cx="48" cy="48" r="14" fill="none" stroke="#C8F76A" stroke-opacity=".35" stroke-width="1"></circle>
+  <g stroke="url(#coreLimeL)" stroke-linecap="round" fill="none">
+    <line x1="33" y1="18" x2="33" y2="78" stroke-width="6.5"></line>
+    <line x1="34" y1="48" x2="70" y2="22" stroke-width="6"></line>
+    <line x1="34" y1="48" x2="70" y2="74" stroke-width="6"></line>
+  </g>
+  <circle cx="34" cy="48" r="5" fill="#D8FF8A"></circle>
+  <circle cx="34" cy="48" r="8" fill="none" stroke="#D8FF8A" stroke-opacity=".4" stroke-width="1"></circle>
+  <text x="106" y="62" font-family="Instrument Serif, Georgia, serif" font-size="42" font-weight="400" fill="#ECEFF3" letter-spacing="-0.5">Kore<tspan fill="#C8F76A">.</tspan></text>
+</svg>

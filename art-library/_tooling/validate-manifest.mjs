@@ -52,7 +52,9 @@ for (const setName of sets) {
       // Also resolve ConfigMap-flat names (e.g. "props_chest.svg" → "props/chest.svg")
       const m = rel.match(/^([a-z]+)_(.+)$/);
       const altFull = m ? join(setDir, m[1], m[2]) : null;
-      if (!existsSync(full) && !(altFull && existsSync(altFull))) {
+      // Also check under portfolio/ subdirectory (e.g. "characters_fig.svg" → "portfolio/characters/fig.svg")
+      const altFull2 = m ? join(setDir, 'portfolio', m[1], m[2]) : null;
+      if (!existsSync(full) && !(altFull && existsSync(altFull)) && !(altFull2 && existsSync(altFull2))) {
         console.error(`✗ ${setName}: ${a.id}.files.${slot} → missing ${rel}`); failures++;
       }
     }

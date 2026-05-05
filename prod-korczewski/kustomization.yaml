@@ -19,8 +19,42 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 
-# korczewski-specific workload placement — see patch file for rationale.
+# korczewski-specific workload placement.
+#
+# The unified `mentolder` cluster has a Flannel VXLAN partition between its
+# 6 Hetzner control-planes (gekko-hetzner-2/3/4, pk-hetzner, pk-hetzner-2,
+# pk-hetzner-3) and its 6 home-LAN workers (k3s-1/2/3, k3w-1/2/3). Pods on
+# either side cannot reach ClusterIPs / pod IPs on the other side. CoreDNS
+# is pinned to a Hetzner node, so any pod on a home worker also loses DNS.
+#
+# Mentolder pods sit on Hetzner CPs because they were scheduled before the
+# home workers joined; korczewski's pods were scheduled AFTER the merge and
+# drifted to the home-worker side, which broke DNS, DB connectivity, and
+# ingress upstreams. The blanket affinity below makes the placement explicit
+# so the scheduler cannot drift back.
+#
+# Exception: livekit-server / livekit-redis are pinned to k3s-3 by
+# patch-livekit.yaml (hostNetwork + pinned public IP). Traefik on pk-hetzner
+# reaches livekit-server via WireGuard because it uses the host network.
 patches:
-  - path: patch-avoid-pk-hetzner.yaml
-  - path: patch-backup-config.yaml
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: NotIn
+                      values:
+                        - k3s-1
+                        - k3s-2
+                        - k3s-3
+                        - k3w-1
+                        - k3w-2
+                        - k3w-3
   - path: patch-livekit.yaml
+  - path: patch-backup-config.yaml

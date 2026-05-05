@@ -3,6 +3,17 @@
 # Bootstrap a 3-node k3s HA cluster on bare Hetzner servers
 #
 # Usage:  ./scripts/setup-ha-cluster.sh
+#
+# Run this against fresh Hetzner servers that still have root SSH access
+# (i.e. before cloud-init or Hetzner rescue mode).  This script SSHes as
+# root; once setup_node() runs, PasswordAuthentication is disabled but
+# root login itself is NOT locked here (unlike prod/cloud-init.yaml which
+# sets PermitRootLogin no).  That lets nodes 2+3 still be reachable as
+# root during the join phase.
+#
+# prod/cloud-init.yaml is the alternative for single-node provisioning
+# via Hetzner user-data; it locks root SSH and only allows the patrick
+# user.  Do not mix the two on the same server without adjusting SSH_USER.
 # ═══════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -127,6 +138,15 @@ ufw allow 8472/udp
 ufw allow 2379:2380/tcp
 ufw allow 9500/tcp
 ufw allow 10256/tcp
+ufw allow 51820/udp       # WireGuard GPU worker tunnel
+ufw allow 3478/tcp        # CoTURN TURN/STUN (TCP)
+ufw allow 3478/udp        # CoTURN TURN/STUN (UDP)
+ufw allow 5349/tcp        # CoTURN TURNS (TLS - iOS)
+ufw allow 49152:49252/udp # CoTURN TURN relay range
+ufw allow 7880/tcp        # LiveKit signaling (HTTP/WS)
+ufw allow 7881/tcp        # LiveKit RTC TCP fallback
+ufw allow 50000:60000/udp # LiveKit RTC media range
+ufw allow 30000:40000/udp # LiveKit TURN relay range
 ufw --force enable
 
 echo ">>> Enabling unattended-upgrades"

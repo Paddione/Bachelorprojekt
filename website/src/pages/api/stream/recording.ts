@@ -5,7 +5,9 @@ import { EgressClient, EncodedFileOutput, EncodedFileType } from 'livekit-server
 
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY || 'devlivekit';
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET || 'devlivekitsecret1234567890abcdef';
-const LIVEKIT_URL = `http://${process.env.LIVEKIT_DOMAIN || 'livekit.localhost'}`;
+// Use the internal k8s service URL — the external domain goes through Traefik TLS
+// which rejects plain HTTP and causes a 500. The egress pod also uses this internal URL.
+const LIVEKIT_URL = process.env.LIVEKIT_SERVICE_URL || 'http://livekit-server:7880';
 const ROOM_NAME = 'main-stream';
 
 export const POST: APIRoute = async ({ request }) => {

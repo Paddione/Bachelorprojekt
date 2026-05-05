@@ -29,11 +29,16 @@ spec:
       # hostNetwork and calls STUN (stun1.l.google.com) at startup to detect
       # its external IP — that lookup goes to CoreDNS and times out.
       # Override to public DNS so the STUN lookup succeeds.
+      # livekit-redis is a ClusterIP → kube-proxy on k3s-3 DNATs it to the
+      # local pod, so the alias still works without CoreDNS.
       dnsPolicy: "None"
       dnsConfig:
         nameservers:
           - "8.8.8.8"
           - "8.8.4.4"
+      hostAliases:
+        - ip: 10.43.167.113   # livekit-redis ClusterIP → pod on k3s-3
+          hostnames: [livekit-redis]
 ---
 apiVersion: apps/v1
 kind: Deployment

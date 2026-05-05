@@ -41,7 +41,7 @@
   </p>
 
   <div class="cta-row">
-    <a class="btn primary" href="/kontakt">Kennenlernen →</a>
+    <a class="btn primary" href="/api/auth/login">Anmelden →</a>
     <a class="btn ghost" href="#timeline">Notizen lesen</a>
   </div>
 

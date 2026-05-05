@@ -1,0 +1,12 @@
+{
+  "pr_number": 500,
+  "title": "schema vars, brand parameterization, doc accuracy",
+  "description": "## Summary\nResolves substantive items from the 2026-04-27 staleness audit; the rest are scanner false positives (file-extension confusion, IngressRoute vs Ingress kind, shell-internal vars).\n\n- Add LIVEKIT_DOMAIN + STREAM_DOMAIN to schema + both env files.\n- Parameterize PDF producer/creator strings (BRAND env) so korczewski invoices stop showing \"mentolder-billing\".\n- Correct CLAUDE.md CI section — yamllint/shellcheck/kubeconform are not actually wired into ci.yml.\n\n## False positives identified (no code change needed)\n- Taskfile envsubst lists: scanner greps `Taskfile.yaml`; file is `Taskfile.yml`. CLAUDE.md text already says so.\n- ArgoCD annotation keys: scanner greps Taskfile.yml; keys live in Taskfile.argocd.yml lines 135-139, 171-175.\n- \"Missing schema vars\" KC/NC/PASS/BACKUP_DIR/...: shell-internal variables inside ConfigMap-embedded scripts, not envsubst placeholders.\n- Domain vs Ingress: scanner only checks `Ingress` kind; LIVEKIT/STREAM/MAIL/WEB/TRAEFIK use Traefik IngressRoute.\n\n## Test plan\n- [x] env:validate (schema additions don't break)\n- [ ] Next staleness audit picks up reduction in flagged items",
+  "category": "fix",
+  "scope": "staleness",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T07:18:34Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

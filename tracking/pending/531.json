@@ -1,0 +1,12 @@
+{
+  "pr_number": 531,
+  "title": "migrate AppArmor to securityContext.appArmorProfile",
+  "description": "## Summary\n- Replaces deprecated pod-level annotation `container.apparmor.security.beta.kubernetes.io/coturn: unconfined` with the stable k8s 1.30+ container field `securityContext.appArmorProfile.type: Unconfined`\n- Eliminates the deprecation warning that appeared on every ArgoCD sync / kubectl apply\n\n## Test plan\n- [ ] ArgoCD syncs coturn without deprecation warning\n- [ ] coturn pod starts healthy (`kubectl get pod -n coturn`)\n- [ ] TURN connectivity still works (Nextcloud Talk media relay)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "coturn",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T23:05:06Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

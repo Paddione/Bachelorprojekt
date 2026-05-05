@@ -14,7 +14,7 @@ import { getSession, isAdmin } from '../../../../../lib/auth';
 import { listPayments, recordPayment } from '../../../../../lib/invoice-payments';
 import { GET, POST } from './payments';
 
-const mockSession = { user: { id: 'admin1', email: 'admin@test.de' } };
+const mockSession = { sub: 'admin1', email: 'admin@test.de', name: 'Admin', preferred_username: 'admin' };
 
 describe('GET /api/admin/billing/[id]/payments', () => {
   beforeEach(() => {

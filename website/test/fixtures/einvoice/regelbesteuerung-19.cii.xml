@@ -43,11 +43,21 @@
         <ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">DE123456789</ram:ID></ram:SpecifiedTaxRegistration>
       </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
-        <ram:Name>Acme</ram:Name>
+        <ram:Name>Acme GmbH</ram:Name>
+        <ram:PostalTradeAddress>
+          <ram:PostcodeCode>20095</ram:PostcodeCode>
+          <ram:LineOne>Käuferstr. 2</ram:LineOne>
+          <ram:CityName>Hamburg</ram:CityName>
+          <ram:CountryID>DE</ram:CountryID>
+        </ram:PostalTradeAddress>
         <ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">DE987654321</ram:ID></ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
-    <ram:ApplicableHeaderTradeDelivery/>
+    <ram:ApplicableHeaderTradeDelivery>
+      <ram:ActualDeliverySupplyChainEvent>
+        <ram:OccurrenceDateTime><udt:DateTimeString format="102">20260401</udt:DateTimeString></ram:OccurrenceDateTime>
+      </ram:ActualDeliverySupplyChainEvent>
+    </ram:ApplicableHeaderTradeDelivery>
     <ram:ApplicableHeaderTradeSettlement>
       <ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>
       <ram:ApplicableTradeTax>
@@ -57,6 +67,10 @@
         <ram:CategoryCode>S</ram:CategoryCode>
         <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
       </ram:ApplicableTradeTax>
+      <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>Zahlbar bis 2026-04-15</ram:Description>
+        <ram:DueDateDateTime><udt:DateTimeString format="102">20260415</udt:DateTimeString></ram:DueDateDateTime>
+      </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:LineTotalAmount>600.00</ram:LineTotalAmount>
         <ram:TaxBasisTotalAmount>600.00</ram:TaxBasisTotalAmount>

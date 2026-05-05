@@ -48,7 +48,8 @@ export function generateCII(input: InvoiceInput, opts: Options = {}): string {
   <rsm:SupplyChainTradeTransaction>
 ${lineXml}    <ram:ApplicableHeaderTradeAgreement>
       <ram:BuyerReference>${esc(buyerRef)}</ram:BuyerReference>
-      <ram:SellerTradeParty>
+      <ram:SellerTradeParty>${!p.seller.vatId && p.seller.taxNumber ? `
+        <ram:ID>${esc(p.seller.taxNumber)}</ram:ID>` : ''}
         <ram:Name>${esc(p.seller.name)}</ram:Name>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>${esc(p.seller.postalCode)}</ram:PostcodeCode>
@@ -56,17 +57,32 @@ ${lineXml}    <ram:ApplicableHeaderTradeAgreement>
           <ram:CityName>${esc(p.seller.city)}</ram:CityName>
           <ram:CountryID>${esc(p.seller.country)}</ram:CountryID>
         </ram:PostalTradeAddress>${p.seller.vatId ? `
-        <ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">${esc(p.seller.vatId)}</ram:ID></ram:SpecifiedTaxRegistration>` : ''}
+        <ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">${esc(p.seller.vatId)}</ram:ID></ram:SpecifiedTaxRegistration>` : ''}${p.seller.taxNumber ? `
+        <ram:SpecifiedTaxRegistration><ram:ID schemeID="FC">${esc(p.seller.taxNumber)}</ram:ID></ram:SpecifiedTaxRegistration>` : ''}
       </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
-        <ram:Name>${esc(p.buyer.name)}</ram:Name>${p.buyer.vatId ? `
+        <ram:Name>${esc(p.buyer.name)}</ram:Name>
+        <ram:PostalTradeAddress>${p.buyer.postalCode ? `
+          <ram:PostcodeCode>${esc(p.buyer.postalCode)}</ram:PostcodeCode>` : ''}${p.buyer.address ? `
+          <ram:LineOne>${esc(p.buyer.address)}</ram:LineOne>` : ''}${p.buyer.city ? `
+          <ram:CityName>${esc(p.buyer.city)}</ram:CityName>` : ''}
+          <ram:CountryID>${esc(p.buyer.country)}</ram:CountryID>
+        </ram:PostalTradeAddress>${p.buyer.vatId ? `
         <ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">${esc(p.buyer.vatId)}</ram:ID></ram:SpecifiedTaxRegistration>` : ''}
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
-    <ram:ApplicableHeaderTradeDelivery/>
+    <ram:ApplicableHeaderTradeDelivery>
+      <ram:ActualDeliverySupplyChainEvent>
+        <ram:OccurrenceDateTime><udt:DateTimeString format="102">${dt(p.issueDate)}</udt:DateTimeString></ram:OccurrenceDateTime>
+      </ram:ActualDeliverySupplyChainEvent>
+    </ram:ApplicableHeaderTradeDelivery>
     <ram:ApplicableHeaderTradeSettlement>
       <ram:InvoiceCurrencyCode>${cur}</ram:InvoiceCurrencyCode>
-${taxXml}      <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
+${taxXml}      <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>${esc(p.paymentReference ? `Zahlbar bis ${p.dueDate}. Verwendungszweck: ${p.paymentReference}` : `Zahlbar bis ${p.dueDate}`)}</ram:Description>
+        <ram:DueDateDateTime><udt:DateTimeString format="102">${dt(p.dueDate)}</udt:DateTimeString></ram:DueDateDateTime>
+      </ram:SpecifiedTradePaymentTerms>
+      <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:LineTotalAmount>${fmt(p.netTotal)}</ram:LineTotalAmount>
         <ram:TaxBasisTotalAmount>${fmt(p.netTotal)}</ram:TaxBasisTotalAmount>
         <ram:TaxTotalAmount currencyID="${cur}">${fmt(p.taxTotal)}</ram:TaxTotalAmount>
@@ -98,6 +114,13 @@ function renderLine(l: InvoiceLine, idx: number): string {
 `;
 }
 
+function exemptionReasonFor(cat: string): string | null {
+  if (cat === 'E') return 'Kein Ausweis der Umsatzsteuer gemäß § 19 UStG.';
+  if (cat === 'AE') return 'Reverse charge — VAT to be paid by recipient (Art. 196 VAT Directive 2006/112/EC).';
+  if (cat === 'Z') return 'Zero-rated supply.';
+  return null;
+}
+
 function renderTaxBuckets(lines: InvoiceLine[], isKlein: boolean): string {
   const buckets = new Map<string, { rate: number; cat: string; basis: number }>();
   for (const l of lines) {
@@ -108,9 +131,12 @@ function renderTaxBuckets(lines: InvoiceLine[], isKlein: boolean): string {
   }
   return [...buckets.values()].map(b => {
     const tax = isKlein ? 0 : (b.basis * b.rate / 100);
+    const reason = exemptionReasonFor(b.cat);
+    const reasonXml = reason ? `
+        <ram:ExemptionReason>${esc(reason)}</ram:ExemptionReason>` : '';
     return `      <ram:ApplicableTradeTax>
         <ram:CalculatedAmount>${fmt(tax)}</ram:CalculatedAmount>
-        <ram:TypeCode>VAT</ram:TypeCode>
+        <ram:TypeCode>VAT</ram:TypeCode>${reasonXml}
         <ram:BasisAmount>${fmt(b.basis)}</ram:BasisAmount>
         <ram:CategoryCode>${b.cat}</ram:CategoryCode>
         <ram:RateApplicablePercent>${fmt(b.rate)}</ram:RateApplicablePercent>

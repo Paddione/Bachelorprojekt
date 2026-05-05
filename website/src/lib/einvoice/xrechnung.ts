@@ -3,7 +3,7 @@ import { generateCII } from './cii';
 import { LEITWEG_ID_REGEX, type InvoiceInput } from './types';
 
 export const XRECHNUNG_3_0_PROFILE =
-  'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3.0';
+  'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0';
 
 export function generateXRechnung(input: InvoiceInput): string {
   const id = input.buyer.leitwegId;

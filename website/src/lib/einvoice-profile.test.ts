@@ -24,7 +24,7 @@ describe('generateEInvoiceXml', () => {
 
   it('xrechnung-cii enthält XRechnung-3.0-CustomizationID', () => {
     const xml = generateEInvoiceXml('xrechnung-cii', baseInput);
-    expect(xml).toContain('urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3.0');
+    expect(xml).toContain('urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0');
   });
 
   it('xrechnung-ubl ist UBL-Namespace (Invoice-Element)', () => {
@@ -84,7 +84,7 @@ describe('generateEInvoiceXml', () => {
   });
   it('xrechnung-ubl CustomizationID ist XRechnung 3.0', () => {
     const xml = generateEInvoiceXml('xrechnung-ubl', baseInput);
-    expect(xml).toMatch(/<cbc:CustomizationID>urn:cen\.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3\.0<\/cbc:CustomizationID>/);
+    expect(xml).toMatch(/<cbc:CustomizationID>urn:cen\.eu:en16931:2017#compliant#urn:xeinkauf\.de:kosit:xrechnung_3\.0<\/cbc:CustomizationID>/);
   });
 
   it('xrechnung-ubl throws when called directly without leitwegId', async () => {

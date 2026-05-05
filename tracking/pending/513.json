@@ -1,0 +1,12 @@
+{
+  "pr_number": 513,
+  "title": "kore portrait + 12-node topology figures",
+  "description": "## Summary\n- Replace PK initials block in `KoreTeam.astro` with `portrait-placeholder.svg` figure\n- Add `topology-12node.svg` figure (Fig. 01) under services pillars in `KorePillars.astro`\n- Update services hint from \"1 cluster\" → \"12 nodes\" to reflect the unified cluster\n\n## Test plan\n- [ ] Visual check on web.korczewski.de after deploy: pillars renders topology figure, team section shows portrait\n- [ ] Mobile breakpoint: portrait shrinks, topology figcaption stacks\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T15:12:04Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

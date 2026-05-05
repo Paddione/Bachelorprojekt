@@ -1,0 +1,12 @@
+{
+  "pr_number": 494,
+  "title": "dual-domain MCP gateway + cluster-merge docs",
+  "description": "## Summary\n\n- **MCP dual-domain access**: IngressRoute host rules now match both `mcp.mentolder.de` and `mcp.korczewski.de` using Traefik's `||` OR syntax — the MCP monolith is deployed once and serves both brands. Change applied live already.\n- **GUIDE_KUBERNETES namespace list**: Added `workspace-korczewski` and `website-korczewski` so Claude Code agents know to query the korczewski namespace when needed.\n- **ArgoCD docs**: Updated architecture diagram in `argocd.md` to reflect the unified cluster (both ArgoCD apps target the same mentolder k3s cluster, different namespaces, not two separate clusters).\n\n## Test plan\n\n- [ ] Verify `curl https://mcp.korczewski.de/kubernetes/mcp` responds (needs valid MCP token)\n- [ ] Verify `curl https://mcp.mentolder.de/kubernetes/mcp` still works\n- [ ] Confirm ArgoCD docs diagram renders correctly in docs UI\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "mcp",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T05:41:54Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

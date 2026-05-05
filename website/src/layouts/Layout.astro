@@ -37,12 +37,12 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded" style="background:var(--brass); color:var(--ink-900); font-weight:600;">
       Zum Hauptinhalt springen
     </a>
-    <Navigation client:load siteTitle={config.meta.siteTitle} />
+    {!isKore && <Navigation client:load siteTitle={config.meta.siteTitle} />}
     <main id="main-content" class="flex-1">
       <slot />
     </main>
 
-    <footer style="background:var(--ink-850); border-top:1px solid var(--line); padding:72px 0 36px;">
+    {!isKore && (<footer style="background:var(--ink-850); border-top:1px solid var(--line); padding:72px 0 36px;">
       <div style="max-width:var(--maxw); margin:0 auto; padding:0 40px;">
         <div class="footer-grid" style="display:grid; grid-template-columns:1.4fr repeat(3,1fr); gap:48px; margin-bottom:56px;">
           <!-- Brand col -->
@@ -121,7 +121,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
           </p>
         </div>
       </div>
-    </footer>
+    </footer>)}
 
     <style>
       .footer-link:hover {

@@ -12,7 +12,7 @@ spec:
             - "--provider=keycloak-oidc"
             - "--client-id=traefik-dashboard"
             - "--client-secret=$(TRAEFIK_OIDC_SECRET)"
-            - "--redirect-url=https://traefik.${PROD_DOMAIN}/oauth2/callback"
+            - "--relative-redirect-url=true"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
             - "--ssl-insecure-skip-verify=true"
             - "--skip-oidc-discovery=true"

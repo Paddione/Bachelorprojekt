@@ -73,6 +73,7 @@ spec:
                       | tr -d '\n' \
                       | grep -o '"tls\.crt": *"[^"]*"' \
                       | grep -o '"[^"]*"$' | tr -d '"')
+                    [ -n "$CRT" ] || { echo "skip: $SRC_NS/$SRC not found"; return; }
                     KEY=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
                       "$API/api/v1/namespaces/$SRC_NS/secrets/$SRC" \
                       | tr -d '\n' \

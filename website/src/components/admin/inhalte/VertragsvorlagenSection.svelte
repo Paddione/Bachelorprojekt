@@ -21,6 +21,7 @@
   let composeMsg = $state('');
   let composeSaving = $state(false);
   let deleteConfirm: string | null = $state(null);
+  let starterLoading = $state(false);
 
   // Stand-date feature
   let standPickerId: string | null = $state(null);
@@ -92,6 +93,16 @@
     composeTitle = ''; composeHtml = '';
     showCompose = true;
     composeMsg = '';
+  }
+
+  async function loadStarter() {
+    starterLoading = true;
+    try {
+      const res = await fetch('/api/admin/brand-starter');
+      if (res.ok) composeHtml = await res.text();
+      else composeMsg = 'Starter-Vorlage nicht verfügbar.';
+    } catch { composeMsg = 'Verbindungsfehler.'; }
+    finally { starterLoading = false; }
   }
 
   function openStandPicker(t: Template) {
@@ -217,7 +228,16 @@
       <!-- HTML editor — DIN-A4 width (794 px) -->
       <div class="overflow-x-auto">
         <div>
-          <label class="block text-sm text-muted mb-1">HTML-Inhalt *</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-sm text-muted">HTML-Inhalt *</label>
+            {#if !editingId}
+              <button
+                onclick={loadStarter}
+                disabled={starterLoading}
+                class="text-xs text-gold/80 hover:text-gold border border-gold/20 hover:border-gold/50 rounded px-2 py-1 transition-colors disabled:opacity-50"
+              >{starterLoading ? 'Lade…' : 'Design-System Vorlage laden'}</button>
+            {/if}
+          </div>
           <textarea
             bind:value={composeHtml}
             placeholder="<h1>Vertrag</h1><p>Inhalt hier…</p>"

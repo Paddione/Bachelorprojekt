@@ -17,7 +17,9 @@ spec:
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
               value: "false"
             - name: SMTP_HOST
-              value: "smtp.mailbox.org"
+              value: "${SMTP_HOST}"
+            - name: DASHBOARD_DOMAIN
+              value: "${DASHBOARD_DOMAIN}"
             - name: SMTP_PORT
               value: "587"
             - name: SMTP_FROM

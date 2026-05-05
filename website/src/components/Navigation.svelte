@@ -9,6 +9,7 @@
   let menuEl = $state<HTMLElement | null>(null);
   let user = $state<{ name: string; email: string; isAdmin?: boolean } | null>(null);
   let authChecked = $state(false);
+  let streamLive = $state(false);
 
   if (typeof window !== 'undefined') {
     fetch('/api/auth/me')
@@ -18,6 +19,11 @@
         authChecked = true;
       })
       .catch(() => { authChecked = true; });
+
+    fetch('/api/stream/status')
+      .then((r) => r.json())
+      .then((data) => { streamLive = data.live ?? false; })
+      .catch(() => {});
   }
 
   onMount(() => {
@@ -129,6 +135,22 @@
                   </a>
                 {/if}
 
+                <a
+                  href="/portal/stream"
+                  class="user-dropdown-item"
+                  onclick={() => (menuOpen = false)}
+                  role="menuitem"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="8" cy="8" r="6"/>
+                    <polygon points="6.5,5.5 11,8 6.5,10.5" fill="currentColor" stroke="none"/>
+                  </svg>
+                  Livestream
+                  {#if streamLive}
+                    <span class="live-badge" aria-label="Live">LIVE</span>
+                  {/if}
+                </a>
+
                 <div class="user-dropdown-divider"></div>
 
                 <a href="/api/auth/logout" class="user-dropdown-item logout" role="menuitem">
@@ -194,6 +216,12 @@
           {#if user.isAdmin}
             <a href="/portal" onclick={() => (mobileOpen = false)}>Als Nutzer ansehen</a>
           {/if}
+          <a href="/portal/stream" onclick={() => (mobileOpen = false)} class="mobile-stream-link">
+            Livestream
+            {#if streamLive}
+              <span class="live-badge" aria-label="Live">LIVE</span>
+            {/if}
+          </a>
           <a href="/api/auth/logout" onclick={() => (mobileOpen = false)} class="mobile-logout">Abmelden</a>
         {:else}
           <div class="mobile-divider"></div>
@@ -572,6 +600,45 @@
 
   .mobile-logout {
     color: var(--mute) !important;
+  }
+
+  .mobile-stream-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .live-badge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #dc2626;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+
+  .live-badge::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fff;
+    animation: live-pulse 1.4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
   }
 
   .mobile-cta {

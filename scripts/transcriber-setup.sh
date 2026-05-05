@@ -10,12 +10,14 @@ NAMESPACE="workspace"
 
 # Hilfsfunktion für occ-Kommandos im Nextcloud-Container
 _occ() {
-  kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
+  _kubectl exec -n "${NAMESPACE}" deploy/nextcloud -c nextcloud -- \
     sh -c "$1"
 }
 
 _kubectl() {
-  kubectl "$@"
+  local ctx_args=()
+  [[ -n "${KUBE_CONTEXT:-}" ]] && ctx_args=(--context "$KUBE_CONTEXT")
+  kubectl "${ctx_args[@]}" "$@"
 }
 
 echo "=== Transcriber-Bot Setup ==="

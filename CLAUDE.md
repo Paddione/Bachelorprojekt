@@ -104,6 +104,20 @@ task website:status              # Show website deployment status
 task website:teardown            # Remove website namespace
 ```
 
+### Livestream (LiveKit — WebRTC + OBS)
+Admin-Steuerseite `/admin/stream`, Zuschauer-Seite `/portal/stream`.
+`livekit-server` läuft auf `hostNetwork` und ist via `nodeAffinity` auf eine Pin-Node fixiert (mentolder: `gekko-hetzner-3`/`46.225.125.59`).
+```bash
+task livekit:status ENV=<env>            # Pods, Services, Ingress, Recording-Anzahl
+task livekit:logs ENV=<env>              # Tail livekit-server logs (default)
+task livekit:logs ENV=<env> -- ingress   # Tail livekit-ingress (RTMP)
+task livekit:logs ENV=<env> -- egress    # Tail livekit-egress (Recording)
+task livekit:recordings ENV=<env>        # MP4-Liste im egress PVC
+task livekit:end-stream ENV=<env>        # Notfall: livekit-server neu starten (Raum schließen)
+task livekit:dns-pin ENV=<env>           # Druckt ipv64-API-Calls für DNS-Pinning (APPLY=true zum Ausführen)
+task livekit:firewall-open NODE=<ip>     # Öffnet ufw 7880/7881/tcp + 50000-60000/udp + 30000-40000/udp via SSH
+```
+
 ### ArgoCD — GitOps Multi-Cluster Federation
 **HUB-ONLY**: ALL `argocd:*` tasks run exclusively against `--context mentolder`.
 `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
@@ -145,9 +159,28 @@ task brett:bot-setup ENV=<env>   # Register /brett slash command in Nextcloud Ta
 task brett:logs ENV=<env>        # Tail Brett logs
 ```
 
-### HA Cluster (High Availability)
+### Unified Cluster (High Availability — 12 nodes)
+The mentolder cluster is the single unified production cluster. The separate korczewski
+cluster was disbanded (2026-05-05) and all its nodes joined mentolder.
+
+**Node layout:**
+- Control-planes (6): `gekko-hetzner-2/3/4` (Hetzner Helsinki) + `pk-hetzner/pk-hetzner-2/3` (Hetzner Helsinki)
+- Workers (6): `k3s-1/2/3` + `k3w-1/2/3` (home LAN via WireGuard through pk-hetzner hub)
+
+**WireGuard mesh:** pk-hetzner (192.168.100.1) is the hub. All home workers use 192.168.100.x.
+k3s-1=.20, k3s-2=.11, k3s-3=.12, k3w-1=.4(.11 old), k3w-2=.3, k3w-3=.13, pk-hetzner-2=.21, pk-hetzner-3=.22.
+The mentolder Hetzner nodes reach home workers via wg0 tunnel through pk-hetzner.
+
+**CNI partition:** Flannel VXLAN does NOT route between Hetzner nodes and home workers.
+Mitigation: keep system pods (CoreDNS, ArgoCD, etc.) on Hetzner nodes via nodeAffinity.
+Home workers host user workloads only — pod-to-pod across the WireGuard double-hop is broken.
+
+**korczewski workloads** (`korczewski.de`) run in `workspace-korczewski` namespace on the same
+cluster, managed by ArgoCD via the `cluster-korczewski` secret pointing to `62.238.9.39:6443`
+(pk-hetzner's API endpoint) using the `argocd-korczewski` ServiceAccount.
+
 ```bash
-task ha:setup                    # Bootstrap 3-node k3s HA cluster on Hetzner (run once)
+task ha:setup                    # Bootstrap 3-node k3s HA cluster on Hetzner (run once — historical)
 task ha:import-image -- <path> <image:tag>  # Build and import image to all HA nodes
 task ha:cert-renew               # Renew HA cluster certificates
 task ha:status                   # Show HA cluster status
@@ -210,6 +243,9 @@ graph TB
         WHISPER["fa:fa-microphone Whisper<br/>Transkription"]
         TRBOT["fa:fa-closed-captioning Talk Transcriber"]
         JANUS[Janus + NATS + coturn]
+        LK["fa:fa-broadcast-tower LiveKit Server<br/>livekit.localhost (hostNet)"]
+        LKI["fa:fa-tower-broadcast LiveKit Ingress<br/>stream.localhost (RTMP)"]
+        LKE["fa:fa-record-vinyl LiveKit Egress<br/>(recording)"]
         DB[("fa:fa-database PostgreSQL 16<br/>shared-db")]
     end
 
@@ -217,7 +253,7 @@ graph TB
         WEB["fa:fa-globe Website Astro + Messaging<br/>web.localhost"]
     end
 
-    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & TR & WEB
+    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & TR & WEB & LK & LKI
 
     KC -. OIDC .-> NC & VW & WEB & DS & TR & BRETT
     OAUTH2 --> KC
@@ -225,6 +261,9 @@ graph TB
     NC --> CO
     NC --> HPB --> JANUS
     HPB --> TRBOT --> WHISPER
+    WEB --> LK
+    LKI --> LK
+    LK --> LKE
     KC & NC & DS & TR --> DB
     BRETT --> DB
     WEB --> DB
@@ -261,10 +300,9 @@ graph TB
 ## CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
-- Manifest validation: `kustomize build` + `kubeconform` (K8s 1.31.0)
-- YAML linting: `yamllint` (200-char line limit)
-- Shell linting: `shellcheck` on all scripts
-- Config validation: JSON (realm), PHP (OIDC), secret detection, image pinning checks
+- Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
+- Systembrett template validation
+- Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
 
 ## Development Rules
 
@@ -283,6 +321,12 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 ### Environment targeting
 - **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work.
 - **ArgoCD tasks are hub-only and enforce it.** All `argocd:*` tasks live in `Taskfile.argocd.yml` and have a `_hub-guard` precondition that aborts with a clear error if the `mentolder` context is unreachable. `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
+- **korczewski context still exists but points to the same physical cluster.** The `korczewski` kubeconfig context (62.238.9.39:6443 = pk-hetzner) now resolves to the unified mentolder cluster. `ENV=korczewski` in Taskfile tasks routes correctly. korczewski workloads land in `workspace-korczewski` namespace, not `workspace`.
+
+### Unified cluster node placement
+- **System pods (CoreDNS, ArgoCD, etc.) must run on Hetzner nodes.** Home workers (k3s-1/2/3, k3w-1/2/3) have a CNI partition: Flannel VXLAN from Hetzner nodes cannot route to home worker pod IPs (192.168.100.x VTEPs require a WireGuard double-hop through pk-hetzner that iptables FORWARD allows but VXLAN encapsulation doesn't traverse correctly). CoreDNS is pinned to Hetzner nodes via nodeAffinity in the deployment. If CoreDNS drifts to a home worker, cluster DNS fails from Hetzner pods.
+- **pk-hetzner is the WireGuard hub for home workers.** Do not remove pk-hetzner from the cluster or change its wg0 config without updating all home worker peers. Its wg0 IP (192.168.100.1) is the gateway for k3s-1/2/3/k3w-1/2/3.
+- **korczewski.de ingresses route via Traefik on mentolder.** The `workspace-korczewski` namespace on mentolder serves korczewski.de. Traefik on the mentolder Hetzner nodes handles ingress for both domains.
 
 ### Kustomize overlays
 - **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.
@@ -297,4 +341,18 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 
 ### Operational
 - **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy ENV=<env>` then `task docs:restart ENV=<env>`. Applying the ConfigMap alone leaves the old content served.
-- **yamllint runs a 200-char line limit in CI only.** Long base64 strings or multiline patches that are fine locally will fail the `lint-yaml` job on PR. Run `yamllint -d '{extends: relaxed, rules: {line-length: {max: 200}}}' <file>` before pushing.
+- **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.
+- **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
+
+### Korczewski homepage uses the Kore design system (different from mentolder)
+
+`web.korczewski.de` and `web.mentolder.de` no longer share a layout. `website/src/pages/index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` and renders the components under `website/src/components/kore/` for the `korczewski` brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.
+
+The Kore homepage shows a live PR-driven timeline:
+- Every merged PR triggers `.github/workflows/track-pr.yml` → writes `tracking/pending/<pr>.json` to main.
+- The `tracking-import` CronJob in workspace ns drains pending into `bachelorprojekt.features` every 5 minutes.
+- The homepage reads `bachelorprojekt.v_timeline` (joined to `bugs.bug_tickets.fixed_in_pr` for fix counts) via `/api/timeline`.
+
+To backfill historical PRs: `task tracking:backfill && task tracking:ingest:local` (the latter requires `TRACKING_DB_URL` from a port-forward to shared-db).
+
+The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRAND_ID` in local dev — `index.astro` reads both with `process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'`.

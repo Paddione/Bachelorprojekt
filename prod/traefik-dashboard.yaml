@@ -35,4 +35,4 @@ spec:
         - name: api@internal
           kind: TraefikService
   tls:
-    secretName: workspace-wildcard-tls
+    secretName: ${TLS_SECRET_NAME}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Service Tile</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="../styles/website.css">
+<style>
+  body{background:var(--ink-900); padding:18px;}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  body::before{display:none;}
+</style></head>
+<body>
+  <div class="row">
+    <div class="w-svc">
+      <div class="glyph"><img src="../assets/k8s-wheel.svg" width="34" height="34" style="filter:none;"></div>
+      <h3>Cluster <em>adoption</em></h3>
+      <p>Two-week onboarding to a control plane your on-call can actually read.</p>
+      <div class="tags"><span>EKS</span><span>GKE</span><span>BARE-METAL</span></div>
+    </div>
+    <div class="w-svc">
+      <div class="glyph">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/></svg>
+      </div>
+      <h3>Reliability <em>retainer</em></h3>
+      <p>We carry your pager for the quarters you'd rather not.</p>
+      <div class="tags"><span>SLO</span><span>RUNBOOK</span><span>ON-CALL</span></div>
+    </div>
+  </div>
+</body></html>

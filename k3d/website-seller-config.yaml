@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: website-seller-config
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 data:
   SELLER_NAME: "Gerald Korczewski"
   SELLER_ADDRESS: "Ludwig-Erhard-Str. 18"

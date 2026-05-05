@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+body{margin:0;padding:28px;background:var(--ink-900);font-family:var(--sans);}
+.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;border:1px solid transparent;}
+.primary{background:var(--brass);color:var(--ink-900);}
+.primary:hover{background:var(--brass-2);transform:translateY(-1px);}
+.ghost{color:var(--fg);border-color:var(--line-2);background:transparent;}
+.ghost:hover{border-color:var(--brass);color:var(--brass);}
+.slot{font-family:var(--mono);font-size:12px;padding:7px 12px;border:1px solid var(--line-2);border-radius:999px;color:var(--fg-soft);}
+.slot:hover{border-color:var(--brass);color:var(--brass);}
+svg{width:14px;height:14px;}
+</style></head><body>
+<div class="row">
+  <a class="btn primary">Kostenloses Erstgespräch <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+  <a class="btn ghost">Angebote ansehen</a>
+</div>
+<div class="row" style="margin-top:18px;">
+  <a class="slot">09:30</a><a class="slot">11:00</a><a class="slot">14:30</a><a class="slot">→ alle Termine</a>
+</div>
+</body></html>

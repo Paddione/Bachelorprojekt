@@ -1,0 +1,31 @@
+<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" class="ch-portrait">
+  <defs>
+    <radialGradient id="s50-bg" cx="70%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#d7b06a" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#0b111c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="s50-brass" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f0d28c"/>
+      <stop offset="100%" stop-color="#8a6a2a"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="300" fill="#101826"/>
+  <rect width="240" height="300" fill="url(#s50-bg)"/>
+  <line x1="60" y1="0" x2="60" y2="300" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+  <line x1="120" y1="0" x2="120" y2="300" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+  <line x1="180" y1="0" x2="180" y2="300" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+  <line x1="0" y1="75" x2="240" y2="75" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+  <line x1="0" y1="150" x2="240" y2="150" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+  <line x1="0" y1="225" x2="240" y2="225" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+  <g transform="translate(120,150)" fill="none" stroke="url(#s50-brass)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-30,-50 L18,-50"/>
+    <path d="M-30,-50 L-30,-8"/>
+    <path d="M-30,-8 Q-2,-18 18,-2 Q24,16 8,30 Q-12,40 -30,32"/>
+  </g>
+  <g transform="translate(180,108)" stroke="#f0d28c" stroke-width="3" stroke-linecap="round">
+    <line x1="-10" y1="0" x2="10" y2="0"/>
+    <line x1="0" y1="-10" x2="0" y2="10"/>
+  </g>
+  <circle cx="200" cy="200" r="4" fill="#f0d28c"/>
+  <text x="20" y="280" font-family='"Geist Mono", monospace' font-size="9" letter-spacing="2" fill="#a8c9b0" opacity="0.7">EINSTIEG · GENERATION 50+</text>
+</svg>

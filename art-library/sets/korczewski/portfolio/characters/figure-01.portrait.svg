@@ -1,0 +1,49 @@
+<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" class="ch-portrait">
+  <defs>
+    <radialGradient id="elara-bg" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#22542F" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#0F0B18" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="elara-hair" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#C0341D"/>
+      <stop offset="100%" stop-color="#7A1A0E"/>
+    </linearGradient>
+    <linearGradient id="elara-dress" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#3D8A4F"/>
+      <stop offset="100%" stop-color="#22542F"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="300" fill="url(#elara-bg)"/>
+  <path d="M50,120 Q40,180 60,260 Q90,290 120,290 Q150,290 180,260 Q200,180 190,120 Q170,90 120,90 Q70,90 50,120 Z" fill="url(#elara-hair)" opacity="0.95"/>
+  <path d="M40,300 Q40,230 80,210 L160,210 Q200,230 200,300 Z" fill="url(#elara-dress)"/>
+  <path d="M80,212 Q120,205 160,212 L155,222 Q120,215 85,222 Z" fill="#C8F76A" opacity="0.55"/>
+  <path d="M120,215 L120,260" stroke="#C8F76A" stroke-width="1" opacity="0.5"/>
+  <path d="M114,222 L126,222" stroke="#C8F76A" stroke-width="0.8" opacity="0.5"/>
+  <path d="M114,232 L126,232" stroke="#C8F76A" stroke-width="0.8" opacity="0.5"/>
+  <path d="M114,242 L126,242" stroke="#C8F76A" stroke-width="0.8" opacity="0.5"/>
+  <path d="M114,252 L126,252" stroke="#C8F76A" stroke-width="0.8" opacity="0.5"/>
+  <rect x="108" y="170" width="24" height="50" fill="#F2D2B8"/>
+  <path d="M108,200 Q120,210 132,200 L132,220 L108,220 Z" fill="#D9A37E" opacity="0.5"/>
+  <ellipse cx="120" cy="150" rx="38" ry="46" fill="#F2D2B8"/>
+  <path d="M82,130 Q90,108 120,108 Q150,108 158,130 Q150,118 130,116 Q120,124 110,116 Q90,118 82,130 Z" fill="url(#elara-hair)"/>
+  <path d="M82,130 Q78,160 84,200 Q70,180 70,150 Q72,135 82,130 Z" fill="url(#elara-hair)"/>
+  <path d="M158,130 Q162,160 156,200 Q170,180 170,150 Q168,135 158,130 Z" fill="url(#elara-hair)"/>
+  <path d="M88,140 Q92,200 102,235" stroke="#7A1A0E" stroke-width="3" fill="none" opacity="0.9" stroke-linecap="round"/>
+  <path d="M152,140 Q148,200 138,235" stroke="#7A1A0E" stroke-width="3" fill="none" opacity="0.9" stroke-linecap="round"/>
+  <ellipse cx="100" cy="165" rx="6" ry="3" fill="#D9A37E" opacity="0.35"/>
+  <ellipse cx="140" cy="165" rx="6" ry="3" fill="#D9A37E" opacity="0.35"/>
+  <ellipse cx="106" cy="152" rx="3.2" ry="2.2" fill="#2A3A0C"/>
+  <ellipse cx="134" cy="152" rx="3.2" ry="2.2" fill="#2A3A0C"/>
+  <circle cx="107" cy="151" r="0.8" fill="#fff"/>
+  <circle cx="135" cy="151" r="0.8" fill="#fff"/>
+  <path d="M100,144 Q106,142 112,145" stroke="#7A1A0E" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M128,145 Q134,142 140,144" stroke="#7A1A0E" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M120,158 Q118,170 122,176" stroke="#D9A37E" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M114,184 Q120,186 126,184" stroke="#9A2A1E" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M115,184 Q120,182 125,184" fill="#B83A2A" opacity="0.7"/>
+  <g transform="translate(150,116)">
+    <path d="M0,0 Q4,-6 10,-8" stroke="#C8F76A" stroke-width="1.2" fill="none"/>
+    <circle cx="3" cy="-3" r="1.5" fill="#C8F76A"/>
+    <circle cx="7" cy="-6" r="1.5" fill="#C8F76A"/>
+  </g>
+</svg>

@@ -5,6 +5,7 @@ import BugReportWidget from '../components/BugReportWidget.svelte';
 import HelpPanel from '../components/HelpPanel.svelte';
 import ChatWidget from '../components/ChatWidget.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
+import { countPendingByType } from '../lib/messaging-db';
 
 interface Props {
   title: string;
@@ -15,6 +16,7 @@ interface NavItem {
   label: string;
   icon: string;
   matches?: string[];
+  badge?: number;
 }
 
 const { title } = Astro.props;
@@ -51,7 +53,14 @@ const icons: Record<string, string> = {
   scale: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5v13M3 4.5h10M2 14.5h12"/><path d="M5 4.5L2.5 10h5zM11 4.5L8.5 10h5z"/></svg>`,
   inbox: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
   palette: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5a6.5 6.5 0 1 0 2.5 12.5c.6-.3.5-1.1 0-1.5a1.5 1.5 0 0 1 1.1-2.5H13a2 2 0 0 0 2-2 6.5 6.5 0 0 0-7-6.5z"/><circle cx="5" cy="6.5" r=".75" fill="currentColor" stroke="none"/><circle cx="8" cy="4.5" r=".75" fill="currentColor" stroke="none"/><circle cx="11" cy="6.5" r=".75" fill="currentColor" stroke="none"/></svg>`,
+  broadcast: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 1 0 8"/><path d="M6 8a6 6 0 0 0 0 8"/><circle cx="12" cy="12" r="2"/><path d="M21 5a11 11 0 0 1 0 14"/><path d="M3 5a11 11 0 0 0 0 14"/></svg>`,
 };
+
+let inboxPending = 0;
+try {
+  const counts = await countPendingByType();
+  inboxPending = Object.values(counts).reduce((a, b) => a + b, 0);
+} catch { /* ignore if messaging-db unavailable */ }
 
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
@@ -63,8 +72,8 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Betrieb',
     items: [
-      { href: '/admin/bugs',          label: 'Bugs',          icon: 'bug' },
       { href: '/admin/meetings',      label: 'Meetings',      icon: 'microphone' },
+      { href: '/admin/stream',        label: 'Stream',        icon: 'broadcast' },
       { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
       { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
       { href: '/admin/projekte',      label: 'Projekte',      icon: 'clipboard' },
@@ -97,7 +106,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: 'System',
     items: [
       { href: '/admin/monitoring', label: 'Monitoring', icon: 'monitor' },
-      { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox' },
+      { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox', badge: inboxPending },
     ],
   },
   {
@@ -327,7 +336,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
                     href={item.href}
                     title={item.label}
                     class={`sidebar-nav-item${isActive(item.href, item.matches) ? ' is-active' : ''}`}
-                    style={`display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
+                    style={`display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:10px; text-decoration:none; font-size:13px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
                       isActive(item.href, item.matches)
                         ? 'background:var(--brass-d); color:var(--brass);'
                         : 'color:var(--fg-soft);'
@@ -338,7 +347,10 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
                       style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${isActive(item.href, item.matches) ? 'color:var(--brass);' : 'color:var(--mute);'}`}
                       set:html={icons[item.icon]}
                     />
-                    <span class="sidebar-label">{item.label}</span>
+                    <span class="sidebar-label" style="flex:1;">{item.label}</span>
+                    {item.badge ? (
+                      <span class="sidebar-label" style="flex-shrink:0; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--brass-d); color:var(--brass); font-family:var(--font-mono); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">{item.badge}</span>
+                    ) : null}
                   </a>
                 </li>
               ))}

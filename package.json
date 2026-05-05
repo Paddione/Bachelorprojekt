@@ -1,0 +1,11 @@
+{
+  "name": "bachelorprojekt-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:track-pr": "node --test scripts/track-pr.test.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.20.0"
+  }
+}

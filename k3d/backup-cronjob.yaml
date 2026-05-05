@@ -21,14 +21,18 @@ spec:
             app: db-backup
         spec:
           restartPolicy: OnFailure
-          # Co-locate with shared-db to avoid cross-node CNI routing issues.
+          # Prefer to co-locate with shared-db (same-node pg_dump is faster and avoids
+          # cross-node routing) but don't block scheduling if that node is full.
+          # The backup connects via the shared-db Service, so any reachable node works.
           affinity:
             podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app: shared-db
-                  topologyKey: kubernetes.io/hostname
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchLabels:
+                        app: shared-db
+                    topologyKey: kubernetes.io/hostname
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534

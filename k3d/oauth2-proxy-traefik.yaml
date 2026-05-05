@@ -66,7 +66,7 @@ spec:
             - --provider=keycloak-oidc
             - --client-id=traefik-dashboard
             - --client-secret=$(TRAEFIK_OIDC_SECRET)
-            - --redirect-url=http://traefik.localhost/oauth2/callback
+            - --relative-redirect-url=true
             - --oidc-issuer-url=http://keycloak:8080/realms/workspace
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
@@ -88,6 +88,7 @@ spec:
             - --oidc-extra-audience=traefik-dashboard
             - --scope=openid email profile
             - --whitelist-domain=traefik.localhost
+            - --whitelist-domain=dashboard.localhost
           env:
             - name: TRAEFIK_OIDC_SECRET
               valueFrom:

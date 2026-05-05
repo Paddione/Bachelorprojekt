@@ -1,0 +1,65 @@
+// website/src/pages/api/stream/recording.ts
+import type { APIRoute } from 'astro';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { EgressClient, EncodedFileOutput, EncodedFileType } from 'livekit-server-sdk';
+
+const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY || 'devlivekit';
+const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET || 'devlivekitsecret1234567890abcdef';
+// Use the internal k8s service URL — the external domain goes through Traefik TLS
+// which rejects plain HTTP and causes a 500. The egress pod also uses this internal URL.
+const LIVEKIT_URL = process.env.LIVEKIT_SERVICE_URL || 'http://livekit-server:7880';
+const ROOM_NAME = 'main-stream';
+
+export const POST: APIRoute = async ({ request }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { action, egressId } = await request.json() as { action: 'start' | 'stop'; egressId?: string };
+  const client = new EgressClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+
+  if (action === 'start') {
+    try {
+      const info = await client.startRoomCompositeEgress(
+        ROOM_NAME,
+        new EncodedFileOutput({
+          fileType: EncodedFileType.MP4,
+          filepath: `/recordings/${ROOM_NAME}-${Date.now()}.mp4`,
+        }),
+      );
+      return new Response(JSON.stringify({ egressId: info.egressId }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  if (action === 'stop' && egressId) {
+    try {
+      await client.stopEgress(egressId);
+    } catch (e) {
+      return new Response(JSON.stringify({ error: String(e) }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(JSON.stringify({ error: 'Invalid action' }), {
+    status: 400,
+    headers: { 'Content-Type': 'application/json' },
+  });
+};

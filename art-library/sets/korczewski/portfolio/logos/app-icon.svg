@@ -1,0 +1,43 @@
+<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0c0c18"/>
+    </radialGradient>
+    <radialGradient id="core1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d4ff6e"/>
+      <stop offset="40%" stop-color="#a8e040"/>
+      <stop offset="100%" stop-color="#4a8010" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow1">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="rounded1">
+      <rect width="160" height="160" rx="36" ry="36"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#rounded1)">
+    <rect width="160" height="160" fill="url(#bg1)"/>
+    <g transform="translate(62, 82)" fill="none" stroke="#b8ff4a" stroke-width="0.5">
+      <circle r="20" opacity="0.25"/>
+      <circle r="36" opacity="0.15"/>
+      <circle r="52" opacity="0.10"/>
+      <circle r="68" opacity="0.06"/>
+    </g>
+    <circle cx="62" cy="82" r="38" fill="#6aaa00" opacity="0.12" filter="url(#softglow)"/>
+    <line x1="62" y1="82" x2="108" y2="34" stroke="#c8f050" stroke-width="9" stroke-linecap="round" filter="url(#glow1)" opacity="0.95"/>
+    <line x1="62" y1="82" x2="108" y2="130" stroke="#c8f050" stroke-width="9" stroke-linecap="round" filter="url(#glow1)" opacity="0.95"/>
+    <line x1="30" y1="30" x2="30" y2="134" stroke="#c8f050" stroke-width="9" stroke-linecap="round" filter="url(#glow1)" opacity="0.85"/>
+    <circle cx="62" cy="82" r="10" fill="url(#core1)" class="core-glow" filter="url(#softglow)"/>
+    <circle cx="62" cy="82" r="5" fill="#eeff88" filter="url(#glow1)"/>
+  </g>
+  <style>
+    @keyframes glow-core { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .core-glow { animation: glow-core 2s ease-in-out infinite; }
+  </style>
+</svg>

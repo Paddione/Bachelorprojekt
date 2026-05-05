@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200" width="120" height="200">
+  
+  <ellipse cx="60" cy="196" rx="22" ry="5" fill="rgba(0,0,0,.4)"></ellipse>
+  <path d="M28,82 Q14,120 12,185 Q16,196 30,196 Q42,180 52,155 Q58,135 60,120" fill="#1A1028"></path>
+  <path d="M92,82 Q106,120 108,185 Q104,196 90,196 Q78,180 68,155 Q62,135 60,120" fill="#1A1028"></path>
+  <path d="M30,90 Q18,130 16,180" stroke="#3A2055" stroke-width="2" fill="none" stroke-opacity=".5"></path>
+  <path d="M90,90 Q102,130 104,180" stroke="#3A2055" stroke-width="2" fill="none" stroke-opacity=".5"></path>
+  <path d="M44,78 L40,138 L80,138 L76,78 Z" fill="#221535"></path>
+  <line x1="50" y1="82" x2="70" y2="82" stroke="#3A2A18" stroke-width="3"></line>
+  <line x1="50" y1="92" x2="70" y2="92" stroke="#3A2A18" stroke-width="3"></line>
+  <path d="M60,100 L66,108 L60,116 L54,108 Z" fill="#221535" stroke="#9B5BD4" stroke-width="1.5"></path>
+  <circle cx="60" cy="108" r="2" fill="#C8F76A"></circle>
+  <rect x="40" y="132" width="40" height="8" rx="2" fill="#2A1A08"></rect>
+  <rect x="52" y="131" width="8" height="10" rx="2" fill="#3A2A10"></rect>
+  <rect x="79" y="124" width="3" height="14" rx="1" fill="#5A4020"></rect>
+  <rect x="76" y="128" width="9" height="3" rx="1" fill="#8A6030"></rect>
+  <rect x="54" y="64" width="12" height="16" rx="5" fill="#C8A07A"></rect>
+  <ellipse cx="60" cy="54" rx="20" ry="22" fill="#D0985A"></ellipse>
+  <path d="M49,52 L55,50 L55,54 Z" fill="#0A0510"></path>
+  <path d="M65,52 L71,50 L71,54 Z" fill="#0A0510"></path>
+  <circle cx="52" cy="52" r="3" fill="#6B2D9A" fill-opacity=".5"></circle>
+  <circle cx="68" cy="52" r="3" fill="#6B2D9A" fill-opacity=".5"></circle>
+  <path d="M52,56 Q50,60 54,63" stroke="#A07040" stroke-width="1" fill="none"></path>
+  <path d="M55,65 Q62,69 66,65" stroke="#A05A30" stroke-width="1.5" fill="none"></path>
+  <path d="M40,46 Q36,20 42,8 Q48,0 60,0 Q72,0 78,8 Q84,20 80,46" fill="#150D22"></path>
+  <path d="M40,48 Q30,54 34,72 Q38,72 42,68 Q44,58 44,50" fill="#150D22"></path>
+  <path d="M80,48 Q90,54 86,72 Q82,72 78,68 Q76,58 76,50" fill="#150D22"></path>
+  <path d="M44,46 Q40,30 44,14 Q48,4 60,2 Q72,4 76,14 Q80,30 76,46" fill="#1A1228"></path>
+  <path d="M44,84 Q30,98 26,122 L34,126 Q38,107 50,95" fill="#221535"></path>
+  <path d="M76,84 Q90,98 94,116 L86,120 Q82,105 70,95" fill="#221535"></path>
+  <ellipse cx="28" cy="127" rx="7" ry="5" fill="#C8A07A"></ellipse>
+  <ellipse cx="92" cy="117" rx="7" ry="5" fill="#C8A07A"></ellipse>
+</svg>

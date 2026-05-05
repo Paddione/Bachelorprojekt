@@ -1,0 +1,12 @@
+{
+  "pr_number": 508,
+  "title": "fix brett art-library manifests, kustomize PVC patch, add test:art-library to test:all",
+  "description": "## Summary\n\n- **Art-library manifests**: Replaced `sets/korczewski/manifest.json` and `sets/mentolder/manifest.json` (design-system manifests) with their brett game-asset portfolio manifests. The old manifests had wrong kinds (`illustration`), missing required fields (`name_de`, `tags`), and extra properties not allowed by the schema — causing the BATS validator and the `korczewski set has all kinds` test to fail.\n- **Validator path resolution**: Extended `validate-manifest.mjs` to also resolve ConfigMap-flat filenames (e.g. `characters_figure-01.figurine.svg`) against the `portfolio/` subdirectory, since that's where the actual SVG files live.\n- **Kustomize PVC patch**: The `livekit-recordings-pvc` strategic merge patch in `prod-korczewski/patch-livekit.yaml` was embedding `namespace: workspace-korczewski`, which kustomize couldn't resolve (namespace transformation + patch lookup ordering issue). Moved it to an inline patch with `target: kind/name` selector in `kustomization.yaml`, fixing the `prod kustomize output has no workspace-secrets Secret` manifests test.\n- **test:all**: Added `test:art-library` as a dependency so it runs in the offline CI suite.\n\n## Test plan\n\n- [x] `task test:art-library` — both bats tests pass (validator + korczewski kinds)\n- [x] `task test:all` — all 24 manifests tests + unit tests + art-library + dry-run pass\n- [ ] Deploy to korczewski cluster to fix E2E `brett-art.spec.ts` (ArgoCD will pick up the corrected `manifest.json` ConfigMap, enabling `figure-01..04` character IDs in brett)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "tests",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T11:58:39Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

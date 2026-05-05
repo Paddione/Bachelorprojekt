@@ -102,6 +102,8 @@ export const POST: APIRoute = async ({ request, params }) => {
     netAmountEur: draftRow.net_amount_eur != null ? Number(draftRow.net_amount_eur) : Number(draftRow.net_amount),
     grossAmountEur: draftRow.gross_amount_eur != null ? Number(draftRow.gross_amount_eur) : Number(draftRow.gross_amount),
     supplyType: (draftRow.supply_type as string) ?? undefined,
+    kind: ((draftRow.kind as string) ?? 'regular') as 'regular' | 'prepayment' | 'final' | 'gutschrift',
+    parentInvoiceId: (draftRow.parent_invoice_id as string) ?? undefined,
   };
 
   const invoiceInput = {
@@ -144,7 +146,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       address: customer.addressLine1 || undefined,
       postalCode: customer.postalCode || undefined,
       city: customer.city || undefined,
-      country: customer.country || 'DE',
+      country: customer.landIso || 'DE',
       vatId: customer.vatNumber || undefined,
       leitwegId: draftRow.leitweg_id || customer.defaultLeitwegId || undefined,
     },
@@ -154,8 +156,18 @@ export const POST: APIRoute = async ({ request, params }) => {
   let pdf: Buffer;
   try {
     xml = generateFacturX(invoiceInput);
+    const pdfCustomer = {
+      name: customer.name,
+      email: customer.email,
+      company: customer.company,
+      addressLine1: customer.addressLine1,
+      city: customer.city,
+      postalCode: customer.postalCode,
+      country: customer.landIso ?? 'DE',
+      vatNumber: customer.vatNumber,
+    };
     pdf = await generateInvoicePdf({
-      invoice: tempInvoice, lines, customer, seller,
+      invoice: tempInvoice, lines, customer: pdfCustomer, seller,
       templateTexts: {
         introText: tmpl.invoice_intro_text || undefined,
         kleinunternehmerNotice: tmpl.invoice_kleinunternehmer_notice || undefined,

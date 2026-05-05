@@ -1,0 +1,66 @@
+---
+type Pillar = { title: string; em: string; body: string; tags: string[]; svgPath?: string };
+const pillars: Pillar[] = [
+  {
+    title: 'SSO &',
+    em: 'Identität',
+    body: 'Keycloak als zentraler OIDC-Provider. Eine Anmeldung, alle Tools.',
+    tags: ['KEYCLOAK', 'OIDC'],
+    svgPath: 'M12 8a3 3 0 100-6 3 3 0 000 6zM5 21v-2a4 4 0 014-4h6a4 4 0 014 4v2',
+  },
+  {
+    title: 'Dateien &',
+    em: 'Talk',
+    body: 'Nextcloud mit Talk, Whiteboard, Collabora und HPB-Signaling.',
+    tags: ['NEXTCLOUD', 'TALK', 'COLLABORA'],
+    svgPath: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z',
+  },
+  {
+    title: 'Vault &',
+    em: 'Secrets',
+    body: 'Vaultwarden für Passwörter. Sealed Secrets für Cluster-Geheimnisse.',
+    tags: ['VAULTWARDEN', 'SEALED'],
+    svgPath: 'M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z',
+  },
+  {
+    title: 'Stream &',
+    em: 'KI',
+    body: 'LiveKit für WebRTC-Streaming. Claude Code MCP für KI-Ops im Cluster.',
+    tags: ['LIVEKIT', 'MCP', 'WHISPER'],
+    svgPath: 'M3 12h4l3-8 4 16 3-8h4',
+  },
+];
+---
+
+<section class="w-section" id="services">
+  <div class="head">
+    <span class="num">01 / 04</span>
+    <h2>Was im Cluster <em class="em">tatsächlich läuft.</em></h2>
+    <span class="hint">8+ services · 1 cluster · 2 brands</span>
+  </div>
+  <div class="w-services">
+    {pillars.map((p) => (
+      <article class="w-svc">
+        <div class="glyph">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d={p.svgPath} />
+          </svg>
+        </div>
+        <h3>{p.title} <em class="em">{p.em}</em></h3>
+        <p>{p.body}</p>
+        <div class="tags">{p.tags.map((t) => <span>{t}</span>)}</div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  :global(.w-services) {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  @media (max-width: 980px) {
+    :global(.w-services) {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+</style>

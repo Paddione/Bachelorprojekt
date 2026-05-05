@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Stat Cards</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body{background:var(--ink-900); padding:22px 24px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .stat{padding:18px; background:var(--ink-800); border-radius:12px; box-shadow:inset 0 1px 0 var(--copper);}
+  .lab{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute);}
+  .v{font-family:var(--serif); font-size:30px; color:var(--fg); margin-top:6px; letter-spacing:-0.01em; line-height:1;}
+  .v em{font-style:italic; color:var(--copper-2);}
+  .v .u{font-family:var(--mono); font-size:12px; color:var(--mute); margin-left:4px;}
+  .s{font-family:var(--mono); font-size:10.5px; color:var(--mute); margin-top:6px;}
+</style></head>
+<body>
+  <div class="stat"><div class="lab">Avg adoption</div><div class="v">2<span class="u">wk</span></div><div class="s">control plane → prod</div></div>
+  <div class="stat"><div class="lab">Pages / quarter</div><div class="v"><em>0</em></div><div class="s">outside business hours</div></div>
+  <div class="stat"><div class="lab">SLA hit</div><div class="v">99.97<span class="u">%</span></div><div class="s">12-month rolling</div></div>
+</body></html>

@@ -1,0 +1,6 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="32" cy="34" rx="14" ry="14" fill="#C8B068"/>
+  <ellipse cx="32" cy="32" rx="14" ry="14" fill="#E8C870"/>
+  <text x="32" y="38" text-anchor="middle" font-family="serif" font-size="14" fill="#7A5818" font-style="italic">K</text>
+  <ellipse cx="32" cy="58" rx="14" ry="1.5" fill="#000" opacity="0.4"/>
+</svg>

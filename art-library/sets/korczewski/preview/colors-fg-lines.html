@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Foreground / Lines</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body{background:var(--ink-900); padding:18px 24px; color:var(--fg); display:grid; grid-template-columns:1.4fr 1fr; gap:18px;}
+  .col{display:flex; flex-direction:column; gap:8px;}
+  .row{display:flex; align-items:center; gap:12px; font-family:var(--mono); font-size:11px;}
+  .chip{width:24px; height:24px; border-radius:6px; border:1px solid var(--line-2);}
+  .h{color:var(--mute); margin-left:auto;}
+  .lab{color:var(--fg-soft);}
+  .lines{display:flex; flex-direction:column; gap:0; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .lines > div{padding:10px 14px; font-family:var(--mono); font-size:11px; display:flex; justify-content:space-between; color:var(--fg-soft);}
+  .lines > div:nth-child(1){border-bottom:1px solid rgba(255,255,255,.07);}
+  .lines > div:nth-child(2){border-bottom:1px solid rgba(255,255,255,.12);}
+  .lines > div:nth-child(3){border-bottom:1px solid rgba(255,255,255,.20);}
+</style></head>
+<body>
+  <div class="col">
+    <div class="row"><div class="chip" style="background:#ECEFF3;"></div><span class="lab">fg</span><span class="h">#ECEFF3</span></div>
+    <div class="row"><div class="chip" style="background:#C6CCD4;"></div><span class="lab">fg-soft</span><span class="h">#C6CCD4</span></div>
+    <div class="row"><div class="chip" style="background:#8A93A0;"></div><span class="lab">mute</span><span class="h">#8A93A0</span></div>
+    <div class="row"><div class="chip" style="background:#69707B;"></div><span class="lab">mute-2</span><span class="h">#69707B</span></div>
+  </div>
+  <div class="lines">
+    <div><span>line</span><span>.07</span></div>
+    <div><span>line-2</span><span>.12</span></div>
+    <div><span>line-3</span><span>.20</span></div>
+  </div>
+</body></html>

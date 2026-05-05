@@ -1,4 +1,11 @@
 #cloud-config
+# Usage: paste as Hetzner server "User data" when creating a NEW node.
+# Hetzner's cloud-init runs as root before you have SSH access, so root login
+# is open at that point. After this runs, root SSH is disabled and only
+# the "patrick" user is allowed. scripts/setup-ha-cluster.sh therefore must
+# target fresh servers BEFORE cloud-init finishes, or use the patrick user.
+# This config provisions a standalone control-plane node (cluster-init: true).
+# To join additional nodes to an existing cluster use setup-ha-cluster.sh instead.
 users:
   - default
   - name: patrick
@@ -89,6 +96,13 @@ runcmd:
   - ufw allow 5349/tcp     # coturn TURNS (TLS TURN — iOS/iPhone)
   - ufw allow 49152:49252/udp  # coturn TURN relay port range
   - ufw allow 2379:2380/tcp
+  # LiveKit ports — Hetzner host firewall blocks inter-node traffic on every
+  # port except 80/443 by default. Without these the host-network livekit-server
+  # pod is unreachable from Traefik on other nodes (see k3d/livekit.yaml).
+  - ufw allow 7880/tcp     # LiveKit signaling (HTTP/WS)
+  - ufw allow 7881/tcp     # LiveKit RTC TCP fallback
+  - ufw allow 50000:60000/udp  # LiveKit RTC media range
+  - ufw allow 30000:40000/udp  # LiveKit TURN relay range
   - ufw --force enable
 
   # Services
@@ -97,6 +111,7 @@ runcmd:
   - systemctl restart sshd
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
+  - systemctl enable --now iscsid
 
   # Install k3s
   - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -

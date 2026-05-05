@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+body{margin:0;padding:24px;background:var(--ink-900);font-family:var(--sans);}
+label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:6px;}
+input,select,textarea{width:100%;background:var(--ink-850);border:1px solid var(--line-2);border-radius:12px;color:var(--fg);font-family:var(--sans);font-size:15px;padding:14px 16px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--brass);box-shadow:0 0 0 3px var(--brass-d);}
+input::placeholder,textarea::placeholder{color:var(--mute-2);}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.full{margin-top:14px;}
+</style></head><body>
+<div class="row">
+  <div><label>Ihr Name *</label><input value="Gerald Korczewski" /></div>
+  <div><label>E-Mail *</label><input placeholder="max@beispiel.de" /></div>
+</div>
+<div class="full"><label>Wie können wir helfen?</label><select><option>Kostenloses Erstgespräch</option></select></div>
+<div class="full"><label>Ihre Nachricht *</label><textarea rows="2" placeholder="Beschreiben Sie kurz Ihr Anliegen…"></textarea></div>
+</body></html>

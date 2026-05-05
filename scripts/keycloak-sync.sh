@@ -47,8 +47,24 @@ err()  { echo -e "${RED}[KC-SYNC]${NC} $*"; }
 log "Warte auf Keycloak-Rollout..."
 # shellcheck disable=SC2086
 if ! kubectl $CONTEXT_FLAG rollout status deployment/keycloak \
-     -n "$KC_NAMESPACE" --timeout=120s 2>/dev/null; then
-  warn "Keycloak nicht bereit — Sync wird übersprungen."
+     -n "$KC_NAMESPACE" --timeout=300s 2>/dev/null; then
+  warn "Keycloak nicht bereit nach 5min — Sync wird übersprungen."
+  exit 0
+fi
+
+# Rollout abgeschlossen, aber der Admin-API-Endpunkt braucht ggf. noch
+# einen Moment. Warte bis zu 60s darauf, dass /realms/master HTTP 200 liefert.
+log "Warte auf Keycloak HTTP-Bereitschaft..."
+KC_READY=0
+for _i in $(seq 1 12); do
+  if curl -sk --max-time 5 "${KC_URL}/realms/master" | grep -q '"realm"'; then
+    KC_READY=1
+    break
+  fi
+  sleep 5
+done
+if [[ $KC_READY -eq 0 ]]; then
+  warn "Keycloak HTTP-Endpunkt antwortet nicht — Sync wird übersprungen."
   exit 0
 fi
 

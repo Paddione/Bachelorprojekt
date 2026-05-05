@@ -40,8 +40,31 @@ task workspace:up
 *   `task website:dev`: Run the Astro website dev server with hot-reload.
 *   `task mcp:deploy`: Deploy Claude Code MCP pods.
 *   `task test:all`: Run all offline tests (unit, manifests, dry-run).
+*   `task workspace:dsgvo-check`: Run DSGVO/GDPR compliance verification (NFA-01).
+*   `task workspace:sync-db-passwords`: Sync DB passwords between K8s secrets and Postgres roles (run after secret rotation).
+*   `task workspace:vaultwarden:seed`: Seed production Vaultwarden with secret templates (critical after fresh prod deploy).
+
+### Specialized Taskgroups
+*   **`wireguard:*`**: Manage the VPN tunnel connecting the local GPU worker (for AI transcription) to the production cluster.
+*   **`keycloak:sync`**: Push realm config and secret updates to the live cluster without a full redeploy.
+*   **`sealed-secrets:*`**: Lifecycle of the Sealed Secrets controller (required for `env:seal`).
+*   **`einvoice-sidecar:*`**: Build and manage the ZUGFeRD/XRechnung sidecar image (Java/Mustangproject).
+*   **`billing:validate-einvoice`**: Validate e-invoice XML/PDF output locally.
+
+### User Lifecycle Management
+*   `task workspace:create-guest`: Provision a guest account in Keycloak and Nextcloud.
+*   `task workspace:import-users`: Bulk-import users from CSV.
+*   `task workspace:migrate`: Interactive data migration assistant.
 
 *Tip: Review the `Taskfile.yml` or run `task --list` for an exhaustive list of available commands.*
+
+## Operational Footguns & Warnings
+
+> [!CAUTION]
+> **ENV= Behavior & Context Safety:**
+> The `ENV=` variable is explicit. Omitting it defaults to `dev`. 
+> **Crucially:** The kubectl context mismatch check **only runs when `ENV != dev`**.
+> If your active kubectl context points to a production cluster and you run a command without `ENV=`, you will deploy `dev` configuration to `prod` without warning. Always verify your context or use explicit `ENV=` flags.
 
 ## Development Conventions
 

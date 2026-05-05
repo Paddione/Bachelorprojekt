@@ -1,4 +1,5 @@
 /// <reference types="astro/client" />
+/// <reference types="node" />
 
 interface ImportMetaEnv {
   // Keycloak
@@ -35,6 +36,7 @@ interface ImportMetaEnv {
   readonly AUTH_EXTERNAL_URL?: string;
   readonly VAULT_EXTERNAL_URL?: string;
   readonly WHITEBOARD_EXTERNAL_URL?: string;
+  readonly TRACKING_EXTERNAL_URL?: string;
   // Nextcloud CalDAV
   readonly NEXTCLOUD_URL: string;
   readonly NEXTCLOUD_CALDAV_USER: string;

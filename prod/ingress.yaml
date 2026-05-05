@@ -8,7 +8,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-apex
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-redirect-apex-to-web@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-redirect-apex-to-web@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -32,7 +32,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-auth
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-auth@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-auth@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -56,7 +56,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-files
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-files@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-files@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -80,7 +80,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-vault
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-vault@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-vault@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -104,7 +104,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-docs
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -128,7 +128,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-sign
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -152,7 +152,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-misc
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -201,7 +201,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-tracking
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
@@ -225,7 +225,7 @@ kind: Ingress
 metadata:
   name: workspace-ingress-brett
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:

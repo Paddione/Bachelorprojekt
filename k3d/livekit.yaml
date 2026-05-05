@@ -1,0 +1,404 @@
+# ═══════════════════════════════════════════════════════════════════
+# LiveKit — WebRTC SFU for livestreaming
+# Components: Redis, Server, Ingress (RTMP), Egress (recording)
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Redis (LiveKit room state) ───────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-redis
+  labels:
+    app: livekit-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: livekit-redis
+  template:
+    metadata:
+      labels:
+        app: livekit-redis
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis
+          image: redis:7.4-alpine
+          command: ["redis-server", "--save", "", "--appendonly", "no"]
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop: [ALL]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit-redis
+spec:
+  selector:
+    app: livekit-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+
+# ── LiveKit Server config ─────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: livekit-server-config
+data:
+  config.yaml: |
+    port: 7880
+    bind_addresses:
+      - "0.0.0.0"
+    rtc:
+      tcp_port: 7881
+      port_range_start: 50000
+      port_range_end: 60000
+      # With hostNetwork: true the pod sees the node's interfaces directly,
+      # so STUN-discovered srflx == bound IP. Leaving this enabled also lets
+      # LiveKit fall back to STUN if the node ever ends up behind NAT.
+      use_external_ip: true
+      # Exclude IPv6 to prevent constant IPv4↔IPv6 ICE pair switching, which
+      # triggers signalling renegotiation and causes NegotiationError timeouts.
+      ips:
+        excludes:
+          - "::/0"
+    redis:
+      address: livekit-redis:6379
+    turn:
+      enabled: true
+      domain: ""
+      tls_port: 0
+      udp_port: 3478
+      external_tls: false
+    keys: {}
+---
+
+# ── LiveKit Server ────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-server
+  labels:
+    app: livekit-server
+spec:
+  replicas: 1
+  # hostNetwork binds ports 7880/7881 directly on the node; a RollingUpdate
+  # would try to start the new pod before killing the old one, which fails
+  # with "port already in use". Recreate stops the old pod first.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: livekit-server
+  template:
+    metadata:
+      labels:
+        app: livekit-server
+    spec:
+      # WebRTC media uses UDP 50000-60000 + TCP 7881. The Service can't
+      # publish a 10k-port UDP range, so the pod shares the node's network
+      # namespace and binds those ports directly on the host. This locks
+      # LiveKit to one node — the nodeAffinity below pins it to gekko-hetzner-3,
+      # which the wildcard `livekit.${PROD_DOMAIN}` DNS round-robin already
+      # includes. ClusterFirstWithHostNet keeps cluster DNS (e.g. livekit-redis)
+      # resolvable from inside the pod even though the host's resolver isn't.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: livekit
+          image: livekit/livekit-server:v1.11.0
+          args:
+            - --config=/etc/livekit/config.yaml
+          ports:
+            - name: http
+              containerPort: 7880
+            - name: rtc-tcp
+              containerPort: 7881
+          env:
+            - name: LIVEKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LIVEKIT_API_KEY
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LIVEKIT_API_SECRET
+            - name: LIVEKIT_KEYS
+              value: "$(LIVEKIT_API_KEY): $(LIVEKIT_API_SECRET)"
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+          volumeMounts:
+            - name: config
+              mountPath: /etc/livekit
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: config
+          configMap:
+            name: livekit-server-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit-server
+spec:
+  selector:
+    app: livekit-server
+  ports:
+    - name: http
+      port: 7880
+      targetPort: 7880
+    - name: rtc-tcp
+      port: 7881
+      targetPort: 7881
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: livekit-server-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: "livekit.${PROD_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: livekit-server
+                port:
+                  number: 7880
+---
+# CORS middleware: livekit-client in the browser fetches /rtc/v1/validate
+# from the website origin before opening the wss:// connection. Without these
+# headers the cross-origin request is blocked and the WebSocket never opens.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: livekit-cors
+  namespace: workspace
+spec:
+  headers:
+    accessControlAllowOriginList:
+      - "https://web.${PROD_DOMAIN}"
+    accessControlAllowMethods:
+      - GET
+      - POST
+      - OPTIONS
+    accessControlAllowHeaders:
+      - "*"
+    accessControlExposeHeaders:
+      - "*"
+    accessControlMaxAge: 100
+    accessControlAllowCredentials: true
+    addVaryHeader: true
+---
+# HTTPS entry for LiveKit. The plain HTTP Ingress above stays for local/legacy
+# clients (e.g. server-to-server calls inside the cluster); browsers must use
+# wss:// from the HTTPS website, which requires this websecure router with
+# the wildcard cert and the CORS middleware.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: livekit-server
+  namespace: workspace
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`livekit.${PROD_DOMAIN}`)
+      services:
+        - name: livekit-server
+          port: 7880
+      middlewares:
+        - name: livekit-cors
+  tls:
+    secretName: ${TLS_SECRET_NAME}
+---
+
+# ── LiveKit Ingress (RTMP → WebRTC) ──────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-ingress
+  labels:
+    app: livekit-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: livekit-ingress
+  template:
+    metadata:
+      labels:
+        app: livekit-ingress
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ingress
+          image: livekit/ingress:v1.5.0
+          ports:
+            - name: rtmp
+              containerPort: 1935
+            - name: http
+              containerPort: 8080
+          env:
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LIVEKIT_API_KEY
+            - name: API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LIVEKIT_API_SECRET
+            - name: INGRESS_CONFIG_BODY
+              value: |
+                api_key: $(API_KEY)
+                api_secret: $(API_SECRET)
+                ws_url: ws://livekit-server:7880
+                redis:
+                  address: livekit-redis:6379
+                rtmp:
+                  port: 1935
+                http_relay_port: 8080
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit-ingress-rtmp
+spec:
+  type: LoadBalancer
+  selector:
+    app: livekit-ingress
+  ports:
+    - name: rtmp
+      port: 1935
+      targetPort: 1935
+      protocol: TCP
+---
+
+# ── LiveKit Egress (recording) ────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: livekit-recordings-pvc
+spec:
+  storageClassName: local-path
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-egress
+  labels:
+    app: livekit-egress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: livekit-egress
+  template:
+    metadata:
+      labels:
+        app: livekit-egress
+    spec:
+      containers:
+        - name: egress
+          image: livekit/egress:v1.9.0
+          env:
+            - name: EGRESS_CONFIG_BODY
+              value: |
+                api_key: $(API_KEY)
+                api_secret: $(API_SECRET)
+                ws_url: ws://livekit-server:7880
+                redis:
+                  address: livekit-redis:6379
+                health_port: 9090
+                log_level: info
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LIVEKIT_API_KEY
+            - name: API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LIVEKIT_API_SECRET
+          resources:
+            requests:
+              memory: 0
+              cpu: 0
+            limits:
+              memory: 2Gi
+              cpu: 2000m
+          volumeMounts:
+            - name: recordings
+              mountPath: /recordings
+      volumes:
+        - name: recordings
+          persistentVolumeClaim:
+            claimName: livekit-recordings-pvc

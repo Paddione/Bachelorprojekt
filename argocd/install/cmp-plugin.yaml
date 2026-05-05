@@ -33,5 +33,11 @@ data:
               export "$name=$(printenv "$var")"
               WHITELIST="$WHITELIST \${$name}"
             done
-            kustomize build . | envsubst "$WHITELIST"
+            # --load-restrictor=LoadRestrictionsNone is required because the
+            # k3d/ base reads the `art-library` ConfigMap files from
+            # ../art-library/sets/<brand>/, which lives outside the kustomize
+            # root. Without this flag kustomize aborts with a security error
+            # and the plugin returns zero output, leaving every Application
+            # OutOfSync with all 150+ resources flagged requiresPruning.
+            kustomize build --load-restrictor=LoadRestrictionsNone . | envsubst "$WHITELIST"
       lockRepo: false

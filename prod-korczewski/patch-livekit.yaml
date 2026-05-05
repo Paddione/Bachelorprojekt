@@ -1,0 +1,78 @@
+# Pin all livekit-* Deployments to gekko-hetzner-4 (178.104.159.79).
+#
+# livekit-server uses hostNetwork: true; on a Hetzner node STUN discovers
+# the real public IP. All four components are co-located so livekit-egress /
+# livekit-ingress reach livekit-server and livekit-redis via normal DNS
+# (CoreDNS is reachable from Hetzner nodes).
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-server
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - gekko-hetzner-4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-redis
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - gekko-hetzner-4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-egress
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - gekko-hetzner-4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-ingress
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - gekko-hetzner-4

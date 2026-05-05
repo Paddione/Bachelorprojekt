@@ -47,6 +47,7 @@ wireguard/*.pub
 
 # ── Docker ──────────────────────────────────────
 .docker/
+**/target/
 
 # ── Tracking (local SQLite, regenerated from JSON) ──
 tracking.db
@@ -92,3 +93,9 @@ environments/Assets
 .claude/scheduled_tasks.lock
 Systemdesign_Buchhaltung-1.docx
 ~$stemdesign_Buchhaltung-1.docx
+.codex
+
+# Python
+__pycache__/
+*.pyc
+*.pyo

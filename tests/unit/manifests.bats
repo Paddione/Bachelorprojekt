@@ -40,7 +40,7 @@ YAML
   # expand them here with dev defaults so host/image assertions still
   # see literal strings.
   export RENDERED="${BATS_FILE_TMPDIR}/rendered.yaml"
-  kubectl kustomize "${MANIFESTS_DIR}" > "$RENDERED" 2>&1
+  kubectl kustomize "${MANIFESTS_DIR}" --load-restrictor=LoadRestrictionsNone > "$RENDERED" 2>&1
   printf '\n---\n' >> "$RENDERED"
   (
     export PROD_DOMAIN=localhost
@@ -65,7 +65,7 @@ teardown_file() {
 resources_of_kind() {
   local kind="$1"
   # Split multi-doc YAML, filter by kind
-  kubectl kustomize "${MANIFESTS_DIR}" 2>/dev/null \
+  kubectl kustomize "${MANIFESTS_DIR}" --load-restrictor=LoadRestrictionsNone 2>/dev/null \
     | python3 -c "
 import sys, json, yaml
 docs = yaml.safe_load_all(sys.stdin)
@@ -82,7 +82,7 @@ all_images() {
 # ── Kustomize Build ──────────────────────────────────────────────
 
 @test "kustomize build succeeds" {
-  run kubectl kustomize "${MANIFESTS_DIR}"
+  run kubectl kustomize "${MANIFESTS_DIR}" --load-restrictor=LoadRestrictionsNone
   assert_success
 }
 
@@ -170,7 +170,7 @@ all_images() {
 
 @test "all resources target namespace 'workspace' or are cluster-scoped" {
   local bad_ns
-  bad_ns=$(kubectl kustomize "${MANIFESTS_DIR}" 2>/dev/null \
+  bad_ns=$(kubectl kustomize "${MANIFESTS_DIR}" --load-restrictor=LoadRestrictionsNone 2>/dev/null \
     | grep -E '^\s+namespace:' \
     | grep -v 'workspace' \
     | grep -v 'kube-system' \
@@ -271,7 +271,7 @@ overlays = [o for o in overlays if os.path.isdir(o)]
 def check_overlay(overlay):
     try:
         result = subprocess.run(
-            ['kubectl', 'kustomize', overlay],
+            ['kubectl', 'kustomize', overlay, '--load-restrictor=LoadRestrictionsNone'],
             capture_output=True, text=True, check=True
         )
         for doc in yaml.safe_load_all(result.stdout):

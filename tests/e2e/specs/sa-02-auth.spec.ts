@@ -4,18 +4,10 @@ test.describe('SA-02: Authentifizierung — Browser', () => {
   test('T1: Falsches Passwort → Fehlermeldung (über Keycloak)', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
+    const baseURL = process.env.TEST_BASE_URL || process.env.WEBSITE_URL || 'http://localhost:4321';
 
-    // Force-SSO: /login redirects to Keycloak; credentials are entered there.
+    // /login on the website redirects directly to Keycloak (force-SSO).
     await page.goto(`${baseURL}/login`);
-
-    const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
-    try {
-      await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
-      await browserLink.click();
-    } catch {
-      // Already redirected to Keycloak
-    }
 
     await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 15_000 });
 
@@ -32,19 +24,11 @@ test.describe('SA-02: Authentifizierung — Browser', () => {
   test('T4: /login leitet automatisch zu Keycloak (force-SSO)', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
-    const baseURL = process.env.TEST_BASE_URL || 'http://localhost:8065';
+    const baseURL = process.env.TEST_BASE_URL || process.env.WEBSITE_URL || 'http://localhost:4321';
 
     await page.goto(`${baseURL}/login`);
 
-    const browserLink = page.getByRole('link', { name: /in browser|im browser/i });
-    try {
-      await browserLink.waitFor({ state: 'visible', timeout: 5_000 });
-      await browserLink.click();
-    } catch {
-      // Already redirected
-    }
-
-    // No native form, no SSO button — we expect the Keycloak realm URL.
+    // /login redirects directly to Keycloak (force-SSO)
     await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 10_000 });
     await context.close();
   });

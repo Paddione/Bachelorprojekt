@@ -1,0 +1,12 @@
+{
+  "pr_number": 497,
+  "title": "hide standard nav and footer for korczewski kore brand",
+  "description": "## Summary\n- `Layout.astro` was always rendering `<Navigation>` and the generic footer regardless of brand\n- For `brand=\"korczewski-kore\"`, the page already includes `<KoreSubNav>` and `<KoreFooter>` in the slot, causing a double navbar and double footer on `web.korczewski.de`\n- Conditionally skip both when `isKore` is true\n\n## Test plan\n- [ ] Visit `web.korczewski.de` — should show only the KoreSubNav and KoreFooter, no duplicate mentolder nav/footer\n- [ ] Visit `web.mentolder.de` — standard nav and footer still present, no regression\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T06:39:33Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

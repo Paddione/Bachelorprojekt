@@ -1,0 +1,31 @@
+# Switch recordings PVC from local-path to longhorn.
+# local-path binds to whichever node livekit-egress first scheduled on; if it
+# ever reschedules to a different node the pod stays Pending. longhorn replicates
+# across nodes so the volume is always accessible.
+# One-time live migration: delete livekit-recordings-pvc on the cluster, then
+# re-sync (ArgoCD will recreate it with longhorn). Existing recordings are lost.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: livekit-recordings-pvc
+  namespace: workspace
+spec:
+  storageClassName: longhorn
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-server
+  namespace: workspace
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - gekko-hetzner-3

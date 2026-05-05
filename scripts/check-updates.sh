@@ -20,6 +20,10 @@ UPDATES_AVAILABLE=0   # versioned images with confirmed newer digest
 RESTARTABLE=0         # :latest images that will pull fresh on restart
 CHECKED=0
 
+# Use KUBE_CONTEXT if set (passed by Taskfile via env-resolve.sh)
+KUBECTL_CTX=()
+[[ -n "${KUBE_CONTEXT:-}" ]] && KUBECTL_CTX=(--context "$KUBE_CONTEXT")
+
 declare -A remote_cache   # cache registry responses per image ref
 
 # ── Registry API helper ───────────────────────────────────────────────────────
@@ -119,7 +123,7 @@ build_running_digests() {
         # Also store under the normalized (short) form
         local norm; norm=$(normalize_image "$img")
         running_digests["$norm"]="$local_digest"
-    done < <(kubectl get pods -n "$ns" \
+    done < <(kubectl "${KUBECTL_CTX[@]}" get pods -n "$ns" \
         -o jsonpath='{range .items[*]}{range .status.containerStatuses[*]}{.image}{"|"}{.imageID}{"\n"}{end}{range .status.initContainerStatuses[*]}{.image}{"|"}{.imageID}{"\n"}{end}{end}' \
         2>/dev/null || true)
 }
@@ -131,7 +135,7 @@ echo -e "${BLUE}$(printf '─%.0s' {1..58})${NC}"
 echo ""
 
 for ns in "${NAMESPACES[@]}"; do
-    kubectl get namespace "$ns" &>/dev/null || continue
+    kubectl "${KUBECTL_CTX[@]}" get namespace "$ns" &>/dev/null || continue
 
     echo -e "${CYAN}${BOLD}Namespace: ${ns}${NC}"
 
@@ -139,13 +143,13 @@ for ns in "${NAMESPACES[@]}"; do
     declare -A running_digests=()
     build_running_digests "$ns"
 
-    deployments=$(kubectl get deployments -n "$ns" \
+    deployments=$(kubectl "${KUBECTL_CTX[@]}" get deployments -n "$ns" \
         -o jsonpath='{.items[*].metadata.name}' 2>/dev/null) || continue
     [[ -z "$deployments" ]] && { echo "  (no deployments found)"; echo ""; continue; }
 
     for deploy in $deployments; do
         # Collect all images (containers + initContainers), deduplicated
-        mapfile -t images < <(kubectl get deployment "$deploy" -n "$ns" \
+        mapfile -t images < <(kubectl "${KUBECTL_CTX[@]}" get deployment "$deploy" -n "$ns" \
             -o jsonpath='{range .spec.template.spec.containers[*]}{.image}{"\n"}{end}{range .spec.template.spec.initContainers[*]}{.image}{"\n"}{end}' \
             2>/dev/null | sort -u | grep -v '^$') || continue
 

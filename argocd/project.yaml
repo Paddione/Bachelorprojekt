@@ -16,6 +16,8 @@ spec:
   destinations:
     - namespace: workspace
       server: "*"
+    - namespace: workspace-korczewski
+      server: "*"
     - namespace: workspace-office
       server: "*"
     - namespace: coturn

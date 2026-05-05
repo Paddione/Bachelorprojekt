@@ -2,14 +2,16 @@ import { pool, initBillingTables, getNextInvoiceNumber } from './website-db';
 import { checkAndApplyTaxModeSwitch } from './tax-monitor';
 import { canonicalInvoiceForHash, sha256Hex, type HashableLine } from './invoice-hash';
 import { logBillingEvent, type BillingActor } from './billing-audit';
+import { validateLeitwegId, formatLeitwegId } from './leitweg';
 
 export { initBillingTables };
 
 export interface Customer {
   id: string; brand: string; name: string; email: string;
   company?: string; addressLine1?: string; city?: string;
-  postalCode?: string; country: string; vatNumber?: string;
+  postalCode?: string; landIso: string; vatNumber?: string;
   sepaIban?: string; sepaBic?: string;
+  leitwegId?: string;
   sepaMandateRef?: string; sepaMandateDate?: string;
   defaultLeitwegId?: string;
 }
@@ -17,21 +19,42 @@ export interface Customer {
 export async function createCustomer(p: {
   brand: string; name: string; email: string; company?: string;
   addressLine1?: string; city?: string; postalCode?: string;
-  vatNumber?: string;
+  vatNumber?: string; leitwegId?: string;
 }): Promise<Customer> {
   await initBillingTables();
   const r = await pool.query(
-    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-     ON CONFLICT (brand, email) DO UPDATE
+    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number, typ, leitweg_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'Kunde',$9)
+     ON CONFLICT (brand, email, typ) DO UPDATE
        SET name=EXCLUDED.name, company=EXCLUDED.company,
            address_line1=EXCLUDED.address_line1, city=EXCLUDED.city,
-           postal_code=EXCLUDED.postal_code, vat_number=EXCLUDED.vat_number
+           postal_code=EXCLUDED.postal_code, vat_number=EXCLUDED.vat_number,
+           leitweg_id=EXCLUDED.leitweg_id
      RETURNING *`,
     [p.brand, p.name, p.email, p.company??null, p.addressLine1??null,
-     p.city??null, p.postalCode??null, p.vatNumber??null]
+     p.city??null, p.postalCode??null, p.vatNumber??null, p.leitwegId??null]
   );
   return mapCustomer(r.rows[0]);
+}
+
+export async function setBillingCustomerLeitwegId(
+  id: string,
+  raw: string | null,
+): Promise<{ ok: true; value: string | null } | { ok: false; reason: string }> {
+  await initBillingTables();
+  if (raw === null || raw === '') {
+    await pool.query(`UPDATE billing_customers SET leitweg_id = NULL WHERE id = $1`, [id]);
+    return { ok: true, value: null };
+  }
+  const v = validateLeitwegId(raw);
+  if (!v.ok) return { ok: false, reason: v.reason ?? 'Format ungültig' };
+  const value = formatLeitwegId(raw);
+  const r = await pool.query(
+    `UPDATE billing_customers SET leitweg_id = $1 WHERE id = $2 RETURNING id`,
+    [value, id],
+  );
+  if (r.rowCount === 0) return { ok: false, reason: 'Kunde nicht gefunden' };
+  return { ok: true, value };
 }
 
 export async function getCustomerByEmail(brand: string, email: string): Promise<Customer | null> {
@@ -65,6 +88,8 @@ export interface Invoice {
   netAmountEur: number;
   grossAmountEur: number;
   supplyType?: string;
+  kind: 'regular' | 'prepayment' | 'final' | 'gutschrift';
+  parentInvoiceId?: string;
 }
 
 export async function createInvoice(params: {
@@ -75,6 +100,8 @@ export async function createInvoice(params: {
   leitwegId?: string;
   currency?: string;
   supplyType?: string;
+  kind?: 'regular' | 'prepayment' | 'final' | 'gutschrift';
+  parentInvoiceId?: string;
 }): Promise<Invoice> {
   await initBillingTables();
   // Reverse charge enforcement
@@ -108,6 +135,7 @@ export async function createInvoice(params: {
   const netAmountEur  = currencyRate !== null ? Math.round(netAmount * currencyRate * 100) / 100 : netAmount;
   const grossAmountEur = currencyRate !== null ? Math.round(grossAmount * currencyRate * 100) / 100 : grossAmount;
   const paymentRef = number.replace('RE-', 'RG');
+  const kind = p.kind ?? 'regular';
 
   const client = await pool.connect();
   try {
@@ -116,14 +144,16 @@ export async function createInvoice(params: {
       `INSERT INTO billing_invoices (brand, number, customer_id, issue_date, due_date,
          service_period_start, service_period_end, tax_mode, net_amount, tax_rate,
          tax_amount, gross_amount, notes, payment_reference, leitweg_id,
-         currency, currency_rate, net_amount_eur, gross_amount_eur, supply_type)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`,
+         currency, currency_rate, net_amount_eur, gross_amount_eur, supply_type,
+         kind, parent_invoice_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
       [p.brand, number, p.customerId, p.issueDate,
        dueDate.toISOString().split('T')[0],
        p.servicePeriodStart??null, p.servicePeriodEnd??null,
        p.taxMode, netAmount, taxRate, taxAmount, grossAmount,
        p.notes??null, paymentRef, p.leitwegId??null,
-       currency, currencyRate, netAmountEur, grossAmountEur, p.supplyType??null]
+       currency, currencyRate, netAmountEur, grossAmountEur, p.supplyType??null,
+       kind, p.parentInvoiceId??null]
     );
     const inv = r.rows[0];
     await Promise.all(p.lines.map(l =>
@@ -244,6 +274,20 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
        opts.pdfMime ?? (opts.pdfBlob ? 'application/pdf' : null),
        opts.pdfBlob?.length ?? null]
     );
+
+    if (opts.pdfBlob) {
+      const { archiveBillingPdf } = await import('./billing-archive');
+      const pdfPath = await archiveBillingPdf({
+        brand: inv.brand,
+        invoiceNumber: inv.number,
+        filename: `${inv.number}.pdf`,
+        content: opts.pdfBlob,
+      });
+      if (pdfPath) {
+        await client.query(`UPDATE billing_invoices SET pdf_path=$2 WHERE id=$1`, [id, pdfPath]);
+      }
+    }
+
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');
@@ -329,6 +373,8 @@ function mapInvoice(row: Record<string, unknown>): Invoice {
     netAmountEur: row.net_amount_eur != null ? Number(row.net_amount_eur) : Number(row.net_amount),
     grossAmountEur: row.gross_amount_eur != null ? Number(row.gross_amount_eur) : Number(row.gross_amount),
     supplyType: (row.supply_type as string) ?? undefined,
+    kind: ((row.kind as string) ?? 'regular') as 'regular' | 'prepayment' | 'final' | 'gutschrift',
+    parentInvoiceId: (row.parent_invoice_id as string) ?? undefined,
   };
 }
 
@@ -340,10 +386,11 @@ function mapCustomer(row: Record<string, unknown>): Customer {
     addressLine1: (row.address_line1 as string) ?? undefined,
     city: (row.city as string) ?? undefined,
     postalCode: (row.postal_code as string) ?? undefined,
-    country: (row.country as string) ?? 'DE',
+    landIso: (row.land_iso as string) ?? 'DE',
     vatNumber: (row.vat_number as string) ?? undefined,
     sepaIban: (row.sepa_iban as string) ?? undefined,
     sepaBic: (row.sepa_bic as string) ?? undefined,
+    leitwegId: (row.leitweg_id as string) ?? undefined,
     sepaMandateRef: (row.sepa_mandate_ref as string) ?? undefined,
     sepaMandateDate: (() => {
       const md = row.sepa_mandate_date;
@@ -352,5 +399,79 @@ function mapCustomer(row: Record<string, unknown>): Customer {
       return (md as string | null) ?? undefined;
     })(),
     defaultLeitwegId: (row.default_leitweg_id as string) ?? undefined,
+  };
+}
+
+import type { EInvoiceInput } from './einvoice-types';
+
+/**
+ * Loads a finalized invoice and assembles the EInvoiceInput payload used by
+ * the e-invoice generators (Factur-X minimum, XRechnung CII, XRechnung UBL).
+ * Seller data is sourced from process.env (SELLER_* with BRAND_NAME fallback).
+ */
+export async function getInvoiceForEInvoice(id: string): Promise<EInvoiceInput | null> {
+  await initBillingTables();
+  const r = await pool.query(
+    `SELECT i.*, c.name AS c_name, c.email AS c_email, c.address_line1 AS c_addr,
+            c.postal_code AS c_zip, c.city AS c_city, c.leitweg_id AS c_leitweg
+       FROM billing_invoices i
+       JOIN billing_customers c ON c.id = i.customer_id
+      WHERE i.id = $1`,
+    [id]
+  );
+  const row = r.rows[0];
+  if (!row) return null;
+  const lines = (
+    await pool.query(
+      `SELECT * FROM billing_invoice_line_items WHERE invoice_id = $1 ORDER BY id`,
+      [id]
+    )
+  ).rows;
+
+  const toIsoDate = (v: unknown): string => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (typeof v === 'string') return v.slice(0, 10);
+    return String(v);
+  };
+
+  return {
+    invoice: {
+      number: row.number,
+      issueDate: toIsoDate(row.issue_date),
+      dueDate: toIsoDate(row.due_date),
+      grossAmount: Number(row.gross_amount),
+      netAmount: Number(row.net_amount),
+      taxAmount: Number(row.tax_amount),
+      taxMode: row.tax_mode,
+      taxRate: Number(row.tax_rate),
+      paymentReference: row.payment_reference ?? undefined,
+    },
+    lines: lines.map((l) => ({
+      description: l.description,
+      quantity: Number(l.quantity),
+      unitPrice: Number(l.unit_price),
+      unit: l.unit ?? 'C62',
+    })),
+    customer: {
+      name: row.c_name,
+      email: row.c_email,
+      addressLine1: row.c_addr ?? undefined,
+      postalCode: row.c_zip ?? undefined,
+      city: row.c_city ?? undefined,
+      country: 'DE',
+      leitwegId: row.c_leitweg ?? undefined,
+    },
+    seller: {
+      name:       process.env.SELLER_NAME        || process.env.BRAND_NAME || 'Unbekannt',
+      address:    process.env.SELLER_ADDRESS     || '',
+      postalCode: process.env.SELLER_POSTAL_CODE || '',
+      city:       process.env.SELLER_CITY        || '',
+      country:    process.env.SELLER_COUNTRY     || 'DE',
+      vatId:      process.env.SELLER_VAT_ID      || '',
+      iban:       process.env.SELLER_IBAN        || undefined,
+      bic:        process.env.SELLER_BIC         || undefined,
+      email:      process.env.SELLER_EMAIL       || undefined,
+      phone:      process.env.SELLER_PHONE       || undefined,
+    },
   };
 }

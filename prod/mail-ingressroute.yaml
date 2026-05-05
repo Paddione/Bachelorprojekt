@@ -32,4 +32,4 @@ spec:
         - name: mailpit
           port: 8025
   tls:
-    secretName: workspace-wildcard-tls
+    secretName: ${TLS_SECRET_NAME}

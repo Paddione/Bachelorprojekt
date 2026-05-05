@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: website
+  name: ${WEBSITE_NAMESPACE}
   labels:
     pod-security.kubernetes.io/enforce: baseline
     pod-security.kubernetes.io/warn: restricted
@@ -12,7 +12,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: website-config
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 data:
   # Brand
   BRAND: "${BRAND_ID}"
@@ -24,7 +24,7 @@ data:
   WHITEBOARD_EXTERNAL_URL: "${WHITEBOARD_EXTERNAL_URL}"
   BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
-  KEYCLOAK_URL: "http://keycloak.workspace.svc.cluster.local:8080"
+  KEYCLOAK_URL: "http://keycloak.${WORKSPACE_NAMESPACE}.svc.cluster.local:8080"
   KEYCLOAK_REALM: "workspace"
   KEYCLOAK_ADMIN_USER: "admin"
   # SMTP (dev: Mailpit; prod: smtp.mailbox.org via env registry)
@@ -46,7 +46,7 @@ data:
   LEGAL_UST_ID: "${LEGAL_UST_ID}"
   LEGAL_WEBSITE: "${LEGAL_WEBSITE}"
   # Nextcloud
-  NEXTCLOUD_URL: "http://nextcloud.workspace.svc.cluster.local"
+  NEXTCLOUD_URL: "http://nextcloud.${WORKSPACE_NAMESPACE}.svc.cluster.local"
   NEXTCLOUD_EXTERNAL_URL: "${NEXTCLOUD_EXTERNAL_URL}"
   NEXTCLOUD_ADMIN_USER: "admin"
   NEXTCLOUD_CALDAV_USER: "admin"
@@ -63,12 +63,15 @@ data:
   BOOKING_HORIZON_DAYS: "21"
   MIN_ADVANCE_HOURS: "24"
   # Whisper
-  WHISPER_URL: "http://whisper.workspace.svc.cluster.local:8000"
+  WHISPER_URL: "http://whisper.${WORKSPACE_NAMESPACE}.svc.cluster.local:8000"
   ANTHROPIC_API_KEY: ""
   # Stripe (publishable key is not secret — env-specific, injected via ConfigMap)
   STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY}"
   # Brett
   BRETT_DOMAIN: "${BRETT_DOMAIN}"
+  # LiveKit
+  LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
+  STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
 ---
@@ -77,12 +80,12 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: website
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: website-monitoring-reader
+  name: ${WEBSITE_NAMESPACE}-monitoring-reader
 rules:
   - apiGroups: [""]
     resources: ["pods", "events", "nodes", "namespaces", "configmaps", "persistentvolumeclaims", "services"]
@@ -112,22 +115,22 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: website-monitoring-reader
+  name: ${WEBSITE_NAMESPACE}-monitoring-reader
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: website-monitoring-reader
+  name: ${WEBSITE_NAMESPACE}-monitoring-reader
 subjects:
   - kind: ServiceAccount
     name: website
-    namespace: website
+    namespace: ${WEBSITE_NAMESPACE}
 ---
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: website
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   replicas: 1
   selector:
@@ -141,7 +144,7 @@ spec:
       serviceAccountName: website
       imagePullSecrets:
         - name: ghcr-pull-secret
-      # Lower ndots so FQDNs like shared-db.workspace.svc.cluster.local (4 dots)
+      # Lower ndots so FQDNs like shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local (4 dots)
       # are resolved as absolute names without iterating through search-path suffixes.
       # On clusters where the node inherits a home-router search domain (e.g. fritz.box),
       # the default ndots:5 causes those lookups to time out and Node.js (musl libc)
@@ -158,10 +161,10 @@ spec:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: kubernetes.io/hostname
-                    operator: NotIn
+                    operator: In
                     values:
-                      - pk-hetzner
-                      - gekko-hetzner-4
+                      - gekko-hetzner-2
+                      - gekko-hetzner-3
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
@@ -185,7 +188,7 @@ spec:
                   name: website-secrets
                   key: WEBSITE_DB_PASSWORD
             - name: SESSIONS_DATABASE_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local:5432/website"
             - name: CRON_SECRET
               valueFrom:
                 secretKeyRef:
@@ -257,7 +260,7 @@ spec:
                   key: DOCUSEAL_API_TOKEN
                   optional: true
             - name: DOCUSEAL_INTERNAL_URL
-              value: "http://docuseal.workspace.svc.cluster.local:3000"
+              value: "http://docuseal.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
             - name: SELLER_NAME
               valueFrom:
                 configMapKeyRef:
@@ -312,6 +315,28 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: NEXTCLOUD_DB_PASSWORD
+            - name: STREAM_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: website-config
+                  key: STREAM_DOMAIN
+            - name: LIVEKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: LIVEKIT_API_KEY
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: LIVEKIT_API_SECRET
+            - name: LIVEKIT_RTMP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: LIVEKIT_RTMP_KEY
+            - name: LIVEKIT_SERVICE_URL
+              value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
           ports:
             - containerPort: 4321
           resources:
@@ -341,7 +366,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: website
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   selector:
     app: website
@@ -354,7 +379,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: website
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   entryPoints:
     - web
@@ -370,7 +395,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: meeting-reminders
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   schedule: "* * * * *"
   concurrencyPolicy: Forbid
@@ -402,7 +427,7 @@ spec:
                 runAsUser: 65534
                 capabilities:
                   drop: ["ALL"]
-              command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.website.svc.cluster.local/api/reminders/process"]
+              command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
 ---
 # ── NetworkPolicies: website-Namespace ───────────────────────────────────────
@@ -410,7 +435,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-ingress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -420,7 +445,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-egress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -430,7 +455,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-dns-egress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -451,7 +476,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-egress-to-workspace
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -460,14 +485,14 @@ spec:
   - to:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: workspace
+          kubernetes.io/metadata.name: ${WORKSPACE_NAMESPACE}
 ---
 # Traefik-Ingress aus kube-system erlauben
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-traefik-ingress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -486,7 +511,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-intra-namespace-egress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -499,7 +524,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-intra-namespace-ingress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -515,7 +540,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-pod-cidr-ingress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -531,7 +556,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-service-cidr-egress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -541,12 +566,29 @@ spec:
     - ipBlock:
         cidr: 10.43.0.0/16
 ---
+# LiveKit management port: kube-router enforces egress NetworkPolicies AFTER iptables DNAT.
+# livekit-server uses hostNetwork so its endpoint IP is the node IP (not in pod/service CIDR).
+# Allowing port 7880 by port (not destination) covers the post-DNAT node IP.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-livekit-management-egress
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 7880
+      protocol: TCP
+---
 # SMTP Egress: Website-Pod darf externen SMTP-Server erreichen (Mailpit dev / mailbox.org prod)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-smtp-egress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:
@@ -563,7 +605,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-https-egress
-  namespace: website
+  namespace: ${WEBSITE_NAMESPACE}
 spec:
   podSelector: {}
   policyTypes:

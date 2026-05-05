@@ -3,6 +3,9 @@ import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import type { Invoice } from './native-billing';
+import { embedFacturXIntoPdfA3, type FacturXLevel } from './pdf-a3-embed';
+import { generateEInvoiceXml, type EInvoiceProfile } from './einvoice-profile';
+import type { EInvoiceInput } from './einvoice-types';
 
 // Resolve logo from several candidate paths: cwd-relative (production container),
 // then source-relative (dev / test). Falls back to null → logo block is silently skipped.
@@ -42,15 +45,156 @@ export interface InvoicePdfSeller {
   email?: string; phone?: string; website?: string;
 }
 export interface InvoicePdfTemplateTexts {
+  title?: string;
   introText?: string;
   kleinunternehmerNotice?: string;
   outroText?: string;
+}
+
+export interface Dunning {
+  id: string; invoiceId: string; brand: string; level: number;
+  generatedAt: string; feeAmount: number; interestAmount: number;
+  outstandingAtGeneration: number;
+}
+
+export async function generateDunningPdf(p: {
+  dunning: Dunning; invoice: Invoice;
+  customer: InvoicePdfCustomer; seller: InvoicePdfSeller;
+}): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `Mahnung ${p.dunning.level} - ${p.invoice.number}`, Author: p.seller.name } });
+    const chunks: Buffer[] = [];
+    doc.on('data', (c: Buffer) => chunks.push(c));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const { dunning: d, invoice: inv, customer, seller } = p;
+    const fmt = (n: number) => n.toFixed(2).replace('.', ',') + ' €';
+    const fd  = (d: string) => d.split('-').reverse().join('.');
+
+    // ── Background ──────────────────────────────────────────────────────────
+    doc.rect(0, 0, 595, 842).fill(C.paper);
+
+    // ── Header ──────────────────────────────────────────────────────────────
+    if (LOGO) {
+      try { doc.image(LOGO, L, 47, { width: 42, height: 42 }); } catch { /* skip */ }
+    }
+
+    const brandName = process.env.BRAND_NAME || 'mentolder';
+    doc.font('Times-Italic').fontSize(18).fillColor(C.ink)
+       .text(brandName, 102, 55, { continued: true, lineBreak: false });
+    doc.fillColor(C.brass).text('.', { lineBreak: false });
+
+    doc.font('Helvetica').fontSize(8).fillColor(C.inkMute).text(seller.name, 102, 76);
+    const title = d.level === 1 ? 'ZAHLUNGSERINNERUNG' : 'MAHNUNG';
+    doc.font('Helvetica').fontSize(7.5).fillColor(C.brass).text(title, 102, 89);
+
+    // Right meta block
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(C.ink)
+       .text(`Nr. ${inv.number}`, 360, 50, { width: 185, align: 'right' });
+    doc.font('Helvetica').fontSize(8).fillColor(C.inkMute)
+       .text(`Datum · ${fd(d.generatedAt.slice(0, 10))}`, 360, 65, { width: 185, align: 'right' });
+
+    // ── Brass divider ────────────────────────────────────────────────────────
+    doc.moveTo(L, 115).lineTo(R, 115).strokeColor(C.brass).lineWidth(0.75).stroke();
+
+    // ── Parties (same as invoice) ───────────────────────────────────────────
+    doc.font('Helvetica').fontSize(7).fillColor(C.brass)
+       .text('ABSENDER', L, 125, { characterSpacing: 0.8, width: 240 });
+    doc.font('Times-Italic').fontSize(13).fillColor(C.ink)
+       .text(seller.name, L, 137, { width: 240 });
+    doc.font('Helvetica').fontSize(9).fillColor(C.inkSoft)
+       .text(`${seller.address}, ${seller.postalCode} ${seller.city}`, L, 152, { width: 240 });
+
+    const CX = 315;
+    doc.font('Helvetica').fontSize(7).fillColor(C.brass)
+       .text('EMPFÄNGER', CX, 125, { characterSpacing: 0.8, width: 230 });
+    let cy = 137;
+    if (customer.company) {
+      doc.font('Helvetica').fontSize(9).fillColor(C.inkSoft).text(customer.company, CX, cy, { width: 230 });
+      cy = doc.y + 1;
+    }
+    doc.font('Times-Italic').fontSize(13).fillColor(C.ink).text(customer.name, CX, cy, { width: 230 });
+    cy = doc.y + 3;
+    doc.font('Helvetica').fontSize(9).fillColor(C.inkSoft)
+       .text(`${customer.addressLine1 ?? ''}, ${customer.postalCode ?? ''} ${customer.city ?? ''}`, CX, cy, { width: 230 });
+
+    // ── Content ──────────────────────────────────────────────────────────────
+    let y = 220;
+    doc.font('Helvetica-Bold').fontSize(14).fillColor(C.ink).text(title, L, y);
+    y += 25;
+
+    const intro = d.level === 1
+      ? `Sicher haben Sie nur übersehen, dass die Rechnung Nr. ${inv.number} vom ${fd(inv.issueDate)} am ${fd(inv.dueDate)} zur Zahlung fällig war.`
+      : `Leider konnten wir bis heute keinen Zahlungseingang für die Rechnung Nr. ${inv.number} vom ${fd(inv.issueDate)} feststellen.`;
+
+    doc.font('Helvetica').fontSize(10).fillColor(C.inkSoft).text(intro, L, y, { width: W });
+    y = doc.y + 15;
+
+    doc.text('Wir bitten Sie höflich, den offenen Betrag bis spätestens 7 Tage nach Erhalt dieses Schreibens zu begleichen.', L, y, { width: W });
+    y = doc.y + 25;
+
+    // ── Totals Table ────────────────────────────────────────────────────────
+    doc.rect(L, y, W, 17).fill(C.paper2);
+    doc.font('Helvetica-Bold').fontSize(8).fillColor(C.inkMute);
+    doc.text('Posten', L + 4, y + 5);
+    doc.text('Betrag', R - 100, y + 5, { width: 96, align: 'right' });
+    y += 22;
+
+    const row = (label: string, val: number) => {
+      doc.font('Helvetica').fontSize(10).fillColor(C.ink).text(label, L + 4, y);
+      doc.font('Courier').fontSize(10).text(fmt(val), R - 100, y, { width: 96, align: 'right' });
+      y += 18;
+    };
+
+    row(`Offener Betrag aus Rechnung ${inv.number}`, d.outstandingAtGeneration);
+    if (d.feeAmount > 0) row('Mahngebühren', d.feeAmount);
+    if (d.interestAmount > 0) row('Verzugszinsen', d.interestAmount);
+
+    y += 5;
+    doc.moveTo(L, y).lineTo(R, y).strokeColor(C.brass).lineWidth(1).stroke();
+    y += 10;
+
+    doc.font('Helvetica-Bold').fontSize(12).fillColor(C.ink).text('GESAMTBETRAG', L + 4, y);
+    const total = d.outstandingAtGeneration + d.feeAmount + d.interestAmount;
+    doc.font('Courier-Bold').fontSize(12).fillColor(C.brass).text(fmt(total), R - 100, y, { width: 96, align: 'right' });
+
+    y += 40;
+    doc.font('Helvetica').fontSize(10).fillColor(C.inkSoft)
+       .text(`Bitte überweisen Sie den Gesamtbetrag auf unser unten angegebenes Konto unter Angabe des Verwendungszwecks „${inv.paymentReference ?? inv.number}".`, L, y, { width: W });
+
+    y = doc.y + 15;
+    doc.text('Sollten Sie die Zahlung in der Zwischenzeit bereits veranlasst haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.', L, y, { width: W });
+
+    y = doc.y + 25;
+    doc.text('Mit freundlichen Grüßen', L, y);
+    y += 15;
+    doc.font('Times-Italic').fontSize(12).text(brandName, L, y);
+
+    // ── Footer (same as invoice) ───────────────────────────────────────────
+    const FY = 757;
+    doc.moveTo(L, FY).lineTo(R, FY).strokeColor(C.brass).lineWidth(0.75).stroke();
+    const fy = FY + 9;
+    const fcw = Math.floor(W / 3) - 6;
+    doc.font('Helvetica').fontSize(7).fillColor(C.brass).text('BANKVERBINDUNG', L, fy, { characterSpacing: 0.5, width: fcw });
+    doc.font('Helvetica').fontSize(8).fillColor(C.inkSoft).text(seller.bankName, L, fy + 12, { width: fcw });
+    doc.text(`IBAN ${seller.iban}`, L, doc.y + 1, { width: fcw });
+    doc.text(`BIC ${seller.bic}`,  L, doc.y + 1, { width: fcw });
+
+    const px = L + fcw + 16;
+    doc.font('Helvetica').fontSize(7).fillColor(C.brass).text('KONTAKT', px, fy, { characterSpacing: 0.5, width: fcw });
+    doc.font('Helvetica').fontSize(8).fillColor(C.inkSoft).text(seller.email ?? '', px, fy + 12, { width: fcw });
+    if (seller.phone) doc.text(seller.phone, px, doc.y + 1, { width: fcw });
+
+    doc.end();
+  });
 }
 
 export async function generateInvoicePdf(p: {
   invoice: Invoice; lines: InvoicePdfLine[];
   customer: InvoicePdfCustomer; seller: InvoicePdfSeller;
   templateTexts?: InvoicePdfTemplateTexts;
+  profile?: EInvoiceProfile;
 }): Promise<Buffer> {
   const supplyTypeForMeta = (p.invoice as any).supplyType as string | undefined;
   const supplyNoticeMap: Record<string, string> = {
@@ -67,7 +211,8 @@ export async function generateInvoicePdf(p: {
   const docSubject = supplyTypeForMeta && supplyTypeTagMap[supplyTypeForMeta]
     ? supplyTypeTagMap[supplyTypeForMeta]
     : undefined;
-  return new Promise((resolve, reject) => {
+
+  const basePdf = await new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: p.invoice.number, Author: p.seller.name, ...(docSubject ? { Subject: docSubject } : {}) } });
     const chunks: Buffer[] = [];
     doc.on('data', (c: Buffer) => chunks.push(c));
@@ -95,7 +240,8 @@ export async function generateInvoicePdf(p: {
     doc.fillColor(C.brass).text('.', { lineBreak: false });
 
     doc.font('Helvetica').fontSize(8).fillColor(C.inkMute).text(seller.name, 102, 76);
-    doc.font('Helvetica').fontSize(7.5).fillColor(C.brass).text('RECHNUNG', 102, 89);
+    const docTitle = templateTexts?.title ?? (inv.kind === 'gutschrift' ? 'GUTSCHRIFT' : 'RECHNUNG');
+    doc.font('Helvetica').fontSize(7.5).fillColor(C.brass).text(docTitle, 102, 89);
 
     // Right meta block (number prominent, then dates)
     doc.font('Helvetica-Bold').fontSize(10).fillColor(C.ink)
@@ -242,6 +388,11 @@ export async function generateInvoicePdf(p: {
       totRow('USt (§ 19 UStG)', '— €', true);
     }
 
+    // Reverse Charge / Export notices
+    if (supplyTypeForMeta && supplyNoticeMap[supplyTypeForMeta]) {
+      totRow('Hinweis', supplyNoticeMap[supplyTypeForMeta], true);
+    }
+
     y += 2;
     doc.moveTo(TLX, y).lineTo(R, y).strokeColor(C.brass).lineWidth(0.75).stroke();
     y += 7;
@@ -320,6 +471,22 @@ export async function generateInvoicePdf(p: {
     if (seller.website) { doc.text(seller.website, kx, kl, { width: fcw }); }
 
     doc.end();
+  });
+
+  // ── PDF/A-3 post-processing: embed e-invoice XML ────────────────────────
+  const profile = p.profile ?? 'factur-x-minimum';
+  const xml = generateEInvoiceXml(profile, p as unknown as EInvoiceInput);
+  const attachmentName = profile === 'factur-x-minimum' ? 'factur-x.xml' : 'xrechnung.xml';
+  const PROFILE_LEVEL: Record<EInvoiceProfile, FacturXLevel> = {
+    'factur-x-minimum': 'MINIMUM',
+    'xrechnung-cii':    'XRECHNUNG',
+    'xrechnung-ubl':    'XRECHNUNG',
+  };
+  return embedFacturXIntoPdfA3(basePdf, xml, {
+    conformanceLevel: PROFILE_LEVEL[profile],
+    invoiceNumber: p.invoice.number,
+    attachmentName,
+    modificationDate: new Date(p.invoice.issueDate),
   });
 }
 

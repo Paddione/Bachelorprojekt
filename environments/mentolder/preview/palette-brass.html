@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+body{margin:0;padding:24px;background:var(--ink-900);font-family:var(--sans);color:var(--fg);}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.sw{border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--ink-850);}
+.chip{height:64px;}
+.meta{padding:10px 14px;}
+.name{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg);}
+.hex{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:3px;}
+</style></head><body>
+<div class="grid">
+  <div class="sw"><div class="chip" style="background:oklch(0.80 0.09 75);"></div><div class="meta"><div class="name">brass</div><div class="hex">oklch(.80 .09 75)</div></div></div>
+  <div class="sw"><div class="chip" style="background:oklch(0.86 0.09 75);"></div><div class="meta"><div class="name">brass-2</div><div class="hex">hover · italic accent</div></div></div>
+  <div class="sw"><div class="chip" style="background:oklch(0.80 0.09 75 / .14);"></div><div class="meta"><div class="name">brass-d</div><div class="hex">tinted fill (14%)</div></div></div>
+  <div class="sw"><div class="chip" style="background:oklch(0.80 0.06 160);"></div><div class="meta"><div class="name">sage</div><div class="hex">pulse · meta dot</div></div></div>
+</div>
+</body></html>

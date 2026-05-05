@@ -21,6 +21,9 @@ ports:
   - port: 8080:30080
     nodeFilters:
       - server:0
+  - port: 1935:1935
+    nodeFilters:
+      - loadbalancer
 # Local volume mount for fast I/O during development
 volumes:
   - volume: ${PWD}/data:/mnt/data

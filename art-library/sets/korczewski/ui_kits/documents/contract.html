@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kore — Contract REL-26-0042</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../../styles/app.css">
+<style>
+  body{padding:48px 28px 96px;}
+  .doc-wrap{position:relative; z-index:2;}
+  .crumbs{max-width:880px; margin:0 auto 24px; display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); flex-wrap:wrap;}
+  .crumbs .copper{color:var(--copper);}
+  .crumbs .actions{margin-left:auto; display:flex; gap:8px;}
+
+  .contract{max-width:880px; margin:0 auto; background:var(--paper); color:var(--ink-text); border-radius:var(--r-paper); box-shadow:var(--shadow-paper); position:relative; overflow:hidden;}
+  .contract::before{content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(50% 35% at 100% 0%, rgba(200,247,106,.16), transparent 60%), radial-gradient(45% 35% at 0% 100%, rgba(91,212,208,.10), transparent 60%); z-index:0;}
+  .contract > *{position:relative; z-index:1;}
+
+  /* Cover */
+  .cover{padding:64px 64px 56px; border-bottom:1px solid var(--line-paper); display:grid; grid-template-columns:1fr auto; gap:32px; align-items:flex-start;}
+  .cover img{display:block;}
+  .cover .id{text-align:right;}
+  .cover .id .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--copper-print);}
+  .cover .id .num{font-family:var(--mono); font-size:14px; color:var(--ink-text); margin-top:6px; letter-spacing:.06em;}
+  .cover .id .v{font-family:var(--mono); font-size:11px; color:var(--ink-mute); margin-top:6px;}
+
+  .cover .title{grid-column:1 / -1; margin-top:36px;}
+  .cover .title .eye{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--copper-print); display:inline-flex; gap:10px; align-items:center;}
+  .cover .title .eye::before{content:""; width:22px; height:1px; background:currentColor;}
+  .cover .title h1{font-family:var(--serif); font-weight:400; font-size:64px; letter-spacing:-0.025em; line-height:1.02; margin:14px 0 0; max-width:18ch;}
+  .cover .title h1 em{font-style:italic; color:var(--copper-print);}
+  .cover .title .lede{font-family:var(--sans); font-size:16px; line-height:1.55; color:var(--ink-soft); margin:18px 0 0; max-width:60ch;}
+
+  .parties{grid-column:1 / -1; margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:32px;}
+  .party{padding:22px 24px; background:rgba(15,8,28,.04); border:1px solid var(--line-paper); border-radius:12px;}
+  .party .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute);}
+  .party .nm{font-family:var(--serif); font-size:24px; margin-top:8px; letter-spacing:-0.01em;}
+  .party .nm em{font-style:italic; color:var(--copper-print);}
+  .party .meta{font-family:var(--mono); font-size:11px; line-height:1.7; color:var(--ink-mute); margin-top:8px; letter-spacing:.04em;}
+  .party .role{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper-print); margin-top:10px;}
+
+  /* Body */
+  .body-c{padding:48px 64px;}
+  .body-c .preamble{font-family:var(--serif); font-style:italic; font-size:18px; line-height:1.6; color:var(--ink-soft); padding:24px 28px; border-left:2px solid var(--copper-print); margin-bottom:40px;}
+  .body-c .preamble em{color:var(--copper-print); font-style:italic;}
+
+  .clause{display:grid; grid-template-columns:80px 1fr; gap:24px; padding:24px 0; border-top:1px solid var(--line-paper);}
+  .clause:first-of-type{border-top:0; padding-top:0;}
+  .clause .num{font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--copper-print); text-transform:uppercase; padding-top:4px;}
+  .clause h3{font-family:var(--serif); font-weight:400; font-size:24px; letter-spacing:-0.01em; margin:0 0 10px;}
+  .clause h3 em{font-style:italic; color:var(--copper-print);}
+  .clause p{font-family:var(--sans); font-size:14.5px; line-height:1.65; color:var(--ink-text); margin:0 0 10px;}
+  .clause p:last-child{margin-bottom:0;}
+  .clause em.kw{font-style:italic; color:var(--copper-print);}
+  .clause .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px;}
+  .clause .term{padding:14px 16px; background:rgba(15,8,28,.04); border-radius:8px; border:1px solid var(--line-paper);}
+  .clause .term .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-mute);}
+  .clause .term .v{font-family:var(--serif); font-size:22px; margin-top:4px; letter-spacing:-0.005em; color:var(--ink-text);}
+  .clause .term .v em{font-style:italic; color:var(--copper-print);}
+  .clause .term .v .u{font-family:var(--mono); font-size:11px; color:var(--ink-mute); margin-left:3px;}
+
+  .clause ul{margin:6px 0 0; padding:0; list-style:none;}
+  .clause ul li{font-family:var(--sans); font-size:14.5px; line-height:1.65; color:var(--ink-text); padding:6px 0 6px 22px; position:relative;}
+  .clause ul li::before{content:""; position:absolute; left:0; top:14px; width:12px; height:1px; background:var(--copper-print);}
+
+  /* Signatures */
+  .sigs{padding:48px 64px 56px; border-top:1px solid var(--line-paper); display:grid; grid-template-columns:1fr 1fr; gap:48px;}
+  .sig-box .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute);}
+  .sig-box .line{margin-top:42px; padding-bottom:8px; border-bottom:1px solid var(--ink-text); font-family:"Instrument Serif", Georgia, serif; font-style:italic; font-size:32px; color:var(--copper-print); letter-spacing:0;}
+  .sig-box .name{font-family:var(--mono); font-size:11px; color:var(--ink-text); margin-top:10px; letter-spacing:.06em;}
+  .sig-box .name b{font-family:var(--sans); font-size:14px; color:var(--ink-text); display:block; margin-bottom:2px; font-weight:500; letter-spacing:0;}
+  .sig-box .role{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-mute); margin-top:4px;}
+  .sig-box .meta{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line-paper); font-family:var(--mono); font-size:10px; line-height:1.6; color:var(--ink-mute); letter-spacing:.04em;}
+  .sig-box .pending .line{color:var(--ink-mute); border-bottom-style:dashed;}
+
+  .sig-pending{display:flex; align-items:center; gap:8px; margin-top:42px; padding:8px 14px; border:1px dashed var(--ink-mute); border-radius:999px; width:fit-content; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-mute);}
+  .sig-pending .dot{width:6px; height:6px; border-radius:50%; background:var(--copper-print); animation:pulse 1.6s ease-in-out infinite;}
+
+  /* Footer */
+  .foot-rule{padding:18px 64px 28px; display:flex; justify-content:space-between; gap:18px; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-mute); border-top:1px solid var(--line-paper);}
+</style>
+</head>
+<body>
+<main>
+  <div class="doc-wrap">
+    <div class="crumbs">
+      <span class="copper">Contract</span><span>·</span><span>REL-26-0042</span><span>·</span><span>Awaiting countersign</span>
+      <div class="actions">
+        <a class="btn ghost sm">Download PDF</a>
+        <a class="btn primary sm">Send for signature →</a>
+      </div>
+    </div>
+
+    <article class="contract">
+      <div class="cover">
+        <img src="../../assets/logo-lockup-light.svg" width="200" height="60">
+        <div class="id">
+          <div class="lab">Master agreement</div>
+          <div class="num">REL-26-0042</div>
+          <div class="v">v3 · 28 Apr 2026</div>
+        </div>
+
+        <div class="title">
+          <span class="eye">Reliability retainer · 12 months</span>
+          <h1>Carrying the <em>pager,</em> on your behalf.</h1>
+          <p class="lede">
+            A plain-language master agreement for ongoing operation of the Tradesman
+            production cluster. Three pages. No surprises in the appendix.
+          </p>
+        </div>
+
+        <div class="parties">
+          <div class="party">
+            <div class="lab">Provider</div>
+            <div class="nm">Kore<em>.</em> UG</div>
+            <div class="meta">FRIEDRICHSTRASSE 132<br>10117 BERLIN<br>HRB 248 091 B · DE-348-991-204</div>
+            <div class="role">Represented by K. Korczewski</div>
+          </div>
+          <div class="party">
+            <div class="lab">Client</div>
+            <div class="nm">Tradesman <em>GmbH</em></div>
+            <div class="meta">HAUPTSTRASSE 17<br>10827 BERLIN<br>HRB 192 044 B · DE-298-771-021</div>
+            <div class="role">Represented by M. Oduya</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="body-c">
+        <div class="preamble">
+          The parties wish to keep the cluster <em>boring,</em> the on-call hours <em>quiet,</em>
+          and the runbook readable enough that a junior SRE can resolve a P2 alone at 03:00.
+          This document records what each party will do, when, and for how much.
+        </div>
+
+        <div class="clause">
+          <span class="num">§01</span>
+          <div>
+            <h3>Scope of <em>work</em></h3>
+            <p>The Provider will operate the cluster identified as <em class="kw">ord-1</em>, including its control plane, worker nodes, and the manifests checked into the Client's <em class="kw">infra/</em> repository.</p>
+            <ul>
+              <li>Maintain control-plane health within the SLOs defined in §03.</li>
+              <li>Keep the runbook current within seven calendar days of any change.</li>
+              <li>Triage and resolve incidents per the response window in §04.</li>
+              <li>Hand off all artefacts in plain text on termination — no lock-in.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="clause">
+          <span class="num">§02</span>
+          <div>
+            <h3>Term &amp; <em>fee</em></h3>
+            <p>This agreement runs for twelve calendar months from the effective date and renews monthly thereafter. Either party may terminate with thirty days' written notice.</p>
+            <div class="grid2">
+              <div class="term"><div class="k">Effective</div><div class="v">01 May <em>2026</em></div></div>
+              <div class="term"><div class="k">Duration</div><div class="v">12<span class="u">mo</span> · auto-renew</div></div>
+              <div class="term"><div class="k">Monthly retainer</div><div class="v">€8,800<span class="u">/mo</span></div></div>
+              <div class="term"><div class="k">Incident rate</div><div class="v">€280<span class="u">/h</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="clause">
+          <span class="num">§03</span>
+          <div>
+            <h3>Service level <em>objectives</em></h3>
+            <p>Measured monthly, on the calendar month boundary, in Europe/Berlin time.</p>
+            <div class="grid2">
+              <div class="term"><div class="k">Control-plane availability</div><div class="v">99.95<span class="u">%</span></div></div>
+              <div class="term"><div class="k">P1 acknowledgement</div><div class="v">≤ 15<span class="u">min</span></div></div>
+              <div class="term"><div class="k">P1 first response</div><div class="v">≤ 30<span class="u">min</span></div></div>
+              <div class="term"><div class="k">Runbook freshness</div><div class="v">≤ 7<span class="u">days</span></div></div>
+            </div>
+            <p style="margin-top:14px;">If a monthly SLO is missed, the following month's retainer is reduced by <em class="kw">10%</em>. Two consecutive misses entitle the Client to terminate without notice.</p>
+          </div>
+        </div>
+
+        <div class="clause">
+          <span class="num">§04</span>
+          <div>
+            <h3>On-call &amp; <em>response window</em></h3>
+            <p>The Provider's on-call covers <em class="kw">07:00–23:00 Europe/Berlin</em>, seven days a week. Outside this window, P1 incidents are acknowledged within thirty minutes; lower priorities follow the next business day.</p>
+            <p>The Provider may, at their sole discretion, sub-contract overnight coverage to a named partner — currently <em class="kw">Halst Operators OÜ</em> — listed in Appendix A.</p>
+          </div>
+        </div>
+
+        <div class="clause">
+          <span class="num">§05</span>
+          <div>
+            <h3>Confidentiality &amp; <em>data</em></h3>
+            <p>The Provider treats all configuration, manifests, and incident detail as confidential and will not retain copies after termination beyond the period required by German tax law (§147 AO, currently ten years for invoices).</p>
+            <p>No production data is processed outside of EU regions without prior written consent. The Provider operates under <em class="kw">SOC 2 Type II</em> controls; the report is available on request.</p>
+          </div>
+        </div>
+
+        <div class="clause">
+          <span class="num">§06</span>
+          <div>
+            <h3>Liability &amp; <em>plain-language disclaimer</em></h3>
+            <p>The Provider's total liability under this agreement is capped at the fees paid in the preceding twelve months. Neither party is liable for indirect or consequential losses, including lost revenue or reputational harm.</p>
+            <p>Nothing in this clause limits liability for fraud, gross negligence, or anything else German law won't permit us to exclude.</p>
+          </div>
+        </div>
+
+        <div class="clause">
+          <span class="num">§07</span>
+          <div>
+            <h3>Governing <em>law</em></h3>
+            <p>German law applies. The exclusive place of jurisdiction is the Landgericht Berlin. The English-language version of this agreement controls; a German translation is available in Appendix B for reference only.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sigs">
+        <div class="sig-box">
+          <div class="lab">For Kore. UG</div>
+          <div class="line">K. Korczewski</div>
+          <div class="name"><b>Konstanty Korczewski</b><span>Operator · founder</span></div>
+          <div class="role">Signed in Berlin</div>
+          <div class="meta">28 April 2026 · 13:48 CET<br>SHA-256 · 0xa12f…44b9<br>Witnessed by C. Halst</div>
+        </div>
+        <div class="sig-box">
+          <div class="lab">For Tradesman GmbH</div>
+          <div class="sig-pending"><span class="dot"></span>Awaiting countersign</div>
+          <div class="name" style="margin-top:24px;"><b>Maya Oduya</b><span>Head of Platform</span></div>
+          <div class="role">To sign in Berlin</div>
+          <div class="meta">Sent 28 April 2026 · 14:02 CET<br>Reminder set · 02 May 09:00<br>One signer remaining</div>
+        </div>
+      </div>
+
+      <div class="foot-rule">
+        <span>Page 1 / 3 · §01 — §07</span>
+        <span>Master agreement · REL-26-0042 · v3</span>
+        <span>2026-04-28 · 14:02 CET</span>
+      </div>
+    </article>
+  </div>
+</main>
+</body>
+</html>

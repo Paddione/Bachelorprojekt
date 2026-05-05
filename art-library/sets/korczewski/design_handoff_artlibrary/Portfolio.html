@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Korczewski · Studio Portfolio</title>
+<link rel="stylesheet" href="colors_and_type.css"/>
+<style>
+  body {
+    background: var(--ink-900);
+    color: var(--fg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .grain-fixed {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: .55; mix-blend-mode: overlay;
+  }
+  main { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ============ HERO ============ */
+  .hero {
+    padding: 80px 0 56px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 64px;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .hero::before {
+    content: ""; position: absolute; right: -40px; top: 0; width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(200,247,106,.10), transparent 70%);
+    pointer-events: none;
+  }
+  .hero__eyebrow { margin-bottom: 28px; }
+  .hero__title {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 92px; line-height: 0.98; letter-spacing: -0.025em;
+    color: var(--fg); margin: 0;
+  }
+  .hero__title em { color: var(--copper-2); }
+  .hero__lede {
+    margin-top: 28px;
+    font-family: var(--sans); font-size: 17px; line-height: 1.55;
+    color: var(--fg-soft); max-width: 540px;
+  }
+  .hero__meta {
+    margin-top: 40px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    border-top: 1px solid var(--line); padding-top: 24px;
+  }
+  .hero__meta-cell .k {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--mute);
+  }
+  .hero__meta-cell .v {
+    font-family: var(--serif); font-size: 22px; color: var(--fg); margin-top: 6px;
+  }
+  .hero__meta-cell .v .u {
+    font-family: var(--mono); font-size: 11px; color: var(--mute); margin-left: 4px;
+  }
+  .hero__logos { display: flex; gap: 24px; align-items: center; flex-direction: column; }
+  .hero__logos-row { display: flex; gap: 24px; }
+  .hero__logo-box { position: relative; }
+  .hero__logo-box .lab {
+    position: absolute; top: -22px; left: 0; right: 0;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--mute); text-align: center;
+  }
+
+  /* ============ SECTION HEADS ============ */
+  .sec { padding: 96px 0 0; }
+  .sec__head {
+    display: grid; grid-template-columns: 80px 1fr auto; gap: 32px;
+    align-items: end; padding-bottom: 24px; border-bottom: 1px solid var(--line);
+  }
+  .sec__num {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--copper);
+  }
+  .sec__title {
+    font-family: var(--serif); font-weight: 400; font-size: 42px;
+    line-height: 1.05; letter-spacing: -0.02em; margin: 0; color: var(--fg);
+  }
+  .sec__title em { color: var(--copper-2); }
+  .sec__hint {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--mute);
+  }
+  .sec__body { padding-top: 48px; }
+  .sec__lede {
+    font-family: var(--sans); font-size: 16px; line-height: 1.6;
+    color: var(--fg-soft); max-width: 640px; margin: 0 0 40px;
+  }
+  .sec__lede em { color: var(--copper-2); }
+
+  /* ============ CHARACTER GRID ============ */
+  .ch-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px;
+  }
+  .ch-card {
+    background: var(--ink-850); border: 1px solid var(--line);
+    border-radius: var(--r-card); overflow: hidden;
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    display: grid; grid-template-columns: 240px 1fr;
+  }
+  .ch-card:hover { border-color: var(--line-2); box-shadow: var(--shadow-2); }
+  .ch-card__portrait {
+    position: relative; background: var(--ink-800);
+    border-right: 1px solid var(--line);
+  }
+  .ch-card__portrait .ch-portrait { display: block; width: 100%; height: 300px; }
+  .ch-card__index {
+    position: absolute; top: 12px; left: 14px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+    color: var(--copper);
+  }
+  .ch-card__body {
+    padding: 24px 28px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .ch-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .ch-card__name {
+    font-family: var(--serif); font-weight: 400; font-size: 32px;
+    line-height: 1.05; margin: 0; color: var(--fg);
+  }
+  .ch-card__tag {
+    font-size: 10px; letter-spacing: 0.18em; color: var(--mute);
+  }
+  .ch-card__role {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--copper);
+  }
+  .ch-card__bio {
+    font-family: var(--sans); font-size: 14px; line-height: 1.55;
+    color: var(--fg-soft); margin: 4px 0 0; max-width: 36ch;
+  }
+  .ch-card__figrow {
+    margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 80px 1fr; gap: 16px; align-items: center;
+  }
+  .ch-card__figbox {
+    height: 120px;
+    display: flex; align-items: flex-end; justify-content: center;
+    background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,.3));
+    border-radius: 8px;
+  }
+  .ch-card__figbox .ch-figurine { height: 120px; width: auto; }
+  .ch-card__figmeta { display: flex; flex-direction: column; gap: 6px; }
+  .ch-card__figmeta-id { font-size: 10px; letter-spacing: 0.18em; color: var(--mute); }
+  .ch-card__swatches { display: flex; gap: 4px; margin-top: 4px; }
+  .ch-card__sw span {
+    display: block; width: 16px; height: 16px; border-radius: 4px;
+    border: 1px solid var(--line-2);
+  }
+
+  /* ============ BOARD PREVIEW ============ */
+  .board {
+    margin-top: 48px;
+    border: 1px solid var(--line); border-radius: var(--r-card);
+    overflow: hidden; background: var(--ink-850);
+  }
+  .board__surface {
+    background: linear-gradient(160deg, #4a2e15 0%, #2a1a0c 100%);
+    background-image:
+      radial-gradient(ellipse at top, rgba(200,247,106,0.04), transparent 60%),
+      repeating-linear-gradient(90deg, rgba(58,32,12,.4) 0px, rgba(58,32,12,.4) 40px, transparent 40px, transparent 80px),
+      linear-gradient(160deg, #4a2e15 0%, #2a1a0c 100%);
+    padding: 80px 24px 24px;
+    position: relative;
+    perspective: 800px;
+  }
+  .board__surface::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center bottom, transparent 30%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+  }
+  .board__row {
+    display: flex; gap: 36px; justify-content: center; align-items: flex-end;
+    transform: rotateX(20deg);
+    transform-origin: center bottom;
+    position: relative;
+  }
+  .board__token {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .board__token .ch-figurine { height: 160px; width: auto; }
+  .board__label {
+    font-size: 9px; letter-spacing: 0.22em; color: rgba(255,255,255,0.4);
+    transform: rotateX(-20deg);
+  }
+  .board__caption {
+    padding: 16px 24px; font-size: 10px; letter-spacing: 0.22em;
+    color: var(--mute); border-top: 1px solid var(--line);
+    background: var(--ink-900);
+  }
+
+  /* ============ PALETTE ============ */
+  .palette {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .palette__sw {
+    background: var(--ink-850); border: 1px solid var(--line);
+    border-radius: var(--r-card); padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .palette__sw:hover { border-color: var(--line-2); }
+  .palette__chip {
+    height: 88px; border-radius: 10px; border: 1px solid var(--line-2);
+  }
+  .palette__name {
+    font-family: var(--serif); font-size: 18px; color: var(--fg);
+  }
+  .palette__hex {
+    font-size: 11px; color: var(--fg-soft); margin-top: 2px;
+  }
+  .palette__role {
+    font-size: 9px; letter-spacing: 0.18em; color: var(--mute); margin-top: 8px;
+  }
+
+  /* ============ PROPS ============ */
+  .props {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px;
+  }
+  .props__cell {
+    background: var(--ink-850); border: 1px solid var(--line);
+    border-radius: var(--r-card); padding: 20px 16px 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .props__cell:hover { border-color: var(--copper); }
+  .props__art { display: flex; align-items: center; justify-content: center; height: 72px; }
+  .props__cap { text-align: center; }
+  .props__name { font-family: var(--serif); font-size: 16px; color: var(--fg); }
+  .props__id { font-size: 9px; letter-spacing: 0.2em; color: var(--mute); margin-top: 2px; }
+
+  /* ============ TERRAIN ============ */
+  .terrain {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  .terrain__cell {
+    border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden;
+  }
+  .terrain__tile {
+    height: 140px; overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .terrain__tile svg { display: block; width: 100%; height: 100%; }
+  .terrain__cap {
+    padding: 12px 16px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    background: var(--ink-850);
+  }
+  .terrain__name { font-family: var(--serif); font-size: 18px; color: var(--fg); }
+  .terrain__id { font-size: 10px; letter-spacing: 0.2em; color: var(--mute); }
+
+  /* ============ TYPE LOCKUP ============ */
+  .typelock {
+    background: var(--ink-850); border: 1px solid var(--line);
+    border-radius: var(--r-card); padding: 48px;
+    position: relative; overflow: hidden;
+  }
+  .typelock::after {
+    content: ""; position: absolute; top: 0; right: 0; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(200,247,106,.06), transparent 70%);
+    pointer-events: none;
+  }
+  .typelock__big {
+    font-family: var(--serif); font-size: 96px; line-height: 1;
+    letter-spacing: -0.03em; color: var(--fg);
+  }
+  .typelock__big .typelock__k { color: var(--copper); }
+  .typelock__big .typelock__rest { font-style: italic; color: var(--fg-soft); }
+  .typelock__sub {
+    margin-top: 16px; font-size: 11px; letter-spacing: 0.22em; color: var(--mute);
+  }
+  .typelock__divider {
+    margin: 32px 0; height: 1px; background: var(--line-2);
+  }
+  .typelock__row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+  }
+  .typelock__sample { margin-top: 12px; }
+
+  /* ============ FOOTER ============ */
+  .foot {
+    margin-top: 96px; padding-top: 32px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .foot__meta {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--mute);
+  }
+  .foot__dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--copper); margin-right: 8px;
+    animation: pulse 1.6s var(--ease) infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  /* ============ Logo animations (carry over from KERN artifact) ============ */
+  @keyframes pulse-ring { 0% { opacity: 0.6; r: 28; } 100% { opacity: 0; r: 72; } }
+  @keyframes glow-core { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+  .pulse-ring-1 { animation: pulse-ring 2.4s ease-out infinite; }
+  .pulse-ring-2 { animation: pulse-ring 2.4s ease-out infinite 0.8s; }
+  .pulse-ring-3 { animation: pulse-ring 2.4s ease-out infinite 1.6s; }
+  .core-glow { animation: glow-core 2s ease-in-out infinite; }
+
+  @media (max-width: 980px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero__title { font-size: 56px; }
+    .hero__meta { grid-template-columns: 1fr 1fr; }
+    .ch-grid, .palette, .typelock__row { grid-template-columns: 1fr; }
+    .props { grid-template-columns: repeat(3, 1fr); }
+    .terrain { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="grain-fixed"></div>
+<main data-screen-label="Portfolio">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" data-screen-label="01 Hero">
+    <div class="hero__copy">
+      <div class="eyebrow hero__eyebrow">[ STUDIO · 2026 — A WORK NOTEBOOK ]</div>
+      <h1 class="hero__title">Vier Figuren,<br/>ein <em>stilles</em> Brett.</h1>
+      <p class="hero__lede">
+        Ein Notizbuch über ein Tabletop-Spiel im Bau — die Marke, die Figuren,
+        die Töne und das Material, aus dem das Spiel langsam zusammenwächst.
+      </p>
+      <div class="hero__meta">
+        <div class="hero__meta-cell"><div class="k">Disziplin</div><div class="v">Brett · <em>Marke</em> · Figur</div></div>
+        <div class="hero__meta-cell"><div class="k">Figuren</div><div class="v">4<span class="u">Stück</span></div></div>
+        <div class="hero__meta-cell"><div class="k">Marken-Varianten</div><div class="v">2<span class="u">aktiv</span></div></div>
+        <div class="hero__meta-cell"><div class="k">Status</div><div class="v" style="color:var(--copper)"><span class="foot__dot"></span>Im Bau</div></div>
+      </div>
+    </div>
+    <div class="hero__logos">
+      <div class="hero__logos-row">
+        <div class="hero__logo-box">
+          <span class="lab">App Icon · Vollständiges K</span>
+          <div id="logo-1"></div>
+        </div>
+        <div class="hero__logo-box">
+          <span class="lab">Animated · Radar-Pulse</span>
+          <div id="logo-2"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TYPE LOCKUP ============ -->
+  <section class="sec" data-screen-label="02 Marke">
+    <div class="sec__head">
+      <div class="sec__num">[ 01 — Marke ]</div>
+      <h2 class="sec__title">Eine Wortmarke. <em>Ein</em> Akzent. Drei Stimmen.</h2>
+      <div class="sec__hint">SERIF · SANS · MONO</div>
+    </div>
+    <div class="sec__body">
+      <div id="typelock"></div>
+    </div>
+  </section>
+
+  <!-- ============ CHARACTERS ============ -->
+  <section class="sec" data-screen-label="03 Figuren">
+    <div class="sec__head">
+      <div class="sec__num">[ 02 — Figuren ]</div>
+      <h2 class="sec__title">Vier Silhouetten. <em>Keine</em> Überschneidung.</h2>
+      <div class="sec__hint">PORTRAIT · TOKEN · PALETTE</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Jede Figur ist als <em>Silhouette</em> erkennbar — fließendes Haar, gehörnter Helm,
+        Dreispitz, kahle Kapuze. Erst danach kommt die Farbe. Elara trägt das grüne Kleid
+        und das rote Haar, das du dir gewünscht hast; die anderen drei sind so weit wie
+        möglich von ihr entfernt entworfen.
+      </p>
+      <div id="grid"></div>
+    </div>
+  </section>
+
+  <!-- ============ BOARD ============ -->
+  <section class="sec" data-screen-label="04 Brett">
+    <div class="sec__head">
+      <div class="sec__num">[ 03 — Brett ]</div>
+      <h2 class="sec__title">Auf dem <em>Holz</em>.</h2>
+      <div class="sec__hint">VORSCHAU · 1×4</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Wie die Figuren auf dem Brett aussehen — als Ersatz für die vier Grundformen
+        (<em>Figur, Kegel, Säule, Raute</em>) deines aktuellen Prototypen.
+      </p>
+      <div id="board"></div>
+    </div>
+  </section>
+
+  <!-- ============ PALETTE ============ -->
+  <section class="sec" data-screen-label="05 Palette">
+    <div class="sec__head">
+      <div class="sec__num">[ 04 — Palette ]</div>
+      <h2 class="sec__title">Zwölf Farben, <em>jede</em> mit einer Aufgabe.</h2>
+      <div class="sec__hint">3D / 2D · GEMEINSAM</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Die Palette ist gleichzeitig die Maler-Liste für 3D-Materialien und das
+        Vokabular für UI und Druck. Jede Farbe hat eine feste Rolle — keine
+        Dekoration ohne Grund.
+      </p>
+      <div id="palette"></div>
+    </div>
+  </section>
+
+  <!-- ============ PROPS ============ -->
+  <section class="sec" data-screen-label="06 Requisiten">
+    <div class="sec__head">
+      <div class="sec__num">[ 05 — Requisiten ]</div>
+      <h2 class="sec__title">Kleine Dinge, <em>die</em> man auf das Brett legt.</h2>
+      <div class="sec__hint">PLATZHALTER · 6 STÜCK</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Token-Platzhalter für Items und Marker. Stilistisch im selben Vokabular wie
+        die Figuren — wenig Detail, klare Silhouette, eine Lichtseite.
+      </p>
+      <div id="props"></div>
+    </div>
+  </section>
+
+  <!-- ============ TERRAIN ============ -->
+  <section class="sec" data-screen-label="07 Gelände">
+    <div class="sec__head">
+      <div class="sec__num">[ 06 — Gelände ]</div>
+      <h2 class="sec__title">Sechs <em>Materialien</em> für das Brett.</h2>
+      <div class="sec__hint">KACHEL · 120×80</div>
+    </div>
+    <div class="sec__body">
+      <p class="sec__lede">
+        Material-Kacheln als Stimmungsproben — generiert, austauschbar.
+        Sie zeigen das Verhältnis aus Farbe, Rauschen und Detail, das die
+        späteren echten Texturen treffen sollen.
+      </p>
+      <div id="terrain"></div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="foot">
+    <div class="foot__meta"><span class="foot__dot"></span>STUDIO · 2026 · KORCZEWSKI</div>
+    <div class="foot__meta">PORTFOLIO · V1 · WIP</div>
+  </footer>
+
+</main>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="characters.jsx"></script>
+<script type="text/babel" src="assets.jsx"></script>
+<script type="text/babel">
+  const mount = (id, el) => {
+    const node = document.getElementById(id);
+    if (node) ReactDOM.createRoot(node).render(el);
+  };
+  mount("logo-1", <LogoAppIcon size={140}/>);
+  mount("logo-2", <LogoRadarPulse size={140}/>);
+  mount("typelock", <TypeLockup/>);
+  mount("grid", <CharacterGrid/>);
+  mount("board", <BoardPreview/>);
+  mount("palette", <PaletteCard/>);
+  mount("props", <PropGrid/>);
+  mount("terrain", <TerrainGrid/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "pr_number": 501,
+  "title": "E2E coverage for Brett, LiveKit, Tracking + register orphaned specs",
+  "description": "## Summary\n\n- **3 new Playwright specs** for recently added k3d manifests:\n  - `fa-27-brett.spec.ts` — Brett service: `/healthz`, `/api/state`, static asset, snapshot CRUD\n  - `fa-livekit.spec.ts` — LiveKit: admin/portal stream auth-redirect, token/status/end API auth-gating, ingress reachability\n  - `fa-29-tracking.spec.ts` — Requirements Tracking UI: service reachable, page title, `/api/timeline`\n- **`integration-smoke.spec.ts`** — added smoke checks for Brett `/healthz`, DocuSeal `sign.*`, Tracking, and LiveKit ingress\n- **`playwright.config.ts`** — registered new specs in `services` project; added new `korczewski` project for the three previously orphaned specs (`brett-art`, `dashboard-art`, `korczewski-home`); `sa-02` now in `services`\n- **`sa-02-auth.spec.ts`** — fixed default base URL away from removed Mattermost (`localhost:8065`) to website (`localhost:4321`); removed now-dead \"In Browser\" desktop-app link click\n\n## Test plan\n\n- [ ] `npx playwright test --project=services` against live cluster — new fa-27/fa-livekit/fa-29 specs pass\n- [ ] `npx playwright test --project=smoke` — 4 new smoke assertions green\n- [ ] `npx playwright test --project=korczewski` — brett-art, dashboard-art, korczewski-home all execute (no longer orphaned)\n- [ ] `npx playwright test --project=services` spec sa-02 — navigates to Keycloak realm URL without error\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "test",
+  "scope": "e2e",
+  "brand": null,
+  "requirement_id": "FA-27",
+  "merged_at": "2026-05-05T07:29:28Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

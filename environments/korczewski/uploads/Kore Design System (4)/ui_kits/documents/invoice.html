@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kore — Invoice 2026-04-0042</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../../styles/app.css">
+<style>
+  body{padding:48px 28px 96px;}
+  .doc-wrap{position:relative; z-index:2;}
+  .crumbs{max-width:880px; margin:0 auto 24px; display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute);}
+  .crumbs .copper{color:var(--copper);}
+  .crumbs .actions{margin-left:auto; display:flex; gap:8px;}
+
+  .invoice{max-width:880px; margin:0 auto; background:var(--paper); color:var(--ink-text); border-radius:var(--r-paper); box-shadow:var(--shadow-paper); position:relative; overflow:hidden;}
+  .invoice::before{content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(50% 35% at 100% 0%, rgba(200,247,106,.18), transparent 60%), radial-gradient(45% 35% at 0% 100%, rgba(91,212,208,.12), transparent 60%); z-index:0;}
+  .invoice > *{position:relative; z-index:1;}
+
+  /* Punch-hole tape strip at top — printerly affectation */
+  .tape{height:6px; background:repeating-linear-gradient(90deg, var(--copper-print) 0 12px, transparent 12px 24px); opacity:.65;}
+
+  .head{padding:48px 56px 32px; display:flex; justify-content:space-between; align-items:flex-start; gap:32px; border-bottom:1px solid var(--line-paper);}
+  .head .from img{display:block;}
+  .head .from .ent{margin-top:18px; font-family:var(--mono); font-size:10.5px; line-height:1.7; color:var(--ink-mute); letter-spacing:.04em;}
+  .head .id{text-align:right; min-width:280px;}
+  .head .id .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--copper-print);}
+  .head .id .num{font-family:var(--serif); font-size:42px; margin-top:6px; letter-spacing:-0.01em; line-height:1;}
+  .head .id .num em{font-style:italic; color:var(--copper-print);}
+  .head .id .due{margin-top:12px; font-family:var(--mono); font-size:11px; color:var(--ink-mute); letter-spacing:.04em;}
+  .head .id .pill{margin-top:14px; display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:999px; font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; background:rgba(91,212,208,.18); color:#2C8682; border:1px solid rgba(44,134,130,.4);}
+  .head .id .pill .dot{width:6px; height:6px; border-radius:50%; background:#2C8682;}
+
+  .who-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:32px; padding:28px 56px; border-bottom:1px solid var(--line-paper);}
+  .who-grid .lab{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute);}
+  .who-grid .v{font-family:var(--serif); font-size:22px; margin-top:6px; letter-spacing:-0.01em; line-height:1.2;}
+  .who-grid .v em{font-style:italic; color:var(--copper-print);}
+  .who-grid .s{font-family:var(--sans); font-size:13px; color:var(--ink-soft); margin-top:8px; line-height:1.55;}
+
+  .lines{padding:28px 56px;}
+  table{width:100%; border-collapse:collapse;}
+  th{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute); font-weight:500; padding:10px 0; border-bottom:1px solid var(--line-paper); text-align:left;}
+  th.r{text-align:right;}
+  td{padding:14px 0; border-bottom:1px dashed rgba(15,23,36,.16); vertical-align:top;}
+  td .desc-t{font-family:var(--sans); font-size:14.5px; color:var(--ink-text);}
+  td .desc-s{font-family:var(--mono); font-size:11px; color:var(--ink-mute); margin-top:3px; letter-spacing:.04em;}
+  td.num{text-align:right; font-family:var(--mono); font-size:13px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+  td.amt{text-align:right; font-family:var(--serif); font-size:18px; color:var(--ink-text); letter-spacing:-0.005em;}
+
+  .totals{padding:24px 56px 12px; display:grid; grid-template-columns:1fr 320px; gap:32px; align-items:start;}
+  .totals .note{font-family:var(--mono); font-size:11px; line-height:1.7; color:var(--ink-mute); letter-spacing:.02em;}
+  .totals .calc{display:flex; flex-direction:column; gap:8px;}
+  .totals .row{display:flex; justify-content:space-between; align-items:baseline; font-family:var(--sans); font-size:14px; color:var(--ink-soft);}
+  .totals .row .v{font-family:var(--mono); font-size:13px; color:var(--ink-text);}
+  .totals .row.grand{padding-top:14px; margin-top:6px; border-top:1px solid var(--line-paper);}
+  .totals .row.grand span:first-child{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute);}
+  .totals .row.grand .v{font-family:var(--serif); font-size:36px; color:var(--ink-text); letter-spacing:-0.01em;}
+  .totals .row.grand .v em{font-style:italic; color:var(--copper-print);}
+
+  .pay{padding:24px 56px 48px; display:grid; grid-template-columns:1fr 1fr; gap:32px; border-top:1px solid var(--line-paper); margin-top:8px;}
+  .pay h4{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-mute); margin:0 0 12px;}
+  .pay .kv{display:grid; grid-template-columns:max-content 1fr; column-gap:18px; row-gap:6px; font-family:var(--mono); font-size:12px; color:var(--ink-soft);}
+  .pay .kv dt{color:var(--ink-mute);}
+  .pay .kv dd{margin:0; color:var(--ink-text);}
+  .pay .stamp{align-self:end; justify-self:end; padding:18px 22px; border:2px solid var(--copper-print); border-radius:8px; transform:rotate(-4deg); font-family:var(--mono); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper-print); text-align:center; line-height:1.4;}
+  .pay .stamp b{display:block; font-family:var(--serif); font-style:italic; font-size:24px; letter-spacing:-0.01em;}
+
+  .foot-rule{padding:18px 56px 24px; border-top:1px solid var(--line-paper); display:flex; justify-content:space-between; gap:18px; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-mute);}
+</style>
+</head>
+<body>
+<main>
+  <div class="doc-wrap">
+    <div class="crumbs">
+      <span class="copper">Invoice</span><span>·</span><span>2026-04-0042</span>
+      <div class="actions">
+        <a class="btn ghost sm">Send →</a>
+        <a class="btn primary sm">Mark paid</a>
+      </div>
+    </div>
+
+    <article class="invoice">
+      <div class="tape"></div>
+      <div class="head">
+        <div class="from">
+          <img src="../../assets/logo-lockup-light.svg" width="200" height="60">
+          <div class="ent">
+            KORE. UG (HAFTUNGSBESCHRÄNKT)<br>
+            FRIEDRICHSTRASSE 132 · 10117 BERLIN<br>
+            VAT DE-348-991-204 · HRB 248 091 B
+          </div>
+        </div>
+        <div class="id">
+          <div class="lab">Invoice</div>
+          <div class="num">2026-04-<em>0042</em></div>
+          <div class="due">Issued 28 Apr 2026 · Due 12 May 2026 · Net 14</div>
+          <span class="pill"><span class="dot"></span>Paid · 28 Apr</span>
+        </div>
+      </div>
+
+      <div class="who-grid">
+        <div>
+          <div class="lab">Billed to</div>
+          <div class="v">Tradesman <em>GmbH</em></div>
+          <div class="s">Attn: Maya Oduya, Head of Platform<br>Hauptstraße 17 · 10827 Berlin</div>
+        </div>
+        <div>
+          <div class="lab">Period</div>
+          <div class="v">April <em>2026</em></div>
+          <div class="s">Reliability retainer · cluster ord-1<br>Contract REL-24-0008</div>
+        </div>
+        <div>
+          <div class="lab">PO</div>
+          <div class="v">PO-2026-0411</div>
+          <div class="s">Approved 04 Apr 2026<br>by M. Oduya</div>
+        </div>
+      </div>
+
+      <div class="lines">
+        <table>
+          <thead>
+            <tr><th>Item</th><th class="r">Hours</th><th class="r">Rate</th><th class="r">Amount</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="desc-t">Reliability retainer · base</div><div class="desc-s">REL-24-0008 · monthly · 1 of 12</div></td>
+              <td class="num">40.0</td><td class="num">€220.00</td><td class="amt">€8,800.00</td>
+            </tr>
+            <tr>
+              <td><div class="desc-t">Incident response · 2026-04-09</div><div class="desc-s">P1 · etcd quorum · 03:14 → 06:42 CET</div></td>
+              <td class="num">3.5</td><td class="num">€280.00</td><td class="amt">€980.00</td>
+            </tr>
+            <tr>
+              <td><div class="desc-t">Runbook revision · v3.4</div><div class="desc-s">Rewrite of §3 · etcd recovery</div></td>
+              <td class="num">2.0</td><td class="num">€220.00</td><td class="amt">€440.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="totals">
+        <div class="note">
+          Reverse-charge VAT applies (§13b UStG).<br>
+          The recipient owes VAT to their tax office.<br>
+          Late payment after Net 14 incurs 9% p.a. interest per §288 BGB.
+        </div>
+        <div class="calc">
+          <div class="row"><span>Subtotal</span><span class="v">€10,220.00</span></div>
+          <div class="row"><span>VAT · reverse-charge</span><span class="v">€0.00</span></div>
+          <div class="row grand"><span>Total due</span><span class="v">€10,220.<em>00</em></span></div>
+        </div>
+      </div>
+
+      <div class="pay">
+        <div>
+          <h4>Wire transfer</h4>
+          <dl class="kv">
+            <dt>Bank</dt><dd>N26 Bank AG · Berlin</dd>
+            <dt>IBAN</dt><dd>DE89 1001 1001 8203 4421 02</dd>
+            <dt>BIC</dt><dd>NTSBDEB1XXX</dd>
+            <dt>Reference</dt><dd>2026-04-0042 · Tradesman</dd>
+          </dl>
+        </div>
+        <div class="stamp">
+          Paid<br>
+          <b>28.04.26</b>
+          REF · NTSB-99214
+        </div>
+      </div>
+
+      <div class="foot-rule">
+        <span>Page 1 / 1</span>
+        <span>Generated by Kore. operator console</span>
+        <span>2026-04-28 · 14:02 CET</span>
+      </div>
+    </article>
+  </div>
+</main>
+</body>
+</html>

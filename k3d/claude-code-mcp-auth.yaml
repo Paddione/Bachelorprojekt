@@ -27,7 +27,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: KC_URL
-              value: "http://keycloak.workspace.svc.cluster.local:8080"
+              value: "http://keycloak:8080"
             - name: KC_REALM
               value: "master"
             - name: OIDC_CLIENT_ID

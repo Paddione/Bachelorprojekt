@@ -26,6 +26,77 @@ function nodeLookup(
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
+// ── Tracking DB (bachelorprojekt schema) ────────────────────────────────────
+
+let trackingPool: import('pg').Pool | null = null;
+
+function getTrackingPool(): import('pg').Pool {
+  if (trackingPool) return trackingPool;
+  const url = process.env.TRACKING_DB_URL
+    || process.env.SESSIONS_DATABASE_URL
+    || process.env.DATABASE_URL?.replace(/\/[^/?]+(\?|$)/, '/postgres$1');
+  if (!url) throw new Error('TRACKING_DB_URL not set');
+  trackingPool = new Pool({ connectionString: url, lookup: nodeLookup, max: 4 } as unknown as import('pg').PoolConfig);
+  return trackingPool;
+}
+
+export type TimelineRow = {
+  id: number;
+  day: string;
+  pr_number: number | null;
+  title: string;
+  description: string | null;
+  category: string;
+  scope: string | null;
+  brand: string | null;
+  requirement_id: string | null;
+  requirement_name: string | null;
+  bugs_fixed: number;
+};
+
+export async function listTimeline(opts: {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  brand?: string;
+} = {}): Promise<TimelineRow[]> {
+  const limit = Math.min(opts.limit ?? 20, 100);
+  const offset = opts.offset ?? 0;
+
+  const tPool = getTrackingPool();
+  const where: string[] = [];
+  const params: unknown[] = [];
+  if (opts.category) { params.push(opts.category); where.push(`category = $${params.length}`); }
+  if (opts.brand)    { params.push(opts.brand);    where.push(`(brand = $${params.length} OR brand IS NULL)`); }
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+  params.push(limit, offset);
+
+  const rows = (await tPool.query(
+    `SELECT id, to_char(day,'YYYY-MM-DD') AS day, pr_number, title, description,
+            category, scope, brand, requirement_id, requirement_name
+       FROM bachelorprojekt.v_timeline
+       ${whereSql}
+      ORDER BY merged_at DESC
+      LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
+  )).rows as Omit<TimelineRow, 'bugs_fixed'>[];
+
+  const prNumbers = rows.map(r => r.pr_number).filter((n): n is number => n != null);
+  const bugCounts = new Map<number, number>();
+  if (prNumbers.length > 0) {
+    const counts = (await pool.query(
+      `SELECT fixed_in_pr AS pr, COUNT(*)::int AS n
+         FROM bugs.bug_tickets
+        WHERE fixed_in_pr = ANY($1::int[])
+        GROUP BY fixed_in_pr`,
+      [prNumbers],
+    )).rows as { pr: number; n: number }[];
+    for (const c of counts) bugCounts.set(c.pr, c.n);
+  }
+
+  return rows.map(r => ({ ...r, bugs_fixed: r.pr_number ? (bugCounts.get(r.pr_number) ?? 0) : 0 }));
+}
+
 // ── Customer ────────────────────────────────────────────────────────────────
 
 export interface Customer {
@@ -591,7 +662,8 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
   const result = await pool.query(
     `SELECT ticket_id as "ticketId", status, category,
             created_at as "createdAt", resolved_at as "resolvedAt",
-            resolution_note as "resolutionNote"
+            resolution_note as "resolutionNote",
+            fixed_in_pr as "fixedInPr", fixed_at as "fixedAt"
      FROM bugs.bug_tickets WHERE ticket_id = $1`,
     [ticketId]
   );
@@ -634,6 +706,17 @@ export async function initBugTicketsTable(): Promise<void> {
     ALTER TABLE bugs.bug_tickets
       ALTER COLUMN brand DROP DEFAULT
   `);
+  await pool.query(
+    `ALTER TABLE bugs.bug_tickets
+       ADD COLUMN IF NOT EXISTS fixed_in_pr   INTEGER`
+  );
+  await pool.query(
+    `ALTER TABLE bugs.bug_tickets
+       ADD COLUMN IF NOT EXISTS fixed_at      TIMESTAMPTZ`
+  );
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr)`
+  );
   // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
   await pool.query(`
     UPDATE inbox_items
@@ -2182,6 +2265,8 @@ export interface BugTicketRow {
   resolvedAt: Date | null;
   resolutionNote: string | null;
   screenshots: string[] | null;
+  fixedInPr?: number | null;
+  fixedAt?: Date | null;
 }
 
 let bookingProjectLinksReady = false;
@@ -2486,7 +2571,9 @@ export async function listBugTickets(filters: {
             created_at       AS "createdAt",
             resolved_at      AS "resolvedAt",
             resolution_note  AS "resolutionNote",
-            screenshots_json AS "screenshots"
+            screenshots_json AS "screenshots",
+            fixed_in_pr      AS "fixedInPr",
+            fixed_at         AS "fixedAt"
      FROM bugs.bug_tickets
      WHERE ($1::text IS NULL OR brand = $1)
        AND ($2::text IS NULL OR status = $2)
@@ -2706,26 +2793,40 @@ async function initInvoiceCountersTable(): Promise<void> {
     CREATE TABLE IF NOT EXISTS invoice_counters (
       brand   TEXT NOT NULL,
       year    INT  NOT NULL,
+      kind    TEXT NOT NULL DEFAULT 'invoice',
       counter INT  NOT NULL DEFAULT 0,
-      PRIMARY KEY (brand, year)
+      PRIMARY KEY (brand, year, kind)
     )
+  `);
+  await pool.query(`
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='invoice_counters' AND column_name='kind'
+      ) THEN
+        ALTER TABLE invoice_counters ADD COLUMN kind TEXT NOT NULL DEFAULT 'invoice';
+        ALTER TABLE invoice_counters DROP CONSTRAINT invoice_counters_pkey;
+        ALTER TABLE invoice_counters ADD PRIMARY KEY (brand, year, kind);
+      END IF;
+    END $$
   `);
   invoiceCountersReady = true;
 }
 
-export async function getNextInvoiceNumber(brand: string): Promise<string> {
+export async function getNextInvoiceNumber(brand: string, kind: 'invoice' | 'gutschrift' = 'invoice'): Promise<string> {
   await initInvoiceCountersTable();
   const year = new Date().getFullYear();
   const result = await pool.query<{ counter: number }>(
-    `INSERT INTO invoice_counters (brand, year, counter)
-     VALUES ($1, $2, 1)
-     ON CONFLICT (brand, year)
+    `INSERT INTO invoice_counters (brand, year, kind, counter)
+     VALUES ($1, $2, $3, 1)
+     ON CONFLICT (brand, year, kind)
      DO UPDATE SET counter = invoice_counters.counter + 1
      RETURNING counter`,
-    [brand, year]
+    [brand, year, kind]
   );
   const n = result.rows[0].counter;
-  return `RE-${year}-${String(n).padStart(4, '0')}`;
+  const prefix = kind === 'gutschrift' ? 'GS' : 'RE';
+  return `${prefix}-${year}-${String(n).padStart(4, '0')}`;
 }
 
 export async function seedInvoiceCounter(
@@ -3109,17 +3210,56 @@ export async function initBillingTables(): Promise<void> {
       address_line1 TEXT,
       city          TEXT,
       postal_code   TEXT,
-      country       TEXT NOT NULL DEFAULT 'DE',
+      land_iso      CHAR(2) NOT NULL DEFAULT 'DE',
       vat_number    TEXT,
       sepa_iban     TEXT,
       sepa_bic      TEXT,
       sepa_mandate_ref  TEXT,
       sepa_mandate_date DATE,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-      UNIQUE (brand, email)
+      typ           TEXT NOT NULL DEFAULT 'Kunde',
+      CONSTRAINT billing_customers_brand_email_typ_key UNIQUE (brand, email, typ)
     )
   `);
   await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS default_leitweg_id TEXT`);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='public'
+          AND table_name='billing_customers' AND column_name='country'
+      ) THEN
+        ALTER TABLE billing_customers RENAME COLUMN country TO land_iso;
+      END IF;
+    END $$
+  `);
+  await pool.query(`
+    ALTER TABLE billing_customers
+      ADD COLUMN IF NOT EXISTS typ TEXT NOT NULL DEFAULT 'Kunde'
+  `);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_customers_typ_chk'
+      ) THEN
+        ALTER TABLE billing_customers
+          ADD CONSTRAINT billing_customers_typ_chk CHECK (typ IN ('Kunde'));
+      END IF;
+      IF EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_customers_brand_email_key'
+      ) THEN
+        ALTER TABLE billing_customers DROP CONSTRAINT billing_customers_brand_email_key;
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname='billing_customers_brand_email_typ_key'
+      ) THEN
+        ALTER TABLE billing_customers
+          ADD CONSTRAINT billing_customers_brand_email_typ_key UNIQUE (brand, email, typ);
+      END IF;
+    END $$
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoices (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -3160,7 +3300,12 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'regular',
       ADD COLUMN IF NOT EXISTS parent_invoice_id TEXT REFERENCES billing_invoices(id),
       ADD COLUMN IF NOT EXISTS dunning_level SMALLINT NOT NULL DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ
+      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS currency CHAR(3) NOT NULL DEFAULT 'EUR',
+      ADD COLUMN IF NOT EXISTS currency_rate NUMERIC(12,6),
+      ADD COLUMN IF NOT EXISTS net_amount_eur  NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS gross_amount_eur NUMERIC(12,2),
+      ADD COLUMN IF NOT EXISTS supply_type     TEXT
   `);
   await pool.query(`
     DO $$ BEGIN
@@ -3179,6 +3324,22 @@ export async function initBillingTables(): Promise<void> {
           CHECK (dunning_level BETWEEN 0 AND 3);
       END IF;
     END $$
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_invoice_dunnings (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      invoice_id    TEXT NOT NULL REFERENCES billing_invoices(id),
+      brand         TEXT NOT NULL,
+      level         SMALLINT NOT NULL,
+      generated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+      sent_at       TIMESTAMPTZ,
+      sent_by       TEXT,
+      fee_amount    NUMERIC(12,2) NOT NULL DEFAULT 0,
+      interest_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      outstanding_at_generation NUMERIC(12,2) NOT NULL,
+      pdf_path      TEXT,
+      UNIQUE (invoice_id, level)
+    )
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoice_line_items (
@@ -3234,15 +3395,8 @@ export async function initBillingTables(): Promise<void> {
       ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
       ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
   `);
-  // Plan F: currency, supply_type, EUR equivalents
-  await pool.query(`
-    ALTER TABLE billing_invoices
-      ADD COLUMN IF NOT EXISTS currency        TEXT NOT NULL DEFAULT 'EUR',
-      ADD COLUMN IF NOT EXISTS currency_rate   NUMERIC(12,6),
-      ADD COLUMN IF NOT EXISTS net_amount_eur  NUMERIC(12,2),
-      ADD COLUMN IF NOT EXISTS gross_amount_eur NUMERIC(12,2),
-      ADD COLUMN IF NOT EXISTS supply_type     TEXT
-  `);
+  await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS leitweg_id VARCHAR(46)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_billing_customers_leitweg ON billing_customers(leitweg_id) WHERE leitweg_id IS NOT NULL`);
   // Plan F: EU supply + export evidence
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_nachweis (
@@ -3268,6 +3422,47 @@ export async function initBillingTables(): Promise<void> {
       vies_address        TEXT,
       request_identifier  TEXT,
       validated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_suppliers (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      brand         TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      email         TEXT,
+      land_iso      CHAR(2) NOT NULL DEFAULT 'DE',
+      ustidnr       TEXT,
+      steuernummer  TEXT,
+      iban          TEXT,
+      bic           TEXT,
+      bank_name     TEXT,
+      address       TEXT,
+      typ           TEXT DEFAULT 'Lieferant',
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CONSTRAINT billing_suppliers_brand_name_key UNIQUE (brand, name)
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS supplier_invoices (
+      id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      brand         TEXT NOT NULL,
+      supplier_id   TEXT NOT NULL REFERENCES billing_suppliers(id),
+      invoice_number TEXT,
+      invoice_date  DATE NOT NULL,
+      leistungsdatum DATE,
+      net_amount    NUMERIC(12,2) NOT NULL,
+      vat_amount    NUMERIC(12,2) NOT NULL DEFAULT 0,
+      gross_amount  NUMERIC(12,2) NOT NULL,
+      vat_rate      NUMERIC(5,2)  NOT NULL DEFAULT 0,
+      currency      CHAR(3) NOT NULL DEFAULT 'EUR',
+      description   TEXT,
+      pdf_path      TEXT,
+      status        TEXT NOT NULL DEFAULT 'open',
+      paid_at       DATE,
+      locked        BOOLEAN NOT NULL DEFAULT false,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
   // Plan F: indexes for new child tables

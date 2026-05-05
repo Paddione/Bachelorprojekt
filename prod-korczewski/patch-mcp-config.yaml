@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-code-config
+data:
+  MCP_BROWSER_URL: ""
+  MCP_GITHUB_URL: ""

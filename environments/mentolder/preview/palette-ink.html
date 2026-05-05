@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+body{margin:0;padding:24px;background:var(--ink-900);font-family:var(--sans);color:var(--fg);display:flex;flex-direction:column;gap:12px;}
+.row-label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);padding:0 4px;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.cell{padding:18px 16px;border-right:1px solid var(--line);min-height:96px;display:flex;flex-direction:column;justify-content:flex-end;}
+.cell:last-child{border-right:none;}
+.cell .name{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
+.cell .hex{font-family:var(--mono);font-size:11px;margin-top:4px;opacity:.7;}
+
+/* Ink (dark) row — names in white */
+.row-ink .cell .name{color:#eef1f3;}
+.row-ink .cell .hex{color:#cdd3d9;}
+
+/* Foreground row — light swatches on dark grid; names in ink */
+.row-fg{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:repeat(4,1fr);}
+.row-fg .cell{border-right:1px solid rgba(11,17,28,.10);}
+.row-fg .cell:last-child{border-right:none;}
+.row-fg .cell .name{color:#0b111c;}
+.row-fg .cell .hex{color:#0b111c;opacity:.6;}
+</style></head><body>
+
+<div>
+  <div class="row-label">Ink — backgrounds</div>
+  <div class="grid row-ink" style="margin-top:6px;">
+    <div class="cell" style="background:#0b111c"><div class="name">ink-900</div><div class="hex">#0b111c · base</div></div>
+    <div class="cell" style="background:#101826"><div class="name">ink-850</div><div class="hex">#101826 · elevated</div></div>
+    <div class="cell" style="background:#17202e"><div class="name">ink-800</div><div class="hex">#17202e · panel</div></div>
+    <div class="cell" style="background:#1d2736"><div class="name">ink-750</div><div class="hex">#1d2736 · alt</div></div>
+  </div>
+</div>
+
+<div>
+  <div class="row-label">Foreground — text on ink</div>
+  <div class="row-fg" style="margin-top:6px;">
+    <div class="cell" style="background:#eef1f3"><div class="name">fg</div><div class="hex">#eef1f3 · primary</div></div>
+    <div class="cell" style="background:#cdd3d9"><div class="name">fg-soft</div><div class="hex">#cdd3d9 · body</div></div>
+    <div class="cell" style="background:#8c96a3"><div class="name">mute</div><div class="hex">#8c96a3 · meta</div></div>
+    <div class="cell" style="background:#6a727e"><div class="name">mute-2</div><div class="hex">#6a727e · deep meta</div></div>
+  </div>
+</div>
+
+</body></html>

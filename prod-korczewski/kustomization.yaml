@@ -1,11 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: workspace
+namespace: workspace-korczewski
 
 # Inherit full prod overlay (k3d base + all prod patches)
 resources:
   - ../prod
   - ddns-updater.yaml
+  - dashboard-web.yaml
+  - oauth2-proxy-dashboard.yaml
+  - ingress-dashboard.yaml
+  - netpol-cross-namespace.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:
@@ -13,10 +17,141 @@ configMapGenerator:
     behavior: replace
     files:
       - realm-workspace.json=realm-workspace-korczewski.json
+  - name: nextcloud-extra-config
+    behavior: replace
+    files:
+      - zz-extra.config.php=nextcloud-extra-config-korczewski.php
 generatorOptions:
   disableNameSuffixHash: true
 
-# korczewski-specific workload placement — see patch file for rationale.
+# korczewski-specific workload placement.
+#
+# The unified `mentolder` cluster has a Flannel VXLAN partition between its
+# 6 Hetzner control-planes (gekko-hetzner-2/3/4, pk-hetzner, pk-hetzner-2,
+# pk-hetzner-3) and its 6 home-LAN workers (k3s-1/2/3, k3w-1/2/3). Pods on
+# either side cannot reach ClusterIPs / pod IPs on the other side. CoreDNS
+# is pinned to a Hetzner node, so any pod on a home worker also loses DNS.
+#
+# Mentolder pods sit on Hetzner CPs because they were scheduled before the
+# home workers joined; korczewski's pods were scheduled AFTER the merge and
+# drifted to the home-worker side, which broke DNS, DB connectivity, and
+# ingress upstreams. The blanket affinity below makes the placement explicit
+# so the scheduler cannot drift back.
+#
+# Exception: livekit-server / livekit-redis are pinned to k3s-3 by
+# patch-livekit.yaml (hostNetwork + pinned public IP). Traefik on pk-hetzner
+# reaches livekit-server via WireGuard because it uses the host network.
 patches:
-  - path: patch-avoid-pk-hetzner.yaml
+  # Switch recordings PVC from local-path to longhorn so it survives node reschedules.
+  # One-time live migration: delete livekit-recordings-pvc on the cluster, then re-sync.
+  - target:
+      kind: PersistentVolumeClaim
+      name: livekit-recordings-pvc
+    patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: livekit-recordings-pvc
+      spec:
+        storageClassName: longhorn
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: NotIn
+                      values:
+                        - k3s-1
+                        - k3s-2
+                        - k3s-3
+                        - k3w-1
+                        - k3w-2
+                        - k3w-3
+  # CronJob templates are nested one level deeper than Deployments,
+  # so they need a separate patch path.
+  - target:
+      kind: CronJob
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: NotIn
+                      values:
+                        - k3s-1
+                        - k3s-2
+                        - k3s-3
+                        - k3w-1
+                        - k3w-2
+                        - k3w-3
+  - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
+  - path: patch-cronjob-urls.yaml
+  - path: patch-mcp-config.yaml
+  # Cluster-scoped resources are owned exclusively by workspace-hetzner (mentolder).
+  # Both overlays deploy to the same physical cluster, so rendering these here
+  # causes ArgoCD SharedResourceWarning — suppress them from korczewski.
+  - target:
+      kind: ClusterIssuer
+      name: letsencrypt-prod
+    patch: |-
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+      $patch: delete
+  - target:
+      kind: ClusterRole
+      name: tls-sync
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: tls-sync
+      $patch: delete
+  - target:
+      kind: ClusterRoleBinding
+      name: tls-sync
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: tls-sync
+      $patch: delete
+  - target:
+      kind: ClusterRole
+      name: claude-code-agent
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: claude-code-agent
+      $patch: delete
+  - target:
+      kind: ClusterRoleBinding
+      name: claude-code-agent
+    patch: |-
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: claude-code-agent
+      $patch: delete
+  - target:
+      kind: IngressClass
+      name: traefik
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: IngressClass
+      metadata:
+        name: traefik
+      $patch: delete

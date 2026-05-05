@@ -297,6 +297,13 @@ command -v kubeseal > /dev/null || die "kubeseal not found. Install: https://git
 CONTEXT=$(yaml_get "$ENV_FILE" "context")
 [[ -z "$CONTEXT" ]] && die "No 'context' found in ${ENV_FILE}"
 
+# ── Derive workspace and website namespaces ───────────────────────────────────
+WORKSPACE_NS=$(yaml_get "$ENV_FILE" "workspace_namespace")
+WORKSPACE_NS="${WORKSPACE_NS:-workspace}"
+
+WEBSITE_NS=$(yaml_get "$ENV_FILE" "website_namespace")
+WEBSITE_NS="${WEBSITE_NS:-website}"
+
 info "Using kubectl context: ${CONTEXT}"
 
 # ── Fetch sealing certificate if missing ─────────────────────────
@@ -351,7 +358,7 @@ SECRET_MANIFEST="${TMPDIR}/secret.yaml"
   echo "kind: Secret"
   echo "metadata:"
   echo "  name: workspace-secrets"
-  echo "  namespace: workspace"
+  echo "  namespace: ${WORKSPACE_NS}"
   echo "type: Opaque"
   echo "stringData:"
 
@@ -405,14 +412,17 @@ seal_extra_namespace_secrets() {
   # name in the target Secret, defaults to source key name). Emits one line per
   # (src_key, namespace, secret, dest_key) tuple, tab-separated.
   local entries
-  entries=$(SCHEMA="$schema_file" python3 <<'PY'
+  entries=$(SCHEMA="$schema_file" WORKSPACE_NS="${WORKSPACE_NS}" WEBSITE_NS="${WEBSITE_NS}" python3 <<'PY'
 import os, sys, yaml
 with open(os.environ["SCHEMA"]) as f:
     schema = yaml.safe_load(f) or {}
+workspace_ns = os.environ.get("WORKSPACE_NS", "workspace")
+website_ns = os.environ.get("WEBSITE_NS", "website")
+ns_remap = {"workspace": workspace_ns, "website": website_ns}
 for entry in schema.get("secrets") or []:
     src = entry["name"]
     for mapping in entry.get("extra_namespaces") or []:
-        ns = mapping["namespace"]
+        ns = ns_remap.get(mapping["namespace"], mapping["namespace"])
         sec = mapping["secret"]
         dest = mapping.get("dest_key") or src
         print(f"{src}\t{ns}\t{sec}\t{dest}")

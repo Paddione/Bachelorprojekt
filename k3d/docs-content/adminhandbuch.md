@@ -1,72 +1,78 @@
 # Adminhandbuch — Workspace
 
+Dieses Handbuch richtet sich an Plattform-Administratoren, die den Workspace betreiben. Für Endnutzer-Themen siehe das [Benutzerhandbuch](benutzerhandbuch.md). Für die vollständige Referenz aller Admin-UI-Bereiche siehe das [Admin-Webinterface](admin-webinterface.md).
+
 ## Voraussetzungen
 
 | Werkzeug | Zweck |
 |----------|-------|
-| Docker | Container-Runtime für k3d |
-| k3d | Lokaler Kubernetes-Cluster (Dev) |
-| kubectl | Kubernetes CLI |
-| task (go-task) | Aufgaben-Orchestrierer |
-| git | Quellcode-Verwaltung |
+| `kubectl` | Kubernetes CLI mit Kontext für den Ziel-Cluster (`mentolder` oder `korczewski`) |
+| `task` (go-task) | Aufgaben-Orchestrierer (`Taskfile.yml`) |
+| `argocd` CLI | GitOps-Sync und Diff (Hub: `mentolder`) |
+| `kubeseal` | Erzeugen von SealedSecrets für Produktion |
+| `git` | Quellcode-Verwaltung; alle Änderungen laufen über Pull Requests |
 
-Für Produktionsarbeit zusätzlich: `kubectl`-Kontext für den Ziel-Cluster (`mentolder` oder `korczewski`), `argocd`-CLI sowie `kubeseal` zum Erzeugen von SealedSecrets.
+Für lokale Entwicklung zusätzlich Docker und [k3d](https://k3d.io); siehe [Beitragen & CI/CD](contributing.md).
 
 ---
 
 ## Umgebungen
 
-Es gibt drei unterstützte Umgebungen. Sie sind in `environments/*.yaml` dokumentiert und werden über die Umgebungsvariable `ENV=` bei Tasks ausgewählt.
+Der Workspace läuft in zwei Produktionsumgebungen, jede auf einem eigenen Hetzner-k3s-Cluster mit eigener Domain. Auswahl erfolgt über die Umgebungsvariable `ENV=` an task-Aufrufen.
 
-| Umgebung | Cluster | Domain | Secrets-Modus |
-|----------|---------|--------|----------------|
-| `dev` | k3d (lokal) | `localhost` | Klartext (nur Dev) |
-| `mentolder` | k3s (Hetzner) | `mentolder.de` | Sealed Secrets |
-| `korczewski` | k3s (Hetzner) | `korczewski.de` | Sealed Secrets |
+| Umgebung | Cluster | Domain | Secrets |
+|----------|---------|--------|---------|
+| `mentolder` | k3s (Hetzner) | `mentolder.de` | Bitnami Sealed Secrets |
+| `korczewski` | k3s (Hetzner) | `korczewski.de` | Bitnami Sealed Secrets |
+| `dev` | k3d (lokal) | `localhost` | Klartext (nur Entwicklung) |
 
-> **Wichtig:** Env-sensitive Tasks (`workspace:deploy`, `workspace:post-setup`, `website:deploy`, `docs:deploy`, `workspace:talk-setup`) setzen `ENV=dev` als Default. Der Kontext-Check greift nur bei `ENV != dev`. Setze daher bei Produktionsarbeit **immer explizit** `ENV=mentolder` oder `ENV=korczewski`.
+> **Wichtig:** Env-sensitive Tasks (`workspace:deploy`, `workspace:post-setup`, `website:deploy`, `docs:deploy`, `workspace:talk-setup`) setzen `ENV=dev` als Default. Der Kontext-Check greift nur bei `ENV != dev`. Setze bei Produktionsarbeit daher **immer explizit** `ENV=mentolder` oder `ENV=korczewski` — sonst landet ein Deploy auf dem aktuell aktiven `kubectl`-Kontext.
 
-Details zu den Umgebungen: [Umgebungen](environments.md).
+Details: [Umgebungen](environments.md).
 
 ---
 
-## Erstmalige Einrichtung (Dev / k3d)
+## Erstmalige Einrichtung
+
+### Produktion (mentolder / korczewski)
+
+Die Produktionsumgebungen werden via ArgoCD aus `main` synchronisiert (siehe **Deployment in Produktion**). Bei einem Push auf `main` syncen die Cluster automatisch. Manuelles initiales Setup eines neuen Cluster-Tenants ist in [Umgebungen → Neue Umgebung einrichten](environments.md#neue-umgebung-einrichten) beschrieben.
+
+### Lokale Entwicklung (k3d)
 
 ```bash
 git clone https://github.com/Paddione/Bachelorprojekt.git
 cd Bachelorprojekt
-
-# Vollautomatisches Setup: Cluster + MVP + Office-Stack + MCP + Billing
-task workspace:up
+task workspace:up                # Cluster + MVP + Office-Stack + MCP + Billing
 ```
 
-Oder schrittweise:
+Schrittweise:
 
 ```bash
-task cluster:create            # k3d-Cluster mit lokalem Registry erstellen
-task workspace:deploy          # Alle Workspace-Services deployen
-task workspace:post-setup      # Nextcloud-Apps aktivieren und konfigurieren
+task cluster:create              # k3d-Cluster mit lokaler Registry erstellen
+task workspace:deploy            # Alle Workspace-Services deployen
+task workspace:post-setup        # Nextcloud-Apps aktivieren und konfigurieren
 task workspace:vaultwarden:seed  # Vaultwarden mit Secret-Templates befüllen
-task mcp:deploy                # MCP-Server für Claude Code deployen
-task website:deploy            # Astro-Website bauen und deployen
+task mcp:deploy                  # MCP-Server für Claude Code deployen
+task website:deploy              # Astro-Website bauen und deployen
 ```
 
 ---
 
 ## Dienste-Übersicht mit Admin-Zugängen
 
-`{DOMAIN}` = `localhost` (dev) / `mentolder.de` / `korczewski.de`.
+In Produktion ist `{DOMAIN}` entweder `mentolder.de` oder `korczewski.de`. Lokal stehen dieselben Endpunkte unter `*.localhost` zur Verfügung.
 
 | Dienst | URL | Admin-Zugang |
 |--------|-----|--------------|
-| Keycloak | `auth.{DOMAIN}` | `auth.{DOMAIN}/admin` (Realm `workspace`) |
-| Nextcloud | `files.{DOMAIN}` | `files.{DOMAIN}/settings/admin` |
-| Collabora | `office.{DOMAIN}` | Konfiguration über Nextcloud (WOPI) |
-| Whiteboard | `board.{DOMAIN}` | — |
-| Vaultwarden | `vault.{DOMAIN}` | `vault.{DOMAIN}/admin` |
-| Website / Portal | `web.{DOMAIN}` | `web.{DOMAIN}/admin` (Gruppe `workspace-admins` erforderlich) |
-| Mailpit (Dev) | `mail.localhost` | Direktzugang, keine Auth |
-| Docs | `docs.{DOMAIN}` | SSO-geschützt (Keycloak) |
+| Portal & Website | `https://web.{DOMAIN}` | `https://web.{DOMAIN}/admin` (Gruppe `workspace-admins` erforderlich) |
+| Keycloak (SSO) | `https://auth.{DOMAIN}` | `https://auth.{DOMAIN}/admin` (Realm `workspace`) |
+| Nextcloud | `https://files.{DOMAIN}` | `https://files.{DOMAIN}/settings/admin` |
+| Collabora | `https://office.{DOMAIN}` | Konfiguration über Nextcloud (WOPI) |
+| Whiteboard | `https://board.{DOMAIN}` | — |
+| Vaultwarden | `https://vault.{DOMAIN}` | `https://vault.{DOMAIN}/admin` (Token-Login) |
+| Dokumentation | `https://docs.{DOMAIN}` | SSO-geschützt (Keycloak) |
+| Mailpit | `http://mail.localhost` | nur in Entwicklung verfügbar |
 
 MCP-Serverstatus (Claude-Code-Backend) läuft intern und ist nicht als Web-UI für Endnutzer vorgesehen — Details: [MCP-Server](claude-code.md).
 
@@ -76,9 +82,9 @@ MCP-Serverstatus (Claude-Code-Backend) läuft intern und ist nicht als Web-UI f�
 
 ### Keycloak Admin-UI
 
-Alle Benutzerkonten werden zentral in Keycloak gepflegt. Jede Änderung gilt sofort für alle Dienste (SSO).
+Alle Benutzerkonten werden zentral in Keycloak gepflegt. Jede Änderung gilt sofort für alle Dienste (Single Sign-On).
 
-Aufruf: `https://auth.{DOMAIN}/admin` → Realm **workspace**
+Aufruf: `https://auth.mentolder.de/admin` bzw. `https://auth.korczewski.de/admin` → Realm **workspace**
 
 #### Neuen Benutzer anlegen
 
@@ -101,7 +107,7 @@ Keycloak Admin → **Benutzer** → Benutzer auswählen → Reiter **Details** �
 
 ```bash
 scripts/import-users.sh --csv users.csv \
-  --url https://auth.{DOMAIN} \
+  --url https://auth.mentolder.de \
   --admin admin \
   --pass <ADMIN_PASSWORT>
 
@@ -125,7 +131,7 @@ Provisioniert die in der Umgebung definierten Admin-Benutzer (`KC_USER1`, `KC_US
 
 ## Website-Admin-Panel
 
-Das Admin-Panel ist erreichbar unter `https://web.{DOMAIN}/admin` (Keycloak-Login mit `workspace-admins`-Gruppe erforderlich). Eine vollständige Referenz aller Bereiche — Kunden, Projekte, Termine, Rechnungen, Meetings, Inhaltsverwaltung — findet sich im separaten [Admin-Webinterface-Handbuch](admin-webinterface.md).
+Das Admin-Panel ist erreichbar unter `https://web.mentolder.de/admin` bzw. `https://web.korczewski.de/admin` (Workspace-Login mit Gruppe `workspace-admins` erforderlich). Eine vollständige Referenz aller Bereiche — Kunden, Projekte, Termine, Rechnungen, Meetings, Inhaltsverwaltung — findet sich im separaten [Admin-Webinterface-Handbuch](admin-webinterface.md).
 
 Kurzreferenz der wichtigsten Bereiche:
 
@@ -189,13 +195,41 @@ task workspace:stripe-setup
 
 Registriert Stripe als Zahlungs-Gateway in der Website-Brand-Konfiguration. Stripe-Keys werden als Secret ausgerollt (in Dev direkt, in Produktion als SealedSecret in `environments/sealed-secrets/<env>.yaml`). Webhook-Endpunkt: `/api/stripe/webhook`. Details: [Stripe](stripe.md).
 
+### E-Rechnung (XRechnung / ZUGFeRD)
+
+Drei Profile stehen zur Auswahl beim Versand und Download:
+
+| Profil | Verwendung | URL |
+|---|---|---|
+| `factur-x-minimum` | B2C / interne Archivierung | `/api/billing/invoice/<id>/pdf?profile=factur-x-minimum` |
+| `xrechnung-cii` | B2G (Bund/Länder), CII-Syntax | `/api/billing/invoice/<id>/pdf?profile=xrechnung-cii` |
+| `xrechnung-ubl` | B2G, UBL-2.1-Syntax (z. B. ZRE/OZG-RE) | `/api/billing/invoice/<id>/pdf?profile=xrechnung-ubl` |
+
+Für `xrechnung-*` muss die **Leitweg-ID** des Empfängers im Kundenstamm gesetzt sein
+(Format `<grob>-[<fein>-]<prüfziffer>` nach KoSIT 2.0.2). Sonst antwortet die API mit HTTP 422.
+
+**Leitweg-ID setzen:** `PATCH /api/admin/billing/customers/<customer-id>/leitweg` mit
+`{ "leitwegId": "991-01234-44" }` oder `{ "leitwegId": null }` zum Entfernen. Validierung
+erfolgt serverseitig.
+
+**XML statt PDF:** `/api/billing/invoice/<id>/zugferd?profile=<profile>` liefert nur das XML.
+
+**Validierung lokaler Dateien:**
+
+```bash
+task billing:validate-einvoice -- ./rechnung.pdf
+task billing:validate-einvoice -- ./factur-x.xml
+```
+
+Erwartet: `Mustang … is a valid E-Invoice (Factur-X / XRechnung).`
+
 ---
 
 ## Monitoring & Observability
 
 ### Live-Übersicht im Admin-Panel
 
-Das Admin-Panel unter `web.{DOMAIN}/admin/monitoring` zeigt Pod-Status, CPU- und RAM-Auslastung sowie Kubernetes-Events. Die Daten werden über die MCP-Kubernetes-Integration abgerufen und funktionieren im lokalen k3d nur eingeschränkt.
+Das Admin-Panel unter `https://web.{DOMAIN}/admin/monitoring` zeigt Pod-Status, CPU- und RAM-Auslastung sowie Kubernetes-Events. Die Daten werden über die MCP-Kubernetes-Integration abgerufen. Im lokalen k3d-Cluster ist diese Ansicht nur eingeschränkt nutzbar.
 
 ### Kommandozeile
 
@@ -335,7 +369,7 @@ Häufige Ursachen: Datenbankverbindung fehlgeschlagen, fehlendes Secret, unaufge
 
 ### Keycloak-Login funktioniert nicht für einen Dienst
 
-1. Prüfe, ob der Dienst als OIDC-Client in Keycloak registriert ist: `auth.{DOMAIN}/admin` → Clients
+1. Prüfe, ob der Dienst als OIDC-Client in Keycloak registriert ist: `https://auth.{DOMAIN}/admin` → Clients
 2. Prüfe die Redirect-URIs des Clients (exakt, inkl. Protokoll und Pfad)
 3. Dienst neu starten: `task workspace:restart -- <dienst>`
 

@@ -1346,8 +1346,6 @@ tasks:
     cmds:
       - ENV={{.ENV}} bash scripts/keycloak-sync.sh
 
-  # keycloak:sync-secrets alias removed 2026-05-05 — use `task keycloak:sync ENV=...`.
-
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (ENV=dev|mentolder|korczewski). Run once after first login — see vaultwarden-seed-credentials.yaml."
     vars:
@@ -1447,8 +1445,6 @@ tasks:
         echo "✓ Docs deployed to both clusters"
         echo "  https://docs.korczewski.de"
         echo "  https://docs.mentolder.de"
-
-  # docs:restart removed 2026-05-05 — `task docs:deploy` already restarts both pods.
 
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers

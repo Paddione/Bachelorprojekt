@@ -20,7 +20,9 @@ ENV="${ENV:-dev}"
 source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
 
 # ── Config ─────────────────────────────────────────────────────────────
-KC_NAMESPACE="${KC_NAMESPACE:-workspace}"
+# WORKSPACE_NAMESPACE is exported by env-resolve.sh — defaults to "workspace"
+# for mentolder, "workspace-korczewski" for korczewski.
+KC_NAMESPACE="${KC_NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 KC_DEPLOY="${KC_DEPLOY:-keycloak}"
 KC_SERVICE="${KC_SERVICE:-keycloak}"
 KC_REALM="${KC_REALM:-workspace}"

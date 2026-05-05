@@ -16,6 +16,12 @@ ENV_FILE="${ENV_DIR}/${ENV}.yaml"
 ERRORS=0
 WARNINGS=0
 
+# Resolve namespace early via env-resolve.sh in a subshell so the rest of the
+# script can target the right namespace for korczewski (workspace-korczewski)
+# without polluting this shell's variables.
+WS_NS=$( ( source "$(dirname "${BASH_SOURCE[0]}")/env-resolve.sh" "$ENV" "$ENV_DIR" 2>/dev/null \
+  && printf '%s' "${WORKSPACE_NAMESPACE:-workspace}" ) || printf 'workspace' )
+
 # ── Colors ────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
   RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -329,11 +335,11 @@ else
 fi
 
 # Check required namespaces or ability to create them
-for ns in workspace; do
+for ns in "$WS_NS"; do
   if kubectl $CTX_FLAG get namespace "$ns" >/dev/null 2>&1; then
     pass "Namespace exists: ${ns}"
   else
-    info "Namespace '${ns}' will be created by deploy (k3d/namespace.yaml)"
+    info "Namespace '${ns}' will be created by deploy"
   fi
 done
 
@@ -376,10 +382,10 @@ else
   fi
 
   # Check if workspace-secrets already exists (prior deploy) — informational
-  if kubectl $CTX_FLAG get secret workspace-secrets -n workspace >/dev/null 2>&1; then
-    pass "workspace-secrets already exists in cluster (prior deploy)"
+  if kubectl $CTX_FLAG get secret workspace-secrets -n "$WS_NS" >/dev/null 2>&1; then
+    pass "workspace-secrets already exists in ${WS_NS} (prior deploy)"
   else
-    info "workspace-secrets not yet in cluster — will be created by SealedSecret decryption"
+    info "workspace-secrets not yet in ${WS_NS} — will be created by SealedSecret decryption"
   fi
 fi
 
@@ -389,7 +395,11 @@ section "7. NetworkPolicy target namespaces"
 
 NP_NAMESPACES=(kube-system)
 if [[ "$IS_DEV" == "false" ]]; then
-  NP_NAMESPACES+=(coturn workspace-office website)
+  # WEBSITE_NAMESPACE is per-env (website / website-korczewski). coturn +
+  # workspace-office are cluster-wide.
+  WS_WEB_NS=$( ( source "$(dirname "${BASH_SOURCE[0]}")/env-resolve.sh" "$ENV" "$ENV_DIR" 2>/dev/null \
+    && printf '%s' "${WEBSITE_NAMESPACE:-website}" ) || printf 'website' )
+  NP_NAMESPACES+=(coturn workspace-office "$WS_WEB_NS")
 fi
 
 for ns in "${NP_NAMESPACES[@]}"; do
@@ -433,15 +443,15 @@ section "9. Pre-existing cluster health (informational)"
 # ════════════════════════════════════════════════════════════════════
 
 # Show crash-looping pods that might indicate a broken prior deploy
-if kubectl $CTX_FLAG get pods -n workspace \
+if kubectl $CTX_FLAG get pods -n "$WS_NS" \
     --field-selector=status.phase!=Running,status.phase!=Succeeded \
     -o name 2>/dev/null | grep -q .; then
-  warn "Non-running pods found in 'workspace' namespace (may be normal during partial deploy):"
-  kubectl $CTX_FLAG get pods -n workspace \
+  warn "Non-running pods found in '${WS_NS}' namespace (may be normal during partial deploy):"
+  kubectl $CTX_FLAG get pods -n "$WS_NS" \
     --field-selector=status.phase!=Running,status.phase!=Succeeded \
     -o wide 2>/dev/null | sed 's/^/    /' || true
 else
-  pass "No crash-looping pods in 'workspace' namespace"
+  pass "No crash-looping pods in '${WS_NS}' namespace"
 fi
 
 # Check node readiness

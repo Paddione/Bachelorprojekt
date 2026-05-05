@@ -17,7 +17,10 @@
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-workspace}"
+# When invoked via `task workspace:talk-setup ENV=korczewski`, the Taskfile
+# exports WORKSPACE_NAMESPACE (workspace-korczewski). Honour that here so the
+# spreed app config and CoreDNS overrides land on the right namespace.
+NAMESPACE="${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 
 echo "=== Nextcloud Talk HPB Setup ==="
 

@@ -14,6 +14,56 @@ vars:
   DEV_DOMAIN: localhost
 
 tasks:
+  # ════════════════════════════════════════════════════════════════════
+  # Common workflows — start here
+  # ════════════════════════════════════════════════════════════════════
+  # These fan out across BOTH prod clusters (mentolder + korczewski) so
+  # every-day work is one command. Pass ENV=mentolder or ENV=korczewski to
+  # target a single environment with the underlying `workspace:*` /
+  # `website:*` / `brett:*` / `dashboard:web:*` tasks.
+
+  feature:deploy:
+    desc: "Roll a code change to BOTH prod clusters (workspace:deploy + post-setup on mentolder + korczewski)"
+    cmds:
+      - task: workspace:deploy:all-prods
+      - task: workspace:post-setup:all-prods
+
+  feature:website:
+    desc: "Rebuild + redeploy the Astro website on BOTH prod clusters"
+    cmds:
+      - task: website:redeploy:all-prods
+
+  feature:brett:
+    desc: "Rebuild + redeploy brett on BOTH prod clusters"
+    cmds:
+      - task: brett:deploy:all-prods
+
+  feature:dashboard:
+    desc: "Rebuild + redeploy the operator dashboard on BOTH prod clusters"
+    cmds:
+      - task: dashboard:web:deploy:all-prods
+
+  feature:livekit:
+    desc: "Re-pin livekit/stream subdomains to the LiveKit node on BOTH prod clusters"
+    cmds:
+      - task: livekit:dns-pin
+        vars: { ENV: "mentolder", APPLY: "true" }
+      - task: livekit:dns-pin
+        vars: { ENV: "korczewski", APPLY: "true" }
+
+  health:
+    desc: "Cross-cluster health check (status + connectivity on mentolder + korczewski)"
+    cmds:
+      - task: clusters:status
+      - 'echo ""'
+      - 'echo "─── HTTPS reachability ───"'
+      - task: workspace:check-connectivity
+        vars: { ENV: "mentolder" }
+      - task: workspace:check-connectivity
+        vars: { ENV: "korczewski" }
+      - 'echo ""'
+      - 'echo "  Run `task workspace:check-updates ENV=mentolder` to inspect available image updates"'
+
   # ─────────────────────────────────────────────
   # Dashboard
   # ─────────────────────────────────────────────
@@ -44,17 +94,31 @@ tasks:
     cmds:
       - task: workspace:deploy
         vars: { ENV: "{{.ENV}}" }
-      - kubectl --context {{.ENV}} -n workspace rollout restart deploy/dashboard-web
-      - kubectl --context {{.ENV}} -n workspace rollout restart deploy/oauth2-proxy-dashboard
-      - kubectl --context {{.ENV}} -n workspace rollout status deploy/dashboard-web --timeout=120s
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl --context "${ENV_CONTEXT}" -n "$NS" rollout restart deploy/dashboard-web
+        kubectl --context "${ENV_CONTEXT}" -n "$NS" rollout restart deploy/oauth2-proxy-dashboard
+        kubectl --context "${ENV_CONTEXT}" -n "$NS" rollout status deploy/dashboard-web --timeout=120s
       - 'echo "✓ Deployed at https://dashboard.{{.ENV}}.de"'
+
+  dashboard:web:deploy:all-prods:
+    desc: "Deploy dashboard-web to mentolder + korczewski"
+    cmds:
+      - task: dashboard:web:deploy
+        vars: { ENV: "mentolder" }
+      - task: dashboard:web:deploy
+        vars: { ENV: "korczewski" }
 
   dashboard:web:logs:
     desc: Tail dashboard-web logs (ENV=mentolder|korczewski, default mentolder)
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
-      - kubectl --context {{.ENV}} -n workspace logs deploy/dashboard-web --tail=200 -f
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl --context "${ENV_CONTEXT}" -n "$NS" logs deploy/dashboard-web --tail=200 -f
 
   dashboard:web:dev:
     desc: Run dashboard-web locally on http://localhost:3001 (no auth, no PG/k8s required)
@@ -340,6 +404,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         export KUBE_CONTEXT="${ENV_CONTEXT:-}"
+        export WORKSPACE_NAMESPACE
         bash scripts/transcriber-setup.sh
       - 'echo ""'
       - 'echo "  Next → task workspace:vaultwarden:seed  (optional — seeds production secret templates)"'
@@ -358,7 +423,8 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        NC_EXEC="kubectl exec --context ${ENV_CONTEXT} -n workspace -c nextcloud deploy/nextcloud -- sh -c"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        NC_EXEC="kubectl exec --context ${ENV_CONTEXT} -n ${NS} -c nextcloud deploy/nextcloud -- sh -c"
         BRAND="${BRAND_NAME:-mentolder}"
         DOMAIN="${PROD_DOMAIN:-localhost}"
         $NC_EXEC "php occ config:system:set trusted_domains 1 --value=files.${DOMAIN}" || true
@@ -382,7 +448,8 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        NC_EXEC="kubectl exec --context ${ENV_CONTEXT} -n workspace -c nextcloud deploy/nextcloud -- sh -c"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        NC_EXEC="kubectl exec --context ${ENV_CONTEXT} -n ${NS} -c nextcloud deploy/nextcloud -- sh -c"
         FILES_HOST=$(echo "${NEXTCLOUD_EXTERNAL_URL:-files.localhost}" | sed -E 's|^https?://||' | sed -E 's|/.*$||')
 
         echo "Ensuring trusted_domains includes ${FILES_HOST}..."
@@ -442,7 +509,9 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        CONTEXT="${ENV_CONTEXT}" bash scripts/whiteboard-setup.sh
+        export CONTEXT="${ENV_CONTEXT}"
+        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
+        bash scripts/whiteboard-setup.sh
 
   workspace:systembrett-setup:
     desc: Upload Systembrett Whiteboard template into admin's Coaching/ folder (ENV=dev|mentolder|korczewski)
@@ -455,7 +524,9 @@ tasks:
           echo "Template missing — generating..."
           node scripts/systembrett-generate.mjs
         fi
-        KUBE_CONTEXT="${ENV_CONTEXT}" bash scripts/systembrett-setup.sh
+        export KUBE_CONTEXT="${ENV_CONTEXT}"
+        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
+        bash scripts/systembrett-setup.sh
 
   workspace:talk-setup:
     desc: "Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)"
@@ -466,10 +537,40 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         export KUBE_CONTEXT=""
         [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
+        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
         bash scripts/talk-hpb-setup.sh
       - 'echo ""'
       - 'echo "  Next → task workspace:recording-setup ENV={{.ENV}}"'
       - 'echo "  Optional → task workspace:admin-users-setup ENV={{.ENV}}"'
+
+  workspace:deploy:all-prods:
+    desc: "Run workspace:deploy on mentolder + korczewski"
+    cmds:
+      - task: workspace:deploy
+        vars: { ENV: "mentolder" }
+      - task: workspace:deploy
+        vars: { ENV: "korczewski" }
+
+  workspace:post-setup:all-prods:
+    desc: "Run workspace:post-setup + talk-setup + recording-setup on mentolder + korczewski"
+    cmds:
+      - task: workspace:post-setup
+        vars: { ENV: "mentolder" }
+      - task: workspace:post-setup
+        vars: { ENV: "korczewski" }
+      - task: workspace:talk-setup:all-prods
+      - task: workspace:recording-setup:all-prods
+
+  workspace:status:all-prods:
+    desc: "Show detailed workspace:status (pods + svc + ingress + PVC) on mentolder + korczewski"
+    cmds:
+      - 'echo "═══ MENTOLDER ═══"'
+      - task: workspace:status
+        vars: { ENV: "mentolder" }
+      - 'echo ""'
+      - 'echo "═══ KORCZEWSKI ═══"'
+      - task: workspace:status
+        vars: { ENV: "korczewski" }
 
   workspace:talk-setup:all-prods:
     desc: Run workspace:talk-setup against every non-dev environment (mentolder + korczewski)
@@ -501,59 +602,75 @@ tasks:
         vars: { ENV: "korczewski" }
 
   workspace:coturn:sync-secret:
-    desc: Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets
-    preconditions:
-      - sh: kubectl get namespace coturn > /dev/null 2>&1
-        msg: "coturn namespace does not exist. Deploy the coturn-stack first."
-      - sh: kubectl get secret workspace-secrets -n workspace > /dev/null 2>&1
-        msg: "workspace/workspace-secrets missing — can't sync HPB secrets."
+    desc: "Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
-        SIG=$(kubectl get secret workspace-secrets -n workspace \
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        if ! kubectl $CTX get namespace coturn > /dev/null 2>&1; then
+          echo "coturn namespace does not exist on context '${ENV_CONTEXT:-<active>}'. Deploy the coturn-stack first."
+          exit 1
+        fi
+        if ! kubectl $CTX get secret workspace-secrets -n "$NS" > /dev/null 2>&1; then
+          echo "${NS}/workspace-secrets missing — can't sync HPB secrets."
+          exit 1
+        fi
+        SIG=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
                 -o jsonpath='{.data.SIGNALING_SECRET}' | base64 -d)
-        TURN=$(kubectl get secret workspace-secrets -n workspace \
+        TURN=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
                  -o jsonpath='{.data.TURN_SECRET}' | base64 -d)
         if [ -z "$SIG" ] || [ -z "$TURN" ]; then
           echo "FEHLER: SIGNALING_SECRET oder TURN_SECRET fehlt in workspace-secrets."
           exit 1
         fi
-        kubectl create secret generic coturn-secrets \
+        kubectl $CTX create secret generic coturn-secrets \
           -n coturn \
           --from-literal=SIGNALING_SECRET="$SIG" \
           --from-literal=TURN_SECRET="$TURN" \
-          --dry-run=client -o yaml | kubectl apply -f -
-        kubectl annotate secret coturn-secrets -n coturn \
+          --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX annotate secret coturn-secrets -n coturn \
           argocd.argoproj.io/sync-options=Skip=true --overwrite
-      - kubectl rollout restart deploy/coturn -n coturn
-      - kubectl rollout restart deploy/janus  -n coturn
-      - kubectl rollout status  deploy/coturn -n coturn --timeout=180s
-      - kubectl rollout status  deploy/janus  -n coturn --timeout=180s
-      - 'echo "✓ coturn-secrets synced; coturn + janus rolled"'
+        kubectl $CTX rollout restart deploy/coturn -n coturn
+        kubectl $CTX rollout restart deploy/janus  -n coturn
+        kubectl $CTX rollout status  deploy/coturn -n coturn --timeout=180s
+        kubectl $CTX rollout status  deploy/janus  -n coturn --timeout=180s
+        echo "✓ coturn-secrets synced from ${NS}/workspace-secrets; coturn + janus rolled (ENV={{.ENV}})"
 
   workspace:office:sync-secret:
-    desc: Copy COLLABORA_ADMIN_PASSWORD from workspace-secrets into workspace-office/collabora-secrets
-    preconditions:
-      - sh: kubectl get namespace workspace-office > /dev/null 2>&1
-        msg: "workspace-office namespace does not exist. Run 'task workspace:office:deploy' first."
-      - sh: kubectl get secret workspace-secrets -n workspace > /dev/null 2>&1
-        msg: "workspace/workspace-secrets missing — can't sync COLLABORA_ADMIN_PASSWORD."
+    desc: "Copy COLLABORA_ADMIN_PASSWORD from workspace-secrets into workspace-office/collabora-secrets (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
-        PW=$(kubectl get secret workspace-secrets -n workspace \
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        if ! kubectl $CTX get namespace workspace-office > /dev/null 2>&1; then
+          echo "workspace-office namespace does not exist on context '${ENV_CONTEXT:-<active>}'. Run 'task workspace:office:deploy ENV={{.ENV}}' first."
+          exit 1
+        fi
+        if ! kubectl $CTX get secret workspace-secrets -n "$NS" > /dev/null 2>&1; then
+          echo "${NS}/workspace-secrets missing — can't sync COLLABORA_ADMIN_PASSWORD."
+          exit 1
+        fi
+        PW=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
                -o jsonpath='{.data.COLLABORA_ADMIN_PASSWORD}' | base64 -d)
         if [ -z "$PW" ]; then
           echo "FEHLER: COLLABORA_ADMIN_PASSWORD nicht im workspace-secrets gesetzt."
           exit 1
         fi
-        kubectl create secret generic collabora-secrets \
+        kubectl $CTX create secret generic collabora-secrets \
           -n workspace-office \
           --from-literal=COLLABORA_ADMIN_PASSWORD="$PW" \
-          --dry-run=client -o yaml | kubectl apply -f -
-        kubectl annotate secret collabora-secrets -n workspace-office \
+          --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX annotate secret collabora-secrets -n workspace-office \
           argocd.argoproj.io/sync-options=Skip=true --overwrite
-      - kubectl rollout restart deploy/collabora -n workspace-office
-      - kubectl rollout status deploy/collabora -n workspace-office --timeout=180s
-      - 'echo "✓ collabora-secrets synced; Collabora rolled"'
+        kubectl $CTX rollout restart deploy/collabora -n workspace-office
+        kubectl $CTX rollout status deploy/collabora -n workspace-office --timeout=180s
+        echo "✓ collabora-secrets synced from ${NS}/workspace-secrets; Collabora rolled (ENV={{.ENV}})"
 
   workspace:office:pull-secret:
     desc: "Create/update ghcr-pull-secret in workspace-office (for the custom collabora-code image, ENV=dev|mentolder|...)"
@@ -632,6 +749,7 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kubectl $context_flag rollout status deploy/collabora -n workspace-office --timeout=300s
       - task: workspace:office:sync-secret
+        vars: { ENV: "{{.ENV}}" }
       - 'echo ""'
       - 'echo "  Next → task mcp:deploy ENV={{.ENV}}"'
 
@@ -644,6 +762,7 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         export KUBE_CONTEXT=""
         [ "{{.ENV}}" != "dev" ] && export KUBE_CONTEXT="${ENV_CONTEXT}"
+        export NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
         bash scripts/recording-setup.sh
       - 'echo ""'
       - 'echo "  Next → task workspace:transcriber-setup ENV={{.ENV}}"'
@@ -658,18 +777,24 @@ tasks:
 
   workspace:status:
     desc: Show Workspace MVP deployment status
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - echo "=== Pods ==="
-      - kubectl get pods -n workspace -o wide
-      - echo ""
-      - echo "=== Services ==="
-      - kubectl get svc -n workspace
-      - echo ""
-      - echo "=== Ingress ==="
-      - kubectl get ingress -n workspace
-      - echo ""
-      - echo "=== PVCs ==="
-      - kubectl get pvc -n workspace
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        echo "=== Pods ==="
+        kubectl $CTX get pods -n "$NS" -o wide
+        echo ""
+        echo "=== Services ==="
+        kubectl $CTX get svc -n "$NS"
+        echo ""
+        echo "=== Ingress ==="
+        kubectl $CTX get ingress -n "$NS"
+        echo ""
+        echo "=== PVCs ==="
+        kubectl $CTX get pvc -n "$NS"
 
   workspace:logs:
     desc: "Tail logs for a workspace service (usage: task workspace:logs -- <service>)"
@@ -679,7 +804,8 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        kubectl $CTX logs -n workspace deploy/{{.CLI_ARGS}} -f --tail=50
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX logs -n "$NS" deploy/{{.CLI_ARGS}} -f --tail=50
 
   workspace:psql:
     desc: 'Open psql shell to shared-db (usage: task workspace:psql -- <dbname>, default: postgres)'
@@ -689,12 +815,13 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        kubectl $CTX exec -it -n workspace deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX exec -it -n "$NS" deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
 
   tracking:psql:
-    desc: 'Open psql shell with bachelorprojekt search_path (requirements tracking DB)'
+    desc: 'Open psql shell with bachelorprojekt search_path on mentolder shared-db (requirements tracking DB lives only in mentolder workspace)'
     cmds:
-      - kubectl exec -it -n workspace deploy/shared-db -- env PGOPTIONS="-c search_path=bachelorprojekt,public" psql -U postgres -d postgres
+      - kubectl --context mentolder exec -it -n workspace deploy/shared-db -- env PGOPTIONS="-c search_path=bachelorprojekt,public" psql -U postgres -d postgres
 
   tracking:backfill:
     desc: 'Backfill bachelorprojekt.features from all closed PRs (idempotent)'
@@ -720,7 +847,8 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        kubectl $CTX port-forward -n workspace svc/shared-db 5432:5432
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX port-forward -n "$NS" svc/shared-db 5432:5432
 
   workspace:backup:
     desc: "Trigger an immediate database backup (usage: task workspace:backup [-- --context <ctx>])"
@@ -746,16 +874,17 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         ctx=""
         [ "{{.ENV}}" != "dev" ] && ctx="--context $ENV_CONTEXT"
-        replicas=$(kubectl $ctx get deploy/shared-db -n workspace -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        replicas=$(kubectl $ctx get deploy/shared-db -n "$NS" -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
         if [ "$replicas" = "0" ]; then
           echo "shared-db scaled to 0 — scaling up..."
-          kubectl $ctx scale deployment/shared-db -n workspace --replicas=1
+          kubectl $ctx scale deployment/shared-db -n "$NS" --replicas=1
         else
           echo "shared-db at $replicas replica(s) — restarting pod..."
-          kubectl $ctx rollout restart deployment/shared-db -n workspace
+          kubectl $ctx rollout restart deployment/shared-db -n "$NS"
         fi
-        kubectl $ctx rollout status deployment/shared-db -n workspace --timeout=120s
-        echo "✓ shared-db ready"
+        kubectl $ctx rollout status deployment/shared-db -n "$NS" --timeout=120s
+        echo "✓ shared-db ready (ENV={{.ENV}}, ns=$NS)"
 
   workspace:db:drop:
     desc: "Drop a database from shared-db (usage: task workspace:db:drop -- <dbname> [ENV=...])"
@@ -767,14 +896,15 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         ctx=""
         [ "{{.ENV}}" != "dev" ] && ctx="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
         dbname="{{.CLI_ARGS}}"
         if [ -z "$dbname" ]; then
           echo "ERROR: specify a database name: task workspace:db:drop -- <dbname>"
           exit 1
         fi
-        kubectl $ctx exec -n workspace deploy/shared-db -- \
+        kubectl $ctx exec -n "$NS" deploy/shared-db -- \
           psql -U postgres -c "DROP DATABASE IF EXISTS \"${dbname}\";"
-        echo "✓ Database '${dbname}' dropped"
+        echo "✓ Database '${dbname}' dropped (ENV={{.ENV}}, ns=$NS)"
 
   workspace:db:restore:
     desc: "List available backups then restore a database (usage: task workspace:db:restore -- <db> <timestamp> [ENV=...])"
@@ -791,38 +921,37 @@ tasks:
         bash scripts/backup-restore.sh restore {{.CLI_ARGS}} $ctx_arg
 
   workspace:teardown:
-    desc: Remove all Workspace MVP resources
-    prompt: "This will delete the workspace namespace and all data. Continue?"
+    desc: Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    prompt: "This will delete the workspace namespace and all data for ENV={{.ENV}}. Continue?"
     cmds:
-      - kubectl delete namespace workspace --ignore-not-found --timeout=120s
-      - echo "✓ Workspace namespace deleted"
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX delete namespace "$NS" --ignore-not-found --timeout=120s
+        echo "✓ Namespace '$NS' deleted (ENV={{.ENV}})"
 
   workspace:restart:
     desc: "Restart a workspace service (usage: task workspace:restart -- <service>)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl rollout restart deployment/{{.CLI_ARGS}} -n workspace
-      - kubectl rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX rollout restart deployment/{{.CLI_ARGS}} -n "$NS"
+        kubectl $CTX rollout status deployment/{{.CLI_ARGS}} -n "$NS" --timeout=120s
 
-  # korczewski:status, korczewski:logs, korczewski:restart — use ENV=korczewski with unified tasks
-  korczewski:status:
-    desc: Show korczewski.de cluster status
-    cmds:
-      - kubectl --context korczewski get nodes -o wide
-      - echo ""
-      - kubectl --context korczewski get pods -n workspace -o wide
-      - echo ""
-      - kubectl --context korczewski get pods -n website -o wide 2>/dev/null || true
-
-  korczewski:logs:
-    desc: "Tail logs from a korczewski service (usage: task korczewski:logs -- <svc>)"
-    cmds:
-      - kubectl --context korczewski logs -n workspace deployment/{{.CLI_ARGS}} -f --tail=100
-
-  korczewski:restart:
-    desc: "Restart a korczewski service (usage: task korczewski:restart -- <svc>)"
-    cmds:
-      - kubectl --context korczewski rollout restart deployment/{{.CLI_ARGS}} -n workspace
-      - kubectl --context korczewski rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
+  # NOTE: per-env shorthand tasks (korczewski:status / mentolder:logs / etc.)
+  # were dropped 2026-05-05 in favour of the ENV-parametrised versions:
+  #   task workspace:status  ENV=korczewski
+  #   task workspace:logs    ENV=mentolder -- nextcloud
+  #   task workspace:restart ENV=korczewski -- brett
+  # `korczewski:traefik:apply` and `korczewski:enroll-ha` survive because they
+  # run truly korczewski-specific bootstraps that don't generalise.
 
   korczewski:traefik:apply:
     desc: Apply (or re-apply) the Traefik ingress controller on korczewski (run once on bootstrap or after manifest changes)
@@ -837,25 +966,11 @@ tasks:
       - kubectl --context korczewski apply -f prod-korczewski/traefik.yaml
       - kubectl --context korczewski rollout status deployment/traefik-manual -n kube-system --timeout=60s
 
-  mentolder:status:
-    desc: Show mentolder.de cluster status
-    cmds:
-      - kubectl --context mentolder get nodes -o wide
-      - echo ""
-      - kubectl --context mentolder get pods -n workspace -o wide
-      - echo ""
-      - kubectl --context mentolder get pods -n website -o wide 2>/dev/null || true
-
-  mentolder:logs:
-    desc: "Tail logs from a mentolder service (usage: task mentolder:logs -- <svc>)"
-    cmds:
-      - kubectl --context mentolder logs -n workspace deployment/{{.CLI_ARGS}} -f --tail=100
-
-  mentolder:restart:
-    desc: "Restart a mentolder service (usage: task mentolder:restart -- <svc>)"
-    cmds:
-      - kubectl --context mentolder rollout restart deployment/{{.CLI_ARGS}} -n workspace
-      - kubectl --context mentolder rollout status deployment/{{.CLI_ARGS}} -n workspace --timeout=120s
+  # mentolder:status / mentolder:logs / mentolder:restart removed 2026-05-05.
+  # Use the ENV-parametrised tasks instead:
+  #   task workspace:status  ENV=mentolder
+  #   task workspace:logs    ENV=mentolder -- nextcloud
+  #   task workspace:restart ENV=mentolder -- nextcloud
 
   # ─────────────────────────────────────────────
   # Multi-Cluster Overview
@@ -875,7 +990,7 @@ tasks:
         kubectl --context korczewski get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
         echo ""
         echo "  Workspace pods:"
-        kubectl --context korczewski get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+        kubectl --context korczewski get pods -n workspace-korczewski --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
 
   # ─────────────────────────────────────────────
   # ArgoCD — see Taskfile.argocd.yml
@@ -929,22 +1044,30 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         echo "Updating K8s TLS secret..."
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        TLS="${TLS_SECRET_NAME:-workspace-wildcard-tls}"
         CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.${PROD_DOMAIN}_ecc/fullchain.cer'" | base64 -w0)
         KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.${PROD_DOMAIN}_ecc/*.${PROD_DOMAIN}.key'" | base64 -w0)
-        kubectl --context mentolder patch secret workspace-wildcard-tls -n workspace \
+        kubectl --context "${ENV_CONTEXT}" patch secret "$TLS" -n "$NS" \
           -p "{\"data\":{\"tls.crt\":\"$CERT\",\"tls.key\":\"$KEY\"}}"
       - echo "✓ Wildcard cert renewed and K8s secret updated"
 
   ha:status:
-    desc: Show HA cluster node and pod status
+    desc: Show HA cluster node and pod status (ENV=mentolder|korczewski)
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
     cmds:
-      - kubectl --context mentolder get nodes -o wide
-      - echo "---"
-      - kubectl --context mentolder get pods -n workspace --sort-by=.metadata.name
-      - echo "---"
-      - kubectl --context mentolder get pods -n website --sort-by=.metadata.name
-      - echo "---"
-      - kubectl --context mentolder get certificate -n workspace
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        WS_NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl --context "${ENV_CONTEXT}" get nodes -o wide
+        echo "---"
+        kubectl --context "${ENV_CONTEXT}" get pods -n "$NS" --sort-by=.metadata.name
+        echo "---"
+        kubectl --context "${ENV_CONTEXT}" get pods -n "$WS_NS" --sort-by=.metadata.name 2>/dev/null || true
+        echo "---"
+        kubectl --context "${ENV_CONTEXT}" get certificate -n "$NS" 2>/dev/null || true
 
   workspace:admin-users-setup:
     desc: Provision SSO admin users in Keycloak workspace realm
@@ -955,7 +1078,7 @@ tasks:
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
       - |
-        source scripts/env-resolve.sh "{{.ENV}}"
+        export ENV="{{.ENV}}"
         bash scripts/admin-users-setup.sh
       - 'echo ""'
       - 'echo "  Done. Re-run any specific setup task as needed."'
@@ -1141,7 +1264,7 @@ tasks:
       # right cluster.
       - |
         if [ "{{.ENV}}" != "dev" ]; then
-          task workspace:coturn:sync-secret || true
+          task workspace:coturn:sync-secret ENV="{{.ENV}}" || true
           task workspace:talk-setup ENV="{{.ENV}}"
           # Re-pin LiveKit DNS after every prod deploy so the livekit/stream
           # subdomains always resolve to the livekit node (nodeAffinity pin).
@@ -1164,16 +1287,17 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
 
         echo "Waiting for shared-db to be ready before syncing DB passwords..."
-        kubectl $context_flag rollout status deployment/shared-db -n workspace --timeout=120s
+        kubectl $context_flag rollout status deployment/shared-db -n "$NS" --timeout=120s
 
-        echo "Syncing DB passwords from workspace-secrets → shared-db ({{.ENV}})..."
+        echo "Syncing DB passwords from ${NS}/workspace-secrets → shared-db ({{.ENV}})..."
 
         nc_needs_restart=0
         for user in keycloak nextcloud vaultwarden website docuseal; do
           key="${user^^}_DB_PASSWORD"
-          pw=$(kubectl $context_flag get secret workspace-secrets -n workspace \
+          pw=$(kubectl $context_flag get secret workspace-secrets -n "$NS" \
             -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d)
           if [ -z "$pw" ]; then
             echo "  SKIP ${user}: ${key} not found in workspace-secrets"
@@ -1189,10 +1313,10 @@ tasks:
           # USER; if we actually changed it, rollout-restart nextcloud after
           # the loop so it picks the file up cleanly.
           if [ "$user" = "nextcloud" ]; then
-            nc_pod=$(kubectl $context_flag -n workspace get pod -l app=nextcloud \
+            nc_pod=$(kubectl $context_flag -n "$NS" get pod -l app=nextcloud \
               -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
             if [ -n "$nc_pod" ]; then
-              current_pw=$(kubectl $context_flag -n workspace exec "$nc_pod" -c nextcloud -- \
+              current_pw=$(kubectl $context_flag -n "$NS" exec "$nc_pod" -c nextcloud -- \
                 php -r 'if(!file_exists("/var/www/html/config/config.php")){exit;}$CONFIG=[];include "/var/www/html/config/config.php";echo $CONFIG["dbpassword"]??"";' 2>/dev/null || true)
               if [ -z "$current_pw" ]; then
                 echo "  nextcloud-config.php: config.php missing or malformed — skipping in-place sync"
@@ -1200,7 +1324,7 @@ tasks:
                 echo "  nextcloud-config.php: already in sync"
               else
                 echo "  nextcloud-config.php: dbpassword drifted → patching in-place"
-                if printf '%s' "$pw" | kubectl $context_flag -n workspace exec -i "$nc_pod" -c nextcloud -- \
+                if printf '%s' "$pw" | kubectl $context_flag -n "$NS" exec -i "$nc_pod" -c nextcloud -- \
                   php -r '$p="/var/www/html/config/config.php";$CONFIG=[];include $p;if(!isset($CONFIG["dbpassword"])){fwrite(STDERR,"refusing to write: existing config has no dbpassword\n");exit(1);}$CONFIG["dbpassword"]=stream_get_contents(STDIN);file_put_contents($p,"<?php\n\$CONFIG = ".var_export($CONFIG,true).";\n");' 2>&1 | sed "s/^/    /"; then
                   nc_needs_restart=1
                 else
@@ -1212,17 +1336,17 @@ tasks:
             fi
           fi
 
-          kubectl $context_flag exec -n workspace deployment/shared-db -- \
+          kubectl $context_flag exec -n "$NS" deployment/shared-db -- \
             psql -U postgres -c "ALTER USER ${user} WITH PASSWORD '$(printf "%s" "$pw" | sed "s/'/''/g")';" 2>&1 \
             | sed "s/^/  ${user}: /"
         done
 
         if [ "$nc_needs_restart" = 1 ]; then
           echo "Restarting nextcloud to pick up patched config.php..."
-          kubectl $context_flag -n workspace rollout restart deployment/nextcloud
-          kubectl $context_flag -n workspace rollout status deployment/nextcloud --timeout=180s
+          kubectl $context_flag -n "$NS" rollout restart deployment/nextcloud
+          kubectl $context_flag -n "$NS" rollout status deployment/nextcloud --timeout=180s
         fi
-        echo "✓ DB passwords synced"
+        echo "✓ DB passwords synced (ENV={{.ENV}}, ns=$NS)"
 
   keycloak:sync:
     desc: "Sync OIDC clients + secrets von realm-template → Keycloak Admin API (ENV=dev|mentolder|korczewski)"
@@ -1231,33 +1355,42 @@ tasks:
     cmds:
       - ENV={{.ENV}} bash scripts/keycloak-sync.sh
 
-  keycloak:sync-secrets:
-    desc: "Alias für keycloak:sync (backwards-compat, wird in Folge-PR entfernt)"
+  # keycloak:sync-secrets alias removed 2026-05-05 — use `task keycloak:sync ENV=...`.
+
+  workspace:vaultwarden:seed:
+    desc: "Seed Vaultwarden with production secret templates (ENV=dev|mentolder|korczewski). Run once after first login — see vaultwarden-seed-credentials.yaml."
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - task: keycloak:sync
-        vars: { ENV: "{{.ENV}}" }
-
-  workspace:vaultwarden:seed:
-    desc: "Seed Vaultwarden with production secret templates (run once after first login — see vaultwarden-seed-credentials.yaml)"
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
-      - sh: kubectl get secret vaultwarden-seed-credentials -n workspace > /dev/null 2>&1
-        msg: "vaultwarden-seed-credentials secret missing. Fill in and apply k3d/vaultwarden-seed-credentials.yaml first."
-    cmds:
-      - kubectl delete job vaultwarden-seed -n workspace --ignore-not-found
-      - kubectl apply -f k3d/vaultwarden-seed-job.yaml
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        if ! kubectl $CTX cluster-info > /dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}}." >&2; exit 1
+        fi
+        if ! kubectl $CTX get secret vaultwarden-seed-credentials -n "$NS" > /dev/null 2>&1; then
+          echo "vaultwarden-seed-credentials secret missing in $NS. Fill in and apply k3d/vaultwarden-seed-credentials.yaml first." >&2
+          exit 1
+        fi
+        kubectl $CTX delete job vaultwarden-seed -n "$NS" --ignore-not-found
+        # The manifest pins `namespace: workspace`; rewrite it for non-default envs.
+        sed "s/^  namespace: workspace$/  namespace: ${NS}/" k3d/vaultwarden-seed-job.yaml \
+          | kubectl $CTX apply -f -
         echo "Waiting for seed job to complete..."
-        kubectl wait --for=condition=complete job/vaultwarden-seed -n workspace --timeout=120s
-      - kubectl logs -n workspace job/vaultwarden-seed
+        kubectl $CTX wait --for=condition=complete job/vaultwarden-seed -n "$NS" --timeout=120s
+        kubectl $CTX logs -n "$NS" job/vaultwarden-seed
 
   workspace:vaultwarden:seed-logs:
-    desc: Show logs from the last Vaultwarden seed job run
+    desc: "Show logs from the last Vaultwarden seed job run (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl logs -n workspace job/vaultwarden-seed
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX logs -n "$NS" job/vaultwarden-seed
 
   billing:validate-einvoice:
     desc: "Validate an XML or PDF e-invoice via Mustangproject (in Docker)"
@@ -1267,46 +1400,40 @@ tasks:
 
   workspace:shortcuts:seed:
     desc: "Seed default admin shortcuts into website DB (usage: task workspace:shortcuts:seed ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""
-        if [ "{{.ENV}}" != "dev" ] && [ -n "{{.ENV}}" ]; then
-          source scripts/env-resolve.sh "{{.ENV}}"
-          CTX_FLAG="--context $ENV_CONTEXT"
-        fi
+        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context $ENV_CONTEXT"
+        export WORKSPACE_NAMESPACE
         bash scripts/seed-admin-shortcuts.sh $CTX_FLAG
 
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
   docs:deploy:
-    desc: Deploy docs ConfigMap to both production clusters (korczewski + mentolder)
+    desc: Deploy docs ConfigMap to both production environments (korczewski + mentolder)
     cmds:
-      - echo '→ Updating docs-content ConfigMap on korczewski...'
       - |
-        kubectl create configmap docs-content \
-          --from-file=k3d/docs-content/ \
-          --dry-run=client -o yaml -n workspace \
-          | kubectl apply -f - --context korczewski --server-side --force-conflicts
-      - kubectl rollout restart deployment/docs -n workspace --context korczewski
-      - kubectl rollout status deployment/docs -n workspace --context korczewski --timeout=120s
-      - echo '→ Updating docs-content ConfigMap on mentolder...'
-      - |
-        kubectl create configmap docs-content \
-          --from-file=k3d/docs-content/ \
-          --dry-run=client -o yaml -n workspace \
-          | kubectl apply -f - --context mentolder --server-side --force-conflicts
-      - kubectl rollout restart deployment/docs -n workspace --context mentolder
-      - kubectl rollout status deployment/docs -n workspace --context mentolder --timeout=120s
-      - echo ''
-      - 'echo "✓ Docs deployed to both clusters"'
-      - 'echo "  https://docs.korczewski.de"'
-      - 'echo "  https://docs.mentolder.de"'
+        for env in korczewski mentolder; do
+          source scripts/env-resolve.sh "$env"
+          NS="${WORKSPACE_NAMESPACE:-workspace}"
+          echo "→ Updating docs-content ConfigMap on ${env} (ns=${NS})..."
+          kubectl create configmap docs-content \
+            --from-file=k3d/docs-content/ \
+            --dry-run=client -o yaml -n "${NS}" \
+            | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
+          kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"
+          kubectl --context "${ENV_CONTEXT}" rollout status deployment/docs -n "${NS}" --timeout=120s
+        done
+        echo
+        echo "✓ Docs deployed to both clusters"
+        echo "  https://docs.korczewski.de"
+        echo "  https://docs.mentolder.de"
 
-  docs:restart:
-    desc: Rebuild docs ConfigMap and restart pods on both production clusters
-    cmds:
-      - task: docs:deploy
+  # docs:restart removed 2026-05-05 — `task docs:deploy` already restarts both pods.
 
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers
@@ -1330,13 +1457,14 @@ tasks:
         # Pull runtime secrets from workspace-secrets so claude-code-secrets stays in sync.
         # Falls back to placeholders on a fresh cluster before workspace-secrets exists.
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        SHARED_DB_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n workspace \
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        SHARED_DB_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
           -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || echo "devshareddb")
-        GITHUB_PAT=$(kubectl $CTX get secret workspace-secrets -n workspace \
+        GITHUB_PAT=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
           -o jsonpath='{.data.GITHUB_PAT}' 2>/dev/null | base64 -d || echo "ghp_placeholder")
-        KEYCLOAK_ADMIN_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n workspace \
+        KEYCLOAK_ADMIN_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
           -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "admin")
-        STRIPE_SECRET_KEY=$(kubectl $CTX get secret workspace-secrets -n workspace \
+        STRIPE_SECRET_KEY=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
           -o jsonpath='{.data.STRIPE_SECRET_KEY}' 2>/dev/null | base64 -d || echo "sk_test_placeholder")
         export SHARED_DB_PASSWORD GITHUB_PAT KEYCLOAK_ADMIN_PASSWORD STRIPE_SECRET_KEY
         kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$KEYCLOAK_ADMIN_PASSWORD \$STRIPE_SECRET_KEY" | kubectl $CTX apply -f -
@@ -1860,42 +1988,85 @@ tasks:
       - npm run dev
 
   website:status:
-    desc: Show website deployment status
+    desc: "Show website deployment status (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - echo "=== Pods ==="
-      - kubectl get pods -n website -o wide
-      - echo ""
-      - echo "=== Services ==="
-      - kubectl get svc -n website
-      - echo ""
-      - echo "=== IngressRoute ==="
-      - kubectl get ingressroute -n website 2>/dev/null || echo "(no IngressRoute found)"
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        echo "=== Pods ==="
+        kubectl $CTX get pods -n "$NS" -o wide
+        echo ""
+        echo "=== Services ==="
+        kubectl $CTX get svc -n "$NS"
+        echo ""
+        echo "=== IngressRoute ==="
+        kubectl $CTX get ingressroute -n "$NS" 2>/dev/null || echo "(no IngressRoute found)"
 
   website:logs:
-    desc: Tail website logs
+    desc: "Tail website logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl logs -n website deploy/website -f --tail=50
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX logs -n "$NS" deploy/website -f --tail=50
 
   website:restart:
-    desc: Restart the website pod
+    desc: "Restart the website pod (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl rollout restart deployment/website -n website
-      - kubectl rollout status deployment/website -n website --timeout=60s
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX rollout restart deployment/website -n "$NS"
+        kubectl $CTX rollout status deployment/website -n "$NS" --timeout=60s
 
   website:redeploy:
-    desc: Rebuild image, import, and restart the website
+    desc: "Rebuild image, import (or push), and restart the website (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - task: website:build:import
-      - kubectl rollout restart deployment/website -n website
-      - kubectl rollout status deployment/website -n website --timeout=60s
-      - 'echo "✓ Website redeployed"'
+      - |
+        if [ "{{.ENV}}" = "dev" ]; then
+          task website:build:import ENV={{.ENV}}
+        else
+          task website:push ENV={{.ENV}}
+        fi
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX rollout restart deployment/website -n "$NS"
+        kubectl $CTX rollout status deployment/website -n "$NS" --timeout=120s
+        echo "✓ Website redeployed (ENV={{.ENV}}, ns=$NS)"
+
+  website:redeploy:all-prods:
+    desc: "Rebuild + redeploy the website on mentolder + korczewski"
+    cmds:
+      - task: website:redeploy
+        vars: { ENV: "mentolder" }
+      - task: website:redeploy
+        vars: { ENV: "korczewski" }
 
   website:teardown:
-    desc: Remove website namespace and all resources
-    prompt: "This will delete the website namespace. Continue?"
+    desc: "Remove website namespace and all resources (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    prompt: "This will delete the website namespace for ENV={{.ENV}}. Continue?"
     cmds:
-      - kubectl delete namespace website --ignore-not-found --timeout=60s
-      - echo "✓ Website namespace deleted"
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        kubectl $CTX delete namespace "$NS" --ignore-not-found --timeout=60s
+        echo "✓ Namespace '$NS' deleted (ENV={{.ENV}})"
 
   # ─────────────────────────────────────────────
   # Brett (Systemisches Whiteboard)
@@ -1939,10 +2110,19 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""
         [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        kubectl $CTX_FLAG rollout restart deploy/brett -n workspace
-        kubectl $CTX_FLAG rollout status  deploy/brett -n workspace
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX_FLAG rollout restart deploy/brett -n "$NS"
+        kubectl $CTX_FLAG rollout status  deploy/brett -n "$NS"
       - 'echo ""'
       - 'echo "  Next → task brett:bot-setup ENV={{.ENV}}"'
+
+  brett:deploy:all-prods:
+    desc: "Build, push, and roll brett on mentolder + korczewski"
+    cmds:
+      - task: brett:deploy
+        vars: { ENV: "mentolder" }
+      - task: brett:deploy
+        vars: { ENV: "korczewski" }
 
   brett:bot-setup:
     desc: "Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)"
@@ -1961,34 +2141,52 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""
         [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        kubectl $CTX_FLAG logs -n workspace -l app=brett --tail=200 -f
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX_FLAG logs -n "$NS" -l app=brett --tail=200 -f
 
   # ─────────────────────────────────────────────
   # Whisper (Transcription Service)
   # ─────────────────────────────────────────────
   whisper:deploy:
-    desc: Deploy faster-whisper transcription service (medium model, CPU-only)
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
+    desc: "Deploy faster-whisper transcription service (medium model, CPU-only) (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl apply -f k3d/whisper.yaml
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        if ! kubectl $CTX cluster-info > /dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}}." >&2; exit 1
+        fi
+        kubectl $CTX apply -n "$NS" -f k3d/whisper.yaml
         echo "Waiting for whisper (model download may take several minutes on first start)..."
-        kubectl rollout status deployment/whisper -n workspace --timeout=600s
-      - echo "✓ Whisper deployed"
-      - 'echo "  Endpoint: http://whisper.workspace.svc.cluster.local:8000"'
+        kubectl $CTX rollout status deployment/whisper -n "$NS" --timeout=600s
+        echo "✓ Whisper deployed (ENV={{.ENV}}, ns=$NS)"
+        echo "  Endpoint: http://whisper.${NS}.svc.cluster.local:8000"
 
   whisper:status:
-    desc: Show whisper deployment status
+    desc: "Show whisper deployment status (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl get pods -l app=whisper -o wide
-      - kubectl logs deploy/whisper --tail=5 2>/dev/null || true
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX get pods -n "$NS" -l app=whisper -o wide
+        kubectl $CTX logs -n "$NS" deploy/whisper --tail=5 2>/dev/null || true
 
   whisper:logs:
-    desc: Tail whisper logs
+    desc: "Tail whisper logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl logs deploy/whisper -f --tail=50
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX logs -n "$NS" deploy/whisper -f --tail=50
 
   # ─────────────────────────────────────────────
   # LiveKit (Livestream — Browser-Publishing + OBS RTMP)
@@ -2002,15 +2200,16 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""
         [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        echo "=== Pods ===" && kubectl $CTX_FLAG -n workspace get pods \
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        echo "=== Pods ===" && kubectl $CTX_FLAG -n "$NS" get pods \
           -l 'app in (livekit-server,livekit-ingress,livekit-egress,livekit-redis)' -o wide
-        echo "=== Service / Ingress ===" && kubectl $CTX_FLAG -n workspace get svc,ingress,ingressroute,middleware \
+        echo "=== Service / Ingress ===" && kubectl $CTX_FLAG -n "$NS" get svc,ingress,ingressroute,middleware \
           -l 'app in (livekit-server,livekit-ingress)' 2>/dev/null
-        kubectl $CTX_FLAG -n workspace get svc livekit-server livekit-ingress-rtmp 2>/dev/null
-        kubectl $CTX_FLAG -n workspace get ingressroute livekit-server middleware/livekit-cors 2>/dev/null
-        echo "=== Recordings PVC ===" && kubectl $CTX_FLAG -n workspace get pvc livekit-recordings-pvc 2>/dev/null
+        kubectl $CTX_FLAG -n "$NS" get svc livekit-server livekit-ingress-rtmp 2>/dev/null
+        kubectl $CTX_FLAG -n "$NS" get ingressroute livekit-server middleware/livekit-cors 2>/dev/null
+        echo "=== Recordings PVC ===" && kubectl $CTX_FLAG -n "$NS" get pvc livekit-recordings-pvc 2>/dev/null
         echo "=== Recordings count ==="
-        kubectl $CTX_FLAG -n workspace exec deployment/livekit-egress -- sh -c 'ls /recordings/ 2>/dev/null | wc -l' 2>/dev/null \
+        kubectl $CTX_FLAG -n "$NS" exec deployment/livekit-egress -- sh -c 'ls /recordings/ 2>/dev/null | wc -l' 2>/dev/null \
           || echo "(egress pod not ready)"
 
   livekit:logs:
@@ -2023,11 +2222,12 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""
         [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
         case "{{.COMP}}" in
           server|ingress|egress|redis) DEPLOY="livekit-{{.COMP}}" ;;
           *) echo "Unknown component: {{.COMP}} (use server|ingress|egress|redis)" >&2; exit 1 ;;
         esac
-        kubectl $CTX_FLAG -n workspace logs deployment/$DEPLOY --tail=200 -f
+        kubectl $CTX_FLAG -n "$NS" logs deployment/$DEPLOY --tail=200 -f
 
   livekit:recordings:
     desc: "List recorded streams in the egress PVC (ENV=dev|mentolder|korczewski)"
@@ -2038,7 +2238,8 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""
         [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        kubectl $CTX_FLAG -n workspace exec deployment/livekit-egress -- ls -lh /recordings/
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX_FLAG -n "$NS" exec deployment/livekit-egress -- ls -lh /recordings/
 
   livekit:end-stream:
     desc: "Forcibly end the active livestream — restarts livekit-server, which closes the room and disconnects all publishers (ENV=dev|mentolder|korczewski)"
@@ -2049,14 +2250,15 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX_FLAG=""
         [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
         # Preferred path is POST /api/stream/end via the Admin UI (deletes
         # ingresses + removes publishers without dropping subscribers). This
         # task is the in-cluster fallback when the website is unreachable —
         # restarting livekit-server closes every room cleanly. Re-establishes
         # in <30s via Redis-persisted room state.
         echo "Restarting livekit-server — all active sessions will be terminated."
-        kubectl $CTX_FLAG -n workspace rollout restart deployment/livekit-server
-        kubectl $CTX_FLAG -n workspace rollout status deployment/livekit-server --timeout=120s
+        kubectl $CTX_FLAG -n "$NS" rollout restart deployment/livekit-server
+        kubectl $CTX_FLAG -n "$NS" rollout status deployment/livekit-server --timeout=120s
 
   livekit:dns-pin:
     desc: "Print the ipv64 API calls that pin livekit/stream subdomains to a single node (run with APPLY=true to actually invoke). ENV=dev|mentolder|korczewski. PIN_IP overrides env default."
@@ -2323,35 +2525,45 @@ tasks:
       - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key>'' to store credentials"'
 
   cert:secret:
-    desc: "Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml)"
+    desc: "Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml). ENV=dev|mentolder|korczewski selects target cluster + workspace ns."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running."
       - sh: '[ -n "{{.CLI_ARGS}}" ]'
-        msg: "Usage: task cert:secret -- <your-ipv64-api-key>"
+        msg: "Usage: task cert:secret -- <your-ipv64-api-key> [ENV=...]"
     cmds:
       - |
-        kubectl create secret generic ipv64-api-key \
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        if ! kubectl $CTX cluster-info > /dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}}." >&2; exit 1
+        fi
+        kubectl $CTX create secret generic ipv64-api-key \
           --namespace cert-manager \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
-          --dry-run=client -o yaml | kubectl apply -f -
-      - |
-        kubectl create secret generic ipv64-api-key \
-          --namespace workspace \
+          --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX create secret generic ipv64-api-key \
+          --namespace "$NS" \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
-          --dry-run=client -o yaml | kubectl apply -f -
-      - |
-        kubectl set env deployment/cert-manager-lego-webhook \
+          --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX set env deployment/cert-manager-lego-webhook \
           -n cert-manager --from=secret/ipv64-api-key
-      - echo "✓ Secret 'ipv64-api-key' created/updated in cert-manager + workspace namespaces"
+        echo "✓ Secret 'ipv64-api-key' created/updated in cert-manager + ${NS} (ENV={{.ENV}})"
 
   cert:status:
-    desc: Show wildcard certificate and ClusterIssuer status
+    desc: "Show wildcard certificate and ClusterIssuer status (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl get clusterissuer letsencrypt-prod -o wide
-      - kubectl get certificate workspace-wildcard -n workspace -o wide
-      - kubectl get certificaterequest -n workspace
-      - kubectl get order -n workspace 2>/dev/null || true
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX get clusterissuer letsencrypt-prod -o wide 2>/dev/null || true
+        kubectl $CTX get certificate -n "$NS" -o wide 2>/dev/null || true
+        kubectl $CTX get certificaterequest -n "$NS" 2>/dev/null || true
+        kubectl $CTX get order -n "$NS" 2>/dev/null || true
 
   sealed-secrets:install:
     desc: Install Sealed Secrets controller on a cluster via Helm
@@ -2379,9 +2591,10 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
         kubectl $context_flag get pods -n sealed-secrets
         echo ""
-        kubectl $context_flag get sealedsecrets -n workspace 2>/dev/null || echo "(no SealedSecrets in workspace namespace)"
+        kubectl $context_flag get sealedsecrets -n "$NS" 2>/dev/null || echo "(no SealedSecrets in ${NS} namespace)"
 
   docs:publish-api:
     desc: Publish OpenAPI spec to GitBook
@@ -2419,9 +2632,15 @@ tasks:
       - docker push ghcr.io/paddione/einvoice-sidecar:latest
 
   einvoice-sidecar:logs:
-    desc: "Tail einvoice-sidecar logs"
+    desc: "Tail einvoice-sidecar logs (ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      - kubectl -n workspace logs -l app=einvoice-sidecar --tail=200 -f
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        kubectl $CTX -n "$NS" logs -l app=einvoice-sidecar --tail=200 -f
 
   # ─────────────────────────────────────────────
   # Utility Scripts
@@ -2440,6 +2659,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         export KUBE_CONTEXT="${ENV_CONTEXT:-}"
+        export WORKSPACE_NAMESPACE WEBSITE_NAMESPACE
         bash scripts/check-updates.sh
 
   workspace:import-users:

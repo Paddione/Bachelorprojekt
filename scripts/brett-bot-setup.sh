@@ -15,6 +15,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${REPO_ROOT}/scripts/env-resolve.sh" "${ENV}"
 
 WEBSITE_HOST="${WEB_DOMAIN:-web.${PROD_DOMAIN:-localhost}}"
+NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
 if [[ "${ENV}" == "dev" ]]; then
   WEBHOOK_URL="http://web.localhost/api/brett/bot"
 else
@@ -22,20 +23,20 @@ else
 fi
 
 # Pull the live secret from the cluster (works for both dev plaintext and prod sealed).
-SECRET="$(kubectl get secret -n workspace --context "${ENV_CONTEXT}" \
+SECRET="$(kubectl get secret -n "${NAMESPACE}" --context "${ENV_CONTEXT}" \
             workspace-secrets -o jsonpath='{.data.BRETT_BOT_SECRET}' | base64 -d)"
 
 if [[ -z "${SECRET}" ]]; then
-  echo "ERROR: BRETT_BOT_SECRET not present in workspace-secrets for ${ENV}" >&2
+  echo "ERROR: BRETT_BOT_SECRET not present in ${NAMESPACE}/workspace-secrets for ${ENV}" >&2
   exit 1
 fi
 
-echo "Registering Talk bot for ${ENV} → ${WEBHOOK_URL}"
+echo "Registering Talk bot for ${ENV} (${NAMESPACE}) → ${WEBHOOK_URL}"
 
 # Idempotency: check whether the bot is already installed.
 # Prefer this over grepping install output (talk:bot:install error strings differ
 # across Nextcloud Talk versions and locales).
-LIST_OUT="$(kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
+LIST_OUT="$(kubectl exec -n "${NAMESPACE}" deploy/nextcloud --context "${ENV_CONTEXT}" -- \
   php occ talk:bot:list 2>&1)"
 BOT_ID="$(echo "${LIST_OUT}" | awk '/Systemisches Brett/ {print $1; exit}')"
 
@@ -44,7 +45,7 @@ if [[ -n "${BOT_ID}" ]]; then
 else
   # Per Nextcloud Talk Bots API, the feature is set via --feature, not a
   # 5th positional argument. Talk 17+ accepts: webhook, response, event.
-  kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
+  kubectl exec -n "${NAMESPACE}" deploy/nextcloud --context "${ENV_CONTEXT}" -- \
     php occ talk:bot:install \
       --feature webhook --feature response \
       "Systemisches Brett" \
@@ -53,7 +54,7 @@ else
       "Stellt das Systemische Brett auf /brett bereit"
 
   # Re-list to capture the assigned id.
-  LIST_OUT="$(kubectl exec -n workspace deploy/nextcloud --context "${ENV_CONTEXT}" -- \
+  LIST_OUT="$(kubectl exec -n "${NAMESPACE}" deploy/nextcloud --context "${ENV_CONTEXT}" -- \
     php occ talk:bot:list 2>&1)"
   BOT_ID="$(echo "${LIST_OUT}" | awk '/Systemisches Brett/ {print $1; exit}')"
 fi

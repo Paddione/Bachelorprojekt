@@ -2059,11 +2059,10 @@ tasks:
         kubectl $CTX_FLAG -n workspace rollout status deployment/livekit-server --timeout=120s
 
   livekit:dns-pin:
-    desc: "Print the ipv64 API calls that pin livekit/stream subdomains to a single node (run with --apply to actually invoke). ENV=dev|mentolder|korczewski"
+    desc: "Print the ipv64 API calls that pin livekit/stream subdomains to a single node (run with APPLY=true to actually invoke). ENV=dev|mentolder|korczewski. PIN_IP overrides env default."
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
-      # Default pin target is the gekko-hetzner-3 mentolder IP from k3d/livekit.yaml nodeAffinity.
-      PIN_IP: '{{.PIN_IP | default "46.225.125.59"}}'
+      PIN_IP: '{{.PIN_IP | default ""}}'
       APPLY: '{{.APPLY | default "false"}}'
     cmds:
       - |
@@ -2072,10 +2071,12 @@ tasks:
         [ -f "$SECRETS" ] || { echo "Plaintext secrets not found at $SECRETS — cannot read IPV64_UPDATE_HASH" >&2; exit 1; }
         KEY=$(awk -F': ' '/^IPV64_UPDATE_HASH:/ {gsub(/"/,"",$2); print $2}' "$SECRETS")
         [ -n "$KEY" ] || { echo "IPV64_UPDATE_HASH missing from $SECRETS (this is the domain_update_hash from ipv64.net, not the account API key)" >&2; exit 1; }
-        echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → {{.PIN_IP}}"
+        RESOLVED_IP="{{.PIN_IP}}"
+        RESOLVED_IP="${RESOLVED_IP:-${LIVEKIT_PIN_IP:-46.225.125.59}}"
+        echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → ${RESOLVED_IP}"
         echo "(set APPLY=true to actually run the calls; otherwise this just prints them)"
         for SUB in livekit stream; do
-          URL="https://ipv64.net/update.php?key=$KEY&domain=${SUB}.${PROD_DOMAIN}&ip={{.PIN_IP}}"
+          URL="https://ipv64.net/update.php?key=$KEY&domain=${SUB}.${PROD_DOMAIN}&ip=${RESOLVED_IP}"
           REDACTED=$(echo "$URL" | sed "s/key=$KEY/key=***REDACTED***/")
           echo "  curl -sS \"$REDACTED\""
           if [ "{{.APPLY}}" = "true" ]; then

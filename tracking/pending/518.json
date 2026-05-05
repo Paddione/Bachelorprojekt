@@ -1,0 +1,12 @@
+{
+  "pr_number": 518,
+  "title": "run Playwright suite against both prod clusters",
+  "description": "## Summary\n- New `.github/workflows/e2e.yml` runs the Playwright suite in a 2-cluster matrix (`mentolder`, `korczewski`) — manual `workflow_dispatch` (with optional single-cluster pick) and nightly cron at 03:00 UTC. **Not** on PRs, since runs hit live prod.\n- New `task test:e2e ENV=mentolder|korczewski` and `task test:e2e:all-prods` for local parity.\n\n## Why\nAudit of `tests/e2e/` showed the suite is single-cluster per run: one `WEBSITE_URL` + one `PROD_DOMAIN`. The documented run command in memory only ever hit mentolder. Of 45 specs, only 3 hardcode korczewski (`korczewski-home`, `brett-art`, `dashboard-art`). The remaining 42 silently bypass `*.korczewski.de` because nobody runs them with `WEBSITE_URL=https://web.korczewski.de`.\n\nCheapest fix per the audit: invoke the existing suite twice with the right env per cluster. No spec changes.\n\n## Notes\n- Auth-gated specs (e.g. `sa-08-sso`, `fa-15-oidc`) read `MM_TEST_USER` / `MM_TEST_PASS`. Workflow forwards them from repo secrets — if those aren't set, those specs will hit Keycloak login with default placeholders and fail. Add the secrets in repo settings to get them green.\n- Webkit is installed in CI so the `ios` Playwright project runs too.\n- `fail-fast: false` so a mentolder failure doesn't cancel korczewski (and vice versa).\n- Concurrency group prevents overlapping nightly + manual runs from racing.\n\n## Test plan\n- [ ] Trigger `E2E (Live Production)` workflow with `cluster=mentolder` once main has the workflow → verify it runs only the mentolder matrix entry.\n- [ ] Trigger again with `cluster=both` → verify both matrix entries run in parallel.\n- [ ] Add `MM_TEST_USER` / `MM_TEST_PASS` repo secrets if not present; rerun and confirm auth-gated specs pass.\n- [ ] Local: `task test:e2e ENV=korczewski -- --project=korczewski` to smoke-test the Taskfile path.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "ci",
+  "scope": "e2e",
+  "brand": null,
+  "requirement_id": "SA-08",
+  "merged_at": "2026-05-05T15:51:24Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

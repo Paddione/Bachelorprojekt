@@ -26,12 +26,16 @@ GitHub Repo (main)
        v
   ArgoCD (Hub-Cluster, Hetzner)
        |
-       +---> workspace-hetzner  ---> mentolder k3s Cluster (mentolder.de)
+       +---> workspace-hetzner     ---> unified mentolder k3s Cluster
+       |                                  namespace: workspace       (mentolder.de)
+       |                                  namespace: website
        |
-       +---> workspace-korczewski ---> korczewski k3s Cluster (korczewski.de)
+       +---> workspace-korczewski  ---> unified mentolder k3s Cluster
+                                         namespace: workspace-korczewski  (korczewski.de)
+                                         namespace: website-korczewski
 ```
 
-Pro Ziel-Cluster wird eine eigene ArgoCD-Application erzeugt. Jede App zeigt auf das umgebungsspezifische Kustomize-Overlay und injiziert die Cluster-spezifischen Variablen (Domain, Branding, SMTP, TURN usw.) uber das CMP-Plugin.
+Seit dem Cluster-Merge (2026-05-05) laufen beide Workloads auf **einem einzigen physischen Cluster** (mentolder). ArgoCD verwaltet sie weiterhin als zwei separate Applications mit unterschiedlichen Overlays (`prod-mentolder/`, `prod-korczewski/`) und Namespaces. Pro Ziel-Cluster-Secret wird eine eigene ArgoCD-Application erzeugt. Jede App zeigt auf das umgebungsspezifische Kustomize-Overlay und injiziert die Cluster-spezifischen Variablen (Domain, Branding, SMTP, TURN usw.) uber das CMP-Plugin.
 
 ---
 
@@ -97,7 +101,7 @@ task argocd:apps:apply         # AppProject + ApplicationSet in ArgoCD anwenden
 
 Nach dem Setup:
 - ArgoCD UI ist unter `https://argocd.<PROD_DOMAIN>` erreichbar
-- Die Apps `workspace-hetzner` und `workspace-korczewski` erscheinen automatisch
+- Die Apps `workspace-hetzner` und `workspace-korczewski` erscheinen automatisch (beide zeigen auf denselben physischen Cluster, unterschiedliche Namespaces)
 
 ---
 

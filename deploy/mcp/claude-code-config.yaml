@@ -43,10 +43,12 @@ data:
       - Does NOT have: exec into pods, access secrets, delete resources
 
     Key namespaces to query:
-      - workspace (Keycloak, Collabora, Talk HPB, Vaultwarden, Whisper)
-      - website    (Astro website)
-      - default     (Claude Code MCP servers)
-      - kube-system (Traefik, CoreDNS)
+      - workspace            (Keycloak, Collabora, Talk HPB, Vaultwarden, Whisper)
+      - workspace-korczewski (korczewski.de workloads on the same cluster)
+      - website              (mentolder.de Astro website)
+      - website-korczewski   (korczewski.de Astro website)
+      - default              (Claude Code MCP servers)
+      - kube-system          (Traefik, CoreDNS)
 
     Traefik note: no dedicated Traefik MCP exists. Use this MCP to:
       kubectl get ingressroutes --all-namespaces

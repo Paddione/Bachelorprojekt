@@ -1,8 +1,10 @@
-# MCP Gateway — single-domain Traefik IngressRoute for all MCP servers
-# Access: https://mcp.${PROD_DOMAIN}/{service}/mcp
+# MCP Gateway — dual-domain Traefik IngressRoute for all MCP servers
+# Access: https://mcp.mentolder.de/{service}/mcp  (deployed once, serves both brands)
+#         https://mcp.korczewski.de/{service}/mcp
 # Security: Token-based auth via mcp-auth-proxy (ForwardAuth)
 #
-# Requires DNS: mcp.${PROD_DOMAIN} → 217.195.149.75
+# Requires DNS: mcp.mentolder.de  → 217.195.149.75
+#               mcp.korczewski.de → 217.195.149.75 (same cluster, same IP)
 
 # ── ForwardAuth — validate MCP tokens via mcp-auth-proxy ────────
 apiVersion: traefik.io/v1alpha1
@@ -62,7 +64,7 @@ spec:
   routes:
     # ── Kubernetes MCP ────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/kubernetes`)
+      match: (Host(`mcp.mentolder.de`) || Host(`mcp.korczewski.de`)) && PathPrefix(`/kubernetes`)
       middlewares:
         - name: mcp-chain
       services:
@@ -71,7 +73,7 @@ spec:
 
     # ── PostgreSQL MCP ────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/postgres`)
+      match: (Host(`mcp.mentolder.de`) || Host(`mcp.korczewski.de`)) && PathPrefix(`/postgres`)
       middlewares:
         - name: mcp-chain
       services:
@@ -80,7 +82,7 @@ spec:
 
     # ── Keycloak MCP (SSE transport) ──────────────────────────────
     - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/keycloak`)
+      match: (Host(`mcp.mentolder.de`) || Host(`mcp.korczewski.de`)) && PathPrefix(`/keycloak`)
       middlewares:
         - name: mcp-chain
       services:
@@ -89,7 +91,7 @@ spec:
 
     # ── Browser MCP (Playwright) ──────────────────────────────────
     - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/browser`)
+      match: (Host(`mcp.mentolder.de`) || Host(`mcp.korczewski.de`)) && PathPrefix(`/browser`)
       middlewares:
         - name: mcp-chain
       services:
@@ -98,7 +100,7 @@ spec:
 
     # ── GitHub MCP ────────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/github`)
+      match: (Host(`mcp.mentolder.de`) || Host(`mcp.korczewski.de`)) && PathPrefix(`/github`)
       middlewares:
         - name: mcp-chain
       services:
@@ -107,7 +109,7 @@ spec:
 
     # ── Stripe MCP ───────────────────────────────────────────────
     - kind: Rule
-      match: Host(`mcp.${PROD_DOMAIN}`) && PathPrefix(`/stripe`)
+      match: (Host(`mcp.mentolder.de`) || Host(`mcp.korczewski.de`)) && PathPrefix(`/stripe`)
       middlewares:
         - name: mcp-chain
       services:

@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tracking-import
+  namespace: workspace
+  labels:
+    app: tracking-import
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: importer
+              image: node:20-alpine
+              env:
+                - name: TRACKING_DB_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: TRACKING_DB_URL
+                - name: GIT_REPO
+                  value: "https://github.com/Paddione/Bachelorprojekt.git"
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  apk add --no-cache git >/dev/null
+                  cd /tmp
+                  rm -rf repo
+                  git clone --depth 1 --branch main "$GIT_REPO" repo
+                  cd repo
+                  npm install pg --silent --no-package-lock
+                  if [ ! -d tracking/pending ] || [ -z "$(ls -A tracking/pending/*.json 2>/dev/null)" ]; then
+                    echo "no pending rows"
+                    exit 0
+                  fi
+                  node scripts/track-pr.mjs --ingest
+                  echo "Ingest complete."

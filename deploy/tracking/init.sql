@@ -66,3 +66,42 @@ ORDER BY req_id, run_at DESC;
 -- Grant read access to the postgres superuser (already has it) and a dedicated role if desired
 -- GRANT USAGE ON SCHEMA bachelorprojekt TO tracking_reader;
 -- GRANT SELECT ON ALL TABLES IN SCHEMA bachelorprojekt TO tracking_reader;
+
+-- ===== features (PR-driven project timeline) ============================
+CREATE TABLE IF NOT EXISTS bachelorprojekt.features (
+  id             SERIAL PRIMARY KEY,
+  pr_number      INTEGER UNIQUE,
+  title          TEXT NOT NULL,
+  description    TEXT,
+  category       TEXT NOT NULL,
+  scope          TEXT,
+  brand          TEXT,
+  requirement_id TEXT REFERENCES bachelorprojekt.requirements(id) ON DELETE SET NULL,
+  merged_at      TIMESTAMPTZ NOT NULL,
+  merged_by      TEXT,
+  status         TEXT NOT NULL DEFAULT 'shipped' CHECK (status IN ('planned','in_progress','shipped','reverted')),
+  created_at     TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_features_merged_at ON bachelorprojekt.features (merged_at DESC);
+CREATE INDEX IF NOT EXISTS idx_features_category  ON bachelorprojekt.features (category);
+CREATE INDEX IF NOT EXISTS idx_features_brand     ON bachelorprojekt.features (brand);
+
+-- Public-facing project timeline view (no cross-DB join — bugs_fixed computed in API layer)
+CREATE OR REPLACE VIEW bachelorprojekt.v_timeline AS
+SELECT
+  f.id,
+  f.merged_at::date AS day,
+  f.merged_at,
+  f.pr_number,
+  f.title,
+  f.description,
+  f.category,
+  f.scope,
+  f.brand,
+  f.requirement_id,
+  r.name AS requirement_name,
+  r.category AS requirement_category
+FROM bachelorprojekt.features f
+LEFT JOIN bachelorprojekt.requirements r ON r.id = f.requirement_id
+ORDER BY f.merged_at DESC;

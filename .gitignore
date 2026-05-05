@@ -94,3 +94,8 @@ environments/Assets
 Systemdesign_Buchhaltung-1.docx
 ~$stemdesign_Buchhaltung-1.docx
 .codex
+
+# Python
+__pycache__/
+*.pyc
+*.pyo

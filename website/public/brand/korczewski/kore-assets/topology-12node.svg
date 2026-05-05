@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Workspace cluster topology — 12 nodes split between Hetzner Helsinki and the home LAN, joined by a WireGuard tunnel through pk-hetzner.">
+  <title>Cluster Topology — 12 Nodes</title>
+
+  <defs>
+    <!-- Subtle radial vignette behind the diagram -->
+    <radialGradient id="kore-bg" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#1A1326" stop-opacity="0.0"/>
+      <stop offset="100%" stop-color="#120D1C" stop-opacity="0.0"/>
+    </radialGradient>
+
+    <!-- Reusable node tile -->
+    <symbol id="node" viewBox="0 0 88 60" overflow="visible">
+      <rect x="0.5" y="0.5" width="87" height="59" rx="3" fill="none" stroke="rgba(236,239,243,0.22)" stroke-width="1"/>
+    </symbol>
+    <symbol id="node-pin" viewBox="0 0 88 60" overflow="visible">
+      <rect x="0.5" y="0.5" width="87" height="59" rx="3" fill="rgba(200,247,106,0.04)" stroke="#C8F76A" stroke-width="1.25"/>
+    </symbol>
+    <symbol id="node-hub" viewBox="0 0 88 60" overflow="visible">
+      <rect x="0.5" y="0.5" width="87" height="59" rx="3" fill="rgba(200,247,106,0.07)" stroke="#C8F76A" stroke-width="1.25"/>
+      <rect x="0.5" y="0.5" width="87" height="59" rx="3" fill="none" stroke="#C8F76A" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.6"/>
+    </symbol>
+  </defs>
+
+  <rect width="960" height="500" fill="url(#kore-bg)"/>
+
+  <!-- ============================================================
+       Title strip
+       ============================================================ -->
+  <g font-family="JetBrains Mono, ui-monospace, monospace" font-size="10.5" letter-spacing="1.5">
+    <text x="80" y="40" fill="#C8F76A">[ TOPOLOGY · v1 ]</text>
+    <text x="880" y="40" text-anchor="end" fill="#8A93A0">12 NODES &#183; 1 CLUSTER &#183; 2 BRANDS</text>
+  </g>
+  <line x1="80" y1="52" x2="880" y2="52" stroke="rgba(236,239,243,0.12)" stroke-width="1"/>
+
+  <!-- ============================================================
+       Region A · Helsinki (control planes)
+       ============================================================ -->
+  <g font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" letter-spacing="1.2">
+    <text x="80" y="78" fill="#C6CCD4">HELSINKI &#183; FI</text>
+    <text x="880" y="78" text-anchor="end" fill="#69707B">control-plane &#215; 6 &#183; etcd quorum</text>
+  </g>
+
+  <!-- Group brackets (hostname families) -->
+  <g font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" fill="#69707B" letter-spacing="0.6">
+    <path d="M 80 96 L 80 102 L 456 102 L 456 96" fill="none" stroke="#3A2E52" stroke-width="1"/>
+    <text x="268" y="115" text-anchor="middle">gekko</text>
+    <path d="M 512 96 L 512 102 L 888 102 L 888 96" fill="none" stroke="#3A2E52" stroke-width="1"/>
+    <text x="700" y="115" text-anchor="middle">pk-hetzner</text>
+  </g>
+
+  <!-- 6 control-plane tiles -->
+  <g font-family="JetBrains Mono, ui-monospace, monospace">
+    <!-- gekko-hetzner-2 -->
+    <use href="#node" x="80" y="128"/>
+    <text x="124" y="153" text-anchor="middle" font-size="9.5" fill="#ECEFF3">gekko-hetzner-2</text>
+    <text x="124" y="170" text-anchor="middle" font-size="8.5" fill="#5BD4D0" letter-spacing="0.4">CoreDNS</text>
+
+    <!-- gekko-hetzner-3 — livekit pin -->
+    <use href="#node-pin" x="224" y="128"/>
+    <circle cx="312" cy="128" r="3" fill="#C8F76A"/>
+    <text x="268" y="153" text-anchor="middle" font-size="9.5" fill="#ECEFF3">gekko-hetzner-3</text>
+    <text x="268" y="170" text-anchor="middle" font-size="8.5" fill="#C8F76A" letter-spacing="0.4">livekit &#183; hostNet</text>
+    <text x="268" y="200" text-anchor="middle" font-size="8" fill="#69707B">46.225.125.59</text>
+
+    <!-- gekko-hetzner-4 -->
+    <use href="#node" x="368" y="128"/>
+    <text x="412" y="153" text-anchor="middle" font-size="9.5" fill="#ECEFF3">gekko-hetzner-4</text>
+    <text x="412" y="170" text-anchor="middle" font-size="8.5" fill="#5BD4D0" letter-spacing="0.4">Traefik</text>
+
+    <!-- pk-hetzner — WG hub + korczewski API -->
+    <use href="#node-hub" x="512" y="128"/>
+    <circle cx="556" cy="128" r="3.5" fill="#C8F76A"/>
+    <text x="556" y="153" text-anchor="middle" font-size="9.5" fill="#ECEFF3">pk-hetzner</text>
+    <text x="556" y="170" text-anchor="middle" font-size="8.5" fill="#C8F76A" letter-spacing="0.4">WG hub &#183; API:6443</text>
+    <text x="556" y="200" text-anchor="middle" font-size="8" fill="#69707B">62.238.9.39</text>
+
+    <!-- pk-hetzner-2 -->
+    <use href="#node" x="656" y="128"/>
+    <text x="700" y="153" text-anchor="middle" font-size="9.5" fill="#ECEFF3">pk-hetzner-2</text>
+    <text x="700" y="170" text-anchor="middle" font-size="8.5" fill="#5BD4D0" letter-spacing="0.4">ArgoCD</text>
+
+    <!-- pk-hetzner-3 -->
+    <use href="#node" x="800" y="128"/>
+    <text x="844" y="153" text-anchor="middle" font-size="9.5" fill="#ECEFF3">pk-hetzner-3</text>
+    <text x="844" y="170" text-anchor="middle" font-size="8.5" fill="#5BD4D0" letter-spacing="0.4">system pods</text>
+  </g>
+
+  <!-- ============================================================
+       VXLAN partition seam
+       ============================================================ -->
+  <g>
+    <line x1="80" y1="232" x2="380" y2="232" stroke="#69707B" stroke-width="1" stroke-dasharray="2 5" opacity="0.55"/>
+    <line x1="580" y1="232" x2="880" y2="232" stroke="#69707B" stroke-width="1" stroke-dasharray="2 5" opacity="0.55"/>
+    <text x="480" y="236" text-anchor="middle"
+          font-family="JetBrains Mono, ui-monospace, monospace"
+          font-size="9.5" letter-spacing="1.2" fill="#8A93A0">VXLAN partition &#183; CNI gap</text>
+  </g>
+
+  <!-- WireGuard trunk from pk-hetzner down through partition -->
+  <g stroke="#C8F76A" stroke-width="0.75" stroke-dasharray="3 3" fill="none" opacity="0.55">
+    <path d="M 556 188 L 556 270"/>
+    <!-- subtle fan-out from pk-hetzner WG hub down to home workers -->
+    <path d="M 556 252 C 360 260, 200 270, 124 290"/>
+    <path d="M 556 252 C 420 260, 320 270, 268 290"/>
+    <path d="M 556 252 C 500 265, 440 280, 412 290"/>
+    <path d="M 556 252 L 556 290"/>
+    <path d="M 556 252 C 612 265, 670 280, 700 290"/>
+    <path d="M 556 252 C 700 260, 800 270, 844 290"/>
+  </g>
+  <text x="556" y="263" text-anchor="middle"
+        font-family="JetBrains Mono, ui-monospace, monospace"
+        font-size="8.5" letter-spacing="0.6" fill="#C8F76A" opacity="0.85">wg0 &#183; 192.168.100.0/24</text>
+
+  <!-- ============================================================
+       Region B · Home-LAN (workers)
+       ============================================================ -->
+  <g font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" letter-spacing="1.2">
+    <text x="80" y="320" fill="#C6CCD4">HOME-LAN &#183; DE</text>
+    <text x="880" y="320" text-anchor="end" fill="#69707B">worker &#215; 6 &#183; user workloads</text>
+  </g>
+
+  <!-- 6 worker tiles -->
+  <g font-family="JetBrains Mono, ui-monospace, monospace">
+    <!-- k3s-1 -->
+    <use href="#node" x="80" y="332"/>
+    <text x="124" y="357" text-anchor="middle" font-size="9.5" fill="#ECEFF3">k3s-1</text>
+    <text x="124" y="374" text-anchor="middle" font-size="8.5" fill="#8A93A0">wg .20</text>
+
+    <!-- k3s-2 -->
+    <use href="#node" x="224" y="332"/>
+    <text x="268" y="357" text-anchor="middle" font-size="9.5" fill="#ECEFF3">k3s-2</text>
+    <text x="268" y="374" text-anchor="middle" font-size="8.5" fill="#8A93A0">wg .11</text>
+
+    <!-- k3s-3 -->
+    <use href="#node" x="368" y="332"/>
+    <text x="412" y="357" text-anchor="middle" font-size="9.5" fill="#ECEFF3">k3s-3</text>
+    <text x="412" y="374" text-anchor="middle" font-size="8.5" fill="#8A93A0">wg .12</text>
+
+    <!-- k3w-1 -->
+    <use href="#node" x="512" y="332"/>
+    <text x="556" y="357" text-anchor="middle" font-size="9.5" fill="#ECEFF3">k3w-1</text>
+    <text x="556" y="374" text-anchor="middle" font-size="8.5" fill="#8A93A0">wg .4</text>
+
+    <!-- k3w-2 -->
+    <use href="#node" x="656" y="332"/>
+    <text x="700" y="357" text-anchor="middle" font-size="9.5" fill="#ECEFF3">k3w-2</text>
+    <text x="700" y="374" text-anchor="middle" font-size="8.5" fill="#8A93A0">wg .3</text>
+
+    <!-- k3w-3 -->
+    <use href="#node" x="800" y="332"/>
+    <text x="844" y="357" text-anchor="middle" font-size="9.5" fill="#ECEFF3">k3w-3</text>
+    <text x="844" y="374" text-anchor="middle" font-size="8.5" fill="#8A93A0">wg .13</text>
+  </g>
+
+  <!-- ============================================================
+       Footer · legend + technical signature
+       ============================================================ -->
+  <line x1="80" y1="420" x2="880" y2="420" stroke="rgba(236,239,243,0.12)" stroke-width="1"/>
+
+  <g font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" letter-spacing="0.6" fill="#8A93A0">
+    <!-- control-plane -->
+    <rect x="80" y="442" width="14" height="10" rx="1.5" fill="none" stroke="rgba(236,239,243,0.22)" stroke-width="1"/>
+    <text x="100" y="451">control-plane</text>
+
+    <!-- workload pin -->
+    <rect x="200" y="442" width="14" height="10" rx="1.5" fill="rgba(200,247,106,0.04)" stroke="#C8F76A" stroke-width="1.25"/>
+    <circle cx="214" cy="442" r="2" fill="#C8F76A"/>
+    <text x="220" y="451">workload pin</text>
+
+    <!-- WG hub -->
+    <rect x="320" y="442" width="14" height="10" rx="1.5" fill="rgba(200,247,106,0.07)" stroke="#C8F76A" stroke-width="1.25"/>
+    <text x="340" y="451">WG hub &#183; API endpoint</text>
+
+    <!-- WG tunnel -->
+    <line x1="500" y1="447" x2="514" y2="447" stroke="#C8F76A" stroke-width="0.75" stroke-dasharray="3 3" opacity="0.7"/>
+    <text x="520" y="451">WireGuard tunnel</text>
+
+    <text x="880" y="451" text-anchor="end" fill="#69707B">k3s &#183; Flannel VXLAN &#183; ArgoCD hub @ mentolder ctx</text>
+  </g>
+
+  <!-- Tiny corner signature -->
+  <text x="80" y="478"
+        font-family="Instrument Serif, Georgia, serif" font-style="italic" font-size="11" fill="#69707B">
+    Bachelorprojekt &#183; Wilhelm B&#252;chner Hochschule &#183; B.Sc. IT-Sicherheit
+  </text>
+  <text x="880" y="478" text-anchor="end"
+        font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" letter-spacing="0.6" fill="#69707B">
+    workspace &#183; workspace-korczewski
+  </text>
+</svg>

@@ -153,7 +153,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         const svcKey = (p.serviceKey ?? p.leistungKey) as ServiceKey | undefined;
         if (svcKey && svcKey in SERVICES && SERVICES[svcKey].cents > 0) {
           const brand = process.env.BRAND || 'mentolder';
-          const stripeCustomer = await getOrCreateCustomer({ name: p.name, email: p.email, phone: p.phone });
+          const stripeCustomer = await getOrCreateCustomer({ brand: process.env.BRAND || 'mentolder', name: p.name, email: p.email });
           if (stripeCustomer) {
             const invoice = await createBillingInvoice({ customerId: stripeCustomer.id, serviceKey: svcKey });
             if (invoice) {

@@ -195,7 +195,7 @@ export async function generateCreditNotePdf(invoiceId: string): Promise<Buffer |
       addressLine1: customer.addressLine1,
       postalCode: customer.postalCode,
       city: customer.city,
-      country: customer.country,
+      country: customer.landIso ?? 'DE',
       vatNumber: customer.vatNumber,
       email: customer.email,
     },

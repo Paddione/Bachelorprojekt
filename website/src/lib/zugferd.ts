@@ -6,6 +6,21 @@ import type { EInvoiceInput } from './einvoice-types';
 export { sellerConfigFromEnv } from './einvoice/legacy-seller';
 export type { LegacySellerConfig as ZugferdSellerConfig } from './einvoice/legacy-seller';
 
+function esc(s: string | null | undefined): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+export interface ZugferdNativeInput {
+  invoice: { number: string; issueDate: string; grossAmount: number; netAmount: number; taxAmount: number; taxMode: string; taxRate: number };
+  lines: Array<{ description: string; netAmount: number }>;
+  customer: { name: string; email: string };
+  seller: { name: string; address: string; postalCode: string; city: string; country: string; vatId: string };
+}
+
 export function generateZugferdXml(): string {
   throw new Error('generateZugferdXml is deprecated. Use generateFacturX from ./einvoice/factur-x.ts.');
 }
@@ -54,6 +69,7 @@ export function generateZugferdXmlFromNative(input: any): string {
     buyer: {
       name: input.customer.name,
       email: input.customer.email,
+      country: 'DE',
     },
   };
   return generateFacturX(mapped);

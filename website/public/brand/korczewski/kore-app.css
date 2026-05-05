@@ -1,0 +1,562 @@
+/* =========================================================================
+   Kore App — admin + portal surfaces.
+   Scoped to body.kore so mentolder is unaffected. Depends on
+   colors_and_type.css for tokens (--copper = lime, --teal, --ink-*, --serif…).
+   Class prefix: .ka-*  (kore-app)
+   ========================================================================= */
+
+body.kore {
+  background: var(--ink-900);
+  color: var(--fg);
+  font-family: var(--sans);
+}
+
+/* Film grain on logged-in surfaces too */
+body.kore::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: .55;
+  mix-blend-mode: overlay;
+}
+
+body.kore :focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+
+/* =========================================================================
+   Section head — page chrome top of every admin/portal page
+   "[01]   Heute, 14:32  ·  Übersicht ›  Kunden im Fluss      STAND 14:32"
+   ========================================================================= */
+.ka-section-head {
+  display: grid;
+  grid-template-columns: max-content 1fr auto;
+  gap: 24px; align-items: baseline;
+  padding: 32px 0 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.ka-section-head .ka-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--copper);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ka-section-head .ka-num::after {
+  content: "";
+  display: inline-block; width: 28px; height: 1px;
+  background: currentColor;
+  margin-left: 12px; vertical-align: middle;
+}
+.ka-section-head h1,
+.ka-section-head .ka-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--fg);
+}
+.ka-section-head h1 em,
+.ka-section-head .ka-title em {
+  font-style: italic;
+  color: var(--copper-2);
+  font-weight: 400;
+}
+.ka-section-head .ka-hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mute);
+  text-align: right;
+  white-space: nowrap;
+}
+.ka-section-head .ka-lede {
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-soft);
+  max-width: 64ch;
+}
+
+/* Page wrapper — gives admin/portal pages the same gutters as .w-section */
+.ka-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px 96px;
+  position: relative;
+}
+
+/* =========================================================================
+   KPI tiles — serif numbers, mono captions, optional inset top-edge
+   ========================================================================= */
+.ka-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.ka-kpi {
+  position: relative;
+  display: block;
+  padding: 22px 22px 20px;
+  background: var(--ink-850);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 200ms var(--ease), transform 200ms var(--ease), box-shadow 200ms var(--ease);
+  overflow: hidden;
+}
+.ka-kpi::after {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(60% 80% at 100% 0%, var(--copper-tint), transparent 60%);
+  opacity: 0;
+  transition: opacity 240ms var(--ease);
+}
+.ka-kpi:hover {
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+.ka-kpi:hover::after { opacity: 1; }
+.ka-kpi .ka-kpi-lab {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  display: flex; align-items: center; gap: 8px;
+}
+.ka-kpi .ka-kpi-v {
+  margin-top: 10px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  display: flex; align-items: baseline; gap: 6px;
+}
+.ka-kpi .ka-kpi-v em { font-style: italic; color: var(--copper-2); font-weight: 400; }
+.ka-kpi .ka-kpi-v .ka-kpi-u {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--mute);
+  letter-spacing: 0.04em;
+  font-weight: 400;
+}
+.ka-kpi .ka-kpi-s {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+  letter-spacing: 0.04em;
+}
+/* Status colourings */
+.ka-kpi.is-warn { box-shadow: inset 0 1px 0 var(--copper); }
+.ka-kpi.is-warn .ka-kpi-lab { color: var(--copper); }
+.ka-kpi.is-fail { box-shadow: inset 0 1px 0 var(--fail); }
+.ka-kpi.is-fail .ka-kpi-lab { color: var(--fail); }
+.ka-kpi.is-fail .ka-kpi-v   { color: var(--fail); }
+.ka-kpi.is-ok   { box-shadow: inset 0 1px 0 var(--teal); }
+.ka-kpi.is-ok .ka-kpi-lab   { color: var(--teal); }
+
+@media (max-width: 980px) {
+  .ka-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .ka-kpi-row { grid-template-columns: 1fr; }
+}
+
+/* =========================================================================
+   Ticker pill — sidebar / topbar live indicator
+   ========================================================================= */
+.ka-ticker {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 11px 5px 7px;
+  border-radius: 999px;
+  background: var(--teal-tint);
+  border: 1px solid rgba(91,212,208,.22);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--teal-2);
+  letter-spacing: 0.04em;
+}
+.ka-ticker .ka-ticker-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 0 3px rgba(91,212,208,.18);
+  animation: kaPulse 1.6s ease-in-out infinite;
+}
+.ka-ticker b { color: var(--fg); font-weight: 500; }
+.ka-ticker.is-warn { background: var(--copper-tint); border-color: rgba(200,247,106,.22); color: var(--copper-2); }
+.ka-ticker.is-warn .ka-ticker-dot { background: var(--copper); box-shadow: 0 0 0 3px rgba(200,247,106,.18); }
+
+@keyframes kaPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* =========================================================================
+   Sidebar — Kore variant of the existing collapsible aside
+   The HTML structure is unchanged; .kore body class swaps the look.
+   ========================================================================= */
+body.kore #admin-sidebar {
+  background: linear-gradient(180deg, var(--ink-850) 0%, var(--ink-900) 100%);
+  border-right: 1px solid var(--line);
+}
+
+/* Brand block at top of the sidebar */
+body.kore .ka-brand-mark {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background:
+    radial-gradient(120% 80% at 30% 25%, var(--copper-2), var(--copper) 55%, var(--copper-deep) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.18),
+    0 0 0 1px rgba(0,0,0,.4),
+    0 8px 24px -10px rgba(200,247,106,.35);
+  position: relative;
+  flex-shrink: 0;
+}
+body.kore .ka-brand-mark::before {
+  content: "";
+  position: absolute; inset: 6px;
+  border-radius: 2px;
+  background: var(--ink-900);
+  clip-path: polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);
+}
+body.kore .ka-brand-word {
+  font-family: var(--serif);
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  display: block;
+  line-height: 1.1;
+}
+body.kore .ka-brand-word .ka-dot { color: var(--copper); }
+body.kore .ka-brand-tag {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* Group label */
+body.kore .sidebar-group-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--mute-2);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0 12px 6px !important;
+}
+
+/* Nav item — kore overrides for the inline-styled <a> in AdminLayout */
+body.kore .sidebar-nav-item {
+  position: relative;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--fg-soft);
+  border-radius: 10px;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+body.kore .sidebar-nav-item .nav-icon { color: var(--mute); transition: color 160ms var(--ease); }
+body.kore .sidebar-nav-item:not(.is-active):hover {
+  background: var(--ink-800) !important;
+  color: var(--fg) !important;
+}
+body.kore .sidebar-nav-item:not(.is-active):hover .nav-icon { color: var(--copper) !important; }
+body.kore .sidebar-nav-item.is-active {
+  background: var(--copper-tint) !important;
+  color: var(--copper-2) !important;
+}
+body.kore .sidebar-nav-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 2px; top: 8px; bottom: 8px;
+  width: 2px;
+  background: var(--copper);
+  border-radius: 2px;
+}
+body.kore .sidebar-nav-item.is-active .nav-icon { color: var(--copper) !important; }
+
+/* Badge in nav */
+body.kore .sidebar-nav-item .ka-nav-badge,
+body.kore .sidebar-nav-item span[style*="border-radius:9px"] {
+  background: var(--copper-tint) !important;
+  color: var(--copper) !important;
+  font-family: var(--mono) !important;
+  font-weight: 500 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Sidebar footer "Zur Website" / "Abmelden" */
+body.kore .sidebar-footer-link {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--mute);
+  border-radius: 8px;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+body.kore .sidebar-footer-link:hover {
+  background: var(--ink-800);
+  color: var(--copper);
+}
+body.kore .sidebar-footer-link.danger:hover {
+  background: rgba(226,107,107,.07);
+  color: var(--fail);
+}
+body.kore #sidebar-toggle { color: var(--mute); }
+body.kore #sidebar-toggle:hover { background: var(--ink-800); color: var(--copper); }
+body.kore #mobile-topbar { background: var(--ink-850); border-bottom: 1px solid var(--line); }
+
+/* =========================================================================
+   Cards
+   ========================================================================= */
+.ka-card {
+  position: relative;
+  background: var(--ink-850);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  transition: border-color 220ms var(--ease), box-shadow 220ms var(--ease), transform 220ms var(--ease);
+  overflow: hidden;
+}
+.ka-card:hover { border-color: var(--line-2); box-shadow: var(--shadow-2); }
+.ka-card--lime::after {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(60% 80% at 100% 0%, var(--copper-tint-2), transparent 60%);
+}
+.ka-card--teal::after {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(70% 80% at 0% 100%, var(--teal-tint), transparent 60%);
+}
+.ka-card > * { position: relative; }
+
+.ka-card-eye {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--copper);
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.ka-card-eye::before { content: ""; width: 22px; height: 1px; background: currentColor; }
+.ka-card h3, .ka-card .ka-card-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin: 12px 0 0;
+}
+.ka-card h3 em, .ka-card .ka-card-title em {
+  font-style: italic; color: var(--copper-2);
+}
+
+/* =========================================================================
+   Service link grid (replaces the old ServiceLinks pill row)
+   ========================================================================= */
+.ka-services {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.ka-service {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ink-850);
+  text-decoration: none;
+  color: var(--fg-soft);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  transition: all 200ms var(--ease);
+}
+.ka-service:hover {
+  border-color: var(--copper);
+  background: var(--ink-800);
+  color: var(--fg);
+}
+.ka-service .ka-service-glyph {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--copper-tint);
+  color: var(--copper);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ka-service:hover .ka-service-glyph { background: var(--copper-tint-2); color: var(--copper-2); }
+.ka-service .ka-service-glyph svg { width: 16px; height: 16px; }
+
+/* =========================================================================
+   Tables
+   ========================================================================= */
+.ka-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sans);
+}
+.ka-table thead th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mute-2);
+  font-weight: 500;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.ka-table tbody td {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--fg-soft);
+}
+.ka-table tbody tr { transition: background 140ms var(--ease); }
+.ka-table tbody tr:hover { background: var(--ink-800); }
+
+.ka-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ka-pill--ok    { background: var(--teal-tint);   color: var(--teal-2); }
+.ka-pill--warn  { background: var(--copper-tint); color: var(--copper-2); }
+.ka-pill--fail  { background: rgba(226,107,107,.12); color: var(--fail); }
+.ka-pill--mute  { background: var(--ink-800);     color: var(--mute); }
+
+/* =========================================================================
+   Empty state
+   ========================================================================= */
+.ka-empty {
+  position: relative;
+  text-align: center;
+  padding: 56px 32px;
+  border: 1px dashed var(--line-2);
+  border-radius: 16px;
+  background: var(--ink-850);
+  overflow: hidden;
+}
+.ka-empty::after {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(60% 60% at 50% 0%, var(--copper-tint), transparent 60%);
+}
+.ka-empty > * { position: relative; }
+.ka-empty .ka-empty-eye { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--copper); }
+.ka-empty .ka-empty-line {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--fg);
+  margin: 14px 0 0;
+}
+
+/* =========================================================================
+   Auth panel — login / session-expired
+   ========================================================================= */
+.ka-auth-panel {
+  max-width: 480px;
+  margin: 96px auto 0;
+  padding: 48px 40px 40px;
+  background: var(--ink-850);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.ka-auth-panel::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--copper), transparent);
+}
+.ka-auth-panel::after {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(80% 60% at 100% 0%, var(--copper-tint), transparent 70%);
+}
+.ka-auth-panel > * { position: relative; }
+.ka-auth-panel .ka-auth-eye { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--copper); }
+.ka-auth-panel h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; letter-spacing: -0.02em; margin: 14px 0 0; }
+.ka-auth-panel h2 em { font-style: italic; color: var(--copper-2); }
+.ka-auth-panel p { color: var(--fg-soft); margin-top: 14px; line-height: 1.55; }
+.ka-auth-panel .ka-auth-actions { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+
+/* =========================================================================
+   Buttons
+   ========================================================================= */
+.ka-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease), transform 180ms var(--ease);
+  white-space: nowrap;
+}
+.ka-btn--primary {
+  background: var(--copper);
+  color: var(--copper-deep);
+  font-weight: 600;
+  box-shadow: var(--inner-copper);
+}
+.ka-btn--primary:hover { background: var(--copper-2); transform: translateY(-1px); }
+.ka-btn--ghost {
+  background: transparent;
+  color: var(--fg-soft);
+  border-color: var(--line-2);
+}
+.ka-btn--ghost:hover { color: var(--copper); border-color: var(--copper); }
+
+/* =========================================================================
+   Misc / responsive
+   ========================================================================= */
+@media (max-width: 768px) {
+  .ka-section-head { grid-template-columns: 1fr; gap: 8px; }
+  .ka-section-head .ka-hint { text-align: left; }
+  .ka-section-head .ka-num::after { display: none; }
+  .ka-section-head .ka-num { margin-bottom: 4px; }
+  .ka-page { padding: 0 18px 64px; }
+}
+
+/* Tailwind-overriding bridges so legacy admin pages still look ok inside .kore */
+body.kore .bg-dark        { background: var(--ink-900) !important; }
+body.kore .bg-dark-light  { background: var(--ink-850) !important; }
+body.kore .bg-dark-lighter{ background: var(--ink-800) !important; }
+body.kore .text-light     { color: var(--fg) !important; }
+body.kore .text-muted     { color: var(--mute) !important; }
+body.kore .text-gold,
+body.kore .border-gold,
+body.kore .border-yellow-800,
+body.kore .border-yellow-700 { color: var(--copper) !important; border-color: var(--copper) !important; }
+body.kore .font-serif     { font-family: var(--serif) !important; }

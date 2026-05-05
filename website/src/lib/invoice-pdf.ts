@@ -408,10 +408,18 @@ export async function generateInvoicePdf(p: {
       doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
          .text(kleinNote, L, y, { width: W });
       y = doc.y + 6;
-    } else if (seller.vatId) {
-      doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
-         .text(`USt-IdNr.: ${seller.vatId}`, L, y);
-      y = doc.y + 6;
+    } else {
+      if (seller.vatId) {
+        doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
+           .text(`USt-IdNr.: ${seller.vatId}`, L, y, { width: W });
+        y = doc.y + 4;
+      }
+      const supplyType = (inv as any).supplyType as string | undefined;
+      if (supplyType && supplyNoticeMap[supplyType]) {
+        doc.font('Helvetica').fontSize(7.5).fillColor(C.inkMute)
+           .text(supplyNoticeMap[supplyType], L, y, { width: W });
+        y = doc.y + 6;
+      }
     }
 
     doc.font('Helvetica').fontSize(8.5).fillColor(C.inkSoft)

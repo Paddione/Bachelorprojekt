@@ -3465,6 +3465,7 @@ export async function initBillingTables(): Promise<void> {
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  // Plan F: indexes for new child tables
   await pool.query(`
     CREATE INDEX IF NOT EXISTS billing_nachweis_invoice_idx
       ON billing_nachweis (invoice_id)

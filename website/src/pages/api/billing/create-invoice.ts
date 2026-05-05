@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const customer = await getOrCreateCustomer({
-      name, email, phone, company, address1, city, postalCode, vatNumber,
+      brand: process.env.BRAND || 'mentolder', name, email, company,
     });
 
     if (!customer) {

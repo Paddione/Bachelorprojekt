@@ -63,6 +63,16 @@ env_vars:
     required: true
     default_dev: "workspace-website"
 
+  - name: WEBSITE_NAMESPACE
+    required: false
+    default_dev: "website"
+    description: "Kubernetes namespace for the Astro website (separate per env on unified cluster)"
+
+  - name: WORKSPACE_NAMESPACE
+    required: false
+    default_dev: "workspace"
+    description: "Kubernetes namespace for core workspace services (Keycloak, Nextcloud, etc.)"
+
   - name: EINVOICE_SIDECAR_ENABLED
     required: false
     default_dev: "false"

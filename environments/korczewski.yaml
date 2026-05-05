@@ -1,6 +1,6 @@
 # environments/korczewski.yaml
 environment: korczewski
-context: korczewski
+context: mentolder
 domain: korczewski.de
 
 env_vars:
@@ -18,6 +18,8 @@ env_vars:
   LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
   LEGAL_WEBSITE: korczewski.de
   WEBSITE_IMAGE: korczewski-website
+  WEBSITE_NAMESPACE: website-korczewski
+  WORKSPACE_NAMESPACE: workspace-korczewski
   INFRA_NAMESPACE: korczewski-infra
   TLS_SECRET_NAME: korczewski-tls
   SMTP_FROM: mentolder@mailbox.org
@@ -42,6 +44,8 @@ env_vars:
   KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
 
 overlay: prod-korczewski
+workspace_namespace: workspace-korczewski
+website_namespace: website-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml
 
 setup_vars:

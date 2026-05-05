@@ -18,6 +18,8 @@ env_vars:
   LEGAL_UST_ID: "33/023/05100"
   LEGAL_WEBSITE: mentolder.de
   WEBSITE_IMAGE: mentolder-website
+  WEBSITE_NAMESPACE: website
+  WORKSPACE_NAMESPACE: workspace
   INFRA_NAMESPACE: mentolder-infra
   TLS_SECRET_NAME: workspace-wildcard-tls
   SMTP_FROM: mentolder@mailbox.org
@@ -42,6 +44,8 @@ env_vars:
   KEYCLOAK_FRONTEND_URL: "https://auth.mentolder.de"
 
 overlay: prod-mentolder
+workspace_namespace: workspace
+website_namespace: website
 secrets_ref: sealed-secrets/mentolder.yaml
 
 setup_vars:

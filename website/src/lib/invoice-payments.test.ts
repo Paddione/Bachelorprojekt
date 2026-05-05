@@ -1,8 +1,11 @@
-import { it, expect, beforeAll, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
 import { initBillingTables, createCustomer, createInvoice, finalizeInvoice } from './native-billing';
 import { recordPayment, listPayments } from './invoice-payments';
 import { pool } from './website-db';
 
+const dbAvailable = !!(process.env.DATABASE_URL || process.env.WEBSITE_DATABASE_URL);
+
+describe.skipIf(!dbAvailable)('invoice-payments (DB-backed)', () => {
 beforeAll(async () => { await initBillingTables(); });
 
 async function setupOpenInvoice(gross: number) {
@@ -163,4 +166,5 @@ it('records independent Kursdifferenz bookings for two partial payments at diffe
   expect(Number(kdBookings.rows[0].net_amount)).toBeCloseTo(15, 0);
   expect(kdBookings.rows[1].category).toBe('kursdifferenz_verlust');
   expect(Number(kdBookings.rows[1].net_amount)).toBeCloseTo(10, 0);
+});
 });

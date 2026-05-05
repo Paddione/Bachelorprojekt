@@ -17,7 +17,7 @@ const baseInput: InvoiceInput = {
 describe('generateXRechnung', () => {
   it('uses the XRechnung 3.0 profile and Leitweg-ID as BuyerReference', () => {
     const xml = generateXRechnung(baseInput);
-    expect(xml).toContain('urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3.0');
+    expect(xml).toContain('urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0');
     expect(xml).toContain('<ram:BuyerReference>04011000-1234512345-67</ram:BuyerReference>');
   });
 

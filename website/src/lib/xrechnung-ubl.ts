@@ -1,7 +1,7 @@
 import type { EInvoiceInput } from './einvoice-types';
 
 const XR_UBL_CUSTOMIZATION =
-  'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3.0';
+  'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0';
 const XR_UBL_PROFILE = 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';
 
 const esc = (s: string | null | undefined) =>
@@ -100,7 +100,10 @@ export function generateXRechnungUbl(p: EInvoiceInput): string {
         <cbc:RegistrationName>${esc(p.customer.name)}</cbc:RegistrationName>
       </cac:PartyLegalEntity>
     </cac:Party>
-  </cac:AccountingCustomerParty>${paymentMeans}
+  </cac:AccountingCustomerParty>
+  <cac:Delivery>
+    <cbc:ActualDeliveryDate>${p.invoice.issueDate}</cbc:ActualDeliveryDate>
+  </cac:Delivery>${paymentMeans}
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="${currency}">${isKlein ? '0.00' : fmt2(p.invoice.taxAmount)}</cbc:TaxAmount>
     <cac:TaxSubtotal>

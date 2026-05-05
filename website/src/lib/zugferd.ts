@@ -76,7 +76,7 @@ export function generateZugferdXmlFromNative(input: any): string {
 }
 
 const XR_CII_GUIDELINE =
-  'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_3.0';
+  'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0';
 
 export function generateXRechnungCii(p: EInvoiceInput): string {
   if (!p.customer.leitwegId) {
@@ -195,7 +195,11 @@ export function generateXRechnungCii(p: EInvoiceInput): string {
         </ram:URIUniversalCommunication>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
-    <ram:ApplicableHeaderTradeDelivery/>
+    <ram:ApplicableHeaderTradeDelivery>
+      <ram:ActualDeliverySupplyChainEvent>
+        <ram:OccurrenceDateTime><udt:DateTimeString format="102">${dt(p.invoice.issueDate)}</udt:DateTimeString></ram:OccurrenceDateTime>
+      </ram:ActualDeliverySupplyChainEvent>
+    </ram:ApplicableHeaderTradeDelivery>
     <ram:ApplicableHeaderTradeSettlement>${p.invoice.paymentReference ? `
       <ram:PaymentReference>${esc(p.invoice.paymentReference)}</ram:PaymentReference>` : ''}
       <ram:InvoiceCurrencyCode>${currency}</ram:InvoiceCurrencyCode>${paymentMeans}

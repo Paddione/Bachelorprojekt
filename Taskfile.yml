@@ -1421,9 +1421,33 @@ tasks:
         kubectl $CTX logs -n "$NS" job/vaultwarden-seed
 
   billing:validate-einvoice:
-    desc: "Validate an XML or PDF e-invoice via Mustangproject (in Docker)"
+    desc: "Validate XML/PDF e-invoice(s) via Mustangproject. With no args, validates every fixture in website/test/fixtures/einvoice/. Pass `-- <file>` for a single file."
     cmds:
-      - bash website/tests/fixtures/mustang.sh validate {{.CLI_ARGS}}
+      - |
+        set -e
+        if [ -n "{{.CLI_ARGS}}" ]; then
+          bash website/tests/fixtures/mustang.sh validate {{.CLI_ARGS}}
+        else
+          fixtures_dir="website/test/fixtures/einvoice"
+          if [ ! -d "$fixtures_dir" ]; then
+            echo "✗ No fixtures directory at $fixtures_dir" >&2
+            exit 1
+          fi
+          shopt -s nullglob
+          mapfile -t files < <(find "$fixtures_dir" -maxdepth 1 -type f -name '*.xml' | sort -u)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "✗ No XML/PDF fixtures found in $fixtures_dir" >&2
+            exit 1
+          fi
+          echo "→ No file given — validating ${#files[@]} fixture(s) in $fixtures_dir"
+          rc=0
+          for f in "${files[@]}"; do
+            echo
+            echo "── $f ──"
+            bash website/tests/fixtures/mustang.sh validate "$f" || rc=$?
+          done
+          exit "$rc"
+        fi
     silent: false
 
   workspace:shortcuts:seed:

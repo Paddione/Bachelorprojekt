@@ -45,19 +45,34 @@
       </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
         <ram:Name>NL Buyer BV</ram:Name>
+        <ram:PostalTradeAddress>
+          <ram:PostcodeCode>1011AA</ram:PostcodeCode>
+          <ram:LineOne>Hoofdstraat 1</ram:LineOne>
+          <ram:CityName>Amsterdam</ram:CityName>
+          <ram:CountryID>NL</ram:CountryID>
+        </ram:PostalTradeAddress>
         <ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">NL123456789B01</ram:ID></ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
-    <ram:ApplicableHeaderTradeDelivery/>
+    <ram:ApplicableHeaderTradeDelivery>
+      <ram:ActualDeliverySupplyChainEvent>
+        <ram:OccurrenceDateTime><udt:DateTimeString format="102">20260401</udt:DateTimeString></ram:OccurrenceDateTime>
+      </ram:ActualDeliverySupplyChainEvent>
+    </ram:ApplicableHeaderTradeDelivery>
     <ram:ApplicableHeaderTradeSettlement>
       <ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>
       <ram:ApplicableTradeTax>
         <ram:CalculatedAmount>0.00</ram:CalculatedAmount>
         <ram:TypeCode>VAT</ram:TypeCode>
+        <ram:ExemptionReason>Reverse charge — VAT to be paid by recipient (Art. 196 VAT Directive 2006/112/EC).</ram:ExemptionReason>
         <ram:BasisAmount>1000.00</ram:BasisAmount>
         <ram:CategoryCode>AE</ram:CategoryCode>
         <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
       </ram:ApplicableTradeTax>
+      <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>Zahlbar bis 2026-04-15</ram:Description>
+        <ram:DueDateDateTime><udt:DateTimeString format="102">20260415</udt:DateTimeString></ram:DueDateDateTime>
+      </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:LineTotalAmount>1000.00</ram:LineTotalAmount>
         <ram:TaxBasisTotalAmount>1000.00</ram:TaxBasisTotalAmount>

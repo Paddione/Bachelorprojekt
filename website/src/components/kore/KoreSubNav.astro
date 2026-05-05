@@ -1,0 +1,28 @@
+---
+const { active = 'work' } = Astro.props as { active?: string };
+const links = [
+  { id: 'work',     label: 'Cluster' },
+  { id: 'services', label: 'Leistungen' },
+  { id: 'team',     label: 'Über mich' },
+  { id: 'notes',    label: 'Notizen' },
+  { id: 'contact',  label: 'Kontakt' },
+];
+---
+
+<nav class="web-nav" aria-label="Hauptnavigation">
+  <a class="shell-brand" href="/">
+    <img src="/brand/korczewski/kore-assets/logo-mark.svg" width="28" height="28" alt="Kore" />
+    <span style="font-family:var(--serif); font-size:22px;">
+      Kore<span style="color:var(--copper)">.</span>
+    </span>
+  </a>
+  <div class="links">
+    {links.map(({id, label}) => (
+      <a href={id === 'contact' ? '/kontakt' : `#${id}`} class={active === id ? 'active' : ''}>{label}</a>
+    ))}
+  </div>
+  <div class="actions">
+    <a class="btn ghost sm" href="#timeline">Notizen</a>
+    <a class="btn primary sm" href="/kontakt">Kennenlernen →</a>
+  </div>
+</nav>

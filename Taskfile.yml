@@ -581,25 +581,26 @@ tasks:
         vars: { ENV: "korczewski" }
 
   workspace:talk-dns-fix:
-    desc: "Apply CoreDNS signaling override for a cluster (ENV=mentolder|korczewski)"
+    desc: "Apply CoreDNS signaling override (kube-system is shared by mentolder + korczewski; ENV defaults to mentolder)"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        envsubst "\$PROD_DOMAIN" < prod/coredns-signaling-override.yaml \
-          | kubectl --context "${ENV_CONTEXT}" apply -f -
+        kubectl --context "${ENV_CONTEXT}" apply -f prod/coredns-signaling-override.yaml
+        # CoreDNS has the `reload` plugin and re-reads the ConfigMap every ~30s
+        # automatically. Force-restart here so the override takes effect now,
+        # which is the whole point of this manual "fix it" task.
         kubectl --context "${ENV_CONTEXT}" rollout restart deployment/coredns -n kube-system 2>/dev/null || \
           kubectl --context "${ENV_CONTEXT}" rollout restart daemonset/coredns -n kube-system 2>/dev/null || true
-        echo "✓ CoreDNS signaling override applied for ${PROD_DOMAIN}"
+        kubectl --context "${ENV_CONTEXT}" rollout status deployment/coredns -n kube-system --timeout=60s 2>/dev/null || true
+        echo "✓ CoreDNS signaling override applied (mentolder.de + korczewski.de)"
 
   workspace:talk-dns-fix:all-prods:
-    desc: Apply CoreDNS signaling override on all production clusters
+    desc: Apply CoreDNS signaling override (single shared kube-system; one apply suffices)
     cmds:
       - task: workspace:talk-dns-fix
         vars: { ENV: "mentolder" }
-      - task: workspace:talk-dns-fix
-        vars: { ENV: "korczewski" }
 
   workspace:coturn:sync-secret:
     desc: "Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets (ENV=dev|mentolder|korczewski)"

@@ -4,11 +4,17 @@
 # (z.B. POST /api/v1/room/<id>). Die externe IP ist aus dem Cluster heraus durch
 # die NetworkPolicy (allow-internet-egress blockt RFC1918) nicht erreichbar.
 # Diese Konfiguration überschreibt die DNS-Auflösung cluster-intern so, dass
-# signaling.${PROD_DOMAIN} auf die Traefik-ClusterIP zeigt, die innerhalb des
+# signaling.<domain> auf die Traefik-ClusterIP zeigt, die innerhalb des
 # Clusters per HTTPS erreichbar ist (NetworkPolicy: allow-traefik-egress).
 #
-# Deployment: task workspace:talk-dns-fix ENV=mentolder|korczewski
-# (manuell; kube-system liegt ausserhalb des ArgoCD workspace-Scopes)
+# Beide produktiven Domains werden explizit aufgeführt: mentolder und korczewski
+# laufen nach der Cluster-Konsolidierung in derselben physischen kube-system,
+# also kann pro Cluster nur eine Datei existieren — wir listen alle Domains.
+#
+# CoreDNS hat das `reload`-Plugin aktiv (Corefile in `coredns` ConfigMap), das
+# diese Datei alle 30s automatisch neu einliest. Ein expliziter Restart ist
+# nicht nötig und vermeidet die unvermeidbare DNS-Lücke einer 1-replica
+# RollingUpdate-Deployment.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -16,4 +22,5 @@ metadata:
   namespace: kube-system
 data:
   signaling.override: |
-    rewrite name signaling.${PROD_DOMAIN} traefik.kube-system.svc.cluster.local
+    rewrite name signaling.mentolder.de traefik.kube-system.svc.cluster.local
+    rewrite name signaling.korczewski.de traefik.kube-system.svc.cluster.local

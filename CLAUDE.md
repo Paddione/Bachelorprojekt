@@ -10,7 +10,18 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
 ## Common Commands
 
-### Cluster & Deployment
+### Day-to-day workflows (fan out across BOTH prod clusters)
+```bash
+task feature:deploy        # workspace:deploy + post-setup on mentolder + korczewski
+task feature:website       # Rebuild + roll the Astro website on both clusters
+task feature:brett         # Rebuild + roll the brett service on both clusters
+task feature:dashboard     # Rebuild + roll the operator dashboard on both clusters
+task feature:livekit       # Re-pin livekit/stream DNS on both clusters
+task health                # Cross-cluster status + connectivity check
+```
+The underlying `workspace:*:all-prods` (`workspace:deploy:all-prods`, `workspace:post-setup:all-prods`, `workspace:status:all-prods`, `website:redeploy:all-prods`, `brett:deploy:all-prods`, `dashboard:web:deploy:all-prods`, `workspace:talk-setup:all-prods`, `workspace:recording-setup:all-prods`) just run the per-env task twice (mentolder, korczewski) — call them directly when you need finer control.
+
+### Cluster & Deployment (single env)
 ```bash
 task cluster:create                        # Create k3d cluster (k3d-config.yaml)
 task cluster:delete                        # Destroy cluster
@@ -22,27 +33,21 @@ task workspace:deploy                      # Deploy workspace (default ENV=dev)
 task workspace:deploy ENV=mentolder        # Deploy to mentolder prod cluster
 task workspace:deploy ENV=korczewski       # Deploy to korczewski prod cluster
 task workspace:validate                    # Dry-run manifest validation
-task workspace:teardown                    # Remove all services
+task workspace:teardown ENV=<env>          # Remove all services in a single env
 task sealed-secrets:install                # Install Sealed Secrets controller via Helm
 task sealed-secrets:status                 # Show Sealed Secrets controller status
 ```
 
-### Daily Operations
+### Daily Operations (per env)
 ```bash
-task workspace:status            # Show pod status, services, ingress, PVCs
-task workspace:logs -- <svc>     # Tail logs (e.g., keycloak, nextcloud)
-task workspace:restart -- <svc>  # Restart a specific service
-task workspace:psql -- <db>      # Open psql shell to shared-db
-task workspace:port-forward      # Forward shared-db to localhost:5432
-# Env-specific shorthands (equivalent to workspace:* with the matching ENV=)
-task mentolder:status            # Show mentolder cluster status
-task mentolder:logs -- <svc>     # Tail mentolder logs
-task mentolder:restart -- <svc>  # Restart mentolder service
-task korczewski:status           # Show korczewski cluster status
-task korczewski:logs -- <svc>    # Tail korczewski logs
-task korczewski:restart -- <svc> # Restart korczewski service
-task clusters:status             # Show status of all clusters at once
+task workspace:status   ENV=<env>             # Show pod status, services, ingress, PVCs
+task workspace:logs     ENV=<env> -- <svc>    # Tail logs (e.g., keycloak, nextcloud)
+task workspace:restart  ENV=<env> -- <svc>    # Restart a specific service
+task workspace:psql     ENV=<env> -- <db>     # Open psql shell to shared-db
+task workspace:port-forward ENV=<env>         # Forward shared-db to localhost:5432
+task clusters:status                          # One-line status across both prod clusters
 ```
+The legacy `mentolder:*` / `korczewski:*` shorthands were removed 2026-05-05 — pass `ENV=` to the unified tasks instead.
 
 ### Backup & Restore
 ```bash
@@ -81,8 +86,7 @@ task gemini:setup -- cluster|business     # Generate Gemini CLI settings.json (p
 
 ### Docs
 ```bash
-task docs:deploy ENV=<env>               # Deploy docs ConfigMap to both prod clusters
-task docs:restart ENV=<env>              # Force-restart docs pod after ConfigMap update
+task docs:deploy                # Deploy docs ConfigMap to both prod clusters (mentolder + korczewski)
 ```
 
 ### Claude Code MCP Servers
@@ -97,11 +101,12 @@ task mcp:set-github-pat -- <tok>      # Update GitHub PAT in claude-code-secrets
 
 ### Website (Astro + Svelte)
 ```bash
-task website:deploy              # Build, import, and deploy website
-task website:dev                 # Astro dev server (hot-reload)
-task website:redeploy            # Rebuild and restart
-task website:status              # Show website deployment status
-task website:teardown            # Remove website namespace
+task website:deploy   ENV=<env>     # Build, import, and deploy website
+task website:dev                    # Astro dev server (hot-reload, no ENV)
+task website:redeploy ENV=<env>     # Rebuild and roll website pod
+task website:status   ENV=<env>     # Show website deployment status
+task website:teardown ENV=<env>     # Remove website namespace
+task website:redeploy:all-prods     # Rebuild + roll on mentolder + korczewski
 ```
 
 ### Livestream (LiveKit — WebRTC + OBS)
@@ -319,7 +324,8 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 Non-obvious repo behaviors. Violating these silently breaks things or hits the wrong cluster.
 
 ### Environment targeting
-- **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work.
+- **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`, etc.) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work — or use the `feature:*` / `*:all-prods` umbrellas which fan out across both prod clusters explicitly.
+- **All workspace tasks now honour `WORKSPACE_NAMESPACE`.** Earlier the Taskfile and several `scripts/*.sh` hardcoded `-n workspace`, which silently wrote korczewski-targeted post-config (theming, OIDC redirects, talk signaling) into mentolder's `workspace` namespace. After 2026-05-05 every ENV-aware task sources `env-resolve.sh` and uses `${WORKSPACE_NAMESPACE:-workspace}` (mentolder=`workspace`, korczewski=`workspace-korczewski`); scripts default to `${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}` and the Taskfile call sites export the env var before invoking. If you add a new task that touches workspace resources, follow this pattern.
 - **ArgoCD tasks are hub-only and enforce it.** All `argocd:*` tasks live in `Taskfile.argocd.yml` and have a `_hub-guard` precondition that aborts with a clear error if the `mentolder` context is unreachable. `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
 - **korczewski context still exists but points to the same physical cluster.** The `korczewski` kubeconfig context (62.238.9.39:6443 = pk-hetzner) now resolves to the unified mentolder cluster. `ENV=korczewski` in Taskfile tasks routes correctly. korczewski workloads land in `workspace-korczewski` namespace, not `workspace`.
 
@@ -340,7 +346,7 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **`env:generate ENV=<target>` must run before `env:seal` and before deploying prod.** `talk-hpb-setup.sh` aborts on placeholder `MANAGED_EXTERNALLY` values if signaling/turn secrets were never generated.
 
 ### Operational
-- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy ENV=<env>` then `task docs:restart ENV=<env>`. Applying the ConfigMap alone leaves the old content served.
+- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy` (it now updates and restarts both clusters in one go — `docs:restart` was removed as it was a no-op alias). Applying the ConfigMap alone leaves the old content served.
 - **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.
 - **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
 

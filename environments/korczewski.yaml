@@ -39,6 +39,7 @@ env_vars:
   STRIPE_PUBLISHABLE_KEY: "pk_live_51RhKrcDGTY4NP8aeqnf69F1OVgNleqjLqR5ZHi8jkzlyxLiaTEnsY5xwhgPAVV7FdNb4eRnelIzt7DUj9TTAopXg00yyxjx03t"
   BRETT_DOMAIN: brett.korczewski.de
   LIVEKIT_DOMAIN: livekit.korczewski.de
+  LIVEKIT_PIN_IP: "178.104.159.79"
   STREAM_DOMAIN: stream.korczewski.de
   DASHBOARD_DOMAIN: dashboard.korczewski.de
   WEBSITE_HOST: web.korczewski.de

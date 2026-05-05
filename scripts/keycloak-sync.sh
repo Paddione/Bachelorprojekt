@@ -23,7 +23,7 @@ source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/lib/keycloak-helpers.sh"
 
-KC_NAMESPACE="${KC_NAMESPACE:-workspace}"
+KC_NAMESPACE="${KC_NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 KC_REALM="${KC_REALM:-workspace}"
 
 # Keycloak-URL: extern über Ingress (curl läuft lokal, nicht im Pod)
@@ -126,7 +126,7 @@ build_kv_map() {
 
   # WEBSITE_OIDC_SECRET lives in website-secrets (website namespace), not workspace-secrets.
   # shellcheck disable=SC2086
-  kubectl $CONTEXT_FLAG get secret website-secrets -n website \
+  kubectl $CONTEXT_FLAG get secret website-secrets -n "${WEBSITE_NAMESPACE:-website}" \
     -o json 2>/dev/null \
     | jq -r '.data | to_entries[] | select(.key | endswith("_OIDC_SECRET")) | "\(.key)=\(.value|@base64d)"' 2>/dev/null || true
 }

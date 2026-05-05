@@ -158,6 +158,10 @@ env_vars:
     required: true
     default_dev: "livekit.localhost"
 
+  - name: LIVEKIT_PIN_IP
+    required: false
+    default_dev: "127.0.0.1"
+
   - name: STREAM_DOMAIN
     required: true
     default_dev: "stream.localhost"

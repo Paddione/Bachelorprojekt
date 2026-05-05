@@ -15,10 +15,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Honour WORKSPACE_NAMESPACE when set by the caller (env-resolve.sh / Taskfile)
+# so `task workspace:shortcuts:seed ENV=korczewski` targets workspace-korczewski.
+NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
+
 run_sql() {
   local sql="$1"
   # shellcheck disable=SC2086
-  kubectl $CTX_FLAG exec -n workspace deploy/shared-db -- \
+  kubectl $CTX_FLAG exec -n "$NAMESPACE" deploy/shared-db -- \
     psql -U postgres -d website -c "$sql" 2>/dev/null
 }
 

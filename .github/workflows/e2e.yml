@@ -1,0 +1,101 @@
+name: E2E (Live Production)
+
+# Runs the Playwright suite against both production clusters in parallel.
+# Triggered manually or on a nightly cron — not on every PR, since each run
+# hits live web.mentolder.de and web.korczewski.de.
+#
+# Auth-gated specs need MM_TEST_USER / MM_TEST_PASS repo secrets (Keycloak
+# credentials of a workspace user). Without them, login flows fall back to
+# defaults and the affected tests will fail or skip.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: "Cluster to test (default: both)"
+        required: false
+        default: both
+        type: choice
+        options: [both, mentolder, korczewski]
+  schedule:
+    - cron: "0 3 * * *"  # 03:00 UTC nightly
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  playwright:
+    name: ${{ matrix.cluster }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cluster: mentolder
+            website_url: https://web.mentolder.de
+            prod_domain: mentolder.de
+          - cluster: korczewski
+            website_url: https://web.korczewski.de
+            prod_domain: korczewski.de
+    env:
+      SELECTED_CLUSTER: ${{ inputs.cluster }}
+      EVENT_NAME: ${{ github.event_name }}
+      MATRIX_CLUSTER: ${{ matrix.cluster }}
+    steps:
+      - name: Skip if non-matching manual input
+        id: gate
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$SELECTED_CLUSTER" != "both" ] && [ "$SELECTED_CLUSTER" != "$MATRIX_CLUSTER" ]; then
+            echo "Skipping $MATRIX_CLUSTER (manual input selected '$SELECTED_CLUSTER')"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.gate.outputs.skip != 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: tests/e2e/package-lock.json
+
+      - name: Install dependencies
+        if: steps.gate.outputs.skip != 'true'
+        working-directory: tests/e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: steps.gate.outputs.skip != 'true'
+        working-directory: tests/e2e
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run Playwright suite against ${{ matrix.website_url }}
+        if: steps.gate.outputs.skip != 'true'
+        working-directory: tests/e2e
+        env:
+          WEBSITE_URL: ${{ matrix.website_url }}
+          PROD_DOMAIN: ${{ matrix.prod_domain }}
+          MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
+          MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: always() && steps.gate.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.cluster }}
+          path: tests/e2e/playwright-report
+          retention-days: 14
+
+      - name: Upload traces on failure
+        if: failure() && steps.gate.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-${{ matrix.cluster }}
+          path: tests/results/playwright-traces
+          retention-days: 14

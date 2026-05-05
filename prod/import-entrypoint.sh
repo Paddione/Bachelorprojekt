@@ -40,7 +40,8 @@ for var in \
     SMTP_FROM \
     SMTP_USER \
     SMTP_PASSWORD \
-    BRETT_OIDC_SECRET; do
+    BRETT_OIDC_SECRET \
+    DASHBOARD_OIDC_SECRET; do
   eval val="\${${var}:-}"
   if [ -z "$val" ]; then
     echo "[import-entrypoint] WARNUNG: ${var} ist nicht gesetzt!"

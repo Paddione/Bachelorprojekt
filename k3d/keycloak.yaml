@@ -148,6 +148,11 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: BRETT_OIDC_SECRET
+            - name: DASHBOARD_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: DASHBOARD_OIDC_SECRET
             - name: TZ
               value: Europe/Berlin
           ports:

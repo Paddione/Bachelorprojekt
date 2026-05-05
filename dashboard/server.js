@@ -30,7 +30,7 @@ const ALLOWED_COMMANDS = new Set([
   'workspace:preflight', 'workspace:validate', 'workspace:up',
   'workspace:deploy', 'workspace:status', 'workspace:office:deploy',
   'workspace:post-setup', 'workspace:talk-setup',
-  'keycloak:sync', 'keycloak:sync-secrets',
+  'keycloak:sync',
   'workspace:recording-setup', 'workspace:transcriber-setup', 'workspace:whiteboard-setup',
   'workspace:systembrett-setup', 'workspace:admin-users-setup',
   'workspace:logs', 'workspace:restart', 'workspace:check-connectivity', 'workspace:check-updates',
@@ -40,8 +40,6 @@ const ALLOWED_COMMANDS = new Set([
   'workspace:db:start', 'workspace:db:drop', 'workspace:db:restore',
   'workspace:teardown',
   'workspace:create-guest', 'workspace:import-users', 'workspace:migrate',
-  'mentolder:status', 'mentolder:logs', 'mentolder:restart',
-  'korczewski:status', 'korczewski:logs', 'korczewski:restart',
   'clusters:status',
   'argocd:setup', 'argocd:status', 'argocd:apps:apply',
   'argocd:install', 'argocd:password', 'argocd:cluster:register',
@@ -57,7 +55,7 @@ const ALLOWED_COMMANDS = new Set([
   'einvoice-sidecar:build', 'einvoice-sidecar:import', 'einvoice-sidecar:push', 'einvoice-sidecar:logs',
   'billing:validate-einvoice',
   'cert:install', 'cert:status',
-  'docs:deploy', 'docs:restart',
+  'docs:deploy',
   'test:all', 'test:unit', 'test:manifests',
 ]);
 

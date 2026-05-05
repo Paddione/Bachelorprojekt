@@ -591,7 +591,8 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
   const result = await pool.query(
     `SELECT ticket_id as "ticketId", status, category,
             created_at as "createdAt", resolved_at as "resolvedAt",
-            resolution_note as "resolutionNote"
+            resolution_note as "resolutionNote",
+            fixed_in_pr as "fixedInPr", fixed_at as "fixedAt"
      FROM bugs.bug_tickets WHERE ticket_id = $1`,
     [ticketId]
   );
@@ -634,6 +635,17 @@ export async function initBugTicketsTable(): Promise<void> {
     ALTER TABLE bugs.bug_tickets
       ALTER COLUMN brand DROP DEFAULT
   `);
+  await pool.query(
+    `ALTER TABLE bugs.bug_tickets
+       ADD COLUMN IF NOT EXISTS fixed_in_pr   INTEGER`
+  );
+  await pool.query(
+    `ALTER TABLE bugs.bug_tickets
+       ADD COLUMN IF NOT EXISTS fixed_at      TIMESTAMPTZ`
+  );
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr)`
+  );
   // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
   await pool.query(`
     UPDATE inbox_items
@@ -2182,6 +2194,8 @@ export interface BugTicketRow {
   resolvedAt: Date | null;
   resolutionNote: string | null;
   screenshots: string[] | null;
+  fixedInPr?: number | null;
+  fixedAt?: Date | null;
 }
 
 let bookingProjectLinksReady = false;
@@ -2486,7 +2500,9 @@ export async function listBugTickets(filters: {
             created_at       AS "createdAt",
             resolved_at      AS "resolvedAt",
             resolution_note  AS "resolutionNote",
-            screenshots_json AS "screenshots"
+            screenshots_json AS "screenshots",
+            fixed_in_pr      AS "fixedInPr",
+            fixed_at         AS "fixedAt"
      FROM bugs.bug_tickets
      WHERE ($1::text IS NULL OR brand = $1)
        AND ($2::text IS NULL OR status = $2)

@@ -144,6 +144,10 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_status ON bugs.bug_tickets(status);
       ALTER TABLE bugs.bug_tickets OWNER TO website;
+      ALTER TABLE bugs.bug_tickets
+        ADD COLUMN IF NOT EXISTS fixed_in_pr   INTEGER,
+        ADD COLUMN IF NOT EXISTS fixed_at      TIMESTAMPTZ;
+      CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr);
 
       -- Indexes for MCP query patterns
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
@@ -464,6 +468,10 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_status ON bugs.bug_tickets(status);
       ALTER TABLE bugs.bug_tickets OWNER TO website;
+      ALTER TABLE bugs.bug_tickets
+        ADD COLUMN IF NOT EXISTS fixed_in_pr   INTEGER,
+        ADD COLUMN IF NOT EXISTS fixed_at      TIMESTAMPTZ;
+      CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr);
 
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);

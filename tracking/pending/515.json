@@ -1,0 +1,12 @@
+{
+  "pr_number": 515,
+  "title": "static signaling override + drop forced restart (no more nextcloud-db DNS race)",
+  "description": "## Summary\nFixes the `could not translate host name \"nextcloud-db\"` error seen during `task workspace:deploy ENV=korczewski` post-setup.\n\nTwo stacked bugs:\n\n1. **`scripts/talk-hpb-setup.sh:108`** applied `prod/coredns-signaling-override.yaml` without `envsubst`, so the live `coredns-custom` ConfigMap contained literal `signaling.${PROD_DOMAIN}` — a no-op rewrite. The dedicated `workspace:talk-dns-fix` task *did* substitute correctly, but per-env templating is the wrong model anyway: after the cluster merge, mentolder + korczewski share one physical `kube-system`, so the last `apply` overwrites the other env.\n2. The script then forced a `kubectl rollout restart deployment/coredns`. CoreDNS runs **1 replica, maxUnavailable=1**, producing an unavoidable 2–5 s DNS gap. The immediately-following verification `_occ` call landed in that gap and emitted a Doctrine stack trace. Talk config itself wrote *before* the restart and persisted, so the error was cosmetic but noisy.\n\n## Fix\n- `prod/coredns-signaling-override.yaml`: list `mentolder.de` + `korczewski.de` rewrites explicitly. No `envsubst` variable; cluster-wide config.\n- `scripts/talk-hpb-setup.sh`: apply once, **no restart**. CoreDNS Corefile already imports the override and runs the `reload` plugin, so the ConfigMap is re-read every ~30 s automatically.\n- `Taskfile.yml workspace:talk-dns-fix`: drop `envsubst`; keep the explicit restart since this task is the manual \"apply now\" trigger. `:all-prods` collapses to one apply.\n\n## Verification\n- `kubectl -n kube-system get cm coredns-custom` now shows both rewrites.\n- From inside the NC pod, `getent hosts signaling.mentolder.de` and `signaling.korczewski.de` both return `10.43.119.133` (Traefik ClusterIP).\n- Re-running `task workspace:talk-setup ENV=korczewski` is a no-op (`configmap unchanged`) and produces no DNS error; all three verification calls return valid JSON.\n\n## Test plan\n- [x] Live cluster: both rewrites resolve to Traefik\n- [x] Idempotent re-run: no restart, no error\n- [ ] Fresh deploy: `task feature:deploy` produces no `nextcloud-db` trace\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "coredns",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-05T15:33:10Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

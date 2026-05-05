@@ -1,8 +1,6 @@
 import { PDFDocument, PDFName, PDFDict, PDFHexString, PDFString, PDFNumber } from 'pdf-lib';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { SRGB_ICC } from './srgb-icc';
 
 export type FacturXLevel = 'MINIMUM' | 'BASIC WL' | 'BASIC' | 'EN 16931' | 'EXTENDED' | 'XRECHNUNG';
 
@@ -12,8 +10,6 @@ export interface EmbedOptions {
   modificationDate?: Date;
   attachmentName?: string; // default: factur-x.xml; XRECHNUNG profile uses xrechnung.xml
 }
-
-const ICC_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'sRGB.icc');
 
 const BRAND_TAG = `${process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'}-billing`;
 
@@ -144,8 +140,7 @@ export async function embedFacturXIntoPdfA3(
     pdf.context.obj([PDFString.of(fileName), filespecRef]));
 
   // OutputIntent: sRGB
-  const iccBytes = readFileSync(ICC_PATH);
-  const iccStream = pdf.context.stream(iccBytes, { N: 3, Length: iccBytes.length });
+  const iccStream = pdf.context.stream(SRGB_ICC, { N: 3, Length: SRGB_ICC.length });
   const iccRef = pdf.context.register(iccStream);
   const outputIntent = pdf.context.obj({
     Type: 'OutputIntent',

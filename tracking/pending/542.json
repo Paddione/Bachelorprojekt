@@ -1,0 +1,12 @@
+{
+  "pr_number": 542,
+  "title": "add Services, WhyMe, Process, FAQ sections to Kore homepage",
+  "description": "## Summary\n\n- Add 4 missing sections to `web.korczewski.de` in Kore-native dark style: **Services** (01/07), **WhyMe** (02/07), **Process** (03/07), **FAQ** (—)\n- Fix broken nav anchor (`#notes` → `#timeline`) and move KorePillars to `id=\"work\"` so `#services` correctly points to the new professional services section\n- Renumber all existing section labels from x/04 to x/07\n- No Stripe — services link to `#contact`; FAQ uses native `<details>/<summary>` (no JS)\n\n## Test Plan\n- [x] All offline tests pass (`task test:all`, FAIL=0)\n- [x] Verified live at `https://web.korczewski.de`: all 9 section IDs present (`services`, `why`, `process`, `work`, `timeline`, `bugs`, `team`, `faq`, `contact`), correct numbering (01–07), FAQ accordion, services rows with \"Anfragen →\" links\n- [x] `web.mentolder.de` unaffected (mentolder branch in `index.astro` untouched)\n\n🤖 Generated with [Claude Code](https://claude.ai/claude-code)",
+  "category": "feat",
+  "scope": "kore",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-06T05:31:38Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

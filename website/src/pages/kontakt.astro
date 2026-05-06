@@ -1,8 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import KoreLayout from '../layouts/KoreLayout.astro';
+import KoreContact from '../components/kore/KoreContact.astro';
 import ContactHub from '../components/ContactHub.svelte';
+import BookingForm from '../components/BookingForm.svelte';
 import { config } from '../config/index';
 import { getEffectiveKontakt } from '../lib/content';
+
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const isKore = BRAND_ID === 'korczewski';
 
 const { contact } = config;
 const kontakt = await getEffectiveKontakt();
@@ -15,70 +21,154 @@ const initialServiceKey = Astro.url.searchParams.get('service') ?? undefined;
 const initialDate  = Astro.url.searchParams.get('date')  ?? '';
 const initialStart = Astro.url.searchParams.get('start') ?? '';
 const initialEnd   = Astro.url.searchParams.get('end')   ?? '';
+
+// For Kore booking: detect if we have slot params to pre-open booking
+const koreBooking = isKore && rawMode === 'termin' && initialDate && initialStart;
 ---
 
-<Layout title="Kontakt" description="Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren.">
-  <section class="pt-28 pb-20 bg-dark">
-    <div class="max-w-5xl mx-auto px-6">
-      <div class="text-center mb-14">
-        <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Kontakt aufnehmen</h1>
-        <p class="text-xl text-muted max-w-2xl mx-auto">{kontakt.intro}</p>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
-        <div class="lg:col-span-3 bg-dark-light rounded-2xl border border-dark-lighter p-8">
-          <ContactHub client:load initialMode={initialMode} initialServiceKey={initialServiceKey} {initialDate} {initialStart} {initialEnd} />
+{isKore ? (
+  <KoreLayout title="Kontakt" description="E-Mail oder direkt einen Termin buchen — Patrick Korczewski, Lüneburg." active="contact">
+    {koreBooking && (
+      <section class="kore-booking-section">
+        <div class="kore-booking-inner">
+          <span class="kore-booking-eyebrow">Terminbuchung</span>
+          <h1>Slot vormerken.</h1>
+          <p class="kore-booking-date">{initialDate} · {initialStart}{initialEnd ? ` – ${initialEnd}` : ''}</p>
+          <div class="kore-booking-form">
+            <BookingForm client:load initialType="erstgespraech" serviceKey={initialServiceKey} {initialDate} {initialStart} {initialEnd} />
+          </div>
+          <a href="/kontakt" class="kore-booking-back">← Zurück zur Übersicht</a>
+        </div>
+      </section>
+    )}
+    <KoreContact />
+  </KoreLayout>
+) : (
+  <Layout title="Kontakt" description="Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren.">
+    <section class="pt-28 pb-20 bg-dark">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="text-center mb-14">
+          <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Kontakt aufnehmen</h1>
+          <p class="text-xl text-muted max-w-2xl mx-auto">{kontakt.intro}</p>
         </div>
 
-        <div class="lg:col-span-2 space-y-8">
-          <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8">
-            <h2 class="text-xl font-bold text-gold mb-6 font-serif">Direkt erreichen</h2>
-            <div class="space-y-5">
-              {kontakt.showPhone && contact.phone && (
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
+          <div class="lg:col-span-3 bg-dark-light rounded-2xl border border-dark-lighter p-8">
+            <ContactHub client:load initialMode={initialMode} initialServiceKey={initialServiceKey} {initialDate} {initialStart} {initialEnd} />
+          </div>
+
+          <div class="lg:col-span-2 space-y-8">
+            <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8">
+              <h2 class="text-xl font-bold text-gold mb-6 font-serif">Direkt erreichen</h2>
+              <div class="space-y-5">
+                {kontakt.showPhone && contact.phone && (
+                  <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                    <div>
+                      <p class="font-medium text-light">Telefon</p>
+                      <a href={`tel:${contact.phone}`} class="text-gold hover:underline text-lg">{contact.phone}</a>
+                    </div>
+                  </div>
+                )}
                 <div class="flex items-start gap-4">
-                  <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   <div>
-                    <p class="font-medium text-light">Telefon</p>
-                    <a href={`tel:${contact.phone}`} class="text-gold hover:underline text-lg">{contact.phone}</a>
+                    <p class="font-medium text-light">E-Mail</p>
+                    <a href={`mailto:${contact.email}`} class="text-gold hover:underline text-lg">{contact.email}</a>
                   </div>
                 </div>
-              )}
-              <div class="flex items-start gap-4">
-                <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                <div>
-                  <p class="font-medium text-light">E-Mail</p>
-                  <a href={`mailto:${contact.email}`} class="text-gold hover:underline text-lg">{contact.email}</a>
-                </div>
-              </div>
-              <div class="flex items-start gap-4">
-                <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <div>
-                  <p class="font-medium text-light">Standort</p>
-                  <p class="text-muted text-lg">{contact.city} und Umgebung</p>
+                <div class="flex items-start gap-4">
+                  <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <div>
+                    <p class="font-medium text-light">Standort</p>
+                    <p class="text-muted text-lg">{contact.city} und Umgebung</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="bg-dark-light rounded-2xl p-8 border-l-4 border-gold">
-            <h2 class="text-xl font-bold text-light mb-4 font-serif">{kontakt.sidebarTitle}</h2>
-            <p class="text-muted leading-relaxed">{kontakt.sidebarText}</p>
-            <p class="text-gold font-semibold mt-4">{kontakt.sidebarCta}</p>
-          </div>
-
-          {kontakt.showSteps && (
-            <div class="bg-dark-light rounded-2xl p-8 border border-dark-lighter">
-              <h2 class="text-xl font-bold text-light mb-4 font-serif">Wie geht es weiter?</h2>
-              <ol class="space-y-3 text-muted">
-                <li class="flex gap-3"><span class="text-gold font-bold">1.</span><span>Sie schreiben mir über das Formular oder per E-Mail</span></li>
-                <li class="flex gap-3"><span class="text-gold font-bold">2.</span><span>Ich melde mich innerhalb von 24 Stunden</span></li>
-                <li class="flex gap-3"><span class="text-gold font-bold">3.</span><span>Wir vereinbaren ein Kennenlerngespräch</span></li>
-                <li class="flex gap-3"><span class="text-gold font-bold">4.</span><span>Danach entscheiden Sie, ob wir zusammenarbeiten</span></li>
-              </ol>
+            <div class="bg-dark-light rounded-2xl p-8 border-l-4 border-gold">
+              <h2 class="text-xl font-bold text-light mb-4 font-serif">{kontakt.sidebarTitle}</h2>
+              <p class="text-muted leading-relaxed">{kontakt.sidebarText}</p>
+              <p class="text-gold font-semibold mt-4">{kontakt.sidebarCta}</p>
             </div>
-          )}
+
+            {kontakt.showSteps && (
+              <div class="bg-dark-light rounded-2xl p-8 border border-dark-lighter">
+                <h2 class="text-xl font-bold text-light mb-4 font-serif">Wie geht es weiter?</h2>
+                <ol class="space-y-3 text-muted">
+                  <li class="flex gap-3"><span class="text-gold font-bold">1.</span><span>Sie schreiben mir über das Formular oder per E-Mail</span></li>
+                  <li class="flex gap-3"><span class="text-gold font-bold">2.</span><span>Ich melde mich innerhalb von 24 Stunden</span></li>
+                  <li class="flex gap-3"><span class="text-gold font-bold">3.</span><span>Wir vereinbaren ein Kennenlerngespräch</span></li>
+                  <li class="flex gap-3"><span class="text-gold font-bold">4.</span><span>Danach entscheiden Sie, ob wir zusammenarbeiten</span></li>
+                </ol>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-</Layout>
+    </section>
+  </Layout>
+)}
+
+<style>
+  /* Kore booking section — shown when arriving from a slot link */
+  .kore-booking-section {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 80px 28px 0;
+  }
+  .kore-booking-inner {
+    background: var(--ink-850);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 48px;
+    max-width: 680px;
+  }
+  .kore-booking-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--copper);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .kore-booking-eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: currentColor;
+  }
+  .kore-booking-inner h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 36px;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+  }
+  .kore-booking-date {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--copper);
+    margin: 0 0 32px;
+    letter-spacing: 0.04em;
+  }
+  .kore-booking-form {
+    background: var(--ink-800);
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .kore-booking-back {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--mute);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+  }
+  .kore-booking-back:hover { color: var(--fg); }
+</style>

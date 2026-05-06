@@ -1,22 +1,23 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import KoreLayout from '../layouts/KoreLayout.astro';
 import { config } from '../config/index';
 import { getLegalPage } from '../lib/website-db';
 
 const { contact, legal } = config;
 const BRAND = process.env.BRAND || 'mentolder';
+const BRAND_ID = process.env.BRAND_ID ?? BRAND;
+const isKore = BRAND_ID === 'korczewski';
 const customHtml = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
 ---
 
-<Layout title="Datenschutzerklärung">
-  <section class="pt-28 pb-20">
-    <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
+{isKore ? (
+  <KoreLayout title="Datenschutzerklärung">
+    <article class="kore-legal">
       <h1>Datenschutzerklärung</h1>
 
       <h2>1. Verantwortlicher</h2>
-      <p>
-        Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:
-      </p>
+      <p>Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p>
       <p>
         <strong>{contact.name}</strong><br />
         {legal.tagline}<br />
@@ -62,44 +63,12 @@ const customHtml = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
         notwendige Cookies erfordern keine Einwilligung (§ 25 Abs. 2 TTDSG).
       </p>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Cookie / Storage-Eintrag</th>
-            <th>Zweck</th>
-            <th>Speicherdauer</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>session</code></td>
-            <td>Authentifizierung und Sitzungsverwaltung</td>
-            <td>Sitzungsende</td>
-          </tr>
-          <tr>
-            <td><code>KEYCLOAK_*</code></td>
-            <td>Single Sign-On Session (Keycloak OIDC)</td>
-            <td>Sitzungsende</td>
-          </tr>
-          <tr>
-            <td><code>cookie_consent_v1</code> (localStorage)</td>
-            <td>Speichert Cookie-Einwilligung lokal im Browser</td>
-            <td>Bis zur manuellen Löschung (wird nicht an Server übertragen)</td>
-          </tr>
-        </tbody>
-      </table>
-
       <h3>Kontaktformular und Terminbuchung</h3>
       <p>
         Wenn Sie das Kontaktformular nutzen oder einen Termin buchen, werden Ihr
         Name, Ihre E-Mail-Adresse sowie der Nachrichteninhalt verarbeitet, um Ihre
         Anfrage zu bearbeiten und den Termin zu koordinieren. Die Daten werden
         intern weitergeleitet und nicht an Dritte weitergegeben.
-      </p>
-      <p>
-        Im Rahmen der Coaching-Leistungserbringung werden zudem Termindaten und
-        Sitzungsnotizen verarbeitet (ausschließlich intern, nicht weitergegeben)
-        sowie Rechnungsdaten gemäß gesetzlicher Aufbewahrungspflicht (10 Jahre).
       </p>
       <p>
         Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung /
@@ -110,74 +79,21 @@ const customHtml = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
       <p>
         Diese Website und alle damit verbundenen Dienste werden auf Servern der
         <strong>Hetzner Online GmbH</strong> (Deutschland) betrieben. Alle Daten
-        verbleiben innerhalb der Europäischen Union. Es findet keine Übermittlung
-        personenbezogener Daten an Server in Drittländern außerhalb der EU statt.
+        verbleiben innerhalb der Europäischen Union.
       </p>
       <p>
-        Eingesetzte Dienste (alle selbst gehostet auf Hetzner-Infrastruktur):
-      </p>
-      <ul>
-        <li>Nextcloud — Dokumentenablage, Kalender</li>
-        <li>Nextcloud Talk — Online-Coaching-Sitzungen per Video</li>
-        <li>Eigene Terminverwaltung und Rechnungsstellung</li>
-      </ul>
-      <p>
-        Es werden keine Dienste von Google (Analytics, Fonts, Maps), Meta (Facebook,
-        Instagram Pixel), Zoom, HubSpot oder sonstigen US-Anbietern eingesetzt.
+        Es werden keine Dienste von Google (Analytics, Fonts, Maps), Meta, Zoom,
+        HubSpot oder sonstigen US-Anbietern eingesetzt.
       </p>
 
       <h2>4. Ihre Rechte als betroffene Person</h2>
+      <p>Sie haben nach der DSGVO folgende Rechte gegenüber uns als Verantwortlichem:</p>
       <p>
-        Sie haben nach der DSGVO folgende Rechte gegenüber uns als Verantwortlichem:
+        <strong>Auskunft</strong> (Art. 15 DSGVO) · <strong>Berichtigung</strong> (Art. 16 DSGVO) ·
+        <strong>Löschung</strong> (Art. 17 DSGVO) · <strong>Einschränkung</strong> (Art. 18 DSGVO) ·
+        <strong>Datenportabilität</strong> (Art. 20 DSGVO) · <strong>Widerspruch</strong> (Art. 21 DSGVO) ·
+        <strong>Widerruf</strong> (Art. 7 Abs. 3 DSGVO)
       </p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Recht</th>
-            <th>Rechtsgrundlage</th>
-            <th>Beschreibung</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Auskunft</strong></td>
-            <td>Art. 15 DSGVO</td>
-            <td>Sie können Auskunft über die von uns verarbeiteten personenbezogenen Daten verlangen.</td>
-          </tr>
-          <tr>
-            <td><strong>Berichtigung</strong></td>
-            <td>Art. 16 DSGVO</td>
-            <td>Sie können die Berichtigung unrichtiger Daten verlangen.</td>
-          </tr>
-          <tr>
-            <td><strong>Löschung</strong></td>
-            <td>Art. 17 DSGVO</td>
-            <td>Sie können die Löschung Ihrer Daten verlangen, sofern keine gesetzliche Aufbewahrungspflicht besteht.</td>
-          </tr>
-          <tr>
-            <td><strong>Einschränkung</strong></td>
-            <td>Art. 18 DSGVO</td>
-            <td>Sie können die Einschränkung der Verarbeitung Ihrer Daten verlangen.</td>
-          </tr>
-          <tr>
-            <td><strong>Datenportabilität</strong></td>
-            <td>Art. 20 DSGVO</td>
-            <td>Sie können Ihre Daten in einem strukturierten, maschinenlesbaren Format erhalten.</td>
-          </tr>
-          <tr>
-            <td><strong>Widerspruch</strong></td>
-            <td>Art. 21 DSGVO</td>
-            <td>Sie können der Verarbeitung Ihrer Daten auf Basis von Art. 6 Abs. 1 lit. f DSGVO widersprechen.</td>
-          </tr>
-          <tr>
-            <td><strong>Widerruf</strong></td>
-            <td>Art. 7 Abs. 3 DSGVO</td>
-            <td>Erteilte Einwilligungen können Sie jederzeit mit Wirkung für die Zukunft widerrufen.</td>
-          </tr>
-        </tbody>
-      </table>
-
       <p>
         Zur Ausübung Ihrer Rechte wenden Sie sich bitte per E-Mail an:{' '}
         <a href={`mailto:${contact.email}`}>{contact.email}</a>
@@ -192,38 +108,320 @@ const customHtml = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
       <h2>6. Beschwerderecht bei der Aufsichtsbehörde</h2>
       <p>
         Sie haben das Recht, sich bei der zuständigen Datenschutz-Aufsichtsbehörde
-        zu beschweren. Die zuständige Behörde richtet sich nach Ihrem Wohnort bzw.
-        dem Sitz des Verantwortlichen. Eine Liste der Datenschutzbehörden in
-        Deutschland finden Sie auf der Website der Bundesbeauftragten für den
-        Datenschutz und die Informationsfreiheit (BfDI):
-        <a href="https://www.bfdi.bund.de" target="_blank" rel="noopener noreferrer">www.bfdi.bund.de</a>.
+        zu beschweren:{' '}
+        <a href="https://www.bfdi.bund.de" target="_blank" rel="noopener noreferrer">www.bfdi.bund.de</a>
       </p>
 
       <h2>7. Aktualität dieser Erklärung</h2>
-      <p class="text-sm text-slate-500 mt-8">
-        Stand: April 2026. Diese Datenschutzerklärung wird bei Änderungen der
-        Verarbeitungstätigkeiten oder der Rechtslage aktualisiert.
-      </p>
+      <p>Stand: April 2026. Diese Datenschutzerklärung wird bei Änderungen der Verarbeitungstätigkeiten oder der Rechtslage aktualisiert.</p>
 
       <h2>8. Ihre Rechte — Daten einsehen und löschen</h2>
       <p>
-        Sie können Auskunft anfordern und Löschung beantragen direkt über unsere
+        Sie können Auskunft anfordern und Löschung beantragen direkt über unsere{' '}
         <a href="/meine-daten">Datenverwaltungsseite</a>. Eingeloggte Nutzer können ihr
         Konto dort unmittelbar löschen.
       </p>
+
       {customHtml && customHtml.trim() && (
-        <Fragment>
+        <>
           <h2>Weitere Hinweise</h2>
           <div set:html={customHtml} />
-        </Fragment>
+        </>
       )}
 
-      <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex items-center justify-between">
-        <a href="/admin/rechtliches" class="text-xs text-slate-500 hover:text-gold transition-colors">✏️ Bearbeiten</a>
-        <button onclick="window.print()" class="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors">
-          Drucken / PDF
-        </button>
+      <div class="kore-legal-actions">
+        <button onclick="window.print()" class="kore-print-btn">Drucken / PDF</button>
       </div>
-    </div>
-  </section>
-</Layout>
+    </article>
+  </KoreLayout>
+) : (
+  <Layout title="Datenschutzerklärung">
+    <section class="pt-28 pb-20">
+      <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
+        <h1>Datenschutzerklärung</h1>
+
+        <h2>1. Verantwortlicher</h2>
+        <p>
+          Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:
+        </p>
+        <p>
+          <strong>{contact.name}</strong><br />
+          {legal.tagline}<br />
+          {legal.street && <>{legal.street}<br /></>}
+          {legal.zip && <>{legal.zip} {contact.city}<br /></>}
+          {!legal.street && <>{contact.city}<br /></>}
+          E-Mail: <a href={`mailto:${contact.email}`}>{contact.email}</a><br />
+          {contact.phone && <>Telefon: {contact.phone}</>}
+        </p>
+
+        <h2>2. Grundsätze der Datenverarbeitung</h2>
+        <p>
+          Wir verarbeiten personenbezogene Daten nur, soweit dies zur Bereitstellung
+          unserer Dienste erforderlich ist. Alle Daten verbleiben vollständig auf
+          eigener Infrastruktur (On-Premises). Es findet keine Übermittlung an
+          Cloud-Anbieter oder Dritte statt.
+        </p>
+        <p>
+          Rechtsgrundlagen der Verarbeitung: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung
+          und vorvertragliche Maßnahmen), Art. 6 Abs. 1 lit. c DSGVO (gesetzliche
+          Verpflichtung), Art. 6 Abs. 1 lit. f DSGVO (berechtigte Interessen).
+        </p>
+
+        <h2>3. Datenerfassung auf dieser Website</h2>
+
+        <h3>Server-Log-Dateien</h3>
+        <p>
+          Beim Aufruf dieser Website werden automatisch technische Zugriffsdaten
+          erfasst: IP-Adresse, Browsertyp, Betriebssystem, Referrer-URL, aufgerufene
+          Seite, Zeitpunkt des Zugriffs. Diese Daten werden ausschließlich zur
+          technischen Bereitstellung der Website benötigt und nach 7 Tagen automatisch
+          gelöscht. Eine Zuordnung zu bestimmten Personen ist nicht beabsichtigt.
+        </p>
+        <p>
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am
+          sicheren Betrieb der Website).
+        </p>
+
+        <h3>Cookies</h3>
+        <p>
+          Diese Website verwendet ausschließlich technisch notwendige Cookies. Es
+          werden keine Tracking-, Analyse- oder Werbe-Cookies eingesetzt. Technisch
+          notwendige Cookies erfordern keine Einwilligung (§ 25 Abs. 2 TTDSG).
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Cookie / Storage-Eintrag</th>
+              <th>Zweck</th>
+              <th>Speicherdauer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>session</code></td>
+              <td>Authentifizierung und Sitzungsverwaltung</td>
+              <td>Sitzungsende</td>
+            </tr>
+            <tr>
+              <td><code>KEYCLOAK_*</code></td>
+              <td>Single Sign-On Session (Keycloak OIDC)</td>
+              <td>Sitzungsende</td>
+            </tr>
+            <tr>
+              <td><code>cookie_consent_v1</code> (localStorage)</td>
+              <td>Speichert Cookie-Einwilligung lokal im Browser</td>
+              <td>Bis zur manuellen Löschung (wird nicht an Server übertragen)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Kontaktformular und Terminbuchung</h3>
+        <p>
+          Wenn Sie das Kontaktformular nutzen oder einen Termin buchen, werden Ihr
+          Name, Ihre E-Mail-Adresse sowie der Nachrichteninhalt verarbeitet, um Ihre
+          Anfrage zu bearbeiten und den Termin zu koordinieren. Die Daten werden
+          intern weitergeleitet und nicht an Dritte weitergegeben.
+        </p>
+        <p>
+          Im Rahmen der Coaching-Leistungserbringung werden zudem Termindaten und
+          Sitzungsnotizen verarbeitet (ausschließlich intern, nicht weitergegeben)
+          sowie Rechnungsdaten gemäß gesetzlicher Aufbewahrungspflicht (10 Jahre).
+        </p>
+        <p>
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung /
+          vorvertragliche Maßnahmen). Speicherdauer Kontaktdaten: 3 Jahre.
+        </p>
+
+        <h3>Hosting</h3>
+        <p>
+          Diese Website und alle damit verbundenen Dienste werden auf Servern der
+          <strong>Hetzner Online GmbH</strong> (Deutschland) betrieben. Alle Daten
+          verbleiben innerhalb der Europäischen Union. Es findet keine Übermittlung
+          personenbezogener Daten an Server in Drittländern außerhalb der EU statt.
+        </p>
+        <p>
+          Eingesetzte Dienste (alle selbst gehostet auf Hetzner-Infrastruktur):
+        </p>
+        <ul>
+          <li>Nextcloud — Dokumentenablage, Kalender</li>
+          <li>Nextcloud Talk — Online-Coaching-Sitzungen per Video</li>
+          <li>Eigene Terminverwaltung und Rechnungsstellung</li>
+        </ul>
+        <p>
+          Es werden keine Dienste von Google (Analytics, Fonts, Maps), Meta (Facebook,
+          Instagram Pixel), Zoom, HubSpot oder sonstigen US-Anbietern eingesetzt.
+        </p>
+
+        <h2>4. Ihre Rechte als betroffene Person</h2>
+        <p>
+          Sie haben nach der DSGVO folgende Rechte gegenüber uns als Verantwortlichem:
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Recht</th>
+              <th>Rechtsgrundlage</th>
+              <th>Beschreibung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Auskunft</strong></td>
+              <td>Art. 15 DSGVO</td>
+              <td>Sie können Auskunft über die von uns verarbeiteten personenbezogenen Daten verlangen.</td>
+            </tr>
+            <tr>
+              <td><strong>Berichtigung</strong></td>
+              <td>Art. 16 DSGVO</td>
+              <td>Sie können die Berichtigung unrichtiger Daten verlangen.</td>
+            </tr>
+            <tr>
+              <td><strong>Löschung</strong></td>
+              <td>Art. 17 DSGVO</td>
+              <td>Sie können die Löschung Ihrer Daten verlangen, sofern keine gesetzliche Aufbewahrungspflicht besteht.</td>
+            </tr>
+            <tr>
+              <td><strong>Einschränkung</strong></td>
+              <td>Art. 18 DSGVO</td>
+              <td>Sie können die Einschränkung der Verarbeitung Ihrer Daten verlangen.</td>
+            </tr>
+            <tr>
+              <td><strong>Datenportabilität</strong></td>
+              <td>Art. 20 DSGVO</td>
+              <td>Sie können Ihre Daten in einem strukturierten, maschinenlesbaren Format erhalten.</td>
+            </tr>
+            <tr>
+              <td><strong>Widerspruch</strong></td>
+              <td>Art. 21 DSGVO</td>
+              <td>Sie können der Verarbeitung Ihrer Daten auf Basis von Art. 6 Abs. 1 lit. f DSGVO widersprechen.</td>
+            </tr>
+            <tr>
+              <td><strong>Widerruf</strong></td>
+              <td>Art. 7 Abs. 3 DSGVO</td>
+              <td>Erteilte Einwilligungen können Sie jederzeit mit Wirkung für die Zukunft widerrufen.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Zur Ausübung Ihrer Rechte wenden Sie sich bitte per E-Mail an:{' '}
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>
+        </p>
+
+        <h2>5. Keine automatisierten Entscheidungen</h2>
+        <p>
+          Es finden keine automatisierten Entscheidungen im Sinne von Art. 22 DSGVO
+          statt. Es wird kein Profiling betrieben.
+        </p>
+
+        <h2>6. Beschwerderecht bei der Aufsichtsbehörde</h2>
+        <p>
+          Sie haben das Recht, sich bei der zuständigen Datenschutz-Aufsichtsbehörde
+          zu beschweren. Die zuständige Behörde richtet sich nach Ihrem Wohnort bzw.
+          dem Sitz des Verantwortlichen. Eine Liste der Datenschutzbehörden in
+          Deutschland finden Sie auf der Website der Bundesbeauftragten für den
+          Datenschutz und die Informationsfreiheit (BfDI):
+          <a href="https://www.bfdi.bund.de" target="_blank" rel="noopener noreferrer">www.bfdi.bund.de</a>.
+        </p>
+
+        <h2>7. Aktualität dieser Erklärung</h2>
+        <p class="text-sm text-slate-500 mt-8">
+          Stand: April 2026. Diese Datenschutzerklärung wird bei Änderungen der
+          Verarbeitungstätigkeiten oder der Rechtslage aktualisiert.
+        </p>
+
+        <h2>8. Ihre Rechte — Daten einsehen und löschen</h2>
+        <p>
+          Sie können Auskunft anfordern und Löschung beantragen direkt über unsere
+          <a href="/meine-daten">Datenverwaltungsseite</a>. Eingeloggte Nutzer können ihr
+          Konto dort unmittelbar löschen.
+        </p>
+        {customHtml && customHtml.trim() && (
+          <Fragment>
+            <h2>Weitere Hinweise</h2>
+            <div set:html={customHtml} />
+          </Fragment>
+        )}
+
+        <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex items-center justify-between">
+          <a href="/admin/rechtliches" class="text-xs text-slate-500 hover:text-gold transition-colors">✏️ Bearbeiten</a>
+          <button onclick="window.print()" class="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors">
+            Drucken / PDF
+          </button>
+        </div>
+      </div>
+    </section>
+  </Layout>
+)}
+
+<style>
+  .kore-legal {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 28px 120px;
+  }
+  .kore-legal h1 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin: 0 0 56px;
+    line-height: 1.05;
+  }
+  .kore-legal h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin: 48px 0 12px;
+    color: var(--fg);
+  }
+  .kore-legal h3 {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 28px 0 8px;
+    color: var(--fg);
+  }
+  .kore-legal h2:first-of-type { margin-top: 0; }
+  .kore-legal p {
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--fg-soft);
+    margin: 0 0 12px;
+  }
+  .kore-legal strong {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .kore-legal a {
+    color: var(--copper);
+    text-decoration: none;
+  }
+  .kore-legal a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .kore-legal-actions {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: flex-end;
+  }
+  .kore-print-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--ink-800);
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    color: var(--mute);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .kore-print-btn:hover { color: var(--fg); border-color: var(--line-3); }
+</style>

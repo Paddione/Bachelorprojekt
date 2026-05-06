@@ -1,0 +1,80 @@
+---
+const steps = [
+  { num: '01', heading: 'Erstgespräch', description: '30 Minuten, kostenlos. Wir klären Ihre Situation und Ihre Herausforderung.' },
+  { num: '02', heading: 'Klarheit', description: 'Gemeinsam entscheiden wir: Was ist das richtige Format, was der richtige Rahmen?' },
+  { num: '03', heading: 'Arbeitsphase', description: 'Individuelle Sessions in Ihrem Tempo — remote oder vor Ort in Lüneburg und Umgebung.' },
+  { num: '04', heading: 'Nachhaltigkeit', description: 'Was Sie hier lernen, bleibt bei Ihnen. Nicht als Wissen, sondern als Haltung.' },
+];
+---
+
+<section class="w-section" id="process">
+  <div class="head">
+    <span class="num">03 / 07</span>
+    <h2>Wie wir <em class="em">zusammenarbeiten.</em></h2>
+    <span class="hint">4 Schritte</span>
+  </div>
+
+  <div class="process-grid">
+    {steps.map((step) => (
+      <div class="process-step">
+        <span class="step-num">{step.num}</span>
+        <h3>{step.heading}</h3>
+        <p>{step.description}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .process-step {
+    padding: 32px 28px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--ink-850);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: border-color 200ms var(--ease);
+  }
+
+  .process-step:hover { border-color: var(--line-2); }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--copper);
+    text-transform: uppercase;
+  }
+
+  .process-step h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    margin: 0;
+  }
+
+  .process-step p {
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--fg-soft);
+    margin: 0;
+  }
+
+  @media (max-width: 980px) {
+    .process-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .process-grid { grid-template-columns: 1fr; }
+  }
+</style>

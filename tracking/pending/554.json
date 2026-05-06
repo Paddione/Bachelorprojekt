@@ -1,0 +1,12 @@
+{
+  "pr_number": 554,
+  "title": "read X-Forwarded-* headers (reverse-proxy mode); bump to 0.2.3",
+  "description": "## Root cause (proven by 0.2.2 debug log)\n\\`\\`\\`\n[adminGuard] reject {\"path\":\"/\",\"preferredUsername\":null,\"email\":null,\"user\":null,\"allowlistSize\":2}\n\\`\\`\\`\nAll three \\`X-Auth-Request-*\\` headers arrive empty. Dashboard's IngressRoute proxies directly to \\`oauth2-proxy-dashboard:4180\\`, which forwards to \\`dashboard-web:3000\\` via \\`--upstream\\` (reverse-proxy mode). In that mode oauth2-proxy uses \\`--pass-user-headers\\` (default-on) to set \\`X-Forwarded-*\\` headers; the \\`X-Auth-Request-*\\` family is only emitted on the \\`/oauth2/auth\\` response for Traefik forward-auth — which we don't use.\n\n## Summary\n- Read \\`X-Forwarded-Preferred-Username\\` first (the actual header reverse-proxy mode sends), then the \\`X-Auth-Request-*\\` fallbacks.\n- Allowlist accepts usernames or emails.\n- Image bumped to \\`0.2.3\\` in both prod overlays.\n\n## Test plan\n- [x] \\`node --test dashboard/web/test/auth.test.js\\` — 8/8 (added X-Forwarded-Preferred-Username case)\n- [ ] After deploy, login at https://dashboard.mentolder.de no longer 403s\n- [ ] Same on https://dashboard.korczewski.de\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "dashboard",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-06T22:38:04Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

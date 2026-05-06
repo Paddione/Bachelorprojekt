@@ -127,6 +127,27 @@ spec:
           operator: In
           values: ["website", "website-korczewski"]
 ---
+# workspace CronJobs → website API (billing, notify-unread)
+# Uses ipBlock for service CIDR (ClusterIP before DNAT) and pod CIDR (post-DNAT).
+# Short-lived CronJob pods have no stable label, so podSelector: {} (all workspace pods).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-cronjobs-to-website-egress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.43.0.0/16   # service CIDR (ClusterIP before DNAT)
+    - ipBlock:
+        cidr: 10.42.0.0/16   # pod CIDR (after DNAT)
+    ports:
+    - port: 4321
+      protocol: TCP
+---
 # talk-transcriber → website-Namespace (save-transcript API)
 # Uses ipBlock for the service CIDR (10.43.0.0/16) because namespaceSelector
 # alone doesn't match ClusterIP traffic before DNAT.

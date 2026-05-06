@@ -1,0 +1,12 @@
+{
+  "pr_number": 548,
+  "title": "resolve 3 bug-tracker tickets on /admin/inhalte",
+  "description": "## Summary\n\nResolves 3 open bug tickets filed via `/admin/bugs` on web.mentolder.de.\n\n- **BR-20260506-f439** — `digital-cafe` slug + leistungen keys still appeared in `/digital-cafe` URL and in the Angebote admin section. Renamed slug → `50plus-digital`, leistungen keys `digital-cafe-*` → `50plus-digital-*` (also in `stripe-billing.ts` SERVICES map). Live DB rows in `mentolder/website` namespace updated in place to preserve admin edits.\n- **BR-20260506-abac** — Footer contact data (Email/Telefon/Stadt/Tagline) was sourced from `process.env`-baked config and could not be edited from `/admin/inhalte`. `KontaktContent` extended with optional `footerEmail/footerPhone/footerCity/footerTagline`; `Layout.astro` reads them via `getEffectiveKontakt()` with config fallback. New \"Kontaktdaten (Fußzeile)\" group in `KontaktSection.svelte`.\n- **BR-20260506-6d22** — `RechtlichesSection` saved to `legal_pages` but the public AGB/Impressum/Datenschutz/Barrierefreiheit pages only **appended** that DB content after the hardcoded text. Pages now **replace** the hardcoded body when DB content is non-empty (empty falls back to current default). Editor labels updated to make this explicit; live-Vorschau-Links added.\n\n## Test plan\n\n- [x] `npm run build` clean\n- [ ] `https://web.mentolder.de/digital-cafe` → 404 (expected); `https://web.mentolder.de/50plus-digital` → 200\n- [ ] `/admin/inhalte?tab=website&section=angebote` shows `50plus-digital(-*)` keys (no more `digital-cafe`)\n- [ ] `/admin/inhalte?tab=website&section=kontakt` has new \"Kontaktdaten (Fußzeile)\" inputs; saving them updates the footer on every page\n- [ ] `/admin/inhalte?tab=website&section=rechtliches` editing AGB and saving → public `/agb` shows the saved text (not appended after the hardcoded one)\n- [ ] All three bug tickets marked `resolved`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-06T20:10:57Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -640,6 +640,24 @@ function buildArtPanel(asset) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
+
+// Preselect cluster from the hostname the user came from. mentolder.de domain
+// → mentolder cluster; korczewski.de domain → korczewski cluster. Falls back
+// to whatever the <select> already has on localhost or unrelated hosts.
+function preselectClusterFromDomain() {
+  const host = (window.location.hostname || '').toLowerCase();
+  let preferred = null;
+  if (host.includes('korczewski')) preferred = 'korczewski';
+  else if (host.includes('mentolder')) preferred = 'mentolder';
+  if (!preferred) return;
+  const sel = $('#context');
+  if (sel && [...sel.options].some(o => o.value === preferred)) {
+    sel.value = preferred;
+    state.context = preferred;
+  }
+}
+preselectClusterFromDomain();
+
 $('#context').addEventListener('change', e => { state.context = e.target.value; render(); });
 document.addEventListener('visibilitychange', setPolling);
 

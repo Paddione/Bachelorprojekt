@@ -43,6 +43,14 @@ const ALLOWED_COMMANDS = new Set([
   'workspace:teardown',
   'workspace:create-guest', 'workspace:import-users', 'workspace:migrate',
   'clusters:status',
+  // Ein-Klick-Workflows (fan-out across both prod clusters)
+  'feature:deploy', 'feature:website', 'feature:brett', 'feature:dashboard', 'feature:livekit',
+  'health',
+  'workspace:deploy:all-prods', 'workspace:post-setup:all-prods', 'workspace:status:all-prods',
+  'workspace:talk-setup:all-prods', 'workspace:recording-setup:all-prods',
+  'website:redeploy:all-prods', 'brett:deploy:all-prods', 'dashboard:web:deploy:all-prods',
+  // LiveKit (read-only ops surface for Gekko)
+  'livekit:status', 'livekit:logs',
   'argocd:setup', 'argocd:status', 'argocd:apps:apply',
   'argocd:install', 'argocd:password', 'argocd:cluster:register',
   'argocd:sync', 'argocd:diff',

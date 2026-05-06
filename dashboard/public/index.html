@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -413,6 +413,78 @@
             font-size: 10px; color: #c05050; padding: 2px 6px 8px; line-height: 1.7;
             white-space: pre-line;
         }
+
+        /* ── Welcome hint banner (dismissible) ────────────────── */
+        #welcome-hint {
+            display: none; align-items: center; gap: 12px;
+            padding: 8px 16px; background: #1f2a3a; color: #cfe2ff;
+            border-bottom: 1px solid #2a3d57; font-size: 12px; line-height: 1.5;
+        }
+        #welcome-hint.visible { display: flex; }
+        #welcome-hint .hint-text { flex: 1; min-width: 0; }
+        #welcome-hint code {
+            background: rgba(0,0,0,0.35); padding: 1px 5px;
+            border-radius: 3px; font-family: monospace;
+        }
+        #welcome-hint button {
+            background: transparent; color: inherit;
+            border: 1px solid #4a6388; padding: 3px 9px;
+            border-radius: 4px; font-size: 12px; cursor: pointer;
+            line-height: 1;
+        }
+        #welcome-hint button:hover { background: rgba(255,255,255,0.05); }
+
+        /* ── Help button + neutral help modal ─────────────────── */
+        .help-btn {
+            background: transparent; color: var(--text-dim);
+            border: 1px solid var(--border); width: 18px; height: 18px;
+            border-radius: 50%; font-size: 11px; line-height: 1;
+            cursor: pointer; padding: 0; flex-shrink: 0;
+            font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .help-btn:hover { background: var(--bg3); color: var(--primary); border-color: var(--primary); }
+        .task-help-btn {
+            margin-left: 6px; vertical-align: middle;
+        }
+
+        #help-modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7); z-index: 210;
+            align-items: center; justify-content: center;
+        }
+        #help-modal-overlay.visible { display: flex; }
+        #help-modal-box {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 10px; padding: 24px 26px; max-width: 520px; width: 90%;
+            max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+        }
+        #help-modal-icon { font-size: 24px; margin-bottom: 8px; }
+        #help-modal-title { margin: 0 0 14px; color: var(--text); font-size: 15px; font-weight: 600; }
+        .help-section { margin-bottom: 14px; }
+        .help-section:last-child { margin-bottom: 0; }
+        .help-section h4 {
+            margin: 0 0 4px; font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--primary);
+        }
+        .help-section p {
+            margin: 0; color: var(--text-mid); font-size: 12px; line-height: 1.6;
+        }
+        .help-section p + p { margin-top: 4px; }
+        .help-section code {
+            background: rgba(0,0,0,0.35); padding: 1px 5px;
+            border-radius: 3px; font-family: monospace; font-size: 11px;
+        }
+        #help-modal-actions {
+            display: flex; justify-content: flex-end; margin-top: 18px;
+        }
+        #help-modal-close {
+            background: var(--bg4); color: var(--text); border: 1px solid var(--border);
+            padding: 7px 18px; border-radius: var(--radius); cursor: pointer; font-size: 13px;
+        }
+        #help-modal-close:hover { background: var(--bg3); }
     </style>
 </head>
 <body>
@@ -422,43 +494,50 @@
     <div id="topbar-main">
         <p id="app-title">Workspace Dashboard</p>
         <div class="env-row">
-            <span class="env-label">Target ENV</span>
+            <span class="env-label">Cluster</span>
             <select id="env-select">
-                <option value="dev">dev — local k3d cluster</option>
-                <option value="mentolder">mentolder — PRODUCTION</option>
-                <option value="korczewski">korczewski — PRODUCTION</option>
+                <option value="dev">dev — Lokaler k3d-Cluster</option>
+                <option value="mentolder">mentolder — PRODUKTION</option>
+                <option value="korczewski">korczewski — PRODUKTION</option>
             </select>
-            <button id="ctx-btn" title="Switch kubectl context to k3d-dev">⇌ ctx</button>
+            <button id="ctx-btn" title="kubectl-Kontext wechseln">⇌ ctx</button>
         </div>
         <div id="status-block">
-            <span id="conn-dot" title="Socket connection"></span>
-            <span id="status">Connecting…</span>
+            <span id="conn-dot" title="Socket-Verbindung"></span>
+            <span id="status">Verbinde…</span>
         </div>
-        <button id="dryrun-btn" title="Toggle dry-run mode — passes DRY_RUN=true to tasks">
-            📋 DRY RUN <span id="dryrun-badge">ON</span>
+        <button id="dryrun-btn" title="Probelauf-Modus umschalten — gibt DRY_RUN=true an Tasks weiter">
+            📋 PROBELAUF <span id="dryrun-badge">AN</span>
         </button>
-        <button id="autochain-btn" title="When a group chain finishes successfully, automatically continue with the next group's chain">
-            🔗 AUTO-CHAIN <span id="autochain-badge">ON</span>
+        <button id="autochain-btn" title="Wenn eine Gruppen-Kette erfolgreich endet, automatisch mit der nächsten Gruppe fortfahren">
+            🔗 AUTO-KETTE <span id="autochain-badge">AN</span>
         </button>
-        <button id="groups-btn" title="Show or hide task groups">
-            ☰ Groups <span id="groups-badge">HIDDEN</span>
+        <button id="groups-btn" title="Gruppen ein-/ausblenden">
+            ☰ Gruppen <span id="groups-badge">ausgeblendet</span>
         </button>
         <button id="stop-btn" class="ctrl-btn">■ Stop</button>
-        <button id="clear-btn" class="ctrl-btn">Clear</button>
+        <button id="clear-btn" class="ctrl-btn">Leeren</button>
     </div>
     <div id="topbar-meta">
         <div id="ctx-feedback"></div>
         <div id="live-ctx"></div>
     </div>
     <div id="prod-banner">
-        ⚠️  Production environment selected. Destructive tasks will affect live data and real users.
+        ⚠️  Produktivumgebung ausgewählt. Zerstörerische Aktionen treffen echte Daten und echte Nutzer.
     </div>
     <div id="footgun-banner"></div>
+    <div id="welcome-hint">
+        <div class="hint-text">
+            👋 Willkommen! Wähle oben den Cluster, klicke unten auf eine Aktion.
+            Das <strong>?</strong> neben jeder Gruppenüberschrift erklärt, wofür die Gruppe da ist.
+        </div>
+        <button id="welcome-hint-close" title="Diesen Hinweis nicht mehr anzeigen">× verstanden</button>
+    </div>
 </header>
 
 <!-- ── Groups visibility panel ───────────────────────────────── -->
 <div id="groups-panel">
-    <div class="groups-panel-title">Show / Hide Groups</div>
+    <div class="groups-panel-title">Gruppen ein-/ausblenden</div>
 </div>
 
 <!-- ── Task grid (full-width, multi-column) ──────────────────── -->
@@ -469,14 +548,14 @@
 <!-- ── Terminal (collapsible bottom pane) ────────────────────── -->
 <section id="terminal-pane">
     <div id="terminal-header">
-        <span id="term-label">Output</span>
-        <span id="issues-count" title="Warnings and errors collected in the Issues pane">0</span>
+        <span id="term-label">Ausgabe</span>
+        <span id="issues-count" title="Warnungen und Fehler im Probleme-Bereich">0</span>
         <span id="term-spacer"></span>
-        <button id="copy-log-btn" title="Copy combined log output to clipboard (issues + output, in original order)">⎘ Copy</button>
-        <button id="term-toggle" title="Collapse/expand the terminal pane">▼ collapse</button>
+        <button id="copy-log-btn" title="Komplette Ausgabe in die Zwischenablage kopieren (Probleme + Ausgabe in chronologischer Reihenfolge)">⎘ Kopieren</button>
+        <button id="term-toggle" title="Terminal-Bereich ein-/ausklappen">▼ einklappen</button>
     </div>
     <div id="issues-pane">
-        <div class="pane-label">⚠ Issues — warnings &amp; errors</div>
+        <div class="pane-label">⚠ Probleme — Warnungen &amp; Fehler</div>
         <div id="issues"></div>
     </div>
     <div id="terminal"></div>
@@ -486,12 +565,24 @@
 <div id="modal-overlay" role="dialog" aria-modal="true">
     <div id="modal-box">
         <div id="modal-icon">⚠️</div>
-        <p id="modal-title">Confirm Dangerous Operation</p>
+        <p id="modal-title">Gefährliche Aktion bestätigen</p>
         <div id="modal-cmd"></div>
         <div id="modal-msg"></div>
         <div class="modal-actions">
-            <button id="modal-cancel">Cancel</button>
-            <button id="modal-confirm">Yes, Proceed</button>
+            <button id="modal-cancel">Abbrechen</button>
+            <button id="modal-confirm">Ja, fortfahren</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Help modal (neutral, non-destructive) ─────────────────── -->
+<div id="help-modal-overlay" role="dialog" aria-modal="true">
+    <div id="help-modal-box">
+        <div id="help-modal-icon">💡</div>
+        <p id="help-modal-title"></p>
+        <div id="help-modal-content"></div>
+        <div id="help-modal-actions">
+            <button id="help-modal-close">Schließen</button>
         </div>
     </div>
 </div>
@@ -533,226 +624,408 @@
     ]);
 
     const GROUPS = [
-        { cat: 'Cluster', icon: '⚙️', accent: ACCENTS.cluster, items: [
-            { title: 'Create Cluster',      cmd: 'cluster:create',  desc: 'Bootstrap a new k3d dev cluster' },
-            { title: 'Start Cluster',       cmd: 'cluster:start',   desc: 'Resume a stopped k3d cluster' },
-            { title: 'Stop Cluster',        cmd: 'cluster:stop',    desc: 'Pause the running cluster (preserves state)' },
-            { title: 'Cluster Status',      cmd: 'cluster:status',  desc: 'Show nodes, pods and resource usage' },
-            { title: 'All Clusters Status', cmd: 'clusters:status', desc: 'Status across dev + mentolder + korczewski at once' },
+        // ── Tägliche Operationen — der Alltags-Bereich (matches the ops agent surface) ──
+        { cat: 'Tägliche Operationen', icon: '📊', accent: ACCENTS.ops,
+          help: {
+              summary: 'Der Alltags-Bereich. Hier siehst du, ob alles läuft, schaust dir Logs an und startest Dienste neu, wenn etwas hakt.',
+              when: 'Wenn du wissen willst, wie es dem System geht. Wenn ein Pod oder Dienst sich seltsam verhält. Wenn du in der Datenbank nachschauen musst.',
+              env: 'ENV oben rechts wählt den Cluster aus, gegen den die Aktion läuft. mentolder und korczewski sind echte Nutzer (Produktion). dev ist dein lokaler Cluster auf diesem Rechner.',
+              recovery: 'Wenn ein Pod nicht hochkommt: hier auf "Logs anzeigen" klicken und nach dem Servicenamen schauen. Wenn ein Dienst klemmt: "Dienst neu starten" probieren.',
+          }, items: [
+            { title: 'Status aller Cluster', cmd: 'clusters:status',
+              desc: 'Schneller Überblick über mentolder + korczewski auf einen Blick',
+              help: 'Eine Zeile pro Cluster: läuft alles? Wenn rot oder Zahl niedriger als gewohnt — in dieselbe Gruppe schauen, "Workspace Status" für Details.' },
+            { title: 'Workspace-Status', cmd: 'workspace:status',
+              desc: 'Pods, Services, Ingress und Volumes des gewählten Clusters anzeigen',
+              help: 'Zeigt jeden Pod und ob er "Running" ist. Wenn etwas "CrashLoopBackOff" oder "Error" steht — in der Liste den Namen merken und Logs anschauen.' },
+            { title: 'Logs anzeigen', cmd: 'workspace:logs',
+              desc: 'Live-Logs eines Dienstes streamen (Stop zum Beenden)',
+              help: 'Servicename eintippen (z.B. nextcloud, keycloak, website) und Live-Logs verfolgen. Stop drückst du, wenn du genug gesehen hast.',
+              argInputs: [{ id: 'arg-logs-svc', placeholder: 'Servicename, z.B. nextcloud', required: true }] },
+            { title: 'Dienst neu starten', cmd: 'workspace:restart',
+              desc: 'Rolling Restart eines Deployments',
+              help: 'Sanfter Neustart — der alte Pod bleibt online, bis der neue läuft. Erste Anlaufstelle, wenn ein Dienst hängt aber sonst alles ok aussieht.',
+              argInputs: [{ id: 'arg-restart-svc', placeholder: 'Servicename, z.B. keycloak', required: true }] },
+            { title: 'LiveKit-Status', cmd: 'livekit:status',
+              desc: 'Pods, Services, Ingress und Aufnahme-Anzahl des LiveKit-Streams',
+              help: 'Brauchst du nur, wenn der Live-Stream gestreamt oder aufgenommen wird und es Probleme gibt.' },
+            { title: 'LiveKit-Logs', cmd: 'livekit:logs',
+              desc: 'Live-Logs des LiveKit-Servers anzeigen',
+              help: 'Stream stockt? Hier siehst du, was der Server gerade macht.' },
+            { title: 'psql gegen shared-db öffnen', cmd: 'workspace:psql',
+              desc: 'psql-Sitzung gegen die geteilte Datenbank starten (DB-Name als Argument)',
+              help: 'Direkter SQL-Zugang. Nur nötig, wenn jemand explizit gesagt hat "schau mal in die Datenbank". Mit \\q verlassen.',
+              argInputs: [{ id: 'arg-psql-db', placeholder: 'DB-Name, z.B. nextcloud', required: true }] },
+            { title: 'Tracking-DB öffnen', cmd: 'tracking:psql',
+              desc: 'psql-Sitzung gegen die Tracking-Datenbank starten',
+              help: 'Hier liegen die Bug-Tickets und PR-Tracking-Daten. Selten nötig.' },
+            { title: 'DB-Port auf localhost weiterleiten', cmd: 'workspace:port-forward',
+              desc: 'shared-db an localhost:5432 weiterleiten (Stop beendet den Tunnel)',
+              help: 'Erlaubt dir, mit einem GUI-Tool wie pgAdmin oder DBeaver auf die Datenbank zu schauen. Stop, wenn du fertig bist.' },
         ]},
-        { cat: 'Workspace', icon: '🏗️', accent: ACCENTS.workspace, items: [
-            { title: 'Preflight Check',     cmd: 'workspace:preflight',     desc: 'Verify prerequisites before deploying' },
-            { title: 'Validate Manifests',  cmd: 'workspace:validate',      desc: 'Dry-run kustomize build + kubeconform' },
-            { title: 'Deploy Workspace',    cmd: 'workspace:deploy',        desc: 'Apply all workspace manifests to the selected cluster' },
-            { title: 'Deploy Office Stack', cmd: 'workspace:office:deploy', desc: 'Deploy Collabora (run after workspace:deploy)' },
-            { title: 'Workspace Status',    cmd: 'workspace:status',        desc: 'Show pods, services, ingress and PVCs' },
-            { title: 'Full Bring-Up',       cmd: 'workspace:up',            desc: 'Cluster + MVP + Office + MCP + Billing + post-config (everything)' },
+
+        // ── Ein-Klick-Workflows — die "ich vergesse ENV=" Buttons ──
+        { cat: 'Ein-Klick-Workflows', icon: '🚀', accent: ACCENTS.workspace,
+          help: {
+              summary: 'Diese Aktionen erledigen jeweils etwas auf BEIDEN Produktiv-Clustern in einem Rutsch — du musst dich nicht mehr daran erinnern, alles zweimal mit unterschiedlichem ENV laufen zu lassen.',
+              when: 'Nach einer Code-Änderung. Nach einem Update. Wenn du den allgemeinen Gesundheitszustand checken willst.',
+              recovery: 'Wenn etwas davon fehlschlägt: in "Tägliche Operationen" → "Workspace-Status" und "Logs" schauen, was geklemmt hat.',
+          }, items: [
+            { title: 'Code-Änderung ausrollen (beide Cluster)', cmd: 'feature:deploy',
+              desc: 'workspace:deploy + post-setup + verify auf mentolder UND korczewski',
+              help: 'Der große rote Knopf nach einer Code-Änderung. Verteilt deinen Code auf beide echten Cluster und prüft, dass alles wieder funktioniert.' },
+            { title: 'Webseite neu ausrollen', cmd: 'feature:website',
+              desc: 'Astro-Webseite auf mentolder + korczewski neu bauen und ausrollen',
+              help: 'Brauchst du, wenn du etwas an web.mentolder.de oder web.korczewski.de geändert hast. Bau + Deploy in einem.' },
+            { title: 'Brett neu ausrollen', cmd: 'feature:brett',
+              desc: 'Systembrett-Dienst auf beiden Clustern neu bauen und ausrollen',
+              help: 'Nur nötig, wenn du am Brett-Code etwas geändert hast.' },
+            { title: 'Operator-Dashboard ausrollen', cmd: 'feature:dashboard',
+              desc: 'Web-Dashboard (dashboard.mentolder.de) auf beiden Clustern neu ausrollen',
+              help: 'Das ist NICHT dieses Dashboard hier — sondern die online erreichbare Variante mit Login.' },
+            { title: 'LiveKit-DNS neu pinnen', cmd: 'feature:livekit',
+              desc: 'livekit-/stream-Subdomains auf den LiveKit-Knoten zeigen lassen',
+              help: 'Nur, wenn der Live-Stream nicht funktioniert und der DNS-Eintrag drift hatte. Im Zweifel: Finger weg.' },
+            { title: 'Gesundheitscheck (beide Cluster)', cmd: 'health',
+              desc: 'Status + Erreichbarkeit + Verifikation über alles laufen lassen',
+              help: 'Schöner kompakter "Wie geht\'s allem?"-Bericht. Bevorzugt, wenn dir jemand sagt: "ist die Seite oben?" oder "läuft alles?"' },
         ]},
-        { cat: 'Post-Deploy', icon: '🔧', accent: ACCENTS.post, items: [
-            { title: 'Post-Setup',            cmd: 'workspace:post-setup',         desc: 'Enable Nextcloud apps (OIDC, Collabora, calendar, contacts)' },
-            { title: 'Talk Setup',            cmd: 'workspace:talk-setup',         desc: 'Configure Nextcloud Talk HPB signaling + coturn' },
-            { title: 'Recording Setup',       cmd: 'workspace:recording-setup',    desc: 'Configure Talk recording backend' },
-            { title: 'Whiteboard Setup',      cmd: 'workspace:whiteboard-setup',   desc: 'Install + configure Nextcloud Whiteboard app' },
-            { title: 'Systembrett Setup',     cmd: 'workspace:systembrett-setup',  desc: 'Set up Brett (Systembrett) integration in Nextcloud Talk' },
-            { title: 'Transcriber Setup',     cmd: 'workspace:transcriber-setup',  desc: 'Set up talk-transcriber bot + Whisper' },
-            { title: 'Keycloak Sync',         cmd: 'keycloak:sync',                desc: 'Sync realm config + OIDC clients and push regenerated client secrets to the live cluster' },
-            { title: 'Verify Deployment',     cmd: 'workspace:verify',             desc: 'Probe cross-namespace network paths + credential state (website→keycloak, workspace→website API, SEALED check)' },
-            { title: 'Verify Both Clusters',  cmd: 'workspace:verify:all-prods',   desc: 'Run workspace:verify on mentolder + korczewski in sequence' },
+
+        { cat: 'Workspace', icon: '🏗️', accent: ACCENTS.workspace,
+          help: {
+              summary: 'Workspace ist der gesamte Stapel an Diensten (Nextcloud, Keycloak, Vaultwarden, Webseite, Datenbank …) der zusammen den Cluster ausmacht. Hier liegen die "großen" Ausroll- und Status-Aktionen.',
+              when: 'Wenn du den ganzen Stapel auf einen Cluster ausrollen willst, oder wenn die Tägliche-Operationen-Sicht nicht reicht.',
+              recovery: 'Bei Fehlern: "Manifeste prüfen" zeigt, ob die YAML-Dateien überhaupt sauber sind. "Voraussetzungen prüfen" sagt dir, ob deine Werkzeuge installiert sind.',
+          }, items: [
+            { title: 'Voraussetzungen prüfen', cmd: 'workspace:preflight',
+              desc: 'Werkzeuge und Konfiguration vor dem Deploy prüfen',
+              help: 'Schaut nach: Docker, kubectl, kubeseal, task — alles installiert? Erste Aktion auf einem neuen Rechner.' },
+            { title: 'Manifeste prüfen', cmd: 'workspace:validate',
+              desc: 'Probelauf von kustomize build + kubeconform (kein Cluster nötig)',
+              help: 'Validiert die YAML-Dateien ohne sie auszurollen. Schnelle Plausibilitätsprüfung.' },
+            { title: 'Workspace ausrollen', cmd: 'workspace:deploy',
+              desc: 'Alle Workspace-Manifeste auf den gewählten Cluster anwenden',
+              help: 'Deployment auf einen einzelnen Cluster (über ENV oben). Für beide Cluster gleichzeitig: "Ein-Klick-Workflows" → "Code-Änderung ausrollen".' },
+            { title: 'Office-Stack ausrollen', cmd: 'workspace:office:deploy',
+              desc: 'Collabora ausrollen (nach workspace:deploy ausführen)',
+              help: 'Collabora ist der Online-Office-Editor in Nextcloud. Separater Schritt — nur nötig, wenn Office gerade nicht funktioniert.' },
+            { title: 'Workspace-Status', cmd: 'workspace:status',
+              desc: 'Pods, Services, Ingress und Volumes anzeigen',
+              help: 'Identisch mit dem Status-Knopf in "Tägliche Operationen". Doppelt platziert, weil beide Sichten Sinn ergeben.' },
+            { title: 'Komplette Erstinstallation', cmd: 'workspace:up',
+              desc: 'Cluster + MVP + Office + MCP + Billing + Post-Konfiguration in einem Rutsch (alles)',
+              help: 'NUR auf einem brandneuen Cluster. Auf einem laufenden System: lass die Finger davon.' },
         ]},
-        { cat: 'Compliance & Hardening', icon: '🛡️', accent: ACCENTS.users, items: [
-            { title: 'DSGVO Check',       cmd: 'workspace:dsgvo-check',       desc: 'Run DSGVO/GDPR compliance verification (NFA-01)' },
-            { title: 'Vaultwarden Seed',  cmd: 'workspace:vaultwarden:seed',  desc: 'Seed production Vaultwarden with secret templates (run once after a fresh prod deploy)' },
-            { title: 'Sync DB Passwords', cmd: 'workspace:sync-db-passwords', desc: 'Reconcile Postgres role passwords with Kubernetes secrets after rotation' },
-            { title: 'Admin Users Setup',           cmd: 'workspace:admin-users-setup',          desc: 'Create the default admin users in Keycloak / Nextcloud' },
-            { title: 'Admin Users — Both Clusters', cmd: 'workspace:admin-users-setup:all-prods', desc: 'Provision Keycloak admin users on mentolder + korczewski in one shot' },
+
+        { cat: 'Website', icon: '🌐', accent: ACCENTS.website,
+          help: {
+              summary: 'Die Astro-/Svelte-Webseite (web.mentolder.de bzw. web.korczewski.de). Hier kannst du sie bauen, lokal laufen lassen oder ausrollen.',
+              when: 'Nachdem du etwas am Code unter website/src/ geändert hast.',
+              recovery: 'Bei Fehlern: erst "Webseite bauen" — wenn schon der Build scheitert, liegt es am Code, nicht am Cluster. Webseiten-Status zeigt, ob der Pod online ist.',
+          }, items: [
+            { title: 'Webseite bauen', cmd: 'website:build',
+              desc: 'Astro-Build für die gewählte Umgebung ausführen',
+              help: 'Nur lokal bauen (kein Deploy). Schnelle Prüfung, dass dein Code kompiliert.' },
+            { title: 'Webseite ausrollen', cmd: 'website:deploy',
+              desc: 'Bauen, importieren und Webseiten-Pod neu starten',
+              help: 'Auf den gewählten Cluster (ENV oben). Für beide Cluster: "Ein-Klick-Workflows" → "Webseite neu ausrollen".' },
+            { title: 'Webseiten-Status', cmd: 'website:status',
+              desc: 'Status der Webseiten-Pods und -Services anzeigen',
+              help: 'Nach einem Deploy hier reinschauen: läuft der neue Pod?' },
+            { title: 'Entwicklungsserver', cmd: 'website:dev',
+              desc: 'Astro-Dev-Server mit Hot-Reload starten (läuft, bis du Stop drückst)',
+              help: 'Lokales Live-Vorschau auf http://localhost:4321 mit automatischem Reload bei Code-Änderungen.' },
         ]},
-        { cat: 'User & Data', icon: '👥', accent: ACCENTS.users, items: [
-            { title: 'Create Guest User', cmd: 'workspace:create-guest', desc: 'Add a guest account to Keycloak + Nextcloud' },
-            { title: 'Import Users',      cmd: 'workspace:import-users', desc: 'Bulk-import users from a CSV file' },
-            { title: 'Data Migration',    cmd: 'workspace:migrate',      desc: 'Interactive data migration assistant' },
-        ]},
-        { cat: 'Daily Operations', icon: '📊', accent: ACCENTS.ops, items: [
-            { title: 'Workspace Status',   cmd: 'workspace:status',             desc: 'Quick overview of all pods and services' },
-            { title: 'Check Connectivity', cmd: 'workspace:check-connectivity', desc: 'Ping all HTTPS service endpoints and report reachability' },
-            { title: 'Verify Deployment',  cmd: 'workspace:verify',             desc: 'Probe pod-to-pod network paths + check no credentials are SEALED' },
-            { title: 'Check Updates',      cmd: 'workspace:check-updates',      desc: 'Show available image updates across the workspace' },
-            { title: 'Tail Logs',          cmd: 'workspace:logs',               desc: 'Stream live logs for a service (Stop to exit)',
-              argInputs: [{ id: 'arg-logs-svc', placeholder: 'service name  e.g. nextcloud', required: true }] },
-            { title: 'Restart Service',    cmd: 'workspace:restart',            desc: 'Rolling restart a deployment',
-              argInputs: [{ id: 'arg-restart-svc', placeholder: 'service name  e.g. keycloak', required: true }] },
-            { title: 'Open psql Shell',    cmd: 'workspace:psql',               desc: 'Open a psql session against shared-db (db name as arg)',
-              argInputs: [{ id: 'arg-psql-db', placeholder: 'db name  e.g. nextcloud', required: true }] },
-            { title: 'Tracking psql',      cmd: 'tracking:psql',                desc: 'Open psql against the tracking database' },
-            { title: 'Port-Forward DB',    cmd: 'workspace:port-forward',       desc: 'Forward shared-db to localhost:5432 (Stop to release)' },
-        ]},
-        { cat: 'Backup & Restore', icon: '💾', accent: ACCENTS.backup, items: [
-            { title: 'Trigger Backup',      cmd: 'workspace:backup',      desc: 'Run an immediate backup of all databases' },
-            { title: 'List Backups',        cmd: 'workspace:backup:list', desc: 'Show available backup timestamps' },
-            { title: 'Restore from Backup', cmd: 'workspace:restore',     desc: 'Overwrite a database from a backup snapshot',
-              dangerous: true, dangerMsg: 'Overwrites the selected database with backup data. This cannot be undone.',
-              argInputs: [
-                { id: 'arg-restore-db', placeholder: 'keycloak / nextcloud / all', required: true },
-                { id: 'arg-restore-ts', placeholder: 'timestamp from List Backups', required: true },
-              ] },
-        ]},
-        { cat: 'Database', icon: '🗄️', accent: ACCENTS.backup, items: [
-            { title: 'Start / Restart DB', cmd: 'workspace:db:start', desc: 'Scale up shared-db if at 0 replicas, otherwise restart the pod' },
-            { title: 'Drop Database',      cmd: 'workspace:db:drop',  desc: 'Permanently drop a named database from shared-db',
-              dangerous: true, dangerMsg: 'Permanently drops the database. All data will be lost and cannot be recovered unless a backup exists.',
-              argInputs: [{ id: 'arg-drop-db', placeholder: 'database name (e.g. nextcloud)', required: true }] },
-            { title: 'List & Restore',     cmd: 'workspace:db:restore', desc: 'Print available backup timestamps then restore the selected database',
-              dangerous: true, dangerMsg: 'Overwrites the selected database with backup data. This cannot be undone.',
+
+        { cat: 'Datenbank', icon: '🗄️', accent: ACCENTS.backup,
+          help: {
+              summary: 'Direkte Verwaltung der gemeinsamen PostgreSQL-Datenbank. Sehr selten nötig.',
+              when: 'Wenn die Datenbank nicht hochkommt, oder wenn etwas explizit eine bestimmte Datenbank zurückgesetzt haben will.',
+              recovery: 'Wenn der Pod nicht hochkommt: "DB starten / neu starten" reicht meistens. Drop und Restore sind nur Notfall-Mittel.',
+          }, items: [
+            { title: 'DB starten / neu starten', cmd: 'workspace:db:start',
+              desc: 'shared-db hochskalieren, falls auf 0, sonst den Pod neu starten',
+              help: 'Sanfter erster Versuch, wenn die DB klemmt. Macht keinen Schaden.' },
+            { title: 'Datenbank löschen', cmd: 'workspace:db:drop',
+              desc: 'Eine benannte Datenbank dauerhaft aus shared-db entfernen',
+              help: 'NUR mit Backup. Wirklich nur, wenn jemand explizit gesagt hat: "lösch die DB komplett und spiel die Sicherung zurück".',
+              dangerous: true, dangerMsg: 'Löscht die Datenbank dauerhaft. Alle Daten sind weg und können nur über ein Backup wiederhergestellt werden.',
+              argInputs: [{ id: 'arg-drop-db', placeholder: 'DB-Name, z.B. nextcloud', required: true }] },
+            { title: 'Auflisten & Wiederherstellen', cmd: 'workspace:db:restore',
+              desc: 'Verfügbare Backup-Zeitstempel zeigen und gewählte Datenbank wiederherstellen',
+              help: 'Listet zuerst alle verfügbaren Backups auf, dann wird der gewählte Zeitstempel zurückgespielt.',
+              dangerous: true, dangerMsg: 'Überschreibt die gewählte Datenbank mit Backup-Daten. Kann nicht rückgängig gemacht werden.',
               argInputs: [
                 { id: 'arg-dbrestore-db', placeholder: 'keycloak / nextcloud / all', required: true },
-                { id: 'arg-dbrestore-ts', placeholder: 'timestamp from the list above', required: true },
+                { id: 'arg-dbrestore-ts', placeholder: 'Zeitstempel aus der Liste oben', required: true },
               ] },
         ]},
-        { cat: 'Website', icon: '🌐', accent: ACCENTS.website, items: [
-            { title: 'Build Website',  cmd: 'website:build',  desc: 'Run Astro build for the selected env' },
-            { title: 'Deploy Website', cmd: 'website:deploy', desc: 'Build, import and roll out the website pod' },
-            { title: 'Website Status', cmd: 'website:status', desc: 'Show website deployment status' },
-            { title: 'Dev Server',     cmd: 'website:dev',    desc: 'Start Astro dev server with hot-reload (streams until stopped)' },
-        ]},
-        { cat: 'ArgoCD', icon: '♾️', accent: ACCENTS.argocd, items: [
-            { title: 'ArgoCD Status',     cmd: 'argocd:status',           desc: 'Show sync/health of all apps across all clusters' },
-            { title: 'Apply Apps',        cmd: 'argocd:apps:apply',       desc: 'Apply AppProject and ApplicationSet manifests' },
-            { title: 'Sync App',          cmd: 'argocd:sync',             desc: 'Manually trigger an app sync',
-              argInputs: [{ id: 'arg-argocd-sync', placeholder: 'app name  e.g. workspace-hetzner', required: true }] },
-            { title: 'Diff App',          cmd: 'argocd:diff',             desc: 'Show diff between git and live state',
-              argInputs: [{ id: 'arg-argocd-diff', placeholder: 'app name  e.g. workspace-hetzner', required: true }] },
-            { title: 'Print Password',    cmd: 'argocd:password',         desc: 'Print initial admin password' },
-            { title: 'Register Clusters', cmd: 'argocd:cluster:register', desc: 'Register hetzner + korczewski clusters with workspace labels' },
-            { title: 'Bootstrap ArgoCD',  cmd: 'argocd:setup',            desc: 'Full ArgoCD install + cluster registration (run once)',
-              dangerous: true, dangerMsg: 'Bootstraps ArgoCD from scratch. Only run on a fresh hub cluster.' },
-            { title: 'Install ArgoCD',    cmd: 'argocd:install',          desc: 'Install ArgoCD on mentolder hub cluster',
-              dangerous: true, dangerMsg: 'Installs ArgoCD on the hub cluster. Only run on a fresh hub.' },
-        ]},
-        { cat: 'MCP / AI Tooling', icon: '🤖', accent: ACCENTS.mcp, items: [
-            { title: 'Deploy MCP',          cmd: 'mcp:deploy',        desc: 'Deploy the MCP monolith pod + auth proxy' },
-            { title: 'MCP Status',          cmd: 'mcp:status',        desc: 'Show MCP pod and container status' },
-            { title: 'MCP Logs',            cmd: 'mcp:logs',          desc: 'Tail logs for a specific MCP container',
-              argInputs: [{ id: 'arg-mcp-logs', placeholder: 'container  e.g. github / postgres / browser', required: true }] },
-            { title: 'MCP Restart',         cmd: 'mcp:restart',       desc: 'Restart the MCP monolith pod' },
-            { title: 'MCP Server Selector', cmd: 'mcp:select',        desc: 'Interactive MCP server selector' },
-            { title: 'Claude Code Setup',   cmd: 'claude-code:setup', desc: 'Generate Claude Code settings.json',
-              argInputs: [{ id: 'arg-cc-mode', placeholder: 'cluster  or  business', required: true }] },
-            { title: 'Gemini Setup',        cmd: 'gemini:setup',      desc: 'Generate Gemini CLI settings.json',
-              argInputs: [{ id: 'arg-gem-mode', placeholder: 'cluster  or  business', required: true }] },
-        ]},
-        { cat: 'VPN & GPU Worker', icon: '🛰️', accent: ACCENTS.argocd, items: [
-            { title: 'WireGuard Setup',   cmd: 'wireguard:setup',         desc: 'Initialize the WireGuard tunnel that connects the local GPU worker to the prod cluster' },
-            { title: 'WireGuard Up',      cmd: 'wireguard:up',            desc: 'Bring the WireGuard tunnel online' },
-            { title: 'WireGuard Down',    cmd: 'wireguard:down',          desc: 'Tear the WireGuard tunnel down' },
-            { title: 'WireGuard Status',  cmd: 'wireguard:status',        desc: 'Show tunnel handshake state and peer info' },
-            { title: 'GPU Worker Start',  cmd: 'gpu-worker:start',        desc: 'Start the local GPU worker process' },
-            { title: 'GPU Worker Stop',   cmd: 'gpu-worker:stop',         desc: 'Stop the local GPU worker process' },
-            { title: 'GPU Worker Status', cmd: 'gpu-worker:status',       desc: 'Show GPU worker pid + tunnel state' },
-            { title: 'GPU Worker Logs',   cmd: 'gpu-worker:logs',         desc: 'Tail GPU worker logs (Stop to exit)' },
-            { title: 'Switch Dev → GPU',  cmd: 'gpu-worker:switch-dev',   desc: 'Point dev cluster Whisper at the local GPU worker' },
-            { title: 'Switch Prod → GPU', cmd: 'gpu-worker:switch-prod',
-              desc: 'Point prod cluster Whisper at the local GPU worker',
-              dangerous: true, dangerMsg: 'Reroutes prod transcription to your local GPU. Stopping the worker will break prod transcription until reverted.' },
-        ]},
-        { cat: 'Transcription', icon: '🎙️', accent: ACCENTS.testing, items: [
-            { title: 'Deploy Whisper', cmd: 'whisper:deploy', desc: 'Deploy faster-whisper transcription service in-cluster' },
-            { title: 'Whisper Status', cmd: 'whisper:status', desc: 'Show Whisper pod status' },
-            { title: 'Whisper Logs',   cmd: 'whisper:logs',   desc: 'Tail Whisper logs (Stop to exit)' },
-        ]},
-        { cat: 'E-Invoice (Billing)', icon: '🧾', accent: ACCENTS.post, items: [
-            { title: 'Validate Output',      cmd: 'billing:validate-einvoice', desc: 'Validate generated ZUGFeRD/XRechnung output without a full cluster run' },
-            { title: 'Sidecar Build',        cmd: 'einvoice-sidecar:build',    desc: 'Build the e-invoice sidecar Docker image' },
-            { title: 'Sidecar Import (dev)', cmd: 'einvoice-sidecar:import',   desc: 'Import the local image into the k3d registry' },
-            { title: 'Sidecar Push (prod)',  cmd: 'einvoice-sidecar:push',     desc: 'Push the sidecar image to the prod registry' },
-            { title: 'Sidecar Logs',         cmd: 'einvoice-sidecar:logs',     desc: 'Tail e-invoice sidecar logs in the workspace namespace' },
-        ]},
-        { cat: 'Brett (Systembrett)', icon: '🧩', accent: ACCENTS.users, items: [
-            { title: 'Build',     cmd: 'brett:build',     desc: 'Build the Brett image (and import into k3d in dev)' },
-            { title: 'Push',      cmd: 'brett:push',      desc: 'Push Brett image to the registry' },
-            { title: 'Deploy',    cmd: 'brett:deploy',    desc: 'Build, import/push, and roll out Brett' },
-            { title: 'Bot Setup', cmd: 'brett:bot-setup', desc: 'Register the /brett slash command in Nextcloud Talk' },
-            { title: 'Logs',      cmd: 'brett:logs',      desc: 'Tail Brett logs (Stop to exit)' },
-        ]},
-        { cat: 'TLS & DNS', icon: '🔐', accent: ACCENTS.argocd, items: [
-            { title: 'Install cert-manager', cmd: 'cert:install', desc: 'Install cert-manager + lego DNS-01 webhook',
-              dangerous: true, dangerMsg: 'Installs cert-manager into the cluster. Run once per cluster.' },
-            { title: 'Cert Status',          cmd: 'cert:status',  desc: 'Show wildcard cert and ClusterIssuer status' },
-        ]},
-        { cat: 'Docs Site', icon: '📚', accent: ACCENTS.website, items: [
-            { title: 'Deploy Docs ConfigMap', cmd: 'docs:deploy',  desc: 'Push the docs ConfigMap to both prod clusters and restart the docs pods (ArgoCD does NOT auto-sync this)' },
-        ]},
-        { cat: 'HA Cluster', icon: '🛠️', accent: ACCENTS.cluster, items: [
-            { title: 'HA Status',         cmd: 'ha:status',     desc: 'Show node health for the 3-node HA cluster' },
-            { title: 'Renew Certs',       cmd: 'ha:cert-renew', desc: 'Renew HA cluster certificates' },
-            { title: 'Bootstrap HA',      cmd: 'ha:setup',      desc: 'Bootstrap the 3-node k3s HA cluster on Hetzner (run once)',
-              dangerous: true, dangerMsg: 'Bootstraps the HA cluster from scratch. Run once on fresh Hetzner nodes only.' },
-        ]},
-        { cat: 'Testing', icon: '🧪', accent: ACCENTS.testing, items: [
-            { title: 'Unit Tests',        cmd: 'test:unit',      desc: 'Run BATS unit tests (assertion lib, scripts, configs)' },
-            { title: 'Manifest Tests',    cmd: 'test:manifests', desc: 'Validate kustomize output structure (no cluster needed)' },
-            { title: 'All Offline Tests', cmd: 'test:all',       desc: 'Unit + manifests + dry-run' },
-        ]},
-        { cat: 'Environment & Secrets', icon: '🔑', accent: ACCENTS.env, items: [
-            { title: 'Validate All Envs',     cmd: 'env:validate:all',     desc: 'Check all environment files against the schema' },
-            { title: 'Init New Env',          cmd: 'env:init',             desc: 'Scaffold a new environments/<ENV>.yaml from the schema' },
-            { title: 'Validate Env',          cmd: 'env:validate',         desc: 'Validate the selected environment file' },
-            { title: 'Show Env Config',       cmd: 'env:show',             desc: 'Print the resolved config for the selected env' },
-            { title: 'Sealed Secrets Status', cmd: 'sealed-secrets:status',desc: 'Show Sealed Secrets controller status (must be installed before env:seal works)' },
-            { title: 'Generate Secrets',      cmd: 'env:generate',         desc: 'Generate fresh random secrets into .secrets/<ENV>.yaml',
-              dangerous: true, dangerMsg: 'Generates new random secrets. Running services will break until redeployed with the new secrets.' },
-            { title: 'Seal Secrets',          cmd: 'env:seal',             desc: 'Encrypt plaintext secrets into a SealedSecret and commit to git',
-              dangerous: true, dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
+
+        { cat: 'Backup & Wiederherstellen', icon: '💾', accent: ACCENTS.backup,
+          help: {
+              summary: 'Sicherungen aller Datenbanken erstellen und wiederherstellen.',
+              when: 'Vor jedem größeren Eingriff manuell ein Backup auslösen. Backups laufen automatisch nachts — hier nur, wenn du JETZT eines brauchst.',
+              recovery: 'Wenn etwas kaputt ist: erst "Backups auflisten", dann den passenden Zeitstempel notieren, dann "Aus Backup wiederherstellen".',
+          }, items: [
+            { title: 'Backup jetzt auslösen', cmd: 'workspace:backup',
+              desc: 'Sofortiges Backup aller Datenbanken anstoßen',
+              help: 'Macht eine Datenbankkopie und legt sie in den Backup-Bucket. Empfehlung: vor jedem riskanten Schritt.' },
+            { title: 'Backups auflisten', cmd: 'workspace:backup:list',
+              desc: 'Verfügbare Backup-Zeitstempel anzeigen',
+              help: 'Zeigt jeden vorhandenen Backup-Zeitstempel. Davon brauchst du den exakten Wert für eine Wiederherstellung.' },
+            { title: 'Aus Backup wiederherstellen', cmd: 'workspace:restore',
+              desc: 'Eine Datenbank aus einem Backup-Snapshot überschreiben',
+              help: 'Datenbankname und Zeitstempel angeben. Existiert die DB schon, wird sie überschrieben.',
+              dangerous: true, dangerMsg: 'Überschreibt die gewählte Datenbank mit Backup-Daten. Kann nicht rückgängig gemacht werden.',
+              argInputs: [
+                { id: 'arg-restore-db', placeholder: 'keycloak / nextcloud / all', required: true },
+                { id: 'arg-restore-ts', placeholder: 'Zeitstempel aus "Backups auflisten"', required: true },
+              ] },
         ]},
 
-        // First-time bootstrap — collapsed by default
-        { cat: 'From Scratch (First-Time Only)', icon: '🧱', accent: '#7c6af5',
-          scratchZone: true, collapsed: true, items: [
-            { title: '1. Create Dev Cluster',
-              cmd: 'cluster:create',
-              desc: 'Bootstrap k3d dev cluster. Skip for prod — use ha:setup on Hetzner nodes instead.' },
-            { title: '2. Install Sealed Secrets',
-              cmd: 'sealed-secrets:install',
-              desc: 'Install Bitnami Sealed Secrets controller via Helm. Required before env:seal will work.' },
-            { title: '3. Fetch Sealing Cert',
-              cmd: 'env:fetch-cert',
-              desc: 'Download the cluster public key into environments/certs/. Run after Sealed Secrets is installed.' },
-            { title: '4. Generate Secrets',
-              cmd: 'env:generate',
-              desc: 'Generate fresh random passwords into .secrets/<ENV>.yaml. Run once per new env, then seal immediately.',
-              dangerous: true,
-              dangerMsg: 'Generates new random secrets. Any running deployment using old secrets will break until redeployed.' },
-            { title: '5. Seal Secrets',
-              cmd: 'env:seal',
-              desc: 'Encrypt .secrets/<ENV>.yaml into a SealedSecret committed to git. Must be done before workspace:deploy.',
-              dangerous: true,
-              dangerMsg: 'Encrypts and commits secrets for the selected environment. Make sure the secrets file is correct first.' },
-            { title: '6. Deploy Workspace',
-              cmd: 'workspace:deploy',
-              desc: 'Apply all manifests to the cluster. After this, run Post-Deploy → Compliance & Hardening.' },
+        { cat: 'Doku-Seite', icon: '📚', accent: ACCENTS.website,
+          help: {
+              summary: 'Die docs.mentolder.de / docs.korczewski.de Seite. Inhalt liegt im Repo unter docs-site/.',
+              when: 'Nachdem du etwas an der Doku geändert hast — ArgoCD synchronisiert die Doku NICHT automatisch.',
+              recovery: 'Schlägt der Deploy fehl: in "Tägliche Operationen" Logs des docs-Pods anschauen.',
+          }, items: [
+            { title: 'Doku-ConfigMap ausrollen', cmd: 'docs:deploy',
+              desc: 'Doku-ConfigMap auf beide Cluster pushen und docs-Pods neu starten',
+              help: 'Der einzige Weg, Doku-Updates live zu bringen — ArgoCD macht das nicht von allein.' },
         ]},
 
-        // Destructive operations — collapsed, with when/never guidance
-        { cat: '⚠️  Danger Zone', icon: '', accent: '#c0392b',
+        { cat: 'Cluster', icon: '⚙️', accent: ACCENTS.cluster, collapsed: true,
+          help: {
+              summary: 'Den lokalen Entwicklungs-Cluster (k3d) verwalten. Für die Produktivcluster siehst du hier nur den Status.',
+              when: 'Wenn du auf deinem Rechner einen lokalen dev-Cluster startest oder stoppst.',
+              recovery: 'Wenn k3d sich seltsam benimmt: erst "Cluster stoppen", dann "Cluster starten".',
+          }, items: [
+            { title: 'Cluster anlegen', cmd: 'cluster:create',
+              desc: 'Neuen k3d-Dev-Cluster aufsetzen',
+              help: 'Nur lokal. Erstellt einen frischen k3d-Cluster auf deinem Rechner.' },
+            { title: 'Cluster starten', cmd: 'cluster:start',
+              desc: 'Einen gestoppten k3d-Cluster wieder hochfahren' },
+            { title: 'Cluster stoppen', cmd: 'cluster:stop',
+              desc: 'Den laufenden Cluster pausieren (Daten bleiben erhalten)' },
+            { title: 'Cluster-Status', cmd: 'cluster:status',
+              desc: 'Knoten, Pods und Ressourcennutzung anzeigen' },
+            { title: 'Status aller Cluster', cmd: 'clusters:status',
+              desc: 'Status über dev + mentolder + korczewski auf einen Schlag' },
+        ]},
+
+        { cat: 'Post-Deploy', icon: '🔧', accent: ACCENTS.post, collapsed: true,
+          help: {
+              summary: 'Aktionen, die nach einem Deploy laufen müssen, damit Nextcloud, Keycloak und Co. richtig zusammenspielen.',
+              when: 'Nach einem frischen Deploy oder wenn ein Dienst-Setup verloren gegangen ist (z.B. nach einem Datenbank-Restore).',
+              recovery: 'Bei Fehlern: meistens hilft, die jeweilige Setup-Aktion noch einmal zu starten — die Skripte sind idempotent.',
+          }, items: [
+            { title: 'Post-Setup', cmd: 'workspace:post-setup',
+              desc: 'Nextcloud-Apps aktivieren (OIDC, Collabora, Kalender, Kontakte)' },
+            { title: 'Talk-Setup', cmd: 'workspace:talk-setup',
+              desc: 'Nextcloud Talk HPB-Signaling + coturn konfigurieren' },
+            { title: 'Aufnahme-Setup', cmd: 'workspace:recording-setup',
+              desc: 'Talk-Aufnahme-Backend konfigurieren' },
+            { title: 'Whiteboard-Setup', cmd: 'workspace:whiteboard-setup',
+              desc: 'Nextcloud-Whiteboard-App installieren und konfigurieren' },
+            { title: 'Systembrett-Setup', cmd: 'workspace:systembrett-setup',
+              desc: 'Brett-Integration (Systembrett) in Nextcloud Talk einrichten' },
+            { title: 'Transcriber-Setup', cmd: 'workspace:transcriber-setup',
+              desc: 'Talk-Transcriber-Bot + Whisper einrichten' },
+            { title: 'Keycloak abgleichen', cmd: 'keycloak:sync',
+              desc: 'Realm + OIDC-Clients abgleichen und neue Client-Secrets in den Cluster pushen' },
+            { title: 'Deployment verifizieren', cmd: 'workspace:verify',
+              desc: 'Pod-zu-Pod-Pfade und Zugangsdaten testen (website→keycloak, workspace→website-API, SEALED-Check)' },
+            { title: 'Beide Cluster verifizieren', cmd: 'workspace:verify:all-prods',
+              desc: 'workspace:verify auf mentolder + korczewski nacheinander laufen lassen' },
+        ]},
+
+        { cat: 'Compliance & Härtung', icon: '🛡️', accent: ACCENTS.users, collapsed: true,
+          help: {
+              summary: 'Datenschutz-Checks und Sicherheits-Wartung.',
+              when: 'Vor einem Audit oder nach einer Passwort-Rotation.',
+              recovery: 'Erweitert — nur falls du weißt, was du tust.',
+          }, items: [
+            { title: 'DSGVO-Check', cmd: 'workspace:dsgvo-check', desc: 'DSGVO/GDPR-Compliance-Prüfung ausführen (NFA-01)' },
+            { title: 'Vaultwarden initial befüllen', cmd: 'workspace:vaultwarden:seed',
+              desc: 'Produktiv-Vaultwarden mit Secret-Vorlagen befüllen (einmalig nach frischem Prod-Deploy)' },
+            { title: 'DB-Passwörter abgleichen', cmd: 'workspace:sync-db-passwords',
+              desc: 'Postgres-Rollen-Passwörter mit Kubernetes-Secrets abgleichen (nach Rotation)' },
+            { title: 'Admin-Nutzer einrichten', cmd: 'workspace:admin-users-setup',
+              desc: 'Standard-Admin-Nutzer in Keycloak / Nextcloud anlegen' },
+            { title: 'Admin-Nutzer auf beiden Clustern', cmd: 'workspace:admin-users-setup:all-prods',
+              desc: 'Keycloak-Admin-Nutzer auf mentolder + korczewski in einem Rutsch anlegen' },
+        ]},
+
+        { cat: 'Nutzer & Daten', icon: '👥', accent: ACCENTS.users, collapsed: true,
+          help: {
+              summary: 'Nutzerverwaltung und Datenmigration.',
+              when: 'Wenn du einen Gast-Account anlegen oder Nutzer aus einer CSV importieren willst.',
+              recovery: 'Erweitert — nur falls du weißt, was du tust.',
+          }, items: [
+            { title: 'Gast-Nutzer anlegen', cmd: 'workspace:create-guest',
+              desc: 'Gast-Account in Keycloak + Nextcloud anlegen' },
+            { title: 'Nutzer importieren', cmd: 'workspace:import-users',
+              desc: 'Nutzer aus einer CSV-Datei importieren' },
+            { title: 'Datenmigration', cmd: 'workspace:migrate',
+              desc: 'Interaktiver Datenmigrations-Assistent' },
+        ]},
+
+        { cat: 'ArgoCD', icon: '♾️', accent: ACCENTS.argocd, collapsed: true,
+          help: {
+              summary: 'Erweitert — nur falls du weißt, was du tust. ArgoCD ist die GitOps-Schicht, die Änderungen aus dem Repo in die Cluster bringt.',
+              recovery: 'Wenn ArgoCD aus dem Tritt ist: in "Tägliche Operationen" → "Workspace-Status" zuerst schauen.',
+          }, items: [
+            { title: 'ArgoCD-Status', cmd: 'argocd:status', desc: 'Sync-/Health-Status aller Apps über alle Cluster' },
+            { title: 'Apps anwenden', cmd: 'argocd:apps:apply', desc: 'AppProject- und ApplicationSet-Manifeste anwenden' },
+            { title: 'App synchronisieren', cmd: 'argocd:sync', desc: 'Sync einer App manuell auslösen',
+              argInputs: [{ id: 'arg-argocd-sync', placeholder: 'App-Name, z.B. workspace-hetzner', required: true }] },
+            { title: 'App-Diff', cmd: 'argocd:diff', desc: 'Diff zwischen Git und Live-State anzeigen',
+              argInputs: [{ id: 'arg-argocd-diff', placeholder: 'App-Name, z.B. workspace-hetzner', required: true }] },
+            { title: 'Passwort drucken', cmd: 'argocd:password', desc: 'Initiales Admin-Passwort anzeigen' },
+            { title: 'Cluster registrieren', cmd: 'argocd:cluster:register', desc: 'hetzner + korczewski Cluster mit Workspace-Labels registrieren' },
+            { title: 'ArgoCD bootstrappen', cmd: 'argocd:setup', desc: 'Komplette ArgoCD-Installation + Cluster-Registrierung (einmalig)',
+              dangerous: true, dangerMsg: 'Bootstrappt ArgoCD von Null. Nur auf einem frischen Hub-Cluster ausführen.' },
+            { title: 'ArgoCD installieren', cmd: 'argocd:install', desc: 'ArgoCD auf dem mentolder-Hub installieren',
+              dangerous: true, dangerMsg: 'Installiert ArgoCD auf dem Hub-Cluster. Nur auf einem frischen Hub.' },
+        ]},
+
+        { cat: 'MCP / KI-Werkzeuge', icon: '🤖', accent: ACCENTS.mcp, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust.' }, items: [
+            { title: 'MCP ausrollen', cmd: 'mcp:deploy', desc: 'MCP-Monolith-Pod + Auth-Proxy ausrollen' },
+            { title: 'MCP-Status', cmd: 'mcp:status', desc: 'MCP-Pod und Container-Status anzeigen' },
+            { title: 'MCP-Logs', cmd: 'mcp:logs', desc: 'Logs eines MCP-Containers streamen',
+              argInputs: [{ id: 'arg-mcp-logs', placeholder: 'Container, z.B. github / postgres / browser', required: true }] },
+            { title: 'MCP neu starten', cmd: 'mcp:restart', desc: 'MCP-Monolith-Pod neu starten' },
+            { title: 'MCP-Server-Auswahl', cmd: 'mcp:select', desc: 'Interaktiver MCP-Server-Selektor' },
+            { title: 'Claude-Code-Setup', cmd: 'claude-code:setup', desc: 'Claude-Code settings.json generieren',
+              argInputs: [{ id: 'arg-cc-mode', placeholder: 'cluster oder business', required: true }] },
+            { title: 'Gemini-Setup', cmd: 'gemini:setup', desc: 'Gemini-CLI settings.json generieren',
+              argInputs: [{ id: 'arg-gem-mode', placeholder: 'cluster oder business', required: true }] },
+        ]},
+
+        { cat: 'VPN & GPU-Worker', icon: '🛰️', accent: ACCENTS.argocd, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust. WireGuard-Tunnel und lokaler GPU-Worker für Whisper.' }, items: [
+            { title: 'WireGuard einrichten', cmd: 'wireguard:setup', desc: 'WireGuard-Tunnel zum Prod-Cluster initialisieren' },
+            { title: 'WireGuard hoch', cmd: 'wireguard:up', desc: 'WireGuard-Tunnel aktivieren' },
+            { title: 'WireGuard runter', cmd: 'wireguard:down', desc: 'WireGuard-Tunnel deaktivieren' },
+            { title: 'WireGuard-Status', cmd: 'wireguard:status', desc: 'Tunnel-Handshake und Peer-Info zeigen' },
+            { title: 'GPU-Worker starten', cmd: 'gpu-worker:start', desc: 'Lokalen GPU-Worker-Prozess starten' },
+            { title: 'GPU-Worker stoppen', cmd: 'gpu-worker:stop', desc: 'Lokalen GPU-Worker-Prozess stoppen' },
+            { title: 'GPU-Worker-Status', cmd: 'gpu-worker:status', desc: 'GPU-Worker-PID + Tunnel-Status zeigen' },
+            { title: 'GPU-Worker-Logs', cmd: 'gpu-worker:logs', desc: 'GPU-Worker-Logs streamen (Stop zum Beenden)' },
+            { title: 'Dev → GPU umschalten', cmd: 'gpu-worker:switch-dev', desc: 'Dev-Cluster-Whisper auf den lokalen GPU-Worker zeigen lassen' },
+            { title: 'Prod → GPU umschalten', cmd: 'gpu-worker:switch-prod',
+              desc: 'Prod-Cluster-Whisper auf den lokalen GPU-Worker zeigen lassen',
+              dangerous: true, dangerMsg: 'Leitet Prod-Transkription auf deine lokale GPU um. Stoppst du den Worker, bricht die Prod-Transkription, bis das rückgängig gemacht ist.' },
+        ]},
+
+        { cat: 'Transkription', icon: '🎙️', accent: ACCENTS.testing, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust.' }, items: [
+            { title: 'Whisper ausrollen', cmd: 'whisper:deploy', desc: 'faster-whisper-Transkriptionsdienst im Cluster ausrollen' },
+            { title: 'Whisper-Status', cmd: 'whisper:status', desc: 'Whisper-Pod-Status anzeigen' },
+            { title: 'Whisper-Logs', cmd: 'whisper:logs', desc: 'Whisper-Logs streamen (Stop zum Beenden)' },
+        ]},
+
+        { cat: 'E-Rechnung (Billing)', icon: '🧾', accent: ACCENTS.post, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust. ZUGFeRD/XRechnung-Erzeugung als Sidecar-Container.' }, items: [
+            { title: 'Ausgabe validieren', cmd: 'billing:validate-einvoice', desc: 'Erzeugte ZUGFeRD/XRechnung-Ausgabe ohne Cluster prüfen' },
+            { title: 'Sidecar bauen', cmd: 'einvoice-sidecar:build', desc: 'E-Rechnung-Sidecar-Image bauen' },
+            { title: 'Sidecar importieren (dev)', cmd: 'einvoice-sidecar:import', desc: 'Image in die k3d-Registry importieren' },
+            { title: 'Sidecar pushen (prod)', cmd: 'einvoice-sidecar:push', desc: 'Sidecar-Image in die Prod-Registry pushen' },
+            { title: 'Sidecar-Logs', cmd: 'einvoice-sidecar:logs', desc: 'E-Rechnung-Sidecar-Logs streamen' },
+        ]},
+
+        { cat: 'Brett (Systembrett)', icon: '🧩', accent: ACCENTS.users, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust.' }, items: [
+            { title: 'Bauen', cmd: 'brett:build', desc: 'Brett-Image bauen (in dev wird es in k3d importiert)' },
+            { title: 'Pushen', cmd: 'brett:push', desc: 'Brett-Image in die Registry pushen' },
+            { title: 'Ausrollen', cmd: 'brett:deploy', desc: 'Bauen, importieren/pushen und Brett ausrollen' },
+            { title: 'Bot-Setup', cmd: 'brett:bot-setup', desc: '/brett-Slash-Command in Nextcloud Talk registrieren' },
+            { title: 'Logs', cmd: 'brett:logs', desc: 'Brett-Logs streamen (Stop zum Beenden)' },
+        ]},
+
+        { cat: 'TLS & DNS', icon: '🔐', accent: ACCENTS.argocd, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust.' }, items: [
+            { title: 'cert-manager installieren', cmd: 'cert:install', desc: 'cert-manager + lego DNS-01-Webhook installieren',
+              dangerous: true, dangerMsg: 'Installiert cert-manager im Cluster. Einmalig pro Cluster.' },
+            { title: 'Zertifikat-Status', cmd: 'cert:status', desc: 'Wildcard-Zertifikat und ClusterIssuer-Status anzeigen' },
+        ]},
+
+        { cat: 'HA-Cluster', icon: '🛠️', accent: ACCENTS.cluster, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust.' }, items: [
+            { title: 'HA-Status', cmd: 'ha:status', desc: 'Knoten-Health des HA-Clusters anzeigen' },
+            { title: 'Zertifikate erneuern', cmd: 'ha:cert-renew', desc: 'HA-Cluster-Zertifikate erneuern' },
+            { title: 'HA bootstrappen', cmd: 'ha:setup', desc: 'k3s-HA-Cluster auf Hetzner aufsetzen (einmalig)',
+              dangerous: true, dangerMsg: 'Bootstrappt den HA-Cluster von Null. Nur auf frischen Hetzner-Knoten.' },
+        ]},
+
+        { cat: 'Tests', icon: '🧪', accent: ACCENTS.testing, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust.' }, items: [
+            { title: 'Unit-Tests', cmd: 'test:unit', desc: 'BATS-Unit-Tests ausführen' },
+            { title: 'Manifest-Tests', cmd: 'test:manifests', desc: 'Kustomize-Output-Struktur prüfen (kein Cluster nötig)' },
+            { title: 'Alle Offline-Tests', cmd: 'test:all', desc: 'Unit + Manifeste + Probelauf' },
+        ]},
+
+        { cat: 'Umgebung & Secrets', icon: '🔑', accent: ACCENTS.env, collapsed: true,
+          help: { summary: 'Erweitert — nur falls du weißt, was du tust. Secret-Verwaltung über SealedSecrets.' }, items: [
+            { title: 'Alle Umgebungen prüfen', cmd: 'env:validate:all', desc: 'Alle Umgebungs-Dateien gegen das Schema prüfen' },
+            { title: 'Neue Umgebung anlegen', cmd: 'env:init', desc: 'Neues environments/<ENV>.yaml aus dem Schema erzeugen' },
+            { title: 'Umgebung prüfen', cmd: 'env:validate', desc: 'Die gewählte Umgebungs-Datei prüfen' },
+            { title: 'Umgebung anzeigen', cmd: 'env:show', desc: 'Aufgelöste Konfiguration der gewählten Umgebung anzeigen' },
+            { title: 'SealedSecrets-Status', cmd: 'sealed-secrets:status', desc: 'Status des SealedSecrets-Controllers (muss installiert sein, bevor env:seal funktioniert)' },
+            { title: 'Secrets generieren', cmd: 'env:generate', desc: 'Frische Zufalls-Secrets in .secrets/<ENV>.yaml schreiben',
+              dangerous: true, dangerMsg: 'Erzeugt neue Zufalls-Secrets. Laufende Dienste brechen, bis sie mit den neuen Secrets neu ausgerollt sind.' },
+            { title: 'Secrets versiegeln', cmd: 'env:seal', desc: 'Klartext-Secrets in ein SealedSecret verschlüsseln und committen',
+              dangerous: true, dangerMsg: 'Verschlüsselt und committet Secrets. Stelle sicher, dass die Secrets-Datei korrekt ist.' },
+        ]},
+
+        // Erstinstallation — eingeklappt
+        { cat: 'Erstinstallation (nur einmalig)', icon: '🧱', accent: '#7c6af5',
+          scratchZone: true, collapsed: true,
+          help: { summary: 'Diese Schritte führst du genau einmal pro neuem Cluster aus. Nicht antasten, wenn der Cluster schon läuft.' },
+          items: [
+            { title: '1. Dev-Cluster anlegen', cmd: 'cluster:create',
+              desc: 'k3d-Dev-Cluster aufsetzen. Für Prod: stattdessen ha:setup auf Hetzner-Knoten.' },
+            { title: '2. SealedSecrets installieren', cmd: 'sealed-secrets:install',
+              desc: 'Bitnami-SealedSecrets-Controller via Helm installieren. Voraussetzung für env:seal.' },
+            { title: '3. Versiegelungs-Zertifikat holen', cmd: 'env:fetch-cert',
+              desc: 'Cluster-Public-Key in environments/certs/ herunterladen. Nach SealedSecrets-Install.' },
+            { title: '4. Secrets generieren', cmd: 'env:generate',
+              desc: 'Frische Zufalls-Passwörter in .secrets/<ENV>.yaml. Einmalig pro neuer Umgebung, danach sofort versiegeln.',
+              dangerous: true,
+              dangerMsg: 'Erzeugt neue Zufalls-Secrets. Laufende Deployments brechen, bis sie neu ausgerollt sind.' },
+            { title: '5. Secrets versiegeln', cmd: 'env:seal',
+              desc: 'Verschlüsselt .secrets/<ENV>.yaml in ein SealedSecret und committet es. Pflicht vor workspace:deploy.',
+              dangerous: true,
+              dangerMsg: 'Verschlüsselt und committet Secrets. Vorher Secrets-Datei prüfen.' },
+            { title: '6. Workspace ausrollen', cmd: 'workspace:deploy',
+              desc: 'Alle Manifeste anwenden. Danach Post-Deploy → Compliance & Härtung.' },
+        ]},
+
+        // Gefahrenzone — eingeklappt mit when/never-Hinweisen
+        { cat: '⚠️  Gefahrenzone', icon: '', accent: '#c0392b',
           dangerZone: true, collapsed: true,
+          help: { summary: 'Diese Aktionen löschen Daten oder zerstören Infrastruktur dauerhaft. Erweitert — nur falls du weißt, was du tust, und nur mit frischem Backup.' },
           useWhen: [
-              'Deliberate teardown of a dev cluster',
-              'Migrating to a new cluster (only after verifying a recent backup)',
-              'Full reset after an unrecoverable failed deploy on dev',
+              'Bewusster Abbau eines Dev-Clusters',
+              'Migration auf einen neuen Cluster (nur nach geprüftem Backup)',
+              'Kompletter Reset nach unrettbar fehlgeschlagenem Dev-Deploy',
           ],
           neverWhen: [
-              'ENV is set to mentolder or korczewski (production)',
-              'No backup taken in the last 24 h',
-              'Any doubt — ask first',
+              'ENV ist mentolder oder korczewski (Produktion)',
+              'Kein Backup in den letzten 24 Stunden',
+              'Irgendein Zweifel — erst nachfragen',
           ],
           items: [
-            { title: 'Teardown Workspace', cmd: 'workspace:teardown', dangerous: true,
-              desc: 'Delete workspace namespace + all data. Use to wipe dev or start fresh. Never on prod without a verified backup.',
-              dangerMsg: 'Deletes the entire workspace namespace and ALL its data. Cannot be undone.' },
-            { title: 'Delete Cluster',     cmd: 'cluster:delete',     dangerous: true,
-              desc: 'Destroy the k3d cluster entirely. Dev only — never on prod Hetzner nodes. All PVCs and configs are lost.',
-              dangerMsg: 'Destroys the k3d cluster and every resource inside it. Cannot be undone.' },
-            { title: 'Nuke Everything',    cmd: 'down',                dangerous: true,
-              desc: 'Teardown workspace + delete cluster in one go. Dev only. Total reset.',
-              dangerMsg: 'Tears down the workspace AND deletes the cluster. Total reset. Cannot be undone.' },
+            { title: 'Workspace abbauen', cmd: 'workspace:teardown', dangerous: true,
+              desc: 'Workspace-Namespace + alle Daten löschen. Für Dev-Reset oder kontrollierte Migration.',
+              dangerMsg: 'Löscht den gesamten Workspace-Namespace und ALLE Daten. Kann nicht rückgängig gemacht werden.' },
+            { title: 'Cluster löschen', cmd: 'cluster:delete', dangerous: true,
+              desc: 'k3d-Cluster komplett zerstören. Nur Dev — niemals auf Hetzner-Prod-Knoten.',
+              dangerMsg: 'Zerstört den k3d-Cluster und alle Ressourcen darin. Kann nicht rückgängig gemacht werden.' },
+            { title: 'Alles plätten', cmd: 'down', dangerous: true,
+              desc: 'Workspace abbauen + Cluster löschen in einem. Nur Dev. Kompletter Reset.',
+              dangerMsg: 'Reißt den Workspace UND den Cluster ab. Kompletter Reset. Kann nicht rückgängig gemacht werden.' },
         ]},
     ];
 
@@ -802,7 +1075,7 @@
         const val = el('span', { class: liveContext === expected ? 'ctx-ok' : 'ctx-warn' }, liveContext);
         liveCtxEl.appendChild(val);
         if (liveContext !== expected) {
-            liveCtxEl.appendChild(el('span', { class: 'ctx-warn' }, ' (expects ' + expected + ')'));
+            liveCtxEl.appendChild(el('span', { class: 'ctx-warn' }, ' (erwartet ' + expected + ')'));
         }
     }
 
@@ -829,40 +1102,40 @@
             const text = el('div', { class: 'footgun-text' }, [
                 '🚨 ',
                 el('strong', null, [
-                    'ENV=dev but kubectl is on ',
+                    'ENV=dev, aber kubectl ist auf ',
                     el('code', null, liveContext),
                 ]),
-                ' — tasks like ',
+                ' — Aktionen wie ',
                 el('code', null, 'workspace:deploy'),
-                ' default to ',
+                ' nehmen ',
                 el('code', null, 'ENV=dev'),
-                ' when unset, but the dev/prod context mismatch check only runs for non-dev ENVs. ',
-                'You can silently apply dev manifests to the live prod cluster. Switch one of them first.',
+                ' an, wenn es nicht gesetzt ist. Die Dev/Prod-Kontextprüfung läuft aber nur für Nicht-Dev-ENVs. ',
+                'So kann man unbemerkt Dev-Manifeste auf den Prod-Cluster anwenden. Eines von beiden erst umschalten.',
             ]);
             const fixEnv = el('button', { onclick: () => {
                 envSelect.value = liveContext;
                 envSelect.dispatchEvent(new Event('change'));
-            }}, 'Set ENV=' + liveContext);
+            }}, 'ENV=' + liveContext + ' setzen');
             const fixCtx = el('button', { onclick: () => {
                 ctxBtn.disabled = true;
                 socket.emit('switch-context', { env: 'dev' });
-            }}, 'Switch ctx → k3d-dev');
+            }}, 'ctx → k3d-dev wechseln');
             footgunEl.appendChild(text);
             footgunEl.appendChild(fixEnv);
             footgunEl.appendChild(fixCtx);
         } else if (env !== 'dev' && liveContext === 'k3d-dev') {
             footgunEl.className = 'visible amber';
             const text = el('div', { class: 'footgun-text' }, [
-                '⚠️ ENV=' + env + ' (prod) but kubectl is on ',
+                '⚠️ ENV=' + env + ' (Produktion), aber kubectl ist auf ',
                 el('code', null, 'k3d-dev'),
-                '. Switch ctx to ',
+                '. ctx auf ',
                 el('code', null, expected),
-                ' before running deploy/restart tasks.',
+                ' wechseln, bevor du Deploy-/Restart-Aktionen startest.',
             ]);
             const fixCtx = el('button', { onclick: () => {
                 ctxBtn.disabled = true;
                 socket.emit('switch-context', { env });
-            }}, 'Switch ctx → ' + expected);
+            }}, 'ctx → ' + expected + ' wechseln');
             footgunEl.appendChild(text);
             footgunEl.appendChild(fixCtx);
         }
@@ -870,7 +1143,7 @@
 
     function updateCtxBtnTitle() {
         const ctx = ENV_CTX[envSelect.value] || envSelect.value;
-        ctxBtn.title = 'Switch kubectl context to ' + ctx;
+        ctxBtn.title = 'kubectl-Kontext auf ' + ctx + ' wechseln';
     }
     updateCtxBtnTitle();
 
@@ -885,6 +1158,12 @@
             ctxFeedback.className = '';
             ctxBtn.className = '';
         }, 3000);
+    }
+
+    function translateCtxFeedback(ok, ctx, msg) {
+        // Server gibt englische Meldungen zurück — nur die kurze Statuszeile übersetzen
+        if (ok) return '✓ Kontext → ' + ctx;
+        return '✗ ' + (msg || 'fehlgeschlagen');
     }
 
     ctxBtn.addEventListener('click', () => {
@@ -960,6 +1239,18 @@
         header.appendChild(nameEl);
         header.appendChild(countEl);
 
+        if (group.help) {
+            const helpBtn = document.createElement('button');
+            helpBtn.className = 'help-btn';
+            helpBtn.textContent = '?';
+            helpBtn.title = 'Was macht diese Gruppe?';
+            helpBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showGroupHelp(group);
+            });
+            header.appendChild(helpBtn);
+        }
+
         if (groupHasChainable(group)) {
             const chainable = group.items.filter(isChainable);
             const progressEl = document.createElement('span');
@@ -967,18 +1258,18 @@
 
             const chainBtn = document.createElement('button');
             chainBtn.className = 'chain-btn';
-            chainBtn.textContent = '▶ all (' + chainable.length + ')';
-            chainBtn.title = 'Run all ' + chainable.length + ' eligible tasks in '
-                + group.cat + ' sequentially. Skips tasks that need input, '
-                + 'are destructive, or stream forever.';
+            chainBtn.textContent = '▶ Alle (' + chainable.length + ')';
+            chainBtn.title = 'Alle ' + chainable.length + ' geeigneten Aktionen aus "'
+                + group.cat + '" nacheinander ausführen. Übersprungen werden Aktionen, '
+                + 'die Eingaben brauchen, zerstörerisch sind oder dauerhaft streamen.';
             chainBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (chainGroupIndex === groupIdx) {
-                    cancelChain('Chain cancelled by user');
+                    cancelChain('Kette vom Nutzer abgebrochen');
                 } else if (chainGroupIndex >= 0 || running) {
                     // Another chain or task is active — let user know
                     statusEl.className = 'fail';
-                    statusEl.textContent = 'Cannot start chain: a task is already running';
+                    statusEl.textContent = 'Kette kann nicht starten: eine Aktion läuft schon';
                 } else {
                     if (!section.classList.contains('open')) section.classList.add('open');
                     startChain(groupIdx);
@@ -1003,8 +1294,8 @@
 
             const guide = document.createElement('p');
             guide.className = 'danger-guidance';
-            guide.textContent = 'These tasks permanently destroy data or infrastructure.'
-                + ' Always run workspace:backup first and verify the timestamp.';
+            guide.textContent = 'Diese Aktionen zerstören Daten oder Infrastruktur dauerhaft.'
+                + ' Vorher IMMER workspace:backup laufen lassen und den Zeitstempel prüfen.';
             box.appendChild(guide);
 
             const whenBlock = document.createElement('div');
@@ -1021,14 +1312,14 @@
 
             const note = document.createElement('p');
             note.className = 'scratch-note';
-            note.textContent = '⚠ Run these only once on a brand-new cluster.';
+            note.textContent = '⚠ Diese Schritte nur EINMAL auf einem brandneuen Cluster ausführen.';
             box.appendChild(note);
 
             const pre = document.createElement('p');
             pre.className = 'scratch-prereq';
-            pre.textContent = 'Prerequisites: Docker, k3d, kubectl, kubeseal, and task must be installed locally.'
-                + '\nDo NOT run on an existing cluster — re-generating or re-sealing secrets on a live'
-                + ' cluster breaks running services until redeployed.';
+            pre.textContent = 'Voraussetzungen: Docker, k3d, kubectl, kubeseal und task müssen lokal installiert sein.'
+                + '\nNICHT auf einem bestehenden Cluster ausführen — neu generierte oder versiegelte Secrets'
+                + ' brechen laufende Dienste, bis sie neu ausgerollt werden.';
             box.appendChild(pre);
 
             wrap = box;
@@ -1052,6 +1343,18 @@
             titleEl.className = 'task-title';
             titleEl.textContent = item.title;
 
+            if (item.help) {
+                const tHelpBtn = document.createElement('button');
+                tHelpBtn.className = 'help-btn task-help-btn';
+                tHelpBtn.textContent = '?';
+                tHelpBtn.title = 'Was macht diese Aktion?';
+                tHelpBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showTaskHelp(item);
+                });
+                titleEl.appendChild(tHelpBtn);
+            }
+
             const cmdEl = document.createElement('div');
             cmdEl.className = 'task-cmd';
             cmdEl.textContent = 'task ' + item.cmd;
@@ -1064,7 +1367,7 @@
             if (item.dangerous) {
                 const tag = document.createElement('span');
                 tag.className = 'task-danger-tag';
-                tag.textContent = 'DESTRUCTIVE';
+                tag.textContent = 'ZERSTÖRT';
                 top.appendChild(tag);
             }
             card.appendChild(top);
@@ -1092,7 +1395,7 @@
 
                 const runBtn = document.createElement('button');
                 runBtn.className = 'run-btn' + (item.dangerous ? ' danger' : '');
-                runBtn.textContent = 'Run';
+                runBtn.textContent = 'Start';
                 runBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     for (const { el, required } of inputEls) {
@@ -1136,7 +1439,7 @@
             sectionEls[i].style.display = hiddenGroups.has(i) ? 'none' : '';
         });
         const count = hiddenGroups.size;
-        groupsBadge.textContent = count + ' hidden';
+        groupsBadge.textContent = count + ' ausgeblendet';
         groupsBtn.classList.toggle('has-hidden', count > 0);
     }
 
@@ -1172,7 +1475,7 @@
         footer.className = 'groups-panel-footer';
 
         const showAll = document.createElement('button');
-        showAll.textContent = 'Show all';
+        showAll.textContent = 'Alle anzeigen';
         showAll.addEventListener('click', () => {
             hiddenGroups.clear();
             saveHiddenGroups();
@@ -1181,7 +1484,7 @@
         });
 
         const hideAll = document.createElement('button');
-        hideAll.textContent = 'Hide all';
+        hideAll.textContent = 'Alle ausblenden';
         hideAll.addEventListener('click', () => {
             GROUPS.forEach((_, i) => hiddenGroups.add(i));
             saveHiddenGroups();
@@ -1221,6 +1524,103 @@
 
     applyGroupVisibility();
 
+    // ── Help modal (group-level + task-level) ─────────────────────────────
+    const helpOverlay = document.getElementById('help-modal-overlay');
+    const helpTitle   = document.getElementById('help-modal-title');
+    const helpContent = document.getElementById('help-modal-content');
+    const helpIcon    = document.getElementById('help-modal-icon');
+
+    function buildHelpSection(label, text) {
+        if (!text) return null;
+        const sec = document.createElement('div');
+        sec.className = 'help-section';
+        const h = document.createElement('h4');
+        h.textContent = label;
+        sec.appendChild(h);
+        const p = document.createElement('p');
+        p.textContent = text;
+        sec.appendChild(p);
+        return sec;
+    }
+
+    function showGroupHelp(group) {
+        helpIcon.textContent = '💡';
+        helpTitle.textContent = (group.icon ? group.icon + '  ' : '') + group.cat;
+        clearChildren(helpContent);
+        const help = group.help || {};
+        const summary  = buildHelpSection('Was macht diese Gruppe?', help.summary);
+        const when     = buildHelpSection('Wann benutze ich das?', help.when);
+        const env      = buildHelpSection('Was ist ENV?', help.env);
+        const recovery = buildHelpSection('Wenn was schiefgeht', help.recovery);
+        [summary, when, env, recovery].forEach((s) => { if (s) helpContent.appendChild(s); });
+        if (!helpContent.firstChild) {
+            const p = document.createElement('p');
+            p.className = 'help-section';
+            p.textContent = 'Erweitert — nur falls du weißt, was du tust.';
+            helpContent.appendChild(p);
+        }
+        helpOverlay.classList.add('visible');
+    }
+
+    function showTaskHelp(item) {
+        helpIcon.textContent = '💡';
+        helpTitle.textContent = item.title;
+        clearChildren(helpContent);
+
+        // Show actual task command for reference (technical anchor)
+        const cmdSec = document.createElement('div');
+        cmdSec.className = 'help-section';
+        const cmdH = document.createElement('h4');
+        cmdH.textContent = 'Befehl';
+        cmdSec.appendChild(cmdH);
+        const cmdP = document.createElement('p');
+        const code = document.createElement('code');
+        code.textContent = 'task ' + item.cmd;
+        cmdP.appendChild(code);
+        cmdSec.appendChild(cmdP);
+        helpContent.appendChild(cmdSec);
+
+        const desc = buildHelpSection('Was passiert?', item.desc);
+        if (desc) helpContent.appendChild(desc);
+
+        const help = buildHelpSection('Hinweis', item.help);
+        if (help) helpContent.appendChild(help);
+
+        helpOverlay.classList.add('visible');
+    }
+
+    function closeHelpModal() {
+        helpOverlay.classList.remove('visible');
+    }
+
+    document.getElementById('help-modal-close').addEventListener('click', closeHelpModal);
+    helpOverlay.addEventListener('click', (e) => {
+        if (e.target === helpOverlay) closeHelpModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpOverlay.classList.contains('visible')) closeHelpModal();
+    });
+
+    // ── Welcome hint (dismissible, localStorage-backed) ───────────────────
+    const WELCOME_LS_KEY = 'dashboard-welcome-hint-dismissed';
+    const welcomeHint = document.getElementById('welcome-hint');
+    if (!localStorage.getItem(WELCOME_LS_KEY)) {
+        welcomeHint.classList.add('visible');
+    }
+    document.getElementById('welcome-hint-close').addEventListener('click', () => {
+        localStorage.setItem(WELCOME_LS_KEY, '1');
+        welcomeHint.classList.remove('visible');
+    });
+
+    // ── Default ENV for Gekko: prefer mentolder if no kubectl ctx pulls us elsewhere ──
+    // (See socket.on('current-context') below — it overrides this if a real ctx is detected.)
+    if (envSelect.value !== 'mentolder' && envSelect.value !== 'korczewski') {
+        envSelect.value = 'mentolder';
+        envSelect.classList.add('prod');
+        document.getElementById('prod-banner').classList.add('visible');
+        updateCtxBtnTitle();
+    }
+
     // ── Dry-run toggle ─────────────────────────────────────────────────────
     let dryRunActive = false;
     const dryrunBtn = document.getElementById('dryrun-btn');
@@ -1251,13 +1651,13 @@
         if (!ctrl) return;
         ctrl.btn.classList.toggle('active', active);
         if (active) {
-            ctrl.btn.textContent = '■ stop chain';
-            ctrl.btn.title = 'Cancel this group chain (current task keeps running until it finishes or you press Stop)';
+            ctrl.btn.textContent = '■ Kette stoppen';
+            ctrl.btn.title = 'Diese Kette abbrechen (die aktuelle Aktion läuft fertig, bis sie endet oder du Stop drückst)';
         } else {
             const chainable = GROUPS[groupIdx].items.filter(isChainable);
-            ctrl.btn.textContent = '▶ all (' + chainable.length + ')';
-            ctrl.btn.title = 'Run all ' + chainable.length + ' eligible tasks in '
-                + GROUPS[groupIdx].cat + ' sequentially.';
+            ctrl.btn.textContent = '▶ Alle (' + chainable.length + ')';
+            ctrl.btn.title = 'Alle ' + chainable.length + ' geeigneten Aktionen aus "'
+                + GROUPS[groupIdx].cat + '" nacheinander ausführen.';
             ctrl.progressEl.textContent = '';
         }
     }
@@ -1299,7 +1699,7 @@
                     }
                 }
                 statusEl.className = 'ok';
-                statusEl.textContent = 'Auto-chain finished — no more eligible groups ✓';
+                statusEl.textContent = 'Auto-Kette fertig — keine weiteren passenden Gruppen ✓';
             }
             return;
         }
@@ -1327,7 +1727,7 @@
 
     function setTerminalCollapsed(collapsed) {
         terminalPane.classList.toggle('collapsed', collapsed);
-        termToggle.textContent = collapsed ? '▲ expand' : '▼ collapse';
+        termToggle.textContent = collapsed ? '▲ ausklappen' : '▼ einklappen';
     }
     termToggle.addEventListener('click', () => {
         setTerminalCollapsed(!terminalPane.classList.contains('collapsed'));
@@ -1346,10 +1746,10 @@
         const env   = envSelect.value;
         const label = 'task ' + item.cmd + (args.length ? '  ' + args.join(' ') : '') + '   [ENV=' + env + ']';
         modalIcon.textContent    = '⚠️';
-        modalTitle.textContent   = 'Confirm Dangerous Operation';
+        modalTitle.textContent   = 'Gefährliche Aktion bestätigen';
         modalCmd.textContent     = label;
         modalMsg.textContent     = item.dangerMsg;
-        modalConfirm.textContent = 'Yes, Proceed';
+        modalConfirm.textContent = 'Ja, fortfahren';
         pending = { cmd: item.cmd, args, ctxConfirm: false, footgunConfirm: false };
         document.getElementById('modal-overlay').classList.add('visible');
     }
@@ -1357,32 +1757,31 @@
     function showCtxModal(command, args) {
         const env      = envSelect.value;
         const expected = ENV_CTX[env];
-        const current  = liveContext || 'unknown';
+        const current  = liveContext || 'unbekannt';
         modalIcon.textContent    = '⚠️';
-        modalTitle.textContent   = 'kubectl context not switched';
-        modalCmd.textContent     = 'ENV ' + env + '  →  cluster ' + expected + '  /  current ctx: ' + current;
-        modalMsg.textContent     = 'You selected ENV ' + env + ' which targets the ' + expected +
-            ' cluster, but your kubectl context is currently set to "' + current + '". ' +
-            'Use the ⇌ ctx button to switch first, or run anyway against the active context.';
-        modalConfirm.textContent = 'Run Anyway';
+        modalTitle.textContent   = 'kubectl-Kontext passt nicht';
+        modalCmd.textContent     = 'ENV ' + env + '  →  Cluster ' + expected + '  /  aktueller ctx: ' + current;
+        modalMsg.textContent     = 'Du hast ENV=' + env + ' gewählt — das zielt auf den Cluster "' + expected +
+            '". Dein kubectl-Kontext ist aber gerade auf "' + current + '". ' +
+            'Nutze den ⇌ ctx-Knopf, um zu wechseln — oder führe trotzdem aus (gegen den aktiven Kontext).';
+        modalConfirm.textContent = 'Trotzdem ausführen';
         pending = { cmd: command, args, ctxConfirm: true, footgunConfirm: false };
         document.getElementById('modal-overlay').classList.add('visible');
     }
 
     function showFootgunModal(command, args) {
         modalIcon.textContent    = '🚨';
-        modalTitle.textContent   = 'ENV=dev with prod kubectl context';
+        modalTitle.textContent   = 'ENV=dev bei Prod-kubectl-Kontext';
         modalCmd.textContent     = 'task ' + command +
             (args.length ? '  ' + args.join(' ') : '') +
-            '   [ENV=dev, ctx=' + (liveContext || 'unknown') + ']';
+            '   [ENV=dev, ctx=' + (liveContext || 'unbekannt') + ']';
         modalMsg.textContent     =
-            command + ' targets the live cluster. Your kubectl context is on ' +
-            (liveContext || 'unknown') + ' (production), but ENV is set to dev — ' +
-            'so this task will use dev manifests (e.g. dev secrets, dev domains) ' +
-            'against the prod cluster. This almost always means you forgot to set ENV. ' +
-            'Either switch ENV to ' + (liveContext || 'a prod env') + ' first, ' +
-            'or confirm to run anyway.';
-        modalConfirm.textContent = 'Run Anyway';
+            command + ' zielt auf den Live-Cluster. Dein kubectl-Kontext ist auf ' +
+            (liveContext || 'unbekannt') + ' (Produktion), aber ENV=dev — ' +
+            'das heißt, diese Aktion würde Dev-Manifeste (z.B. Dev-Secrets, Dev-Domains) ' +
+            'gegen den Prod-Cluster ausführen. Fast immer hast du nur vergessen, ENV zu setzen. ' +
+            'Wechsle ENV auf ' + (liveContext || 'eine Prod-Umgebung') + ' — oder bestätige, um trotzdem auszuführen.';
+        modalConfirm.textContent = 'Trotzdem ausführen';
         pending = { cmd: command, args, ctxConfirm: false, footgunConfirm: true };
         document.getElementById('modal-overlay').classList.add('visible');
     }
@@ -1395,7 +1794,7 @@
     // If a modal is dismissed without confirming during a chain, the chain would
     // otherwise hang waiting for a task-finished event that will never fire.
     function dismissModal() {
-        if (pending && chainGroupIndex >= 0) cancelChain('Chain aborted — modal dismissed');
+        if (pending && chainGroupIndex >= 0) cancelChain('Kette abgebrochen — Dialog geschlossen');
         closeModal();
     }
 
@@ -1466,7 +1865,7 @@
         if (terminalPane.classList.contains('collapsed')) setTerminalCollapsed(false);
         statusEl.className = 'running';
         const envLabel = 'ENV=' + envSelect.value + (dryRunActive ? ', DRY_RUN=true' : '');
-        statusEl.textContent = 'Running: task ' + command + '  [' + envLabel + ']';
+        statusEl.textContent = 'Läuft: task ' + command + '  [' + envLabel + ']';
         termLabel.textContent = 'task ' + command + '  [' + envLabel + ']';
         const envVars = { ENV: envSelect.value };
         if (dryRunActive) envVars.DRY_RUN = 'true';
@@ -1474,7 +1873,7 @@
     }
 
     stopBtn.addEventListener('click', () => {
-        if (chainGroupIndex >= 0) cancelChain('Chain stopped');
+        if (chainGroupIndex >= 0) cancelChain('Kette gestoppt');
         socket.emit('stop-task');
     });
     document.getElementById('clear-btn').addEventListener('click', resetPanes);
@@ -1495,18 +1894,18 @@
         const text = spans.map((s) => s.textContent).join('');
         if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
-            copyLogBtn.textContent = '✓ Copied';
+            copyLogBtn.textContent = '✓ Kopiert';
             copyLogBtn.classList.add('copied');
             clearTimeout(copyFeedbackTimer);
             copyFeedbackTimer = setTimeout(() => {
-                copyLogBtn.textContent = '⎘ Copy';
+                copyLogBtn.textContent = '⎘ Kopieren';
                 copyLogBtn.classList.remove('copied');
             }, 2000);
         }).catch(() => {
-            copyLogBtn.textContent = '✗ Failed';
+            copyLogBtn.textContent = '✗ Fehlgeschlagen';
             clearTimeout(copyFeedbackTimer);
             copyFeedbackTimer = setTimeout(() => {
-                copyLogBtn.textContent = '⎘ Copy';
+                copyLogBtn.textContent = '⎘ Kopieren';
             }, 2000);
         });
     });
@@ -1522,17 +1921,17 @@
             setButtons(false);
             stopBtn.style.display = 'none';
             statusEl.className = 'fail';
-            statusEl.textContent = 'Reconnected — previous task was lost (server restarted)';
+            statusEl.textContent = 'Wieder verbunden — vorherige Aktion ging verloren (Server-Neustart)';
         } else if (!running) {
             statusEl.className = '';
-            statusEl.textContent = 'Ready';
+            statusEl.textContent = 'Bereit';
         }
         wasDisconnected = false;
     });
     socket.on('disconnect', () => {
         wasDisconnected = true;
         connDot.className = 'disconnected';
-        statusEl.className = 'fail'; statusEl.textContent = 'Disconnected from server';
+        statusEl.className = 'fail'; statusEl.textContent = 'Verbindung zum Server verloren';
     });
 
     const CTX_ENV = { 'k3d-dev': 'dev', 'mentolder': 'mentolder', 'korczewski': 'korczewski' };
@@ -1560,9 +1959,9 @@
         ctxBtn.disabled = false;
         if (ok) {
             ctxConfirmed = true;
-            showCtxFeedback(true, '✓ context → ' + ctx);
+            showCtxFeedback(true, translateCtxFeedback(true, ctx, msg));
         } else {
-            showCtxFeedback(false, '✗ ' + (msg || 'failed'));
+            showCtxFeedback(false, translateCtxFeedback(false, ctx, msg));
         }
     });
 
@@ -1598,9 +1997,9 @@
         stopBtn.style.display = 'none';
         statusEl.className = code === 0 ? 'ok' : 'fail';
         statusEl.textContent = code === 0
-            ? 'Ready — last task succeeded ✓'
-            : 'Ready — last task failed (code ' + code + ')';
-        termLabel.textContent = 'Output';
+            ? 'Bereit — letzte Aktion erfolgreich ✓'
+            : 'Bereit — letzte Aktion fehlgeschlagen (Code ' + code + ')';
+        termLabel.textContent = 'Ausgabe';
 
         // Advance an active chain. Stop on failure so we don't pile dependent
         // tasks on top of a broken state.
@@ -1608,7 +2007,7 @@
             if (code === 0) {
                 runNextInChain();
             } else {
-                cancelChain('Chain stopped — task failed (code ' + code + ')');
+                cancelChain('Kette gestoppt — Aktion fehlgeschlagen (Code ' + code + ')');
             }
         }
     });

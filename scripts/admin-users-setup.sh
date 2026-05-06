@@ -29,16 +29,31 @@ KC_REALM="${KC_REALM:-workspace}"
 KC_LOCAL_PORT="${KC_LOCAL_PORT:-18080}"
 KC_INTERNAL_URL="http://localhost:${KC_LOCAL_PORT}"
 
-# Read admin password from Kubernetes secret (production) or fall back to dev default
-KC_ADMIN_PASS=$(kubectl get secret workspace-secrets -n "$KC_NAMESPACE" \
-  -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null \
-  | base64 -d 2>/dev/null || echo "devadmin")
-
 # ── Colors ─────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 log()  { echo -e "${GREEN}[INFO]${NC}  $*"; }
 warn() { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 err()  { echo -e "${RED}[ERR]${NC}   $*"; exit 1; }
+
+# Read a value from workspace-secrets, decoding base64. Returns empty string on failure.
+_secret_val() {
+  kubectl get secret workspace-secrets -n "$KC_NAMESPACE" \
+    -o jsonpath="{.data.$1}" 2>/dev/null | base64 -d 2>/dev/null || true
+}
+
+# For SEALED placeholders, read the real value from the Kubernetes secret.
+_resolve_sealed() {
+  local val="$1" key="$2"
+  if [[ "$val" == "SEALED" ]]; then
+    _secret_val "$key"
+  else
+    echo "$val"
+  fi
+}
+
+# Read admin password from Kubernetes secret (production) or fall back to dev default
+KC_ADMIN_PASS=$(_secret_val KEYCLOAK_ADMIN_PASSWORD)
+KC_ADMIN_PASS="${KC_ADMIN_PASS:-devadmin}"
 
 # ── Validate required vars ─────────────────────────────────────────────
 : "${KC_USER1_USERNAME:?KC_USER1_USERNAME not set — check environments/${ENV}.yaml}"
@@ -48,6 +63,11 @@ err()  { echo -e "${RED}[ERR]${NC}   $*"; exit 1; }
 KC_USER2_USERNAME="${KC_USER2_USERNAME:-}"
 KC_USER2_EMAIL="${KC_USER2_EMAIL:-}"
 KC_USER2_PASSWORD="${KC_USER2_PASSWORD:-}"
+
+# Resolve SEALED placeholders from the live Kubernetes secret
+KC_USER1_PASSWORD=$(_resolve_sealed "$KC_USER1_PASSWORD" KC_USER1_PASSWORD)
+[[ -n "$KC_USER2_PASSWORD" ]] && KC_USER2_PASSWORD=$(_resolve_sealed "$KC_USER2_PASSWORD" KC_USER2_PASSWORD)
+[[ -z "$KC_USER1_PASSWORD" ]] && err "KC_USER1_PASSWORD is SEALED but not found in workspace-secrets"
 
 # ── Wait for Keycloak ──────────────────────────────────────────────────
 log "Waiting for Keycloak to be ready..."
@@ -75,8 +95,10 @@ _kc_curl() {
 log "Obtaining Keycloak admin token..."
 ADMIN_TOKEN=$(_kc_curl \
   -X POST "${KC_INTERNAL_URL}/realms/master/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password&client_id=admin-cli&username=admin&password=${KC_ADMIN_PASS}" \
+  --data-urlencode "grant_type=password" \
+  --data-urlencode "client_id=admin-cli" \
+  --data-urlencode "username=admin" \
+  --data-urlencode "password=${KC_ADMIN_PASS}" \
   | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 
 [[ -z "$ADMIN_TOKEN" ]] && err "Failed to obtain admin token — check KEYCLOAK_ADMIN_PASSWORD"

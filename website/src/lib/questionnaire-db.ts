@@ -51,6 +51,7 @@ export interface QQuestion {
   question_type: QuestionType;
   test_expected_result: string | null;
   test_function_url: string | null;
+  test_menu_path: string | null;
   test_role: 'admin' | 'user' | null;
   created_at: string;
 }
@@ -216,6 +217,7 @@ async function initDb() {
   await pool.query(`ALTER TABLE questionnaire_questions
     ADD COLUMN IF NOT EXISTS test_expected_result TEXT,
     ADD COLUMN IF NOT EXISTS test_function_url TEXT,
+    ADD COLUMN IF NOT EXISTS test_menu_path TEXT,
     ADD COLUMN IF NOT EXISTS test_role TEXT`);
   await pool.query(`ALTER TABLE questionnaire_answers
     ADD COLUMN IF NOT EXISTS details_text TEXT`);
@@ -350,7 +352,7 @@ export async function deleteQDimension(id: string): Promise<void> {
 export async function listQQuestions(templateId: string): Promise<QQuestion[]> {
   const r = await pool.query(
     `SELECT id, template_id, position, question_text, question_type,
-            test_expected_result, test_function_url, test_role, created_at
+            test_expected_result, test_function_url, test_menu_path, test_role, created_at
      FROM questionnaire_questions WHERE template_id = $1 ORDER BY position`,
     [templateId],
   );
@@ -362,28 +364,30 @@ export async function upsertQQuestion(params: {
   questionText: string; questionType: QuestionType;
   testExpectedResult?: string | null;
   testFunctionUrl?: string | null;
+  testMenuPath?: string | null;
   testRole?: 'admin' | 'user' | null;
 }): Promise<QQuestion> {
   const returning = `RETURNING id, template_id, position, question_text, question_type,
-                     test_expected_result, test_function_url, test_role, created_at`;
+                     test_expected_result, test_function_url, test_menu_path, test_role, created_at`;
   if (params.id) {
     const r = await pool.query(
       `UPDATE questionnaire_questions
        SET position=$1, question_text=$2, question_type=$3,
-           test_expected_result=$4, test_function_url=$5, test_role=$6
-       WHERE id=$7 ${returning}`,
+           test_expected_result=$4, test_function_url=$5, test_menu_path=$6, test_role=$7
+       WHERE id=$8 ${returning}`,
       [params.position, params.questionText, params.questionType,
        params.testExpectedResult ?? null, params.testFunctionUrl ?? null,
-       params.testRole ?? null, params.id],
+       params.testMenuPath ?? null, params.testRole ?? null, params.id],
     );
     return r.rows[0];
   }
   const r = await pool.query(
     `INSERT INTO questionnaire_questions
-       (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_role)
-     VALUES ($1,$2,$3,$4,$5,$6,$7) ${returning}`,
+       (template_id, position, question_text, question_type, test_expected_result, test_function_url, test_menu_path, test_role)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ${returning}`,
     [params.templateId, params.position, params.questionText, params.questionType,
-     params.testExpectedResult ?? null, params.testFunctionUrl ?? null, params.testRole ?? null],
+     params.testExpectedResult ?? null, params.testFunctionUrl ?? null,
+     params.testMenuPath ?? null, params.testRole ?? null],
   );
   return r.rows[0];
 }

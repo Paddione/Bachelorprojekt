@@ -1,0 +1,12 @@
+{
+  "pr_number": 553,
+  "title": "debug log + email fallback in adminGuard; bump to 0.2.2",
+  "description": "## Summary\n- Login at https://dashboard.mentolder.de still 403s after PR #552 even though oauth2-proxy stored \\`PreferredUsername:paddione\\` in the session. The dashboard pod has the new auth.js (verified) yet upstream returns 403 — so the \\`X-Auth-Request-Preferred-Username\\` header isn't arriving at express, and we have no signal as to why.\n- Add a one-line \\`console.warn\\` on rejection that dumps the four relevant header values + request path, so the next 403 in the logs tells us exactly what oauth2-proxy is sending.\n- Widen the matcher to also accept \\`X-Auth-Request-Email\\` — the operator can drop \\`patrick@korczewski.de\\` into the allowlist as a working fallback while we track down the preferred-username drop.\n- Bump dashboard image to \\`0.2.2\\` in both prod overlays.\n\n## Test plan\n- [x] \\`node --test dashboard/web/test/auth.test.js\\` — 7/7 (added email-fallback test)\n- [ ] After deploy, retry login → check \\`kubectl logs deploy/dashboard-web\\` for one \\`[adminGuard] reject\\` line, decide next move\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "dashboard",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-06T22:28:19Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

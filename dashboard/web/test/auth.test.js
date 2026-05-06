@@ -83,6 +83,27 @@ test('buildAdminGuard accepts email as fallback when listed', () => {
   assert.equal(req.adminUser, 'patrick@korczewski.de');
 });
 
+test('buildAdminGuard accepts X-Forwarded-Preferred-Username (reverse-proxy mode)', () => {
+  // oauth2-proxy with --upstream=... uses X-Forwarded-* headers for
+  // upstream identity (driven by --pass-user-headers, default-on). The
+  // X-Auth-Request-* family is only set on /oauth2/auth responses for
+  // the Traefik forward-auth pattern.
+  const guard = buildAdminGuard('paddione,gekko');
+  const req = {
+    path: '/',
+    headers: {
+      'x-forwarded-user': 'caf40515-52b3-44c6-aa64-4416f75e1ede',
+      'x-forwarded-email': 'patrick@korczewski.de',
+      'x-forwarded-preferred-username': 'paddione',
+    },
+  };
+  const res = mockRes();
+  let called = false;
+  guard(req, res, () => { called = true; });
+  assert.equal(called, true);
+  assert.equal(req.adminUser, 'paddione');
+});
+
 function mockRes() {
   return {
     statusCode: 200,

@@ -145,6 +145,8 @@ spec:
     - ipBlock:
         cidr: 10.42.0.0/16   # pod CIDR (after DNAT)
     ports:
+    - port: 80
+      protocol: TCP
     - port: 4321
       protocol: TCP
 ---

@@ -34,7 +34,7 @@ spec:
                   curl -sf -X POST \
                     -H "Content-Type: application/json" \
                     -H "X-Cron-Secret: $CRON_SECRET" \
-                    http://website.website.svc.cluster.local:4321/api/admin/billing/create-monthly-invoices
+                    http://website.website.svc.cluster.local/api/admin/billing/create-monthly-invoices
               env:
                 - name: CRON_SECRET
                   valueFrom:

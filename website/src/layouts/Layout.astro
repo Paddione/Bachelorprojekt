@@ -4,9 +4,14 @@ import CookieConsent from '../components/CookieConsent.svelte';
 import ChatWidget from '../components/ChatWidget.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
-import { getEffectiveServices } from '../lib/content';
+import { getEffectiveServices, getEffectiveKontakt } from '../lib/content';
 
 const footerServices = (await getEffectiveServices().catch(() => config.services)).filter(s => !s.hidden);
+const kontaktOverride = await getEffectiveKontakt().catch(() => null);
+const footerEmail   = kontaktOverride?.footerEmail?.trim()   || config.contact.email;
+const footerPhone   = kontaktOverride?.footerPhone?.trim()   || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
+const footerCity    = kontaktOverride?.footerCity?.trim()    || config.contact.city;
+const footerTagline = kontaktOverride?.footerTagline?.trim() || config.legal.tagline;
 
 interface Props {
   title: string;
@@ -77,23 +82,23 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
               </div>
               <span style="font-family:var(--serif); font-size:18px; letter-spacing:-0.01em; color:var(--fg);">{brandWord}<span style="color:var(--brass);">.</span></span>
             </div>
-            <p style="font-size:14px; color:var(--fg-soft); max-width:32ch; line-height:1.6;">{config.legal.tagline}</p>
+            <p style="font-size:14px; color:var(--fg-soft); max-width:32ch; line-height:1.6;">{footerTagline}</p>
           </div>
 
           <!-- Kontakt col -->
           <div>
             <h5 style="font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--brass); margin:0 0 18px;">Kontakt</h5>
             <ul style="list-style:none; padding:0; margin:0;">
-              {config.contact.phone && (
+              {footerPhone && (
                 <li style="margin-bottom:8px;">
-                  <a href={`tel:${config.contact.phone}`} style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">{config.contact.phone}</a>
+                  <a href={`tel:${footerPhone}`} style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">{footerPhone}</a>
                 </li>
               )}
               <li style="margin-bottom:8px;">
-                <a href={`mailto:${config.contact.email}`} style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">{config.contact.email}</a>
+                <a href={`mailto:${footerEmail}`} style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">{footerEmail}</a>
               </li>
               <li>
-                <span style="font-size:14px; color:var(--mute);">{config.contact.city} und Umgebung</span>
+                <span style="font-size:14px; color:var(--mute);">{footerCity} und Umgebung</span>
               </li>
             </ul>
           </div>

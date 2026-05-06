@@ -9,11 +9,16 @@ const BRAND = process.env.BRAND || 'mentolder';
 const BRAND_ID = process.env.BRAND_ID ?? BRAND;
 const isKore = BRAND_ID === 'korczewski';
 const customHtml = await getLegalPage(BRAND, 'impressum-zusatz').catch(() => null);
+const useCustom = !!(customHtml && customHtml.trim());
 ---
 
 {isKore ? (
   <KoreLayout title="Impressum">
     <article class="kore-legal">
+      {useCustom ? (
+        <div set:html={customHtml} />
+      ) : (
+        <Fragment>
       <h1>Impressum</h1>
 
       <h2>Angaben gemäß § 5 DDG</h2>
@@ -56,8 +61,8 @@ const customHtml = await getLegalPage(BRAND, 'impressum-zusatz').catch(() => nul
 
       <h2>Urheberrecht</h2>
       <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
-
-      {customHtml && customHtml.trim() && <div set:html={customHtml} />}
+        </Fragment>
+      )}
 
       <div class="kore-legal-actions">
         <button onclick="window.print()" class="kore-print-btn">Drucken / PDF</button>
@@ -68,6 +73,10 @@ const customHtml = await getLegalPage(BRAND, 'impressum-zusatz').catch(() => nul
   <Layout title="Impressum">
     <section class="pt-28 pb-20">
       <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
+        {useCustom ? (
+          <div set:html={customHtml} />
+        ) : (
+          <Fragment>
         <h1>Impressum</h1>
 
         <h2>Angaben gemäß &sect; 5 DDG</h2>
@@ -172,8 +181,7 @@ const customHtml = await getLegalPage(BRAND, 'impressum-zusatz').catch(() => nul
           werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden von
           Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen.
         </p>
-        {customHtml && customHtml.trim() && (
-          <div set:html={customHtml} />
+          </Fragment>
         )}
 
         <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex items-center justify-between">

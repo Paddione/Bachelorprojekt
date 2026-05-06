@@ -2694,6 +2694,10 @@ export interface KontaktContent {
   sidebarText: string;
   sidebarCta: string;
   showPhone: boolean;
+  footerEmail?: string;
+  footerPhone?: string;
+  footerCity?: string;
+  footerTagline?: string;
 }
 
 export async function getKontaktContent(brand: string): Promise<KontaktContent | null> {

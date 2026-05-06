@@ -1,0 +1,12 @@
+{
+  "pr_number": 540,
+  "title": "pin einvoice-sidecar digest + resource requests on init/CronJob containers",
+  "description": "## Summary\n\nClears the remaining two findings from #532:\n\n- **`einvoice-sidecar:latest`** → pinned to `@sha256:f346809b…` (only tag in GHCR is `latest`; digest removes the implicit `imagePullPolicy: Always` and makes the image reproducible)\n- **13 init/CronJob containers with no `resources.requests`** → `BestEffort` → `Burstable`:\n  - `Deployment/nextcloud` — `fix-data-perms`, `fix-config-perms`, `copy-php-conf` (10m/32Mi, limit 64Mi)\n  - `Deployment/oauth2-proxy-{brett,docs,mailpit,traefik}` — `write-cookie-secret` (10m/32Mi, limit 64Mi)\n  - `Deployment/shared-db` — `generate-tls-cert` (10m/32Mi, limit 64Mi)\n  - `Deployment/spreed-signaling` — `render-config` (10m/32Mi, limit 64Mi)\n  - `CronJob/{billing-dunning-detection,monthly-billing,notify-unread}` — curl containers (10m/32Mi, limit 64Mi)\n  - `CronJob/tracking-import` — `importer` (50m/128Mi, limit 256Mi — git clone + npm + Node.js)\n\n## Test plan\n\n- [x] `task workspace:validate` passes\n- [x] All 12 modified files diff-reviewed\n- [ ] CI kustomize build green\n\nCloses #532\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "maint",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-06T02:29:43Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

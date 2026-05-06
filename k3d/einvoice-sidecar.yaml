@@ -24,8 +24,7 @@ spec:
         - name: ghcr-pull-secret
       containers:
         - name: sidecar
-          image: ghcr.io/paddione/einvoice-sidecar:latest
-          imagePullPolicy: Always
+          image: ghcr.io/paddione/einvoice-sidecar@sha256:f346809b82c625f5f55c7b8be6c5d0be35ccce414015201ceaa293c6ea58156f
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

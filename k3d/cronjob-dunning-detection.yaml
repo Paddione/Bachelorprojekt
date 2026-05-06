@@ -17,6 +17,12 @@ spec:
             - /bin/sh
             - -c
             - "curl -s -X POST http://website.workspace.svc.cluster.local/api/admin/billing/dunning/run -H \"X-Cron-Secret: ${CRON_SECRET}\" || exit 1"
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
             env:
             - name: CRON_SECRET
               valueFrom:

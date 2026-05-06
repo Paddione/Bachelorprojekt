@@ -18,6 +18,12 @@ spec:
           containers:
             - name: importer
               image: node:20-alpine
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
               env:
                 - name: TRACKING_DB_URL
                   valueFrom:

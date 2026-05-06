@@ -33,6 +33,12 @@ spec:
                     -H "Authorization: Bearer $CRON_SECRET" \
                     -H "Content-Type: application/json" \
                     http://website.website.svc.cluster.local/api/cron/notify-unread
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
               env:
                 - name: CRON_SECRET
                   valueFrom:

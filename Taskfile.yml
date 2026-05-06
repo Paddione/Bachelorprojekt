@@ -2245,9 +2245,9 @@ tasks:
           -l 'app in (livekit-server,livekit-ingress,livekit-egress,livekit-redis)' -o wide
         echo "=== Service / Ingress ===" && kubectl $CTX_FLAG -n "$NS" get svc,ingress,ingressroute,middleware \
           -l 'app in (livekit-server,livekit-ingress)' 2>/dev/null
-        kubectl $CTX_FLAG -n "$NS" get svc livekit-server livekit-ingress-rtmp 2>/dev/null
-        kubectl $CTX_FLAG -n "$NS" get ingressroute livekit-server middleware/livekit-cors 2>/dev/null
-        echo "=== Recordings PVC ===" && kubectl $CTX_FLAG -n "$NS" get pvc livekit-recordings-pvc 2>/dev/null
+        kubectl $CTX_FLAG -n "$NS" get svc livekit-server livekit-ingress-rtmp 2>/dev/null || true
+        kubectl $CTX_FLAG -n "$NS" get ingressroute/livekit-server middleware/livekit-cors 2>/dev/null || true
+        echo "=== Recordings PVC ===" && kubectl $CTX_FLAG -n "$NS" get pvc livekit-recordings-pvc 2>/dev/null || true
         echo "=== Recordings count ==="
         kubectl $CTX_FLAG -n "$NS" exec deployment/livekit-egress -- sh -c 'ls /recordings/ 2>/dev/null | wc -l' 2>/dev/null \
           || echo "(egress pod not ready)"

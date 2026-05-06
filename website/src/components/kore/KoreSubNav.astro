@@ -1,5 +1,8 @@
 ---
+import { getSession } from '../../lib/auth';
+
 const { active = 'work' } = Astro.props as { active?: string };
+const session = await getSession(Astro.request.headers.get('cookie'));
 const links = [
   { id: 'work',     label: 'Cluster' },
   { id: 'services', label: 'Leistungen' },
@@ -23,6 +26,10 @@ const links = [
   </div>
   <div class="actions">
     <a class="btn ghost sm" href="#timeline">Notizen</a>
-    <a class="btn primary sm" href="/api/auth/login">Anmelden →</a>
+    {session ? (
+      <a class="btn primary sm" href="/portal">Portal →</a>
+    ) : (
+      <a class="btn primary sm" href="/api/auth/login?returnTo=/portal">Anmelden →</a>
+    )}
   </div>
 </nav>

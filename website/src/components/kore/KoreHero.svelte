@@ -4,6 +4,7 @@
   type Stats = { nodes: number; pods: number; brands: number };
   let stats: Stats | null = null;
   let pollInterval: number | undefined;
+  let loggedIn = $state(false);
 
   async function fetchStats() {
     try {
@@ -17,6 +18,10 @@
   onMount(() => {
     fetchStats();
     pollInterval = window.setInterval(fetchStats, 30_000);
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => { if (d.authenticated) loggedIn = true; })
+      .catch(() => {});
     return () => clearInterval(pollInterval);
   });
 </script>
@@ -41,7 +46,11 @@
   </p>
 
   <div class="cta-row">
-    <a class="btn primary" href="/api/auth/login">Anmelden →</a>
+    {#if loggedIn}
+      <a class="btn primary" href="/portal">Portal →</a>
+    {:else}
+      <a class="btn primary" href="/api/auth/login?returnTo=/portal">Anmelden →</a>
+    {/if}
     <a class="btn ghost" href="#timeline">Notizen lesen</a>
   </div>
 

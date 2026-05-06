@@ -40,6 +40,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
       answer_options: Array<{ option_key: string; label: string; dimension_id: string | null; weight: number }>;
       test_expected_result?: string | null;
       test_function_url?: string | null;
+      test_menu_path?: string | null;
       test_role?: 'admin' | 'user' | null;
     }>;
   };
@@ -61,6 +62,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
         questionType: q.question_type as import('../../../../../lib/questionnaire-db').QuestionType,
         testExpectedResult: q.test_expected_result,
         testFunctionUrl: q.test_function_url,
+        testMenuPath: q.test_menu_path,
         testRole: q.test_role,
       });
       if (q.question_type !== 'test_step' && q.answer_options) {

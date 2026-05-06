@@ -8,6 +8,7 @@
     answer_options: AnswerOpt[];
     test_expected_result?: string | null;
     test_function_url?: string | null;
+    test_menu_path?: string | null;
     test_role?: 'admin' | 'user' | null;
   };
   type Tpl = { id: string; title: string; description: string; instructions: string; status: string; dimensions: Dim[]; questions: Question[] };
@@ -76,6 +77,7 @@
       answer_options: defaultOptions(type),
       test_expected_result: null,
       test_function_url: null,
+      test_menu_path: null,
       test_role: null,
     }];
   }
@@ -268,6 +270,11 @@
               <div>
                 <label class="block text-xs text-muted mb-1">Funktions-URL</label>
                 <input bind:value={q.test_function_url} placeholder="z. B. /admin/monitoring"
+                  class="w-full bg-dark border border-dark-lighter rounded px-2 py-1.5 text-light text-sm focus:border-gold outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs text-muted mb-1">Navigationsweg (Menü)</label>
+                <input bind:value={q.test_menu_path} placeholder="z. B. Admin → Monitoring → Systemtests"
                   class="w-full bg-dark border border-dark-lighter rounded px-2 py-1.5 text-light text-sm focus:border-gold outline-none" />
               </div>
               <div>

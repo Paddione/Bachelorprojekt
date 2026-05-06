@@ -7,6 +7,7 @@
     question_type: string;
     test_expected_result?: string | null;
     test_function_url?: string | null;
+    test_menu_path?: string | null;
     test_role?: string | null;
   };
 
@@ -28,7 +29,28 @@
     )
   );
   let pendingTestOption = $state('');
-  let currentIndex = $state(0);
+  const SESSION_KEY = `qwizard-${assignmentId}-index`;
+
+  function readSavedIndex(): number | null {
+    try {
+      const v = sessionStorage.getItem(SESSION_KEY);
+      if (v === null) return null;
+      const n = parseInt(v, 10);
+      return Number.isFinite(n) && n >= 0 && n < questions.length ? n : null;
+    } catch { return null; }
+  }
+
+  function resolveInitialIndex(): number {
+    const saved = readSavedIndex();
+    if (saved !== null) return saved;
+    if (initialAnswers.length > 0) {
+      const firstUnanswered = questions.findIndex(q => !(q.id in answers));
+      return firstUnanswered >= 0 ? firstUnanswered : questions.length - 1;
+    }
+    return 0;
+  }
+
+  let currentIndex = $state(resolveInitialIndex());
   let phase: 'intro' | 'question' | 'done' | 'dismissed' = $state(initialAnswers.length === 0 ? 'intro' : 'question');
   let saving = $state(false);
   let submitting = $state(false);
@@ -46,11 +68,9 @@
   let dismissing = $state(false);
   let dismissError = $state('');
 
-  // Resume at first unanswered question
-  if (initialAnswers.length > 0) {
-    const firstUnanswered = questions.findIndex(q => !(q.id in answers));
-    currentIndex = firstUnanswered >= 0 ? firstUnanswered : questions.length - 1;
-  }
+  $effect(() => {
+    try { sessionStorage.setItem(SESSION_KEY, String(currentIndex)); } catch { /* ignore */ }
+  });
 
   $effect(() => {
     const qId = questions[currentIndex]?.id;
@@ -158,6 +178,7 @@
         body: JSON.stringify({ reason: dismissReason.trim() }),
       });
       if (r.ok) {
+        try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
         showDismissModal = false;
         phase = 'dismissed';
       } else {
@@ -176,6 +197,7 @@
     try {
       const r = await fetch(`/api/portal/questionnaires/${assignmentId}/submit`, { method: 'POST' });
       if (r.ok) {
+        try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
         phase = 'done';
       } else {
         const d = await r.json().catch(() => ({}));
@@ -311,14 +333,26 @@
             <p class="text-muted text-sm">{current.test_expected_result}</p>
           </div>
         {/if}
-        {#if current.test_function_url}
-          <a href={current.test_function_url} target="_blank" rel="noopener noreferrer"
-            class="inline-flex items-center gap-1.5 text-gold text-xs hover:underline mb-5">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
-              <path d="M6.5 2.5h-4v11h11v-4M9.5 2.5H13.5V6.5M13.5 2.5L7 9"/>
-            </svg>
-            Funktion öffnen
-          </a>
+        {#if current.test_function_url || current.test_menu_path}
+          <div class="flex flex-col gap-1.5 mb-5">
+            {#if current.test_function_url}
+              <a href={current.test_function_url} target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 text-gold text-xs hover:underline">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 flex-shrink-0">
+                  <path d="M6.5 2.5h-4v11h11v-4M9.5 2.5H13.5V6.5M13.5 2.5L7 9"/>
+                </svg>
+                Direkt öffnen
+              </a>
+            {/if}
+            {#if current.test_menu_path}
+              <span class="inline-flex items-start gap-1.5 text-muted text-xs">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 flex-shrink-0 mt-px">
+                  <path d="M2 4h12M2 8h8M2 12h5"/>
+                </svg>
+                Oder über Menü: <span class="text-light/70 ml-0.5">{current.test_menu_path}</span>
+              </span>
+            {/if}
+          </div>
         {/if}
         {#if answers[current.id] === 'skipped'}
           <div class="mb-3 p-3 rounded-lg bg-amber-900/20 border border-amber-500/20">

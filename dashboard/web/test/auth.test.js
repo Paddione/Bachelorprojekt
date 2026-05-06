@@ -39,6 +39,31 @@ test('buildAdminGuard handles whitespace and empty entries', () => {
   assert.equal(called, true);
 });
 
+test('buildAdminGuard prefers x-auth-request-preferred-username over x-auth-request-user', () => {
+  // Real Keycloak setup: x-auth-request-user is the sub UUID, the
+  // human-readable username is in x-auth-request-preferred-username.
+  const guard = buildAdminGuard('alice,bob');
+  const req = {
+    headers: {
+      'x-auth-request-user': 'caf40515-52b3-44c6-aa64-4416f75e1ede',
+      'x-auth-request-preferred-username': 'alice',
+    },
+  };
+  const res = mockRes();
+  let called = false;
+  guard(req, res, () => { called = true; });
+  assert.equal(called, true);
+  assert.equal(req.adminUser, 'alice');
+});
+
+test('buildAdminGuard rejects when only sub UUID is present and not allowlisted', () => {
+  const guard = buildAdminGuard('alice,bob');
+  const req = { headers: { 'x-auth-request-user': 'caf40515-52b3-44c6-aa64-4416f75e1ede' } };
+  const res = mockRes();
+  guard(req, res, () => assert.fail('next should not be called'));
+  assert.equal(res.statusCode, 403);
+});
+
 function mockRes() {
   return {
     statusCode: 200,

@@ -52,10 +52,11 @@ const docsUrl     = process.env.DOCS_URL ?? '';
 const authUrl     = process.env.AUTH_EXTERNAL_URL ?? '';
 const vaultUrl    = process.env.VAULT_EXTERNAL_URL ?? '';
 const wbUrl       = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
-const traefikUrl  = process.env.TRAEFIK_EXTERNAL_URL ?? '';
 const mailUrl     = process.env.MAIL_EXTERNAL_URL ?? '';
 const bretDomain  = process.env.BRETT_DOMAIN ?? '';
 const bretUrl     = bretDomain ? `https://${bretDomain}` : '';
+const prodDomain  = process.env.PROD_DOMAIN ?? '';
+const dashUrl     = prodDomain && prodDomain !== 'localhost' ? `https://dashboard.${prodDomain}` : '';
 const SVG = {
   inbox:      `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
   folder:     `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5h5L8 3h6.5v9.5a1 1 0 0 1-1 1h-12a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"/></svg>`,
@@ -68,6 +69,7 @@ const SVG = {
   key:        `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="7" r="3.5"/><path d="M8.5 9.5l5.5 5.5M11 12l2-2"/></svg>`,
   book:       `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3"/><path d="M3 2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1"/><path d="M8 6h3M8 9h3"/></svg>`,
   network:    `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="3" r="1.5"/><circle cx="2.5" cy="12" r="1.5"/><circle cx="13.5" cy="12" r="1.5"/><path d="M8 4.5v3M8 7.5l-4.5 3M8 7.5l4.5 3"/></svg>`,
+  dashboard:  `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
   mail:       `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 4.5l6 4.5 6-4.5"/></svg>`,
 };
 
@@ -84,7 +86,7 @@ const adminLinks = [
   ...(vaultUrl   ? [{ href: vaultUrl,                                 label: 'Passwörter', icon: SVG.lock }] : []),
   ...(authUrl    ? [{ href: `${authUrl}/admin/workspace/console/`,    label: 'Keycloak',   icon: SVG.key }] : []),
   ...(docsUrl    ? [{ href: docsUrl,                                  label: 'Docs',       icon: SVG.book }] : []),
-  ...(traefikUrl ? [{ href: traefikUrl,                               label: 'Traefik',    icon: SVG.network }] : []),
+  ...(dashUrl    ? [{ href: dashUrl,                                  label: 'Dashboard',  icon: SVG.dashboard }] : []),
   ...(mailUrl    ? [{ href: mailUrl,                                  label: 'Mailpit',    icon: SVG.mail }] : []),
 ];
 

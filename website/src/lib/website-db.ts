@@ -670,6 +670,107 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
   return result.rows[0] ?? null;
 }
 
+// ── Bug Ticket Comments ──────────────────────────────────────────────────────
+
+export interface BugTicketComment {
+  id: number;
+  ticketId: string;
+  author: string;
+  kind: 'comment' | 'status_change' | 'system';
+  body: string;
+  createdAt: Date;
+}
+
+export async function getBugTicketWithComments(
+  ticketId: string
+): Promise<{ ticket: BugTicketRow; comments: BugTicketComment[] } | null> {
+  await initBugTicketsTable();
+  await initBugTicketCommentsTable();
+  const t = await pool.query(
+    `SELECT ticket_id        AS "ticketId",
+            category,
+            reporter_email   AS "reporterEmail",
+            description,
+            url,
+            brand,
+            status,
+            created_at       AS "createdAt",
+            resolved_at      AS "resolvedAt",
+            resolution_note  AS "resolutionNote",
+            screenshots_json AS "screenshots",
+            fixed_in_pr      AS "fixedInPr",
+            fixed_at         AS "fixedAt"
+       FROM bugs.bug_tickets WHERE ticket_id = $1`,
+    [ticketId]
+  );
+  if (t.rows.length === 0) return null;
+  const c = await pool.query(
+    `SELECT id, ticket_id AS "ticketId", author, kind, body, created_at AS "createdAt"
+       FROM bugs.bug_ticket_comments
+       WHERE ticket_id = $1
+       ORDER BY created_at ASC`,
+    [ticketId]
+  );
+  return { ticket: t.rows[0], comments: c.rows };
+}
+
+export async function appendBugTicketComment(params: {
+  ticketId: string;
+  author: string;
+  body: string;
+  kind?: 'comment' | 'status_change' | 'system';
+}): Promise<BugTicketComment> {
+  await initBugTicketCommentsTable();
+  const r = await pool.query(
+    `INSERT INTO bugs.bug_ticket_comments (ticket_id, author, kind, body)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, ticket_id AS "ticketId", author, kind, body, created_at AS "createdAt"`,
+    [params.ticketId, params.author, params.kind ?? 'comment', params.body]
+  );
+  return r.rows[0];
+}
+
+export async function reopenBugTicket(
+  ticketId: string,
+  author: string,
+  reason?: string
+): Promise<void> {
+  await initBugTicketsTable();
+  await initBugTicketCommentsTable();
+  const upd = await pool.query(
+    `UPDATE bugs.bug_tickets
+       SET status = 'open', resolved_at = NULL, resolution_note = NULL
+       WHERE ticket_id = $1 AND status IN ('resolved', 'archived')`,
+    [ticketId]
+  );
+  if (upd.rowCount === 0) {
+    throw new Error(`ticket ${ticketId} not in 'resolved' or 'archived' state`);
+  }
+  await pool.query(
+    `INSERT INTO bugs.bug_ticket_comments (ticket_id, author, kind, body)
+     VALUES ($1, $2, 'status_change', $3)`,
+    [ticketId, author, `reopened${reason ? `: ${reason}` : ''}`]
+  );
+}
+
+export async function initBugTicketCommentsTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bugs.bug_ticket_comments (
+      id          BIGSERIAL PRIMARY KEY,
+      ticket_id   TEXT NOT NULL REFERENCES bugs.bug_tickets(ticket_id) ON DELETE CASCADE,
+      author      TEXT NOT NULL,
+      kind        TEXT NOT NULL DEFAULT 'comment'
+                  CHECK (kind IN ('comment', 'status_change', 'system')),
+      body        TEXT NOT NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS bug_ticket_comments_ticket_idx
+      ON bugs.bug_ticket_comments(ticket_id, created_at)
+  `);
+}
+
 // ── Bug Tickets Table Init ────────────────────────────────────────────────────
 
 export async function initBugTicketsTable(): Promise<void> {

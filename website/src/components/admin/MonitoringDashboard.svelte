@@ -2,20 +2,22 @@
   import { onMount } from 'svelte';
   import ClusterTab from './monitoring/ClusterTab.svelte';
   import DeploymentsTab from './monitoring/DeploymentsTab.svelte';
-  import TasksTab from './monitoring/TasksTab.svelte';
   import OverviewTab from './monitoring/OverviewTab.svelte';
   import BugsTab from './monitoring/BugsTab.svelte';
   import TrackingTab from './monitoring/TrackingTab.svelte';
+  import ArgoCDTab from './monitoring/ArgoCDTab.svelte';
+  import LogsTab from './monitoring/LogsTab.svelte';
 
   export let trackingUrl: string = '';
 
-  type Tab = 'overview' | 'cluster' | 'deployments' | 'tasks' | 'bugs' | 'tracking';
+  type Tab = 'overview' | 'cluster' | 'deployments' | 'argocd' | 'logs' | 'bugs' | 'tracking';
 
   let activeTab: Tab = 'overview';
+  const VALID_TABS: Tab[] = ['overview', 'cluster', 'deployments', 'argocd', 'logs', 'bugs', 'tracking'];
 
   onMount(() => {
     const hash = location.hash.slice(1) as Tab;
-    if (['overview', 'cluster', 'deployments', 'tasks', 'bugs', 'tracking'].includes(hash)) {
+    if (VALID_TABS.includes(hash)) {
       activeTab = hash;
     }
   });
@@ -29,7 +31,8 @@
     { id: 'overview',     label: 'Übersicht' },
     { id: 'cluster',      label: 'Cluster' },
     { id: 'deployments',  label: 'Deployments' },
-    { id: 'tasks',        label: 'Tasks' },
+    { id: 'argocd',       label: 'ArgoCD' },
+    { id: 'logs',         label: 'Logs' },
     { id: 'bugs',         label: 'Bugs' },
     { id: 'tracking',     label: 'Tracking' },
   ];
@@ -58,8 +61,10 @@
       <ClusterTab />
     {:else if activeTab === 'deployments'}
       <DeploymentsTab />
-    {:else if activeTab === 'tasks'}
-      <TasksTab />
+    {:else if activeTab === 'argocd'}
+      <ArgoCDTab />
+    {:else if activeTab === 'logs'}
+      <LogsTab />
     {:else if activeTab === 'bugs'}
       <BugsTab />
     {:else if activeTab === 'tracking'}

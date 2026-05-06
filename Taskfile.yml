@@ -20,7 +20,7 @@ tasks:
   # These fan out across BOTH prod clusters (mentolder + korczewski) so
   # every-day work is one command. Pass ENV=mentolder or ENV=korczewski to
   # target a single environment with the underlying `workspace:*` /
-  # `website:*` / `brett:*` / `dashboard:web:*` tasks.
+  # `website:*` / `brett:*` tasks.
 
   feature:deploy:
     desc: "Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)"
@@ -38,11 +38,6 @@ tasks:
     desc: "Rebuild + redeploy brett on BOTH prod clusters"
     cmds:
       - task: brett:deploy:all-prods
-
-  feature:dashboard:
-    desc: "Rebuild + redeploy the operator dashboard on BOTH prod clusters"
-    cmds:
-      - task: dashboard:web:deploy:all-prods
 
   feature:livekit:
     desc: "Re-pin livekit/stream subdomains to the LiveKit node on BOTH prod clusters"
@@ -67,69 +62,6 @@ tasks:
       - task: workspace:verify:all-prods
       - 'echo ""'
       - 'echo "  Run `task workspace:check-updates ENV=mentolder` to inspect available image updates"'
-
-  # ─────────────────────────────────────────────
-  # Dashboard
-  # ─────────────────────────────────────────────
-  dashboard:
-    desc: Start the local task execution dashboard
-    dir: dashboard
-    cmds:
-      - pkill -f "node server.js" 2>/dev/null || true
-      - npm install
-      - node server.js
-
-  dashboard:web:build:
-    desc: Build dashboard-web image and push to ghcr.io
-    vars:
-      TAG: '{{.TAG | default "0.1.0"}}'
-    cmds:
-      - docker build -t ghcr.io/paddione/workspace-dashboard:{{.TAG}} -f docker/Dockerfile.dashboard-web .
-      - docker push ghcr.io/paddione/workspace-dashboard:{{.TAG}}
-      - 'echo "✓ Pushed ghcr.io/paddione/workspace-dashboard:{{.TAG}}"'
-
-  dashboard:web:deploy:
-    desc: Deploy dashboard-web to mentolder or korczewski (SSO-gated operator dashboard)
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    preconditions:
-      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
-        msg: "dashboard:web:deploy requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
-    cmds:
-      - task: workspace:deploy
-        vars: { ENV: "{{.ENV}}" }
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        kubectl --context "${ENV_CONTEXT}" -n "$NS" rollout restart deploy/dashboard-web
-        kubectl --context "${ENV_CONTEXT}" -n "$NS" rollout restart deploy/oauth2-proxy-dashboard
-        kubectl --context "${ENV_CONTEXT}" -n "$NS" rollout status deploy/dashboard-web --timeout=120s
-      - 'echo "✓ Deployed at https://dashboard.{{.ENV}}.de"'
-
-  dashboard:web:deploy:all-prods:
-    desc: "Deploy dashboard-web to mentolder + korczewski"
-    cmds:
-      - task: dashboard:web:deploy
-        vars: { ENV: "mentolder" }
-      - task: dashboard:web:deploy
-        vars: { ENV: "korczewski" }
-
-  dashboard:web:logs:
-    desc: Tail dashboard-web logs (ENV=mentolder|korczewski, default mentolder)
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        kubectl --context "${ENV_CONTEXT}" -n "$NS" logs deploy/dashboard-web --tail=200 -f
-
-  dashboard:web:dev:
-    desc: Run dashboard-web locally on http://localhost:3001 (no auth, no PG/k8s required)
-    dir: dashboard/web
-    cmds:
-      - npm install
-      - PORT=3001 NO_AUTH=true node server.js
 
   # ─────────────────────────────────────────────
   # Cluster Lifecycle

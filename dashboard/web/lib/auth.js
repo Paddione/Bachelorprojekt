@@ -15,16 +15,26 @@ function buildAdminGuard(rawAllowlist) {
   return function adminGuard(req, res, next) {
     // oauth2-proxy with --set-xauthrequest=true sets X-Auth-Request-User to the
     // OIDC `sub` (a UUID for Keycloak), and X-Auth-Request-Preferred-Username
-    // to the human-readable username. The allowlist (PORTAL_ADMIN_USERNAME) is
-    // a comma-separated list of usernames, so prefer the username header.
-    const user =
-      req.headers['x-auth-request-preferred-username'] ||
-      req.headers['x-auth-request-user'];
-    if (typeof user !== 'string' || !allowed.has(user)) {
+    // to the human-readable username. PORTAL_ADMIN_USERNAME may list either
+    // usernames (e.g. "paddione") or full emails — try each header in turn.
+    const candidates = [
+      req.headers['x-auth-request-preferred-username'],
+      req.headers['x-auth-request-email'],
+      req.headers['x-auth-request-user'],
+    ];
+    const matched = candidates.find(c => typeof c === 'string' && allowed.has(c));
+    if (!matched) {
+      console.warn('[adminGuard] reject', JSON.stringify({
+        path: req.path,
+        preferredUsername: req.headers['x-auth-request-preferred-username'] || null,
+        email: req.headers['x-auth-request-email'] || null,
+        user: req.headers['x-auth-request-user'] || null,
+        allowlistSize: allowed.size,
+      }));
       res.status(403).send('forbidden');
       return;
     }
-    req.adminUser = user;
+    req.adminUser = matched;
     next();
   };
 }

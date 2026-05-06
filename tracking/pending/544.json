@@ -1,0 +1,12 @@
+{
+  "pr_number": 544,
+  "title": "add real portrait to KoreTeam",
+  "description": "## Summary\n\n- Replaces the portrait placeholder SVG in KoreTeam with the professional headshot\n- Photo enhanced: +8% brightness, +18% contrast, +12% saturation, unsharp mask sharpening\n- Resized to 640 px wide, 67 KB progressive JPEG (web-optimised)\n- Alt text updated to be descriptive\n\n## Test Plan\n\n- [ ] `task feature:website` deploys successfully\n- [ ] Team section on web.korczewski.de shows the actual portrait\n- [ ] Image loads correctly at all viewport sizes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "kore",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-06T06:06:18Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

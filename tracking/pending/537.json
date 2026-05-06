@@ -1,0 +1,12 @@
+{
+  "pr_number": 537,
+  "title": "add verify + admin-users:all-prods to local dashboard",
+  "description": "## Summary\n- Adds `workspace:verify`, `workspace:verify:all-prods`, and `workspace:admin-users-setup:all-prods` to the local admin dashboard (allowlist + UI cards).\n- **Post-Deploy** section gets \"Verify Deployment\" and \"Verify Both Clusters\" cards.\n- **Daily Operations** section gets \"Verify Deployment\" alongside the existing connectivity check.\n- **Compliance & Hardening** section gets \"Admin Users — Both Clusters\" for one-shot provisioning.\n- `workspace:admin-users-setup:all-prods` is prod-gated (shows red footgun modal when ENV=dev but kubectl context is prod).\n\n## Test plan\n- [ ] `task dashboard` → new cards visible in the correct sections\n- [ ] Click \"Verify Both Clusters\" → runs and streams output to terminal pane\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "dashboard",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-06T01:50:34Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

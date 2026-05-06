@@ -1,0 +1,12 @@
+{
+  "pr_number": 549,
+  "title": "German UI + ops-agent layout + help overlay",
+  "description": "## Summary\n\nTwo dashboards touched:\n\n**Local task-runner dashboard** (`dashboard/server.js` + `dashboard/public/index.html`, the one cast to `localhost:3000`):\n- Top of the grid is now **Tägliche Operationen** + **Ein-Klick-Workflows** — mirrors the `bachelorprojekt-ops` agent's command list and exposes `feature:*` umbrellas + `health`.\n- 14 task names added to the `ALLOWED_COMMANDS` allowlist so the new buttons actually run.\n- Full German UI (group titles, task descriptions, modal text, banners, terminal labels). CLI command strings left verbatim.\n- `?` help button per group + per task → opens a modal explaining in plain German *what it does*, *when to click it*, *what `ENV` controls*, and *recovery hints*. Advanced groups (ArgoCD, MCP, HA, Erstinstallation, Gefahrenzone) collapsed by default.\n- Dismissable welcome banner under the topbar, default ENV = `mentolder`.\n\n**Deployed dashboard** (`dashboard/web/`, served at `web.<brand>.de`):\n- Cluster `<select>` preselects from `window.location.hostname`: anything containing `korczewski` → korczewski, anything containing `mentolder` → mentolder. Hardcoded `selected` attribute removed so the JS is the source of truth.\n\n## Test plan\n\n- [x] `node --check` clean on both `server.js` files + the deployed `app.js`\n- [x] Inline `<script>` in `dashboard/public/index.html` parses (75 KB)\n- [x] All 110 `cmd:` entries in GROUPS are present in `ALLOWED_COMMANDS`\n- [x] `dashboard/web` test suite green (19/19)\n- [ ] Restart local dashboard and confirm the new layout + help overlay render\n- [ ] Visit `web.mentolder.de` (after deploy) → cluster preselected `mentolder`; `web.korczewski.de` → `korczewski`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "dashboard",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-06T21:11:14Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

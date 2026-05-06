@@ -1,5 +1,22 @@
 # CLAUDE.md
 
+## Agent Routing
+
+Before responding to any request, check these signals and delegate to the named agent:
+
+| Signals | Agent |
+|---------|-------|
+| `website/`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend | `bachelorprojekt-website` |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing" | `bachelorprojekt-ops` |
+| `k3d/`, `prod*/`, manifest, kustomize, overlay, ArgoCD, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |
+| test, `FA-*`, `SA-*`, `NFA-*`, BATS, Playwright, `runner.sh`, test case | `bachelorprojekt-test` |
+| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline | `bachelorprojekt-db` |
+| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate | `bachelorprojekt-security` |
+
+**Tie-break rule:** when signals overlap (e.g. "deploy the website"), prefer the domain of the files being changed — `bachelorprojekt-website` for `website/src/` changes, `bachelorprojekt-infra` for manifest/overlay changes.
+
+**Cross-cutting requests** (e.g. a feature spanning both website and k8s) stay with the main orchestrator, which coordinates multiple agents in sequence.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview

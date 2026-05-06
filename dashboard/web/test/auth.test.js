@@ -44,6 +44,7 @@ test('buildAdminGuard prefers x-auth-request-preferred-username over x-auth-requ
   // human-readable username is in x-auth-request-preferred-username.
   const guard = buildAdminGuard('alice,bob');
   const req = {
+    path: '/api/k8s/pods',
     headers: {
       'x-auth-request-user': 'caf40515-52b3-44c6-aa64-4416f75e1ede',
       'x-auth-request-preferred-username': 'alice',
@@ -58,10 +59,28 @@ test('buildAdminGuard prefers x-auth-request-preferred-username over x-auth-requ
 
 test('buildAdminGuard rejects when only sub UUID is present and not allowlisted', () => {
   const guard = buildAdminGuard('alice,bob');
-  const req = { headers: { 'x-auth-request-user': 'caf40515-52b3-44c6-aa64-4416f75e1ede' } };
+  const req = { path: '/', headers: { 'x-auth-request-user': 'caf40515-52b3-44c6-aa64-4416f75e1ede' } };
   const res = mockRes();
   guard(req, res, () => assert.fail('next should not be called'));
   assert.equal(res.statusCode, 403);
+});
+
+test('buildAdminGuard accepts email as fallback when listed', () => {
+  // Allows the operator to seed the allowlist with an email instead of a
+  // username — useful when oauth2-proxy isn't passing preferred_username.
+  const guard = buildAdminGuard('paddione,patrick@korczewski.de');
+  const req = {
+    path: '/',
+    headers: {
+      'x-auth-request-user': 'caf40515-52b3-44c6-aa64-4416f75e1ede',
+      'x-auth-request-email': 'patrick@korczewski.de',
+    },
+  };
+  const res = mockRes();
+  let called = false;
+  guard(req, res, () => { called = true; });
+  assert.equal(called, true);
+  assert.equal(req.adminUser, 'patrick@korczewski.de');
 });
 
 function mockRes() {

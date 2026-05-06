@@ -1,8 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const brand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 ---
 
-<Layout title="Wartungsarbeiten">
+<Layout title="Wartungsarbeiten" brand={brand}>
   <section class="pt-28 pb-24">
     <div class="max-w-2xl mx-auto px-6 text-center">
       <p style="font-family:var(--mono); font-size:12px; letter-spacing:0.22em; text-transform:uppercase; color:var(--brass); margin:0 0 24px;">

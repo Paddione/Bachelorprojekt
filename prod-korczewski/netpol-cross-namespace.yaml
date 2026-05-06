@@ -58,3 +58,24 @@ spec:
       ports:
         - port: 5432
           protocol: TCP
+---
+# keycloak: allow ingress from website-korczewski so the auth callback can
+# exchange the OIDC code for tokens via the internal service URL.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-korczewski-to-keycloak-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: keycloak
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: website-korczewski
+      ports:
+        - port: 8080
+          protocol: TCP

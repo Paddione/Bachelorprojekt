@@ -1,0 +1,12 @@
+{
+  "pr_number": 539,
+  "title": "fix cronjob→website port (4321→80) + allow both ports in netpol",
+  "description": "## Summary\n- CronJob URLs were calling `website.website.svc.cluster.local:4321` directly on the ClusterIP — but the website Service only exposes port 80 (targetPort 4321), so kube-proxy has no DNAT rule for port 4321 → every connection timed out\n- Drops `:4321` from both cronjob URLs (notify-unread, monthly-billing) so they hit the service on port 80\n- Updates `allow-cronjobs-to-website-egress` NetworkPolicy to allow both port 80 (service port, pre-DNAT) and 4321 (pod port, post-DNAT), matching the existing `allow-transcriber-to-website-egress` pattern\n- Fixes verify-deployment.sh probe to check port 80 instead of 4321\n\n## Test plan\n- [ ] `task workspace:deploy ENV=mentolder` applies cleanly\n- [ ] `scripts/verify-deployment.sh ENV=mentolder` — `workspace → website:80 (cronjob API)` passes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "network",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-06T02:24:18Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

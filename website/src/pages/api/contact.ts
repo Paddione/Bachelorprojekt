@@ -7,6 +7,7 @@ const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 const TYPE_LABELS: Record<string, string> = {
   allgemein: 'Allgemeine Anfrage',
   erstgespraech: 'Kostenloses Erstgespräch',
+  '50plus-digital': '50+ digital',
   'digital-cafe': '50+ digital',
   coaching: 'Führungskräfte-Coaching',
   beratung: 'Unternehmensberatung',

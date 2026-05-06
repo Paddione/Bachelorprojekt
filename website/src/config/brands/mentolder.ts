@@ -56,7 +56,7 @@ export const mentolderConfig: BrandConfig = {
   },
   services: [
     {
-      slug: 'digital-cafe',
+      slug: '50plus-digital',
       title: '50+ digital',
       description: 'Ihr sicherer Einstieg in die digitale Welt. Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.',
       icon: '💻',
@@ -67,7 +67,7 @@ export const mentolderConfig: BrandConfig = {
         'Datenschutz & Sicherheit verstehen',
       ],
       price: 'Ab 60 € / Stunde',
-      stripeServiceKey: 'digital-cafe-einzel',
+      stripeServiceKey: '50plus-digital-einzel',
       pageContent: {
         headline: 'Ihr sicherer Einstieg in die digitale Welt',
         intro: 'Sie möchten WhatsApp nutzen, Online-Banking verstehen, oder einfach sicherer im Umgang mit Smartphone und Computer werden? Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.',
@@ -330,9 +330,9 @@ export const mentolderConfig: BrandConfig = {
       icon: '💻',
       description: 'Für Menschen ab 50, die digitale Alltagstools sicher nutzen und selbstständig agieren möchten — ohne Druck, im eigenen Tempo.',
       services: [
-        { key: 'digital-cafe-einzel', name: 'Einzelstunde (60 Min.)', price: '60 €', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
-        { key: 'digital-cafe-paket-s', name: 'Paket S — 6 Sessions', price: '330 €', unit: '', desc: '6 Stunden individuelle Begleitung. Flexibel planbar.', highlight: true },
-        { key: 'digital-cafe-paket-m', name: 'Paket M — 12 Sessions', price: '600 €', unit: '', desc: '12 Stunden für langfristige digitale Begleitung und Sicherheit.' },
+        { key: '50plus-digital-einzel', name: 'Einzelstunde (60 Min.)', price: '60 €', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
+        { key: '50plus-digital-paket-s', name: 'Paket S — 6 Sessions', price: '330 €', unit: '', desc: '6 Stunden individuelle Begleitung. Flexibel planbar.', highlight: true },
+        { key: '50plus-digital-paket-m', name: 'Paket M — 12 Sessions', price: '600 €', unit: '', desc: '12 Stunden für langfristige digitale Begleitung und Sicherheit.' },
       ],
     },
     {

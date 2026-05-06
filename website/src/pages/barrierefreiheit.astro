@@ -7,11 +7,16 @@ const { contact, legal } = config;
 const reviewDate = '14. April 2026';
 const BRAND = process.env.BRAND || 'mentolder';
 const customHtml = await getLegalPage(BRAND, 'barrierefreiheit').catch(() => null);
+const useCustom = !!(customHtml && customHtml.trim());
 ---
 
 <Layout title="Barrierefreiheitserklärung">
   <section class="pt-28 pb-20">
     <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
+      {useCustom ? (
+        <div set:html={customHtml} />
+      ) : (
+        <Fragment>
       <h1>Barrierefreiheitserklärung</h1>
 
       <p class="lead">
@@ -105,10 +110,6 @@ const customHtml = await getLegalPage(BRAND, 'barrierefreiheit').catch(() => nul
         WCAG 2.1 Level AA &middot; EN&nbsp;301&nbsp;549 V3.2.1
       </p>
 
-      {customHtml && customHtml.trim() && (
-        <Fragment>
-          <h2>Weitere Hinweise</h2>
-          <div set:html={customHtml} />
         </Fragment>
       )}
 

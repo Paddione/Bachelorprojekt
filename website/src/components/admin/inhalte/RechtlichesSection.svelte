@@ -36,24 +36,38 @@
     </button>
   </div>
 
+  <div class="p-4 rounded-xl text-sm bg-blue-500/10 border border-blue-500/30 text-blue-300 leading-relaxed">
+    <strong>Hinweis:</strong> Wird ein Feld leer gelassen, zeigt die öffentliche Seite den Standard-Text aus der Server-Konfiguration.
+    Sobald hier HTML eingetragen ist, ersetzt es den Standard-Text auf der jeweiligen Seite vollständig.
+    Live-Vorschau:
+    <a href="/impressum" target="_blank" rel="noopener" class="underline hover:text-blue-200">Impressum</a> ·
+    <a href="/datenschutz" target="_blank" rel="noopener" class="underline hover:text-blue-200">Datenschutz</a> ·
+    <a href="/agb" target="_blank" rel="noopener" class="underline hover:text-blue-200">AGB</a> ·
+    <a href="/barrierefreiheit" target="_blank" rel="noopener" class="underline hover:text-blue-200">Barrierefreiheit</a>.
+  </div>
+
   {#if msg}
     <div class={`p-4 rounded-xl text-sm ${msgOk ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>{msg}</div>
   {/if}
 
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Impressum-Zusatz</h3>
-    <textarea bind:value={data['impressum-zusatz']} rows={5} class={inputCls}></textarea>
+    <h3 class="text-xl font-bold text-light font-serif">Impressum (HTML)</h3>
+    <p class="text-xs text-muted -mt-2">Vollständiger Impressums-Text als HTML. Leer lassen, um den Standard-Text aus der Konfiguration zu zeigen.</p>
+    <textarea bind:value={data['impressum-zusatz']} rows={20} class={inputCls}></textarea>
   </div>
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Datenschutzerklärung</h3>
-    <textarea bind:value={data['datenschutz']} rows={20} class={inputCls}></textarea>
+    <h3 class="text-xl font-bold text-light font-serif">Datenschutzerklärung (HTML)</h3>
+    <p class="text-xs text-muted -mt-2">Vollständiger Datenschutz-Text als HTML. Leer lassen für den Standard-Text.</p>
+    <textarea bind:value={data['datenschutz']} rows={25} class={inputCls}></textarea>
   </div>
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">AGB</h3>
-    <textarea bind:value={data['agb']} rows={20} class={inputCls}></textarea>
+    <h3 class="text-xl font-bold text-light font-serif">AGB (HTML)</h3>
+    <p class="text-xs text-muted -mt-2">Vollständige AGB als HTML. Leer lassen für den Standard-Text.</p>
+    <textarea bind:value={data['agb']} rows={25} class={inputCls}></textarea>
   </div>
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Barrierefreiheit</h3>
-    <textarea bind:value={data['barrierefreiheit']} rows={15} class={inputCls}></textarea>
+    <h3 class="text-xl font-bold text-light font-serif">Barrierefreiheit (HTML)</h3>
+    <p class="text-xs text-muted -mt-2">Vollständige Barrierefreiheits-Erklärung als HTML. Leer lassen für den Standard-Text.</p>
+    <textarea bind:value={data['barrierefreiheit']} rows={20} class={inputCls}></textarea>
   </div>
 </div>

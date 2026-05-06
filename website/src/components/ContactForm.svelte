@@ -10,7 +10,7 @@
   const types = [
     { value: 'allgemein', label: 'Allgemeine Anfrage' },
     { value: 'erstgespraech', label: 'Kostenloses Erstgespräch' },
-    { value: 'digital-cafe', label: '50+ digital' },
+    { value: '50plus-digital', label: '50+ digital' },
     { value: 'coaching', label: 'Führungskräfte-Coaching' },
     { value: 'beratung', label: 'Unternehmensberatung' },
     { value: 'support', label: 'Support' },

@@ -55,7 +55,7 @@ spec:
             - --client-id=dashboard
             - --client-secret=$(DASHBOARD_OIDC_SECRET)
             - --redirect-url=https://${DASHBOARD_DOMAIN}/oauth2/callback
-            - --oidc-issuer-url=http://keycloak:8080/realms/workspace
+            - --oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
             - --login-url=https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth

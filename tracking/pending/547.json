@@ -1,0 +1,12 @@
+{
+  "pr_number": 547,
+  "title": "fix subpage styling inconsistency for korczewski brand",
+  "description": "## Summary\n- Subpages (`/kontakt`, `/impressum`, `/datenschutz`) were showing the mentolder dark/gold theme on `web.korczewski.de` instead of the Kore design system — wrong nav, wrong fonts (Newsreader vs Instrument Serif), wrong accent color (gold vs lime)\n- New `KoreLayout.astro` wraps `Layout` with `brand=\"korczewski-kore\"` and auto-injects `KoreSubNav` + `KoreFooter`, making it trivial to add Kore brand to any subpage\n- `KoreSubNav` gains a `subpage` prop — when true, hash links become `/#anchor` so they navigate to the correct homepage section from any URL\n- `kontakt.astro`: Kore branch shows `KoreContact` (calendar slots + email, consistent with homepage design); handles `?mode=termin` slot params with a Kore-styled pre-filled `BookingForm` panel\n- `impressum.astro` + `datenschutz.astro`: Kore branch uses `.kore-legal` article style (Instrument Serif headings, copper links, ink-850 surface); mentolder branch unchanged\n\n## Test plan\n- [ ] Navigate to `web.korczewski.de/kontakt` — should show Kore subnav, Kore contact section, Kore footer\n- [ ] Click a calendar slot on the homepage → arrives at `/kontakt?mode=termin&date=...` → should show Kore-styled booking form above the contact section\n- [ ] Navigate to `web.korczewski.de/impressum` and `/datenschutz` — should show Kore subnav, Instrument Serif headings, copper links, Kore footer\n- [ ] Subnav links (Cluster, Leistungen, etc.) from `/kontakt` → navigate to `/#work` etc. on homepage (not broken anchors)\n- [ ] `web.mentolder.de` pages unchanged (mentolder nav, Newsreader font, gold accents)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "kore",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-06T12:08:06Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

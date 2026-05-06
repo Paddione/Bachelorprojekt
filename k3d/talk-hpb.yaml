@@ -178,6 +178,12 @@ spec:
                 -e "s|@@CLIENTS_INTERNALSECRET@@|${CLIENTS_INTERNALSECRET}|g" \
                 -e "s|@@TURN_APIKEY@@|${TURN_APIKEY}|g" \
                 /tpl/server.conf.template > /shared/server.conf
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
           env:
             - name: SIGNALING_SECRET
               valueFrom:

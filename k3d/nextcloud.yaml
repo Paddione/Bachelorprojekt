@@ -62,6 +62,12 @@ spec:
             - |
               chown 33:33 /var/www/html/data
               chmod 0770 /var/www/html/data
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
           volumeMounts:
             - name: data
               mountPath: /var/www/html/data
@@ -75,6 +81,12 @@ spec:
             capabilities:
               drop: ["ALL"]
           command: ["sh", "-c", "mkdir -p /var/www/html/config"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
           volumeMounts:
             - name: app
               mountPath: /var/www/html
@@ -88,6 +100,12 @@ spec:
             capabilities:
               drop: ["ALL"]
           command: ["sh", "-c", "cp -r /usr/local/etc/php/conf.d/. /php-conf-d/"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
           volumeMounts:
             - name: php-conf-d
               mountPath: /php-conf-d

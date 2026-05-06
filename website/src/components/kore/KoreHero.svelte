@@ -33,7 +33,7 @@
       <b>{stats.nodes}</b>&nbsp;Nodes online ·
       <span style="color:var(--mute)">{stats.brands} Brands · {stats.pods} Pods</span>
     {:else}
-      <b>verfügbar</b>&nbsp;<span style="color:var(--mute)">Q3 2026</span>
+      <b>12 Nodes</b>&nbsp;<span style="color:var(--mute)">· Live</span>
     {/if}
   </span>
 

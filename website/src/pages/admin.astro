@@ -55,8 +55,6 @@ const wbUrl       = process.env.WHITEBOARD_EXTERNAL_URL ?? '';
 const mailUrl     = process.env.MAIL_EXTERNAL_URL ?? '';
 const bretDomain  = process.env.BRETT_DOMAIN ?? '';
 const bretUrl     = bretDomain ? `https://${bretDomain}` : '';
-const prodDomain  = process.env.PROD_DOMAIN ?? '';
-const dashUrl     = prodDomain && prodDomain !== 'localhost' ? `https://dashboard.${prodDomain}` : '';
 const SVG = {
   inbox:      `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
   folder:     `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5h5L8 3h6.5v9.5a1 1 0 0 1-1 1h-12a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"/></svg>`,
@@ -86,7 +84,7 @@ const adminLinks = [
   ...(vaultUrl   ? [{ href: vaultUrl,                                 label: 'Passwörter', icon: SVG.lock }] : []),
   ...(authUrl    ? [{ href: `${authUrl}/admin/workspace/console/`,    label: 'Keycloak',   icon: SVG.key }] : []),
   ...(docsUrl    ? [{ href: docsUrl,                                  label: 'Docs',       icon: SVG.book }] : []),
-  ...(dashUrl    ? [{ href: dashUrl,                                  label: 'Dashboard',  icon: SVG.dashboard }] : []),
+  { href: '/admin/monitoring',                                          label: 'Monitoring', icon: SVG.dashboard },
   ...(mailUrl    ? [{ href: mailUrl,                                  label: 'Mailpit',    icon: SVG.mail }] : []),
 ];
 

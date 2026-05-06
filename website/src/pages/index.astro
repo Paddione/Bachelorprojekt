@@ -19,6 +19,10 @@ import KoreContact  from '../components/kore/KoreContact.astro';
 import KoreFooter   from '../components/kore/KoreFooter.astro';
 import KoreHero     from '../components/kore/KoreHero.svelte';
 import KoreTimeline from '../components/kore/KoreTimeline.svelte';
+import KoreServices from '../components/kore/KoreServices.astro';
+import KoreWhyMe    from '../components/kore/KoreWhyMe.astro';
+import KoreProcess  from '../components/kore/KoreProcess.astro';
+import KoreFaq      from '../components/kore/KoreFaq.astro';
 import { listTimeline } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
@@ -80,10 +84,14 @@ const processSteps = [
   <Layout title="Kore. — Self-hosted, vor Ihren Augen." brand="korczewski-kore">
     <KoreSubNav />
     <KoreHero client:load />
+    <KoreServices services={services} />
+    <KoreWhyMe homepage={homepage} />
+    <KoreProcess />
     <KorePillars />
     <KoreTimeline client:load initialRows={initialTimeline} />
     <KoreBugs />
     <KoreTeam />
+    <KoreFaq items={faq} />
     <KoreContact />
     <KoreFooter />
   </Layout>

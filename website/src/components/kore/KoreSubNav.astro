@@ -1,7 +1,7 @@
 ---
 import { getSession } from '../../lib/auth';
 
-const { active = 'work' } = Astro.props as { active?: string };
+const { active = 'work', subpage = false } = Astro.props as { active?: string; subpage?: boolean };
 const session = await getSession(Astro.request.headers.get('cookie'));
 const links = [
   { id: 'work',     label: 'Cluster' },
@@ -21,7 +21,7 @@ const links = [
   </a>
   <div class="links">
     {links.map(({id, label}) => (
-      <a href={id === 'contact' ? '/kontakt' : `#${id}`} class={active === id ? 'active' : ''}>{label}</a>
+      <a href={id === 'contact' ? '/kontakt' : subpage ? `/#${id}` : `#${id}`} class={active === id ? 'active' : ''}>{label}</a>
     ))}
   </div>
   <div class="actions">

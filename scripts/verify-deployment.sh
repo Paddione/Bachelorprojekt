@@ -146,9 +146,9 @@ if [[ "$ENV" != "dev" ]]; then
 
   # workspace cronjobs → website API (billing, notify-unread, monthly-billing)
   _http_probe \
-    "${NS} → website:4321 (cronjob API)" \
+    "${NS} → website:80 (cronjob API)" \
     "$NS" "nextcloud" \
-    "http://website.${WEB_NS}.svc.cluster.local:4321/"
+    "http://website.${WEB_NS}.svc.cluster.local/"
 
   # workspace → shared-db:5432
   _tcp_probe \

@@ -125,7 +125,7 @@ spec:
         matchExpressions:
         - key: kubernetes.io/metadata.name
           operator: In
-          values: ["website", "korczewski-website"]
+          values: ["website", "website-korczewski"]
 ---
 # talk-transcriber → website-Namespace (save-transcript API)
 # Uses ipBlock for the service CIDR (10.43.0.0/16) because namespaceSelector

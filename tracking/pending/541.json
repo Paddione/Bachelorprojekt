@@ -1,0 +1,12 @@
+{
+  "pr_number": 541,
+  "title": "make KoreSubNav + KoreHero auth-aware, redirect to /portal after login",
+  "description": "## Summary\n\n- **Root cause:** The OIDC/SSO flow was working correctly end-to-end. The problem was purely UX — `KoreSubNav.astro` and `KoreHero.svelte` showed \\\"Anmelden →\\\" unconditionally with no `returnTo`, so after a successful login the user was sent back to the homepage which looked identical to the logged-out state.\n- `KoreSubNav.astro`: now calls `getSession()` server-side; shows **\\\"Portal →\\\"** when logged in, \\\"Anmelden →\\\" with `returnTo=/portal` when not\n- `KoreHero.svelte`: now fetches `/api/auth/me` client-side on mount and swaps the CTA to **\\\"Portal →\\\"** when authenticated\n\n## Test plan\n\n- [ ] Navigate to `web.korczewski.de` while logged out → see \\\"Anmelden →\\\" in nav and hero\n- [ ] Click \\\"Anmelden →\\\" → Keycloak login → land on `/portal` (not homepage)\n- [ ] Navigate back to `web.korczewski.de` while logged in → nav shows \\\"Portal →\\\", hero updates to \\\"Portal →\\\" after mount\n- [ ] Mentolder (`web.mentolder.de`) unaffected — its `Navigation.svelte` was already auth-aware\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "kore",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-06T03:38:49Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

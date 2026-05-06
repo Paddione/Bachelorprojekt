@@ -37,7 +37,7 @@
 
 <section class="w-section" id="timeline">
   <div class="head">
-    <span class="num">02 / 04</span>
+    <span class="num">05 / 07</span>
     <h2>Implementierte <em class="em">Features.</em></h2>
     <span class="hint">{rows.length}+ Einträge · live aus Tracking-DB</span>
   </div>

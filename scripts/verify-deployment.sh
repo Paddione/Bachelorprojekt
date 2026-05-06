@@ -10,13 +10,17 @@
 #         ENV=korczewski bash scripts/verify-deployment.sh
 #         bash scripts/verify-deployment.sh           # defaults to dev
 # ═══════════════════════════════════════════════════════════════════════
-set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV="${ENV:-dev}"
 
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
+
+# env-resolve.sh enables set -euo pipefail in the current shell; we want
+# explicit error handling throughout this script, so reset after source.
+set +e
+set -uo pipefail
 
 NS="${WORKSPACE_NAMESPACE:-workspace}"
 KUBE_CONTEXT="${ENV_CONTEXT:-}"
@@ -32,7 +36,6 @@ else
 fi
 
 PASS=0; FAIL=0; WARN=0
-ALL_GOOD=true
 
 # ── Colors ─────────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
@@ -42,19 +45,17 @@ else
   RED=''; GREEN=''; YELLOW=''; BOLD=''; DIM=''; RESET=''
 fi
 
-pass()    { echo -e "  ${GREEN}✓${RESET} $*"; ((PASS++)); }
-fail()    { echo -e "  ${RED}✗${RESET} $*"; ((FAIL++)); ALL_GOOD=false; }
-warn()    { echo -e "  ${YELLOW}⚠${RESET} $*"; ((WARN++)); }
+pass()    { echo -e "  ${GREEN}✓${RESET} $*"; PASS=$((PASS+1)); }
+fail()    { echo -e "  ${RED}✗${RESET} $*"; FAIL=$((FAIL+1)); }
+warn()    { echo -e "  ${YELLOW}⚠${RESET} $*"; WARN=$((WARN+1)); }
 section() { echo -e "\n${BOLD}── $* ──${RESET}"; }
 
-# ── Network probe: exec into existing pod ──────────────────────────────
-# Uses bash /dev/tcp for TCP probes (no external tools needed)
-# and wget for HTTP probes (available in Alpine/PHP images).
+# ── Network probe helpers ──────────────────────────────────────────────
 _first_pod() {
   local ns="$1" label="$2"
   kubectl get pods "${CTX_ARGS[@]}" -n "$ns" -l "app=$label" \
     --field-selector=status.phase=Running \
-    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null
+    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true
 }
 
 _tcp_probe() {
@@ -69,7 +70,7 @@ _tcp_probe() {
        bash -c "echo '' > /dev/tcp/${host}/${port}" 2>/dev/null; then
     pass "$desc"
   else
-    fail "$desc  (TCP ${host}:${port} from $src_ns/$pod)"
+    fail "$desc  (TCP ${host}:${port} unreachable from $src_ns)"
   fi
 }
 
@@ -87,20 +88,20 @@ _http_probe() {
               curl -sf --max-time 5 '$url' -o /dev/null 2>/dev/null"; then
     pass "$desc"
   else
-    fail "$desc  ($url from $src_ns/$pod)"
+    fail "$desc  ($url unreachable from $src_ns)"
   fi
 }
 
-# ── Secret check ──────────────────────────────────────────────────────
+# ── Secret checks ─────────────────────────────────────────────────────
 _secret_not_sealed() {
   local desc="$1" ns="$2" secret="$3" key="$4"
   local raw
   raw=$(kubectl get secret "$secret" "${CTX_ARGS[@]}" -n "$ns" \
-    -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d 2>/dev/null || true)
+    -o "jsonpath={.data.${key}}" 2>/dev/null | base64 -d 2>/dev/null) || raw=""
   if [[ -z "$raw" ]]; then
-    fail "$desc  (key ${key} missing from secret ${ns}/${secret})"
+    fail "$desc  (key ${key} missing from ${ns}/${secret})"
   elif [[ "$raw" == "SEALED" ]]; then
-    fail "$desc  (key ${key} still holds literal 'SEALED' in ${ns}/${secret})"
+    fail "$desc  (${key} is still the literal string 'SEALED' — run workspace:admin-users-setup)"
   else
     pass "$desc"
   fi
@@ -112,7 +113,21 @@ _secret_exists() {
        -o name >/dev/null 2>&1; then
     pass "$desc"
   else
-    fail "$desc  (secret ${ns}/${secret} missing)"
+    fail "$desc  (${ns}/${secret} not found)"
+  fi
+}
+
+# ── Deployment readiness ───────────────────────────────────────────────
+_check_deploy() {
+  local desc="$1" ns="$2" name="$3"
+  local ready
+  ready=$(kubectl get deployment "${CTX_ARGS[@]}" -n "$ns" "$name" \
+    -o jsonpath='{.status.readyReplicas}' 2>/dev/null) || ready=""
+  ready="${ready:-0}"
+  if [[ "$ready" -ge 1 ]]; then
+    pass "$desc  (${ready} ready)"
+  else
+    fail "$desc  (0 ready replicas in $ns)"
   fi
 }
 
@@ -123,7 +138,7 @@ echo -e "${BOLD}Deployment Verification${RESET}  ${DIM}ENV=${ENV}  ns=${NS}  web
 section "Cross-namespace network paths"
 
 if [[ "$ENV" != "dev" ]]; then
-  # website pod → keycloak (OIDC callback — most critical path)
+  # website pod → keycloak (OIDC callback — the path that caused login failures)
   _http_probe \
     "${WEB_NS} → keycloak:8080 (OIDC)" \
     "$WEB_NS" "website" \
@@ -135,19 +150,19 @@ if [[ "$ENV" != "dev" ]]; then
     "$NS" "nextcloud" \
     "http://website.${WEB_NS}.svc.cluster.local:4321/"
 
-  # workspace → shared-db:5432 (all DB-backed services)
+  # workspace → shared-db:5432
   _tcp_probe \
     "${NS} → shared-db:5432" \
     "$NS" "nextcloud" \
     "shared-db.${NS}.svc.cluster.local" "5432"
 
-  # website → shared-db:5432 (website own DB)
+  # website → shared-db:5432
   _tcp_probe \
     "${WEB_NS} → shared-db:5432" \
     "$WEB_NS" "website" \
     "shared-db.${NS}.svc.cluster.local" "5432"
 
-  # For korczewski: also check cross-cluster path to mentolder's shared-db
+  # korczewski: also check cross-namespace path to mentolder's shared-db (tracking-import)
   if [[ "$NS" == "workspace-korczewski" ]]; then
     _tcp_probe \
       "${NS} → shared-db.workspace:5432 (tracking-import)" \
@@ -155,45 +170,22 @@ if [[ "$ENV" != "dev" ]]; then
       "shared-db.workspace.svc.cluster.local" "5432"
   fi
 else
-  warn "ENV=dev — skipping cross-namespace probes (no NetPol in dev)"
+  warn "ENV=dev — skipping cross-namespace probes (NetworkPolicy not active in dev)"
 fi
 
 # ── 2. Secrets & credentials ──────────────────────────────────────────
 section "Secrets & credentials"
 
-_secret_exists \
-  "workspace-secrets exists" \
-  "$NS" "workspace-secrets"
-
-_secret_not_sealed \
-  "KC_USER1_PASSWORD not SEALED" \
-  "$NS" "workspace-secrets" "KC_USER1_PASSWORD"
-
-_secret_not_sealed \
-  "KEYCLOAK_ADMIN_PASSWORD not SEALED" \
-  "$NS" "workspace-secrets" "KEYCLOAK_ADMIN_PASSWORD"
+_secret_exists       "workspace-secrets exists"         "$NS"     "workspace-secrets"
+_secret_not_sealed   "KC_USER1_PASSWORD not SEALED"     "$NS"     "workspace-secrets" "KC_USER1_PASSWORD"
+_secret_not_sealed   "KEYCLOAK_ADMIN_PASSWORD not SEALED" "$NS"   "workspace-secrets" "KEYCLOAK_ADMIN_PASSWORD"
 
 if [[ "$NS" == "workspace-korczewski" ]]; then
-  # website-korczewski has its own secrets secret
-  _secret_exists \
-    "website-secrets exists (${WEB_NS})" \
-    "$WEB_NS" "website-secrets"
+  _secret_exists     "website-secrets exists (${WEB_NS})" "$WEB_NS" "website-secrets"
 fi
 
 # ── 3. Workloads running ──────────────────────────────────────────────
 section "Workloads running"
-
-_check_deploy() {
-  local desc="$1" ns="$2" name="$3"
-  local ready
-  ready=$(kubectl get deployment "${CTX_ARGS[@]}" -n "$ns" "$name" \
-    -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
-  if [[ "${ready:-0}" -ge 1 ]]; then
-    pass "$desc  (${ready} ready)"
-  else
-    fail "$desc  (0 ready replicas)"
-  fi
-}
 
 _check_deploy "keycloak"   "$NS"     "keycloak"
 _check_deploy "nextcloud"  "$NS"     "nextcloud"
@@ -207,12 +199,12 @@ echo -e "${BOLD}── Summary ──${RESET}"
 echo -e "  ${GREEN}✓ ${PASS} passed${RESET}  ${RED}✗ ${FAIL} failed${RESET}  ${YELLOW}⚠ ${WARN} skipped${RESET}  (${TOTAL} total)"
 echo ""
 
-if [[ $FAIL -gt 0 ]]; then
+if [[ "$FAIL" -gt 0 ]]; then
   echo -e "  ${RED}FAIL${RESET} — fix the items above before going live."
   echo -e "  Common causes:"
-  echo -e "    • NetworkPolicy missing  →  check prod-korczewski/netpol-cross-namespace.yaml"
-  echo -e "    • Credentials SEALED     →  run: task workspace:admin-users-setup ENV=${ENV}"
-  echo -e "    • Pod not ready          →  run: task workspace:status ENV=${ENV}"
+  echo -e "    • NetworkPolicy gap      →  check prod-korczewski/netpol-cross-namespace.yaml"
+  echo -e "    • Credentials SEALED     →  task workspace:admin-users-setup ENV=${ENV}"
+  echo -e "    • Pod not ready          →  task workspace:status ENV=${ENV}"
   exit 1
 fi
 

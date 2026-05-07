@@ -32,6 +32,15 @@
   const inputCls = 'w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:outline-none focus:border-gold/50';
   const labelCls = 'block text-xs text-muted mb-1';
   const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter space-y-4';
+  const moveBtnCls = 'px-2 py-1 rounded-md border border-dark-lighter text-muted hover:text-light hover:border-gold/50 disabled:opacity-30 disabled:cursor-not-allowed text-sm';
+
+  function moveService(idx: number, delta: number) {
+    const next = idx + delta;
+    if (next < 0 || next >= services.length) return;
+    const arr = services;
+    [arr[idx], arr[next]] = [arr[next], arr[idx]];
+    services = [...arr];
+  }
 </script>
 
 <div class="pt-6 pb-20 space-y-10">
@@ -52,9 +61,15 @@
   <!-- Services -->
   <div class={sectionCls}>
     <h3 class="text-xl font-bold text-light font-serif">Leistungskarten</h3>
-    {#each services as svc}
+    <p class="text-xs text-muted -mt-2">Reihenfolge mit den Pfeilen ändern. Diese Reihenfolge bestimmt, wie die Karten auf der Startseite und im Footer erscheinen.</p>
+    {#each services as svc, idx (svc.slug)}
       <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-3">
         <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1" role="group" aria-label="Reihenfolge ändern">
+            <button type="button" onclick={() => moveService(idx, -1)} disabled={idx === 0} class={moveBtnCls} title="Nach oben" aria-label="Nach oben">↑</button>
+            <button type="button" onclick={() => moveService(idx, 1)} disabled={idx === services.length - 1} class={moveBtnCls} title="Nach unten" aria-label="Nach unten">↓</button>
+          </div>
+          <span class="text-xs text-muted">#{idx + 1}</span>
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" bind:checked={svc.hidden} class="accent-gold" />
             <span class="text-xs text-muted">Ausblenden</span>

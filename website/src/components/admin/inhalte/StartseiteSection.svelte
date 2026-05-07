@@ -55,6 +55,11 @@
       <textarea bind:value={data.hero.title} rows={2} class="{inputCls} resize-none"></textarea>
     </div>
     <div>
+      <label class={labelCls}>Titel-Hervorhebung (kursiv, hinter dem Titel)</label>
+      <input type="text" bind:value={data.hero.titleEmphasis} class={inputCls} placeholder="z. B. wieder verbinden." />
+      <p class="text-xs text-muted mt-1">Leer lassen, um keinen kursiven Zusatz anzuzeigen.</p>
+    </div>
+    <div>
       <label class={labelCls}>Untertitel</label>
       <textarea bind:value={data.hero.subtitle} rows={3} class="{inputCls} resize-none"></textarea>
     </div>

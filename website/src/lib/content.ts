@@ -31,15 +31,17 @@ export async function getEffectiveReferenzen(): Promise<ReferenzItem[]> {
 /**
  * Returns the effective services list, merging DB overrides over the static
  * config. Hidden services are included — callers decide whether to filter them.
+ *
+ * Order: when DB overrides exist, the override array order wins (so admins can
+ * reorder cards). Static services not yet present in the overrides are appended
+ * at the end so newly-added entries from `config.services` don't disappear.
  */
 export async function getEffectiveServices(): Promise<(HomepageService & { hidden?: boolean })[]> {
   const overrides = await getServiceConfig(BRAND).catch(() => null);
   if (!overrides) return config.services;
 
-  return config.services.map((svc) => {
-    const o = overrides.find((x) => x.slug === svc.slug);
-    if (!o) return svc;
-
+  const staticBySlug = new Map(config.services.map((s) => [s.slug, s]));
+  const merge = (svc: HomepageService, o: typeof overrides[number]) => {
     const pc = o.pageContent;
     return {
       ...svc,
@@ -60,7 +62,16 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
           }
         : svc.pageContent,
     };
-  });
+  };
+
+  const overrideSlugs = new Set(overrides.map((o) => o.slug));
+  const fromOverrides: (HomepageService & { hidden?: boolean })[] = [];
+  for (const o of overrides) {
+    const svc = staticBySlug.get(o.slug);
+    if (svc) fromOverrides.push(merge(svc, o));
+  }
+  const missing = config.services.filter((s) => !overrideSlugs.has(s.slug));
+  return [...fromOverrides, ...missing];
 }
 
 /**
@@ -104,7 +115,12 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
   // Fallback: BrandConfig.homepage has no hero sub-object, so title/tagline are
   // hardcoded here. The admin UI (admin/startseite) overwrites this on first save.
   if (!db) return {
-    hero: { title: 'Digital Coach &\nFührungskräfte-Mentor', subtitle: c.whyMeIntro, tagline: 'Praxisnah. Strukturiert. Auf Augenhöhe.' },
+    hero: {
+      title: 'Menschen, Prozesse und Technik',
+      titleEmphasis: 'wieder verbinden.',
+      subtitle: c.whyMeIntro,
+      tagline: 'Praxisnah. Strukturiert. Auf Augenhöhe.',
+    },
     stats: c.stats,
     servicesHeadline: c.servicesHeadline,
     servicesSubheadline: c.servicesSubheadline,
@@ -119,6 +135,10 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
   };
   return {
     ...db,
+    hero: {
+      ...db.hero,
+      titleEmphasis: db.hero.titleEmphasis ?? 'wieder verbinden.',
+    },
     avatarType: db.avatarType ?? c.avatarType,
     avatarSrc: db.avatarSrc ?? c.avatarSrc,
     avatarInitials: db.avatarInitials ?? c.avatarInitials,

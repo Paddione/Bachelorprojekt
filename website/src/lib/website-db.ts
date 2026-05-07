@@ -2694,6 +2694,7 @@ export interface HomepageHero {
   title: string;
   subtitle: string;
   tagline: string;
+  titleEmphasis?: string;
 }
 
 export interface WhyMePoint {

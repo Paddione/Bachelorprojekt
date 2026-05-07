@@ -2859,6 +2859,25 @@ export async function deleteAdminShortcut(id: string): Promise<void> {
   await pool.query('DELETE FROM admin_shortcuts WHERE id = $1', [id]);
 }
 
+export async function updateAdminShortcut(
+  id: string,
+  fields: { url?: string; label?: string }
+): Promise<AdminShortcut | null> {
+  await initAdminShortcutsTable();
+  const sets: string[] = [];
+  const vals: unknown[] = [id];
+  if (fields.url !== undefined)   { vals.push(fields.url);   sets.push(`url   = $${vals.length}`); }
+  if (fields.label !== undefined) { vals.push(fields.label); sets.push(`label = $${vals.length}`); }
+  if (sets.length === 0) return null;
+  const result = await pool.query(
+    `UPDATE admin_shortcuts SET ${sets.join(', ')}
+     WHERE id = $1
+     RETURNING id, url, label, sort_order AS "sortOrder", created_at AS "createdAt"`,
+    vals
+  );
+  return result.rows[0] ?? null;
+}
+
 // ── DSGVO Audit Log ──────────────────────────────────────────────────────────
 
 async function initDsgvoAuditTable(): Promise<void> {

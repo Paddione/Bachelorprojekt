@@ -5,6 +5,7 @@
 import pg from 'pg';
 import { resolve4 } from 'dns';
 import { initTicketsSchema } from './tickets-db';
+import { transitionTicket } from './tickets/transition';
 const { Pool } = pg;
 
 const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
@@ -86,10 +87,10 @@ export async function listTimeline(opts: {
   const bugCounts = new Map<number, number>();
   if (prNumbers.length > 0) {
     const counts = (await pool.query(
-      `SELECT fixed_in_pr AS pr, COUNT(*)::int AS n
-         FROM bugs.bug_tickets
-        WHERE fixed_in_pr = ANY($1::int[])
-        GROUP BY fixed_in_pr`,
+      `SELECT pr_number AS pr, COUNT(*)::int AS n
+         FROM tickets.ticket_links
+        WHERE kind = 'fixes' AND pr_number = ANY($1::int[])
+        GROUP BY pr_number`,
       [prNumbers],
     )).rows as { pr: number; n: number }[];
     for (const c of counts) bugCounts.set(c.pr, c.n);
@@ -640,34 +641,42 @@ export async function insertBugTicket(params: {
   return 1;
 }
 
-export async function resolveBugTicket(ticketId: string, resolutionNote: string): Promise<void> {
-  await initBugTicketsTable();
-  await pool.query(
-    `UPDATE bugs.bug_tickets
-     SET status = 'resolved', resolved_at = NOW(), resolution_note = $2
-     WHERE ticket_id = $1 AND status = 'open'`,
-    [ticketId, resolutionNote]
-  );
-  await pool.query(
-    `UPDATE inbox_items
-     SET status = 'actioned', actioned_at = NOW()
-     WHERE bug_ticket_id = $1 AND status = 'pending'`,
-    [ticketId]
-  );
+async function ticketIdByExternal(externalId: string): Promise<string | null> {
+  const r = await pool.query(
+    `SELECT id FROM tickets.tickets WHERE type = 'bug' AND external_id = $1`,
+    [externalId]);
+  return r.rows[0]?.id ?? null;
 }
 
-export async function archiveBugTicket(ticketId: string): Promise<void> {
-  await initBugTicketsTable();
+export async function resolveBugTicket(
+  ticketId: string,
+  resolutionNote: string,
+  actor: { id?: string; label: string } = { label: 'admin' }
+): Promise<void> {
+  const id = await ticketIdByExternal(ticketId);
+  if (!id) throw new Error(`bug ${ticketId} not found`);
+  await transitionTicket(id, {
+    status: 'done', resolution: 'fixed',
+    note: resolutionNote, noteVisibility: 'public',
+    actor,
+  });
   await pool.query(
-    `UPDATE bugs.bug_tickets SET status = 'archived' WHERE ticket_id = $1 AND status != 'archived'`,
-    [ticketId]
-  );
+    `UPDATE inbox_items SET status = 'actioned', actioned_at = NOW()
+      WHERE bug_ticket_id = $1 AND status = 'pending'`, [ticketId]);
+}
+
+export async function archiveBugTicket(
+  ticketId: string,
+  actor: { id?: string; label: string } = { label: 'admin' }
+): Promise<void> {
+  const id = await ticketIdByExternal(ticketId);
+  if (!id) return;
+  await transitionTicket(id, {
+    status: 'archived', resolution: 'obsolete', actor,
+  });
   await pool.query(
-    `UPDATE inbox_items
-     SET status = 'archived', actioned_at = NOW()
-     WHERE bug_ticket_id = $1 AND status = 'pending'`,
-    [ticketId]
-  );
+    `UPDATE inbox_items SET status = 'archived', actioned_at = NOW()
+      WHERE bug_ticket_id = $1 AND status = 'pending'`, [ticketId]);
 }
 
 export interface BugTicketStatus {
@@ -680,16 +689,27 @@ export interface BugTicketStatus {
 }
 
 export async function getBugTicketStatus(ticketId: string): Promise<BugTicketStatus | null> {
-  await initBugTicketsTable();
-  const result = await pool.query(
-    `SELECT ticket_id as "ticketId", status, category,
-            created_at as "createdAt", resolved_at as "resolvedAt",
-            resolution_note as "resolutionNote",
-            fixed_in_pr as "fixedInPr", fixed_at as "fixedAt"
-     FROM bugs.bug_tickets WHERE ticket_id = $1`,
-    [ticketId]
-  );
-  return result.rows[0] ?? null;
+  await initTicketsSchema();
+  const r = await pool.query(
+    `SELECT t.external_id AS "ticketId",
+            CASE t.status WHEN 'done' THEN 'resolved'
+                          WHEN 'archived' THEN 'archived' ELSE 'open' END AS status,
+            (SELECT SPLIT_PART(g.name, ':', 2)
+               FROM tickets.ticket_tags tt JOIN tickets.tags g ON g.id = tt.tag_id
+              WHERE tt.ticket_id = t.id AND g.name LIKE 'kind:%' LIMIT 1) AS category,
+            t.created_at AS "createdAt",
+            t.done_at AS "resolvedAt",
+            NULL AS "resolutionNote",
+            (SELECT pr_number FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedInPr",
+            (SELECT created_at FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
+       FROM tickets.tickets t
+      WHERE t.type = 'bug' AND t.external_id = $1`,
+    [ticketId]);
+  return r.rows[0] ?? null;
 }
 
 // ── Bug Ticket Comments ──────────────────────────────────────────────────────
@@ -706,33 +726,45 @@ export interface BugTicketComment {
 export async function getBugTicketWithComments(
   ticketId: string
 ): Promise<{ ticket: BugTicketRow; comments: BugTicketComment[] } | null> {
-  await initBugTicketsTable();
-  await initBugTicketCommentsTable();
+  await initTicketsSchema();
   const t = await pool.query(
-    `SELECT ticket_id        AS "ticketId",
-            category,
-            reporter_email   AS "reporterEmail",
-            description,
-            url,
-            brand,
-            status,
-            created_at       AS "createdAt",
-            resolved_at      AS "resolvedAt",
-            resolution_note  AS "resolutionNote",
-            screenshots_json AS "screenshots",
-            fixed_in_pr      AS "fixedInPr",
-            fixed_at         AS "fixedAt"
-       FROM bugs.bug_tickets WHERE ticket_id = $1`,
-    [ticketId]
-  );
+    `SELECT t.external_id   AS "ticketId",
+            COALESCE((SELECT SPLIT_PART(g.name, ':', 2)
+                        FROM tickets.ticket_tags tt JOIN tickets.tags g ON g.id = tt.tag_id
+                       WHERE tt.ticket_id = t.id AND g.name LIKE 'kind:%' LIMIT 1), '') AS category,
+            t.reporter_email AS "reporterEmail",
+            t.description,
+            t.url,
+            t.brand,
+            CASE t.status WHEN 'done' THEN 'resolved'
+                          WHEN 'archived' THEN 'archived' ELSE 'open' END AS status,
+            t.created_at    AS "createdAt",
+            t.done_at       AS "resolvedAt",
+            NULL            AS "resolutionNote",
+            (SELECT json_agg(data_url ORDER BY uploaded_at)
+               FROM tickets.ticket_attachments WHERE ticket_id = t.id) AS "screenshots",
+            (SELECT pr_number FROM tickets.ticket_links
+               WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+               ORDER BY created_at DESC LIMIT 1) AS "fixedInPr",
+            (SELECT created_at FROM tickets.ticket_links
+               WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+               ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
+       FROM tickets.tickets t
+      WHERE t.type = 'bug' AND t.external_id = $1`,
+    [ticketId]);
   if (t.rows.length === 0) return null;
   const c = await pool.query(
-    `SELECT id, ticket_id AS "ticketId", author, kind, body, created_at AS "createdAt"
-       FROM bugs.bug_ticket_comments
-       WHERE ticket_id = $1
-       ORDER BY created_at ASC`,
-    [ticketId]
-  );
+    `SELECT tc.id,
+            $1::text AS "ticketId",
+            tc.author_label AS author,
+            tc.kind,
+            tc.body,
+            tc.created_at AS "createdAt"
+       FROM tickets.ticket_comments tc
+       JOIN tickets.tickets t ON t.id = tc.ticket_id
+      WHERE t.type = 'bug' AND t.external_id = $1
+      ORDER BY tc.created_at ASC`,
+    [ticketId]);
   return { ticket: t.rows[0], comments: c.rows };
 }
 
@@ -742,13 +774,14 @@ export async function appendBugTicketComment(params: {
   body: string;
   kind?: 'comment' | 'status_change' | 'system';
 }): Promise<BugTicketComment> {
-  await initBugTicketCommentsTable();
+  await initTicketsSchema();
   const r = await pool.query(
-    `INSERT INTO bugs.bug_ticket_comments (ticket_id, author, kind, body)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id, ticket_id AS "ticketId", author, kind, body, created_at AS "createdAt"`,
-    [params.ticketId, params.author, params.kind ?? 'comment', params.body]
-  );
+    `INSERT INTO tickets.ticket_comments
+       (ticket_id, author_label, kind, body, visibility)
+     SELECT id, $2, $3, $4, 'internal' FROM tickets.tickets
+      WHERE type = 'bug' AND external_id = $1
+     RETURNING id, $1::text AS "ticketId", author_label AS author, kind, body, created_at AS "createdAt"`,
+    [params.ticketId, params.author, params.kind ?? 'comment', params.body]);
   return r.rows[0];
 }
 
@@ -757,22 +790,13 @@ export async function reopenBugTicket(
   author: string,
   reason?: string
 ): Promise<void> {
-  await initBugTicketsTable();
-  await initBugTicketCommentsTable();
-  const upd = await pool.query(
-    `UPDATE bugs.bug_tickets
-       SET status = 'open', resolved_at = NULL, resolution_note = NULL
-       WHERE ticket_id = $1 AND status IN ('resolved', 'archived')`,
-    [ticketId]
-  );
-  if (upd.rowCount === 0) {
-    throw new Error(`ticket ${ticketId} not in 'resolved' or 'archived' state`);
-  }
-  await pool.query(
-    `INSERT INTO bugs.bug_ticket_comments (ticket_id, author, kind, body)
-     VALUES ($1, $2, 'status_change', $3)`,
-    [ticketId, author, `reopened${reason ? `: ${reason}` : ''}`]
-  );
+  const id = await ticketIdByExternal(ticketId);
+  if (!id) throw new Error(`ticket ${ticketId} not found`);
+  await transitionTicket(id, {
+    status: 'backlog',
+    note: reason,
+    actor: { label: author },
+  });
 }
 
 export async function initBugTicketCommentsTable(): Promise<void> {
@@ -2714,33 +2738,60 @@ export async function listBugTickets(filters: {
   q?: string;
   limit?: number;
 }): Promise<BugTicketRow[]> {
-  await initBugTicketsTable();
-  const { status, category, brand, q, limit = 200 } = filters;
-  const result = await pool.query(
-    `SELECT ticket_id        AS "ticketId",
-            category,
-            reporter_email   AS "reporterEmail",
-            description,
-            url,
-            brand,
-            status,
-            created_at       AS "createdAt",
-            resolved_at      AS "resolvedAt",
-            resolution_note  AS "resolutionNote",
-            screenshots_json AS "screenshots",
-            fixed_in_pr      AS "fixedInPr",
-            fixed_at         AS "fixedAt"
-     FROM bugs.bug_tickets
-     WHERE ($1::text IS NULL OR brand = $1)
-       AND ($2::text IS NULL OR status = $2)
-       AND ($3::text IS NULL OR category = $3)
-       AND ($4::text IS NULL OR ticket_id ILIKE '%' || $4 || '%'
-                              OR reporter_email ILIKE '%' || $4 || '%')
-     ORDER BY created_at DESC
-     LIMIT $5`,
-    [brand ?? null, status ?? null, category ?? null, q ?? null, limit]
-  );
-  return result.rows;
+  await initTicketsSchema();
+  const where: string[] = [`t.type = 'bug'`];
+  const vals: unknown[] = [];
+  if (filters.brand) {
+    vals.push(filters.brand);
+    where.push(`t.brand = $${vals.length}`);
+  }
+  if (filters.status) {
+    // Map legacy filter values back to new status set
+    const map: Record<string, string[]> = {
+      open:     ['triage','backlog','in_progress','in_review','blocked'],
+      resolved: ['done'],
+      archived: ['archived'],
+    };
+    const list = map[filters.status] ?? [filters.status];
+    vals.push(list);
+    where.push(`t.status = ANY($${vals.length}::text[])`);
+  }
+  if (filters.category) {
+    vals.push(`kind:${filters.category}`);
+    where.push(`EXISTS (SELECT 1 FROM tickets.ticket_tags tt
+                          JOIN tickets.tags g ON g.id = tt.tag_id
+                         WHERE tt.ticket_id = t.id AND g.name = $${vals.length})`);
+  }
+  if (filters.q) {
+    vals.push(filters.q);
+    where.push(`(t.description ILIKE '%' || $${vals.length} || '%'
+                 OR t.reporter_email ILIKE '%' || $${vals.length} || '%')`);
+  }
+  const sql = `
+    SELECT t.external_id   AS "ticketId",
+           COALESCE(SPLIT_PART(g.name, ':', 2), '') AS category,
+           t.reporter_email AS "reporterEmail",
+           t.description,
+           t.url,
+           t.brand,
+           CASE t.status WHEN 'done' THEN 'resolved'
+                         WHEN 'archived' THEN 'archived' ELSE 'open' END AS status,
+           t.created_at    AS "createdAt",
+           t.done_at       AS "resolvedAt",
+           NULL            AS "resolutionNote",
+           (SELECT pr_number FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedInPr",
+           (SELECT created_at FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
+      FROM tickets.tickets t
+      LEFT JOIN tickets.ticket_tags tt ON tt.ticket_id = t.id
+      LEFT JOIN tickets.tags g ON g.id = tt.tag_id AND g.name LIKE 'kind:%'
+     WHERE ${where.join(' AND ')}
+     ORDER BY t.created_at DESC`;
+  const r = await pool.query(sql, vals);
+  return r.rows;
 }
 
 // ── Homepage Content (hero + startseite) ─────────────────────────────────────

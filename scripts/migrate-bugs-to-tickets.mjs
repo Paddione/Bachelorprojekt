@@ -88,6 +88,39 @@ async function migrate(client, dryRun) {
         [newId, b.resolution_note, b.resolved_at ?? b.created_at]);
     }
 
+    // comments — copy bugs.bug_ticket_comments to tickets.ticket_comments
+    const comments = (await client.query(
+      `SELECT author, kind, body, created_at FROM bugs.bug_ticket_comments
+        WHERE ticket_id = $1 ORDER BY created_at`, [b.ticket_id])).rows;
+    for (const c of comments) {
+      await client.query(
+        `INSERT INTO tickets.ticket_comments
+           (ticket_id, author_label, kind, body, visibility, created_at)
+         VALUES ($1, $2, $3, $4, 'internal', $5)`,
+        [newId, c.author, c.kind, c.body, c.created_at]);
+    }
+
+    // screenshots → attachments (kept as data_url for back-compat)
+    if (b.screenshots_json && Array.isArray(b.screenshots_json)) {
+      let i = 0;
+      for (const dataUrl of b.screenshots_json) {
+        const m = String(dataUrl).match(/^data:([^;]+);/);
+        await client.query(
+          `INSERT INTO tickets.ticket_attachments
+             (ticket_id, filename, data_url, mime_type)
+           VALUES ($1, $2, $3, $4)`,
+          [newId, `screenshot-${++i}`, dataUrl, m ? m[1] : 'application/octet-stream']);
+      }
+    }
+
+    // fixed_in_pr → ticket_links self-link with kind='fixes' + pr_number
+    if (b.fixed_in_pr) {
+      await client.query(
+        `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+         VALUES ($1, $1, 'fixes', $2) ON CONFLICT DO NOTHING`,
+        [newId, b.fixed_in_pr]);
+    }
+
     inserted++;
   }
   return { inserted, skipped, unknownStatus };

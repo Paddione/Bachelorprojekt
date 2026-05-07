@@ -168,3 +168,31 @@ assert d['mode'] == 'dry-run', f'expected dry-run, got {d[\"mode\"]}'
 print('OK')
 "
 }
+
+@test "runtime: comments are copied" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  expected=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_ticket_comments")
+  actual=$(psql "$PGURL" -t -A -c "
+    SELECT count(*) FROM tickets.ticket_comments tc
+    JOIN tickets.tickets t ON t.id = tc.ticket_id
+    WHERE t.type = 'bug' AND tc.kind <> 'system' AND tc.author_label <> 'migration'")
+  [ "$actual" -ge "$expected" ]
+}
+
+@test "runtime: fixed_in_pr → ticket_links" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  expected=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE fixed_in_pr IS NOT NULL")
+  actual=$(psql "$PGURL" -t -A -c "
+    SELECT count(*) FROM tickets.ticket_links WHERE kind='fixes' AND pr_number IS NOT NULL")
+  [ "$actual" = "$expected" ]
+}
+
+@test "static: extension blocks present (comments + screenshots + fixed_in_pr)" {
+  grep -q 'bug_ticket_comments' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'screenshots_json' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'ticket_attachments' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'ticket_links' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q "kind='fixes'" "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}

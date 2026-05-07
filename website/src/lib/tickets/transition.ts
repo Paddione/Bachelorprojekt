@@ -46,6 +46,9 @@ export async function transitionTicket(
   if (p.resolution && !VALID_RESOLUTIONS.has(p.resolution)) {
     throw new Error(`invalid resolution: ${p.resolution}`);
   }
+  if (p.resolution && p.status !== 'done' && p.status !== 'archived') {
+    throw new Error(`resolution must not be set for non-terminal status: ${p.status}`);
+  }
 
   const client = await pool.connect();
   try {
@@ -66,7 +69,7 @@ export async function transitionTicket(
     const upd = await client.query(
       `UPDATE tickets.tickets
          SET status = $1,
-             resolution = $2
+             resolution = CASE WHEN $1 IN ('done','archived') THEN $2 ELSE NULL END
        WHERE id = $3
        RETURNING id, external_id, type, status, resolution, reporter_email, brand`,
       [p.status, p.resolution ?? null, ticketId]
@@ -85,11 +88,8 @@ export async function transitionTicket(
     if (p.prNumber) {
       await client.query(
         `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number, created_by)
-         SELECT $1, $1, 'fixes', $2, $3
-         WHERE NOT EXISTS (
-           SELECT 1 FROM tickets.ticket_links
-           WHERE from_id = $1 AND kind = 'fixes' AND pr_number = $2
-         )`,
+         VALUES ($1, $1, 'fixes', $2, $3)
+         ON CONFLICT (from_id, to_id, kind) DO NOTHING`,
         [ticketId, p.prNumber, p.actor.id ?? null]
       );
     }

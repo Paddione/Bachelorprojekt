@@ -246,5 +246,24 @@ export async function initTicketsSchema(): Promise<void> {
       FOR EACH ROW EXECUTE FUNCTION tickets.fn_audit_log()
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.pr_events (
+      pr_number    INTEGER PRIMARY KEY,
+      title        TEXT NOT NULL,
+      description  TEXT,
+      category     TEXT NOT NULL,
+      scope        TEXT,
+      brand        TEXT,
+      merged_at    TIMESTAMPTZ NOT NULL,
+      merged_by    TEXT,
+      status       TEXT NOT NULL DEFAULT 'shipped'
+                   CHECK (status IN ('planned','in_progress','shipped','reverted')),
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_merged_at_idx ON tickets.pr_events (merged_at DESC)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_brand_idx     ON tickets.pr_events (brand) WHERE brand IS NOT NULL`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_category_idx  ON tickets.pr_events (category)`);
+
   schemaReady = true;
 }

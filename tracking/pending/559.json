@@ -1,0 +1,15 @@
+{
+  "pr_number": 559,
+  "title": "content polish + remove direct-buy CTAs (BR-…4047/a6b0/9849)",
+  "description": "## Summary\n- Hero, Coaching-Seite, Über-mich Timeline, Footer/Header: textuelle Korrekturen wie vom Reporter gewünscht\n- 'Direkt buchen & zahlen' / 'Jetzt kaufen'-Buttons entfernt — alle Wege gehen jetzt über Kontakt/Termin\n- DB-Inhalte (homepage_content, uebermich, service_config) wurden direkt aktualisiert; Code-Defaults gleichgezogen\n\n## Tickets\n- BR-20260507-4047 — Coaching-Seitentitel, forWhom-Bullet, KI- Welt, Footer Lünebur/Hamburg, Coaching-Intro\n- BR-20260507-a6b0 — Hero-Headline, Wohnort über-mich, Timeline KI-Pionier-Jahr, 'Selbst' Generation 50+, Header/Footer-Vereinheitlichung\n- BR-20260507-9849 — Direkt-buchen-Buttons komplett raus\n\n## Test plan\n- [ ] Startseite: Hero-Headline lautet 'Digital Coach & Führungskräfte-Mentor – der Mensch und Technologie wieder verbindet.'\n- [ ] Header rechts: 'Lüneburg, Hamburg und Umgebung · DE'\n- [ ] Footer Kontakt-Spalte: 'Lüneburg, Hamburg und Umgebung'\n- [ ] Coaching-Seite: Titel 'Coaching für Führungskräfte und Menschen in Verantwortung'; Bullet 1 unter 'Für wen ist das?' beginnt mit 'Sie sind erfahrene Führungskraft …'\n- [ ] Über mich: KI-Pionier-Eintrag zeigt 'ca. 2016/2017'\n- [ ] Startseite Angebot 50+ digital, letzter Bullet: '… inkl. ChatGPT, Claude, Perplexity'\n- [ ] Keine '💳 Direkt buchen & zahlen'/'Jetzt kaufen'-Buttons mehr auf Startseite oder /leistungen\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "mentolder",
+  "brand": "mentolder",
+  "requirement_id": null,
+  "merged_at": "2026-05-07T18:23:42Z",
+  "merged_by": "Paddione",
+  "bug_refs": [
+    "BR-20260507-4047",
+    "BR-20260507-9849"
+  ]
+}

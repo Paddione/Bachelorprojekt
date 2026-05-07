@@ -35,6 +35,13 @@ async function ensureTag(client, name) {
 }
 
 async function migrate(client, dryRun) {
+  // bugs.bug_ticket_comments may not exist on environments where the public bug
+  // form was used but no comments were ever added (lazy table-init in
+  // website-db.ts only fires when the API path actually inserts a comment).
+  const hasComments = (await client.query(
+    `SELECT to_regclass('bugs.bug_ticket_comments') IS NOT NULL AS present`
+  )).rows[0].present;
+
   const bugs = (await client.query(`
     SELECT ticket_id, category, reporter_email, description, url, brand,
            status, created_at, resolved_at, resolution_note,
@@ -89,9 +96,9 @@ async function migrate(client, dryRun) {
     }
 
     // comments — copy bugs.bug_ticket_comments to tickets.ticket_comments
-    const comments = (await client.query(
+    const comments = hasComments ? (await client.query(
       `SELECT author, kind, body, created_at FROM bugs.bug_ticket_comments
-        WHERE ticket_id = $1 ORDER BY created_at`, [b.ticket_id])).rows;
+        WHERE ticket_id = $1 ORDER BY created_at`, [b.ticket_id])).rows : [];
     for (const c of comments) {
       await client.query(
         `INSERT INTO tickets.ticket_comments

@@ -8,39 +8,15 @@
     price: string;
     priceUnit?: string;
     href: string;
+    /** @deprecated direct buy buttons removed; kept for backwards compat */
     stripeServiceKey?: string;
   }
 
-  let { num, title, meta, description, features, price, priceUnit, href, stripeServiceKey }: Props = $props();
-
-  let loading = $state(false);
-  let errorMsg = $state('');
+  let { num, title, meta, description, features, price, priceUnit, href }: Props = $props();
 
   // Split price on "/" to extract unit if not provided
   const [priceMain, priceUnitFallback] = price.split('/').map(s => s.trim());
   const displayUnit = priceUnit ?? priceUnitFallback ?? '';
-
-  async function handleBuy() {
-    loading = true;
-    errorMsg = '';
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceKey: stripeServiceKey }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        errorMsg = data.error || 'Checkout fehlgeschlagen.';
-      }
-    } catch {
-      errorMsg = 'Verbindungsfehler. Bitte erneut versuchen.';
-    } finally {
-      loading = false;
-    }
-  }
 </script>
 
 <div class="offer">
@@ -61,20 +37,6 @@
           <li>{feature}</li>
         {/each}
       </ul>
-    {/if}
-    {#if stripeServiceKey}
-      <button
-        type="button"
-        onclick={handleBuy}
-        disabled={loading}
-        class="buy-btn"
-        aria-label="Direkt buchen und bezahlen"
-      >
-        {loading ? 'Wird geladen…' : '💳 Direkt buchen & zahlen'}
-      </button>
-      {#if errorMsg}
-        <p class="error" role="alert">{errorMsg}</p>
-      {/if}
     {/if}
   </div>
 
@@ -235,35 +197,6 @@
     background: var(--brass);
     border-color: var(--brass);
     color: var(--ink-900);
-  }
-
-  .buy-btn {
-    margin-top: 12px;
-    background: none;
-    border: 1px solid var(--line-2);
-    color: var(--fg-soft);
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: border-color 0.2s ease, color 0.2s ease;
-    font-family: var(--sans);
-  }
-
-  .buy-btn:hover:not(:disabled) {
-    border-color: var(--brass);
-    color: var(--brass);
-  }
-
-  .buy-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .error {
-    color: oklch(0.65 0.2 25);
-    font-size: 12px;
-    margin-top: 6px;
   }
 
   @media (max-width: 1000px) {

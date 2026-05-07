@@ -60,7 +60,7 @@
     </nav>
 
     <div class="nav-right">
-      <span class="nav-meta" aria-hidden="true">Lüneburg · DE</span>
+      <span class="nav-meta" aria-hidden="true">Lüneburg, Hamburg und Umgebung · DE</span>
 
       {#if authChecked}
         {#if user}

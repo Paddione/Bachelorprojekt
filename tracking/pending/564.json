@@ -1,0 +1,12 @@
+{
+  "pr_number": 564,
+  "title": "migration script tolerates missing bug_ticket_comments",
+  "description": "## Summary\nHit during the live korczewski migration: \\`bugs.bug_ticket_comments\\` only gets lazy-created when an admin appends a comment, which never happened on korczewski. Migration now uses \\`to_regclass\\` to detect absence and falls back to an empty comments list.\n\n## Test plan\n- Mentolder migration already ran successfully with the unpatched script (it had the table).\n- Korczewski migration ran successfully with this patch (5/5 bug rows migrated; 0 comments to copy).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "tickets",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-07T23:37:17Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

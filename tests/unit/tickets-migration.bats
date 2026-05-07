@@ -1,0 +1,170 @@
+#!/usr/bin/env bats
+# ═══════════════════════════════════════════════════════════════════
+# tickets-migration.bats — Idempotency tests for
+#   scripts/migrate-bugs-to-tickets.mjs
+# ═══════════════════════════════════════════════════════════════════
+# Static tests run without a database. Runtime tests require a live
+# PostgreSQL instance with both bugs.bug_tickets and tickets.* schemas.
+#
+# Set TRACKING_DB_URL to your website DB URL.
+# Default fallback: postgres://postgres:postgres@localhost:5432/website
+# ═══════════════════════════════════════════════════════════════════
+
+load test_helper
+
+PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+
+setup() {
+  PGURL="${TRACKING_DB_URL:-${SESSIONS_DATABASE_URL:-postgres://postgres:postgres@localhost:5432/website}}"
+  export PGURL
+  export PROJECT_DIR
+
+  # Safety guard: refuse to run against production databases.
+  case "$PGURL" in
+    *mentolder*|*korczewski*)
+      echo "TRACKING_DB_URL points to a production host ($PGURL). Aborting to protect live data." >&2
+      exit 1
+      ;;
+  esac
+}
+
+# ── Static checks (no DB required) ───────────────────────────────
+
+@test "static: migration script exists and is idempotent (uses external_id check)" {
+  [ -f "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" ]
+  grep -q 'WHERE external_id = \$1' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: apply mode wraps in BEGIN/COMMIT/ROLLBACK transaction" {
+  grep -q "apply ? 'BEGIN'" "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" || \
+  grep -q 'if (apply) await client.query' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'COMMIT'   "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'ROLLBACK' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: dry-run mode supported (default, --apply flag required)" {
+  grep -q "process.argv.includes('--apply')" "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'dryRun' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: STATUS_MAP covers open->triage, resolved->done+fixed, archived->archived+fixed" {
+  grep -q "open.*triage"    "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q "resolved.*done"  "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q "archived"        "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q "'fixed'"         "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: CATEGORY_TAG maps all three bug categories to kind: tags" {
+  grep -q 'fehler.*kind:bug'              "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'verbesserung.*kind:improvement' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'erweiterungswunsch.*kind:wish' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: title is description sliced to 200 chars" {
+  grep -q 'slice(0, 200)' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: resolution_note migrated as status_change comment with author_label=migration" {
+  grep -q "'migration'" "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q "'status_change'" "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'resolution_note' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: output JSON includes inserted, skipped, and mode fields" {
+  grep -q 'inserted' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'skipped'  "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'mode'     "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "static: script syntax is valid (node --check)" {
+  node --check "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+# ── Runtime tests (require live DB) ──────────────────────────────
+
+db_available() {
+  psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1
+}
+
+@test "runtime: every bugs.bug_tickets row produces one tickets.tickets row" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  before=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets")
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  after=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+  [ "$before" = "$after" ]
+}
+
+@test "runtime: status mapping is correct (open->triage, resolved->done+fixed)" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  open_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE status='open'")
+  triage_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug' AND status='triage'")
+  [ "$open_count" = "$triage_count" ]
+  resolved_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE status='resolved'")
+  done_fixed_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug' AND status='done' AND resolution='fixed'")
+  [ "$resolved_count" = "$done_fixed_count" ]
+}
+
+@test "runtime: archived rows map to status=archived resolution=fixed" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  archived_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE status='archived'")
+  mapped_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug' AND status='archived' AND resolution='fixed'")
+  [ "$archived_count" = "$mapped_count" ]
+}
+
+@test "runtime: category tags are created (kind:bug for fehler rows)" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  fehler_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE category='fehler'")
+  if [ "$fehler_count" = "0" ]; then skip "No fehler rows in bugs.bug_tickets"; fi
+  tag_count=$(psql "$PGURL" -t -A -c "
+    SELECT count(DISTINCT tt.ticket_id)
+      FROM tickets.ticket_tags tt
+      JOIN tickets.tags tg ON tg.id = tt.tag_id
+      JOIN tickets.tickets t ON t.id = tt.ticket_id
+     WHERE tg.name = 'kind:bug' AND t.type = 'bug'")
+  [ "$tag_count" = "$fehler_count" ]
+}
+
+@test "runtime: resolution_note rows produce a status_change comment" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  with_note=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE resolution_note IS NOT NULL AND resolution_note <> ''")
+  if [ "$with_note" = "0" ]; then skip "No rows with resolution_note in bugs.bug_tickets"; fi
+  comment_count=$(psql "$PGURL" -t -A -c "
+    SELECT count(*) FROM tickets.ticket_comments
+     WHERE kind='status_change' AND author_label='migration'")
+  [ "$comment_count" = "$with_note" ]
+}
+
+@test "runtime: idempotent — second run does not duplicate tickets" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  before=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  after=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+  [ "$before" = "$after" ]
+}
+
+@test "runtime: idempotent — second run reports all rows as skipped" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  total=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets")
+  output=$(node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply 2>&1)
+  skipped=$(echo "$output" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['skipped'])" 2>/dev/null)
+  [ "$skipped" = "$total" ]
+}
+
+@test "runtime: dry-run (default) makes no changes to tickets table" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  before=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" >/dev/null
+  after=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+  [ "$before" = "$after" ]
+}
+
+@test "runtime: dry-run output JSON has mode=dry-run" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
+  output=$(node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" 2>&1)
+  echo "$output" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+assert d['mode'] == 'dry-run', f'expected dry-run, got {d[\"mode\"]}'
+print('OK')
+"
+}

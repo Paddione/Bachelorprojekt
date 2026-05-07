@@ -10,7 +10,7 @@ import {
   getKontaktContent,
 } from './website-db';
 import type { HomepageService, LeistungCategory } from '../config/types';
-import type { ReferenzItem } from './website-db';
+import type { ReferenzenConfig } from './website-db';
 import type {
   HomepageContent,
   UebermichContent,
@@ -24,8 +24,8 @@ export async function getPriceListUrl(): Promise<string | null> {
   return getSiteSetting(BRAND, 'price_list_url').catch(() => null);
 }
 
-export async function getEffectiveReferenzen(): Promise<ReferenzItem[]> {
-  return (await getReferenzen(BRAND).catch(() => null)) ?? [];
+export async function getEffectiveReferenzen(): Promise<ReferenzenConfig> {
+  return (await getReferenzen(BRAND).catch(() => null)) ?? { types: [], items: [] };
 }
 
 /**

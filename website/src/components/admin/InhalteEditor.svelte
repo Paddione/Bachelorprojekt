@@ -16,7 +16,7 @@
     UebermichContent,
     FaqItem,
     KontaktContent,
-    ReferenzItem,
+    ReferenzenConfig,
     CustomSection as CustomSectionType,
     ServiceOverride,
     LeistungCategoryOverride,
@@ -30,7 +30,7 @@
     priceListUrl: string;
     faq: FaqItem[];
     kontakt: KontaktContent;
-    referenzen: ReferenzItem[];
+    referenzen: ReferenzenConfig;
     rechtliches: Record<string, string>;
     customSections: CustomSectionType[];
   };

@@ -38,7 +38,7 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
         <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Steuer-Modus (§ 19 UStG)</p>
         <div style="display:flex;gap:0.75rem;">
           <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="tax_mode" value="kleinunternehmer" checked={taxMode === 'kleinunternehmer'} style="display:none;" class="tax-radio" />
+            <input type="radio" name="tax_mode" value="kleinunternehmer" checked={taxMode === 'kleinunternehmer'} style="display:none;" class="tax-radio" data-mode="kleinunternehmer" />
             <div class={`tax-option ${taxMode === 'kleinunternehmer' ? 'tax-option--active' : ''}`}
                  style={`border:1px solid ${taxMode === 'kleinunternehmer' ? 'var(--brass)' : 'var(--line)'};border-radius:8px;padding:0.75rem;background:${taxMode === 'kleinunternehmer' ? 'rgba(181,140,86,0.08)' : 'rgba(255,255,255,0.02)'};`}>
               <p style="font-family:var(--font-mono);font-size:0.8rem;font-weight:600;color:var(--fg);margin-bottom:0.25rem;">Kleinunternehmer</p>
@@ -46,7 +46,7 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
             </div>
           </label>
           <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="tax_mode" value="regelbesteuerung" checked={taxMode === 'regelbesteuerung'} style="display:none;" class="tax-radio" />
+            <input type="radio" name="tax_mode" value="regelbesteuerung" checked={taxMode === 'regelbesteuerung'} style="display:none;" class="tax-radio" data-mode="regelbesteuerung" />
             <div class={`tax-option ${taxMode === 'regelbesteuerung' ? 'tax-option--active' : ''}`}
                  style={`border:1px solid ${taxMode === 'regelbesteuerung' ? 'var(--brass)' : 'var(--line)'};border-radius:8px;padding:0.75rem;background:${taxMode === 'regelbesteuerung' ? 'rgba(181,140,86,0.08)' : 'rgba(255,255,255,0.02)'};`}>
               <p style="font-family:var(--font-mono);font-size:0.8rem;font-weight:600;color:var(--fg);margin-bottom:0.25rem;">Regelbesteuerung</p>
@@ -54,6 +54,30 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
             </div>
           </label>
         </div>
+
+        {/* Steuersatz nur bei Regelbesteuerung relevant — direkt unter den Modus-Karten gruppiert */}
+        <div id="tax-rate-block" style={`margin-top:0.875rem;padding-top:0.875rem;border-top:1px dashed var(--line);${taxMode === 'kleinunternehmer' ? 'opacity:0.45;' : ''}`}>
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+            <span style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);">Umsatzsteuersatz (%)</span>
+            <input
+              type="number"
+              name="invoice_tax_rate"
+              id="invoice_tax_rate"
+              value={s.invoice_tax_rate || (taxMode === 'kleinunternehmer' ? '0' : '19')}
+              min="0"
+              max="100"
+              step="0.5"
+              disabled={taxMode === 'kleinunternehmer'}
+              style="width:8rem;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.5rem 0.75rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;text-align:right;"
+            />
+          </label>
+          <p id="tax-rate-hint" style="font-size:0.7rem;color:var(--mute-2);margin-top:0.5rem;">
+            {taxMode === 'kleinunternehmer'
+              ? 'Im Kleinunternehmer-Modus wird auf Rechnungen keine USt ausgewiesen. Wechseln Sie auf Regelbesteuerung, um den Satz zu pflegen.'
+              : 'Standard 19 % oder ermäßigt 7 %. Wird automatisch auf neue Rechnungen angewendet.'}
+          </p>
+        </div>
+
         <p style="font-size:0.7rem;color:var(--mute-2);margin-top:0.625rem;">
           Jahresumsatz-Übersicht: <a href="/admin/steuer" style="color:var(--brass);text-decoration:none;">Steuerauswertung →</a>
         </p>
@@ -63,15 +87,9 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
         Rechnungsnummern werden automatisch als <strong style="color:var(--fg);">RE-YYYY-NNNN</strong> generiert (z.B. RE-2026-0002).
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-        <div>
-          <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">Zahlungsziel (Tage)</label>
-          <input type="number" name="invoice_payment_days" value={s.invoice_payment_days || '14'} min="0" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
-        </div>
-        <div>
-          <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">Steuersatz (%)</label>
-          <input type="number" name="invoice_tax_rate" value={s.invoice_tax_rate || '19'} min="0" max="100" step="1" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
-        </div>
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mute-2); margin-bottom: 0.5rem;">Zahlungsziel (Tage)</label>
+        <input type="number" name="invoice_payment_days" value={s.invoice_payment_days || '14'} min="0" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
       </div>
 
       <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Rechnungsabsender</p>
@@ -103,6 +121,25 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
 </AdminLayout>
 
 <script>
+  const taxRateInput = document.getElementById('invoice_tax_rate') as HTMLInputElement | null;
+  const taxRateBlock = document.getElementById('tax-rate-block') as HTMLElement | null;
+  const taxRateHint  = document.getElementById('tax-rate-hint')  as HTMLElement | null;
+
+  function applyMode(mode: string) {
+    if (!taxRateInput || !taxRateBlock || !taxRateHint) return;
+    if (mode === 'kleinunternehmer') {
+      taxRateInput.disabled = true;
+      taxRateInput.value = '0';
+      taxRateBlock.style.opacity = '0.45';
+      taxRateHint.textContent = 'Im Kleinunternehmer-Modus wird auf Rechnungen keine USt ausgewiesen. Wechseln Sie auf Regelbesteuerung, um den Satz zu pflegen.';
+    } else {
+      taxRateInput.disabled = false;
+      if (taxRateInput.value === '0' || taxRateInput.value === '') taxRateInput.value = '19';
+      taxRateBlock.style.opacity = '1';
+      taxRateHint.textContent = 'Standard 19 % oder ermäßigt 7 %. Wird automatisch auf neue Rechnungen angewendet.';
+    }
+  }
+
   document.querySelectorAll('.tax-radio').forEach(radio => {
     radio.addEventListener('change', () => {
       document.querySelectorAll('.tax-radio').forEach(r => {
@@ -111,6 +148,8 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
         card.style.borderColor = active ? 'var(--brass)' : 'var(--line)';
         card.style.background  = active ? 'rgba(181,140,86,0.08)' : 'rgba(255,255,255,0.02)';
       });
+      const checked = document.querySelector<HTMLInputElement>('.tax-radio:checked');
+      if (checked) applyMode(checked.value);
     });
   });
 </script>

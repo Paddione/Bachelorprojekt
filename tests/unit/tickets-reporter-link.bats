@@ -24,6 +24,34 @@ setup() {
   PGURL="${TRACKING_DB_URL:-${SESSIONS_DATABASE_URL:-postgres://postgres:postgres@localhost:5432/website}}"
   export PGURL
   export PROJECT_DIR
+
+  # Safety guard: refuse to run against production databases.
+  case "$PGURL" in
+    *mentolder*|*korczewski*)
+      echo "TRACKING_DB_URL points to a production host ($PGURL). Aborting to protect live data." >&2
+      exit 1
+      ;;
+  esac
+}
+
+teardown() {
+  # Remove fixture customer rows inserted by runtime tests.
+  # Ticket rows are cleaned up inline; we only need the customers here.
+  # This also covers the case where a test aborted mid-run and left rows behind.
+  if db_available 2>/dev/null; then
+    psql "$PGURL" >/dev/null 2>&1 <<SQL
+      DELETE FROM customers WHERE id IN (
+        '11111111-1111-1111-1111-111111111111',
+        '33333333-3333-3333-3333-333333333333',
+        '55555555-5555-5555-5555-555555555555'
+      );
+      DELETE FROM tickets.tickets WHERE id IN (
+        '22222222-2222-2222-2222-222222222222',
+        '44444444-4444-4444-4444-444444444444',
+        '66666666-6666-6666-6666-666666666666'
+      );
+SQL
+  fi
 }
 
 # ── Helper ────────────────────────────────────────────────────────

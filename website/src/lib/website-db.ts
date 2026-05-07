@@ -2767,9 +2767,11 @@ export async function listBugTickets(filters: {
     where.push(`(t.description ILIKE '%' || $${vals.length} || '%'
                  OR t.reporter_email ILIKE '%' || $${vals.length} || '%')`);
   }
+  vals.push(filters.limit ?? 200);
+  const limitClause = `LIMIT $${vals.length}`;
   const sql = `
     SELECT t.external_id   AS "ticketId",
-           COALESCE(SPLIT_PART(g.name, ':', 2), '') AS category,
+           COALESCE((SELECT SPLIT_PART(g.name, ':', 2) FROM tickets.ticket_tags tt JOIN tickets.tags g ON g.id = tt.tag_id WHERE tt.ticket_id = t.id AND g.name LIKE 'kind:%' LIMIT 1), '') AS category,
            t.reporter_email AS "reporterEmail",
            t.description,
            t.url,
@@ -2786,10 +2788,8 @@ export async function listBugTickets(filters: {
               WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
               ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
       FROM tickets.tickets t
-      LEFT JOIN tickets.ticket_tags tt ON tt.ticket_id = t.id
-      LEFT JOIN tickets.tags g ON g.id = tt.tag_id AND g.name LIKE 'kind:%'
      WHERE ${where.join(' AND ')}
-     ORDER BY t.created_at DESC`;
+     ORDER BY t.created_at DESC ${limitClause}`;
   const r = await pool.query(sql, vals);
   return r.rows;
 }

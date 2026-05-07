@@ -4,6 +4,7 @@
 
 import pg from 'pg';
 import { resolve4 } from 'dns';
+import { initTicketsSchema } from './tickets-db';
 const { Pool } = pg;
 
 const MEETINGS_DB_URL = process.env.SESSIONS_DATABASE_URL
@@ -604,18 +605,39 @@ export async function insertBugTicket(params: {
   brand: string;
   screenshots?: string[];
 }): Promise<number> {
-  await initBugTicketsTable();
-  const screenshotsJson = params.screenshots && params.screenshots.length > 0
-    ? JSON.stringify(params.screenshots)
-    : null;
-  const result = await pool.query(
-    `INSERT INTO bugs.bug_tickets (ticket_id, category, reporter_email, description, url, brand, screenshots_json)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (ticket_id) DO NOTHING`,
-    [params.ticketId, params.category, params.reporterEmail,
-     params.description, params.url ?? null, params.brand, screenshotsJson]
+  await initTicketsSchema();
+  const { rows } = await pool.query(
+    `INSERT INTO tickets.tickets
+       (external_id, type, brand, title, description, url, reporter_email, status)
+     VALUES ($1, 'bug', $2, $3, $4, $5, $6, 'triage')
+     ON CONFLICT (external_id) DO NOTHING
+     RETURNING id`,
+    [params.ticketId, params.brand,
+     params.description.slice(0, 200),
+     params.description, params.url ?? null, params.reporterEmail]
   );
-  return result.rowCount ?? 0;
+  if (rows.length === 0) return 0;
+  const newId = rows[0].id;
+
+  // Categorize as tag (kind:fehler|verbesserung|erweiterungswunsch)
+  const tagName = `kind:${params.category}`;
+  await pool.query(
+    `INSERT INTO tickets.tags (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`,
+    [tagName]);
+  await pool.query(
+    `INSERT INTO tickets.ticket_tags (ticket_id, tag_id)
+     SELECT $1, id FROM tickets.tags WHERE name = $2 ON CONFLICT DO NOTHING`,
+    [newId, tagName]);
+
+  // Inline screenshots — kept as data_url for back-compat with existing form behavior
+  for (const [idx, dataUrl] of (params.screenshots ?? []).entries()) {
+    const m = dataUrl.match(/^data:([^;]+);/);
+    await pool.query(
+      `INSERT INTO tickets.ticket_attachments (ticket_id, filename, data_url, mime_type)
+       VALUES ($1, $2, $3, $4)`,
+      [newId, `screenshot-${idx + 1}`, dataUrl, m ? m[1] : 'application/octet-stream']);
+  }
+  return 1;
 }
 
 export async function resolveBugTicket(ticketId: string, resolutionNote: string): Promise<void> {

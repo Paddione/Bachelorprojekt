@@ -150,5 +150,56 @@ export async function initTicketsSchema(): Promise<void> {
     )
   `);
 
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION tickets.fn_prevent_cycle() RETURNS trigger AS $$
+    DECLARE
+      cur UUID := NEW.parent_id;
+      depth INT := 0;
+    BEGIN
+      WHILE cur IS NOT NULL AND depth < 100 LOOP
+        IF cur = NEW.id THEN
+          RAISE EXCEPTION 'parent_id cycle detected on ticket %', NEW.id;
+        END IF;
+        SELECT parent_id INTO cur FROM tickets.tickets WHERE id = cur;
+        depth := depth + 1;
+      END LOOP;
+      RETURN NEW;
+    END $$ LANGUAGE plpgsql
+  `);
+  await pool.query(`DROP TRIGGER IF EXISTS trg_tickets_prevent_cycle ON tickets.tickets`);
+  await pool.query(`
+    CREATE TRIGGER trg_tickets_prevent_cycle
+      BEFORE INSERT OR UPDATE OF parent_id ON tickets.tickets
+      FOR EACH ROW WHEN (NEW.parent_id IS NOT NULL)
+      EXECUTE FUNCTION tickets.fn_prevent_cycle()
+  `);
+
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION tickets.fn_lifecycle_ts() RETURNS trigger AS $$
+    BEGIN
+      IF TG_OP = 'INSERT' THEN
+        IF NEW.status = 'triage' AND NEW.triaged_at IS NULL THEN NEW.triaged_at := now(); END IF;
+        IF NEW.status = 'in_progress' AND NEW.started_at IS NULL THEN NEW.started_at := now(); END IF;
+        IF NEW.status = 'done' AND NEW.done_at IS NULL THEN NEW.done_at := now(); END IF;
+        IF NEW.status = 'archived' AND NEW.archived_at IS NULL THEN NEW.archived_at := now(); END IF;
+      ELSE
+        IF NEW.status <> OLD.status THEN
+          IF NEW.status = 'triage'      AND NEW.triaged_at  IS NULL THEN NEW.triaged_at  := now(); END IF;
+          IF NEW.status = 'in_progress' AND NEW.started_at  IS NULL THEN NEW.started_at  := now(); END IF;
+          IF NEW.status = 'done'        AND NEW.done_at     IS NULL THEN NEW.done_at     := now(); END IF;
+          IF NEW.status = 'archived'    AND NEW.archived_at IS NULL THEN NEW.archived_at := now(); END IF;
+        END IF;
+        NEW.updated_at := now();
+      END IF;
+      RETURN NEW;
+    END $$ LANGUAGE plpgsql
+  `);
+  await pool.query(`DROP TRIGGER IF EXISTS trg_tickets_lifecycle_ts ON tickets.tickets`);
+  await pool.query(`
+    CREATE TRIGGER trg_tickets_lifecycle_ts
+      BEFORE INSERT OR UPDATE ON tickets.tickets
+      FOR EACH ROW EXECUTE FUNCTION tickets.fn_lifecycle_ts()
+  `);
+
   schemaReady = true;
 }

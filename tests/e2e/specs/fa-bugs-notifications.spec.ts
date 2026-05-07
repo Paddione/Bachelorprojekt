@@ -14,7 +14,6 @@
 //   E2E_ADMIN_PASS  — Keycloak password                  (required to run)
 //   WEBSITE_URL     — Astro website base URL              (default: http://localhost:4321)
 //   MAILPIT_URL     — Mailpit base URL                    (default: http://localhost:8025)
-//   KC_URL          — Keycloak base URL                   (default: http://auth.localhost)
 //
 // The test skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
@@ -22,7 +21,6 @@ import { test, expect } from '@playwright/test';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const MAILPIT    = process.env.MAILPIT_URL  ?? 'http://localhost:8025';
-const KC_URL     = process.env.KC_URL       ?? 'http://auth.localhost';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 

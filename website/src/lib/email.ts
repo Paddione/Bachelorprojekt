@@ -33,6 +33,7 @@ interface SendEmailParams {
   text: string;
   html?: string;
   replyTo?: string;
+  bcc?: string;
   headers?: Record<string, string>;
   from?: string;
   attachments?: EmailAttachment[];
@@ -47,6 +48,7 @@ export async function sendEmail(params: SendEmailParams): Promise<boolean> {
       text: params.text,
       html: params.html,
       replyTo: params.replyTo,
+      bcc: params.bcc,
       headers: params.headers,
       attachments: params.attachments,
     });

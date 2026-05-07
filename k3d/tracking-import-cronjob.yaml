@@ -30,6 +30,11 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: TRACKING_DB_URL
+                - name: INTERNAL_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: INTERNAL_API_TOKEN
                 - name: GIT_REPO
                   value: "https://github.com/Paddione/Bachelorprojekt.git"
               command:

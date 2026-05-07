@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { appendBugTicketComment, resolveBugTicket } from '../../../../lib/website-db';
+import { resolveBugTicket } from '../../../../lib/website-db';
 import { buildBackUrl, buildErrorUrl } from './_helpers';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -48,13 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    await resolveBugTicket(ticketId, resolutionNote);
-    await appendBugTicketComment({
-      ticketId,
-      author: session.preferred_username,
-      kind: 'status_change',
-      body: `resolved: ${resolutionNote}`,
-    }).catch(() => {/* status_change comment is best-effort, don't fail the resolve */});
+    await resolveBugTicket(ticketId, resolutionNote, { label: session.preferred_username });
   } catch (err) {
     console.error('[bugs/resolve] DB error:', err);
     if (isJson) {

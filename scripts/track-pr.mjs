@@ -71,13 +71,60 @@ export async function writeRowToDb(row, pgClient) {
      requirementId, row.merged_at, row.merged_by]
   );
 
-  for (const ticketId of row.bug_refs) {
-    await pgClient.query(
-      `UPDATE bugs.bug_tickets
-         SET fixed_in_pr = $1, fixed_at = $2, status = 'archived'
-       WHERE ticket_id = $3 AND (fixed_in_pr IS NULL OR fixed_in_pr <> $1)`,
-      [row.pr_number, row.merged_at, ticketId]
-    );
+  // Map external_id (BR-...) -> ticket UUID, transition through tickets.tickets.
+  // We use raw SQL because track-pr.mjs runs as a Node script outside the website
+  // process (so we can't import the TypeScript transitionTicket directly).
+  // Reporter notification is fired via a thin internal HTTP endpoint that lives
+  // inside the website pod, which has SMTP credentials in its env.
+  for (const externalId of row.bug_refs) {
+    const r = await pgClient.query(
+      `SELECT id, status, reporter_email FROM tickets.tickets
+        WHERE type = 'bug' AND external_id = $1`, [externalId]);
+    if (r.rowCount === 0) {
+      console.log(`skip ${externalId}: not found in tickets.tickets`);
+      continue;
+    }
+    const t = r.rows[0];
+    if (t.status === 'done' || t.status === 'archived') {
+      // already closed — just record the link (idempotent)
+      await pgClient.query(
+        `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+         VALUES ($1, $1, 'fixes', $2) ON CONFLICT (from_id, to_id, kind) DO NOTHING`,
+        [t.id, row.pr_number]);
+      continue;
+    }
+    await pgClient.query('BEGIN');
+    try {
+      await pgClient.query(`SELECT set_config('app.user_label', 'github-bot', true)`);
+      await pgClient.query(
+        `UPDATE tickets.tickets SET status = 'done', resolution = 'fixed' WHERE id = $1`,
+        [t.id]);
+      await pgClient.query(
+        `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+         VALUES ($1, $1, 'fixes', $2) ON CONFLICT (from_id, to_id, kind) DO NOTHING`,
+        [t.id, row.pr_number]);
+      await pgClient.query('COMMIT');
+    } catch (e) {
+      await pgClient.query('ROLLBACK').catch(() => {});
+      throw e;
+    }
+    // Reporter notification — call the website API so the email pipeline runs in-process.
+    if (t.reporter_email) {
+      const apiUrl = process.env.WEBSITE_API_URL ?? 'https://web.mentolder.de';
+      try {
+        const resp = await fetch(`${apiUrl}/api/internal/tickets/notify-close`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json',
+                     'X-Internal-Token': process.env.INTERNAL_API_TOKEN ?? '' },
+          body: JSON.stringify({ externalId, resolution: 'fixed' }),
+        });
+        if (!resp.ok) {
+          console.error(`notify-close ${externalId}: HTTP ${resp.status}`);
+        }
+      } catch (e) {
+        console.error(`notify-close failed for ${externalId}: ${e.message}`);
+      }
+    }
   }
 }
 

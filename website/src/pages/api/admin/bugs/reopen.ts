@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (err: any) {
     console.error('[bugs/reopen] DB error:', err);
-    const status = err.message?.includes('not in') ? 409 : 500;
+    const status = err.message?.includes('not found') ? 404 : 500;
     return new Response(JSON.stringify({ error: err.message ?? 'DB error' }), { status });
   }
 };

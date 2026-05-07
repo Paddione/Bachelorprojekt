@@ -3,6 +3,7 @@ import { insertBugTicket } from '../../lib/website-db';
 import { createInboxItem } from '../../lib/messaging-db';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 import { config } from '../../config/index.js';
+import { linkReporterByEmail } from '../../lib/tickets/reporter-link';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
@@ -89,6 +90,9 @@ export const POST: APIRoute = async ({ request }) => {
       brand: BRAND,
       screenshots: screenshotDataUrls.length > 0 ? screenshotDataUrls : undefined,
     });
+
+    await linkReporterByEmail(email).catch(err =>
+      console.error('[bug-report] reporter-link failed:', err));
 
     await createInboxItem({
       type: 'bug',

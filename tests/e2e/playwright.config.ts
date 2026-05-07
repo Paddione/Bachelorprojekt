@@ -53,6 +53,7 @@ export default defineConfig({
         '**/fa-admin-billing-system.spec.ts',   // native SEPA billing, EÜR, UStVA
         '**/fa-admin-crm.spec.ts',              // CRM: termine, followups, projekte, rooms, meetings
         '**/fa-admin-settings.spec.ts',         // settings: email, rechnungen, branding, benachrichtigungen
+        '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
       ],
       use: {
         ...devices['Desktop Chrome'],

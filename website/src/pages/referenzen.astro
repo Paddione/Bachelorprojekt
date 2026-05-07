@@ -1,52 +1,88 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getEffectiveReferenzen } from '../lib/content';
+import type { ReferenzItem } from '../lib/website-db';
 
-const referenzen = await getEffectiveReferenzen();
+const config = await getEffectiveReferenzen();
+const heading = config.heading?.trim() || 'Referenzen';
+const subheading = config.subheading?.trim() || 'Unternehmen und Personen, die mir ihr Vertrauen geschenkt haben.';
+
+// Group items by type, in the order defined by config.types.
+// Items with no type (or with a type that no longer exists) are appended in a final "Weitere" group.
+const knownTypeIds = new Set(config.types.map((t) => t.id));
+const groups: { id: string; label: string | null; items: ReferenzItem[] }[] = config.types.map((t) => ({
+  id: t.id,
+  label: t.label?.trim() || t.id.slice(0, 6),
+  items: [],
+}));
+const untyped: ReferenzItem[] = [];
+for (const item of config.items) {
+  if (item.type && knownTypeIds.has(item.type)) {
+    groups.find((g) => g.id === item.type)!.items.push(item);
+  } else {
+    untyped.push(item);
+  }
+}
+if (untyped.length > 0) {
+  groups.push({ id: '__untyped__', label: groups.length > 0 ? 'Weitere' : null, items: untyped });
+}
+const populatedGroups = groups.filter((g) => g.items.length > 0);
+const hasGrouping = populatedGroups.length > 1 || (populatedGroups.length === 1 && populatedGroups[0].id !== '__untyped__');
 ---
 
-<Layout title="Referenzen">
+<Layout title={heading}>
   <section class="pt-28 pb-20">
     <div class="max-w-4xl mx-auto px-6">
 
       <div class="text-center mb-14">
-        <h1 class="text-4xl font-bold text-light font-serif mb-4">Referenzen</h1>
+        <h1 class="text-4xl font-bold text-light font-serif mb-4">{heading}</h1>
         <p class="text-muted text-lg max-w-2xl mx-auto">
-          Unternehmen und Personen, die mir ihr Vertrauen geschenkt haben.
+          {subheading}
         </p>
       </div>
 
-      {referenzen.length === 0 ? (
+      {populatedGroups.length === 0 ? (
         <div class="text-center py-20 text-muted">
           <p class="text-lg">Referenzen werden demnächst ergänzt.</p>
         </div>
       ) : (
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {referenzen.map((ref) => (
-            <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/30 transition-colors flex flex-col gap-3">
-              {ref.logoUrl && (
-                <img
-                  src={ref.logoUrl}
-                  alt={`Logo ${ref.name}`}
-                  class="h-12 w-auto object-contain opacity-80"
-                />
+        <div class="space-y-14">
+          {populatedGroups.map((group) => (
+            <div>
+              {hasGrouping && group.label && (
+                <h2 class="text-2xl font-semibold text-light font-serif mb-6 border-b border-dark-lighter pb-2">
+                  {group.label}
+                </h2>
               )}
-              <div>
-                {ref.url ? (
-                  <a
-                    href={ref.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-light font-semibold hover:text-gold transition-colors"
-                  >
-                    {ref.name}
-                  </a>
-                ) : (
-                  <span class="text-light font-semibold">{ref.name}</span>
-                )}
-                {ref.description && (
-                  <p class="text-muted text-sm mt-1">{ref.description}</p>
-                )}
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {group.items.map((ref) => (
+                  <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/30 transition-colors flex flex-col gap-3">
+                    {ref.logoUrl && (
+                      <img
+                        src={ref.logoUrl}
+                        alt={`Logo ${ref.name}`}
+                        class="h-12 w-auto object-contain opacity-80"
+                      />
+                    )}
+                    <div>
+                      {ref.url ? (
+                        <a
+                          href={ref.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="text-light font-semibold hover:text-gold transition-colors"
+                        >
+                          {ref.name}
+                        </a>
+                      ) : (
+                        <span class="text-light font-semibold">{ref.name}</span>
+                      )}
+                      {ref.description && (
+                        <p class="text-muted text-sm mt-1">{ref.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}

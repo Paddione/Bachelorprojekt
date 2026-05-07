@@ -1,58 +1,55 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { saveReferenzen } from '../../../../lib/website-db';
-import type { ReferenzItem } from '../../../../lib/website-db';
+import type { ReferenzenConfig, ReferenzItem, ReferenzenType } from '../../../../lib/website-db';
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+function sanitizeConfig(input: unknown): ReferenzenConfig {
+  const obj = (input ?? {}) as Partial<ReferenzenConfig> & { items?: unknown; types?: unknown };
+  const types: ReferenzenType[] = Array.isArray(obj.types)
+    ? (obj.types as ReferenzenType[])
+        .filter((t) => t && typeof t.id === 'string' && t.id.trim() && typeof t.label === 'string')
+        .map((t) => ({ id: t.id.trim(), label: t.label.trim() }))
+    : [];
+  const validTypeIds = new Set(types.map((t) => t.id));
+  const items: ReferenzItem[] = Array.isArray(obj.items)
+    ? (obj.items as ReferenzItem[])
+        .filter((it) => it && typeof it.name === 'string' && it.name.trim())
+        .map((it) => ({
+          id: typeof it.id === 'string' && it.id ? it.id : crypto.randomUUID(),
+          name: it.name.trim(),
+          url: it.url?.trim() || undefined,
+          logoUrl: it.logoUrl?.trim() || undefined,
+          description: it.description?.trim() || undefined,
+          type: it.type && validTypeIds.has(it.type) ? it.type : undefined,
+        }))
+    : [];
+  return {
+    heading: typeof obj.heading === 'string' ? obj.heading.trim() || undefined : undefined,
+    subheading: typeof obj.subheading === 'string' ? obj.subheading.trim() || undefined : undefined,
+    types,
+    items,
+  };
+}
+
+export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Forbidden', { status: 403 });
 
   const BRAND = process.env.BRAND || 'mentolder';
 
-  if (request.headers.get('content-type')?.includes('application/json')) {
-    let items: ReferenzItem[];
-    try {
-      items = await request.json() as ReferenzItem[];
-    } catch {
-      return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-    try {
-      await saveReferenzen(BRAND, items);
-    } catch (err) {
-      console.error('[referenzen/save] DB error:', err);
-      return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const form = await request.formData();
-  const items: ReferenzItem[] = [];
-  let i = 0;
-  // Collect existing entries (by index) unless marked for deletion
-  while (form.has(`ref_${i}_id`)) {
-    const deleted = form.get(`ref_${i}_delete`) === '1';
-    if (!deleted) {
-      const name = (form.get(`ref_${i}_name`) as string)?.trim();
-      if (name) items.push({
-        id: (form.get(`ref_${i}_id`) as string) || crypto.randomUUID(),
-        name,
-        url: (form.get(`ref_${i}_url`) as string)?.trim() || undefined,
-        logoUrl: (form.get(`ref_${i}_logoUrl`) as string)?.trim() || undefined,
-        description: (form.get(`ref_${i}_description`) as string)?.trim() || undefined,
-      });
-    }
-    i++;
+  const config = sanitizeConfig(raw);
+  try {
+    await saveReferenzen(BRAND, config);
+  } catch (err) {
+    console.error('[referenzen/save] DB error:', err);
+    return new Response(JSON.stringify({ error: 'DB error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
-  // Add new entry if name provided
-  const newName = (form.get('new_name') as string)?.trim();
-  if (newName) items.push({
-    id: crypto.randomUUID(),
-    name: newName,
-    url: (form.get('new_url') as string)?.trim() || undefined,
-    logoUrl: (form.get('new_logoUrl') as string)?.trim() || undefined,
-    description: (form.get('new_description') as string)?.trim() || undefined,
-  });
-
-  await saveReferenzen(BRAND, items);
-  return redirect('/admin/referenzen?saved=1', 303);
+  return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
 };

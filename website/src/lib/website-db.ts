@@ -1022,6 +1022,21 @@ export interface ReferenzItem {
   url?: string;
   logoUrl?: string;
   description?: string;
+  /** Optional type/group ID — must match one of `ReferenzenConfig.types[].id` */
+  type?: string;
+}
+
+export interface ReferenzenType {
+  id: string;
+  label: string;
+}
+
+export interface ReferenzenConfig {
+  heading?: string;
+  subheading?: string;
+  /** Ordered list — display order of groups follows this array. */
+  types: ReferenzenType[];
+  items: ReferenzItem[];
 }
 
 export async function initReferenzenTable(): Promise<void> {
@@ -1034,22 +1049,40 @@ export async function initReferenzenTable(): Promise<void> {
   `);
 }
 
-export async function getReferenzen(brand: string): Promise<ReferenzItem[] | null> {
+function normalizeReferenzen(raw: unknown): ReferenzenConfig {
+  // Legacy shape: bare array of items.
+  if (Array.isArray(raw)) {
+    return { types: [], items: raw as ReferenzItem[] };
+  }
+  if (raw && typeof raw === 'object') {
+    const o = raw as Partial<ReferenzenConfig>;
+    return {
+      heading: o.heading,
+      subheading: o.subheading,
+      types: Array.isArray(o.types) ? o.types : [],
+      items: Array.isArray(o.items) ? o.items : [],
+    };
+  }
+  return { types: [], items: [] };
+}
+
+export async function getReferenzen(brand: string): Promise<ReferenzenConfig | null> {
   await initReferenzenTable();
   const result = await pool.query(
     'SELECT items_json FROM referenzen_config WHERE brand = $1',
     [brand]
   );
-  return result.rows[0]?.items_json ?? null;
+  if (!result.rows[0]) return null;
+  return normalizeReferenzen(result.rows[0].items_json);
 }
 
-export async function saveReferenzen(brand: string, items: ReferenzItem[]): Promise<void> {
+export async function saveReferenzen(brand: string, config: ReferenzenConfig): Promise<void> {
   await initReferenzenTable();
   await pool.query(
     `INSERT INTO referenzen_config (brand, items_json, updated_at)
      VALUES ($1, $2, now())
      ON CONFLICT (brand) DO UPDATE SET items_json = $2, updated_at = now()`,
-    [brand, JSON.stringify(items)]
+    [brand, JSON.stringify(config)]
   );
 }
 

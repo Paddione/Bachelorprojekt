@@ -203,16 +203,12 @@ export const POST: APIRoute = async ({ request, params }) => {
           return new Response(JSON.stringify({ error: 'Max. 500 Zeichen.' }), { status: 400 });
         }
         const p = item.payload as { ticketId: string; reporterEmail: string; brand: string };
-        await resolveBugTicket(p.ticketId, resolveNote);
-        const toEmail = PROD_DOMAIN ? `info@${PROD_DOMAIN}` : `info@${p.brand}.de`;
-        await sendEmail({
-          to: toEmail,
-          subject: `[${p.ticketId}] Erledigt`,
-          text: `Ticket ${p.ticketId} wurde als erledigt markiert.\n\nNotiz:\n${resolveNote}`,
-          replyTo: p.reporterEmail,
-        });
+        await resolveBugTicket(p.ticketId, resolveNote,
+          { label: session.preferred_username });
+        // No manual sendEmail() here — transitionTicket() handles the close-mail.
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
-        return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ success: true }),
+          { headers: { 'Content-Type': 'application/json' } });
       }
 
       case 'close_user_message': {

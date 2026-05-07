@@ -6,6 +6,9 @@ const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
 const BRAND = process.env.BRAND || 'mentolder';
 const INFO_EMAIL = PROD_DOMAIN ? `info@${PROD_DOMAIN}` : `info@${BRAND}.de`;
 
+const escHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 export interface CloseEmailParams {
   externalId: string;
   reporterEmail: string;
@@ -39,7 +42,7 @@ ${FROM_NAME}`;
 
   const html = `<p>Hallo,</p>
 <p>Ihre Meldung mit der Nummer <strong>${p.externalId}</strong> wurde <strong>${label}</strong>.</p>
-${p.note ? `<p><em>Anmerkung:</em> ${p.note}</p>` : ''}
+${p.note ? `<p><em>Anmerkung:</em> ${escHtml(p.note)}</p>` : ''}
 ${p.publicStatusUrl ? `<p>Status &amp; Verlauf: <a href="${p.publicStatusUrl}">${p.publicStatusUrl}</a></p>` : ''}
 <p>Vielen Dank für Ihren Beitrag.</p>
 <p>Mit freundlichen Grüßen<br>${FROM_NAME}</p>`;

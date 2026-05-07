@@ -123,6 +123,56 @@ async function migrate(client, dryRun) {
 
     inserted++;
   }
+
+  // Replace bugs.bug_tickets with a back-compat view (run only after data is in tickets.tickets)
+  if (!dryRun) {
+    // Rename legacy tables only if they still exist as tables (not views).
+    // pg_tables only lists base tables, not views — so this is idempotent.
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM pg_tables WHERE schemaname='bugs' AND tablename='bug_tickets'
+        ) THEN
+          EXECUTE 'ALTER TABLE bugs.bug_tickets RENAME TO bug_tickets_legacy';
+        END IF;
+        IF EXISTS (
+          SELECT 1 FROM pg_tables WHERE schemaname='bugs' AND tablename='bug_ticket_comments'
+        ) THEN
+          EXECUTE 'ALTER TABLE bugs.bug_ticket_comments RENAME TO bug_ticket_comments_legacy';
+        END IF;
+      END $$
+    `);
+    await client.query(`
+      CREATE OR REPLACE VIEW bugs.bug_tickets AS
+      SELECT
+        t.external_id      AS ticket_id,
+        t.brand            AS brand,
+        t.url              AS url,
+        t.description      AS description,
+        t.reporter_email   AS reporter_email,
+        CASE t.status
+          WHEN 'triage'       THEN 'open'
+          WHEN 'backlog'      THEN 'open'
+          WHEN 'in_progress'  THEN 'open'
+          WHEN 'in_review'    THEN 'open'
+          WHEN 'blocked'      THEN 'open'
+          WHEN 'done'         THEN 'resolved'
+          WHEN 'archived'     THEN 'archived'
+        END                AS status,
+        t.created_at       AS created_at,
+        t.done_at          AS resolved_at,
+        (SELECT pr_number FROM tickets.ticket_links
+          WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+          ORDER BY created_at DESC LIMIT 1) AS fixed_in_pr,
+        (SELECT created_at FROM tickets.ticket_links
+          WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+          ORDER BY created_at DESC LIMIT 1) AS fixed_at
+      FROM tickets.tickets t
+      WHERE t.type = 'bug'
+    `);
+  }
+
   return { inserted, skipped, unknownStatus };
 }
 

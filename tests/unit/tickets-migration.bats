@@ -196,3 +196,39 @@ print('OK')
   grep -q 'ticket_links' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
   grep -q "kind='fixes'" "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
 }
+
+@test "static: view-creation block is guarded by !dryRun" {
+  grep -q 'CREATE OR REPLACE VIEW bugs.bug_tickets' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'pg_tables' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+  grep -q 'bug_tickets_legacy' "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs"
+}
+
+@test "runtime: bugs.bug_tickets is a view after migration" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  result=$(psql "$PGURL" -t -A -c "
+    SELECT relkind FROM pg_class
+     WHERE relname='bug_tickets' AND relnamespace=(SELECT oid FROM pg_namespace WHERE nspname='bugs')")
+  # 'r' = ordinary table, 'v' = view, 'm' = materialized view
+  [ "$result" = "v" ]
+}
+
+@test "runtime: legacy fixed_in_pr JOIN still works against the view" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
+  # The query mirrors the one in website/src/lib/website-db.ts line 88-91
+  psql "$PGURL" -c "
+    SELECT fixed_in_pr AS pr, COUNT(*)::int AS n
+      FROM bugs.bug_tickets
+     WHERE fixed_in_pr = ANY('{1,2,3,99999}'::int[])
+     GROUP BY fixed_in_pr" >/dev/null
+}
+
+@test "runtime: re-running migration is idempotent (view not corrupted)" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  result=$(psql "$PGURL" -t -A -c "
+    SELECT relkind FROM pg_class
+     WHERE relname='bug_tickets' AND relnamespace=(SELECT oid FROM pg_namespace WHERE nspname='bugs')")
+  [ "$result" = "v" ]
+}

@@ -41,6 +41,59 @@
     [arr[idx], arr[next]] = [arr[next], arr[idx]];
     services = [...arr];
   }
+
+  function ensurePageContent(svc: ServiceOverride) {
+    if (!svc.pageContent) svc.pageContent = {};
+    if (!svc.pageContent.sections) svc.pageContent.sections = [];
+    if (!svc.pageContent.pricing) svc.pageContent.pricing = [];
+    return svc.pageContent;
+  }
+
+  function addSection(svc: ServiceOverride) {
+    const pc = ensurePageContent(svc);
+    pc.sections = [...(pc.sections ?? []), { title: 'Neuer Bereich', items: [] }];
+    services = [...services];
+  }
+  function removeSection(svc: ServiceOverride, sIdx: number) {
+    if (!svc.pageContent?.sections) return;
+    svc.pageContent.sections = svc.pageContent.sections.filter((_, i) => i !== sIdx);
+    services = [...services];
+  }
+  function moveSection(svc: ServiceOverride, sIdx: number, delta: number) {
+    const arr = svc.pageContent?.sections;
+    if (!arr) return;
+    const next = sIdx + delta;
+    if (next < 0 || next >= arr.length) return;
+    [arr[sIdx], arr[next]] = [arr[next], arr[sIdx]];
+    services = [...services];
+  }
+
+  function addPricing(svc: ServiceOverride) {
+    const pc = ensurePageContent(svc);
+    pc.pricing = [...(pc.pricing ?? []), { label: 'Neuer Tarif', price: '0 €' }];
+    services = [...services];
+  }
+  function removePricing(svc: ServiceOverride, pIdx: number) {
+    if (!svc.pageContent?.pricing) return;
+    svc.pageContent.pricing = svc.pageContent.pricing.filter((_, i) => i !== pIdx);
+    services = [...services];
+  }
+  function movePricing(svc: ServiceOverride, pIdx: number, delta: number) {
+    const arr = svc.pageContent?.pricing;
+    if (!arr) return;
+    const next = pIdx + delta;
+    if (next < 0 || next >= arr.length) return;
+    [arr[pIdx], arr[next]] = [arr[next], arr[pIdx]];
+    services = [...services];
+  }
+
+  function moveLeistungService(cat: LeistungCategoryOverride, sIdx: number, delta: number) {
+    const arr = cat.services ?? [];
+    const next = sIdx + delta;
+    if (next < 0 || next >= arr.length) return;
+    [arr[sIdx], arr[next]] = [arr[next], arr[sIdx]];
+    leistungen = [...leistungen];
+  }
 </script>
 
 <div class="pt-6 pb-20 space-y-10">
@@ -91,7 +144,7 @@
         </div>
         <details class="text-xs text-muted">
           <summary class="cursor-pointer hover:text-light">Seiteninhalte (pageContent)</summary>
-          <div class="mt-3 space-y-3">
+          <div class="mt-3 space-y-4">
             <div><label class={labelCls}>Überschrift</label><input type="text" bind:value={svc.pageContent!.headline} class={inputCls} /></div>
             <div><label class={labelCls}>Intro</label><textarea bind:value={svc.pageContent!.intro} rows={3} class="{inputCls} resize-none"></textarea></div>
             <div>
@@ -101,6 +154,57 @@
                 oninput={(e) => { if (!svc.pageContent) svc.pageContent = {}; svc.pageContent.forWhom = (e.currentTarget as HTMLTextAreaElement).value.split('\n').map(f => f.trim()).filter(Boolean); }}
                 rows={4} class="{inputCls} resize-none font-mono"
               ></textarea>
+            </div>
+
+            <!-- Leistungsumfang (sections) -->
+            <div class="border-t border-dark-lighter pt-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-semibold text-light">Leistungsumfang (Spalten/Bereiche)</span>
+                <button type="button" onclick={() => addSection(svc)} class="px-2 py-1 text-xs rounded-md border border-gold/40 text-gold hover:bg-gold/10">+ Bereich</button>
+              </div>
+              {#each (svc.pageContent?.sections ?? []) as sec, sIdx}
+                <div class="p-3 bg-dark-lighter/30 rounded-lg space-y-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick={() => moveSection(svc, sIdx, -1)} disabled={sIdx === 0} class={moveBtnCls} aria-label="Bereich nach oben">↑</button>
+                    <button type="button" onclick={() => moveSection(svc, sIdx, 1)} disabled={sIdx === (svc.pageContent?.sections?.length ?? 0) - 1} class={moveBtnCls} aria-label="Bereich nach unten">↓</button>
+                    <input type="text" bind:value={sec.title} class={inputCls} placeholder="Titel des Bereichs" />
+                    <button type="button" onclick={() => removeSection(svc, sIdx)} class="px-2 py-1 text-xs rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10">Entfernen</button>
+                  </div>
+                  <textarea
+                    value={(sec.items ?? []).join('\n')}
+                    oninput={(e) => { sec.items = (e.currentTarget as HTMLTextAreaElement).value.split('\n').map(f => f.trim()).filter(Boolean); services = [...services]; }}
+                    rows={4} class="{inputCls} resize-none font-mono" placeholder="Ein Bullet pro Zeile"
+                  ></textarea>
+                </div>
+              {/each}
+            </div>
+
+            <!-- Investition (pricing) -->
+            <div class="border-t border-dark-lighter pt-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-semibold text-light">Investition (Preis-Boxen)</span>
+                <button type="button" onclick={() => addPricing(svc)} class="px-2 py-1 text-xs rounded-md border border-gold/40 text-gold hover:bg-gold/10">+ Preis</button>
+              </div>
+              <p class="text-xs text-muted mb-2">Werden auf der Detailseite des Angebots als 'Investition'-Boxen angezeigt. 'Hervorheben' markiert die Box mit Goldrand.</p>
+              {#each (svc.pageContent?.pricing ?? []) as p, pIdx}
+                <div class="p-3 bg-dark-lighter/30 rounded-lg space-y-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick={() => movePricing(svc, pIdx, -1)} disabled={pIdx === 0} class={moveBtnCls} aria-label="Preis nach oben">↑</button>
+                    <button type="button" onclick={() => movePricing(svc, pIdx, 1)} disabled={pIdx === (svc.pageContent?.pricing?.length ?? 0) - 1} class={moveBtnCls} aria-label="Preis nach unten">↓</button>
+                    <span class="text-xs text-muted">#{pIdx + 1}</span>
+                    <button type="button" onclick={() => removePricing(svc, pIdx)} class="ml-auto px-2 py-1 text-xs rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10">Entfernen</button>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <div><label class={labelCls}>Bezeichnung</label><input type="text" bind:value={p.label} class={inputCls} /></div>
+                    <div><label class={labelCls}>Preis</label><input type="text" bind:value={p.price} class={inputCls} /></div>
+                    <div><label class={labelCls}>Einheit / Hinweis</label><input type="text" bind:value={p.unit} class={inputCls} /></div>
+                  </div>
+                  <label class="flex items-center gap-2 cursor-pointer text-xs text-muted">
+                    <input type="checkbox" bind:checked={p.highlight} class="accent-gold" />
+                    <span>Hervorheben (Goldrand)</span>
+                  </label>
+                </div>
+              {/each}
             </div>
           </div>
         </details>
@@ -123,9 +227,17 @@
           <div><label class={labelCls}>Kategorie-Titel</label><input type="text" bind:value={cat.title} class={inputCls} /></div>
           <div><label class={labelCls}>Icon</label><input type="text" bind:value={cat.icon} class={inputCls} /></div>
         </div>
-        {#each (cat.services ?? []) as svc}
+        {#each (cat.services ?? []) as svc, sIdx}
           <div class="p-3 bg-dark-lighter/30 rounded-lg space-y-2">
-            <p class="text-xs font-mono text-muted">{svc.key}</p>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick={() => moveLeistungService(cat, sIdx, -1)} disabled={sIdx === 0} class={moveBtnCls} aria-label="Nach oben">↑</button>
+              <button type="button" onclick={() => moveLeistungService(cat, sIdx, 1)} disabled={sIdx === (cat.services?.length ?? 0) - 1} class={moveBtnCls} aria-label="Nach unten">↓</button>
+              <p class="text-xs font-mono text-muted">{svc.key}</p>
+              <label class="ml-auto flex items-center gap-2 cursor-pointer text-xs text-muted">
+                <input type="checkbox" bind:checked={svc.highlight} class="accent-gold" />
+                <span>Hervorheben</span>
+              </label>
+            </div>
             <div class="grid grid-cols-3 gap-3">
               <div><label class={labelCls}>Name</label><input type="text" bind:value={svc.name} class={inputCls} /></div>
               <div><label class={labelCls}>Preis</label><input type="text" bind:value={svc.price} class={inputCls} /></div>

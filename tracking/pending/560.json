@@ -1,0 +1,15 @@
+{
+  "pr_number": 560,
+  "title": "centralize Angebote pricing + Leistungsumfang (BR-…5039/96c5/7abb/4461)",
+  "description": "## Summary\n- Admin /inhalte → Angebote: Seiteninhalte-Editor erweitert um Leistungsumfang (Bereiche + Bullets) und Investition (Preis-Boxen), jeweils mit Add/Remove/Reorder/Highlight\n- /leistungen Vergleichstabelle wird jetzt vom Leistungskatalog gespeist (single source of truth) — keine doppelte Preispflege mehr\n- Reorder + Highlight im Leistungskatalog hinzugefügt\n\n## Tickets\n- BR-20260507-5039 — Preise auf Startseite/Angebot-Detailseiten pflegbar machen\n- BR-20260507-96c5 — Preise pflegbar (zweite Stelle)\n- BR-20260507-7abb — Preise pflegbar (dritte Stelle)\n- BR-20260507-4461 — Leistungsumfang 50+ digital pflegbar\n\n## Test plan\n- [ ] /admin/inhalte → Tab Angebote: für jedes Service unter \"Seiteninhalte (pageContent)\" gibt es jetzt 'Leistungsumfang' (Bereiche) und 'Investition' (Preise) mit Add/Remove/Reorder\n- [ ] Änderung an einem 'Investition'-Preis erscheint auf der zugehörigen Service-Detailseite (/50plus-digital, /coaching, …)\n- [ ] Änderung an einem 'Leistungsumfang'-Bereich erscheint als Spalte unter 'Leistungsumfang' auf der Detailseite\n- [ ] /leistungen Vergleichstabelle zeigt aktuelle Preise aus dem Leistungskatalog (keine 1.560 €-Hardcodes mehr)\n- [ ] Highlight-Toggle markiert Tarif visuell (Goldrand/Beliebt-Badge)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "admin",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-07T18:30:42Z",
+  "merged_by": "Paddione",
+  "bug_refs": [
+    "BR-20260507-5039",
+    "BR-20260507-4461"
+  ]
+}

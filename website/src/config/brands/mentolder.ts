@@ -45,7 +45,7 @@ export const mentolderConfig: BrandConfig = {
       },
       {
         iconPath: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
-        title: 'Selbst Generation 50+',
+        title: 'Generation 50+ aus eigener Erfahrung',
         text: '65 Jahre. Ich kenne die Herausforderungen aus eigener Erfahrung und spreche Ihre Sprache.',
       },
     ],
@@ -64,7 +64,7 @@ export const mentolderConfig: BrandConfig = {
         'Smartphone, Tablet & Computer Grundlagen',
         'WhatsApp, Email & Videocalls',
         'Online-Banking & Shopping sicher nutzen',
-        'Datenschutz & Sicherheit verstehen',
+        'Datenschutz & Sicherheit verstehen – inkl. ChatGPT, Claude, Perplexity',
       ],
       price: 'Ab 60 € / Stunde',
       stripeServiceKey: '50plus-digital-einzel',
@@ -127,7 +127,7 @@ export const mentolderConfig: BrandConfig = {
     },
     {
       slug: 'coaching',
-      title: 'Führungskräfte-Coaching',
+      title: 'Coaching für Führungskräfte und Menschen in Verantwortung',
       description: 'Ihre Karriere strategisch gestalten. Ich unterstütze erfahrene Führungskräfte bei der beruflichen Neuorientierung.',
       icon: '🎯',
       features: [
@@ -140,9 +140,9 @@ export const mentolderConfig: BrandConfig = {
       stripeServiceKey: 'coaching-session',
       pageContent: {
         headline: 'Ihre Karriere strategisch gestalten',
-        intro: 'Sie sind erfahrene Führungskraft und stehen vor einer beruflichen Neuorientierung? Ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',
+        intro: 'Sie möchten Ihre Karriere strategisch weiterentwickeln oder sich neu ausrichten? Ich begleite Sie dabei, Ihre Stärken zu schärfen und sich optimal zu positionieren.',
         forWhom: [
-          'Als erfahrene Führungskraft Ihre Karriere neu ausrichten möchten',
+          'Sie sind erfahrene Führungskraft oder neu in der Führungsrolle – und möchten Ihre Karriere gezielt ausrichten.',
           'Sich auf wichtige Gespräche mit Headhuntern vorbereiten',
           'Ihr Profil schärfen und Ihre USPs herausarbeiten wollen',
           'Einen Sparring-Partner auf Augenhöhe suchen',
@@ -369,7 +369,7 @@ export const mentolderConfig: BrandConfig = {
     ],
     milestones: [
       { year: '1980-2023', title: 'Polizei Hamburg', desc: 'Über 30 Jahre in Führungspositionen. Personalführung, Organisationsentwicklung, Strategie.' },
-      { year: 'Highlight', title: 'KI-Pionier', desc: 'Erste deutsche Polizeibehörde mit KI/Gesichtserkennung. BOS-Digitalfunk bundesweit führend gemacht.' },
+      { year: 'ca. 2016/2017', title: 'KI-Pionier', desc: 'Erste deutsche Polizeibehörde mit KI/Gesichtserkennung. BOS-Digitalfunk bundesweit führend gemacht.' },
       { year: '2023', title: 'Digital Café', desc: '6 Monate intensives Digital Café im Altenheim. Über 50 Teilnehmer individuell begleitet.' },
       { year: 'Seit 2024', title: 'Selbstständig', desc: 'Coach und Digitaler Begleiter. Führungskräfte-Coaching und Unternehmensberatung.' },
     ],

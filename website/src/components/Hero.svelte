@@ -15,9 +15,9 @@
 
   let {
     title = 'Menschen, Prozesse und Technik',
-    titleEmphasis = 'wieder verbinden.',
+    titleEmphasis = 'der Mensch und Technologie wieder verbindet.',
     subtitle = 'Mit 30+ Jahren Führungserfahrung begleite ich Menschen und Organisationen bei der digitalen Transformation — praxisnah, empathisch und auf Augenhöhe.',
-    tagline = 'Digital Coaching · Führungskräfte-Beratung',
+    tagline = 'Digital Coach & Führungskräfte-Mentor',
     avatarType = 'initials',
     avatarSrc,
     avatarInitials = '',

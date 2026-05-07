@@ -116,8 +116,8 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
   // hardcoded here. The admin UI (admin/startseite) overwrites this on first save.
   if (!db) return {
     hero: {
-      title: 'Menschen, Prozesse und Technik',
-      titleEmphasis: 'wieder verbinden.',
+      title: 'Digital Coach & Führungskräfte-Mentor –',
+      titleEmphasis: 'der Mensch und Technologie wieder verbindet.',
       subtitle: c.whyMeIntro,
       tagline: 'Praxisnah. Strukturiert. Auf Augenhöhe.',
     },
@@ -137,7 +137,7 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
     ...db,
     hero: {
       ...db.hero,
-      titleEmphasis: db.hero.titleEmphasis ?? 'wieder verbinden.',
+      titleEmphasis: db.hero.titleEmphasis ?? 'der Mensch und Technologie wieder verbindet.',
     },
     avatarType: db.avatarType ?? c.avatarType,
     avatarSrc: db.avatarSrc ?? c.avatarSrc,

@@ -15,15 +15,14 @@ load test_helper
 PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 
 setup() {
-  PGURL="${TRACKING_DB_URL:-${SESSIONS_DATABASE_URL:-postgres://postgres:postgres@localhost:5432/website}}"
+  PGURL="${TRACKING_DB_URL:-postgres://postgres:postgres@localhost:5432/website}"
   export PGURL
   export PROJECT_DIR
 
   # Safety guard: refuse to run against production databases.
   case "$PGURL" in
     *mentolder*|*korczewski*)
-      echo "TRACKING_DB_URL points to a production host ($PGURL). Aborting to protect live data." >&2
-      exit 1
+      skip "TRACKING_DB_URL points to a production host — refusing to run against live data"
       ;;
   esac
 }
@@ -134,12 +133,13 @@ db_available() {
   [ "$comment_count" = "$with_note" ]
 }
 
-@test "runtime: idempotent — second run does not duplicate tickets" {
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
-  before=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+@test "runtime: idempotent — second run does not duplicate" {
+  if ! db_available; then skip "No database available"; fi
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
-  after=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
-  [ "$before" = "$after" ]
+  count1=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+  node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
+  count2=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
+  [ "$count1" = "$count2" ]
 }
 
 @test "runtime: idempotent — second run reports all rows as skipped" {

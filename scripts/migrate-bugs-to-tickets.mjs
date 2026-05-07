@@ -42,7 +42,7 @@ async function migrate(client, dryRun) {
       FROM bugs.bug_tickets
      ORDER BY created_at`)).rows;
 
-  let inserted = 0, skipped = 0;
+  let inserted = 0, skipped = 0, unknownStatus = 0;
   for (const b of bugs) {
     const exists = await client.query(
       `SELECT id FROM tickets.tickets WHERE external_id = $1`, [b.ticket_id]);
@@ -50,7 +50,13 @@ async function migrate(client, dryRun) {
 
     if (dryRun) { inserted++; continue; }
 
-    const m = STATUS_MAP[b.status] ?? STATUS_MAP.open;
+    const known = STATUS_MAP[b.status];
+    if (!known) {
+      console.warn(`WARN: unknown status "${b.status}" for ticket ${b.ticket_id} — migrating as triage`);
+      unknownStatus++;
+    }
+    const m = known ?? STATUS_MAP.open;
+
     const ins = await client.query(
       `INSERT INTO tickets.tickets
          (external_id, type, brand, title, description, url, reporter_email,
@@ -84,7 +90,7 @@ async function migrate(client, dryRun) {
 
     inserted++;
   }
-  return { inserted, skipped };
+  return { inserted, skipped, unknownStatus };
 }
 
 async function main() {
@@ -100,8 +106,10 @@ async function main() {
     console.log(JSON.stringify({ ...r, mode: apply ? 'apply' : 'dry-run' }));
   } catch (err) {
     if (apply) await client.query('ROLLBACK').catch(() => {});
+    await client.end().catch(() => {});
     console.error(err.message);
     process.exit(1);
-  } finally { await client.end(); }
+  }
+  await client.end();
 }
 main();

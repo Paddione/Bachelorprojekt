@@ -346,6 +346,11 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: LIVEKIT_RTMP_KEY
+            - name: INTERNAL_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: INTERNAL_API_TOKEN
             - name: LIVEKIT_SERVICE_URL
               value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
           ports:

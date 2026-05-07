@@ -516,6 +516,15 @@ secrets:
     generate: false
     description: "PostgreSQL connection URL for the tracking-import CronJob"
 
+  - name: INTERNAL_API_TOKEN
+    required: true
+    generate: true
+    length: 48
+    description: "Shared secret for cron-driven internal API calls (e.g. notify-close). Set in environments/.secrets/<env>.yaml then run `task env:seal ENV=<env>`."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true

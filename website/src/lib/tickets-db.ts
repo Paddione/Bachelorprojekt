@@ -201,5 +201,50 @@ export async function initTicketsSchema(): Promise<void> {
       FOR EACH ROW EXECUTE FUNCTION tickets.fn_lifecycle_ts()
   `);
 
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION tickets.fn_audit_log() RETURNS trigger AS $$
+    DECLARE
+      actor_id_local UUID;
+      actor_label_local TEXT;
+      diff JSONB := '{}'::jsonb;
+      tracked_field TEXT;
+    BEGIN
+      BEGIN actor_id_local := current_setting('app.user_id', true)::uuid;
+      EXCEPTION WHEN OTHERS THEN actor_id_local := NULL; END;
+      BEGIN actor_label_local := current_setting('app.user_label', true);
+      EXCEPTION WHEN OTHERS THEN actor_label_local := NULL; END;
+
+      IF TG_OP = 'INSERT' THEN
+        INSERT INTO tickets.ticket_activity (ticket_id, actor_id, actor_label, field, new_value)
+        VALUES (NEW.id, actor_id_local, actor_label_local, '_created', to_jsonb(NEW));
+        RETURN NEW;
+      END IF;
+
+      FOR tracked_field IN SELECT unnest(ARRAY[
+        'status','resolution','priority','severity','assignee_id','customer_id',
+        'reporter_id','reporter_email','title','description','url','component',
+        'thesis_tag','parent_id','start_date','due_date','estimate_minutes'
+      ]) LOOP
+        IF (to_jsonb(OLD) -> tracked_field) IS DISTINCT FROM (to_jsonb(NEW) -> tracked_field) THEN
+          diff := diff || jsonb_build_object(tracked_field,
+            jsonb_build_object('old', to_jsonb(OLD) -> tracked_field,
+                               'new', to_jsonb(NEW) -> tracked_field));
+        END IF;
+      END LOOP;
+
+      IF diff <> '{}'::jsonb THEN
+        INSERT INTO tickets.ticket_activity (ticket_id, actor_id, actor_label, field, old_value, new_value)
+        VALUES (NEW.id, actor_id_local, actor_label_local, '_updated', NULL, diff);
+      END IF;
+      RETURN NEW;
+    END $$ LANGUAGE plpgsql
+  `);
+  await pool.query(`DROP TRIGGER IF EXISTS trg_tickets_audit_log ON tickets.tickets`);
+  await pool.query(`
+    CREATE TRIGGER trg_tickets_audit_log
+      AFTER INSERT OR UPDATE ON tickets.tickets
+      FOR EACH ROW EXECUTE FUNCTION tickets.fn_audit_log()
+  `);
+
   schemaReady = true;
 }

@@ -2,7 +2,6 @@
 import '../styles/global.css';
 import { config } from '../config/index';
 import BugReportWidget from '../components/BugReportWidget.svelte';
-import HelpPanel from '../components/HelpPanel.svelte';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
 import ChatWidget from '../components/ChatWidget.svelte';
@@ -77,7 +76,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { href: '/admin/live',          label: 'Live',          icon: 'broadcast' },
       { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
       { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
-      { href: '/admin/projekte',      label: 'Projekte',      icon: 'clipboard' },
       { href: '/admin/tickets',       label: 'Tickets',       icon: 'tag' },
       { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt' },
       { href: '/admin/kalender',      label: 'Kalender',      icon: 'calendar2' },
@@ -419,10 +417,8 @@ const isKore = brandId === 'korczewski';
       <slot />
     </main>
 
-    {ASSISTANT_ENABLED ? (
+    {ASSISTANT_ENABLED && (
       <AssistantWidget client:load profile="admin" />
-    ) : (
-      <HelpPanel client:load section={helpSection} context="admin" />
     )}
     <BugReportWidget client:load />
     <ChatWidget client:load />

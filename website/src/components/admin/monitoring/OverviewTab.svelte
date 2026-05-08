@@ -6,25 +6,21 @@
   type Pod = { phase: string; ready: boolean; restarts: number };
   type Deployment = { status: 'healthy' | 'degraded' | 'stopped'; name: string };
   type KubeEvent = { type: string; reason: string; object: string; message: string; age: string };
-  type StalenessFinding = { system: string; status: 'ok' | 'warning' | 'stale'; issue: string };
-  type StalenessReport = { issueCount: number; reportJson: { findings: StalenessFinding[]; generated_at: string }; createdAt: string };
   type TestRun = { pass: number; fail: number; skip: number; startedAt: string; durationMs: number | null; tier: string };
 
   let pods: Pod[] = [];
   let nodes: { name: string; cpu: string; memory: string }[] = [];
   let events: KubeEvent[] = [];
   let deployments: Deployment[] = [];
-  let stalenessReport: StalenessReport | null = null;
   let lastTestRun: TestRun | null = null;
   let loading = true;
   let refreshInterval: ReturnType<typeof setInterval>;
 
   async function fetchAll() {
     loading = true;
-    const [monRes, depRes, stalRes, testRes] = await Promise.allSettled([
+    const [monRes, depRes, testRes] = await Promise.allSettled([
       fetch('/api/admin/monitoring'),
       fetch('/api/admin/deployments'),
-      fetch('/api/admin/staleness-report'),
       fetch('/api/admin/test-runs'),
     ]);
     if (monRes.status === 'fulfilled' && monRes.value.ok) {
@@ -35,9 +31,6 @@
     }
     if (depRes.status === 'fulfilled' && depRes.value.ok) {
       deployments = (await depRes.value.json()).deployments ?? [];
-    }
-    if (stalRes.status === 'fulfilled' && stalRes.value.ok) {
-      stalenessReport = await stalRes.value.json();
     }
     if (testRes.status === 'fulfilled' && testRes.value.ok) {
       const runs = await testRes.value.json();
@@ -74,15 +67,11 @@
   $: avgCpu = nodes.length > 0
     ? Math.round(nodes.reduce((s, n) => s + (parseInt(n.cpu) || 0), 0) / nodes.length)
     : null;
-  $: stalenessStatus = stalenessReport
-    ? (stalenessReport.issueCount === 0 ? 'OK' : `${stalenessReport.issueCount} Warnungen`)
-    : '—';
-  $: stalenessColor = stalenessReport?.issueCount === 0 ? 'text-green-400' : 'text-yellow-400';
 </script>
 
 <div class="space-y-4">
-  <!-- 5 status cards -->
-  <div class="grid grid-cols-5 gap-3">
+  <!-- 4 status cards -->
+  <div class="grid grid-cols-4 gap-3">
     <button on:click={() => dispatch('navigate', 'cluster')}
       class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-left hover:border-gray-500 transition-colors">
       <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Pods</div>
@@ -125,18 +114,10 @@
       {/if}
     </button>
 
-    <button on:click={() => dispatch('navigate', 'tasks')}
-      class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-left hover:border-gray-500 transition-colors">
-      <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Staleness</div>
-      <div class="text-2xl font-bold font-mono {stalenessColor}">{stalenessStatus}</div>
-      <div class="text-xs text-gray-500 mt-1">
-        {stalenessReport ? new Date(stalenessReport.createdAt).toLocaleDateString('de-DE') : '—'}
-      </div>
-    </button>
   </div>
 
   <!-- Middle row -->
-  <div class="grid grid-cols-2 gap-3">
+  <div class="grid grid-cols-1 gap-3">
     <!-- Recent events -->
     <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
       <div class="flex justify-between items-center mb-3">
@@ -160,26 +141,6 @@
       {/if}
     </div>
 
-    <!-- Staleness summary -->
-    <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
-      <div class="flex justify-between items-center mb-3">
-        <span class="text-sm font-semibold text-gray-200">Staleness-Bericht</span>
-        <button on:click={() => dispatch('navigate', 'tasks')} class="text-xs text-blue-400 hover:text-blue-300">→ Tasks</button>
-      </div>
-      {#if stalenessReport?.reportJson?.findings}
-        <div class="space-y-1.5">
-          {#each stalenessReport.reportJson.findings.slice(0, 4) as f}
-            <div class="flex items-center gap-2 text-xs">
-              <span class="w-2 h-2 rounded-full shrink-0 {f.status === 'ok' ? 'bg-green-500' : f.status === 'warning' ? 'bg-yellow-400' : 'bg-red-500'}"></span>
-              <span class="text-gray-300">{f.system}</span>
-              <span class="ml-auto {f.status === 'ok' ? 'text-green-400' : 'text-yellow-400'}">{f.status}</span>
-            </div>
-          {/each}
-        </div>
-      {:else}
-        <p class="text-xs text-gray-500">{loading ? 'Lädt…' : 'Kein Bericht'}</p>
-      {/if}
-    </div>
   </div>
 
   <!-- Bottom row -->

@@ -3080,43 +3080,6 @@ export async function claimBrettLinkPost(meetingId: string): Promise<boolean> {
   return result.rowCount === 1;
 }
 
-// ── Staleness Reports ────────────────────────────────────────────────────────
-
-export interface StalenessReport {
-  id: number;
-  createdAt: string;
-  reportJson: Record<string, unknown>;
-  summary: string;
-  issueCount: number;
-}
-
-export async function saveStalenessReport(params: {
-  reportJson: unknown;
-  summary: string;
-  issueCount: number;
-}): Promise<void> {
-  await pool.query(
-    `INSERT INTO staleness_reports (report_json, summary, issue_count) VALUES ($1, $2, $3)`,
-    [JSON.stringify(params.reportJson), params.summary, params.issueCount]
-  );
-}
-
-export async function getLatestStalenessReport(): Promise<StalenessReport | null> {
-  const result = await pool.query(
-    `SELECT id, created_at, report_json, summary, issue_count
-       FROM staleness_reports ORDER BY created_at DESC LIMIT 1`
-  );
-  if (result.rows.length === 0) return null;
-  const row = result.rows[0];
-  return {
-    id: row.id,
-    createdAt: row.created_at.toISOString(),
-    reportJson: row.report_json,
-    summary: row.summary,
-    issueCount: row.issue_count,
-  };
-}
-
 // ── Test Runs ────────────────────────────────────────────────────────────────
 
 export interface TestRun {

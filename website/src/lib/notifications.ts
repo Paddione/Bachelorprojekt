@@ -2,7 +2,7 @@
 import { getSiteSetting } from './website-db';
 import { sendEmail } from './email';
 
-export type NotificationType = 'registration' | 'booking' | 'contact' | 'bug' | 'message' | 'followup' | 'staleness';
+export type NotificationType = 'registration' | 'booking' | 'contact' | 'bug' | 'message' | 'followup';
 
 const TYPE_DEFAULTS: Record<NotificationType, string> = {
   registration: 'true',
@@ -11,7 +11,6 @@ const TYPE_DEFAULTS: Record<NotificationType, string> = {
   bug:          'true',
   message:      'true',
   followup:     'false',
-  staleness:    'true',
 };
 
 const SITE_URL = process.env.SITE_URL ?? '';

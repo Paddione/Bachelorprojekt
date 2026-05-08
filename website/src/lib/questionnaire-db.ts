@@ -274,6 +274,55 @@ async function initDb() {
       END IF;
     END$$
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS questionnaire_assignment_scores (
+      id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      assignment_id  UUID NOT NULL REFERENCES questionnaire_assignments(id) ON DELETE CASCADE,
+      dimension_id   UUID NOT NULL,
+      dimension_name TEXT NOT NULL,
+      final_score    INTEGER NOT NULL,
+      threshold_mid  INTEGER,
+      threshold_high INTEGER,
+      level          TEXT,
+      snapshot_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CONSTRAINT uq_qas_assignment_dimension UNIQUE (assignment_id, dimension_id)
+    )
+  `);
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores(assignment_id)`,
+  );
+  await pool.query(`CREATE SCHEMA IF NOT EXISTS bachelorprojekt`);
+  await pool.query(`
+    CREATE OR REPLACE VIEW bachelorprojekt.v_questionnaire_kpi AS
+    SELECT
+      a.id              AS assignment_id,
+      a.customer_id,
+      a.template_id,
+      t.title           AS template_title,
+      t.is_system_test,
+      a.assigned_at,
+      a.submitted_at,
+      a.archived_at,
+      s.dimension_id,
+      s.dimension_name,
+      s.final_score,
+      s.threshold_mid,
+      s.threshold_high,
+      s.level,
+      ev.evidence_count,
+      ev.latest_evidence_id
+    FROM questionnaire_assignments a
+    JOIN questionnaire_templates t ON t.id = a.template_id
+    JOIN questionnaire_assignment_scores s ON s.assignment_id = a.id
+    LEFT JOIN LATERAL (
+      SELECT
+        COUNT(*)::int AS evidence_count,
+        (ARRAY_AGG(e.id ORDER BY e.attempt DESC, e.created_at DESC))[1] AS latest_evidence_id
+      FROM questionnaire_test_evidence e
+      WHERE e.assignment_id = a.id
+    ) ev ON true
+    WHERE a.status = 'archived'
+  `);
   await ensureSystemtestSchema(pool);
   await seedSystemTestTemplates();
 }

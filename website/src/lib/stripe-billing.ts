@@ -1,5 +1,9 @@
 import { pool, initBillingTables } from './website-db';
-import { createCustomer as nativeCreateCustomer } from './native-billing';
+import {
+  createCustomer as nativeCreateCustomer,
+  createInvoice as nativeCreateInvoice,
+  getCustomerById as nativeGetCustomerById,
+} from './native-billing';
 
 // ---- Static service catalog ----
 export const SERVICES = {
@@ -221,9 +225,69 @@ export async function getFullInvoice(invoiceId: string): Promise<FullInvoice | n
   return getDraftInvoiceDetail(invoiceId);
 }
 
-// Stub functions — these workflows moved to /api/admin/billing/* routes
-export async function createBillingInvoice(_params: unknown): Promise<BillingInvoice> {
-  throw new Error('createBillingInvoice: use /api/admin/billing/ native routes instead');
+/**
+ * Creates a draft invoice in the native billing system for a single service line.
+ *
+ * This is the compatibility shim that callers from the booking-confirmation flow
+ * (admin/inbox/[id]/action.ts → approve_booking) and the admin CreateInvoiceModal
+ * use. The legacy name comes from the pre-2026 Stripe integration; today it
+ * delegates to native-billing's `createInvoice`.
+ *
+ * SERVICES.cents is in cents — convert to euros (the unit native-billing stores
+ * in `unit_price`). The returned shape mirrors `BillingInvoice` so existing
+ * callers (which read `id`, `number`, `amountDue`) keep working unchanged.
+ */
+export async function createBillingInvoice(params: {
+  customerId: string;
+  serviceKey: ServiceKey;
+  quantity?: number;
+  sendEmail?: boolean;
+}): Promise<BillingInvoice> {
+  const brand = process.env.BRAND || 'mentolder';
+  const service = SERVICES[params.serviceKey];
+  if (!service) throw new Error(`createBillingInvoice: unknown serviceKey "${params.serviceKey}"`);
+  if (service.cents <= 0) {
+    throw new Error(`createBillingInvoice: service "${params.serviceKey}" has no chargeable price`);
+  }
+
+  // Verify the customer exists in this brand to fail fast with a clear message
+  // instead of a foreign-key violation deep inside the INSERT.
+  const customer = await nativeGetCustomerById(brand, params.customerId);
+  if (!customer) {
+    throw new Error(`createBillingInvoice: customer ${params.customerId} not found for brand ${brand}`);
+  }
+
+  const quantity = params.quantity ?? 1;
+  const unitPriceEur = service.cents / 100;
+
+  const inv = await nativeCreateInvoice({
+    brand,
+    customerId: params.customerId,
+    issueDate: new Date().toISOString().split('T')[0],
+    dueDays: 14,
+    taxMode: 'regelbesteuerung',
+    taxRate: 19,
+    lines: [{
+      description: service.name,
+      quantity,
+      unitPrice: unitPriceEur,
+      unit: service.unit,
+    }],
+  });
+
+  return {
+    id: inv.id,
+    number: inv.number,
+    date: inv.issueDate,
+    dueDate: inv.dueDate,
+    amountDue: inv.grossAmount,
+    amountPaid: 0,
+    amountRemaining: inv.grossAmount,
+    status: 'draft',
+    statusLabel: STATUS_LABELS.draft ?? 'Entwurf',
+    hostedUrl: null,
+    pdfUrl: null,
+  };
 }
 
 export async function createBillingQuote(_params: unknown): Promise<unknown> {

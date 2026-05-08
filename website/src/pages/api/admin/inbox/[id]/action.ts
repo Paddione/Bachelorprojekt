@@ -153,19 +153,24 @@ export const POST: APIRoute = async ({ request, params }) => {
         const svcKey = (p.serviceKey ?? p.leistungKey) as ServiceKey | undefined;
         if (svcKey && svcKey in SERVICES && SERVICES[svcKey].cents > 0) {
           const brand = process.env.BRAND || 'mentolder';
-          const stripeCustomer = await getOrCreateCustomer({ brand: process.env.BRAND || 'mentolder', name: p.name, email: p.email });
-          if (stripeCustomer) {
-            const invoice = await createBillingInvoice({ customerId: stripeCustomer.id, serviceKey: svcKey });
-            if (invoice) {
+          try {
+            const billingCustomer = await getOrCreateCustomer({ brand, name: p.name, email: p.email });
+            if (billingCustomer) {
+              const invoice = await createBillingInvoice({ customerId: billingCustomer.id, serviceKey: svcKey });
               statusParts.push(`Rechnung erstellt: ${invoice.number}`);
               if (calEvent) {
                 await setBookingInvoice(calEvent.uid, brand, invoice.id, invoice.number, invoice.amountDue).catch(err =>
                   console.error('[approve_booking] Failed to link invoice to booking:', err)
                 );
               }
-            } else {
-              statusParts.push('Rechnung konnte nicht erstellt werden (Stripe nicht konfiguriert?)');
             }
+          } catch (err) {
+            // Invoice creation must not abort the booking confirmation — the
+            // Talk room, calendar event, and confirmation email are already
+            // committed at this point. Log it and surface a status hint so the
+            // caller still gets HTTP 200 with details.
+            console.error('[approve_booking] Failed to create billing invoice:', err);
+            statusParts.push('Rechnung konnte nicht erstellt werden (siehe Logs)');
           }
         }
 

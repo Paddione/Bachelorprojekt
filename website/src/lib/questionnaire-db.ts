@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { resolve4 } from 'dns';
 import { SYSTEM_TEST_TEMPLATES, type SystemTestTemplate } from './system-test-seed-data';
+import { ensureSystemtestSchema } from './systemtest/db';
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
@@ -252,6 +253,7 @@ async function initDb() {
       END IF;
     END$$
   `);
+  await ensureSystemtestSchema(pool);
   await seedSystemTestTemplates();
 }
 

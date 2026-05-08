@@ -45,9 +45,8 @@ env_vars:
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"
   KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
-  # System-test failure loop master kill-switch (Task 10). Flip to "true"
-  # only after running the rollout checklist on the feat/systemtest-failure-loop PR.
-  SYSTEMTEST_LOOP_ENABLED: "false"
+  # System-test failure loop master kill-switch (Task 10).
+  SYSTEMTEST_LOOP_ENABLED: "true"
 
 overlay: prod-korczewski
 workspace_namespace: workspace-korczewski

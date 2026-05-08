@@ -59,6 +59,8 @@
   }
 </script>
 
+<svelte:window on:keydown={(e) => { if (e.key === 'Escape') confirmOpen = false; }} />
+
 <div class="bg-gray-800 rounded-lg p-5 space-y-4">
   <div>
     <h3 class="text-sm font-semibold text-gray-100">Testdaten</h3>
@@ -113,9 +115,9 @@
 
 <!-- Confirmation modal -->
 {#if confirmOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-labelledby="testdata-purge-modal-title">
     <div class="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 space-y-4 shadow-xl">
-      <h4 class="text-sm font-semibold text-gray-100">Testdaten löschen?</h4>
+      <h4 id="testdata-purge-modal-title" class="text-sm font-semibold text-gray-100">Testdaten löschen?</h4>
       <p class="text-xs text-gray-400">
         Alle Datensätze mit <code class="text-gray-300">[TEST]</code>-Präfix werden unwiderruflich gelöscht.
         Gesperrte Rechnungen werden übersprungen und als Warnung gemeldet.

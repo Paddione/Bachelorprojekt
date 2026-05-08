@@ -67,6 +67,9 @@ data:
   ANTHROPIC_API_KEY: ""
   # Stripe (publishable key is not secret — env-specific, injected via ConfigMap)
   STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY}"
+  # Mentolder-Assistent (no-LLM keyword-search mode for now)
+  ENABLE_ASSISTANT_ADMIN: "true"
+  ENABLE_ASSISTANT_PORTAL: "true"
   # Brett
   BRETT_DOMAIN: "${BRETT_DOMAIN}"
   # LiveKit

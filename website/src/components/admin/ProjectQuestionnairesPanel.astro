@@ -1,0 +1,177 @@
+---
+// website/src/components/admin/ProjectQuestionnairesPanel.astro
+//
+// Shared section for /admin/projekte/[id] and /admin/tickets/[id].
+// Renders nothing when `assignments` is empty.
+//
+// Score-bar rendering mirrors /admin/fragebogen/[assignmentId].astro lines 84–117
+// so the panel matches the full review page visually.
+
+import type { QAssignment, QQuestion, QAnswer, QAnswerOption } from '../../lib/questionnaire-db';
+import type { DimensionScore } from '../../lib/compute-scores';
+
+interface AssignmentBundle {
+  assignment: QAssignment;
+  questions: QQuestion[];
+  options: QAnswerOption[];
+  answers: QAnswer[];
+  scores: DimensionScore[];
+}
+
+interface Props {
+  assignments: AssignmentBundle[];
+}
+
+const { assignments } = Astro.props;
+
+function fmtDate(d: string | Date | null): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function levelColor(level: string | null): string {
+  if (level === 'kritisch') return '#ef4444';
+  if (level === 'mittel') return '#f59e0b';
+  if (level === 'förderlich') return '#22c55e';
+  return '#b8a06a';
+}
+
+const STATUS_CLS: Record<string, string> = {
+  pending:     'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+  in_progress: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+  submitted:   'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  reviewed:    'bg-green-500/10 text-green-400 border-green-500/20',
+  archived:    'bg-slate-500/10 text-slate-400 border-slate-500/20',
+  dismissed:   'bg-red-500/10 text-red-400 border-red-500/20',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  pending:     'Wartend',
+  in_progress: 'In Bearbeitung',
+  submitted:   'Eingereicht',
+  reviewed:    'Besprochen',
+  archived:    'Archiviert',
+  dismissed:   'Abgelehnt',
+};
+---
+
+{assignments.length > 0 && (
+  <section class="bg-dark-light rounded-2xl border border-dark-lighter p-6 mb-6" id="questionnaires-panel">
+    <h2 class="text-sm font-semibold text-light mb-4 font-serif uppercase tracking-wide">
+      Fragebögen ({assignments.length})
+    </h2>
+
+    <div class="flex flex-col gap-6">
+      {assignments.map(({ assignment, questions, options, answers, scores }) => {
+        const answerMap = new Map(answers.map(a => [a.question_id, a]));
+        const optionMap = new Map(options.map(o => [`${o.question_id}:${o.option_key}`, o]));
+        const isMuted   = assignment.status === 'archived' || assignment.status === 'dismissed';
+        const showQA    = ['in_progress', 'submitted', 'reviewed', 'archived'].includes(assignment.status);
+        const showScores = scores.length > 0 && ['submitted', 'reviewed', 'archived'].includes(assignment.status);
+        const dateLabel = assignment.submitted_at
+          ? `Eingereicht ${fmtDate(assignment.submitted_at)}`
+          : `Zugewiesen ${fmtDate(assignment.assigned_at)}`;
+        const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?? 1), 1);
+
+        return (
+          <div class={`border border-dark-lighter rounded-xl p-5 ${isMuted ? 'opacity-60' : ''}`}>
+            {/* Header */}
+            <div class="flex items-start justify-between gap-3 flex-wrap mb-3">
+              <div class="min-w-0">
+                <h3 class="text-light font-medium">{assignment.template_title}</h3>
+                <p class="text-muted text-xs mt-0.5">{dateLabel}</p>
+              </div>
+              <span class={`px-2.5 py-0.5 rounded-full border text-xs ${STATUS_CLS[assignment.status] ?? ''}`}>
+                {STATUS_LABEL[assignment.status] ?? assignment.status}
+              </span>
+            </div>
+
+            {/* Dismissed reason */}
+            {assignment.status === 'dismissed' && assignment.dismiss_reason && (
+              <p class="text-xs text-muted italic mb-3">Abgelehnt: {assignment.dismiss_reason}</p>
+            )}
+
+            {/* Score bars */}
+            {showScores && (
+              <div class="mb-4">
+                <div class="flex flex-col gap-3">
+                  {scores.map(score => {
+                    const pct = Math.min((score.final_score / Math.max(maxScore, 1)) * 100, 100);
+                    const color = levelColor(score.level);
+                    return (
+                      <div>
+                        <div class="flex justify-between items-baseline mb-1">
+                          <span class="text-light text-xs">{score.name}</span>
+                          <span class="text-xs font-mono" style={`color: ${color}`}>
+                            {score.final_score}{score.level && ` · ${score.level}`}
+                          </span>
+                        </div>
+                        <div class="h-1.5 bg-dark rounded-full overflow-hidden">
+                          <div class="h-full rounded-full"
+                            style={`width: ${pct}%; background-color: ${color}`}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Coach notes preview */}
+            {assignment.coach_notes && assignment.coach_notes.trim().length > 0 && (
+              <div class="mb-4 p-3 bg-dark rounded border border-dark-lighter">
+                <p class="text-xs text-muted uppercase tracking-wide mb-1">Coach-Notizen</p>
+                <p class="text-sm text-light/90 whitespace-pre-wrap">{assignment.coach_notes}</p>
+              </div>
+            )}
+
+            {/* Q&A list — collapsible */}
+            {showQA && questions.length > 0 && (
+              <details class="mt-2">
+                <summary class="cursor-pointer text-xs text-gold hover:text-gold-light select-none">
+                  Fragen &amp; Antworten anzeigen ({answers.length}/{questions.length})
+                </summary>
+                <div class="mt-3 flex flex-col gap-3">
+                  {questions.map((q, i) => {
+                    const ans = answerMap.get(q.id);
+                    const chosen = ans?.option_key ?? null;
+                    const opt = chosen ? optionMap.get(`${q.id}:${chosen}`) : null;
+                    const label = opt?.label ?? chosen;
+                    return (
+                      <div class="border-b border-dark-lighter/50 pb-2 last:border-0 last:pb-0">
+                        <p class="text-muted text-xs mb-0.5">Frage {i + 1}</p>
+                        <p class="text-light text-sm whitespace-pre-line mb-1">{q.question_text}</p>
+                        {chosen === 'skipped' ? (
+                          <span class="inline-block px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-xs">
+                            Übersprungen
+                          </span>
+                        ) : chosen ? (
+                          <span class="inline-block px-2 py-0.5 bg-gold/10 text-gold border border-gold/20 rounded text-xs">
+                            {label}
+                          </span>
+                        ) : (
+                          <span class="text-muted text-xs italic">Nicht beantwortet</span>
+                        )}
+                        {ans?.details_text && (
+                          <p class="text-muted text-xs mt-1 whitespace-pre-line">{ans.details_text}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </details>
+            )}
+
+            {/* Link to full review */}
+            <div class="mt-3 flex justify-end">
+              <a href={`/admin/fragebogen/${assignment.id}`}
+                class="text-xs text-gold/80 hover:text-gold underline">
+                Volle Review öffnen →
+              </a>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+)}

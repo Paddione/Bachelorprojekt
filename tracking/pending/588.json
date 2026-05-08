@@ -1,0 +1,12 @@
+{
+  "pr_number": 588,
+  "title": "inline questionnaire panel on project + ticket pages",
+  "description": "## Summary\n\nSurface linked questionnaire context (questions, answers, scores, coach notes) inline on `/admin/projekte/<id>` and `/admin/tickets/<id>`. Previously the link was one-way: the review page had a \"open project\" button, but the project page knew nothing about its questionnaire origin.\n\n- New DB helper `listQAssignmentsForProject(projectId)` — reverse lookup, filters out system-test templates.\n- New shared `ProjectQuestionnairesPanel.astro` component renders one card per linked assignment: title, status, score bars, coach notes, collapsible Q&A, link to the full review page.\n- Embedded on `/admin/projekte/<id>` (above sub-projects on the default tab) and `/admin/tickets/<id>` (after Description, only for `type='project'`).\n- Empty array → renders nothing. No new API routes, no schema changes.\n\nThis is the reverse of the earlier 'questionnaire → project' work in [PR for `2026-05-08-questionnaire-project-integration-design.md`].\n\nSpec: `docs/superpowers/specs/2026-05-08-project-questionnaire-overview-design.md`\nPlan: `docs/superpowers/plans/2026-05-08-project-questionnaire-overview.md`\n\n## Also includes (from earlier on this branch)\n\n- `2d11e49e` fix(tickets): unify ticket numbers as Txxxxxx + repair detail-page SQL\n- `d4399c2d` fix(questionnaire): review fixes — template ownership guard, archived status cast, stale ST-4 count, COUNT alias\n- `f8c33607` test(system-tests): update expected counts for 12 templates and 103 steps\n- `70ff55c6` feat(system-tests): fix stale questions; add ST 11 LiveKit and ST 12 Projektmanagement\n- `3c32935e` feat(questionnaire): project badge, task creation, and archive action in review page\n\n## Test plan\n- [ ] Open a project that has a completed questionnaire on web.mentolder.de — Fragebögen section renders with title, status, scores, and expandable Q&A.\n- [ ] Open the same record under /admin/tickets/<id> — same panel renders in the main column.\n- [ ] Open a project without any questionnaire — no section, no empty state.\n- [ ] Open a non-project ticket (bug/feature/task) — no questionnaire fetch, no section.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "admin",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T12:28:10Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

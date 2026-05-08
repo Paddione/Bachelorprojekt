@@ -267,5 +267,72 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_brand_idx     ON tickets.pr_events (brand) WHERE brand IS NOT NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_category_idx  ON tickets.pr_events (category)`);
 
+  // Per-brand monotonic counter — feeds the BEFORE-INSERT trigger that mints T-numbers.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.ticket_counters (
+      brand       TEXT PRIMARY KEY,
+      last_value  BIGINT NOT NULL DEFAULT 0
+    )
+  `);
+
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION tickets.fn_assign_external_id() RETURNS trigger AS $$
+    DECLARE
+      next_v BIGINT;
+    BEGIN
+      IF NEW.external_id IS NULL THEN
+        INSERT INTO tickets.ticket_counters (brand, last_value)
+        VALUES (NEW.brand, 1)
+        ON CONFLICT (brand) DO UPDATE SET last_value = tickets.ticket_counters.last_value + 1
+        RETURNING last_value INTO next_v;
+        NEW.external_id := 'T' || LPAD(next_v::text, 6, '0');
+      END IF;
+      RETURN NEW;
+    END $$ LANGUAGE plpgsql
+  `);
+  await pool.query(`DROP TRIGGER IF EXISTS trg_tickets_assign_external_id ON tickets.tickets`);
+  await pool.query(`
+    CREATE TRIGGER trg_tickets_assign_external_id
+      BEFORE INSERT ON tickets.tickets
+      FOR EACH ROW EXECUTE FUNCTION tickets.fn_assign_external_id()
+  `);
+
+  // Idempotent backfill: any ticket whose external_id is NULL or not in T-format
+  // gets a T-number, ordered by created_at within its brand.
+  await pool.query(`
+    INSERT INTO tickets.ticket_counters (brand, last_value)
+    SELECT t.brand,
+           COALESCE(MAX(CASE WHEN t.external_id ~ '^T[0-9]+$'
+                             THEN CAST(SUBSTRING(t.external_id FROM 2) AS BIGINT)
+                             ELSE 0 END), 0)
+      FROM tickets.tickets t
+     GROUP BY t.brand
+    ON CONFLICT (brand) DO NOTHING
+  `);
+  await pool.query(`
+    WITH to_fill AS (
+      SELECT t.id, t.brand,
+             (SELECT last_value FROM tickets.ticket_counters tc WHERE tc.brand = t.brand) +
+             ROW_NUMBER() OVER (PARTITION BY t.brand ORDER BY t.created_at ASC, t.id ASC) AS new_seq
+        FROM tickets.tickets t
+       WHERE t.external_id IS NULL OR t.external_id !~ '^T[0-9]+$'
+    )
+    UPDATE tickets.tickets t
+       SET external_id = 'T' || LPAD(f.new_seq::text, 6, '0')
+      FROM to_fill f
+     WHERE t.id = f.id
+  `);
+  await pool.query(`
+    UPDATE tickets.ticket_counters tc
+       SET last_value = sub.max_v
+      FROM (
+        SELECT brand, MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT)) AS max_v
+          FROM tickets.tickets
+         WHERE external_id ~ '^T[0-9]+$'
+         GROUP BY brand
+      ) sub
+     WHERE tc.brand = sub.brand AND tc.last_value < sub.max_v
+  `);
+
   schemaReady = true;
 }

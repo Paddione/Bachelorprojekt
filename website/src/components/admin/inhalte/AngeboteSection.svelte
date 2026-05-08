@@ -1,11 +1,14 @@
 <script lang="ts">
   import type { ServiceOverride, LeistungCategoryOverride } from '../../../lib/website-db';
 
-  let { initialServices, initialLeistungen, initialPriceListUrl }: {
+  let { initialServices, initialLeistungen, initialPriceListUrl, staticSlugs }: {
     initialServices: ServiceOverride[];
     initialLeistungen: LeistungCategoryOverride[];
     initialPriceListUrl: string;
+    staticSlugs: string[];
   } = $props();
+
+  const staticSlugSet = new Set(staticSlugs);
 
   let services = $state(JSON.parse(JSON.stringify(initialServices)));
   let leistungen = $state(JSON.parse(JSON.stringify(initialLeistungen)));
@@ -14,8 +17,53 @@
   let msg = $state('');
   let msgOk = $state(true);
 
+  function slugify(s: string): string {
+    return (s ?? '')
+      .toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+  }
+
+  function uniqueSlug(base: string): string {
+    const used = new Set(services.map((s: ServiceOverride) => s.slug));
+    if (!used.has(base) && base) return base || `karte-${services.length + 1}`;
+    let n = 2;
+    while (used.has(`${base}-${n}`)) n++;
+    return base ? `${base}-${n}` : `karte-${services.length + 1}`;
+  }
+
+  function addService() {
+    const slug = uniqueSlug(slugify('neue Leistungskarte'));
+    services = [
+      ...services,
+      {
+        slug,
+        title: 'Neue Leistungskarte',
+        description: '',
+        icon: '✨',
+        price: '',
+        features: [],
+        meta: '',
+        hidden: false,
+        pageContent: { headline: '', intro: '', forWhom: [], sections: [], pricing: [], faq: [] },
+      } satisfies ServiceOverride,
+    ];
+  }
+
+  function removeService(idx: number) {
+    if (!confirm(`Leistungskarte „${services[idx].title}" entfernen? Das kann nicht rückgängig gemacht werden.`)) return;
+    services = services.filter((_: ServiceOverride, i: number) => i !== idx);
+  }
+
   async function save() {
     saving = true; msg = '';
+    // Reslug entries whose slug is empty (e.g. user cleared it) using the title.
+    services = services.map((s: ServiceOverride) => ({
+      ...s,
+      slug: s.slug?.trim() || uniqueSlug(slugify(s.title)),
+    }));
     try {
       const res = await fetch('/api/admin/angebote/save', {
         method: 'POST',
@@ -113,9 +161,13 @@
 
   <!-- Services -->
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Leistungskarten</h3>
+    <div class="flex items-center justify-between">
+      <h3 class="text-xl font-bold text-light font-serif">Leistungskarten</h3>
+      <button type="button" onclick={addService} class="px-3 py-1.5 text-sm rounded-md border border-gold/40 text-gold hover:bg-gold/10">+ Leistungskarte</button>
+    </div>
     <p class="text-xs text-muted -mt-2">Reihenfolge mit den Pfeilen ändern. Diese Reihenfolge bestimmt, wie die Karten auf der Startseite und im Footer erscheinen.</p>
     {#each services as svc, idx (svc.slug)}
+      {@const isCustom = !staticSlugSet.has(svc.slug)}
       <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-3">
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-1" role="group" aria-label="Reihenfolge ändern">
@@ -127,8 +179,25 @@
             <input type="checkbox" bind:checked={svc.hidden} class="accent-gold" />
             <span class="text-xs text-muted">Ausblenden</span>
           </label>
-          <span class="text-xs font-mono text-muted">{svc.slug}</span>
+          {#if isCustom}
+            <input type="text" bind:value={svc.slug} class="px-2 py-1 bg-dark-lighter border border-dark-lighter rounded text-xs font-mono text-muted focus:outline-none focus:border-gold/50 max-w-[180px]" placeholder="slug" aria-label="Slug (URL-Pfad)" />
+            <button type="button" onclick={() => removeService(idx)} class="ml-auto px-2 py-1 text-xs rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10">Entfernen</button>
+          {:else}
+            <span class="text-xs font-mono text-muted">{svc.slug}</span>
+          {/if}
         </div>
+        {#if isCustom}
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class={labelCls}>Icon (Emoji oder kurzes Symbol)</label>
+              <input type="text" bind:value={svc.icon} class={inputCls} placeholder="z. B. 🎯 oder ✨" />
+            </div>
+            <div>
+              <label class={labelCls}>Eyebrow-Label (kleine Beschriftung über dem Titel)</label>
+              <input type="text" bind:value={svc.meta} class={inputCls} placeholder="z. B. Mensch · Rolle · Haltung" />
+            </div>
+          </div>
+        {/if}
         <div class="grid grid-cols-2 gap-4">
           <div><label class={labelCls}>Titel</label><input type="text" bind:value={svc.title} class={inputCls} /></div>
           <div><label class={labelCls}>Preis</label><input type="text" bind:value={svc.price} class={inputCls} /></div>

@@ -809,6 +809,8 @@ export interface ServiceOverride {
   price: string;
   features: string[];
   hidden?: boolean;
+  /** Short eyebrow-label shown under the title on the homepage card. */
+  meta?: string;
   pageContent?: {
     headline?: string;
     intro?: string;

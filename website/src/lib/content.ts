@@ -35,8 +35,12 @@ export async function getEffectiveReferenzen(): Promise<ReferenzenConfig> {
  * Order: when DB overrides exist, the override array order wins (so admins can
  * reorder cards). Static services not yet present in the overrides are appended
  * at the end so newly-added entries from `config.services` don't disappear.
+ *
+ * Override-only entries (no matching static slug) are admin-created cards and
+ * are returned as-is with empty fallbacks for optional pageContent fields, so
+ * the homepage and detail page render without crashing.
  */
-export async function getEffectiveServices(): Promise<(HomepageService & { hidden?: boolean })[]> {
+export async function getEffectiveServices(): Promise<(HomepageService & { hidden?: boolean; meta?: string })[]> {
   const overrides = await getServiceConfig(BRAND).catch(() => null);
   if (!overrides) return config.services;
 
@@ -51,6 +55,7 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
       price: o.price ?? svc.price,
       features: o.features ?? svc.features,
       hidden: o.hidden ?? false,
+      meta: o.meta,
       pageContent: pc
         ? {
             headline: pc.headline ?? svc.pageContent.headline,
@@ -64,11 +69,33 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
     };
   };
 
+  const fromOverride = (o: typeof overrides[number]): HomepageService & { hidden?: boolean; meta?: string } => {
+    const pc = o.pageContent ?? {};
+    return {
+      slug: o.slug,
+      title: o.title ?? '',
+      description: o.description ?? '',
+      icon: o.icon ?? '✨',
+      features: o.features ?? [],
+      price: o.price ?? '',
+      hidden: o.hidden ?? false,
+      meta: o.meta,
+      pageContent: {
+        headline: pc.headline ?? o.title ?? '',
+        intro: pc.intro ?? o.description ?? '',
+        forWhom: pc.forWhom ?? [],
+        sections: pc.sections ?? [],
+        pricing: pc.pricing ?? [],
+        faq: pc.faq ?? [],
+      },
+    };
+  };
+
   const overrideSlugs = new Set(overrides.map((o) => o.slug));
   const fromOverrides: (HomepageService & { hidden?: boolean })[] = [];
   for (const o of overrides) {
     const svc = staticBySlug.get(o.slug);
-    if (svc) fromOverrides.push(merge(svc, o));
+    fromOverrides.push(svc ? merge(svc, o) : fromOverride(o));
   }
   const missing = config.services.filter((s) => !overrideSlugs.has(s.slug));
   return [...fromOverrides, ...missing];

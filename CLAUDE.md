@@ -239,7 +239,7 @@ task test:all                         # Run all offline tests: unit + manifests 
 ```
 
 Test IDs: `FA-01`--`FA-29` (functional), `SA-01`--`SA-10` (security), `NFA-01`--`NFA-09` (non-functional), `AK-03`, `AK-04` (acceptance).
-Note: FA-01..FA-08, FA-09 (InvoiceNinja bucket), FA-22, SA-06, SA-09 are fully skipped (Mattermost/InvoiceNinja removed from stack). Many other tests have individual test cases conditionally skipped.
+Note: gaps in FA-/SA- numbering (FA-01..08, FA-22, SA-06, SA-09) reflect the removal of Mattermost and InvoiceNinja from the stack — see git history. Many other tests have individual test cases conditionally skipped when their preconditions are not met.
 
 ## Architecture
 

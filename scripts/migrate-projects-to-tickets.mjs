@@ -199,6 +199,26 @@ async function migrate(client, dryRun) {
        AND cls.relname NOT IN ('projects','sub_projects','project_tasks','project_attachments')
   `)).rows;
 
+  // Guard: this script handles single-column external FKs only. If any FK
+  // ever becomes composite, the per-row ADD CONSTRAINT loop below would emit
+  // duplicate constraints. Fail loudly instead.
+  const compositeCheck = await client.query(`
+    SELECT cls.relname AS tabname, con.conname,
+           array_length(con.conkey, 1) AS ncols
+      FROM pg_constraint con
+      JOIN pg_class      cls ON cls.oid = con.conrelid
+      JOIN pg_class      ref ON ref.oid = con.confrelid
+     WHERE con.contype = 'f'
+       AND ref.relname IN ('projects','sub_projects','project_tasks','project_attachments')
+       AND cls.relname NOT IN ('projects','sub_projects','project_tasks','project_attachments')
+       AND array_length(con.conkey, 1) > 1
+  `);
+  if (compositeCheck.rowCount > 0) {
+    const offenders = compositeCheck.rows
+      .map(r => `${r.tabname}.${r.conname} (${r.ncols} cols)`).join(', ');
+    throw new Error(`Composite FK re-point not supported: ${offenders}`);
+  }
+
   // deltype: 'a'=NO ACTION, 'r'=RESTRICT, 'c'=CASCADE, 'n'=SET NULL, 'd'=SET DEFAULT.
   const DELTYPE = { a: 'NO ACTION', r: 'RESTRICT', c: 'CASCADE', n: 'SET NULL', d: 'SET DEFAULT' };
 

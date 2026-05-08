@@ -1171,6 +1171,12 @@ tasks:
           # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
           # transformer would otherwise force them into workspace).
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml | kubectl apply -f -
+          # System-test failure-loop cleanup CronJobs — applied separately so
+          # they land in WEBSITE_NAMESPACE alongside the website pod (kustomize's
+          # top-level `namespace: workspace` would otherwise force them into the
+          # wrong ns). Default WEBSITE_NAMESPACE=website if not set in env file.
+          WEBSITE_NAMESPACE="${WEBSITE_NAMESPACE:-website}" envsubst "\$WEBSITE_NAMESPACE" \
+            < k3d/cronjob-systemtest-cleanup.yaml | kubectl apply -f -
         else
           # Prod: build from overlay, apply to target cluster
           # Apply SealedSecret first so the Secret is ready when pods start
@@ -1216,6 +1222,10 @@ tasks:
           # transformer would otherwise force them into the workspace ns,
           # where the website pod does NOT live).
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml \
+            | kubectl --context "$ENV_CONTEXT" apply -f -
+          # System-test failure-loop cleanup CronJobs — applied separately so
+          # they land in WEBSITE_NAMESPACE alongside the website pod.
+          envsubst "\$WEBSITE_NAMESPACE" < k3d/cronjob-systemtest-cleanup.yaml \
             | kubectl --context "$ENV_CONTEXT" apply -f -
         fi
       - task: keycloak:sync

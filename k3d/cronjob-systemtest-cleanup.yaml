@@ -1,0 +1,118 @@
+# System-test failure-loop cleanup CronJobs.
+#
+# Two jobs in one file:
+#   - systemtest-cleanup  (hourly)  → purges fixtures + expired magic-link tokens
+#   - systemtest-outbox   (every 5m) → drains the failure-bridge outbox + reconciles
+#
+# Both target HTTP endpoints on the website service (`website.${WEBSITE_NAMESPACE}`)
+# and authenticate via the shared CRON_SECRET — same pattern as the billing CronJobs
+# (cronjob-monthly-billing.yaml, cronjob-dunning-detection.yaml). Running through HTTP
+# means the CronJob image stays a tiny curl container and we don't have to ship a
+# separate Node/tsx build into the cluster.
+#
+# Namespace placement: ${WEBSITE_NAMESPACE} (per Task 3 — the website Deployment
+# lives there, not in workspace). The kustomize top-level `namespace: workspace`
+# transformer would otherwise force these into the wrong ns, so this manifest is
+# applied separately by `task workspace:deploy` via envsubst (see Taskfile).
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: systemtest-cleanup
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl:8.7.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf -X POST \
+                    -H "X-Cron-Secret: $CRON_SECRET" \
+                    "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/admin/systemtest/cleanup-fixtures"
+              env:
+                - name: WEBSITE_NAMESPACE
+                  value: "${WEBSITE_NAMESPACE}"
+                - name: CRON_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: CRON_SECRET
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: systemtest-outbox
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl:8.7.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf -X POST \
+                    -H "X-Cron-Secret: $CRON_SECRET" \
+                    "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/admin/systemtest/drain-outbox"
+              env:
+                - name: WEBSITE_NAMESPACE
+                  value: "${WEBSITE_NAMESPACE}"
+                - name: CRON_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: CRON_SECRET
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi

@@ -15,6 +15,10 @@ const priorityFilter = Astro.url.searchParams.get('priority') ?? '';
 const qFilter        = Astro.url.searchParams.get('q')        ?? '';
 const errorMsg       = Astro.url.searchParams.get('error')    ?? '';
 const saved          = Astro.url.searchParams.get('saved')    ?? '';
+const prefillCustomerEmail = Astro.url.searchParams.get('customerEmail') ?? '';
+// When a customer email is supplied (e.g. from /admin/<clientId>?tab=projekte),
+// resolve it to the matching customer ID so the dialog opens pre-selected.
+let prefillCustomerId = '';
 
 let projects: Project[] = [];
 let customers: Customer[] = [];
@@ -29,6 +33,11 @@ try {
 } catch (err) {
   console.error('[admin/projekte] DB error:', err);
   dbError = 'Datenbankfehler beim Laden der Projekte.';
+}
+
+if (prefillCustomerEmail) {
+  const m = customers.find(c => (c.email ?? '').toLowerCase() === prefillCustomerEmail.toLowerCase());
+  if (m) prefillCustomerId = m.id;
 }
 
 const today = new Date();
@@ -380,11 +389,12 @@ const labelCls  = 'block text-xs text-muted mb-1';
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class={labelCls}>Verantwortlicher Kunde</label>
-          <select name="customerId" class={selectCls}>
-            <option value="">— kein Kunde —</option>
-            {customers.map(c => <option value={c.id}>{c.name} ({c.customer_number ?? c.email})</option>)}
+          <label class={labelCls}>Verantwortlicher Kunde <span class="text-red-400">*</span></label>
+          <select name="customerId" required class={selectCls}>
+            <option value="" disabled selected={!prefillCustomerId}>— Kunden wählen —</option>
+            {customers.map(c => <option value={c.id} selected={c.id === prefillCustomerId}>{c.name} ({c.customer_number ?? c.email})</option>)}
           </select>
+          <p class="text-xs text-muted mt-1">Erforderlich. Projekte ohne Kundenzuordnung sind nicht möglich.</p>
         </div>
         <div>
           <label class={labelCls}>Verantwortlicher Admin</label>
@@ -410,6 +420,11 @@ const labelCls  = 'block text-xs text-muted mb-1';
   const dialog = document.getElementById('create-dialog') as HTMLDialogElement;
   document.getElementById('create-btn')?.addEventListener('click', () => dialog.showModal());
   document.getElementById('create-cancel')?.addEventListener('click', () => dialog.close());
+  // Auto-open dialog when a customerEmail prefill is in the URL (deep link from
+  // /admin/<clientId>?tab=projekte). Strip the query so a reload doesn't reopen.
+  if (new URLSearchParams(location.search).has('customerEmail')) {
+    dialog.showModal();
+  }
 
   // Confirm before delete
   document.querySelectorAll<HTMLFormElement>('.delete-form').forEach(form => {

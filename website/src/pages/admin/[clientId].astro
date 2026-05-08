@@ -46,9 +46,10 @@ try {
 const userRoleIds = new Set(userRoles.map(r => r.id));
 
 let clientProjects: { id: string; name: string }[] = [];
+let clientFullProjects: Awaited<ReturnType<typeof listProjectsForCustomer>> = [];
 try {
-  const all = await listProjectsForCustomer(clientId);
-  clientProjects = all.map(p => ({ id: p.id, name: p.name }));
+  clientFullProjects = await listProjectsForCustomer(clientId);
+  clientProjects = clientFullProjects.map(p => ({ id: p.id, name: p.name }));
 } catch {
   // Projekte-Dropdown bleibt leer
 }
@@ -304,6 +305,7 @@ try {
       <nav class="flex gap-1 mb-8 border-b border-dark-lighter overflow-x-auto" data-testid="admin-client-tabs">
         {[
           { id: 'bookings', label: 'Termine' },
+          { id: 'projekte', label: 'Projekte' },
           { id: 'invoices', label: 'Rechnungen' },
           { id: 'notes', label: 'Notizen' },
           { id: 'files', label: 'Dateien' },
@@ -330,6 +332,50 @@ try {
       <!-- Tab content -->
       <div class="bg-dark-light rounded-xl border border-dark-lighter p-6">
         {tab === 'bookings' && <BookingsTab clientEmail={client.email ?? ''} />}
+        {tab === 'projekte' && (
+          <div class="flex flex-col gap-4" data-testid="admin-client-projekte">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-muted">
+                {clientFullProjects.length === 0
+                  ? 'Keine Projekte für diesen Kunden.'
+                  : `${clientFullProjects.length} ${clientFullProjects.length === 1 ? 'Projekt' : 'Projekte'} zugeordnet.`}
+              </p>
+              <a
+                href={`/admin/projekte?customerEmail=${encodeURIComponent(client.email ?? '')}`}
+                class="px-3 py-1.5 bg-gold/20 text-gold border border-gold/30 rounded-lg text-xs font-semibold hover:bg-gold/30 transition-colors">
+                + Neues Projekt anlegen
+              </a>
+            </div>
+            {clientFullProjects.length > 0 && (
+              <ul class="flex flex-col gap-3" data-testid="admin-client-projekte-list">
+                {clientFullProjects.map(p => {
+                  const total = p.tasks.length;
+                  const done  = p.tasks.filter(t => t.status === 'erledigt').length;
+                  const pct   = total === 0 ? 0 : Math.round((done / total) * 100);
+                  return (
+                    <li class="bg-dark rounded-xl border border-dark-lighter p-4" data-testid="admin-client-projekt-row" data-project-id={p.id}>
+                      <div class="flex items-start justify-between gap-3 mb-2">
+                        <div class="min-w-0">
+                          <a href={`/admin/projekte/${p.id}`} class="text-sm font-semibold text-light hover:text-gold transition-colors truncate block">{p.name}</a>
+                          {p.description && <p class="text-xs text-muted mt-0.5 truncate">{p.description}</p>}
+                        </div>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-dark-light border border-dark-lighter text-muted capitalize whitespace-nowrap flex-shrink-0">{p.status}</span>
+                      </div>
+                      {total > 0 && (
+                        <>
+                          <div class="w-full bg-dark-light rounded-full h-1.5 overflow-hidden mb-1.5">
+                            <div class={`h-full rounded-full ${pct === 100 ? 'bg-green-500' : 'bg-gold'}`} style={`width:${pct}%`}></div>
+                          </div>
+                          <p class="text-xs text-muted">{done}/{total} Aufgaben erledigt</p>
+                        </>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
         {tab === 'invoices' && <InvoicesTab clientEmail={client.email ?? ''} />}
         {tab === 'notes' && (
           <ClientNotesTab

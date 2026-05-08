@@ -8,6 +8,26 @@
   let msg = $state('');
   let msgOk = $state(true);
 
+  function addWhyMePoint() {
+    data.whyMePoints = [...data.whyMePoints, { title: '', text: '' }];
+  }
+  function removeWhyMePoint(i: number) {
+    data.whyMePoints = data.whyMePoints.filter((_: unknown, idx: number) => idx !== i);
+  }
+  function moveWhyMePoint(i: number, delta: number) {
+    const next = i + delta;
+    if (next < 0 || next >= data.whyMePoints.length) return;
+    const list = [...data.whyMePoints];
+    [list[i], list[next]] = [list[next], list[i]];
+    data.whyMePoints = list;
+  }
+  function addStat() {
+    data.stats = [...data.stats, { value: '', label: '' }];
+  }
+  function removeStat(i: number) {
+    data.stats = data.stats.filter((_: unknown, idx: number) => idx !== i);
+  }
+
   async function save() {
     saving = true; msg = '';
     try {
@@ -67,9 +87,15 @@
 
   <!-- Stats -->
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Statistiken</h3>
-    {#each data.stats as stat, i}
-      <div class="grid grid-cols-2 gap-4">
+    <div class="flex justify-between items-center">
+      <h3 class="text-xl font-bold text-light font-serif">Statistiken</h3>
+      <button type="button" onclick={addStat}
+        class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80">
+        + Hinzufügen
+      </button>
+    </div>
+    {#each data.stats as stat, i (i)}
+      <div class="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
         <div>
           <label class={labelCls}>Wert #{i + 1}</label>
           <input type="text" bind:value={stat.value} class={inputCls} />
@@ -78,6 +104,8 @@
           <label class={labelCls}>Label #{i + 1}</label>
           <input type="text" bind:value={stat.label} class={inputCls} />
         </div>
+        <button type="button" onclick={() => removeStat(i)}
+          class="px-2 py-2 text-xs text-red-400 hover:text-red-300">Entfernen</button>
       </div>
     {/each}
   </div>
@@ -101,7 +129,13 @@
 
   <!-- Why Me -->
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">„Warum ich?"-Abschnitt</h3>
+    <div class="flex justify-between items-center">
+      <h3 class="text-xl font-bold text-light font-serif">„Warum ich?"-Abschnitt</h3>
+      <button type="button" onclick={addWhyMePoint} data-testid="whyme-add"
+        class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80">
+        + Passage hinzufügen
+      </button>
+    </div>
     <div>
       <label class={labelCls}>Überschrift</label>
       <input type="text" bind:value={data.whyMeHeadline} class={inputCls} />
@@ -110,14 +144,30 @@
       <label class={labelCls}>Einleitungstext</label>
       <textarea bind:value={data.whyMeIntro} rows={3} class="{inputCls} resize-none"></textarea>
     </div>
-    {#each data.whyMePoints as pt, i}
-      <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2">
+    {#if data.whyMePoints.length === 0}
+      <p class="text-sm text-muted italic">Noch keine Passagen. Klicke auf „+ Passage hinzufügen".</p>
+    {/if}
+    {#each data.whyMePoints as pt, i (i)}
+      <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2" data-testid="whyme-point">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs text-muted uppercase tracking-wide">Punkt {i + 1}</span>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick={() => moveWhyMePoint(i, -1)} disabled={i === 0}
+              aria-label="Nach oben verschieben"
+              class="px-2 py-0.5 text-xs text-muted hover:text-light disabled:opacity-30 disabled:cursor-not-allowed">↑</button>
+            <button type="button" onclick={() => moveWhyMePoint(i, 1)} disabled={i === data.whyMePoints.length - 1}
+              aria-label="Nach unten verschieben"
+              class="px-2 py-0.5 text-xs text-muted hover:text-light disabled:opacity-30 disabled:cursor-not-allowed">↓</button>
+            <button type="button" onclick={() => removeWhyMePoint(i)} data-testid="whyme-remove"
+              class="ml-2 px-2 py-0.5 text-xs text-red-400 hover:text-red-300">Entfernen</button>
+          </div>
+        </div>
         <div>
-          <label class={labelCls}>Titel Punkt {i + 1}</label>
+          <label class={labelCls}>Titel</label>
           <input type="text" bind:value={pt.title} class={inputCls} />
         </div>
         <div>
-          <label class={labelCls}>Text Punkt {i + 1}</label>
+          <label class={labelCls}>Text</label>
           <textarea bind:value={pt.text} rows={2} class="{inputCls} resize-none"></textarea>
         </div>
       </div>

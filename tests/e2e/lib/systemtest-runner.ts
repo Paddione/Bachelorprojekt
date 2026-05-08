@@ -210,6 +210,20 @@ async function clickNext(page: Page): Promise<void> {
   throw new Error('No "Speichern & Weiter / Letzten Schritt / Testprotokoll absenden" button visible');
 }
 
+import type { SystemTestTemplate } from '../../../website/src/lib/system-test-seed-data';
+
+export function deriveOptionsFromSeed(
+  template: Pick<SystemTestTemplate, 'steps'>,
+): Record<number, TestOption> {
+  const out: Record<number, TestOption> = {};
+  template.steps.forEach((step, i) => {
+    if (typeof step.agent_notes === 'string' && step.agent_notes.length > 0) {
+      out[i + 1] = 'teilweise';
+    }
+  });
+  return out;
+}
+
 export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<WalkResult> {
   if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS unset — call ensureAdminPasswordOrSkip in test.beforeEach');
 

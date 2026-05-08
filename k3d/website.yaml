@@ -145,6 +145,10 @@ metadata:
   namespace: ${WEBSITE_NAMESPACE}
 spec:
   replicas: 1
+  # evidence-pvc is RWO; rolling update would deadlock on Multi-Attach. Recreate
+  # terminates the old pod first (~30s downtime) so the new pod can attach.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: website

@@ -188,7 +188,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       },
       {
         question_text: 'Öffne Monitoring (Link) — scrolle zum Abschnitt „Test-Results-Panel" und prüfe ob alle System-Test-Templates mit Last-Result/Last-Success-Status sichtbar sind.',
-        expected_result: 'Alle 10 System-Test-Templates sichtbar mit Last-Result/Last-Success-Status.',
+        expected_result: 'Alle 12 System-Test-Templates sichtbar mit Last-Result/Last-Success-Status.',
         test_function_url: '/admin/monitoring', test_role: 'admin',
       },
     ],

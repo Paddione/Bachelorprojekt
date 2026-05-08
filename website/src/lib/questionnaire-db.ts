@@ -535,7 +535,7 @@ export async function dismissQAssignment(id: string, reason: string): Promise<QA
 
 export async function countPendingQAssignmentsForCustomer(customerId: string): Promise<number> {
   const r = await pool.query(
-    `SELECT COUNT(*)::int FROM questionnaire_assignments
+    `SELECT COUNT(*)::int AS count FROM questionnaire_assignments
      WHERE customer_id = $1 AND status IN ('pending','in_progress')`,
     [customerId],
   );

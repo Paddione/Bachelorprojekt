@@ -329,9 +329,9 @@ export async function getTicketTimeline(brand: string, id: string): Promise<Time
               l.created_at,
               pe.title AS pr_title, pe.merged_at AS pr_merged_at, pe.merged_by AS pr_merged_by
          FROM tickets.ticket_links l
-         JOIN tickets.tickets ot ON ot.id = l.to_id
+         JOIN tickets.tickets ot ON ot.id = l.to_id AND ot.brand = $2
          LEFT JOIN tickets.pr_events pe ON pe.pr_number = l.pr_number
-        WHERE l.from_id = $1`, [id]),
+        WHERE l.from_id = $1`, [id, brand]),
   ]);
 
   const entries: TimelineEntry[] = [];

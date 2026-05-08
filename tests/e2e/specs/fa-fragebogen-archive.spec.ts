@@ -7,27 +7,24 @@
 //      (snapshot row + KPI view populated); reassign creates a new pending row.
 //   2. Replay button is visible on archived system-test assignments with evidence.
 //
-// Both tests require an authenticated admin session and seed data in the DB.
-// DB seeding is done via the admin API (POST /api/admin/fragebogen/seed-e2e)
-// when available, or skips gracefully when E2E_ADMIN_PASS is unset or the
-// seed endpoint is absent (CI without secrets / cluster without feature).
-//
-// The pg module is NOT available in this test package — all seeding goes
-// through the application's own API endpoints.
+// Skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect, type Page } from '@playwright/test';
+import { Pool } from 'pg';
 
-const BASE       = process.env.WEBSITE_URL    ?? 'http://localhost:4321';
+const BASE       = process.env.WEBSITE_URL         ?? 'http://localhost:4321';
+const DB_URL     = process.env.SESSIONS_DATABASE_URL
+                || 'postgresql://website:devwebsitedb@localhost:5432/website';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
-async function loginAsAdmin(page: Page, returnTo = '/admin/fragebogen'): Promise<void> {
+async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
   await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
   await page.waitForURL(/realms\/workspace/, { timeout: 20_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
-  await page.waitForURL(new RegExp(returnTo.replace(/\//g, '\\/')), { timeout: 20_000 });
+  await page.waitForURL(new RegExp(returnTo.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')), { timeout: 20_000 });
 }
 
 test.describe('FA: Fragebogen archive → reassign → replay', () => {
@@ -37,81 +34,122 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
     }
   });
 
-  // ── Test 1: archive + reassign flow ──────────────────────────────────────
-  //
-  // Seed a submitted assignment via the admin seed API.
-  // Archive it through the detail UI.
-  // Assert snapshot row and KPI view are populated (via /api/admin/fragebogen/:id/kpi).
-  // Reassign via the [data-testid="reassign-questionnaire"] button.
-  // Assert navigation to new pending assignment.
   test('archive turns submitted into frozen datapoint; reassign creates new row', async ({ page }) => {
-    // Seed a submitted assignment — skip if the seed endpoint is unavailable.
-    const seedRes = await page.request.post(`${BASE}/api/admin/fragebogen/seed-e2e`, {
-      data: { scenario: 'submitted' },
-    });
-    test.skip(
-      seedRes.status() === 404,
-      'Seed endpoint /api/admin/fragebogen/seed-e2e not available — skipping',
+    const pool = new Pool({ connectionString: DB_URL });
+    const customerId = (await pool.query(`SELECT gen_random_uuid() AS u`)).rows[0].u;
+    const tpl = (await pool.query(
+      `INSERT INTO questionnaire_templates (title, description, instructions, status)
+       VALUES ('e2e-archive', '', '', 'published') RETURNING id`,
+    )).rows[0].id;
+    const dim = (await pool.query(
+      `INSERT INTO questionnaire_dimensions (template_id, name, position, threshold_mid, threshold_high)
+       VALUES ($1, 'D', 0, 5, 10) RETURNING id`,
+      [tpl],
+    )).rows[0].id;
+    const q = (await pool.query(
+      `INSERT INTO questionnaire_questions (template_id, position, question_text, question_type)
+       VALUES ($1, 0, 'q', 'likert_5') RETURNING id`,
+      [tpl],
+    )).rows[0].id;
+    await pool.query(
+      `INSERT INTO questionnaire_answer_options (question_id, option_key, label, dimension_id, weight)
+       VALUES ($1, '4', 'x', $2, 1)`,
+      [q, dim],
     );
-    test.skip(
-      !seedRes.ok(),
-      `Seed endpoint returned ${seedRes.status()} — skipping`,
+    const a = (await pool.query(
+      `INSERT INTO questionnaire_assignments (customer_id, template_id, status, submitted_at)
+       VALUES ($1, $2, 'submitted', now()) RETURNING id`,
+      [customerId, tpl],
+    )).rows[0].id;
+    await pool.query(
+      `INSERT INTO questionnaire_answers (assignment_id, question_id, option_key)
+       VALUES ($1, $2, '4')`,
+      [a, q],
     );
-    const { assignmentId } = await seedRes.json() as { assignmentId: string };
 
-    await loginAsAdmin(page, `/admin/fragebogen/${assignmentId}`);
+    await loginAsAdmin(page, `/admin/fragebogen/${a}`);
 
-    // Archive via the #archive-btn button; accept the confirmation dialog.
+    // Archive via UI
     page.on('dialog', dlg => dlg.accept());
-    const archiveBtn = page.locator('#archive-btn');
-    await expect(archiveBtn).toBeVisible({ timeout: 10_000 });
-    await archiveBtn.click();
+    await expect(page.locator('#archive-btn')).toBeVisible({ timeout: 10_000 });
+    await page.click('#archive-btn');
     await page.waitForLoadState('networkidle');
-
-    // UI confirms archived state.
     await expect(page.locator('text=Archiviert').first()).toBeVisible({ timeout: 10_000 });
 
-    // KPI API returns snapshot row for the archived assignment.
-    const kpiRes = await page.request.get(`${BASE}/api/admin/fragebogen/${assignmentId}/kpi`);
-    expect(kpiRes.ok()).toBeTruthy();
-    const kpi = await kpiRes.json() as Array<{ dimension_name: string; final_score: number; level: string }>;
-    expect(kpi.length).toBeGreaterThanOrEqual(1);
+    // Snapshot row exists
+    const snap = await pool.query(
+      `SELECT count(*)::int AS n FROM questionnaire_assignment_scores WHERE assignment_id = $1`,
+      [a],
+    );
+    expect(snap.rows[0].n).toBe(1);
 
-    // Reassign — click the button, accept dialog if present, navigate to new wizard.
-    const reassignBtn = page.locator('[data-testid="reassign-questionnaire"]');
-    await expect(reassignBtn).toBeVisible({ timeout: 10_000 });
-    page.on('dialog', dlg => dlg.accept());
-    await reassignBtn.click();
+    // KPI view returns the archived row
+    const kpi = await pool.query(
+      `SELECT assignment_id, dimension_name, final_score, level
+         FROM bachelorprojekt.v_questionnaire_kpi
+        WHERE assignment_id = $1`,
+      [a],
+    );
+    expect(kpi.rows.length).toBe(1);
+    expect(kpi.rows[0].dimension_name).toBe('D');
+    expect(kpi.rows[0].final_score).toBe(4);
+
+    // Reassign — confirms via dialog, navigates to new wizard
+    await expect(page.locator('[data-testid="reassign-questionnaire"]')).toBeVisible({ timeout: 10_000 });
+    await page.click('[data-testid="reassign-questionnaire"]');
     await page.waitForURL(/\/portal\/fragebogen\/[0-9a-f-]+/, { timeout: 20_000 });
-
     const newId = page.url().split('/').pop()!.split('?')[0];
-    expect(newId).not.toBe(assignmentId);
-    expect(newId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(newId).not.toBe(a);
+
+    // Source preserved, new row pending
+    const rows = await pool.query(
+      `SELECT id, status, archived_at FROM questionnaire_assignments
+        WHERE customer_id = $1 ORDER BY assigned_at`,
+      [customerId],
+    );
+    expect(rows.rows.length).toBe(2);
+    expect(rows.rows[0].status).toBe('archived');
+    expect(rows.rows[0].archived_at).not.toBeNull();
+    expect(rows.rows[1].status).toBe('pending');
+    expect(rows.rows[1].archived_at).toBeNull();
+
+    await pool.end();
   });
 
-  // ── Test 2: replay button visibility ─────────────────────────────────────
-  //
-  // Seed an archived system-test assignment with evidence via the seed API.
-  // Navigate to the admin detail page.
-  // Assert .replay-btn is visible and contains the attempt number.
-  test('replay button surfaces for archived system-test with evidence', async ({ page }) => {
-    const seedRes = await page.request.post(`${BASE}/api/admin/fragebogen/seed-e2e`, {
-      data: { scenario: 'archived-with-evidence' },
-    });
-    test.skip(
-      seedRes.status() === 404,
-      'Seed endpoint /api/admin/fragebogen/seed-e2e not available — skipping',
+  test('replay button surfaces and shows attempt number for archived system-test with evidence', async ({ page }) => {
+    const pool = new Pool({ connectionString: DB_URL });
+    const customerId = (await pool.query(`SELECT gen_random_uuid() AS u`)).rows[0].u;
+    const tpl = (await pool.query(
+      `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
+       VALUES ('e2e-replay', '', '', 'published', true) RETURNING id`,
+    )).rows[0].id;
+    const q = (await pool.query(
+      `INSERT INTO questionnaire_questions (template_id, position, question_text, question_type)
+       VALUES ($1, 0, 'step', 'test_step') RETURNING id`,
+      [tpl],
+    )).rows[0].id;
+    const a = (await pool.query(
+      `INSERT INTO questionnaire_assignments (customer_id, template_id, status, submitted_at, archived_at)
+       VALUES ($1, $2, 'archived', now(), now()) RETURNING id`,
+      [customerId, tpl],
+    )).rows[0].id;
+    await pool.query(
+      `INSERT INTO questionnaire_answers (assignment_id, question_id, option_key)
+       VALUES ($1, $2, 'erfüllt')`,
+      [a, q],
     );
-    test.skip(
-      !seedRes.ok(),
-      `Seed endpoint returned ${seedRes.status()} — skipping`,
+    await pool.query(
+      `INSERT INTO questionnaire_test_evidence (assignment_id, question_id, attempt, replay_path)
+       VALUES ($1, $2, 0, '/tmp/replay-0')`,
+      [a, q],
     );
-    const { assignmentId } = await seedRes.json() as { assignmentId: string };
 
-    await loginAsAdmin(page, `/admin/fragebogen/${assignmentId}`);
+    await loginAsAdmin(page, `/admin/fragebogen/${a}`);
 
     const replayBtn = page.locator('.replay-btn').first();
     await expect(replayBtn).toBeVisible({ timeout: 10_000 });
-    await expect(replayBtn).toContainText('Versuch');
+    await expect(replayBtn).toContainText('Versuch 0');
+
+    await pool.end();
   });
 });

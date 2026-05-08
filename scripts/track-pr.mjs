@@ -42,34 +42,41 @@ export function parsePr(pr) {
 }
 
 export async function writeRowToDb(row, pgClient) {
-  // Drop requirement_id if it doesn't exist in bachelorprojekt.requirements —
-  // otherwise the FK rejects the row and the PR never lands in the timeline.
-  let requirementId = row.requirement_id;
-  if (requirementId) {
-    const { rowCount } = await pgClient.query(
-      'SELECT 1 FROM bachelorprojekt.requirements WHERE id = $1',
-      [requirementId]
-    );
-    if (rowCount === 0) requirementId = null;
-  }
-
+  // 1. Insert PR ledger row into tickets.pr_events (idempotent on pr_number).
   await pgClient.query(
-    `INSERT INTO bachelorprojekt.features
+    `INSERT INTO tickets.pr_events
        (pr_number, title, description, category, scope, brand,
-        requirement_id, merged_at, merged_by, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'shipped')
+        merged_at, merged_by, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'shipped')
      ON CONFLICT (pr_number) DO UPDATE SET
        title = EXCLUDED.title,
        description = EXCLUDED.description,
        category = EXCLUDED.category,
        scope = EXCLUDED.scope,
        brand = EXCLUDED.brand,
-       requirement_id = EXCLUDED.requirement_id,
        merged_at = EXCLUDED.merged_at,
        merged_by = EXCLUDED.merged_by`,
     [row.pr_number, row.title, row.description, row.category, row.scope, row.brand,
-     requirementId, row.merged_at, row.merged_by]
+     row.merged_at, row.merged_by]
   );
+
+  // 2. Requirement reference → tickets.ticket_links row (kind='fixes').
+  // Mirrors the bug-ref pattern below: from_id=to_id=feature_ticket.id.
+  if (row.requirement_id) {
+    const t = await pgClient.query(
+      `SELECT id FROM tickets.tickets
+        WHERE type='feature' AND external_id = $1`,
+      [row.requirement_id]);
+    if (t.rowCount > 0) {
+      await pgClient.query(
+        `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+         VALUES ($1, $1, 'fixes', $2)
+         ON CONFLICT (from_id, to_id, kind) DO NOTHING`,
+        [t.rows[0].id, row.pr_number]);
+    } else {
+      console.log(`skip requirement link ${row.requirement_id}: feature ticket not found`);
+    }
+  }
 
   // Map external_id (BR-...) -> ticket UUID, transition through tickets.tickets.
   // We use raw SQL because track-pr.mjs runs as a Node script outside the website
@@ -131,6 +138,31 @@ export async function writeRowToDb(row, pgClient) {
 import { readFileSync, writeFileSync, readdirSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
+// Self-heal: create tickets.pr_events if it does not exist yet. The website
+// pod creates it lazily via initTicketsSchema() in website/src/lib/tickets-db.ts,
+// but the tracking-import CronJob may run before any website-write path has
+// fired post-deploy. DDL must stay byte-identical to tickets-db.ts.
+async function ensurePrEventsSchema(pgClient) {
+  await pgClient.query(`
+    CREATE TABLE IF NOT EXISTS tickets.pr_events (
+      pr_number    INTEGER PRIMARY KEY,
+      title        TEXT NOT NULL,
+      description  TEXT,
+      category     TEXT NOT NULL,
+      scope        TEXT,
+      brand        TEXT,
+      merged_at    TIMESTAMPTZ NOT NULL,
+      merged_by    TEXT,
+      status       TEXT NOT NULL DEFAULT 'shipped'
+                   CHECK (status IN ('planned','in_progress','shipped','reverted')),
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pgClient.query(`CREATE INDEX IF NOT EXISTS pr_events_merged_at_idx ON tickets.pr_events (merged_at DESC)`);
+  await pgClient.query(`CREATE INDEX IF NOT EXISTS pr_events_brand_idx     ON tickets.pr_events (brand) WHERE brand IS NOT NULL`);
+  await pgClient.query(`CREATE INDEX IF NOT EXISTS pr_events_category_idx  ON tickets.pr_events (category)`);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const mode = args[0];
@@ -163,6 +195,7 @@ async function main() {
     const { default: pg } = await import('pg');
     const client = new pg.Client({ connectionString: process.env.TRACKING_DB_URL });
     await client.connect();
+    await ensurePrEventsSchema(client);     // self-heal: create table before first write
     let count = 0;
     const files = readdirSync('tracking/pending').filter(f => f.endsWith('.json'));
     for (const f of files) {

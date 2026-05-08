@@ -45,6 +45,12 @@ async function migrate(client, dryRun) {
     fksRePointed: 0, viewsCreated: 0, unknownStatus: 0,
   };
 
+  // Make sure the new `notes` column exists. The website pod's
+  // initTicketsSchema() also runs this, but the migration may be invoked
+  // before any website request has hit the new image — in which case the
+  // column would be missing and the INSERTs below would fail.
+  await client.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS notes TEXT`);
+
   const projectsIsTable    = await isBaseTable(client, 'public', 'projects');
   const subProjectsIsTable = await isBaseTable(client, 'public', 'sub_projects');
   const tasksIsTable       = await isBaseTable(client, 'public', 'project_tasks');

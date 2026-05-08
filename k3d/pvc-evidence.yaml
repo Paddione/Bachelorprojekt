@@ -1,0 +1,18 @@
+# ── Evidence PVC ──────────────────────────────────────────────────────────────
+# Stores rrweb DOM recordings for system-test runs. Mounted by the website
+# Deployment at /var/evidence (see k3d/website.yaml). Lives in the website
+# namespace so a pod in ${WEBSITE_NAMESPACE} can mount it (PVCs are namespace-
+# scoped). NOT included in k3d/kustomization.yaml — that base sets `namespace:
+# workspace`, which would force this PVC into a namespace where the website pod
+# does not run. Instead, the file is applied alongside k3d/website.yaml by
+# `task website:deploy` after envsubst (see Taskfile.yml `website:deploy`).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: evidence-pvc
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi

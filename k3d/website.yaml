@@ -351,6 +351,11 @@ spec:
                   key: INTERNAL_API_TOKEN
             - name: LIVEKIT_SERVICE_URL
               value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
+            - name: EVIDENCE_ROOT
+              value: "/var/evidence"
+          volumeMounts:
+            - name: evidence
+              mountPath: /var/evidence
           ports:
             - containerPort: 4321
           resources:
@@ -374,6 +379,10 @@ spec:
             initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
+      volumes:
+        - name: evidence
+          persistentVolumeClaim:
+            claimName: evidence-pvc
 ---
 # ── Website Service ───────────────────────────────────────────────────────────
 apiVersion: v1

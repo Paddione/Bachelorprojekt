@@ -472,10 +472,10 @@ export async function getMeetingsForClient(
            m.meeting_type as "meetingType",
            m.scheduled_at as "scheduledAt",
            m.created_at   as "createdAt",
-           m.project_id as "projectId", p.name as "projectName"
+           m.project_id as "projectId", p.title as "projectName"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN projects p ON m.project_id = p.id
+    LEFT JOIN tickets.tickets p ON m.project_id = p.id
     WHERE c.email = $1`;
 
   const query = onlyReleased
@@ -520,12 +520,12 @@ export async function listAllMeetings(opts?: {
            m.created_at AS "createdAt",
            c.name AS "customerName", c.email AS "customerEmail",
            c.id AS "customerId",
-           p.name AS "projectName", p.id AS "projectId",
+           p.title AS "projectName", p.id AS "projectId",
            EXISTS(SELECT 1 FROM transcripts t WHERE t.meeting_id = m.id) AS "hasTranscript",
            (SELECT COUNT(*) FROM meeting_artifacts a WHERE a.meeting_id = m.id)::int AS "artifactCount"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN projects p ON m.project_id = p.id
+    LEFT JOIN tickets.tickets p ON m.project_id = p.id
     ${where}
     ORDER BY m.created_at DESC
     LIMIT $1
@@ -556,10 +556,10 @@ export async function getMeetingDetail(meetingId: string): Promise<{
            m.started_at AS "startedAt", m.ended_at AS "endedAt",
            m.created_at AS "createdAt",
            c.name AS "customerName", c.email AS "customerEmail", c.id AS "customerId",
-           p.name AS "projectName", p.id AS "projectId"
+           p.title AS "projectName", p.id AS "projectId"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN projects p ON m.project_id = p.id
+    LEFT JOIN tickets.tickets p ON m.project_id = p.id
     WHERE m.id = $1
   `, [meetingId]);
   if (!r.rows[0]) return null;
@@ -1945,7 +1945,7 @@ export async function getUnbilledBillableEntriesByCustomer(
             c.name               AS "customerName",
             c.email              AS "customerEmail"
      FROM time_entries te
-     JOIN projects  p ON p.id = te.project_id
+     JOIN tickets.tickets p ON p.id = te.project_id
      JOIN customers c ON c.id = p.customer_id
      WHERE te.billable = true
        AND te.stripe_invoice_id IS NULL

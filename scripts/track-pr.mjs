@@ -88,7 +88,12 @@ export async function writeRowToDb(row, pgClient) {
       `SELECT id, status, reporter_email FROM tickets.tickets
         WHERE type = 'bug' AND external_id = $1`, [externalId]);
     if (r.rowCount === 0) {
-      console.log(`skip ${externalId}: not found in tickets.tickets`);
+      // Both clusters' crons process the same tracking/pending JSON files,
+      // but tickets.tickets is brand-scoped (BR-IDs are minted per cluster).
+      // A skip here is normal when the PR mentions a BR-ID from the other
+      // cluster's brand — that link will be created on the cluster that
+      // actually has the bug ticket.
+      console.log(`skip ${externalId}: not on this cluster (cross-brand BR-ID)`);
       continue;
     }
     const t = r.rows[0];

@@ -56,3 +56,36 @@ ${p.publicStatusUrl ? `<p>Status &amp; Verlauf: <a href="${p.publicStatusUrl}">$
     html,
   });
 }
+
+export async function sendPublicCommentEmail(p: {
+  externalId: string;
+  reporterEmail: string;
+  body: string;
+}): Promise<boolean> {
+  const BRAND_NAME    = process.env.BRAND_NAME    ?? 'mentolder';
+  const PROD_DOMAIN   = process.env.PROD_DOMAIN   ?? 'mentolder.de';
+  const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? `info@${PROD_DOMAIN}`;
+  try {
+    await sendEmail({
+      to: p.reporterEmail,
+      bcc: CONTACT_EMAIL,
+      replyTo: CONTACT_EMAIL,
+      subject: `[${p.externalId}] Antwort vom ${BRAND_NAME}-Team`,
+      text:
+`Hallo,
+
+zu Ihrer Meldung ${p.externalId} gibt es eine neue Nachricht vom Team:
+
+${p.body}
+
+Antworten Sie einfach auf diese E-Mail, um zurückzuschreiben.
+
+Mit freundlichen Grüßen
+${BRAND_NAME}`,
+    });
+    return true;
+  } catch (err) {
+    console.error('[sendPublicCommentEmail] failed:', err);
+    return false;
+  }
+}

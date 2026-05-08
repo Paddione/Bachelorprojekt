@@ -1,0 +1,12 @@
+{
+  "pr_number": 599,
+  "title": "auto-file tickets on Playwright/runner.sh failures + run_id linkback",
+  "description": "## Summary\nCloses the largest gap in the continuous test/triage loop: Playwright + tests/runner.sh failures populated `test_runs`/`test_results` only — no ticket was ever filed. Questionnaire-driven failures already auto-filed via `failure-bridge.ts`. Two parallel surfaces, no bridge. This PR adds the bridge.\n\n## Schema\n- `tickets.tickets.source_test_run_id` → `bachelorprojekt.test_runs(id)` (nullable)\n- `tickets.tickets.source_test_result_id` → `bachelorprojekt.test_results(id)` (nullable)\n- Partial unique index `tickets_one_open_per_test_run_test_uq` for dedup per (testId, runId) on open tickets\n\n## Bridge\n`openTestRunFailureTicket({ runId, resultId, testId, name, error, ... })` — idempotent insert; on failure, enqueues `systemtest_failure_outbox` (existing 5-min retry CronJob picks it up).\n\n## Wired callers\n- `POST /api/admin/tests/ingest-e2e` — for each failed Playwright result.\n\n## Follow-up (not in this PR)\n- `.github/workflows/e2e.yml` POST to ingest-e2e endpoint (needs `E2E_INGEST_TOKEN` SealedSecret)\n- `spawnTestRun()` in `test-runner.ts` — wire the same bridge for admin-triggered runs\n\n## Test plan\n- [x] astro check passes\n- [x] Unit test for `openTestRunFailureTicket` dedup + outbox-fallback\n- [ ] Post-deploy: verify schema migration ran; check `tickets.tickets` for `source_test_run_id` column",
+  "category": "feat",
+  "scope": "systemtest",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T19:23:03Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

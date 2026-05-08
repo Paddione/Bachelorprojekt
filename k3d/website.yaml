@@ -307,11 +307,6 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: BRETT_BOT_SECRET
-            - name: STALENESS_WEBHOOK_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: STALENESS_WEBHOOK_SECRET
             - name: MONITORING_WEBHOOK_TOKEN
               valueFrom:
                 secretKeyRef:

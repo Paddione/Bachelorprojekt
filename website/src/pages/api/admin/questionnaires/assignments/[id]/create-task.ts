@@ -5,7 +5,7 @@ import { createProjectTask } from '../../../../../../lib/website-db';
 
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
+  if (!session || !isAdmin(session)) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
 
   const assignment = await getQAssignment(params.id!).catch(() => null);
   if (!assignment) return new Response(JSON.stringify({ error: 'Auftrag nicht gefunden.' }), { status: 404 });

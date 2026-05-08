@@ -9,9 +9,8 @@ import {
   listQQuestions,
   listQAnswerOptionsForTemplate,
   listQAnswers,
-  listQDimensions,
 } from '../../../lib/questionnaire-db';
-import { computeScores } from '../../../lib/compute-scores';
+import { getDisplayScores } from '../../../lib/compute-scores';
 import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -36,13 +35,13 @@ if (ticket.type === 'project') {
   try {
     const assignments = await listQAssignmentsForProject(ticket.id);
     questionnaireBundles = await Promise.all(assignments.map(async a => {
-      const [questions, options, answers, dimensions] = await Promise.all([
+      const [questions, options, answers] = await Promise.all([
         listQQuestions(a.template_id),
         listQAnswerOptionsForTemplate(a.template_id),
         listQAnswers(a.id),
-        listQDimensions(a.template_id),
       ]);
-      return { assignment: a, questions, options, answers, scores: computeScores(dimensions, options, answers) };
+      const scores = await getDisplayScores(a);
+      return { assignment: a, questions, options, answers, scores };
     }));
   } catch (err) {
     console.error('[admin/tickets/[id]] questionnaire fetch failed:', err);

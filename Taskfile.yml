@@ -1275,7 +1275,7 @@ tasks:
         trap 'kill $PF 2>/dev/null' EXIT
         sleep 3
 
-        PGURL="postgres://website:${DB_PASSWORD_WEBSITE}@localhost:5432/website" \
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
           node scripts/tickets-sunset-audit.mjs
 
   tickets:sunset:
@@ -1296,7 +1296,7 @@ tasks:
         trap 'kill $PF 2>/dev/null' EXIT
         sleep 3
 
-        PGURL="postgres://website:${DB_PASSWORD_WEBSITE}@localhost:5432/website" \
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
           node scripts/tickets-sunset.mjs {{if .APPLY}}--apply{{else}}{{end}}
 
   workspace:sync-db-passwords:

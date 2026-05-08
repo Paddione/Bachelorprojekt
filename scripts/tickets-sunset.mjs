@@ -52,6 +52,13 @@ try {
   if (await exists('bugs', 'bug_ticket_comments_legacy')) {
     await drop('TABLE', 'bugs.bug_ticket_comments_legacy');
   }
+  // Drop the inbox_items FK that points at bugs.bug_tickets_legacy (leftover from migration)
+  if (apply) {
+    await client.query(`ALTER TABLE public.inbox_items DROP CONSTRAINT IF EXISTS inbox_items_bug_ticket_id_fkey`);
+    console.log('  DROPPED CONSTRAINT inbox_items_bug_ticket_id_fkey');
+  } else {
+    console.log('  [dry-run] ALTER TABLE public.inbox_items DROP CONSTRAINT IF EXISTS inbox_items_bug_ticket_id_fkey');
+  }
   if (await exists('bugs', 'bug_tickets_legacy')) {
     await drop('TABLE', 'bugs.bug_tickets_legacy');
   }

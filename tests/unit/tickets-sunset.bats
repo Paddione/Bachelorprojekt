@@ -44,7 +44,8 @@ object_gone() {
   local schema="$1" name="$2"
   local count
   count=$(psql "$PGURL" -t -A -c \
-    "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='${schema}' AND c.relname='${name}'" 2>/dev/null)
+    "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='${schema}' AND c.relname='${name}'" 2>/dev/null) \
+    || skip "No database available (set TRACKING_DB_URL)"
   [ "$count" = "0" ]
 }
 
@@ -77,6 +78,7 @@ object_gone() {
 }
 
 @test "runtime: tickets.tickets table exists and is a base table" {
+  psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1 || skip "No database available (set TRACKING_DB_URL)"
   local kind
   kind=$(psql "$PGURL" -t -A -c \
     "SELECT relkind FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='tickets' AND c.relname='tickets'" 2>/dev/null)
@@ -84,12 +86,14 @@ object_gone() {
 }
 
 @test "runtime: tickets.tickets has rows" {
+  psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1 || skip "No database available (set TRACKING_DB_URL)"
   local n
   n=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets" 2>/dev/null)
   [ "$n" -gt 0 ]
 }
 
 @test "runtime: tickets.ticket_activity exists" {
+  psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1 || skip "No database available (set TRACKING_DB_URL)"
   local kind
   kind=$(psql "$PGURL" -t -A -c \
     "SELECT relkind FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='tickets' AND c.relname='ticket_activity'" 2>/dev/null)

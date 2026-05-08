@@ -86,9 +86,9 @@ db_available() {
 }
 
 @test "runtime: every bugs.bug_tickets row produces one tickets.tickets row" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   before=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets")
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
   after=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
@@ -96,9 +96,9 @@ db_available() {
 }
 
 @test "runtime: status mapping is correct (open->triage, resolved->done+fixed)" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   open_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE status='open'")
   triage_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug' AND status='triage'")
   [ "$open_count" = "$triage_count" ]
@@ -108,18 +108,18 @@ db_available() {
 }
 
 @test "runtime: archived rows map to status=archived resolution=fixed" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   archived_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE status='archived'")
   mapped_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug' AND status='archived' AND resolution='fixed'")
   [ "$archived_count" = "$mapped_count" ]
 }
 
 @test "runtime: category tags are created (kind:bug for fehler rows)" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   fehler_count=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE category='fehler'")
   if [ "$fehler_count" = "0" ]; then skip "No fehler rows in bugs.bug_tickets"; fi
   tag_count=$(psql "$PGURL" -t -A -c "
@@ -132,9 +132,9 @@ db_available() {
 }
 
 @test "runtime: resolution_note rows produce a status_change comment" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   with_note=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE resolution_note IS NOT NULL AND resolution_note <> ''")
   if [ "$with_note" = "0" ]; then skip "No rows with resolution_note in bugs.bug_tickets"; fi
   comment_count=$(psql "$PGURL" -t -A -c "
@@ -144,9 +144,9 @@ db_available() {
 }
 
 @test "runtime: idempotent — second run does not duplicate" {
+  if ! db_available; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available"; fi
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
   count1=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
@@ -155,9 +155,9 @@ db_available() {
 }
 
 @test "runtime: idempotent — second run reports all rows as skipped" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   total=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets")
   output=$(node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply 2>&1)
   skipped=$(echo "$output" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['skipped'])" 2>/dev/null)
@@ -165,9 +165,9 @@ db_available() {
 }
 
 @test "runtime: dry-run (default) makes no changes to tickets table" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   before=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" >/dev/null
   after=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM tickets.tickets WHERE type='bug'")
@@ -175,9 +175,9 @@ db_available() {
 }
 
 @test "runtime: dry-run output JSON has mode=dry-run" {
+  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   output=$(node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" 2>&1)
   echo "$output" | python3 -c "
 import json, sys
@@ -188,9 +188,9 @@ print('OK')
 }
 
 @test "runtime: comments are copied" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
   expected=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_ticket_comments")
   actual=$(psql "$PGURL" -t -A -c "
@@ -201,9 +201,9 @@ print('OK')
 }
 
 @test "runtime: fixed_in_pr → ticket_links" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
   expected=$(psql "$PGURL" -t -A -c "SELECT count(*) FROM bugs.bug_tickets WHERE fixed_in_pr IS NOT NULL")
   actual=$(psql "$PGURL" -t -A -c "
@@ -226,9 +226,9 @@ print('OK')
 }
 
 @test "runtime: bugs.bug_tickets is a view after migration" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
   result=$(psql "$PGURL" -t -A -c "
     SELECT relkind FROM pg_class
@@ -238,9 +238,9 @@ print('OK')
 }
 
 @test "runtime: legacy fixed_in_pr JOIN still works against the view" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   # The query mirrors the one in website/src/lib/website-db.ts line 88-91
   psql "$PGURL" -c "
     SELECT fixed_in_pr AS pr, COUNT(*)::int AS n
@@ -250,9 +250,9 @@ print('OK')
 }
 
 @test "runtime: re-running migration is idempotent (view not corrupted)" {
+  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
   node "${PROJECT_DIR}/scripts/migrate-bugs-to-tickets.mjs" --apply >/dev/null
   result=$(psql "$PGURL" -t -A -c "

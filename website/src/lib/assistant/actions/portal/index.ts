@@ -1,1 +1,8 @@
-// portal action handlers register here (Task 18)
+// Portal action handlers — registered via side-effect imports.
+import './bookSession';
+import './moveSession';
+import './cancelSession';
+import './signDocument';
+import './uploadFile';
+import './messageCoach';
+import './startQuestionnaire';

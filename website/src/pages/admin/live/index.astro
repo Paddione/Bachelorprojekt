@@ -1,0 +1,24 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import LiveCockpit from '../../../components/live/LiveCockpit.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const livekitDomain = process.env.LIVEKIT_DOMAIN || 'livekit.localhost';
+const livekitUrl = livekitDomain.endsWith('.localhost')
+  ? `ws://${livekitDomain}`
+  : `wss://${livekitDomain}`;
+const streamDomain = process.env.STREAM_DOMAIN || 'stream.localhost';
+const rtmpKey = process.env.LIVEKIT_RTMP_KEY || 'devrtmpkey123456';
+---
+
+<AdminLayout title="Live">
+  <section class="pt-6 pb-12 bg-dark min-h-screen">
+    <div class="max-w-7xl mx-auto px-6">
+      <LiveCockpit client:load {livekitUrl} {streamDomain} {rtmpKey} />
+    </div>
+  </section>
+</AdminLayout>

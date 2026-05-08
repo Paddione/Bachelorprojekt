@@ -252,7 +252,7 @@ async function initMeetingProjectLink(): Promise<void> {
   await initTicketsSchema(); // tickets.tickets must exist before the FK column
   await pool.query(`
     ALTER TABLE meetings
-      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE SET NULL
+      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_meetings_project ON meetings(project_id)
@@ -472,10 +472,10 @@ export async function getMeetingsForClient(
            m.meeting_type as "meetingType",
            m.scheduled_at as "scheduledAt",
            m.created_at   as "createdAt",
-           m.project_id as "projectId", p.name as "projectName"
+           m.project_id as "projectId", p.title as "projectName"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN projects p ON m.project_id = p.id
+    LEFT JOIN tickets.tickets p ON m.project_id = p.id
     WHERE c.email = $1`;
 
   const query = onlyReleased
@@ -520,12 +520,12 @@ export async function listAllMeetings(opts?: {
            m.created_at AS "createdAt",
            c.name AS "customerName", c.email AS "customerEmail",
            c.id AS "customerId",
-           p.name AS "projectName", p.id AS "projectId",
+           p.title AS "projectName", p.id AS "projectId",
            EXISTS(SELECT 1 FROM transcripts t WHERE t.meeting_id = m.id) AS "hasTranscript",
            (SELECT COUNT(*) FROM meeting_artifacts a WHERE a.meeting_id = m.id)::int AS "artifactCount"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN projects p ON m.project_id = p.id
+    LEFT JOIN tickets.tickets p ON m.project_id = p.id
     ${where}
     ORDER BY m.created_at DESC
     LIMIT $1
@@ -556,10 +556,10 @@ export async function getMeetingDetail(meetingId: string): Promise<{
            m.started_at AS "startedAt", m.ended_at AS "endedAt",
            m.created_at AS "createdAt",
            c.name AS "customerName", c.email AS "customerEmail", c.id AS "customerId",
-           p.name AS "projectName", p.id AS "projectId"
+           p.title AS "projectName", p.id AS "projectId"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN projects p ON m.project_id = p.id
+    LEFT JOIN tickets.tickets p ON m.project_id = p.id
     WHERE m.id = $1
   `, [meetingId]);
   if (!r.rows[0]) return null;
@@ -797,83 +797,6 @@ export async function reopenBugTicket(
     note: reason,
     actor: { label: author },
   });
-}
-
-export async function initBugTicketCommentsTable(): Promise<void> {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS bugs.bug_ticket_comments (
-      id          BIGSERIAL PRIMARY KEY,
-      ticket_id   TEXT NOT NULL REFERENCES bugs.bug_tickets(ticket_id) ON DELETE CASCADE,
-      author      TEXT NOT NULL,
-      kind        TEXT NOT NULL DEFAULT 'comment'
-                  CHECK (kind IN ('comment', 'status_change', 'system')),
-      body        TEXT NOT NULL,
-      created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS bug_ticket_comments_ticket_idx
-      ON bugs.bug_ticket_comments(ticket_id, created_at)
-  `);
-}
-
-// ── Bug Tickets Table Init ────────────────────────────────────────────────────
-
-export async function initBugTicketsTable(): Promise<void> {
-  await pool.query(`CREATE SCHEMA IF NOT EXISTS bugs AUTHORIZATION website`);
-  // One-time migration: move a pre-existing public.bug_tickets into bugs.
-  await pool.query(`
-    DO $mig$
-    BEGIN
-      IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'bug_tickets')
-         AND NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'bugs' AND tablename = 'bug_tickets') THEN
-        EXECUTE 'ALTER TABLE public.bug_tickets SET SCHEMA bugs';
-      END IF;
-    END $mig$
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS bugs.bug_tickets (
-      ticket_id       TEXT PRIMARY KEY,
-      category        TEXT NOT NULL,
-      reporter_email  TEXT NOT NULL,
-      description     TEXT NOT NULL,
-      url             TEXT,
-      brand           TEXT NOT NULL,
-      status          TEXT NOT NULL DEFAULT 'open',
-      created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-      resolved_at     TIMESTAMPTZ,
-      resolution_note TEXT
-    )
-  `);
-  await pool.query(`
-    ALTER TABLE bugs.bug_tickets
-      ADD COLUMN IF NOT EXISTS screenshots_json JSONB
-  `);
-  await pool.query(`
-    ALTER TABLE bugs.bug_tickets
-      ALTER COLUMN brand DROP DEFAULT
-  `);
-  await pool.query(
-    `ALTER TABLE bugs.bug_tickets
-       ADD COLUMN IF NOT EXISTS fixed_in_pr   INTEGER`
-  );
-  await pool.query(
-    `ALTER TABLE bugs.bug_tickets
-       ADD COLUMN IF NOT EXISTS fixed_at      TIMESTAMPTZ`
-  );
-  await pool.query(
-    `CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr)`
-  );
-  // Sync inbox_items whose bug_ticket was already resolved/archived outside the inbox flow
-  await pool.query(`
-    UPDATE inbox_items
-    SET status = CASE WHEN bt.status = 'archived' THEN 'archived' ELSE 'actioned' END,
-        actioned_at = NOW()
-    FROM bugs.bug_tickets bt
-    WHERE inbox_items.bug_ticket_id = bt.ticket_id
-      AND inbox_items.status = 'pending'
-      AND bt.status IN ('resolved', 'archived')
-  `);
 }
 
 // ── Service Config (Angebote Overrides) ──────────────────────────────────────
@@ -1835,8 +1758,8 @@ async function initTimeEntriesTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
       id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id        UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-      task_id           UUID        REFERENCES project_tasks(id) ON DELETE SET NULL,
+      project_id        UUID        NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
+      task_id           UUID        REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       description       TEXT,
       minutes           INTEGER     NOT NULL CHECK (minutes > 0),
       billable          BOOLEAN     NOT NULL DEFAULT true,
@@ -1916,9 +1839,9 @@ export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
   const result = await pool.query(
     `SELECT te.id,
             te.project_id        AS "projectId",
-            p.name               AS "projectName",
+            p.title              AS "projectName",
             te.task_id           AS "taskId",
-            pt.name              AS "taskName",
+            task.title           AS "taskName",
             te.description,
             te.minutes,
             te.billable,
@@ -1928,8 +1851,8 @@ export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
-     JOIN projects      p  ON p.id  = te.project_id
-     LEFT JOIN project_tasks pt ON pt.id = te.task_id
+     JOIN tickets.tickets p    ON p.id  = te.project_id
+     LEFT JOIN tickets.tickets task ON task.id = te.task_id
      WHERE te.project_id = $1
      ORDER BY te.entry_date DESC`,
     [projectId]
@@ -1945,9 +1868,9 @@ export async function listAllTimeEntries(params?: {
   const result = await pool.query(
     `SELECT te.id,
             te.project_id        AS "projectId",
-            p.name               AS "projectName",
+            p.title              AS "projectName",
             te.task_id           AS "taskId",
-            pt.name              AS "taskName",
+            task.title           AS "taskName",
             te.description,
             te.minutes,
             te.billable,
@@ -1957,8 +1880,8 @@ export async function listAllTimeEntries(params?: {
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
-     JOIN projects      p  ON p.id  = te.project_id
-     LEFT JOIN project_tasks pt ON pt.id = te.task_id
+     JOIN tickets.tickets p    ON p.id  = te.project_id
+     LEFT JOIN tickets.tickets task ON task.id = te.task_id
      WHERE ($1::boolean IS NULL OR te.billable = $1)
        AND ($2::date    IS NULL OR te.entry_date >= $2::date)
      ORDER BY te.entry_date DESC`,
@@ -2013,7 +1936,7 @@ export async function getUnbilledBillableEntriesByCustomer(
   const result = await pool.query(
     `SELECT te.id,
             te.project_id        AS "projectId",
-            p.name               AS "projectName",
+            p.title              AS "projectName",
             te.description,
             te.minutes,
             te.rate_cents        AS "rateCents",
@@ -2022,7 +1945,7 @@ export async function getUnbilledBillableEntriesByCustomer(
             c.name               AS "customerName",
             c.email              AS "customerEmail"
      FROM time_entries te
-     JOIN projects  p ON p.id = te.project_id
+     JOIN tickets.tickets p ON p.id = te.project_id
      JOIN customers c ON c.id = p.customer_id
      WHERE te.billable = true
        AND te.stripe_invoice_id IS NULL
@@ -2526,7 +2449,7 @@ async function initBookingProjectLinks(): Promise<void> {
     CREATE TABLE IF NOT EXISTS booking_project_links (
       caldav_uid  TEXT    NOT NULL,
       brand       TEXT    NOT NULL,
-      project_id  UUID    REFERENCES projects(id) ON DELETE SET NULL,
+      project_id  UUID    REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (caldav_uid, brand)
     )

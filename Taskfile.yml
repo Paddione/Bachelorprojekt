@@ -1258,6 +1258,47 @@ tasks:
         TRACKING_DB_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
           node scripts/fix-tickets-grants.mjs --apply
 
+  tickets:sunset:audit:
+    desc: "Audit legacy table activity before sunset (reads pg_stat_user_tables)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/tickets-sunset-audit-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+          node scripts/tickets-sunset-audit.mjs
+
+  tickets:sunset:
+    desc: "Drop legacy back-compat views + _legacy tables (PR1–3 migration window end)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+      APPLY: '{{.APPLY | default ""}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/tickets-sunset-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+          node scripts/tickets-sunset.mjs {{if .APPLY}}--apply{{else}}{{end}}
+
   workspace:sync-db-passwords:
     desc: "Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)"
     vars:

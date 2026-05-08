@@ -465,7 +465,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
   },
   {
     title: 'System-Test 9: Monitoring & Bug-Tracking',
-    description: 'Cluster-Monitoring (Pod-Status, Rolling Restart, Staleness), Bug-Ticket-Lifecycle und Test-Results-Panel.',
+    description: 'Cluster-Monitoring (Pod-Status, Rolling Restart), Bug-Ticket-Lifecycle und Test-Results-Panel.',
     instructions: 'Alle Schritte im Admin-Browser. Öffne jeweils den Link im Schritt.',
     steps: [
       {
@@ -476,11 +476,6 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       {
         question_text: 'Öffne Monitoring (Link) → wähle ein Deployment aus → klicke „Rolling Restart" — prüfe ob der Pod neu startet und wieder in den „Ready"-Zustand kommt.',
         expected_result: 'Restart-Trigger wird bestätigt; Pod kommt wieder ready.',
-        test_function_url: '/admin/monitoring', test_role: 'admin',
-      },
-      {
-        question_text: 'Öffne Monitoring (Link) → scrolle zum „Staleness-Report"-Abschnitt — prüfe ob Empfehlungen oder ein OK-Status je System angezeigt werden.',
-        expected_result: 'Bericht lädt; Empfehlungen oder OK-Status je System sichtbar.',
         test_function_url: '/admin/monitoring', test_role: 'admin',
       },
       {

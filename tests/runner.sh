@@ -30,15 +30,21 @@ source "${SCRIPT_DIR}/lib/k3d.sh"
 # ── Argument parsing ─────────────────────────────────────────────
 TIER=""
 SPECIFIC_TESTS=()
-export JOBS="${JOBS:-1}"
+export JOBS="${JOBS:-$(($(nproc 2>/dev/null || echo 2) / 2))}"
+[[ "$JOBS" -lt 1 ]] && JOBS=1
+[[ "$JOBS" -gt 4 ]] && JOBS=4
+export FAIL_FAST="${FAIL_FAST:-false}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     local|prod|report) TIER="$1"; shift ;;
     --verbose) export VERBOSE="true"; shift ;;
+    --fail-fast) export FAIL_FAST="true"; shift ;;
     -j|--jobs) export JOBS="$2"; shift 2 ;;
     -h|--help)
       echo "Usage: $0 <local|prod|report> [TEST_IDS...] [--verbose] [-j|--jobs N]"
+      echo "  -j N, --jobs N        Parallel jobs (default: nproc/2, max 4)"
+      echo "  --fail-fast           Abort on first failure"
       exit 0 ;;
     *)
       SPECIFIC_TESTS+=("$1"); shift ;;
@@ -111,7 +117,13 @@ run_test_files() {
       ) &
       ((running++))
       if (( running >= JOBS )); then
-        wait -n
+        if ! wait -n; then
+          if [[ "$FAIL_FAST" == "true" ]]; then
+            echo "✗ Test failed and --fail-fast is set; aborting remaining jobs."
+            kill 0 2>/dev/null || true
+            exit 1
+          fi
+        fi
         ((running--))
       fi
     done

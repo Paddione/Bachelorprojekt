@@ -2,52 +2,16 @@
   import { onMount } from 'svelte';
   import TestResultsPanel from '../TestResultsPanel.svelte';
 
-  type StalenessFinding = { system: string; status: 'ok' | 'warning' | 'stale'; issue: string; recommendation?: string };
-  type StalenessReport = { id: number; createdAt: string; issueCount: number; reportJson: { findings: StalenessFinding[] } };
   type TestRun = { id: string; tier: string; cluster: string; startedAt: string; finishedAt: string | null; status: string; pass: number | null; fail: number | null; skip: number | null; durationMs: number | null };
 
-  let staleness: StalenessReport | null = null;
   let testRuns: TestRun[] = [];
   let loading = true;
 
-  // Bug ticket modal for staleness
-  let selectedFinding: StalenessFinding | null = null;
-  let modalDescription = '';
-  let modalLoading = false;
-  let modalError: string | null = null;
-  let modalSuccessId: string | null = null;
-
   async function fetchAll() {
     loading = true;
-    const [stalRes, runsRes] = await Promise.allSettled([
-      fetch('/api/admin/staleness-report'),
-      fetch('/api/admin/test-runs'),
-    ]);
-    if (stalRes.status === 'fulfilled' && stalRes.value.ok) staleness = await stalRes.value.json();
-    if (runsRes.status === 'fulfilled' && runsRes.value.ok) testRuns = await runsRes.value.json();
+    const runsRes = await fetch('/api/admin/test-runs').catch(() => null);
+    if (runsRes?.ok) testRuns = await runsRes.json();
     loading = false;
-  }
-
-  function openFindingModal(finding: StalenessFinding) {
-    selectedFinding = finding;
-    modalDescription = `Staleness: ${finding.system} – ${finding.status}: ${finding.issue}${finding.recommendation ? ` Empfehlung: ${finding.recommendation}` : ''}`;
-    modalError = null; modalSuccessId = null; modalLoading = false;
-  }
-
-  async function submitTicket() {
-    modalLoading = true;
-    try {
-      const res = await fetch('/api/admin/bugs/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: modalDescription, category: 'fehler' }),
-      });
-      const json = await res.json();
-      if (!res.ok) { modalError = json.error ?? 'Fehler'; return; }
-      modalSuccessId = json.ticketId;
-      setTimeout(() => selectedFinding = null, 3000);
-    } catch { modalError = 'Netzwerkfehler'; }
-    finally { modalLoading = false; }
   }
 
   function fmtDuration(ms: number | null) {
@@ -72,43 +36,6 @@
 </script>
 
 <div class="space-y-6">
-
-  <!-- Staleness full report -->
-  <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-    <div class="flex justify-between items-center px-4 py-3 border-b border-gray-700">
-      <span class="text-sm font-semibold text-gray-200">
-        Staleness-Bericht{staleness ? ` — ${new Date(staleness.createdAt).toLocaleDateString('de-DE')}` : ''}
-      </span>
-      {#if staleness}
-        <span class="text-xs text-gray-400">{staleness.issueCount} Warnungen</span>
-      {/if}
-    </div>
-    {#if staleness?.reportJson?.findings}
-      <div class="divide-y divide-gray-700/50">
-        {#each staleness.reportJson.findings as finding}
-          <div class="grid grid-cols-[130px_80px_1fr_auto] gap-3 px-4 py-2.5 text-sm items-center
-            {finding.status !== 'ok' ? 'bg-yellow-900/10' : ''}">
-            <span class="text-gray-200">{finding.system}</span>
-            <span class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full {finding.status === 'ok' ? 'bg-green-500' : finding.status === 'warning' ? 'bg-yellow-400' : 'bg-red-500'}"></span>
-              <span class="{finding.status === 'ok' ? 'text-green-400' : 'text-yellow-400'} text-xs">{finding.status}</span>
-            </span>
-            <span class="text-gray-400 text-xs">{finding.issue}</span>
-            {#if finding.status !== 'ok'}
-              <button on:click={() => openFindingModal(finding)}
-                class="text-xs text-blue-400 hover:text-blue-300 shrink-0">Ticket</button>
-            {:else}
-              <span></span>
-            {/if}
-          </div>
-        {/each}
-      </div>
-    {:else if loading}
-      <div class="px-4 py-4 text-sm text-gray-500 text-center">Lädt…</div>
-    {:else}
-      <div class="px-4 py-4 text-sm text-gray-500 text-center">Kein Bericht vorhanden.</div>
-    {/if}
-  </div>
 
   <!-- Test run history -->
   <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
@@ -156,23 +83,3 @@
     </div>
   </div>
 </div>
-
-<!-- Staleness bug ticket modal -->
-{#if selectedFinding}
-  <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50" role="dialog">
-    <div class="bg-gray-800 border border-gray-600 rounded-lg p-5 w-full max-w-md space-y-3">
-      <h3 class="font-semibold text-gray-100">Bug-Ticket: {selectedFinding.system}</h3>
-      <textarea bind:value={modalDescription} rows={3}
-        class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-sm text-gray-200 resize-none"></textarea>
-      {#if modalError}<p class="text-red-400 text-sm">{modalError}</p>{/if}
-      {#if modalSuccessId}<p class="text-green-400 text-sm">Ticket {modalSuccessId} erstellt.</p>{/if}
-      <div class="flex gap-2 justify-end">
-        <button on:click={() => selectedFinding = null} class="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200">Abbrechen</button>
-        <button on:click={submitTicket} disabled={modalLoading}
-          class="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded">
-          {modalLoading ? '…' : 'Erstellen'}
-        </button>
-      </div>
-    </div>
-  </div>
-{/if}

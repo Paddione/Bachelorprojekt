@@ -3,7 +3,7 @@ import { createInterface } from 'readline';
 import { watch, existsSync, readdirSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { saveTestRun, updateTestRun } from './website-db.js';
+import { saveTestRun, saveTestResults, updateTestRun, type TestResultRow } from './website-db.js';
 
 export interface TestResult {
   req: string;
@@ -158,8 +158,19 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
     jsonlWatcher?.close();
     dirWatcher?.close();
 
-    // Read summary from finalised JSON file
+    // Read summary + per-test results from finalised JSON file
     let summary: TestJobSummary = { total: 0, pass: 0, fail: 0, skip: 0 };
+    type FinalizedResult = {
+      test_id?: string;
+      req?: string;
+      test?: string;
+      category?: string;
+      status: string;
+      duration_ms?: number;
+      message?: string;
+      detail?: string;
+    };
+    let rawResults: FinalizedResult[] = [];
     try {
       const files = existsSync(resultsDir)
         ? readdirSync(resultsDir).filter(
@@ -170,6 +181,7 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
         const latest = files.sort()[files.length - 1];
         const raw = JSON.parse(await readFile(`${resultsDir}/${latest}`, 'utf-8'));
         summary = raw.summary ?? summary;
+        rawResults = Array.isArray(raw.results) ? raw.results : [];
       }
     } catch {
       // fallback: count from buffer
@@ -193,6 +205,41 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
       skip: summary.skip,
       durationMs,
     }).catch(() => {});
+
+    // Ingest per-test rows for flake detection + per-test trends.
+    // Falls back to job.resultBuffer if the finalised JSON couldn't be read
+    // (the live JSONL tail populates resultBuffer with the same shape).
+    const sourceResults: FinalizedResult[] = rawResults.length > 0
+      ? rawResults
+      : job.resultBuffer.map(r => ({
+          test_id: `${r.req}/${r.test}`,
+          req: r.req,
+          test: r.test,
+          category: undefined,
+          status: r.status,
+          duration_ms: r.duration_ms,
+          message: r.detail,
+        }));
+    if (sourceResults.length > 0) {
+      const allowedCategories = new Set(['FA', 'SA', 'NFA', 'AK', 'E2E', 'BATS']);
+      const allowedStatuses = new Set(['pass', 'fail', 'skip']);
+      const rows: TestResultRow[] = sourceResults
+        .filter(r => allowedStatuses.has(r.status))
+        .map(r => {
+          const fallbackId = r.req && r.test ? `${r.req}/${r.test}` : (r.req ?? 'unknown');
+          const cat = r.category && allowedCategories.has(r.category)
+            ? (r.category as TestResultRow['category'])
+            : 'FA';
+          return {
+            testId: r.test_id ?? fallbackId,
+            category: cat,
+            status: r.status as TestResultRow['status'],
+            durationMs: r.duration_ms,
+            message: r.message ?? r.detail,
+          };
+        });
+      await saveTestResults(id, rows).catch(() => {});
+    }
 
     emit('done', JSON.stringify({ code, summary, durationMs }));
 

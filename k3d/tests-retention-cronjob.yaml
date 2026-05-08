@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tests-results-retention
+  namespace: workspace
+spec:
+  schedule: '0 3 * * *'
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: tests-retention-sa
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
+          containers:
+            - name: prune
+              image: bitnami/kubectl:1.31
+              command: [sh, -c]
+              args:
+                - |
+                  set -e
+                  POD=$(kubectl -n workspace get pod -l app=website -o jsonpath='{.items[0].metadata.name}')
+                  if [ -z "$POD" ]; then echo "no website pod"; exit 0; fi
+                  kubectl -n workspace exec "$POD" -- sh -c '
+                    cd /app/tests/results 2>/dev/null || cd /tests/results 2>/dev/null || exit 0
+                    find . -maxdepth 1 -type f \( -name "*.json" -o -name "*.md" -o -name "*.jsonl" \) -mtime +30 -print -delete
+                    find . -maxdepth 1 -type d -name "playwright-traces" -mtime +14 -print -exec rm -rf {} +
+                  '
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tests-retention-sa
+  namespace: workspace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tests-retention-role
+  namespace: workspace
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list]
+  - apiGroups: [""]
+    resources: [pods/exec]
+    verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tests-retention-rb
+  namespace: workspace
+subjects:
+  - kind: ServiceAccount
+    name: tests-retention-sa
+    namespace: workspace
+roleRef:
+  kind: Role
+  name: tests-retention-role
+  apiGroup: rbac.authorization.k8s.io

@@ -24,9 +24,33 @@ _log_result() {
 
   [[ -n "${RESULTS_FILE:-}" ]] || { echo "ERROR: RESULTS_FILE is not set" >&2; return 1; }
 
-  jq -cn --arg req "$req" --arg test "$test_id" --arg desc "$desc" \
-        --arg status "$status" --argjson dur "$duration_ms" --arg detail "$detail" \
-    '{req: $req, test: $test, desc: $desc, status: $status, duration_ms: $dur, detail: $detail}' \
+  # Derive category from the req prefix (FA-*, SA-*, NFA-*, AK-*, *.bats|*-bats → BATS).
+  # Used by the dashboard's test_results ingestion (Phase B of the testing-pipeline overhaul).
+  local category
+  case "$req" in
+    FA-*)            category=FA ;;
+    SA-*)            category=SA ;;
+    NFA-*)           category=NFA ;;
+    AK-*)            category=AK ;;
+    *.bats|*-bats)   category=BATS ;;
+    *)               category=FA ;;
+  esac
+
+  # Compose a flat test_id for per-test history. Falls back to plain req when test_id is empty.
+  local flat_test_id
+  if [[ -n "$test_id" ]]; then
+    flat_test_id="${req}/${test_id}"
+  else
+    flat_test_id="$req"
+  fi
+
+  jq -cn --arg req "$req" --arg test "$test_id" --arg test_id "$flat_test_id" \
+        --arg category "$category" --arg desc "$desc" \
+        --arg status "$status" --argjson dur "$duration_ms" \
+        --arg detail "$detail" --arg message "$detail" \
+    '{req: $req, test: $test, test_id: $test_id, category: $category,
+      desc: $desc, status: $status, duration_ms: $dur,
+      detail: $detail, message: $message}' \
     >> "$RESULTS_FILE"
 
   if [[ "$status" == "pass" ]]; then

@@ -252,6 +252,11 @@ tasks:
       - test:art-library
       - test:dry-run
 
+  test:inventory:
+    desc: Regenerate website/src/data/test-inventory.json (requirement → test mapping)
+    cmds:
+      - bash scripts/build-test-inventory.sh
+
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:

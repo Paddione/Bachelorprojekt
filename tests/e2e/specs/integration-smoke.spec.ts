@@ -5,7 +5,7 @@ const DOMAIN = process.env.PROD_DOMAIN || 'localhost';
 test.describe('Integration Smoke Tests', () => {
 
   // ── Service Reachability ──────────────────────────────────────
-  test('Keycloak OIDC discovery is reachable', async ({ request }) => {
+  test('@smoke Keycloak OIDC discovery is reachable', async ({ request }) => {
     const res = await request.get(`https://auth.${DOMAIN}/realms/workspace/.well-known/openid-configuration`);
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -14,7 +14,7 @@ test.describe('Integration Smoke Tests', () => {
     expect(body.token_endpoint).toBeTruthy();
   });
 
-  test('Nextcloud is installed and operational', async ({ request }) => {
+  test('@smoke Nextcloud is installed and operational', async ({ request }) => {
     const res = await request.get(`https://files.${DOMAIN}/status.php`);
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -23,7 +23,7 @@ test.describe('Integration Smoke Tests', () => {
     expect(body.needsDbUpgrade).toBe(false);
   });
 
-  test('Collabora discovery endpoint responds', async ({ request }) => {
+  test('@smoke Collabora discovery endpoint responds', async ({ request }) => {
     const res = await request.get(`https://office.${DOMAIN}/hosting/discovery`);
     // Collabora is an optional separate deployment; 404 means not yet deployed
     if (res.status() === 404) {
@@ -35,24 +35,24 @@ test.describe('Integration Smoke Tests', () => {
     expect(text).toContain('wopi-discovery');
   });
 
-  test('Talk signaling server responds', async ({ request }) => {
+  test('@smoke Talk signaling server responds', async ({ request }) => {
     const res = await request.get(`https://signaling.${DOMAIN}/api/v1/welcome`);
     // 200 = fully operational; 503 = ingress alive but NATS backend unavailable
     expect([200, 503]).toContain(res.status());
   });
 
-  test('Vaultwarden is alive', async ({ request }) => {
+  test('@smoke Vaultwarden is alive', async ({ request }) => {
     const res = await request.get(`https://vault.${DOMAIN}/alive`);
     expect(res.status()).toBe(200);
   });
 
-  test('Docs site responds', async ({ request }) => {
+  test('@smoke Docs site responds', async ({ request }) => {
     const res = await request.get(`https://docs.${DOMAIN}`);
     // 200 = public; 401 = behind auth proxy (alive); 302 = redirect to auth
     expect([200, 302, 401]).toContain(res.status());
   });
 
-  test('Mailpit responds', async ({ request }) => {
+  test('@smoke Mailpit responds', async ({ request }) => {
     // Mailpit IngressRoute is HTTP-only in dev
     const res = await request.get(`http://mail.${DOMAIN}`);
     // 200 = accessible; 302/401 = behind oauth2-proxy (alive)
@@ -60,12 +60,12 @@ test.describe('Integration Smoke Tests', () => {
   });
 
   // ── SSO Login Flow ────────────────────────────────────────────
-  test('Keycloak login page is reachable', async ({ page }) => {
+  test('@smoke Keycloak login page is reachable', async ({ page }) => {
     await page.goto(`https://auth.${DOMAIN}/realms/workspace/account/`);
     await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 10_000 });
   });
 
-  test('Nextcloud shows Keycloak login button', async ({ page }) => {
+  test('@smoke Nextcloud shows Keycloak login button', async ({ page }) => {
     await page.goto(`https://files.${DOMAIN}/login`);
     // NC 33 may auto-redirect to Keycloak (OIDC is configured) instead of showing a button
     const atKC = /realms\/workspace/.test(page.url());
@@ -80,7 +80,7 @@ test.describe('Integration Smoke Tests', () => {
   });
 
   // ── Collabora Integration ─────────────────────────────────────
-  test('Collabora discovery is reachable from browser', async ({ request }) => {
+  test('@smoke Collabora discovery is reachable from browser', async ({ request }) => {
     const res = await request.get(`https://office.${DOMAIN}/hosting/discovery`);
     if (res.status() === 404) {
       test.skip(true, 'Collabora not deployed on this cluster');
@@ -92,30 +92,30 @@ test.describe('Integration Smoke Tests', () => {
   });
 
   // ── Talk Integration ──────────────────────────────────────────
-  test('Talk signaling endpoint is configured', async ({ request }) => {
+  test('@smoke Talk signaling endpoint is configured', async ({ request }) => {
     const res = await request.get(`https://signaling.${DOMAIN}/api/v1/welcome`);
     // 200 = fully operational; 503 = ingress alive but NATS backend unavailable
     expect([200, 503]).toContain(res.status());
   });
 
   // ── New k3d Services ──────────────────────────────────────────
-  test('Brett systemisches Brett healthz is reachable', async ({ request }) => {
+  test('@smoke Brett systemisches Brett healthz is reachable', async ({ request }) => {
     const res = await request.get(`https://brett.${DOMAIN}/healthz`);
     expect(res.status()).toBe(200);
   });
 
-  test('DocuSeal document signing is reachable', async ({ request }) => {
+  test('@smoke DocuSeal document signing is reachable', async ({ request }) => {
     const res = await request.get(`https://sign.${DOMAIN}`);
     // 200 = public UI; 301/302 = redirect; 401 = auth-protected
     expect([200, 301, 302, 401]).toContain(res.status());
   });
 
-  test('Requirements Tracking UI is reachable', async ({ request }) => {
+  test('@smoke Requirements Tracking UI is reachable', async ({ request }) => {
     const res = await request.get(`https://tracking.${DOMAIN}`);
     expect([200, 301, 302, 401]).toContain(res.status());
   });
 
-  test('LiveKit server ingress is reachable', async ({ request }) => {
+  test('@smoke LiveKit server ingress is reachable', async ({ request }) => {
     const res = await request.get(`https://livekit.${DOMAIN}/`, { timeout: 10_000 });
     // LiveKit returns 404/426 on HTTP root — both confirm the ingress is alive
     expect([200, 404, 426]).toContain(res.status());

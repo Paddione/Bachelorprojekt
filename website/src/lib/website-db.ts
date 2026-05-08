@@ -3082,43 +3082,6 @@ export async function claimBrettLinkPost(meetingId: string): Promise<boolean> {
   return result.rowCount === 1;
 }
 
-// ── Staleness Reports ────────────────────────────────────────────────────────
-
-export interface StalenessReport {
-  id: number;
-  createdAt: string;
-  reportJson: Record<string, unknown>;
-  summary: string;
-  issueCount: number;
-}
-
-export async function saveStalenessReport(params: {
-  reportJson: unknown;
-  summary: string;
-  issueCount: number;
-}): Promise<void> {
-  await pool.query(
-    `INSERT INTO staleness_reports (report_json, summary, issue_count) VALUES ($1, $2, $3)`,
-    [JSON.stringify(params.reportJson), params.summary, params.issueCount]
-  );
-}
-
-export async function getLatestStalenessReport(): Promise<StalenessReport | null> {
-  const result = await pool.query(
-    `SELECT id, created_at, report_json, summary, issue_count
-       FROM staleness_reports ORDER BY created_at DESC LIMIT 1`
-  );
-  if (result.rows.length === 0) return null;
-  const row = result.rows[0];
-  return {
-    id: row.id,
-    createdAt: row.created_at.toISOString(),
-    reportJson: row.report_json,
-    summary: row.summary,
-    issueCount: row.issue_count,
-  };
-}
-
 // ── Test Runs ────────────────────────────────────────────────────────────────
 
 export interface TestRun {
@@ -3192,6 +3155,102 @@ export async function listTestRuns(limit = 20): Promise<TestRun[]> {
     [limit]
   );
   return result.rows;
+}
+
+// ── Test Results (per-test history for flake detection + trends) ─────────────
+
+export interface TestResultRow {
+  testId: string;
+  category: 'FA' | 'SA' | 'NFA' | 'AK' | 'E2E' | 'BATS';
+  status: 'pass' | 'fail' | 'skip';
+  durationMs?: number;
+  message?: string;
+}
+
+export async function saveTestResults(runId: string, rows: TestResultRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  const values: unknown[] = [];
+  const placeholders = rows.map((r, i) => {
+    const base = i * 6;
+    values.push(runId, r.testId, r.category, r.status, r.durationMs ?? null, r.message ?? null);
+    return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6})`;
+  }).join(',');
+  await pool.query(
+    `INSERT INTO test_results (run_id, test_id, category, status, duration_ms, message) VALUES ${placeholders}`,
+    values,
+  );
+}
+
+export interface FlakeRow {
+  testId: string;
+  category: string;
+  recentRuns: Array<{ runId: string; status: string; createdAt: string }>;
+  failureRate: number;
+}
+
+export async function listFlakeWindow(limit: number): Promise<FlakeRow[]> {
+  const result = await pool.query<{
+    test_id: string;
+    category: string;
+    recent: Array<{ run_id: string; status: string; created_at: string }>;
+  }>(
+    `WITH ranked AS (
+       SELECT test_id, category, run_id, status, created_at,
+              row_number() OVER (PARTITION BY test_id ORDER BY created_at DESC) AS rn
+         FROM test_results
+     )
+     SELECT test_id, category,
+            jsonb_agg(jsonb_build_object('run_id', run_id, 'status', status, 'created_at', created_at) ORDER BY created_at DESC) AS recent
+       FROM ranked
+      WHERE rn <= $1
+   GROUP BY test_id, category`,
+    [limit],
+  );
+  return result.rows.map(row => {
+    const recent = row.recent.map(r => ({ runId: r.run_id, status: r.status, createdAt: r.created_at }));
+    const fails = recent.filter(r => r.status === 'fail').length;
+    return {
+      testId: row.test_id,
+      category: row.category,
+      recentRuns: recent,
+      failureRate: recent.length === 0 ? 0 : fails / recent.length,
+    };
+  }).sort((a, b) => b.failureRate - a.failureRate);
+}
+
+export interface TrendRow { date: string; pass: number; fail: number; skip: number; p50DurationMs: number; p95DurationMs: number; }
+
+export async function getTestRunTrend(days: number): Promise<TrendRow[]> {
+  const result = await pool.query<{
+    day: string; pass: string; fail: string; skip: string; p50: string; p95: string;
+  }>(
+    `SELECT to_char(date_trunc('day', started_at), 'YYYY-MM-DD') AS day,
+            sum(coalesce(pass, 0))::text AS pass,
+            sum(coalesce(fail, 0))::text AS fail,
+            sum(coalesce(skip, 0))::text AS skip,
+            coalesce(percentile_cont(0.5) WITHIN GROUP (ORDER BY duration_ms), 0)::text AS p50,
+            coalesce(percentile_cont(0.95) WITHIN GROUP (ORDER BY duration_ms), 0)::text AS p95
+       FROM test_runs
+      WHERE started_at >= now() - ($1 || ' days')::interval
+   GROUP BY day
+   ORDER BY day`,
+    [days],
+  );
+  return result.rows.map(r => ({
+    date: r.day,
+    pass: Number(r.pass),
+    fail: Number(r.fail),
+    skip: Number(r.skip),
+    p50DurationMs: Number(r.p50),
+    p95DurationMs: Number(r.p95),
+  }));
+}
+
+export async function listLastTestStatusPerTest(): Promise<Array<{ testId: string; status: string; createdAt: string }>> {
+  const result = await pool.query<{ test_id: string; status: string; created_at: string }>(
+    `SELECT DISTINCT ON (test_id) test_id, status, created_at FROM test_results ORDER BY test_id, created_at DESC`,
+  );
+  return result.rows.map(r => ({ testId: r.test_id, status: r.status, createdAt: r.created_at }));
 }
 
 // ── Playwright Reports ───────────────────────────────────────────────────────

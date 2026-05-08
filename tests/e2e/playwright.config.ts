@@ -10,6 +10,7 @@ export default defineConfig({
   reporter: [
     ['line'],
     ['json', { outputFile: '../results/.tmp-e2e-results.json' }],
+    ['junit', { outputFile: '../results/junit.xml' }],
   ],
   use: {
     baseURL: websiteURL,

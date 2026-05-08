@@ -45,6 +45,9 @@ env_vars:
   WEBSITE_HOST: web.mentolder.de
   WEBSITE_SITE_URL: "https://web.mentolder.de"
   KEYCLOAK_FRONTEND_URL: "https://auth.mentolder.de"
+  # System-test failure loop master kill-switch (Task 10). Flip to "true"
+  # only after running the rollout checklist on the feat/systemtest-failure-loop PR.
+  SYSTEMTEST_LOOP_ENABLED: "false"
 
 overlay: prod-mentolder
 workspace_namespace: workspace

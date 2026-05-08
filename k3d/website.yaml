@@ -77,6 +77,9 @@ data:
   STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
+  # System-test failure loop (Task 10): off by default. Flip to "true" only
+  # after the rollout checklist in feat/systemtest-failure-loop has been run.
+  SYSTEMTEST_LOOP_ENABLED: "${SYSTEMTEST_LOOP_ENABLED}"
 ---
 # ── Monitoring RBAC ──────────────────────────────────────────────────────────
 apiVersion: v1

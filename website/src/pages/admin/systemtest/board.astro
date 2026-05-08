@@ -13,6 +13,7 @@
 // dynamic value is set via createElement + textContent / setAttribute.
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
 
 // SystemtestBoardCard.svelte and SystemtestReplayDrawer.svelte are shipped
 // alongside this page (see Task 7 deliverables). The current v1 client
@@ -24,12 +25,11 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
-// Task 10 will gate this page behind a feature flag. For now the placeholder
-// reads an env var and short-circuits to /admin if the flag is explicitly
-// disabled (default = enabled, since system-test is the active workstream).
-const SYSTEMTEST_FLAG = (process.env.SYSTEMTEST_BOARD_ENABLED ?? 'true').toLowerCase();
-if (SYSTEMTEST_FLAG === 'false' || SYSTEMTEST_FLAG === '0') {
-  return Astro.redirect('/admin');
+// Task 10: gate the kanban behind the master SYSTEMTEST_LOOP_ENABLED flag.
+// Off by default — the page redirects to /admin with a breadcrumb message
+// so the operator can tell why the link bounced.
+if (!isSystemtestLoopEnabled()) {
+  return Astro.redirect('/admin?msg=systemtest-loop-disabled');
 }
 
 const COLUMNS: Array<{ key: string; title: string; hint: string }> = [

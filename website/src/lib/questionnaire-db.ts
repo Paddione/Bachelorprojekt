@@ -487,6 +487,25 @@ export async function listQAssignmentsForCustomer(customerId: string): Promise<Q
   return r.rows;
 }
 
+/**
+ * List coaching questionnaire assignments linked to a project (ticket of type='project').
+ * Excludes system-test templates — those are QA runs, not project context.
+ */
+export async function listQAssignmentsForProject(projectId: string): Promise<QAssignment[]> {
+  const r = await pool.query(
+    `SELECT a.id, a.customer_id, a.template_id, t.title AS template_title,
+            a.status, a.coach_notes, a.assigned_at, a.submitted_at, a.reviewed_at,
+            a.archived_at, a.dismissed_at, a.dismiss_reason, a.project_id
+     FROM questionnaire_assignments a
+     JOIN questionnaire_templates t ON t.id = a.template_id
+     WHERE a.project_id = $1
+       AND COALESCE(t.is_system_test, false) = false
+     ORDER BY a.assigned_at DESC`,
+    [projectId],
+  );
+  return r.rows;
+}
+
 export async function getQAssignment(id: string): Promise<QAssignment | null> {
   const r = await pool.query(
     `SELECT a.id, a.customer_id, a.template_id, t.title AS template_title,

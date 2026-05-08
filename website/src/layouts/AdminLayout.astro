@@ -4,7 +4,7 @@ import { config } from '../config/index';
 import BugReportWidget from '../components/BugReportWidget.svelte';
 import HelpPanel from '../components/HelpPanel.svelte';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
-const ASSISTANT_ENABLED = (import.meta.env.ENABLE_ASSISTANT_ADMIN ?? process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
+const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
 import ChatWidget from '../components/ChatWidget.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 import { countPendingByType } from '../lib/messaging-db';

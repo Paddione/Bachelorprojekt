@@ -6,7 +6,7 @@ import type { UserSession } from '../lib/auth';
 import ChatWidget from '../components/ChatWidget.svelte';
 import HelpPanel from '../components/HelpPanel.svelte';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
-const ASSISTANT_ENABLED = (import.meta.env.ENABLE_ASSISTANT_PORTAL ?? process.env.ENABLE_ASSISTANT_PORTAL ?? 'false') === 'true';
+const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_PORTAL ?? 'false') === 'true';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 
 interface Props {

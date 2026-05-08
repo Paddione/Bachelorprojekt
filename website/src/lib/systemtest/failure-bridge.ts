@@ -11,24 +11,30 @@
 //     save MUST still commit. On any failure path inside `openFailureTicket`,
 //     we attempt to enqueue a retry row in `systemtest_failure_outbox` so
 //     the Task 8 cron can pick it up later.
-//   - Idempotency: if `questionnaire_test_status.last_failure_ticket_id` is
-//     already set AND the referenced ticket's resolution is NOT 'fixed',
-//     we return the existing id rather than creating a duplicate. Once a
-//     fix has been applied AND the retest still fails, we DO want a fresh
-//     ticket per the design — that's why we gate on resolution='fixed'
-//     instead of a generic "open" check.
+//   - Idempotency: dedup is at the ticket level via `source_test_question_id`,
+//     not via `questionnaire_test_status.last_failure_ticket_id`. The earlier
+//     design relied on stamping the test_status row, which silently failed
+//     when the row didn't exist or the assignment didn't match — producing
+//     dozens of duplicate tickets per question. Now we look up an existing
+//     OPEN ticket by `source_test_question_id` directly, and the partial
+//     UNIQUE index `tickets_one_open_per_test_question_uq` is the
+//     defense-in-depth race guard. Closed tickets (done/archived) are
+//     excluded so a regression-on-retest still opens a fresh ticket.
+//   - Grouping: every system-test bug ticket is hung under a per-template
+//     parent ticket (type='project', component='systemtest', external_id
+//     `EPIC-SYS-<template_id>`). The parent is auto-created on first failure
+//     so the admin/tickets list collapses noise into one row per template.
 //   - Stale-row guard: the `questionnaire_test_status` row is keyed by
 //     `question_id` only. A newer assignment for the same question can
 //     overwrite the row; we only stamp `last_failure_ticket_id` if the
 //     row's `last_assignment_id` still matches the failed assignment we
-//     were called with.
+//     were called with. (Optional now — dedup no longer relies on it.)
 //   - `is_system_test` filtering is performed inside this module via a
 //     JOIN on `questionnaire_templates`. Callers can therefore invoke the
 //     bridge unconditionally — non-system-test failures short-circuit and
-//     return null. (This keeps the call site in `questionnaire-db.ts`
-//     simple and avoids a second round-trip.)
+//     return null.
 
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 
 export interface OpenFailureOpts {
   assignmentId: string;
@@ -47,6 +53,7 @@ interface QuestionContext {
   position: number;
   last_assignment_id: string | null;
   last_failure_ticket_id: string | null;
+  assignment_is_test_data: boolean | null;
 }
 
 /** Lazy-loaded; tests may have already invoked it. */
@@ -66,6 +73,20 @@ async function ensureTicketsSchema(): Promise<void> {
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
   return text.slice(0, Math.max(0, max - 1)).trimEnd() + '…';
+}
+
+/** Stable slug used as the per-template parent epic's external_id. The
+ *  systemtest seeder clones templates (fresh UUID) on every test run, so
+ *  grouping by `template_id` produces one epic per run — useless. The
+ *  title is the only stable identifier across re-seeds. */
+function slugifyTitle(title: string): string {
+  const base = title
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return base.slice(0, 80) || 'untitled';
 }
 
 function buildTitle(templateTitle: string, position: number, questionText: string): string {
@@ -132,12 +153,14 @@ export async function openFailureTicket(
             qq.test_expected_result,
             qq.position,
             ts.last_assignment_id,
-            ts.last_failure_ticket_id
+            ts.last_failure_ticket_id,
+            qa.is_test_data  AS assignment_is_test_data
        FROM questionnaire_questions qq
        JOIN questionnaire_templates qt ON qt.id = qq.template_id
   LEFT JOIN questionnaire_test_status ts ON ts.question_id = qq.id
+  LEFT JOIN questionnaire_assignments qa ON qa.id = $2
       WHERE qq.id = $1`,
-    [opts.questionId],
+    [opts.questionId, opts.assignmentId],
   );
   if (ctxRes.rows.length === 0) return null;
   const ctx = ctxRes.rows[0];
@@ -153,31 +176,38 @@ export async function openFailureTicket(
     return null;
   }
 
-  // Idempotency: if there is already a failure ticket for this step that
-  // hasn't been resolved as 'fixed', reuse it. Once a fix lands and the
-  // retest fails again, the existing row's resolution is 'fixed' and we
-  // open a fresh ticket for the new failure (per design).
-  if (ctx.last_failure_ticket_id) {
-    const existing = await pool.query<{ resolution: string | null }>(
-      `SELECT resolution FROM tickets.tickets WHERE id = $1`,
-      [ctx.last_failure_ticket_id],
+  // Dedup at the ticket level: any OPEN ticket for this question wins. This
+  // is the single source of truth — `last_failure_ticket_id` is a hint that
+  // can drift out of sync (no row, mismatched assignment, etc.).
+  const existingOpen = await pool.query<{ id: string }>(
+    `SELECT id FROM tickets.tickets
+      WHERE source_test_question_id = $1
+        AND status NOT IN ('done','archived')
+      ORDER BY created_at DESC
+      LIMIT 1`,
+    [opts.questionId],
+  );
+  if (existingOpen.rows.length > 0) {
+    const ticketId = existingOpen.rows[0].id;
+    // Bump the open ticket onto the latest failing assignment + evidence so
+    // links in the description point at the most recent failure.
+    await pool.query(
+      `UPDATE tickets.tickets
+          SET source_test_assignment_id = $1,
+              updated_at = now()
+        WHERE id = $2`,
+      [opts.assignmentId, ticketId],
     );
-    if (existing.rows.length > 0 && existing.rows[0].resolution !== 'fixed') {
-      // Update evidence_id if a fresh recording came in for the still-open
-      // failure (re-marking a step nicht_erfüllt without a fix in between).
-      if (opts.evidenceId) {
-        await pool.query(
-          `UPDATE questionnaire_test_status
-              SET evidence_id = $1
-            WHERE question_id = $2
-              AND last_assignment_id = $3`,
-          [opts.evidenceId, opts.questionId, opts.assignmentId],
-        );
-      }
-      return ctx.last_failure_ticket_id;
+    if (opts.evidenceId) {
+      await pool.query(
+        `UPDATE questionnaire_test_status
+            SET evidence_id = $1
+          WHERE question_id = $2
+            AND last_assignment_id = $3`,
+        [opts.evidenceId, opts.questionId, opts.assignmentId],
+      );
     }
-    // else: row exists but is resolved=fixed → fall through and create a
-    // new ticket. Design: a regression-on-retest deserves its own ticket.
+    return ticketId;
   }
 
   const brand = process.env.BRAND || 'mentolder';
@@ -190,25 +220,48 @@ export async function openFailureTicket(
     publicBaseUrl: publicBaseUrl(),
   });
 
+  // Test-data fixtures (seeded `[TEST] …` templates or assignments tagged
+  // `is_test_data=true`) must not pollute the real triage queue. They are
+  // still grouped under their own epic so dev runs stay tidy.
+  const isTestData =
+    ctx.assignment_is_test_data === true ||
+    ctx.template_title.includes('[TEST]');
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     await client.query(`SELECT set_config('app.user_label', $1, true)`,
       ['systemtest:failure-bridge']);
 
+    const epicId = await findOrCreateTemplateEpic(client, {
+      brand,
+      templateId: ctx.template_id,
+      templateTitle: ctx.template_title,
+      isTestData,
+    });
+
     const insert = await client.query<{ id: string }>(
       `INSERT INTO tickets.tickets
-         (type, brand, title, description, status,
+         (type, brand, parent_id, component, severity,
+          title, description, status,
           source_test_assignment_id, source_test_question_id, is_test_data)
-       VALUES ('bug', $1, $2, $3, 'triage', $4, $5, false)
+       VALUES ('bug', $1, $2, 'systemtest', 'minor',
+               $3, $4, 'triage',
+               $5, $6, $7)
+       ON CONFLICT (source_test_question_id)
+         WHERE source_test_question_id IS NOT NULL AND status NOT IN ('done','archived')
+       DO UPDATE SET
+         source_test_assignment_id = EXCLUDED.source_test_assignment_id,
+         updated_at = now()
        RETURNING id`,
-      [brand, title, description, opts.assignmentId, opts.questionId],
+      [brand, epicId, title, description,
+       opts.assignmentId, opts.questionId, isTestData],
     );
     const ticketId = insert.rows[0].id;
 
     // Stamp the test_status row only when the assignment still matches.
-    // (Defense-in-depth — we already filtered above, but the WHERE makes
-    // this resilient to a concurrent overwrite between the SELECT and now.)
+    // Best-effort — dedup no longer depends on it, but the retest trigger
+    // and admin board still read this column.
     await client.query(
       `UPDATE questionnaire_test_status
           SET last_failure_ticket_id = $1,
@@ -226,6 +279,45 @@ export async function openFailureTicket(
   } finally {
     client.release();
   }
+}
+
+interface EpicOpts {
+  brand: string;
+  templateId: string;
+  templateTitle: string;
+  isTestData: boolean;
+}
+
+/**
+ * Find or create the per-template parent ticket. Identified by a slug of
+ * the template title (`EPIC-SYS-<brand>-<title-slug>`), NOT by template_id —
+ * because the systemtest seeder creates a fresh template UUID on every
+ * run. The slug is stable across runs so all failures of "Auth-only system
+ * test" share one epic, regardless of which seed-run produced them.
+ */
+async function findOrCreateTemplateEpic(
+  client: PoolClient,
+  opts: EpicOpts,
+): Promise<string> {
+  const externalId = `EPIC-SYS-${opts.brand}-${slugifyTitle(opts.templateTitle)}`;
+  const epicTitle = truncate(`Systemtest: ${opts.templateTitle}`, 200);
+  const epicDescription =
+    `Auto-erstelltes Epic für alle Systemtest-Fehler aus Template ` +
+    `**${opts.templateTitle}**.\n\n` +
+    `Kinder werden vom failure-bridge automatisch eingehängt; geschlossene ` +
+    `Tickets werden bei Regressions wiedereröffnet (neue Kinder).`;
+
+  const res = await client.query<{ id: string }>(
+    `INSERT INTO tickets.tickets
+       (external_id, type, brand, title, description, status,
+        component, severity, is_test_data)
+     VALUES ($1, 'project', $2, $3, $4, 'in_progress',
+             'systemtest', 'minor', $5)
+     ON CONFLICT (external_id) DO UPDATE SET updated_at = now()
+     RETURNING id`,
+    [externalId, opts.brand, epicTitle, epicDescription, opts.isTestData],
+  );
+  return res.rows[0].id;
 }
 
 /**

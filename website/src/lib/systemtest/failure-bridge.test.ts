@@ -29,18 +29,23 @@ interface Fixture {
   cleanup: () => Promise<void>;
 }
 
-async function createFixture(opts: { isSystemTest?: boolean } = {}): Promise<Fixture> {
+async function createFixture(opts: { isSystemTest?: boolean; assignmentIsTestData?: boolean; titleSuffix?: string } = {}): Promise<Fixture> {
   const isSystemTest = opts.isSystemTest ?? true;
+  const assignmentIsTestData = opts.assignmentIsTestData ?? true;
   const templateId = randomUUID();
   const questionId = randomUUID();
   const customerId = randomUUID();
   const assignmentId = randomUUID();
   const customerEmail = `failure-bridge-${customerId}@systemtest.local`;
+  // Unique per-test title so each fixture's auto-created parent epic
+  // (`EPIC-SYS-<brand>-<title-slug>`) is distinct and gets cleaned up
+  // without colliding with concurrent tests.
+  const templateTitle = `Auth-only system test ${opts.titleSuffix ?? templateId.slice(0, 8)}`;
 
   await pool.query(
     `INSERT INTO questionnaire_templates (id, title, description, instructions, status, is_system_test)
      VALUES ($1, $2, $3, $4, 'published', $5)`,
-    [templateId, 'Auth-only system test', 'fixture description', 'instructions', isSystemTest],
+    [templateId, templateTitle, 'fixture description', 'instructions', isSystemTest],
   );
   await pool.query(
     `INSERT INTO questionnaire_questions
@@ -56,12 +61,22 @@ async function createFixture(opts: { isSystemTest?: boolean } = {}): Promise<Fix
   );
   await pool.query(
     `INSERT INTO questionnaire_assignments (id, customer_id, template_id, status, is_test_data)
-     VALUES ($1, $2, $3, 'submitted', true)`,
-    [assignmentId, customerId, templateId],
+     VALUES ($1, $2, $3, 'submitted', $4)`,
+    [assignmentId, customerId, templateId, assignmentIsTestData],
   );
 
   const cleanup = async () => {
-    // Order matters: drop ticket FK refs first so we can delete the assignment.
+    // Order matters: drop ticket FK refs first so we can delete the
+    // assignment. Also delete the auto-created parent epic for this
+    // template (parent_id of the deleted children).
+    await pool.query(
+      `DELETE FROM tickets.tickets t
+        WHERE t.id IN (
+          SELECT DISTINCT parent_id FROM tickets.tickets
+           WHERE source_test_assignment_id = $1 AND parent_id IS NOT NULL
+        )`,
+      [assignmentId],
+    );
     await pool.query(
       `DELETE FROM tickets.tickets WHERE source_test_assignment_id = $1`,
       [assignmentId],
@@ -149,7 +164,7 @@ describe.skipIf(!dbAvailable)('openFailureTicket', () => {
     expect(ticketId).toBeTruthy();
 
     const t = await pool.query(
-      `SELECT type, title, description, status,
+      `SELECT type, title, description, status, parent_id, component, severity,
               source_test_assignment_id, source_test_question_id, is_test_data
          FROM tickets.tickets WHERE id = $1`,
       [ticketId!],
@@ -161,11 +176,28 @@ describe.skipIf(!dbAvailable)('openFailureTicket', () => {
     expect(t.rows[0].title).toContain('Auth-only system test');
     expect(t.rows[0].source_test_assignment_id).toBe(f.assignmentId);
     expect(t.rows[0].source_test_question_id).toBe(f.questionId);
-    expect(t.rows[0].is_test_data).toBe(false);
+    // Fixture's assignment is `is_test_data=true`, so the auto-created
+    // ticket inherits that flag and is hidden from the real triage queue.
+    expect(t.rows[0].is_test_data).toBe(true);
+    expect(t.rows[0].component).toBe('systemtest');
+    expect(t.rows[0].severity).toBe('minor');
+    expect(t.rows[0].parent_id).toBeTruthy();
     expect(t.rows[0].description).toContain('Login lands on /portal');
     expect(t.rows[0].description).toContain('Login button stays disabled.');
     expect(t.rows[0].description).toContain(`/api/admin/evidence/${evidenceId}/replay`);
     expect(t.rows[0].description).toContain(`/admin/fragebogen/${f.assignmentId}`);
+
+    // The auto-created parent epic is type='project', component='systemtest'
+    // and shares the same title slug as the failing template.
+    const epic = await pool.query(
+      `SELECT type, title, component, external_id, is_test_data
+         FROM tickets.tickets WHERE id = $1`,
+      [t.rows[0].parent_id],
+    );
+    expect(epic.rows[0].type).toBe('project');
+    expect(epic.rows[0].component).toBe('systemtest');
+    expect(epic.rows[0].title).toMatch(/^Systemtest: Auth-only system test/);
+    expect(epic.rows[0].external_id).toMatch(/^EPIC-SYS-/);
 
     const status = await pool.query(
       `SELECT last_failure_ticket_id, evidence_id

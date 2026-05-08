@@ -1839,9 +1839,9 @@ export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
   const result = await pool.query(
     `SELECT te.id,
             te.project_id        AS "projectId",
-            p.name               AS "projectName",
+            p.title              AS "projectName",
             te.task_id           AS "taskId",
-            pt.name              AS "taskName",
+            task.title           AS "taskName",
             te.description,
             te.minutes,
             te.billable,
@@ -1851,8 +1851,8 @@ export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
-     JOIN projects      p  ON p.id  = te.project_id
-     LEFT JOIN project_tasks pt ON pt.id = te.task_id
+     JOIN tickets.tickets p    ON p.id  = te.project_id
+     LEFT JOIN tickets.tickets task ON task.id = te.task_id
      WHERE te.project_id = $1
      ORDER BY te.entry_date DESC`,
     [projectId]
@@ -1868,9 +1868,9 @@ export async function listAllTimeEntries(params?: {
   const result = await pool.query(
     `SELECT te.id,
             te.project_id        AS "projectId",
-            p.name               AS "projectName",
+            p.title              AS "projectName",
             te.task_id           AS "taskId",
-            pt.name              AS "taskName",
+            task.title           AS "taskName",
             te.description,
             te.minutes,
             te.billable,
@@ -1880,8 +1880,8 @@ export async function listAllTimeEntries(params?: {
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
-     JOIN projects      p  ON p.id  = te.project_id
-     LEFT JOIN project_tasks pt ON pt.id = te.task_id
+     JOIN tickets.tickets p    ON p.id  = te.project_id
+     LEFT JOIN tickets.tickets task ON task.id = te.task_id
      WHERE ($1::boolean IS NULL OR te.billable = $1)
        AND ($2::date    IS NULL OR te.entry_date >= $2::date)
      ORDER BY te.entry_date DESC`,

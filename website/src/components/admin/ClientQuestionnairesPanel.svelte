@@ -11,6 +11,10 @@
   let selectedTemplateId = $state('');
   let assigning = $state(false);
   let assignMsg = $state('');
+  let archivedVisible = $state(false);
+
+  const active = $derived(assignments.filter(a => a.status !== 'archived'));
+  const archived = $derived(assignments.filter(a => a.status === 'archived'));
 
   async function loadData() {
     const [aRes, tRes] = await Promise.all([
@@ -48,6 +52,7 @@
     if (s === 'submitted' || s === 'reviewed') return 'bg-green-500/10 text-green-400 border-green-500/20';
     if (s === 'in_progress') return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     if (s === 'dismissed') return 'bg-red-500/10 text-red-400 border-red-500/20';
+    if (s === 'archived') return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
     return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
   }
 
@@ -56,6 +61,7 @@
     if (s === 'submitted') return 'Eingereicht';
     if (s === 'in_progress') return 'In Bearbeitung';
     if (s === 'dismissed') return 'Abgelehnt';
+    if (s === 'archived') return 'Archiviert';
     return 'Ausstehend';
   }
 
@@ -92,9 +98,9 @@
     </p>
   {/if}
 
-  {#if assignments.length > 0}
+  {#if active.length > 0}
     <div class="flex flex-col gap-2">
-      {#each assignments as a}
+      {#each active as a}
         <div class="flex items-center justify-between gap-3 p-3 bg-dark rounded-lg border border-dark-lighter">
           <div class="flex-1 min-w-0">
             <p class="text-light text-sm truncate">{a.template_title}</p>
@@ -114,5 +120,37 @@
         </div>
       {/each}
     </div>
+  {/if}
+
+  {#if archived.length > 0}
+    <button
+      type="button"
+      onclick={() => (archivedVisible = !archivedVisible)}
+      class="mt-3 text-xs text-muted hover:text-light flex items-center gap-1"
+    >
+      <span>{archivedVisible ? '▾' : '▸'}</span>
+      Archiv anzeigen ({archived.length})
+    </button>
+    {#if archivedVisible}
+      <div class="flex flex-col gap-2 mt-2 opacity-60">
+        {#each archived as a}
+          <div class="flex items-center justify-between gap-3 p-3 bg-dark rounded-lg border border-dark-lighter">
+            <div class="flex-1 min-w-0">
+              <p class="text-light text-sm truncate">{a.template_title}</p>
+              <p class="text-muted text-xs mt-0.5">
+                Zugewiesen: {fmtDate(a.assigned_at)}
+                {a.submitted_at ? ` · Eingereicht: ${fmtDate(a.submitted_at)}` : ''}
+              </p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class={`px-2 py-0.5 rounded border text-xs ${statusBadge(a.status)}`}>
+                {statusLabel(a.status)}
+              </span>
+              <a href={`/admin/fragebogen/${a.id}`} class="text-xs text-gold hover:underline">Auswertung →</a>
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
   {/if}
 </div>

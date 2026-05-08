@@ -47,7 +47,7 @@ test.describe('FA-admin-tickets', () => {
     });
     expect(create.ok()).toBeTruthy();
     const cb = await create.json() as { success: boolean; ticketId: string };
-    expect(cb.ticketId).toMatch(/^BR-/);
+    expect(cb.ticketId).toMatch(/^T\d{6,}$/);
     const externalId = cb.ticketId;
 
     // ── 2. Admin login + index filter ──

@@ -118,8 +118,9 @@ export interface ListFilters {
 
 // ── List ────────────────────────────────────────────────────────────────────
 
-const LIST_SELECT = `
-  SELECT
+// Split into LIST_COLS (SELECT items) and LIST_FROM (FROM + joins) so getTicketDetail
+// can inject extra columns into the SELECT list without ending up after the FROM.
+const LIST_COLS = `
     t.id, t.external_id AS "externalId", t.type, t.brand, t.title,
     t.status, t.resolution, t.priority, t.severity, t.component,
     t.thesis_tag AS "thesisTag", t.parent_id AS "parentId",
@@ -136,10 +137,13 @@ const LIST_SELECT = `
         WHERE tt.ticket_id = t.id), ARRAY[]::text[]
     ) AS "tagNames",
     t.created_at AS "createdAt", t.updated_at AS "updatedAt"
+`;
+const LIST_FROM = `
   FROM tickets.tickets t
   LEFT JOIN customers c ON c.id = t.customer_id
   LEFT JOIN customers a ON a.id = t.assignee_id
 `;
+const LIST_SELECT = `SELECT ${LIST_COLS} ${LIST_FROM}`;
 
 const LIST_ORDER = `
   ORDER BY
@@ -234,13 +238,14 @@ export async function getTicketDetail(brand: string, id: string): Promise<Ticket
 
   // Brand-scoped fetch — returns null if the ticket exists in a different brand.
   const t = await pool.query<TicketDetail>(
-    `${LIST_SELECT}
-     , t.description, t.notes, t.url, t.start_date AS "startDate",
-       t.estimate_minutes AS "estimateMinutes", t.time_logged_minutes AS "timeLoggedMinutes",
-       t.triaged_at AS "triagedAt", t.started_at AS "startedAt",
-       t.done_at AS "doneAt", t.archived_at AS "archivedAt",
-       t.reporter_id AS "reporterId"
-     WHERE t.id = $1 AND t.brand = $2`,
+    `SELECT ${LIST_COLS},
+            t.description, t.notes, t.url, t.start_date AS "startDate",
+            t.estimate_minutes AS "estimateMinutes", t.time_logged_minutes AS "timeLoggedMinutes",
+            t.triaged_at AS "triagedAt", t.started_at AS "startedAt",
+            t.done_at AS "doneAt", t.archived_at AS "archivedAt",
+            t.reporter_id AS "reporterId"
+       ${LIST_FROM}
+      WHERE t.id = $1 AND t.brand = $2`,
     [id, brand]
   );
   if (t.rows.length === 0) return null;
@@ -396,9 +401,6 @@ export async function createAdminTicket(p: {
   await initTicketsSchema();
   if (p.type === 'project' && !p.customerId) {
     throw new Error('createAdminTicket: customerId is required for type=project');
-  }
-  if (p.type === 'bug') {
-    throw new Error('createAdminTicket: type=bug must be created via /api/bug-report (mints BR-id)');
   }
   // If parentId is given, it must belong to the same brand.
   if (p.parentId) {

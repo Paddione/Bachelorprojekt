@@ -598,27 +598,26 @@ export async function assignMeeting(meetingId: string, params: {
 // ── Bug Tickets ──────────────────────────────────────────────────────────────
 
 export async function insertBugTicket(params: {
-  ticketId: string;
   category: string;
   reporterEmail: string;
   description: string;
   url?: string;
   brand: string;
   screenshots?: string[];
-}): Promise<number> {
+}): Promise<{ id: string; ticketId: string } | null> {
   await initTicketsSchema();
-  const { rows } = await pool.query(
+  const { rows } = await pool.query<{ id: string; external_id: string }>(
     `INSERT INTO tickets.tickets
-       (external_id, type, brand, title, description, url, reporter_email, status)
-     VALUES ($1, 'bug', $2, $3, $4, $5, $6, 'triage')
-     ON CONFLICT (external_id) DO NOTHING
-     RETURNING id`,
-    [params.ticketId, params.brand,
+       (type, brand, title, description, url, reporter_email, status)
+     VALUES ('bug', $1, $2, $3, $4, $5, 'triage')
+     RETURNING id, external_id`,
+    [params.brand,
      params.description.slice(0, 200),
      params.description, params.url ?? null, params.reporterEmail]
   );
-  if (rows.length === 0) return 0;
+  if (rows.length === 0) return null;
   const newId = rows[0].id;
+  const newExtId = rows[0].external_id;
 
   // Categorize as tag (kind:fehler|verbesserung|erweiterungswunsch)
   const tagName = `kind:${params.category}`;
@@ -638,7 +637,7 @@ export async function insertBugTicket(params: {
        VALUES ($1, $2, $3, $4)`,
       [newId, `screenshot-${idx + 1}`, dataUrl, m ? m[1] : 'application/octet-stream']);
   }
-  return 1;
+  return { id: newId, ticketId: newExtId };
 }
 
 async function ticketIdByExternal(externalId: string): Promise<string | null> {

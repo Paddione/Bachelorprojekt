@@ -479,8 +479,8 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
         test_function_url: '/admin/monitoring', test_role: 'admin',
       },
       {
-        question_text: 'Öffne Monitoring (Link) → klicke „Bug-Ticket erstellen" → fülle Titel und Beschreibung aus — prüfe ob das Ticket unter /admin/bugs mit dem Format BR-YYYYMMDD-xxxx erscheint.',
-        expected_result: 'Ticket mit Format BR-YYYYMMDD-xxxx wird angelegt und unter /admin/bugs sichtbar.',
+        question_text: 'Öffne Monitoring (Link) → klicke „Bug-Ticket erstellen" → fülle Titel und Beschreibung aus — prüfe ob das Ticket unter /admin/bugs mit dem Format Txxxxxx erscheint.',
+        expected_result: 'Ticket mit Format Txxxxxx wird angelegt und unter /admin/bugs sichtbar.',
         test_function_url: '/admin/monitoring', test_role: 'admin',
       },
       {

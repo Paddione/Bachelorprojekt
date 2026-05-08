@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getBugTicketStatus } from '../../lib/website-db';
 
-const TICKET_RE = /^BR-\d{8}-[0-9a-f]{4}$/;
+const TICKET_RE = /^(T\d{6,}|BR-\d{8}-[0-9a-f]{4})$/;
 
 // Simple in-memory rate limiting: max 10 requests per minute per IP
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -35,7 +35,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   if (!TICKET_RE.test(id)) {
     return new Response(
-      JSON.stringify({ error: 'Ungültiges Ticket-ID-Format. Erwartet: BR-YYYYMMDD-xxxx' }),
+      JSON.stringify({ error: 'Ungültiges Ticket-ID-Format. Erwartet: T000123' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }

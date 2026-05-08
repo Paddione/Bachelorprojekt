@@ -23,12 +23,6 @@ function jsonError(message: string, status: number): Response {
   );
 }
 
-function generateTicketId(): string {
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const rand = Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
-  return `BR-${today}-${rand}`;
-}
-
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`bug-report:${ip}`, 10, 60_000)) {
@@ -79,10 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
       screenshotDataUrls.push(`data:${file.type};base64,${base64}`);
     }
 
-    const ticketId = generateTicketId();
-
-    await insertBugTicket({
-      ticketId,
+    const inserted = await insertBugTicket({
       category,
       reporterEmail: email,
       description,
@@ -90,6 +81,10 @@ export const POST: APIRoute = async ({ request }) => {
       brand: BRAND,
       screenshots: screenshotDataUrls.length > 0 ? screenshotDataUrls : undefined,
     });
+    if (!inserted) {
+      return jsonError('Ticket konnte nicht erstellt werden.', 500);
+    }
+    const ticketId = inserted.ticketId;
 
     await linkReporterByEmail(email).catch(err =>
       console.error('[bug-report] reporter-link failed:', err));

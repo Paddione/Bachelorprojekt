@@ -13,12 +13,6 @@ function jsonError(message: string, status: number): Response {
   });
 }
 
-function generateTicketId(): string {
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const rand = Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
-  return `BR-${today}-${rand}`;
-}
-
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) {
@@ -45,20 +39,19 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonError('Ungültige Kategorie', 400);
   }
 
-  const ticketId = generateTicketId();
-
+  let ticketId: string;
   try {
-    const rowCount = await insertBugTicket({
-      ticketId,
+    const inserted = await insertBugTicket({
       category,
       reporterEmail: session.email,
       description,
       url: '/admin/monitoring',
       brand: BRAND,
     });
-    if (rowCount === 0) {
-      return jsonError('Ticket-ID-Kollision, bitte erneut versuchen', 500);
+    if (!inserted) {
+      return jsonError('Ticket konnte nicht erstellt werden', 500);
     }
+    ticketId = inserted.ticketId;
   } catch (err) {
     console.error('[bugs/create] DB error:', err);
     return jsonError('Datenbankfehler', 500);

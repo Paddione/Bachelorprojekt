@@ -27,17 +27,14 @@ Out: GitHub Actions PR-comment integration, code coverage tracking, per-cluster 
 
 ### 1. Cleanup (dead-code removal)
 
-Delete entirely:
-- `tests/local/FA-01-*.sh`, `FA-02-*.sh`, `FA-04-*.sh`, `FA-05-*.sh`, `FA-06-*.sh`, `FA-07-*.sh`, `FA-08-*.sh`, `FA-09-*.sh`, `FA-09-init.sh`, `FA-22-*.sh`, `SA-06-*.sh`, `SA-09-*.sh`
-- Matching files under `tests/prod/`
+Concrete state on disk (audited 2026-05-08): only one dead file actually exists — `tests/local/FA-09-init.sh` (525 bytes, billing-bot init stub). The other Mattermost/InvoiceNinja files (FA-01..08, FA-22, SA-06, SA-09) were already deleted in a prior cleanup; only `CLAUDE.md` still claims they exist.
+
+Delete:
+- `tests/local/FA-09-init.sh`
 
 Update:
-- Remove the "permanently skipped" enumeration from `CLAUDE.md` (the section listing FA-01..FA-08 etc. as skipped).
+- Replace the "Note: FA-01..FA-08, FA-09 (InvoiceNinja bucket), FA-22, SA-06, SA-09 are fully skipped" line in `CLAUDE.md` with the truthful current state ("FA-09 init removed; some FA-/SA- IDs gapped due to Mattermost/InvoiceNinja removal — see git history").
 - IDs stay reserved — gaps are traceable in git history.
-
-Side effects:
-- Runner skip-counts drop, parallel pool stops spending time on no-ops.
-- Reports stop misleading reviewers ("0 fail / 30 skip" reads as healthy).
 
 ### 2. Staleness report — full removal
 
@@ -45,14 +42,16 @@ Delete:
 - `website/src/pages/api/admin/staleness-report.ts`
 - `website/src/pages/api/admin/staleness-webhook.ts`
 - `StalenessReport` interface + `saveStalenessReport()` + `getLatestStalenessReport()` from `website/src/lib/website-db.ts`
-- Staleness card + fetch from `website/src/components/admin/monitoring/OverviewTab.svelte`
-- `'staleness'` notification type wherever referenced (search `notifications.ts`, notification renderers)
+- Staleness card + fetch from `website/src/components/admin/monitoring/OverviewTab.svelte` (lines 39-40 fetch, lines 128-178 card + summary)
+- The entire `BerichteTab.svelte` staleness fetch + table (second consumer found during audit)
+- `'staleness'` notification type from `website/src/lib/notifications.ts:5` (NotificationType union) and `:14` (TYPE_DEFAULTS map)
 - `STALENESS_WEBHOOK_SECRET` from `environments/.secrets/mentolder.yaml` and `environments/.secrets/korczewski.yaml`
 - Re-run `task env:seal ENV=mentolder` and `task env:seal ENV=korczewski` to drop the secret from the sealed bundles
 - Remove from `environments/schema.yaml` if listed there
 
-Add migration:
-- New file under the existing migrations directory (next available sequence number, e.g. `bachelorprojekt/migrations/NNNN_drop_staleness_reports.sql`) with `DROP TABLE IF EXISTS staleness_reports;`. Plan step will pick the actual number after listing the directory.
+Schema removal (no numbered migrations directory exists in this repo — schema is owned by `k3d/website-schema.yaml` ConfigMap init+ensure scripts):
+- Remove the `CREATE TABLE staleness_reports` block from `k3d/website-schema.yaml` (around line 326-332).
+- Apply `DROP TABLE IF EXISTS staleness_reports;` to both clusters via a one-shot psql command run by `task workspace:psql ENV=mentolder -- website` and `ENV=korczewski` (documented in the plan as a manual operator step after deploy).
 
 ### 3. CI: add E2E smoke job to PRs
 
@@ -72,11 +71,12 @@ The existing `e2e.yml` (full nightly + manual) stays unchanged.
 
 #### 4a. Schema change
 
-Add `test_results` table for per-test rows (today only aggregate counts in `test_runs`):
+Add `test_results` table for per-test rows (today only aggregate counts in `test_runs`). Note: `test_runs.id` is `TEXT` (job UUID), so `run_id` must also be TEXT:
+
 ```sql
-CREATE TABLE test_results (
+CREATE TABLE IF NOT EXISTS test_results (
   id          BIGSERIAL PRIMARY KEY,
-  run_id      BIGINT NOT NULL REFERENCES test_runs(id) ON DELETE CASCADE,
+  run_id      TEXT NOT NULL REFERENCES test_runs(id) ON DELETE CASCADE,
   test_id     TEXT NOT NULL,             -- 'FA-03', 'fa-admin-billing T2'
   category    TEXT NOT NULL,             -- 'FA' | 'SA' | 'NFA' | 'AK' | 'E2E' | 'BATS'
   status      TEXT NOT NULL,             -- 'pass' | 'fail' | 'skip'
@@ -84,9 +84,11 @@ CREATE TABLE test_results (
   message     TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX test_results_test_id_created_idx ON test_results (test_id, created_at DESC);
-CREATE INDEX test_results_run_id_idx ON test_results (run_id);
+CREATE INDEX IF NOT EXISTS test_results_test_id_created_idx ON test_results (test_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS test_results_run_id_idx ON test_results (run_id);
 ```
+
+Schema lives in `k3d/website-schema.yaml` (added to both the init script and the ensure script for idempotency on existing clusters).
 
 #### 4b. Ingestion
 

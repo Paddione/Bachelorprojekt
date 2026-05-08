@@ -1,0 +1,12 @@
+{
+  "pr_number": 573,
+  "title": "add PR5 sunset-legacy-tables implementation plan",
+  "description": "## Summary\n\n- Adds the implementation plan for PR5 of the unified ticketing migration series\n- Documents the sunset approach: drop back-compat SQL views + `*_legacy` tables created by PR1–3, fix stale code references, BATS health sweep\n- The actual implementation was executed and shipped as part of PR #572\n\n## Context\n\nPR5 was the final phase of the 5-PR unified ticketing migration:\n- PR1: schema + migration scripts (bugs → tickets.tickets)\n- PR2: projects migration\n- PR3: requirements migration\n- PR4: admin UI\n- PR5: sunset legacy objects (views, _legacy tables, dead init functions, stray references)\n\nAll code changes landed in PR #572; this PR adds the plan document to complete the paper trail.\n\n## Test plan\n- [x] Plan file renders correctly (markdown)\n- [x] No code changes — docs only\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "docs",
+  "scope": "tickets/pr5",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T05:04:25Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

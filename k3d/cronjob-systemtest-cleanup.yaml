@@ -57,7 +57,7 @@ spec:
                 - name: CRON_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: workspace-secrets
+                      name: website-secrets
                       key: CRON_SECRET
               resources:
                 requests:
@@ -108,7 +108,7 @@ spec:
                 - name: CRON_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: workspace-secrets
+                      name: website-secrets
                       key: CRON_SECRET
               resources:
                 requests:

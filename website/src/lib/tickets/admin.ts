@@ -162,7 +162,10 @@ export async function listAdminTickets(f: ListFilters): Promise<ListedTicket[]> 
   await initTicketsSchema();
   const where: string[] = ['t.brand = $1'];
   const vals: unknown[] = [f.brand];
-  const push = (clause: string, v: unknown) => { vals.push(v); where.push(clause.replace('$N', `$${vals.length}`)); };
+  const push = (clause: string, v: unknown) => {
+    vals.push(v);
+    where.push(clause.replace(/\$N/g, `$${vals.length}`));
+  };
 
   if (f.type) push('t.type = $N', f.type);
   if (f.status === 'open') {
@@ -198,7 +201,10 @@ export async function countAdminTickets(f: ListFilters): Promise<number> {
   await initTicketsSchema();
   const where: string[] = ['t.brand = $1'];
   const vals: unknown[] = [f.brand];
-  const push = (clause: string, v: unknown) => { vals.push(v); where.push(clause.replace('$N', `$${vals.length}`)); };
+  const push = (clause: string, v: unknown) => {
+    vals.push(v);
+    where.push(clause.replace(/\$N/g, `$${vals.length}`));
+  };
   if (f.type)        push('t.type = $N', f.type);
   if (f.status === 'open') where.push(`t.status NOT IN ('done','archived')`);
   else if (f.status) push('t.status = $N', f.status);
@@ -250,7 +256,7 @@ export async function getTicketDetail(brand: string, id: string): Promise<Ticket
               pe.title AS "prTitle", pe.merged_at AS "prMergedAt",
               l.created_at AS "createdAt"
          FROM tickets.ticket_links l
-         JOIN tickets.tickets ot ON ot.id = l.to_id
+         JOIN tickets.tickets ot ON ot.id = l.to_id AND ot.brand = $2
          LEFT JOIN tickets.pr_events pe ON pe.pr_number = l.pr_number
         WHERE l.from_id = $1
        UNION ALL
@@ -261,11 +267,11 @@ export async function getTicketDetail(brand: string, id: string): Promise<Ticket
               pe.title AS "prTitle", pe.merged_at AS "prMergedAt",
               l.created_at AS "createdAt"
          FROM tickets.ticket_links l
-         JOIN tickets.tickets ot ON ot.id = l.from_id
+         JOIN tickets.tickets ot ON ot.id = l.from_id AND ot.brand = $2
          LEFT JOIN tickets.pr_events pe ON pe.pr_number = l.pr_number
         WHERE l.to_id = $1
         ORDER BY "createdAt" DESC`,
-      [id]
+      [id, brand]
     ),
     pool.query<TicketAttachmentRow>(
       `SELECT id, filename, mime_type AS "mimeType", file_size AS "fileSize",
@@ -456,12 +462,6 @@ export async function patchAdminTicket(p: {
   actor: { id?: string; label: string };
 }): Promise<void> {
   await initTicketsSchema();
-  // Brand-guard.
-  const cur = await pool.query<{ brand: string }>(
-    `SELECT brand FROM tickets.tickets WHERE id = $1`, [p.id]);
-  if (cur.rows.length === 0 || cur.rows[0].brand !== p.brand) {
-    throw new Error('patchAdminTicket: ticket not found in brand');
-  }
 
   const sets: string[] = [];
   const vals: unknown[] = [];
@@ -491,8 +491,16 @@ export async function patchAdminTicket(p: {
     if (p.actor.id) await client.query(`SELECT set_config('app.user_id', $1, true)`, [p.actor.id]);
     await client.query(`SELECT set_config('app.user_label', $1, true)`, [p.actor.label]);
     vals.push(p.id);
-    await client.query(
-      `UPDATE tickets.tickets SET ${sets.join(', ')}, updated_at = now() WHERE id = $${vals.length}`, vals);
+    const idIdx = vals.length;
+    vals.push(p.brand);
+    const brandIdx = vals.length;
+    const r = await client.query(
+      `UPDATE tickets.tickets SET ${sets.join(', ')}, updated_at = now()
+        WHERE id = $${idIdx} AND brand = $${brandIdx}`, vals);
+    if (r.rowCount === 0) {
+      await client.query('ROLLBACK');
+      throw new Error('patchAdminTicket: ticket not found in brand');
+    }
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});

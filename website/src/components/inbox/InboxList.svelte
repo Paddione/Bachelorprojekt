@@ -2,19 +2,40 @@
      The middle column: search box + scrollable list of items. Selection
      state is owned by the parent; this component only emits onSelect. -->
 <script lang="ts">
-  import type { InboxItem } from '../../lib/messaging-db';
+  import type { InboxItem, InboxStatus } from '../../lib/messaging-db';
   import { TYPE_META } from './type-meta';
+  import { canQuickDone as _canQuickDone } from './inbox-actions';
 
   interface Props {
     items: InboxItem[];
     selectedId: number | null;
     searchQuery: string;
+    activeStatus: InboxStatus;
+    busy: boolean;
     onSelect: (id: number) => void;
     onSearch: (q: string) => void;
+    onQuickDone?: (id: number) => void;
     bindSearchInput?: (el: HTMLInputElement | null) => void;
   }
 
-  const { items, selectedId, searchQuery, onSelect, onSearch, bindSearchInput }: Props = $props();
+  const {
+    items,
+    selectedId,
+    searchQuery,
+    activeStatus,
+    busy,
+    onSelect,
+    onSearch,
+    onQuickDone,
+    bindSearchInput,
+  }: Props = $props();
+
+  // Inline check-icon ("Erledigt") is only shown for pending items where the
+  // primary action does not need additional input. Bugs require a resolution
+  // note (entered in the detail pane) — handled there.
+  function canQuickDone(item: InboxItem): boolean {
+    return _canQuickDone(item.type, activeStatus);
+  }
 
   let searchEl: HTMLInputElement | null = $state(null);
 
@@ -100,30 +121,51 @@
         {@const meta = TYPE_META[item.type]}
         {@const sum = summary(item)}
         {@const isSelected = item.id === selectedId}
-        <button
-          type="button"
-          class="row {isSelected ? 'is-selected' : ''}"
-          data-testid="inbox-list-row"
-          data-id={item.id}
-          data-type={item.type}
-          data-selected={isSelected}
-          aria-selected={isSelected}
-          role="option"
-          onclick={() => onSelect(item.id)}
-        >
-          <div class="row-top">
-            <span class="row-name" title={sum.name}>{sum.name}</span>
-            <time class="row-time">{relative(item.created_at)}</time>
-          </div>
-          <div class="row-bottom">
-            <span
-              class="pill"
-              style:background={meta.pillBg}
-              style:color={meta.pillFg}
-            >{meta.label}</span>
-            <span class="row-sub" title={sum.sub}>{sum.sub}</span>
-          </div>
-        </button>
+        {@const showQuickDone = canQuickDone(item) && !!onQuickDone}
+        <div class="row-wrap {isSelected ? 'is-selected' : ''} {showQuickDone ? 'has-quick' : ''}">
+          <button
+            type="button"
+            class="row"
+            data-testid="inbox-list-row"
+            data-id={item.id}
+            data-type={item.type}
+            data-selected={isSelected}
+            aria-selected={isSelected}
+            role="option"
+            onclick={() => onSelect(item.id)}
+          >
+            <div class="row-top">
+              <span class="row-name" title={sum.name}>{sum.name}</span>
+              <time class="row-time">{relative(item.created_at)}</time>
+            </div>
+            <div class="row-bottom">
+              <span
+                class="pill"
+                style:background={meta.pillBg}
+                style:color={meta.pillFg}
+              >{meta.label}</span>
+              <span class="row-sub" title={sum.sub}>{sum.sub}</span>
+            </div>
+          </button>
+          {#if showQuickDone}
+            <button
+              type="button"
+              class="row-quick"
+              data-testid="inbox-list-row-done"
+              data-id={item.id}
+              aria-label="Erledigt"
+              title="Erledigt"
+              disabled={busy}
+              onclick={(e) => { e.stopPropagation(); onQuickDone?.(item.id); }}
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   aria-hidden="true">
+                <path d="M3 8.5l3 3 7-7" />
+              </svg>
+            </button>
+          {/if}
+        </div>
       {/each}
     {/if}
   </div>
@@ -175,6 +217,10 @@
     font-size: 12px;
   }
 
+  .row-wrap {
+    position: relative;
+  }
+
   .row {
     width: 100%;
     display: flex;
@@ -191,9 +237,48 @@
     transition: background 0.1s ease;
   }
   .row:hover { background: rgba(255, 255, 255, 0.025); }
-  .row.is-selected {
+  .row[data-selected="true"] {
     background: oklch(0.80 0.09 75 / 0.07);
     border-left-color: var(--brass);
+  }
+  .row-wrap.has-quick .row { padding-right: 44px; }
+
+  .row-quick {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    color: var(--mute);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+    opacity: 0;
+  }
+  .row-wrap:hover .row-quick,
+  .row-wrap:focus-within .row-quick,
+  .row-wrap.is-selected .row-quick,
+  .row:focus-visible ~ .row-quick {
+    opacity: 1;
+  }
+  .row-quick:hover:not(:disabled) {
+    background: oklch(0.80 0.06 160 / 0.18);
+    color: oklch(0.86 0.06 160);
+    border-color: oklch(0.80 0.06 160 / 0.55);
+  }
+  .row-quick:disabled { opacity: 0.4; cursor: not-allowed; }
+  .row-quick svg { width: 14px; height: 14px; }
+
+  /* Touch devices: always show the button so users without hover can tap it. */
+  @media (hover: none) {
+    .row-quick { opacity: 1; }
   }
 
   .row-top {

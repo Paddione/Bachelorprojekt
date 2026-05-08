@@ -383,7 +383,14 @@ const isKore = brandId === 'korczewski';
                       set:html={icons[item.icon]}
                     />
                     <span class="sidebar-label" style="flex:1;">{item.label}</span>
-                    {item.badge ? (
+                    {item.href === '/admin/inbox' ? (
+                      <span
+                        class="sidebar-label admin-inbox-badge"
+                        data-admin-inbox-badge
+                        data-count={item.badge ?? 0}
+                        style={`flex-shrink:0; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--brass-d); color:var(--brass); font-family:var(--font-mono); font-size:10px; font-weight:700; align-items:center; justify-content:center; line-height:1; display:${item.badge ? 'flex' : 'none'};`}
+                      >{item.badge ?? 0}</span>
+                    ) : item.badge ? (
                       <span class="sidebar-label" style="flex-shrink:0; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--brass-d); color:var(--brass); font-family:var(--font-mono); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">{item.badge}</span>
                     ) : null}
                   </a>
@@ -514,6 +521,40 @@ const isKore = brandId === 'korczewski';
           refresh();
           setInterval(refresh, 30000);
         }
+
+        // Inbox sidebar badge — exposed for InboxApp + listeners for cross-tab sync.
+        function setAdminInboxBadgeCount(n) {
+          var nodes = document.querySelectorAll('[data-admin-inbox-badge]');
+          for (var i = 0; i < nodes.length; i++) {
+            var el = nodes[i];
+            el.setAttribute('data-count', String(n));
+            el.textContent = String(n);
+            el.style.display = n > 0 ? 'flex' : 'none';
+          }
+        }
+        function refreshAdminInboxBadge() {
+          var ctrl = new AbortController();
+          var t = setTimeout(function() { ctrl.abort(); }, 5000);
+          fetch('/api/admin/inbox/count', { signal: ctrl.signal, credentials: 'same-origin' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(d) {
+              clearTimeout(t);
+              if (!d || typeof d.total !== 'number') return;
+              setAdminInboxBadgeCount(d.total);
+            })
+            .catch(function() { clearTimeout(t); });
+        }
+        window.refreshAdminInboxBadge = refreshAdminInboxBadge;
+        window.setAdminInboxBadgeCount = setAdminInboxBadgeCount;
+        // Listen for postMessage-style events fired by client components.
+        window.addEventListener('admin-inbox-changed', function(ev) {
+          var detail = ev && ev.detail;
+          if (detail && typeof detail.total === 'number') {
+            setAdminInboxBadgeCount(detail.total);
+          } else {
+            refreshAdminInboxBadge();
+          }
+        });
       })();
     </script>
   </body>

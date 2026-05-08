@@ -8,6 +8,7 @@
   import InboxDetail  from './InboxDetail.svelte';
   import { TYPE_META, TYPE_ORDER } from './type-meta';
   import { handle as handleShortcut } from './inbox-shortcuts';
+  import { primaryActionFor } from './inbox-actions';
 
   interface Props {
     initialItems: InboxItem[];
@@ -58,6 +59,22 @@
   const visibleTotal = $derived(visible.length);
 
   const pendingTotal = $derived(Object.values(counts).reduce((a, b) => a + b, 0));
+
+  // Keep the AdminLayout sidebar badge in sync with the local counts. We dispatch
+  // a CustomEvent that the layout's inline script listens for; falling back to a
+  // direct call if the global helper has been registered already. Running inside
+  // an $effect ensures the badge updates reactively whenever counts change —
+  // including after reload(), postAction(), or initial mount.
+  $effect(() => {
+    const total = pendingTotal;
+    if (typeof window === 'undefined') return;
+    try {
+      window.dispatchEvent(new CustomEvent('admin-inbox-changed', { detail: { total, counts } }));
+    } catch {
+      const fn = (window as unknown as { setAdminInboxBadgeCount?: (n: number) => void }).setAdminInboxBadgeCount;
+      if (typeof fn === 'function') fn(total);
+    }
+  });
 
   // ── Effects ──────────────────────────────────────────────────────────────
 
@@ -276,6 +293,18 @@
     }
   }
 
+  // Quick "Erledigt" action invoked from a row's inline check button. Skips
+  // bug-type items because their resolve action requires a note (entered in
+  // the detail pane). Does not require the row to be selected first.
+  async function quickDone(id: number): Promise<void> {
+    if (busy) return;
+    const it = items.find(i => i.id === id);
+    if (!it) return;
+    const action = primaryActionFor(it.type);
+    if (!action) return; // 'bug' or unknown — must use detail pane
+    await postAction(it, action);
+  }
+
   async function runSecondary(): Promise<void> {
     const it = selected;
     if (!it || busy) return;
@@ -374,8 +403,11 @@
         items={visible}
         selectedId={selectedId}
         searchQuery={searchQuery}
+        activeStatus={activeStatus}
+        busy={busy}
         onSelect={selectItem}
         onSearch={(q) => { searchQuery = q; }}
+        onQuickDone={(id) => { void quickDone(id); }}
         bindSearchInput={(el) => { searchInput = el; }}
       />
     </div>

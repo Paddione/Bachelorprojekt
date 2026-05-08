@@ -1,0 +1,12 @@
+{
+  "pr_number": 570,
+  "title": "scope Kore overrides to body.kore (PR #568 follow-up)",
+  "description": "## Summary\n\nFollow-up to #568. The portal/admin still rendered mentolder colors after #568 merged because the alias bridge had no actual effect — Astro injects component-imported CSS (compiled \\`global.css\\` → \\`/_astro/admin.D5tUAxCV.css\\`) **after** explicit \\`<link>\\` tags. Both Kore tokens and mentolder \\`global.css\\` declared \\`:root\\` (specificity 0,1,0), so last-loaded wins — and that's mentolder.\n\n## Why this only hit the logged-in surfaces\n\nMarketing pages use \\`var(--copper)\\` / \\`var(--teal)\\` directly. Those tokens aren't redefined by \\`global.css\\`, so they survive cascade pressure. Portal and admin use \\`var(--brass)\\` / \\`var(--ink-900)\\` / \\`var(--font-serif)\\` everywhere — exactly the tokens that \\`global.css\\` redefines on \\`:root\\`. Result: portal got mentolder palette + Newsreader font despite \\`body.kore\\` being correctly applied and Kore CSS being correctly loaded.\n\n## Fix\n\nMove the override block from \\`:root\\` to \\`body.kore\\` (specificity 0,1,1) so it beats \\`:root\\` regardless of cascade order. Also widen scope to include every token \\`global.css\\` redefines:\n\n- \\`--ink-{900,850,800,750}\\` → Kore aubergine palette\n- \\`--fg\\`, \\`--fg-soft\\`, \\`--mute\\`, \\`--mute-2\\`\n- \\`--line\\`, \\`--line-2\\`\n- \\`--brass*\\` → \\`--copper*\\` (Plasma Lime)\n- \\`--sage\\` → \\`--teal\\` (Cyan)\n- \\`--font-serif/sans/mono\\` → Kore equivalents (Instrument Serif / Geist / JetBrains Mono)\n\nLoaded only on Kore deployments (file is conditionally linked from PortalLayout/AdminLayout). mentolder unaffected.\n\n## Test plan\n\n- [ ] Deploy: \\`task feature:website\\`\n- [ ] \\`web.korczewski.de/portal\\` — body background = aubergine \\`#120D1C\\`, accent = Plasma Lime, headings in Instrument Serif\n- [ ] \\`web.korczewski.de/admin\\` — same; nav active state shows lime tint\n- [ ] \\`web.mentolder.de/portal\\` — unchanged (brass / Newsreader)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T02:56:08Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

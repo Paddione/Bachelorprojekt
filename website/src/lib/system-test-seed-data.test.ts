@@ -7,11 +7,11 @@ const REQUIRED_REQ_IDS = [
   ...Array.from({ length: 13 }, (_, i) => `C-${String(i + 1).padStart(2, '0')}`),
 ];
 
-const EXPECTED_STEP_COUNTS = [6, 10, 5, 5, 5, 12, 16, 14, 6, 10];
+const EXPECTED_STEP_COUNTS = [6, 10, 5, 5, 5, 12, 16, 14, 5, 10, 7, 8];
 
 describe('system-test-seed-data', () => {
-  it('exports exactly 10 templates', () => {
-    expect(SYSTEM_TEST_TEMPLATES).toHaveLength(10);
+  it('exports exactly 12 templates', () => {
+    expect(SYSTEM_TEST_TEMPLATES).toHaveLength(12);
   });
 
   it('per-category step counts match the spec', () => {
@@ -19,9 +19,9 @@ describe('system-test-seed-data', () => {
     expect(counts).toEqual(EXPECTED_STEP_COUNTS);
   });
 
-  it('totals 89 steps across all templates', () => {
+  it('totals 103 steps across all templates', () => {
     const total = SYSTEM_TEST_TEMPLATES.reduce((sum, t) => sum + t.steps.length, 0);
-    expect(total).toBe(89);
+    expect(total).toBe(103);
   });
 
   it('every template has non-empty title/description/instructions', () => {

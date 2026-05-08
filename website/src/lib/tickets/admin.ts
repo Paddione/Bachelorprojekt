@@ -112,6 +112,10 @@ export interface ListFilters {
   tagName?: string;
   q?: string;                        // free-text over title + external_id + reporter_email
   parentIsNull?: boolean;            // for the index, hide child tickets by default
+  /** Include `is_test_data=true` rows. Defaults to false — seeded systemtest
+   *  fixtures are kept out of the real triage queue unless explicitly requested
+   *  via the "Inkl. Testdaten" toggle on /admin/tickets. */
+  includeTestData?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -192,6 +196,7 @@ export async function listAdminTickets(f: ListFilters): Promise<ListedTicket[]> 
             OR COALESCE(t.reporter_email,'') ILIKE '%' || $N || '%')`, f.q);
   }
   if (f.parentIsNull) where.push('t.parent_id IS NULL');
+  if (!f.includeTestData) where.push('t.is_test_data = false');
 
   const limit  = Math.min(Math.max(f.limit  ?? 100, 1), 500);
   const offset = Math.max(f.offset ?? 0, 0);
@@ -225,6 +230,7 @@ export async function countAdminTickets(f: ListFilters): Promise<number> {
        OR t.external_id ILIKE '%' || $N || '%'
        OR COALESCE(t.reporter_email,'') ILIKE '%' || $N || '%')`, f.q);
   if (f.parentIsNull) where.push('t.parent_id IS NULL');
+  if (!f.includeTestData) where.push('t.is_test_data = false');
 
   const r = await pool.query<{ count: string }>(
     `SELECT COUNT(*)::text AS count FROM tickets.tickets t WHERE ${where.join(' AND ')}`, vals);
@@ -635,11 +641,12 @@ export async function searchTicketsForLink(brand: string, q: string, limit = 10)
 
 // ── Distinct components for the filter dropdown ─────────────────────────────
 
-export async function listKnownComponents(brand: string): Promise<string[]> {
+export async function listKnownComponents(brand: string, opts: { includeTestData?: boolean } = {}): Promise<string[]> {
   await initTicketsSchema();
+  const filter = opts.includeTestData ? '' : ' AND is_test_data = false';
   const r = await pool.query<{ component: string }>(
     `SELECT DISTINCT component FROM tickets.tickets
-      WHERE brand = $1 AND component IS NOT NULL ORDER BY component`,
+      WHERE brand = $1 AND component IS NOT NULL${filter} ORDER BY component`,
     [brand]);
   return r.rows.map(x => x.component);
 }

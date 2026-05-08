@@ -6,6 +6,7 @@ import {
   listArchivedScores, listEvidenceByAssignment,
 } from './questionnaire-db';
 import { archiveQAssignment, reassignQAssignment } from './questionnaire-db';
+import { getDisplayScores } from './compute-scores';
 import { randomUUID } from 'crypto';
 
 const dbAvailable = !!(
@@ -257,5 +258,38 @@ describe.skipIf(!dbAvailable)('listEvidenceByAssignment', () => {
     const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
     const rows = await listEvidenceByAssignment(a.id);
     expect(rows).toEqual([]);
+  });
+});
+
+describe.skipIf(!dbAvailable)('getDisplayScores', () => {
+  it('uses snapshot for archived; falls back to compute for non-archived', async () => {
+    const tpl = await createQTemplate({
+      title: `gds-${randomUUID().slice(0, 8)}`, description: '', instructions: '',
+    });
+    const dim = await upsertQDimension({
+      templateId: tpl.id, name: 'D', position: 0, thresholdMid: 5, thresholdHigh: 10,
+    });
+    const q = await upsertQQuestion({
+      templateId: tpl.id, position: 0, questionText: 'q', questionType: 'likert_5',
+    });
+    await replaceQAnswerOptions(q.id, [
+      { optionKey: '4', label: 'x', dimensionId: dim.id, weight: 1 },
+    ]);
+    const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
+    await upsertQAnswer({ assignmentId: a.id, questionId: q.id, optionKey: '4' });
+    await updateQAssignment(a.id, { status: 'submitted' });
+
+    const live = await getDisplayScores(await getQAssignment(a.id) as any);
+    expect(live[0].final_score).toBe(4);
+    expect(live[0].name).toBe('D');
+
+    await archiveQAssignment(a.id);
+    await upsertQDimension({
+      id: dim.id, templateId: tpl.id, name: 'D-renamed', position: 0,
+      thresholdMid: 1, thresholdHigh: 2,
+    });
+    const frozen = await getDisplayScores(await getQAssignment(a.id) as any);
+    expect(frozen[0].final_score).toBe(4);
+    expect(frozen[0].name).toBe('D');
   });
 });

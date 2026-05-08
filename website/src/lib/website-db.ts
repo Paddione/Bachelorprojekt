@@ -1936,7 +1936,7 @@ export async function getUnbilledBillableEntriesByCustomer(
   const result = await pool.query(
     `SELECT te.id,
             te.project_id        AS "projectId",
-            p.name               AS "projectName",
+            p.title              AS "projectName",
             te.description,
             te.minutes,
             te.rate_cents        AS "rateCents",

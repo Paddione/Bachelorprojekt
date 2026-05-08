@@ -81,6 +81,21 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
         </span>
       </div>
 
+      {isSystemTest && (
+        <aside class="systemtest-guidance">
+          <strong>Wenn dir etwas auffällt — auch nur tangential — schreib es auf.</strong>
+          <p>
+            Verwirrung ist Signal. Lieber eine geschwätzige <code>teilweise</code>-Notiz mit
+            Fragezeichen als ein sauberes <code>erfüllt</code>, das einen echten Defekt versteckt.
+          </p>
+          <p>
+            <em>AI-Tester:</em> dasselbe gilt für dich. Wenn etwas anders aussieht als erwartet
+            und das Testskript es nicht abdeckt, dokumentiere es im Notizfeld. Wenn dich eine
+            Fehlermeldung verwirrt, beschreibe was verwirrend war. Halte dich nicht zurück.
+          </p>
+        </aside>
+      )}
+
       <!-- Score bars -->
       {scores.length > 0 && (
         <div class="mb-8 p-6 bg-dark-light rounded-xl border border-dark-lighter">
@@ -442,3 +457,31 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
     }
   });
 </script>
+
+<style>
+  .systemtest-guidance {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(192, 133, 82, 0.1);
+    border-left: 3px solid var(--brass, #c08552);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .systemtest-guidance strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  .systemtest-guidance p {
+    margin: 0.35rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .systemtest-guidance code {
+    padding: 0 0.2rem;
+    background: rgba(192, 133, 82, 0.15);
+    border-radius: 2px;
+    font-size: 0.85em;
+  }
+</style>

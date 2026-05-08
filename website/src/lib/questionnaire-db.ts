@@ -23,6 +23,23 @@ export type QuestionType = 'ab_choice' | 'ja_nein' | 'likert_5' | 'test_step';
 export type TestStepResult = 'erfüllt' | 'teilweise' | 'nicht_erfüllt';
 export type AssignmentStatus = 'pending' | 'in_progress' | 'submitted' | 'reviewed' | 'archived' | 'dismissed';
 
+/**
+ * Default `instructions` text seeded onto system-test templates that don't
+ * specify their own. Mirrors the sticky tester-guidance panel rendered on
+ * `/admin/fragebogen/[assignmentId].astro` so that human and AI testers see
+ * the same "verbose-on-confusion" framing wherever they encounter the test.
+ */
+export const SYSTEM_TEST_DEFAULT_INSTRUCTIONS = [
+  'Wenn dir etwas auffällt — auch nur tangential — schreib es auf.',
+  'Verwirrung ist Signal. Lieber eine geschwätzige `teilweise`-Notiz mit',
+  'Fragezeichen als ein sauberes `erfüllt`, das einen echten Defekt versteckt.',
+  '',
+  'AI-Tester: dasselbe gilt für dich. Wenn etwas anders aussieht als erwartet,',
+  'das Testskript es aber nicht abdeckt, dokumentiere es im Notizfeld. Wenn',
+  'dich eine Fehlermeldung verwirrt, beschreibe was verwirrend war. Halte dich',
+  'nicht zurück.',
+].join('\n');
+
 export interface QTemplate {
   id: string;
   title: string;
@@ -131,11 +148,14 @@ async function insertSystemTestTemplate(
   client: pg.PoolClient,
   tpl: SystemTestTemplate,
 ): Promise<void> {
+  const instructions = tpl.instructions?.trim()
+    ? tpl.instructions
+    : SYSTEM_TEST_DEFAULT_INSTRUCTIONS;
   const r = await client.query(
     `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
      VALUES ($1, $2, $3, 'published', true)
      RETURNING id`,
-    [tpl.title, tpl.description, tpl.instructions],
+    [tpl.title, tpl.description, instructions],
   );
   const templateId = r.rows[0].id as string;
 

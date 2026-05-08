@@ -10,8 +10,9 @@ Today an admin can mark a submitted Fragebogen as `reviewed` and then "Archivier
 1. The "Archivieren" button is only shown after `reviewed`, not directly on `submitted` ("Abgegeben").
 2. Archived assignments still appear inline in admin views (just muted via `opacity-60`), so they aren't out of view.
 3. The "Erneut durchführen" button calls `reopenQAssignment(id)` which **deletes the answers** and clears `archived_at`. After re-running, the historical datapoint is destroyed — there is no way to keep the old result and create a new one for KPI work.
+4. For `is_system_test` Fragebögen, rrweb replays land in `questionnaire_test_evidence` per `(assignment_id, question_id, attempt)`, but the replay drawer (`SystemtestReplayDrawer.svelte`) is currently only mounted on `/admin/systemtest/board`. The `/admin/fragebogen/[assignmentId]` detail page does not surface the videoproof, so an archived datapoint is not inspectable end-to-end.
 
-A coach needs to be able to (a) freeze a submitted Fragebogen as a permanent historical datapoint, (b) get it out of the active list, and (c) reassign the same template to the same customer for the next datapoint without resetting the previous one.
+A coach needs to be able to (a) freeze a submitted Fragebogen as a permanent historical datapoint, (b) get it out of the active list, (c) reassign the same template to the same customer for the next datapoint without resetting the previous one, and (d) for system-test runs, see the rrweb video proof attached to the archived datapoint.
 
 ## Non-goals
 
@@ -46,6 +47,20 @@ CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores
 
 `dimension_id` intentionally has **no** foreign key constraint — historical snapshots must outlive template edits and deletions, and the dimension UUID is only stored for traceability. `dimension_name` is denormalized so KPI consumers don't need a join back to (possibly mutated) `questionnaire_dimensions`. `assignment_id` keeps its FK with `ON DELETE CASCADE` so deleting a customer's data wipes their snapshots cleanly. Synthetic `id` PK avoids the nullable-PK contradiction; uniqueness on `(assignment_id, dimension_id)` is what idempotency relies on.
 
+### Video proof / rrweb evidence
+
+The recording pipeline already exists: `questionnaire_test_evidence` (one row per `assignment_id, question_id, attempt`) holds `replay_path`, console + network logs, and recording timestamps; `SystemtestReplayDrawer.svelte` renders rrweb playbacks; `/api/admin/evidence/[id]/replay` serves the payload. The recorder boot in the portal wizard is part of the parallel system-test loop spec (`2026-05-08-systemtest-failure-loop`) and is not in scope here.
+
+What this spec adds for the archive flow:
+
+- **Preservation is automatic.** `questionnaire_test_evidence.assignment_id` has `ON DELETE CASCADE`, but archive never deletes the assignment row — it only mutates status. So evidence rows survive the archive transition unchanged. `archiveQAssignment` does **not** copy or move replay payloads; the archived assignment continues to point at the same evidence rows. This is intentional: replay payloads are immutable content addressed by `evidence.id`, so a snapshot would just duplicate storage.
+- **Reassign creates an evidence-free new row.** The reassigned (new) assignment starts at `attempt=0` with no evidence rows. As soon as the wizard records its run (once the recorder boot lands), evidence accumulates against the new assignment id. The archived original keeps its old evidence rows untouched.
+- **Surface on archive detail page.** The detail page (`/admin/fragebogen/[assignmentId].astro`) wires the existing `SystemtestReplayDrawer.svelte` into each `test_step` row that has at least one `questionnaire_test_evidence` row. Rendered as an inline "Replay ansehen" button next to the result chip; click opens the drawer with the latest-attempt evidence id. Multiple attempts: the button surfaces the highest-attempt evidence; a small `(Versuch n)` tag indicates which attempt is being replayed. The drawer itself already supports navigation across attempts. Only rendered for `is_system_test` templates with a non-empty evidence row for that question — coaching Fragebögen show no button.
+
+A new server helper `listEvidenceByAssignment(assignmentId)` returns rows of `{ question_id, latest_evidence_id, latest_attempt, evidence_count }` aggregated per question. The detail page consumes this once at render time and threads `latest_evidence_id` into each `test_step` row. No extra round-trip per click.
+
+### KPI view
+
 The view consumed by KPI tooling:
 
 ```sql
@@ -64,10 +79,20 @@ SELECT
   s.final_score,
   s.threshold_mid,
   s.threshold_high,
-  s.level
+  s.level,
+  ev.evidence_count,
+  ev.latest_evidence_id
 FROM questionnaire_assignments a
 JOIN questionnaire_templates t ON t.id = a.template_id
 JOIN questionnaire_assignment_scores s ON s.assignment_id = a.id
+LEFT JOIN LATERAL (
+  SELECT
+    COUNT(*)::int                                       AS evidence_count,
+    (ARRAY_AGG(e.id ORDER BY e.attempt DESC, e.created_at DESC))[1]
+                                                        AS latest_evidence_id
+  FROM questionnaire_test_evidence e
+  WHERE e.assignment_id = a.id
+) ev ON true
 WHERE a.status = 'archived';
 ```
 
@@ -112,6 +137,7 @@ Both gated by `isAdmin(session)` like the sibling `reopen.ts`.
 - Archive button confirms via dialog: *"Diese Auswertung als historischen Datenpunkt sichern? Werte werden eingefroren und der Fragebogen verschwindet aus den aktiven Listen."*
 - For `status === 'archived'`: the destructive "Erneut durchführen ↻" button is replaced by **"Erneut zuweisen ➕"** which calls the new reassign endpoint and redirects to `portalUrl` (= `/portal/fragebogen/<newId>`).
 - For `status ∈ {submitted, reviewed, dismissed}`: "Erneut durchführen" stays — destructive reopen via `/reopen` is still useful for resets and systemtest retest_attempt.
+- For each `test_step` question on a system-test template that has at least one evidence row, an inline **"Replay ansehen"** button is rendered next to the result chip. Click opens `SystemtestReplayDrawer` with `latest_evidence_id`. A small `Versuch {n}` tag annotates which attempt the latest evidence belongs to.
 
 `website/src/components/admin/ClientQuestionnairesPanel.svelte` (admin sidebar, per customer):
 
@@ -132,7 +158,9 @@ Unit (vitest, alongside existing `questionnaire-db` patterns):
 - `archiveQAssignment` rejects `pending`, `in_progress`, `dismissed` with `{ reason: 'not_archivable' }`.
 - `archiveQAssignment` rolls back the status update if the score INSERT fails (transactional integrity).
 - `reassignQAssignment` creates a new row with `status='pending'`, fresh `assigned_at`, no `submitted_at`/`archived_at`; source row unchanged.
-- View `v_questionnaire_kpi` returns one row per `(archived assignment, dimension)`; excludes non-archived assignments.
+- View `v_questionnaire_kpi` returns one row per `(archived assignment, dimension)`; excludes non-archived assignments. `evidence_count` matches the number of `questionnaire_test_evidence` rows for the assignment; `latest_evidence_id` is null when there is no evidence.
+- Archive transition does **not** delete or duplicate `questionnaire_test_evidence` rows for the assignment.
+- `listEvidenceByAssignment` returns the highest-attempt evidence row per question with the correct `evidence_count`.
 
 API:
 
@@ -148,6 +176,7 @@ End-to-end (Playwright, `tests/e2e/admin/`):
 5. Toggle "Archiv anzeigen" — row visible, muted.
 6. Click into archive detail → "Erneut zuweisen ➕" → redirected to portal wizard with a new id.
 7. Verify DB: two rows for `(customer=U, template=T)`; original `archived_at IS NOT NULL`, `questionnaire_assignment_scores` has snapshot rows; new row `status='pending'`, `archived_at IS NULL`.
+8. For a system-test seeded run with at least one evidence row inserted, repeat the archive flow and verify the archived detail page renders the "Replay ansehen" button on the corresponding test_step row, and clicking it opens `SystemtestReplayDrawer`.
 
 ## Migration
 

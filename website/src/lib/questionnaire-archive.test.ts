@@ -229,7 +229,7 @@ describe.skipIf(!dbAvailable)('listEvidenceByAssignment', () => {
       templateId: tpl.id, position: 0, questionText: 's', questionType: 'test_step',
     });
     const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
-    const e1 = await pool.query<{ id: string }>(
+    await pool.query<{ id: string }>(
       `INSERT INTO questionnaire_test_evidence
          (assignment_id, question_id, attempt, replay_path)
        VALUES ($1, $2, 0, '/tmp/r0') RETURNING id`,

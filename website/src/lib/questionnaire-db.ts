@@ -363,6 +363,16 @@ export async function listQQuestions(templateId: string): Promise<QQuestion[]> {
   return r.rows;
 }
 
+export async function getQQuestion(id: string): Promise<QQuestion | null> {
+  const r = await pool.query(
+    `SELECT id, template_id, position, question_text, question_type,
+            test_expected_result, test_function_url, test_menu_path, test_role, created_at
+     FROM questionnaire_questions WHERE id = $1`,
+    [id],
+  );
+  return r.rows[0] ?? null;
+}
+
 export async function upsertQQuestion(params: {
   id?: string; templateId: string; position: number;
   questionText: string; questionType: QuestionType;

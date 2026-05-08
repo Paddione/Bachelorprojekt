@@ -20,6 +20,9 @@
     onNext: () => void;
     onPrimary: () => void;
     onSecondary: () => void;
+    /** Hard-delete escape hatch — visible on every row regardless of status
+     *  so admins can clear rows that already left the `pending` queue. */
+    onDelete: () => void;
     onReplyChange: (v: string) => void;
     onSendReply: () => void;
     onBugNoteChange: (v: string) => void;
@@ -29,7 +32,7 @@
     item, counts, busy, error,
     threadMessages, threadLoading, replyBody, replySending, bugNote,
     bindReplyTextarea,
-    onPrev, onNext, onPrimary, onSecondary,
+    onPrev, onNext, onPrimary, onSecondary, onDelete,
     onReplyChange, onSendReply, onBugNoteChange,
   }: Props = $props();
 
@@ -356,6 +359,7 @@
                 disabled={busy} onclick={onSecondary}>
           ✗ Ablehnen <span class="ksk">D</span>
         </button>
+        <span class="spacer"></span>
 
       {:else if item.type === 'booking'}
         <button type="button" class="btn btn-ok" data-testid="inbox-action-primary"
@@ -366,6 +370,7 @@
                 disabled={busy} onclick={onSecondary}>
           ✗ Ablehnen <span class="ksk">D</span>
         </button>
+        <span class="spacer"></span>
 
       {:else if item.type === 'contact'}
         <button type="button" class="btn btn-no" data-testid="inbox-action-primary"
@@ -415,6 +420,21 @@
           </a>
         {/if}
       {/if}
+
+      <!-- Universal hard-delete escape hatch. Visible on every row regardless
+           of status so admins can clear rows stuck in `actioned`/`archived`
+           that have no other path to deletion. Confirms via the parent's
+           window.confirm() before firing. -->
+      <button
+        type="button"
+        class="btn btn-danger"
+        data-testid="inbox-action-delete"
+        disabled={busy}
+        onclick={onDelete}
+        title="Diesen Eintrag dauerhaft löschen"
+      >
+        🗑 Löschen
+      </button>
     </footer>
   {/if}
 </section>
@@ -747,6 +767,19 @@
     padding: 7px 10px;
   }
   .btn-ghost:hover { color: var(--brass); }
+
+  /* Hard-delete escape hatch — muted red so it's clearly destructive but
+     not visually competing with the per-type primary action. */
+  .btn-danger {
+    background: transparent;
+    color: oklch(0.75 0.13 25);
+    border: 1px solid oklch(0.55 0.12 25 / 0.5);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: oklch(0.55 0.13 25 / 0.16);
+    color: oklch(0.85 0.13 25);
+    border-color: oklch(0.65 0.13 25);
+  }
 
   .ksk {
     font: 600 9.5px var(--font-mono);

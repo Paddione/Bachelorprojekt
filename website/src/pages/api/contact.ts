@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createInboxItem } from '../../lib/messaging-db';
 import { sendAdminNotification } from '../../lib/notifications';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
+import { isE2ETestRequest } from '../../lib/e2e-marker';
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -45,6 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
     await createInboxItem({
       type: 'contact',
       payload: { name, email, phone: phone ?? null, type, typeLabel, message },
+      isTestData: isE2ETestRequest(request),
     });
 
     // Admin notification is best-effort — inbox item is the authoritative record

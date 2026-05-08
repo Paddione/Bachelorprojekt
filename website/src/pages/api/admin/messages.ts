@@ -18,6 +18,13 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'customerId and body required' }), { status: 400 });
   }
   const thread = await getOrCreateThreadForCustomer(customerId);
-  const msg = await addMessage({ threadId: thread.id, senderId: session.sub, senderRole: 'admin', body: body.trim() });
+  // Admin-side messages inherit the thread's is_test_data flag — admin
+  // never creates new threads here (getOrCreateThreadForCustomer reuses an
+  // existing thread when the customer has one), so the existing flag is
+  // authoritative.
+  const msg = await addMessage({
+    threadId: thread.id, senderId: session.sub, senderRole: 'admin', body: body.trim(),
+    isTestData: thread.is_test_data === true,
+  });
   return new Response(JSON.stringify({ thread, message: msg }), { status: 201, headers: { 'Content-Type': 'application/json' } });
 };

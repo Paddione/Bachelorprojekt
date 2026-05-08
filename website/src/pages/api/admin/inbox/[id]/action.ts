@@ -1,7 +1,7 @@
 // website/src/pages/api/admin/inbox/[id]/action.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getInboxItem, updateInboxItemStatus } from '../../../../../lib/messaging-db';
+import { getInboxItem, updateInboxItemStatus, deleteInboxItem } from '../../../../../lib/messaging-db';
 import { createUser, sendPasswordResetEmail } from '../../../../../lib/keycloak';
 import { createCalendarEvent } from '../../../../../lib/caldav';
 import { createTalkRoom, inviteGuestByEmail, sendChatMessage } from '../../../../../lib/talk';
@@ -30,12 +30,25 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (!item) {
     return new Response(JSON.stringify({ error: 'Not found' }), { status: 404 });
   }
-  if (item.status !== 'pending') {
-    return new Response(JSON.stringify({ error: 'Already actioned' }), { status: 409 });
-  }
 
   const body = await request.json() as { action: string; note?: string };
   const { action, note } = body;
+
+  // `delete` is the unconditional escape hatch — it bypasses the
+  // "Already actioned" lock so admins can clear rows stuck in `actioned`
+  // or `archived` (the only paths that previously had no remediation).
+  // It deletes the row outright; nothing else changes for it.
+  if (action === 'delete') {
+    const deleted = await deleteInboxItem(id);
+    if (deleted === 0) {
+      return new Response(JSON.stringify({ error: 'Not found' }), { status: 404 });
+    }
+    return new Response(null, { status: 204 });
+  }
+
+  if (item.status !== 'pending') {
+    return new Response(JSON.stringify({ error: 'Already actioned' }), { status: 409 });
+  }
 
   try {
     switch (action) {

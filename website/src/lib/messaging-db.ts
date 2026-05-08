@@ -36,6 +36,7 @@ export interface InboxItem {
   created_at: Date;
   actioned_at: Date | null;
   actioned_by: string | null;
+  is_test_data: boolean;
 }
 
 // ── Inbox ─────────────────────────────────────────────────────────────────────
@@ -46,14 +47,40 @@ export async function createInboxItem(params: {
   referenceTable?: string;
   bugTicketId?: string;
   payload: Record<string, unknown>;
+  /** When true, stamps the row as test-data so
+   *  tickets.fn_purge_test_data() reaps it on the next bracket. Set by
+   *  the public form endpoints (/api/contact, /api/booking, /api/bug-report,
+   *  /api/portal/messages) when the request carries the X-E2E-Test header
+   *  + valid X-Cron-Secret. Defaults to false. */
+  isTestData?: boolean;
 }): Promise<InboxItem> {
   const { rows } = await pool.query<InboxItem>(
-    `INSERT INTO inbox_items (type, reference_id, reference_table, bug_ticket_id, payload)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO inbox_items (type, reference_id, reference_table, bug_ticket_id, payload, is_test_data)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [params.type, params.referenceId ?? null, params.referenceTable ?? null, params.bugTicketId ?? null, params.payload],
+    [
+      params.type,
+      params.referenceId ?? null,
+      params.referenceTable ?? null,
+      params.bugTicketId ?? null,
+      params.payload,
+      params.isTestData === true,
+    ],
   );
   return rows[0];
+}
+
+/**
+ * Hard-delete an inbox row regardless of status. Used by the admin "Löschen"
+ * escape hatch — rows that have already been actioned/archived have no other
+ * path to disappear from the queue, and over time these accumulate (paddione
+ * had 27 such rows on mentolder before this lever existed).
+ *
+ * Returns the number of rows affected (0 if id was unknown).
+ */
+export async function deleteInboxItem(id: number): Promise<number> {
+  const r = await pool.query('DELETE FROM inbox_items WHERE id = $1', [id]);
+  return r.rowCount ?? 0;
 }
 
 export async function listInboxItems(filter: {
@@ -119,6 +146,7 @@ export interface MessageThread {
   subject: string | null;
   created_at: Date;
   last_message_at: Date;
+  is_test_data?: boolean;
   customer_name?: string;
   customer_email?: string;
   unread_count?: number;
@@ -133,6 +161,7 @@ export interface Message {
   body: string;
   created_at: Date;
   read_at: Date | null;
+  is_test_data?: boolean;
 }
 
 // ── Room types ────────────────────────────────────────────────────────────────
@@ -173,15 +202,18 @@ export async function listThreadsForAdmin(): Promise<MessageThread[]> {
   return rows;
 }
 
-export async function getOrCreateThreadForCustomer(customerId: string): Promise<MessageThread> {
+export async function getOrCreateThreadForCustomer(
+  customerId: string,
+  opts: { isTestData?: boolean } = {},
+): Promise<MessageThread> {
   const existing = await pool.query<MessageThread>(
     'SELECT * FROM message_threads WHERE customer_id = $1 LIMIT 1',
     [customerId],
   );
   if (existing.rows.length) return existing.rows[0];
   const { rows } = await pool.query<MessageThread>(
-    'INSERT INTO message_threads (customer_id) VALUES ($1) RETURNING *',
-    [customerId],
+    'INSERT INTO message_threads (customer_id, is_test_data) VALUES ($1, $2) RETURNING *',
+    [customerId, opts.isTestData === true],
   );
   return rows[0];
 }
@@ -211,18 +243,38 @@ export async function addMessage(params: {
   senderRole: 'admin' | 'user';
   senderCustomerId?: string;
   body: string;
+  /** When true, stamps the message row (and its parent thread, if not yet
+   *  stamped) so the test-data purge reaps both. */
+  isTestData?: boolean;
 }): Promise<Message> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const { rows } = await client.query<Message>(
-      `INSERT INTO messages (thread_id, sender_id, sender_role, sender_customer_id, body) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [params.threadId, params.senderId, params.senderRole, params.senderCustomerId ?? null, params.body],
+      `INSERT INTO messages (thread_id, sender_id, sender_role, sender_customer_id, body, is_test_data)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [
+        params.threadId,
+        params.senderId,
+        params.senderRole,
+        params.senderCustomerId ?? null,
+        params.body,
+        params.isTestData === true,
+      ],
     );
     await client.query(
       'UPDATE message_threads SET last_message_at = now() WHERE id = $1',
       [params.threadId],
     );
+    if (params.isTestData === true) {
+      // Promote the parent thread's flag so the purge sweep reaps it via
+      // `WHERE is_test_data = true` rather than a join through messages.
+      await client.query(
+        `UPDATE message_threads SET is_test_data = true
+         WHERE id = $1 AND is_test_data = false`,
+        [params.threadId],
+      );
+    }
     await client.query('COMMIT');
     return rows[0];
   } catch (e) {

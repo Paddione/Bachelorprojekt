@@ -17,7 +17,7 @@ import {
   listQDimensions,
 } from '../../../lib/questionnaire-db';
 import { computeScores } from '../../../lib/compute-scores';
-import ProjectQuestionnairesPanel from '../../../components/admin/ProjectQuestionnairesPanel.astro';
+import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -38,13 +38,7 @@ let timeStats: { total: number; billable: number } = { total: 0, billable: 0 };
 let meetings: MeetingWithDetails[] = [];
 let unassignedMeetings: Array<{ id: string; meetingType: string; status: string; createdAt: Date }> = [];
 let attachments: ProjectAttachment[] = [];
-let questionnaireBundles: Array<{
-  assignment: any;
-  questions: any[];
-  options: any[];
-  answers: any[];
-  scores: any[];
-}> = [];
+let questionnaireBundles: AssignmentBundle[] = [];
 let dbError = '';
 
 try {

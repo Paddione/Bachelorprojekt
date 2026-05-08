@@ -10,7 +10,7 @@
 import type { QAssignment, QQuestion, QAnswer, QAnswerOption } from '../../lib/questionnaire-db';
 import type { DimensionScore } from '../../lib/compute-scores';
 
-interface AssignmentBundle {
+export interface AssignmentBundle {
   assignment: QAssignment;
   questions: QQuestion[];
   options: QAnswerOption[];

@@ -1,0 +1,650 @@
+[
+  {
+    "id": "AK-03",
+    "file": "tests/local/AK-03.sh",
+    "category": "AK",
+    "kind": "shell"
+  },
+  {
+    "id": "AK-04",
+    "file": "tests/local/AK-04.sh",
+    "category": "AK",
+    "kind": "shell"
+  },
+  {
+    "id": "E2E:brett-art",
+    "file": "tests/e2e/specs/brett-art.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:dashboard-art",
+    "file": "tests/e2e/specs/dashboard-art.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-backup-settings",
+    "file": "tests/e2e/specs/fa-admin-backup-settings.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-billing-system",
+    "file": "tests/e2e/specs/fa-admin-billing-system.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-crm",
+    "file": "tests/e2e/specs/fa-admin-crm.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-inhalte",
+    "file": "tests/e2e/specs/fa-admin-inhalte.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-live",
+    "file": "tests/e2e/specs/fa-admin-live.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-monitoring",
+    "file": "tests/e2e/specs/fa-admin-monitoring.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-newsletter",
+    "file": "tests/e2e/specs/fa-admin-newsletter.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-settings",
+    "file": "tests/e2e/specs/fa-admin-settings.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-tickets",
+    "file": "tests/e2e/specs/fa-admin-tickets.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-bugs-notifications",
+    "file": "tests/e2e/specs/fa-bugs-notifications.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-client-portal",
+    "file": "tests/e2e/specs/fa-client-portal.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-document-signing",
+    "file": "tests/e2e/specs/fa-document-signing.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-ios-talk",
+    "file": "tests/e2e/specs/fa-ios-talk.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-livekit",
+    "file": "tests/e2e/specs/fa-livekit.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-meeting-history",
+    "file": "tests/e2e/specs/fa-meeting-history.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-poll",
+    "file": "tests/e2e/specs/fa-poll.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-public-pages",
+    "file": "tests/e2e/specs/fa-public-pages.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-questionnaire",
+    "file": "tests/e2e/specs/fa-questionnaire.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-slot-widget",
+    "file": "tests/e2e/specs/fa-slot-widget.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:integration-smoke",
+    "file": "tests/e2e/specs/integration-smoke.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:korczewski-home",
+    "file": "tests/e2e/specs/korczewski-home.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-01",
+    "file": "tests/local/FA-01.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-01",
+    "file": "tests/e2e/specs/fa-01-messaging.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-02",
+    "file": "tests/local/FA-02.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-03",
+    "file": "tests/local/FA-03.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-03",
+    "file": "tests/e2e/specs/fa-03-video.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-04",
+    "file": "tests/local/FA-04.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-04",
+    "file": "tests/e2e/specs/fa-04-files.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-05",
+    "file": "tests/local/FA-05.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-05",
+    "file": "tests/e2e/specs/fa-05-user-mgmt.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-06",
+    "file": "tests/local/FA-06.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-07",
+    "file": "tests/local/FA-07.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-07",
+    "file": "tests/e2e/specs/fa-07-search.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-08",
+    "file": "tests/local/FA-08.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-09",
+    "file": "tests/local/FA-09.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-09",
+    "file": "tests/e2e/specs/fa-09-billing.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-10",
+    "file": "tests/local/FA-10.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-10",
+    "file": "tests/e2e/specs/fa-10-website.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-11",
+    "file": "tests/local/FA-11.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-12",
+    "file": "tests/local/FA-12.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-13",
+    "file": "tests/local/FA-13.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-14",
+    "file": "tests/local/FA-14.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-14",
+    "file": "tests/e2e/specs/fa-14-registration.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-15",
+    "file": "tests/local/FA-15.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-15",
+    "file": "tests/e2e/specs/fa-15-oidc.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-16",
+    "file": "tests/local/FA-16.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-16",
+    "file": "tests/e2e/specs/fa-16-booking.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-17",
+    "file": "tests/local/FA-17.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-17",
+    "file": "tests/e2e/specs/fa-17-meeting.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-18",
+    "file": "tests/local/FA-18.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-18",
+    "file": "tests/e2e/specs/fa-18-transcription.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-19",
+    "file": "tests/local/FA-19.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-20",
+    "file": "tests/local/FA-20.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-20",
+    "file": "tests/e2e/specs/fa-20-finalize.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-21",
+    "file": "tests/local/FA-21.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-21",
+    "file": "tests/e2e/specs/fa-21-billing.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-21",
+    "file": "tests/e2e/specs/fa-21-invoice-lifecycle.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-22",
+    "file": "tests/local/FA-22.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-23",
+    "file": "tests/local/FA-23.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-23",
+    "file": "tests/e2e/specs/fa-23-vaultwarden.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-24",
+    "file": "tests/local/FA-24.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-24",
+    "file": "tests/e2e/specs/fa-24-whiteboard.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-25",
+    "file": "tests/local/FA-25.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-25",
+    "file": "tests/e2e/specs/fa-25-mailpit.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-26",
+    "file": "tests/local/FA-26.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-26",
+    "file": "tests/e2e/specs/fa-26-bug-report-form.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-27",
+    "file": "tests/local/FA-27.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-27",
+    "file": "tests/e2e/specs/fa-27-brett.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-28",
+    "file": "tests/local/FA-28.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-29",
+    "file": "tests/local/FA-29.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-29",
+    "file": "tests/e2e/specs/fa-29-tracking.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-30",
+    "file": "tests/local/FA-30.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-31",
+    "file": "tests/prod/FA-31.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-01",
+    "file": "tests/local/NFA-01.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-01",
+    "file": "tests/prod/NFA-01.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-02",
+    "file": "tests/local/NFA-02.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-02",
+    "file": "tests/prod/NFA-02.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-03",
+    "file": "tests/local/NFA-03.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-04",
+    "file": "tests/local/NFA-04.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-04",
+    "file": "tests/prod/NFA-04.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-05",
+    "file": "tests/local/NFA-05.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-05",
+    "file": "tests/e2e/specs/nfa-05-usability.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
+  },
+  {
+    "id": "NFA-06",
+    "file": "tests/local/NFA-06.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-07",
+    "file": "tests/local/NFA-07.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-08",
+    "file": "tests/local/NFA-08.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "NFA-09",
+    "file": "tests/local/NFA-09.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-01",
+    "file": "tests/local/SA-01.bats",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-01",
+    "file": "tests/local/SA-01.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-01",
+    "file": "tests/prod/SA-01.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-02",
+    "file": "tests/local/SA-02.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-02",
+    "file": "tests/e2e/specs/sa-02-auth.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
+    "id": "SA-03",
+    "file": "tests/local/SA-03.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-04",
+    "file": "tests/local/SA-04.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-05",
+    "file": "tests/local/SA-05.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-06",
+    "file": "tests/local/SA-06.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-07",
+    "file": "tests/local/SA-07.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-07",
+    "file": "tests/prod/SA-07.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-08",
+    "file": "tests/local/SA-08-sso.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-08",
+    "file": "tests/local/SA-08.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-08",
+    "file": "tests/prod/SA-08-sso.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-08",
+    "file": "tests/prod/SA-08.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-08",
+    "file": "tests/e2e/specs/sa-08-sso.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
+    "id": "SA-09",
+    "file": "tests/local/SA-09.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-10",
+    "file": "tests/local/SA-10.sh",
+    "category": "SA",
+    "kind": "shell"
+  }
+]

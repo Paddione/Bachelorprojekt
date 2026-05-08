@@ -16,6 +16,7 @@ k3d/vaultwarden-seed-credentials.yaml
 k3d/vaultwarden-seed-job.yaml
 # ── Runtime-Daten (Docker-Volumes, DB, Certs) ──
 data/
+!website/src/data/
 
 # ── Backup-Dumps (Skripte ja, Dumps nein) ──────
 backup/*.sql

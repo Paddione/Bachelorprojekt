@@ -28,6 +28,14 @@ jobs:
       - name: Run all offline tests
         run: task test:all
 
+      - name: Verify test inventory is up to date
+        run: |
+          task test:inventory
+          if ! git diff --exit-code website/src/data/test-inventory.json; then
+            echo "ERROR: website/src/data/test-inventory.json is stale — run 'task test:inventory' locally and commit"
+            exit 1
+          fi
+
       - name: Validate Systembrett template
         run: ./scripts/tests/systembrett-template.test.sh
 

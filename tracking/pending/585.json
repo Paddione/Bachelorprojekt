@@ -1,0 +1,12 @@
+{
+  "pr_number": 585,
+  "title": "Testdaten-Panel im Admin-Monitoring",
+  "description": "## Summary\n\n- Adds a new **Testdaten** tab to `/admin/monitoring` so Gekko can generate and wipe test records in one click\n- `POST /api/admin/testdata/seed` — inserts 2 CRM clients, 1 billing customer, 3 draft invoices (500/1200/3400 €), 2 meetings, 2 inbox bookings — all with `[TEST]` prefix; idempotent on customers via upsert\n- `DELETE /api/admin/testdata/purge` — removes all `[TEST]`-prefixed records in FK-safe order inside a single DB transaction; skips GoBD-locked invoices and reports them as a warning\n- `TestDataPanel.svelte` — compact card with seed/purge buttons, SVG spinners, confirmation modal (Escape + aria-labelledby), three-state status messages (ok/warn/error) with 5s auto-dismiss\n\n## Test plan\n\n- [ ] Navigate to `/admin/monitoring#testdaten` — confirm \"Testdaten\" tab appears\n- [ ] Click \"Testdaten generieren\" — confirm success message with counts (2 clients, 3 invoices, 2 meetings, 2 bookings)\n- [ ] Check `/admin/clients` for `[TEST] Max Mustermann` and `[TEST] Erika Musterfrau`\n- [ ] Check `/admin/rechnungen` for 3 draft invoices with `[TEST]` notes\n- [ ] Click \"Alle [TEST]-Daten löschen\" → confirm modal → confirm deletion counts returned match seeded counts\n- [ ] Verify `[TEST]` records gone from client and invoice list views\n- [ ] Run seed twice — confirm no duplicate clients/billing customers (upsert); meetings may duplicate (no unique constraint, purge cleans all)\n- [ ] Press Escape while confirmation modal is open — modal closes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "testdata",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T09:46:23Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

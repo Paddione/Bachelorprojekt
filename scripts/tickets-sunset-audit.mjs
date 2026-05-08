@@ -31,46 +31,55 @@ console.log('\n=== tickets-sunset-audit ===\n');
 
 let warnings = 0;
 
-for (const obj of LEGACY_OBJECTS) {
-  const exists = await client.query(
-    `SELECT relkind FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-      WHERE n.nspname=$1 AND c.relname=$2`,
-    [obj.schema, obj.name]
-  );
-  if (exists.rowCount === 0) {
-    console.log(`  ✓ ${obj.schema}.${obj.name} — does not exist (already gone)`);
-    continue;
-  }
-  const kind = exists.rows[0].relkind; // 'r' = table, 'v' = view
-  const kindLabel = kind === 'v' ? 'view' : 'table';
-
-  // pg_stat_user_tables only tracks base tables, not views.
-  let activity = '(view — no stats)';
-  if (kind === 'r') {
-    const stats = await client.query(
-      `SELECT n_live_tup, n_tup_ins, n_tup_upd, n_tup_del
-         FROM pg_stat_user_tables
-        WHERE schemaname=$1 AND relname=$2`,
+try {
+  for (const obj of LEGACY_OBJECTS) {
+    const exists = await client.query(
+      `SELECT relkind FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+        WHERE n.nspname=$1 AND c.relname=$2`,
       [obj.schema, obj.name]
     );
-    if (stats.rowCount > 0) {
+    if (exists.rowCount === 0) {
+      console.log(`  ✓ ${obj.schema}.${obj.name} — does not exist (already gone)`);
+      continue;
+    }
+    const kind = exists.rows[0].relkind; // 'r' = table, 'v' = view
+    const kindLabel = kind === 'v' ? 'view' : 'table';
+
+    // pg_stat_user_tables only tracks base tables, not views.
+    let activity = '(view — no stats)';
+    if (kind === 'r') {
+      const stats = await client.query(
+        `SELECT n_live_tup, n_tup_ins, n_tup_upd, n_tup_del
+           FROM pg_stat_user_tables
+          WHERE schemaname=$1 AND relname=$2`,
+        [obj.schema, obj.name]
+      );
+      if (stats.rowCount === 0) {
+        activity = '(no stats row — counters may have been reset; verify manually)';
+        console.warn(`  ? ${obj.schema}.${obj.name} (${kindLabel}) — ${activity}`);
+        warnings++;
+        continue;
+      }
       const r = stats.rows[0];
       activity = `live=${r.n_live_tup} ins=${r.n_tup_ins} upd=${r.n_tup_upd} del=${r.n_tup_del}`;
-      if (Number(r.n_tup_ins) > 0 || Number(r.n_tup_upd) > 0) {
+      if (Number(r.n_tup_ins) > 0 || Number(r.n_tup_upd) > 0 || Number(r.n_tup_del) > 0) {
         console.warn(`  ⚠ ${obj.schema}.${obj.name} (${kindLabel}) — has WRITES: ${activity}`);
         warnings++;
         continue;
       }
     }
+    console.log(`  ✓ ${obj.schema}.${obj.name} (${kindLabel}) — ${activity}`);
   }
-  console.log(`  ✓ ${obj.schema}.${obj.name} (${kindLabel}) — ${activity}`);
-}
 
-await client.end();
-
-console.log('');
-if (warnings > 0) {
-  console.error(`AUDIT FAILED: ${warnings} legacy object(s) still have write activity. Fix writers before running sunset.`);
+  console.log('');
+  if (warnings > 0) {
+    console.error(`AUDIT FAILED: ${warnings} legacy object(s) still have write activity. Fix writers before running sunset.`);
+    process.exit(1);
+  }
+  console.log('Audit passed — safe to run scripts/tickets-sunset.mjs\n');
+} catch (err) {
+  console.error('ERROR:', err.message);
   process.exit(1);
+} finally {
+  await client.end();
 }
-console.log('Audit passed — safe to run scripts/tickets-sunset.mjs\n');

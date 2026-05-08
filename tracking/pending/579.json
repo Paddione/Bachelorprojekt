@@ -1,0 +1,12 @@
+{
+  "pr_number": 579,
+  "title": "exec into website pod across namespaces",
+  "description": "## Summary\n\nThe nightly `tests-results-retention` CronJob added in #577 was a silent\nno-op: it queried `kubectl -n workspace get pod -l app=website`, but the\nwebsite Deployment lives in `${WEBSITE_NAMESPACE}` (`website` on mentolder,\n`website-korczewski` on korczewski). The selector matched zero pods, the\ninner script printed \"no website pod\" and exited, and `tests/results/`\nwas never pruned.\n\n- CronJob + SA stay in `${WORKSPACE_NAMESPACE}`.\n- Role + RoleBinding move to `${WEBSITE_NAMESPACE}` (cross-NS exec into\n  the website pod, RoleBinding subject = SA in `${WORKSPACE_NAMESPACE}`).\n- Inner script now uses `kubectl -n ${WEBSITE_NAMESPACE} ...` for both\n  `get pod` and `exec`.\n\n### Why the obvious fix didn't work\n\nAdding `namespace: ${WEBSITE_NAMESPACE}` to the Role/RoleBinding inside\nkustomize doesn't help: the top-level `namespace: workspace` in\n`k3d/kustomization.yaml` is a kustomize transformer that runs *after*\npatches and overrides every resource's namespace before envsubst can see\nit. The fix lifts the manifest out of kustomize and applies it via\nenvsubst directly from `workspace:deploy` (both dev and prod paths).\n\n## Test plan\n\n- [x] `task test:manifests` — 24/24 pass\n- [x] `task test:unit` — pass (env-seal + assertion lib + script syntax)\n- [x] `task workspace:validate` — `✓ Manifests are valid`\n- [x] Dry-render with `WORKSPACE_NAMESPACE=workspace-korczewski WEBSITE_NAMESPACE=website-korczewski envsubst < k3d/tests-retention-cronjob.yaml` — verified namespaces resolve and script body references the right namespaces.\n- [x] `kustomize build k3d/ | grep tests-retention` returns no hits (no longer in kustomize set, applied via envsubst as intended).\n- [ ] After merge: `task workspace:deploy ENV=mentolder` + `ENV=korczewski`, then delete orphan Role/RoleBinding from `workspace`/`workspace-korczewski` ns:\n      ```\n      kubectl --context mentolder  -n workspace             delete role tests-retention-role rolebinding tests-retention-rb 2>/dev/null\n      kubectl --context korczewski -n workspace-korczewski  delete role tests-retention-role rolebinding tests-retention-rb 2>/dev/null\n      ```\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "tests-retention",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T06:56:44Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

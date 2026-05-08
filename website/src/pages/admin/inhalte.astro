@@ -13,6 +13,7 @@ import {
   getEffectiveReferenzen,
 } from '../../lib/content';
 import { getLegalPage, listCustomSections, getSiteSetting } from '../../lib/website-db';
+import { config } from '../../config/index';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -93,6 +94,12 @@ const initialData = JSON.parse(JSON.stringify({
       <h1 class="text-3xl font-bold text-light font-serif">Inhalte</h1>
       <p class="text-muted mt-1 text-sm">Website, Newsletter, Fragebögen und Vertragsvorlagen</p>
     </div>
-    <InhalteEditor {initialData} {rechnungsvorlagen} brand={BRAND} client:load />
+    <InhalteEditor
+      {initialData}
+      {rechnungsvorlagen}
+      brand={BRAND}
+      staticServiceSlugs={config.services.map(s => s.slug)}
+      client:load
+    />
   </section>
 </AdminLayout>

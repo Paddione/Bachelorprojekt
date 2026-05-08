@@ -93,6 +93,10 @@
       <label class={labelCls}>Unterüberschrift</label>
       <textarea bind:value={data.servicesSubheadline} rows={2} class="{inputCls} resize-none"></textarea>
     </div>
+    <p class="text-xs text-muted">
+      Die einzelnen Leistungskarten (Reihenfolge, Inhalte, neue Karten anlegen) verwalten Sie unter
+      <a href="/admin/inhalte?tab=website&section=angebote" class="text-gold hover:underline">Angebote</a>.
+    </p>
   </div>
 
   <!-- Why Me -->

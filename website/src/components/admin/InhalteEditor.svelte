@@ -35,7 +35,7 @@
     customSections: CustomSectionType[];
   };
 
-  let { initialData, rechnungsvorlagen, brand = 'mentolder' }: { initialData: InitialData; rechnungsvorlagen: RechnungsvorlagenData; brand?: string } = $props();
+  let { initialData, rechnungsvorlagen, brand = 'mentolder', staticServiceSlugs = [] }: { initialData: InitialData; rechnungsvorlagen: RechnungsvorlagenData; brand?: string; staticServiceSlugs?: string[] } = $props();
 
   type RechnungsvorlagenData = {
     invoice_intro_text: string;
@@ -164,6 +164,7 @@
           initialServices={initialData.services}
           initialLeistungen={initialData.leistungen}
           initialPriceListUrl={initialData.priceListUrl}
+          staticSlugs={staticServiceSlugs}
         />
       {:else if activeSection === 'faq'}
         <FaqSection initialData={initialData.faq} />

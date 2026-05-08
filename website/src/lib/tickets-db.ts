@@ -63,6 +63,18 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_customer_idx ON tickets.tickets (customer_id) WHERE customer_id IS NOT NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_thesis_tag_idx ON tickets.tickets (thesis_tag) WHERE thesis_tag IS NOT NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_external_id_idx ON tickets.tickets (external_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS tickets_component_idx ON tickets.tickets (component) WHERE component IS NOT NULL`);
+
+  // At most one OPEN ticket per failing system-test step. The failure-bridge
+  // looks up by source_test_question_id and reuses the existing open row;
+  // this index is the defense-in-depth race guard. Closed tickets (done /
+  // archived) are excluded so a regression-on-retest can still open a fresh
+  // ticket per the original design.
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS tickets_one_open_per_test_question_uq
+      ON tickets.tickets (source_test_question_id)
+      WHERE source_test_question_id IS NOT NULL AND status NOT IN ('done','archived')
+  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_links (

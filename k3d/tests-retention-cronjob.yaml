@@ -23,7 +23,12 @@ spec:
                         values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
           containers:
             - name: prune
-              image: bitnami/kubectl:1.31
+              # alpine/k8s ships kubectl + /bin/sh on Alpine; matches the k3s
+              # 1.34.x line our prod clusters run. The previous image
+              # `bitnami/kubectl:1.31` was both version-mismatched and pulled
+              # from a Bitnami tag that has since been removed from Docker Hub
+              # (ImagePullBackOff: "docker.io/bitnami/kubectl:1.31: not found").
+              image: alpine/k8s:1.34.0
               command: [sh, -c]
               args:
                 - |

@@ -230,6 +230,24 @@ export function setSessionCookie(sessionId: string): string {
   return `${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
 }
 
+/**
+ * Programmatically issue a web session for an arbitrary user payload and
+ * return the cookie-bearing session id. Used by the magic-link redeem route
+ * (system-test seeded users) — bypasses the normal OIDC code-flow.
+ *
+ * The caller is responsible for ensuring the user is genuinely entitled to a
+ * session — this helper does not authenticate.
+ */
+export async function issueSession(user: UserSession): Promise<string> {
+  await ensureSessionsTable();
+  const sessionId = generateSessionId();
+  await sessionPool.query(
+    'INSERT INTO web_sessions (id, data, expires_at) VALUES ($1, $2, $3)',
+    [sessionId, JSON.stringify(user), new Date(user.expires_at)],
+  );
+  return sessionId;
+}
+
 export function clearSessionCookie(): string {
   return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }

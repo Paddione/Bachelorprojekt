@@ -63,6 +63,22 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
       retry_after   TIMESTAMPTZ NOT NULL DEFAULT now(),
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+
+    -- Magic-link table for system-test seeded sessions. We keep this table in
+    -- the public schema (the dedicated auth schema does not exist in this
+    -- codebase -- Keycloak owns user accounts). The cleanup CronJob (Task 8)
+    -- prunes expired/used rows on a schedule independent of fixture purging.
+    CREATE TABLE IF NOT EXISTS systemtest_magic_tokens (
+      token         TEXT PRIMARY KEY,
+      keycloak_user_id UUID NOT NULL,
+      session_user  JSONB NOT NULL,
+      redirect_uri  TEXT NOT NULL,
+      expires_at    TIMESTAMPTZ NOT NULL,
+      used_at       TIMESTAMPTZ,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS ix_magic_tokens_unused
+      ON systemtest_magic_tokens(expires_at) WHERE used_at IS NULL;
   `);
 
   // Idempotent column additions on existing tables. Done in a separate

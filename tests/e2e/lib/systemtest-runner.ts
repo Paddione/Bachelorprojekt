@@ -23,6 +23,8 @@ import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 import { SYSTEM_TEST_TEMPLATES } from '../../../website/src/lib/system-test-seed-data';
 import type { SystemTestTemplate } from '../../../website/src/lib/system-test-seed-data';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const BASE       = process.env.WEBSITE_URL    ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
@@ -315,6 +317,72 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
   };
 }
 
+// ── Outcome JSON ──────────────────────────────────────────────────────────
+
+export interface OutcomeStep {
+  position: number;
+  questionText: string;
+  recorded: TestOption;
+  testRole: 'admin' | 'user' | null;
+  reqIds: string[];
+}
+
+export interface OutcomeFile {
+  templateNumber: number;
+  templateTitle: string;
+  env: string;
+  timestamp: string;
+  submitted: boolean;
+  complianceScore: number;
+  steps: OutcomeStep[];
+}
+
+export function computeComplianceScore(steps: StepOutcome[]): number {
+  if (steps.length === 0) return 0;
+  const erfüllt   = steps.filter(s => s.recorded === 'erfüllt').length;
+  const teilweise = steps.filter(s => s.recorded === 'teilweise').length;
+  return (erfüllt + 0.5 * teilweise) / steps.length;
+}
+
+export function buildOutcomeFile(
+  result: WalkResult,
+  n: number,
+  template: Pick<SystemTestTemplate, 'title' | 'steps'>,
+  env: string,
+): OutcomeFile {
+  return {
+    templateNumber: n,
+    templateTitle: result.templateTitle,
+    env,
+    timestamp: new Date().toISOString(),
+    submitted: result.submitted,
+    complianceScore: computeComplianceScore(result.steps),
+    steps: result.steps.map(s => ({
+      position: s.position,
+      questionText: s.questionText,
+      recorded: s.recorded,
+      testRole: s.testRole,
+      reqIds: template.steps[s.position - 1]?.req_ids ?? [],
+    })),
+  };
+}
+
+function writeOutcomeFile(outcome: OutcomeFile): void {
+  const dir = path.resolve(__dirname, '../results/outcomes');
+  fs.mkdirSync(dir, { recursive: true });
+  const filename = `systemtest-${String(outcome.templateNumber).padStart(2, '0')}-${outcome.env}.json`;
+  fs.writeFileSync(path.join(dir, filename), JSON.stringify(outcome, null, 2));
+}
+
+function deriveEnv(): string {
+  const env = process.env.ENV;
+  if (env === 'mentolder' || env === 'korczewski') return env;
+  const d = process.env.PROD_DOMAIN ?? '';
+  if (d.includes('mentolder'))  return 'mentolder';
+  if (d.includes('korczewski')) return 'korczewski';
+  return 'dev';
+}
+
 export interface WalkByTemplateOptions {
   extraOverrides?: Record<number, TestOption>;
   onAgentNotes?: WalkOptions['onAgentNotes'];
@@ -351,6 +419,12 @@ export async function walkSystemtestByTemplate(
   ).toBe(template.steps.length);
   expect(result.submitted, 'wizard should reach the "Vielen Dank" screen').toBe(true);
   expect(result.templateTitle).toMatch(new RegExp(`^System-Test ${n}:`));
+
+  try {
+    writeOutcomeFile(buildOutcomeFile(result, n, template, deriveEnv()));
+  } catch (err) {
+    console.warn('[systemtest-runner] writeOutcomeFile failed (non-fatal):', err);
+  }
 
   return result;
 }

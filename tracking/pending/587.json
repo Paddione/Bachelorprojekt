@@ -1,0 +1,12 @@
+{
+  "pr_number": 587,
+  "title": "unify ticket numbers as Txxxxxx + repair detail-page SQL",
+  "description": "## Summary\n- Clicking a ticket-ID on `/admin/tickets` was crashing with `relation \"t.description\" does not exist` (the 404 \"Wartungsarbeiten\" page rendered as the SSR error fallback). `getTicketDetail` was concatenating extra columns onto `LIST_SELECT` after the `FROM ... LEFT JOIN` block, so Postgres read `t.description` as a comma-joined relation. Split `LIST_SELECT` into `LIST_COLS` + `LIST_FROM` so the detail query injects extras into the SELECT list.\n- Switch ticket numbering to a single `Txxxxxx` scheme with a per-brand monotonic counter (`tickets.ticket_counters`) and a BEFORE-INSERT trigger that mints the next number when `external_id` is NULL. All ticket types (bug, feature, task, project) now get the same format.\n- One-time idempotent backfill in `initTicketsSchema` renumbers every existing ticket per-brand by `created_at ASC` (replaces the old `BR-YYYYMMDD-xxxx` bug IDs and fills NULLs on projects/tasks).\n- `/api/bug-report` and `/api/admin/bugs/create` stop generating `BR-` IDs and read the trigger-assigned T-number from `RETURNING`. `createAdminTicket` no longer rejects `type='bug'`. The `/api/status` regex still accepts `BR-…` so legacy email links fail with a clean 404 rather than \"invalid format\". `/status` placeholder updated to `T000123`.\n- Migration applied to mentolder + korczewski shared-db; both verified end-to-end against `https://web.mentolder.de` (filed a bug → got `T000070`, query for the detail page returns one row cleanly, no SQL errors in pod logs).\n\n## Test plan\n- [x] `npm run build` succeeds\n- [x] `task website:redeploy ENV=mentolder && ENV=korczewski` rolled out\n- [x] Manual migration applied to both shared-db instances; backfill renumbered 69 mentolder + 7 korczewski rows; counters set to highest assigned\n- [x] BEFORE-INSERT trigger confirmed by inserting a row with NULL external_id (gets T-format), then ROLLBACK\n- [x] Live `POST /api/bug-report` returned `{\"success\":true,\"ticketId\":\"T000070\"}`\n- [x] Re-ran the exact `getTicketDetail` SQL against the live ticket → returns 1 row, no error\n- [x] `fa-admin-tickets.spec.ts` regex updated from `^BR-` to `^T\\d{6,}$`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "tickets",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T10:30:23Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

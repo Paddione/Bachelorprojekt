@@ -1,0 +1,12 @@
+{
+  "pr_number": 603,
+  "title": "use Recreate strategy to avoid PVC Multi-Attach deadlock",
+  "description": "## Summary\nThe website Deployment mounts `evidence-pvc` (RWO) for systemtest rrweb recordings. With the default RollingUpdate strategy and `replicas: 1`, rollouts deadlock — the new pod can't attach the volume while the old pod still holds it (`Warning: FailedAttachVolume: Multi-Attach error`).\n\nDiscovered while deploying #595–#602: the new pod sat in `ContainerCreating` for 13 minutes with `Multi-Attach error for volume \"pvc-c27dd1cc-...\"`. The workaround was a live `kubectl patch` to set strategy=Recreate on both clusters; this commit makes it permanent in the manifest.\n\n## Trade-off\n~30 seconds of downtime per deploy (acceptable — admins get redirected to the maintenance page or 502, but full-page is brief).\n\n## Test plan\n- [x] Live-patched on mentolder + korczewski; rollout completed cleanly on both\n- [ ] Verify next \\`task feature:website\\` rolls without intervention",
+  "category": "fix",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T19:43:04Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

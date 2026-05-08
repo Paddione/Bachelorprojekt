@@ -3244,6 +3244,13 @@ export async function getTestRunTrend(days: number): Promise<TrendRow[]> {
   }));
 }
 
+export async function listLastTestStatusPerTest(): Promise<Array<{ testId: string; status: string; createdAt: string }>> {
+  const result = await pool.query<{ test_id: string; status: string; created_at: string }>(
+    `SELECT DISTINCT ON (test_id) test_id, status, created_at FROM test_results ORDER BY test_id, created_at DESC`,
+  );
+  return result.rows.map(r => ({ testId: r.test_id, status: r.status, createdAt: r.created_at }));
+}
+
 // ── Playwright Reports ───────────────────────────────────────────────────────
 
 export interface PlaywrightReport {

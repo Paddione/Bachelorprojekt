@@ -323,8 +323,52 @@ tasks:
     preconditions:
       - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
         msg: "systemtest:cycle requires E2E_ADMIN_PASS in the env"
+    env:
+      SKIP_DB_PURGE: "1"
     cmds:
       - bash scripts/systemtest-fanout.sh "{{.CYCLE}}" "{{.ENV}}"
+
+  systemtest:all:
+    desc: "Run all 12 system-test specs across 4 cycles (ENV=mentolder|korczewski|dev)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:all requires E2E_ADMIN_PASS in the env"
+    env:
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - task: systemtest:cycle
+        vars: { CYCLE: "1", ENV: "{{.ENV}}" }
+      - task: systemtest:cycle
+        vars: { CYCLE: "2", ENV: "{{.ENV}}" }
+      - task: systemtest:cycle
+        vars: { CYCLE: "3", ENV: "{{.ENV}}" }
+      - task: systemtest:cycle
+        vars: { CYCLE: "4", ENV: "{{.ENV}}" }
+
+  systemtest:all-prods:
+    desc: "Run all 12 system-test specs against mentolder then korczewski"
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:all-prods requires E2E_ADMIN_PASS in the env"
+    env:
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - task: systemtest:all
+        vars: { ENV: "mentolder" }
+      - task: systemtest:all
+        vars: { ENV: "korczewski" }
+
+  systemtest:analyze:
+    desc: "Analyse system-test outcome files and produce drift report (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: 'ls tests/e2e/results/outcomes/systemtest-*-{{.ENV}}.json 2>/dev/null | grep -q .'
+        msg: "No outcome files for ENV={{.ENV}} — run: task systemtest:all ENV={{.ENV}} first"
+    cmds:
+      - bash scripts/systemtest-analyze.sh "{{.ENV}}"
 
   # ─────────────────────────────────────────────
   # Quick Start

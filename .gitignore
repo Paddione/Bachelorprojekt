@@ -86,6 +86,7 @@ website/.superpowers.superpowers/
 .superpowers/
 .playwright-mcp/
 test-results/
+tests/e2e/results/outcomes/
 .worktrees/
 memory
 whisper

@@ -1,0 +1,12 @@
+{
+  "pr_number": 583,
+  "title": "restore + fix positioning and content",
+  "description": "## Summary\n\nReverts the removal of HelpPanel — it was dropped too aggressively. The real issues were:\n\n- **Wrong position**: button was bottom-left while the slide-over panel opens from the right — confusing UX\n- **z-index conflict**: HelpPanel button (z-50) was covered by the BugReportWidget modal backdrop (also z-50) whenever that modal opened\n\n**Fixes:**\n- Button moved to `bottom: 5.5rem; right: 1.5rem` — sits directly above the BugReportWidget trigger, same corner as the slide-over panel\n- z-indexes raised: button → 60, backdrop → 61, panel → 62 (above BugReport modal's z-50)\n- Added `tickets` and `live` help sections so those pages show real content instead of the fallback message\n\n🤖 Generated with [Claude Code](https://claude.ai/claude-code)",
+  "category": "fix",
+  "scope": "help-panel",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T08:07:59Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -73,7 +73,8 @@ export const POST: APIRoute = async ({ request }) => {
     if (crmId1 && crmId2) {
       await pool.query(
         `INSERT INTO meetings (customer_id, meeting_type, scheduled_at, status)
-         VALUES ($1,$2,$3,$4), ($5,$6,$7,$8)`,
+         VALUES ($1,$2,$3,$4), ($5,$6,$7,$8)
+         ON CONFLICT DO NOTHING`,
         [
           crmId1, '[TEST] Erstgespräch', tomorrow, 'scheduled',
           crmId2, '[TEST] Folgegespräch', in3days, 'scheduled',

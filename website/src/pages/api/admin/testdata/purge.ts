@@ -13,67 +13,79 @@ export const DELETE: APIRoute = async ({ request }) => {
   if (!session || !isAdmin(session)) return jsonError('Nicht autorisiert', 401);
 
   try {
-    // 1. Inbox bookings where payload.name starts with [TEST]
-    const bookingRes = await pool.query(
-      `DELETE FROM inbox_items WHERE payload->>'name' LIKE '[TEST]%' RETURNING id`
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    // 2. Meetings linked to [TEST] CRM customers
-    const meetingRes = await pool.query(
-      `DELETE FROM meetings
-       WHERE customer_id IN (SELECT id FROM customers WHERE name LIKE '[TEST]%')
-       RETURNING id`
-    );
+      // 1. Inbox bookings where payload.name starts with [TEST]
+      const bookingRes = await client.query(
+        `DELETE FROM inbox_items WHERE payload->>'name' LIKE '[TEST]%' RETURNING id`
+      );
 
-    // 3. Find unlocked [TEST] invoices (locked=false only — GoBD blocks locked ones)
-    const lockedRes = await pool.query(
-      `SELECT COUNT(*) AS cnt FROM billing_invoices i
-       JOIN billing_customers c ON c.id = i.customer_id
-       WHERE c.name LIKE '[TEST]%' AND i.locked = true`
-    );
-    const skippedLocked = parseInt(lockedRes.rows[0]?.cnt ?? '0', 10);
+      // 2. Meetings linked to [TEST] CRM customers
+      const meetingRes = await client.query(
+        `DELETE FROM meetings
+         WHERE customer_id IN (SELECT id FROM customers WHERE name LIKE '[TEST]%')
+         RETURNING id`
+      );
 
-    // 4. Line items for unlocked [TEST] invoices
-    const lineRes = await pool.query(
-      `DELETE FROM billing_invoice_line_items
-       WHERE invoice_id IN (
-         SELECT i.id FROM billing_invoices i
+      // 3. Find unlocked [TEST] invoices (locked=false only — GoBD blocks locked ones)
+      const lockedRes = await client.query(
+        `SELECT COUNT(*) AS cnt FROM billing_invoices i
          JOIN billing_customers c ON c.id = i.customer_id
-         WHERE c.name LIKE '[TEST]%' AND i.locked = false
-       )
-       RETURNING id`
-    );
+         WHERE c.name LIKE '[TEST]%' AND i.locked = true`
+      );
+      const skippedLocked = parseInt(lockedRes.rows[0]?.cnt ?? '0', 10);
 
-    // 5. Unlocked [TEST] invoices
-    const invoiceRes = await pool.query(
-      `DELETE FROM billing_invoices i
-       USING billing_customers c
-       WHERE c.id = i.customer_id AND c.name LIKE '[TEST]%' AND i.locked = false
-       RETURNING i.id`
-    );
+      // 4. Line items for unlocked [TEST] invoices
+      const lineRes = await client.query(
+        `DELETE FROM billing_invoice_line_items
+         WHERE invoice_id IN (
+           SELECT i.id FROM billing_invoices i
+           JOIN billing_customers c ON c.id = i.customer_id
+           WHERE c.name LIKE '[TEST]%' AND i.locked = false
+         )
+         RETURNING id`
+      );
 
-    // 6. [TEST] billing customers (after invoices are gone)
-    const billingCustRes = await pool.query(
-      `DELETE FROM billing_customers WHERE name LIKE '[TEST]%' RETURNING id`
-    );
+      // 5. Unlocked [TEST] invoices
+      const invoiceRes = await client.query(
+        `DELETE FROM billing_invoices i
+         USING billing_customers c
+         WHERE c.id = i.customer_id AND c.name LIKE '[TEST]%' AND i.locked = false
+         RETURNING i.id`
+      );
 
-    // 7. [TEST] CRM customers
-    const crmCustRes = await pool.query(
-      `DELETE FROM customers WHERE name LIKE '[TEST]%' RETURNING id`
-    );
+      // 6. [TEST] billing customers (after invoices are gone)
+      const billingCustRes = await client.query(
+        `DELETE FROM billing_customers WHERE name LIKE '[TEST]%' RETURNING id`
+      );
 
-    return new Response(JSON.stringify({
-      deleted: {
-        bookings:         bookingRes.rowCount ?? 0,
-        meetings:         meetingRes.rowCount ?? 0,
-        invoiceLines:     lineRes.rowCount ?? 0,
-        invoices:         invoiceRes.rowCount ?? 0,
-        billingCustomers: billingCustRes.rowCount ?? 0,
-        customers:        crmCustRes.rowCount ?? 0,
-      },
-      skipped: { lockedInvoices: skippedLocked },
-    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      // 7. [TEST] CRM customers
+      const crmCustRes = await client.query(
+        `DELETE FROM customers WHERE name LIKE '[TEST]%' RETURNING id`
+      );
 
+      await client.query('COMMIT');
+
+      return new Response(JSON.stringify({
+        deleted: {
+          bookings:         bookingRes.rowCount ?? 0,
+          meetings:         meetingRes.rowCount ?? 0,
+          invoiceLines:     lineRes.rowCount ?? 0,
+          invoices:         invoiceRes.rowCount ?? 0,
+          billingCustomers: billingCustRes.rowCount ?? 0,
+          customers:        crmCustRes.rowCount ?? 0,
+        },
+        skipped: { lockedInvoices: skippedLocked },
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error('[testdata/purge]', err);
     return jsonError('Fehler beim Löschen der Testdaten', 500);

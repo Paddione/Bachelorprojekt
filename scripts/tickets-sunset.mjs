@@ -23,13 +23,14 @@ async function exists(schema, name) {
 async function isSchemaEmpty(schema) {
   const r = await client.query(
     `SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-      WHERE n.nspname=$1 AND c.relkind IN ('r','v','m') LIMIT 1`,
+      WHERE n.nspname=$1 AND c.relkind IN ('r','v','m','S') LIMIT 1`,
     [schema]
   );
   return r.rowCount === 0;
 }
 
 async function drop(kind, fqn, opts = '') {
+  // NOTE: fqn and opts must be hardcoded identifiers — no parameterization.
   if (apply) {
     await client.query(`DROP ${kind} IF EXISTS ${fqn} ${opts}`);
     console.log(`  DROPPED ${kind} ${fqn}`);
@@ -48,11 +49,11 @@ try {
   if (await exists('bugs', 'bug_tickets')) {
     await drop('VIEW', 'bugs.bug_tickets');
   }
-  if (await exists('bugs', 'bug_tickets_legacy')) {
-    await drop('TABLE', 'bugs.bug_tickets_legacy');
-  }
   if (await exists('bugs', 'bug_ticket_comments_legacy')) {
     await drop('TABLE', 'bugs.bug_ticket_comments_legacy');
+  }
+  if (await exists('bugs', 'bug_tickets_legacy')) {
+    await drop('TABLE', 'bugs.bug_tickets_legacy');
   }
   if (apply && await isSchemaEmpty('bugs')) {
     await client.query('DROP SCHEMA IF EXISTS bugs');

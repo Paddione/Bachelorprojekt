@@ -338,6 +338,57 @@ export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
         },
       ],
     },
+    tickets: {
+      title: 'Tickets',
+      description: 'Aufgaben, Features, Bugs und Projekte verwalten — alles in einem System.',
+      actions: [
+        'Neues Ticket anlegen (Bug, Feature, Task oder Projekt)',
+        'Ticket nach Status, Typ, Komponente oder Schlagwort filtern',
+        'Ticket einem Teammitglied zuweisen',
+        'Schlagwörter (Tags) per Klick oder Textsuche filtern',
+      ],
+      guides: [
+        {
+          title: 'Ticket anlegen',
+          steps: [
+            'Klicke auf „+ Neues Ticket".',
+            'Wähle den Typ: Bug, Feature, Task oder Projekt.',
+            'Gib Titel und optional eine Beschreibung ein.',
+            'Setze Priorität, Komponente und weise das Ticket zu.',
+            'Klicke auf „Erstellen".',
+          ],
+        },
+        {
+          title: 'Nach Schlagwort filtern',
+          steps: [
+            'Gib einen Tag-Namen ins Feld „Schlagwort" ein.',
+            'Klicke auf „Filtern".',
+            'Alternativ: klicke direkt auf einen Tag-Chip in der Tabelle.',
+          ],
+        },
+      ],
+    },
+    live: {
+      title: 'Live-Stream',
+      description: 'Livestream starten, Zuschauer verwalten und Aufzeichnungen herunterladen.',
+      actions: [
+        'Stream starten und stoppen',
+        'Stream-Titel und -Beschreibung setzen',
+        'Aufzeichnung herunterladen',
+        'Zuschauer-Link teilen',
+      ],
+      guides: [
+        {
+          title: 'Stream starten',
+          steps: [
+            'Stelle sicher, dass OBS oder dein Stream-Tool konfiguriert ist.',
+            'Klicke auf „Stream starten" — LiveKit erstellt einen neuen Raum.',
+            'Teile den Zuschauer-Link unter /portal/stream.',
+            'Klicke auf „Stream beenden" wenn du fertig bist.',
+          ],
+        },
+      ],
+    },
     zeiterfassung: {
       title: 'Zeiterfassung',
       description: 'Arbeitsstunden für Projekte und Klienten erfassen und Berichte erstellen.',

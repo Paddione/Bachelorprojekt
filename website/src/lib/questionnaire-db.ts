@@ -703,6 +703,20 @@ export async function archiveQAssignment(id: string): Promise<
   }
 }
 
+export async function reassignQAssignment(id: string): Promise<
+  | { assignment: QAssignment }
+  | { reason: 'not_found' }
+> {
+  const src = await getQAssignment(id);
+  if (!src) return { reason: 'not_found' };
+  const created = await createQAssignment({
+    customerId: src.customer_id,
+    templateId: src.template_id,
+    projectId: src.project_id ?? undefined,
+  });
+  return { assignment: created };
+}
+
 /**
  * Reset a finished assignment so it can be filled out again.
  *

@@ -4,7 +4,7 @@ import {
   createQTemplate, upsertQDimension, upsertQQuestion, replaceQAnswerOptions,
   createQAssignment, updateQAssignment, upsertQAnswer, getQAssignment,
 } from './questionnaire-db';
-import { archiveQAssignment } from './questionnaire-db';
+import { archiveQAssignment, reassignQAssignment } from './questionnaire-db';
 import { randomUUID } from 'crypto';
 
 const dbAvailable = !!(
@@ -149,5 +149,37 @@ describe.skipIf(!dbAvailable)('archiveQAssignment', () => {
       [a.id],
     );
     expect(after.rows.map(r => r.id).sort()).toEqual(before.rows.map(r => r.id).sort());
+  });
+});
+
+describe.skipIf(!dbAvailable)('reassignQAssignment', () => {
+  it('creates a new pending assignment for the same template + customer; source untouched', async () => {
+    const tpl = await createQTemplate({
+      title: `reassign-${randomUUID().slice(0, 8)}`, description: '', instructions: '',
+    });
+    const customerId = randomUUID();
+    const src = await createQAssignment({ customerId, templateId: tpl.id });
+    await updateQAssignment(src.id, { status: 'submitted' });
+    await archiveQAssignment(src.id);
+
+    const result = await reassignQAssignment(src.id);
+    expect('assignment' in result).toBe(true);
+    if (!('assignment' in result)) return;
+    expect(result.assignment.id).not.toBe(src.id);
+    expect(result.assignment.status).toBe('pending');
+    expect(result.assignment.template_id).toBe(tpl.id);
+    expect(result.assignment.customer_id).toBe(customerId);
+    expect(result.assignment.archived_at).toBeNull();
+    expect(result.assignment.submitted_at).toBeNull();
+    expect(result.assignment.coach_notes).toBe('');
+
+    const before = await getQAssignment(src.id);
+    expect(before?.status).toBe('archived');
+    expect(before?.archived_at).not.toBeNull();
+  });
+
+  it('returns not_found for missing id', async () => {
+    const result = await reassignQAssignment(randomUUID());
+    expect('reason' in result && result.reason).toBe('not_found');
   });
 });

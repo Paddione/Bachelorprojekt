@@ -162,6 +162,24 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:systemtest-04-fragebogen",
+    "file": "tests/e2e/specs/systemtest-04-fragebogen.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-05-docuseal",
+    "file": "tests/e2e/specs/systemtest-05-docuseal.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-06-steuer",
+    "file": "tests/e2e/specs/systemtest-06-steuer.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-01",
     "file": "tests/local/FA-01.sh",
     "category": "FA",

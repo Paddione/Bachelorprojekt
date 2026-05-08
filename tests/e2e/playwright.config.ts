@@ -126,6 +126,28 @@ export default defineConfig({
         baseURL: websiteURL,
       },
     },
+
+    // ── systemtest: cycle fan-out (12 system-test packages) ──────
+    // Each spec walks one System-Test template via the
+    // QuestionnaireWizard. The runner is headed-friendly so the
+    // operator can watch and take over for steps marked with
+    // agent_notes (real signatures, threshold crossings, etc.).
+    //
+    // Fan-out: run three specs concurrently, one per package, e.g.
+    //   E2E_ADMIN_PASS=… npx playwright test --project=systemtest \
+    //     --headed -g "System-Test 4" &
+    //   E2E_ADMIN_PASS=… npx playwright test --project=systemtest \
+    //     --headed -g "System-Test 5" &
+    //   E2E_ADMIN_PASS=… npx playwright test --project=systemtest \
+    //     --headed -g "System-Test 6" &
+    {
+      name: 'systemtest',
+      testMatch: ['**/systemtest-*.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: websiteURL,
+      },
+    },
   ],
 
   outputDir: '../results/playwright-traces',

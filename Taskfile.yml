@@ -289,6 +289,17 @@ tasks:
       - task: test:e2e
         vars: { ENV: "korczewski" }
 
+  systemtest:cycle:
+    desc: "Fan out 3 parallel Playwright sessions, one per System-Test (CYCLE=1..4, ENV=mentolder|korczewski|dev)"
+    vars:
+      CYCLE: '{{.CYCLE | default "2"}}'
+      ENV:   '{{.ENV   | default "mentolder"}}'
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:cycle requires E2E_ADMIN_PASS in the env"
+    cmds:
+      - bash scripts/systemtest-fanout.sh "{{.CYCLE}}" "{{.ENV}}"
+
   # ─────────────────────────────────────────────
   # Quick Start
   # ─────────────────────────────────────────────

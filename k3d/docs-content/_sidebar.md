@@ -42,6 +42,7 @@
   - [Adminhandbuch](adminhandbuch)
   - [Admin-Webinterface](admin-webinterface)
   - [Projekt-Verwaltung](admin-projekte)
+  - [Tickets (Unified Inbox)](admin-tickets)
 
 - **Entwicklung**
   - [Beitragen & CI/CD](contributing)

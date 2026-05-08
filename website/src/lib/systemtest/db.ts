@@ -81,6 +81,36 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
       ADD COLUMN IF NOT EXISTS source_test_question_id   UUID;
   `);
 
+  // is_test_data columns: defense-in-depth marker for seeded fixtures so
+  // they never leak into customer-facing reads. auth.users / bookings.bookings
+  // are guarded with DO blocks because those schemas may not exist in every
+  // environment (e.g. fresh CI DB). tickets.tickets and questionnaire_assignments
+  // are unconditional — Task 1 already required them.
+  await pool.query(`
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='auth' AND table_name='users') THEN
+        ALTER TABLE auth.users
+          ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false;
+        CREATE INDEX IF NOT EXISTS ix_auth_users_test_data
+          ON auth.users(is_test_data) WHERE is_test_data = true;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='bookings' AND table_name='bookings') THEN
+        ALTER TABLE bookings.bookings
+          ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false;
+        CREATE INDEX IF NOT EXISTS ix_bookings_test_data
+          ON bookings.bookings(is_test_data) WHERE is_test_data = true;
+      END IF;
+    END$$;
+
+    ALTER TABLE tickets.tickets
+      ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false;
+    CREATE INDEX IF NOT EXISTS ix_tickets_test_data
+      ON tickets.tickets(is_test_data) WHERE is_test_data = true;
+
+    ALTER TABLE questionnaire_assignments
+      ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false;
+  `);
+
   // Foreign keys added separately, guarded by pg_constraint look-up so
   // repeated calls don't error.
   await pool.query(`

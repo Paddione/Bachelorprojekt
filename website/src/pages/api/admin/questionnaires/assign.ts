@@ -1,11 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getQTemplate, createQAssignment } from '../../../../lib/questionnaire-db';
-import { getCustomerByEmail } from '../../../../lib/website-db';
+import { getCustomerByEmail, createProject } from '../../../../lib/website-db';
 import { getUserById } from '../../../../lib/keycloak';
 import { sendQuestionnaireAssigned } from '../../../../lib/email';
 
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
+const BRAND = process.env.BRAND || 'mentolder';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -28,12 +29,32 @@ export const POST: APIRoute = async ({ request }) => {
   const customer = await getCustomerByEmail(kcUser.email).catch(() => null);
   if (!customer) return new Response(JSON.stringify({ error: 'Kundeneintrag nicht gefunden.' }), { status: 404 });
 
-  const assignment = await createQAssignment({ customerId: customer.id, templateId: tpl.id });
+  const clientName = `${kcUser.firstName ?? ''} ${kcUser.lastName ?? ''}`.trim() || kcUser.username;
+
+  const projectTitle = tpl.is_system_test
+    ? tpl.title
+    : `${tpl.title} — ${clientName}`;
+
+  const projectId = await createProject({
+    brand: BRAND,
+    name: projectTitle,
+    status: 'entwurf',
+    priority: 'mittel',
+    customerId: customer.id,
+  }).catch((err) => {
+    console.error('[assign] project creation failed, continuing without project_id:', err);
+    return null;
+  });
+
+  const assignment = await createQAssignment({
+    customerId: customer.id,
+    templateId: tpl.id,
+    projectId: projectId ?? undefined,
+  });
 
   const portalUrl = PROD_DOMAIN
     ? `https://web.${PROD_DOMAIN}/portal/fragebogen/${assignment.id}`
     : `http://web.localhost/portal/fragebogen/${assignment.id}`;
-  const clientName = `${kcUser.firstName ?? ''} ${kcUser.lastName ?? ''}`.trim() || kcUser.username;
   await sendQuestionnaireAssigned({ clientEmail: kcUser.email, clientName, questionnaireTitle: tpl.title, portalUrl });
 
   return new Response(JSON.stringify(assignment), { status: 201, headers: { 'Content-Type': 'application/json' } });

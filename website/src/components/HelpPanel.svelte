@@ -26,15 +26,15 @@
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape' && open) close(); }} />
 
-<!-- Floating Button -->
+<!-- Floating Button — sits above BugReportWidget (bottom-6 right-6) -->
 <button
   onclick={toggle}
   aria-label={open ? 'Hilfe schließen' : 'Hilfe öffnen'}
   style="
     position: fixed;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    z-index: 50;
+    bottom: 5.5rem;
+    right: 1.5rem;
+    z-index: 60;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -68,7 +68,7 @@
     style="
       position: fixed;
       inset: 0;
-      z-index: 51;
+      z-index: 61;
       background: rgba(0,0,0,0.35);
       display: none;
     "
@@ -89,7 +89,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    z-index: 52;
+    z-index: 62;
     width: 320px;
     background: var(--ink-850);
     border-left: 1px solid var(--line);

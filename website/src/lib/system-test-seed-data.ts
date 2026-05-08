@@ -100,7 +100,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       },
       {
         question_text: 'Öffne Projekte (Link) → klicke „Neues Projekt" → ordne es über das Client-Feld einem Client zu → prüfe ob das Projekt in der Client-Detailansicht unter Reiter „Projekte" erscheint.',
-        expected_result: 'Projekt erscheint in /admin/projekte; Zuordnung zum Client in der Detailansicht sichtbar.',
+        expected_result: 'Projekt erscheint in /admin/projekte; Tickets-System-Projekt mit Status „Entwurf" angelegt; Zuordnung zum Client sichtbar.',
         test_function_url: '/admin/projekte', test_role: 'admin',
       },
       {
@@ -127,7 +127,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
     ],
   },
   {
-    title: 'System-Test 3: Kommunikation — Fragebogen-Widget, Inbox & E-Mail',
+    title: 'System-Test 3: Kommunikation — Chat-Widget, Inbox & E-Mail',
     description: 'Test des Fragebogen-Widgets auf der öffentlichen Website, des Admin-Inbox-Workflows sowie E-Mail-Versand und Newsletter-Vorschau.',
     instructions: 'Schritt 1 im Testnutzer-Browser, Schritte 2/3/4 im Admin-Browser. Öffne jeweils den Link im Schritt.',
     steps: [
@@ -172,7 +172,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       },
       {
         question_text: 'Klicke im Template auf „Veröffentlichen" — öffne dann einen Client (Link), wechsle zum Reiter „Fragebögen" und klicke „Zuweisen".',
-        expected_result: 'Assignment erstellt; Nutzer sieht Fragebogen im Portal-Dashboard (ggf. E-Mail-Benachrichtigung).',
+        expected_result: 'Assignment erstellt; Nutzer sieht Fragebogen im Portal-Dashboard; verknüpftes Projekt automatisch unter /admin/projekte angelegt.',
         test_function_url: '/admin/clients', test_role: 'admin',
       },
       {
@@ -490,7 +490,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       },
       {
         question_text: 'Öffne Monitoring (Link) → scrolle zum „Test-Results-Panel" — prüfe ob alle System-Test-Templates mit last_result und last_success_at sichtbar sind und ein Drilldown auf Question-Level möglich ist.',
-        expected_result: 'Alle Templates sichtbar mit last_result/last_success_at; Drilldown auf Question-Level möglich.',
+        expected_result: 'Alle 12 Templates sichtbar mit last_result/last_success_at; Drilldown auf Question-Level möglich.',
         test_function_url: '/admin/monitoring', test_role: 'admin',
       },
     ],
@@ -550,6 +550,96 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
         question_text: 'Öffne Brett / Systembrett (Link) — prüfe ob das 3D-Board lädt, du Elemente verschieben kannst und Speichern funktioniert.',
         expected_result: '3D-Board lädt; Demo-Konstellation manipulierbar; Speichern funktioniert.',
         test_function_url: `https://brett.${D}`, test_role: 'user',
+      },
+    ],
+  },
+  {
+    title: 'System-Test 11: LiveKit & Streaming',
+    description: 'Vollständiger Test des LiveKit-Streaming-Stacks: Admin-Steuerseite, Stream starten/stoppen, Viewer-Portal, RTMP-Ingress, Recording-Liste und Pod-Status.',
+    instructions: 'Schritte 1, 4, 5, 6, 7 im Admin-Browser. Schritt 2 startet den Stream — danach Schritt 3 im Testnutzer-Browser. Schritt 6 beendet den Stream.',
+    steps: [
+      {
+        question_text: 'Öffne die Admin-Stream-Seite (Link) — prüfe ob der Stream-Status „offline" angezeigt wird und die Seite ohne Fehler lädt.',
+        expected_result: 'Seite lädt; Stream-Status „offline"; keine Fehlermeldungen.',
+        test_function_url: '/admin/stream', test_role: 'admin',
+      },
+      {
+        question_text: 'Klicke auf der Admin-Stream-Seite (Link) den Start-Button — prüfe ob der Status auf „live" wechselt und ein Stream-Token generiert wird.',
+        expected_result: 'Status wechselt auf „live"; Stream-Token sichtbar.',
+        test_function_url: '/admin/stream', test_role: 'admin',
+      },
+      {
+        question_text: 'Öffne das Viewer-Portal (Link) im Testnutzer-Browser während der Stream läuft — prüfe ob der Stream-Player sichtbar ist und keine Verbindungsfehler erscheinen. → Nutzer: zweites Browser-Profil.',
+        expected_result: 'Stream-Player sichtbar; Verbindung aufgebaut; kein Fehler im Browser.',
+        test_function_url: '/portal/stream', test_role: 'user',
+        agent_notes: 'Zweites Browser-Profil (Testnutzer) erforderlich. Stream muss laufen (Schritt 2 abgeschlossen).',
+      },
+      {
+        question_text: 'Öffne die Admin-Stream-Seite (Link) — prüfe ob der RTMP-Ingress-Status und die RTMP-URL angezeigt werden.',
+        expected_result: 'RTMP-URL sichtbar; Ingress-Status angezeigt (aktiv oder bereit).',
+        test_function_url: '/admin/stream', test_role: 'admin',
+      },
+      {
+        question_text: 'Öffne die Admin-Stream-Seite (Link) → klicke „Aufnahmen" oder scrolle zur Recordings-Liste — prüfe ob vorhandene MP4-Dateien aufgelistet werden oder eine leere Liste ohne Fehler erscheint.',
+        expected_result: 'Recordings-Liste lädt; MP4-Dateien sichtbar oder leere Liste ohne Fehler.',
+        test_function_url: '/admin/stream', test_role: 'admin',
+      },
+      {
+        question_text: 'Klicke auf der Admin-Stream-Seite (Link) den Stop-Button — prüfe ob der Status auf „offline" wechselt und das Viewer-Portal „kein Stream" anzeigt.',
+        expected_result: 'Status wechselt auf „offline"; Viewer-Portal zeigt „kein Stream aktiv".',
+        test_function_url: '/admin/stream', test_role: 'admin',
+      },
+      {
+        question_text: 'Öffne Monitoring (Link) — prüfe ob der `livekit-server` Pod im Status „Running" ist und kein CrashLoop vorliegt.',
+        expected_result: '`livekit-server` Pod im Status „Running"; kein CrashLoop.',
+        test_function_url: '/admin/monitoring', test_role: 'admin',
+      },
+    ],
+  },
+  {
+    title: 'System-Test 12: Projektmanagement',
+    description: 'Vollständiger Test des Projektmanagement-Moduls: Projekte, Teilprojekte, Aufgaben, Zeiterfassung, Meeting-Verknüpfung und Archivierung.',
+    instructions: 'Alle Schritte im Admin-Browser. Öffne jeweils den Link im Schritt. Schritte bauen aufeinander auf — in Reihenfolge abarbeiten.',
+    steps: [
+      {
+        question_text: 'Öffne Projekte (Link) → klicke „Neues Projekt" → fülle Titel und Client aus → speichere — prüfe ob das Projekt in der Liste erscheint.',
+        expected_result: 'Projekt erscheint in der Liste; Pflichtfeld-Validierung serverseitig.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
+      },
+      {
+        question_text: 'Öffne das neu angelegte Projekt (Link) → wechsle zum Reiter „Teilprojekte" → klicke „Neues Teilprojekt" → trage Titel ein und speichere — prüfe ob das Teilprojekt erscheint.',
+        expected_result: 'Teilprojekt erscheint unter dem Reiter „Teilprojekte" des Projekts.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
+      },
+      {
+        question_text: 'Im Projekt-Detail (Link) → wechsle zum Reiter „Aufgaben" → klicke „Neue Aufgabe" → fülle Titel und Priorität aus → speichere — prüfe ob die Aufgabe mit Status „Entwurf" erscheint.',
+        expected_result: 'Aufgabe erscheint in der Liste; Status „Entwurf"; Aufgaben-Counter aktualisiert.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
+      },
+      {
+        question_text: 'Im Projekt-Detail (Link) → klicke auf die Aufgabe → ändere den Status auf „Erledigt" → speichere — prüfe ob der Aufgaben-Counter sofort sinkt.',
+        expected_result: 'Status wechselt sofort auf „Erledigt"; offene Aufgaben-Counter sinkt.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
+      },
+      {
+        question_text: 'Im Projekt-Detail (Link) → wechsle zum Reiter „Zeiterfassung" → klicke „Zeit buchen" → trage Dauer und Beschreibung ein → speichere — prüfe ob der Gesamtzeit-Counter aktualisiert wird.',
+        expected_result: 'Zeiteintrag gespeichert; Gesamtzeit-Counter des Projekts erhöht sich.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
+      },
+      {
+        question_text: 'Im Projekt-Detail (Link) → ändere den Projekt-Status auf „Aktiv" → speichere — prüfe ob das Status-Badge aktualisiert wird und das Projekt in der aktiven Filter-Ansicht erscheint.',
+        expected_result: 'Status-Badge zeigt „Aktiv"; Projekt erscheint in gefilterten „Aktiv"-Ansicht.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
+      },
+      {
+        question_text: 'Im Projekt-Detail (Link) → wechsle zum Reiter „Besprechungen" → klicke „Meeting verknüpfen" → wähle ein vorhandenes Meeting aus — prüfe ob es im Reiter erscheint.',
+        expected_result: 'Meeting erscheint im Reiter „Besprechungen" des Projekts.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
+      },
+      {
+        question_text: 'Im Projekt-Detail (Link) → ändere den Status auf „Archiviert" → speichere — prüfe ob das Projekt aus der Standard-Liste verschwindet und in der Archiv-Ansicht sichtbar ist.',
+        expected_result: 'Projekt verschwindet aus Standard-Liste; in Archiv-Ansicht sichtbar.',
+        test_function_url: '/admin/projekte', test_role: 'admin',
       },
     ],
   },

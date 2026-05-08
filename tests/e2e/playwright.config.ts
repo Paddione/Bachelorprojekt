@@ -54,6 +54,7 @@ export default defineConfig({
         '**/fa-admin-crm.spec.ts',              // CRM: termine, followups, projekte, rooms, meetings
         '**/fa-admin-settings.spec.ts',         // settings: email, rechnungen, branding, benachrichtigungen
         '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
+        '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
       ],
       use: {
         ...devices['Desktop Chrome'],

@@ -1,0 +1,12 @@
+{
+  "pr_number": 584,
+  "title": "add admin SEO meta-description editor for mentolder (BR-20260508-2ba3)",
+  "description": "## Summary\n\n- **Immediate fix**: Updates the hardcoded mentolder homepage meta description from the generic technical copy to Gekko's preferred personal, location-specific text: *„Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe.\"*\n- **Admin editor**: Adds a new \"SEO\" tab as the first section in the admin Inhalte panel (`/admin/inhalte`), allowing Gekko to edit meta descriptions for Startseite, Kontakt, Über mich, and Angebote without touching code\n- **Dynamic loading**: `index.astro` now reads `seo_meta_desc_home` from `site_settings` at SSR time, falling back to the brand config if nothing is stored — existing pages continue to work with no DB migration required\n\n## Test plan\n\n- [ ] Visit `https://web.mentolder.de` — check `<meta name=\"description\">` in page source shows the new text\n- [ ] Log in as admin → `/admin/inhalte` → confirm \"SEO\" tab appears first in the website section\n- [ ] Edit the Startseite description, save — confirm success message appears\n- [ ] Reload the homepage and check the updated meta description appears in source\n- [ ] Character count indicator shows green (120–160 chars), yellow (<120), red (>160)\n- [ ] Verify other admin sections (Startseite, Über mich, etc.) still work unchanged\n\nFixes: BR-20260508-2ba3\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "seo",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T08:58:10Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

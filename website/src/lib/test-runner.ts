@@ -3,7 +3,15 @@ import { createInterface } from 'readline';
 import { watch, existsSync, readdirSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { saveTestRun, saveTestResults, updateTestRun, type TestResultRow } from './website-db.js';
+import {
+  saveTestRun,
+  saveTestResults,
+  updateTestRun,
+  pool,
+  type TestResultRow,
+  type SavedTestResult,
+} from './website-db.js';
+import { safeOpenTestRunFailureTicket } from './systemtest/test-run-bridge.js';
 
 export interface TestResult {
   req: string;
@@ -223,22 +231,61 @@ export async function spawnTestRun(tier: string, testIds: string[]): Promise<str
     if (sourceResults.length > 0) {
       const allowedCategories = new Set(['FA', 'SA', 'NFA', 'AK', 'E2E', 'BATS']);
       const allowedStatuses = new Set(['pass', 'fail', 'skip']);
-      const rows: TestResultRow[] = sourceResults
+      type EnrichedRow = TestResultRow & { name: string };
+      const rows: EnrichedRow[] = sourceResults
         .filter(r => allowedStatuses.has(r.status))
         .map(r => {
           const fallbackId = r.req && r.test ? `${r.req}/${r.test}` : (r.req ?? 'unknown');
           const cat = r.category && allowedCategories.has(r.category)
             ? (r.category as TestResultRow['category'])
             : 'FA';
+          const testId = r.test_id ?? fallbackId;
           return {
-            testId: r.test_id ?? fallbackId,
+            testId,
             category: cat,
             status: r.status as TestResultRow['status'],
             durationMs: r.duration_ms,
             message: r.message ?? r.detail,
+            name: testId,
           };
         });
-      await saveTestResults(id, rows).catch(() => {});
+      // Save and capture inserted result_ids so we can wire each failure to
+      // the bridge with the precise test_results row id (mirrors what
+      // ingest-e2e.ts does for the nightly path).
+      const inserted: SavedTestResult[] = await saveTestResults(
+        id,
+        rows.map(({ testId, category, status, durationMs, message }) => ({
+          testId, category, status, durationMs, message,
+        })),
+      ).catch(() => [] as SavedTestResult[]);
+
+      // Best-effort auto-ticketing per failure — same contract as ingest-e2e:
+      // dedup by (run_id, test_id), errors route to the outbox.
+      // Source = 'admin' for spawnTestRun (admin-triggered from /admin/monitoring).
+      if (inserted.length > 0) {
+        const idByKey = new Map<string, number>();
+        for (const r of inserted) {
+          const key = `${r.testId}|${r.status}|${r.message ?? ''}`;
+          if (!idByKey.has(key)) idByKey.set(key, r.id);
+        }
+        for (const row of rows) {
+          if (row.status !== 'fail') continue;
+          const key = `${row.testId}|${row.status}|${row.message ?? ''}`;
+          const resultId = idByKey.get(key) ?? null;
+          await safeOpenTestRunFailureTicket(pool, {
+            runId: id,
+            resultId,
+            testId: row.testId,
+            name: row.name,
+            category: row.category,
+            error: row.message ?? null,
+            source: 'admin',
+            cluster,
+          }).catch((err) =>
+            console.error('[test-runner] safeOpenTestRunFailureTicket failed:', err),
+          );
+        }
+      }
     }
 
     emit('done', JSON.stringify({ code, summary, durationMs }));

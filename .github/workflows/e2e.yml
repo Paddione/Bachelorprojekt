@@ -79,6 +79,7 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
 
       - name: Run Playwright suite against ${{ matrix.website_url }}
+        id: playwright
         if: steps.gate.outputs.skip != 'true'
         working-directory: tests/e2e
         env:
@@ -105,6 +106,49 @@ jobs:
           MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
           MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
         run: npx playwright test
+
+      # Ingest Playwright JSON into the website's test_runs/test_results +
+      # auto-file bug tickets for failures (PR #599 wired the endpoint to
+      # accept Bearer token auth + X-Github-Run-Id for ticket linkage).
+      # Runs on both pass and fail so flake/trend matrices reflect every
+      # nightly. Best-effort: never fail the workflow on ingest hiccups.
+      - name: Ingest Playwright results into website
+        if: always() && steps.playwright.outcome != 'skipped' && steps.gate.outputs.skip != 'true'
+        env:
+          INGEST_TOKEN: ${{ secrets.E2E_INGEST_TOKEN }}
+          INGEST_URL: ${{ matrix.website_url }}/api/admin/tests/ingest-e2e
+          REPORT: tests/results/.tmp-e2e-results.json
+          GH_RUN_ID: ${{ github.run_id }}
+          MATRIX_CLUSTER: ${{ matrix.cluster }}
+        run: |
+          if [ -z "${INGEST_TOKEN}" ]; then
+            echo "::warning::E2E_INGEST_TOKEN not set; skipping ingest. Add the token in repo secrets to enable auto-ticketing."
+            exit 0
+          fi
+          if [ ! -s "${REPORT}" ]; then
+            echo "::warning::Playwright JSON report not found at ${REPORT}; skipping ingest."
+            exit 0
+          fi
+          echo "POST ${INGEST_URL} (run=${GH_RUN_ID}, cluster=${MATRIX_CLUSTER})"
+          # Wrap the report so the endpoint sees runId/cluster too. The
+          # endpoint accepts a bare report or a wrapped envelope — we use
+          # the envelope to pin runId and cluster explicitly.
+          jq --arg cluster "${MATRIX_CLUSTER}" \
+             --arg runId "gh-${GH_RUN_ID}-${MATRIX_CLUSTER}" \
+             '. + {cluster: $cluster, runId: $runId}' \
+             "${REPORT}" > /tmp/ingest-payload.json
+          http_code=$(curl -s -o /tmp/ingest-response.json -w '%{http_code}' \
+            -X POST \
+            -H "Authorization: Bearer ${INGEST_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -H "X-Github-Run-Id: ${GH_RUN_ID}" \
+            --data-binary @/tmp/ingest-payload.json \
+            "${INGEST_URL}" || echo "000")
+          echo "ingest http_code=${http_code}"
+          cat /tmp/ingest-response.json || true
+          if [ "${http_code}" != "200" ]; then
+            echo "::warning::Ingest returned HTTP ${http_code} (continuing — workflow status unaffected)."
+          fi
 
       - name: Upload results (traces + JSON report)
         if: always() && steps.gate.outputs.skip != 'true'

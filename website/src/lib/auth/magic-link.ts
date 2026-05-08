@@ -63,7 +63,7 @@ export async function mintMagicLink(opts: MintMagicLinkOpts): Promise<string> {
   const expiresAt = new Date(Date.now() + (opts.ttlMs ?? TOKEN_TTL_MS));
   await pool.query(
     `INSERT INTO systemtest_magic_tokens
-       (token, keycloak_user_id, session_user, redirect_uri, expires_at)
+       (token, keycloak_user_id, session_payload, redirect_uri, expires_at)
      VALUES ($1, $2, $3::jsonb, $4, $5)`,
     [token, opts.keycloakUserId, JSON.stringify(opts.sessionUser), opts.redirectUri, expiresAt],
   );
@@ -92,7 +92,7 @@ export async function redeemMagicToken(token: string): Promise<RedeemedToken | R
       WHERE token = $1
         AND used_at IS NULL
         AND expires_at > now()
-      RETURNING keycloak_user_id, session_user, redirect_uri`,
+      RETURNING keycloak_user_id, session_payload, redirect_uri`,
     [token],
   );
   if (r.rows.length === 0) {
@@ -107,7 +107,7 @@ export async function redeemMagicToken(token: string): Promise<RedeemedToken | R
     return { ok: false, reason: 'expired' };
   }
   const row = r.rows[0];
-  const sessionUser = row.session_user as MagicSessionUser;
+  const sessionUser = row.session_payload as MagicSessionUser;
   const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
   const user: UserSession = {
     sub: sessionUser.sub,

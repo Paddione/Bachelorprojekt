@@ -68,10 +68,14 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
     -- the public schema (the dedicated auth schema does not exist in this
     -- codebase -- Keycloak owns user accounts). The cleanup CronJob (Task 8)
     -- prunes expired/used rows on a schedule independent of fixture purging.
+    -- Note: column is "session_payload" (not "session_user"). PostgreSQL
+    -- treats SESSION_USER as a reserved-word function, so an unquoted column
+    -- with that name fails parsing. Renamed during Task 5 to keep the
+    -- schema bootstrap idempotent on a fresh DB.
     CREATE TABLE IF NOT EXISTS systemtest_magic_tokens (
       token         TEXT PRIMARY KEY,
       keycloak_user_id UUID NOT NULL,
-      session_user  JSONB NOT NULL,
+      session_payload JSONB NOT NULL,
       redirect_uri  TEXT NOT NULL,
       expires_at    TIMESTAMPTZ NOT NULL,
       used_at       TIMESTAMPTZ,

@@ -1167,6 +1167,10 @@ tasks:
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
           # Full apply (idempotent — updates configs, adds remaining services)
           kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN" | kubectl apply --server-side --force-conflicts -f -
+          # Tests retention CronJob — applied separately so its Role+RoleBinding
+          # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
+          # transformer would otherwise force them into workspace).
+          envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml | kubectl apply -f -
         else
           # Prod: build from overlay, apply to target cluster
           # Apply SealedSecret first so the Secret is ready when pods start
@@ -1207,6 +1211,12 @@ tasks:
           kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
             | envsubst "$ENVSUBST_VARS" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
+          # Tests retention CronJob — applied separately so its Role+RoleBinding
+          # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
+          # transformer would otherwise force them into the workspace ns,
+          # where the website pod does NOT live).
+          envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/tests-retention-cronjob.yaml \
+            | kubectl --context "$ENV_CONTEXT" apply -f -
         fi
       - task: keycloak:sync
         vars: { ENV: "{{.ENV}}" }

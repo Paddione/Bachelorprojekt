@@ -322,6 +322,34 @@ data:
       CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
           ON polls ((true)) WHERE status = 'open';
 
+      -- ── Test Runs / Test Results ─────────────────────────────────────────
+      CREATE TABLE IF NOT EXISTS test_runs (
+        id           TEXT PRIMARY KEY,
+        tier         TEXT NOT NULL,
+        test_ids     TEXT,
+        cluster      TEXT NOT NULL,
+        started_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        finished_at  TIMESTAMPTZ,
+        status       TEXT NOT NULL DEFAULT 'running',
+        pass         INT,
+        fail         INT,
+        skip         INT,
+        duration_ms  INT
+      );
+
+      CREATE TABLE IF NOT EXISTS test_results (
+        id          BIGSERIAL PRIMARY KEY,
+        run_id      TEXT NOT NULL REFERENCES test_runs(id) ON DELETE CASCADE,
+        test_id     TEXT NOT NULL,
+        category    TEXT NOT NULL,
+        status      TEXT NOT NULL,
+        duration_ms INT,
+        message     TEXT,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS test_results_test_id_created_idx ON test_results (test_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS test_results_run_id_idx ON test_results (run_id);
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -636,6 +664,34 @@ data:
 
       CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
           ON polls ((true)) WHERE status = 'open';
+
+      -- ── Test Runs / Test Results ─────────────────────────────────────────
+      CREATE TABLE IF NOT EXISTS test_runs (
+        id           TEXT PRIMARY KEY,
+        tier         TEXT NOT NULL,
+        test_ids     TEXT,
+        cluster      TEXT NOT NULL,
+        started_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        finished_at  TIMESTAMPTZ,
+        status       TEXT NOT NULL DEFAULT 'running',
+        pass         INT,
+        fail         INT,
+        skip         INT,
+        duration_ms  INT
+      );
+
+      CREATE TABLE IF NOT EXISTS test_results (
+        id          BIGSERIAL PRIMARY KEY,
+        run_id      TEXT NOT NULL REFERENCES test_runs(id) ON DELETE CASCADE,
+        test_id     TEXT NOT NULL,
+        category    TEXT NOT NULL,
+        status      TEXT NOT NULL,
+        duration_ms INT,
+        message     TEXT,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS test_results_test_id_created_idx ON test_results (test_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS test_results_run_id_idx ON test_results (run_id);
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

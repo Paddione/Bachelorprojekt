@@ -575,6 +575,87 @@ export async function dismissQAssignment(id: string, reason: string): Promise<QA
   return updateQAssignment(id, { status: 'dismissed', dismissReason: reason });
 }
 
+/**
+ * Reset a finished assignment so it can be filled out again.
+ *
+ * Reopen path used by the admin "Erneut durchführen" button on
+ * `/admin/fragebogen/[assignmentId].astro`. Wipes the previous answers,
+ * clears all completion timestamps, and bumps `retest_attempt` for every
+ * `test_step` question in the template so the next [Seed] click partitions
+ * fresh fixtures from prior runs.
+ *
+ * Coach notes are preserved — they're admin commentary, not user answers.
+ * Test evidence rows (rrweb recordings) stay too: they're audit trail keyed
+ * by `(question_id, attempt)` and survive across re-runs.
+ *
+ * Returns `null` when no assignment exists with that id, or `{ reason: ... }`
+ * when the status isn't reopen-able. Returns the updated assignment + the
+ * number of test-status rows bumped on success.
+ */
+export async function reopenQAssignment(id: string): Promise<
+  | { assignment: QAssignment; testStatusBumped: number }
+  | { reason: 'not_found' | 'not_reopenable'; status?: AssignmentStatus }
+> {
+  const REOPENABLE: AssignmentStatus[] = ['submitted', 'reviewed', 'archived', 'dismissed'];
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const a = await client.query<{ template_id: string; status: AssignmentStatus }>(
+      `SELECT template_id, status FROM questionnaire_assignments
+        WHERE id = $1 FOR UPDATE`,
+      [id],
+    );
+    if (a.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return { reason: 'not_found' };
+    }
+    const status = a.rows[0].status;
+    if (!REOPENABLE.includes(status)) {
+      await client.query('ROLLBACK');
+      return { reason: 'not_reopenable', status };
+    }
+    const templateId = a.rows[0].template_id;
+
+    await client.query(
+      `UPDATE questionnaire_assignments
+          SET status = 'pending',
+              submitted_at = NULL,
+              reviewed_at = NULL,
+              archived_at = NULL,
+              dismissed_at = NULL,
+              dismiss_reason = NULL
+        WHERE id = $1`,
+      [id],
+    );
+
+    await client.query(
+      `DELETE FROM questionnaire_answers WHERE assignment_id = $1`,
+      [id],
+    );
+
+    const bump = await client.query(
+      `UPDATE questionnaire_test_status qts
+          SET retest_attempt    = qts.retest_attempt + 1,
+              retest_pending_at = COALESCE(qts.retest_pending_at, now())
+         FROM questionnaire_questions qq
+        WHERE qts.question_id = qq.id
+          AND qq.template_id = $1
+          AND qq.question_type = 'test_step'`,
+      [templateId],
+    );
+
+    await client.query('COMMIT');
+    const updated = await getQAssignment(id);
+    if (!updated) return { reason: 'not_found' };
+    return { assignment: updated, testStatusBumped: bump.rowCount ?? 0 };
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
 export async function countPendingQAssignmentsForCustomer(customerId: string): Promise<number> {
   const r = await pool.query(
     `SELECT COUNT(*)::int AS count FROM questionnaire_assignments

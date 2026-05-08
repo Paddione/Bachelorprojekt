@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { listTasksInMonth, listProjectsInMonth } from '../../lib/website-db';
-import type { CalendarTask, CalendarProject } from '../../lib/website-db';
+import { listTasksInMonth, listProjectsInMonth, listMeetingsInRange } from '../../lib/website-db';
+import type { CalendarTask, CalendarProject, CalendarMeeting } from '../../lib/website-db';
 import { getAllBookings } from '../../lib/caldav';
 import type { AdminBooking } from '../../lib/caldav';
 
@@ -12,21 +12,58 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const brand = process.env.BRAND_NAME || process.env.BRAND || 'mentolder';
 
+// ── View mode (T000167: Monats-/Wochenansicht) ────────────────────────────
+const viewQ = (Astro.url.searchParams.get('view') ?? 'month').toLowerCase();
+const view: 'month' | 'week' = viewQ === 'week' ? 'week' : 'month';
+
 const now    = new Date();
 const yearQ  = parseInt(Astro.url.searchParams.get('year')  ?? String(now.getFullYear()), 10);
 const monthQ = parseInt(Astro.url.searchParams.get('month') ?? String(now.getMonth() + 1), 10);
+const dayQ   = parseInt(Astro.url.searchParams.get('day')   ?? String(now.getDate()), 10);
 const year   = isNaN(yearQ)  ? now.getFullYear()  : yearQ;
 const month  = isNaN(monthQ) ? now.getMonth() + 1 : Math.max(1, Math.min(12, monthQ));
+const day    = isNaN(dayQ)   ? now.getDate()      : Math.max(1, Math.min(31, dayQ));
+
+// Range to query (inclusive). Month view = full month.
+// Week view = the Monday-anchored week containing the {year, month, day}.
+function startOfWeek(d: Date): Date {
+  const out = new Date(d);
+  const day = out.getDay(); // 0=Sun … 6=Sat
+  const offsetToMonday = (day + 6) % 7;
+  out.setDate(out.getDate() - offsetToMonday);
+  out.setHours(0, 0, 0, 0);
+  return out;
+}
+
+let rangeStart: Date;
+let rangeEnd: Date;
+let weekStart: Date;
+if (view === 'week') {
+  weekStart = startOfWeek(new Date(year, month - 1, day));
+  rangeStart = new Date(weekStart);
+  rangeEnd = new Date(weekStart);
+  rangeEnd.setDate(rangeEnd.getDate() + 6);
+  rangeEnd.setHours(23, 59, 59, 999);
+} else {
+  rangeStart = new Date(year, month - 1, 1);
+  rangeEnd   = new Date(year, month, 0, 23, 59, 59, 999);
+  // For week-view nav buttons we still need a sensible weekStart.
+  weekStart = startOfWeek(rangeStart);
+}
 
 let tasks: CalendarTask[] = [];
 let projects: CalendarProject[] = [];
+let meetings: CalendarMeeting[] = [];
 let bookings: AdminBooking[] = [];
 let dbError = '';
 
 try {
-  [tasks, projects] = await Promise.all([
-    listTasksInMonth(year, month),
-    listProjectsInMonth(year, month, brand),
+  // For month view we keep the existing month-scoped queries; for week view
+  // we still use the month query (cheap on small datasets) and filter.
+  [tasks, projects, meetings] = await Promise.all([
+    listTasksInMonth(rangeStart.getFullYear(), rangeStart.getMonth() + 1),
+    listProjectsInMonth(rangeStart.getFullYear(), rangeStart.getMonth() + 1, brand),
+    listMeetingsInRange(rangeStart.toISOString(), rangeEnd.toISOString()),
   ]);
 } catch (err) {
   console.error('[admin/kalender] db', err);
@@ -35,40 +72,39 @@ try {
 
 try {
   const all = await getAllBookings();
-  const firstDay = new Date(year, month - 1, 1);
-  const lastDay  = new Date(year, month, 0, 23, 59, 59);
-  bookings = all.filter(b => b.start >= firstDay && b.start <= lastDay && b.status !== 'CANCELLED');
+  bookings = all.filter(b => b.start >= rangeStart && b.start <= rangeEnd && b.status !== 'CANCELLED');
 } catch (err) {
   console.error('[admin/kalender] caldav', err);
 }
 
-const firstDay     = new Date(year, month - 1, 1);
-const lastDay      = new Date(year, month, 0);
-const startWeekday = (firstDay.getDay() + 6) % 7; // Mon=0
-const totalDays    = lastDay.getDate();
-
-// Group tasks by day
-const tasksByDay = new Map<number, CalendarTask[]>();
-for (const t of tasks) {
-  const d = new Date(t.dueDate).getUTCDate();
-  if (!tasksByDay.has(d)) tasksByDay.set(d, []);
-  tasksByDay.get(d)!.push(t);
+// ── Bucket items by calendar day (YYYY-MM-DD) ─────────────────────────────
+type DayKey = string;
+function dayKey(d: Date): DayKey {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
 }
 
-// Group projects by day (start_date and due_date separately)
+const tasksByDay = new Map<DayKey, CalendarTask[]>();
+for (const t of tasks) {
+  const dt = new Date(t.dueDate);
+  const k = dayKey(dt);
+  if (!tasksByDay.has(k)) tasksByDay.set(k, []);
+  tasksByDay.get(k)!.push(t);
+}
+
 interface ProjectEntry { project: CalendarProject; kind: 'start' | 'due' }
-const projectsByDay = new Map<number, ProjectEntry[]>();
+const projectsByDay = new Map<DayKey, ProjectEntry[]>();
 for (const p of projects) {
   const addDay = (date: Date | null, kind: 'start' | 'due') => {
     if (!date) return;
-    const d = new Date(date).getUTCDate();
-    const mo = new Date(date).getUTCMonth() + 1;
-    if (mo !== month) return;
-    if (!projectsByDay.has(d)) projectsByDay.set(d, []);
-    projectsByDay.get(d)!.push({ project: p, kind });
+    const dt = new Date(date);
+    const k = dayKey(dt);
+    if (!projectsByDay.has(k)) projectsByDay.set(k, []);
+    projectsByDay.get(k)!.push({ project: p, kind });
   };
   addDay(p.startDate, 'start');
-  // avoid duplicate entry if start == due
   if (p.dueDate && p.startDate && new Date(p.dueDate).toDateString() !== new Date(p.startDate).toDateString()) {
     addDay(p.dueDate, 'due');
   } else if (p.dueDate && !p.startDate) {
@@ -76,19 +112,34 @@ for (const p of projects) {
   }
 }
 
-// Group bookings by day
-const bookingsByDay = new Map<number, AdminBooking[]>();
-for (const b of bookings) {
-  const d = b.start.getDate();
-  if (!bookingsByDay.has(d)) bookingsByDay.set(d, []);
-  bookingsByDay.get(d)!.push(b);
+const meetingsByDay = new Map<DayKey, CalendarMeeting[]>();
+for (const m of meetings) {
+  const k = dayKey(new Date(m.scheduledAt));
+  if (!meetingsByDay.has(k)) meetingsByDay.set(k, []);
+  meetingsByDay.get(k)!.push(m);
 }
 
-function navUrl(y: number, m: number): string {
-  if (m < 1)  { y--; m = 12; }
-  if (m > 12) { y++; m = 1; }
-  return `/admin/kalender?year=${y}&month=${m}`;
+const bookingsByDay = new Map<DayKey, AdminBooking[]>();
+for (const b of bookings) {
+  const k = dayKey(b.start);
+  if (!bookingsByDay.has(k)) bookingsByDay.set(k, []);
+  bookingsByDay.get(k)!.push(b);
 }
+
+// ── Navigation URLs ───────────────────────────────────────────────────────
+function monthNavUrl(deltaMonths: number): string {
+  let y = year, m = month + deltaMonths;
+  while (m < 1)  { y--; m += 12; }
+  while (m > 12) { y++; m -= 12; }
+  return `/admin/kalender?view=month&year=${y}&month=${m}`;
+}
+function weekNavUrl(deltaDays: number): string {
+  const d = new Date(weekStart);
+  d.setDate(d.getDate() + deltaDays);
+  return `/admin/kalender?view=week&year=${d.getFullYear()}&month=${d.getMonth() + 1}&day=${d.getDate()}`;
+}
+const todayWeekUrl = `/admin/kalender?view=week&year=${now.getFullYear()}&month=${now.getMonth() + 1}&day=${now.getDate()}`;
+const todayMonthUrl = `/admin/kalender?view=month&year=${now.getFullYear()}&month=${now.getMonth() + 1}`;
 
 const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const DAY_NAMES   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
@@ -100,6 +151,31 @@ const STATUS_CLS: Record<string, string> = {
   erledigt: 'line-through opacity-50',
   archiviert: 'line-through opacity-30',
 };
+
+// ── Month grid layout ─────────────────────────────────────────────────────
+const monthFirstDay     = new Date(year, month - 1, 1);
+const monthLastDay      = new Date(year, month, 0);
+const startWeekday      = (monthFirstDay.getDay() + 6) % 7; // Mon=0
+const totalDays         = monthLastDay.getDate();
+
+// ── Week grid layout ──────────────────────────────────────────────────────
+const weekDays: Array<{ date: Date; key: DayKey; label: string; isToday: boolean }> = [];
+{
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    weekDays.push({
+      date: d,
+      key: dayKey(d),
+      label: `${DAY_NAMES[i]} ${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`,
+      isToday: dayKey(d) === dayKey(now),
+    });
+  }
+}
+
+const headerLabel = view === 'week'
+  ? `Woche vom ${weekStart.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+  : `${MONTH_NAMES[month - 1]} ${year}`;
 ---
 
 <AdminLayout title="Admin — Kalender">
@@ -109,24 +185,63 @@ const STATUS_CLS: Record<string, string> = {
       <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-light font-serif">Kalender</h1>
-          <p class="text-muted mt-1">
-            {MONTH_NAMES[month - 1]} {year}
-            &mdash; {tasks.length} Aufgaben &middot; {projects.length} Projekte &middot; {bookings.length} Termine
+          <p class="text-muted mt-1" data-testid="kalender-summary">
+            {headerLabel}
+            &mdash; {tasks.length} Aufgaben &middot; {projects.length} Projekte &middot; {bookings.length} Termine &middot; {meetings.length} Meetings
           </p>
         </div>
+
+        <!-- View toggle (Monats- / Wochenansicht) -->
+        <div class="flex items-center gap-2" role="tablist" aria-label="Kalenderansicht">
+          <a
+            href={view === 'week' ? todayMonthUrl : `/admin/kalender?view=month&year=${year}&month=${month}`}
+            role="tab"
+            aria-selected={view === 'month' ? 'true' : 'false'}
+            data-testid="kalender-view-month"
+            class={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${view === 'month' ? 'bg-gold text-dark border-gold' : 'bg-dark-light text-muted border-dark-lighter hover:text-light hover:border-gold/40'}`}
+          >Monat</a>
+          <a
+            href={view === 'month' ? todayWeekUrl : `/admin/kalender?view=week&year=${weekStart.getFullYear()}&month=${weekStart.getMonth() + 1}&day=${weekStart.getDate()}`}
+            role="tab"
+            aria-selected={view === 'week' ? 'true' : 'false'}
+            data-testid="kalender-view-week"
+            class={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${view === 'week' ? 'bg-gold text-dark border-gold' : 'bg-dark-light text-muted border-dark-lighter hover:text-light hover:border-gold/40'}`}
+          >Woche</a>
+        </div>
+
+        <!-- Period nav -->
         <div class="flex items-center gap-2">
-          <a href={navUrl(year, month - 1)}
-            class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
-            ← Vorheriger
-          </a>
-          <a href={`/admin/kalender?year=${now.getFullYear()}&month=${now.getMonth() + 1}`}
-            class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
-            Heute
-          </a>
-          <a href={navUrl(year, month + 1)}
-            class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
-            Nächster →
-          </a>
+          {view === 'month' ? (
+            <>
+              <a href={monthNavUrl(-1)}
+                class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+                ← Vorheriger
+              </a>
+              <a href={todayMonthUrl}
+                class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+                Heute
+              </a>
+              <a href={monthNavUrl(1)}
+                class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+                Nächster →
+              </a>
+            </>
+          ) : (
+            <>
+              <a href={weekNavUrl(-7)}
+                class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+                ← Vorherige Woche
+              </a>
+              <a href={todayWeekUrl}
+                class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+                Heute
+              </a>
+              <a href={weekNavUrl(7)}
+                class="px-3 py-2 bg-dark-light border border-dark-lighter text-muted rounded-lg hover:text-light hover:border-gold/40 transition-colors text-sm">
+                Nächste Woche →
+              </a>
+            </>
+          )}
         </div>
       </div>
 
@@ -134,85 +249,160 @@ const STATUS_CLS: Record<string, string> = {
         <div class="mb-6 p-4 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm">{dbError}</div>
       )}
 
-      <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
-        <!-- Day headers -->
-        <div class="grid grid-cols-7 border-b border-dark-lighter">
-          {DAY_NAMES.map(d => (
-            <div class={`px-2 py-3 text-center text-xs font-semibold ${['Sa','So'].includes(d) ? 'text-muted/60' : 'text-muted'}`}>
-              {d}
-            </div>
-          ))}
-        </div>
-
-        <!-- Calendar cells -->
-        <div class="grid grid-cols-7">
-          {Array.from({ length: startWeekday }).map(() => (
-            <div class="min-h-[120px] border-b border-r border-dark-lighter/50 bg-dark/30"></div>
-          ))}
-
-          {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
-            const isToday = year === now.getFullYear() && month === now.getMonth() + 1 && day === now.getDate();
-            const dayTasks    = tasksByDay.get(day)    ?? [];
-            const dayProjects = projectsByDay.get(day) ?? [];
-            const dayBookings = bookingsByDay.get(day) ?? [];
-            const col = (startWeekday + day - 1) % 7;
-            const isWeekend = col >= 5;
-            const totalItems = dayBookings.length + dayProjects.length + dayTasks.length;
-            return (
-              <div class={`min-h-[120px] border-b border-r border-dark-lighter/50 p-2 transition-colors hover:bg-dark/30 ${isWeekend ? 'bg-dark/20' : ''}`}>
-                <div class={`text-xs font-semibold mb-1.5 w-6 h-6 flex items-center justify-center rounded-full
-                  ${isToday ? 'bg-gold text-dark' : 'text-muted'}`}>
-                  {day}
-                </div>
-                <div class="space-y-1">
-                  {/* Bookings (CalDAV appointments) */}
-                  {dayBookings.slice(0, 2).map(b => (
-                    <a href="/admin/termine"
-                      class="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-blue-950/60 border border-blue-800/40 hover:border-blue-600/60 transition-colors group"
-                      title={`${b.summary} — ${b.attendeeName}`}>
-                      <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-400"></span>
-                      <span class="truncate text-blue-300 group-hover:text-blue-100 transition-colors">{b.summary}</span>
-                    </a>
-                  ))}
-                  {/* Projects */}
-                  {dayProjects.slice(0, 2).map(({ project: p, kind }) => (
-                    <a href={`/admin/projekte/${p.id}`}
-                      class="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-emerald-950/60 border border-emerald-800/40 hover:border-emerald-600/60 transition-colors group"
-                      title={`${p.name}${p.customerName ? ` — ${p.customerName}` : ''} (${kind === 'start' ? 'Start' : 'Fällig'})`}>
-                      <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-emerald-400"></span>
-                      <span class="truncate text-emerald-300 group-hover:text-emerald-100 transition-colors">
-                        {kind === 'due' ? '⏱ ' : ''}{p.name}
-                      </span>
-                    </a>
-                  ))}
-                  {/* Tasks */}
-                  {dayTasks.slice(0, Math.max(0, 3 - dayBookings.length - dayProjects.length)).map(t => (
-                    <a href={`/admin/projekte/${t.projectId}`}
-                      class={`flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-dark border border-dark-lighter hover:border-gold/40 transition-colors group ${STATUS_CLS[t.status] ?? ''}`}
-                      title={`${t.name} — ${t.projectName}`}>
-                      <span class={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIO_DOT[t.priority] ?? 'bg-dark-lighter'}`}></span>
-                      <span class="truncate text-muted group-hover:text-light transition-colors">{t.name}</span>
-                    </a>
-                  ))}
-                  {totalItems > 4 && (
-                    <p class="text-xs text-muted pl-1">+{totalItems - 4} weitere</p>
-                  )}
-                </div>
+      {view === 'month' ? (
+        <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden" data-testid="kalender-grid-month">
+          <!-- Day headers -->
+          <div class="grid grid-cols-7 border-b border-dark-lighter">
+            {DAY_NAMES.map(d => (
+              <div class={`px-2 py-3 text-center text-xs font-semibold ${['Sa','So'].includes(d) ? 'text-muted/60' : 'text-muted'}`}>
+                {d}
               </div>
-            );
-          })}
+            ))}
+          </div>
 
-          {(() => {
-            const trailing = (7 - (startWeekday + totalDays) % 7) % 7;
-            return Array.from({ length: trailing }).map(() => (
+          <!-- Calendar cells -->
+          <div class="grid grid-cols-7">
+            {Array.from({ length: startWeekday }).map(() => (
               <div class="min-h-[120px] border-b border-r border-dark-lighter/50 bg-dark/30"></div>
-            ));
-          })()}
+            ))}
+
+            {Array.from({ length: totalDays }, (_, i) => i + 1).map(d => {
+              const dt = new Date(year, month - 1, d);
+              const k = dayKey(dt);
+              const isToday = dayKey(now) === k;
+              const dayTasks    = tasksByDay.get(k)    ?? [];
+              const dayProjects = projectsByDay.get(k) ?? [];
+              const dayBookings = bookingsByDay.get(k) ?? [];
+              const dayMeetings = meetingsByDay.get(k) ?? [];
+              const col = (startWeekday + d - 1) % 7;
+              const isWeekend = col >= 5;
+              const totalItems = dayBookings.length + dayMeetings.length + dayProjects.length + dayTasks.length;
+              return (
+                <div class={`min-h-[120px] border-b border-r border-dark-lighter/50 p-2 transition-colors hover:bg-dark/30 ${isWeekend ? 'bg-dark/20' : ''}`}
+                  data-testid="kalender-cell" data-day={k}>
+                  <div class={`text-xs font-semibold mb-1.5 w-6 h-6 flex items-center justify-center rounded-full
+                    ${isToday ? 'bg-gold text-dark' : 'text-muted'}`}>
+                    {d}
+                  </div>
+                  <div class="space-y-1">
+                    {dayBookings.slice(0, 2).map(b => (
+                      <a href="/admin/termine"
+                        class="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-blue-950/60 border border-blue-800/40 hover:border-blue-600/60 transition-colors group"
+                        title={`${b.summary} — ${b.attendeeName}`}>
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-400"></span>
+                        <span class="truncate text-blue-300 group-hover:text-blue-100 transition-colors">{b.summary}</span>
+                      </a>
+                    ))}
+                    {dayMeetings.slice(0, 2).map(m => (
+                      <a href={`/admin/live/sessions/${m.id}`}
+                        class="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-purple-950/60 border border-purple-800/40 hover:border-purple-600/60 transition-colors group"
+                        title={`${m.meetingType} — ${m.customerName}`}>
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-purple-400"></span>
+                        <span class="truncate text-purple-300 group-hover:text-purple-100 transition-colors">{m.meetingType}: {m.customerName}</span>
+                      </a>
+                    ))}
+                    {dayProjects.slice(0, 2).map(({ project: p, kind }) => (
+                      <a href={`/admin/projekte/${p.id}`}
+                        class="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-emerald-950/60 border border-emerald-800/40 hover:border-emerald-600/60 transition-colors group"
+                        title={`${p.name}${p.customerName ? ` — ${p.customerName}` : ''} (${kind === 'start' ? 'Start' : 'Fällig'})`}>
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-emerald-400"></span>
+                        <span class="truncate text-emerald-300 group-hover:text-emerald-100 transition-colors">
+                          {kind === 'due' ? '⏱ ' : ''}{p.name}
+                        </span>
+                      </a>
+                    ))}
+                    {dayTasks.slice(0, Math.max(0, 4 - dayBookings.length - dayMeetings.length - dayProjects.length)).map(t => (
+                      <a href={`/admin/projekte/${t.projectId}`}
+                        class={`flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-dark border border-dark-lighter hover:border-gold/40 transition-colors group ${STATUS_CLS[t.status] ?? ''}`}
+                        title={`${t.name} — ${t.projectName}`}>
+                        <span class={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIO_DOT[t.priority] ?? 'bg-dark-lighter'}`}></span>
+                        <span class="truncate text-muted group-hover:text-light transition-colors">{t.name}</span>
+                      </a>
+                    ))}
+                    {totalItems > 6 && (
+                      <p class="text-xs text-muted pl-1">+{totalItems - 6} weitere</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {(() => {
+              const trailing = (7 - (startWeekday + totalDays) % 7) % 7;
+              return Array.from({ length: trailing }).map(() => (
+                <div class="min-h-[120px] border-b border-r border-dark-lighter/50 bg-dark/30"></div>
+              ));
+            })()}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden" data-testid="kalender-grid-week">
+          <div class="grid grid-cols-7 border-b border-dark-lighter">
+            {weekDays.map(wd => (
+              <div class={`px-2 py-3 text-center text-xs font-semibold ${wd.isToday ? 'text-gold' : 'text-muted'}`}>
+                {wd.label}
+              </div>
+            ))}
+          </div>
+          <div class="grid grid-cols-7">
+            {weekDays.map(wd => {
+              const dayTasks    = tasksByDay.get(wd.key)    ?? [];
+              const dayProjects = projectsByDay.get(wd.key) ?? [];
+              const dayBookings = bookingsByDay.get(wd.key) ?? [];
+              const dayMeetings = meetingsByDay.get(wd.key) ?? [];
+              const col = (wd.date.getDay() + 6) % 7;
+              const isWeekend = col >= 5;
+              return (
+                <div class={`min-h-[280px] border-b border-r border-dark-lighter/50 p-2 ${isWeekend ? 'bg-dark/20' : ''} ${wd.isToday ? 'bg-gold/5' : ''}`}
+                  data-testid="kalender-cell" data-day={wd.key}>
+                  <div class="space-y-1">
+                    {dayBookings.map(b => (
+                      <a href="/admin/termine"
+                        class="block rounded px-1.5 py-1 text-xs bg-blue-950/60 border border-blue-800/40 hover:border-blue-600/60 transition-colors"
+                        title={`${b.summary} — ${b.attendeeName}`}>
+                        <p class="text-blue-200 font-medium truncate">{b.start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} {b.summary}</p>
+                        <p class="text-blue-400/80 text-[10px] truncate">{b.attendeeName}</p>
+                      </a>
+                    ))}
+                    {dayMeetings.map(m => (
+                      <a href={`/admin/live/sessions/${m.id}`}
+                        class="block rounded px-1.5 py-1 text-xs bg-purple-950/60 border border-purple-800/40 hover:border-purple-600/60 transition-colors"
+                        title={`${m.meetingType} — ${m.customerName}`}>
+                        <p class="text-purple-200 font-medium truncate">{new Date(m.scheduledAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} {m.meetingType}</p>
+                        <p class="text-purple-400/80 text-[10px] truncate">{m.customerName}</p>
+                      </a>
+                    ))}
+                    {dayProjects.map(({ project: p, kind }) => (
+                      <a href={`/admin/projekte/${p.id}`}
+                        class="block rounded px-1.5 py-1 text-xs bg-emerald-950/60 border border-emerald-800/40 hover:border-emerald-600/60 transition-colors"
+                        title={`${p.name}${p.customerName ? ` — ${p.customerName}` : ''}`}>
+                        <p class="text-emerald-200 truncate">{kind === 'due' ? '⏱ ' : '▶ '}{p.name}</p>
+                      </a>
+                    ))}
+                    {dayTasks.map(t => (
+                      <a href={`/admin/projekte/${t.projectId}`}
+                        class={`block rounded px-1.5 py-1 text-xs bg-dark border border-dark-lighter hover:border-gold/40 transition-colors ${STATUS_CLS[t.status] ?? ''}`}
+                        title={`${t.name} — ${t.projectName}`}>
+                        <p class="text-muted truncate">
+                          <span class={`inline-block w-1.5 h-1.5 rounded-full mr-1 align-middle ${PRIO_DOT[t.priority] ?? 'bg-dark-lighter'}`}></span>
+                          {t.name}
+                        </p>
+                      </a>
+                    ))}
+                    {dayTasks.length + dayProjects.length + dayBookings.length + dayMeetings.length === 0 && (
+                      <p class="text-xs text-muted/40 italic">—</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div class="flex flex-wrap gap-4 mt-4 text-xs text-muted">
         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span> Termin (CalDAV)</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-400 inline-block"></span> Meeting</span>
         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Projekt</span>
         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Aufgabe Hoch</span>
         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span> Aufgabe Mittel</span>

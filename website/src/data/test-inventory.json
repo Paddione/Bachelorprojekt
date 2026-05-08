@@ -102,6 +102,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-fragebogen-archive",
+    "file": "tests/e2e/specs/fa-fragebogen-archive.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-ios-talk",
     "file": "tests/e2e/specs/fa-ios-talk.spec.ts",
     "category": "E2E",

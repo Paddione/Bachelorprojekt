@@ -289,4 +289,34 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
       AFTER UPDATE OF resolution ON tickets.tickets
       FOR EACH ROW EXECUTE FUNCTION trg_systemtest_retest();
   `);
+
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION trg_systemtest_epic_auto_close() RETURNS trigger AS $fn$
+    BEGIN
+      IF NEW.parent_id IS NOT NULL
+         AND NEW.status IN ('done', 'archived')
+         AND (OLD.status IS DISTINCT FROM NEW.status) THEN
+        IF NOT EXISTS (
+          SELECT 1 FROM tickets.tickets
+           WHERE parent_id = NEW.parent_id
+             AND id        <> NEW.id
+             AND status    NOT IN ('done', 'archived')
+        ) THEN
+          UPDATE tickets.tickets
+             SET status     = 'done',
+                 resolution = 'shipped',
+                 updated_at = now()
+           WHERE id     = NEW.parent_id
+             AND status NOT IN ('done', 'archived');
+        END IF;
+      END IF;
+      RETURN NEW;
+    END;
+    $fn$ LANGUAGE plpgsql;
+
+    DROP TRIGGER IF EXISTS tickets_epic_auto_close ON tickets.tickets;
+    CREATE TRIGGER tickets_epic_auto_close
+      AFTER UPDATE OF status ON tickets.tickets
+      FOR EACH ROW EXECUTE FUNCTION trg_systemtest_epic_auto_close();
+  `);
 }

@@ -1,0 +1,12 @@
+{
+  "pr_number": 609,
+  "title": "scaffold the 9 missing specs + walkSystemtestByTemplate",
+  "description": "## Summary\n- Adds `walkSystemtestByTemplate(page, n)` and `deriveOptionsFromSeed(template)` to `tests/e2e/lib/systemtest-runner.ts`. Auto-derives `'teilweise'` overrides from the seed's `agent_notes` field — single source of truth.\n- Adds 9 new specs: `systemtest-{01-auth, 02-admin-crm, 03-kommunikation, 07-rechnungen, 08-buchhaltung, 09-monitoring, 10-externe, 11-livekit, 12-projektmanagement}.spec.ts`. Each is a 5-line wrapper.\n- Migrates `04/05/06` to the same orchestrator. Removes hardcoded `optionByPosition` + soft `>=N` step counts.\n- Adds a `unit` Playwright project for pure-function tests under `tests/e2e/lib/*.test.ts`.\n- After merge, `scripts/systemtest-fanout.sh 1|2|3|4 <env>` no longer prints `SKIP: not yet implemented` for any package.\n\nSpec: `docs/superpowers/specs/2026-05-09-systemtest-specs-scaffold-design.md`\nPlan: `docs/superpowers/plans/2026-05-09-systemtest-specs-scaffold.md`\n\n## Test plan\n- [x] `SKIP_DB_PURGE=1 npx playwright test --project=unit` (3 tests pass)\n- [x] `npx tsc --noEmit` from `tests/e2e/` (no errors)\n- [ ] `SKIP_DB_PURGE=1 scripts/systemtest-fanout.sh 1 mentolder` end-to-end — needs prod network access (ERR_NAME_NOT_RESOLVED from dev WSL)\n- [ ] `SKIP_DB_PURGE=1 scripts/systemtest-fanout.sh 2 mentolder` end-to-end (covers migrated 04/05/06)\n- [ ] `SKIP_DB_PURGE=1 scripts/systemtest-fanout.sh 3 mentolder` end-to-end\n- [ ] `SKIP_DB_PURGE=1 scripts/systemtest-fanout.sh 4 mentolder` end-to-end\n- [ ] Same four cycles against `korczewski`\n\nLive pre-flight must be run from a machine with prod DNS access. Results visible at https://web.mentolder.de/admin/systemtest/board and https://web.korczewski.de/admin/systemtest/board.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "systemtest",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T22:47:14Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

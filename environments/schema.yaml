@@ -473,13 +473,6 @@ secrets:
       - namespace: website
         secret: website-secrets
 
-  - name: STALENESS_WEBHOOK_SECRET
-    required: true
-    generate: false
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-
   - name: MONITORING_WEBHOOK_TOKEN
     required: true
     generate: false

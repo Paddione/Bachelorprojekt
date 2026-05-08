@@ -98,7 +98,48 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
 
     ALTER TABLE tickets.tickets
       ADD COLUMN IF NOT EXISTS source_test_assignment_id UUID,
-      ADD COLUMN IF NOT EXISTS source_test_question_id   UUID;
+      ADD COLUMN IF NOT EXISTS source_test_question_id   UUID,
+      ADD COLUMN IF NOT EXISTS source_test_run_id        TEXT,
+      ADD COLUMN IF NOT EXISTS source_test_result_id     BIGINT,
+      ADD COLUMN IF NOT EXISTS source_test_id            TEXT;
+  `);
+
+  // Test-run failure outbox extensions. The same outbox table now serves
+  // BOTH paths (questionnaire failures + Playwright/runner.sh failures).
+  // For test-run rows, assignment_id/question_id stay NULL and the new
+  // run_id/test_id/result_id columns identify the dropped insert.
+  await pool.query(`
+    ALTER TABLE systemtest_failure_outbox
+      ADD COLUMN IF NOT EXISTS source_kind     TEXT NOT NULL DEFAULT 'questionnaire'
+                                CHECK (source_kind IN ('questionnaire','test_run')),
+      ADD COLUMN IF NOT EXISTS run_id          TEXT,
+      ADD COLUMN IF NOT EXISTS test_result_id  BIGINT,
+      ADD COLUMN IF NOT EXISTS test_id         TEXT,
+      ADD COLUMN IF NOT EXISTS test_name       TEXT,
+      ADD COLUMN IF NOT EXISTS error_message   TEXT,
+      ADD COLUMN IF NOT EXISTS file_path       TEXT;
+
+    -- Existing rows are questionnaire failures; the legacy NOT NULL
+    -- constraints on assignment_id/question_id stay enforced for those.
+    -- For test_run rows we relax them via partial check (source_kind gates
+    -- which key set must be populated).
+    ALTER TABLE systemtest_failure_outbox
+      ALTER COLUMN assignment_id DROP NOT NULL,
+      ALTER COLUMN question_id   DROP NOT NULL;
+
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'outbox_keys_by_kind') THEN
+        ALTER TABLE systemtest_failure_outbox
+          ADD CONSTRAINT outbox_keys_by_kind CHECK (
+            (source_kind = 'questionnaire'
+              AND assignment_id IS NOT NULL AND question_id IS NOT NULL)
+            OR
+            (source_kind = 'test_run'
+              AND run_id IS NOT NULL AND test_id IS NOT NULL)
+          );
+      END IF;
+    END$$;
   `);
 
   // is_test_data columns: defense-in-depth marker for seeded fixtures so
@@ -156,7 +197,35 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
           ADD CONSTRAINT tickets_source_question_fk
           FOREIGN KEY (source_test_question_id) REFERENCES questionnaire_questions(id);
       END IF;
+      -- test_runs / test_results FKs: nullable, NO CASCADE — keep the ticket
+      -- around if the run/result row gets pruned by a future retention sweep.
+      -- ON DELETE SET NULL keeps the ticket discoverable but breaks the link.
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_run_fk') THEN
+        ALTER TABLE tickets.tickets
+          ADD CONSTRAINT tickets_source_test_run_fk
+          FOREIGN KEY (source_test_run_id) REFERENCES test_runs(id) ON DELETE SET NULL;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_result_fk') THEN
+        ALTER TABLE tickets.tickets
+          ADD CONSTRAINT tickets_source_test_result_fk
+          FOREIGN KEY (source_test_result_id) REFERENCES test_results(id) ON DELETE SET NULL;
+      END IF;
     END$$;
+  `);
+
+  // Defense-in-depth dedup race guard: at most one OPEN ticket per
+  // (run_id, test_id) pair. The bridge looks up an existing open ticket
+  // first; this partial unique index makes a concurrent insert race deterministic.
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS tickets_one_open_per_test_run_test_uq
+      ON tickets.tickets (source_test_run_id, source_test_id)
+      WHERE source_test_run_id IS NOT NULL
+        AND source_test_id     IS NOT NULL
+        AND status NOT IN ('done','archived');
+
+    CREATE INDEX IF NOT EXISTS tickets_source_test_run_idx
+      ON tickets.tickets (source_test_run_id)
+      WHERE source_test_run_id IS NOT NULL;
   `);
 
   await pool.query(`

@@ -3166,18 +3166,43 @@ export interface TestResultRow {
   message?: string;
 }
 
-export async function saveTestResults(runId: string, rows: TestResultRow[]): Promise<void> {
-  if (rows.length === 0) return;
+export interface SavedTestResult {
+  id: number;
+  testId: string;
+  category: string;
+  status: string;
+  durationMs: number | null;
+  message: string | null;
+}
+
+export async function saveTestResults(
+  runId: string,
+  rows: TestResultRow[],
+): Promise<SavedTestResult[]> {
+  if (rows.length === 0) return [];
   const values: unknown[] = [];
   const placeholders = rows.map((r, i) => {
     const base = i * 6;
     values.push(runId, r.testId, r.category, r.status, r.durationMs ?? null, r.message ?? null);
     return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6})`;
   }).join(',');
-  await pool.query(
-    `INSERT INTO test_results (run_id, test_id, category, status, duration_ms, message) VALUES ${placeholders}`,
+  const result = await pool.query<{
+    id: number; test_id: string; category: string; status: string;
+    duration_ms: number | null; message: string | null;
+  }>(
+    `INSERT INTO test_results (run_id, test_id, category, status, duration_ms, message)
+     VALUES ${placeholders}
+     RETURNING id, test_id, category, status, duration_ms, message`,
     values,
   );
+  return result.rows.map(r => ({
+    id: r.id,
+    testId: r.test_id,
+    category: r.category,
+    status: r.status,
+    durationMs: r.duration_ms,
+    message: r.message,
+  }));
 }
 
 export interface FlakeRow {

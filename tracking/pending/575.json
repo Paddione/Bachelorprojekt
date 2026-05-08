@@ -1,0 +1,12 @@
+{
+  "pr_number": 575,
+  "title": "finalize STALENESS_WEBHOOK_SECRET removal (deploy unblock)",
+  "description": "## Summary\nUnblocks pod rollouts on the website deployment. The sealed secret no longer carries `STALENESS_WEBHOOK_SECRET`, but `k3d/website.yaml` still referenced it, producing `CreateContainerConfigError` on every restart.\n\n- Cherry-pick **secrets(staleness): finalize STALENESS_WEBHOOK_SECRET removal + reseal** (already on `feature/mentolder-assistent`) so the resealed mentolder + korczewski sealed secrets are on `main`.\n- Drop the `STALENESS_WEBHOOK_SECRET` env reference in the website Deployment. The webhook handler already defaults to `''` when the env is absent (`process.env.STALENESS_WEBHOOK_SECRET ?? ''`), so this is safe today; the wider feature removal stays in flight.\n\nThis is required so the editor fix from #574 (and the seeded Block 05 service card from ticket BR-20260507-47be) actually reach a running pod.\n\n## Test plan\n- [ ] After merge: `task website:redeploy ENV=mentolder` rolls out without `CreateContainerConfigError`\n- [ ] New \"Führung & Persönlichkeit\" service card appears on web.mentolder.de homepage and `/fuehrung-persoenlichkeit` detail page resolves\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T06:09:47Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

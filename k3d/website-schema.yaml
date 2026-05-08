@@ -350,6 +350,40 @@ data:
       CREATE INDEX IF NOT EXISTS test_results_test_id_created_idx ON test_results (test_id, created_at DESC);
       CREATE INDEX IF NOT EXISTS test_results_run_id_idx ON test_results (run_id);
 
+      -- Linkback from triage tickets back to the originating test_run/test_result.
+      -- Owned by website/src/lib/systemtest/db.ts (`ensureSystemtestSchema`); we
+      -- mirror the column adds + FKs here so a fresh DB has the linkage in place
+      -- as soon as both test_runs and tickets.tickets exist. Guarded by a
+      -- to_regclass() check because tickets.tickets is created at app boot,
+      -- not in this script.
+      DO $$
+      BEGIN
+        IF to_regclass('tickets.tickets') IS NOT NULL THEN
+          ALTER TABLE tickets.tickets
+            ADD COLUMN IF NOT EXISTS source_test_run_id    TEXT,
+            ADD COLUMN IF NOT EXISTS source_test_result_id BIGINT,
+            ADD COLUMN IF NOT EXISTS source_test_id        TEXT;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_run_fk') THEN
+            ALTER TABLE tickets.tickets
+              ADD CONSTRAINT tickets_source_test_run_fk
+              FOREIGN KEY (source_test_run_id) REFERENCES test_runs(id) ON DELETE SET NULL;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_result_fk') THEN
+            ALTER TABLE tickets.tickets
+              ADD CONSTRAINT tickets_source_test_result_fk
+              FOREIGN KEY (source_test_result_id) REFERENCES test_results(id) ON DELETE SET NULL;
+          END IF;
+          CREATE UNIQUE INDEX IF NOT EXISTS tickets_one_open_per_test_run_test_uq
+            ON tickets.tickets (source_test_run_id, source_test_id)
+            WHERE source_test_run_id IS NOT NULL
+              AND source_test_id     IS NOT NULL
+              AND status NOT IN ('done','archived');
+          CREATE INDEX IF NOT EXISTS tickets_source_test_run_idx
+            ON tickets.tickets (source_test_run_id)
+            WHERE source_test_run_id IS NOT NULL;
+        END IF;
+      END$$;
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -692,6 +726,37 @@ data:
       );
       CREATE INDEX IF NOT EXISTS test_results_test_id_created_idx ON test_results (test_id, created_at DESC);
       CREATE INDEX IF NOT EXISTS test_results_run_id_idx ON test_results (run_id);
+
+      -- Linkback from triage tickets back to the originating test_run/test_result.
+      -- See ensureSystemtestSchema in website/src/lib/systemtest/db.ts for the
+      -- canonical owner. Mirrored here for fresh-DB ergonomics; idempotent.
+      DO $$
+      BEGIN
+        IF to_regclass('tickets.tickets') IS NOT NULL THEN
+          ALTER TABLE tickets.tickets
+            ADD COLUMN IF NOT EXISTS source_test_run_id    TEXT,
+            ADD COLUMN IF NOT EXISTS source_test_result_id BIGINT,
+            ADD COLUMN IF NOT EXISTS source_test_id        TEXT;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_run_fk') THEN
+            ALTER TABLE tickets.tickets
+              ADD CONSTRAINT tickets_source_test_run_fk
+              FOREIGN KEY (source_test_run_id) REFERENCES test_runs(id) ON DELETE SET NULL;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_result_fk') THEN
+            ALTER TABLE tickets.tickets
+              ADD CONSTRAINT tickets_source_test_result_fk
+              FOREIGN KEY (source_test_result_id) REFERENCES test_results(id) ON DELETE SET NULL;
+          END IF;
+          CREATE UNIQUE INDEX IF NOT EXISTS tickets_one_open_per_test_run_test_uq
+            ON tickets.tickets (source_test_run_id, source_test_id)
+            WHERE source_test_run_id IS NOT NULL
+              AND source_test_id     IS NOT NULL
+              AND status NOT IN ('done','archived');
+          CREATE INDEX IF NOT EXISTS tickets_source_test_run_idx
+            ON tickets.tickets (source_test_run_id)
+            WHERE source_test_run_id IS NOT NULL;
+        END IF;
+      END$$;
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

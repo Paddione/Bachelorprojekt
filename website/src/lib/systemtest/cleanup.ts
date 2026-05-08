@@ -41,6 +41,7 @@ import type { Pool } from 'pg';
 
 import * as keycloak from '../keycloak';
 import { openFailureTicket } from './failure-bridge';
+import { openTestRunFailureTicket } from './test-run-bridge';
 
 /**
  * The full set of tables the cleanup CronJob is allowed to touch via fixture
@@ -224,10 +225,18 @@ export interface DrainOutboxResult {
 export async function drainOutbox(pool: Pool): Promise<DrainOutboxResult> {
   const due = await pool.query<{
     id: string;
-    assignment_id: string;
-    question_id: string;
+    source_kind: string | null;
+    assignment_id: string | null;
+    question_id: string | null;
+    run_id: string | null;
+    test_id: string | null;
+    test_result_id: number | null;
+    test_name: string | null;
+    error_message: string | null;
+    file_path: string | null;
   }>(
-    `SELECT id, assignment_id, question_id
+    `SELECT id, source_kind, assignment_id, question_id,
+            run_id, test_id, test_result_id, test_name, error_message, file_path
        FROM systemtest_failure_outbox
       WHERE retry_after <= now()
         AND retry_count < 12
@@ -238,10 +247,33 @@ export async function drainOutbox(pool: Pool): Promise<DrainOutboxResult> {
   let succeeded = 0;
   for (const row of due.rows) {
     try {
-      await openFailureTicket(pool, {
-        assignmentId: row.assignment_id,
-        questionId: row.question_id,
-      });
+      // source_kind is NOT NULL with default 'questionnaire' — but pre-migration
+      // rows carried no value, so we route on that default.
+      if (row.source_kind === 'test_run' && row.run_id && row.test_id) {
+        await openTestRunFailureTicket(pool, {
+          runId: row.run_id,
+          testId: row.test_id,
+          resultId: row.test_result_id ?? null,
+          name: row.test_name ?? row.test_id,
+          error: row.error_message,
+          filePath: row.file_path,
+        });
+      } else if (row.assignment_id && row.question_id) {
+        await openFailureTicket(pool, {
+          assignmentId: row.assignment_id,
+          questionId: row.question_id,
+        });
+      } else {
+        // Malformed row — skip rather than retry forever.
+        await pool.query(
+          `UPDATE systemtest_failure_outbox
+              SET retry_count = 12,
+                  last_error  = 'malformed: missing key columns'
+            WHERE id = $1`,
+          [row.id],
+        );
+        continue;
+      }
       await pool.query(`DELETE FROM systemtest_failure_outbox WHERE id = $1`, [row.id]);
       succeeded++;
     } catch (e) {

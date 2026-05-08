@@ -56,6 +56,17 @@ export async function initTicketsSchema(): Promise<void> {
 
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS notes TEXT`);
 
+  // Test-run linkback columns. Mirrored in `systemtest/db.ts` (the canonical
+  // owner — that module also installs FKs to test_runs/test_results once those
+  // tables exist). We add the columns here too so a tickets-only init path
+  // doesn't break the failure-bridge: the FKs are deferred to ensureSystemtestSchema.
+  await pool.query(`
+    ALTER TABLE tickets.tickets
+      ADD COLUMN IF NOT EXISTS source_test_run_id    TEXT,
+      ADD COLUMN IF NOT EXISTS source_test_result_id BIGINT,
+      ADD COLUMN IF NOT EXISTS source_test_id        TEXT
+  `);
+
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_status_idx ON tickets.tickets (status) WHERE status NOT IN ('done','archived')`);
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_type_brand_idx ON tickets.tickets (type, brand)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_parent_idx ON tickets.tickets (parent_id)`);
@@ -74,6 +85,17 @@ export async function initTicketsSchema(): Promise<void> {
     CREATE UNIQUE INDEX IF NOT EXISTS tickets_one_open_per_test_question_uq
       ON tickets.tickets (source_test_question_id)
       WHERE source_test_question_id IS NOT NULL AND status NOT IN ('done','archived')
+  `);
+
+  // Test-run linkback dedup: at most one OPEN ticket per (run_id, test_id).
+  // The test-run failure-bridge reuses the existing open ticket; this index
+  // is the race guard.
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS tickets_one_open_per_test_run_test_uq
+      ON tickets.tickets (source_test_run_id, source_test_id)
+      WHERE source_test_run_id IS NOT NULL
+        AND source_test_id     IS NOT NULL
+        AND status NOT IN ('done','archived')
   `);
 
   await pool.query(`

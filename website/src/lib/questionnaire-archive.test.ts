@@ -3,6 +3,7 @@ import { pool } from './website-db';
 import {
   createQTemplate, upsertQDimension, upsertQQuestion, replaceQAnswerOptions,
   createQAssignment, updateQAssignment, upsertQAnswer, getQAssignment,
+  listArchivedScores, listEvidenceByAssignment,
 } from './questionnaire-db';
 import { archiveQAssignment, reassignQAssignment } from './questionnaire-db';
 import { randomUUID } from 'crypto';
@@ -181,5 +182,80 @@ describe.skipIf(!dbAvailable)('reassignQAssignment', () => {
   it('returns not_found for missing id', async () => {
     const result = await reassignQAssignment(randomUUID());
     expect('reason' in result && result.reason).toBe('not_found');
+  });
+});
+
+describe.skipIf(!dbAvailable)('listArchivedScores', () => {
+  it('returns snapshot rows for an archived assignment', async () => {
+    const tpl = await createQTemplate({
+      title: `lsnap-${randomUUID().slice(0, 8)}`, description: '', instructions: '',
+    });
+    const dim = await upsertQDimension({
+      templateId: tpl.id, name: 'X', position: 0, thresholdMid: 5, thresholdHigh: 10,
+    });
+    const q = await upsertQQuestion({
+      templateId: tpl.id, position: 0, questionText: 'q', questionType: 'likert_5',
+    });
+    await replaceQAnswerOptions(q.id, [
+      { optionKey: '3', label: 'm', dimensionId: dim.id, weight: 1 },
+    ]);
+    const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
+    await upsertQAnswer({ assignmentId: a.id, questionId: q.id, optionKey: '3' });
+    await updateQAssignment(a.id, { status: 'submitted' });
+    await archiveQAssignment(a.id);
+
+    const rows = await listArchivedScores(a.id);
+    expect(rows.length).toBe(1);
+    expect(rows[0].dimension_id).toBe(dim.id);
+    expect(rows[0].final_score).toBe(3);
+  });
+
+  it('returns empty array for non-archived assignment', async () => {
+    const tpl = await createQTemplate({
+      title: `lsnap-empty-${randomUUID().slice(0, 8)}`, description: '', instructions: '',
+    });
+    const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
+    const rows = await listArchivedScores(a.id);
+    expect(rows).toEqual([]);
+  });
+});
+
+describe.skipIf(!dbAvailable)('listEvidenceByAssignment', () => {
+  it('returns latest-attempt evidence per question with count', async () => {
+    const tpl = await createQTemplate({
+      title: `evid-${randomUUID().slice(0, 8)}`, description: '', instructions: '',
+    });
+    const q = await upsertQQuestion({
+      templateId: tpl.id, position: 0, questionText: 's', questionType: 'test_step',
+    });
+    const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
+    const e1 = await pool.query<{ id: string }>(
+      `INSERT INTO questionnaire_test_evidence
+         (assignment_id, question_id, attempt, replay_path)
+       VALUES ($1, $2, 0, '/tmp/r0') RETURNING id`,
+      [a.id, q.id],
+    );
+    const e2 = await pool.query<{ id: string }>(
+      `INSERT INTO questionnaire_test_evidence
+         (assignment_id, question_id, attempt, replay_path)
+       VALUES ($1, $2, 1, '/tmp/r1') RETURNING id`,
+      [a.id, q.id],
+    );
+
+    const rows = await listEvidenceByAssignment(a.id);
+    expect(rows.length).toBe(1);
+    expect(rows[0].question_id).toBe(q.id);
+    expect(rows[0].latest_evidence_id).toBe(e2.rows[0].id);
+    expect(rows[0].latest_attempt).toBe(1);
+    expect(rows[0].evidence_count).toBe(2);
+  });
+
+  it('returns empty array when there is no evidence', async () => {
+    const tpl = await createQTemplate({
+      title: `evid-empty-${randomUUID().slice(0, 8)}`, description: '', instructions: '',
+    });
+    const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
+    const rows = await listEvidenceByAssignment(a.id);
+    expect(rows).toEqual([]);
   });
 });

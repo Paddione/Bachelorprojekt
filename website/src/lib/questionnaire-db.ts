@@ -943,3 +943,49 @@ export async function listTestStatusesForMonitoring(): Promise<{
   }
   return Array.from(byTemplate.values());
 }
+
+export interface QArchivedScore {
+  assignment_id: string;
+  dimension_id: string;
+  dimension_name: string;
+  final_score: number;
+  threshold_mid: number | null;
+  threshold_high: number | null;
+  level: 'förderlich' | 'mittel' | 'kritisch' | null;
+  snapshot_at: string;
+}
+
+export async function listArchivedScores(assignmentId: string): Promise<QArchivedScore[]> {
+  const r = await pool.query(
+    `SELECT assignment_id, dimension_id, dimension_name, final_score,
+            threshold_mid, threshold_high, level, snapshot_at
+       FROM questionnaire_assignment_scores
+      WHERE assignment_id = $1
+      ORDER BY dimension_name`,
+    [assignmentId],
+  );
+  return r.rows;
+}
+
+export interface QEvidenceForQuestion {
+  question_id: string;
+  latest_evidence_id: string;
+  latest_attempt: number;
+  evidence_count: number;
+}
+
+export async function listEvidenceByAssignment(
+  assignmentId: string,
+): Promise<QEvidenceForQuestion[]> {
+  const r = await pool.query(
+    `SELECT question_id,
+            (ARRAY_AGG(id ORDER BY attempt DESC, created_at DESC))[1] AS latest_evidence_id,
+            MAX(attempt)::int                                          AS latest_attempt,
+            COUNT(*)::int                                              AS evidence_count
+       FROM questionnaire_test_evidence
+      WHERE assignment_id = $1
+      GROUP BY question_id`,
+    [assignmentId],
+  );
+  return r.rows;
+}

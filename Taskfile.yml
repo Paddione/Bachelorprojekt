@@ -270,6 +270,8 @@ tasks:
     preconditions:
       - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
         msg: "test:e2e requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+      - sh: '[ -n "${CRON_SECRET:-}" ]'
+        msg: "test:e2e requires CRON_SECRET in the env (used by the test-data purge bracket)"
     cmds:
       - |
         case "{{.ENV}}" in
@@ -279,7 +281,31 @@ tasks:
         export WEBSITE_URL PROD_DOMAIN
         [ -d node_modules ] || npm ci
         npx playwright install chromium webkit >/dev/null 2>&1 || true
+        # Defense-in-depth purge: BEFORE Playwright runs, hard-purge all
+        # is_test_data=true rows on the prod website DB. Playwright's
+        # globalSetup also calls this; the curl here covers the case where
+        # Playwright crashes before reaching globalSetup, AND it surfaces
+        # auth/network failures with a clear log line. We hard-fail on a
+        # pre-run purge failure (no `|| true`) — broken cleanup is a real
+        # blocker, we want to know.
+        echo "[test:e2e] Pre-run test-data purge against $WEBSITE_URL"
+        curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
+          "$WEBSITE_URL/api/admin/systemtest/purge-all-test-data"
+        echo
+        # Capture playwright's exit code so a post-run purge failure can't
+        # mask a real test failure.
+        set +e
         npx playwright test {{.CLI_ARGS}}
+        pw_rc=$?
+        set -e
+        # Post-run purge: best-effort. `|| true` so a transient failure here
+        # (e.g. site momentarily down after the suite) doesn't override the
+        # actual playwright result.
+        echo "[test:e2e] Post-run test-data purge against $WEBSITE_URL"
+        curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
+          "$WEBSITE_URL/api/admin/systemtest/purge-all-test-data" || true
+        echo
+        exit $pw_rc
 
   test:e2e:all-prods:
     desc: "Run Playwright e2e suite against mentolder + korczewski"

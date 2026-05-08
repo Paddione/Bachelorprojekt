@@ -21,6 +21,8 @@
 
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
+import { SYSTEM_TEST_TEMPLATES } from '../../../website/src/lib/system-test-seed-data';
+import type { SystemTestTemplate } from '../../../website/src/lib/system-test-seed-data';
 
 const BASE       = process.env.WEBSITE_URL    ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
@@ -210,8 +212,6 @@ async function clickNext(page: Page): Promise<void> {
   throw new Error('No "Speichern & Weiter / Letzten Schritt / Testprotokoll absenden" button visible');
 }
 
-import type { SystemTestTemplate } from '../../../website/src/lib/system-test-seed-data';
-
 export function deriveOptionsFromSeed(
   template: Pick<SystemTestTemplate, 'steps'>,
 ): Record<number, TestOption> {
@@ -313,4 +313,44 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
     steps,
     submitted,
   };
+}
+
+export interface WalkByTemplateOptions {
+  extraOverrides?: Record<number, TestOption>;
+  onAgentNotes?: WalkOptions['onAgentNotes'];
+  perStepTimeoutMs?: number;
+}
+
+export async function walkSystemtestByTemplate(
+  page: Page,
+  n: number,
+  opts: WalkByTemplateOptions = {},
+): Promise<WalkResult> {
+  const template = SYSTEM_TEST_TEMPLATES.find(t => t.title.startsWith(`System-Test ${n}:`));
+  if (!template) {
+    const have = SYSTEM_TEST_TEMPLATES.map(t => t.title).join(' | ');
+    throw new Error(`No seed template starts with "System-Test ${n}:". Have: ${have}`);
+  }
+
+  const optionByPosition: Record<number, TestOption> = {
+    ...deriveOptionsFromSeed(template),
+    ...(opts.extraOverrides ?? {}),
+  };
+
+  const result = await walkSystemtest(page, {
+    templateTitlePrefix: `System-Test ${n}`,
+    defaultOption: 'erfüllt',
+    optionByPosition,
+    onAgentNotes: opts.onAgentNotes,
+    perStepTimeoutMs: opts.perStepTimeoutMs,
+  });
+
+  expect(
+    result.steps.length,
+    `walked ${result.steps.length} steps but seed declares ${template.steps.length}`,
+  ).toBe(template.steps.length);
+  expect(result.submitted, 'wizard should reach the "Vielen Dank" screen').toBe(true);
+  expect(result.templateTitle).toMatch(new RegExp(`^System-Test ${n}:`));
+
+  return result;
 }

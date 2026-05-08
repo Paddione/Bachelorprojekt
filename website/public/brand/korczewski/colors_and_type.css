@@ -214,3 +214,18 @@ html, body { margin: 0; padding: 0; }
 body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 a { color: inherit; }
 button { font: inherit; }
+
+/* =========================================================================
+   Legacy token aliases — bridge mentolder-style inline styles
+   (var(--brass), var(--font-serif), …) used in PortalLayout/AdminLayout.
+   This file is only loaded on Kore deployments, so mentolder is unaffected.
+   ========================================================================= */
+:root {
+  --brass:        var(--copper);
+  --brass-2:      var(--copper-2);
+  --brass-d:      var(--copper-tint);
+  --brass-deep:   var(--copper-deep);
+  --font-serif:   var(--serif);
+  --font-sans:    var(--sans);
+  --font-mono:    var(--mono);
+}

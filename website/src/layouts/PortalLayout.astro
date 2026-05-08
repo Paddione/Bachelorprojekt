@@ -50,6 +50,8 @@ const avatarInitial = (session.given_name || session.name || session.preferred_u
 const displayName   = session.given_name || session.name || session.preferred_username;
 const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 const userIsAdmin   = isAdmin(session);
+const brandId       = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+const isKore        = brandId === 'korczewski';
 ---
 
 <!doctype html>
@@ -57,10 +59,12 @@ const userIsAdmin   = isAdmin(session);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={isKore ? '/brand/korczewski/favicon.svg' : '/favicon.svg'} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    {!isKore && <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />}
+    {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
+    {isKore && <link rel="stylesheet" href="/brand/korczewski/kore-app.css" />}
     <title>{title} | Portal — {config.meta.siteTitle}</title>
     <style>
       .portal-nav-item:not(.is-active):hover {
@@ -114,7 +118,7 @@ const userIsAdmin   = isAdmin(session);
       }
     </style>
   </head>
-  <body style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
+  <body class={isKore ? 'kore' : ''} style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
 
     <!-- Mobile topbar -->
     <div id="portal-mobile-topbar">
@@ -131,7 +135,7 @@ const userIsAdmin   = isAdmin(session);
         </svg>
       </button>
       <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
-        <div style="width:28px; height:28px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <div style="width:28px; height:28px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, var(--brass-deep, #8a6a2a) 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
           <span style="font-family:var(--font-serif); font-size:13px; font-weight:600; color:var(--ink-900);">{avatarInitial}</span>
         </div>
         <span style="font-size:13px; font-weight:600; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{displayName}</span>
@@ -148,7 +152,7 @@ const userIsAdmin   = isAdmin(session);
       <div style="padding:20px 14px 16px; border-bottom:1px solid var(--line);">
         <!-- Avatar row -->
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.18), 0 0 0 1px rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div style="width:34px; height:34px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, var(--brass-deep, #8a6a2a) 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.18), 0 0 0 1px rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
             <span style="font-family:var(--font-serif); font-size:15px; font-weight:600; color:var(--ink-900); line-height:1;">{avatarInitial}</span>
           </div>
           <div style="min-width:0; overflow:hidden;">

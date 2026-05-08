@@ -624,6 +624,85 @@ export async function dismissQAssignment(id: string, reason: string): Promise<QA
   return updateQAssignment(id, { status: 'dismissed', dismissReason: reason });
 }
 
+const ARCHIVABLE_STATUSES: AssignmentStatus[] = ['submitted', 'reviewed', 'archived'];
+
+export async function archiveQAssignment(id: string): Promise<
+  | { assignment: QAssignment }
+  | { reason: 'not_found' | 'not_archivable'; status?: AssignmentStatus }
+> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const a = await client.query<{ template_id: string; status: AssignmentStatus }>(
+      `SELECT template_id, status FROM questionnaire_assignments
+        WHERE id = $1 FOR UPDATE`,
+      [id],
+    );
+    if (a.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return { reason: 'not_found' };
+    }
+    const status = a.rows[0].status;
+    if (!ARCHIVABLE_STATUSES.includes(status)) {
+      await client.query('ROLLBACK');
+      return { reason: 'not_archivable', status };
+    }
+    const templateId = a.rows[0].template_id;
+
+    if (status !== 'archived') {
+      await client.query(
+        `UPDATE questionnaire_assignments
+            SET status = 'archived', archived_at = now()
+          WHERE id = $1`,
+        [id],
+      );
+    }
+
+    const dimsRes = await client.query<QDimension>(
+      `SELECT id, template_id, name, position, threshold_mid, threshold_high,
+              score_multiplier, created_at
+         FROM questionnaire_dimensions WHERE template_id = $1 ORDER BY position`,
+      [templateId],
+    );
+    const optsRes = await client.query<QAnswerOption>(
+      `SELECT ao.id, ao.question_id, ao.option_key, ao.label, ao.dimension_id, ao.weight
+         FROM questionnaire_answer_options ao
+         JOIN questionnaire_questions q ON q.id = ao.question_id
+        WHERE q.template_id = $1`,
+      [templateId],
+    );
+    const ansRes = await client.query<QAnswer>(
+      `SELECT id, assignment_id, question_id, option_key, details_text, saved_at
+         FROM questionnaire_answers WHERE assignment_id = $1`,
+      [id],
+    );
+
+    const { computeScores } = await import('./compute-scores');
+    const scores = computeScores(dimsRes.rows, optsRes.rows, ansRes.rows);
+    for (const s of scores) {
+      await client.query(
+        `INSERT INTO questionnaire_assignment_scores
+           (assignment_id, dimension_id, dimension_name, final_score,
+            threshold_mid, threshold_high, level)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT ON CONSTRAINT uq_qas_assignment_dimension DO NOTHING`,
+        [id, s.dimension_id, s.name, s.final_score,
+         s.threshold_mid, s.threshold_high, s.level],
+      );
+    }
+
+    await client.query('COMMIT');
+    const updated = await getQAssignment(id);
+    if (!updated) return { reason: 'not_found' };
+    return { assignment: updated };
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 /**
  * Reset a finished assignment so it can be filled out again.
  *

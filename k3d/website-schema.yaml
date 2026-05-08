@@ -322,15 +322,6 @@ data:
       CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
           ON polls ((true)) WHERE status = 'open';
 
-      -- ── Staleness Reports ─────────────────────────────────────────────────
-      CREATE TABLE IF NOT EXISTS staleness_reports (
-          id          SERIAL PRIMARY KEY,
-          created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-          report_json JSONB NOT NULL,
-          summary     TEXT NOT NULL DEFAULT '',
-          issue_count INTEGER NOT NULL DEFAULT 0
-      );
-
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -358,6 +349,12 @@ data:
     echo "Ensuring meetings schema is up to date..."
 
     psql -v ON_ERROR_STOP=1 --username "postgres" --dbname website <<-'EOSQL'
+      -- staleness_reports was dropped 2026-05-08 (testing pipeline overhaul, Task A9).
+      -- The table is no longer created by the init script; this DROP cleans up any
+      -- existing copy on clusters that ran an older schema. Idempotent — safe to
+      -- leave indefinitely. Future operators see "this table was deliberately dropped".
+      DROP TABLE IF EXISTS staleness_reports CASCADE;
+
       CREATE SEQUENCE IF NOT EXISTS customer_number_seq START 20;
 
       DO $$
@@ -639,15 +636,6 @@ data:
 
       CREATE UNIQUE INDEX IF NOT EXISTS idx_polls_one_open
           ON polls ((true)) WHERE status = 'open';
-
-      -- ── Staleness Reports ─────────────────────────────────────────────────
-      CREATE TABLE IF NOT EXISTS staleness_reports (
-          id          SERIAL PRIMARY KEY,
-          created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-          report_json JSONB NOT NULL,
-          summary     TEXT NOT NULL DEFAULT '',
-          issue_count INTEGER NOT NULL DEFAULT 0
-      );
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

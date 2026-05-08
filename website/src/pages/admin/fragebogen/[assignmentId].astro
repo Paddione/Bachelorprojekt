@@ -330,6 +330,14 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
               Archivieren
             </button>
           )}
+          {(assignment.status === 'submitted' || assignment.status === 'reviewed' || assignment.status === 'archived' || assignment.status === 'dismissed') && (
+            <button id="reopen-btn"
+              data-testid="reopen-questionnaire"
+              class="px-4 py-2 bg-amber-700 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
+              title={isSystemTest ? 'Antworten löschen, retest_attempt hochzählen, Fragebogen erneut starten.' : 'Antworten löschen und Fragebogen erneut zuweisen.'}>
+              Erneut durchführen ↻
+            </button>
+          )}
         </div>
         <p id="notes-msg" class="text-xs mt-2 hidden"></p>
       </div>
@@ -429,6 +437,38 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
       body: JSON.stringify({ status: 'archived' }),
     });
     if (r.ok) window.location.reload();
+  });
+
+  // Reopen — wipe answers + reset to pending, then jump to portal wizard
+  const reopenBtn = document.getElementById('reopen-btn');
+  reopenBtn?.addEventListener('click', async () => {
+    const ok = window.confirm(
+      'Diesen Fragebogen erneut durchführen? Bisherige Antworten werden gelöscht (Coach-Notizen bleiben). Bei System-Tests bekommen alle Test-Schritte einen neuen Retest-Versuch — alte Fixtures werden vom Cleanup-Job entfernt.',
+    );
+    if (!ok) return;
+    reopenBtn.disabled = true;
+    reopenBtn.textContent = 'Wird zurückgesetzt …';
+    try {
+      const r = await fetch(`/api/admin/questionnaires/assignments/${assignmentId}/reopen`, {
+        method: 'POST',
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        reopenBtn.disabled = false;
+        reopenBtn.textContent = 'Erneut durchführen ↻';
+        msgEl.textContent = d.error || 'Fehler beim Zurücksetzen.';
+        msgEl.className = 'text-xs mt-2 text-red-400';
+        msgEl.classList.remove('hidden');
+        return;
+      }
+      window.location.href = `/portal/fragebogen/${assignmentId}`;
+    } catch {
+      reopenBtn.disabled = false;
+      reopenBtn.textContent = 'Erneut durchführen ↻';
+      msgEl.textContent = 'Netzwerkfehler.';
+      msgEl.className = 'text-xs mt-2 text-red-400';
+      msgEl.classList.remove('hidden');
+    }
   });
 
   document.getElementById('bug-modal-submit')?.addEventListener('click', async () => {

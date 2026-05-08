@@ -252,7 +252,7 @@ async function initMeetingProjectLink(): Promise<void> {
   await initTicketsSchema(); // tickets.tickets must exist before the FK column
   await pool.query(`
     ALTER TABLE meetings
-      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE SET NULL
+      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_meetings_project ON meetings(project_id)
@@ -1758,8 +1758,8 @@ async function initTimeEntriesTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
       id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id        UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-      task_id           UUID        REFERENCES project_tasks(id) ON DELETE SET NULL,
+      project_id        UUID        NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
+      task_id           UUID        REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       description       TEXT,
       minutes           INTEGER     NOT NULL CHECK (minutes > 0),
       billable          BOOLEAN     NOT NULL DEFAULT true,
@@ -2449,7 +2449,7 @@ async function initBookingProjectLinks(): Promise<void> {
     CREATE TABLE IF NOT EXISTS booking_project_links (
       caldav_uid  TEXT    NOT NULL,
       brand       TEXT    NOT NULL,
-      project_id  UUID    REFERENCES projects(id) ON DELETE SET NULL,
+      project_id  UUID    REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (caldav_uid, brand)
     )

@@ -1,0 +1,12 @@
+{
+  "pr_number": 582,
+  "title": "post-deploy UI cleanup",
+  "description": "## Summary\n\n- **Remove HelpPanel** from Admin + Portal layouts — it was non-functional (no content) and visually overlapping with the BugReportWidget\n- **Remove Projekte sidebar entry** — projects were consolidated into the Tickets system (`type=project`); the duplicate nav entry is gone\n- **Drop push-to-talk** from AssistantChat — voice recording was added but not wanted; the mic button and all MediaRecorder code are removed\n- **Add Schlagwort input** to the tickets filter form — the `tag` URL parameter was supported in the backend but had no text input in the UI; you can now type a tag name directly without having to click a chip\n- **Make e2e-smoke non-blocking** — adds `continue-on-error: true` to the CI job while prod cluster connectivity is being confirmed (closes #580)\n\nCloses #580\n\n## Test plan\n\n- [ ] Admin sidebar shows Tickets but no Projekte\n- [ ] No floating `?` help button appears in admin or portal\n- [ ] AssistantChat (when enabled) shows only text input, no microphone button\n- [ ] Tickets filter form has a Schlagwort field; typing a tag name and clicking Filtern filters the list\n- [ ] CI e2e-smoke failures no longer block PR merges\n\n🤖 Generated with [Claude Code](https://claude.ai/claude-code)",
+  "category": "fix",
+  "scope": "admin",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T08:03:16Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

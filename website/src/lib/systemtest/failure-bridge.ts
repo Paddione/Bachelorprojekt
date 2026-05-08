@@ -241,7 +241,7 @@ export async function enqueueOutboxRetry(
   await pool.query(
     `INSERT INTO systemtest_failure_outbox
        (assignment_id, question_id, attempt, last_error, retry_count, retry_after, created_at)
-     VALUES ($1, $2, $3, $4, 0, now() + INTERVAL '30 seconds', now())`,
+     VALUES ($1, $2, $3, $4, 0, now() + INTERVAL '5 minutes', now())`,
     [opts.assignmentId, opts.questionId, opts.attempt, opts.error.slice(0, 4000)],
   );
 }

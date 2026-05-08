@@ -1,0 +1,12 @@
+{
+  "pr_number": 600,
+  "title": "wire logo upload UI to existing endpoint (T000169)",
+  "description": "Closes T000169\n\n## Summary\n- Wires the admin branding settings page (`/admin/einstellungen/branding`) to the `upload-logo.ts` endpoint scaffolded in PR #598.\n- Adds a file input with `accept=\"image/*\"` (restricted to PNG/JPEG/WebP/SVG), a 96x96 live preview tile of the currently saved logo, and an async upload handler that POSTs `multipart/form-data` to `/api/admin/einstellungen/upload-logo`.\n- On success, writes the returned base64 data URL into the existing `brand_logo_url` input and refreshes the preview. The user still presses \"Speichern\" to persist via the existing `branding.ts` handler.\n- Client-side validation mirrors the server contract: 1 MB max, PNG/JPEG/WebP/SVG only. Invalid files are rejected before upload with a German error message.\n- Status text uses `aria-live=\"polite\"` for screen readers; tones (idle/error/ok) match the rest of the einstellungen pages.\n\n## Test plan\n- [ ] Visit `/admin/einstellungen/branding` as an admin and confirm the preview tile shows the saved logo (or \"Kein Logo\" placeholder).\n- [ ] Pick a >1 MB PNG and confirm the client rejects it without hitting the network.\n- [ ] Pick a `.gif` and confirm \"Nur PNG, JPEG, WebP oder SVG erlaubt\" appears.\n- [ ] Pick a small PNG, confirm the preview updates immediately and the URL field is populated with `data:image/png;base64,...`.\n- [ ] Press \"Speichern\" and confirm the value persists across reloads.\n- [ ] `cd website && npx astro check` reports no new errors in `branding.astro` (verified locally — the same 16 pre-existing errors before and after).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "admin/branding",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T19:29:48Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

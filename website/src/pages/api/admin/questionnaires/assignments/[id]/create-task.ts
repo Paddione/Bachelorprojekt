@@ -21,6 +21,10 @@ export const POST: APIRoute = async ({ request, params }) => {
   const question = await getQQuestion(body.questionId).catch(() => null);
   if (!question) return new Response(JSON.stringify({ error: 'Frage nicht gefunden.' }), { status: 404 });
 
+  if (question.template_id !== assignment.template_id) {
+    return new Response(JSON.stringify({ error: 'Frage gehört nicht zu diesem Auftrag.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
+
   const taskName = question.question_text.length > 120
     ? question.question_text.slice(0, 117) + '…'
     : question.question_text;

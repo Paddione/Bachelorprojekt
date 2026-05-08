@@ -122,6 +122,36 @@
   let sending = $state(false);
   let nextAusgabe = $state('');
 
+  // Server-rendered preview HTML (matches the actual outbound send 1:1).
+  // We render via /api/admin/newsletter/preview so preview and send share the
+  // same branded wrapper + legal footer (fixes T000173 / T000171).
+  let previewHtml = $state('');
+  let previewDebounce: ReturnType<typeof setTimeout> | null = null;
+
+  async function refreshPreview() {
+    try {
+      const res = await fetch('/api/admin/newsletter/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: composeSubject, html_body: composeHtml }),
+      });
+      previewHtml = res.ok
+        ? await res.text()
+        : '<p style="color:#a33;font-family:sans-serif;padding:20px;">Vorschau konnte nicht geladen werden.</p>';
+    } catch {
+      previewHtml = '<p style="color:#a33;font-family:sans-serif;padding:20px;">Vorschau-Fehler (Verbindung).</p>';
+    }
+  }
+
+  $effect(() => {
+    if (activeTab !== 'compose') return;
+    // Track the deps Svelte needs to know about (synchronous reads).
+    void composeSubject;
+    void composeHtml;
+    if (previewDebounce) clearTimeout(previewDebounce);
+    previewDebounce = setTimeout(refreshPreview, 250);
+  });
+
   async function loadNextAusgabe() {
     try {
       const res = await fetch('/api/admin/newsletter/campaigns');
@@ -369,12 +399,14 @@
       </button>
     </div>
 
-    <!-- Preview — full DIN-A4 page (794 × 1123 px) -->
+    <!-- Preview — full DIN-A4 page (794 × 1123 px). Server-rendered with
+         the SAME branded wrapper the outbound send uses (header + Pflicht-
+         Footer mit Anbieterkennzeichnung + Abmelde-Link). -->
     <div class="overflow-x-auto">
       <div>
-        <p class="text-sm text-muted mb-1">Vorschau (DIN A4)</p>
+        <p class="text-sm text-muted mb-1">Vorschau (1:1 wie versendet)</p>
         <iframe
-          srcdoc={composeHtml || '<p style="color:#666;font-family:sans-serif;padding:20px;">Vorschau erscheint hier…</p>'}
+          srcdoc={previewHtml || '<p style="color:#666;font-family:sans-serif;padding:20px;">Vorschau erscheint hier…</p>'}
           title="E-Mail Vorschau"
           style="width: 794px; height: 1123px"
           class="rounded-xl border border-dark-lighter bg-white block"

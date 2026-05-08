@@ -68,19 +68,25 @@ try {
   }
 
   // ── 2. bachelorprojekt schema ───────────────────────────────────────────────
-  if (await exists('bachelorprojekt', 'requirements')) {
-    await drop('VIEW', 'bachelorprojekt.requirements');
+  // Drop views first (some depend on the legacy tables below)
+  for (const view of ['requirements', 'features', 'v_latest_tests', 'v_open_issues', 'v_pipeline_status', 'v_progress_summary', 'v_timeline']) {
+    if (await exists('bachelorprojekt', view)) {
+      await drop('VIEW', `bachelorprojekt.${view}`, 'CASCADE');
+    }
   }
   if (await exists('bachelorprojekt', 'requirements_legacy')) {
-    await drop('TABLE', 'bachelorprojekt.requirements_legacy');
+    await drop('TABLE', 'bachelorprojekt.requirements_legacy', 'CASCADE');
   }
   if (await exists('bachelorprojekt', 'pipeline')) {
-    await drop('TABLE', 'bachelorprojekt.pipeline');
+    await drop('TABLE', 'bachelorprojekt.pipeline', 'CASCADE');
+  }
+  if (await exists('bachelorprojekt', 'features_legacy')) {
+    await drop('TABLE', 'bachelorprojekt.features_legacy', 'CASCADE');
   }
   if (await exists('bachelorprojekt', 'test_results')) {
     const r = await client.query('SELECT count(*) AS n FROM bachelorprojekt.test_results');
     if (Number(r.rows[0].n) === 0) {
-      await drop('TABLE', 'bachelorprojekt.test_results');
+      await drop('TABLE', 'bachelorprojekt.test_results', 'CASCADE');
     } else {
       console.log(`  SKIP bachelorprojekt.test_results — ${r.rows[0].n} rows (historical record; drop manually)`);
     }

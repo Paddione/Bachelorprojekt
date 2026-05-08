@@ -36,6 +36,12 @@ function purgeUrl(): string {
 }
 
 async function callPurge(label: 'setup' | 'teardown'): Promise<void> {
+  // Allow pure-unit / offline runs to skip the prod DB purge entirely.
+  if (process.env.SKIP_DB_PURGE === '1') {
+    // eslint-disable-next-line no-console
+    console.log(`[global-db-cleanup:${label}] SKIP_DB_PURGE=1 — skipping prod DB purge`);
+    return;
+  }
   const secret = process.env.CRON_SECRET;
   if (!secret) {
     throw new Error(

@@ -156,6 +156,15 @@ export default defineConfig({
         baseURL: websiteURL,
       },
     },
+
+    // ── unit: pure-function tests in tests/e2e/lib/*.test.ts ─────
+    // Run: npx playwright test --project=unit
+    {
+      name: 'unit',
+      testDir: './lib',
+      testMatch: ['*.test.ts'],
+      use: {},
+    },
   ],
 
   outputDir: '../results/playwright-traces',

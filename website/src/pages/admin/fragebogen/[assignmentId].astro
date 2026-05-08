@@ -57,16 +57,26 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
           <p class="text-muted mt-1 text-sm">
             Eingereicht: {fmtDate(assignment.submitted_at)}
           </p>
+          {assignment.project_id && (
+            <a
+              href={`/admin/projekte/${assignment.project_id}`}
+              class="inline-flex items-center gap-1 mt-2 text-xs text-gold/70 hover:text-gold underline"
+            >
+              → Verknüpftes Projekt öffnen
+            </a>
+          )}
         </div>
         <span class={`px-3 py-1 rounded-full border text-sm ${
           assignment.status === 'reviewed' ? 'bg-green-500/10 text-green-400 border-green-500/20'
           : assignment.status === 'submitted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
           : assignment.status === 'dismissed' ? 'bg-red-500/10 text-red-400 border-red-500/20'
+          : assignment.status === 'archived' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20'
           : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
         }`}>
           {assignment.status === 'reviewed' ? 'Besprochen'
             : assignment.status === 'submitted' ? 'Eingereicht'
             : assignment.status === 'dismissed' ? 'Abgelehnt'
+            : assignment.status === 'archived' ? 'Archiviert'
             : assignment.status}
         </span>
       </div>
@@ -190,6 +200,15 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
                         Bug erfassen
                       </button>
                     )}
+                    {assignment.project_id && (
+                      <button
+                        class="create-task-btn text-xs px-2 py-1 bg-dark border border-dark-lighter text-light/70 rounded hover:border-gold/40 hover:text-light transition-colors"
+                        data-question-id={q.id}
+                      >
+                        + Aufgabe
+                      </button>
+                    )}
+                    <span id={`task-result-${q.id}`} class="text-xs text-green-400 hidden"></span>
                   </div>
                   <div id={`bug-result-${q.id}`} class="mt-2 text-xs hidden"></div>
                 </div>
@@ -275,6 +294,12 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
               Als besprochen markieren ✓
             </button>
           )}
+          {assignment.status === 'reviewed' && (
+            <button id="archive-btn"
+              class="px-4 py-2 bg-dark border border-dark-lighter text-muted rounded-lg text-sm hover:border-gold/40 hover:text-light transition-colors">
+              Archivieren
+            </button>
+          )}
         </div>
         <p id="notes-msg" class="text-xs mt-2 hidden"></p>
       </div>
@@ -326,6 +351,55 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
     bugModal.classList.remove('flex');
     activeBugStepId = null;
   }
+
+  // Task creation
+  document.querySelectorAll('.create-task-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const questionId = btn.dataset.questionId;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        const r = await fetch(
+          `/api/admin/questionnaires/assignments/${assignmentId}/create-task`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questionId }),
+          },
+        );
+        const data = await r.json().catch(() => ({}));
+        const resultEl = document.getElementById(`task-result-${questionId}`);
+        if (r.ok && data.taskId) {
+          btn.remove();
+          if (resultEl) {
+            resultEl.textContent = '✓ Aufgabe angelegt';
+            resultEl.classList.remove('hidden');
+          }
+        } else {
+          btn.disabled = false;
+          btn.textContent = '+ Aufgabe';
+          if (resultEl) {
+            resultEl.textContent = data.error || 'Fehler';
+            resultEl.className = 'text-xs text-red-400';
+            resultEl.classList.remove('hidden');
+          }
+        }
+      } catch {
+        btn.disabled = false;
+        btn.textContent = '+ Aufgabe';
+      }
+    });
+  });
+
+  // Archive
+  document.getElementById('archive-btn')?.addEventListener('click', async () => {
+    const r = await fetch(`/api/admin/questionnaires/assignments/${assignmentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'archived' }),
+    });
+    if (r.ok) window.location.reload();
+  });
 
   document.getElementById('bug-modal-submit')?.addEventListener('click', async () => {
     const desc = bugDescInput.value.trim();

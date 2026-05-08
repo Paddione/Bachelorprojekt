@@ -42,6 +42,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-admin-inbox",
+    "file": "tests/e2e/specs/fa-admin-inbox.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-admin-inhalte",
     "file": "tests/e2e/specs/fa-admin-inhalte.spec.ts",
     "category": "E2E",
@@ -454,6 +460,12 @@
     "file": "tests/local/FA-30.bats",
     "category": "FA",
     "kind": "shell"
+  },
+  {
+    "id": "FA-30",
+    "file": "tests/e2e/specs/fa-30-systemtest-failure-loop.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
   },
   {
     "id": "FA-31",

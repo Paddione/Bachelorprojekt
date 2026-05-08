@@ -4,6 +4,15 @@ import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getTicketDetail, getTicketTimeline } from '../../../lib/tickets/admin';
 import TicketActivityTimeline from '../../../components/admin/TicketActivityTimeline.svelte';
 import TicketActionBar from '../../../components/admin/TicketActionBar.svelte';
+import {
+  listQAssignmentsForProject,
+  listQQuestions,
+  listQAnswerOptionsForTemplate,
+  listQAnswers,
+  listQDimensions,
+} from '../../../lib/questionnaire-db';
+import { computeScores } from '../../../lib/compute-scores';
+import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -19,6 +28,27 @@ const [ticket, timeline] = await Promise.all([
 ]);
 
 if (!ticket) return Astro.redirect('/admin/tickets');
+
+let questionnaireBundles: AssignmentBundle[] = [];
+
+// Only fetch for project-type tickets — coaching questionnaires only link to projects.
+if (ticket.type === 'project') {
+  try {
+    const assignments = await listQAssignmentsForProject(ticket.id);
+    questionnaireBundles = await Promise.all(assignments.map(async a => {
+      const [questions, options, answers, dimensions] = await Promise.all([
+        listQQuestions(a.template_id),
+        listQAnswerOptionsForTemplate(a.template_id),
+        listQAnswers(a.id),
+        listQDimensions(a.template_id),
+      ]);
+      return { assignment: a, questions, options, answers, scores: computeScores(dimensions, options, answers) };
+    }));
+  } catch (err) {
+    console.error('[admin/tickets/[id]] questionnaire fetch failed:', err);
+    questionnaireBundles = [];
+  }
+}
 
 const STATUS_LABEL: Record<string, string> = {
   triage: 'Triage', backlog: 'Backlog', in_progress: 'In Arbeit',
@@ -118,6 +148,8 @@ function fmtDateTime(d: Date | string | null): string {
               </p>
             )}
           </div>
+
+          <ProjectQuestionnairesPanel assignments={questionnaireBundles} />
 
           {/* Children tree */}
           {ticket.children.length > 0 && (

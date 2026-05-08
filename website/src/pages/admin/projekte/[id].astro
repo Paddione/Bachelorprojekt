@@ -9,6 +9,15 @@ import {
 } from '../../../lib/website-db';
 import type { Project, SubProject, ProjectTask, Customer, TimeEntry, MeetingWithDetails, ProjectAttachment } from '../../../lib/website-db';
 import ProjectMeetingsTab from '../../../components/admin/ProjectMeetingsTab.astro';
+import {
+  listQAssignmentsForProject,
+  listQQuestions,
+  listQAnswerOptionsForTemplate,
+  listQAnswers,
+  listQDimensions,
+} from '../../../lib/questionnaire-db';
+import { computeScores } from '../../../lib/compute-scores';
+import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -29,6 +38,7 @@ let timeStats: { total: number; billable: number } = { total: 0, billable: 0 };
 let meetings: MeetingWithDetails[] = [];
 let unassignedMeetings: Array<{ id: string; meetingType: string; status: string; createdAt: Date }> = [];
 let attachments: ProjectAttachment[] = [];
+let questionnaireBundles: AssignmentBundle[] = [];
 let dbError = '';
 
 try {
@@ -47,6 +57,25 @@ try {
         getProjectTotalMinutes(id),
         listProjectAttachments(id),
       ]);
+    }
+
+    // Questionnaire bundle for the panel — only on the default tab
+    if (tab !== 'besprechungen' && project) {
+      try {
+        const assignments = await listQAssignmentsForProject(id);
+        questionnaireBundles = await Promise.all(assignments.map(async a => {
+          const [questions, options, answers, dimensions] = await Promise.all([
+            listQQuestions(a.template_id),
+            listQAnswerOptionsForTemplate(a.template_id),
+            listQAnswers(a.id),
+            listQDimensions(a.template_id),
+          ]);
+          return { assignment: a, questions, options, answers, scores: computeScores(dimensions, options, answers) };
+        }));
+      } catch (err) {
+        console.error('[admin/projekte/[id]] questionnaire fetch failed:', err);
+        questionnaireBundles = [];
+      }
     }
   }
 } catch (err) {
@@ -256,6 +285,8 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
               </form>
             </div>
           </div>
+
+          <ProjectQuestionnairesPanel assignments={questionnaireBundles} />
 
           {/* ── Sub-projects ── */}
           <div class={`${sectionCls} mb-6`}>

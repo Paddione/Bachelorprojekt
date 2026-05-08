@@ -71,11 +71,24 @@ case "${CMD:-}" in
   list)
     echo "Backups on backup-pvc (newest first):"
     POD="backup-list-$$"
-    # Only show YYYYMMDD-HHMMSS directories (not debug/log files)
-    OVERRIDES='{"spec":{"restartPolicy":"Never","volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"containers":[{"name":"c","image":"busybox","command":["/bin/sh","-c","find /backups -maxdepth 1 -mindepth 1 -type d -name '"'"'[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]'"'"' | xargs -I{} basename {} | sort -r"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}]}}'
-    $KC run "$POD" -n "$NS" --restart=Never --image=busybox \
-      --overrides="$OVERRIDES" --quiet 2>/dev/null || true
-    for _ in $(seq 1 30); do
+    # Only show YYYYMMDD-HHMMSS directories (not debug/log files).
+    # The override must include:
+    #   - securityContext fields — workspace/workspace-korczewski both run
+    #     PodSecurity=restricted; without them apiserver rejects the pod
+    #     silently and the previous `2>/dev/null` swallowed the warning.
+    #   - nodeAffinity that excludes home workers (k3s-1/2/3, k3w-1/2/3) —
+    #     backup-pvc is Longhorn ReadWriteOnce and the home nodes don't run
+    #     the longhorn CSI driver, so a pod scheduled there hangs in
+    #     ContainerCreating with FailedAttachVolume forever. Mirrors the
+    #     affinity on the db-backup CronJob.
+    OVERRIDES='{"spec":{"restartPolicy":"Never","volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"securityContext":{"runAsNonRoot":true,"runAsUser":65532,"runAsGroup":65532,"seccompProfile":{"type":"RuntimeDefault"}},"affinity":{"nodeAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"kubernetes.io/hostname","operator":"NotIn","values":["k3s-1","k3s-2","k3s-3","k3w-1","k3w-2","k3w-3"]}]}]}}},"containers":[{"name":"c","image":"busybox","command":["/bin/sh","-c","find /backups -maxdepth 1 -mindepth 1 -type d -name '"'"'[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]'"'"' | xargs -I{} basename {} | sort -r"],"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"volumeMounts":[{"name":"b","mountPath":"/backups","readOnly":true}]}]}}'
+    if ! $KC run "$POD" -n "$NS" --restart=Never --image=busybox \
+        --overrides="$OVERRIDES" --quiet 2>&1; then
+      echo "(failed to schedule backup-list pod — see warning above)"
+      exit 1
+    fi
+    # Volume attach can take ~10s on a cold node; allow up to 90s before giving up.
+    for _ in $(seq 1 90); do
       PHASE=$($KC get pod -n "$NS" "$POD" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
       [[ "$PHASE" == "Succeeded" || "$PHASE" == "Failed" ]] && break
       sleep 1

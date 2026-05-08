@@ -1230,6 +1230,34 @@ tasks:
       - 'echo ""'
       - 'echo "  Next → task workspace:office:deploy ENV={{.ENV}}"'
 
+  workspace:fix-tickets-grants:
+    desc: "Idempotent: GRANT website role on tickets+bachelorprojekt schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails on tickets.* with permission denied."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
+          printenv POSTGRES_PASSWORD | tr -d '\r\n')
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and applying GRANTs..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/fix-grants-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        TRACKING_DB_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          node scripts/fix-tickets-grants.mjs --apply
+
   workspace:sync-db-passwords:
     desc: "Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)"
     vars:

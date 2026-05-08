@@ -4,7 +4,7 @@ export const mentolderConfig: BrandConfig = {
   brand: 'mentolder',
   meta: {
     siteTitle: 'Mentolder',
-    siteDescription: 'Digital Coaching & Führungskräfte-Beratung - Ihr Partner für digitale Kompetenz und persönliche Entwicklung',
+    siteDescription: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe.',
   },
   contact: {
     name: process.env.CONTACT_NAME ?? '',

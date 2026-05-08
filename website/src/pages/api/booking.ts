@@ -4,6 +4,7 @@ import { sendEmail } from '../../lib/email';
 import { sendAdminNotification } from '../../lib/notifications';
 import { isSlotInAnyWindow } from '../../lib/website-db';
 import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
+import { isE2ETestRequest } from '../../lib/e2e-marker';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
@@ -73,6 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
         serviceKey: serviceKey ?? null, message: message ?? null,
         projectId: projectId ?? null, leistungKey: leistungKey ?? null,
       },
+      isTestData: isE2ETestRequest(request),
     });
 
     // Confirmation email to user

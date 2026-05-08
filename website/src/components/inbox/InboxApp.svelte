@@ -238,9 +238,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, note }),
       });
-      const data = await res.json().catch(() => ({})) as { error?: string };
+      // 204 No Content (used by `delete`) returns no JSON body — guard the parse.
+      const data = res.status === 204
+        ? {}
+        : (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        actionError = data.error ?? `Fehler (${res.status})`;
+        actionError = (data as { error?: string }).error ?? `Fehler (${res.status})`;
         return false;
       }
       // remove the actioned item, advance selection, decrement count
@@ -310,6 +313,21 @@
     if (!it || busy) return;
     if (it.type === 'registration') await postAction(it, 'decline_registration');
     else if (it.type === 'booking') await postAction(it, 'decline_booking');
+  }
+
+  // Hard-delete escape hatch. Visible on EVERY row regardless of status
+  // (pending/actioned/archived) so admins can clear rows that have no
+  // other path off the queue — e.g. an `archived` contact, an `actioned`
+  // booking that was already cleaned up, or a stale [TEST] item from a
+  // pre-purge regression. Confirms via window.confirm() before firing.
+  async function deleteItem(): Promise<void> {
+    const it = selected;
+    if (!it || busy) return;
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      const ok = window.confirm('Diesen Eintrag dauerhaft löschen? Die Aktion kann nicht rückgängig gemacht werden.');
+      if (!ok) return;
+    }
+    await postAction(it, 'delete');
   }
 
   async function sendReply(): Promise<void> {
@@ -436,6 +454,7 @@
         onNext={() => moveSelection(+1)}
         onPrimary={runPrimary}
         onSecondary={runSecondary}
+        onDelete={deleteItem}
         onReplyChange={(v) => { replyBody = v; }}
         onSendReply={sendReply}
         onBugNoteChange={(v) => { bugNote = v; }}

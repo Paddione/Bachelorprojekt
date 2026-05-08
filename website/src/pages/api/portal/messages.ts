@@ -3,6 +3,7 @@ import type { APIRoute } from 'astro';
 import { getSession } from '../../../lib/auth';
 import { getThreadByCustomerId, getOrCreateThreadForCustomer, addMessage, createInboxItem } from '../../../lib/messaging-db';
 import { upsertCustomer } from '../../../lib/website-db';
+import { isE2ETestRequest } from '../../../lib/e2e-marker';
 
 export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -18,13 +19,15 @@ export const POST: APIRoute = async ({ request }) => {
   const customer = await upsertCustomer({ name: session.name, email: session.email, keycloakUserId: session.sub });
   const { body } = await request.json() as { body: string };
   if (!body?.trim()) return new Response(JSON.stringify({ error: 'body required' }), { status: 400 });
-  const thread = await getOrCreateThreadForCustomer(customer.id);
-  const msg = await addMessage({ threadId: thread.id, senderId: session.sub, senderRole: 'user', senderCustomerId: customer.id, body: body.trim() });
+  const isTest = isE2ETestRequest(request);
+  const thread = await getOrCreateThreadForCustomer(customer.id, { isTestData: isTest });
+  const msg = await addMessage({ threadId: thread.id, senderId: session.sub, senderRole: 'user', senderCustomerId: customer.id, body: body.trim(), isTestData: isTest });
   await createInboxItem({
     type: 'user_message',
     referenceId: String(thread.id),
     referenceTable: 'message_threads',
     payload: { senderName: customer.name, senderEmail: customer.email, message: body.trim().slice(0, 120) },
+    isTestData: isTest,
   });
   return new Response(JSON.stringify({ thread, message: msg }), { status: 201, headers: { 'Content-Type': 'application/json' } });
 };

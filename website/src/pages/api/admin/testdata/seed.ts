@@ -85,6 +85,7 @@ export const POST: APIRoute = async ({ request }) => {
     // 5. Inbox bookings (Termine)
     await createInboxItem({
       type: 'booking',
+      isTestData: true,
       payload: {
         name: '[TEST] Max Mustermann',
         email: 'test-max@test.invalid',
@@ -100,6 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
     await createInboxItem({
       type: 'booking',
+      isTestData: true,
       payload: {
         name: '[TEST] Erika Musterfrau',
         email: 'test-erika@test.invalid',

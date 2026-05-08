@@ -1,0 +1,364 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import {
+  listAdminTickets, countAdminTickets, listKnownComponents,
+  type ListedTicket, type ListFilters, type TicketType, type TicketStatus,
+} from '../../lib/tickets/admin';
+import { listAllCustomers, listAdminUsers } from '../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname + Astro.url.search));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const sp    = Astro.url.searchParams;
+
+const typeFilter      = sp.get('type')       ?? '';
+const statusFilter    = sp.get('status')     ?? 'open';
+const componentFilter = sp.get('component')  ?? '';
+const assigneeFilter  = sp.get('assigneeId') ?? '';
+const customerFilter  = sp.get('customerId') ?? '';
+const tagFilter       = sp.get('tag')        ?? '';
+const thesisFilter    = sp.get('thesisTag')  ?? '';
+const qFilter         = sp.get('q')          ?? '';
+
+const filters: ListFilters = {
+  brand:        BRAND,
+  type:         (typeFilter as TicketType) || undefined,
+  status:       statusFilter === 'all' ? undefined : (statusFilter as TicketStatus | 'open'),
+  component:    componentFilter || undefined,
+  assigneeId:   assigneeFilter  || undefined,
+  customerId:   customerFilter  || undefined,
+  thesisTag:    thesisFilter    || undefined,
+  tagName:      tagFilter       || undefined,
+  q:            qFilter         || undefined,
+  parentIsNull: true,
+  limit:        200,
+};
+
+let tickets:   ListedTicket[] = [];
+let total      = 0;
+let components: string[] = [];
+let customers: Awaited<ReturnType<typeof listAllCustomers>> = [];
+let admins:    Awaited<ReturnType<typeof listAdminUsers>>   = [];
+let dbError    = '';
+
+try {
+  [tickets, total, components, customers, admins] = await Promise.all([
+    listAdminTickets(filters),
+    countAdminTickets(filters),
+    listKnownComponents(BRAND),
+    listAllCustomers(),
+    listAdminUsers(),
+  ]);
+} catch (err) {
+  console.error('[admin/tickets] DB error:', err);
+  dbError = 'Datenbankfehler beim Laden der Tickets.';
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  triage: 'Triage', backlog: 'Backlog', in_progress: 'In Arbeit',
+  in_review: 'Review', blocked: 'Blockiert', done: 'Fertig', archived: 'Archiviert',
+};
+const STATUS_CLS: Record<string, string> = {
+  triage:      'bg-purple-900/40 text-purple-300 border-purple-800',
+  backlog:     'bg-slate-900/40 text-slate-300 border-slate-700',
+  in_progress: 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
+  in_review:   'bg-blue-900/40 text-blue-300 border-blue-800',
+  blocked:     'bg-red-900/40 text-red-300 border-red-800',
+  done:        'bg-green-900/40 text-green-300 border-green-800',
+  archived:    'bg-dark text-muted border-dark-lighter',
+};
+const TYPE_LABEL: Record<string, string> = {
+  bug: '🐛 Bug', feature: '✨ Feature', task: '📋 Task', project: '📁 Projekt',
+};
+const PRIO_CLS: Record<string, string> = { hoch: 'text-red-400', mittel: 'text-yellow-400', niedrig: 'text-green-400' };
+const PRIO_ICON: Record<string, string> = { hoch: '▲', mittel: '●', niedrig: '▼' };
+
+function formatDate(d: Date | null | string): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function buildLink(ov: Record<string, string | undefined>): string {
+  const p = new URLSearchParams();
+  const keep = { type: typeFilter, status: statusFilter, component: componentFilter,
+                 assigneeId: assigneeFilter, customerId: customerFilter,
+                 thesisTag: thesisFilter, tag: tagFilter, q: qFilter };
+  const merged = { ...keep, ...ov };
+  for (const [k, v] of Object.entries(merged)) if (v) p.set(k, String(v));
+  const qs = p.toString();
+  return `/admin/tickets${qs ? '?' + qs : ''}`;
+}
+
+const SAVED_VIEWS: { label: string; href: string }[] = [
+  { label: 'Alle offenen', href: '/admin/tickets?status=open' },
+  { label: 'Meine offenen', href: `/admin/tickets?status=open&assigneeId=${admins.find(a => a.email === session.email)?.id ?? ''}` },
+  { label: 'Triage',        href: '/admin/tickets?status=triage' },
+  { label: 'In Review',     href: '/admin/tickets?status=in_review' },
+  { label: 'Blockiert',     href: '/admin/tickets?status=blocked' },
+  { label: 'Bugs',          href: '/admin/tickets?type=bug&status=open' },
+  { label: 'Features',      href: '/admin/tickets?type=feature&status=open' },
+  { label: 'Projekte',      href: '/admin/tickets?type=project&status=open' },
+  { label: 'Thesis FA',     href: '/admin/tickets?thesisTag=FA' },
+];
+---
+
+<AdminLayout title="Admin — Tickets">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-3xl font-bold text-light font-serif">Tickets</h1>
+          <p class="text-muted mt-1">{total} {total === 1 ? 'Ticket' : 'Tickets'} (gefiltert)</p>
+        </div>
+        <button type="button" id="create-btn"
+          class="px-4 py-2 bg-gold hover:bg-gold-light text-dark text-sm font-semibold rounded-lg transition-colors">
+          + Neues Ticket
+        </button>
+      </div>
+
+      {/* Saved-view chips */}
+      <div class="flex flex-wrap gap-2 mb-6">
+        {SAVED_VIEWS.map(v => (
+          <a href={v.href}
+            class="px-3 py-1 text-xs rounded-full bg-dark-light border border-dark-lighter text-muted hover:text-light hover:border-gold/40 transition-colors">
+            {v.label}
+          </a>
+        ))}
+      </div>
+
+      {dbError && (
+        <div class="mb-6 p-4 bg-red-900/30 border border-red-800 rounded-xl text-red-300 text-sm">
+          {dbError}
+        </div>
+      )}
+
+      {/* Filters */}
+      <form method="get" action="/admin/tickets" class="flex flex-wrap gap-3 mb-6 items-end">
+        <div>
+          <label class="block text-xs text-muted mb-1">Typ</label>
+          <select name="type"
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg cursor-pointer">
+            <option value="" selected={!typeFilter}>Alle Typen</option>
+            <option value="bug"     selected={typeFilter === 'bug'}>🐛 Bug</option>
+            <option value="feature" selected={typeFilter === 'feature'}>✨ Feature</option>
+            <option value="task"    selected={typeFilter === 'task'}>📋 Task</option>
+            <option value="project" selected={typeFilter === 'project'}>📁 Projekt</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Status</label>
+          <select name="status"
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg cursor-pointer">
+            <option value="open"        selected={statusFilter === 'open'}>Offen (alle aktiven)</option>
+            <option value="all"         selected={statusFilter === 'all'}>Alle (auch fertig/archiv)</option>
+            <option value="triage"      selected={statusFilter === 'triage'}>Triage</option>
+            <option value="backlog"     selected={statusFilter === 'backlog'}>Backlog</option>
+            <option value="in_progress" selected={statusFilter === 'in_progress'}>In Arbeit</option>
+            <option value="in_review"   selected={statusFilter === 'in_review'}>Review</option>
+            <option value="blocked"     selected={statusFilter === 'blocked'}>Blockiert</option>
+            <option value="done"        selected={statusFilter === 'done'}>Fertig</option>
+            <option value="archived"    selected={statusFilter === 'archived'}>Archiviert</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Komponente</label>
+          <select name="component"
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg cursor-pointer">
+            <option value="" selected={!componentFilter}>Alle</option>
+            {components.map(c => <option value={c} selected={componentFilter === c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Zuständig</label>
+          <select name="assigneeId"
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg cursor-pointer">
+            <option value="" selected={!assigneeFilter}>Alle</option>
+            {admins.map(a => <option value={a.id} selected={assigneeFilter === a.id}>{a.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Kunde</label>
+          <select name="customerId"
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg cursor-pointer">
+            <option value="" selected={!customerFilter}>Alle</option>
+            {customers.map(c => <option value={c.id} selected={customerFilter === c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-xs text-muted mb-1">Suche</label>
+          <input type="text" name="q" value={qFilter}
+            placeholder="Titel, Ticket-ID, Reporter-E-Mail"
+            class="w-full px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg" />
+        </div>
+        <button type="submit"
+          class="px-4 py-1.5 bg-gold/20 text-gold rounded-lg text-sm hover:bg-gold/30 transition-colors">
+          Filtern
+        </button>
+        <a href="/admin/tickets" class="px-3 py-1.5 text-sm text-muted hover:text-light">↺ Reset</a>
+      </form>
+
+      {/* Table */}
+      <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dark-lighter">
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">ID</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Typ</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Titel</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Status</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Prio</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Zuständig</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Kunde</th>
+              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tickets.length === 0 ? (
+              <tr>
+                <td colspan="8" class="px-4 py-10 text-center text-muted text-sm">
+                  Keine Tickets für diese Filterauswahl.
+                </td>
+              </tr>
+            ) : tickets.map(t => (
+              <tr class={`border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors ${t.status === 'archived' ? 'opacity-50' : ''}`}>
+                <td class="px-4 py-3 font-mono text-xs text-gold whitespace-nowrap align-top">
+                  <a href={`/admin/tickets/${t.id}`} class="hover:underline">
+                    {t.externalId ?? t.id.slice(0, 8)}
+                  </a>
+                </td>
+                <td class="px-4 py-3 text-xs whitespace-nowrap align-top">
+                  {TYPE_LABEL[t.type] ?? t.type}
+                </td>
+                <td class="px-4 py-3 align-top">
+                  <a href={`/admin/tickets/${t.id}`} class="text-light hover:text-gold text-sm">{t.title}</a>
+                  {t.tagNames.length > 0 && (
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      {t.tagNames.map(tag => (
+                        <a href={buildLink({ tag })}
+                          class="text-[10px] px-1.5 py-0.5 rounded bg-dark border border-dark-lighter text-muted hover:text-light hover:border-gold/40">
+                          {tag}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </td>
+                <td class="px-4 py-3 align-top">
+                  <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[t.status] ?? ''}`}>
+                    {STATUS_LABEL[t.status] ?? t.status}
+                  </span>
+                </td>
+                <td class={`px-4 py-3 text-sm whitespace-nowrap align-top ${PRIO_CLS[t.priority] ?? ''}`}>
+                  {PRIO_ICON[t.priority]} {t.priority}
+                </td>
+                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{t.assigneeLabel ?? '—'}</td>
+                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{t.customerLabel ?? '—'}</td>
+                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{formatDate(t.dueDate)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  {/* Create dialog */}
+  <dialog id="create-dialog"
+    class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-lg backdrop:bg-black/60">
+    <h2 class="text-lg font-semibold text-light mb-4 font-serif">Neues Ticket</h2>
+    <form id="create-form" class="space-y-4">
+      <div>
+        <label class="block text-xs text-muted mb-1">Typ <span class="text-red-400">*</span></label>
+        <select name="type" required
+          class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+          <option value="feature">✨ Feature</option>
+          <option value="task">📋 Task</option>
+          <option value="project">📁 Projekt</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Titel <span class="text-red-400">*</span></label>
+        <input type="text" name="title" required maxlength="200"
+          class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Beschreibung</label>
+        <textarea name="description" rows="3" maxlength="4000"
+          class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-muted mb-1">Priorität</label>
+          <select name="priority"
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+            <option value="hoch">▲ Hoch</option>
+            <option value="mittel" selected>● Mittel</option>
+            <option value="niedrig">▼ Niedrig</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Komponente</label>
+          <input type="text" name="component" maxlength="100"
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-muted mb-1">Zuständig</label>
+          <select name="assigneeId"
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+            <option value="">— niemand —</option>
+            {admins.map(a => <option value={a.id}>{a.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Kunde</label>
+          <select name="customerId"
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+            <option value="">— kein Kunde —</option>
+            {customers.map(c => <option value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+      </div>
+      <p id="create-error" class="text-red-400 text-xs hidden"></p>
+      <div class="flex gap-3 justify-end">
+        <button type="button" id="create-cancel"
+          class="px-4 py-2 text-sm text-muted hover:text-light transition-colors">Abbrechen</button>
+        <button type="submit"
+          class="px-4 py-2 text-sm bg-gold hover:bg-gold-light text-dark font-semibold rounded-lg transition-colors">
+          Erstellen
+        </button>
+      </div>
+    </form>
+  </dialog>
+</AdminLayout>
+
+<script>
+  const dialog = document.getElementById('create-dialog') as HTMLDialogElement;
+  const form   = document.getElementById('create-form')   as HTMLFormElement;
+  const error  = document.getElementById('create-error')  as HTMLParagraphElement;
+  document.getElementById('create-btn')?.addEventListener('click', () => dialog.showModal());
+  document.getElementById('create-cancel')?.addEventListener('click', () => dialog.close());
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    error.classList.add('hidden');
+    const fd = new FormData(form);
+    const body: Record<string, unknown> = {};
+    for (const [k, v] of fd.entries()) if (v) body[k] = v;
+    const r = await fetch('/api/admin/tickets', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({ error: 'Fehler' }));
+      error.textContent = j.error ?? 'Fehler';
+      error.classList.remove('hidden');
+      return;
+    }
+    const j = await r.json() as { id: string };
+    location.href = `/admin/tickets/${j.id}`;
+  });
+</script>

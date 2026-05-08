@@ -34,7 +34,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
 
   const body = await request.json() as { status?: string; coach_notes?: string };
   const updated = await updateQAssignment(params.id!, {
-    status: body.status as 'reviewed' | undefined,
+    status: body.status as import('../../../../../lib/questionnaire-db').AssignmentStatus | undefined,
     coachNotes: body.coach_notes,
   });
   if (!updated) return new Response(JSON.stringify({ error: 'Nicht gefunden.' }), { status: 404 });

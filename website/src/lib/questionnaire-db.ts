@@ -19,7 +19,7 @@ const pool = new pg.Pool(
 
 export type QuestionType = 'ab_choice' | 'ja_nein' | 'likert_5' | 'test_step';
 export type TestStepResult = 'erfüllt' | 'teilweise' | 'nicht_erfüllt';
-export type AssignmentStatus = 'pending' | 'in_progress' | 'submitted' | 'reviewed' | 'dismissed';
+export type AssignmentStatus = 'pending' | 'in_progress' | 'submitted' | 'reviewed' | 'archived' | 'dismissed';
 
 export interface QTemplate {
   id: string;
@@ -75,8 +75,10 @@ export interface QAssignment {
   assigned_at: string;
   submitted_at: string | null;
   reviewed_at: string | null;
+  archived_at: string | null;   // new
   dismissed_at: string | null;
   dismiss_reason: string | null;
+  project_id: string | null;    // new
 }
 
 export interface QAnswer {
@@ -225,6 +227,8 @@ async function initDb() {
     ADD COLUMN IF NOT EXISTS is_system_test BOOLEAN NOT NULL DEFAULT false`);
   await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismissed_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismiss_reason TEXT`);
+  await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL`);
+  await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_test_status (
       question_id UUID PRIMARY KEY REFERENCES questionnaire_questions(id) ON DELETE CASCADE,
@@ -359,6 +363,16 @@ export async function listQQuestions(templateId: string): Promise<QQuestion[]> {
   return r.rows;
 }
 
+export async function getQQuestion(id: string): Promise<QQuestion | null> {
+  const r = await pool.query(
+    `SELECT id, template_id, position, question_text, question_type,
+            test_expected_result, test_function_url, test_menu_path, test_role, created_at
+     FROM questionnaire_questions WHERE id = $1`,
+    [id],
+  );
+  return r.rows[0] ?? null;
+}
+
 export async function upsertQQuestion(params: {
   id?: string; templateId: string; position: number;
   questionText: string; questionType: QuestionType;
@@ -445,13 +459,14 @@ export async function replaceQAnswerOptions(questionId: string, options: Array<{
 // ── Assignments ───────────────────────────────────────────────────
 
 export async function createQAssignment(params: {
-  customerId: string; templateId: string;
+  customerId: string; templateId: string; projectId?: string;
 }): Promise<QAssignment> {
   const r = await pool.query(
-    `INSERT INTO questionnaire_assignments (customer_id, template_id)
-     VALUES ($1, $2)
-     RETURNING id, customer_id, template_id, status, coach_notes, assigned_at, submitted_at, reviewed_at, dismissed_at, dismiss_reason`,
-    [params.customerId, params.templateId],
+    `INSERT INTO questionnaire_assignments (customer_id, template_id, project_id)
+     VALUES ($1, $2, $3)
+     RETURNING id, customer_id, template_id, status, coach_notes, assigned_at,
+               submitted_at, reviewed_at, archived_at, dismissed_at, dismiss_reason, project_id`,
+    [params.customerId, params.templateId, params.projectId ?? null],
   );
   const row = r.rows[0];
   const tpl = await getQTemplate(row.template_id);
@@ -462,7 +477,7 @@ export async function listQAssignmentsForCustomer(customerId: string): Promise<Q
   const r = await pool.query(
     `SELECT a.id, a.customer_id, a.template_id, t.title AS template_title,
             a.status, a.coach_notes, a.assigned_at, a.submitted_at, a.reviewed_at,
-            a.dismissed_at, a.dismiss_reason
+            a.archived_at, a.dismissed_at, a.dismiss_reason, a.project_id
      FROM questionnaire_assignments a
      JOIN questionnaire_templates t ON t.id = a.template_id
      WHERE a.customer_id = $1
@@ -476,7 +491,7 @@ export async function getQAssignment(id: string): Promise<QAssignment | null> {
   const r = await pool.query(
     `SELECT a.id, a.customer_id, a.template_id, t.title AS template_title,
             a.status, a.coach_notes, a.assigned_at, a.submitted_at, a.reviewed_at,
-            a.dismissed_at, a.dismiss_reason
+            a.archived_at, a.dismissed_at, a.dismiss_reason, a.project_id
      FROM questionnaire_assignments a
      JOIN questionnaire_templates t ON t.id = a.template_id
      WHERE a.id = $1`,
@@ -494,6 +509,7 @@ export async function updateQAssignment(id: string, params: {
     vals.push(params.status); sets.push(`status = $${vals.length}`);
     if (params.status === 'submitted') sets.push(`submitted_at = now()`);
     if (params.status === 'reviewed') sets.push(`reviewed_at = now()`);
+    if (params.status === 'archived') sets.push(`archived_at = now()`);
     if (params.status === 'dismissed') sets.push(`dismissed_at = now()`);
   }
   if (params.dismissReason !== undefined) { vals.push(params.dismissReason); sets.push(`dismiss_reason = $${vals.length}`); }
@@ -503,7 +519,8 @@ export async function updateQAssignment(id: string, params: {
   const r = await pool.query(
     `UPDATE questionnaire_assignments SET ${sets.join(', ')}
      WHERE id = $${vals.length}
-     RETURNING id, customer_id, template_id, status, coach_notes, assigned_at, submitted_at, reviewed_at, dismissed_at, dismiss_reason`,
+     RETURNING id, customer_id, template_id, status, coach_notes, assigned_at,
+               submitted_at, reviewed_at, archived_at, dismissed_at, dismiss_reason, project_id`,
     vals,
   );
   const row = r.rows[0];
@@ -518,7 +535,7 @@ export async function dismissQAssignment(id: string, reason: string): Promise<QA
 
 export async function countPendingQAssignmentsForCustomer(customerId: string): Promise<number> {
   const r = await pool.query(
-    `SELECT COUNT(*)::int FROM questionnaire_assignments
+    `SELECT COUNT(*)::int AS count FROM questionnaire_assignments
      WHERE customer_id = $1 AND status IN ('pending','in_progress')`,
     [customerId],
   );

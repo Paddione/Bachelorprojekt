@@ -18,6 +18,7 @@ interface UploadBody {
   };
   consoleLog?: unknown[];
   networkLog?: unknown[];
+  partial?: boolean;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -33,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response('bad json', { status: 400 });
   }
 
-  const { assignmentId, questionId, attempt, chunk, consoleLog, networkLog } = body;
+  const { assignmentId, questionId, attempt, chunk, consoleLog, networkLog, partial } = body;
 
   // Reject non-UUID inputs (joined into filesystem path).
   if (!UUID_RE.test(assignmentId) || !UUID_RE.test(questionId)) {
@@ -57,6 +58,14 @@ export const POST: APIRoute = async ({ request }) => {
   let replayPath: string;
   if (existing.rows.length === 0) {
     const dir = path.join(EVIDENCE_ROOT, assignmentId, questionId);
+    // Belt-and-suspenders: even though the UUID regex above already prevents
+    // traversal, double-check the resolved directory stays under EVIDENCE_ROOT
+    // so this remains safe if the regex is ever loosened.
+    const resolvedRoot = path.resolve(EVIDENCE_ROOT);
+    const resolvedDir = path.resolve(dir);
+    if (!resolvedDir.startsWith(resolvedRoot + path.sep) && resolvedDir !== resolvedRoot) {
+      return new Response('bad path', { status: 400 });
+    }
     await fs.mkdir(dir, { recursive: true });
     replayPath = path.join(dir, `${attempt}.rrweb`);
     const ins = await pool.query(
@@ -78,13 +87,21 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (chunk.isFinal) {
+    // COALESCE so an absent `partial` field doesn't clobber a previously-set
+    // true (e.g. an earlier non-final chunk that already marked the row).
     await pool.query(
       `UPDATE questionnaire_test_evidence
          SET recorded_to = now(),
              console_log = $2,
-             network_log = $3
+             network_log = $3,
+             partial = COALESCE($4, partial)
        WHERE id = $1`,
-      [id, JSON.stringify(consoleLog ?? []), JSON.stringify(networkLog ?? [])],
+      [
+        id,
+        JSON.stringify(consoleLog ?? []),
+        JSON.stringify(networkLog ?? []),
+        typeof partial === 'boolean' ? partial : null,
+      ],
     );
   }
 

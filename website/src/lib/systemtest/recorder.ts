@@ -64,12 +64,14 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
   });
 
   // Capture console.error / console.warn for context in the evidence row.
-  const consolePatched: Record<'error' | 'warn', typeof console.error> = {
+  // Stash originals so we can restore them on finalize/cancel — otherwise the
+  // patches outlive the recorder and keep pushing into orphaned arrays.
+  const origConsole: Record<'error' | 'warn', typeof console.error> = {
     error: console.error,
     warn: console.warn,
   };
   for (const lvl of ['error', 'warn'] as const) {
-    const orig = consolePatched[lvl];
+    const orig = origConsole[lvl];
     console[lvl] = (...args: unknown[]) => {
       consoleLog.push({ level: lvl, args: args.map((a) => String(a)), at: Date.now() });
       orig.apply(console, args as []);
@@ -93,11 +95,17 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
     }
   };
 
+  function restorePatches(): void {
+    for (const lvl of ['error', 'warn'] as const) console[lvl] = origConsole[lvl];
+    window.fetch = origFetch;
+  }
+
   async function flush(isFinal: boolean): Promise<void> {
     if (events.length === 0 && !isFinal) return;
     const drained = events.splice(0);
     bufferBytes = 0;
     const chunk = { events: drained, chunkIndex: chunkIndex++, isFinal };
+    // Stringify once; reuse on every retry attempt.
     const body = JSON.stringify({
       assignmentId: opts.assignmentId,
       questionId: opts.questionId,
@@ -105,6 +113,7 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
       chunk,
       consoleLog,
       networkLog,
+      partial,
     });
     const delays = [5_000, 15_000, 45_000];
     for (let attemptN = 0; ; attemptN++) {
@@ -147,6 +156,7 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
           chunk: { events: drained, chunkIndex: chunkIndex++, isFinal: true },
           consoleLog,
           networkLog,
+          partial,
         }),
       ],
       { type: 'application/json' },
@@ -162,6 +172,8 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('beforeunload', handlePageHide);
       stop?.();
+      // Restore BEFORE the final flush so the flush itself isn't fetch-logged.
+      restorePatches();
       await flush(true);
       return { evidenceId, partial };
     },
@@ -170,6 +182,7 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('beforeunload', handlePageHide);
       stop?.();
+      restorePatches();
     },
   };
 }

@@ -1,0 +1,12 @@
+{
+  "pr_number": 578,
+  "title": "Mentolder-Assistent (help widget redesign)",
+  "description": "## Summary\n\nReplaces the static `HelpPanel` + 508-line `helpContent.ts` with a conversational, action-capable Mentolder-Assistent. Mounted in both `/admin/*` and `/portal/*` behind env-flag gates that are now turned ON.\n\n**No LLM is wired** — the user owns that decision (DSGVO, model choice, key handling). Until they wire one in `lib/assistant/llm.ts`, the assistant falls back to deterministic keyword search over the existing 33-section helpContent.\n\n## What ships\n\n- Floating gold \"?\" icon, bottom-right, in both admin and portal layouts\n- Click → chat panel with text input + push-to-talk mic (Whisper STT via `/api/assistant/transcribe`)\n- Question → keyword search → returns the best-matching help section formatted as a chat reply\n- Proactive nudges (admin: morning briefing, term-imminent, fragebogen submitted, payment received; portal: first-login onboarding, signature pending, 24h/1h reminder, coach message, fragebogen open). All `safeQuery`-wrapped so missing tables warn instead of crash.\n- Action whitelist: 4/5 admin actions wired, 3/7 portal actions wired (rest stubbed — see follow-ups in spec)\n- Profile isolation enforced server-side (admin actions cannot leak into portal)\n\n## Documents\n\n- Spec: `docs/superpowers/specs/2026-05-08-mentolder-assistent-design.md`\n- Plan: `docs/superpowers/plans/2026-05-08-mentolder-assistent.md`\n\n## Test plan\n\n- [x] `npx tsc --noEmit` clean\n- [x] `npx vitest run src/lib/assistant/` — 27 tests passing, 3 DB-integration tests skipped\n- [ ] Live smoke on `web.mentolder.de/admin` after deploy\n- [ ] Live smoke on `web.korczewski.de/portal` after deploy\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "assistant",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T06:48:02Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

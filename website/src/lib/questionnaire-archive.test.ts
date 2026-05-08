@@ -293,3 +293,31 @@ describe.skipIf(!dbAvailable)('getDisplayScores', () => {
     expect(frozen[0].name).toBe('D');
   });
 });
+
+describe.skipIf(!dbAvailable)('updateQAssignment archived reroute', () => {
+  it('writes a snapshot when status is set to archived via updateQAssignment', async () => {
+    const tpl = await createQTemplate({
+      title: `reroute-${randomUUID().slice(0, 8)}`, description: '', instructions: '',
+    });
+    const dim = await upsertQDimension({
+      templateId: tpl.id, name: 'R', position: 0, thresholdMid: 5, thresholdHigh: 10,
+    });
+    const q = await upsertQQuestion({
+      templateId: tpl.id, position: 0, questionText: 'q', questionType: 'likert_5',
+    });
+    await replaceQAnswerOptions(q.id, [
+      { optionKey: '2', label: 'y', dimensionId: dim.id, weight: 1 },
+    ]);
+    const a = await createQAssignment({ customerId: randomUUID(), templateId: tpl.id });
+    await upsertQAnswer({ assignmentId: a.id, questionId: q.id, optionKey: '2' });
+    await updateQAssignment(a.id, { status: 'submitted' });
+
+    await updateQAssignment(a.id, { status: 'archived' });
+    const snap = await pool.query(
+      `SELECT count(*)::int AS n FROM questionnaire_assignment_scores
+        WHERE assignment_id = $1`,
+      [a.id],
+    );
+    expect(snap.rows[0].n).toBe(1);
+  });
+});

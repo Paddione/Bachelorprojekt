@@ -594,17 +594,42 @@ export async function getQAssignment(id: string): Promise<QAssignment | null> {
 export async function updateQAssignment(id: string, params: {
   status?: AssignmentStatus; coachNotes?: string; dismissReason?: string;
 }): Promise<QAssignment | null> {
+  if (params.status === 'archived') {
+    if (params.coachNotes !== undefined || params.dismissReason !== undefined) {
+      const sets: string[] = [];
+      const vals: unknown[] = [];
+      if (params.coachNotes !== undefined) {
+        vals.push(params.coachNotes); sets.push(`coach_notes = $${vals.length}`);
+      }
+      if (params.dismissReason !== undefined) {
+        vals.push(params.dismissReason); sets.push(`dismiss_reason = $${vals.length}`);
+      }
+      vals.push(id);
+      await pool.query(
+        `UPDATE questionnaire_assignments SET ${sets.join(', ')}
+         WHERE id = $${vals.length}`,
+        vals,
+      );
+    }
+    const result = await archiveQAssignment(id);
+    if ('reason' in result) return null;
+    return result.assignment;
+  }
+
   const sets: string[] = [];
   const vals: unknown[] = [];
   if (params.status !== undefined) {
     vals.push(params.status); sets.push(`status = $${vals.length}`);
     if (params.status === 'submitted') sets.push(`submitted_at = now()`);
     if (params.status === 'reviewed') sets.push(`reviewed_at = now()`);
-    if (params.status === 'archived') sets.push(`archived_at = now()`);
     if (params.status === 'dismissed') sets.push(`dismissed_at = now()`);
   }
-  if (params.dismissReason !== undefined) { vals.push(params.dismissReason); sets.push(`dismiss_reason = $${vals.length}`); }
-  if (params.coachNotes !== undefined) { vals.push(params.coachNotes); sets.push(`coach_notes = $${vals.length}`); }
+  if (params.dismissReason !== undefined) {
+    vals.push(params.dismissReason); sets.push(`dismiss_reason = $${vals.length}`);
+  }
+  if (params.coachNotes !== undefined) {
+    vals.push(params.coachNotes); sets.push(`coach_notes = $${vals.length}`);
+  }
   if (sets.length === 0) return getQAssignment(id);
   vals.push(id);
   const r = await pool.query(

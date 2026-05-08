@@ -19,6 +19,8 @@ setup() {
 }
 
 @test "migration: dry-run does not write" {
+  psql "$TRACKING_DB_URL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bachelorprojekt' AND c.relname='requirements'" 2>/dev/null | grep -q '1 row' || \
+    skip "bachelorprojekt.requirements does not exist (sunset already applied)"
   local before
   before=$($PSQL "$TRACKING_DB_URL" -c "SELECT COUNT(*) FROM tickets.pr_events" | tr -d ' ')
   TRACKING_DB_URL="$TRACKING_DB_URL" node "$SCRIPT" >/dev/null
@@ -28,6 +30,8 @@ setup() {
 }
 
 @test "migration: --apply moves a fresh requirement row into tickets.tickets" {
+  psql "$TRACKING_DB_URL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bachelorprojekt' AND c.relname='requirements'" 2>/dev/null | grep -q '1 row' || \
+    skip "bachelorprojekt.requirements does not exist (sunset already applied)"
   $PSQL "$TRACKING_DB_URL" -c \
     "INSERT INTO bachelorprojekt.requirements (id, category, name, description, created_at)
      VALUES ('$EXT_REQ_FIX', 'FA', 'Migration test req', 'desc', now())
@@ -42,6 +46,8 @@ setup() {
 }
 
 @test "migration: --apply twice is idempotent (no duplicates)" {
+  psql "$TRACKING_DB_URL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bachelorprojekt' AND c.relname='requirements'" 2>/dev/null | grep -q '1 row' || \
+    skip "bachelorprojekt.requirements does not exist (sunset already applied)"
   TRACKING_DB_URL="$TRACKING_DB_URL" node "$SCRIPT" --apply >/dev/null
   TRACKING_DB_URL="$TRACKING_DB_URL" node "$SCRIPT" --apply >/dev/null
   run $PSQL "$TRACKING_DB_URL" -c \
@@ -51,6 +57,8 @@ setup() {
 }
 
 @test "migration: bachelorprojekt.v_timeline preserves required columns" {
+  psql "$TRACKING_DB_URL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bachelorprojekt' AND c.relname='requirements'" 2>/dev/null | grep -q '1 row' || \
+    skip "bachelorprojekt.requirements does not exist (sunset already applied)"
   run $PSQL "$TRACKING_DB_URL" -c \
     "SELECT column_name FROM information_schema.columns
       WHERE table_schema='bachelorprojekt' AND table_name='v_timeline'
@@ -62,6 +70,8 @@ setup() {
 }
 
 @test "migration: ticket_links row created when feature row had requirement_id" {
+  psql "$TRACKING_DB_URL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bachelorprojekt' AND c.relname='requirements'" 2>/dev/null | grep -q '1 row' || \
+    skip "bachelorprojekt.requirements does not exist (sunset already applied)"
   # Insert a base-table feature linked to our test requirement, then re-run migration.
   # If features is already a view, this test path is N/A (post-migration), so skip.
   local isTable

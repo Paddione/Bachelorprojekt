@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { LiveCockpitData } from '../../lib/live-state';
+  import ScheduleNudge from './shared/ScheduleNudge.svelte';
 
   let { data }: { data: LiveCockpitData } = $props();
 
@@ -14,6 +15,10 @@
 </script>
 
 <div data-testid="cockpit-launchpad" class="space-y-8">
+  {#if data.schedule.nextEvent}
+    <ScheduleNudge event={data.schedule.nextEvent} />
+  {/if}
+
   <div class="grid md:grid-cols-2 gap-4">
     <a href="/admin/live?force=stream"
        class="bg-dark-light border border-dark-lighter rounded-2xl p-6 hover:border-gold transition-colors block">

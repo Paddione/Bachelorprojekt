@@ -55,8 +55,12 @@ resources:
   # Anforderungs-Tracking
   - tracking.yaml
   - tracking-import-cronjob.yaml
-  # Tests retention (prune tests/results/ nightly)
-  - tests-retention-cronjob.yaml
+  # Tests retention (prune tests/results/ nightly).
+  # Applied separately via envsubst by `workspace:deploy` so its Role+RoleBinding
+  # can land in ${WEBSITE_NAMESPACE} (cross-NS exec into the website pod) — the
+  # top-level `namespace: workspace` in this kustomization would otherwise force
+  # all retention resources into the workspace ns, where the website does NOT live.
+  # See k3d/tests-retention-cronjob.yaml.
   # Transkription
   - whisper.yaml
   # Live-Transkription Bot

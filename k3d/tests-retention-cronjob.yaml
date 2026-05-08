@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: tests-results-retention
-  namespace: workspace
+  namespace: ${WORKSPACE_NAMESPACE}
 spec:
   schedule: '0 3 * * *'
   successfulJobsHistoryLimit: 1
@@ -28,9 +28,9 @@ spec:
               args:
                 - |
                   set -e
-                  POD=$(kubectl -n workspace get pod -l app=website -o jsonpath='{.items[0].metadata.name}')
-                  if [ -z "$POD" ]; then echo "no website pod"; exit 0; fi
-                  kubectl -n workspace exec "$POD" -- sh -c '
+                  POD=$(kubectl -n ${WEBSITE_NAMESPACE} get pod -l app=website -o jsonpath='{.items[0].metadata.name}')
+                  if [ -z "$POD" ]; then echo "no website pod in ${WEBSITE_NAMESPACE}"; exit 0; fi
+                  kubectl -n ${WEBSITE_NAMESPACE} exec "$POD" -- sh -c '
                     cd /app/tests/results 2>/dev/null || cd /tests/results 2>/dev/null || exit 0
                     find . -maxdepth 1 -type f \( -name "*.json" -o -name "*.md" -o -name "*.jsonl" \) -mtime +30 -print -delete
                     find . -maxdepth 1 -type d -name "playwright-traces" -mtime +14 -print -exec rm -rf {} +
@@ -40,13 +40,16 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: tests-retention-sa
-  namespace: workspace
+  namespace: ${WORKSPACE_NAMESPACE}
 ---
+# Role lives in the website namespace because that is where the target pods
+# (the Astro website Deployment) actually run. The CronJob's SA in
+# ${WORKSPACE_NAMESPACE} reaches across via the RoleBinding below.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: tests-retention-role
-  namespace: workspace
+  namespace: ${WEBSITE_NAMESPACE}
 rules:
   - apiGroups: [""]
     resources: [pods]
@@ -59,11 +62,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: tests-retention-rb
-  namespace: workspace
+  namespace: ${WEBSITE_NAMESPACE}
 subjects:
   - kind: ServiceAccount
     name: tests-retention-sa
-    namespace: workspace
+    namespace: ${WORKSPACE_NAMESPACE}
 roleRef:
   kind: Role
   name: tests-retention-role

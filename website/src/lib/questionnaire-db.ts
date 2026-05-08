@@ -274,6 +274,55 @@ async function initDb() {
       END IF;
     END$$
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS questionnaire_assignment_scores (
+      id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      assignment_id  UUID NOT NULL REFERENCES questionnaire_assignments(id) ON DELETE CASCADE,
+      dimension_id   UUID NOT NULL,
+      dimension_name TEXT NOT NULL,
+      final_score    INTEGER NOT NULL,
+      threshold_mid  INTEGER,
+      threshold_high INTEGER,
+      level          TEXT,
+      snapshot_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CONSTRAINT uq_qas_assignment_dimension UNIQUE (assignment_id, dimension_id)
+    )
+  `);
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores(assignment_id)`,
+  );
+  await pool.query(`CREATE SCHEMA IF NOT EXISTS bachelorprojekt`);
+  await pool.query(`
+    CREATE OR REPLACE VIEW bachelorprojekt.v_questionnaire_kpi AS
+    SELECT
+      a.id              AS assignment_id,
+      a.customer_id,
+      a.template_id,
+      t.title           AS template_title,
+      t.is_system_test,
+      a.assigned_at,
+      a.submitted_at,
+      a.archived_at,
+      s.dimension_id,
+      s.dimension_name,
+      s.final_score,
+      s.threshold_mid,
+      s.threshold_high,
+      s.level,
+      ev.evidence_count,
+      ev.latest_evidence_id
+    FROM questionnaire_assignments a
+    JOIN questionnaire_templates t ON t.id = a.template_id
+    JOIN questionnaire_assignment_scores s ON s.assignment_id = a.id
+    LEFT JOIN LATERAL (
+      SELECT
+        COUNT(*)::int AS evidence_count,
+        (ARRAY_AGG(e.id ORDER BY e.attempt DESC, e.created_at DESC))[1] AS latest_evidence_id
+      FROM questionnaire_test_evidence e
+      WHERE e.assignment_id = a.id
+    ) ev ON true
+    WHERE a.status = 'archived'
+  `);
   await ensureSystemtestSchema(pool);
   await seedSystemTestTemplates();
 }
@@ -545,17 +594,42 @@ export async function getQAssignment(id: string): Promise<QAssignment | null> {
 export async function updateQAssignment(id: string, params: {
   status?: AssignmentStatus; coachNotes?: string; dismissReason?: string;
 }): Promise<QAssignment | null> {
+  if (params.status === 'archived') {
+    if (params.coachNotes !== undefined || params.dismissReason !== undefined) {
+      const sets: string[] = [];
+      const vals: unknown[] = [];
+      if (params.coachNotes !== undefined) {
+        vals.push(params.coachNotes); sets.push(`coach_notes = $${vals.length}`);
+      }
+      if (params.dismissReason !== undefined) {
+        vals.push(params.dismissReason); sets.push(`dismiss_reason = $${vals.length}`);
+      }
+      vals.push(id);
+      await pool.query(
+        `UPDATE questionnaire_assignments SET ${sets.join(', ')}
+         WHERE id = $${vals.length}`,
+        vals,
+      );
+    }
+    const result = await archiveQAssignment(id);
+    if ('reason' in result) return null;
+    return result.assignment;
+  }
+
   const sets: string[] = [];
   const vals: unknown[] = [];
   if (params.status !== undefined) {
     vals.push(params.status); sets.push(`status = $${vals.length}`);
     if (params.status === 'submitted') sets.push(`submitted_at = now()`);
     if (params.status === 'reviewed') sets.push(`reviewed_at = now()`);
-    if (params.status === 'archived') sets.push(`archived_at = now()`);
     if (params.status === 'dismissed') sets.push(`dismissed_at = now()`);
   }
-  if (params.dismissReason !== undefined) { vals.push(params.dismissReason); sets.push(`dismiss_reason = $${vals.length}`); }
-  if (params.coachNotes !== undefined) { vals.push(params.coachNotes); sets.push(`coach_notes = $${vals.length}`); }
+  if (params.dismissReason !== undefined) {
+    vals.push(params.dismissReason); sets.push(`dismiss_reason = $${vals.length}`);
+  }
+  if (params.coachNotes !== undefined) {
+    vals.push(params.coachNotes); sets.push(`coach_notes = $${vals.length}`);
+  }
   if (sets.length === 0) return getQAssignment(id);
   vals.push(id);
   const r = await pool.query(
@@ -573,6 +647,99 @@ export async function updateQAssignment(id: string, params: {
 
 export async function dismissQAssignment(id: string, reason: string): Promise<QAssignment | null> {
   return updateQAssignment(id, { status: 'dismissed', dismissReason: reason });
+}
+
+const ARCHIVABLE_STATUSES: AssignmentStatus[] = ['submitted', 'reviewed', 'archived'];
+
+export async function archiveQAssignment(id: string): Promise<
+  | { assignment: QAssignment }
+  | { reason: 'not_found' | 'not_archivable'; status?: AssignmentStatus }
+> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const a = await client.query<{ template_id: string; status: AssignmentStatus }>(
+      `SELECT template_id, status FROM questionnaire_assignments
+        WHERE id = $1 FOR UPDATE`,
+      [id],
+    );
+    if (a.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return { reason: 'not_found' };
+    }
+    const status = a.rows[0].status;
+    if (!ARCHIVABLE_STATUSES.includes(status)) {
+      await client.query('ROLLBACK');
+      return { reason: 'not_archivable', status };
+    }
+    const templateId = a.rows[0].template_id;
+
+    if (status !== 'archived') {
+      await client.query(
+        `UPDATE questionnaire_assignments
+            SET status = 'archived', archived_at = now()
+          WHERE id = $1`,
+        [id],
+      );
+    }
+
+    const dimsRes = await client.query<QDimension>(
+      `SELECT id, template_id, name, position, threshold_mid, threshold_high,
+              score_multiplier, created_at
+         FROM questionnaire_dimensions WHERE template_id = $1 ORDER BY position`,
+      [templateId],
+    );
+    const optsRes = await client.query<QAnswerOption>(
+      `SELECT ao.id, ao.question_id, ao.option_key, ao.label, ao.dimension_id, ao.weight
+         FROM questionnaire_answer_options ao
+         JOIN questionnaire_questions q ON q.id = ao.question_id
+        WHERE q.template_id = $1`,
+      [templateId],
+    );
+    const ansRes = await client.query<QAnswer>(
+      `SELECT id, assignment_id, question_id, option_key, details_text, saved_at
+         FROM questionnaire_answers WHERE assignment_id = $1`,
+      [id],
+    );
+
+    const { computeScores } = await import('./compute-scores');
+    const scores = computeScores(dimsRes.rows, optsRes.rows, ansRes.rows);
+    for (const s of scores) {
+      await client.query(
+        `INSERT INTO questionnaire_assignment_scores
+           (assignment_id, dimension_id, dimension_name, final_score,
+            threshold_mid, threshold_high, level)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT ON CONSTRAINT uq_qas_assignment_dimension DO NOTHING`,
+        [id, s.dimension_id, s.name, s.final_score,
+         s.threshold_mid, s.threshold_high, s.level],
+      );
+    }
+
+    await client.query('COMMIT');
+    const updated = await getQAssignment(id);
+    if (!updated) return { reason: 'not_found' };
+    return { assignment: updated };
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function reassignQAssignment(id: string): Promise<
+  | { assignment: QAssignment }
+  | { reason: 'not_found' }
+> {
+  const src = await getQAssignment(id);
+  if (!src) return { reason: 'not_found' };
+  const created = await createQAssignment({
+    customerId: src.customer_id,
+    templateId: src.template_id,
+    projectId: src.project_id ?? undefined,
+  });
+  return { assignment: created };
 }
 
 /**
@@ -800,4 +967,50 @@ export async function listTestStatusesForMonitoring(): Promise<{
     });
   }
   return Array.from(byTemplate.values());
+}
+
+export interface QArchivedScore {
+  assignment_id: string;
+  dimension_id: string;
+  dimension_name: string;
+  final_score: number;
+  threshold_mid: number | null;
+  threshold_high: number | null;
+  level: 'förderlich' | 'mittel' | 'kritisch' | null;
+  snapshot_at: string;
+}
+
+export async function listArchivedScores(assignmentId: string): Promise<QArchivedScore[]> {
+  const r = await pool.query(
+    `SELECT assignment_id, dimension_id, dimension_name, final_score,
+            threshold_mid, threshold_high, level, snapshot_at
+       FROM questionnaire_assignment_scores
+      WHERE assignment_id = $1
+      ORDER BY dimension_name`,
+    [assignmentId],
+  );
+  return r.rows;
+}
+
+export interface QEvidenceForQuestion {
+  question_id: string;
+  latest_evidence_id: string;
+  latest_attempt: number;
+  evidence_count: number;
+}
+
+export async function listEvidenceByAssignment(
+  assignmentId: string,
+): Promise<QEvidenceForQuestion[]> {
+  const r = await pool.query(
+    `SELECT question_id,
+            (ARRAY_AGG(id ORDER BY attempt DESC, created_at DESC))[1] AS latest_evidence_id,
+            MAX(attempt)::int                                          AS latest_attempt,
+            COUNT(*)::int                                              AS evidence_count
+       FROM questionnaire_test_evidence
+      WHERE assignment_id = $1
+      GROUP BY question_id`,
+    [assignmentId],
+  );
+  return r.rows;
 }

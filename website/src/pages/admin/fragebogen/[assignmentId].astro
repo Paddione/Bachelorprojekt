@@ -1,13 +1,14 @@
 ---
-// website/src/pages/admin/fragebogen/[assignmentId].astro
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import {
   getQAssignment, listQDimensions, listQQuestions,
   listQAnswerOptionsForTemplate, listQAnswers, getQTemplate,
+  listEvidenceByAssignment,
 } from '../../../lib/questionnaire-db';
-import { computeScores } from '../../../lib/compute-scores';
+import { getDisplayScores } from '../../../lib/compute-scores';
 import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
+import SystemtestReplayDrawer from '../../../components/SystemtestReplayDrawer.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -19,32 +20,22 @@ if (!assignmentId) return Astro.redirect('/admin');
 const assignment = await getQAssignment(assignmentId).catch(() => null);
 if (!assignment) return Astro.redirect('/admin');
 
-const [dimensions, questions, allOptions, answers] = await Promise.all([
+const [dimensions, questions, allOptions, answers, evidenceList] = await Promise.all([
   listQDimensions(assignment.template_id),
   listQQuestions(assignment.template_id),
   listQAnswerOptionsForTemplate(assignment.template_id),
   listQAnswers(assignment.id),
+  listEvidenceByAssignment(assignment.id),
 ]);
 
 const tpl = await getQTemplate(assignment.template_id).catch(() => null);
 const isSystemTest = tpl?.is_system_test ?? false;
-
-// Task 10: when the rrweb recorder boot and the "Seed test data" button get
-// wired into this page, gate them on `isSystemtestLoopEnabled()`. The sticky
-// guidance panel below is rendered unconditionally for system-test templates
-// — it's harmless and tester-useful regardless of rollout state.
-//
-// Today neither the seed button nor the recorder boot exist in the
-// questionnaire UI (they ship in a follow-up). The flag is imported here so
-// the moment those land, gating is a one-line change: wrap the boot/render
-// in `{systemtestLoopEnabled && (...)}`.
 const systemtestLoopEnabled = isSystemTest && isSystemtestLoopEnabled();
-// `systemtestLoopEnabled` is intentionally computed but unused at this
-// rollout stage — the seed button + recorder boot land in a follow-up PR.
 void systemtestLoopEnabled;
 
-const scores = computeScores(dimensions, allOptions, answers);
+const scores = await getDisplayScores(assignment);
 const answerMap = new Map(answers.map(a => [a.question_id, a]));
+const evidenceMap = new Map(evidenceList.map(e => [e.question_id, e]));
 
 function levelColor(level: string | null) {
   if (level === 'kritisch') return '#ef4444';
@@ -221,6 +212,16 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
                     ) : (
                       <span class="text-muted text-xs italic flex-1">Noch nicht getestet</span>
                     )}
+                    {isSystemTest && evidenceMap.has(q.id) && (
+                      <button
+                        type="button"
+                        class="replay-btn px-2.5 py-1 text-xs border border-blue-500/30 text-blue-400 rounded hover:bg-blue-500/10 transition-colors flex-shrink-0"
+                        data-evidence-id={evidenceMap.get(q.id)?.latest_evidence_id}
+                      >
+                        ▶ Replay ansehen
+                        <span class="ml-1 text-blue-300/70">(Versuch {evidenceMap.get(q.id)?.latest_attempt})</span>
+                      </button>
+                    )}
                     {canFileBug && (
                       <button
                         class="file-bug-btn px-2.5 py-1 text-xs border border-red-500/30 text-red-400 rounded hover:bg-red-500/10 transition-colors flex-shrink-0"
@@ -324,13 +325,21 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
               Als besprochen markieren ✓
             </button>
           )}
-          {assignment.status === 'reviewed' && (
+          {(assignment.status === 'submitted' || assignment.status === 'reviewed') && (
             <button id="archive-btn"
               class="px-4 py-2 bg-dark border border-dark-lighter text-muted rounded-lg text-sm hover:border-gold/40 hover:text-light transition-colors">
               Archivieren
             </button>
           )}
-          {(assignment.status === 'submitted' || assignment.status === 'reviewed' || assignment.status === 'archived' || assignment.status === 'dismissed') && (
+          {assignment.status === 'archived' && (
+            <button id="reassign-btn"
+              data-testid="reassign-questionnaire"
+              class="px-4 py-2 bg-emerald-700 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition-colors"
+              title="Gleichen Fragebogen neu zuweisen — der archivierte Datenpunkt bleibt erhalten.">
+              Erneut zuweisen ➕
+            </button>
+          )}
+          {(assignment.status === 'submitted' || assignment.status === 'reviewed' || assignment.status === 'dismissed') && (
             <button id="reopen-btn"
               data-testid="reopen-questionnaire"
               class="px-4 py-2 bg-amber-700 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors"
@@ -344,6 +353,7 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
 
     </div>
   </section>
+  <div id="replay-drawer-mount"></div>
 </AdminLayout>
 
 <script define:vars={{ assignmentId }}>
@@ -431,12 +441,80 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
 
   // Archive
   document.getElementById('archive-btn')?.addEventListener('click', async () => {
-    const r = await fetch(`/api/admin/questionnaires/assignments/${assignmentId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'archived' }),
+    if (!window.confirm(
+      'Diese Auswertung als historischen Datenpunkt sichern? '
+      + 'Werte werden eingefroren und der Fragebogen verschwindet aus den aktiven Listen.',
+    )) return;
+    const r = await fetch(
+      `/api/admin/questionnaires/assignments/${assignmentId}/archive`,
+      { method: 'POST' },
+    );
+    if (r.ok) {
+      window.location.reload();
+    } else {
+      const d = await r.json().catch(() => ({}));
+      msgEl.textContent = d.error || 'Fehler beim Archivieren.';
+      msgEl.className = 'text-xs mt-2 text-red-400';
+      msgEl.classList.remove('hidden');
+    }
+  });
+
+  // Reassign — create a fresh assignment, keep the archived datapoint
+  document.getElementById('reassign-btn')?.addEventListener('click', async () => {
+    if (!window.confirm(
+      'Gleichen Fragebogen erneut zuweisen? Der archivierte Datenpunkt bleibt unverändert; '
+      + 'eine neue Zuweisung wird angelegt.',
+    )) return;
+    const btn = document.getElementById('reassign-btn');
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      const r = await fetch(
+        `/api/admin/questionnaires/assignments/${assignmentId}/reassign`,
+        { method: 'POST' },
+      );
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) {
+        window.location.href = d.portalUrl;
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Erneut zuweisen ➕';
+        msgEl.textContent = d.error || 'Fehler beim Zuweisen.';
+        msgEl.className = 'text-xs mt-2 text-red-400';
+        msgEl.classList.remove('hidden');
+      }
+    } catch {
+      btn.disabled = false;
+      btn.textContent = 'Erneut zuweisen ➕';
+      msgEl.textContent = 'Netzwerkfehler.';
+      msgEl.className = 'text-xs mt-2 text-red-400';
+      msgEl.classList.remove('hidden');
+    }
+  });
+
+  // Replay drawer — lazy-mount SystemtestReplayDrawer
+  let replayDrawer = null;
+  document.querySelectorAll('.replay-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const evidenceId = btn.dataset.evidenceId;
+      if (!evidenceId) return;
+      if (!replayDrawer) {
+        const { default: Drawer } = await import(
+          '../../../components/SystemtestReplayDrawer.svelte'
+        );
+        const replayMount = document.getElementById('replay-drawer-mount');
+        replayDrawer = new Drawer({
+          target: replayMount,
+          props: { evidenceId },
+        });
+        replayDrawer.$on('close', () => {
+          replayDrawer.$destroy();
+          replayDrawer = null;
+        });
+      } else {
+        replayDrawer.$set({ evidenceId });
+      }
     });
-    if (r.ok) window.location.reload();
   });
 
   // Reopen — wipe answers + reset to pending, then jump to portal wizard

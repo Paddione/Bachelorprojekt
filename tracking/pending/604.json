@@ -1,0 +1,12 @@
+{
+  "pr_number": 604,
+  "title": "archive submitted as frozen KPI datapoint + replay surface",
+  "description": "## Summary\n- Archive submitted/reviewed Fragebögen into a frozen `questionnaire_assignment_scores` snapshot, exposed via `bachelorprojekt.v_questionnaire_kpi`\n- Reassign creates a new pending assignment for the same template+customer; archived row stays as a permanent datapoint\n- Detail page wires the existing `SystemtestReplayDrawer` per `test_step` row that has rrweb evidence\n- Active list views split active vs archived: customer panel toggle, project/ticket panel `<details>` block\n- Score bars on archived assignments read from snapshot via `getDisplayScores` so KPI numbers don't drift after template edits\n\n## Test plan\n- [ ] `cd website && npx vitest run src/lib/questionnaire-archive.test.ts src/pages/api/admin/questionnaires/assignments/`\n- [ ] `cd tests/e2e && npx playwright test specs/fa-fragebogen-archive.spec.ts`\n- [ ] Manually archive a submitted Fragebogen on dev and verify it disappears from `ClientQuestionnairesPanel` until \"Archiv anzeigen\" is toggled\n- [ ] Manually reassign and verify the portal wizard opens with a fresh assignment id\n- [ ] On an archived system-test with evidence, verify \"▶ Replay ansehen (Versuch n)\" button appears and opens the replay drawer\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "fragebogen",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T20:41:49Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

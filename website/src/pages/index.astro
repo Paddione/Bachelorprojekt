@@ -23,12 +23,17 @@ import KoreServices from '../components/kore/KoreServices.astro';
 import KoreWhyMe    from '../components/kore/KoreWhyMe.astro';
 import KoreProcess  from '../components/kore/KoreProcess.astro';
 import KoreFaq      from '../components/kore/KoreFaq.astro';
-import { listTimeline } from '../lib/website-db';
+import { listTimeline, getSiteSetting } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const initialTimeline = BRAND_ID === 'korczewski'
   ? await listTimeline({ limit: 20 }).catch(() => [])
   : [];
+
+const homeDescription = BRAND_ID !== 'korczewski'
+  ? await getSiteSetting(BRAND_ID, 'seo_meta_desc_home').catch(() => null)
+  : null;
+const metaDescription = homeDescription ?? config.meta.siteDescription;
 
 const { contact } = config;
 const homepage = await getEffectiveHomepage();
@@ -96,7 +101,7 @@ const processSteps = [
     <KoreFooter />
   </Layout>
 ) : (
-  <Layout title={config.meta.siteTitle}>
+  <Layout title={config.meta.siteTitle} description={metaDescription}>
     <!-- Hero with Portrait -->
     <Hero
       client:load

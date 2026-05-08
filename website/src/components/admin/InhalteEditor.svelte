@@ -3,6 +3,7 @@
   import QuestionnaireTemplateEditor from './QuestionnaireTemplateEditor.svelte';
   import VertragsvorlagenSection from './inhalte/VertragsvorlagenSection.svelte';
   import RechnungsvorlagenSection from './inhalte/RechnungsvorlagenSection.svelte';
+  import SeoEditor from './SeoEditor.svelte';
   import StartseiteSection from './inhalte/StartseiteSection.svelte';
   import UebermichSection from './inhalte/UebermichSection.svelte';
   import AngeboteSection from './inhalte/AngeboteSection.svelte';
@@ -110,6 +111,7 @@
   }
 
   const SECTION_LABELS: Record<string, string> = {
+    seo: 'SEO',
     startseite: 'Startseite',
     uebermich: 'Über mich',
     angebote: 'Angebote',
@@ -155,7 +157,9 @@
   <!-- Content area -->
   <div class="max-w-4xl px-8">
     {#if activeTab === 'website'}
-      {#if activeSection === 'startseite'}
+      {#if activeSection === 'seo'}
+        <SeoEditor />
+      {:else if activeSection === 'startseite'}
         <StartseiteSection initialData={initialData.startseite} />
       {:else if activeSection === 'uebermich'}
         <UebermichSection initialData={initialData.uebermich} />

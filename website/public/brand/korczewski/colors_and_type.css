@@ -216,15 +216,37 @@ a { color: inherit; }
 button { font: inherit; }
 
 /* =========================================================================
-   Legacy token aliases — bridge mentolder-style inline styles
-   (var(--brass), var(--font-serif), …) used in PortalLayout/AdminLayout.
-   This file is only loaded on Kore deployments, so mentolder is unaffected.
+   Kore brand overrides — must beat mentolder's global.css.
+
+   global.css (compiled into _astro/*.css) is injected by Astro AFTER
+   explicit <link> tags, so its :root redefines --brass/--ink-900/--font-serif
+   etc. and silently clobbers Kore values. We use body.kore (specificity
+   0,1,1) so these definitions win over :root (0,1,0) regardless of load
+   order. Loaded only on Kore deployments — mentolder is unaffected.
    ========================================================================= */
-:root {
+body.kore {
+  /* Ink palette — override mentolder blue-black with Kore aubergine */
+  --ink-900: #120D1C;
+  --ink-850: #1A1326;
+  --ink-800: #221932;
+  --ink-750: #2C2240;
+
+  /* Foreground / hairlines — Kore values */
+  --fg:      #ECEFF3;
+  --fg-soft: #C6CCD4;
+  --mute:    #8A93A0;
+  --mute-2:  #69707B;
+  --line:    rgba(255,255,255,.07);
+  --line-2:  rgba(255,255,255,.12);
+
+  /* Legacy mentolder-named accents → Kore Plasma Lime / Cyan */
   --brass:        var(--copper);
   --brass-2:      var(--copper-2);
   --brass-d:      var(--copper-tint);
   --brass-deep:   var(--copper-deep);
+  --sage:         var(--teal);
+
+  /* Legacy mentolder-named font tokens → Kore fonts */
   --font-serif:   var(--serif);
   --font-sans:    var(--sans);
   --font-mono:    var(--mono);

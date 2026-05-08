@@ -249,7 +249,7 @@ export async function initMeetingsDb(): Promise<void> {
 }
 
 async function initMeetingProjectLink(): Promise<void> {
-  await initProjectTables(); // projects-Tabelle muss vor der FK-Spalte existieren
+  await initTicketsSchema(); // tickets.tickets must exist before the FK column
   await pool.query(`
     ALTER TABLE meetings
       ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE SET NULL
@@ -1134,6 +1134,37 @@ export async function saveReferenzen(brand: string, config: ReferenzenConfig): P
 
 // ── Project Management ──────────────────────────────────────────────────────
 
+// Forward map — old project status → new ticket status + resolution.
+// Used by createProject/updateProject/createSubProject/.../togglePortalTaskDone.
+const STATUS_FWD: Record<string, { status: string; resolution: string | null }> = {
+  entwurf:    { status: 'backlog',     resolution: null      },
+  geplant:    { status: 'backlog',     resolution: null      },
+  wartend:    { status: 'blocked',     resolution: null      },
+  aktiv:      { status: 'in_progress', resolution: null      },
+  erledigt:   { status: 'done',        resolution: 'shipped' },
+  archiviert: { status: 'archived',    resolution: 'shipped' },
+};
+
+function mapStatusFwd(s: string): { status: string; resolution: string | null } {
+  return STATUS_FWD[s] ?? { status: 'backlog', resolution: null };
+}
+
+// SQL fragment that maps `tickets.status` back to the old `ProjectStatus`.
+// Centralised so SELECT constants stay readable. Identical to the
+// tickets._project_status_back() Postgres function the back-compat views use.
+const STATUS_BACK_SQL = `
+  CASE __TBL__.status
+    WHEN 'triage'      THEN 'entwurf'
+    WHEN 'backlog'     THEN 'entwurf'
+    WHEN 'in_progress' THEN 'aktiv'
+    WHEN 'in_review'   THEN 'aktiv'
+    WHEN 'blocked'     THEN 'wartend'
+    WHEN 'done'        THEN 'erledigt'
+    WHEN 'archived'    THEN 'archiviert'
+    ELSE 'entwurf'
+  END
+`;
+
 export type ProjectStatus = 'entwurf' | 'wartend' | 'geplant' | 'aktiv' | 'erledigt' | 'archiviert';
 export type ProjectPriority = 'hoch' | 'mittel' | 'niedrig';
 
@@ -1201,127 +1232,77 @@ export interface ProjectTask {
   updatedAt: Date;
 }
 
-let projectTablesReady = false;
-
-async function initProjectTables(): Promise<void> {
-  if (projectTablesReady) return;
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      brand       TEXT        NOT NULL,
-      name        TEXT        NOT NULL,
-      description TEXT,
-      notes       TEXT,
-      start_date  DATE,
-      due_date    DATE,
-      status      TEXT        NOT NULL DEFAULT 'entwurf',
-      priority    TEXT        NOT NULL DEFAULT 'mittel',
-      customer_id UUID        REFERENCES customers(id) ON DELETE SET NULL,
-      admin_id    UUID        REFERENCES customers(id) ON DELETE SET NULL,
-      created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS sub_projects (
-      id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id  UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-      name        TEXT        NOT NULL,
-      description TEXT,
-      notes       TEXT,
-      start_date  DATE,
-      due_date    DATE,
-      status      TEXT        NOT NULL DEFAULT 'entwurf',
-      priority    TEXT        NOT NULL DEFAULT 'mittel',
-      customer_id UUID        REFERENCES customers(id) ON DELETE SET NULL,
-      admin_id    UUID        REFERENCES customers(id) ON DELETE SET NULL,
-      created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS project_tasks (
-      id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id     UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-      sub_project_id UUID        REFERENCES sub_projects(id) ON DELETE CASCADE,
-      name           TEXT        NOT NULL,
-      description    TEXT,
-      notes          TEXT,
-      start_date     DATE,
-      due_date       DATE,
-      status         TEXT        NOT NULL DEFAULT 'entwurf',
-      priority       TEXT        NOT NULL DEFAULT 'mittel',
-      customer_id    UUID        REFERENCES customers(id) ON DELETE SET NULL,
-      admin_id       UUID        REFERENCES customers(id) ON DELETE SET NULL,
-      created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS project_attachments (
-      id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id  UUID        NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-      filename    TEXT        NOT NULL,
-      nc_path     TEXT        NOT NULL,
-      mime_type   TEXT        NOT NULL DEFAULT 'application/octet-stream',
-      file_size   BIGINT      NOT NULL DEFAULT 0,
-      uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-  // Migrations for existing deployments
+// Customers table extensions used by the project module. Idempotent.
+let customerExtsReady = false;
+async function initCustomerProjectExts(): Promise<void> {
+  if (customerExtsReady) return;
   await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false`);
   await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS admin_number TEXT UNIQUE`);
-  await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES customers(id) ON DELETE SET NULL`);
-  await pool.query(`ALTER TABLE sub_projects ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES customers(id) ON DELETE SET NULL`);
-  await pool.query(`ALTER TABLE project_tasks ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES customers(id) ON DELETE SET NULL`);
-  projectTablesReady = true;
+  customerExtsReady = true;
 }
 
 const PROJECT_SELECT = `
-  SELECT p.id, p.brand, p.name, p.description, p.notes,
-         p.start_date   AS "startDate",  p.due_date   AS "dueDate",
-         p.status,      p.priority,
-         p.customer_id  AS "customerId",
+  SELECT t.id, t.brand, t.title AS name, t.description, t.notes,
+         t.start_date   AS "startDate",  t.due_date   AS "dueDate",
+         (${STATUS_BACK_SQL.replace(/__TBL__/g, 't')}) AS status,
+         t.priority,
+         t.customer_id  AS "customerId",
          c.name         AS "customerName", c.email AS "customerEmail",
-         p.admin_id     AS "adminId",
+         t.assignee_id  AS "adminId",
          a.name         AS "adminName",   a.email AS "adminEmail",
-         (SELECT COUNT(*)::int FROM sub_projects  sp WHERE sp.project_id = p.id) AS "subProjectCount",
-         (SELECT COUNT(*)::int FROM project_tasks pt WHERE pt.project_id = p.id) AS "taskCount",
-         p.created_at   AS "createdAt",  p.updated_at AS "updatedAt"
-  FROM projects p
-  LEFT JOIN customers c ON p.customer_id = c.id
-  LEFT JOIN customers a ON p.admin_id    = a.id
+         (SELECT COUNT(*)::int FROM tickets.tickets sp
+            WHERE sp.parent_id = t.id AND sp.type = 'project') AS "subProjectCount",
+         -- A task's parent is either the root project (pt.parent_id = t.id)
+         -- or a sub-project (sp.parent_id = t.id). Those sets are disjoint per
+         -- the parent_id model, so the OR doesn't double-count.
+         (SELECT COUNT(*)::int FROM tickets.tickets pt
+            LEFT JOIN tickets.tickets sp ON sp.id = pt.parent_id AND sp.type = 'project'
+           WHERE pt.type = 'task'
+             AND (pt.parent_id = t.id OR sp.parent_id = t.id)) AS "taskCount",
+         t.created_at   AS "createdAt",  t.updated_at AS "updatedAt"
+  FROM tickets.tickets t
+  LEFT JOIN customers c ON t.customer_id = c.id
+  LEFT JOIN customers a ON t.assignee_id = a.id
 `;
 
+// Status order: in_progress → backlog/geplant → blocked → triage/entwurf → done → archived.
 const PROJECT_ORDER = `
   ORDER BY
-    CASE p.status WHEN 'aktiv' THEN 0 WHEN 'geplant' THEN 1 WHEN 'wartend' THEN 2
-                  WHEN 'entwurf' THEN 3 WHEN 'erledigt' THEN 4 WHEN 'archiviert' THEN 5 ELSE 6 END,
-    p.due_date ASC NULLS LAST, p.created_at DESC
+    CASE t.status WHEN 'in_progress' THEN 0 WHEN 'backlog' THEN 1 WHEN 'blocked' THEN 2
+                  WHEN 'triage' THEN 3 WHEN 'in_review' THEN 4
+                  WHEN 'done' THEN 5 WHEN 'archived' THEN 6 ELSE 7 END,
+    t.due_date ASC NULLS LAST, t.created_at DESC
 `;
 
 export async function listProjects(filters: {
   brand: string; status?: string; priority?: string; customerId?: string; q?: string;
 }): Promise<Project[]> {
-  await initProjectTables();
+  await initTicketsSchema();
   const { brand, status, priority, customerId, q } = filters;
+  // Caller passes status in the OLD enum (entwurf/aktiv/...). Translate forward
+  // to the tickets enum for the WHERE clause; pass NULL when no filter set.
+  const newStatus = status ? mapStatusFwd(status).status : null;
   const result = await pool.query(
     `${PROJECT_SELECT}
-     WHERE p.brand = $1
-       AND ($2::text IS NULL OR p.status    = $2)
-       AND ($3::text IS NULL OR p.priority  = $3)
-       AND ($4::uuid IS NULL OR p.customer_id = $4)
-       AND ($5::text IS NULL OR p.name        ILIKE '%'||$5||'%'
-                              OR p.description ILIKE '%'||$5||'%')
+     WHERE t.type = 'project' AND t.parent_id IS NULL
+       AND t.brand = $1
+       AND ($2::text IS NULL OR t.status      = $2)
+       AND ($3::text IS NULL OR t.priority    = $3)
+       AND ($4::uuid IS NULL OR t.customer_id = $4)
+       AND ($5::text IS NULL OR t.title       ILIKE '%'||$5||'%'
+                              OR t.description ILIKE '%'||$5||'%')
      ${PROJECT_ORDER}`,
-    [brand, status ?? null, priority ?? null, customerId ?? null, q ?? null]
+    [brand, newStatus, priority ?? null, customerId ?? null, q ?? null]
   );
   return result.rows;
 }
 
 export async function getProject(id: string): Promise<Project | null> {
-  await initProjectTables();
-  const result = await pool.query(`${PROJECT_SELECT} WHERE p.id = $1`, [id]);
+  await initTicketsSchema();
+  const result = await pool.query(
+    `${PROJECT_SELECT} WHERE t.id = $1 AND t.type = 'project' AND t.parent_id IS NULL`,
+    [id]
+  );
   return result.rows[0] ?? null;
 }
 
@@ -1330,13 +1311,21 @@ export async function createProject(params: {
   startDate?: string; dueDate?: string; status: string; priority: string;
   customerId?: string; adminId?: string;
 }): Promise<string> {
-  await initProjectTables();
+  await initTicketsSchema();
+  // Spec §6 invariant: type='project' tickets must have customer_id.
+  if (!params.customerId) {
+    throw new Error('createProject: customerId is required for type=project tickets');
+  }
+  const m = mapStatusFwd(params.status);
   const result = await pool.query(
-    `INSERT INTO projects (brand, name, description, notes, start_date, due_date, status, priority, customer_id, admin_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+    `INSERT INTO tickets.tickets
+       (type, brand, title, description, notes, start_date, due_date,
+        status, resolution, priority, customer_id, assignee_id)
+     VALUES ('project', $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
     [params.brand, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null, params.adminId || null]
+     m.status, m.resolution, params.priority,
+     params.customerId, params.adminId || null]
   );
   return result.rows[0].id;
 }
@@ -1346,52 +1335,62 @@ export async function updateProject(id: string, params: {
   startDate?: string; dueDate?: string; status: string; priority: string;
   customerId?: string; adminId?: string;
 }): Promise<void> {
+  const m = mapStatusFwd(params.status);
   await pool.query(
-    `UPDATE projects
-     SET name=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
-         status=$7, priority=$8, customer_id=$9, admin_id=$10, updated_at=now()
-     WHERE id=$1`,
+    `UPDATE tickets.tickets
+       SET title=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
+           status=$7, resolution=$8, priority=$9,
+           customer_id=$10, assignee_id=$11, updated_at=now()
+     WHERE id=$1 AND type='project' AND parent_id IS NULL`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null, params.adminId || null]
+     m.status, m.resolution, params.priority,
+     params.customerId || null, params.adminId || null]
   );
 }
 
 export async function deleteProject(id: string): Promise<void> {
-  await pool.query('DELETE FROM projects WHERE id=$1', [id]);
+  // ON DELETE CASCADE on parent_id wipes child sub_projects and tasks via
+  // the tickets.tickets self-referential FK, plus ticket_attachments and
+  // any time_entries (post-migration FK now points at tickets.tickets).
+  await pool.query(
+    `DELETE FROM tickets.tickets WHERE id=$1 AND type='project' AND parent_id IS NULL`,
+    [id]
+  );
 }
 
 // Sub-Projects ────────────────────────────────────────────────────────────────
 
 const SUBPROJECT_SELECT = `
-  SELECT sp.id, sp.project_id AS "projectId", sp.name, sp.description, sp.notes,
+  SELECT sp.id, sp.parent_id AS "projectId", sp.title AS name, sp.description, sp.notes,
          sp.start_date AS "startDate", sp.due_date AS "dueDate",
-         sp.status,    sp.priority,
+         (${STATUS_BACK_SQL.replace(/__TBL__/g, 'sp')}) AS status,
+         sp.priority,
          sp.customer_id AS "customerId",
          c.name         AS "customerName", c.email AS "customerEmail",
-         sp.admin_id    AS "adminId",
+         sp.assignee_id AS "adminId",
          a.name         AS "adminName",   a.email AS "adminEmail",
-         COUNT(pt.id)::int AS "taskCount",
+         (SELECT COUNT(*)::int FROM tickets.tickets pt
+            WHERE pt.type = 'task' AND pt.parent_id = sp.id) AS "taskCount",
          sp.created_at AS "createdAt", sp.updated_at AS "updatedAt"
-  FROM sub_projects sp
-  LEFT JOIN customers     c  ON sp.customer_id    = c.id
-  LEFT JOIN customers     a  ON sp.admin_id       = a.id
-  LEFT JOIN project_tasks pt ON pt.sub_project_id = sp.id
+  FROM tickets.tickets sp
+  LEFT JOIN customers c ON sp.customer_id = c.id
+  LEFT JOIN customers a ON sp.assignee_id = a.id
 `;
 
 const SUBPROJECT_ORDER = `
   ORDER BY
-    CASE sp.status WHEN 'aktiv' THEN 0 WHEN 'geplant' THEN 1 WHEN 'wartend' THEN 2
-                   WHEN 'entwurf' THEN 3 WHEN 'erledigt' THEN 4 WHEN 'archiviert' THEN 5 ELSE 6 END,
+    CASE sp.status WHEN 'in_progress' THEN 0 WHEN 'backlog' THEN 1 WHEN 'blocked' THEN 2
+                   WHEN 'triage' THEN 3 WHEN 'in_review' THEN 4
+                   WHEN 'done' THEN 5 WHEN 'archived' THEN 6 ELSE 7 END,
     sp.due_date ASC NULLS LAST
 `;
 
 export async function listSubProjects(projectId: string): Promise<SubProject[]> {
-  await initProjectTables();
+  await initTicketsSchema();
   const result = await pool.query(
     `${SUBPROJECT_SELECT}
-     WHERE sp.project_id=$1
-     GROUP BY sp.id, c.name, c.email, a.name, a.email
+     WHERE sp.type='project' AND sp.parent_id=$1
      ${SUBPROJECT_ORDER}`,
     [projectId]
   );
@@ -1399,11 +1398,10 @@ export async function listSubProjects(projectId: string): Promise<SubProject[]> 
 }
 
 export async function getSubProject(id: string): Promise<SubProject | null> {
-  await initProjectTables();
+  await initTicketsSchema();
   const result = await pool.query(
     `${SUBPROJECT_SELECT}
-     WHERE sp.id=$1
-     GROUP BY sp.id, c.name, c.email, a.name, a.email`,
+     WHERE sp.id=$1 AND sp.type='project' AND sp.parent_id IS NOT NULL`,
     [id]
   );
   return result.rows[0] ?? null;
@@ -1414,14 +1412,23 @@ export async function createSubProject(params: {
   startDate?: string; dueDate?: string; status: string; priority: string;
   customerId?: string; adminId?: string;
 }): Promise<string> {
-  await initProjectTables();
+  await initTicketsSchema();
+  // Inherit brand from the parent project ticket.
+  const parent = await pool.query<{ brand: string }>(
+    `SELECT brand FROM tickets.tickets WHERE id=$1 AND type='project' AND parent_id IS NULL`,
+    [params.projectId]);
+  if (parent.rowCount === 0) throw new Error(`createSubProject: parent project ${params.projectId} not found`);
+  const m = mapStatusFwd(params.status);
   const result = await pool.query(
-    `INSERT INTO sub_projects
-       (project_id, name, description, notes, start_date, due_date, status, priority, customer_id, admin_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
-    [params.projectId, params.name, params.description || null, params.notes || null,
+    `INSERT INTO tickets.tickets
+       (type, parent_id, brand, title, description, notes, start_date, due_date,
+        status, resolution, priority, customer_id, assignee_id)
+     VALUES ('project', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+    [params.projectId, parent.rows[0].brand, params.name,
+     params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null, params.adminId || null]
+     m.status, m.resolution, params.priority,
+     params.customerId || null, params.adminId || null]
   );
   return result.rows[0].id;
 }
@@ -1431,58 +1438,77 @@ export async function updateSubProject(id: string, params: {
   startDate?: string; dueDate?: string; status: string; priority: string;
   customerId?: string; adminId?: string;
 }): Promise<void> {
+  const m = mapStatusFwd(params.status);
   await pool.query(
-    `UPDATE sub_projects
-     SET name=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
-         status=$7, priority=$8, customer_id=$9, admin_id=$10, updated_at=now()
-     WHERE id=$1`,
+    `UPDATE tickets.tickets
+       SET title=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
+           status=$7, resolution=$8, priority=$9,
+           customer_id=$10, assignee_id=$11, updated_at=now()
+     WHERE id=$1 AND type='project' AND parent_id IS NOT NULL`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null, params.adminId || null]
+     m.status, m.resolution, params.priority,
+     params.customerId || null, params.adminId || null]
   );
 }
 
 export async function deleteSubProject(id: string): Promise<void> {
-  await pool.query('DELETE FROM sub_projects WHERE id=$1', [id]);
+  await pool.query(
+    `DELETE FROM tickets.tickets WHERE id=$1 AND type='project' AND parent_id IS NOT NULL`,
+    [id]
+  );
 }
 
 // Project Tasks ───────────────────────────────────────────────────────────────
 
 const TASK_SELECT = `
-  SELECT pt.id, pt.project_id AS "projectId", pt.sub_project_id AS "subProjectId",
-         pt.name, pt.description, pt.notes,
+  SELECT pt.id,
+         COALESCE(parent.parent_id, pt.parent_id) AS "projectId",
+         CASE WHEN parent.parent_id IS NOT NULL THEN pt.parent_id ELSE NULL END
+           AS "subProjectId",
+         pt.title AS name, pt.description, pt.notes,
          pt.start_date AS "startDate", pt.due_date AS "dueDate",
-         pt.status,    pt.priority,
+         (${STATUS_BACK_SQL.replace(/__TBL__/g, 'pt')}) AS status,
+         pt.priority,
          pt.customer_id AS "customerId",
          c.name         AS "customerName", c.email AS "customerEmail",
-         pt.admin_id    AS "adminId",
+         pt.assignee_id AS "adminId",
          a.name         AS "adminName",    a.email AS "adminEmail",
          pt.created_at AS "createdAt", pt.updated_at AS "updatedAt"
-  FROM project_tasks pt
+  FROM tickets.tickets pt
+  LEFT JOIN tickets.tickets parent ON parent.id = pt.parent_id
   LEFT JOIN customers c ON pt.customer_id = c.id
-  LEFT JOIN customers a ON pt.admin_id    = a.id
+  LEFT JOIN customers a ON pt.assignee_id = a.id
 `;
 
 const TASK_ORDER = `
   ORDER BY
-    CASE pt.status WHEN 'aktiv' THEN 0 WHEN 'geplant' THEN 1 WHEN 'wartend' THEN 2
-                   WHEN 'entwurf' THEN 3 WHEN 'erledigt' THEN 4 WHEN 'archiviert' THEN 5 ELSE 6 END,
+    CASE pt.status WHEN 'in_progress' THEN 0 WHEN 'backlog' THEN 1 WHEN 'blocked' THEN 2
+                   WHEN 'triage' THEN 3 WHEN 'in_review' THEN 4
+                   WHEN 'done' THEN 5 WHEN 'archived' THEN 6 ELSE 7 END,
     pt.due_date ASC NULLS LAST
 `;
 
 export async function listDirectTasks(projectId: string): Promise<ProjectTask[]> {
-  await initProjectTables();
+  await initTicketsSchema();
+  // "Direct" tasks have parent = the root project (parent.parent_id IS NULL).
   const result = await pool.query(
-    `${TASK_SELECT} WHERE pt.project_id=$1 AND pt.sub_project_id IS NULL ${TASK_ORDER}`,
+    `${TASK_SELECT}
+     WHERE pt.type='task'
+       AND pt.parent_id = $1
+       AND parent.parent_id IS NULL
+     ${TASK_ORDER}`,
     [projectId]
   );
   return result.rows;
 }
 
 export async function listSubProjectTasks(subProjectId: string): Promise<ProjectTask[]> {
-  await initProjectTables();
+  await initTicketsSchema();
   const result = await pool.query(
-    `${TASK_SELECT} WHERE pt.sub_project_id=$1 ${TASK_ORDER}`,
+    `${TASK_SELECT}
+     WHERE pt.type='task' AND pt.parent_id=$1
+     ${TASK_ORDER}`,
     [subProjectId]
   );
   return result.rows;
@@ -1493,15 +1519,24 @@ export async function createProjectTask(params: {
   startDate?: string; dueDate?: string; status: string; priority: string;
   customerId?: string; adminId?: string;
 }): Promise<string> {
-  await initProjectTables();
+  await initTicketsSchema();
+  // Parent is sub_project_id when set, else project_id. Brand inherits from
+  // whichever ticket we're attaching to.
+  const parentId = params.subProjectId || params.projectId;
+  const parent = await pool.query<{ brand: string }>(
+    `SELECT brand FROM tickets.tickets WHERE id=$1 AND type='project'`, [parentId]);
+  if (parent.rowCount === 0) throw new Error(`createProjectTask: parent ticket ${parentId} not found`);
+  const m = mapStatusFwd(params.status);
   const result = await pool.query(
-    `INSERT INTO project_tasks
-       (project_id, sub_project_id, name, description, notes, start_date, due_date, status, priority, customer_id, admin_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
-    [params.projectId, params.subProjectId || null, params.name,
+    `INSERT INTO tickets.tickets
+       (type, parent_id, brand, title, description, notes, start_date, due_date,
+        status, resolution, priority, customer_id, assignee_id)
+     VALUES ('task', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+    [parentId, parent.rows[0].brand, params.name,
      params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null, params.adminId || null]
+     m.status, m.resolution, params.priority,
+     params.customerId || null, params.adminId || null]
   );
   return result.rows[0].id;
 }
@@ -1511,19 +1546,22 @@ export async function updateProjectTask(id: string, params: {
   startDate?: string; dueDate?: string; status: string; priority: string;
   customerId?: string; adminId?: string;
 }): Promise<void> {
+  const m = mapStatusFwd(params.status);
   await pool.query(
-    `UPDATE project_tasks
-     SET name=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
-         status=$7, priority=$8, customer_id=$9, admin_id=$10, updated_at=now()
-     WHERE id=$1`,
+    `UPDATE tickets.tickets
+       SET title=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
+           status=$7, resolution=$8, priority=$9,
+           customer_id=$10, assignee_id=$11, updated_at=now()
+     WHERE id=$1 AND type='task'`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
-     params.status, params.priority, params.customerId || null, params.adminId || null]
+     m.status, m.resolution, params.priority,
+     params.customerId || null, params.adminId || null]
   );
 }
 
 export async function deleteProjectTask(id: string): Promise<void> {
-  await pool.query('DELETE FROM project_tasks WHERE id=$1', [id]);
+  await pool.query(`DELETE FROM tickets.tickets WHERE id=$1 AND type='task'`, [id]);
 }
 
 // Project Attachments ─────────────────────────────────────────────────────────
@@ -1539,22 +1577,26 @@ export interface ProjectAttachment {
 }
 
 export async function listProjectAttachments(projectId: string): Promise<ProjectAttachment[]> {
-  await initProjectTables();
+  await initTicketsSchema();
   const r = await pool.query(
-    `SELECT id, project_id AS "projectId", filename, nc_path AS "ncPath",
-            mime_type AS "mimeType", file_size AS "fileSize", uploaded_at AS "uploadedAt"
-     FROM project_attachments WHERE project_id=$1 ORDER BY uploaded_at DESC`,
+    `SELECT id, ticket_id AS "projectId", filename, nc_path AS "ncPath",
+            mime_type AS "mimeType", COALESCE(file_size, 0)::bigint AS "fileSize",
+            uploaded_at AS "uploadedAt"
+     FROM tickets.ticket_attachments
+     WHERE ticket_id = $1
+     ORDER BY uploaded_at DESC`,
     [projectId]
   );
   return r.rows;
 }
 
 export async function getProjectAttachment(id: string): Promise<ProjectAttachment | null> {
-  await initProjectTables();
+  await initTicketsSchema();
   const r = await pool.query(
-    `SELECT id, project_id AS "projectId", filename, nc_path AS "ncPath",
-            mime_type AS "mimeType", file_size AS "fileSize", uploaded_at AS "uploadedAt"
-     FROM project_attachments WHERE id=$1`,
+    `SELECT id, ticket_id AS "projectId", filename, nc_path AS "ncPath",
+            mime_type AS "mimeType", COALESCE(file_size, 0)::bigint AS "fileSize",
+            uploaded_at AS "uploadedAt"
+     FROM tickets.ticket_attachments WHERE id = $1`,
     [id]
   );
   return r.rows[0] ?? null;
@@ -1563,9 +1605,10 @@ export async function getProjectAttachment(id: string): Promise<ProjectAttachmen
 export async function createProjectAttachment(params: {
   projectId: string; filename: string; ncPath: string; mimeType: string; fileSize: number;
 }): Promise<string> {
-  await initProjectTables();
+  await initTicketsSchema();
   const r = await pool.query(
-    `INSERT INTO project_attachments (project_id, filename, nc_path, mime_type, file_size)
+    `INSERT INTO tickets.ticket_attachments
+       (ticket_id, filename, nc_path, mime_type, file_size)
      VALUES ($1,$2,$3,$4,$5) RETURNING id`,
     [params.projectId, params.filename, params.ncPath, params.mimeType, params.fileSize]
   );
@@ -1573,9 +1616,9 @@ export async function createProjectAttachment(params: {
 }
 
 export async function deleteProjectAttachmentRecord(id: string): Promise<string | null> {
-  await initProjectTables();
+  await initTicketsSchema();
   const r = await pool.query(
-    'DELETE FROM project_attachments WHERE id=$1 RETURNING nc_path',
+    `DELETE FROM tickets.ticket_attachments WHERE id = $1 RETURNING nc_path`,
     [id]
   );
   return r.rows[0]?.nc_path ?? null;
@@ -1600,7 +1643,7 @@ export interface PortalTask {
 }
 
 export async function listProjectsForCustomer(keycloakUserId: string): Promise<PortalProject[]> {
-  await initProjectTables();
+  await initTicketsSchema();
 
   const cust = await pool.query<{ id: string }>(
     `SELECT id FROM customers WHERE keycloak_user_id = $1 LIMIT 1`,
@@ -1609,18 +1652,30 @@ export async function listProjectsForCustomer(keycloakUserId: string): Promise<P
   if (!cust.rows[0]) return [];
   const customerId = cust.rows[0].id;
 
+  // Projects: customer's own, not archived. Surface OLD status for the
+  // existing portal UI labels.
   const projects = await pool.query<{ id: string; name: string; description: string | null; status: string; due_date: Date | null }>(
-    `SELECT id, name, description, status, due_date
-     FROM projects
-     WHERE customer_id = $1 AND status NOT IN ('archiviert')
-     ORDER BY created_at DESC`,
+    `SELECT id, title AS name, description,
+            (${STATUS_BACK_SQL.replace(/__TBL__/g, 't')}) AS status,
+            due_date
+       FROM tickets.tickets t
+      WHERE type='project' AND parent_id IS NULL
+        AND customer_id = $1 AND status <> 'archived'
+      ORDER BY created_at DESC`,
     [customerId],
   );
 
   const result: PortalProject[] = [];
   for (const p of projects.rows) {
+    // Tasks under this project: direct children OR children of any sub_project.
     const tasks = await pool.query<{ id: string; name: string; status: string; customer_id: string | null }>(
-      `SELECT id, name, status, customer_id FROM project_tasks WHERE project_id = $1 ORDER BY created_at ASC`,
+      `SELECT pt.id, pt.title AS name,
+              (${STATUS_BACK_SQL.replace(/__TBL__/g, 'pt')}) AS status,
+              pt.customer_id
+         FROM tickets.tickets pt
+         LEFT JOIN tickets.tickets sp ON sp.id = pt.parent_id AND sp.type = 'project'
+        WHERE pt.type='task' AND (pt.parent_id = $1 OR sp.parent_id = $1)
+        ORDER BY pt.created_at ASC`,
       [p.id],
     );
     result.push({
@@ -1641,7 +1696,7 @@ export async function listProjectsForCustomer(keycloakUserId: string): Promise<P
 }
 
 export async function togglePortalTaskDone(taskId: string, keycloakUserId: string): Promise<{ ok: boolean }> {
-  await initProjectTables();
+  await initTicketsSchema();
 
   const cust = await pool.query<{ id: string }>(
     `SELECT id FROM customers WHERE keycloak_user_id = $1 LIMIT 1`,
@@ -1651,15 +1706,22 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
   const customerId = cust.rows[0].id;
 
   const task = await pool.query<{ status: string }>(
-    `SELECT status FROM project_tasks WHERE id = $1 AND customer_id = $2`,
+    `SELECT status FROM tickets.tickets WHERE id = $1 AND type='task' AND customer_id = $2`,
     [taskId, customerId],
   );
   if (!task.rows[0]) return { ok: false };
 
-  const newStatus = task.rows[0].status === 'erledigt' ? 'aktiv' : 'erledigt';
+  // Toggle between done and in_progress (the new-enum equivalents of erledigt/aktiv).
+  const flippingClosed = task.rows[0].status === 'done';
+  const newStatus     = flippingClosed ? 'in_progress' : 'done';
+  const newResolution = flippingClosed ? null          : 'shipped';
   await pool.query(
-    `UPDATE project_tasks SET status = $1, updated_at = now() WHERE id = $2`,
-    [newStatus, taskId],
+    `UPDATE tickets.tickets
+        SET status = $1, resolution = $2,
+            done_at = CASE WHEN $1 = 'done' THEN now() ELSE NULL END,
+            updated_at = now()
+      WHERE id = $3 AND type='task'`,
+    [newStatus, newResolution, taskId],
   );
   return { ok: true };
 }
@@ -1667,6 +1729,8 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
 // All customers for dropdowns ─────────────────────────────────────────────────
 
 export async function listAllCustomers(): Promise<Customer[]> {
+  await initTicketsSchema();
+  await initCustomerProjectExts();
   const result = await pool.query(
     `SELECT id, name, email, customer_number, is_admin, admin_number
      FROM customers
@@ -1677,6 +1741,8 @@ export async function listAllCustomers(): Promise<Customer[]> {
 }
 
 export async function listAdminUsers(): Promise<Customer[]> {
+  await initTicketsSchema();
+  await initCustomerProjectExts();
   const result = await pool.query(
     `SELECT id, name, email, admin_number, is_admin
      FROM customers
@@ -1701,7 +1767,7 @@ export interface ProjectExportRow {
 }
 
 export async function exportProjectsFlat(brand: string): Promise<ProjectExportRow[]> {
-  await initProjectTables();
+  await initTicketsSchema();
   const rows: ProjectExportRow[] = [];
   const projects = await listProjects({ brand });
 
@@ -1765,7 +1831,7 @@ export interface TimeEntry {
 
 async function initTimeEntriesTable(): Promise<void> {
   if (timeEntriesReady) return;
-  await initProjectTables();
+  await initTicketsSchema();
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
       id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -2054,12 +2120,13 @@ export async function findProjectByName(
   brand: string,
   name: string
 ): Promise<{ id: string; name: string } | null> {
-  await initProjectTables();
+  await initTicketsSchema();
   const result = await pool.query(
-    `SELECT id, name FROM projects
-     WHERE brand = $1 AND name ILIKE $2
+    `SELECT id, title AS name FROM tickets.tickets
+     WHERE type='project' AND parent_id IS NULL
+       AND brand = $1 AND title ILIKE $2
      ORDER BY CASE status
-       WHEN 'aktiv' THEN 0 WHEN 'geplant' THEN 1 WHEN 'wartend' THEN 2
+       WHEN 'in_progress' THEN 0 WHEN 'backlog' THEN 1 WHEN 'blocked' THEN 2
        ELSE 3 END
      LIMIT 1`,
     [brand, `%${name}%`]
@@ -2373,20 +2440,22 @@ export interface CalendarTask {
 }
 
 export async function listTasksInMonth(year: number, month: number): Promise<CalendarTask[]> {
-  await initProjectTables();
+  await initTicketsSchema();
   const firstDay = `${year}-${String(month).padStart(2, '0')}-01`;
   const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
   const result = await pool.query(
     `SELECT pt.id,
-            pt.name,
-            pt.project_id AS "projectId",
-            p.name        AS "projectName",
-            pt.due_date   AS "dueDate",
-            pt.status,
+            pt.title AS name,
+            COALESCE(parent.parent_id, pt.parent_id) AS "projectId",
+            COALESCE(root.title, parent.title)       AS "projectName",
+            pt.due_date AS "dueDate",
+            (${STATUS_BACK_SQL.replace(/__TBL__/g, 'pt')}) AS status,
             pt.priority
-     FROM project_tasks pt
-     JOIN projects p ON p.id = pt.project_id
-     WHERE pt.due_date BETWEEN $1::date AND $2::date
+     FROM tickets.tickets pt
+     LEFT JOIN tickets.tickets parent ON parent.id = pt.parent_id
+     LEFT JOIN tickets.tickets root   ON root.id   = parent.parent_id
+     WHERE pt.type='task'
+       AND pt.due_date BETWEEN $1::date AND $2::date
      ORDER BY pt.due_date ASC, pt.priority DESC`,
     [firstDay, lastDay]
   );
@@ -2405,21 +2474,22 @@ export interface CalendarProject {
 }
 
 export async function listProjectsInMonth(year: number, month: number, brand?: string): Promise<CalendarProject[]> {
-  await initProjectTables();
+  await initTicketsSchema();
   const firstDay = `${year}-${String(month).padStart(2, '0')}-01`;
   const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
   const result = await pool.query<CalendarProject>(
     `SELECT p.id,
-            p.name,
-            p.status,
+            p.title AS name,
+            (${STATUS_BACK_SQL.replace(/__TBL__/g, 'p')}) AS status,
             p.priority,
-            p.customer_id  AS "customerId",
-            c.name         AS "customerName",
-            p.start_date   AS "startDate",
-            p.due_date     AS "dueDate"
-     FROM projects p
+            p.customer_id AS "customerId",
+            c.name        AS "customerName",
+            p.start_date  AS "startDate",
+            p.due_date    AS "dueDate"
+     FROM tickets.tickets p
      LEFT JOIN customers c ON c.id = p.customer_id
-     WHERE p.status NOT IN ('archiviert', 'erledigt')
+     WHERE p.type='project' AND p.parent_id IS NULL
+       AND p.status NOT IN ('archived', 'done')
        AND ($1::text IS NULL OR p.brand = $1)
        AND (
          (p.start_date BETWEEN $2::date AND $3::date)

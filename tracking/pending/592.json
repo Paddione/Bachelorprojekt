@@ -1,0 +1,12 @@
+{
+  "pr_number": 592,
+  "title": "hide is_test_data rows by default; add toggle",
+  "description": "## Summary\n- After PR #591, the 2 systemtest grouping epics still appeared in `/admin/tickets?status=open` (status='in_progress', is_test_data=true, 0 open children) — visual noise next to the 1 real triage ticket.\n- Default `is_test_data=false` filter on listAdminTickets / countAdminTickets / listKnownComponents.\n- \"Inkl. Testdaten\" checkbox in the filter form (`?testData=1`) brings them back on demand.\n\n## Test plan\n- [x] `astro check` clean for changed files\n- [ ] After deploy: `/admin/tickets?status=open` shows 8 rows (7 manual projects + 1 real bug); the 2 EPIC-SYS-* rows are hidden\n- [ ] Tick \"Inkl. Testdaten\" → row count rises to 10, epics reappear\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "admin/tickets",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-08T16:51:34Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

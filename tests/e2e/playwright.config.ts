@@ -7,6 +7,13 @@ export default defineConfig({
   timeout: 45_000,
   retries: 1,
   workers: 1,
+  // Test-bracketed prod DB purge. Both hooks POST to
+  // /api/admin/systemtest/purge-all-test-data with X-Cron-Secret. See
+  // ./specs/global-db-cleanup.ts. The Taskfile's `test:e2e` target wraps
+  // `npx playwright test` with curl calls to the same endpoint as
+  // defense-in-depth in case Playwright lifecycle crashes skip these hooks.
+  globalSetup: require.resolve('./specs/global-db-cleanup.ts'),
+  globalTeardown: require.resolve('./specs/global-db-cleanup-teardown.ts'),
   reporter: [
     ['line'],
     ['json', { outputFile: '../results/.tmp-e2e-results.json' }],

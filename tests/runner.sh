@@ -194,9 +194,34 @@ if [[ "$TIER" == "local" ]]; then
       npm ci
       npx playwright install chromium
     fi
-    TEST_BASE_URL="http://web.localhost" \
-    RESULTS_FILE="$RESULTS_FILE" \
-      npx playwright test --reporter=line 2>&1 || true
+    # When the runner is invoked with specific test IDs we narrow Playwright
+    # to the matching spec(s) so e.g. `runner.sh local FA-30` runs only the
+    # FA-30 Playwright suite (alongside the matching .sh/.bats file). If no
+    # spec matches the id, Playwright runs the full suite as before.
+    PW_FILTERS=()
+    if (( ${#SPECIFIC_TESTS[@]} > 0 )); then
+      for tid in "${SPECIFIC_TESTS[@]}"; do
+        # tests are named lowercase (fa-30-...). Match the leading id then
+        # any suffix.
+        lower="$(echo "$tid" | tr '[:upper:]' '[:lower:]')"
+        # shellcheck disable=SC2207
+        matches=( $(find specs -maxdepth 1 -name "${lower}*.spec.ts" 2>/dev/null) )
+        for m in "${matches[@]}"; do
+          PW_FILTERS+=("$m")
+        done
+      done
+    fi
+    if (( ${#PW_FILTERS[@]} > 0 )); then
+      TEST_BASE_URL="http://web.localhost" \
+      RESULTS_FILE="$RESULTS_FILE" \
+        npx playwright test --reporter=line "${PW_FILTERS[@]}" 2>&1 || true
+    elif (( ${#SPECIFIC_TESTS[@]} > 0 )); then
+      echo "  (no Playwright spec matched ${SPECIFIC_TESTS[*]} — skipping Playwright)"
+    else
+      TEST_BASE_URL="http://web.localhost" \
+      RESULTS_FILE="$RESULTS_FILE" \
+        npx playwright test --reporter=line 2>&1 || true
+    fi
     cd "$SCRIPT_DIR"
   fi
 fi

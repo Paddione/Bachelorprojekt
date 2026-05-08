@@ -1,6 +1,8 @@
 import pg from 'pg';
 import { resolve4 } from 'dns';
 import { SYSTEM_TEST_TEMPLATES, type SystemTestTemplate } from './system-test-seed-data';
+import { ensureSystemtestSchema } from './systemtest/db';
+import { openFailureTicket, enqueueOutboxRetry } from './systemtest/failure-bridge';
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
@@ -20,6 +22,23 @@ const pool = new pg.Pool(
 export type QuestionType = 'ab_choice' | 'ja_nein' | 'likert_5' | 'test_step';
 export type TestStepResult = 'erfüllt' | 'teilweise' | 'nicht_erfüllt';
 export type AssignmentStatus = 'pending' | 'in_progress' | 'submitted' | 'reviewed' | 'archived' | 'dismissed';
+
+/**
+ * Default `instructions` text seeded onto system-test templates that don't
+ * specify their own. Mirrors the sticky tester-guidance panel rendered on
+ * `/admin/fragebogen/[assignmentId].astro` so that human and AI testers see
+ * the same "verbose-on-confusion" framing wherever they encounter the test.
+ */
+export const SYSTEM_TEST_DEFAULT_INSTRUCTIONS = [
+  'Wenn dir etwas auffällt — auch nur tangential — schreib es auf.',
+  'Verwirrung ist Signal. Lieber eine geschwätzige `teilweise`-Notiz mit',
+  'Fragezeichen als ein sauberes `erfüllt`, das einen echten Defekt versteckt.',
+  '',
+  'AI-Tester: dasselbe gilt für dich. Wenn etwas anders aussieht als erwartet,',
+  'das Testskript es aber nicht abdeckt, dokumentiere es im Notizfeld. Wenn',
+  'dich eine Fehlermeldung verwirrt, beschreibe was verwirrend war. Halte dich',
+  'nicht zurück.',
+].join('\n');
 
 export interface QTemplate {
   id: string;
@@ -129,11 +148,14 @@ async function insertSystemTestTemplate(
   client: pg.PoolClient,
   tpl: SystemTestTemplate,
 ): Promise<void> {
+  const instructions = tpl.instructions?.trim()
+    ? tpl.instructions
+    : SYSTEM_TEST_DEFAULT_INSTRUCTIONS;
   const r = await client.query(
     `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
      VALUES ($1, $2, $3, 'published', true)
      RETURNING id`,
-    [tpl.title, tpl.description, tpl.instructions],
+    [tpl.title, tpl.description, instructions],
   );
   const templateId = r.rows[0].id as string;
 
@@ -252,6 +274,7 @@ async function initDb() {
       END IF;
     END$$
   `);
+  await ensureSystemtestSchema(pool);
   await seedSystemTestTemplates();
 }
 
@@ -586,7 +609,7 @@ export async function listQAnswers(assignmentId: string): Promise<QAnswer[]> {
 
 export async function updateTestStatuses(assignmentId: string): Promise<void> {
   const r = await pool.query(
-    `SELECT qa.question_id, qa.option_key, qa.saved_at
+    `SELECT qa.question_id, qa.option_key, qa.saved_at, qa.details_text
      FROM questionnaire_answers qa
      JOIN questionnaire_questions qq ON qq.id = qa.question_id
      WHERE qa.assignment_id = $1 AND qq.question_type = 'test_step'`,
@@ -609,6 +632,54 @@ export async function updateTestStatuses(assignmentId: string): Promise<void> {
       [row.question_id, row.option_key, row.saved_at,
        row.option_key === 'erfüllt' ? row.saved_at : null, assignmentId],
     );
+
+    // Failure-bridge (Task 5): when a system-test step lands as
+    // `nicht_erfüllt`, auto-create a bug ticket back-referencing the
+    // failure. Best-effort — outer answer-save MUST commit even if the
+    // bridge fails, so we catch and route to the outbox.
+    if (row.option_key === 'nicht_erfüllt') {
+      // Pick up the most recent evidence (rrweb replay) for this step.
+      // Multiple attempts may exist; the highest `attempt` wins. Reading
+      // evidence once before the bridge call so we can also forward the
+      // attempt number to the outbox if the bridge throws.
+      let evidenceId: string | null = null;
+      let attempt = 0;
+      try {
+        const ev = await pool.query<{ id: string; attempt: number }>(
+          `SELECT id, attempt FROM questionnaire_test_evidence
+            WHERE assignment_id = $1 AND question_id = $2
+            ORDER BY attempt DESC, created_at DESC
+            LIMIT 1`,
+          [assignmentId, row.question_id],
+        );
+        evidenceId = ev.rows[0]?.id ?? null;
+        attempt = ev.rows[0]?.attempt ?? 0;
+      } catch (err) {
+        // Evidence lookup is non-fatal — fall through with null evidence.
+        console.error('[updateTestStatuses] evidence lookup failed:', err);
+      }
+      try {
+        await openFailureTicket(pool, {
+          assignmentId,
+          questionId: row.question_id,
+          evidenceId,
+          details: row.details_text ?? null,
+        });
+        // openFailureTicket returns null when the question is not part of
+        // an `is_system_test` template — that's fine; nothing else to do.
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('[updateTestStatuses] failure-bridge failed:', err);
+        await enqueueOutboxRetry(pool, {
+          assignmentId,
+          questionId: row.question_id,
+          attempt,
+          error: message,
+        }).catch((outboxErr) =>
+          console.error('[updateTestStatuses] outbox enqueue failed:', outboxErr),
+        );
+      }
+    }
   }
 }
 

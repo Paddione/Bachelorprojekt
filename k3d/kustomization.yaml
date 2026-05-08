@@ -61,6 +61,10 @@ resources:
   # top-level `namespace: workspace` in this kustomization would otherwise force
   # all retention resources into the workspace ns, where the website does NOT live.
   # See k3d/tests-retention-cronjob.yaml.
+  # System-test cleanup CronJobs (Task 8) — same story: target ${WEBSITE_NAMESPACE}
+  # so they reach the website service via cluster DNS without an extra hop.
+  # Applied separately via envsubst by `workspace:deploy`.
+  # See k3d/cronjob-systemtest-cleanup.yaml.
   # Transkription
   - whisper.yaml
   # Live-Transkription Bot

@@ -83,6 +83,11 @@ env_vars:
     default_dev: "http://einvoice-sidecar.workspace.svc.cluster.local"
     description: "Cluster URL for the einvoice-sidecar"
 
+  - name: SYSTEMTEST_LOOP_ENABLED
+    required: false
+    default_dev: "false"
+    description: "Master kill-switch for the system-test failure loop — gates the seed button on /admin/fragebogen, the rrweb recorder, and /admin/systemtest/board. Schema bootstrap and cleanup CronJobs run regardless."
+
   - name: INFRA_NAMESPACE
     required: true
     default_dev: "workspace-infra"

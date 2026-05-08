@@ -7,6 +7,7 @@ import {
   listQAnswerOptionsForTemplate, listQAnswers, getQTemplate,
 } from '../../../lib/questionnaire-db';
 import { computeScores } from '../../../lib/compute-scores';
+import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -27,6 +28,20 @@ const [dimensions, questions, allOptions, answers] = await Promise.all([
 
 const tpl = await getQTemplate(assignment.template_id).catch(() => null);
 const isSystemTest = tpl?.is_system_test ?? false;
+
+// Task 10: when the rrweb recorder boot and the "Seed test data" button get
+// wired into this page, gate them on `isSystemtestLoopEnabled()`. The sticky
+// guidance panel below is rendered unconditionally for system-test templates
+// — it's harmless and tester-useful regardless of rollout state.
+//
+// Today neither the seed button nor the recorder boot exist in the
+// questionnaire UI (they ship in a follow-up). The flag is imported here so
+// the moment those land, gating is a one-line change: wrap the boot/render
+// in `{systemtestLoopEnabled && (...)}`.
+const systemtestLoopEnabled = isSystemTest && isSystemtestLoopEnabled();
+// `systemtestLoopEnabled` is intentionally computed but unused at this
+// rollout stage — the seed button + recorder boot land in a follow-up PR.
+void systemtestLoopEnabled;
 
 const scores = computeScores(dimensions, allOptions, answers);
 const answerMap = new Map(answers.map(a => [a.question_id, a]));
@@ -80,6 +95,21 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
             : assignment.status}
         </span>
       </div>
+
+      {isSystemTest && (
+        <aside class="systemtest-guidance">
+          <strong>Wenn dir etwas auffällt — auch nur tangential — schreib es auf.</strong>
+          <p>
+            Verwirrung ist Signal. Lieber eine geschwätzige <code>teilweise</code>-Notiz mit
+            Fragezeichen als ein sauberes <code>erfüllt</code>, das einen echten Defekt versteckt.
+          </p>
+          <p>
+            <em>AI-Tester:</em> dasselbe gilt für dich. Wenn etwas anders aussieht als erwartet
+            und das Testskript es nicht abdeckt, dokumentiere es im Notizfeld. Wenn dich eine
+            Fehlermeldung verwirrt, beschreibe was verwirrend war. Halte dich nicht zurück.
+          </p>
+        </aside>
+      )}
 
       <!-- Score bars -->
       {scores.length > 0 && (
@@ -442,3 +472,31 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
     }
   });
 </script>
+
+<style>
+  .systemtest-guidance {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(192, 133, 82, 0.1);
+    border-left: 3px solid var(--brass, #c08552);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .systemtest-guidance strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  .systemtest-guidance p {
+    margin: 0.35rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .systemtest-guidance code {
+    padding: 0 0.2rem;
+    background: rgba(192, 133, 82, 0.15);
+    border-radius: 2px;
+    font-size: 0.85em;
+  }
+</style>

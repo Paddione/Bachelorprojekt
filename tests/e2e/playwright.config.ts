@@ -58,6 +58,7 @@ export default defineConfig({
         '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
         '**/fa-admin-inbox.spec.ts',            // /admin/inbox two-pane rework (spec 2026-05-08)
         '**/fa-admin-live.spec.ts',  // unified live cockpit
+        '**/fa-30-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
       ],
       use: {
         ...devices['Desktop Chrome'],

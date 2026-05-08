@@ -85,6 +85,30 @@ export async function createUser(params: CreateUserParams): Promise<{ success: b
   return { success: false, error: `Keycloak-Fehler: ${res.status}` };
 }
 
+/**
+ * Set a user's password directly. Used by the system-test seed flow so seeded
+ * test users have a deterministic password (the seed endpoint returns it to
+ * the admin alongside the magic-link). Pass `temporary: false` to skip the
+ * "must change on next login" prompt — required for test users so the test
+ * loop can sign in non-interactively.
+ */
+export async function setUserPassword(
+  userId: string,
+  password: string,
+  temporary = false,
+): Promise<boolean> {
+  const res = await kcApi('PUT', `/users/${encodeURIComponent(userId)}/reset-password`, {
+    type: 'password',
+    value: password,
+    temporary,
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.error(`Keycloak setUserPassword failed: ${res.status} ${body}`);
+  }
+  return res.ok;
+}
+
 export async function sendPasswordResetEmail(userId: string): Promise<boolean> {
   const res = await kcApi('PUT', `/users/${userId}/execute-actions-email`, ['UPDATE_PASSWORD']);
   if (!res.ok) {

@@ -4,6 +4,7 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { createInboxItem } from '../../../../lib/messaging-db';
 import { sendEmail } from '../../../../lib/email';
 import { sendAdminNotification } from '../../../../lib/notifications';
+import { createCalendarEvent } from '../../../../lib/caldav';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
 
@@ -72,6 +73,33 @@ export const POST: APIRoute = async ({ request }) => {
         adminCreated: true,
       },
     });
+
+    // Persist directly into CalDAV so the booking appears immediately in
+    // /admin/termine and /admin/kalender. Without this step the booking
+    // would only show up after admin approval of the inbox item — which is
+    // surprising for a "manual" admin-created booking and broke the
+    // System-Test 2 / Q5 expectation (T000162, T000165).
+    if (!isCallback && slotStart && slotEnd) {
+      try {
+        await createCalendarEvent({
+          summary: `${typeLabel}: ${clientName}`,
+          description: [
+            `Termin mit ${clientName} (${clientEmail})`,
+            `Typ: ${typeLabel}`,
+            phone ? `Telefon: ${phone}` : null,
+            message ? `Notiz: ${message}` : null,
+          ].filter(Boolean).join('\n'),
+          start: new Date(slotStart),
+          end: new Date(slotEnd),
+          attendeeEmail: clientEmail,
+          attendeeName: clientName,
+        });
+      } catch (err) {
+        console.error('[admin/bookings/create] CalDAV persist failed:', err);
+        // Non-fatal: inbox item is the source of truth, calendar entry is
+        // a convenience. Admin can still approve via inbox to retry.
+      }
+    }
 
     await sendEmail({
       to: clientEmail,

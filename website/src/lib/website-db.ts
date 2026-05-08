@@ -2425,6 +2425,52 @@ export async function listProjectsInMonth(year: number, month: number, brand?: s
   return result.rows;
 }
 
+// ── Calendar Meetings (range query) ───────────────────────────────────────────
+
+export interface CalendarMeeting {
+  id: string;
+  meetingType: string;
+  status: string;
+  scheduledAt: Date;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  talkRoomToken: string | null;
+  projectId: string | null;
+  projectName: string | null;
+}
+
+/**
+ * Returns all meetings whose `scheduled_at` falls inside the inclusive range
+ * `[fromIso, toIso]`. Used by the admin calendar to render meetings alongside
+ * tasks, projects and CalDAV bookings (T000161, T000164, T000167).
+ */
+export async function listMeetingsInRange(fromIso: string, toIso: string): Promise<CalendarMeeting[]> {
+  await initMeetingProjectLink();
+  const result = await pool.query<CalendarMeeting>(
+    `SELECT m.id,
+            m.meeting_type AS "meetingType",
+            m.status,
+            m.scheduled_at AS "scheduledAt",
+            m.customer_id  AS "customerId",
+            m.talk_room_token AS "talkRoomToken",
+            c.name  AS "customerName",
+            c.email AS "customerEmail",
+            p.id    AS "projectId",
+            p.title AS "projectName"
+       FROM meetings m
+       JOIN customers c ON m.customer_id = c.id
+       LEFT JOIN tickets.tickets p ON m.project_id = p.id
+      WHERE m.scheduled_at IS NOT NULL
+        AND m.scheduled_at >= $1::timestamptz
+        AND m.scheduled_at <= $2::timestamptz
+        AND m.status NOT IN ('cancelled')
+      ORDER BY m.scheduled_at ASC`,
+    [fromIso, toIso]
+  );
+  return result.rows;
+}
+
 // ── Bug Ticket List ───────────────────────────────────────────────────────────
 
 export interface BugTicketRow {

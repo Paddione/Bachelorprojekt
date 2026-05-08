@@ -1,5 +1,144 @@
 ---
-// Legacy route kept for backwards-compatible bookmarks.
-// Live cockpit lives at /admin/live; per-session detail at /admin/live/sessions/[id].
-return Astro.redirect('/admin/live', 301);
+// /admin/meetings — Übersicht aller Meetings + "Neues Meeting" Anlegen.
+// Zuvor war diese Route nur ein 301-Redirect auf /admin/live; das brach
+// System-Test 2 / Q4 (T000161, T000164), weil dort kein "Neues Meeting"
+// Button existiert. Jetzt rendert die Seite eine echte Meeting-Liste.
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { listAllMeetings, listProjects } from '../../lib/website-db';
+import type { AdminMeeting, Project } from '../../lib/website-db';
+import AdminMeetingModal from '../../components/admin/AdminMeetingModal.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const brand = process.env.BRAND_NAME || process.env.BRAND || 'mentolder';
+
+let meetings: AdminMeeting[] = [];
+let projects: Project[] = [];
+let loadError = '';
+
+try {
+  [meetings, projects] = await Promise.all([
+    listAllMeetings({ limit: 200 }),
+    listProjects({ brand }),
+  ]);
+} catch (err) {
+  console.error('[admin/meetings]', err);
+  loadError = 'Meetings konnten nicht geladen werden.';
+}
+
+const now = new Date();
+const upcoming = meetings.filter(m => {
+  const t = m.startedAt ?? m.createdAt;
+  return t && new Date(t) >= now && m.status !== 'cancelled';
+});
+const past = meetings.filter(m => {
+  const t = m.startedAt ?? m.createdAt;
+  return !t || new Date(t) < now || m.status === 'cancelled';
+});
+
+function fmtDate(d: Date | string | null): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', {
+    weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
+  });
+}
+function fmtTime(d: Date | string | null): string {
+  if (!d) return '';
+  return new Date(d).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
 ---
+
+<AdminLayout title="Admin — Meetings">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-5xl mx-auto px-6">
+
+      <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-3xl font-bold text-light font-serif">Meetings</h1>
+          <p class="text-muted mt-1">{meetings.length} Meetings · {upcoming.length} anstehend</p>
+        </div>
+        <div class="flex gap-3">
+          <AdminMeetingModal
+            client:load
+            projects={projects.map(p => ({ id: p.id, name: p.name }))}
+            buttonLabel="＋ Neues Meeting"
+          />
+          <a
+            href="/admin/live"
+            class="px-4 py-2 bg-gold/20 text-gold rounded-lg text-sm font-medium hover:bg-gold/30 transition-colors"
+          >
+            Live-Cockpit →
+          </a>
+        </div>
+      </div>
+
+      {loadError && (
+        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+          {loadError}
+        </div>
+      )}
+
+      {meetings.length === 0 && !loadError && (
+        <div class="p-6 bg-dark-light rounded-xl border border-dark-lighter text-muted text-center" data-testid="meetings-empty">
+          Noch keine Meetings angelegt. Klicke auf „＋ Neues Meeting" um zu starten.
+        </div>
+      )}
+
+      {upcoming.length > 0 && (
+        <div class="mb-10">
+          <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Anstehend</h2>
+          <div class="grid gap-3" data-testid="meetings-upcoming">
+            {upcoming.map(m => (
+              <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter flex items-start justify-between gap-4 flex-wrap" data-meeting-id={m.id}>
+                <div>
+                  <p class="text-light font-medium">{m.meetingType} · {m.customerName}</p>
+                  <p class="text-sm text-muted mt-0.5">
+                    {fmtDate(m.startedAt ?? m.createdAt)} · {fmtTime(m.startedAt ?? m.createdAt)}
+                    {m.projectName ? ` · ${m.projectName}` : ''}
+                  </p>
+                  <p class="text-sm text-accent mt-0.5">{m.customerEmail}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent">{m.status}</span>
+                  <a
+                    href={`/admin/live/sessions/${m.id}`}
+                    class="text-xs px-3 py-1 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold/20 transition-colors"
+                  >Details →</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {past.length > 0 && (
+        <div>
+          <h2 class="text-sm font-medium text-muted mb-3 uppercase tracking-wide">Vergangene</h2>
+          <div class="grid gap-3" data-testid="meetings-past">
+            {past.slice(0, 50).map(m => (
+              <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter opacity-60 flex items-start justify-between gap-4 flex-wrap" data-meeting-id={m.id}>
+                <div>
+                  <p class="text-light font-medium">{m.meetingType} · {m.customerName}</p>
+                  <p class="text-sm text-muted mt-0.5">
+                    {fmtDate(m.startedAt ?? m.createdAt)} · {fmtTime(m.startedAt ?? m.createdAt)}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-dark-lighter text-muted">{m.status}</span>
+                  <a
+                    href={`/admin/live/sessions/${m.id}`}
+                    class="text-xs px-3 py-1 rounded-lg bg-dark-lighter text-muted hover:text-light transition-colors"
+                  >Details →</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+    </div>
+  </section>
+</AdminLayout>

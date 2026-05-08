@@ -1252,6 +1252,9 @@ const PROJECT_SELECT = `
          a.name         AS "adminName",   a.email AS "adminEmail",
          (SELECT COUNT(*)::int FROM tickets.tickets sp
             WHERE sp.parent_id = t.id AND sp.type = 'project') AS "subProjectCount",
+         -- A task's parent is either the root project (pt.parent_id = t.id)
+         -- or a sub-project (sp.parent_id = t.id). Those sets are disjoint per
+         -- the parent_id model, so the OR doesn't double-count.
          (SELECT COUNT(*)::int FROM tickets.tickets pt
             LEFT JOIN tickets.tickets sp ON sp.id = pt.parent_id AND sp.type = 'project'
            WHERE pt.type = 'task'

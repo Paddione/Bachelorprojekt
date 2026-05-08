@@ -45,8 +45,30 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
       </div>
 
       <div style="margin-bottom:1.25rem;">
+        <label style="display:block;font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.5rem;">Logo</label>
+
+        <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.75rem;">
+          <div id="logo-preview-wrap" style={`flex:0 0 96px;width:96px;height:96px;border:1px solid var(--line);border-radius:8px;background:var(--ink-800);display:flex;align-items:center;justify-content:center;overflow:hidden;${s.brand_logo_url ? '' : 'color:var(--mute-2);font-family:var(--font-mono);font-size:0.65rem;text-align:center;padding:0.25rem;'}`}>
+            {s.brand_logo_url ? (
+              <img id="logo-preview" src={s.brand_logo_url} alt="Logo Vorschau" style="max-width:100%;max-height:100%;object-fit:contain;" />
+            ) : (
+              <span id="logo-preview-placeholder">Kein Logo</span>
+            )}
+          </div>
+
+          <div style="flex:1;min-width:0;">
+            <input
+              type="file"
+              id="logo-file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              style="display:block;width:100%;color:var(--mute);font-family:var(--font-mono);font-size:0.8rem;margin-bottom:0.5rem;"
+            />
+            <p id="logo-upload-status" aria-live="polite" style="margin:0;min-height:1.1rem;font-family:var(--font-mono);font-size:0.7rem;color:var(--mute-2);">PNG, JPEG, WebP oder SVG. Max. 1 MB.</p>
+          </div>
+        </div>
+
         <label style="display:block;font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.5rem;">Logo-URL</label>
-        <input type="url" name="brand_logo_url" value={s.brand_logo_url} placeholder="https://..." style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
+        <input type="url" id="brand_logo_url" name="brand_logo_url" value={s.brand_logo_url} placeholder="https://... oder per Datei oben hochladen" style="width:100%;background:var(--ink-800);border:1px solid var(--line);border-radius:8px;padding:0.625rem 0.875rem;color:var(--fg);font-family:var(--font-mono);font-size:0.875rem;outline:none;" />
       </div>
 
       <p style="font-family:var(--font-mono);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mute-2);margin-bottom:0.75rem;">Social Media</p>
@@ -65,3 +87,89 @@ const s = Object.fromEntries(keys.map((k, i) => [k, results[i] ?? ''])) as Recor
     </form>
   </div>
 </AdminLayout>
+
+<script>
+  const MAX_BYTES = 1 * 1024 * 1024; // 1 MB — must match server (upload-logo.ts)
+  const ALLOWED = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+
+  const fileInput = document.getElementById('logo-file') as HTMLInputElement | null;
+  const status    = document.getElementById('logo-upload-status') as HTMLElement | null;
+  const urlInput  = document.getElementById('brand_logo_url') as HTMLInputElement | null;
+  const wrap      = document.getElementById('logo-preview-wrap') as HTMLElement | null;
+
+  function setStatus(msg: string, tone: 'idle' | 'error' | 'ok' = 'idle') {
+    if (!status) return;
+    status.textContent = msg;
+    status.style.color = tone === 'error' ? '#fca5a5' : tone === 'ok' ? '#86efac' : 'var(--mute-2)';
+  }
+
+  function clearChildren(el: HTMLElement) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  function renderPreview(src: string) {
+    if (!wrap) return;
+    clearChildren(wrap);
+    wrap.style.color = '';
+    wrap.style.fontFamily = '';
+    wrap.style.fontSize = '';
+    wrap.style.textAlign = '';
+    wrap.style.padding = '';
+    if (!src) {
+      const span = document.createElement('span');
+      span.textContent = 'Kein Logo';
+      span.style.color = 'var(--mute-2)';
+      span.style.fontFamily = 'var(--font-mono)';
+      span.style.fontSize = '0.65rem';
+      span.style.textAlign = 'center';
+      span.style.padding = '0.25rem';
+      wrap.appendChild(span);
+      return;
+    }
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = 'Logo Vorschau';
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '100%';
+    img.style.objectFit = 'contain';
+    wrap.appendChild(img);
+  }
+
+  urlInput?.addEventListener('input', () => renderPreview(urlInput.value.trim()));
+
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED.includes(file.type)) {
+      setStatus('Nur PNG, JPEG, WebP oder SVG erlaubt.', 'error');
+      fileInput.value = '';
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setStatus(`Datei zu groß (${(file.size / 1024 / 1024).toFixed(2)} MB, max. 1 MB).`, 'error');
+      fileInput.value = '';
+      return;
+    }
+
+    setStatus(`Lade ${file.name} hoch ...`, 'idle');
+    fileInput.disabled = true;
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/einstellungen/upload-logo', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({} as { src?: string; error?: string }));
+      if (!res.ok || !data.src) {
+        setStatus(data.error ?? 'Upload fehlgeschlagen.', 'error');
+        return;
+      }
+      if (urlInput) urlInput.value = data.src;
+      renderPreview(data.src);
+      setStatus('Logo aktualisiert. Klicken Sie auf "Speichern", um es zu übernehmen.', 'ok');
+    } catch (err) {
+      setStatus('Netzwerkfehler beim Upload.', 'error');
+    } finally {
+      fileInput.disabled = false;
+    }
+  });
+</script>

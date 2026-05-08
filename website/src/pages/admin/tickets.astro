@@ -22,19 +22,22 @@ const customerFilter  = sp.get('customerId') ?? '';
 const tagFilter       = sp.get('tag')        ?? '';
 const thesisFilter    = sp.get('thesisTag')  ?? '';
 const qFilter         = sp.get('q')          ?? '';
+// Hide seeded systemtest fixtures by default; toggle via `?testData=1`.
+const includeTestData = sp.get('testData') === '1';
 
 const filters: ListFilters = {
-  brand:        BRAND,
-  type:         (typeFilter as TicketType) || undefined,
-  status:       statusFilter === 'all' ? undefined : (statusFilter as TicketStatus | 'open'),
-  component:    componentFilter || undefined,
-  assigneeId:   assigneeFilter  || undefined,
-  customerId:   customerFilter  || undefined,
-  thesisTag:    thesisFilter    || undefined,
-  tagName:      tagFilter       || undefined,
-  q:            qFilter         || undefined,
-  parentIsNull: true,
-  limit:        200,
+  brand:           BRAND,
+  type:            (typeFilter as TicketType) || undefined,
+  status:          statusFilter === 'all' ? undefined : (statusFilter as TicketStatus | 'open'),
+  component:       componentFilter || undefined,
+  assigneeId:      assigneeFilter  || undefined,
+  customerId:      customerFilter  || undefined,
+  thesisTag:       thesisFilter    || undefined,
+  tagName:         tagFilter       || undefined,
+  q:               qFilter         || undefined,
+  parentIsNull:    true,
+  includeTestData,
+  limit:           200,
 };
 
 let tickets:   ListedTicket[] = [];
@@ -48,7 +51,7 @@ try {
   [tickets, total, components, customers, admins] = await Promise.all([
     listAdminTickets(filters),
     countAdminTickets(filters),
-    listKnownComponents(BRAND),
+    listKnownComponents(BRAND, { includeTestData }),
     listAllCustomers(),
     listAdminUsers(),
   ]);
@@ -85,7 +88,8 @@ function buildLink(ov: Record<string, string | undefined>): string {
   const p = new URLSearchParams();
   const keep = { type: typeFilter, status: statusFilter, component: componentFilter,
                  assigneeId: assigneeFilter, customerId: customerFilter,
-                 thesisTag: thesisFilter, tag: tagFilter, q: qFilter };
+                 thesisTag: thesisFilter, tag: tagFilter, q: qFilter,
+                 testData: includeTestData ? '1' : '' };
   const merged = { ...keep, ...ov };
   for (const [k, v] of Object.entries(merged)) if (v) p.set(k, String(v));
   const qs = p.toString();
@@ -200,6 +204,11 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
             placeholder="Tag-Name"
             class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg w-36" />
         </div>
+        <label class="flex items-center gap-2 px-3 py-1.5 bg-dark-light border border-dark-lighter rounded-lg text-sm text-muted cursor-pointer select-none whitespace-nowrap">
+          <input type="checkbox" name="testData" value="1" checked={includeTestData}
+            class="accent-gold cursor-pointer" />
+          Inkl. Testdaten
+        </label>
         <button type="submit"
           class="px-4 py-1.5 bg-gold/20 text-gold rounded-lg text-sm hover:bg-gold/30 transition-colors">
           Filtern

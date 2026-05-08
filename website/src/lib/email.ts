@@ -2,6 +2,7 @@
 // Uses Mailpit in dev (localhost:1025), real SMTP in prod.
 
 import nodemailer from 'nodemailer';
+import { renderNewsletterEmail, renderNewsletterText } from './newsletter-template';
 
 const SMTP_HOST = process.env.SMTP_HOST || 'mailpit.workspace.svc.cluster.local';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '1025');
@@ -170,20 +171,30 @@ export async function sendNewsletterCampaign(params: {
   html: string;
   unsubscribeUrl: string;
 }): Promise<boolean> {
-  const footerHtml = `
-<hr style="margin:32px 0;border:none;border-top:1px solid #333;">
-<p style="font-size:12px;color:#888;">
-  Du erhältst diese E-Mail, weil du den Newsletter von ${FROM_NAME} abonniert hast.
-  <a href="${params.unsubscribeUrl}" style="color:#888;">Abmelden</a>
-</p>`;
-  const footerText = `\n\n---\nDu erhältst diese E-Mail, weil du den Newsletter von ${FROM_NAME} abonniert hast.\nAbmelden: ${params.unsubscribeUrl}`;
-  const htmlWithFooter = params.html + footerHtml;
-  const textWithFooter = params.html.replace(/<[^>]+>/g, '') + footerText;
+  // Wrap user-authored content in the shared branded template (header + body
+  // + mandatory legal footer). This is the SAME wrapper the admin preview
+  // endpoint uses — preview and send must never diverge (T000173 / T000171).
+  const htmlWithFooter = renderNewsletterEmail({
+    bodyHtml: params.html,
+    subject: params.subject,
+    unsubscribeUrl: params.unsubscribeUrl,
+  });
+  const textWithFooter = renderNewsletterText({
+    bodyHtml: params.html,
+    subject: params.subject,
+    unsubscribeUrl: params.unsubscribeUrl,
+  });
   return sendEmail({
     to: params.to,
     subject: params.subject,
     text: textWithFooter,
     html: htmlWithFooter,
+    headers: {
+      // RFC 8058 / RFC 2369 — one-click unsubscribe header pair.
+      // Many providers (Gmail, Apple Mail) require this for newsletters.
+      'List-Unsubscribe': `<${params.unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 }
 

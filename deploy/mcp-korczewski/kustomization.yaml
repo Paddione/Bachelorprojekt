@@ -1,0 +1,76 @@
+# ════════════════════════════════════════════════════════════════════
+# Korczewski MCP monolith — second copy of deploy/mcp/ pinned at
+# the workspace-korczewski namespace, serving https://mcp.korczewski.de.
+#
+# The mentolder copy lives in `default` ns and serves https://mcp.mentolder.de
+# (see deploy/mcp/). Cluster-scoped RBAC is owned by mentolder; this overlay
+# strips it from its output so we don't clobber the existing ClusterRoleBinding
+# (which already has both namespaces' SAs as subjects).
+# ════════════════════════════════════════════════════════════════════
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: workspace-korczewski
+
+resources:
+  - ../mcp
+
+patches:
+  # ── ClusterRole/ClusterRoleBinding live in the mentolder overlay; the
+  # binding's subjects already include workspace-korczewski/claude-code-agent.
+  # Re-applying from this overlay would overwrite that and lose mentolder.
+  - target:
+      kind: ClusterRole
+      name: claude-code-agent
+    patch: |
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: claude-code-agent
+  - target:
+      kind: ClusterRoleBinding
+      name: claude-code-agent
+    patch: |
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: claude-code-agent
+
+  # ── claude-code-config CM is owned by the workspace-korczewski ArgoCD
+  # Application (it documents the in-cluster split MCPs at claude-code-mcp-ops/
+  # claude-code-mcp-auth). The monolith pod doesn't consume it, so strip it
+  # to avoid an ArgoCD sync conflict.
+  - target:
+      kind: ConfigMap
+      name: claude-code-config
+    patch: |
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: claude-code-config
+
+  # ── Retarget MCP monolith env vars to workspace-korczewski services ──
+  - path: patch-monolith.yaml
+
+  # ── Ingress: only mcp.korczewski.de + ForwardAuth in this namespace ──
+  - path: patch-ingress.yaml
+
+  # ── Pin auth-proxy to Hetzner CPs (CNI partition; CoreDNS lives there) ──
+  - target:
+      kind: Deployment
+      name: mcp-auth-proxy
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-location
+                      operator: In
+                      values:
+                        - hetzner

@@ -1653,13 +1653,21 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running. Run 'task cluster:create' first."
     cmds:
-      - 'echo "Deploying Claude Code MCP monolith..."'
+      - 'echo "Deploying Claude Code MCP monolith (ENV={{.ENV}})..."'
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         # Pull runtime secrets from workspace-secrets so claude-code-secrets stays in sync.
         # Falls back to placeholders on a fresh cluster before workspace-secrets exists.
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
         NS="${WORKSPACE_NAMESPACE:-workspace}"
+        # mentolder/dev → deploy/mcp/ (default ns); korczewski → deploy/mcp-korczewski/ (workspace-korczewski ns)
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          OVERLAY="deploy/mcp-korczewski"
+          MCP_NS="$NS"
+        else
+          OVERLAY="deploy/mcp"
+          MCP_NS="default"
+        fi
         SHARED_DB_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
           -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || echo "devshareddb")
         GITHUB_PAT=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
@@ -1667,22 +1675,29 @@ tasks:
         KEYCLOAK_ADMIN_PASSWORD=$(kubectl $CTX get secret workspace-secrets -n "$NS" \
           -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' 2>/dev/null | base64 -d || echo "admin")
         export SHARED_DB_PASSWORD GITHUB_PAT KEYCLOAK_ADMIN_PASSWORD
-        kustomize build deploy/mcp/ | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$KEYCLOAK_ADMIN_PASSWORD" | kubectl $CTX apply -f -
+        kustomize build "$OVERLAY" | envsubst "\$PROD_DOMAIN \$INFRA_NAMESPACE \$TLS_SECRET_NAME \$SHARED_DB_PASSWORD \$GITHUB_PAT \$KEYCLOAK_ADMIN_PASSWORD" | kubectl $CTX apply -f -
         # Create mcp-tokens only on first deploy — never overwrite real tokens
-        if ! kubectl $CTX get secret mcp-tokens -n default &>/dev/null; then
-          kubectl $CTX create secret generic mcp-tokens \
+        if ! kubectl $CTX get secret mcp-tokens -n "$MCP_NS" &>/dev/null; then
+          kubectl $CTX -n "$MCP_NS" create secret generic mcp-tokens \
             --from-literal="CLUSTER_TOKEN=dev-cluster-token-placeholder" \
             --from-literal="BUSINESS_TOKEN=dev-business-token-placeholder"
-          echo "⚠ mcp-tokens created with placeholders — run 'task claude-code:rotate-tokens ENV={{.ENV}}' to set real tokens"
+          echo "⚠ mcp-tokens created in $MCP_NS with placeholders — run 'task claude-code:rotate-tokens ENV={{.ENV}}' to set real tokens"
         fi
       - 'echo "Waiting for pods to roll out..."'
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        kubectl $CTX rollout status deployment/claude-code-mcp-monolith --timeout=300s
-        kubectl $CTX rollout status deployment/mcp-auth-proxy --timeout=120s
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          MCP_NS="default"
+        fi
+        kubectl $CTX -n "$MCP_NS" rollout status deployment/claude-code-mcp-monolith --timeout=300s
+        kubectl $CTX -n "$MCP_NS" rollout status deployment/mcp-auth-proxy --timeout=120s
       - 'echo "✓ MCP monolith deployed (1 pod + auth proxy)"'
       - task: mcp:status
+        vars:
+          ENV: '{{.ENV}}'
       - 'echo ""'
       - 'echo "  Next → task workspace:post-setup ENV={{.ENV}}"'
 
@@ -1694,17 +1709,23 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        echo "=== MCP Pods ==="
-        kubectl $CTX get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o wide
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          NS_FLAG="-n default"
+        fi
+        echo "=== MCP Pods ($NS_FLAG) ==="
+        kubectl $CTX $NS_FLAG get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o wide
         echo ""
         echo "=== Container Status (per pod) ==="
-        for pod in $(kubectl $CTX get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' -o name 2>/dev/null); do
+        for pod in $(kubectl $CTX $NS_FLAG get pods -l 'app in (claude-code-mcp-monolith,mcp-auth-proxy)' --field-selector=status.phase=Running -o name 2>/dev/null); do
           echo "  $pod:"
-          kubectl $CTX get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}'
+          kubectl $CTX $NS_FLAG get $pod -o jsonpath='{range .status.containerStatuses[*]}    {.name}: ready={.ready} restarts={.restartCount}{"\n"}{end}' 2>/dev/null || true
+          echo
         done
         echo ""
         echo "=== MCP Endpoints ==="
-        kubectl $CTX get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
+        kubectl $CTX $NS_FLAG get configmap claude-code-config -o yaml 2>/dev/null | grep "MCP_.*_URL"
 
   mcp:logs:
     desc: "Tail logs for a container in the MCP monolith (usage: task mcp:logs -- <container>, e.g. postgres|browser|github|keycloak|kubernetes)"
@@ -1714,11 +1735,16 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          NS_FLAG="-n default"
+        fi
         CONTAINER="{{.CLI_ARGS}}"
         if [ -z "$CONTAINER" ]; then
-          kubectl $CTX logs deployment/claude-code-mcp-monolith -f --tail=50 --all-containers
+          kubectl $CTX $NS_FLAG logs deployment/claude-code-mcp-monolith -f --tail=50 --all-containers
         else
-          kubectl $CTX logs deployment/claude-code-mcp-monolith -c "$CONTAINER" -f --tail=50
+          kubectl $CTX $NS_FLAG logs deployment/claude-code-mcp-monolith -c "$CONTAINER" -f --tail=50
         fi
 
   mcp:restart:
@@ -1729,8 +1755,13 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        kubectl $CTX rollout restart deployment/claude-code-mcp-monolith
-        kubectl $CTX rollout status deployment/claude-code-mcp-monolith --timeout=120s
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          NS_FLAG="-n default"
+        fi
+        kubectl $CTX $NS_FLAG rollout restart deployment/claude-code-mcp-monolith
+        kubectl $CTX $NS_FLAG rollout status deployment/claude-code-mcp-monolith --timeout=120s
 
   mcp:set-github-pat:
     desc: Update GITHUB_PAT in claude-code-secrets
@@ -1775,8 +1806,13 @@ tasks:
         fi
 
         # Read token from k8s Secret (production context)
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          MCP_NS="default"
+        fi
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context "${ENV_CONTEXT}" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
           echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
@@ -1816,9 +1852,14 @@ tasks:
         # Read token from k8s Secret
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context $ENV_CONTEXT"
-        
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          MCP_NS="default"
+        fi
+
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl $context_flag get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl $context_flag -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
@@ -1878,8 +1919,13 @@ tasks:
         fi
 
         # Read token from k8s Secret (production context)
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          MCP_NS="default"
+        fi
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context "${ENV_CONTEXT}" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
           echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
@@ -1925,8 +1971,13 @@ tasks:
         fi
 
         # Read token from k8s Secret (production context)
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          MCP_NS="default"
+        fi
         TOKEN_KEY="$(echo ${ROLE} | tr '[:lower:]' '[:upper:]')_TOKEN"
-        TOKEN=$(kubectl --context "${ENV_CONTEXT}" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
+        TOKEN=$(kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" get secret mcp-tokens -o jsonpath="{.data.${TOKEN_KEY}}" 2>/dev/null | base64 -d)
         if [ -z "$TOKEN" ]; then
           echo "ERROR: Could not read ${TOKEN_KEY} from mcp-tokens Secret"
           echo "Deploy MCP first: task mcp:deploy ENV={{.ENV}}"
@@ -1968,16 +2019,21 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          MCP_NS="default"
+        fi
         NEW_CLUSTER=$(openssl rand -hex 32)
         NEW_BUSINESS=$(openssl rand -hex 32)
 
-        kubectl --context "${ENV_CONTEXT}" delete secret mcp-tokens 2>/dev/null || true
-        kubectl --context "${ENV_CONTEXT}" create secret generic mcp-tokens \
+        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" delete secret mcp-tokens 2>/dev/null || true
+        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" create secret generic mcp-tokens \
           --from-literal="CLUSTER_TOKEN=$NEW_CLUSTER" \
           --from-literal="BUSINESS_TOKEN=$NEW_BUSINESS"
 
-        kubectl --context "${ENV_CONTEXT}" rollout restart deployment/mcp-auth-proxy
-        kubectl --context "${ENV_CONTEXT}" rollout status deployment/mcp-auth-proxy --timeout=60s
+        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout restart deployment/mcp-auth-proxy
+        kubectl --context "${ENV_CONTEXT}" -n "$MCP_NS" rollout status deployment/mcp-auth-proxy --timeout=60s
 
         echo "MCP tokens rotated"
         echo ""

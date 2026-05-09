@@ -199,6 +199,7 @@ spec:
                     psql -U postgres -c "DO \$\$ BEGIN IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'docuseal') THEN EXECUTE 'ALTER USER docuseal WITH PASSWORD ''${DOCUSEAL_DB_PASSWORD}'''; END IF; END \$\$;"
                     bash /scripts/ensure-meetings-schema.sh || true
                     bash /scripts/ensure-bachelorprojekt-schema.sh || true
+                    bash /scripts/ensure-knowledge-schema.sh || true
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -217,6 +218,12 @@ spec:
             - name: website-schema
               mountPath: /scripts/ensure-bachelorprojekt-schema.sh
               subPath: ensure-bachelorprojekt-schema.sh
+            - name: website-schema
+              mountPath: /scripts/ensure-knowledge-schema.sh
+              subPath: ensure-knowledge-schema.sh
+            - name: website-schema
+              mountPath: /docker-entrypoint-initdb.d/03-init-knowledge-schema.sh
+              subPath: init-knowledge-schema.sh
             - name: tls-certs
               mountPath: /etc/postgresql/certs
               readOnly: true

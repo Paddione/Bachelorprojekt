@@ -107,12 +107,3 @@ spec:
         - name: claude-code-mcp-monolith
           port: 3002
 
-    # ── Stripe MCP ───────────────────────────────────────────────
-    - kind: Rule
-      match: (Host(`mcp.mentolder.de`) || Host(`mcp.korczewski.de`)) && PathPrefix(`/stripe`)
-      middlewares:
-        - name: mcp-chain
-      services:
-        - name: claude-code-mcp-monolith
-          port: 3003
-

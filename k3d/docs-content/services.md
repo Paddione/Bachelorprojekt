@@ -139,17 +139,6 @@ Verbindet sich mit dem spreed-signaling-Server, nimmt am Anruf teil und uebertra
 
 ## Business-Services
 
-### Stripe-Checkout
-
-**Für Mitarbeiter:** Zahlungen werden direkt ueber Stripe abgewickelt. Kunden bezahlen Leistungen per Kreditkarte oder SEPA auf der Leistungen-Seite oder ueber den CTA der Homepage. Es gibt keine separate Rechnungssoftware mehr — alle Zahlungsvorgaenge laufen ueber die Website-Stripe-Integration. Weitere Details: [Stripe-Integration](stripe.md).
-
-| Eigenschaft | Wert |
-|-------------|------|
-| Keys | `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY` (workspace-secrets) |
-| Checkout | Stripe-hosted Checkout Page |
-| Webhook | `/api/stripe/webhook` (checkout.session.completed) |
-| Konfiguration | Brand-Konfig (`mentolder.config.ts` / `korczewski.config.ts`) |
-
 ### Vaultwarden (Passwoerter)
 
 **Für Mitarbeiter:** Vaultwarden ist der sichere Passwort-Safe des Teams. Hier speicherst Du Zugangsdaten und kannst sie sicher mit Kollegen teilen – alles verschlüsselt auf Deinen eigenen Servern. Du kannst auch das Bitwarden-Browser-Plugin nutzen, um Passwörter automatisch ausfüllen zu lassen. Achtung: Du benötigst ein eigenes Master-Passwort, das Du Dir gut merken musst.
@@ -249,7 +238,7 @@ Keycloak-OIDC-Proxy vor dem Docs-Dienst. Benutzer werden zur Keycloak-Anmeldesei
 
 ### Website (Astro + Svelte)
 
-**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular leitet Anfragen in die Admin-Inbox weiter. Auf der Leistungen-Seite kann direkt per Stripe bezahlt werden.
+**Für Mitarbeiter:** Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular leitet Anfragen in die Admin-Inbox weiter.
 
 | Eigenschaft | Wert |
 |-------------|------|
@@ -261,8 +250,7 @@ Keycloak-OIDC-Proxy vor dem Docs-Dienst. Benutzer werden zur Keycloak-Anmeldesei
 
 Multi-Brand-Unternehmenswebsite (mentolder / korczewski) mit:
 - **Kontaktformular** — leitet Anfragen in die Admin-Inbox
-- **Leistungen-Seite** — Preistabelle mit Stripe-Checkout
-- **Homepage-CTA** — Stripe-Checkout-Button fuer das Haupt-Angebot
+- **Leistungen-Seite** — Preistabelle mit Kontakt-CTA
 - **OIDC-Login** — Keycloak SSO fuer Kunden und Administratoren
 - **Messaging** — Chat-Raeume, DMs, Inbox fuer eingehende Anfragen
 - **Admin-Panel** (`/admin`) — Brand-Konfiguration: Services, Leistungen, Site-Einstellungen, Rechtstexte, Referenzen
@@ -270,7 +258,6 @@ Multi-Brand-Unternehmenswebsite (mentolder / korczewski) mit:
 - **Bug-Reporting** — Formular (`/admin/bugs`) mit Ticket-Tracking in der `website`-Datenbank
 - **Monitoring** (`/admin/monitoring`) — Live-Uebersicht Pod-Status, Ressourcen und Events
 
-Stripe-Keys werden als Kubernetes Secret injiziert. Setup: `task workspace:stripe-setup`. Siehe [Stripe-Integration](stripe.md).
 Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 
 ## Ressourcen-Uebersicht

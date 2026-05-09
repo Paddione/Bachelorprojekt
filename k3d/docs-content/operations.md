@@ -10,7 +10,7 @@
 task workspace:up
 ```
 
-Dieser Befehl führt automatisch alle Schritte aus: Cluster erstellen, alle Workspace-Services deployen, Office-Stack, MCP-Server, Post-Setup, Talk-Konfiguration, Admin-Benutzer, Stripe und Recording.
+Dieser Befehl führt automatisch alle Schritte aus: Cluster erstellen, alle Workspace-Services deployen, Office-Stack, MCP-Server, Post-Setup, Talk-Konfiguration, Admin-Benutzer und Recording.
 
 **Oder manuell Schritt für Schritt:**
 
@@ -52,7 +52,6 @@ task website:deploy       # 6. Astro-Website bauen und deployen
 | `task workspace:psql -- <db>` | psql-Shell zur shared-db öffnen |
 | `task workspace:port-forward` | shared-db auf localhost:5432 weiterleiten |
 | `task workspace:dsgvo-check` | DSGVO-Konformitätsprüfung ausführen (NFA-01 Datensouveränitätsnachweis) |
-| `task workspace:stripe-setup` | Stripe als Zahlungsanbieter in Invoice Ninja registrieren |
 | `task workspace:theme` | Dunkles Gold-Theme auf Nextcloud anwenden (idempotent, nach post-setup) |
 | `task workspace:check-connectivity` | HTTPS-Erreichbarkeit aller Workspace-Services testen |
 | `task workspace:check-updates` | Laufende Container-Images mit Registry auf Updates vergleichen |

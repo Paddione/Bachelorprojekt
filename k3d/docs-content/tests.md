@@ -65,7 +65,6 @@ task workspace:deploy
 | FA-18 | Meeting Transcription — Whisper-Deployment (faster-whisper) |
 | FA-20 | Meeting Finalization Pipeline — Abschluss-Workflow nach Meeting |
 | FA-21 | Service Catalog — Leistungsseite mit Preisen |
-| FA-22 | Stripe Payment Gateway — Stripe-Integration |
 | FA-23 | Vaultwarden Passwort-Manager — Deployment, SSO, Seed, Datenbank |
 | FA-24 | Kollaboratives Whiteboard — Nextcloud Whiteboard Deployment |
 | FA-25 | Mailpit E-Mail-Server — SMTP-Relay und Web-UI |

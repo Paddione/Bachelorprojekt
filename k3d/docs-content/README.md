@@ -165,14 +165,12 @@ flowchart LR
     B --> C{"fa:fa-code-branch Optionale Schritte"}
     C --> D["fa:fa-brain task mcp:deploy<br/>MCP-Server"]
     C --> E["fa:fa-cloud task workspace:post-setup<br/>Nextcloud Apps"]
-    C --> F["fa:fa-credit-card task workspace:stripe-setup<br/>Stripe Gateway"]
     C --> G["fa:fa-lock task workspace:vaultwarden:seed<br/>Secret-Templates"]
 
     style A fill:#2d6a4f,color:#fff
     style B fill:#2d6a4f,color:#fff
     style D fill:#8b5cf6,color:#fff
     style E fill:#2d8659,color:#fff
-    style F fill:#d97706,color:#fff
     style G fill:#0891b2,color:#fff
 ```
 

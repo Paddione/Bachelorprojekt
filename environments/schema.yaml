@@ -152,9 +152,6 @@ env_vars:
     required: false
     default_dev: "http://mail.localhost"
 
-  - name: STRIPE_PUBLISHABLE_KEY
-    required: false
-
   - name: BRETT_DOMAIN
     required: true
     default_dev: "brett.localhost"
@@ -386,13 +383,6 @@ secrets:
     required: false
     generate: false
 
-  - name: STRIPE_SECRET_KEY
-    required: false
-    generate: false
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-
   - name: DOCUSEAL_SECRET_KEY_BASE
     required: true
     generate: true
@@ -414,13 +404,6 @@ secrets:
     required: true
     generate: true
     length: 32
-
-  - name: STRIPE_WEBHOOK_SECRET
-    required: false
-    generate: false
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
 
   - name: SEPA_CREDITOR_IBAN
     required: false

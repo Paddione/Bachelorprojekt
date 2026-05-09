@@ -67,7 +67,6 @@ spec:
               upsert_login "Nextcloud Talk — Video"         "https://${NC}/apps/spreed"   "Video-/Sprachanrufe via Nextcloud Talk"
               upsert_login "Whiteboard"                     "https://${NC}/apps/whiteboard" "Kollaboratives Whiteboard (Nextcloud-App, nicht board.* öffnen)"
               upsert_login "Collabora Office"               "https://${OFFICE}"           "Online-Office (Word/Excel/Impress)"
-              upsert_login "Abrechnung (Stripe)"            "https://${WEB}/admin/rechnungen" "Rechnungen und Abrechnung via Stripe (Login via Keycloak SSO)"
               upsert_login "Keycloak — Benutzerverwaltung"  "https://${KC}"               "SSO und Benutzerverwaltung"
               upsert_login "Portal — Kundenbereich"         "https://${WEB}/portal"       "Kundenportal (Login via Keycloak SSO)"
               upsert_login "Admin — Website-Verwaltung"     "https://${WEB}/admin"        "Website-Admin (Login via Keycloak SSO)"

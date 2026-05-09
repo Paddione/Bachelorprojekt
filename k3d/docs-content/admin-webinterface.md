@@ -31,7 +31,7 @@ Das Admin-Panel ist die zentrale Verwaltungsoberfläche der Website. Es ermögli
 | Termine | `/admin/termine` | Buchungsverwaltung und Slot-Konfiguration |
 | Follow-ups | `/admin/followups` | Wiedervorlagen und Erinnerungsaufgaben |
 | Zeiterfassung | `/admin/zeiterfassung` | Arbeitszeiterfassung und CSV-Export |
-| Rechnungen | `/admin/rechnungen` | Rechnungserstellung und Stripe-Zahlungen |
+| Rechnungen | `/admin/rechnungen` | Rechnungserstellung (ZUGFeRD-PDF, SEPA-Lastschrift) |
 | Meetings | `/admin/meetings` | Aufgezeichnete Meetings und Transkripte |
 | Monitoring | `/admin/monitoring` | Live-Kubernetes-Cluster-Übersicht |
 | Bugs | `/admin/bugs` | Bug-Reports und Ticket-Tracking |
@@ -184,12 +184,11 @@ Erfassung und Auswertung von Arbeitszeiten.
 
 ### Rechnungen `/admin/rechnungen`
 
-Rechnungserstellung und -verwaltung mit Stripe- und ZUGFeRD-Integration.
+Rechnungserstellung und -verwaltung mit ZUGFeRD-Integration.
 
 **Aktionen:**
 - Neue Rechnung als Entwurf erstellen
 - Status filtern: offen / bezahlt / überfällig
-- Rechnung per Stripe-Link versenden
 - ZUGFeRD-konformes PDF herunterladen
 - KPI-Kacheln: Offene Forderungen, Einnahmen, überfällige Rechnungen
 
@@ -361,6 +360,5 @@ Das Monitoring-Panel benötigt Zugriff auf die Kubernetes-API. Im lokalen k3d-Cl
 |-------|----------|
 | Benutzerverwaltung (Keycloak) | [Adminhandbuch](adminhandbuch.md#benutzerverwaltung) |
 | Projektmanagement (API-Details) | [Projektmanagement-Admin](admin-projekte.md) |
-| Stripe-Integration | [Stripe](stripe.md) |
 | Monitoring (CLI) | [Adminhandbuch → Monitoring](adminhandbuch.md#monitoring--observability) |
 | Fehlerbehebung | [Fehlerbehebung](troubleshooting.md) |

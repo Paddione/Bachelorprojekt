@@ -23,6 +23,18 @@ spec:
         app: claude-code-mcp-monolith
     spec:
       serviceAccountName: claude-code-agent
+      # Pin to Hetzner control-plane nodes: home workers have unreliable external
+      # DNS/HTTP through the WireGuard hub, which breaks the npm-install + npx
+      # bootstrap pattern used by the supergateway-fronted MCP containers.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-location
+                    operator: In
+                    values:
+                      - hetzner
       initContainers:
         # Download github-mcp-server binary so the node github container can
         # run it in stdio mode (HTTP mode requires OAuth which supergateway
@@ -73,7 +85,7 @@ spec:
               npm install -g supergateway @modelcontextprotocol/server-postgres 2>&1 | tail -3
               echo "Starting supergateway on :3001/mcp..."
               exec supergateway \
-                --stdio "npx @modelcontextprotocol/server-postgres \"$DATABASE_URL\"" \
+                --stdio "mcp-server-postgres \"$DATABASE_URL\"" \
                 --outputTransport streamableHttp \
                 --port 3001 \
                 --streamableHttpPath /mcp \
@@ -147,7 +159,7 @@ spec:
               npm install -g supergateway @playwright/mcp 2>&1 | tail -3
               echo "Starting supergateway on :3000/mcp..."
               exec supergateway \
-                --stdio "npx @playwright/mcp" \
+                --stdio "playwright-mcp" \
                 --outputTransport streamableHttp \
                 --port 3000 \
                 --streamableHttpPath /mcp \
@@ -200,39 +212,6 @@ spec:
             - name: github-bin
               mountPath: /github-bin
 
-        # ── Stripe MCP (port 3003) ──────────────────────────────────
-        - name: stripe
-          image: node:20-alpine
-          imagePullPolicy: Always
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              echo "Installing Stripe MCP bridge..."
-              npm install -g supergateway @stripe/mcp 2>&1 | tail -3
-              echo "Starting supergateway on :3003/mcp..."
-              exec supergateway \
-                --stdio "npx @stripe/mcp --tools=all" \
-                --outputTransport streamableHttp \
-                --port 3003 \
-                --streamableHttpPath /mcp \
-                --healthEndpoint /health
-          env:
-            - name: STRIPE_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: claude-code-secrets
-                  key: STRIPE_SECRET_KEY
-          ports:
-            - containerPort: 3003
-              name: stripe
-          readinessProbe:
-            httpGet: { path: /health, port: 3003 }
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          resources:
-            requests: { memory: 128Mi, cpu: 50m }
-            limits:   { memory: 256Mi }
-
 ---
 apiVersion: v1
 kind: Service
@@ -257,6 +236,3 @@ spec:
     - name: github
       port: 3002
       targetPort: 3002
-    - name: stripe
-      port: 3003
-      targetPort: 3003

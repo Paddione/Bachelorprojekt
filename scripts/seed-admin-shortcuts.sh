@@ -41,8 +41,7 @@ INSERT INTO admin_shortcuts (url, label, sort_order)
 SELECT url, label, sort_order FROM (VALUES
   ('https://console.hetzner.com/',      'Hetzner Console', 1),
   ('https://app.filen.io/#/drive/',     'Filen Drive',     2),
-  ('https://dashboard.stripe.com/',     'Stripe',          3),
-  ('https://app.mailbox.org/appsuite/', 'Mailbox.org',     4)
+  ('https://app.mailbox.org/appsuite/', 'Mailbox.org',     3)
 ) AS v(url, label, sort_order)
 WHERE NOT EXISTS (
   SELECT 1 FROM admin_shortcuts a WHERE a.url = v.url

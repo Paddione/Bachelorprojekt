@@ -6,8 +6,7 @@
 # as shell environment variables, using python3/PyYAML so multi-line
 # strings, quoted scalars, and block scalars all resolve correctly.
 # (The previous grep/awk implementation silently truncated values that
-# spanned multiple lines — notably STRIPE_PUBLISHABLE_KEY using YAML
-# line-continuation — to the first line.)
+# spanned multiple lines — using YAML line-continuation — to the first line.)
 #
 # Usage:
 #   source scripts/env-resolve.sh <env-name> [env-dir]

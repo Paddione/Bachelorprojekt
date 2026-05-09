@@ -63,9 +63,6 @@ data:
           if ($uri_path ~ "^/nextcloud(/|$)") {
             set $allowed "yes";
           }
-          if ($uri_path ~ "^/stripe(/|$)") {
-            set $allowed "yes";
-          }
 
           if ($allowed != "yes") {
             return 403 '{"error":"forbidden: business role cannot access this path"}\n';

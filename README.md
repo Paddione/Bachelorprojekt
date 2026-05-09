@@ -269,7 +269,6 @@ Alternativ alles automatisch: `task workspace:up`
 | Befehl | Beschreibung |
 |--------|-------------|
 | `task docs:deploy` | Docsify Docs-Site deployen (git-sync) |
-| `task docs:publish-api` | OpenAPI-Spec zu GitBook veroeffentlichen |
 
 ### TLS & DNS (Produktion)
 

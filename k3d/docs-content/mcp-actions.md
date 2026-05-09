@@ -204,5 +204,4 @@ Image: `ghcr.io/github/github-mcp-server` (offizieller GitHub MCP-Server)
 | — *nur deploy/mcp Overlay (laeuft nicht in k3d)* — | | |
 | Keycloak | ~6 Bereiche | SSO Benutzer-/Gruppen-/Rollenverwaltung |
 | GitHub | ~6 Bereiche | Repos, Issues, PRs, Actions (PAT erforderlich) |
-| Stripe | ~7 Bereiche | Zahlungen, Rechnungen, Abonnements |
 | **Gesamt (k3d laufend)** | **71** | |

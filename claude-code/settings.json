@@ -34,13 +34,6 @@
       "headers": {
         "Authorization": "Bearer ${CLUSTER_TOKEN}"
       }
-    },
-    "stripe": {
-      "type": "url",
-      "url": "https://mcp.${PROD_DOMAIN}/stripe/mcp",
-      "headers": {
-        "Authorization": "Bearer ${CLUSTER_TOKEN}"
-      }
     }
   }
 }

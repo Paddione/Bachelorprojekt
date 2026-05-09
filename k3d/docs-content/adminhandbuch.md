@@ -142,7 +142,7 @@ Kurzreferenz der wichtigsten Bereiche:
 | Kunden | `/admin/clients` | Kundenverwaltung |
 | Projekte | `/admin/projekte` | Projektmanagement mit Gantt-Diagramm |
 | Termine | `/admin/termine` | Buchungen und Slot-Whitelist |
-| Rechnungen | `/admin/rechnungen` | Stripe-Zahlungen und ZUGFeRD-PDF |
+| Rechnungen | `/admin/rechnungen` | ZUGFeRD-PDF und SEPA-Lastschrift |
 | Meetings | `/admin/meetings` | Aufgezeichnete Meetings und Transkripte |
 | Monitoring | `/admin/monitoring` | Live-Übersicht: Pod-Status und Ressourcen |
 | Bugs | `/admin/bugs` | Bug-Reports und Ticket-Tracking |
@@ -186,14 +186,6 @@ task workspace:post-setup
 Aktiviert: calendar, contacts, user_oidc, richdocuments (Collabora), whiteboard, notify_push, talk. Details: [Nextcloud](nextcloud.md).
 
 ---
-
-## Stripe-Zahlungen einrichten
-
-```bash
-task workspace:stripe-setup
-```
-
-Registriert Stripe als Zahlungs-Gateway in der Website-Brand-Konfiguration. Stripe-Keys werden als Secret ausgerollt (in Dev direkt, in Produktion als SealedSecret in `environments/sealed-secrets/<env>.yaml`). Webhook-Endpunkt: `/api/stripe/webhook`. Details: [Stripe](stripe.md).
 
 ### E-Rechnung (XRechnung / ZUGFeRD)
 

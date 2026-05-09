@@ -98,7 +98,7 @@ export const korczewskiConfig: BrandConfig = {
     quote: 'Gute Systeme entstehen nicht durch Tools allein – sondern durch das Verständnis, welches Problem man wirklich lösen will.',
     quoteName: 'Patrick Korczewski',
     timeline: true,
-    identityImage: { src: '/brand/korczewski/identity.webp', alt: 'Patrick Korczewski' },
+    identityImage: { src: '/brand/korczewski/identity.svg', alt: 'Patrick Korczewski' },
   },
   services: [
     {

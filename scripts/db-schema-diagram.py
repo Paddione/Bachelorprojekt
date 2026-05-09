@@ -43,6 +43,49 @@ def psql(database: str, query: str) -> list[dict]:
     return list(reader)
 
 
+def psql_multi(database: str, queries: list[str]) -> list[list[dict]]:
+    """Run multiple queries in a single psql connection (avoids TCP reconnect resets)."""
+    SENTINEL = "---RESULT_BOUNDARY---"
+    # Interleave a SELECT marker between queries so we can split the CSV output
+    combined_args = [
+        "psql",
+        f"--host={PG_HOST}", f"--port={PG_PORT}", f"--username={PG_USER}",
+        f"--dbname={database}",
+        "--csv", "--no-psqlrc",
+    ]
+    for i, q in enumerate(queries):
+        if i > 0:
+            combined_args += ["--command", f"SELECT '{SENTINEL}' AS boundary"]
+        combined_args += ["--command", q]
+    try:
+        result = subprocess.run(
+            combined_args,
+            capture_output=True, text=True,
+            timeout=60,
+            env={**os.environ, "PGPASSWORD": os.environ.get("PGPASSWORD", "")},
+        )
+    except subprocess.TimeoutExpired:
+        print(f"[psql timeout on {database}]", file=sys.stderr)
+        return [[] for _ in queries]
+    if result.returncode != 0:
+        print(f"[psql error on {database}]: {result.stderr}", file=sys.stderr)
+        return [[] for _ in queries]
+
+    # Split stdout on the sentinel CSV row (no quoting since value has no special chars)
+    sections = result.stdout.split(f"boundary\n{SENTINEL}\n")
+    results = []
+    for i, section in enumerate(sections):
+        if i < len(queries):
+            reader = csv.DictReader(io.StringIO(section.strip() + "\n"))
+            results.append(list(reader))
+        else:
+            results.append([])
+    # Pad if fewer sections than queries
+    while len(results) < len(queries):
+        results.append([])
+    return results
+
+
 SCHEMA_QUERY = """
 SELECT t.table_schema, t.table_name, c.column_name, c.data_type, c.is_nullable
 FROM information_schema.tables t
@@ -251,12 +294,13 @@ def fetch_all(databases: list[str]) -> tuple[dict, dict, list]:
     all_fks: list[dict] = []
 
     for db in databases:
-        for row in psql(db, SCHEMA_QUERY):
+        schema_rows, fk_rows, pk_rows = psql_multi(db, [SCHEMA_QUERY, FK_QUERY, PK_QUERY])
+        for row in schema_rows:
             key = (row["table_schema"], row["table_name"])
             all_cols.setdefault(key, []).append(row)
-        for row in psql(db, FK_QUERY):
+        for row in fk_rows:
             all_fks.append(row)
-        for row in psql(db, PK_QUERY):
+        for row in pk_rows:
             key = (row["table_schema"], row["table_name"])
             all_pks[key].add(row["column_name"])
 

@@ -55,6 +55,8 @@ resources:
   # Anforderungs-Tracking
   - tracking.yaml
   - tracking-import-cronjob.yaml
+  # Wissensmanagement — Knowledge Base Ingestion CronJobs
+  - knowledge-ingest-cronjob.yaml
   # Tests retention (prune tests/results/ nightly).
   # Applied separately via envsubst by `workspace:deploy` so its Role+RoleBinding
   # can land in ${WEBSITE_NAMESPACE} (cross-NS exec into the website pod) — the

@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import KoreLayout from '../layouts/KoreLayout.astro';
 import { config } from '../config/index';
 import { getLegalPage } from '../lib/website-db';
 
@@ -13,7 +12,7 @@ const useCustom = !!(customHtml && customHtml.trim());
 ---
 
 {isKore ? (
-  <KoreLayout title="Impressum">
+  <Layout title="Impressum" brand="korczewski-kore">
     <article class="kore-legal">
       {useCustom ? (
         <div set:html={customHtml} />
@@ -68,7 +67,7 @@ const useCustom = !!(customHtml && customHtml.trim());
         <button onclick="window.print()" class="kore-print-btn">Drucken / PDF</button>
       </div>
     </article>
-  </KoreLayout>
+  </Layout>
 ) : (
   <Layout title="Impressum">
     <section class="pt-28 pb-20">

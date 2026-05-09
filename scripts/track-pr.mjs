@@ -168,6 +168,62 @@ async function ensurePrEventsSchema(pgClient) {
   await pgClient.query(`CREATE INDEX IF NOT EXISTS pr_events_category_idx  ON tickets.pr_events (category)`);
 }
 
+async function ensurePlanSchema(pgClient) {
+  await pgClient.query(`CREATE SCHEMA IF NOT EXISTS superpowers`);
+  await pgClient.query(`
+    CREATE TABLE IF NOT EXISTS superpowers.plans (
+      id           SERIAL PRIMARY KEY,
+      slug         TEXT NOT NULL UNIQUE,
+      title        TEXT NOT NULL,
+      domains      TEXT[] NOT NULL,
+      status       TEXT NOT NULL DEFAULT 'active'
+                   CHECK (status IN ('active','completed','archived')),
+      pr_number    INTEGER,
+      file_path    TEXT NOT NULL,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      completed_at TIMESTAMPTZ
+    )
+  `);
+  await pgClient.query(`
+    CREATE TABLE IF NOT EXISTS superpowers.plan_sections (
+      id           SERIAL PRIMARY KEY,
+      plan_id      INTEGER NOT NULL REFERENCES superpowers.plans(id) ON DELETE CASCADE,
+      section_type TEXT NOT NULL,
+      content      TEXT NOT NULL,
+      seq          INTEGER NOT NULL,
+      UNIQUE (plan_id, seq)
+    )
+  `);
+  await pgClient.query(`CREATE INDEX IF NOT EXISTS plans_domains_idx ON superpowers.plans USING GIN(domains)`);
+  await pgClient.query(`CREATE INDEX IF NOT EXISTS plans_status_idx ON superpowers.plans(status)`);
+}
+
+async function writePlanToDb(row, pgClient) {
+  const result = await pgClient.query(
+    `INSERT INTO superpowers.plans (slug, title, domains, status, pr_number, file_path)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (slug) DO UPDATE SET
+       title = EXCLUDED.title,
+       domains = EXCLUDED.domains,
+       status = EXCLUDED.status,
+       pr_number = EXCLUDED.pr_number,
+       file_path = EXCLUDED.file_path
+     RETURNING id`,
+    [row.slug, row.title, row.domains, row.status, row.pr_number ?? null, row.file_path]
+  );
+  const planId = result.rows[0].id;
+
+  // Replace sections wholesale (simpler than diffing)
+  await pgClient.query(`DELETE FROM superpowers.plan_sections WHERE plan_id = $1`, [planId]);
+  for (const section of (row.sections ?? [])) {
+    await pgClient.query(
+      `INSERT INTO superpowers.plan_sections (plan_id, section_type, content, seq)
+       VALUES ($1, $2, $3, $4)`,
+      [planId, section.section_type, section.content, section.seq]
+    );
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const mode = args[0];
@@ -201,12 +257,17 @@ async function main() {
     const client = new pg.Client({ connectionString: process.env.TRACKING_DB_URL });
     await client.connect();
     await ensurePrEventsSchema(client);     // self-heal: create table before first write
+    await ensurePlanSchema(client);         // self-heal: create superpowers schema/tables
     let count = 0;
     const files = readdirSync('tracking/pending').filter(f => f.endsWith('.json'));
     for (const f of files) {
       const row = JSON.parse(readFileSync(join('tracking/pending', f), 'utf8'));
       try {
-        await writeRowToDb(row, client);
+        if (row.type === 'plan') {
+          await writePlanToDb(row, client);
+        } else {
+          await writeRowToDb(row, client);
+        }
         unlinkSync(join('tracking/pending', f));
         count++;
       } catch (e) {

@@ -46,6 +46,7 @@ const icons: Record<string, string> = {
   bell: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5a4 4 0 0 0-4 4c0 2.5-1.5 3.5-1.5 3.5h11S12 9 12 6.5a4 4 0 0 0-4-4z"/><path d="M7 13.5h2"/></svg>`,
   calendar2: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3M5.5 10h1M8 10h1M10.5 10h1"/></svg>`,
   monitor: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="9" rx="1"/><path d="M5 11.5l-.5 3h7l-.5-3M5.5 14.5h5"/></svg>`,
+  server: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="4.5" rx="1"/><rect x="2" y="9.5" width="12" height="4.5" rx="1"/><circle cx="12.5" cy="4.25" r=".75" fill="currentColor" stroke="none"/><circle cx="12.5" cy="11.75" r=".75" fill="currentColor" stroke="none"/></svg>`,
   layout: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M2 7h12M6 7v6.5"/></svg>`,
   person: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2.5 14.5a5.5 5.5 0 0 1 11 0"/></svg>`,
   tag: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2.5h4.5l7 7a2 2 0 0 1 0 2.8l-2.2 2.2a2 2 0 0 1-2.8 0l-7-7V2.5z"/><circle cx="5.5" cy="5.5" r=".75" fill="currentColor" stroke="none"/></svg>`,
@@ -106,8 +107,9 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'System',
     items: [
-      { href: '/admin/monitoring', label: 'Monitoring', icon: 'monitor' },
-      { href: '/admin/inbox',      label: 'Inbox',      icon: 'inbox', badge: inboxPending },
+      { href: '/admin/monitoring',  label: 'Monitoring',        icon: 'monitor' },
+      { href: '/admin/ops',         label: 'Cluster-Steuerung', icon: 'server' },
+      { href: '/admin/inbox',       label: 'Inbox',             icon: 'inbox', badge: inboxPending },
     ],
   },
   {

@@ -48,6 +48,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-admin-inbox-delete",
+    "file": "tests/e2e/specs/fa-admin-inbox-delete.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-admin-inhalte",
     "file": "tests/e2e/specs/fa-admin-inhalte.spec.ts",
     "category": "E2E",
@@ -162,6 +168,24 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:systemtest-01-auth",
+    "file": "tests/e2e/specs/systemtest-01-auth.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-02-admin-crm",
+    "file": "tests/e2e/specs/systemtest-02-admin-crm.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-03-kommunikation",
+    "file": "tests/e2e/specs/systemtest-03-kommunikation.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:systemtest-04-fragebogen",
     "file": "tests/e2e/specs/systemtest-04-fragebogen.spec.ts",
     "category": "E2E",
@@ -176,6 +200,42 @@
   {
     "id": "E2E:systemtest-06-steuer",
     "file": "tests/e2e/specs/systemtest-06-steuer.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-07-rechnungen",
+    "file": "tests/e2e/specs/systemtest-07-rechnungen.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-08-buchhaltung",
+    "file": "tests/e2e/specs/systemtest-08-buchhaltung.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-09-monitoring",
+    "file": "tests/e2e/specs/systemtest-09-monitoring.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-10-externe",
+    "file": "tests/e2e/specs/systemtest-10-externe.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-11-livekit",
+    "file": "tests/e2e/specs/systemtest-11-livekit.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:systemtest-12-projektmanagement",
+    "file": "tests/e2e/specs/systemtest-12-projektmanagement.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

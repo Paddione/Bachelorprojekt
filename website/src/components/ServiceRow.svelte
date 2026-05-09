@@ -8,11 +8,30 @@
     price: string;
     priceUnit?: string;
     href: string;
+    /** Optional emoji glyph (mentolder) — only rendered when no sprite icon is set. */
+    icon?: string;
+    /** Optional symbol id within a brand SVG sprite (korczewski). Renders as
+     *  inline `<svg><use href=".../icons.svg#<id>"/></svg>` with currentColor stroke. */
+    iconSpriteId?: string;
+    /** Brand-id segment for the sprite path (default `korczewski`). */
+    iconSpriteBrand?: string;
     /** @deprecated direct buy buttons removed; kept for backwards compat */
     stripeServiceKey?: string;
   }
 
-  let { num, title, meta, description, features, price, priceUnit, href }: Props = $props();
+  let {
+    num,
+    title,
+    meta,
+    description,
+    features,
+    price,
+    priceUnit,
+    href,
+    icon,
+    iconSpriteId,
+    iconSpriteBrand = 'korczewski',
+  }: Props = $props();
 
   // Split price on "/" to extract unit if not provided
   const [priceMain, priceUnitFallback] = price.split('/').map(s => s.trim());
@@ -23,6 +42,11 @@
   <span class="no" aria-hidden="true">{num}</span>
 
   <div class="title-col">
+    {#if iconSpriteId}
+      <svg class="row-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <use href={`/brand/${iconSpriteBrand}/icons.svg#${iconSpriteId}`}></use>
+      </svg>
+    {/if}
     <h3>{title}</h3>
     {#if meta}
       <span class="meta-label">{meta}</span>
@@ -83,6 +107,19 @@
     letter-spacing: 0.1em;
     color: var(--mute);
     padding-top: 6px;
+  }
+
+  .row-icon {
+    width: 36px;
+    height: 36px;
+    color: var(--brass, var(--copper, #d97706));
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    margin-bottom: 14px;
+    display: block;
   }
 
   .title-col h3 {

@@ -1,0 +1,214 @@
+---
+// Footer.astro — brand-aware site footer.
+//
+// The Brand col (logo + tagline), Kontakt col (live config.contact), and
+// Angebote col (services) are always rendered dynamically. Additional
+// columns (Rechtliches, Studio, …) come from BrandConfig.footer.columns.
+//
+// Theming is via CSS variables — both mentolder (brass+sage) and
+// korczewski-kore (copper+teal) get the same DOM but different colors.
+
+import { config } from '../config/index';
+import { getEffectiveServices, getEffectiveKontakt } from '../lib/content';
+import type { HomepageService } from '../config/types';
+
+const allServices = await getEffectiveServices().catch(() => config.services);
+const footerServices = (allServices as (HomepageService & { hidden?: boolean })[]).filter(s => !s.hidden);
+const kontaktOverride = await getEffectiveKontakt().catch(() => null);
+const footerEmail   = kontaktOverride?.footerEmail?.trim()   || config.contact.email;
+const footerPhone   = kontaktOverride?.footerPhone?.trim()   || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
+const footerCity    = kontaktOverride?.footerCity?.trim()    || config.contact.city;
+const footerTagline = kontaktOverride?.footerTagline?.trim() || config.legal.tagline;
+
+const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
+const brandInitial = brandWord.charAt(0).toLowerCase();
+const copyright = config.footer.copyright
+  ?? `© ${new Date().getFullYear()} ${config.meta.siteTitle} — Alle Rechte vorbehalten`;
+const extraCols = config.footer.columns ?? [];
+---
+
+<footer class="site-foot">
+  <div class="site-foot-inner">
+    <div class="site-foot-grid">
+      <!-- Brand col -->
+      <div>
+        <div class="brand-row">
+          <div class="footer-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <text x="16" y="24" text-anchor="middle" fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="24">{brandInitial}</text>
+            </svg>
+          </div>
+          <span class="brand-word">{brandWord}<span class="brand-dot">.</span></span>
+        </div>
+        <p class="brand-sub">{footerTagline}</p>
+      </div>
+
+      <!-- Kontakt col -->
+      <div>
+        <h5>Kontakt</h5>
+        <ul>
+          {footerPhone && (
+            <li><a href={`tel:${footerPhone}`} class="footer-link">{footerPhone}</a></li>
+          )}
+          <li><a href={`mailto:${footerEmail}`} class="footer-link">{footerEmail}</a></li>
+          <li><span class="city">{footerCity}</span></li>
+        </ul>
+      </div>
+
+      <!-- Angebote col -->
+      {footerServices.length > 0 && (
+        <div>
+          <h5>Angebote</h5>
+          <ul>
+            {footerServices.map((s) => (
+              <li><a href={`/${s.slug}`} class="footer-link">{s.title}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <!-- Brand-config columns (Rechtliches, Studio, …) -->
+      {extraCols.map((col) => (
+        <div>
+          <h5>{col.heading}</h5>
+          <ul>
+            {col.links.map((link) => (
+              <li><a href={link.href} class="footer-link">{link.label}</a></li>
+            ))}
+            {col.heading === 'Rechtliches' && (
+              <li>
+                <button
+                  type="button"
+                  onclick="window.dispatchEvent(new Event('cookie-consent-reopen'))"
+                  class="footer-link footer-link-btn"
+                >Cookie-Einstellungen</button>
+              </li>
+            )}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="site-foot-legal">
+      <p>{copyright}</p>
+      <p>Gestaltet in Lüneburg · DE</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-foot {
+    background: var(--ink-850);
+    border-top: 1px solid var(--line);
+    padding: 72px 0 36px;
+  }
+  .site-foot-inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .site-foot-grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(var(--foot-cols, 3), 1fr);
+    gap: 48px;
+    margin-bottom: 56px;
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .footer-mark {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: radial-gradient(circle at 30% 30%, var(--brass-2, var(--copper, #d97706)), var(--brass, var(--copper-2, #b45309)) 55%, #8a6a2a 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .footer-mark svg {
+    position: absolute;
+    inset: 0;
+    color: var(--ink-900);
+    display: block;
+  }
+  .brand-word {
+    font-family: var(--serif);
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+  .brand-dot { color: var(--brass, var(--copper, #d97706)); }
+  .brand-sub {
+    font-size: 14px;
+    color: var(--fg-soft);
+    max-width: 32ch;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .site-foot-grid h5 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brass, var(--copper, #d97706));
+    margin: 0 0 18px;
+  }
+  .site-foot-grid ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .site-foot-grid li {
+    margin-bottom: 8px;
+  }
+  .site-foot-grid li:last-child { margin-bottom: 0; }
+  .footer-link {
+    font-size: 14px;
+    color: var(--mute);
+    text-decoration: none;
+    display: block;
+    transition: color 0.15s ease;
+  }
+  .footer-link:hover { color: var(--fg); }
+  .footer-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+  }
+  .city {
+    font-size: 14px;
+    color: var(--mute);
+  }
+  .site-foot-legal {
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .site-foot-legal p {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mute-2);
+    margin: 0;
+  }
+  @media (max-width: 860px) {
+    .site-foot-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .site-foot-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>

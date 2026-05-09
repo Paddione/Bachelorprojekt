@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Arena · Normal-people character cast</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:var(--ink-900);color:var(--fg);font-family:var(--sans);}
+  .page{max-width:1280px;margin:0 auto;padding:48px 32px 96px;position:relative;z-index:1;}
+  .topbar{display:grid;grid-template-columns:80px 1fr auto;gap:24px;align-items:baseline;padding-bottom:18px;border-bottom:1px solid var(--line);}
+  .step{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--lime);}
+  .h1{margin:0;font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.5px;line-height:1.05;}
+  .h1 em{color:var(--lime-2);font-style:italic;}
+  .meta{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--mute);text-transform:uppercase;}
+  .controls{display:flex;justify-content:space-between;align-items:center;margin:28px 0 18px;gap:18px;}
+  .lede{max-width:680px;}
+  .reroll-all{font-family:var(--sans);font-weight:500;font-size:14px;padding:11px 18px;border-radius:10px;background:var(--lime);color:var(--lime-deep);border:1px solid transparent;cursor:pointer;display:inline-flex;gap:8px;align-items:center;transition:background var(--dur) var(--ease);box-shadow:var(--inner-line);}
+  .reroll-all:hover{background:var(--lime-2);}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  .card{position:relative;background:var(--ink-850);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);}
+  .card:hover{border-color:var(--line-2);box-shadow:var(--shadow-2);}
+  .stage{aspect-ratio:1;background:radial-gradient(circle at 50% 75%,#2C2240 0%,#1A1326 60%,#120D1C 100%);border-radius:12px;position:relative;overflow:hidden;}
+  .stage::after{content:"";position:absolute;left:50%;bottom:14%;width:55%;height:8%;background:radial-gradient(ellipse at center,rgba(0,0,0,.55) 0%,transparent 70%);transform:translateX(-50%);}
+  .stage svg{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);width:65%;height:80%;display:block;}
+  .name-row{display:flex;justify-content:space-between;align-items:baseline;}
+  .name{font-family:var(--serif);font-size:26px;letter-spacing:-.3px;line-height:1;}
+  .nameSub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--mute);}
+  .stereo{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--lime-2);line-height:1.25;min-height:46px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--fg-soft);}
+  .chip.lime{background:var(--lime-tint);color:var(--lime);border-color:var(--lime-tint-2);}
+  .reroll{align-self:flex-start;font-family:var(--sans);font-size:13px;color:var(--fg-soft);background:transparent;border:1px solid var(--line-2);border-radius:8px;padding:8px 14px;cursor:pointer;transition:all var(--dur) var(--ease);display:inline-flex;align-items:center;gap:6px;}
+  .reroll:hover{color:var(--lime);border-color:var(--lime);}
+  .reroll svg{width:14px;height:14px;}
+  .seed{position:absolute;top:14px;right:18px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--mute);}
+
+  .footer{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--mute);text-transform:uppercase;display:flex;justify-content:space-between;}
+  .footer a{color:var(--fg-soft);text-decoration:none;border-bottom:1px solid var(--line-2);}
+  .footer a:hover{color:var(--lime);border-color:var(--lime);}
+</style>
+</head><body class="grain-bg">
+
+<main class="page">
+  <header class="topbar">
+    <span class="step">[ 04 ]</span>
+    <h1 class="h1">Four normal people. <em>Same rules, different bodies.</em></h1>
+    <span class="meta">CAST · MOCK · v0.1</span>
+  </header>
+
+  <div class="controls">
+    <p class="lede">A drop-in cast of regular humans for Arena: a blonde woman, a red-haired woman, a blonde man, a brown-haired man. Each slot keeps its hair colour and sex on reroll &mdash; everything else (age, hair length, stereotype, outfit) is randomised. <span class="meta" style="text-transform:none;">Click any card to reroll just that slot.</span></p>
+    <button class="reroll-all" id="reroll-all" title="Reroll all four">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+      Reroll all
+    </button>
+  </div>
+
+  <section class="grid" id="grid"></section>
+
+  <div class="footer">
+    <span>SOURCE · CSS / INLINE SVG MOCKS · NOT FINAL RENDERS</span>
+    <span><a href="../ui_kits/arena/index.html">↗ open arena UI kit</a></span>
+  </div>
+</main>
+
+<script>
+/* ---------- data ---------- */
+const FIRST_M = ["Marko","Theo","Esteban","Yusuf","Riku","Pavel","Diego","Omar","Henry","Niko","Andre","Caleb","Bram"];
+const FIRST_F = ["Saana","Liana","Mira","Aino","Kira","Reina","Nour","Lana","Tess","Iris","Sune","Maja","Vera"];
+const LAST    = ["Halme","Ortega","Dahl","Park","Reyes","Volkov","Aro","Sato","Becker","Lund","Khan","Pereira","Voss"];
+
+const STEREOTYPES = [
+  "the night-shift baker",
+  "the union electrician",
+  "the off-duty bus driver",
+  "the postal carrier on the back nine",
+  "the high-school maths teacher",
+  "the divorced city planner",
+  "the regional sales rep, two cities deep",
+  "the librarian with a karate brown belt",
+  "the unemployed actuary",
+  "the sous-chef who wanted to be a sailor",
+  "the recently retired plumber",
+  "the volunteer firefighter, off-call",
+  "the medical receptionist",
+  "the part-time DJ, day-shift courier",
+  "the data analyst on sabbatical",
+  "the bird-watching dental hygienist",
+  "the church organist who lifts",
+  "the foster-mum with a CDL",
+  "the retired naval engineer",
+  "the touring poet who hates the touring",
+  "the ex-paratrooper turned barista",
+  "the tax-prep specialist, three cats",
+  "the after-hours veterinarian",
+  "the freelance translator (Estonian → Finnish)",
+  "the father of twins, sleep-deprived",
+  "the recently-elected school-board member",
+  "the warehouse picker, second-best in the league",
+  "the apartment-block super, fixes everything",
+  "the public-defender on her week off",
+  "the Orthodox cantor with a side hustle",
+];
+
+const HAIR_COLORS = {
+  blonde: ["#E8CB8A","#D8B763","#C8A062","#EDD9A5","#BD9648"],
+  red:    ["#B85423","#9C3F1A","#D6692E","#A24A2A","#7E3618"],
+  brown:  ["#5A3A20","#3D2613","#6E4528","#4A2D18","#7A5635"],
+};
+const SKIN = ["#E9C7A4","#D4A77A","#B6845B","#8C5E3C","#5E3D26","#F0D5B6","#C99A74"];
+const SHIRT = ["#5BD4D0","#C8F76A","#E26B6B","#6FA8D8","#D8C7A2","#D4A77A","#82E2DF","#8E7DBE","#F0D5B6","#3A2E52"];
+const PANTS = ["#1A1326","#2C2240","#5A3A20","#3D2D38","#222a3a","#3F4533","#4A2D26"];
+
+/* ---------- character ---------- */
+function pick(arr, rng) { return arr[Math.floor(rng() * arr.length)]; }
+function mulberry32(a) { return function() { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* Locked per-slot — hair colour and sex are fixed; everything else rerolls. */
+const SLOTS = [
+  { sex: "f", hair: "blonde", label: "blonde" },
+  { sex: "f", hair: "red",    label: "red-haired" },
+  { sex: "m", hair: "blonde", label: "blonde" },
+  { sex: "m", hair: "brown",  label: "brown-haired" },
+];
+
+function rollCharacter(seed, slot) {
+  const rng = mulberry32(seed);
+  const sex = slot.sex;
+  const age = (() => {
+    const r = rng();
+    if (r < 0.28) return "young";
+    if (r < 0.65) return "mid";
+    return "old";
+  })();
+  const hairLen = (() => {
+    if (sex === "m" && age === "old") return rng() < 0.85 ? "short" : "long";
+    return rng() < 0.5 ? "short" : "long";
+  })();
+  const first = pick(sex === "m" ? FIRST_M : FIRST_F, rng);
+  const last  = pick(LAST, rng);
+  const stereotype = pick(STEREOTYPES, rng);
+  return {
+    seed, sex, age, hairLen, slotLabel: slot.label,
+    name: `${first} ${last}`,
+    stereotype,
+    hairColor: pick(HAIR_COLORS[slot.hair], rng),
+    skin: pick(SKIN, rng),
+    shirt: pick(SHIRT, rng),
+    pants: pick(PANTS, rng),
+    glasses: rng() < 0.3,
+    beard: sex === "m" && age !== "young" && rng() < 0.55,
+    grey: age === "old" && rng() < 0.55,
+  };
+}
+
+/* ---------- isometric portrait (~70° iso, warm key + cool fill) ---------- */
+/* Coordinate frame: 200×260, character anchored at bottom centre.            */
+function svgFor(c) {
+  const hairCol = c.grey ? "#C0BAB1" : c.hairColor;
+  const beardCol = c.grey ? "#A09A8E" : c.hairColor;
+  const skin = c.skin;
+  // body silhouette varies slightly with sex/age
+  const torsoW = c.sex === "m" ? 78 : 70;
+  const hipW   = c.sex === "m" ? 56 : 64;
+  const headR  = 22;
+
+  const headCx = 100, headCy = 78;
+  const shirt = c.shirt, pants = c.pants;
+
+  // hair shapes
+  const longHair = c.hairLen === "long";
+  const hairTop = `M ${headCx - headR - 2} ${headCy - 4}
+                   Q ${headCx - headR} ${headCy - headR - 8}, ${headCx} ${headCy - headR - 6}
+                   Q ${headCx + headR} ${headCy - headR - 8}, ${headCx + headR + 2} ${headCy - 4}
+                   L ${headCx + headR + 2} ${headCy + 6}
+                   ${longHair ? `L ${headCx + headR + 4} ${headCy + 64} Q ${headCx} ${headCy + 70}, ${headCx - headR - 4} ${headCy + 64}` : `Q ${headCx} ${headCy + 8}, ${headCx - headR - 2} ${headCy + 6}`}
+                   Z`;
+  const fringe = c.sex === "f" || c.age === "young"
+    ? `M ${headCx - headR + 4} ${headCy - 8} Q ${headCx} ${headCy - 6}, ${headCx + headR - 4} ${headCy - 10} L ${headCx + headR - 6} ${headCy - 2} Q ${headCx} ${headCy + 2}, ${headCx - headR + 6} ${headCy - 2} Z`
+    : "";
+
+  // glasses
+  const glasses = c.glasses
+    ? `<g stroke="#1A1326" stroke-width="2" fill="none">
+         <circle cx="${headCx - 8}" cy="${headCy + 2}" r="6" />
+         <circle cx="${headCx + 8}" cy="${headCy + 2}" r="6" />
+         <line x1="${headCx - 2}" y1="${headCy + 2}" x2="${headCx + 2}" y2="${headCy + 2}" />
+       </g>`
+    : "";
+  const beard = c.beard
+    ? `<path d="M ${headCx - 14} ${headCy + 12} Q ${headCx} ${headCy + 26}, ${headCx + 14} ${headCy + 12} Q ${headCx + 10} ${headCy + 18}, ${headCx} ${headCy + 22} Q ${headCx - 10} ${headCy + 18}, ${headCx - 14} ${headCy + 12} Z" fill="${beardCol}"/>`
+    : "";
+
+  // simple shoes
+  const shoes = `
+    <ellipse cx="${headCx - 14}" cy="248" rx="10" ry="4" fill="#0a0613"/>
+    <ellipse cx="${headCx + 14}" cy="248" rx="10" ry="4" fill="#0a0613"/>`;
+
+  // legs
+  const legs = `
+    <rect x="${headCx - 18}" y="180" width="14" height="62" fill="${pants}" rx="2"/>
+    <rect x="${headCx + 4}" y="180" width="14" height="62" fill="${pants}" rx="2"/>`;
+
+  // torso (slightly angled)
+  const torsoTop = headCy + headR + 4;
+  const torsoBot = 184;
+  const torso = `
+    <path d="M ${headCx - torsoW/2} ${torsoTop + 4}
+             Q ${headCx} ${torsoTop - 2}, ${headCx + torsoW/2} ${torsoTop + 4}
+             L ${headCx + hipW/2 + 2} ${torsoBot}
+             L ${headCx - hipW/2 - 2} ${torsoBot} Z"
+             fill="${shirt}"/>
+    <!-- collar shadow -->
+    <path d="M ${headCx - 14} ${torsoTop + 4} Q ${headCx} ${torsoTop + 14}, ${headCx + 14} ${torsoTop + 4} L ${headCx + 8} ${torsoTop + 8} Q ${headCx} ${torsoTop + 12}, ${headCx - 8} ${torsoTop + 8} Z" fill="rgba(0,0,0,.18)"/>`;
+
+  // arms (subtle, hanging) — back arm darker
+  const armW = 12;
+  const arms = `
+    <rect x="${headCx - torsoW/2 - 2}" y="${torsoTop + 6}" width="${armW}" height="80" rx="6" fill="${shirt}" filter="brightness(.9)"/>
+    <rect x="${headCx + torsoW/2 - armW + 2}" y="${torsoTop + 6}" width="${armW}" height="80" rx="6" fill="${shirt}"/>
+    <!-- hands -->
+    <circle cx="${headCx - torsoW/2 + armW/2 - 2}" cy="${torsoTop + 88}" r="6" fill="${skin}"/>
+    <circle cx="${headCx + torsoW/2 - armW/2 + 2}" cy="${torsoTop + 88}" r="6" fill="${skin}"/>`;
+
+  // neck
+  const neck = `<rect x="${headCx - 8}" y="${headCy + headR - 4}" width="16" height="12" fill="${skin}"/>`;
+
+  // face
+  const face = `
+    <circle cx="${headCx}" cy="${headCy}" r="${headR}" fill="${skin}"/>
+    <!-- rim light -->
+    <path d="M ${headCx + headR - 2} ${headCy - 8} A ${headR} ${headR} 0 0 1 ${headCx + 4} ${headCy + headR - 2}" stroke="rgba(255,255,255,.18)" stroke-width="1.5" fill="none"/>
+    <!-- eyes -->
+    <circle cx="${headCx - 8}" cy="${headCy + 2}" r="1.4" fill="#1A1326"/>
+    <circle cx="${headCx + 8}" cy="${headCy + 2}" r="1.4" fill="#1A1326"/>
+    <!-- mouth -->
+    <path d="M ${headCx - 5} ${headCy + 12} Q ${headCx} ${headCy + 14}, ${headCx + 5} ${headCy + 12}" stroke="rgba(0,0,0,.4)" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+
+  // hair behind head if long
+  const hairBack = longHair
+    ? `<path d="M ${headCx - headR} ${headCy} Q ${headCx - headR - 8} ${headCy + 50}, ${headCx - 8} ${headCy + 80} L ${headCx + 8} ${headCy + 80} Q ${headCx + headR + 8} ${headCy + 50}, ${headCx + headR} ${headCy} Z" fill="${hairCol}" opacity=".88"/>`
+    : "";
+
+  return `
+    <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+      ${hairBack}
+      ${shoes}
+      ${legs}
+      ${torso}
+      ${arms}
+      ${neck}
+      ${face}
+      <path d="${hairTop}" fill="${hairCol}"/>
+      ${fringe ? `<path d="${fringe}" fill="${hairCol}" opacity=".95"/>` : ""}
+      ${beard}
+      ${glasses}
+    </svg>`;
+}
+
+/* ---------- card render ---------- */
+function chip(text, lime) {
+  return `<span class="chip ${lime ? "lime" : ""}">${text}</span>`;
+}
+function ageLabel(a){return a==="young"?"young":a==="mid"?"mid-age":"older";}
+function sexLabel(s){return s==="f"?"female":"male";}
+function hairLabel(h){return h==="long"?"long hair":"short hair";}
+
+function renderCard(slot, c) {
+  return `
+    <article class="card" data-slot="${slot}">
+      <span class="seed">SEED · ${c.seed.toString(36).toUpperCase()}</span>
+      <div class="stage">${svgFor(c)}</div>
+      <div>
+        <div class="name-row">
+          <span class="name">${c.name}</span>
+          <span class="nameSub">[ ${slot + 1} / 4 ]</span>
+        </div>
+        <div class="stereo">${c.stereotype}</div>
+      </div>
+      <div class="chips">
+        ${chip(c.slotLabel, true)}
+        ${chip(sexLabel(c.sex))}
+        ${chip(ageLabel(c.age))}
+        ${chip(hairLabel(c.hairLen))}
+        ${c.glasses ? chip("glasses") : ""}
+        ${c.beard ? chip("beard") : ""}
+      </div>
+      <button class="reroll" data-roll="${slot}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+        reroll this one
+      </button>
+    </article>`;
+}
+
+/* ---------- bind ---------- */
+const grid = document.getElementById("grid");
+let seeds = [0,1,2,3].map(() => Math.floor(Math.random() * 1e9));
+
+function paint() {
+  grid.innerHTML = seeds.map((s, i) => renderCard(i, rollCharacter(s, SLOTS[i]))).join("");
+  grid.querySelectorAll("[data-roll]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const i = +btn.dataset.roll;
+      seeds[i] = Math.floor(Math.random() * 1e9);
+      paint();
+    });
+  });
+  grid.querySelectorAll(".card").forEach((card) => {
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("button")) return;
+      const i = +card.dataset.slot;
+      seeds[i] = Math.floor(Math.random() * 1e9);
+      paint();
+    });
+  });
+}
+document.getElementById("reroll-all").addEventListener("click", () => {
+  seeds = seeds.map(() => Math.floor(Math.random() * 1e9));
+  paint();
+});
+paint();
+</script>
+</body></html>

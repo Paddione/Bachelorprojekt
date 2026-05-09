@@ -256,14 +256,6 @@ Alternativ alles automatisch: `task workspace:up`
 | `task argocd:sync -- <app>` | Sync manuell ausloesen |
 | `task argocd:diff -- <app>` | Diff zwischen Git und Live-Zustand |
 
-### Whisper (Transkription, optional)
-
-| Befehl | Beschreibung |
-|--------|-------------|
-| `task whisper:deploy` | faster-whisper Transkriptions-Service deployen |
-| `task whisper:status` | Whisper Deployment-Status |
-| `task whisper:logs` | Whisper-Logs |
-
 ### Dokumentation
 
 | Befehl | Beschreibung |
@@ -348,7 +340,6 @@ Bachelorprojekt/
     brett.yaml                  # Systemisches Brett (Coaching-Board)
     website-schema.yaml         # Website-Datenbank-Schema (idempotent)
     mailpit.yaml                # Dev-Mailserver
-    whisper.yaml                # Transkriptions-Service
     docs.yaml                   # Docsify Docs-Site
     website.yaml                # Astro Website
     shared-db.yaml              # PostgreSQL 16 (shared, 6 Datenbanken)

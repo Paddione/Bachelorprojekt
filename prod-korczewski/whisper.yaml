@@ -1,0 +1,65 @@
+# Whisper transcription service — korczewski only.
+# Mentolder doesn't have the spare CPU for the 2-core request, so this
+# manifest lives under prod-korczewski/ rather than the shared base.
+# korczewski-ha has 3× 8-CPU nodes, plenty of headroom.
+# faster-whisper-server is amd64-only; nodeSelector enforces that.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whisper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whisper
+  template:
+    metadata:
+      labels:
+        app: whisper
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: whisper
+          image: fedirz/faster-whisper-server@sha256:760e5e43d427dc6cfbbc4731934b908b7de9c7e6d5309c6a1f0c8c923a5b6030
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "8"
+          # Model download can take a few minutes on first start
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whisper
+spec:
+  selector:
+    app: whisper
+  ports:
+    - port: 8000
+      targetPort: 8000

@@ -7,6 +7,11 @@ resources:
   - ../prod
   - ddns-updater.yaml
   - netpol-cross-namespace.yaml
+  # Whisper (faster-whisper transcription) — korczewski-only.
+  # Removed from the shared base in #623 because mentolder couldn't
+  # spare the 2-CPU request after the cluster split. korczewski-ha
+  # has 3× 8-CPU nodes, so transcription stays alive here.
+  - whisper.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:

@@ -1036,3 +1036,24 @@ export async function listTestStepAttempts(
     ]),
   );
 }
+
+// Question_ids that already have a "video of success": at least one evidence
+// row exists where the corresponding answer (same assignment_id + question_id)
+// is 'erfüllt'. Once a step has one, the recorder skips it on subsequent runs
+// — the canonical success replay already exists in /var/evidence and
+// re-recording every run would only bloat storage.
+//
+// reopen() wipes answers but not evidence rows; on retest the question
+// re-enters this set only after the user answers 'erfüllt' on the new
+// attempt + a chunk uploads.
+export async function listQuestionsWithSuccessfulRecording(): Promise<string[]> {
+  const r = await pool.query(
+    `SELECT DISTINCT e.question_id
+       FROM questionnaire_test_evidence e
+       JOIN questionnaire_answers a
+         ON a.assignment_id = e.assignment_id
+        AND a.question_id   = e.question_id
+      WHERE a.option_key = 'erfüllt'`,
+  );
+  return r.rows.map((row: { question_id: string }) => row.question_id);
+}

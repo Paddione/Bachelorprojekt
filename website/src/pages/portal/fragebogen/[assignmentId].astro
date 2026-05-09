@@ -8,6 +8,7 @@ import {
   listQQuestions, listQAnswers,
   countPendingQAssignmentsForCustomer,
   listTestStepAttempts,
+  listQuestionsWithSuccessfulRecording,
 } from '../../../lib/questionnaire-db';
 import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
 import QuestionnaireWizard from '../../../components/portal/QuestionnaireWizard.svelte';
@@ -38,11 +39,20 @@ const pendingCount = await countPendingQAssignmentsForCustomer(customer.id).catc
 // rrweb evidence captured only on admin-led system-test runs: the upload
 // endpoint is admin-gated and the failure-loop kanban only consumes evidence
 // for is_system_test templates. The flag is the master kill-switch.
+//
+// "Secondary" skip: questions that already have a recording attached to a
+// successful answer ('erfüllt') don't re-record on this run — the canonical
+// success replay already exists. If the test fails on retest, the wipe of
+// answers via /reopen removes the join match and the question re-enters
+// recording on the next pass.
 const isSystemTest = tpl?.is_system_test ?? false;
 const recordEvidence = isSystemTest && isSystemtestLoopEnabled() && isAdmin(session);
-const attemptByQuestion = recordEvidence
-  ? await listTestStepAttempts(assignmentId).catch(() => ({} as Record<string, number>))
-  : {};
+const [attemptByQuestion, skipQuestionIds] = recordEvidence
+  ? await Promise.all([
+      listTestStepAttempts(assignmentId).catch(() => ({} as Record<string, number>)),
+      listQuestionsWithSuccessfulRecording().catch(() => [] as string[]),
+    ])
+  : [{} as Record<string, number>, [] as string[]];
 ---
 
 <PortalLayout
@@ -63,6 +73,7 @@ const attemptByQuestion = recordEvidence
         initialAnswers={answers}
         recordEvidence={recordEvidence}
         attemptByQuestion={attemptByQuestion}
+        skipQuestionIds={skipQuestionIds}
       />
     </div>
   </section>

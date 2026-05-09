@@ -157,8 +157,6 @@ patches:
   - path: patch-oauth2-proxy-traefik.yaml
   - path: patch-oauth2-proxy-mailpit.yaml
   - path: patch-oauth2-proxy-brett.yaml
-  # Pin amd64-only images to amd64 nodes
-  - path: patch-amd64-only.yaml
   # Collabora lives in the workspace-office namespace via its own
   # ArgoCD Application (argocd/applicationset-office.yaml) — no
   # patch target on this overlay.
@@ -168,8 +166,6 @@ patches:
   - path: patch-talk-transcriber.yaml
   # Override signaling backend URL for production (HTTPS + real domain)
   - path: patch-signaling-backend.yaml
-  # Whisper: restore pre-#274 CPU request (500m in base fits dev; prod gets 2)
-  - path: patch-whisper.yaml
   # Traefik dashboard redirect-root uses http:// in dev; patch to https:// for prod
   - target:
       kind: Middleware

@@ -67,8 +67,6 @@ resources:
   # so they reach the website service via cluster DNS without an extra hop.
   # Applied separately via envsubst by `workspace:deploy`.
   # See k3d/cronjob-systemtest-cleanup.yaml.
-  # Transkription
-  - whisper.yaml
   # Live-Transkription Bot
   - talk-transcriber.yaml
   # KI-Assistent
@@ -129,7 +127,6 @@ configMapGenerator:
       - docs-content/website.md
       - docs-content/whiteboard.md
       - docs-content/mailpit.md
-      - docs-content/whisper.md
       - docs-content/monitoring.md
       - docs-content/shared-db.md
       - docs-content/operations.md

@@ -173,15 +173,6 @@ Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task 
 
 ### Optional Services
 ```bash
-task whisper:deploy              # Deploy faster-whisper transcription service (in-cluster)
-task whisper:status              # Show Whisper pod status
-task whisper:logs                # Tail Whisper logs
-task gpu-worker:start            # Start GPU-accelerated Whisper on local workstation
-task gpu-worker:stop             # Stop the GPU worker
-task gpu-worker:status           # Show GPU worker status
-task gpu-worker:logs             # Tail GPU worker logs
-task gpu-worker:switch-dev       # Switch dev cluster to use local GPU worker
-task gpu-worker:switch-prod      # Switch prod cluster to use local GPU worker
 ```
 
 ### Brett (Systembrett)

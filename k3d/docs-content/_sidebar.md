@@ -14,7 +14,6 @@
   - [Website (Astro & Svelte)](website)
   - [Whiteboard](whiteboard)
   - [Mailpit (Dev-Mail)](mailpit)
-  - [Whisper (Transkription)](whisper)
   - [Monitoring (Prometheus & Grafana)](monitoring)
   - [PostgreSQL (shared-db)](shared-db)
 

@@ -949,6 +949,12 @@ data:
         USING hnsw (embedding vector_cosine_ops);
       CREATE INDEX IF NOT EXISTS chunks_collection ON knowledge.chunks (collection_id);
       CREATE INDEX IF NOT EXISTS documents_collection ON knowledge.documents (collection_id);
+
+      GRANT USAGE ON SCHEMA knowledge TO website;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA knowledge TO website;
+      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA knowledge TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA knowledge GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA knowledge GRANT USAGE, SELECT ON SEQUENCES TO website;
     EOSQL
     echo "Knowledge schema initialized."
 
@@ -1000,4 +1006,11 @@ data:
         USING hnsw (embedding vector_cosine_ops);
       CREATE INDEX IF NOT EXISTS chunks_collection ON knowledge.chunks (collection_id);
       CREATE INDEX IF NOT EXISTS documents_collection ON knowledge.documents (collection_id);
+
+      GRANT USAGE ON SCHEMA knowledge TO website;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA knowledge TO website;
+      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA knowledge TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA knowledge GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA knowledge GRANT USAGE, SELECT ON SEQUENCES TO website;
     EOSQL
+    echo "Knowledge schema ensure complete."

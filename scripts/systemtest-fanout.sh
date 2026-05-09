@@ -41,8 +41,10 @@ case "$ENVIRONMENT" in
 esac
 # Default KC login username for both prod realms (KC_USER1_USERNAME=paddione).
 # Override with E2E_ADMIN_USER=<other> if needed.
+# Unset E2E_ASSIGNEE_USER_ID — it is realm-specific and must not leak across envs.
 export WEBSITE_URL PROD_DOMAIN ENV="$ENVIRONMENT"
 export E2E_ADMIN_USER="${E2E_ADMIN_USER:-paddione}"
+unset E2E_ASSIGNEE_USER_ID
 
 if [[ -z "${E2E_ADMIN_PASS:-}" ]]; then
   echo "ERROR: E2E_ADMIN_PASS unset — refusing to dispatch headed sessions without admin creds" >&2

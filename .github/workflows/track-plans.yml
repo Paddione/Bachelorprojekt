@@ -1,0 +1,40 @@
+name: track-plans
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/superpowers/plans/*.md']
+
+permissions:
+  contents: write
+
+jobs:
+  track-plans:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Parse changed plan files → pending JSON
+        run: |
+          git diff --name-only HEAD~1 HEAD -- 'docs/superpowers/plans/*.md' | while read f; do
+            if [[ -f "$f" ]]; then
+              echo "Parsing $f"
+              bash scripts/plans-parse.sh "$f" || echo "WARN: failed to parse $f"
+            fi
+          done
+
+      - name: Commit pending JSONs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tracking/pending/plan-*.json 2>/dev/null || true
+          git diff --cached --quiet && echo "nothing to commit" && exit 0
+          git commit -m "chore(tracking): import plan context [skip ci]"
+          git push

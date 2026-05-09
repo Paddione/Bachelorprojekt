@@ -12,7 +12,7 @@ import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
 import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq } from '../lib/content';
-import { listTimeline, getSiteSetting } from '../lib/website-db';
+import { listTimeline, getSiteSetting, getSeoTitle } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
@@ -22,6 +22,11 @@ const homeDescription = !isKore
   ? await getSiteSetting(BRAND_ID, 'seo_meta_desc_home').catch(() => null)
   : null;
 const metaDescription = homeDescription ?? config.meta.siteDescription;
+
+const homeTitle = !isKore
+  ? await getSeoTitle(BRAND_ID, 'home').catch(() => null)
+  : null;
+const pageTitle = homeTitle ?? config.meta.siteTitle;
 
 const { contact } = config;
 const homepage = await getEffectiveHomepage();
@@ -43,43 +48,10 @@ try {
   // CalDAV unreachable — widget hidden gracefully
 }
 
-// Service metadata labels (the short tagline shown below service title)
-const serviceMeta: Record<string, string> = {
-  '50plus-digital': 'Einzeln · Gruppe · Pakete',
-  'coaching': 'Sparring auf Augenhöhe',
-  'beratung': 'Mittelstand · Verwaltung',
-  'ki-transition': 'Unlearning · Neuorientierung · Strategie',
-  'ki-beratung': 'Strategie · Tool-Auswahl · Compliance',
-  'software-dev': 'Architektur · Review · Umsetzung',
-  'deployment': 'K8s · GitOps · Self-Hosted',
-};
-
-// Process steps (brand-appropriate, same for all brands currently)
-const processSteps = [
-  {
-    num: '01 — Erstgespräch',
-    heading: 'Kennenlernen',
-    description: '30 Minuten, kostenlos. Wir klären Ihre Situation und Ihre Herausforderung.',
-  },
-  {
-    num: '02 — Klarheit',
-    heading: 'Zieldefinition',
-    description: 'Gemeinsam entscheiden wir: Was ist das richtige Format, was der richtige Rahmen?',
-  },
-  {
-    num: '03 — Begleitung',
-    heading: 'Arbeitsphase',
-    description: 'Individuelle Sessions in Ihrem Tempo – online oder vor Ort in Lüneburg und Umgebung.',
-  },
-  {
-    num: '04 — Transfer',
-    heading: 'Nachhaltigkeit',
-    description: 'Was Sie hier lernen, bleibt bei Ihnen. Nicht als Wissen, sondern als Haltung.',
-  },
-];
+const processSteps = homepage.processSteps ?? [];
 ---
 
-<Layout title={config.meta.siteTitle} description={metaDescription} brand={layoutBrand}>
+<Layout title={pageTitle} rawTitle={!isKore} description={metaDescription} brand={layoutBrand}>
   <!-- Hero with Portrait -->
   <Hero
     client:load
@@ -136,7 +108,7 @@ const processSteps = [
             <ServiceRow
               num={String(i + 1).padStart(2, '0')}
               title={service.title}
-              meta={serviceMeta[service.slug] ?? service.meta}
+              meta={service.meta}
               description={service.description}
               features={service.features}
               price={service.price}
@@ -165,7 +137,11 @@ const processSteps = [
   />
 
   <!-- Process -->
-  <Process steps={processSteps} />
+  <Process
+    steps={processSteps}
+    eyebrow={homepage.processEyebrow}
+    headline={homepage.processHeadline}
+  />
 
   <!-- FAQ -->
   <FAQ items={faq.map((item) => ({

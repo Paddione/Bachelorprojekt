@@ -22,7 +22,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
+const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 // All six item types from spec §4.3 + the synthetic "all" pseudo-type.

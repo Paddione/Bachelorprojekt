@@ -15,7 +15,7 @@ import { Pool } from 'pg';
 const BASE       = process.env.WEBSITE_URL         ?? 'http://localhost:4321';
 const DB_URL     = process.env.SESSIONS_DATABASE_URL
                 || 'postgresql://website:devwebsitedb@localhost:5432/website';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
+const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
@@ -28,9 +28,24 @@ async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
 }
 
 test.describe('FA: Fragebogen archive → reassign → replay', () => {
+  const createdTemplateIds: string[] = [];
+
   test.beforeEach(({ }, testInfo) => {
     if (!ADMIN_PASS) {
       testInfo.skip(true, 'E2E_ADMIN_PASS not set — skipping admin-required archive specs');
+    }
+  });
+
+  test.afterAll(async () => {
+    if (createdTemplateIds.length === 0) return;
+    const pool = new Pool({ connectionString: DB_URL });
+    try {
+      await pool.query(
+        `DELETE FROM questionnaire_templates WHERE id = ANY($1::uuid[])`,
+        [createdTemplateIds],
+      );
+    } finally {
+      await pool.end();
     }
   });
 
@@ -40,7 +55,8 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
     const tpl = (await pool.query(
       `INSERT INTO questionnaire_templates (title, description, instructions, status)
        VALUES ('e2e-archive', '', '', 'published') RETURNING id`,
-    )).rows[0].id;
+    )).rows[0].id as string;
+    createdTemplateIds.push(tpl);
     const dim = (await pool.query(
       `INSERT INTO questionnaire_dimensions (template_id, name, position, threshold_mid, threshold_high)
        VALUES ($1, 'D', 0, 5, 10) RETURNING id`,
@@ -57,8 +73,8 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
       [q, dim],
     );
     const a = (await pool.query(
-      `INSERT INTO questionnaire_assignments (customer_id, template_id, status, submitted_at)
-       VALUES ($1, $2, 'submitted', now()) RETURNING id`,
+      `INSERT INTO questionnaire_assignments (customer_id, template_id, status, submitted_at, is_test_data)
+       VALUES ($1, $2, 'submitted', now(), true) RETURNING id`,
       [customerId, tpl],
     )).rows[0].id;
     await pool.query(
@@ -66,6 +82,7 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
        VALUES ($1, $2, '4')`,
       [a, q],
     );
+    await pool.end();
 
     await loginAsAdmin(page, `/admin/fragebogen/${a}`);
 
@@ -77,14 +94,15 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
     await expect(page.locator('text=Archiviert').first()).toBeVisible({ timeout: 10_000 });
 
     // Snapshot row exists
-    const snap = await pool.query(
+    const pool2 = new Pool({ connectionString: DB_URL });
+    const snap = await pool2.query(
       `SELECT count(*)::int AS n FROM questionnaire_assignment_scores WHERE assignment_id = $1`,
       [a],
     );
     expect(snap.rows[0].n).toBe(1);
 
     // KPI view returns the archived row
-    const kpi = await pool.query(
+    const kpi = await pool2.query(
       `SELECT assignment_id, dimension_name, final_score, level
          FROM bachelorprojekt.v_questionnaire_kpi
         WHERE assignment_id = $1`,
@@ -102,7 +120,7 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
     expect(newId).not.toBe(a);
 
     // Source preserved, new row pending
-    const rows = await pool.query(
+    const rows = await pool2.query(
       `SELECT id, status, archived_at FROM questionnaire_assignments
         WHERE customer_id = $1 ORDER BY assigned_at`,
       [customerId],
@@ -113,7 +131,7 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
     expect(rows.rows[1].status).toBe('pending');
     expect(rows.rows[1].archived_at).toBeNull();
 
-    await pool.end();
+    await pool2.end();
   });
 
   test('replay button surfaces and shows attempt number for archived system-test with evidence', async ({ page }) => {
@@ -122,15 +140,16 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
     const tpl = (await pool.query(
       `INSERT INTO questionnaire_templates (title, description, instructions, status, is_system_test)
        VALUES ('e2e-replay', '', '', 'published', true) RETURNING id`,
-    )).rows[0].id;
+    )).rows[0].id as string;
+    createdTemplateIds.push(tpl);
     const q = (await pool.query(
       `INSERT INTO questionnaire_questions (template_id, position, question_text, question_type)
        VALUES ($1, 0, 'step', 'test_step') RETURNING id`,
       [tpl],
     )).rows[0].id;
     const a = (await pool.query(
-      `INSERT INTO questionnaire_assignments (customer_id, template_id, status, submitted_at, archived_at)
-       VALUES ($1, $2, 'archived', now(), now()) RETURNING id`,
+      `INSERT INTO questionnaire_assignments (customer_id, template_id, status, submitted_at, archived_at, is_test_data)
+       VALUES ($1, $2, 'archived', now(), now(), true) RETURNING id`,
       [customerId, tpl],
     )).rows[0].id;
     await pool.query(
@@ -143,13 +162,12 @@ test.describe('FA: Fragebogen archive → reassign → replay', () => {
        VALUES ($1, $2, 0, '/tmp/replay-0')`,
       [a, q],
     );
+    await pool.end();
 
     await loginAsAdmin(page, `/admin/fragebogen/${a}`);
 
     const replayBtn = page.locator('.replay-btn').first();
     await expect(replayBtn).toBeVisible({ timeout: 10_000 });
     await expect(replayBtn).toContainText('Versuch 0');
-
-    await pool.end();
   });
 });

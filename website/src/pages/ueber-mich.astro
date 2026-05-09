@@ -3,15 +3,21 @@ import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
 import { getEffectiveUebermich } from '../lib/content';
+import { getSiteSetting, getSeoTitle } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 
 const { contact } = config;
 const uebermich = await getEffectiveUebermich();
+
+const seoTitle = await getSeoTitle(BRAND_ID, 'ueber-mich').catch(() => null)
+  ?? `Gerald Korczewski – Coach, Mentor & KI-Pionier`;
+const seoDesc = await getSiteSetting(BRAND_ID, 'seo_meta_desc_ueber-mich').catch(() => null)
+  ?? `Über ${contact.name} – ${config.legal.tagline}`;
 ---
 
-<Layout title="Über mich" description={`Über ${contact.name} – ${config.legal.tagline}`} brand={layoutBrand}>
+<Layout title={seoTitle} rawTitle={true} description={seoDesc} brand={layoutBrand}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">{uebermich.subheadline}</p>
@@ -34,6 +40,13 @@ const uebermich = await getEffectiveUebermich();
 
       <h2 class="text-2xl font-bold text-light !mt-12 font-serif">Privat</h2>
       <p>{uebermich.privateText.replace('{city}', contact.city)}</p>
+
+      {uebermich.warumdieserName && (
+        <div class="bg-dark rounded-2xl p-8 my-10 border-l-4 border-gold">
+          <h2 class="text-2xl font-bold text-light mb-4 font-serif">{uebermich.warumdieserName.title}</h2>
+          <p>{uebermich.warumdieserName.text}</p>
+        </div>
+      )}
     </div>
   </section>
 

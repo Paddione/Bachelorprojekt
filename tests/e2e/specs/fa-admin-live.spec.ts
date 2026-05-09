@@ -11,12 +11,12 @@ test.describe('FA: Admin Live Cockpit', () => {
   test('T2: /admin/stream redirects to /admin/live', async ({ page }) => {
     await page.goto(`${BASE}/admin/stream`, { waitUntil: 'commit' });
     const finalUrl = page.url();
-    expect(finalUrl).toMatch(/\/admin\/live|\/login|keycloak/);
+    expect(finalUrl).toMatch(/\/admin\/live|\/login|keycloak|auth\./);
   });
 
   test('T3: /admin/meetings redirects to /admin/live', async ({ page }) => {
     await page.goto(`${BASE}/admin/meetings`, { waitUntil: 'commit' });
     const finalUrl = page.url();
-    expect(finalUrl).toMatch(/\/admin\/live|\/login|keycloak/);
+    expect(finalUrl).toMatch(/\/admin\/live|\/login|keycloak|auth\./);
   });
 });

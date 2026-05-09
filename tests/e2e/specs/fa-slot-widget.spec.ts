@@ -29,6 +29,6 @@ test.describe('Slot Widget', () => {
     // Termin tab should be active
     await expect(page.getByRole('button', { name: /termin buchen/i })).toBeVisible({ timeout: 10_000 });
     // With a pre-selected slot, the contact form fields appear without manual selection
-    await expect(page.locator('#b-name')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('#b-name').first()).toBeVisible({ timeout: 15_000 });
   });
 });

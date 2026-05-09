@@ -14,6 +14,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
+import { listQTemplates } from '../../../lib/questionnaire-db';
 
 // SystemtestBoardCard.svelte and SystemtestReplayDrawer.svelte are shipped
 // alongside this page (see Task 7 deliverables). The current v1 client
@@ -32,6 +33,11 @@ if (!isSystemtestLoopEnabled()) {
   return Astro.redirect('/admin?msg=systemtest-loop-disabled');
 }
 
+const allTemplates = await listQTemplates();
+const systemtestTemplates = allTemplates
+  .filter(t => t.is_system_test && t.status === 'published')
+  .sort((a, b) => a.title.localeCompare(b.title, 'de'));
+
 const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
   { key: 'open',           title: 'Offen',          hint: 'Failure-Ticket ohne Fix-PR'  },
   { key: 'fix_in_pr',      title: 'Fix in PR',      hint: 'PR offen, noch nicht gemergt' },
@@ -41,6 +47,43 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
 ---
 
 <AdminLayout title="Admin — System-Test Board">
+  <!-- Hidden metadata div for client-side JS -->
+  <div
+    id="board-meta"
+    class="hidden"
+    data-admin-kc-id={session.sub}
+    data-templates={JSON.stringify(systemtestTemplates.map(t => ({ id: t.id, title: t.title })))}
+  ></div>
+
+  <!-- Start-run modal -->
+  <div id="start-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div class="bg-dark-light border border-dark-lighter rounded-xl p-6 w-full max-w-sm shadow-xl">
+      <h2 class="text-light font-semibold text-lg mb-4">System-Test starten</h2>
+      <label class="block text-xs text-muted mb-1" for="tpl-select">Vorlage</label>
+      <select
+        id="tpl-select"
+        class="w-full px-3 py-2 text-sm bg-dark border border-dark-lighter text-light rounded-lg focus:outline-none focus:border-gold/40"
+      ></select>
+      <p id="start-error" class="hidden text-red-400 text-xs mt-2"></p>
+      <div class="flex justify-end gap-2 mt-5">
+        <button
+          type="button"
+          id="start-cancel"
+          class="px-3 py-1.5 text-xs bg-dark-light border border-dark-lighter text-light rounded-lg hover:border-gold/40 transition-colors"
+        >
+          Abbrechen
+        </button>
+        <button
+          type="button"
+          id="start-confirm"
+          class="px-3 py-1.5 text-xs bg-gold/10 border border-gold/40 text-gold rounded-lg hover:bg-gold/20 transition-colors"
+        >
+          Starten
+        </button>
+      </div>
+    </div>
+  </div>
+
   <section class="pt-10 pb-20 bg-dark min-h-screen">
     <div class="max-w-7xl mx-auto px-6">
       <div class="mb-6 flex items-center justify-between gap-4 flex-wrap">
@@ -53,6 +96,10 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
         <div class="text-xs text-muted flex items-center gap-3">
           <span id="poll-status" data-fresh="false">Lade…</span>
           <span class="hidden md:inline" id="undelivered-warning"></span>
+          <button type="button" id="new-run-btn"
+            class="px-3 py-1.5 text-xs bg-dark-light border border-dark-lighter text-light rounded-lg hover:border-gold/40 transition-colors">
+            + Neuen Lauf starten
+          </button>
           <button type="button" id="refresh-btn"
             class="px-3 py-1.5 text-xs bg-dark-light border border-dark-lighter text-light rounded-lg hover:border-gold/40 transition-colors">
             ↻ Aktualisieren
@@ -272,4 +319,100 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
   poll();
   const interval = window.setInterval(poll, POLL_MS);
   window.addEventListener('beforeunload', () => window.clearInterval(interval));
+
+  // -------------------------------------------------------------------
+  //  "Neuen Lauf starten" modal
+  // -------------------------------------------------------------------
+  const boardMeta   = document.getElementById('board-meta') as HTMLDivElement;
+  const startModal  = document.getElementById('start-modal') as HTMLDivElement;
+  const newRunBtn   = document.getElementById('new-run-btn') as HTMLButtonElement;
+  const startCancel = document.getElementById('start-cancel') as HTMLButtonElement;
+  const startConfirm = document.getElementById('start-confirm') as HTMLButtonElement;
+  const tplSelect   = document.getElementById('tpl-select') as HTMLSelectElement;
+  const startError  = document.getElementById('start-error') as HTMLParagraphElement;
+
+  // Read server-injected metadata once.
+  const adminKcId = boardMeta?.dataset.adminKcId ?? '';
+  type TplOption = { id: string; title: string };
+  let templates: TplOption[] = [];
+  try {
+    templates = JSON.parse(boardMeta?.dataset.templates ?? '[]') as TplOption[];
+  } catch {
+    templates = [];
+  }
+
+  // Populate <select> from template list.
+  for (const tpl of templates) {
+    const opt = document.createElement('option');
+    opt.setAttribute('value', tpl.id);
+    opt.textContent = tpl.title;
+    tplSelect.appendChild(opt);
+  }
+  if (templates.length === 0) {
+    const opt = document.createElement('option');
+    opt.setAttribute('value', '');
+    opt.textContent = '— Keine Vorlagen verfügbar —';
+    tplSelect.appendChild(opt);
+  }
+
+  function openModal(): void {
+    startError.classList.add('hidden');
+    startError.textContent = '';
+    startConfirm.disabled = false;
+    startModal.classList.remove('hidden');
+    tplSelect.focus();
+  }
+
+  function closeModal(): void {
+    startModal.classList.add('hidden');
+  }
+
+  newRunBtn?.addEventListener('click', openModal);
+  startCancel?.addEventListener('click', closeModal);
+
+  // Close on overlay click (but not card click).
+  startModal?.addEventListener('click', (e) => {
+    if (e.target === startModal) closeModal();
+  });
+
+  startConfirm?.addEventListener('click', async () => {
+    const templateId = tplSelect.value;
+    if (!templateId) {
+      startError.textContent = 'Bitte eine Vorlage auswählen.';
+      startError.classList.remove('hidden');
+      return;
+    }
+
+    startConfirm.disabled = true;
+    startError.classList.add('hidden');
+    startError.textContent = '';
+
+    try {
+      const r = await fetch('/api/admin/questionnaires/assign', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId, keycloakUserId: adminKcId }),
+      });
+
+      if (!r.ok) {
+        let msg = `Fehler (HTTP ${r.status}).`;
+        try {
+          const errBody = await r.json() as { error?: string };
+          if (errBody.error) msg = errBody.error;
+        } catch { /* ignore */ }
+        startError.textContent = msg;
+        startError.classList.remove('hidden');
+        startConfirm.disabled = false;
+        return;
+      }
+
+      const json = await r.json() as { id: string };
+      window.location.href = `/portal/fragebogen/${encodeURIComponent(json.id)}`;
+    } catch {
+      startError.textContent = 'Netzwerkfehler. Bitte erneut versuchen.';
+      startError.classList.remove('hidden');
+      startConfirm.disabled = false;
+    }
+  });
 </script>

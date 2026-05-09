@@ -4,13 +4,17 @@ import { setSiteSetting } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-const ALLOWED_PAGE_KEYS = ['home', 'kontakt', 'ueber-mich', 'leistungen'];
+const ALLOWED_PAGE_KEYS = [
+  'home', 'kontakt', 'ueber-mich', 'leistungen',
+  'coaching', '50plus-digital', 'beratung', 'ki-transition',
+  'fuehrung-persoenlichkeit',
+];
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
-  let body: { pageKey: string; description: string };
+  let body: { pageKey: string; description: string; title?: string };
   try {
     body = await request.json();
   } catch {
@@ -20,7 +24,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { pageKey, description } = body;
+  const { pageKey, description, title } = body;
 
   if (!ALLOWED_PAGE_KEYS.includes(pageKey)) {
     return new Response(JSON.stringify({ error: 'Invalid pageKey' }), {
@@ -37,7 +41,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    await setSiteSetting(BRAND, `seo_meta_desc_${pageKey}`, description);
+    if (description.trim()) {
+      await setSiteSetting(BRAND, `seo_meta_desc_${pageKey}`, description);
+    }
+    if (title !== undefined && typeof title === 'string' && title.trim()) {
+      await setSiteSetting(BRAND, `seo_title_${pageKey}`, title);
+    }
   } catch (err) {
     console.error('[seo/save] DB error:', err);
     return new Response(JSON.stringify({ error: 'DB error' }), {

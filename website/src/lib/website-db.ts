@@ -817,6 +817,7 @@ export interface ServiceOverride {
     sections?: Array<{ title: string; items: string[] }>;
     pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
     faq?: Array<{ question: string; answer: string }>;
+    faqTitle?: string;
   };
 }
 
@@ -930,6 +931,12 @@ export async function setSiteSetting(brand: string, key: string, value: string):
      ON CONFLICT (brand, key) DO UPDATE SET value = $3, updated_at = now()`,
     [brand, key, value]
   );
+}
+
+// ── SEO Title overrides (key/value, stored as seo_title_<pageKey>) ──────────
+
+export async function getSeoTitle(brand: string, pageKey: string): Promise<string | null> {
+  return getSiteSetting(brand, `seo_title_${pageKey}`).catch(() => null);
 }
 
 // ── Vacation / Blackout Periods ───────────────────────────────────────────────
@@ -2854,6 +2861,12 @@ export interface StatItem {
   label: string;
 }
 
+export interface ProcessStep {
+  num: string;
+  heading: string;
+  description: string;
+}
+
 export interface HomepageContent {
   hero: HomepageHero;
   stats: StatItem[];
@@ -2867,6 +2880,9 @@ export interface HomepageContent {
   avatarInitials?: string;
   quote: string;
   quoteName: string;
+  processSteps?: ProcessStep[];
+  processEyebrow?: string;
+  processHeadline?: string;
 }
 
 export async function getHomepageContent(brand: string): Promise<HomepageContent | null> {
@@ -2905,6 +2921,8 @@ export interface UebermichContent {
   milestones: UebermichMilestone[];
   notDoing: UebermichNotDoing[];
   privateText: string;
+  /** Optional section rendered after the "Privat" block */
+  warumdieserName?: { title: string; text: string };
 }
 
 export async function getUebermichContent(brand: string): Promise<UebermichContent | null> {
@@ -3658,6 +3676,7 @@ export async function initBillingTables(): Promise<void> {
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS pdf_path TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS leitweg_id TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS factur_x_xml TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS xrechnung_xml TEXT`);

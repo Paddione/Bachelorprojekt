@@ -105,7 +105,7 @@ rules:
     verbs: ["get", "list", "patch"]
   - apiGroups: ["batch"]
     resources: ["cronjobs", "jobs"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "create"]
   - apiGroups: ["networking.k8s.io"]
     resources: ["ingresses"]
     verbs: ["get", "list"]
@@ -117,7 +117,11 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: ["argoproj.io"]
     resources: ["applications"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["korczewski-tls", "workspace-wildcard-tls"]
+    verbs: ["get"]
   - apiGroups: [""]
     resources: ["pods/log"]
     verbs: ["get"]
@@ -349,6 +353,16 @@ spec:
                   key: INTERNAL_API_TOKEN
             - name: LIVEKIT_SERVICE_URL
               value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
+            - name: IPV64_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: IPV64_API_KEY
+                  optional: true
+            - name: LIVEKIT_PIN_IP_MENTOLDER
+              value: "46.225.125.59"
+            - name: LIVEKIT_PIN_IP_KORCZEWSKI
+              value: "37.27.251.38"
             - name: EVIDENCE_ROOT
               value: "/var/evidence"
           volumeMounts:

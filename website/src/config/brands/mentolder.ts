@@ -3,8 +3,8 @@ import type { BrandConfig } from '../types';
 export const mentolderConfig: BrandConfig = {
   brand: 'mentolder',
   meta: {
-    siteTitle: 'Mentolder',
-    siteDescription: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe.',
+    siteTitle: 'mentolder',
+    siteDescription: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungspersönlichkeiten und Menschen in Veränderung.',
   },
   contact: {
     name: process.env.CONTACT_NAME ?? '',
@@ -404,6 +404,10 @@ export const mentolderConfig: BrandConfig = {
       { title: 'Keine Online-Kurse', text: 'Ich glaube an persönliche Begleitung statt standardisierte, skalierbare Produkte.' },
     ],
     privateText: 'Ich lebe in {city}, bin verheiratet, habe zwei erwachsene Kinder. In meiner Freizeit bin ich viel zu Fuß unterwegs – Bewegung ist für mich Meditation. Und ja, ich bin selbst Teil der Generation 50+ (65 Jahre) – ich weiß also aus eigener Erfahrung, wovon ich spreche.',
+    warumdieserName: {
+      title: 'Warum dieser Name',
+      text: 'Als ich „mentolder" kreiert habe, war die Idee simpel: Mentor trifft Older – Erfahrung, die begleitet. Was ich dabei nicht bedacht habe? Dass der Name vielleicht männlich klingen könnte. Er ist es nicht. Ich arbeite mit Führungspersönlichkeiten, die etwas bewegen wollen – Frauen wie Männer.',
+    },
   },
   kontakt: {
     intro: 'Egal ob Frage, Erstgespräch oder Feedback – ich freue mich, von Ihnen zu hören.',

@@ -17,6 +17,8 @@ export interface ServicePageContent {
   sections: ServicePageSection[];
   pricing: ServicePagePricing[];
   faq?: Array<{ question: string; answer: string }>;
+  /** Optional custom FAQ section heading. Falls back to "Häufige Fragen zu {service title}". */
+  faqTitle?: string;
 }
 
 export interface HomepageService {
@@ -131,6 +133,8 @@ export interface BrandConfig {
     milestones: Array<{ year: string; title: string; desc: string }>;
     notDoing: Array<{ title: string; text: string }>;
     privateText: string;
+    /** Optional section rendered after the "Privat" block (T000241) */
+    warumdieserName?: { title: string; text: string };
   };
   kontakt: {
     intro: string;

@@ -72,8 +72,6 @@ spec:
               value: "{{metadata.annotations.workspace-smtp-from}}"
             - name: SMTP_HOST
               value: "{{metadata.annotations.workspace-smtp-host}}"
-            - name: DASHBOARD_DOMAIN
-              value: "{{metadata.annotations.workspace-dashboard-domain}}"
             - name: TURN_PUBLIC_IP
               value: "{{metadata.annotations.workspace-turn-ip}}"
             - name: TURN_NODE

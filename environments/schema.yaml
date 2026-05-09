@@ -168,10 +168,6 @@ env_vars:
     required: true
     default_dev: "stream.localhost"
 
-  - name: DASHBOARD_DOMAIN
-    required: true
-    default_dev: "dashboard.localhost"
-
   - name: WEBSITE_HOST
     required: true
     default_dev: "web.localhost"
@@ -339,11 +335,6 @@ secrets:
     generate: false
 
   - name: DOCS_OIDC_SECRET
-    required: true
-    generate: true
-    length: 40
-
-  - name: DASHBOARD_OIDC_SECRET
     required: true
     generate: true
     length: 40

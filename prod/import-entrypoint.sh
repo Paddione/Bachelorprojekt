@@ -30,7 +30,6 @@ for var in \
     WEB_DOMAIN \
     DOCS_DOMAIN \
     TRAEFIK_DOMAIN \
-    DASHBOARD_DOMAIN \
     MAIL_DOMAIN \
     PROD_DOMAIN \
     KC_USER1_EMAIL \
@@ -40,8 +39,7 @@ for var in \
     SMTP_FROM \
     SMTP_USER \
     SMTP_PASSWORD \
-    BRETT_OIDC_SECRET \
-    DASHBOARD_OIDC_SECRET; do
+    BRETT_OIDC_SECRET; do
   eval val="\${${var}:-}"
   if [ -z "$val" ]; then
     echo "[import-entrypoint] WARNUNG: ${var} ist nicht gesetzt!"

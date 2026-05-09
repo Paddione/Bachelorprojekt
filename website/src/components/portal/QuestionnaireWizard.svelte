@@ -19,6 +19,13 @@
     initialAnswers: Array<{ question_id: string; option_key: string; details_text?: string | null }>;
     recordEvidence?: boolean;
     attemptByQuestion?: Record<string, number>;
+    /**
+     * Question_ids that already have a "video of success" — a recording tied
+     * to a prior 'erfüllt' answer. Skipped on this run so we don't bloat the
+     * evidence PVC with redundant success replays. The canonical replay is
+     * still reachable from the kanban / admin assignment page.
+     */
+    skipQuestionIds?: string[];
   };
   const {
     assignmentId,
@@ -28,7 +35,9 @@
     initialAnswers,
     recordEvidence = false,
     attemptByQuestion = {},
+    skipQuestionIds = [],
   }: Props = $props();
+  const skipQuestionIdSet = new Set(skipQuestionIds);
 
   // rrweb recorder for system-test runs. Lazy-loaded so the rrweb bundle is
   // only fetched when an admin-led system-test session needs it. The recorder
@@ -143,7 +152,8 @@
     const shouldRecord =
       recordEvidence
       && phase === 'question'
-      && q?.question_type === 'test_step';
+      && q?.question_type === 'test_step'
+      && !skipQuestionIdSet.has(q.id);
     void queueRecorderTransition(shouldRecord && q ? q.id : null);
     return () => {
       // Component teardown — queue one last finalize.

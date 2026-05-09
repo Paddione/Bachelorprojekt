@@ -158,6 +158,14 @@ spec:
       serviceAccountName: website
       imagePullSecrets:
         - name: ghcr-pull-secret
+      # evidence-pvc is mounted at /var/evidence; the container runs as
+      # uid 1000 (node) but longhorn provisions volumes owned by root:root
+      # mode 755, so mkdir() inside the recorder upload path returns EACCES
+      # without fsGroup. OnRootMismatch makes the chown a one-shot on first
+      # mount instead of recursing the whole tree on every restart.
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       # Lower ndots so FQDNs like shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local (4 dots)
       # are resolved as absolute names without iterating through search-path suffixes.
       # On clusters where the node inherits a home-router search domain (e.g. fritz.box),

@@ -1,0 +1,12 @@
+{
+  "pr_number": 624,
+  "title": "restore whisper deployment for korczewski-ha only",
+  "description": "## Summary\n\nPR #623 stripped whisper everywhere because mentolder couldn't schedule the 2-CPU / 4 GiB request after the cluster split. korczewski-ha (3× 8-CPU nodes, 16 GiB each) has plenty of headroom, so transcription stays alive there.\n\nThis PR puts whisper back as a **korczewski-only** overlay resource so it can't accidentally bleed into mentolder.\n\n## Changes\n\n- **New** `prod-korczewski/whisper.yaml` — combines the original base Deployment + Service with the prod CPU sizing (request=2, limit=8) and the amd64 nodeSelector inline. No separate patches needed; korczewski IS prod for this resource.\n- **`prod-korczewski/kustomization.yaml`** — adds `whisper.yaml` to resources, with a comment explaining why it's korczewski-only.\n- Base `k3d/` stays whisper-free. mentolder stays whisper-free.\n\n## Note\n\n`talk-transcriber` is still in the shared base, so it ships to both clusters. On korczewski it now has a real backend; on mentolder it stays running but its transcription calls fail (same state as since #623). Cleaning up the broken-on-mentolder side is a separate decision — flagging here for awareness.\n\n## Test plan\n\n- [x] `kubectl kustomize --load-restrictor=LoadRestrictionsNone prod-korczewski` → whisper Deployment + Service in `workspace-korczewski` (+2 kinds vs main = 162)\n- [x] `kubectl kustomize --load-restrictor=LoadRestrictionsNone prod-mentolder` → zero whisper resources (unchanged from main)\n- [x] Live whisper on korczewski-ha (pk-hetzner-8) currently 1/1 Running, `/health` returning 200 — this PR makes that survive the next `task workspace:deploy ENV=korczewski`\n- [ ] After merge, run `task workspace:deploy ENV=korczewski` once and confirm whisper is preserved (no change in pod age)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "korczewski",
+  "brand": "korczewski",
+  "requirement_id": null,
+  "merged_at": "2026-05-09T11:37:53Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

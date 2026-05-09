@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAll, chunkPlain } from './lib-knowledge-pg.mjs';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, join, relative, basename } from 'node:path';
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../');

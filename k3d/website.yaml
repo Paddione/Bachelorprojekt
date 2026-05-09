@@ -353,17 +353,11 @@ spec:
                   key: INTERNAL_API_TOKEN
             - name: LIVEKIT_SERVICE_URL
               value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
-            - name: IPV64_UPDATE_HASH_MENTOLDER
+            - name: IPV64_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: website-secrets
-                  key: IPV64_UPDATE_HASH_MENTOLDER
-                  optional: true
-            - name: IPV64_UPDATE_HASH_KORCZEWSKI
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: IPV64_UPDATE_HASH_KORCZEWSKI
+                  key: IPV64_API_KEY
                   optional: true
             - name: LIVEKIT_PIN_IP_MENTOLDER
               value: "46.225.125.59"

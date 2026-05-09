@@ -439,26 +439,13 @@ secrets:
     extra_namespaces:
       - namespace: cert-manager
         secret: ipv64-api-key
+      - namespace: website
+        secret: website-secrets
 
   - name: IPV64_UPDATE_HASH
     required: false
     generate: false
 
-  - name: IPV64_UPDATE_HASH_MENTOLDER
-    required: false
-    generate: false
-    description: "ipv64 domain_update_hash for mentolder.de DNS pinning"
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-
-  - name: IPV64_UPDATE_HASH_KORCZEWSKI
-    required: false
-    generate: false
-    description: "ipv64 domain_update_hash for korczewski.de DNS pinning"
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
 
   - name: BRETT_BOT_SECRET
     required: true

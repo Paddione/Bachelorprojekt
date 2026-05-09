@@ -3,6 +3,13 @@
     title: string;
     description: string;
     icon: string;
+    /** Optional symbol id within a brand SVG sprite. When set, renders an
+     *  inline `<svg><use href="..."/></svg>` instead of the emoji icon.
+     *  See `BrandConfig.services[].iconSpriteId` and the per-brand sprite at
+     *  `/brand/<brand>/icons.svg`. */
+    iconSpriteId?: string;
+    /** Brand-id segment for the sprite path (default `korczewski`). */
+    iconSpriteBrand?: string;
     features: string[];
     href: string;
     price?: string;
@@ -10,11 +17,26 @@
     stripeServiceKey?: string;
   }
 
-  let { title, description, icon, features, href, price }: Props = $props();
+  let {
+    title,
+    description,
+    icon,
+    iconSpriteId,
+    iconSpriteBrand = 'korczewski',
+    features,
+    href,
+    price,
+  }: Props = $props();
 </script>
 
 <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8 hover:border-gold/30 transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-  <div class="text-5xl mb-6">{icon}</div>
+  {#if iconSpriteId}
+    <svg class="service-card-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <use href={`/brand/${iconSpriteBrand}/icons.svg#${iconSpriteId}`}></use>
+    </svg>
+  {:else}
+    <div class="text-5xl mb-6">{icon}</div>
+  {/if}
   <h3 class="text-2xl font-bold text-light mb-3 font-serif">{title}</h3>
   <p class="text-muted text-lg mb-6 leading-relaxed">{description}</p>
 
@@ -40,3 +62,18 @@
     Mehr erfahren
   </a>
 </div>
+
+<style>
+  .service-card-icon {
+    width: 56px;
+    height: 56px;
+    color: var(--brass, var(--copper, #d97706));
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    margin-bottom: 24px;
+    display: block;
+  }
+</style>

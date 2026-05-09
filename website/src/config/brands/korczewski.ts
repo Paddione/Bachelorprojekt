@@ -21,6 +21,50 @@ export const korczewskiConfig: BrandConfig = {
     website: process.env.LEGAL_WEBSITE ?? '',
     tagline: 'Software Engineering & IT-Security-Beratung',
   },
+  navigation: [
+    { label: 'Leistungen', href: '/#angebote' },
+    { label: 'Über mich',  href: '/ueber-mich' },
+    { label: 'Notizen',    href: '/#timeline' },
+    { label: 'Kontakt',    href: '/kontakt' },
+  ],
+  footer: {
+    columns: [
+      {
+        heading: 'Cluster',
+        links: [
+          { label: 'Leistungen', href: '/#angebote' },
+          { label: 'Timeline',   href: '/#timeline' },
+        ],
+      },
+      {
+        heading: 'Leistungen',
+        links: [
+          { label: 'Übersicht',     href: '/leistungen' },
+          { label: 'KI-Beratung',   href: '/ki-beratung' },
+          { label: 'Kubernetes',    href: '/deployment' },
+        ],
+      },
+      {
+        heading: 'Studio',
+        links: [
+          { label: 'Über mich',  href: '/ueber-mich' },
+          { label: 'Kontakt',    href: '/kontakt' },
+          { label: 'Impressum',  href: '/impressum' },
+        ],
+      },
+      {
+        heading: 'Rechtliches',
+        links: [
+          { label: 'Datenschutz',      href: '/datenschutz' },
+          { label: 'Impressum',        href: '/impressum' },
+          { label: 'Meine Daten',      href: '/meine-daten' },
+          { label: 'AGB',              href: '/agb' },
+          { label: 'Barrierefreiheit', href: '/barrierefreiheit' },
+        ],
+      },
+    ],
+    copyright: '© 2026 Korczewski · Lüneburg',
+  },
   homepage: {
     stats: [
       { value: 'B.Sc.', label: 'IT-Sicherheit' },
@@ -53,6 +97,8 @@ export const korczewskiConfig: BrandConfig = {
     avatarInitials: 'PK',
     quote: 'Gute Systeme entstehen nicht durch Tools allein – sondern durch das Verständnis, welches Problem man wirklich lösen will.',
     quoteName: 'Patrick Korczewski',
+    timeline: true,
+    identityImage: { src: '/brand/korczewski/identity.svg', alt: 'Patrick Korczewski' },
   },
   services: [
     {
@@ -60,6 +106,7 @@ export const korczewskiConfig: BrandConfig = {
       title: 'KI-Integration & Beratung',
       description: 'KI sinnvoll, sicher und messbar einsetzen – im eigenen Workflow oder im Unternehmen. Nicht als Hype, sondern als konkretes Werkzeug.',
       icon: '🧠',
+      iconSpriteId: 'icon-ki-beratung',
       features: [
         'KI-Strategie und Tool-Auswahl',
         'Claude Code, Cursor, Copilot – was wirklich passt',
@@ -110,6 +157,7 @@ export const korczewskiConfig: BrandConfig = {
       title: 'Software-Entwicklung',
       description: 'Von der Architektur bis zum produktionsreifen Code. Mit solidem Security-Fundament und KI als Co-Pilot – nicht als Ersatz für Nachdenken.',
       icon: '💻',
+      iconSpriteId: 'icon-software-dev',
       features: [
         'Architektur-Beratung und Code-Review',
         'TypeScript, Go, REST- und gRPC-APIs',
@@ -159,6 +207,7 @@ export const korczewskiConfig: BrandConfig = {
       title: 'Kubernetes & Infrastruktur',
       description: 'Production-grade Kubernetes-Deployments, DSGVO-konforme Self-Hosted-Lösungen und GitOps-Workflows – von der ersten Konfiguration bis zum laufenden Betrieb.',
       icon: '☁️',
+      iconSpriteId: 'icon-deployment',
       features: [
         'Kubernetes-Architektur und -Deployment',
         'GitOps mit ArgoCD und GitHub Actions',

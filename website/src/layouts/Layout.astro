@@ -1,17 +1,10 @@
 ---
 import Navigation from '../components/Navigation.svelte';
+import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.svelte';
 import ChatWidget from '../components/ChatWidget.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
-import { getEffectiveServices, getEffectiveKontakt } from '../lib/content';
-
-const footerServices = (await getEffectiveServices().catch(() => config.services)).filter(s => !s.hidden);
-const kontaktOverride = await getEffectiveKontakt().catch(() => null);
-const footerEmail   = kontaktOverride?.footerEmail?.trim()   || config.contact.email;
-const footerPhone   = kontaktOverride?.footerPhone?.trim()   || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
-const footerCity    = kontaktOverride?.footerCity?.trim()    || config.contact.city;
-const footerTagline = kontaktOverride?.footerTagline?.trim() || config.legal.tagline;
 
 interface Props {
   title: string;
@@ -21,8 +14,6 @@ interface Props {
 
 const { title, description = config.meta.siteDescription, brand } = Astro.props;
 const isKore = brand === 'korczewski-kore';
-
-const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 ---
 
 <!doctype html>
@@ -64,107 +55,12 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded" style="background:var(--brass); color:var(--ink-900); font-weight:600;">
       Zum Hauptinhalt springen
     </a>
-    {!isKore && <Navigation client:load siteTitle={config.meta.siteTitle} />}
+    <Navigation client:load siteTitle={config.meta.siteTitle} links={config.navigation} />
     <main id="main-content" class="flex-1">
       <slot />
     </main>
 
-    {!isKore && (<footer style="background:var(--ink-850); border-top:1px solid var(--line); padding:72px 0 36px;">
-      <div style="max-width:var(--maxw); margin:0 auto; padding:0 40px;">
-        <div class="footer-grid" style="display:grid; grid-template-columns:1.4fr repeat(3,1fr); gap:48px; margin-bottom:56px;">
-          <!-- Brand col -->
-          <div>
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px; text-decoration:none;">
-              <div class="footer-mark" style="width:28px; height:28px; border-radius:8px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3); position:relative; flex-shrink:0;">
-                <svg style="position:absolute; inset:7px; color:var(--ink-900); display:block;" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <text x="16" y="24" text-anchor="middle" fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="24">m</text>
-                </svg>
-              </div>
-              <span style="font-family:var(--serif); font-size:18px; letter-spacing:-0.01em; color:var(--fg);">{brandWord}<span style="color:var(--brass);">.</span></span>
-            </div>
-            <p style="font-size:14px; color:var(--fg-soft); max-width:32ch; line-height:1.6;">{footerTagline}</p>
-          </div>
-
-          <!-- Kontakt col -->
-          <div>
-            <h5 style="font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--brass); margin:0 0 18px;">Kontakt</h5>
-            <ul style="list-style:none; padding:0; margin:0;">
-              {footerPhone && (
-                <li style="margin-bottom:8px;">
-                  <a href={`tel:${footerPhone}`} style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">{footerPhone}</a>
-                </li>
-              )}
-              <li style="margin-bottom:8px;">
-                <a href={`mailto:${footerEmail}`} style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">{footerEmail}</a>
-              </li>
-              <li>
-                <span style="font-size:14px; color:var(--mute);">{footerCity}</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Angebote col -->
-          <div>
-            <h5 style="font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--brass); margin:0 0 18px;">Angebote</h5>
-            <ul style="list-style:none; padding:0; margin:0;">
-              {footerServices.map((s) => (
-                <li style="margin-bottom:8px;">
-                  <a href={`/${s.slug}`} style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">{s.title}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <!-- Rechtliches col -->
-          <div>
-            <h5 style="font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--brass); margin:0 0 18px;">Rechtliches</h5>
-            <ul style="list-style:none; padding:0; margin:0;">
-              <li style="margin-bottom:8px;"><a href="/referenzen" style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">Referenzen</a></li>
-              <li style="margin-bottom:8px;"><a href="/impressum" style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">Impressum</a></li>
-              <li style="margin-bottom:8px;"><a href="/datenschutz" style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">Datenschutz</a></li>
-              <li style="margin-bottom:8px;"><a href="/meine-daten" style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">Meine Daten</a></li>
-              <li style="margin-bottom:8px;"><a href="/agb" style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">AGB</a></li>
-              <li style="margin-bottom:8px;"><a href="/barrierefreiheit" style="font-size:14px; color:var(--mute); text-decoration:none; display:block;" class="footer-link">Barrierefreiheit</a></li>
-              <li>
-                <button
-                  type="button"
-                  onclick="window.dispatchEvent(new Event('cookie-consent-reopen'))"
-                  style="font-size:14px; color:var(--mute); background:none; border:none; padding:0; cursor:pointer; display:block;"
-                  class="footer-link"
-                >
-                  Cookie-Einstellungen
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div style="border-top:1px solid var(--line); padding-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <p style="font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--mute-2); margin:0;">
-            &copy; {new Date().getFullYear()} {config.meta.siteTitle} — Alle Rechte vorbehalten
-          </p>
-          <p style="font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--mute-2); margin:0;">
-            Gestaltet in Lüneburg · DE
-          </p>
-        </div>
-      </div>
-    </footer>)}
-
-    <style>
-      .footer-link:hover {
-        color: var(--fg) !important;
-      }
-      @media (max-width: 860px) {
-        .footer-grid {
-          grid-template-columns: 1fr 1fr !important;
-        }
-      }
-      @media (max-width: 480px) {
-        .footer-grid {
-          grid-template-columns: 1fr !important;
-        }
-      }
-    </style>
+    <Footer />
 
     <CookieConsent client:load />
     <ChatWidget client:load />

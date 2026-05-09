@@ -4,6 +4,9 @@ import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
 import { getEffectiveLeistungen, getPriceListUrl } from '../lib/content';
 
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
+
 const { leistungenCta, contact } = config;
 const [leistungen, priceListUrl] = await Promise.all([
   getEffectiveLeistungen(),
@@ -11,7 +14,7 @@ const [leistungen, priceListUrl] = await Promise.all([
 ]);
 ---
 
-<Layout title="Leistungen & Preise" description="Alle Angebote und Preise auf einen Blick.">
+<Layout title="Leistungen & Preise" description="Alle Angebote und Preise auf einen Blick." brand={layoutBrand}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-5xl mx-auto px-6">
       <div class="text-center mb-14">

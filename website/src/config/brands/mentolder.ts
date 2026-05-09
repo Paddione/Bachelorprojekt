@@ -21,6 +21,30 @@ export const mentolderConfig: BrandConfig = {
     website: process.env.LEGAL_WEBSITE ?? '',
     tagline: 'Digital Coaching & Führungskräfte-Beratung',
   },
+  navigation: [
+    { label: 'Angebote',   href: '/#angebote' },
+    { label: 'Über mich',  href: '/ueber-mich' },
+    { label: 'Referenzen', href: '/referenzen' },
+    { label: 'Kontakt',    href: '/kontakt' },
+  ],
+  footer: {
+    columns: [
+      // Kontakt column is rendered dynamically in Layout (uses live config.contact)
+      // Angebote column is rendered dynamically in Layout (uses footerServices)
+      // Only the "Rechtliches" column is fully data-driven for mentolder today.
+      {
+        heading: 'Rechtliches',
+        links: [
+          { label: 'Referenzen',          href: '/referenzen' },
+          { label: 'Impressum',           href: '/impressum' },
+          { label: 'Datenschutz',         href: '/datenschutz' },
+          { label: 'Meine Daten',         href: '/meine-daten' },
+          { label: 'AGB',                 href: '/agb' },
+          { label: 'Barrierefreiheit',    href: '/barrierefreiheit' },
+        ],
+      },
+    ],
+  },
   homepage: {
     stats: [
       { value: '30+', label: 'Jahre Führungserfahrung' },
@@ -53,6 +77,8 @@ export const mentolderConfig: BrandConfig = {
     avatarSrc: '/gerald.webp',
     quote: 'Ich stelle unbequeme Fragen – weil echte Lösungen manchmal unbequeme Wahrheiten brauchen.',
     quoteName: 'Gerald Korczewski',
+    timeline: false,
+    identityImage: { src: '/gerald.webp', alt: 'Gerald Korczewski' },
   },
   services: [
     {

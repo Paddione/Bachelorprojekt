@@ -7,30 +7,18 @@ import FAQ from '../components/FAQ.svelte';
 import WhyMe from '../components/WhyMe.svelte';
 import Process from '../components/Process.astro';
 import SlotWidget from '../components/SlotWidget.astro';
+import Timeline from '../components/Timeline.svelte';
 import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
 import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq } from '../lib/content';
-import KoreSubNav   from '../components/kore/KoreSubNav.astro';
-import KorePillars  from '../components/kore/KorePillars.astro';
-import KoreBugs     from '../components/kore/KoreBugs.astro';
-import KoreTeam     from '../components/kore/KoreTeam.astro';
-import KoreContact  from '../components/kore/KoreContact.astro';
-import KoreFooter   from '../components/kore/KoreFooter.astro';
-import KoreHero     from '../components/kore/KoreHero.svelte';
-import KoreTimeline from '../components/kore/KoreTimeline.svelte';
-import KoreServices from '../components/kore/KoreServices.astro';
-import KoreWhyMe    from '../components/kore/KoreWhyMe.astro';
-import KoreProcess  from '../components/kore/KoreProcess.astro';
-import KoreFaq      from '../components/kore/KoreFaq.astro';
 import { listTimeline, getSiteSetting } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
-const initialTimeline = BRAND_ID === 'korczewski'
-  ? await listTimeline({ limit: 20 }).catch(() => [])
-  : [];
+const isKore = BRAND_ID === 'korczewski';
+const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
-const homeDescription = BRAND_ID !== 'korczewski'
+const homeDescription = !isKore
   ? await getSiteSetting(BRAND_ID, 'seo_meta_desc_home').catch(() => null)
   : null;
 const metaDescription = homeDescription ?? config.meta.siteDescription;
@@ -40,6 +28,12 @@ const homepage = await getEffectiveHomepage();
 const faq = await getEffectiveFaq();
 const allServices = await getEffectiveServices();
 const services = allServices.filter((s) => !s.hidden);
+
+// Timeline (live PR feed) is gated on BrandConfig.homepage.timeline.
+const wantsTimeline = config.homepage.timeline === true;
+const initialTimeline = wantsTimeline
+  ? await listTimeline({ limit: 20 }).catch(() => [])
+  : [];
 
 let nextDay: DaySlots | null = null;
 try {
@@ -85,121 +79,123 @@ const processSteps = [
 ];
 ---
 
-{BRAND_ID === 'korczewski' ? (
-  <Layout title="Kore. — Self-hosted, vor Ihren Augen." brand="korczewski-kore" description="Self-hosted Kubernetes-Infrastruktur, DSGVO-konform auf einem 12-Node-Cluster. Beratung, Deployment und Betrieb für kleine Teams — Patrick Korczewski, Lüneburg.">
-    <KoreSubNav />
-    <KoreHero client:load />
-    <KoreServices services={services} />
-    <KoreWhyMe homepage={homepage} />
-    <KoreProcess />
-    <KorePillars />
-    <KoreTimeline client:load initialRows={initialTimeline} />
-    <KoreBugs />
-    <KoreTeam />
-    <KoreFaq items={faq} />
-    <KoreContact />
-    <KoreFooter />
-  </Layout>
-) : (
-  <Layout title={config.meta.siteTitle} description={metaDescription}>
-    <!-- Hero with Portrait -->
-    <Hero
-      client:load
-      title={homepage.hero.title}
-      titleEmphasis={homepage.hero.titleEmphasis}
-      subtitle={homepage.hero.subtitle}
-      tagline={homepage.hero.tagline}
-      avatarType={homepage.avatarType}
-      avatarSrc={homepage.avatarSrc}
-      avatarInitials={homepage.avatarInitials}
-      personName={contact.name}
-      personRole={config.legal.jobtitle}
-    />
+<Layout title={config.meta.siteTitle} description={metaDescription} brand={layoutBrand}>
+  <!-- Hero with Portrait -->
+  <Hero
+    client:load
+    title={homepage.hero.title}
+    titleEmphasis={homepage.hero.titleEmphasis}
+    subtitle={homepage.hero.subtitle}
+    tagline={homepage.hero.tagline}
+    avatarType={homepage.avatarType}
+    avatarSrc={homepage.avatarSrc}
+    avatarInitials={homepage.avatarInitials}
+    personName={contact.name}
+    personRole={config.legal.jobtitle}
+  />
 
-    <!-- Stats + Availability strip -->
-    <div class="strip" role="region" aria-label="Eckdaten und Verfügbarkeit">
-      <!-- Stats -->
-      <div class="stats" aria-label="Kennzahlen">
-        {homepage.stats.map((stat) => (
-          <div class="stat">
-            <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
-            <span class="stat-lab">{stat.label}</span>
+  <!-- Stats + Availability strip -->
+  <div class="strip" role="region" aria-label="Eckdaten und Verfügbarkeit">
+    <!-- Stats -->
+    <div class="stats" aria-label="Kennzahlen">
+      {homepage.stats.map((stat) => (
+        <div class="stat">
+          <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
+          <span class="stat-lab">{stat.label}</span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Availability -->
+    {nextDay
+      ? <SlotWidget day={nextDay} />
+      : (
+        <div class="availability-placeholder">
+          <p style="color:var(--mute); font-size:14px;">
+            <a href="/termin" style="color:var(--brass); text-decoration:none;">Termine ansehen →</a>
+          </p>
+        </div>
+      )
+    }
+  </div>
+
+  <!-- Offers -->
+  <section id="angebote" class="section" aria-labelledby="offers-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Meine Angebote</p>
+          <h2 id="offers-heading">{homepage.servicesHeadline}</h2>
+        </div>
+        <p class="section-intro">{homepage.servicesSubheadline}</p>
+      </div>
+
+      <div class="offers" role="list" aria-label="Angebote">
+        {services.map((service, i) => (
+          <div role="listitem">
+            <ServiceRow
+              num={String(i + 1).padStart(2, '0')}
+              title={service.title}
+              meta={serviceMeta[service.slug] ?? service.meta}
+              description={service.description}
+              features={service.features}
+              price={service.price}
+              href={`/${service.slug}`}
+              icon={service.icon}
+              iconSpriteId={service.iconSpriteId}
+              iconSpriteBrand={BRAND_ID}
+              stripeServiceKey={service.stripeServiceKey}
+              client:visible
+            />
           </div>
         ))}
       </div>
-
-      <!-- Availability -->
-      {nextDay
-        ? <SlotWidget day={nextDay} />
-        : (
-          <div class="availability-placeholder">
-            <p style="color:var(--mute); font-size:14px;">
-              <a href="/termin" style="color:var(--brass); text-decoration:none;">Termine ansehen →</a>
-            </p>
-          </div>
-        )
-      }
     </div>
+  </section>
 
-    <!-- Offers -->
-    <section id="angebote" class="section" aria-labelledby="offers-heading">
+  <!-- Why Me + Quote -->
+  <WhyMe
+    client:visible
+    headline={homepage.whyMeHeadline}
+    intro={homepage.whyMeIntro}
+    points={homepage.whyMePoints}
+    quote={homepage.quote}
+    quoteName={homepage.quoteName}
+    quoteRole={config.legal.jobtitle}
+  />
+
+  <!-- Process -->
+  <Process steps={processSteps} />
+
+  <!-- FAQ -->
+  <FAQ items={faq.map((item) => ({
+    ...item,
+    answer: item.answer.replace('{city}', contact.city),
+  }))} client:visible />
+
+  <!-- CTA -->
+  <CallToAction
+    client:visible
+    secondaryText={contact.email}
+    secondaryHref={`mailto:${contact.email}`}
+  />
+
+  <!-- Live PR-feed Timeline (korczewski only, gated by BrandConfig.homepage.timeline) -->
+  {wantsTimeline && (
+    <section class="section timeline-section" id="timeline" aria-labelledby="timeline-heading">
       <div class="wrap">
         <div class="section-head">
           <div>
-            <p class="eyebrow">Meine Angebote</p>
-            <h2 id="offers-heading">{homepage.servicesHeadline}</h2>
+            <p class="eyebrow">Live aus Tracking-DB</p>
+            <h2 id="timeline-heading">Implementierte Features.</h2>
           </div>
-          <p class="section-intro">{homepage.servicesSubheadline}</p>
+          <p class="section-intro">Jede merged Pull Request landet hier — direkt aus der Tracking-Datenbank, ohne Filter.</p>
         </div>
-
-        <div class="offers" role="list" aria-label="Angebote">
-          {services.map((service, i) => (
-            <div role="listitem">
-              <ServiceRow
-                num={String(i + 1).padStart(2, '0')}
-                title={service.title}
-                meta={serviceMeta[service.slug] ?? service.meta}
-                description={service.description}
-                features={service.features}
-                price={service.price}
-                href={`/${service.slug}`}
-                stripeServiceKey={service.stripeServiceKey}
-                client:visible
-              />
-            </div>
-          ))}
-        </div>
+        <Timeline client:load initialRows={initialTimeline} />
       </div>
     </section>
-
-    <!-- Why Me + Quote -->
-    <WhyMe
-      client:visible
-      headline={homepage.whyMeHeadline}
-      intro={homepage.whyMeIntro}
-      points={homepage.whyMePoints}
-      quote={homepage.quote}
-      quoteName={homepage.quoteName}
-      quoteRole={config.legal.jobtitle}
-    />
-
-    <!-- Process -->
-    <Process steps={processSteps} />
-
-    <!-- FAQ -->
-    <FAQ items={faq.map((item) => ({
-      ...item,
-      answer: item.answer.replace('{city}', contact.city),
-    }))} client:visible />
-
-    <!-- CTA -->
-    <CallToAction
-      client:visible
-      secondaryText={contact.email}
-      secondaryHref={`mailto:${contact.email}`}
-    />
-  </Layout>
-)}
+  )}
+</Layout>
 
 <style>
   /* Strip: stats + availability */
@@ -258,6 +254,11 @@ const processSteps = [
   /* Section layout */
   .section {
     padding: 120px 0;
+  }
+
+  .timeline-section {
+    background: var(--ink-850);
+    border-top: 1px solid var(--line);
   }
 
   .wrap {

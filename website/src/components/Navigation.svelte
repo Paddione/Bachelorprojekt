@@ -1,7 +1,22 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import type { NavigationLink } from '../config/types';
 
-  let { siteTitle = '' } = $props();
+  interface Props {
+    siteTitle?: string;
+    /** Top-nav links from the active BrandConfig. Falls back to mentolder defaults. */
+    links?: NavigationLink[];
+  }
+
+  let {
+    siteTitle = '',
+    links = [
+      { label: 'Angebote',   href: '/#angebote' },
+      { label: 'Über mich',  href: '/ueber-mich' },
+      { label: 'Referenzen', href: '/referenzen' },
+      { label: 'Kontakt',    href: '/kontakt' },
+    ],
+  }: Props = $props();
   const brandWord = siteTitle.replace(/\.de$/i, '').toLowerCase();
 
   let mobileOpen = $state(false);
@@ -53,10 +68,13 @@
 
     <!-- Desktop nav -->
     <nav class="nav-links" aria-label="Seitennavigation">
-      <a href="/#angebote">Angebote</a>
-      <a href="/ueber-mich">Über mich</a>
-      <a href="/referenzen">Referenzen</a>
-      <a href="/kontakt">Kontakt</a>
+      {#each links as link}
+        <a
+          href={link.href}
+          target={link.external ? '_blank' : undefined}
+          rel={link.external ? 'noopener noreferrer' : undefined}
+        >{link.label}</a>
+      {/each}
     </nav>
 
     <div class="nav-right">
@@ -197,10 +215,14 @@
   <!-- Mobile menu -->
   {#if mobileOpen}
     <nav class="mobile-menu" aria-label="Mobilnavigation">
-      <a href="/#angebote" onclick={() => (mobileOpen = false)}>Angebote</a>
-      <a href="/ueber-mich" onclick={() => (mobileOpen = false)}>Über mich</a>
-      <a href="/referenzen" onclick={() => (mobileOpen = false)}>Referenzen</a>
-      <a href="/kontakt" onclick={() => (mobileOpen = false)}>Kontakt</a>
+      {#each links as link}
+        <a
+          href={link.href}
+          target={link.external ? '_blank' : undefined}
+          rel={link.external ? 'noopener noreferrer' : undefined}
+          onclick={() => (mobileOpen = false)}
+        >{link.label}</a>
+      {/each}
 
       {#if authChecked}
         {#if user}

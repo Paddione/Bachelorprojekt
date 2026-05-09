@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <!--
+    Korczewski service icon sprite — first-cut.
+    Each symbol is 24x24, stroke=currentColor at 1.5px, round caps/joins.
+    Reference via <svg><use href="/brand/korczewski/icons.svg#icon-name"/></svg>.
+  -->
+
+  <!-- 50+ digital — phone emitting concentric ripples (signal / outreach) -->
+  <symbol id="icon-50plus-digital" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- phone body, slightly tilted -->
+    <rect x="3.5" y="6" width="9" height="14" rx="1.6"/>
+    <line x1="3.5" y1="9" x2="12.5" y2="9"/>
+    <line x1="3.5" y1="17" x2="12.5" y2="17"/>
+    <circle cx="8" cy="18.5" r="0.6" fill="currentColor" stroke="none"/>
+    <!-- outward ripples / signal arcs to the upper right -->
+    <path d="M14.5 11 Q17 11 17 13.5"/>
+    <path d="M16 8.5 Q20 8.5 20 12.5"/>
+    <path d="M17.5 6 Q22.5 6 22.5 11"/>
+  </symbol>
+
+  <!-- Coaching — two facing figures in dialog -->
+  <symbol id="icon-coaching" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- left figure: head + shoulders -->
+    <circle cx="6.5" cy="7.5" r="2.2"/>
+    <path d="M3 16 Q3 12 6.5 12 Q10 12 10 16"/>
+    <!-- right figure -->
+    <circle cx="17.5" cy="7.5" r="2.2"/>
+    <path d="M14 16 Q14 12 17.5 12 Q21 12 21 16"/>
+    <!-- dialog dots between them -->
+    <circle cx="10.5" cy="10" r="0.5" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="10" r="0.5" fill="currentColor" stroke="none"/>
+    <circle cx="13.5" cy="10" r="0.5" fill="currentColor" stroke="none"/>
+    <!-- ground line -->
+    <line x1="3" y1="20" x2="21" y2="20"/>
+  </symbol>
+
+  <!-- Beratung (Mittelstand) — org chart node tree -->
+  <symbol id="icon-beratung" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- root node -->
+    <rect x="9" y="3" width="6" height="4" rx="0.8"/>
+    <!-- three child nodes -->
+    <rect x="2" y="16" width="6" height="4" rx="0.8"/>
+    <rect x="9" y="16" width="6" height="4" rx="0.8"/>
+    <rect x="16" y="16" width="6" height="4" rx="0.8"/>
+    <!-- connectors -->
+    <line x1="12" y1="7" x2="12" y2="11"/>
+    <line x1="5" y1="11" x2="19" y2="11"/>
+    <line x1="5" y1="11" x2="5" y2="16"/>
+    <line x1="12" y1="11" x2="12" y2="16"/>
+    <line x1="19" y1="11" x2="19" y2="16"/>
+  </symbol>
+
+  <!-- KI-Transition — sprout breaking through a circuit grid -->
+  <symbol id="icon-ki-transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- circuit grid base -->
+    <line x1="3" y1="18" x2="21" y2="18"/>
+    <line x1="3" y1="14" x2="9" y2="14"/>
+    <line x1="15" y1="14" x2="21" y2="14"/>
+    <circle cx="6" cy="14" r="0.8"/>
+    <circle cx="18" cy="14" r="0.8"/>
+    <line x1="6" y1="14.8" x2="6" y2="18"/>
+    <line x1="18" y1="14.8" x2="18" y2="18"/>
+    <!-- sprout: stem + two leaves growing up between the traces -->
+    <path d="M12 18 L12 9"/>
+    <path d="M12 12 Q9 11 8 8 Q11 8 12 11"/>
+    <path d="M12 10 Q15 9 16 6 Q13 6 12 9"/>
+  </symbol>
+
+  <!-- KI-Beratung — chip with thought bubble lines -->
+  <symbol id="icon-ki-beratung" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- chip body -->
+    <rect x="6" y="9" width="12" height="12" rx="1.4"/>
+    <!-- chip pins -->
+    <line x1="9" y1="9" x2="9" y2="7.5"/>
+    <line x1="12" y1="9" x2="12" y2="7.5"/>
+    <line x1="15" y1="9" x2="15" y2="7.5"/>
+    <line x1="9" y1="21" x2="9" y2="22.5"/>
+    <line x1="12" y1="21" x2="12" y2="22.5"/>
+    <line x1="15" y1="21" x2="15" y2="22.5"/>
+    <line x1="6" y1="13" x2="4.5" y2="13"/>
+    <line x1="6" y1="17" x2="4.5" y2="17"/>
+    <line x1="18" y1="13" x2="19.5" y2="13"/>
+    <line x1="18" y1="17" x2="19.5" y2="17"/>
+    <!-- inner core -->
+    <rect x="10" y="13" width="4" height="4" rx="0.6"/>
+    <!-- thought bubble dots rising from chip top-left corner -->
+    <circle cx="4" cy="6" r="0.6" fill="currentColor" stroke="none"/>
+    <circle cx="6" cy="4" r="0.8" fill="currentColor" stroke="none"/>
+    <circle cx="9" cy="2.5" r="1" fill="currentColor" stroke="none"/>
+  </symbol>
+
+  <!-- Software-Dev — angle brackets with centered slash -->
+  <symbol id="icon-software-dev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- left bracket -->
+    <polyline points="8 7 3 12 8 17"/>
+    <!-- right bracket -->
+    <polyline points="16 7 21 12 16 17"/>
+    <!-- centered slash -->
+    <line x1="14" y1="5" x2="10" y2="19"/>
+  </symbol>
+
+  <!-- Deployment — isometric container/cube riding an up-arrow -->
+  <symbol id="icon-deployment" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- isometric cube top diamond -->
+    <polygon points="12 3 19 6.5 12 10 5 6.5"/>
+    <!-- cube left face -->
+    <line x1="5" y1="6.5" x2="5" y2="13"/>
+    <line x1="5" y1="13" x2="12" y2="16.5"/>
+    <line x1="12" y1="10" x2="12" y2="16.5"/>
+    <!-- cube right face -->
+    <line x1="19" y1="6.5" x2="19" y2="13"/>
+    <line x1="19" y1="13" x2="12" y2="16.5"/>
+    <!-- up-arrow shaft below -->
+    <line x1="12" y1="18" x2="12" y2="22"/>
+    <polyline points="9.5 19.5 12 17 14.5 19.5"/>
+  </symbol>
+</svg>

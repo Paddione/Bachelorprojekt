@@ -12,6 +12,10 @@ resources:
   # spare the 2-CPU request after the cluster split. korczewski-ha
   # has 3× 8-CPU nodes, so transcription stays alive here.
   - whisper.yaml
+  # Talk-Transcriber bot — korczewski-only, calls whisper.
+  # Moved out of the shared base because the bot is useless without
+  # a whisper backend, and whisper only lives on korczewski.
+  - talk-transcriber.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:

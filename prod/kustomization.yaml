@@ -162,8 +162,6 @@ patches:
   # patch target on this overlay.
   # Reduce shared-db resource requests for smaller production clusters
   - path: patch-shared-db.yaml
-  # Use GHCR image for talk-transcriber in production
-  - path: patch-talk-transcriber.yaml
   # Override signaling backend URL for production (HTTPS + real domain)
   - path: patch-signaling-backend.yaml
   # Traefik dashboard redirect-root uses http:// in dev; patch to https:// for prod

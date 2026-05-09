@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>web.korczewski.de — Design Mockup (target state)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink-900: #120D1C;
+      --ink-850: #1A1326;
+      --ink-800: #221932;
+      --ink-750: #2C2240;
+      --ink-700: #3A2E52;
+      --lime: #C8F76A;
+      --lime-2: #D8FF8A;
+      --lime-soft: #E6FFB0;
+      --lime-tint: rgba(200,247,106,.08);
+      --teal: #5BD4D0;
+      --teal-2: #82E2DF;
+      --teal-tint: rgba(91,212,208,.10);
+      --serif: "Instrument Serif", "Newsreader", Georgia, serif;
+      --sans: "Geist", "Inter", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --fg: #EFE9F4;
+      --fg-mute: #948AA0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--ink-900); color: var(--fg); font-family: var(--sans); line-height: 1.55; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+    /* Asset slot marker */
+    .asset {
+      position: relative;
+      border: 1.5px dashed var(--lime);
+      background: var(--lime-tint);
+      border-radius: 6px;
+      padding: 24px;
+      color: var(--lime);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .asset .id {
+      position: absolute;
+      top: -10px; left: 12px;
+      background: var(--ink-900);
+      padding: 2px 8px;
+      font-size: 10px;
+      color: var(--lime);
+      border: 1px solid var(--lime);
+      border-radius: 3px;
+    }
+
+    /* Section ribbon */
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      padding: 12px 32px;
+      background: var(--ink-850);
+      border-top: 1px solid var(--ink-700);
+      border-bottom: 1px solid var(--ink-700);
+    }
+
+    /* ===== HEADER / NAV ===== */
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--ink-700);
+    }
+    header .wrap { display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 12px; font-family: var(--serif); font-size: 22px; }
+    .logo .mark { width: 32px; height: 32px; }
+    nav ul { display: flex; gap: 28px; list-style: none; font-size: 14px; }
+    nav a { color: var(--fg); text-decoration: none; }
+    nav a:hover { color: var(--lime); }
+
+    /* ===== HERO ===== */
+    .hero { padding: 80px 0 96px; }
+    .hero .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 64px; align-items: center; }
+    .hero h1 { font-family: var(--serif); font-size: 64px; line-height: 1.05; font-weight: 400; margin-bottom: 24px; }
+    .hero h1 em { font-style: italic; color: var(--lime); }
+    .hero .lead { font-size: 18px; color: var(--fg-mute); margin-bottom: 32px; max-width: 520px; }
+    .hero .cta { display: inline-block; padding: 14px 28px; border: 1px solid var(--lime); color: var(--lime); text-decoration: none; font-family: var(--mono); font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; transition: background .2s; }
+    .hero .cta:hover { background: var(--lime); color: var(--ink-900); }
+    .hero-portrait { aspect-ratio: 4/5; }
+
+    /* ===== STATS ===== */
+    .stats { background: var(--ink-850); padding: 56px 0; border-top: 1px solid var(--ink-700); border-bottom: 1px solid var(--ink-700); }
+    .stats .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .stat { text-align: center; position: relative; }
+    .stat .v { font-family: var(--serif); font-size: 56px; color: var(--lime); display: block; margin-bottom: 8px; line-height: 1; }
+    .stat .l { font-size: 13px; color: var(--fg-mute); text-transform: uppercase; letter-spacing: 0.08em; }
+    .stat-bg-asset { position: absolute; inset: -8px; opacity: 0.4; pointer-events: none; }
+
+    /* ===== SERVICES ===== */
+    .services { padding: 96px 0; }
+    .section-head { text-align: center; margin-bottom: 56px; }
+    .section-head h2 { font-family: var(--serif); font-size: 44px; font-weight: 400; margin-bottom: 12px; }
+    .section-head .sub { color: var(--fg-mute); max-width: 640px; margin: 0 auto; font-size: 16px; }
+    .services .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .svc-card { background: var(--ink-850); border: 1px solid var(--ink-700); padding: 32px; border-radius: 8px; transition: border-color .2s; }
+    .svc-card:hover { border-color: var(--lime); }
+    .svc-icon { width: 32px; height: 32px; color: var(--lime); margin-bottom: 20px; }
+    .svc-icon .asset { padding: 0; aspect-ratio: 1; font-size: 9px; }
+    .svc-card h3 { font-family: var(--serif); font-size: 24px; font-weight: 400; margin-bottom: 8px; }
+    .svc-card .meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--teal); margin-bottom: 16px; }
+    .svc-card p { font-size: 14px; color: var(--fg-mute); margin-bottom: 20px; }
+    .svc-card ul { font-size: 13px; color: var(--fg); list-style: none; }
+    .svc-card li { padding: 6px 0 6px 18px; position: relative; }
+    .svc-card li::before { content: "→"; position: absolute; left: 0; color: var(--lime); }
+    .svc-card .price { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--ink-700); font-family: var(--mono); font-size: 12px; color: var(--lime); }
+
+    /* ===== WHY ME ===== */
+    .why { padding: 96px 0; background: var(--ink-850); }
+    .why .grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 64px; align-items: start; }
+    .why-intro h2 { font-family: var(--serif); font-size: 44px; font-weight: 400; margin-bottom: 20px; }
+    .why-intro p { color: var(--fg-mute); font-size: 16px; }
+    .why-points { display: grid; gap: 32px; }
+    .why-point { display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; }
+    .why-point .badge { width: 56px; height: 56px; border: 1px solid var(--lime); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--lime); }
+    .why-point h4 { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 6px; }
+    .why-point p { font-size: 14px; color: var(--fg-mute); }
+
+    /* ===== PROCESS ===== */
+    .process { padding: 96px 0; }
+    .process .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .step { padding: 32px 0; border-top: 1px solid var(--ink-700); position: relative; }
+    .step::before { content: ""; position: absolute; top: -1px; left: 0; width: 24px; height: 1px; background: var(--lime); }
+    .step .num { font-family: var(--mono); font-size: 11px; color: var(--teal); letter-spacing: 0.1em; margin-bottom: 12px; }
+    .step h4 { font-family: var(--serif); font-size: 22px; font-weight: 400; margin-bottom: 8px; }
+    .step p { font-size: 13px; color: var(--fg-mute); }
+    .step .illu { margin-bottom: 20px; aspect-ratio: 4/3; }
+
+    /* ===== QUOTE ===== */
+    .quote { padding: 120px 0; background: var(--ink-850); position: relative; overflow: hidden; }
+    .quote-bg-asset { position: absolute; inset: 0; opacity: 0.5; pointer-events: none; }
+    .quote-text { font-family: var(--serif); font-style: italic; font-size: 36px; line-height: 1.3; max-width: 800px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
+    .quote-name { text-align: center; font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; color: var(--teal); text-transform: uppercase; margin-top: 32px; position: relative; z-index: 1; }
+
+    /* ===== TIMELINE ===== */
+    .timeline { padding: 96px 0; }
+    .timeline-list { display: grid; gap: 16px; max-width: 800px; margin: 0 auto; }
+    .timeline-item { display: grid; grid-template-columns: 100px 1fr; gap: 20px; padding: 20px; background: var(--ink-850); border-left: 2px solid var(--lime); }
+    .timeline-item .when { font-family: var(--mono); font-size: 11px; color: var(--teal); text-transform: uppercase; letter-spacing: 0.08em; }
+    .timeline-item h4 { font-family: var(--serif); font-size: 18px; font-weight: 400; margin-bottom: 4px; }
+    .timeline-item p { font-size: 13px; color: var(--fg-mute); }
+
+    /* ===== FAQ ===== */
+    .faq { padding: 96px 0; background: var(--ink-850); }
+    .faq-list { max-width: 800px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--ink-700); padding: 24px 0; }
+    .faq-item h4 { font-family: var(--serif); font-size: 22px; font-weight: 400; margin-bottom: 12px; }
+    .faq-item p { color: var(--fg-mute); font-size: 15px; }
+
+    /* ===== CTA ===== */
+    .cta-band { padding: 80px 0; text-align: center; }
+    .cta-band h2 { font-family: var(--serif); font-size: 40px; font-weight: 400; margin-bottom: 24px; }
+    .cta-band a { display: inline-block; padding: 16px 36px; background: var(--lime); color: var(--ink-900); text-decoration: none; font-family: var(--mono); font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* ===== FOOTER ===== */
+    footer { background: var(--ink-850); padding: 64px 0 32px; border-top: 1px solid var(--ink-700); }
+    footer .grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+    footer h5 { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin-bottom: 16px; }
+    footer ul { list-style: none; font-size: 14px; }
+    footer li { padding: 4px 0; }
+    footer a { color: var(--fg-mute); text-decoration: none; }
+    footer a:hover { color: var(--lime); }
+    footer .legal { padding-top: 24px; border-top: 1px solid var(--ink-700); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-mute); }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER / NAV ===== -->
+  <header>
+    <div class="wrap">
+      <div class="logo">
+        <div class="asset" style="width:32px;height:32px;padding:0;font-size:8px"><span class="id">A1</span>K</div>
+        <span>korczewski.de</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#">Über mich</a></li>
+          <li><a href="#">Leistungen</a></li>
+          <li><a href="#">Referenzen</a></li>
+          <li><a href="#">Kontakt</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="section-label">SECTION 01 — HERO</div>
+  <section class="hero">
+    <div class="wrap">
+      <div class="grid">
+        <div>
+          <h1>Software, die <em>sicher läuft</em><br/>und <em>verstanden wird</em>.</h1>
+          <p class="lead">Software Engineering &amp; IT-Security-Beratung. KI-Integration, Kubernetes-Architektur, sichere Systeme — vom Konzept bis zum Cluster.</p>
+          <a href="#" class="cta">Erstgespräch vereinbaren</a>
+        </div>
+        <div class="hero-portrait asset">
+          <span class="id">A2 — Identity image (¾ profile, dark backdrop, warm key) — 600×800 WebP</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 02 — STATS / CREDENTIALS</div>
+  <section class="stats">
+    <div class="wrap">
+      <div class="grid">
+        <div class="stat"><div class="stat-bg-asset asset" style="font-size:9px"><span class="id">A3a</span>watermark</div><span class="v">B.Sc.</span><span class="l">IT-Sicherheit</span></div>
+        <div class="stat"><div class="stat-bg-asset asset" style="font-size:9px"><span class="id">A3b</span>watermark</div><span class="v">10+</span><span class="l">Jahre IT-Erfahrung</span></div>
+        <div class="stat"><div class="stat-bg-asset asset" style="font-size:9px"><span class="id">A3c</span>watermark</div><span class="v">KI</span><span class="l">Seit Tag 1 dabei</span></div>
+        <div class="stat"><div class="stat-bg-asset asset" style="font-size:9px"><span class="id">A3d</span>watermark</div><span class="v">K8s</span><span class="l">Production-Grade</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 03 — SERVICES</div>
+  <section class="services">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Was ich für Sie tun kann</h2>
+        <p class="sub">Ich baue Systeme, die sicher laufen, skalieren und wartbar bleiben — und zeige Ihnen, wie KI dabei zum echten Hebel wird.</p>
+      </div>
+      <div class="grid">
+        <div class="svc-card">
+          <div class="svc-icon asset"><span class="id">A4a</span>icon</div>
+          <h3>KI-Beratung</h3>
+          <div class="meta">Strategie · Tool-Auswahl · Compliance</div>
+          <p>Welche KI passt zu welchem Prozess? Ich helfe bei Tool-Auswahl, Workflow-Integration und DSGVO-konformer Einführung.</p>
+          <ul><li>Strategie-Workshops</li><li>Tool-Audit &amp; Auswahl</li><li>Compliance &amp; Governance</li></ul>
+          <div class="price">Ab 150 € / Stunde</div>
+        </div>
+        <div class="svc-card">
+          <div class="svc-icon asset"><span class="id">A4b</span>icon</div>
+          <h3>Software Engineering</h3>
+          <div class="meta">Architektur · Review · Umsetzung</div>
+          <p>Von Architektur-Reviews bis vollständige Implementierung. Production-grade Code, der wartbar bleibt.</p>
+          <ul><li>System-Architektur</li><li>Code-Review &amp; Refactoring</li><li>Greenfield-Implementierung</li></ul>
+          <div class="price">Projekt-basiert</div>
+        </div>
+        <div class="svc-card">
+          <div class="svc-icon asset"><span class="id">A4c</span>icon</div>
+          <h3>Deployment</h3>
+          <div class="meta">K8s · GitOps · Self-Hosted</div>
+          <p>Kubernetes auf Bare Metal oder Cloud. ArgoCD, Sealed Secrets, alles produktionsreif aufgesetzt.</p>
+          <ul><li>K8s-Cluster (Hetzner / Bare Metal)</li><li>GitOps mit ArgoCD</li><li>Self-Hosted Stacks</li></ul>
+          <div class="price">Setup ab 4.000 €</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 04 — WHY ME</div>
+  <section class="why">
+    <div class="wrap">
+      <div class="grid">
+        <div class="why-intro">
+          <h2>Warum ich?</h2>
+          <p>Ich komme nicht aus der Hochglanz-Beratung. Ich habe jahrelang reale IT-Systeme betrieben, bevor ich angefangen habe, sie zu bauen. Und seit dem ersten Tag von ChatGPT arbeite ich täglich mit KI — nicht als Spielerei, sondern als Produktivwerkzeug in echten Projekten.</p>
+        </div>
+        <div class="why-points">
+          <div class="why-point">
+            <div class="badge asset" style="border:none;font-size:9px"><span class="id">A5a</span>icon</div>
+            <div><h4>Security first — immer</h4><p>Bachelor in IT-Sicherheit. Ich denke Systeme von Anfang an sicher — nicht als nachträgliche Checkbox.</p></div>
+          </div>
+          <div class="why-point">
+            <div class="badge asset" style="border:none;font-size:9px"><span class="id">A5b</span>icon</div>
+            <div><h4>KI als echtes Werkzeug</h4><p>Täglich mit Claude, Cursor und Co. — in Produktion, nicht im Demo-Modus. Ich weiß, was geht und was nicht.</p></div>
+          </div>
+          <div class="why-point">
+            <div class="badge asset" style="border:none;font-size:9px"><span class="id">A5c</span>icon</div>
+            <div><h4>Vom Konzept bis zum Cluster</h4><p>Ich baue Architekturen, die ich hinterher selbst deploye und betreibe. Kein Abliefern und Verschwinden.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 05 — PROCESS</div>
+  <section class="process">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Vier ruhige Schritte.</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="illu asset"><span class="id">A6a</span>process illu</div>
+          <div class="num">01 — ERSTGESPRÄCH</div>
+          <h4>Kennenlernen</h4>
+          <p>30 Minuten, kostenlos. Wir klären Ihre Situation und Ihre Herausforderung.</p>
+        </div>
+        <div class="step">
+          <div class="illu asset"><span class="id">A6b</span>process illu</div>
+          <div class="num">02 — KLARHEIT</div>
+          <h4>Zieldefinition</h4>
+          <p>Gemeinsam entscheiden wir: Was ist das richtige Format, was der richtige Rahmen?</p>
+        </div>
+        <div class="step">
+          <div class="illu asset"><span class="id">A6c</span>process illu</div>
+          <div class="num">03 — BEGLEITUNG</div>
+          <h4>Arbeitsphase</h4>
+          <p>Individuelle Sessions in Ihrem Tempo — online oder vor Ort.</p>
+        </div>
+        <div class="step">
+          <div class="illu asset"><span class="id">A6d</span>process illu</div>
+          <div class="num">04 — ÜBERGABE</div>
+          <h4>Übergabe &amp; Wartung</h4>
+          <p>Sauber dokumentiert. Bereit für den eigenständigen Betrieb — oder weitere Begleitung.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 06 — PULL QUOTE</div>
+  <section class="quote">
+    <div class="quote-bg-asset asset"><span class="id">A7</span>BACKGROUND TEXTURE — sage-tinted noise / topographic lines (full-bleed, low opacity)</div>
+    <div class="wrap">
+      <p class="quote-text">„Gute Systeme entstehen nicht durch Tools allein — sondern durch das Verständnis, welches Problem man wirklich lösen will."</p>
+      <p class="quote-name">— Patrick Korczewski</p>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 07 — LIVE TIMELINE (PR-driven, already wired)</div>
+  <section class="timeline">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Implementierte Features.</h2>
+        <p class="sub">Live aus dem Repository — jeder gemergte Pull Request landet hier automatisch.</p>
+      </div>
+      <div class="timeline-list">
+        <div class="timeline-item"><div class="when">PR #619 · 2026-05-09</div><div><h4>Korczewski als Mentolder-Template</h4><p>Eine Komponentenbasis, zwei Themes. Neue Marke = drei Dateien.</p></div></div>
+        <div class="timeline-item"><div class="when">PR #618 · 2026-05-09</div><div><h4>MCP-Monolith für Korczewski</h4><p>Claude-Code MCP-Stack auf workspace-korczewski deployed.</p></div></div>
+        <div class="timeline-item"><div class="when">PR #617 · 2026-05-08</div><div><h4>Operator-Dashboard ausgebaut</h4><p>Standalone-Dashboard zugunsten /admin/monitoring entfernt.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 08 — FAQ</div>
+  <section class="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Häufig gestellte Fragen</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item"><h4>Wie läuft ein Erstgespräch ab?</h4><p>30 Minuten per Video. Sie schildern Ihre Situation, ich höre zu und stelle Fragen. Am Ende wissen wir beide, ob es passt.</p></div>
+        <div class="faq-item"><h4>Arbeiten Sie remote oder vor Ort?</h4><p>Beides. Remote ist Standard, vor Ort möglich im Großraum Lüneburg / Hamburg / Hannover.</p></div>
+        <div class="faq-item"><h4>Was kostet das?</h4><p>Stundenbasis ab 150 €. Größere Projekte gerne im Festpreis nach klarer Spezifikation.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-label">SECTION 09 — CTA BAND</div>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Lassen Sie uns sprechen.</h2>
+      <a href="#">30 Minuten Erstgespräch buchen</a>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="wrap">
+      <div class="grid">
+        <div>
+          <div class="logo" style="margin-bottom:16px"><div class="asset" style="width:32px;height:32px;padding:0;font-size:8px"><span class="id">A1</span>K</div><span>korczewski.de</span></div>
+          <p style="font-size:13px;color:var(--fg-mute);max-width:280px">Software Engineering &amp; IT-Security-Beratung in Lüneburg.</p>
+        </div>
+        <div><h5>Leistungen</h5><ul><li><a href="#">KI-Beratung</a></li><li><a href="#">Software-Dev</a></li><li><a href="#">Deployment</a></li></ul></div>
+        <div><h5>Studio</h5><ul><li><a href="#">Über mich</a></li><li><a href="#">Referenzen</a></li><li><a href="#">Kontakt</a></li></ul></div>
+        <div><h5>Rechtliches</h5><ul><li><a href="#">Impressum</a></li><li><a href="#">Datenschutz</a></li><li><a href="#">AGB</a></li></ul></div>
+      </div>
+      <div class="legal">
+        <span>© 2026 Patrick Korczewski</span>
+        <span style="font-family:var(--mono)">v1 · live</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

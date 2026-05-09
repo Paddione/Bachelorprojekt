@@ -2,14 +2,24 @@
 """
 Generate grouped Mermaid ER diagrams + normalization analysis from shared-db.
 
-Requires: psql in PATH, port-forward running (task workspace:port-forward ENV=mentolder &)
+Two connection modes:
+  1. Port-forward (default): psql connects to localhost:PG_PORT
+     Requires: psql in PATH, port-forward running (task workspace:port-forward ENV=mentolder &)
+  2. kubectl-exec mode: psql runs inside the shared-db pod (avoids port-forward TCP drops)
+     Set KUBECTL_CTX=mentolder (and optionally KUBECTL_NS, KUBECTL_POD)
+
 Usage:
   python scripts/db-schema-diagram.py > docs/db-schema-diagram.md
 
-Env vars:
+Env vars (port-forward mode):
   PG_HOST  (default: localhost)
   PG_PORT  (default: 5432)
   PG_USER  (default: postgres)
+
+Env vars (kubectl-exec mode):
+  KUBECTL_CTX  kubectl context (setting this enables exec mode)
+  KUBECTL_NS   namespace (default: workspace)
+  KUBECTL_POD  exact pod name; if unset, auto-discovered via -l app=shared-db
 """
 
 import csv, io, os, subprocess, sys
@@ -18,6 +28,24 @@ from collections import defaultdict
 PG_HOST = os.environ.get("PG_HOST", "localhost")
 PG_PORT = os.environ.get("PG_PORT", "5432")
 PG_USER = os.environ.get("PG_USER", "postgres")
+KUBECTL_CTX = os.environ.get("KUBECTL_CTX", "")
+KUBECTL_NS = os.environ.get("KUBECTL_NS", "workspace")
+KUBECTL_POD = os.environ.get("KUBECTL_POD", "")
+
+
+def _kubectl_pod() -> str:
+    if KUBECTL_POD:
+        return KUBECTL_POD
+    ctx_args = ["--context", KUBECTL_CTX] if KUBECTL_CTX else []
+    result = subprocess.run(
+        ["kubectl", *ctx_args, "-n", KUBECTL_NS,
+         "get", "pod", "-l", "app=shared-db", "-o", "jsonpath={.items[0].metadata.name}"],
+        capture_output=True, text=True, timeout=10,
+    )
+    pod = result.stdout.strip()
+    if not pod:
+        raise RuntimeError("Could not discover shared-db pod via kubectl")
+    return pod
 
 
 def psql(database: str, query: str) -> list[dict]:
@@ -47,12 +75,22 @@ def psql_multi(database: str, queries: list[str]) -> list[list[dict]]:
     """Run multiple queries in a single psql connection (avoids TCP reconnect resets)."""
     SENTINEL = "---RESULT_BOUNDARY---"
     # Interleave a SELECT marker between queries so we can split the CSV output
-    combined_args = [
-        "psql",
-        f"--host={PG_HOST}", f"--port={PG_PORT}", f"--username={PG_USER}",
-        f"--dbname={database}",
-        "--csv", "--no-psqlrc",
-    ]
+    if KUBECTL_CTX:
+        pod = _kubectl_pod()
+        ctx_args = ["--context", KUBECTL_CTX]
+        combined_args = [
+            "kubectl", *ctx_args, "-n", KUBECTL_NS,
+            "exec", pod, "--",
+            "psql", f"--username={PG_USER}", f"--dbname={database}",
+            "--csv", "--no-psqlrc",
+        ]
+    else:
+        combined_args = [
+            "psql",
+            f"--host={PG_HOST}", f"--port={PG_PORT}", f"--username={PG_USER}",
+            f"--dbname={database}",
+            "--csv", "--no-psqlrc",
+        ]
     for i, q in enumerate(queries):
         if i > 0:
             combined_args += ["--command", f"SELECT '{SENTINEL}' AS boundary"]
@@ -295,6 +333,9 @@ def fetch_all(databases: list[str]) -> tuple[dict, dict, list]:
 
     for db in databases:
         schema_rows, fk_rows, pk_rows = psql_multi(db, [SCHEMA_QUERY, FK_QUERY, PK_QUERY])
+        if not schema_rows:
+            import time; time.sleep(2)
+            schema_rows, fk_rows, pk_rows = psql_multi(db, [SCHEMA_QUERY, FK_QUERY, PK_QUERY])
         for row in schema_rows:
             key = (row["table_schema"], row["table_name"])
             all_cols.setdefault(key, []).append(row)

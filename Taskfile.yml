@@ -1003,13 +1003,9 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
         NS="${WORKSPACE_NAMESPACE:-workspace}"
-        kubectl $CTX port-forward -n $NS svc/shared-db 5432:5432 >/dev/null 2>&1 &
-        PF=$!
-        trap 'kill $PF 2>/dev/null' EXIT
-        sleep 3
-        python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
         echo "Written to docs/db-schema-diagram.md"
 
   workspace:teardown:

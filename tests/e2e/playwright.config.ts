@@ -10,7 +10,7 @@ export default defineConfig({
   // Test-bracketed prod DB purge. Both hooks POST to
   // /api/admin/systemtest/purge-all-test-data with X-Cron-Secret. See
   // ./specs/global-db-cleanup.ts. The Taskfile's `test:e2e` target wraps
-  // `npx playwright test` with curl calls to the same endpoint as
+  // `playwright test` with curl calls to the same endpoint as
   // defense-in-depth in case Playwright lifecycle crashes skip these hooks.
   globalSetup: require.resolve('./specs/global-db-cleanup.ts'),
   globalTeardown: require.resolve('./specs/global-db-cleanup-teardown.ts'),
@@ -30,7 +30,7 @@ export default defineConfig({
 
   projects: [
     // ── website: Astro site & backend APIs ───────────────────────
-    // Run: npx playwright test --project=website
+    // Run: playwright test --project=website
     {
       name: 'website',
       testMatch: [
@@ -75,7 +75,7 @@ export default defineConfig({
     },
 
     // ── services: Infrastructure & supporting services ───────────
-    // Run: npx playwright test --project=services
+    // Run: playwright test --project=services
     {
       name: 'services',
       testMatch: [
@@ -98,7 +98,7 @@ export default defineConfig({
     },
 
     // ── korczewski: Korczewski-brand & cross-cluster specs ───────
-    // Run: npx playwright test --project=korczewski
+    // Run: playwright test --project=korczewski
     {
       name: 'korczewski',
       testMatch: [
@@ -113,7 +113,7 @@ export default defineConfig({
     },
 
     // ── smoke: Cross-service integration tests ──────────────────
-    // Run: npx playwright test --project=smoke
+    // Run: playwright test --project=smoke
     {
       name: 'smoke',
       testMatch: ['**/integration-smoke.spec.ts'],
@@ -124,8 +124,8 @@ export default defineConfig({
     },
 
     // ── ios: iPhone WebKit (Safari) simulation ───────────────────
-    // Run: npx playwright test --project=ios
-    // Requires: npx playwright install webkit
+    // Run: playwright test --project=ios
+    // Requires: playwright install webkit
     {
       name: 'ios',
       testMatch: ['**/fa-03-*.spec.ts', '**/fa-ios-*.spec.ts'],
@@ -142,11 +142,11 @@ export default defineConfig({
     // agent_notes (real signatures, threshold crossings, etc.).
     //
     // Fan-out: run three specs concurrently, one per package, e.g.
-    //   E2E_ADMIN_PASS=… npx playwright test --project=systemtest \
+    //   E2E_ADMIN_PASS=… playwright test --project=systemtest \
     //     --headed -g "System-Test 4" &
-    //   E2E_ADMIN_PASS=… npx playwright test --project=systemtest \
+    //   E2E_ADMIN_PASS=… playwright test --project=systemtest \
     //     --headed -g "System-Test 5" &
-    //   E2E_ADMIN_PASS=… npx playwright test --project=systemtest \
+    //   E2E_ADMIN_PASS=… playwright test --project=systemtest \
     //     --headed -g "System-Test 6" &
     {
       name: 'systemtest',
@@ -159,7 +159,7 @@ export default defineConfig({
     },
 
     // ── unit: pure-function tests in tests/e2e/lib/*.test.ts ─────
-    // Run: npx playwright test --project=unit
+    // Run: playwright test --project=unit
     {
       name: 'unit',
       testDir: './lib',

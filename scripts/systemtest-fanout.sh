@@ -56,6 +56,7 @@ echo "    logs in $LOG_DIR"
 echo
 
 PIDS=()
+SLOT=0
 for pkg in "${PACKAGES[@]}"; do
   spec="$E2E_DIR/specs/systemtest-${pkg}.spec.ts"
   if [[ ! -f "$spec" ]]; then
@@ -64,13 +65,17 @@ for pkg in "${PACKAGES[@]}"; do
   fi
   log="$LOG_DIR/${pkg}.log"
   echo "    starting $pkg -> $log"
+  # Stagger by 25 s per slot so Keycloak logins don't all hit simultaneously.
+  DELAY=$(( SLOT * 25 ))
   (
+    [[ $DELAY -gt 0 ]] && sleep "$DELAY"
     cd "$E2E_DIR"
     PLAYWRIGHT_HTML_REPORT="$LOG_DIR/$pkg-html" \
-    npx playwright test "$spec" --project=systemtest --headed --workers=1 \
+    ./node_modules/.bin/playwright test "$spec" --project=systemtest --headed --workers=1 \
       > "$log" 2>&1
   ) &
   PIDS+=($!)
+  (( SLOT++ )) || true
 done
 
 if (( ${#PIDS[@]} == 0 )); then

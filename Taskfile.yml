@@ -280,7 +280,7 @@ tasks:
         esac
         export WEBSITE_URL PROD_DOMAIN
         [ -d node_modules ] || npm ci
-        npx playwright install chromium webkit >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright install chromium webkit >/dev/null 2>&1 || true
         # Defense-in-depth purge: BEFORE Playwright runs, hard-purge all
         # is_test_data=true rows on the prod website DB. Playwright's
         # globalSetup also calls this; the curl here covers the case where
@@ -295,7 +295,7 @@ tasks:
         # Capture playwright's exit code so a post-run purge failure can't
         # mask a real test failure.
         set +e
-        npx playwright test {{.CLI_ARGS}}
+        ./node_modules/.bin/playwright test {{.CLI_ARGS}}
         pw_rc=$?
         set -e
         # Post-run purge: best-effort. `|| true` so a transient failure here

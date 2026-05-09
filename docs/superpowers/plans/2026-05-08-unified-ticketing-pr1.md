@@ -1,3 +1,10 @@
+---
+title: Unified Ticketing PR1 — Schema, Bug Migration, Close-Mail Fix
+domains: [website, db]
+status: active
+pr_number: null
+---
+
 # Unified Ticketing PR1 — Schema, Bug Migration, Close-Mail Fix
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

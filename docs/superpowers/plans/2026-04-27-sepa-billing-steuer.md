@@ -1,3 +1,10 @@
+---
+title: SEPA-Billing & Deutsches Steuer-Compliance-System — Implementierungsplan
+domains: [db]
+status: completed
+pr_number: null
+---
+
 # SEPA-Billing & Deutsches Steuer-Compliance-System — Implementierungsplan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

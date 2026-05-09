@@ -1,3 +1,10 @@
+---
+title: Unified Ticketing PR2/5 — features + requirements migration, PR ledger rename
+domains: [website, db]
+status: active
+pr_number: null
+---
+
 # Unified Ticketing PR2/5 — features + requirements migration, PR ledger rename
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -1,3 +1,10 @@
+---
+title: Plan Registry: Rich Agent Context Injection — Implementation Plan
+domains: [infra, db]
+status: active
+pr_number: null
+---
+
 # Plan Registry: Rich Agent Context Injection — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

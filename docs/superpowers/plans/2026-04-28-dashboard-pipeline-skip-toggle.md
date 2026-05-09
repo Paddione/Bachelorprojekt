@@ -1,3 +1,10 @@
+---
+title: Dashboard Pipeline Skip-Toggle Implementation Plan
+domains: [website, infra]
+status: completed
+pr_number: null
+---
+
 # Dashboard Pipeline Skip-Toggle Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

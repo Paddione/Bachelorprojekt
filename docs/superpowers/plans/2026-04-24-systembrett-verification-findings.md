@@ -1,3 +1,10 @@
+---
+title: Systembrett Library-Embed Verification — Findings
+domains: [website, infra]
+status: completed
+pr_number: null
+---
+
 # Systembrett Library-Embed Verification — Findings
 
 **Date:** 2026-04-24

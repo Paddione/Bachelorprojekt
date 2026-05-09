@@ -1,3 +1,10 @@
+---
+title: GoBD Compliance Core — Plan A
+domains: [db]
+status: completed
+pr_number: null
+---
+
 # GoBD Compliance Core — Plan A
 
 > **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. This plan is part of an 8-plan series for billing compliance gaps; see project memory for the breakdown (Plans B–H).

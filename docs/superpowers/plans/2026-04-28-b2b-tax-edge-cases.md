@@ -1,3 +1,10 @@
+---
+title: Plan F — B2B Tax Edge Cases
+domains: [db]
+status: completed
+pr_number: null
+---
+
 # Plan F — B2B Tax Edge Cases
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -883,6 +883,33 @@ tasks:
     cmds:
       - node scripts/track-pr.mjs --ingest
 
+  plans:import:
+    desc: "Parse all active plan files → tracking/pending/ (seeds DB on next CronJob run)"
+    cmds:
+      - |
+        PLANS_DIR="docs/superpowers/plans"
+        count=0
+        for f in "$PLANS_DIR"/*.md; do
+          [[ -f "$f" ]] || continue
+          status=$(awk 'BEGIN{n=0} /^---/{n++;next} n==1 && /^status:/{print $2; exit}' "$f" | tr -d ' \r')
+          [[ "$status" == "active" ]] || continue
+          bash scripts/plans-parse.sh "$f"
+          count=$((count+1))
+        done
+        echo "Imported $count active plan(s) to tracking/pending/"
+
+  plans:query:
+    desc: "Show active plan sections for a given role. Usage: task plans:query -- <role>"
+    cmds:
+      - |
+        ROLE="{{.CLI_ARGS}}"
+        psql "${TRACKING_DB_URL:-postgresql://postgres:postgres@localhost:5432/website}" -c \
+          "SELECT p.title, ps.section_type, LEFT(ps.content, 200) AS excerpt
+           FROM superpowers.plans p
+           JOIN superpowers.plan_sections ps ON ps.plan_id = p.id
+           WHERE '${ROLE}' = ANY(p.domains) AND p.status = 'active'
+           ORDER BY p.created_at DESC, ps.seq;"
+
   workspace:port-forward:
     desc: 'Forward shared-db to localhost:5432'
     vars:

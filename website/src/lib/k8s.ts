@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 export type K8sClient = {
   get: (path: string) => Promise<any>;
   patch: (path: string, body: object) => Promise<any>;
+  mergePatch: (path: string, body: object) => Promise<any>;
   post: (path: string, body: object) => Promise<any>;
   delete: (path: string) => Promise<any>;
 };
@@ -51,6 +52,7 @@ export async function createK8sClient(): Promise<K8sClient> {
   return {
     get: (path) => request(path, 'GET'),
     patch: (path, body) => request(path, 'PATCH', body),
+    mergePatch: (path, body) => request(path, 'PATCH', body, 'application/merge-patch+json'),
     post: (path, body) => request(path, 'POST', body, 'application/json'),
     delete: (path) => request(path, 'DELETE'),
   };

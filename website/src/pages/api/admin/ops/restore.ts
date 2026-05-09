@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
     ts.getUTCFullYear(),
     String(ts.getUTCMonth() + 1).padStart(2, '0'),
     String(ts.getUTCDate()).padStart(2, '0'),
-    '_',
+    '-',
     String(ts.getUTCHours()).padStart(2, '0'),
     String(ts.getUTCMinutes()).padStart(2, '0'),
     String(ts.getUTCSeconds()).padStart(2, '0'),

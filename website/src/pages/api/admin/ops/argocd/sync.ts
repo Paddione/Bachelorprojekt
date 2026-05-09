@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
   try { k8s = await createK8sClient(); }
   catch { return new Response(JSON.stringify({ error: 'Kein Service-Account-Token.' }), { status: 503 }); }
 
-  await k8s.patch(`/apis/argoproj.io/v1alpha1/namespaces/argocd/applications/${app}`, {
+  await k8s.mergePatch(`/apis/argoproj.io/v1alpha1/namespaces/argocd/applications/${app}`, {
     operation: {
       sync: {
         revision: 'HEAD',

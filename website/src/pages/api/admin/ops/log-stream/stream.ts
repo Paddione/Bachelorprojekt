@@ -19,6 +19,10 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response('Ungültige Parameter', { status: 400 });
   }
 
+  if (container && !/^[a-z0-9-]+$/.test(container)) {
+    return new Response('Ungültiger Container-Name', { status: 400 });
+  }
+
   let creds: { token: string; ca: string };
   try { creds = await readK8sCredentials(); }
   catch { return new Response('Kein Service-Account-Token.', { status: 503 }); }

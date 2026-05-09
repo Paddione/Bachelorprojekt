@@ -376,8 +376,7 @@ Bachelorprojekt/
   tests/                        # Automatisierte Tests (Bash + Playwright + BATS)
     e2e/                        # Playwright E2E-Tests (35 Spec-Dateien)
     unit/                       # BATS Unit-Tests
-  website/                      # Astro + Svelte Website (mentolder.de)
-  korczewski-website/           # Astro Website (korczewski.de, Branding-Variante)
+  website/                      # Astro + Svelte Website (mentolder.de + korczewski.de via BRAND_ID)
   docs/                         # Projektdokumentation (Docsify-faehig)
   docs-site/                    # Docsify index.html
 ```

@@ -45,11 +45,10 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 task feature:deploy        # workspace:deploy + post-setup on mentolder + korczewski
 task feature:website       # Rebuild + roll the Astro website on both clusters
 task feature:brett         # Rebuild + roll the brett service on both clusters
-task feature:dashboard     # Rebuild + roll the operator dashboard on both clusters
 task feature:livekit       # Re-pin livekit/stream DNS on both clusters
 task health                # Cross-cluster status + connectivity check
 ```
-The underlying `workspace:*:all-prods` (`workspace:deploy:all-prods`, `workspace:post-setup:all-prods`, `workspace:status:all-prods`, `website:redeploy:all-prods`, `brett:deploy:all-prods`, `dashboard:web:deploy:all-prods`, `workspace:talk-setup:all-prods`, `workspace:recording-setup:all-prods`) just run the per-env task twice (mentolder, korczewski) — call them directly when you need finer control.
+The underlying `workspace:*:all-prods` (`workspace:deploy:all-prods`, `workspace:post-setup:all-prods`, `workspace:status:all-prods`, `website:redeploy:all-prods`, `brett:deploy:all-prods`, `workspace:talk-setup:all-prods`, `workspace:recording-setup:all-prods`) just run the per-env task twice (mentolder, korczewski) — call them directly when you need finer control. The standalone operator dashboard was retired in PR #555 — its successor lives at `web.${PROD_DOMAIN}/admin/monitoring`, which redeploys with the website itself.
 
 ### Cluster & Deployment (single env)
 ```bash

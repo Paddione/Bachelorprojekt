@@ -4,11 +4,14 @@ import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
 import { getEffectiveUebermich } from '../lib/content';
 
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
+
 const { contact } = config;
 const uebermich = await getEffectiveUebermich();
 ---
 
-<Layout title="Über mich" description={`Über ${contact.name} – ${config.legal.tagline}`}>
+<Layout title="Über mich" description={`Über ${contact.name} – ${config.legal.tagline}`} brand={layoutBrand}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">{uebermich.subheadline}</p>

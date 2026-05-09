@@ -3,6 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import { getEffectiveReferenzen } from '../lib/content';
 import type { ReferenzItem } from '../lib/website-db';
 
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
+
 const config = await getEffectiveReferenzen();
 const heading = config.heading?.trim() || 'Referenzen';
 const subheading = config.subheading?.trim() || 'Unternehmen und Personen, die mir ihr Vertrauen geschenkt haben.';
@@ -30,7 +33,7 @@ const populatedGroups = groups.filter((g) => g.items.length > 0);
 const hasGrouping = populatedGroups.length > 1 || (populatedGroups.length === 1 && populatedGroups[0].id !== '__untyped__');
 ---
 
-<Layout title={heading}>
+<Layout title={heading} brand={layoutBrand}>
   <section class="pt-28 pb-20">
     <div class="max-w-4xl mx-auto px-6">
 

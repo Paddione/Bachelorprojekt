@@ -5,6 +5,9 @@ import FAQ from '../components/FAQ.svelte';
 import { getEffectiveServices } from '../lib/content';
 import { config } from '../config/index';
 
+const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
+
 const { service } = Astro.params;
 const { contact } = config;
 const allServices = await getEffectiveServices();
@@ -21,7 +24,7 @@ const prevSvc = svcIndex > 0 ? visibleServices[svcIndex - 1] : null;
 const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex + 1] : null;
 ---
 
-<Layout title={svc.title} description={svc.description}>
+<Layout title={svc.title} description={svc.description} brand={layoutBrand}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <nav class="mb-6" aria-label="Breadcrumb">

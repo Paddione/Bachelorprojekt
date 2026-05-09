@@ -192,7 +192,7 @@ if [[ "$TIER" == "local" ]]; then
     cd "${SCRIPT_DIR}/e2e"
     if [[ ! -d "node_modules" ]]; then
       npm ci
-      npx playwright install chromium
+      ./node_modules/.bin/playwright install chromium
     fi
     # When the runner is invoked with specific test IDs we narrow Playwright
     # to the matching spec(s) so e.g. `runner.sh local FA-30` runs only the
@@ -214,13 +214,13 @@ if [[ "$TIER" == "local" ]]; then
     if (( ${#PW_FILTERS[@]} > 0 )); then
       TEST_BASE_URL="http://web.localhost" \
       RESULTS_FILE="$RESULTS_FILE" \
-        npx playwright test --reporter=line "${PW_FILTERS[@]}" 2>&1 || true
+        ./node_modules/.bin/playwright test --reporter=line "${PW_FILTERS[@]}" 2>&1 || true
     elif (( ${#SPECIFIC_TESTS[@]} > 0 )); then
       echo "  (no Playwright spec matched ${SPECIFIC_TESTS[*]} — skipping Playwright)"
     else
       TEST_BASE_URL="http://web.localhost" \
       RESULTS_FILE="$RESULTS_FILE" \
-        npx playwright test --reporter=line 2>&1 || true
+        ./node_modules/.bin/playwright test --reporter=line 2>&1 || true
     fi
     cd "$SCRIPT_DIR"
   fi

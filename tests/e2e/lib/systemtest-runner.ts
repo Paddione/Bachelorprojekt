@@ -309,31 +309,62 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
     await fillDetails(page, `Walk-through (cycle-2 prep) ${new Date().toISOString()} · runner=${recorded}`);
     await clickNext(page);
 
-    steps.push({
-      position: cur.position,
-      questionText: cur.questionText,
-      testRole: cur.testRole,
-      testFunctionUrl: cur.testFunctionUrl,
-      recorded,
-      notes: '',
-    });
+    const isLast = cur.position === cur.total;
 
-    // Safety: stop if we've recorded more than 30 steps (largest template ~16)
-    if (steps.length > 30) throw new Error('runner overran 30 steps — likely stuck on the same question');
+    if (!isLast) {
+      // Wait for Svelte to advance the step counter before the next readCurrentStep.
+      // waitForLoadState('networkidle') fires before the component re-renders on SPAs
+      // with persistent SSE connections, causing the same step to be read twice.
+      const prevText = `Frage ${cur.position} von ${cur.total}`;
+      await page.waitForFunction(
+        (txt: string) => !(document.body.textContent ?? '').includes(txt),
+        prevText,
+        { timeout: 15_000 },
+      ).catch(() => null);
+    }
 
-    // After saving the last test_step, "Testprotokoll absenden" appears via Svelte
-    // reactive update. Click it and wait for "Vielen Dank" (the done screen) rather
-    // than relying on networkidle, which can be blocked by SSE connections.
-    if (cur.position === cur.total) {
+    if (isLast) {
+      // For the last step, confirm the save took effect before pushing: the Svelte
+      // wizard only shows "Testprotokoll absenden" once allAnswered=true (i.e. the
+      // PUT /answer call returned ok and answers[id] was updated).  If the save
+      // failed silently, the button never appears and we must NOT push — the loop
+      // will re-enter and retry the step rather than double-counting it.
       const submitFinal = page.getByRole('button', { name: /Testprotokoll absenden/i });
-      try {
-        await submitFinal.waitFor({ state: 'visible', timeout: perStep });
+      const saveConfirmed = await submitFinal.waitFor({ state: 'visible', timeout: perStep })
+        .then(() => true).catch(() => false);
+
+      if (saveConfirmed) {
+        steps.push({
+          position: cur.position,
+          questionText: cur.questionText,
+          testRole: cur.testRole,
+          testFunctionUrl: cur.testFunctionUrl,
+          recorded,
+          notes: '',
+        });
+        // Submit and wait for the done screen. Use 2× perStep so a slow submit
+        // response doesn't cause a spurious retry.
         await submitFinal.click();
-        await doneLocator.waitFor({ state: 'visible', timeout: perStep });
+        await doneLocator.waitFor({ state: 'visible', timeout: perStep * 2 }).catch(() => {
+          // eslint-disable-next-line no-console
+          console.warn('[systemtest-runner] done screen did not appear after submit click — continuing anyway');
+        });
         break;
-      } catch {
-        // button didn't appear or done screen didn't appear in time — continue loop
       }
+      // Save failed — don't push. Loop continues and the top-of-loop guards
+      // (isOnDone / Wird abgesendet / Testprotokoll absenden) will catch any
+      // subsequent submit, or readCurrentStep will retry the step.
+    } else {
+      steps.push({
+        position: cur.position,
+        questionText: cur.questionText,
+        testRole: cur.testRole,
+        testFunctionUrl: cur.testFunctionUrl,
+        recorded,
+        notes: '',
+      });
+      // Safety: stop if we've recorded more than 30 steps (largest template ~16)
+      if (steps.length > 30) throw new Error('runner overran 30 steps — likely stuck on the same question');
     }
   }
 
@@ -437,7 +468,7 @@ export async function walkSystemtestByTemplate(
   };
 
   const result = await walkSystemtest(page, {
-    templateTitlePrefix: `System-Test ${n}`,
+    templateTitlePrefix: `System-Test ${n}:`,
     defaultOption: 'erfüllt',
     optionByPosition,
     onAgentNotes: opts.onAgentNotes,

@@ -7,7 +7,7 @@
 // Run with:
 //   E2E_ADMIN_USER=patrick E2E_ADMIN_PASS=… \
 //   WEBSITE_URL=https://web.mentolder.de \
-//   npx playwright test tests/e2e/specs/systemtest-04-fragebogen.spec.ts \
+//   playwright test tests/e2e/specs/systemtest-04-fragebogen.spec.ts \
 //     --project=systemtest --headed
 
 import { test } from '@playwright/test';

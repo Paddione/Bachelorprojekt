@@ -17,7 +17,7 @@
 // would let test-data accumulate undetected, which is exactly the regression
 // this infrastructure exists to prevent.
 //
-// The Taskfile wraps `npx playwright test` with curl calls to the same
+// The Taskfile wraps `playwright test` with curl calls to the same
 // endpoint as defense-in-depth (in case Playwright crashes before reaching
 // globalTeardown), with `|| true` after the test command so an extra failure
 // doesn't mask a real test failure.

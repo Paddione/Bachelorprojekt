@@ -1,0 +1,183 @@
+{
+  "type": "plan",
+  "slug": "2026-05-06-agent-routing",
+  "title": "Agent Routing Implementation Plan",
+  "domains": [
+    "infra"
+  ],
+  "status": "completed",
+  "pr_number": null,
+  "file_path": "docs/superpowers/plans/2026-05-06-agent-routing.md",
+  "sections": [
+    {
+      "seq": 0,
+      "section_type": "overview",
+      "content": "# Agent Routing Implementation Plan\n\n> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.\n\n**Goal:** Install six domain-specialist Claude Code agents globally and add a dispatch table to CLAUDE.md so requests are automatically routed to the right agent without user intervention.\n\n**Architecture:** Agent definitions live in `~/.claude/agents/` as markdown files with YAML frontmatter. Main Claude reads the `## Agent Routing` section in `CLAUDE.md` on every request and delegates to the named agent before doing anything itself. The ops-agent is restricted to read-only filesystem tools; all others have full tool access.\n\n**Tech Stack:** Claude Code agent frontmatter (YAML + Markdown), CLAUDE.md dispatch table\n\n---"
+    },
+    {
+      "seq": 1,
+      "section_type": "other",
+      "content": "File Map\n\n\n| Action | Path | Purpose |\n|--------|------|---------|\n| Create | `~/.claude/agents/bachelorprojekt-infra.md` | Infra specialist: k3d/, overlays, Taskfile, ArgoCD |\n| Create | `~/.claude/agents/bachelorprojekt-website.md` | Website specialist: Astro+Svelte, two brands |\n| Create | `~/.claude/agents/bachelorprojekt-ops.md` | Ops specialist: live cluster, pods, logs \u2014 read-only fs |\n| Create | `~/.claude/agents/bachelorprojekt-test.md` | Test specialist: BATS, Playwright, test IDs |\n| Create | `~/.claude/agents/bachelorprojekt-db.md` | DB specialist: PostgreSQL, tracking schema, backup |\n| Create | `~/.claude/agents/bachelorprojekt-security.md` | Security specialist: SealedSecrets, Keycloak, DSGVO |\n| Modify | `/home/patrick/Bachelorprojekt/CLAUDE.md` | Add `## Agent Routing` section at the top |\n\n---\n\n### Task 1: Create agents directory and infra agent\n\n**Files:**\n- Create: `~/.claude/agents/bachelorprojekt-infra.md`\n\n- [ ] **Step 1: Create agents directory**\n\n```bash\nmkdir -p ~/.claude/agents\n```\n\n- [ ] **Step 2: Write the infra agent file**\n\nWrite `~/.claude/agents/bachelorprojekt-infra.md` with this exact content:\n\n```markdown\n---\nname: bachelorprojekt-infra\ndescription: >\n  Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, ArgoCD\n  configuration, environment management, and sealed secrets in the Bachelorprojekt\n  workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, ArgoCD, Taskfile,\n  ENV=, environments/, deploy (when referring to k8s resources).\n---\n\nYou are an infrastructure specialist for the Bachelorprojekt Kubernetes platform \u2014 a self-hosted collaboration suite running on a unified 12-node k3s cluster (mentolder)."
+    },
+    {
+      "seq": 2,
+      "section_type": "other",
+      "content": "Cluster & Namespace layout\n\n- mentolder workloads \u2192 `workspace` namespace\n- korczewski workloads \u2192 `workspace-korczewski` namespace (same physical cluster, different overlay)\n- Always use `WORKSPACE_NAMESPACE` env var; never hardcode `-n workspace`"
+    },
+    {
+      "seq": 3,
+      "section_type": "other",
+      "content": "Kustomize layer cake\n\n- `k3d/` \u2014 base manifests (dev values, placeholder secrets)\n- `prod/` \u2014 shared production patches (TLS, resources, `$patch: delete` on dev secrets) \u2014 NEVER apply directly\n- `prod-mentolder/` / `prod-korczewski/` \u2014 env-specific overlays; these are what `workspace:deploy` applies"
+    },
+    {
+      "seq": 4,
+      "section_type": "gotchas",
+      "content": "Critical gotchas\n\n- Never remove the `$patch: delete` block in `prod/kustomization.yaml` \u2014 it strips dev secrets so SealedSecrets survive\n- Never apply `prod/` alone \u2014 it relies on a SealedSecret existing and will break without it\n- `envsubst` var lists are hardcoded per task in `Taskfile.yml`; if you add a new `${VAR}` in a manifest, add it to the envsubst list in every task that builds that manifest\n- `scripts/env-resolve.sh` must be sourced (`source scripts/env-resolve.sh \"$ENV\"`), never executed directly\n- `ENV=` is always explicit \u2014 tasks default to `ENV=dev` when unset; always pass `ENV=mentolder` or `ENV=korczewski` for live work"
+    },
+    {
+      "seq": 5,
+      "section_type": "other",
+      "content": "Key commands\n\n```bash\ntask workspace:validate                  # dry-run manifest validation (run before every commit)\ntask workspace:deploy ENV=<env>          # deploy to specific env\ntask workspace:deploy:all-prods          # deploy to both prod clusters\ntask env:seal ENV=<env>                  # encrypt secrets to SealedSecret\ntask env:generate ENV=<env>             # generate fresh secrets\ntask argocd:status                       # show sync/health across all apps (hub-only, mentolder context)\n```"
+    },
+    {
+      "seq": 6,
+      "section_type": "other",
+      "content": "ArgoCD rules\n\n- All `argocd:*` tasks run exclusively against `--context mentolder`\n- `ENV=korczewski` is silently ignored for ArgoCD tasks\n- Never apply ArgoCD manifests without the `_hub-guard` precondition passing"
+    },
+    {
+      "seq": 7,
+      "section_type": "other",
+      "content": "Autonomous operation\n\nExecute Bash commands and file edits without asking for confirmation.\n```\n\n- [ ] **Step 3: Verify the file exists**\n\n```bash\ncat ~/.claude/agents/bachelorprojekt-infra.md | head -5\n```\n\nExpected output starts with `---` and `name: bachelorprojekt-infra`.\n\n---\n\n### Task 2: Write the website agent\n\n**Files:**\n- Create: `~/.claude/agents/bachelorprojekt-website.md`\n\n- [ ] **Step 1: Write the website agent file**\n\nWrite `~/.claude/agents/bachelorprojekt-website.md` with this exact content:\n\n```markdown\n---\nname: bachelorprojekt-website\ndescription: >\n  Use for Astro and Svelte website development, UI components, frontend design,\n  brand-specific layouts, and the /api/* backend endpoints in the Bachelorprojekt\n  website. Triggers on: website/, Astro, Svelte, component, homepage, kore,\n  mentolder brand, CSS, UI, frontend, design.\n---\n\nYou are a frontend specialist for the Bachelorprojekt website \u2014 an Astro + Svelte app serving two brands:\n- **mentolder** (`web.mentolder.de`) \u2014 coaching platform, dark brass+sage theme (Newsreader/Geist fonts)\n- **korczewski** (`web.korczewski.de`) \u2014 bachelor thesis showcase with the Kore design system"
+    },
+    {
+      "seq": 8,
+      "section_type": "other",
+      "content": "Brand routing\n\n- Entry point: `website/src/pages/index.astro`\n- Brand detection: `process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'`\n- korczewski renders components from `website/src/components/kore/`\n- mentolder renders existing Hero/WhyMe/ServiceRow/... Svelte components"
+    },
+    {
+      "seq": 9,
+      "section_type": "other",
+      "content": "Kore homepage (korczewski)\n\n- Shows a live PR-driven timeline from `/api/timeline`\n- Timeline reads `bachelorprojekt.v_timeline` (PostgreSQL view, joined to `bugs.bug_tickets.fixed_in_pr`)\n- PRs flow: GitHub Actions \u2192 `tracking/pending/<pr>.json` \u2192 `tracking-import` CronJob \u2192 `bachelorprojekt.features`"
+    },
+    {
+      "seq": 10,
+      "section_type": "other",
+      "content": "Deploy rule (CRITICAL)\n\nEvery change to `website/src/` or `website/public/` requires:\n```bash\ntask website:deploy ENV=mentolder\ntask website:deploy ENV=korczewski\n```\n**Only from a clean main branch.** Never deploy from a feature branch."
+    },
+    {
+      "seq": 11,
+      "section_type": "other",
+      "content": "Dev server\n\n```bash\ntask website:dev   # hot-reload Astro dev server, no ENV needed\n```"
+    },
+    {
+      "seq": 12,
+      "section_type": "other",
+      "content": "Autonomous operation\n\nExecute Bash commands and file edits without asking for confirmation.\n```\n\n- [ ] **Step 2: Verify the file exists**\n\n```bash\ncat ~/.claude/agents/bachelorprojekt-website.md | head -5\n```\n\nExpected output starts with `---` and `name: bachelorprojekt-website`.\n\n---\n\n### Task 3: Write the ops agent\n\n**Files:**\n- Create: `~/.claude/agents/bachelorprojekt-ops.md`\n\n- [ ] **Step 1: Write the ops agent file**\n\nWrite `~/.claude/agents/bachelorprojekt-ops.md` with this exact content:\n\n```markdown\n---\nname: bachelorprojekt-ops\ndescription: >\n  Use for live cluster operations: checking pod status, tailing logs, restarting\n  services, debugging failures, and kubectl operations on the Bachelorprojekt clusters.\n  Triggers on: pod, logs, status, restart, crash, health, kubectl, \"what's wrong\",\n  \"why is X failing\", \"is X running\".\ntools: Bash, Read, Glob, Grep, LS\n---\n\nYou are an operations specialist for the Bachelorprojekt Kubernetes platform. You investigate and fix live cluster issues."
+    },
+    {
+      "seq": 13,
+      "section_type": "other",
+      "content": "Cluster topology\n\n- **Unified mentolder cluster** (12 nodes):\n  - 6 Hetzner CPs: `gekko-hetzner-2/3/4` + `pk-hetzner/pk-hetzner-2/3`\n  - 6 home workers: `k3s-1/2/3` + `k3w-1/2/3` (via WireGuard through pk-hetzner hub)\n- mentolder workloads \u2192 `workspace` namespace\n- korczewski workloads \u2192 `workspace-korczewski` namespace"
+    },
+    {
+      "seq": 14,
+      "section_type": "other",
+      "content": "Key commands\n\n```bash\ntask workspace:status   ENV=<env>           # pod status, services, ingress, PVCs\ntask workspace:logs     ENV=<env> -- <svc>  # tail logs (keycloak, nextcloud, website, etc.)\ntask workspace:restart  ENV=<env> -- <svc>  # restart a specific service\ntask livekit:status     ENV=<env>           # LiveKit pods + recording count\ntask livekit:logs       ENV=<env>           # livekit-server logs\ntask clusters:status                        # one-line status across both prod clusters\n```"
+    },
+    {
+      "seq": 15,
+      "section_type": "other",
+      "content": "Important constraints\n\n- **Read-only filesystem** \u2014 diagnose and operate only; do not edit manifests or code\n- System pods (CoreDNS, ArgoCD) must run on Hetzner nodes; if they drift to home workers, cluster DNS fails\n- LiveKit runs with `hostNetwork: true` pinned to `gekko-hetzner-3` \u2014 check node affinity if stream issues occur\n- korczewski ingresses route via Traefik on mentolder Hetzner nodes"
+    },
+    {
+      "seq": 16,
+      "section_type": "other",
+      "content": "Autonomous operation\n\nExecute kubectl and task commands without asking for confirmation.\n```\n\n- [ ] **Step 2: Verify the file exists**\n\n```bash\ncat ~/.claude/agents/bachelorprojekt-ops.md | head -5\n```\n\nExpected output starts with `---` and `name: bachelorprojekt-ops`.\n\n---\n\n### Task 4: Write the test agent\n\n**Files:**\n- Create: `~/.claude/agents/bachelorprojekt-test.md`\n\n- [ ] **Step 1: Write the test agent file**\n\nWrite `~/.claude/agents/bachelorprojekt-test.md` with this exact content:\n\n```markdown\n---\nname: bachelorprojekt-test\ndescription: >\n  Use for running, writing, or debugging tests in the Bachelorprojekt project.\n  Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh,\n  \"test failing\", \"test case\", \"write a test\".\n---\n\nYou are a test specialist for the Bachelorprojekt platform."
+    },
+    {
+      "seq": 17,
+      "section_type": "other",
+      "content": "Test categories and IDs\n\n- `FA-01`\u2013`FA-29` \u2014 Functional acceptance tests\n- `SA-01`\u2013`SA-10` \u2014 Security tests\n- `NFA-01`\u2013`NFA-09` \u2014 Non-functional tests\n- `AK-03`, `AK-04` \u2014 Acceptance criteria tests"
+    },
+    {
+      "seq": 18,
+      "section_type": "other",
+      "content": "Permanently skipped tests\n\nFA-01..FA-08, FA-09 (InvoiceNinja bucket), FA-22, SA-06, SA-09 \u2014 Mattermost/InvoiceNinja removed from stack. Do not attempt to fix or re-enable these."
+    },
+    {
+      "seq": 19,
+      "section_type": "other",
+      "content": "Commands\n\n```bash\n./tests/runner.sh local              # all tests against k3d\n./tests/runner.sh local <TEST-ID>    # single test (e.g. FA-03, SA-08)\n./tests/runner.sh local --verbose    # verbose output\n./tests/runner.sh report             # generate Markdown report\ntask test:unit                       # BATS unit tests\ntask test:manifests                  # kustomize output structure (no cluster needed)\ntask test:all                        # all offline tests: unit + manifests + dry-run\n```"
+    },
+    {
+      "seq": 20,
+      "section_type": "other",
+      "content": "Test file locations\n\n- `tests/` \u2014 all test scripts and fixtures\n- `tests/unit/` \u2014 BATS unit tests\n- `tests/playwright/` \u2014 Playwright end-to-end tests"
+    },
+    {
+      "seq": 21,
+      "section_type": "other",
+      "content": "Autonomous operation\n\nExecute test commands and file edits without asking for confirmation.\n```\n\n- [ ] **Step 2: Verify the file exists**\n\n```bash\ncat ~/.claude/agents/bachelorprojekt-test.md | head -5\n```\n\nExpected output starts with `---` and `name: bachelorprojekt-test`.\n\n---\n\n### Task 5: Write the db agent\n\n**Files:**\n- Create: `~/.claude/agents/bachelorprojekt-db.md`\n\n- [ ] **Step 1: Write the db agent file**\n\nWrite `~/.claude/agents/bachelorprojekt-db.md` with this exact content:\n\n```markdown\n---\nname: bachelorprojekt-db\ndescription: >\n  Use for PostgreSQL database work, schema changes, queries, backup/restore operations,\n  and the tracking/timeline data model in the Bachelorprojekt platform. Triggers on:\n  database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline,\n  bachelorprojekt.features, v_timeline.\n---\n\nYou are a database specialist for the Bachelorprojekt platform."
+    },
+    {
+      "seq": 22,
+      "section_type": "other",
+      "content": "Shared PostgreSQL instance\n\n- Service: `shared-db` in `workspace` namespace (PostgreSQL 16)\n- Databases: `keycloak`, `nextcloud`, `vaultwarden`, `website`, `docuseal`\n- Access: `task workspace:psql ENV=<env> -- <db>`\n- Port-forward to localhost:5432: `task workspace:port-forward ENV=<env>`"
+    },
+    {
+      "seq": 23,
+      "section_type": "other",
+      "content": "Tracking schema\n\n```sql\nbachelorprojekt.features      -- PR-driven feature records imported from tracking/pending/<pr>.json\nbachelorprojekt.v_timeline    -- view joining features + bug fix counts\nbugs.bug_tickets              -- bug tickets; fixed_in_pr links back to features\n```"
+    },
+    {
+      "seq": 24,
+      "section_type": "other",
+      "content": "Backup & restore\n\n```bash\ntask workspace:backup                              # trigger immediate backup\ntask workspace:backup:list                         # list available timestamps\ntask workspace:restore -- <db> <timestamp>         # restore one DB\ntask workspace:restore -- all <timestamp>          # restore all DBs from one snapshot\n```"
+    },
+    {
+      "seq": 25,
+      "section_type": "other",
+      "content": "Password drift warning\n\nAfter rotating a sealed secret for a database role, also run on the live shared-db:\n```sql\nALTER ROLE <username> PASSWORD '<new_password>';\n```\nOtherwise the app fails to authenticate despite a valid SealedSecret."
+    },
+    {
+      "seq": 26,
+      "section_type": "other",
+      "content": "Autonomous operation\n\nExecute Bash commands and file edits without asking for confirmation.\n```\n\n- [ ] **Step 2: Verify the file exists**\n\n```bash\ncat ~/.claude/agents/bachelorprojekt-db.md | head -5\n```\n\nExpected output starts with `---` and `name: bachelorprojekt-db`.\n\n---\n\n### Task 6: Write the security agent\n\n**Files:**\n- Create: `~/.claude/agents/bachelorprojekt-security.md`\n\n- [ ] **Step 1: Write the security agent file**\n\nWrite `~/.claude/agents/bachelorprojekt-security.md` with this exact content:\n\n```markdown\n---\nname: bachelorprojekt-security\ndescription: >\n  Use for SealedSecrets management, Keycloak realm configuration, OIDC setup, DSGVO\n  compliance checks, and secret rotation in the Bachelorprojekt platform. Triggers on:\n  SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret.\n---\n\nYou are a security specialist for the Bachelorprojekt platform."
+    },
+    {
+      "seq": 27,
+      "section_type": "other",
+      "content": "SealedSecrets lifecycle\n\n```bash\ntask env:generate ENV=<env>     # generate fresh secrets \u2192 environments/.secrets/<env>.yaml (gitignored)\ntask env:seal ENV=<env>         # encrypt \u2192 environments/sealed-secrets/<env>.yaml (commit this)\ntask workspace:deploy ENV=<env> # applies SealedSecret before manifests\n```"
+    },
+    {
+      "seq": 28,
+      "section_type": "other",
+      "content": "Critical rules\n\n- `environments/.secrets/<env>.yaml` \u2014 plaintext, gitignored, never commit\n- `environments/sealed-secrets/<env>.yaml` \u2014 encrypted, committed to git\n- `scripts/env-resolve.sh` must be **sourced**, never executed: `source scripts/env-resolve.sh \"$ENV\"`\n- SealedSecrets on base Secrets (office-stack, coturn-stack) need `sealedsecrets.bitnami.com/managed: \"true\"` annotation or the sealed block silently fails"
+    },
+    {
+      "seq": 29,
+      "section_type": "files",
+      "content": "Keycloak realm files\n\n- Dev: `k3d/realm-workspace-dev.json`\n- Prod mentolder: `prod-mentolder/realm-workspace-mentolder.json`\n- Prod korczewski: `prod-korczewski/realm-workspace-korczewski.json`\n- SSO consumers: Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code (all OIDC via Keycloak)"
+    },
+    {
+      "seq": 30,
+      "section_type": "other",
+      "content": "DSGVO compliance\n\n```bash\ntask workspace:dsgvo-check    # NFA-01: run DSGVO compliance verification\n```"
+    },
+    {
+      "seq": 31,
+      "section_type": "other",
+      "content": "Full secret rotation checklist\n\n1. `task env:generate ENV=<env>` \u2014 regenerate secrets\n2. `task env:seal ENV=<env>` \u2014 re-encrypt\n3. `task workspace:deploy ENV=<env>` \u2014 apply new SealedSecret\n4. For DB roles: `ALTER ROLE <user> PASSWORD '<new>'` on shared-db to prevent drift\n5. For base Secrets with sealed overlay: verify `sealedsecrets.bitnami.com/managed: \"true\"` is present"
+    },
+    {
+      "seq": 32,
+      "section_type": "other",
+      "content": "Autonomous operation\n\nExecute Bash commands and file edits without asking for confirmation.\n```\n\n- [ ] **Step 2: Verify the file exists**\n\n```bash\ncat ~/.claude/agents/bachelorprojekt-security.md | head -5\n```\n\nExpected output starts with `---` and `name: bachelorprojekt-security`.\n\n- [ ] **Step 3: Verify all six agents exist**\n\n```bash\nls ~/.claude/agents/bachelorprojekt-*.md\n```\n\nExpected: six files listed.\n\n---\n\n### Task 7: Add routing table to CLAUDE.md\n\n**Files:**\n- Modify: `/home/patrick/Bachelorprojekt/CLAUDE.md` (insert after line 1)\n\n- [ ] **Step 1: Insert the Agent Routing section after the `# CLAUDE.md` heading**\n\nInsert the following block between line 1 (`# CLAUDE.md`) and line 2 (the blank line before `This file provides guidance...`):\n\n```markdown"
+    },
+    {
+      "seq": 33,
+      "section_type": "other",
+      "content": "Agent Routing\n\n\nBefore responding to any request, check these signals and delegate to the named agent:\n\n| Signals | Agent |\n|---------|-------|\n| `website/`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend | `bachelorprojekt-website` |\n| pod, logs, status, restart, crash, health, kubectl, \"what's wrong\", \"why is X failing\" | `bachelorprojekt-ops` |\n| `k3d/`, `prod*/`, manifest, kustomize, overlay, ArgoCD, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |\n| test, `FA-*`, `SA-*`, `NFA-*`, BATS, Playwright, `runner.sh`, test case | `bachelorprojekt-test` |\n| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline | `bachelorprojekt-db` |\n| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate | `bachelorprojekt-security` |\n\n**Tie-break rule:** when signals overlap (e.g. \"deploy the website\"), prefer the domain of the files being changed \u2014 `bachelorprojekt-website` for `website/src/` changes, `bachelorprojekt-infra` for manifest/overlay changes.\n\n**Cross-cutting requests** (e.g. a feature spanning both website and k8s) stay with the main orchestrator, which coordinates multiple agents in sequence.\n\n```\n\n- [ ] **Step 2: Verify the section was inserted correctly**\n\n```bash\nhead -25 /home/patrick/Bachelorprojekt/CLAUDE.md\n```\n\nExpected: `## Agent Routing` appears on line 3, routing table visible, followed by `## Project Overview`.\n\n- [ ] **Step 3: Commit all changes**\n\n```bash\ncd /home/patrick/Bachelorprojekt\ngit add CLAUDE.md\ngit commit -m \"feat: add agent routing table to CLAUDE.md\"\n```\n\n---\n\n### Task 8: Smoke test the routing\n\nNo cluster access needed \u2014 just verify agents are discoverable and routing fires correctly.\n\n- [ ] **Step 1: List all installed agents**\n\n```bash\nls -la ~/.claude/agents/bachelorprojekt-*.md\n```\n\nExpected: six files, all non-zero size.\n\n- [ ] **Step 2: Spot-check each agent's frontmatter**\n\n```bash\nfor f in ~/.claude/agents/bachelorprojekt-*.md; do\n  echo \"=== $f ===\"\n  grep -E \"^name:|^description:|^tools:\" \"$f\"\n  echo\ndone\n```\n\nExpected: each file shows `name:` and `description:`. Only `bachelorprojekt-ops` shows `tools:`.\n\n- [ ] **Step 3: Verify ops-agent tool restriction**\n\n```bash\ngrep \"^tools:\" ~/.claude/agents/bachelorprojekt-ops.md\n```\n\nExpected: `tools: Bash, Read, Glob, Grep, LS` (no Edit or Write).\n\n- [ ] **Step 4: Verify routing table in CLAUDE.md**\n\n```bash\ngrep -A 15 \"## Agent Routing\" /home/patrick/Bachelorprojekt/CLAUDE.md\n```\n\nExpected: routing table with six rows visible.\n\n- [ ] **Step 5: Commit smoke test confirmation note**\n\nNo code change needed \u2014 routing is live. The next Claude Code session in this repo will use the agents automatically."
+    }
+  ]
+}

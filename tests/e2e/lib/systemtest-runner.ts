@@ -27,7 +27,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const BASE       = process.env.WEBSITE_URL    ?? 'http://localhost:4321';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
+const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 export type TestOption = 'erfüllt' | 'teilweise' | 'nicht_erfüllt';
@@ -122,16 +122,22 @@ async function findTemplate(page: Page, prefix: string): Promise<TemplateRow> {
 async function resolveAssignee(page: Page, override?: string): Promise<string> {
   if (override) return override;
   if (process.env.E2E_ASSIGNEE_USER_ID) return process.env.E2E_ASSIGNEE_USER_ID;
+
+  // Use the current session email (reliable across brands where KC username ≠ email prefix).
+  const meRes = await page.request.get(`${BASE}/api/auth/me`);
+  expect(meRes.ok(), `GET /api/auth/me -> ${meRes.status()}`).toBe(true);
+  const meData = await meRes.json() as { authenticated: boolean; user?: { email?: string } };
+  const myEmail = meData.user?.email?.toLowerCase();
+  if (!myEmail) throw new Error('GET /api/auth/me returned no email — is the admin session active?');
+
   const res = await page.request.get(`${BASE}/api/admin/clients-list`);
   expect(res.ok(), `GET /api/admin/clients-list -> ${res.status()}`).toBe(true);
   const clients = (await res.json()) as ClientRow[];
-  const me = clients.find(c =>
-    c.email.toLowerCase().startsWith(`${ADMIN_USER.toLowerCase()}@`) ||
-    c.email.toLowerCase().includes(`/${ADMIN_USER.toLowerCase()}@`) ||
-    c.email.split('@')[0].toLowerCase() === ADMIN_USER.toLowerCase()
-  );
+  const me = clients.find(c => c.email.toLowerCase() === myEmail);
   if (!me) {
-    throw new Error(`Could not match admin "${ADMIN_USER}" against any /api/admin/clients-list email — pass assigneeKeycloakUserId explicitly or set E2E_ASSIGNEE_USER_ID`);
+    throw new Error(
+      `Admin "${myEmail}" has no client record — create one via /admin/clients or set E2E_ASSIGNEE_USER_ID`,
+    );
   }
   return me.id;
 }

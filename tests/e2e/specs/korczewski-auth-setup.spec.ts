@@ -9,8 +9,7 @@
 // Env vars (export manually or load from the K8s Secret):
 //   TEST_ADMIN_USER      (default: test-admin)
 //   TEST_ADMIN_PASSWORD  — required for authenticated tests; skips if absent
-//   TEST_USER            (default: test-user)
-//   TEST_USER_PASSWORD   — currently unused but reserved for portal tests
+//   TEST_USER            (default: test-user) — reserved for portal tests
 //
 // Extract from the in-cluster Secret:
 //   kubectl get secret playwright-test-credentials \
@@ -26,8 +25,6 @@ const BRETT_URL   = (process.env.BRETT_URL ?? 'https://brett.korczewski.de').rep
 
 const ADMIN_USER  = process.env.TEST_ADMIN_USER     ?? 'test-admin';
 const ADMIN_PASS  = process.env.TEST_ADMIN_PASSWORD ?? '';
-const _USER       = process.env.TEST_USER           ?? 'test-user';
-const _USER_PASS  = process.env.TEST_USER_PASSWORD  ?? '';
 
 const AUTH_DIR               = path.join(__dirname, '..', '.auth');
 const WEBSITE_ADMIN_STATE    = path.join(AUTH_DIR, 'korczewski-website-admin.json');

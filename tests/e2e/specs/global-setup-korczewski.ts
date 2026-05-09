@@ -17,15 +17,12 @@
 import { chromium } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 
 const WEBSITE_URL = process.env.KORCZEWSKI_URL?.replace(/\/$/, '') ?? 'https://web.korczewski.de';
 const BRETT_URL = process.env.BRETT_URL ?? 'https://brett.korczewski.de';
 
 const ADMIN_USER = process.env.TEST_ADMIN_USER ?? 'test-admin';
 const ADMIN_PASS = process.env.TEST_ADMIN_PASSWORD ?? '';
-const REGULAR_USER = process.env.TEST_USER ?? 'test-user';
-const REGULAR_PASS = process.env.TEST_USER_PASSWORD ?? '';
 
 const AUTH_DIR = path.join(__dirname, '..', '.auth');
 const KORCZEWSKI_ADMIN_STATE = path.join(AUTH_DIR, 'korczewski-website-admin.json');

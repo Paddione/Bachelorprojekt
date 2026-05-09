@@ -240,6 +240,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:wissensquellen",
+    "file": "tests/e2e/specs/wissensquellen.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-01",
     "file": "tests/local/FA-01.sh",
     "category": "FA",

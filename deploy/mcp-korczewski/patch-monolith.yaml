@@ -1,0 +1,40 @@
+# Retarget the monolith's external service references from `workspace`
+# to `workspace-korczewski` so this copy reads korczewski's data.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-code-mcp-monolith
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres
+          env:
+            - name: SHARED_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: SHARED_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace-korczewski.svc.cluster.local:5432/postgres"
+        - name: keycloak
+          env:
+            - name: KC_URL
+              value: "http://keycloak.workspace-korczewski.svc.cluster.local:8080"
+            - name: KC_REALM
+              value: "master"
+            - name: OIDC_CLIENT_ID
+              value: "admin-cli"
+            - name: QUARKUS_HTTP_PORT
+              value: "8081"
+            - name: QUARKUS_HTTP_AUTH_PERMISSION_MCP_POLICY
+              value: "permit"
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_USERNAME
+              value: "admin"
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: QUARKUS_KEYCLOAK_ADMIN_CLIENT_GRANT_TYPE
+              value: "PASSWORD"

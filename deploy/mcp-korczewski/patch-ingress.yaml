@@ -1,0 +1,57 @@
+# ForwardAuth in this overlay calls the workspace-korczewski auth proxy
+# (the base referenced default.svc.cluster.local).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-forwardauth
+spec:
+  forwardAuth:
+    address: http://mcp-auth-proxy.workspace-korczewski.svc.cluster.local:80/auth
+    authResponseHeaders:
+      - X-MCP-Role
+---
+# Match only mcp.korczewski.de; mentolder ingress (in default ns) handles mcp.mentolder.de.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mcp-gateway
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`mcp.korczewski.de`) && PathPrefix(`/kubernetes`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: claude-code-mcp-monolith
+          port: 8080
+    - kind: Rule
+      match: Host(`mcp.korczewski.de`) && PathPrefix(`/postgres`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: claude-code-mcp-monolith
+          port: 3001
+    - kind: Rule
+      match: Host(`mcp.korczewski.de`) && PathPrefix(`/keycloak`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: claude-code-mcp-monolith
+          port: 8081
+    - kind: Rule
+      match: Host(`mcp.korczewski.de`) && PathPrefix(`/browser`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: claude-code-mcp-monolith
+          port: 3000
+    - kind: Rule
+      match: Host(`mcp.korczewski.de`) && PathPrefix(`/github`)
+      middlewares:
+        - name: mcp-chain
+      services:
+        - name: claude-code-mcp-monolith
+          port: 3002

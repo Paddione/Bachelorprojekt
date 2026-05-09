@@ -1,13 +1,13 @@
 # Art Library
 
 Brand-scoped, cluster-native asset packs consumed by Brett (3D systembrett)
-and dashboard-web (admin gallery). One set per brand under `sets/`. Each
+and the website's admin gallery. One set per brand under `sets/`. Each
 set ships a `manifest.json` validated against `manifest.schema.json` plus
 the SVG files referenced from it.
 
 At deploy time, a Kustomize `configMapGenerator` materializes the active
 set into a workspace-namespace ConfigMap named `art-library`. Both Brett
-and dashboard-web mount it at `/app/public/art-library/` (Kubernetes `mountPath`;
+and the website pod mount it at `/app/public/art-library/` (Kubernetes `mountPath`;
 served at the URL path `/art-library/`). Pods boot fine without it (`optional: true`).
 
 ## Adding a new set

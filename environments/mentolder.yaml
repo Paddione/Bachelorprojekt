@@ -40,7 +40,6 @@ env_vars:
   LIVEKIT_DOMAIN: livekit.mentolder.de
   LIVEKIT_PIN_IP: "46.225.125.59"
   STREAM_DOMAIN: stream.mentolder.de
-  DASHBOARD_DOMAIN: dashboard.mentolder.de
   WEBSITE_HOST: web.mentolder.de
   WEBSITE_SITE_URL: "https://web.mentolder.de"
   KEYCLOAK_FRONTEND_URL: "https://auth.mentolder.de"

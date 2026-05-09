@@ -40,7 +40,6 @@ env_vars:
   LIVEKIT_DOMAIN: livekit.korczewski.de
   LIVEKIT_PIN_IP: "178.104.159.79"
   STREAM_DOMAIN: stream.korczewski.de
-  DASHBOARD_DOMAIN: dashboard.korczewski.de
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"
   KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"

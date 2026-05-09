@@ -188,7 +188,8 @@ async function ensurePlanSchema(pgClient) {
     CREATE TABLE IF NOT EXISTS superpowers.plan_sections (
       id           SERIAL PRIMARY KEY,
       plan_id      INTEGER NOT NULL REFERENCES superpowers.plans(id) ON DELETE CASCADE,
-      section_type TEXT NOT NULL,
+      section_type TEXT NOT NULL
+                   CHECK (section_type IN ('overview','architecture','tasks','files','gotchas','data-flow','other')),
       content      TEXT NOT NULL,
       seq          INTEGER NOT NULL,
       UNIQUE (plan_id, seq)

@@ -903,11 +903,15 @@ tasks:
     cmds:
       - |
         ROLE="{{.CLI_ARGS}}"
-        psql "${TRACKING_DB_URL:-postgresql://postgres:postgres@localhost:5432/website}" -c \
+        if ! [[ "$ROLE" =~ ^[a-z]+$ ]]; then
+          echo "error: role must be lowercase letters only (infra|website|db|ops|test|security)" >&2; exit 1
+        fi
+        psql "${TRACKING_DB_URL:-postgresql://postgres:postgres@localhost:5432/website}" \
+          -v role="$ROLE" -c \
           "SELECT p.title, ps.section_type, LEFT(ps.content, 200) AS excerpt
            FROM superpowers.plans p
            JOIN superpowers.plan_sections ps ON ps.plan_id = p.id
-           WHERE '${ROLE}' = ANY(p.domains) AND p.status = 'active'
+           WHERE :'role' = ANY(p.domains) AND p.status = 'active'
            ORDER BY p.created_at DESC, ps.seq;"
 
   workspace:port-forward:

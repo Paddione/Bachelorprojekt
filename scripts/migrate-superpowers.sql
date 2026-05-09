@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS superpowers.plan_sections (
     section_type TEXT NOT NULL
                  CHECK (section_type IN ('overview','architecture','tasks','files','gotchas','data-flow','other')),
     content      TEXT NOT NULL,
-    seq          INTEGER NOT NULL
+    seq          INTEGER NOT NULL,
+    UNIQUE (plan_id, seq)
 );
 
 CREATE INDEX IF NOT EXISTS plan_sections_plan_id_idx ON superpowers.plan_sections(plan_id);

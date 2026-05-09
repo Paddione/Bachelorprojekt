@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { HomepageContent } from '../../../lib/website-db';
 
+  import type { ProcessStep } from '../../../lib/website-db';
+
   let { initialData }: { initialData: HomepageContent } = $props();
 
   let data = $state(JSON.parse(JSON.stringify(initialData)));
@@ -26,6 +28,25 @@
   }
   function removeStat(i: number) {
     data.stats = data.stats.filter((_: unknown, idx: number) => idx !== i);
+  }
+
+  function addProcessStep() {
+    const n = (data.processSteps?.length ?? 0) + 1;
+    data.processSteps = [...(data.processSteps ?? []), {
+      num: `0${n} — Schritt`,
+      heading: '',
+      description: '',
+    }];
+  }
+  function removeProcessStep(i: number) {
+    data.processSteps = (data.processSteps ?? []).filter((_: unknown, idx: number) => idx !== i);
+  }
+  function moveProcessStep(i: number, delta: number) {
+    const list = [...(data.processSteps ?? [])];
+    const next = i + delta;
+    if (next < 0 || next >= list.length) return;
+    [list[i], list[next]] = [list[next], list[i]];
+    data.processSteps = list;
   }
 
   async function save() {
@@ -185,5 +206,62 @@
       <label class={labelCls}>Name unter dem Zitat</label>
       <input type="text" bind:value={data.quoteName} class={inputCls} />
     </div>
+  </div>
+
+  <!-- Process Steps -->
+  <div class={sectionCls}>
+    <div class="flex justify-between items-center">
+      <div>
+        <h3 class="text-xl font-bold text-light font-serif">Prozess-Schritte</h3>
+        <p class="text-xs text-muted mt-1">Die nummerierten Schritte mit Überschrift und Beschriftung.</p>
+      </div>
+      <button type="button" onclick={addProcessStep}
+        class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80">
+        + Schritt hinzufügen
+      </button>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class={labelCls}>Kicker-Zeile (z. B. „So arbeiten wir")</label>
+        <input type="text" bind:value={data.processEyebrow} class={inputCls} placeholder="So arbeiten wir" />
+      </div>
+      <div>
+        <label class={labelCls}>Überschrift (z. B. „Vier ruhige Schritte.")</label>
+        <input type="text" bind:value={data.processHeadline} class={inputCls} placeholder="Vier ruhige Schritte." />
+      </div>
+    </div>
+
+    {#if !data.processSteps?.length}
+      <p class="text-sm text-muted italic">Noch keine Schritte. Klicke auf „+ Schritt hinzufügen".</p>
+    {/if}
+    {#each (data.processSteps ?? []) as step, i (i)}
+      <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs text-muted uppercase tracking-wide">Schritt {i + 1}</span>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick={() => moveProcessStep(i, -1)} disabled={i === 0}
+              aria-label="Nach oben verschieben"
+              class="px-2 py-0.5 text-xs text-muted hover:text-light disabled:opacity-30 disabled:cursor-not-allowed">↑</button>
+            <button type="button" onclick={() => moveProcessStep(i, 1)} disabled={i === (data.processSteps?.length ?? 0) - 1}
+              aria-label="Nach unten verschieben"
+              class="px-2 py-0.5 text-xs text-muted hover:text-light disabled:opacity-30 disabled:cursor-not-allowed">↓</button>
+            <button type="button" onclick={() => removeProcessStep(i)}
+              class="ml-2 px-2 py-0.5 text-xs text-red-400 hover:text-red-300">Entfernen</button>
+          </div>
+        </div>
+        <div>
+          <label class={labelCls}>Nummer / Kicker (z. B. „01 — Erstgespräch")</label>
+          <input type="text" bind:value={step.num} class={inputCls} />
+        </div>
+        <div>
+          <label class={labelCls}>Überschrift</label>
+          <input type="text" bind:value={step.heading} class={inputCls} />
+        </div>
+        <div>
+          <label class={labelCls}>Beschreibung</label>
+          <textarea bind:value={step.description} rows={2} class="{inputCls} resize-none"></textarea>
+        </div>
+      </div>
+    {/each}
   </div>
 </div>

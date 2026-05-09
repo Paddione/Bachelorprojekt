@@ -51,6 +51,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     avatarInitials: g('avatar_initials') || undefined,
     quote: g('quote'),
     quoteName: g('quote_name'),
+    processSteps: Array.from({ length: parseInt(g('process_count') || '0', 10) }, (_, i) => ({
+      num: g(`process_${i}_num`),
+      heading: g(`process_${i}_heading`),
+      description: g(`process_${i}_description`),
+    })),
   });
 
   return redirect('/admin/startseite?saved=1');

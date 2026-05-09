@@ -4,6 +4,7 @@ import CallToAction from '../components/CallToAction.svelte';
 import FAQ from '../components/FAQ.svelte';
 import { getEffectiveServices } from '../lib/content';
 import { config } from '../config/index';
+import { getSiteSetting, getSeoTitle } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
@@ -22,9 +23,14 @@ if (!svc) {
 const pc = svc.pageContent;
 const prevSvc = svcIndex > 0 ? visibleServices[svcIndex - 1] : null;
 const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex + 1] : null;
+
+// Per-service SEO overrides stored as seo_title_<slug> / seo_meta_desc_<slug>
+const seoTitle = await getSeoTitle(BRAND_ID, svc.slug).catch(() => null) ?? svc.title;
+const seoDesc  = await getSiteSetting(BRAND_ID, `seo_meta_desc_${svc.slug}`).catch(() => null) ?? svc.description;
+const useRawTitle = seoTitle !== svc.title;
 ---
 
-<Layout title={svc.title} description={svc.description} brand={layoutBrand}>
+<Layout title={seoTitle} rawTitle={useRawTitle} description={seoDesc} brand={layoutBrand}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <nav class="mb-6" aria-label="Breadcrumb">
@@ -88,7 +94,7 @@ const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex
   </section>
 
   {pc.faq && pc.faq.length > 0 && (
-    <FAQ items={pc.faq} title={`Häufige Fragen zu ${svc.title}`} client:visible />
+    <FAQ items={pc.faq} title={pc.faqTitle ?? `Häufige Fragen zu ${svc.title}`} client:visible />
   )}
 
   {(prevSvc || nextSvc) && (

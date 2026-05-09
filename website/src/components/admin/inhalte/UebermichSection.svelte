@@ -3,7 +3,12 @@
 
   let { initialData }: { initialData: UebermichContent } = $props();
 
-  let data = $state(JSON.parse(JSON.stringify(initialData)));
+  const raw = JSON.parse(JSON.stringify(initialData));
+  // Ensure warumdieserName is always an object so the form bindings don't crash
+  if (!raw.warumdieserName) {
+    raw.warumdieserName = { title: 'Warum dieser Name', text: '' };
+  }
+  let data = $state(raw);
   let saving = $state(false);
   let msg = $state('');
   let msgOk = $state(true);
@@ -135,5 +140,19 @@
   <div class={sectionCls}>
     <h3 class="text-xl font-bold text-light font-serif">Privates</h3>
     <textarea bind:value={data.privateText} rows={4} class="{inputCls} resize-none"></textarea>
+    <p class="text-xs text-muted">Platzhalter <code class="text-gold">{'{city}'}</code> wird durch die konfigurierte Stadt ersetzt.</p>
+  </div>
+
+  <div class={sectionCls}>
+    <h3 class="text-xl font-bold text-light font-serif">Abschnitt „Warum dieser Name"</h3>
+    <p class="text-xs text-muted">Wird nach dem Privat-Abschnitt angezeigt. Leer lassen, um den Abschnitt auszublenden.</p>
+    <div>
+      <label class={labelCls}>Überschrift</label>
+      <input type="text" bind:value={data.warumdieserName.title} class={inputCls} placeholder="Warum dieser Name" />
+    </div>
+    <div>
+      <label class={labelCls}>Text</label>
+      <textarea bind:value={data.warumdieserName.text} rows={4} class="{inputCls} resize-none"></textarea>
+    </div>
   </div>
 </div>

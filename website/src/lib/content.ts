@@ -64,6 +64,7 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
             sections: pc.sections ?? svc.pageContent.sections,
             pricing: pc.pricing ?? svc.pageContent.pricing,
             faq: pc.faq ?? svc.pageContent.faq,
+            faqTitle: pc.faqTitle ?? svc.pageContent.faqTitle,
           }
         : svc.pageContent,
     };
@@ -87,6 +88,7 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
         sections: pc.sections ?? [],
         pricing: pc.pricing ?? [],
         faq: pc.faq ?? [],
+        faqTitle: pc.faqTitle,
       },
     };
   };
@@ -136,6 +138,13 @@ export async function getEffectiveLeistungen(): Promise<LeistungCategory[]> {
   });
 }
 
+const DEFAULT_PROCESS_STEPS = [
+  { num: '01 — Erstgespräch', heading: 'Kennenlernen', description: '30 Minuten, kostenlos. Wir klären Ihre Situation und Ihre Herausforderung.' },
+  { num: '02 — Klarheit', heading: 'Zieldefinition', description: 'Gemeinsam entscheiden wir: Was ist das richtige Format, was der richtige Rahmen?' },
+  { num: '03 — Begleitung', heading: 'Arbeitsphase', description: 'Individuelle Sessions in Ihrem Tempo – online oder vor Ort in Lüneburg und Umgebung.' },
+  { num: '04 — Transfer', heading: 'Nachhaltigkeit', description: 'Was Sie hier lernen, bleibt bei Ihnen. Nicht als Wissen, sondern als Haltung.' },
+];
+
 export async function getEffectiveHomepage(): Promise<HomepageContent> {
   const db = await getHomepageContent(BRAND).catch(() => null);
   const c = config.homepage;
@@ -159,6 +168,9 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
     avatarInitials: c.avatarInitials,
     quote: c.quote,
     quoteName: c.quoteName,
+    processSteps: DEFAULT_PROCESS_STEPS,
+    processEyebrow: 'So arbeiten wir',
+    processHeadline: 'Vier ruhige Schritte.',
   };
   return {
     ...db,
@@ -173,13 +185,20 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
       ...pt,
       iconPath: c.whyMePoints[i]?.iconPath,
     })),
+    processSteps: db.processSteps ?? DEFAULT_PROCESS_STEPS,
+    processEyebrow: db.processEyebrow ?? 'So arbeiten wir',
+    processHeadline: db.processHeadline ?? 'Vier ruhige Schritte.',
   };
 }
 
 export async function getEffectiveUebermich(): Promise<UebermichContent> {
   const db = await getUebermichContent(BRAND).catch(() => null);
-  if (!db) return config.uebermich;
-  return db;
+  const fallback = config.uebermich;
+  if (!db) return fallback;
+  return {
+    ...db,
+    warumdieserName: db.warumdieserName ?? fallback.warumdieserName,
+  };
 }
 
 export async function getEffectiveFaq(): Promise<FaqItem[]> {

@@ -8,12 +8,15 @@ import { config } from '../config/index';
 
 interface Props {
   title: string;
+  /** When true, renders the title as-is without appending " | siteTitle". */
+  rawTitle?: boolean;
   description?: string;
   brand?: string;
 }
 
-const { title, description = config.meta.siteDescription, brand } = Astro.props;
+const { title, rawTitle = false, description = config.meta.siteDescription, brand } = Astro.props;
 const isKore = brand === 'korczewski-kore';
+const pageTitle = rawTitle ? title : `${title} | ${config.meta.siteTitle}`;
 ---
 
 <!doctype html>
@@ -47,7 +50,7 @@ const isKore = brand === 'korczewski-kore';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
     {isKore && <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />}
-    <title>{title} | {config.meta.siteTitle}</title>
+    <title>{pageTitle}</title>
     {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/kore-website.css" />}
   </head>

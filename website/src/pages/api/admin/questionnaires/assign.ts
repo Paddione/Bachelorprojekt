@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getQTemplate, createQAssignment } from '../../../../lib/questionnaire-db';
-import { getCustomerByEmail, createProject } from '../../../../lib/website-db';
+import { getCustomerByEmail, upsertCustomer, createProject } from '../../../../lib/website-db';
 import { getUserById } from '../../../../lib/keycloak';
 import { sendQuestionnaireAssigned } from '../../../../lib/email';
 
@@ -26,10 +26,17 @@ export const POST: APIRoute = async ({ request }) => {
   const kcUser = await getUserById(body.keycloakUserId).catch(() => null);
   if (!kcUser?.email) return new Response(JSON.stringify({ error: 'Benutzer nicht gefunden.' }), { status: 404 });
 
-  const customer = await getCustomerByEmail(kcUser.email).catch(() => null);
-  if (!customer) return new Response(JSON.stringify({ error: 'Kundeneintrag nicht gefunden.' }), { status: 404 });
-
   const clientName = `${kcUser.firstName ?? ''} ${kcUser.lastName ?? ''}`.trim() || kcUser.username;
+
+  let customer = await getCustomerByEmail(kcUser.email).catch(() => null);
+  if (!customer) {
+    customer = await upsertCustomer({
+      name: clientName,
+      email: kcUser.email,
+      keycloakUserId: body.keycloakUserId,
+    }).catch(() => null);
+  }
+  if (!customer) return new Response(JSON.stringify({ error: 'Kundeneintrag nicht gefunden.' }), { status: 404 });
 
   const projectTitle = tpl.is_system_test
     ? tpl.title

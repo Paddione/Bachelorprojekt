@@ -39,7 +39,10 @@ case "$ENVIRONMENT" in
   dev)        WEBSITE_URL="${WEBSITE_URL:-http://localhost:4321}"; PROD_DOMAIN="${PROD_DOMAIN:-localhost}" ;;
   *) echo "ERROR: env must be mentolder|korczewski|dev (got '$ENVIRONMENT')" >&2; exit 2 ;;
 esac
-export WEBSITE_URL PROD_DOMAIN
+# Default KC login username for both prod realms (KC_USER1_USERNAME=paddione).
+# Override with E2E_ADMIN_USER=<other> if needed.
+export WEBSITE_URL PROD_DOMAIN ENV="$ENVIRONMENT"
+export E2E_ADMIN_USER="${E2E_ADMIN_USER:-paddione}"
 
 if [[ -z "${E2E_ADMIN_PASS:-}" ]]; then
   echo "ERROR: E2E_ADMIN_PASS unset — refusing to dispatch headed sessions without admin creds" >&2

@@ -1,0 +1,12 @@
+{
+  "pr_number": 618,
+  "title": "deploy MCP monolith to workspace-korczewski",
+  "description": "## Summary\n- Adds a second copy of `deploy/mcp/` pinned at `workspace-korczewski` so `mcp.korczewski.de` serves korczewski's own DB/Keycloak/etc. instead of mentolder's. The mentolder copy in `default` ns continues to serve `mcp.mentolder.de` unchanged.\n- New overlay `deploy/mcp-korczewski/` retargets `DATABASE_URL`/`KC_URL` to `*.workspace-korczewski.svc`, scopes the Traefik IngressRoute to `mcp.korczewski.de` only, points ForwardAuth at the local auth-proxy, and pins `mcp-auth-proxy` to Hetzner CPs (per the CNI-partition gotcha).\n- Strips `ClusterRole`/`ClusterRoleBinding` (mentolder-managed; binding already lists both namespace SAs as subjects) and the `claude-code-config` CM (owned by the `workspace-korczewski` ArgoCD App) from the overlay output to avoid clobbering / sync conflicts.\n- `deploy/mcp/ingress.yaml`: drop `mcp.korczewski.de` from the mentolder IngressRoute matchers.\n- `Taskfile.yml`: `mcp:deploy/status/logs/restart` plus `claude-code:rotate-tokens/setup/export/invite` and `gemini:setup` now switch target namespace by `ENV` (`workspace-korczewski` for korczewski, `default` otherwise).\n\n## Test plan\n- [x] `kustomize build deploy/mcp-korczewski/` produces correct namespace + URL substitutions, with cluster-scoped resources and `claude-code-config` stripped\n- [x] `task mcp:deploy ENV=korczewski` rolls out cleanly: monolith pod 5/5 ready on `pk-hetzner-3`, auth-proxy 1/1 ready on `pk-hetzner-2`\n- [x] `mcp.korczewski.de/{postgres,kubernetes,browser,github,keycloak}/mcp` returns 200 with cluster token (initialize handshake confirmed for postgres MCP)\n- [x] Postgres MCP in `workspace-korczewski` connects to `shared-db.workspace-korczewski` (`10.42.3.89`); mentolder copy still hits `shared-db.workspace` (`10.42.1.47`)\n- [x] `mcp.mentolder.de/postgres/mcp` still returns 200 after stripping `mcp.korczewski.de` from the mentolder IngressRoute\n- [x] `ClusterRoleBinding/claude-code-agent` still has both namespace SAs as subjects after re-apply\n- [ ] Follow-up by maintainer: `task claude-code:rotate-tokens ENV=korczewski` to replace the placeholder `mcp-tokens` secret\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": null,
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-09T07:39:56Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

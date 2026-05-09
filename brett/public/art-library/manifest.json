@@ -1,0 +1,11 @@
+{
+  "version": "1",
+  "assets": [
+    { "id": "person",  "kind": "character", "label": "Person",  "files": { "figurine": "person.svg"  } },
+    { "id": "kind",    "kind": "character", "label": "Kind",    "files": { "figurine": "kind.svg"    } },
+    { "id": "gruppe",  "kind": "character", "label": "Gruppe",  "files": { "figurine": "gruppe.svg"  } },
+    { "id": "tier",    "kind": "character", "label": "Tier",    "files": { "figurine": "tier.svg"    } },
+    { "id": "system",  "kind": "character", "label": "System",  "files": { "figurine": "system.svg"  } },
+    { "id": "objekt",  "kind": "character", "label": "Objekt",  "files": { "figurine": "objekt.svg"  } }
+  ]
+}

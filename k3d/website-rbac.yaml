@@ -16,6 +16,13 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "list", "patch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["workspace-wildcard-tls"]
+    verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -54,4 +61,61 @@ subjects:
 roleRef:
   kind: ClusterRole
   name: website-monitoring-clusterrole
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: website-ops-role
+  namespace: workspace-korczewski
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "events"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: website-ops-rolebinding
+  namespace: workspace-korczewski
+subjects:
+  - kind: ServiceAccount
+    name: website
+    namespace: website
+roleRef:
+  kind: Role
+  name: website-ops-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: website-ops-role
+  namespace: website-korczewski
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: website-ops-rolebinding
+  namespace: website-korczewski
+subjects:
+  - kind: ServiceAccount
+    name: website
+    namespace: website
+roleRef:
+  kind: Role
+  name: website-ops-role
   apiGroup: rbac.authorization.k8s.io

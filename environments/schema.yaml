@@ -444,6 +444,22 @@ secrets:
     required: false
     generate: false
 
+  - name: IPV64_UPDATE_HASH_MENTOLDER
+    required: false
+    generate: false
+    description: "ipv64 domain_update_hash for mentolder.de DNS pinning"
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: IPV64_UPDATE_HASH_KORCZEWSKI
+    required: false
+    generate: false
+    description: "ipv64 domain_update_hash for korczewski.de DNS pinning"
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
   - name: BRETT_BOT_SECRET
     required: true
     generate: true

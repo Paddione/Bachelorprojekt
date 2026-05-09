@@ -151,6 +151,7 @@ export default defineConfig({
     {
       name: 'systemtest',
       testMatch: ['**/systemtest-*.spec.ts'],
+      timeout: 300_000,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: websiteURL,

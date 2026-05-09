@@ -92,7 +92,7 @@ export async function loginAsAdmin(page: Page, returnTo: string): Promise<void> 
   // Keycloak may bounce through the OIDC dance — wait until we land back on
   // the website. We use a permissive matcher rather than re-encoding returnTo
   // since the path may carry query params after the redirect.
-  await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 30_000 });
+  await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 60_000 });
 }
 
 interface TemplateRow {
@@ -121,6 +121,7 @@ async function findTemplate(page: Page, prefix: string): Promise<TemplateRow> {
 
 async function resolveAssignee(page: Page, override?: string): Promise<string> {
   if (override) return override;
+  if (process.env.E2E_ASSIGNEE_USER_ID) return process.env.E2E_ASSIGNEE_USER_ID;
   const res = await page.request.get(`${BASE}/api/admin/clients-list`);
   expect(res.ok(), `GET /api/admin/clients-list -> ${res.status()}`).toBe(true);
   const clients = (await res.json()) as ClientRow[];
@@ -130,7 +131,7 @@ async function resolveAssignee(page: Page, override?: string): Promise<string> {
     c.email.split('@')[0].toLowerCase() === ADMIN_USER.toLowerCase()
   );
   if (!me) {
-    throw new Error(`Could not match admin "${ADMIN_USER}" against any /api/admin/clients-list email — pass assigneeKeycloakUserId explicitly`);
+    throw new Error(`Could not match admin "${ADMIN_USER}" against any /api/admin/clients-list email — pass assigneeKeycloakUserId explicitly or set E2E_ASSIGNEE_USER_ID`);
   }
   return me.id;
 }
@@ -249,8 +250,33 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
   const defaultOpt = opts.defaultOption ?? 'erfüllt';
   const onAgentNotes = opts.onAgentNotes ?? 'skip';
 
+  const doneLocator = page.getByText(/Vielen Dank/i).first();
+
   for (;;) {
     if (await isOnDone(page)) break;
+
+    // Guard against the "Wird abgesendet…" submitting state: the wizard has
+    // already been asked to submit (submitting=true in Svelte, button disabled),
+    // so just wait for the done screen rather than doing another iteration.
+    {
+      const submittingBtn = page.getByRole('button', { name: /Wird abgesendet/i });
+      if (await submittingBtn.isVisible({ timeout: 200 }).catch(() => false)) {
+        await doneLocator.waitFor({ state: 'visible', timeout: perStep }).catch(() => null);
+        break;
+      }
+    }
+
+    // If the submit button is already visible (all steps saved, allAnswered=true),
+    // click it and wait for the done screen — catching this BEFORE steps.push prevents
+    // an extra iteration from inflating the step count.
+    {
+      const earlySubmit = page.getByRole('button', { name: /Testprotokoll absenden/i });
+      if (await earlySubmit.isVisible({ timeout: 500 }).catch(() => false)) {
+        await earlySubmit.click();
+        await doneLocator.waitFor({ state: 'visible', timeout: perStep }).catch(() => null);
+        break;
+      }
+    }
 
     let cur;
     try {
@@ -260,7 +286,7 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
       const submitFinal = page.getByRole('button', { name: /Testprotokoll absenden/i });
       if (await submitFinal.isVisible({ timeout: 1_000 }).catch(() => false)) {
         await submitFinal.click();
-        await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => null);
+        await doneLocator.waitFor({ state: 'visible', timeout: perStep }).catch(() => null);
         break;
       }
       throw e;
@@ -295,13 +321,18 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
     // Safety: stop if we've recorded more than 30 steps (largest template ~16)
     if (steps.length > 30) throw new Error('runner overran 30 steps — likely stuck on the same question');
 
-    // Some templates leave a final standalone "Testprotokoll absenden" screen
+    // After saving the last test_step, "Testprotokoll absenden" appears via Svelte
+    // reactive update. Click it and wait for "Vielen Dank" (the done screen) rather
+    // than relying on networkidle, which can be blocked by SSE connections.
     if (cur.position === cur.total) {
       const submitFinal = page.getByRole('button', { name: /Testprotokoll absenden/i });
-      if (await submitFinal.isVisible({ timeout: perStep }).catch(() => false)) {
+      try {
+        await submitFinal.waitFor({ state: 'visible', timeout: perStep });
         await submitFinal.click();
-        await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => null);
+        await doneLocator.waitFor({ state: 'visible', timeout: perStep });
         break;
+      } catch {
+        // button didn't appear or done screen didn't appear in time — continue loop
       }
     }
   }

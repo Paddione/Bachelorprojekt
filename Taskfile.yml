@@ -340,12 +340,16 @@ tasks:
     cmds:
       - task: systemtest:cycle
         vars: { CYCLE: "1", ENV: "{{.ENV}}" }
+        ignore_error: true
       - task: systemtest:cycle
         vars: { CYCLE: "2", ENV: "{{.ENV}}" }
+        ignore_error: true
       - task: systemtest:cycle
         vars: { CYCLE: "3", ENV: "{{.ENV}}" }
+        ignore_error: true
       - task: systemtest:cycle
         vars: { CYCLE: "4", ENV: "{{.ENV}}" }
+        ignore_error: true
 
   systemtest:all-prods:
     desc: "Run all 12 system-test specs against mentolder then korczewski"

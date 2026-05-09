@@ -24,6 +24,10 @@ export interface HomepageService {
   title: string;
   description: string;
   icon: string;
+  /** Optional symbol id within the brand SVG sprite (e.g. `icon-50plus-digital`).
+   *  When set, ServiceCard renders an inline `<svg><use href=".../icons.svg#<id>"/></svg>`
+   *  using `currentColor` stroke. Falls back to the emoji `icon` field when absent. */
+  iconSpriteId?: string;
   features: string[];
   price: string;
   stripeServiceKey?: string;
@@ -56,6 +60,24 @@ export interface LeistungPricingHighlight {
   highlight?: boolean;
 }
 
+export interface NavigationLink {
+  label: string;
+  href: string;
+  /** External links open in a new tab (rel=noopener). */
+  external?: boolean;
+}
+
+export interface FooterColumn {
+  heading: string;
+  links: Array<{ label: string; href: string }>;
+}
+
+export interface FooterConfig {
+  columns: FooterColumn[];
+  /** Free-form copyright/legal line. When omitted, Layout falls back to a generic line. */
+  copyright?: string;
+}
+
 export interface BrandConfig {
   brand: 'mentolder' | 'korczewski';
   meta: {
@@ -77,6 +99,10 @@ export interface BrandConfig {
     website: string;
     tagline: string;
   };
+  /** Top-nav primary links (rendered by Navigation.svelte / Footer alike). */
+  navigation: NavigationLink[];
+  /** Footer columns + optional copyright. */
+  footer: FooterConfig;
   homepage: {
     stats: Array<{ value: string; label: string }>;
     servicesHeadline: string;
@@ -89,6 +115,10 @@ export interface BrandConfig {
     avatarInitials?: string;
     quote: string;
     quoteName: string;
+    /** When true, the homepage renders the live PR-feed Timeline section after the CTA. */
+    timeline?: boolean;
+    /** Optional identity image shown in the Hero (replaces emoji/initials). */
+    identityImage?: { src: string; alt: string };
   };
   services: HomepageService[];
   leistungen: LeistungCategory[];

@@ -2836,3 +2836,28 @@ tasks:
     cmds:
       - bash scripts/migrate.sh
 
+  # ─────────────────────────────────────────────
+  # Knowledge Base (pgvector RAG)
+  # ─────────────────────────────────────────────
+  knowledge:reindex:
+    desc: "Re-index knowledge collections (SOURCE=prs|markdown|bugs|all, ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+      SOURCE: '{{.SOURCE | default "all"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/knowledge-reindex-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+          SOURCE="{{.SOURCE}}" \
+          bash scripts/knowledge/reindex.sh
+

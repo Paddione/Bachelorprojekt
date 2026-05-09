@@ -9,5 +9,8 @@ export default defineConfig({
     root: __dirname,
     include: ['src/**/*.{test,spec}.ts'],
     exclude: ['node_modules/**', 'dist/**'],
+    env: {
+      VOYAGE_API_KEY: 'test-key',
+    },
   },
 });

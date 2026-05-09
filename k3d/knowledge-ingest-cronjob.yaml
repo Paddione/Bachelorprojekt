@@ -1,0 +1,572 @@
+# ═══════════════════════════════════════════════════════════════════
+# Knowledge Ingestion CronJobs — embed PR history, markdown docs,
+# and bug tickets into knowledge.chunks via Voyage AI embeddings.
+# Four schedules: prs (daily 2am), markdown (daily 2:30am),
+# bugs (daily 3am), reindex-all (weekly Sunday 4am).
+# ═══════════════════════════════════════════════════════════════════
+
+# ── ConfigMap: knowledge ingestion scripts ────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: knowledge-scripts
+  namespace: workspace
+data:
+  lib-knowledge-pg.mjs: |
+    import pg from 'pg';
+    import { createHash } from 'node:crypto';
+
+    const { Pool } = pg;
+
+    export function makePool() {
+      return new Pool({
+        host:     process.env.PGHOST     ?? 'shared-db',
+        port:     Number(process.env.PGPORT ?? 5432),
+        database: process.env.PGDATABASE ?? 'website',
+        user:     process.env.PGUSER     ?? 'website',
+        password: process.env.PGPASSWORD,
+      });
+    }
+
+    export function sha256(s) {
+      return createHash('sha256').update(s).digest('hex');
+    }
+
+    export async function ensureCollection(pool, { name, source, brand = null, description = null }) {
+      const r = await pool.query(
+        `INSERT INTO knowledge.collections (name, source, brand, description)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (name) DO UPDATE SET description = COALESCE(EXCLUDED.description, knowledge.collections.description)
+         RETURNING id`,
+        [name, source, brand, description],
+      );
+      return r.rows[0].id;
+    }
+
+    export async function upsertDocumentAndChunks(pool, {
+      collectionId, title, sourceUri, rawText, hash, metadata = {}, chunks,
+    }) {
+      const docRes = await pool.query(
+        `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text, sha256, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+         ON CONFLICT (collection_id, source_uri) DO UPDATE
+           SET title = EXCLUDED.title,
+               raw_text = EXCLUDED.raw_text,
+               sha256 = EXCLUDED.sha256,
+               metadata = EXCLUDED.metadata
+         RETURNING id, sha256`,
+        [collectionId, title, sourceUri, rawText, hash, JSON.stringify(metadata)],
+      );
+      const docId = docRes.rows[0].id;
+      const prevHash = docRes.rows[0].sha256;
+      if (prevHash === hash && chunks === null) return { docId, reused: true };
+
+      await pool.query('DELETE FROM knowledge.chunks WHERE document_id = $1', [docId]);
+      for (const c of chunks) {
+        await pool.query(
+          `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [docId, collectionId, c.position, c.text, `[${c.embedding.join(',')}]`],
+        );
+      }
+      return { docId, reused: false };
+    }
+
+    export async function bumpCollectionStats(pool, collectionId) {
+      await pool.query(
+        `UPDATE knowledge.collections
+            SET chunk_count = (SELECT COUNT(*) FROM knowledge.chunks WHERE collection_id = $1),
+                last_indexed_at = now()
+          WHERE id = $1`,
+        [collectionId],
+      );
+    }
+
+    export async function callVoyage(inputs, inputType = 'document') {
+      const k = process.env.VOYAGE_API_KEY;
+      if (!k) throw new Error('VOYAGE_API_KEY unset');
+      const r = await fetch('https://api.voyageai.com/v1/embeddings', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${k}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: inputs, model: 'voyage-multilingual-2', input_type: inputType }),
+      });
+      if (!r.ok) throw new Error(`voyage ${r.status} ${await r.text()}`);
+      const j = await r.json();
+      return { embeddings: j.data.map(d => d.embedding), tokens: j.usage.total_tokens };
+    }
+
+    export async function embedAll(texts, batch = 128) {
+      const out = [];
+      for (let i = 0; i < texts.length; i += batch) {
+        const r = await callVoyage(texts.slice(i, i + batch), 'document');
+        out.push(...r.embeddings);
+      }
+      return out;
+    }
+
+    export function chunkPlain(text, target = 600, overlap = 100) {
+      const charPerTok = 4;
+      const targetChars  = target  * charPerTok;
+      const overlapChars = overlap * charPerTok;
+      if (text.length <= targetChars) return [{ position: 0, text }];
+      const out = [];
+      let pos = 0;
+      let cursor = 0;
+      while (cursor < text.length) {
+        let end = Math.min(cursor + targetChars, text.length);
+        if (end < text.length) {
+          const slice = text.slice(end - 100, end);
+          const idx = slice.lastIndexOf(' ');
+          if (idx >= 0) end = end - 100 + idx;
+        }
+        out.push({ position: pos++, text: text.slice(cursor, end).trim() });
+        if (end >= text.length) break;
+        cursor = Math.max(end - overlapChars, cursor + 1);
+      }
+      return out;
+    }
+
+  ingest-prs.mjs: |
+    import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAll, chunkPlain } from '/scripts/lib-knowledge-pg.mjs';
+
+    const COLLECTION_NAME = 'PR History';
+    const COLLECTION_SOURCE = 'pr_history';
+
+    async function main() {
+      const pool = makePool();
+      try {
+        const collectionId = await ensureCollection(pool, {
+          name: COLLECTION_NAME,
+          source: COLLECTION_SOURCE,
+          description: 'Merged pull requests from bachelorprojekt.features',
+        });
+
+        const { rows } = await pool.query(
+          `SELECT pr_number, title, description, body, merged_at, labels
+             FROM bachelorprojekt.features
+            WHERE merged_at IS NOT NULL
+            ORDER BY merged_at DESC`,
+        );
+
+        console.log(`Found ${rows.length} PRs to ingest`);
+
+        for (const row of rows) {
+          const text = [
+            `PR #${row.pr_number}: ${row.title}`,
+            row.description ?? '',
+            row.body ?? '',
+            row.labels?.length ? `Labels: ${row.labels.join(', ')}` : '',
+          ].filter(Boolean).join('\n\n');
+
+          const hash = sha256(text);
+          const sourceUri = `pr:${row.pr_number}`;
+          const chunks = chunkPlain(text).map(c => ({ ...c, embedding: null }));
+
+          const embeddings = await embedAll(chunks.map(c => c.text));
+          const chunksWithEmbed = chunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
+
+          await upsertDocumentAndChunks(pool, {
+            collectionId,
+            title: `PR #${row.pr_number}: ${row.title}`,
+            sourceUri,
+            rawText: text,
+            hash,
+            metadata: {
+              pr_number: row.pr_number,
+              merged_at: row.merged_at,
+              labels: row.labels ?? [],
+            },
+            chunks: chunksWithEmbed,
+          });
+          process.stdout.write('.');
+        }
+
+        console.log('\nBumping collection stats...');
+        await bumpCollectionStats(pool, collectionId);
+        console.log('Done.');
+      } finally {
+        await pool.end();
+      }
+    }
+
+    main().catch(err => { console.error(err); process.exit(1); });
+
+  ingest-markdown.mjs: |
+    // Markdown ingestion requires the repository to be mounted at /repo.
+    // In-cluster CronJob pods do not have repo access — skipping.
+    // Trigger manually via: task knowledge:reindex SOURCE=markdown
+    console.log('Markdown ingestion requires repo mount — skipping in cluster.');
+    console.log('Run locally: task knowledge:reindex SOURCE=markdown');
+
+  ingest-bug-tickets.mjs: |
+    import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats, embedAll, chunkPlain } from '/scripts/lib-knowledge-pg.mjs';
+
+    const COLLECTION_NAME = 'Bug Tickets';
+    const COLLECTION_SOURCE = 'bug_tickets';
+    const BRAND = process.env.BRAND ?? 'mentolder';
+
+    async function main() {
+      const pool = makePool();
+      try {
+        const collectionId = await ensureCollection(pool, {
+          name: COLLECTION_NAME,
+          source: COLLECTION_SOURCE,
+          brand: BRAND,
+          description: `Bug tickets for brand: ${BRAND}`,
+        });
+
+        const { rows } = await pool.query(
+          `SELECT id, title, description, status, brand, created_at, fixed_in_pr
+             FROM bugs.bug_tickets
+            WHERE brand = $1
+            ORDER BY created_at DESC`,
+          [BRAND],
+        );
+
+        console.log(`Found ${rows.length} bug tickets for brand "${BRAND}"`);
+
+        for (const row of rows) {
+          const text = [
+            `${row.id}: ${row.title}`,
+            `Status: ${row.status}`,
+            row.fixed_in_pr ? `Fixed in PR #${row.fixed_in_pr}` : '',
+            row.description ?? '',
+          ].filter(Boolean).join('\n\n');
+
+          const hash = sha256(text);
+          const sourceUri = `bug:${row.id}`;
+          const rawChunks = chunkPlain(text);
+          const embeddings = await embedAll(rawChunks.map(c => c.text));
+          const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
+
+          await upsertDocumentAndChunks(pool, {
+            collectionId,
+            title: `${row.id}: ${row.title}`,
+            sourceUri,
+            rawText: text,
+            hash,
+            metadata: {
+              ticket_id: row.id,
+              status: row.status,
+              brand: row.brand,
+              fixed_in_pr: row.fixed_in_pr,
+              created_at: row.created_at,
+            },
+            chunks,
+          });
+          process.stdout.write('.');
+        }
+
+        console.log('\nBumping collection stats...');
+        await bumpCollectionStats(pool, collectionId);
+        console.log('Done.');
+      } finally {
+        await pool.end();
+      }
+    }
+
+    main().catch(err => { console.error(err); process.exit(1); });
+
+---
+# ── CronJob: ingest PR history (daily 02:00 UTC) ──────────────────
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: knowledge-ingest-prs
+  namespace: workspace
+  labels:
+    app: knowledge-ingest-prs
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
+          initContainers:
+            - name: npm-install
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: node-modules
+                  mountPath: /scripts/node_modules
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
+          containers:
+            - name: ingest
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command: [node, /scripts/ingest-prs.mjs]
+              env:
+                - name: PGHOST
+                  value: "shared-db"
+                - name: PGDATABASE
+                  value: "website"
+                - name: PGUSER
+                  value: "website"
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: WEBSITE_DB_PASSWORD
+                - name: VOYAGE_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: knowledge-secrets
+                      key: VOYAGE_API_KEY
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: node-modules
+                  mountPath: /scripts/node_modules
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: knowledge-scripts
+            - name: node-modules
+              emptyDir: {}
+---
+# ── CronJob: ingest markdown / specs / plans (daily 02:30 UTC) ────
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: knowledge-ingest-markdown
+  namespace: workspace
+  labels:
+    app: knowledge-ingest-markdown
+spec:
+  schedule: "30 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
+          containers:
+            - name: ingest
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command: [node, /scripts/ingest-markdown.mjs]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: knowledge-scripts
+---
+# ── CronJob: ingest bug tickets (daily 03:00 UTC) ─────────────────
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: knowledge-ingest-bugs
+  namespace: workspace
+  labels:
+    app: knowledge-ingest-bugs
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
+          initContainers:
+            - name: npm-install
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: node-modules
+                  mountPath: /scripts/node_modules
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
+          containers:
+            - name: ingest
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command: [node, /scripts/ingest-bug-tickets.mjs]
+              env:
+                - name: PGHOST
+                  value: "shared-db"
+                - name: PGDATABASE
+                  value: "website"
+                - name: PGUSER
+                  value: "website"
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: WEBSITE_DB_PASSWORD
+                - name: VOYAGE_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: knowledge-secrets
+                      key: VOYAGE_API_KEY
+                - name: BRAND
+                  value: "mentolder"
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: node-modules
+                  mountPath: /scripts/node_modules
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: knowledge-scripts
+            - name: node-modules
+              emptyDir: {}
+---
+# ── CronJob: full reindex — all sources (weekly Sunday 04:00 UTC) ─
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: knowledge-reindex-all
+  namespace: workspace
+  labels:
+    app: knowledge-reindex-all
+spec:
+  schedule: "0 4 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
+          initContainers:
+            - name: npm-install
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: node-modules
+                  mountPath: /scripts/node_modules
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
+          containers:
+            - name: ingest
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - |
+                  node /scripts/ingest-prs.mjs && node /scripts/ingest-markdown.mjs || true && node /scripts/ingest-bug-tickets.mjs
+              env:
+                - name: PGHOST
+                  value: "shared-db"
+                - name: PGDATABASE
+                  value: "website"
+                - name: PGUSER
+                  value: "website"
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: WEBSITE_DB_PASSWORD
+                - name: VOYAGE_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: knowledge-secrets
+                      key: VOYAGE_API_KEY
+                - name: BRAND
+                  value: "mentolder"
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: node-modules
+                  mountPath: /scripts/node_modules
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          volumes:
+            - name: scripts
+              configMap:
+                name: knowledge-scripts
+            - name: node-modules
+              emptyDir: {}

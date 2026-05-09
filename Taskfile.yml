@@ -996,6 +996,19 @@ tasks:
         echo ""
         bash scripts/backup-restore.sh restore {{.CLI_ARGS}} $ctx_arg
 
+  db:diagram:
+    desc: Regenerate docs/db-schema-diagram.md from live shared-db
+    vars:
+      CTX: '{{if ne .ENV "dev"}}--context {{.ENV}}{{end}}'
+      NS: '{{if eq .ENV "korczewski"}}workspace-korczewski{{else}}workspace{{end}}'
+    cmds:
+      - kubectl {{.CTX}} port-forward -n {{.NS}} svc/shared-db 5432:5432 & echo $! > /tmp/db-diagram-pf.pid
+      - sleep 3
+      - python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
+      - kill $(cat /tmp/db-diagram-pf.pid) 2>/dev/null || true
+      - rm -f /tmp/db-diagram-pf.pid
+      - echo "Written to docs/db-schema-diagram.md"
+
   workspace:teardown:
     desc: Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
     vars:

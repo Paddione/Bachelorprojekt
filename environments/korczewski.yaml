@@ -1,6 +1,6 @@
 # environments/korczewski.yaml
 environment: korczewski
-context: mentolder
+context: korczewski-ha
 domain: korczewski.de
 
 env_vars:
@@ -27,8 +27,8 @@ env_vars:
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
-  TURN_PUBLIC_IP: "62.238.9.39"
-  TURN_NODE: "pk-hetzner"
+  TURN_PUBLIC_IP: "37.27.251.38"
+  TURN_NODE: "pk-hetzner-6"
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
   DOCS_URL: "https://docs.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
@@ -38,7 +38,7 @@ env_vars:
   MAIL_EXTERNAL_URL: "https://mail.korczewski.de"
   BRETT_DOMAIN: brett.korczewski.de
   LIVEKIT_DOMAIN: livekit.korczewski.de
-  LIVEKIT_PIN_IP: "178.104.159.79"
+  LIVEKIT_PIN_IP: "37.27.251.38"
   STREAM_DOMAIN: stream.korczewski.de
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"

@@ -21,134 +21,116 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 
-# korczewski-specific workload placement.
+# korczewski standalone cluster (korczewski-ha).
 #
-# The unified `mentolder` cluster has a Flannel VXLAN partition between its
-# 6 Hetzner control-planes (gekko-hetzner-2/3/4, pk-hetzner, pk-hetzner-2,
-# pk-hetzner-3) and its 6 home-LAN workers (k3s-1/2/3, k3w-1/2/3). Pods on
-# either side cannot reach ClusterIPs / pod IPs on the other side. CoreDNS
-# is pinned to a Hetzner node, so any pod on a home worker also loses DNS.
+# Three-node dedicated cluster: pk-hetzner-4 (control-plane,etcd),
+# pk-hetzner-6 + pk-hetzner-8 (workers). All cluster-scoped resources
+# (ClusterIssuer letsencrypt-prod, ClusterRole/Binding tls-sync,
+# ClusterRole/Binding claude-code-agent, IngressClass traefik) are
+# created on this cluster — unlike the previous unified-cluster overlay
+# which had to delete them to avoid SharedResourceWarning with the
+# mentolder workspace-hetzner overlay.
 #
-# Mentolder pods sit on Hetzner CPs because they were scheduled before the
-# home workers joined; korczewski's pods were scheduled AFTER the merge and
-# drifted to the home-worker side, which broke DNS, DB connectivity, and
-# ingress upstreams. The blanket affinity below makes the placement explicit
-# so the scheduler cannot drift back.
-#
-# Exception: livekit-server / livekit-redis are pinned to k3s-3 by
-# patch-livekit.yaml (hostNetwork + pinned public IP). Traefik on pk-hetzner
-# reaches livekit-server via WireGuard because it uses the host network.
+# livekit-server / livekit-redis / livekit-egress / livekit-ingress are
+# pinned to pk-hetzner-6 by patch-livekit.yaml (hostNetwork + STUN
+# discovers the real public IP via TURN_PUBLIC_IP=37.27.251.38).
 patches:
-  # Switch recordings PVC from local-path to longhorn so it survives node reschedules.
-  # One-time live migration: delete livekit-recordings-pvc on the cluster, then re-sync.
-  - target:
-      kind: PersistentVolumeClaim
-      name: livekit-recordings-pvc
-    patch: |-
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: livekit-recordings-pvc
-      spec:
-        storageClassName: longhorn
-  - target:
-      kind: Deployment
-    patch: |-
-      - op: add
-        path: /spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: NotIn
-                      values:
-                        - k3s-1
-                        - k3s-2
-                        - k3s-3
-                        - k3w-1
-                        - k3w-2
-                        - k3w-3
-  # CronJob templates are nested one level deeper than Deployments,
-  # so they need a separate patch path.
-  - target:
-      kind: CronJob
-    patch: |-
-      - op: add
-        path: /spec/jobTemplate/spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: NotIn
-                      values:
-                        - k3s-1
-                        - k3s-2
-                        - k3s-3
-                        - k3w-1
-                        - k3w-2
-                        - k3w-3
+  # livekit-recordings-pvc uses the base manifest's storage class.
+  # Longhorn is NOT installed on korczewski-ha; recordings live on local-path,
+  # tied to the livekit pin-node (pk-hetzner-6). This is acceptable because
+  # livekit-* are pinned to that node anyway via patch-livekit.yaml.
   - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
   - path: patch-cronjob-urls.yaml
   - path: patch-mcp-config.yaml
-  # Cluster-scoped resources are owned exclusively by workspace-hetzner (mentolder).
-  # Both overlays deploy to the same physical cluster, so rendering these here
-  # causes ArgoCD SharedResourceWarning — suppress them from korczewski.
+
+  # ── Standalone korczewski-ha node placement ──────────────────────
+  # Base manifests pin certain workloads to the mentolder Hetzner CPs
+  # (gekko-hetzner-2/3/4, pk-hetzner/-2/-3) which do NOT exist on
+  # korczewski-ha. Override the node values list to korczewski-ha's
+  # nodes (pk-hetzner-4, pk-hetzner-6, pk-hetzner-8) so workloads can
+  # actually schedule. Replace operates on the whole values array.
+
+  # website Deployment (k3d/website.yaml) — base pin: gekko-hetzner-2/3
   - target:
-      kind: ClusterIssuer
-      name: letsencrypt-prod
+      kind: Deployment
+      name: website
     patch: |-
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: letsencrypt-prod
-      $patch: delete
+      - op: replace
+        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+        value:
+          - pk-hetzner-4
+          - pk-hetzner-6
+          - pk-hetzner-8
+
+  # brett Deployment (k3d/brett.yaml) — base uses NotIn against pk-hetzner
+  # and gekko-hetzner-4 (mentolder home-worker exclusion). On korczewski-ha
+  # neither node is in our pool, so the NotIn list is vacuous; flip to a
+  # positive In selector against korczewski-ha nodes for clarity.
   - target:
-      kind: ClusterRole
-      name: tls-sync
+      kind: Deployment
+      name: brett
     patch: |-
-      apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRole
-      metadata:
-        name: tls-sync
-      $patch: delete
+      - op: replace
+        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
+        value:
+          key: kubernetes.io/hostname
+          operator: In
+          values:
+            - pk-hetzner-4
+            - pk-hetzner-6
+            - pk-hetzner-8
+
+  # CronJobs that pin to mentolder Hetzner CPs:
+  #   - tests-retention      (k3d/tests-retention-cronjob.yaml — applied separately, not via kustomize)
+  #   - knowledge-ingest     (init + main containers both pinned)
+  #   - bug-tickets-ingest   (k3d/bug-tickets-ingest-cronjob.yaml)
+  #   - feedback-tickets-ingest
+  #
+  # Note: tests-retention-cronjob.yaml is applied OUTSIDE kustomize (see
+  # workspace:deploy task line ~1304). The base affinity there must also
+  # be safe on korczewski-ha; on this 3-node cluster the In-list misses,
+  # so the pod stays Pending. The CronJob is best-effort — flag for follow-up.
+  #
+  # CronJobs in k3d/knowledge-ingest-cronjob.yaml — 4 of them, all pinned to
+  # mentolder Hetzner CPs in base. Repoint to korczewski-ha node pool.
   - target:
-      kind: ClusterRoleBinding
-      name: tls-sync
+      kind: CronJob
+      name: knowledge-ingest-prs
     patch: |-
-      apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRoleBinding
-      metadata:
-        name: tls-sync
-      $patch: delete
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+        value:
+          - pk-hetzner-4
+          - pk-hetzner-6
+          - pk-hetzner-8
   - target:
-      kind: ClusterRole
-      name: claude-code-agent
+      kind: CronJob
+      name: knowledge-ingest-markdown
     patch: |-
-      apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRole
-      metadata:
-        name: claude-code-agent
-      $patch: delete
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+        value:
+          - pk-hetzner-4
+          - pk-hetzner-6
+          - pk-hetzner-8
   - target:
-      kind: ClusterRoleBinding
-      name: claude-code-agent
+      kind: CronJob
+      name: knowledge-ingest-bugs
     patch: |-
-      apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRoleBinding
-      metadata:
-        name: claude-code-agent
-      $patch: delete
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+        value:
+          - pk-hetzner-4
+          - pk-hetzner-6
+          - pk-hetzner-8
   - target:
-      kind: IngressClass
-      name: traefik
+      kind: CronJob
+      name: knowledge-reindex-all
     patch: |-
-      apiVersion: networking.k8s.io/v1
-      kind: IngressClass
-      metadata:
-        name: traefik
-      $patch: delete
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+        value:
+          - pk-hetzner-4
+          - pk-hetzner-6
+          - pk-hetzner-8

@@ -728,6 +728,68 @@ export async function archiveQAssignment(id: string): Promise<
   }
 }
 
+export async function autoEvaluateQAssignment(id: string): Promise<void> {
+  const assignment = await getQAssignment(id);
+  if (!assignment || assignment.status !== 'submitted') return;
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const dimsRes = await client.query<QDimension>(
+      `SELECT id, template_id, name, position, threshold_mid, threshold_high,
+              score_multiplier, created_at
+         FROM questionnaire_dimensions WHERE template_id = $1 ORDER BY position`,
+      [assignment.template_id],
+    );
+    const optsRes = await client.query<QAnswerOption>(
+      `SELECT ao.id, ao.question_id, ao.option_key, ao.label, ao.dimension_id, ao.weight
+         FROM questionnaire_answer_options ao
+         JOIN questionnaire_questions q ON q.id = ao.question_id
+        WHERE q.template_id = $1`,
+      [assignment.template_id],
+    );
+    const ansRes = await client.query<QAnswer>(
+      `SELECT id, assignment_id, question_id, option_key, details_text, saved_at
+         FROM questionnaire_answers WHERE assignment_id = $1`,
+      [id],
+    );
+
+    const { computeScores } = await import('./compute-scores');
+    const scores = computeScores(dimsRes.rows, optsRes.rows, ansRes.rows);
+    for (const s of scores) {
+      await client.query(
+        `INSERT INTO questionnaire_assignment_scores
+           (assignment_id, dimension_id, dimension_name, final_score,
+            threshold_mid, threshold_high, level)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT ON CONSTRAINT uq_qas_assignment_dimension
+         DO UPDATE SET
+           final_score    = EXCLUDED.final_score,
+           dimension_name = EXCLUDED.dimension_name,
+           level          = EXCLUDED.level,
+           snapshot_at    = now()`,
+        [id, s.dimension_id, s.name, s.final_score,
+         s.threshold_mid, s.threshold_high, s.level],
+      );
+    }
+
+    await client.query(
+      `UPDATE questionnaire_assignments
+          SET status = 'reviewed', reviewed_at = now()
+        WHERE id = $1 AND status = 'submitted'`,
+      [id],
+    );
+
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export async function reassignQAssignment(id: string): Promise<
   | { assignment: QAssignment }
   | { reason: 'not_found' }

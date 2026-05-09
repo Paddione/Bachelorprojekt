@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession } from '../../../../../lib/auth';
 import { getCustomerByEmail } from '../../../../../lib/website-db';
 import {
-  getQAssignment, updateQAssignment, updateTestStatuses,
+  getQAssignment, updateQAssignment, updateTestStatuses, autoEvaluateQAssignment,
 } from '../../../../../lib/questionnaire-db';
 import { sendQuestionnaireSubmitted } from '../../../../../lib/email';
 
@@ -25,9 +25,11 @@ export const POST: APIRoute = async ({ request, params }) => {
   }
 
   await updateQAssignment(assignment.id, { status: 'submitted' });
-  // Update test status tracking (no-op for non-test_step templates)
   await updateTestStatuses(assignment.id).catch((err: unknown) =>
     console.error('[submit] updateTestStatuses failed:', err),
+  );
+  await autoEvaluateQAssignment(assignment.id).catch((err: unknown) =>
+    console.error('[submit] autoEvaluateQAssignment failed:', err),
   );
 
   const auswertungUrl = PROD_DOMAIN

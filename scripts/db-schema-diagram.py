@@ -21,16 +21,21 @@ PG_USER = os.environ.get("PG_USER", "postgres")
 
 
 def psql(database: str, query: str) -> list[dict]:
-    result = subprocess.run(
-        [
-            "psql",
-            f"--host={PG_HOST}", f"--port={PG_PORT}", f"--username={PG_USER}",
-            f"--dbname={database}",
-            "--csv", "--no-psqlrc", "--tuples-only", "--command", query,
-        ],
-        capture_output=True, text=True,
-        env={**os.environ, "PGPASSWORD": os.environ.get("PGPASSWORD", "")},
-    )
+    try:
+        result = subprocess.run(
+            [
+                "psql",
+                f"--host={PG_HOST}", f"--port={PG_PORT}", f"--username={PG_USER}",
+                f"--dbname={database}",
+                "--csv", "--no-psqlrc", "--command", query,
+            ],
+            capture_output=True, text=True,
+            timeout=30,
+            env={**os.environ, "PGPASSWORD": os.environ.get("PGPASSWORD", "")},
+        )
+    except subprocess.TimeoutExpired:
+        print(f"[psql timeout on {database}]", file=sys.stderr)
+        return []
     if result.returncode != 0:
         print(f"[psql error on {database}]: {result.stderr}", file=sys.stderr)
         return []
@@ -56,7 +61,8 @@ FROM information_schema.table_constraints tc
 JOIN information_schema.key_column_usage kcu
   ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
 JOIN information_schema.constraint_column_usage ccu
-  ON tc.constraint_name = ccu.constraint_name AND tc.table_schema = ccu.table_schema
+  ON tc.constraint_name = ccu.constraint_name
+     AND tc.constraint_schema = ccu.constraint_schema
 WHERE tc.constraint_type = 'FOREIGN KEY'
   AND tc.table_schema NOT IN ('pg_catalog','information_schema')
   AND NOT (ccu.table_schema = tc.table_schema AND ccu.table_name = tc.table_name)
@@ -153,6 +159,7 @@ PG_TYPE_MAP = {
     "json": "json",
     "bytea": "bytes",
     "ARRAY": "array",
+    "USER-DEFINED": "enum",
 }
 
 NORMALIZATION_FINDINGS = """
@@ -182,7 +189,8 @@ def safe_name(schema: str, table: str) -> str:
 
 
 def pg_type(data_type: str) -> str:
-    return PG_TYPE_MAP.get(data_type, data_type[:10])
+    import re
+    return PG_TYPE_MAP.get(data_type, re.sub(r'[^A-Za-z0-9_]', '_', data_type[:12]))
 
 
 def build_mermaid_block(
@@ -208,6 +216,7 @@ def build_mermaid_block(
     for schema, table in sorted(domain_set):
         cols = all_cols.get((schema, table), [])
         if not cols:
+            print(f"[warn] {schema}.{table} not found in DB — skipped", file=sys.stderr)
             continue
         pk_cols = all_pks.get((schema, table), set())
         fk_col_set = fk_cols_by_table.get((schema, table), set())

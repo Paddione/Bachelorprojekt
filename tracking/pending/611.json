@@ -1,0 +1,12 @@
+{
+  "pr_number": 611,
+  "title": "wire rrweb recorder into QuestionnaireWizard",
+  "description": "## Summary\n\nPR #590 shipped the rrweb recorder module, upload endpoint, evidence PVC, schema, and kanban — but never wired `startRecorder()` into the actual wizard. Result: both prod clusters had empty `/var/evidence` PVCs and zero rows in `questionnaire_test_evidence` since the feature shipped on 2026-05-08.\n\nThis wires the recorder lifecycle into `QuestionnaireWizard.svelte`:\n\n- `portal/fragebogen/[assignmentId].astro` passes `recordEvidence` (`isSystemTest && SYSTEMTEST_LOOP_ENABLED && isAdmin`) and per-question `attemptByQuestion` (from `questionnaire_test_status.retest_attempt`) to the wizard.\n- Wizard lazy-imports `lib/systemtest/recorder` when entering a `test_step` question on a recordable run — the rrweb bundle (~71 kB gzipped 24 kB) only ships to admin-led system-test sessions.\n- Transitions are serialized on a single `recorderChain` promise so the previous recorder's `window.fetch` / `console` patches are restored before the next recorder installs its own (otherwise concurrent patches cross-pollute).\n- `submit()` and `confirmDismiss()` await `queueRecorderTransition(null)` before the state-change POST, so the last chunk lands while the assignment is still `pending` (cleanup CronJob otherwise might purge fixtures before the final flush).\n\n## Test plan\n\n- [x] `npx tsc --noEmit` clean\n- [x] `npx astro build` clean — `recorder.*.js` chunk lazy-loaded out of the wizard bundle\n- [x] `npx vitest run src/lib/systemtest/` passes\n- [ ] Deploy to mentolder + korczewski\n- [ ] Run a system-test questionnaire as admin → verify `.rrweb` files appear in `/var/evidence/<assignmentId>/<questionId>/<attempt>.rrweb`\n- [ ] Verify `questionnaire_test_evidence` row created\n- [ ] Open the failure-loop board → click Replay button on the new evidence\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "systemtest",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-09T02:40:13Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

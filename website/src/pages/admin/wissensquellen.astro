@@ -1,0 +1,116 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import KnowledgeSourceModal from '../../components/admin/KnowledgeSourceModal.svelte';
+import { listCollections } from '../../lib/knowledge-db';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+let collections: Awaited<ReturnType<typeof listCollections>> = [];
+try {
+  collections = await listCollections();
+} catch {
+  // DB may not have knowledge schema yet in dev — show empty state
+}
+
+const builtins = collections.filter(c => c.source !== 'custom');
+const customs  = collections.filter(c => c.source === 'custom');
+---
+<AdminLayout title="Wissensquellen">
+  <div class="page">
+    <header class="page-head">
+      <h1>Wissensquellen</h1>
+      <button id="new-btn" class="primary">+ Neue Wissensquelle</button>
+    </header>
+
+    <h2>Eingebaut</h2>
+    {builtins.length === 0
+      ? <p class="muted">Noch keine eingebauten Quellen indexiert.</p>
+      : (
+        <table class="table">
+          <thead><tr><th>Name</th><th>Quelle</th><th>Marke</th><th>Chunks</th><th>Letzter Index</th><th></th></tr></thead>
+          <tbody>
+            {builtins.map(c => (
+              <tr>
+                <td>{c.name}</td>
+                <td><code>{c.source}</code></td>
+                <td>{c.brand ?? '—'}</td>
+                <td>{c.chunk_count}</td>
+                <td>{c.last_indexed_at ? new Date(c.last_indexed_at).toLocaleString('de-DE') : '—'}</td>
+                <td><button data-reindex={c.id} class="action">Re-index</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    }
+
+    <h2>Eigene Sammlungen</h2>
+    {customs.length === 0
+      ? <p class="muted">Noch keine eigenen Sammlungen.</p>
+      : (
+        <table class="table">
+          <thead><tr><th>Name</th><th>Marke</th><th>Chunks</th><th>Erstellt</th><th></th></tr></thead>
+          <tbody>
+            {customs.map(c => (
+              <tr>
+                <td>{c.name}</td>
+                <td>{c.brand ?? 'beide'}</td>
+                <td>{c.chunk_count}</td>
+                <td>{new Date(c.created_at).toLocaleDateString('de-DE')}</td>
+                <td><button data-delete={c.id} class="danger">Löschen</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    }
+
+    <KnowledgeSourceModal client:load onCreated={() => location.reload()} />
+  </div>
+
+  <script is:inline>
+    document.getElementById('new-btn').addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('open-wissensquellen-modal'));
+    });
+    document.querySelectorAll('[data-reindex]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.reindex;
+        const r = await fetch(`/api/admin/knowledge/collections/${id}/reindex`, { method: 'POST' });
+        const j = await r.json().catch(() => ({}));
+        if (j.cmd) {
+          alert(`Bitte ausführen:\n${j.cmd}`);
+        } else {
+          alert(j.message ?? j.error ?? 'Fehler');
+        }
+      });
+    });
+    document.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Wirklich löschen?')) return;
+        const id = btn.dataset.delete;
+        const r = await fetch(`/api/admin/knowledge/collections/${id}`, { method: 'DELETE' });
+        if (r.ok) location.reload();
+        else alert('Fehler beim Löschen');
+      });
+    });
+  </script>
+
+  <style>
+    .page { padding: 2rem 1.5rem; max-width: 960px; }
+    .page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.75rem; font-weight: 700; color: var(--fg); }
+    h2 { font-size: 1rem; font-weight: 600; color: var(--fg-soft); text-transform: uppercase; letter-spacing: 0.06em; margin: 1.5rem 0 0.5rem; }
+    .table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 1.5rem; }
+    .table th, .table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--ink-750); text-align: left; color: var(--fg); }
+    .table th { color: var(--fg-soft); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .primary { background: var(--brass); color: var(--ink-900); border: none; padding: 0.55rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+    .action { background: transparent; color: var(--fg-soft); border: 1px solid var(--ink-750); padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .action:hover { color: var(--fg); border-color: var(--fg-soft); }
+    .danger { background: transparent; color: #c96e6e; border: 1px solid #c96e6e; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .muted { color: var(--fg-soft); font-style: italic; font-size: 13px; }
+    code { font-family: monospace; font-size: 11px; background: var(--ink-900); padding: 0.1rem 0.3rem; border-radius: 3px; }
+  </style>
+</AdminLayout>

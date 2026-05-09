@@ -95,9 +95,3 @@ def parse_plan(file_path: str) -> dict:
         'sections': sections,
     }
 
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: plans_parse.py <plan.md>", file=sys.stderr)
-        sys.exit(1)
-    result = parse_plan(sys.argv[1])
-    print(json.dumps(result, indent=2))

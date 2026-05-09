@@ -48,7 +48,34 @@ def test_parse_sections():
     finally:
         os.unlink(path)
 
+def test_no_frontmatter_raises():
+    with tempfile.NamedTemporaryFile(suffix='.md', mode='w', delete=False) as f:
+        f.write("# Title without frontmatter\n\n## Section\n\ncontent\n")
+        path = f.name
+    try:
+        try:
+            pp.parse_plan(path)
+            assert False, "Expected ValueError"
+        except ValueError as e:
+            assert "frontmatter" in str(e).lower()
+    finally:
+        os.unlink(path)
+
+def test_no_h2_sections():
+    content = "---\ntitle: Minimal\ndomains: []\nstatus: active\npr_number: null\n---\nJust a paragraph.\n"
+    with tempfile.NamedTemporaryFile(suffix='.md', mode='w', delete=False) as f:
+        f.write(content)
+        path = f.name
+    try:
+        result = pp.parse_plan(path)
+        assert len(result['sections']) == 1
+        assert result['sections'][0]['section_type'] == 'overview'
+    finally:
+        os.unlink(path)
+
 if __name__ == '__main__':
     test_parse_frontmatter()
     test_parse_sections()
+    test_no_frontmatter_raises()
+    test_no_h2_sections()
     print("All tests passed.")

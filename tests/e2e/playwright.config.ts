@@ -97,14 +97,27 @@ export default defineConfig({
       },
     },
 
+    // ── korczewski-setup: seeds auth state for korczewski tests ─────
+    // Runs before `korczewski` via the `dependencies` field.
+    // Performs real OIDC login and writes .auth/korczewski-*.json.
+    {
+      name: 'korczewski-setup',
+      testMatch: '**/korczewski-auth-setup.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+      },
+    },
+
     // ── korczewski: Korczewski-brand & cross-cluster specs ───────
     // Run: playwright test --project=korczewski
     {
       name: 'korczewski',
+      dependencies: ['korczewski-setup'],
       testMatch: [
         '**/korczewski-home.spec.ts',  // Kore brand homepage
         '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
-        '**/dashboard-art.spec.ts',    // Dashboard art-library tab
+        '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
       ],
       use: {
         ...devices['Desktop Chrome'],

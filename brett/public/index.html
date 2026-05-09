@@ -237,18 +237,7 @@
 <div id="toolbar">
   <span class="tlabel">Figur</span>
 
-  <button class="figure-btn" data-type="figure-01" aria-label="Figur I" title="Figur I">
-    <span class="figure-art" data-art-slot="figure-01"></span>
-  </button>
-  <button class="figure-btn" data-type="figure-02" aria-label="Figur II" title="Figur II">
-    <span class="figure-art" data-art-slot="figure-02"></span>
-  </button>
-  <button class="figure-btn" data-type="figure-03" aria-label="Figur III" title="Figur III">
-    <span class="figure-art" data-art-slot="figure-03"></span>
-  </button>
-  <button class="figure-btn" data-type="figure-04" aria-label="Figur IV" title="Figur IV">
-    <span class="figure-art" data-art-slot="figure-04"></span>
-  </button>
+  <div id="figure-buttons" style="display:flex;gap:6px;"></div>
 
   <div class="sep"></div>
   <span class="tlabel">Farbe</span>
@@ -659,15 +648,29 @@ async function bootArtLibrary() {
     }
     await Promise.all([...characterIds].map(loadCharacterTexture));
     console.log('[art] loaded', characterIds.size, 'characters');
-    for (const id of characterIds) {
-      const slot = document.querySelector(`.figure-art[data-art-slot="${id}"]`);
-      if (!slot) continue;
-      const meta = ART_MANIFEST.assets.find(a => a.id === id);
-      const svgText = await fetch('/art-library/' + meta.files.figurine).then(r => r.text());
-      const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
-      const svgNode = doc.documentElement;
-      while (slot.firstChild) slot.removeChild(slot.firstChild);
-      slot.appendChild(document.importNode(svgNode, true));
+    const container = document.getElementById('figure-buttons');
+    for (const a of ART_MANIFEST.assets) {
+      if (!characterIds.has(a.id)) continue;
+      const btn = document.createElement('button');
+      btn.className = 'figure-btn';
+      btn.dataset.type = a.id;
+      btn.title = a.label || a.id;
+      btn.setAttribute('aria-label', a.label || a.id);
+      const artSpan = document.createElement('span');
+      artSpan.className = 'figure-art';
+      btn.appendChild(artSpan);
+      const svgText = await fetch('/art-library/' + a.files.figurine).then(r => r.text());
+      const parsed = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+      artSpan.appendChild(document.importNode(parsed.documentElement, true));
+      btn.addEventListener('click', () => {
+        const x = (Math.random()-0.5)*(BW-4);
+        const z = (Math.random()-0.5)*(BD-4);
+        const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
+        send({ type: 'add', fig: figToJSON(fig) });
+        selectFigure(fig);
+        openLabelModal(fig);
+      });
+      container.appendChild(btn);
     }
   } catch (e) {
     console.warn('[art] manifest unavailable, using legacy shapes', e.message);

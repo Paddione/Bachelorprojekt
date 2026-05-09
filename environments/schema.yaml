@@ -68,6 +68,11 @@ env_vars:
     default_dev: "website"
     description: "Kubernetes namespace for the Astro website (separate per env on unified cluster)"
 
+  - name: WEBSITE_NODE_AFFINITY
+    required: false
+    default_dev: ""
+    description: "JSON array of node hostnames for website Deployment nodeAffinity (overrides base manifest gekko-hetzner-2/3). Set for envs on non-standard node layouts."
+
   - name: WORKSPACE_NAMESPACE
     required: false
     default_dev: "workspace"

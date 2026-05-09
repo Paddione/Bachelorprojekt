@@ -1014,3 +1014,25 @@ export async function listEvidenceByAssignment(
   );
   return r.rows;
 }
+
+// Per-question retest_attempt for the rrweb recorder. Rows in
+// questionnaire_test_status are keyed by question_id; the row only belongs to
+// THIS assignment if last_assignment_id matches. Questions without a status
+// row (or where last_assignment_id is a sibling assignment) are fresh runs at
+// attempt 0.
+export async function listTestStepAttempts(
+  assignmentId: string,
+): Promise<Record<string, number>> {
+  const r = await pool.query(
+    `SELECT question_id, retest_attempt
+       FROM questionnaire_test_status
+      WHERE last_assignment_id = $1`,
+    [assignmentId],
+  );
+  return Object.fromEntries(
+    r.rows.map((row: { question_id: string; retest_attempt: number | null }) => [
+      row.question_id,
+      row.retest_attempt ?? 0,
+    ]),
+  );
+}

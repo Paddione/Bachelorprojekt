@@ -17,8 +17,64 @@
     instructions: string;
     questions: QuestionData[];
     initialAnswers: Array<{ question_id: string; option_key: string; details_text?: string | null }>;
+    recordEvidence?: boolean;
+    attemptByQuestion?: Record<string, number>;
   };
-  const { assignmentId, title, instructions, questions, initialAnswers }: Props = $props();
+  const {
+    assignmentId,
+    title,
+    instructions,
+    questions,
+    initialAnswers,
+    recordEvidence = false,
+    attemptByQuestion = {},
+  }: Props = $props();
+
+  // rrweb recorder for system-test runs. Lazy-loaded so the rrweb bundle is
+  // only fetched when an admin-led system-test session needs it. The recorder
+  // patches window.fetch and console — running two at once would corrupt
+  // those globals (a stale wrapper outlives the patch chain), so all
+  // start/finalize operations are serialized on `recorderChain`.
+  type RecorderHandle = {
+    finalize(): Promise<{ evidenceId: string | null; partial: boolean }>;
+    cancel(): void;
+  };
+  let activeRecorder: RecorderHandle | null = null;
+  let recorderChain: Promise<void> = Promise.resolve();
+
+  async function startEvidenceRecorderInner(questionId: string) {
+    try {
+      const mod = await import('../../lib/systemtest/recorder');
+      activeRecorder = mod.startRecorder({
+        assignmentId,
+        questionId,
+        attempt: attemptByQuestion[questionId] ?? 0,
+      });
+    } catch (e) {
+      // Recording is best-effort; never block the wizard if the bundle
+      // fails to load (e.g. offline). The user can still complete the test.
+      console.warn('[wizard] failed to start evidence recorder', e);
+    }
+  }
+
+  async function finalizeEvidenceRecorderInner() {
+    const rec = activeRecorder;
+    activeRecorder = null;
+    if (!rec) return;
+    try {
+      await rec.finalize();
+    } catch (e) {
+      console.warn('[wizard] evidence finalize failed', e);
+    }
+  }
+
+  function queueRecorderTransition(nextQuestionId: string | null) {
+    recorderChain = recorderChain.then(async () => {
+      await finalizeEvidenceRecorderInner();
+      if (nextQuestionId) await startEvidenceRecorderInner(nextQuestionId);
+    });
+    return recorderChain;
+  }
 
   let answers = $state<Record<string, string>>(
     Object.fromEntries(initialAnswers.map(a => [a.question_id, a.option_key]))
@@ -75,6 +131,24 @@
   $effect(() => {
     const qId = questions[currentIndex]?.id;
     pendingTestOption = qId ? (answers[qId] ?? '') : '';
+  });
+
+  // Recorder lifecycle: start when entering a test_step on a recordable run,
+  // finalize when leaving. Reads `phase` so the intro/done/dismissed screens
+  // never hold a recorder. Transitions are serialized via `recorderChain` so
+  // the previous recorder's fetch/console patches are restored before the
+  // next recorder installs its own.
+  $effect(() => {
+    const q = questions[currentIndex];
+    const shouldRecord =
+      recordEvidence
+      && phase === 'question'
+      && q?.question_type === 'test_step';
+    void queueRecorderTransition(shouldRecord && q ? q.id : null);
+    return () => {
+      // Component teardown — queue one last finalize.
+      void queueRecorderTransition(null);
+    };
   });
 
   const current = $derived(questions[currentIndex]);
@@ -171,6 +245,9 @@
 
   async function confirmDismiss() {
     dismissing = true; dismissError = '';
+    // Finalize before the dismiss POST so the last chunk lands on the
+    // assignment that's about to leave the active state.
+    await queueRecorderTransition(null);
     try {
       const r = await fetch(`/api/portal/questionnaires/${assignmentId}/dismiss`, {
         method: 'POST',
@@ -194,6 +271,9 @@
 
   async function submit() {
     submitting = true; error = '';
+    // Finalize the active recorder (if any) before submit so the last test
+    // step's evidence is durable before the assignment leaves 'pending'.
+    await queueRecorderTransition(null);
     try {
       const r = await fetch(`/api/portal/questionnaires/${assignmentId}/submit`, { method: 'POST' });
       if (r.ok) {

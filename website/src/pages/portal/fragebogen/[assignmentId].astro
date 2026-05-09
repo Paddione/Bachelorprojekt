@@ -1,13 +1,15 @@
 ---
 // website/src/pages/portal/fragebogen/[assignmentId].astro
 import PortalLayout from '../../../layouts/PortalLayout.astro';
-import { getSession, getLoginUrl } from '../../../lib/auth';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { getCustomerByEmail } from '../../../lib/website-db';
 import {
   getQAssignment, getQTemplate,
   listQQuestions, listQAnswers,
   countPendingQAssignmentsForCustomer,
+  listTestStepAttempts,
 } from '../../../lib/questionnaire-db';
+import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
 import QuestionnaireWizard from '../../../components/portal/QuestionnaireWizard.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -32,6 +34,15 @@ const [questions, answers] = await Promise.all([
   listQAnswers(assignment.id),
 ]);
 const pendingCount = await countPendingQAssignmentsForCustomer(customer.id).catch(() => 0);
+
+// rrweb evidence captured only on admin-led system-test runs: the upload
+// endpoint is admin-gated and the failure-loop kanban only consumes evidence
+// for is_system_test templates. The flag is the master kill-switch.
+const isSystemTest = tpl?.is_system_test ?? false;
+const recordEvidence = isSystemTest && isSystemtestLoopEnabled() && isAdmin(session);
+const attemptByQuestion = recordEvidence
+  ? await listTestStepAttempts(assignmentId).catch(() => ({} as Record<string, number>))
+  : {};
 ---
 
 <PortalLayout
@@ -50,6 +61,8 @@ const pendingCount = await countPendingQAssignmentsForCustomer(customer.id).catc
         instructions={tpl?.instructions ?? ''}
         questions={questions}
         initialAnswers={answers}
+        recordEvidence={recordEvidence}
+        attemptByQuestion={attemptByQuestion}
       />
     </div>
   </section>

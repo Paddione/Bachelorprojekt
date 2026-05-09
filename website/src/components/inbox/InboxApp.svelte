@@ -21,7 +21,17 @@
   let items   = $state<InboxItem[]>(initialItems);
   let counts  = $state<Record<string, number>>(initialCounts);
 
-  let activeStatus = $state<InboxStatus>('pending');
+  // Read initial status from the URL query param (?status=pending|done|archived).
+  // "done" is the public label for "actioned" in the DB.
+  function readInitialStatus(): InboxStatus {
+    if (typeof window === 'undefined') return 'pending';
+    const s = new URLSearchParams(window.location.search).get('status');
+    if (s === 'done') return 'actioned';
+    if (s === 'pending' || s === 'actioned' || s === 'archived') return s;
+    return 'pending';
+  }
+
+  let activeStatus = $state<InboxStatus>(readInitialStatus());
   let activeType   = $state<InboxType | 'all'>('all');
   let searchQuery  = $state('');
 
@@ -204,7 +214,23 @@
     selectedId = visible[next].id;
   }
 
+  /** Map the public UI status label ("done") to the DB status ("actioned"). */
+  function uiToDb(s: string): InboxStatus {
+    if (s === 'done') return 'actioned';
+    return s as InboxStatus;
+  }
+
   function setStatus(s: InboxStatus): void {
+    // Always mirror the active status into the URL so that the test assertion
+    // `expect(page).toHaveURL(/status=…/)` works (spec §11.2), even when the
+    // status hasn't changed (e.g. clicking the already-active tab to re-anchor
+    // the URL on a fresh page load that had no ?status= param).
+    if (typeof window !== 'undefined' && typeof window.history !== 'undefined') {
+      const u = new URL(window.location.href);
+      // Expose the public label "done" in the URL (maps to "actioned" in DB).
+      u.searchParams.set('status', s === 'actioned' ? 'done' : s);
+      window.history.replaceState(null, '', u.toString());
+    }
     if (s === activeStatus) return;
     activeStatus = s;
     void reload();
@@ -379,7 +405,7 @@
         role="tab"
         class="tab {activeStatus === 'actioned' ? 'is-active' : ''}"
         data-testid="inbox-status-tab"
-        data-status="actioned"
+        data-status="done"
         aria-selected={activeStatus === 'actioned'}
         onclick={() => setStatus('actioned')}
       >Erledigt</button>
@@ -431,14 +457,6 @@
     </div>
 
     <div class="col col-detail">
-      {#if mobileView === 'detail'}
-        <button
-          type="button"
-          class="mobile-back"
-          aria-label="Zurück zur Liste"
-          onclick={() => { mobileView = 'list'; }}
-        >← Zurück</button>
-      {/if}
       <InboxDetail
         item={selected}
         counts={counts}
@@ -449,6 +467,7 @@
         replyBody={replyBody}
         replySending={replySending}
         bugNote={bugNote}
+        showMobileBack={mobileView === 'detail'}
         bindReplyTextarea={(el) => { replyTextarea = el; }}
         onPrev={() => moveSelection(-1)}
         onNext={() => moveSelection(+1)}
@@ -458,6 +477,7 @@
         onReplyChange={(v) => { replyBody = v; }}
         onSendReply={sendReply}
         onBugNoteChange={(v) => { bugNote = v; }}
+        onMobileBack={() => { mobileView = 'list'; }}
       />
     </div>
   </div>
@@ -551,7 +571,7 @@
   .col { display: flex; flex-direction: column; min-height: 0; }
   .col-detail { flex: 1; min-width: 0; }
 
-  .mobile-back, .mobile-back-row { display: none; }
+  .mobile-back-row { display: none; }
 
   /* Mobile: single column with view-state toggle */
   @media (max-width: 767px) {
@@ -579,19 +599,6 @@
       padding: 6px 12px 0;
       font: 400 11px var(--font-mono);
       color: var(--mute);
-    }
-
-    .mobile-back {
-      display: inline-flex;
-      align-self: flex-start;
-      margin: 10px 12px 0;
-      padding: 6px 10px;
-      background: var(--ink-850);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      color: var(--fg-soft);
-      font: 500 12px var(--font-sans);
-      cursor: pointer;
     }
   }
 </style>

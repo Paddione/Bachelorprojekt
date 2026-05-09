@@ -26,7 +26,7 @@
 import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 
 const BASE        = process.env.WEBSITE_URL ?? 'http://localhost:4321';
-const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'patrick';
+const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 const CRON_SECRET = process.env.CRON_SECRET;
 

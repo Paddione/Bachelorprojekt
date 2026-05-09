@@ -15,7 +15,7 @@ import { Pool } from 'pg';
 const BASE       = process.env.WEBSITE_URL         ?? 'http://localhost:4321';
 const DB_URL     = process.env.SESSIONS_DATABASE_URL
                 || 'postgresql://website:devwebsitedb@localhost:5432/website';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
+const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {

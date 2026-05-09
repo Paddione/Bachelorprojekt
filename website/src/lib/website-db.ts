@@ -3658,6 +3658,7 @@ export async function initBillingTables(): Promise<void> {
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS pdf_path TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS leitweg_id TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS factur_x_xml TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS xrechnung_xml TEXT`);

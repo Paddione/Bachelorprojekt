@@ -140,11 +140,11 @@ registerTrigger({
   async evaluate() {
     const r = await safeQuery<{
       id: string;
-      amount_cents: number | string;
+      amount: number | string;
       payer: string | null;
       invoice_number: string | null;
     }>(
-      `SELECT p.id, p.amount_cents, bc.name AS payer, i.number AS invoice_number
+      `SELECT p.id, p.amount, bc.name AS payer, i.number AS invoice_number
          FROM billing_invoice_payments p
          LEFT JOIN billing_invoices i ON i.id = p.invoice_id
          LEFT JOIN billing_customers bc ON bc.id = i.customer_id
@@ -155,8 +155,7 @@ registerTrigger({
     );
     const row = r?.rows[0];
     if (!row) return null;
-    const cents = typeof row.amount_cents === 'string' ? Number(row.amount_cents) : row.amount_cents;
-    const amount = (cents / 100).toFixed(2);
+    const amount = (typeof row.amount === 'string' ? Number(row.amount) : row.amount).toFixed(2);
     const payer = row.payer ?? 'Klient';
     const num = row.invoice_number ? ` (Rg. ${row.invoice_number})` : '';
     return {

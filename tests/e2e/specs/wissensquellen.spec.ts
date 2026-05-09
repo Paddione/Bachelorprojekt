@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
+const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {

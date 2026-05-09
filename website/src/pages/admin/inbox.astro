@@ -8,11 +8,17 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
+// Read ?status= from the URL; "done" maps to the DB value "actioned".
+const rawStatus = Astro.url.searchParams.get('status') ?? 'pending';
+const initialStatus = rawStatus === 'done' ? 'actioned'
+  : (rawStatus === 'actioned' || rawStatus === 'archived') ? rawStatus as 'actioned' | 'archived'
+  : 'pending' as const;
+
 let initialItems: Awaited<ReturnType<typeof listInboxItems>> = [];
 let initialCounts: Awaited<ReturnType<typeof countPendingByType>> = {};
 try {
   [initialItems, initialCounts] = await Promise.all([
-    listInboxItems({ status: 'pending' }),
+    listInboxItems({ status: initialStatus }),
     countPendingByType(),
   ]);
 } catch (err) {

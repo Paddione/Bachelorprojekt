@@ -47,7 +47,7 @@
 </script>
 
 <ol class="ticket-timeline">
-  {#each entries as e (e.at + '-' + e.kind)}
+  {#each entries as e, i (i + '-' + (typeof e.at === 'string' ? e.at : (e.at as Date).toISOString()) + '-' + e.kind)}
     <li class="ticket-timeline-row">
       <span class="ticket-timeline-dot" data-kind={e.kind}></span>
       <div class="ticket-timeline-body">

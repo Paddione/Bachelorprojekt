@@ -15,6 +15,8 @@
     replyBody: string;
     replySending: boolean;
     bugNote: string;
+    /** When true a "← Zurück" button is rendered at the top (mobile detail view). */
+    showMobileBack?: boolean;
     bindReplyTextarea?: (el: HTMLTextAreaElement | null) => void;
     onPrev: () => void;
     onNext: () => void;
@@ -26,14 +28,17 @@
     onReplyChange: (v: string) => void;
     onSendReply: () => void;
     onBugNoteChange: (v: string) => void;
+    onMobileBack?: () => void;
   }
 
   const {
     item, counts, busy, error,
     threadMessages, threadLoading, replyBody, replySending, bugNote,
+    showMobileBack = false,
     bindReplyTextarea,
     onPrev, onNext, onPrimary, onSecondary, onDelete,
     onReplyChange, onSendReply, onBugNoteChange,
+    onMobileBack,
   }: Props = $props();
 
   let replyEl: HTMLTextAreaElement | null = $state(null);
@@ -149,6 +154,14 @@
   data-testid="inbox-detail"
   data-type={item?.type ?? 'empty'}
 >
+  {#if showMobileBack}
+    <button
+      type="button"
+      class="mobile-back-btn"
+      aria-label="Zurück zur Liste"
+      onclick={() => onMobileBack?.()}
+    >← Zurück</button>
+  {/if}
   {#if !item}
     <div class="empty" data-testid="inbox-detail-empty">
       <span class="pulse" aria-hidden="true"></span>
@@ -448,6 +461,20 @@
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
+  }
+
+  .mobile-back-btn {
+    display: inline-flex;
+    align-self: flex-start;
+    margin: 10px 12px 0;
+    padding: 6px 10px;
+    background: var(--ink-850);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--fg-soft);
+    font: 500 12px var(--font-sans);
+    cursor: pointer;
+    flex-shrink: 0;
   }
 
   /* Empty state */

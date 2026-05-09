@@ -21,7 +21,7 @@
 import { test, expect } from '@playwright/test';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'patrick';
+const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 const COLUMN_TITLES = ['Offen', 'Fix in PR', 'Retest ausstehend', 'Grün (7 Tage)'];

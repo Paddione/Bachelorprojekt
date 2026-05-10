@@ -12,6 +12,7 @@ import {
   getEffectiveKontakt,
   getEffectiveReferenzen,
 } from '../../lib/content';
+import { getEffectiveCoaching } from '../../lib/coaching-content';
 import { getLegalPage, listCustomSections, getSiteSetting } from '../../lib/website-db';
 import { config } from '../../config/index';
 
@@ -30,6 +31,7 @@ const [
   faq,
   kontakt,
   referenzen,
+  coaching,
   impressum,
   datenschutz,
   agb,
@@ -44,6 +46,7 @@ const [
   getEffectiveFaq(),
   getEffectiveKontakt(),
   getEffectiveReferenzen(),
+  getEffectiveCoaching(BRAND),
   getLegalPage(BRAND, 'impressum-zusatz').then(v => v ?? ''),
   getLegalPage(BRAND, 'datenschutz').then(v => v ?? ''),
   getLegalPage(BRAND, 'agb').then(v => v ?? ''),
@@ -66,7 +69,7 @@ const RECHNUNG_DEFAULTS: Record<typeof RECHNUNG_KEYS[number], string> = {
   invoice_outro_text: 'Vielen Dank für Ihr Vertrauen!',
   invoice_email_subject: 'Rechnung {{number}}',
   invoice_email_body:
-    'Sehr geehrte/r {{customer_name}},\n\nanbei erhalten Sie Rechnung {{number}} über {{gross_amount}} €.\n\nBitte überweisen Sie den Betrag bis {{due_date}} unter Angabe des Verwendungszwecks „{{payment_reference}}".\n\nMit freundlichen Grüßen\n{{seller_name}}',
+    'Sehr geehrte/r {{customer_name}},\n\nanbei erhalten Sie Rechnung {{number}} über {{gross_amount}} €.\n\nBitte überweisen Sie den Betrag bis {{due_date}} unter Angabe des Verwendungszwecks „{{payment_reference}}“.\n\nMit freundlichen Grüßen\n{{seller_name}}',
 };
 
 const rechnungsResults = await Promise.all(RECHNUNG_KEYS.map(k => getSiteSetting(BRAND, k)));
@@ -83,6 +86,7 @@ const initialData = JSON.parse(JSON.stringify({
   faq,
   kontakt,
   referenzen,
+  coaching,
   rechtliches: { 'impressum-zusatz': impressum, datenschutz, agb, barrierefreiheit },
   customSections,
 }));

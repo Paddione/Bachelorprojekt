@@ -1,0 +1,12 @@
+{
+  "pr_number": 638,
+  "title": "ingest follow-ups — pages, grants, voyage sealing, throttle",
+  "description": "## Summary\n\nThree production-ready follow-ups discovered during the first real ingest of *Geißler — KI-Coaching* against the mentolder cluster (PR #635 + #637 are now in production).\n\n### 1. Page-metadata correctly populated\n\n`pdf-parse`'s `pagerender` callback uses a different character space than the assembled `data.text`, so the offset-based page lookup never matched — every chunk got `page: null`. Switched to a **linear approximation** in `ingest-book.mts` (`chunk_index / total * pageCount`) which gives ±1-2 page accuracy, plenty for citation. Independently: the chunk-INSERT in `lib-knowledge-pg.mjs` was missing the `metadata` column, so even when the page was computed it was silently dropped.\n\n### 2. Schema GRANTs in init/ensure scripts\n\nFresh `coaching.*` tables created by the init script run as `postgres` and the `website` role had no privileges. Added explicit `GRANT USAGE/SELECT/INSERT/UPDATE/DELETE` plus `ALTER DEFAULT PRIVILEGES` to **both** the init and ensure blocks. Future fresh deploys won't need a manual `task workspace:fix-tickets-grants`-style rescue.\n\n### 3. Voyage API key as SealedSecret\n\nRegistered `VOYAGE_API_KEY` in `environments/schema.yaml` with `extra_namespaces` mapping into `workspace/knowledge-secrets`, re-sealed mentolder. The cluster's knowledge-secrets is now GitOps-managed; my earlier direct `kubectl patch` is replaced. Future deploys persist the key.\n\n### Bonus\n\n- 70-second 429 recovery sleep in the throttle path of `ingest-book.mts` — Voyage's billing-page-required free tier (10K TPM rolling) is easy to hit even with conservative batches; the existing 250ms × 2^n backoff in `embeddings.ts` was way too short.\n\n## Verified end-to-end\n\n```\nSELECT count(*) AS total, count(metadata->>'page') AS with_page,\n       min((metadata->>'page')::int) AS min_p, max((metadata->>'page')::int) AS max_p\nFROM knowledge.chunks WHERE collection_id = 'd081f646-…';\n\n total | with_page | min_p | max_p\n-------+-----------+-------+-------\n   206 |       206 |     1 |   196\n```\n\n206/206 chunks with page anchors, range 1-196 of the 196-page PDF.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "coaching",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T06:07:08Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

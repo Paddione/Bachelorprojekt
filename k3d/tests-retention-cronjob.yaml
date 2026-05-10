@@ -18,9 +18,9 @@ spec:
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
                   - matchExpressions:
-                      - key: kubernetes.io/hostname
+                      - key: node-location
                         operator: In
-                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
+                        values: [hetzner]
           containers:
             - name: prune
               # alpine/k8s ships kubectl + /bin/sh on Alpine; matches the k3s

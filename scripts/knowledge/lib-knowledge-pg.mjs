@@ -49,9 +49,16 @@ export async function upsertDocumentAndChunks(pool, {
   await pool.query('DELETE FROM knowledge.chunks WHERE document_id = $1', [docId]);
   for (const c of chunks) {
     await pool.query(
-      `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [docId, collectionId, c.position, c.text, `[${c.embedding.join(',')}]`],
+      `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+      [
+        docId,
+        collectionId,
+        c.position,
+        c.text,
+        `[${c.embedding.join(',')}]`,
+        JSON.stringify(c.metadata ?? {}),
+      ],
     );
   }
   return { docId, reused: false };

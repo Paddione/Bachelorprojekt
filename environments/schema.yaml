@@ -505,6 +505,14 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: VOYAGE_API_KEY
+    required: false
+    generate: false
+    description: "Voyage AI API key for document embeddings (Coaching-Knowledge-Pipeline + knowledge-ingest CronJob). Get from https://dashboard.voyageai.com/api-keys."
+    extra_namespaces:
+      - namespace: workspace
+        secret: knowledge-secrets
+
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true

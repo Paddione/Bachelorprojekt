@@ -222,6 +222,15 @@ data:
       CREATE INDEX IF NOT EXISTS idx_assignments_template_id ON coaching.template_assignments(template_id);
       CREATE INDEX IF NOT EXISTS idx_assignments_client_id ON coaching.template_assignments(client_id);
 
+      -- Tables are owned by postgres (init script runs as postgres). Grant the
+      -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables
+      -- added in later migrations.
+      GRANT USAGE ON SCHEMA coaching TO website;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA coaching TO website;
+      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA coaching TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA coaching GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA coaching GRANT USAGE, SELECT ON SEQUENCES TO website;
+
       -- Indexes for MCP query patterns
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);
@@ -686,6 +695,15 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_assignments_template_id ON coaching.template_assignments(template_id);
       CREATE INDEX IF NOT EXISTS idx_assignments_client_id ON coaching.template_assignments(client_id);
+
+      -- Tables are owned by postgres (init script runs as postgres). Grant the
+      -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables
+      -- added in later migrations.
+      GRANT USAGE ON SCHEMA coaching TO website;
+      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA coaching TO website;
+      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA coaching TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA coaching GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO website;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA coaching GRANT USAGE, SELECT ON SEQUENCES TO website;
 
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);

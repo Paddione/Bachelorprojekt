@@ -57,14 +57,19 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS notes TEXT`);
 
   // Test-run linkback columns. Mirrored in `systemtest/db.ts` (the canonical
-  // owner — that module also installs FKs to test_runs/test_results once those
-  // tables exist). We add the columns here too so a tickets-only init path
-  // doesn't break the failure-bridge: the FKs are deferred to ensureSystemtestSchema.
+  // owner — that module also installs FKs to test_runs/test_results /
+  // questionnaire_questions once those tables exist). We add the columns here
+  // too so a tickets-only init path doesn't break: the unique indexes below
+  // reference source_test_question_id and source_test_run_id+source_test_id,
+  // and on a fresh DB ensureSystemtestSchema has not yet run. The FKs are
+  // deferred to ensureSystemtestSchema.
   await pool.query(`
     ALTER TABLE tickets.tickets
-      ADD COLUMN IF NOT EXISTS source_test_run_id    TEXT,
-      ADD COLUMN IF NOT EXISTS source_test_result_id BIGINT,
-      ADD COLUMN IF NOT EXISTS source_test_id        TEXT
+      ADD COLUMN IF NOT EXISTS source_test_assignment_id UUID,
+      ADD COLUMN IF NOT EXISTS source_test_question_id   UUID,
+      ADD COLUMN IF NOT EXISTS source_test_run_id        TEXT,
+      ADD COLUMN IF NOT EXISTS source_test_result_id     BIGINT,
+      ADD COLUMN IF NOT EXISTS source_test_id            TEXT
   `);
 
   await pool.query(`CREATE INDEX IF NOT EXISTS tickets_status_idx ON tickets.tickets (status) WHERE status NOT IN ('done','archived')`);

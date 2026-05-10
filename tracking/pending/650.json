@@ -1,0 +1,12 @@
+{
+  "pr_number": 650,
+  "title": "TLS for korczewski, explicit chrome path, token query param fallback",
+  "description": "## Summary\n- **`deploy/mcp-korczewski/patch-ingress.yaml`**: Add `tls.secretName: korczewski-tls` so `mcp.korczewski.de` gets HTTPS termination (was HTTP-only, causing 308 redirect loops for MCP clients)\n- **`deploy/mcp/claude-code-mcp-monolith.yaml`**: Resolve the chrome binary path explicitly via `find` rather than relying on `playwright-mcp` default resolution — avoids `headless-shell` being picked instead of the full chrome\n- **`deploy/mcp/mcp-auth-proxy.yaml`**: Extract bearer token from `?token=` query param as fallback when `Authorization` header is absent — needed for claude.ai web which cannot set custom headers on MCP requests\n\n## Test plan\n- [ ] `task mcp:deploy ENV=mentolder` → redeploy auth-proxy + monolith\n- [ ] `task mcp:deploy ENV=korczewski` → redeploy with TLS ingress patch\n- [ ] `https://mcp.korczewski.de/kubernetes/mcp` with `?token=<CLUSTER_TOKEN>` → 200\n- [ ] `https://mcp.mentolder.de/kubernetes/mcp?token=<CLUSTER_TOKEN>` → 200\n- [ ] Browser MCP connects with explicit chrome (check pod logs for `chrome:` line)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "mcp",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T19:19:17Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

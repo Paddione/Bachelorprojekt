@@ -1,0 +1,12 @@
+{
+  "pr_number": 644,
+  "title": "unblock ingest + add Wissen sidebar + PDF upload UI",
+  "description": "## Summary\n\n- **Tracking-import cron unblocked** on mentolder. Two layered bugs:\n  - `superpowers` schema was owned by `postgres`, so the `website` role used by `TRACKING_DB_URL` couldn't `CREATE TABLE`. Live ALTER applied; `scripts/fix-tickets-grants.mjs` now reassigns ownership and includes the schema in its grant set so a fresh cluster bootstrap can't regress.\n  - One pending JSON file was empty (the upstream plan was missing YAML frontmatter and `plans-parse.sh` truncated the output before the parser failed). `JSON.parse` in `track-pr.mjs` ran outside the per-file try/catch, so one bad file killed the whole batch. Hardened both ends and re-emitted the broken file.\n- **Admin sidebar**: added a `Wissen` entry under the Inhalte group linking to `/admin/wissensquellen` and `/admin/knowledge/*`. The pages existed but had no sidebar entry.\n- **PDF upload UI**: extended `KnowledgeSourceModal` with a PDF-tab. New `/api/admin/knowledge/collections/[id]/documents` accepts `multipart/form-data`, parses via `pdf-parse`, and runs the existing chunk → embed → upsertChunks pipeline. 200-chunk synchronous cap (Voyage free-tier rate limits would turn larger inputs into a multi-minute hang); response steers callers to `task coaching:ingest` for big books.\n- **Taskfile.argocd.yml**: refreshed the korczewski cluster-register block to reflect the 2026-05-09 cluster re-split (PR #621/#622) — the merged-cluster `pk-hetzner:6443` references are gone.\n\n## Test plan\n\n- [x] `npx astro check --minimumSeverity error` — no new errors on touched files\n- [x] Website deployed to `mentolder` and `korczewski`\n- [ ] After merge: tracking-import cron should succeed on next 5-min tick (uses main + the now-non-empty plan JSON)\n- [ ] Admin sidebar shows `Wissen` link on web.mentolder.de/admin\n- [ ] Upload `coaching-sources/Geissler/KI-Coaching.pdf` via the new modal (will hit the 200-chunk cap → fall back to `task coaching:ingest`)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "tracking",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T10:58:05Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

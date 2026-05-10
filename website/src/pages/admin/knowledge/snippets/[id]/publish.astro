@@ -1,0 +1,40 @@
+---
+import AdminLayout from '../../../../../layouts/AdminLayout.astro';
+import PublishEditor from '../../../../../components/admin/PublishEditor.svelte';
+import { Pool } from 'pg';
+import { listSnippets, getBook } from '../../../../../lib/coaching-db';
+import { getSession, getLoginUrl, isAdmin } from '../../../../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const id = Astro.params.id as string;
+const pool = new Pool();
+
+const snippets = await listSnippets(pool, {});
+const snippet = snippets.find((s) => s.id === id);
+if (!snippet) return new Response('Snippet not found', { status: 404 });
+
+const book = await getBook(pool, snippet.bookId);
+if (!book) return new Response('Book not found', { status: 404 });
+---
+<AdminLayout title={`Veröffentlichen: ${snippet.title}`}>
+  <div class="page">
+    <header>
+      <nav class="crumbs">
+        <a href="/admin/knowledge/books">Bücher</a> ›
+        <a href={`/admin/knowledge/books/${book.id}`}>{book.title}</a> ›
+        Veröffentlichen
+      </nav>
+    </header>
+    <PublishEditor client:load snippet={snippet} bookTitle={book.title} />
+  </div>
+</AdminLayout>
+
+<style>
+  .page { max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+  .crumbs { font-size: 0.78rem; color: var(--text-muted, #888); margin-bottom: 1.25rem; }
+  .crumbs a { color: var(--text-muted, #888); text-decoration: none; }
+  .crumbs a:hover { color: var(--brass, #c9a55c); }
+</style>

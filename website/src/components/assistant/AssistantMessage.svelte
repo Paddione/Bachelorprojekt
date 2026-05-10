@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Message } from '../../lib/assistant/types';
-  let { message }: { message: Message } = $props();
+  let { message, sourcesUsed = 0 }: { message: Message; sourcesUsed?: number } = $props();
   const isUser = $derived(message.role === 'user');
 </script>
 
@@ -11,6 +11,11 @@
   style="font-size: 12px; line-height: 1.45; padding: 7px 10px; border-radius: 8px; max-width: 80%;
          font-family: var(--font-sans); color: var(--fg);"
 >
+  {#if !isUser && sourcesUsed > 0}
+    <div style="font-size: 10px; color: #d7b06a; margin-bottom: 4px; opacity: .85;">
+      📚 {sourcesUsed} {sourcesUsed === 1 ? 'Passage' : 'Passagen'} aus Coaching-Büchern
+    </div>
+  {/if}
   {message.content}
 </div>
 

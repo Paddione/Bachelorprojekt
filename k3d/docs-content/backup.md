@@ -14,6 +14,22 @@ Automatische Datenbank-Backups laufen täglich als Kubernetes CronJob (`k3d/back
 > **Hinweis:** Datei-PVCs (Nextcloud-Dateien, Vaultwarden-Anhänge, DocuSeal-Dokumente)
 > werden **nicht** automatisch gesichert — nur die Datenbankdaten.
 
+```mermaid
+sequenceDiagram
+  participant Cron as Backup CronJob
+  participant DB as shared-db
+  participant PVC as Backup PVC
+  participant Off as Off-Site
+  Note over Cron: Täglich 02:30
+  Cron->>DB: pg_dump --all
+  DB-->>Cron: SQL-Stream
+  Cron->>PVC: gzip + verschlüsseln
+  PVC-->>Cron: Snapshot abgelegt
+  Cron->>Off: rsync (nur Diff)
+  Off-->>Cron: OK
+  Cron->>Cron: alte Snapshots > 30 Tage löschen
+```
+
 ---
 
 ## Was wird gesichert

@@ -263,13 +263,14 @@ Admin: Siehe [Projektmanagement-Admin](admin-projekte.md).
 ## Ressourcen-Uebersicht
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'background': '#1a2235', 'mainBkg': '#1a2235', 'pie1': '#374151', 'pie2': '#1d5c3a', 'pie3': '#2563a0', 'pie4': '#4c2d8a', 'pie5': '#374151', 'pie6': '#1d5c3a', 'pie7': '#0b5575', 'pie8': '#374151', 'pieTextColor': '#e8e8f0', 'pieLegendTextColor': '#e8e8f0', 'pieLabelTextColor': '#e8e8f0'}}}%%
-pie title RAM Requests (Gesamt ca. 1.8 Gi)
-    "PostgreSQL (256 Mi)" : 256
-    "Nextcloud (256 Mi)" : 256
-    "Keycloak (512 Mi)" : 512
-    "Claude Code (256 Mi)" : 256
-    "Collabora (256 Mi)" : 256
-    "Talk HPB Stack (256 Mi)" : 256
-    "Sonstige (288 Mi)" : 288
+flowchart LR
+  KC[Keycloak] --> NC[Nextcloud + Talk]
+  KC --> VW[Vaultwarden]
+  KC --> WEB[Website + Portal]
+  KC --> DS[DocuSeal]
+  KC --> TR[Tracking]
+  NC --> CO[Collabora]
+  NC --> WB[Whiteboard]
+  WEB --> LK[LiveKit]
+  WEB --> CHAT[Custom Chat]
 ```

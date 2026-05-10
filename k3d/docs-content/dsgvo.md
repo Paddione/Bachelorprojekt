@@ -24,27 +24,14 @@ Das Workspace MVP setzt Datenschutz als Grundprinzip der Architektur um — nich
 - Container-Images ausschließlich von vertrauenswürdigen, europäischen oder FOSS-Quellen (quay.io, docker.io/library, lscr.io) — keine US-Cloud-Registries (gcr.io, amazonaws, azurecr, mcr.microsoft.com)
 
 ```mermaid
-flowchart TB
-    subgraph Cluster ["k3d/k3s Cluster (On-Premises)"]
-        DB[("PostgreSQL\nBenutzerdaten")]
-        FILES[("Nextcloud PVC\nDateien")]
-        MAIL["Mailpit\nE-Mails"]
-        BACKUP[("Verschlüsselte Backups\nAES-256")]
-    end
-
-    subgraph Blocked ["Blockiert / Deaktiviert"]
-        CLOUD["Cloud-Registries\ngcr.io, amazonaws, azurecr"]
-        TRACK["Tracking\ngoogle-analytics, sentry"]
-        TELE["Telemetrie\ndatadog, newrelic, splunk"]
-    end
-
-    DB & FILES & MAIL --> BACKUP
-    CLOUD -.-x Cluster
-    TRACK -.-x Cluster
-    TELE -.-x Cluster
-
-    style Cluster fill:#2d6a4f,color:#fff
-    style Blocked fill:#9b2226,color:#fff
+flowchart LR
+  Subject([Betroffene Person]) -->|Eingabe| App[Service · z. B. Nextcloud]
+  App -->|Speicherung| DB[(shared-db<br/>EU-on-prem)]
+  DB -->|Backup| Snap[Snapshot · verschlüsselt]
+  Snap -->|Off-Site| Off[Backup-Ziel · DE]
+  Subject -.->|Löschanfrage Art. 17| Admin[Admin]
+  Admin -->|Cascade-Delete| App
+  Admin -->|Lösch-Skript| DB
 ```
 
 ---

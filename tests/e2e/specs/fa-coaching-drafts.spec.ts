@@ -1,9 +1,8 @@
-// website/tests/e2e/coaching-drafts.spec.ts
 import { test, expect } from '@playwright/test';
 
-const BASE = process.env.E2E_BASE_URL || 'https://web.mentolder.de';
+const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('coaching drafts — unauth', () => {
+test.describe('FA: Coaching Drafts — phase 3 (unauth)', () => {
   test('GET /api/admin/coaching/drafts → 401', async ({ request }) => {
     const r = await request.get(`${BASE}/api/admin/coaching/drafts`);
     expect(r.status()).toBe(401);
@@ -29,9 +28,8 @@ test.describe('coaching drafts — unauth', () => {
     expect(r.status()).toBe(401);
   });
 
-  test('GET /admin/knowledge/drafts → redirect to login', async ({ page }) => {
-    const resp = await page.goto(`${BASE}/admin/knowledge/drafts`);
-    // Either a 302 to /admin/login or a rendered login page; just assert we don't see Inbox content.
+  test('GET /admin/knowledge/drafts → redirect away from drafts page', async ({ page }) => {
+    await page.goto(`${BASE}/admin/knowledge/drafts`);
     await expect(page).not.toHaveURL(/\/admin\/knowledge\/drafts$/);
   });
 });

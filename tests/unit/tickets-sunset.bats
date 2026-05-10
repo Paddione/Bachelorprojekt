@@ -38,6 +38,11 @@ setup() {
   grep -q "process.argv.includes('--apply')" "${PROJECT_DIR}/scripts/tickets-sunset.mjs"
 }
 
+@test "static: sunset script picks DROP kind from pg_class.relkind" {
+  # Required so DROP works whether the legacy object is a base TABLE or VIEW.
+  grep -q 'relKind\|relkind' "${PROJECT_DIR}/scripts/tickets-sunset.mjs"
+}
+
 # ── Runtime checks ─────────────────────────────────────────────────
 
 object_gone() {
@@ -57,8 +62,20 @@ object_gone() {
   object_gone bugs bug_tickets_legacy
 }
 
-@test "runtime: bachelorprojekt.requirements view is gone" {
+@test "runtime: bachelorprojekt.requirements is gone (was view or table)" {
   object_gone bachelorprojekt requirements
+}
+
+@test "runtime: bachelorprojekt.features is gone" {
+  object_gone bachelorprojekt features
+}
+
+@test "runtime: bachelorprojekt.v_timeline view is gone" {
+  object_gone bachelorprojekt v_timeline
+}
+
+@test "runtime: bachelorprojekt.pipeline table is gone" {
+  object_gone bachelorprojekt pipeline
 }
 
 @test "runtime: public.projects view is gone" {

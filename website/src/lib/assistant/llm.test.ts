@@ -50,7 +50,7 @@ describe('assistantChat (no-LLM keyword fallback)', () => {
   });
 });
 
-import { vi, beforeEach } from 'vitest';
+import { beforeEach } from 'vitest';
 import { resolveCoachingCollectionIds, __resetCacheForTests } from './coaching-collections';
 import { Pool } from 'pg';
 

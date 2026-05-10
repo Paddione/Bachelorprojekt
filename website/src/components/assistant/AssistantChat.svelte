@@ -5,10 +5,17 @@
 
   let { profile, onClose }: { profile: AssistantProfile; onClose?: () => void } = $props();
 
-  let messages = $state<Message[]>([]);
+  let messages = $state<(Message & { sourcesUsed?: number })[]>([]);
   let input = $state('');
   let sending = $state(false);
   let busyAction = $state<string | null>(null);
+
+  let useBooks = $state(sessionStorage.getItem('assistant-use-books') === '1');
+
+  function toggleBooks() {
+    useBooks = !useBooks;
+    sessionStorage.setItem('assistant-use-books', useBooks ? '1' : '0');
+  }
 
   async function send(content: string) {
     sending = true;
@@ -16,14 +23,14 @@
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ profile, content, currentRoute: location.pathname }),
+        body: JSON.stringify({ profile, content, currentRoute: location.pathname, useBooks }),
       });
       const data = await res.json();
       if (data?.message) {
         messages = [
           ...messages,
           { id: 'optimistic-' + Date.now(), conversationId: '', role: 'user', content, createdAt: new Date().toISOString() },
-          data.message,
+          { ...data.message, sourcesUsed: data.sourcesUsed ?? 0 },
         ];
       }
     } finally {
@@ -70,7 +77,7 @@
   </header>
   <div style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
     {#each messages as m (m.id)}
-      <AssistantMessage message={m} />
+      <AssistantMessage message={m} sourcesUsed={m.sourcesUsed ?? 0} />
       {#if m.role === 'assistant' && m.proposedAction}
         <AssistantConfirmCard
           action={m.proposedAction}
@@ -83,15 +90,33 @@
   </div>
   <form
     onsubmit={(e) => { e.preventDefault(); if (input.trim()) send(input.trim()); }}
-    style="padding: 8px 10px; border-top: 1px solid var(--line); display: flex; gap: 6px; background: var(--ink-900);"
+    style="padding: 8px 10px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; background: var(--ink-900);"
   >
-    <input
-      bind:value={input}
-      type="text"
-      placeholder="Nachricht eingeben…"
-      disabled={sending}
-      style="flex: 1; background: var(--ink-850); border: 1px solid var(--line); border-radius: 16px; padding: 6px 12px; font-size: 12px; color: var(--fg); font-family: inherit;"
-    />
+    <div style="display: flex; gap: 6px;">
+      <input
+        bind:value={input}
+        type="text"
+        placeholder="Nachricht eingeben…"
+        disabled={sending}
+        style="flex: 1; background: var(--ink-850); border: 1px solid var(--line); border-radius: 16px; padding: 6px 12px; font-size: 12px; color: var(--fg); font-family: inherit;"
+      />
+    </div>
+    <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+      <button
+        type="button"
+        onclick={toggleBooks}
+        style="display: flex; align-items: center; gap: 4px; padding: 2px 8px;
+               background: {useBooks ? 'rgba(215,176,106,.15)' : 'transparent'};
+               border: 1px solid {useBooks ? '#d7b06a' : 'var(--line)'};
+               border-radius: 12px; font-size: 10px; cursor: pointer;
+               color: {useBooks ? '#d7b06a' : 'var(--mute)'}; font-family: inherit;"
+        title="Coaching-Bücher in die Antwort einbeziehen"
+      >
+        {#if useBooks}
+          <span style="width: 6px; height: 6px; background: #d7b06a; border-radius: 50%; display: inline-block;"></span>
+        {/if}
+        📚 {useBooks ? 'Bücher aktiv' : 'Bücher'}
+      </button>
+    </div>
   </form>
 </section>
-

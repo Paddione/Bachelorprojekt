@@ -150,6 +150,47 @@ data:
         ADD COLUMN IF NOT EXISTS fixed_at         TIMESTAMPTZ;
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr);
 
+      -- ── Coaching Knowledge Pipeline ─────────────────────────────────
+      CREATE SCHEMA IF NOT EXISTS coaching AUTHORIZATION website;
+
+      CREATE TABLE IF NOT EXISTS coaching.books (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        knowledge_collection_id UUID NOT NULL REFERENCES knowledge.collections(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        author TEXT,
+        source_filename TEXT NOT NULL,
+        license_note TEXT,
+        ingested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (knowledge_collection_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS coaching.snippet_clusters (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        book_id UUID REFERENCES coaching.books(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        kind TEXT NOT NULL DEFAULT 'manual' CHECK (kind IN ('auto','manual')),
+        parent_id UUID REFERENCES coaching.snippet_clusters(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (book_id, name)
+      );
+
+      CREATE TABLE IF NOT EXISTS coaching.snippets (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        book_id UUID NOT NULL REFERENCES coaching.books(id) ON DELETE CASCADE,
+        knowledge_chunk_id UUID REFERENCES knowledge.chunks(id) ON DELETE SET NULL,
+        cluster_id UUID REFERENCES coaching.snippet_clusters(id) ON DELETE SET NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        tags TEXT[] NOT NULL DEFAULT '{}',
+        page INT,
+        created_by TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_snippets_book_id ON coaching.snippets(book_id);
+      CREATE INDEX IF NOT EXISTS idx_snippets_cluster_id ON coaching.snippets(cluster_id);
+      CREATE INDEX IF NOT EXISTS idx_snippets_tags ON coaching.snippets USING GIN(tags);
+
       -- Indexes for MCP query patterns
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);
@@ -542,6 +583,47 @@ data:
         ADD COLUMN IF NOT EXISTS fixed_in_pr      INTEGER,
         ADD COLUMN IF NOT EXISTS fixed_at         TIMESTAMPTZ;
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_fixed_in_pr ON bugs.bug_tickets (fixed_in_pr);
+
+      -- ── Coaching Knowledge Pipeline ─────────────────────────────────
+      CREATE SCHEMA IF NOT EXISTS coaching AUTHORIZATION website;
+
+      CREATE TABLE IF NOT EXISTS coaching.books (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        knowledge_collection_id UUID NOT NULL REFERENCES knowledge.collections(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        author TEXT,
+        source_filename TEXT NOT NULL,
+        license_note TEXT,
+        ingested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (knowledge_collection_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS coaching.snippet_clusters (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        book_id UUID REFERENCES coaching.books(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        kind TEXT NOT NULL DEFAULT 'manual' CHECK (kind IN ('auto','manual')),
+        parent_id UUID REFERENCES coaching.snippet_clusters(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (book_id, name)
+      );
+
+      CREATE TABLE IF NOT EXISTS coaching.snippets (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        book_id UUID NOT NULL REFERENCES coaching.books(id) ON DELETE CASCADE,
+        knowledge_chunk_id UUID REFERENCES knowledge.chunks(id) ON DELETE SET NULL,
+        cluster_id UUID REFERENCES coaching.snippet_clusters(id) ON DELETE SET NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        tags TEXT[] NOT NULL DEFAULT '{}',
+        page INT,
+        created_by TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_snippets_book_id ON coaching.snippets(book_id);
+      CREATE INDEX IF NOT EXISTS idx_snippets_cluster_id ON coaching.snippets(cluster_id);
+      CREATE INDEX IF NOT EXISTS idx_snippets_tags ON coaching.snippets USING GIN(tags);
 
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);

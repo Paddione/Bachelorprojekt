@@ -1,0 +1,86 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { Pool } from 'pg';
+import { listBooks } from '../../../../lib/coaching-db';
+import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const pool = new Pool();
+let books: Awaited<ReturnType<typeof listBooks>> = [];
+try {
+  books = await listBooks(pool);
+} catch {
+  // coaching schema may not yet exist in dev — show empty state
+}
+---
+<AdminLayout title="Coaching-Bücher">
+  <div class="page">
+    <header class="page-head">
+      <nav class="crumbs">
+        <a href="/admin">Admin</a>
+        <span class="sep">›</span>
+        <a href="/admin/wissensquellen">Wissen</a>
+        <span class="sep">›</span>
+        Bücher
+      </nav>
+      <h1>Coaching-Bücher</h1>
+      <p class="subtitle">Ingestierte Bücher für Themen-Browser und Snippet-Kuration. Ingest läuft via <code>task coaching:ingest</code>.</p>
+    </header>
+
+    {books.length === 0 ? (
+      <div class="empty">
+        <p>Noch keine Bücher ingestiert.</p>
+        <pre><code>ENV=&lt;env&gt; task coaching:ingest -- coaching-sources/&lt;file&gt; &lt;slug&gt; --title="…" --author="…"</code></pre>
+      </div>
+    ) : (
+      <table class="books-table">
+        <thead>
+          <tr>
+            <th>Titel</th>
+            <th>Autor</th>
+            <th class="num">Chunks</th>
+            <th>Ingestiert</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {books.map((b) => (
+            <tr>
+              <td><a href={`/admin/knowledge/books/${b.id}`}>{b.title}</a></td>
+              <td>{b.author ?? '—'}</td>
+              <td class="num">{b.chunkCount ?? 0}</td>
+              <td>{b.ingestedAt instanceof Date ? b.ingestedAt.toLocaleDateString('de-DE') : String(b.ingestedAt)}</td>
+              <td><a class="btn-secondary" href={`/admin/knowledge/books/${b.id}`}>Öffnen</a></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</AdminLayout>
+
+<style>
+  .page { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+  .page-head { margin-bottom: 1.5rem; }
+  .crumbs { font-size: 0.78rem; color: var(--text-muted, #888); margin-bottom: 0.4rem; }
+  .crumbs a { color: var(--text-muted, #888); text-decoration: none; }
+  .crumbs a:hover { color: var(--brass, #c9a55c); }
+  .crumbs .sep { margin: 0 0.4rem; color: var(--line, #ccc); }
+  .subtitle { color: var(--text-muted, #888); margin: 0.4rem 0 0; }
+  .subtitle code { background: var(--bg-2, #f3f0ec); padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.85em; }
+
+  .empty { background: var(--bg-2, #f7f5f2); border: 1px solid var(--line, #e5e2dd); border-radius: 8px; padding: 1.5rem; }
+  .empty p { margin: 0 0 0.75rem; color: var(--text-muted, #888); }
+  .empty pre { background: var(--bg, #fff); padding: 0.75rem; border-radius: 4px; overflow-x: auto; margin: 0; font-size: 0.85em; }
+
+  .books-table { width: 100%; border-collapse: collapse; }
+  .books-table th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line, #ddd); font-weight: 500; font-size: 0.85rem; color: var(--text-muted, #666); }
+  .books-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--line, #eee); }
+  .books-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .books-table a { color: var(--brass, #c9a55c); text-decoration: none; }
+  .books-table a:hover { text-decoration: underline; }
+  .btn-secondary { display: inline-block; padding: 0.3rem 0.7rem; border: 1px solid var(--line, #ddd); border-radius: 4px; font-size: 0.82rem; }
+</style>

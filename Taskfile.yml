@@ -2740,3 +2740,7 @@ tasks:
           SOURCE="{{.SOURCE}}" \
           bash scripts/knowledge/reindex.sh
 
+  coaching:ingest:
+    desc: "Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]"
+    cmds:
+      - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/ingest-book.mts {{.CLI_ARGS}}

@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { embedQuery, embedBatch, costCentsForTokens, ANTHROPIC_FALLBACK_MODEL_DIM } from './embeddings';
 
 const ORIGINAL_FETCH = global.fetch;
@@ -41,5 +41,72 @@ describe('embeddings client', () => {
 
   test('ANTHROPIC_FALLBACK_MODEL_DIM is 1024 for voyage-multilingual-2', () => {
     expect(ANTHROPIC_FALLBACK_MODEL_DIM).toBe(1024);
+  });
+});
+
+describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
+  const ORIGINAL_ENV = process.env.LLM_ENABLED;
+  const ORIGINAL_URL = process.env.LLM_ROUTER_URL;
+
+  beforeEach(() => {
+    process.env.LLM_ENABLED = 'true';
+    process.env.LLM_ROUTER_URL = 'http://llm-router.test:4000';
+    global.fetch = ORIGINAL_FETCH;
+  });
+  afterEach(() => {
+    process.env.LLM_ENABLED = ORIGINAL_ENV;
+    process.env.LLM_ROUTER_URL = ORIGINAL_URL;
+  });
+
+  test('routes bge-m3 query to LLM_ROUTER_URL with X-LLM-Purpose=query', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 8 } }),
+      { status: 200 },
+    ));
+    global.fetch = fetchMock;
+
+    const r = await embedQuery('hallo', { model: 'bge-m3', purpose: 'query' });
+    expect(r.embedding).toHaveLength(1024);
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toBe('http://llm-router.test:4000/v1/embeddings');
+    expect((init as RequestInit).headers).toMatchObject({ 'X-LLM-Purpose': 'query' });
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.model).toBe('bge-m3');
+  });
+
+  test('routes voyage-multilingual-2 model through the router (no direct voyage call)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ data: [{ embedding: Array(1024).fill(0.03) }], usage: { total_tokens: 9 } }),
+      { status: 200 },
+    ));
+    global.fetch = fetchMock;
+    await embedQuery('hi', { model: 'voyage-multilingual-2', purpose: 'query' });
+    expect(String(fetchMock.mock.calls[0][0])).toContain('llm-router.test');
+  });
+
+  test('purpose=index, router 503 → throws EmbeddingIndexError (no fallback)', async () => {
+    global.fetch = vi.fn().mockResolvedValue(new Response('upstream down', { status: 503 }));
+    await expect(
+      embedBatch(['a', 'b'], { model: 'bge-m3', purpose: 'index', maxAttempts: 1, baseDelayMs: 1 }),
+    ).rejects.toThrow(/EmbeddingIndexError/);
+  });
+
+  test('purpose=query, router 503 → throws EmbeddingQueryError (no fallback)', async () => {
+    global.fetch = vi.fn().mockResolvedValue(new Response('down', { status: 503 }));
+    await expect(
+      embedQuery('q', { model: 'bge-m3', purpose: 'query', maxAttempts: 1, baseDelayMs: 1 }),
+    ).rejects.toThrow(/EmbeddingQueryError/);
+  });
+
+  test('LLM_ENABLED=false ignores model param and uses direct voyage call', async () => {
+    process.env.LLM_ENABLED = 'false';
+    const fetchMock = vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ data: [{ embedding: Array(1024).fill(0) }], usage: { total_tokens: 1 } }),
+      { status: 200 },
+    ));
+    global.fetch = fetchMock;
+    await embedQuery('x', { model: 'bge-m3', purpose: 'query' });
+    expect(String(fetchMock.mock.calls[0][0])).toContain('voyageai.com');
   });
 });

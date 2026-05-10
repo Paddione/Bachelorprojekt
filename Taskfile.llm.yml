@@ -1,0 +1,101 @@
+# Taskfile.llm.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Local-first LLM pipeline operations.
+# Included from Taskfile.yml under the "llm" namespace.
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+tasks:
+
+  bootstrap-host:
+    desc: "Bootstrap the GPU host (Docker, systemd units, ufw). HOST=<wg-mesh-ip>"
+    preconditions:
+      - sh: '[ -n "{{.HOST}}" ]'
+        msg: "HOST=<wg-mesh-ip> is required."
+    cmds:
+      - scripts/llm-host-setup.sh {{.HOST}}
+
+  pull-models:
+    desc: "Pull all 4 Ollama models + warm TEI HF cache. HOST=<wg-mesh-ip>"
+    preconditions:
+      - sh: '[ -n "{{.HOST}}" ]'
+        msg: "HOST=<wg-mesh-ip> is required."
+    cmds:
+      - scripts/llm-pull-models.sh {{.HOST}}
+
+  deploy:
+    desc: "Apply llm-gpu Endpoints + llm-router Deployment to ENV={{.ENV}}"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        : "${LLM_HOST_IP:?LLM_HOST_IP unset — configure in environments/{{.ENV}}.yaml}"
+        envsubst '$LLM_HOST_IP' < k3d/llm-gpu.yaml \
+          | kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f -
+        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f k3d/llm-router.yaml
+        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" rollout status deployment/llm-router --timeout=120s
+
+  redeploy-router:
+    desc: "Roll the llm-router Deployment (e.g. after config.yaml change). ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" rollout restart deployment/llm-router
+        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" rollout status deployment/llm-router --timeout=120s
+
+  status:
+    desc: "Show LLM pipeline status (router pod, gateway endpoints, model availability). ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ns="${WORKSPACE_NAMESPACE:-workspace}"
+        echo "── llm-router pod ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" get deploy/llm-router -o wide
+        echo "── llm-gateway endpoints ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" get endpoints llm-gateway-embed llm-gateway-rerank llm-gateway-chat
+        echo "── /health ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
+          curl -fsS http://localhost:4000/health | head -c 500 || true
+
+  logs:
+    desc: "Tail llm-router logs. ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" logs deploy/llm-router -f --tail=200
+
+  test:
+    desc: "Smoke-test all four router routes (embed bge-m3, embed voyage, rerank, chat). ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ns="${WORKSPACE_NAMESPACE:-workspace}"
+        echo "── bge-m3 embed ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
+          curl -fsS -X POST http://localhost:4000/v1/embeddings \
+            -H "Content-Type: application/json" \
+            -d '{"model":"bge-m3","input":"hallo welt"}' | jq '.data[0].embedding | length'
+        echo "── voyage-multilingual-2 embed ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
+          curl -fsS -X POST http://localhost:4000/v1/embeddings \
+            -H "Content-Type: application/json" \
+            -d '{"model":"voyage-multilingual-2","input":"hallo welt"}' | jq '.data[0].embedding | length'
+        echo "── rerank ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
+          curl -fsS -X POST http://localhost:4000/v1/rerank \
+            -H "Content-Type: application/json" \
+            -d '{"model":"workspace-rerank","query":"capital of germany","documents":["paris","berlin","hamburg"]}' | jq '.results[0]'
+        echo "── chat ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" exec deploy/llm-router -- \
+          curl -fsS -X POST http://localhost:4000/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -d '{"model":"workspace-chat","messages":[{"role":"user","content":"Sag Hallo auf Deutsch."}],"max_tokens":20}' | jq '.choices[0].message.content'

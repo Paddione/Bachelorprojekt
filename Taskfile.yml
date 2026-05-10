@@ -7,6 +7,9 @@ includes:
   argocd:
     taskfile: ./Taskfile.argocd.yml
     dir: .
+  llm:
+    taskfile: ./Taskfile.llm.yml
+    dir: .
 
 vars:
   CLUSTER_NAME: dev
@@ -1346,10 +1349,15 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL"
           # Default to "false" so prod env files that haven't yet adopted
           # the flag don't leak the literal "${SYSTEMTEST_LOOP_ENABLED}"
           # into the rendered website-config ConfigMap.
           export SYSTEMTEST_LOOP_ENABLED="${SYSTEMTEST_LOOP_ENABLED:-false}"
+          export LLM_HOST_IP="${LLM_HOST_IP:-}"
+          export LLM_ENABLED="${LLM_ENABLED:-false}"
+          export LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}"
+          export LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-router.workspace.svc.cluster.local:4000}"
           kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
             | envsubst "$ENVSUBST_VARS" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -

@@ -6,6 +6,8 @@ namespace: workspace
 resources:
   - ../k3d
   # Production-only (no equivalent in base)
+  - ../k3d/llm-gpu.yaml
+  - ../k3d/llm-router.yaml
   - cluster-issuer.yaml
   - reflector.yaml
   - wildcard-certificate.yaml

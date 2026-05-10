@@ -1,7 +1,7 @@
 ---
 title: Coaching Knowledge — Phase 3 Implementation Plan (Drafts-Inbox + Auto-Klassifikation)
 domains: [website, db]
-status: draft
+status: completed
 pr_number: null
 ---
 

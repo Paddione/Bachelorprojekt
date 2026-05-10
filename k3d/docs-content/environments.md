@@ -2,6 +2,18 @@
 
 ## Uberblick
 
+```mermaid
+flowchart LR
+  YAML[environments/&lt;env&gt;.yaml] --> Resolve[scripts/env-resolve.sh]
+  Resolve --> ENV[Exported ENV vars]
+  Secret[environments/.secrets/&lt;env&gt;.yaml] --> Seal[task env:seal]
+  Seal --> Sealed[environments/sealed-secrets/&lt;env&gt;.yaml]
+  Sealed --> Apply[task workspace:deploy]
+  ENV --> Apply
+  Apply --> Cluster[k8s Cluster]
+  Cluster -- Sealed-Secrets-Controller --> K8sSec[Secret · entschlüsselt]
+```
+
 Das Projekt unterstutzt drei Deployment-Umgebungen:
 
 - **dev** -- Lokaler k3d-Cluster fur Entwicklung und Tests. Keine TLS, Mailpit statt echtem SMTP, Klartext-Secrets.

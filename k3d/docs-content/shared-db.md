@@ -2,6 +2,20 @@
 
 ## Übersicht
 
+```mermaid
+flowchart TB
+  PG[(PostgreSQL 16 · shared-db)]
+  PG --> KCDB[(keycloak)]
+  PG --> NCDB[(nextcloud)]
+  PG --> VWDB[(vaultwarden)]
+  PG --> WEBDB[(website)]
+  PG --> DSDB[(docuseal)]
+  PG --> TRDB[(tracking)]
+  PG --> BRDB[(brett)]
+  PG -.->|Backup| Cron[db-backup CronJob]
+  Cron --> PVC[backup-pvc]
+```
+
 `shared-db` ist eine einzelne **PostgreSQL 16** Instanz für alle Services im `workspace`-Namespace. 
 Jeder Service hat eine **separate Datenbank** und **separate Credentials** für Isolation.
 

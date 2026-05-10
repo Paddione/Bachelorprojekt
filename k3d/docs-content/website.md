@@ -2,6 +2,18 @@
 
 ## Übersicht
 
+```mermaid
+flowchart LR
+  User([Browser]) -- HTTPS --> Astro[Astro SSR · Node]
+  Astro -- Islands --> Svelte[Svelte Components]
+  Astro -- /api/* --> API[API Routes]
+  API --> DB[(website DB)]
+  API -- OIDC --> KC[Keycloak]
+  API -- LiveKit SDK --> LK[LiveKit Server]
+  Svelte --- Chat[Custom Chat]
+  Chat --> API
+```
+
 Die Website ist das Herzstück des Workspace MVP. Sie ist eine Astro SSR-Anwendung mit eingebautem Chat/Messaging-System und integriert sich direkt über PostgreSQL mit dem Workspace. Es gibt zwei Website-Instanzen:
 
 - **mentolder.de** – Hauptinstanz (Coaching-Plattform)

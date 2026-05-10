@@ -11,6 +11,26 @@ Die **MCP-Server** (Model Context Protocol) laufen als Kubernetes-Pods im Cluste
 
 > **Hinweis:** Claude Code läuft lokal als CLI/Desktop/IDE-Client. Die MCP-Server laufen als Pods im Cluster und sind nur clusterintern erreichbar.
 
+```mermaid
+flowchart TB
+  CC([Claude Code · CLI]) -- MCP --> AP[Auth-Proxy · OIDC]
+  AP --> KC[Keycloak]
+  AP --> Mono[MCP Monolith Pod]
+  subgraph mono["Monolith Container"]
+    PG[postgres-server]
+    BR[browser-server]
+    GH[github-server]
+    KCS[keycloak-server]
+    K8s[kubernetes-server]
+  end
+  Mono --- mono
+  PG --> DB[(shared-db)]
+  BR --> Net[Internet · Sandbox]
+  GH --> GHapi[GitHub API]
+  KCS --> KC
+  K8s --> Cluster[k8s API]
+```
+
 ---
 
 ## MCP-Server-Übersicht

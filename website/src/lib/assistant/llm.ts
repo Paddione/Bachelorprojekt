@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Pool } from 'pg';
-import type { AssistantProfile, Message, ProposedAction } from './types';
+import type { AssistantProfile, AssistantChatResult, Message } from './types';
 import { searchHelp, formatHit, noMatchReply } from './search';
 import { queryNearest } from '../knowledge-db';
 import { resolveCoachingCollectionIds } from './coaching-collections';
@@ -16,12 +16,6 @@ export interface AssistantContext {
   currentRoute: string;
   counts?: Record<string, number>;
   [k: string]: unknown;
-}
-
-export interface AssistantChatResult {
-  reply: string;
-  proposedAction?: ProposedAction;
-  sourcesUsed?: number;
 }
 
 let _pool: Pool | null = null;
@@ -51,21 +45,25 @@ export async function assistantChat(input: AssistantChatInput): Promise<Assistan
 
   const useBooks = input.context.useBooks === true;
   if (useBooks) {
-    const collectionIds = await resolveCoachingCollectionIds(getPool());
-    if (collectionIds.length > 0) {
-      const chunks = await queryNearest({
-        collectionIds,
-        queryText: lastUser.content,
-        limit: 4,
-        threshold: 0.62,
-      });
-      if (chunks.length > 0) {
-        sourcesUsed = chunks.length;
-        const passages = chunks
-          .map((c, i) => `[${i + 1}] ${c.text}`)
-          .join('\n\n');
-        systemPrompt += `\n\n<Quellenpassagen>\n${passages}\n</Quellenpassagen>`;
+    try {
+      const collectionIds = await resolveCoachingCollectionIds(getPool());
+      if (collectionIds.length > 0) {
+        const chunks = await queryNearest({
+          collectionIds,
+          queryText: lastUser.content,
+          limit: 4,
+          threshold: 0.62,
+        });
+        if (chunks.length > 0) {
+          sourcesUsed = chunks.length;
+          const passages = chunks
+            .map((c, i) => `[${i + 1}] ${c.text}`)
+            .join('\n\n');
+          systemPrompt += `\n\n<Quellenpassagen>\n${passages}\n</Quellenpassagen>`;
+        }
       }
+    } catch (err) {
+      console.error('[assistantChat] RAG lookup failed, proceeding without passages:', err);
     }
   }
 

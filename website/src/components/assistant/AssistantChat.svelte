@@ -101,6 +101,7 @@
         style="flex: 1; background: var(--ink-850); border: 1px solid var(--line); border-radius: 16px; padding: 6px 12px; font-size: 12px; color: var(--fg); font-family: inherit;"
       />
     </div>
+    {#if profile === 'admin'}
     <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
       <button
         type="button"
@@ -118,5 +119,6 @@
         📚 {useBooks ? 'Bücher aktiv' : 'Bücher'}
       </button>
     </div>
+    {/if}
   </form>
 </section>

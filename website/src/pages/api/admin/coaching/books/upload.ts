@@ -36,6 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
   const licenseNote = (formData.get('licenseNote') as string | null)?.trim() || null;
 
   if (!file || !file.name) return json({ error: 'missing file' }, 400);
+  if (file.size > 50 * 1024 * 1024) return json({ error: 'Datei zu groß — max. 50 MB.' }, 413);
   if (!title) return json({ error: 'missing title' }, 400);
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';

@@ -18,7 +18,8 @@ export const POST: APIRoute = async ({ request }) => {
   let body: { profile: AssistantProfile; content: string; currentRoute?: string; useBooks?: boolean };
   try { body = await request.json(); } catch { return json({ error: 'bad json' }, 400); }
 
-  const { profile, content, currentRoute = '/', useBooks = false } = body;
+  const { profile, content, currentRoute = '/' } = body;
+  const useBooks = profile === 'admin' ? (body.useBooks ?? false) : false;
   if (profile !== 'admin' && profile !== 'portal') return json({ error: 'invalid profile' }, 400);
   if (profile === 'admin' && !isAdmin(session)) return json({ error: 'forbidden' }, 403);
   if (typeof content !== 'string' || !content.trim()) return json({ error: 'empty content' }, 400);

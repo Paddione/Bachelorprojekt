@@ -152,15 +152,17 @@ tasks:
         else
           echo "  ✗ Could not find hetzner cluster Secret — register manually"
         fi
-      # ── Korczewski (now co-hosted in the unified mentolder cluster at pk-hetzner's external IP) ──
-      # The korczewski cluster was disbanded and all nodes merged into the mentolder cluster.
-      # korczewski workloads deploy to workspace-korczewski namespace on the same physical cluster,
-      # accessed via pk-hetzner's public API endpoint (62.238.9.39:6443).
-      # Credentials: argocd-korczewski ServiceAccount in kube-system (cluster-admin).
+      # ── Korczewski (standalone 3-node k3s HA cluster) ──
+      # The 2026-05-05 cluster merge was reverted on 2026-05-09 (PRs #621/#622).
+      # korczewski-ha is its own physical cluster on pk-hetzner-4/6/8; web.korczewski.de
+      # routes through that cluster's Traefik (NOT mentolder's). It has its own
+      # shared-db, sealed-secrets controller, cert-manager, and Keycloak realm.
+      # workspace-korczewski namespace lives on korczewski-ha; ArgoCD still hub-runs
+      # on mentolder and reaches korczewski-ha via the registered cluster Secret.
       # No workspace-office / workspace-coturn labels — korczewski shares mentolder's Collabora + coturn.
       - |
         source scripts/env-resolve.sh "korczewski"
-        echo "Annotating korczewski cluster secret (uses mentolder cluster at pk-hetzner:6443)..."
+        echo "Annotating korczewski cluster secret (targets korczewski-ha)..."
         KORCZ_SECRET=$(kubectl --context mentolder get secret -n argocd \
           -l argocd.argoproj.io/secret-type=cluster \
           --no-headers 2>/dev/null | grep "korczewski" | awk '{print $1}' | head -1)
@@ -187,8 +189,8 @@ tasks:
           echo "  ✓ korczewski annotated (namespace=workspace-korczewski, no office/coturn labels)"
         else
           echo "  ✗ Could not find korczewski cluster Secret — create it manually"
-          echo "  Hint: the korczewski cluster is the mentolder cluster at https://62.238.9.39:6443"
-          echo "  SA token: kubectl get secret argocd-korczewski-token -n kube-system -o jsonpath='{.data.token}' | base64 -d"
+          echo "  Hint: korczewski-ha is a standalone cluster — register its API endpoint with"
+          echo "        argocd cluster add korczewski-ha (kubeconfig context for pk-hetzner-4/6/8)"
         fi
       - |
         echo ""

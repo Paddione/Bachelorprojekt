@@ -262,8 +262,16 @@ async function main() {
     let count = 0;
     const files = readdirSync('tracking/pending').filter(f => f.endsWith('.json'));
     for (const f of files) {
-      const row = JSON.parse(readFileSync(join('tracking/pending', f), 'utf8'));
       try {
+        const raw = readFileSync(join('tracking/pending', f), 'utf8');
+        if (!raw.trim()) {
+          // Empty pending file — track-plans / track-pr emitter can produce these on parse failures.
+          // Drop them so the rest of the batch can proceed.
+          console.error(`skip ${f}: file is empty, removing`);
+          unlinkSync(join('tracking/pending', f));
+          continue;
+        }
+        const row = JSON.parse(raw);
         if (row.type === 'plan') {
           await writePlanToDb(row, client);
         } else {

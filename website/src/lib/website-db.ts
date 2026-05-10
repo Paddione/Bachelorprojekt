@@ -28,19 +28,10 @@ function nodeLookup(
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
-// ── Tracking DB (bachelorprojekt schema) ────────────────────────────────────
-
-let trackingPool: import('pg').Pool | null = null;
-
-function getTrackingPool(): import('pg').Pool {
-  if (trackingPool) return trackingPool;
-  const url = process.env.TRACKING_DB_URL
-    || process.env.SESSIONS_DATABASE_URL
-    || process.env.DATABASE_URL?.replace(/\/[^/?]+(\?|$)/, '/postgres$1');
-  if (!url) throw new Error('TRACKING_DB_URL not set');
-  trackingPool = new Pool({ connectionString: url, lookup: nodeLookup, max: 4 } as unknown as import('pg').PoolConfig);
-  return trackingPool;
-}
+// ── Timeline (PR5: reads from tickets.pr_events on the same DB) ─────────────
+// Historical note: an earlier implementation used a separate tracking pool
+// against bachelorprojekt.v_timeline. That view + its source tables were
+// sunset in PR5; we now read PR activity from tickets.pr_events on `pool`.
 
 export type TimelineRow = {
   id: number;
@@ -65,7 +56,11 @@ export async function listTimeline(opts: {
   const limit = Math.min(opts.limit ?? 20, 100);
   const offset = opts.offset ?? 0;
 
-  const tPool = getTrackingPool();
+  // Read from tickets.pr_events (the unified ticketing source of truth).
+  // PR5 migration: bachelorprojekt.v_timeline + features/requirements tables
+  // are sunset; tickets.pr_events carries all PR activity going forward.
+  // Requirement linkage no longer applies (no rows of type='requirement' exist
+  // in tickets.tickets), so requirement_id/_name are NULL here.
   const where: string[] = [];
   const params: unknown[] = [];
   if (opts.category) { params.push(opts.category); where.push(`category = $${params.length}`); }
@@ -73,10 +68,14 @@ export async function listTimeline(opts: {
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
   params.push(limit, offset);
 
-  const rows = (await tPool.query(
-    `SELECT id, to_char(day,'YYYY-MM-DD') AS day, pr_number, title, description,
-            category, scope, brand, requirement_id, requirement_name
-       FROM bachelorprojekt.v_timeline
+  const rows = (await pool.query(
+    `SELECT pr_number AS id,
+            to_char(merged_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day,
+            pr_number, title, description,
+            category, scope, brand,
+            NULL::text AS requirement_id,
+            NULL::text AS requirement_name
+       FROM tickets.pr_events
        ${whereSql}
       ORDER BY merged_at DESC
       LIMIT $${params.length - 1} OFFSET $${params.length}`,

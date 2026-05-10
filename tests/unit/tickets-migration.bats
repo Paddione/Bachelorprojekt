@@ -86,6 +86,8 @@ db_available() {
 }
 
 @test "runtime: every bugs.bug_tickets row produces one tickets.tickets row" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -96,6 +98,8 @@ db_available() {
 }
 
 @test "runtime: status mapping is correct (open->triage, resolved->done+fixed)" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -108,6 +112,8 @@ db_available() {
 }
 
 @test "runtime: archived rows map to status=archived resolution=fixed" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -117,6 +123,8 @@ db_available() {
 }
 
 @test "runtime: category tags are created (kind:bug for fehler rows)" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -132,6 +140,8 @@ db_available() {
 }
 
 @test "runtime: resolution_note rows produce a status_change comment" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -144,6 +154,8 @@ db_available() {
 }
 
 @test "runtime: idempotent — second run does not duplicate" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -155,6 +167,8 @@ db_available() {
 }
 
 @test "runtime: idempotent — second run reports all rows as skipped" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -165,6 +179,8 @@ db_available() {
 }
 
 @test "runtime: dry-run (default) makes no changes to tickets table" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -175,6 +191,8 @@ db_available() {
 }
 
 @test "runtime: dry-run output JSON has mode=dry-run" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! db_available; then skip "No database available (set TRACKING_DB_URL)"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -188,6 +206,8 @@ print('OK')
 }
 
 @test "runtime: comments are copied" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -201,6 +221,8 @@ print('OK')
 }
 
 @test "runtime: fixed_in_pr → ticket_links" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -226,6 +248,8 @@ print('OK')
 }
 
 @test "runtime: bugs.bug_tickets is a view after migration" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -238,6 +262,8 @@ print('OK')
 }
 
 @test "runtime: legacy fixed_in_pr JOIN still works against the view" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
@@ -250,6 +276,8 @@ print('OK')
 }
 
 @test "runtime: re-running migration is idempotent (view not corrupted)" {
+  psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
+    skip "bugs.bug_tickets does not exist (sunset already applied)"
   if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"

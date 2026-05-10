@@ -1,4 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
+
+vi.mock('@anthropic-ai/sdk', () => {
+  const mockCreate = vi.fn().mockResolvedValue({
+    content: [{ type: 'text', text: 'mocked claude response' }],
+  });
+  class MockAnthropic {
+    messages = { create: mockCreate };
+  }
+  return {
+    default: MockAnthropic,
+    Anthropic: MockAnthropic
+  };
+});
+
 import { assistantChat } from './llm';
 
 describe('assistantChat (no-LLM keyword fallback)', () => {
@@ -74,5 +88,20 @@ describe('resolveCoachingCollectionIds', () => {
 
     const ids = await resolveCoachingCollectionIds(mockPool);
     expect(ids).toEqual([]);
+  });
+});
+
+describe('assistantChat — Claude path', () => {
+  it('returns Claude reply when ANTHROPIC_API_KEY is set', async () => {
+    process.env.ANTHROPIC_API_KEY = 'test-key';
+    const result = await assistantChat({
+      profile: 'admin',
+      userSub: 'u',
+      messages: [{ role: 'user', content: 'Wie geht Geissler mit Abwehr um?' }],
+      context: { currentRoute: '/admin' },
+    });
+    expect(result.reply).toBe('mocked claude response');
+    expect(result.sourcesUsed).toBe(0);
+    delete process.env.ANTHROPIC_API_KEY;
   });
 });

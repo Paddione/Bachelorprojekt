@@ -86,8 +86,20 @@ if (!book) return new Response('Not Found', { status: 404 });
     if (r.ok) location.reload();
     else alert('Cluster konnte nicht angelegt werden (' + r.status + ').');
   });
-  window.addEventListener('coaching:snippet-created', () => {
-    setTimeout(() => location.reload(), 800);
+  window.addEventListener('coaching:snippet-created', (ev) => {
+    const detail = (ev && ev.detail) || {};
+    if (detail.id) {
+      const sidebar = document.querySelector('aside.sidebar');
+      if (sidebar) {
+        const a = document.createElement('a');
+        a.href = '/admin/knowledge/snippets/' + detail.id + '/publish';
+        a.textContent = '→ Publish: ' + (detail.title || 'Snippet');
+        a.className = 'btn-link';
+        a.style.display = 'block';
+        sidebar.appendChild(a);
+      }
+    }
+    setTimeout(() => location.reload(), 2000);
   });
 </script>
 

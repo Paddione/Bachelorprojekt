@@ -34,6 +34,29 @@ export interface Cluster {
   snippetCount?: number;
 }
 
+export type TargetSurface = 'questionnaire' | 'brett' | 'chatroom' | 'assistant';
+export type TemplateStatus = 'draft' | 'published' | 'archived';
+
+export interface SourcePointer {
+  bookId: string;
+  page: number | null;
+  chunkId: string | null;
+}
+
+export interface Template {
+  id: string;
+  snippetId: string;
+  targetSurface: TargetSurface;
+  version: number;
+  status: TemplateStatus;
+  payload: Record<string, unknown>;
+  sourcePointer: SourcePointer;
+  surfaceRef: string | null;
+  publishedAt: Date | null;
+  createdBy: string | null;
+  createdAt: Date;
+}
+
 export interface ChunkRow {
   id: string;
   position: number;
@@ -220,6 +243,130 @@ export async function listClusters(
   });
 }
 
+export interface CreateTemplateDraftArgs {
+  snippetId: string;
+  targetSurface: TargetSurface;
+  payload: Record<string, unknown>;
+  sourcePointer: SourcePointer;
+  createdBy?: string | null;
+}
+
+export async function createTemplateDraft(pool: Pool, args: CreateTemplateDraftArgs): Promise<Template> {
+  const v = await pool.query(
+    `SELECT COALESCE(MAX(version), 0) + 1 AS next FROM coaching.templates
+      WHERE snippet_id = $1 AND target_surface = $2`,
+    [args.snippetId, args.targetSurface],
+  );
+  const nextVersion: number = v.rows[0].next;
+  const r = await pool.query(
+    `INSERT INTO coaching.templates
+       (snippet_id, target_surface, version, status, payload, source_pointer, created_by)
+     VALUES ($1, $2, $3, 'draft', $4::jsonb, $5::jsonb, $6)
+     RETURNING *`,
+    [
+      args.snippetId,
+      args.targetSurface,
+      nextVersion,
+      JSON.stringify(args.payload),
+      JSON.stringify({
+        book_id: args.sourcePointer.bookId,
+        page: args.sourcePointer.page,
+        chunk_id: args.sourcePointer.chunkId,
+      }),
+      args.createdBy ?? null,
+    ],
+  );
+  return rowToTemplate(r.rows[0]);
+}
+
+export async function updateTemplate(
+  pool: Pool,
+  id: string,
+  args: { payload?: Record<string, unknown> },
+): Promise<Template | null> {
+  if (args.payload === undefined) {
+    const r = await pool.query(`SELECT * FROM coaching.templates WHERE id = $1`, [id]);
+    return r.rows[0] ? rowToTemplate(r.rows[0]) : null;
+  }
+  const r = await pool.query(
+    `UPDATE coaching.templates SET payload = $1::jsonb WHERE id = $2 RETURNING *`,
+    [JSON.stringify(args.payload), id],
+  );
+  return r.rows[0] ? rowToTemplate(r.rows[0]) : null;
+}
+
+export async function getTemplate(pool: Pool, id: string): Promise<Template | null> {
+  const r = await pool.query(`SELECT * FROM coaching.templates WHERE id = $1`, [id]);
+  return r.rows[0] ? rowToTemplate(r.rows[0]) : null;
+}
+
+export interface ListTemplatesFilter {
+  bookId?: string;
+  targetSurface?: TargetSurface;
+  status?: TemplateStatus;
+  snippetId?: string;
+  latestOnly?: boolean;
+}
+
+export async function listTemplates(pool: Pool, filter: ListTemplatesFilter = {}): Promise<Template[]> {
+  const where: string[] = [];
+  const vals: unknown[] = [];
+  let i = 1;
+  if (filter.snippetId)     { where.push(`t.snippet_id = $${i++}`); vals.push(filter.snippetId); }
+  if (filter.targetSurface) { where.push(`t.target_surface = $${i++}`); vals.push(filter.targetSurface); }
+  if (filter.status)        { where.push(`t.status = $${i++}`); vals.push(filter.status); }
+  if (filter.bookId) {
+    where.push(`t.snippet_id IN (SELECT id FROM coaching.snippets WHERE book_id = $${i++})`);
+    vals.push(filter.bookId);
+  }
+  let sql = `SELECT t.* FROM coaching.templates t`;
+  if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
+  sql += ` ORDER BY t.created_at DESC`;
+  const r = await pool.query(sql, vals);
+  let rows = r.rows.map(rowToTemplate);
+  if (filter.latestOnly) {
+    const seen = new Set<string>();
+    rows = rows.filter((t) => {
+      const k = `${t.snippetId}::${t.targetSurface}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }
+  return rows;
+}
+
+export async function listTemplateVersions(
+  pool: Pool,
+  snippetId: string,
+  targetSurface: TargetSurface,
+): Promise<Template[]> {
+  const r = await pool.query(
+    `SELECT * FROM coaching.templates
+       WHERE snippet_id = $1 AND target_surface = $2
+       ORDER BY version DESC`,
+    [snippetId, targetSurface],
+  );
+  return r.rows.map(rowToTemplate);
+}
+
+export async function markTemplatePublished(
+  pool: Pool,
+  id: string,
+  surfaceRef: string | null,
+): Promise<Template | null> {
+  const r = await pool.query(
+    `UPDATE coaching.templates
+        SET status = 'published',
+            surface_ref = $1,
+            published_at = now()
+      WHERE id = $2
+      RETURNING *`,
+    [surfaceRef, id],
+  );
+  return r.rows[0] ? rowToTemplate(r.rows[0]) : null;
+}
+
 function rowToBook(r: Record<string, unknown>): Book {
   return {
     id: r.id as string,
@@ -257,5 +404,26 @@ function rowToCluster(r: Record<string, unknown>): Cluster {
     parentId: (r.parent_id ?? null) as string | null,
     createdAt: r.created_at as Date,
     snippetCount: (r.snippet_count ?? undefined) as number | undefined,
+  };
+}
+
+function rowToTemplate(r: Record<string, unknown>): Template {
+  const sp = (r.source_pointer ?? {}) as { book_id?: string; page?: number; chunk_id?: string };
+  return {
+    id: r.id as string,
+    snippetId: r.snippet_id as string,
+    targetSurface: r.target_surface as TargetSurface,
+    version: r.version as number,
+    status: r.status as TemplateStatus,
+    payload: (r.payload ?? {}) as Record<string, unknown>,
+    sourcePointer: {
+      bookId: (sp.book_id ?? '') as string,
+      page: (sp.page ?? null) as number | null,
+      chunkId: (sp.chunk_id ?? null) as string | null,
+    },
+    surfaceRef: (r.surface_ref ?? null) as string | null,
+    publishedAt: (r.published_at ?? null) as Date | null,
+    createdBy: (r.created_by ?? null) as string | null,
+    createdAt: r.created_at as Date,
   };
 }

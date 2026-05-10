@@ -143,3 +143,20 @@ export async function queryNearest(args: {
   );
   return r.rows.filter((row: { score: number }) => row.score >= thresh);
 }
+
+export async function ensureCollection(args: {
+  name: string;
+  source: CollectionSource;
+  brand?: string | null;
+  description?: string | null;
+}): Promise<Collection> {
+  const all = await listCollections();
+  const found = all.find((c) => c.name === args.name);
+  if (found) return found;
+  return createCollection({
+    name: args.name,
+    source: args.source,
+    description: args.description ?? undefined,
+    brand: args.brand ?? null,
+  });
+}

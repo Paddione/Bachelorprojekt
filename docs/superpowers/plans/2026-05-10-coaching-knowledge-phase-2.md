@@ -1,7 +1,7 @@
 ---
 title: Coaching Knowledge — Phase 2 Implementation Plan (Publish-Cascade)
 domains: [website, db]
-status: active
+status: completed
 pr_number: null
 ---
 

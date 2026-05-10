@@ -1,0 +1,80 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { Pool } from 'pg';
+import { listTemplates, type TargetSurface, type TemplateStatus } from '../../../../lib/coaching-db';
+import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const surfaceParam = Astro.url.searchParams.get('surface') as TargetSurface | null;
+const statusParam = Astro.url.searchParams.get('status') as TemplateStatus | null;
+
+const pool = new Pool();
+let templates: Awaited<ReturnType<typeof listTemplates>> = [];
+try {
+  templates = await listTemplates(pool, {
+    targetSurface: surfaceParam ?? undefined,
+    status: statusParam ?? undefined,
+    latestOnly: true,
+  });
+} catch {}
+---
+<AdminLayout title="Coaching-Templates">
+  <div class="page">
+    <header class="page-head">
+      <nav class="crumbs">
+        <a href="/admin">Admin</a> ›
+        <a href="/admin/wissensquellen">Wissen</a> ›
+        Templates
+      </nav>
+      <h1>Templates</h1>
+      <p class="subtitle">Veröffentlichte und entworfene Templates pro Snippet (jeweils neueste Version).</p>
+      <div class="filters">
+        <a class={!surfaceParam ? 'active' : ''} href="/admin/knowledge/templates">Alle Surfaces</a>
+        <a class={surfaceParam === 'questionnaire' ? 'active' : ''} href="/admin/knowledge/templates?surface=questionnaire">Questionnaire</a>
+        <a class={surfaceParam === 'assistant' ? 'active' : ''} href="/admin/knowledge/templates?surface=assistant">Assistant</a>
+        <a class={surfaceParam === 'brett' ? 'active' : ''} href="/admin/knowledge/templates?surface=brett">Brett</a>
+        <a class={surfaceParam === 'chatroom' ? 'active' : ''} href="/admin/knowledge/templates?surface=chatroom">Chatroom</a>
+      </div>
+    </header>
+
+    {templates.length === 0 ? (
+      <p class="empty">Noch keine Templates.</p>
+    ) : (
+      <table>
+        <thead>
+          <tr><th>Surface</th><th>Status</th><th>Version</th><th>Erstellt</th><th></th></tr>
+        </thead>
+        <tbody>
+          {templates.map((t) => (
+            <tr>
+              <td><span class="pill">{t.targetSurface}</span></td>
+              <td>{t.status}</td>
+              <td class="num">v{t.version}</td>
+              <td>{t.createdAt instanceof Date ? t.createdAt.toLocaleDateString('de-DE') : String(t.createdAt)}</td>
+              <td><a href={`/admin/knowledge/snippets/${t.snippetId}/publish`}>Bearbeiten</a></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</AdminLayout>
+
+<style>
+  .page { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+  .crumbs { font-size: 0.78rem; color: var(--text-muted, #888); margin-bottom: 0.4rem; }
+  .crumbs a { color: var(--text-muted, #888); text-decoration: none; }
+  .filters { display: flex; gap: 0.4rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  .filters a { padding: 0.3rem 0.7rem; border: 1px solid var(--line, #ddd); border-radius: 4px; font-size: 0.8rem; text-decoration: none; color: var(--text-muted, #555); }
+  .filters a.active { border-color: var(--brass, #c9a55c); color: var(--brass, #c9a55c); }
+  .subtitle { color: var(--text-muted, #888); margin: 0.4rem 0 0; }
+  .empty { color: var(--text-muted, #888); padding: 2rem 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line, #ddd); font-size: 0.85rem; }
+  td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--line, #eee); }
+  td.num { font-variant-numeric: tabular-nums; }
+  .pill { font-size: 0.72rem; padding: 0.1rem 0.5rem; border: 1px solid var(--line, #ddd); border-radius: 99px; }
+</style>

@@ -73,6 +73,27 @@ beforeAll(async () => {
       created_by text,
       created_at timestamptz NOT NULL DEFAULT now()
     );
+    CREATE TABLE coaching.templates (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      snippet_id uuid NOT NULL,
+      target_surface text NOT NULL,
+      version int NOT NULL DEFAULT 1,
+      status text NOT NULL DEFAULT 'draft',
+      payload jsonb NOT NULL DEFAULT '{}',
+      source_pointer jsonb NOT NULL,
+      surface_ref text,
+      published_at timestamptz,
+      created_by text,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE coaching.template_assignments (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      template_id uuid NOT NULL,
+      template_version int NOT NULL,
+      client_id text NOT NULL,
+      surface_specific_id text,
+      assigned_at timestamptz NOT NULL DEFAULT now()
+    );
   `);
 
   const { Pool: MemPool } = pgmem.adapters.createPg();
@@ -84,6 +105,8 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
+  await pool.query(`TRUNCATE coaching.template_assignments`);
+  await pool.query(`TRUNCATE coaching.templates`);
   await pool.query(`TRUNCATE coaching.snippets`);
   await pool.query(`TRUNCATE coaching.snippet_clusters`);
   await pool.query(`TRUNCATE coaching.books`);
@@ -169,5 +192,77 @@ describe('coaching-db', () => {
     const clusters = await cdb.listClusters(pool, { bookId });
     expect(clusters).toHaveLength(1);
     expect(clusters[0].snippetCount).toBe(0);
+  });
+});
+
+describe('coaching-db: templates', () => {
+  async function seedSnippet(): Promise<{ snippetId: string; bookId: string; chunkId: string }> {
+    const c = await pool.query(`INSERT INTO knowledge.collections (name, source) VALUES ('t', 'custom') RETURNING id`);
+    const b = await pool.query(
+      `INSERT INTO coaching.books (knowledge_collection_id, title, source_filename) VALUES ($1, 't', 't.epub') RETURNING id`,
+      [c.rows[0].id],
+    );
+    const k = await pool.query(
+      `INSERT INTO knowledge.chunks (document_id, collection_id, position, text) VALUES ('00000000-0000-0000-0000-000000000000', $1, 0, 't') RETURNING id`,
+      [c.rows[0].id],
+    );
+    const s = await cdb.createSnippet(pool, {
+      bookId: b.rows[0].id, title: 'X', body: 'Y', tags: [], page: 7, knowledgeChunkId: k.rows[0].id,
+    });
+    return { snippetId: s.id, bookId: b.rows[0].id, chunkId: k.rows[0].id };
+  }
+
+  test('createTemplateDraft starts at version 1', async () => {
+    const { snippetId, bookId, chunkId } = await seedSnippet();
+    const t = await cdb.createTemplateDraft(pool, {
+      snippetId,
+      targetSurface: 'questionnaire',
+      payload: { title: 'Q1', question: 'Wann ...?' },
+      sourcePointer: { bookId, page: 7, chunkId },
+    });
+    expect(t.version).toBe(1);
+    expect(t.status).toBe('draft');
+    expect(t.payload.title).toBe('Q1');
+    expect(t.sourcePointer.page).toBe(7);
+  });
+
+  test('createTemplateDraft increments version per (snippet, surface)', async () => {
+    const { snippetId, bookId, chunkId } = await seedSnippet();
+    await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'questionnaire', payload: {}, sourcePointer: { bookId, page: 1, chunkId } });
+    const t2 = await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'questionnaire', payload: {}, sourcePointer: { bookId, page: 1, chunkId } });
+    expect(t2.version).toBe(2);
+
+    const t3 = await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'assistant', payload: {}, sourcePointer: { bookId, page: 1, chunkId } });
+    expect(t3.version).toBe(1);
+  });
+
+  test('updateTemplate replaces payload', async () => {
+    const { snippetId, bookId, chunkId } = await seedSnippet();
+    const t = await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'assistant', payload: { body: 'old' }, sourcePointer: { bookId, page: 1, chunkId } });
+    const u = await cdb.updateTemplate(pool, t.id, { payload: { body: 'new' } });
+    expect(u?.payload.body).toBe('new');
+  });
+
+  test('listTemplates filters by surface and latestOnly', async () => {
+    const { snippetId, bookId, chunkId } = await seedSnippet();
+    await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'questionnaire', payload: { v: 1 }, sourcePointer: { bookId, page: 1, chunkId } });
+    await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'questionnaire', payload: { v: 2 }, sourcePointer: { bookId, page: 1, chunkId } });
+    await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'brett', payload: {}, sourcePointer: { bookId, page: 1, chunkId } });
+
+    const all = await cdb.listTemplates(pool, { targetSurface: 'questionnaire' });
+    expect(all).toHaveLength(2);
+
+    const latest = await cdb.listTemplates(pool, { targetSurface: 'questionnaire', latestOnly: true });
+    expect(latest).toHaveLength(1);
+    expect((latest[0].payload as { v: number }).v).toBe(2);
+  });
+
+  test('markTemplatePublished sets status + surface_ref + published_at', async () => {
+    const { snippetId, bookId, chunkId } = await seedSnippet();
+    const t = await cdb.createTemplateDraft(pool, { snippetId, targetSurface: 'questionnaire', payload: {}, sourcePointer: { bookId, page: 1, chunkId } });
+    const p = await cdb.markTemplatePublished(pool, t.id, 'qt-123');
+    expect(p?.status).toBe('published');
+    expect(p?.surfaceRef).toBe('qt-123');
+    expect(p?.publishedAt).toBeInstanceOf(Date);
   });
 });

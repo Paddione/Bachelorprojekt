@@ -56,18 +56,7 @@ data:
             return 200 '{"status":"ok","role":"cluster"}\n';
           }
 
-          # Business role: check allowed paths
-          set $uri_path $http_x_forwarded_uri;
-          set $allowed "";
-
-          if ($uri_path ~ "^/nextcloud(/|$)") {
-            set $allowed "yes";
-          }
-
-          if ($allowed != "yes") {
-            return 403 '{"error":"forbidden: business role cannot access this path"}\n';
-          }
-
+          # Business role: full access to all gateway-routed MCP servers.
           add_header X-MCP-Role "business" always;
           return 200 '{"status":"ok","role":"business"}\n';
         }
@@ -88,6 +77,17 @@ spec:
       labels:
         app: mcp-auth-proxy
     spec:
+      # Pin to Hetzner CPs: home workers are unreachable from Traefik over the
+      # WireGuard double-hop (Flannel VXLAN partition). Forward-auth would hang.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-location
+                    operator: In
+                    values:
+                      - hetzner
       containers:
         - name: nginx
           image: nginx:1.27-alpine-perl

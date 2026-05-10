@@ -64,7 +64,10 @@ data:
   MIN_ADVANCE_HOURS: "24"
   # Whisper
   WHISPER_URL: "http://whisper.${WORKSPACE_NAMESPACE}.svc.cluster.local:8000"
-  ANTHROPIC_API_KEY: ""
+  # LLM router (local-first pipeline)
+  LLM_ROUTER_URL: "${LLM_ROUTER_URL}"
+  LLM_ENABLED: "${LLM_ENABLED}"
+  LLM_RERANK_ENABLED: "${LLM_RERANK_ENABLED}"
   # Mentolder-Assistent (no-LLM keyword-search mode for now)
   ENABLE_ASSISTANT_ADMIN: "true"
   ENABLE_ASSISTANT_PORTAL: "true"
@@ -363,6 +366,12 @@ spec:
               value: "46.225.125.59"
             - name: LIVEKIT_PIN_IP_KORCZEWSKI
               value: "37.27.251.38"
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: ANTHROPIC_API_KEY
+                  optional: true
             - name: EVIDENCE_ROOT
               value: "/var/evidence"
           volumeMounts:

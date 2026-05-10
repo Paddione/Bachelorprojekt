@@ -1,0 +1,12 @@
+{
+  "pr_number": 630,
+  "title": "defensive ADD COLUMN for source_test_{assignment,question}_id in initTicketsSchema",
+  "description": "## Summary\n- `initTicketsSchema` creates a UNIQUE INDEX on `source_test_question_id` at L84-88, but the column is canonically owned by `ensureSystemtestSchema` in `systemtest/db.ts`.\n- On a fresh DB where systemtest schema init hasn't yet run, the index creation throws (`column does not exist`), aborting the rest of `initTicketsSchema`. tickets.tickets ends up created, but ticket_links / ticket_activity / ticket_comments / ticket_attachments / ticket_watchers / tags / ticket_tags / pr_events / counters all silently fail.\n- Discovered while bringing up korczewski-ha (PRs #621/#622). `/api/timeline` returned `fetch_failed` because `tickets.ticket_links` was missing.\n\n## Fix\nAdd `source_test_assignment_id UUID` + `source_test_question_id UUID` to the existing defensive `ADD COLUMN IF NOT EXISTS` ALTER. Idempotent — has no effect on clusters where `ensureSystemtestSchema` already ran. The FK to `questionnaire_questions` is unchanged (still owned by ensureSystemtestSchema, applied later when questionnaire_questions exists).\n\n## Test plan\n- [ ] After merge, `task website:deploy ENV=korczewski` causes the website pod on korczewski-ha to cold-start, run initTicketsSchema, and create the 7 missing tables.\n- [ ] `kubectl --context korczewski-ha -n workspace-korczewski exec deploy/shared-db -- psql -U postgres -d website -c \"\\dt tickets.*\"` should list 10 tables.\n- [ ] `curl https://web.korczewski.de/api/timeline?limit=1` should return `{\"rows\":[…]}` instead of `{\"rows\":[],\"error\":\"fetch_failed\"}`.\n- [ ] `task website:deploy ENV=mentolder` should be a no-op for schema (mentolder already has all columns).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "tickets",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T01:44:21Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -1,8 +1,8 @@
 ---
 title: Unified Ticketing PR3/5 — projects/sub_projects/tasks migration
 domains: [website, db]
-status: active
-pr_number: null
+status: completed
+pr_number: 567
 ---
 
 # Unified Ticketing PR3/5 — projects/sub_projects/tasks migration

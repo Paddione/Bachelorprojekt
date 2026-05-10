@@ -13,8 +13,8 @@
   let assignMsg = $state('');
   let archivedVisible = $state(false);
 
-  const active = $derived(assignments.filter(a => a.status !== 'archived'));
-  const archived = $derived(assignments.filter(a => a.status === 'archived'));
+  const active = $derived(assignments.filter(a => a.status !== 'archived' && a.status !== 'dismissed'));
+  const archived = $derived(assignments.filter(a => a.status === 'archived' || a.status === 'dismissed'));
 
   async function loadData() {
     const [aRes, tRes] = await Promise.all([
@@ -129,7 +129,7 @@
       class="mt-3 text-xs text-muted hover:text-light flex items-center gap-1"
     >
       <span>{archivedVisible ? '▾' : '▸'}</span>
-      Archiv anzeigen ({archived.length})
+      Archiv & Abgelehnte anzeigen ({archived.length})
     </button>
     {#if archivedVisible}
       <div class="flex flex-col gap-2 mt-2 opacity-60">
@@ -146,7 +146,9 @@
               <span class={`px-2 py-0.5 rounded border text-xs ${statusBadge(a.status)}`}>
                 {statusLabel(a.status)}
               </span>
-              <a href={`/admin/fragebogen/${a.id}`} class="text-xs text-gold hover:underline">Auswertung →</a>
+              {#if a.submitted_at}
+                <a href={`/admin/fragebogen/${a.id}`} class="text-xs text-gold hover:underline">Auswertung →</a>
+              {/if}
             </div>
           </div>
         {/each}

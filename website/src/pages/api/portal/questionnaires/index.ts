@@ -11,5 +11,8 @@ export const GET: APIRoute = async ({ request }) => {
   if (!customer) return new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } });
 
   const assignments = await listQAssignmentsForCustomer(customer.id);
-  return new Response(JSON.stringify(assignments), { headers: { 'Content-Type': 'application/json' } });
+  // Chat widget only — hide dismissed/archived so they don't reappear after reload.
+  // FragebogenSection.astro receives assignments directly (server-side props), not from this endpoint.
+  const active = assignments.filter(a => a.status !== 'dismissed' && a.status !== 'archived');
+  return new Response(JSON.stringify(active), { headers: { 'Content-Type': 'application/json' } });
 };

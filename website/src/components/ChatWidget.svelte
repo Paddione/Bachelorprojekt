@@ -2,7 +2,7 @@
   type Assignment = {
     id: string;
     template_title: string;
-    status: 'pending' | 'in_progress' | 'submitted' | 'reviewed';
+    status: 'pending' | 'in_progress' | 'submitted' | 'reviewed' | 'dismissed' | 'archived';
     assigned_at: string;
     submitted_at: string | null;
   };
@@ -68,7 +68,10 @@
     const res = await fetch('/api/portal/questionnaires');
     if (res.ok) {
       const data = await res.json() as Assignment[];
-      assignments = Array.isArray(data) ? data : [];
+      // Defense-in-depth: API already filters, but never show dismissed/archived in widget.
+      assignments = Array.isArray(data)
+        ? data.filter(a => a.status !== 'dismissed' && a.status !== 'archived')
+        : [];
     }
   }
 

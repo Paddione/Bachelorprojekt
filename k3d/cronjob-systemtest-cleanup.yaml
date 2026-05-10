@@ -1,10 +1,11 @@
 # System-test failure-loop cleanup CronJobs.
 #
-# Two jobs in one file:
-#   - systemtest-cleanup  (hourly)  → purges fixtures + expired magic-link tokens
-#   - systemtest-outbox   (every 5m) → drains the failure-bridge outbox + reconciles
+# Three jobs in one file:
+#   - systemtest-cleanup    (hourly)    → purges fixtures + expired magic-link tokens (24h grace)
+#   - systemtest-outbox     (every 5m)  → drains the failure-bridge outbox + reconciles
+#   - systemtest-purge-all  (every 6h)  → hard-purges every is_test_data=true row, no grace
 #
-# Both target HTTP endpoints on the website service (`website.${WEBSITE_NAMESPACE}`)
+# All three target HTTP endpoints on the website service (`website.${WEBSITE_NAMESPACE}`)
 # and authenticate via the shared CRON_SECRET — same pattern as the billing CronJobs
 # (cronjob-monthly-billing.yaml, cronjob-dunning-detection.yaml). Running through HTTP
 # means the CronJob image stays a tiny curl container and we don't have to ship a
@@ -51,6 +52,57 @@ spec:
                   curl -sf -X POST \
                     -H "X-Cron-Secret: $CRON_SECRET" \
                     "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/admin/systemtest/cleanup-fixtures"
+              env:
+                - name: WEBSITE_NAMESPACE
+                  value: "${WEBSITE_NAMESPACE}"
+                - name: CRON_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: website-secrets
+                      key: CRON_SECRET
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: systemtest-purge-all
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  schedule: "0 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: trigger
+              image: curlimages/curl:8.7.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf -X POST \
+                    -H "X-Cron-Secret: $CRON_SECRET" \
+                    "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/admin/systemtest/purge-all-test-data"
               env:
                 - name: WEBSITE_NAMESPACE
                   value: "${WEBSITE_NAMESPACE}"

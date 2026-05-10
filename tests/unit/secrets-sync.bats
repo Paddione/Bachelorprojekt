@@ -8,7 +8,9 @@
 # Rules:
 #   1. Every schema secret → must exist in k3d/secrets.yaml
 #   2. Every k3d/secrets.yaml key → must exist in schema (no orphans)
-#   3. Every schema secret → must exist in each SealedSecret
+#   3. Every required schema secret → must exist in each SealedSecret
+#      (optional secrets with required:false are user-provided and may be
+#       absent from some environments — they are skipped here)
 #
 # Prerequisites: python3, pyyaml
 # No cluster required — pure static analysis.
@@ -29,6 +31,19 @@ with open(sys.argv[1]) as f:
     schema = yaml.safe_load(f)
 for s in schema.get('secrets', []):
     print(s['name'])
+EOF
+}
+
+# Returns only secrets with required:true — used to validate sealed secrets
+# where optional/user-provided keys may legitimately be absent in some envs.
+schema_required_keys() {
+  python3 - "$SCHEMA" <<'EOF'
+import sys, yaml
+with open(sys.argv[1]) as f:
+    schema = yaml.safe_load(f)
+for s in schema.get('secrets', []):
+    if s.get('required', False):
+        print(s['name'])
 EOF
 }
 
@@ -96,33 +111,33 @@ EOF
 
 # ── Schema → SealedSecrets ────────────────────────────────────────
 
-@test "every schema secret exists in environments/sealed-secrets/mentolder.yaml" {
+@test "every required schema secret exists in environments/sealed-secrets/mentolder.yaml" {
   local file="${SEALED_DIR}/mentolder.yaml"
   local missing=()
   while IFS= read -r key; do
     if ! sealed_keys "$file" | grep -qx "$key"; then
       missing+=("$key")
     fi
-  done < <(schema_keys)
+  done < <(schema_required_keys)
 
   if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "Keys in schema but missing from mentolder.yaml SealedSecret:"
+    echo "Required keys in schema but missing from mentolder.yaml SealedSecret:"
     printf '  %s\n' "${missing[@]}"
     return 1
   fi
 }
 
-@test "every schema secret exists in environments/sealed-secrets/korczewski.yaml" {
+@test "every required schema secret exists in environments/sealed-secrets/korczewski.yaml" {
   local file="${SEALED_DIR}/korczewski.yaml"
   local missing=()
   while IFS= read -r key; do
     if ! sealed_keys "$file" | grep -qx "$key"; then
       missing+=("$key")
     fi
-  done < <(schema_keys)
+  done < <(schema_required_keys)
 
   if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "Keys in schema but missing from korczewski.yaml SealedSecret:"
+    echo "Required keys in schema but missing from korczewski.yaml SealedSecret:"
     printf '  %s\n' "${missing[@]}"
     return 1
   fi

@@ -1,0 +1,17 @@
+[Unit]
+Description=Ollama (local LLM swap pool)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ollama serve
+Environment=OLLAMA_HOST=0.0.0.0:11434
+Environment=OLLAMA_KEEP_ALIVE=5m
+Environment=OLLAMA_FLASH_ATTENTION=1
+Restart=on-failure
+RestartSec=5
+User=ollama
+Group=ollama
+
+[Install]
+WantedBy=multi-user.target

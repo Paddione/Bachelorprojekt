@@ -46,8 +46,7 @@ env_vars:
   KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
   # System-test failure loop master kill-switch (Task 10).
   SYSTEMTEST_LOOP_ENABLED: "true"
-  # ← replace LLM_HOST_IP with actual wg-mesh IP at deploy time
-  LLM_HOST_IP: "10.0.0.99"
+  LLM_HOST_IP: "10.10.0.3"
   LLM_ENABLED: "true"
   # flip LLM_RERANK_ENABLED to true after 24h of stable rollout
   LLM_RERANK_ENABLED: "false"

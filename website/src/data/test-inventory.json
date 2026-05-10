@@ -624,12 +624,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-38",
-    "file": "tests/local/FA-38.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",
@@ -704,12 +698,6 @@
   {
     "id": "NFA-09",
     "file": "tests/local/NFA-09.sh",
-    "category": "NFA",
-    "kind": "shell"
-  },
-  {
-    "id": "NFA-10",
-    "file": "tests/local/NFA-10.sh",
     "category": "NFA",
     "kind": "shell"
   },

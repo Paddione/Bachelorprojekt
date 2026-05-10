@@ -538,10 +538,8 @@ secrets:
   - name: ANTHROPIC_API_KEY
     required: false
     generate: false
-    description: "Anthropic API key. Used by (a) the website for meeting insights (claude.ts), (b) the llm-router for chat-class fallback when the local Ollama is unreachable. Required in prod when LLM_ENABLED=true."
+    description: "Anthropic API key. Used by the website for meeting insights (claude.ts) and coaching classification. Optional — the LLM router is local-only and does not fall back to Anthropic."
     extra_namespaces:
-      - namespace: workspace
-        secret: knowledge-secrets
       - namespace: website
         secret: website-secrets
 

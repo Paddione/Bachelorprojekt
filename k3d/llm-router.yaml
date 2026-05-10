@@ -1,10 +1,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # llm-router: in-cluster LiteLLM proxy
 #
-# Exposes one OpenAI-compatible URL (port 4000). Encodes the local-first /
-# cloud-fallback policy declaratively in litellm-config. Embeddings and
-# reranking NEVER fall back across vector spaces — see docs spec for the
-# invariant. Chat-class aliases fall back to Anthropic per call.
+# Exposes one OpenAI-compatible URL (port 4000). Encodes the local-first
+# policy declaratively in litellm-config. Embeddings and reranking NEVER
+# fall back across vector spaces — see docs spec for the invariant.
+# Chat-class aliases are local-only; callers receive 503 when Ollama is down.
 # ─────────────────────────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ConfigMap
@@ -32,16 +32,11 @@ data:
           api_base: http://llm-gateway-rerank:8082
           timeout: 30
 
-      # ── Chat-class aliases — primary local, fallback Anthropic ────────────
+      # ── Chat-class aliases — local-only (503 on Ollama outage) ──────────────
       - model_name: workspace-chat
         litellm_params:
           model: ollama/qwen2.5:14b-instruct-q4_K_M
           api_base: http://llm-gateway-chat:11434
-          timeout: 30
-      - model_name: workspace-chat-fallback
-        litellm_params:
-          model: anthropic/claude-sonnet-4-6
-          api_key: os.environ/ANTHROPIC_API_KEY
           timeout: 30
 
       - model_name: workspace-code
@@ -49,21 +44,11 @@ data:
           model: ollama/qwen2.5-coder:14b-instruct-q4_K_M
           api_base: http://llm-gateway-chat:11434
           timeout: 30
-      - model_name: workspace-code-fallback
-        litellm_params:
-          model: anthropic/claude-sonnet-4-6
-          api_key: os.environ/ANTHROPIC_API_KEY
-          timeout: 30
 
       - model_name: workspace-vision
         litellm_params:
           model: ollama/qwen2.5vl:7b-instruct-q4_K_M
           api_base: http://llm-gateway-chat:11434
-          timeout: 30
-      - model_name: workspace-vision-fallback
-        litellm_params:
-          model: anthropic/claude-sonnet-4-6
-          api_key: os.environ/ANTHROPIC_API_KEY
           timeout: 30
 
       - model_name: workspace-fast
@@ -71,20 +56,10 @@ data:
           model: ollama/llama3.2:3b-instruct-q4_K_M
           api_base: http://llm-gateway-chat:11434
           timeout: 30
-      - model_name: workspace-fast-fallback
-        litellm_params:
-          model: anthropic/claude-haiku-4-5
-          api_key: os.environ/ANTHROPIC_API_KEY
-          timeout: 30
 
     litellm_settings:
       drop_params: true
       set_verbose: false
-      fallbacks:
-        - workspace-chat: ["workspace-chat-fallback"]
-        - workspace-code: ["workspace-code-fallback"]
-        - workspace-vision: ["workspace-vision-fallback"]
-        - workspace-fast: ["workspace-fast-fallback"]
       success_callback: []
       failure_callback: []
 
@@ -121,9 +96,6 @@ spec:
             - name: VOYAGE_API_KEY
               valueFrom:
                 secretKeyRef: { name: workspace-secrets, key: VOYAGE_API_KEY }
-            - name: ANTHROPIC_API_KEY
-              valueFrom:
-                secretKeyRef: { name: workspace-secrets, key: ANTHROPIC_API_KEY }
             - name: LITELLM_MASTER_KEY
               value: "sk-llm-router-internal"
           volumeMounts:

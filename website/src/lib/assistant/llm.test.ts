@@ -35,3 +35,44 @@ describe('assistantChat (no-LLM keyword fallback)', () => {
     expect(result.reply).toMatch(/Frag mich/);
   });
 });
+
+import { vi, beforeEach } from 'vitest';
+import { resolveCoachingCollectionIds, __resetCacheForTests } from './coaching-collections';
+import { Pool } from 'pg';
+
+describe('resolveCoachingCollectionIds', () => {
+  beforeEach(() => {
+    __resetCacheForTests();
+  });
+
+  it('returns collection IDs from coaching.books joined to knowledge.collections', async () => {
+    const mockPool = {
+      query: vi.fn().mockResolvedValue({
+        rows: [{ collection_id: 'abc-123' }, { collection_id: 'def-456' }],
+      }),
+    } as unknown as Pool;
+
+    const ids = await resolveCoachingCollectionIds(mockPool);
+    expect(ids).toEqual(['abc-123', 'def-456']);
+    expect(mockPool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses cached result on second call within 60s', async () => {
+    const mockPool = {
+      query: vi.fn().mockResolvedValue({ rows: [{ collection_id: 'abc-123' }] }),
+    } as unknown as Pool;
+
+    await resolveCoachingCollectionIds(mockPool);
+    await resolveCoachingCollectionIds(mockPool);
+    expect(mockPool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns empty array when no books exist', async () => {
+    const mockPool = {
+      query: vi.fn().mockResolvedValue({ rows: [] }),
+    } as unknown as Pool;
+
+    const ids = await resolveCoachingCollectionIds(mockPool);
+    expect(ids).toEqual([]);
+  });
+});

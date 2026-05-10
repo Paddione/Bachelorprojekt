@@ -8,6 +8,9 @@ env_vars:
   # Dev uses default_dev from schema.yaml for most values.
   # Override only where the dev default differs from schema:
   WEBSITE_IMAGE: workspace-website
+  LLM_ENABLED: "false"
+  LLM_RERANK_ENABLED: "false"
+  LLM_HOST_IP: ""
 
 # Dev secrets: generated from schema defaults at deploy time.
 secrets_mode: plaintext

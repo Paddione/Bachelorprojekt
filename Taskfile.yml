@@ -2744,3 +2744,8 @@ tasks:
     desc: "Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]"
     cmds:
       - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/ingest-book.mts {{.CLI_ARGS}}
+
+  coaching:classify:
+    desc: "Run AI classifier over UNCLASSIFIED chunks of a coaching book. Args: -- --slug=<slug> | --all"
+    cmds:
+      - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/classify-book.mts {{.CLI_ARGS}}

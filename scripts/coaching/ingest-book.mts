@@ -10,12 +10,13 @@ interface CliFlags {
   title?: string;
   author?: string;
   'license-note'?: string;
+  classify?: boolean;
 }
 
 async function main() {
   const args = process.argv.slice(2);
   if (args.length < 2) {
-    console.error('Usage: ingest-book.mts <file.pdf|.epub> <slug> [--title="..."] [--author="..."] [--license-note="..."]');
+    console.error('Usage: ingest-book.mts <file.pdf|.epub> <slug> [--title="..."] [--author="..."] [--license-note="..."] [--classify]');
     process.exit(2);
   }
   const [filePath, slug, ...rest] = args;
@@ -114,14 +115,26 @@ async function main() {
     );
 
     console.log(`[ingest] done. collectionId=${collectionId}`);
+
+    if (opts.classify) {
+      console.log(`[ingest] running classifier (--classify) on slug=${slug}`);
+      const { spawn } = await import('node:child_process');
+      const child = spawn('npx', ['tsx', new URL('./classify-book.mts', import.meta.url).pathname, `--slug=${slug}`], { stdio: 'inherit' });
+      const code: number = await new Promise((r) => child.on('exit', (c) => r(c ?? 1)));
+      if (code !== 0) {
+        console.error(`[ingest] classifier exited with code ${code}`);
+        process.exit(code);
+      }
+    }
   } finally {
     await pool.end();
   }
 }
 
 function parseFlags(rest: string[]): CliFlags {
-  const out: Record<string, string> = {};
+  const out: Record<string, string | boolean> = {};
   for (const a of rest) {
+    if (a === '--classify') { out.classify = true; continue; }
     const m = a.match(/^--([^=]+)=(.*)$/);
     if (m) out[m[1]] = m[2];
   }

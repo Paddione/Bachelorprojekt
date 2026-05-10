@@ -184,7 +184,8 @@ data:
         tags TEXT[] NOT NULL DEFAULT '{}',
         page INT,
         created_by TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        created_from_draft UUID
       );
 
       CREATE INDEX IF NOT EXISTS idx_snippets_book_id ON coaching.snippets(book_id);
@@ -221,6 +222,27 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_assignments_template_id ON coaching.template_assignments(template_id);
       CREATE INDEX IF NOT EXISTS idx_assignments_client_id ON coaching.template_assignments(client_id);
+
+      CREATE TABLE IF NOT EXISTS coaching.drafts (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        book_id UUID NOT NULL REFERENCES coaching.books(id) ON DELETE CASCADE,
+        knowledge_chunk_id UUID NOT NULL REFERENCES knowledge.chunks(id) ON DELETE CASCADE,
+        template_kind TEXT NOT NULL CHECK (template_kind IN ('reflection','dialog_pattern','exercise','case_example')),
+        suggested_payload JSONB NOT NULL,
+        classifier_model TEXT NOT NULL,
+        classifier_version TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','accepted','rejected','skipped')),
+        reviewed_by TEXT,
+        reviewed_at TIMESTAMPTZ,
+        reject_reason TEXT,
+        resulting_snippet_id UUID REFERENCES coaching.snippets(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (knowledge_chunk_id, classifier_version)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_drafts_book_status ON coaching.drafts(book_id, status);
+      CREATE INDEX IF NOT EXISTS idx_drafts_kind_status ON coaching.drafts(template_kind, status);
+      CREATE INDEX IF NOT EXISTS idx_drafts_chunk ON coaching.drafts(knowledge_chunk_id);
 
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables
@@ -658,7 +680,8 @@ data:
         tags TEXT[] NOT NULL DEFAULT '{}',
         page INT,
         created_by TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        created_from_draft UUID
       );
 
       CREATE INDEX IF NOT EXISTS idx_snippets_book_id ON coaching.snippets(book_id);
@@ -695,6 +718,27 @@ data:
 
       CREATE INDEX IF NOT EXISTS idx_assignments_template_id ON coaching.template_assignments(template_id);
       CREATE INDEX IF NOT EXISTS idx_assignments_client_id ON coaching.template_assignments(client_id);
+
+      CREATE TABLE IF NOT EXISTS coaching.drafts (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        book_id UUID NOT NULL REFERENCES coaching.books(id) ON DELETE CASCADE,
+        knowledge_chunk_id UUID NOT NULL REFERENCES knowledge.chunks(id) ON DELETE CASCADE,
+        template_kind TEXT NOT NULL CHECK (template_kind IN ('reflection','dialog_pattern','exercise','case_example')),
+        suggested_payload JSONB NOT NULL,
+        classifier_model TEXT NOT NULL,
+        classifier_version TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','accepted','rejected','skipped')),
+        reviewed_by TEXT,
+        reviewed_at TIMESTAMPTZ,
+        reject_reason TEXT,
+        resulting_snippet_id UUID REFERENCES coaching.snippets(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (knowledge_chunk_id, classifier_version)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_drafts_book_status ON coaching.drafts(book_id, status);
+      CREATE INDEX IF NOT EXISTS idx_drafts_kind_status ON coaching.drafts(template_kind, status);
+      CREATE INDEX IF NOT EXISTS idx_drafts_chunk ON coaching.drafts(knowledge_chunk_id);
 
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables

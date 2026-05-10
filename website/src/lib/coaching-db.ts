@@ -427,3 +427,239 @@ function rowToTemplate(r: Record<string, unknown>): Template {
     createdAt: r.created_at as Date,
   };
 }
+
+// ---- Drafts (Phase 3) -------------------------------------------------
+
+export type DraftKind = 'reflection' | 'dialog_pattern' | 'exercise' | 'case_example';
+export type DraftStatus = 'open' | 'accepted' | 'rejected' | 'skipped';
+
+export interface Draft {
+  id: string;
+  bookId: string;
+  knowledgeChunkId: string;
+  templateKind: DraftKind;
+  suggestedPayload: Record<string, unknown>;
+  classifierModel: string;
+  classifierVersion: string;
+  status: DraftStatus;
+  reviewedBy: string | null;
+  reviewedAt: Date | null;
+  rejectReason: string | null;
+  resultingSnippetId: string | null;
+  createdAt: Date;
+}
+
+export interface DraftWithChunk extends Draft {
+  chunkText: string;
+  page: number | null;
+}
+
+export interface DraftFilter {
+  bookId?: string;
+  templateKind?: DraftKind;
+  status?: DraftStatus;
+}
+
+function rowToDraft(r: Record<string, unknown>): Draft {
+  return {
+    id: r.id as string,
+    bookId: r.book_id as string,
+    knowledgeChunkId: r.knowledge_chunk_id as string,
+    templateKind: r.template_kind as DraftKind,
+    suggestedPayload: (r.suggested_payload ?? {}) as Record<string, unknown>,
+    classifierModel: r.classifier_model as string,
+    classifierVersion: r.classifier_version as string,
+    status: r.status as DraftStatus,
+    reviewedBy: (r.reviewed_by ?? null) as string | null,
+    reviewedAt: (r.reviewed_at ?? null) as Date | null,
+    rejectReason: (r.reject_reason ?? null) as string | null,
+    resultingSnippetId: (r.resulting_snippet_id ?? null) as string | null,
+    createdAt: r.created_at as Date,
+  };
+}
+
+export async function insertDraft(
+  pool: Pool,
+  d: Omit<
+    Draft,
+    'id' | 'status' | 'reviewedBy' | 'reviewedAt' | 'rejectReason' | 'resultingSnippetId' | 'createdAt'
+  >,
+): Promise<Draft> {
+  const r = await pool.query(
+    `INSERT INTO coaching.drafts (book_id, knowledge_chunk_id, template_kind, suggested_payload, classifier_model, classifier_version)
+     VALUES ($1, $2, $3, $4::jsonb, $5, $6)
+     ON CONFLICT (knowledge_chunk_id, classifier_version) DO NOTHING
+     RETURNING *`,
+    [
+      d.bookId,
+      d.knowledgeChunkId,
+      d.templateKind,
+      JSON.stringify(d.suggestedPayload),
+      d.classifierModel,
+      d.classifierVersion,
+    ],
+  );
+  if ((r.rowCount ?? 0) === 0) {
+    const existing = await pool.query(
+      `SELECT * FROM coaching.drafts WHERE knowledge_chunk_id=$1 AND classifier_version=$2`,
+      [d.knowledgeChunkId, d.classifierVersion],
+    );
+    return rowToDraft(existing.rows[0]);
+  }
+  return rowToDraft(r.rows[0]);
+}
+
+export async function listDrafts(pool: Pool, filter: DraftFilter = {}): Promise<Draft[]> {
+  const where: string[] = [];
+  const args: unknown[] = [];
+  if (filter.bookId) {
+    args.push(filter.bookId);
+    where.push(`book_id=$${args.length}`);
+  }
+  if (filter.templateKind) {
+    args.push(filter.templateKind);
+    where.push(`template_kind=$${args.length}`);
+  }
+  if (filter.status) {
+    args.push(filter.status);
+    where.push(`status=$${args.length}`);
+  }
+  const sql = `SELECT * FROM coaching.drafts ${
+    where.length ? 'WHERE ' + where.join(' AND ') : ''
+  } ORDER BY created_at ASC`;
+  const r = await pool.query(sql, args);
+  return r.rows.map(rowToDraft);
+}
+
+export async function getDraft(pool: Pool, id: string): Promise<DraftWithChunk | null> {
+  const r = await pool.query(
+    `SELECT d.*, kc.text AS chunk_text, (kc.metadata->>'page')::int AS page
+       FROM coaching.drafts d
+       JOIN knowledge.chunks kc ON kc.id = d.knowledge_chunk_id
+      WHERE d.id = $1`,
+    [id],
+  );
+  if ((r.rowCount ?? 0) === 0) return null;
+  const row = r.rows[0];
+  return {
+    ...rowToDraft(row),
+    chunkText: row.chunk_text as string,
+    page: (row.page ?? null) as number | null,
+  };
+}
+
+export interface AcceptDraftOpts {
+  reviewedBy: string;
+  /** override of suggested_payload before snippet creation; merged shallow */
+  payloadOverrides?: Record<string, unknown>;
+  /** override snippet title; defaults to `suggested_payload.title` */
+  snippetTitleOverride?: string;
+  /** tags for the resulting snippet; defaults to [template_kind] */
+  tags?: string[];
+}
+
+export async function acceptDraft(
+  pool: Pool,
+  id: string,
+  opts: AcceptDraftOpts,
+): Promise<{ draft: Draft; snippetId: string }> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const draftRes = await client.query(
+      `SELECT * FROM coaching.drafts WHERE id=$1 FOR UPDATE`,
+      [id],
+    );
+    if ((draftRes.rowCount ?? 0) === 0) throw new Error('draft not found');
+    const draft = rowToDraft(draftRes.rows[0]);
+    if (draft.status !== 'open')
+      throw new Error(`draft ${id} is not open (status=${draft.status})`);
+
+    const payload = { ...draft.suggestedPayload, ...(opts.payloadOverrides ?? {}) };
+    const title =
+      opts.snippetTitleOverride ?? ((payload as { title?: string }).title ?? `Draft ${id}`);
+    const body = JSON.stringify(payload);
+    const tags = opts.tags ?? [draft.templateKind];
+
+    const chunkRes = await client.query(
+      `SELECT (metadata->>'page')::int AS page FROM knowledge.chunks WHERE id=$1`,
+      [draft.knowledgeChunkId],
+    );
+    const page = chunkRes.rows[0]?.page ?? null;
+
+    const snipRes = await client.query(
+      `INSERT INTO coaching.snippets (book_id, knowledge_chunk_id, title, body, tags, page, created_by, created_from_draft)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [draft.bookId, draft.knowledgeChunkId, title, body, tags, page, opts.reviewedBy, draft.id],
+    );
+    const snippetId = snipRes.rows[0].id as string;
+
+    const updRes = await client.query(
+      `UPDATE coaching.drafts
+          SET status='accepted', reviewed_by=$2, reviewed_at=now(), resulting_snippet_id=$3
+        WHERE id=$1
+        RETURNING *`,
+      [id, opts.reviewedBy, snippetId],
+    );
+    await client.query('COMMIT');
+    return { draft: rowToDraft(updRes.rows[0]), snippetId };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function rejectDraft(
+  pool: Pool,
+  id: string,
+  reviewedBy: string,
+  reason?: string,
+): Promise<Draft> {
+  const r = await pool.query(
+    `UPDATE coaching.drafts
+        SET status='rejected', reviewed_by=$2, reviewed_at=now(), reject_reason=$3
+      WHERE id=$1 AND status='open'
+      RETURNING *`,
+    [id, reviewedBy, reason ?? null],
+  );
+  if ((r.rowCount ?? 0) === 0) throw new Error('draft not found or already reviewed');
+  return rowToDraft(r.rows[0]);
+}
+
+export interface AcceptanceRate {
+  bookId: string;
+  open: number;
+  accepted: number;
+  rejected: number;
+  skipped: number;
+  total: number;
+  /** accepted / (accepted + rejected + skipped); null if no reviews yet */
+  acceptanceRate: number | null;
+}
+
+export async function acceptanceRateByBook(pool: Pool, bookId: string): Promise<AcceptanceRate> {
+  const r = await pool.query(
+    `SELECT
+        SUM(CASE WHEN status='open' THEN 1 ELSE 0 END)::int AS open,
+        SUM(CASE WHEN status='accepted' THEN 1 ELSE 0 END)::int AS accepted,
+        SUM(CASE WHEN status='rejected' THEN 1 ELSE 0 END)::int AS rejected,
+        SUM(CASE WHEN status='skipped' THEN 1 ELSE 0 END)::int AS skipped,
+        COUNT(*)::int AS total
+     FROM coaching.drafts WHERE book_id=$1`,
+    [bookId],
+  );
+  const row = r.rows[0] ?? { open: 0, accepted: 0, rejected: 0, skipped: 0, total: 0 };
+  const reviewed = (row.accepted ?? 0) + (row.rejected ?? 0) + (row.skipped ?? 0);
+  return {
+    bookId,
+    open: row.open ?? 0,
+    accepted: row.accepted ?? 0,
+    rejected: row.rejected ?? 0,
+    skipped: row.skipped ?? 0,
+    total: row.total ?? 0,
+    acceptanceRate: reviewed === 0 ? null : (row.accepted ?? 0) / reviewed,
+  };
+}

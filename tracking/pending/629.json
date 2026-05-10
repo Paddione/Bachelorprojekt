@@ -1,0 +1,12 @@
+{
+  "pr_number": 629,
+  "title": "full refresh — brand-switch shell + audience tracks + Mermaid + content sweep",
+  "description": "## Summary\n\nFull refresh of `docs.mentolder.de` and `docs.korczewski.de`:\n\n- **Brand-switching shell** — `docs-site/index.html` rewritten with two CSS token sets, `data-brand` set from hostname before docsify boots, Mermaid theme synchronized.\n- **Audience-first sidebar** — three Quickstart entries (Endnutzer / Admin / Entwickler) on top of the existing topical groups; `[MCP-Server (Claude Code)](claude-code)` label fixed.\n- **24 Mermaid diagrams** — refreshed hub diagrams (architecture, services, security, dsgvo, backup, talk-hpb), plus one per service page (Keycloak, Vaultwarden, MCP, Website, shared-db, ArgoCD, Nextcloud, Collabora, LiveKit, E-Invoice, Whiteboard, Mailpit, Monitoring, Operations, Contributing, Tests).\n- **New pages** — `quickstart-{enduser,admin,dev}.md`, `glossary.md` (~30 entries), `decisions.md` (7 entries with real dates from git log).\n- **Content sweep** — Mattermost / InvoiceNinja / Stripe references stripped from `requirements.md`, `tests.md`, `vaultwarden.md`. Architecture rewritten for the unified cluster (12 nodes, two namespaces, no longer two clusters).\n- **Bonus cleanup** — deleted 21 stale duplicate plans/specs from `k3d/docs-content/superpowers/` (they were orphaned from `docs/superpowers/` and leaked internal planning into user-facing docs).\n- **BATS validation** — `tests/unit/test-docs-content.bats` lints forbidden strings, sidebar-link integrity, brand-switch presence, mermaid coverage. 12/12 pass.\n\nSpec: `docs/superpowers/specs/2026-05-10-docs-refresh-design.md`\nPlan: `docs/superpowers/plans/2026-05-10-docs-refresh.md`\n\n## Test plan\n\n- [x] `./tests/unit/lib/bats-core/bin/bats tests/unit/test-docs-content.bats` — 12/12 pass\n- [ ] `task docs:deploy` (after merge) — rolls ConfigMap on both clusters\n- [ ] Visual smoke at https://docs.mentolder.de/#/ — mentolder dark/brass theme, Quickstart-Cards visible, mermaid renders\n- [ ] Visual smoke at https://docs.korczewski.de/#/ — kore palette + bracketed sidebar groups, same content",
+  "category": "docs",
+  "scope": null,
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T01:17:32Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

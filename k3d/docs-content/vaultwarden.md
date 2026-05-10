@@ -138,7 +138,7 @@ Der Seed-Job (`vaultwarden-seed-job.yaml`) ist ein Kubernetes Job, der Vaultward
    - Nextcloud (Dateien + Talk)
    - Collabora Office
    - Keycloak (SSO)
-   - Invoice Ninja (Abrechnung)
+   - **Beispiel: API-Tokens** — speichere Service-Tokens (z. B. für Backup-Ziele oder Monitoring) in einem geteilten Tresor mit Lese-Zugriff für die Admin-Gruppe.
    - Portal und Admin-Bereich
    - Claude Code KI
    - Docs

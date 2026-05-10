@@ -81,10 +81,8 @@ task workspace:deploy
 | SA-03 | Passwörter — bcrypt-Hash, Passwort-Policy, kein Klartext in Logs |
 | SA-04 | Session-Timeout — Token-Laufzeit, Session-Konfiguration in Keycloak |
 | SA-05 | Audit-Log — Login-Events, Admin-Aktionen protokolliert |
-| SA-06 | RBAC — Rollenberechtigungen, Gast-Einschränkungen (übersprungen: Mattermost entfernt) |
 | SA-07 | Backup — pg_dump, PVCs, Backup-Bereitschaft |
 | SA-08 | SSO-Integration — Keycloak OIDC für Nextcloud und Talk |
-| SA-09 | Billing-Infrastruktur — übersprungen, da Invoice Ninja aus dem Stack entfernt |
 | SA-10 | MCP-Endpunkt-Absicherung — ForwardAuth Token-Validierung |
 
 ---

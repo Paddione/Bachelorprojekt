@@ -16,7 +16,7 @@
 
 ## Ueberblick
 
-Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Kubernetes Deployments und werden mit Kustomize gebaut — `k3d/` ist das einzige Basis-Manifest-Verzeichnis. Lokal laeuft der Cluster in k3d (Docker-in-Docker), in Produktion auf k3s (Hetzner/Korczewski). Als Ingress Controller dient Traefik (k3s built-in), der alle eingehenden HTTP/HTTPS-Anfragen per Subdomain-Routing an die jeweiligen Services weiterleitet. Alle Nutzerdaten verbleiben vollstaendig on-premises (DSGVO by Design).
+Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Kubernetes Deployments und werden mit Kustomize gebaut — `k3d/` ist das einzige Basis-Manifest-Verzeichnis. Lokal laeuft der Cluster in k3d (Docker-in-Docker), in Produktion ist es ein vereinter k3s-Cluster mit zwei Namespaces (`workspace` und `workspace-korczewski`) auf 12 Nodes (6 Hetzner CP + 6 Home Worker via WireGuard). Als Ingress Controller dient Traefik (k3s built-in), der alle eingehenden HTTP/HTTPS-Anfragen per Subdomain-Routing an die jeweiligen Services weiterleitet. Alle Nutzerdaten verbleiben vollstaendig on-premises (DSGVO by Design).
 
 ---
 
@@ -287,38 +287,38 @@ Init-Skripte in `shared-db` erstellen Datenbanken und User idempotent beim erste
 | `k3d/nextcloud-oidc-dev.php` | Nextcloud OIDC-Client-Config | Nextcloud |
 | `.env` | `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL` | envsubst bei Prod-Deployment |
 | `prod/` | Kustomize-Overlays (TLS, Ressource-Limits, Replicas) | Produktion |
-| `environments/` | Pro-Cluster-Variablen (Hetzner, Korczewski) | ArgoCD Multi-Cluster |
+| `environments/` | Pro-Namespace-Variablen (mentolder, korczewski) | ArgoCD-gesteuerter Roll-out |
 
-### Multi-Cluster mit ArgoCD
+### Vereinter Cluster mit ArgoCD
 
-In Produktion verwaltet ArgoCD (Hub-Cluster auf Hetzner) die Deployments ueber mehrere Cluster. Ein ApplicationSet synchronisiert den Git-Zustand auf alle registrierten Ziel-Cluster. Cluster-spezifische Einstellungen (Domain, Branding) werden als Annotationen auf ArgoCD Cluster-Secrets gespeichert.
+In Produktion betreibt das Projekt einen einzigen vereinten k3s-Cluster mit 12 Nodes (6 Hetzner Control-Plane-Nodes + 6 Home-Worker-Nodes, verbunden via WireGuard-Mesh). Beide Marken (mentolder und korczewski) laufen auf demselben Cluster, getrennt nur durch Namespaces (`workspace` fuer mentolder, `workspace-korczewski` fuer korczewski). ArgoCD selbst laeuft auf den Hetzner-Nodes und synchronisiert beide Namespaces aus demselben Git-Repository. Pro-Marke-spezifische Einstellungen (Domain, Branding) werden als Annotationen auf ArgoCD Cluster-Secrets gespeichert.
 
 ```mermaid
 flowchart TB
     GIT[("fa:fa-code-branch GitHub\nPaddione/Bachelorprojekt")] --> ARGO
 
-    subgraph hub ["Hub-Cluster (Hetzner)"]
-        ARGO["fa:fa-rotate ArgoCD"]
+    subgraph hub ["Vereinter k3s-Cluster (12 Nodes)"]
+        ARGO["fa:fa-rotate ArgoCD\n(auf Hetzner CP)"]
         APPSET["ApplicationSet"]
         ARGO --> APPSET
+
+        subgraph mentolder_ns ["Namespace: workspace (mentolder)"]
+            M_WS["mentolder Services"]
+            M_WEB["website (mentolder)"]
+        end
+
+        subgraph korczewski_ns ["Namespace: workspace-korczewski"]
+            K_WS["korczewski Services"]
+            K_WEB["website (korczewski)"]
+        end
     end
 
-    subgraph hetzner ["Hetzner Cluster"]
-        H_WS["workspace NS"]
-        H_WEB["website NS"]
-    end
-
-    subgraph korczewski ["Korczewski Cluster"]
-        K_WS["workspace NS"]
-        K_WEB["website NS"]
-    end
-
-    APPSET -->|"sync"| hetzner
-    APPSET -->|"sync"| korczewski
+    APPSET -->|"sync"| mentolder_ns
+    APPSET -->|"sync"| korczewski_ns
 
     style hub fill:#2a1654,color:#e8c870
-    style hetzner fill:#0a1a0a,color:#b8e8b8
-    style korczewski fill:#1b3766,color:#e8c870
+    style mentolder_ns fill:#0a1a0a,color:#b8e8b8
+    style korczewski_ns fill:#1b3766,color:#e8c870
     style GIT fill:#1a1a2e,color:#aabbcc
 ```
 

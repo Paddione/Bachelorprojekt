@@ -1,8 +1,8 @@
 ---
 title: Unified Ticketing PR5 — Sunset Legacy Tables
 domains: [website, db]
-status: active
-pr_number: null
+status: completed
+pr_number: 628
 ---
 
 # Unified Ticketing PR5 — Sunset Legacy Tables

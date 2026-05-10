@@ -1,8 +1,8 @@
 ---
 title: Unified Ticketing PR4/5 — `/admin/tickets` UI + admin API
 domains: [website, db]
-status: active
-pr_number: null
+status: completed
+pr_number: 571
 ---
 
 # Unified Ticketing PR4/5 — `/admin/tickets` UI + admin API

@@ -191,6 +191,37 @@ data:
       CREATE INDEX IF NOT EXISTS idx_snippets_cluster_id ON coaching.snippets(cluster_id);
       CREATE INDEX IF NOT EXISTS idx_snippets_tags ON coaching.snippets USING GIN(tags);
 
+      CREATE TABLE IF NOT EXISTS coaching.templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        snippet_id UUID NOT NULL REFERENCES coaching.snippets(id) ON DELETE CASCADE,
+        target_surface TEXT NOT NULL CHECK (target_surface IN ('questionnaire','brett','chatroom','assistant')),
+        version INT NOT NULL DEFAULT 1,
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published','archived')),
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        source_pointer JSONB NOT NULL,
+        surface_ref TEXT,
+        published_at TIMESTAMPTZ,
+        created_by TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (snippet_id, target_surface, version)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_templates_snippet_id ON coaching.templates(snippet_id);
+      CREATE INDEX IF NOT EXISTS idx_templates_surface_status ON coaching.templates(target_surface, status);
+      CREATE INDEX IF NOT EXISTS idx_templates_surface_ref ON coaching.templates(surface_ref);
+
+      CREATE TABLE IF NOT EXISTS coaching.template_assignments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        template_id UUID NOT NULL REFERENCES coaching.templates(id) ON DELETE CASCADE,
+        template_version INT NOT NULL,
+        client_id TEXT NOT NULL,
+        surface_specific_id TEXT,
+        assigned_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_assignments_template_id ON coaching.template_assignments(template_id);
+      CREATE INDEX IF NOT EXISTS idx_assignments_client_id ON coaching.template_assignments(client_id);
+
       -- Indexes for MCP query patterns
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);
@@ -624,6 +655,37 @@ data:
       CREATE INDEX IF NOT EXISTS idx_snippets_book_id ON coaching.snippets(book_id);
       CREATE INDEX IF NOT EXISTS idx_snippets_cluster_id ON coaching.snippets(cluster_id);
       CREATE INDEX IF NOT EXISTS idx_snippets_tags ON coaching.snippets USING GIN(tags);
+
+      CREATE TABLE IF NOT EXISTS coaching.templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        snippet_id UUID NOT NULL REFERENCES coaching.snippets(id) ON DELETE CASCADE,
+        target_surface TEXT NOT NULL CHECK (target_surface IN ('questionnaire','brett','chatroom','assistant')),
+        version INT NOT NULL DEFAULT 1,
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published','archived')),
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        source_pointer JSONB NOT NULL,
+        surface_ref TEXT,
+        published_at TIMESTAMPTZ,
+        created_by TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (snippet_id, target_surface, version)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_templates_snippet_id ON coaching.templates(snippet_id);
+      CREATE INDEX IF NOT EXISTS idx_templates_surface_status ON coaching.templates(target_surface, status);
+      CREATE INDEX IF NOT EXISTS idx_templates_surface_ref ON coaching.templates(surface_ref);
+
+      CREATE TABLE IF NOT EXISTS coaching.template_assignments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        template_id UUID NOT NULL REFERENCES coaching.templates(id) ON DELETE CASCADE,
+        template_version INT NOT NULL,
+        client_id TEXT NOT NULL,
+        surface_specific_id TEXT,
+        assigned_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_assignments_template_id ON coaching.template_assignments(template_id);
+      CREATE INDEX IF NOT EXISTS idx_assignments_client_id ON coaching.template_assignments(client_id);
 
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);

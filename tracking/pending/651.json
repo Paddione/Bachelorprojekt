@@ -1,0 +1,12 @@
+{
+  "pr_number": 651,
+  "title": "use node-location=hetzner affinity for tests-retention on all clusters",
+  "description": "## Summary\n- Replaces hardcoded hostname affinity (`gekko-hetzner-2/3/4`, `pk-hetzner/2/3`) with `node-location=hetzner` label selector in `k3d/tests-retention-cronjob.yaml`\n- The korczewski-ha nodes (`pk-hetzner-4/6/8`) were never in the old list, causing the pod to stay `Pending` indefinitely (191 scheduling failures over 16h)\n- All nodes on both clusters already carry `node-location=hetzner` — no label changes needed\n\n## Test plan\n- [x] Stuck job `tests-results-retention-29639700` deleted from `workspace-korczewski`\n- [ ] `task workspace:deploy ENV=korczewski` — redeploys CronJob with new affinity\n- [ ] `task workspace:deploy ENV=mentolder` — confirm no regression on mentolder\n- [ ] Next scheduled run (03:00) schedules on any korczewski-ha node\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "cronjob",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T19:25:08Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

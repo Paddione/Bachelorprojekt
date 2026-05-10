@@ -1,0 +1,160 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import BookReader from '../../../../components/admin/BookReader.svelte';
+import { Pool } from 'pg';
+import { getBook, listClusters, listSnippets } from '../../../../lib/coaching-db';
+import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const id = Astro.params.id as string;
+const pool = new Pool();
+
+let book: Awaited<ReturnType<typeof getBook>> = null;
+let clusters: Awaited<ReturnType<typeof listClusters>> = [];
+let snippets: Awaited<ReturnType<typeof listSnippets>> = [];
+try {
+  book = await getBook(pool, id);
+  if (book) {
+    [clusters, snippets] = await Promise.all([
+      listClusters(pool, { bookId: id }),
+      listSnippets(pool, { bookId: id }),
+    ]);
+  }
+} catch {
+  // schema may not yet exist
+}
+
+if (!book) return new Response('Not Found', { status: 404 });
+---
+<AdminLayout title={book.title}>
+  <div class="page">
+    <header class="page-head">
+      <nav class="crumbs">
+        <a href="/admin">Admin</a>
+        <span class="sep">›</span>
+        <a href="/admin/knowledge/books">Bücher</a>
+        <span class="sep">›</span>
+        {book.title}
+      </nav>
+      <h1>{book.title}</h1>
+      <p class="subtitle">
+        {book.author ?? '—'} · {book.chunkCount ?? 0} Chunks · ingestiert {book.ingestedAt instanceof Date ? book.ingestedAt.toLocaleDateString('de-DE') : String(book.ingestedAt)}
+      </p>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h2>Cluster</h2>
+        {clusters.length === 0 ? (
+          <p class="empty-mini">Noch keine Cluster.</p>
+        ) : (
+          <ul class="cluster-list">
+            {clusters.map((c) => (
+              <li class="cluster">
+                <span>{c.name}</span>
+                <span class="count">{c.snippetCount ?? 0}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <button class="btn-link" id="new-cluster">+ Cluster anlegen</button>
+
+        <h2>Snippets</h2>
+        <p class="snippet-count">{snippets.length} Snippet{snippets.length === 1 ? '' : 's'}</p>
+      </aside>
+
+      <main class="reader-host">
+        <BookReader client:load bookId={id} />
+      </main>
+    </div>
+  </div>
+</AdminLayout>
+
+<script is:inline>
+  document.getElementById('new-cluster')?.addEventListener('click', async () => {
+    const name = prompt('Cluster-Name?');
+    if (!name) return;
+    const bookId = window.location.pathname.split('/').pop();
+    const r = await fetch('/api/admin/coaching/clusters', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookId, name, kind: 'manual' }),
+    });
+    if (r.ok) location.reload();
+    else alert('Cluster konnte nicht angelegt werden (' + r.status + ').');
+  });
+  window.addEventListener('coaching:snippet-created', () => {
+    setTimeout(() => location.reload(), 800);
+  });
+</script>
+
+<style>
+  .page { max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .crumbs { font-size: 0.78rem; color: var(--text-muted, #888); margin-bottom: 0.4rem; }
+  .crumbs a { color: var(--text-muted, #888); text-decoration: none; }
+  .crumbs a:hover { color: var(--brass, #c9a55c); }
+  .crumbs .sep { margin: 0 0.4rem; color: var(--line, #ccc); }
+  .subtitle { color: var(--text-muted, #888); margin: 0.4rem 0 0; font-size: 0.9rem; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 1.5rem;
+  }
+  .sidebar {
+    background: var(--bg-2, #f7f5f2);
+    padding: 1rem;
+    border-radius: 8px;
+    align-self: start;
+  }
+  .sidebar h2 {
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted, #888);
+    margin: 1.25rem 0 0.5rem;
+    font-weight: 500;
+  }
+  .sidebar h2:first-child { margin-top: 0; }
+  .cluster-list { list-style: none; padding: 0; margin: 0; }
+  .cluster {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    font-size: 0.9rem;
+  }
+  .cluster .count {
+    color: var(--text-muted, #888);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.82rem;
+  }
+  .empty-mini {
+    font-size: 0.82rem;
+    color: var(--text-muted, #888);
+    margin: 0.4rem 0;
+  }
+  .btn-link {
+    background: none;
+    border: 0;
+    padding: 0.4rem 0;
+    color: var(--brass, #c9a55c);
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-align: left;
+  }
+  .snippet-count {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted, #888);
+  }
+  .reader-host {
+    background: var(--bg, #fff);
+    border: 1px solid var(--line, #e5e2dd);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+</style>

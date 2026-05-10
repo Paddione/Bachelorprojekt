@@ -59,3 +59,18 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// pdf-parse ships no types; we only use the inner module (its index.js triggers a
+// debug-mode fixture read under ESM where module.parent is undefined).
+declare module 'pdf-parse/lib/pdf-parse.js' {
+  interface PdfParseResult {
+    text: string;
+    numpages: number;
+    numrender: number;
+    info: Record<string, unknown>;
+    metadata: unknown;
+    version: string;
+  }
+  function pdfParse(data: Buffer | Uint8Array): Promise<PdfParseResult>;
+  export default pdfParse;
+}

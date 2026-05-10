@@ -35,8 +35,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: transcriber
-          image: ghcr.io/paddione/talk-transcriber:latest
-          imagePullPolicy: Always
+          image: ghcr.io/paddione/talk-transcriber@sha256:8ac351f10e4b8fbc121fb57f21088d5b5359524e7f909760444b283ea3ace55f
+          imagePullPolicy: IfNotPresent
           env:
             - name: NC_DOMAIN
               value: "files.${PROD_DOMAIN}"

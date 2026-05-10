@@ -3,6 +3,7 @@ import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import { Pool } from 'pg';
 import { listBooks } from '../../../../lib/coaching-db';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+import BookUploadForm from '../../../../components/admin/BookUploadForm.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -27,14 +28,13 @@ try {
         Bücher
       </nav>
       <h1>Coaching-Bücher</h1>
-      <p class="subtitle">Ingestierte Bücher für Themen-Browser und Snippet-Kuration. Ingest läuft via <code>task coaching:ingest</code>.</p>
+      <p class="subtitle">Bücher anderer Autoren — deren Wissen wird von der KI absorbiert.</p>
     </header>
 
+    <BookUploadForm client:load />
+
     {books.length === 0 ? (
-      <div class="empty">
-        <p>Noch keine Bücher ingestiert.</p>
-        <pre><code>ENV=&lt;env&gt; task coaching:ingest -- coaching-sources/&lt;file&gt; &lt;slug&gt; --title="…" --author="…"</code></pre>
-      </div>
+      <p class="empty-hint">Noch keine Bücher hochgeladen.</p>
     ) : (
       <table class="books-table">
         <thead>
@@ -42,7 +42,7 @@ try {
             <th>Titel</th>
             <th>Autor</th>
             <th class="num">Chunks</th>
-            <th>Ingestiert</th>
+            <th>Hochgeladen</th>
             <th></th>
           </tr>
         </thead>
@@ -72,9 +72,7 @@ try {
   .subtitle { color: var(--text-muted, #888); margin: 0.4rem 0 0; }
   .subtitle code { background: var(--bg-2, #f3f0ec); padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.85em; }
 
-  .empty { background: var(--bg-2, #f7f5f2); border: 1px solid var(--line, #e5e2dd); border-radius: 8px; padding: 1.5rem; }
-  .empty p { margin: 0 0 0.75rem; color: var(--text-muted, #888); }
-  .empty pre { background: var(--bg, #fff); padding: 0.75rem; border-radius: 4px; overflow-x: auto; margin: 0; font-size: 0.85em; }
+  .empty-hint { background: var(--bg-2, #f7f5f2); border: 1px solid var(--line, #e5e2dd); border-radius: 8px; padding: 1.5rem; color: var(--text-muted, #888); }
 
   .books-table { width: 100%; border-collapse: collapse; }
   .books-table th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line, #ddd); font-weight: 500; font-size: 0.85rem; color: var(--text-muted, #666); }

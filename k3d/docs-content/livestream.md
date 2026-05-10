@@ -22,35 +22,13 @@ Der **Livestream** ermöglicht Admins, eine Live-Übertragung an alle eingeloggt
 ## Architektur
 
 ```mermaid
-graph LR
-    HOST["Admin Browser<br/>/admin/stream"]
-    OBS["OBS Studio<br/>(optional)"]
-    VIEW["Viewer Browser<br/>/portal/stream"]
-    TRAEFIK["Traefik<br/>:443 wss/https"]
-    CORS["Middleware<br/>livekit-cors"]
-    LK["livekit-server<br/>hostNetwork<br/>:7880 :7881<br/>:50000-60000/udp"]
-    LKI["livekit-ingress<br/>RTMP :1935"]
-    LKE["livekit-egress<br/>(recording)"]
-    REDIS["livekit-redis<br/>(room state)"]
-    PVC["recordings PVC<br/>/recordings"]
-
-    HOST -->|wss + WebRTC media| TRAEFIK
-    VIEW -->|wss + WebRTC media| TRAEFIK
-    TRAEFIK --> CORS --> LK
-    OBS -->|RTMP push| LKI
-    LKI -->|WebRTC tracks| LK
-    LK <-->|room state| REDIS
-    LK -->|composite| LKE --> PVC
-
-    classDef client fill:#4a90d9,color:#fff,stroke:#2d6a9f
-    classDef edge fill:#374151,color:#fff,stroke:#1f2937
-    classDef media fill:#2d8659,color:#fff,stroke:#1a5c3a
-    classDef store fill:#6b21a8,color:#fff,stroke:#4c1d95
-
-    class HOST,OBS,VIEW client
-    class TRAEFIK,CORS edge
-    class LK,LKI,LKE media
-    class REDIS,PVC store
+flowchart LR
+  Pub([Host · Browser oder OBS]) -- WebRTC --> LK[LiveKit Server]
+  Pub -- RTMP --> Ing[LiveKit Ingress]
+  Ing --> LK
+  LK --> Eg[LiveKit Egress · MP4]
+  Eg --> PVC[recording-pvc]
+  LK -- WebRTC --> Viewer([Zuschauer])
 ```
 
 **Datenfluss — Browser-Publishing (Default):**

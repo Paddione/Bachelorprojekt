@@ -17,6 +17,21 @@ Collabora Online ist das integrierte Büro-Programm des Workspace MVP. Es basier
 
 **Namespace:** `workspace-office` (dediziert, da Collabora CAP_SYS_ADMIN benötigt)
 
+```mermaid
+sequenceDiagram
+  participant U as Browser
+  participant NC as Nextcloud
+  participant CO as Collabora
+  U->>NC: Klick auf .docx
+  NC-->>U: WOPI-Token + Collabora-iframe
+  U->>CO: GET /loleaflet?token
+  CO->>NC: WOPI: /files/<id>
+  NC-->>CO: Datei-Inhalt
+  CO-->>U: Editor (Live-Sync)
+  U->>CO: Edit
+  CO->>NC: WOPI PUT
+```
+
 ---
 
 ## WOPI-Integration mit Nextcloud

@@ -1,5 +1,17 @@
 # Testframework & Test-IDs
 
+```mermaid
+flowchart TB
+  Runner[tests/runner.sh]
+  Runner --> Unit[BATS · tests/unit/*]
+  Runner --> Int[BATS · tests/integration/*]
+  Runner --> E2E[Playwright · tests/e2e/*]
+  Runner --> Acc[Acceptance · AK-*]
+  Unit --> AssertLib[Assertion Lib]
+  E2E --> Browser[Headless Chromium]
+  Acc --> LiveCluster[Live Cluster]
+```
+
 ## Überblick
 
 Das Testframework besteht aus drei Schichten:

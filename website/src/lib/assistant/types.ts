@@ -35,3 +35,9 @@ export interface ActionResult {
   message: string;
   data?: Record<string, unknown>;
 }
+
+export interface AssistantChatResult {
+  reply: string;
+  proposedAction?: ProposedAction;
+  sourcesUsed?: number;
+}

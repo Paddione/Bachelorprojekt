@@ -1,5 +1,9 @@
-import type { AssistantProfile, Message, ProposedAction } from './types';
+import Anthropic from '@anthropic-ai/sdk';
+import { Pool } from 'pg';
+import type { AssistantProfile, AssistantChatResult, Message } from './types';
 import { searchHelp, formatHit, noMatchReply } from './search';
+import { queryNearest } from '../knowledge-db';
+import { resolveCoachingCollectionIds } from './coaching-collections';
 
 export interface AssistantChatInput {
   profile: AssistantProfile;
@@ -14,28 +18,70 @@ export interface AssistantContext {
   [k: string]: unknown;
 }
 
-export interface AssistantChatResult {
-  reply: string;
-  proposedAction?: ProposedAction;
+let _pool: Pool | null = null;
+function getPool(): Pool {
+  if (!_pool) _pool = new Pool();
+  return _pool;
 }
 
-// No LLM is wired here by design — the user owns that decision (DSGVO,
-// model choice, key handling). Until they wire one, the assistant falls
-// back to a deterministic keyword search over lib/helpContent.ts so it
-// stays useful for "wo finde ich X?" / "wie mache ich Y?" questions.
-//
-// To wire a real LLM later, replace the body of this function. You can
-// still call searchHelp() as a tool or as a low-confidence fallback.
+const SYSTEM_PROMPT = `Du bist der interne Assistent von ${process.env.BRAND_NAME ?? 'Mentolder'}. Du hilfst dem Coach bei seiner Arbeit — Klientenvorbereitung, Terminplanung, Gesprächsreflexion und Wissensarbeit. Antworte präzise und auf Deutsch. Wenn du Buchpassagen erhältst, zitiere konkret und nenne Seite wenn vorhanden.`;
+
 export async function assistantChat(input: AssistantChatInput): Promise<AssistantChatResult> {
   const lastUser = [...input.messages].reverse().find((m) => m.role === 'user');
-  if (!lastUser || !lastUser.content.trim()) {
-    return {
-      reply: 'Frag mich etwas — ich suche dir die passende Stelle in der Hilfe.',
-    };
+  if (!lastUser?.content.trim()) {
+    return { reply: 'Frag mich etwas — ich bin für dich da.' };
   }
-  const hit = searchHelp(lastUser.content, input.profile);
-  if (!hit) {
-    return { reply: noMatchReply(input.profile) };
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    // Fallback: keyword search (dev without API key)
+    const hit = searchHelp(lastUser.content, input.profile);
+    if (!hit) return { reply: noMatchReply(input.profile) };
+    return { reply: formatHit(hit) };
   }
-  return { reply: formatHit(hit) };
+
+  let sourcesUsed = 0;
+  let systemPrompt = SYSTEM_PROMPT;
+
+  const useBooks = input.context.useBooks === true;
+  if (useBooks) {
+    try {
+      const collectionIds = await resolveCoachingCollectionIds(getPool());
+      if (collectionIds.length > 0) {
+        const chunks = await queryNearest({
+          collectionIds,
+          queryText: lastUser.content,
+          limit: 4,
+          threshold: 0.62,
+        });
+        if (chunks.length > 0) {
+          sourcesUsed = chunks.length;
+          const passages = chunks
+            .map((c, i) => `[${i + 1}] ${c.text}`)
+            .join('\n\n');
+          systemPrompt += `\n\n<Quellenpassagen>\n${passages}\n</Quellenpassagen>`;
+        }
+      }
+    } catch (err) {
+      console.error('[assistantChat] RAG lookup failed, proceeding without passages:', err);
+    }
+  }
+
+  const client = new Anthropic({ apiKey });
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: input.messages.map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    })),
+  });
+
+  const reply = response.content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map((b) => b.text)
+    .join('');
+
+  return { reply, sourcesUsed };
 }

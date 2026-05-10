@@ -1,4 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
+
+vi.mock('@anthropic-ai/sdk', () => {
+  const mockCreate = vi.fn().mockResolvedValue({
+    content: [{ type: 'text', text: 'mocked claude response' }],
+  });
+  class MockAnthropic {
+    messages = { create: mockCreate };
+  }
+  return {
+    default: MockAnthropic,
+    Anthropic: MockAnthropic
+  };
+});
+
 import { assistantChat } from './llm';
 
 describe('assistantChat (no-LLM keyword fallback)', () => {
@@ -33,5 +47,61 @@ describe('assistantChat (no-LLM keyword fallback)', () => {
       context: { currentRoute: '/portal' },
     });
     expect(result.reply).toMatch(/Frag mich/);
+  });
+});
+
+import { beforeEach } from 'vitest';
+import { resolveCoachingCollectionIds, __resetCacheForTests } from './coaching-collections';
+import { Pool } from 'pg';
+
+describe('resolveCoachingCollectionIds', () => {
+  beforeEach(() => {
+    __resetCacheForTests();
+  });
+
+  it('returns collection IDs from coaching.books joined to knowledge.collections', async () => {
+    const mockPool = {
+      query: vi.fn().mockResolvedValue({
+        rows: [{ collection_id: 'abc-123' }, { collection_id: 'def-456' }],
+      }),
+    } as unknown as Pool;
+
+    const ids = await resolveCoachingCollectionIds(mockPool);
+    expect(ids).toEqual(['abc-123', 'def-456']);
+    expect(mockPool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses cached result on second call within 60s', async () => {
+    const mockPool = {
+      query: vi.fn().mockResolvedValue({ rows: [{ collection_id: 'abc-123' }] }),
+    } as unknown as Pool;
+
+    await resolveCoachingCollectionIds(mockPool);
+    await resolveCoachingCollectionIds(mockPool);
+    expect(mockPool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns empty array when no books exist', async () => {
+    const mockPool = {
+      query: vi.fn().mockResolvedValue({ rows: [] }),
+    } as unknown as Pool;
+
+    const ids = await resolveCoachingCollectionIds(mockPool);
+    expect(ids).toEqual([]);
+  });
+});
+
+describe('assistantChat — Claude path', () => {
+  it('returns Claude reply when ANTHROPIC_API_KEY is set', async () => {
+    process.env.ANTHROPIC_API_KEY = 'test-key';
+    const result = await assistantChat({
+      profile: 'admin',
+      userSub: 'u',
+      messages: [{ role: 'user', content: 'Wie geht Geissler mit Abwehr um?' }],
+      context: { currentRoute: '/admin' },
+    });
+    expect(result.reply).toBe('mocked claude response');
+    expect(result.sourcesUsed).toBe(0);
+    delete process.env.ANTHROPIC_API_KEY;
   });
 });

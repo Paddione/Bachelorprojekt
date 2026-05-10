@@ -101,3 +101,10 @@ Systemdesign_Buchhaltung-1.docx
 __pycache__/
 *.pyc
 *.pyo
+
+# ── Coaching sources (PDFs/EPUBs, never commit) ──
+coaching-sources/*
+!coaching-sources/.gitkeep
+
+# ── Coaching scripts (node_modules is symlinked to website/node_modules) ──
+scripts/coaching/node_modules

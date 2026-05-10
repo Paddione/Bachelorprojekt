@@ -1,0 +1,12 @@
+{
+  "pr_number": 635,
+  "title": "phase 1 — ingest + themen-browser + snippets",
+  "description": "## Summary\n\nPhase 1 of the coaching knowledge pipeline (spec PR #633, plan PR #634).\n\n- **DB schema** — new `coaching` schema with `books`, `snippets`, `snippet_clusters` tables. FK back to existing `knowledge.collections` / `knowledge.chunks`.\n- **Ingest pipeline** — `task coaching:ingest -- <file> <slug>` extracts PDF/EPUB → chunks via existing `chunkText()` → embeds via Voyage → upserts into `knowledge.*` + `coaching.books` in one shot. New deps: `pdf-parse`, `epub2`, `tsx`.\n- **CRUD module** — `website/src/lib/coaching-db.ts` with vitest coverage via `pg-mem` (no live DB required).\n- **API** — six endpoints under `/api/admin/coaching/*` (books, snippets, clusters), gated on existing `getSession()` + `isAdmin()`.\n- **Admin UI** — `/admin/knowledge/books` list page + `/admin/knowledge/books/[id]` themen-browser with new `BookReader.svelte` (infinite-scroll, mouse-selection → snippet modal).\n- **E2E** — 5 unauth-path Playwright checks under `tests/e2e/specs/fa-coaching-knowledge.spec.ts`.\n\n**No AI drafting yet** — that's Phase 3. **No publish-cascade yet** — that's Phase 2. Phases 2–5 each get their own plan + PR.\n\n9 commits on this branch; the plan was followed task-by-task with TDD where applicable.\n\n## Test plan\n\n- [x] `npx vitest run src/lib/coaching-db.test.ts` — 7/7 pass via pg-mem\n- [x] `node --test scripts/coaching/lib-extract.test.mjs` — 2/2 pass (PDF fixture self-skips when not present)\n- [x] `npx tsx scripts/coaching/ingest-book.mts` (no-args) — prints Usage, exit 2\n- [x] `astro check` — no new errors introduced (pre-existing 17 errors unaffected)\n- [ ] Manual: `task coaching:ingest -- coaching-sources/<sample>.epub sample` against a live cluster (deferred — no test EPUB fixture in repo yet)\n- [ ] Authenticated Playwright flow (deferred — needs admin seed + sample book)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "coaching",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T04:02:36Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

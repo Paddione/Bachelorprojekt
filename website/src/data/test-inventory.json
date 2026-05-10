@@ -102,6 +102,24 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-coaching-drafts",
+    "file": "tests/e2e/specs/fa-coaching-drafts.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-coaching-knowledge",
+    "file": "tests/e2e/specs/fa-coaching-knowledge.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-coaching-publish",
+    "file": "tests/e2e/specs/fa-coaching-publish.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-document-signing",
     "file": "tests/e2e/specs/fa-document-signing.spec.ts",
     "category": "E2E",
@@ -158,6 +176,12 @@
   {
     "id": "E2E:integration-smoke",
     "file": "tests/e2e/specs/integration-smoke.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:korczewski-auth-setup",
+    "file": "tests/e2e/specs/korczewski-auth-setup.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

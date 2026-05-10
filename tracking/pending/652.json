@@ -1,0 +1,12 @@
+{
+  "pr_number": 652,
+  "title": "book knowledge RAG — upload, index, toggle, badge",
+  "description": "## Summary\n\n- **Upload endpoint** (`/api/admin/coaching/books/upload`): multipart PDF/EPUB ingestion — chunks, embeds via Voyage/bge-m3, stores in pgvector + `coaching.books`; 50 MB guard, Voyage 429 surfaced as German error\n- **RAG in LLM** (`llm.ts`): when admin toggles Bücher, nearest 4 passages (threshold 0.62) from coaching collections are injected as `<Quellenpassagen>` into the Claude claude-sonnet-4-6 system prompt; gracefully falls back to Claude-without-passages if embedding service is down\n- **Collection resolver** (`coaching-collections.ts`): 60s cache for coaching book collection IDs with brand filter (`c.brand = $1 OR c.brand IS NULL`)\n- **Chat API** (`chat.ts`): `useBooks` is accepted but forced to `false` for non-admin profiles; `sourcesUsed` returned in response\n- **Bücher toggle** (`AssistantChat.svelte`): admin-only toggle with sessionStorage persistence; hidden from portal users\n- **Passagen badge** (`AssistantMessage.svelte`): shows passage count when `sourcesUsed > 0`\n- **Admin upload form** (`BookUploadForm.svelte` + `books/index.astro`): drag-drop UI with progress, accept PDF/EPUB\n\n## Test Plan\n\n- [ ] Upload a PDF as admin → book appears in list, chunk_count > 0\n- [ ] Enable Bücher toggle → assistant reply mentions book content, badge shows passage count\n- [ ] Disable toggle → reply is pure Claude, no badge\n- [ ] Portal user POST with `useBooks: true` → `sourcesUsed: 0` in response (server enforces)\n- [ ] Upload file > 50 MB → 413 returned immediately\n- [ ] Upload with embedding service down → chat still works, no badge\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "assistant",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-10T22:14:57Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

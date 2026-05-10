@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
 // Import the inner module directly — pdf-parse's index.js triggers a debug-mode
 // fixture read when `module.parent` is undefined (which is always the case under ESM).
+// Types live in scripts/coaching/types.d.ts.
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 import EPub from 'epub2';
 

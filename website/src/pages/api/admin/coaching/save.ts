@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { saveCoachingContent } from '../../../../../lib/website-db';
-import type { CoachingContent } from '../../../../../lib/website-db';
+import { saveCoachingContent } from '../../../../../lib/coaching-content';
+import type { CoachingContent } from '../../../../../lib/coaching-content';
 
 const BRAND = process.env.BRAND || 'mentolder';
 

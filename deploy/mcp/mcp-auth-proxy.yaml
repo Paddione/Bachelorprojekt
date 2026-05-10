@@ -16,6 +16,13 @@ data:
     http {
       perl_set $cluster_token 'sub { return $ENV{"CLUSTER_TOKEN"} // "" }';
       perl_set $business_token 'sub { return $ENV{"BUSINESS_TOKEN"} // "" }';
+      # Fallback: extract ?token= from original request URI forwarded by Traefik ForwardAuth
+      perl_set $bearer_from_uri 'sub {
+        my $r = shift;
+        my $uri = $r->header_in("X-Forwarded-Uri") // "";
+        if ($uri =~ /[?&]token=([^&]+)/) { return $1; }
+        return "";
+      }';
 
       server {
         listen 80;
@@ -29,6 +36,11 @@ data:
           set $bearer "";
           if ($http_authorization ~* "^Bearer\s+(.+)$") {
             set $bearer $1;
+          }
+
+          # Fallback: token query param (for clients like claude.ai web that cannot set headers)
+          if ($bearer = "") {
+            set $bearer $bearer_from_uri;
           }
 
           # No token provided

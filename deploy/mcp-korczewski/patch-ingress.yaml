@@ -19,6 +19,8 @@ spec:
   entryPoints:
     - web
     - websecure
+  tls:
+    secretName: korczewski-tls
   routes:
     - kind: Rule
       match: Host(`mcp.korczewski.de`) && PathPrefix(`/kubernetes`)

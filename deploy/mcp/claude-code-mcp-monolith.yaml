@@ -157,9 +157,10 @@ spec:
             - |
               echo "Installing MCP playwright bridge..."
               npm install -g supergateway @playwright/mcp 2>&1 | tail -3
-              echo "Starting supergateway on :3000/mcp..."
+              CHROME=$(find /ms-playwright -name "chrome" -path "*/chrome-linux/chrome" ! -path "*/headless*" | head -1)
+              echo "Starting supergateway on :3000/mcp (chrome: $CHROME)..."
               exec supergateway \
-                --stdio "playwright-mcp" \
+                --stdio "playwright-mcp --browser chrome --executable-path $CHROME --headless" \
                 --outputTransport streamableHttp \
                 --port 3000 \
                 --streamableHttpPath /mcp \

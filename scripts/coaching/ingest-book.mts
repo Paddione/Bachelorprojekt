@@ -53,7 +53,10 @@ async function main() {
       let r: { embeddings: number[][]; tokens: number } | null = null;
       for (let attempt = 1; attempt <= 5; attempt++) {
         try {
-          r = await embedBatch(slice);
+          r = await embedBatch(slice, {
+            model: process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2',
+            purpose: 'index',
+          });
           break;
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);

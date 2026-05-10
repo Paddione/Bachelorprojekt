@@ -1,19 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# llm-gpu: external GPU peer (TEI embed, TEI rerank, Ollama chat)
+#
+# The GPU box runs on the wg-mesh overlay. Three Services + Endpoints route
+# traffic to it from inside the cluster. ${LLM_HOST_IP} is filled by envsubst
+# at deploy time from environments/<env>.yaml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Embeddings (TEI bge-m3) ──────────────────────────────────────────────────
 apiVersion: v1
 kind: Service
 metadata:
-  name: llm-gateway
+  name: llm-gateway-embed
 spec:
-  # No selector: manually managed Endpoints point to external GPU worker
   ports:
-    - port: 11434
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway-embed
+subsets:
+  - addresses:
+      - ip: ${LLM_HOST_IP}
+    ports:
+      - name: http
+        port: 8081
+---
+# ── Reranker (TEI bge-reranker-v2-m3) ────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-rerank
+spec:
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway-rerank
+subsets:
+  - addresses:
+      - ip: ${LLM_HOST_IP}
+    ports:
+      - name: http
+        port: 8082
+---
+# ── Chat (Ollama) ────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-chat
+spec:
+  ports:
+    - name: http
+      port: 11434
       targetPort: 11434
 ---
 apiVersion: v1
 kind: Endpoints
 metadata:
-  name: llm-gateway
+  name: llm-gateway-chat
 subsets:
   - addresses:
-      - ip: __HOST_IP__
+      - ip: ${LLM_HOST_IP}
     ports:
-      - port: 11434
+      - name: http
+        port: 11434

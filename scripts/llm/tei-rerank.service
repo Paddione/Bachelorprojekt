@@ -1,0 +1,21 @@
+[Unit]
+Description=TEI Reranker (bge-reranker-v2-m3)
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker rm -f tei-rerank
+ExecStart=/usr/bin/docker run --rm --name tei-rerank \
+  --gpus all \
+  -p 8082:80 \
+  -v /var/lib/llm/hf-cache:/data \
+  ghcr.io/huggingface/text-embeddings-inference:1.5 \
+  --model-id BAAI/bge-reranker-v2-m3 \
+  --port 80
+ExecStop=/usr/bin/docker stop tei-rerank
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

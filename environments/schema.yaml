@@ -187,6 +187,28 @@ env_vars:
     required: true
     default_dev: "http://auth.localhost"
 
+  - name: LLM_HOST_IP
+    required: false
+    default_dev: ""
+    description: "Mesh IP of the GPU host running TEI + Ollama. Required when LLM_ENABLED=true. Empty in dev."
+
+  - name: LLM_ENABLED
+    required: true
+    default_dev: "false"
+    description: "If true, the website uses the in-cluster LiteLLM router for embeddings/rerank/chat. If false, embeddings.ts calls Voyage directly (legacy path)."
+    validate: "^(true|false)$"
+
+  - name: LLM_RERANK_ENABLED
+    required: true
+    default_dev: "false"
+    description: "If true, knowledge query path runs results through the bge-reranker-v2-m3 service. Requires LLM_ENABLED=true."
+    validate: "^(true|false)$"
+
+  - name: LLM_ROUTER_URL
+    required: true
+    default_dev: "http://llm-router.workspace.svc.cluster.local:4000"
+    description: "Cluster-internal URL of the LiteLLM router. Constant per namespace; only varies if WORKSPACE_NAMESPACE differs."
+
 secrets:
   - name: SHARED_DB_PASSWORD
     required: true
@@ -512,6 +534,16 @@ secrets:
     extra_namespaces:
       - namespace: workspace
         secret: knowledge-secrets
+
+  - name: ANTHROPIC_API_KEY
+    required: false
+    generate: false
+    description: "Anthropic API key. Used by (a) the website for meeting insights (claude.ts), (b) the llm-router for chat-class fallback when the local Ollama is unreachable. Required in prod when LLM_ENABLED=true."
+    extra_namespaces:
+      - namespace: workspace
+        secret: knowledge-secrets
+      - namespace: website
+        secret: website-secrets
 
 setup_vars:
   - name: KC_USER1_USERNAME

@@ -1,0 +1,163 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# llm-router: in-cluster LiteLLM proxy
+#
+# Exposes one OpenAI-compatible URL (port 4000). Encodes the local-first /
+# cloud-fallback policy declaratively in litellm-config. Embeddings and
+# reranking NEVER fall back across vector spaces — see docs spec for the
+# invariant. Chat-class aliases fall back to Anthropic per call.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+data:
+  config.yaml: |
+    model_list:
+      # ── Embedding aliases (no fallback — vector-space integrity) ──────────
+      - model_name: bge-m3
+        litellm_params:
+          model: huggingface/BAAI/bge-m3
+          api_base: http://llm-gateway-embed:8081
+          timeout: 60
+      - model_name: voyage-multilingual-2
+        litellm_params:
+          model: voyage/voyage-multilingual-2
+          api_key: os.environ/VOYAGE_API_KEY
+          timeout: 60
+
+      # ── Rerank alias (no fallback — caller skips on 503) ──────────────────
+      - model_name: workspace-rerank
+        litellm_params:
+          model: huggingface/BAAI/bge-reranker-v2-m3
+          api_base: http://llm-gateway-rerank:8082
+          timeout: 30
+
+      # ── Chat-class aliases — primary local, fallback Anthropic ────────────
+      - model_name: workspace-chat
+        litellm_params:
+          model: ollama/qwen2.5:14b-instruct-q4_K_M
+          api_base: http://llm-gateway-chat:11434
+          timeout: 30
+      - model_name: workspace-chat-fallback
+        litellm_params:
+          model: anthropic/claude-sonnet-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 30
+
+      - model_name: workspace-code
+        litellm_params:
+          model: ollama/qwen2.5-coder:14b-instruct-q4_K_M
+          api_base: http://llm-gateway-chat:11434
+          timeout: 30
+      - model_name: workspace-code-fallback
+        litellm_params:
+          model: anthropic/claude-sonnet-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 30
+
+      - model_name: workspace-vision
+        litellm_params:
+          model: ollama/qwen2.5vl:7b-instruct-q4_K_M
+          api_base: http://llm-gateway-chat:11434
+          timeout: 30
+      - model_name: workspace-vision-fallback
+        litellm_params:
+          model: anthropic/claude-sonnet-4-6
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 30
+
+      - model_name: workspace-fast
+        litellm_params:
+          model: ollama/llama3.2:3b-instruct-q4_K_M
+          api_base: http://llm-gateway-chat:11434
+          timeout: 30
+      - model_name: workspace-fast-fallback
+        litellm_params:
+          model: anthropic/claude-haiku-4-5
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 30
+
+    litellm_settings:
+      drop_params: true
+      set_verbose: false
+      fallbacks:
+        - workspace-chat: ["workspace-chat-fallback"]
+        - workspace-code: ["workspace-code-fallback"]
+        - workspace-vision: ["workspace-vision-fallback"]
+        - workspace-fast: ["workspace-fast-fallback"]
+      success_callback: []
+      failure_callback: []
+
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-router
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: llm-router }
+  template:
+    metadata:
+      labels: { app: llm-router }
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner-4]
+      containers:
+        - name: litellm
+          image: ghcr.io/berriai/litellm:main-stable
+          args: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "2"]
+          ports:
+            - containerPort: 4000
+          env:
+            - name: VOYAGE_API_KEY
+              valueFrom:
+                secretKeyRef: { name: workspace-secrets, key: VOYAGE_API_KEY }
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef: { name: workspace-secrets, key: ANTHROPIC_API_KEY }
+            - name: LITELLM_MASTER_KEY
+              value: "sk-llm-router-internal"
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+          readinessProbe:
+            httpGet: { path: /health/readiness, port: 4000 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health/liveliness, port: 4000 }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 1000m, memory: 1Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile: { type: RuntimeDefault }
+      volumes:
+        - name: config
+          configMap: { name: litellm-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-router
+spec:
+  selector: { app: llm-router }
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000

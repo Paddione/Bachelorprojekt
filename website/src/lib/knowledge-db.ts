@@ -1,4 +1,12 @@
 import { Pool } from 'pg';
+import { embedQuery, type EmbeddingModel } from './embeddings';
+
+export class MixedEmbeddingModelError extends Error {
+  constructor(models: string[]) {
+    super(`MixedEmbeddingModelError: collections span multiple embedding models (${models.join(', ')}); cross-space queries are not allowed`);
+    this.name = 'MixedEmbeddingModelError';
+  }
+}
 
 let _pool: Pool | null = null;
 function p(): Pool {
@@ -63,14 +71,16 @@ export async function getCollection(id: string): Promise<Collection | null> {
 
 export async function createCollection(args: {
   name: string; source: CollectionSource; description?: string; brand?: string | null;
-  createdBy?: string | null;
+  createdBy?: string | null; embeddingModel?: EmbeddingModel;
 }): Promise<Collection> {
+  const model: EmbeddingModel = args.embeddingModel
+    ?? (process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2');
   const r = await p().query(
-    `INSERT INTO knowledge.collections (name, source, description, brand, created_by)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO knowledge.collections (name, source, description, brand, created_by, embedding_model)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id, name, description, source, brand, chunk_count,
                last_indexed_at, embedding_model, created_at`,
-    [args.name, args.source, args.description ?? null, args.brand ?? null, args.createdBy ?? null],
+    [args.name, args.source, args.description ?? null, args.brand ?? null, args.createdBy ?? null, model],
   );
   return r.rows[0];
 }
@@ -128,10 +138,28 @@ export async function recountChunks(collectionId: string): Promise<void> {
 }
 
 export async function queryNearest(args: {
-  collectionIds: string[]; queryEmbedding: number[]; limit?: number; threshold?: number;
+  collectionIds: string[]; queryText: string; limit?: number; threshold?: number; signal?: AbortSignal;
 }): Promise<Array<{ id: string; text: string; collection_id: string; document_id: string; score: number }>> {
   const limit  = args.limit     ?? 6;
   const thresh = args.threshold ?? 0.65;
+
+  if (args.collectionIds.length === 0) return [];
+
+  const placeholders = args.collectionIds.map((_, i) => `$${i + 1}`).join(',');
+  const modelsRes = await p().query(
+    `SELECT DISTINCT embedding_model FROM knowledge.collections WHERE id IN (${placeholders})`,
+    args.collectionIds,
+  );
+  const models = modelsRes.rows.map((r: { embedding_model: string }) => r.embedding_model);
+  if (models.length > 1) throw new MixedEmbeddingModelError(models);
+  if (models.length === 0) return [];
+
+  const { embedding } = await embedQuery(args.queryText, {
+    model: models[0] as EmbeddingModel,
+    purpose: 'query',
+    signal: args.signal,
+  });
+
   const r = await p().query(
     `SELECT id, text, collection_id, document_id,
             1 - (embedding <=> $1) AS score
@@ -139,7 +167,7 @@ export async function queryNearest(args: {
       WHERE collection_id = ANY($2::uuid[])
       ORDER BY embedding <=> $1
       LIMIT $3`,
-    [vecLiteral(args.queryEmbedding), args.collectionIds, limit],
+    [vecLiteral(embedding), args.collectionIds, limit],
   );
   return r.rows.filter((row: { score: number }) => row.score >= thresh);
 }

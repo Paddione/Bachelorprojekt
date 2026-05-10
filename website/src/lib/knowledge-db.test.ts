@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { newDb } from 'pg-mem';
 import * as kdb from './knowledge-db';
 
@@ -86,5 +86,50 @@ describe('knowledge-db', () => {
   test('deleteCollection refuses non-custom', async () => {
     const c = await kdb.createCollection({ name: 'test', source: 'pr_history' });
     await expect(kdb.deleteCollection(c.id)).rejects.toThrow(/custom/i);
+  });
+});
+
+describe('knowledge-db — model-aware query path', () => {
+  const ORIGINAL_LLM_ENABLED = process.env.LLM_ENABLED;
+
+  beforeEach(async () => {
+    await (pool as any).query('TRUNCATE knowledge.chunks');
+    await (pool as any).query('TRUNCATE knowledge.documents');
+    await (pool as any).query('TRUNCATE knowledge.collections');
+    process.env.LLM_ENABLED = 'false';
+  });
+
+  afterAll(() => {
+    process.env.LLM_ENABLED = ORIGINAL_LLM_ENABLED;
+  });
+
+  test('queryNearest reads embedding_model from collection and passes to embedQuery', async () => {
+    const c = await kdb.createCollection({ name: 'kn-bge', source: 'custom', embeddingModel: 'bge-m3' });
+    const calls: Array<{ text: string; model?: string; purpose?: string }> = [];
+    const embedMod = await import('./embeddings');
+    vi.spyOn(embedMod, 'embedQuery').mockImplementationOnce(async (text, opts) => {
+      calls.push({ text, model: opts?.model, purpose: opts?.purpose });
+      return { embedding: Array(1024).fill(0.01), tokens: 1 };
+    });
+    await kdb.queryNearest({ collectionIds: [c.id], queryText: 'hallo' }).catch(() => {});
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ text: 'hallo', model: 'bge-m3', purpose: 'query' });
+    vi.restoreAllMocks();
+  });
+
+  test('queryNearest throws MixedEmbeddingModelError when collectionIds disagree on model', async () => {
+    const a = await kdb.createCollection({ name: 'kn-bge-x', source: 'custom', embeddingModel: 'bge-m3' });
+    const b = await kdb.createCollection({ name: 'kn-vy-x',  source: 'custom', embeddingModel: 'voyage-multilingual-2' });
+    await expect(kdb.queryNearest({ collectionIds: [a.id, b.id], queryText: 'q' }))
+      .rejects.toThrow(/MixedEmbeddingModelError/);
+  });
+
+  test('createCollection defaults to bge-m3 when LLM_ENABLED=true, voyage-multilingual-2 otherwise', async () => {
+    process.env.LLM_ENABLED = 'true';
+    const a = await kdb.createCollection({ name: 'kn-default-bge', source: 'custom' });
+    expect(a.embedding_model).toBe('bge-m3');
+    process.env.LLM_ENABLED = 'false';
+    const b = await kdb.createCollection({ name: 'kn-default-voyage', source: 'custom' });
+    expect(b.embedding_model).toBe('voyage-multilingual-2');
   });
 });

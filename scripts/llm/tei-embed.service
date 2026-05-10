@@ -1,0 +1,21 @@
+[Unit]
+Description=TEI Embeddings (bge-m3)
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker rm -f tei-embed
+ExecStart=/usr/bin/docker run --rm --name tei-embed \
+  --gpus all \
+  -p 8081:80 \
+  -v /var/lib/llm/hf-cache:/data \
+  ghcr.io/huggingface/text-embeddings-inference:1.5 \
+  --model-id BAAI/bge-m3 \
+  --port 80
+ExecStop=/usr/bin/docker stop tei-embed
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

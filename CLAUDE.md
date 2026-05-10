@@ -57,7 +57,7 @@ task cluster:delete                        # Destroy cluster
 task cluster:start                         # Start stopped cluster
 task cluster:stop                          # Stop cluster (preserves state)
 task cluster:status                        # Show cluster status, nodes, resource usage
-task workspace:up                          # Full automated setup (Cluster + MVP + Office + MCP + Billing + post-config)
+task workspace:up                          # Full automated setup (Cluster → MVP → Office → MCP → post-config). For ENV-aware variant on an existing cluster: `task workspace:setup ENV=<env>`.
 task workspace:deploy                      # Deploy workspace (default ENV=dev)
 task workspace:deploy ENV=mentolder        # Deploy to mentolder prod cluster
 task workspace:deploy ENV=korczewski       # Deploy to korczewski prod cluster
@@ -105,7 +105,6 @@ task workspace:systembrett-setup          # Set up Brett (Systembrett) integrati
 task workspace:admin-users-setup          # Create default admin users
 task workspace:transcriber-setup          # Set up talk-transcriber bot + Whisper
 task workspace:transcriber-build          # Build talk-transcriber Docker image
-task workspace:stripe-setup               # Configure Stripe payment gateway
 task workspace:vaultwarden:seed           # Seed Vaultwarden with production secret templates
 task workspace:dsgvo-check                # Run DSGVO compliance verification (NFA-01)
 task claude-code:setup -- cluster         # Generate Claude Code settings.json for platform admin
@@ -171,10 +170,6 @@ task argocd:diff -- <app>        # Show diff between git and live state
 ArgoCD files: `argocd/install/` (CMP sidecar, Ingress), `argocd/project.yaml`, `argocd/applicationset.yaml`.
 Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task argocd:cluster:register`.
 
-### Optional Services
-```bash
-```
-
 ### Brett (Systembrett)
 ```bash
 task brett:build                 # Build Brett image (and import into k3d in dev)
@@ -184,25 +179,33 @@ task brett:bot-setup ENV=<env>   # Register /brett slash command in Nextcloud Ta
 task brett:logs ENV=<env>        # Tail Brett logs
 ```
 
-### Unified Cluster (High Availability — 12 nodes)
-The mentolder cluster is the single unified production cluster. The separate korczewski
-cluster was disbanded (2026-05-05) and all its nodes joined mentolder.
+### Production clusters (two physical clusters since PR #621/#622, 2026-05-09)
+The earlier "unified" merge (2026-05-05) was reverted. Production now runs as two
+separate k3s clusters; verify with `kubectl config get-contexts`.
 
-**Node layout:**
-- Control-planes (6): `gekko-hetzner-2/3/4` (Hetzner Helsinki) + `pk-hetzner/pk-hetzner-2/3` (Hetzner Helsinki)
-- Workers (6): `k3s-1/2/3` + `k3w-1/2/3` (home LAN via WireGuard through pk-hetzner hub)
+**`mentolder` cluster (9 nodes, serves `mentolder.de`):**
+- Control-planes (3): `gekko-hetzner-2/3/4` (Hetzner Helsinki)
+- Workers (6): `k3s-1/2/3` + `k3w-1/2/3` (home LAN, joined via WireGuard mesh `wg-mesh`)
+- Workspace lives in the `workspace` namespace.
 
-**WireGuard mesh:** pk-hetzner (192.168.100.1) is the hub. All home workers use 192.168.100.x.
-k3s-1=.20, k3s-2=.11, k3s-3=.12, k3w-1=.4(.11 old), k3w-2=.3, k3w-3=.13, pk-hetzner-2=.21, pk-hetzner-3=.22.
-The mentolder Hetzner nodes reach home workers via wg0 tunnel through pk-hetzner.
+**`korczewski-ha` cluster (3 nodes, serves `korczewski.de`):**
+- Control-plane (1): `pk-hetzner-4`
+- Workers (2): `pk-hetzner-6`, `pk-hetzner-8`
+- Workspace lives in the `workspace-korczewski` namespace, with `WEBSITE_NAMESPACE=website-korczewski`.
+- Has its own `shared-db` — DB password rotations on one cluster never propagate to the other.
 
-**CNI partition:** Flannel VXLAN does NOT route between Hetzner nodes and home workers.
-Mitigation: keep system pods (CoreDNS, ArgoCD, etc.) on Hetzner nodes via nodeAffinity.
-Home workers host user workloads only — pod-to-pod across the WireGuard double-hop is broken.
+**ArgoCD federation** still hub-runs on mentolder. Annotations on the cluster Secrets
+(`cluster-mentolder`, `cluster-korczewski-ha`) drive the per-cluster overlay path
+(`prod-mentolder` vs `prod-korczewski`). The historical `argocd-korczewski`
+ServiceAccount + `62.238.9.39:6443` annotation comments in `Taskfile.argocd.yml`
+predate the re-split — refresh them when next touching that file.
 
-**korczewski workloads** (`korczewski.de`) run in `workspace-korczewski` namespace on the same
-cluster, managed by ArgoCD via the `cluster-korczewski` secret pointing to `62.238.9.39:6443`
-(pk-hetzner's API endpoint) using the `argocd-korczewski` ServiceAccount.
+**WireGuard mesh (`wg-mesh`):** since the partition fix, all mentolder nodes —
+Hetzner CPs and home workers — peer over `wg-mesh` with Flannel pinned to that
+interface (`flannel-iface=wg-mesh` on Hetzner CPs, `node-ip=<public>` for the
+control-planes). VXLAN now traverses correctly; system-pod nodeAffinity to
+Hetzner nodes is no longer load-bearing for connectivity (it remains for
+predictable placement of CoreDNS/ArgoCD/etc.).
 
 ```bash
 task ha:setup                    # Bootstrap 3-node k3s HA cluster on Hetzner (run once — historical)
@@ -228,6 +231,27 @@ task env:generate ENV=<env>      # Generate fresh secrets into environments/.sec
 task env:seal ENV=<env>          # Encrypt .secrets/<env>.yaml → environments/sealed-secrets/<env>.yaml
 task env:fetch-cert ENV=<env>    # Fetch a cluster's sealing cert into environments/certs/<env>.pem
 task config:show ENV=<env>       # Show resolved PROD_DOMAIN/BRAND_NAME/CONTACT_EMAIL for an env
+```
+
+### Tracking, tickets, theming, and other day-to-day tasks
+```bash
+task tracking:psql ENV=<env>             # psql into the bachelorprojekt tracking schema
+task tracking:backfill                   # Re-emit tracking JSON for historical PRs into tracking/pending/
+task tracking:backfill:dry               # Dry-run of tracking:backfill (prints what would be written)
+task tracking:ingest:local               # Drain tracking/pending/ into bachelorprojekt.features (needs TRACKING_DB_URL)
+task keycloak:sync ENV=<env>             # Reconcile Keycloak realm + client config from JSON
+task workspace:sync-db-passwords ENV=<env>  # Reconcile shared-db role passwords against the current SealedSecret
+task workspace:fix-tickets-grants ENV=<env> # Re-grant ticket-schema permissions to service roles
+task tickets:sunset:audit ENV=<env>      # Report ticket-system migrations still pending
+task tickets:sunset ENV=<env>            # Apply pending ticket-sunset migrations
+task workspace:theme ENV=<env>           # Re-apply Nextcloud branding (logos, colours, app order)
+task workspace:verify ENV=<env>          # Post-deploy smoke probes (per env)
+task workspace:verify:all-prods          # Same, fanned out across both prod clusters
+task db:diagram                          # Render a current schema ER diagram
+task gemini:setup:all                    # Generate Gemini CLI configs for all roles in one go
+task claude-code:export                  # Export the current Claude Code agent definitions
+task claude-code:invite                  # Mint an invite token for a Claude Code business user
+task claude-code:rotate-tokens           # Rotate the auth-proxy + agent tokens
 ```
 
 ### Testing
@@ -326,8 +350,12 @@ graph TB
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
-- Systembrett template validation
+- **Test inventory check**: re-runs `task test:inventory` and fails the job if `website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
+- Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
 - Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
+- E2E smoke (`continue-on-error: true`): a Playwright `--project=smoke --grep '@smoke'` run against `web.mentolder.de` with a 10-min timeout. JUnit + traces are uploaded as the `e2e-smoke-results` artifact.
+
+Other workflows: `e2e.yml` (full Playwright), `track-pr.yml` (PR → tracking JSON), `tracking.yml` (drain into DB), `track-plans.yml`, `build-collabora.yml`, `build-tracking.yml`, `build-transcriber.yml`.
 
 ## Development Rules
 
@@ -347,12 +375,11 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`, etc.) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work — or use the `feature:*` / `*:all-prods` umbrellas which fan out across both prod clusters explicitly.
 - **All workspace tasks now honour `WORKSPACE_NAMESPACE`.** Earlier the Taskfile and several `scripts/*.sh` hardcoded `-n workspace`, which silently wrote korczewski-targeted post-config (theming, OIDC redirects, talk signaling) into mentolder's `workspace` namespace. After 2026-05-05 every ENV-aware task sources `env-resolve.sh` and uses `${WORKSPACE_NAMESPACE:-workspace}` (mentolder=`workspace`, korczewski=`workspace-korczewski`); scripts default to `${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}` and the Taskfile call sites export the env var before invoking. If you add a new task that touches workspace resources, follow this pattern.
 - **ArgoCD tasks are hub-only and enforce it.** All `argocd:*` tasks live in `Taskfile.argocd.yml` and have a `_hub-guard` precondition that aborts with a clear error if the `mentolder` context is unreachable. `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
-- **korczewski context still exists but points to the same physical cluster.** The `korczewski` kubeconfig context (62.238.9.39:6443 = pk-hetzner) now resolves to the unified mentolder cluster. `ENV=korczewski` in Taskfile tasks routes correctly. korczewski workloads land in `workspace-korczewski` namespace, not `workspace`.
+- **`mentolder` and `korczewski-ha` are two physical clusters.** The 2026-05-05 merge was reverted on 2026-05-09 (PRs #621/#622). The `korczewski-ha` context targets a standalone 3-node cluster on `pk-hetzner-4/6/8`; korczewski.de no longer routes through mentolder Traefik. Each cluster has its own `shared-db`, sealed-secrets controller, cert-manager, and Keycloak realm — anything cross-cluster (DB password rotation, OIDC client tweaks, schema changes) must be applied to **both** explicitly.
 
-### Unified cluster node placement
-- **System pods (CoreDNS, ArgoCD, etc.) must run on Hetzner nodes.** Home workers (k3s-1/2/3, k3w-1/2/3) have a CNI partition: Flannel VXLAN from Hetzner nodes cannot route to home worker pod IPs (192.168.100.x VTEPs require a WireGuard double-hop through pk-hetzner that iptables FORWARD allows but VXLAN encapsulation doesn't traverse correctly). CoreDNS is pinned to Hetzner nodes via nodeAffinity in the deployment. If CoreDNS drifts to a home worker, cluster DNS fails from Hetzner pods.
-- **pk-hetzner is the WireGuard hub for home workers.** Do not remove pk-hetzner from the cluster or change its wg0 config without updating all home worker peers. Its wg0 IP (192.168.100.1) is the gateway for k3s-1/2/3/k3w-1/2/3.
-- **korczewski.de ingresses route via Traefik on mentolder.** The `workspace-korczewski` namespace on mentolder serves korczewski.de. Traefik on the mentolder Hetzner nodes handles ingress for both domains.
+### Cluster node placement (mentolder)
+- **System pods are pinned to Hetzner nodes by nodeAffinity, even though the CNI partition is fixed.** Pre-2026-05-05 Flannel VXLAN couldn't traverse the WireGuard double-hop; the fix moved every mentolder node onto the `wg-mesh` overlay with `flannel-iface=wg-mesh` (and `node-ip=<public>` on the Hetzner CPs). Connectivity now works end-to-end, but CoreDNS/ArgoCD/etc. stay pinned to `gekko-hetzner-*` for predictable placement and lower egress latency. Removing the affinity won't break DNS today — but unpinning without thinking about it loses the deliberate locality.
+- **`wg-mesh` membership is load-bearing for mentolder.** Adding a node without joining the mesh + setting `flannel-iface=wg-mesh` will silently break pod-to-pod traffic from that node. See `wireguard/` for the peer config and the partition-fix memory for the gory details.
 
 ### Kustomize overlays
 - **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.
@@ -382,3 +409,11 @@ The Kore homepage shows a live PR-driven timeline:
 To backfill historical PRs: `task tracking:backfill && task tracking:ingest:local` (the latter requires `TRACKING_DB_URL` from a port-forward to shared-db).
 
 The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRAND_ID` in local dev — `index.astro` reads both with `process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'`.
+
+### Local-first LLM pipeline
+
+- **The GPU host is a single, user-provided box on `wg-mesh`** (RTX 5070 Ti, 16 GB). Both prod clusters share it via three Services (`llm-gateway-embed:8081`, `llm-gateway-rerank:8082`, `llm-gateway-chat:11434`) that point at the same `${LLM_HOST_IP}`. Losing the host stalls embedding indexing on `bge-m3` collections and falls back chat-class workloads to Anthropic per call. Voyage-tagged collections are unaffected.
+- **Embeddings/rerank NEVER fall back across vector spaces.** A `bge-m3` collection always queries with bge-m3 and **fails closed** if TEI is down. A `voyage-multilingual-2` collection always queries with Voyage. The `MixedEmbeddingModelError` rejects multi-collection queries that span both. Don't "fix" this by adding silent fallback — vectors from different spaces in the same `<=>` query mean garbage retrieval.
+- **`llm-gpu.yaml` and `llm-router.yaml` are in `prod/` overlay only.** Dev (k3d) has no GPU and no router; `embeddings.ts` falls through to direct Voyage when `LLM_ENABLED=false`. Don't add them to `k3d/kustomization.yaml`.
+- **`LLM_HOST_IP` is required when `LLM_ENABLED=true`.** Set it in `environments/<env>.yaml` to the GPU host's wg-mesh IP. The `llm:deploy` task aborts if unset.
+- **Model swap costs ~3-6s on first call after idle.** Ollama's `OLLAMA_KEEP_ALIVE=5m` evicts idle models; the next request pays the swap. Router's chat-class timeout is 30s — beyond that, it falls back to Anthropic. Don't set the timeout below ~10s without testing all four models cold.

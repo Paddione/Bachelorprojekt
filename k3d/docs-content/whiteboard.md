@@ -20,6 +20,15 @@ Das Whiteboard ist ein WebSocket-basierter Backend-Service für die Nextcloud Wh
 
 **Namespace:** `workspace`
 
+```mermaid
+flowchart LR
+  User([Browser]) -- HTTPS --> NC[Nextcloud]
+  NC --> WBapp[Whiteboard App]
+  WBapp -- WebSocket --> Backend[board.{DOMAIN} Backend]
+  Backend --> Store[Whiteboard Store]
+  WBapp -- iframe --> Excalidraw[Excalidraw Frontend]
+```
+
 ---
 
 ## Integration mit Nextcloud

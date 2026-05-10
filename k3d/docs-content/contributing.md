@@ -1,5 +1,21 @@
 # Beitragen zum Workspace MVP
 
+```mermaid
+sequenceDiagram
+  participant Dev
+  participant GH as GitHub
+  participant CI
+  participant Main as main
+  Dev->>GH: push feature/abc
+  Dev->>GH: gh pr create
+  GH->>CI: trigger
+  CI->>CI: task test:all
+  CI-->>GH: ✓ green
+  Dev->>GH: squash-merge
+  GH->>Main: 1 commit
+  Main-->>Dev: trigger task feature:* (manuell)
+```
+
 ## Workflow
 
 Alle Änderungen gehen durch Pull Requests. Direkte Pushes auf `main` sind nicht erlaubt.

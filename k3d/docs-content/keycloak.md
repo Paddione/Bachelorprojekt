@@ -69,6 +69,23 @@ graph LR
 
 Alle Clients verwenden `client_secret_basic` als Authenticator und den Standard Authorization Code Flow. Scopes: `openid email profile`.
 
+```mermaid
+sequenceDiagram
+  participant U as User-Browser
+  participant NC as Nextcloud (RP)
+  participant KC as Keycloak (IdP)
+  U->>NC: GET /
+  NC-->>U: 302 → KC /auth?client=nextcloud
+  U->>KC: /auth?client=nextcloud
+  KC-->>U: Login-Form
+  U->>KC: POST credentials
+  KC-->>U: 302 → NC?code=...
+  U->>NC: /callback?code=...
+  NC->>KC: POST /token (code, secret)
+  KC-->>NC: id_token + access_token
+  NC-->>U: Set-Cookie + 302 / (eingeloggt)
+```
+
 ## SSO-Ablauf
 
 ```mermaid

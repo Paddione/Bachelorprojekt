@@ -12,6 +12,19 @@ Prometheus und Grafana bilden das Observability-Stack des Workspace MVP.
   - Dev: http://prometheus.localhost, http://grafana.localhost
   - Prod: https://prometheus.korczewski.de, https://grafana.korczewski.de
 
+```mermaid
+flowchart LR
+  subgraph targets["Scrape-Ziele"]
+    Pods[(Kubernetes Pods)]
+    Nodes[(Node-Exporter)]
+    PG[(postgres-exporter)]
+  end
+  Prom[Prometheus] -- /metrics --> targets
+  Prom --> TSDB[(TSDB · 15d)]
+  Graf[Grafana] --> Prom
+  Admin([Admin]) -- HTTPS --> Graf
+```
+
 ---
 
 ## Architektur

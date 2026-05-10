@@ -22,26 +22,14 @@ Die **High-Performance Backend (HPB)** Komponenten ermöglichen Video- und Audio
 ## Architektur
 
 ```mermaid
-graph LR
-    NC["Nextcloud Talk<br/>Browser Client"]
-    SIG["spreed-signaling<br/>Port 8080"]
-    NATS["NATS<br/>Message Bus<br/>Port 4222"]
-    JANUS["Janus Gateway<br/>WebRTC SFU<br/>Port 8188"]
-    COTURN["coturn<br/>TURN/STUN<br/>Port 3478"]
-    
-    NC -->|WebSocket| SIG
-    SIG -->|nats://| NATS
-    NATS -->|Internal| JANUS
-    NC -->|ICE Candidates| COTURN
-    JANUS -->|Media Stream| NC
-    
-    classDef client fill:#4a90d9,color:#fff,stroke:#2d6a9f
-    classDef backend fill:#2d8659,color:#fff,stroke:#1a5c3a
-    classDef infra fill:#374151,color:#fff,stroke:#1f2937
-    
-    class NC client
-    class SIG,NATS backend
-    class JANUS,COTURN infra
+flowchart LR
+  Client([Talk Client]) -- WebSocket --> HPB[Talk HPB · Janus]
+  HPB -- WebRTC SDP --> Client
+  HPB --> NATS[NATS · Pub/Sub]
+  HPB --> coturn[coturn · STUN/TURN]
+  Client -. ICE .-> coturn
+  HPB --> Trans[Transcriber Bot]
+  Trans --> Whisper[Whisper · Transkription]
 ```
 
 **Datenfluss bei einem Videoanruf:**

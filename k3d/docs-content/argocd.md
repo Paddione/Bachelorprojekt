@@ -2,6 +2,17 @@
 
 ## Uberblick
 
+```mermaid
+flowchart LR
+  Git[Git · main]
+  Git --> Hub[ArgoCD · mentolder Hub]
+  Hub --> AS[ApplicationSet · workspace]
+  AS --> AppM[App: workspace-mentolder]
+  AS --> AppK[App: workspace-korczewski]
+  AppM --> NSm[ns: workspace]
+  AppK --> NSk[ns: workspace-korczewski]
+```
+
 ArgoCD automatisiert das Deployment aus Git auf mehrere Kubernetes-Cluster nach dem GitOps-Prinzip:
 
 - **Git ist die einzige Quelle der Wahrheit.** Kein manuelles `kubectl apply` auf Produktionsclustern.

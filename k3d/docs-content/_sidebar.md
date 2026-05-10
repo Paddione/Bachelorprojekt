@@ -1,15 +1,16 @@
-- **Einführung**
-  - [Startseite](README)
-  - [Systemarchitektur](architecture)
+- **Quickstarts**
+  - [Endnutzer (5 Min)](quickstart-enduser)
+  - [Admin (Setup)](quickstart-admin)
+  - [Entwickler (Tour)](quickstart-dev)
 
 - **Services**
   - [Keycloak (SSO)](keycloak)
-  - [Nextcloud (Dateien & Talk)](nextcloud)
+  - [Nextcloud + Talk](nextcloud)
   - [Collabora (Office)](collabora)
   - [Talk HPB (Signaling)](talk-hpb)
   - [Livestream (LiveKit)](livestream)
   - [E-Invoice (ZUGFeRD & XRechnung)](einvoice)
-  - [MCP-Server](claude-code)
+  - [MCP-Server (Claude Code)](claude-code)
   - [Vaultwarden (Passwörter)](vaultwarden)
   - [Website (Astro & Svelte)](website)
   - [Whiteboard](whiteboard)
@@ -19,7 +20,7 @@
 
 - **Betrieb**
   - [Deployment & Taskfile](operations)
-  - [Umgebungen](environments)
+  - [Umgebungen & Secrets](environments)
   - [ArgoCD (GitOps)](argocd)
   - [Backup & Wiederherstellung](backup)
 
@@ -29,13 +30,14 @@
   - [DSGVO / Datenschutz](dsgvo)
   - [Verarbeitungsverzeichnis](verarbeitungsverzeichnis)
 
-- **Tests**
-  - [Testframework & Test-IDs](tests)
-
-- **Benutzerhandbuch**
-  - [Für Endnutzer](benutzerhandbuch)
-  - [Systembrett im Whiteboard](systembrett)
-  - [Systemisches Brett (3D)](systemisches-brett)
+- **Entwicklung**
+  - [Beitragen & CI/CD](contributing)
+  - [Architektur](architecture)
+  - [Tests](tests)
+  - [Skripte-Referenz](scripts)
+  - [Migration](migration)
+  - [Anforderungen](requirements)
+  - [Fehlerbehebung](troubleshooting)
 
 - **Administration**
   - [Adminhandbuch](adminhandbuch)
@@ -43,9 +45,11 @@
   - [Projekt-Verwaltung](admin-projekte)
   - [Tickets (Unified Inbox)](admin-tickets)
 
-- **Entwicklung**
-  - [Beitragen & CI/CD](contributing)
-  - [Skripte-Referenz](scripts)
-  - [Migration](migration)
-  - [Anforderungen](requirements)
-  - [Fehlerbehebung](troubleshooting)
+- **Benutzerhandbuch**
+  - [Für Endnutzer](benutzerhandbuch)
+  - [Systembrett im Whiteboard](systembrett)
+  - [Systemisches Brett (3D)](systemisches-brett)
+
+- **Referenz**
+  - [Glossar](glossary)
+  - [Decision-Log](decisions)

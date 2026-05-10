@@ -19,6 +19,18 @@ Nextcloud ist die zentrale Dateiverwaltungs- und Kollaborationsplattform des Wor
 
 **Abhängigkeiten:** PostgreSQL (Datenbank), Redis (Cache & Locking), Collabora (Office), Talk HPB/Signaling (Video-Calls)
 
+```mermaid
+flowchart LR
+  User([Browser]) -- HTTPS --> NC[Nextcloud]
+  NC -- OIDC --> KC[Keycloak]
+  NC --> DB[(nextcloud DB)]
+  NC --> Files[Files PVC]
+  NC --> Talk[Talk App]
+  Talk --> HPB[Talk HPB · Janus]
+  NC -- WOPI --> CO[Collabora]
+  NC -- iframe --> WB[Whiteboard]
+```
+
 ---
 
 ## Aktivierte Apps

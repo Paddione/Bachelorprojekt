@@ -17,6 +17,18 @@ Mailpit ist ein lokaler SMTP-Server mit Web-UI für E-Mail-Testing in der Entwic
 
 **Namespace:** `workspace`
 
+```mermaid
+sequenceDiagram
+  participant Svc as Service · z. B. Keycloak
+  participant MP as Mailpit · SMTP :1025
+  participant UI as Mailpit UI · :8025
+  Svc->>MP: SMTP Mail
+  MP-->>Svc: 250 OK
+  MP->>MP: in Memory speichern
+  UI->>MP: GET /messages
+  MP-->>UI: JSON-Liste
+```
+
 ---
 
 ## Funktionsweise

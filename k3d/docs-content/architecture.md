@@ -16,7 +16,7 @@
 
 ## Ueberblick
 
-Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Kubernetes Deployments und werden mit Kustomize gebaut — `k3d/` ist das einzige Basis-Manifest-Verzeichnis. Lokal laeuft der Cluster in k3d (Docker-in-Docker), in Produktion auf k3s (Hetzner/Korczewski). Als Ingress Controller dient Traefik (k3s built-in), der alle eingehenden HTTP/HTTPS-Anfragen per Subdomain-Routing an die jeweiligen Services weiterleitet. Alle Nutzerdaten verbleiben vollstaendig on-premises (DSGVO by Design).
+Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Kubernetes Deployments und werden mit Kustomize gebaut — `k3d/` ist das einzige Basis-Manifest-Verzeichnis. Lokal laeuft der Cluster in k3d (Docker-in-Docker), in Produktion ist es ein vereinter k3s-Cluster mit zwei Namespaces (`workspace` und `workspace-korczewski`) auf 12 Nodes (6 Hetzner CP + 6 Home Worker via WireGuard). Als Ingress Controller dient Traefik (k3s built-in), der alle eingehenden HTTP/HTTPS-Anfragen per Subdomain-Routing an die jeweiligen Services weiterleitet. Alle Nutzerdaten verbleiben vollstaendig on-premises (DSGVO by Design).
 
 ---
 
@@ -26,114 +26,34 @@ Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine T
 
 ```mermaid
 flowchart TB
-    User([fa:fa-user Benutzer / Browser])
-
-    subgraph cluster ["fa:fa-server k3d/k3s Cluster"]
-        direction TB
-        Traefik{{"fa:fa-globe Traefik Ingress\n80 / 443"}}
-
-        subgraph identity ["fa:fa-shield-halved Identitaet"]
-            KC["fa:fa-key Keycloak\nauth.localhost"]
-            OAUTH2["oauth2-proxy\n(Docs-Schutz)"]
-        end
-
-        subgraph collaboration ["fa:fa-users Zusammenarbeit"]
-            NC["fa:fa-cloud Nextcloud + Talk\nfiles.localhost"]
-            CO["fa:fa-file-word Collabora Online\noffice.localhost"]
-            WB["fa:fa-chalkboard Whiteboard\nboard.localhost"]
-            DS["fa:fa-file-signature DocuSeal\nsign.localhost"]
-            TR["fa:fa-list-check Tracking\ntracking.localhost"]
-            REC["fa:fa-record-vinyl Talk Recording"]
-            TRBOT["fa:fa-closed-captioning Talk Transcriber"]
-        end
-
-        subgraph video ["fa:fa-video Talk HPB Stack"]
-            SIG["spreed-signaling\nsignaling.localhost"]
-            JANUS["Janus Gateway\n(coturn NS)"]
-            NATS["NATS"]
-            COTURN["coturn\n(coturn NS)"]
-        end
-
-        subgraph ai ["fa:fa-robot KI & Automatisierung"]
-            WHISPER["fa:fa-microphone Whisper\n(optional)"]
-            MCP["MCP-Server\n(k8s, pg, browser,\nnc, kc, github)"]
-        end
-
-        subgraph tools ["fa:fa-toolbox Werkzeuge"]
-            VW["fa:fa-lock Vaultwarden\nvault.localhost"]
-            MP["fa:fa-envelope Mailpit\nmail.localhost"]
-            DOCS["fa:fa-file-lines Docs\ndocs.localhost"]
-        end
-
-        subgraph data ["fa:fa-database Datenhaltung"]
-            DB[("PostgreSQL 16\nshared-db\n6 Datenbanken")]
-        end
-
-        subgraph website_ns ["Namespace: website"]
-            WEB["fa:fa-globe Website\nAstro + Svelte\nweb.localhost"]
-        end
+  User([Benutzer / Browser])
+  subgraph cluster["Vereinter k3s Cluster · 12 Nodes (6 Hetzner CP + 6 Home Worker)"]
+    direction TB
+    Traefik{{"Traefik Ingress · 80/443"}}
+    subgraph ns1["Namespace: workspace (mentolder.de)"]
+      KC1[Keycloak]
+      NC1[Nextcloud + Talk]
+      VW1[Vaultwarden]
+      WEB1[Website + Portal]
+      LK1[LiveKit]
     end
+    subgraph ns2["Namespace: workspace-korczewski (korczewski.de)"]
+      KC2[Keycloak]
+      NC2[Nextcloud + Talk]
+      WEB2[Website + Portal]
+    end
+    subgraph data["Geteilte Datenebene"]
+      DB[(shared-db · PG 16)]
+      BU[Backup CronJob]
+    end
+  end
 
-    %% Ingress
-    User --> Traefik
-    Traefik --> KC & NC & CO & SIG & VW & WB & DS & TR & MP & OAUTH2 & WEB
-    OAUTH2 --> DOCS
-
-    %% OIDC
-    KC -. "OIDC" .-> NC & VW & WEB & DS & TR
-    OAUTH2 --> KC
-
-    %% Zusammenarbeit
-    NC --> CO
-    NC --> SIG
-    NC --> REC
-    NC -. "WOPI" .-> CO
-    SIG --- NATS
-    SIG --> JANUS
-    JANUS --- COTURN
-    SIG --> TRBOT
-
-    %% KI
-    NC -. "optional" .-> WHISPER
-
-    %% Datenbanken
-    KC --> DB
-    NC --> DB
-    VW --> DB
-    WEB --> DB
-    DS --> DB
-    TR --> DB
-
-    %% SMTP
-    NC -. "SMTP" .-> MP
-    WEB -. "SMTP" .-> MP
-
-    %% Klickbare Nodes
-    click KC "#/keycloak" "Keycloak: Zentraler OIDC Identity Provider. Verwaltet Benutzer, Rollen und OIDC-Clients."
-    click NC "#/services?id=nextcloud-dateien-talk" "Nextcloud: Dateiverwaltung, Kalender, Kontakte, Talk-Videokonferenzen."
-    click CO "#/services?id=collabora-online-office" "Collabora Online: LibreOffice-basierter Browser-Editor via WOPI."
-    click VW "#/services?id=vaultwarden-passwoerter" "Vaultwarden: Self-hosted Bitwarden-kompatibler Passwort-Manager."
-    click WB "#/services?id=whiteboard" "Whiteboard: Echtzeit-Kollaborations-Whiteboard."
-    click MP "#/services?id=mailpit-dev-mail" "Mailpit: SMTP-Testserver fuer Entwicklung."
-    click DB "#/architecture?id=datenbankmodell" "PostgreSQL 16: 6 isolierte Datenbanken mit eigenem User je Service."
-    click WEB "#/services?id=website-astro-svelte" "Website: Astro + Svelte mit Messaging, OIDC-Login und Admin-Panel."
-    click WHISPER "#/services?id=whisper-transkription-optional" "Whisper: faster-whisper Audio-zu-Text Transkription."
-    click SIG "#/services?id=talk-hpb-signaling" "spreed-signaling: WebRTC-Signaling-Server fuer Nextcloud Talk."
-
-    %% Styles
-    classDef identity_style fill:#1b3766,color:#e8c870,stroke:#2a5291
-    classDef collab_style fill:#1a3d28,color:#e8c870,stroke:#2a5c3a
-    classDef ai_style fill:#2a1654,color:#e8c870,stroke:#3d2478
-    classDef data_style fill:#1f2937,color:#aabbcc,stroke:#374151
-    classDef tools_style fill:#083344,color:#e8c870,stroke:#0e4f68
-    classDef infra_style fill:#1a1a2e,color:#aabbcc,stroke:#2a2a4a
-
-    class KC,OAUTH2 identity_style
-    class NC,CO,WB,DS,TR,REC collab_style
-    class MCP,WHISPER,TRBOT ai_style
-    class DB data_style
-    class VW,MP,DOCS tools_style
-    class Traefik,WEB infra_style
+  User --> Traefik
+  Traefik --> KC1 & NC1 & VW1 & WEB1 & LK1 & KC2 & NC2 & WEB2
+  KC1 -. OIDC .-> NC1 & VW1 & WEB1
+  KC2 -. OIDC .-> NC2 & WEB2
+  KC1 & NC1 & VW1 & WEB1 & KC2 & NC2 & WEB2 --> DB
+  DB --> BU
 ```
 
 ---
@@ -287,38 +207,38 @@ Init-Skripte in `shared-db` erstellen Datenbanken und User idempotent beim erste
 | `k3d/nextcloud-oidc-dev.php` | Nextcloud OIDC-Client-Config | Nextcloud |
 | `.env` | `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL` | envsubst bei Prod-Deployment |
 | `prod/` | Kustomize-Overlays (TLS, Ressource-Limits, Replicas) | Produktion |
-| `environments/` | Pro-Cluster-Variablen (Hetzner, Korczewski) | ArgoCD Multi-Cluster |
+| `environments/` | Pro-Namespace-Variablen (mentolder, korczewski) | ArgoCD-gesteuerter Roll-out |
 
-### Multi-Cluster mit ArgoCD
+### Vereinter Cluster mit ArgoCD
 
-In Produktion verwaltet ArgoCD (Hub-Cluster auf Hetzner) die Deployments ueber mehrere Cluster. Ein ApplicationSet synchronisiert den Git-Zustand auf alle registrierten Ziel-Cluster. Cluster-spezifische Einstellungen (Domain, Branding) werden als Annotationen auf ArgoCD Cluster-Secrets gespeichert.
+In Produktion betreibt das Projekt einen einzigen vereinten k3s-Cluster mit 12 Nodes (6 Hetzner Control-Plane-Nodes + 6 Home-Worker-Nodes, verbunden via WireGuard-Mesh). Beide Marken (mentolder und korczewski) laufen auf demselben Cluster, getrennt nur durch Namespaces (`workspace` fuer mentolder, `workspace-korczewski` fuer korczewski). ArgoCD selbst laeuft auf den Hetzner-Nodes und synchronisiert beide Namespaces aus demselben Git-Repository. Pro-Marke-spezifische Einstellungen (Domain, Branding) werden als Annotationen auf ArgoCD Cluster-Secrets gespeichert.
 
 ```mermaid
 flowchart TB
     GIT[("fa:fa-code-branch GitHub\nPaddione/Bachelorprojekt")] --> ARGO
 
-    subgraph hub ["Hub-Cluster (Hetzner)"]
-        ARGO["fa:fa-rotate ArgoCD"]
+    subgraph hub ["Vereinter k3s-Cluster (12 Nodes)"]
+        ARGO["fa:fa-rotate ArgoCD\n(auf Hetzner CP)"]
         APPSET["ApplicationSet"]
         ARGO --> APPSET
+
+        subgraph mentolder_ns ["Namespace: workspace (mentolder)"]
+            M_WS["mentolder Services"]
+            M_WEB["website (mentolder)"]
+        end
+
+        subgraph korczewski_ns ["Namespace: workspace-korczewski"]
+            K_WS["korczewski Services"]
+            K_WEB["website (korczewski)"]
+        end
     end
 
-    subgraph hetzner ["Hetzner Cluster"]
-        H_WS["workspace NS"]
-        H_WEB["website NS"]
-    end
-
-    subgraph korczewski ["Korczewski Cluster"]
-        K_WS["workspace NS"]
-        K_WEB["website NS"]
-    end
-
-    APPSET -->|"sync"| hetzner
-    APPSET -->|"sync"| korczewski
+    APPSET -->|"sync"| mentolder_ns
+    APPSET -->|"sync"| korczewski_ns
 
     style hub fill:#2a1654,color:#e8c870
-    style hetzner fill:#0a1a0a,color:#b8e8b8
-    style korczewski fill:#1b3766,color:#e8c870
+    style mentolder_ns fill:#0a1a0a,color:#b8e8b8
+    style korczewski_ns fill:#1b3766,color:#e8c870
     style GIT fill:#1a1a2e,color:#aabbcc
 ```
 

@@ -17,6 +17,26 @@
 
 Das Workspace MVP folgt dem Defense-in-Depth-Prinzip: Sicherheit wird auf mehreren unabhängigen Ebenen durchgesetzt. Der Ausfall einer einzelnen Ebene führt nicht zum vollständigen Sicherheitsverlust.
 
+```mermaid
+flowchart TB
+  subgraph internet["Internet"]
+    User([User])
+  end
+  subgraph edge["Edge"]
+    Traefik{{Traefik · TLS-Termination}}
+  end
+  subgraph trusted["Trust-Zone: Cluster"]
+    KC[Keycloak · IdP]
+    SVC[Services · OIDC-RP]
+    DB[(shared-db)]
+  end
+  User -- HTTPS --> Traefik
+  Traefik -- HTTPS --> SVC
+  SVC -- OIDC --> KC
+  SVC -- TLS --> DB
+  KC -- TLS --> DB
+```
+
 ```
 Ebene 1: Netzwerk           — Kubernetes NetworkPolicies (Default-Deny)
 Ebene 2: Transport          — TLS für alle externen Verbindungen (Produktion)

@@ -2,6 +2,16 @@
 
 Workspace MVP supports generating electronic invoices according to the EN 16931 standard.
 
+```mermaid
+flowchart LR
+  Admin([Admin · Portal]) -- Eingabe --> WEB[Website]
+  WEB --> Gen[ZUGFeRD-Generator]
+  Gen --> XML[XRechnung XML]
+  Gen --> PDF[PDF/A-3 mit Anhang]
+  PDF --> NC[Nextcloud · /Invoices]
+  XML --> Mail[Versand · SMTP]
+```
+
 ## Architecture
 
 The invoice generation relies on two main components:

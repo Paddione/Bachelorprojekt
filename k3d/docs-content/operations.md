@@ -1,5 +1,21 @@
 # Deployment & Betrieb
 
+```mermaid
+flowchart TB
+  TF[Taskfile.yml]
+  TF --> Cluster[cluster: create / start / stop]
+  TF --> WS[workspace: deploy / status / logs / restart]
+  TF --> Post[workspace: post-setup / talk-setup / recording-setup]
+  TF --> BU[workspace: backup / restore]
+  TF --> WEB[website: deploy / dev / redeploy]
+  TF --> Brett[brett: build / deploy / logs]
+  TF --> Argo[argocd: setup / sync / status]
+  TF --> ENV[env: validate / generate / seal]
+  TF --> Test[test: unit / manifests / all]
+  TF --> Cert[cert: install / status]
+  TF --> MCP[mcp: deploy / logs / restart]
+```
+
 ## Erstmalige Einrichtung
 
 **Voraussetzungen:** Docker, k3d, kubectl, `task` (go-task)

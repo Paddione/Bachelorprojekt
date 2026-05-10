@@ -2,6 +2,15 @@
 
 ## Übersicht
 
+```mermaid
+flowchart LR
+  Client([Bitwarden Client]) -- HTTPS --> VW[Vaultwarden]
+  VW -- OIDC --> KC[Keycloak]
+  VW --> DB[(vaultwarden DB)]
+  VW --> Att[Attachments PVC]
+  Client -. WebAuthn .- KC
+```
+
 Vaultwarden ist ein inoffizieller, selbst gehosteter Bitwarden-kompatibler Server. Alle Standard-Bitwarden-Clients (Browser-Extension, Desktop-App, Mobile-Apps) funktionieren sofort – es ist kein zusätzliches Setup erforderlich. Vaultwarden speichert alle Passwörter, Notizen und Dokumente in der lokalen PostgreSQL-Datenbank des Workspace MVP.
 
 **Wichtig:** Vaultwarden hat KEINE Website-UI – es gibt nur ein Backend für die Bitwarden-Apps/Extensions und ein separates **Admin-Panel** zum Verwalten von Benutzern und Organizationen.
@@ -138,7 +147,7 @@ Der Seed-Job (`vaultwarden-seed-job.yaml`) ist ein Kubernetes Job, der Vaultward
    - Nextcloud (Dateien + Talk)
    - Collabora Office
    - Keycloak (SSO)
-   - Invoice Ninja (Abrechnung)
+   - **Beispiel: API-Tokens** — speichere Service-Tokens (z. B. für Backup-Ziele oder Monitoring) in einem geteilten Tresor mit Lese-Zugriff für die Admin-Gruppe.
    - Portal und Admin-Bereich
    - Claude Code KI
    - Docs

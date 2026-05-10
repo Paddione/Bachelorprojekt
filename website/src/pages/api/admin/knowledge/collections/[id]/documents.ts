@@ -91,7 +91,10 @@ export const POST: APIRoute = async ({ request, params }) => {
     }), { status: 202 });
   }
 
-  const { embeddings } = await embedBatch(chunks.map(c => c.text));
+  const { embeddings } = await embedBatch(chunks.map(c => c.text), {
+    model: collection.embedding_model as 'bge-m3' | 'voyage-multilingual-2',
+    purpose: 'index',
+  });
   await upsertChunks(collection.id, doc.id, chunks.map((c, i) => ({
     position: c.position, text: c.text, embedding: embeddings[i],
   })));

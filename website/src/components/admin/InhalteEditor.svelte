@@ -6,6 +6,7 @@
   import SeoEditor from './SeoEditor.svelte';
   import StartseiteSection from './inhalte/StartseiteSection.svelte';
   import UebermichSection from './inhalte/UebermichSection.svelte';
+  import CoachingSection from './inhalte/CoachingSection.svelte';
   import AngeboteSection from './inhalte/AngeboteSection.svelte';
   import FaqSection from './inhalte/FaqSection.svelte';
   import KontaktSection from './inhalte/KontaktSection.svelte';
@@ -22,10 +23,12 @@
     ServiceOverride,
     LeistungCategoryOverride,
   } from '../../lib/website-db';
+  import type { CoachingContent } from '../../lib/coaching-content';
 
   type InitialData = {
     startseite: HomepageContent;
     uebermich: UebermichContent;
+    coaching: CoachingContent;
     services: ServiceOverride[];
     leistungen: LeistungCategoryOverride[];
     priceListUrl: string;
@@ -114,6 +117,7 @@
     seo: 'SEO',
     startseite: 'Startseite',
     uebermich: 'Über mich',
+    coaching: 'Coaching',
     angebote: 'Angebote',
     faq: 'FAQ',
     kontakt: 'Kontakt',
@@ -163,6 +167,8 @@
         <StartseiteSection initialData={initialData.startseite} />
       {:else if activeSection === 'uebermich'}
         <UebermichSection initialData={initialData.uebermich} />
+      {:else if activeSection === 'coaching'}
+        <CoachingSection initialData={initialData.coaching} />
       {:else if activeSection === 'angebote'}
         <AngeboteSection
           initialServices={initialData.services}

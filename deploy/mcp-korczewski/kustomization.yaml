@@ -57,20 +57,3 @@ patches:
 
   # ── Ingress: only mcp.korczewski.de + ForwardAuth in this namespace ──
   - path: patch-ingress.yaml
-
-  # ── Pin auth-proxy to Hetzner CPs (CNI partition; CoreDNS lives there) ──
-  - target:
-      kind: Deployment
-      name: mcp-auth-proxy
-    patch: |-
-      - op: add
-        path: /spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: node-location
-                      operator: In
-                      values:
-                        - hetzner

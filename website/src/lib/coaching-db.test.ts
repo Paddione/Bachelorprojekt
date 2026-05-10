@@ -1,7 +1,14 @@
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, test, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { newDb } from 'pg-mem';
 import type { Pool } from 'pg';
 import * as cdb from './coaching-db';
+import {
+  insertDraft,
+  listDrafts,
+  acceptDraft,
+  rejectDraft,
+  acceptanceRateByBook,
+} from './coaching-db';
 
 let pgmem: ReturnType<typeof newDb>;
 let pool: Pool;
@@ -71,7 +78,24 @@ beforeAll(async () => {
       tags text[] NOT NULL DEFAULT '{}',
       page int,
       created_by text,
+      created_from_draft uuid,
       created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE coaching.drafts (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      book_id uuid NOT NULL,
+      knowledge_chunk_id uuid NOT NULL,
+      template_kind text NOT NULL,
+      suggested_payload jsonb NOT NULL,
+      classifier_model text NOT NULL,
+      classifier_version text NOT NULL,
+      status text NOT NULL DEFAULT 'open',
+      reviewed_by text,
+      reviewed_at timestamptz,
+      reject_reason text,
+      resulting_snippet_id uuid,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      UNIQUE (knowledge_chunk_id, classifier_version)
     );
     CREATE TABLE coaching.templates (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -107,6 +131,7 @@ afterAll(async () => {
 beforeEach(async () => {
   await pool.query(`TRUNCATE coaching.template_assignments`);
   await pool.query(`TRUNCATE coaching.templates`);
+  await pool.query(`TRUNCATE coaching.drafts`);
   await pool.query(`TRUNCATE coaching.snippets`);
   await pool.query(`TRUNCATE coaching.snippet_clusters`);
   await pool.query(`TRUNCATE coaching.books`);
@@ -264,5 +289,129 @@ describe('coaching-db: templates', () => {
     expect(p?.status).toBe('published');
     expect(p?.surfaceRef).toBe('qt-123');
     expect(p?.publishedAt).toBeInstanceOf(Date);
+  });
+});
+
+async function seedBookAndChunk(): Promise<{ pool: Pool; bookId: string; chunkId: string }> {
+  const c = await pool.query(
+    `INSERT INTO knowledge.collections (name, source) VALUES ('draft-book', 'custom') RETURNING id`,
+  );
+  const collectionId = c.rows[0].id as string;
+  const b = await pool.query(
+    `INSERT INTO coaching.books (knowledge_collection_id, title, source_filename) VALUES ($1, 'draft-book', 'draft-book.epub') RETURNING id`,
+    [collectionId],
+  );
+  const k = await pool.query(
+    `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, metadata)
+     VALUES ('00000000-0000-0000-0000-000000000000', $1, 0, 'verbatim chunk text', '{"page":42}'::jsonb)
+     RETURNING id`,
+    [collectionId],
+  );
+  return { pool, bookId: b.rows[0].id as string, chunkId: k.rows[0].id as string };
+}
+
+describe('drafts (Phase 3)', () => {
+  it('insertDraft is idempotent on (chunk, classifier_version)', async () => {
+    const { pool, bookId, chunkId } = await seedBookAndChunk();
+    const a = await insertDraft(pool, {
+      bookId,
+      knowledgeChunkId: chunkId,
+      templateKind: 'reflection',
+      suggestedPayload: { title: 'T', question: 'Q?', follow_up: null },
+      classifierModel: 'haiku',
+      classifierVersion: 'v1',
+    });
+    const b = await insertDraft(pool, {
+      bookId,
+      knowledgeChunkId: chunkId,
+      templateKind: 'reflection',
+      suggestedPayload: { title: 'T2', question: 'Q2?', follow_up: null },
+      classifierModel: 'haiku',
+      classifierVersion: 'v1',
+    });
+    expect(a.id).toBe(b.id);
+    expect((b.suggestedPayload as { title: string }).title).toBe('T'); // first write wins
+  });
+
+  it('listDrafts filters by book + kind + status', async () => {
+    const { pool, bookId, chunkId } = await seedBookAndChunk();
+    await insertDraft(pool, {
+      bookId,
+      knowledgeChunkId: chunkId,
+      templateKind: 'reflection',
+      suggestedPayload: { title: 'x', question: 'y' },
+      classifierModel: 'm',
+      classifierVersion: 'v1',
+    });
+    const open = await listDrafts(pool, { bookId, status: 'open' });
+    expect(open).toHaveLength(1);
+    const exercises = await listDrafts(pool, { bookId, templateKind: 'exercise' });
+    expect(exercises).toHaveLength(0);
+  });
+
+  it('acceptDraft writes snippet + flips status atomically', async () => {
+    const { pool, bookId, chunkId } = await seedBookAndChunk();
+    const d = await insertDraft(pool, {
+      bookId,
+      knowledgeChunkId: chunkId,
+      templateKind: 'reflection',
+      suggestedPayload: { title: 'Selbstwahrnehmung', question: 'Was bemerkst du?', follow_up: null },
+      classifierModel: 'haiku',
+      classifierVersion: 'v1',
+    });
+    const r = await acceptDraft(pool, d.id, { reviewedBy: 'gekko@mentolder.de' });
+    expect(r.draft.status).toBe('accepted');
+    expect(r.draft.resultingSnippetId).toBe(r.snippetId);
+    const snippet = (
+      await pool.query(`SELECT * FROM coaching.snippets WHERE id=$1`, [r.snippetId])
+    ).rows[0];
+    expect(snippet.title).toBe('Selbstwahrnehmung');
+    expect(snippet.created_from_draft).toBe(d.id);
+  });
+
+  it('acceptDraft rejects double-accept', async () => {
+    const { pool, bookId, chunkId } = await seedBookAndChunk();
+    const d = await insertDraft(pool, {
+      bookId,
+      knowledgeChunkId: chunkId,
+      templateKind: 'reflection',
+      suggestedPayload: { title: 'T', question: 'Q?' },
+      classifierModel: 'm',
+      classifierVersion: 'v1',
+    });
+    await acceptDraft(pool, d.id, { reviewedBy: 'gekko' });
+    await expect(acceptDraft(pool, d.id, { reviewedBy: 'gekko' })).rejects.toThrow(/not open/);
+  });
+
+  it('rejectDraft sets reason and is idempotent (returns row only first time)', async () => {
+    const { pool, bookId, chunkId } = await seedBookAndChunk();
+    const d = await insertDraft(pool, {
+      bookId,
+      knowledgeChunkId: chunkId,
+      templateKind: 'reflection',
+      suggestedPayload: { title: 'T', question: 'Q?' },
+      classifierModel: 'm',
+      classifierVersion: 'v1',
+    });
+    const out = await rejectDraft(pool, d.id, 'gekko', 'nicht relevant');
+    expect(out.status).toBe('rejected');
+    expect(out.rejectReason).toBe('nicht relevant');
+    await expect(rejectDraft(pool, d.id, 'gekko')).rejects.toThrow();
+  });
+
+  it('acceptanceRateByBook computes correctly', async () => {
+    const { pool, bookId, chunkId } = await seedBookAndChunk();
+    const a = await insertDraft(pool, {
+      bookId,
+      knowledgeChunkId: chunkId,
+      templateKind: 'reflection',
+      suggestedPayload: { title: 'a', question: 'q?' },
+      classifierModel: 'm',
+      classifierVersion: 'v1',
+    });
+    await acceptDraft(pool, a.id, { reviewedBy: 'gekko' });
+    const rate = await acceptanceRateByBook(pool, bookId);
+    expect(rate.accepted).toBe(1);
+    expect(rate.acceptanceRate).toBe(1);
   });
 });

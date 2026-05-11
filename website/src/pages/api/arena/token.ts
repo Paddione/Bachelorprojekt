@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSessionUser } from '../../../lib/auth';
+import { getSession } from '../../../lib/auth';
 
 const ISSUER_BY_BRAND: Record<string, string> = {
   mentolder:  'https://auth.mentolder.de/realms/workspace',
@@ -7,7 +7,7 @@ const ISSUER_BY_BRAND: Record<string, string> = {
 };
 
 export const POST: APIRoute = async (ctx) => {
-  const user = await getSessionUser(ctx);
+  const user = await getSession(ctx.request.headers.get('cookie'));
   if (!user) return new Response('unauthorised', { status: 401 });
 
   const brand = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder') as 'mentolder' | 'korczewski';

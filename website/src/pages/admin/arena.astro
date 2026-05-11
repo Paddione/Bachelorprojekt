@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { getSessionUser } from '../../lib/auth';
+import { getSession } from '../../lib/auth';
 
-const user = await getSessionUser(Astro);
+const user = await getSession(Astro.request.headers.get('cookie'));
 if (!user) return Astro.redirect('/auth/login?return=/admin/arena');
 
 const isAdmin = (user.realmRoles ?? []).includes('arena_admin') && user.brand === 'mentolder';

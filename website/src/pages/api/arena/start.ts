@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { getSessionUser } from '../../../lib/auth';
+import { getSession } from '../../../lib/auth';
 
 const UPSTREAM = (process.env.ARENA_WS_URL ?? 'http://localhost:8090')
   .replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
 
 export const POST: APIRoute = async (ctx) => {
-  const user = await getSessionUser(ctx);
+  const user = await getSession(ctx.request.headers.get('cookie'));
   if (!user) return new Response('unauthorised', { status: 401 });
 
   // Mint an arena-scoped access token (re-uses /api/arena/token logic via internal fetch).

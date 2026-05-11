@@ -1,0 +1,1 @@
+console.log('arena-server boot — Plan 1 scaffold');

@@ -456,6 +456,48 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "arena",
+      "name": "Arena game client",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "rootUrl": "https://web.korczewski.de",
+      "baseUrl": "/portal/arena",
+      "redirectUris": [
+        "https://web.korczewski.de/portal/arena*",
+        "https://web.korczewski.de/admin/arena*"
+      ],
+      "webOrigins": [
+        "https://web.korczewski.de"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "audience-arena",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "arena",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     }
   ]
 }

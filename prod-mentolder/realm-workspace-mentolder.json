@@ -35,7 +35,8 @@
       "firstName": "Patrick",
       "lastName": "Korczewski",
       "realmRoles": [
-        "default-roles-workspace"
+        "default-roles-workspace",
+        "arena_admin"
       ],
       "clientRoles": {
         "realm-management": [
@@ -457,6 +458,59 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "arena",
+      "name": "Arena game client",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "rootUrl": "https://web.mentolder.de",
+      "baseUrl": "/portal/arena",
+      "redirectUris": [
+        "https://web.mentolder.de/portal/arena*",
+        "https://web.mentolder.de/admin/arena*"
+      ],
+      "webOrigins": [
+        "https://web.mentolder.de"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "audience-arena",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "arena",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     }
-  ]
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "arena_admin",
+        "description": "Allowed to host an Arena match",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "workspace"
+      }
+    ]
+  }
 }

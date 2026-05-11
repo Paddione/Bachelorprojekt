@@ -169,6 +169,13 @@ if [[ "$ENV" != "dev" ]]; then
       "$NS" "nextcloud" \
       "shared-db.workspace.svc.cluster.local" "5432"
   fi
+
+  if [[ "$ENV" == "mentolder" ]]; then
+    _http_probe \
+      "${WEB_NS} → arena-server:80 (healthz)" \
+      "$WEB_NS" "website" \
+      "http://arena-server.${NS}.svc.cluster.local/healthz"
+  fi
 else
   warn "ENV=dev — skipping cross-namespace probes (NetworkPolicy not active in dev)"
 fi
@@ -191,6 +198,10 @@ _check_deploy "keycloak"   "$NS"     "keycloak"
 _check_deploy "nextcloud"  "$NS"     "nextcloud"
 _check_deploy "website"    "$WEB_NS" "website"
 _check_deploy "shared-db"  "$NS"     "shared-db"
+
+if [[ "$ENV" == "mentolder" ]]; then
+  _check_deploy "arena-server" "$NS" "arena-server"
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────
 TOTAL=$((PASS + FAIL + WARN))

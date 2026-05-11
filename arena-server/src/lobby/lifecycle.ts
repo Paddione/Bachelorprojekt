@@ -89,6 +89,25 @@ export class Lifecycle {
     if (!lobby) return;
     lobby.phase = 'results';
     this.deps.persist.updateLobbyPhase(code, 'results').catch(() => {});
+    
+    // Plan 1 stub: Insert mock results row to exercise DB write path
+    const now = new Date();
+    this.deps.persist.insertMatchWithPlayers({
+      lobbyCode: code,
+      openedAt: new Date(lobby.openedAt),
+      startedAt: new Date(now.getTime() - 30_000),
+      endedAt: now,
+      winnerPlayer: winnerKey,
+      botCount: [...lobby.players.values()].filter(p => p.isBot).length,
+      humanCount: [...lobby.players.values()].filter(p => !p.isBot).length,
+      forfeitCount: 0,
+      resultsJsonb: { stub: true },
+      players: [...lobby.players.values()].map((p, i) => ({
+        playerKey: p.key, displayName: p.displayName, brand: p.brand,
+        isBot: p.isBot, characterId: p.characterId, place: i + 1, kills: 0, deaths: 1, forfeit: false,
+      })),
+    }).catch(e => console.error('stub match insert failed:', e));
+
     this.deps.onBroadcast(code);
     lobby.timers.results = setTimeout(() => this.toClosed(code), LOBBY_RESULTS_DURATION_MS);
   }

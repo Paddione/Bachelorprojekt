@@ -81,18 +81,18 @@ spec:
           args:
             - |
               set -euo pipefail
-              export PGPASSWORD="$WEBSITE_OWNER_PASSWORD"
-              psql "host=shared-db user=website_owner dbname=website" -v ON_ERROR_STOP=1 -f /sql/0001_init.sql
-              psql "host=shared-db user=website_owner dbname=website" -v ON_ERROR_STOP=1 -f /sql/0002_arena_app_grants.sql
+              export PGPASSWORD="$SHARED_DB_PASSWORD"
+              psql "host=shared-db.workspace.svc.cluster.local user=postgres dbname=website" -v ON_ERROR_STOP=1 -f /sql/0001_init.sql
+              psql "host=shared-db.workspace.svc.cluster.local user=postgres dbname=website" -v ON_ERROR_STOP=1 -f /sql/0002_arena_app_grants.sql
               # Apply password from the SealedSecret.
-              psql "host=shared-db user=website_owner dbname=website" -v ON_ERROR_STOP=1 -c "ALTER ROLE arena_app WITH PASSWORD '${ARENA_DB_PASSWORD}'"
+              psql "host=shared-db.workspace.svc.cluster.local user=postgres dbname=website" -v ON_ERROR_STOP=1 -c "ALTER ROLE arena_app WITH PASSWORD '${ARENA_DB_PASSWORD}'"
               echo "arena bootstrap complete"
           env:
-            - name: WEBSITE_OWNER_PASSWORD
+            - name: SHARED_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: workspace-secrets
-                  key: WEBSITE_OWNER_PASSWORD
+                  key: SHARED_DB_PASSWORD
             - name: ARENA_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

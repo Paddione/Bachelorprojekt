@@ -4,6 +4,8 @@ namespace: workspace
 
 # Inherit full prod overlay (k3d base + all prod patches)
 resources:
+  - ../k3d/migrations-arena.yaml
+  - ../k3d/arena.yaml
   - ../prod
 
 # Override realm with mentolder-specific config

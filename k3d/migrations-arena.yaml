@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arena-bootstrap-sql
+  namespace: ${WORKSPACE_NAMESPACE}
+data:
+  0001_init.sql: |
+    CREATE SCHEMA IF NOT EXISTS arena;
+
+    CREATE TABLE IF NOT EXISTS arena.matches (
+      id              uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
+      lobby_code      char(6)       NOT NULL,
+      opened_at       timestamptz   NOT NULL,
+      started_at      timestamptz   NOT NULL,
+      ended_at        timestamptz   NOT NULL,
+      duration_s      integer       GENERATED ALWAYS AS (EXTRACT(EPOCH FROM (ended_at - started_at))::int) STORED,
+      winner_player   text          NULL,
+      map             text          NOT NULL DEFAULT 'concrete-arena',
+      bot_count       smallint      NOT NULL DEFAULT 0,
+      human_count     smallint      NOT NULL,
+      forfeit_count   smallint      NOT NULL DEFAULT 0,
+      results_jsonb   jsonb         NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS matches_started_idx ON arena.matches (started_at DESC);
+
+    CREATE TABLE IF NOT EXISTS arena.match_players (
+      match_id        uuid          NOT NULL REFERENCES arena.matches(id) ON DELETE CASCADE,
+      player_key      text          NOT NULL,
+      display_name    text          NOT NULL,
+      brand           text          NULL,
+      is_bot          boolean       NOT NULL,
+      character_id    text          NOT NULL,
+      place           smallint      NOT NULL,
+      kills           smallint      NOT NULL DEFAULT 0,
+      deaths          smallint      NOT NULL DEFAULT 0,
+      forfeit         boolean       NOT NULL DEFAULT false,
+      PRIMARY KEY (match_id, player_key)
+    );
+    CREATE INDEX IF NOT EXISTS match_players_key_idx ON arena.match_players (player_key, match_id DESC);
+
+    CREATE TABLE IF NOT EXISTS arena.lobbies (
+      code            char(6)       PRIMARY KEY,
+      phase           text          NOT NULL,
+      host_key        text          NOT NULL,
+      opened_at       timestamptz   NOT NULL DEFAULT now(),
+      expires_at      timestamptz   NOT NULL,
+      state_jsonb     jsonb         NOT NULL DEFAULT '{}'::jsonb
+    );
+    CREATE INDEX IF NOT EXISTS lobbies_phase_idx ON arena.lobbies (phase) WHERE phase != 'closed';
+
+  0002_arena_app_grants.sql: |
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'arena_app') THEN
+        CREATE ROLE arena_app LOGIN;
+      END IF;
+    END $$;
+
+    GRANT USAGE ON SCHEMA arena TO arena_app;
+    GRANT SELECT, INSERT, UPDATE ON arena.matches       TO arena_app;
+    GRANT SELECT, INSERT, UPDATE ON arena.match_players TO arena_app;
+    GRANT SELECT, INSERT, UPDATE ON arena.lobbies       TO arena_app;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA arena
+      GRANT SELECT, INSERT, UPDATE ON TABLES TO arena_app;
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: arena-bootstrap
+  namespace: ${WORKSPACE_NAMESPACE}
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: psql
+          image: postgres:16-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              export PGPASSWORD="$WEBSITE_OWNER_PASSWORD"
+              psql "host=shared-db user=website_owner dbname=website" -v ON_ERROR_STOP=1 -f /sql/0001_init.sql
+              psql "host=shared-db user=website_owner dbname=website" -v ON_ERROR_STOP=1 -f /sql/0002_arena_app_grants.sql
+              # Apply password from the SealedSecret.
+              psql "host=shared-db user=website_owner dbname=website" -v ON_ERROR_STOP=1 -c "ALTER ROLE arena_app WITH PASSWORD '${ARENA_DB_PASSWORD}'"
+              echo "arena bootstrap complete"
+          env:
+            - name: WEBSITE_OWNER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: WEBSITE_OWNER_PASSWORD
+            - name: ARENA_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: arena_db_password
+          volumeMounts:
+            - { name: sql, mountPath: /sql }
+      volumes:
+        - name: sql
+          configMap: { name: arena-bootstrap-sql }

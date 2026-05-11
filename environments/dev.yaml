@@ -19,3 +19,4 @@ setup_vars:
   KC_USER1_USERNAME: admin
   KC_USER1_EMAIL: admin@localhost
   KC_USER1_PASSWORD: DevAdmin123!
+  ARENA_WS_URL: http://arena.localhost

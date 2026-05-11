@@ -64,3 +64,4 @@ setup_vars:
   KC_USER2_USERNAME: gekko
   KC_USER2_EMAIL: quamain@web.de
   KC_USER2_PASSWORD: SEALED
+  ARENA_WS_URL: https://arena-ws.mentolder.de

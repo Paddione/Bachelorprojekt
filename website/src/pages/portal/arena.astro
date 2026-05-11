@@ -1,0 +1,28 @@
+---
+import PortalLayout from '../../layouts/PortalLayout.astro';
+import { getSessionUser } from '../../lib/auth';
+
+const user = await getSessionUser(Astro);
+if (!user) return Astro.redirect('/auth/login?return=/portal/arena');
+const lobbyCode = Astro.url.searchParams.get('lobby') ?? null;
+---
+
+<PortalLayout title="Arena">
+  <section class="arena-portal">
+    <h1>Arena</h1>
+    {lobbyCode ? (
+      <>
+        <p>You've joined lobby <code>{lobbyCode}</code>.</p>
+        <p class="muted">Match playback is shipping in the next release. The lobby will run end-to-end (open → starting → results), but the playable round itself opens in Plan 2.</p>
+      </>
+    ) : (
+      <p>No active lobby. Wait for the banner.</p>
+    )}
+  </section>
+</PortalLayout>
+
+<style>
+  .arena-portal { padding: 32px; max-width: 720px; }
+  h1 { font-family: 'Instrument Serif', Georgia, serif; }
+  .muted { color: #777; font-style: italic; }
+</style>

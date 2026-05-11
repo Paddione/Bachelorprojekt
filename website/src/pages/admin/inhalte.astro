@@ -2,17 +2,9 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import InhalteEditor from '../../components/admin/InhalteEditor.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import {
-  getEffectiveHomepage,
-  getEffectiveUebermich,
-  getEffectiveServices,
-  getEffectiveLeistungen,
-  getPriceListUrl,
-  getEffectiveFaq,
-  getEffectiveKontakt,
-  getEffectiveReferenzen,
-} from '../../lib/content';
+import { getEffectiveHomepage, getEffectiveUebermich, getEffectiveServices, getEffectiveLeistungen, getPriceListUrl, getEffectiveFaq, getEffectiveKontakt, getEffectiveReferenzen } from '../../lib/content';
 import { getEffectiveCoaching } from '../../lib/coaching-content';
+import { getEffectiveFuehrung } from '../../lib/fuehrung-content';
 import { getLegalPage, listCustomSections, getSiteSetting } from '../../lib/website-db';
 import { config } from '../../config/index';
 
@@ -22,31 +14,10 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const BRAND = import.meta.env.BRAND || process.env.BRAND || 'mentolder';
 
-const [
-  startseite,
-  uebermich,
-  services,
-  leistungen,
-  priceListUrl,
-  faq,
-  kontakt,
-  referenzen,
-  coaching,
-  impressum,
-  datenschutz,
-  agb,
-  barrierefreiheit,
-  customSections,
-] = await Promise.all([
-  getEffectiveHomepage(),
-  getEffectiveUebermich(),
-  getEffectiveServices(),
-  getEffectiveLeistungen(),
-  getPriceListUrl().then(u => u ?? ''),
-  getEffectiveFaq(),
-  getEffectiveKontakt(),
-  getEffectiveReferenzen(),
-  getEffectiveCoaching(BRAND),
+const [startseite, uebermich, services, leistungen, priceListUrl, faq, kontakt, referenzen, coaching, fuehrung, impressum, datenschutz, agb, barrierefreiheit, customSections] = await Promise.all([
+  getEffectiveHomepage(), getEffectiveUebermich(), getEffectiveServices(), getEffectiveLeistungen(),
+  getPriceListUrl().then(u => u ?? ''), getEffectiveFaq(), getEffectiveKontakt(), getEffectiveReferenzen(),
+  getEffectiveCoaching(BRAND), getEffectiveFuehrung(BRAND),
   getLegalPage(BRAND, 'impressum-zusatz').then(v => v ?? ''),
   getLegalPage(BRAND, 'datenschutz').then(v => v ?? ''),
   getLegalPage(BRAND, 'agb').then(v => v ?? ''),
@@ -54,39 +25,20 @@ const [
   listCustomSections(),
 ]);
 
-const RECHNUNG_KEYS = [
-  'invoice_intro_text',
-  'invoice_kleinunternehmer_notice',
-  'invoice_outro_text',
-  'invoice_email_subject',
-  'invoice_email_body',
-] as const;
-
+const RECHNUNG_KEYS = ['invoice_intro_text','invoice_kleinunternehmer_notice','invoice_outro_text','invoice_email_subject','invoice_email_body'] as const;
 const RECHNUNG_DEFAULTS: Record<typeof RECHNUNG_KEYS[number], string> = {
   invoice_intro_text: 'für folgende Leistungen stelle ich Ihnen in Rechnung:',
-  invoice_kleinunternehmer_notice:
-    'Kein Ausweis der Umsatzsteuer aufgrund der Anwendung der Kleinunternehmerregelung gemäß § 19 UStG.',
+  invoice_kleinunternehmer_notice: 'Kein Ausweis der Umsatzsteuer aufgrund der Anwendung der Kleinunternehmerregelung gemäß § 19 UStG.',
   invoice_outro_text: 'Vielen Dank für Ihr Vertrauen!',
   invoice_email_subject: 'Rechnung {{number}}',
-  invoice_email_body:
-    'Sehr geehrte/r {{customer_name}},\n\nanbei erhalten Sie Rechnung {{number}} über {{gross_amount}} €.\n\nBitte überweisen Sie den Betrag bis {{due_date}} unter Angabe des Verwendungszwecks „{{payment_reference}}“.\n\nMit freundlichen Grüßen\n{{seller_name}}',
+  invoice_email_body: 'Sehr geehrte/r {{customer_name}},\n\nanbei erhalten Sie Rechnung {{number}} über {{gross_amount}} €.\n\nBitte überweisen Sie den Betrag bis {{due_date}} unter Angabe des Verwendungszwecks \u201e{{payment_reference}}\u201c.\n\nMit freundlichen Grüßen\n{{seller_name}}',
 };
-
 const rechnungsResults = await Promise.all(RECHNUNG_KEYS.map(k => getSiteSetting(BRAND, k)));
-const rechnungsvorlagen = Object.fromEntries(
-  RECHNUNG_KEYS.map((k, i) => [k, rechnungsResults[i] ?? RECHNUNG_DEFAULTS[k]])
-) as Record<typeof RECHNUNG_KEYS[number], string>;
+const rechnungsvorlagen = Object.fromEntries(RECHNUNG_KEYS.map((k, i) => [k, rechnungsResults[i] ?? RECHNUNG_DEFAULTS[k]])) as Record<typeof RECHNUNG_KEYS[number], string>;
 
 const initialData = JSON.parse(JSON.stringify({
-  startseite,
-  uebermich,
-  services,
-  leistungen,
-  priceListUrl,
-  faq,
-  kontakt,
-  referenzen,
-  coaching,
+  startseite, uebermich, services, leistungen, priceListUrl, faq, kontakt, referenzen,
+  coaching, fuehrung,
   rechtliches: { 'impressum-zusatz': impressum, datenschutz, agb, barrierefreiheit },
   customSections,
 }));
@@ -98,12 +50,6 @@ const initialData = JSON.parse(JSON.stringify({
       <h1 class="text-3xl font-bold text-light font-serif">Inhalte</h1>
       <p class="text-muted mt-1 text-sm">Website, Newsletter, Fragebögen und Vertragsvorlagen</p>
     </div>
-    <InhalteEditor
-      {initialData}
-      {rechnungsvorlagen}
-      brand={BRAND}
-      staticServiceSlugs={config.services.map(s => s.slug)}
-      client:load
-    />
+    <InhalteEditor {initialData} {rechnungsvorlagen} brand={BRAND} staticServiceSlugs={config.services.map(s => s.slug)} client:load />
   </section>
 </AdminLayout>

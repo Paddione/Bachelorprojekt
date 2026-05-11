@@ -1,4 +1,5 @@
 ---
+import ArenaBanner from '../components/arena/ArenaBanner.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
 import { isAdmin } from '../lib/auth';
@@ -55,6 +56,7 @@ const userIsAdmin   = isAdmin(session);
 const brandId       = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
 const isKore        = brandId === 'korczewski';
 ---
+import ArenaBanner from '../components/arena/ArenaBanner.svelte';
 
 <!doctype html>
 <html lang="de">

@@ -47,7 +47,6 @@ export const GET: APIRoute = async ({ request }) => {
       'content-type': 'text/event-stream',
       'cache-control': 'no-cache, no-transform',
       'x-accel-buffering': 'no',
-      'connection': 'keep-alive',
     },
   });
 };

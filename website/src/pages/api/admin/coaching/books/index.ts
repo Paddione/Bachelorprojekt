@@ -1,9 +1,7 @@
 import type { APIRoute } from 'astro';
-import { Pool } from 'pg';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { listBooks } from '../../../../../lib/coaching-db';
-
-const pool = new Pool();
+import { pool } from '../../../../../lib/website-db';
 
 export const prerender = false;
 

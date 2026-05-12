@@ -1,16 +1,15 @@
 ---
 import AdminLayout from '../../../../../layouts/AdminLayout.astro';
 import PublishEditor from '../../../../../components/admin/PublishEditor.svelte';
-import { Pool } from 'pg';
 import { listSnippets, getBook } from '../../../../../lib/coaching-db';
 import { getSession, getLoginUrl, isAdmin } from '../../../../../lib/auth';
+import { pool } from '../../../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const id = Astro.params.id as string;
-const pool = new Pool();
 
 const snippets = await listSnippets(pool, {});
 const snippet = snippets.find((s) => s.id === id);

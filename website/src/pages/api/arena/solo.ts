@@ -11,7 +11,7 @@ export const POST: APIRoute = async (ctx) => {
 
   const { token } = mintArenaToken(user.access_token);
 
-  const upstream = await fetch(`${UPSTREAM}/lobby/open`, {
+  const upstream = await fetch(`${UPSTREAM}/lobby/solo`, {
     method: 'POST',
     headers: { authorization: `Bearer ${token}` },
   });

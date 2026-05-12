@@ -52,6 +52,17 @@ export class Lifecycle {
     return { code, expiresAt };
   }
 
+  /**
+   * Solo mode: open a lobby with just the host, fill three bots immediately,
+   * and enter the 5s starting countdown without waiting for the 60s open window.
+   * Used by admins to smoke-test arena features against AI opponents.
+   */
+  openSolo(req: OpenRequest): OpenResult {
+    const out = this.open(req);
+    this.toStarting(out.code);
+    return out;
+  }
+
   join(code: string, slot: PlayerSlot): void {
     const lobby = getLobby(code);
     if (!lobby) throw new Error('404 lobby not found');

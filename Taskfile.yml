@@ -1551,6 +1551,13 @@ tasks:
     cmds:
       - ENV={{.ENV}} bash scripts/keycloak-sync.sh
 
+  keycloak:ensure-mappers:
+    desc: "Idempotent upsert of protocol mappers that secret-only sync misses (currently: website→audience-arena). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/keycloak-ensure-mappers.sh
+
   workspace:vaultwarden:seed:
     desc: "Seed Vaultwarden with production secret templates (ENV=dev|mentolder|korczewski). Run once after first login — see vaultwarden-seed-credentials.yaml."
     vars:

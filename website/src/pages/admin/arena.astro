@@ -15,8 +15,11 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin') && user.brand ==
       <p class="warn">This page requires the <code>arena_admin</code> realm role on the mentolder Keycloak realm.</p>
     ) : (
       <>
-        <button id="open-lobby" class="primary">Open lobby</button>
-        <p class="hint">A 6-character code is generated and a banner appears across both brands for 60 seconds.</p>
+        <div class="actions">
+          <button id="open-lobby" class="primary">Open lobby</button>
+          <button id="start-solo" class="secondary" title="Start immediately against 3 AI bots — for testing">Start solo match</button>
+        </div>
+        <p class="hint"><strong>Open lobby</strong>: a 6-character code is generated and a banner appears across both brands for 60 seconds. <strong>Start solo match</strong>: skip the wait and drop straight into a 5-second countdown against 3 AI bots.</p>
         <h2>Recent matches</h2>
         <table id="recent">
           <thead><tr><th>Started</th><th>Code</th><th>Winner</th><th>Humans</th><th>Bots</th></tr></thead>
@@ -29,15 +32,32 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin') && user.brand ==
 
 <script>
   const btn = document.getElementById('open-lobby') as HTMLButtonElement | null;
+  const soloBtn = document.getElementById('start-solo') as HTMLButtonElement | null;
   const tbody = document.querySelector('#recent tbody') as HTMLElement | null;
 
-  btn?.addEventListener('click', async () => {
-    btn.disabled = true;
-    const res = await fetch('/api/arena/start', { method: 'POST' });
-    if (!res.ok) { alert('failed: ' + res.status); btn.disabled = false; return; }
-    const { code } = await res.json() as { code: string };
-    window.location.href = `/portal/arena?lobby=${encodeURIComponent(code)}`;
-  });
+  async function postAndJoin(endpoint: string, source: HTMLButtonElement) {
+    source.disabled = true;
+    if (btn) btn.disabled = true;
+    if (soloBtn) soloBtn.disabled = true;
+    try {
+      const res = await fetch(endpoint, { method: 'POST' });
+      if (!res.ok) {
+        let detail = '';
+        try { detail = await res.text(); } catch {}
+        alert(`failed: ${res.status}${detail ? ' — ' + detail.slice(0, 200) : ''}`);
+        return;
+      }
+      const { code } = await res.json() as { code: string };
+      window.location.href = `/portal/arena?lobby=${encodeURIComponent(code)}`;
+    } finally {
+      source.disabled = false;
+      if (btn) btn.disabled = false;
+      if (soloBtn) soloBtn.disabled = false;
+    }
+  }
+
+  btn?.addEventListener('click', () => postAndJoin('/api/arena/start', btn));
+  soloBtn?.addEventListener('click', () => postAndJoin('/api/arena/solo', soloBtn));
 
   async function loadMatches() {
     if (!tbody) return;
@@ -84,10 +104,16 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin') && user.brand ==
 <style>
   .arena-admin { padding: 32px; max-width: 960px; }
   h1 { font-family: 'Instrument Serif', Georgia, serif; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .primary {
     padding: 10px 22px; background: #c8ff3f; color: #1a0e22;
     border: none; font-weight: 600; cursor: pointer;
   }
+  .secondary {
+    padding: 10px 22px; background: transparent; color: #c8ff3f;
+    border: 1px solid #c8ff3f; font-weight: 600; cursor: pointer;
+  }
+  .primary:disabled, .secondary:disabled { opacity: 0.5; cursor: not-allowed; }
   .hint { color: #888; font-size: 13px; }
   .warn { color: #b00020; }
   table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 13px; }

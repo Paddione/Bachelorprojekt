@@ -43,4 +43,15 @@ describe('Lifecycle', () => {
     lc.join(code, humanSlot('h4@korczewski'));
     expect(registry.getLobby(code)!.phase).toBe('starting');
   });
+
+  it('openSolo fills 3 bots and goes straight to starting', () => {
+    const lc = new Lifecycle({ onBroadcast: () => {}, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any, bc: { emitMatchSnapshot: vi.fn(), emitMatchDiff: vi.fn(), emitMatchEvent: vi.fn(), emitMatchEnd: vi.fn() } as any });
+    const { code } = lc.openSolo({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
+    const lobby = registry.getLobby(code)!;
+    expect(lobby.phase).toBe('starting');
+    expect(lobby.players.size).toBe(4);
+    expect([...lobby.players.values()].filter(p => p.isBot)).toHaveLength(3);
+    vi.advanceTimersByTime(5_001);
+    expect(lobby.phase).toBe('in-match');
+  });
 });

@@ -158,6 +158,17 @@
             "claim.name": "preferred_username",
             "jsonType.label": "String"
           }
+        },
+        {
+          "name": "audience-arena",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "arena",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
         }
       ]
     },

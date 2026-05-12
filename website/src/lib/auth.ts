@@ -32,18 +32,30 @@ export interface UserSession {
   expires_at: number;
 }
 
-function decodeRealmRoles(accessToken: string): string[] {
+function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {
   try {
     const payload = accessToken.split('.')[1];
-    if (!payload) return [];
+    if (!payload) return null;
     const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
     const json = Buffer.from(padded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
-    const claims = JSON.parse(json) as { realm_access?: { roles?: unknown } };
-    const roles = claims.realm_access?.roles;
-    return Array.isArray(roles) ? roles.filter((r): r is string => typeof r === 'string') : [];
+    return JSON.parse(json) as Record<string, unknown>;
   } catch {
-    return [];
+    return null;
   }
+}
+
+function decodeRealmRoles(accessToken: string): string[] {
+  const claims = decodeJwtPayload(accessToken);
+  const roles = (claims?.realm_access as { roles?: unknown } | undefined)?.roles;
+  return Array.isArray(roles) ? roles.filter((r): r is string => typeof r === 'string') : [];
+}
+
+function tokenHasAudience(accessToken: string, audience: string): boolean {
+  const claims = decodeJwtPayload(accessToken);
+  const aud = claims?.aud;
+  if (typeof aud === 'string') return aud === audience;
+  if (Array.isArray(aud)) return aud.includes(audience);
+  return false;
 }
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? null;
@@ -209,9 +221,13 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
     let session = result.rows[0].data as UserSession;
 
     // Proactively refresh Keycloak access token when it's within 5 minutes of expiry
-    // while keeping the DB session alive for the full SESSION_TTL_MS.
+    // while keeping the DB session alive for the full SESSION_TTL_MS. Also force a
+    // refresh when the cached access_token was issued before the arena audience
+    // mapper was added — otherwise arena-server rejects the JWT with audience
+    // mismatch and users would have to log out manually.
     const ACCESS_TOKEN_BUFFER_MS = 5 * 60 * 1000;
-    if (session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS) {
+    const missingArenaAud = !tokenHasAudience(session.access_token, 'arena');
+    if (session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS || missingArenaAud) {
       const refreshed = await refreshTokens(session.refresh_token);
       if (refreshed) {
         const newExpiry = Date.now() + SESSION_TTL_MS;

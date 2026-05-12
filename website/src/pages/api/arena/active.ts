@@ -13,9 +13,13 @@ export const GET: APIRoute = async ({ request }) => {
       const encoder = new TextEncoder();
       let lastBody = '';
       let cancelled = false;
+      let timer: NodeJS.Timeout | null = null;
 
       const send = (data: string) => {
-        controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        if (cancelled) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        } catch { cancelled = true; }
       };
 
       const tick = async () => {
@@ -29,15 +33,17 @@ export const GET: APIRoute = async ({ request }) => {
         } catch (e: any) {
           send(JSON.stringify({ active: false, error: e.message }));
         }
-        setTimeout(tick, 2000);
+        if (!cancelled) timer = setTimeout(tick, 2000);
       };
 
       send(JSON.stringify({ active: false })); // initial
       tick();
 
       request.signal.addEventListener('abort', () => {
+        if (cancelled) return;
         cancelled = true;
-        controller.close();
+        if (timer) clearTimeout(timer);
+        try { controller.close(); } catch { /* already closed */ }
       });
     },
   });

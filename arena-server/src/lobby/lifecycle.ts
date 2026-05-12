@@ -53,14 +53,26 @@ export class Lifecycle {
   }
 
   /**
-   * Solo mode: open a lobby with just the host, fill three bots immediately,
-   * and enter the 5s starting countdown without waiting for the 60s open window.
-   * Used by admins to smoke-test arena features against AI opponents.
+   * Solo mode: open a lobby with just the host and a `solo` flag.
+   * The 5s starting countdown is held until the host's WS connects
+   * (see `startSolo`), so the client has time to render the lobby
+   * scene and the match snapshot.
    */
   openSolo(req: OpenRequest): OpenResult {
     const out = this.open(req);
-    this.toStarting(out.code);
+    const lobby = getLobby(out.code);
+    if (lobby) lobby.solo = true;
     return out;
+  }
+
+  /**
+   * Trigger the starting countdown for a solo lobby once the host
+   * has actually connected. Idempotent: only fires when phase is 'open'.
+   */
+  startSolo(code: string): void {
+    const lobby = getLobby(code);
+    if (!lobby || !lobby.solo || lobby.phase !== 'open') return;
+    this.toStarting(code);
   }
 
   join(code: string, slot: PlayerSlot): void {

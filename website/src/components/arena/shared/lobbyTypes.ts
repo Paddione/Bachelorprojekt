@@ -76,6 +76,7 @@ export type ClientMsg =
   | { t: 'input'; seq: number; wasd: number; aim: number;
         fire: boolean; melee: boolean; pickup: boolean; dodge: boolean; tick: number }
   | { t: 'spectator:follow'; target: string | null }
+  | { t: 'spectator:join'; code: string }
   | { t: 'rematch:vote'; yes: boolean }
   | { t: 'forfeit' }
   | { t: 'auth:refresh'; token: string };
@@ -91,7 +92,7 @@ export type ServerMsg =
 
 const CLIENT_TYPES = new Set([
   'lobby:open','lobby:join','lobby:ready','lobby:leave','input',
-  'spectator:follow','rematch:vote','forfeit','auth:refresh',
+  'spectator:follow','spectator:join','rematch:vote','forfeit','auth:refresh',
 ]);
 
 export function isClientMsg(x: unknown): x is ClientMsg {

@@ -108,3 +108,6 @@ coaching-sources/*
 
 # ── Coaching scripts (node_modules is symlinked to website/node_modules) ──
 scripts/coaching/node_modules
+
+# ── WSL/Windows NTFS alternate data streams ──
+*:Zone.Identifier

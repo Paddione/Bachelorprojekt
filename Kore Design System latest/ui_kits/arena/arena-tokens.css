@@ -1,0 +1,40 @@
+/* Arena game tokens — aliases over Kore design tokens.
+   The Arena codebase shipped with --color-* / --space-* / --radius-* / --font-*
+   names. We map them onto the Kore tokens so existing Arena components keep
+   working in the UI kit without a rewrite. */
+@import url("../../colors_and_type.css");
+
+:root {
+  /* color */
+  --color-bg:           var(--ink-900);
+  --color-surface:      var(--ink-850);
+  --color-surface-2:    var(--ink-800);
+  --color-border:       var(--line-2);
+  --color-text:         var(--fg);
+  --color-text-secondary: var(--fg-soft);
+  --color-text-muted:   var(--mute);
+  --color-primary:      var(--lime);
+  --color-primary-2:    var(--lime-2);
+  --color-primary-fg:   var(--lime-deep);
+  --color-secondary:    var(--teal);
+  --color-danger:       var(--fail);
+  --color-warning:      var(--lime);
+  --color-success:      var(--teal);
+
+  /* space */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+
+  /* radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* font */
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
+  --font-serif: var(--serif);
+}

@@ -48,7 +48,7 @@ tasks:
       - task: arena:deploy:all-prods
 
   feature:livekit:
-    desc: "Re-pin livekit/stream subdomains to the LiveKit node on BOTH prod clusters"
+    desc: "Re-pin livekit/stream → LiveKit node and turn → TURN node on BOTH prod clusters"
     cmds:
       - task: livekit:dns-pin
         vars: { ENV: "mentolder", APPLY: "true" }
@@ -2581,7 +2581,7 @@ tasks:
         kubectl $CTX_FLAG -n "$NS" rollout status deployment/livekit-server --timeout=120s
 
   livekit:dns-pin:
-    desc: "Print the ipv64 API calls that pin livekit/stream subdomains to a single node (run with APPLY=true to actually invoke). ENV=dev|mentolder|korczewski. PIN_IP overrides env default."
+    desc: "Print the ipv64 API calls that pin livekit/stream → LIVEKIT_PIN_IP and turn → TURN_PUBLIC_IP (run with APPLY=true to actually invoke). ENV=dev|mentolder|korczewski. PIN_IP overrides livekit/stream only; turn always tracks TURN_PUBLIC_IP."
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
       PIN_IP: '{{.PIN_IP | default ""}}'
@@ -2593,19 +2593,30 @@ tasks:
         [ -f "$SECRETS" ] || { echo "Plaintext secrets not found at $SECRETS — cannot read IPV64_UPDATE_HASH" >&2; exit 1; }
         KEY=$(awk -F': ' '/^IPV64_UPDATE_HASH:/ {gsub(/"/,"",$2); print $2}' "$SECRETS")
         [ -n "$KEY" ] || { echo "IPV64_UPDATE_HASH missing from $SECRETS (this is the domain_update_hash from ipv64.net, not the account API key)" >&2; exit 1; }
-        RESOLVED_IP="{{.PIN_IP}}"
-        RESOLVED_IP="${RESOLVED_IP:-${LIVEKIT_PIN_IP:-46.225.125.59}}"
-        echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → ${RESOLVED_IP}"
+        LK_IP="{{.PIN_IP}}"
+        LK_IP="${LK_IP:-${LIVEKIT_PIN_IP:-46.225.125.59}}"
+        TURN_IP="${TURN_PUBLIC_IP:-}"
+        echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → ${LK_IP}"
+        if [ -n "$TURN_IP" ]; then
+          echo "Pinning turn.${PROD_DOMAIN} → ${TURN_IP}"
+        else
+          echo "Skipping turn.${PROD_DOMAIN} (TURN_PUBLIC_IP unset for ENV={{.ENV}})"
+        fi
         echo "(set APPLY=true to actually run the calls; otherwise this just prints them)"
-        for SUB in livekit stream; do
-          URL="https://ipv64.net/update.php?key=$KEY&domain=${SUB}.${PROD_DOMAIN}&ip=${RESOLVED_IP}"
-          REDACTED=$(echo "$URL" | sed "s/key=$KEY/key=***REDACTED***/")
-          echo "  curl -sS \"$REDACTED\""
+        pin_one() {
+          local sub="$1" ip="$2"
+          [ -z "$ip" ] && return 0
+          local url="https://ipv64.net/update.php?key=$KEY&domain=${sub}.${PROD_DOMAIN}&ip=${ip}"
+          local redacted="${url/key=$KEY/key=***REDACTED***}"
+          echo "  curl -sS \"$redacted\""
           if [ "{{.APPLY}}" = "true" ]; then
-            curl -sS "$URL"
+            curl -sS "$url"
             echo
           fi
-        done
+        }
+        pin_one livekit "$LK_IP"
+        pin_one stream  "$LK_IP"
+        pin_one turn    "$TURN_IP"
         if [ "{{.APPLY}}" != "true" ]; then
           echo ""
           echo "Re-run with APPLY=true to invoke."

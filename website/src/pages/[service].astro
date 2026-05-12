@@ -24,12 +24,16 @@ const pc = svc.pageContent;
 const prevSvc = svcIndex > 0 ? visibleServices[svcIndex - 1] : null;
 const nextSvc = svcIndex < visibleServices.length - 1 ? visibleServices[svcIndex + 1] : null;
 
-// Per-service SEO overrides stored as seo_title_<slug> / seo_meta_desc_<slug>
-const seoTitle = await getSeoTitle(BRAND_ID, svc.slug).catch(() => null) ?? svc.title;
-const seoDesc  = await getSiteSetting(BRAND_ID, `seo_meta_desc_${svc.slug}`).catch(() => null) ?? svc.description;
+// SEO: DB-Override > pageContent.seoTitle > svc.title
+const dbSeoTitle = await getSeoTitle(BRAND_ID, svc.slug).catch(() => null);
+const seoTitle = dbSeoTitle ?? (pc as any).seoTitle ?? svc.title;
 const useRawTitle = seoTitle !== svc.title;
 
-// introNote: special section with title '__introNote__' rendered between intro and forWhom
+// SEO: DB-Override > pageContent.seoDescription > svc.description
+const dbSeoDesc = await getSiteSetting(BRAND_ID, `seo_meta_desc_${svc.slug}`).catch(() => null);
+const seoDesc = dbSeoDesc ?? (pc as any).seoDescription ?? svc.description;
+
+// introNote: special section rendered between intro and forWhom
 const introNoteSection = pc.sections?.find((s) => s.title === '__introNote__');
 const introNoteParagraphs = introNoteSection?.items ?? [];
 const visibleSections = (pc.sections ?? []).filter((s) => s.title !== '__introNote__');

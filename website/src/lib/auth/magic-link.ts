@@ -114,6 +114,8 @@ export async function redeemMagicToken(token: string): Promise<RedeemedToken | R
     email: sessionUser.email,
     name: sessionUser.name,
     preferred_username: sessionUser.preferred_username,
+    realmRoles: [],
+    brand: process.env.BRAND_ID ?? process.env.BRAND ?? null,
     // No real Keycloak tokens for seeded test sessions. The website's
     // refresh path in lib/auth will null out and force re-auth once these
     // empty strings hit Keycloak; for the system-test loop the session

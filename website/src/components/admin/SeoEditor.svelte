@@ -6,7 +6,7 @@
       key: 'home',
       label: 'Startseite',
       fallbackTitle: 'Gerald Korczewski – Coach & Mentor',
-      fallbackDesc: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungspersönlichkeiten und Menschen in Veränderung.',
+      fallbackDesc: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungsperslichkeiten und Menschen in Veränderung.',
     },
     {
       key: 'kontakt',
@@ -27,30 +27,41 @@
     {
       key: 'coaching',
       label: '/coaching',
-      fallbackTitle: 'Coaching für Führungskräfte & Menschen in Verantwortung',
-      fallbackDesc: 'Karriere-Coaching für Führungskräfte in Lüneburg und Hamburg. Profil schärfen, Strategie entwickeln, Gespräche vorbereiten – auf Augenhöhe mit 40+ Jahren Erfahrung.',
+      fallbackTitle: 'Coaching für Führungskräfte & Menschen in Verantwortung | mentolder.de',
+      // KORRIGIERT: 40+ → 30+ Jahre Führungserfahrung
+      fallbackDesc: 'Karriere-Coaching für Führungskräfte in Lüneburg und Hamburg. Profil schärfen, Strategie entwickeln, Gespräche vorbereiten – auf Augenhöhe mit 30+ Jahren Führungserfahrung.',
     },
     {
       key: '50plus-digital',
       label: '/50plus-digital',
-      fallbackTitle: '50+ digital – Digitale Begleitung in Lüneburg & Hamburg',
+      fallbackTitle: '50+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de',
       fallbackDesc: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
     },
     {
       key: 'beratung',
       label: '/beratung',
-      fallbackTitle: 'Digitale Transformation & KI-Beratung für Mittelstand',
-      fallbackDesc: 'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis aus komplexen Strukturen. Lüneburg & Hamburg.',
+      fallbackTitle: 'Digitale Transformation & KI-Beratung für Mittelstand | mentolder.de',
+      fallbackDesc: 'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis. Lüneburg & Hamburg.',
     },
     {
       key: 'ki-transition',
       label: '/ki-transition',
-      fallbackTitle: 'KI-Transition Coaching – Orientierung im digitalen Wandel',
-      fallbackDesc: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersönlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
+      fallbackTitle: 'KI-Transition Coaching – Orientierung im digitalen Wandel | mentolder.de',
+      fallbackDesc: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersonlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
+    },
+    {
+      key: 'fuehrung-persoenlichkeit',
+      label: '/fuehrung-persoenlichkeit',
+      fallbackTitle: 'Führung & Persönlichkeit – Coaching für Führungskräfte | mentolder.de',
+      fallbackDesc: 'Führen aus der Mitte: Coaching für Frauen und Männer in Führung. Standortbestimmung, Authentizität, Entscheidungen in Unsicherheit – in Lüneburg, Hamburg und online.',
+    },
+    {
+      key: 'referenzen',
+      label: '/referenzen',
+      fallbackDesc: 'Referenzen und Kooperationspartner von Gerald Korczewski – Unternehmen, Behörden und Organisationen, mit denen ich zusammengearbeitet habe.',
     },
   ];
 
-  // values[pageKey] = { desc, title }
   let values = $state<Record<string, { desc: string; title: string }>>({});
   let savingKey = $state<string | null>(null);
   let messages = $state<Record<string, { text: string; ok: boolean }>>({});
@@ -121,6 +132,7 @@
   <div>
     <h2 class="text-lg font-bold text-light font-serif mb-1">SEO & Meta-Beschreibungen</h2>
     <p class="text-sm text-muted">Seitentitel und Beschreibungen für Suchergebnisse. Titel: 50–70 Zeichen, Beschreibung: 120–160 Zeichen.</p>
+    <p class="text-xs text-muted mt-1">Gespeicherte Werte haben Vorrang vor den Fallback-Werten im Code. Leer lassen um den Fallback zu verwenden.</p>
   </div>
 
   {#if loading}

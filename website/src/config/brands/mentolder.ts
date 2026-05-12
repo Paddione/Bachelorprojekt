@@ -10,8 +10,6 @@ export const mentolderConfig: BrandConfig = {
     name: process.env.CONTACT_NAME ?? '',
     email: process.env.CONTACT_EMAIL ?? '',
     phone: process.env.CONTACT_PHONE ?? '',
-    // Wird im Footer als Standort angezeigt: "Gestaltet in {city} · DE"
-    // und in der Kontakt-Spalte. Änderbar über Admin → Kontakt → footerCity.
     city: process.env.CONTACT_CITY ?? 'Lüneburg, Hamburg und Umgebung',
   },
   legal: {
@@ -30,6 +28,8 @@ export const mentolderConfig: BrandConfig = {
     { label: 'Kontakt',    href: '/kontakt' },
   ],
   footer: {
+    // Copyright zentral hier gepflegt, überschreibbar über Admin → Kontakt → footerCopyright
+    copyright: `© ${new Date().getFullYear()} mentolder — Alle Rechte vorbehalten`,
     columns: [
       {
         heading: 'Rechtliches',
@@ -118,7 +118,6 @@ export const mentolderConfig: BrandConfig = {
           { question: 'Wie lange dauert es, bis ich sicher bin?', answer: 'Das ist sehr individuell. Manche brauchen 3-4 Sessions, andere 10. Sie bestimmen das Tempo.' },
           { question: 'Was kostet das?', answer: 'Ein Erstgespräch (30 Min.) ist kostenlos. Danach arbeiten wir stundenweise (60 €) oder als Paket. Kleine Gruppen sind günstiger.' },
         ],
-        // SEO-Defaults – überschreibbar über Admin → SEO
         seoTitle: '50+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de',
         seoDescription: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
       },
@@ -275,7 +274,7 @@ export const mentolderConfig: BrandConfig = {
         ],
         faq: [],
         seoTitle: 'KI-Transition Coaching – Orientierung im digitalen Wandel | mentolder.de',
-        seoDescription: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungsperslichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
+        seoDescription: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersonlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
       },
     },
   ],
@@ -327,7 +326,8 @@ export const mentolderConfig: BrandConfig = {
     sections: [
       {
         title: 'Warum 50+ digital?',
-        content: 'Als ich im Altenheim ein halbes Jahr lang ein Digital Café leitete, merkte ich: Hier kann ich genau diese Fähigkeiten einsetzen. Menschen der Generation 50+ stehen vor echten Herausforderungen in der digitalen Welt. Nicht weil sie "zu alt" sind – sondern weil niemand sich die Zeit nimmt, es in Ruhe und verständlich zu erklären.',
+        // KORRIGIERT: "leitete" → "verantwortlich mitgestaltet habe"
+        content: 'Als ich im Altenheim ein halbes Jahr lang ein Digital Café verantwortlich mitgestaltet habe, merkte ich: Hier kann ich genau diese Fähigkeiten einsetzen. Menschen der Generation 50+ stehen vor echten Herausforderungen in der digitalen Welt. Nicht weil sie "zu alt" sind – sondern weil niemand sich die Zeit nimmt, es in Ruhe und verständlich zu erklären.',
       },
       {
         title: 'Warum Führungskräfte-Coaching?',
@@ -337,7 +337,8 @@ export const mentolderConfig: BrandConfig = {
     milestones: [
       { year: '1980-2023', title: 'Polizei Hamburg', desc: 'Über 30 Jahre in Führungspositionen. Personalführung, Organisationsentwicklung, Strategie.' },
       { year: 'ca. 2016/2017', title: 'KI-Pionier', desc: 'Erste deutsche Polizeibehörde mit KI/Gesichtserkennung. BOS-Digitalfunk bundesweit führend gemacht.' },
-      { year: '2023', title: 'Digital Café', desc: '6 Monate intensives Digital Café im Altenheim. Über 50 Teilnehmer individuell begleitet.' },
+      // KORRIGIERT: "leitete" → "verantwortlich mitgestaltet"
+      { year: '2023', title: 'Digital Café', desc: '6 Monate Digital Café im Altenheim verantwortlich mitgestaltet. Über 50 Teilnehmer individuell begleitet.' },
       { year: 'Seit 2024', title: 'Selbständig', desc: 'Coach und Digitaler Begleiter. Führungskräfte-Coaching und Unternehmensberatung.' },
     ],
     notDoing: [
@@ -357,7 +358,6 @@ export const mentolderConfig: BrandConfig = {
     sidebarCta: 'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit.',
     showPhone: true,
     showSteps: false,
-    // Footer-Standort: pflegbar über Admin → Kontakt
     footerCity: 'Lüneburg, Hamburg und Umgebung',
   },
   faq: [

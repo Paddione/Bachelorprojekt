@@ -45,8 +45,15 @@
   let activeSection = $state<string>(readParam('section', 'startseite'));
   let customSections = $state(initialData.customSections);
   let showNewDialog = $state(false);
-  let newTitle = $state(''); let newSlug = $state('');
-  let newFields = $state<Array<{ name: string; label: string; type: 'text' | 'textarea' | 'url'; required: boolean }>>([]);
+  let newTitle = $state('');
+  let newSlug = $state('');
+  // Vorbereitete Standard-Felder für neuen Abschnitt
+  let newFields = $state<Array<{ name: string; label: string; type: 'text' | 'textarea' | 'url'; required: boolean }>>(
+    [
+      { name: 'headline', label: 'Überschrift', type: 'text', required: true },
+      { name: 'content', label: 'Inhalt', type: 'textarea', required: false },
+    ]
+  );
   let newSaving = $state(false); let newMsg = $state('');
 
   $effect(() => {
@@ -57,28 +64,54 @@
   });
 
   function switchTab(tab: PrimaryTab) { activeTab = tab; if (tab === 'website' && !activeSection) activeSection = 'startseite'; }
-  function addField() { newFields = [...newFields, { name: '', label: '', type: 'text', required: false }]; }
+
+  function addField() {
+    newFields = [...newFields, { name: '', label: '', type: 'text', required: false }];
+  }
   function removeField(i: number) { newFields = newFields.filter((_, idx) => idx !== i); }
+
+  function resetDialog() {
+    showNewDialog = false; newTitle = ''; newSlug = ''; newMsg = '';
+    // Standard-Felder wiederherstellen
+    newFields = [
+      { name: 'headline', label: 'Überschrift', type: 'text', required: true },
+      { name: 'content', label: 'Inhalt', type: 'textarea', required: false },
+    ];
+  }
 
   async function createSection() {
     if (!newTitle.trim() || !newSlug.trim()) { newMsg = 'Titel und Slug erforderlich.'; return; }
     newSaving = true; newMsg = '';
     try {
-      const res = await fetch('/api/admin/inhalte/custom', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle.trim(), slug: newSlug.trim(), fields: newFields }) });
+      const res = await fetch('/api/admin/inhalte/custom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle.trim(), slug: newSlug.trim(), fields: newFields }),
+      });
       const data = await res.json();
-      if (res.ok) { customSections = [...customSections, data]; showNewDialog = false; newTitle = ''; newSlug = ''; newFields = []; activeSection = data.slug; }
-      else { newMsg = data.error ?? 'Fehler.'; }
+      if (res.ok) {
+        customSections = [...customSections, data];
+        resetDialog();
+        activeSection = data.slug;
+      } else { newMsg = data.error ?? 'Fehler.'; }
     } catch { newMsg = 'Verbindungsfehler.'; } finally { newSaving = false; }
   }
 
   function onCustomDeleted(slug: string) { customSections = customSections.filter(s => s.slug !== slug); activeSection = 'startseite'; }
 
+  // Slug automatisch aus Titel ableiten
+  function slugify(s: string) {
+    return s.toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
+  }
+  $effect(() => { if (newTitle && !newSlug) newSlug = slugify(newTitle); });
+
   const SECTION_LABELS: Record<string, string> = {
     seo: 'SEO',
     startseite: 'Startseite',
-    uebermich: '\u00dcber mich',
+    uebermich: 'Über mich',
     coaching: 'Coaching',
-    'fuehrung-persoenlichkeit': 'F\u00fchrung & Pers.',
+    'fuehrung-persoenlichkeit': 'Führung & Pers.',
     '50plus-digital': '50+ digital',
     'ki-transition': 'KI-Transition',
     beratung: 'Beratung',
@@ -88,6 +121,12 @@
     referenzen: 'Referenzen',
     rechtliches: 'Rechtliches',
   };
+
+  const STANDARD_FIELD_TYPES = [
+    { value: 'text', label: 'Einzeiliger Text' },
+    { value: 'textarea', label: 'Mehrzeiliger Text' },
+    { value: 'url', label: 'URL / Link' },
+  ];
 
   const tabBtnCls = (a: boolean) => `px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${a ? 'border-gold text-gold' : 'border-transparent text-muted hover:text-light'}`;
   const secBtnCls = (a: boolean) => `px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${a ? 'border-green-500 text-green-400' : 'border-transparent text-muted hover:text-light'}`;
@@ -110,7 +149,10 @@
       {#each customSections as cs}
         <button onclick={() => activeSection = cs.slug} class={secBtnCls(activeSection===cs.slug)}>{cs.title} ★</button>
       {/each}
-      <button onclick={() => showNewDialog = true} class="ml-2 px-3 py-1.5 text-xs text-blue-400 border border-blue-400/30 rounded-md hover:bg-blue-400/10 my-1 flex-shrink-0">+ Abschnitt</button>
+      <button onclick={() => showNewDialog = true}
+        class="ml-2 px-3 py-1.5 text-xs bg-gold text-dark font-semibold rounded-md hover:bg-gold/80 my-1 flex-shrink-0">
+        + Abschnitt
+      </button>
     </div>
   {/if}
 
@@ -122,30 +164,13 @@
       {:else if activeSection === 'coaching'}<CoachingSection initialData={initialData.coaching} />
       {:else if activeSection === 'fuehrung-persoenlichkeit'}<FuehrungSection initialData={initialData.fuehrung} />
       {:else if activeSection === '50plus-digital'}
-        <ServicePageSection
-          initialData={initialData['50plus-digital']}
-          slug="50plus-digital"
-          pageLabel="50+ digital"
-        />
+        <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital" />
       {:else if activeSection === 'ki-transition'}
-        <ServicePageSection
-          initialData={initialData['ki-transition']}
-          slug="ki-transition"
-          pageLabel="KI-Transition Coaching"
-        />
+        <ServicePageSection initialData={initialData['ki-transition']} slug="ki-transition" pageLabel="KI-Transition Coaching" />
       {:else if activeSection === 'beratung'}
-        <ServicePageSection
-          initialData={initialData.beratung}
-          slug="beratung"
-          pageLabel="Unternehmensberatung"
-        />
+        <ServicePageSection initialData={initialData.beratung} slug="beratung" pageLabel="Unternehmensberatung" />
       {:else if activeSection === 'angebote'}
-        <AngeboteSection
-          initialServices={initialData.services}
-          initialLeistungen={initialData.leistungen}
-          initialPriceListUrl={initialData.priceListUrl}
-          staticSlugs={staticServiceSlugs}
-        />
+        <AngeboteSection initialServices={initialData.services} initialLeistungen={initialData.leistungen} initialPriceListUrl={initialData.priceListUrl} staticSlugs={staticServiceSlugs} />
       {:else if activeSection === 'faq'}<FaqSection initialData={initialData.faq} />
       {:else if activeSection === 'kontakt'}<KontaktSection initialData={initialData.kontakt} />
       {:else if activeSection === 'referenzen'}<ReferenzenSection initialData={initialData.referenzen} />
@@ -175,28 +200,88 @@
   </div>
 </div>
 
+<!-- Dialog: Neuer Abschnitt -->
 {#if showNewDialog}
   <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-    <div class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-lg space-y-4">
-      <h3 class="text-lg font-bold text-light font-serif">Neuer Website-Abschnitt</h3>
-      <div><label class="block text-xs text-muted mb-1">Titel *</label><input type="text" bind:value={newTitle} class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:outline-none focus:border-gold/50" /></div>
-      <div><label class="block text-xs text-muted mb-1">Slug *</label><input type="text" bind:value={newSlug} class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm font-mono focus:outline-none focus:border-gold/50" /></div>
+    <div class="bg-dark-light border border-dark-lighter rounded-2xl p-6 w-full max-w-lg space-y-5">
       <div>
-        <div class="flex justify-between items-center mb-2"><label class="text-xs text-muted">Felder</label><button onclick={addField} class="text-xs text-blue-400 hover:text-blue-300">+ Feld</button></div>
-        {#each newFields as field, i}
-          <div class="flex gap-2 mb-2 items-center">
-            <input type="text" bind:value={field.name} placeholder="name" class="flex-1 px-2 py-1.5 bg-dark border border-dark-lighter rounded-lg text-light text-xs font-mono" />
-            <input type="text" bind:value={field.label} placeholder="Label" class="flex-1 px-2 py-1.5 bg-dark border border-dark-lighter rounded-lg text-light text-xs" />
-            <select bind:value={field.type} class="px-2 py-1.5 bg-dark border border-dark-lighter rounded-lg text-light text-xs"><option value="text">text</option><option value="textarea">textarea</option><option value="url">url</option></select>
-            <label class="flex items-center gap-1 text-xs text-muted"><input type="checkbox" bind:checked={field.required} class="accent-gold" /> Pflicht</label>
-            <button onclick={() => removeField(i)} class="text-red-400 text-xs">✕</button>
-          </div>
-        {/each}
+        <h3 class="text-lg font-bold text-light font-serif">Neuer Website-Abschnitt</h3>
+        <p class="text-xs text-muted mt-1">Erstelle einen benutzerdefinierten Abschnitt mit eigenen Feldern.</p>
       </div>
+
+      <!-- Titel + Slug -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-muted mb-1">Titel *</label>
+          <input type="text" bind:value={newTitle} placeholder="z.B. Meine Zertifikate"
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:outline-none focus:border-gold/50" />
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Slug (URL-Pfad) *</label>
+          <input type="text" bind:value={newSlug} placeholder="z.B. zertifikate"
+            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm font-mono focus:outline-none focus:border-gold/50" />
+          <p class="text-xs text-muted mt-1">Wird automatisch aus dem Titel abgeleitet.</p>
+        </div>
+      </div>
+
+      <!-- Felder -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <div>
+            <p class="text-sm font-semibold text-light">Felder</p>
+            <p class="text-xs text-muted">Standard-Felder sind bereits vorbereitet. Weitere nach Bedarf hinzufügen.</p>
+          </div>
+          <button onclick={addField}
+            class="px-3 py-1.5 bg-gold text-dark rounded-lg text-xs font-semibold hover:bg-gold/80">
+            + Feld
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          {#each newFields as field, i}
+            <div class="p-3 bg-dark rounded-lg border border-dark-lighter space-y-2">
+              <div class="flex gap-2 items-center">
+                <div class="flex-1">
+                  <label class="block text-xs text-muted mb-1">Interner Name (kein Leerzeichen)</label>
+                  <input type="text" bind:value={field.name} placeholder="z.B. headline"
+                    class="w-full px-2 py-1.5 bg-dark-lighter border border-dark-lighter rounded text-light text-xs font-mono focus:outline-none focus:border-gold/50" />
+                </div>
+                <div class="flex-1">
+                  <label class="block text-xs text-muted mb-1">Angezeigter Name</label>
+                  <input type="text" bind:value={field.label} placeholder="z.B. Überschrift"
+                    class="w-full px-2 py-1.5 bg-dark-lighter border border-dark-lighter rounded text-light text-xs focus:outline-none focus:border-gold/50" />
+                </div>
+                <div>
+                  <label class="block text-xs text-muted mb-1">Typ</label>
+                  <select bind:value={field.type}
+                    class="px-2 py-1.5 bg-dark-lighter border border-dark-lighter rounded text-light text-xs">
+                    {#each STANDARD_FIELD_TYPES as ft}
+                      <option value={ft.value}>{ft.label}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div class="pt-4">
+                  <label class="flex items-center gap-1 text-xs text-muted cursor-pointer">
+                    <input type="checkbox" bind:checked={field.required} class="accent-gold" />
+                    Pflicht
+                  </label>
+                </div>
+                <button onclick={() => removeField(i)}
+                  class="text-red-400 text-xs hover:text-red-300 pt-4">✕</button>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+
       {#if newMsg}<p class="text-red-400 text-sm">{newMsg}</p>{/if}
+
       <div class="flex gap-3 justify-end">
-        <button onclick={() => { showNewDialog = false; newMsg = ''; }} class="px-4 py-2 text-muted text-sm hover:text-light">Abbrechen</button>
-        <button onclick={createSection} disabled={newSaving} class="px-4 py-2 bg-gold text-dark font-semibold rounded-lg text-sm hover:bg-gold/80 disabled:opacity-50">{newSaving ? 'Erstelle…' : 'Erstellen'}</button>
+        <button onclick={resetDialog} class="px-4 py-2 text-muted text-sm hover:text-light">Abbrechen</button>
+        <button onclick={createSection} disabled={newSaving}
+          class="px-4 py-2 bg-gold text-dark font-semibold rounded-lg text-sm hover:bg-gold/80 disabled:opacity-50">
+          {newSaving ? 'Erstelle…' : 'Abschnitt erstellen'}
+        </button>
       </div>
     </div>
   </div>

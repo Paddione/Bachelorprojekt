@@ -85,7 +85,14 @@ data:
     redis:
       address: livekit-redis:6379
     turn:
-      enabled: true
+      # Disabled so coturn (in namespace "coturn", hostPort 3478/UDP) can bind
+      # UDP:3478 on the same node. LiveKit-server runs with hostNetwork: true
+      # and is pinned (gekko-hetzner-3 on mentolder, pk-hetzner-6 on
+      # korczewski) — with turn.enabled=true it grabs UDP:3478 first and
+      # coturn CrashLoops with "bind: Address in use". Janus+Coturn already
+      # provide TURN for Talk; LiveKit clients fall back to srflx via STUN
+      # (use_external_ip + public 7881/tcp + 50000-60000/udp are open).
+      enabled: false
       domain: ""
       tls_port: 0
       udp_port: 3478

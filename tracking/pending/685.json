@@ -1,0 +1,12 @@
+{
+  "pr_number": 685,
+  "title": "surface realmRoles + brand on session",
+  "description": "## Summary\n- `UserSession` was missing `realmRoles` and `brand`, so `/admin/arena` (and any other role-gated page) silently rejected everyone — the Keycloak role exists, the website just never read it.\n- `exchangeCode` now decodes `realm_access.roles` from the access-token JWT and sets `brand` from `BRAND_ID` / `BRAND` (per-deployment brand convention).\n- `getSession` refresh path re-decodes on token rotation so role changes propagate without a full re-login.\n- `magic-link` redeem defaults both fields so seeded test sessions still satisfy the type.\n\n## Test plan\n- [x] tsc (`npx tsc --noEmit`) shows no new errors introduced by this diff (pre-existing brand/test errors unchanged).\n- [ ] After deploy: log out and back in on `web.mentolder.de`, open `/admin/arena`, \"Open lobby\" button is visible (paddione has the `arena_admin` role assigned in Keycloak).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T21:41:21Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

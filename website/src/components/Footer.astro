@@ -1,13 +1,5 @@
 ---
 // Footer.astro — brand-aware site footer.
-//
-// The Brand col (logo + tagline), Kontakt col (live config.contact), and
-// Angebote col (services) are always rendered dynamically. Additional
-// columns (Rechtliches, Studio, …) come from BrandConfig.footer.columns.
-//
-// Theming is via CSS variables — both mentolder (brass+sage) and
-// korczewski-kore (copper+teal) get the same DOM but different colors.
-
 import { config } from '../config/index';
 import { getEffectiveServices, getEffectiveKontakt } from '../lib/content';
 import type { HomepageService } from '../config/types';
@@ -19,6 +11,10 @@ const footerEmail   = kontaktOverride?.footerEmail?.trim()   || config.contact.e
 const footerPhone   = kontaktOverride?.footerPhone?.trim()   || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
 const footerCity    = kontaktOverride?.footerCity?.trim()    || config.contact.city;
 const footerTagline = kontaktOverride?.footerTagline?.trim() || config.legal.tagline;
+
+// "Gestaltet in ..." Zeile: pflegbar über Kontakt-Admin (footerCity)
+// Fallback: config.contact.city || 'Lüneburg'
+const gestaltetsIn  = kontaktOverride?.footerCity?.trim() || config.contact.city || 'Lüneburg';
 
 const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 const brandInitial = brandWord.charAt(0).toLowerCase();
@@ -91,7 +87,7 @@ const extraCols = config.footer.columns ?? [];
 
     <div class="site-foot-legal">
       <p>{copyright}</p>
-      <p>Gestaltet in Lüneburg · DE</p>
+      <p>Gestaltet in {gestaltetsIn} &middot; DE</p>
     </div>
   </div>
 </footer>

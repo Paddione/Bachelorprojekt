@@ -1,0 +1,12 @@
+{
+  "pr_number": 678,
+  "title": "connection string FQDN for shared-db",
+  "description": "## Summary\n\n`knowledge-db.ts`'s pool defaulted to `host: shared-db` with no namespace FQDN and read `PGPASSWORD` from env — but the website pod runs in the `website` namespace while shared-db lives in `workspace`, and only `WEBSITE_DB_PASSWORD` / `SESSIONS_DATABASE_URL` are injected. Every call (`listCollections`, `queryNearest`, `ensureCollection`, ...) failed with `ENOTFOUND shared-db`; the `try/catch` in `/admin/wissensquellen` silently rendered an empty table even though the DB already had the `coaching-geissler-ki-coaching` collection (206 chunks since 2026-05-10).\n\nFix mirrors the working pattern from `website-db.ts`: use `SESSIONS_DATABASE_URL` connection string + `dns.resolve4` lookup to work around musl/CoreDNS DNAT.\n\nSame naked `new Pool()` removed from `api/admin/coaching/books/upload.ts` (shares the website-db pool now).\n\n## Test plan\n\n- [x] `npx vitest run src/lib/knowledge-db.test.ts` — 6/6 pass (uses pg-mem + `__setPoolForTests`)\n- [x] `npx vitest run src/lib/assistant/llm.test.ts` — 7/7 pass\n- [x] `npx astro check --minimumSeverity error` — no new errors on touched files\n- [ ] After deploy: `/admin/wissensquellen` on web.mentolder.de shows the KI-Coaching collection under \"Eigene Sammlungen\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "knowledge",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T18:34:37Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

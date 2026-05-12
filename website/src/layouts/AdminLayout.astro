@@ -1,4 +1,5 @@
 ---
+import ArenaBanner from '../components/arena/ArenaBanner.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
 import BugReportWidget from '../components/BugReportWidget.svelte';
@@ -282,6 +283,7 @@ const isKore = brandId === 'korczewski';
     </style>
   </head>
   <body class={isKore ? 'kore' : ''} style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
+    <ArenaBanner client:load />
 
     <!-- Mobile topbar -->
     <div id="mobile-topbar">

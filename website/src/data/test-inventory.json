@@ -577,6 +577,12 @@
   },
   {
     "id": "FA-30",
+    "file": "tests/e2e/specs/fa-30-arena-banner.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-30",
     "file": "tests/e2e/specs/fa-30-systemtest-failure-loop.spec.ts",
     "category": "FA",
     "kind": "playwright"
@@ -702,6 +708,12 @@
     "kind": "shell"
   },
   {
+    "id": "NFA-10",
+    "file": "tests/local/NFA-10.bats",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-11",
     "file": "tests/local/NFA-11.sh",
     "category": "NFA",
@@ -812,6 +824,24 @@
   {
     "id": "SA-10",
     "file": "tests/local/SA-10.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-11",
+    "file": "tests/local/SA-11.bats",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-12",
+    "file": "tests/local/SA-12.bats",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-13",
+    "file": "tests/local/SA-13.bats",
     "category": "SA",
     "kind": "shell"
   }

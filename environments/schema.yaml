@@ -4,6 +4,9 @@
 version: 1
 
 env_vars:
+  - name: ARENA_WS_URL
+    description: Public URL of the arena WebSocket endpoint
+    required: false
   - name: PROD_DOMAIN
     required: true
     default_dev: "localhost"
@@ -210,6 +213,12 @@ env_vars:
     description: "Cluster-internal URL of the LiteLLM router. Constant per namespace; only varies if WORKSPACE_NAMESPACE differs."
 
 secrets:
+  - name: arena_db_password
+    description: Password for the arena_app PostgreSQL role
+    required: false
+  - name: arena_db_url
+    description: Connection URL for arena-server (mentolder shared-db)
+    required: false
   - name: SHARED_DB_PASSWORD
     required: true
     generate: true

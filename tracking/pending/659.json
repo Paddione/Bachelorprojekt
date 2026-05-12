@@ -1,0 +1,12 @@
+{
+  "pr_number": 659,
+  "title": "zero-downtime rollouts via emptyDir + RollingUpdate",
+  "description": "## Summary\n- Eliminates the ~60s 503 window on every website rollout (the cause of T000287 + T000288).\n- Drops `evidence-pvc` (RWO Longhorn/local-path) and mounts `/var/evidence` as `emptyDir` — content is throwaway rrweb test artifacts that the `systemtest-cleanup` CronJob GC's anyway.\n- Switches Deployment strategy from `Recreate` to `RollingUpdate` `maxSurge: 1, maxUnavailable: 0`, so a ready pod always serves traffic during deploys.\n\n## Why\nOn `:latest`-pull rollouts, `Recreate` + RWO PVC killed the only pod first, then waited ~55s for the new pod's image pull before serving again. With ~8 deploys/day, that added up. Gekko hit one window at 06:28 UTC and filed two bug tickets describing the result (\"Dashboard öffnet sich nicht mehr\" / \"Fehlermeldung am Kopf\").\n\n## Test plan\n- [x] `task workspace:validate` passes\n- [x] Live-verified zero downtime on mentolder during direct apply: 200 across the full rollout window, new pod entered EndpointSlice before old terminated\n- [ ] After merge: run `task website:deploy ENV=mentolder` and `ENV=korczewski`, watch `/api/health` polling stay at 200 across the rollout\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "website",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T12:27:50Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

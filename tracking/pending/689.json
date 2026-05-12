@@ -1,0 +1,12 @@
+{
+  "pr_number": 689,
+  "title": "refresh access token by its own JWT exp",
+  "description": "## Summary\n- Previous refresh logic compared the 8h web-session TTL against a 5-minute buffer — but the KC access token expires after ~5 minutes, so once you ran past the first lifetime every subsequent JWT was already expired. Arena-server rejected with `\"exp\" claim timestamp check failed`.\n- Decode the JWT and refresh when the actual `exp` claim is within 60s.\n\n## Test plan\n- [x] Build + deploy to mentolder + korczewski\n- [ ] Reload `/admin/arena` and hit **Start solo match** — no more 401 with exp-claim error.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "auth",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T22:45:58Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

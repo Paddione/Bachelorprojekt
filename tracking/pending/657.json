@@ -1,0 +1,12 @@
+{
+  "pr_number": 657,
+  "title": "wire ARENA_WS_URL into website + add CI jobs (Plan 1 gaps)",
+  "description": "## Summary\nCloses the 3 gaps the Plan 1 audit identified in Gemini's arena rollout:\n\n- **`ARENA_WS_URL` plumbing** — `website-config` ConfigMap + an explicit Deployment env block (mirrors `LIVEKIT_SERVICE_URL`), so `api/arena/{active,start}.ts` actually find the upstream in prod instead of falling back to `localhost:8090`.\n- **Taskfile envsubst** — append `\\$ARENA_WS_URL` to the prod `ENVSUBST_VARS` builder (line 1357) and the website-deploy envsubst list (line 2182). Without this, the placeholder would have leaked literally even after the ConfigMap change.\n- **CI** — add `arena-server` job (pnpm install/test/build with a `postgres:16-alpine` service exposing `TEST_DB_URL` so `db/repo.test.ts` integration tests run) and an `arena-proto-drift` job that fails CI if `arena-server/src/proto/messages.ts` ≠ `website/src/components/arena/shared/lobbyTypes.ts`.\n\nTogether these close Plan Tasks 19 and 28.\n\n## Test plan\n- [ ] CI passes (new arena-server + arena-proto-drift jobs)\n- [ ] After merge: `task website:deploy ENV=mentolder` then `ENV=korczewski`\n- [ ] `kubectl --context mentolder -n website get deploy website -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name==\"ARENA_WS_URL\")]}'` returns the configMapKeyRef entry\n- [ ] `kubectl --context mentolder -n website get cm website-config -o jsonpath='{.data.ARENA_WS_URL}'` returns `https://arena-ws.mentolder.de`\n- [ ] (Once arena-server is actually deployed and a lobby is opened) the banner appears on both brands\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "arena",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T12:20:26Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

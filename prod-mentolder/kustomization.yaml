@@ -95,5 +95,28 @@ patches:
                         - k3w-1
                         - k3w-2
                         - k3w-3
+  # One-shot Jobs (e.g. arena-bootstrap) also need to stay on Hetzner nodes;
+  # the home workers hit intermittent DNS failures (EAI_AGAIN on
+  # shared-db.workspace.svc.cluster.local), which exhausts backoffLimit and
+  # leaves the cluster without arena_app role + grants.
+  - target:
+      kind: Job
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: NotIn
+                      values:
+                        - k3s-1
+                        - k3s-2
+                        - k3s-3
+                        - k3w-1
+                        - k3w-2
+                        - k3w-3
   - path: patch-backup-config.yaml
   - path: patch-livekit.yaml

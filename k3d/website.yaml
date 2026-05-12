@@ -76,6 +76,8 @@ data:
   # LiveKit
   LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
   STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
+  # Arena (last-man-standing game server; same host on both brands — mentolder only)
+  ARENA_WS_URL: "${ARENA_WS_URL}"
   # Site
   SITE_URL: "${WEBSITE_SITE_URL}"
   # System-test failure loop (Task 10): off by default. Flip to "true" only
@@ -356,6 +358,11 @@ spec:
                   key: INTERNAL_API_TOKEN
             - name: LIVEKIT_SERVICE_URL
               value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
+            - name: ARENA_WS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: website-config
+                  key: ARENA_WS_URL
             - name: IPV64_API_KEY
               valueFrom:
                 secretKeyRef:

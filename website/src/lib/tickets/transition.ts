@@ -94,6 +94,21 @@ export async function transitionTicket(
       );
     }
 
+    // Keep the global admin inbox in sync. Bug rows reach the inbox via
+    // /api/bug-report → createInboxItem({ bugTicketId: external_id }); without
+    // this, closing a bug from /admin/tickets/* leaves the inbox row stuck
+    // in 'pending' forever and the bell badge never clears.
+    if (after.type === 'bug' && after.external_id &&
+        (p.status === 'done' || p.status === 'archived')) {
+      const next = p.status === 'done' ? 'actioned' : 'archived';
+      await client.query(
+        `UPDATE inbox_items
+            SET status = $1, actioned_at = COALESCE(actioned_at, NOW())
+          WHERE bug_ticket_id = $2 AND status = 'pending'`,
+        [next, after.external_id]
+      );
+    }
+
     await client.query('COMMIT');
 
     let emailSent = false;

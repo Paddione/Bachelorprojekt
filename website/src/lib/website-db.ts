@@ -658,9 +658,6 @@ export async function resolveBugTicket(
     note: resolutionNote, noteVisibility: 'public',
     actor,
   });
-  await pool.query(
-    `UPDATE inbox_items SET status = 'actioned', actioned_at = NOW()
-      WHERE bug_ticket_id = $1 AND status = 'pending'`, [ticketId]);
 }
 
 export async function archiveBugTicket(
@@ -672,9 +669,6 @@ export async function archiveBugTicket(
   await transitionTicket(id, {
     status: 'archived', resolution: 'obsolete', actor,
   });
-  await pool.query(
-    `UPDATE inbox_items SET status = 'archived', actioned_at = NOW()
-      WHERE bug_ticket_id = $1 AND status = 'pending'`, [ticketId]);
 }
 
 export interface BugTicketStatus {

@@ -43,6 +43,15 @@ spec:
           # only touches ${VAR}, so $(TURN_SECRET) survives build-time.
           command: ["turnserver"]
           args:
+            # coturn 4.9 spawns one UDP worker thread per CPU. Each thread
+            # tries to bind 0.0.0.0:3478 directly without SO_REUSEPORT, so
+            # the first wins and the rest abort with EADDRINUSE, killing
+            # the process every ~60s on multi-core nodes (observed on
+            # korczewski-ha / pk-hetzner-6, 8 cores). Force the legacy
+            # single-threaded net engine — TURN load on this cluster is
+            # tiny (single-host Talk SFU), so the perf hit is irrelevant
+            # and the bind race goes away entirely.
+            - "--net-engine-version=1"
             - "--no-dtls"
             - "--listening-port=3478"
             - "--tls-listening-port=5349"

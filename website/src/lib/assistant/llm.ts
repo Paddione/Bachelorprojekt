@@ -1,9 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { Pool } from 'pg';
 import type { AssistantProfile, AssistantChatResult, Message } from './types';
 import { searchHelp, formatHit, noMatchReply } from './search';
 import { queryNearest } from '../knowledge-db';
 import { resolveCoachingCollectionIds } from './coaching-collections';
+import { pool } from '../website-db';
 
 export interface AssistantChatInput {
   profile: AssistantProfile;
@@ -16,12 +16,6 @@ export interface AssistantContext {
   currentRoute: string;
   counts?: Record<string, number>;
   [k: string]: unknown;
-}
-
-let _pool: Pool | null = null;
-function getPool(): Pool {
-  if (!_pool) _pool = new Pool();
-  return _pool;
 }
 
 const SYSTEM_PROMPT = `Du bist der interne Assistent von ${process.env.BRAND_NAME ?? 'Mentolder'}. Du hilfst dem Coach bei seiner Arbeit — Klientenvorbereitung, Terminplanung, Gesprächsreflexion und Wissensarbeit. Antworte präzise und auf Deutsch. Wenn du Buchpassagen erhältst, zitiere konkret und nenne Seite wenn vorhanden.`;
@@ -46,7 +40,7 @@ export async function assistantChat(input: AssistantChatInput): Promise<Assistan
   const useBooks = input.context.useBooks === true;
   if (useBooks) {
     try {
-      const collectionIds = await resolveCoachingCollectionIds(getPool());
+      const collectionIds = await resolveCoachingCollectionIds(pool);
       if (collectionIds.length > 0) {
         const chunks = await queryNearest({
           collectionIds,

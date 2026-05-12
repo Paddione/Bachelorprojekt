@@ -1,16 +1,15 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import BookReader from '../../../../components/admin/BookReader.svelte';
-import { Pool } from 'pg';
 import { getBook, listClusters, listSnippets } from '../../../../lib/coaching-db';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+import { pool } from '../../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const id = Astro.params.id as string;
-const pool = new Pool();
 
 let book: Awaited<ReturnType<typeof getBook>> = null;
 let clusters: Awaited<ReturnType<typeof listClusters>> = [];

@@ -1,10 +1,9 @@
 // website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts
 import type { APIRoute } from 'astro';
-import { Pool } from 'pg';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { acceptanceRateByBook } from '../../../../../../lib/coaching-db';
+import { pool } from '../../../../../../lib/website-db';
 
-const pool = new Pool();
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request, params }) => {

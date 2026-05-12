@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
-import { Pool } from 'pg';
 import { listTemplates, type TargetSurface, type TemplateStatus } from '../../../../lib/coaching-db';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+import { pool } from '../../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -10,8 +10,6 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const surfaceParam = Astro.url.searchParams.get('surface') as TargetSurface | null;
 const statusParam = Astro.url.searchParams.get('status') as TemplateStatus | null;
-
-const pool = new Pool();
 let templates: Awaited<ReturnType<typeof listTemplates>> = [];
 try {
   templates = await listTemplates(pool, {

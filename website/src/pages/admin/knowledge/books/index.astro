@@ -1,15 +1,13 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
-import { Pool } from 'pg';
 import { listBooks } from '../../../../lib/coaching-db';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
 import BookUploadForm from '../../../../components/admin/BookUploadForm.svelte';
+import { pool } from '../../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
-
-const pool = new Pool();
 let books: Awaited<ReturnType<typeof listBooks>> = [];
 try {
   books = await listBooks(pool);

@@ -1,10 +1,9 @@
 import type { APIRoute } from 'astro';
-import { Pool } from 'pg';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getTemplate } from '../../../../../../lib/coaching-db';
 import { publishTemplate } from '../../../../../../lib/coaching-publish';
+import { pool } from '../../../../../../lib/website-db';
 
-const pool = new Pool();
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, params }) => {

@@ -43,7 +43,7 @@ spec:
           # Pinned by digest. To roll forward: build/push a new arena-server image,
           # then resolve the digest with `gh api /users/paddione/packages/container/arena-server/versions`
           # and update this line. Closes #656.
-          image: ghcr.io/paddione/arena-server@sha256:d87a78fb9037de107e30b5b279c32c4605f7458a274d69647143888ca5812f9d
+          image: ghcr.io/paddione/arena-server@sha256:3cf660f921d092cf9dbc7ff01463293c608bc4efce79cfd4b2d685546c070ed9
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

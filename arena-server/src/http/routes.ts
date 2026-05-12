@@ -37,6 +37,18 @@ export function makeRoutes(deps: { lc: Lifecycle; repo: Repo; auth: AuthMiddlewa
     }
   });
 
+  r.post('/lobby/solo', requireUser, requireAdmin, (req, res) => {
+    try {
+      const out = deps.lc.openSolo({
+        hostKey: req.userKey!,
+        hostName: req.user!.displayName,
+      });
+      res.status(201).json(out);
+    } catch (e: any) {
+      res.status(e.code === 409 ? 409 : 500).json({ error: e.message });
+    }
+  });
+
   r.get('/match/:id', requireUser, async (req, res) => {
     const rows = await deps.repo.getRecentMatches(50);
     const m = rows.find(r => r.id === req.params.id);

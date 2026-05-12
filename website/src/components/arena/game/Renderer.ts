@@ -51,6 +51,7 @@ export class Renderer {
   private powerupSprites = new Map<string, Graphics>();
   private textures = new Map<string, Texture>();
   private ready = false;
+  private followTarget: string | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.app = new Application();
@@ -241,6 +242,14 @@ export class Renderer {
       const s = getState();
       if (s) this.drawFrame(s, myKey);
     });
+  }
+
+  setFollowTarget(playerKey: string | null): void {
+    this.followTarget = playerKey;
+  }
+
+  setTickerSpeed(speed: number): void {
+    this.app.ticker.speed = speed;
   }
 
   destroy() {

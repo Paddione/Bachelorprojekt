@@ -1,0 +1,12 @@
+{
+  "pr_number": 690,
+  "title": "drop forbidden Connection header from SSE responses",
+  "description": "## Summary\n- `connection: keep-alive` on a Response is a no-op under HTTP/1.1 (default) and **forbidden under HTTP/2** (RFC 7540 §8.1.2.2)\n- Chrome surfaces the violation as `ERR_HTTP2_PROTOCOL_ERROR`, breaking the arena banner SSE plus admin log-stream and test-stream SSEs through Traefik over HTTP/2\n- Reproduced on `/portal/arena` after *Start solo match*: PortalLayout mounts `<ArenaBanner client:load />` → opens `/api/arena/active` → response carries the offending header → Chrome aborts the stream\n\n## Test plan\n- [ ] After deploy: open `/portal/arena?lobby=<code>` in Chrome, confirm `/api/arena/active` stays open (pending) in DevTools Network instead of failing with `(failed) net::ERR_HTTP2_PROTOCOL_ERROR`\n- [ ] Confirm arena banner state updates across `/portal` and other pages still work\n- [ ] Confirm admin log-stream (`/admin/ops`) and admin test-runner stream still receive events\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "sse",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T22:55:27Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

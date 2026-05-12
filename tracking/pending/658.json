@@ -1,0 +1,12 @@
+{
+  "pr_number": 658,
+  "title": "move ARENA_WS_URL from setup_vars to env_vars in all envs",
+  "description": "## Summary\n4th gap surfaced during the redeploy after #657: \\`schema.yaml\\` declares \\`ARENA_WS_URL\\` as an \\`env_vars\\` entry, but all three env files (\\`mentolder.yaml\\`, \\`korczewski.yaml\\`, \\`dev.yaml\\`) placed it in \\`setup_vars\\`. \\`scripts/env-resolve.sh\\` iterates \\`schema.env_vars\\` against \\`env_file.env_vars\\`, so the section mismatch meant the variable was never exported — \\`envsubst \\\"\\$ARENA_WS_URL\\\"\\` then expanded to the empty string, and the prod \\`website-config\\` ConfigMap landed with \\`ARENA_WS_URL: \\\"\\\"\\`.\n\nAfter this PR + redeploy:\n- mentolder ConfigMap: \\`ARENA_WS_URL=https://arena-ws.mentolder.de\\`\n- korczewski ConfigMap: \\`ARENA_WS_URL=https://arena-ws.mentolder.de\\` (same — points at mentolder)\n- dev ConfigMap: \\`ARENA_WS_URL=http://arena.localhost\\`\n\n\\`task env:validate:all\\` passes on all three envs.\n\n## Test plan\n- [ ] \\`task website:deploy ENV=mentolder\\` then \\`ENV=korczewski\\`\n- [ ] \\`kubectl --context mentolder -n website get cm website-config -o jsonpath='{.data.ARENA_WS_URL}'\\` returns the URL (not empty)\n- [ ] Same on korczewski-ha\n- [ ] Website pod \\`printenv ARENA_WS_URL\\` returns the URL\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "arena",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T12:26:59Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

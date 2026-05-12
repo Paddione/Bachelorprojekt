@@ -25,10 +25,28 @@ export interface UserSession {
   preferred_username: string;
   given_name?: string;
   family_name?: string;
+  realmRoles: string[];
+  brand: string | null;
   access_token: string;
   refresh_token: string;
   expires_at: number;
 }
+
+function decodeRealmRoles(accessToken: string): string[] {
+  try {
+    const payload = accessToken.split('.')[1];
+    if (!payload) return [];
+    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+    const json = Buffer.from(padded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+    const claims = JSON.parse(json) as { realm_access?: { roles?: unknown } };
+    const roles = claims.realm_access?.roles;
+    return Array.isArray(roles) ? roles.filter((r): r is string => typeof r === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? null;
 
 // PostgreSQL session store (survives container restarts)
 import pg from 'pg';
@@ -148,6 +166,8 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
     preferred_username: userInfo.preferred_username,
     given_name: userInfo.given_name,
     family_name: userInfo.family_name,
+    realmRoles: decodeRealmRoles(tokens.access_token),
+    brand: BRAND,
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
     expires_at: sessionExpiry,
@@ -199,6 +219,8 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
           ...session,
           access_token: refreshed.access_token,
           refresh_token: refreshed.refresh_token,
+          realmRoles: decodeRealmRoles(refreshed.access_token),
+          brand: BRAND,
           expires_at: newExpiry,
         };
         await sessionPool.query(

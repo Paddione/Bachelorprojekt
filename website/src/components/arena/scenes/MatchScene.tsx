@@ -24,6 +24,11 @@ export function MatchScene({ socket, initialState, myKey }: Props) {
   const [isSlowMo, setIsSlowMo] = useState(false);
   const prevAmmoRef = useRef<number | null>(null);
   const zoneWarnThreshold = Math.min(960, MAP_H) * 0.6 * 0.3; // 97.2
+  const [isMuted, setIsMuted] = useState(sfx.isMuted);
+  const handleMuteToggle = useCallback(() => {
+    sfx.toggleMute();
+    setIsMuted(sfx.isMuted);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -105,7 +110,7 @@ export function MatchScene({ socket, initialState, myKey }: Props) {
           pointerEvents: 'none',
         }}
       />
-      <Hud state={hudState} myKey={myKey} events={events} ping={ping} onForfeit={handleForfeit} />
+      <Hud state={hudState} myKey={myKey} events={events} ping={ping} onForfeit={handleForfeit} isMuted={isMuted} onMuteToggle={handleMuteToggle} />
     </div>
   );
 }

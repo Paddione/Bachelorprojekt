@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { MatchResult } from '../shared/lobbyTypes';
+import { playVictory } from '../game/sfx';
 
 interface Props {
   results: MatchResult[];
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function ResultsScene({ results, matchId, onRematch, onBack }: Props) {
+  useEffect(() => { playVictory(); }, []);
   const sorted = [...results].sort((a, b) => a.place - b.place);
   const winner = sorted[0];
 

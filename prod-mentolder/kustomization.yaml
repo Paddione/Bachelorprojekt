@@ -56,67 +56,91 @@ generatorOptions:
 # joined the unified cluster. The CNI partition breaks DNS and ClusterIP routing
 # from those nodes. livekit-* are exempt: patch-livekit.yaml pins them to
 # gekko-hetzner-3 explicitly, overriding this blanket affinity.
+#
+# IMPORTANT: these use strategic-merge (no `target:`) instead of a JSON 6902
+# `op: add` patch. JSON `add` on an existing object REPLACES it wholesale —
+# any Deployment that already declares an `affinity` block (e.g. spreed-signaling
+# with its podAffinity to Janus from PR #661) gets that block clobbered. The
+# strategic-merge variants below only set `affinity.nodeAffinity`, leaving any
+# existing `podAffinity` / `podAntiAffinity` siblings intact.
 patches:
-  - target:
+  - patch: |-
+      apiVersion: apps/v1
       kind: Deployment
-    patch: |-
-      - op: add
-        path: /spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: NotIn
-                      values:
-                        - k3s-1
-                        - k3s-2
-                        - k3s-3
-                        - k3w-1
-                        - k3w-2
-                        - k3w-3
-  - target:
+      metadata:
+        name: _placeholder_
+      spec:
+        template:
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: NotIn
+                          values:
+                            - k3s-1
+                            - k3s-2
+                            - k3s-3
+                            - k3w-1
+                            - k3w-2
+                            - k3w-3
+    target:
+      kind: Deployment
+  - patch: |-
+      apiVersion: batch/v1
       kind: CronJob
-    patch: |-
-      - op: add
-        path: /spec/jobTemplate/spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: NotIn
-                      values:
-                        - k3s-1
-                        - k3s-2
-                        - k3s-3
-                        - k3w-1
-                        - k3w-2
-                        - k3w-3
+      metadata:
+        name: _placeholder_
+      spec:
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                        - matchExpressions:
+                            - key: kubernetes.io/hostname
+                              operator: NotIn
+                              values:
+                                - k3s-1
+                                - k3s-2
+                                - k3s-3
+                                - k3w-1
+                                - k3w-2
+                                - k3w-3
+    target:
+      kind: CronJob
   # One-shot Jobs (e.g. arena-bootstrap) also need to stay on Hetzner nodes;
   # the home workers hit intermittent DNS failures (EAI_AGAIN on
   # shared-db.workspace.svc.cluster.local), which exhausts backoffLimit and
   # leaves the cluster without arena_app role + grants.
-  - target:
+  - patch: |-
+      apiVersion: batch/v1
       kind: Job
-    patch: |-
-      - op: add
-        path: /spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: NotIn
-                      values:
-                        - k3s-1
-                        - k3s-2
-                        - k3s-3
-                        - k3w-1
-                        - k3w-2
-                        - k3w-3
+      metadata:
+        name: _placeholder_
+      spec:
+        template:
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: NotIn
+                          values:
+                            - k3s-1
+                            - k3s-2
+                            - k3s-3
+                            - k3w-1
+                            - k3w-2
+                            - k3w-3
+    target:
+      kind: Job
   - path: patch-backup-config.yaml
   - path: patch-livekit.yaml

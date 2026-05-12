@@ -4,6 +4,7 @@ import ContactHub from '../components/ContactHub.svelte';
 import BookingForm from '../components/BookingForm.svelte';
 import { config } from '../config/index';
 import { getEffectiveKontakt } from '../lib/content';
+import { getSiteSetting, getSeoTitle } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
@@ -11,6 +12,11 @@ const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
 const { contact } = config;
 const kontakt = await getEffectiveKontakt();
+
+// Kontaktdaten: DB-Override hat Vorrang über Build-Args
+const displayPhone = kontakt.footerPhone?.trim() || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
+const displayEmail = kontakt.footerEmail?.trim() || config.contact.email;
+const displayCity  = kontakt.footerCity?.trim()  || config.contact.city;
 
 const rawMode = Astro.url.searchParams.get('mode') ?? '';
 const initialMode = ['message', 'termin', 'callback'].includes(rawMode)
@@ -21,11 +27,15 @@ const initialDate  = Astro.url.searchParams.get('date')  ?? '';
 const initialStart = Astro.url.searchParams.get('start') ?? '';
 const initialEnd   = Astro.url.searchParams.get('end')   ?? '';
 
-// When arriving from a slot link, pre-open BookingForm above the main hub.
 const slotPreview = rawMode === 'termin' && initialDate && initialStart;
+
+// SEO aus DB oder Fallback
+const seoTitle = await getSeoTitle(BRAND_ID, 'kontakt').catch(() => null) ?? 'Kontakt';
+const seoDesc  = await getSiteSetting(BRAND_ID, 'seo_meta_desc_kontakt').catch(() => null)
+  ?? 'Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren.';
 ---
 
-<Layout title="Kontakt" description="Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren." brand={layoutBrand}>
+<Layout title={seoTitle} description={seoDesc} brand={layoutBrand}>
   {slotPreview && (
     <section class="slot-preview">
       <div class="slot-preview-inner">
@@ -47,13 +57,17 @@ const slotPreview = rawMode === 'termin' && initialDate && initialStart;
     </section>
   )}
 
-  <section class="pt-28 pb-20 bg-dark">
-    <div class="max-w-5xl mx-auto px-6">
-      <div class="text-center mb-14">
-        <h1 class="text-4xl md:text-5xl font-bold text-light mb-4 font-serif">Kontakt aufnehmen</h1>
-        <p class="text-xl text-muted max-w-2xl mx-auto">{kontakt.intro}</p>
-      </div>
+  <!-- Einheitlicher Seiten-Header wie alle anderen Seiten -->
+  <section class="pt-28 pb-10 bg-dark">
+    <div class="max-w-4xl mx-auto px-6">
+      <p class="text-gold font-semibold text-lg mb-4 tracking-widest uppercase">Kontakt</p>
+      <h1 class="text-4xl md:text-5xl font-bold text-light leading-tight mb-4 font-serif">Kontakt aufnehmen</h1>
+      <p class="text-xl text-muted leading-relaxed max-w-3xl">{kontakt.intro}</p>
+    </div>
+  </section>
 
+  <section class="pb-20 bg-dark">
+    <div class="max-w-5xl mx-auto px-6">
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
         <div class="lg:col-span-3 bg-dark-light rounded-2xl border border-dark-lighter p-8">
           <ContactHub client:load initialMode={initialMode} initialServiceKey={initialServiceKey} {initialDate} {initialStart} {initialEnd} />
@@ -63,12 +77,12 @@ const slotPreview = rawMode === 'termin' && initialDate && initialStart;
           <div class="bg-dark-light rounded-2xl border border-dark-lighter p-8">
             <h2 class="text-xl font-bold text-gold mb-6 font-serif">Direkt erreichen</h2>
             <div class="space-y-5">
-              {kontakt.showPhone && contact.phone && (
+              {kontakt.showPhone && displayPhone && (
                 <div class="flex items-start gap-4">
                   <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                   <div>
                     <p class="font-medium text-light">Telefon</p>
-                    <a href={`tel:${contact.phone}`} class="text-gold hover:underline text-lg">{contact.phone}</a>
+                    <a href={`tel:${displayPhone}`} class="text-gold hover:underline text-lg">{displayPhone}</a>
                   </div>
                 </div>
               )}
@@ -76,14 +90,14 @@ const slotPreview = rawMode === 'termin' && initialDate && initialStart;
                 <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 <div>
                   <p class="font-medium text-light">E-Mail</p>
-                  <a href={`mailto:${contact.email}`} class="text-gold hover:underline text-lg">{contact.email}</a>
+                  <a href={`mailto:${displayEmail}`} class="text-gold hover:underline text-lg">{displayEmail}</a>
                 </div>
               </div>
               <div class="flex items-start gap-4">
                 <svg class="w-6 h-6 text-gold flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 <div>
                   <p class="font-medium text-light">Standort</p>
-                  <p class="text-muted text-lg">{contact.city} und Umgebung</p>
+                  <p class="text-muted text-lg">{displayCity}</p>
                 </div>
               </div>
             </div>
@@ -113,7 +127,6 @@ const slotPreview = rawMode === 'termin' && initialDate && initialStart;
 </Layout>
 
 <style>
-  /* Slot preview — shown when arriving from a slot link (?mode=termin&date=…&start=…) */
   .slot-preview {
     max-width: 1280px;
     margin: 0 auto;

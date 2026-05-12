@@ -50,6 +50,7 @@ env_vars:
   # flip LLM_RERANK_ENABLED to true after 24h of stable rollout
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-router.workspace.svc.cluster.local:4000"
+  ARENA_WS_URL: https://arena-ws.mentolder.de
 
 overlay: prod-mentolder
 workspace_namespace: workspace
@@ -63,4 +64,3 @@ setup_vars:
   KC_USER2_USERNAME: gekko
   KC_USER2_EMAIL: quamain@web.de
   KC_USER2_PASSWORD: SEALED
-  ARENA_WS_URL: https://arena-ws.mentolder.de

@@ -1,0 +1,12 @@
+{
+  "pr_number": 683,
+  "title": "sidebar 'Wissen' group + drafts inbox actually shows books",
+  "description": "## Why\n\nGekko opened `/admin/knowledge/drafts` on web.mentolder.de and saw an empty book dropdown — even though one coaching book is already ingested (Geißler \"KI-Coaching\", 206 chunks). The page also had no sidebar link, so it was only reachable by typing the URL.\n\n## What changed\n\n- **AdminLayout** — new \"Wissen\" group with three entries: Quellen, Bücher, Drafts. The Drafts entry carries an open-drafts pending badge (parallel to the Inbox badge). Removed the orphan \"Wissen\" link that previously lived under \"Inhalte\".\n- **`/api/admin/coaching/books`** — response now wraps the array as `{ books: [...] }` to match the existing convention from `/drafts`, `/snippets`. Also fail-safe when the `coaching` schema doesn't exist (returns empty list instead of 500).\n- **DraftsInbox.svelte** — accepts either response shape; fetches are now try/catch; empty state distinguishes the two real cases (no books yet → link to /admin/knowledge/books; book exists but classification hasn't run → shows the actual `--slug=…` and a chunk-volume hint).\n- **coaching-db** — `Book.slug` derived from the `coaching-<slug>` collection name; surfaced through `listBooks` / `getBook`.\n\n## Korczewski\n\nThe `coaching` schema was missing on korczewski's shared-db because its postStart subPath mount cached pre-coaching scripts. Bootstrapped manually by running the current ConfigMap `ensure-meetings-schema.sh` against the pod (6 tables created). Deployed website to both clusters.\n\n## Outstanding (separate from this PR)\n\nThe Anthropic API key in mentolder's SealedSecret currently returns `401 invalid x-api-key`. Once rotated, `task coaching:classify -- --slug=geissler-ki-coaching` (via a kubectl port-forward to shared-db) will generate the first batch of drafts for review.\n\n## Test plan\n- [ ] /admin sidebar shows the Wissen group with three entries\n- [ ] /admin/knowledge/drafts loads; book dropdown lists \"KI-Coaching\"\n- [ ] Empty state shows the actual slug (`geissler-ki-coaching`), not the `<slug>` placeholder\n- [ ] korczewski /admin/knowledge/drafts loads with empty state (no crash)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "coaching",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T19:24:53Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

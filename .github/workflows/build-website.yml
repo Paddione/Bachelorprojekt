@@ -27,32 +27,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load mentolder env secrets
-        env:
-          MENTOLDER_ENV: ${{ secrets.MENTOLDER_ENV_SECRETS }}
-        run: |
-          echo "$MENTOLDER_ENV" > environments/.secrets/mentolder.yaml
-
-      - name: Resolve env vars
-        id: env
-        run: |
-          source scripts/env-resolve.sh mentolder
-          echo "PROD_DOMAIN=$PROD_DOMAIN"            >> $GITHUB_ENV
-          echo "BRAND_NAME=$BRAND_NAME"              >> $GITHUB_ENV
-          echo "CONTACT_EMAIL=$CONTACT_EMAIL"        >> $GITHUB_ENV
-          echo "CONTACT_PHONE=$CONTACT_PHONE"        >> $GITHUB_ENV
-          echo "CONTACT_CITY=$CONTACT_CITY"          >> $GITHUB_ENV
-          echo "CONTACT_NAME=$CONTACT_NAME"          >> $GITHUB_ENV
-          echo "LEGAL_STREET=$LEGAL_STREET"          >> $GITHUB_ENV
-          echo "LEGAL_ZIP=$LEGAL_ZIP"                >> $GITHUB_ENV
-          echo "LEGAL_JOBTITLE=$LEGAL_JOBTITLE"      >> $GITHUB_ENV
-          echo "LEGAL_UST_ID=$LEGAL_UST_ID"          >> $GITHUB_ENV
-          echo "LEGAL_WEBSITE=$LEGAL_WEBSITE"        >> $GITHUB_ENV
-          echo "WEBSITE_IMAGE=$WEBSITE_IMAGE"        >> $GITHUB_ENV
-
       - name: Build & push Docker image
+        env:
+          PROD_DOMAIN: mentolder.de
+          BRAND_NAME: Mentolder
+          CONTACT_EMAIL: info@mentolder.de
+          CONTACT_PHONE: ${{ secrets.CONTACT_PHONE }}
+          CONTACT_CITY: Hamburg
+          CONTACT_NAME: Gerald Korczewski
+          LEGAL_STREET: ${{ secrets.LEGAL_STREET }}
+          LEGAL_ZIP: ${{ secrets.LEGAL_ZIP }}
+          LEGAL_JOBTITLE: Coach und digitaler Begleiter
+          LEGAL_UST_ID: ${{ secrets.LEGAL_UST_ID }}
+          LEGAL_WEBSITE: mentolder.de
         run: |
-          IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-mentolder-website}"
+          IMAGE="ghcr.io/paddione/mentolder-website"
           docker build --no-cache \
             -t "${IMAGE}:latest" \
             -f website/Dockerfile \
@@ -86,8 +75,6 @@ jobs:
 
       - name: Rollout restart website (mentolder)
         run: |
-          source scripts/env-resolve.sh mentolder
-          NS="${WEBSITE_NAMESPACE:-website}"
-          kubectl --context "$ENV_CONTEXT" -n "$NS" rollout restart deployment/website
-          kubectl --context "$ENV_CONTEXT" -n "$NS" rollout status deployment/website --timeout=180s
-          echo "✓ Website deployed to mentolder"
+          kubectl --context mentolder -n website rollout restart deployment/website
+          kubectl --context mentolder -n website rollout status deployment/website --timeout=180s
+          echo "✓ Website live auf https://web.mentolder.de"

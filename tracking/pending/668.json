@@ -1,0 +1,12 @@
+{
+  "pr_number": 668,
+  "title": "un-pin korczewski deployment before rollout",
+  "description": "## Summary\n- Past `task website:deploy ENV=korczewski` runs pin the deployment image to a specific SHA (Taskfile.yml:2199 — pure-amd64 cluster branch).\n- The CI workflow only did `kubectl rollout restart`, which re-pulled the same pinned digest and silently ignored the freshly-pushed `:latest`.\n- Add `kubectl set image …:latest` before the restart so the workflow is idempotent and self-heals after a manual `task website:deploy`.\n\n## Why mentolder didn't need this\nmentolder has 3 arm64 home workers (`k3w-1/2/3`), so the Taskfile keeps that deployment on `:latest` — `rollout restart` naturally picks up the new image.\n\n## Test plan\n- [x] Live verified: `kubectl set image …:latest` + `rollout restart` un-pinned the running pod from `sha256:46faa419…` to `sha256:d93f9434…` (current GHCR `:latest`).\n- [ ] Next push to main with website/** changes runs the workflow end-to-end.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "ci",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T13:58:10Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

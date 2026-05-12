@@ -127,6 +127,10 @@ export class Tick {
     if (p) p.disconnectedMs = 1;
   }
 
+  getState(): MatchState {
+    return this.state;
+  }
+
   private processTick(): void {
     if (this.stopped) return;
     this.state.tick++;

@@ -1,0 +1,12 @@
+{
+  "pr_number": 675,
+  "title": "Plans 2a + 2b — authoritative engine + browser game client",
+  "description": "## Summary\n\n- **Plan 2a (arena-engine):** Full authoritative game server — AABB physics, hitscan weapons, shrinking zone, item/powerup cycles, A\\* bot AI, 30 Hz tick loop, WebSocket message routing\n- **Plan 2b (arena-game-client):** Browser game client — React 18 + Pixi.js v8 renderer, LobbyScene (character picker + roster), MatchScene (canvas + HUD overlay), ResultsScene (place table + rematch vote), ArenaIsland socket lifecycle; arena-server pinned to Hetzner nodes for DNS reliability\n- Tests: FA-38 Playwright E2E (lobby → match → results), FA-39 shell smoke (schema + auth gate), diff.ts unit tests 9/9\n\n## Test Plan\n- [ ] `task workspace:validate` passes\n- [ ] `npx vitest run src/components/arena/game/diff.test.ts` → 9/9 pass\n- [ ] `curl -s https://arena-ws.mentolder.de/healthz` → `{\"ok\":true,...}`\n- [ ] Admin opens lobby at `web.mentolder.de/admin/arena` → character picker works → bots fill → match starts → results shown\n- [ ] Recent matches table populates after match completes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "arena",
+  "brand": null,
+  "requirement_id": "FA-38",
+  "merged_at": "2026-05-12T17:29:14Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

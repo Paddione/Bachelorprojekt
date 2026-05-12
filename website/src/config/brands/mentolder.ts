@@ -29,9 +29,6 @@ export const mentolderConfig: BrandConfig = {
   ],
   footer: {
     columns: [
-      // Kontakt column is rendered dynamically in Layout (uses live config.contact)
-      // Angebote column is rendered dynamically in Layout (uses footerServices)
-      // Only the "Rechtliches" column is fully data-driven for mentolder today.
       {
         heading: 'Rechtliches',
         links: [
@@ -104,39 +101,9 @@ export const mentolderConfig: BrandConfig = {
           'Einen geduldigen Begleiter suchen, der Ihre Fragen ernst nimmt',
         ],
         sections: [
-          {
-            title: 'Grundlagen',
-            items: [
-              'Smartphone & Tablet Bedienung',
-              'Apps installieren und nutzen',
-              'Fotos und Videos verwalten',
-              'Windows/Mac Grundlagen',
-              'Dateien organisieren',
-              'Cloud-Dienste verstehen',
-            ],
-          },
-          {
-            title: 'Kommunikation',
-            items: [
-              'Email-Programme einrichten',
-              'WhatsApp sicher nutzen',
-              'Videocalls (Zoom, Skype)',
-              'Sichere Passwörter',
-              'Betrugsmaschen erkennen',
-              'Privatsphäre schützen',
-            ],
-          },
-          {
-            title: 'Dienste',
-            items: [
-              'Online-Banking sicher nutzen',
-              'Sicher online einkaufen',
-              'Bezahldienste verstehen',
-              'Gesundheits-Apps',
-              'Online-Termine buchen',
-              'Elektronische Patientenakte',
-            ],
-          },
+          { title: 'Grundlagen', items: ['Smartphone & Tablet Bedienung', 'Apps installieren und nutzen', 'Fotos und Videos verwalten', 'Windows/Mac Grundlagen', 'Dateien organisieren', 'Cloud-Dienste verstehen'] },
+          { title: 'Kommunikation', items: ['Email-Programme einrichten', 'WhatsApp sicher nutzen', 'Videocalls (Zoom, Skype)', 'Sichere Passwörter', 'Betrugsmaschen erkennen', 'Privatsphäre schützen'] },
+          { title: 'Dienste', items: ['Online-Banking sicher nutzen', 'Sicher online einkaufen', 'Bezahldienste verstehen', 'Gesundheits-Apps', 'Online-Termine buchen', 'Elektronische Patientenakte'] },
         ],
         pricing: [
           { label: 'Einzelbegleitung', price: '60 €', unit: 'pro Stunde' },
@@ -174,42 +141,10 @@ export const mentolderConfig: BrandConfig = {
           'Einen Sparring-Partner auf Augenhöhe suchen',
         ],
         sections: [
-          {
-            title: 'Profil-Schärfung',
-            items: [
-              'Stärken-Analyse und Positionierung',
-              'USPs herausarbeiten',
-              'CV-Optimierung',
-              'LinkedIn/XING-Profil strategisch aufbauen',
-            ],
-          },
-          {
-            title: 'Karriere-Strategie',
-            items: [
-              'Zielpositionen definieren',
-              'Branchen und Unternehmen identifizieren',
-              'Netzwerk-Strategie entwickeln',
-              'Timing und Vorgehensweise planen',
-            ],
-          },
-          {
-            title: 'Gesprächsvorbereitung',
-            items: [
-              'Headhunter-Gespräche',
-              'Vorstellungsgespräche',
-              'Gehaltsverhandlungen',
-              'Assessment Center',
-            ],
-          },
-          {
-            title: 'Markt-Positionierung',
-            items: [
-              'Marktanalyse',
-              'Zielunternehmen recherchieren',
-              'Anforderungsprofile verstehen',
-              'Ihr Profil passgenau ausrichten',
-            ],
-          },
+          { title: 'Profil-Schärfung', items: ['Stärken-Analyse und Positionierung', 'USPs herausarbeiten', 'CV-Optimierung', 'LinkedIn/XING-Profil strategisch aufbauen'] },
+          { title: 'Karriere-Strategie', items: ['Zielpositionen definieren', 'Branchen und Unternehmen identifizieren', 'Netzwerk-Strategie entwickeln', 'Timing und Vorgehensweise planen'] },
+          { title: 'Gesprächsvorbereitung', items: ['Headhunter-Gespräche', 'Vorstellungsgespräche', 'Gehaltsverhandlungen', 'Assessment Center'] },
+          { title: 'Markt-Positionierung', items: ['Marktanalyse', 'Zielunternehmen recherchieren', 'Anforderungsprofile verstehen', 'Ihr Profil passgenau ausrichten'] },
         ],
         pricing: [
           { label: 'Einzelsession (90 Min.)', price: '150 €' },
@@ -221,6 +156,46 @@ export const mentolderConfig: BrandConfig = {
           { question: 'Ist das auch für Führungskräfte außerhalb Lüneburgs?', answer: 'Ja! Coaching läuft meist online via Video – das funktioniert hervorragend. Wenn Sie in der Nähe sind, können wir auch persönlich arbeiten.' },
           { question: 'Was unterscheidet Sie von anderen Coaches?', answer: 'Ich komme aus 30+ Jahren Führungspraxis. Ich kenne beide Seiten des Tisches. Und: Ich bin direkt und ehrlich – kein "Coaching-Sprech".' },
         ],
+      },
+    },
+    {
+      slug: 'fuehrung-persoenlichkeit',
+      title: 'Führung & Persönlichkeit',
+      description: 'Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung. Für Führungskräfte, die verstehen wollen, wer sie als Führungsperson sind – und wer sie sein möchten.',
+      icon: '🧭',
+      features: [
+        'Standortbestimmung als Führungsperson',
+        'Führungsstil entwickeln & stärken',
+        'Führen in Veränderungsprozessen',
+        'Frauen in Führung gezielt begleiten',
+      ],
+      price: 'Ab 150 € / Session',
+      stripeServiceKey: 'coaching-session',
+      pageContent: {
+        headline: 'Führen aus der Mitte.',
+        intro: 'Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung. Ich begleite Führungskräfte, die verstehen wollen, wer sie als Führungsperson sind – und wer sie sein möchten.',
+        forWhom: [
+          'Frauen und Männer in Führung – seit Jahren in Verantwortung',
+          'Frauen und Männer in Führung – gerade neu in der Rolle',
+          'Menschen in Führung, die merken: Technik und Strategie allein reichen nicht.',
+        ],
+        sections: [
+          {
+            title: '__introNote__',
+            items: [
+              'Meine Tochter ist Führungskraft. Wir sprechen regelmäßig und offen über die Realität, die Frauen in Führungspositionen erleben – trotz aller Fortschritte. Das hat meinen Blick geschärft.',
+              'Wenn ich Frauen in Führung begleite, geht es mir nicht darum, ihnen einen männlichen Führungsstil beizubringen. Sondern darum, ihren eigenen zu stärken – und die Strukturen zu verstehen, in denen sie sich bewegen.',
+            ],
+          },
+          { title: '01 — Standortbestimmung — Wer bin ich als Führungsperson?', items: ['Wir schauen auf Ihre Haltung, Ihre Muster, Ihre Stärken – und auf das, was Sie vielleicht noch nicht sehen.'] },
+          { title: '02 — Klarheit — Was möchte ich verändern?', items: ['Gemeinsam definieren wir, wo Sie hinwollen – und was Sie dafür brauchen.'] },
+          { title: '03 — Begleitung — Der Weg dorthin', items: ['Individuelle Sessions – ehrlich, direkt, auf Augenhöhe.'] },
+          { title: '04 — Transfer — Wirkung in der Praxis', items: ['Was Sie hier entwickeln, wirkt in Ihrem Alltag – in Meetings, Entscheidungen, Gesprächen.'] },
+        ],
+        pricing: [
+          { label: 'Kostenloses Erstgespräch buchen', price: 'Ab 150 €', highlight: true },
+        ],
+        faq: [],
       },
     },
     {
@@ -244,22 +219,10 @@ export const mentolderConfig: BrandConfig = {
           'Kritische Infrastrukturen (Energie, Kommunikation, Verkehr)',
         ],
         sections: [
-          {
-            title: 'Analyse',
-            items: ['Wo stehen Sie heute?', 'Was sind die konkreten Bedarfe?', 'Welche Ziele verfolgen Sie?'],
-          },
-          {
-            title: 'Strategie',
-            items: ['Entwicklung einer klaren Roadmap', 'Prioritäten & Ressourcenplanung', 'Meilensteine definieren'],
-          },
-          {
-            title: 'Change Management',
-            items: ['Ihr Team mitnehmen', 'Schulungen & Kommunikation', 'Motivation – damit Veränderung gelebt wird'],
-          },
-          {
-            title: 'Umsetzungsbegleitung',
-            items: ['Implementation begleiten', 'Prozesse optimieren', 'Nachhaltigkeit sichern'],
-          },
+          { title: 'Analyse', items: ['Wo stehen Sie heute?', 'Was sind die konkreten Bedarfe?', 'Welche Ziele verfolgen Sie?'] },
+          { title: 'Strategie', items: ['Entwicklung einer klaren Roadmap', 'Prioritäten & Ressourcenplanung', 'Meilensteine definieren'] },
+          { title: 'Change Management', items: ['Ihr Team mitnehmen', 'Schulungen & Kommunikation', 'Motivation – damit Veränderung gelebt wird'] },
+          { title: 'Umsetzungsbegleitung', items: ['Implementation begleiten', 'Prozesse optimieren', 'Nachhaltigkeit sichern'] },
         ],
         pricing: [
           { label: 'Tagessatz', price: 'nach Vereinbarung', unit: 'Projektumfang individuell, Dauer: 3–12 Monate', highlight: true },
@@ -292,42 +255,10 @@ export const mentolderConfig: BrandConfig = {
           'Sie eine klare Strategie für Ihre persönliche oder unternehmerische KI-Zukunft suchen',
         ],
         sections: [
-          {
-            title: 'Standortbestimmung',
-            items: [
-              'Analyse Ihrer aktuellen Fähigkeiten & Rolle',
-              'Welche Kompetenzen bleiben wertvoll?',
-              'Wo liegen blinde Flecken?',
-              'Persönliche KI-Readiness einschätzen',
-            ],
-          },
-          {
-            title: 'Unlearning-Prozess',
-            items: [
-              'Alte Denk- und Arbeitsmuster erkennen',
-              'Bewusst loslassen – strukturiert & begleitet',
-              'Psychologische Widerstände verstehen',
-              'Raum schaffen für Neues',
-            ],
-          },
-          {
-            title: 'Neuorientierung & Strategie',
-            items: [
-              'Neue Rollen & Kompetenzfelder identifizieren',
-              'Persönliche Lernstrategie entwickeln',
-              'KI als Werkzeug – nicht als Bedrohung',
-              'Konkrete nächste Schritte definieren',
-            ],
-          },
-          {
-            title: 'Für Unternehmen',
-            items: [
-              'Team-Workshops: KI-Readiness',
-              'Change-Begleitung im Transformationsprozess',
-              'Führungskräfte-Sparring zum Thema KI',
-              'Nachhaltige Lernkultur aufbauen',
-            ],
-          },
+          { title: 'Standortbestimmung', items: ['Analyse Ihrer aktuellen Fähigkeiten & Rolle', 'Welche Kompetenzen bleiben wertvoll?', 'Wo liegen blinde Flecken?', 'Persönliche KI-Readiness einschätzen'] },
+          { title: 'Unlearning-Prozess', items: ['Alte Denk- und Arbeitsmuster erkennen', 'Bewusst loslassen – strukturiert & begleitet', 'Psychologische Widerstände verstehen', 'Raum schaffen für Neues'] },
+          { title: 'Neuorientierung & Strategie', items: ['Neue Rollen & Kompetenzfelder identifizieren', 'Persönliche Lernstrategie entwickeln', 'KI als Werkzeug – nicht als Bedrohung', 'Konkrete nächste Schritte definieren'] },
+          { title: 'Für Unternehmen', items: ['Team-Workshops: KI-Readiness', 'Change-Begleitung im Transformationsprozess', 'Führungskräfte-Sparring zum Thema KI', 'Nachhaltige Lernkultur aufbauen'] },
         ],
         pricing: [
           { label: 'Einzelsession (90 Min.)', price: '150 €', unit: 'pro Session' },
@@ -418,26 +349,11 @@ export const mentolderConfig: BrandConfig = {
     showSteps: false,
   },
   faq: [
-    {
-      question: 'Für wen ist 50+ digital geeignet?',
-      answer: 'Für alle Menschen 50+, die digital selbstständiger werden möchten. Keine Vorkenntnisse nötig – wir fangen genau da an, wo Sie stehen.',
-    },
-    {
-      question: 'Wie läuft ein Coaching ab?',
-      answer: 'Wir starten mit einem kostenlosen Erstgespräch (30-45 Min.), um Ihre Situation zu verstehen. Danach arbeiten wir in individuellen Sessions an Ihren Zielen – online oder vor Ort.',
-    },
-    {
-      question: 'Arbeiten Sie auch online?',
-      answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. 50+ digital biete ich bevorzugt vor Ort in {city} und Umgebung an.',
-    },
-    {
-      question: 'Was kostet ein Erstgespräch?',
-      answer: 'Nichts. Das Erstgespräch ist kostenlos und unverbindlich. Wir lernen uns kennen und klären, ob eine Zusammenarbeit passt.',
-    },
-    {
-      question: 'Was unterscheidet Sie von anderen Coaches?',
-      answer: 'Ich komme aus 30+ Jahren Führungspraxis bei der Polizei Hamburg. Ich kenne beide Seiten des Tisches, bin direkt und ehrlich – und verstehe die Herausforderungen der Generation 50+ aus eigener Erfahrung.',
-    },
+    { question: 'Für wen ist 50+ digital geeignet?', answer: 'Für alle Menschen 50+, die digital selbstständiger werden möchten. Keine Vorkenntnisse nötig – wir fangen genau da an, wo Sie stehen.' },
+    { question: 'Wie läuft ein Coaching ab?', answer: 'Wir starten mit einem kostenlosen Erstgespräch (30-45 Min.), um Ihre Situation zu verstehen. Danach arbeiten wir in individuellen Sessions an Ihren Zielen – online oder vor Ort.' },
+    { question: 'Arbeiten Sie auch online?', answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. 50+ digital biete ich bevorzugt vor Ort in {city} und Umgebung an.' },
+    { question: 'Was kostet ein Erstgespräch?', answer: 'Nichts. Das Erstgespräch ist kostenlos und unverbindlich. Wir lernen uns kennen und klären, ob eine Zusammenarbeit passt.' },
+    { question: 'Was unterscheidet Sie von anderen Coaches?', answer: 'Ich komme aus 30+ Jahren Führungspraxis bei der Polizei Hamburg. Ich kenne beide Seiten des Tisches, bin direkt und ehrlich – und verstehe die Herausforderungen der Generation 50+ aus eigener Erfahrung.' },
   ],
   leistungenCta: {
     href: '/termin',

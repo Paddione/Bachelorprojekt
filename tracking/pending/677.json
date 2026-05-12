@@ -1,0 +1,12 @@
+{
+  "pr_number": 677,
+  "title": "raise monolith container memory limits to stop OOM cycles",
+  "description": "## Summary\n- Gekko reported `mcp.mentolder.de` browser MCP \"not working properly\". Root cause: the `playwright` (browser), `github`, and `postgres` containers in `claude-code-mcp-monolith` were OOMKilled in a chronic cycle on mentolder (3 kills today alone). Headless Chrome navigation routinely pushed `playwright` past its 1Gi cap; whenever Chrome died, `mcp.mentolder.de/browser` hung/502'd for ~45s until kubelet restarted it.\n- Bumps: `playwright` 1Gi → 4Gi (matches the proven standalone `mcp-browser`), `github` 256Mi → 512Mi, `postgres` 512Mi → 768Mi. Requests unchanged so scheduling stays put.\n- Already applied to mentolder live via `kubectl apply` (Deployment is not ArgoCD-managed). New pod healthy, idle memory comfortably under new ceilings. This PR exists so the next `task mcp:deploy` doesn't revert the live state.\n\n## Test plan\n- [x] `kubectl --context mentolder -n default rollout status deploy/claude-code-mcp-monolith` → Ready\n- [x] `kubectl describe pod` confirms new limits: playwright 4Gi, github 512Mi, postgres 768Mi\n- [x] `curl https://mcp.mentolder.de/browser` → 401 (auth required = routing intact)\n- [x] `kubectl top` post-rollout: playwright 58Mi idle (was 754Mi/1Gi)\n- [ ] Gekko retries browser MCP end-to-end against a heavy SPA\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "mcp",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T18:16:57Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

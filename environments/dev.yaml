@@ -11,6 +11,7 @@ env_vars:
   LLM_ENABLED: "false"
   LLM_RERANK_ENABLED: "false"
   LLM_HOST_IP: ""
+  ARENA_WS_URL: http://arena.localhost
 
 # Dev secrets: generated from schema defaults at deploy time.
 secrets_mode: plaintext
@@ -19,4 +20,3 @@ setup_vars:
   KC_USER1_USERNAME: admin
   KC_USER1_EMAIL: admin@localhost
   KC_USER1_PASSWORD: DevAdmin123!
-  ARENA_WS_URL: http://arena.localhost

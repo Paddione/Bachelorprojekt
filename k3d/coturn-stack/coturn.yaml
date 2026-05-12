@@ -50,8 +50,11 @@ spec:
             # korczewski-ha / pk-hetzner-6, 8 cores). Force the legacy
             # single-threaded net engine — TURN load on this cluster is
             # tiny (single-host Talk SFU), so the perf hit is irrelevant
-            # and the bind race goes away entirely.
-            - "--net-engine-version=1"
+            # and the bind race goes away entirely. coturn 4.9-alpine
+            # only recognises the short form `--ne=N`; the long form
+            # `--net-engine-version=N` is not parsed and crashes the
+            # process at startup (prints usage and exits).
+            - "--ne=1"
             - "--no-dtls"
             - "--listening-port=3478"
             - "--tls-listening-port=5349"

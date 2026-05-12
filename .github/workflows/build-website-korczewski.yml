@@ -27,32 +27,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load korczewski env secrets
-        env:
-          KORCZEWSKI_ENV: ${{ secrets.KORCZEWSKI_ENV_SECRETS }}
-        run: |
-          echo "$KORCZEWSKI_ENV" > environments/.secrets/korczewski.yaml
-
-      - name: Resolve env vars
-        id: env
-        run: |
-          source scripts/env-resolve.sh korczewski
-          echo "PROD_DOMAIN=$PROD_DOMAIN"            >> $GITHUB_ENV
-          echo "BRAND_NAME=$BRAND_NAME"              >> $GITHUB_ENV
-          echo "CONTACT_EMAIL=$CONTACT_EMAIL"        >> $GITHUB_ENV
-          echo "CONTACT_PHONE=$CONTACT_PHONE"        >> $GITHUB_ENV
-          echo "CONTACT_CITY=$CONTACT_CITY"          >> $GITHUB_ENV
-          echo "CONTACT_NAME=$CONTACT_NAME"          >> $GITHUB_ENV
-          echo "LEGAL_STREET=$LEGAL_STREET"          >> $GITHUB_ENV
-          echo "LEGAL_ZIP=$LEGAL_ZIP"                >> $GITHUB_ENV
-          echo "LEGAL_JOBTITLE=$LEGAL_JOBTITLE"      >> $GITHUB_ENV
-          echo "LEGAL_UST_ID=$LEGAL_UST_ID"          >> $GITHUB_ENV
-          echo "LEGAL_WEBSITE=$LEGAL_WEBSITE"        >> $GITHUB_ENV
-          echo "WEBSITE_IMAGE=$WEBSITE_IMAGE"        >> $GITHUB_ENV
-
       - name: Build & push Docker image
+        env:
+          PROD_DOMAIN: korczewski.de
+          BRAND_NAME: KORE
+          CONTACT_EMAIL: info@korczewski.de
+          CONTACT_PHONE: ${{ secrets.KORCZEWSKI_CONTACT_PHONE }}
+          CONTACT_CITY: Lüneburg
+          CONTACT_NAME: Patrick Korczewski
+          LEGAL_STREET: ${{ secrets.KORCZEWSKI_LEGAL_STREET }}
+          LEGAL_ZIP: ${{ secrets.KORCZEWSKI_LEGAL_ZIP }}
+          LEGAL_JOBTITLE: Software Engineer, IT-Security-Berater
+          LEGAL_UST_ID: ${{ secrets.KORCZEWSKI_LEGAL_UST_ID }}
+          LEGAL_WEBSITE: korczewski.de
         run: |
-          IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-korczewski-website}"
+          IMAGE="ghcr.io/paddione/korczewski-website"
           docker build --no-cache \
             -t "${IMAGE}:latest" \
             -f website/Dockerfile \
@@ -86,8 +75,6 @@ jobs:
 
       - name: Rollout restart website (korczewski)
         run: |
-          source scripts/env-resolve.sh korczewski
-          NS="${WEBSITE_NAMESPACE:-website-korczewski}"
-          kubectl --context "$ENV_CONTEXT" -n "$NS" rollout restart deployment/website
-          kubectl --context "$ENV_CONTEXT" -n "$NS" rollout status deployment/website --timeout=180s
-          echo "✓ Website deployed to korczewski"
+          kubectl --context korczewski-ha -n website-korczewski rollout restart deployment/website
+          kubectl --context korczewski-ha -n website-korczewski rollout status deployment/website --timeout=180s
+          echo "✓ Website live auf https://web.korczewski.de"

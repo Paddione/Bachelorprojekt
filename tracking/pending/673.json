@@ -1,0 +1,12 @@
+{
+  "pr_number": 673,
+  "title": "pin arena-server and litellm images by digest",
+  "description": "## Summary\n- Pin `ghcr.io/paddione/arena-server` by digest in `k3d/arena.yaml` (no semver tag exists on the registry, so digest-only form)\n- Pin `ghcr.io/berriai/litellm:main-stable` with a `@sha256:` digest suffix in `k3d/llm-router.yaml`\n- Both digests match what's currently running on `mentolder` (verified via `kubectl ... -o jsonpath='{.status.containerStatuses[0].imageID}'`), so this is behaviour-neutral.\n\nCloses #656\nCloses #653\n\n## Test plan\n- [x] \\`task workspace:validate\\` — manifests still build\n- [ ] CI green (offline + security)",
+  "category": "chore",
+  "scope": null,
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T15:20:31Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

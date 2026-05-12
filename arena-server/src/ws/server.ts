@@ -40,7 +40,9 @@ export function startWs(server: HttpServer, cfg: Config, lc: Lifecycle): Server 
   io.on('connection', (socket) => {
     const user = (socket.data as any).user;
     log.info({ sub: user.sub, brand: user.brand }, 'ws connected');
-    attachHandlers(socket, { lc, user });
+    // Late-bound: index.ts attaches the real Lifecycle to each socket via io.use.
+    const effectiveLc: Lifecycle = (socket as any).lc ?? lc;
+    attachHandlers(socket, { lc: effectiveLc, user });
   });
 
   return io;

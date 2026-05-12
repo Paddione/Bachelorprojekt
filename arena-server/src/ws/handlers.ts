@@ -16,20 +16,42 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
       switch (m.t) {
         case 'lobby:join': {
           const targetLobby = getLobby(m.code);
-          if (targetLobby && (targetLobby.phase === 'in-match' || targetLobby.phase === 'slow-mo')) {
+          if (!targetLobby) { sendError(socket, 'not-found', 'lobby not found'); break; }
+          // Existing player reconnecting (e.g. solo host) — send current state and, if mid-match, the live snapshot.
+          if (targetLobby.players.has(key)) {
             socket.join(`lobby:${m.code}`);
             const stateMsg: ServerMsg = {
               t: 'lobby:state', code: m.code, phase: targetLobby.phase,
               players: [...targetLobby.players.values()], expiresAt: targetLobby.expiresAt,
             };
             socket.emit('msg', stateMsg);
-          } else {
-            deps.lc.join(m.code, {
-              key, displayName: deps.user.displayName, brand: deps.user.brand,
-              characterId: 'blonde-guy', isBot: false, ready: false, alive: true,
-            });
-            socket.join(`lobby:${m.code}`);
+            if ((targetLobby.phase === 'in-match' || targetLobby.phase === 'slow-mo') && targetLobby.tick) {
+              const state = targetLobby.tick.getState();
+              const snap: ServerMsg = { t: 'match:full-snapshot', tick: state.tick, state };
+              socket.emit('msg', snap);
+            }
+            // Solo lobbies wait for the host's WS connect before counting down.
+            if (targetLobby.solo && targetLobby.phase === 'open' && targetLobby.hostKey === key) {
+              deps.lc.startSolo(m.code);
+            }
+            break;
           }
+          // Late spectator join: a non-player connecting mid-match.
+          if (targetLobby.phase === 'in-match' || targetLobby.phase === 'slow-mo') {
+            socket.join(`lobby:${m.code}`);
+            const stateMsg: ServerMsg = {
+              t: 'lobby:state', code: m.code, phase: targetLobby.phase,
+              players: [...targetLobby.players.values()], expiresAt: targetLobby.expiresAt,
+            };
+            socket.emit('msg', stateMsg);
+            break;
+          }
+          // Fresh join into an open lobby.
+          deps.lc.join(m.code, {
+            key, displayName: deps.user.displayName, brand: deps.user.brand,
+            characterId: 'blonde-guy', isBot: false, ready: false, alive: true,
+          });
+          socket.join(`lobby:${m.code}`);
           break;
         }
         case 'lobby:leave':

@@ -53,7 +53,7 @@ export function makeRepo(pool: Pool) {
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
            RETURNING id`,
           [m.lobbyCode, m.openedAt, m.startedAt, m.endedAt, m.winnerPlayer,
-           m.botCount, m.humanCount, m.forfeitCount, m.resultsJsonb],
+           m.botCount, m.humanCount, m.forfeitCount, JSON.stringify(m.resultsJsonb)],
         );
         const matchId = rows[0].id as string;
         for (const p of m.players) {

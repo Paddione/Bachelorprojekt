@@ -51,17 +51,22 @@ export class Renderer {
   private powerupSprites = new Map<string, Graphics>();
   private textures = new Map<string, Texture>();
   private ready = false;
+  private destroyed = false;
   private followTarget: string | null = null;
+  private initPromise: Promise<void>;
 
   constructor(canvas: HTMLCanvasElement) {
     this.app = new Application();
-    this.app.init({
+    this.initPromise = this.app.init({
       canvas,
       width: MAP_W,
       height: MAP_H,
       backgroundColor: KORE.floor,
       antialias: false,
-    }).then(() => this.initScene());
+    }).then(() => {
+      if (this.destroyed) return;
+      this.initScene();
+    });
   }
 
   private initScene() {
@@ -238,9 +243,12 @@ export class Renderer {
   }
 
   startTicker(getState: () => MatchState | null, myKey: string) {
-    this.app.ticker.add(() => {
-      const s = getState();
-      if (s) this.drawFrame(s, myKey);
+    this.initPromise.then(() => {
+      if (this.destroyed) return;
+      this.app.ticker.add(() => {
+        const s = getState();
+        if (s) this.drawFrame(s, myKey);
+      });
     });
   }
 
@@ -249,10 +257,16 @@ export class Renderer {
   }
 
   setTickerSpeed(speed: number): void {
-    this.app.ticker.speed = speed;
+    this.initPromise.then(() => {
+      if (this.destroyed) return;
+      this.app.ticker.speed = speed;
+    });
   }
 
   destroy() {
-    this.app.destroy(false, { children: true });
+    this.destroyed = true;
+    this.initPromise.then(() => {
+      try { this.app.destroy(false, { children: true }); } catch { /* not initialized */ }
+    });
   }
 }

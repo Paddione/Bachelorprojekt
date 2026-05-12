@@ -33,7 +33,7 @@ jobs:
           BRAND_NAME: Mentolder
           CONTACT_EMAIL: info@mentolder.de
           CONTACT_PHONE: ${{ secrets.CONTACT_PHONE }}
-          CONTACT_CITY: Hamburg
+          CONTACT_CITY: "L\u00fcneburg, Hamburg und Umgebung"
           CONTACT_NAME: Gerald Korczewski
           LEGAL_STREET: ${{ secrets.LEGAL_STREET }}
           LEGAL_ZIP: ${{ secrets.LEGAL_ZIP }}
@@ -77,4 +77,4 @@ jobs:
         run: |
           kubectl --context mentolder -n website rollout restart deployment/website
           kubectl --context mentolder -n website rollout status deployment/website --timeout=180s
-          echo "✓ Website live auf https://web.mentolder.de"
+          echo "\u2713 Website live auf https://web.mentolder.de"

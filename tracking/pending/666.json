@@ -1,0 +1,12 @@
+{
+  "pr_number": 666,
+  "title": "simplify build-website-korczewski workflow",
+  "description": "## Summary\n- Mirrors mentolder workflow simplification (f0922818): removes `env-resolve.sh` dependency.\n- Inlines per-brand env vars, hardcodes context (`korczewski-ha`) and namespace (`website-korczewski`).\n- Drops the `Load korczewski env secrets` step (writing to `.secrets/korczewski.yaml`) — was redundant since `env-resolve.sh` doesn't read that file anyway.\n- New optional GH secrets (empty values are fine, Dockerfile ignores these ARGs): `KORCZEWSKI_CONTACT_PHONE`, `KORCZEWSKI_LEGAL_STREET`, `KORCZEWSKI_LEGAL_ZIP`, `KORCZEWSKI_LEGAL_UST_ID`.\n\n## Test plan\n- [ ] Merge to main triggers workflow only on `website/**` change — no immediate run expected.\n- [ ] Next website PR exercise the workflow end-to-end.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "ci",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T13:44:28Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

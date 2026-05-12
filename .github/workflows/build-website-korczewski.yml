@@ -1,0 +1,93 @@
+name: Build & Deploy Website (korczewski)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/build-website-korczewski.yml'
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Website (korczewski)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load korczewski env secrets
+        env:
+          KORCZEWSKI_ENV: ${{ secrets.KORCZEWSKI_ENV_SECRETS }}
+        run: |
+          echo "$KORCZEWSKI_ENV" > environments/.secrets/korczewski.yaml
+
+      - name: Resolve env vars
+        id: env
+        run: |
+          source scripts/env-resolve.sh korczewski
+          echo "PROD_DOMAIN=$PROD_DOMAIN"            >> $GITHUB_ENV
+          echo "BRAND_NAME=$BRAND_NAME"              >> $GITHUB_ENV
+          echo "CONTACT_EMAIL=$CONTACT_EMAIL"        >> $GITHUB_ENV
+          echo "CONTACT_PHONE=$CONTACT_PHONE"        >> $GITHUB_ENV
+          echo "CONTACT_CITY=$CONTACT_CITY"          >> $GITHUB_ENV
+          echo "CONTACT_NAME=$CONTACT_NAME"          >> $GITHUB_ENV
+          echo "LEGAL_STREET=$LEGAL_STREET"          >> $GITHUB_ENV
+          echo "LEGAL_ZIP=$LEGAL_ZIP"                >> $GITHUB_ENV
+          echo "LEGAL_JOBTITLE=$LEGAL_JOBTITLE"      >> $GITHUB_ENV
+          echo "LEGAL_UST_ID=$LEGAL_UST_ID"          >> $GITHUB_ENV
+          echo "LEGAL_WEBSITE=$LEGAL_WEBSITE"        >> $GITHUB_ENV
+          echo "WEBSITE_IMAGE=$WEBSITE_IMAGE"        >> $GITHUB_ENV
+
+      - name: Build & push Docker image
+        run: |
+          IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-korczewski-website}"
+          docker build --no-cache \
+            -t "${IMAGE}:latest" \
+            -f website/Dockerfile \
+            --build-arg PROD_DOMAIN="$PROD_DOMAIN" \
+            --build-arg BRAND_NAME="$BRAND_NAME" \
+            --build-arg CONTACT_EMAIL="$CONTACT_EMAIL" \
+            --build-arg CONTACT_PHONE="$CONTACT_PHONE" \
+            --build-arg CONTACT_CITY="$CONTACT_CITY" \
+            --build-arg CONTACT_NAME="$CONTACT_NAME" \
+            --build-arg LEGAL_STREET="$LEGAL_STREET" \
+            --build-arg LEGAL_ZIP="$LEGAL_ZIP" \
+            --build-arg LEGAL_JOBTITLE="$LEGAL_JOBTITLE" \
+            --build-arg LEGAL_UST_ID="$LEGAL_UST_ID" \
+            --build-arg LEGAL_WEBSITE="$LEGAL_WEBSITE" \
+            .
+          docker push "${IMAGE}:latest"
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+
+      - name: Set up kubectl
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+
+      - name: Configure kubeconfig (korczewski)
+        env:
+          KUBECONFIG_B64: ${{ secrets.KORCZEWSKI_KUBECONFIG_B64 }}
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_B64" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Rollout restart website (korczewski)
+        run: |
+          source scripts/env-resolve.sh korczewski
+          NS="${WEBSITE_NAMESPACE:-website-korczewski}"
+          kubectl --context "$ENV_CONTEXT" -n "$NS" rollout restart deployment/website
+          kubectl --context "$ENV_CONTEXT" -n "$NS" rollout status deployment/website --timeout=180s
+          echo "✓ Website deployed to korczewski"

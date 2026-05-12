@@ -152,10 +152,16 @@ metadata:
   namespace: ${WEBSITE_NAMESPACE}
 spec:
   replicas: 1
-  # evidence-pvc is RWO; rolling update would deadlock on Multi-Attach. Recreate
-  # terminates the old pod first (~30s downtime) so the new pod can attach.
+  # /var/evidence is an emptyDir — rrweb test artifacts are ephemeral and the
+  # systemtest-cleanup CronJob GC's them. Without a RWO PVC blocking it, we
+  # can use RollingUpdate maxSurge:1 maxUnavailable:0 to keep one ready pod
+  # live during deploys, eliminating the ~60s 503 window from Recreate +
+  # `:latest` image pulls.
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: website
@@ -167,14 +173,6 @@ spec:
       serviceAccountName: website
       imagePullSecrets:
         - name: ghcr-pull-secret
-      # evidence-pvc is mounted at /var/evidence; the container runs as
-      # uid 1000 (node) but longhorn provisions volumes owned by root:root
-      # mode 755, so mkdir() inside the recorder upload path returns EACCES
-      # without fsGroup. OnRootMismatch makes the chown a one-shot on first
-      # mount instead of recursing the whole tree on every restart.
-      securityContext:
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
       # Lower ndots so FQDNs like shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local (4 dots)
       # are resolved as absolute names without iterating through search-path suffixes.
       # On clusters where the node inherits a home-router search domain (e.g. fritz.box),
@@ -409,8 +407,7 @@ spec:
             timeoutSeconds: 3
       volumes:
         - name: evidence
-          persistentVolumeClaim:
-            claimName: evidence-pvc
+          emptyDir: {}
 ---
 # ── Website Service ───────────────────────────────────────────────────────────
 apiVersion: v1

@@ -88,7 +88,11 @@ spec:
                     values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner-4]
       containers:
         - name: litellm
-          image: ghcr.io/berriai/litellm:main-stable
+          # Pinned by digest from the floating main-stable tag. To roll forward:
+          # docker buildx imagetools inspect ghcr.io/berriai/litellm:main-stable | grep Digest
+          # (or check the live cluster's imageID), then update both tag and digest below.
+          # Closes #653.
+          image: ghcr.io/berriai/litellm:main-stable@sha256:6c82d338a60e7b273ae46bf1d8db814d2856ae010f96c44eeadde574d3893f76
           args: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "2"]
           ports:
             - containerPort: 4000

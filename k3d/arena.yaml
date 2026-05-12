@@ -32,7 +32,10 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: arena-server
-          image: ghcr.io/paddione/arena-server:latest
+          # Pinned by digest. To roll forward: build/push a new arena-server image,
+          # then resolve the digest with `gh api /users/paddione/packages/container/arena-server/versions`
+          # and update this line. Closes #656.
+          image: ghcr.io/paddione/arena-server@sha256:9a03d51b72e01f7597842c694b8a3ea3a90dd5b8247f19d5e2418d43a81518cb
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

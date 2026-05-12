@@ -1,0 +1,12 @@
+{
+  "pr_number": 669,
+  "title": "add kore design assets, arena plan, and ci korczewski build",
+  "description": "## Summary\n- Adds the Kore Design System latest/ reference assets (HTML previews, JSX showcases, fonts, PNGs) for the korczewski brand\n- Adds the 2026-05-11 arena-foundation superpowers plan\n- Adds homepage-anon.png screenshot artifact\n- Adds Zone.Identifier WSL ADS files to .gitignore\n- Carries forward the auto build & deploy website to korczewski CI workflow commit\n\n## Test plan\n- [ ] CI green on this branch (offline tests + manifests)\n- [ ] No regressions on web.mentolder.de or web.korczewski.de\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": null,
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T14:02:46Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

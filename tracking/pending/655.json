@@ -1,0 +1,12 @@
+{
+  "pr_number": 655,
+  "title": "remove stray ArenaBanner import bleeding into rendered body",
+  "description": "## Summary\n- Removes the spurious `import ArenaBanner from '../components/arena/ArenaBanner.svelte';` line that Gemini had placed **after** the closing `---` of each Astro layout, where it was being rendered as visible text at the top of every page on web.mentolder.de (and would have hit web.korczewski.de too).\n- Adds the actually intended `<ArenaBanner client:load />` component as the first child of each `<body>`, as the Arena Plan 1 (\"Modify — website/\") section called for.\n- Affects `Layout.astro`, `AdminLayout.astro`, `PortalLayout.astro` — net diff is +3 / −3 lines (one fix per file).\n\n## Test plan\n- [ ] After merge: `task website:deploy ENV=mentolder` and `task website:deploy ENV=korczewski`\n- [ ] Visit https://web.mentolder.de while logged in — no literal import line visible at top of page\n- [ ] Visit https://web.korczewski.de while logged in — same check\n- [ ] `<ArenaBanner client:load />` is dormant (state.phase === 'idle') until an admin opens a lobby, so it should render nothing by default; verify no extra whitespace/layout shift at top of `/`, `/admin`, `/portal`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "arena",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T12:00:19Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

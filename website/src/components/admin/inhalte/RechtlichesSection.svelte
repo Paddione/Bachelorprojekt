@@ -1,73 +1,55 @@
 <script lang="ts">
   let { initialData }: { initialData: Record<string, string> } = $props();
+  let data=$state(JSON.parse(JSON.stringify(initialData)));
+  let saving=$state<string|null>(null);let msg=$state('');let msgOk=$state(true);
 
-  let data = $state(JSON.parse(JSON.stringify(initialData)));
-  let saving = $state(false);
-  let msg = $state('');
-  let msgOk = $state(true);
+  const PAGES=[
+    {key:'impressum-zusatz',label:'Impressum-Zusatz',hint:'Zusätzlicher HTML-Block im Impressum (z.B. Haftungsausschluss)'},
+    {key:'datenschutz',label:'Datenschutzerklärung',hint:'Vollständiger HTML-Inhalt der Datenschutzseite'},
+    {key:'agb',label:'AGB',hint:'Vollständiger HTML-Inhalt der AGB-Seite'},
+    {key:'barrierefreiheit',label:'Barrierefreiheit',hint:'Vollständiger HTML-Inhalt der Barrierefreiheitsseite'},
+  ];
 
-  async function save() {
-    saving = true; msg = '';
-    try {
-      const res = await fetch('/api/admin/rechtliches/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const json = await res.json();
-      if (res.ok) { msg = 'Gespeichert.'; msgOk = true; }
-      else { msg = json.error ?? 'Fehler.'; msgOk = false; }
-    } catch { msg = 'Verbindungsfehler.'; msgOk = false; }
-    finally { saving = false; }
+  async function save(key:string){
+    saving=key;msg='';
+    try{
+      const res=await fetch(`/api/admin/legal/${key}/save`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:data[key]})});
+      const json=await res.json();
+      if(res.ok){msg='Gespeichert.';msgOk=true;}else{msg=json.error??'Fehler.';msgOk=false;}
+    }catch{msg='Verbindungsfehler.';msgOk=false;}finally{saving=null;}
   }
 
-  const inputCls = 'w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:outline-none focus:border-gold/50 font-mono';
-  const sectionCls = 'p-6 bg-dark-light rounded-xl border border-dark-lighter space-y-4';
+  const inputCls='w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:outline-none focus:border-gold/50 font-mono';
+  const labelCls='block text-xs text-muted mb-1';
+  const sectionCls='p-6 bg-dark-light rounded-xl border border-dark-lighter space-y-4';
 </script>
 
 <div class="pt-6 pb-20 space-y-10">
   <div class="flex justify-between items-start">
-    <div>
-      <h2 class="text-2xl font-bold text-light font-serif">Rechtliches</h2>
-      <p class="text-muted mt-1 text-sm">Impressum, Datenschutz, AGB, Barrierefreiheit</p>
+    <div><h2 class="text-2xl font-bold text-light font-serif">Rechtliches</h2><p class="text-muted mt-1 text-sm">Impressum, Datenschutz, AGB, Barrierefreiheit</p></div>
+  </div>
+
+  {#if msg}<div class={`p-4 rounded-xl text-sm ${msgOk?'bg-green-500/10 border border-green-500/30 text-green-400':'bg-red-500/10 border border-red-500/30 text-red-400'}`}>{msg}</div>{/if}
+
+  <div class="p-4 bg-dark-light rounded-xl border border-gold/20 space-y-1">
+    <p class="text-xs font-mono uppercase tracking-widest text-gold mb-2">Zentral gepflegte Elemente</p>
+    <p class="text-sm text-muted">🔒 <strong class="text-light">Footer-Links (Impressum, Datenschutz, AGB)</strong> sind automatisch vorhanden – keine manuelle Pflege nötig.</p>
+    <p class="text-sm text-muted">🔒 <strong class="text-light">Footer & Header-Standort</strong> → <a href="/admin/inhalte?tab=website&section=kontakt" class="text-gold hover:underline">Kontakt-Tab</a></p>
+  </div>
+
+  {#each PAGES as page}
+    <div class={sectionCls}>
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-xl font-bold text-light font-serif">{page.label}</h3>
+          <p class="text-xs text-muted mt-1">{page.hint}</p>
+        </div>
+        <button onclick={() => save(page.key)} disabled={saving===page.key}
+          class="px-4 py-2 bg-gold text-dark font-semibold rounded-lg text-sm hover:bg-gold/80 disabled:opacity-50">
+          {saving===page.key?'Speichere…':'Speichern'}
+        </button>
+      </div>
+      <div><label class={labelCls}>HTML-Inhalt</label><textarea bind:value={data[page.key]} rows={12} class="{inputCls} resize-y"></textarea></div>
     </div>
-    <button onclick={save} disabled={saving} class="px-5 py-2 bg-gold text-dark font-semibold rounded-lg hover:bg-gold/90 disabled:opacity-50">
-      {saving ? 'Speichere…' : 'Speichern'}
-    </button>
-  </div>
-
-  <div class="p-4 rounded-xl text-sm bg-blue-500/10 border border-blue-500/30 text-blue-300 leading-relaxed">
-    <strong>Hinweis:</strong> Wird ein Feld leer gelassen, zeigt die öffentliche Seite den Standard-Text aus der Server-Konfiguration.
-    Sobald hier HTML eingetragen ist, ersetzt es den Standard-Text auf der jeweiligen Seite vollständig.
-    Live-Vorschau:
-    <a href="/impressum" target="_blank" rel="noopener" class="underline hover:text-blue-200">Impressum</a> ·
-    <a href="/datenschutz" target="_blank" rel="noopener" class="underline hover:text-blue-200">Datenschutz</a> ·
-    <a href="/agb" target="_blank" rel="noopener" class="underline hover:text-blue-200">AGB</a> ·
-    <a href="/barrierefreiheit" target="_blank" rel="noopener" class="underline hover:text-blue-200">Barrierefreiheit</a>.
-  </div>
-
-  {#if msg}
-    <div class={`p-4 rounded-xl text-sm ${msgOk ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>{msg}</div>
-  {/if}
-
-  <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Impressum (HTML)</h3>
-    <p class="text-xs text-muted -mt-2">Vollständiger Impressums-Text als HTML. Leer lassen, um den Standard-Text aus der Konfiguration zu zeigen.</p>
-    <textarea bind:value={data['impressum-zusatz']} rows={20} class={inputCls}></textarea>
-  </div>
-  <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Datenschutzerklärung (HTML)</h3>
-    <p class="text-xs text-muted -mt-2">Vollständiger Datenschutz-Text als HTML. Leer lassen für den Standard-Text.</p>
-    <textarea bind:value={data['datenschutz']} rows={25} class={inputCls}></textarea>
-  </div>
-  <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">AGB (HTML)</h3>
-    <p class="text-xs text-muted -mt-2">Vollständige AGB als HTML. Leer lassen für den Standard-Text.</p>
-    <textarea bind:value={data['agb']} rows={25} class={inputCls}></textarea>
-  </div>
-  <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Barrierefreiheit (HTML)</h3>
-    <p class="text-xs text-muted -mt-2">Vollständige Barrierefreiheits-Erklärung als HTML. Leer lassen für den Standard-Text.</p>
-    <textarea bind:value={data['barrierefreiheit']} rows={20} class={inputCls}></textarea>
-  </div>
+  {/each}
 </div>

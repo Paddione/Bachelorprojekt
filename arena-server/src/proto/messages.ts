@@ -23,23 +23,35 @@ export interface MatchResult {
   forfeit: boolean;
 }
 
-export interface MatchState {
-  // Plan 1 stub: extended in Plan 2.
-  tick: number;
-  phase: LobbyPhase;
-}
+import type { MatchState, Vec2, WeaponId, WeaponState,
+              ItemKind, PowerupKind, PlayerState,
+              GroundItem, GroundPowerup, ZoneState, DoorState } from '../game/state';
+
+export type { MatchState, Vec2, WeaponId, WeaponState,
+         ItemKind, PowerupKind, PlayerState,
+         GroundItem, GroundPowerup, ZoneState,
+         DoorState };
 
 export type DiffOp = { p: string; v: unknown };
 export type GameEvent =
-  | { e: 'kill'; killer: string; victim: string }
-  | { e: 'pickup'; player: string; item: string }
-  | { e: 'dodge'; player: string };
+  | { e: 'kill';           killer: string; victim: string; weapon: string }
+  | { e: 'kill-zone';      victim: string }
+  | { e: 'pickup-item';    player: string; kind: string }
+  | { e: 'pickup-powerup'; player: string; kind: string }
+  | { e: 'door-open';      doorId: string; by: string }
+  | { e: 'dodge';          player: string }
+  | { e: 'forfeit';        player: string }
+  | { e: 'disconnect';     player: string }
+  | { e: 'slow-mo' }
+  | { e: 'zone-shrink-start' }
+  | { e: 'powerup-expire'; player: string; kind: string };
 
 export type ClientMsg =
   | { t: 'lobby:open' }
   | { t: 'lobby:join'; code: string }
   | { t: 'lobby:ready'; ready: boolean }
   | { t: 'lobby:leave' }
+  | { t: 'lobby:character'; characterId: string }
   | { t: 'input'; seq: number; wasd: number; aim: number;
         fire: boolean; melee: boolean; pickup: boolean; dodge: boolean; tick: number }
   | { t: 'spectator:follow'; target: string | null }
@@ -57,7 +69,7 @@ export type ServerMsg =
   | { t: 'error'; code: string; message: string };
 
 const CLIENT_TYPES = new Set([
-  'lobby:open','lobby:join','lobby:ready','lobby:leave','input',
+  'lobby:open','lobby:join','lobby:ready','lobby:leave','lobby:character','input',
   'spectator:follow','rematch:vote','forfeit','auth:refresh',
 ]);
 

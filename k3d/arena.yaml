@@ -30,12 +30,20 @@ spec:
         - name: ghcr-pull-secret
       nodeSelector:
         kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-location
+                    operator: In
+                    values: [hetzner]
       containers:
         - name: arena-server
           # Pinned by digest. To roll forward: build/push a new arena-server image,
           # then resolve the digest with `gh api /users/paddione/packages/container/arena-server/versions`
           # and update this line. Closes #656.
-          image: ghcr.io/paddione/arena-server@sha256:9a03d51b72e01f7597842c694b8a3ea3a90dd5b8247f19d5e2418d43a81518cb
+          image: ghcr.io/paddione/arena-server@sha256:d87a78fb9037de107e30b5b279c32c4605f7458a274d69647143888ca5812f9d
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -46,6 +54,8 @@ spec:
           ports:
             - containerPort: 8090
           env:
+            - name: NODE_OPTIONS
+              value: "--dns-result-order=ipv4first"
             - name: PORT
               value: "8090"
             - name: LOG_LEVEL

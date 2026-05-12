@@ -28,23 +28,57 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin') && user.brand ==
 </AdminLayout>
 
 <script>
-  const btn = document.getElementById('open-lobby');
+  const btn = document.getElementById('open-lobby') as HTMLButtonElement | null;
+  const tbody = document.querySelector('#recent tbody') as HTMLElement | null;
+
   btn?.addEventListener('click', async () => {
-    btn.setAttribute('disabled', '1');
+    btn.disabled = true;
     const res = await fetch('/api/arena/start', { method: 'POST' });
-    if (!res.ok) { alert('failed: ' + res.status); btn.removeAttribute('disabled'); return; }
-    const { code } = await res.json();
-    window.location.href = `/portal/arena?lobby=${code}`;
+    if (!res.ok) { alert('failed: ' + res.status); btn.disabled = false; return; }
+    const { code } = await res.json() as { code: string };
+    window.location.href = `/portal/arena?lobby=${encodeURIComponent(code)}`;
   });
 
-  // Lazy populate recent matches (best-effort; arena-server may be unreachable in dev).
-  fetch('/api/arena/token', { method: 'POST' })
-    .then(r => r.ok ? r.json() : null)
-    .then(async (j) => {
-      if (!j) return;
-      // Recent-matches uses the same WS host; reuse /api/arena/active is overkill here.
-      // Defer to Plan 2 if we want a dedicated endpoint.
-    });
+  async function loadMatches() {
+    if (!tbody) return;
+    let rows: Array<{ started_at: string; code?: string; winner_player?: string; human_count?: number; bot_count?: number }>;
+    try {
+      const res = await fetch('/api/arena/matches');
+      rows = res.ok ? await res.json() : [];
+    } catch { rows = []; }
+
+    if (rows.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.setAttribute('colspan', '5');
+      td.textContent = 'No matches yet.';
+      tr.appendChild(td);
+      tbody.replaceChildren(tr);
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    for (const m of rows.slice(0, 20)) {
+      const tr = document.createElement('tr');
+      const whenStr = new Date(m.started_at).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' });
+      const cells = [
+        whenStr,
+        m.code ?? '',
+        m.winner_player ? m.winner_player.split('@')[0] : '',
+        String(m.human_count ?? 0),
+        String(m.bot_count ?? 0),
+      ];
+      for (const text of cells) {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      }
+      fragment.appendChild(tr);
+    }
+    tbody.replaceChildren(fragment);
+  }
+
+  loadMatches();
 </script>
 
 <style>

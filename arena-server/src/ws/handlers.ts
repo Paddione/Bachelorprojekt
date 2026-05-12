@@ -4,6 +4,7 @@ import { isClientMsg } from '../proto/messages';
 import type { Lifecycle } from '../lobby/lifecycle';
 import type { ArenaClaims } from '../auth/jwt';
 import { playerKey } from '../auth/jwt';
+import { getLobby } from '../lobby/registry';
 
 export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: ArenaClaims }) {
   const key = playerKey(deps.user);
@@ -23,6 +24,11 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
         case 'lobby:leave':
           // best-effort: caller is responsible for emitting state via lifecycle
           break;
+        case 'lobby:character':
+          for (const room of socket.rooms) {
+            if (room.startsWith('lobby:')) deps.lc.setCharacter(room.slice(6), key, m.characterId);
+          }
+          break;
         case 'rematch:vote':
           // join+vote require the socket to know its lobby; v1: scan rooms
           for (const room of socket.rooms) {
@@ -30,10 +36,18 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
           }
           break;
         case 'forfeit':
-          // Plan 1: no game in flight. Acknowledge only.
+          for (const room of socket.rooms) {
+            if (room.startsWith('lobby:')) {
+              deps.lc.forfeit(room.slice(6), key);
+            }
+          }
           break;
         case 'input':
-          // Plan 1: drop.
+          for (const room of socket.rooms) {
+            if (room.startsWith('lobby:')) {
+              getLobby(room.slice(6))?.tick?.pushInput(key, m);
+            }
+          }
           break;
         case 'auth:refresh':
           // Plan 1: token re-validation happens on next reconnect.

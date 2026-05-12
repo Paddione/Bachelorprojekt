@@ -630,6 +630,18 @@
     "kind": "shell"
   },
   {
+    "id": "FA-38",
+    "file": "tests/e2e/specs/fa-38-arena-game-client.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-39",
+    "file": "tests/local/FA-39.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

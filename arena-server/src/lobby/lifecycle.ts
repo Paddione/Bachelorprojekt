@@ -1,14 +1,22 @@
 import { makeCode, putLobby, getLobby, activeLobby, removeLobby, type Lobby } from './registry';
 import { fillBots } from './botfill';
 import {
-  LOBBY_OPEN_DURATION_MS, LOBBY_STARTING_DURATION_MS, LOBBY_RESULTS_DURATION_MS,
+  LOBBY_OPEN_DURATION_MS, LOBBY_STARTING_DURATION_MS, LOBBY_RESULTS_DURATION_MS, SLOW_MO_DURATION_MS,
 } from '../game/constants';
 import type { PlayerSlot } from '../proto/messages';
 import type { Repo } from '../db/repo';
+import { randomUUID } from 'node:crypto';
+import { Tick } from '../game/tick';
+import { BotAI } from '../bots/ai';
+import { buildGrid } from '../bots/nav';
+import { CONCRETE_ARENA } from '../game/map';
+import type { Broadcasters } from '../ws/broadcasters';
+import type { MatchResult } from '../proto/messages';
 
 export interface LifecycleDeps {
   onBroadcast: (code: string) => void;
   persist: Pick<Repo, 'insertLobby' | 'updateLobbyPhase' | 'insertMatchWithPlayers'>;
+  bc: Broadcasters;
 }
 
 export interface OpenRequest { hostKey: string; hostName: string; }
@@ -61,6 +69,17 @@ export class Lifecycle {
     this.deps.onBroadcast(code);
   }
 
+  setCharacter(code: string, playerKey: string, characterId: string): void {
+    const VALID = new Set(['blonde-guy', 'brown-guy', 'long-red-girl', 'blonde-long-girl']);
+    if (!VALID.has(characterId)) return;
+    const lobby = getLobby(code);
+    if (!lobby || lobby.phase !== 'open') return;
+    const slot = lobby.players.get(playerKey);
+    if (!slot || slot.isBot) return;
+    slot.characterId = characterId;
+    this.deps.onBroadcast(code);
+  }
+
   private toStarting(code: string) {
     const lobby = getLobby(code);
     if (!lobby || lobby.phase !== 'open') return;
@@ -77,39 +96,88 @@ export class Lifecycle {
     if (!lobby) return;
     lobby.phase = 'in-match';
     this.deps.persist.updateLobbyPhase(code, 'in-match').catch(() => {});
+
+    const matchId = randomUUID();
+    const grid = buildGrid(CONCRETE_ARENA.walls);
+    const bots = new Map<string, BotAI>();
+    for (const player of lobby.players.values()) {
+      if (player.isBot) bots.set(player.key, new BotAI(player.key, grid));
+    }
+
+    const tick = new Tick(
+      { matchId, players: lobby.players, bots },
+      {
+        broadcastSnapshot: (mid, state) => this.deps.bc.emitMatchSnapshot(code, mid, state),
+        broadcastDiff: (mid, t, ops) => this.deps.bc.emitMatchDiff(code, mid, t, ops),
+        broadcastEvent: (mid, events) => this.deps.bc.emitMatchEvent(code, mid, events),
+        onEnd: (winner, results) => {
+          this.deps.bc.emitMatchEnd(code, matchId, results);
+          this.toSlowMo(code, winner, results, matchId, lobby.openedAt);
+        },
+      },
+    );
+    lobby.tick = tick;
+    tick.start();
     this.deps.onBroadcast(code);
-    // Plan 1: no tick loop. Plan 2 replaces this stub with the real tick.
-    // To keep the lifecycle exercised end-to-end, hold in-match for 3s then
-    // synthesise a results phase with the host as winner.
-    lobby.timers.match = setTimeout(() => this.toResults(code, lobby.hostKey), 3_000);
   }
 
-  toResults(code: string, winnerKey: string | null): void {
+  private toSlowMo(
+    code: string, winnerKey: string | null, results: MatchResult[],
+    matchId: string, openedAt: number,
+  ): void {
+    const lobby = getLobby(code);
+    if (!lobby) return;
+    lobby.phase = 'slow-mo';
+    this.deps.onBroadcast(code);
+    lobby.timers.slowmo = setTimeout(
+      () => this.toResultsReal(code, winnerKey, results, matchId, openedAt),
+      SLOW_MO_DURATION_MS,
+    );
+  }
+
+  private toResultsReal(
+    code: string, winnerKey: string | null, results: MatchResult[],
+    matchId: string, openedAt: number,
+  ): void {
     const lobby = getLobby(code);
     if (!lobby) return;
     lobby.phase = 'results';
     this.deps.persist.updateLobbyPhase(code, 'results').catch(() => {});
-    
-    // Plan 1 stub: Insert mock results row to exercise DB write path
+
     const now = new Date();
+    const botCount = [...lobby.players.values()].filter(p => p.isBot).length;
+    const humanCount = [...lobby.players.values()].filter(p => !p.isBot).length;
+    const forfeitCount = results.filter(r => r.forfeit).length;
+
     this.deps.persist.insertMatchWithPlayers({
       lobbyCode: code,
-      openedAt: new Date(lobby.openedAt),
-      startedAt: new Date(now.getTime() - 30_000),
+      openedAt: new Date(openedAt),
+      startedAt: now,
       endedAt: now,
       winnerPlayer: winnerKey,
-      botCount: [...lobby.players.values()].filter(p => p.isBot).length,
-      humanCount: [...lobby.players.values()].filter(p => !p.isBot).length,
-      forfeitCount: 0,
-      resultsJsonb: { stub: true },
-      players: [...lobby.players.values()].map((p, i) => ({
-        playerKey: p.key, displayName: p.displayName, brand: p.brand,
-        isBot: p.isBot, characterId: p.characterId, place: i + 1, kills: 0, deaths: 1, forfeit: false,
+      botCount, humanCount, forfeitCount,
+      resultsJsonb: results,
+      players: results.map((r, i) => ({
+        playerKey: r.playerKey, displayName: r.displayName,
+        brand: lobby.players.get(r.playerKey)?.brand ?? null,
+        isBot: r.isBot, characterId: lobby.players.get(r.playerKey)?.characterId ?? 'blonde-guy',
+        place: r.place, kills: r.kills, deaths: r.deaths, forfeit: r.forfeit,
       })),
-    }).catch(e => console.error('stub match insert failed:', e));
+    }).catch(e => console.error('match insert failed:', e));
 
     this.deps.onBroadcast(code);
     lobby.timers.results = setTimeout(() => this.toClosed(code), LOBBY_RESULTS_DURATION_MS);
+  }
+
+  // Keep public toResults for lifecycle test compatibility — redirects to the real one with stub data
+  toResults(code: string, winnerKey: string | null): void {
+    this.toResultsReal(code, winnerKey, [], 'stub', getLobby(code)?.openedAt ?? Date.now());
+  }
+
+  forfeit(code: string, playerKey: string): void {
+    const lobby = getLobby(code);
+    if (!lobby || lobby.phase !== 'in-match') return;
+    lobby.tick?.forfeit(playerKey);
   }
 
   voteRematch(code: string, playerKey: string, yes: boolean): void {
@@ -139,6 +207,7 @@ export class Lifecycle {
     const lobby = getLobby(code);
     if (!lobby) return;
     Object.values(lobby.timers).forEach(t => t && clearTimeout(t));
+    lobby.tick?.stop();
     lobby.phase = 'closed';
     this.deps.persist.updateLobbyPhase(code, 'closed').catch(() => {});
     this.deps.onBroadcast(code);

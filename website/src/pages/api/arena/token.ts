@@ -18,7 +18,7 @@ export const POST: APIRoute = async (ctx) => {
   const body = new URLSearchParams({
     grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
     client_id: 'arena',
-    subject_token: user.accessToken,
+    subject_token: user.access_token,
     subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
     audience: 'arena',
   });

@@ -16,7 +16,7 @@ describe('Lifecycle', () => {
 
   it('opens then auto-fills bots and enters in-match after 60s', () => {
     const onBroadcast = vi.fn();
-    const lc = new Lifecycle({ onBroadcast, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any });
+    const lc = new Lifecycle({ onBroadcast, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any, bc: { emitMatchSnapshot: vi.fn(), emitMatchDiff: vi.fn(), emitMatchEvent: vi.fn(), emitMatchEnd: vi.fn() } as any });
     const { code } = lc.open({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
     const lobby = registry.getLobby(code)!;
     expect(lobby.phase).toBe('open');
@@ -30,13 +30,13 @@ describe('Lifecycle', () => {
   });
 
   it('rejects a second open while one is active', () => {
-    const lc = new Lifecycle({ onBroadcast: () => {}, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any });
+    const lc = new Lifecycle({ onBroadcast: () => {}, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any, bc: { emitMatchSnapshot: vi.fn(), emitMatchDiff: vi.fn(), emitMatchEvent: vi.fn(), emitMatchEnd: vi.fn() } as any });
     lc.open({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
     expect(() => lc.open({ hostKey: 'other@mentolder', hostName: 'X' })).toThrow(/409|conflict/i);
   });
 
   it('starts at 5s when 4 humans join', () => {
-    const lc = new Lifecycle({ onBroadcast: () => {}, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any });
+    const lc = new Lifecycle({ onBroadcast: () => {}, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any, bc: { emitMatchSnapshot: vi.fn(), emitMatchDiff: vi.fn(), emitMatchEvent: vi.fn(), emitMatchEnd: vi.fn() } as any });
     const { code } = lc.open({ hostKey: 'h1@mentolder', hostName: 'h1' });
     lc.join(code, humanSlot('h2@mentolder'));
     lc.join(code, humanSlot('h3@mentolder'));

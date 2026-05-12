@@ -1,4 +1,5 @@
 import type { PlayerSlot } from '../proto/messages';
+import type { Tick } from '../game/tick';
 
 export interface Lobby {
   code: string;
@@ -9,6 +10,7 @@ export interface Lobby {
   players: Map<string, PlayerSlot>;     // key = sub@brand or bot_<n>
   rematchYes: Set<string>;
   timers: { [k: string]: NodeJS.Timeout | undefined };
+  tick?: Tick;
 }
 
 const lobbies = new Map<string, Lobby>();

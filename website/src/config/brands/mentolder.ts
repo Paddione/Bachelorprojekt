@@ -4,7 +4,7 @@ export const mentolderConfig: BrandConfig = {
   brand: 'mentolder',
   meta: {
     siteTitle: 'mentolder',
-    siteDescription: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungspersönlichkeiten und Menschen in Veränderung.',
+    siteDescription: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungsperslichkeiten und Menschen in Veränderung.',
   },
   contact: {
     name: process.env.CONTACT_NAME ?? '',
@@ -162,7 +162,7 @@ export const mentolderConfig: BrandConfig = {
       slug: 'fuehrung-persoenlichkeit',
       title: 'Führung & Persönlichkeit',
       description: 'Gute Führung beginnt nicht mit Methoden. Sie beginnt mit Haltung. Für Führungskräfte, die verstehen wollen, wer sie als Führungsperson sind – und wer sie sein möchten.',
-      icon: '🧭',
+      icon: '🦭',
       features: [
         'Standortbestimmung als Führungsperson',
         'Führungsstil entwickeln & stärken',
@@ -187,10 +187,11 @@ export const mentolderConfig: BrandConfig = {
               'Wenn ich Frauen in Führung begleite, geht es mir nicht darum, ihnen einen männlichen Führungsstil beizubringen. Sondern darum, ihren eigenen zu stärken – und die Strukturen zu verstehen, in denen sie sich bewegen.',
             ],
           },
-          { title: '01 — Standortbestimmung — Wer bin ich als Führungsperson?', items: ['Wir schauen auf Ihre Haltung, Ihre Muster, Ihre Stärken – und auf das, was Sie vielleicht noch nicht sehen.'] },
-          { title: '02 — Klarheit — Was möchte ich verändern?', items: ['Gemeinsam definieren wir, wo Sie hinwollen – und was Sie dafür brauchen.'] },
-          { title: '03 — Begleitung — Der Weg dorthin', items: ['Individuelle Sessions – ehrlich, direkt, auf Augenhöhe.'] },
-          { title: '04 — Transfer — Wirkung in der Praxis', items: ['Was Sie hier entwickeln, wirkt in Ihrem Alltag – in Meetings, Entscheidungen, Gesprächen.'] },
+          { title: 'Rolle & Identität', items: ['Wer bin ich als Führungsperson – und wer will ich sein?'] },
+          { title: 'Entscheidungen in Unsicherheit', items: ['Wie entscheide ich, wenn keine Antwort eindeutig ist?'] },
+          { title: 'Konflikte & Druck', items: ['Wie bleibe ich handlungsfähig, wenn es schwierig wird?'] },
+          { title: 'Übergänge & Veränderung', items: ['Neue Rolle, Beförderung, Abgabe von Verantwortung'] },
+          { title: 'Authentizität', items: ['Führen, ohne sich zu verbiegen'] },
         ],
         pricing: [
           { label: 'Kostenloses Erstgespräch buchen', price: 'Ab 150 €', highlight: true },
@@ -285,7 +286,7 @@ export const mentolderConfig: BrandConfig = {
       id: 'digital-50plus',
       title: '50+ Digital',
       icon: '💻',
-      description: 'Für Menschen ab 50, die digitale Alltagstools sicher nutzen und selbstständig agieren möchten — ohne Druck, im eigenen Tempo.',
+      description: 'Für Menschen ab 50, die digitale Alltagstools sicher nutzen und selbständig agieren möchten — ohne Druck, im eigenen Tempo.',
       services: [
         { key: '50plus-digital-einzel', name: 'Einzelstunde (60 Min.)', price: '60 €', unit: '/ Stunde', desc: 'Individuelle 1:1 Begleitung bei Ihnen zuhause oder in ruhiger Umgebung.' },
         { key: '50plus-digital-paket-s', name: 'Paket S — 6 Sessions', price: '330 €', unit: '', desc: '6 Stunden individuelle Begleitung. Flexibel planbar.', highlight: true },
@@ -328,7 +329,7 @@ export const mentolderConfig: BrandConfig = {
       { year: '1980-2023', title: 'Polizei Hamburg', desc: 'Über 30 Jahre in Führungspositionen. Personalführung, Organisationsentwicklung, Strategie.' },
       { year: 'ca. 2016/2017', title: 'KI-Pionier', desc: 'Erste deutsche Polizeibehörde mit KI/Gesichtserkennung. BOS-Digitalfunk bundesweit führend gemacht.' },
       { year: '2023', title: 'Digital Café', desc: '6 Monate intensives Digital Café im Altenheim. Über 50 Teilnehmer individuell begleitet.' },
-      { year: 'Seit 2024', title: 'Selbstständig', desc: 'Coach und Digitaler Begleiter. Führungskräfte-Coaching und Unternehmensberatung.' },
+      { year: 'Seit 2024', title: 'Selbständig', desc: 'Coach und Digitaler Begleiter. Führungskräfte-Coaching und Unternehmensberatung.' },
     ],
     notDoing: [
       { title: 'Keine technische Umsetzung', text: 'Ich berate, entwickle Strategien und begleite Change-Prozesse. Programmierung überlasse ich Spezialisten.' },
@@ -337,7 +338,7 @@ export const mentolderConfig: BrandConfig = {
     privateText: 'Ich lebe in {city}, bin verheiratet, habe zwei erwachsene Kinder. In meiner Freizeit bin ich viel zu Fuß unterwegs – Bewegung ist für mich Meditation. Und ja, ich bin selbst Teil der Generation 50+ (65 Jahre) – ich weiß also aus eigener Erfahrung, wovon ich spreche.',
     warumdieserName: {
       title: 'Warum dieser Name',
-      text: 'Als ich „mentolder" kreiert habe, war die Idee simpel: Mentor trifft Older – Erfahrung, die begleitet. Was ich dabei nicht bedacht habe? Dass der Name vielleicht männlich klingen könnte. Er ist es nicht. Ich arbeite mit Führungspersönlichkeiten, die etwas bewegen wollen – Frauen wie Männer.',
+      text: 'Als ich „mentolder“ kreiert habe, war die Idee simpel: Mentor trifft Older – Erfahrung, die begleitet. Was ich dabei nicht bedacht habe? Dass der Name vielleicht männlich klingen könnte. Er ist es nicht. Ich arbeite mit Führungsperslichkeiten, die etwas bewegen wollen – Frauen wie Männer.',
     },
   },
   kontakt: {
@@ -349,7 +350,7 @@ export const mentolderConfig: BrandConfig = {
     showSteps: false,
   },
   faq: [
-    { question: 'Für wen ist 50+ digital geeignet?', answer: 'Für alle Menschen 50+, die digital selbstständiger werden möchten. Keine Vorkenntnisse nötig – wir fangen genau da an, wo Sie stehen.' },
+    { question: 'Für wen ist 50+ digital geeignet?', answer: 'Für alle Menschen 50+, die digital selbständiger werden möchten. Keine Vorkenntnisse nötig – wir fangen genau da an, wo Sie stehen.' },
     { question: 'Wie läuft ein Coaching ab?', answer: 'Wir starten mit einem kostenlosen Erstgespräch (30-45 Min.), um Ihre Situation zu verstehen. Danach arbeiten wir in individuellen Sessions an Ihren Zielen – online oder vor Ort.' },
     { question: 'Arbeiten Sie auch online?', answer: 'Ja! Coaching und Beratung funktionieren hervorragend online per Video. 50+ digital biete ich bevorzugt vor Ort in {city} und Umgebung an.' },
     { question: 'Was kostet ein Erstgespräch?', answer: 'Nichts. Das Erstgespräch ist kostenlos und unverbindlich. Wir lernen uns kennen und klären, ob eine Zusammenarbeit passt.' },

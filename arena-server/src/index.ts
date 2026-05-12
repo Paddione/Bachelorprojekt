@@ -9,6 +9,7 @@ import { runMigrations } from './db/migrate';
 import { makeRepo } from './db/repo';
 import { Lifecycle } from './lobby/lifecycle';
 import { makeRoutes } from './http/routes';
+import { makeAuthMiddleware } from './http/middleware';
 import { startWs } from './ws/server';
 import { makeBroadcasters } from './ws/broadcasters';
 
@@ -35,7 +36,8 @@ async function main() {
   (httpServer as any)._arenaLc = lc;
   io.use((socket, next) => { (socket as any).lc = lc; next(); });
 
-  app.use('/', makeRoutes({ lc, repo }));
+  const auth = makeAuthMiddleware({ issuers: cfg.issuers });
+  app.use('/', makeRoutes({ lc, repo, auth }));
 
   httpServer.listen(cfg.port, () => log.info({ port: cfg.port }, 'arena-server listening'));
 

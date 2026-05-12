@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { requireUser, requireAdmin } from './middleware';
+import type { AuthMiddleware } from './middleware';
 import type { Lifecycle } from '../lobby/lifecycle';
 import { activeLobby } from '../lobby/registry';
 import type { Repo } from '../db/repo';
 
-export function makeRoutes(deps: { lc: Lifecycle; repo: Repo }) {
+export function makeRoutes(deps: { lc: Lifecycle; repo: Repo; auth: AuthMiddleware }) {
   const r = Router();
+  const { requireUser, requireAdmin } = deps.auth;
 
   r.get('/healthz', (_req, res) => {
     res.json({ ok: true, ts: Date.now() });

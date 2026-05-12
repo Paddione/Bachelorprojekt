@@ -31,6 +31,7 @@ async function main() {
   const lc = new Lifecycle({
     onBroadcast: (code) => bc.emitLobbyState(code),
     persist: repo,
+    bc,
   });
   // late-bind lc into ws layer
   (httpServer as any)._arenaLc = lc;

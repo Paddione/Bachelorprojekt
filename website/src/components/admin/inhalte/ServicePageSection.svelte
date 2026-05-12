@@ -1,8 +1,8 @@
 <!--
   ServicePageSection.svelte
-  Universeller Admin-Editor für alle Service-Seiten (/coaching, /fuehrung-persoenlichkeit,
-  /50plus-digital, /ki-transition, /beratung, ...).
-  Speichert via /api/admin/service-page/save?slug=<slug> in service_config.
+  Universeller Admin-Editor für alle Service-Seiten.
+  SEO wird zentral über den SEO-Tab gepflegt – hier nur Hinweis.
+  Zentrale Elemente (Header, Footer, Navigation) werden über Kontakt-Tab gepflegt.
 -->
 <script lang="ts">
   export interface ServiceSection {
@@ -23,25 +23,23 @@
   }
 
   export interface ServicePageData {
-    // Karte (Angebote-Übersicht)
     cardTitle: string;
     cardDescription: string;
     cardPrice: string;
     cardIcon: string;
     cardFeatures: string[];
-    // Seiten-Inhalt
     headline: string;
     intro: string;
-    introNote: string;         // Persönliche Notiz (kursiv vor "Für wen")
+    introNote: string;
     forWhom: string[];
-    sections: ServiceSection[];  // Schwerpunkte
+    sections: ServiceSection[];
     pricing: ServicePricing[];
     faq: ServiceFaq[];
     ctaText: string;
     ctaHref: string;
-    // SEO
-    seoTitle: string;
-    seoDescription: string;
+    // SEO wird im SEO-Tab gepflegt, hier nur zur Anzeige
+    seoTitle?: string;
+    seoDescription?: string;
   }
 
   let { initialData, slug, pageLabel }: {
@@ -70,21 +68,16 @@
     finally { saving = false; }
   }
 
-  // Karte
   function addFeature() { data.cardFeatures = [...data.cardFeatures, '']; }
   function removeFeature(i: number) { data.cardFeatures = data.cardFeatures.filter((_: unknown, idx: number) => idx !== i); }
-  // Für wen
   function addForWhom() { data.forWhom = [...data.forWhom, '']; }
   function removeForWhom(i: number) { data.forWhom = data.forWhom.filter((_: unknown, idx: number) => idx !== i); }
-  // Schwerpunkte / Sections
   function addSection() { data.sections = [...data.sections, { title: '', items: [''] }]; }
   function removeSection(i: number) { data.sections = data.sections.filter((_: unknown, idx: number) => idx !== i); }
   function addSectionItem(si: number) { data.sections[si].items = [...data.sections[si].items, '']; }
   function removeSectionItem(si: number, ii: number) { data.sections[si].items = data.sections[si].items.filter((_: unknown, idx: number) => idx !== ii); }
-  // Preise
   function addPricing() { data.pricing = [...data.pricing, { label: '', price: '', unit: '', highlight: false }]; }
   function removePricing(i: number) { data.pricing = data.pricing.filter((_: unknown, idx: number) => idx !== i); }
-  // FAQ
   function addFaq() { data.faq = [...data.faq, { question: '', answer: '' }]; }
   function removeFaq(i: number) { data.faq = data.faq.filter((_: unknown, idx: number) => idx !== i); }
 
@@ -115,29 +108,23 @@
     }`}>{msg}</div>
   {/if}
 
-  <!-- SEO -->
-  <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">SEO</h3>
-    <div>
-      <label class={labelCls}>Seiten-Titel (browser tab &amp; Google)</label>
-      <input type="text" bind:value={data.seoTitle} class={inputCls}
-        placeholder="z.B. 50+ digital – Digitale Begleitung in Lüneburg | mentolder.de" />
-    </div>
-    <div>
-      <label class={labelCls}>Meta-Description (Google Vorschau, max. ~160 Zeichen)</label>
-      <textarea bind:value={data.seoDescription} rows={3} class="{inputCls} resize-none"
-        placeholder="Kurze, klare Beschreibung für Suchmaschinen"></textarea>
-      <p class="text-xs text-muted mt-1">{data.seoDescription?.length ?? 0} / 160 Zeichen</p>
+  <!-- Zentrale Elemente: Hinweis -->
+  <div class="p-4 bg-dark-light rounded-xl border border-gold/20 space-y-2">
+    <p class="text-xs font-mono uppercase tracking-widest text-gold mb-2">Zentral gepflegte Elemente</p>
+    <div class="space-y-1 text-sm text-muted">
+      <p>🔒 <strong class="text-light">SEO (Seitentitel & Meta-Description)</strong> → <a href="/admin/inhalte?tab=website&section=seo" class="text-gold hover:underline">SEO-Tab</a></p>
+      <p>🔒 <strong class="text-light">Header-Navigation & Standort</strong> → automatisch auf allen Seiten</p>
+      <p>🔒 <strong class="text-light">Footer (Kontakt, Angebote, Rechtliches, Tagline)</strong> → <a href="/admin/inhalte?tab=website&section=kontakt" class="text-gold hover:underline">Kontakt-Tab</a></p>
     </div>
   </div>
 
   <!-- Angebote-Karte -->
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Angebote-Karte (Startseite &amp; Footer)</h3>
-    <p class="text-xs text-muted">Titel und Beschreibung erscheinen auf der Startseite und im Footer-Link.</p>
+    <h3 class="text-xl font-bold text-light font-serif">Angebote-Karte (Startseite &amp; Footer-Link)</h3>
+    <p class="text-xs text-muted">Titel und Beschreibung erscheinen auf der Startseite und als Footer-Link-Text.</p>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class={labelCls}>Titel</label>
+        <label class={labelCls}>Titel (= Footer-Link-Text)</label>
         <input type="text" bind:value={data.cardTitle} class={inputCls} />
       </div>
       <div>
@@ -155,7 +142,7 @@
     </div>
     <div>
       <div class="flex justify-between items-center mb-2">
-        <label class={labelCls}>Features (Bullet-Punkte auf der Karte)</label>
+        <label class={labelCls}>Features (Bullet-Punkte)</label>
         <button onclick={addFeature} class={addBtnCls}>+ Feature</button>
       </div>
       {#each data.cardFeatures as _, i}
@@ -171,7 +158,7 @@
   <div class={sectionCls}>
     <h3 class="text-xl font-bold text-light font-serif">Seiten-Header</h3>
     <div>
-      <label class={labelCls}>Hauptüberschrift</label>
+      <label class={labelCls}>Hauptüberschrift (H1)</label>
       <input type="text" bind:value={data.headline} class={inputCls} />
     </div>
     <div>
@@ -180,9 +167,9 @@
     </div>
     {#if data.introNote !== undefined}
       <div>
-        <label class={labelCls}>Persönliche Notiz (kursiv, erscheint nach Einleitung vor "Für wen")</label>
+        <label class={labelCls}>Persönliche Notiz (kursiv, nach Einleitung, vor "Für wen" – optional)</label>
         <textarea bind:value={data.introNote} rows={4} class="{inputCls} resize-none"
-          placeholder="Optional – leer lassen wenn nicht benötigt"></textarea>
+          placeholder="Leer lassen wenn nicht benötigt"></textarea>
       </div>
     {/if}
   </div>
@@ -193,6 +180,7 @@
       <h3 class="text-xl font-bold text-light font-serif">Für wen ist das?</h3>
       <button onclick={addForWhom} class={addBtnCls}>+ Hinzufügen</button>
     </div>
+    <p class="text-xs text-muted">Jeden Punkt einzeln bearbeiten, jederzeit ergänzen oder entfernen.</p>
     {#each data.forWhom as _, i}
       <div class="flex gap-2 items-center">
         <input type="text" bind:value={data.forWhom[i]} class="{inputCls} flex-1" />
@@ -210,46 +198,34 @@
     {#each data.sections as sec, si}
       <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-3">
         <div class="flex gap-2 items-center">
-          <input type="text" bind:value={sec.title} class="{inputCls} flex-1"
-            placeholder="Bereichs-Titel (z.B. Grundlagen)" />
+          <input type="text" bind:value={sec.title} class="{inputCls} flex-1" placeholder="Bereichs-Titel" />
           <button onclick={() => removeSection(si)} class={removeBtnCls}>✕ Bereich</button>
         </div>
         <div class="space-y-2 pl-2">
           {#each sec.items as _, ii}
             <div class="flex gap-2 items-center">
-              <input type="text" bind:value={sec.items[ii]} class="{inputCls} flex-1"
-                placeholder="Punkt" />
+              <input type="text" bind:value={sec.items[ii]} class="{inputCls} flex-1" placeholder="Punkt" />
               <button onclick={() => removeSectionItem(si, ii)} class={removeBtnCls}>✕</button>
             </div>
           {/each}
-          <button onclick={() => addSectionItem(si)}
-            class="text-xs text-gold hover:text-gold/80 mt-1">+ Punkt</button>
+          <button onclick={() => addSectionItem(si)} class="text-xs text-gold hover:text-gold/80 mt-1">+ Punkt</button>
         </div>
       </div>
     {/each}
   </div>
 
-  <!-- Preise / Investition -->
+  <!-- Preise -->
   <div class={sectionCls}>
     <div class="flex justify-between items-center">
-      <h3 class="text-xl font-bold text-light font-serif">Investition (Preis-Boxen)</h3>
+      <h3 class="text-xl font-bold text-light font-serif">Investition</h3>
       <button onclick={addPricing} class={addBtnCls}>+ Preis</button>
     </div>
     {#each data.pricing as p, i}
       <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2">
         <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class={labelCls}>Bezeichnung</label>
-            <input type="text" bind:value={p.label} class={inputCls} />
-          </div>
-          <div>
-            <label class={labelCls}>Preis</label>
-            <input type="text" bind:value={p.price} class={inputCls} />
-          </div>
-          <div>
-            <label class={labelCls}>Einheit / Hinweis</label>
-            <input type="text" bind:value={p.unit} class={inputCls} />
-          </div>
+          <div><label class={labelCls}>Bezeichnung</label><input type="text" bind:value={p.label} class={inputCls} /></div>
+          <div><label class={labelCls}>Preis</label><input type="text" bind:value={p.price} class={inputCls} /></div>
+          <div><label class={labelCls}>Einheit / Hinweis</label><input type="text" bind:value={p.unit} class={inputCls} /></div>
         </div>
         <div class="flex items-center justify-between">
           <label class="flex items-center gap-2 text-xs text-muted cursor-pointer">
@@ -265,14 +241,8 @@
   <!-- CTA -->
   <div class={sectionCls}>
     <h3 class="text-xl font-bold text-light font-serif">Call to Action</h3>
-    <div>
-      <label class={labelCls}>CTA-Text</label>
-      <input type="text" bind:value={data.ctaText} class={inputCls} />
-    </div>
-    <div>
-      <label class={labelCls}>CTA-Link</label>
-      <input type="text" bind:value={data.ctaHref} class={inputCls} placeholder="/termin" />
-    </div>
+    <div><label class={labelCls}>CTA-Text</label><input type="text" bind:value={data.ctaText} class={inputCls} /></div>
+    <div><label class={labelCls}>CTA-Link</label><input type="text" bind:value={data.ctaHref} class={inputCls} placeholder="/termin" /></div>
   </div>
 
   <!-- FAQ -->
@@ -283,14 +253,8 @@
     </div>
     {#each data.faq as item, i}
       <div class="p-4 bg-dark rounded-lg border border-dark-lighter space-y-2">
-        <div>
-          <label class={labelCls}>Frage</label>
-          <input type="text" bind:value={item.question} class={inputCls} />
-        </div>
-        <div>
-          <label class={labelCls}>Antwort</label>
-          <textarea bind:value={item.answer} rows={3} class="{inputCls} resize-none"></textarea>
-        </div>
+        <div><label class={labelCls}>Frage</label><input type="text" bind:value={item.question} class={inputCls} /></div>
+        <div><label class={labelCls}>Antwort</label><textarea bind:value={item.answer} rows={3} class="{inputCls} resize-none"></textarea></div>
         <button onclick={() => removeFaq(i)} class={removeBtnCls}>Entfernen</button>
       </div>
     {/each}

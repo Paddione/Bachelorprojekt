@@ -32,7 +32,7 @@
   <div class="flex justify-between items-start">
     <div>
       <h2 class="text-2xl font-bold text-light font-serif">Kontakt</h2>
-      <p class="text-muted mt-1 text-sm">Kontaktformular-Texte und Fußzeilen-Kontaktdaten</p>
+      <p class="text-muted mt-1 text-sm">Zentrale Kontaktdaten und Kontaktformular-Texte</p>
     </div>
     <button onclick={save} disabled={saving} class="px-5 py-2 bg-gold text-dark font-semibold rounded-lg hover:bg-gold/90 disabled:opacity-50">
       {saving ? 'Speichere…' : 'Speichern'}
@@ -43,30 +43,50 @@
     <div class={`p-4 rounded-xl text-sm ${msgOk ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>{msg}</div>
   {/if}
 
-  <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Kontaktdaten (Fußzeile)</h3>
-    <p class="text-xs text-muted -mt-2">Werden im Footer auf jeder Seite angezeigt. Felder leer lassen, um die Standard-Werte aus der Server-Konfiguration zu verwenden.</p>
-    <div class="grid grid-cols-2 gap-4">
-      <div><label class={labelCls}>E-Mail</label><input type="email" bind:value={data.footerEmail} class={inputCls} placeholder="kontakt@beispiel.de" /></div>
-      <div><label class={labelCls}>Telefon</label><input type="text" bind:value={data.footerPhone} class={inputCls} placeholder="+49 …" /></div>
-      <div><label class={labelCls}>Stadt / Region</label><input type="text" bind:value={data.footerCity} class={inputCls} placeholder="Lüneburg" /></div>
-      <div><label class={labelCls}>Tagline (Brand-Untertitel)</label><input type="text" bind:value={data.footerTagline} class={inputCls} placeholder="Coaching für …" /></div>
-    </div>
+  <!-- Gruppe A: Zentrale Daten -->
+  <div class="p-4 bg-dark-light rounded-xl border border-gold/20">
+    <p class="text-xs font-mono uppercase tracking-widest text-gold mb-3">Zentrale Elemente – wirken auf allen Seiten</p>
+    <p class="text-xs text-muted">Diese Felder steuern Footer und Header-Standort auf <strong class="text-light">jeder</strong> Seite der Website. Eine Änderung hier wirkt überall gleichzeitig.</p>
   </div>
 
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Einleitungstext</h3>
+    <h3 class="text-xl font-bold text-light font-serif">Footer – Kontaktdaten</h3>
+    <p class="text-xs text-muted -mt-2">Erscheinen im Footer und im Header-Standort auf jeder Seite.</p>
+    <div class="grid grid-cols-2 gap-4">
+      <div><label class={labelCls}>E-Mail</label><input type="email" bind:value={data.footerEmail} class={inputCls} placeholder="kontakt@beispiel.de" /></div>
+      <div><label class={labelCls}>Telefon</label><input type="text" bind:value={data.footerPhone} class={inputCls} placeholder="+49 …" /></div>
+    </div>
+    <div>
+      <label class={labelCls}>Standort / Region (Header-Anzeige &amp; Footer-Kontaktspalte)</label>
+      <input type="text" bind:value={data.footerCity} class={inputCls} placeholder="Lüneburg, Hamburg und Umgebung" />
+      <p class="text-xs text-muted mt-1">Wird im Header rechts angezeigt: "{data.footerCity || 'Lüneburg, Hamburg und Umgebung'} &middot; DE"</p>
+    </div>
+    <div>
+      <label class={labelCls}>Footer-Tagline (Brand-Untertitel)</label>
+      <input type="text" bind:value={data.footerTagline} class={inputCls} placeholder="Digital Coaching & Führungskräfte-Beratung" />
+    </div>
+  </div>
+
+  <!-- Gruppe B: Seitenspezifisch -->
+  <div class={sectionCls}>
+    <h3 class="text-xl font-bold text-light font-serif">Kontaktseite – Einleitungstext</h3>
     <textarea bind:value={data.intro} rows={3} class="{inputCls} resize-none"></textarea>
   </div>
 
   <div class={sectionCls}>
-    <h3 class="text-xl font-bold text-light font-serif">Sidebar</h3>
+    <h3 class="text-xl font-bold text-light font-serif">Kontaktseite – Sidebar</h3>
     <div><label class={labelCls}>Titel</label><input type="text" bind:value={data.sidebarTitle} class={inputCls} /></div>
     <div><label class={labelCls}>Text</label><textarea bind:value={data.sidebarText} rows={4} class="{inputCls} resize-none"></textarea></div>
-    <div><label class={labelCls}>CTA-Text</label><input type="text" bind:value={data.sidebarCta} class={inputCls} /></div>
+    <div><label class={labelCls}>CTA-Text ("30 Minuten wissen wir...")</label><input type="text" bind:value={data.sidebarCta} class={inputCls} /></div>
     <label class="flex items-center gap-2 cursor-pointer">
       <input type="checkbox" bind:checked={data.showPhone} class="accent-gold" />
       <span class="text-sm text-light">Telefonnummer anzeigen (Sidebar)</span>
     </label>
+  </div>
+
+  <!-- Hinweis: SEO -->
+  <div class="p-4 bg-dark-light rounded-xl border border-dark-lighter/60">
+    <p class="text-xs font-mono uppercase tracking-widest text-muted mb-2">SEO dieser Seite</p>
+    <p class="text-sm text-muted">🔒 Seitentitel und Meta-Description der Kontaktseite werden im <a href="/admin/inhalte?tab=website&section=seo" class="text-gold hover:underline">SEO-Tab</a> gepflegt.</p>
   </div>
 </div>

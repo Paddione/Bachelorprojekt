@@ -1,0 +1,615 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "style": "stylized 3D isometric",
+    "camera_angle": 60,
+    "tile_size": 32,
+    "character_size": 64,
+    "item_size": 32,
+    "ui_size": 16
+  },
+  "characters": [
+    {
+      "id": "student",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#00f2ff"
+    },
+    {
+      "id": "researcher",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#3eff8b"
+    },
+    {
+      "id": "professor",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#bc13fe"
+    },
+    {
+      "id": "dean",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ffd700"
+    },
+    {
+      "id": "librarian",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ff6b9d"
+    },
+    {
+      "id": "student_f",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#00f2ff"
+    },
+    {
+      "id": "researcher_f",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#3eff8b"
+    },
+    {
+      "id": "professor_f",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#bc13fe"
+    },
+    {
+      "id": "dean_f",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ffd700"
+    },
+    {
+      "id": "librarian_f",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ff6b9d"
+    },
+    {
+      "id": "student_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#00f2ff"
+    },
+    {
+      "id": "student_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#00f2ff"
+    },
+    {
+      "id": "researcher_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#3eff8b"
+    },
+    {
+      "id": "researcher_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#3eff8b"
+    },
+    {
+      "id": "professor_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#bc13fe"
+    },
+    {
+      "id": "professor_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#bc13fe"
+    },
+    {
+      "id": "dean_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ffd700"
+    },
+    {
+      "id": "dean_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ffd700"
+    },
+    {
+      "id": "librarian_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ff6b9d"
+    },
+    {
+      "id": "librarian_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ff6b9d"
+    },
+    {
+      "id": "student_f_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#00f2ff"
+    },
+    {
+      "id": "student_f_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#00f2ff"
+    },
+    {
+      "id": "researcher_f_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#3eff8b"
+    },
+    {
+      "id": "researcher_f_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#3eff8b"
+    },
+    {
+      "id": "professor_f_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#bc13fe"
+    },
+    {
+      "id": "professor_f_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#bc13fe"
+    },
+    {
+      "id": "dean_f_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ffd700"
+    },
+    {
+      "id": "dean_f_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ffd700"
+    },
+    {
+      "id": "librarian_f_neon",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ff6b9d"
+    },
+    {
+      "id": "librarian_f_formal",
+      "poses": [
+        "stand",
+        "gun",
+        "machine",
+        "reload",
+        "hold",
+        "silencer"
+      ],
+      "color": "#ff6b9d"
+    }
+  ],
+  "weapons": [
+    {
+      "id": "projectile",
+      "prompt": "3D rendered glowing energy projectile, sci-fi laser bolt, yellow-orange emissive glow, stylized game VFX, transparent background",
+      "frames": 2,
+      "size": 32
+    },
+    {
+      "id": "melee_arc",
+      "prompt": "3D rendered sword slash arc effect, energy trail with particle sparks, white-blue emissive glow, stylized game VFX, transparent background",
+      "frames": 3,
+      "size": 48
+    },
+    {
+      "id": "muzzle_flash",
+      "prompt": "3D rendered muzzle flash effect, bright yellow-white burst with volumetric sparks, stylized game VFX, transparent background",
+      "frames": 4,
+      "size": 32
+    }
+  ],
+  "items": [
+    {
+      "id": "health_pack",
+      "prompt": "3D rendered red health pack with glowing cross symbol, stylized game item, clean geometry, soft studio lighting, isometric view, transparent background",
+      "frames": 1,
+      "size": 32
+    },
+    {
+      "id": "armor_plate",
+      "prompt": "3D rendered blue armor plate pickup with glowing shield icon, stylized game item, clean geometry, soft studio lighting, isometric view, transparent background",
+      "frames": 1,
+      "size": 32
+    },
+    {
+      "id": "machine_gun",
+      "frames": 1,
+      "size": 64,
+      "prompt": "3D rendered machine gun pickup, sci-fi automatic weapon with glowing ammo indicator, stylized game item, clean geometry, soft studio lighting, isometric view, transparent background"
+    }
+  ],
+  "tiles": [
+    {
+      "id": "floor_01",
+      "prompt": "3D rendered dark stone floor tile, top-down view, PBR textured, seamless tileable, dark navy tone"
+    },
+    {
+      "id": "floor_02",
+      "prompt": "3D rendered dark stone floor tile variant, top-down view, PBR textured, seamless tileable, slightly cracked surface"
+    },
+    {
+      "id": "floor_03",
+      "prompt": "3D rendered dark stone floor tile variant, top-down view, PBR textured, seamless tileable, moss patches"
+    },
+    {
+      "id": "floor_04",
+      "prompt": "3D rendered dark stone floor tile variant, top-down view, PBR textured, seamless tileable, worn edges"
+    },
+    {
+      "id": "wall",
+      "prompt": "3D rendered stone wall tile, top-down view, PBR textured, dark gray, rough hewn blocks with depth"
+    },
+    {
+      "id": "boundary",
+      "prompt": "3D rendered boundary wall edge tile, top-down view, PBR textured, dark surface with glowing blue emissive border"
+    },
+    {
+      "id": "zone_overlay",
+      "prompt": "danger zone overlay tile, translucent red tint, subtle hazard pattern, top-down"
+    }
+  ],
+  "cover": [
+    {
+      "id": "building",
+      "prompt": "3D rendered campus building wall section, isometric view, brick facade with PBR materials, academic architecture, clean geometry"
+    },
+    {
+      "id": "bench",
+      "prompt": "3D rendered park bench, isometric view, wooden slats with PBR wood material, campus outdoor seating, clean geometry"
+    },
+    {
+      "id": "fountain",
+      "prompt": "3D rendered stone fountain, isometric view, circular base with water effect, campus courtyard centerpiece, clean geometry, PBR materials"
+    },
+    {
+      "id": "hedge",
+      "prompt": "3D rendered trimmed hedge, isometric view, dark green foliage with volumetric depth, campus garden border, clean geometry"
+    },
+    {
+      "id": "pond",
+      "prompt": "3D rendered ornamental pond, isometric view, blue reflective water surface with caustics, campus water feature, clean geometry"
+    }
+  ],
+  "ui": [
+    {
+      "id": "heart_full",
+      "prompt": "stylized 3D red heart icon, full health indicator, glossy surface, soft glow, game UI, transparent background",
+      "size": 16
+    },
+    {
+      "id": "heart_empty",
+      "prompt": "stylized 3D dark heart icon, empty health indicator, matte surface, desaturated, game UI, transparent background",
+      "size": 16
+    },
+    {
+      "id": "shield",
+      "prompt": "stylized 3D blue shield icon, armor indicator, metallic surface with emissive edge, game UI, transparent background",
+      "size": 16
+    },
+    {
+      "id": "gun_icon",
+      "prompt": "stylized 3D gun icon, ranged weapon indicator, clean silhouette, game UI, transparent background",
+      "size": 16
+    },
+    {
+      "id": "melee_icon",
+      "prompt": "stylized 3D sword icon, melee weapon indicator, metallic blade with glow, game UI, transparent background",
+      "size": 16
+    },
+    {
+      "id": "round_pip_on",
+      "prompt": "stylized 3D glowing circular pip, round won indicator, emissive cyan glow, game UI, transparent background",
+      "size": 8
+    },
+    {
+      "id": "round_pip_off",
+      "prompt": "stylized 3D dim circular pip, round not won indicator, dark matte surface, game UI, transparent background",
+      "size": 8
+    }
+  ],
+  "sfx": [
+    {
+      "id": "gunshot",
+      "prompt": "suppressed pistol shot, silenced weapon pew, soft muffled thud with subtle high-end click, low volume quiet firearm, video game sound effect",
+      "duration": 0.3
+    },
+    {
+      "id": "melee_swing",
+      "prompt": "soft blade whoosh through air, gentle swift melee swipe, light breeze-like sweep, understated video game sound effect",
+      "duration": 0.3
+    },
+    {
+      "id": "bullet_impact",
+      "prompt": "muffled bullet hitting soft surface, dampened thud impact, quiet ricochet, understated video game sound effect",
+      "duration": 0.2
+    },
+    {
+      "id": "player_hit",
+      "prompt": "soft padded impact, muffled body hit, gentle dull thump, quiet low-frequency, video game sound effect",
+      "duration": 0.3
+    },
+    {
+      "id": "player_death",
+      "prompt": "soft electronic fade-out tone, gentle descending hum, quiet digital dissolve, understated video game death sound",
+      "duration": 0.8
+    },
+    {
+      "id": "health_pickup",
+      "prompt": "gentle soft chime, warm crystalline ding, quiet positive notification, soothing video game pickup sound",
+      "duration": 0.4
+    },
+    {
+      "id": "armor_pickup",
+      "prompt": "soft metallic shimmer, gentle shield activation hum, quiet low resonance click, soothing video game equip sound",
+      "duration": 0.4
+    },
+    {
+      "id": "round_start",
+      "prompt": "soft electronic readiness tone, gentle ascending synth pulse, calm but alerting, understated video game round start",
+      "duration": 1.5
+    },
+    {
+      "id": "round_end",
+      "prompt": "gentle resolution chime, soft bell with warm reverb, quiet closing tone, understated video game round end",
+      "duration": 1.5
+    },
+    {
+      "id": "match_victory",
+      "prompt": "warm triumphant melody, gentle ascending synth chords, soft celebratory chime, understated video game victory sting",
+      "duration": 2.0
+    },
+    {
+      "id": "match_defeat",
+      "prompt": "gentle melancholic tone, soft descending minor chord, warm but sad synth pad, quiet video game defeat sting",
+      "duration": 2.0
+    },
+    {
+      "id": "zone_warning",
+      "prompt": "soft pulsing low hum, gentle warning tone, muffled rhythmic pulse, non-harsh alert, quiet video game zone warning",
+      "duration": 1.0
+    },
+    {
+      "id": "zone_tick",
+      "prompt": "quiet soft electric crackle, gentle static tick, subtle low buzz, understated recurring damage, video game",
+      "duration": 0.3
+    },
+    {
+      "id": "footstep_walk",
+      "prompt": "very soft muffled footstep on carpet, barely audible padded step, quiet dampened walking sound, gentle video game footstep",
+      "duration": 0.2
+    },
+    {
+      "id": "footstep_sprint",
+      "prompt": "soft muffled fast footstep on carpet, light padded running step, quiet dampened sprinting sound, gentle video game footstep",
+      "duration": 0.15
+    },
+    {
+      "id": "grenade_launch",
+      "prompt": "muffled launcher thump, soft pneumatic release, dampened mechanical pop, quiet heavy weapon fire, video game sound effect",
+      "duration": 0.5
+    },
+    {
+      "id": "grenade_explode",
+      "prompt": "muffled distant explosion, dampened low boom with soft rumble, bass-heavy but quiet blast, understated video game explosion",
+      "duration": 1.0
+    }
+  ],
+  "music": [
+    {
+      "id": "lobby",
+      "prompt": "ambient atmospheric music, mysterious dark electronic, slow tempo, loopable, video game lobby theme",
+      "duration": 60,
+      "loop": true
+    },
+    {
+      "id": "battle",
+      "prompt": "intense electronic battle music, fast driving tempo, aggressive synths, loopable, video game combat theme",
+      "duration": 90,
+      "loop": true
+    },
+    {
+      "id": "victory",
+      "prompt": "triumphant sci-fi victory fanfare, ascending heroic synth melody, bright major key, dynamic crescendo, celebratory energy, video game win sting, 8 seconds",
+      "duration": 8,
+      "loop": false
+    },
+    {
+      "id": "defeat",
+      "prompt": "melancholic sci-fi defeat theme, descending minor key synths, somber electronic tones, electronic string pad, sad loss sting, video game, 8 seconds",
+      "duration": 8,
+      "loop": false
+    }
+  ]
+}

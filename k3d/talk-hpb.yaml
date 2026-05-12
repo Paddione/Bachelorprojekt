@@ -135,23 +135,33 @@ spec:
         app: spreed-signaling
       # Bump this to force a rollout whenever the render logic changes.
       annotations:
-        config/hash: "5"
+        config/hash: "6"
     spec:
-      # Soft preference: avoid agent-4 which has transient Janus MCU
-      # connectivity issues (hostNetwork pod reachability via kube-proxy).
       securityContext:
         seccompProfile:
           type: RuntimeDefault
+      # Hard pod-affinity to Janus (in the `coturn` namespace, label app=janus).
+      # Janus runs hostNetwork:true and is pinned to ${TURN_NODE} via its own
+      # nodeSelector. Colocating spreed-signaling on the same node means the
+      # WebSocket connection to ws://janus.coturn:8188 resolves to a hostPort
+      # on the local node and traffic stays on the loopback path, bypassing:
+      #   - kube-proxy DNAT to the node's public IP (37.27.251.38 on korczewski),
+      #     which the allow-signaling-coturn-egress NetworkPolicy does not cover
+      #   - the Hetzner per-host firewall, which blocks 8188 cross-node
+      # Using podAffinity (not a hard nodeSelector on ${TURN_NODE}) means this
+      # auto-tracks Janus wherever it ends up scheduled. The legacy soft
+      # preference NotIn k3d-dev-agent-4 is dropped — that node was a dev-only
+      # workaround for a kube-proxy MCU reachability bug that this colocation
+      # rule fixes structurally.
       affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: kubernetes.io/hostname
-                    operator: NotIn
-                    values:
-                      - k3d-dev-agent-4
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: janus
+              namespaces:
+                - coturn
+              topologyKey: kubernetes.io/hostname
       initContainers:
         # Render /shared/server.conf from the template by substituting
         # @@VAR@@ placeholders with values sourced from workspace-secrets.

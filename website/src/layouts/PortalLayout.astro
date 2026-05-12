@@ -56,7 +56,6 @@ const userIsAdmin   = isAdmin(session);
 const brandId       = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
 const isKore        = brandId === 'korczewski';
 ---
-import ArenaBanner from '../components/arena/ArenaBanner.svelte';
 
 <!doctype html>
 <html lang="de">
@@ -123,6 +122,7 @@ import ArenaBanner from '../components/arena/ArenaBanner.svelte';
     </style>
   </head>
   <body class={isKore ? 'kore' : ''} style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
+    <ArenaBanner client:load />
 
     <!-- Mobile topbar -->
     <div id="portal-mobile-topbar">

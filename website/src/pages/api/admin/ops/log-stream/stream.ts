@@ -64,7 +64,6 @@ export const GET: APIRoute = async ({ request }) => {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'X-Accel-Buffering': 'no',
-      'Connection': 'keep-alive',
     },
   });
 };

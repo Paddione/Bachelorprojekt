@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { resolve4 } from 'dns';
 import { embedQuery, type EmbeddingModel } from './embeddings';
 
 export class MixedEmbeddingModelError extends Error {
@@ -8,16 +9,23 @@ export class MixedEmbeddingModelError extends Error {
   }
 }
 
+// musl libc's getaddrinfo opens a connected UDP socket which drops CoreDNS
+// responses after kube-proxy DNAT. Node's dns.resolve4 uses an unconnected
+// socket and is unaffected — mirrors website-db.ts.
+function nodeLookup(
+  hostname: string,
+  _opts: unknown,
+  cb: (err: Error | null, addr: string, family: number) => void,
+) {
+  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+}
+
 let _pool: Pool | null = null;
 function p(): Pool {
   if (!_pool) {
-    _pool = new Pool({
-      host:     process.env.PGHOST     ?? 'shared-db',
-      port:     Number(process.env.PGPORT ?? 5432),
-      database: process.env.PGDATABASE ?? 'website',
-      user:     process.env.PGUSER     ?? 'website',
-      password: process.env.PGPASSWORD,
-    });
+    const connectionString = process.env.SESSIONS_DATABASE_URL
+      || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
+    _pool = new Pool({ connectionString, lookup: nodeLookup } as unknown as import('pg').PoolConfig);
   }
   return _pool;
 }

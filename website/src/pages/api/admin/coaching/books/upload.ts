@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { Pool } from 'pg';
 import { writeFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -15,8 +14,7 @@ import {
   upsertChunks,
   recountChunks,
 } from '../../../../../lib/knowledge-db';
-
-const pool = new Pool();
+import { pool } from '../../../../../lib/website-db';
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });

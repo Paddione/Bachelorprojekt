@@ -62,6 +62,30 @@ data:
     GRANT SELECT, INSERT, UPDATE ON arena.lobbies       TO arena_app;
     ALTER DEFAULT PRIVILEGES IN SCHEMA arena
       GRANT SELECT, INSERT, UPDATE ON TABLES TO arena_app;
+
+  0003_arena_app_ownership.sql: |
+    -- Additional grants for arena_app so the arena-server startup migration
+    -- (which runs `CREATE SCHEMA IF NOT EXISTS arena` and idempotent ALTERs
+    -- as arena_app) succeeds on a clean cluster:
+    --   * CONNECT on the database     -> needed to log in at all
+    --   * CREATE on database + schema -> needed for `CREATE SCHEMA`/tables
+    --   * ownership transfer          -> needed so re-applied ALTER TABLEs
+    --                                    don't fail with "must be owner"
+    --   * default privileges          -> future bootstrap-created objects
+    --                                    inherit the right grants
+    GRANT CONNECT ON DATABASE website TO arena_app;
+    GRANT CREATE  ON DATABASE website TO arena_app;
+    GRANT CREATE  ON SCHEMA   arena   TO arena_app;
+
+    ALTER SCHEMA arena              OWNER TO arena_app;
+    ALTER TABLE  arena.matches      OWNER TO arena_app;
+    ALTER TABLE  arena.match_players OWNER TO arena_app;
+    ALTER TABLE  arena.lobbies      OWNER TO arena_app;
+
+    ALTER DEFAULT PRIVILEGES IN SCHEMA arena
+      GRANT ALL ON TABLES    TO arena_app;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA arena
+      GRANT ALL ON SEQUENCES TO arena_app;
 ---
 apiVersion: batch/v1
 kind: Job
@@ -84,6 +108,7 @@ spec:
               export PGPASSWORD="$SHARED_DB_PASSWORD"
               psql "host=shared-db.workspace.svc.cluster.local user=postgres dbname=website" -v ON_ERROR_STOP=1 -f /sql/0001_init.sql
               psql "host=shared-db.workspace.svc.cluster.local user=postgres dbname=website" -v ON_ERROR_STOP=1 -f /sql/0002_arena_app_grants.sql
+              psql "host=shared-db.workspace.svc.cluster.local user=postgres dbname=website" -v ON_ERROR_STOP=1 -f /sql/0003_arena_app_ownership.sql
               # Apply password from the SealedSecret.
               psql "host=shared-db.workspace.svc.cluster.local user=postgres dbname=website" -v ON_ERROR_STOP=1 -c "ALTER ROLE arena_app WITH PASSWORD '${ARENA_DB_PASSWORD}'"
               echo "arena bootstrap complete"

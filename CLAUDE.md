@@ -196,9 +196,11 @@ separate k3s clusters; verify with `kubectl config get-contexts`.
 
 **ArgoCD federation** still hub-runs on mentolder. Annotations on the cluster Secrets
 (`cluster-mentolder`, `cluster-korczewski-ha`) drive the per-cluster overlay path
-(`prod-mentolder` vs `prod-korczewski`). The historical `argocd-korczewski`
-ServiceAccount + `62.238.9.39:6443` annotation comments in `Taskfile.argocd.yml`
-predate the re-split — refresh them when next touching that file.
+(`prod-mentolder` vs `prod-korczewski`). The spoke RBAC for korczewski-ha lives in
+`argocd/spoke-rbac/korczewski-ha.yaml` (ServiceAccount `argocd-manager` in ns `argocd`,
+cluster-admin binding, long-lived token Secret); `task argocd:cluster:register`
+applies it and bootstraps the `cluster-korczewski-ha` Secret on the hub from the
+SA's CA + bearer token (API server `https://204.168.244.104:6443`).
 
 **WireGuard mesh (`wg-mesh`):** since the partition fix, all mentolder nodes —
 Hetzner CPs and home workers — peer over `wg-mesh` with Flannel pinned to that

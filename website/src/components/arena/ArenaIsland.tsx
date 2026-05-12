@@ -5,8 +5,10 @@ import { PROTOCOL_VERSION } from './shared/lobbyTypes';
 import { LobbyScene } from './scenes/LobbyScene';
 import { MatchScene } from './scenes/MatchScene';
 import { ResultsScene } from './scenes/ResultsScene';
+import { SpectatorScene } from './scenes/SpectatorScene';
+import { playSlowMo } from './game/sfx';
 
-type Scene = 'loading' | 'lobby' | 'match' | 'results' | 'error';
+type Scene = 'loading' | 'lobby' | 'match' | 'spectator' | 'results' | 'error';
 
 interface Props {
   wsUrl: string;
@@ -24,6 +26,7 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
   const [results, setResults] = useState<{ results: MatchResult[]; matchId: string } | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const sceneRef = useRef<Scene>('loading');
+  const isSpectatorRef = useRef(false);
 
   sceneRef.current = scene;
 
@@ -60,18 +63,27 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
 
     socket.on('msg', (m: ServerMsg) => {
       switch (m.t) {
-        case 'lobby:state':
+        case 'lobby:state': {
           setPlayers(m.players as PlayerSlot[]);
-          if (m.phase === 'starting') {
+          if (m.phase === 'in-match') {
+            const playerKeys = new Set((m.players as PlayerSlot[]).map(p => p.key));
+            if (!playerKeys.has(myKey)) {
+              isSpectatorRef.current = true;
+              socketRef.current?.emit('msg', { t: 'spectator:join', code: m.code });
+            }
+          } else if (m.phase === 'slow-mo') {
+            playSlowMo();
+          } else if (m.phase === 'starting') {
             setLobbyPhase('starting');
             setCountdownMs(m.countdownMs ?? 5000);
           } else {
             setLobbyPhase('open');
           }
           break;
+        }
         case 'match:full-snapshot':
           setInitialMatchState(m.state as MatchState);
-          setScene('match');
+          setScene(isSpectatorRef.current ? 'spectator' : 'match');
           break;
         case 'match:end':
           setResults({ results: m.results as MatchResult[], matchId: m.matchId });
@@ -153,6 +165,15 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
         socket={socketRef.current}
         initialState={initialMatchState}
         myKey={myKey}
+      />
+    );
+  }
+
+  if (scene === 'spectator' && initialMatchState && socketRef.current) {
+    return (
+      <SpectatorScene
+        socket={socketRef.current}
+        initialState={initialMatchState}
       />
     );
   }

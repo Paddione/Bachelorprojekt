@@ -642,6 +642,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-40",
+    "file": "tests/local/FA-40.sh",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

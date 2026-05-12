@@ -14,13 +14,24 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
     const m = raw as ClientMsg;
     try {
       switch (m.t) {
-        case 'lobby:join':
-          deps.lc.join(m.code, {
-            key, displayName: deps.user.displayName, brand: deps.user.brand,
-            characterId: 'blonde-guy', isBot: false, ready: false, alive: true,
-          });
-          socket.join(`lobby:${m.code}`);
+        case 'lobby:join': {
+          const targetLobby = getLobby(m.code);
+          if (targetLobby && (targetLobby.phase === 'in-match' || targetLobby.phase === 'slow-mo')) {
+            socket.join(`lobby:${m.code}`);
+            const stateMsg: ServerMsg = {
+              t: 'lobby:state', code: m.code, phase: targetLobby.phase,
+              players: [...targetLobby.players.values()], expiresAt: targetLobby.expiresAt,
+            };
+            socket.emit('msg', stateMsg);
+          } else {
+            deps.lc.join(m.code, {
+              key, displayName: deps.user.displayName, brand: deps.user.brand,
+              characterId: 'blonde-guy', isBot: false, ready: false, alive: true,
+            });
+            socket.join(`lobby:${m.code}`);
+          }
           break;
+        }
         case 'lobby:leave':
           // best-effort: caller is responsible for emitting state via lifecycle
           break;
@@ -49,6 +60,21 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
             }
           }
           break;
+        case 'spectator:join': {
+          const specLobby = getLobby(m.code);
+          if (!specLobby) { sendError(socket, 'not-found', 'lobby not found'); break; }
+          if (specLobby.phase !== 'in-match' && specLobby.phase !== 'slow-mo') {
+            sendError(socket, 'not-in-match', 'match not in progress'); break;
+          }
+          if (!specLobby.spectators) specLobby.spectators = new Set();
+          specLobby.spectators.add(key);
+          const currentState = specLobby.tick?.getState();
+          if (currentState) {
+            const snap: ServerMsg = { t: 'match:full-snapshot', tick: currentState.tick, state: currentState };
+            socket.emit('msg', snap);
+          }
+          break;
+        }
         case 'auth:refresh':
           // Plan 1: token re-validation happens on next reconnect.
           break;

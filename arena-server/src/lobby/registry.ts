@@ -9,6 +9,7 @@ export interface Lobby {
   expiresAt: number;
   players: Map<string, PlayerSlot>;     // key = sub@brand or bot_<n>
   rematchYes: Set<string>;
+  spectators?: Set<string>;
   timers: { [k: string]: NodeJS.Timeout | undefined };
   tick?: Tick;
 }

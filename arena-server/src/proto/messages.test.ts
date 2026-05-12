@@ -21,4 +21,9 @@ describe('protocol', () => {
     };
     expect(JSON.parse(JSON.stringify(msg)).t).toBe('lobby:state');
   });
+
+  it('round-trips a spectator:join client message', () => {
+    const msg: ClientMsg = { t: 'spectator:join', code: 'ZK4M9X' };
+    expect(isClientMsg(JSON.parse(JSON.stringify(msg)))).toBe(true);
+  });
 });

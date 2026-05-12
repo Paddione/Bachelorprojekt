@@ -12,9 +12,11 @@ interface Props {
   events: GameEvent[];
   ping: number;
   onForfeit: () => void;
+  isMuted: boolean;
+  onMuteToggle: () => void;
 }
 
-export function Hud({ state, myKey, events, ping, onForfeit }: Props) {
+export function Hud({ state, myKey, events, ping, onForfeit, isMuted, onMuteToggle }: Props) {
   const me = state.players[myKey];
   if (!me) return null;
 
@@ -29,6 +31,22 @@ export function Hud({ state, myKey, events, ping, onForfeit }: Props) {
         <span style={{ color: '#C8F76A', fontSize: 14, fontWeight: 600 }}>{state.aliveCount}</span>
         <span style={{ marginLeft: 4 }}>alive</span>
         <span style={{ marginLeft: 16, opacity: 0.5 }}>{ping}ms</span>
+      </div>
+
+      {/* Top-right: mute button */}
+      <div style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'auto' }}>
+        <button
+          onClick={onMuteToggle}
+          title={isMuted ? 'Unmute SFX' : 'Mute SFX'}
+          style={{
+            background: 'transparent', border: '1px solid rgba(255,255,255,.12)',
+            color: isMuted ? '#8A8497' : '#C8F76A', borderRadius: 6,
+            width: 28, height: 28, cursor: 'pointer', fontFamily: 'monospace',
+            fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
       </div>
 
       {/* Bottom-left: HP + ammo + powerups */}

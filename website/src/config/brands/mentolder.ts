@@ -10,7 +10,9 @@ export const mentolderConfig: BrandConfig = {
     name: process.env.CONTACT_NAME ?? '',
     email: process.env.CONTACT_EMAIL ?? '',
     phone: process.env.CONTACT_PHONE ?? '',
-    city: process.env.CONTACT_CITY ?? '',
+    // Wird im Footer als Standort angezeigt: "Gestaltet in {city} · DE"
+    // und in der Kontakt-Spalte. Änderbar über Admin → Kontakt → footerCity.
+    city: process.env.CONTACT_CITY ?? 'Lüneburg, Hamburg und Umgebung',
   },
   legal: {
     street: process.env.LEGAL_STREET ?? '',
@@ -81,7 +83,7 @@ export const mentolderConfig: BrandConfig = {
     {
       slug: '50plus-digital',
       title: '50+ digital',
-      description: 'Ihr sicherer Einstieg in die digitale Welt. Ich begleite Sie Schritt für Schritt – in Ihrem Tempo, ohne Fachchinesisch.',
+      description: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
       icon: '💻',
       features: [
         'Smartphone, Tablet & Computer Grundlagen',
@@ -116,6 +118,9 @@ export const mentolderConfig: BrandConfig = {
           { question: 'Wie lange dauert es, bis ich sicher bin?', answer: 'Das ist sehr individuell. Manche brauchen 3-4 Sessions, andere 10. Sie bestimmen das Tempo.' },
           { question: 'Was kostet das?', answer: 'Ein Erstgespräch (30 Min.) ist kostenlos. Danach arbeiten wir stundenweise (60 €) oder als Paket. Kleine Gruppen sind günstiger.' },
         ],
+        // SEO-Defaults – überschreibbar über Admin → SEO
+        seoTitle: '50+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de',
+        seoDescription: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
       },
     },
     {
@@ -202,7 +207,7 @@ export const mentolderConfig: BrandConfig = {
     {
       slug: 'beratung',
       title: 'Unternehmensberatung',
-      description: 'Digitale Transformation für Mittelstand, Verwaltung und kritische Infrastrukturen. 40 Jahre Praxis aus komplexen Strukturen.',
+      description: 'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis. Lüneburg & Hamburg.',
       icon: '🏢',
       features: [
         'Analyse & digitale Strategie',
@@ -229,12 +234,14 @@ export const mentolderConfig: BrandConfig = {
           { label: 'Tagessatz', price: 'nach Vereinbarung', unit: 'Projektumfang individuell, Dauer: 3–12 Monate', highlight: true },
         ],
         faq: [],
+        seoTitle: 'Digitale Transformation & KI-Beratung für Mittelstand | mentolder.de',
+        seoDescription: 'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis. Lüneburg & Hamburg.',
       },
     },
     {
       slug: 'ki-transition',
       title: 'KI-Transition Coaching',
-      description: 'Orientierung im digitalen Wandel. Für IT-Fachkräfte, Führungskräfte und Unternehmen, die sich neu ausrichten wollen, wenn KI Berufsbilder verändert.',
+      description: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungsperslichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
       icon: '🤖',
       features: [
         'Standortbestimmung & Kompetenz-Analyse',
@@ -267,6 +274,8 @@ export const mentolderConfig: BrandConfig = {
           { label: 'Unternehmen & Teams', price: 'auf Anfrage', unit: 'ab 5 Personen möglich' },
         ],
         faq: [],
+        seoTitle: 'KI-Transition Coaching – Orientierung im digitalen Wandel | mentolder.de',
+        seoDescription: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungsperslichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
       },
     },
   ],
@@ -348,6 +357,8 @@ export const mentolderConfig: BrandConfig = {
     sidebarCta: 'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit.',
     showPhone: true,
     showSteps: false,
+    // Footer-Standort: pflegbar über Admin → Kontakt
+    footerCity: 'Lüneburg, Hamburg und Umgebung',
   },
   faq: [
     { question: 'Für wen ist 50+ digital geeignet?', answer: 'Für alle Menschen 50+, die digital selbständiger werden möchten. Keine Vorkenntnisse nötig – wir fangen genau da an, wo Sie stehen.' },

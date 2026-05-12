@@ -6,11 +6,11 @@
   type Status = 'open' | 'accepted' | 'rejected' | 'skipped';
   interface Draft {
     id: string;
-    book_id: string;
-    template_kind: Kind;
-    suggested_payload: Record<string, unknown>;
+    bookId: string;
+    templateKind: Kind;
+    suggestedPayload: Record<string, unknown>;
     status: Status;
-    created_at: string;
+    createdAt: string;
   }
   interface Book { id: string; title: string; author: string | null; slug: string }
   interface Detail extends Draft { chunkText: string; page: number | null }
@@ -25,6 +25,7 @@
   let acceptanceRate: { acceptanceRate: number | null; accepted: number; rejected: number; skipped: number; total: number } | null = null;
   let working = false;
   let toast: string | null = null;
+  let detailEl: HTMLElement | null = null;
 
   const KIND_LABEL: Record<Kind, string> = {
     reflection: 'Reflexion',
@@ -52,7 +53,7 @@
     params.set('status', selectedStatus);
     try {
       const r = await fetch(`/api/admin/coaching/drafts?${params}`).then((x) => x.json());
-      drafts = ((r.drafts ?? []) as Draft[]).filter((d) => selectedKinds.has(d.template_kind));
+      drafts = ((r.drafts ?? []) as Draft[]).filter((d) => selectedKinds.has(d.templateKind));
     } catch {
       drafts = [];
     }
@@ -67,7 +68,14 @@
 
   async function open(id: string) {
     detail = await fetch(`/api/admin/coaching/drafts/${id}`).then((x) => x.json());
-    editPayload = JSON.stringify(detail!.suggested_payload, null, 2);
+    editPayload = JSON.stringify(detail!.suggestedPayload, null, 2);
+    if (window.matchMedia('(max-width: 1100px)').matches) {
+      requestAnimationFrame(() => detailEl?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  }
+
+  function closeDetail() {
+    detail = null;
   }
 
   async function accept(then?: 'publish') {
@@ -113,7 +121,7 @@
   }
 
   $: groupedByKind = drafts.reduce((acc, d) => {
-    (acc[d.template_kind] ||= []).push(d);
+    (acc[d.templateKind] ||= []).push(d);
     return acc;
   }, {} as Record<Kind, Draft[]>);
 
@@ -176,7 +184,7 @@
           {#each list as d}
             <li class:active={detail?.id === d.id}>
               <button on:click={() => open(d.id)}>
-                {(d.suggested_payload as any)?.title ?? '(ohne Titel)'}
+                {(d.suggestedPayload as any)?.title ?? '(ohne Titel)'}
               </button>
             </li>
           {/each}
@@ -185,12 +193,13 @@
     {/if}
   </section>
 
-  <article class="detail">
+  <article class="detail" bind:this={detailEl}>
     {#if !detail}
       <p class="empty">Wähle einen Draft aus der Liste.</p>
     {:else}
       <header>
-        <span class="kind">{KIND_LABEL[detail.template_kind]}</span>
+        <button class="back" on:click={closeDetail} aria-label="Zurück zur Liste">← Liste</button>
+        <span class="kind">{KIND_LABEL[detail.templateKind]}</span>
         {#if detail.page !== null}<span class="page">S. {detail.page}</span>{/if}
       </header>
       <div class="cols">
@@ -216,7 +225,8 @@
 
 <style>
   /* Mentolder dark: brass #c9a978, sage #8fb39c, ink #15191a, paper #ece7dd, font Newsreader + Geist */
-  .inbox { display: grid; grid-template-columns: 240px 320px 1fr; height: calc(100vh - 60px); background: #15191a; color: #ece7dd; font-family: 'Geist', system-ui, sans-serif; }
+  .inbox { display: grid; grid-template-columns: 240px 320px minmax(0, 1fr); height: calc(100vh - 60px); background: #15191a; color: #ece7dd; font-family: 'Geist', system-ui, sans-serif; }
+  .detail .back { display: none; background: transparent; color: #c9a978; border: 1px solid #2a2f31; padding: 0.3em 0.7em; border-radius: 4px; cursor: pointer; margin-right: auto; }
   .rail { padding: 1rem; border-right: 1px solid #2a2f31; overflow-y: auto; }
   .rail h3 { font-family: 'Newsreader', serif; font-weight: 500; color: #c9a978; margin-top: 1.25rem; }
   .rail select, .rail .chip { display: block; width: 100%; margin: 0.25rem 0; background: #1f2426; color: inherit; border: 1px solid #2a2f31; padding: 0.4rem; border-radius: 4px; }
@@ -247,5 +257,26 @@
   footer button { background: #8fb39c; color: #15191a; border: none; padding: 0.6em 1em; border-radius: 4px; cursor: pointer; font-weight: 500; }
   footer button.danger { background: #d97a6c; }
   footer button:disabled { opacity: 0.5; cursor: wait; }
-  .toast { position: fixed; bottom: 1rem; right: 1rem; background: #c9a978; color: #15191a; padding: 0.8em 1.2em; border-radius: 4px; cursor: pointer; }
+  .toast { position: fixed; bottom: 1rem; right: 1rem; background: #c9a978; color: #15191a; padding: 0.8em 1.2em; border-radius: 4px; cursor: pointer; max-width: calc(100vw - 2rem); }
+
+  @media (max-width: 1100px) {
+    .inbox { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; height: auto; min-height: calc(100vh - 60px); }
+    .rail, .list { border-right: none; border-bottom: 1px solid #2a2f31; }
+    .rail { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem 1rem; align-items: end; padding: 0.75rem 1rem; }
+    .rail h3 { margin: 0.25rem 0 0; font-size: 0.85rem; grid-column: 1 / -1; }
+    .rail h3:first-of-type { margin-top: 0; }
+    .rate { grid-column: 1 / -1; margin-top: 0.5rem; }
+    .list { max-height: 38vh; }
+    .detail .back { display: inline-block; }
+  }
+
+  @media (max-width: 700px) {
+    .cols { grid-template-columns: minmax(0, 1fr); }
+    .orig pre { max-height: 40vh; }
+    .sugg textarea { rows: 12; min-height: 14rem; }
+    footer { flex-wrap: wrap; }
+    footer button { flex: 1 1 auto; min-width: 0; }
+    .detail .kind, .detail .page { font-size: 0.8em; }
+    .toast { left: 1rem; right: 1rem; bottom: 1rem; text-align: center; }
+  }
 </style>

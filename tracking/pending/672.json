@@ -1,0 +1,12 @@
+{
+  "pr_number": 672,
+  "title": "pin turn.<domain> alongside livekit/stream in livekit:dns-pin",
+  "description": "## Summary\n\n- `livekit:dns-pin` now pins **three** subdomains in one call:\n  - `livekit.<domain>` → `LIVEKIT_PIN_IP`\n  - `stream.<domain>`  → `LIVEKIT_PIN_IP`\n  - `turn.<domain>`    → `TURN_PUBLIC_IP` *(new)*\n- `PIN_IP=` override still applies to `livekit`/`stream` only; `turn` always tracks the env's `TURN_PUBLIC_IP` since the two pins target different nodes on mentolder (livekit on `gekko-hetzner-3`/46.225.125.59, turn on `gekko-hetzner-2`/178.104.169.206).\n- `turn` is skipped gracefully when `TURN_PUBLIC_IP` is unset (e.g. `ENV=dev`).\n- `feature:livekit` description updated.\n\n## Why\n\nJanus' `turn.<domain>` was the one DNS record the existing pin tooling didn't touch — it was kept in sync by hand against `TURN_PUBLIC_IP` and silently drifted whenever the TURN node moved (most recently the korczewski-ha re-split, 2026-05-09). Extending the same task to cover it removes a class of \"Talk works locally but ICE times out in prod\" failures.\n\nThe Janus `20000-20200/udp` ufw range is still a manual node-side step; that one isn't a DNS gap so it stays out of this PR.\n\n## Test plan\n\nDry-run output verified on both envs (no live DNS calls made):\n\n- [x] `task livekit:dns-pin ENV=mentolder` → prints curls for livekit/stream → 46.225.125.59 and turn → 178.104.169.206\n- [x] `task livekit:dns-pin ENV=korczewski` → prints curls for all three → 37.27.251.38 (same node serves all subdomains on korczewski-ha)\n- [x] `task workspace:validate` still green\n- [x] Current live DNS already matches target IPs on both clusters — change is preventive\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "livekit",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T14:39:53Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

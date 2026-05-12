@@ -1,11 +1,12 @@
 // ── Coaching Website Content ──────────────────────────────────────────────────
-// Separate from coaching-db.ts (which handles the coaching knowledge pipeline).
-// This module manages the editable content of the /coaching page via the admin.
+// Liest aus service_config (getEffectiveServices) damit Änderungen
+// sofort auf /coaching sichtbar sind.
 
-import { getSiteSetting, setSiteSetting } from './website-db';
+import { getServiceConfig } from './website-db';
+import { config } from '../config/index';
 
 export interface CoachingProcessStep {
-  step: string;   // e.g. "01 — Erstgespräch"
+  step: string;
   title: string;
   text: string;
 }
@@ -25,6 +26,8 @@ export interface CoachingContent {
   ctaHref: string;
   faq: CoachingFaqItem[];
 }
+
+const SLUG = 'coaching';
 
 const DEFAULT_COACHING: CoachingContent = {
   subheadline: 'Coaching & Begleitung',
@@ -46,17 +49,41 @@ const DEFAULT_COACHING: CoachingContent = {
   faq: [],
 };
 
-export async function getCoachingContent(brand: string): Promise<CoachingContent | null> {
-  const raw = await getSiteSetting(brand, 'coaching_page').catch(() => null);
-  if (!raw) return null;
-  try { return JSON.parse(raw) as CoachingContent; } catch { return null; }
-}
-
-export async function saveCoachingContent(brand: string, data: CoachingContent): Promise<void> {
-  await setSiteSetting(brand, 'coaching_page', JSON.stringify(data));
-}
-
+/**
+ * Liest den Service-Override für 'coaching' aus service_config
+ * und wandelt ihn in CoachingContent um.
+ */
 export async function getEffectiveCoaching(brand: string): Promise<CoachingContent> {
-  const db = await getCoachingContent(brand).catch(() => null);
-  return db ?? DEFAULT_COACHING;
+  try {
+    const overrides = await getServiceConfig(brand);
+    const svc = overrides?.find(o => o.slug === SLUG);
+    const pc = svc?.pageContent;
+
+    if (!pc) return DEFAULT_COACHING;
+
+    // Sections → Process-Steps
+    const process: CoachingProcessStep[] = (pc.sections ?? []).length > 0
+      ? (pc.sections ?? []).map(s => {
+          const parts = s.title.split(' — ');
+          return {
+            step: parts[0] ?? s.title,
+            title: parts[1] ?? '',
+            text: s.items[0] ?? '',
+          };
+        })
+      : DEFAULT_COACHING.process;
+
+    return {
+      subheadline: DEFAULT_COACHING.subheadline,
+      headline: pc.headline ?? DEFAULT_COACHING.headline,
+      intro: pc.intro ?? DEFAULT_COACHING.intro,
+      forWhom: pc.forWhom ?? DEFAULT_COACHING.forWhom,
+      process,
+      ctaText: pc.pricing?.[0]?.label ?? DEFAULT_COACHING.ctaText,
+      ctaHref: '/termin',
+      faq: pc.faq ?? DEFAULT_COACHING.faq,
+    };
+  } catch {
+    return DEFAULT_COACHING;
+  }
 }

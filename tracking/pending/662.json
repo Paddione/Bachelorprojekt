@@ -1,0 +1,12 @@
+{
+  "pr_number": 662,
+  "title": "use --ne=1 (long form unsupported in coturn 4.9-alpine)",
+  "description": "## Summary\n\nFollow-up to #661. The `--net-engine-version=1` long-form flag added there is **not parsed** by turnserver in `coturn:4.9-alpine` — at startup it prints `unrecognized option: net-engine-version=1`, dumps its usage, and exits. The pod then CrashLoops.\n\nThe short form `--ne=N` *is* recognised (the help output explicitly documents `--ne=[1|2|3]`). Switch to it.\n\n## How this was caught\n\nVerified live on korczewski-ha right after #661 merged:\n\n```\n$ kubectl --context korczewski-ha logs deploy/coturn -n coturn --tail=2 | head -1\nturnserver: unrecognized option: net-engine-version=1\n```\n\nAfter this PR, the pod should start cleanly with the single-threaded net engine and stop CrashLooping on the UDP bind race that motivated #661.\n\n## Test plan\n\n- [x] Local kustomize verified: `kubectl kustomize --load-restrictor=LoadRestrictionsNone k3d/coturn-stack/` renders `--ne=1` as the first arg\n- [ ] After merge + apply: `kubectl --context korczewski-ha get pods -n coturn -l app=coturn` → `Ready 1/1`, restart count stable for >2 min\n- [ ] `kubectl --context korczewski-ha logs deploy/coturn -n coturn | head -5` → starts with the coturn banner, not a usage dump\n- [ ] `curl -sI https://signaling.korczewski.de/api/v1/welcome` → still `200`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "coturn",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T13:06:27Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

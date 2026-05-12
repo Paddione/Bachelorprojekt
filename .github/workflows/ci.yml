@@ -113,3 +113,66 @@ jobs:
         with:
           report_paths: 'tests/results/junit.xml'
           require_tests: false
+
+  arena-server:
+    name: arena-server (build + tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: arena_test
+          POSTGRES_PASSWORD: arena_test
+          POSTGRES_DB: arena_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arena_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: arena-server/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: arena-server
+        run: pnpm install --frozen-lockfile
+
+      - name: Test (unit + integration via TEST_DB_URL)
+        working-directory: arena-server
+        env:
+          TEST_DB_URL: postgresql://arena_test:arena_test@localhost:5432/arena_test
+        run: pnpm test
+
+      - name: Build
+        working-directory: arena-server
+        run: pnpm build
+
+  arena-proto-drift:
+    name: Arena protocol drift guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Diff arena-server proto vs website lobbyTypes
+        run: |
+          if ! diff -u \
+              arena-server/src/proto/messages.ts \
+              website/src/components/arena/shared/lobbyTypes.ts; then
+            echo "::error::Arena protocol drift between server and website."
+            echo "Sync the two files (they must stay byte-identical):"
+            echo "  cp arena-server/src/proto/messages.ts \\"
+            echo "     website/src/components/arena/shared/lobbyTypes.ts"
+            exit 1
+          fi
+          echo "Arena protocol files are in sync"

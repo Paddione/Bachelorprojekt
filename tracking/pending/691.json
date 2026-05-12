@@ -1,0 +1,12 @@
+{
+  "pr_number": 691,
+  "title": "unblock end-to-end solo match flow",
+  "description": "## Summary\n- Tested arena's solo match flow end-to-end with headed Playwright against `web.mentolder.de` and fixed every failure surfaced along the way: a broken `/auth/login` redirect, an SSR crash on the portal page, a build-time vs runtime env-var mismatch, a pg jsonb-array serialisation bug that made every match insert fail, an SSE controller that crashed the whole node process, a ws `lobby:join` that rejected the host's own reconnect, an arena-server boot-order bug that left `lc` permanently `null` in ws handlers, a Pixi v8 async-init race in `Renderer`, and a few UX wires in `/admin/arena`.\n- The full Solo flow now works: open `/admin/arena` → \"Start solo match\" → `/portal/arena` lands on the lobby/match → match runs against 3 bots → results scene shows the winner. The match row now also persists to `arena.matches` and renders in the recent-matches table with the correct lobby code.\n\n## Test plan\n- [x] `cd arena-server && npx vitest run` — 51 passed, 2 skipped\n- [x] `task arena:deploy ENV=mentolder` + `task website:deploy ENV=mentolder` + `task website:deploy ENV=korczewski` rolled out cleanly\n- [x] Logged into `web.mentolder.de/admin/arena` as `paddione`, clicked **Start solo match**, watched the portal render LobbyScene → MatchScene (HUD, kill-feed, weapon/HP) → ResultsScene (\"paddione wins\"). DB confirms `arena.matches` rows now persist with non-null `results_jsonb`.\n- [x] Recent-matches table on `/admin/arena` now lists the new lobby codes\n- [ ] Spot-check open-lobby flow with two browsers (banner + 60s window) — not exercised in this pass; covered by existing FA tests\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "arena",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T23:58:22Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

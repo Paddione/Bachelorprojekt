@@ -220,14 +220,19 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
 
     let session = result.rows[0].data as UserSession;
 
-    // Proactively refresh Keycloak access token when it's within 5 minutes of expiry
-    // while keeping the DB session alive for the full SESSION_TTL_MS. Also force a
-    // refresh when the cached access_token was issued before the arena audience
-    // mapper was added — otherwise arena-server rejects the JWT with audience
-    // mismatch and users would have to log out manually.
-    const ACCESS_TOKEN_BUFFER_MS = 5 * 60 * 1000;
+    // Refresh the Keycloak access token when its own JWT `exp` is within a
+    // 60s safety buffer (KC default access-token TTL is 5 minutes), or when the
+    // cached token lacks the arena audience (mapper added later) — otherwise
+    // arena-server rejects the JWT with "exp claim timestamp check failed" or
+    // an audience mismatch. session.expires_at tracks the web-session lifetime
+    // (8h) and is unrelated to the access token's own expiry.
+    const ACCESS_TOKEN_BUFFER_MS = 60 * 1000;
+    const accessClaims = decodeJwtPayload(session.access_token);
+    const accessExpMs = typeof accessClaims?.exp === 'number' ? accessClaims.exp * 1000 : 0;
+    const accessExpired = accessExpMs - Date.now() < ACCESS_TOKEN_BUFFER_MS;
     const missingArenaAud = !tokenHasAudience(session.access_token, 'arena');
-    if (session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS || missingArenaAud) {
+    const webSessionExpiring = session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS;
+    if (accessExpired || missingArenaAud || webSessionExpiring) {
       const refreshed = await refreshTokens(session.refresh_token);
       if (refreshed) {
         const newExpiry = Date.now() + SESSION_TTL_MS;

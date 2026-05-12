@@ -1,0 +1,12 @@
+{
+  "pr_number": 688,
+  "title": "solo mode + fix lobby creation 503",
+  "description": "## Summary\n\n- **503 fix**: Keycloak rejected the existing token-exchange call (`Standard token exchange is not enabled for the requested client`). Drop the round-trip entirely by adding an `oidc-audience-mapper` on the `website` KC client so session access tokens already carry `aud=arena`. `mintArenaToken` becomes a pass-through. Existing sessions are force-refreshed in `getSession()` so users don't have to log out.\n- **Solo mode**: admin can now start a match immediately against 3 AI bots from `/admin/arena` for testing — new `Lifecycle.openSolo()` + `POST /lobby/solo` on arena-server, new `POST /api/arena/solo` on the website, new \"Start solo match\" button next to \"Open lobby\".\n- **`scripts/keycloak-ensure-mappers.sh` + `task keycloak:ensure-mappers`**: idempotent upsert of protocol mappers that `keycloak-sync.sh` (secret-only) doesn't reconcile.\n\n## Test plan\n- [x] `arena-server` vitest: new `openSolo` lifecycle test + full suite (50 passed, 1 skipped)\n- [x] `astro check` clean on changed files (24 pre-existing unrelated errors remain)\n- [x] arena-server image built, pushed to `ghcr.io/paddione/arena-server@sha256:3cf660f9…`, deployment rolled on mentolder, `/lobby/solo` returns 401 without auth as expected\n- [x] `task keycloak:ensure-mappers ENV=mentolder` and `ENV=korczewski` both created the `website/audience-arena` mapper\n- [x] `task website:deploy` rolled to both clusters; admin/arena bundle contains the `Start solo match` button and the `tokenHasAudience` refresh path\n- [ ] Browser smoke: log in as `paddione` on `web.mentolder.de/admin/arena`, click **Start solo match**, verify redirect to `/portal/arena?lobby=XXXXXX`, 5s countdown, match starts with player + 3 bots.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "arena",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T22:43:56Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

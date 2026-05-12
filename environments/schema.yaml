@@ -108,6 +108,20 @@ env_vars:
     required: true
     default_dev: "noreply@localhost"
 
+  # MAIL_FROM_LOCAL and MAIL_FROM_DOMAIN are auto-derived from SMTP_FROM at
+  # deploy time (see workspace:deploy in Taskfile.yml — local part before @ and
+  # domain part after). Declared here so audits flagging "${VAR} used in
+  # manifests but missing from schema" can see them as known-derived.
+  - name: MAIL_FROM_LOCAL
+    required: false
+    default_dev: "noreply"
+    description: "Local-part of SMTP_FROM. Auto-derived at deploy time — do not set manually."
+
+  - name: MAIL_FROM_DOMAIN
+    required: false
+    default_dev: "localhost"
+    description: "Domain-part of SMTP_FROM. Auto-derived at deploy time — do not set manually."
+
   - name: SMTP_USER
     required: true
     default_dev: "noreply@localhost"
@@ -212,6 +226,37 @@ env_vars:
     default_dev: "http://llm-router.workspace.svc.cluster.local:4000"
     description: "Cluster-internal URL of the LiteLLM router. Constant per namespace; only varies if WORKSPACE_NAMESPACE differs."
 
+  # ─────────────────────────────────────────────────────────────────
+  # Collabora (office-stack) — all five derived from PROD_DOMAIN inside
+  # `workspace:office:deploy` (Taskfile.yml ~line 779). Declared here so
+  # the schema audit doesn't keep re-flagging them; the envsubst call in
+  # the office task is the single source of truth for their values.
+  # ─────────────────────────────────────────────────────────────────
+  - name: COLLABORA_HOST
+    required: false
+    default_dev: "office.localhost"
+    description: "Public Collabora hostname. Auto-derived as office.${PROD_DOMAIN}."
+
+  - name: COLLABORA_ALIASGROUP1
+    required: false
+    default_dev: "http://nextcloud.workspace.svc.cluster.local:80"
+    description: "WOPI upstream host Collabora trusts. Auto-derived from PROD_DOMAIN; localhost gets the cluster-internal Nextcloud Service URL."
+
+  - name: COLLABORA_SERVER_NAME
+    required: false
+    default_dev: "office.localhost"
+    description: "coolwsd server_name. Auto-derived as office.${PROD_DOMAIN}."
+
+  - name: COLLABORA_SSL_TERMINATION
+    required: false
+    default_dev: "false"
+    description: "Whether Traefik terminates TLS upstream. Auto-set to 'true' in prod, 'false' for *.localhost."
+
+  - name: COLLABORA_TLS_SECRET
+    required: false
+    default_dev: "collabora-tls-dev"
+    description: "Name of the TLS Secret the Collabora Ingress references. Auto-set to ${TLS_SECRET_NAME} in prod, dev-only literal otherwise."
+
 secrets:
   - name: arena_db_password
     description: Password for the arena_app PostgreSQL role
@@ -260,13 +305,39 @@ secrets:
     generate: true
     length: 40
 
-  # The following signaling keys are NOT managed by this schema:
-  #   SESSION_HASHKEY, SESSION_BLOCKKEY, CLIENTS_INTERNALSECRET, TURN_APIKEY
-  # They are hardcoded directly in the spreed-signaling Deployment env
-  # (k3d/talk-hpb.yaml, prod/patch-signaling-backend.yaml). Rationale:
-  # they only need to be stable within a pod's lifetime, and TURN_APIKEY
-  # is unused because the REST API auth uses TURN_SECRET. If these ever
-  # become rotated secrets, promote them into this section.
+  # ─────────────────────────────────────────────────────────────────
+  # Variables intentionally NOT in this schema (audit allowlist)
+  #
+  # The weekly schema audit flags every `${VAR}` reference in k3d/ and
+  # prod/ that isn't declared here. The following are known false
+  # positives — they look like envsubst targets but never reach envsubst.
+  # Do not "fix" the audit by adding them; update this comment instead.
+  #
+  # 1. Signaling keys (hardcoded in pod env, stable within pod lifetime):
+  #      SESSION_HASHKEY, SESSION_BLOCKKEY, CLIENTS_INTERNALSECRET, TURN_APIKEY
+  #      — substituted by `sed` at container startup in k3d/talk-hpb.yaml
+  #      (line ~186) from values living in the Deployment's env: block. If
+  #      these ever become rotated secrets, promote them into this section.
+  #
+  # 2. Shell-local script vars (defined and used in the same container
+  #    script, never touched by envsubst):
+  #      ARCH                (k3d/nextcloud.yaml — set via `uname -m`)
+  #      BACKUP_DIR, STAMP, PASS, UPLOAD_PATH, FILEN_PATH
+  #                          (k3d/backup-cronjob.yaml — script-local)
+  #
+  # 3. Pod env vars sourced from a ConfigMap/Secret reference (not
+  #    envsubst — the `${VAR}` in the script reads the container env):
+  #      BRAND, FILEN_DEFAULT_UPLOAD_PATH
+  #                          (k3d/backup-cronjob.yaml — `backup-config` CM)
+  #      BRAND               (k3d/knowledge-ingest-cronjob.yaml — hardcoded
+  #                           value: "mentolder" in the env: block)
+  #
+  # 4. Vaultwarden seed-job aliases (set inside the script from *_DOMAIN
+  #    pod env vars; the manifest is NOT envsubst-substituted, only
+  #    namespace-sed-rewritten in workspace:vaultwarden:seed):
+  #      KC, NC, WEB, DOCS, OFFICE
+  #                          (k3d/vaultwarden-seed-job.yaml lines 60-64)
+  # ─────────────────────────────────────────────────────────────────
   - name: SIGNALING_SECRET
     required: true
     generate: true

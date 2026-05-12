@@ -24,6 +24,11 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
         case 'lobby:leave':
           // best-effort: caller is responsible for emitting state via lifecycle
           break;
+        case 'lobby:character':
+          for (const room of socket.rooms) {
+            if (room.startsWith('lobby:')) deps.lc.setCharacter(room.slice(6), key, m.characterId);
+          }
+          break;
         case 'rematch:vote':
           // join+vote require the socket to know its lobby; v1: scan rooms
           for (const room of socket.rooms) {

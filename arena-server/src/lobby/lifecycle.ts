@@ -69,6 +69,17 @@ export class Lifecycle {
     this.deps.onBroadcast(code);
   }
 
+  setCharacter(code: string, playerKey: string, characterId: string): void {
+    const VALID = new Set(['blonde-guy', 'brown-guy', 'long-red-girl', 'blonde-long-girl']);
+    if (!VALID.has(characterId)) return;
+    const lobby = getLobby(code);
+    if (!lobby || lobby.phase !== 'open') return;
+    const slot = lobby.players.get(playerKey);
+    if (!slot || slot.isBot) return;
+    slot.characterId = characterId;
+    this.deps.onBroadcast(code);
+  }
+
   private toStarting(code: string) {
     const lobby = getLobby(code);
     if (!lobby || lobby.phase !== 'open') return;

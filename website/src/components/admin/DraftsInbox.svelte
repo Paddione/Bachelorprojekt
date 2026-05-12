@@ -12,7 +12,7 @@
     status: Status;
     created_at: string;
   }
-  interface Book { id: string; title: string; author: string | null }
+  interface Book { id: string; title: string; author: string | null; slug: string }
   interface Detail extends Draft { chunkText: string; page: number | null }
 
   let books: Book[] = [];
@@ -34,20 +34,34 @@
   };
 
   onMount(async () => {
-    const r = await fetch('/api/admin/coaching/books').then((x) => x.json());
-    books = r.books ?? [];
-    if (books.length > 0) selectedBook = books[0].id;
+    try {
+      const r = await fetch('/api/admin/coaching/books').then((x) => x.json());
+      books = Array.isArray(r) ? r : (r.books ?? []);
+      if (books.length > 0) selectedBook = books[0].id;
+    } catch (err) {
+      toast = `Bücher konnten nicht geladen werden: ${err instanceof Error ? err.message : err}`;
+    }
     await refresh();
   });
+
+  $: selectedBookObj = books.find((b) => b.id === selectedBook) ?? null;
 
   async function refresh() {
     const params = new URLSearchParams();
     if (selectedBook) params.set('book_id', selectedBook);
     params.set('status', selectedStatus);
-    const r = await fetch(`/api/admin/coaching/drafts?${params}`).then((x) => x.json());
-    drafts = (r.drafts as Draft[]).filter((d) => selectedKinds.has(d.template_kind));
+    try {
+      const r = await fetch(`/api/admin/coaching/drafts?${params}`).then((x) => x.json());
+      drafts = ((r.drafts ?? []) as Draft[]).filter((d) => selectedKinds.has(d.template_kind));
+    } catch {
+      drafts = [];
+    }
     if (selectedBook) {
-      acceptanceRate = await fetch(`/api/admin/coaching/books/${selectedBook}/acceptance-rate`).then((x) => x.json());
+      try {
+        acceptanceRate = await fetch(`/api/admin/coaching/books/${selectedBook}/acceptance-rate`).then((x) => x.json());
+      } catch {
+        acceptanceRate = null;
+      }
     }
   }
 
@@ -143,7 +157,18 @@
 
   <section class="list">
     {#if drafts.length === 0}
-      <p class="empty">Noch keine Drafts. Lauf <code>task coaching:classify -- --slug=&lt;slug&gt;</code> nach dem ersten Buch-Ingest.</p>
+      {#if books.length === 0}
+        <p class="empty">
+          Noch keine Bücher hochgeladen.
+          <a href="/admin/knowledge/books">Zur Bücher-Seite →</a>
+        </p>
+      {:else}
+        <p class="empty">
+          Buch <strong>{selectedBookObj?.title ?? ''}</strong> hat noch keine Drafts.<br />
+          Lauf lokal: <code>task coaching:classify -- --slug={selectedBookObj?.slug ?? ''}</code><br />
+          <small>(206-Chunk-Bücher brauchen ~5–10 min · Claude Haiku API-Token werden verbraucht.)</small>
+        </p>
+      {/if}
     {:else}
       {#each Object.entries(groupedByKind) as [kind, list]}
         <h2>{KIND_LABEL[kind as Kind]} <span class="count">{list.length}</span></h2>

@@ -9,6 +9,7 @@ export interface Book {
   licenseNote: string | null;
   ingestedAt: Date;
   chunkCount?: number;
+  slug: string;
 }
 
 export interface Snippet {
@@ -66,7 +67,7 @@ export interface ChunkRow {
 
 export async function listBooks(pool: Pool): Promise<Book[]> {
   const r = await pool.query(`
-    SELECT b.*, c.chunk_count
+    SELECT b.*, c.chunk_count, c.name AS collection_name
     FROM coaching.books b
     JOIN knowledge.collections c ON c.id = b.knowledge_collection_id
     ORDER BY b.ingested_at DESC
@@ -76,7 +77,7 @@ export async function listBooks(pool: Pool): Promise<Book[]> {
 
 export async function getBook(pool: Pool, id: string): Promise<Book | null> {
   const r = await pool.query(
-    `SELECT b.*, c.chunk_count
+    `SELECT b.*, c.chunk_count, c.name AS collection_name
        FROM coaching.books b
        JOIN knowledge.collections c ON c.id = b.knowledge_collection_id
       WHERE b.id = $1`,
@@ -368,6 +369,7 @@ export async function markTemplatePublished(
 }
 
 function rowToBook(r: Record<string, unknown>): Book {
+  const collectionName = (r.collection_name ?? '') as string;
   return {
     id: r.id as string,
     knowledgeCollectionId: r.knowledge_collection_id as string,
@@ -377,6 +379,7 @@ function rowToBook(r: Record<string, unknown>): Book {
     licenseNote: (r.license_note ?? null) as string | null,
     ingestedAt: r.ingested_at as Date,
     chunkCount: (r.chunk_count ?? undefined) as number | undefined,
+    slug: collectionName.startsWith('coaching-') ? collectionName.slice('coaching-'.length) : collectionName,
   };
 }
 

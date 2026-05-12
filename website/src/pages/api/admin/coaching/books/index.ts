@@ -11,8 +11,14 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const books = await listBooks(pool);
-  return new Response(JSON.stringify(books), {
+  let books: Awaited<ReturnType<typeof listBooks>> = [];
+  try {
+    books = await listBooks(pool);
+  } catch (err) {
+    // coaching schema may not exist on this cluster yet — return empty list
+    console.warn('[api/admin/coaching/books] listBooks failed:', err instanceof Error ? err.message : err);
+  }
+  return new Response(JSON.stringify({ books }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });

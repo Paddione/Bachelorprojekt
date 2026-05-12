@@ -270,7 +270,11 @@ data:
         status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','actioned','archived')),
         reference_id    TEXT,
         reference_table TEXT,
-        bug_ticket_id   TEXT REFERENCES bugs.bug_tickets(ticket_id) ON DELETE SET NULL,
+        -- bug_ticket_id keeps the tickets.tickets(external_id) slug (e.g. T000287,
+        -- BR-YYYYMMDD-xxxx). The FK is installed *after* tickets.tickets exists,
+        -- below — bootstrap-safe on fresh DBs where tickets-db.ts has not yet
+        -- run.
+        bug_ticket_id   TEXT,
         payload         JSONB,
         created_at      TIMESTAMPTZ DEFAULT now(),
         actioned_at     TIMESTAMPTZ,
@@ -280,6 +284,40 @@ data:
       CREATE INDEX IF NOT EXISTS idx_inbox_items_status ON inbox_items(status, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_inbox_items_is_test_data
         ON inbox_items (is_test_data) WHERE is_test_data = true;
+
+      -- inbox_items.bug_ticket_id FK repoint (2026-05-12).
+      -- Pre-sunset, this column FK'd into bugs.bug_tickets(ticket_id). Sunset
+      -- dropped that FK, leaving inbox_items orphan-prone after
+      -- tickets.fn_purge_test_data() deletes from tickets.tickets directly.
+      -- Re-add the FK against the new authoritative store with CASCADE.
+      -- Guarded so a partial fresh-DB run (tickets schema not yet bootstrapped)
+      -- doesn't abort the whole schema init.
+      DO $inbox_fk$
+      BEGIN
+        IF to_regclass('tickets.tickets') IS NOT NULL THEN
+          ALTER TABLE inbox_items
+            DROP CONSTRAINT IF EXISTS inbox_items_bug_ticket_id_fkey;
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+             WHERE conname = 'inbox_items_bug_ticket_fkey'
+               AND conrelid = 'public.inbox_items'::regclass
+          ) THEN
+            -- NULL out orphans first so the FK can attach.
+            UPDATE inbox_items
+               SET bug_ticket_id = NULL
+             WHERE bug_ticket_id IS NOT NULL
+               AND NOT EXISTS (
+                     SELECT 1 FROM tickets.tickets t
+                      WHERE t.external_id = inbox_items.bug_ticket_id
+                   );
+            ALTER TABLE inbox_items
+              ADD CONSTRAINT inbox_items_bug_ticket_fkey
+              FOREIGN KEY (bug_ticket_id)
+              REFERENCES tickets.tickets(external_id)
+              ON DELETE CASCADE;
+          END IF;
+        END IF;
+      END $inbox_fk$;
 
       CREATE TABLE IF NOT EXISTS message_threads (
         id              SERIAL PRIMARY KEY,
@@ -763,7 +801,11 @@ data:
         status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','actioned','archived')),
         reference_id    TEXT,
         reference_table TEXT,
-        bug_ticket_id   TEXT REFERENCES bugs.bug_tickets(ticket_id) ON DELETE SET NULL,
+        -- bug_ticket_id keeps the tickets.tickets(external_id) slug (e.g. T000287,
+        -- BR-YYYYMMDD-xxxx). The FK is installed *after* tickets.tickets exists,
+        -- below — bootstrap-safe on fresh DBs where tickets-db.ts has not yet
+        -- run.
+        bug_ticket_id   TEXT,
         payload         JSONB,
         created_at      TIMESTAMPTZ DEFAULT now(),
         actioned_at     TIMESTAMPTZ,
@@ -773,6 +815,40 @@ data:
       CREATE INDEX IF NOT EXISTS idx_inbox_items_status ON inbox_items(status, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_inbox_items_is_test_data
         ON inbox_items (is_test_data) WHERE is_test_data = true;
+
+      -- inbox_items.bug_ticket_id FK repoint (2026-05-12).
+      -- Pre-sunset, this column FK'd into bugs.bug_tickets(ticket_id). Sunset
+      -- dropped that FK, leaving inbox_items orphan-prone after
+      -- tickets.fn_purge_test_data() deletes from tickets.tickets directly.
+      -- Re-add the FK against the new authoritative store with CASCADE.
+      -- Guarded so a partial fresh-DB run (tickets schema not yet bootstrapped)
+      -- doesn't abort the whole schema init.
+      DO $inbox_fk$
+      BEGIN
+        IF to_regclass('tickets.tickets') IS NOT NULL THEN
+          ALTER TABLE inbox_items
+            DROP CONSTRAINT IF EXISTS inbox_items_bug_ticket_id_fkey;
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+             WHERE conname = 'inbox_items_bug_ticket_fkey'
+               AND conrelid = 'public.inbox_items'::regclass
+          ) THEN
+            -- NULL out orphans first so the FK can attach.
+            UPDATE inbox_items
+               SET bug_ticket_id = NULL
+             WHERE bug_ticket_id IS NOT NULL
+               AND NOT EXISTS (
+                     SELECT 1 FROM tickets.tickets t
+                      WHERE t.external_id = inbox_items.bug_ticket_id
+                   );
+            ALTER TABLE inbox_items
+              ADD CONSTRAINT inbox_items_bug_ticket_fkey
+              FOREIGN KEY (bug_ticket_id)
+              REFERENCES tickets.tickets(external_id)
+              ON DELETE CASCADE;
+          END IF;
+        END IF;
+      END $inbox_fk$;
 
       CREATE TABLE IF NOT EXISTS message_threads (
         id              SERIAL PRIMARY KEY,

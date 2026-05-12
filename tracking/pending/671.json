@@ -1,0 +1,12 @@
+{
+  "pr_number": 671,
+  "title": "drop redundant E2E smoke job",
+  "description": "## Summary\n- Removes the `e2e-smoke` job from `.github/workflows/ci.yml`. It always fails because `CRON_SECRET` is not available to the CI workflow — `global-db-cleanup.ts` brackets every Playwright run with prod DB purges and refuses to start without it. The job was `continue-on-error: true`, so it never blocked PRs, but it produced a permanent failure marker on every commit.\n- Updates the CI section in `CLAUDE.md` to drop the smoke-job description and re-label `e2e.yml` as the nightly Playwright workflow.\n- The nightly `e2e.yml` already runs the full Playwright suite against both prod clusters with the right credentials, so dropping the smoke job loses no signal.\n\n## Test plan\n- [x] `python3 -c \"import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))\"` — workflow YAML still parses\n- [ ] CI on this PR shows offline-tests + arena-server + security-scan + arena-proto-drift; no more red `E2E Smoke (prod)`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "ci",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-12T14:21:44Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

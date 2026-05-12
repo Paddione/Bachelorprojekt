@@ -355,9 +355,8 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - **Test inventory check**: re-runs `task test:inventory` and fails the job if `website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
 - Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
 - Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
-- E2E smoke (`continue-on-error: true`): a Playwright `--project=smoke --grep '@smoke'` run against `web.mentolder.de` with a 10-min timeout. JUnit + traces are uploaded as the `e2e-smoke-results` artifact.
 
-Other workflows: `e2e.yml` (full Playwright), `track-pr.yml` (PR → tracking JSON), `tracking.yml` (drain into DB), `track-plans.yml`, `build-collabora.yml`, `build-tracking.yml`, `build-transcriber.yml`.
+Other workflows: `e2e.yml` (nightly Playwright against both prod clusters), `track-pr.yml` (PR → tracking JSON), `tracking.yml` (drain into DB), `track-plans.yml`, `build-collabora.yml`, `build-tracking.yml`, `build-transcriber.yml`.
 
 ## Development Rules
 

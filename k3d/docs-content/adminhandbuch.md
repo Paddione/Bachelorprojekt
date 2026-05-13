@@ -298,10 +298,10 @@ task argocd:diff -- workspace-mentolder
 
 ### Docs-ConfigMap aktualisieren
 
-ArgoCD synct die Docs-ConfigMap **nicht automatisch**. Nach Änderungen an `docs-site/` oder `k3d/docs-content/` den Rollout manuell auslösen:
+ArgoCD synct die Docs-ConfigMap **nicht automatisch**. Nach Änderungen an `k3d/docs-content/` den Rollout auf beide Cluster auslösen:
 
 ```bash
-kubectl rollout restart deploy/docs -n workspace --context <env>
+task docs:deploy
 ```
 
 Details: [ArgoCD](argocd.md).

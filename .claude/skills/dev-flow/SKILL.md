@@ -105,7 +105,7 @@ Nach dem Merge auf `main`: Schau dir die geänderten Dateien an (`gh pr view <pr
 |---|---|---|
 | `website/src/**`, `website/public/**`, `website/package*.json` | `task feature:website` | Live-Check `https://web.mentolder.de` + `https://web.korczewski.de` |
 | `brett/**` | `task feature:brett` | `https://brett.mentolder.de` + `https://brett.korczewski.de` |
-| `docs-site/**`, docs-content ConfigMap | `task docs:deploy` | `https://docs.mentolder.de` |
+| `k3d/docs-content/**` | `task docs:deploy` | `https://docs.mentolder.de` + `https://docs.korczewski.de` |
 | `k3d/livekit*.yaml` | `task feature:livekit` | `task livekit:status ENV=mentolder` + `ENV=korczewski` |
 | `k3d/**`, `prod/**`, `prod-mentolder/**`, `prod-korczewski/**`, `environments/sealed-secrets/**` | `task feature:deploy` | `task workspace:verify:all-prods` + `task health` |
 | Nur `docs/`, `*.md`, `CLAUDE.md`, `tests/`, `.github/`, `Taskfile*.yml`, `scripts/`, `.claude/` | KEIN Deploy | Keine Verify |

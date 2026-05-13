@@ -341,7 +341,7 @@ graph TB
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
 - **`website/`** -- Astro + Svelte website.
-- **`docs-site/`** -- Docsify index.html for the docs service.
+- **`k3d/docs-content/`** -- Markdown + Docsify `index.html` served by the `docs` Deployment; deployed to both clusters via `task docs:deploy`.
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.
@@ -398,7 +398,7 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **`env:generate ENV=<target>` must run before `env:seal` and before deploying prod.** `talk-hpb-setup.sh` aborts on placeholder `MANAGED_EXTERNALLY` values if signaling/turn secrets were never generated.
 
 ### Operational
-- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `docs-site/` or the `docs-content` ConfigMap, run `task docs:deploy` (it now updates and restarts both clusters in one go — `docs:restart` was removed as it was a no-op alias). Applying the ConfigMap alone leaves the old content served.
+- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `k3d/docs-content/`, run `task docs:deploy` (it updates the ConfigMap and rolls the `docs` Deployment on both clusters). Applying the ConfigMap alone leaves the old content served.
 - **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.
 - **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
 

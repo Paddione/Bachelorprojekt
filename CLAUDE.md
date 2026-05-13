@@ -49,6 +49,7 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 task feature:deploy        # workspace:deploy + post-setup on mentolder + korczewski
 task feature:website       # Rebuild + roll the Astro website on both clusters
 task feature:brett         # Rebuild + roll the brett service on both clusters
+task feature:arena         # Build + deploy arena-server to korczewski
 task feature:livekit       # Re-pin livekit/stream DNS on both clusters
 task health                # Cross-cluster status + connectivity check
 ```
@@ -181,6 +182,34 @@ task brett:push                  # Push Brett image to registry
 task brett:deploy ENV=<env>      # Build, import/push, and roll out Brett
 task brett:bot-setup ENV=<env>   # Register /brett slash command in Nextcloud Talk
 task brett:logs ENV=<env>        # Tail Brett logs
+```
+
+### Arena (Multiplayer)
+Arena-server runs on **korczewski only** (`arena-ws.korczewski.de`). Both websites point to korczewski — CORS allows both `web.mentolder.de` and `web.korczewski.de`. The server validates JWT from both Keycloak realms.
+```bash
+task arena:build                 # Build arena-server image (+ k3d import in dev)
+task arena:push                  # Push to ghcr.io/paddione/arena-server:latest
+task arena:deploy ENV=korczewski # Build, push, and roll out arena-server
+task feature:arena               # Shorthand: build + deploy to korczewski
+task arena:status ENV=korczewski # Show arena-server pod + service status
+task arena:logs ENV=korczewski   # Tail arena-server logs
+task arena:db ENV=korczewski     # psql into arena schema
+task arena:teardown ENV=<env>    # Remove arena-server resources
+```
+Note: `task arena:deploy ENV=mentolder` exits early with an explanation.
+
+### Brainstorm tunnel
+Wraps the in-cluster `brainstorm-sish` Deployment (mentolder-only) — publishes a local port at `https://brainstorm.mentolder.de`. Key file: `Taskfile.brainstorm.yml`.
+```bash
+task brainstorm:publish -- <localport>   # Publish a local port at https://brainstorm.mentolder.de
+task brainstorm:status                   # Pod status + curl check
+```
+
+### Coaching & Knowledge
+```bash
+task coaching:ingest  -- <file> <slug> [--title=...] [--author=...]   # Ingest PDF/EPUB into pgvector + coaching.books
+task coaching:classify -- --slug=<slug> | --all                        # AI-classify UNCLASSIFIED chunks
+task knowledge:reindex ENV=<env>  # Re-index knowledge collections (SOURCE=prs|markdown|bugs|all)
 ```
 
 ### Production clusters (two physical clusters since PR #621/#622, 2026-05-09)
@@ -374,8 +403,10 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - **Test inventory check**: re-runs `task test:inventory` and fails the job if `website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
 - Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
 - Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
+- `arena-server` build + unit/integration tests (pnpm, real Postgres service container)
+- **Arena protocol drift guard**: `arena-server/src/proto/messages.ts` and `website/src/components/arena/shared/lobbyTypes.ts` must be byte-identical — CI fails if they diverge
 
-Other workflows: `e2e.yml` (nightly Playwright against both prod clusters), `track-pr.yml` (PR → tracking JSON), `tracking.yml` (drain into DB), `track-plans.yml`, `build-collabora.yml`, `build-tracking.yml`, `build-transcriber.yml`.
+Other workflows: `e2e.yml` (nightly Playwright against both prod clusters), `track-pr.yml` (PR → tracking JSON, drained by the in-cluster `tracking-import` CronJob), `track-plans.yml`, `build-collabora.yml`, `build-tracking.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main), `dev-auto-deploy.yml` (auto-deploy to dev.mentolder.de on relevant push), `dev-smoke.yml` (nightly BATS against dev.mentolder.de at 05:00 UTC).
 
 ## Development Rules
 

@@ -4,6 +4,8 @@ namespace: workspace-korczewski
 
 # Inherit full prod overlay (k3d base + all prod patches)
 resources:
+  - ../k3d/migrations-arena.yaml
+  - ../k3d/arena.yaml
   - ../prod
   - ddns-updater.yaml
   - netpol-cross-namespace.yaml
@@ -71,6 +73,22 @@ patches:
           - pk-hetzner-4
           - pk-hetzner-6
           - pk-hetzner-8
+
+  # arena-server Deployment (k3d/arena.yaml) — base pin: node-location=hetzner.
+  # Replace with explicit hostname-based placement on korczewski-ha nodes.
+  - target:
+      kind: Deployment
+      name: arena-server
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
+        value:
+          key: kubernetes.io/hostname
+          operator: In
+          values:
+            - pk-hetzner-4
+            - pk-hetzner-6
+            - pk-hetzner-8
 
   # brett Deployment (k3d/brett.yaml) — base uses NotIn against pk-hetzner
   # and gekko-hetzner-4 (mentolder home-worker exclusion). On korczewski-ha

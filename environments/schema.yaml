@@ -297,7 +297,7 @@ secrets:
     description: Password for the arena_app PostgreSQL role
     required: false
   - name: arena_db_url
-    description: Connection URL for arena-server (mentolder shared-db)
+    description: Connection URL for arena-server (korczewski shared-db)
     required: false
   - name: SHARED_DB_PASSWORD
     required: true

@@ -53,7 +53,7 @@ tasks:
       - task: brett:deploy:all-prods
 
   feature:arena:
-    desc: "Build + deploy arena-server on both prod clusters"
+    desc: "Build + deploy arena-server to korczewski (arena's home cluster)"
     cmds:
       - task: arena:deploy:all-prods
 
@@ -2464,11 +2464,11 @@ tasks:
       - echo "✓ Pushed ghcr.io/paddione/arena-server:latest"
 
   arena:deploy:
-    desc: "Build, push, and roll out arena-server (mentolder only)"
+    desc: "Build, push, and roll out arena-server (korczewski only)"
     cmds:
       - |
-          if [ "{{.ENV}}" = "korczewski" ]; then
-            echo "arena-server runs only in mentolder; korczewski website uses arena-ws.mentolder.de"
+          if [ "{{.ENV}}" = "mentolder" ]; then
+            echo "arena-server runs on korczewski only. Use ENV=korczewski."
             exit 0
           fi
           if [ "{{.ENV}}" = "dev" ]; then
@@ -2486,10 +2486,8 @@ tasks:
       - echo "✓ arena deployed to {{.ENV}}"
 
   arena:deploy:all-prods:
-    desc: "Build + roll out arena-server on both prod clusters (mentolder only applies; korczewski is a no-op)"
+    desc: "Build + roll out arena-server on korczewski (arena's home cluster)"
     cmds:
-      - task: arena:deploy
-        vars: { ENV: mentolder }
       - task: arena:deploy
         vars: { ENV: korczewski }
 
@@ -2504,7 +2502,7 @@ tasks:
           kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" get pods -l app=arena-server
 
   arena:logs:
-    desc: "Tail arena-server logs (mentolder only)"
+    desc: "Tail arena-server logs"
     cmds:
       - |
           source scripts/env-resolve.sh "{{.ENV}}"
@@ -2513,7 +2511,7 @@ tasks:
           kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" logs -l app=arena-server -f --tail=200
 
   arena:db:
-    desc: "psql into arena schema (mentolder only)"
+    desc: "psql into arena schema"
     cmds:
       - |
           source scripts/env-resolve.sh "{{.ENV}}"
@@ -2522,7 +2520,7 @@ tasks:
           kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" exec -it deploy/shared-db -- psql -U postgres -d website -c "SET search_path=arena; \\dt"
 
   arena:teardown:
-    desc: "Remove arena-server resources (mentolder only)"
+    desc: "Remove arena-server resources"
     cmds:
       - |
           source scripts/env-resolve.sh "{{.ENV}}"

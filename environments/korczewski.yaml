@@ -51,7 +51,7 @@ env_vars:
   # flip LLM_RERANK_ENABLED to true after 24h of stable rollout
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-router.workspace-korczewski.svc.cluster.local:4000"
-  ARENA_WS_URL: https://arena-ws.mentolder.de
+  ARENA_WS_URL: https://arena-ws.korczewski.de
 
 overlay: prod-korczewski
 workspace_namespace: workspace-korczewski

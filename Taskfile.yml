@@ -2699,6 +2699,24 @@ tasks:
         kubectl patch deploy -n cert-manager cert-manager \
           --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}' \
           2>/dev/null || true
+      # Pin cert-manager controller to Hetzner nodes. On the mentolder hybrid
+      # cluster, home-LAN nodes (k3s-* / k3w-*) NAT outbound traffic and
+      # can't establish a reliable HTTPS connection to acme-v02.api.letsencrypt.org.
+      # The controller must run on a Hetzner node with direct public internet access.
+      # Same constraint as the lego-webhook below.
+      - |
+        kubectl patch deploy -n cert-manager cert-manager \
+          --type=merge -p '{
+            "spec":{"template":{"spec":{"affinity":{"nodeAffinity":{
+              "requiredDuringSchedulingIgnoredDuringExecution":{
+                "nodeSelectorTerms":[{"matchExpressions":[{
+                  "key":"kubernetes.io/hostname",
+                  "operator":"In",
+                  "values":["gekko-hetzner-2","gekko-hetzner-3","gekko-hetzner-4","pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]
+                }]}]
+              }
+            }}}}}
+          }' 2>/dev/null || true
       # Install cert-manager-lego-webhook
       - helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update
       - helm repo update

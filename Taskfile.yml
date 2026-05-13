@@ -2703,6 +2703,25 @@ tasks:
           --set certManager.namespace=cert-manager \
           --set certManager.serviceAccountName=cert-manager \
           --wait --timeout=120s
+      # Pin the lego webhook to Hetzner CPs. The kube-apiserver runs on host
+      # network of the Hetzner CPs and APIService discovery (`/apis/...`) dials
+      # the webhook pod IP directly. From a Hetzner CP host → home-LAN worker
+      # pod CIDR (e.g. 10.42.6.0/24 on k3w-2), the Flannel tunnel route isn't
+      # reliable, so kube-apiserver times out and APIService goes FailedDiscovery.
+      # Same constraint as CoreDNS / ArgoCD: stay on Hetzner nodes.
+      - |
+        kubectl patch deploy -n cert-manager cert-manager-lego-webhook \
+          --type=merge -p '{
+            "spec":{"template":{"spec":{"affinity":{"nodeAffinity":{
+              "requiredDuringSchedulingIgnoredDuringExecution":{
+                "nodeSelectorTerms":[{"matchExpressions":[{
+                  "key":"kubernetes.io/hostname",
+                  "operator":"In",
+                  "values":["gekko-hetzner-2","gekko-hetzner-3","gekko-hetzner-4","pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]
+                }]}]
+              }
+            }}}}}
+          }' 2>/dev/null || true
       - echo "✓ cert-manager + lego webhook installed"
       - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key>'' to store credentials"'
 

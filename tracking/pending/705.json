@@ -1,0 +1,12 @@
+{
+  "pr_number": 705,
+  "title": "add execution-mode choice + pre-merge preview section to SKILL.md",
+  "description": "## Summary\n- Adds explicit inline-vs-park execution-mode question after plan writing (no more silent auto-execution)\n- Adds Pre-Merge Preview (dev k3d) section describing how to use dev.mentolder.de once the cluster is running\n- Renumbers Feature-Pfad steps to match new flow\n\n## Test plan\n- [x] task test:all (80 pass, 0 fail)\n- No manifests changed\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "chore",
+  "scope": "dev-flow",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T18:16:55Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

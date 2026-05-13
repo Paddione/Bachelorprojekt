@@ -185,6 +185,15 @@ if [[ "$TIER" == "local" ]]; then
 
   run_test_files "${SCRIPT_DIR}/local"
 
+  # Opt-in: dev.mentolder.de smoke tests. Off by default so CI doesn't
+  # bind to a live external URL. Enable with RUN_DEV_TESTS=true (set in
+  # .github/workflows/dev-smoke.yml).
+  if [[ "${RUN_DEV_TESTS:-false}" == "true" ]]; then
+    echo ""
+    echo "━━━ dev.mentolder.de smoke tests (RUN_DEV_TESTS=true) ━━━"
+    run_test_files "${SCRIPT_DIR}/dev-stack"
+  fi
+
   # Run Playwright e2e tests if installed
   if [[ -f "${SCRIPT_DIR}/e2e/package.json" ]]; then
     echo ""

@@ -109,10 +109,22 @@ spec:
               # by the container shell at runtime — NOT Taskfile envsubst targets.
               args:
                 - |
-                  set -e
+                  # fail-loud: -e exits on any error, -u catches missing env vars,
+                  # -o pipefail propagates pg_dump failures through redirects/pipes.
+                  set -euo pipefail
                   # Wait for pod network to settle; ClusterIP routes via kube-proxy
                   # take a few seconds to become active for newly started pods.
                   sleep 15
+
+                  # Pre-flight: refuse to start if shared-db isn't reachable.
+                  # Without this, pg_dump's `> file` redirect creates an empty file
+                  # before pg_dump can fail, leaving a 0-byte "backup" on disk.
+                  echo "Pre-flight: pg_isready against shared-db..."
+                  if ! pg_isready -h shared-db -t 30 -q; then
+                    echo "FATAL: shared-db is not reachable — refusing to write empty dumps." >&2
+                    exit 1
+                  fi
+
                   STAMP=$(date +%Y%m%d-%H%M%S)
                   BACKUP_DIR=/backups/${STAMP}
                   mkdir -p "${BACKUP_DIR}"
@@ -126,10 +138,20 @@ spec:
                       website)     PASS="${WEBSITE_DB_PASSWORD}" ;;
                       docuseal)    PASS="${DOCUSEAL_DB_PASSWORD}" ;;
                     esac
+                    DUMP="${BACKUP_DIR}/${db}.dump"
                     echo "Backing up ${db}..."
                     PGPASSWORD="${PASS}" pg_dump -Fc \
                       -h shared-db -U "${db}" -d "${db}" \
-                      > "${BACKUP_DIR}/${db}.dump"
+                      > "${DUMP}"
+                    # Post-flight: every pg_dump -Fc starts with the literal "PGDMP" magic.
+                    # An empty file or any other content here means the dump is unusable —
+                    # fail the Job rather than encrypt and publish garbage.
+                    SIZE=$(wc -c < "${DUMP}")
+                    if [ "${SIZE}" -lt 200 ] || ! head -c 5 "${DUMP}" | grep -q '^PGDMP'; then
+                      echo "FATAL: ${db}.dump is ${SIZE} bytes and not a valid pg_dump archive." >&2
+                      exit 1
+                    fi
+                    echo "  ${db}.dump OK (${SIZE} bytes)"
                   done
 
                   # Encrypt with AES-256 using BACKUP_PASSPHRASE from workspace-secrets

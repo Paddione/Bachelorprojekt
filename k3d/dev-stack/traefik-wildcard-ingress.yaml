@@ -1,0 +1,18 @@
+# Catch-all route for *.dev.${PROD_DOMAIN}. The explicit website-dev
+# and brett-dev Ingresses bind specific hostnames at default priority;
+# this IngressRoute at priority=1 catches any *other* subdomain and
+# forwards to sish, which routes by the SSH-requested name.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sish-catchall
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HostRegexp(`{subdomain:[a-z0-9-]+}.${DEV_DOMAIN}`)
+      priority: 1
+      kind: Rule
+      services:
+        - name: sish
+          port: 80

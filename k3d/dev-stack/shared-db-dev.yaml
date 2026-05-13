@@ -1,0 +1,138 @@
+# ════════════════════════════════════════════════════════════════════
+# shared-db-dev — Postgres 16 inside the dev k3d cluster.
+# Credential set is DISTINCT from prod's shared-db so a leak here cannot
+# unlock prod. NodePort 30000 → host 127.0.0.1:15432 (via k3d --port).
+# The dev-db-refresh CronJob in prod uses host loopback to pg_restore
+# the latest prod backup into here every night at 03:30 UTC.
+# ════════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-db-dev-data
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shared-db-dev
+  labels:
+    app: shared-db-dev
+spec:
+  serviceName: shared-db-dev
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-db-dev
+  template:
+    metadata:
+      labels:
+        app: shared-db-dev
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_SHARED_DB_PASSWORD
+            - name: POSTGRES_DB
+              value: postgres
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, postgres]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 1Gi
+              cpu: 500m
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: shared-db-dev-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared-db-dev
+spec:
+  selector:
+    app: shared-db-dev
+  type: NodePort
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      nodePort: 30000
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shared-db-dev-init
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: postgres:16
+          env:
+            - name: PGHOST
+              value: shared-db-dev
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_SHARED_DB_PASSWORD
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_WEBSITE_DB_PASSWORD
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              echo "waiting for postgres..."
+              for i in {1..30}; do
+                pg_isready -h "$PGHOST" -U "$PGUSER" && break
+                sleep 2
+              done
+              psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" <<-SQL
+                DO \$\$ BEGIN
+                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='website') THEN
+                    EXECUTE format('CREATE ROLE website LOGIN PASSWORD %L', '$WEBSITE_DB_PASSWORD');
+                  ELSE
+                    EXECUTE format('ALTER ROLE website WITH PASSWORD %L', '$WEBSITE_DB_PASSWORD');
+                  END IF;
+                  PERFORM 1 FROM pg_database WHERE datname='website';
+                  IF NOT FOUND THEN EXECUTE 'CREATE DATABASE website OWNER website'; END IF;
+                  PERFORM 1 FROM pg_database WHERE datname='bugs';
+                  IF NOT FOUND THEN EXECUTE 'CREATE DATABASE bugs OWNER website'; END IF;
+                  PERFORM 1 FROM pg_database WHERE datname='bachelorprojekt';
+                  IF NOT FOUND THEN EXECUTE 'CREATE DATABASE bachelorprojekt OWNER website'; END IF;
+                END \$\$;
+              SQL
+              echo "ok."

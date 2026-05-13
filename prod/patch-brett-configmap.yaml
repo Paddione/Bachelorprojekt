@@ -1,8 +1,0 @@
-# Patch: BRETT_INTERNAL_URL in website-config ConfigMap
-# Ermöglicht dem Website-Pod den internen Brett-Dienst direkt abzurufen
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: website-config
-data:
-  BRETT_INTERNAL_URL: "http://brett.workspace.svc.cluster.local:3000"

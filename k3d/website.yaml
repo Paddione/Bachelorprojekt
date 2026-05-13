@@ -73,6 +73,7 @@ data:
   ENABLE_ASSISTANT_PORTAL: "true"
   # Brett
   BRETT_DOMAIN: "${BRETT_DOMAIN}"
+  BRETT_INTERNAL_URL: "http://brett.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
   # LiveKit
   LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
   STREAM_DOMAIN: "stream.${PROD_DOMAIN}"

@@ -14,10 +14,6 @@ configMapGenerator:
     behavior: replace
     files:
       - realm-workspace.json=realm-workspace-mentolder.json
-  - name: website-config
-    behavior: merge
-    literals:
-      - BRETT_INTERNAL_URL=http://brett.workspace.svc.cluster.local:3000
   - name: art-library
     behavior: replace
     options:

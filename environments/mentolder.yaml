@@ -54,6 +54,7 @@ env_vars:
   # ── Dev stack (dev.mentolder.de) ─────────────────────────────────────
   DEV_DOMAIN: "dev.mentolder.de"
   DEV_NODE: "gekko-hetzner-2"
+  DEV_SSH_USER: "gekko"
   DEV_WEBSITE_HOST: "web.dev.mentolder.de"
   DEV_BRETT_HOST: "brett.dev.mentolder.de"
   # Comma-separated CIDRs allowed to reach :2222 on $DEV_NODE.

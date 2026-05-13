@@ -6,9 +6,53 @@
 <title>Systemisches Brett</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+  :root {
+    --bc-panel: #16213e;
+    --bc-bg: #1a1a2e;
+    --bc-border: #0f3460;
+    --bc-text: #e0e0e0;
+    --bc-muted: #aab5cf;
+    --bc-dim:   #5d6a8a;
+    --bc-brass: #c8a96e;
+    --bc-sage:  #6be0a0;
+    --bc-danger: #e09090;
+    --bc-rail-w: 42px;
+    --bc-dock-w: 220px;
+    --bc-top-h: 44px;
+    --bc-anim: 200ms;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bc-bg);
+    color: var(--bc-text);
+    overflow: hidden;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: var(--bc-rail-w) 1fr var(--bc-dock-w);
+    grid-template-areas:
+      "top top top"
+      "rail canvas dock";
+  }
+
+  body.bc-rail-collapsed { grid-template-columns: 14px 1fr var(--bc-dock-w); }
+  body.bc-dock-collapsed { grid-template-columns: var(--bc-rail-w) 1fr 18px; }
+  body.bc-rail-collapsed.bc-dock-collapsed { grid-template-columns: 14px 1fr 18px; }
+  body.bc-top-collapsed { grid-template-rows: 32px 1fr; }
+
+  @media (max-width: 1023px) and (min-width: 640px) {
+    body { grid-template-columns: var(--bc-rail-w) 1fr 18px; }
+    body.bc-dock-open { grid-template-columns: var(--bc-rail-w) 1fr var(--bc-dock-w); }
+  }
+
+  @media (max-width: 639px) {
+    body { grid-template-columns: 0 1fr 0; grid-template-rows: var(--bc-top-h) 1fr; }
+  }
 
   #toolbar {
+    grid-area: top;
     background: #16213e;
     border-bottom: 1px solid #0f3460;
     padding: 8px 14px;
@@ -20,6 +64,40 @@
     flex-shrink: 0;
     min-height: 52px;
   }
+
+  #bc-rail {
+    grid-area: rail;
+    background: #0f1a30;
+    border-right: 1px solid var(--bc-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    gap: 6px;
+  }
+
+  #canvas-container { grid-area: canvas; position: relative; overflow: hidden; min-height: 0; }
+
+  #bc-dock {
+    grid-area: dock;
+    background: var(--bc-panel);
+    border-left: 1px solid var(--bc-border);
+    overflow-y: auto;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  body.bc-rail-collapsed #bc-rail { padding: 0; }
+  body.bc-rail-collapsed #bc-rail > * { display: none; }
+  body.bc-rail-collapsed #bc-rail::before { content: '▶'; color: var(--bc-brass); font-size: 10px; padding: 8px 0; cursor: pointer; display: block; }
+
+  body.bc-dock-collapsed #bc-dock { padding: 0; writing-mode: vertical-rl; text-align: center; color: var(--bc-brass); font-family: monospace; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; }
+  body.bc-dock-collapsed #bc-dock > * { display: none; }
+  body.bc-dock-collapsed #bc-dock::before { content: '◀ ANSICHT'; display: block; padding: 14px 0; }
+
+  body.bc-top-collapsed #toolbar > * { display: none; }
+  body.bc-top-collapsed #toolbar #bc-collapse-top { display: inline-block; }
+  body.bc-top-collapsed #toolbar { padding: 6px 10px; }
 
   .tlabel {
     font-size: 11px;
@@ -153,6 +231,229 @@
 
   canvas { display: block; width: 100%; height: 100%; }
 
+  /* ── Dock section rows ─────────────────────────────── */
+  .bc-section { margin-bottom: 14px; }
+  .bc-section h4 { color: var(--bc-brass); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin: 4px 0 6px; font-weight: 500; font-family: monospace; }
+  .bc-row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 8px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--bc-muted); font-size: 12px; font-family: monospace; cursor: pointer; }
+  .bc-row:hover { border-color: var(--bc-border); color: var(--bc-text); background: rgba(15,52,96,0.4); }
+  .bc-row.active { color: var(--bc-brass); border-color: rgba(200,169,110,0.4); background: rgba(200,169,110,0.10); }
+  .bc-row kbd { color: var(--bc-dim); font-size: 10px; letter-spacing: 0.08em; }
+  .bc-row.active kbd { color: var(--bc-brass); }
+  .bc-zoomrow { display: flex; align-items: center; gap: 4px; }
+  .bc-zoomrow input { flex: 1; }
+  .bc-mini { width: 22px; height: 22px; padding: 0; background: #0f2040; border: 1px solid var(--bc-border); color: var(--bc-muted); border-radius: 3px; cursor: pointer; }
+
+  /* ── Tool-Rail buttons ─────────────────────────────── */
+  .bc-tool {
+    width: 32px; height: 32px;
+    background: var(--bc-panel); border: 1px solid var(--bc-border); border-radius: 5px;
+    color: var(--bc-muted);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: monospace; font-size: 13px; cursor: pointer;
+    transition: background 100ms, border-color 100ms;
+    padding: 0;
+  }
+  .bc-tool:hover { border-color: var(--bc-brass); color: var(--bc-text); }
+  .bc-tool.active { background: rgba(200,169,110,0.15); border-color: var(--bc-brass); color: var(--bc-brass); }
+  .bc-tool:focus-visible { outline: 2px solid var(--bc-brass); outline-offset: 2px; }
+  .bc-tool kbd { font-size: 8px; color: var(--bc-dim); margin-top: -2px; }
+  .bc-tool.active kbd { color: var(--bc-brass); }
+
+  body.bc-tool-V #canvas-container { cursor: default; }
+  body.bc-tool-O #canvas-container { cursor: move; }
+  body.bc-tool-P #canvas-container { cursor: grab; }
+  body.bc-tool-P.bc-panning #canvas-container { cursor: grabbing; }
+  body.bc-tool-R #canvas-container { cursor: ew-resize; }
+  body.bc-tool-F #canvas-container { cursor: crosshair; }
+  body.bc-tool-E #canvas-container { cursor: cell; }
+
+  /* ── Compass ───────────────────────────────────────── */
+  #bc-compass {
+    position: absolute; top: 12px; right: 12px;
+    width: 52px; height: 52px;
+    border: 1px solid var(--bc-brass);
+    border-radius: 50%;
+    background: rgba(7, 16, 31, 0.65);
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+    font-family: monospace;
+    color: var(--bc-brass);
+    z-index: 10;
+  }
+  #bc-compass svg { width: 100%; height: 100%; }
+  #bc-compass:hover { background: rgba(15,32,64,0.85); }
+
+  /* ── Hint zone ─────────────────────────────────────── */
+  #bc-hint {
+    position: absolute; left: 12px; bottom: 12px;
+    background: rgba(7,16,31,0.7); padding: 5px 10px;
+    border: 1px solid var(--bc-border); border-radius: 4px;
+    color: var(--bc-muted); font-size: 11px; letter-spacing: 0.04em;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 400ms;
+  }
+  #bc-hint.bc-fade { opacity: 0; }
+
+  /* ── Chevrons ──────────────────────────────────────── */
+  .bc-chevron {
+    background: transparent; border: 1px solid transparent;
+    color: var(--bc-brass); cursor: pointer;
+    padding: 2px 6px; border-radius: 3px; font-size: 11px; font-family: monospace;
+  }
+  .bc-chevron:hover { border-color: var(--bc-brass); }
+
+  /* ── Context menu ──────────────────────────────────── */
+  #bc-context-menu {
+    position: fixed; display: none;
+    background: var(--bc-panel); border: 1px solid var(--bc-border); border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    z-index: 1500; min-width: 160px;
+    padding: 4px; font-size: 12px;
+  }
+  #bc-context-menu.open { display: block; }
+  #bc-context-menu button {
+    display: block; width: 100%; text-align: left; padding: 6px 10px;
+    background: transparent; border: none; color: var(--bc-text); cursor: pointer; font-size: 12px;
+  }
+  #bc-context-menu button:hover { background: rgba(15,52,96,0.6); }
+
+  /* ── POV Banner ────────────────────────────────────── */
+  #bc-pov-banner {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(110,180,140,0.18); border: 1px solid var(--bc-sage);
+    color: var(--bc-sage); padding: 6px 14px; border-radius: 18px;
+    font-family: monospace; font-size: 12px;
+    display: flex; align-items: center; gap: 10px;
+    z-index: 100;
+  }
+  #bc-pov-banner button { background: transparent; border: 1px solid currentColor; color: currentColor; padding: 2px 8px; border-radius: 8px; cursor: pointer; font-size: 11px; }
+
+  /* ── Free-Fly Banner ───────────────────────────────── */
+  #bc-fly-banner {
+    position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+    background: rgba(200,169,110,0.18); border: 1px solid var(--bc-brass);
+    color: var(--bc-brass); padding: 6px 14px; border-radius: 18px;
+    font-family: monospace; font-size: 12px;
+    display: flex; align-items: center; gap: 10px; z-index: 100;
+  }
+  #bc-fly-banner button { background: transparent; border: 1px solid currentColor; color: currentColor; padding: 2px 8px; border-radius: 8px; cursor: pointer; font-size: 11px; }
+
+  /* ── Recording indicator ───────────────────────────── */
+  #bc-rec-indicator {
+    position: absolute; top: 12px; right: 80px;
+    background: rgba(7,16,31,0.7); border: 1px solid var(--bc-danger);
+    padding: 4px 10px; border-radius: 4px;
+    font-family: monospace; font-size: 11px;
+    color: var(--bc-text);
+    display: flex; align-items: center; gap: 8px;
+    z-index: 100;
+  }
+  .bc-rec-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--bc-danger);
+    animation: bc-rec-pulse 1.2s infinite ease-in-out;
+  }
+  @keyframes bc-rec-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── Help overlay ──────────────────────────────────── */
+  #bc-help-overlay {
+    position: fixed; inset: 0; background: rgba(7,16,31,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000; padding: 20px;
+  }
+  .bc-help-card {
+    background: var(--bc-panel); border: 1px solid var(--bc-brass); border-radius: 12px;
+    max-width: 720px; width: 100%; max-height: 80vh; overflow: auto;
+    padding: 24px; color: var(--bc-text);
+  }
+  .bc-help-card h3 { color: var(--bc-brass); margin: 0 0 16px; font-family: 'Newsreader', Georgia, serif; }
+  .bc-help-card h5 { color: var(--bc-brass); margin: 0 0 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-family: monospace; }
+  .bc-help-card kbd { color: var(--bc-brass); border: 1px solid rgba(200,169,110,0.4); padding: 1px 6px; border-radius: 3px; font-size: 11px; font-family: monospace; }
+  .bc-help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
+  @media (max-width: 639px) { .bc-help-grid { grid-template-columns: 1fr; } }
+  .bc-help-card p { color: var(--bc-muted); font-size: 13px; line-height: 1.6; margin: 0; }
+
+  /* ── Mobile FAB / Bottom-Sheet ─────────────────────── */
+  @media (max-width: 639px) {
+    #bc-rail { display: none; }
+    #bc-fab {
+      position: fixed; right: 16px; bottom: 96px;
+      width: 56px; height: 56px;
+      background: var(--bc-panel); border: 1px solid var(--bc-brass);
+      border-radius: 50%; color: var(--bc-brass);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      z-index: 1200;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    #bc-fab-radial {
+      position: fixed; right: 16px; bottom: 160px;
+      display: none;
+      flex-direction: column; gap: 6px;
+      z-index: 1200;
+    }
+    #bc-fab-radial.open { display: flex; }
+    #bc-fab-radial button {
+      width: 44px; height: 44px;
+      background: var(--bc-panel); border: 1px solid var(--bc-border);
+      border-radius: 50%; color: var(--bc-muted);
+    }
+    #bc-fab-radial button.active { color: var(--bc-brass); border-color: var(--bc-brass); }
+
+    #bc-dock {
+      position: fixed !important; left: 0; right: 0; bottom: 0;
+      width: auto !important; max-height: 60vh;
+      transform: translateY(calc(100% - 80px));
+      transition: transform 250ms ease-out;
+      z-index: 1000;
+      border-top: 1px solid var(--bc-border); border-left: none;
+      padding: 0 !important;
+    }
+    body.bc-sheet-open #bc-dock { transform: translateY(0); }
+    body.bc-sheet-full #bc-dock { transform: translateY(0); max-height: 100vh; }
+
+    #bc-sheet-grab {
+      width: 100%; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: grab;
+    }
+    #bc-sheet-grab::before {
+      content: ''; width: 36px; height: 4px;
+      background: var(--bc-dim); border-radius: 2px;
+    }
+    #bc-sheet-tabs {
+      display: flex; gap: 6px; padding: 0 12px 8px;
+      overflow-x: auto;
+    }
+    #bc-sheet-tabs button {
+      padding: 5px 10px; background: #0f2040; border: 1px solid var(--bc-border);
+      border-radius: 4px; color: var(--bc-muted); font-size: 11px;
+      font-family: monospace; white-space: nowrap;
+    }
+    #bc-sheet-tabs button.active { background: rgba(200,169,110,0.15); border-color: var(--bc-brass); color: var(--bc-brass); }
+
+    .bc-section { display: none; padding: 10px 12px; }
+    .bc-section.active { display: block; }
+  }
+
+  /* ── Tablet layout ─────────────────────────────────── */
+  @media (max-width: 1023px) and (min-width: 640px) {
+    #toolbar .tlabel { display: none; }
+    #toolbar .color-swatch:nth-of-type(n+5) { display: none; }
+    #toolbar .size-btn[data-scale="0.6"],
+    #toolbar .size-btn[data-scale="1.5"] { display: none; }
+  }
+
+  /* ── A11y ──────────────────────────────────────────── */
+  @media (prefers-contrast: more) {
+    .bc-row, .bc-tool, .bc-chevron { border-width: 2px; }
+    .bc-row.active { text-decoration: underline; }
+  }
+
   #label-modal {
     display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center;
@@ -186,7 +487,7 @@
     font-size: 12px; color: #777; pointer-events: none;
   }
 
-  #canvas-container { position: relative; flex: 1; overflow: hidden; min-height: 0; }
+  /* #canvas-container now handled by grid area above */
 
   /* ── Minimap widget ─────────────────────────────────────────────────── */
   #minimap-widget {
@@ -385,15 +686,6 @@
   <div class="sep"></div>
   <button id="btn-delete">✕ Löschen</button>
 
-  <div class="sep"></div>
-  <span class="tlabel">Zoom</span>
-  <div id="zoom-section">
-    <button class="size-btn" id="zoom-out" title="Herauszoomen">−</button>
-    <input type="range" id="zoom-slider" min="12" max="75" step="0.5" value="44">
-    <button class="size-btn" id="zoom-in" title="Heranzoomen">+</button>
-    <span id="zoom-val">44</span>
-  </div>
-
   <div id="sync-status" style="font-size:12px; color:#6be0a0; margin-left:auto; margin-right:8px;">Verbinde …</div>
   <div style="display:flex;gap:8px;align-items:center;">
     <button class="io-btn save" id="btn-save">↓ Speichern</button>
@@ -403,6 +695,7 @@
 
   <div class="sep"></div>
   <button id="uebersicht-btn" title="Übersicht ein-/ausblenden">🗺 Übersicht</button>
+  <button id="bc-collapse-top" class="bc-chevron" title="Toolbar einklappen (⇧\)" aria-label="Toolbar einklappen">▾</button>
   <div id="optik-wrap">
     <button id="optik-btn" title="Brett-Optik">🎨 Optik</button>
     <div id="optik-popup">
@@ -440,16 +733,126 @@
   </div>
 </div>
 
+<aside id="bc-rail" aria-label="Werkzeug-Leiste">
+  <button class="bc-tool active" data-tool="V" title="Auswählen (V)" aria-label="Tool: Auswählen"><span>↖</span><kbd>V</kbd></button>
+  <button class="bc-tool" data-tool="O" title="Orbit (O)" aria-label="Tool: Kamera drehen"><span>⟲</span><kbd>O</kbd></button>
+  <button class="bc-tool" data-tool="P" title="Pan (P)" aria-label="Tool: Brett verschieben"><span>✋</span><kbd>P</kbd></button>
+  <button class="bc-tool" data-tool="R" title="Figur drehen (R)" aria-label="Tool: Figur drehen"><span>⟳</span><kbd>R</kbd></button>
+  <button class="bc-tool" data-tool="F" title="Fokus (F)" aria-label="Tool: Fokus"><span>⊕</span><kbd>F</kbd></button>
+  <button class="bc-tool" data-tool="E" title="POV (E)" aria-label="Tool: Aus Figur-Augen"><span>👁</span><kbd>E</kbd></button>
+  <button id="bc-collapse-rail" class="bc-chevron bc-chevron-rail" title="Tool-Rail ([)" aria-label="Tool-Rail einklappen" style="margin-top:auto;">◀</button>
+</aside>
+
 <div id="canvas-container">
   <canvas id="three-canvas"></canvas>
-  <div id="hint">
-    LMB: Figur ziehen &nbsp;|&nbsp; RMB auf Figur: ausrichten &nbsp;|&nbsp; RMB auf Fläche: Blickwinkel &nbsp;|&nbsp; MMB: Brett verschieben &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
-  </div>
+  <div id="bc-hint" role="status" aria-live="off"></div>
   <div id="selected-info"></div>
+  <div id="bc-compass" title="Klick = Home (H)" role="button" aria-label="Kompass — Klick für Home">
+    <svg viewBox="-30 -30 60 60">
+      <circle cx="0" cy="0" r="22" fill="none" stroke="rgba(200,169,110,0.3)" stroke-width="0.5"/>
+      <g id="bc-compass-rose">
+        <text x="0" y="-14" text-anchor="middle" font-size="9" fill="currentColor" dominant-baseline="middle" font-weight="600">N</text>
+        <text x="14" y="0"  text-anchor="middle" font-size="7" fill="currentColor" dominant-baseline="middle">E</text>
+        <text x="0" y="14"  text-anchor="middle" font-size="7" fill="currentColor" dominant-baseline="middle">S</text>
+        <text x="-14" y="0" text-anchor="middle" font-size="7" fill="currentColor" dominant-baseline="middle">W</text>
+        <polygon points="0,-20 -3,-10 0,-13 3,-10" fill="currentColor"/>
+      </g>
+      <line id="bc-compass-horizon" x1="-10" y1="0" x2="10" y2="0" stroke="rgba(110,180,140,0.7)" stroke-width="1"/>
+    </svg>
+  </div>
+  <div id="bc-pov-banner" role="status" aria-live="polite" hidden>
+    <span id="bc-pov-banner-prefix">👁 Sicht von </span>
+    <span id="bc-pov-banner-name"></span>
+    <button id="bc-pov-exit" aria-label="POV verlassen">⎋ Verlassen</button>
+  </div>
+  <div id="bc-fly-banner" role="status" aria-live="polite" hidden>
+    <span>✈ Free-Fly · WASD + Maus · Shift = Sprint</span>
+    <button id="bc-fly-exit" aria-label="Free-Fly verlassen">⎋</button>
+  </div>
+  <div id="bc-rec-indicator" hidden>
+    <span class="bc-rec-dot"></span>
+    <span id="bc-rec-time">0:00</span>
+  </div>
 </div>
-<div id="ctrl-ball-hint" style="font-size:11px;color:#555;text-align:center;padding:4px 0;user-select:none;">
-  Klick auf Brett → Steuerkugel erscheint &nbsp;|&nbsp; Kugel ziehen: Brett drehen &nbsp;|&nbsp; Figur ziehen: verschieben &nbsp;|&nbsp; Doppelklick: Beschriftung
-</div>
+
+<aside id="bc-dock" aria-label="Ansichten und Modi">
+  <button id="bc-collapse-dock" class="bc-chevron bc-chevron-dock" title="Dock (])" aria-label="Side-Dock einklappen" style="float:right;margin: -4px -4px 0 0;">▸</button>
+
+  <div id="bc-sheet-grab" aria-label="Bottom-Sheet ziehen"></div>
+  <div id="bc-sheet-tabs">
+    <button data-tab="ansicht" class="active">Ansicht</button>
+    <button data-tab="modi">Modi</button>
+    <button data-tab="marks">Marks</button>
+    <button data-tab="aufnahme">📷</button>
+  </div>
+
+  <div data-tab-content="ansicht">
+    <section class="bc-section">
+      <h4>Ansichten</h4>
+      <button class="bc-row" id="bc-home"><span>⌂ Home</span><kbd>H</kbd></button>
+      <button class="bc-row" id="bc-fit"><span>⊕ Fit</span><kbd>F</kbd></button>
+      <button class="bc-row" id="bc-help"><span>? Hilfe</span><kbd>?</kbd></button>
+    </section>
+
+    <section class="bc-section">
+      <h4>Presets</h4>
+      <button class="bc-row" data-preset="1"><span>▦ Top-Down</span><kbd>1</kbd></button>
+      <button class="bc-row" data-preset="2"><span>▣ Frontal</span><kbd>2</kbd></button>
+      <button class="bc-row" data-preset="3"><span>◀ Links</span><kbd>3</kbd></button>
+      <button class="bc-row" data-preset="4"><span>▶ Rechts</span><kbd>4</kbd></button>
+      <button class="bc-row" data-preset="5"><span>⬢ Iso</span><kbd>5</kbd></button>
+      <button class="bc-row" data-preset="6"><span>▤ 3/4</span><kbd>6</kbd></button>
+    </section>
+
+    <section class="bc-section">
+      <h4>Zoom</h4>
+      <div class="bc-zoomrow">
+        <button class="bc-mini" id="bc-zoom-out">−</button>
+        <input type="range" id="bc-zoom-slider" min="12" max="75" step="0.5" value="44">
+        <button class="bc-mini" id="bc-zoom-in">+</button>
+      </div>
+      <div style="text-align:center;color:var(--bc-dim);font-size:11px;font-family:monospace;"><span id="bc-zoom-val">44</span></div>
+    </section>
+  </div>
+
+  <div data-tab-content="modi" hidden>
+    <section class="bc-section bc-modi">
+      <h4>Modi</h4>
+      <button class="bc-row" id="bc-mode-pov"><span>👁 POV von …</span><kbd>E</kbd></button>
+      <button class="bc-row" id="bc-mode-auto"><span>⟳ Auto-Orbit</span><kbd>A</kbd></button>
+      <div class="bc-zoomrow" style="margin-top:4px;">
+        <span style="font-size:10px;color:var(--bc-dim);width:30px;">Tempo</span>
+        <input type="range" id="bc-auto-speed" min="0.02" max="0.5" step="0.02" value="0.15">
+      </div>
+      <button class="bc-row" id="bc-mode-fly"><span>✈ Free-Fly</span><kbd>⇧F</kbd></button>
+      <button class="bc-row" id="bc-mode-split"><span>⫼ Split-View</span><kbd>⇧S</kbd></button>
+      <div id="bc-split-controls" hidden style="margin-top:4px;">
+        <select id="bc-split-source" style="width:100%;padding:4px;background:#0f2040;border:1px solid var(--bc-border);color:var(--bc-text);font-size:11px;">
+          <option value="preset:1">Top-Down</option>
+          <option value="preset:2">Frontal</option>
+          <option value="preset:5" selected>Iso</option>
+          <option value="preset:6">3/4</option>
+        </select>
+      </div>
+    </section>
+  </div>
+
+  <div data-tab-content="marks" hidden>
+    <section class="bc-section">
+      <h4>Lesezeichen</h4>
+      <button class="bc-row" id="bc-bk-add"><span>+ Aktuelle Ansicht</span><kbd>B</kbd></button>
+      <div id="bc-bookmarks-list"></div>
+    </section>
+  </div>
+
+  <div data-tab-content="aufnahme" hidden>
+    <section class="bc-section">
+      <h4>Aufnehmen</h4>
+      <button class="bc-row" id="bc-screenshot"><span>📷 Screenshot</span><kbd>C</kbd></button>
+      <button class="bc-row" id="bc-video"><span>🎬 Aufnahme</span><kbd>⇧R</kbd></button>
+    </section>
+  </div>
+</aside>
 
 <div id="minimap-widget">
   <div id="minimap-header">
@@ -515,6 +918,61 @@
     <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
       <button class="modal-btn" id="load-cancel">Schließen</button>
     </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div id="bc-context-menu" role="menu" aria-hidden="true">
+  <button data-ctx="rotate" role="menuitem">↻ Drehen…</button>
+  <button data-ctx="pov" role="menuitem">👁 Aus dieser Sicht</button>
+  <button data-ctx="delete" role="menuitem">✕ Löschen</button>
+  <button data-ctx="home" role="menuitem">⌂ Home</button>
+</div>
+
+<!-- FAB (phone) -->
+<button id="bc-fab" aria-label="Werkzeug-Auswahl" title="Long-Press für Radial-Menü" style="display:none;">↖</button>
+<div id="bc-fab-radial" role="menu" style="display:none;">
+  <button data-tool="V" aria-label="Auswählen">↖</button>
+  <button data-tool="O" aria-label="Orbit">⟲</button>
+  <button data-tool="P" aria-label="Pan">✋</button>
+  <button data-tool="R" aria-label="Drehen">⟳</button>
+  <button data-tool="F" aria-label="Fokus">⊕</button>
+  <button data-tool="E" aria-label="POV">👁</button>
+</div>
+
+<!-- Help Overlay -->
+<div id="bc-help-overlay" role="dialog" aria-modal="true" aria-labelledby="bc-help-title" hidden>
+  <div class="bc-help-card">
+    <h3 id="bc-help-title">Tastatur-Cheatsheet</h3>
+    <div class="bc-help-grid">
+      <section>
+        <h5>Werkzeuge</h5>
+        <p><kbd>V</kbd> Auswählen · <kbd>O</kbd> Orbit · <kbd>P</kbd> Pan · <kbd>R</kbd> Drehen · <kbd>F</kbd> Fokus · <kbd>E</kbd> POV</p>
+        <p><kbd>Space</kbd>-hold = Temp-Pan</p>
+      </section>
+      <section>
+        <h5>Ansichten</h5>
+        <p><kbd>1</kbd>–<kbd>6</kbd> Presets · <kbd>H</kbd>/<kbd>0</kbd> Home · <kbd>+</kbd>/<kbd>−</kbd> Zoom</p>
+      </section>
+      <section>
+        <h5>Modi</h5>
+        <p><kbd>A</kbd> Auto · <kbd>⇧F</kbd> Free-Fly · <kbd>⇧S</kbd> Split · <kbd>Esc</kbd> verlassen</p>
+        <p>Free-Fly: <kbd>WASD</kbd> · <kbd>Space</kbd>/<kbd>Q</kbd> · <kbd>⇧</kbd>=Sprint</p>
+      </section>
+      <section>
+        <h5>Bookmarks</h5>
+        <p><kbd>B</kbd> speichern · <kbd>⇧1</kbd>–<kbd>⇧9</kbd> wiederherstellen</p>
+      </section>
+      <section>
+        <h5>Aufnahme</h5>
+        <p><kbd>C</kbd> Screenshot · <kbd>⇧R</kbd> Video</p>
+      </section>
+      <section>
+        <h5>Bars</h5>
+        <p><kbd>\</kbd> alle · <kbd>[</kbd> Rail · <kbd>]</kbd> Dock · <kbd>⇧\</kbd> Top</p>
+      </section>
+    </div>
+    <button id="bc-help-close" class="bc-row" style="margin-top:14px;">Schließen (Esc)</button>
   </div>
 </div>
 
@@ -655,17 +1113,166 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1a2e);
 scene.fog = new THREE.Fog(0x1a1a2e, 65, 120);
 
-const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
-const orbit = { theta: 0, phi: 0.95, radius: 44, panX: 0, panZ: 0 };
-function updateCamera() {
-  camera.position.set(
-    orbit.panX + orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
-    orbit.radius * Math.cos(orbit.phi),
-    orbit.panZ + orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta)
-  );
-  camera.lookAt(orbit.panX, 0, orbit.panZ);
+// ── Camera state ──────────────────────────────────────────────
+const camera_obj = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
+const camera = {
+  mode: 'orbit',
+  theta: 0, phi: 0.95, radius: 44,
+  target: { x: 0, y: 0, z: 0 },
+
+  povFigureId: null,
+  povYaw: 0, povPitch: -0.087,
+  fov: 45,
+
+  flyPos: { x: 0, y: 8, z: 30 },
+  flyYaw: 0, flyPitch: 0,
+  flySpeed: 5,
+
+  autoSpeed: 0.15,
+  autoPausedUntil: 0,
+
+  anim: null,
+};
+
+const easings = {
+  linear: t => t,
+  'ease-out-cubic': t => 1 - Math.pow(1 - t, 3),
+  'ease-in-out-cubic': t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2,
+};
+
+function snapshot() {
+  return {
+    mode: camera.mode,
+    theta: camera.theta, phi: camera.phi, radius: camera.radius,
+    target: { ...camera.target },
+    povYaw: camera.povYaw, povPitch: camera.povPitch, fov: camera.fov,
+    flyPos: { ...camera.flyPos }, flyYaw: camera.flyYaw, flyPitch: camera.flyPitch,
+  };
 }
+
+function easeCamera(to, dur = 400, easing = 'ease-out-cubic', onDone = null) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) dur = 0;
+  if (dur <= 0) { applyCameraSnapshot({ ...snapshot(), ...to }); onDone && onDone(); return; }
+  camera.anim = { from: snapshot(), to: { ...snapshot(), ...to }, t0: performance.now(), dur, easing, onDone };
+}
+
+function applyCameraSnapshot(s) {
+  if (s.mode !== undefined) camera.mode = s.mode;
+  if (s.theta !== undefined) camera.theta = s.theta;
+  if (s.phi !== undefined)   camera.phi = s.phi;
+  if (s.radius !== undefined) camera.radius = s.radius;
+  if (s.target) camera.target = { ...s.target };
+  if (s.povYaw !== undefined) camera.povYaw = s.povYaw;
+  if (s.povPitch !== undefined) camera.povPitch = s.povPitch;
+  if (s.fov !== undefined) camera.fov = s.fov;
+  if (s.flyPos) camera.flyPos = { ...s.flyPos };
+  if (s.flyYaw !== undefined) camera.flyYaw = s.flyYaw;
+  if (s.flyPitch !== undefined) camera.flyPitch = s.flyPitch;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function lerpVec3(a, b, t) { return { x: lerp(a.x,b.x,t), y: lerp(a.y,b.y,t), z: lerp(a.z,b.z,t) }; }
+
+function tickAnim() {
+  if (!camera.anim) return;
+  const { from, to, t0, dur, easing, onDone } = camera.anim;
+  const now = performance.now();
+  const u = Math.min(1, (now - t0) / dur);
+  const e = easings[easing](u);
+  camera.theta  = lerp(from.theta,  to.theta,  e);
+  camera.phi    = lerp(from.phi,    to.phi,    e);
+  camera.radius = lerp(from.radius, to.radius, e);
+  camera.target = lerpVec3(from.target, to.target, e);
+  camera.fov    = lerp(from.fov,    to.fov,    e);
+  if (u >= 1) {
+    if (to.mode !== from.mode) camera.mode = to.mode;
+    camera.anim = null;
+    onDone && onDone();
+  }
+}
+
+function updateCameraOrbit() {
+  camera_obj.fov = camera.fov;
+  camera_obj.updateProjectionMatrix();
+  camera_obj.position.set(
+    camera.target.x + camera.radius * Math.sin(camera.phi) * Math.sin(camera.theta),
+    camera.target.y + camera.radius * Math.cos(camera.phi),
+    camera.target.z + camera.radius * Math.sin(camera.phi) * Math.cos(camera.theta)
+  );
+  camera_obj.lookAt(camera.target.x, camera.target.y, camera.target.z);
+}
+
+function updateCamera() {
+  tickAnim();
+  return updateCameraOrbit();
+}
+
 updateCamera();
+
+// ── Presets ──────────────────────────────────────────────
+const PRESETS = {
+  1: { name: 'Top-Down', theta: 0,             phi: 0.05,         radius: 'fit' },
+  2: { name: 'Frontal',  theta: 0,             phi: Math.PI/2.05, radius: 'fit' },
+  3: { name: 'Links',    theta: -Math.PI/2,    phi: Math.PI/2.05, radius: 'fit' },
+  4: { name: 'Rechts',   theta:  Math.PI/2,    phi: Math.PI/2.05, radius: 'fit' },
+  5: { name: 'Iso',      theta: Math.PI/4,     phi: 0.95,         radius: 44 },
+  6: { name: '3/4',      theta: Math.PI/6,     phi: 0.70,         radius: 50 },
+};
+
+function computeFit() {
+  const positions = [
+    { x: -BW/2, z: -BD/2 }, { x: BW/2, z: BD/2 },
+    ...figures.map(f => ({ x: f.mesh.position.x, z: f.mesh.position.z })),
+  ];
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  positions.forEach(p => { minX = Math.min(minX,p.x); maxX = Math.max(maxX,p.x); minZ = Math.min(minZ,p.z); maxZ = Math.max(maxZ,p.z); });
+  const dx = maxX - minX, dz = maxZ - minZ;
+  const halfDiag = 0.5 * Math.sqrt(dx*dx + dz*dz);
+  const vFov = camera_obj.fov * Math.PI / 180;
+  const r = (halfDiag * 1.10) / Math.tan(vFov / 2);
+  return Math.max(12, Math.min(75, r));
+}
+
+function goToPreset(n) {
+  const p = PRESETS[n];
+  if (!p) return;
+  const radius = p.radius === 'fit' ? computeFit() : p.radius;
+  easeCamera({ mode: 'orbit', theta: p.theta, phi: p.phi, radius, target: { x:0, y:0, z:0 } }, 400, 'ease-out-cubic');
+  announceLive(`Ansicht: ${p.name}`);
+}
+
+function goHome() {
+  easeCamera({ mode: 'orbit', theta: PRESETS[5].theta, phi: PRESETS[5].phi, radius: 44, target: { x:0, y:0, z:0 } }, 500, 'ease-in-out-cubic');
+  announceLive('Home');
+}
+
+function goFit() {
+  easeCamera({ radius: computeFit(), target: { x:0, y:0, z:0 } }, 350, 'ease-out-cubic');
+  announceLive('Eingerahmt');
+}
+
+function activePresetName() {
+  for (const [n, p] of Object.entries(PRESETS)) {
+    const r = p.radius === 'fit' ? computeFit() : p.radius;
+    if (Math.abs(camera.theta - p.theta) < 0.05 &&
+        Math.abs(camera.phi - p.phi) < 0.05 &&
+        Math.abs(camera.radius - r) < 1.0 &&
+        Math.abs(camera.target.x) < 0.5 && Math.abs(camera.target.z) < 0.5) return p.name;
+  }
+  return null;
+}
+
+// aria-live announcer
+const liveRegion = document.createElement('div');
+liveRegion.setAttribute('aria-live', 'polite');
+liveRegion.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+document.body.appendChild(liveRegion);
+function announceLive(text) { liveRegion.textContent = ''; setTimeout(() => liveRegion.textContent = text, 50); }
+
+window.camera = camera;
+window.easeCamera = easeCamera;
+window.snapshot = snapshot;
+window.goToPreset = goToPreset; window.goHome = goHome; window.goFit = goFit;
 
 // ── Lights ────────────────────────────────────────────────────────────────────
 const ambient = new THREE.AmbientLight(0xffffff, 0.45);
@@ -1075,7 +1682,7 @@ document.getElementById('constellation-type').addEventListener('change', functio
 let figures = [];
 let selectedFigure = null;
 let ctrlBall = null, ctrlBallActive = false, ctrlBallDrag = false;
-let ctrlBallStart = { x: 0, y: 0, theta: 0, phi: 0 };
+let ctrlBallStart = { x: 0, y: 0 };
 let ctrlBallShowTime = 0;
 
 function showCtrlBall(wx, wz) {
@@ -1112,7 +1719,7 @@ function hideCtrlBall() {
 
 function pickBall(ndc) {
   if (!ctrlBall) return false;
-  raycaster.setFromCamera(ndc, camera);
+  raycaster.setFromCamera(ndc, camera_obj);
   return raycaster.intersectObject(ctrlBall, true).length > 0;
 }
 
@@ -1672,13 +2279,7 @@ saveModal.addEventListener('mousedown', function(e) {
 loadModal.addEventListener('mousedown', function(e) {
   if (e.target === loadModal) document.getElementById('load-cancel').click();
 });
-document.addEventListener('keydown', function(e) {
-  if (e.key !== 'Escape') return;
-  if (modal.classList.contains('visible'))         document.getElementById('label-cancel').click();
-  else if (confirmModal.classList.contains('visible')) document.getElementById('confirm-no').click();
-  else if (saveModal.style.display === 'flex')     document.getElementById('save-cancel').click();
-  else if (loadModal.style.display === 'flex')     document.getElementById('load-cancel').click();
-});
+// (Modal Escape handling now consolidated in the main keydown handler below)
 
 // ── Raycasting helpers ────────────────────────────────────────────────────────
 const raycaster   = new THREE.Raycaster();
@@ -1692,7 +2293,7 @@ function getNDC(e) {
   );
 }
 function pickFigure(ndc) {
-  raycaster.setFromCamera(ndc, camera);
+  raycaster.setFromCamera(ndc, camera_obj);
   const hits = raycaster.intersectObjects(figures.map(f=>f.mesh), true);
   if (!hits.length) return null;
   const obj = hits[0].object;
@@ -1704,68 +2305,62 @@ function pickFigure(ndc) {
   }) || null;
 }
 function pickBoard(ndc) {
-  raycaster.setFromCamera(ndc, camera);
+  raycaster.setFromCamera(ndc, camera_obj);
   const t = new THREE.Vector3();
   raycaster.ray.intersectPlane(boardPlane, t);
   return t;
 }
 
+// ── Tool-Mode system ─────────────────────────────────────
+let activeTool = 'V';
+let spaceHeld = false;
+
+function setActiveTool(t) {
+  if (!'VOPRFE'.includes(t)) return;
+  activeTool = t;
+  document.querySelectorAll('.bc-tool').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
+  document.body.className = document.body.className.replace(/\bbc-tool-[A-Z]\b/g, '').trim();
+  document.body.classList.add(`bc-tool-${t}`);
+  updateHint();
+  announceLive(`Werkzeug: ${toolName(t)}`);
+}
+function toolName(t) {
+  return { V: 'Auswählen', O: 'Orbit', P: 'Pan', R: 'Figur drehen', F: 'Fokus', E: 'POV' }[t];
+}
+document.querySelectorAll('.bc-tool').forEach(b => b.addEventListener('click', () => setActiveTool(b.dataset.tool)));
+setActiveTool('V');
+
+window.setActiveTool = setActiveTool;
+window.getActiveTool = () => activeTool;
+
+// ── Hint ────────────────────────────────────────────────
+const HINTS = {
+  V: 'Tap = auswählen · Drag = Figur ziehen · Doppel-Tap = Beschriftung',
+  O: 'Drag = Brett rotieren · Wheel/Pinch = Zoom · RMB = Pan',
+  P: 'Drag = Brett verschieben',
+  R: 'Drag horizontal auf Figur = drehen (snap π/4)',
+  F: 'F = alles einrahmen · Klick auf Figur = darauf fokussieren',
+  E: 'Figur wählen, dann E oder Klick = aus deren Augen sehen',
+};
+let hintFadeTimer = null;
+function updateHint() {
+  const el = document.getElementById('bc-hint');
+  if (!el) return;
+  el.textContent = HINTS[activeTool] || '';
+  el.classList.remove('bc-fade');
+  clearTimeout(hintFadeTimer);
+  hintFadeTimer = setTimeout(() => el.classList.add('bc-fade'), 10_000);
+}
+updateHint();
+
 // ── Mouse / touch ─────────────────────────────────────────────────────────────
+const cnv = document.getElementById('three-canvas');
 let drag   = { on: false, fig: null };
-let rmbOn  = false;
+let panOn  = false;
 let rotFig = null, rotStartX = 0, rotFigStartY = 0;
 let lastClick = { fig: null, time: 0 };
-
-canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-let panOn = false;
-canvas.addEventListener('contextmenu', e => e.preventDefault());
-canvas.addEventListener('mousedown', e => {
-  if (isAnyModalOpen()) return;
-  if (e.button === 2) {
-    const ndc = getNDC(e);
-    const fig = pickFigure(ndc);
-    if (fig) {
-      selectFigure(fig);
-      rotFig = fig; rotStartX = e.clientX; rotFigStartY = fig.rotY;
-    } else {
-      rmbOn = true;
-      orbit.startX = e.clientX; orbit.startY = e.clientY;
-    }
-    return;
-  }
-  if (e.button === 1) {
-    panOn = true;
-    orbit.startX = e.clientX; orbit.startY = e.clientY;
-    e.preventDefault();
-    return;
-  }
-  if (e.button === 0) {
-    const ndc = getNDC(e);
-    if (ctrlBallActive && pickBall(ndc)) {
-      ctrlBallDrag = true;
-      ctrlBallStart.x = e.clientX; ctrlBallStart.y = e.clientY;
-      ctrlBallStart.theta = orbit.theta; ctrlBallStart.phi = orbit.phi;
-      return;
-    }
-    const fig = pickFigure(ndc);
-    if (fig) {
-      if (ctrlBallActive) hideCtrlBall();
-      const now = Date.now();
-      if (lastClick.fig === fig && now-lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; return; }
-      lastClick = { fig, time: now };
-      selectFigure(fig);
-      drag = { on: true, fig };
-    } else {
-      selectFigure(null); lastClick.fig = null;
-      const bpos = pickBoard(ndc);
-      if (bpos) {
-        if (ctrlBallActive) hideCtrlBall();
-        else showCtrlBall(bpos.x, bpos.z);
-      }
-    }
-  }
-});
+let orbitOn = false;
+let dragStart = { x: 0, y: 0 };
 
 let lastMoveSentAt = 0;
 function sendMoveThrottled(fig) {
@@ -1775,14 +2370,105 @@ function sendMoveThrottled(fig) {
   send({ type: 'move', id: fig.id, x: fig.mesh.position.x, z: fig.mesh.position.z });
 }
 
-canvas.addEventListener('mousemove', e => {
-  if (ctrlBallDrag) {
-    const dx = e.clientX - ctrlBallStart.x;
-    const dy = e.clientY - ctrlBallStart.y;
-    orbit.theta = ctrlBallStart.theta - dx * 0.012;
-    orbit.phi = Math.max(0.12, Math.min(Math.PI / 2.02, ctrlBallStart.phi + dy * 0.01));
-    updateCamera();
-    if (ctrlBall) { ctrlBall.rotation.y = -dx * 0.04; ctrlBall.rotation.x = dy * 0.04; }
+cnv.addEventListener('contextmenu', e => {
+  e.preventDefault();
+});
+
+cnv.addEventListener('mousedown', e => {
+  if (isAnyModalOpen()) return;
+  camera.anim = null;
+
+  const ndc = getNDC(e);
+  const fig = pickFigure(ndc);
+
+  // RMB = always temp-pan
+  if (e.button === 2) {
+    panOn = true;
+    dragStart = { x: e.clientX, y: e.clientY };
+    document.body.classList.add('bc-panning');
+    return;
+  }
+
+  // MMB = also temp-pan (legacy parity)
+  if (e.button === 1) {
+    panOn = true;
+    dragStart = { x: e.clientX, y: e.clientY };
+    document.body.classList.add('bc-panning');
+    e.preventDefault();
+    return;
+  }
+
+  // Space-hold + LMB = temp-pan
+  if (e.button === 0 && spaceHeld) {
+    panOn = true;
+    dragStart = { x: e.clientX, y: e.clientY };
+    document.body.classList.add('bc-panning');
+    return;
+  }
+
+  if (e.button !== 0) return;
+
+  // Dispatch LMB by active tool
+  switch (activeTool) {
+    case 'V':
+      if (fig) {
+        const now = Date.now();
+        if (lastClick.fig === fig && now - lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; return; }
+        lastClick = { fig, time: now };
+        selectFigure(fig);
+        drag = { on: true, fig };
+        if (ctrlBallActive) hideCtrlBall();
+      } else {
+        selectFigure(null);
+        lastClick.fig = null;
+        const bpos = pickBoard(ndc);
+        if (bpos) {
+          if (ctrlBallActive) hideCtrlBall();
+          else showCtrlBall(bpos.x, bpos.z);
+        }
+      }
+      break;
+    case 'O':
+      orbitOn = true;
+      dragStart = { x: e.clientX, y: e.clientY };
+      break;
+    case 'P':
+      panOn = true;
+      dragStart = { x: e.clientX, y: e.clientY };
+      document.body.classList.add('bc-panning');
+      break;
+    case 'R':
+      if (fig) {
+        selectFigure(fig);
+        rotFig = fig; rotStartX = e.clientX; rotFigStartY = fig.rotY;
+      }
+      break;
+    case 'F':
+      if (fig) { easeCamera({ radius: camera.radius * 0.5, target: { x: fig.mesh.position.x, y: 0, z: fig.mesh.position.z } }, 400, 'ease-out-cubic'); }
+      else goFit();
+      break;
+    case 'E':
+      if (camera.mode === 'pov') exitPOV();
+      else if (fig) enterPOV(fig.id);
+      break;
+  }
+});
+
+cnv.addEventListener('mousemove', e => {
+  if (camera.mode === 'freefly' && (orbitOn || (e.buttons & 1))) {
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    camera.flyYaw -= dx * 0.005;
+    camera.flyPitch = Math.max(-Math.PI/2 * 0.95, Math.min(Math.PI/2 * 0.95, camera.flyPitch - dy * 0.005));
+    dragStart = { x: e.clientX, y: e.clientY };
+    return;
+  }
+  if (camera.mode === 'pov' && (orbitOn || activeTool === 'O')) {
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    camera.povYaw   = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.povYaw - dx * 0.005));
+    camera.povPitch = Math.max(-Math.PI/4, Math.min(Math.PI/4, camera.povPitch - dy * 0.005));
+    dragStart = { x: e.clientX, y: e.clientY };
     return;
   }
   if (rotFig) {
@@ -1793,22 +2479,22 @@ canvas.addEventListener('mousemove', e => {
     setRotY(rotFig, Math.abs(raw - nearest) < 0.14 ? nearest : raw);
     return;
   }
-  if (rmbOn) {
-    const dx = e.clientX - orbit.startX;
-    const dy = e.clientY - orbit.startY;
-    orbit.theta -= dx * 0.008;
-    orbit.phi = Math.max(0.12, Math.min(Math.PI/2.05, orbit.phi + dy*0.008));
-    orbit.startX = e.clientX; orbit.startY = e.clientY;
-    updateCamera(); return;
+  if (orbitOn) {
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    camera.theta -= dx * 0.008;
+    camera.phi = Math.max(0.05, Math.min(Math.PI/2.05, camera.phi + dy*0.008));
+    dragStart = { x: e.clientX, y: e.clientY };
+    return;
   }
   if (panOn) {
-    const dx = e.clientX - orbit.startX;
-    const dy = e.clientY - orbit.startY;
-    const f = orbit.radius * 0.01;
-    orbit.panX += dx * f * Math.cos(orbit.theta) + dy * f * Math.sin(orbit.theta);
-    orbit.panZ += dx * f * (-Math.sin(orbit.theta)) + dy * f * Math.cos(orbit.theta);
-    orbit.startX = e.clientX; orbit.startY = e.clientY;
-    updateCamera(); return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    const f = camera.radius * 0.01;
+    camera.target.x += dx * f * Math.cos(camera.theta) + dy * f * Math.sin(camera.theta);
+    camera.target.z += dx * f * (-Math.sin(camera.theta)) + dy * f * Math.cos(camera.theta);
+    dragStart = { x: e.clientX, y: e.clientY };
+    return;
   }
   if (drag.on && drag.fig) {
     const pos = pickBoard(getNDC(e));
@@ -1818,123 +2504,819 @@ canvas.addEventListener('mousemove', e => {
       if (!applyingRemote) sendMoveThrottled(drag.fig);
     }
   }
-  if (ctrlBallActive && pickBall(getNDC(e))) {
-    canvas.style.cursor = 'grab';
-  } else if (!drag.on && !rmbOn && !panOn) {
-    canvas.style.cursor = '';
-  }
 });
 
-canvas.addEventListener('mouseup', e => {
-  if (ctrlBallDrag) {
-    ctrlBallDrag = false;
-    if (ctrlBall) { ctrlBall.rotation.y = 0; ctrlBall.rotation.x = 0; }
-    canvas.style.cursor = ctrlBallActive ? 'grab' : '';
+cnv.addEventListener('mouseup', e => {
+  if (e.button === 2) {
+    if (panOn) { panOn = false; document.body.classList.remove('bc-panning'); }
+    const dx = e.clientX - dragStart.x, dy2 = e.clientY - dragStart.y;
+    if (Math.sqrt(dx*dx + dy2*dy2) < 5) {
+      openContextMenu(pickFigure(getNDC(e)), e.clientX, e.clientY);
+    }
     return;
   }
-  if (e.button === 2) {
-    rmbOn = false;
-    if (rotFig) {
-      const SNAP = Math.PI / 4;
-      setRotY(rotFig, Math.round(rotFig.rotY / SNAP) * SNAP);
-      if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
-    }
+  if (panOn) { panOn = false; document.body.classList.remove('bc-panning'); }
+  if (orbitOn) orbitOn = false;
+  if (rotFig) {
+    const SNAP = Math.PI / 4;
+    setRotY(rotFig, Math.round(rotFig.rotY / SNAP) * SNAP);
+    if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
     rotFig = null;
-  }
-  if (e.button === 1) panOn = false;
-  if (e.button === 0) {
-    if (drag.on && drag.fig && !applyingRemote) {
-      send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
-    }
-    drag = { on:false, fig:null };
-  }
-});
-
-const zoomSlider = document.getElementById('zoom-slider');
-const zoomVal    = document.getElementById('zoom-val');
-
-function setZoom(r) {
-  orbit.radius = Math.max(12, Math.min(75, r));
-  zoomSlider.value = orbit.radius;
-  zoomVal.textContent = Math.round(orbit.radius);
-  updateCamera();
-}
-
-zoomSlider.addEventListener('input', () => setZoom(parseFloat(zoomSlider.value)));
-document.getElementById('zoom-in').addEventListener('click',  () => setZoom(orbit.radius - 4));
-document.getElementById('zoom-out').addEventListener('click', () => setZoom(orbit.radius + 4));
-
-canvas.addEventListener('wheel', e => {
-  setZoom(orbit.radius + e.deltaY * 0.05);
-  e.preventDefault();
-}, { passive: false });
-
-// Touch
-let tPrev = null;
-canvas.addEventListener('touchstart', e => {
-  if (e.touches.length === 1 && ctrlBallActive && pickBall(getNDC(e.touches[0]))) {
-    ctrlBallDrag = true;
-    ctrlBallStart.x = e.touches[0].clientX; ctrlBallStart.y = e.touches[0].clientY;
-    ctrlBallStart.theta = orbit.theta; ctrlBallStart.phi = orbit.phi;
-    e.preventDefault(); return;
-  }
-  if (e.touches.length === 1) {
-    const t = e.touches[0];
-    const fig = pickFigure(getNDC({clientX:t.clientX,clientY:t.clientY}));
-    if (fig) { selectFigure(fig); drag={on:true,fig}; }
-    else selectFigure(null);
-  }
-  if (e.touches.length === 2) {
-    tPrev = { x:(e.touches[0].clientX+e.touches[1].clientX)/2, y:(e.touches[0].clientY+e.touches[1].clientY)/2 };
-  }
-  e.preventDefault();
-},{passive:false});
-
-canvas.addEventListener('touchmove', e => {
-  if (ctrlBallDrag && e.touches.length === 1) {
-    const dx = e.touches[0].clientX - ctrlBallStart.x;
-    const dy = e.touches[0].clientY - ctrlBallStart.y;
-    orbit.theta = ctrlBallStart.theta - dx * 0.012;
-    orbit.phi = Math.max(0.12, Math.min(Math.PI / 2.02, ctrlBallStart.phi + dy * 0.01));
-    updateCamera();
-    if (ctrlBall) { ctrlBall.rotation.y = -dx * 0.04; ctrlBall.rotation.x = dy * 0.04; }
-    e.preventDefault(); return;
-  }
-  if (e.touches.length === 1 && drag.on && drag.fig) {
-    const t = e.touches[0];
-    const pos = pickBoard(getNDC({clientX:t.clientX,clientY:t.clientY}));
-    if (pos) {
-      drag.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
-      drag.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
-      if (!applyingRemote) sendMoveThrottled(drag.fig);
-    }
-  }
-  if (e.touches.length === 2 && tPrev) {
-    const cx=(e.touches[0].clientX+e.touches[1].clientX)/2;
-    const cy=(e.touches[0].clientY+e.touches[1].clientY)/2;
-    orbit.theta -= (cx-tPrev.x)*0.01;
-    orbit.phi = Math.max(0.12, Math.min(Math.PI/2.05, orbit.phi+(cy-tPrev.y)*0.01));
-    tPrev={x:cx,y:cy}; updateCamera();
-  }
-  e.preventDefault();
-},{passive:false});
-
-canvas.addEventListener('touchend', () => {
-  if (ctrlBallDrag) {
-    ctrlBallDrag = false;
-    if (ctrlBall) { ctrlBall.rotation.y = 0; ctrlBall.rotation.x = 0; }
   }
   if (drag.on && drag.fig && !applyingRemote) {
     send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
   }
-  drag={on:false,fig:null}; tPrev=null;
+  drag = { on:false, fig:null };
+});
+
+cnv.addEventListener('wheel', e => {
+  camera.anim = null;
+  camera.radius = Math.max(12, Math.min(75, camera.radius + e.deltaY * 0.05));
+  e.preventDefault();
+}, { passive: false });
+
+// ── Touch ──────────────────────────────────────────────
+const touch = {
+  count: 0,
+  startX: 0, startY: 0, lastX: 0, lastY: 0,
+  pinchDist: 0,
+  fig: null,
+  longPressTimer: null,
+  longPressFired: false,
+  startedAt: 0,
+  _lastTap: 0,
+};
+
+function touchDist(t1, t2) {
+  const dx = t2.clientX - t1.clientX, dy = t2.clientY - t1.clientY;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+cnv.addEventListener('touchstart', e => {
+  if (isAnyModalOpen()) return;
+  camera.anim = null;
+  touch.count = e.touches.length;
+  touch.startedAt = performance.now();
+  touch.longPressFired = false;
+
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    touch.startX = touch.lastX = t.clientX;
+    touch.startY = touch.lastY = t.clientY;
+    const ndc = getNDC(t);
+    touch.fig = pickFigure(ndc);
+
+    touch.longPressTimer = setTimeout(() => {
+      touch.longPressFired = true;
+      openContextMenu(touch.fig, touch.lastX, touch.lastY);
+    }, 400);
+
+    if (activeTool === 'V' && touch.fig) selectFigure(touch.fig);
+    if (activeTool === 'R' && touch.fig) {
+      rotFig = touch.fig; rotStartX = t.clientX; rotFigStartY = touch.fig.rotY;
+    }
+
+    // Tap-to-fly in freefly
+    if (camera.mode === 'freefly') {
+      const now = performance.now();
+      if (now - touch._lastTap < 350) {
+        const pos = pickBoard(getNDC(t));
+        if (pos) easeCamera({ flyPos: { x: pos.x, y: 8, z: pos.z + 12 } }, 1500, 'ease-out-cubic');
+      }
+      touch._lastTap = now;
+    }
+  } else if (e.touches.length === 2) {
+    clearTimeout(touch.longPressTimer);
+    touch.pinchDist = touchDist(e.touches[0], e.touches[1]);
+    touch.lastX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    touch.lastY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+  } else if (e.touches.length === 3) {
+    clearTimeout(touch.longPressTimer);
+  }
+  e.preventDefault();
+}, { passive: false });
+
+cnv.addEventListener('touchmove', e => {
+  clearTimeout(touch.longPressTimer);
+
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    const dx = t.clientX - touch.lastX;
+    const dy = t.clientY - touch.lastY;
+
+    if (rotFig) {
+      const totalDx = t.clientX - rotStartX;
+      const raw = rotFigStartY + totalDx * 0.018;
+      const SNAP = Math.PI/4;
+      const n = Math.round(raw / SNAP) * SNAP;
+      setRotY(rotFig, Math.abs(raw - n) < 0.14 ? n : raw);
+    } else if (camera.mode === 'pov') {
+      camera.povYaw   = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.povYaw - dx * 0.005));
+      camera.povPitch = Math.max(-Math.PI/4, Math.min(Math.PI/4, camera.povPitch - dy * 0.005));
+    } else if (camera.mode === 'freefly') {
+      camera.flyYaw -= dx * 0.005;
+      camera.flyPitch = Math.max(-Math.PI/2 * 0.95, Math.min(Math.PI/2 * 0.95, camera.flyPitch - dy * 0.005));
+    } else if (activeTool === 'V' && touch.fig) {
+      const pos = pickBoard(getNDC(t));
+      if (pos) {
+        touch.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
+        touch.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
+        if (!applyingRemote) sendMoveThrottled(touch.fig);
+      }
+    } else if (activeTool === 'O') {
+      camera.theta -= dx * 0.008;
+      camera.phi = Math.max(0.05, Math.min(Math.PI/2.05, camera.phi + dy*0.008));
+    } else if (activeTool === 'P') {
+      const f = camera.radius * 0.01;
+      camera.target.x += dx * f * Math.cos(camera.theta) + dy * f * Math.sin(camera.theta);
+      camera.target.z += dx * f * (-Math.sin(camera.theta)) + dy * f * Math.cos(camera.theta);
+    }
+    touch.lastX = t.clientX; touch.lastY = t.clientY;
+  } else if (e.touches.length === 2) {
+    // 2F: pan + pinch zoom (tool-agnostic)
+    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const dx = cx - touch.lastX;
+    const dy = cy - touch.lastY;
+    const f = camera.radius * 0.01;
+    camera.target.x += dx * f * Math.cos(camera.theta) + dy * f * Math.sin(camera.theta);
+    camera.target.z += dx * f * (-Math.sin(camera.theta)) + dy * f * Math.cos(camera.theta);
+    touch.lastX = cx; touch.lastY = cy;
+
+    const d = touchDist(e.touches[0], e.touches[1]);
+    const ratio = d / touch.pinchDist;
+    if (ratio > 0) camera.radius = Math.max(12, Math.min(75, camera.radius / ratio));
+    touch.pinchDist = d;
+  }
+  e.preventDefault();
+}, { passive: false });
+
+cnv.addEventListener('touchend', e => {
+  clearTimeout(touch.longPressTimer);
+  const wasCount = touch.count;
+  const duration = performance.now() - touch.startedAt;
+
+  if (wasCount === 3 && duration < 500 && !touch.longPressFired) goHome();
+
+  if (rotFig && wasCount === 1) {
+    const SNAP = Math.PI/4;
+    setRotY(rotFig, Math.round(rotFig.rotY / SNAP) * SNAP);
+    if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
+  }
+  rotFig = null;
+  touch.count = e.touches.length;
+  touch.fig = null;
+}, { passive: false });
+
+// ── Context Menu ─────────────────────────────────────────
+let ctxFig = null;
+function openContextMenu(fig, x, y) {
+  ctxFig = fig;
+  const menu = document.getElementById('bc-context-menu');
+  menu.querySelectorAll('button').forEach(b => {
+    const needsFig = ['rotate','pov','delete'].includes(b.dataset.ctx);
+    b.disabled = needsFig && !fig;
+    b.style.opacity = needsFig && !fig ? '0.4' : '1';
+  });
+  menu.style.top = Math.min(y, window.innerHeight - 200) + 'px';
+  menu.style.left = Math.min(x, window.innerWidth - 180) + 'px';
+  menu.classList.add('open');
+  menu.setAttribute('aria-hidden', 'false');
+}
+function closeContextMenu() {
+  const menu = document.getElementById('bc-context-menu');
+  menu.classList.remove('open');
+  menu.setAttribute('aria-hidden', 'true');
+}
+document.getElementById('bc-context-menu').addEventListener('click', e => {
+  const b = e.target.closest('button[data-ctx]');
+  if (!b || b.disabled) return;
+  switch (b.dataset.ctx) {
+    case 'rotate':  if (ctxFig) { setActiveTool('R'); } break;
+    case 'pov':     if (ctxFig) enterPOV(ctxFig.id); break;
+    case 'delete':  if (ctxFig) { send({ type: 'delete', id: ctxFig.id }); } break;
+    case 'home':    goHome(); break;
+  }
+  closeContextMenu();
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#bc-context-menu')) closeContextMenu();
+});
+
+// ── Dock wiring ──────────────────────────────────────────
+document.getElementById('bc-home').addEventListener('click', goHome);
+document.getElementById('bc-fit').addEventListener('click', goFit);
+document.getElementById('bc-compass').addEventListener('click', goHome);
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => goToPreset(parseInt(btn.dataset.preset, 10)));
+});
+
+const bcZoomSlider = document.getElementById('bc-zoom-slider');
+const bcZoomVal    = document.getElementById('bc-zoom-val');
+function bcSetZoom(r) {
+  camera.anim = null;
+  camera.radius = Math.max(12, Math.min(75, r));
+}
+bcZoomSlider.addEventListener('input', () => bcSetZoom(parseFloat(bcZoomSlider.value)));
+document.getElementById('bc-zoom-in') .addEventListener('click', () => bcSetZoom(camera.radius - 4));
+document.getElementById('bc-zoom-out').addEventListener('click', () => bcSetZoom(camera.radius + 4));
+
+// Update compass + active-preset + zoom-slider every frame
+function tickCompass() {
+  const rose = document.getElementById('bc-compass-rose');
+  if (rose) rose.setAttribute('transform', `rotate(${-camera.theta * 180 / Math.PI})`);
+  const horizon = document.getElementById('bc-compass-horizon');
+  if (horizon) {
+    const tilt = (Math.PI/2 - camera.phi) * 20;
+    horizon.setAttribute('y1', String(-tilt));
+    horizon.setAttribute('y2', String(-tilt));
+  }
+  if (bcZoomSlider) { bcZoomSlider.value = String(camera.radius); }
+  if (bcZoomVal) { bcZoomVal.textContent = String(Math.round(camera.radius)); }
+  const name = activePresetName();
+  document.querySelectorAll('[data-preset]').forEach(b => {
+    b.classList.toggle('active', PRESETS[b.dataset.preset]?.name === name);
+  });
+}
+
+// ── Bars: collapse / restore / persistence ───────────────
+const Bars = {
+  state: { top: false, rail: false, dock: false },
+  _savedBeforeMode: null,
+  init() {
+    try {
+      const room = new URLSearchParams(location.search).get('room') || 'default';
+      const saved = JSON.parse(localStorage.getItem('brett-bars-' + room) || '{}');
+      this.state = { top: !!saved.top, rail: !!saved.rail, dock: !!saved.dock };
+    } catch {}
+    this.apply();
+  },
+  apply() {
+    document.body.classList.toggle('bc-top-collapsed',  this.state.top);
+    document.body.classList.toggle('bc-rail-collapsed', this.state.rail);
+    document.body.classList.toggle('bc-dock-collapsed', this.state.dock);
+  },
+  save() {
+    try {
+      const room = new URLSearchParams(location.search).get('room') || 'default';
+      localStorage.setItem('brett-bars-' + room, JSON.stringify(this.state));
+    } catch {}
+  },
+  toggle(which) { this.state[which] = !this.state[which]; this.apply(); this.save(); },
+  toggleAll() {
+    const anyOpen = !this.state.top || !this.state.rail || !this.state.dock;
+    this.state = { top: anyOpen, rail: anyOpen, dock: anyOpen };
+    this.apply(); this.save();
+  },
+};
+window.Bars = Bars;
+Bars.init();
+
+document.getElementById('bc-collapse-top') ?.addEventListener('click', () => Bars.toggle('top'));
+document.getElementById('bc-collapse-rail')?.addEventListener('click', () => Bars.toggle('rail'));
+document.getElementById('bc-collapse-dock')?.addEventListener('click', () => Bars.toggle('dock'));
+
+document.getElementById('bc-rail').addEventListener('click', e => {
+  if (Bars.state.rail && (e.target === document.getElementById('bc-rail'))) Bars.toggle('rail');
+});
+document.getElementById('bc-dock').addEventListener('click', e => {
+  if (Bars.state.dock && (e.target === document.getElementById('bc-dock'))) Bars.toggle('dock');
+});
+
+// ── POV Mode ─────────────────────────────────────────────
+let povSavedSnapshot = null;
+
+function enterPOV(figureId) {
+  const fig = figures.find(f => f.id === figureId);
+  if (!fig) return;
+  povSavedSnapshot = snapshot();
+  const headY = 3.0 * (fig.scale || 1.0);
+  const fwd = { x: Math.sin(fig.rotY), z: Math.cos(fig.rotY) };
+  const tgt = { x: fig.mesh.position.x + fwd.x * 5, y: headY * 0.85, z: fig.mesh.position.z + fwd.z * 5 };
+  easeCamera({
+    mode: 'pov',
+    target: tgt,
+    radius: 5.0,
+    theta: fig.rotY,
+    phi: Math.PI / 2.0 + 0.087,
+    fov: 55,
+  }, 600, 'ease-in-out-cubic', () => {
+    camera.povFigureId = figureId;
+    camera.povYaw = 0; camera.povPitch = -0.087;
+    document.getElementById('bc-pov-banner-name').textContent = fig.label || 'Figur';
+    document.getElementById('bc-pov-banner').hidden = false;
+    Bars._savedBeforeMode = { ...Bars.state };
+    Bars.state.rail = true; Bars.state.dock = true; Bars.apply();
+  });
+}
+
+function exitPOV() {
+  if (camera.mode !== 'pov') return;
+  camera.povFigureId = null;
+  document.getElementById('bc-pov-banner').hidden = true;
+  const to = povSavedSnapshot ? { ...povSavedSnapshot, mode: 'orbit' } : { mode: 'orbit', theta: PRESETS[5].theta, phi: PRESETS[5].phi, radius: 44 };
+  easeCamera(to, 500, 'ease-out-cubic', () => {
+    if (Bars._savedBeforeMode) { Bars.state = Bars._savedBeforeMode; Bars.apply(); }
+  });
+}
+
+document.getElementById('bc-pov-exit').addEventListener('click', exitPOV);
+document.getElementById('bc-mode-pov').addEventListener('click', () => {
+  if (camera.mode === 'pov') exitPOV();
+  else if (selectedFigure) enterPOV(selectedFigure.id);
+});
+window.enterPOV = enterPOV; window.exitPOV = exitPOV;
+
+// POV camera update
+const _basUpdateCamera = updateCamera;
+updateCamera = function() {
+  tickAnim();
+  if (camera.mode === 'pov' && camera.povFigureId && !camera.anim) {
+    const fig = figures.find(f => f.id === camera.povFigureId);
+    if (fig) {
+      const headY = 3.0 * (fig.scale || 1.0);
+      camera_obj.fov = camera.fov;
+      camera_obj.updateProjectionMatrix();
+      camera_obj.position.set(fig.mesh.position.x, headY, fig.mesh.position.z);
+      const yaw = fig.rotY + camera.povYaw;
+      const pitch = camera.povPitch;
+      camera_obj.lookAt(
+        fig.mesh.position.x + Math.sin(yaw) * Math.cos(pitch),
+        headY + Math.sin(pitch),
+        fig.mesh.position.z + Math.cos(yaw) * Math.cos(pitch)
+      );
+      return;
+    }
+  }
+  if (camera.mode === 'freefly' && !camera.anim) {
+    camera_obj.fov = 60;
+    camera_obj.updateProjectionMatrix();
+    camera_obj.position.set(camera.flyPos.x, camera.flyPos.y, camera.flyPos.z);
+    camera_obj.lookAt(
+      camera.flyPos.x + Math.sin(camera.flyYaw) * Math.cos(camera.flyPitch),
+      camera.flyPos.y + Math.sin(camera.flyPitch),
+      camera.flyPos.z + Math.cos(camera.flyYaw) * Math.cos(camera.flyPitch)
+    );
+    return;
+  }
+  return updateCameraOrbit();
+};
+
+// ── Auto-Orbit ───────────────────────────────────────────
+let autoOrbitOn = false;
+function toggleAutoOrbit() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    announceLive('Reduzierte Bewegung — Auto-Orbit deaktiviert');
+    return;
+  }
+  autoOrbitOn = !autoOrbitOn;
+  document.getElementById('bc-mode-auto').classList.toggle('active', autoOrbitOn);
+  announceLive(autoOrbitOn ? 'Auto-Orbit ein' : 'Auto-Orbit aus');
+}
+document.getElementById('bc-mode-auto').addEventListener('click', toggleAutoOrbit);
+document.getElementById('bc-auto-speed').addEventListener('input', e => { camera.autoSpeed = parseFloat(e.target.value); });
+
+let _lastFrame = performance.now();
+function tickAutoOrbit() {
+  const now = performance.now();
+  const dt = (now - _lastFrame) / 1000;
+  _lastFrame = now;
+  if (autoOrbitOn && camera.mode === 'orbit' && now > camera.autoPausedUntil && !camera.anim) {
+    camera.theta += camera.autoSpeed * dt;
+  }
+  return dt;
+}
+
+['mousedown', 'wheel', 'touchstart'].forEach(ev => {
+  cnv.addEventListener(ev, () => { camera.autoPausedUntil = performance.now() + 1500; }, { passive: true, capture: true });
+});
+window.toggleAutoOrbit = toggleAutoOrbit;
+
+// ── Free-Fly ─────────────────────────────────────────────
+let flySavedSnapshot = null;
+const flyKeys = { w: false, a: false, s: false, d: false, q: false, e: false, ' ': false, Shift: false };
+
+function enterFreeFly() {
+  if (camera.mode !== 'orbit') return;
+  flySavedSnapshot = snapshot();
+  camera.flyPos = { x: camera_obj.position.x, y: camera_obj.position.y, z: camera_obj.position.z };
+  camera.flyYaw = camera.theta + Math.PI;
+  camera.flyPitch = -(Math.PI/2 - camera.phi);
+  easeCamera({ mode: 'freefly' }, 500, 'ease-out-cubic', () => {
+    document.getElementById('bc-fly-banner').hidden = false;
+    Bars._savedBeforeMode = { ...Bars.state };
+    Bars.state.rail = true; Bars.state.dock = true; Bars.apply();
+  });
+}
+function exitFreeFly() {
+  if (camera.mode !== 'freefly') return;
+  document.getElementById('bc-fly-banner').hidden = true;
+  const to = flySavedSnapshot ? { ...flySavedSnapshot, mode: 'orbit' } : { mode: 'orbit', theta: PRESETS[5].theta, phi: PRESETS[5].phi, radius: 44 };
+  easeCamera(to, 500, 'ease-out-cubic', () => {
+    if (Bars._savedBeforeMode) { Bars.state = Bars._savedBeforeMode; Bars.apply(); }
+  });
+}
+
+document.addEventListener('keydown', e => {
+  const k = e.key === 'Shift' ? 'Shift' : e.key.toLowerCase();
+  if (k in flyKeys) flyKeys[k] = true;
+});
+document.addEventListener('keyup', e => {
+  const k = e.key === 'Shift' ? 'Shift' : e.key.toLowerCase();
+  if (k in flyKeys) flyKeys[k] = false;
+});
+
+function tickFreeFly(dt) {
+  if (camera.mode !== 'freefly') return;
+  const speed = camera.flySpeed * (flyKeys.Shift ? 3 : 1) * dt;
+  const fwd = { x: -Math.sin(camera.flyYaw), z: -Math.cos(camera.flyYaw) };
+  const right = { x: -fwd.z, z: fwd.x };
+  if (flyKeys.w) { camera.flyPos.x += fwd.x * speed; camera.flyPos.z += fwd.z * speed; }
+  if (flyKeys.s) { camera.flyPos.x -= fwd.x * speed; camera.flyPos.z -= fwd.z * speed; }
+  if (flyKeys.a) { camera.flyPos.x -= right.x * speed; camera.flyPos.z -= right.z * speed; }
+  if (flyKeys.d) { camera.flyPos.x += right.x * speed; camera.flyPos.z += right.z * speed; }
+  if (flyKeys[' '] || flyKeys.e) camera.flyPos.y += speed;
+  if (flyKeys.q) camera.flyPos.y -= speed;
+}
+
+document.getElementById('bc-fly-exit').addEventListener('click', exitFreeFly);
+document.getElementById('bc-mode-fly').addEventListener('click', () => {
+  if (camera.mode === 'freefly') exitFreeFly(); else enterFreeFly();
+});
+window.enterFreeFly = enterFreeFly; window.exitFreeFly = exitFreeFly;
+
+// ── Split-View ───────────────────────────────────────────
+let splitOn = false;
+let splitRatio = 0.5;
+const camera_obj_secondary = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
+let secondaryView = { kind: 'preset', value: 5 };
+
+function enterSplit() { splitOn = true; document.getElementById('bc-split-controls').hidden = false; document.getElementById('bc-mode-split').classList.add('active'); onResize(); }
+function exitSplit()  { splitOn = false; document.getElementById('bc-split-controls').hidden = true; document.getElementById('bc-mode-split').classList.remove('active'); onResize(); }
+
+document.getElementById('bc-mode-split').addEventListener('click', () => { splitOn ? exitSplit() : enterSplit(); });
+document.getElementById('bc-split-source').addEventListener('change', e => {
+  const [kind, val] = e.target.value.split(':');
+  secondaryView = { kind, value: kind === 'preset' ? parseInt(val,10) : val };
+});
+
+function configureSecondaryCamera() {
+  if (secondaryView.kind === 'preset') {
+    const p = PRESETS[secondaryView.value]; if (!p) return;
+    const r = p.radius === 'fit' ? computeFit() : p.radius;
+    camera_obj_secondary.position.set(
+      r * Math.sin(p.phi) * Math.sin(p.theta),
+      r * Math.cos(p.phi),
+      r * Math.sin(p.phi) * Math.cos(p.theta)
+    );
+    camera_obj_secondary.lookAt(0, 0, 0);
+  } else if (secondaryView.kind === 'pov' && camera.povFigureId) {
+    const fig = figures.find(f => f.id === camera.povFigureId);
+    if (fig) {
+      camera_obj_secondary.position.set(fig.mesh.position.x, 3.0 * (fig.scale||1), fig.mesh.position.z);
+      camera_obj_secondary.lookAt(
+        fig.mesh.position.x + Math.sin(fig.rotY) * 5,
+        2.0 * (fig.scale||1),
+        fig.mesh.position.z + Math.cos(fig.rotY) * 5
+      );
+    }
+  }
+}
+
+// ── Bookmarks ────────────────────────────────────────────
+const Bookmarks = {
+  items: [],
+  key() { return 'brett-bookmarks-' + (new URLSearchParams(location.search).get('room') || 'default'); },
+  load() {
+    try { this.items = JSON.parse(localStorage.getItem(this.key()) || '[]'); }
+    catch { this.items = []; }
+  },
+  save() { try { localStorage.setItem(this.key(), JSON.stringify(this.items)); } catch {} },
+  add() {
+    const snap = snapshot();
+    const name = `Lesezeichen ${this.items.length + 1}`;
+    this.items.push({ name, snap, createdAt: Date.now() });
+    if (this.items.length > 12) this.items.shift();
+    this.save(); this.render();
+    announceLive(`${name} gespeichert`);
+  },
+  restore(i) {
+    const b = this.items[i]; if (!b) return;
+    easeCamera({ ...b.snap }, 500, 'ease-out-cubic');
+    announceLive(`Wiederhergestellt: ${b.name}`);
+  },
+  rename(i, name) {
+    if (this.items[i]) { this.items[i].name = name; this.save(); this.render(); }
+  },
+  remove(i) {
+    this.items.splice(i, 1); this.save(); this.render();
+  },
+  render() {
+    const list = document.getElementById('bc-bookmarks-list');
+    if (!list) return;
+    while (list.firstChild) list.removeChild(list.firstChild);
+    this.items.forEach((b, i) => {
+      const row = document.createElement('button');
+      row.className = 'bc-row';
+      row.dataset.bkIndex = String(i);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'bc-bk-name';
+      nameSpan.textContent = '★ ' + b.name;  // textContent ESCAPES any HTML
+      row.appendChild(nameSpan);
+
+      const kbd = document.createElement('kbd');
+      kbd.textContent = '⇧' + (i + 1);
+      row.appendChild(kbd);
+
+      list.appendChild(row);
+    });
+  },
+};
+
+document.addEventListener('click', e => {
+  const row = e.target.closest('[data-bk-index]');
+  if (row) Bookmarks.restore(parseInt(row.dataset.bkIndex, 10));
+});
+document.addEventListener('dblclick', e => {
+  const row = e.target.closest('[data-bk-index]');
+  if (!row) return;
+  const i = parseInt(row.dataset.bkIndex, 10);
+  const name = prompt('Neuer Name', Bookmarks.items[i]?.name || '');
+  if (name && name.trim()) Bookmarks.rename(i, name.trim());
+});
+
+document.getElementById('bc-bk-add').addEventListener('click', () => Bookmarks.add());
+window.Bookmarks = Bookmarks;
+Bookmarks.load(); Bookmarks.render();
+
+// ── Recording ────────────────────────────────────────────
+const Recorder = {
+  rec: null, chunks: [], startedAt: 0, timer: null,
+
+  screenshot() {
+    const cnv2 = document.getElementById('three-canvas');
+    cnv2.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `brett-${Date.now()}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
+    announceLive('Screenshot gespeichert');
+  },
+
+  toggleVideo() {
+    if (this.rec) return this._stop();
+    return this._start();
+  },
+
+  _start() {
+    const cnv2 = document.getElementById('three-canvas');
+    const stream = cnv2.captureStream(30);
+    let mime = 'video/webm;codecs=vp9';
+    if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm;codecs=vp8';
+    if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
+    this.chunks = [];
+    this.rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5_000_000 });
+    this.rec.ondataavailable = e => { if (e.data.size) this.chunks.push(e.data); };
+    this.rec.onstop = () => {
+      const blob = new Blob(this.chunks, { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `brett-${Date.now()}.webm`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      this.rec = null;
+      document.getElementById('bc-rec-indicator').hidden = true;
+      document.getElementById('bc-video').classList.remove('active');
+      clearInterval(this.timer);
+      announceLive('Aufnahme gespeichert');
+    };
+    this.rec.start(1000);
+    this.startedAt = Date.now();
+    document.getElementById('bc-rec-indicator').hidden = false;
+    document.getElementById('bc-video').classList.add('active');
+    this.timer = setInterval(() => {
+      const secs = Math.floor((Date.now() - this.startedAt) / 1000);
+      document.getElementById('bc-rec-time').textContent = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
+    }, 500);
+    announceLive('Aufnahme gestartet');
+  },
+
+  _stop() {
+    if (!this.rec) return;
+    this.rec.stop();
+  },
+};
+window.Recorder = Recorder;
+
+document.getElementById('bc-screenshot').addEventListener('click', () => Recorder.screenshot());
+document.getElementById('bc-video').addEventListener('click', () => Recorder.toggleVideo());
+
+// ── Help overlay ────────────────────────────────────────
+function openHelp() {
+  const overlay = document.getElementById('bc-help-overlay');
+  overlay.hidden = false;
+  document.getElementById('bc-help-close').focus();
+}
+function closeHelp() { document.getElementById('bc-help-overlay').hidden = true; }
+document.getElementById('bc-help-close').addEventListener('click', closeHelp);
+document.getElementById('bc-help-overlay').addEventListener('click', e => {
+  if (e.target.id === 'bc-help-overlay') closeHelp();
+});
+document.getElementById('bc-help').addEventListener('click', openHelp);
+
+// ── Mobile: FAB + Bottom-Sheet ───────────────────────────
+const FAB_ICONS = { V:'↖', O:'⟲', P:'✋', R:'⟳', F:'⊕', E:'👁' };
+const fab = document.getElementById('bc-fab');
+const fabRadial = document.getElementById('bc-fab-radial');
+let fabLongPressTimer = null;
+let fabLongPressFired = false;
+
+function updateFabVisibility() {
+  const isMobile = window.innerWidth < 640;
+  if (fab) fab.style.display = isMobile ? 'flex' : 'none';
+  if (fabRadial) fabRadial.style.display = isMobile && fabRadial.classList.contains('open') ? 'flex' : 'none';
+}
+window.addEventListener('resize', updateFabVisibility);
+updateFabVisibility();
+
+if (fab) {
+  fab.addEventListener('pointerdown', () => {
+    fabLongPressFired = false;
+    fabLongPressTimer = setTimeout(() => { fabLongPressFired = true; fabRadial.classList.add('open'); updateFabVisibility(); }, 400);
+  });
+  fab.addEventListener('pointerup', () => {
+    clearTimeout(fabLongPressTimer);
+    if (!fabLongPressFired) {
+      const order = 'VOPRFE';
+      const i = order.indexOf(activeTool);
+      setActiveTool(order[(i + 1) % order.length]);
+    }
+  });
+  fab.addEventListener('pointercancel', () => clearTimeout(fabLongPressTimer));
+}
+
+if (fabRadial) {
+  fabRadial.querySelectorAll('button[data-tool]').forEach(b => {
+    b.addEventListener('click', () => {
+      setActiveTool(b.dataset.tool);
+      fabRadial.classList.remove('open');
+      updateFabVisibility();
+    });
+  });
+}
+
+document.addEventListener('click', e => {
+  if (fabRadial && !e.target.closest('#bc-fab') && !e.target.closest('#bc-fab-radial')) {
+    fabRadial.classList.remove('open');
+    updateFabVisibility();
+  }
+});
+
+// Sync FAB icon when tool changes
+const _origSetActiveTool = window.setActiveTool;
+window.setActiveTool = function(t) {
+  _origSetActiveTool(t);
+  if (fab) fab.textContent = FAB_ICONS[t] || '↖';
+  if (fabRadial) fabRadial.querySelectorAll('button[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
+};
+
+// Bottom-Sheet
+const sheetGrab = document.getElementById('bc-sheet-grab');
+let sheetState = 'closed';
+function setSheetState(s) {
+  sheetState = s;
+  document.body.classList.toggle('bc-sheet-open', s === 'half');
+  document.body.classList.toggle('bc-sheet-full', s === 'full');
+}
+if (sheetGrab) {
+  sheetGrab.addEventListener('click', () => {
+    if (sheetState === 'closed') setSheetState('half');
+    else if (sheetState === 'half') setSheetState('full');
+    else setSheetState('closed');
+  });
+}
+
+const sheetTabs = document.getElementById('bc-sheet-tabs');
+if (sheetTabs) {
+  sheetTabs.addEventListener('click', e => {
+    const b = e.target.closest('button[data-tab]');
+    if (!b) return;
+    document.querySelectorAll('#bc-sheet-tabs button').forEach(x => x.classList.toggle('active', x === b));
+    document.querySelectorAll('[data-tab-content]').forEach(c => {
+      c.hidden = c.dataset.tabContent !== b.dataset.tab;
+    });
+    if (sheetState === 'closed') setSheetState('half');
+  });
+}
+
+// ── Keyboard shortcuts ───────────────────────────────────
+function isTypingTarget(el) {
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+}
+
+document.addEventListener('keydown', e => {
+  // Escape — highest priority
+  if (e.key === 'Escape') {
+    if (!document.getElementById('bc-help-overlay').hidden) { closeHelp(); e.preventDefault(); return; }
+    if (camera.mode === 'pov') { exitPOV(); e.preventDefault(); return; }
+    if (camera.mode === 'freefly') { exitFreeFly(); e.preventDefault(); return; }
+    closeContextMenu();
+    if (modal.classList.contains('visible')) document.getElementById('label-cancel').click();
+    else if (confirmModal.classList.contains('visible')) document.getElementById('confirm-no').click();
+    else if (saveModal.style.display === 'flex') document.getElementById('save-cancel').click();
+    else if (loadModal.style.display === 'flex') document.getElementById('load-cancel').click();
+    return;
+  }
+
+  if (isTypingTarget(document.activeElement)) return;
+
+  // Help
+  if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+    openHelp(); e.preventDefault(); return;
+  }
+
+  // Space-hold temp-pan
+  if (e.key === ' ' && !e.repeat) {
+    spaceHeld = true;
+    document.body.classList.add('bc-space-hold');
+    e.preventDefault();
+    return;
+  }
+
+  // Bars toggle shortcuts
+  if (e.key === '\\') {
+    if (e.shiftKey) Bars.toggle('top'); else Bars.toggleAll();
+    e.preventDefault(); return;
+  }
+  if (e.key === '[') { Bars.toggle('rail'); e.preventDefault(); return; }
+  if (e.key === ']') { Bars.toggle('dock'); e.preventDefault(); return; }
+
+  // Shift shortcuts
+  if (e.shiftKey) {
+    if (e.key === 'F' || e.key === 'f') {
+      if (camera.mode === 'freefly') exitFreeFly(); else enterFreeFly();
+      e.preventDefault(); return;
+    }
+    if (e.key === 'S' || e.key === 's') {
+      splitOn ? exitSplit() : enterSplit();
+      e.preventDefault(); return;
+    }
+    if (e.key === 'R' || e.key === 'r') {
+      Recorder.toggleVideo(); e.preventDefault(); return;
+    }
+    if (e.key >= '1' && e.key <= '9') {
+      Bookmarks.restore(parseInt(e.key, 10) - 1);
+      e.preventDefault(); return;
+    }
+    return;
+  }
+
+  // Tool keys
+  const tk = e.key.toUpperCase();
+  if (tk === 'V' || tk === 'O' || tk === 'P' || tk === 'R') {
+    setActiveTool(tk); e.preventDefault(); return;
+  }
+  if (tk === 'E') {
+    setActiveTool('E');
+    if (camera.mode === 'pov') exitPOV();
+    else if (selectedFigure) enterPOV(selectedFigure.id);
+    e.preventDefault(); return;
+  }
+  if (tk === 'F' && !e.shiftKey) {
+    setActiveTool('F'); goFit(); e.preventDefault(); return;
+  }
+
+  // Preset shortcuts
+  if (e.key >= '1' && e.key <= '6') { goToPreset(parseInt(e.key, 10)); e.preventDefault(); return; }
+  if (e.key === 'h' || e.key === 'H' || e.key === '0') { goHome(); e.preventDefault(); return; }
+  if (e.key === '+' || e.key === '=') { bcSetZoom(camera.radius - 4); e.preventDefault(); return; }
+  if (e.key === '-' || e.key === '_') { bcSetZoom(camera.radius + 4); e.preventDefault(); return; }
+
+  // Modes
+  if (e.key === 'a' || e.key === 'A') { toggleAutoOrbit(); e.preventDefault(); return; }
+  if (e.key === 'b' || e.key === 'B') { Bookmarks.add(); e.preventDefault(); return; }
+  if (e.key === 'c' || e.key === 'C') { Recorder.screenshot(); e.preventDefault(); return; }
+});
+
+document.addEventListener('keyup', e => {
+  if (e.key === ' ') {
+    spaceHeld = false;
+    document.body.classList.remove('bc-space-hold');
+  }
 });
 
 // ── Resize ────────────────────────────────────────────────────────────────────
 function onResize() {
   const w=container.clientWidth, h=container.clientHeight;
   renderer.setSize(w,h,false);
-  camera.aspect=w/h; camera.updateProjectionMatrix();
+  camera_obj.aspect=w/h; camera_obj.updateProjectionMatrix();
+  if (typeof splitOn !== 'undefined' && splitOn) {
+    // secondary camera aspect updated in configureSecondaryCamera()
+  }
 }
 window.addEventListener('resize', onResize); onResize();
 
@@ -1947,12 +3329,35 @@ function animate() {
     else fig.mesh.position.y = 0;
   });
   if (ctrlBall && ctrlBallActive) {
-    const t = Math.min(1, (Date.now() - ctrlBallShowTime) / 150);
+    const tFade = Math.min(1, (Date.now() - ctrlBallShowTime) / 150);
     ctrlBall.children.forEach((c, i) => {
-      if (c.material) c.material.opacity = t * (i === 0 ? 0.72 : 0.9);
+      if (c.material) c.material.opacity = tFade * (i === 0 ? 0.72 : 0.9);
     });
   }
-  renderer.render(scene, camera);
+  const dt = tickAutoOrbit();
+  tickFreeFly(dt);
+  updateCamera();
+  tickCompass();
+  // Split-View or normal render
+  if (typeof splitOn !== 'undefined' && splitOn) {
+    const w = renderer.domElement.width, h = renderer.domElement.height;
+    const splitX = Math.floor(w * splitRatio);
+    renderer.setScissorTest(true);
+    renderer.setViewport(0, 0, splitX, h);
+    renderer.setScissor(0, 0, splitX, h);
+    renderer.render(scene, camera_obj);
+    camera_obj_secondary.aspect = (w - splitX) / h;
+    camera_obj_secondary.updateProjectionMatrix();
+    configureSecondaryCamera();
+    renderer.setViewport(splitX, 0, w - splitX, h);
+    renderer.setScissor(splitX, 0, w - splitX, h);
+    renderer.render(scene, camera_obj_secondary);
+    renderer.setScissorTest(false);
+  } else {
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, renderer.domElement.width, renderer.domElement.height);
+    renderer.render(scene, camera_obj);
+  }
 }
 animate();
 
@@ -1981,10 +3386,10 @@ animate();
 
   function drawMinimapOverlay() {
     mCtx.clearRect(0, 0, MW, MH);
-    const px = (orbit.panX / (HALF_X * 2) + 0.5) * MW;
-    const py = (orbit.panZ / (HALF_Z * 2) + 0.5) * MH;
+    const px = (camera.target.x / (HALF_X * 2) + 0.5) * MW;
+    const py = (camera.target.z / (HALF_Z * 2) + 0.5) * MH;
     // Viewport circle (size scales with zoom radius)
-    const vr = Math.max(5, (orbit.radius / 75) * Math.min(MW, MH) * 0.38);
+    const vr = Math.max(5, (camera.radius / 75) * Math.min(MW, MH) * 0.38);
     mCtx.beginPath();
     mCtx.arc(px, py, vr, 0, Math.PI * 2);
     mCtx.strokeStyle = 'rgba(74,144,217,0.55)';
@@ -2019,19 +3424,17 @@ animate();
     mDrag = true;
     mDS = { x: e.clientX, y: e.clientY };
     const rect = mWrap.getBoundingClientRect();
-    orbit.panX = ((e.clientX - rect.left) / rect.width  - 0.5) * 2 * HALF_X;
-    orbit.panZ = ((e.clientY - rect.top)  / rect.height - 0.5) * 2 * HALF_Z;
-    updateCamera();
+    camera.target.x = ((e.clientX - rect.left) / rect.width  - 0.5) * 2 * HALF_X;
+    camera.target.z = ((e.clientY - rect.top)  / rect.height - 0.5) * 2 * HALF_Z;
     e.preventDefault(); e.stopPropagation();
   });
 
   window.addEventListener('mousemove', e => {
     if (!mDrag) return;
     const rect = mWrap.getBoundingClientRect();
-    orbit.panX += (e.clientX - mDS.x) / rect.width  * 2 * HALF_X;
-    orbit.panZ += (e.clientY - mDS.y) / rect.height * 2 * HALF_Z;
+    camera.target.x += (e.clientX - mDS.x) / rect.width  * 2 * HALF_X;
+    camera.target.z += (e.clientY - mDS.y) / rect.height * 2 * HALF_Z;
     mDS = { x: e.clientX, y: e.clientY };
-    updateCamera();
   });
 
   window.addEventListener('mouseup', () => { mDrag = false; });

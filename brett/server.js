@@ -8,7 +8,7 @@ const asyncHandler = fn => (req, res, next) =>
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL && require.main === module) {
   console.error('DATABASE_URL is required');
   process.exit(1);
 }
@@ -102,9 +102,9 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'internal_error' });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`brett listening on :${PORT}`);
-});
+const server = require.main === module
+  ? app.listen(PORT, () => { console.log(`brett listening on :${PORT}`); })
+  : app.listen(0);
 
 // ─── WebSocket sync ──────────────────────────────────────────────
 const WebSocket = require('ws');
@@ -189,13 +189,22 @@ function applyMutation(room, msg) {
     case 'clear':
       figs.clear();
       break;
+    case 'optik':
+      if (msg.settings && typeof msg.settings === 'object') {
+        figs.set('__optik__', { id: '__optik__', settings: msg.settings });
+      }
+      break;
   }
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  return { figures: Array.from(figs.values()) };
+  const figures = Array.from(figs.values()).filter(f => f.id !== '__optik__');
+  const optikEntry = figs.get('__optik__');
+  const result = { figures };
+  if (optikEntry) result.optik = optikEntry.settings;
+  return result;
 }
 
 async function persistState(room) {
@@ -243,10 +252,13 @@ wss.on('connection', (ws) => {
           for (const f of state.figures || []) {
             if (f && typeof f.id === 'string') figs.set(f.id, f);
           }
+          if (state.optik && typeof state.optik === 'object') {
+            figs.set('__optik__', { id: '__optik__', settings: state.optik });
+          }
         }
 
         const state = buildStateFromMutations(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures }));
+        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik }));
         broadcastInfo(msg.room);
         return;
       }
@@ -254,7 +266,7 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear'].includes(msg.type)) {
+      if (['add','move','update','delete','clear','optik'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
         if (msg.type === 'clear') {
@@ -307,4 +319,4 @@ async function shutdown(signal) {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));
 
-module.exports = { app, server, pool, wss };
+module.exports = { app, server, pool, wss, applyMutation, buildStateFromMutations, figureMaps };

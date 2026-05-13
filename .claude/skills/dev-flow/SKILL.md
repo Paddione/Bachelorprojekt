@@ -41,10 +41,19 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
    - Visual-Companion-Artefakte (HTML-Mockups, Diagramme, Vergleichsbilder) werden vom lokalen brainstorming-Server ausgeliefert. Damit Patrick sie im Browser durchklicken kann statt `xdg-open` lokal zu fahren, siehe Sektion **Visual Companion via brainstorm.mentolder.de** unten.
 2. **Plan.** Rufe `superpowers:writing-plans` auf. Ergibt einen Plan in `docs/superpowers/plans/`.
 3. **Frontmatter-Hook.** Führe aus: `bash scripts/plan-frontmatter-hook.sh <plan-datei>` (Pflicht laut CLAUDE.md).
-4. **Implementation.** Bevorzugt: `superpowers:subagent-driven-development` (parallele Agents, schnell). Alternative: `superpowers:executing-plans` (sequenziell).
+4. **Execution-Mode wählen.** Frage Patrick explizit:
+
+   > "Plan ist fertig unter `docs/superpowers/plans/<datei>.md`. Soll ich (a) **jetzt inline ausführen** oder (b) den Plan als **`to-be-executed_<datei>.md` parken** und stoppen?"
+
+   - **(a) Inline-Ausführung** → weiter mit Schritt 5.
+   - **(b) Parken** → Plan-Datei umbenennen mit Prefix `to-be-executed_` (z.B. `docs/superpowers/plans/to-be-executed_solo-replay.md`), kurz committen (`chore(plans): stage <slug> for later execution`), pushen, **dann STOPP**. Keine Implementation, keine Verifikation, kein Deploy-PR. Der Plan wartet, bis Patrick explizit zur Ausführung greift.
+
+   Default ist **keine** Annahme — frag jedes Mal. Die "Parken"-Variante ist explizit dafür da, dass Patrick den Plan später per Hand (oder in einer anderen Session) anstößt.
+
+5. **Implementation.** Bevorzugt: `superpowers:subagent-driven-development` (parallele Agents, schnell). Alternative: `superpowers:executing-plans` (sequenziell).
    - Backend / Skripte / k8s-Logik: TDD via `superpowers:test-driven-development`.
    - UI-Arbeit: `frontend-design` Skill + Playwright Smoke Tests.
-5. **Lokale Verifikation.** Führe in dieser Reihenfolge aus:
+6. **Lokale Verifikation.** Führe in dieser Reihenfolge aus:
 
    ```bash
    task workspace:validate
@@ -52,11 +61,12 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
    task test:all
    ```
 
-6. **PR.** Rufe `commit-commands:commit-push-pr` auf.
+7. **Pre-Merge Preview auf dev k3d.** Falls Patrick die Änderung live durchklicken soll, publishe auf `dev.mentolder.de` — siehe Sektion **Pre-Merge Preview** unten. (Sobald der dev k3d auf `gekko-hetzner-2` läuft.)
+8. **PR.** Rufe `commit-commands:commit-push-pr` auf.
    - Titel: `feat(<scope>): <kurze-beschreibung>`
    - Body: siehe Sektion **PR-Konventionen** unten.
-7. **Auto-Merge** wenn CI grün ist.
-8. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
+9. **Auto-Merge** wenn CI grün ist.
+10. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
 
 ### Fix-Pfad
 
@@ -69,6 +79,7 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
    ```
 
 3. **Plan.** Bei nicht-trivialen Fixes: `superpowers:writing-plans`. Bei Einzeilern: kurze Inline-Begründung reicht.
+   - Wenn ein Plan geschrieben wurde, gilt dieselbe **Execution-Mode**-Frage wie im Feature-Pfad (Schritt 4): inline ausführen ODER mit Prefix `to-be-executed_` parken und stoppen.
 4. **Fix implementieren** bis der Test grün ist.
 5. **Verifikation:**
 
@@ -78,9 +89,10 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
    task test:all
    ```
 
-6. **PR.** Titel: `fix(<scope>): <kurze-beschreibung>`. Body MUSS `Closes BR-YYYYMMDD-xxxx` enthalten — sonst Push blockieren und nochmal nachfragen.
-7. **Auto-Merge** wenn CI grün ist.
-8. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
+6. **(Optional) Pre-Merge Preview auf dev k3d** — sobald verfügbar. Siehe Sektion **Pre-Merge Preview** unten. Bei nutzersichtbaren Bug-Fixes lohnt sich der Schritt, damit Patrick den Fix vor Prod abnimmt.
+7. **PR.** Titel: `fix(<scope>): <kurze-beschreibung>`. Body MUSS `Closes BR-YYYYMMDD-xxxx` enthalten — sonst Push blockieren und nochmal nachfragen.
+8. **Auto-Merge** wenn CI grün ist.
+9. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
 
 ### Chore-Pfad
 
@@ -139,6 +151,44 @@ task brainstorm:status   # Pod-Status + curl gegen brainstorm.mentolder.de
 ```
 
 `502 Bad Gateway` ohne aktiven Tunnel ist erwartet (sish hat kein Backend). `200` mit Waiting-Page = Tunnel steht.
+
+## Pre-Merge Preview (dev k3d auf gekko-hetzner-2)
+
+> **Status (2026-05-13):** Der k3d-Dev-Cluster läuft aktuell **nicht**, und `dev.mentolder.de` als Domain ist noch nicht eingerichtet (`environments/dev.yaml` zeigt auf `localhost`). Dieser Schritt ist **optional**, sobald die Infrastruktur live ist. Bis dahin: lokal verifizieren und direkt auf Prod deployen.
+
+Die Idee: zwischen "lokale Tests grün" und "PR aufmachen" gibt es eine Zwischenstation, in der Patrick die Änderung live durchklicken kann — ohne dass sie auf den Prod-Clustern landet. Für Visual-Companion-Artefakte siehe die Sektion **Visual Companion via brainstorm.mentolder.de** oben — die läuft als eigener sish-Tunnel und ist unabhängig vom dev k3d.
+
+### Zielkanäle
+
+| URL | Wofür | Quelle |
+|---|---|---|
+| `https://dev.mentolder.de/` (bzw. `web.dev.mentolder.de`, `brett.dev.mentolder.de`) | Vollständige Stack-Vorschau einer Feature-Branch | k3d-Cluster `mentolder-dev` auf `gekko-hetzner-2`, Deploy via `task dev:deploy` / `task dev:redeploy:website` / `task dev:redeploy:brett` |
+
+### Standard-Ablauf (sobald dev k3d läuft)
+
+```bash
+# 1. Sicherstellen, dass der Cluster läuft (sonst bringen)
+task dev:cluster:status
+task dev:cluster:create   # nur falls Status nichts zurückgibt
+
+# 2. Branch publishen
+task dev:deploy           # voller Stack — oder gezielt:
+task dev:redeploy:website # nur Website-Pod neu rollen
+task dev:redeploy:brett   # nur Brett-Pod neu rollen
+
+# 3. Live durchklicken
+open https://web.dev.mentolder.de
+open https://brett.dev.mentolder.de
+```
+
+### Voraussetzungen für Patrick
+
+- Mitglied in der Keycloak-Gruppe `/dev-access` (Login geht sonst in eine 403-Schleife).
+- SSH-Allowlist (`DEV_SSH_ALLOWLIST` in `environments/mentolder.yaml`) muss die eigene Public-IP enthalten, falls du tunneln willst.
+
+### Was tun, solange das nicht live ist?
+
+- **Code-Preview:** lokale Tests müssen reichen — `task test:all` + `./tests/runner.sh local <ID>` + ggf. Playwright-Screenshot. Direktes Mergen auf Prod ist OK, weil das Failure-Handling unten (Verify post-merge → Fix-Pfad) den Schaden auffängt.
 
 ## Post-Merge Deploy
 

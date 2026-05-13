@@ -1,0 +1,72 @@
+name: dev-auto-deploy
+# Hardening notes:
+# - No untrusted event payload (issue/PR title/body/etc.) is read; only
+#   git-locally-computed paths and repo secrets feed the steps.
+# - The SSH wrapper on $DEV_NODE validates the requested subcommand
+#   (see scripts/dev-deploy-wrapper.sh on the node) so even compromised
+#   secrets can only invoke the dev:* task family.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - "brett/**"
+      - "k3d/dev-stack/**"
+      - "prod-mentolder/dev-*"
+      - "prod-mentolder/oauth2-proxy-dev*"
+      - "prod-mentolder/cert-dev-wildcard.yaml"
+      - "Taskfile.dev-stack.yml"
+      - "scripts/dev-db-refresh.sh"
+
+concurrency:
+  group: dev-auto-deploy
+  cancel-in-progress: false
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Determine what changed
+        id: changes
+        run: |
+          set -e
+          CHANGED=$(git diff --name-only HEAD^ HEAD)
+          echo "$CHANGED"
+          echo "website=$(grep -qE '^website/' <<<"$CHANGED" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "brett=$(grep -qE '^brett/' <<<"$CHANGED" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "full=$(grep -qE '^(k3d/dev-stack|prod-mentolder/dev-|prod-mentolder/oauth2-proxy-dev|prod-mentolder/cert-dev-wildcard|Taskfile.dev-stack|scripts/dev-db-refresh)' <<<"$CHANGED" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: SSH dev-node (full deploy)
+        if: steps.changes.outputs.full == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEV_DEPLOY_HOST }}
+          username: ${{ secrets.DEV_DEPLOY_USER }}
+          key: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          command_timeout: 20m
+          script: dev:deploy
+
+      - name: SSH dev-node (website only)
+        if: steps.changes.outputs.full == 'false' && steps.changes.outputs.website == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEV_DEPLOY_HOST }}
+          username: ${{ secrets.DEV_DEPLOY_USER }}
+          key: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          command_timeout: 10m
+          script: dev:redeploy:website
+
+      - name: SSH dev-node (brett only)
+        if: steps.changes.outputs.full == 'false' && steps.changes.outputs.brett == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEV_DEPLOY_HOST }}
+          username: ${{ secrets.DEV_DEPLOY_USER }}
+          key: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          command_timeout: 10m
+          script: dev:redeploy:brett

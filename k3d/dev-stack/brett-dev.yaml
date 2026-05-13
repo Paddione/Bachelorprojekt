@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brett
+  labels:
+    app: brett
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brett
+  template:
+    metadata:
+      labels:
+        app: brett
+    spec:
+      containers:
+        - name: brett
+          image: ghcr.io/paddione/workspace-brett:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 250m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brett
+spec:
+  selector:
+    app: brett
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: brett-dev
+spec:
+  rules:
+    - host: ${DEV_BRETT_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: brett
+                port:
+                  number: 80

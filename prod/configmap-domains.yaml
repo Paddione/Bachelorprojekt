@@ -29,3 +29,5 @@ data:
   KC_USER1_EMAIL: "${KC_USER1_EMAIL}"
   KC_USER2_USERNAME: "${KC_USER2_USERNAME}"
   KC_USER2_EMAIL: "${KC_USER2_EMAIL}"
+  # Dev-stack — empty when no dev stack is configured for this env
+  DEV_DOMAIN: "${DEV_DOMAIN}"

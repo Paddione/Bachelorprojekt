@@ -260,6 +260,21 @@ task claude-code:invite                  # Mint an invite token for a Claude Cod
 task claude-code:rotate-tokens           # Rotate the auth-proxy + agent tokens
 ```
 
+### Dev stack (`dev.mentolder.de` — persistent staging on gekko-hetzner-2)
+```bash
+task dev:cluster:create            # bootstrap the dev k3d cluster on the gekko node
+task dev:cluster:status            # pod status in workspace-dev
+task dev:deploy                    # build website+brett, import to k3d, apply manifests
+task dev:redeploy:website          # rebuild + roll website only
+task dev:redeploy:brett            # rebuild + roll brett only
+task dev:db:refresh                # one-shot restore latest prod snapshot into shared-db-dev
+task dev:tunnel -- <name> <port>   # publish localhost:<port> as https://<name>.dev.mentolder.de
+task dev:logs    -- <svc>          # tail dev pod logs
+task dev:psql                      # psql into shared-db-dev
+task dev:firewall:open             # apply DEV_SSH_ALLOWLIST CIDRs to ufw on the dev node
+```
+See `docs/dev-stack/README.md` for the runbook. The dev cluster's HTTP LB binds `127.0.0.1:18080`; access goes through prod Traefik + the `workspace-dev` Keycloak client + `/dev-access` group enforcement.
+
 ### Testing
 ```bash
 ./tests/runner.sh local              # All tests against k3d
@@ -422,3 +437,11 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 - **`llm-gpu.yaml` and `llm-router.yaml` are in `prod/` overlay only.** Dev (k3d) has no GPU and no router; `embeddings.ts` falls through to direct Voyage when `LLM_ENABLED=false`. Don't add them to `k3d/kustomization.yaml`.
 - **`LLM_HOST_IP` is required when `LLM_ENABLED=true`.** Set it in `environments/<env>.yaml` to the GPU host's wg-mesh IP. The `llm:deploy` task aborts if unset.
 - **Model swap costs ~3-6s on first call after idle.** Ollama's `OLLAMA_KEEP_ALIVE=5m` evicts idle models; the next request pays the swap. Router's chat-class timeout is 30s — beyond that, it falls back to Anthropic. Don't set the timeout below ~10s without testing all four models cold.
+
+### dev.mentolder.de stack
+
+- **The dev k3d cluster runs on `gekko-hetzner-2` as a Docker sibling of the k3s control-plane.** `task dev:cluster:create` SSHes to that node — running it elsewhere fails. Recreating the cluster without `task dev:cluster:create` loses the load-bearing port mappings (`127.0.0.1:18080`, `0.0.0.0:2222`, `127.0.0.1:15432`).
+- **Dev sees prod data.** The 03:30 UTC `dev-db-refresh` CronJob drops + recreates `website`, `bugs`, `bachelorprojekt` in `shared-db-dev` from the latest prod snapshot. Don't write production rituals against the dev DB — they will be erased nightly.
+- **SSH 2222 is publicly exposed** but ufw-deny-default'd. Per-CIDR allow rules apply via `task dev:firewall:open` (reads `DEV_SSH_ALLOWLIST` from `environments/mentolder.yaml`). Even allowlisted clients still need a key in `DEV_SISH_AUTHORIZED_KEYS` to publish tunnels.
+- **Dev secrets are sealed against the mentolder cert** (the dev-db-refresh CronJob runs in prod), but materialised inside dev k3d as plain Secrets by `task dev:_materialise-secrets`. Don't `kubectl apply environments/sealed-secrets/mentolder.yaml` to the `k3d-mentolder-dev` context — there's no sealed-secrets controller there.
+- **`workspace-dev` Keycloak client enforces `/dev-access` group membership at the oauth2-proxy layer** (`--allowed-groups=/dev-access`). Add yourself in the KC admin UI before the first visit, else you'll loop on 403.

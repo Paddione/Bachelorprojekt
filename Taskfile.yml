@@ -10,6 +10,11 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
+  # dev.mentolder.de — persistent staging stack on gekko-hetzner-2.
+  # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
+  dev:
+    taskfile: ./Taskfile.dev-stack.yml
+    dir: .
 
 vars:
   CLUSTER_NAME: dev
@@ -1356,6 +1361,12 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
+          # Ensure DEV_* defaults exist for non-mentolder envs (korczewski/dev).
+          export DEV_DOMAIN="${DEV_DOMAIN:-}"
+          export DEV_NODE="${DEV_NODE:-}"
+          export DEV_WEBSITE_HOST="${DEV_WEBSITE_HOST:-}"
+          export DEV_BRETT_HOST="${DEV_BRETT_HOST:-}"
           # Default to "false" so prod env files that haven't yet adopted
           # the flag don't leak the literal "${SYSTEMTEST_LOOP_ENABLED}"
           # into the rendered website-config ConfigMap.

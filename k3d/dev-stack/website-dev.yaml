@@ -1,0 +1,101 @@
+# ════════════════════════════════════════════════════════════════════
+# website-dev — minimal Astro website inside the dev k3d cluster.
+# Many optional secrets (Stripe, DocuSeal, Nextcloud admin) are NOT
+# wired here — they're consumed via `optional: true` references; the
+# dev image will boot and serve the public-facing pages. Coaching/
+# admin paths that hit those services will fail gracefully.
+# ════════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-dev-config
+data:
+  NODE_ENV: production
+  BRAND: mentolder
+  BRAND_ID: mentolder
+  PROD_DOMAIN: ${DEV_DOMAIN}
+  WEBSITE_SITE_URL: "https://${DEV_WEBSITE_HOST}"
+  WEBSITE_HOST: ${DEV_WEBSITE_HOST}
+  KEYCLOAK_FRONTEND_URL: "https://auth.${PROD_DOMAIN}"
+  CONTACT_EMAIL: ${CONTACT_EMAIL}
+  LLM_ENABLED: "false"
+  LLM_RERANK_ENABLED: "false"
+  DB_HOST: shared-db-dev
+  DB_PORT: "5432"
+  DB_NAME: website
+  DB_USER: website
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+  labels:
+    app: website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: website
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+        - name: website
+          image: ghcr.io/paddione/workspace-website:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: website-dev-config
+          env:
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_WEBSITE_DB_PASSWORD
+            - name: SESSIONS_DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: website
+spec:
+  selector:
+    app: website
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-dev
+spec:
+  rules:
+    - host: ${DEV_WEBSITE_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80

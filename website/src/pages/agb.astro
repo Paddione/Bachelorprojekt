@@ -1,140 +1,45 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { config } from '../config/index';
 import { getLegalPage } from '../lib/website-db';
+import { getDefaultAgb } from '../lib/legal-defaults';
 
-const { contact, legal } = config;
 const BRAND = process.env.BRAND || 'mentolder';
+const BRAND_ID = process.env.BRAND_ID ?? BRAND;
+const isKore = BRAND_ID === 'korczewski';
 const customHtml = await getLegalPage(BRAND, 'agb').catch(() => null);
-const useCustom = !!(customHtml && customHtml.trim());
+const contentHtml = customHtml?.trim() ? customHtml : getDefaultAgb();
 ---
 
-<Layout title="AGB">
-  <section class="pt-28 pb-20">
-    <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
-      {useCustom ? (
-        <div set:html={customHtml} />
-      ) : (
-        <Fragment>
-      <h1>Allgemeine Geschäftsbedingungen</h1>
-      <p class="text-muted text-sm">
-        Gültig für alle Coaching-Leistungen von {contact.name}, {legal.tagline} (nachfolgend „Coach").
-      </p>
-
-      <h2>§ 1 — Geltungsbereich</h2>
-      <p>
-        Diese Allgemeinen Geschäftsbedingungen gelten für alle Verträge über Coaching-Leistungen
-        zwischen dem Coach und dem Auftraggeber. Abweichende Bedingungen des Auftraggebers werden
-        nicht anerkannt, es sei denn, der Coach stimmt diesen ausdrücklich schriftlich zu.
-      </p>
-
-      <h2>§ 2 — Leistungsbeschreibung</h2>
-      <p>
-        Der Coach erbringt systemische Coaching-Leistungen zur professionellen Begleitung bei
-        beruflichen und organisationalen Entwicklungsthemen. Das Angebot umfasst Einzelsitzungen
-        sowie Paketleistungen gemäß der jeweils aktuell gültigen Preisliste auf
-        web.{legal.website}/leistungen.
-      </p>
-      <p>
-        Coaching ist kein Ersatz für Psychotherapie, medizinische Behandlung oder rechtliche
-        Beratung. Der Coach ist kein Therapeut und übt keine heilkundliche Tätigkeit aus.
-      </p>
-
-      <h2>§ 3 — Vertragsschluss</h2>
-      <p>Ein Vertrag kommt zustande durch:</p>
-      <ul>
-        <li>Unterzeichnung eines individuellen Coaching-Vertrages, oder</li>
-        <li>Schriftliche Bestätigung (E-Mail) einer Buchung durch den Coach, oder</li>
-        <li>
-          Buchung über das Online-Buchungssystem unter web.{legal.website} in Verbindung
-          mit der Bestätigung der AGBs.
-        </li>
-      </ul>
-      <p>
-        Mit Vertragsschluss bestätigt der Auftraggeber, diese AGBs gelesen und akzeptiert zu haben.
-      </p>
-
-      <h2>§ 4 — Preise und Zahlung</h2>
-      <p>
-        Es gelten die zum Zeitpunkt des Vertragsschlusses auf web.{legal.website}/leistungen
-        veröffentlichten Preise. Alle Preise sind Nettopreise. Der Coach ist Kleinunternehmer
-        gemäß § 19 UStG — es wird keine Umsatzsteuer ausgewiesen.
-      </p>
-      <p><strong>Zahlungsbedingungen:</strong></p>
-      <ul>
-        <li>Einzelstunden: Zahlung innerhalb von 14 Tagen nach Rechnungsstellung</li>
-        <li>
-          Pakete: 50 % bei Vertragsbeginn, 50 % nach der Hälfte der vereinbarten Sessions
-        </li>
-        <li>Zahlungsweg: Überweisung auf das Geschäftskonto gemäß Rechnung</li>
-      </ul>
-      <p>
-        Bei Zahlungsverzug von mehr als 14 Tagen ist der Coach berechtigt, weitere Termine
-        bis zum Zahlungseingang auszusetzen.
-      </p>
-
-      <h2>§ 5 — Absage und Stornierung</h2>
-      <p>
-        Termine können bis 48 Stunden vor Sitzungsbeginn kostenfrei abgesagt oder verschoben
-        werden. Bei späterer Absage oder Nichterscheinen ohne Mitteilung wird die Sitzung als
-        durchgeführt berechnet.
-      </p>
-      <p>
-        Der Auftraggeber kann den Vertrag jederzeit mit einer Frist von 14 Tagen schriftlich
-        kündigen. Bereits erbrachte Leistungen werden anteilig in Rechnung gestellt. Bei Paketen
-        gilt das anteilige Honorar für durchgeführte Sessions.
-      </p>
-
-      <h2>§ 6 — Vertraulichkeit</h2>
-      <p>
-        Der Coach verpflichtet sich zur strikten Vertraulichkeit über alle Inhalte der
-        Coaching-Sitzungen. Eine Weitergabe an Dritte erfolgt nur mit ausdrücklicher schriftlicher
-        Einwilligung des Auftraggebers oder aufgrund gesetzlicher Verpflichtung.
-      </p>
-      <p>
-        Der Auftraggeber verpflichtet sich, keine Aufzeichnungen (Audio, Video) der Sitzungen
-        ohne Zustimmung des Coaches anzufertigen.
-      </p>
-
-      <h2>§ 7 — Haftung</h2>
-      <p>
-        Der Coach übernimmt keine Haftung für Entscheidungen, die der Coachee auf Basis der
-        Coaching-Gespräche trifft. Die Verantwortung für Entscheidungen verbleibt stets beim
-        Coachee.
-      </p>
-      <p>
-        Bei technischen Ausfällen bei Online-Sitzungen, die außerhalb des Einflussbereichs des
-        Coaches liegen, wird ein Ersatztermin angeboten. Eine weitergehende Haftung ist
-        ausgeschlossen.
-      </p>
-
-      <h2>§ 8 — Datenschutz</h2>
-      <p>
-        Die Verarbeitung personenbezogener Daten erfolgt gemäß der Datenschutzerklärung unter
-        web.{legal.website}/datenschutz sowie den Bestimmungen der DSGVO.
-      </p>
-
-      <h2>§ 9 — Schlussbestimmungen</h2>
-      <p>
-        Es gilt das Recht der Bundesrepublik Deutschland. Erfüllungsort ist {contact.city}.
-        Sollten einzelne Bestimmungen unwirksam sein, bleibt die Gültigkeit der übrigen
-        Bestimmungen unberührt.
-      </p>
-      <p>
-        Der Coach behält sich vor, diese AGBs mit einer Ankündigungsfrist von 30 Tagen zu
-        ändern. Die jeweils aktuell gültige Fassung ist auf web.{legal.website}/agb
-        veröffentlicht.
-      </p>
-
-        </Fragment>
-      )}
-
-      <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex items-center justify-between">
-        <a href="/admin/rechtliches" class="text-xs text-slate-500 hover:text-gold transition-colors">✏️ Bearbeiten</a>
-        <button onclick="window.print()" class="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors">
-          Drucken / PDF
-        </button>
+{isKore ? (
+  <Layout title="AGB" brand="korczewski-kore">
+    <article class="kore-legal">
+      <div set:html={contentHtml} />
+      <div class="kore-legal-actions">
+        <button onclick="window.print()" class="kore-print-btn">Drucken / PDF</button>
       </div>
-    </div>
-  </section>
-</Layout>
+    </article>
+  </Layout>
+) : (
+  <Layout title="AGB">
+    <section class="pt-28 pb-20">
+      <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
+        <div set:html={contentHtml} />
+        <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex justify-end">
+          <button onclick="window.print()" class="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors">Drucken / PDF</button>
+        </div>
+      </div>
+    </section>
+  </Layout>
+)}
+
+<style>
+  .kore-legal { max-width: 720px; margin: 0 auto; padding: 80px 28px 120px; }
+  .kore-legal h1 { font-family: var(--serif); font-size: clamp(36px,5vw,56px); font-weight: 400; letter-spacing: -0.02em; margin: 0 0 56px; line-height: 1.05; }
+  .kore-legal h2 { font-family: var(--serif); font-size: 22px; font-weight: 400; margin: 48px 0 12px; color: var(--fg); }
+  .kore-legal h2:first-of-type { margin-top: 0; }
+  .kore-legal p { font-family: var(--sans); font-size: 15px; line-height: 1.7; color: var(--fg-soft); margin: 0 0 12px; }
+  .kore-legal a { color: var(--copper); text-decoration: none; }
+  .kore-legal a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .kore-legal-actions { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
+  .kore-print-btn { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--ink-800); border: 1px solid var(--line-2); border-radius: 8px; color: var(--mute); padding: 8px 16px; cursor: pointer; }
+</style>

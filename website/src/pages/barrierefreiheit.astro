@@ -1,124 +1,45 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { config } from '../config/index';
 import { getLegalPage } from '../lib/website-db';
+import { getDefaultBarrierefreiheit } from '../lib/legal-defaults';
 
-const { contact, legal } = config;
-const reviewDate = '14. April 2026';
 const BRAND = process.env.BRAND || 'mentolder';
+const BRAND_ID = process.env.BRAND_ID ?? BRAND;
+const isKore = BRAND_ID === 'korczewski';
 const customHtml = await getLegalPage(BRAND, 'barrierefreiheit').catch(() => null);
-const useCustom = !!(customHtml && customHtml.trim());
+const contentHtml = customHtml?.trim() ? customHtml : getDefaultBarrierefreiheit();
 ---
 
-<Layout title="Barrierefreiheitserklärung">
-  <section class="pt-28 pb-20">
-    <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
-      {useCustom ? (
-        <div set:html={customHtml} />
-      ) : (
-        <Fragment>
-      <h1>Barrierefreiheitserklärung</h1>
-
-      <p class="lead">
-        {contact.name} ({legal.tagline}) ist bemüht, seine Website
-        <strong>www.{legal.website}</strong> im Einklang mit dem
-        Barrierefreiheitsstärkungsgesetz (BFSG) sowie den
-        Web Content Accessibility Guidelines (WCAG) 2.1 barrierefrei zugänglich zu machen.
-      </p>
-
-      <h2>Konformitätsstatus</h2>
-      <p>
-        Diese Website ist <strong>vollständig konform</strong> mit den WCAG&nbsp;2.1 auf
-        Konformitätsstufe&nbsp;AA. Ein Lighthouse-Audit vom {reviewDate} ergab einen
-        Barrierefreiheitsscore von <strong>100/100</strong>.
-      </p>
-      <p>
-        Geprüfte Kriterien umfassen unter anderem:
-      </p>
-      <ul>
-        <li>Ausreichende Farbkontraste (Verhältnis ≥ 4,5:1 für Fließtext)</li>
-        <li>Skalierbare Schriftgrößen ohne Verlust von Inhalt oder Funktion</li>
-        <li>Vollständige Tastaturbedienbarkeit aller interaktiven Elemente</li>
-        <li>Sichtbarer Fokus-Indikator bei Tastaturnavigation</li>
-        <li>„Zum Hauptinhalt springen"-Link für Screenreader und Tastaturnutzer</li>
-        <li>Beschriftete Formularfelder mit korrekt verknüpften Labels</li>
-        <li>Aussagekräftige Linktexte</li>
-        <li>Alt-Texte für informative Bilder</li>
-        <li>Logische Überschriften-Hierarchie (h1 → h2 → h3)</li>
-        <li>HTML-Sprache korrekt auf <code>lang="de"</code> gesetzt</li>
-      </ul>
-
-      <h2>Bekannte Einschränkungen</h2>
-      <p>
-        Derzeit sind keine bekannten Barrierefreiheitsmängel vorhanden. Sollten Sie
-        dennoch auf Probleme stoßen, teilen Sie uns diese bitte über den
-        untenstehenden Kontaktweg mit.
-      </p>
-
-      <h2>Technologien</h2>
-      <p>
-        Die Barrierefreiheit dieser Website stützt sich auf folgende Technologien:
-      </p>
-      <ul>
-        <li>HTML5 mit semantischen Elementen (<code>main</code>, <code>nav</code>, <code>footer</code>, <code>section</code>)</li>
-        <li>CSS mit ausreichenden Kontrastverhältnissen</li>
-        <li>ARIA-Attribute wo semantisches HTML allein nicht ausreicht</li>
-        <li>JavaScript (Svelte-Komponenten) mit tastaturzugänglichen Interaktionen</li>
-      </ul>
-
-      <h2>Rückmeldung und Kontakt</h2>
-      <p>
-        Wenn Sie Barrierefreiheitsprobleme auf dieser Website feststellen oder
-        Informationen in barrierefreier Form benötigen, die nicht oder nicht vollständig
-        zugänglich sind, wenden Sie sich bitte an uns:
-      </p>
-      <ul>
-        <li>E-Mail: <a href={`mailto:${contact.email}`}>{contact.email}</a></li>
-        {contact.phone && contact.phone !== '***' && (
-          <li>Telefon: {contact.phone}</li>
-        )}
-        <li>Über das <a href="/kontakt">Kontaktformular</a> auf dieser Website</li>
-      </ul>
-      <p>
-        Wir bemühen uns, auf Ihre Anfrage innerhalb von <strong>10 Werktagen</strong>
-        zu antworten.
-      </p>
-
-      <h2>Schlichtungsverfahren</h2>
-      <p>
-        Wenn Sie nach einer Rückmeldung an uns keine zufriedenstellende Antwort
-        erhalten haben, können Sie die
-        <a href="https://www.schlichtungsstelle-bfsg.de" target="_blank" rel="noopener noreferrer">
-          Schlichtungsstelle nach dem Barrierefreiheitsstärkungsgesetz (BFSG)
-        </a>
-        einschalten.
-      </p>
-      <p>
-        Schlichtungsstelle BFSG<br />
-        c/o Zentrum für Schlichtung e.&nbsp;V.<br />
-        Straßburger Straße 8<br />
-        77694 Kehl am Rhein<br />
-        Telefon: +49 7851 795 79 40<br />
-        E-Mail: <a href="mailto:info@schlichtungsstelle-bfsg.de">info@schlichtungsstelle-bfsg.de</a>
-      </p>
-
-      <h2>Erstellungsdatum dieser Erklärung</h2>
-      <p>Diese Erklärung wurde am <strong>{reviewDate}</strong> erstellt und zuletzt überprüft.</p>
-
-      <p class="text-sm text-muted-dark mt-8">
-        Grundlage: Barrierefreiheitsstärkungsgesetz (BFSG) &middot;
-        WCAG 2.1 Level AA &middot; EN&nbsp;301&nbsp;549 V3.2.1
-      </p>
-
-        </Fragment>
-      )}
-
-      <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex items-center justify-between">
-        <a href="/admin/rechtliches" class="text-xs text-slate-500 hover:text-gold transition-colors">✏️ Bearbeiten</a>
-        <button onclick="window.print()" class="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors">
-          Drucken / PDF
-        </button>
+{isKore ? (
+  <Layout title="Barrierefreiheit" brand="korczewski-kore">
+    <article class="kore-legal">
+      <div set:html={contentHtml} />
+      <div class="kore-legal-actions">
+        <button onclick="window.print()" class="kore-print-btn">Drucken / PDF</button>
       </div>
-    </div>
-  </section>
-</Layout>
+    </article>
+  </Layout>
+) : (
+  <Layout title="Barrierefreiheit">
+    <section class="pt-28 pb-20">
+      <div class="max-w-3xl mx-auto px-6 prose prose-lg prose-slate">
+        <div set:html={contentHtml} />
+        <div class="not-prose mt-10 pt-6 border-t border-slate-700 flex justify-end">
+          <button onclick="window.print()" class="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors">Drucken / PDF</button>
+        </div>
+      </div>
+    </section>
+  </Layout>
+)}
+
+<style>
+  .kore-legal { max-width: 720px; margin: 0 auto; padding: 80px 28px 120px; }
+  .kore-legal h1 { font-family: var(--serif); font-size: clamp(36px,5vw,56px); font-weight: 400; letter-spacing: -0.02em; margin: 0 0 56px; line-height: 1.05; }
+  .kore-legal h2 { font-family: var(--serif); font-size: 22px; font-weight: 400; margin: 48px 0 12px; color: var(--fg); }
+  .kore-legal h2:first-of-type { margin-top: 0; }
+  .kore-legal p { font-family: var(--sans); font-size: 15px; line-height: 1.7; color: var(--fg-soft); margin: 0 0 12px; }
+  .kore-legal a { color: var(--copper); text-decoration: none; }
+  .kore-legal a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .kore-legal-actions { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
+  .kore-print-btn { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--ink-800); border: 1px solid var(--line-2); border-radius: 8px; color: var(--mute); padding: 8px 16px; cursor: pointer; }
+</style>

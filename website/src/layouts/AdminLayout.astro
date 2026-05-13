@@ -61,6 +61,8 @@ const icons: Record<string, string> = {
   broadcast: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 1 0 8"/><path d="M6 8a6 6 0 0 0 0 8"/><circle cx="12" cy="12" r="2"/><path d="M21 5a11 11 0 0 1 0 14"/><path d="M3 5a11 11 0 0 0 0 14"/></svg>`,
   book: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2.5h7.5a2 2 0 0 1 2 2v9.5H5a2 2 0 0 1-2-2V2.5z"/><path d="M3 12a2 2 0 0 1 2-2h7.5"/><path d="M6 5.5h4M6 7.5h3"/></svg>`,
   edit: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 1.8l2.7 2.7L5 13.7l-3.2.5.5-3.2z"/><path d="M10 3.3l2.7 2.7"/></svg>`,
+  // Brett icon: 3D board
+  brett: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l6.5-3.5L14.5 5v6L8 14.5 1.5 11V5z"/><path d="M8 1.5v13M1.5 5l6.5 3 6.5-3"/></svg>`,
 };
 
 let inboxPending = 0;
@@ -86,6 +88,9 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: 'Betrieb',
     items: [
       { href: '/admin/live',          label: 'Live',          icon: 'broadcast' },
+      // Brett v2 – nur für Admins sichtbar (Auth-Check in brett.astro)
+      { href: '/admin/brett',         label: 'Brett v2',      icon: 'brett',
+        matches: ['/admin/brett'] },
       { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
       { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
       { href: '/admin/tickets',       label: 'Tickets',       icon: 'tag' },
@@ -239,13 +244,11 @@ const isKore = brandId === 'korczewski';
         background: var(--ink-800);
         color: var(--brass);
       }
-      /* Collapsed: show expand chevron, hide collapse chevron */
       #icon-collapse { display: block; }
       #icon-expand   { display: none; }
       html.sidebar-collapsed #icon-collapse { display: none; }
       html.sidebar-collapsed #icon-expand   { display: block; }
 
-      /* Mobile */
       #mobile-topbar  { display: none; }
       #admin-backdrop { display: none; }
 
@@ -295,81 +298,31 @@ const isKore = brandId === 'korczewski';
   <body class={isKore ? 'kore' : ''} style="min-height:100vh; background:var(--ink-900); color:var(--fg); display:flex; font-family:var(--font-sans);">
     <ArenaBanner client:load />
 
-    <!-- Mobile topbar -->
     <div id="mobile-topbar">
-      <button
-        id="mobile-hamburger"
-        aria-label="Menü öffnen"
-        style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:none; border:none; cursor:pointer; color:var(--fg-soft); border-radius:8px; flex-shrink:0;"
-      >
-        <svg id="hamburger-icon-open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px;" aria-hidden="true">
-          <path d="M2 4h12M2 8h12M2 12h12"/>
-        </svg>
-        <svg id="hamburger-icon-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px; display:none;" aria-hidden="true">
-          <path d="M3 3l10 10M13 3L3 13"/>
-        </svg>
+      <button id="mobile-hamburger" aria-label="Menü öffnen" style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:none; border:none; cursor:pointer; color:var(--fg-soft); border-radius:8px; flex-shrink:0;">
+        <svg id="hamburger-icon-open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px;" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+        <svg id="hamburger-icon-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:18px; height:18px; display:none;" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
       </button>
       <a href="/admin" style="display:flex; align-items:center; gap:8px; text-decoration:none; flex:1; min-width:0;">
-        {isKore ? (
-          <div class="ka-brand-mark" style="width:24px; height:24px; border-radius:6px;" />
-        ) : (
-          <div style="width:24px; height:24px; border-radius:6px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); position:relative; flex-shrink:0;">
-            <div style="position:absolute; inset:5px; border-radius:1px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
-          </div>
-        )}
-        {isKore ? (
-          <span class="ka-brand-word" style="font-size:14px;">{brandWord}<span class="ka-dot">.</span></span>
-        ) : (
-          <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass);">{brandWord}<span style="color:var(--mute);">.</span></span>
-        )}
-        <span style={`font-family:var(--font-mono); font-size:9px; color:${isKore ? 'var(--mute)' : 'var(--mute)'}; letter-spacing:0.14em; text-transform:uppercase;`}>Admin</span>
+        {isKore ? (<div class="ka-brand-mark" style="width:24px; height:24px; border-radius:6px;" />) : (<div style="width:24px; height:24px; border-radius:6px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); position:relative; flex-shrink:0;"><div style="position:absolute; inset:5px; border-radius:1px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div></div>)}
+        {isKore ? (<span class="ka-brand-word" style="font-size:14px;">{brandWord}<span class="ka-dot">.</span></span>) : (<span style="font-family:var(--font-serif); font-size:15px; color:var(--brass);">{brandWord}<span style="color:var(--mute);">.</span></span>)}
+        <span style={`font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.14em; text-transform:uppercase;`}>Admin</span>
       </a>
     </div>
 
-    <!-- Mobile backdrop -->
     <div id="admin-backdrop"></div>
 
-    <!-- Sidebar -->
     <aside id="admin-sidebar" style="flex-shrink:0; min-height:100vh; background:var(--ink-850); border-right:1px solid var(--line); display:flex; flex-direction:column;">
-
-      <!-- Header -->
       <div style="padding:20px 14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; min-width:0;">
         <a href="/admin" style="display:flex; align-items:center; gap:10px; text-decoration:none; flex:1; min-width:0; overflow:hidden;">
-          {isKore ? (
-            <div class="ka-brand-mark" />
-          ) : (
-            <div style="width:28px; height:28px; border-radius:7px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3); position:relative; flex-shrink:0;">
-              <div style="position:absolute; inset:6px; border-radius:2px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
-            </div>
-          )}
+          {isKore ? (<div class="ka-brand-mark" />) : (<div style="width:28px; height:28px; border-radius:7px; background:radial-gradient(circle at 30% 30%, var(--brass-2), var(--brass) 55%, #8a6a2a 100%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2), 0 0 0 1px rgba(0,0,0,.3); position:relative; flex-shrink:0;"><div style="position:absolute; inset:6px; border-radius:2px; background:var(--ink-850); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div></div>)}
           <div class="sidebar-label" style="min-width:0;">
-            {isKore ? (
-              <Fragment>
-                <span class="ka-brand-word">{brandWord}<span class="ka-dot">.</span></span>
-                <span class="ka-brand-tag">Admin</span>
-              </Fragment>
-            ) : (
-              <Fragment>
-                <span style="font-family:var(--font-serif); font-size:15px; color:var(--brass); letter-spacing:-0.01em; display:block; line-height:1.2;">{brandWord}<span style="color:var(--mute);">.</span></span>
-                <span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.12em; text-transform:uppercase; display:block; margin-top:1px;">Admin</span>
-              </Fragment>
-            )}
+            {isKore ? (<Fragment><span class="ka-brand-word">{brandWord}<span class="ka-dot">.</span></span><span class="ka-brand-tag">Admin</span></Fragment>) : (<Fragment><span style="font-family:var(--font-serif); font-size:15px; color:var(--brass); letter-spacing:-0.01em; display:block; line-height:1.2;">{brandWord}<span style="color:var(--mute);">.</span></span><span style="font-family:var(--font-mono); font-size:9px; color:var(--mute); letter-spacing:0.12em; text-transform:uppercase; display:block; margin-top:1px;">Admin</span></Fragment>)}
           </div>
         </a>
-        <button
-          id="sidebar-toggle"
-          title="Sidebar einklappen"
-          aria-label="Sidebar einklappen"
-          aria-expanded="true"
-          aria-controls="admin-sidebar"
-          style="flex-shrink:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer; color:var(--mute); border-radius:6px; transition:color 0.15s ease, background 0.15s ease;"
-        >
-          <svg id="icon-collapse" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:14px; height:14px;" aria-hidden="true">
-            <path d="M10 3l-5 5 5 5"/>
-          </svg>
-          <svg id="icon-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:14px; height:14px;" aria-hidden="true">
-            <path d="M6 3l5 5-5 5"/>
-          </svg>
+        <button id="sidebar-toggle" title="Sidebar einklappen" aria-label="Sidebar einklappen" aria-expanded="true" aria-controls="admin-sidebar" style="flex-shrink:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer; color:var(--mute); border-radius:6px; transition:color 0.15s ease, background 0.15s ease;">
+          <svg id="icon-collapse" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:14px; height:14px;" aria-hidden="true"><path d="M10 3l-5 5 5 5"/></svg>
+          <svg id="icon-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:14px; height:14px;" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>
         </button>
       </div>
 
@@ -382,7 +335,6 @@ const isKore = brandId === 'korczewski';
         </div>
       )}
 
-      <!-- Nav -->
       <nav style="flex:1; overflow-y:auto; padding:12px 8px; display:flex; flex-direction:column; gap:20px;">
         {navGroups.map(group => (
           <div>
@@ -400,19 +352,10 @@ const isKore = brandId === 'korczewski';
                         : 'color:var(--fg-soft);'
                     }`}
                   >
-                    <span
-                      class="nav-icon"
-                      style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${isActive(item.href, item.matches) ? 'color:var(--brass);' : 'color:var(--mute);'}`}
-                      set:html={icons[item.icon]}
-                    />
+                    <span class="nav-icon" style={`flex-shrink:0; width:16px; height:16px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease; ${isActive(item.href, item.matches) ? 'color:var(--brass);' : 'color:var(--mute);'}`} set:html={icons[item.icon]} />
                     <span class="sidebar-label" style="flex:1;">{item.label}</span>
                     {item.href === '/admin/inbox' ? (
-                      <span
-                        class="sidebar-label admin-inbox-badge"
-                        data-admin-inbox-badge
-                        data-count={item.badge ?? 0}
-                        style={`flex-shrink:0; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--brass-d); color:var(--brass); font-family:var(--font-mono); font-size:10px; font-weight:700; align-items:center; justify-content:center; line-height:1; display:${item.badge ? 'flex' : 'none'};`}
-                      >{item.badge ?? 0}</span>
+                      <span class="sidebar-label admin-inbox-badge" data-admin-inbox-badge data-count={item.badge ?? 0} style={`flex-shrink:0; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--brass-d); color:var(--brass); font-family:var(--font-mono); font-size:10px; font-weight:700; align-items:center; justify-content:center; line-height:1; display:${item.badge ? 'flex' : 'none'};`}>{item.badge ?? 0}</span>
                     ) : item.badge ? (
                       <span class="sidebar-label" style="flex-shrink:0; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--brass-d); color:var(--brass); font-family:var(--font-mono); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1;">{item.badge}</span>
                     ) : null}
@@ -424,26 +367,18 @@ const isKore = brandId === 'korczewski';
         ))}
       </nav>
 
-      <!-- Footer -->
       <div style="padding:10px 8px 12px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:1px;">
         <a href="/" class="sidebar-footer-link" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--fg-soft); transition:background 0.1s ease, color 0.1s ease;">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
-            <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z"/>
-            <path d="M1.5 8h13M8 1.5C6.5 4 5.5 6 5.5 8s1 4 2.5 6.5M8 1.5C9.5 4 10.5 6 10.5 8s-1 4-2.5 6.5"/>
-          </svg>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z"/><path d="M1.5 8h13M8 1.5C6.5 4 5.5 6 5.5 8s1 4 2.5 6.5M8 1.5C9.5 4 10.5 6 10.5 8s-1 4-2.5 6.5"/></svg>
           <span class="sidebar-label">Zur Website</span>
         </a>
         <a href="/api/auth/logout" class="sidebar-footer-link danger" style="display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; text-decoration:none; font-size:12px; color:var(--mute); transition:background 0.1s ease, color 0.1s ease;">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true">
-            <path d="M6 12H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>
-            <path d="M10.5 11l3-3-3-3M13.5 8H6"/>
-          </svg>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px; flex-shrink:0;" aria-hidden="true"><path d="M6 12H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/><path d="M10.5 11l3-3-3-3M13.5 8H6"/></svg>
           <span class="sidebar-label">Abmelden</span>
         </a>
       </div>
     </aside>
 
-    <!-- Main -->
     <main id="admin-main" style="flex:1; min-height:100vh; overflow-y:auto;">
       <slot />
     </main>
@@ -476,7 +411,6 @@ const isKore = brandId === 'korczewski';
           });
         }
 
-        // Mobile sidebar overlay
         var hamburger = document.getElementById('mobile-hamburger');
         var backdrop = document.getElementById('admin-backdrop');
         var sidebar = document.getElementById('admin-sidebar');
@@ -506,7 +440,6 @@ const isKore = brandId === 'korczewski';
         }
         if (backdrop) backdrop.addEventListener('click', closeMobileSidebar);
 
-        // Close mobile sidebar on nav link click
         if (sidebar) {
           sidebar.querySelectorAll('a').forEach(function(a) {
             a.addEventListener('click', function() {
@@ -515,7 +448,6 @@ const isKore = brandId === 'korczewski';
           });
         }
 
-        // Cluster ticker (kore brand only) — uses textContent + createElement, no innerHTML
         var ticker = document.getElementById('ka-cluster-ticker');
         if (ticker) {
           var refresh = function() {
@@ -527,17 +459,10 @@ const isKore = brandId === 'korczewski';
                 clearTimeout(t);
                 if (!s || typeof s.nodes !== 'number' || typeof s.pods !== 'number') return;
                 while (ticker.firstChild) ticker.removeChild(ticker.firstChild);
-                var dot = document.createElement('span');
-                dot.className = 'ka-ticker-dot';
-                ticker.appendChild(dot);
-                var nodesB = document.createElement('b');
-                nodesB.textContent = String(s.nodes);
-                ticker.appendChild(nodesB);
+                var dot = document.createElement('span'); dot.className = 'ka-ticker-dot'; ticker.appendChild(dot);
+                var nodesB = document.createElement('b'); nodesB.textContent = String(s.nodes); ticker.appendChild(nodesB);
                 ticker.appendChild(document.createTextNode(' Nodes '));
-                var pods = document.createElement('span');
-                pods.style.color = 'var(--mute)';
-                pods.textContent = String('· ' + s.pods + ' Pods');
-                ticker.appendChild(pods);
+                var pods = document.createElement('span'); pods.style.color = 'var(--mute)'; pods.textContent = String('· ' + s.pods + ' Pods'); ticker.appendChild(pods);
               })
               .catch(function() { clearTimeout(t); });
           };
@@ -545,13 +470,10 @@ const isKore = brandId === 'korczewski';
           setInterval(refresh, 30000);
         }
 
-        // Inbox sidebar badge — exposed for InboxApp + listeners for cross-tab sync.
         function setAdminInboxBadgeCount(n) {
           var nodes = document.querySelectorAll('[data-admin-inbox-badge]');
           for (var i = 0; i < nodes.length; i++) {
-            var el = nodes[i];
-            el.setAttribute('data-count', String(n));
-            el.textContent = String(n);
+            var el = nodes[i]; el.setAttribute('data-count', String(n)); el.textContent = String(n);
             el.style.display = n > 0 ? 'flex' : 'none';
           }
         }
@@ -560,23 +482,15 @@ const isKore = brandId === 'korczewski';
           var t = setTimeout(function() { ctrl.abort(); }, 5000);
           fetch('/api/admin/inbox/count', { signal: ctrl.signal, credentials: 'same-origin' })
             .then(function(r) { return r.ok ? r.json() : null; })
-            .then(function(d) {
-              clearTimeout(t);
-              if (!d || typeof d.total !== 'number') return;
-              setAdminInboxBadgeCount(d.total);
-            })
+            .then(function(d) { clearTimeout(t); if (!d || typeof d.total !== 'number') return; setAdminInboxBadgeCount(d.total); })
             .catch(function() { clearTimeout(t); });
         }
         window.refreshAdminInboxBadge = refreshAdminInboxBadge;
         window.setAdminInboxBadgeCount = setAdminInboxBadgeCount;
-        // Listen for postMessage-style events fired by client components.
         window.addEventListener('admin-inbox-changed', function(ev) {
           var detail = ev && ev.detail;
-          if (detail && typeof detail.total === 'number') {
-            setAdminInboxBadgeCount(detail.total);
-          } else {
-            refreshAdminInboxBadge();
-          }
+          if (detail && typeof detail.total === 'number') setAdminInboxBadgeCount(detail.total);
+          else refreshAdminInboxBadge();
         });
       })();
     </script>

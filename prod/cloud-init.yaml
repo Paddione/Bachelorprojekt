@@ -103,6 +103,11 @@ runcmd:
   - ufw allow 7881/tcp     # LiveKit RTC TCP fallback
   - ufw allow 50000:60000/udp  # LiveKit RTC media range
   - ufw allow 30000:40000/udp  # LiveKit TURN relay range
+  # ── dev.mentolder.de — sish SSH (2222/tcp) ─────────────────────────
+  # Deny-by-default. Explicit allow rules are applied per-CIDR from
+  # DEV_SSH_ALLOWLIST by `task dev:firewall:open` (Taskfile.dev-stack.yml)
+  # — they're runtime state, not cloud-init.
+  - ufw deny 2222/tcp comment "sish - default deny"
   - ufw --force enable
 
   # Services

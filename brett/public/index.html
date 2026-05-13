@@ -1062,6 +1062,17 @@ async function bootArtLibrary() {
 
 bootArtLibrary();
 
+document.getElementById('constellation-type').addEventListener('change', function() {
+  const tabMap = {
+    familie:        'personen',
+    organisation:   'rollen',
+    tetralemma:     'abstrakta',
+    'inneres-team': 'personen',
+  };
+  const target = tabMap[this.value];
+  if (target) renderTabContent(target);
+});
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let figures = [];
 let selectedFigure = null;
@@ -1453,7 +1464,10 @@ document.getElementById('save-ok').addEventListener('click', async () => {
     room_token:  ROOM === 'standalone' ? null : ROOM,
     customer_id: saveCustomer.value || null,
     name,
-    state: { figures: figures.map(figToJSON) },
+    state: {
+      figures: figures.map(figToJSON),
+      constellationType: document.getElementById('constellation-type').value || undefined,
+    },
   };
   const res = await fetch(`${API}/snapshots`, {
     method: 'POST',
@@ -1553,6 +1567,11 @@ async function loadSnapshot(id) {
   // Broadcast: clear, then add each figure, so peers see the load.
   send({ type: 'clear' });
   applySnapshot(figs);
+  if (snap.state && snap.state.constellationType !== undefined) {
+    const sel = document.getElementById('constellation-type');
+    sel.value = snap.state.constellationType;
+    sel.dispatchEvent(new Event('change'));
+  }
   for (const f of figs) {
     send({ type: 'add', fig: f });
   }
@@ -1572,6 +1591,11 @@ document.getElementById('load-cancel').addEventListener('click', () => {
 
 // ── Label modal ───────────────────────────────────────────────────────────────
 const modal      = document.getElementById('label-modal');
+function isAnyModalOpen() {
+  return modal.classList.contains('visible') ||
+         saveModal.style.display === 'flex' ||
+         loadModal.style.display === 'flex';
+}
 const labelInput = document.getElementById('label-input');
 
 function openLabelModal(fig) {
@@ -1636,7 +1660,7 @@ canvas.addEventListener('contextmenu', e => e.preventDefault());
 let panOn = false;
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('mousedown', e => {
-  if (modal.classList.contains('visible')) return;
+  if (isAnyModalOpen()) return;
   if (e.button === 2) {
     const ndc = getNDC(e);
     const fig = pickFigure(ndc);

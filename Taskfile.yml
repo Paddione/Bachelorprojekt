@@ -1813,8 +1813,14 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        kubectl $CTX patch secret claude-code-secrets --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
-        kubectl $CTX rollout restart deployment/claude-code-mcp-monolith
+        if [ "{{.ENV}}" = "korczewski" ]; then
+          NS="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
+        else
+          NS="-n default"
+        fi
+        kubectl $CTX $NS patch secret claude-code-secrets --type='json' -p='[{"op":"replace","path":"/data/GITHUB_PAT","value":"'$(echo -n "{{.CLI_ARGS}}" | base64 -w0)'"}]'
+        kubectl $CTX $NS rollout restart deployment/claude-code-mcp-monolith
+        kubectl $CTX $NS rollout status deployment/claude-code-mcp-monolith --timeout=300s
         echo "✓ GitHub PAT updated and claude-code-mcp-monolith restarted"
 
   # ─────────────────────────────────────────────

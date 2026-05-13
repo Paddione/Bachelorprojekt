@@ -1,0 +1,12 @@
+{
+  "pr_number": 703,
+  "title": "allow ingress to sish NodePort",
+  "description": "## Summary\n- Follow-up to #702. The workspace namespace runs kube-router netpol with default-deny-ingress, so without an explicit allow-policy the public NodePort 32223 was RST'd before reaching the brainstorm-sish pod (tcpdump confirmed the SYN arrived, then kube-router rejected).\n- Add `allow-brainstorm-sish-ingress` NetworkPolicy permitting tcp/2222 + tcp/80 from `0.0.0.0/0` so operators can actually open `ssh -R` tunnels at `brainstorm.mentolder.de`.\n\n## Test plan\n- [x] `kubectl apply` to mentolder cluster → policy created\n- [x] `nc -vz -w 5 178.104.169.206 32223` from outside the cluster → succeeded (was `Connection refused` before the policy)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "brainstorm",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T17:03:06Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

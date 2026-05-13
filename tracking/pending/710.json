@@ -1,0 +1,12 @@
+{
+  "pr_number": 710,
+  "title": "move optik button to toolbar, add Übersicht toggle",
+  "description": "## Summary\n- Goldener 🎨 Optik-Button aus dem Canvas-Eck in die Toolbar verlegt — jetzt als gold-akzentuierter Text-Button inline neben Speichern/Laden\n- Optik-Popup öffnet sich nach unten statt nach oben (passt zur Toolbar-Position)\n- Neuer 🗺 Übersicht-Button in der Toolbar klappt die Minimap ein/aus — bleibt mit dem ▾-Pfeil im Minimap-Header synchronisiert\n\n## Test plan\n- [x] Optik-Button liegt in der Toolbar, kein floatender Kreis mehr im Canvas\n- [x] Popup öffnet nach unten, schließt per Klick außerhalb\n- [x] Übersicht-Button toggelt Minimap; goldener Akzent = sichtbar, grau = eingeklappt\n- [x] Minimap-interner ▾-Pfeil funktioniert weiterhin und synct den Toolbar-Button\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T18:37:31Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

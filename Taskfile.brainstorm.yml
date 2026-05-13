@@ -1,0 +1,99 @@
+# Taskfile.brainstorm.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# brainstorm.mentolder.de — reverse-SSH-tunnel broker for the brainstorming
+# visual-companion choice loop. Wraps `ssh -R` against the in-cluster sish
+# Deployment (k3d/brainstorm-sish.yaml) so the operator can publish a local
+# port at https://brainstorm.${PROD_DOMAIN} without poking holes in the
+# home-network NAT.
+#
+# All tasks here pin to the mentolder prod cluster — there is no brainstorm
+# broker on korczewski. ENV= is forced to "mentolder" via the vars block.
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+vars:
+  ENV: mentolder
+  CTX_PROD: mentolder
+  NS_PROD: workspace
+  # The sish Deployment is pinned (nodeSelector) to this host; the ufw rule
+  # and the public SSH NodePort target the same machine.
+  NODE: gekko-hetzner-2
+  SSH_PORT: 32223
+
+tasks:
+
+  _materialise-keys:
+    internal: true
+    desc: "[brainstorm] Push DEV_SISH_AUTHORIZED_KEYS into the brainstorm-sish ConfigMap and roll sish"
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        if [[ ! -f "$SECRETS_FILE" ]]; then
+          echo "Missing $SECRETS_FILE — run task env:generate ENV={{.ENV}} first." >&2
+          exit 1
+        fi
+        AUTHKEYS=$(yq -r '.DEV_SISH_AUTHORIZED_KEYS // ""' "$SECRETS_FILE")
+        if [[ -z "$AUTHKEYS" ]]; then
+          echo "DEV_SISH_AUTHORIZED_KEYS empty in $SECRETS_FILE — add at least one pubkey before publishing tunnels." >&2
+          exit 1
+        fi
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} create configmap brainstorm-sish-authorized-keys \
+          --from-literal=authorized_keys="$AUTHKEYS" \
+          --dry-run=client -o yaml | kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} apply -f -
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} rollout restart deploy/brainstorm-sish
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} rollout status deploy/brainstorm-sish --timeout=60s
+
+  publish:
+    desc: "[brainstorm] Publish a local port at https://brainstorm.${PROD_DOMAIN}. Usage: task brainstorm:publish -- <localport>"
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        PORT=$(echo "{{.CLI_ARGS}}" | awk '{print $1}')
+        if [[ -z "$PORT" ]]; then
+          echo "Usage: task brainstorm:publish -- <localport>" >&2; exit 2
+        fi
+        # Resolve a target host for the SSH connection:
+        #   1. BRAINSTORM_NODE_IP if set (escape hatch — not in schema today)
+        #   2. TURN_PUBLIC_IP    — gekko-hetzner-2 is also TURN_NODE so its
+        #                          public IP is already authoritative there.
+        #   3. {{.NODE}}         — DNS fallback for the same host.
+        TARGET="${BRAINSTORM_NODE_IP:-${TURN_PUBLIC_IP:-{{.NODE}}}}"
+        echo "Publishing localhost:$PORT as https://brainstorm.$PROD_DOMAIN — leave this terminal open."
+        echo "  ssh -p {{.SSH_PORT}} -R brainstorm:80:localhost:$PORT tunnel@$TARGET"
+        exec ssh -p {{.SSH_PORT}} -N \
+          -o ServerAliveInterval=30 \
+          -o ServerAliveCountMax=3 \
+          -o ExitOnForwardFailure=yes \
+          -R "brainstorm:80:localhost:$PORT" \
+          "tunnel@$TARGET"
+
+  firewall:open:
+    desc: "[brainstorm] Open ufw tcp/{{.SSH_PORT}} on {{.NODE}} so operators can reach the sish NodePort"
+    cmds:
+      - |
+        set -euo pipefail
+        ssh "root@{{.NODE}}" "ufw allow {{.SSH_PORT}}/tcp comment 'brainstorm-sish'"
+        ssh "root@{{.NODE}}" "ufw reload && ufw status numbered | grep {{.SSH_PORT}} || true"
+
+  status:
+    desc: "[brainstorm] Show sish pod status and probe the public Ingress"
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get pod -l app=brainstorm-sish -o wide
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get svc brainstorm brainstorm-sish 2>/dev/null || true
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get ingress brainstorm 2>/dev/null || true
+        echo "── HTTPS probe ────────────────────────────────────────────"
+        curl -sSI --max-time 5 "https://brainstorm.${PROD_DOMAIN}/" || true
+
+  cleanup-scratch:
+    desc: "[brainstorm] Delete the parallel-session's ad-hoc brainstorm-proxy Pod (Service+Ingress are reused by the new manifest)"
+    cmds:
+      - |
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} delete pod brainstorm-proxy --ignore-not-found
+        # Do NOT delete svc/brainstorm or ingress/brainstorm — the new manifest
+        # owns those names and `kubectl apply` reconciles them in place.

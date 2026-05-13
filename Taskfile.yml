@@ -15,6 +15,11 @@ includes:
   dev:
     taskfile: ./Taskfile.dev-stack.yml
     dir: .
+  # brainstorm.mentolder.de — reverse-SSH-tunnel broker (sish) for the
+  # brainstorming visual companion. See Taskfile.brainstorm.yml.
+  brainstorm:
+    taskfile: ./Taskfile.brainstorm.yml
+    dir: .
 
 vars:
   CLUSTER_NAME: dev

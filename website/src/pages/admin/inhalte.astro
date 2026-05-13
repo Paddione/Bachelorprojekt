@@ -6,6 +6,7 @@ import { getEffectiveHomepage, getEffectiveUebermich, getEffectiveServices, getE
 import { getEffectiveCoaching } from '../../lib/coaching-content';
 import { getEffectiveFuehrung } from '../../lib/fuehrung-content';
 import { getLegalPage, listCustomSections, getSiteSetting } from '../../lib/website-db';
+import { getDefaultDatenschutz, getDefaultAgb, getDefaultBarrierefreiheit, getDefaultImpressumZusatz } from '../../lib/legal-defaults';
 import { config } from '../../config/index';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -14,7 +15,6 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const BRAND = import.meta.env.BRAND || process.env.BRAND || 'mentolder';
 
-// Hilfsfunktion: Service-Daten für den universellen ServicePageSection-Editor aufbereiten
 function serviceToEditorData(svc: any) {
   const pc = svc?.pageContent ?? {};
   const introNoteSection = (pc.sections ?? []).find((s: any) => s.title === '__introNote__');
@@ -42,18 +42,34 @@ function serviceToEditorData(svc: any) {
 
 const allServices = await getEffectiveServices();
 
-const [startseite, uebermich, leistungen, priceListUrl, faq, kontakt, referenzen, coaching, fuehrung, impressum, datenschutz, agb, barrierefreiheit, customSections] = await Promise.all([
+const [startseite, uebermich, leistungen, priceListUrl, faq, kontakt, referenzen, coaching, fuehrung,
+  dbImpressum, dbDatenschutz, dbAgb, dbBarrierefreiheit, customSections] = await Promise.all([
   getEffectiveHomepage(), getEffectiveUebermich(), getEffectiveLeistungen(),
   getPriceListUrl().then(u => u ?? ''), getEffectiveFaq(), getEffectiveKontakt(), getEffectiveReferenzen(),
   getEffectiveCoaching(BRAND), getEffectiveFuehrung(BRAND),
-  getLegalPage(BRAND, 'impressum-zusatz').then(v => v ?? ''),
-  getLegalPage(BRAND, 'datenschutz').then(v => v ?? ''),
-  getLegalPage(BRAND, 'agb').then(v => v ?? ''),
-  getLegalPage(BRAND, 'barrierefreiheit').then(v => v ?? ''),
+  getLegalPage(BRAND, 'impressum-zusatz'),
+  getLegalPage(BRAND, 'datenschutz'),
+  getLegalPage(BRAND, 'agb'),
+  getLegalPage(BRAND, 'barrierefreiheit'),
   listCustomSections(),
 ]);
 
-// Service-Daten für jeden editierbaren Service-Tab
+// Rechtliches: DB-Wert wenn vorhanden, sonst Standardtext als Vorschau
+// Das Admin-Feld zeigt den echten Inhalt – nie leer.
+const rechtliches = {
+  'impressum-zusatz': dbImpressum ?? getDefaultImpressumZusatz(),
+  'datenschutz':      dbDatenschutz ?? getDefaultDatenschutz(),
+  'agb':              dbAgb ?? getDefaultAgb(),
+  'barrierefreiheit': dbBarrierefreiheit ?? getDefaultBarrierefreiheit(),
+};
+// Flag: welche Felder sind echte DB-Werte (true) vs. Standardtext-Vorschau (false)
+const rechtlichesHasCustom = {
+  'impressum-zusatz': dbImpressum !== null,
+  'datenschutz':      dbDatenschutz !== null,
+  'agb':              dbAgb !== null,
+  'barrierefreiheit': dbBarrierefreiheit !== null,
+};
+
 const svc50plus     = allServices.find(s => s.slug === '50plus-digital');
 const svcKiTransition = allServices.find(s => s.slug === 'ki-transition');
 const svcBeratung   = allServices.find(s => s.slug === 'beratung');
@@ -64,7 +80,7 @@ const RECHNUNG_DEFAULTS: Record<typeof RECHNUNG_KEYS[number], string> = {
   invoice_kleinunternehmer_notice: 'Kein Ausweis der Umsatzsteuer aufgrund der Anwendung der Kleinunternehmerregelung gemäß § 19 UStG.',
   invoice_outro_text: 'Vielen Dank für Ihr Vertrauen!',
   invoice_email_subject: 'Rechnung {{number}}',
-  invoice_email_body: 'Sehr geehrte/r {{customer_name}},\n\nanbei erhalten Sie Rechnung {{number}} \u00fcber {{gross_amount}} \u20ac.\n\nBitte \u00fcberweisen Sie den Betrag bis {{due_date}} unter Angabe des Verwendungszwecks \u201e{{payment_reference}}\u201c.\n\nMit freundlichen Gr\u00fc\u00dfen\n{{seller_name}}',
+  invoice_email_body: 'Sehr geehrte/r {{customer_name}},\n\nanbei erhalten Sie Rechnung {{number}} über {{gross_amount}} €.\n\nBitte überweisen Sie den Betrag bis {{due_date}} unter Angabe des Verwendungszwecks „{{payment_reference}}“.\n\nMit freundlichen Grüßen\n{{seller_name}}',
 };
 const rechnungsResults = await Promise.all(RECHNUNG_KEYS.map(k => getSiteSetting(BRAND, k)));
 const rechnungsvorlagen = Object.fromEntries(RECHNUNG_KEYS.map((k, i) => [k, rechnungsResults[i] ?? RECHNUNG_DEFAULTS[k]])) as Record<typeof RECHNUNG_KEYS[number], string>;
@@ -74,20 +90,20 @@ const initialData = JSON.parse(JSON.stringify({
   services: allServices,
   leistungen, priceListUrl, faq, kontakt, referenzen,
   coaching, fuehrung,
-  // Universelle Service-Editoren
   '50plus-digital': serviceToEditorData(svc50plus),
   'ki-transition':  serviceToEditorData(svcKiTransition),
   'beratung':       serviceToEditorData(svcBeratung),
-  rechtliches: { 'impressum-zusatz': impressum, datenschutz, agb, barrierefreiheit },
+  rechtliches,
+  rechtlichesHasCustom,
   customSections,
 }));
 ---
 
-<AdminLayout title="Admin \u2014 Inhalte">
+<AdminLayout title="Admin — Inhalte">
   <section class="pt-0 pb-0 bg-dark min-h-screen">
     <div class="px-8 pt-8 mb-2">
       <h1 class="text-3xl font-bold text-light font-serif">Inhalte</h1>
-      <p class="text-muted mt-1 text-sm">Website, Newsletter, Frageb\u00f6gen und Vertragsvorlagen</p>
+      <p class="text-muted mt-1 text-sm">Website, Newsletter, Fragebögen und Vertragsvorlagen</p>
     </div>
     <InhalteEditor {initialData} {rechnungsvorlagen} brand={BRAND} staticServiceSlugs={config.services.map(s => s.slug)} client:load />
   </section>

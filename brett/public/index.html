@@ -232,37 +232,45 @@
   }
 
   /* ── Optik-Panel ──────────────────────────────────────────────── */
+  #optik-wrap { position: relative; }
+
   #optik-btn {
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #c8a96e;
-    border: none;
+    padding: 5px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    background: rgba(200,169,110,0.15);
+    border: 1px solid #c8a96e;
+    color: #c8a96e;
     cursor: pointer;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-    transition: transform 0.15s, box-shadow 0.15s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    line-height: 1;
+    transition: all 0.15s;
+    white-space: nowrap;
   }
-  #optik-btn:hover { transform: scale(1.1); box-shadow: 0 3px 12px rgba(0,0,0,0.6); }
+  #optik-btn:hover { background: rgba(200,169,110,0.28); }
+
+  #uebersicht-btn {
+    padding: 5px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    background: #0f2040;
+    border: 1px solid #0f3460;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  #uebersicht-btn:hover { border-color: #c8a96e; color: #e0e0e0; }
+  #uebersicht-btn.active { border-color: #c8a96e; background: rgba(200,169,110,0.12); color: #c8a96e; }
 
   #optik-popup {
     display: none;
     position: absolute;
-    bottom: 60px;
-    right: 16px;
+    top: calc(100% + 6px);
+    right: 0;
     background: #16213e;
     border: 1px solid #0f3460;
     border-radius: 10px;
     padding: 14px;
-    z-index: 20;
+    z-index: 100;
     min-width: 240px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.6);
     flex-direction: column;
@@ -354,6 +362,44 @@
     <button class="io-btn" id="btn-load">↑ Laden</button>
     <button id="btn-reset">Brett leeren</button>
   </div>
+
+  <div class="sep"></div>
+  <button id="uebersicht-btn" title="Übersicht ein-/ausblenden">🗺 Übersicht</button>
+  <div id="optik-wrap">
+    <button id="optik-btn" title="Brett-Optik">🎨 Optik</button>
+    <div id="optik-popup">
+      <div class="optik-section">
+        <div class="optik-label">Oberfläche</div>
+        <div class="optik-chips">
+          <button class="optik-chip active" data-board="wood-dark">Dunkles Holz</button>
+          <button class="optik-chip" data-board="wood-light">Helles Holz</button>
+          <button class="optik-chip" data-board="felt-green">Filz</button>
+          <button class="optik-chip" data-board="slate">Schiefer</button>
+          <button class="optik-chip" data-board="sand">Sand</button>
+          <button class="optik-chip" data-board="marble">Marmor</button>
+          <input type="color" id="optik-color" title="Eigene Farbe" value="#3a6030">
+        </div>
+      </div>
+      <div class="optik-section">
+        <div class="optik-label">Hintergrund</div>
+        <div class="optik-chips">
+          <button class="optik-chip active" data-bg="space">Nacht</button>
+          <button class="optik-chip" data-bg="dusk">Dämmerung</button>
+          <button class="optik-chip" data-bg="forest">Wald</button>
+          <button class="optik-chip" data-bg="light">Hell</button>
+        </div>
+      </div>
+      <div class="optik-section">
+        <div class="optik-label">Lichtstimmung</div>
+        <div class="optik-chips">
+          <button class="optik-chip active" data-light="neutral">Neutral</button>
+          <button class="optik-chip" data-light="warm">Warm</button>
+          <button class="optik-chip" data-light="cool">Kühl</button>
+          <button class="optik-chip" data-light="dramatic">Dramatisch</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="canvas-container">
@@ -362,39 +408,6 @@
     LMB: Figur ziehen &nbsp;|&nbsp; RMB auf Figur: ausrichten &nbsp;|&nbsp; RMB auf Fläche: Blickwinkel &nbsp;|&nbsp; MMB: Brett verschieben &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
   </div>
   <div id="selected-info"></div>
-  <button id="optik-btn" title="Brett-Optik">🎨</button>
-  <div id="optik-popup">
-    <div class="optik-section">
-      <div class="optik-label">Oberfläche</div>
-      <div class="optik-chips">
-        <button class="optik-chip active" data-board="wood-dark">Dunkles Holz</button>
-        <button class="optik-chip" data-board="wood-light">Helles Holz</button>
-        <button class="optik-chip" data-board="felt-green">Filz</button>
-        <button class="optik-chip" data-board="slate">Schiefer</button>
-        <button class="optik-chip" data-board="sand">Sand</button>
-        <button class="optik-chip" data-board="marble">Marmor</button>
-        <input type="color" id="optik-color" title="Eigene Farbe" value="#3a6030">
-      </div>
-    </div>
-    <div class="optik-section">
-      <div class="optik-label">Hintergrund</div>
-      <div class="optik-chips">
-        <button class="optik-chip active" data-bg="space">Nacht</button>
-        <button class="optik-chip" data-bg="dusk">Dämmerung</button>
-        <button class="optik-chip" data-bg="forest">Wald</button>
-        <button class="optik-chip" data-bg="light">Hell</button>
-      </div>
-    </div>
-    <div class="optik-section">
-      <div class="optik-label">Lichtstimmung</div>
-      <div class="optik-chips">
-        <button class="optik-chip active" data-light="neutral">Neutral</button>
-        <button class="optik-chip" data-light="warm">Warm</button>
-        <button class="optik-chip" data-light="cool">Kühl</button>
-        <button class="optik-chip" data-light="dramatic">Dramatisch</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div id="minimap-widget">
@@ -1774,9 +1787,20 @@ animate();
 
   window.addEventListener('mouseup', () => { mDrag = false; });
 
-  // Collapse / expand
+  // Collapse / expand via minimap header button
   document.getElementById('minimap-toggle').addEventListener('click', () => {
     document.getElementById('minimap-widget').classList.toggle('collapsed');
+    document.getElementById('uebersicht-btn').classList.toggle('active',
+      !document.getElementById('minimap-widget').classList.contains('collapsed'));
+  });
+
+  // Toolbar Übersicht button
+  const uebersichtBtn = document.getElementById('uebersicht-btn');
+  uebersichtBtn.classList.add('active'); // minimap starts visible
+  uebersichtBtn.addEventListener('click', () => {
+    const widget = document.getElementById('minimap-widget');
+    widget.classList.toggle('collapsed');
+    uebersichtBtn.classList.toggle('active', !widget.classList.contains('collapsed'));
   });
 }
 

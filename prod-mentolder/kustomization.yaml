@@ -13,6 +13,8 @@ resources:
   - oauth2-proxy-dev-middleware.yaml
   - dev-ingress.yaml
   - dev-db-refresh-cron.yaml
+  # ── brainstorm.mentolder.de reverse-SSH broker (sish) ─────────────
+  - ../k3d/brainstorm-sish.yaml
 
 # Override realm with mentolder-specific config
 configMapGenerator:

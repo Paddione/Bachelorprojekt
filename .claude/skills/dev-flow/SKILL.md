@@ -38,6 +38,7 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
 ### Feature-Pfad
 
 1. **Brainstorming.** Rufe `superpowers:brainstorming` auf. Ergibt eine Spec in `docs/superpowers/specs/`.
+   - Visual-Companion-Artefakte (HTML-Mockups, Diagramme, Vergleichsbilder) werden vom lokalen brainstorming-Server ausgeliefert. Damit Patrick sie im Browser durchklicken kann statt `xdg-open` lokal zu fahren, siehe Sektion **Visual Companion via brainstorm.mentolder.de** unten.
 2. **Plan.** Rufe `superpowers:writing-plans` auf. Ergibt einen Plan in `docs/superpowers/plans/`.
 3. **Frontmatter-Hook.** Führe aus: `bash scripts/plan-frontmatter-hook.sh <plan-datei>` (Pflicht laut CLAUDE.md).
 4. **Implementation.** Bevorzugt: `superpowers:subagent-driven-development` (parallele Agents, schnell). Alternative: `superpowers:executing-plans` (sequenziell).
@@ -96,6 +97,48 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
 4. **PR.** Titel: `chore(<scope>): <kurze-beschreibung>`. Body: kurzes `## Summary` (1-2 Bullets) + `## Test plan` (was du gelaufen bist).
 5. **Auto-Merge** wenn CI grün ist.
 6. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
+
+## Visual Companion via brainstorm.mentolder.de
+
+Der `superpowers:brainstorming`-Server bindet per Default `127.0.0.1:<random-port>` und schreibt Klicks aus dem Browser über WebSocket nach `$STATE_DIR/events`. Damit der Klick-Loop auch im Browser des Users funktioniert (und nicht nur auf `localhost`), gibt es eine sish-Reverse-Tunnel-Bridge auf dem mentolder-Cluster.
+
+### Setup einmalig
+
+```bash
+task brainstorm:firewall:open       # ufw 32223/tcp auf gekko-hetzner-2 öffnen
+# Eigenen Public-Key in environments/.secrets/mentolder.yaml unter
+# DEV_SISH_AUTHORIZED_KEYS ergänzen (gleicher Key-Pool wie dev-tunnel).
+task env:seal ENV=mentolder
+task brainstorm:_materialise-keys   # ConfigMap im Cluster aktualisieren + sish rollen
+```
+
+### Pro Session
+
+```bash
+# Terminal A (oder Hintergrund): brainstorming-Server zeigt Port im JSON-Output.
+# Terminal B: Tunnel hochziehen — terminal MUSS offen bleiben für die Session.
+task brainstorm:publish -- <localport>
+# → "Publishing localhost:<port> as https://brainstorm.mentolder.de — leave this terminal open."
+```
+
+Der Browser zeigt dann den Inhalt von `$SCREEN_DIR/*.html` unter `https://brainstorm.mentolder.de`. Klicks gehen per `wss://` durch den Tunnel zurück zum lokalen Server und landen in `$STATE_DIR/events`, das Claude beim nächsten Turn liest.
+
+### `ws://`→`wss://` Auto-Patch
+
+Der upstream-`helper.js` aus dem superpowers-Plugin nutzt `ws://`, was Browser über HTTPS als Mixed Content blocken. `scripts/superpowers-helper-patch.sh` patcht das idempotent zu protocol-aware `wss://`. Ein SessionStart-Hook in `.claude/settings.json` reappliedt nach jeder Claude-Session, falls ein superpowers-Sync den Patch überschreibt. Manuell bei Bedarf:
+
+```bash
+bash scripts/superpowers-helper-patch.sh           # apply
+bash scripts/superpowers-helper-patch.sh --check   # exit 1 if any helper.js still unpatched
+```
+
+### Diagnose
+
+```bash
+task brainstorm:status   # Pod-Status + curl gegen brainstorm.mentolder.de
+```
+
+`502 Bad Gateway` ohne aktiven Tunnel ist erwartet (sish hat kein Backend). `200` mit Waiting-Page = Tunnel steht.
 
 ## Post-Merge Deploy
 

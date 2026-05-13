@@ -1,0 +1,12 @@
+{
+  "pr_number": 715,
+  "title": "close modals on backdrop click and Escape key",
+  "description": "## Summary\n- Figures became unselectable after opening the save/load modal and interacting with the customer `<select>` dropdown — the modal didn't close, so the canvas mousedown guard kept blocking all figure interactions\n- Root cause: no backdrop-dismiss or Escape-key handler existed on any modal in `brett/public/index.html`\n- Fix: added `mousedown`-on-backdrop (checks `e.target === backdrop`) and `keydown`-Escape listeners that close each modal via its existing cancel/close path\n\n## Test plan\n- [x] Manual: open save modal → interact with customer dropdown → click outside modal box → modal closes → figures selectable\n- [x] Manual: same flow with load modal\n- [x] Manual: open any modal → press Escape → modal closes → board interactive again\n- [x] `task test:all` green\n\nCloses T000289\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "fix",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T20:48:47Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

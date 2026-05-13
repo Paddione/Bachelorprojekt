@@ -1,0 +1,12 @@
+{
+  "pr_number": 702,
+  "title": "sish tunnel + wss patch for brainstorm.mentolder.de",
+  "description": "## Summary\n- Replace the parallel-session's in-cluster scratch socat-to-home pod with a manifest-tracked sish reverse-SSH broker on the mentolder cluster, terminating `brainstorm.mentolder.de` via Traefik on the existing `*.mentolder.de` wildcard cert.\n- Add `task brainstorm:publish -- <localport>` so any Claude session can expose its local brainstorming visual-companion server through `ssh -R` against NodePort 32223 — no home port-forward or static home IP needed.\n- Fix the actual reason clicks never made it back: `superpowers` ships `helper.js` with a hardcoded `ws://`, which browsers block as mixed content under HTTPS. `scripts/superpowers-helper-patch.sh` rewrites it to protocol-aware `wss://` idempotently, and a SessionStart hook re-applies after plugin syncs.\n- Document the full loop in `.claude/skills/dev-flow/SKILL.md` (one-time setup + per-session usage + diagnose).\n\n## Test plan\n- [x] `task workspace:validate ENV=mentolder` — manifests resolve to a valid kustomize output\n- [x] `task test:all` — BATS unit + manifest tests + Taskfile dry-run all green\n- [x] `bash scripts/superpowers-helper-patch.sh --check` — both 5.0.7 + 5.1.0 helper.js files patched\n- [ ] Post-merge manual smoke: deploy → open ufw → materialise keys → `task brainstorm:publish -- <port>` → click an option in the browser → confirm event in `$STATE_DIR/events`\n\nPlan: `docs/superpowers/plans/2026-05-13-brainstorm-tunnel.md`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "brainstorm",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T16:51:24Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

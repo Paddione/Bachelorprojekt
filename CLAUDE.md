@@ -34,7 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Default Workflow
 
-For any work request in this repo (add/change/fix/build), invoke the project-level **`dev-flow` skill** (`.claude/skills/dev-flow/SKILL.md`). It defines the shared process: path declaration (feature/fix/chore), worktree isolation, testing floor, conventional-commit PRs, and post-merge deploy on both prod clusters. Auto-invokes via its `description` frontmatter; no special wiring needed.
+For any work request in this repo (add/change/fix/build), invoke **`dev-flow-plan`** (`.claude/skills/dev-flow-plan/SKILL.md`). It handles path declaration (feature/fix/chore), worktree setup, brainstorming, spec, and plan creation — then commits and pushes the plan to the branch and stops. Chores execute fully inline. When ready to implement a staged plan, invoke **`dev-flow-execute`** (`.claude/skills/dev-flow-execute/SKILL.md`) — it picks up the plan, runs implementation, verification, PR, and post-merge deploy. Both skills auto-invoke via their `description` frontmatter; no special wiring needed.
 
 ## Project Overview
 

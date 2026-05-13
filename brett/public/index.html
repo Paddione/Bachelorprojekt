@@ -306,13 +306,53 @@
     background: #0f2040;
   }
   #optik-color.active { border-color: #c8a96e; }
+#constellation-type {
+  background: #0f2040;
+  border: 1px solid #0f3460;
+  color: #c0a0ff;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+#constellation-type:focus {
+  border-color: #7a4acd;
+}
+#category-tabs {
+  display: flex;
+  gap: 4px;
+}
+.cat-tab {
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: #0f2040;
+  border: 1px solid #0f3460;
+  color: #888;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.cat-tab:hover { border-color: #2c4d80; color: #ccc; }
+.cat-tab.active { background: #1a4a8a; border-color: #4a90d9; color: #fff; }
 </style>
 </head>
 <body>
 
 <div id="toolbar">
-  <span class="tlabel">Figur</span>
+  <select id="constellation-type">
+    <option value="">— frei —</option>
+    <option value="familie">👨‍👩‍👧 Familienaufstellung</option>
+    <option value="organisation">🏢 Organisationsaufstellung</option>
+    <option value="tetralemma">◇ Tetralemma</option>
+    <option value="inneres-team">🧠 Inneres Team</option>
+  </select>
 
+  <div class="sep"></div>
+  <div id="category-tabs"></div>
+
+  <div class="sep"></div>
   <div id="figure-buttons" style="display:flex;gap:6px;"></div>
 
   <div class="sep"></div>
@@ -408,6 +448,9 @@
     LMB: Figur ziehen &nbsp;|&nbsp; RMB auf Figur: ausrichten &nbsp;|&nbsp; RMB auf Fläche: Blickwinkel &nbsp;|&nbsp; MMB: Brett verschieben &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
   </div>
   <div id="selected-info"></div>
+</div>
+<div id="ctrl-ball-hint" style="font-size:11px;color:#555;text-align:center;padding:4px 0;user-select:none;">
+  Klick auf Brett → Steuerkugel erscheint &nbsp;|&nbsp; Kugel ziehen: Brett drehen &nbsp;|&nbsp; Figur ziehen: verschieben &nbsp;|&nbsp; Doppelklick: Beschriftung
 </div>
 
 <div id="minimap-widget">

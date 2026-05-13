@@ -1,0 +1,12 @@
+{
+  "pr_number": 706,
+  "title": "floating Optik-Panel — Texturen, Hintergrund, Lichtstimmung",
+  "description": "## Summary\n- Floating 🎨-Button (unten rechts im Canvas) öffnet Popup mit drei Chip-Gruppen: Oberfläche (6 Presets + freier Farbwähler), Hintergrund (4 Presets), Lichtstimmung (4 Presets)\n- Optik wird per WebSocket an alle Raum-Teilnehmer gebroadcastet (`optik`-Message-Typ) und in `state.optik` (JSONB) persistiert; neue Teilnehmer erhalten die aktuelle Optik sofort via Snapshot\n- localStorage-Fallback für Standalone/Offline-Modus; 12 Unit-Tests für die Server-Logik\n\n## Test plan\n- [x] `node tests/unit/brett-optik-server.js` → 12 passed, 0 failed\n- [x] `task workspace:validate` → ✓ Manifests are valid\n- [ ] Zwei-Tab-Test: Optik in Tab A ändern → Tab B übernimmt sofort\n- [ ] Persistenz-Test: Tab B neu öffnen → Optik aus DB geladen\n- [ ] localStorage-Fallback: `brett.localhost` ohne Room-Token → Reload behält Textur\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T17:49:48Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

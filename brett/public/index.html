@@ -230,6 +230,74 @@
     font-size: 9px; color: #243550; text-align: center;
     margin-top: 5px; letter-spacing: 0.04em;
   }
+
+  /* ── Optik-Panel ──────────────────────────────────────────────── */
+  #optik-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #c8a96e;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    line-height: 1;
+  }
+  #optik-btn:hover { transform: scale(1.1); box-shadow: 0 3px 12px rgba(0,0,0,0.6); }
+
+  #optik-popup {
+    display: none;
+    position: absolute;
+    bottom: 60px;
+    right: 16px;
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 10px;
+    padding: 14px;
+    z-index: 20;
+    min-width: 240px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    flex-direction: column;
+    gap: 12px;
+  }
+  #optik-popup.open { display: flex; }
+
+  .optik-section { display: flex; flex-direction: column; gap: 6px; }
+  .optik-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; }
+  .optik-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+
+  .optik-chip {
+    padding: 4px 9px;
+    font-size: 11px;
+    border-radius: 5px;
+    border: 1px solid #0f3460;
+    background: #0f2040;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .optik-chip:hover { border-color: #c8a96e; color: #e0e0e0; }
+  .optik-chip.active { border-color: #c8a96e; background: rgba(200,169,110,0.15); color: #c8a96e; }
+
+  #optik-color {
+    width: 30px;
+    height: 24px;
+    border: 1px solid #0f3460;
+    border-radius: 5px;
+    padding: 2px;
+    cursor: pointer;
+    background: #0f2040;
+  }
+  #optik-color.active { border-color: #c8a96e; }
 </style>
 </head>
 <body>
@@ -294,6 +362,39 @@
     LMB: Figur ziehen &nbsp;|&nbsp; RMB auf Figur: ausrichten &nbsp;|&nbsp; RMB auf Fläche: Blickwinkel &nbsp;|&nbsp; MMB: Brett verschieben &nbsp;|&nbsp; Rad: Zoom &nbsp;|&nbsp; Doppelklick: Beschriftung
   </div>
   <div id="selected-info"></div>
+  <button id="optik-btn" title="Brett-Optik">🎨</button>
+  <div id="optik-popup">
+    <div class="optik-section">
+      <div class="optik-label">Oberfläche</div>
+      <div class="optik-chips">
+        <button class="optik-chip active" data-board="wood-dark">Dunkles Holz</button>
+        <button class="optik-chip" data-board="wood-light">Helles Holz</button>
+        <button class="optik-chip" data-board="felt-green">Filz</button>
+        <button class="optik-chip" data-board="slate">Schiefer</button>
+        <button class="optik-chip" data-board="sand">Sand</button>
+        <button class="optik-chip" data-board="marble">Marmor</button>
+        <input type="color" id="optik-color" title="Eigene Farbe" value="#3a6030">
+      </div>
+    </div>
+    <div class="optik-section">
+      <div class="optik-label">Hintergrund</div>
+      <div class="optik-chips">
+        <button class="optik-chip active" data-bg="space">Nacht</button>
+        <button class="optik-chip" data-bg="dusk">Dämmerung</button>
+        <button class="optik-chip" data-bg="forest">Wald</button>
+        <button class="optik-chip" data-bg="light">Hell</button>
+      </div>
+    </div>
+    <div class="optik-section">
+      <div class="optik-label">Lichtstimmung</div>
+      <div class="optik-chips">
+        <button class="optik-chip active" data-light="neutral">Neutral</button>
+        <button class="optik-chip" data-light="warm">Warm</button>
+        <button class="optik-chip" data-light="cool">Kühl</button>
+        <button class="optik-chip" data-light="dramatic">Dramatisch</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="minimap-widget">
@@ -465,11 +566,18 @@ function connect() {
   ws.onmessage = (event) => {
     let msg;
     try { msg = JSON.parse(event.data); } catch { return; }
-    if (msg.type === 'snapshot') applySnapshot(msg.figures || []);
-    else if (msg.type === 'info') {
+    if (msg.type === 'snapshot') {
+      applySnapshot(msg.figures || []);
+      if (msg.optik) { applyOptik(msg.optik); syncOptikUI(msg.optik); }
+    } else if (msg.type === 'info') {
       participantCount = msg.count;
       setStatus(`Verbunden ✓ — ${participantCount} Teilnehmer`);
-    } else applyRemote(msg);
+    } else if (msg.type === 'optik') {
+      applyOptik(msg.settings);
+      syncOptikUI(msg.settings);
+    } else {
+      applyRemote(msg);
+    }
   };
   ws.onclose = () => {
     syncOpen = false;
@@ -506,7 +614,8 @@ function updateCamera() {
 updateCamera();
 
 // ── Lights ────────────────────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+const ambient = new THREE.AmbientLight(0xffffff, 0.45);
+scene.add(ambient);
 const sun = new THREE.DirectionalLight(0xffffff, 0.9);
 sun.position.set(10, 20, 10);
 sun.castShadow = true;
@@ -521,22 +630,25 @@ scene.add(fill);
 const BW = 36, BD = 28;
 
 // Procedural wood texture — seeded LCG so grain is deterministic across sessions
-function makeWoodTexture() {
+function makeWoodTexture(dark = true) {
   const W = 512, H = 512;
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
   const ctx = c.getContext('2d');
 
-  // Base: dark warm brown
-  ctx.fillStyle = '#2d1a0b';
+  ctx.fillStyle = dark ? '#2d1a0b' : '#c8a060';
   ctx.fillRect(0, 0, W, H);
 
-  // Lengthwise warmth gradient
   const lg = ctx.createLinearGradient(0, 0, W, 0);
-  lg.addColorStop(0,   'rgba(25,12,2,0.25)');
-  lg.addColorStop(0.35,'rgba(55,28,6,0.12)');
-  lg.addColorStop(0.65,'rgba(45,22,5,0.18)');
-  lg.addColorStop(1,   'rgba(20,10,1,0.22)');
+  if (dark) {
+    lg.addColorStop(0,   'rgba(25,12,2,0.25)');
+    lg.addColorStop(0.5, 'rgba(55,28,6,0.12)');
+    lg.addColorStop(1,   'rgba(20,10,1,0.22)');
+  } else {
+    lg.addColorStop(0,   'rgba(255,220,160,0.2)');
+    lg.addColorStop(0.5, 'rgba(230,190,120,0.1)');
+    lg.addColorStop(1,   'rgba(200,160,80,0.2)');
+  }
   ctx.fillStyle = lg;
   ctx.fillRect(0, 0, W, H);
 
@@ -591,11 +703,100 @@ function makeWoodTexture() {
   return tex;
 }
 
-const woodTex = makeWoodTexture();
+function makeFeltTexture(color) {
+  const W = 256, H = 256, c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = color; ctx.fillRect(0, 0, W, H);
+  let seed = 0xdeadbeef;
+  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
+  for (let i = 0; i < 6000; i++) {
+    ctx.strokeStyle = `rgba(0,0,0,${(0.04 + r() * 0.06).toFixed(3)})`;
+    ctx.lineWidth = 0.5 + r() * 0.8;
+    const x = r() * W, y = r() * H, len = 3 + r() * 6, a = r() * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); ctx.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function makeMarbleTexture() {
+  const W = 512, H = 512, c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#e8e4dc'; ctx.fillRect(0, 0, W, H);
+  let seed = 0xabcdef12;
+  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
+  for (let i = 0; i < 40; i++) {
+    const x = r() * W, y = r() * H;
+    const g = ctx.createLinearGradient(x, y, x + (r() - 0.5) * W * 0.8, y + (r() - 0.5) * H * 0.8);
+    const a = 0.03 + r() * 0.08;
+    g.addColorStop(0, 'rgba(180,160,140,0)'); g.addColorStop(0.5, `rgba(140,120,100,${a.toFixed(3)})`); g.addColorStop(1, 'rgba(180,160,140,0)');
+    ctx.strokeStyle = g; ctx.lineWidth = 0.5 + r() * 1.5;
+    ctx.beginPath(); ctx.moveTo(x, y);
+    for (let t = 0; t < 1; t += 0.05) ctx.lineTo(x + (r() - 0.5) * W * 0.6, y + (r() - 0.5) * H * 0.6);
+    ctx.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function makeSandTexture() {
+  const W = 256, H = 256, c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#d4b483'; ctx.fillRect(0, 0, W, H);
+  let seed = 0x12345678;
+  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
+  for (let i = 0; i < 8000; i++) {
+    const x = r() * W, y = r() * H;
+    ctx.fillStyle = `rgba(${Math.floor(180 + r() * 40)},${Math.floor(140 + r() * 30)},${Math.floor(60 + r() * 40)},${(0.3 + r() * 0.5).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(x, y, 0.4 + r() * 0.8, 0, Math.PI * 2); ctx.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function makeSlateTexture() {
+  const W = 256, H = 256, c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#2a2a30'; ctx.fillRect(0, 0, W, H);
+  let seed = 0xcafe1234;
+  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
+  for (let i = 0; i < 60; i++) {
+    ctx.strokeStyle = `rgba(${Math.floor(50 + r() * 30)},${Math.floor(50 + r() * 30)},${Math.floor(60 + r() * 30)},${(0.15 + r() * 0.2).toFixed(3)})`;
+    ctx.lineWidth = 0.5 + r(); ctx.beginPath();
+    const y = r() * H; ctx.moveTo(0, y); ctx.lineTo(W, y + (r() - 0.5) * 10); ctx.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+const BOARD_PRESETS = {
+  'wood-dark':  { mat: () => new THREE.MeshStandardMaterial({ map: makeWoodTexture(true),  roughness: 0.92, metalness: 0.0 }), edge: 0x1e1006 },
+  'wood-light': { mat: () => new THREE.MeshStandardMaterial({ map: makeWoodTexture(false), roughness: 0.85, metalness: 0.0 }), edge: 0x8b6020 },
+  'felt-green': { mat: () => new THREE.MeshStandardMaterial({ map: makeFeltTexture('#2d6030'), roughness: 0.98, metalness: 0.0 }), edge: 0x1a3a1e },
+  'slate':      { mat: () => new THREE.MeshStandardMaterial({ map: makeSlateTexture(),    roughness: 0.8,  metalness: 0.1  }), edge: 0x181820 },
+  'sand':       { mat: () => new THREE.MeshStandardMaterial({ map: makeSandTexture(),     roughness: 0.95, metalness: 0.0  }), edge: 0x9a7840 },
+  'marble':     { mat: () => new THREE.MeshStandardMaterial({ map: makeMarbleTexture(),   roughness: 0.4,  metalness: 0.05 }), edge: 0xb0a090 },
+};
+
+const BG_PRESETS = {
+  'space':  { color: 0x1a1a2e, fog: 0x1a1a2e },
+  'dusk':   { color: 0x1a1020, fog: 0x1a1020 },
+  'forest': { color: 0x0a140a, fog: 0x0a140a },
+  'light':  { color: 0xe8e8f0, fog: 0xe8e8f0 },
+};
+
+const LIGHT_PRESETS = {
+  'neutral':  { sun: 0xffffff, sunI: 0.9,  fill: 0x8090ff, fillI: 0.3, amb: 0.45 },
+  'warm':     { sun: 0xffe8c0, sunI: 1.1,  fill: 0xff9040, fillI: 0.2, amb: 0.5  },
+  'cool':     { sun: 0xc0d8ff, sunI: 0.8,  fill: 0x4060ff, fillI: 0.4, amb: 0.4  },
+  'dramatic': { sun: 0xffffff, sunI: 1.4,  fill: 0x1020a0, fillI: 0.1, amb: 0.2  },
+};
+
+let currentOptik = { board: 'wood-dark', customColor: null, bg: 'space', light: 'neutral' };
 
 const boardMesh = new THREE.Mesh(
   new THREE.BoxGeometry(BW, 0.5, BD),
-  new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.92, metalness: 0.0 })
+  BOARD_PRESETS['wood-dark'].mat()
 );
 boardMesh.receiveShadow = true;
 boardMesh.position.y = -0.25;
@@ -607,6 +808,64 @@ const edgeMesh = new THREE.Mesh(
 );
 edgeMesh.position.y = -0.35;
 scene.add(edgeMesh);
+
+function applyOptik(settings) {
+  currentOptik = settings;
+
+  const oldMat = boardMesh.material;
+  if (settings.board === 'custom' && settings.customColor) {
+    boardMesh.material = new THREE.MeshStandardMaterial({ color: settings.customColor, roughness: 0.9, metalness: 0.0 });
+    edgeMesh.material.color.setHex(0x2a2a2a);
+  } else {
+    const preset = BOARD_PRESETS[settings.board] || BOARD_PRESETS['wood-dark'];
+    boardMesh.material = preset.mat();
+    edgeMesh.material.color.setHex(preset.edge);
+  }
+  if (oldMat) oldMat.dispose();
+
+  const bg = BG_PRESETS[settings.bg] || BG_PRESETS['space'];
+  scene.background.setHex(bg.color);
+  scene.fog = new THREE.Fog(bg.fog, 65, 120);
+
+  const lp = LIGHT_PRESETS[settings.light] || LIGHT_PRESETS['neutral'];
+  sun.color.setHex(lp.sun);    sun.intensity  = lp.sunI;
+  fill.color.setHex(lp.fill);  fill.intensity = lp.fillI;
+  ambient.intensity = lp.amb;
+}
+
+function syncOptikUI(settings) {
+  document.querySelectorAll('[data-board]').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('[data-bg]').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('[data-light]').forEach(c => c.classList.remove('active'));
+  const bChip = document.querySelector(`[data-board="${settings.board}"]`);
+  if (bChip) bChip.classList.add('active');
+  const bgChip = document.querySelector(`[data-bg="${settings.bg}"]`);
+  if (bgChip) bgChip.classList.add('active');
+  const lChip = document.querySelector(`[data-light="${settings.light}"]`);
+  if (lChip) lChip.classList.add('active');
+  const colorInput = document.getElementById('optik-color');
+  if (colorInput && settings.customColor) colorInput.value = settings.customColor;
+  if (colorInput) colorInput.classList.toggle('active', settings.board === 'custom');
+}
+
+function sendOptik(settings) {
+  applyOptik(settings);
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'optik', settings }));
+  } else {
+    localStorage.setItem('brett_optik', JSON.stringify(settings));
+  }
+}
+
+// Restore from localStorage in standalone / offline mode
+try {
+  const saved = localStorage.getItem('brett_optik');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    applyOptik(parsed);
+    syncOptikUI(parsed);
+  }
+} catch {}
 
 // ── Art library bootstrap ────────────────────────────────────────────────
 let ART_MANIFEST = null;
@@ -1520,6 +1779,50 @@ animate();
     document.getElementById('minimap-widget').classList.toggle('collapsed');
   });
 }
+
+// ── Optik-Panel Interaktion ────────────────────────────────────────────────
+document.getElementById('optik-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('optik-popup').classList.toggle('open');
+});
+
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('optik-popup');
+  const btn   = document.getElementById('optik-btn');
+  if (popup.classList.contains('open') && !popup.contains(e.target) && e.target !== btn) {
+    popup.classList.remove('open');
+  }
+});
+
+document.querySelectorAll('[data-board]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const newOptik = { ...currentOptik, board: chip.dataset.board, customColor: null };
+    syncOptikUI(newOptik);
+    sendOptik(newOptik);
+  });
+});
+
+document.getElementById('optik-color').addEventListener('input', (e) => {
+  const newOptik = { ...currentOptik, board: 'custom', customColor: e.target.value };
+  syncOptikUI(newOptik);
+  sendOptik(newOptik);
+});
+
+document.querySelectorAll('[data-bg]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const newOptik = { ...currentOptik, bg: chip.dataset.bg };
+    syncOptikUI(newOptik);
+    sendOptik(newOptik);
+  });
+});
+
+document.querySelectorAll('[data-light]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const newOptik = { ...currentOptik, light: chip.dataset.light };
+    syncOptikUI(newOptik);
+    sendOptik(newOptik);
+  });
+});
 
 connect();
 

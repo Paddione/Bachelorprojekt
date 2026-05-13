@@ -37,23 +37,57 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
 
 ### Feature-Pfad
 
-1. **Brainstorming.** Rufe `superpowers:brainstorming` auf. Ergibt eine Spec in `docs/superpowers/specs/`.
-   - Visual-Companion-Artefakte (HTML-Mockups, Diagramme, Vergleichsbilder) werden vom lokalen brainstorming-Server ausgeliefert. Damit Patrick sie im Browser durchklicken kann statt `xdg-open` lokal zu fahren, siehe Sektion **Visual Companion via brainstorm.mentolder.de** unten.
-2. **Plan.** Rufe `superpowers:writing-plans` auf. Ergibt einen Plan in `docs/superpowers/plans/`.
-3. **Frontmatter-Hook.** Führe aus: `bash scripts/plan-frontmatter-hook.sh <plan-datei>` (Pflicht laut CLAUDE.md).
-4. **Execution-Mode wählen.** Frage Patrick explizit:
+1. **Brainstorming pre-launch (Schritt 1a — vor brainstorming-Skill-Aufruf).**
+
+   ```bash
+   # a) wss:// sicherstellen (idempotent)
+   bash scripts/superpowers-helper-patch.sh
+   ```
+
+   Falls exit ≠ 0: Abbruch. Mitteilen: "wss:// patch failed — run `bash scripts/superpowers-helper-patch.sh` manually and retry."
+
+   ```bash
+   # b) Server starten — Bash-Tool im Vordergrund, Ausgabe ist eine JSON-Zeile
+   START_SCRIPT=$(find ~/.claude/plugins/cache/claude-plugins-official/superpowers \
+     -name start-server.sh | sort -V | tail -1)
+   RESULT=$(bash "$START_SCRIPT" --project-dir /home/patrick/Bachelorprojekt)
+   PORT=$(echo "$RESULT" | jq -r '.port')
+   SCREEN_DIR=$(echo "$RESULT" | jq -r '.screen_dir')
+   STATE_DIR=$(echo "$RESULT" | jq -r '.state_dir')
+   ```
+
+   Falls `$PORT` leer oder kein JSON-Output: Abbruch. Mitteilen: "brainstorm server konnte nicht gestartet werden — prüfe ob das superpowers Plugin installiert ist."
+
+   ```bash
+   # c) Tunnel publishen — Bash-Tool mit run_in_background: true
+   task brainstorm:publish -- $PORT
+   ```
+
+   Falls der Tunnel sofort mit Fehler endet: Warnung "Tunnel konnte nicht aufgebaut werden — `task brainstorm:status` ausführen." Brainstorming läuft terminal-only weiter (kein Abbruch).
+
+   Patrick mitteilen: **"Brainstorming-Companion läuft unter https://brainstorm.mentolder.de — jetzt im Browser öffnen."**
+
+2. **Brainstorming (Schritt 1b).** Rufe `superpowers:brainstorming` auf. Ergibt eine Spec in `docs/superpowers/specs/`.
+
+   Direkt nach dem Skill-Aufruf folgenden Override-Kontext voranstellen (vor der ersten brainstorming-Antwort):
+
+   > "Visual-Companion-Server läuft bereits (Port `$PORT`). `screen_dir=$SCREEN_DIR`, `state_dir=$STATE_DIR`. Rufe `start-server.sh` nicht nochmals auf. Wenn du den User zur Browser-URL dirigierst, nenne immer `https://brainstorm.mentolder.de` — niemals `http://localhost:*`."
+
+3. **Plan.** Rufe `superpowers:writing-plans` auf. Ergibt einen Plan in `docs/superpowers/plans/`.
+4. **Frontmatter-Hook.** Führe aus: `bash scripts/plan-frontmatter-hook.sh <plan-datei>` (Pflicht laut CLAUDE.md).
+5. **Execution-Mode wählen.** Frage Patrick explizit:
 
    > "Plan ist fertig unter `docs/superpowers/plans/<datei>.md`. Soll ich (a) **jetzt inline ausführen** oder (b) den Plan als **`to-be-executed_<datei>.md` parken** und stoppen?"
 
-   - **(a) Inline-Ausführung** → weiter mit Schritt 5.
+   - **(a) Inline-Ausführung** → weiter mit Schritt 6.
    - **(b) Parken** → Plan-Datei umbenennen mit Prefix `to-be-executed_` (z.B. `docs/superpowers/plans/to-be-executed_solo-replay.md`), kurz committen (`chore(plans): stage <slug> for later execution`), pushen, **dann STOPP**. Keine Implementation, keine Verifikation, kein Deploy-PR. Der Plan wartet, bis Patrick explizit zur Ausführung greift.
 
    Default ist **keine** Annahme — frag jedes Mal. Die "Parken"-Variante ist explizit dafür da, dass Patrick den Plan später per Hand (oder in einer anderen Session) anstößt.
 
-5. **Implementation.** Bevorzugt: `superpowers:subagent-driven-development` (parallele Agents, schnell). Alternative: `superpowers:executing-plans` (sequenziell).
+6. **Implementation.** Bevorzugt: `superpowers:subagent-driven-development` (parallele Agents, schnell). Alternative: `superpowers:executing-plans` (sequenziell).
    - Backend / Skripte / k8s-Logik: TDD via `superpowers:test-driven-development`.
    - UI-Arbeit: `frontend-design` Skill + Playwright Smoke Tests.
-6. **Lokale Verifikation.** Führe in dieser Reihenfolge aus:
+7. **Lokale Verifikation.** Führe in dieser Reihenfolge aus:
 
    ```bash
    task workspace:validate
@@ -61,12 +95,12 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
    task test:all
    ```
 
-7. **Pre-Merge Preview auf dev k3d.** Falls Patrick die Änderung live durchklicken soll, publishe auf `dev.mentolder.de` — siehe Sektion **Pre-Merge Preview** unten. (Sobald der dev k3d auf `gekko-hetzner-2` läuft.)
-8. **PR.** Rufe `commit-commands:commit-push-pr` auf.
+8. **Pre-Merge Preview auf dev k3d.** Falls Patrick die Änderung live durchklicken soll, publishe auf `dev.mentolder.de` — siehe Sektion **Pre-Merge Preview** unten. (Sobald der dev k3d auf `gekko-hetzner-2` läuft.)
+9. **PR.** Rufe `commit-commands:commit-push-pr` auf.
    - Titel: `feat(<scope>): <kurze-beschreibung>`
    - Body: siehe Sektion **PR-Konventionen** unten.
-9. **Auto-Merge** wenn CI grün ist.
-10. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
+10. **Auto-Merge** wenn CI grün ist.
+11. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
 
 ### Fix-Pfad
 
@@ -120,9 +154,9 @@ git branch -r | grep 'origin/chore/'
 5. **Auto-Merge** wenn CI grün ist.
 6. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
 
-## Visual Companion via brainstorm.mentolder.de
+## Visual Companion via brainstorm.mentolder.de — Diagnose & manuelle Bedienung
 
-Der `superpowers:brainstorming`-Server bindet per Default `127.0.0.1:<random-port>` und schreibt Klicks aus dem Browser über WebSocket nach `$STATE_DIR/events`. Damit der Klick-Loop auch im Browser des Users funktioniert (und nicht nur auf `localhost`), gibt es eine sish-Reverse-Tunnel-Bridge auf dem mentolder-Cluster.
+Diese Sektion ist für Diagnose und manuelle Eingriffe. Der normale Ablauf im Feature-Pfad (Schritt 1a) richtet den Tunnel automatisch ein. Hier stehen die Hintergründe und Notfallbefehle.
 
 ### Setup einmalig
 

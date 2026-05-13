@@ -1,0 +1,12 @@
+{
+  "pr_number": 694,
+  "title": "add dev toolchain installer for gekko-hetzner-2",
+  "description": "## Summary\n- New `scripts/install-dev-tools.sh` — idempotent, hostname-guarded installer that drops Docker CE, k3d v5.7.4, kubectl, task, Node 22 LTS, pnpm, Go 1.23.4 and `build-essential` on `gekko-hetzner-2` so Gekko always has a working k3d dev box on the mentolder CP he lives on.\n- `prod/cloud-init.yaml` fetches + runs the script during bootstrap. The guard inside the script (`hostname == gekko-hetzner-2 || FORCE=1`) makes the same template safe to leave in place for every other Hetzner node — they all skip it cleanly.\n\n## Test plan\n- [x] Script syntax-checked (`bash -n scripts/install-dev-tools.sh`).\n- [x] Ran live on `gekko-hetzner-2` (sudo via `patrick`); script is idempotent, second run only filled the gaps.\n- [x] Cluster health verified before and after: 9/9 Ready, `workspace` ns shows 29 Running + 6 Completed pods, pod-to-pod and outbound networking intact (no iptables drift from installing Docker next to k3s).\n- [x] As `gekko` user (post fresh ssh): `docker ps`, `k3d cluster list`, `go version`, `pnpm --version` all succeed; gekko is in the `docker` group.\n- [ ] `task test:all` — pre-existing red on `main` (`prod-mentolder` ConfigMap merge of `website-config`, unrelated to this PR). Auto-merge will pick this up once that lands separately.\n\nCloses nothing — purely additive tooling.",
+  "category": "chore",
+  "scope": "infra",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T13:36:41Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -1,6 +1,5 @@
 ---
-// website/src/pages/admin/brett/index.astro
-// Weiterleitung zur Brett-Seite
+// Redirect /admin/brett/index -> /admin/brett
 import { getSession, isAdmin, getLoginUrl } from '../../../lib/auth';
 
 const session = await getSession(Astro.request.headers.get('cookie'));

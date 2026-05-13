@@ -953,6 +953,51 @@ async function loadCharacterTexture(id) {
   return tex;
 }
 
+const CAT_LABELS = {
+  personen:  '👤 Personen',
+  rollen:    '🏢 Rollen',
+  abstrakta: '◆ Abstrakta',
+  symbole:   '♥ Symbole',
+  raeume:    '🚪 Räume',
+  natur:     '🌿 Natur',
+};
+let activeCategoryId = 'personen';
+
+function renderTabContent(categoryId) {
+  activeCategoryId = categoryId;
+  const tabs = document.querySelectorAll('.cat-tab');
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.cat === categoryId));
+  const container = document.getElementById('figure-buttons');
+  while (container.firstChild) container.removeChild(container.firstChild);
+  if (!ART_MANIFEST) return;
+  for (const a of ART_MANIFEST.assets) {
+    if (a.category !== categoryId) continue;
+    if (!characterIds.has(a.id)) continue;
+    const btn = document.createElement('button');
+    btn.className = 'figure-btn';
+    btn.dataset.type = a.id;
+    btn.title = a.label || a.id;
+    btn.setAttribute('aria-label', a.label || a.id);
+    const artSpan = document.createElement('span');
+    artSpan.className = 'figure-art';
+    btn.appendChild(artSpan);
+    const svgUrl = '/art-library/' + a.files.figurine;
+    fetch(svgUrl).then(r => r.text()).then(svgText => {
+      const parsed = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+      artSpan.appendChild(document.importNode(parsed.documentElement, true));
+    });
+    btn.addEventListener('click', () => {
+      const x = (Math.random()-0.5)*(BW-4);
+      const z = (Math.random()-0.5)*(BD-4);
+      const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
+      send({ type: 'add', fig: figToJSON(fig) });
+      selectFigure(fig);
+      openLabelModal(fig);
+    });
+    container.appendChild(btn);
+  }
+}
+
 async function bootArtLibrary() {
   try {
     const r = await fetch('/art-library/manifest.json');
@@ -963,29 +1008,48 @@ async function bootArtLibrary() {
     }
     await Promise.all([...characterIds].map(loadCharacterTexture));
     console.log('[art] loaded', characterIds.size, 'characters');
-    const container = document.getElementById('figure-buttons');
-    for (const a of ART_MANIFEST.assets) {
-      if (!characterIds.has(a.id)) continue;
-      const btn = document.createElement('button');
-      btn.className = 'figure-btn';
-      btn.dataset.type = a.id;
-      btn.title = a.label || a.id;
-      btn.setAttribute('aria-label', a.label || a.id);
-      const artSpan = document.createElement('span');
-      artSpan.className = 'figure-art';
-      btn.appendChild(artSpan);
-      const svgText = await fetch('/art-library/' + a.files.figurine).then(r => r.text());
-      const parsed = new DOMParser().parseFromString(svgText, 'image/svg+xml');
-      artSpan.appendChild(document.importNode(parsed.documentElement, true));
-      btn.addEventListener('click', () => {
-        const x = (Math.random()-0.5)*(BW-4);
-        const z = (Math.random()-0.5)*(BD-4);
-        const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
-        send({ type: 'add', fig: figToJSON(fig) });
-        selectFigure(fig);
-        openLabelModal(fig);
-      });
-      container.appendChild(btn);
+
+    if (ART_MANIFEST.version === '2') {
+      const seenCats = [];
+      for (const a of ART_MANIFEST.assets) {
+        if (a.category && !seenCats.includes(a.category)) seenCats.push(a.category);
+      }
+      const tabContainer = document.getElementById('category-tabs');
+      for (const cat of seenCats) {
+        const btn = document.createElement('button');
+        btn.className = 'cat-tab' + (cat === 'personen' ? ' active' : '');
+        btn.dataset.cat = cat;
+        btn.textContent = CAT_LABELS[cat] || cat;
+        btn.addEventListener('click', () => renderTabContent(cat));
+        tabContainer.appendChild(btn);
+      }
+      renderTabContent('personen');
+    } else {
+      // Legacy v1: alle Buttons flat rendern
+      const container = document.getElementById('figure-buttons');
+      for (const a of ART_MANIFEST.assets) {
+        if (!characterIds.has(a.id)) continue;
+        const btn = document.createElement('button');
+        btn.className = 'figure-btn';
+        btn.dataset.type = a.id;
+        btn.title = a.label || a.id;
+        btn.setAttribute('aria-label', a.label || a.id);
+        const artSpan = document.createElement('span');
+        artSpan.className = 'figure-art';
+        btn.appendChild(artSpan);
+        const svgText = await fetch('/art-library/' + a.files.figurine).then(r => r.text());
+        const parsed = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+        artSpan.appendChild(document.importNode(parsed.documentElement, true));
+        btn.addEventListener('click', () => {
+          const x = (Math.random()-0.5)*(BW-4);
+          const z = (Math.random()-0.5)*(BD-4);
+          const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
+          send({ type: 'add', fig: figToJSON(fig) });
+          selectFigure(fig);
+          openLabelModal(fig);
+        });
+        container.appendChild(btn);
+      }
     }
   } catch (e) {
     console.warn('[art] manifest unavailable, using legacy shapes', e.message);

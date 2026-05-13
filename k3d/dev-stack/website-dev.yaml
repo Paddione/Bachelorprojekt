@@ -46,7 +46,7 @@ spec:
           image: ghcr.io/paddione/workspace-website:dev
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 3000
+            - containerPort: 4321
           envFrom:
             - configMapRef:
                 name: website-dev-config
@@ -61,7 +61,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /api/health
-              port: 3000
+              port: 4321
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
@@ -81,7 +81,7 @@ spec:
     app: website
   ports:
     - port: 80
-      targetPort: 3000
+      targetPort: 4321
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

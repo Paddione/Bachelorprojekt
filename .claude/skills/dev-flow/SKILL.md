@@ -60,7 +60,7 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
 
 ### Fix-Pfad
 
-1. **BR-* Ticket finden.** Frage den User nach der Ticket-ID. Wenn keine existiert: verweise auf `https://web.mentolder.de/admin/bugs` zum Anlegen. **Ohne Ticket geht der Fix-Pfad nicht weiter.**
+1. **BR-* Ticket finden.** Frage den User nach der Ticket-ID. Wenn keine existiert: **biete an, das Ticket jetzt direkt anzulegen** — frage nach Titel, kurzer Beschreibung und Schweregrad, dann öffne `https://web.mentolder.de/admin/bugs` und lege es an. Warte auf die neu vergebene `BR-YYYYMMDD-xxxx`-ID. **Ohne Ticket-ID geht der Fix-Pfad nicht weiter.**
 2. **Bug reproduzieren mit failing Test** (red-green-refactor — Pflicht). Schreibe einen Test, der den Bug beweist:
 
    ```bash
@@ -83,6 +83,16 @@ Slug ist kurz und beschreibend. KEIN BR-* in den Branchnamen — das gehört in 
 8. **Post-Merge.** Folge der Sektion **Post-Merge Deploy** unten.
 
 ### Chore-Pfad
+
+**Vor dem Worktree — offene Chore-Branches prüfen:**
+
+```bash
+git branch -r | grep 'origin/chore/'
+```
+
+- Gibt es einen thematisch passenden offenen Branch (z.B. `chore/bump-deps` für weitere Dependency-Bumps, `chore/docs-cleanup` für Doku-Fixes)? → Änderung dort einbauen und bestehenden PR updaten. **Schritt 1 überspringen.**
+- Kein passender Branch gefunden → normal mit Schritt 1 fortfahren (neuer Worktree).
+- Keine offenen Chore-Branches? → Schritt 1 normal, neuen `chore/<slug>` Branch anlegen.
 
 1. **Chore in einem Satz beschreiben.** Beispiele: "Astro auf 5.x bumpen", "Variable `foo` zu `bar` umbenennen", "Tippfehler in Doku korrigieren".
 2. **Änderung machen.** Kein Plan, kein Spec, kein TDD nötig.

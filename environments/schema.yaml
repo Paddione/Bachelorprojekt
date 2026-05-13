@@ -282,6 +282,11 @@ env_vars:
     default_dev: ""
     description: "Public hostname of the dev Brett (auto-derived as brett.${DEV_DOMAIN})."
 
+  - name: DEV_SSH_USER
+    required: false
+    default_dev: "root"
+    description: "SSH user for connecting to DEV_NODE (e.g. gekko). Defaults to root for backwards compatibility."
+
   - name: DEV_SSH_ALLOWLIST
     required: false
     default_dev: ""

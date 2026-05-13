@@ -85,7 +85,7 @@ spec:
             - --code-challenge-method=S256
             - --insecure-oidc-allow-unverified-email=true
             - --scope=openid email profile
-            - --allowed-groups=/dev-access
+            - --keycloak-group=/dev-access
           env:
             - name: DEV_WORKSPACE_OIDC_SECRET
               valueFrom:

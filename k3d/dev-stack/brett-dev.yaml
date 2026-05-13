@@ -25,6 +25,13 @@ spec:
               value: production
             - name: PORT
               value: "3000"
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_WEBSITE_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website?sslmode=disable"
           readinessProbe:
             httpGet:
               path: /

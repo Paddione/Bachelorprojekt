@@ -14,6 +14,10 @@ configMapGenerator:
     behavior: replace
     files:
       - realm-workspace.json=realm-workspace-mentolder.json
+  - name: website-config
+    behavior: merge
+    literals:
+      - BRETT_INTERNAL_URL=http://brett.workspace.svc.cluster.local:3000
   - name: art-library
     behavior: replace
     options:
@@ -52,17 +56,7 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 
-# Prevent pods from drifting to home workers (k3s-1/2/3, k3w-1/2/3) after they
-# joined the unified cluster. The CNI partition breaks DNS and ClusterIP routing
-# from those nodes. livekit-* are exempt: patch-livekit.yaml pins them to
-# gekko-hetzner-3 explicitly, overriding this blanket affinity.
-#
-# IMPORTANT: these use strategic-merge (no `target:`) instead of a JSON 6902
-# `op: add` patch. JSON `add` on an existing object REPLACES it wholesale —
-# any Deployment that already declares an `affinity` block (e.g. spreed-signaling
-# with its podAffinity to Janus from PR #661) gets that block clobbered. The
-# strategic-merge variants below only set `affinity.nodeAffinity`, leaving any
-# existing `podAffinity` / `podAntiAffinity` siblings intact.
+# Prevent pods from drifting to home workers (k3s-1/2/3, k3w-1/2/3)
 patches:
   - patch: |-
       apiVersion: apps/v1
@@ -114,10 +108,6 @@ patches:
                                 - k3w-3
     target:
       kind: CronJob
-  # One-shot Jobs (e.g. arena-bootstrap) also need to stay on Hetzner nodes;
-  # the home workers hit intermittent DNS failures (EAI_AGAIN on
-  # shared-db.workspace.svc.cluster.local), which exhausts backoffLimit and
-  # leaves the cluster without arena_app role + grants.
   - patch: |-
       apiVersion: batch/v1
       kind: Job

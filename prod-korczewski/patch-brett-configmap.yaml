@@ -1,0 +1,7 @@
+# Patch: BRETT_INTERNAL_URL in website-config für korczewski
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+data:
+  BRETT_INTERNAL_URL: "http://brett.workspace-korczewski.svc.cluster.local:3000"

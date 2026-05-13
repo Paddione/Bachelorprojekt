@@ -115,8 +115,8 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 30
           resources:
-            requests: { cpu: 100m, memory: 256Mi }
-            limits:   { cpu: 1000m, memory: 1Gi }
+            requests: { cpu: 100m, memory: 512Mi }
+            limits:   { cpu: 1000m, memory: 3Gi }
           securityContext:
             allowPrivilegeEscalation: false
             capabilities: { drop: [ALL] }

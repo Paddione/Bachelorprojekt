@@ -1,0 +1,12 @@
+{
+  "pr_number": 709,
+  "title": "pin antoniomika/sish to v2.22.1",
+  "description": "## Summary\n- Pins `antoniomika/sish` from `:latest` to `v2.22.1` in both `k3d/brainstorm-sish.yaml` and `k3d/dev-stack/sish.yaml`\n- Makes deployments reproducible and prevents uncontrolled updates on pod restart\n\n## Test plan\n- [x] `task workspace:validate` — manifests valid\n- No runtime-level test available; image tag change only\n\nCloses #707\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "chore",
+  "scope": "infra",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T18:18:30Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

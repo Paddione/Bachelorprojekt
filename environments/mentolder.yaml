@@ -51,6 +51,15 @@ env_vars:
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-router.workspace.svc.cluster.local:4000"
   ARENA_WS_URL: https://arena-ws.mentolder.de
+  # ── Dev stack (dev.mentolder.de) ─────────────────────────────────────
+  DEV_DOMAIN: "dev.mentolder.de"
+  DEV_NODE: "gekko-hetzner-2"
+  DEV_WEBSITE_HOST: "web.dev.mentolder.de"
+  DEV_BRETT_HOST: "brett.dev.mentolder.de"
+  # Comma-separated CIDRs allowed to reach :2222 on $DEV_NODE.
+  # Empty (current) means ufw drops all 2222/tcp until you set it via
+  # task dev:firewall:open after editing this value.
+  DEV_SSH_ALLOWLIST: ""
 
 overlay: prod-mentolder
 workspace_namespace: workspace

@@ -1,0 +1,12 @@
+{
+  "pr_number": 717,
+  "title": "split dev-flow skill into plan/execute, stage brett controls redesign",
+  "description": "## Summary\n- Retire monolithic `dev-flow` skill; replace with `dev-flow-plan` (planning phase) and `dev-flow-execute` (implementation phase) split skills\n- Add `dev-flow-overview.html` reference doc for the new split workflow\n- Update `CLAUDE.md` default workflow section to reference the new skills\n- Stage brett controls redesign spec + plan for later execution\n\n## Test Plan\n- [ ] Verify `dev-flow-plan` skill invokes correctly on a new feature/fix/chore request\n- [ ] Verify `dev-flow-execute` skill picks up a staged plan and proceeds with implementation\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "dev-flow",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T23:11:24Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -32,6 +32,10 @@ Also: after `superpowers:writing-plans` skill creates a new plan file, run `bash
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Default Workflow
+
+For any work request in this repo (add/change/fix/build), invoke the project-level **`dev-flow` skill** (`.claude/skills/dev-flow/SKILL.md`). It defines the shared process: path declaration (feature/fix/chore), worktree isolation, testing floor, conventional-commit PRs, and post-merge deploy on both prod clusters. Auto-invokes via its `description` frontmatter; no special wiring needed.
+
 ## Project Overview
 
 **Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).

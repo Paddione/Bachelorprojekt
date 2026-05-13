@@ -1,0 +1,12 @@
+{
+  "pr_number": 697,
+  "title": "fix prod-mentolder kustomize merge error for website-config",
+  "description": "## Summary\n- `prod-mentolder/kustomization.yaml:17` was using `configMapGenerator` with `behavior: merge` on `website-config`, but `website-config` is a raw ConfigMap defined in `k3d/website.yaml` and deployed via the separate `task website:deploy` envsubst pipeline — it's never part of the kustomize tree. The merge silently never worked; CI on main has been red since `6af2f539`.\n- Move `BRETT_INTERNAL_URL` into the templated `website-config` ConfigMap in `k3d/website.yaml` so envsubst resolves `${WORKSPACE_NAMESPACE}` per env (mentolder=`workspace`, korczewski=`workspace-korczewski`). Removes the broken kustomization block and three orphan patch files (`prod/patch-brett-configmap.yaml`, `prod/patch-brett-internal-url.yaml`, `prod-korczewski/patch-brett-configmap.yaml`) — none of them were referenced from any kustomization.\n\n## Test plan\n- [x] `task test:all` (exit 0, no failures — was failing on `prod kustomize build` since 6af2f539)\n- [x] `kubectl kustomize --load-restrictor=LoadRestrictionsNone prod-mentolder` (OK)\n- [x] `kubectl kustomize --load-restrictor=LoadRestrictionsNone prod-korczewski` (OK)\n- [x] envsubst on `k3d/website.yaml` yields `BRETT_INTERNAL_URL=http://brett.workspace.svc.cluster.local:3000` for mentolder and `http://brett.workspace-korczewski.svc.cluster.local:3000` for korczewski\n- [ ] Post-merge: `task feature:website` rolls website on both clusters; verify `kubectl get cm website-config -o jsonpath='{.data.BRETT_INTERNAL_URL}'` returns the per-namespace URL\n\nCo-Authored-By: Claude Opus 4.7 (1M context)",
+  "category": "chore",
+  "scope": "prod",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T14:18:02Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

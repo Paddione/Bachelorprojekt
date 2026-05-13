@@ -12,6 +12,7 @@ resources:
   - oauth2-proxy-dev.yaml
   - oauth2-proxy-dev-middleware.yaml
   - dev-ingress.yaml
+  - dev-db-refresh-cron.yaml
 
 # Override realm with mentolder-specific config
 configMapGenerator:
@@ -54,6 +55,11 @@ configMapGenerator:
       - logos_lockup-light.svg=../art-library/sets/mentolder/portfolio/logos/lockup-light.svg
       - logos_app-icon.svg=../art-library/sets/mentolder/portfolio/logos/app-icon.svg
       - logos_brass-pulse.svg=../art-library/sets/mentolder/portfolio/logos/brass-pulse.svg
+  # ── dev.mentolder.de — mount scripts/dev-db-refresh.sh as ConfigMap ──
+  - name: dev-db-refresh-script
+    namespace: workspace
+    files:
+      - ../scripts/dev-db-refresh.sh
 generatorOptions:
   disableNameSuffixHash: true
 

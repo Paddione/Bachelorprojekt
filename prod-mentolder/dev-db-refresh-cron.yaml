@@ -1,0 +1,75 @@
+# ════════════════════════════════════════════════════════════════════
+# dev-db-refresh — nightly pg_restore of the latest prod snapshot into
+# shared-db-dev (inside the k3d cluster on $DEV_NODE).
+# Uses hostNetwork + nodeSelector so we can reach 127.0.0.1:15432 (the
+# k3d-published Postgres NodePort).
+# The script body lives in scripts/dev-db-refresh.sh and is mounted via
+# a ConfigMap generated from that file by prod-mentolder/kustomization.yaml.
+# ════════════════════════════════════════════════════════════════════
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dev-db-refresh
+  namespace: ${WORKSPACE_NAMESPACE}
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
+          nodeSelector:
+            kubernetes.io/hostname: ${DEV_NODE}
+          containers:
+            - name: refresh
+              image: pgvector/pgvector:0.8.0-pg16
+              command: [/bin/bash, /scripts/dev-db-refresh.sh]
+              env:
+                - name: BACKUP_DIR
+                  value: /backups
+                - name: PGHOST
+                  value: 127.0.0.1
+                - name: PGPORT
+                  value: "15432"
+                - name: BACKUP_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: BACKUP_PASSPHRASE
+                - name: DEV_SHARED_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: DEV_SHARED_DB_PASSWORD
+                - name: DEV_WEBSITE_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: DEV_WEBSITE_DB_PASSWORD
+              volumeMounts:
+                - name: backup-pvc
+                  mountPath: /backups
+                  readOnly: true
+                - name: scripts
+                  mountPath: /scripts
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: 100m
+                limits:
+                  memory: 1Gi
+                  cpu: 1000m
+          volumes:
+            - name: backup-pvc
+              persistentVolumeClaim:
+                claimName: backup-pvc
+            - name: scripts
+              configMap:
+                name: dev-db-refresh-script
+                defaultMode: 0755

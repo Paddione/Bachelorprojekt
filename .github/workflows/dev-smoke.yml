@@ -1,0 +1,42 @@
+name: dev-smoke
+# Nightly smoke run for dev.mentolder.de. Fires at 05:00 UTC (after the
+# 03:30 UTC dev-db-refresh CronJob has settled). No untrusted event
+# payloads; secrets are used only inside env: blocks, never inlined.
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install bats + jq + curl
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y bats jq curl openssh-client openssl
+
+      - name: Write sish tunnel test key
+        env:
+          SISH_TEST_KEY: ${{ secrets.SISH_TEST_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SISH_TEST_KEY" > ~/.ssh/sish_test
+          chmod 600 ~/.ssh/sish_test
+
+      - name: Run dev smoke tests
+        env:
+          RUN_DEV_TESTS: "true"
+          DEV_DOMAIN: dev.mentolder.de
+          DEV_WEBSITE_HOST: web.dev.mentolder.de
+          AUTH_HOST: auth.mentolder.de
+          KC_TEST_USER: ${{ secrets.KC_TEST_USER }}
+          KC_TEST_PASSWORD: ${{ secrets.KC_TEST_PASSWORD }}
+          KC_TEST_CLIENT_ID: workspace-dev-test
+          KC_TEST_CLIENT_SECRET: ${{ secrets.KC_TEST_CLIENT_SECRET }}
+          SISH_TUNNEL_KEY: /home/runner/.ssh/sish_test
+        run: |
+          bats tests/dev-stack/

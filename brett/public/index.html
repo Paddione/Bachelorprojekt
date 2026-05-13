@@ -1076,6 +1076,48 @@ document.getElementById('constellation-type').addEventListener('change', functio
 // ── State ─────────────────────────────────────────────────────────────────────
 let figures = [];
 let selectedFigure = null;
+let ctrlBall = null, ctrlBallActive = false, ctrlBallDrag = false;
+let ctrlBallStart = { x: 0, y: 0, theta: 0, phi: 0 };
+let ctrlBallShowTime = 0;
+
+function showCtrlBall(wx, wz) {
+  if (ctrlBall) scene.remove(ctrlBall);
+  ctrlBall = new THREE.Group();
+
+  const sphereGeo = new THREE.SphereGeometry(1.8, 24, 16);
+  const sphereMat = new THREE.MeshStandardMaterial({
+    color: 0xffd84a, transparent: true, opacity: 0, roughness: 0.3, metalness: 0.6,
+  });
+  const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+  ctrlBall.add(sphere);
+
+  const ringGeo = new THREE.TorusGeometry(2.4, 0.18, 8, 32);
+  const ringMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, transparent: true, opacity: 0, roughness: 0.4, metalness: 0.2,
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = Math.PI / 2;
+  ctrlBall.add(ring);
+
+  ctrlBall.position.set(wx, 3.0, wz);
+  scene.add(ctrlBall);
+  ctrlBallActive = true;
+  ctrlBallDrag = false;
+  ctrlBallShowTime = Date.now();
+}
+
+function hideCtrlBall() {
+  if (ctrlBall) { scene.remove(ctrlBall); ctrlBall = null; }
+  ctrlBallActive = false;
+  ctrlBallDrag = false;
+}
+
+function pickBall(ndc) {
+  if (!ctrlBall) return false;
+  raycaster.setFromCamera(ndc, camera);
+  return raycaster.intersectObject(ctrlBall, true).length > 0;
+}
+
 let currentColor = '#e06b6b';
 let pendingLabelFig = null;
 
@@ -1681,8 +1723,15 @@ canvas.addEventListener('mousedown', e => {
   }
   if (e.button === 0) {
     const ndc = getNDC(e);
+    if (ctrlBallActive && pickBall(ndc)) {
+      ctrlBallDrag = true;
+      ctrlBallStart.x = e.clientX; ctrlBallStart.y = e.clientY;
+      ctrlBallStart.theta = orbit.theta; ctrlBallStart.phi = orbit.phi;
+      return;
+    }
     const fig = pickFigure(ndc);
     if (fig) {
+      if (ctrlBallActive) hideCtrlBall();
       const now = Date.now();
       if (lastClick.fig === fig && now-lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; return; }
       lastClick = { fig, time: now };
@@ -1690,6 +1739,11 @@ canvas.addEventListener('mousedown', e => {
       drag = { on: true, fig };
     } else {
       selectFigure(null); lastClick.fig = null;
+      const bpos = pickBoard(ndc);
+      if (bpos) {
+        if (ctrlBallActive) hideCtrlBall();
+        else showCtrlBall(bpos.x, bpos.z);
+      }
     }
   }
 });
@@ -1703,6 +1757,15 @@ function sendMoveThrottled(fig) {
 }
 
 canvas.addEventListener('mousemove', e => {
+  if (ctrlBallDrag) {
+    const dx = e.clientX - ctrlBallStart.x;
+    const dy = e.clientY - ctrlBallStart.y;
+    orbit.theta = ctrlBallStart.theta - dx * 0.012;
+    orbit.phi = Math.max(0.12, Math.min(Math.PI / 2.02, ctrlBallStart.phi + dy * 0.01));
+    updateCamera();
+    if (ctrlBall) { ctrlBall.rotation.y = -dx * 0.04; ctrlBall.rotation.x = dy * 0.04; }
+    return;
+  }
   if (rotFig) {
     const dx = e.clientX - rotStartX;
     const raw = rotFigStartY + dx * 0.018;
@@ -1736,9 +1799,20 @@ canvas.addEventListener('mousemove', e => {
       if (!applyingRemote) sendMoveThrottled(drag.fig);
     }
   }
+  if (ctrlBallActive && pickBall(getNDC(e))) {
+    canvas.style.cursor = 'grab';
+  } else if (!drag.on && !rmbOn && !panOn) {
+    canvas.style.cursor = '';
+  }
 });
 
 canvas.addEventListener('mouseup', e => {
+  if (ctrlBallDrag) {
+    ctrlBallDrag = false;
+    if (ctrlBall) { ctrlBall.rotation.y = 0; ctrlBall.rotation.x = 0; }
+    canvas.style.cursor = ctrlBallActive ? 'grab' : '';
+    return;
+  }
   if (e.button === 2) {
     rmbOn = false;
     if (rotFig) {
@@ -1779,6 +1853,12 @@ canvas.addEventListener('wheel', e => {
 // Touch
 let tPrev = null;
 canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1 && ctrlBallActive && pickBall(getNDC(e.touches[0]))) {
+    ctrlBallDrag = true;
+    ctrlBallStart.x = e.touches[0].clientX; ctrlBallStart.y = e.touches[0].clientY;
+    ctrlBallStart.theta = orbit.theta; ctrlBallStart.phi = orbit.phi;
+    e.preventDefault(); return;
+  }
   if (e.touches.length === 1) {
     const t = e.touches[0];
     const fig = pickFigure(getNDC({clientX:t.clientX,clientY:t.clientY}));
@@ -1792,6 +1872,15 @@ canvas.addEventListener('touchstart', e => {
 },{passive:false});
 
 canvas.addEventListener('touchmove', e => {
+  if (ctrlBallDrag && e.touches.length === 1) {
+    const dx = e.touches[0].clientX - ctrlBallStart.x;
+    const dy = e.touches[0].clientY - ctrlBallStart.y;
+    orbit.theta = ctrlBallStart.theta - dx * 0.012;
+    orbit.phi = Math.max(0.12, Math.min(Math.PI / 2.02, ctrlBallStart.phi + dy * 0.01));
+    updateCamera();
+    if (ctrlBall) { ctrlBall.rotation.y = -dx * 0.04; ctrlBall.rotation.x = dy * 0.04; }
+    e.preventDefault(); return;
+  }
   if (e.touches.length === 1 && drag.on && drag.fig) {
     const t = e.touches[0];
     const pos = pickBoard(getNDC({clientX:t.clientX,clientY:t.clientY}));
@@ -1812,6 +1901,10 @@ canvas.addEventListener('touchmove', e => {
 },{passive:false});
 
 canvas.addEventListener('touchend', () => {
+  if (ctrlBallDrag) {
+    ctrlBallDrag = false;
+    if (ctrlBall) { ctrlBall.rotation.y = 0; ctrlBall.rotation.x = 0; }
+  }
   if (drag.on && drag.fig && !applyingRemote) {
     send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
   }
@@ -1834,6 +1927,12 @@ function animate() {
     if (fig === selectedFigure) fig.mesh.position.y = Math.sin(t*2+i)*0.07;
     else fig.mesh.position.y = 0;
   });
+  if (ctrlBall && ctrlBallActive) {
+    const t = Math.min(1, (Date.now() - ctrlBallShowTime) / 150);
+    ctrlBall.children.forEach((c, i) => {
+      if (c.material) c.material.opacity = t * (i === 0 ? 0.72 : 0.9);
+    });
+  }
   renderer.render(scene, camera);
 }
 animate();

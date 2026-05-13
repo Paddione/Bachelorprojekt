@@ -1661,6 +1661,27 @@ labelInput.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.getElementById('label-cancel').click();
 });
 
+// Close any modal by clicking its backdrop or pressing Escape
+modal.addEventListener('mousedown', function(e) {
+  if (e.target === modal) document.getElementById('label-cancel').click();
+});
+confirmModal.addEventListener('mousedown', function(e) {
+  if (e.target === confirmModal) document.getElementById('confirm-no').click();
+});
+saveModal.addEventListener('mousedown', function(e) {
+  if (e.target === saveModal) document.getElementById('save-cancel').click();
+});
+loadModal.addEventListener('mousedown', function(e) {
+  if (e.target === loadModal) document.getElementById('load-cancel').click();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  if (modal.classList.contains('visible'))         document.getElementById('label-cancel').click();
+  else if (confirmModal.classList.contains('visible')) document.getElementById('confirm-no').click();
+  else if (saveModal.style.display === 'flex')     document.getElementById('save-cancel').click();
+  else if (loadModal.style.display === 'flex')     document.getElementById('load-cancel').click();
+});
+
 // ── Raycasting helpers ────────────────────────────────────────────────────────
 const raycaster   = new THREE.Raycaster();
 const boardPlane  = new THREE.Plane(new THREE.Vector3(0,1,0), 0);

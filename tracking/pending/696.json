@@ -1,0 +1,12 @@
+{
+  "pr_number": 696,
+  "title": "remove unused docs-site/ leftover",
+  "description": "## Summary\n- `docs-site/` was unreferenced by any script, manifest, Taskfile, or website code — the live `docs` Deployment serves `k3d/docs-content/` via `task docs:deploy`. The directory only held a stale `index.html` (Apr 21, superseded by `k3d/docs-content/index.html` from May 10) and one orphan `arena.md`.\n- Update the four doc-string references that still mentioned `docs-site/` (CLAUDE.md project structure + gotcha, README.md tree, adminhandbuch.md, dev-flow SKILL.md post-merge table).\n- Companion local fix (not in this PR): `.git/hooks/post-merge` was calling the removed `task docs:restart` and triggering on `docs-site/` — now calls `task docs:deploy` on changes to `k3d/docs-content/`.\n\n## Test plan\n- [x] Verified `k3d/docs-content/` (47 files) is the live ConfigMap source on both clusters (no manifest/Taskfile/script reference to `docs-site/`).\n- [x] Refreshed both prod clusters with `task docs:deploy` before this PR — `docs.mentolder.de` + `docs.korczewski.de` now serve the current 47-file set (was 33–34 stale).\n- [ ] `task test:all` — fails identically to current `main` (`prod kustomize output has no workspace-secrets Secret with data` → `ConfigMap/website-config does not exist; cannot merge or replace` from `prod-mentolder/kustomization.yaml:17`). Pre-existing on commit c2af6bf6, unrelated to this PR.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "docs",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T14:00:24Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

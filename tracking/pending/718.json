@@ -1,0 +1,12 @@
+{
+  "pr_number": 718,
+  "title": "controls redesign — Figma-style tool-rail, camera state machine, touch parity",
+  "description": "## Summary\n- Replaces Brett's overloaded toolbar + dual-role mouse buttons with a Figma-style tool-mode system (Tool-Rail left, Side-Dock right, reorganised Top-Toolbar)\n- Introduces a single `camera` state object with `easeCamera()` animation pipeline, replacing the legacy `orbit` struct; adds four camera modes (Orbit/POV/Auto-Orbit/Free-Fly), six one-key view presets, Home/Fit, compass widget, and bookmarks\n- Adds full Android touch parity (1F drag, 2F pinch/orbit/pan, 3F home), collapsible bars with localStorage persistence, phone breakpoint FAB + bottom-sheet, split-view, screenshot/video recording, and help overlay; all user strings use safe DOM construction (no innerHTML XSS)\n\n## Test plan\n- [x] `task workspace:validate`\n- [x] `task test:all` (BATS unit + manifest dry-run)\n- [x] 11 new Playwright E2E specs in `tests/e2e/specs/brett-controls.spec.ts` covering camera state, presets, tool modes, touch pinch, bar persistence, compass, bookmarks, XSS safety, split-view, help overlay\n- [ ] `task feature:brett` — post-merge deploy to mentolder + korczewski\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-13T23:50:59Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

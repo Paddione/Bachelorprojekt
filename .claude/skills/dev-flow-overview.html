@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dev-flow — Entwicklungsworkflow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #070A0E;
+      --surface:     #0E1520;
+      --surface-2:   #141C2A;
+      --border:      rgba(255,255,255,0.07);
+      --border-mid:  rgba(255,255,255,0.12);
+
+      --gold:        #C9A84C;
+      --gold-dim:    rgba(201,168,76,0.18);
+      --gold-glow:   rgba(201,168,76,0.35);
+
+      --feature:     #5B9E6A;
+      --feature-dim: rgba(91,158,106,0.12);
+      --feature-glow:rgba(91,158,106,0.30);
+
+      --fix:         #C96B4A;
+      --fix-dim:     rgba(201,107,74,0.12);
+      --fix-glow:    rgba(201,107,74,0.30);
+
+      --chore:       #6B82A8;
+      --chore-dim:   rgba(107,130,168,0.12);
+      --chore-glow:  rgba(107,130,168,0.30);
+
+      --text:        #DCE8F5;
+      --text-2:      #8A9BB8;
+      --text-3:      #485670;
+
+      --ff-display: 'Playfair Display', Georgia, serif;
+      --ff-body:    'Syne', sans-serif;
+      --ff-mono:    'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ff-body);
+      font-size: 15px;
+      line-height: 1.65;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Dot-grid background ───────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ───────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,10,14,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0 2rem;
+      height: 52px;
+    }
+
+    .nav-brand {
+      font-family: var(--ff-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-right: auto;
+      text-decoration: none;
+    }
+
+    nav a {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      text-decoration: none;
+      padding: 0 1rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    nav a:hover { color: var(--text); border-color: var(--border-mid); }
+    nav a.feature { --c: var(--feature); }
+    nav a.fix     { --c: var(--fix); }
+    nav a.chore   { --c: var(--chore); }
+    nav a.execute { --c: var(--gold); }
+    nav a.active  { color: var(--c, var(--gold)); border-color: var(--c, var(--gold)); }
+
+    /* ── LAYOUT ────────────────────────────────────────── */
+    main { position: relative; z-index: 1; }
+    section { padding: 5rem 2rem; max-width: 1080px; margin: 0 auto; }
+    .section-full { max-width: none; padding: 5rem 0; }
+
+    /* ── HERO ──────────────────────────────────────────── */
+    #hero {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+
+    h1 {
+      font-family: var(--ff-display);
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #DCE8F5 0%, #8A9BB8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-family: var(--ff-display);
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      font-style: italic;
+      color: var(--text-2);
+      margin-bottom: 3rem;
+    }
+
+    /* Pipeline graphic */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 2rem auto;
+      max-width: 640px;
+    }
+
+    .pipe-node {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      text-align: left;
+      position: relative;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .pipe-node:hover {
+      border-color: var(--nc);
+      box-shadow: 0 0 24px var(--nglow, transparent);
+    }
+    .pipe-node.plan { --nc: var(--feature); --nglow: var(--feature-glow); }
+    .pipe-node.exec { --nc: var(--gold);    --nglow: var(--gold-glow); }
+
+    .pipe-label {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--nc, var(--text-3));
+      margin-bottom: 0.4rem;
+    }
+    .pipe-name {
+      font-family: var(--ff-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .pipe-desc {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-top: 0.35rem;
+      line-height: 1.4;
+    }
+
+    .pipe-arrow {
+      width: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-3);
+      font-size: 20px;
+    }
+
+    .pipe-chore {
+      margin-top: 1rem;
+      text-align: center;
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+    }
+    .pipe-chore span {
+      background: var(--chore-dim);
+      border: 1px solid rgba(107,130,168,0.2);
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      color: var(--chore);
+    }
+
+    /* ── SECTION HEADERS ───────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    .skill-badge {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border-radius: 4px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .skill-badge.plan-badge { background: var(--feature-dim); color: var(--feature); border: 1px solid rgba(91,158,106,0.25); }
+    .skill-badge.exec-badge { background: var(--gold-dim);    color: var(--gold);    border: 1px solid rgba(201,168,76,0.25); }
+
+    h2 {
+      font-family: var(--ff-display);
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-family: var(--ff-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* ── PFAD-WAHL CARDS ───────────────────────────────── */
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (max-width: 700px) { .path-grid { grid-template-columns: 1fr; } }
+
+    .path-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--pc);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: box-shadow 0.25s, transform 0.25s;
+    }
+    .path-card:hover {
+      box-shadow: 0 8px 32px var(--pglow);
+      transform: translateY(-2px);
+    }
+    .path-card.feature { --pc: var(--feature); --pglow: var(--feature-glow); }
+    .path-card.fix     { --pc: var(--fix);     --pglow: var(--fix-glow); }
+    .path-card.chore   { --pc: var(--chore);   --pglow: var(--chore-glow); }
+
+    .path-type {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--pc);
+      margin-bottom: 0.5rem;
+    }
+    .path-card h4 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .path-card p {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+
+    .path-note {
+      display: inline-block;
+      margin-top: 0.6rem;
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      background: var(--pglow);
+      color: var(--pc);
+      border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent);
+    }
+
+    /* ── PFAD SECTIONS ─────────────────────────────────── */
+    .path-section {
+      margin-bottom: 4rem;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--pc);
+      overflow: hidden;
+    }
+    .path-section.feature { --pc: var(--feature); --pdim: var(--feature-dim); }
+    .path-section.fix     { --pc: var(--fix);     --pdim: var(--fix-dim); }
+    .path-section.chore   { --pc: var(--chore);   --pdim: var(--chore-dim); }
+
+    .path-header {
+      background: var(--pdim);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .path-header-label {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--pc);
+    }
+    .path-header-desc {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-left: auto;
+    }
+    .path-header-badge {
+      font-family: var(--ff-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      background: var(--pdim);
+      color: var(--pc);
+      border: 1px solid color-mix(in srgb, var(--pc) 25%, transparent);
+    }
+
+    /* ── STEPS ─────────────────────────────────────────── */
+    .steps { padding: 1.5rem; display: flex; flex-direction: column; gap: 0; }
+
+    .step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 0 1.25rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .step.visible { opacity: 1; transform: translateY(0); }
+    .step:last-child { border-bottom: none; }
+
+    /* Vertical connector line */
+    .step:not(:last-child) .step-num::after {
+      content: '';
+      position: absolute;
+      left: 27px;
+      top: calc(1.25rem + 28px);
+      bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .step-num {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      padding-top: 2px;
+    }
+
+    .step-num-inner {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border-mid);
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      flex-shrink: 0;
+      transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    }
+
+    .step:hover .step-num-inner {
+      border-color: var(--pc, var(--gold));
+      color: var(--pc, var(--gold));
+      box-shadow: 0 0 12px color-mix(in srgb, var(--pc, var(--gold)) 40%, transparent);
+    }
+
+    /* Ticket-highlighted steps */
+    .step.ticket {
+      background: var(--gold-dim);
+      border-radius: 8px;
+      margin: 0.25rem 0;
+      padding: 1.25rem 1rem;
+    }
+    .step.ticket .step-num-inner {
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .step-body {}
+
+    .step-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--ff-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .badge-new  { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+    .badge-stop { background: rgba(201,107,74,0.15); color: #E09070; border: 1px solid rgba(201,107,74,0.25); }
+    .badge-opt  { background: rgba(107,130,168,0.12); color: var(--chore); border: 1px solid rgba(107,130,168,0.2); }
+    .badge-req  { background: rgba(201,107,74,0.12); color: var(--fix); border: 1px solid rgba(201,107,74,0.2); }
+
+    .step-desc {
+      font-size: 13.5px;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    .step-desc strong { color: var(--text); font-weight: 600; }
+    .step-desc em { color: var(--gold); font-style: normal; font-family: var(--ff-mono); font-size: 12.5px; }
+
+    .step-desc ul {
+      margin: 0.5rem 0 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .step-desc ul li { color: var(--text-2); font-size: 13px; }
+    .step-desc ul li::marker { color: var(--text-3); }
+
+    /* inline code */
+    code {
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.1em 0.4em;
+      color: #A8D8C0;
+    }
+
+    /* code block */
+    pre {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0 0;
+      overflow-x: auto;
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: #8BA8C0;
+    }
+    pre .c  { color: var(--text-3); } /* comment */
+    pre .k  { color: #A8C8E8; }      /* keyword */
+    pre .s  { color: #A8D8A8; }      /* string */
+    pre .v  { color: #D8B870; }      /* variable */
+
+    /* ── TICKET HIGHLIGHT BOX ──────────────────────────── */
+    .ticket-highlight {
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-left: 3px solid var(--gold);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      margin-top: 0.75rem;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .ticket-highlight strong { color: var(--gold); }
+
+    /* ── DEPLOY TABLE ──────────────────────────────────── */
+    .deploy-table-wrap { overflow-x: auto; margin-top: 1rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: var(--surface-2);
+      color: var(--text-2);
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-mid);
+    }
+    td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2);
+      vertical-align: top;
+    }
+    td:first-child { font-family: var(--ff-mono); font-size: 12px; color: #A8D8C0; }
+    td code { background: none; border: none; padding: 0; color: #A8D8C0; font-size: 12px; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── FAILURE SECTION ───────────────────────────────── */
+    .failure-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .failure-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .failure-card .f-title {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--fix);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .failure-card p { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+    /* ── AGENT ROUTING ─────────────────────────────────── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .agent-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      font-size: 13px;
+    }
+    .agent-card .a-domain {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.3rem;
+    }
+    .agent-card .a-name {
+      color: #A8D8C0;
+      font-family: var(--ff-mono);
+      font-size: 12px;
+    }
+
+    /* ── DIVIDER ───────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ── SCROLL ANIMATIONS ─────────────────────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ────────────────────────────────────── */
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      nav a { padding: 0 0.6rem; font-size: 10px; }
+      section { padding: 3rem 1rem; }
+      .step { grid-template-columns: 44px 1fr; gap: 0 0.75rem; }
+      .pipeline { flex-direction: column; }
+      .pipe-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="main-nav">
+  <a href="#hero" class="nav-brand">dev-flow</a>
+  <a href="#pfad" class="nav-link">Pfad-Wahl</a>
+  <a href="#plan" class="nav-link feature">plan</a>
+  <a href="#execute" class="nav-link execute">execute</a>
+  <a href="#failure" class="nav-link fix">Fehler</a>
+  <a href="#agents" class="nav-link chore">Agents</a>
+</nav>
+
+<main>
+
+  <!-- ── HERO ──────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="hero-eyebrow">Bachelorprojekt · Claude Code Workflow</div>
+    <h1>dev-flow</h1>
+    <p class="hero-sub">Pfad-Wahl, Planung &amp; Plan-Ausführung</p>
+
+    <div class="pipeline">
+      <div class="pipe-node plan">
+        <div class="pipe-label">Skill 1</div>
+        <div class="pipe-name">dev-flow-plan</div>
+        <div class="pipe-desc">Pfad bestimmen · Brainstorming · Spec &amp; Plan · Ticket anlegen · Commit &amp; Push</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node exec">
+        <div class="pipe-label">Skill 2</div>
+        <div class="pipe-name">dev-flow-execute</div>
+        <div class="pipe-desc">Plan laden · Implementieren · Verifizieren · PR · Ticket abschließen · Deploy</div>
+      </div>
+    </div>
+    <div class="pipe-chore">Chore-Pfad: vollständig inline in <span>dev-flow-plan</span> — kein execute nötig</div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── PFAD-WAHL ──────────────────────────────────────── -->
+  <section id="pfad">
+    <div class="section-header fade-in">
+      <h2>Schritt 0 — Pfad-Wahl</h2>
+    </div>
+
+    <div class="path-grid fade-in">
+      <div class="path-card feature">
+        <div class="path-type">feature</div>
+        <h4>Neue Funktion</h4>
+        <p>Neues Verhalten, neuer Endpunkt, neue UI-Sektion, neuer Task — alles, was Nutzer bemerken.</p>
+        <span class="path-note">Branch: feature/&lt;slug&gt;</span>
+      </div>
+      <div class="path-card fix">
+        <div class="path-type">fix</div>
+        <h4>Bug-Reparatur</h4>
+        <p>Etwas ist kaputt; Output/Verhalten passt nicht zur Erwartung.</p>
+        <span class="path-note">Erfordert T-###### Ticket</span>
+      </div>
+      <div class="path-card chore">
+        <div class="path-type">chore</div>
+        <h4>Wartungsarbeit</h4>
+        <p>Keine Verhaltensänderung — Dependency-Bumps, Refactors, Doku-Updates, CI-Tweaks.</p>
+        <span class="path-note">Kein Plan, kein Ticket nötig</span>
+      </div>
+    </div>
+
+    <p class="fade-in" style="font-size:13.5px; color:var(--text-2); max-width:620px;">
+      Bestätigung beim User einholen, <strong>bevor</strong> der gewählte Pfad startet.
+      Beim Fix-Pfad: <em>"Das klingt nach einem fix — Hast du eine T-###### Ticket-ID?"</em>
+    </p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── DEV-FLOW-PLAN ──────────────────────────────────── -->
+  <section id="plan">
+    <div class="section-header fade-in">
+      <span class="skill-badge plan-badge">Skill 1</span>
+      <h2>dev-flow-plan</h2>
+    </div>
+
+    <!-- FEATURE-PFAD -->
+    <div class="path-section feature fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Feature-Pfad</span>
+        <span class="path-header-badge">feature/&lt;slug&gt;</span>
+        <span class="path-header-desc">Endet mit STOPP — execute übernimmt</span>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">Worktree anlegen</div>
+            <div class="step-desc">
+              Ruft <em>superpowers:using-git-worktrees</em> auf.<br>
+              Branch-Name: <code>feature/&lt;kurzer-slug&gt;</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">Brainstorming-Tunnel starten</div>
+            <div class="step-desc">
+              <strong>a)</strong> <code>bash scripts/superpowers-helper-patch.sh</code> — stellt <code>wss://</code> sicher<br>
+              <strong>b)</strong> Brainstorm-Server starten, Port ermitteln<br>
+              <strong>c)</strong> <code>task brainstorm:publish -- $PORT</code> im Hintergrund<br>
+              Companion erreichbar unter: <em>https://brainstorm.mentolder.de</em>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Brainstorming</div>
+            <div class="step-desc">
+              Ruft <em>superpowers:brainstorming</em> auf.<br>
+              Ergebnis: Spec in <code>docs/superpowers/specs/&lt;slug&gt;.md</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">Plan schreiben</div>
+            <div class="step-desc">
+              Ruft <em>superpowers:writing-plans</em> auf, dann sofort:<br>
+              <code>bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;slug&gt;.md</code><br>
+              Ergebnis: Plan in <code>docs/superpowers/plans/&lt;slug&gt;.md</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="step ticket">
+          <div class="step-num"><div class="step-num-inner">4.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Ticket anlegen
+              <span class="badge badge-new">Neu</span>
+            </div>
+            <div class="step-desc">
+              Legt ein Ticket vom Typ <code>task</code> in der Produktionsdatenbank an:
+              <ul>
+                <li>Postgres-Pod im <code>workspace</code>-Namespace (mentolder-Cluster) ermitteln</li>
+                <li><code>kubectl exec</code> → <code>INSERT INTO tickets.tickets</code> → <code>RETURNING external_id</code></li>
+                <li><code>ticket_id: T######</code> ins Plan-Frontmatter einschreiben (awk)</li>
+              </ul>
+              <div class="ticket-highlight">
+                <strong>Meldung:</strong> „Ticket <code>T######</code> angelegt →
+                <code>https://web.mentolder.de/admin/bugs</code>"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Commit &amp; Push
+              <span class="badge badge-stop">STOPP</span>
+            </div>
+            <div class="step-desc">
+              <pre>git add docs/superpowers/specs/&lt;slug&gt;.md docs/superpowers/plans/&lt;slug&gt;.md
+git commit -m "chore(plans): stage &lt;slug&gt; for execution [T######]"
+git push -u origin feature/&lt;slug&gt;</pre>
+              Keine Implementation, keine Verifikation, kein PR — das übernimmt <em>dev-flow-execute</em>.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FIX-PFAD -->
+    <div class="path-section fix fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Fix-Pfad</span>
+        <span class="path-header-badge">fix/&lt;slug&gt;</span>
+        <span class="path-header-desc">Red → Green → Refactor · Ticket Pflicht</span>
+      </div>
+      <div class="steps">
+
+        <div class="step ticket">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              T-###### Ticket
+              <span class="badge badge-req">Pflicht</span>
+            </div>
+            <div class="step-desc">
+              Ticket-ID vom User erfragen (Format: <code>T######</code>, z.B. <code>T000288</code>).
+              <ul>
+                <li><strong>Vorhanden:</strong> direkt übernehmen → <code>TICKET_EXT_ID=T######</code></li>
+                <li><strong>Fehlt:</strong> Titel, Schweregrad &amp; Beschreibung erfragen, dann via SQL anlegen:<br>
+                  Typ <code>bug</code>, Status <code>triage</code>, Priority <code>hoch</code></li>
+              </ul>
+              <div class="ticket-highlight">
+                <strong>Ohne Ticket-ID geht der Fix-Pfad nicht weiter.</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">Worktree anlegen</div>
+            <div class="step-desc">
+              Ruft <em>superpowers:using-git-worktrees</em> auf.<br>
+              Branch-Name: <code>fix/&lt;kurzer-slug&gt;</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Failing Test schreiben</div>
+            <div class="step-desc">
+              Schreibt einen Test, der den Bug beweist — <strong>Pflicht</strong>:<br>
+              <code>./tests/runner.sh local &lt;neue-test-id&gt;</code> → Erwartet: <strong>FAIL</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">Plan schreiben <span style="font-weight:400;color:var(--text-2)">(nicht-triviale Fixes)</span></div>
+            <div class="step-desc">
+              Bei Einzeilern: Inline-Begründung im Commit reicht.<br>
+              Bei komplexen Fixes: <em>superpowers:writing-plans</em>, dann Frontmatter-Hook ausführen
+              und <code>ticket_id: T######</code> ins Frontmatter einschreiben.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Commit &amp; Push
+              <span class="badge badge-stop">STOPP</span>
+            </div>
+            <div class="step-desc">
+              <pre>git add tests/&lt;relevante-test-datei&gt; [docs/superpowers/plans/&lt;slug&gt;.md]
+git commit -m "chore(plans): stage &lt;slug&gt; fix for execution [T######]"
+git push -u origin fix/&lt;slug&gt;</pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CHORE-PFAD -->
+    <div class="path-section chore fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Chore-Pfad</span>
+        <span class="path-header-badge">chore/&lt;slug&gt;</span>
+        <span class="path-header-desc">Vollständig inline — kein execute, kein Ticket</span>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">0</div></div>
+          <div class="step-body">
+            <div class="step-title">Offene Chore-Branches prüfen</div>
+            <div class="step-desc">
+              <code>git branch -r | grep 'origin/chore/'</code><br>
+              Passender Branch vorhanden? → Änderung dort einbauen, bestehenden PR updaten. Kein neuer Worktree.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">Änderung in einem Satz beschreiben</div>
+            <div class="step-desc">Beispiele: „Astro auf 5.x bumpen", „Variable umbenennen", „Tippfehler korrigieren"</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">Worktree anlegen &amp; Änderung machen</div>
+            <div class="step-desc">Kein Plan, kein Spec, kein TDD nötig.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Verifikation</div>
+            <div class="step-desc">
+              <code>task test:all</code> — muss grün sein<br>
+              <code>task workspace:validate</code> — falls Manifests betroffen<br>
+              <code>task website:dev</code> — falls <code>website/src/</code> betroffen
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">PR, Auto-Merge &amp; Post-Merge Deploy</div>
+            <div class="step-desc">
+              <em>commit-commands:commit-push-pr</em> aufrufen.<br>
+              Titel: <code>chore(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code><br>
+              Nach Merge: passenden Deploy-Task ausführen (siehe Deploy-Tabelle unten).
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── DEV-FLOW-EXECUTE ───────────────────────────────── -->
+  <section id="execute">
+    <div class="section-header fade-in">
+      <span class="skill-badge exec-badge">Skill 2</span>
+      <h2>dev-flow-execute</h2>
+    </div>
+
+    <div class="path-section fade-in" style="border-left-color: var(--gold); --pc: var(--gold); --pdim: var(--gold-dim);">
+      <div class="path-header" style="background: var(--gold-dim);">
+        <span class="path-header-label" style="color: var(--gold);">Ausführung</span>
+        <span style="font-family:var(--ff-mono);font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;border:1px solid rgba(201,168,76,0.2);border-radius:3px;padding:0.2rem 0.5rem;">feature/* · fix/*</span>
+        <span class="path-header-desc">Startet nach dev-flow-plan auf bestehendem Branch</span>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">Plan finden &amp; lesen</div>
+            <div class="step-desc">
+              Neuesten Plan laden: <code>ls -t docs/superpowers/plans/*.md | grep -v '/executed/' | head -1</code><br>
+              Plan vollständig lesen. Pfad aus Branch-Prefix ableiten (<code>feature/</code> → Feature, <code>fix/</code> → Fix).<br>
+              Ticket-ID aus Frontmatter extrahieren:
+              <pre>TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
+# z.B. TICKET_ID=T000301 — leer wenn kein Ticket im Plan</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step ticket">
+          <div class="step-num"><div class="step-num-inner">1.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Ticket → in_progress
+              <span class="badge badge-new">Neu</span>
+            </div>
+            <div class="step-desc">
+              Falls <code>$TICKET_ID</code> gesetzt:
+              <pre>kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "UPDATE tickets.tickets SET status = 'in_progress'
+   WHERE external_id = '$TICKET_ID';"</pre>
+              <div class="ticket-highlight">
+                <strong>Meldung:</strong> „Ticket <code>$TICKET_ID</code> → in_progress"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">Implementierung</div>
+            <div class="step-desc">
+              <strong>Feature:</strong> bevorzugt <em>superpowers:subagent-driven-development</em> (parallele Agents);<br>
+              alternativ <em>superpowers:executing-plans</em> (sequenziell).<br>
+              Backend/k8s: TDD via <em>superpowers:test-driven-development</em> · UI: <em>frontend-design</em> + Playwright<br>
+              <br>
+              <strong>Fix:</strong> implementieren bis der Failing Test grün ist. Pflicht: <strong>red → green → refactor</strong>.<br>
+              <code>./tests/runner.sh local &lt;test-id&gt;</code> → Ziel: PASS
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Lokale Verifikation</div>
+            <div class="step-desc">
+              <code>task workspace:validate</code><br>
+              <code>./tests/runner.sh local &lt;FA-XX | SA-XX | NFA-XX&gt;</code> — falls relevant<br>
+              <code>task test:all</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Pre-Merge Preview auf dev k3d
+              <span class="badge badge-opt">Optional</span>
+            </div>
+            <div class="step-desc">
+              <strong>Status:</strong> k3d-Dev-Cluster läuft derzeit nicht. Lokal verifizieren und direkt auf Prod deployen.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">5</div></div>
+          <div class="step-body">
+            <div class="step-title">Pull Request</div>
+            <div class="step-desc">
+              Ruft <em>commit-commands:commit-push-pr</em> auf.<br>
+              <strong>Feature:</strong> <code>feat(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code><br>
+              <strong>Fix:</strong> <code>fix(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code> — Body <strong>muss</strong> <code>Closes T######</code> enthalten
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">6</div></div>
+          <div class="step-body">
+            <div class="step-title">Auto-Merge wenn CI grün</div>
+            <div class="step-desc">CI muss grün sein vor dem Merge.</div>
+          </div>
+        </div>
+
+        <div class="step ticket">
+          <div class="step-num"><div class="step-num-inner">6.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Ticket abschließen
+              <span class="badge badge-new">Neu</span>
+            </div>
+            <div class="step-desc">
+              Falls <code>$TICKET_ID</code> gesetzt, nach erfolgreichem Merge:
+              <ul>
+                <li><strong>Feature:</strong> <code>resolution = 'shipped'</code></li>
+                <li><strong>Fix:</strong> <code>resolution = 'fixed'</code></li>
+              </ul>
+              <pre>UPDATE tickets.tickets
+  SET status = 'done', resolution = '$RESOLUTION'
+WHERE external_id = '$TICKET_ID';
+
+INSERT INTO tickets.ticket_comments (ticket_id, body, visibility)
+SELECT id,
+  'PR #$PR_NUM merged. Plan executed: docs/superpowers/plans/&lt;slug&gt;.md',
+  'internal'
+FROM tickets.tickets WHERE external_id = '$TICKET_ID';</pre>
+              <div class="ticket-highlight">
+                <strong>Meldung:</strong> „Ticket <code>$TICKET_ID</code> → done (<code>$RESOLUTION</code>)"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">7</div></div>
+          <div class="step-body">
+            <div class="step-title">Plan archivieren</div>
+            <div class="step-desc">
+              <pre>mkdir -p docs/superpowers/plans/executed
+mv docs/superpowers/plans/&lt;slug&gt;.md docs/superpowers/plans/executed/
+git add docs/superpowers/plans/
+git commit -m "chore(plans): mark &lt;slug&gt; as executed"
+git push</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">8</div></div>
+          <div class="step-body">
+            <div class="step-title">Post-Merge Deploy</div>
+            <div class="step-desc">
+              Geänderte Dateien prüfen via <code>gh pr view &lt;pr&gt; --json files</code>, dann passenden Task ausführen:
+              <div class="deploy-table-wrap" style="margin-top:0.75rem;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Geänderte Dateien</th>
+                      <th>Task</th>
+                      <th>Verify</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>website/src/**</code>, <code>website/public/**</code></td>
+                      <td><code>task feature:website</code></td>
+                      <td>web.mentolder.de + web.korczewski.de</td>
+                    </tr>
+                    <tr>
+                      <td><code>brett/**</code></td>
+                      <td><code>task feature:brett</code></td>
+                      <td>brett.mentolder.de + brett.korczewski.de</td>
+                    </tr>
+                    <tr>
+                      <td><code>k3d/docs-content/**</code></td>
+                      <td><code>task docs:deploy</code></td>
+                      <td>docs.mentolder.de + docs.korczewski.de</td>
+                    </tr>
+                    <tr>
+                      <td><code>k3d/livekit*.yaml</code></td>
+                      <td><code>task feature:livekit</code></td>
+                      <td><code>task livekit:status</code> ENV=mentolder + korczewski</td>
+                    </tr>
+                    <tr>
+                      <td><code>k3d/**</code>, <code>prod/**</code>, <code>environments/sealed-secrets/**</code></td>
+                      <td><code>task feature:deploy</code></td>
+                      <td><code>task workspace:verify:all-prods</code> + <code>task health</code></td>
+                    </tr>
+                    <tr>
+                      <td><code>docs/</code>, <code>*.md</code>, <code>tests/</code>, <code>.claude/</code>, <code>scripts/</code></td>
+                      <td colspan="2" style="color:var(--text-3);font-style:italic;">kein Deploy</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p style="margin-top:0.6rem;font-size:12px;color:var(--text-3);">
+                Priorität bei mehreren Matches: workspace → website → brett → livekit → docs.<br>
+                Verify scheitert? → Keinen Fix auf <code>main</code>. Neuen <code>fix/</code>-Branch via dev-flow-plan öffnen.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── FAILURE HANDLING ───────────────────────────────── -->
+  <section id="failure">
+    <div class="section-header fade-in">
+      <h2>Failure-Handling</h2>
+    </div>
+
+    <div class="failure-grid fade-in">
+      <div class="failure-card">
+        <div class="f-title">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          CI rot vor Merge
+        </div>
+        <p>Diagnose, Fix auf demselben Branch, neu pushen. Keinen zweiten PR aufmachen. Nach 2 erfolglosen Versuchen: internen Ticket-Kommentar hinterlassen. Ticket bleibt auf <code>in_progress</code>.</p>
+      </div>
+      <div class="failure-card">
+        <div class="f-title">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Deploy scheitert post-merge
+        </div>
+        <p>Loggen, Patrick benachrichtigen, Cluster wie ist lassen. <strong>Kein Auto-Rollback.</strong> Ticket bleibt auf <code>in_progress</code> — Patrick muss manuell auf <code>done</code> oder <code>blocked</code> setzen.</p>
+      </div>
+      <div class="failure-card">
+        <div class="f-title">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Verify scheitert post-merge
+        </div>
+        <p>Neuen <code>fix/&lt;slug&gt;</code>-Branch via <em>dev-flow-plan</em> Fix-Pfad öffnen. Regression als Bug behandeln. Am aktuellen Ticket internen Kommentar mit dem neuen Ticket-Link hinterlassen.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── AGENT ROUTING ──────────────────────────────────── -->
+  <section id="agents">
+    <div class="section-header fade-in">
+      <h2>Agent-Routing</h2>
+    </div>
+
+    <p class="fade-in" style="font-size:13.5px; color:var(--text-2); margin-bottom:1.5rem; max-width:640px;">
+      Beide Skills delegieren Spezialarbeit an Sub-Agents. <strong>Pflicht vor jedem Dispatch:</strong>
+      <code>bash scripts/plan-context.sh &lt;role&gt;</code> ausführen und Output in
+      <code>&lt;active-plans&gt;</code>-Tags voranstellen.
+    </p>
+
+    <div class="agent-grid fade-in">
+      <div class="agent-card">
+        <div class="a-domain">DB · Schema · Queries</div>
+        <div class="a-name">bachelorprojekt-db</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Manifests · Kustomize · Taskfile</div>
+        <div class="a-name">bachelorprojekt-infra</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Live-Cluster · Logs · kubectl</div>
+        <div class="a-name">bachelorprojekt-ops</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Tests schreiben · debuggen</div>
+        <div class="a-name">bachelorprojekt-test</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Astro · Svelte · UI</div>
+        <div class="a-name">bachelorprojekt-website</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">SealedSecrets · Keycloak · OIDC</div>
+        <div class="a-name">bachelorprojekt-security</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ── Intersection Observer für Fade-In ────────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-in, .step').forEach((el, i) => {
+    if (el.classList.contains('step')) {
+      el.style.transitionDelay = `${(i % 8) * 60}ms`;
+    }
+    observer.observe(el);
+  });
+
+  // ── Active Nav Highlighting ───────────────────────────
+  const sections = ['hero','pfad','plan','execute','failure','agents'];
+  const navLinks = document.querySelectorAll('nav a.nav-link');
+  const sectionMap = {};
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) sectionMap[id] = el;
+  });
+
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        navLinks.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  Object.values(sectionMap).forEach(s => navObserver.observe(s));
+</script>
+</body>
+</html>

@@ -129,6 +129,13 @@ runcmd:
   # Install task
   - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
+  # Dev toolchain for the gekko-hetzner-2 dev box.
+  # The script is hostname-guarded and is a no-op on every other node,
+  # so it is safe to leave this in the shared cloud-init template.
+  - curl -fsSL https://raw.githubusercontent.com/Paddione/Bachelorprojekt/main/scripts/install-dev-tools.sh -o /usr/local/sbin/install-dev-tools.sh
+  - chmod +x /usr/local/sbin/install-dev-tools.sh
+  - /usr/local/sbin/install-dev-tools.sh || true
+
   # Install Traefik via Helm
   - su - patrick -c "helm repo add traefik https://traefik.github.io/charts"
   - su - patrick -c "helm repo update"

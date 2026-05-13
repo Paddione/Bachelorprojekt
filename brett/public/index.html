@@ -263,14 +263,12 @@
 
   #optik-popup {
     display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
+    position: fixed;
     background: #16213e;
     border: 1px solid #0f3460;
     border-radius: 10px;
     padding: 14px;
-    z-index: 100;
+    z-index: 1000;
     min-width: 240px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.6);
     flex-direction: column;
@@ -2058,7 +2056,19 @@ animate();
 // ── Optik-Panel Interaktion ────────────────────────────────────────────────
 document.getElementById('optik-btn').addEventListener('click', (e) => {
   e.stopPropagation();
-  document.getElementById('optik-popup').classList.toggle('open');
+  const popup = document.getElementById('optik-popup');
+  const willOpen = !popup.classList.contains('open');
+  popup.classList.toggle('open', willOpen);
+  if (willOpen) {
+    const r = document.getElementById('optik-btn').getBoundingClientRect();
+    popup.style.top = (r.bottom + 6) + 'px';
+    // Clamp horizontally so popup stays within the viewport
+    const popW = popup.offsetWidth || 240;
+    let left = r.right - popW;
+    if (left < 8) left = 8;
+    if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+    popup.style.left = left + 'px';
+  }
 });
 
 document.addEventListener('click', (e) => {
@@ -2067,6 +2077,10 @@ document.addEventListener('click', (e) => {
   if (popup.classList.contains('open') && !popup.contains(e.target) && e.target !== btn) {
     popup.classList.remove('open');
   }
+});
+
+window.addEventListener('resize', () => {
+  document.getElementById('optik-popup').classList.remove('open');
 });
 
 document.querySelectorAll('[data-board]').forEach(chip => {

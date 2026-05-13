@@ -79,15 +79,6 @@ spec:
             limits:
               memory: 512Mi
               cpu: "500m"
-          volumeMounts:
-            - name: art-library
-              mountPath: /app/public/art-library
-              readOnly: true
-      volumes:
-        - name: art-library
-          configMap:
-            name: art-library
-            optional: true
 ---
 apiVersion: v1
 kind: Service

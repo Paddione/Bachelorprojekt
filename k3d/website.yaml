@@ -514,6 +514,12 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: kube-system
+    # kube-router netpol enforcement on cross-node CoreDNS occasionally REJECTs
+    # because the flannel.1 tunnel source IP doesn't match the namespaceSelector
+    # IPSet for short-lived Job pods (see reference_kube_router_hostnet_gotcha).
+    # Adding the pod-CIDR ipBlock makes :53 reachable regardless of selector race.
+    - ipBlock:
+        cidr: 10.42.0.0/16
     ports:
     - port: 53
       protocol: UDP

@@ -130,9 +130,25 @@ spec:
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      # Fail-fast: kube-router NetworkPolicy enforcement on cross-node DNS is
+      # racy for kurzlebige Job-Pods. Without backoffLimit:0, the curl exit-6
+      # ("Couldn't resolve host") cascades into a 5-minute CrashLoopBackOff.
+      backoffLimit: 0
+      activeDeadlineSeconds: 25
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
+          # Hetzner-only pinning: home-LAN workers see intermittent cross-node
+          # DNS REJECTs from kube-router netpol enforcement. Pinning to the
+          # Hetzner CPs (where CoreDNS lives) sidesteps the gotcha entirely.
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534

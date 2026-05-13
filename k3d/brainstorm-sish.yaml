@@ -139,3 +139,28 @@ spec:
                 name: brainstorm
                 port:
                   number: 80
+---
+# Allow ingress from anywhere to sish — the workspace ns runs kube-router
+# netpol with default-deny-ingress, so without this rule the public NodePort
+# 32223 (SSH) gets RST'd before reaching the pod and operators cannot publish
+# tunnels at all. HTTP :80 is also opened so cluster-internal Traefik can
+# reach the pod for the browser side of the loop.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-brainstorm-sish-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: brainstorm-sish
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 2222
+          protocol: TCP
+        - port: 80
+          protocol: TCP

@@ -10,6 +10,11 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
+  # dev.mentolder.de — persistent staging stack on gekko-hetzner-2.
+  # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
+  dev:
+    taskfile: ./Taskfile.dev-stack.yml
+    dir: .
 
 vars:
   CLUSTER_NAME: dev

@@ -1,0 +1,219 @@
+# Taskfile.dev-stack.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# dev.mentolder.de — k3d-in-k3s persistent dev stack.
+# All tasks here either:
+#   1) Run against the dev k3d cluster context `k3d-mentolder-dev`, OR
+#   2) Run against the prod mentolder cluster but provision the dev side.
+# ENV= is fixed to "mentolder" for this file — the dev stack is a
+# sub-deployment of the mentolder env.
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+vars:
+  CTX_DEV: k3d-mentolder-dev
+  CTX_PROD: mentolder
+  NS_DEV: workspace-dev
+  NS_PROD: workspace
+  CLUSTER_NAME: mentolder-dev
+  ENV: mentolder
+
+tasks:
+
+  _node-guard:
+    internal: true
+    preconditions:
+      - sh: |
+          source scripts/env-resolve.sh "{{.ENV}}"
+          test -n "$DEV_NODE" && test -n "$DEV_DOMAIN"
+        msg: |
+          DEV_NODE / DEV_DOMAIN unset. Add them to environments/mentolder.yaml first.
+
+  cluster:create:
+    desc: "[dev] Create the dev k3d cluster on $DEV_NODE with the right port bindings"
+    deps: [_node-guard]
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if k3d cluster list 2>/dev/null | grep -q "^{{.CLUSTER_NAME}} "; then
+          echo "Cluster {{.CLUSTER_NAME}} already exists locally. Use task dev:cluster:delete first."
+          exit 1
+        fi
+        ssh root@$DEV_NODE "k3d cluster create {{.CLUSTER_NAME}} \
+          --servers 1 --agents 0 \
+          --port '127.0.0.1:18080:80@loadbalancer' \
+          --port '0.0.0.0:2222:2222@loadbalancer' \
+          --port '127.0.0.1:15432:30000@loadbalancer' \
+          --k3s-arg '--disable=metrics-server@server:*' \
+          --wait"
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
+        ssh root@$DEV_NODE "k3d kubeconfig get {{.CLUSTER_NAME}}" > "$TMP/dev-kubeconfig.yaml"
+        # Rewrite server URL to the SSH host (k3d defaults to 0.0.0.0:<port>)
+        # so we can talk to the API server through an SSH local-forward.
+        echo "✓ Got kubeconfig — merge into ~/.kube/config manually if you want local access:"
+        echo "  KUBECONFIG=\$HOME/.kube/config:$TMP/dev-kubeconfig.yaml kubectl config view --flatten > \$HOME/.kube/config"
+        echo "  kubectl config use-context {{.CTX_DEV}}"
+
+  cluster:delete:
+    desc: "[dev] Destroy the dev k3d cluster (data lost — refresh from prod with dev:db:refresh)"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ssh root@$DEV_NODE "k3d cluster delete {{.CLUSTER_NAME}}"
+
+  cluster:status:
+    desc: "[dev] Show pod status on the dev k3d cluster"
+    cmds:
+      - kubectl --context {{.CTX_DEV}} get pods,svc,ing -n {{.NS_DEV}}
+
+  logs:
+    desc: "[dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)"
+    cmds:
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} logs -l app={{.CLI_ARGS}} --tail 200 -f
+
+  psql:
+    desc: "[dev] Open psql shell to shared-db-dev"
+    cmds:
+      - |
+        kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} exec -it statefulset/shared-db-dev -- \
+          psql -U postgres
+
+  _materialise-secrets:
+    internal: true
+    desc: "[dev] Materialise plaintext secrets from .secrets/mentolder.yaml into workspace-dev"
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        if [[ ! -f "$SECRETS_FILE" ]]; then
+          echo "Missing $SECRETS_FILE — run task env:generate ENV={{.ENV}} first." >&2
+          exit 1
+        fi
+        # env-generate writes flat YAML (top-level keys), so yq path is .KEY
+        SHARED=$(yq -r '.DEV_SHARED_DB_PASSWORD // empty' "$SECRETS_FILE")
+        SITE=$(yq -r '.DEV_WEBSITE_DB_PASSWORD // empty' "$SECRETS_FILE")
+        AUTHKEYS=$(yq -r '.DEV_SISH_AUTHORIZED_KEYS // ""' "$SECRETS_FILE")
+        if [[ -z "$SHARED" || -z "$SITE" ]]; then
+          echo "DEV_SHARED_DB_PASSWORD or DEV_WEBSITE_DB_PASSWORD missing from $SECRETS_FILE." >&2
+          echo "Run task env:generate ENV={{.ENV}} (or add the keys manually) and try again." >&2
+          exit 1
+        fi
+        kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret generic shared-db-dev-secrets \
+          --from-literal=DEV_SHARED_DB_PASSWORD="$SHARED" \
+          --from-literal=DEV_WEBSITE_DB_PASSWORD="$SITE" \
+          --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
+        kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create configmap sish-authorized-keys \
+          --from-literal=authorized_keys="$AUTHKEYS" \
+          --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
+
+  build:website:
+    desc: "[dev] Build the website image and import it into the dev k3d cluster"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        docker build -t ghcr.io/paddione/workspace-website:dev \
+          -f website/Dockerfile \
+          --build-arg PROD_DOMAIN=$DEV_DOMAIN \
+          --build-arg BRAND=mentolder \
+          .
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        docker save ghcr.io/paddione/workspace-website:dev \
+          | ssh root@$DEV_NODE 'k3d image import - -c {{.CLUSTER_NAME}}'
+
+  build:brett:
+    desc: "[dev] Build the brett image and import it into the dev k3d cluster"
+    cmds:
+      - docker build -t ghcr.io/paddione/workspace-brett:dev -f brett/Dockerfile brett/
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        docker save ghcr.io/paddione/workspace-brett:dev \
+          | ssh root@$DEV_NODE 'k3d image import - -c {{.CLUSTER_NAME}}'
+
+  apply:
+    desc: "[dev] Apply the dev-stack overlay to the dev k3d cluster (no image build)"
+    deps: [_materialise-secrets]
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        kubectl kustomize k3d/dev-stack/ \
+          | envsubst '$DEV_DOMAIN $DEV_WEBSITE_HOST $DEV_BRETT_HOST $PROD_DOMAIN $CONTACT_EMAIL' \
+          | kubectl --context {{.CTX_DEV}} apply -f -
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status statefulset/shared-db-dev --timeout=180s
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/website --timeout=180s
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/brett --timeout=120s
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/sish --timeout=60s
+
+  deploy:
+    desc: "[dev] Build images, import to k3d, apply manifests"
+    cmds:
+      - task: build:website
+      - task: build:brett
+      - task: apply
+
+  redeploy:website:
+    desc: "[dev] Rebuild + roll website only"
+    cmds:
+      - task: build:website
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/website
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/website --timeout=180s
+
+  redeploy:brett:
+    desc: "[dev] Rebuild + roll brett only"
+    cmds:
+      - task: build:brett
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/brett
+      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/brett --timeout=120s
+
+  db:refresh:
+    desc: "[dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)"
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
+        export BACKUP_PASSPHRASE=$(yq -r '.BACKUP_PASSPHRASE // empty' "$SECRETS_FILE")
+        export DEV_SHARED_DB_PASSWORD=$(yq -r '.DEV_SHARED_DB_PASSWORD // empty' "$SECRETS_FILE")
+        export DEV_WEBSITE_DB_PASSWORD=$(yq -r '.DEV_WEBSITE_DB_PASSWORD // empty' "$SECRETS_FILE")
+        if [[ -z "$BACKUP_PASSPHRASE" || -z "$DEV_SHARED_DB_PASSWORD" ]]; then
+          echo "Missing BACKUP_PASSPHRASE or DEV_SHARED_DB_PASSWORD in $SECRETS_FILE." >&2; exit 1
+        fi
+        # Copy the latest backup snapshot from prod backup-pvc to a local tempdir,
+        # then run dev-db-refresh.sh against the dev k3d Postgres at 127.0.0.1:15432.
+        TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
+        BACKUP_POD=$(kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get pod -l app=backup -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+        if [[ -z "$BACKUP_POD" ]]; then
+          echo "No pod with label app=backup in {{.NS_PROD}} on {{.CTX_PROD}}." >&2; exit 1
+        fi
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} cp "$BACKUP_POD:/backups" "$TMP/backups"
+        BACKUP_DIR="$TMP/backups" PGHOST=127.0.0.1 PGPORT=15432 bash scripts/dev-db-refresh.sh
+
+  tunnel:
+    desc: "[dev] ssh -R wrapper. Usage: task dev:tunnel -- <name> <localport>"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NAME=$(echo "{{.CLI_ARGS}}" | awk '{print $1}')
+        PORT=$(echo "{{.CLI_ARGS}}" | awk '{print $2}')
+        if [[ -z "$NAME" || -z "$PORT" ]]; then
+          echo "Usage: task dev:tunnel -- <name> <localport>" >&2; exit 2
+        fi
+        echo "Publishing localhost:$PORT as https://$NAME.$DEV_DOMAIN"
+        ssh -p 2222 -R "$NAME:80:localhost:$PORT" tunnel@"$DEV_DOMAIN"
+
+  firewall:open:
+    desc: "[dev] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules on $DEV_NODE"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if [[ -z "${DEV_SSH_ALLOWLIST:-}" ]]; then
+          echo "DEV_SSH_ALLOWLIST is empty — nothing to do." >&2
+          exit 0
+        fi
+        IFS=',' read -ra CIDRS <<<"$DEV_SSH_ALLOWLIST"
+        for cidr in "${CIDRS[@]}"; do
+          ssh root@$DEV_NODE "ufw allow from $cidr to any port 2222 proto tcp comment 'sish-allow'"
+        done
+        ssh root@$DEV_NODE "ufw reload && ufw status numbered | grep 2222"

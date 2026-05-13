@@ -1,0 +1,103 @@
+---
+// website/src/pages/admin/brett.astro
+// Systemisches Brett v2 – nur für Admins.
+// Rendert das Brett als eingebetteten Iframe innerhalb des Admin-Bereichs.
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+// Room-Token aus Query-Parameter (optional)
+const room = Astro.url.searchParams.get('room') || 'admin-standalone';
+const BRETT_URL = process.env.BRETT_URL || 'https://brett.mentolder.de';
+---
+
+<AdminLayout title="Systemisches Brett v2">
+  <!-- Kein Padding / Scrollbalken – Brett füllt den vollen Bereich -->
+  <style>
+    #brett-frame-wrap {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 0px);
+      overflow: hidden;
+      background: #0d0d14;
+    }
+    #brett-topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: #131320;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+    #brett-topbar h1 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #9090b0;
+      font-family: var(--font-mono, monospace);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 0;
+    }
+    #brett-topbar .badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      background: rgba(200,169,110,0.15);
+      border: 1px solid rgba(200,169,110,0.35);
+      border-radius: 20px;
+      color: #c8a96e;
+      font-family: var(--font-mono, monospace);
+      letter-spacing: 0.06em;
+    }
+    #brett-topbar .room-info {
+      font-size: 11px;
+      color: #6a6a88;
+      font-family: var(--font-mono, monospace);
+    }
+    #brett-topbar .spacer { flex: 1; }
+    #brett-topbar a {
+      font-size: 11px;
+      color: #6a6a88;
+      text-decoration: none;
+      padding: 4px 10px;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 7px;
+      transition: all 0.15s;
+    }
+    #brett-topbar a:hover { color: #e8e8f0; border-color: rgba(255,255,255,0.15); }
+    #brett-iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      display: block;
+    }
+  </style>
+
+  <div id="brett-frame-wrap">
+    <div id="brett-topbar">
+      <h1>Systemisches Brett</h1>
+      <span class="badge">v2 • Vorschau</span>
+      <span class="room-info">Raum: {room}</span>
+      <div class="spacer"></div>
+      <a href="/admin/brett?room=admin-standalone" title="Neues Brett ohne Raum">
+        ＋ Neues Brett
+      </a>
+      <a href="/admin" style="color:var(--muted)">← Dashboard</a>
+    </div>
+
+    <!-- Brett läuft im Iframe auf brett.mentolder.de -->
+    <!-- Schutz: Diese Seite ist admin-only durch den Auth-Check oben. -->
+    <!-- Das Brett selbst ist über das interne Netz erreichbar, -->
+    <!-- aber der Link aus dem Internet führt nur hierher. -->
+    <iframe
+      id="brett-iframe"
+      src={`${BRETT_URL}/brett-v2.html?room=${encodeURIComponent(room)}`}
+      allow="fullscreen"
+      referrerpolicy="origin"
+      title="Systemisches Brett v2"
+    ></iframe>
+  </div>
+</AdminLayout>

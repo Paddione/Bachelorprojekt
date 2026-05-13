@@ -369,7 +369,7 @@ Bachelorprojekt/
     unit/                       # BATS Unit-Tests
   website/                      # Astro + Svelte Website (mentolder.de + korczewski.de via BRAND_ID)
   docs/                         # Projektdokumentation (Docsify-faehig)
-  docs-site/                    # Docsify index.html
+  k3d/docs-content/             # Docs-ConfigMap-Quelle (Markdown + Docsify index.html), via `task docs:deploy`
 ```
 
 ## Regeln fuer dieses Monorepo

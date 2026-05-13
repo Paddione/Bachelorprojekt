@@ -1,7 +1,7 @@
 # ════════════════════════════════════════════════════════════════════
 # arena — authoritative game server. Single replica (in-memory lobby).
-# Deployed only in the mentolder cluster. Korczewski website connects
-# to this same instance via arena-ws.mentolder.de.
+# Deployed on the korczewski cluster (arena-ws.korczewski.de).
+# Mentolder website connects cross-cluster to arena-ws.korczewski.de.
 # ════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment

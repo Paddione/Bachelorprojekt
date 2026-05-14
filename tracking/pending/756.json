@@ -1,0 +1,15 @@
+{
+  "pr_number": 756,
+  "title": "surface T-###### plan ticket as deep-link on Kore timeline [T000373]",
+  "description": "## Summary\n\n- `parsePr()` now extracts T-###### ticket references from PR bodies via `TICKET_RE = /\\bT\\d{6}\\b/g`\n- `writeRowToDb()` writes `tickets.ticket_links` rows with `kind='implements'` for each T-ref found\n- `listTimeline()` batch-fetches implements links in parallel with fixes counts and exposes both `ticket_external_id` (display) and `ticket_id` (UUID for route) per timeline row\n- `Timeline.svelte` renders a dotted-underline badge linking to `/admin/tickets/{uuid}` with `T######` as the display text\n- `tickets-db.ts` schema extended: `ticket_links.kind` CHECK constraint now includes `'implements'`; the `initTicketsSchema()` migration is idempotent (DO block drops+recreates only if `'implements'` is absent)\n\n## Test plan\n\n- [x] `node --test scripts/track-pr.test.mjs` — 9/9 pass (2 new T-ref extraction tests)\n- [x] `task test:all` — FAIL=0, manifests valid\n- [x] `task workspace:validate` — manifests valid\n- [ ] After merge: run `task tracking:backfill && task tracking:ingest:local` (requires `TRACKING_DB_URL` from `task workspace:port-forward ENV=mentolder`) to backfill `implements` links for historical PRs that already have T-refs in their descriptions\n- [ ] After next PR with `T######` in body: verify badge appears on Kore homepage timeline after `tracking-import` CronJob runs (~5 min)\n\nCloses T000373\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "timeline",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T19:12:49Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": [
+    "T000373"
+  ]
+}

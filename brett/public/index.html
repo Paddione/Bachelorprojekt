@@ -546,13 +546,16 @@
 
   renderer.domElement.addEventListener('click', (e) => {
     if (dragging) return;
-    // Already handled by mousedown for contact spheres; this handles body / floor clicks
     if (e.shiftKey) return;
-    const body = pickMannequinBody(e);
-    if (body) { selectFigure(body.id); return; }
+    if (pickMannequinBody(e)) return; // selection click already happened
     const floorPt = pickFloor(e);
-    if (floorPt && STATE.selectedId) {
-      // Walk-to-click handled in Task 9; for now: deselect on empty floor click only via ESC
+    if (!floorPt || !STATE.selectedId) return;
+    if (STATE.stiffness < 0.3) return; // body too limp
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) {
+      fig.walkTarget = { x: floorPt.x, z: floorPt.z };
+      fig.walking = true;
+      sendUpdate(fig, { walkTarget: fig.walkTarget, walking: true });
     }
   });
 
@@ -583,12 +586,99 @@
   });
   function sendDelete() { /* placeholder until Task 10 */ }
 
+  // ----- Walking -----
+  const WALK_SPEED = 2.0;          // units/s
+  const TURN_RATE  = 8.0;          // rad/s
+  const ARRIVE_EPS = 0.3;          // distance threshold
+  const wasdKeys = { w:false, a:false, s:false, d:false };
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key.length === 1 && wasdKeys.hasOwnProperty(e.key.toLowerCase())) wasdKeys[e.key.toLowerCase()] = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key.length === 1 && wasdKeys.hasOwnProperty(e.key.toLowerCase())) wasdKeys[e.key.toLowerCase()] = false;
+  });
+
+  function tickWalkAnimation(fig, t) {
+    if (!fig.walking) return;
+    const phase = t * 4.0;
+    // Override-respecting: spring already left these bones alone if not in boneOverrides
+    if (!fig.boneOverrides.lHip)      fig.bone.lHip.targetRot.x      = Math.sin(phase) * 0.6;
+    if (!fig.boneOverrides.rHip)      fig.bone.rHip.targetRot.x      = Math.sin(phase + Math.PI) * 0.6;
+    if (!fig.boneOverrides.lKnee)     fig.bone.lKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*0.5)) * 0.8;
+    if (!fig.boneOverrides.rKnee)     fig.bone.rKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*1.5)) * 0.8;
+    if (!fig.boneOverrides.lShoulder) fig.bone.lShoulder.targetRot.x = Math.sin(phase + Math.PI) * 0.4;
+    if (!fig.boneOverrides.rShoulder) fig.bone.rShoulder.targetRot.x = Math.sin(phase) * 0.4;
+  }
+
+  function tickWalk(dt, t) {
+    const stiff = STATE.stiffness;
+    for (const fig of STATE.figures) {
+      // WASD only for selected figure
+      let dx = 0, dz = 0;
+      if (fig.id === STATE.selectedId && stiff >= 0.3) {
+        if (wasdKeys.w) { dx += -Math.sin(cameraOrbit.theta); dz += -Math.cos(cameraOrbit.theta); }
+        if (wasdKeys.s) { dx +=  Math.sin(cameraOrbit.theta); dz +=  Math.cos(cameraOrbit.theta); }
+        if (wasdKeys.a) { dx += -Math.cos(cameraOrbit.theta); dz +=  Math.sin(cameraOrbit.theta); }
+        if (wasdKeys.d) { dx +=  Math.cos(cameraOrbit.theta); dz += -Math.sin(cameraOrbit.theta); }
+        const mag = Math.hypot(dx, dz);
+        if (mag > 1e-3) {
+          dx /= mag; dz /= mag;
+          fig.walkTarget = null;
+          fig.walking = true;
+          fig.root.position.x += dx * WALK_SPEED * dt;
+          fig.root.position.z += dz * WALK_SPEED * dt;
+          const want = Math.atan2(dx, dz);
+          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
+          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
+          fig.root.rotation.y = fig.facingY;
+        }
+      }
+      // Click-to-walk target
+      if (fig.walkTarget) {
+        const tx = fig.walkTarget.x - fig.root.position.x;
+        const tz = fig.walkTarget.z - fig.root.position.z;
+        const dist = Math.hypot(tx, tz);
+        if (dist < ARRIVE_EPS) {
+          fig.walkTarget = null; fig.walking = false;
+        } else if (stiff >= 0.3) {
+          const ndx = tx / dist, ndz = tz / dist;
+          fig.root.position.x += ndx * WALK_SPEED * dt;
+          fig.root.position.z += ndz * WALK_SPEED * dt;
+          const want = Math.atan2(ndx, ndz);
+          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
+          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
+          fig.root.rotation.y = fig.facingY;
+          fig.walking = true;
+        } else {
+          fig.walking = false;
+        }
+      } else if (Math.hypot(dx, dz) < 1e-3) {
+        fig.walking = false;
+      }
+      tickWalkAnimation(fig, t);
+    }
+  }
+
+  // ----- Status pill -----
+  const pillEl = document.getElementById('status-pill');
+  function updateStatusPill() {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (STATE.stiffness < 0.3) { pillEl.textContent = 'zu schlaff zum Laufen — Slider nach rechts'; return; }
+    if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
+    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur'; return; }
+    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · ESC = stop'; return; }
+    pillEl.textContent = '🚶 WALK · WASD / Klick Boden = Ziel · Tab = nächste';
+  }
+
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
     lastTickMs = now;
+    tickWalk(dt, now / 1000);
     tickSpring(dt);
+    updateStatusPill();
     renderer.render(scene, camera);
   }
     tick();

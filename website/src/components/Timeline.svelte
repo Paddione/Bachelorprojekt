@@ -9,6 +9,7 @@
     category: string; scope: string | null; brand: string | null;
     requirement_id: string | null; bugs_fixed: number;
     ticket_external_id: string | null;
+    ticket_id: string | null;
   };
 
   let { initialRows = [] }: { initialRows?: Row[] } = $props();
@@ -57,8 +58,8 @@
       <span class="meta">
         {#if r.pr_number}<span class="pr">PR #{r.pr_number}</span>{/if}
         {#if r.bugs_fixed > 0}<span class="bug">+{r.bugs_fixed} fix</span>{/if}
-        {#if r.ticket_external_id}
-          <a class="ticket" href="/admin/tickets/{r.ticket_external_id}">{r.ticket_external_id}</a>
+        {#if r.ticket_external_id && r.ticket_id}
+          <a class="ticket" href="/admin/tickets/{r.ticket_id}">{r.ticket_external_id}</a>
         {/if}
       </span>
     </li>

@@ -1,26 +1,30 @@
 # Gemini CLI Context: Workspace MVP
 
+> **Authoritative reference:** [CLAUDE.md](CLAUDE.md) — full task reference, agent routing, gotchas, and production-cluster topology. This file is a Gemini-CLI-shaped summary; defer to CLAUDE.md when in doubt.
+
 ## Project Overview
 
-This is an infrastructure-as-code and deployment monorepo for a Kubernetes-based collaboration platform designed for small teams. The "Workspace MVP" integrates various open-source and custom services into a cohesive environment.
+Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod clusters (`mentolder` + `korczewski-ha`) plus k3d for dev. All services in `workspace` (mentolder) / `workspace-korczewski` (korczewski) namespaces, fronted by Traefik.
 
 **Core Services:**
-*   **Keycloak:** Identity Provider (SSO/OIDC)
-*   **Nextcloud:** File sharing, Calendars, Contacts, and Video (Talk)
-*   **Collabora Online:** Office suite backend for Nextcloud
+*   **Keycloak:** Identity Provider (SSO/OIDC, eigene Realm pro Cluster)
+*   **Nextcloud + Talk:** Dateien, Kalender, Kontakte, Video
+*   **Collabora Online:** WOPI-Backend für Nextcloud (separater `task workspace:office:deploy` Overlay)
 *   **Talk HPB:** WebRTC Signaling (Janus + NATS + coturn)
-*   **Vaultwarden:** Password manager (Bitwarden-compatible)
+*   **Vaultwarden:** Password manager (Bitwarden-kompatibel)
 *   **DocuSeal:** E-Signature
-*   **Whiteboard / Brett:** Collaborative tools
-*   **Claude Code MCP Server:** AI integration infrastructure
-*   **Website:** Astro + Svelte based frontend (mentolder.de / korczewski.de)
+*   **Whiteboard / Brett (Systembrett):** Kollaborative Tools
+*   **LiveKit (Server + Ingress + Egress):** Streaming + Recording
+*   **Arena (nur korczewski-ha):** Multiplayer-Backend, von beiden Brands genutzt
+*   **Website:** Astro + Svelte (Brand-aware: mentolder + korczewski via `BRAND_ID`)
+*   **Claude Code MCP Monolith:** AI-Tooling
 *   **Traefik:** Ingress Controller
-*   **PostgreSQL:** Shared database
+*   **PostgreSQL `shared-db`:** Eigene Instanz pro Cluster, separate DBs pro Service
 
 **Infrastructure:**
-*   Deployed locally using **k3d** (development) and in production using **k3s**.
-*   Configuration management is handled entirely via **Kustomize** (no Helm charts or docker-compose for the main stack).
-*   **ArgoCD** is used for GitOps multi-cluster federation (Hub and Spoke model).
+*   k3d (Dev) + k3s (Prod). Kustomize ist das alleinige Build-Tool.
+*   ArgoCD-Federation: Hub auf `mentolder`, Spoke `cluster-korczewski-ha`.
+*   SealedSecrets (bitnami) pro Cluster; Secrets-Pipeline via `task env:seal ENV=<env>`.
 
 ## Building and Running
 
@@ -72,7 +76,7 @@ task workspace:up
 2.  **Manifest Location:** All base Kubernetes manifests reside in `k3d/`. Overlays for production are in `prod/`, `prod-korczewski/`, and `k3s/`.
 3.  **Kustomize:** Kustomize is the primary tool for orchestrating Kubernetes manifests.
 4.  **Git Workflow:** Changes must be made via Pull Requests. No direct pushes to `main`.
-5.  **CI Enforcement:** The CI pipeline (manifest validation, YAML linting, shellcheck, security scans) must pass before merging.
+5.  **CI Enforcement:** `task test:all` (BATS unit tests, kustomize manifest dry-run, Taskfile lint), test-inventory drift guard, image-pin/secret scan, and the arena protocol-drift guard must pass before merging. `yamllint`/`shellcheck`/`kubeconform` are NOT in CI — run locally if you want them.
 6.  **Centralized Domains:** Domain configuration is centralized in `k3d/configmap-domains.yaml`. Hardcoded hostnames in manifests are forbidden.
 7.  **Secrets Management:** Development secrets are in `k3d/secrets.yaml`. **Never commit real credentials.** Production uses Sealed Secrets.
 8.  **Testing:** Automated tests (Bash + Playwright + BATS) are run locally via `./tests/runner.sh local`.

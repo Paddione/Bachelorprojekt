@@ -1,24 +1,32 @@
 <!-- website/src/components/admin/TicketQuickEdit.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ListedTicket, TicketPriority, TicketStatus } from '../../lib/tickets/admin';
+  import type { ListedTicket } from '../../lib/tickets/admin';
 
-  export let ticket: ListedTicket;
-  export let admins: { id: string, name: string }[] = [];
-  export let components: string[] = [];
-  export let onSave: (ticket: ListedTicket) => void = () => {};
-  export let onClose: () => void = () => {};
+  let {
+    ticket,
+    admins = [],
+    components = [],
+    onSave = () => {},
+    onClose = () => {}
+  } = $props<{
+    ticket: ListedTicket;
+    admins?: { id: string, name: string }[];
+    components?: string[];
+    onSave?: (ticket: ListedTicket) => void;
+    onClose?: () => void;
+  }>();
 
-  let description = '';
-  let component = ticket.component || '';
-  let priority = ticket.priority;
-  let attentionMode = ticket.attentionMode;
-  let dueDate = ticket.dueDate ? new Date(ticket.dueDate).toISOString().split('T')[0] : '';
-  let status = ticket.status;
-  let assigneeId = ticket.assigneeId || '';
+  let description = $state('');
+  let component = $state(ticket.component || '');
+  let priority = $state(ticket.priority);
+  let attentionMode = $state(ticket.attentionMode);
+  let dueDate = $state(ticket.dueDate ? new Date(ticket.dueDate).toISOString().split('T')[0] : '');
+  let status = $state(ticket.status);
+  let assigneeId = $state(ticket.assigneeId || '');
 
-  let busy = false;
-  let error = '';
+  let busy = $state(false);
+  let error = $state('');
 
   const isTriage = ticket.status === 'triage';
 
@@ -35,8 +43,8 @@
     }
   });
 
-  $: aiReadyCheck = (description.trim().length >= 20 && component.trim().length > 0 && !ticket.reporterEmail);
-  $: showAiHint = attentionMode === 'auto' && isTriage;
+  const aiReadyCheck = $derived(description.trim().length >= 20 && component.trim().length > 0 && !ticket.reporterEmail);
+  const showAiHint = $derived(attentionMode === 'auto' && isTriage);
 
   async function save(transitionToBacklog = false) {
     busy = true;

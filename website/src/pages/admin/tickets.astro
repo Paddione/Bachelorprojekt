@@ -385,6 +385,7 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
 
 <script>
   import TicketQuickEdit from '../../components/admin/TicketQuickEdit.svelte';
+  import { mount, unmount } from 'svelte';
 
   const dialog = document.getElementById('create-dialog') as HTMLDialogElement;
   const form   = document.getElementById('create-form')   as HTMLFormElement;
@@ -421,9 +422,9 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
       const admins = JSON.parse(document.getElementById('admins-data')?.textContent || '[]');
       const components = JSON.parse(document.getElementById('components-data')?.textContent || '[]');
       
-      if (currentComponent) currentComponent.$destroy();
+      if (currentComponent) unmount(currentComponent);
       
-      currentComponent = new TicketQuickEdit({
+      currentComponent = mount(TicketQuickEdit, {
         target: container!,
         props: {
           ticket,
@@ -431,8 +432,10 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
           components,
           onSave: () => location.reload(),
           onClose: () => {
-            currentComponent.$destroy();
-            currentComponent = null;
+            if (currentComponent) {
+              unmount(currentComponent);
+              currentComponent = null;
+            }
           }
         }
       });

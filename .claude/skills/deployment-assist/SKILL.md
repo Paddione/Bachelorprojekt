@@ -3,6 +3,12 @@ name: deployment-assist
 description: Use when the user wants to deploy, set up, or diagnose the workspace platform — after a fresh clone or on a partially-deployed environment. Guides through environment selection, credential check, status assessment, and sequential task execution until everything is running.
 ---
 
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
 # deployment-assist
 
 Interactive deployment guide. Runs a phased assessment of what exists, what's missing, and what credentials are needed, then offers to execute required tasks in order.
@@ -264,3 +270,10 @@ task health                   # full connectivity check
 | App `OutOfSync` with `${VAR}` literal in error (e.g. `${DEV_NODE}`, `${LLM_HOST_IP}`) | Env var not in cluster Secret annotations. Patch the Secret and add the annotation to `argocd/applicationset.yaml` template + `Taskfile.argocd.yml` cluster:register patches, then re-apply: `kubectl apply -f argocd/applicationset.yaml` |
 | Deployment stuck with old pod `Running` and new pod `Pending` (hostPort deadlock) | Rolling update deadlock — old pod holds the hostPort on the node. Delete the old pod manually: `kubectl delete pod -n <ns> <old-pod>` — the new pod will claim the port |
 | ArgoCD cached error persists after fix | Force re-evaluation: `argocd app get <app> --hard-refresh --grpc-web` |
+
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your
+accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
+cleanly with "No mishaps found."

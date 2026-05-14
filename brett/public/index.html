@@ -26,6 +26,71 @@
       border-radius:20px; font-size:13px; pointer-events:none; z-index:10;
     }
     canvas { display:block; }
+
+    /* ── Character-Editor Panel ─────────────────────────────────── */
+    #fig-panel-wrap { position: relative; display: inline-flex; align-items: center; }
+
+    #fig-panel-btn {
+      background: transparent; color: inherit;
+      border: 1px solid rgba(231,234,208,0.18);
+      border-radius: 4px; padding: 4px 10px;
+      font: inherit; cursor: pointer; white-space: nowrap;
+    }
+    #fig-panel-btn:hover, #fig-panel-btn.open { background: rgba(231,234,208,0.12); }
+
+    #fig-panel {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      z-index: 200;
+      background: #161a22; border: 1px solid rgba(200,169,110,0.35);
+      border-radius: 10px; padding: 12px 14px;
+      width: 240px; display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+
+    #fig-panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #fig-panel-title {
+      font-size: 10px; font-weight: 600; color: #c8a96e;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    #fig-panel-close {
+      background: none; border: none; color: rgba(231,234,208,0.4);
+      cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
+    }
+    #fig-panel-close:hover { color: #e7ead0; }
+
+    .fig-panel-label {
+      font-size: 10px; color: rgba(231,234,208,0.5);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    #fig-panel-colors { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+    .fig-color-swatch {
+      width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
+    }
+    .fig-color-swatch:hover { transform: scale(1.15); }
+    .fig-color-swatch.active { border-color: #c8a96e; }
+
+    #fig-label-input {
+      background: rgba(231,234,208,0.06); border: 1px solid rgba(231,234,208,0.18);
+      border-radius: 5px; color: #e7ead0; font: inherit; font-size: 12px;
+      padding: 5px 8px; width: 100%;
+    }
+    #fig-label-input:focus { outline: none; border-color: rgba(200,169,110,0.5); }
+    #fig-label-input::placeholder { color: rgba(231,234,208,0.3); }
+
+    #fig-panel-add {
+      background: #c8a96e; color: #0a0a14;
+      border: none; border-radius: 6px;
+      padding: 7px 10px; font-size: 12px; font-weight: 600;
+      cursor: pointer; width: 100%;
+    }
+    #fig-panel-add:hover { filter: brightness(1.1); }
+
+    body.placing-figure { cursor: crosshair !important; }
   </style>
 </head>
 <body>
@@ -46,11 +111,32 @@
     </div>
     <div class="sep"></div>
     <div class="group" style="margin-left:auto;">
-      <button id="add-figure" class="icon-btn">+ Figur</button>
+      <div id="fig-panel-wrap">
+        <button id="fig-panel-btn" aria-expanded="false" aria-controls="fig-panel">＋ Figur ▾</button>
+        <div id="fig-panel" hidden role="dialog" aria-label="Figur-Editor">
+          <div id="fig-panel-header">
+            <span id="fig-panel-title">NEUE FIGUR</span>
+            <button id="fig-panel-close" aria-label="Panel schließen">✕</button>
+          </div>
+          <span class="fig-panel-label">Farbe</span>
+          <div id="fig-panel-colors">
+            <div class="fig-color-swatch active" data-color="#b8c0a8" style="background:#b8c0a8;" title="Standard"></div>
+            <div class="fig-color-swatch" data-color="#e06b6b" style="background:#e06b6b;" title="Rot"></div>
+            <div class="fig-color-swatch" data-color="#6ba8e0" style="background:#6ba8e0;" title="Blau"></div>
+            <div class="fig-color-swatch" data-color="#6be0a0" style="background:#6be0a0;" title="Grün"></div>
+            <div class="fig-color-swatch" data-color="#e0c06b" style="background:#e0c06b;" title="Gelb"></div>
+            <div class="fig-color-swatch" data-color="#c06be0" style="background:#c06be0;" title="Lila"></div>
+            <div class="fig-color-swatch" data-color="#e0906b" style="background:#e0906b;" title="Orange"></div>
+          </div>
+          <span class="fig-panel-label">Name</span>
+          <input id="fig-label-input" type="text" placeholder="Figur benennen …" maxlength="40" />
+          <button id="fig-panel-add">＋ Auf Brett setzen</button>
+        </div>
+      </div>
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
     </div>
   </div>
-  <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = neue Figur</div>
+  <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = Figur teleportieren / neue Figur</div>
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====
@@ -229,6 +315,7 @@
       walking: false,
       boneOverrides: {},
       label: 'Figur',
+      color: '#b8c0a8',
       facingY: 0,
     };
   }
@@ -239,6 +326,36 @@
     STATE.figures.push(fig);
     selectFigure(id);
     return fig;
+  }
+
+  // ── Panel state ──────────────────────────────────────────────────────────────
+  let panelColor = '#b8c0a8'; // default body color for new figures
+
+  function recolorFigure(fig, hexColor) {
+    const threeColor = new THREE.Color(hexColor);
+    fig.root.traverse(o => {
+      if (o.isMesh && !o.userData.isContact && o !== fig.ring) {
+        if (o.material) o.material.color.set(threeColor);
+      }
+    });
+    fig.color = hexColor;
+  }
+
+  function syncPanelToSelection(id) {
+    const title  = document.getElementById('fig-panel-title');
+    const addBtn = document.getElementById('fig-panel-add');
+    const input  = document.getElementById('fig-label-input');
+    if (!title) return;
+    const fig = STATE.figures.find(f => f.id === id);
+    if (fig) {
+      title.textContent = 'FIGUR BEARBEITEN';
+      if (addBtn) addBtn.hidden = true;
+      if (input) input.value = fig.label || '';
+    } else {
+      title.textContent = 'NEUE FIGUR';
+      if (addBtn) addBtn.hidden = false;
+      if (input) input.value = '';
+    }
   }
 
   function selectFigure(id) {
@@ -254,10 +371,61 @@
         }
       });
     }
+    syncPanelToSelection(id);
   }
 
-  document.getElementById('add-figure').addEventListener('click', () => {
-    addFigure({ x: (Math.random()-0.5)*2, z: (Math.random()-0.5)*2 });
+  // ── Panel toggle ─────────────────────────────────────────────────────────────
+  const figPanelBtn   = document.getElementById('fig-panel-btn');
+  const figPanel      = document.getElementById('fig-panel');
+  const figPanelClose = document.getElementById('fig-panel-close');
+
+  function openFigPanel()  {
+    figPanel.hidden = false;
+    figPanelBtn.classList.add('open');
+    figPanelBtn.setAttribute('aria-expanded', 'true');
+    syncPanelToSelection(STATE.selectedId);
+  }
+  function closeFigPanel() {
+    figPanel.hidden = true;
+    figPanelBtn.classList.remove('open');
+    figPanelBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  figPanelBtn.addEventListener('click', () => {
+    figPanel.hidden ? openFigPanel() : closeFigPanel();
+  });
+  figPanelClose.addEventListener('click', closeFigPanel);
+  document.addEventListener('click', e => {
+    if (!figPanel.hidden && !figPanel.contains(e.target) && e.target !== figPanelBtn) {
+      closeFigPanel();
+    }
+  });
+
+  // ── Color swatches ────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-colors').addEventListener('click', e => {
+    const swatch = e.target.closest('.fig-color-swatch');
+    if (!swatch) return;
+    document.querySelectorAll('.fig-color-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    panelColor = swatch.dataset.color;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) recolorFigure(fig, panelColor);
+  });
+
+  // ── Label input ────────────────────────────────────────────────────────────────
+  document.getElementById('fig-label-input').addEventListener('input', e => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) fig.label = e.target.value;
+  });
+
+  // ── Add button ─────────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-add').addEventListener('click', () => {
+    const label = document.getElementById('fig-label-input').value.trim();
+    const x = (Math.random() - 0.5) * 4, z = (Math.random() - 0.5) * 4;
+    const fig = addFigure({ x, z });
+    recolorFigure(fig, panelColor);
+    if (label) fig.label = label;
+    closeFigPanel();
   });
   // ----- Pose presets (target rotations in radians; only x and z used) -----
   // Each value is { x: pitch, z: roll } applied via group.rotation.x / .z.
@@ -559,9 +727,34 @@
     }
   });
 
+  function easeFigure(fig, tx, tz, durationMs) {
+    const sx = fig.root.position.x, sz = fig.root.position.z;
+    const start = performance.now();
+    function step() {
+      const t = Math.min(1, (performance.now() - start) / durationMs);
+      const e = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+      fig.root.position.x = sx + (tx - sx) * e;
+      fig.root.position.z = sz + (tz - sz) * e;
+      if (t < 1) { requestAnimationFrame(step); }
+      else {
+        fig.root.position.x = tx; fig.root.position.z = tz;
+        if (wsReady) ws.send(JSON.stringify({ type: 'move', id: fig.id, x: tx, z: tz, facingY: fig.facingY }));
+      }
+    }
+    fig.walkTarget = null; fig.walking = false;
+    requestAnimationFrame(step);
+  }
+  window.easeFigure = easeFigure;
+
   renderer.domElement.addEventListener('dblclick', (e) => {
     const floorPt = pickFloor(e);
-    if (floorPt) addFigure({ x: floorPt.x, z: floorPt.z });
+    if (!floorPt) return;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) {
+      easeFigure(fig, floorPt.x, floorPt.z, 300);
+    } else {
+      addFigure({ x: floorPt.x, z: floorPt.z });
+    }
   });
 
   window.addEventListener('keydown', (e) => {
@@ -588,15 +781,28 @@
 
   // ----- Walking -----
   const WALK_SPEED = 2.0;          // units/s
+  const SPRINT_MULT = 3.0;         // Shift-sprint multiplier
   const TURN_RATE  = 8.0;          // rad/s
   const ARRIVE_EPS = 0.3;          // distance threshold
-  const wasdKeys = { w:false, a:false, s:false, d:false };
+  const wasdKeys = { w:false, a:false, s:false, d:false, shift:false };
 
   window.addEventListener('keydown', (e) => {
-    if (e.key.length === 1 && wasdKeys.hasOwnProperty(e.key.toLowerCase())) wasdKeys[e.key.toLowerCase()] = true;
+    if (e.key === 'Shift') { wasdKeys.shift = true; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = true;
+    if (e.key === 'ArrowUp')    { wasdKeys.w = true; e.preventDefault(); }
+    if (e.key === 'ArrowDown')  { wasdKeys.s = true; e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { wasdKeys.a = true; e.preventDefault(); }
+    if (e.key === 'ArrowRight') { wasdKeys.d = true; e.preventDefault(); }
   });
   window.addEventListener('keyup', (e) => {
-    if (e.key.length === 1 && wasdKeys.hasOwnProperty(e.key.toLowerCase())) wasdKeys[e.key.toLowerCase()] = false;
+    if (e.key === 'Shift') { wasdKeys.shift = false; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = false;
+    if (e.key === 'ArrowUp')    wasdKeys.w = false;
+    if (e.key === 'ArrowDown')  wasdKeys.s = false;
+    if (e.key === 'ArrowLeft')  wasdKeys.a = false;
+    if (e.key === 'ArrowRight') wasdKeys.d = false;
   });
 
   function tickWalkAnimation(fig, t) {
@@ -626,8 +832,9 @@
           dx /= mag; dz /= mag;
           fig.walkTarget = null;
           fig.walking = true;
-          fig.root.position.x += dx * WALK_SPEED * dt;
-          fig.root.position.z += dz * WALK_SPEED * dt;
+          const speed = WALK_SPEED * (wasdKeys.shift ? SPRINT_MULT : 1);
+          fig.root.position.x += dx * speed * dt;
+          fig.root.position.z += dz * speed * dt;
           const want = Math.atan2(dx, dz);
           const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
           fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
@@ -666,9 +873,9 @@
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
     if (STATE.stiffness < 0.3) { pillEl.textContent = 'zu schlaff zum Laufen — Slider nach rechts'; return; }
     if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
-    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur'; return; }
-    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · ESC = stop'; return; }
-    pillEl.textContent = '🚶 WALK · WASD / Klick Boden = Ziel · Tab = nächste';
+    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur hinzufügen'; return; }
+    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · Doppelklick = Teleport · ESC = stop'; return; }
+    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Klick Boden = Ziel · Tab = nächste';
   }
 
   // ----- WebSocket sync -----

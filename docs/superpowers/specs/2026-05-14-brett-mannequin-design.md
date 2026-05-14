@@ -22,7 +22,7 @@ Die bestehenden 3D-Figuren im Brett-Service um einen vollgelenkigen Holz-Künstl
 - Walk-Animation via `tickMannequinWalk(fig, t)` + Toggle-Button `🚶 Walk` im selected-info-Panel
 - Gelenk-Dragging (nur am selektierten Mannequin): Klick auf Messing-Sphere → Drag → `rotation.z`/`rotation.x` des Knochengroups
 - Farb-Tinting: `lerp(userColor, #d4a26a, 0.5)`
-- `manifest.json`: neuer Eintrag `{ id: "mannequin", kind: "mannequin", category: "3d" }`
+- `manifest.json`: neuer Eintrag `{ id: "mannequin", kind: "mannequin", label: "Mannequin", category: "3d" }`
 - Neuer `'3d'`-Tab in der Art-Library mit Canvas-Mini-Render als Button-Thumbnail
 - Walk-State synchronisiert via WebSocket (`figToJSON` + `update`-Pakete)
 
@@ -64,13 +64,14 @@ Eingriffe in bestehenden Code sind auf folgende Stellen beschränkt:
 
 1. `CAT_LABELS` — `'3d': '🪆 3D'` ergänzen
 2. `buildFigure()` — neuer `else if (type === 'mannequin')` Zweig
-3. `bootArtLibrary()` — erkennt `kind === 'mannequin'`, rendert Canvas-Thumbnail statt SVG
-4. `selectFigure()` — Walk-Toggle-Button wenn `fig.type === 'mannequin'`
-5. `recolorFigure()` — `fig.walking` + `fig.bones` nach Rebuild übertragen
-6. `figToJSON()` — `walking: fig.walking || false` ergänzen
-7. WebSocket-Handler (`add`, `snapshot`) — lesen `walking` aus eingehenden Daten
-8. `animate()`-Loop — `tickAllMannequinWalks(t)` einmal pro Frame
-9. Maus-Handler (mousedown/mousemove/mouseup) — Joint-Drag-Logik einbauen
+3. `bootArtLibrary()` — befüllt zusätzlich ein `mannequinIds`-Set (analog `characterIds`) für alle `kind === 'mannequin'`-Einträge
+4. `renderTabContent()` — vor dem bestehenden `characterIds`-Check: wenn `a.kind === 'mannequin'`, Canvas-Button erzeugen (`drawMannequinThumb`) statt SVG-Fetch und danach `continue`; der `characterIds`-Check läuft für normale Figuren unverändert
+5. `selectFigure()` — Walk-Toggle-Button wenn `fig.type === 'mannequin'`
+6. `recolorFigure()` — `fig.walking` + `fig.bones` aus `newMesh.userData.bones` nach Rebuild übertragen
+7. `figToJSON()` — `walking: fig.walking || false` ergänzen
+8. WebSocket-Handler (`add`, `snapshot`) — lesen `walking` aus eingehenden Daten
+9. `animate()`-Loop — `tickAllMannequinWalks(t)` einmal pro Frame
+10. Maus-Handler (mousedown/mousemove/mouseup) — Joint-Drag-Logik einbauen
 
 ---
 
@@ -116,13 +117,30 @@ fig.mesh (THREE.Group)
 ```
 
 **`fig.bones`-Referenzobjekt:**
+
+`buildMannequin()` schreibt die Knochen-Referenzen auf `group.userData.bones` (nicht direkt auf `fig`):
 ```js
-fig.bones = {
+group.userData.bones = {
   hips, spine, chest, neck, head,
   lShoulder, lElbow, lWrist,
   rShoulder, rElbow, rWrist,
   lHip, lKnee, lAnkle,
   rHip, rKnee, rAnkle
+};
+```
+
+`buildFigure()` setzt nach dem `buildMannequin()`-Aufruf:
+```js
+// im 'mannequin'-Zweig von buildFigure():
+const grp = buildMannequin(color, group);
+group.userData.bones = grp.userData.bones;   // nach oben weiterreichen
+```
+
+`recolorFigure()` überträgt nach dem Rebuild (bestehende Signatur bleibt unverändert):
+```js
+if (fig.type === 'mannequin') {
+  fig.bones   = newMesh.userData.bones;
+  fig.walking = fig.walking || false;
 }
 ```
 

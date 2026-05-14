@@ -13,12 +13,25 @@ if (!process.env.DATABASE_URL && require.main === module) {
   process.exit(1);
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-});
+let pool;
+if (process.env.MOCK_DB === 'true') {
+  class MockPool {
+    async query() { return { rows: [] }; }
+    async connect() { return { query: this.query, release: () => {} }; }
+    async end() {}
+    on() {} 
+  }
+  pool = new MockPool();
+} else {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+  });
+}
+
+
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -192,6 +205,11 @@ function applyMutation(room, msg) {
     case 'optik':
       if (msg.settings && typeof msg.settings === 'object') {
         figs.set('__optik__', { id: '__optik__', settings: msg.settings });
+      }
+      break;
+    case 'stiffness':
+      if (typeof msg.value === 'number') {
+        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
       }
       break;
     case 'stiffness':

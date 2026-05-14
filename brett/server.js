@@ -194,16 +194,23 @@ function applyMutation(room, msg) {
         figs.set('__optik__', { id: '__optik__', settings: msg.settings });
       }
       break;
+    case 'stiffness':
+      if (typeof msg.value === 'number') {
+        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
+      }
+      break;
   }
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const figures = Array.from(figs.values()).filter(f => f.id !== '__optik__');
+  const figures = Array.from(figs.values()).filter(f => !['__optik__', '__stiffness__'].includes(f.id));
   const optikEntry = figs.get('__optik__');
+  const stiffEntry = figs.get('__stiffness__');
   const result = { figures };
   if (optikEntry) result.optik = optikEntry.settings;
+  if (stiffEntry) result.stiffness = stiffEntry.value;
   return result;
 }
 
@@ -258,7 +265,7 @@ wss.on('connection', (ws) => {
         }
 
         const state = buildStateFromMutations(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik }));
+        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65 }));
         broadcastInfo(msg.room);
         return;
       }
@@ -266,7 +273,7 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear','optik'].includes(msg.type)) {
+      if (['add','move','update','delete','clear','optik','stiffness'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
         if (msg.type === 'clear') {

@@ -13,6 +13,31 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 ---
 
+## Schritt 0: Worktree-Konsistenz prüfen
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+CURRENT_DIR=$(pwd)
+echo "Branch: $CURRENT_BRANCH | CWD: $CURRENT_DIR"
+```
+
+Prüfe:
+
+| Situation | Aktion |
+|---|---|
+| `$CURRENT_BRANCH` ist `main` und `$CURRENT_DIR` ist das Haupt-Repo | ⚠️ Falscher Ausgangspunkt. Wechsle in den Feature-Worktree: `git worktree list` zeigt den Pfad. |
+| Branch passt zum Pfad (z.B. `feature/foo` in `.../Bachelorprojekt-feature-foo`) | ✓ Fortfahren. |
+| Branch existiert, aber Worktree-Pfad ist ein anderer Claude-Prozess aktiv | ⚠️ Nicht in denselben Worktree schreiben. Warte auf den anderen Prozess oder nutze `git worktree list` zur Koordination. |
+
+```bash
+# Parallel laufende Claude-Prozesse sichtbar machen
+git worktree list --porcelain | grep -E '^(worktree|branch)'
+```
+
+Kein Blocker — nur Warnung und Bestätigung vom User, wenn Überschneidung erkannt wird.
+
+---
+
 ## Schritt 1: Plan finden
 
 **Default — neuester Plan:**
@@ -245,6 +270,37 @@ git push
 Falls `$TICKET_ID` leer (Chore ohne Ticket): SQL-Archivierung überspringen — nur `rm "$PLAN_FILE"` + commit.
 
 **Hinweis Dollar-Quoting:** `$plan$...$plan$` ist psql-Dollar-Quoting; sicher für beliebigen Markdown-Inhalt, solange der Plan selbst nicht den String `$plan$` enthält (praktisch ausgeschlossen).
+
+---
+
+## Schritt 7.5: Worktree & Branch bereinigen
+
+Nach erfolgreichem Merge und Plan-Archivierung immer ausführen:
+
+```bash
+BRANCH="feature/<slug>"   # oder fix/<slug> bzw. chore/<slug>
+
+# Worktree-Pfad ermitteln
+WORKTREE_PATH=$(git worktree list --porcelain \
+  | awk -v b="refs/heads/$BRANCH" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+
+# In Haupt-Repo wechseln (falls noch im Worktree)
+cd /home/patrick/Bachelorprojekt
+
+# Worktree entfernen
+if [[ -n "$WORKTREE_PATH" && "$WORKTREE_PATH" != "/home/patrick/Bachelorprojekt" ]]; then
+  git worktree remove "$WORKTREE_PATH" --force
+  echo "✓ Worktree $WORKTREE_PATH entfernt"
+fi
+
+# Lokalen Branch löschen
+git branch -D "$BRANCH" 2>/dev/null && echo "✓ Lokaler Branch $BRANCH gelöscht" || echo "(Branch lokal nicht vorhanden)"
+
+# Remote Branch löschen (GitHub löscht bei auto-merge automatisch, trotzdem absichern)
+git push origin --delete "$BRANCH" 2>/dev/null && echo "✓ Remote origin/$BRANCH gelöscht" || echo "(Remote bereits gelöscht)"
+```
+
+Ergebnis: kein staler Worktree, keine Altlasten im lokalen oder Remote-Repo.
 
 ---
 

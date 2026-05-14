@@ -2492,10 +2492,22 @@ cnv.addEventListener('mousedown', e => {
 
   // Dispatch LMB by active tool
   switch (activeTool) {
-    case 'V':
+    case 'V': {
+      const joint = pickJoint(ndc);
+      if (joint) {
+        if (selectedFigure) selectedFigure.walking = false;
+        jointDrag = {
+          boneGroup: joint,
+          startX:    e.clientX,
+          startY:    e.clientY,
+          startRotZ: joint.rotation.z,
+          startRotX: joint.rotation.x,
+        };
+        break;
+      }
       if (fig) {
         const now = Date.now();
-        if (lastClick.fig === fig && now - lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; return; }
+        if (lastClick.fig === fig && now - lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; break; }
         lastClick = { fig, time: now };
         selectFigure(fig);
         drag = { on: true, fig };
@@ -2510,6 +2522,7 @@ cnv.addEventListener('mousedown', e => {
         }
       }
       break;
+    }
     case 'O':
       orbitOn = true;
       dragStart = { x: e.clientX, y: e.clientY };
@@ -2578,6 +2591,11 @@ cnv.addEventListener('mousemove', e => {
     dragStart = { x: e.clientX, y: e.clientY };
     return;
   }
+  if (jointDrag) {
+    jointDrag.boneGroup.rotation.z = jointDrag.startRotZ + (e.clientX - jointDrag.startX) * 0.01;
+    jointDrag.boneGroup.rotation.x = jointDrag.startRotX + (e.clientY - jointDrag.startY) * 0.01;
+    return;
+  }
   if (drag.on && drag.fig) {
     const pos = pickBoard(getNDC(e));
     if (pos) {
@@ -2606,6 +2624,7 @@ cnv.addEventListener('mouseup', e => {
     if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
     rotFig = null;
   }
+  if (jointDrag) { jointDrag = null; return; }
   if (drag.on && drag.fig && !applyingRemote) {
     send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
   }
@@ -3729,6 +3748,19 @@ function tickAllMannequinWalks(t) {
   for (const fig of figures) {
     if (fig.type === 'mannequin' && fig.walking) tickMannequinWalk(fig, t);
   }
+}
+
+let jointDrag = null;
+// { boneGroup, startX, startY, startRotZ, startRotX }
+
+function pickJoint(ndc) {
+  if (!selectedFigure || selectedFigure.type !== 'mannequin') return null;
+  raycaster.setFromCamera(ndc, camera_obj);
+  const hits = raycaster.intersectObject(selectedFigure.mesh, true);
+  for (const hit of hits) {
+    if (hit.object.userData.isBrassJoint) return hit.object.userData.boneGroup;
+  }
+  return null;
 }
 
 animate();

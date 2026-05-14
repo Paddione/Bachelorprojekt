@@ -32,12 +32,18 @@ beforeAll(async () => {
     CREATE TABLE knowledge.collections (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       name text UNIQUE NOT NULL,
-      description text, source text NOT NULL, brand text,
+      description text, source text NOT NULL, brand text REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
       chunk_count int NOT NULL DEFAULT 0,
       last_indexed_at timestamptz,
       embedding_model text NOT NULL DEFAULT 'voyage-multilingual-2',
       created_by uuid, created_at timestamptz DEFAULT now()
     );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'collections_brand_fkey') THEN
+          ALTER TABLE knowledge.collections ADD CONSTRAINT collections_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
     CREATE TABLE knowledge.chunks (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       document_id uuid NOT NULL,

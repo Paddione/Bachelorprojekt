@@ -28,7 +28,7 @@ beforeAll(async () => {
     CREATE SCHEMA coaching;
     CREATE TABLE coaching.sessions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      brand TEXT NOT NULL DEFAULT 'mentolder',
+      brand TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL DEFAULT 'mentolder',
       client_id UUID,
       mode TEXT NOT NULL DEFAULT 'live',
       title TEXT NOT NULL,
@@ -37,6 +37,12 @@ beforeAll(async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       completed_at TIMESTAMPTZ
     );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sessions_brand_fkey') THEN
+          ALTER TABLE coaching.sessions ADD CONSTRAINT sessions_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
     CREATE TABLE coaching.session_steps (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       session_id UUID NOT NULL REFERENCES coaching.sessions(id) ON DELETE CASCADE,

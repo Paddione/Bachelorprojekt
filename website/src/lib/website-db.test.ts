@@ -20,7 +20,7 @@ describe.skipIf(!dbAvailable)('listTimeline (DB-backed)', () => {
         description text,
         category    text NOT NULL,
         scope       text,
-        brand       text,
+        brand       text REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         merged_at   timestamptz NOT NULL,
         merged_by   text,
         status      text NOT NULL DEFAULT 'shipped',

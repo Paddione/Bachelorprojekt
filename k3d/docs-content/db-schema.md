@@ -1023,7 +1023,6 @@ erDiagram
 
 | # | Severity | Table(s) | Issue | Recommendation |
 |---|----------|----------|-------|----------------|
-| 1 | **HIGH** | 20+ tables | `brand text` column with no FK — multi-tenant discriminator stored as raw text in every table (billing_invoices, tickets.tickets, bug_tickets, eur_bookings, assets, …) | Add a `brands` table; add `brand_id FK` or at minimum a CHECK constraint against known values |
 | 2 | **HIGH** | `billing_invoices` | `paid_at`, `paid_amount` duplicated — payment state already tracked per-row in `billing_invoice_payments` | Remove `paid_at`/`paid_amount` from `billing_invoices`; derive via view from `billing_invoice_payments` |
 | 3 | **MEDIUM** | `billing_invoices` | `dunning_level`, `last_dunning_at` duplicated — dunning state already in `billing_invoice_dunnings` | Remove denormalized dunning fields; derive `MAX(level)` from `billing_invoice_dunnings` |
 | 4 | **MEDIUM** | `billing_invoices` | Five large blobs inline: `zugferd_xml`, `factur_x_xml`, `xrechnung_xml`, `pdf_blob`, `pdf_a3_blob` — bloats every row scan | Extract to `billing_invoice_documents(invoice_id, format text, blob bytea)` |

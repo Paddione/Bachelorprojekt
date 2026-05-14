@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS arena.match_players (
   match_id        uuid          NOT NULL REFERENCES arena.matches(id) ON DELETE CASCADE,
   player_key      text          NOT NULL,
   display_name    text          NOT NULL,
-  brand           text          NULL,
+  brand           text REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT          NULL,
   is_bot          boolean       NOT NULL,
   character_id    text          NOT NULL,
   place           smallint      NOT NULL,
@@ -29,6 +29,12 @@ CREATE TABLE IF NOT EXISTS arena.match_players (
   forfeit         boolean       NOT NULL DEFAULT false,
   PRIMARY KEY (match_id, player_key)
 );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'match_players_brand_fkey') THEN
+          ALTER TABLE arena.match_players ADD CONSTRAINT match_players_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
 CREATE INDEX IF NOT EXISTS match_players_key_idx ON arena.match_players (player_key, match_id DESC);
 
 CREATE TABLE IF NOT EXISTS arena.lobbies (

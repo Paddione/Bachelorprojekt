@@ -14,7 +14,7 @@ export async function initTicketsSchema(): Promise<void> {
       external_id     TEXT        UNIQUE,
       type            TEXT        NOT NULL CHECK (type IN ('bug','feature','task','project')),
       parent_id       UUID        REFERENCES tickets.tickets(id) ON DELETE SET NULL,
-      brand           TEXT        NOT NULL,
+      brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT        NOT NULL,
 
       title           TEXT        NOT NULL,
       description     TEXT,
@@ -50,7 +50,13 @@ export async function initTicketsSchema(): Promise<void> {
       CONSTRAINT resolution_only_when_closed CHECK (
         (resolution IS NULL AND status NOT IN ('done','archived'))
         OR status IN ('done','archived')
-      )
+      );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_brand_fkey') THEN
+          ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
     )
   `);
 
@@ -210,8 +216,14 @@ export async function initTicketsSchema(): Promise<void> {
       id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name  TEXT NOT NULL UNIQUE,
       color TEXT,
-      brand TEXT
-    )
+      brand TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tags_brand_fkey') THEN
+          ALTER TABLE tickets.tags ADD CONSTRAINT tags_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 
   await pool.query(`
@@ -325,13 +337,19 @@ export async function initTicketsSchema(): Promise<void> {
       description  TEXT,
       category     TEXT NOT NULL,
       scope        TEXT,
-      brand        TEXT,
+      brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
       merged_at    TIMESTAMPTZ NOT NULL,
       merged_by    TEXT,
       status       TEXT NOT NULL DEFAULT 'shipped'
                    CHECK (status IN ('planned','in_progress','shipped','reverted')),
       created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pr_events_brand_fkey') THEN
+          ALTER TABLE tickets.pr_events ADD CONSTRAINT pr_events_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_merged_at_idx ON tickets.pr_events (merged_at DESC)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_brand_idx     ON tickets.pr_events (brand) WHERE brand IS NOT NULL`);
@@ -340,9 +358,15 @@ export async function initTicketsSchema(): Promise<void> {
   // Per-brand monotonic counter — feeds the BEFORE-INSERT trigger that mints T-numbers.
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_counters (
-      brand       TEXT PRIMARY KEY,
+      brand       TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
       last_value  BIGINT NOT NULL DEFAULT 0
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ticket_counters_brand_fkey') THEN
+          ALTER TABLE tickets.ticket_counters ADD CONSTRAINT ticket_counters_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 
   await pool.query(`

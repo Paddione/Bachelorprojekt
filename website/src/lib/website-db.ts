@@ -834,10 +834,16 @@ export interface LeistungCategoryOverride {
 export async function initServiceConfigTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS service_config (
-      brand        TEXT PRIMARY KEY,
+      brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
       services_json JSONB NOT NULL,
       updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'service_config_brand_fkey') THEN
+          ALTER TABLE service_config ADD CONSTRAINT service_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 }
 
@@ -866,10 +872,16 @@ export async function saveServiceConfig(brand: string, overrides: ServiceOverrid
 export async function initLeistungenConfigTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS leistungen_config (
-      brand            TEXT PRIMARY KEY,
+      brand            TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
       categories_json  JSONB NOT NULL,
       updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'leistungen_config_brand_fkey') THEN
+          ALTER TABLE leistungen_config ADD CONSTRAINT leistungen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 }
 
@@ -898,12 +910,18 @@ export async function saveLeistungenConfig(brand: string, categories: LeistungCa
 export async function initSiteSettingsTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS site_settings (
-      brand      TEXT,
+      brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
       key        TEXT,
       value      TEXT NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (brand, key)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'site_settings_brand_fkey') THEN
+          ALTER TABLE site_settings ADD CONSTRAINT site_settings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 }
 
@@ -956,12 +974,18 @@ export async function saveVacationPeriods(brand: string, periods: VacationPeriod
 export async function initLegalPagesTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS legal_pages (
-      brand        TEXT,
+      brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
       page_key     TEXT,
       content_html TEXT NOT NULL,
       updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (brand, page_key)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'legal_pages_brand_fkey') THEN
+          ALTER TABLE legal_pages ADD CONSTRAINT legal_pages_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 }
 
@@ -1012,10 +1036,16 @@ export interface ReferenzenConfig {
 export async function initReferenzenTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS referenzen_config (
-      brand      TEXT PRIMARY KEY,
+      brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
       items_json JSONB NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referenzen_config_brand_fkey') THEN
+          ALTER TABLE referenzen_config ADD CONSTRAINT referenzen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 }
 
@@ -2495,11 +2525,17 @@ async function initBookingProjectLinks(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS booking_project_links (
       caldav_uid  TEXT    NOT NULL,
-      brand       TEXT    NOT NULL,
+      brand       TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT    NOT NULL,
       project_id  UUID    REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (caldav_uid, brand)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'booking_project_links_brand_fkey') THEN
+          ALTER TABLE booking_project_links ADD CONSTRAINT booking_project_links_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`
     ALTER TABLE booking_project_links ADD COLUMN IF NOT EXISTS leistung_key TEXT
@@ -2515,13 +2551,19 @@ async function initBookingInvoiceLinksTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS booking_invoice_links (
       caldav_uid      TEXT        NOT NULL,
-      brand           TEXT        NOT NULL,
+      brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT        NOT NULL,
       invoice_id      TEXT        NOT NULL,
       invoice_number  TEXT        NOT NULL,
       amount          NUMERIC(10,2) NOT NULL,
       created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (caldav_uid, brand)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'booking_invoice_links_brand_fkey') THEN
+          ALTER TABLE booking_invoice_links ADD CONSTRAINT booking_invoice_links_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   bookingInvoiceLinksReady = true;
 }
@@ -2633,12 +2675,18 @@ export interface WhitelistedSlot {
 async function initSlotWhitelistTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS slot_whitelist (
-      brand      TEXT        NOT NULL,
+      brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT        NOT NULL,
       slot_start TIMESTAMPTZ NOT NULL,
       slot_end   TIMESTAMPTZ NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (brand, slot_start)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'slot_whitelist_brand_fkey') THEN
+          ALTER TABLE slot_whitelist ADD CONSTRAINT slot_whitelist_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 }
 
@@ -2707,13 +2755,19 @@ async function initFreeTimeWindowsTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS free_time_windows (
       id         TEXT        NOT NULL DEFAULT gen_random_uuid()::text,
-      brand      TEXT        NOT NULL,
+      brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT        NOT NULL,
       date       DATE        NOT NULL,
       win_start  TIME        NOT NULL,
       win_end    TIME        NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (id)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'free_time_windows_brand_fkey') THEN
+          ALTER TABLE free_time_windows ADD CONSTRAINT free_time_windows_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
 }
 
@@ -3073,12 +3127,18 @@ async function initInvoiceCountersTable(): Promise<void> {
   if (invoiceCountersReady) return;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS invoice_counters (
-      brand   TEXT NOT NULL,
+      brand   TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       year    INT  NOT NULL,
       kind    TEXT NOT NULL DEFAULT 'invoice',
       counter INT  NOT NULL DEFAULT 0,
       PRIMARY KEY (brand, year, kind)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'invoice_counters_brand_fkey') THEN
+          ALTER TABLE invoice_counters ADD CONSTRAINT invoice_counters_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`
     DO $$ BEGIN
@@ -3583,7 +3643,7 @@ export async function initBillingTables(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_customers (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       name          TEXT NOT NULL,
       email         TEXT NOT NULL,
       company       TEXT,
@@ -3599,7 +3659,13 @@ export async function initBillingTables(): Promise<void> {
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       typ           TEXT NOT NULL DEFAULT 'Kunde',
       CONSTRAINT billing_customers_brand_email_typ_key UNIQUE (brand, email, typ)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_customers_brand_fkey') THEN
+          ALTER TABLE billing_customers ADD CONSTRAINT billing_customers_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS default_leitweg_id TEXT`);
   await pool.query(`
@@ -3643,7 +3709,7 @@ export async function initBillingTables(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoices (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       number        TEXT NOT NULL UNIQUE,
       status        TEXT NOT NULL DEFAULT 'draft',
       customer_id   TEXT NOT NULL REFERENCES billing_customers(id),
@@ -3667,7 +3733,13 @@ export async function initBillingTables(): Promise<void> {
       zugferd_xml   TEXT,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_invoices_brand_fkey') THEN
+          ALTER TABLE billing_invoices ADD CONSTRAINT billing_invoices_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS pdf_path TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS leitweg_id TEXT`);
@@ -3710,7 +3782,7 @@ export async function initBillingTables(): Promise<void> {
     CREATE TABLE IF NOT EXISTS billing_invoice_dunnings (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
       invoice_id    TEXT NOT NULL REFERENCES billing_invoices(id),
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       level         SMALLINT NOT NULL,
       generated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       sent_at       TIMESTAMPTZ,
@@ -3720,7 +3792,13 @@ export async function initBillingTables(): Promise<void> {
       outstanding_at_generation NUMERIC(12,2) NOT NULL,
       pdf_path      TEXT,
       UNIQUE (invoice_id, level)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_invoice_dunnings_brand_fkey') THEN
+          ALTER TABLE billing_invoice_dunnings ADD CONSTRAINT billing_invoice_dunnings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoice_line_items (
@@ -3737,7 +3815,7 @@ export async function initBillingTables(): Promise<void> {
     CREATE TABLE IF NOT EXISTS billing_invoice_payments (
       id           BIGSERIAL PRIMARY KEY,
       invoice_id   TEXT NOT NULL REFERENCES billing_invoices(id),
-      brand        TEXT NOT NULL,
+      brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       paid_at      DATE NOT NULL,
       amount       NUMERIC(12,2) NOT NULL CHECK (amount <> 0),
       method       TEXT NOT NULL,
@@ -3745,7 +3823,13 @@ export async function initBillingTables(): Promise<void> {
       recorded_by  TEXT NOT NULL,
       notes        TEXT,
       created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_invoice_payments_brand_fkey') THEN
+          ALTER TABLE billing_invoice_payments ADD CONSTRAINT billing_invoice_payments_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS billing_invoice_payments_invoice_idx
@@ -3754,7 +3838,7 @@ export async function initBillingTables(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_quotes (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       number        TEXT NOT NULL UNIQUE,
       status        TEXT NOT NULL DEFAULT 'draft',
       customer_id   TEXT NOT NULL REFERENCES billing_customers(id),
@@ -3766,7 +3850,13 @@ export async function initBillingTables(): Promise<void> {
       notes         TEXT,
       converted_to_invoice_id TEXT REFERENCES billing_invoices(id),
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_quotes_brand_fkey') THEN
+          ALTER TABLE billing_quotes ADD CONSTRAINT billing_quotes_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`
     ALTER TABLE billing_invoices
@@ -3783,13 +3873,19 @@ export async function initBillingTables(): Promise<void> {
     CREATE TABLE IF NOT EXISTS billing_nachweis (
       id           BIGSERIAL PRIMARY KEY,
       invoice_id   TEXT NOT NULL REFERENCES billing_invoices(id),
-      brand        TEXT NOT NULL,
+      brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       type         TEXT NOT NULL,
       received_at  DATE,
       document_ref TEXT,
       notes        TEXT,
       created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_nachweis_brand_fkey') THEN
+          ALTER TABLE billing_nachweis ADD CONSTRAINT billing_nachweis_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   // Plan F: VAT ID validation log
   await pool.query(`
@@ -3808,7 +3904,7 @@ export async function initBillingTables(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_suppliers (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       name          TEXT NOT NULL,
       email         TEXT,
       land_iso      CHAR(2) NOT NULL DEFAULT 'DE',
@@ -3822,12 +3918,18 @@ export async function initBillingTables(): Promise<void> {
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       CONSTRAINT billing_suppliers_brand_name_key UNIQUE (brand, name)
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_suppliers_brand_fkey') THEN
+          ALTER TABLE billing_suppliers ADD CONSTRAINT billing_suppliers_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS supplier_invoices (
       id            TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       supplier_id   TEXT NOT NULL REFERENCES billing_suppliers(id),
       invoice_number TEXT,
       invoice_date  DATE NOT NULL,
@@ -3844,7 +3946,13 @@ export async function initBillingTables(): Promise<void> {
       locked        BOOLEAN NOT NULL DEFAULT false,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'supplier_invoices_brand_fkey') THEN
+          ALTER TABLE supplier_invoices ADD CONSTRAINT supplier_invoices_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   // Plan F: indexes for new child tables
   await pool.query(`
@@ -3872,14 +3980,20 @@ export async function initTaxMonitorTables(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tax_mode_changes (
       id            BIGSERIAL PRIMARY KEY,
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       changed_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       from_mode     TEXT NOT NULL,
       to_mode       TEXT NOT NULL,
       trigger_invoice_id TEXT,
       year_revenue_at_change NUMERIC(12,2),
       notes         TEXT
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tax_mode_changes_brand_fkey') THEN
+          ALTER TABLE tax_mode_changes ADD CONSTRAINT tax_mode_changes_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   taxModeTableReady = true;
 }
@@ -3890,7 +4004,7 @@ export async function initEurTables(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS eur_bookings (
       id            BIGSERIAL PRIMARY KEY,
-      brand         TEXT NOT NULL,
+      brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       booking_date  DATE NOT NULL,
       type          TEXT NOT NULL,
       category      TEXT NOT NULL,
@@ -3900,7 +4014,13 @@ export async function initEurTables(): Promise<void> {
       invoice_id    TEXT REFERENCES billing_invoices(id),
       receipt_path  TEXT,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'eur_bookings_brand_fkey') THEN
+          ALTER TABLE eur_bookings ADD CONSTRAINT eur_bookings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   await pool.query(`
     ALTER TABLE eur_bookings
@@ -3910,7 +4030,7 @@ export async function initEurTables(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS assets (
       id                   BIGSERIAL PRIMARY KEY,
-      brand                TEXT NOT NULL,
+      brand                TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
       description          TEXT NOT NULL,
       purchase_date        DATE NOT NULL,
       net_purchase_price   NUMERIC(12,2) NOT NULL,
@@ -3920,7 +4040,13 @@ export async function initEurTables(): Promise<void> {
       is_gwg               BOOLEAN NOT NULL DEFAULT false,
       receipt_path         TEXT,
       created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'assets_brand_fkey') THEN
+          ALTER TABLE assets ADD CONSTRAINT assets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
   `);
   eurTablesReady = true;
 }

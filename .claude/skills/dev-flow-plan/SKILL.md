@@ -3,6 +3,12 @@ name: dev-flow-plan
 description: Use when beginning any repo change — feature, bug fix, or chore. Entry point for all development work in this repo. Routes to the correct path (feature/fix/chore) and produces a committed, pushed plan on the branch ready for dev-flow-execute. Chores complete inline without a separate execution step.
 ---
 
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
 # dev-flow-plan — Pfad-Wahl, Brainstorming & Plan
 
 ## Wann diese Skill greift
@@ -514,3 +520,10 @@ Jeder Pfad delegiert Spezialarbeit an die passenden Sub-Agents (siehe CLAUDE.md 
 - SealedSecrets/Keycloak/OIDC → `bachelorprojekt-security`
 
 **Pflicht vor jedem Sub-Agent-Dispatch:** `bash scripts/plan-context.sh <role>` ausführen und die Ausgabe in `<active-plans>` Tags an den Prompt voranstellen (Details in CLAUDE.md).
+
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your
+accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
+cleanly with "No mishaps found."

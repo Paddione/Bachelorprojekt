@@ -3,6 +3,12 @@ name: hetzner-node
 description: Use when provisioning a new Hetzner node or resetting an existing one — guides through key management, cloud-config generation, Rescue Mode reinstall, and k3s cluster join. WireGuard mesh is wired automatically so the node reconnects without peer updates on every future reset.
 ---
 
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
 # hetzner-node
 
 Interactive runbook for provisioning or resetting a Hetzner server. Handles all three k3s roles (control-plane-init, control-plane-join, worker) and both modes (new server, Rescue Mode reset).
@@ -555,3 +561,10 @@ If this is a permanent new node (not replacing an existing one):
 | Handshakes not forming | Public key mismatch — re-derive: `echo "<PRIVATE_KEY>" \| wg pubkey` and compare |
 | `wg set` fails on existing peers | `sudo modprobe wireguard` if module not loaded |
 | Node appears in cluster but pods `Pending` | wg-mesh peer missing for a home-LAN worker — add peer entry manually |
+
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your
+accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
+cleanly with "No mishaps found."

@@ -3,6 +3,12 @@ name: dev-flow-execute
 description: Use when on a feature/* or fix/* branch that has a staged plan in docs/superpowers/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.
 ---
 
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
 # dev-flow-execute — Plan-Ausführung & PR
 
 ## Wann diese Skill greift
@@ -377,3 +383,10 @@ Jeder Pfad delegiert Spezialarbeit an die passenden Sub-Agents (siehe CLAUDE.md 
 - SealedSecrets/Keycloak/OIDC → `bachelorprojekt-security`
 
 **Pflicht vor jedem Sub-Agent-Dispatch:** `bash scripts/plan-context.sh <role>` ausführen und die Ausgabe in `<active-plans>` Tags an den Prompt voranstellen (Details in CLAUDE.md).
+
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your
+accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
+cleanly with "No mishaps found."

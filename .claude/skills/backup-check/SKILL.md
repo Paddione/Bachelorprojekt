@@ -3,6 +3,12 @@ name: backup-check
 description: Use when asked to audit, test, or fix the database backup/restore process on the Bachelorprojekt platform. Covers setup verification, triggering a live backup, verifying encrypted files, running a safe restore-to-temp-db test, and fixing any issues found.
 ---
 
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
 # Backup Check
 
 End-to-end audit of the backup system: verify setup → trigger live backup → verify files → test restore safely → fix issues.
@@ -292,3 +298,10 @@ Script: `scripts/backup-restore.sh restore <db> <timestamp> --context <ctx>`
 - Requires `SHARED_DB_PASSWORD` (postgres superuser) in `workspace-secrets`
 
 **Gotcha:** `backup-restore.sh trigger` creates jobs from `cronjob/db-backup`. If the old `backup-postgres` CronJob is the only one present, trigger fails silently. Fix Phase 1.1 first.
+
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your
+accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
+cleanly with "No mishaps found."

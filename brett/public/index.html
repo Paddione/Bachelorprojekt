@@ -315,6 +315,7 @@
       walking: false,
       boneOverrides: {},
       label: 'Figur',
+      color: '#b8c0a8',
       facingY: 0,
     };
   }
@@ -325,6 +326,36 @@
     STATE.figures.push(fig);
     selectFigure(id);
     return fig;
+  }
+
+  // ── Panel state ──────────────────────────────────────────────────────────────
+  let panelColor = '#b8c0a8'; // default body color for new figures
+
+  function recolorFigure(fig, hexColor) {
+    const threeColor = new THREE.Color(hexColor);
+    fig.root.traverse(o => {
+      if (o.isMesh && !o.userData.isContact && o !== fig.ring) {
+        if (o.material) o.material.color.set(threeColor);
+      }
+    });
+    fig.color = hexColor;
+  }
+
+  function syncPanelToSelection(id) {
+    const title  = document.getElementById('fig-panel-title');
+    const addBtn = document.getElementById('fig-panel-add');
+    const input  = document.getElementById('fig-label-input');
+    if (!title) return;
+    const fig = STATE.figures.find(f => f.id === id);
+    if (fig) {
+      title.textContent = 'FIGUR BEARBEITEN';
+      if (addBtn) addBtn.hidden = true;
+      if (input) input.value = fig.label || '';
+    } else {
+      title.textContent = 'NEUE FIGUR';
+      if (addBtn) addBtn.hidden = false;
+      if (input) input.value = '';
+    }
   }
 
   function selectFigure(id) {
@@ -340,10 +371,61 @@
         }
       });
     }
+    syncPanelToSelection(id);
   }
 
-  document.getElementById('add-figure').addEventListener('click', () => {
-    addFigure({ x: (Math.random()-0.5)*2, z: (Math.random()-0.5)*2 });
+  // ── Panel toggle ─────────────────────────────────────────────────────────────
+  const figPanelBtn   = document.getElementById('fig-panel-btn');
+  const figPanel      = document.getElementById('fig-panel');
+  const figPanelClose = document.getElementById('fig-panel-close');
+
+  function openFigPanel()  {
+    figPanel.hidden = false;
+    figPanelBtn.classList.add('open');
+    figPanelBtn.setAttribute('aria-expanded', 'true');
+    syncPanelToSelection(STATE.selectedId);
+  }
+  function closeFigPanel() {
+    figPanel.hidden = true;
+    figPanelBtn.classList.remove('open');
+    figPanelBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  figPanelBtn.addEventListener('click', () => {
+    figPanel.hidden ? openFigPanel() : closeFigPanel();
+  });
+  figPanelClose.addEventListener('click', closeFigPanel);
+  document.addEventListener('click', e => {
+    if (!figPanel.hidden && !figPanel.contains(e.target) && e.target !== figPanelBtn) {
+      closeFigPanel();
+    }
+  });
+
+  // ── Color swatches ────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-colors').addEventListener('click', e => {
+    const swatch = e.target.closest('.fig-color-swatch');
+    if (!swatch) return;
+    document.querySelectorAll('.fig-color-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    panelColor = swatch.dataset.color;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) recolorFigure(fig, panelColor);
+  });
+
+  // ── Label input ────────────────────────────────────────────────────────────────
+  document.getElementById('fig-label-input').addEventListener('input', e => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) fig.label = e.target.value;
+  });
+
+  // ── Add button ─────────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-add').addEventListener('click', () => {
+    const label = document.getElementById('fig-label-input').value.trim();
+    const x = (Math.random() - 0.5) * 4, z = (Math.random() - 0.5) * 4;
+    const fig = addFigure({ x, z });
+    recolorFigure(fig, panelColor);
+    if (label) fig.label = label;
+    closeFigPanel();
   });
   // ----- Pose presets (target rotations in radians; only x and z used) -----
   // Each value is { x: pitch, z: roll } applied via group.rotation.x / .z.

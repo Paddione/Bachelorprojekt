@@ -2350,10 +2350,6 @@ function toolName(t) {
   return { V: 'Auswählen', O: 'Orbit', P: 'Pan', R: 'Figur drehen', F: 'Fokus', E: 'POV' }[t];
 }
 document.querySelectorAll('.bc-tool').forEach(b => b.addEventListener('click', () => setActiveTool(b.dataset.tool)));
-setActiveTool('V');
-
-window.setActiveTool = setActiveTool;
-window.getActiveTool = () => activeTool;
 
 // ── Hint ────────────────────────────────────────────────
 const HINTS = {
@@ -2373,7 +2369,11 @@ function updateHint() {
   clearTimeout(hintFadeTimer);
   hintFadeTimer = setTimeout(() => el.classList.add('bc-fade'), 10_000);
 }
-updateHint();
+
+// HINTS must be defined before setActiveTool is first called (updateHint reads it)
+setActiveTool('V');
+window.setActiveTool = setActiveTool;
+window.getActiveTool = () => activeTool;
 
 // ── Mouse / touch ─────────────────────────────────────────────────────────────
 const cnv = document.getElementById('three-canvas');

@@ -1,6 +1,7 @@
 const TITLE_RE = /^(feat|fix|chore|docs|refactor|infra|perf|test|build|ci|style)(\(([^)]+)\))?(!)?:\s*(.+?)\s*$/i;
 const BUG_RE   = /\bBR-\d{8}-\d{4}\b/g;
 const REQ_RE   = /\b(FA|SA|NFA|AK|L)-\d+\b/i;
+const TICKET_RE = /\bT\d{6}\b/g;
 
 const BRAND_SCOPES = new Set(['mentolder', 'korczewski', 'kore']);
 
@@ -21,6 +22,7 @@ export function parsePr(pr) {
   const bug_refs = Array.from(new Set((body.match(BUG_RE) || [])));
   const reqMatch = REQ_RE.exec(body);
   const requirement_id = reqMatch ? reqMatch[0].toUpperCase() : null;
+  const ticket_refs = Array.from(new Set((body.match(TICKET_RE) || [])));
 
   let brand = null;
   if (scope && BRAND_SCOPES.has(scope)) {
@@ -38,6 +40,7 @@ export function parsePr(pr) {
     merged_at: pr.mergedAt,
     merged_by: pr.mergedBy?.login || null,
     bug_refs,
+    ticket_refs,
   };
 }
 
@@ -75,6 +78,24 @@ export async function writeRowToDb(row, pgClient) {
         [t.rows[0].id, row.pr_number]);
     } else {
       console.log(`skip requirement link ${row.requirement_id}: feature ticket not found`);
+    }
+  }
+
+  // 3. T-###### ticket references → ticket_links (kind='implements')
+  // from_id = to_id intentionally (self-referential): the PR "implements" the ticket,
+  // not a link between two different tickets. Same pattern as the requirement_id block above.
+  for (const extId of (row.ticket_refs ?? [])) {
+    const t = await pgClient.query(
+      `SELECT id FROM tickets.tickets WHERE external_id = $1`,
+      [extId]);
+    if (t.rowCount > 0) {
+      await pgClient.query(
+        `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+         VALUES ($1, $1, 'implements', $2)
+         ON CONFLICT (from_id, to_id, kind) DO NOTHING`,
+        [t.rows[0].id, row.pr_number]);
+    } else {
+      console.log(`skip ticket link ${extId}: ticket not found`);
     }
   }
 

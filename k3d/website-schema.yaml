@@ -30,6 +30,13 @@ data:
       END $$;
 
       -- Customers (cross-reference to Keycloak)
+
+      CREATE TABLE IF NOT EXISTS brands (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL
+      );
+      INSERT INTO brands (id, name) VALUES ('mentolder', 'Mentolder'), ('korczewski', 'Korczewski') ON CONFLICT DO NOTHING;
+
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name TEXT NOT NULL,
@@ -136,11 +143,17 @@ data:
           reporter_email  TEXT NOT NULL,
           description     TEXT NOT NULL,
           url             TEXT,
-          brand           TEXT NOT NULL,
+          brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
           created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           resolved_at     TIMESTAMPTZ,
           resolution_note TEXT
       );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'bug_tickets_brand_fkey') THEN
+          ALTER TABLE bugs.bug_tickets ADD CONSTRAINT bug_tickets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
 
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_status ON bugs.bug_tickets(status);
       ALTER TABLE bugs.bug_tickets OWNER TO website;
@@ -246,7 +259,7 @@ data:
 
       CREATE TABLE IF NOT EXISTS coaching.sessions (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        brand         TEXT NOT NULL DEFAULT 'mentolder',
+        brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL DEFAULT 'mentolder',
         client_id     UUID REFERENCES public.customers(id) ON DELETE SET NULL,
         mode          TEXT NOT NULL DEFAULT 'live' CHECK (mode IN ('live','prep')),
         title         TEXT NOT NULL,
@@ -255,6 +268,12 @@ data:
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
         completed_at  TIMESTAMPTZ
       );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sessions_brand_fkey') THEN
+          ALTER TABLE coaching.sessions ADD CONSTRAINT sessions_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
       CREATE INDEX IF NOT EXISTS idx_sessions_brand ON coaching.sessions(brand);
       CREATE INDEX IF NOT EXISTS idx_sessions_client ON coaching.sessions(client_id);
 
@@ -607,6 +626,13 @@ data:
         END IF;
       END $$;
 
+
+      CREATE TABLE IF NOT EXISTS brands (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL
+      );
+      INSERT INTO brands (id, name) VALUES ('mentolder', 'Mentolder'), ('korczewski', 'Korczewski') ON CONFLICT DO NOTHING;
+
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name TEXT NOT NULL,
@@ -700,11 +726,17 @@ data:
           reporter_email  TEXT NOT NULL,
           description     TEXT NOT NULL,
           url             TEXT,
-          brand           TEXT NOT NULL,
+          brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL,
           created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           resolved_at     TIMESTAMPTZ,
           resolution_note TEXT
       );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'bug_tickets_brand_fkey') THEN
+          ALTER TABLE bugs.bug_tickets ADD CONSTRAINT bug_tickets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
 
       CREATE INDEX IF NOT EXISTS idx_bug_tickets_status ON bugs.bug_tickets(status);
       ALTER TABLE bugs.bug_tickets OWNER TO website;
@@ -810,7 +842,7 @@ data:
 
       CREATE TABLE IF NOT EXISTS coaching.sessions (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        brand         TEXT NOT NULL DEFAULT 'mentolder',
+        brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL DEFAULT 'mentolder',
         client_id     UUID REFERENCES public.customers(id) ON DELETE SET NULL,
         mode          TEXT NOT NULL DEFAULT 'live' CHECK (mode IN ('live','prep')),
         title         TEXT NOT NULL,
@@ -819,6 +851,12 @@ data:
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
         completed_at  TIMESTAMPTZ
       );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sessions_brand_fkey') THEN
+          ALTER TABLE coaching.sessions ADD CONSTRAINT sessions_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
       CREATE INDEX IF NOT EXISTS idx_sessions_brand ON coaching.sessions(brand);
       CREATE INDEX IF NOT EXISTS idx_sessions_client ON coaching.sessions(client_id);
 
@@ -1208,13 +1246,19 @@ data:
         description    TEXT,
         category       TEXT NOT NULL DEFAULT 'feature',
         scope          TEXT,
-        brand          TEXT,
+        brand          TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         requirement_id TEXT REFERENCES bachelorprojekt.requirements(id) ON DELETE SET NULL,
         merged_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
         merged_by      TEXT,
         status         TEXT NOT NULL DEFAULT 'merged',
         created_at     TIMESTAMPTZ DEFAULT now()
       );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'features_brand_fkey') THEN
+          ALTER TABLE bachelorprojekt.features ADD CONSTRAINT features_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
 
       CREATE OR REPLACE VIEW bachelorprojekt.v_timeline AS
       SELECT f.id,
@@ -1256,13 +1300,19 @@ data:
         description     TEXT,
         source          TEXT NOT NULL CHECK (source IN
                           ('pr_history','specs_plans','claude_md','bug_tickets','custom')),
-        brand           TEXT,
+        brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         chunk_count     INT NOT NULL DEFAULT 0,
         last_indexed_at TIMESTAMPTZ,
         embedding_model TEXT NOT NULL DEFAULT 'voyage-multilingual-2',
         created_by      UUID,
         created_at      TIMESTAMPTZ DEFAULT now()
       );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'collections_brand_fkey') THEN
+          ALTER TABLE knowledge.collections ADD CONSTRAINT collections_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS knowledge.documents (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1313,13 +1363,19 @@ data:
         description     TEXT,
         source          TEXT NOT NULL CHECK (source IN
                           ('pr_history','specs_plans','claude_md','bug_tickets','custom')),
-        brand           TEXT,
+        brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         chunk_count     INT NOT NULL DEFAULT 0,
         last_indexed_at TIMESTAMPTZ,
         embedding_model TEXT NOT NULL DEFAULT 'voyage-multilingual-2',
         created_by      UUID,
         created_at      TIMESTAMPTZ DEFAULT now()
       );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'collections_brand_fkey') THEN
+          ALTER TABLE knowledge.collections ADD CONSTRAINT collections_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS knowledge.documents (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),

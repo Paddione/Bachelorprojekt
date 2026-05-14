@@ -75,13 +75,19 @@ CREATE TABLE IF NOT EXISTS bachelorprojekt.features (
   description    TEXT,
   category       TEXT NOT NULL,
   scope          TEXT,
-  brand          TEXT,
+  brand          TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
   requirement_id TEXT REFERENCES bachelorprojekt.requirements(id) ON DELETE SET NULL,
   merged_at      TIMESTAMPTZ NOT NULL,
   merged_by      TEXT,
   status         TEXT NOT NULL DEFAULT 'shipped' CHECK (status IN ('planned','in_progress','shipped','reverted')),
   created_at     TIMESTAMPTZ DEFAULT now()
 );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'features_brand_fkey') THEN
+          ALTER TABLE bachelorprojekt.features ADD CONSTRAINT features_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
 
 CREATE INDEX IF NOT EXISTS idx_features_merged_at ON bachelorprojekt.features (merged_at DESC);
 CREATE INDEX IF NOT EXISTS idx_features_category  ON bachelorprojekt.features (category);

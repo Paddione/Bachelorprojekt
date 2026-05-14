@@ -54,9 +54,88 @@
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====
-    // Tasks 2..10 fill this block.
     const STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
-    console.log('[brett] scaffold loaded');
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight - 36);
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = '36px';
+    renderer.domElement.style.left = '0';
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e1014);
+
+    const camera = new THREE.PerspectiveCamera(
+      50, window.innerWidth / (window.innerHeight - 36), 0.1, 200
+    );
+    camera.position.set(4, 4, 6);
+    camera.lookAt(0, 1, 0);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    scene.add(ambient);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+    sun.position.set(5, 10, 4);
+    scene.add(sun);
+
+    // Floor grid
+    const grid = new THREE.GridHelper(40, 40, 0x445566, 0x2a3340);
+    grid.position.y = 0;
+    scene.add(grid);
+    const floorGeo = new THREE.PlaneGeometry(40, 40);
+    const floorMat = new THREE.MeshBasicMaterial({ color: 0x10131a, transparent: true, opacity: 0.6 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0;
+    scene.add(floor);
+
+    // Minimal manual orbit (mouse drag with middle button + wheel)
+    const cameraOrbit = { theta: Math.atan2(camera.position.x, camera.position.z), phi: 0.6, dist: Math.hypot(camera.position.x, camera.position.z, camera.position.y) };
+    function updateCameraFromOrbit() {
+      const r = cameraOrbit.dist;
+      camera.position.set(
+        Math.sin(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r,
+        Math.sin(cameraOrbit.phi) * r,
+        Math.cos(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r
+      );
+      camera.lookAt(0, 1, 0);
+    }
+    updateCameraFromOrbit();
+    let dragMode = null, dragLast = null;
+    renderer.domElement.addEventListener('mousedown', (e) => {
+      if (e.button === 1 || (e.button === 0 && e.shiftKey)) { dragMode = 'orbit'; dragLast = { x: e.clientX, y: e.clientY }; }
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (dragMode === 'orbit' && dragLast) {
+        const dx = e.clientX - dragLast.x, dy = e.clientY - dragLast.y;
+        cameraOrbit.theta -= dx * 0.005;
+        cameraOrbit.phi = Math.max(-1.2, Math.min(1.2, cameraOrbit.phi + dy * 0.005));
+        updateCameraFromOrbit();
+        dragLast = { x: e.clientX, y: e.clientY };
+      }
+    });
+    window.addEventListener('mouseup', () => { dragMode = null; dragLast = null; });
+    renderer.domElement.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      cameraOrbit.dist = Math.max(2, Math.min(40, cameraOrbit.dist * (1 + e.deltaY * 0.001)));
+      updateCameraFromOrbit();
+    }, { passive: false });
+
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight - 36);
+      camera.aspect = window.innerWidth / (window.innerHeight - 36);
+      camera.updateProjectionMatrix();
+    });
+
+    // Main render loop — figure ticks added in later tasks
+    function tick() {
+      requestAnimationFrame(tick);
+      renderer.render(scene, camera);
+    }
+    tick();
+
+    console.log('[brett] scene up');
   </script>
 </body>
 </html>

@@ -1989,6 +1989,20 @@ function selectFigure(fig) {
     si.querySelector('.si-pov').addEventListener('click', () => enterPOV(fig.id));
     si.querySelector('.si-rot-l').addEventListener('click', () => { setRotY(fig, fig.rotY - Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
     si.querySelector('.si-rot-r').addEventListener('click', () => { setRotY(fig, fig.rotY + Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
+    if (fig.type === 'mannequin') {
+      const actionsDiv = si.querySelector('.si-actions');
+      const wb = document.createElement('button');
+      wb.className = 'si-btn si-walk';
+      wb.title = 'Walk-Animation ein/aus';
+      wb.textContent = '🚶 Walk';
+      if (fig.walking) wb.classList.add('active');
+      wb.addEventListener('click', () => {
+        fig.walking = !fig.walking;
+        wb.classList.toggle('active', fig.walking);
+        if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { walking: fig.walking } });
+      });
+      actionsDiv.prepend(wb);
+    }
   } else {
     slider.value = 1.0;
     scaleVal.textContent = '1.0×';
@@ -3414,6 +3428,7 @@ function animate() {
       if (c.material) c.material.opacity = tFade * (i === 0 ? 0.72 : 0.9);
     });
   }
+  tickAllMannequinWalks(t);
   const dt = tickAutoOrbit();
   tickFreeFly(dt);
   tickOrbitKeys(dt);
@@ -3689,6 +3704,27 @@ function drawMannequinThumb(canvas) {
   jnt(29, 64); jnt(35, 64);  // hips
   jnt(29, 75); jnt(35, 75);  // knees
   jnt(29, 85); jnt(35, 85);  // ankles
+}
+
+function tickMannequinWalk(fig, t) {
+  if (!fig.walking || !fig.bones) return;
+  const b    = fig.bones;
+  const freq = 1.8 * Math.PI * 2;
+  const tA   = freq * t;
+
+  b.lHip.rotation.x      =  0.45 * Math.sin(tA);
+  b.rHip.rotation.x      = -0.45 * Math.sin(tA);
+  b.lKnee.rotation.x     =  0.30 * Math.max(0, Math.sin(tA - 0.4));
+  b.rKnee.rotation.x     =  0.30 * Math.max(0, Math.sin(tA - 0.4 + Math.PI));
+  b.lShoulder.rotation.x = -0.35 * Math.sin(tA);
+  b.rShoulder.rotation.x =  0.35 * Math.sin(tA);
+  b.hips.rotation.z      =  0.06 * Math.sin(2 * tA);
+}
+
+function tickAllMannequinWalks(t) {
+  for (const fig of figures) {
+    if (fig.type === 'mannequin' && fig.walking) tickMannequinWalk(fig, t);
+  }
 }
 
 animate();

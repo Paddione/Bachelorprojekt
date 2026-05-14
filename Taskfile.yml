@@ -1723,6 +1723,24 @@ tasks:
         echo "  https://docs.korczewski.de"
         echo "  https://docs.mentolder.de"
 
+  docs:refresh-diagrams:
+    desc: "Regenerate all auto-generated diagrams (DB schema, …) and deploy docs to both clusters"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        echo "→ Regenerating DB schema diagram (ENV={{.ENV}})..."
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
+        echo "  Written to docs/db-schema-diagram.md"
+      - |
+        echo "→ Copying to k3d/docs-content/db-schema.md..."
+        cp docs/db-schema-diagram.md k3d/docs-content/db-schema.md
+      - task: docs:deploy
+    silent: false
+
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers
   # ─────────────────────────────────────────────

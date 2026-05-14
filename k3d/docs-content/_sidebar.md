@@ -54,3 +54,4 @@
   - [Datamodel × Workflow](datamodel-workflow)
   - [Glossar](glossary)
   - [Decision-Log](decisions)
+  - [DB-Schema (ER-Diagramm)](db-schema)

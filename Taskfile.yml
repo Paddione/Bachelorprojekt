@@ -221,6 +221,7 @@ tasks:
     deps:
       - test:unit:assert
       - test:unit:scripts
+      - test:unit:figure-pack
 
   test:unit:assert:
     internal: true
@@ -231,6 +232,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:unit:figure-pack:
+    internal: true
+    cmds:
+      - bash tests/figure-pack-assets.test.sh
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"

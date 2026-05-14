@@ -484,8 +484,17 @@
   }
   #selected-info {
     position: absolute; bottom: 12px; left: 14px;
-    font-size: 12px; color: #777; pointer-events: none;
+    font-size: 12px; color: #aaa;
+    display: flex; align-items: center; gap: 8px;
   }
+  #selected-info .si-actions { display: flex; gap: 4px; }
+  #selected-info .si-btn {
+    padding: 2px 7px; font-size: 12px; border-radius: 5px;
+    border: 1px solid #0f3460; background: rgba(15,32,64,0.85);
+    color: #aaa; cursor: pointer; transition: all 0.12s;
+    pointer-events: auto;
+  }
+  #selected-info .si-btn:hover { background: #1a4a8a; color: #fff; }
 
   /* #canvas-container now handled by grid area above */
 
@@ -766,7 +775,7 @@
     <button id="bc-pov-exit" aria-label="POV verlassen">⎋ Verlassen</button>
   </div>
   <div id="bc-fly-banner" role="status" aria-live="polite" hidden>
-    <span>✈ Free-Fly · WASD + Maus · Shift = Sprint</span>
+    <span>✈ Free-Fly · WASD + Maus bewegen · Shift = Sprint</span>
     <button id="bc-fly-exit" aria-label="Free-Fly verlassen">⎋</button>
   </div>
   <div id="bc-rec-indicator" hidden>
@@ -796,12 +805,12 @@
 
     <section class="bc-section">
       <h4>Presets</h4>
-      <button class="bc-row" data-preset="1"><span>▦ Top-Down</span><kbd>1</kbd></button>
-      <button class="bc-row" data-preset="2"><span>▣ Frontal</span><kbd>2</kbd></button>
+      <button class="bc-row" data-preset="1"><span>▦ Draufsicht</span><kbd>1</kbd></button>
+      <button class="bc-row" data-preset="2"><span>▣ Vorderseite</span><kbd>2</kbd></button>
       <button class="bc-row" data-preset="3"><span>◀ Links</span><kbd>3</kbd></button>
       <button class="bc-row" data-preset="4"><span>▶ Rechts</span><kbd>4</kbd></button>
-      <button class="bc-row" data-preset="5"><span>⬢ Iso</span><kbd>5</kbd></button>
-      <button class="bc-row" data-preset="6"><span>▤ 3/4</span><kbd>6</kbd></button>
+      <button class="bc-row" data-preset="5"><span>⬢ Standard</span><kbd>5</kbd></button>
+      <button class="bc-row" data-preset="6"><span>▲ Hoch</span><kbd>6</kbd></button>
     </section>
 
     <section class="bc-section">
@@ -828,10 +837,10 @@
       <button class="bc-row" id="bc-mode-split"><span>⫼ Split-View</span><kbd>⇧S</kbd></button>
       <div id="bc-split-controls" hidden style="margin-top:4px;">
         <select id="bc-split-source" style="width:100%;padding:4px;background:#0f2040;border:1px solid var(--bc-border);color:var(--bc-text);font-size:11px;">
-          <option value="preset:1">Top-Down</option>
-          <option value="preset:2">Frontal</option>
-          <option value="preset:5" selected>Iso</option>
-          <option value="preset:6">3/4</option>
+          <option value="preset:1">Draufsicht</option>
+          <option value="preset:2">Vorderseite</option>
+          <option value="preset:5" selected>Standard</option>
+          <option value="preset:6">Hoch</option>
         </select>
       </div>
     </section>
@@ -923,10 +932,11 @@
 
 <!-- Context Menu -->
 <div id="bc-context-menu" role="menu" aria-hidden="true">
-  <button data-ctx="rotate" role="menuitem">↻ Drehen…</button>
-  <button data-ctx="pov" role="menuitem">👁 Aus dieser Sicht</button>
-  <button data-ctx="delete" role="menuitem">✕ Löschen</button>
-  <button data-ctx="home" role="menuitem">⌂ Home</button>
+  <button data-ctx="rot-ccw" role="menuitem">↺ 45° links</button>
+  <button data-ctx="rot-cw"  role="menuitem">↻ 45° rechts</button>
+  <button data-ctx="pov"     role="menuitem">👁 Aus dieser Sicht</button>
+  <button data-ctx="delete"  role="menuitem">✕ Löschen</button>
+  <button data-ctx="home"    role="menuitem">⌂ Home</button>
 </div>
 
 <!-- FAB (phone) -->
@@ -948,7 +958,14 @@
       <section>
         <h5>Werkzeuge</h5>
         <p><kbd>V</kbd> Auswählen · <kbd>O</kbd> Orbit · <kbd>P</kbd> Pan · <kbd>R</kbd> Drehen · <kbd>F</kbd> Fokus · <kbd>E</kbd> POV</p>
-        <p><kbd>Space</kbd>-hold = Temp-Pan</p>
+        <p>Klick auf Figur = wählen, dann ziehen zum Bewegen</p>
+        <p>Rechtsklick auf Figur = Drehen / POV / Löschen</p>
+      </section>
+      <section>
+        <h5>Kamera</h5>
+        <p><kbd>RMB</kbd> gehalten + Maus = Orbit (frei drehen)</p>
+        <p><kbd>RMB</kbd> + <kbd>WASD</kbd> = Kamera schwenken</p>
+        <p>Touch: 1-Finger leer = Orbit · 2-Finger = Pan + Zoom</p>
       </section>
       <section>
         <h5>Ansichten</h5>
@@ -1117,7 +1134,7 @@ scene.fog = new THREE.Fog(0x1a1a2e, 65, 120);
 const camera_obj = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
 const camera = {
   mode: 'orbit',
-  theta: 0, phi: 0.95, radius: 44,
+  theta: 0, phi: 0.65, radius: 44,
   target: { x: 0, y: 0, z: 0 },
 
   povFigureId: null,
@@ -1211,12 +1228,12 @@ updateCamera();
 
 // ── Presets ──────────────────────────────────────────────
 const PRESETS = {
-  1: { name: 'Top-Down', theta: 0,             phi: 0.05,         radius: 'fit' },
-  2: { name: 'Frontal',  theta: 0,             phi: Math.PI/2.05, radius: 'fit' },
-  3: { name: 'Links',    theta: -Math.PI/2,    phi: Math.PI/2.05, radius: 'fit' },
-  4: { name: 'Rechts',   theta:  Math.PI/2,    phi: Math.PI/2.05, radius: 'fit' },
-  5: { name: 'Iso',      theta: Math.PI/4,     phi: 0.95,         radius: 44 },
-  6: { name: '3/4',      theta: Math.PI/6,     phi: 0.70,         radius: 50 },
+  1: { name: 'Draufsicht',  theta: 0,           phi: 0.12,        radius: 'fit' },
+  2: { name: 'Vorderseite', theta: 0,            phi: 1.10,        radius: 'fit' },
+  3: { name: 'Links',       theta: -Math.PI/2,   phi: 0.85,        radius: 'fit' },
+  4: { name: 'Rechts',      theta:  Math.PI/2,   phi: 0.85,        radius: 'fit' },
+  5: { name: 'Standard',    theta: Math.PI/5,    phi: 0.65,        radius: 44    },
+  6: { name: 'Hoch',        theta: Math.PI/4,    phi: 0.38,        radius: 50    },
 };
 
 function computeFit() {
@@ -1933,11 +1950,16 @@ function selectFigure(fig) {
     showSelRing(fig);
     slider.value = fig.scale;
     scaleVal.textContent = fig.scale.toFixed(1)+'×';
-    document.getElementById('selected-info').textContent = fig.label ? `Ausgewählt: ${fig.label}` : 'Figur ausgewählt';
+    const si = document.getElementById('selected-info');
+    const lbl = fig.label ? `Ausgewählt: ${fig.label}` : 'Figur ausgewählt';
+    si.innerHTML = `<span>${lbl}</span><div class="si-actions"><button class="si-btn si-pov" title="Aus Figur-Sicht (E)">👁 Sicht</button><button class="si-btn si-rot-l" title="45° links drehen">↺</button><button class="si-btn si-rot-r" title="45° rechts drehen">↻</button></div>`;
+    si.querySelector('.si-pov').addEventListener('click', () => enterPOV(fig.id));
+    si.querySelector('.si-rot-l').addEventListener('click', () => { setRotY(fig, fig.rotY - Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
+    si.querySelector('.si-rot-r').addEventListener('click', () => { setRotY(fig, fig.rotY + Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
   } else {
     slider.value = 1.0;
     scaleVal.textContent = '1.0×';
-    document.getElementById('selected-info').textContent = '';
+    document.getElementById('selected-info').innerHTML = '';
   }
 }
 
@@ -2021,7 +2043,7 @@ document.getElementById('btn-delete').addEventListener('click', () => {
   scene.remove(selectedFigure.mesh);
   figures = figures.filter(f => f !== selectedFigure);
   clearSelRing(); selectedFigure = null;
-  document.getElementById('selected-info').textContent = '';
+  document.getElementById('selected-info').innerHTML = '';
   send({ type: 'delete', id });
 });
 
@@ -2044,7 +2066,7 @@ function askConfirm(text, cb) {
 function clearBoard() {
   figures.forEach(f => { scene.remove(f.mesh); });
   figures = []; clearSelRing(); selectedFigure = null;
-  document.getElementById('selected-info').textContent = '';
+  document.getElementById('selected-info').innerHTML = '';
 }
 
 document.getElementById('btn-reset').addEventListener('click', () => {
@@ -2360,6 +2382,7 @@ let panOn  = false;
 let rotFig = null, rotStartX = 0, rotFigStartY = 0;
 let lastClick = { fig: null, time: 0 };
 let orbitOn = false;
+let rmbHeld = false;
 let dragStart = { x: 0, y: 0 };
 
 let lastMoveSentAt = 0;
@@ -2381,15 +2404,15 @@ cnv.addEventListener('mousedown', e => {
   const ndc = getNDC(e);
   const fig = pickFigure(ndc);
 
-  // RMB = always temp-pan
+  // RMB = orbit (free rotate around board); short click = context menu
   if (e.button === 2) {
-    panOn = true;
+    orbitOn = true;
+    rmbHeld = true;
     dragStart = { x: e.clientX, y: e.clientY };
-    document.body.classList.add('bc-panning');
     return;
   }
 
-  // MMB = also temp-pan (legacy parity)
+  // MMB = temp-pan
   if (e.button === 1) {
     panOn = true;
     dragStart = { x: e.clientX, y: e.clientY };
@@ -2407,6 +2430,9 @@ cnv.addEventListener('mousedown', e => {
   }
 
   if (e.button !== 0) return;
+
+  // When clicking a figure in camera-only tools, auto-switch to select mode
+  if (fig && (activeTool === 'O' || activeTool === 'P')) setActiveTool('V');
 
   // Dispatch LMB by active tool
   switch (activeTool) {
@@ -2508,7 +2534,8 @@ cnv.addEventListener('mousemove', e => {
 
 cnv.addEventListener('mouseup', e => {
   if (e.button === 2) {
-    if (panOn) { panOn = false; document.body.classList.remove('bc-panning'); }
+    orbitOn = false;
+    rmbHeld = false;
     const dx = e.clientX - dragStart.x, dy2 = e.clientY - dragStart.y;
     if (Math.sqrt(dx*dx + dy2*dy2) < 5) {
       openContextMenu(pickFigure(getNDC(e)), e.clientX, e.clientY);
@@ -2630,6 +2657,10 @@ cnv.addEventListener('touchmove', e => {
       const f = camera.radius * 0.01;
       camera.target.x += dx * f * Math.cos(camera.theta) + dy * f * Math.sin(camera.theta);
       camera.target.z += dx * f * (-Math.sin(camera.theta)) + dy * f * Math.cos(camera.theta);
+    } else if (!touch.fig) {
+      // 1-finger on empty: orbit (Android equivalent of RMB drag)
+      camera.theta -= dx * 0.008;
+      camera.phi = Math.max(0.05, Math.min(Math.PI/2.05, camera.phi + dy * 0.008));
     }
     touch.lastX = t.clientX; touch.lastY = t.clientY;
   } else if (e.touches.length === 2) {
@@ -2674,7 +2705,7 @@ function openContextMenu(fig, x, y) {
   ctxFig = fig;
   const menu = document.getElementById('bc-context-menu');
   menu.querySelectorAll('button').forEach(b => {
-    const needsFig = ['rotate','pov','delete'].includes(b.dataset.ctx);
+    const needsFig = ['rot-ccw','rot-cw','pov','delete'].includes(b.dataset.ctx);
     b.disabled = needsFig && !fig;
     b.style.opacity = needsFig && !fig ? '0.4' : '1';
   });
@@ -2692,7 +2723,8 @@ document.getElementById('bc-context-menu').addEventListener('click', e => {
   const b = e.target.closest('button[data-ctx]');
   if (!b || b.disabled) return;
   switch (b.dataset.ctx) {
-    case 'rotate':  if (ctxFig) { setActiveTool('R'); } break;
+    case 'rot-ccw': if (ctxFig) { setRotY(ctxFig, ctxFig.rotY - Math.PI/4); send({ type: 'update', id: ctxFig.id, changes: { rotY: ctxFig.rotY } }); } break;
+    case 'rot-cw':  if (ctxFig) { setRotY(ctxFig, ctxFig.rotY + Math.PI/4); send({ type: 'update', id: ctxFig.id, changes: { rotY: ctxFig.rotY } }); } break;
     case 'pov':     if (ctxFig) enterPOV(ctxFig.id); break;
     case 'delete':  if (ctxFig) { send({ type: 'delete', id: ctxFig.id }); } break;
     case 'home':    goHome(); break;
@@ -2944,6 +2976,16 @@ document.getElementById('bc-mode-fly').addEventListener('click', () => {
   if (camera.mode === 'freefly') exitFreeFly(); else enterFreeFly();
 });
 window.enterFreeFly = enterFreeFly; window.exitFreeFly = exitFreeFly;
+
+// WASD orbit control — active while RMB is held in orbit mode
+function tickOrbitKeys(dt) {
+  if (camera.mode !== 'orbit' || !rmbHeld) return;
+  const speed = 1.8 * dt;
+  if (flyKeys.a) camera.theta -= speed;
+  if (flyKeys.d) camera.theta += speed;
+  if (flyKeys.w) camera.phi = Math.max(0.05, camera.phi - speed);
+  if (flyKeys.s) camera.phi = Math.min(Math.PI/2.05, camera.phi + speed);
+}
 
 // ── Split-View ───────────────────────────────────────────
 let splitOn = false;
@@ -3336,6 +3378,7 @@ function animate() {
   }
   const dt = tickAutoOrbit();
   tickFreeFly(dt);
+  tickOrbitKeys(dt);
   updateCamera();
   tickCompass();
   // Split-View or normal render

@@ -1895,6 +1895,10 @@ function addFigure(type, color, x, z, label, scale, rotY, id) {
 
   const fig = { type, color, mesh, label: label||'', sprite: null, scale: scale||1.0, rotY: rotY||0 };
   fig.id = id || `fig_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  if (type === 'mannequin') {
+    fig.bones   = mesh.userData.bones;
+    fig.walking = false;
+  }
   if (fig.label) { attachLabel(fig); }
   figures.push(fig);
   return fig;
@@ -1998,6 +2002,10 @@ function recolorFigure(fig, color) {
   scene.remove(fig.mesh);
   scene.add(newMesh);
   fig.mesh = newMesh;
+  if (fig.type === 'mannequin') {
+    fig.bones   = newMesh.userData.bones;
+    fig.walking = fig.walking || false;
+  }
   if (fig.label) attachLabel(fig);
   if (!applyingRemote) {
     selectFigure(fig);

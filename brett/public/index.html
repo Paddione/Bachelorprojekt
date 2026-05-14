@@ -1585,7 +1585,9 @@ const CAT_LABELS = {
   symbole:   '♥ Symbole',
   raeume:    '🚪 Räume',
   natur:     '🌿 Natur',
+  '3d':      '🪆 3D',
 };
+const mannequinIds = new Set();
 let activeCategoryId = 'personen';
 
 function renderTabContent(categoryId) {
@@ -1597,6 +1599,27 @@ function renderTabContent(categoryId) {
   if (!ART_MANIFEST) return;
   for (const a of ART_MANIFEST.assets) {
     if (a.category !== categoryId) continue;
+    if (mannequinIds.has(a.id)) {
+      const btn = document.createElement('button');
+      btn.className = 'figure-btn';
+      btn.dataset.type = a.id;
+      btn.title = a.label || a.id;
+      btn.setAttribute('aria-label', a.label || a.id);
+      const thumbCanvas = document.createElement('canvas');
+      drawMannequinThumb(thumbCanvas);
+      thumbCanvas.style.cssText = 'width:32px;height:48px;display:block;margin:auto';
+      btn.appendChild(thumbCanvas);
+      btn.addEventListener('click', () => {
+        const x = (Math.random()-0.5)*(BW-4);
+        const z = (Math.random()-0.5)*(BD-4);
+        const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
+        send({ type: 'add', fig: figToJSON(fig) });
+        selectFigure(fig);
+        openLabelModal(fig);
+      });
+      container.appendChild(btn);
+      continue;
+    }
     if (!characterIds.has(a.id)) continue;
     const btn = document.createElement('button');
     btn.className = 'figure-btn';
@@ -1630,6 +1653,7 @@ async function bootArtLibrary() {
     ART_MANIFEST = await r.json();
     for (const a of ART_MANIFEST.assets) {
       if (a.kind === 'character') characterIds.add(a.id);
+      if (a.kind === 'mannequin') mannequinIds.add(a.id);
     }
     await Promise.all([...characterIds].map(loadCharacterTexture));
     console.log('[art] loaded', characterIds.size, 'characters');
@@ -3624,6 +3648,47 @@ function buildMannequin(color, group) {
     rAnkle:    rAnkleGrp,
   };
   return group;
+}
+
+function drawMannequinThumb(canvas) {
+  canvas.width  = 64;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#102540';
+  ctx.fillRect(0, 0, 64, 96);
+  ctx.strokeStyle = '#d4a26a';
+  ctx.lineWidth   = 2;
+  ctx.lineCap     = 'round';
+
+  function seg(x1, y1, x2, y2) {
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+  function jnt(x, y) {
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#c8a96e'; ctx.fill();
+  }
+
+  // Head
+  ctx.beginPath(); ctx.arc(32, 32, 9, 0, Math.PI * 2);
+  ctx.strokeStyle = '#d4a26a'; ctx.stroke();
+  // Trunk: neck (32,41) → pelvis (32,64)
+  seg(32, 41, 32, 64);
+  // Left arm:  shoulder(24,42) elbow(24,54) wrist(24,64)
+  seg(32, 42, 24, 42); seg(24, 42, 24, 54); seg(24, 54, 24, 64);
+  // Right arm: shoulder(40,42) elbow(40,54) wrist(40,64)
+  seg(32, 42, 40, 42); seg(40, 42, 40, 54); seg(40, 54, 40, 64);
+  // Left leg:  hip(29,64) knee(29,75) ankle(29,85) foot
+  seg(32, 64, 29, 64); seg(29, 64, 29, 75); seg(29, 75, 29, 85); seg(29, 85, 22, 87);
+  // Right leg: hip(35,64) knee(35,75) ankle(35,85) foot
+  seg(32, 64, 35, 64); seg(35, 64, 35, 75); seg(35, 75, 35, 85); seg(35, 85, 42, 87);
+
+  // Joints (Messing)
+  jnt(24, 42); jnt(40, 42);  // shoulders
+  jnt(24, 54); jnt(40, 54);  // elbows
+  jnt(24, 64); jnt(40, 64);  // wrists
+  jnt(29, 64); jnt(35, 64);  // hips
+  jnt(29, 75); jnt(35, 75);  // knees
+  jnt(29, 85); jnt(35, 85);  // ankles
 }
 
 animate();

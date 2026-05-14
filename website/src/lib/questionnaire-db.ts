@@ -1120,5 +1120,3 @@ export async function listQuestionsWithSuccessfulRecording(): Promise<string[]> 
   );
   return r.rows.map((row: { question_id: string }) => row.question_id);
 }
-row: { question_id: string }) => row.question_id);
-}

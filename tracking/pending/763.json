@@ -1,0 +1,13 @@
+{
+  "pr_number": 763,
+  "title": "rechtliches-Seite auf RechtlichesSection-Komponente umstellen + Save-API",
+  "description": "## Summary\n\n- `rechtliches.astro` übergibt nun `initialData` (DB-Wert oder Standardtext aus `legal-defaults.ts`) und `rechtlichesHasCustom` an die vorhandene `RechtlichesSection`-Svelte-Komponente\n- Neue POST-Route `/api/admin/legal/[key]/save` persistiert rechtliche Inhalte (Keys: `impressum-zusatz`, `datenschutz`, `agb`, `barrierefreiheit`) via `saveLegalPage` in der DB\n- Wenn kein eigener Text in der DB vorhanden ist, wird der Standardtext aus `legal-defaults.ts` als Vorschau angezeigt (nicht gespeichert)\n\n## Test plan\n\n- [ ] `/admin/rechtliches` lädt ohne Fehler und zeigt Tabs (Impressum, Datenschutz, AGB, Barrierefreiheit, Meine Daten, Cookie-Einstellungen)\n- [ ] Bearbeiten und Speichern eines Textes → grüner Hinweis „Gespeichert.\" + grüner Tab-Indikator (●)\n- [ ] Leere DB: Standardtext aus `legal-defaults.ts` wird als Vorschau angezeigt (blauer Indikator ○)\n- [ ] `POST /api/admin/legal/invalid-key/save` → 400 Bad Request\n- [ ] Unauthentifizierter Zugriff → 403 Forbidden\n- [ ] `task test:all` grün (Manifeste, Unit-Tests)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "admin",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T22:01:13Z",
+  "merged_by": "gekko32",
+  "bug_refs": [],
+  "ticket_refs": []
+}

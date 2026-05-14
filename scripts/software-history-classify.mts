@@ -27,7 +27,7 @@ async function main() {
     process.exit(2);
   }
   const pool = new Pool({ connectionString });
-  const classifier = `llm:${DEFAULT_MODEL.split('-').slice(0, 4).join('-')}`;
+  const classifier = `llm:${DEFAULT_MODEL}`;
 
   try {
     if (flags.retryFailed) {

@@ -544,6 +544,45 @@
     dragging = null;
   });
 
+  renderer.domElement.addEventListener('click', (e) => {
+    if (dragging) return;
+    // Already handled by mousedown for contact spheres; this handles body / floor clicks
+    if (e.shiftKey) return;
+    const body = pickMannequinBody(e);
+    if (body) { selectFigure(body.id); return; }
+    const floorPt = pickFloor(e);
+    if (floorPt && STATE.selectedId) {
+      // Walk-to-click handled in Task 9; for now: deselect on empty floor click only via ESC
+    }
+  });
+
+  renderer.domElement.addEventListener('dblclick', (e) => {
+    const floorPt = pickFloor(e);
+    if (floorPt) addFigure({ x: floorPt.x, z: floorPt.z });
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      STATE.selectedId = null;
+      for (const f of STATE.figures) f.ring.visible = false;
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && STATE.selectedId) {
+      const idx = STATE.figures.findIndex(f => f.id === STATE.selectedId);
+      if (idx >= 0) {
+        scene.remove(STATE.figures[idx].root);
+        STATE.figures.splice(idx, 1);
+        STATE.selectedId = STATE.figures[0]?.id ?? null;
+        if (STATE.selectedId) selectFigure(STATE.selectedId);
+        sendDelete(idx);
+      }
+    } else if (e.key === 'Tab' && STATE.figures.length > 1) {
+      e.preventDefault();
+      const idx = STATE.figures.findIndex(f => f.id === STATE.selectedId);
+      const next = STATE.figures[(idx + 1) % STATE.figures.length];
+      selectFigure(next.id);
+    }
+  });
+  function sendDelete() { /* placeholder until Task 10 */ }
+
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();

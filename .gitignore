@@ -10,6 +10,7 @@ environments/.secrets/
 deploy/mcp/openclaw-secrets.yaml
 # OpenClaw — runtime config has secrets; only template is committed
 openclaw/.env
+.openclaw/workspace/
 deploy/mcp/claude-code-secrets.yaml
 vaultwarden-import-*.json
 *-bitwarden-export.json

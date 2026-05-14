@@ -44,3 +44,19 @@ test('postProcess: injects copy buttons and TOC, rewrites links', async () => {
   assert.ok(out.includes('href="./other-page.html"'), 'link rewritten');
   assert.ok(out.includes('<h2 id="section-a"'), 'h2 gets id attribute');
 });
+
+test('wrapPage: generates valid HTML with sidebar, search overlay, and active link', async () => {
+  const { wrapPage, parseSidebar } = await import('./build-docs.js');
+  const html = wrapPage({
+    slug: 'test-page',
+    title: 'Test Page',
+    content: '<h1>Hello</h1><p>World</p>',
+    sidebarHtml: parseSidebar('- **Section**\n  - [Test Page](test-page)\n', 'test-page'),
+    searchIndex: [{ slug: 'test-page', title: 'Test Page', excerpt: 'World' }],
+  });
+  assert.ok(html.startsWith('<!DOCTYPE html>'));
+  assert.ok(html.includes('<title>Test Page'));
+  assert.ok(html.includes('class="active"'));
+  assert.ok(html.includes('<h1>Hello</h1>'));
+  assert.ok(html.includes('id="search-overlay"'));
+});

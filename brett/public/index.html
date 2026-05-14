@@ -128,7 +128,141 @@
       camera.updateProjectionMatrix();
     });
 
-    // Main render loop — figure ticks added in later tasks
+  // ----- Mannequin model -----
+  const BONE_NAMES = [
+    'hips','head',
+    'lShoulder','rShoulder','lElbow','rElbow','lWrist','rWrist',
+    'lHip','rHip','lKnee','rKnee','lAnkle','rAnkle'
+  ];
+  const CONTACT_POINTS = [
+    { bone:'lWrist', color:0xffd84a }, { bone:'rWrist', color:0xffd84a },
+    { bone:'lAnkle', color:0x6be0a0 }, { bone:'rAnkle', color:0x6be0a0 },
+    { bone:'lKnee',  color:0x4a9adf }, { bone:'rKnee',  color:0x4a9adf },
+    { bone:'lElbow', color:0xc8a96e }, { bone:'rElbow', color:0xc8a96e },
+    { bone:'head',   color:0xe09090 },
+  ];
+
+  function makeBone(parent, length, color = 0xb8c0a8) {
+    const g = new THREE.Group();
+    const geom = new THREE.CylinderGeometry(0.06, 0.06, length, 8);
+    geom.translate(0, -length / 2, 0); // pivot at top
+    const mat = new THREE.MeshLambertMaterial({ color });
+    const mesh = new THREE.Mesh(geom, mat);
+    g.add(mesh);
+    g.userData.length = length;
+    parent.add(g);
+    return g;
+  }
+
+  function makeMannequin(id, position = { x: 0, z: 0 }) {
+    const root = new THREE.Group();
+    root.position.set(position.x, 0, position.z);
+
+    // Hips at y≈1.0; spine up to head
+    const hips = new THREE.Group(); hips.position.y = 1.0; root.add(hips);
+    const torsoMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.7, 0.25),
+      new THREE.MeshLambertMaterial({ color: 0xb8c0a8 })
+    );
+    torsoMesh.position.y = 0.35; hips.add(torsoMesh);
+
+    const head = new THREE.Group(); head.position.y = 0.85; hips.add(head);
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12),
+      new THREE.MeshLambertMaterial({ color: 0xd9c89b }));
+    head.add(headMesh);
+
+    // Arms
+    const lShoulder = new THREE.Group(); lShoulder.position.set( 0.28, 0.65, 0); hips.add(lShoulder);
+    const rShoulder = new THREE.Group(); rShoulder.position.set(-0.28, 0.65, 0); hips.add(rShoulder);
+    const lUpper = makeBone(lShoulder, 0.32); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
+    const rUpper = makeBone(rShoulder, 0.32); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
+    const lFore  = makeBone(lElbow, 0.30);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
+    const rFore  = makeBone(rElbow, 0.30);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+
+    // Legs
+    const lHip = new THREE.Group(); lHip.position.set( 0.12, 0, 0); hips.add(lHip);
+    const rHip = new THREE.Group(); rHip.position.set(-0.12, 0, 0); hips.add(rHip);
+    makeBone(lHip, 0.42); const lKnee = new THREE.Group(); lKnee.position.y = -0.42; lHip.add(lKnee);
+    makeBone(rHip, 0.42); const rKnee = new THREE.Group(); rKnee.position.y = -0.42; rHip.add(rKnee);
+    makeBone(lKnee, 0.40); const lAnkle = new THREE.Group(); lAnkle.position.y = -0.40; lKnee.add(lAnkle);
+    makeBone(rKnee, 0.40); const rAnkle = new THREE.Group(); rAnkle.position.y = -0.40; rKnee.add(rAnkle);
+
+    const bones = { hips, head, lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle };
+
+    // Contact-point spheres (raycaster-hittable)
+    for (const cp of CONTACT_POINTS) {
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.07, 12, 10),
+        new THREE.MeshLambertMaterial({ color: cp.color })
+      );
+      sphere.userData.isContact = true;
+      sphere.userData.boneName = cp.bone;
+      sphere.userData.figureId = id;
+      bones[cp.bone].add(sphere);
+    }
+
+    // Selection ellipse (hidden until selected)
+    const ringGeo = new THREE.RingGeometry(0.55, 0.62, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8a96e, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.01; ring.visible = false;
+    root.add(ring);
+
+    scene.add(root);
+
+    // Per-bone spring state (filled by preset/spring in later tasks)
+    const bone = {};
+    for (const name of BONE_NAMES) {
+      bone[name] = {
+        currentRot: { x: 0, z: 0 },
+        targetRot:  { x: 0, z: 0 },
+        velocity:   { x: 0, z: 0 },
+      };
+    }
+
+    return {
+      id,
+      type: 'mannequin',
+      root, hips, bones, ring,
+      bone,
+      walkTarget: null,
+      walking: false,
+      boneOverrides: {},
+      label: 'Figur',
+      facingY: 0,
+    };
+  }
+
+  function addFigure(position) {
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('f-' + Math.random().toString(36).slice(2,10));
+    const fig = makeMannequin(id, position);
+    STATE.figures.push(fig);
+    selectFigure(id);
+    return fig;
+  }
+
+  function selectFigure(id) {
+    STATE.selectedId = id;
+    for (const f of STATE.figures) {
+      f.ring.visible = (f.id === id);
+      f.root.traverse(o => {
+        if (o.isMesh && !o.userData.isContact && o !== f.ring) {
+          if (o.material && 'opacity' in o.material) {
+            o.material.transparent = true;
+            o.material.opacity = (f.id === id) ? 1.0 : 0.55;
+          }
+        }
+      });
+    }
+  }
+
+  document.getElementById('add-figure').addEventListener('click', () => {
+    addFigure({ x: (Math.random()-0.5)*2, z: (Math.random()-0.5)*2 });
+  });
+  // Seed one figure so the scene is not empty on first load
+  addFigure({ x: 0, z: 0 });
+
+  // Main render loop — figure ticks added in later tasks
     function tick() {
       requestAnimationFrame(tick);
       renderer.render(scene, camera);

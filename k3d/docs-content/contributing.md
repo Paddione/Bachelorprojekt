@@ -159,6 +159,6 @@ gh pr create \
 ./tests/runner.sh report             # Markdown-Report generieren
 ```
 
-Test-IDs: `FA-01`–`FA-26` (funktional), `SA-01`–`SA-10` (Sicherheit), `NFA-01`–`NFA-09` (nicht-funktional), `AK-03`, `AK-04` (Abnahme).
+Test-IDs: `FA-01`–`FA-40` (funktional, mit Lücken), `SA-01`–`SA-10` (Sicherheit, mit Lücken), `NFA-01`–`NFA-09` (nicht-funktional), `AK-03`, `AK-04` (Abnahme). Lücken in der Nummerierung (FA-01..08, FA-22, FA-30, FA-38, SA-06, SA-09) spiegeln entfernte Services (Mattermost, InvoiceNinja) wider. Vollständige Liste: [Testframework](tests.md).
 
 Weitere Details: [Testframework](tests.md)

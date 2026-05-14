@@ -1,5 +1,7 @@
 # Meeting History Implementation Plan
 
+> ⚠️ **Veraltet:** Dieser Plan referenziert Mattermost (entfernt 2026-04). Meeting-Benachrichtigungen müssen über einen anderen Kanal abgebildet werden.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Let admins release meeting artefacts (transcript, whiteboard, AI summary) to clients via the portal. Audio is deleted once transcription completes. Clients see released meetings in the "Vergangene Gespräche" portal tab.

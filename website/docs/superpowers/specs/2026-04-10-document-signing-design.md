@@ -1,7 +1,7 @@
 # Document Signing — Design Spec
 
 **Date:** 2026-04-10
-**Status:** Approved
+**Status:** Superseded — Mattermost entfernt 2026-04; Spec vor Nutzung aktualisieren
 **Depends on:** Client Portal spec
 
 ## Overview

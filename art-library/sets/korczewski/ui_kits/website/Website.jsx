@@ -185,7 +185,7 @@ function Team() {
             Substack twice a month. Will say no to your request if it isn't worth doing.
           </p>
           <dl className="credits">
-            <dt>Past</dt><dd>Stripe · Allegro · DeliveryHero</dd>
+            <dt>Past</dt><dd>Allegro · DeliveryHero</dd>
             <dt>Now</dt><dd>Operating <Em>Tradesman</Em>, <Em>Lumen.ag</Em>, <Em>Halst</Em></dd>
             <dt>Speaks at</dt><dd>KubeCon EU, SREcon, PromCon</dd>
             <dt>Writes</dt><dd>kore.studio/notes</dd>

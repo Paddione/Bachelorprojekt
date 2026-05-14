@@ -3,6 +3,9 @@
 > Anleitung für Gekko (Android & iOS). Das Dokument ist absichtlich
 > ohne Fachbegriffe geschrieben — einfach Schritt für Schritt durchgehen.
 >
+> **Geltungsbereich:** Diese Anleitung bezieht sich auf den MCP-Server unter `mcp.mentolder.de`
+> (mentolder-Cluster). Für korczewski.de gibt es einen separaten MCP-Endpunkt unter `mcp.korczewski.de`.
+>
 > **Vor dem Verschicken:** Patrick muss an einer Stelle (Schritt 2) den
 > Bearer-Token einsetzen. Anweisung dafür ganz unten.
 

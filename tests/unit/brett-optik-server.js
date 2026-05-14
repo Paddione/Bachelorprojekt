@@ -1,5 +1,5 @@
 'use strict';
-// Standalone test for pure optik logic in server.js.
+// Standalone test for pure optik/stiffness logic in server.js.
 // Run with: node tests/unit/brett-optik-server.js
 // No DB required — tests pure in-memory logic only.
 
@@ -30,16 +30,23 @@ function applyMutation(room, msg) {
         figs.set('__optik__', { id: '__optik__', settings: msg.settings });
       }
       break;
+    case 'stiffness':
+      if (typeof msg.value === 'number') {
+        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
+      }
+      break;
   }
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const figures = Array.from(figs.values()).filter(f => f.id !== '__optik__');
+  const figures = Array.from(figs.values()).filter(f => !['__optik__', '__stiffness__'].includes(f.id));
   const optikEntry = figs.get('__optik__');
+  const stiffEntry = figs.get('__stiffness__');
   const result = { figures };
   if (optikEntry) result.optik = optikEntry.settings;
+  if (stiffEntry) result.stiffness = stiffEntry.value;
   return result;
 }
 
@@ -129,6 +136,32 @@ console.log('\nbrett-optik-server: applyMutation + buildStateFromMutations\n');
   const state = buildStateFromMutations(room);
   assert('snapshot includes optik from DB state', JSON.stringify(state.optik) === JSON.stringify(dbState.optik));
   assert('snapshot figures excludes __optik__', state.figures.every(f => f.id !== '__optik__'));
+}
+
+// T9: stiffness message stores value under __stiffness__ key
+{
+  const room = 'test-room-9';
+  applyMutation(room, { type: 'stiffness', value: 0.42 });
+  const figs = figureMaps.get(room);
+  assert('stiffness message stores __stiffness__ entry', figs.has('__stiffness__'));
+  assert('__stiffness__ entry has correct value', figs.get('__stiffness__').value === 0.42);
+}
+
+// T10: buildStateFromMutations includes stiffness in result
+{
+  const room = 'test-room-10';
+  applyMutation(room, { type: 'stiffness', value: 0.88 });
+  const state = buildStateFromMutations(room);
+  assert('state includes stiffness field', state.stiffness === 0.88);
+}
+
+// T11: buildStateFromMutations excludes __stiffness__ from figures array
+{
+  const room = 'test-room-11';
+  applyMutation(room, { type: 'add', fig: { id: 'fig2', type: 'pawn', x: 1, z: 1 } });
+  applyMutation(room, { type: 'stiffness', value: 0.1 });
+  const state = buildStateFromMutations(room);
+  assert('figures array has no __stiffness__ entry', state.figures.every(f => f.id !== '__stiffness__'));
 }
 
 console.log(`\n${passed} passed, ${failed} failed\n`);

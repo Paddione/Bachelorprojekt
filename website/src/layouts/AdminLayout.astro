@@ -63,6 +63,7 @@ const icons: Record<string, string> = {
   edit: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 1.8l2.7 2.7L5 13.7l-3.2.5.5-3.2z"/><path d="M10 3.3l2.7 2.7"/></svg>`,
   // Brett icon: 3D board
   brett: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l6.5-3.5L14.5 5v6L8 14.5 1.5 11V5z"/><path d="M8 1.5v13M1.5 5l6.5 3 6.5-3"/></svg>`,
+  plus: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3 8h10"/></svg>`,
 };
 
 let inboxPending = 0;
@@ -127,11 +128,20 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
+    label: 'Coaching',
+    items: [
+      { href: '/admin/coaching/sessions',     label: 'Sessions',     icon: 'clipboard',
+        matches: ['/admin/coaching/sessions'] },
+      { href: '/admin/coaching/sessions/new', label: 'Neue Session', icon: 'plus' },
+    ],
+  },
+  {
     label: 'System',
     items: [
-      { href: '/admin/monitoring',  label: 'Monitoring',        icon: 'monitor' },
-      { href: '/admin/ops',         label: 'Cluster-Steuerung', icon: 'server' },
-      { href: '/admin/inbox',       label: 'Inbox',             icon: 'inbox', badge: inboxPending },
+      { href: '/admin/monitoring',       label: 'Monitoring',        icon: 'monitor' },
+      { href: '/admin/software-history', label: 'Software-History',  icon: 'clipboard' },
+      { href: '/admin/ops',              label: 'Cluster-Steuerung', icon: 'server' },
+      { href: '/admin/inbox',            label: 'Inbox',             icon: 'inbox', badge: inboxPending },
     ],
   },
   {

@@ -104,7 +104,7 @@ spec:
                 runAsUser: 65534
                 capabilities:
                   drop: ["ALL"]
-              command: ["/bin/sh", "-c"]
+              command: ["/bin/bash", "-c"]
               # Shell vars below (STAMP, BACKUP_DIR, PASS, FILEN_PATH) are evaluated
               # by the container shell at runtime — NOT Taskfile envsubst targets.
               args:

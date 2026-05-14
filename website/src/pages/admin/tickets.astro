@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import TicketQuickEdit from '../../components/admin/TicketQuickEdit.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import {
   listAdminTickets, countAdminTickets, listKnownComponents,
@@ -16,6 +17,7 @@ const sp    = Astro.url.searchParams;
 
 const typeFilter      = sp.get('type')       ?? '';
 const statusFilter    = sp.get('status')     ?? 'open';
+const attentionFilter = sp.get('attention')  ?? '';
 const componentFilter = sp.get('component')  ?? '';
 const assigneeFilter  = sp.get('assigneeId') ?? '';
 const customerFilter  = sp.get('customerId') ?? '';
@@ -29,6 +31,7 @@ const filters: ListFilters = {
   brand:           BRAND,
   type:            (typeFilter as TicketType) || undefined,
   status:          statusFilter === 'all' ? undefined : (statusFilter as TicketStatus | 'open'),
+  attention:       (attentionFilter as 'ai_ready' | 'needs_human' | 'auto') || undefined,
   component:       componentFilter || undefined,
   assigneeId:      assigneeFilter  || undefined,
   customerId:      customerFilter  || undefined,
@@ -86,8 +89,8 @@ function formatDate(d: Date | null | string): string {
 
 function buildLink(ov: Record<string, string | undefined>): string {
   const p = new URLSearchParams();
-  const keep = { type: typeFilter, status: statusFilter, component: componentFilter,
-                 assigneeId: assigneeFilter, customerId: customerFilter,
+  const keep = { type: typeFilter, status: statusFilter, attention: attentionFilter,
+                 component: componentFilter, assigneeId: assigneeFilter, customerId: customerFilter,
                  thesisTag: thesisFilter, tag: tagFilter, q: qFilter,
                  testData: includeTestData ? '1' : '' };
   const merged = { ...keep, ...ov };
@@ -97,14 +100,13 @@ function buildLink(ov: Record<string, string | undefined>): string {
 }
 
 const SAVED_VIEWS: { label: string; href: string }[] = [
-  { label: 'Alle offenen', href: '/admin/tickets?status=open' },
+  { label: ' Alle offenen', href: '/admin/tickets?status=open' },
+  { label: '🤖 AI-Queue',    href: '/admin/tickets?attention=ai_ready&status=open' },
+  { label: '👤 Mensch nötig', href: '/admin/tickets?attention=needs_human&status=open' },
   { label: 'Meine offenen', href: `/admin/tickets?status=open&assigneeId=${admins.find(a => a.email === session.email)?.id ?? ''}` },
   { label: 'Triage',        href: '/admin/tickets?status=triage' },
   { label: 'In Review',     href: '/admin/tickets?status=in_review' },
   { label: 'Blockiert',     href: '/admin/tickets?status=blocked' },
-  { label: 'Bugs',          href: '/admin/tickets?type=bug&status=open' },
-  { label: 'Features',      href: '/admin/tickets?type=feature&status=open' },
-  { label: 'Projekte',      href: '/admin/tickets?type=project&status=open' },
   { label: 'Thesis FA',     href: '/admin/tickets?thesisTag=FA' },
 ];
 ---
@@ -169,6 +171,15 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
           </select>
         </div>
         <div>
+          <label class="block text-xs text-muted mb-1">Attention</label>
+          <select name="attention"
+            class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg cursor-pointer">
+            <option value="" selected={!attentionFilter}>Alle</option>
+            <option value="ai_ready" selected={attentionFilter === 'ai_ready'}>🤖 AI-ready</option>
+            <option value="needs_human" selected={attentionFilter === 'needs_human'}>👤 Mensch nötig</option>
+          </select>
+        </div>
+        <div>
           <label class="block text-xs text-muted mb-1">Komponente</label>
           <select name="component"
             class="px-3 py-1.5 bg-dark-light border border-dark-lighter text-sm text-light rounded-lg cursor-pointer">
@@ -229,12 +240,13 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Zuständig</th>
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Kunde</th>
               <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
+              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Aktion</th>
             </tr>
           </thead>
           <tbody>
             {tickets.length === 0 ? (
               <tr>
-                <td colspan="8" class="px-4 py-10 text-center text-muted text-sm">
+                <td colspan="9" class="px-4 py-10 text-center text-muted text-sm">
                   Keine Tickets für diese Filterauswahl.
                 </td>
               </tr>
@@ -249,7 +261,19 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
                   {TYPE_LABEL[t.type] ?? t.type}
                 </td>
                 <td class="px-4 py-3 align-top">
-                  <a href={`/admin/tickets/${t.id}`} class="text-light hover:text-gold text-sm">{t.title}</a>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <a href={`/admin/tickets/${t.id}`} class="text-light hover:text-gold text-sm font-medium">{t.title}</a>
+                    {t.effectiveAttentionMode === 'ai_ready' && (
+                      <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-900/30 text-green-400 border border-green-800/50 flex items-center gap-1">
+                        {t.attentionMode === 'auto' && <span class="opacity-70">⚙️</span>} 🤖 AI-ready
+                      </span>
+                    )}
+                    {t.effectiveAttentionMode === 'needs_human' && (
+                      <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-900/30 text-red-400 border border-red-800/50 flex items-center gap-1">
+                        {t.attentionMode === 'auto' && <span class="opacity-70">⚙️</span>} 👤 Mensch
+                      </span>
+                    )}
+                  </div>
                   {t.tagNames.length > 0 && (
                     <div class="flex flex-wrap gap-1 mt-1">
                       {t.tagNames.map(tag => (
@@ -272,6 +296,12 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
                 <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{t.assigneeLabel ?? '—'}</td>
                 <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{t.customerLabel ?? '—'}</td>
                 <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{formatDate(t.dueDate)}</td>
+                <td class="px-4 py-3 text-right align-top">
+                   <button type="button" class="quick-edit-btn text-xs px-2 py-1 bg-dark-lighter border border-dark-border rounded hover:border-gold/40 hover:text-gold transition-colors"
+                     data-ticket={JSON.stringify(t)}>
+                     ✏️ Edit
+                   </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -279,6 +309,8 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
       </div>
     </div>
   </section>
+
+  <div id="quick-edit-container"></div>
 
   {/* Create dialog */}
   <dialog id="create-dialog"
@@ -352,6 +384,9 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
 </AdminLayout>
 
 <script>
+  import TicketQuickEdit from '../../components/admin/TicketQuickEdit.svelte';
+  import { mount, unmount } from 'svelte';
+
   const dialog = document.getElementById('create-dialog') as HTMLDialogElement;
   const form   = document.getElementById('create-form')   as HTMLFormElement;
   const error  = document.getElementById('create-error')  as HTMLParagraphElement;
@@ -376,4 +411,37 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
     const j = await r.json() as { id: string };
     location.href = `/admin/tickets/${j.id}`;
   });
+
+  // Quick edit handling
+  const container = document.getElementById('quick-edit-container');
+  let currentComponent: any = null;
+
+  document.querySelectorAll('.quick-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ticket = JSON.parse(btn.getAttribute('data-ticket') || '{}');
+      const admins = JSON.parse(document.getElementById('admins-data')?.textContent || '[]');
+      const components = JSON.parse(document.getElementById('components-data')?.textContent || '[]');
+      
+      if (currentComponent) unmount(currentComponent);
+      
+      currentComponent = mount(TicketQuickEdit, {
+        target: container!,
+        props: {
+          ticket,
+          admins,
+          components,
+          onSave: () => location.reload(),
+          onClose: () => {
+            if (currentComponent) {
+              unmount(currentComponent);
+              currentComponent = null;
+            }
+          }
+        }
+      });
+    });
+  });
 </script>
+
+<script id="admins-data" type="application/json" set:html={JSON.stringify(admins)}></script>
+<script id="components-data" type="application/json" set:html={JSON.stringify(components)}></script>

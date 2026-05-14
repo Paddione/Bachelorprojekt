@@ -120,3 +120,5 @@ SELECT
 FROM bachelorprojekt.features f
 LEFT JOIN bachelorprojekt.requirements r ON r.id = f.requirement_id
 ORDER BY f.merged_at DESC;
+
+\i software-history.sql

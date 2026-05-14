@@ -111,10 +111,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${WEBSITE_OIDC_SECRET}",
       "redirectUris": [
-        "http://${WEB_DOMAIN}/*"
+        "http://${WEB_DOMAIN}/*",
+        "http://localhost:4321/*"
       ],
       "webOrigins": [
-        "http://${WEB_DOMAIN}"
+        "http://${WEB_DOMAIN}",
+        "http://localhost:4321"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,

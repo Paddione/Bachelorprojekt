@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: docs
-          image: joseluisq/static-web-server:2.36-alpine
+          image: ghcr.io/paddione/${DOCS_IMAGE}:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8787
@@ -49,14 +49,6 @@ spec:
               port: 8787
             initialDelaySeconds: 2
             periodSeconds: 10
-          volumeMounts:
-            - name: docs-content
-              mountPath: /public
-              readOnly: true
-      volumes:
-        - name: docs-content
-          configMap:
-            name: docs-content
 ---
 apiVersion: v1
 kind: Service

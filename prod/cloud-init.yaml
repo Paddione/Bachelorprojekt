@@ -1,11 +1,9 @@
 #cloud-config
-# Usage: paste as Hetzner server "User data" when creating a NEW node.
-# Hetzner's cloud-init runs as root before you have SSH access, so root login
-# is open at that point. After this runs, root SSH is disabled and only
-# the "patrick" user is allowed. scripts/setup-ha-cluster.sh therefore must
-# target fresh servers BEFORE cloud-init finishes, or use the patrick user.
-# This config provisions a standalone control-plane node (cluster-init: true).
-# To join additional nodes to an existing cluster use setup-ha-cluster.sh instead.
+# Usage: paste as Hetzner server "User data" when creating a NEW node
+#        that will initialise a new k3s cluster (cluster-init: true).
+# For joining an existing cluster use prod/cloud-init-join-cp.yaml (control-plane)
+# or prod/cloud-init-worker.yaml (agent/worker).
+# See .claude/skills/hetzner-node/SKILL.md for the full provisioning runbook.
 users:
   - default
   - name: patrick
@@ -14,7 +12,14 @@ users:
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     lock_passwd: true
     ssh_authorized_keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@${PROD_DOMAIN}
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de
+  - name: gekko
+    groups: sudo
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513
 
 ssh_pwauth: false
 
@@ -33,8 +38,25 @@ packages:
   - jq
   - fail2ban
   - ufw
+  - wireguard-tools
 
 write_files:
+  # wg-mesh.conf — written with placeholder values by cloud-init.
+  # The hetzner-node skill substitutes REPLACEME_ values before provisioning
+  # so the correct private key and peer list are embedded here.
+  # Having this file present at boot means wg-quick@wg-mesh can start
+  # immediately and k3s finds the flannel-iface before it tries to bind.
+  - path: /etc/wireguard/wg-mesh.conf
+    permissions: '0600'
+    owner: root:root
+    content: |
+      [Interface]
+      PrivateKey = REPLACEME_WG_PRIVATE_KEY
+      Address = REPLACEME_WG_NODE_IP/24
+      ListenPort = 51820
+
+      REPLACEME_WG_PEERS_BLOCK
+
   - path: /etc/rancher/k3s/config.yaml
     content: |
       tls-san:
@@ -51,6 +73,7 @@ write_files:
       write-kubeconfig-mode: "0644"
       cluster-init: true
       secrets-encryption: true
+      flannel-iface: wg-mesh
 
   - path: /etc/sysctl.d/99-k3s.conf
     content: |
@@ -76,7 +99,7 @@ write_files:
       PasswordAuthentication no
       KbdInteractiveAuthentication no
       PermitRootLogin no
-      AllowUsers patrick
+      AllowUsers patrick gekko
 
 runcmd:
   - sysctl --system
@@ -117,6 +140,11 @@ runcmd:
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
   - systemctl enable --now iscsid
+
+  # WireGuard mesh — must be up before k3s so Flannel can bind flannel-iface=wg-mesh
+  - systemctl enable wg-quick@wg-mesh
+  - systemctl start wg-quick@wg-mesh
+  - until ip addr show wg-mesh 2>/dev/null | grep -q 'inet'; do sleep 2; done
 
   # Install k3s
   - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -

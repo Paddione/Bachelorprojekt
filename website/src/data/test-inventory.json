@@ -96,6 +96,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-bug-t000368",
+    "file": "tests/e2e/specs/fa-bug-t000368.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-bugs-notifications",
     "file": "tests/e2e/specs/fa-bugs-notifications.spec.ts",
     "category": "E2E",
@@ -811,25 +817,25 @@
   },
   {
     "id": "SA-08",
-    "file": "tests/local/SA-08-sso.sh",
-    "category": "SA",
-    "kind": "shell"
-  },
-  {
-    "id": "SA-08",
     "file": "tests/local/SA-08.sh",
     "category": "SA",
     "kind": "shell"
   },
   {
     "id": "SA-08",
-    "file": "tests/prod/SA-08-sso.sh",
+    "file": "tests/local/SA-08-sso.sh",
     "category": "SA",
     "kind": "shell"
   },
   {
     "id": "SA-08",
     "file": "tests/prod/SA-08.sh",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-08",
+    "file": "tests/prod/SA-08-sso.sh",
     "category": "SA",
     "kind": "shell"
   },

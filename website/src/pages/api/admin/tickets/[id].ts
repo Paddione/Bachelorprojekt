@@ -42,7 +42,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
 
   // Whitelist allowed fields.
   const allowed = ['title','description','notes','url','priority','severity','component',
-                   'thesisTag','parentId','customerId','assigneeId','reporterEmail',
+                   'attentionMode', 'thesisTag','parentId','customerId','assigneeId','reporterEmail',
                    'startDate','dueDate','estimateMinutes'] as const;
   const patch: Record<string, unknown> = {};
   for (const k of allowed) if (k in body) patch[k] = (body as Record<string, unknown>)[k];

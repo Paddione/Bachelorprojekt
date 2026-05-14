@@ -18,6 +18,7 @@ env_vars:
   LEGAL_UST_ID: "33/023/05100"
   LEGAL_WEBSITE: mentolder.de
   WEBSITE_IMAGE: mentolder-website
+  DOCS_IMAGE: mentolder-docs
   WEBSITE_NAMESPACE: website
   WORKSPACE_NAMESPACE: workspace
   INFRA_NAMESPACE: mentolder-infra

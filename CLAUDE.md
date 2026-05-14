@@ -468,6 +468,7 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 - **`llm-gpu.yaml` and `llm-router.yaml` are in `prod/` overlay only.** Dev (k3d) has no GPU and no router; `embeddings.ts` falls through to direct Voyage when `LLM_ENABLED=false`. Don't add them to `k3d/kustomization.yaml`.
 - **`LLM_HOST_IP` is required when `LLM_ENABLED=true`.** Set it in `environments/<env>.yaml` to the GPU host's wg-mesh IP. The `llm:deploy` task aborts if unset.
 - **Model swap costs ~3-6s on first call after idle.** Ollama's `OLLAMA_KEEP_ALIVE=5m` evicts idle models; the next request pays the swap. Router's chat-class timeout is 30s — beyond that, it falls back to Anthropic. Don't set the timeout below ~10s without testing all four models cold.
+- **OpenClaw on the WSL host** (`openclaw/`, `Taskfile.openclaw.yml`) talks directly to Ollama on `10.10.0.3:11434/v1`, **not** through `llm-router` — llm-router has no Ingress, and adding one is Phase 2 work. Bootstrap: `task openclaw:install && task openclaw:configure`.
 
 ### dev.mentolder.de stack
 

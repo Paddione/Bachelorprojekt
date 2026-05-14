@@ -20,6 +20,11 @@ includes:
   brainstorm:
     taskfile: ./Taskfile.brainstorm.yml
     dir: .
+  # OpenClaw — personal AI assistant gateway on the WSL host.
+  # See Taskfile.openclaw.yml + openclaw/README.md.
+  openclaw:
+    taskfile: ./Taskfile.openclaw.yml
+    dir: .
 
 vars:
   CLUSTER_NAME: dev
@@ -905,6 +910,16 @@ tasks:
     cmds:
       - node scripts/track-pr.mjs --ingest
 
+  software-history:classify:
+    desc: 'Classify all unclassified PRs into bachelorprojekt.software_events (requires TRACKING_DB_URL)'
+    cmds:
+      - cd website && npx tsx ../scripts/software-history-classify.mts {{.CLI_ARGS}}
+
+  software-history:psql:
+    desc: 'psql into shared-db with software_events focus'
+    cmds:
+      - source scripts/env-resolve.sh "{{.ENV}}" && kubectl exec -it -n "${WORKSPACE_NAMESPACE:-workspace}" --context "${ENV_CONTEXT:-k3d-mentolder}" deploy/shared-db -- psql -U postgres -d postgres
+
   plans:import:
     desc: "Parse all active plan files → tracking/pending/ (seeds DB on next CronJob run)"
     cmds:
@@ -1029,6 +1044,20 @@ tasks:
         KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
           python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
         echo "Written to docs/db-schema-diagram.md"
+
+  datamodel:build:
+    desc: "Regenerate k3d/docs-content/datamodel-workflow.md from shared-db + workflow-map.yaml"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/datamodel/build_datamodel.py \
+            --map scripts/datamodel/workflow-map.yaml \
+            --out k3d/docs-content/datamodel-workflow.md
+        echo "Written. Review the diff, then commit + task docs:deploy."
 
   workspace:teardown:
     desc: Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
@@ -1654,25 +1683,78 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
+  docs:build:
+    desc: Build docs MD -> static HTML (output to k3d/docs-content-built/)
+    cmds:
+      - node scripts/build-docs.js {{if .FAST}}--fast{{end}}
+    vars:
+      FAST: '{{.FAST | default ""}}'
+
+  docs:image:build:
+    desc: Build docs Docker image
+    deps: [docs:build]
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
+        docker build -t "${IMAGE}:latest" -f scripts/docs.Dockerfile .
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+
+  docs:image:push:
+    desc: Push docs Docker image
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
+        docker push "${IMAGE}:latest"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+
   docs:deploy:
-    desc: Deploy docs ConfigMap to both production environments (korczewski + mentolder)
+    desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:
       - |
         for env in korczewski mentolder; do
           source scripts/env-resolve.sh "$env"
+          IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
+          echo "-> Building/Pushing docs image for ${env}..."
+          task docs:image:build ENV=$env
+          task docs:image:push ENV=$env
+          
           NS="${WORKSPACE_NAMESPACE:-workspace}"
-          echo "→ Updating docs-content ConfigMap on ${env} (ns=${NS})..."
-          kubectl create configmap docs-content \
-            --from-file=k3d/docs-content/ \
-            --dry-run=client -o yaml -n "${NS}" \
-            | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
+          echo "-> Updating docs deployment on ${env} (ns=${NS})..."
+          envsubst "\$DOCS_IMAGE" < k3d/docs.yaml | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
           kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"
           kubectl --context "${ENV_CONTEXT}" rollout status deployment/docs -n "${NS}" --timeout=120s
         done
         echo
-        echo "✓ Docs deployed to both clusters"
+        echo "✓ Docs deployed to both clusters via Docker image"
         echo "  https://docs.korczewski.de"
         echo "  https://docs.mentolder.de"
+
+  docs:refresh-diagrams:
+    desc: "Regenerate all auto-generated diagrams (DB schema, …) and push to both clusters via ConfigMap"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        echo "→ Regenerating DB schema diagram (ENV={{.ENV}})..."
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
+        echo "  Written to docs/db-schema-diagram.md"
+      - |
+        echo "→ Copying to k3d/docs-content/db-schema.md..."
+        cp docs/db-schema-diagram.md k3d/docs-content/db-schema.md
+      - task: docs:configmap:apply
+    silent: false
+
+  docs:configmap:apply:
+    desc: "Apply the docs-content ConfigMap to both prod clusters and restart docs pods"
+    cmds:
+      - bash scripts/docs-configmap-apply.sh
 
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers

@@ -1,0 +1,347 @@
+families:
+  - id: dev-flow
+    label: "Dev-Flow Skills"
+    color: feature
+  - id: agents
+    label: "Sub-Agents"
+    color: chore
+  - id: ci
+    label: "CI/CD Pipeline"
+    color: gold
+  - id: app
+    label: "App Workflows"
+    color: audit
+
+domain_order:
+  - { id: crm-communication,         label: "CRM & Communication" }
+  - { id: billing-accounting,         label: "Billing & Accounting" }
+  - { id: questionnaire-coaching,     label: "Questionnaire & Coaching" }
+  - { id: tickets-issues,             label: "Tickets & Issues" }
+  - { id: platform-config,            label: "Platform & Config" }
+  - { id: testing-ci,                 label: "Testing & CI" }
+  - { id: ai-assistant,               label: "AI Assistant" }
+  - { id: bachelorprojekt-superpowers, label: "Bachelorprojekt & Superpowers" }
+
+steps:
+  # ── Dev-Flow family ───────────────────────────────────────────────────────
+  - id: brainstorming
+    family: dev-flow
+    label: "brainstorming skill"
+    description: "Explores user intent and design alternatives before any implementation."
+    writes:
+      files: [".superpowers/brainstorm/*/state/events"]
+    reads: {}
+    gaps:
+      - type: workflow-to-db
+        explanation: "Session events are written to the local filesystem only — never ingested into any DB table."
+
+  - id: writing-plans
+    family: dev-flow
+    label: "writing-plans skill"
+    description: "Turns a spec into a committed, task-structured implementation plan."
+    writes:
+      files: ["docs/superpowers/plans/*.md"]
+    reads:
+      files: ["docs/superpowers/specs/*.md"]
+    gaps: []
+
+  - id: using-git-worktrees
+    family: dev-flow
+    label: "using-git-worktrees"
+    description: "Sets up an isolated git worktree so parallel features don't collide."
+    writes: {}
+    reads: {}
+    gaps: []
+
+  - id: dev-flow-plan
+    family: dev-flow
+    label: "dev-flow-plan skill"
+    description: "Orchestrates path-choice, worktree setup, brainstorming, spec and plan, then creates a ticket."
+    writes:
+      tables: ["tickets.tickets", "tickets.ticket_comments"]
+      files: ["docs/superpowers/plans/*.md"]
+    reads:
+      tables: ["tickets.tickets"]
+    gaps: []
+
+  - id: dev-flow-execute
+    family: dev-flow
+    label: "dev-flow-execute skill"
+    description: "Picks up a committed plan, implements it, opens a PR, merges, and archives the plan."
+    writes:
+      tables:
+        - "tickets.tickets"
+        - "tickets.ticket_comments"
+        - "tickets.ticket_links"
+        - "tickets.ticket_plans"
+        - "bachelorprojekt.features"
+    reads:
+      tables: ["tickets.tickets"]
+      files: ["docs/superpowers/plans/*.md"]
+    gaps:
+      - type: workflow-to-db
+        explanation: "ticket_plans table archived only on merge — in-flight execution state is invisible to the DB."
+
+  - id: plan-context-sh
+    family: dev-flow
+    label: "plan-context.sh"
+    description: "Reads active plan frontmatter and injects it into sub-agent prompts."
+    reads:
+      files: ["docs/superpowers/plans/*.md"]
+    writes: {}
+    gaps: []
+
+  - id: plan-frontmatter-hook-sh
+    family: dev-flow
+    label: "plan-frontmatter-hook.sh"
+    description: "Adds required frontmatter (domains, status) to newly created plan files."
+    writes:
+      files: ["docs/superpowers/plans/*.md"]
+    reads:
+      files: ["docs/superpowers/plans/*.md"]
+    gaps: []
+
+  - id: tdd-failing-test
+    family: dev-flow
+    label: "TDD skill"
+    description: "Enforces red → green → refactor discipline before any feature code is written."
+    writes:
+      tables: ["public.test_runs", "public.test_results"]
+    reads: {}
+    gaps: []
+
+  # ── Sub-Agents family ─────────────────────────────────────────────────────
+  - id: bp-db
+    family: agents
+    label: "bachelorprojekt-db"
+    description: "Sub-agent for PostgreSQL schema changes, queries, and backup/restore."
+    writes:
+      tables: ["tickets.tickets", "tickets.ticket_comments"]
+    reads:
+      tables: ["bachelorprojekt.features", "tickets.tickets"]
+    gaps: []
+
+  - id: bp-infra
+    family: agents
+    label: "bachelorprojekt-infra"
+    description: "Sub-agent for Kubernetes manifest work, Kustomize overlays, and ArgoCD."
+    writes:
+      files: ["k3d/**/*.yaml", "prod*/**/*.yaml"]
+    reads:
+      files: ["k3d/**/*.yaml", "Taskfile.yml"]
+    gaps: []
+
+  - id: bp-ops
+    family: agents
+    label: "bachelorprojekt-ops"
+    description: "Sub-agent for live cluster operations: pod status, logs, restarts."
+    writes: {}
+    reads:
+      tables: ["tickets.tickets"]
+    gaps: []
+
+  - id: bp-website
+    family: agents
+    label: "bachelorprojekt-website"
+    description: "Sub-agent for Astro/Svelte frontend and /api/* backend endpoints."
+    writes:
+      tables: ["public.site_settings", "public.assistant_conversations"]
+    reads:
+      tables: ["bachelorprojekt.features", "public.web_sessions"]
+    gaps: []
+
+  - id: bp-test
+    family: agents
+    label: "bachelorprojekt-test"
+    description: "Sub-agent for writing, running, and debugging BATS and Playwright tests."
+    writes:
+      tables: ["public.test_runs", "public.test_results", "public.playwright_reports"]
+    reads:
+      tables: ["tickets.tickets"]
+    gaps: []
+
+  - id: bp-security
+    family: agents
+    label: "bachelorprojekt-security"
+    description: "Sub-agent for SealedSecrets, Keycloak realm config, and OIDC setup."
+    writes:
+      files: ["environments/sealed-secrets/*.yaml"]
+    reads:
+      files: ["environments/.secrets/*.yaml"]
+    gaps: []
+
+  # ── CI/CD Pipeline family ─────────────────────────────────────────────────
+  - id: track-pr
+    family: ci
+    label: "track-pr.yml"
+    description: "GitHub Action: writes a tracking JSON for every merged PR."
+    writes:
+      files: ["tracking/pending/*.json"]
+    reads: {}
+    gaps: []
+
+  - id: track-plans
+    family: ci
+    label: "track-plans.yml"
+    description: "GitHub Action: updates plan frontmatter status on merge."
+    writes:
+      files: ["docs/superpowers/plans/*.md"]
+    reads:
+      files: ["docs/superpowers/plans/*.md"]
+    gaps: []
+
+  - id: tracking-import-cron
+    family: ci
+    label: "tracking-import CronJob"
+    description: "In-cluster CronJob: drains tracking/pending/*.json into bachelorprojekt.features every 5 minutes."
+    writes:
+      tables: ["bachelorprojekt.features"]
+    reads:
+      files: ["tracking/pending/*.json"]
+    gaps: []
+
+  - id: build-website
+    family: ci
+    label: "build-website.yml"
+    description: "GitHub Action: builds and rolls the Astro website on website/** push to main."
+    writes: {}
+    reads:
+      files: ["website/src/**", "website/public/**"]
+    gaps: []
+
+  - id: dev-auto-deploy
+    family: ci
+    label: "dev-auto-deploy.yml"
+    description: "GitHub Action: auto-deploys to dev.mentolder.de on relevant push."
+    writes: {}
+    reads:
+      files: ["k3d/**", "website/**", "brett/**"]
+    gaps: []
+
+  - id: argocd-reconcile
+    family: ci
+    label: "ArgoCD reconcile"
+    description: "GitOps controller: continuously syncs cluster state to git HEAD."
+    writes: {}
+    reads:
+      files: ["k3d/**/*.yaml", "prod-mentolder/**", "prod-korczewski/**"]
+    gaps:
+      - type: workflow-to-db
+        explanation: "ArgoCD sync events are not recorded in the shared-db; they are only visible in the ArgoCD UI and its own etcd."
+
+  # ── App Workflows family ──────────────────────────────────────────────────
+  - id: keycloak-sso-login
+    family: app
+    label: "Keycloak SSO login"
+    description: "User authenticates via Keycloak OIDC; session token issued to downstream services."
+    writes:
+      tables: ["public.web_sessions"]
+    reads: {}
+    gaps:
+      - type: db-fk
+        target: "tickets-issues"
+        explanation: "web_sessions.user_id is a plain UUID referencing the Keycloak realm — no FK to a local users table."
+
+  - id: nextcloud-talk-meeting
+    family: app
+    label: "Nextcloud Talk meeting"
+    description: "Users join a Talk video room; chat and recording metadata are stored by Nextcloud."
+    writes: {}
+    reads:
+      tables: ["public.web_sessions"]
+    gaps:
+      - type: workflow-to-db
+        explanation: "Talk meeting events are stored in Nextcloud's own MariaDB — not in shared-db."
+
+  - id: website-chat-message
+    family: app
+    label: "Website chat message"
+    description: "User sends a real-time message via the Astro website SSE channel."
+    writes:
+      tables: ["public.messages", "public.chat_messages"]
+    reads:
+      tables: ["public.web_sessions", "public.chat_rooms"]
+    gaps: []
+
+  - id: tickets-admin-create
+    family: app
+    label: "Tickets admin create"
+    description: "Platform admin creates a ticket via the admin web UI."
+    writes:
+      tables:
+        - "tickets.tickets"
+        - "tickets.ticket_activity"
+        - "tickets.ticket_comments"
+    reads:
+      tables: ["tickets.tickets"]
+    gaps: []
+
+  - id: bug-report-submit
+    family: app
+    label: "Bug report submit"
+    description: "User submits a bug report; stored in bugs.bug_tickets."
+    writes:
+      tables: ["public.bug_tickets"]
+    reads: {}
+    gaps:
+      - type: cross-skill
+        explanation: "bugs.bug_tickets and tickets.tickets are separate write paths — no automatic promotion from a user bug report to a triaged ticket."
+
+  - id: coaching-ingest
+    family: app
+    label: "coaching:ingest task"
+    description: "Ingests a PDF/EPUB into pgvector and coaching.books."
+    writes:
+      tables: ["public.questionnaire_templates"]
+    reads:
+      files: ["*.pdf", "*.epub"]
+    gaps:
+      - type: workflow-to-db
+        explanation: "pgvector embeddings land in a separate vector DB collection — the schema mapping is external to shared-db."
+
+  - id: arena-gameplay
+    family: app
+    label: "Arena gameplay"
+    description: "Player joins an arena game; lobby and match state persisted by arena-server."
+    writes:
+      tables: ["public.web_sessions"]
+    reads:
+      tables: ["public.web_sessions"]
+    gaps:
+      - type: workflow-to-db
+        explanation: "Arena match state is held in-memory by arena-server and never written to shared-db."
+
+  - id: brett-snapshot-save
+    family: app
+    label: "Brett snapshot save"
+    description: "User saves a systemic constellation board; stored as brett_snapshots."
+    writes:
+      tables: ["public.brett_snapshots", "public.brett_rooms"]
+    reads:
+      tables: ["public.brett_rooms", "public.web_sessions"]
+    gaps: []
+
+cross_skill_gaps:
+  - from: dev-flow-plan
+    to: tracking-import-cron
+    via: "tickets.tickets.external_id → bachelorprojekt.features (no ticket_id column today)"
+    explanation: "dev-flow-plan sets a ticket external_id on the plan, but tracking-import-cron only ingests PR metadata — it never joins ticket IDs into bachelorprojekt.features."
+
+  - from: brainstorming
+    to: tracking-import-cron
+    via: ".superpowers/brainstorm/*/state/events (filesystem only)"
+    explanation: "Brainstorming session events stay in the local filesystem and are never ingested into any DB table, making session data invisible to all analytics queries."
+
+  - from: bug-report-submit
+    to: tickets-admin-create
+    via: "bugs.bug_tickets vs tickets.tickets — two separate write paths"
+    explanation: "A user-submitted bug (public.bug_tickets) and a triaged ticket (tickets.tickets) are written by different flows with no automatic promotion or linking between them."
+
+heuristics:
+  unbound_fk_candidates:
+    enabled: true
+    column_pattern: "_id$"
+    exclude_schemas: ["keycloak", "nextcloud", "vaultwarden", "pg_catalog", "information_schema"]
+  table_with_no_writer:
+    enabled: true
+    exclude_schemas: ["keycloak", "nextcloud", "vaultwarden", "pg_catalog", "information_schema"]

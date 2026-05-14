@@ -1,0 +1,106 @@
+version: "3"
+
+vars:
+  OPENCLAW_HOME: '{{.OPENCLAW_HOME | default "/home/patrick/.openclaw"}}'
+  OPENCLAW_BACKUP_DIR: '{{.OPENCLAW_HOME}}.bak.20260514'
+  OPENCLAW_ENV_TEMPLATE: openclaw/.env.example
+
+tasks:
+  backup:
+    desc: "Move existing ~/.openclaw to a dated backup directory (no-op if absent)"
+    cmds:
+      - |
+        if [[ -d "{{.OPENCLAW_HOME}}" ]]; then
+          if [[ -e "{{.OPENCLAW_BACKUP_DIR}}" ]]; then
+            echo "Backup already exists at {{.OPENCLAW_BACKUP_DIR}} — refusing to overwrite."
+            exit 1
+          fi
+          mv "{{.OPENCLAW_HOME}}" "{{.OPENCLAW_BACKUP_DIR}}"
+          echo "Moved {{.OPENCLAW_HOME}} → {{.OPENCLAW_BACKUP_DIR}}"
+        else
+          echo "No existing {{.OPENCLAW_HOME}} — nothing to back up."
+        fi
+
+  install:
+    desc: "npm install -g openclaw@latest (Node ≥ 22.16 required)"
+    preconditions:
+      - sh: "node --version | awk -F. '{ exit ($1 == \"v24\" || ($1 == \"v22\" && $2 >= 16)) ? 0 : 1 }'"
+        msg: "Node 22.16+ or 24 required (got $(node --version 2>/dev/null || echo 'no node'))"
+    cmds:
+      - sudo npm install -g openclaw@latest
+      - openclaw --version
+
+  configure:
+    desc: "Run onboard --install-daemon, then write ~/.openclaw/.env from template"
+    deps: [install]
+    cmds:
+      - |
+        if [[ ! -d "{{.OPENCLAW_HOME}}" ]]; then
+          openclaw onboard --install-daemon --non-interactive || \
+            openclaw onboard --install-daemon
+        fi
+      - |
+        if [[ ! -f "{{.OPENCLAW_HOME}}/.env" ]]; then
+          cp "{{.OPENCLAW_ENV_TEMPLATE}}" "{{.OPENCLAW_HOME}}/.env"
+          chmod 600 "{{.OPENCLAW_HOME}}/.env"
+          echo "Wrote {{.OPENCLAW_HOME}}/.env from template — edit if defaults are wrong."
+        else
+          echo "{{.OPENCLAW_HOME}}/.env already exists — leaving untouched."
+        fi
+      - task: start
+
+  start:
+    desc: "Restart the systemd --user openclaw service"
+    cmds:
+      - systemctl --user daemon-reload
+      - systemctl --user restart openclaw
+      - systemctl --user status openclaw --no-pager | head -20
+
+  status:
+    desc: "Show daemon status + gateway health probe"
+    cmds:
+      - |
+        systemctl --user is-active openclaw && echo "daemon: active" || echo "daemon: inactive"
+      - |
+        port="${OPENCLAW_GATEWAY_PORT:-18789}"
+        curl -sS --max-time 3 "http://127.0.0.1:${port}/healthz" \
+          && echo "" \
+          || echo "gateway healthz did not respond on port ${port}"
+      - |
+        echo ""
+        echo "Backend reachability check (Ollama on 10.10.0.3:11434):"
+        curl -sS --max-time 3 http://10.10.0.3:11434/v1/models | head -c 400 \
+          && echo "" \
+          || echo "WARNING: Ollama not reachable from WSL"
+
+  logs:
+    desc: "Tail daemon log via journalctl --user"
+    cmds:
+      - journalctl --user -u openclaw -n 100 --no-pager
+
+  restore:
+    desc: "Roll back: stop daemon, uninstall, remove fresh ~/.openclaw, move backup back"
+    cmds:
+      - systemctl --user disable --now openclaw || true
+      - sudo npm uninstall -g openclaw || true
+      - rm -rf "{{.OPENCLAW_HOME}}"
+      - |
+        if [[ -d "{{.OPENCLAW_BACKUP_DIR}}" ]]; then
+          mv "{{.OPENCLAW_BACKUP_DIR}}" "{{.OPENCLAW_HOME}}"
+          echo "Restored {{.OPENCLAW_BACKUP_DIR}} → {{.OPENCLAW_HOME}}"
+        else
+          echo "No backup at {{.OPENCLAW_BACKUP_DIR}} — fresh install fully removed."
+        fi
+
+  wipe:
+    desc: "Destructive: remove fresh ~/.openclaw AND backup. Requires CONFIRM=yes"
+    cmds:
+      - |
+        if [[ "${CONFIRM:-}" != "yes" ]]; then
+          echo "Refusing — set CONFIRM=yes to wipe both {{.OPENCLAW_HOME}} and {{.OPENCLAW_BACKUP_DIR}}"
+          exit 1
+        fi
+      - systemctl --user disable --now openclaw || true
+      - sudo npm uninstall -g openclaw || true
+      - rm -rf "{{.OPENCLAW_HOME}}" "{{.OPENCLAW_BACKUP_DIR}}"
+      - echo "Wiped."

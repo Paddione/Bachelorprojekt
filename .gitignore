@@ -8,6 +8,9 @@ environments/.secrets/
 # Real credentials are applied via: task workspace:prod:deploy / task korczewski:deploy
 # k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials
 deploy/mcp/openclaw-secrets.yaml
+# OpenClaw — runtime config has secrets; only template is committed
+openclaw/.env
+.openclaw/workspace/
 deploy/mcp/claude-code-secrets.yaml
 vaultwarden-import-*.json
 *-bitwarden-export.json
@@ -111,3 +114,12 @@ scripts/coaching/node_modules
 
 # ── WSL/Windows NTFS alternate data streams ──
 *:Zone.Identifier
+
+# Generated docs HTML
+k3d/docs-content-built/
+
+# ── BATS vendor library self-tests (not project tests) ──
+tests/unit/lib/bats-assert/test/
+tests/unit/lib/bats-core/test/
+tests/unit/lib/bats-file/test/
+tests/unit/lib/bats-support/test/

@@ -1,0 +1,99 @@
+# wireguard/wg-mesh-nodes.yaml
+# WireGuard mesh node registry — used by .claude/skills/hetzner-node/SKILL.md
+# to generate per-node wg-mesh.conf during provisioning and recovery.
+#
+# Public keys are NOT sensitive — commit them here once populated.
+# Private keys are stored sealed in environments/.secrets/<env>.yaml under
+# WG_MESH_<SCHEMA_KEY>_PRIVATE_KEY — never here.
+#
+# How to populate public_key after first provisioning:
+#   ssh patrick@<NODE_IP> "sudo wg show wg-mesh public-key"
+# How to get/set wg_ip: choose the next free IP in the wg_subnet.
+#
+# Endpoint format: "<public_ip>:<listen_port>"
+# Home-LAN nodes that sit behind NAT have no fixed endpoint (leave "").
+# They must set PersistentKeepalive so they initiate outbound to Hetzner peers.
+
+mentolder:
+  wg_subnet: "10.13.13.0/24"
+  listen_port: 51820
+  # Hetzner nodes — direct public IPs, always reachable as endpoints
+  nodes:
+    - name: gekko-hetzner-2
+      endpoint: "178.104.169.206:51820"
+      wg_ip: "10.13.13.1"
+      schema_key: WG_MESH_GEKKO2
+      public_key: ""   # fill in: ssh patrick@178.104.169.206 "sudo wg show wg-mesh public-key"
+
+    - name: gekko-hetzner-3
+      endpoint: "46.225.125.59:51820"
+      wg_ip: "10.13.13.3"
+      schema_key: WG_MESH_GEKKO3
+      public_key: ""   # fill in: ssh patrick@46.225.125.59 "sudo wg show wg-mesh public-key"
+
+    - name: gekko-hetzner-4
+      endpoint: "178.104.159.79:51820"
+      wg_ip: "10.13.13.4"
+      schema_key: WG_MESH_GEKKO4
+      public_key: ""   # fill in: ssh patrick@178.104.159.79 "sudo wg show wg-mesh public-key"
+
+  # Home-LAN worker nodes — no fixed public endpoint; they initiate outbound.
+  # PersistentKeepalive keeps NAT mapping alive so Hetzner nodes can reach back.
+  home_workers:
+    - name: k3s-1
+      endpoint: ""        # behind NAT
+      wg_ip: "10.13.13.11"
+      public_key: ""   # fill in from the worker node
+      keepalive: 25
+
+    - name: k3s-2
+      endpoint: ""
+      wg_ip: "10.13.13.12"
+      public_key: ""
+      keepalive: 25
+
+    - name: k3s-3
+      endpoint: ""
+      wg_ip: "10.13.13.13"
+      public_key: ""
+      keepalive: 25
+
+    - name: k3w-1
+      endpoint: ""
+      wg_ip: "10.13.13.21"
+      public_key: ""
+      keepalive: 25
+
+    - name: k3w-2
+      endpoint: ""
+      wg_ip: "10.13.13.22"
+      public_key: ""
+      keepalive: 25
+
+    - name: k3w-3
+      endpoint: ""
+      wg_ip: "10.13.13.23"
+      public_key: ""
+      keepalive: 25
+
+korczewski:
+  wg_subnet: "10.13.14.0/24"
+  listen_port: 51820
+  nodes:
+    - name: pk-hetzner-4
+      endpoint: "204.168.244.104:51820"
+      wg_ip: "10.13.14.1"
+      schema_key: WG_MESH_PK4
+      public_key: ""
+
+    - name: pk-hetzner-6
+      endpoint: "<pk-hetzner-6-public-ip>:51820"
+      wg_ip: "10.13.14.2"
+      schema_key: WG_MESH_PK6
+      public_key: ""
+
+    - name: pk-hetzner-8
+      endpoint: "<pk-hetzner-8-public-ip>:51820"
+      wg_ip: "10.13.14.3"
+      schema_key: WG_MESH_PK8
+      public_key: ""

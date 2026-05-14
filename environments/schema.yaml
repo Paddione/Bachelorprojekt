@@ -63,6 +63,7 @@ env_vars:
     default_dev: "localhost"
 
   - name: WEBSITE_IMAGE
+  - name: DOCS_IMAGE
     required: true
     default_dev: "workspace-website"
 
@@ -713,3 +714,56 @@ setup_vars:
   - name: KC_USER2_PASSWORD
     required: false
     sealed: true
+
+  # ── WireGuard mesh node keys ────────────────────────────────────────────────
+  # One entry per permanent Hetzner cluster node. Private keys are sealed;
+  # public keys are plain (WG public keys are not sensitive). Stored here so
+  # the same private key survives every node reset — existing peers never need
+  # updating on recovery because the public key remains constant.
+  # Populated by: `wg genkey | tee /tmp/pk | wg pubkey` on first provisioning.
+  # See .claude/skills/hetzner-node/SKILL.md Phase 0 for the full workflow.
+  #
+  # mentolder cluster
+  - name: WG_MESH_GEKKO2_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for gekko-hetzner-2"
+  - name: WG_MESH_GEKKO2_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for gekko-hetzner-2 (non-sensitive, committed in wireguard/wg-mesh-nodes.yaml)"
+  - name: WG_MESH_GEKKO3_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for gekko-hetzner-3"
+  - name: WG_MESH_GEKKO3_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for gekko-hetzner-3"
+  - name: WG_MESH_GEKKO4_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for gekko-hetzner-4"
+  - name: WG_MESH_GEKKO4_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for gekko-hetzner-4"
+  # korczewski cluster
+  - name: WG_MESH_PK4_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for pk-hetzner-4"
+  - name: WG_MESH_PK4_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for pk-hetzner-4"
+  - name: WG_MESH_PK6_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for pk-hetzner-6"
+  - name: WG_MESH_PK6_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for pk-hetzner-6"
+  - name: WG_MESH_PK8_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for pk-hetzner-8"
+  - name: WG_MESH_PK8_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for pk-hetzner-8"

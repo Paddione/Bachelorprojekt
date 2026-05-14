@@ -1654,16 +1654,24 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
+  docs:build:
+    desc: Build docs MD -> static HTML (output to k3d/docs-content-built/)
+    cmds:
+      - node scripts/build-docs.js {{if .FAST}}--fast{{end}}
+    vars:
+      FAST: '{{.FAST | default ""}}'
+
   docs:deploy:
-    desc: Deploy docs ConfigMap to both production environments (korczewski + mentolder)
+    desc: Build and deploy docs ConfigMap to both production environments (korczewski + mentolder)
+    deps: [docs:build]
     cmds:
       - |
         for env in korczewski mentolder; do
           source scripts/env-resolve.sh "$env"
           NS="${WORKSPACE_NAMESPACE:-workspace}"
-          echo "→ Updating docs-content ConfigMap on ${env} (ns=${NS})..."
+          echo "-> Updating docs-content ConfigMap on ${env} (ns=${NS})..."
           kubectl create configmap docs-content \
-            --from-file=k3d/docs-content/ \
+            --from-file=k3d/docs-content-built/ \
             --dry-run=client -o yaml -n "${NS}" \
             | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
           kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"

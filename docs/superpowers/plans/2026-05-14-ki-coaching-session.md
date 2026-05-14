@@ -1,4 +1,5 @@
 ---
+ticket_id: T000370
 title: KI-Coaching Session-Wizard Implementation Plan
 domains: []
 status: active

@@ -326,13 +326,7 @@
       fig.bone[name].targetRot.x = p[name].x;
       fig.bone[name].targetRot.z = p[name].z;
     }
-    // Hard-write right now so the user sees something even before spring is wired up.
-    for (const name of BONE_NAMES) {
-      fig.bone[name].currentRot.x = p[name].x;
-      fig.bone[name].currentRot.z = p[name].z;
-      fig.bones[name].rotation.x = p[name].x;
-      fig.bones[name].rotation.z = p[name].z;
-    }
+
     sendUpdate(fig, { preset: presetKey });
   }
 
@@ -348,10 +342,71 @@
   addFigure({ x: 0, z: 0 });
 
   // Main render loop — figure ticks added in later tasks
-    function tick() {
-      requestAnimationFrame(tick);
-      renderer.render(scene, camera);
+  // ----- Verlet spring -----
+  const K_SPRING = 80;
+  const DAMPING  = 0.85;
+  // Per-bone gravity offset (pitch x, roll z) when fully limp (stiffness=0)
+  const GRAVITY_OFFSET = {
+    hips:     { x: 0.2,  z: 0 },
+    head:     { x: 0.4,  z: 0 },
+    lShoulder:{ x: 0.6,  z: 0.3 }, rShoulder:{ x: 0.6, z: -0.3 },
+    lElbow:   { x: 0.3,  z: 0 },   rElbow:   { x: 0.3, z: 0 },
+    lWrist:   { x: 0,    z: 0 },   rWrist:   { x: 0,   z: 0 },
+    lHip:     { x: -0.2, z: 0 },   rHip:     { x: -0.2, z: 0 },
+    lKnee:    { x: 0.2,  z: 0 },   rKnee:    { x: 0.2, z: 0 },
+    lAnkle:   { x: 0,    z: 0 },   rAnkle:   { x: 0,   z: 0 },
+  };
+
+  let lastTickMs = performance.now();
+
+  function tickSpring(dt) {
+    const stiff = STATE.stiffness;
+    for (const fig of STATE.figures) {
+      for (const name of BONE_NAMES) {
+        const b = fig.bone[name];
+        if (fig.boneOverrides[name]) {
+          // IK has authoritative rotation for this bone; sync state and skip spring
+          b.currentRot.x = fig.boneOverrides[name].x;
+          b.currentRot.z = fig.boneOverrides[name].z;
+          b.velocity.x = 0; b.velocity.z = 0;
+        } else {
+          const grav = GRAVITY_OFFSET[name];
+          const tx = b.targetRot.x + grav.x * (1 - stiff);
+          const tz = b.targetRot.z + grav.z * (1 - stiff);
+          const ax = (tx - b.currentRot.x) * stiff * K_SPRING;
+          const az = (tz - b.currentRot.z) * stiff * K_SPRING;
+          b.velocity.x = b.velocity.x * DAMPING + ax * dt;
+          b.velocity.z = b.velocity.z * DAMPING + az * dt;
+          b.currentRot.x += b.velocity.x * dt;
+          b.currentRot.z += b.velocity.z * dt;
+        }
+        fig.bones[name].rotation.x = b.currentRot.x;
+        fig.bones[name].rotation.z = b.currentRot.z;
+      }
+      // Floor clamp: lift root if any ankle/knee contact sphere is below y=0
+      let minY = 0;
+      for (const cp of CONTACT_POINTS) {
+        if (cp.bone === 'lAnkle' || cp.bone === 'rAnkle' || cp.bone === 'lKnee' || cp.bone === 'rKnee') {
+          const s = fig.bones[cp.bone].children.find(c => c.userData && c.userData.isContact);
+          if (s) {
+            const world = new THREE.Vector3();
+            s.getWorldPosition(world);
+            if (world.y < minY) minY = world.y;
+          }
+        }
+      }
+      if (minY < 0) fig.root.position.y -= minY; // lift onto floor
     }
+  }
+
+  function tick() {
+    requestAnimationFrame(tick);
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastTickMs) / 1000);
+    lastTickMs = now;
+    tickSpring(dt);
+    renderer.render(scene, camera);
+  }
     tick();
 
     console.log('[brett] scene up');

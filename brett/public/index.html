@@ -330,7 +330,7 @@
     sendUpdate(fig, { preset: presetKey });
   }
 
-  function sendUpdate(/* fig, changes */) { /* placeholder until Task 10 */ }
+
 
   document.getElementById('presets').addEventListener('click', (e) => {
     const btn = e.target.closest("button[data-preset]");
@@ -404,7 +404,7 @@
     STATE.stiffness = parseFloat(stiffSlider.value);
     sendStiffness(STATE.stiffness);
   });
-  function sendStiffness(/* value */) { /* placeholder until Task 10 */ }
+
 
   // ----- CCD-IK -----
   const raycaster = new THREE.Raycaster();
@@ -584,7 +584,7 @@
       selectFigure(next.id);
     }
   });
-  function sendDelete() { /* placeholder until Task 10 */ }
+
 
   // ----- Walking -----
   const WALK_SPEED = 2.0;          // units/s
@@ -671,6 +671,115 @@
     pillEl.textContent = '🚶 WALK · WASD / Klick Boden = Ziel · Tab = nächste';
   }
 
+  // ----- WebSocket sync -----
+  const roomFromUrl = new URLSearchParams(location.search).get("room") || "default";
+  const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+  const ws = new WebSocket(`${wsProto}//${location.host}/sync`);
+  let wsReady = false;
+
+  ws.addEventListener("open", () => {
+    wsReady = true;
+    ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
+  });
+  ws.addEventListener("close", () => { wsReady = false; });
+
+  ws.addEventListener("message", (evt) => {
+    let msg; try { msg = JSON.parse(evt.data); } catch { return; }
+    switch (msg.type) {
+      case "snapshot":
+        // Reset world from server state
+        for (const f of STATE.figures) scene.remove(f.root);
+        STATE.figures.length = 0; STATE.selectedId = null;
+        for (const f of (msg.figures || [])) {
+          const fig = makeMannequin(f.id, { x: f.x ?? 0, z: f.z ?? 0 });
+          fig.facingY = f.facingY ?? 0; fig.root.rotation.y = fig.facingY;
+          if (f.preset && PRESETS[f.preset]) {
+            for (const name of BONE_NAMES) {
+              fig.bone[name].targetRot.x = PRESETS[f.preset][name].x;
+              fig.bone[name].targetRot.z = PRESETS[f.preset][name].z;
+            }
+          }
+          if (f.boneOverrides) fig.boneOverrides = { ...f.boneOverrides };
+          if (f.walkTarget) fig.walkTarget = f.walkTarget;
+          STATE.figures.push(fig);
+        }
+        if (typeof msg.stiffness === "number") {
+          STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
+        }
+        if (STATE.figures[0]) selectFigure(STATE.figures[0].id);
+        break;
+      case "stiffness":
+        STATE.stiffness = msg.value; stiffSlider.value = String(msg.value);
+        break;
+      case "add": {
+        if (STATE.figures.find(f => f.id === msg.figure.id)) break;
+        const fig = makeMannequin(msg.figure.id, { x: msg.figure.x, z: msg.figure.z });
+        STATE.figures.push(fig);
+        break;
+      }
+      case "update": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (!fig) break;
+        const c = msg.changes || {};
+        if (c.preset && PRESETS[c.preset]) {
+          for (const name of BONE_NAMES) {
+            fig.bone[name].targetRot.x = PRESETS[c.preset][name].x;
+            fig.bone[name].targetRot.z = PRESETS[c.preset][name].z;
+          }
+        }
+        if (c.boneOverrides !== undefined) fig.boneOverrides = { ...c.boneOverrides };
+        if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
+        if (c.walking !== undefined) fig.walking = !!c.walking;
+        break;
+      }
+      case "move": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (!fig) break;
+        fig.root.position.x = msg.x; fig.root.position.z = msg.z;
+        if (typeof msg.facingY === "number") { fig.facingY = msg.facingY; fig.root.rotation.y = fig.facingY; }
+        break;
+      }
+      case "delete": {
+        const idx = STATE.figures.findIndex(f => f.id === msg.id);
+        if (idx >= 0) { scene.remove(STATE.figures[idx].root); STATE.figures.splice(idx, 1); }
+        break;
+      }
+      case "info":
+        STATE.online = msg.count || 1;
+        document.getElementById("online-count").textContent = String(STATE.online);
+        break;
+    }
+  });
+
+  // Replace the placeholders defined earlier
+  window.sendUpdate = function(fig, changes) {
+    if (!wsReady) return;
+    ws.send(JSON.stringify({ type: "update", id: fig.id, changes }));
+  };
+  window.sendStiffness = function(value) {
+    if (!wsReady) return;
+    ws.send(JSON.stringify({ type: "stiffness", value }));
+  };
+  window.sendDelete = function(/* idx */) {
+    if (!wsReady || !STATE.selectedId) return;
+    ws.send(JSON.stringify({ type: "delete", id: STATE.selectedId }));
+  };
+
+  // When adding a figure locally, also broadcast it
+  const _origAdd = addFigure;
+  addFigure = function(position) {
+    const fig = _origAdd(position);
+    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z } }));
+    return fig;
+  };
+
+  // Periodically broadcast position for the selected figure so peers see walking
+  setInterval(() => {
+    if (!wsReady) return;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (!fig) return;
+    ws.send(JSON.stringify({ type: "move", id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
+  }, 100);
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();

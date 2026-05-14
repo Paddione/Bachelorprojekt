@@ -279,7 +279,6 @@ async function initDb() {
       id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       assignment_id  UUID NOT NULL REFERENCES questionnaire_assignments(id) ON DELETE CASCADE,
       dimension_id   UUID NOT NULL,
-      dimension_name TEXT NOT NULL,
       final_score    INTEGER NOT NULL,
       threshold_mid  INTEGER,
       threshold_high INTEGER,
@@ -288,6 +287,9 @@ async function initDb() {
       CONSTRAINT uq_qas_assignment_dimension UNIQUE (assignment_id, dimension_id)
     )
   `);
+  await pool.query(
+    `ALTER TABLE IF EXISTS questionnaire_assignment_scores DROP COLUMN IF EXISTS dimension_name;`
+  );
   await pool.query(
     `CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores(assignment_id)`,
   );
@@ -304,7 +306,7 @@ async function initDb() {
       a.submitted_at,
       a.archived_at,
       s.dimension_id,
-      s.dimension_name,
+      d.name            AS dimension_name,
       s.final_score,
       s.threshold_mid,
       s.threshold_high,
@@ -314,6 +316,7 @@ async function initDb() {
     FROM questionnaire_assignments a
     JOIN questionnaire_templates t ON t.id = a.template_id
     JOIN questionnaire_assignment_scores s ON s.assignment_id = a.id
+    JOIN questionnaire_dimensions d ON s.dimension_id = d.id
     LEFT JOIN LATERAL (
       SELECT
         COUNT(*)::int AS evidence_count,
@@ -760,16 +763,15 @@ export async function autoEvaluateQAssignment(id: string): Promise<void> {
     for (const s of scores) {
       await client.query(
         `INSERT INTO questionnaire_assignment_scores
-           (assignment_id, dimension_id, dimension_name, final_score,
+           (assignment_id, dimension_id, final_score,
             threshold_mid, threshold_high, level)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT ON CONSTRAINT uq_qas_assignment_dimension
          DO UPDATE SET
            final_score    = EXCLUDED.final_score,
-           dimension_name = EXCLUDED.dimension_name,
            level          = EXCLUDED.level,
            snapshot_at    = now()`,
-        [id, s.dimension_id, s.name, s.final_score,
+        [id, s.dimension_id, s.final_score,
          s.threshold_mid, s.threshold_high, s.level],
       );
     }
@@ -1044,11 +1046,12 @@ export interface QArchivedScore {
 
 export async function listArchivedScores(assignmentId: string): Promise<QArchivedScore[]> {
   const r = await pool.query(
-    `SELECT assignment_id, dimension_id, dimension_name, final_score,
-            threshold_mid, threshold_high, level, snapshot_at
-       FROM questionnaire_assignment_scores
-      WHERE assignment_id = $1
-      ORDER BY dimension_name`,
+    `SELECT s.assignment_id, s.dimension_id, d.name AS dimension_name, s.final_score,
+            s.threshold_mid, s.threshold_high, s.level, s.snapshot_at
+       FROM questionnaire_assignment_scores s
+       JOIN questionnaire_dimensions d ON s.dimension_id = d.id
+      WHERE s.assignment_id = $1
+      ORDER BY d.name`,
     [assignmentId],
   );
   return r.rows;
@@ -1118,4 +1121,6 @@ export async function listQuestionsWithSuccessfulRecording(): Promise<string[]> 
       WHERE a.option_key = 'erfüllt'`,
   );
   return r.rows.map((row: { question_id: string }) => row.question_id);
+}
+row: { question_id: string }) => row.question_id);
 }

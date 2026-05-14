@@ -5,7 +5,7 @@ description: >
   services, debugging failures, and kubectl operations on the Bachelorprojekt clusters.
   Triggers on: pod, logs, status, restart, crash, health, kubectl, "what's wrong",
   "why is X failing", "is X running".
-tools: Bash, Read, Glob, Grep, LS
+tools: [run_shell_command, read_file, glob, grep_search, list_directory]
 ---
 
 You are an operations specialist for the Bachelorprojekt Kubernetes platform. You investigate and fix live cluster issues.

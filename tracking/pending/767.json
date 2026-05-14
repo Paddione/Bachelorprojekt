@@ -1,0 +1,15 @@
+{
+  "pr_number": 767,
+  "title": "add mishap-tracker — automatic anomaly ticketing from skill executions",
+  "description": "## Summary\n- Adds a new shared `mishap-tracker` sub-skill that converts a calling skill's `MISHAP_LOG` into `tickets.tickets` records on mentolder\n- Injects a Mishap Tracking header block (instructs Claude to maintain MISHAP_LOG during execution) and a Post-Execution footer block (invokes mishap-tracker) into all 5 active local skills: `backup-check`, `deployment-assist`, `dev-flow-execute`, `dev-flow-plan`, `hetzner-node`\n- Adds a header-only block to the retired `dev-flow` skill that flags its invocation as `type: suspicious`\n\n## Test plan\n- [x] task test:all (FAIL=0)\n- [x] Verified all 5 active skills have MishapTracking=1 and PostExecution=1\n- [x] Verified dev-flow (retired) has MishapTracking=1 and PostExecution=0\n- [x] mishap-tracker SKILL.md created with correct frontmatter and DB insertion logic\n\nCloses T000378\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "skills",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T23:30:34Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": [
+    "T000378"
+  ]
+}

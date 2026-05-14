@@ -88,6 +88,12 @@ spec:
               value: "{{metadata.annotations.workspace-kc-user2-email}}"
             - name: WORKSPACE_NAMESPACE
               value: "{{metadata.annotations.workspace-namespace}}"
+            - name: LLM_HOST_IP
+              value: "{{metadata.annotations.workspace-llm-host-ip}}"
+            - name: DEV_DOMAIN
+              value: "{{metadata.annotations.workspace-dev-domain}}"
+            - name: DEV_NODE
+              value: "{{metadata.annotations.workspace-dev-node}}"
 
       destination:
         server: "{{server}}"
@@ -114,6 +120,11 @@ spec:
           kind: Deployment
           jsonPointers:
             - /spec/replicas
+            - /status/terminatingReplicas
+        - group: apps
+          kind: StatefulSet
+          jsonPointers:
+            - /status/terminatingReplicas
         - group: autoscaling
           kind: HorizontalPodAutoscaler
           jsonPointers:

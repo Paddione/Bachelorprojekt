@@ -13,6 +13,31 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 ---
 
+## Schritt 0: Worktree-Konsistenz prüfen
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+CURRENT_DIR=$(pwd)
+echo "Branch: $CURRENT_BRANCH | CWD: $CURRENT_DIR"
+```
+
+Prüfe:
+
+| Situation | Aktion |
+|---|---|
+| `$CURRENT_BRANCH` ist `main` und `$CURRENT_DIR` ist das Haupt-Repo | ⚠️ Falscher Ausgangspunkt. Wechsle in den Feature-Worktree: `git worktree list` zeigt den Pfad. |
+| Branch passt zum Pfad (z.B. `feature/foo` in `.../Bachelorprojekt-feature-foo`) | ✓ Fortfahren. |
+| Branch existiert, aber Worktree-Pfad ist ein anderer Claude-Prozess aktiv | ⚠️ Nicht in denselben Worktree schreiben. Warte auf den anderen Prozess oder nutze `git worktree list` zur Koordination. |
+
+```bash
+# Parallel laufende Claude-Prozesse sichtbar machen
+git worktree list --porcelain | grep -E '^(worktree|branch)'
+```
+
+Kein Blocker — nur Warnung und Bestätigung vom User, wenn Überschneidung erkannt wird.
+
+---
+
 ## Schritt 1: Plan finden
 
 **Default — neuester Plan:**
@@ -139,6 +164,35 @@ Co-Authored-By: <model-name>
 
 ---
 
+## Schritt 5.5: PR-Link im Ticket speichern
+
+Falls `$TICKET_ID` gesetzt, direkt nach dem PR-Erstellen:
+
+```bash
+PR_NUM=$(gh pr view --json number -q '.number')
+
+PGPOD=$(kubectl get pod -n workspace --context mentolder \
+  -l app=shared-db -o name | head -1)
+
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
+
+kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -c \
+  "INSERT INTO tickets.ticket_links (from_id, kind, pr_number)
+   SELECT '$TICKET_UUID', 'pr', $PR_NUM
+   WHERE NOT EXISTS (
+     SELECT 1 FROM tickets.ticket_links
+     WHERE from_id = '$TICKET_UUID' AND kind = 'pr' AND pr_number = $PR_NUM
+   );"
+```
+
+- `to_id` bleibt NULL (kein NOT NULL-Constraint auf der Spalte).
+- `WHERE NOT EXISTS` macht den Insert idempotent ohne UNIQUE-Constraint.
+
+---
+
 ## Schritt 6: Auto-Merge wenn CI grün
 
 ---
@@ -164,7 +218,7 @@ kubectl exec "$PGPOD" -n workspace --context mentolder -- \
 
    INSERT INTO tickets.ticket_comments (ticket_id, body, visibility)
    SELECT id,
-     'PR #$PR_NUM merged. Plan executed: docs/superpowers/plans/<slug>.md',
+     'PR #$PR_NUM merged. Plan archived to tickets.ticket_plans in Postgres.',
      'internal'
    FROM tickets.tickets WHERE external_id = '$TICKET_ID';"
 
@@ -173,17 +227,80 @@ echo "Ticket $TICKET_ID → done ($RESOLUTION)"
 
 ---
 
-## Schritt 7: Plan archivieren
+## Schritt 7: Plan in Postgres archivieren + Datei löschen
 
-Nach erfolgreichem Merge den Plan in `executed/` verschieben:
+Falls `$TICKET_ID` gesetzt und `$PLAN_FILE` vorhanden:
 
 ```bash
-mkdir -p docs/superpowers/plans/executed
-mv docs/superpowers/plans/<slug>.md docs/superpowers/plans/executed/
-git add docs/superpowers/plans/
-git commit -m "chore(plans): mark <slug> as executed"
+PLAN_FILE="docs/superpowers/plans/<slug>.md"
+SLUG="<slug>"
+BRANCH=$(git branch --show-current)
+PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
+
+PGPOD=$(kubectl get pod -n workspace --context mentolder \
+  -l app=shared-db -o name | head -1)
+
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
+
+PR_NUM_SQL=$([ -z "$PR_NUM" ] && echo "NULL" || echo "$PR_NUM")
+
+# SQL in temp-Datei schreiben — verhindert Shell-Expansion des Plan-Inhalts
+TMPFILE=$(mktemp /tmp/plan-archive-XXXXXX.sql)
+{
+  printf "INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nVALUES (\n  '%s',\n  '%s',\n  '%s',\n  \$plan\$" \
+    "$TICKET_UUID" "$SLUG" "$BRANCH"
+  cat "$PLAN_FILE"
+  printf "\$plan\$,\n  %s\n);\n" "$PR_NUM_SQL"
+} > "$TMPFILE"
+
+kubectl exec -i "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -v ON_ERROR_STOP=1 < "$TMPFILE"
+
+rm "$TMPFILE"
+
+# Datei löschen (nicht nach executed/ verschieben)
+rm "$PLAN_FILE"
+git add "$PLAN_FILE"
+git commit -m "chore(plans): archive $SLUG → postgres [$TICKET_ID]"
 git push
 ```
+
+Falls `$TICKET_ID` leer (Chore ohne Ticket): SQL-Archivierung überspringen — nur `rm "$PLAN_FILE"` + commit.
+
+**Hinweis Dollar-Quoting:** `$plan$...$plan$` ist psql-Dollar-Quoting; sicher für beliebigen Markdown-Inhalt, solange der Plan selbst nicht den String `$plan$` enthält (praktisch ausgeschlossen).
+
+---
+
+## Schritt 7.5: Worktree & Branch bereinigen
+
+Nach erfolgreichem Merge und Plan-Archivierung immer ausführen:
+
+```bash
+BRANCH="feature/<slug>"   # oder fix/<slug> bzw. chore/<slug>
+
+# Worktree-Pfad ermitteln
+WORKTREE_PATH=$(git worktree list --porcelain \
+  | awk -v b="refs/heads/$BRANCH" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+
+# In Haupt-Repo wechseln (falls noch im Worktree)
+cd /home/patrick/Bachelorprojekt
+
+# Worktree entfernen
+if [[ -n "$WORKTREE_PATH" && "$WORKTREE_PATH" != "/home/patrick/Bachelorprojekt" ]]; then
+  git worktree remove "$WORKTREE_PATH" --force
+  echo "✓ Worktree $WORKTREE_PATH entfernt"
+fi
+
+# Lokalen Branch löschen
+git branch -D "$BRANCH" 2>/dev/null && echo "✓ Lokaler Branch $BRANCH gelöscht" || echo "(Branch lokal nicht vorhanden)"
+
+# Remote Branch löschen (GitHub löscht bei auto-merge automatisch, trotzdem absichern)
+git push origin --delete "$BRANCH" 2>/dev/null && echo "✓ Remote origin/$BRANCH gelöscht" || echo "(Remote bereits gelöscht)"
+```
+
+Ergebnis: kein staler Worktree, keine Altlasten im lokalen oder Remote-Repo.
 
 ---
 

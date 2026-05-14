@@ -1,0 +1,68 @@
+{
+  "type": "plan",
+  "slug": "2026-05-14-dev-flow-pr-link-plan-archive",
+  "title": "Dev-Flow PR-Link + Plan-Archiv in Postgres",
+  "domains": [
+    "skills"
+  ],
+  "status": "active",
+  "pr_number": null,
+  "file_path": "docs/superpowers/plans/archive/2026-05-14-dev-flow-pr-link-plan-archive.md",
+  "sections": [
+    {
+      "seq": 0,
+      "section_type": "overview",
+      "content": "# Dev-Flow PR-Link + Plan-Archiv in Postgres \u2014 Implementation Plan\n\n> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.\n\n**Goal:** Zwei L\u00fccken in `dev-flow-execute` schlie\u00dfen: (1) GitHub-PR-Nummer nach PR-Erstellung in `tickets.ticket_links` speichern; (2) Plan-Markdown nach Merge in Postgres (`tickets.ticket_plans`) archivieren und die `.md`-Datei l\u00f6schen.\n\n**Architecture:** Einmalige Schema-Migration legt `tickets.ticket_plans` an. `dev-flow-execute/SKILL.md` bekommt einen neuen Block nach Schritt 5 (PR-Link) und Schritt 7 wird durch Postgres-Archivierung ersetzt. Kein Anwendungscode, keine neuen Abh\u00e4ngigkeiten \u2014 nur Skill-Text + SQL.\n\n**Tech Stack:** `kubectl exec psql` gegen mentolder-Cluster, `gh` CLI, Bash.\n\n**Spec reference:** `docs/superpowers/specs/2026-05-14-dev-flow-pr-link-plan-archive-design.md`\n\n**Branch:** `feature/dev-flow-pr-link-plan-archive`\n\n---"
+    },
+    {
+      "seq": 1,
+      "section_type": "other",
+      "content": "Pre-flight\n\n\n- [ ] **Worktree:** bereits aktiv auf Branch `feature/dev-flow-pr-link-plan-archive`\n- [ ] **Cluster erreichbar:** `kubectl get pod -n workspace --context mentolder -l app=shared-db` gibt mindestens einen Pod zur\u00fcck\n\n---"
+    },
+    {
+      "seq": 2,
+      "section_type": "tasks",
+      "content": "Task 1: Schema-Migration \u2014 `tickets.ticket_plans` anlegen\n\n\n**Files:**\n- Kein File: Migration direkt gegen Cluster-DB ausf\u00fchren\n\n- [ ] **Schritt 1: Tabelle anlegen**\n\n```bash\nPGPOD=$(kubectl get pod -n workspace --context mentolder \\\n  -l app=shared-db -o name | head -1)\n\nkubectl exec \"$PGPOD\" -n workspace --context mentolder -- \\\n  psql -U website -d website -v ON_ERROR_STOP=1 -c \"\nCREATE TABLE IF NOT EXISTS tickets.ticket_plans (\n  id          BIGSERIAL PRIMARY KEY,\n  ticket_id   UUID        NOT NULL REFERENCES tickets.tickets(id),\n  slug        TEXT        NOT NULL,\n  branch      TEXT,\n  content     TEXT        NOT NULL,\n  pr_number   INTEGER,\n  archived_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);\n\"\n```\n\nErwartete Ausgabe: `CREATE TABLE`\n\n- [ ] **Schritt 2: Tabelle verifizieren**\n\n```bash\nkubectl exec \"$PGPOD\" -n workspace --context mentolder -- \\\n  psql -U website -d website -c \"\\d tickets.ticket_plans\"\n```\n\nErwartete Ausgabe: Tabelle mit Spalten `id, ticket_id, slug, branch, content, pr_number, archived_at`.\n\n- [ ] **Schritt 3: Commit (kein Code-File \u2014 Migration-Nachweis in Commit-Message)**\n\n```bash\ngit commit --allow-empty -m \"chore(db): create tickets.ticket_plans on mentolder cluster\"\n```\n\n---"
+    },
+    {
+      "seq": 3,
+      "section_type": "tasks",
+      "content": "Task 2: Schritt 5.5 in SKILL.md einf\u00fcgen \u2014 PR-Link in ticket_links\n\n\n**Files:**\n- Modify: `.claude/skills/dev-flow-execute/SKILL.md` (nach dem `---` hinter Schritt 5, vor `## Schritt 6`)\n\nDer neue Block kommt zwischen dem abschlie\u00dfenden `---` nach dem Body-Template (aktuell Zeile 140) und `## Schritt 6: Auto-Merge wenn CI gr\u00fcn` (Zeile 142).\n\n- [ ] **Schritt 1: Block einf\u00fcgen**\n\nErsetze in `.claude/skills/dev-flow-execute/SKILL.md` den Abschnitt:\n\n```\n---"
+    },
+    {
+      "seq": 4,
+      "section_type": "other",
+      "content": "Schritt 6: Auto-Merge wenn CI gr\u00fcn\n\n```\n\ndurch:\n\n```\n---"
+    },
+    {
+      "seq": 5,
+      "section_type": "other",
+      "content": "Schritt 5.5: PR-Link im Ticket speichern\n\n\nFalls `$TICKET_ID` gesetzt, direkt nach dem PR-Erstellen:\n\n```bash\nPR_NUM=$(gh pr view --json number -q '.number')\n\nPGPOD=$(kubectl get pod -n workspace --context mentolder \\\n  -l app=shared-db -o name | head -1)\n\nTICKET_UUID=$(kubectl exec \"$PGPOD\" -n workspace --context mentolder -- \\\n  psql -U website -d website -At -c \\\n  \"SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';\")\n\nkubectl exec \"$PGPOD\" -n workspace --context mentolder -- \\\n  psql -U website -d website -c \\\n  \"INSERT INTO tickets.ticket_links (from_id, kind, pr_number)\n   SELECT '$TICKET_UUID', 'pr', $PR_NUM\n   WHERE NOT EXISTS (\n     SELECT 1 FROM tickets.ticket_links\n     WHERE from_id = '$TICKET_UUID' AND kind = 'pr' AND pr_number = $PR_NUM\n   );\"\n```\n\n- `to_id` bleibt NULL (kein NOT NULL-Constraint auf der Spalte).\n- `WHERE NOT EXISTS` macht den Insert idempotent ohne UNIQUE-Constraint.\n\n---"
+    },
+    {
+      "seq": 6,
+      "section_type": "other",
+      "content": "Schritt 6: Auto-Merge wenn CI gr\u00fcn\n\n```\n\n- [ ] **Schritt 2: Diff pr\u00fcfen**\n\n```bash\ngit diff .claude/skills/dev-flow-execute/SKILL.md\n```\n\nErwartete Ausgabe: Neuer Abschnitt `## Schritt 5.5` zwischen Schritt 5 und Schritt 6 eingef\u00fcgt, kein sonstiger Verlust.\n\n- [ ] **Schritt 3: Commit**\n\n```bash\ngit add .claude/skills/dev-flow-execute/SKILL.md\ngit commit -m \"feat(dev-flow): store PR link in ticket_links after PR creation\"\n```\n\n---"
+    },
+    {
+      "seq": 7,
+      "section_type": "architecture",
+      "content": "Task 3: Schritt 7 in SKILL.md ersetzen \u2014 Plan-Archivierung in Postgres\n\n\n**Files:**\n- Modify: `.claude/skills/dev-flow-execute/SKILL.md` (Schritt 6.5-Kommentar + Schritt 7 komplett)\n\nZwei Stellen:\n\n**A) Schritt 6.5 \u2014 Kommentar aktualisieren** (Zeile 167): Der Text `Plan executed: docs/superpowers/plans/<slug>.md` stimmt nach der \u00c4nderung nicht mehr, weil die Datei gel\u00f6scht wird.\n\n**B) Schritt 7 \u2014 Inhalt ersetzen** (Zeilen 176\u2013187): `mv executed/`-Logik durch Postgres-Archivierung + `rm`.\n\n- [ ] **Schritt 1: Schritt 6.5-Kommentar aktualisieren**\n\nErsetze in `.claude/skills/dev-flow-execute/SKILL.md`:\n\n```\n     'PR #$PR_NUM merged. Plan executed: docs/superpowers/plans/<slug>.md',\n```\n\ndurch:\n\n```\n     'PR #$PR_NUM merged. Plan archived to tickets.ticket_plans in Postgres.',\n```\n\n- [ ] **Schritt 2: Schritt 7 ersetzen**\n\nErsetze den gesamten Schritt-7-Block:\n\n```"
+    },
+    {
+      "seq": 8,
+      "section_type": "architecture",
+      "content": "Schritt 7: Plan archivieren\n\n\nNach erfolgreichem Merge den Plan in `executed/` verschieben:\n\n```bash\nmkdir -p docs/superpowers/plans/executed\nmv docs/superpowers/plans/<slug>.md docs/superpowers/plans/executed/\ngit add docs/superpowers/plans/\ngit commit -m \"chore(plans): mark <slug> as executed\"\ngit push\n```\n```\n\ndurch:\n\n````"
+    },
+    {
+      "seq": 9,
+      "section_type": "architecture",
+      "content": "Schritt 7: Plan in Postgres archivieren + Datei l\u00f6schen\n\n\nFalls `$TICKET_ID` gesetzt und `$PLAN_FILE` vorhanden:\n\n```bash\nPLAN_FILE=\"docs/superpowers/plans/<slug>.md\"\nSLUG=\"<slug>\"\nBRANCH=$(git branch --show-current)\nPR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo \"\")\n\nPGPOD=$(kubectl get pod -n workspace --context mentolder \\\n  -l app=shared-db -o name | head -1)\n\nTICKET_UUID=$(kubectl exec \"$PGPOD\" -n workspace --context mentolder -- \\\n  psql -U website -d website -At -c \\\n  \"SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';\")\n\nPR_NUM_SQL=$([ -z \"$PR_NUM\" ] && echo \"NULL\" || echo \"$PR_NUM\")\n\n# SQL in temp-Datei schreiben \u2014 verhindert Shell-Expansion des Plan-Inhalts\nTMPFILE=$(mktemp /tmp/plan-archive-XXXXXX.sql)\n{\n  printf \"INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\\nVALUES (\\n  '%s',\\n  '%s',\\n  '%s',\\n  \\$plan\\$\" \\\n    \"$TICKET_UUID\" \"$SLUG\" \"$BRANCH\"\n  cat \"$PLAN_FILE\"\n  printf \"\\$plan\\$,\\n  %s\\n);\\n\" \"$PR_NUM_SQL\"\n} > \"$TMPFILE\"\n\nkubectl exec -i \"$PGPOD\" -n workspace --context mentolder -- \\\n  psql -U website -d website -v ON_ERROR_STOP=1 < \"$TMPFILE\"\n\nrm \"$TMPFILE\"\n\n# Datei l\u00f6schen (nicht nach executed/ verschieben)\nrm \"$PLAN_FILE\"\ngit add \"$PLAN_FILE\"\ngit commit -m \"chore(plans): archive $SLUG \u2192 postgres [$TICKET_ID]\"\ngit push\n```\n\nFalls `$TICKET_ID` leer (Chore ohne Ticket): SQL-Archivierung \u00fcberspringen \u2014 nur `rm \"$PLAN_FILE\"` + commit.\n\n**Hinweis Dollar-Quoting:** `$plan$...$plan$` ist psql-Dollar-Quoting; sicher f\u00fcr beliebigen Markdown-Inhalt, solange der Plan selbst nicht den String `$plan$` enth\u00e4lt (praktisch ausgeschlossen).\n````\n\n- [ ] **Schritt 3: Diff pr\u00fcfen**\n\n```bash\ngit diff .claude/skills/dev-flow-execute/SKILL.md\n```\n\nPr\u00fcfe:\n- Schritt 6.5-Kommentar zeigt \"Archived to tickets.ticket_plans in Postgres.\"\n- Schritt 7 enth\u00e4lt `mktemp`, `kubectl exec -i`, `rm \"$PLAN_FILE\"`, kein `mv executed/` mehr\n\n- [ ] **Schritt 4: Commit**\n\n```bash\ngit add .claude/skills/dev-flow-execute/SKILL.md\ngit commit -m \"feat(dev-flow): archive plan to postgres and delete md file on merge\"\n```\n\n---"
+    },
+    {
+      "seq": 10,
+      "section_type": "tasks",
+      "content": "Task 4: Verifikation + PR\n\n\n- [ ] **Schritt 1: SKILL.md auf Vollst\u00e4ndigkeit pr\u00fcfen**\n\n```bash\ngrep -n \"Schritt 5.5\\|ticket_links\\|ticket_plans\\|rm.*PLAN_FILE\\|executed/\" \\\n  .claude/skills/dev-flow-execute/SKILL.md\n```\n\nErwartete Ausgabe:\n- Treffer f\u00fcr `Schritt 5.5` und `ticket_links` (PR-Link-Block)\n- Treffer f\u00fcr `ticket_plans` und `rm.*PLAN_FILE` (Archivierungs-Block)\n- **Kein** Treffer f\u00fcr `executed/` (alter Move-Befehl ist weg)\n\n- [ ] **Schritt 2: Offline-Tests laufen lassen**\n\n```bash\ntask test:all\n```\n\nErwartete Ausgabe: gr\u00fcn \u2014 Skill-\u00c4nderungen ber\u00fchren keine BATS- oder Kustomize-Tests.\n\n- [ ] **Schritt 3: Smoke-Test der neuen DB-Tabelle**\n\n```bash\nPGPOD=$(kubectl get pod -n workspace --context mentolder \\\n  -l app=shared-db -o name | head -1)\n\nkubectl exec \"$PGPOD\" -n workspace --context mentolder -- \\\n  psql -U website -d website -c \\\n  \"SELECT COUNT(*) FROM tickets.ticket_plans;\"\n```\n\nErwartete Ausgabe: `count = 0` (Tabelle leer, existiert aber).\n\n- [ ] **Schritt 4: Push + PR erstellen**\n\n```bash\ngit push -u origin feature/dev-flow-pr-link-plan-archive\n```\n\nDann `commit-commands:commit-push-pr` aufrufen mit:\n- Titel: `feat(dev-flow): link PR to ticket + archive plan in postgres`\n- Body:\n  ```\n  ## Summary\n  - Speichert die GitHub-PR-Nummer nach PR-Erstellung in tickets.ticket_links (kind='pr')\n  - Archiviert den Markdown-Plan nach Merge in tickets.ticket_plans und l\u00f6scht die .md-Datei\n\n  ## Test plan\n  - [x] task test:all\n  - [x] tickets.ticket_plans Tabelle auf mentolder-Cluster verifiziert\n  - [x] SKILL.md grep-Check: kein executed/-Move, neuer 5.5-Block vorhanden\n  ```"
+    }
+  ]
+}

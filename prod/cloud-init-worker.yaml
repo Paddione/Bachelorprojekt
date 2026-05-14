@@ -1,0 +1,107 @@
+#cloud-config
+# Usage: paste as Hetzner server "User data" when adding a pure worker/agent node.
+# Before using: fill in K3S_URL and K3S_TOKEN below.
+# For a new cluster use prod/cloud-init.yaml (cluster-init: true).
+# For an additional control-plane use prod/cloud-init-join-cp.yaml.
+# See .claude/skills/hetzner-node/SKILL.md for the full provisioning runbook.
+users:
+  - default
+  - name: patrick
+    groups: sudo
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de
+  - name: gekko
+    groups: sudo
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513
+
+ssh_pwauth: false
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - wget
+  - git
+  - htop
+  - unattended-upgrades
+  - apt-transport-https
+  - open-iscsi
+  - nfs-common
+  - jq
+  - fail2ban
+  - ufw
+  - wireguard-tools
+
+write_files:
+  - path: /etc/sysctl.d/99-k3s.conf
+    content: |
+      net.core.somaxconn=32768
+      net.ipv4.ip_forward=1
+      net.bridge.bridge-nf-call-iptables=1
+      net.ipv4.conf.all.forwarding=1
+      fs.inotify.max_user_watches=524288
+      fs.inotify.max_user_instances=512
+      vm.max_map_count=262144
+
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      port = 22
+      maxretry = 5
+      bantime = 3600
+      findtime = 600
+
+  - path: /etc/ssh/sshd_config.d/hardened.conf
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+      AllowUsers patrick gekko
+
+runcmd:
+  - sysctl --system
+
+  # Firewall
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow 10250/tcp
+  - ufw allow 8472/udp
+  - ufw allow 51820/udp
+  - ufw allow 3478/tcp
+  - ufw allow 3478/udp
+  - ufw allow 5349/tcp
+  - ufw allow 49152:49252/udp
+  - ufw allow 7880/tcp
+  - ufw allow 7881/tcp
+  - ufw allow 50000:60000/udp
+  - ufw allow 30000:40000/udp
+  - ufw deny 2222/tcp comment "sish - default deny"
+  - ufw --force enable
+
+  # Services
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+  - systemctl restart sshd
+  - systemctl enable unattended-upgrades
+  - systemctl start unattended-upgrades
+  - systemctl enable --now iscsid
+
+  # Install k3s agent — FILL IN K3S_URL and K3S_TOKEN before provisioning
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable K3S_URL="https://EXISTING_CP_IP:6443" K3S_TOKEN="K3S_TOKEN_HERE" sh -s - agent --flannel-iface=wg-mesh
+
+  # Install task
+  - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
+final_message: "k3s worker/agent ready on $(hostname) - $(date)"

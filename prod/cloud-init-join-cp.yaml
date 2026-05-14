@@ -1,8 +1,9 @@
 #cloud-config
-# Usage: paste as Hetzner server "User data" when creating a NEW node
-#        that will initialise a new k3s cluster (cluster-init: true).
-# For joining an existing cluster use prod/cloud-init-join-cp.yaml (control-plane)
-# or prod/cloud-init-worker.yaml (agent/worker).
+# Usage: paste as Hetzner server "User data" when adding a node that joins
+#        an existing k3s cluster as an additional control-plane (HA etcd member).
+# Before using: fill in SERVER_URL and K3S_TOKEN below.
+# For starting a new cluster use prod/cloud-init.yaml (cluster-init: true).
+# For a worker/agent node use prod/cloud-init-worker.yaml.
 # See .claude/skills/hetzner-node/SKILL.md for the full provisioning runbook.
 users:
   - default
@@ -43,9 +44,12 @@ packages:
 write_files:
   - path: /etc/rancher/k3s/config.yaml
     content: |
+      # FILL IN before provisioning:
+      server: "https://EXISTING_CP_IP:6443"
+      token: "K3S_TOKEN_HERE"
       tls-san:
-        - ${PROD_DOMAIN}
-        - "*.${PROD_DOMAIN}"
+        - PROD_DOMAIN
+        - "*.PROD_DOMAIN"
       disable:
         - traefik
         - servicelb
@@ -55,8 +59,8 @@ write_files:
         - "default-not-ready-toleration-seconds=30"
         - "default-unreachable-toleration-seconds=30"
       write-kubeconfig-mode: "0644"
-      cluster-init: true
       secrets-encryption: true
+      flannel-iface: wg-mesh
 
   - path: /etc/sysctl.d/99-k3s.conf
     content: |
@@ -96,23 +100,16 @@ runcmd:
   - ufw allow 6443/tcp
   - ufw allow 10250/tcp
   - ufw allow 8472/udp
-  - ufw allow 51820/udp    # WireGuard GPU worker tunnel
-  - ufw allow 3478/tcp     # coturn TURN/STUN (TCP)
-  - ufw allow 3478/udp     # coturn TURN/STUN (UDP)
-  - ufw allow 5349/tcp     # coturn TURNS (TLS TURN — iOS/iPhone)
-  - ufw allow 49152:49252/udp  # coturn TURN relay port range
+  - ufw allow 51820/udp
+  - ufw allow 3478/tcp
+  - ufw allow 3478/udp
+  - ufw allow 5349/tcp
+  - ufw allow 49152:49252/udp
   - ufw allow 2379:2380/tcp
-  # LiveKit ports — Hetzner host firewall blocks inter-node traffic on every
-  # port except 80/443 by default. Without these the host-network livekit-server
-  # pod is unreachable from Traefik on other nodes (see k3d/livekit.yaml).
-  - ufw allow 7880/tcp     # LiveKit signaling (HTTP/WS)
-  - ufw allow 7881/tcp     # LiveKit RTC TCP fallback
-  - ufw allow 50000:60000/udp  # LiveKit RTC media range
-  - ufw allow 30000:40000/udp  # LiveKit TURN relay range
-  # ── dev.mentolder.de — sish SSH (2222/tcp) ─────────────────────────
-  # Deny-by-default. Explicit allow rules are applied per-CIDR from
-  # DEV_SSH_ALLOWLIST by `task dev:firewall:open` (Taskfile.dev-stack.yml)
-  # — they're runtime state, not cloud-init.
+  - ufw allow 7880/tcp
+  - ufw allow 7881/tcp
+  - ufw allow 50000:60000/udp
+  - ufw allow 30000:40000/udp
   - ufw deny 2222/tcp comment "sish - default deny"
   - ufw --force enable
 
@@ -124,7 +121,7 @@ runcmd:
   - systemctl start unattended-upgrades
   - systemctl enable --now iscsid
 
-  # Install k3s
+  # Install k3s (joins cluster — server/token come from config.yaml above)
   - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -
   - until kubectl get nodes; do sleep 2; done
 
@@ -140,20 +137,4 @@ runcmd:
   # Install task
   - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
-  # Dev toolchain for the gekko-hetzner-2 dev box.
-  # The script is hostname-guarded and is a no-op on every other node,
-  # so it is safe to leave this in the shared cloud-init template.
-  - curl -fsSL https://raw.githubusercontent.com/Paddione/Bachelorprojekt/main/scripts/install-dev-tools.sh -o /usr/local/sbin/install-dev-tools.sh
-  - chmod +x /usr/local/sbin/install-dev-tools.sh
-  - /usr/local/sbin/install-dev-tools.sh || true
-
-  # Install Traefik via Helm
-  - su - patrick -c "helm repo add traefik https://traefik.github.io/charts"
-  - su - patrick -c "helm repo update"
-  # The Traefik chart creates an IngressClass named "traefik" by default;
-  # we deliberately do NOT pass --set providers.kubernetesingress.ingressClass=traefik
-  # because the live mentolder install does not have that arg either, and
-  # adding it would force a chart upgrade just to match the docs.
-  - su - patrick -c "KUBECONFIG=/home/patrick/.kube/config helm install traefik traefik/traefik -n kube-system --set ports.web.hostPort=80 --set ports.websecure.hostPort=443 --set deployment.kind=DaemonSet --set ingressRoute.dashboard.enabled=false"
-
-final_message: "k3s control plane ready on $(hostname) - $(date)"
+final_message: "k3s control-plane (join) ready on $(hostname) - $(date)"

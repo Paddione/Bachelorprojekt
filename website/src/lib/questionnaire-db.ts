@@ -316,7 +316,7 @@ async function initDb() {
     FROM questionnaire_assignments a
     JOIN questionnaire_templates t ON t.id = a.template_id
     JOIN questionnaire_assignment_scores s ON s.assignment_id = a.id
-    JOIN questionnaire_dimensions d ON s.dimension_id = d.id
+    JOIN questionnaire_dimensions d ON d.id = s.dimension_id
     LEFT JOIN LATERAL (
       SELECT
         COUNT(*)::int AS evidence_count,
@@ -710,11 +710,11 @@ export async function archiveQAssignment(id: string): Promise<
     for (const s of scores) {
       await client.query(
         `INSERT INTO questionnaire_assignment_scores
-           (assignment_id, dimension_id, dimension_name, final_score,
+           (assignment_id, dimension_id, final_score,
             threshold_mid, threshold_high, level)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT ON CONSTRAINT uq_qas_assignment_dimension DO NOTHING`,
-        [id, s.dimension_id, s.name, s.final_score,
+        [id, s.dimension_id, s.final_score,
          s.threshold_mid, s.threshold_high, s.level],
       );
     }
@@ -1036,7 +1036,6 @@ export async function listTestStatusesForMonitoring(): Promise<{
 export interface QArchivedScore {
   assignment_id: string;
   dimension_id: string;
-  dimension_name: string;
   final_score: number;
   threshold_mid: number | null;
   threshold_high: number | null;
@@ -1046,12 +1045,11 @@ export interface QArchivedScore {
 
 export async function listArchivedScores(assignmentId: string): Promise<QArchivedScore[]> {
   const r = await pool.query(
-    `SELECT s.assignment_id, s.dimension_id, d.name AS dimension_name, s.final_score,
-            s.threshold_mid, s.threshold_high, s.level, s.snapshot_at
-       FROM questionnaire_assignment_scores s
-       JOIN questionnaire_dimensions d ON s.dimension_id = d.id
-      WHERE s.assignment_id = $1
-      ORDER BY d.name`,
+    `SELECT assignment_id, dimension_id, final_score,
+            threshold_mid, threshold_high, level, snapshot_at
+       FROM questionnaire_assignment_scores
+      WHERE assignment_id = $1
+      ORDER BY dimension_id`,
     [assignmentId],
   );
   return r.rows;

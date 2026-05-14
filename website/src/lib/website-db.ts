@@ -45,6 +45,8 @@ export type TimelineRow = {
   requirement_id: string | null;
   requirement_name: string | null;
   bugs_fixed: number;
+  ticket_external_id: string | null;
+  ticket_id: string | null;
 };
 
 export async function listTimeline(opts: {
@@ -80,22 +82,39 @@ export async function listTimeline(opts: {
       ORDER BY merged_at DESC
       LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
-  )).rows as Omit<TimelineRow, 'bugs_fixed'>[];
+  )).rows as Omit<TimelineRow, 'bugs_fixed' | 'ticket_external_id' | 'ticket_id'>[];
 
   const prNumbers = rows.map(r => r.pr_number).filter((n): n is number => n != null);
   const bugCounts = new Map<number, number>();
+  const ticketIds = new Map<number, { external_id: string; ticket_id: string }>();
+
   if (prNumbers.length > 0) {
-    const counts = (await pool.query(
-      `SELECT pr_number AS pr, COUNT(*)::int AS n
-         FROM tickets.ticket_links
-        WHERE kind = 'fixes' AND pr_number = ANY($1::int[])
-        GROUP BY pr_number`,
-      [prNumbers],
-    )).rows as { pr: number; n: number }[];
-    for (const c of counts) bugCounts.set(c.pr, c.n);
+    const [counts, links] = await Promise.all([
+      pool.query<{ pr: number; n: number }>(
+        `SELECT pr_number AS pr, COUNT(*)::int AS n
+           FROM tickets.ticket_links
+          WHERE kind = 'fixes' AND pr_number = ANY($1::int[])
+          GROUP BY pr_number`,
+        [prNumbers],
+      ),
+      pool.query<{ pr: number; external_id: string; ticket_id: string }>(
+        `SELECT tl.pr_number AS pr, t.external_id, tl.from_id AS ticket_id
+           FROM tickets.ticket_links tl
+           JOIN tickets.tickets t ON t.id = tl.from_id
+          WHERE tl.kind = 'implements' AND tl.pr_number = ANY($1::int[])`,
+        [prNumbers],
+      ),
+    ]);
+    for (const c of counts.rows) bugCounts.set(c.pr, c.n);
+    for (const l of links.rows) ticketIds.set(l.pr, l);
   }
 
-  return rows.map(r => ({ ...r, bugs_fixed: r.pr_number ? (bugCounts.get(r.pr_number) ?? 0) : 0 }));
+  return rows.map(r => ({
+    ...r,
+    bugs_fixed: r.pr_number ? (bugCounts.get(r.pr_number) ?? 0) : 0,
+    ticket_external_id: r.pr_number ? (ticketIds.get(r.pr_number)?.external_id ?? null) : null,
+    ticket_id: r.pr_number ? (ticketIds.get(r.pr_number)?.ticket_id ?? null) : null,
+  }));
 }
 
 // ── Customer ────────────────────────────────────────────────────────────────
@@ -3602,6 +3621,7 @@ export async function initBillingTables(): Promise<void> {
     )
   `);
   await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS default_leitweg_id TEXT`);
+  await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS customers_id UUID REFERENCES customers(id)`);
   await pool.query(`
     DO $$
     BEGIN
@@ -3670,30 +3690,22 @@ export async function initBillingTables(): Promise<void> {
       gross_amount  NUMERIC(12,2) NOT NULL,
       notes         TEXT,
       payment_reference TEXT,
-      paid_at       TIMESTAMPTZ,
-      paid_amount   NUMERIC(12,2),
       locked        BOOLEAN NOT NULL DEFAULT false,
       cancels_invoice_id TEXT REFERENCES billing_invoices(id),
       retain_until  DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '10 years'),
       pdf_path      TEXT,
-      zugferd_xml   TEXT,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS pdf_path TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS leitweg_id TEXT`);
-  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS factur_x_xml TEXT`);
-  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS xrechnung_xml TEXT`);
-  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS pdf_a3_blob BYTEA`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS einvoice_validated_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS einvoice_validation_report JSONB`);
   await pool.query(`
     ALTER TABLE billing_invoices
       ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'regular',
       ADD COLUMN IF NOT EXISTS parent_invoice_id TEXT REFERENCES billing_invoices(id),
-      ADD COLUMN IF NOT EXISTS dunning_level SMALLINT NOT NULL DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS last_dunning_at TIMESTAMPTZ,
       ADD COLUMN IF NOT EXISTS currency CHAR(3) NOT NULL DEFAULT 'EUR',
       ADD COLUMN IF NOT EXISTS currency_rate NUMERIC(12,6),
       ADD COLUMN IF NOT EXISTS net_amount_eur  NUMERIC(12,2),
@@ -3708,13 +3720,6 @@ export async function initBillingTables(): Promise<void> {
         ALTER TABLE billing_invoices
           ADD CONSTRAINT billing_invoices_kind_chk
           CHECK (kind IN ('regular','prepayment','final','gutschrift'));
-      END IF;
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname='billing_invoices_dunning_chk'
-      ) THEN
-        ALTER TABLE billing_invoices
-          ADD CONSTRAINT billing_invoices_dunning_chk
-          CHECK (dunning_level BETWEEN 0 AND 3);
       END IF;
     END $$
   `);
@@ -3783,7 +3788,6 @@ export async function initBillingTables(): Promise<void> {
   await pool.query(`
     ALTER TABLE billing_invoices
       ADD COLUMN IF NOT EXISTS hash_sha256    TEXT,
-      ADD COLUMN IF NOT EXISTS pdf_blob       BYTEA,
       ADD COLUMN IF NOT EXISTS pdf_mime       TEXT,
       ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER,
       ADD COLUMN IF NOT EXISTS finalized_at   TIMESTAMPTZ
@@ -3873,6 +3877,111 @@ export async function initBillingTables(): Promise<void> {
     ALTER TABLE billing_invoice_payments
       ADD COLUMN IF NOT EXISTS payment_currency_rate NUMERIC(12,6)
   `);
+
+  // Audit Phase 3 & 4: Billing Schema Cleanup
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_invoice_documents (
+      invoice_id TEXT NOT NULL REFERENCES billing_invoices(id) ON DELETE CASCADE,
+      format     TEXT NOT NULL,
+      content    BYTEA NOT NULL,
+      PRIMARY KEY (invoice_id, format)
+    )
+  `);
+
+  // Migrate blobs to billing_invoice_documents
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='pdf_blob') THEN
+        INSERT INTO billing_invoice_documents (invoice_id, format, content)
+        SELECT id, 'pdf', pdf_blob FROM billing_invoices WHERE pdf_blob IS NOT NULL
+        ON CONFLICT DO NOTHING;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='pdf_a3_blob') THEN
+        INSERT INTO billing_invoice_documents (invoice_id, format, content)
+        SELECT id, 'pdf-a3', pdf_a3_blob FROM billing_invoices WHERE pdf_a3_blob IS NOT NULL
+        ON CONFLICT DO NOTHING;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='zugferd_xml') THEN
+        INSERT INTO billing_invoice_documents (invoice_id, format, content)
+        SELECT id, 'zugferd', zugferd_xml::bytea FROM billing_invoices WHERE zugferd_xml IS NOT NULL
+        ON CONFLICT DO NOTHING;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='factur_x_xml') THEN
+        INSERT INTO billing_invoice_documents (invoice_id, format, content)
+        SELECT id, 'factur-x', factur_x_xml::bytea FROM billing_invoices WHERE factur_x_xml IS NOT NULL
+        ON CONFLICT DO NOTHING;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='xrechnung_xml') THEN
+        INSERT INTO billing_invoice_documents (invoice_id, format, content)
+        SELECT id, 'xrechnung', xrechnung_xml::bytea FROM billing_invoices WHERE xrechnung_xml IS NOT NULL
+        ON CONFLICT DO NOTHING;
+      END IF;
+    END $$;
+  `);
+
+  // Drop redundant columns
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='pdf_blob') THEN
+        ALTER TABLE billing_invoices DROP COLUMN pdf_blob;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='pdf_a3_blob') THEN
+        ALTER TABLE billing_invoices DROP COLUMN pdf_a3_blob;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='zugferd_xml') THEN
+        ALTER TABLE billing_invoices DROP COLUMN zugferd_xml;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='factur_x_xml') THEN
+        ALTER TABLE billing_invoices DROP COLUMN factur_x_xml;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='xrechnung_xml') THEN
+        ALTER TABLE billing_invoices DROP COLUMN xrechnung_xml;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='paid_at') THEN
+        ALTER TABLE billing_invoices DROP COLUMN paid_at;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='paid_amount') THEN
+        ALTER TABLE billing_invoices DROP COLUMN paid_amount;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='dunning_level') THEN
+        ALTER TABLE billing_invoices DROP COLUMN dunning_level;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='billing_invoices' AND column_name='last_dunning_at') THEN
+        ALTER TABLE billing_invoices DROP COLUMN last_dunning_at;
+      END IF;
+    END $$;
+  `);
+
+  // Create view
+  await pool.query(`
+    CREATE OR REPLACE VIEW v_billing_invoices_with_state AS
+    SELECT
+      i.*,
+      COALESCE(p.paid_amount, 0) AS paid_amount,
+      CASE WHEN COALESCE(p.paid_amount, 0) >= i.gross_amount THEN p.last_paid_at ELSE NULL END AS paid_at,
+      COALESCE(d.dunning_level, 0) AS dunning_level,
+      d.last_dunning_at
+    FROM billing_invoices i
+    LEFT JOIN (
+      SELECT
+        invoice_id,
+        SUM(amount) AS paid_amount,
+        MAX(paid_at) AS last_paid_at
+      FROM billing_invoice_payments
+      GROUP BY invoice_id
+    ) p ON i.id = p.invoice_id
+    LEFT JOIN (
+      SELECT
+        invoice_id,
+        MAX(level) AS dunning_level,
+        MAX(generated_at) AS last_dunning_at
+      FROM billing_invoice_dunnings
+      GROUP BY invoice_id
+    ) d ON i.id = d.invoice_id;
+  `);
+
   await initBillingAuditTable();
   await installInvoiceImmutabilityTriggers();
   billingTablesReady = true;

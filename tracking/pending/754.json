@@ -1,0 +1,12 @@
+{
+  "pr_number": 754,
+  "title": "persist chosen approach + session ID in superpowers.plans [T000374]",
+  "description": "## Summary\n- New `scripts/brainstorm-extract-choice.sh` reads last `choice` event from brainstorm session events NDJSON\n- `dev-flow-plan` skill injects `brainstorm_choice` + `brainstorm_session` into plan frontmatter after brainstorming\n- `plans_parse.py` passes these fields through to the pending JSON\n- `ensurePlanSchema()` adds two nullable columns; `writePlanToDb()` persists them (COALESCE-safe on re-ingest)\n\n## Test plan\n- [x] `bats tests/unit/brainstorm-extract-choice.bats` passes (3 tests)\n- [x] `python3 scripts/plans_parse.test.py` passes (2 tests)\n- [x] `node --test scripts/track-pr.test.mjs` all pass (7 tests)\n- [x] `node --check scripts/track-pr.mjs` syntax OK\n- [ ] After merge: next dev-flow-plan session with brainstorming populates the fields on the next plan commit\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "brainstorm",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T18:54:51Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

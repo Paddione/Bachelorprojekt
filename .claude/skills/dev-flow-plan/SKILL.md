@@ -216,6 +216,19 @@ awk 'NR==1{print; print "ticket_id: '"$TICKET_EXT_ID"'"; next} 1' \
   mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
 ```
 
+Injiziere dann brainstorm_choice + brainstorm_session (best-effort — kein Fehler wenn kein STATE_DIR oder keine Wahl):
+
+```bash
+if [[ -n "${STATE_DIR:-}" ]] && BRAINSTORM_CHOICE=$(bash scripts/brainstorm-extract-choice.sh "$STATE_DIR" 2>/dev/null); then
+  SESSION_ID=$(basename "$(dirname "$STATE_DIR")")
+  awk -v c="$BRAINSTORM_CHOICE" -v s="$SESSION_ID" \
+    'NR==1{print; print "brainstorm_choice: " c; print "brainstorm_session: " s; next} 1' \
+    docs/superpowers/plans/<date>-<slug>.md > /tmp/_plan_tmp.md && \
+    mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
+  echo "Brainstorm choice '$BRAINSTORM_CHOICE' (session $SESSION_ID) recorded"
+fi
+```
+
 Melde: **"Ticket `$TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bugs"**
 
 ### Schritt 4.6: Gesammelte Assets ans Ticket hängen

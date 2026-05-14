@@ -20,6 +20,11 @@ includes:
   brainstorm:
     taskfile: ./Taskfile.brainstorm.yml
     dir: .
+  # OpenClaw — personal AI assistant gateway on the WSL host.
+  # See Taskfile.openclaw.yml + openclaw/README.md.
+  openclaw:
+    taskfile: ./Taskfile.openclaw.yml
+    dir: .
 
 vars:
   CLUSTER_NAME: dev

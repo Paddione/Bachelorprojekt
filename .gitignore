@@ -8,6 +8,8 @@ environments/.secrets/
 # Real credentials are applied via: task workspace:prod:deploy / task korczewski:deploy
 # k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials
 deploy/mcp/openclaw-secrets.yaml
+# OpenClaw — runtime config has secrets; only template is committed
+openclaw/.env
 deploy/mcp/claude-code-secrets.yaml
 vaultwarden-import-*.json
 *-bitwarden-export.json

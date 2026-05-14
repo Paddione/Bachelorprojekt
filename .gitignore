@@ -116,3 +116,9 @@ scripts/coaching/node_modules
 
 # Generated docs HTML
 k3d/docs-content-built/
+
+# ── BATS vendor library self-tests (not project tests) ──
+tests/unit/lib/bats-assert/test/
+tests/unit/lib/bats-core/test/
+tests/unit/lib/bats-file/test/
+tests/unit/lib/bats-support/test/

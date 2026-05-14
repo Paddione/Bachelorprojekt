@@ -109,17 +109,17 @@ Rufe `superpowers:brainstorming` auf. Voranstellen vor dem ersten Brainstorming-
 
 > "Visual-Companion-Server läuft bereits (Port `$PORT`). `screen_dir=$SCREEN_DIR`, `state_dir=$STATE_DIR`. Rufe `start-server.sh` nicht nochmals auf. Nenne dem User immer `https://brainstorm.mentolder.de` — niemals `http://localhost:*`."
 
-Ergebnis: Spec in `docs/superpowers/specs/<slug>.md`.
+Ergebnis: Spec in `docs/superpowers/specs/<date>-<slug>-design.md`.
 
 ### Schritt 4: Plan schreiben
 
 Rufe `superpowers:writing-plans` auf. Führe danach sofort aus:
 
 ```bash
-bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<slug>.md
+bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md
 ```
 
-Ergebnis: Plan in `docs/superpowers/plans/<slug>.md`.
+Ergebnis: Plan in `docs/superpowers/plans/<date>-<slug>.md`.
 
 ### Schritt 4.5: Ticket anlegen
 
@@ -137,7 +137,7 @@ TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
    VALUES (
      'task', 'mentolder',
      'Plan: <slug>',
-     'Branch: feature/<slug>' || E'\n' || 'Plan: docs/superpowers/plans/<slug>.md',
+     'Branch: feature/<slug>' || E'\n' || 'Plan: docs/superpowers/plans/<date>-<slug>.md' || E'\n' || 'Spec: docs/superpowers/specs/<date>-<slug>-design.md',
      'triage'
    )
    RETURNING external_id, id;")
@@ -150,8 +150,8 @@ Trage `ticket_id` in das Plan-Frontmatter ein (nach der ersten `---`-Zeile):
 
 ```bash
 awk 'NR==1{print; print "ticket_id: '"$TICKET_EXT_ID"'"; next} 1' \
-  docs/superpowers/plans/<slug>.md > /tmp/_plan_tmp.md && \
-  mv /tmp/_plan_tmp.md docs/superpowers/plans/<slug>.md
+  docs/superpowers/plans/<date>-<slug>.md > /tmp/_plan_tmp.md && \
+  mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
 ```
 
 Melde: **"Ticket `$TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bugs"**
@@ -159,12 +159,12 @@ Melde: **"Ticket `$TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bu
 ### Schritt 5: Commit & Push — dann STOPP
 
 ```bash
-git add docs/superpowers/specs/<slug>.md docs/superpowers/plans/<slug>.md
+git add docs/superpowers/specs/<date>-<slug>-design.md docs/superpowers/plans/<date>-<slug>.md
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin feature/<slug>
 ```
 
-**STOPP.** Sage: "Plan auf Branch `feature/<slug>` gepusht → `docs/superpowers/plans/<slug>.md` (Ticket: `$TICKET_EXT_ID`). Ruf `dev-flow-execute` auf, wenn du bereit bist zur Implementierung."
+**STOPP.** Sage: "Plan auf Branch `feature/<slug>` gepusht → `docs/superpowers/plans/<date>-<slug>.md` (Ticket: `$TICKET_EXT_ID`). Ruf `dev-flow-execute` auf, wenn du bereit bist zur Implementierung."
 
 Keine Implementation, keine Verifikation, kein PR — das übernimmt `dev-flow-execute`.
 

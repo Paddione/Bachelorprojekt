@@ -310,6 +310,11 @@ function applyMutation(room, msg) {
         figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
       }
       break;
+    case 'stiffness':
+      if (typeof msg.value === 'number') {
+        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
+      }
+      break;
   }
 }
 

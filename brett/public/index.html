@@ -54,7 +54,7 @@
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====
-    const STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
+    window.STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

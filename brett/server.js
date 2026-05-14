@@ -8,8 +8,52 @@ const { randomUUID } = require('crypto');
 
 const PRESETS_FILE = path.join(__dirname, 'presets.json');
 
+const SPEC_PATH = path.join(__dirname, 'public', 'assets', 'figure-pack', 'placement_spec.json');
+let SPEC = { faces: {}, accessories: {}, bodies: {} };
+try {
+  SPEC = JSON.parse(fs.readFileSync(SPEC_PATH, 'utf8'));
+  const fc = Object.keys(SPEC.faces || {}).filter(k => !k.startsWith('_')).length;
+  const ac = Object.keys(SPEC.accessories || {}).filter(k => !k.startsWith('_')).length;
+  const bc = Object.keys(SPEC.bodies || {}).filter(k => !k.startsWith('_')).length;
+  console.log(`[figure-pack] loaded spec: ${fc} faces, ${ac} accessories, ${bc} bodies`);
+} catch (err) {
+  console.warn(`[figure-pack] no spec at ${SPEC_PATH} — appearance validation disabled`);
+}
+
+const FACE_NAMES = () => Object.keys(SPEC.faces || {}).filter(k => !k.startsWith('_'));
+const BODY_NAMES = () => Object.keys(SPEC.bodies || {}).filter(k => !k.startsWith('_'));
+const ACC_NAMES  = () => Object.keys(SPEC.accessories || {}).filter(k => !k.startsWith('_'));
+
+function validateAppearance(a) {
+  if (!a || typeof a !== 'object') return 'appearance required';
+  const faces = FACE_NAMES();
+  const bodies = BODY_NAMES();
+  const accs   = ACC_NAMES();
+  if (faces.length && a.face !== undefined && !faces.includes(a.face)) return `unknown face: ${a.face}`;
+  if (bodies.length && a.bodyPreset !== undefined && !bodies.includes(a.bodyPreset)) return `unknown bodyPreset: ${a.bodyPreset}`;
+  if (a.accessories !== undefined && !Array.isArray(a.accessories)) return 'accessories must be array';
+  if (Array.isArray(a.accessories)) {
+    for (const acc of a.accessories) {
+      if (accs.length && !accs.includes(acc)) return `unknown accessory: ${acc}`;
+    }
+  }
+  if (a.proportions !== undefined && (typeof a.proportions !== 'object' || a.proportions === null)) {
+    return 'proportions must be object';
+  }
+  return null;
+}
+
 function loadPresets() {
-  try { return JSON.parse(fs.readFileSync(PRESETS_FILE, 'utf8')); } catch { return []; }
+  try {
+    const raw = JSON.parse(fs.readFileSync(PRESETS_FILE, 'utf8'));
+    if (!Array.isArray(raw)) return [];
+    const migrated = raw.filter(p => p && p.appearance && !p.outfit);
+    if (migrated.length !== raw.length) {
+      console.log(`[presets] dropped ${raw.length - migrated.length} legacy preset(s) with old outfit schema`);
+      savePresets(migrated);
+    }
+    return migrated;
+  } catch { return []; }
 }
 
 function savePresets(presets) {
@@ -136,21 +180,16 @@ app.get('/presets', (_req, res) => {
 });
 
 app.post('/presets', asyncHandler(async (req, res) => {
-  const { name, outfit, proportions } = req.body || {};
+  const { name, appearance } = req.body || {};
   if (!name || typeof name !== 'string' || name.length > 100) {
     return res.status(400).json({ error: 'name required (≤100 chars)' });
   }
-  if (!outfit || typeof outfit !== 'object') {
-    return res.status(400).json({ error: 'outfit required' });
-  }
-  if (!proportions || typeof proportions !== 'object') {
-    return res.status(400).json({ error: 'proportions required' });
-  }
+  const err = validateAppearance(appearance);
+  if (err) return res.status(400).json({ error: err });
   const preset = {
     id: randomUUID(),
     name,
-    outfit,
-    proportions,
+    appearance,
     createdAt: new Date().toISOString(),
   };
   const presets = loadPresets();
@@ -272,8 +311,13 @@ function applyMutation(room, msg) {
       }
       break;
     case 'appearance':
-      if (figs.has(msg.id) && msg.outfit && msg.proportions) {
-        figs.set(msg.id, { ...figs.get(msg.id), outfit: msg.outfit, proportions: msg.proportions });
+      if (figs.has(msg.id) && msg.appearance) {
+        const aerr = validateAppearance(msg.appearance);
+        if (aerr) {
+          console.warn(`[ws] rejected appearance for ${msg.id}: ${aerr}`);
+          break;
+        }
+        figs.set(msg.id, { ...figs.get(msg.id), appearance: msg.appearance });
       }
       break;
   }

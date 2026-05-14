@@ -111,3 +111,6 @@ scripts/coaching/node_modules
 
 # ── WSL/Windows NTFS alternate data streams ──
 *:Zone.Identifier
+
+# Generated docs HTML
+k3d/docs-content-built/

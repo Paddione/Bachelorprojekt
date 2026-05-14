@@ -1,3 +1,4 @@
+// scripts/build-docs.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseSidebar, rewriteLinks, buildToc } from './build-docs.js';
@@ -37,7 +38,11 @@ test('renderMermaidBlocks: returns fallback pre block when mmdc unavailable', as
 
 test('postProcess: injects copy buttons and TOC, rewrites links', async () => {
   const { postProcess } = await import('./build-docs.js');
-  const html = `<h1>Title</h1>\n<h2>Section A</h2><p>text</p>\n<h2>Section B</h2>\n<pre><code class="language-bash">echo hello</code></pre>\n<a href="#/other-page">link</a>`;
+  const html = `<h1>Title</h1>
+<h2>Section A</h2><p>text</p>
+<h2>Section B</h2>
+<pre><code class="language-bash">echo hello</code></pre>
+<a href="#/other-page">link</a>`;
   const out = postProcess(html);
   assert.ok(out.includes('class="copy-btn"'), 'copy button injected');
   assert.ok(out.includes('class="toc-box auto-toc"'), 'toc box injected');

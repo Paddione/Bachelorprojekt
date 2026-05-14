@@ -17,6 +17,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     brand: BRAND(),
     type:        (sp.get('type')        as TicketType)        ?? undefined,
     status:      (sp.get('status')      as ListFilters['status']) ?? undefined,
+    attention:   (sp.get('attention')   as ListFilters['attention']) ?? undefined,
     component:   sp.get('component')    ?? undefined,
     assigneeId:  sp.get('assigneeId')   ?? undefined,
     customerId:  sp.get('customerId')   ?? undefined,

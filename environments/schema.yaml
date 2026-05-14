@@ -63,6 +63,7 @@ env_vars:
     default_dev: "localhost"
 
   - name: WEBSITE_IMAGE
+  - name: DOCS_IMAGE
     required: true
     default_dev: "workspace-website"
 

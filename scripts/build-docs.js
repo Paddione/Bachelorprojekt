@@ -1,3 +1,4 @@
+// scripts/build-docs.js
 import { readFileSync, writeFileSync, mkdirSync, readdirSync,
          existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -12,8 +13,6 @@ export const SRC_DIR = join(__dirname, '../k3d/docs-content');
 export const OUT_DIR = join(__dirname, '../k3d/docs-content-built');
 
 // ─── parseSidebar ─────────────────────────────────────────────────────────────
-// Converts _sidebar.md content to an HTML <nav> string.
-// activeSlug: the current page slug (e.g. "quickstart-enduser") for active highlight.
 export function parseSidebar(md, activeSlug) {
   const lines = md.split('\n');
   let html = '<nav class="sidebar-nav"><ul>\n';
@@ -34,7 +33,6 @@ export function parseSidebar(md, activeSlug) {
 }
 
 // ─── rewriteLinks ─────────────────────────────────────────────────────────────
-// Converts Docsify hash-routing links (#/slug) to relative .html links.
 export function rewriteLinks(html) {
   return html
     .replace(/href="#\/([^"]+)"/g, 'href="./$1.html"')
@@ -42,7 +40,6 @@ export function rewriteLinks(html) {
 }
 
 // ─── buildToc ─────────────────────────────────────────────────────────────────
-// Generates a .toc-box HTML block from a list of h2 heading text strings.
 export function buildToc(headings) {
   if (headings.length < 2) return '';
   const items = headings.map((h, i) => {
@@ -62,9 +59,6 @@ function slugifyHeading(text) {
 }
 
 // ─── renderMermaidBlocks ──────────────────────────────────────────────────────
-// Finds <pre><code class="language-mermaid">…</code></pre> blocks in HTML,
-// pre-renders each to inline SVG via mmdc, wraps in .mermaid-svg-wrapper.
-// Falls back to a styled <pre> block if mmdc fails or is missing.
 export function renderMermaidBlocks(html, mmdc = join(__dirname, '../node_modules/.bin/mmdc')) {
   const $ = cheerio.load(html, { xmlMode: false });
   $('pre code.language-mermaid').each((_, el) => {
@@ -81,9 +75,7 @@ export function renderMermaidBlocks(html, mmdc = join(__dirname, '../node_module
           timeout: 30000,
         });
         if (existsSync(outFile)) svg = readFileSync(outFile, 'utf8');
-      } catch (_err) {
-        // fall through to fallback
-      } finally {
+      } catch (_err) { } finally {
         rmSync(tmpDir, { recursive: true, force: true });
       }
     }
@@ -96,22 +88,15 @@ export function renderMermaidBlocks(html, mmdc = join(__dirname, '../node_module
 }
 
 // ─── postProcess ──────────────────────────────────────────────────────────────
-// Runs cheerio DOM post-processing:
-//   1. Adds id attributes to h2 elements for TOC anchors
-//   2. Injects copy buttons on <pre><code> blocks (not mermaid fallbacks)
-//   3. Builds and injects auto-TOC after the first .page-hero or h1
-//   4. Rewrites Docsify hash links to relative .html links
 export function postProcess(html) {
   const processed = rewriteLinks(html);
   const $ = cheerio.load(processed, { xmlMode: false });
 
-  // Add ids to h2 headings
   $('h2').each((_, el) => {
     const text = $(el).text().trim();
     if (!$(el).attr('id')) $(el).attr('id', slugifyHeading(text));
   });
 
-  // Copy buttons on code blocks (skip mermaid fallbacks)
   $('pre code').each((_, el) => {
     const $pre = $(el).parent();
     if ($pre.hasClass('mermaid-fallback')) return;
@@ -119,7 +104,6 @@ export function postProcess(html) {
     $pre.after('<button class="copy-btn" aria-label="Copy code">Copy</button>');
   });
 
-  // Auto-TOC from h2 headings
   const headings = $('h2').map((_, el) => $(el).text().trim()).get();
   const toc = buildToc(headings);
   if (toc) {
@@ -271,31 +255,27 @@ li{margin-bottom:.3em}
 }
 
 // ─── getPageJs ────────────────────────────────────────────────────────────────
-// Returns inlined JS for a page. searchIndex: [{slug,title,excerpt}].
-export function getPageJs(searchIndex) {
-  const indexJson = JSON.stringify(searchIndex);
+export function getPageJs() {
   return `
 (function(){
-  // ── {DOMAIN}/{PROTO} replacement via TreeWalker (text nodes only) ──
   var host=window.location.hostname;
-  var domain=host.replace(/^docs\\./,'')||host;
+  var domain=host.replace(/^docs\./,'')||host;
   var proto=window.location.protocol.replace(':','');
   var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null);
   var node;
   while((node=walker.nextNode())){
     var v=node.nodeValue;
     if(v.includes('{DOMAIN}')||v.includes('{PROTO}')){
-      node.nodeValue=v.replace(/\\{DOMAIN\\}/g,domain).replace(/\\{PROTO\\}/g,proto);
+      node.nodeValue=v.replace(/\{DOMAIN\}/g,domain).replace(/\{PROTO\}/g,proto);
     }
   }
   document.querySelectorAll('a[href]').forEach(function(a){
     var h=a.getAttribute('href')||'';
     if(h.includes('{DOMAIN}')||h.includes('{PROTO}')){
-      a.setAttribute('href',h.replace(/\\{DOMAIN\\}/g,domain).replace(/\\{PROTO\\}/g,proto));
+      a.setAttribute('href',h.replace(/\{DOMAIN\}/g,domain).replace(/\{PROTO\}/g,proto));
     }
   });
 
-  // ── Copy buttons ──
   document.querySelectorAll('.copy-btn').forEach(function(btn){
     btn.addEventListener('click',function(){
       var pre=btn.previousElementSibling;
@@ -306,7 +286,6 @@ export function getPageJs(searchIndex) {
     });
   });
 
-  // ── SVG panzoom for Mermaid wrappers ──
   document.querySelectorAll('.mermaid-svg-wrapper svg').forEach(function(svg){
     var dx=0,dy=0,scale=1,dragging=false,ox=0,oy=0;
     function upd(){svg.style.transform='translate('+dx+'px,'+dy+'px) scale('+scale+')';}
@@ -325,8 +304,9 @@ export function getPageJs(searchIndex) {
     svg.addEventListener('pointerup',function(){dragging=false;svg.style.cursor='grab';});
   });
 
-  // ── Ctrl+K search (safe DOM construction — no innerHTML on untrusted data) ──
-  var PAGE_INDEX=${indexJson};
+  var PAGE_INDEX=[];
+  fetch('./search.json').then(function(r){return r.json()}).then(function(j){PAGE_INDEX=j}).catch(console.error);
+
   var overlay=document.getElementById('search-overlay');
   var inp=document.getElementById('search-input');
   var resultsEl=document.getElementById('search-results');
@@ -372,7 +352,6 @@ export function getPageJs(searchIndex) {
 }
 
 // ─── buildSearchIndex ─────────────────────────────────────────────────────────
-// Builds the search index from a list of {slug, title, rawHtml} objects.
 export function buildSearchIndex(pages) {
   return pages.map(({ slug, title, rawHtml }) => {
     const $ = cheerio.load(rawHtml);
@@ -382,17 +361,14 @@ export function buildSearchIndex(pages) {
 }
 
 // ─── wrapPage ─────────────────────────────────────────────────────────────────
-// Assembles a complete standalone HTML page.
-export function wrapPage({ slug, title, content, sidebarHtml, searchIndex }) {
-  const css = getPageCss();
-  const js = getPageJs(searchIndex);
+export function wrapPage({ slug, title, content, sidebarHtml }) {
   return `<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>${escHtml(title)} — Workspace MVP</title>
-<style>${css}</style>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <div id="app">
@@ -413,7 +389,7 @@ export function wrapPage({ slug, title, content, sidebarHtml, searchIndex }) {
     <div id="search-results"></div>
   </div>
 </div>
-<script>${js}</script>
+<script src="./app.js"></script>
 </body>
 </html>`;
 }
@@ -434,6 +410,10 @@ async function main() {
   const FAST = process.argv.includes('--fast');
   if (FAST) console.log('⚡ Fast mode: skipping Mermaid pre-rendering');
 
+  // Asset Pass
+  writeFileSync(join(OUT_DIR, 'style.css'), getPageCss(), 'utf8');
+  writeFileSync(join(OUT_DIR, 'app.js'), getPageJs(), 'utf8');
+
   // First pass: MD → raw HTML, collect titles for search index
   const pages = [];
   for (const file of mdFiles) {
@@ -448,6 +428,7 @@ async function main() {
   }
 
   const searchIndex = buildSearchIndex(pages);
+  writeFileSync(join(OUT_DIR, 'search.json'), JSON.stringify(searchIndex), 'utf8');
 
   // Second pass: Mermaid → SVG, post-process, wrap, write
   for (const { slug, rawHtml, title } of pages) {
@@ -456,7 +437,7 @@ async function main() {
     if (!FAST) html = renderMermaidBlocks(html);
     html = postProcess(html);
     const sidebarHtml = parseSidebar(sidebarMd, slug);
-    const full = wrapPage({ slug, title, content: html, sidebarHtml, searchIndex });
+    const full = wrapPage({ slug, title, content: html, sidebarHtml });
     writeFileSync(join(OUT_DIR, `${slug}.html`), full, 'utf8');
     console.log(' ✓');
   }
@@ -464,7 +445,6 @@ async function main() {
   console.log(`\n✓ Built ${pages.length} pages → k3d/docs-content-built/`);
 }
 
-// Only run when executed directly (not when imported by tests)
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch(err => { console.error(err); process.exit(1); });
 }

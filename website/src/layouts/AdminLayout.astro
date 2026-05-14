@@ -88,9 +88,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: 'Betrieb',
     items: [
       { href: '/admin/live',          label: 'Live',          icon: 'broadcast' },
-      // Brett v2 – nur für Admins sichtbar (Auth-Check in brett.astro)
-      { href: '/admin/brett',         label: 'Brett v2',      icon: 'brett',
-        matches: ['/admin/brett'] },
       { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
       { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
       { href: '/admin/tickets',       label: 'Tickets',       icon: 'tag' },

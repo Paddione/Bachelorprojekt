@@ -1,0 +1,12 @@
+{
+  "pr_number": 730,
+  "title": "ticket AI workflow & admin UX design",
+  "description": "## Summary\n\n- Design spec for ticket system AI-workflow optimization and admin UX improvements\n- Covers: `attention_mode` enum (auto/ai_ready/needs_human), adaptive Quick-Edit popup, filter/saved-view additions\n- No implementation yet — spec only, to be executed separately via dev-flow-execute\n\n## Changes\n\n- `docs/superpowers/specs/2026-05-14-ticket-ai-workflow-design.md` — full design spec\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "docs",
+  "scope": "spec",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T02:52:36Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -56,6 +56,37 @@ export async function initTicketsSchema(): Promise<void> {
 
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS notes TEXT`);
 
+  await pool.query(`
+    ALTER TABLE tickets.tickets
+      ADD COLUMN IF NOT EXISTS attention_mode TEXT NOT NULL DEFAULT 'auto'
+      CHECK (attention_mode IN ('auto', 'ai_ready', 'needs_human'))
+  `);
+
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION tickets.fn_effective_attention_mode(t tickets.tickets)
+    RETURNS text AS $$
+    BEGIN
+      IF t.attention_mode != 'auto' THEN
+        RETURN t.attention_mode;
+      END IF;
+
+      IF t.description IS NOT NULL AND length(t.description) >= 20
+         AND t.component IS NOT NULL
+         AND t.status IN ('triage', 'backlog', 'in_progress')
+         AND t.reporter_email IS NULL THEN
+        RETURN 'ai_ready';
+      ELSE
+        RETURN 'needs_human';
+      END IF;
+    END;
+    $$ LANGUAGE plpgsql STABLE;
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS tickets_attention_mode_idx ON tickets.tickets (attention_mode)
+      WHERE status NOT IN ('done', 'archived')
+  `);
+
   // Test-run linkback columns. Mirrored in `systemtest/db.ts` (the canonical
   // owner — that module also installs FKs to test_runs/test_results /
   // questionnaire_questions once those tables exist). We add the columns here

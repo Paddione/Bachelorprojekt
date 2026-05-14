@@ -1661,24 +1661,46 @@ tasks:
     vars:
       FAST: '{{.FAST | default ""}}'
 
-  docs:deploy:
-    desc: Build and deploy docs ConfigMap to both production environments (korczewski + mentolder)
+  docs:image:build:
+    desc: Build docs Docker image
     deps: [docs:build]
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
+        docker build -t "${IMAGE}:latest" -f scripts/docs.Dockerfile .
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+
+  docs:image:push:
+    desc: Push docs Docker image
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
+        docker push "${IMAGE}:latest"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+
+  docs:deploy:
+    desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:
       - |
         for env in korczewski mentolder; do
           source scripts/env-resolve.sh "$env"
+          IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
+          echo "-> Building/Pushing docs image for ${env}..."
+          task docs:image:build ENV=$env
+          task docs:image:push ENV=$env
+          
           NS="${WORKSPACE_NAMESPACE:-workspace}"
-          echo "-> Updating docs-content ConfigMap on ${env} (ns=${NS})..."
-          kubectl create configmap docs-content \
-            --from-file=k3d/docs-content-built/ \
-            --dry-run=client -o yaml -n "${NS}" \
-            | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
+          echo "-> Updating docs deployment on ${env} (ns=${NS})..."
+          envsubst "\$DOCS_IMAGE" < k3d/docs.yaml | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
           kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"
           kubectl --context "${ENV_CONTEXT}" rollout status deployment/docs -n "${NS}" --timeout=120s
         done
         echo
-        echo "✓ Docs deployed to both clusters"
+        echo "✓ Docs deployed to both clusters via Docker image"
         echo "  https://docs.korczewski.de"
         echo "  https://docs.mentolder.de"
 

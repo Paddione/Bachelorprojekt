@@ -8,6 +8,8 @@
     title: string; description: string | null;
     category: string; scope: string | null; brand: string | null;
     requirement_id: string | null; bugs_fixed: number;
+    ticket_external_id: string | null;
+    ticket_id: string | null;
   };
 
   let { initialRows = [] }: { initialRows?: Row[] } = $props();
@@ -56,6 +58,9 @@
       <span class="meta">
         {#if r.pr_number}<span class="pr">PR #{r.pr_number}</span>{/if}
         {#if r.bugs_fixed > 0}<span class="bug">+{r.bugs_fixed} fix</span>{/if}
+        {#if r.ticket_external_id && r.ticket_id}
+          <a class="ticket" href="/admin/tickets/{r.ticket_id}">{r.ticket_external_id}</a>
+        {/if}
       </span>
     </li>
   {/each}
@@ -146,6 +151,16 @@
   }
   .meta .pr { color: var(--brass); }
   .meta .bug { color: var(--sage, #5bd4d0); }
+  .meta .ticket {
+    color: var(--mute);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--mute);
+    transition: color 150ms ease, border-color 150ms ease;
+  }
+  .meta .ticket:hover {
+    color: var(--brass);
+    border-color: var(--brass);
+  }
 
   .load-more {
     margin-top: 24px;

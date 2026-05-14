@@ -41,6 +41,22 @@ packages:
   - wireguard-tools
 
 write_files:
+  # wg-mesh.conf — written with placeholder values by cloud-init.
+  # The hetzner-node skill substitutes REPLACEME_ values before provisioning
+  # so the correct private key and peer list are embedded here.
+  # Having this file present at boot means wg-quick@wg-mesh can start
+  # immediately and k3s finds the flannel-iface before it tries to bind.
+  - path: /etc/wireguard/wg-mesh.conf
+    permissions: '0600'
+    owner: root:root
+    content: |
+      [Interface]
+      PrivateKey = REPLACEME_WG_PRIVATE_KEY
+      Address = REPLACEME_WG_NODE_IP/24
+      ListenPort = 51820
+
+      REPLACEME_WG_PEERS_BLOCK
+
   - path: /etc/rancher/k3s/config.yaml
     content: |
       tls-san:
@@ -57,6 +73,7 @@ write_files:
       write-kubeconfig-mode: "0644"
       cluster-init: true
       secrets-encryption: true
+      flannel-iface: wg-mesh
 
   - path: /etc/sysctl.d/99-k3s.conf
     content: |
@@ -123,6 +140,11 @@ runcmd:
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
   - systemctl enable --now iscsid
+
+  # WireGuard mesh — must be up before k3s so Flannel can bind flannel-iface=wg-mesh
+  - systemctl enable wg-quick@wg-mesh
+  - systemctl start wg-quick@wg-mesh
+  - until ip addr show wg-mesh 2>/dev/null | grep -q 'inet'; do sleep 2; done
 
   # Install k3s
   - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -

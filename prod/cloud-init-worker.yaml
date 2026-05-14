@@ -41,6 +41,17 @@ packages:
   - wireguard-tools
 
 write_files:
+  - path: /etc/wireguard/wg-mesh.conf
+    permissions: '0600'
+    owner: root:root
+    content: |
+      [Interface]
+      PrivateKey = REPLACEME_WG_PRIVATE_KEY
+      Address = REPLACEME_WG_NODE_IP/24
+      ListenPort = 51820
+
+      REPLACEME_WG_PEERS_BLOCK
+
   - path: /etc/sysctl.d/99-k3s.conf
     content: |
       net.core.somaxconn=32768
@@ -97,6 +108,11 @@ runcmd:
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
   - systemctl enable --now iscsid
+
+  # WireGuard mesh — must be up before k3s agent so Flannel can bind flannel-iface=wg-mesh
+  - systemctl enable wg-quick@wg-mesh
+  - systemctl start wg-quick@wg-mesh
+  - until ip addr show wg-mesh 2>/dev/null | grep -q 'inet'; do sleep 2; done
 
   # Install k3s agent — FILL IN K3S_URL and K3S_TOKEN before provisioning
   - curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable K3S_URL="https://EXISTING_CP_IP:6443" K3S_TOKEN="K3S_TOKEN_HERE" sh -s - agent --flannel-iface=wg-mesh

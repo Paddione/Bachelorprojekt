@@ -1,17 +1,19 @@
 ---
 name: hetzner-node
-description: Use when provisioning a new Hetzner node or resetting an existing one — guides through cloud-config selection, Rescue Mode reinstall, WireGuard mesh wiring, and k3s cluster join.
+description: Use when provisioning a new Hetzner node or resetting an existing one — guides through key management, cloud-config generation, Rescue Mode reinstall, and k3s cluster join. WireGuard mesh is wired automatically so the node reconnects without peer updates on every future reset.
 ---
 
 # hetzner-node
 
-Interactive runbook for provisioning or resetting a Hetzner server into the k3s cluster. Covers all three roles (control-plane-init, control-plane-join, worker) and both modes (new server, Rescue Mode reset).
+Interactive runbook for provisioning or resetting a Hetzner server. Handles all three k3s roles (control-plane-init, control-plane-join, worker) and both modes (new server, Rescue Mode reset).
+
+**Key design:** Each node's WireGuard private key is stored once in `environments/.secrets/<env>.yaml` (sealed). The same key survives every reset — existing mesh peers never need updating on recovery, only on first provisioning.
 
 ---
 
 ## Phase 0 — Input Collection
 
-Ask the user:
+Ask:
 
 ```
 Mode?
@@ -19,70 +21,128 @@ Mode?
   [2] Reset         — existing server via Rescue Mode reinstall
 
 Role?
-  [1] Control-Plane INIT    — starts a brand-new cluster  → prod/cloud-init.yaml
-  [2] Control-Plane JOIN    — adds HA etcd member          → prod/cloud-init-join-cp.yaml
-  [3] Worker / Agent        — pure workload node            → prod/cloud-init-worker.yaml
+  [1] Control-Plane INIT    → prod/cloud-init.yaml
+  [2] Control-Plane JOIN    → prod/cloud-init-join-cp.yaml
+  [3] Worker / Agent        → prod/cloud-init-worker.yaml
 
-Target env? (mentolder / korczewski)
-Node public IP?
-Node hostname? (e.g. gekko-hetzner-5)
+Target env?       mentolder / korczewski
+Node name?        e.g. gekko-hetzner-5
+Node public IP?   e.g. 178.104.x.x
 ```
 
-For roles JOIN and WORKER, also ask:
+For JOIN and WORKER also ask:
 ```
 Existing CP IP (for server URL):
-K3S token (from /var/lib/rancher/k3s/server/node-token on CP-1):
-WireGuard mesh IP for this node (e.g. 10.13.13.5):
+K3S token (from live CP or see below):
 ```
 
-Get the K3S token from the live cluster if needed:
+Get the K3S token from the cluster:
 ```bash
-kubectl exec -n kube-system --context <env> \
-  $(kubectl get pod -n kube-system --context <env> -l component=kube-apiserver -o name | head -1) \
-  -- cat /var/lib/rancher/k3s/server/node-token 2>/dev/null \
-  || ssh patrick@<CP_IP> "sudo cat /var/lib/rancher/k3s/server/node-token"
+ssh -i ~/.ssh/id_ed25519_hetzner patrick@<CP_IP> \
+  "sudo cat /var/lib/rancher/k3s/server/node-token"
+```
+
+### Phase 0b — WireGuard key decision
+
+Check `environments/.secrets/<env>.yaml` for an existing key under `WG_MESH_<SCHEMA_KEY>_PRIVATE_KEY`:
+
+```bash
+grep "WG_MESH_<SCHEMA_KEY>_PRIVATE_KEY" environments/.secrets/<env>.yaml 2>/dev/null
+```
+
+**Key exists (recovery path):**
+- Use the stored private key — no peer updates needed.
+- Derive the public key: `echo "<PRIVATE_KEY>" | wg pubkey`
+- Confirm the derived public key matches what's in `wireguard/wg-mesh-nodes.yaml`.
+
+**Key absent (first provisioning):**
+- Generate a new keypair:
+  ```bash
+  WG_PRIVATE=$(wg genkey)
+  WG_PUBLIC=$(echo "$WG_PRIVATE" | wg pubkey)
+  echo "Private: $WG_PRIVATE"
+  echo "Public:  $WG_PUBLIC"
+  ```
+- Store in `.secrets/<env>.yaml`:
+  ```yaml
+  WG_MESH_<SCHEMA_KEY>_PRIVATE_KEY: "<WG_PRIVATE>"
+  WG_MESH_<SCHEMA_KEY>_PUBLIC_KEY: "<WG_PUBLIC>"
+  ```
+- Re-seal: `task env:seal ENV=<env>`
+- Record the public key and wg_ip in `wireguard/wg-mesh-nodes.yaml` under the correct env block.
+
+Ask for the node's wg-mesh IP if not already set in `wireguard/wg-mesh-nodes.yaml`:
+```
+wg-mesh IP for this node?   (next free in subnet, e.g. 10.13.13.5)
 ```
 
 ---
 
-## Phase 1 — Prepare Cloud-Config
+## Phase 1 — Generate Cloud-Config
 
-Select the template file based on role:
+### Step 1: Build the peer list
 
-| Role | File |
-|------|------|
-| CP INIT | `prod/cloud-init.yaml` |
-| CP JOIN | `prod/cloud-init-join-cp.yaml` |
-| Worker | `prod/cloud-init-worker.yaml` |
+Read `wireguard/wg-mesh-nodes.yaml` for the target env. Build a WireGuard `[Peer]` block for every node **except the one being provisioned**. Include home workers (no endpoint = NAT, use PersistentKeepalive only).
 
-For JOIN and WORKER, substitute the placeholders in the template:
-```bash
-sed \
-  -e "s|EXISTING_CP_IP|<CP_IP>|g" \
-  -e "s|K3S_TOKEN_HERE|<TOKEN>|g" \
-  -e "s|PROD_DOMAIN|<PROD_DOMAIN>|g" \
-  prod/cloud-init-join-cp.yaml > /tmp/cloud-init-ready.yaml
+```
+[Peer]
+# <node_name>
+PublicKey = <public_key>
+Endpoint = <endpoint>          # omit line if endpoint is ""
+AllowedIPs = <wg_ip>/32
+PersistentKeepalive = 25
 ```
 
-Show the final config and ask: "Looks good to apply?"
+For nodes whose `public_key` is still `""` in the registry: warn the user and skip that peer entry (it can be added live after both nodes are up via `wg set`).
+
+### Step 2: Substitute placeholders into the cloud-init template
+
+```bash
+TEMPLATE="prod/cloud-init.yaml"   # or join-cp / worker variant
+WG_PEERS_BLOCK="<the peer block built above>"
+
+# Use sed for single-line replacements; Python for the multi-line peer block
+python3 - <<'EOF'
+import sys, re
+
+template  = open("$TEMPLATE").read()
+private   = "$WG_PRIVATE"
+node_ip   = "$WG_NODE_IP"
+peers     = """$WG_PEERS_BLOCK"""
+
+out = template \
+    .replace("REPLACEME_WG_PRIVATE_KEY", private) \
+    .replace("REPLACEME_WG_NODE_IP",     node_ip) \
+    .replace("REPLACEME_WG_PEERS_BLOCK", peers)
+
+# For join-cp and worker: also replace k3s server/token placeholders
+out = out \
+    .replace("EXISTING_CP_IP",  "$CP_IP") \
+    .replace("K3S_TOKEN_HERE",  "$K3S_TOKEN") \
+    .replace("PROD_DOMAIN",     "$PROD_DOMAIN")
+
+open("/tmp/cloud-init-ready.yaml", "w").write(out)
+print("Written to /tmp/cloud-init-ready.yaml")
+EOF
+```
+
+Show the generated file to the user for confirmation before proceeding.
 
 ---
 
 ## Phase 2a — New Server
 
-Paste the generated cloud-config as **User data** when creating the server in the Hetzner Cloud Console, or use the CLI:
-
 ```bash
 hcloud server create \
   --name <hostname> \
-  --type <type>       \  # e.g. cx22, cx32, ccx23
+  --type <type>        \   # cx22 / cx32 / ccx23 / …
   --image ubuntu-24.04 \
   --location <fsn1|hel1|nbg1> \
-  --ssh-key <your-hcloud-key-name> \
+  --ssh-key <hcloud-key-name> \
   --user-data-from-file /tmp/cloud-init-ready.yaml
 ```
 
-Skip to Phase 3 (wait for SSH).
+Skip to Phase 3.
 
 ---
 
@@ -90,24 +150,18 @@ Skip to Phase 3 (wait for SSH).
 
 ### Step 1: Enable Rescue Mode
 
-In Hetzner Cloud Console: Server → Rescue → Enable rescue & root password → note the root password.
+Hetzner Console → Server → Rescue → Enable (linux64) → note root password.
 Or via CLI:
 ```bash
 hcloud server enable-rescue --type linux64 <server-id>
 hcloud server reset <server-id>
 ```
 
-### Step 2: SSH into rescue
+### Step 2: SSH into rescue + reinstall
 
 ```bash
 ssh -o StrictHostKeyChecking=no root@<NODE_IP>
-# Use the rescue root password shown in Hetzner console
-```
-
-### Step 3: Reinstall OS
-
-```bash
-# Inside rescue shell — installs Ubuntu 24.04 LTS
+# Inside rescue shell:
 cat > /tmp/installimage.conf <<'EOF'
 DRIVE1 /dev/sda
 BOOTLOADER grub
@@ -120,15 +174,14 @@ EOF
 installimage -a -c /tmp/installimage.conf
 ```
 
-Wait for installimage to finish (~3-5 min), then:
-
-### Step 4: Inject cloud-init and reboot
+### Step 3: Inject cloud-init + reboot
 
 ```bash
-# Copy cloud-init config to the new install
-mkdir -p /mnt/root/var/lib/cloud/instance
-cp /tmp/cloud-init-ready.yaml /mnt/root/etc/cloud/cloud.cfg.d/99_custom.cfg
+# From your local machine — copy cloud-init into the reinstalled OS
+scp -o StrictHostKeyChecking=no /tmp/cloud-init-ready.yaml \
+  root@<NODE_IP>:/mnt/etc/cloud/cloud.cfg.d/99_custom.cfg
 
+# Back in the rescue shell:
 reboot
 ```
 
@@ -136,148 +189,101 @@ reboot
 
 ## Phase 3 — Wait for SSH
 
-Poll until the node accepts SSH connections (cloud-init takes 3-8 min):
-
 ```bash
-NODE_IP=<NODE_IP>
 echo "Waiting for SSH on $NODE_IP..."
 until ssh -o ConnectTimeout=3 -o StrictHostKeyChecking=no \
   -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP true 2>/dev/null; do
   printf "."; sleep 10
 done
 echo " SSH ready!"
+
+# Verify cloud-init completed cleanly
+ssh -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP \
+  "sudo cloud-init status --wait && sudo cloud-init status"
 ```
 
-Verify cloud-init completed without errors:
+Check wg-mesh came up before k3s:
 ```bash
 ssh -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP \
-  "sudo cloud-init status --wait && sudo journalctl -u cloud-final --no-pager | tail -5"
+  "ip addr show wg-mesh && sudo wg show wg-mesh"
+```
+
+If wg-mesh shows no peers or is not up:
+```bash
+# Troubleshoot — check journald
+ssh -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP \
+  "sudo journalctl -u wg-quick@wg-mesh -n 30 --no-pager"
 ```
 
 ---
 
-## Phase 4 — WireGuard Mesh
+## Phase 4 — WireGuard Peer Sync
 
-The wg-mesh connects all cluster nodes (Hetzner CPs + home workers). Each node needs a unique key pair and peer entries for every other node.
-
-### Step 1: Generate key pair for the new node
-
+**Recovery (same key reused):** wg-mesh reconnects automatically to all existing peers the moment it comes up. Skip peer update. Verify:
 ```bash
-NODE_PRIVATE=$(wg genkey)
-NODE_PUBLIC=$(echo "$NODE_PRIVATE" | wg pubkey)
-echo "Private: $NODE_PRIVATE"
-echo "Public:  $NODE_PUBLIC"
+ssh -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP \
+  "sudo wg show wg-mesh | grep 'latest handshake'"
 ```
 
-Record the public key — existing nodes need it as a new `[Peer]` entry.
-
-### Step 2: Build wg0.conf for the new node
-
-Use `wireguard/wg0-hetzner.conf.tpl` as a base and add `[Peer]` sections for every existing cluster node. Example for a mentolder node:
-
-```ini
-[Interface]
-PrivateKey = <NODE_PRIVATE>
-Address = <NODE_WG_IP>/24     # e.g. 10.13.13.5/24
-ListenPort = 51820
-
-# ── Existing peers ─────────────────────────────────────────────
-[Peer]
-# gekko-hetzner-2
-PublicKey = <GEKKO2_PUBLIC_KEY>
-Endpoint = 178.104.169.206:51820
-AllowedIPs = 10.13.13.1/32
-PersistentKeepalive = 25
-
-[Peer]
-# gekko-hetzner-3
-PublicKey = <GEKKO3_PUBLIC_KEY>
-Endpoint = 46.225.125.59:51820
-AllowedIPs = 10.13.13.3/32
-PersistentKeepalive = 25
-
-[Peer]
-# gekko-hetzner-4
-PublicKey = <GEKKO4_PUBLIC_KEY>
-Endpoint = 178.104.159.79:51820
-AllowedIPs = 10.13.13.4/32
-PersistentKeepalive = 25
-```
-
-Get existing public keys from live nodes if needed:
-```bash
-ssh -i ~/.ssh/id_ed25519_hetzner patrick@<EXISTING_IP> \
-  "sudo wg show wg-mesh public-key 2>/dev/null || sudo wg show wg0 public-key"
-```
-
-### Step 3: Deploy wg0.conf and bring up the interface
+**First provisioning (new key):** Existing peers must be told the new public key.
 
 ```bash
-NODE_IP=<NODE_IP>
-scp -i ~/.ssh/id_ed25519_hetzner /tmp/wg0-new-node.conf patrick@$NODE_IP:/tmp/wg0.conf
-ssh -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP <<'ENDSSH'
-  sudo mkdir -p /etc/wireguard
-  sudo mv /tmp/wg0.conf /etc/wireguard/wg-mesh.conf
-  sudo chmod 600 /etc/wireguard/wg-mesh.conf
-  sudo systemctl enable --now wg-quick@wg-mesh
-  sudo wg show wg-mesh
-ENDSSH
-```
+NEW_PUBLIC="<WG_PUBLIC from Phase 0b>"
+NEW_WG_IP="<WG_NODE_IP>"
+NEW_ENDPOINT="<NODE_PUBLIC_IP>:51820"
 
-### Step 4: Add new node as peer on all existing nodes
+# All existing Hetzner nodes in the cluster
+for PEER_IP in <CP1_IP> <CP2_IP> <CP3_IP>; do
+  echo "Updating peer on $PEER_IP..."
+  ssh -i ~/.ssh/id_ed25519_hetzner patrick@$PEER_IP \
+    "sudo wg set wg-mesh peer $NEW_PUBLIC \
+       allowed-ips ${NEW_WG_IP}/32 \
+       endpoint $NEW_ENDPOINT \
+       persistent-keepalive 25"
 
-For each existing cluster node, add a `[Peer]` block at runtime (persists across restarts):
-```bash
-for EXISTING_IP in 178.104.169.206 46.225.125.59 178.104.159.79; do
-  ssh -i ~/.ssh/id_ed25519_hetzner patrick@$EXISTING_IP \
-    "sudo wg set wg-mesh peer $NODE_PUBLIC allowed-ips <NODE_WG_IP>/32 endpoint $NODE_IP:51820 persistent-keepalive 25"
-done
-```
-
-To make the peer permanent on existing nodes, append to their `/etc/wireguard/wg-mesh.conf`:
-```bash
-for EXISTING_IP in 178.104.169.206 46.225.125.59 178.104.159.79; do
-  ssh -i ~/.ssh/id_ed25519_hetzner patrick@$EXISTING_IP \
-    "echo -e '\n[Peer]\n# <hostname>\nPublicKey = $NODE_PUBLIC\nEndpoint = $NODE_IP:51820\nAllowedIPs = <NODE_WG_IP>/32\nPersistentKeepalive = 25' \
+  # Make permanent in /etc/wireguard/wg-mesh.conf
+  ssh -i ~/.ssh/id_ed25519_hetzner patrick@$PEER_IP \
+    "printf '\n[Peer]\n# <NODE_NAME>\nPublicKey = %s\nEndpoint = %s\nAllowedIPs = %s/32\nPersistentKeepalive = 25\n' \
+     '$NEW_PUBLIC' '$NEW_ENDPOINT' '$NEW_WG_IP' \
      | sudo tee -a /etc/wireguard/wg-mesh.conf > /dev/null"
 done
 ```
 
-Verify mesh connectivity:
+Update `wireguard/wg-mesh-nodes.yaml` with the new node's public key and commit:
 ```bash
-ssh -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP \
-  "ping -c2 10.13.13.1 && ping -c2 10.13.13.3"
+# Edit wireguard/wg-mesh-nodes.yaml — set public_key for this node
+git add wireguard/wg-mesh-nodes.yaml environments/sealed-secrets/<env>.yaml
+git commit -m "chore(infra): add wg-mesh key for <node-name>"
+git push
 ```
 
 ---
 
 ## Phase 5 — k3s Join Verification (JOIN / WORKER roles)
 
-Check that the node appears in the cluster:
 ```bash
+# Node should appear within ~60s after k3s starts
 kubectl get nodes --context <env> -o wide
-# New node should appear within ~60s after k3s starts
-```
 
-If it doesn't appear after 2 minutes, check k3s logs on the new node:
-```bash
+# If not after 2 min, check logs:
 ssh -i ~/.ssh/id_ed25519_hetzner patrick@$NODE_IP \
   "sudo journalctl -u k3s -u k3s-agent -n 50 --no-pager"
 ```
 
-### Label the node
-
+Label the node:
 ```bash
 NODE_NAME=<hostname>
-# For control-plane join nodes:
-kubectl label node $NODE_NAME node-role.kubernetes.io/control-plane="" --context <env>
-kubectl label node $NODE_NAME node-role.kubernetes.io/etcd="" --context <env>
 
-# For worker nodes:
-kubectl label node $NODE_NAME node-role.kubernetes.io/worker="" --context <env>
+# Control-plane join:
+kubectl label node $NODE_NAME \
+  node-role.kubernetes.io/control-plane="" \
+  node-role.kubernetes.io/etcd="" \
+  --context <env>
 
-# Add to the standard Hetzner affinity label set used in pod scheduling:
-kubectl label node $NODE_NAME hetzner-node=true --context <env>
+# Worker:
+kubectl label node $NODE_NAME \
+  node-role.kubernetes.io/worker="" \
+  --context <env>
 ```
 
 ---
@@ -285,39 +291,35 @@ kubectl label node $NODE_NAME hetzner-node=true --context <env>
 ## Phase 6 — Post-Provisioning Checklist
 
 ```bash
-# Overall cluster health
 task health
-
-# Verify workspace status on the target env
 task workspace:status ENV=<env>
-
-# Update Taskfile HA_NODES if it's a permanent mentolder node
-# (Taskfile.yml → ha:import-image task → HA_NODES variable)
 ```
 
-Update `scripts/setup-ha-cluster.sh` if the new node is a permanent cluster member: add `NODE_N_NAME`, `NODE_N_IP` and include it in `ALL_IPS`/`ALL_NAMES`.
-
-Also update `wireguard/wg0-hetzner.conf.tpl` with the new peer entry so future provisioning picks it up automatically.
+If this is a permanent new node (not replacing an existing one):
+- Add it to `scripts/setup-ha-cluster.sh` (`ALL_IPS`, `ALL_NAMES`).
+- Add it to `Taskfile.yml → ha:import-image → HA_NODES`.
+- Add a home worker `wg-mesh.conf` peer entry for each home-LAN node if applicable.
 
 ---
 
 ## Quick Reference
 
-| File | Role |
-|------|------|
-| `prod/cloud-init.yaml` | CP INIT (new cluster) |
-| `prod/cloud-init-join-cp.yaml` | CP JOIN (existing cluster) |
+| File | Purpose |
+|------|---------|
+| `prod/cloud-init.yaml` | CP INIT — starts new cluster |
+| `prod/cloud-init-join-cp.yaml` | CP JOIN — joins existing cluster |
 | `prod/cloud-init-worker.yaml` | Worker/Agent |
-| `wireguard/wg0-hetzner.conf.tpl` | WireGuard template base |
-| `scripts/setup-ha-cluster.sh` | Multi-node HA bootstrap script |
-| `Taskfile.yml → ha:import-image` | Import Docker images to all HA nodes |
+| `wireguard/wg-mesh-nodes.yaml` | Node registry: IPs + public keys (committed) |
+| `environments/.secrets/<env>.yaml` | Private keys (sealed, gitignored) |
+| `environments/schema.yaml` | WG_MESH_* key declarations |
 
 ## Common Blockers
 
 | Symptom | Fix |
 |---------|-----|
-| SSH refused after cloud-init | cloud-init still running — wait and retry Phase 3 poll |
-| k3s agent fails with `unable to connect to server` | WireGuard not up yet, or wrong CP IP/token in cloud-config |
-| Node stuck `NotReady` | Missing `flannel-iface: wg-mesh` — wg-mesh not peering |
-| `wg set` fails with `Operation not supported` | WireGuard kernel module not loaded — `sudo modprobe wireguard` |
-| `installimage` not found in rescue | Wrong rescue image type — select `linux64` in Hetzner console |
+| `wg-mesh` not up after cloud-init | `journalctl -u wg-quick@wg-mesh` — check for malformed config or missing private key |
+| k3s `NotReady`, Flannel errors | `wg-mesh` came up too slowly — confirm `ip addr show wg-mesh` exists, then restart k3s |
+| Handshakes not forming | Public key mismatch — re-derive: `echo "<PRIVATE_KEY>" \| wg pubkey` and compare |
+| `installimage` not found | Wrong Rescue type — select `linux64` in Hetzner console |
+| `wg set` fails on existing peers | `sudo modprobe wireguard` if module not loaded |
+| Node appears in cluster but pods `Pending` | wg-mesh peer missing for a home-LAN worker — add peer entry manually |

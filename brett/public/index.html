@@ -50,7 +50,7 @@
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
     </div>
   </div>
-  <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = neue Figur</div>
+  <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = Figur teleportieren / neue Figur</div>
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====
@@ -588,15 +588,28 @@
 
   // ----- Walking -----
   const WALK_SPEED = 2.0;          // units/s
+  const SPRINT_MULT = 3.0;         // Shift-sprint multiplier
   const TURN_RATE  = 8.0;          // rad/s
   const ARRIVE_EPS = 0.3;          // distance threshold
-  const wasdKeys = { w:false, a:false, s:false, d:false };
+  const wasdKeys = { w:false, a:false, s:false, d:false, shift:false };
 
   window.addEventListener('keydown', (e) => {
-    if (e.key.length === 1 && wasdKeys.hasOwnProperty(e.key.toLowerCase())) wasdKeys[e.key.toLowerCase()] = true;
+    if (e.key === 'Shift') { wasdKeys.shift = true; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = true;
+    if (e.key === 'ArrowUp')    { wasdKeys.w = true; e.preventDefault(); }
+    if (e.key === 'ArrowDown')  { wasdKeys.s = true; e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { wasdKeys.a = true; e.preventDefault(); }
+    if (e.key === 'ArrowRight') { wasdKeys.d = true; e.preventDefault(); }
   });
   window.addEventListener('keyup', (e) => {
-    if (e.key.length === 1 && wasdKeys.hasOwnProperty(e.key.toLowerCase())) wasdKeys[e.key.toLowerCase()] = false;
+    if (e.key === 'Shift') { wasdKeys.shift = false; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = false;
+    if (e.key === 'ArrowUp')    wasdKeys.w = false;
+    if (e.key === 'ArrowDown')  wasdKeys.s = false;
+    if (e.key === 'ArrowLeft')  wasdKeys.a = false;
+    if (e.key === 'ArrowRight') wasdKeys.d = false;
   });
 
   function tickWalkAnimation(fig, t) {
@@ -626,8 +639,9 @@
           dx /= mag; dz /= mag;
           fig.walkTarget = null;
           fig.walking = true;
-          fig.root.position.x += dx * WALK_SPEED * dt;
-          fig.root.position.z += dz * WALK_SPEED * dt;
+          const speed = WALK_SPEED * (wasdKeys.shift ? SPRINT_MULT : 1);
+          fig.root.position.x += dx * speed * dt;
+          fig.root.position.z += dz * speed * dt;
           const want = Math.atan2(dx, dz);
           const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
           fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
@@ -668,7 +682,7 @@
     if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
     if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur'; return; }
     if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · ESC = stop'; return; }
-    pillEl.textContent = '🚶 WALK · WASD / Klick Boden = Ziel · Tab = nächste';
+    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Klick Boden = Ziel · Tab = nächste';
   }
 
   // ----- WebSocket sync -----

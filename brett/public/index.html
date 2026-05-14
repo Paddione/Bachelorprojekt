@@ -335,8 +335,9 @@
     background: rgba(200,169,110,0.18); border: 1px solid var(--bc-brass);
     color: var(--bc-brass); padding: 6px 14px; border-radius: 18px;
     font-family: monospace; font-size: 12px;
-    display: flex; align-items: center; gap: 10px; z-index: 100;
+    display: none; align-items: center; gap: 10px; z-index: 100;
   }
+  #bc-fly-banner:not([hidden]) { display: flex; }
   #bc-fly-banner button { background: transparent; border: 1px solid currentColor; color: currentColor; padding: 2px 8px; border-radius: 8px; cursor: pointer; font-size: 11px; }
 
   /* ── Recording indicator ───────────────────────────── */
@@ -346,9 +347,10 @@
     padding: 4px 10px; border-radius: 4px;
     font-family: monospace; font-size: 11px;
     color: var(--bc-text);
-    display: flex; align-items: center; gap: 8px;
+    display: none; align-items: center; gap: 8px;
     z-index: 100;
   }
+  #bc-rec-indicator:not([hidden]) { display: flex; }
   .bc-rec-dot {
     width: 10px; height: 10px; border-radius: 50%;
     background: var(--bc-danger);
@@ -362,9 +364,10 @@
   /* ── Help overlay ──────────────────────────────────── */
   #bc-help-overlay {
     position: fixed; inset: 0; background: rgba(7,16,31,0.85);
-    display: flex; align-items: center; justify-content: center;
+    display: none; align-items: center; justify-content: center;
     z-index: 2000; padding: 20px;
   }
+  #bc-help-overlay:not([hidden]) { display: flex; }
   .bc-help-card {
     background: var(--bc-panel); border: 1px solid var(--bc-brass); border-radius: 12px;
     max-width: 720px; width: 100%; max-height: 80vh; overflow: auto;

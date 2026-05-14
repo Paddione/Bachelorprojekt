@@ -81,6 +81,22 @@ export async function writeRowToDb(row, pgClient) {
     }
   }
 
+  // 3. T-###### ticket references → ticket_links (kind='implements')
+  for (const extId of (row.ticket_refs ?? [])) {
+    const t = await pgClient.query(
+      `SELECT id FROM tickets.tickets WHERE external_id = $1`,
+      [extId]);
+    if (t.rowCount > 0) {
+      await pgClient.query(
+        `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+         VALUES ($1, $1, 'implements', $2)
+         ON CONFLICT (from_id, to_id, kind) DO NOTHING`,
+        [t.rows[0].id, row.pr_number]);
+    } else {
+      console.log(`skip ticket link ${extId}: ticket not found`);
+    }
+  }
+
   // Map external_id (BR-...) -> ticket UUID, transition through tickets.tickets.
   // We use raw SQL because track-pr.mjs runs as a Node script outside the website
   // process (so we can't import the TypeScript transitionTicket directly).

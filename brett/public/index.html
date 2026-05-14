@@ -399,6 +399,13 @@
     }
   }
 
+  const stiffSlider = document.getElementById('stiffness');
+  stiffSlider.addEventListener('input', () => {
+    STATE.stiffness = parseFloat(stiffSlider.value);
+    sendStiffness(STATE.stiffness);
+  });
+  function sendStiffness(/* value */) { /* placeholder until Task 10 */ }
+
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();

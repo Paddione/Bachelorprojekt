@@ -82,6 +82,8 @@ export async function writeRowToDb(row, pgClient) {
   }
 
   // 3. T-###### ticket references → ticket_links (kind='implements')
+  // from_id = to_id intentionally (self-referential): the PR "implements" the ticket,
+  // not a link between two different tickets. Same pattern as the requirement_id block above.
   for (const extId of (row.ticket_refs ?? [])) {
     const t = await pgClient.query(
       `SELECT id FROM tickets.tickets WHERE external_id = $1`,

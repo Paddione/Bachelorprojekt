@@ -1,0 +1,12 @@
+{
+  "pr_number": 740,
+  "title": "classify PRs into stack-evolution events",
+  "description": "## Summary\n- Adds `bachelorprojekt.software_events` table, `v_software_stack` and `v_software_history` views tracking which services were added/removed/changed per PR\n- LLM classifier module (`software-history-classifier.ts`) + CLI script (`scripts/software-history-classify.mts`) with `--dry-run`, `--retry-failed`, `--limit=N` flags; `task software-history:classify` + `task software-history:psql`\n- Admin UI at `/admin/software-history`: stack cards grouped by area, filterable history table, inline edit modal; backed by `/api/admin/software-history` GET + PATCH routes\n\n## Test plan\n- [x] task test:all (test 12 is pre-existing `:latest` warning on docs image, unrelated to this feature)\n- [x] Schema applied to both prod clusters (mentolder + korczewski) — fixture test passed on korczewski\n- [x] Dry-run smoke: DB connectivity confirmed on mentolder (`--dry-run` flag)\n- [x] BATS unit tests for classifier CLI with mocked Anthropic server\n\n## Post-merge ops (not blocking)\n- Full backfill: `task software-history:classify` against mentolder (~730 PRs, 2–4 h with GPU)\n- Copy events to korczewski via `pg_dump | psql` pipe\n\nCloses T000364\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "software-history",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T10:17:45Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

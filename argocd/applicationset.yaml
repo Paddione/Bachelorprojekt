@@ -119,3 +119,7 @@ spec:
           jsonPointers:
             - /spec/minReplicas
             - /spec/maxReplicas
+        - group: apps
+          kind: StatefulSet
+          jsonPointers:
+            - /status/terminatingReplicas

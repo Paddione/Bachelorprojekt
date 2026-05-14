@@ -190,17 +190,13 @@ NORMALIZATION_FINDINGS = """
 
 | # | Severity | Table(s) | Issue | Recommendation |
 |---|----------|----------|-------|----------------|
-| 1 | **HIGH** | 20+ tables | `brand text` column with no FK — multi-tenant discriminator stored as raw text in every table (billing_invoices, tickets.tickets, bug_tickets, eur_bookings, assets, …) | Add a `brands` table; add `brand_id FK` or at minimum a CHECK constraint against known values |
 | 2 | **HIGH** | `billing_invoices` | `paid_at`, `paid_amount` duplicated — payment state already tracked per-row in `billing_invoice_payments` | Remove `paid_at`/`paid_amount` from `billing_invoices`; derive via view from `billing_invoice_payments` |
 | 3 | **MEDIUM** | `billing_invoices` | `dunning_level`, `last_dunning_at` duplicated — dunning state already in `billing_invoice_dunnings` | Remove denormalized dunning fields; derive `MAX(level)` from `billing_invoice_dunnings` |
 | 4 | **MEDIUM** | `billing_invoices` | Five large blobs inline: `zugferd_xml`, `factur_x_xml`, `xrechnung_xml`, `pdf_blob`, `pdf_a3_blob` — bloats every row scan | Extract to `billing_invoice_documents(invoice_id, format text, blob bytea)` |
 | 5 | **HIGH** | `meetings`, `questionnaire_assignments`, `time_entries` | `project_id uuid FK` declared but target `projects` table does not exist anywhere in the DB | Create a `projects` table, or drop the dangling FK constraint |
-| 6 | **MEDIUM** | `questionnaire_assignment_scores` | `dimension_name text` denormalized — the name is already available via `questionnaire_dimensions.name` through the existing FK | Remove the column; JOIN at read time |
 | 7 | **MEDIUM** | `billing_customers` vs `customers` | Two customer tables with no FK link — a CRM customer who becomes a billing customer is not connected | Add `customers_id uuid FK → customers.id` to `billing_customers`, nullable for pure-billing entities |
 | 8 | **HIGH** | `bachelorprojekt.features` vs `tickets.pr_events` | Near-duplicate tables — both store GitHub PR merge events with almost identical columns (pr_number, title, description, category, scope, brand, merged_at, merged_by, status) | Designate one as canonical source and drop or make the other a view |
-| 9 | **LOW** | `chat_messages` | `sender_name text` stored per-message — display name drift possible over time | Remove; JOIN to `customers.name` at read time, or document as intentional historical snapshot |
 | 10 | **MEDIUM** | `inbox_items` | `reference_table text` + `reference_id text` — polymorphic FK not enforced by the DB | Replace with typed FK columns per entity type, or add a CHECK on `reference_table` |
-| 11 | **LOW** | `billing_customers`, `billing_suppliers` | `land_iso` is `text` in billing_customers but `character(2)` in billing_suppliers — same concept, inconsistent types | Normalize to `character(2)` on both |
 | 12 | **MEDIUM** | `public.bug_tickets` vs `tickets.tickets` | Same concept (ticket), separate tables, incompatible PK types (`text` vs `uuid`), no cross-reference | Migrate `bug_tickets` into `tickets.tickets` with `type = 'bug'`, or add a `tickets_id uuid FK` |
 | 13 | **LOW** | `meeting_reminders` | No FK to `meetings`; `meeting_start` is a bare timestamp copy — can drift | Add `meeting_id uuid FK → meetings.id` |
 | 14 | **LOW** | `ticket_activity.actor_id`, `ticket_attachments.uploaded_by`, `messages.sender_id` | Polymorphic UUID fields pointing at users with no FK — referential integrity not enforced | Add a `users` view or table as FK target, or document the convention |

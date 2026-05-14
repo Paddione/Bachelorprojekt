@@ -1,0 +1,12 @@
+{
+  "pr_number": 743,
+  "title": "ticket attachments + brainstorm tunnel verify in dev-flow",
+  "description": "## Summary\n- `dev-flow-plan` now asks for supporting files (`.md/.html/.jpg/.png/.mp3/.mp4`) before brainstorming and attaches them to the ticket on creation (feature + fix paths).\n- `dev-flow-plan` Schritt 2 now verifies the brainstorm tunnel is actually reachable (authorized_keys check + HTTP probe with 15s timeout) before telling the operator to open the URL — root cause of the recent \"couldn't access the tunnel\" hang.\n- `dev-flow-execute` Failure-Handling hints to attach failure screenshots/logs to the ticket.\n- New `scripts/ticket-attach.sh` helper: base64-encodes files into `tickets.ticket_attachments.data_url` (10 MB inline cap, override via `MAX_INLINE_MB`).\n\n## Test plan\n- [x] `bash -n scripts/ticket-attach.sh`\n- [x] `task brainstorm:status` shows pod Running + ingress healthy\n- [ ] Next `dev-flow-plan` run exercises the new asset-collection + tunnel verify steps end-to-end\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "skills",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T11:49:49Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

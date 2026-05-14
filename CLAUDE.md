@@ -119,7 +119,7 @@ task gemini:setup -- cluster|business     # Generate Gemini CLI settings.json (p
 
 ### Docs
 ```bash
-task docs:deploy                # Deploy docs ConfigMap to both prod clusters (mentolder + korczewski)
+task docs:deploy                # Build docs image (once), push, rollout on both prod clusters
 ```
 
 ### Claude Code MCP Servers
@@ -436,15 +436,29 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.
 - **Never remove the `$patch: delete` block in `prod/kustomization.yaml`.** Its job is to strip the dev placeholder from `k3d/secrets.yaml` so SealedSecrets-managed secrets survive each deploy. Removing it overwrites production secrets with dev values.
 - **Collabora and CoTURN are NOT in the base kustomization.** `k3d/office-stack` and `k3d/coturn-stack` deploy via separate ArgoCD Applications (`argocd/applicationset-office.yaml`, `argocd/applicationset-coturn.yaml`) and `task workspace:office:deploy`. A full bring-up order is `workspace:deploy` → `workspace:office:deploy` → CoTURN apply.
-- **Website image `:latest` is intentional** (`k3d/website.yaml`). CI warns about `:latest` elsewhere; do not "fix" the website tag to a digest — it is rebuilt and re-imported per deploy.
+- **Website, Brett, and Docs images use `:latest` intentionally** (`k3d/website.yaml`, `k3d/brett.yaml`, `k3d/docs.yaml`). CI warns about `:latest` for all three; do not "fix" these tags to a digest — each image is rebuilt and re-imported/pushed on every release (`task feature:brett`, `task docs:deploy`, `task feature:website`).
 
 ### Scripts & env
 - **`scripts/env-resolve.sh` must be sourced, never executed.** It uses `return 1 2>/dev/null || exit 1`, so `bash scripts/env-resolve.sh` exits the parent shell and subsequent task commands never run. Always `source scripts/env-resolve.sh "$ENV"`.
 - **`envsubst` variable lists are hardcoded per task in `Taskfile.yml` (not `Taskfile.yaml`).** If you add a new `${VAR}` reference to a manifest, also add it to the `envsubst "\$VAR1 \$VAR2 ..."` list in every task that builds that manifest, or the placeholder stays literal and kubectl apply fails with an invalid manifest. Key locations: dev deploy (line ~1117, vars: `PROD_DOMAIN BRAND_NAME CONTACT_EMAIL BRAND_ID`), prod deploy (line ~1145, dynamic `ENVSUBST_VARS` build — append there), `mcp:deploy` (line ~1350), `workspace:office:deploy` (line ~510).
 - **`env:generate ENV=<target>` must run before `env:seal` and before deploying prod.** `talk-hpb-setup.sh` aborts on placeholder `MANAGED_EXTERNALLY` values if signaling/turn secrets were never generated.
 
+### Cluster reset / fresh cluster bring-up order
+After any cluster reset (including replacing a Sealed Secrets controller keypair), the mandatory order is:
+
+1. `task sealed-secrets:install ENV=<env>` — controller must exist before any SealedSecret is applied
+2. `task env:fetch-cert ENV=<env>` — refreshes the sealing cert from the new controller
+3. `task env:seal ENV=<env>` — re-encrypts plaintext secrets with the new cert
+4. `task cert:install ENV=<env>` — installs cert-manager CRDs; must precede `workspace:deploy`
+5. `task cert:secret -- <ipv64-key> ENV=<env>` — stores the ACME DNS-01 key; creates it in both `cert-manager` AND `$WORKSPACE_NAMESPACE`
+6. `task workspace:deploy ENV=<env>` — applies SealedSecrets + kustomize overlay
+
+**SealedSecrets keypair rotation is expected on every cluster reset.** Old sealed files won't decrypt. Always run steps 2–3 after a reset.
+
+**`knowledge-secrets` conflict:** if the overlay contains a `secretGenerator`-managed Secret with the same name as a SealedSecret, the controller refuses to adopt it. Delete the plain Secret first (`kubectl delete secret knowledge-secrets -n $WORKSPACE_NS`) then re-apply.
+
 ### Operational
-- **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `k3d/docs-content/`, run `task docs:deploy` (it updates the ConfigMap and rolls the `docs` Deployment on both clusters). Applying the ConfigMap alone leaves the old content served.
+- **Docs are served via Docker image, not ConfigMap.** `k3d/docs.yaml` runs `ghcr.io/paddione/workspace-docs:latest`; content is baked in at build time. After changing `k3d/docs-content/`, run `task docs:deploy` — it builds the image once, pushes, then rolls both clusters. `docs:configmap:apply` applies a ConfigMap that is not mounted in the running pods — it has no visible effect.
 - **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.
 - **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
 

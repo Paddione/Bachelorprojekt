@@ -93,5 +93,7 @@ def parse_plan(file_path: str) -> dict:
         'pr_number': fm.get('pr_number'),
         'file_path': str(path),
         'sections': sections,
+        'brainstorm_choice': fm.get('brainstorm_choice') or None,
+        'brainstorm_session': fm.get('brainstorm_session') or None,
     }
 

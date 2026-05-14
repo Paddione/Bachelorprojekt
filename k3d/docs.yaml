@@ -14,9 +14,11 @@ spec:
       labels:
         app: docs
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: docs
-          image: ghcr.io/paddione/${DOCS_IMAGE}:latest
+          image: ghcr.io/paddione/workspace-docs:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8787

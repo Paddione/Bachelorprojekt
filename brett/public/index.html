@@ -1,3571 +1,1005 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Systemisches Brett</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --bc-panel: #16213e;
-    --bc-bg: #1a1a2e;
-    --bc-border: #0f3460;
-    --bc-text: #e0e0e0;
-    --bc-muted: #aab5cf;
-    --bc-dim:   #5d6a8a;
-    --bc-brass: #c8a96e;
-    --bc-sage:  #6be0a0;
-    --bc-danger: #e09090;
-    --bc-rail-w: 42px;
-    --bc-dock-w: 220px;
-    --bc-top-h: 44px;
-    --bc-anim: 200ms;
-  }
-
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bc-bg);
-    color: var(--bc-text);
-    overflow: hidden;
-    height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    grid-template-columns: var(--bc-rail-w) 1fr var(--bc-dock-w);
-    grid-template-areas:
-      "top top top"
-      "rail canvas dock";
-  }
-
-  body.bc-rail-collapsed { grid-template-columns: 14px 1fr var(--bc-dock-w); }
-  body.bc-dock-collapsed { grid-template-columns: var(--bc-rail-w) 1fr 18px; }
-  body.bc-rail-collapsed.bc-dock-collapsed { grid-template-columns: 14px 1fr 18px; }
-  body.bc-top-collapsed { grid-template-rows: 32px 1fr; }
-
-  @media (max-width: 1023px) and (min-width: 640px) {
-    body { grid-template-columns: var(--bc-rail-w) 1fr 18px; }
-    body.bc-dock-open { grid-template-columns: var(--bc-rail-w) 1fr var(--bc-dock-w); }
-  }
-
-  @media (max-width: 639px) {
-    body { grid-template-columns: 0 1fr 0; grid-template-rows: var(--bc-top-h) 1fr; }
-  }
-
-  #toolbar {
-    grid-area: top;
-    background: #16213e;
-    border-bottom: 1px solid #0f3460;
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    z-index: 10;
-    flex-shrink: 0;
-    min-height: 52px;
-  }
-
-  #bc-rail {
-    grid-area: rail;
-    background: #0f1a30;
-    border-right: 1px solid var(--bc-border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px 0;
-    gap: 6px;
-  }
-
-  #canvas-container { grid-area: canvas; position: relative; overflow: hidden; min-height: 0; }
-
-  #bc-dock {
-    grid-area: dock;
-    background: var(--bc-panel);
-    border-left: 1px solid var(--bc-border);
-    overflow-y: auto;
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-
-  body.bc-rail-collapsed #bc-rail { padding: 0; }
-  body.bc-rail-collapsed #bc-rail > * { display: none; }
-  body.bc-rail-collapsed #bc-rail::before { content: '▶'; color: var(--bc-brass); font-size: 10px; padding: 8px 0; cursor: pointer; display: block; }
-
-  body.bc-dock-collapsed #bc-dock { padding: 0; writing-mode: vertical-rl; text-align: center; color: var(--bc-brass); font-family: monospace; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; }
-  body.bc-dock-collapsed #bc-dock > * { display: none; }
-  body.bc-dock-collapsed #bc-dock::before { content: '◀ ANSICHT'; display: block; padding: 14px 0; }
-
-  body.bc-top-collapsed #toolbar > * { display: none; }
-  body.bc-top-collapsed #toolbar #bc-collapse-top { display: inline-block; }
-  body.bc-top-collapsed #toolbar { padding: 6px 10px; }
-
-  .tlabel {
-    font-size: 11px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    white-space: nowrap;
-  }
-
-  .figure-btn {
-    width: 56px; height: 84px;
-    background: #102540;
-    border: 1px solid #2c4d80;
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    padding: 4px; cursor: pointer;
-    transition: background .15s, border-color .15s;
-  }
-  .figure-btn:hover { background: #1a4a8a; border-color: #4a90d9; }
-  .figure-btn.active { border-color: #ffd84a; box-shadow: 0 0 0 1px #ffd84a inset; }
-  .figure-btn .figure-art { display: block; width: 100%; height: 100%; }
-  .figure-btn .figure-art svg { width: 100%; height: 100%; }
-
-  .color-swatch {
-    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
-    border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; flex-shrink: 0;
-  }
-  .color-swatch:hover { transform: scale(1.2); }
-  .color-swatch.active { border-color: #fff; transform: scale(1.15); }
-
-  .sep { width: 1px; height: 26px; background: #0f3460; flex-shrink: 0; }
-
-  /* Scale controls */
-  #scale-section {
-    display: flex; align-items: center; gap: 8px;
-  }
-  #scale-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 90px; height: 4px;
-    background: #0f3460;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-  }
-  #scale-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: #4a90d9;
-    cursor: pointer;
-    border: 2px solid #1a1a2e;
-  }
-  #scale-val {
-    font-size: 12px; color: #aaa; min-width: 28px; text-align: right;
-  }
-
-  /* Zoom controls */
-  #zoom-section { display: flex; align-items: center; gap: 8px; }
-  #zoom-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 80px; height: 4px;
-    background: #0f3460;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-  }
-  #zoom-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: #6be0a0;
-    cursor: pointer;
-    border: 2px solid #1a1a2e;
-  }
-  #zoom-val {
-    font-size: 12px; color: #aaa; min-width: 32px; text-align: right;
-  }
-  .size-btn {
-    padding: 4px 8px; font-size: 11px; border-radius: 5px;
-    border: 1px solid #0f3460; background: #0f2040; color: #aaa;
-    cursor: pointer; transition: all 0.12s;
-  }
-  .size-btn:hover { background: #1a3060; color: #e0e0e0; }
-
-  /* Rotation controls */
-  #rot-section { display: flex; align-items: center; gap: 6px; }
-  .rot-btn {
-    padding: 5px 9px; font-size: 14px; border-radius: 6px;
-    border: 1px solid #0f3460; background: #0f2040; color: #ccc;
-    cursor: pointer; transition: all 0.12s; line-height: 1;
-  }
-  .rot-btn:hover { background: #1a4a8a; color: #fff; }
-
-  #btn-delete {
-    padding: 6px 12px;
-    border: 1px solid #5a1a1a; background: #3a1010; color: #ff6b6b;
-    border-radius: 7px; cursor: pointer; font-size: 13px; transition: all 0.15s;
-  }
-  #btn-delete:hover { background: #5a2020; border-color: #ff4444; }
-
-  #btn-reset {
-    padding: 6px 12px;
-    border: 1px solid #0f3460; background: #0f2040; color: #888;
-    border-radius: 7px; cursor: pointer; font-size: 13px; transition: all 0.15s;
-  }
-  #btn-reset:hover { background: #1a3060; color: #e0e0e0; }
-
-  .io-btn {
-    padding: 6px 12px;
-    border: 1px solid #0f3460; background: #0f2040; color: #aaa;
-    border-radius: 7px; cursor: pointer; font-size: 13px; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .io-btn:hover { background: #1a3060; color: #e0e0e0; }
-  .io-btn.save { border-color: #1a4a1a; background: #0f2a0f; color: #6be0a0; }
-  .io-btn.save:hover { background: #1a3a1a; }
-
-  #confirm-modal {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.65); z-index: 200; align-items: center; justify-content: center;
-  }
-  #confirm-modal.visible { display: flex; }
-  #confirm-box {
-    background: #16213e; border: 1px solid #0f3460; border-radius: 12px;
-    padding: 22px 26px; width: 290px; text-align: center;
-  }
-  #confirm-box p { font-size: 14px; color: #ccc; margin-bottom: 18px; line-height: 1.5; }
-  #confirm-box .modal-btns { display: flex; gap: 10px; justify-content: center; }
-
-  canvas { display: block; width: 100%; height: 100%; }
-
-  /* ── Dock section rows ─────────────────────────────── */
-  .bc-section { margin-bottom: 14px; }
-  .bc-section h4 { color: var(--bc-brass); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin: 4px 0 6px; font-weight: 500; font-family: monospace; }
-  .bc-row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 8px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--bc-muted); font-size: 12px; font-family: monospace; cursor: pointer; }
-  .bc-row:hover { border-color: var(--bc-border); color: var(--bc-text); background: rgba(15,52,96,0.4); }
-  .bc-row.active { color: var(--bc-brass); border-color: rgba(200,169,110,0.4); background: rgba(200,169,110,0.10); }
-  .bc-row kbd { color: var(--bc-dim); font-size: 10px; letter-spacing: 0.08em; }
-  .bc-row.active kbd { color: var(--bc-brass); }
-  .bc-zoomrow { display: flex; align-items: center; gap: 4px; }
-  .bc-zoomrow input { flex: 1; }
-  .bc-mini { width: 22px; height: 22px; padding: 0; background: #0f2040; border: 1px solid var(--bc-border); color: var(--bc-muted); border-radius: 3px; cursor: pointer; }
-
-  /* ── Tool-Rail buttons ─────────────────────────────── */
-  .bc-tool {
-    width: 32px; height: 32px;
-    background: var(--bc-panel); border: 1px solid var(--bc-border); border-radius: 5px;
-    color: var(--bc-muted);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-family: monospace; font-size: 13px; cursor: pointer;
-    transition: background 100ms, border-color 100ms;
-    padding: 0;
-  }
-  .bc-tool:hover { border-color: var(--bc-brass); color: var(--bc-text); }
-  .bc-tool.active { background: rgba(200,169,110,0.15); border-color: var(--bc-brass); color: var(--bc-brass); }
-  .bc-tool:focus-visible { outline: 2px solid var(--bc-brass); outline-offset: 2px; }
-  .bc-tool kbd { font-size: 8px; color: var(--bc-dim); margin-top: -2px; }
-  .bc-tool.active kbd { color: var(--bc-brass); }
-
-  body.bc-tool-V #canvas-container { cursor: default; }
-  body.bc-tool-O #canvas-container { cursor: move; }
-  body.bc-tool-P #canvas-container { cursor: grab; }
-  body.bc-tool-P.bc-panning #canvas-container { cursor: grabbing; }
-  body.bc-tool-R #canvas-container { cursor: ew-resize; }
-  body.bc-tool-F #canvas-container { cursor: crosshair; }
-  body.bc-tool-E #canvas-container { cursor: cell; }
-
-  /* ── Compass ───────────────────────────────────────── */
-  #bc-compass {
-    position: absolute; top: 12px; right: 12px;
-    width: 52px; height: 52px;
-    border: 1px solid var(--bc-brass);
-    border-radius: 50%;
-    background: rgba(7, 16, 31, 0.65);
-    backdrop-filter: blur(4px);
-    cursor: pointer;
-    font-family: monospace;
-    color: var(--bc-brass);
-    z-index: 10;
-  }
-  #bc-compass svg { width: 100%; height: 100%; }
-  #bc-compass:hover { background: rgba(15,32,64,0.85); }
-
-  /* ── Hint zone ─────────────────────────────────────── */
-  #bc-hint {
-    position: absolute; left: 12px; bottom: 12px;
-    background: rgba(7,16,31,0.7); padding: 5px 10px;
-    border: 1px solid var(--bc-border); border-radius: 4px;
-    color: var(--bc-muted); font-size: 11px; letter-spacing: 0.04em;
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 400ms;
-  }
-  #bc-hint.bc-fade { opacity: 0; }
-
-  /* ── Chevrons ──────────────────────────────────────── */
-  .bc-chevron {
-    background: transparent; border: 1px solid transparent;
-    color: var(--bc-brass); cursor: pointer;
-    padding: 2px 6px; border-radius: 3px; font-size: 11px; font-family: monospace;
-  }
-  .bc-chevron:hover { border-color: var(--bc-brass); }
-
-  /* ── Context menu ──────────────────────────────────── */
-  #bc-context-menu {
-    position: fixed; display: none;
-    background: var(--bc-panel); border: 1px solid var(--bc-border); border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-    z-index: 1500; min-width: 160px;
-    padding: 4px; font-size: 12px;
-  }
-  #bc-context-menu.open { display: block; }
-  #bc-context-menu button {
-    display: block; width: 100%; text-align: left; padding: 6px 10px;
-    background: transparent; border: none; color: var(--bc-text); cursor: pointer; font-size: 12px;
-  }
-  #bc-context-menu button:hover { background: rgba(15,52,96,0.6); }
-
-  /* ── POV Banner ────────────────────────────────────── */
-  #bc-pov-banner {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    background: rgba(110,180,140,0.18); border: 1px solid var(--bc-sage);
-    color: var(--bc-sage); padding: 6px 14px; border-radius: 18px;
-    font-family: monospace; font-size: 12px;
-    display: flex; align-items: center; gap: 10px;
-    z-index: 100;
-  }
-  #bc-pov-banner button { background: transparent; border: 1px solid currentColor; color: currentColor; padding: 2px 8px; border-radius: 8px; cursor: pointer; font-size: 11px; }
-
-  /* ── Free-Fly Banner ───────────────────────────────── */
-  #bc-fly-banner {
-    position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
-    background: rgba(200,169,110,0.18); border: 1px solid var(--bc-brass);
-    color: var(--bc-brass); padding: 6px 14px; border-radius: 18px;
-    font-family: monospace; font-size: 12px;
-    display: none; align-items: center; gap: 10px; z-index: 100;
-  }
-  #bc-fly-banner:not([hidden]) { display: flex; }
-  #bc-fly-banner button { background: transparent; border: 1px solid currentColor; color: currentColor; padding: 2px 8px; border-radius: 8px; cursor: pointer; font-size: 11px; }
-
-  /* ── Recording indicator ───────────────────────────── */
-  #bc-rec-indicator {
-    position: absolute; top: 12px; right: 80px;
-    background: rgba(7,16,31,0.7); border: 1px solid var(--bc-danger);
-    padding: 4px 10px; border-radius: 4px;
-    font-family: monospace; font-size: 11px;
-    color: var(--bc-text);
-    display: none; align-items: center; gap: 8px;
-    z-index: 100;
-  }
-  #bc-rec-indicator:not([hidden]) { display: flex; }
-  .bc-rec-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--bc-danger);
-    animation: bc-rec-pulse 1.2s infinite ease-in-out;
-  }
-  @keyframes bc-rec-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  /* ── Help overlay ──────────────────────────────────── */
-  #bc-help-overlay {
-    position: fixed; inset: 0; background: rgba(7,16,31,0.85);
-    display: none; align-items: center; justify-content: center;
-    z-index: 2000; padding: 20px;
-  }
-  #bc-help-overlay:not([hidden]) { display: flex; }
-  .bc-help-card {
-    background: var(--bc-panel); border: 1px solid var(--bc-brass); border-radius: 12px;
-    max-width: 720px; width: 100%; max-height: 80vh; overflow: auto;
-    padding: 24px; color: var(--bc-text);
-  }
-  .bc-help-card h3 { color: var(--bc-brass); margin: 0 0 16px; font-family: 'Newsreader', Georgia, serif; }
-  .bc-help-card h5 { color: var(--bc-brass); margin: 0 0 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-family: monospace; }
-  .bc-help-card kbd { color: var(--bc-brass); border: 1px solid rgba(200,169,110,0.4); padding: 1px 6px; border-radius: 3px; font-size: 11px; font-family: monospace; }
-  .bc-help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
-  @media (max-width: 639px) { .bc-help-grid { grid-template-columns: 1fr; } }
-  .bc-help-card p { color: var(--bc-muted); font-size: 13px; line-height: 1.6; margin: 0; }
-
-  /* ── Mobile FAB / Bottom-Sheet ─────────────────────── */
-  @media (max-width: 639px) {
-    #bc-rail { display: none; }
-    #bc-fab {
-      position: fixed; right: 16px; bottom: 96px;
-      width: 56px; height: 56px;
-      background: var(--bc-panel); border: 1px solid var(--bc-brass);
-      border-radius: 50%; color: var(--bc-brass);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      z-index: 1200;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Brett · Mannequin</title>
+  <style>
+    *,*::before,*::after { box-sizing: border-box; }
+    html, body { margin:0; height:100%; background:#0e1014; color:#e7ead0; font-family: ui-sans-serif, system-ui, sans-serif; overflow:hidden; }
+    #topbar {
+      position:fixed; top:0; left:0; right:0; height:36px; display:flex; align-items:center; gap:8px;
+      padding:0 10px; background:rgba(14,16,20,0.85); backdrop-filter:blur(6px);
+      border-bottom:1px solid rgba(231,234,208,0.08); z-index:10; font-size:13px;
     }
-    #bc-fab-radial {
-      position: fixed; right: 16px; bottom: 160px;
-      display: none;
-      flex-direction: column; gap: 6px;
-      z-index: 1200;
+    #topbar .group { display:flex; align-items:center; gap:6px; }
+    #topbar .sep { width:1px; height:20px; background:rgba(231,234,208,0.12); margin:0 6px; }
+    .preset-btn { background:transparent; color:inherit; border:1px solid rgba(231,234,208,0.18);
+      border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
+    .preset-btn:hover { background:rgba(231,234,208,0.08); }
+    .icon-btn { background:transparent; color:inherit; border:1px solid rgba(231,234,208,0.18);
+      border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
+    #stiffness { width:160px; accent-color:#c8a96e; }
+    #status-pill {
+      position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+      padding:8px 14px; background:rgba(14,16,20,0.85); border:1px solid rgba(231,234,208,0.14);
+      border-radius:20px; font-size:13px; pointer-events:none; z-index:10;
     }
-    #bc-fab-radial.open { display: flex; }
-    #bc-fab-radial button {
-      width: 44px; height: 44px;
-      background: var(--bc-panel); border: 1px solid var(--bc-border);
-      border-radius: 50%; color: var(--bc-muted);
+    canvas { display:block; }
+
+    /* ── Character-Editor Panel ─────────────────────────────────── */
+    #fig-panel-wrap { position: relative; display: inline-flex; align-items: center; }
+
+    #fig-panel-btn {
+      background: transparent; color: inherit;
+      border: 1px solid rgba(231,234,208,0.18);
+      border-radius: 4px; padding: 4px 10px;
+      font: inherit; cursor: pointer; white-space: nowrap;
     }
-    #bc-fab-radial button.active { color: var(--bc-brass); border-color: var(--bc-brass); }
+    #fig-panel-btn:hover, #fig-panel-btn.open { background: rgba(231,234,208,0.12); }
 
-    #bc-dock {
-      position: fixed !important; left: 0; right: 0; bottom: 0;
-      width: auto !important; max-height: 60vh;
-      transform: translateY(calc(100% - 80px));
-      transition: transform 250ms ease-out;
-      z-index: 1000;
-      border-top: 1px solid var(--bc-border); border-left: none;
-      padding: 0 !important;
+    #fig-panel {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      z-index: 200;
+      background: #161a22; border: 1px solid rgba(200,169,110,0.35);
+      border-radius: 10px; padding: 12px 14px;
+      width: 240px; display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
     }
-    body.bc-sheet-open #bc-dock { transform: translateY(0); }
-    body.bc-sheet-full #bc-dock { transform: translateY(0); max-height: 100vh; }
 
-    #bc-sheet-grab {
-      width: 100%; height: 32px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: grab;
+    #fig-panel-header {
+      display: flex; justify-content: space-between; align-items: center;
     }
-    #bc-sheet-grab::before {
-      content: ''; width: 36px; height: 4px;
-      background: var(--bc-dim); border-radius: 2px;
+    #fig-panel-title {
+      font-size: 10px; font-weight: 600; color: #c8a96e;
+      text-transform: uppercase; letter-spacing: 0.1em;
     }
-    #bc-sheet-tabs {
-      display: flex; gap: 6px; padding: 0 12px 8px;
-      overflow-x: auto;
+    #fig-panel-close {
+      background: none; border: none; color: rgba(231,234,208,0.4);
+      cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
     }
-    #bc-sheet-tabs button {
-      padding: 5px 10px; background: #0f2040; border: 1px solid var(--bc-border);
-      border-radius: 4px; color: var(--bc-muted); font-size: 11px;
-      font-family: monospace; white-space: nowrap;
+    #fig-panel-close:hover { color: #e7ead0; }
+
+    .fig-panel-label {
+      font-size: 10px; color: rgba(231,234,208,0.5);
+      text-transform: uppercase; letter-spacing: 0.08em;
     }
-    #bc-sheet-tabs button.active { background: rgba(200,169,110,0.15); border-color: var(--bc-brass); color: var(--bc-brass); }
 
-    .bc-section { display: none; padding: 10px 12px; }
-    .bc-section.active { display: block; }
-  }
+    #fig-panel-colors { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
-  /* ── Tablet layout ─────────────────────────────────── */
-  @media (max-width: 1023px) and (min-width: 640px) {
-    #toolbar .tlabel { display: none; }
-    #toolbar .color-swatch:nth-of-type(n+5) { display: none; }
-    #toolbar .size-btn[data-scale="0.6"],
-    #toolbar .size-btn[data-scale="1.5"] { display: none; }
-  }
+    .fig-color-swatch {
+      width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
+    }
+    .fig-color-swatch:hover { transform: scale(1.15); }
+    .fig-color-swatch.active { border-color: #c8a96e; }
 
-  /* ── A11y ──────────────────────────────────────────── */
-  @media (prefers-contrast: more) {
-    .bc-row, .bc-tool, .bc-chevron { border-width: 2px; }
-    .bc-row.active { text-decoration: underline; }
-  }
+    #fig-label-input {
+      background: rgba(231,234,208,0.06); border: 1px solid rgba(231,234,208,0.18);
+      border-radius: 5px; color: #e7ead0; font: inherit; font-size: 12px;
+      padding: 5px 8px; width: 100%;
+    }
+    #fig-label-input:focus { outline: none; border-color: rgba(200,169,110,0.5); }
+    #fig-label-input::placeholder { color: rgba(231,234,208,0.3); }
 
-  #label-modal {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center;
-  }
-  #label-modal.visible { display: flex; }
-  #label-box {
-    background: #16213e; border: 1px solid #0f3460; border-radius: 12px;
-    padding: 22px 26px; width: 310px;
-  }
-  #label-box h3 { font-size: 13px; font-weight: 500; margin-bottom: 14px; color: #aaa; }
-  #label-input {
-    width: 100%; background: #0f1e3a; border: 1px solid #0f3460; color: #e0e0e0;
-    font-size: 15px; padding: 9px 11px; border-radius: 8px; outline: none;
-  }
-  #label-input:focus { border-color: #4a90d9; }
-  #label-modal-btns { display: flex; gap: 10px; margin-top: 14px; justify-content: flex-end; }
-  .modal-btn {
-    padding: 7px 18px; border-radius: 8px; font-size: 13px; cursor: pointer;
-    border: 1px solid #0f3460; background: #0f3460; color: #e0e0e0; transition: all 0.15s;
-  }
-  .modal-btn:hover { background: #1a4a8a; }
-  .modal-btn.primary { background: #4a90d9; border-color: #4a90d9; }
-  .modal-btn.primary:hover { background: #5aa0e9; }
+    #fig-panel-add {
+      background: #c8a96e; color: #0a0a14;
+      border: none; border-radius: 6px;
+      padding: 7px 10px; font-size: 12px; font-weight: 600;
+      cursor: pointer; width: 100%;
+    }
+    #fig-panel-add:hover { filter: brightness(1.1); }
 
-  #hint {
-    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-    font-size: 11px; color: #444; pointer-events: none; text-align: center; line-height: 1.7; white-space: nowrap;
-  }
-  #selected-info {
-    position: absolute; bottom: 12px; left: 14px;
-    font-size: 12px; color: #aaa;
-    display: flex; align-items: center; gap: 8px;
-  }
-  #selected-info .si-actions { display: flex; gap: 4px; }
-  #selected-info .si-btn {
-    padding: 2px 7px; font-size: 12px; border-radius: 5px;
-    border: 1px solid #0f3460; background: rgba(15,32,64,0.85);
-    color: #aaa; cursor: pointer; transition: all 0.12s;
-    pointer-events: auto;
-  }
-  #selected-info .si-btn:hover { background: #1a4a8a; color: #fff; }
-
-  /* #canvas-container now handled by grid area above */
-
-  /* ── Minimap widget ─────────────────────────────────────────────────── */
-  #minimap-widget {
-    position: fixed; bottom: 20px; right: 20px; z-index: 50;
-    background: rgba(7, 14, 38, 0.95);
-    border: 1px solid #1a3060;
-    border-radius: 12px;
-    padding: 8px 10px 10px;
-    width: 180px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.03);
-    user-select: none;
-  }
-  #minimap-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 7px;
-  }
-  #minimap-title {
-    font-size: 10px; color: #3a6090;
-    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
-  }
-  #minimap-toggle {
-    background: none; border: none; color: #3a5878; cursor: pointer;
-    font-size: 12px; padding: 0; line-height: 1; font-family: inherit;
-    transition: color 0.12s, transform 0.15s; width: 18px; text-align: center;
-  }
-  #minimap-toggle:hover { color: #7aaac8; }
-  #minimap-widget.collapsed #minimap-body { display: none; }
-  #minimap-widget.collapsed #minimap-toggle { transform: rotate(-90deg); }
-  #minimap-wrap {
-    position: relative; width: 158px; height: 123px;
-    border: 1px solid #1a3060; border-radius: 6px; overflow: hidden;
-    cursor: crosshair;
-    box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
-  }
-  #minimap-canvas, #minimap-ui {
-    position: absolute; top: 0; left: 0; width: 158px; height: 123px;
-  }
-  #minimap-ui { pointer-events: none; }
-  #minimap-foot {
-    font-size: 9px; color: #243550; text-align: center;
-    margin-top: 5px; letter-spacing: 0.04em;
-  }
-
-  /* ── Optik-Panel ──────────────────────────────────────────────── */
-  #optik-wrap { position: relative; }
-
-  #optik-btn {
-    padding: 5px 10px;
-    font-size: 13px;
-    border-radius: 6px;
-    background: rgba(200,169,110,0.15);
-    border: 1px solid #c8a96e;
-    color: #c8a96e;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  #optik-btn:hover { background: rgba(200,169,110,0.28); }
-
-  #uebersicht-btn {
-    padding: 5px 10px;
-    font-size: 13px;
-    border-radius: 6px;
-    background: #0f2040;
-    border: 1px solid #0f3460;
-    color: #aaa;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  #uebersicht-btn:hover { border-color: #c8a96e; color: #e0e0e0; }
-  #uebersicht-btn.active { border-color: #c8a96e; background: rgba(200,169,110,0.12); color: #c8a96e; }
-
-  #optik-popup {
-    display: none;
-    position: fixed;
-    background: #16213e;
-    border: 1px solid #0f3460;
-    border-radius: 10px;
-    padding: 14px;
-    z-index: 1000;
-    min-width: 240px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-    flex-direction: column;
-    gap: 12px;
-  }
-  #optik-popup.open { display: flex; }
-
-  .optik-section { display: flex; flex-direction: column; gap: 6px; }
-  .optik-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; }
-  .optik-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-
-  .optik-chip {
-    padding: 4px 9px;
-    font-size: 11px;
-    border-radius: 5px;
-    border: 1px solid #0f3460;
-    background: #0f2040;
-    color: #aaa;
-    cursor: pointer;
-    transition: all 0.12s;
-    white-space: nowrap;
-  }
-  .optik-chip:hover { border-color: #c8a96e; color: #e0e0e0; }
-  .optik-chip.active { border-color: #c8a96e; background: rgba(200,169,110,0.15); color: #c8a96e; }
-
-  #optik-color {
-    width: 30px;
-    height: 24px;
-    border: 1px solid #0f3460;
-    border-radius: 5px;
-    padding: 2px;
-    cursor: pointer;
-    background: #0f2040;
-  }
-  #optik-color.active { border-color: #c8a96e; }
-#constellation-type {
-  background: #0f2040;
-  border: 1px solid #0f3460;
-  color: #c0a0ff;
-  border-radius: 5px;
-  padding: 3px 8px;
-  font-size: 12px;
-  cursor: pointer;
-  outline: none;
-}
-#constellation-type:focus {
-  border-color: #7a4acd;
-}
-#category-tabs {
-  display: flex;
-  gap: 4px;
-}
-.cat-tab {
-  padding: 3px 9px;
-  border-radius: 4px;
-  background: #0f2040;
-  border: 1px solid #0f3460;
-  color: #888;
-  cursor: pointer;
-  font-size: 11px;
-  white-space: nowrap;
-  line-height: 1.6;
-}
-.cat-tab:hover { border-color: #2c4d80; color: #ccc; }
-.cat-tab.active { background: #1a4a8a; border-color: #4a90d9; color: #fff; }
-</style>
+    body.placing-figure { cursor: crosshair !important; }
+  </style>
 </head>
 <body>
-
-<div id="toolbar">
-  <select id="constellation-type">
-    <option value="">— frei —</option>
-    <option value="familie">👨‍👩‍👧 Familienaufstellung</option>
-    <option value="organisation">🏢 Organisationsaufstellung</option>
-    <option value="tetralemma">◇ Tetralemma</option>
-    <option value="inneres-team">🧠 Inneres Team</option>
-  </select>
-
-  <div class="sep"></div>
-  <div id="category-tabs"></div>
-
-  <div class="sep"></div>
-  <div id="figure-buttons" style="display:flex;gap:6px;"></div>
-
-  <div class="sep"></div>
-  <span class="tlabel">Farbe</span>
-  <div style="display:flex;gap:5px;align-items:center;">
-    <div class="color-swatch active" data-color="#e06b6b" style="background:#e06b6b;"></div>
-    <div class="color-swatch" data-color="#6ba8e0" style="background:#6ba8e0;"></div>
-    <div class="color-swatch" data-color="#6be0a0" style="background:#6be0a0;"></div>
-    <div class="color-swatch" data-color="#e0c06b" style="background:#e0c06b;"></div>
-    <div class="color-swatch" data-color="#c06be0" style="background:#c06be0;"></div>
-    <div class="color-swatch" data-color="#e0906b" style="background:#e0906b;"></div>
-    <div class="color-swatch" data-color="#e0e0e0" style="background:#e0e0e0;"></div>
-  </div>
-
-  <div class="sep"></div>
-  <span class="tlabel">Größe</span>
-  <div id="scale-section">
-    <button class="size-btn" data-scale="0.6">S</button>
-    <button class="size-btn" data-scale="1.0">M</button>
-    <button class="size-btn" data-scale="1.5">L</button>
-    <input type="range" id="scale-slider" min="0.3" max="2.5" step="0.05" value="1.0">
-    <span id="scale-val">1.0×</span>
-  </div>
-
-  <div class="sep"></div>
-  <span class="tlabel">Drehen</span>
-  <div id="rot-section">
-    <button class="rot-btn" data-rot="-15" title="Links drehen">↺</button>
-    <button class="rot-btn" data-rot="15" title="Rechts drehen">↻</button>
-  </div>
-
-  <div class="sep"></div>
-  <button id="btn-delete">✕ Löschen</button>
-
-  <div id="sync-status" style="font-size:12px; color:#6be0a0; margin-left:auto; margin-right:8px;">Verbinde …</div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <button class="io-btn save" id="btn-save">↓ Speichern</button>
-    <button class="io-btn" id="btn-load">↑ Laden</button>
-    <button id="btn-reset">Brett leeren</button>
-  </div>
-
-  <div class="sep"></div>
-  <button id="uebersicht-btn" title="Übersicht ein-/ausblenden">🗺 Übersicht</button>
-  <button id="bc-collapse-top" class="bc-chevron" title="Toolbar einklappen (⇧\)" aria-label="Toolbar einklappen">▾</button>
-  <div id="optik-wrap">
-    <button id="optik-btn" title="Brett-Optik">🎨 Optik</button>
-    <div id="optik-popup">
-      <div class="optik-section">
-        <div class="optik-label">Oberfläche</div>
-        <div class="optik-chips">
-          <button class="optik-chip active" data-board="wood-dark">Dunkles Holz</button>
-          <button class="optik-chip" data-board="wood-light">Helles Holz</button>
-          <button class="optik-chip" data-board="felt-green">Filz</button>
-          <button class="optik-chip" data-board="slate">Schiefer</button>
-          <button class="optik-chip" data-board="sand">Sand</button>
-          <button class="optik-chip" data-board="marble">Marmor</button>
-          <input type="color" id="optik-color" title="Eigene Farbe" value="#3a6030">
+  <div id="topbar">
+    <div class="group" id="presets">
+      <button class="preset-btn" data-preset="stand">Stand</button>
+      <button class="preset-btn" data-preset="kneel">Kneel</button>
+      <button class="preset-btn" data-preset="prone">Prone</button>
+      <button class="preset-btn" data-preset="crawl">Crawl</button>
+      <button class="preset-btn" data-preset="slump">Slump</button>
+      <button class="preset-btn" data-preset="tpose">T-Pose</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+      <span title="Physik (schlaff)">🌡 PHYS</span>
+      <input id="stiffness" type="range" min="0" max="1" step="0.01" value="0.65" />
+      <span title="IK (steif)">IK 🎯</span>
+    </div>
+    <div class="sep"></div>
+    <div class="group" style="margin-left:auto;">
+      <div id="fig-panel-wrap">
+        <button id="fig-panel-btn" aria-expanded="false" aria-controls="fig-panel">＋ Figur ▾</button>
+        <div id="fig-panel" hidden role="dialog" aria-label="Figur-Editor">
+          <div id="fig-panel-header">
+            <span id="fig-panel-title">NEUE FIGUR</span>
+            <button id="fig-panel-close" aria-label="Panel schließen">✕</button>
+          </div>
+          <span class="fig-panel-label">Farbe</span>
+          <div id="fig-panel-colors">
+            <div class="fig-color-swatch active" data-color="#b8c0a8" style="background:#b8c0a8;" title="Standard"></div>
+            <div class="fig-color-swatch" data-color="#e06b6b" style="background:#e06b6b;" title="Rot"></div>
+            <div class="fig-color-swatch" data-color="#6ba8e0" style="background:#6ba8e0;" title="Blau"></div>
+            <div class="fig-color-swatch" data-color="#6be0a0" style="background:#6be0a0;" title="Grün"></div>
+            <div class="fig-color-swatch" data-color="#e0c06b" style="background:#e0c06b;" title="Gelb"></div>
+            <div class="fig-color-swatch" data-color="#c06be0" style="background:#c06be0;" title="Lila"></div>
+            <div class="fig-color-swatch" data-color="#e0906b" style="background:#e0906b;" title="Orange"></div>
+          </div>
+          <span class="fig-panel-label">Name</span>
+          <input id="fig-label-input" type="text" placeholder="Figur benennen …" maxlength="40" />
+          <button id="fig-panel-add">＋ Auf Brett setzen</button>
         </div>
       </div>
-      <div class="optik-section">
-        <div class="optik-label">Hintergrund</div>
-        <div class="optik-chips">
-          <button class="optik-chip active" data-bg="space">Nacht</button>
-          <button class="optik-chip" data-bg="dusk">Dämmerung</button>
-          <button class="optik-chip" data-bg="forest">Wald</button>
-          <button class="optik-chip" data-bg="light">Hell</button>
-        </div>
-      </div>
-      <div class="optik-section">
-        <div class="optik-label">Lichtstimmung</div>
-        <div class="optik-chips">
-          <button class="optik-chip active" data-light="neutral">Neutral</button>
-          <button class="optik-chip" data-light="warm">Warm</button>
-          <button class="optik-chip" data-light="cool">Kühl</button>
-          <button class="optik-chip" data-light="dramatic">Dramatisch</button>
-        </div>
-      </div>
+      <span id="online-indicator">● <span id="online-count">1</span> online</span>
     </div>
   </div>
-</div>
+  <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = Figur teleportieren / neue Figur</div>
+  <script src="three.min.js"></script>
+  <script>
+    // ===== Brett Mannequin Focus =====
+    window.STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
 
-<aside id="bc-rail" aria-label="Werkzeug-Leiste">
-  <button class="bc-tool active" data-tool="V" title="Auswählen (V)" aria-label="Tool: Auswählen"><span>↖</span><kbd>V</kbd></button>
-  <button class="bc-tool" data-tool="O" title="Orbit (O)" aria-label="Tool: Kamera drehen"><span>⟲</span><kbd>O</kbd></button>
-  <button class="bc-tool" data-tool="P" title="Pan (P)" aria-label="Tool: Brett verschieben"><span>✋</span><kbd>P</kbd></button>
-  <button class="bc-tool" data-tool="R" title="Figur drehen (R)" aria-label="Tool: Figur drehen"><span>⟳</span><kbd>R</kbd></button>
-  <button class="bc-tool" data-tool="F" title="Fokus (F)" aria-label="Tool: Fokus"><span>⊕</span><kbd>F</kbd></button>
-  <button class="bc-tool" data-tool="E" title="POV (E)" aria-label="Tool: Aus Figur-Augen"><span>👁</span><kbd>E</kbd></button>
-  <button id="bc-collapse-rail" class="bc-chevron bc-chevron-rail" title="Tool-Rail ([)" aria-label="Tool-Rail einklappen" style="margin-top:auto;">◀</button>
-</aside>
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight - 36);
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = '36px';
+    renderer.domElement.style.left = '0';
+    document.body.appendChild(renderer.domElement);
 
-<div id="canvas-container">
-  <canvas id="three-canvas"></canvas>
-  <div id="bc-hint" role="status" aria-live="off"></div>
-  <div id="selected-info"></div>
-  <div id="bc-compass" title="Klick = Home (H)" role="button" aria-label="Kompass — Klick für Home">
-    <svg viewBox="-30 -30 60 60">
-      <circle cx="0" cy="0" r="22" fill="none" stroke="rgba(200,169,110,0.3)" stroke-width="0.5"/>
-      <g id="bc-compass-rose">
-        <text x="0" y="-14" text-anchor="middle" font-size="9" fill="currentColor" dominant-baseline="middle" font-weight="600">N</text>
-        <text x="14" y="0"  text-anchor="middle" font-size="7" fill="currentColor" dominant-baseline="middle">E</text>
-        <text x="0" y="14"  text-anchor="middle" font-size="7" fill="currentColor" dominant-baseline="middle">S</text>
-        <text x="-14" y="0" text-anchor="middle" font-size="7" fill="currentColor" dominant-baseline="middle">W</text>
-        <polygon points="0,-20 -3,-10 0,-13 3,-10" fill="currentColor"/>
-      </g>
-      <line id="bc-compass-horizon" x1="-10" y1="0" x2="10" y2="0" stroke="rgba(110,180,140,0.7)" stroke-width="1"/>
-    </svg>
-  </div>
-  <div id="bc-pov-banner" role="status" aria-live="polite" hidden>
-    <span id="bc-pov-banner-prefix">👁 Sicht von </span>
-    <span id="bc-pov-banner-name"></span>
-    <button id="bc-pov-exit" aria-label="POV verlassen">⎋ Verlassen</button>
-  </div>
-  <div id="bc-fly-banner" role="status" aria-live="polite" hidden>
-    <span>✈ Free-Fly · WASD + Maus bewegen · Shift = Sprint</span>
-    <button id="bc-fly-exit" aria-label="Free-Fly verlassen">⎋</button>
-  </div>
-  <div id="bc-rec-indicator" hidden>
-    <span class="bc-rec-dot"></span>
-    <span id="bc-rec-time">0:00</span>
-  </div>
-</div>
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e1014);
 
-<aside id="bc-dock" aria-label="Ansichten und Modi">
-  <button id="bc-collapse-dock" class="bc-chevron bc-chevron-dock" title="Dock (])" aria-label="Side-Dock einklappen" style="float:right;margin: -4px -4px 0 0;">▸</button>
+    const camera = new THREE.PerspectiveCamera(
+      50, window.innerWidth / (window.innerHeight - 36), 0.1, 200
+    );
+    camera.position.set(4, 4, 6);
+    camera.lookAt(0, 1, 0);
 
-  <div id="bc-sheet-grab" aria-label="Bottom-Sheet ziehen"></div>
-  <div id="bc-sheet-tabs">
-    <button data-tab="ansicht" class="active">Ansicht</button>
-    <button data-tab="modi">Modi</button>
-    <button data-tab="marks">Marks</button>
-    <button data-tab="aufnahme">📷</button>
-  </div>
+    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    scene.add(ambient);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+    sun.position.set(5, 10, 4);
+    scene.add(sun);
 
-  <div data-tab-content="ansicht">
-    <section class="bc-section">
-      <h4>Ansichten</h4>
-      <button class="bc-row" id="bc-home"><span>⌂ Home</span><kbd>H</kbd></button>
-      <button class="bc-row" id="bc-fit"><span>⊕ Fit</span><kbd>F</kbd></button>
-      <button class="bc-row" id="bc-help"><span>? Hilfe</span><kbd>?</kbd></button>
-    </section>
+    // Floor grid
+    const grid = new THREE.GridHelper(40, 40, 0x445566, 0x2a3340);
+    grid.position.y = 0;
+    scene.add(grid);
+    const floorGeo = new THREE.PlaneGeometry(40, 40);
+    const floorMat = new THREE.MeshBasicMaterial({ color: 0x10131a, transparent: true, opacity: 0.6 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0;
+    scene.add(floor);
 
-    <section class="bc-section">
-      <h4>Presets</h4>
-      <button class="bc-row" data-preset="1"><span>▦ Draufsicht</span><kbd>1</kbd></button>
-      <button class="bc-row" data-preset="2"><span>▣ Vorderseite</span><kbd>2</kbd></button>
-      <button class="bc-row" data-preset="3"><span>◀ Links</span><kbd>3</kbd></button>
-      <button class="bc-row" data-preset="4"><span>▶ Rechts</span><kbd>4</kbd></button>
-      <button class="bc-row" data-preset="5"><span>⬢ Standard</span><kbd>5</kbd></button>
-      <button class="bc-row" data-preset="6"><span>▲ Hoch</span><kbd>6</kbd></button>
-    </section>
-
-    <section class="bc-section">
-      <h4>Zoom</h4>
-      <div class="bc-zoomrow">
-        <button class="bc-mini" id="bc-zoom-out">−</button>
-        <input type="range" id="bc-zoom-slider" min="12" max="75" step="0.5" value="44">
-        <button class="bc-mini" id="bc-zoom-in">+</button>
-      </div>
-      <div style="text-align:center;color:var(--bc-dim);font-size:11px;font-family:monospace;"><span id="bc-zoom-val">44</span></div>
-    </section>
-  </div>
-
-  <div data-tab-content="modi" hidden>
-    <section class="bc-section bc-modi">
-      <h4>Modi</h4>
-      <button class="bc-row" id="bc-mode-pov"><span>👁 POV von …</span><kbd>E</kbd></button>
-      <button class="bc-row" id="bc-mode-auto"><span>⟳ Auto-Orbit</span><kbd>A</kbd></button>
-      <div class="bc-zoomrow" style="margin-top:4px;">
-        <span style="font-size:10px;color:var(--bc-dim);width:30px;">Tempo</span>
-        <input type="range" id="bc-auto-speed" min="0.02" max="0.5" step="0.02" value="0.15">
-      </div>
-      <button class="bc-row" id="bc-mode-fly"><span>✈ Free-Fly</span><kbd>⇧F</kbd></button>
-      <button class="bc-row" id="bc-mode-split"><span>⫼ Split-View</span><kbd>⇧S</kbd></button>
-      <div id="bc-split-controls" hidden style="margin-top:4px;">
-        <select id="bc-split-source" style="width:100%;padding:4px;background:#0f2040;border:1px solid var(--bc-border);color:var(--bc-text);font-size:11px;">
-          <option value="preset:1">Draufsicht</option>
-          <option value="preset:2">Vorderseite</option>
-          <option value="preset:5" selected>Standard</option>
-          <option value="preset:6">Hoch</option>
-        </select>
-      </div>
-    </section>
-  </div>
-
-  <div data-tab-content="marks" hidden>
-    <section class="bc-section">
-      <h4>Lesezeichen</h4>
-      <button class="bc-row" id="bc-bk-add"><span>+ Aktuelle Ansicht</span><kbd>B</kbd></button>
-      <div id="bc-bookmarks-list"></div>
-    </section>
-  </div>
-
-  <div data-tab-content="aufnahme" hidden>
-    <section class="bc-section">
-      <h4>Aufnehmen</h4>
-      <button class="bc-row" id="bc-screenshot"><span>📷 Screenshot</span><kbd>C</kbd></button>
-      <button class="bc-row" id="bc-video"><span>🎬 Aufnahme</span><kbd>⇧R</kbd></button>
-    </section>
-  </div>
-</aside>
-
-<div id="minimap-widget">
-  <div id="minimap-header">
-    <span id="minimap-title">Übersicht</span>
-    <button id="minimap-toggle" title="Ein-/Ausblenden">▾</button>
-  </div>
-  <div id="minimap-body">
-    <div id="minimap-wrap">
-      <canvas id="minimap-canvas"></canvas>
-      <canvas id="minimap-ui"></canvas>
-    </div>
-    <div id="minimap-foot">Klick · Ziehen: Ansicht navigieren</div>
-  </div>
-</div>
-
-<div id="confirm-modal">
-  <div id="confirm-box">
-    <p id="confirm-text">Alle Figuren entfernen?</p>
-    <div class="modal-btns">
-      <button class="modal-btn" id="confirm-no">Abbrechen</button>
-      <button class="modal-btn primary" id="confirm-yes">Ja, leeren</button>
-    </div>
-  </div>
-</div>
-
-<div id="label-modal">
-  <div id="label-box">
-    <h3>Beschriftung</h3>
-    <input id="label-input" type="text" placeholder="Name oder Rolle …" maxlength="40"/>
-    <div id="label-modal-btns">
-      <button class="modal-btn" id="label-cancel">Abbrechen</button>
-      <button class="modal-btn primary" id="label-confirm">OK</button>
-    </div>
-  </div>
-</div>
-
-<div id="save-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;">
-  <div style="background:#16213e;border:1px solid #0f3460;border-radius:12px;padding:22px 26px;width:340px;">
-    <h3 style="font-size:13px;font-weight:500;margin-bottom:14px;color:#aaa;">Brett speichern</h3>
-    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Klient</label>
-    <select id="save-customer" style="width:100%;background:#0f1e3a;border:1px solid #0f3460;color:#e0e0e0;padding:8px 10px;border-radius:8px;margin-bottom:12px;">
-      <option value="">— kein Klient —</option>
-    </select>
-    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Name</label>
-    <input id="save-name" type="text" placeholder="z.B. vor Intervention" maxlength="200"
-           style="width:100%;background:#0f1e3a;border:1px solid #0f3460;color:#e0e0e0;padding:9px 11px;border-radius:8px;outline:none;">
-    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
-      <button class="modal-btn" id="save-cancel">Abbrechen</button>
-      <button class="modal-btn primary" id="save-ok">Speichern</button>
-    </div>
-  </div>
-</div>
-
-<div id="load-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;">
-  <div style="background:#16213e;border:1px solid #0f3460;border-radius:12px;padding:22px 26px;width:380px;max-height:80vh;display:flex;flex-direction:column;">
-    <h3 style="font-size:13px;font-weight:500;margin-bottom:14px;color:#aaa;">Brett laden</h3>
-    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Filter</label>
-    <select id="load-filter" style="width:100%;background:#0f1e3a;border:1px solid #0f3460;color:#e0e0e0;padding:8px 10px;border-radius:8px;margin-bottom:12px;">
-      <option value="room">Alle Snapshots dieses Raums</option>
-    </select>
-    <div id="load-list" style="overflow:auto;flex:1;border:1px solid #0f3460;border-radius:8px;padding:8px;min-height:120px;">
-    </div>
-    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
-      <button class="modal-btn" id="load-cancel">Schließen</button>
-    </div>
-  </div>
-</div>
-
-<!-- Context Menu -->
-<div id="bc-context-menu" role="menu" aria-hidden="true">
-  <button data-ctx="rot-ccw" role="menuitem">↺ 45° links</button>
-  <button data-ctx="rot-cw"  role="menuitem">↻ 45° rechts</button>
-  <button data-ctx="pov"     role="menuitem">👁 Aus dieser Sicht</button>
-  <button data-ctx="delete"  role="menuitem">✕ Löschen</button>
-  <button data-ctx="home"    role="menuitem">⌂ Home</button>
-</div>
-
-<!-- FAB (phone) -->
-<button id="bc-fab" aria-label="Werkzeug-Auswahl" title="Long-Press für Radial-Menü" style="display:none;">↖</button>
-<div id="bc-fab-radial" role="menu" style="display:none;">
-  <button data-tool="V" aria-label="Auswählen">↖</button>
-  <button data-tool="O" aria-label="Orbit">⟲</button>
-  <button data-tool="P" aria-label="Pan">✋</button>
-  <button data-tool="R" aria-label="Drehen">⟳</button>
-  <button data-tool="F" aria-label="Fokus">⊕</button>
-  <button data-tool="E" aria-label="POV">👁</button>
-</div>
-
-<!-- Help Overlay -->
-<div id="bc-help-overlay" role="dialog" aria-modal="true" aria-labelledby="bc-help-title" hidden>
-  <div class="bc-help-card">
-    <h3 id="bc-help-title">Tastatur-Cheatsheet</h3>
-    <div class="bc-help-grid">
-      <section>
-        <h5>Werkzeuge</h5>
-        <p><kbd>V</kbd> Auswählen · <kbd>O</kbd> Orbit · <kbd>P</kbd> Pan · <kbd>R</kbd> Drehen · <kbd>F</kbd> Fokus · <kbd>E</kbd> POV</p>
-        <p>Klick auf Figur = wählen, dann ziehen zum Bewegen</p>
-        <p>Rechtsklick auf Figur = Drehen / POV / Löschen</p>
-      </section>
-      <section>
-        <h5>Kamera</h5>
-        <p><kbd>RMB</kbd> gehalten + Maus = Orbit (frei drehen)</p>
-        <p><kbd>RMB</kbd> + <kbd>WASD</kbd> = Kamera schwenken</p>
-        <p>Touch: 1-Finger leer = Orbit · 2-Finger = Pan + Zoom</p>
-      </section>
-      <section>
-        <h5>Ansichten</h5>
-        <p><kbd>1</kbd>–<kbd>6</kbd> Presets · <kbd>H</kbd>/<kbd>0</kbd> Home · <kbd>+</kbd>/<kbd>−</kbd> Zoom</p>
-      </section>
-      <section>
-        <h5>Modi</h5>
-        <p><kbd>A</kbd> Auto · <kbd>⇧F</kbd> Free-Fly · <kbd>⇧S</kbd> Split · <kbd>Esc</kbd> verlassen</p>
-        <p>Free-Fly: <kbd>WASD</kbd> · <kbd>Space</kbd>/<kbd>Q</kbd> · <kbd>⇧</kbd>=Sprint</p>
-      </section>
-      <section>
-        <h5>Bookmarks</h5>
-        <p><kbd>B</kbd> speichern · <kbd>⇧1</kbd>–<kbd>⇧9</kbd> wiederherstellen</p>
-      </section>
-      <section>
-        <h5>Aufnahme</h5>
-        <p><kbd>C</kbd> Screenshot · <kbd>⇧R</kbd> Video</p>
-      </section>
-      <section>
-        <h5>Bars</h5>
-        <p><kbd>\</kbd> alle · <kbd>[</kbd> Rail · <kbd>]</kbd> Dock · <kbd>⇧\</kbd> Top</p>
-      </section>
-    </div>
-    <button id="bc-help-close" class="bc-row" style="margin-top:14px;">Schließen (Esc)</button>
-  </div>
-</div>
-
-<script src="/three.min.js"></script>
-<script>
-(function(){
-
-// ─── Cluster integration config ──────────────────────────────────
-const params   = new URLSearchParams(window.location.search);
-const ROOM     = params.get('room') || 'standalone';
-const API      = '/api';
-const SYNC_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://')
-               + location.host + '/sync';
-
-function findFigById(id) {
-  return figures.find(f => f.id === id) || null;
-}
-function figToJSON(fig) {
-  return {
-    id:    fig.id,
-    type:  fig.type,
-    color: fig.color,
-    label: fig.label || '',
-    scale: fig.scale,
-    rotY:  fig.rotY,
-    x:     fig.mesh.position.x,
-    z:     fig.mesh.position.z,
-  };
-}
-
-// ─── WebSocket sync ──────────────────────────────────────────────
-let ws = null;
-let syncOpen = false;
-let applyingRemote = false;
-let participantCount = 1;
-
-function setStatus(text) {
-  const el = document.getElementById('sync-status');
-  if (el) el.textContent = text;
-}
-
-function send(msg) {
-  if (syncOpen && ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(msg));
-  }
-}
-
-function applySnapshot(figList) {
-  applyingRemote = true;
-  try {
-    figures.slice().forEach(f => { scene.remove(f.mesh); });
-    figures.length = 0;
-    for (const f of figList) {
-      addFigure(f.type, f.color, f.x, f.z, f.label || '', f.scale || 1.0, f.rotY || 0, f.id);
+    // Minimal manual orbit (mouse drag with middle button + wheel)
+    const cameraOrbit = { theta: Math.atan2(camera.position.x, camera.position.z), phi: 0.6, dist: Math.hypot(camera.position.x, camera.position.z, camera.position.y) };
+    function updateCameraFromOrbit() {
+      const r = cameraOrbit.dist;
+      camera.position.set(
+        Math.sin(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r,
+        Math.sin(cameraOrbit.phi) * r,
+        Math.cos(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r
+      );
+      camera.lookAt(0, 1, 0);
     }
-    selectFigure(null);
-  } finally { applyingRemote = false; }
-}
-
-function applyRemote(msg) {
-  applyingRemote = true;
-  try {
-    if (msg.type === 'add' && msg.fig && !findFigById(msg.fig.id)) {
-      addFigure(msg.fig.type, msg.fig.color, msg.fig.x, msg.fig.z,
-                msg.fig.label, msg.fig.scale, msg.fig.rotY, msg.fig.id);
-    } else if (msg.type === 'move') {
-      const f = findFigById(msg.id);
-      if (f) { f.mesh.position.x = msg.x; f.mesh.position.z = msg.z; }
-    } else if (msg.type === 'update') {
-      const f = findFigById(msg.id);
-      if (f && msg.changes) {
-        if (msg.changes.label !== undefined) setLabel(f, msg.changes.label);
-        if (msg.changes.scale !== undefined) setScale(f, msg.changes.scale);
-        if (msg.changes.rotY  !== undefined) setRotY (f, msg.changes.rotY);
-        if (msg.changes.color !== undefined) recolorFigure(f, msg.changes.color);
+    updateCameraFromOrbit();
+    let dragMode = null, dragLast = null;
+    renderer.domElement.addEventListener('mousedown', (e) => {
+      if (e.button === 1 || (e.button === 0 && e.shiftKey)) { dragMode = 'orbit'; dragLast = { x: e.clientX, y: e.clientY }; }
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (dragMode === 'orbit' && dragLast) {
+        const dx = e.clientX - dragLast.x, dy = e.clientY - dragLast.y;
+        cameraOrbit.theta -= dx * 0.005;
+        cameraOrbit.phi = Math.max(-1.2, Math.min(1.2, cameraOrbit.phi + dy * 0.005));
+        updateCameraFromOrbit();
+        dragLast = { x: e.clientX, y: e.clientY };
       }
-    } else if (msg.type === 'delete') {
-      const f = findFigById(msg.id);
-      if (f) {
-        scene.remove(f.mesh);
-        const i = figures.indexOf(f);
-        if (i >= 0) figures.splice(i, 1);
-        if (selectedFigure === f) selectFigure(null);
-      }
-    } else if (msg.type === 'clear') {
-      clearBoard();
-    }
-  } finally { applyingRemote = false; }
-}
+    });
+    window.addEventListener('mouseup', () => { dragMode = null; dragLast = null; });
+    renderer.domElement.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      cameraOrbit.dist = Math.max(2, Math.min(40, cameraOrbit.dist * (1 + e.deltaY * 0.001)));
+      updateCameraFromOrbit();
+    }, { passive: false });
 
-function connect() {
-  if (ROOM === 'standalone') {
-    setStatus('Standalone (kein Sync)');
-    return;
-  }
-  setStatus('Verbinde …');
-  ws = new WebSocket(SYNC_URL);
-  ws.onopen = () => {
-    syncOpen = true;
-    ws.send(JSON.stringify({ type: 'join', room: ROOM }));
-    setStatus('Verbunden ✓');
-  };
-  ws.onmessage = (event) => {
-    let msg;
-    try { msg = JSON.parse(event.data); } catch { return; }
-    if (msg.type === 'snapshot') {
-      applySnapshot(msg.figures || []);
-      if (msg.optik) { applyOptik(msg.optik); syncOptikUI(msg.optik); }
-    } else if (msg.type === 'info') {
-      participantCount = msg.count;
-      setStatus(`Verbunden ✓ — ${participantCount} Teilnehmer`);
-    } else if (msg.type === 'optik') {
-      applyOptik(msg.settings);
-      syncOptikUI(msg.settings);
-    } else {
-      applyRemote(msg);
-    }
-  };
-  ws.onclose = () => {
-    syncOpen = false;
-    setStatus('Verbindung getrennt — versuche neu …');
-    setTimeout(connect, 3000);
-  };
-  ws.onerror = () => setStatus('Verbindungsfehler');
-}
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight - 36);
+      camera.aspect = window.innerWidth / (window.innerHeight - 36);
+      camera.updateProjectionMatrix();
+    });
 
-const container = document.getElementById('canvas-container');
-const canvas    = document.getElementById('three-canvas');
-
-// ── Renderer ──────────────────────────────────────────────────────────────────
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-// ── Scene ─────────────────────────────────────────────────────────────────────
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1a1a2e);
-scene.fog = new THREE.Fog(0x1a1a2e, 65, 120);
-
-// ── Camera state ──────────────────────────────────────────────
-const camera_obj = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
-const camera = {
-  mode: 'orbit',
-  theta: 0, phi: 0.65, radius: 44,
-  target: { x: 0, y: 0, z: 0 },
-
-  povFigureId: null,
-  povYaw: 0, povPitch: -0.087,
-  fov: 45,
-
-  flyPos: { x: 0, y: 8, z: 30 },
-  flyYaw: 0, flyPitch: 0,
-  flySpeed: 5,
-
-  autoSpeed: 0.15,
-  autoPausedUntil: 0,
-
-  anim: null,
-};
-
-const easings = {
-  linear: t => t,
-  'ease-out-cubic': t => 1 - Math.pow(1 - t, 3),
-  'ease-in-out-cubic': t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2,
-};
-
-function snapshot() {
-  return {
-    mode: camera.mode,
-    theta: camera.theta, phi: camera.phi, radius: camera.radius,
-    target: { ...camera.target },
-    povYaw: camera.povYaw, povPitch: camera.povPitch, fov: camera.fov,
-    flyPos: { ...camera.flyPos }, flyYaw: camera.flyYaw, flyPitch: camera.flyPitch,
-  };
-}
-
-function easeCamera(to, dur = 400, easing = 'ease-out-cubic', onDone = null) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) dur = 0;
-  if (dur <= 0) { applyCameraSnapshot({ ...snapshot(), ...to }); onDone && onDone(); return; }
-  camera.anim = { from: snapshot(), to: { ...snapshot(), ...to }, t0: performance.now(), dur, easing, onDone };
-}
-
-function applyCameraSnapshot(s) {
-  if (s.mode !== undefined) camera.mode = s.mode;
-  if (s.theta !== undefined) camera.theta = s.theta;
-  if (s.phi !== undefined)   camera.phi = s.phi;
-  if (s.radius !== undefined) camera.radius = s.radius;
-  if (s.target) camera.target = { ...s.target };
-  if (s.povYaw !== undefined) camera.povYaw = s.povYaw;
-  if (s.povPitch !== undefined) camera.povPitch = s.povPitch;
-  if (s.fov !== undefined) camera.fov = s.fov;
-  if (s.flyPos) camera.flyPos = { ...s.flyPos };
-  if (s.flyYaw !== undefined) camera.flyYaw = s.flyYaw;
-  if (s.flyPitch !== undefined) camera.flyPitch = s.flyPitch;
-}
-
-function lerp(a, b, t) { return a + (b - a) * t; }
-function lerpVec3(a, b, t) { return { x: lerp(a.x,b.x,t), y: lerp(a.y,b.y,t), z: lerp(a.z,b.z,t) }; }
-
-function tickAnim() {
-  if (!camera.anim) return;
-  const { from, to, t0, dur, easing, onDone } = camera.anim;
-  const now = performance.now();
-  const u = Math.min(1, (now - t0) / dur);
-  const e = easings[easing](u);
-  camera.theta  = lerp(from.theta,  to.theta,  e);
-  camera.phi    = lerp(from.phi,    to.phi,    e);
-  camera.radius = lerp(from.radius, to.radius, e);
-  camera.target = lerpVec3(from.target, to.target, e);
-  camera.fov    = lerp(from.fov,    to.fov,    e);
-  if (u >= 1) {
-    if (to.mode !== from.mode) camera.mode = to.mode;
-    camera.anim = null;
-    onDone && onDone();
-  }
-}
-
-function updateCameraOrbit() {
-  camera_obj.fov = camera.fov;
-  camera_obj.updateProjectionMatrix();
-  camera_obj.position.set(
-    camera.target.x + camera.radius * Math.sin(camera.phi) * Math.sin(camera.theta),
-    camera.target.y + camera.radius * Math.cos(camera.phi),
-    camera.target.z + camera.radius * Math.sin(camera.phi) * Math.cos(camera.theta)
-  );
-  camera_obj.lookAt(camera.target.x, camera.target.y, camera.target.z);
-}
-
-function updateCamera() {
-  tickAnim();
-  return updateCameraOrbit();
-}
-
-updateCamera();
-
-// ── Presets ──────────────────────────────────────────────
-const PRESETS = {
-  1: { name: 'Draufsicht',  theta: 0,           phi: 0.12,        radius: 'fit' },
-  2: { name: 'Vorderseite', theta: 0,            phi: 1.10,        radius: 'fit' },
-  3: { name: 'Links',       theta: -Math.PI/2,   phi: 0.85,        radius: 'fit' },
-  4: { name: 'Rechts',      theta:  Math.PI/2,   phi: 0.85,        radius: 'fit' },
-  5: { name: 'Standard',    theta: Math.PI/5,    phi: 0.65,        radius: 44    },
-  6: { name: 'Hoch',        theta: Math.PI/4,    phi: 0.38,        radius: 50    },
-};
-
-function computeFit() {
-  const positions = [
-    { x: -BW/2, z: -BD/2 }, { x: BW/2, z: BD/2 },
-    ...figures.map(f => ({ x: f.mesh.position.x, z: f.mesh.position.z })),
+  // ----- Mannequin model -----
+  const BONE_NAMES = [
+    'hips','head',
+    'lShoulder','rShoulder','lElbow','rElbow','lWrist','rWrist',
+    'lHip','rHip','lKnee','rKnee','lAnkle','rAnkle'
   ];
-  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
-  positions.forEach(p => { minX = Math.min(minX,p.x); maxX = Math.max(maxX,p.x); minZ = Math.min(minZ,p.z); maxZ = Math.max(maxZ,p.z); });
-  const dx = maxX - minX, dz = maxZ - minZ;
-  const halfDiag = 0.5 * Math.sqrt(dx*dx + dz*dz);
-  const vFov = camera_obj.fov * Math.PI / 180;
-  const r = (halfDiag * 1.10) / Math.tan(vFov / 2);
-  return Math.max(12, Math.min(75, r));
-}
+  const CONTACT_POINTS = [
+    { bone:'lWrist', color:0xffd84a }, { bone:'rWrist', color:0xffd84a },
+    { bone:'lAnkle', color:0x6be0a0 }, { bone:'rAnkle', color:0x6be0a0 },
+    { bone:'lKnee',  color:0x4a9adf }, { bone:'rKnee',  color:0x4a9adf },
+    { bone:'lElbow', color:0xc8a96e }, { bone:'rElbow', color:0xc8a96e },
+    { bone:'head',   color:0xe09090 },
+  ];
 
-function goToPreset(n) {
-  const p = PRESETS[n];
-  if (!p) return;
-  const radius = p.radius === 'fit' ? computeFit() : p.radius;
-  easeCamera({ mode: 'orbit', theta: p.theta, phi: p.phi, radius, target: { x:0, y:0, z:0 } }, 400, 'ease-out-cubic');
-  announceLive(`Ansicht: ${p.name}`);
-}
-
-function goHome() {
-  easeCamera({ mode: 'orbit', theta: PRESETS[5].theta, phi: PRESETS[5].phi, radius: 44, target: { x:0, y:0, z:0 } }, 500, 'ease-in-out-cubic');
-  announceLive('Home');
-}
-
-function goFit() {
-  easeCamera({ radius: computeFit(), target: { x:0, y:0, z:0 } }, 350, 'ease-out-cubic');
-  announceLive('Eingerahmt');
-}
-
-function activePresetName() {
-  for (const [n, p] of Object.entries(PRESETS)) {
-    const r = p.radius === 'fit' ? computeFit() : p.radius;
-    if (Math.abs(camera.theta - p.theta) < 0.05 &&
-        Math.abs(camera.phi - p.phi) < 0.05 &&
-        Math.abs(camera.radius - r) < 1.0 &&
-        Math.abs(camera.target.x) < 0.5 && Math.abs(camera.target.z) < 0.5) return p.name;
-  }
-  return null;
-}
-
-// aria-live announcer
-const liveRegion = document.createElement('div');
-liveRegion.setAttribute('aria-live', 'polite');
-liveRegion.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
-document.body.appendChild(liveRegion);
-function announceLive(text) { liveRegion.textContent = ''; setTimeout(() => liveRegion.textContent = text, 50); }
-
-window.camera = camera;
-window.easeCamera = easeCamera;
-window.snapshot = snapshot;
-window.goToPreset = goToPreset; window.goHome = goHome; window.goFit = goFit;
-
-// ── Lights ────────────────────────────────────────────────────────────────────
-const ambient = new THREE.AmbientLight(0xffffff, 0.45);
-scene.add(ambient);
-const sun = new THREE.DirectionalLight(0xffffff, 0.9);
-sun.position.set(10, 20, 10);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left:-28, right:28, top:28, bottom:-28, near:0.5, far:80 });
-scene.add(sun);
-const fill = new THREE.DirectionalLight(0x8090ff, 0.3);
-fill.position.set(-8, 5, -10);
-scene.add(fill);
-
-// ── Board ─────────────────────────────────────────────────────────────────────
-const BW = 36, BD = 28;
-
-// Procedural wood texture — seeded LCG so grain is deterministic across sessions
-function makeWoodTexture(dark = true) {
-  const W = 512, H = 512;
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
-
-  ctx.fillStyle = dark ? '#2d1a0b' : '#c8a060';
-  ctx.fillRect(0, 0, W, H);
-
-  const lg = ctx.createLinearGradient(0, 0, W, 0);
-  if (dark) {
-    lg.addColorStop(0,   'rgba(25,12,2,0.25)');
-    lg.addColorStop(0.5, 'rgba(55,28,6,0.12)');
-    lg.addColorStop(1,   'rgba(20,10,1,0.22)');
-  } else {
-    lg.addColorStop(0,   'rgba(255,220,160,0.2)');
-    lg.addColorStop(0.5, 'rgba(230,190,120,0.1)');
-    lg.addColorStop(1,   'rgba(200,160,80,0.2)');
-  }
-  ctx.fillStyle = lg;
-  ctx.fillRect(0, 0, W, H);
-
-  // Seeded pseudo-random (avoids Math.random so texture is stable on reload)
-  let seed = 0x4d2a7c1b;
-  function rand() {
-    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
-    return (seed >>> 0) / 0xffffffff;
+  function makeBone(parent, length, color = 0xb8c0a8) {
+    const g = new THREE.Group();
+    const geom = new THREE.CylinderGeometry(0.06, 0.06, length, 8);
+    geom.translate(0, -length / 2, 0); // pivot at top
+    const mat = new THREE.MeshLambertMaterial({ color });
+    const mesh = new THREE.Mesh(geom, mat);
+    g.add(mesh);
+    g.userData.length = length;
+    parent.add(g);
+    return g;
   }
 
-  // Horizontal grain lines (= along board's long axis in world space)
-  for (let i = 0; i < 90; i++) {
-    const y0  = (i / 90) * H + (rand() - 0.5) * (H / 90 * 0.5);
-    const gw  = 0.4 + rand() * 2.2;
-    const a   = 0.04 + rand() * 0.13;
-    const dark = rand() > 0.42;
-    ctx.lineWidth   = gw;
-    ctx.strokeStyle = dark
-      ? `rgba(5,1,0,${(a * 1.6).toFixed(3)})`
-      : `rgba(150,75,22,${a.toFixed(3)})`;
-    ctx.beginPath();
-    ctx.moveTo(0, y0 + (rand() - 0.5) * 3);
-    for (let x = 0; x <= W; x += 6 + rand() * 10) {
-      ctx.lineTo(x, y0 + Math.sin(x * 0.007 + i * 0.9) * 3.5 + (rand() - 0.5) * 1.2);
+  function makeMannequin(id, position = { x: 0, z: 0 }) {
+    const root = new THREE.Group();
+    root.position.set(position.x, 0, position.z);
+
+    // Hips at y≈1.0; spine up to head
+    const hips = new THREE.Group(); hips.position.y = 1.0; root.add(hips);
+    const torsoMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.7, 0.25),
+      new THREE.MeshLambertMaterial({ color: 0xb8c0a8 })
+    );
+    torsoMesh.position.y = 0.35; hips.add(torsoMesh);
+
+    const head = new THREE.Group(); head.position.y = 0.85; hips.add(head);
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12),
+      new THREE.MeshLambertMaterial({ color: 0xd9c89b }));
+    head.add(headMesh);
+
+    // Arms
+    const lShoulder = new THREE.Group(); lShoulder.position.set( 0.28, 0.65, 0); hips.add(lShoulder);
+    const rShoulder = new THREE.Group(); rShoulder.position.set(-0.28, 0.65, 0); hips.add(rShoulder);
+    const lUpper = makeBone(lShoulder, 0.32); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
+    const rUpper = makeBone(rShoulder, 0.32); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
+    const lFore  = makeBone(lElbow, 0.30);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
+    const rFore  = makeBone(rElbow, 0.30);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+
+    // Legs
+    const lHip = new THREE.Group(); lHip.position.set( 0.12, 0, 0); hips.add(lHip);
+    const rHip = new THREE.Group(); rHip.position.set(-0.12, 0, 0); hips.add(rHip);
+    makeBone(lHip, 0.42); const lKnee = new THREE.Group(); lKnee.position.y = -0.42; lHip.add(lKnee);
+    makeBone(rHip, 0.42); const rKnee = new THREE.Group(); rKnee.position.y = -0.42; rHip.add(rKnee);
+    makeBone(lKnee, 0.40); const lAnkle = new THREE.Group(); lAnkle.position.y = -0.40; lKnee.add(lAnkle);
+    makeBone(rKnee, 0.40); const rAnkle = new THREE.Group(); rAnkle.position.y = -0.40; rKnee.add(rAnkle);
+
+    const bones = { hips, head, lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle };
+
+    // Contact-point spheres (raycaster-hittable)
+    for (const cp of CONTACT_POINTS) {
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.07, 12, 10),
+        new THREE.MeshLambertMaterial({ color: cp.color })
+      );
+      sphere.userData.isContact = true;
+      sphere.userData.boneName = cp.bone;
+      sphere.userData.figureId = id;
+      bones[cp.bone].add(sphere);
     }
-    ctx.stroke();
-  }
 
-  // 1–2 subtle knot shadows
-  const knots = 1 + Math.floor(rand() * 2);
-  for (let k = 0; k < knots; k++) {
-    const kx = W * (0.15 + rand() * 0.7);
-    const ky = H * (0.1  + rand() * 0.8);
-    const rx = 12 + rand() * 18;
-    const ry =  8 + rand() * 10;
-    const gr = ctx.createRadialGradient(kx, ky, 0, kx, ky, Math.max(rx, ry) * 1.4);
-    gr.addColorStop(0,   'rgba(4,1,0,0.55)');
-    gr.addColorStop(0.35,'rgba(4,1,0,0.25)');
-    gr.addColorStop(1,   'rgba(4,1,0,0)');
-    ctx.fillStyle = gr;
-    ctx.save();
-    ctx.translate(kx, ky);
-    ctx.scale(1, ry / rx);
-    ctx.beginPath();
-    ctx.arc(0, 0, rx * 1.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
+    // Selection ellipse (hidden until selected)
+    const ringGeo = new THREE.RingGeometry(0.55, 0.62, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8a96e, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.01; ring.visible = false;
+    root.add(ring);
 
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-  return tex;
-}
+    scene.add(root);
 
-function makeFeltTexture(color) {
-  const W = 256, H = 256, c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = color; ctx.fillRect(0, 0, W, H);
-  let seed = 0xdeadbeef;
-  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
-  for (let i = 0; i < 6000; i++) {
-    ctx.strokeStyle = `rgba(0,0,0,${(0.04 + r() * 0.06).toFixed(3)})`;
-    ctx.lineWidth = 0.5 + r() * 0.8;
-    const x = r() * W, y = r() * H, len = 3 + r() * 6, a = r() * Math.PI * 2;
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); ctx.stroke();
-  }
-  return new THREE.CanvasTexture(c);
-}
-
-function makeMarbleTexture() {
-  const W = 512, H = 512, c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#e8e4dc'; ctx.fillRect(0, 0, W, H);
-  let seed = 0xabcdef12;
-  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
-  for (let i = 0; i < 40; i++) {
-    const x = r() * W, y = r() * H;
-    const g = ctx.createLinearGradient(x, y, x + (r() - 0.5) * W * 0.8, y + (r() - 0.5) * H * 0.8);
-    const a = 0.03 + r() * 0.08;
-    g.addColorStop(0, 'rgba(180,160,140,0)'); g.addColorStop(0.5, `rgba(140,120,100,${a.toFixed(3)})`); g.addColorStop(1, 'rgba(180,160,140,0)');
-    ctx.strokeStyle = g; ctx.lineWidth = 0.5 + r() * 1.5;
-    ctx.beginPath(); ctx.moveTo(x, y);
-    for (let t = 0; t < 1; t += 0.05) ctx.lineTo(x + (r() - 0.5) * W * 0.6, y + (r() - 0.5) * H * 0.6);
-    ctx.stroke();
-  }
-  return new THREE.CanvasTexture(c);
-}
-
-function makeSandTexture() {
-  const W = 256, H = 256, c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#d4b483'; ctx.fillRect(0, 0, W, H);
-  let seed = 0x12345678;
-  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
-  for (let i = 0; i < 8000; i++) {
-    const x = r() * W, y = r() * H;
-    ctx.fillStyle = `rgba(${Math.floor(180 + r() * 40)},${Math.floor(140 + r() * 30)},${Math.floor(60 + r() * 40)},${(0.3 + r() * 0.5).toFixed(3)})`;
-    ctx.beginPath(); ctx.arc(x, y, 0.4 + r() * 0.8, 0, Math.PI * 2); ctx.fill();
-  }
-  return new THREE.CanvasTexture(c);
-}
-
-function makeSlateTexture() {
-  const W = 256, H = 256, c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#2a2a30'; ctx.fillRect(0, 0, W, H);
-  let seed = 0xcafe1234;
-  function r() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; }
-  for (let i = 0; i < 60; i++) {
-    ctx.strokeStyle = `rgba(${Math.floor(50 + r() * 30)},${Math.floor(50 + r() * 30)},${Math.floor(60 + r() * 30)},${(0.15 + r() * 0.2).toFixed(3)})`;
-    ctx.lineWidth = 0.5 + r(); ctx.beginPath();
-    const y = r() * H; ctx.moveTo(0, y); ctx.lineTo(W, y + (r() - 0.5) * 10); ctx.stroke();
-  }
-  return new THREE.CanvasTexture(c);
-}
-
-const BOARD_PRESETS = {
-  'wood-dark':  { mat: () => new THREE.MeshStandardMaterial({ map: makeWoodTexture(true),  roughness: 0.92, metalness: 0.0 }), edge: 0x1e1006 },
-  'wood-light': { mat: () => new THREE.MeshStandardMaterial({ map: makeWoodTexture(false), roughness: 0.85, metalness: 0.0 }), edge: 0x8b6020 },
-  'felt-green': { mat: () => new THREE.MeshStandardMaterial({ map: makeFeltTexture('#2d6030'), roughness: 0.98, metalness: 0.0 }), edge: 0x1a3a1e },
-  'slate':      { mat: () => new THREE.MeshStandardMaterial({ map: makeSlateTexture(),    roughness: 0.8,  metalness: 0.1  }), edge: 0x181820 },
-  'sand':       { mat: () => new THREE.MeshStandardMaterial({ map: makeSandTexture(),     roughness: 0.95, metalness: 0.0  }), edge: 0x9a7840 },
-  'marble':     { mat: () => new THREE.MeshStandardMaterial({ map: makeMarbleTexture(),   roughness: 0.4,  metalness: 0.05 }), edge: 0xb0a090 },
-};
-
-const BG_PRESETS = {
-  'space':  { color: 0x1a1a2e, fog: 0x1a1a2e },
-  'dusk':   { color: 0x1a1020, fog: 0x1a1020 },
-  'forest': { color: 0x0a140a, fog: 0x0a140a },
-  'light':  { color: 0xe8e8f0, fog: 0xe8e8f0 },
-};
-
-const LIGHT_PRESETS = {
-  'neutral':  { sun: 0xffffff, sunI: 0.9,  fill: 0x8090ff, fillI: 0.3, amb: 0.45 },
-  'warm':     { sun: 0xffe8c0, sunI: 1.1,  fill: 0xff9040, fillI: 0.2, amb: 0.5  },
-  'cool':     { sun: 0xc0d8ff, sunI: 0.8,  fill: 0x4060ff, fillI: 0.4, amb: 0.4  },
-  'dramatic': { sun: 0xffffff, sunI: 1.4,  fill: 0x1020a0, fillI: 0.1, amb: 0.2  },
-};
-
-let currentOptik = { board: 'wood-dark', customColor: null, bg: 'space', light: 'neutral' };
-
-const boardMesh = new THREE.Mesh(
-  new THREE.BoxGeometry(BW, 0.5, BD),
-  BOARD_PRESETS['wood-dark'].mat()
-);
-boardMesh.receiveShadow = true;
-boardMesh.position.y = -0.25;
-scene.add(boardMesh);
-
-const edgeMesh = new THREE.Mesh(
-  new THREE.BoxGeometry(BW+0.6, 0.7, BD+0.6),
-  new THREE.MeshStandardMaterial({ color: 0x1e1006, roughness: 0.95, metalness: 0.0 })
-);
-edgeMesh.position.y = -0.35;
-scene.add(edgeMesh);
-
-function applyOptik(settings) {
-  currentOptik = settings;
-
-  const oldMat = boardMesh.material;
-  if (settings.board === 'custom' && settings.customColor) {
-    boardMesh.material = new THREE.MeshStandardMaterial({ color: settings.customColor, roughness: 0.9, metalness: 0.0 });
-    edgeMesh.material.color.setHex(0x2a2a2a);
-  } else {
-    const preset = BOARD_PRESETS[settings.board] || BOARD_PRESETS['wood-dark'];
-    boardMesh.material = preset.mat();
-    edgeMesh.material.color.setHex(preset.edge);
-  }
-  if (oldMat) oldMat.dispose();
-
-  const bg = BG_PRESETS[settings.bg] || BG_PRESETS['space'];
-  scene.background.setHex(bg.color);
-  scene.fog = new THREE.Fog(bg.fog, 65, 120);
-
-  const lp = LIGHT_PRESETS[settings.light] || LIGHT_PRESETS['neutral'];
-  sun.color.setHex(lp.sun);    sun.intensity  = lp.sunI;
-  fill.color.setHex(lp.fill);  fill.intensity = lp.fillI;
-  ambient.intensity = lp.amb;
-}
-
-function syncOptikUI(settings) {
-  document.querySelectorAll('[data-board]').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('[data-bg]').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('[data-light]').forEach(c => c.classList.remove('active'));
-  const bChip = document.querySelector(`[data-board="${settings.board}"]`);
-  if (bChip) bChip.classList.add('active');
-  const bgChip = document.querySelector(`[data-bg="${settings.bg}"]`);
-  if (bgChip) bgChip.classList.add('active');
-  const lChip = document.querySelector(`[data-light="${settings.light}"]`);
-  if (lChip) lChip.classList.add('active');
-  const colorInput = document.getElementById('optik-color');
-  if (colorInput && settings.customColor) colorInput.value = settings.customColor;
-  if (colorInput) colorInput.classList.toggle('active', settings.board === 'custom');
-}
-
-function sendOptik(settings) {
-  applyOptik(settings);
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'optik', settings }));
-  } else {
-    localStorage.setItem('brett_optik', JSON.stringify(settings));
-  }
-}
-
-// Restore from localStorage in standalone / offline mode
-try {
-  const saved = localStorage.getItem('brett_optik');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    applyOptik(parsed);
-    syncOptikUI(parsed);
-  }
-} catch {}
-
-// ── Art library bootstrap ────────────────────────────────────────────────
-let ART_MANIFEST = null;
-const characterIds = new Set();
-const characterTextures = new Map();   // id → THREE.CanvasTexture
-
-function svgToImage(svgText) {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([svgText], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.onload  = () => { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-    img.src = url;
-  });
-}
-
-async function loadCharacterTexture(id) {
-  if (characterTextures.has(id)) return characterTextures.get(id);
-  const meta = ART_MANIFEST.assets.find(a => a.id === id);
-  const svgText = await fetch('/art-library/' + meta.files.figurine).then(r => r.text());
-  const img = await svgToImage(svgText);
-  const c = document.createElement('canvas'); c.width = 240; c.height = 400;
-  c.getContext('2d').drawImage(img, 0, 0, 240, 400);
-  const tex = new THREE.CanvasTexture(c);
-  tex.minFilter = THREE.LinearFilter;
-  tex.needsUpdate = true;
-  characterTextures.set(id, tex);
-  return tex;
-}
-
-const CAT_LABELS = {
-  personen:  '👤 Personen',
-  rollen:    '🏢 Rollen',
-  abstrakta: '◆ Abstrakta',
-  symbole:   '♥ Symbole',
-  raeume:    '🚪 Räume',
-  natur:     '🌿 Natur',
-};
-let activeCategoryId = 'personen';
-
-function renderTabContent(categoryId) {
-  activeCategoryId = categoryId;
-  const tabs = document.querySelectorAll('.cat-tab');
-  tabs.forEach(t => t.classList.toggle('active', t.dataset.cat === categoryId));
-  const container = document.getElementById('figure-buttons');
-  while (container.firstChild) container.removeChild(container.firstChild);
-  if (!ART_MANIFEST) return;
-  for (const a of ART_MANIFEST.assets) {
-    if (a.category !== categoryId) continue;
-    if (!characterIds.has(a.id)) continue;
-    const btn = document.createElement('button');
-    btn.className = 'figure-btn';
-    btn.dataset.type = a.id;
-    btn.title = a.label || a.id;
-    btn.setAttribute('aria-label', a.label || a.id);
-    const artSpan = document.createElement('span');
-    artSpan.className = 'figure-art';
-    btn.appendChild(artSpan);
-    const svgUrl = '/art-library/' + a.files.figurine;
-    fetch(svgUrl).then(r => r.text()).then(svgText => {
-      const parsed = new DOMParser().parseFromString(svgText, 'image/svg+xml');
-      artSpan.appendChild(document.importNode(parsed.documentElement, true));
-    });
-    btn.addEventListener('click', () => {
-      const x = (Math.random()-0.5)*(BW-4);
-      const z = (Math.random()-0.5)*(BD-4);
-      const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
-      send({ type: 'add', fig: figToJSON(fig) });
-      selectFigure(fig);
-      openLabelModal(fig);
-    });
-    container.appendChild(btn);
-  }
-}
-
-async function bootArtLibrary() {
-  try {
-    const r = await fetch('/art-library/manifest.json');
-    if (!r.ok) throw new Error('no manifest');
-    ART_MANIFEST = await r.json();
-    for (const a of ART_MANIFEST.assets) {
-      if (a.kind === 'character') characterIds.add(a.id);
+    // Per-bone spring state (filled by preset/spring in later tasks)
+    const bone = {};
+    for (const name of BONE_NAMES) {
+      bone[name] = {
+        currentRot: { x: 0, z: 0 },
+        targetRot:  { x: 0, z: 0 },
+        velocity:   { x: 0, z: 0 },
+      };
     }
-    await Promise.all([...characterIds].map(loadCharacterTexture));
-    console.log('[art] loaded', characterIds.size, 'characters');
 
-    if (ART_MANIFEST.version === '2') {
-      const seenCats = [];
-      for (const a of ART_MANIFEST.assets) {
-        if (a.category && !seenCats.includes(a.category)) seenCats.push(a.category);
+    return {
+      id,
+      type: 'mannequin',
+      root, hips, bones, ring,
+      bone,
+      walkTarget: null,
+      walking: false,
+      boneOverrides: {},
+      label: 'Figur',
+      color: '#b8c0a8',
+      facingY: 0,
+    };
+  }
+
+  function addFigure(position) {
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('f-' + Math.random().toString(36).slice(2,10));
+    const fig = makeMannequin(id, position);
+    STATE.figures.push(fig);
+    selectFigure(id);
+    return fig;
+  }
+
+  // ── Panel state ──────────────────────────────────────────────────────────────
+  let panelColor = '#b8c0a8'; // default body color for new figures
+
+  function recolorFigure(fig, hexColor) {
+    const threeColor = new THREE.Color(hexColor);
+    fig.root.traverse(o => {
+      if (o.isMesh && !o.userData.isContact && o !== fig.ring) {
+        if (o.material) o.material.color.set(threeColor);
       }
-      const tabContainer = document.getElementById('category-tabs');
-      for (const cat of seenCats) {
-        const btn = document.createElement('button');
-        btn.className = 'cat-tab' + (cat === 'personen' ? ' active' : '');
-        btn.dataset.cat = cat;
-        btn.textContent = CAT_LABELS[cat] || cat;
-        btn.addEventListener('click', () => renderTabContent(cat));
-        tabContainer.appendChild(btn);
-      }
-      renderTabContent('personen');
+    });
+    fig.color = hexColor;
+  }
+
+  function syncPanelToSelection(id) {
+    const title  = document.getElementById('fig-panel-title');
+    const addBtn = document.getElementById('fig-panel-add');
+    const input  = document.getElementById('fig-label-input');
+    if (!title) return;
+    const fig = STATE.figures.find(f => f.id === id);
+    if (fig) {
+      title.textContent = 'FIGUR BEARBEITEN';
+      if (addBtn) addBtn.hidden = true;
+      if (input) input.value = fig.label || '';
     } else {
-      // Legacy v1: alle Buttons flat rendern
-      const container = document.getElementById('figure-buttons');
-      for (const a of ART_MANIFEST.assets) {
-        if (!characterIds.has(a.id)) continue;
-        const btn = document.createElement('button');
-        btn.className = 'figure-btn';
-        btn.dataset.type = a.id;
-        btn.title = a.label || a.id;
-        btn.setAttribute('aria-label', a.label || a.id);
-        const artSpan = document.createElement('span');
-        artSpan.className = 'figure-art';
-        btn.appendChild(artSpan);
-        const svgText = await fetch('/art-library/' + a.files.figurine).then(r => r.text());
-        const parsed = new DOMParser().parseFromString(svgText, 'image/svg+xml');
-        artSpan.appendChild(document.importNode(parsed.documentElement, true));
-        btn.addEventListener('click', () => {
-          const x = (Math.random()-0.5)*(BW-4);
-          const z = (Math.random()-0.5)*(BD-4);
-          const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
-          send({ type: 'add', fig: figToJSON(fig) });
-          selectFigure(fig);
-          openLabelModal(fig);
-        });
-        container.appendChild(btn);
-      }
+      title.textContent = 'NEUE FIGUR';
+      if (addBtn) addBtn.hidden = false;
+      if (input) input.value = '';
     }
-  } catch (e) {
-    console.warn('[art] manifest unavailable, using legacy shapes', e.message);
-    ART_MANIFEST = null;
-  } finally {
-    window.__ART_READY__ = true;
-    window.characterIds = characterIds;
   }
-}
 
-bootArtLibrary();
+  function selectFigure(id) {
+    STATE.selectedId = id;
+    for (const f of STATE.figures) {
+      f.ring.visible = (f.id === id);
+      f.root.traverse(o => {
+        if (o.isMesh && !o.userData.isContact && o !== f.ring) {
+          if (o.material && 'opacity' in o.material) {
+            o.material.transparent = true;
+            o.material.opacity = (f.id === id) ? 1.0 : 0.55;
+          }
+        }
+      });
+    }
+    syncPanelToSelection(id);
+  }
 
-document.getElementById('constellation-type').addEventListener('change', function() {
-  const tabMap = {
-    familie:        'personen',
-    organisation:   'rollen',
-    tetralemma:     'abstrakta',
-    'inneres-team': 'personen',
-  };
-  const target = tabMap[this.value];
-  if (target) renderTabContent(target);
-});
+  // ── Panel toggle ─────────────────────────────────────────────────────────────
+  const figPanelBtn   = document.getElementById('fig-panel-btn');
+  const figPanel      = document.getElementById('fig-panel');
+  const figPanelClose = document.getElementById('fig-panel-close');
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let figures = [];
-let selectedFigure = null;
-let ctrlBall = null, ctrlBallActive = false, ctrlBallDrag = false;
-let ctrlBallStart = { x: 0, y: 0 };
-let ctrlBallShowTime = 0;
+  function openFigPanel()  {
+    figPanel.hidden = false;
+    figPanelBtn.classList.add('open');
+    figPanelBtn.setAttribute('aria-expanded', 'true');
+    syncPanelToSelection(STATE.selectedId);
+  }
+  function closeFigPanel() {
+    figPanel.hidden = true;
+    figPanelBtn.classList.remove('open');
+    figPanelBtn.setAttribute('aria-expanded', 'false');
+  }
 
-function showCtrlBall(wx, wz) {
-  if (ctrlBall) scene.remove(ctrlBall);
-  ctrlBall = new THREE.Group();
-
-  const sphereGeo = new THREE.SphereGeometry(1.8, 24, 16);
-  const sphereMat = new THREE.MeshStandardMaterial({
-    color: 0xffd84a, transparent: true, opacity: 0, roughness: 0.3, metalness: 0.6,
+  figPanelBtn.addEventListener('click', () => {
+    figPanel.hidden ? openFigPanel() : closeFigPanel();
   });
-  const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-  ctrlBall.add(sphere);
-
-  const ringGeo = new THREE.TorusGeometry(2.4, 0.18, 8, 32);
-  const ringMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, transparent: true, opacity: 0, roughness: 0.4, metalness: 0.2,
-  });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2;
-  ctrlBall.add(ring);
-
-  ctrlBall.position.set(wx, 3.0, wz);
-  scene.add(ctrlBall);
-  ctrlBallActive = true;
-  ctrlBallDrag = false;
-  ctrlBallShowTime = Date.now();
-}
-
-function hideCtrlBall() {
-  if (ctrlBall) { scene.remove(ctrlBall); ctrlBall = null; }
-  ctrlBallActive = false;
-  ctrlBallDrag = false;
-}
-
-function pickBall(ndc) {
-  if (!ctrlBall) return false;
-  raycaster.setFromCamera(ndc, camera_obj);
-  return raycaster.intersectObject(ctrlBall, true).length > 0;
-}
-
-let currentColor = '#e06b6b';
-let pendingLabelFig = null;
-
-// ── Geometry helpers ──────────────────────────────────────────────────────────
-function hex2col(h){ return new THREE.Color(h); }
-
-// Create a face-marking sprite (dot on front face)
-function makeFaceMarker(col) {
-  const c = document.createElement('canvas');
-  c.width = 64; c.height = 64;
-  const ctx = c.getContext('2d');
-  // bright face dot
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath(); ctx.arc(32,32,20,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle = col;
-  ctx.beginPath(); ctx.arc(32,32,13,0,Math.PI*2); ctx.fill();
-  const tex = new THREE.CanvasTexture(c);
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(0.55, 0.55, 1);
-  return sprite;
-}
-
-// Arrow chevron on base indicating forward direction
-function makeDirectionArrow(col) {
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0.38);
-  shape.lineTo(0.22, 0);
-  shape.lineTo(0.10, 0.08);
-  shape.lineTo(0.10, -0.30);
-  shape.lineTo(-0.10, -0.30);
-  shape.lineTo(-0.10, 0.08);
-  shape.lineTo(-0.22, 0);
-  shape.closePath();
-  const geo = new THREE.ShapeGeometry(shape);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthTest: false });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.position.set(0, 0.21, -0.7);
-  return mesh;
-}
-
-// ── Figure construction ───────────────────────────────────────────────────────
-function buildFigure(type, color) {
-  const col  = hex2col(color);
-  const dark = col.clone().multiplyScalar(0.45);
-  const mat  = new THREE.MeshStandardMaterial({ color: col,  roughness: 0.38, metalness: 0.12 });
-  const back = new THREE.MeshStandardMaterial({ color: dark, roughness: 0.55, metalness: 0.08 });
-
-  const group = new THREE.Group();
-
-  if (characterIds.has(type)) {
-    // Sprite path: figurine SVG as a billboard, mounted on the existing base disc.
-    const tex = characterTextures.get(type);
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: tex, transparent: true, depthTest: true,
-    }));
-    sprite.scale.set(2.0, 3.4, 1);     // matches 120×200 figurine viewBox aspect
-    sprite.position.y = 1.7;
-    sprite.castShadow = false;          // baked shadow lives in the SVG; base provides ground shadow
-    group.add(sprite);
-  } else if (type === 'pawn') {
-    // Legacy path — kept verbatim for back-compat with old snapshots.
-    const bodyF = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 1.75, 24, 1, false, 0, Math.PI), mat);
-    const bodyB = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 1.75, 24, 1, false, Math.PI, Math.PI), back);
-    bodyF.position.y = 0.875; bodyB.position.y = 0.875;
-    bodyF.castShadow = true; bodyB.castShadow = true;
-    const headF = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 16, 0, Math.PI, 0, Math.PI), mat);
-    const headB = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 16, Math.PI, Math.PI, 0, Math.PI), back);
-    headF.position.y = 2.0; headB.position.y = 2.0;
-    headF.castShadow = true; headB.castShadow = true;
-    group.add(bodyF, bodyB, headF, headB);
-    const dot = makeFaceMarker(color); dot.position.set(0, 2.0, 0.53); group.add(dot);
-  } else if (type === 'triangle') {
-    const coneF = new THREE.Mesh(new THREE.ConeGeometry(0.88, 2.15, 16, 1, false, 0, Math.PI), mat);
-    const coneB = new THREE.Mesh(new THREE.ConeGeometry(0.88, 2.15, 16, 1, false, Math.PI, Math.PI), back);
-    coneF.position.y = 1.075; coneB.position.y = 1.075;
-    coneF.castShadow = true; coneB.castShadow = true;
-    const stripeGeo = new THREE.PlaneGeometry(0.25, 1.3);
-    const stripeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthTest: false });
-    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-    stripe.position.set(0, 1.1, 0.86);
-    group.add(coneF, coneB, stripe);
-  } else if (type === 'square') {
-    const frontMat = mat.clone();
-    const sideMat  = new THREE.MeshStandardMaterial({ color: col.clone().multiplyScalar(0.7), roughness: 0.45 });
-    const backMat2 = back.clone();
-    const topMat   = new THREE.MeshStandardMaterial({ color: col.clone().multiplyScalar(0.85), roughness: 0.4 });
-    const boxGeo = new THREE.BoxGeometry(1.18, 2.0, 1.18);
-    const boxMats = [ sideMat, sideMat, topMat, back, frontMat, backMat2 ];
-    const box = new THREE.Mesh(boxGeo, boxMats);
-    box.position.y = 1.0; box.castShadow = true;
-    const strGeo = new THREE.PlaneGeometry(0.22, 1.4);
-    const strMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, depthTest: false });
-    const stripe = new THREE.Mesh(strGeo, strMat);
-    stripe.position.set(0, 1.0, 0.6);
-    group.add(box, stripe);
-  } else if (type === 'diamond') {
-    const octF = new THREE.Mesh(new THREE.OctahedronGeometry(1.05, 0), mat);
-    octF.position.y = 1.05; octF.castShadow = true;
-    group.add(octF);
-    const dot = makeFaceMarker(color); dot.position.set(0, 1.05, 1.0); dot.scale.set(0.45, 0.45, 1); group.add(dot);
-  } else {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8),
-      new THREE.MeshBasicMaterial({ color: 0xff00ff }));
-    m.position.y = 0.5; group.add(m);
-  }
-
-  // Existing base disc + direction arrow — unchanged for ALL types.
-  const baseMat = new THREE.MeshStandardMaterial({ color: dark, roughness: 0.7 });
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.18, 32), baseMat);
-  base.position.y = 0.09; base.castShadow = true;
-  group.add(base);
-
-  const arrow = makeDirectionArrow(color);
-  group.add(arrow);
-
-  return group;
-}
-
-// ── Text label sprite ─────────────────────────────────────────────────────────
-function makeTextSprite(text) {
-  const c = document.createElement('canvas');
-  c.width = 256; c.height = 64;
-  const ctx = c.getContext('2d');
-  ctx.clearRect(0,0,256,64);
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  if (ctx.roundRect) ctx.roundRect(4,10,248,46,10); else ctx.rect(4,10,248,46);
-  ctx.fill();
-  ctx.font = 'bold 24px Segoe UI, sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff';
-  ctx.fillText(text.length > 18 ? text.slice(0,17)+'…' : text, 128, 36);
-  const tex = new THREE.CanvasTexture(c);
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-  const sp = new THREE.Sprite(mat);
-  sp.scale.set(4, 1, 1);
-  return sp;
-}
-
-// ── Add / update figure ───────────────────────────────────────────────────────
-function addFigure(type, color, x, z, label, scale, rotY, id) {
-  const mesh = buildFigure(type, color);
-  mesh.position.set(x, 0, z);
-  mesh.scale.setScalar(scale || 1.0);
-  mesh.rotation.y = rotY || 0;
-  scene.add(mesh);
-
-  const fig = { type, color, mesh, label: label||'', sprite: null, scale: scale||1.0, rotY: rotY||0 };
-  fig.id = id || `fig_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-  if (fig.label) { attachLabel(fig); }
-  figures.push(fig);
-  return fig;
-}
-
-window.addFigure = addFigure;
-window.figures = figures;
-
-function attachLabel(fig) {
-  if (fig.sprite) { fig.mesh.remove(fig.sprite); fig.sprite.material.map.dispose(); fig.sprite.material.dispose(); fig.sprite = null; }
-  if (!fig.label) return;
-  const sp = makeTextSprite(fig.label);
-  // Position above figure, independent of scale (divide by scale so world-height stays constant)
-  const h = 4.2 / (fig.scale || 1.0);
-  sp.position.set(0, h, 0);
-  fig.mesh.add(sp);
-  fig.sprite = sp;
-}
-
-function setLabel(fig, text) {
-  fig.label = text;
-  attachLabel(fig);
-}
-
-function setScale(fig, s) {
-  fig.scale = s;
-  fig.mesh.scale.setScalar(s);
-  attachLabel(fig); // reposition label
-}
-
-function setRotY(fig, rad) {
-  fig.rotY = rad;
-  fig.mesh.rotation.y = rad;
-}
-
-// ── Selection ring ────────────────────────────────────────────────────────────
-let selRing = null;
-function showSelRing(fig) {
-  clearSelRing();
-  const geo = new THREE.TorusGeometry(1.05, 0.07, 8, 48);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
-  selRing = new THREE.Mesh(geo, mat);
-  selRing.rotation.x = Math.PI/2;
-  selRing.position.y = 0.22;
-  fig.mesh.add(selRing);
-}
-function clearSelRing() {
-  if (selRing && selRing.parent) selRing.parent.remove(selRing);
-  selRing = null;
-}
-
-function selectFigure(fig) {
-  selectedFigure = fig;
-  clearSelRing();
-  const slider = document.getElementById('scale-slider');
-  const scaleVal = document.getElementById('scale-val');
-  if (fig) {
-    showSelRing(fig);
-    slider.value = fig.scale;
-    scaleVal.textContent = fig.scale.toFixed(1)+'×';
-    const si = document.getElementById('selected-info');
-    const lbl = fig.label ? `Ausgewählt: ${fig.label}` : 'Figur ausgewählt';
-    si.innerHTML = `<span>${lbl}</span><div class="si-actions"><button class="si-btn si-pov" title="Aus Figur-Sicht (E)">👁 Sicht</button><button class="si-btn si-rot-l" title="45° links drehen">↺</button><button class="si-btn si-rot-r" title="45° rechts drehen">↻</button></div>`;
-    si.querySelector('.si-pov').addEventListener('click', () => enterPOV(fig.id));
-    si.querySelector('.si-rot-l').addEventListener('click', () => { setRotY(fig, fig.rotY - Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
-    si.querySelector('.si-rot-r').addEventListener('click', () => { setRotY(fig, fig.rotY + Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
-  } else {
-    slider.value = 1.0;
-    scaleVal.textContent = '1.0×';
-    document.getElementById('selected-info').innerHTML = '';
-  }
-}
-
-// ── Toolbar wiring ────────────────────────────────────────────────────────────
-document.querySelectorAll('.figure-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const x = (Math.random()-0.5)*(BW-4);
-    const z = (Math.random()-0.5)*(BD-4);
-    const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
-    send({ type: 'add', fig: figToJSON(fig) });
-    selectFigure(fig);
-    openLabelModal(fig);
-  });
-});
-
-document.querySelectorAll('.color-swatch').forEach(sw => {
-  sw.addEventListener('click', () => {
-    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-    sw.classList.add('active');
-    currentColor = sw.dataset.color;
-    if (selectedFigure) recolorFigure(selectedFigure, currentColor);
-  });
-});
-
-function recolorFigure(fig, color) {
-  fig.color = color;
-  const newMesh = buildFigure(fig.type, color);
-  newMesh.position.copy(fig.mesh.position);
-  newMesh.rotation.y = fig.rotY;
-  newMesh.scale.setScalar(fig.scale);
-  scene.remove(fig.mesh);
-  scene.add(newMesh);
-  fig.mesh = newMesh;
-  if (fig.label) attachLabel(fig);
-  if (!applyingRemote) {
-    selectFigure(fig);
-  } else if (selectedFigure === fig) {
-    // Locally-selected figure was recolored remotely: keep selection but reattach
-    // the ring to the new mesh (the old mesh was removed from the scene above).
-    clearSelRing();
-    showSelRing(fig);
-  }
-  if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { color } });
-}
-
-const scaleSlider = document.getElementById('scale-slider');
-const scaleVal    = document.getElementById('scale-val');
-scaleSlider.addEventListener('input', () => {
-  const s = parseFloat(scaleSlider.value);
-  scaleVal.textContent = s.toFixed(1)+'×';
-  if (selectedFigure) {
-    setScale(selectedFigure, s);
-    if (!applyingRemote) send({ type: 'update', id: selectedFigure.id, changes: { scale: s } });
-  }
-});
-
-document.querySelectorAll('[data-scale]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const s = parseFloat(btn.dataset.scale);
-    scaleSlider.value = s;
-    scaleVal.textContent = s.toFixed(1)+'×';
-    if (selectedFigure) {
-      setScale(selectedFigure, s);
-      if (!applyingRemote) send({ type: 'update', id: selectedFigure.id, changes: { scale: s } });
+  figPanelClose.addEventListener('click', closeFigPanel);
+  document.addEventListener('click', e => {
+    if (!figPanel.hidden && !figPanel.contains(e.target) && e.target !== figPanelBtn) {
+      closeFigPanel();
     }
   });
-});
 
-document.querySelectorAll('[data-rot]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (!selectedFigure) return;
-    const deg = parseInt(btn.dataset.rot);
-    setRotY(selectedFigure, selectedFigure.rotY + deg * Math.PI/180);
-    if (!applyingRemote) send({ type: 'update', id: selectedFigure.id, changes: { rotY: selectedFigure.rotY } });
+  // ── Color swatches ────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-colors').addEventListener('click', e => {
+    const swatch = e.target.closest('.fig-color-swatch');
+    if (!swatch) return;
+    document.querySelectorAll('.fig-color-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    panelColor = swatch.dataset.color;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) recolorFigure(fig, panelColor);
   });
-});
 
-document.getElementById('btn-delete').addEventListener('click', () => {
-  if (!selectedFigure) return;
-  const id = selectedFigure.id;
-  scene.remove(selectedFigure.mesh);
-  figures = figures.filter(f => f !== selectedFigure);
-  clearSelRing(); selectedFigure = null;
-  document.getElementById('selected-info').innerHTML = '';
-  send({ type: 'delete', id });
-});
-
-// ── Custom confirm modal ───────────────────────────────────────────────────────
-const confirmModal = document.getElementById('confirm-modal');
-let confirmCallback = null;
-document.getElementById('confirm-yes').addEventListener('click', () => {
-  confirmModal.classList.remove('visible');
-  if (confirmCallback) { confirmCallback(); confirmCallback = null; }
-});
-document.getElementById('confirm-no').addEventListener('click', () => {
-  confirmModal.classList.remove('visible'); confirmCallback = null;
-});
-function askConfirm(text, cb) {
-  document.getElementById('confirm-text').textContent = text;
-  confirmCallback = cb;
-  confirmModal.classList.add('visible');
-}
-
-function clearBoard() {
-  figures.forEach(f => { scene.remove(f.mesh); });
-  figures = []; clearSelRing(); selectedFigure = null;
-  document.getElementById('selected-info').innerHTML = '';
-}
-
-document.getElementById('btn-reset').addEventListener('click', () => {
-  askConfirm('Alle Figuren entfernen?', () => {
-    clearBoard();
-    if (!applyingRemote) send({ type: 'clear' });
+  // ── Label input ────────────────────────────────────────────────────────────────
+  document.getElementById('fig-label-input').addEventListener('input', e => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) fig.label = e.target.value;
   });
-});
 
-// ── Save / Load ───────────────────────────────────────────────────────────────
-const saveModal     = document.getElementById('save-modal');
-const saveCustomer  = document.getElementById('save-customer');
-const saveName      = document.getElementById('save-name');
-
-let customersCache = null;
-async function loadCustomers() {
-  if (customersCache) return customersCache;
-  const res = await fetch(`${API}/customers`);
-  customersCache = res.ok ? await res.json() : [];
-  return customersCache;
-}
-
-async function fillCustomerDropdown(selectEl) {
-  const list = await loadCustomers();
-  // Keep first option ("— kein Klient —" or similar), drop dynamic ones.
-  while (selectEl.options.length > 1) selectEl.remove(1);
-  for (const c of list) {
-    const opt = document.createElement('option');
-    opt.value = c.id;
-    opt.textContent = c.name;
-    selectEl.appendChild(opt);
-  }
-}
-
-async function preselectCustomerForRoom(selectEl) {
-  if (ROOM === 'standalone') return;
-  // Pick the most-recent snapshot's customer for this room, if any.
-  try {
-    const res = await fetch(`${API}/snapshots?room=${encodeURIComponent(ROOM)}`);
-    if (!res.ok) return;
-    const list = await res.json();
-    const last = list.find(s => s.customer_id);
-    if (last) selectEl.value = last.customer_id;
-  } catch {}
-}
-
-document.getElementById('btn-save').addEventListener('click', async () => {
-  await fillCustomerDropdown(saveCustomer);
-  saveCustomer.value = '';
-  await preselectCustomerForRoom(saveCustomer);
-  saveName.value = '';
-  saveModal.style.display = 'flex';
-  setTimeout(() => saveName.focus(), 40);
-});
-
-document.getElementById('save-cancel').addEventListener('click', () => {
-  saveModal.style.display = 'none';
-});
-
-document.getElementById('save-ok').addEventListener('click', async () => {
-  const name = saveName.value.trim();
-  if (!name) { saveName.focus(); return; }
-  const body = {
-    room_token:  ROOM === 'standalone' ? null : ROOM,
-    customer_id: saveCustomer.value || null,
-    name,
-    state: {
-      figures: figures.map(figToJSON),
-      constellationType: document.getElementById('constellation-type').value || undefined,
+  // ── Add button ─────────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-add').addEventListener('click', () => {
+    const label = document.getElementById('fig-label-input').value.trim();
+    const x = (Math.random() - 0.5) * 4, z = (Math.random() - 0.5) * 4;
+    const fig = addFigure({ x, z });
+    recolorFigure(fig, panelColor);
+    if (label) fig.label = label;
+    closeFigPanel();
+  });
+  // ----- Pose presets (target rotations in radians; only x and z used) -----
+  // Each value is { x: pitch, z: roll } applied via group.rotation.x / .z.
+  const PRESETS = {
+    stand: {
+      hips:{x:0,z:0}, head:{x:0,z:0},
+      lShoulder:{x:0,z: 0.05}, rShoulder:{x:0,z:-0.05},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:0,z:0}, rHip:{x:0,z:0},
+      lKnee:{x:0,z:0}, rKnee:{x:0,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    kneel: {
+      hips:{x:0,z:0}, head:{x:-0.05,z:0},
+      lShoulder:{x:0.1,z: 0.25}, rShoulder:{x:0.1,z:-0.25},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:-1.3,z:0}, rHip:{x:-1.3,z:0},
+      lKnee:{x: 1.7,z:0}, rKnee:{x: 1.7,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    prone: {
+      hips:{x:-1.5,z:0}, head:{x:0.2,z:0},
+      lShoulder:{x:-1.2,z: 0.1}, rShoulder:{x:-1.2,z:-0.1},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:0,z:0}, rHip:{x:0,z:0},
+      lKnee:{x:0,z:0}, rKnee:{x:0,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    crawl: {
+      hips:{x:-1.4,z:0}, head:{x:0.15,z:0},
+      lShoulder:{x:-1.3,z: 0.05}, rShoulder:{x:-1.3,z:-0.05},
+      lElbow:{x:0.1,z:0}, rElbow:{x:0.1,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:-1.3,z:0}, rHip:{x:-1.3,z:0},
+      lKnee:{x: 1.55,z:0}, rKnee:{x: 1.55,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    slump: {
+      hips:{x:-0.7,z:0}, head:{x:0.5,z:0},
+      lShoulder:{x:0.6,z: 0.35}, rShoulder:{x:0.6,z:-0.35},
+      lElbow:{x:0.4,z:0}, rElbow:{x:0.4,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:-1.4,z:0}, rHip:{x:-1.4,z:0},
+      lKnee:{x: 1.3,z:0}, rKnee:{x: 1.3,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    tpose: {
+      hips:{x:0,z:0}, head:{x:0,z:0},
+      lShoulder:{x:0,z: 1.5708}, rShoulder:{x:0,z:-1.5708},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:0,z:0}, rHip:{x:0,z:0},
+      lKnee:{x:0,z:0}, rKnee:{x:0,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
     },
   };
-  const res = await fetch(`${API}/snapshots`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (res.ok) {
-    saveModal.style.display = 'none';
-    setStatus(`Gespeichert ✓`);
-    setTimeout(() => {
-      if (syncOpen) setStatus(`Verbunden ✓ — ${participantCount} Teilnehmer`);
-    }, 2000);
-  } else {
-    alert(`Speichern fehlgeschlagen: ${res.status}`);
-  }
-});
 
-const loadModal  = document.getElementById('load-modal');
-const loadFilter = document.getElementById('load-filter');
-const loadList   = document.getElementById('load-list');
-
-function clearChildren(el) {
-  while (el.firstChild) el.removeChild(el.firstChild);
-}
-
-function placeholderRow(text, color) {
-  const div = document.createElement('div');
-  div.style.cssText = `color:${color};font-size:12px;`;
-  div.textContent = text;
-  return div;
-}
-
-async function fillLoadFilter() {
-  const list = await loadCustomers();
-  // Keep first ("Raum") option, drop dynamic ones.
-  while (loadFilter.options.length > 1) loadFilter.remove(1);
-  for (const c of list) {
-    const opt = document.createElement('option');
-    opt.value = `customer:${c.id}`;
-    opt.textContent = c.name;
-    loadFilter.appendChild(opt);
-  }
-}
-
-async function refreshLoadList() {
-  clearChildren(loadList);
-  loadList.appendChild(placeholderRow('— wird geladen —', '#666'));
-
-  const v = loadFilter.value;
-  let url;
-  if (v === 'room') {
-    if (ROOM === 'standalone') {
-      clearChildren(loadList);
-      loadList.appendChild(placeholderRow('Standalone — kein Raum.', '#888'));
-      return;
+  function applyPreset(figId, presetKey) {
+    const fig = STATE.figures.find(f => f.id === figId);
+    if (!fig || !PRESETS[presetKey]) return;
+    const p = PRESETS[presetKey];
+    for (const name of BONE_NAMES) {
+      fig.bone[name].targetRot.x = p[name].x;
+      fig.bone[name].targetRot.z = p[name].z;
     }
-    url = `${API}/snapshots?room=${encodeURIComponent(ROOM)}`;
-  } else {
-    const customerId = v.replace(/^customer:/, '');
-    url = `${API}/snapshots?customer_id=${encodeURIComponent(customerId)}`;
-  }
-  const res = await fetch(url);
-  const list = res.ok ? await res.json() : [];
 
-  clearChildren(loadList);
-  if (!list.length) {
-    loadList.appendChild(placeholderRow('Keine Snapshots.', '#888'));
-    return;
+    sendUpdate(fig, { preset: presetKey });
   }
 
-  for (const s of list) {
-    const row = document.createElement('button');
-    row.style.cssText = 'display:flex;justify-content:space-between;width:100%;background:#0f2040;border:1px solid #0f3460;color:#e0e0e0;padding:8px 10px;border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:13px;text-align:left;';
 
-    const nameEl = document.createElement('span');
-    nameEl.textContent = s.name;       // textContent escapes automatically
 
-    const dateEl = document.createElement('span');
-    dateEl.style.color = '#888';
-    dateEl.textContent = new Date(s.created_at).toLocaleString('de-DE', {
-      dateStyle: 'short', timeStyle: 'short',
-    });
+  document.getElementById('presets').addEventListener('click', (e) => {
+    const btn = e.target.closest("button[data-preset]");
+    if (!btn || !STATE.selectedId) return;
+    applyPreset(STATE.selectedId, btn.dataset.preset);
+  });
 
-    row.appendChild(nameEl);
-    row.appendChild(dateEl);
-    row.addEventListener('click', () => loadSnapshot(s.id));
-    loadList.appendChild(row);
-  }
-}
+  // Seed one figure so the scene is not empty on first load
+  addFigure({ x: 0, z: 0 });
 
-async function loadSnapshot(id) {
-  const res = await fetch(`${API}/snapshots/${encodeURIComponent(id)}`);
-  if (!res.ok) { alert('Snapshot konnte nicht geladen werden.'); return; }
-  const snap = await res.json();
-  const figs = (snap.state && snap.state.figures) || [];
+  // Main render loop — figure ticks added in later tasks
+  // ----- Verlet spring -----
+  const K_SPRING = 80;
+  const DAMPING  = 0.85;
+  // Per-bone gravity offset (pitch x, roll z) when fully limp (stiffness=0)
+  const GRAVITY_OFFSET = {
+    hips:     { x: 0.2,  z: 0 },
+    head:     { x: 0.4,  z: 0 },
+    lShoulder:{ x: 0.6,  z: 0.3 }, rShoulder:{ x: 0.6, z: -0.3 },
+    lElbow:   { x: 0.3,  z: 0 },   rElbow:   { x: 0.3, z: 0 },
+    lWrist:   { x: 0,    z: 0 },   rWrist:   { x: 0,   z: 0 },
+    lHip:     { x: -0.2, z: 0 },   rHip:     { x: -0.2, z: 0 },
+    lKnee:    { x: 0.2,  z: 0 },   rKnee:    { x: 0.2, z: 0 },
+    lAnkle:   { x: 0,    z: 0 },   rAnkle:   { x: 0,   z: 0 },
+  };
 
-  // Broadcast: clear, then add each figure, so peers see the load.
-  send({ type: 'clear' });
-  applySnapshot(figs);
-  if (snap.state && snap.state.constellationType !== undefined) {
-    const sel = document.getElementById('constellation-type');
-    sel.value = snap.state.constellationType;
-    sel.dispatchEvent(new Event('change'));
-  }
-  for (const f of figs) {
-    send({ type: 'add', fig: f });
-  }
-  loadModal.style.display = 'none';
-}
+  let lastTickMs = performance.now();
 
-document.getElementById('btn-load').addEventListener('click', async () => {
-  await fillLoadFilter();
-  loadFilter.value = 'room';
-  await refreshLoadList();
-  loadModal.style.display = 'flex';
-});
-loadFilter.addEventListener('change', refreshLoadList);
-document.getElementById('load-cancel').addEventListener('click', () => {
-  loadModal.style.display = 'none';
-});
-
-// ── Label modal ───────────────────────────────────────────────────────────────
-const modal      = document.getElementById('label-modal');
-function isAnyModalOpen() {
-  return modal.classList.contains('visible') ||
-         saveModal.style.display === 'flex' ||
-         loadModal.style.display === 'flex';
-}
-const labelInput = document.getElementById('label-input');
-
-function openLabelModal(fig) {
-  pendingLabelFig = fig;
-  labelInput.value = fig.label || '';
-  modal.classList.add('visible');
-  setTimeout(() => labelInput.focus(), 40);
-}
-document.getElementById('label-confirm').addEventListener('click', () => {
-  if (pendingLabelFig) {
-    setLabel(pendingLabelFig, labelInput.value.trim());
-    if (!applyingRemote) send({ type: 'update', id: pendingLabelFig.id, changes: { label: pendingLabelFig.label } });
-  }
-  modal.classList.remove('visible'); pendingLabelFig = null;
-});
-document.getElementById('label-cancel').addEventListener('click', () => {
-  modal.classList.remove('visible'); pendingLabelFig = null;
-});
-labelInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter')  document.getElementById('label-confirm').click();
-  if (e.key === 'Escape') document.getElementById('label-cancel').click();
-});
-
-// Close any modal by clicking its backdrop or pressing Escape
-modal.addEventListener('mousedown', function(e) {
-  if (e.target === modal) document.getElementById('label-cancel').click();
-});
-confirmModal.addEventListener('mousedown', function(e) {
-  if (e.target === confirmModal) document.getElementById('confirm-no').click();
-});
-saveModal.addEventListener('mousedown', function(e) {
-  if (e.target === saveModal) document.getElementById('save-cancel').click();
-});
-loadModal.addEventListener('mousedown', function(e) {
-  if (e.target === loadModal) document.getElementById('load-cancel').click();
-});
-// (Modal Escape handling now consolidated in the main keydown handler below)
-
-// ── Raycasting helpers ────────────────────────────────────────────────────────
-const raycaster   = new THREE.Raycaster();
-const boardPlane  = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
-
-function getNDC(e) {
-  const r = canvas.getBoundingClientRect();
-  return new THREE.Vector2(
-    ((e.clientX-r.left)/r.width)*2-1,
-    -((e.clientY-r.top)/r.height)*2+1
-  );
-}
-function pickFigure(ndc) {
-  raycaster.setFromCamera(ndc, camera_obj);
-  const hits = raycaster.intersectObjects(figures.map(f=>f.mesh), true);
-  if (!hits.length) return null;
-  const obj = hits[0].object;
-  return figures.find(f => {
-    if (f.mesh === obj) return true;
-    let p = obj.parent;
-    while (p) { if (p === f.mesh) return true; p = p.parent; }
-    return false;
-  }) || null;
-}
-function pickBoard(ndc) {
-  raycaster.setFromCamera(ndc, camera_obj);
-  const t = new THREE.Vector3();
-  raycaster.ray.intersectPlane(boardPlane, t);
-  return t;
-}
-
-// ── Hint ────────────────────────────────────────────────
-const HINTS = {
-  V: 'Tap = auswählen · Drag = Figur ziehen · Doppel-Tap = Beschriftung',
-  O: 'Drag = Brett rotieren · Wheel/Pinch = Zoom · RMB = Orbit (frei drehen)',
-  P: 'Drag = Brett verschieben',
-  R: 'Drag horizontal auf Figur = drehen (snap π/4)',
-  F: 'F = alles einrahmen · Klick auf Figur = darauf fokussieren',
-  E: 'Figur wählen, dann E oder Klick = aus deren Augen sehen',
-};
-let hintFadeTimer = null;
-function updateHint() {
-  const el = document.getElementById('bc-hint');
-  if (!el) return;
-  el.textContent = HINTS[activeTool] || '';
-  el.classList.remove('bc-fade');
-  clearTimeout(hintFadeTimer);
-  hintFadeTimer = setTimeout(() => el.classList.add('bc-fade'), 10_000);
-}
-
-// ── Tool-Mode system ─────────────────────────────────────
-let activeTool = 'V';
-let spaceHeld = false;
-
-function setActiveTool(t) {
-  if (!'VOPRFE'.includes(t)) return;
-  activeTool = t;
-  document.querySelectorAll('.bc-tool').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
-  document.body.className = document.body.className.replace(/\bbc-tool-[A-Z]\b/g, '').trim();
-  document.body.classList.add(`bc-tool-${t}`);
-  updateHint();
-  announceLive(`Werkzeug: ${toolName(t)}`);
-}
-function toolName(t) {
-  return { V: 'Auswählen', O: 'Orbit', P: 'Pan', R: 'Figur drehen', F: 'Fokus', E: 'POV' }[t];
-}
-document.querySelectorAll('.bc-tool').forEach(b => b.addEventListener('click', () => setActiveTool(b.dataset.tool)));
-setActiveTool('V');
-
-window.setActiveTool = setActiveTool;
-window.getActiveTool = () => activeTool;
-
-updateHint();
-
-// ── Mouse / touch ─────────────────────────────────────────────────────────────
-const cnv = document.getElementById('three-canvas');
-let drag   = { on: false, fig: null };
-let panOn  = false;
-let rotFig = null, rotStartX = 0, rotFigStartY = 0;
-let lastClick = { fig: null, time: 0 };
-let orbitOn = false;
-let rmbHeld = false;
-let dragStart = { x: 0, y: 0 };
-
-let lastMoveSentAt = 0;
-function sendMoveThrottled(fig) {
-  const now = performance.now();
-  if (now - lastMoveSentAt < 30) return;
-  lastMoveSentAt = now;
-  send({ type: 'move', id: fig.id, x: fig.mesh.position.x, z: fig.mesh.position.z });
-}
-
-cnv.addEventListener('contextmenu', e => {
-  e.preventDefault();
-});
-
-cnv.addEventListener('mousedown', e => {
-  if (isAnyModalOpen()) return;
-  camera.anim = null;
-
-  const ndc = getNDC(e);
-  const fig = pickFigure(ndc);
-
-  // RMB = orbit (free rotate around board); short click = context menu
-  if (e.button === 2) {
-    orbitOn = true;
-    rmbHeld = true;
-    dragStart = { x: e.clientX, y: e.clientY };
-    return;
-  }
-
-  // MMB = temp-pan
-  if (e.button === 1) {
-    panOn = true;
-    dragStart = { x: e.clientX, y: e.clientY };
-    document.body.classList.add('bc-panning');
-    e.preventDefault();
-    return;
-  }
-
-  // Space-hold + LMB = temp-pan
-  if (e.button === 0 && spaceHeld) {
-    panOn = true;
-    dragStart = { x: e.clientX, y: e.clientY };
-    document.body.classList.add('bc-panning');
-    return;
-  }
-
-  if (e.button !== 0) return;
-
-  // When clicking a figure in camera-only tools, auto-switch to select mode
-  if (fig && (activeTool === 'O' || activeTool === 'P')) setActiveTool('V');
-
-  // Dispatch LMB by active tool
-  switch (activeTool) {
-    case 'V':
-      if (fig) {
-        const now = Date.now();
-        if (lastClick.fig === fig && now - lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; return; }
-        lastClick = { fig, time: now };
-        selectFigure(fig);
-        drag = { on: true, fig };
-        if (ctrlBallActive) hideCtrlBall();
-      } else {
-        selectFigure(null);
-        lastClick.fig = null;
-        const bpos = pickBoard(ndc);
-        if (bpos) {
-          if (ctrlBallActive) hideCtrlBall();
-          else showCtrlBall(bpos.x, bpos.z);
+  function tickSpring(dt) {
+    const stiff = STATE.stiffness;
+    for (const fig of STATE.figures) {
+      for (const name of BONE_NAMES) {
+        const b = fig.bone[name];
+        if (fig.boneOverrides[name]) {
+          // IK has authoritative rotation for this bone; sync state and skip spring
+          b.currentRot.x = fig.boneOverrides[name].x;
+          b.currentRot.z = fig.boneOverrides[name].z;
+          b.velocity.x = 0; b.velocity.z = 0;
+        } else {
+          const grav = GRAVITY_OFFSET[name];
+          const tx = b.targetRot.x + grav.x * (1 - stiff);
+          const tz = b.targetRot.z + grav.z * (1 - stiff);
+          const ax = (tx - b.currentRot.x) * stiff * K_SPRING;
+          const az = (tz - b.currentRot.z) * stiff * K_SPRING;
+          b.velocity.x = b.velocity.x * DAMPING + ax * dt;
+          b.velocity.z = b.velocity.z * DAMPING + az * dt;
+          b.currentRot.x += b.velocity.x * dt;
+          b.currentRot.z += b.velocity.z * dt;
+        }
+        fig.bones[name].rotation.x = b.currentRot.x;
+        fig.bones[name].rotation.z = b.currentRot.z;
+      }
+      // Floor clamp: lift root if any ankle/knee contact sphere is below y=0
+      let minY = 0;
+      for (const cp of CONTACT_POINTS) {
+        if (cp.bone === 'lAnkle' || cp.bone === 'rAnkle' || cp.bone === 'lKnee' || cp.bone === 'rKnee') {
+          const s = fig.bones[cp.bone].children.find(c => c.userData && c.userData.isContact);
+          if (s) {
+            const world = new THREE.Vector3();
+            s.getWorldPosition(world);
+            if (world.y < minY) minY = world.y;
+          }
         }
       }
-      break;
-    case 'O':
-      orbitOn = true;
-      dragStart = { x: e.clientX, y: e.clientY };
-      break;
-    case 'P':
-      panOn = true;
-      dragStart = { x: e.clientX, y: e.clientY };
-      document.body.classList.add('bc-panning');
-      break;
-    case 'R':
-      if (fig) {
-        selectFigure(fig);
-        rotFig = fig; rotStartX = e.clientX; rotFigStartY = fig.rotY;
+      if (minY < 0) fig.root.position.y -= minY; // lift onto floor
+    }
+  }
+
+  const stiffSlider = document.getElementById('stiffness');
+  stiffSlider.addEventListener('input', () => {
+    STATE.stiffness = parseFloat(stiffSlider.value);
+    sendStiffness(STATE.stiffness);
+  });
+
+
+  // ----- CCD-IK -----
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+
+  // Chains: end-effector first, root last. Only bones in the chain are rotated.
+  const IK_CHAINS = {
+    lWrist: ['lElbow', 'lShoulder'],
+    rWrist: ['rElbow', 'rShoulder'],
+    lAnkle: ['lKnee',  'lHip'],
+    rAnkle: ['rKnee',  'rHip'],
+    lKnee:  ['lHip'],
+    rKnee:  ['rHip'],
+    lElbow: ['lShoulder'],
+    rElbow: ['rShoulder'],
+    head:   ['hips'],
+  };
+
+  function setNdc(ev) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.x =  ((ev.clientX - rect.left) / rect.width)  * 2 - 1;
+    ndc.y = -((ev.clientY - rect.top)  / rect.height) * 2 + 1;
+  }
+
+  function pickContact(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    const meshes = [];
+    for (const fig of STATE.figures) {
+      fig.root.traverse(o => { if (o.userData && o.userData.isContact) meshes.push(o); });
+    }
+    const hit = raycaster.intersectObjects(meshes, false)[0];
+    return hit ? hit.object : null;
+  }
+
+  function pickMannequinBody(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    for (const fig of STATE.figures) {
+      const hits = raycaster.intersectObject(fig.root, true);
+      const nonContact = hits.find(h => !(h.object.userData && h.object.userData.isContact));
+      if (nonContact) return fig;
+    }
+    return null;
+  }
+
+  function pickFloor(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObject(floor, false)[0];
+    return hit ? hit.point : null;
+  }
+
+  // CCD: rotate chain bones so end-effector sphere world position approaches targetWorld.
+  function ccdIK(fig, endBoneName, targetWorld, iterations = 8) {
+    const chain = IK_CHAINS[endBoneName];
+    if (!chain) return;
+    const endSphere = fig.bones[endBoneName].children.find(c => c.userData && c.userData.isContact);
+    if (!endSphere) return;
+    const endWorld = new THREE.Vector3();
+    const boneWorld = new THREE.Vector3();
+    const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+    const qWorld = new THREE.Quaternion();
+    for (let iter = 0; iter < iterations; iter++) {
+      for (const boneName of chain) {
+        const bone = fig.bones[boneName];
+        bone.updateMatrixWorld(true);
+        endSphere.getWorldPosition(endWorld);
+        bone.getWorldPosition(boneWorld);
+        tmpA.subVectors(endWorld, boneWorld).normalize();
+        tmpB.subVectors(targetWorld, boneWorld).normalize();
+        if (tmpA.lengthSq() < 1e-8 || tmpB.lengthSq() < 1e-8) continue;
+        const dot = Math.max(-1, Math.min(1, tmpA.dot(tmpB)));
+        const angle = Math.acos(dot);
+        if (angle < 1e-3) continue;
+        const axis = new THREE.Vector3().crossVectors(tmpA, tmpB).normalize();
+        if (!isFinite(axis.x)) continue;
+        qWorld.setFromAxisAngle(axis, angle);
+        // Convert world rotation to local
+        const parentQ = new THREE.Quaternion();
+        bone.parent.getWorldQuaternion(parentQ).invert();
+        const localDelta = new THREE.Quaternion().multiplyQuaternions(parentQ, qWorld).multiply(bone.parent.getWorldQuaternion(new THREE.Quaternion()));
+        bone.quaternion.premultiply(localDelta);
+        // Re-extract x/z Euler for the override store
+        const e = new THREE.Euler().setFromQuaternion(bone.quaternion, 'XYZ');
+        fig.boneOverrides[boneName] = { x: e.x, z: e.z };
+        bone.rotation.x = e.x; bone.rotation.z = e.z; bone.rotation.y = 0;
       }
-      break;
-    case 'F':
-      if (fig) { easeCamera({ radius: camera.radius * 0.5, target: { x: fig.mesh.position.x, y: 0, z: fig.mesh.position.z } }, 400, 'ease-out-cubic'); }
-      else goFit();
-      break;
-    case 'E':
-      if (camera.mode === 'pov') exitPOV();
-      else if (fig) enterPOV(fig.id);
-      break;
-  }
-});
-
-cnv.addEventListener('mousemove', e => {
-  if (camera.mode === 'freefly' && (orbitOn || (e.buttons & 1))) {
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    camera.flyYaw -= dx * 0.005;
-    camera.flyPitch = Math.max(-Math.PI/2 * 0.95, Math.min(Math.PI/2 * 0.95, camera.flyPitch - dy * 0.005));
-    dragStart = { x: e.clientX, y: e.clientY };
-    return;
-  }
-  if (camera.mode === 'pov' && (orbitOn || activeTool === 'O')) {
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    camera.povYaw   = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.povYaw - dx * 0.005));
-    camera.povPitch = Math.max(-Math.PI/4, Math.min(Math.PI/4, camera.povPitch - dy * 0.005));
-    dragStart = { x: e.clientX, y: e.clientY };
-    return;
-  }
-  if (rotFig) {
-    const dx = e.clientX - rotStartX;
-    const raw = rotFigStartY + dx * 0.018;
-    const SNAP = Math.PI / 4;
-    const nearest = Math.round(raw / SNAP) * SNAP;
-    setRotY(rotFig, Math.abs(raw - nearest) < 0.14 ? nearest : raw);
-    return;
-  }
-  if (orbitOn) {
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    camera.theta -= dx * 0.008;
-    camera.phi = Math.max(0.05, Math.min(Math.PI/2.05, camera.phi + dy*0.008));
-    dragStart = { x: e.clientX, y: e.clientY };
-    return;
-  }
-  if (panOn) {
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    const f = camera.radius * 0.01;
-    camera.target.x += dx * f * Math.cos(camera.theta) + dy * f * Math.sin(camera.theta);
-    camera.target.z += dx * f * (-Math.sin(camera.theta)) + dy * f * Math.cos(camera.theta);
-    dragStart = { x: e.clientX, y: e.clientY };
-    return;
-  }
-  if (drag.on && drag.fig) {
-    const pos = pickBoard(getNDC(e));
-    if (pos) {
-      drag.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
-      drag.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
-      if (!applyingRemote) sendMoveThrottled(drag.fig);
     }
   }
-});
 
-cnv.addEventListener('mouseup', e => {
-  if (e.button === 2) {
-    orbitOn = false;
-    rmbHeld = false;
-    const dx = e.clientX - dragStart.x, dy2 = e.clientY - dragStart.y;
-    if (Math.sqrt(dx*dx + dy2*dy2) < 5) {
-      openContextMenu(pickFigure(getNDC(e)), e.clientX, e.clientY);
+  // ----- Drag handling -----
+  let dragging = null; // { figId, boneName, plane: Plane }
+
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.shiftKey) return;
+    const sphere = pickContact(e);
+    if (sphere) {
+      const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
+      if (!fig) return;
+      selectFigure(fig.id);
+      const worldPos = new THREE.Vector3();
+      sphere.getWorldPosition(worldPos);
+      // Drag plane parallel to camera, through the sphere
+      const camDir = new THREE.Vector3();
+      camera.getWorldDirection(camDir);
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, worldPos);
+      dragging = { figId: fig.id, boneName: sphere.userData.boneName, plane };
+      e.preventDefault();
     }
-    return;
-  }
-  if (panOn) { panOn = false; document.body.classList.remove('bc-panning'); }
-  if (orbitOn) orbitOn = false;
-  if (rotFig) {
-    const SNAP = Math.PI / 4;
-    setRotY(rotFig, Math.round(rotFig.rotY / SNAP) * SNAP);
-    if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
-    rotFig = null;
-  }
-  if (drag.on && drag.fig && !applyingRemote) {
-    send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
-  }
-  drag = { on:false, fig:null };
-});
-
-cnv.addEventListener('wheel', e => {
-  camera.anim = null;
-  camera.radius = Math.max(12, Math.min(75, camera.radius + e.deltaY * 0.05));
-  e.preventDefault();
-}, { passive: false });
-
-// ── Touch ──────────────────────────────────────────────
-const touch = {
-  count: 0,
-  startX: 0, startY: 0, lastX: 0, lastY: 0,
-  pinchDist: 0,
-  fig: null,
-  longPressTimer: null,
-  longPressFired: false,
-  startedAt: 0,
-  _lastTap: 0,
-};
-
-function touchDist(t1, t2) {
-  const dx = t2.clientX - t1.clientX, dy = t2.clientY - t1.clientY;
-  return Math.sqrt(dx*dx + dy*dy);
-}
-
-cnv.addEventListener('touchstart', e => {
-  if (isAnyModalOpen()) return;
-  camera.anim = null;
-  touch.count = e.touches.length;
-  touch.startedAt = performance.now();
-  touch.longPressFired = false;
-
-  if (e.touches.length === 1) {
-    const t = e.touches[0];
-    touch.startX = touch.lastX = t.clientX;
-    touch.startY = touch.lastY = t.clientY;
-    const ndc = getNDC(t);
-    touch.fig = pickFigure(ndc);
-
-    touch.longPressTimer = setTimeout(() => {
-      touch.longPressFired = true;
-      openContextMenu(touch.fig, touch.lastX, touch.lastY);
-    }, 400);
-
-    if (activeTool === 'V' && touch.fig) selectFigure(touch.fig);
-    if (activeTool === 'R' && touch.fig) {
-      rotFig = touch.fig; rotStartX = t.clientX; rotFigStartY = touch.fig.rotY;
-    }
-
-    // Tap-to-fly in freefly
-    if (camera.mode === 'freefly') {
-      const now = performance.now();
-      if (now - touch._lastTap < 350) {
-        const pos = pickBoard(getNDC(t));
-        if (pos) easeCamera({ flyPos: { x: pos.x, y: 8, z: pos.z + 12 } }, 1500, 'ease-out-cubic');
-      }
-      touch._lastTap = now;
-    }
-  } else if (e.touches.length === 2) {
-    clearTimeout(touch.longPressTimer);
-    touch.pinchDist = touchDist(e.touches[0], e.touches[1]);
-    touch.lastX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-    touch.lastY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-  } else if (e.touches.length === 3) {
-    clearTimeout(touch.longPressTimer);
-  }
-  e.preventDefault();
-}, { passive: false });
-
-cnv.addEventListener('touchmove', e => {
-  clearTimeout(touch.longPressTimer);
-
-  if (e.touches.length === 1) {
-    const t = e.touches[0];
-    const dx = t.clientX - touch.lastX;
-    const dy = t.clientY - touch.lastY;
-
-    if (rotFig) {
-      const totalDx = t.clientX - rotStartX;
-      const raw = rotFigStartY + totalDx * 0.018;
-      const SNAP = Math.PI/4;
-      const n = Math.round(raw / SNAP) * SNAP;
-      setRotY(rotFig, Math.abs(raw - n) < 0.14 ? n : raw);
-    } else if (camera.mode === 'pov') {
-      camera.povYaw   = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.povYaw - dx * 0.005));
-      camera.povPitch = Math.max(-Math.PI/4, Math.min(Math.PI/4, camera.povPitch - dy * 0.005));
-    } else if (camera.mode === 'freefly') {
-      camera.flyYaw -= dx * 0.005;
-      camera.flyPitch = Math.max(-Math.PI/2 * 0.95, Math.min(Math.PI/2 * 0.95, camera.flyPitch - dy * 0.005));
-    } else if (activeTool === 'V' && touch.fig) {
-      const pos = pickBoard(getNDC(t));
-      if (pos) {
-        touch.fig.mesh.position.x = Math.max(-BW/2+1, Math.min(BW/2-1, pos.x));
-        touch.fig.mesh.position.z = Math.max(-BD/2+1, Math.min(BD/2-1, pos.z));
-        if (!applyingRemote) sendMoveThrottled(touch.fig);
-      }
-    } else if (activeTool === 'O') {
-      camera.theta -= dx * 0.008;
-      camera.phi = Math.max(0.05, Math.min(Math.PI/2.05, camera.phi + dy*0.008));
-    } else if (activeTool === 'P') {
-      const f = camera.radius * 0.01;
-      camera.target.x += dx * f * Math.cos(camera.theta) + dy * f * Math.sin(camera.theta);
-      camera.target.z += dx * f * (-Math.sin(camera.theta)) + dy * f * Math.cos(camera.theta);
-    } else if (!touch.fig) {
-      // 1-finger on empty: orbit (Android equivalent of RMB drag)
-      camera.theta -= dx * 0.008;
-      camera.phi = Math.max(0.05, Math.min(Math.PI/2.05, camera.phi + dy * 0.008));
-    }
-    touch.lastX = t.clientX; touch.lastY = t.clientY;
-  } else if (e.touches.length === 2) {
-    // 2F: pan + pinch zoom (tool-agnostic)
-    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-    const dx = cx - touch.lastX;
-    const dy = cy - touch.lastY;
-    const f = camera.radius * 0.01;
-    camera.target.x += dx * f * Math.cos(camera.theta) + dy * f * Math.sin(camera.theta);
-    camera.target.z += dx * f * (-Math.sin(camera.theta)) + dy * f * Math.cos(camera.theta);
-    touch.lastX = cx; touch.lastY = cy;
-
-    const d = touchDist(e.touches[0], e.touches[1]);
-    const ratio = d / touch.pinchDist;
-    if (ratio > 0) camera.radius = Math.max(12, Math.min(75, camera.radius / ratio));
-    touch.pinchDist = d;
-  }
-  e.preventDefault();
-}, { passive: false });
-
-cnv.addEventListener('touchend', e => {
-  clearTimeout(touch.longPressTimer);
-  const wasCount = touch.count;
-  const duration = performance.now() - touch.startedAt;
-
-  if (wasCount === 3 && duration < 500 && !touch.longPressFired) goHome();
-
-  if (rotFig && wasCount === 1) {
-    const SNAP = Math.PI/4;
-    setRotY(rotFig, Math.round(rotFig.rotY / SNAP) * SNAP);
-    if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
-  }
-  rotFig = null;
-  touch.count = e.touches.length;
-  touch.fig = null;
-}, { passive: false });
-
-// ── Context Menu ─────────────────────────────────────────
-let ctxFig = null;
-function openContextMenu(fig, x, y) {
-  ctxFig = fig;
-  const menu = document.getElementById('bc-context-menu');
-  menu.querySelectorAll('button').forEach(b => {
-    const needsFig = ['rot-ccw','rot-cw','pov','delete'].includes(b.dataset.ctx);
-    b.disabled = needsFig && !fig;
-    b.style.opacity = needsFig && !fig ? '0.4' : '1';
   });
-  menu.style.top = Math.min(y, window.innerHeight - 200) + 'px';
-  menu.style.left = Math.min(x, window.innerWidth - 180) + 'px';
-  menu.classList.add('open');
-  menu.setAttribute('aria-hidden', 'false');
-}
-function closeContextMenu() {
-  const menu = document.getElementById('bc-context-menu');
-  menu.classList.remove('open');
-  menu.setAttribute('aria-hidden', 'true');
-}
-document.getElementById('bc-context-menu').addEventListener('click', e => {
-  const b = e.target.closest('button[data-ctx]');
-  if (!b || b.disabled) return;
-  switch (b.dataset.ctx) {
-    case 'rot-ccw': if (ctxFig) { setRotY(ctxFig, ctxFig.rotY - Math.PI/4); send({ type: 'update', id: ctxFig.id, changes: { rotY: ctxFig.rotY } }); } break;
-    case 'rot-cw':  if (ctxFig) { setRotY(ctxFig, ctxFig.rotY + Math.PI/4); send({ type: 'update', id: ctxFig.id, changes: { rotY: ctxFig.rotY } }); } break;
-    case 'pov':     if (ctxFig) enterPOV(ctxFig.id); break;
-    case 'delete':  if (ctxFig) { send({ type: 'delete', id: ctxFig.id }); } break;
-    case 'home':    goHome(); break;
-  }
-  closeContextMenu();
-});
-document.addEventListener('click', e => {
-  if (!e.target.closest('#bc-context-menu')) closeContextMenu();
-});
 
-// ── Dock wiring ──────────────────────────────────────────
-document.getElementById('bc-home').addEventListener('click', goHome);
-document.getElementById('bc-fit').addEventListener('click', goFit);
-document.getElementById('bc-compass').addEventListener('click', goHome);
-document.querySelectorAll('[data-preset]').forEach(btn => {
-  btn.addEventListener('click', () => goToPreset(parseInt(btn.dataset.preset, 10)));
-});
-
-const bcZoomSlider = document.getElementById('bc-zoom-slider');
-const bcZoomVal    = document.getElementById('bc-zoom-val');
-function bcSetZoom(r) {
-  camera.anim = null;
-  camera.radius = Math.max(12, Math.min(75, r));
-}
-bcZoomSlider.addEventListener('input', () => bcSetZoom(parseFloat(bcZoomSlider.value)));
-document.getElementById('bc-zoom-in') .addEventListener('click', () => bcSetZoom(camera.radius - 4));
-document.getElementById('bc-zoom-out').addEventListener('click', () => bcSetZoom(camera.radius + 4));
-
-// Update compass + active-preset + zoom-slider every frame
-function tickCompass() {
-  const rose = document.getElementById('bc-compass-rose');
-  if (rose) rose.setAttribute('transform', `rotate(${-camera.theta * 180 / Math.PI})`);
-  const horizon = document.getElementById('bc-compass-horizon');
-  if (horizon) {
-    const tilt = (Math.PI/2 - camera.phi) * 20;
-    horizon.setAttribute('y1', String(-tilt));
-    horizon.setAttribute('y2', String(-tilt));
-  }
-  if (bcZoomSlider) { bcZoomSlider.value = String(camera.radius); }
-  if (bcZoomVal) { bcZoomVal.textContent = String(Math.round(camera.radius)); }
-  const name = activePresetName();
-  document.querySelectorAll('[data-preset]').forEach(b => {
-    b.classList.toggle('active', PRESETS[b.dataset.preset]?.name === name);
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    setNdc(e);
+    raycaster.setFromCamera(ndc, camera);
+    const target = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragging.plane, target);
+    if (!target) return;
+    const fig = STATE.figures.find(f => f.id === dragging.figId);
+    if (!fig) return;
+    ccdIK(fig, dragging.boneName, target, 6);
+    sendUpdate(fig, { boneOverrides: fig.boneOverrides });
   });
-}
 
-// ── Bars: collapse / restore / persistence ───────────────
-const Bars = {
-  state: { top: false, rail: false, dock: false },
-  _savedBeforeMode: null,
-  init() {
-    try {
-      const room = new URLSearchParams(location.search).get('room') || 'default';
-      const saved = JSON.parse(localStorage.getItem('brett-bars-' + room) || '{}');
-      this.state = { top: !!saved.top, rail: !!saved.rail, dock: !!saved.dock };
-    } catch {}
-    this.apply();
-  },
-  apply() {
-    document.body.classList.toggle('bc-top-collapsed',  this.state.top);
-    document.body.classList.toggle('bc-rail-collapsed', this.state.rail);
-    document.body.classList.toggle('bc-dock-collapsed', this.state.dock);
-  },
-  save() {
-    try {
-      const room = new URLSearchParams(location.search).get('room') || 'default';
-      localStorage.setItem('brett-bars-' + room, JSON.stringify(this.state));
-    } catch {}
-  },
-  toggle(which) { this.state[which] = !this.state[which]; this.apply(); this.save(); },
-  toggleAll() {
-    const anyOpen = !this.state.top || !this.state.rail || !this.state.dock;
-    this.state = { top: anyOpen, rail: anyOpen, dock: anyOpen };
-    this.apply(); this.save();
-  },
-};
-window.Bars = Bars;
-Bars.init();
-
-document.getElementById('bc-collapse-top') ?.addEventListener('click', () => Bars.toggle('top'));
-document.getElementById('bc-collapse-rail')?.addEventListener('click', () => Bars.toggle('rail'));
-document.getElementById('bc-collapse-dock')?.addEventListener('click', () => Bars.toggle('dock'));
-
-document.getElementById('bc-rail').addEventListener('click', e => {
-  if (Bars.state.rail && (e.target === document.getElementById('bc-rail'))) Bars.toggle('rail');
-});
-document.getElementById('bc-dock').addEventListener('click', e => {
-  if (Bars.state.dock && (e.target === document.getElementById('bc-dock'))) Bars.toggle('dock');
-});
-
-// ── POV Mode ─────────────────────────────────────────────
-let povSavedSnapshot = null;
-
-function enterPOV(figureId) {
-  const fig = figures.find(f => f.id === figureId);
-  if (!fig) return;
-  povSavedSnapshot = snapshot();
-  const headY = 3.0 * (fig.scale || 1.0);
-  const fwd = { x: Math.sin(fig.rotY), z: Math.cos(fig.rotY) };
-  const tgt = { x: fig.mesh.position.x + fwd.x * 5, y: headY * 0.85, z: fig.mesh.position.z + fwd.z * 5 };
-  easeCamera({
-    mode: 'pov',
-    target: tgt,
-    radius: 5.0,
-    theta: fig.rotY,
-    phi: Math.PI / 2.0 + 0.087,
-    fov: 55,
-  }, 600, 'ease-in-out-cubic', () => {
-    camera.povFigureId = figureId;
-    camera.povYaw = 0; camera.povPitch = -0.087;
-    document.getElementById('bc-pov-banner-name').textContent = fig.label || 'Figur';
-    document.getElementById('bc-pov-banner').hidden = false;
-    Bars._savedBeforeMode = { ...Bars.state };
-    Bars.state.rail = true; Bars.state.dock = true; Bars.apply();
-  });
-}
-
-function exitPOV() {
-  if (camera.mode !== 'pov') return;
-  camera.povFigureId = null;
-  document.getElementById('bc-pov-banner').hidden = true;
-  const to = povSavedSnapshot ? { ...povSavedSnapshot, mode: 'orbit' } : { mode: 'orbit', theta: PRESETS[5].theta, phi: PRESETS[5].phi, radius: 44 };
-  easeCamera(to, 500, 'ease-out-cubic', () => {
-    if (Bars._savedBeforeMode) { Bars.state = Bars._savedBeforeMode; Bars.apply(); }
-  });
-}
-
-document.getElementById('bc-pov-exit').addEventListener('click', exitPOV);
-document.getElementById('bc-mode-pov').addEventListener('click', () => {
-  if (camera.mode === 'pov') exitPOV();
-  else if (selectedFigure) enterPOV(selectedFigure.id);
-});
-window.enterPOV = enterPOV; window.exitPOV = exitPOV;
-
-// POV camera update
-const _basUpdateCamera = updateCamera;
-updateCamera = function() {
-  tickAnim();
-  if (camera.mode === 'pov' && camera.povFigureId && !camera.anim) {
-    const fig = figures.find(f => f.id === camera.povFigureId);
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    const fig = STATE.figures.find(f => f.id === dragging.figId);
     if (fig) {
-      const headY = 3.0 * (fig.scale || 1.0);
-      camera_obj.fov = camera.fov;
-      camera_obj.updateProjectionMatrix();
-      camera_obj.position.set(fig.mesh.position.x, headY, fig.mesh.position.z);
-      const yaw = fig.rotY + camera.povYaw;
-      const pitch = camera.povPitch;
-      camera_obj.lookAt(
-        fig.mesh.position.x + Math.sin(yaw) * Math.cos(pitch),
-        headY + Math.sin(pitch),
-        fig.mesh.position.z + Math.cos(yaw) * Math.cos(pitch)
-      );
-      return;
+      // Clear overrides for the dragged chain so spring resumes
+      const chain = IK_CHAINS[dragging.boneName] || [];
+      for (const b of chain) delete fig.boneOverrides[b];
+      // Also clear the end-effector entry if any
+      delete fig.boneOverrides[dragging.boneName];
+      sendUpdate(fig, { boneOverrides: fig.boneOverrides });
     }
-  }
-  if (camera.mode === 'freefly' && !camera.anim) {
-    camera_obj.fov = 60;
-    camera_obj.updateProjectionMatrix();
-    camera_obj.position.set(camera.flyPos.x, camera.flyPos.y, camera.flyPos.z);
-    camera_obj.lookAt(
-      camera.flyPos.x + Math.sin(camera.flyYaw) * Math.cos(camera.flyPitch),
-      camera.flyPos.y + Math.sin(camera.flyPitch),
-      camera.flyPos.z + Math.cos(camera.flyYaw) * Math.cos(camera.flyPitch)
-    );
-    return;
-  }
-  return updateCameraOrbit();
-};
-
-// ── Auto-Orbit ───────────────────────────────────────────
-let autoOrbitOn = false;
-function toggleAutoOrbit() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    announceLive('Reduzierte Bewegung — Auto-Orbit deaktiviert');
-    return;
-  }
-  autoOrbitOn = !autoOrbitOn;
-  document.getElementById('bc-mode-auto').classList.toggle('active', autoOrbitOn);
-  announceLive(autoOrbitOn ? 'Auto-Orbit ein' : 'Auto-Orbit aus');
-}
-document.getElementById('bc-mode-auto').addEventListener('click', toggleAutoOrbit);
-document.getElementById('bc-auto-speed').addEventListener('input', e => { camera.autoSpeed = parseFloat(e.target.value); });
-
-let _lastFrame = performance.now();
-function tickAutoOrbit() {
-  const now = performance.now();
-  const dt = (now - _lastFrame) / 1000;
-  _lastFrame = now;
-  if (autoOrbitOn && camera.mode === 'orbit' && now > camera.autoPausedUntil && !camera.anim) {
-    camera.theta += camera.autoSpeed * dt;
-  }
-  return dt;
-}
-
-['mousedown', 'wheel', 'touchstart'].forEach(ev => {
-  cnv.addEventListener(ev, () => { camera.autoPausedUntil = performance.now() + 1500; }, { passive: true, capture: true });
-});
-window.toggleAutoOrbit = toggleAutoOrbit;
-
-// ── Free-Fly ─────────────────────────────────────────────
-let flySavedSnapshot = null;
-const flyKeys = { w: false, a: false, s: false, d: false, q: false, e: false, ' ': false, Shift: false };
-
-function enterFreeFly() {
-  if (camera.mode !== 'orbit') return;
-  flySavedSnapshot = snapshot();
-  camera.flyPos = { x: camera_obj.position.x, y: camera_obj.position.y, z: camera_obj.position.z };
-  camera.flyYaw = camera.theta + Math.PI;
-  camera.flyPitch = -(Math.PI/2 - camera.phi);
-  easeCamera({ mode: 'freefly' }, 500, 'ease-out-cubic', () => {
-    document.getElementById('bc-fly-banner').hidden = false;
-    Bars._savedBeforeMode = { ...Bars.state };
-    Bars.state.rail = true; Bars.state.dock = true; Bars.apply();
+    dragging = null;
   });
-}
-function exitFreeFly() {
-  if (camera.mode !== 'freefly') return;
-  document.getElementById('bc-fly-banner').hidden = true;
-  const to = flySavedSnapshot ? { ...flySavedSnapshot, mode: 'orbit' } : { mode: 'orbit', theta: PRESETS[5].theta, phi: PRESETS[5].phi, radius: 44 };
-  easeCamera(to, 500, 'ease-out-cubic', () => {
-    if (Bars._savedBeforeMode) { Bars.state = Bars._savedBeforeMode; Bars.apply(); }
-  });
-}
 
-document.addEventListener('keydown', e => {
-  const k = e.key === 'Shift' ? 'Shift' : e.key.toLowerCase();
-  if (k in flyKeys) flyKeys[k] = true;
-});
-document.addEventListener('keyup', e => {
-  const k = e.key === 'Shift' ? 'Shift' : e.key.toLowerCase();
-  if (k in flyKeys) flyKeys[k] = false;
-});
-
-function tickFreeFly(dt) {
-  if (camera.mode !== 'freefly') return;
-  const speed = camera.flySpeed * (flyKeys.Shift ? 3 : 1) * dt;
-  const fwd = { x: -Math.sin(camera.flyYaw), z: -Math.cos(camera.flyYaw) };
-  const right = { x: -fwd.z, z: fwd.x };
-  if (flyKeys.w) { camera.flyPos.x += fwd.x * speed; camera.flyPos.z += fwd.z * speed; }
-  if (flyKeys.s) { camera.flyPos.x -= fwd.x * speed; camera.flyPos.z -= fwd.z * speed; }
-  if (flyKeys.a) { camera.flyPos.x -= right.x * speed; camera.flyPos.z -= right.z * speed; }
-  if (flyKeys.d) { camera.flyPos.x += right.x * speed; camera.flyPos.z += right.z * speed; }
-  if (flyKeys[' '] || flyKeys.e) camera.flyPos.y += speed;
-  if (flyKeys.q) camera.flyPos.y -= speed;
-}
-
-document.getElementById('bc-fly-exit').addEventListener('click', exitFreeFly);
-document.getElementById('bc-mode-fly').addEventListener('click', () => {
-  if (camera.mode === 'freefly') exitFreeFly(); else enterFreeFly();
-});
-window.enterFreeFly = enterFreeFly; window.exitFreeFly = exitFreeFly;
-
-// WASD orbit control — active while RMB is held in orbit mode
-function tickOrbitKeys(dt) {
-  if (camera.mode !== 'orbit' || !rmbHeld) return;
-  const speed = 1.8 * dt;
-  if (flyKeys.a) camera.theta -= speed;
-  if (flyKeys.d) camera.theta += speed;
-  if (flyKeys.w) camera.phi = Math.max(0.05, camera.phi - speed);
-  if (flyKeys.s) camera.phi = Math.min(Math.PI/2.05, camera.phi + speed);
-}
-
-// ── Split-View ───────────────────────────────────────────
-let splitOn = false;
-let splitRatio = 0.5;
-const camera_obj_secondary = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
-let secondaryView = { kind: 'preset', value: 5 };
-
-function enterSplit() { splitOn = true; document.getElementById('bc-split-controls').hidden = false; document.getElementById('bc-mode-split').classList.add('active'); onResize(); }
-function exitSplit()  { splitOn = false; document.getElementById('bc-split-controls').hidden = true; document.getElementById('bc-mode-split').classList.remove('active'); onResize(); }
-
-document.getElementById('bc-mode-split').addEventListener('click', () => { splitOn ? exitSplit() : enterSplit(); });
-document.getElementById('bc-split-source').addEventListener('change', e => {
-  const [kind, val] = e.target.value.split(':');
-  secondaryView = { kind, value: kind === 'preset' ? parseInt(val,10) : val };
-});
-
-function configureSecondaryCamera() {
-  if (secondaryView.kind === 'preset') {
-    const p = PRESETS[secondaryView.value]; if (!p) return;
-    const r = p.radius === 'fit' ? computeFit() : p.radius;
-    camera_obj_secondary.position.set(
-      r * Math.sin(p.phi) * Math.sin(p.theta),
-      r * Math.cos(p.phi),
-      r * Math.sin(p.phi) * Math.cos(p.theta)
-    );
-    camera_obj_secondary.lookAt(0, 0, 0);
-  } else if (secondaryView.kind === 'pov' && camera.povFigureId) {
-    const fig = figures.find(f => f.id === camera.povFigureId);
+  renderer.domElement.addEventListener('click', (e) => {
+    if (dragging) return;
+    if (e.shiftKey) return;
+    if (pickMannequinBody(e)) return; // selection click already happened
+    const floorPt = pickFloor(e);
+    if (!floorPt || !STATE.selectedId) return;
+    if (STATE.stiffness < 0.3) return; // body too limp
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
     if (fig) {
-      camera_obj_secondary.position.set(fig.mesh.position.x, 3.0 * (fig.scale||1), fig.mesh.position.z);
-      camera_obj_secondary.lookAt(
-        fig.mesh.position.x + Math.sin(fig.rotY) * 5,
-        2.0 * (fig.scale||1),
-        fig.mesh.position.z + Math.cos(fig.rotY) * 5
-      );
-    }
-  }
-}
-
-// ── Bookmarks ────────────────────────────────────────────
-const Bookmarks = {
-  items: [],
-  key() { return 'brett-bookmarks-' + (new URLSearchParams(location.search).get('room') || 'default'); },
-  load() {
-    try { this.items = JSON.parse(localStorage.getItem(this.key()) || '[]'); }
-    catch { this.items = []; }
-  },
-  save() { try { localStorage.setItem(this.key(), JSON.stringify(this.items)); } catch {} },
-  add() {
-    const snap = snapshot();
-    const name = `Lesezeichen ${this.items.length + 1}`;
-    this.items.push({ name, snap, createdAt: Date.now() });
-    if (this.items.length > 12) this.items.shift();
-    this.save(); this.render();
-    announceLive(`${name} gespeichert`);
-  },
-  restore(i) {
-    const b = this.items[i]; if (!b) return;
-    easeCamera({ ...b.snap }, 500, 'ease-out-cubic');
-    announceLive(`Wiederhergestellt: ${b.name}`);
-  },
-  rename(i, name) {
-    if (this.items[i]) { this.items[i].name = name; this.save(); this.render(); }
-  },
-  remove(i) {
-    this.items.splice(i, 1); this.save(); this.render();
-  },
-  render() {
-    const list = document.getElementById('bc-bookmarks-list');
-    if (!list) return;
-    while (list.firstChild) list.removeChild(list.firstChild);
-    this.items.forEach((b, i) => {
-      const row = document.createElement('button');
-      row.className = 'bc-row';
-      row.dataset.bkIndex = String(i);
-
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'bc-bk-name';
-      nameSpan.textContent = '★ ' + b.name;  // textContent ESCAPES any HTML
-      row.appendChild(nameSpan);
-
-      const kbd = document.createElement('kbd');
-      kbd.textContent = '⇧' + (i + 1);
-      row.appendChild(kbd);
-
-      list.appendChild(row);
-    });
-  },
-};
-
-document.addEventListener('click', e => {
-  const row = e.target.closest('[data-bk-index]');
-  if (row) Bookmarks.restore(parseInt(row.dataset.bkIndex, 10));
-});
-document.addEventListener('dblclick', e => {
-  const row = e.target.closest('[data-bk-index]');
-  if (!row) return;
-  const i = parseInt(row.dataset.bkIndex, 10);
-  const name = prompt('Neuer Name', Bookmarks.items[i]?.name || '');
-  if (name && name.trim()) Bookmarks.rename(i, name.trim());
-});
-
-document.getElementById('bc-bk-add').addEventListener('click', () => Bookmarks.add());
-window.Bookmarks = Bookmarks;
-Bookmarks.load(); Bookmarks.render();
-
-// ── Recording ────────────────────────────────────────────
-const Recorder = {
-  rec: null, chunks: [], startedAt: 0, timer: null,
-
-  screenshot() {
-    const cnv2 = document.getElementById('three-canvas');
-    cnv2.toBlob(blob => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `brett-${Date.now()}.png`;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }, 'image/png');
-    announceLive('Screenshot gespeichert');
-  },
-
-  toggleVideo() {
-    if (this.rec) return this._stop();
-    return this._start();
-  },
-
-  _start() {
-    const cnv2 = document.getElementById('three-canvas');
-    const stream = cnv2.captureStream(30);
-    let mime = 'video/webm;codecs=vp9';
-    if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm;codecs=vp8';
-    if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
-    this.chunks = [];
-    this.rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5_000_000 });
-    this.rec.ondataavailable = e => { if (e.data.size) this.chunks.push(e.data); };
-    this.rec.onstop = () => {
-      const blob = new Blob(this.chunks, { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `brett-${Date.now()}.webm`;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      this.rec = null;
-      document.getElementById('bc-rec-indicator').hidden = true;
-      document.getElementById('bc-video').classList.remove('active');
-      clearInterval(this.timer);
-      announceLive('Aufnahme gespeichert');
-    };
-    this.rec.start(1000);
-    this.startedAt = Date.now();
-    document.getElementById('bc-rec-indicator').hidden = false;
-    document.getElementById('bc-video').classList.add('active');
-    this.timer = setInterval(() => {
-      const secs = Math.floor((Date.now() - this.startedAt) / 1000);
-      document.getElementById('bc-rec-time').textContent = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
-    }, 500);
-    announceLive('Aufnahme gestartet');
-  },
-
-  _stop() {
-    if (!this.rec) return;
-    this.rec.stop();
-  },
-};
-window.Recorder = Recorder;
-
-document.getElementById('bc-screenshot').addEventListener('click', () => Recorder.screenshot());
-document.getElementById('bc-video').addEventListener('click', () => Recorder.toggleVideo());
-
-// ── Help overlay ────────────────────────────────────────
-function openHelp() {
-  const overlay = document.getElementById('bc-help-overlay');
-  overlay.hidden = false;
-  document.getElementById('bc-help-close').focus();
-}
-function closeHelp() { document.getElementById('bc-help-overlay').hidden = true; }
-document.getElementById('bc-help-close').addEventListener('click', closeHelp);
-document.getElementById('bc-help-overlay').addEventListener('click', e => {
-  if (e.target.id === 'bc-help-overlay') closeHelp();
-});
-document.getElementById('bc-help').addEventListener('click', openHelp);
-
-// ── Mobile: FAB + Bottom-Sheet ───────────────────────────
-const FAB_ICONS = { V:'↖', O:'⟲', P:'✋', R:'⟳', F:'⊕', E:'👁' };
-const fab = document.getElementById('bc-fab');
-const fabRadial = document.getElementById('bc-fab-radial');
-let fabLongPressTimer = null;
-let fabLongPressFired = false;
-
-function updateFabVisibility() {
-  const isMobile = window.innerWidth < 640;
-  if (fab) fab.style.display = isMobile ? 'flex' : 'none';
-  if (fabRadial) fabRadial.style.display = isMobile && fabRadial.classList.contains('open') ? 'flex' : 'none';
-}
-window.addEventListener('resize', updateFabVisibility);
-updateFabVisibility();
-
-if (fab) {
-  fab.addEventListener('pointerdown', () => {
-    fabLongPressFired = false;
-    fabLongPressTimer = setTimeout(() => { fabLongPressFired = true; fabRadial.classList.add('open'); updateFabVisibility(); }, 400);
-  });
-  fab.addEventListener('pointerup', () => {
-    clearTimeout(fabLongPressTimer);
-    if (!fabLongPressFired) {
-      const order = 'VOPRFE';
-      const i = order.indexOf(activeTool);
-      setActiveTool(order[(i + 1) % order.length]);
+      fig.walkTarget = { x: floorPt.x, z: floorPt.z };
+      fig.walking = true;
+      sendUpdate(fig, { walkTarget: fig.walkTarget, walking: true });
     }
   });
-  fab.addEventListener('pointercancel', () => clearTimeout(fabLongPressTimer));
-}
 
-if (fabRadial) {
-  fabRadial.querySelectorAll('button[data-tool]').forEach(b => {
-    b.addEventListener('click', () => {
-      setActiveTool(b.dataset.tool);
-      fabRadial.classList.remove('open');
-      updateFabVisibility();
-    });
-  });
-}
-
-document.addEventListener('click', e => {
-  if (fabRadial && !e.target.closest('#bc-fab') && !e.target.closest('#bc-fab-radial')) {
-    fabRadial.classList.remove('open');
-    updateFabVisibility();
-  }
-});
-
-// Sync FAB icon when tool changes
-const _origSetActiveTool = window.setActiveTool;
-window.setActiveTool = function(t) {
-  _origSetActiveTool(t);
-  if (fab) fab.textContent = FAB_ICONS[t] || '↖';
-  if (fabRadial) fabRadial.querySelectorAll('button[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
-};
-
-// Bottom-Sheet
-const sheetGrab = document.getElementById('bc-sheet-grab');
-let sheetState = 'closed';
-function setSheetState(s) {
-  sheetState = s;
-  document.body.classList.toggle('bc-sheet-open', s === 'half');
-  document.body.classList.toggle('bc-sheet-full', s === 'full');
-}
-if (sheetGrab) {
-  sheetGrab.addEventListener('click', () => {
-    if (sheetState === 'closed') setSheetState('half');
-    else if (sheetState === 'half') setSheetState('full');
-    else setSheetState('closed');
-  });
-}
-
-const sheetTabs = document.getElementById('bc-sheet-tabs');
-if (sheetTabs) {
-  sheetTabs.addEventListener('click', e => {
-    const b = e.target.closest('button[data-tab]');
-    if (!b) return;
-    document.querySelectorAll('#bc-sheet-tabs button').forEach(x => x.classList.toggle('active', x === b));
-    document.querySelectorAll('[data-tab-content]').forEach(c => {
-      c.hidden = c.dataset.tabContent !== b.dataset.tab;
-    });
-    if (sheetState === 'closed') setSheetState('half');
-  });
-}
-
-// ── Keyboard shortcuts ───────────────────────────────────
-function isTypingTarget(el) {
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
-}
-
-document.addEventListener('keydown', e => {
-  // Escape — highest priority
-  if (e.key === 'Escape') {
-    if (!document.getElementById('bc-help-overlay').hidden) { closeHelp(); e.preventDefault(); return; }
-    if (camera.mode === 'pov') { exitPOV(); e.preventDefault(); return; }
-    if (camera.mode === 'freefly') { exitFreeFly(); e.preventDefault(); return; }
-    closeContextMenu();
-    if (modal.classList.contains('visible')) document.getElementById('label-cancel').click();
-    else if (confirmModal.classList.contains('visible')) document.getElementById('confirm-no').click();
-    else if (saveModal.style.display === 'flex') document.getElementById('save-cancel').click();
-    else if (loadModal.style.display === 'flex') document.getElementById('load-cancel').click();
-    return;
-  }
-
-  if (isTypingTarget(document.activeElement)) return;
-
-  // Help
-  if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
-    openHelp(); e.preventDefault(); return;
-  }
-
-  // Space-hold temp-pan
-  if (e.key === ' ' && !e.repeat) {
-    spaceHeld = true;
-    document.body.classList.add('bc-space-hold');
-    e.preventDefault();
-    return;
-  }
-
-  // Bars toggle shortcuts
-  if (e.key === '\\') {
-    if (e.shiftKey) Bars.toggle('top'); else Bars.toggleAll();
-    e.preventDefault(); return;
-  }
-  if (e.key === '[') { Bars.toggle('rail'); e.preventDefault(); return; }
-  if (e.key === ']') { Bars.toggle('dock'); e.preventDefault(); return; }
-
-  // Shift shortcuts
-  if (e.shiftKey) {
-    if (e.key === 'F' || e.key === 'f') {
-      if (camera.mode === 'freefly') exitFreeFly(); else enterFreeFly();
-      e.preventDefault(); return;
+  function easeFigure(fig, tx, tz, durationMs) {
+    const sx = fig.root.position.x, sz = fig.root.position.z;
+    const start = performance.now();
+    function step() {
+      const t = Math.min(1, (performance.now() - start) / durationMs);
+      const e = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+      fig.root.position.x = sx + (tx - sx) * e;
+      fig.root.position.z = sz + (tz - sz) * e;
+      if (t < 1) { requestAnimationFrame(step); }
+      else {
+        fig.root.position.x = tx; fig.root.position.z = tz;
+        if (wsReady) ws.send(JSON.stringify({ type: 'move', id: fig.id, x: tx, z: tz, facingY: fig.facingY }));
+      }
     }
-    if (e.key === 'S' || e.key === 's') {
-      splitOn ? exitSplit() : enterSplit();
-      e.preventDefault(); return;
+    fig.walkTarget = null; fig.walking = false;
+    requestAnimationFrame(step);
+  }
+  window.easeFigure = easeFigure;
+
+  renderer.domElement.addEventListener('dblclick', (e) => {
+    const floorPt = pickFloor(e);
+    if (!floorPt) return;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) {
+      easeFigure(fig, floorPt.x, floorPt.z, 300);
+    } else {
+      addFigure({ x: floorPt.x, z: floorPt.z });
     }
-    if (e.key === 'R' || e.key === 'r') {
-      Recorder.toggleVideo(); e.preventDefault(); return;
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      STATE.selectedId = null;
+      for (const f of STATE.figures) f.ring.visible = false;
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && STATE.selectedId) {
+      const idx = STATE.figures.findIndex(f => f.id === STATE.selectedId);
+      if (idx >= 0) {
+        scene.remove(STATE.figures[idx].root);
+        STATE.figures.splice(idx, 1);
+        STATE.selectedId = STATE.figures[0]?.id ?? null;
+        if (STATE.selectedId) selectFigure(STATE.selectedId);
+        sendDelete(idx);
+      }
+    } else if (e.key === 'Tab' && STATE.figures.length > 1) {
+      e.preventDefault();
+      const idx = STATE.figures.findIndex(f => f.id === STATE.selectedId);
+      const next = STATE.figures[(idx + 1) % STATE.figures.length];
+      selectFigure(next.id);
     }
-    if (e.key >= '1' && e.key <= '9') {
-      Bookmarks.restore(parseInt(e.key, 10) - 1);
-      e.preventDefault(); return;
+  });
+
+
+  // ----- Walking -----
+  const WALK_SPEED = 2.0;          // units/s
+  const SPRINT_MULT = 3.0;         // Shift-sprint multiplier
+  const TURN_RATE  = 8.0;          // rad/s
+  const ARRIVE_EPS = 0.3;          // distance threshold
+  const wasdKeys = { w:false, a:false, s:false, d:false, shift:false };
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Shift') { wasdKeys.shift = true; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = true;
+    if (e.key === 'ArrowUp')    { wasdKeys.w = true; e.preventDefault(); }
+    if (e.key === 'ArrowDown')  { wasdKeys.s = true; e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { wasdKeys.a = true; e.preventDefault(); }
+    if (e.key === 'ArrowRight') { wasdKeys.d = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'Shift') { wasdKeys.shift = false; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = false;
+    if (e.key === 'ArrowUp')    wasdKeys.w = false;
+    if (e.key === 'ArrowDown')  wasdKeys.s = false;
+    if (e.key === 'ArrowLeft')  wasdKeys.a = false;
+    if (e.key === 'ArrowRight') wasdKeys.d = false;
+  });
+
+  function tickWalkAnimation(fig, t) {
+    if (!fig.walking) return;
+    const phase = t * 4.0;
+    // Override-respecting: spring already left these bones alone if not in boneOverrides
+    if (!fig.boneOverrides.lHip)      fig.bone.lHip.targetRot.x      = Math.sin(phase) * 0.6;
+    if (!fig.boneOverrides.rHip)      fig.bone.rHip.targetRot.x      = Math.sin(phase + Math.PI) * 0.6;
+    if (!fig.boneOverrides.lKnee)     fig.bone.lKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*0.5)) * 0.8;
+    if (!fig.boneOverrides.rKnee)     fig.bone.rKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*1.5)) * 0.8;
+    if (!fig.boneOverrides.lShoulder) fig.bone.lShoulder.targetRot.x = Math.sin(phase + Math.PI) * 0.4;
+    if (!fig.boneOverrides.rShoulder) fig.bone.rShoulder.targetRot.x = Math.sin(phase) * 0.4;
+  }
+
+  function tickWalk(dt, t) {
+    const stiff = STATE.stiffness;
+    for (const fig of STATE.figures) {
+      // WASD only for selected figure
+      let dx = 0, dz = 0;
+      if (fig.id === STATE.selectedId && stiff >= 0.3) {
+        if (wasdKeys.w) { dx += -Math.sin(cameraOrbit.theta); dz += -Math.cos(cameraOrbit.theta); }
+        if (wasdKeys.s) { dx +=  Math.sin(cameraOrbit.theta); dz +=  Math.cos(cameraOrbit.theta); }
+        if (wasdKeys.a) { dx += -Math.cos(cameraOrbit.theta); dz +=  Math.sin(cameraOrbit.theta); }
+        if (wasdKeys.d) { dx +=  Math.cos(cameraOrbit.theta); dz += -Math.sin(cameraOrbit.theta); }
+        const mag = Math.hypot(dx, dz);
+        if (mag > 1e-3) {
+          dx /= mag; dz /= mag;
+          fig.walkTarget = null;
+          fig.walking = true;
+          const speed = WALK_SPEED * (wasdKeys.shift ? SPRINT_MULT : 1);
+          fig.root.position.x += dx * speed * dt;
+          fig.root.position.z += dz * speed * dt;
+          const want = Math.atan2(dx, dz);
+          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
+          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
+          fig.root.rotation.y = fig.facingY;
+        }
+      }
+      // Click-to-walk target
+      if (fig.walkTarget) {
+        const tx = fig.walkTarget.x - fig.root.position.x;
+        const tz = fig.walkTarget.z - fig.root.position.z;
+        const dist = Math.hypot(tx, tz);
+        if (dist < ARRIVE_EPS) {
+          fig.walkTarget = null; fig.walking = false;
+        } else if (stiff >= 0.3) {
+          const ndx = tx / dist, ndz = tz / dist;
+          fig.root.position.x += ndx * WALK_SPEED * dt;
+          fig.root.position.z += ndz * WALK_SPEED * dt;
+          const want = Math.atan2(ndx, ndz);
+          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
+          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
+          fig.root.rotation.y = fig.facingY;
+          fig.walking = true;
+        } else {
+          fig.walking = false;
+        }
+      } else if (Math.hypot(dx, dz) < 1e-3) {
+        fig.walking = false;
+      }
+      tickWalkAnimation(fig, t);
     }
-    return;
   }
 
-  // Tool keys
-  const tk = e.key.toUpperCase();
-  if (tk === 'V' || tk === 'O' || tk === 'P' || tk === 'R') {
-    setActiveTool(tk); e.preventDefault(); return;
-  }
-  if (tk === 'E') {
-    setActiveTool('E');
-    if (camera.mode === 'pov') exitPOV();
-    else if (selectedFigure) enterPOV(selectedFigure.id);
-    e.preventDefault(); return;
-  }
-  if (tk === 'F' && !e.shiftKey) {
-    setActiveTool('F'); goFit(); e.preventDefault(); return;
+  // ----- Status pill -----
+  const pillEl = document.getElementById('status-pill');
+  function updateStatusPill() {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (STATE.stiffness < 0.3) { pillEl.textContent = 'zu schlaff zum Laufen — Slider nach rechts'; return; }
+    if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
+    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur hinzufügen'; return; }
+    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · Doppelklick = Teleport · ESC = stop'; return; }
+    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Klick Boden = Ziel · Tab = nächste';
   }
 
-  // Preset shortcuts
-  if (e.key >= '1' && e.key <= '6') { goToPreset(parseInt(e.key, 10)); e.preventDefault(); return; }
-  if (e.key === 'h' || e.key === 'H' || e.key === '0') { goHome(); e.preventDefault(); return; }
-  if (e.key === '+' || e.key === '=') { bcSetZoom(camera.radius - 4); e.preventDefault(); return; }
-  if (e.key === '-' || e.key === '_') { bcSetZoom(camera.radius + 4); e.preventDefault(); return; }
+  // ----- WebSocket sync -----
+  const roomFromUrl = new URLSearchParams(location.search).get("room") || "default";
+  const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+  const ws = new WebSocket(`${wsProto}//${location.host}/sync`);
+  let wsReady = false;
 
-  // Modes
-  if (e.key === 'a' || e.key === 'A') { toggleAutoOrbit(); e.preventDefault(); return; }
-  if (e.key === 'b' || e.key === 'B') { Bookmarks.add(); e.preventDefault(); return; }
-  if (e.key === 'c' || e.key === 'C') { Recorder.screenshot(); e.preventDefault(); return; }
-});
-
-document.addEventListener('keyup', e => {
-  if (e.key === ' ') {
-    spaceHeld = false;
-    document.body.classList.remove('bc-space-hold');
-  }
-});
-
-// ── Resize ────────────────────────────────────────────────────────────────────
-function onResize() {
-  const w=container.clientWidth, h=container.clientHeight;
-  renderer.setSize(w,h,false);
-  camera_obj.aspect=w/h; camera_obj.updateProjectionMatrix();
-  if (typeof splitOn !== 'undefined' && splitOn) {
-    // secondary camera aspect updated in configureSecondaryCamera()
-  }
-}
-window.addEventListener('resize', onResize); onResize();
-
-// ── Render loop ───────────────────────────────────────────────────────────────
-function animate() {
-  requestAnimationFrame(animate);
-  const t = performance.now()*0.001;
-  figures.forEach((fig,i) => {
-    if (fig === selectedFigure) fig.mesh.position.y = Math.sin(t*2+i)*0.07;
-    else fig.mesh.position.y = 0;
+  ws.addEventListener("open", () => {
+    wsReady = true;
+    ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
   });
-  if (ctrlBall && ctrlBallActive) {
-    const tFade = Math.min(1, (Date.now() - ctrlBallShowTime) / 150);
-    ctrlBall.children.forEach((c, i) => {
-      if (c.material) c.material.opacity = tFade * (i === 0 ? 0.72 : 0.9);
-    });
-  }
-  const dt = tickAutoOrbit();
-  tickFreeFly(dt);
-  tickOrbitKeys(dt);
-  updateCamera();
-  tickCompass();
-  // Split-View or normal render
-  if (typeof splitOn !== 'undefined' && splitOn) {
-    const w = renderer.domElement.width, h = renderer.domElement.height;
-    const splitX = Math.floor(w * splitRatio);
-    renderer.setScissorTest(true);
-    renderer.setViewport(0, 0, splitX, h);
-    renderer.setScissor(0, 0, splitX, h);
-    renderer.render(scene, camera_obj);
-    camera_obj_secondary.aspect = (w - splitX) / h;
-    camera_obj_secondary.updateProjectionMatrix();
-    configureSecondaryCamera();
-    renderer.setViewport(splitX, 0, w - splitX, h);
-    renderer.setScissor(splitX, 0, w - splitX, h);
-    renderer.render(scene, camera_obj_secondary);
-    renderer.setScissorTest(false);
-  } else {
-    renderer.setScissorTest(false);
-    renderer.setViewport(0, 0, renderer.domElement.width, renderer.domElement.height);
-    renderer.render(scene, camera_obj);
-  }
-}
-animate();
+  ws.addEventListener("close", () => { wsReady = false; });
 
-// ── Minimap Widget ────────────────────────────────────────────────────────────
-{
-  // Frustum half-extents: board is ±18 (X) / ±14 (Z), +2 units margin each side
-  const HALF_X = 20, HALF_Z = 16;
-  const MW = 158, MH = 123;
-
-  const mCvs = document.getElementById('minimap-canvas');
-  const mR = new THREE.WebGLRenderer({ canvas: mCvs, antialias: false });
-  mR.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  mR.setSize(MW, MH);
-  mR.shadowMap.enabled = false;
-
-  // Top-down orthographic camera; up=(0,0,-1) so world -Z points to screen top
-  const mCam = new THREE.OrthographicCamera(-HALF_X, HALF_X, HALF_Z, -HALF_Z, 0.1, 200);
-  mCam.up.set(0, 0, -1);
-  mCam.position.set(0, 80, 0);
-  mCam.lookAt(0, 0, 0);
-
-  // 2D overlay for crosshair / viewport indicator
-  const mUi = document.getElementById('minimap-ui');
-  mUi.width = MW; mUi.height = MH;
-  const mCtx = mUi.getContext('2d');
-
-  function drawMinimapOverlay() {
-    mCtx.clearRect(0, 0, MW, MH);
-    const px = (camera.target.x / (HALF_X * 2) + 0.5) * MW;
-    const py = (camera.target.z / (HALF_Z * 2) + 0.5) * MH;
-    // Viewport circle (size scales with zoom radius)
-    const vr = Math.max(5, (camera.radius / 75) * Math.min(MW, MH) * 0.38);
-    mCtx.beginPath();
-    mCtx.arc(px, py, vr, 0, Math.PI * 2);
-    mCtx.strokeStyle = 'rgba(74,144,217,0.55)';
-    mCtx.lineWidth = 1;
-    mCtx.stroke();
-    // Crosshair lines
-    mCtx.strokeStyle = 'rgba(74,144,217,0.9)';
-    mCtx.lineWidth = 1;
-    mCtx.beginPath();
-    mCtx.moveTo(px - 8, py); mCtx.lineTo(px + 8, py);
-    mCtx.moveTo(px, py - 8); mCtx.lineTo(px, py + 8);
-    mCtx.stroke();
-    // Center dot
-    mCtx.beginPath();
-    mCtx.arc(px, py, 2.5, 0, Math.PI * 2);
-    mCtx.fillStyle = '#4a90d9';
-    mCtx.fill();
-  }
-
-  function animMinimap() {
-    requestAnimationFrame(animMinimap);
-    mR.render(scene, mCam);
-    drawMinimapOverlay();
-  }
-  animMinimap();
-
-  // Click / drag to navigate
-  const mWrap = document.getElementById('minimap-wrap');
-  let mDrag = false, mDS = { x: 0, y: 0 };
-
-  mWrap.addEventListener('mousedown', e => {
-    mDrag = true;
-    mDS = { x: e.clientX, y: e.clientY };
-    const rect = mWrap.getBoundingClientRect();
-    camera.target.x = ((e.clientX - rect.left) / rect.width  - 0.5) * 2 * HALF_X;
-    camera.target.z = ((e.clientY - rect.top)  / rect.height - 0.5) * 2 * HALF_Z;
-    e.preventDefault(); e.stopPropagation();
+  ws.addEventListener("message", (evt) => {
+    let msg; try { msg = JSON.parse(evt.data); } catch { return; }
+    switch (msg.type) {
+      case "snapshot":
+        // Reset world from server state
+        for (const f of STATE.figures) scene.remove(f.root);
+        STATE.figures.length = 0; STATE.selectedId = null;
+        for (const f of (msg.figures || [])) {
+          const fig = makeMannequin(f.id, { x: f.x ?? 0, z: f.z ?? 0 });
+          fig.facingY = f.facingY ?? 0; fig.root.rotation.y = fig.facingY;
+          if (f.preset && PRESETS[f.preset]) {
+            for (const name of BONE_NAMES) {
+              fig.bone[name].targetRot.x = PRESETS[f.preset][name].x;
+              fig.bone[name].targetRot.z = PRESETS[f.preset][name].z;
+            }
+          }
+          if (f.boneOverrides) fig.boneOverrides = { ...f.boneOverrides };
+          if (f.walkTarget) fig.walkTarget = f.walkTarget;
+          STATE.figures.push(fig);
+        }
+        if (typeof msg.stiffness === "number") {
+          STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
+        }
+        if (STATE.figures[0]) selectFigure(STATE.figures[0].id);
+        break;
+      case "stiffness":
+        STATE.stiffness = msg.value; stiffSlider.value = String(msg.value);
+        break;
+      case "add": {
+        if (STATE.figures.find(f => f.id === msg.figure.id)) break;
+        const fig = makeMannequin(msg.figure.id, { x: msg.figure.x, z: msg.figure.z });
+        STATE.figures.push(fig);
+        break;
+      }
+      case "update": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (!fig) break;
+        const c = msg.changes || {};
+        if (c.preset && PRESETS[c.preset]) {
+          for (const name of BONE_NAMES) {
+            fig.bone[name].targetRot.x = PRESETS[c.preset][name].x;
+            fig.bone[name].targetRot.z = PRESETS[c.preset][name].z;
+          }
+        }
+        if (c.boneOverrides !== undefined) fig.boneOverrides = { ...c.boneOverrides };
+        if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
+        if (c.walking !== undefined) fig.walking = !!c.walking;
+        break;
+      }
+      case "move": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (!fig) break;
+        fig.root.position.x = msg.x; fig.root.position.z = msg.z;
+        if (typeof msg.facingY === "number") { fig.facingY = msg.facingY; fig.root.rotation.y = fig.facingY; }
+        break;
+      }
+      case "delete": {
+        const idx = STATE.figures.findIndex(f => f.id === msg.id);
+        if (idx >= 0) { scene.remove(STATE.figures[idx].root); STATE.figures.splice(idx, 1); }
+        break;
+      }
+      case "info":
+        STATE.online = msg.count || 1;
+        document.getElementById("online-count").textContent = String(STATE.online);
+        break;
+    }
   });
 
-  window.addEventListener('mousemove', e => {
-    if (!mDrag) return;
-    const rect = mWrap.getBoundingClientRect();
-    camera.target.x += (e.clientX - mDS.x) / rect.width  * 2 * HALF_X;
-    camera.target.z += (e.clientY - mDS.y) / rect.height * 2 * HALF_Z;
-    mDS = { x: e.clientX, y: e.clientY };
-  });
+  // Replace the placeholders defined earlier
+  window.sendUpdate = function(fig, changes) {
+    if (!wsReady) return;
+    ws.send(JSON.stringify({ type: "update", id: fig.id, changes }));
+  };
+  window.sendStiffness = function(value) {
+    if (!wsReady) return;
+    ws.send(JSON.stringify({ type: "stiffness", value }));
+  };
+  window.sendDelete = function(/* idx */) {
+    if (!wsReady || !STATE.selectedId) return;
+    ws.send(JSON.stringify({ type: "delete", id: STATE.selectedId }));
+  };
 
-  window.addEventListener('mouseup', () => { mDrag = false; });
+  // When adding a figure locally, also broadcast it
+  const _origAdd = addFigure;
+  addFigure = function(position) {
+    const fig = _origAdd(position);
+    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z } }));
+    return fig;
+  };
 
-  // Collapse / expand via minimap header button
-  document.getElementById('minimap-toggle').addEventListener('click', () => {
-    document.getElementById('minimap-widget').classList.toggle('collapsed');
-    document.getElementById('uebersicht-btn').classList.toggle('active',
-      !document.getElementById('minimap-widget').classList.contains('collapsed'));
-  });
-
-  // Toolbar Übersicht button
-  const uebersichtBtn = document.getElementById('uebersicht-btn');
-  uebersichtBtn.classList.add('active'); // minimap starts visible
-  uebersichtBtn.addEventListener('click', () => {
-    const widget = document.getElementById('minimap-widget');
-    widget.classList.toggle('collapsed');
-    uebersichtBtn.classList.toggle('active', !widget.classList.contains('collapsed'));
-  });
-}
-
-// ── Optik-Panel Interaktion ────────────────────────────────────────────────
-document.getElementById('optik-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  const popup = document.getElementById('optik-popup');
-  const willOpen = !popup.classList.contains('open');
-  popup.classList.toggle('open', willOpen);
-  if (willOpen) {
-    const r = document.getElementById('optik-btn').getBoundingClientRect();
-    popup.style.top = (r.bottom + 6) + 'px';
-    // Clamp horizontally so popup stays within the viewport
-    const popW = popup.offsetWidth || 240;
-    let left = r.right - popW;
-    if (left < 8) left = 8;
-    if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
-    popup.style.left = left + 'px';
+  // Periodically broadcast position for the selected figure so peers see walking
+  setInterval(() => {
+    if (!wsReady) return;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (!fig) return;
+    ws.send(JSON.stringify({ type: "move", id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
+  }, 100);
+  function tick() {
+    requestAnimationFrame(tick);
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastTickMs) / 1000);
+    lastTickMs = now;
+    tickWalk(dt, now / 1000);
+    tickSpring(dt);
+    updateStatusPill();
+    renderer.render(scene, camera);
   }
-});
+    tick();
 
-document.addEventListener('click', (e) => {
-  const popup = document.getElementById('optik-popup');
-  const btn   = document.getElementById('optik-btn');
-  if (popup.classList.contains('open') && !popup.contains(e.target) && e.target !== btn) {
-    popup.classList.remove('open');
-  }
-});
-
-window.addEventListener('resize', () => {
-  document.getElementById('optik-popup').classList.remove('open');
-});
-
-document.querySelectorAll('[data-board]').forEach(chip => {
-  chip.addEventListener('click', () => {
-    const newOptik = { ...currentOptik, board: chip.dataset.board, customColor: null };
-    syncOptikUI(newOptik);
-    sendOptik(newOptik);
-  });
-});
-
-document.getElementById('optik-color').addEventListener('input', (e) => {
-  const newOptik = { ...currentOptik, board: 'custom', customColor: e.target.value };
-  syncOptikUI(newOptik);
-  sendOptik(newOptik);
-});
-
-document.querySelectorAll('[data-bg]').forEach(chip => {
-  chip.addEventListener('click', () => {
-    const newOptik = { ...currentOptik, bg: chip.dataset.bg };
-    syncOptikUI(newOptik);
-    sendOptik(newOptik);
-  });
-});
-
-document.querySelectorAll('[data-light]').forEach(chip => {
-  chip.addEventListener('click', () => {
-    const newOptik = { ...currentOptik, light: chip.dataset.light };
-    syncOptikUI(newOptik);
-    sendOptik(newOptik);
-  });
-});
-
-connect();
-
-})();
-</script>
+    console.log('[brett] scene up');
+  </script>
 </body>
 </html>

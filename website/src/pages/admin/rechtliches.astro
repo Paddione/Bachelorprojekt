@@ -1,7 +1,9 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import RechtlichesSection from '../../components/admin/inhalte/RechtlichesSection.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getLegalPage } from '../../lib/website-db';
+import { getDefaultDatenschutz, getDefaultAgb, getDefaultBarrierefreiheit, getDefaultImpressumZusatz } from '../../lib/legal-defaults';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -9,23 +11,32 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-// Hilfsfunktion: holt DB-Inhalt oder gibt leeren String zurück
-async function getOrEmpty(key: string): Promise<string> {
-  return await getLegalPage(BRAND, key).catch(() => null) ?? '';
-}
-
-// Lade alle rechtlichen Inhalte aus der DB für die Admin-Anzeige
-const [datenschutz, agb, barrierefreiheit, impressumZusatz] = await Promise.all([
-  getOrEmpty('datenschutz'),
-  getOrEmpty('agb'),
-  getOrEmpty('barrierefreiheit'),
-  getOrEmpty('impressum-zusatz'),
+const [dbImpressum, dbDatenschutz, dbAgb, dbBarrierefreiheit] = await Promise.all([
+  getLegalPage(BRAND, 'impressum-zusatz').catch(() => null),
+  getLegalPage(BRAND, 'datenschutz').catch(() => null),
+  getLegalPage(BRAND, 'agb').catch(() => null),
+  getLegalPage(BRAND, 'barrierefreiheit').catch(() => null),
 ]);
 
-const pages = [
-  { key: 'datenschutz', label: 'Datenschutzerklärung', value: datenschutz },
-  { key: 'agb', label: 'AGB', value: agb },
-  { key: 'barrierefreiheit', label: 'Barrierefreiheit', value: barrierefreiheit },
-  { key: 'impressum-zusatz', label: 'Impressum-Zusatz', value: impressumZusatz },
-];
+const initialData = {
+  'impressum-zusatz': dbImpressum ?? getDefaultImpressumZusatz(),
+  'datenschutz':      dbDatenschutz ?? getDefaultDatenschutz(),
+  'agb':              dbAgb ?? getDefaultAgb(),
+  'barrierefreiheit': dbBarrierefreiheit ?? getDefaultBarrierefreiheit(),
+};
+
+const rechtlichesHasCustom = {
+  'impressum-zusatz': dbImpressum !== null,
+  'datenschutz':      dbDatenschutz !== null,
+  'agb':              dbAgb !== null,
+  'barrierefreiheit': dbBarrierefreiheit !== null,
+};
 ---
+
+<AdminLayout title="Admin — Rechtliches">
+  <section class="pt-0 pb-0 bg-dark min-h-screen">
+    <div class="px-8 pt-8">
+      <RechtlichesSection {initialData} {rechtlichesHasCustom} client:load />
+    </div>
+  </section>
+</AdminLayout>

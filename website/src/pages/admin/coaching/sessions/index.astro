@@ -1,0 +1,78 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+import { listSessions } from '../../../../lib/coaching-session-db';
+import { pool } from '../../../../lib/website-db';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const brand = process.env.BRAND || 'mentolder';
+let sessions: Awaited<ReturnType<typeof listSessions>> = [];
+try { sessions = await listSessions(pool, brand); } catch { /* coaching schema may not exist yet */ }
+
+function fmtDate(d: Date | string | null) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+const statusLabel: Record<string, string> = { active: 'Läuft', completed: 'Abgeschlossen', abandoned: 'Abgebrochen' };
+---
+
+<AdminLayout title="Coaching-Sessions">
+  <div class="page">
+    <header class="page-head">
+      <nav class="crumbs">
+        <a href="/admin">Admin</a><span class="sep">›</span>
+        <a href="/admin/coaching/sessions">Coaching</a><span class="sep">›</span>Sessions
+      </nav>
+      <div class="head-row">
+        <h1>Coaching-Sessions</h1>
+        <a href="/admin/coaching/sessions/new" class="btn-primary">+ Neue Session</a>
+      </div>
+    </header>
+
+    {sessions.length === 0 ? (
+      <div class="empty">
+        <p>Noch keine Sessions. Starte deine erste triadische KI-Coaching-Session.</p>
+        <a href="/admin/coaching/sessions/new" class="btn-primary">Erste Session starten →</a>
+      </div>
+    ) : (
+      <table class="table">
+        <thead><tr><th>Titel</th><th>Modus</th><th>Datum</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {sessions.map(s => (
+            <tr>
+              <td><a href={`/admin/coaching/sessions/${s.id}`}>{s.title}</a></td>
+              <td>{s.mode === 'prep' ? 'Vorbereitung' : 'Live'}</td>
+              <td>{fmtDate(s.createdAt)}</td>
+              <td><span class={`badge ${s.status}`}>{statusLabel[s.status] ?? s.status}</span></td>
+              <td><a href={`/admin/coaching/sessions/${s.id}`} class="btn-sm">Öffnen</a></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</AdminLayout>
+
+<style>
+  .page { max-width: 1000px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+  .page-head { margin-bottom: 1.5rem; }
+  .crumbs { font-size: 0.78rem; color: var(--text-muted,#888); margin-bottom: 0.4rem; }
+  .crumbs a { color: var(--text-muted,#888); text-decoration: none; }
+  .crumbs .sep { margin: 0 0.4rem; }
+  .head-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-light,#f0f0f0); margin: 0; }
+  .btn-primary { padding: 0.55rem 1.2rem; background: var(--gold,#c9a55c); color: #111; font-weight: 700; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+  .btn-sm { padding: 0.3rem 0.7rem; border: 1px solid var(--line,#444); border-radius: 4px; font-size: 0.82rem; color: var(--text-muted,#888); text-decoration: none; }
+  .empty { background: var(--bg-2,#1a1a1a); border: 1px solid var(--line,#333); border-radius: 8px; padding: 2rem; text-align: center; color: var(--text-muted,#888); display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+  .table { width: 100%; border-collapse: collapse; }
+  .table th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line,#333); font-size: 0.82rem; color: var(--text-muted,#888); }
+  .table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--line,#222); }
+  .table a { color: var(--gold,#c9a55c); text-decoration: none; }
+  .badge { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; }
+  .badge.active { background: #3b82f620; color: #60a5fa; }
+  .badge.completed { background: #22c55e20; color: #4ade80; }
+  .badge.abandoned { background: #64748b20; color: #94a3b8; }
+</style>

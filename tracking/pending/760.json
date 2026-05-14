@@ -1,0 +1,13 @@
+{
+  "pr_number": 760,
+  "title": "cleanup denormalized text fields (Audit Phase 1)",
+  "description": "## Summary\n\n- Removes denormalized text fields from DB layer and normalizes references per DB audit phase 1\n- Cleans up `questionnaire-db.ts`: removes redundant denormalized columns, tightens query projections\n- Cleans up `website-db.ts`: normalizes room/user references, removes stale text duplicates\n- Cleans up `messaging-db.ts`: removes denormalized sender/room name fields, uses FK joins instead\n- Updates `website-schema.yaml` to reflect the normalized schema\n- Regenerates `docs/db-schema-diagram.md` and `k3d/docs-content/db-schema.md` to reflect removed columns\n\n## Files changed\n\n- `website/src/lib/questionnaire-db.ts` — denormalized text fields removed\n- `website/src/lib/website-db.ts` — normalized room/user references\n- `website/src/lib/messaging-db.ts` — sender/room name denormalization removed\n- `k3d/website-schema.yaml` — schema updated to match normalized structure\n- `docs/db-schema-diagram.md` + `k3d/docs-content/db-schema.md` — regenerated ER diagram\n- `scripts/db-schema-diagram.py` — diagram generation script updates\n- `website/src/pages/api/admin/rooms/[id].ts` + `website/src/pages/api/portal/rooms/[id]/messages.ts` — API handlers updated for new schema\n\n## Test plan\n\n- [ ] Verify questionnaire queries return correct data without denormalized fields\n- [ ] Confirm messaging API responses still include joined display names via FK joins\n- [ ] Check ER diagram renders correctly in docs\n- [ ] Run `task test:all` — CI unit + manifest tests green\n- [ ] Smoke test room/message endpoints on dev cluster\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "db",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T20:45:27Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": []
+}

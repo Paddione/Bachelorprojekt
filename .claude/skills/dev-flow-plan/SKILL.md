@@ -3,6 +3,12 @@ name: dev-flow-plan
 description: Use when beginning any repo change — feature, bug fix, or chore. Entry point for all development work in this repo. Routes to the correct path (feature/fix/chore) and produces a committed, pushed plan on the branch ready for dev-flow-execute. Chores complete inline without a separate execution step.
 ---
 
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
 # dev-flow-plan — Pfad-Wahl, Brainstorming & Plan
 
 ## Wann diese Skill greift
@@ -20,12 +26,19 @@ Führe **immer als erstes** aus — bevor Pfad oder Branch bestimmt werden:
 git worktree list
 
 # Bereits in main gemergte Branches mit noch aktiven Worktrees finden
-MERGED=$(git branch --merged main 2>/dev/null | grep -vE '^\*|main|HEAD' | tr -d ' ')
-for branch in $MERGED; do
-  WT=$(git worktree list --porcelain \
-    | awk -v b="refs/heads/$branch" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
-  [[ -n "$WT" ]] && echo "⚠️  STALER WORKTREE: $branch → $WT (bereits in main gemergt)"
-done
+# (squash-merge-safe: prüft GitHub PR-Status statt git branch --merged)
+git worktree list --porcelain \
+  | awk '/^branch /{print $2}' \
+  | grep -v 'refs/heads/main' \
+  | sed 's|refs/heads/||' \
+  | while read -r branch; do
+    MERGED=$(gh pr list --head "$branch" --state merged --json number --jq 'length' 2>/dev/null || echo 0)
+    if [[ "$MERGED" -gt 0 ]]; then
+      WT=$(git worktree list --porcelain \
+        | awk -v b="refs/heads/$branch" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+      echo "⚠️  STALER WORKTREE: $branch → $WT (PR wurde gemergt)"
+    fi
+  done
 ```
 
 Falls stale Worktrees ausgegeben werden: Dem User mitteilen und anbieten, sie zuerst zu bereinigen. Bereinigung auf Anfrage:
@@ -214,6 +227,19 @@ Trage `ticket_id` in das Plan-Frontmatter ein (nach der ersten `---`-Zeile):
 awk 'NR==1{print; print "ticket_id: '"$TICKET_EXT_ID"'"; next} 1' \
   docs/superpowers/plans/<date>-<slug>.md > /tmp/_plan_tmp.md && \
   mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
+```
+
+Injiziere dann brainstorm_choice + brainstorm_session (best-effort — kein Fehler wenn kein STATE_DIR oder keine Wahl):
+
+```bash
+if [[ -n "${STATE_DIR:-}" ]] && BRAINSTORM_CHOICE=$(bash scripts/brainstorm-extract-choice.sh "$STATE_DIR" 2>/dev/null); then
+  SESSION_ID=$(basename "$(dirname "$STATE_DIR")")
+  awk -v c="$BRAINSTORM_CHOICE" -v s="$SESSION_ID" \
+    'NR==1{print; print "brainstorm_choice: " c; print "brainstorm_session: " s; next} 1' \
+    docs/superpowers/plans/<date>-<slug>.md > /tmp/_plan_tmp.md && \
+    mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
+  echo "Brainstorm choice '$BRAINSTORM_CHOICE' (session $SESSION_ID) recorded"
+fi
 ```
 
 Melde: **"Ticket `$TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bugs"**
@@ -494,3 +520,10 @@ Jeder Pfad delegiert Spezialarbeit an die passenden Sub-Agents (siehe CLAUDE.md 
 - SealedSecrets/Keycloak/OIDC → `bachelorprojekt-security`
 
 **Pflicht vor jedem Sub-Agent-Dispatch:** `bash scripts/plan-context.sh <role>` ausführen und die Ausgabe in `<active-plans>` Tags an den Prompt voranstellen (Details in CLAUDE.md).
+
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your
+accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
+cleanly with "No mishaps found."

@@ -1,0 +1,12 @@
+{
+  "pr_number": 750,
+  "title": "set Cache-Control per asset type",
+  "description": "## Summary\n- HTML responses now served with `Cache-Control: no-cache` so index updates are picked up immediately\n- Other static assets keep the existing 5-minute max-age\n\n## Test plan\n- [ ] `task brett:deploy ENV=mentolder` (and korczewski) — confirm assets still load\n- [ ] `curl -I https://brett.mentolder.de/index.html` shows `Cache-Control: no-cache`\n- [ ] `curl -I https://brett.mentolder.de/<some-asset>.js` shows `max-age=300`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T18:15:45Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

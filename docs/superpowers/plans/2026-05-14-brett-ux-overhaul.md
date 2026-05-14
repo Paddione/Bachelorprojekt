@@ -1,3 +1,11 @@
+---
+ticket_id: T000377
+title: Brett UX Overhaul Implementation Plan
+domains: []
+status: active
+pr_number: null
+---
+
 # Brett UX Overhaul Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

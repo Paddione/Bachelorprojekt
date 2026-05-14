@@ -1,6 +1,7 @@
 const TITLE_RE = /^(feat|fix|chore|docs|refactor|infra|perf|test|build|ci|style)(\(([^)]+)\))?(!)?:\s*(.+?)\s*$/i;
 const BUG_RE   = /\bBR-\d{8}-\d{4}\b/g;
 const REQ_RE   = /\b(FA|SA|NFA|AK|L)-\d+\b/i;
+const TICKET_RE = /\bT\d{6}\b/g;
 
 const BRAND_SCOPES = new Set(['mentolder', 'korczewski', 'kore']);
 
@@ -21,6 +22,7 @@ export function parsePr(pr) {
   const bug_refs = Array.from(new Set((body.match(BUG_RE) || [])));
   const reqMatch = REQ_RE.exec(body);
   const requirement_id = reqMatch ? reqMatch[0].toUpperCase() : null;
+  const ticket_refs = Array.from(new Set((body.match(TICKET_RE) || [])));
 
   let brand = null;
   if (scope && BRAND_SCOPES.has(scope)) {
@@ -38,6 +40,7 @@ export function parsePr(pr) {
     merged_at: pr.mergedAt,
     merged_by: pr.mergedBy?.login || null,
     bug_refs,
+    ticket_refs,
   };
 }
 
@@ -75,6 +78,24 @@ export async function writeRowToDb(row, pgClient) {
         [t.rows[0].id, row.pr_number]);
     } else {
       console.log(`skip requirement link ${row.requirement_id}: feature ticket not found`);
+    }
+  }
+
+  // 3. T-###### ticket references → ticket_links (kind='implements')
+  // from_id = to_id intentionally (self-referential): the PR "implements" the ticket,
+  // not a link between two different tickets. Same pattern as the requirement_id block above.
+  for (const extId of (row.ticket_refs ?? [])) {
+    const t = await pgClient.query(
+      `SELECT id FROM tickets.tickets WHERE external_id = $1`,
+      [extId]);
+    if (t.rowCount > 0) {
+      await pgClient.query(
+        `INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+         VALUES ($1, $1, 'implements', $2)
+         ON CONFLICT (from_id, to_id, kind) DO NOTHING`,
+        [t.rows[0].id, row.pr_number]);
+    } else {
+      console.log(`skip ticket link ${extId}: ticket not found`);
     }
   }
 
@@ -197,20 +218,32 @@ async function ensurePlanSchema(pgClient) {
   `);
   await pgClient.query(`CREATE INDEX IF NOT EXISTS plans_domains_idx ON superpowers.plans USING GIN(domains)`);
   await pgClient.query(`CREATE INDEX IF NOT EXISTS plans_status_idx ON superpowers.plans(status)`);
+  await pgClient.query(`
+    ALTER TABLE superpowers.plans
+      ADD COLUMN IF NOT EXISTS brainstorm_choice  TEXT,
+      ADD COLUMN IF NOT EXISTS brainstorm_session TEXT
+  `);
 }
 
 async function writePlanToDb(row, pgClient) {
   const result = await pgClient.query(
-    `INSERT INTO superpowers.plans (slug, title, domains, status, pr_number, file_path)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO superpowers.plans
+       (slug, title, domains, status, pr_number, file_path,
+        brainstorm_choice, brainstorm_session)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      ON CONFLICT (slug) DO UPDATE SET
-       title = EXCLUDED.title,
-       domains = EXCLUDED.domains,
-       status = EXCLUDED.status,
-       pr_number = EXCLUDED.pr_number,
-       file_path = EXCLUDED.file_path
+       title              = EXCLUDED.title,
+       domains            = EXCLUDED.domains,
+       status             = EXCLUDED.status,
+       pr_number          = EXCLUDED.pr_number,
+       file_path          = EXCLUDED.file_path,
+       brainstorm_choice  = COALESCE(EXCLUDED.brainstorm_choice,
+                                     superpowers.plans.brainstorm_choice),
+       brainstorm_session = COALESCE(EXCLUDED.brainstorm_session,
+                                     superpowers.plans.brainstorm_session)
      RETURNING id`,
-    [row.slug, row.title, row.domains, row.status, row.pr_number ?? null, row.file_path]
+    [row.slug, row.title, row.domains, row.status, row.pr_number ?? null, row.file_path,
+     row.brainstorm_choice ?? null, row.brainstorm_session ?? null]
   );
   const planId = result.rows[0].id;
 

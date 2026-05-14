@@ -1,0 +1,12 @@
+{
+  "pr_number": 729,
+  "title": "static HTML docs build system",
+  "description": "## Summary\n- Replaced Docsify runtime with a Node.js build script\n- Pre-render Mermaid code blocks to inline SVG\n- Generate static HTML with sidebars, TOC, and search index\n\n## Test plan\n- [x] task docs:build FAST=1\n- [x] node --test scripts/build-docs.test.js\n- [x] node scripts/build-docs.js\n\nCo-Authored-By: gemini-cli",
+  "category": "feat",
+  "scope": "docs",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T04:46:19Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -3701,6 +3701,18 @@ export async function initBillingTables(): Promise<void> {
     END $$
   `);
   await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='public'
+          AND table_name='billing_customers' AND column_name='land_iso' AND data_type != 'character'
+      ) THEN
+        ALTER TABLE billing_customers ALTER COLUMN land_iso TYPE CHAR(2);
+      END IF;
+    END $$
+  `);
+  await pool.query(`
     ALTER TABLE billing_customers
       ADD COLUMN IF NOT EXISTS typ TEXT NOT NULL DEFAULT 'Kunde'
   `);

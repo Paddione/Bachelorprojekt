@@ -419,7 +419,6 @@ data:
         id                   SERIAL PRIMARY KEY,
         room_id              INT NOT NULL REFERENCES chat_rooms(id),
         sender_id            TEXT NOT NULL,
-        sender_name          TEXT NOT NULL,
         sender_customer_id   UUID REFERENCES customers(id) ON DELETE SET NULL,
         body                 TEXT NOT NULL,
         created_at           TIMESTAMPTZ DEFAULT now(),
@@ -608,6 +607,10 @@ data:
     #!/bin/bash
     set -e
     echo "Ensuring meetings schema is up to date..."
+
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname website <<-'EOSQL'
+      ALTER TABLE IF EXISTS chat_messages DROP COLUMN IF EXISTS sender_name;
+    EOSQL
 
     psql -v ON_ERROR_STOP=1 --username "postgres" --dbname website <<-'EOSQL'
       -- staleness_reports was dropped 2026-05-08 (testing pipeline overhaul, Task A9).
@@ -999,7 +1002,6 @@ data:
         id                   SERIAL PRIMARY KEY,
         room_id              INT NOT NULL REFERENCES chat_rooms(id),
         sender_id            TEXT NOT NULL,
-        sender_name          TEXT NOT NULL,
         sender_customer_id   UUID REFERENCES customers(id) ON DELETE SET NULL,
         body                 TEXT NOT NULL,
         created_at           TIMESTAMPTZ DEFAULT now(),

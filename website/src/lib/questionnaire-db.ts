@@ -288,6 +288,9 @@ async function initDb() {
     )
   `);
   await pool.query(
+    `ALTER TABLE IF EXISTS questionnaire_assignment_scores DROP COLUMN IF EXISTS dimension_name;`
+  );
+  await pool.query(
     `CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores(assignment_id)`,
   );
   await pool.query(`CREATE SCHEMA IF NOT EXISTS bachelorprojekt`);
@@ -1116,4 +1119,6 @@ export async function listQuestionsWithSuccessfulRecording(): Promise<string[]> 
       WHERE a.option_key = 'erfüllt'`,
   );
   return r.rows.map((row: { question_id: string }) => row.question_id);
+}
+row: { question_id: string }) => row.question_id);
 }

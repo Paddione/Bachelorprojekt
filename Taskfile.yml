@@ -221,6 +221,7 @@ tasks:
     deps:
       - test:unit:assert
       - test:unit:scripts
+      - test:unit:figure-pack
 
   test:unit:assert:
     internal: true
@@ -231,6 +232,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:unit:figure-pack:
+    internal: true
+    cmds:
+      - bash tests/figure-pack-assets.test.sh
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
@@ -460,11 +466,18 @@ tasks:
   # ─────────────────────────────────────────────
 
   workspace:transcriber-build:
-    desc: Build and push talk-transcriber image to local registry
+    desc: Build talk-transcriber image (imports into k3d dev registry)
     cmds:
-      - docker build -t {{.REGISTRY}}/talk-transcriber:latest k3d/talk-transcriber/
-      - docker push {{.REGISTRY}}/talk-transcriber:latest
-      - 'echo "✓ talk-transcriber image pushed to {{.REGISTRY}}"'
+      - docker build -t ghcr.io/paddione/talk-transcriber:latest k3d/talk-transcriber/
+      - k3d image import ghcr.io/paddione/talk-transcriber:latest -c {{.CLUSTER_NAME}} 2>/dev/null || true
+      - 'echo "✓ talk-transcriber image built (run ''task workspace:transcriber-push'' to publish to ghcr.io)"'
+
+  workspace:transcriber-push:
+    desc: Push talk-transcriber image to ghcr.io (for production)
+    deps: [workspace:transcriber-build]
+    cmds:
+      - docker push ghcr.io/paddione/talk-transcriber:latest
+      - 'echo "✓ Pushed ghcr.io/paddione/talk-transcriber:latest — update the digest in prod-korczewski/talk-transcriber.yaml"'
 
   workspace:transcriber-setup:
     desc: Build talk-transcriber image and create transcriber-bot Nextcloud user
@@ -1357,27 +1370,51 @@ tasks:
             < k3d/cronjob-systemtest-cleanup.yaml | kubectl apply -f -
         else
           # Prod: build from overlay, apply to target cluster
+          _ws_ns="${WORKSPACE_NAMESPACE:-workspace}"
+          _website_ns="${WEBSITE_NAMESPACE:-website}"
+
           # Apply SealedSecret first so the Secret is ready when pods start
           sealed="environments/sealed-secrets/{{.ENV}}.yaml"
           if [ -f "$sealed" ]; then
-            # Pre-create all namespaces referenced by SealedSecrets so apply doesn't fail
-            kubectl --context "$ENV_CONTEXT" create namespace cert-manager --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
-            _website_ns="${WEBSITE_NAMESPACE:-website}"
-            kubectl --context "$ENV_CONTEXT" create namespace "${_website_ns}" --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
+            # Pre-create ALL namespaces referenced by SealedSecrets so apply doesn't fail.
+            # Includes coturn + workspace-office so their SealedSecrets land cleanly.
+            for _ns in "$_ws_ns" cert-manager "$_website_ns" coturn workspace-office; do
+              kubectl --context "$ENV_CONTEXT" create namespace "$_ns" \
+                --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
+            done
             kubectl --context "$ENV_CONTEXT" apply -f "$sealed"
             echo "Waiting for SealedSecret to be decrypted..."
-            _ws_ns="${WORKSPACE_NAMESPACE:-workspace}"
             for i in $(seq 1 30); do
               kubectl --context "$ENV_CONTEXT" get secret workspace-secrets -n "${_ws_ns}" &>/dev/null && break
               sleep 1
             done
+            # Provision ghcr-pull-secret in the workspace namespace so image pulls succeed.
+            _ghcr_pat=$(kubectl --context "$ENV_CONTEXT" get secret workspace-secrets \
+              -n "${_ws_ns}" -o jsonpath='{.data.GHCR_PAT}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+            if [[ -n "$_ghcr_pat" ]]; then
+              kubectl --context "$ENV_CONTEXT" create secret docker-registry ghcr-pull-secret \
+                --namespace="${_ws_ns}" \
+                --docker-server=ghcr.io \
+                --docker-username=Paddione \
+                --docker-password="$_ghcr_pat" \
+                --dry-run=client -o yaml | kubectl --context "$ENV_CONTEXT" apply -f -
+              echo "✓ ghcr-pull-secret provisioned in ${_ws_ns}"
+            fi
           fi
 
-          # Deploy shared-db first (base manifest); full overlay apply below patches it via --server-side --force-conflicts
-          kubectl --context "$ENV_CONTEXT" apply -f k3d/namespace.yaml
-          kubectl --context "$ENV_CONTEXT" apply -f k3d/shared-db.yaml
+          # Deploy shared-db first (base manifest); full overlay apply below patches it via --server-side --force-conflicts.
+          # Apply namespace.yaml labels via a patch so pod-security enforcement is correct on any cluster.
+          kubectl --context "$ENV_CONTEXT" create namespace "${_ws_ns}" --dry-run=client -o yaml \
+            | kubectl --context "$ENV_CONTEXT" apply -f -
+          kubectl --context "$ENV_CONTEXT" label namespace "${_ws_ns}" \
+            "app.kubernetes.io/part-of=workspace-mvp" \
+            "pod-security.kubernetes.io/enforce=privileged" \
+            "pod-security.kubernetes.io/warn=restricted" \
+            --overwrite
+          sed "s/namespace: workspace$/namespace: ${_ws_ns}/g" k3d/shared-db.yaml \
+            | kubectl --context "$ENV_CONTEXT" apply -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
-          kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n "${WORKSPACE_NAMESPACE:-workspace}" --timeout=120s
+          kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n "${_ws_ns}" --timeout=120s
 
           overlay="${ENV_OVERLAY:-prod}"
           # Derive Nextcloud MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM
@@ -1391,10 +1428,11 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$DOCS_IMAGE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
           # Ensure DEV_* defaults exist for non-mentolder envs (korczewski/dev).
           export DEV_DOMAIN="${DEV_DOMAIN:-}"
@@ -1715,16 +1753,19 @@ tasks:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:
       - |
+        # Build and push once — both clusters use the same image content
+        node scripts/build-docs.js
+        SHARED_IMAGE="ghcr.io/paddione/workspace-docs"
+        docker build -t "${SHARED_IMAGE}:latest" -f scripts/docs.Dockerfile .
+        docker push "${SHARED_IMAGE}:latest"
+
+        # Roll out to each cluster
         for env in korczewski mentolder; do
           source scripts/env-resolve.sh "$env"
-          IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
-          echo "-> Building/Pushing docs image for ${env}..."
-          task docs:image:build ENV=$env
-          task docs:image:push ENV=$env
-          
           NS="${WORKSPACE_NAMESPACE:-workspace}"
-          echo "-> Updating docs deployment on ${env} (ns=${NS})..."
-          envsubst "\$DOCS_IMAGE" < k3d/docs.yaml | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
+          echo "-> Rolling out docs on ${env} (ns=${NS})..."
+          # docs.yaml uses ${DOCS_IMAGE} — pass the shared image name
+          DOCS_IMAGE=workspace-docs envsubst "\$DOCS_IMAGE" < k3d/docs.yaml | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
           kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"
           kubectl --context "${ENV_CONTEXT}" rollout status deployment/docs -n "${NS}" --timeout=120s
         done
@@ -1734,7 +1775,7 @@ tasks:
         echo "  https://docs.mentolder.de"
 
   docs:refresh-diagrams:
-    desc: "Regenerate all auto-generated diagrams (DB schema, …) and push to both clusters via ConfigMap"
+    desc: "Regenerate all auto-generated diagrams (DB schema, …) and redeploy docs to both clusters"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -1748,11 +1789,11 @@ tasks:
       - |
         echo "→ Copying to k3d/docs-content/db-schema.md..."
         cp docs/db-schema-diagram.md k3d/docs-content/db-schema.md
-      - task: docs:configmap:apply
+      - task: docs:deploy
     silent: false
 
   docs:configmap:apply:
-    desc: "Apply the docs-content ConfigMap to both prod clusters and restart docs pods"
+    desc: "NOTE: ConfigMap not mounted in docs pods — use docs:deploy for real updates. Kept for kustomize validation."
     cmds:
       - bash scripts/docs-configmap-apply.sh
 
@@ -2849,6 +2890,8 @@ tasks:
         if ! kubectl $CTX cluster-info > /dev/null 2>&1; then
           echo "No cluster reachable for ENV={{.ENV}}." >&2; exit 1
         fi
+        # Ensure target namespace exists (workspace may not yet exist on a fresh cluster)
+        kubectl $CTX create namespace "$NS" --dry-run=client -o yaml | kubectl $CTX apply -f -
         kubectl $CTX create secret generic ipv64-api-key \
           --namespace cert-manager \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \

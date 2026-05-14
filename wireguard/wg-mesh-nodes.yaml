@@ -84,16 +84,16 @@ korczewski:
       endpoint: "204.168.244.104:51820"
       wg_ip: "10.13.14.1"
       schema_key: WG_MESH_PK4
-      public_key: ""
+      public_key: "WkEiNOdF3D66KVnGRMHdtnWZV/Czr6hlwpTE/u3ZxRE="
 
     - name: pk-hetzner-6
-      endpoint: "<pk-hetzner-6-public-ip>:51820"
+      endpoint: "37.27.251.38:51820"
       wg_ip: "10.13.14.2"
       schema_key: WG_MESH_PK6
-      public_key: ""
+      public_key: "wXcvWH86uYyxWNM0l9Romml7Mq1Wegb3eWsVjf/R/HE="
 
     - name: pk-hetzner-8
-      endpoint: "<pk-hetzner-8-public-ip>:51820"
+      endpoint: "62.238.23.79:51820"
       wg_ip: "10.13.14.3"
       schema_key: WG_MESH_PK8
-      public_key: ""
+      public_key: "kpWJQzw+p8rurkFq/hPQH/z1gl3/f19SFukOMpPBJS0="

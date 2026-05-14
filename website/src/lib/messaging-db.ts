@@ -181,7 +181,7 @@ export interface ChatMessage {
   id: number;
   room_id: number;
   sender_id: string;
-  sender_name: string;
+  sender_name?: string;
   sender_customer_id: string | null;
   body: string;
   created_at: Date;
@@ -449,13 +449,12 @@ export async function getRoomMessages(roomId: number, afterId?: number): Promise
 export async function addRoomMessage(params: {
   roomId: number;
   senderId: string;
-  senderName: string;
   senderCustomerId?: string;
   body: string;
 }): Promise<ChatMessage> {
   const { rows } = await pool.query<ChatMessage>(
-    `INSERT INTO chat_messages (room_id, sender_id, sender_name, sender_customer_id, body) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [params.roomId, params.senderId, params.senderName, params.senderCustomerId ?? null, params.body],
+    `INSERT INTO chat_messages (room_id, sender_id, sender_customer_id, body) VALUES ($1, $2, $3, $4) RETURNING *, COALESCE((SELECT name FROM customers WHERE id = chat_messages.sender_customer_id), 'System') AS sender_name`,
+    [params.roomId, params.senderId, params.senderCustomerId ?? null, params.body],
   );
   return rows[0];
 }

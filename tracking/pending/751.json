@@ -1,0 +1,12 @@
+{
+  "pr_number": 751,
+  "title": "figure-pack editor — faces, body presets, accessories, random",
+  "description": "## Summary\n- Replace the placeholder character editor (PR #746, erased by #748) with a figure-pack editor driven by the Systembrett Assets design system: 12 face textures, 6 body proportion presets, 8 accessories.\n- Server: `/presets` schema migrates to `{ appearance: { face, bodyPreset, accessories, proportions } }`; legacy `outfit`-schema entries dropped on load; WS `appearance` message now validates against the loaded `placement_spec.json`.\n- Client: editor bubble in mentolder brand tokens (Newsreader/Geist, brass/sage), multi-select accessories with head/torso conflict groups, body preset auto-fills proportion sliders, 🎲 Würfeln random-assign, camera tween in/out of edit mode.\n- CI guard `tests/figure-pack-assets.test.sh` (wired into `task test:unit`) catches drift between `placement_spec.json` and on-disk assets.\n\nSpec: `docs/superpowers/specs/2026-05-14-brett-figure-pack-design.md`\nPlan: archived to `tickets.ticket_plans` after merge\n\n## Test plan\n- [x] `task test:all` green (incl. new `figure-pack-assets.test.sh`)\n- [x] `task workspace:validate` green\n- [x] Local `MOCK_DB=true node server.js`: POST /presets rejects bogus face, accepts valid appearance\n- [ ] Post-merge: `task feature:brett` + smoke `https://brett.mentolder.de`, `https://brett.korczewski.de`\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T18:38:57Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

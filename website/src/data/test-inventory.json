@@ -24,6 +24,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-mannequin",
+    "file": "tests/e2e/specs/brett-mannequin.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",
@@ -92,6 +98,12 @@
   {
     "id": "E2E:fa-admin-tickets",
     "file": "tests/e2e/specs/fa-admin-tickets.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-bug-t000368",
+    "file": "tests/e2e/specs/fa-bug-t000368.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

@@ -34,6 +34,6 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (room?.archived_at) return new Response(JSON.stringify({ error: 'Room is archived' }), { status: 403 });
   const { body } = await request.json() as { body: string };
   if (!body?.trim()) return new Response(JSON.stringify({ error: 'body required' }), { status: 400 });
-  const msg = await addRoomMessage({ roomId, senderId: session.sub, senderName: customer.name, senderCustomerId: customer.id, body: body.trim() });
+  const msg = await addRoomMessage({ roomId, senderId: session.sub, senderCustomerId: customer.id, body: body.trim() });
   return new Response(JSON.stringify({ message: msg }), { status: 201, headers: { 'Content-Type': 'application/json' } });
 };

@@ -1,0 +1,12 @@
+{
+  "pr_number": 748,
+  "title": "mannequin focus — Verlet spring, CCD-IK, WASD walk, stiffness sync",
+  "description": "## Summary\n\n- Full rewrite of `brett/public/index.html` as a pure 3D mannequin sandbox (~798 lines, down from ~3900)\n- Adds Verlet-spring ragdoll physics with gravity-blended stiffness slider\n- CCD-IK on contact-sphere drag with override/resume\n- Click-to-walk + WASD walk system (4-state machine: IDLE/WALKING/DRAG_PAUSED)\n- Six pose presets with immediate apply + WebSocket sync\n- Server: adds `stiffness` broadcast message; drops `art-library` static mount; includes `appearance` handler from PR #746\n\n## Test plan\n\n- [ ] Load `brett.<domain>` and verify Three.js scene renders with floor + orbit camera\n- [ ] Add a mannequin figure, drag contact spheres, verify IK updates joints\n- [ ] Toggle stiffness slider, verify spring physics changes feel\n- [ ] Click on floor to walk figure, verify WASD movement\n- [ ] Apply pose presets, verify immediate snap + sync across clients\n- [ ] Verify `appearance` messages still route correctly in server\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T15:59:14Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

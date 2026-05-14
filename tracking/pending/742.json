@@ -1,0 +1,12 @@
+{
+  "pr_number": 742,
+  "title": "add mannequin figure type with walk animation and joint dragging",
+  "description": "## Summary\n- Implemented wooden artist mannequin as a new figure type in Brett.\n- Full bone hierarchy with 17 segments and 12 brass joints.\n- Realistic walk animation (toggled via UI).\n- Joint dragging: click and drag brass joints to pose the figure.\n- Art-Library integration with 3D category and canvas thumbnail.\n- WebSocket synchronization for walk state.\n\n## Test plan\n- [x] task test:all\n- [x] manifest syntax verified via test:manifests\n- [x] WebSocket sync state verified via figToJSON updates\n\nCloses T000369\n\nCo-Authored-By: Gemini CLI 1.5 Pro",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T11:50:38Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

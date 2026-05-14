@@ -2,6 +2,63 @@
 
 const express = require('express');
 const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+const { randomUUID } = require('crypto');
+
+const PRESETS_FILE = path.join(__dirname, 'presets.json');
+
+const SPEC_PATH = path.join(__dirname, 'public', 'assets', 'figure-pack', 'placement_spec.json');
+let SPEC = { faces: {}, accessories: {}, bodies: {} };
+try {
+  SPEC = JSON.parse(fs.readFileSync(SPEC_PATH, 'utf8'));
+  const fc = Object.keys(SPEC.faces || {}).filter(k => !k.startsWith('_')).length;
+  const ac = Object.keys(SPEC.accessories || {}).filter(k => !k.startsWith('_')).length;
+  const bc = Object.keys(SPEC.bodies || {}).filter(k => !k.startsWith('_')).length;
+  console.log(`[figure-pack] loaded spec: ${fc} faces, ${ac} accessories, ${bc} bodies`);
+} catch (err) {
+  console.warn(`[figure-pack] no spec at ${SPEC_PATH} — appearance validation disabled`);
+}
+
+const FACE_NAMES = () => Object.keys(SPEC.faces || {}).filter(k => !k.startsWith('_'));
+const BODY_NAMES = () => Object.keys(SPEC.bodies || {}).filter(k => !k.startsWith('_'));
+const ACC_NAMES  = () => Object.keys(SPEC.accessories || {}).filter(k => !k.startsWith('_'));
+
+function validateAppearance(a) {
+  if (!a || typeof a !== 'object') return 'appearance required';
+  const faces = FACE_NAMES();
+  const bodies = BODY_NAMES();
+  const accs   = ACC_NAMES();
+  if (faces.length && a.face !== undefined && !faces.includes(a.face)) return `unknown face: ${a.face}`;
+  if (bodies.length && a.bodyPreset !== undefined && !bodies.includes(a.bodyPreset)) return `unknown bodyPreset: ${a.bodyPreset}`;
+  if (a.accessories !== undefined && !Array.isArray(a.accessories)) return 'accessories must be array';
+  if (Array.isArray(a.accessories)) {
+    for (const acc of a.accessories) {
+      if (accs.length && !accs.includes(acc)) return `unknown accessory: ${acc}`;
+    }
+  }
+  if (a.proportions !== undefined && (typeof a.proportions !== 'object' || a.proportions === null)) {
+    return 'proportions must be object';
+  }
+  return null;
+}
+
+function loadPresets() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(PRESETS_FILE, 'utf8'));
+    if (!Array.isArray(raw)) return [];
+    const migrated = raw.filter(p => p && p.appearance && !p.outfit);
+    if (migrated.length !== raw.length) {
+      console.log(`[presets] dropped ${raw.length - migrated.length} legacy preset(s) with old outfit schema`);
+      savePresets(migrated);
+    }
+    return migrated;
+  } catch { return []; }
+}
+
+function savePresets(presets) {
+  fs.writeFileSync(PRESETS_FILE, JSON.stringify(presets, null, 2));
+}
 
 const asyncHandler = fn => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
@@ -13,16 +70,37 @@ if (!process.env.DATABASE_URL && require.main === module) {
   process.exit(1);
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-});
+let pool;
+if (process.env.MOCK_DB === 'true') {
+  class MockPool {
+    async query() { return { rows: [] }; }
+    async connect() { return { query: this.query, release: () => {} }; }
+    async end() {}
+    on() {} 
+  }
+  pool = new MockPool();
+} else {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+  });
+}
+
+
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
-app.use(express.static('public', { maxAge: '5m' }));
+app.use(express.static('public', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=300'); // 5m
+    }
+  }
+}));
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
 
@@ -95,6 +173,39 @@ app.post('/api/snapshots', asyncHandler(async (req, res) => {
   );
   res.status(201).json({ id: rows[0].id });
 }));
+
+// ─── Presets ─────────────────────────────────────────────────────────────────
+app.get('/presets', (_req, res) => {
+  res.json(loadPresets());
+});
+
+app.post('/presets', asyncHandler(async (req, res) => {
+  const { name, appearance } = req.body || {};
+  if (!name || typeof name !== 'string' || name.length > 100) {
+    return res.status(400).json({ error: 'name required (≤100 chars)' });
+  }
+  const err = validateAppearance(appearance);
+  if (err) return res.status(400).json({ error: err });
+  const preset = {
+    id: randomUUID(),
+    name,
+    appearance,
+    createdAt: new Date().toISOString(),
+  };
+  const presets = loadPresets();
+  presets.push(preset);
+  savePresets(presets);
+  res.status(201).json(preset);
+}));
+
+app.delete('/presets/:id', (req, res) => {
+  const presets = loadPresets();
+  const idx = presets.findIndex(p => p.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'not found' });
+  presets.splice(idx, 1);
+  savePresets(presets);
+  res.status(204).end();
+});
 
 // Generic error handler so we never leak stack traces.
 app.use((err, _req, res, _next) => {
@@ -194,16 +305,28 @@ function applyMutation(room, msg) {
         figs.set('__optik__', { id: '__optik__', settings: msg.settings });
       }
       break;
+    case 'stiffness':
+      if (typeof msg.value === 'number') {
+        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
+      }
+      break;
+    case 'stiffness':
+      if (typeof msg.value === 'number') {
+        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
+      }
+      break;
   }
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const figures = Array.from(figs.values()).filter(f => f.id !== '__optik__');
+  const figures = Array.from(figs.values()).filter(f => !['__optik__', '__stiffness__'].includes(f.id));
   const optikEntry = figs.get('__optik__');
+  const stiffEntry = figs.get('__stiffness__');
   const result = { figures };
   if (optikEntry) result.optik = optikEntry.settings;
+  if (stiffEntry) result.stiffness = stiffEntry.value;
   return result;
 }
 
@@ -258,7 +381,7 @@ wss.on('connection', (ws) => {
         }
 
         const state = buildStateFromMutations(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik }));
+        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65 }));
         broadcastInfo(msg.room);
         return;
       }
@@ -266,7 +389,7 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear','optik'].includes(msg.type)) {
+      if (['add','move','update','delete','clear','optik','stiffness'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
         if (msg.type === 'clear') {

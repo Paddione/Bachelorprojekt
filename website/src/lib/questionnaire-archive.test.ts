@@ -103,14 +103,13 @@ describe.skipIf(!dbAvailable)('archiveQAssignment', () => {
     expect(result.assignment.status).toBe('archived');
     expect(result.assignment.archived_at).not.toBeNull();
     const snap = await pool.query(
-      `SELECT dimension_id, dimension_name, final_score, level
+      `SELECT dimension_id, final_score, level
          FROM questionnaire_assignment_scores
         WHERE assignment_id = $1`,
       [a.id],
     );
     expect(snap.rows.length).toBe(1);
     expect(snap.rows[0].dimension_id).toBe(dim.id);
-    expect(snap.rows[0].dimension_name).toBe('TestDim');
     expect(snap.rows[0].final_score).toBe(5);
     expect(snap.rows[0].level).toBe('mittel');
   });
@@ -317,6 +316,11 @@ describe.skipIf(!dbAvailable)('updateQAssignment archived reroute', () => {
       `SELECT count(*)::int AS n FROM questionnaire_assignment_scores
         WHERE assignment_id = $1`,
       [a.id],
+    );
+    expect(snap.rows[0].n).toBe(1);
+  });
+});
+,
     );
     expect(snap.rows[0].n).toBe(1);
   });

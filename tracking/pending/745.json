@@ -1,0 +1,12 @@
+{
+  "pr_number": 745,
+  "title": "add triadisches KI-Coaching session wizard",
+  "description": "## Summary\n- Implements the \\\"Triadisches KI-Coaching\\\" (Geißler) 10-step guided wizard in the admin area under `/admin/coaching/sessions`\n- Adds two new DB tables (`coaching.sessions`, `coaching.session_steps`), five API routes, three Astro pages, and a Svelte 5 `SessionWizard` component with per-step Anthropic API generation (claude-haiku-4-5-20251001)\n- Session protocol is fully persisted; coach can accept/reject/skip each AI response and export the auto-generated Markdown summary report\n\n## Test plan\n- [x] `task test:all` (unit + manifests + dry-run)\n- [x] Vitest: 4 test suites for `coaching-session-db.ts` all green (pg-mem v3)\n- [x] `task test:inventory` regenerated and committed\n- [x] Manual review: API routes, SessionWizard state machine, AdminLayout nav group\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "coaching",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T13:01:35Z",
+  "merged_by": "gekko32",
+  "bug_refs": []
+}

@@ -250,3 +250,17 @@ task health                   # full connectivity check
 | Office (Collabora) not ready | Collabora starts slowly; check: `task workspace:logs ENV=<env> -- collabora` |
 | `workspace:up` fails mid-way | Re-run the specific failed step — `workspace:up` is not idempotent mid-run |
 | Missing `MANAGED_EXTERNALLY` error | Run `task env:generate ENV=<env>` to populate signaling/TURN secrets |
+
+---
+
+## ArgoCD-Specific Blockers & Fixes
+
+| Symptom | Fix |
+|---------|-----|
+| `argocd` CLI not found | Install to `~/.local/bin` (no sudo needed): `curl -sSL -o ~/.local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 && chmod +x ~/.local/bin/argocd` |
+| `task argocd:login` fails with port-forward connection reset | Log in via the public Ingress instead: `argocd login argocd.mentolder.de --username admin --password <pw> --grpc-web` |
+| App `Degraded` with `yaml: invalid map key ... nil` in ComparisonError | A cluster Secret annotation is missing/nil — the CMP substitutes it as empty string and YAML breaks. Patch the missing annotation on the cluster Secret in the `argocd` namespace, then do a hard refresh: `argocd app get <app> --hard-refresh --grpc-web` |
+| App `Unknown` with `field not declared in schema: .status.terminatingReplicas` | ArgoCD's static schema doesn't include a field present in k8s 1.35+. Add `/status/terminatingReplicas` to `ignoreDifferences` for Deployment/StatefulSet in `argocd/applicationset.yaml` |
+| App `OutOfSync` with `${VAR}` literal in error (e.g. `${DEV_NODE}`, `${LLM_HOST_IP}`) | Env var not in cluster Secret annotations. Patch the Secret and add the annotation to `argocd/applicationset.yaml` template + `Taskfile.argocd.yml` cluster:register patches, then re-apply: `kubectl apply -f argocd/applicationset.yaml` |
+| Deployment stuck with old pod `Running` and new pod `Pending` (hostPort deadlock) | Rolling update deadlock — old pod holds the hostPort on the node. Delete the old pod manually: `kubectl delete pod -n <ns> <old-pod>` — the new pod will claim the port |
+| ArgoCD cached error persists after fix | Force re-evaluation: `argocd app get <app> --hard-refresh --grpc-web` |

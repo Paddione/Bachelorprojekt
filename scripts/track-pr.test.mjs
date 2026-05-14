@@ -85,3 +85,23 @@ test('null brand for non-brand scopes', () => {
   });
   assert.equal(r.brand, null);
 });
+
+test('extracts T-###### ticket references from body', () => {
+  const r = parsePr({
+    number: 751,
+    title: 'feat(tracking): timeline ticket deeplink',
+    body: 'Implements T000373\n\nAlso related to T000001.',
+    mergedAt: '2026-05-14T18:00:00Z',
+  });
+  assert.deepEqual(r.ticket_refs, ['T000373', 'T000001']);
+});
+
+test('returns empty ticket_refs when body has none', () => {
+  const r = parsePr({
+    number: 752,
+    title: 'chore: bump deps',
+    body: 'Updated package.json.',
+    mergedAt: '2026-05-14T18:01:00Z',
+  });
+  assert.deepEqual(r.ticket_refs, []);
+});

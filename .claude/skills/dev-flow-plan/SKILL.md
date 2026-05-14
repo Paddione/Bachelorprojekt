@@ -75,6 +75,30 @@ Falls Worktree bereits existiert: **nicht** `using-git-worktrees` aufrufen — d
 
 Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `feature/<kurzer-slug>`.
 
+### Schritt 1.5: Optionale Asset-Sammlung
+
+**Bevor du das Brainstorming startest, frage den User aktiv:**
+
+> "Hast du Dateien, die beim Planen helfen würden — Spec-/Notiz-Markdown, HTML-Mockups, Screenshots/Bilder (`.jpg`/`.png`), Tonaufnahmen (`.mp3`), Video-Walkthroughs (`.mp4`)? Wenn ja: nenn mir die Pfade (absolut, leerzeichengetrennt oder einer pro Zeile). Sonst: 'keine'."
+
+Erlaubte Endungen: `.md .html .jpg .jpeg .png .gif .webp .mp3 .wav .mp4 .mov .webm .pdf .txt .log`.
+
+Stash die Pfade in einer Bash-Variable für später:
+
+```bash
+# Beispiel — vom User-Input befüllen:
+ATTACHMENT_PATHS=(
+  "/home/patrick/notes/idea.md"
+  "/home/patrick/Pictures/mockup.png"
+)
+```
+
+Falls die Datei eine `.md`/`.html`/`.txt` ist: zusätzlich den Inhalt vor dem Brainstorming lesen (`Read` Tool) — der Inhalt fließt direkt ins Brainstorming-Kontext ein.
+Falls `.jpg`/`.png`: ebenfalls über `Read` Tool laden — Claude verarbeitet die Bilder multimodal.
+Audio/Video (`.mp3`/`.mp4`) wird nur archiviert (ans Ticket angehängt), nicht inline transkribiert — falls der User Transkription will, gesondert über `task workspace:transcriber-*` oder Whisper anstoßen.
+
+Falls der User "keine" sagt: Array leer lassen und weiter.
+
 ### Schritt 2: Pre-launch Brainstorming-Tunnel
 
 ```bash
@@ -97,11 +121,49 @@ STATE_DIR=$(echo "$RESULT" | jq -r '.state_dir')
 Falls `$PORT` leer: Abbruch. Mitteilen: "brainstorm server konnte nicht gestartet werden."
 
 ```bash
-# c) Tunnel publishen (run_in_background: true)
-task brainstorm:publish -- $PORT
+# c) Vorflug-Check (idempotent, schnell — bricht früh ab wenn Setup kaputt)
+task brainstorm:status >/tmp/brainstorm-status.log 2>&1 || true
+grep -q 'Running' /tmp/brainstorm-status.log || { echo "sish pod not Running — aborting"; cat /tmp/brainstorm-status.log; exit 1; }
+
+# Stelle sicher dass mindestens ein Authorized-Key in der ConfigMap liegt — sonst hängt ssh -R lautlos
+KEY_COUNT=$(kubectl --context mentolder -n workspace get cm brainstorm-sish-authorized-keys \
+  -o jsonpath='{.data.authorized_keys}' 2>/dev/null | grep -c '^ssh-' || echo 0)
+if [[ "$KEY_COUNT" -lt 1 ]]; then
+  echo "⚠️  Keine authorized_keys in der ConfigMap. Patricks Public-Key in environments/.secrets/mentolder.yaml" \
+       "unter DEV_SISH_AUTHORIZED_KEYS ergänzen, dann: task env:seal ENV=mentolder && task brainstorm:_materialise-keys"
+  exit 1
+fi
 ```
 
-Patrick mitteilen: **"Brainstorming-Companion läuft unter https://brainstorm.mentolder.de — jetzt im Browser öffnen."**
+```bash
+# d) Tunnel publishen (run_in_background: true) — STDOUT/STDERR in Log-File schreiben
+task brainstorm:publish -- $PORT >/tmp/brainstorm-publish.log 2>&1
+```
+
+```bash
+# e) Verify — bis zu 15s auf den Tunnel warten. Erst wenn 200/302 kommt, ist die URL benutzbar.
+for i in $(seq 1 15); do
+  CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 https://brainstorm.mentolder.de/ || echo 000)
+  if [[ "$CODE" == "200" || "$CODE" == "302" || "$CODE" == "301" ]]; then
+    echo "✓ Tunnel live (HTTP $CODE) nach ${i}s"
+    break
+  fi
+  sleep 1
+done
+if [[ "$CODE" != "200" && "$CODE" != "302" && "$CODE" != "301" ]]; then
+  echo "✗ Tunnel hat nach 15s nicht geantwortet (letzter HTTP-Code: $CODE)"
+  echo "── publish log ──"
+  cat /tmp/brainstorm-publish.log
+  echo "── häufige Ursachen ──"
+  echo "  • SSH key nicht in DEV_SISH_AUTHORIZED_KEYS (siehe Schritt c)"
+  echo "  • ufw blockiert Port 32223 auf gekko-hetzner-2 → 'task brainstorm:firewall:open'"
+  echo "  • sish pod restartet/crashed → 'task brainstorm:status'"
+  echo "  • PORT $PORT lauscht nicht lokal → 'ss -ltn | grep $PORT'"
+  exit 1
+fi
+```
+
+Erst wenn Schritt e) grün ist, Patrick mitteilen: **"Brainstorming-Companion läuft unter https://brainstorm.mentolder.de (HTTP $CODE) — jetzt im Browser öffnen."**
 
 ### Schritt 3: Brainstorming
 
@@ -154,7 +216,32 @@ awk 'NR==1{print; print "ticket_id: '"$TICKET_EXT_ID"'"; next} 1' \
   mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
 ```
 
+Injiziere dann brainstorm_choice + brainstorm_session (best-effort — kein Fehler wenn kein STATE_DIR oder keine Wahl):
+
+```bash
+if [[ -n "${STATE_DIR:-}" ]] && BRAINSTORM_CHOICE=$(bash scripts/brainstorm-extract-choice.sh "$STATE_DIR" 2>/dev/null); then
+  SESSION_ID=$(basename "$(dirname "$STATE_DIR")")
+  awk -v c="$BRAINSTORM_CHOICE" -v s="$SESSION_ID" \
+    'NR==1{print; print "brainstorm_choice: " c; print "brainstorm_session: " s; next} 1' \
+    docs/superpowers/plans/<date>-<slug>.md > /tmp/_plan_tmp.md && \
+    mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
+  echo "Brainstorm choice '$BRAINSTORM_CHOICE' (session $SESSION_ID) recorded"
+fi
+```
+
 Melde: **"Ticket `$TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bugs"**
+
+### Schritt 4.6: Gesammelte Assets ans Ticket hängen
+
+Falls `ATTACHMENT_PATHS` (aus Schritt 1.5) Einträge hat, hochladen:
+
+```bash
+if [[ ${#ATTACHMENT_PATHS[@]} -gt 0 ]]; then
+  bash scripts/ticket-attach.sh "$TICKET_UUID" "${ATTACHMENT_PATHS[@]}"
+fi
+```
+
+`ticket-attach.sh` lehnt unbekannte Endungen ab und kappt inline-Uploads bei 10 MB (`MAX_INLINE_MB=20` o.ä. zum Erhöhen). Dateien > Cap müssen vorher in Nextcloud landen — dann manuell INSERT mit `nc_path` statt `data_url`.
 
 ### Schritt 5: Commit & Push — dann STOPP
 
@@ -176,9 +263,32 @@ Keine Implementation, keine Verifikation, kein PR — das übernimmt `dev-flow-e
 
 Frage den User nach der Ticket-ID (Format: `T######`, z.B. `T000288`).
 
-**Wenn eine Ticket-ID vorhanden ist:** direkt übernehmen → `TICKET_EXT_ID=T######`.
+**Wenn eine Ticket-ID vorhanden ist:** direkt übernehmen → `TICKET_EXT_ID=T######`. Hole zusätzlich die UUID für etwaige Attachments:
 
-**Wenn keine existiert:** frage nach Titel, Schweregrad und kurzer Beschreibung, lege dann das Ticket via SQL an:
+```bash
+PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_EXT_ID';")
+```
+
+**Optionale Asset-Sammlung (vor Ticket-Anlage oder vor Attachment-Upload):**
+
+Frage den User aktiv:
+
+> "Hast du Belegmaterial — Screenshot vom Bug (`.jpg`/`.png`), Log-Auszug (`.txt`/`.log`/`.md`), Bildschirmaufnahme (`.mp4`/`.webm`), Audio-Wiedergabe (`.mp3`)? Pfade absolut, leerzeichengetrennt. Sonst: 'keine'."
+
+Erlaubte Endungen: `.md .html .jpg .jpeg .png .gif .webp .mp3 .wav .mp4 .mov .webm .pdf .txt .log`.
+
+```bash
+ATTACHMENT_PATHS=(
+  # vom User-Input befüllen
+)
+```
+
+Falls `.txt`/`.log`/`.md`/`.png`/`.jpg`: zusätzlich vor der Ticket-Anlage `Read`en — Inhalt fließt in die Bug-Beschreibung ein (bessere Reproduktion).
+
+**Wenn keine Ticket-ID existiert:** frage nach Titel, Schweregrad und kurzer Beschreibung, lege dann das Ticket via SQL an:
 
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context mentolder \
@@ -202,6 +312,14 @@ TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ```
 
 Melde: **"Ticket `$TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bugs"**
+
+**Asset-Upload (falls Schritt oben Pfade gesammelt hat):**
+
+```bash
+if [[ ${#ATTACHMENT_PATHS[@]} -gt 0 ]]; then
+  bash scripts/ticket-attach.sh "$TICKET_UUID" "${ATTACHMENT_PATHS[@]}"
+fi
+```
 
 **Ohne Ticket-ID geht der Fix-Pfad nicht weiter.**
 

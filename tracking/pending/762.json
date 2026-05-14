@@ -1,0 +1,13 @@
+{
+  "pr_number": 762,
+  "title": "document intentional :latest tags for brett + docs images, fix docs deploy notes",
+  "description": "## Summary\n- Extends the existing `CLAUDE.md` callout to include `brett.yaml` and `docs.yaml` alongside `website.yaml` as intentional `:latest` images — eliminates the recurring CI lint warning and prevents future \"fix\" attempts\n- Corrects two stale operational notes: `task docs:deploy` description now reflects the image-based deploy (not ConfigMap), and the gotcha entry clarifies that `docs:configmap:apply` has no effect in prod\n\n## Test plan\n- [ ] No code changes — docs-only PR; CI manifest/BATS tests still pass\n- [ ] `CLAUDE.md` Gotchas section reads correctly for all three `:latest` images\n\nCloses #744\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "docs",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T20:26:11Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": []
+}

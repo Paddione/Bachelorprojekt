@@ -36,6 +36,6 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (!await getRoom(roomId)) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404 });
   const { body } = await request.json() as { body: string };
   if (!body?.trim()) return new Response(JSON.stringify({ error: 'body required' }), { status: 400 });
-  const msg = await addRoomMessage({ roomId, senderId: session.sub, senderName: session.name ?? session.preferred_username, body: body.trim() });
+  const msg = await addRoomMessage({ roomId, senderId: session.sub, body: body.trim() });
   return new Response(JSON.stringify({ message: msg }), { status: 201, headers: { 'Content-Type': 'application/json' } });
 };

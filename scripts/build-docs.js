@@ -421,3 +421,50 @@ export function wrapPage({ slug, title, content, sidebarHtml, searchIndex }) {
 function escHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+// ─── main ─────────────────────────────────────────────────────────────────────
+async function main() {
+  mkdirSync(OUT_DIR, { recursive: true });
+
+  const sidebarMd = readFileSync(join(SRC_DIR, '_sidebar.md'), 'utf8');
+  const mdFiles = readdirSync(SRC_DIR)
+    .filter(f => f.endsWith('.md') && f !== '_sidebar.md')
+    .sort();
+
+  const FAST = process.argv.includes('--fast');
+  if (FAST) console.log('⚡ Fast mode: skipping Mermaid pre-rendering');
+
+  // First pass: MD → raw HTML, collect titles for search index
+  const pages = [];
+  for (const file of mdFiles) {
+    const slug = file === 'README.md' ? 'index' : file.replace(/\.md$/, '');
+    const mdSrc = readFileSync(join(SRC_DIR, file), 'utf8');
+    const rawHtml = marked.parse(mdSrc);
+    const $ = cheerio.load(rawHtml);
+    const title = $('h1').first().text().trim()
+      || $('.page-hero-title').first().text().trim()
+      || slug;
+    pages.push({ slug, file, rawHtml, title });
+  }
+
+  const searchIndex = buildSearchIndex(pages);
+
+  // Second pass: Mermaid → SVG, post-process, wrap, write
+  for (const { slug, rawHtml, title } of pages) {
+    process.stdout.write(`  → ${slug}.html`);
+    let html = rawHtml;
+    if (!FAST) html = renderMermaidBlocks(html);
+    html = postProcess(html);
+    const sidebarHtml = parseSidebar(sidebarMd, slug);
+    const full = wrapPage({ slug, title, content: html, sidebarHtml, searchIndex });
+    writeFileSync(join(OUT_DIR, `${slug}.html`), full, 'utf8');
+    console.log(' ✓');
+  }
+
+  console.log(`\n✓ Built ${pages.length} pages → k3d/docs-content-built/`);
+}
+
+// Only run when executed directly (not when imported by tests)
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch(err => { console.error(err); process.exit(1); });
+}

@@ -1,0 +1,12 @@
+{
+  "pr_number": 721,
+  "title": "archive 70 completed plans + 50 specs (T000291–T000360)",
+  "description": "## Summary\n\n- Moved all completed plans from `docs/superpowers/plans/` → `docs/superpowers/plans/archive/` (70 files)\n- Moved all specs from `docs/superpowers/specs/` → `docs/superpowers/specs/archive/` (50 files)\n- Created tickets T000291–T000360 in `tickets.tickets` (type=task, status=done, archived_at=now()) — one per plan slug\n- Active plan `to-be-executed_2026-05-14-brett-controls-redesign.md` is retained in place\n\n## Test plan\n\n- [ ] `docs/superpowers/plans/` contains only the active `to-be-executed_*` plan\n- [ ] `docs/superpowers/plans/archive/` contains all 70 archived plans\n- [ ] `docs/superpowers/specs/archive/` contains all 50 archived specs\n- [ ] Tickets T000291–T000360 visible at https://web.mentolder.de/admin/bugs (status=done, archived)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "plans",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T00:36:27Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

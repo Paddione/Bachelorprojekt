@@ -48,7 +48,15 @@ if (process.env.MOCK_DB === 'true') {
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
-app.use(express.static('public', { maxAge: '5m' }));
+app.use(express.static('public', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=300'); // 5m
+    }
+  }
+}));
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
 

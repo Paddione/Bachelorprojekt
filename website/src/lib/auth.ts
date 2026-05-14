@@ -194,7 +194,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
 }
 
 const ADMIN_USERNAMES = new Set(
-  (process.env.PORTAL_ADMIN_USERNAME || 'admin,testuser1').split(',').map(s => s.trim()).filter(Boolean)
+  (process.env.PORTAL_ADMIN_USERNAME || 'admin').split(',').map(s => s.trim()).filter(Boolean)
 );
 
 export function isAdmin(session: UserSession): boolean {

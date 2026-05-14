@@ -1012,14 +1012,15 @@ function findFigById(id) {
 }
 function figToJSON(fig) {
   return {
-    id:    fig.id,
-    type:  fig.type,
-    color: fig.color,
-    label: fig.label || '',
-    scale: fig.scale,
-    rotY:  fig.rotY,
-    x:     fig.mesh.position.x,
-    z:     fig.mesh.position.z,
+    id:      fig.id,
+    type:    fig.type,
+    color:   fig.color,
+    label:   fig.label || '',
+    scale:   fig.scale,
+    rotY:    fig.rotY,
+    x:       fig.mesh.position.x,
+    z:       fig.mesh.position.z,
+    walking: fig.walking || false,
   };
 }
 
@@ -1045,8 +1046,9 @@ function applySnapshot(figList) {
   try {
     figures.slice().forEach(f => { scene.remove(f.mesh); });
     figures.length = 0;
-    for (const f of figList) {
-      addFigure(f.type, f.color, f.x, f.z, f.label || '', f.scale || 1.0, f.rotY || 0, f.id);
+    for (const fd of figList) {
+      const fig = addFigure(fd.type, fd.color, fd.x, fd.z, fd.label || '', fd.scale || 1.0, fd.rotY || 0, fd.id);
+      if (fd.walking && fig.type === 'mannequin') fig.walking = true;
     }
     selectFigure(null);
   } finally { applyingRemote = false; }
@@ -1056,18 +1058,20 @@ function applyRemote(msg) {
   applyingRemote = true;
   try {
     if (msg.type === 'add' && msg.fig && !findFigById(msg.fig.id)) {
-      addFigure(msg.fig.type, msg.fig.color, msg.fig.x, msg.fig.z,
-                msg.fig.label, msg.fig.scale, msg.fig.rotY, msg.fig.id);
+      const newFig = addFigure(msg.fig.type, msg.fig.color, msg.fig.x, msg.fig.z,
+                               msg.fig.label, msg.fig.scale, msg.fig.rotY, msg.fig.id);
+      if (msg.fig.walking && newFig && newFig.type === 'mannequin') newFig.walking = true;
     } else if (msg.type === 'move') {
       const f = findFigById(msg.id);
       if (f) { f.mesh.position.x = msg.x; f.mesh.position.z = msg.z; }
     } else if (msg.type === 'update') {
       const f = findFigById(msg.id);
       if (f && msg.changes) {
-        if (msg.changes.label !== undefined) setLabel(f, msg.changes.label);
-        if (msg.changes.scale !== undefined) setScale(f, msg.changes.scale);
-        if (msg.changes.rotY  !== undefined) setRotY (f, msg.changes.rotY);
-        if (msg.changes.color !== undefined) recolorFigure(f, msg.changes.color);
+        if (msg.changes.label   !== undefined) setLabel(f, msg.changes.label);
+        if (msg.changes.scale   !== undefined) setScale(f, msg.changes.scale);
+        if (msg.changes.rotY    !== undefined) setRotY (f, msg.changes.rotY);
+        if (msg.changes.color   !== undefined) recolorFigure(f, msg.changes.color);
+        if (msg.changes.walking !== undefined) f.walking = msg.changes.walking;
       }
     } else if (msg.type === 'delete') {
       const f = findFigById(msg.id);
@@ -1585,7 +1589,9 @@ const CAT_LABELS = {
   symbole:   '♥ Symbole',
   raeume:    '🚪 Räume',
   natur:     '🌿 Natur',
+  '3d':      '🪆 3D',
 };
+const mannequinIds = new Set();
 let activeCategoryId = 'personen';
 
 function renderTabContent(categoryId) {
@@ -1597,6 +1603,27 @@ function renderTabContent(categoryId) {
   if (!ART_MANIFEST) return;
   for (const a of ART_MANIFEST.assets) {
     if (a.category !== categoryId) continue;
+    if (mannequinIds.has(a.id)) {
+      const btn = document.createElement('button');
+      btn.className = 'figure-btn';
+      btn.dataset.type = a.id;
+      btn.title = a.label || a.id;
+      btn.setAttribute('aria-label', a.label || a.id);
+      const thumbCanvas = document.createElement('canvas');
+      drawMannequinThumb(thumbCanvas);
+      thumbCanvas.style.cssText = 'width:32px;height:48px;display:block;margin:auto';
+      btn.appendChild(thumbCanvas);
+      btn.addEventListener('click', () => {
+        const x = (Math.random()-0.5)*(BW-4);
+        const z = (Math.random()-0.5)*(BD-4);
+        const fig = addFigure(btn.dataset.type, currentColor, x, z, '', 1.0, 0);
+        send({ type: 'add', fig: figToJSON(fig) });
+        selectFigure(fig);
+        openLabelModal(fig);
+      });
+      container.appendChild(btn);
+      continue;
+    }
     if (!characterIds.has(a.id)) continue;
     const btn = document.createElement('button');
     btn.className = 'figure-btn';
@@ -1630,6 +1657,7 @@ async function bootArtLibrary() {
     ART_MANIFEST = await r.json();
     for (const a of ART_MANIFEST.assets) {
       if (a.kind === 'character') characterIds.add(a.id);
+      if (a.kind === 'mannequin') mannequinIds.add(a.id);
     }
     await Promise.all([...characterIds].map(loadCharacterTexture));
     console.log('[art] loaded', characterIds.size, 'characters');
@@ -1845,6 +1873,8 @@ function buildFigure(type, color) {
     octF.position.y = 1.05; octF.castShadow = true;
     group.add(octF);
     const dot = makeFaceMarker(color); dot.position.set(0, 1.05, 1.0); dot.scale.set(0.45, 0.45, 1); group.add(dot);
+  } else if (type === 'mannequin') {
+    buildMannequin(color, group);
   } else {
     const m = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8),
       new THREE.MeshBasicMaterial({ color: 0xff00ff }));
@@ -1893,6 +1923,10 @@ function addFigure(type, color, x, z, label, scale, rotY, id) {
 
   const fig = { type, color, mesh, label: label||'', sprite: null, scale: scale||1.0, rotY: rotY||0 };
   fig.id = id || `fig_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  if (type === 'mannequin') {
+    fig.bones   = mesh.userData.bones;
+    fig.walking = false;
+  }
   if (fig.label) { attachLabel(fig); }
   figures.push(fig);
   return fig;
@@ -1959,6 +1993,20 @@ function selectFigure(fig) {
     si.querySelector('.si-pov').addEventListener('click', () => enterPOV(fig.id));
     si.querySelector('.si-rot-l').addEventListener('click', () => { setRotY(fig, fig.rotY - Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
     si.querySelector('.si-rot-r').addEventListener('click', () => { setRotY(fig, fig.rotY + Math.PI/4); if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { rotY: fig.rotY } }); });
+    if (fig.type === 'mannequin') {
+      const actionsDiv = si.querySelector('.si-actions');
+      const wb = document.createElement('button');
+      wb.className = 'si-btn si-walk';
+      wb.title = 'Walk-Animation ein/aus';
+      wb.textContent = '🚶 Walk';
+      if (fig.walking) wb.classList.add('active');
+      wb.addEventListener('click', () => {
+        fig.walking = !fig.walking;
+        wb.classList.toggle('active', fig.walking);
+        if (!applyingRemote) send({ type: 'update', id: fig.id, changes: { walking: fig.walking } });
+      });
+      actionsDiv.prepend(wb);
+    }
   } else {
     slider.value = 1.0;
     scaleVal.textContent = '1.0×';
@@ -1996,6 +2044,10 @@ function recolorFigure(fig, color) {
   scene.remove(fig.mesh);
   scene.add(newMesh);
   fig.mesh = newMesh;
+  if (fig.type === 'mannequin') {
+    fig.bones   = newMesh.userData.bones;
+    fig.walking = fig.walking || false;
+  }
   if (fig.label) attachLabel(fig);
   if (!applyingRemote) {
     selectFigure(fig);
@@ -2440,10 +2492,22 @@ cnv.addEventListener('mousedown', e => {
 
   // Dispatch LMB by active tool
   switch (activeTool) {
-    case 'V':
+    case 'V': {
+      const joint = pickJoint(ndc);
+      if (joint) {
+        if (selectedFigure) selectedFigure.walking = false;
+        jointDrag = {
+          boneGroup: joint,
+          startX:    e.clientX,
+          startY:    e.clientY,
+          startRotZ: joint.rotation.z,
+          startRotX: joint.rotation.x,
+        };
+        break;
+      }
       if (fig) {
         const now = Date.now();
-        if (lastClick.fig === fig && now - lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; return; }
+        if (lastClick.fig === fig && now - lastClick.time < 380) { openLabelModal(fig); lastClick.fig = null; break; }
         lastClick = { fig, time: now };
         selectFigure(fig);
         drag = { on: true, fig };
@@ -2458,6 +2522,7 @@ cnv.addEventListener('mousedown', e => {
         }
       }
       break;
+    }
     case 'O':
       orbitOn = true;
       dragStart = { x: e.clientX, y: e.clientY };
@@ -2526,6 +2591,11 @@ cnv.addEventListener('mousemove', e => {
     dragStart = { x: e.clientX, y: e.clientY };
     return;
   }
+  if (jointDrag) {
+    jointDrag.boneGroup.rotation.z = jointDrag.startRotZ + (e.clientX - jointDrag.startX) * 0.01;
+    jointDrag.boneGroup.rotation.x = jointDrag.startRotX + (e.clientY - jointDrag.startY) * 0.01;
+    return;
+  }
   if (drag.on && drag.fig) {
     const pos = pickBoard(getNDC(e));
     if (pos) {
@@ -2554,6 +2624,7 @@ cnv.addEventListener('mouseup', e => {
     if (!applyingRemote) send({ type: 'update', id: rotFig.id, changes: { rotY: rotFig.rotY } });
     rotFig = null;
   }
+  if (jointDrag) { jointDrag = null; return; }
   if (drag.on && drag.fig && !applyingRemote) {
     send({ type: 'move', id: drag.fig.id, x: drag.fig.mesh.position.x, z: drag.fig.mesh.position.z });
   }
@@ -3380,6 +3451,7 @@ function animate() {
       if (c.material) c.material.opacity = tFade * (i === 0 ? 0.72 : 0.9);
     });
   }
+  tickAllMannequinWalks(t);
   const dt = tickAutoOrbit();
   tickFreeFly(dt);
   tickOrbitKeys(dt);
@@ -3406,6 +3478,291 @@ function animate() {
     renderer.render(scene, camera_obj);
   }
 }
+// ── Mannequin ─────────────────────────────────────────────────────────────────
+
+function buildMannequin(color, group) {
+  const woodCol  = new THREE.Color(color).lerp(new THREE.Color(0xd4a26a), 0.5);
+  const brassCol = new THREE.Color(0xc8a96e);
+
+  function woodMat() {
+    return new THREE.MeshStandardMaterial({ color: woodCol.clone(), roughness: 0.75, metalness: 0.0 });
+  }
+  function brassMat() {
+    return new THREE.MeshStandardMaterial({ color: brassCol.clone(), roughness: 0.35, metalness: 0.55 });
+  }
+  function brassJoint(r, parentGrp) {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 8), brassMat());
+    s.castShadow = true;
+    s.userData.isBrassJoint = true;
+    s.userData.boneGroup    = parentGrp;
+    parentGrp.add(s);
+    return s;
+  }
+
+  // ── Trunk ────────────────────────────────────────────────────────
+  const hipsGrp = new THREE.Group();
+  hipsGrp.position.y = 1.10;
+  group.add(hipsGrp);
+
+  const pelvisMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.26, 0.22, 16), woodMat());
+  pelvisMesh.castShadow = true;
+  hipsGrp.add(pelvisMesh);
+
+  const spineGrp = new THREE.Group();
+  spineGrp.position.y = 0.22;
+  hipsGrp.add(spineGrp);
+
+  const spineMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.20, 0.28, 12), woodMat());
+  spineMesh.position.y = 0.14;
+  spineMesh.castShadow = true;
+  spineGrp.add(spineMesh);
+
+  const chestGrp = new THREE.Group();
+  chestGrp.position.y = 0.28;
+  spineGrp.add(chestGrp);
+
+  const chestMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.34, 16), woodMat());
+  chestMesh.position.y = 0.17;
+  chestMesh.castShadow = true;
+  chestGrp.add(chestMesh);
+
+  const neckGrp = new THREE.Group();
+  neckGrp.position.y = 0.34;
+  chestGrp.add(neckGrp);
+
+  const neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.18, 10), woodMat());
+  neckMesh.position.y = 0.09;
+  neckMesh.castShadow = true;
+  neckGrp.add(neckMesh);
+
+  const headGrp = new THREE.Group();
+  headGrp.position.y = 0.18;
+  neckGrp.add(headGrp);
+
+  const headSphere = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), woodMat());
+  headSphere.position.y = 0.22;
+  headSphere.castShadow = true;
+  headGrp.add(headSphere);
+
+  // ── Arms ─────────────────────────────────────────────────────────
+  const lShoulderGrp = new THREE.Group();
+  lShoulderGrp.position.set(0.35, 0.28, 0);
+  chestGrp.add(lShoulderGrp);
+  brassJoint(0.070, lShoulderGrp);
+
+  const lUpperArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.35, 10), woodMat());
+  lUpperArmMesh.position.y = -0.175;
+  lUpperArmMesh.castShadow = true;
+  lShoulderGrp.add(lUpperArmMesh);
+
+  const lElbowGrp = new THREE.Group();
+  lElbowGrp.position.y = -0.35;
+  lShoulderGrp.add(lElbowGrp);
+  brassJoint(0.065, lElbowGrp);
+
+  const lForearmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.30, 10), woodMat());
+  lForearmMesh.position.y = -0.15;
+  lForearmMesh.castShadow = true;
+  lElbowGrp.add(lForearmMesh);
+
+  const lWristGrp = new THREE.Group();
+  lWristGrp.position.y = -0.30;
+  lElbowGrp.add(lWristGrp);
+  brassJoint(0.055, lWristGrp);
+
+  const lHandMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.05), woodMat());
+  lHandMesh.position.y = -0.07;
+  lHandMesh.castShadow = true;
+  lWristGrp.add(lHandMesh);
+
+  const rShoulderGrp = new THREE.Group();
+  rShoulderGrp.position.set(-0.35, 0.28, 0);
+  chestGrp.add(rShoulderGrp);
+  brassJoint(0.070, rShoulderGrp);
+
+  const rUpperArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.35, 10), woodMat());
+  rUpperArmMesh.position.y = -0.175;
+  rUpperArmMesh.castShadow = true;
+  rShoulderGrp.add(rUpperArmMesh);
+
+  const rElbowGrp = new THREE.Group();
+  rElbowGrp.position.y = -0.35;
+  rShoulderGrp.add(rElbowGrp);
+  brassJoint(0.065, rElbowGrp);
+
+  const rForearmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.30, 10), woodMat());
+  rForearmMesh.position.y = -0.15;
+  rForearmMesh.castShadow = true;
+  rElbowGrp.add(rForearmMesh);
+
+  const rWristGrp = new THREE.Group();
+  rWristGrp.position.y = -0.30;
+  rElbowGrp.add(rWristGrp);
+  brassJoint(0.055, rWristGrp);
+
+  const rHandMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.05), woodMat());
+  rHandMesh.position.y = -0.07;
+  rHandMesh.castShadow = true;
+  rWristGrp.add(rHandMesh);
+
+  // ── Legs ─────────────────────────────────────────────────────────
+  const lHipGrp = new THREE.Group();
+  lHipGrp.position.set(0.14, 0, 0);
+  hipsGrp.add(lHipGrp);
+  brassJoint(0.075, lHipGrp);
+
+  const lThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.45, 12), woodMat());
+  lThighMesh.position.y = -0.225;
+  lThighMesh.castShadow = true;
+  lHipGrp.add(lThighMesh);
+
+  const lKneeGrp = new THREE.Group();
+  lKneeGrp.position.y = -0.45;
+  lHipGrp.add(lKneeGrp);
+  brassJoint(0.070, lKneeGrp);
+
+  const lShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.065, 0.42, 12), woodMat());
+  lShinMesh.position.y = -0.21;
+  lShinMesh.castShadow = true;
+  lKneeGrp.add(lShinMesh);
+
+  const lAnkleGrp = new THREE.Group();
+  lAnkleGrp.position.y = -0.42;
+  lKneeGrp.add(lAnkleGrp);
+  brassJoint(0.060, lAnkleGrp);
+
+  const lFootMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.06, 0.22), woodMat());
+  lFootMesh.position.set(0, -0.03, 0.06);
+  lFootMesh.castShadow = true;
+  lAnkleGrp.add(lFootMesh);
+
+  const rHipGrp = new THREE.Group();
+  rHipGrp.position.set(-0.14, 0, 0);
+  hipsGrp.add(rHipGrp);
+  brassJoint(0.075, rHipGrp);
+
+  const rThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.45, 12), woodMat());
+  rThighMesh.position.y = -0.225;
+  rThighMesh.castShadow = true;
+  rHipGrp.add(rThighMesh);
+
+  const rKneeGrp = new THREE.Group();
+  rKneeGrp.position.y = -0.45;
+  rHipGrp.add(rKneeGrp);
+  brassJoint(0.070, rKneeGrp);
+
+  const rShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.065, 0.42, 12), woodMat());
+  rShinMesh.position.y = -0.21;
+  rShinMesh.castShadow = true;
+  rKneeGrp.add(rShinMesh);
+
+  const rAnkleGrp = new THREE.Group();
+  rAnkleGrp.position.y = -0.42;
+  rKneeGrp.add(rAnkleGrp);
+  brassJoint(0.060, rAnkleGrp);
+
+  const rFootMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.06, 0.22), woodMat());
+  rFootMesh.position.set(0, -0.03, 0.06);
+  rFootMesh.castShadow = true;
+  rAnkleGrp.add(rFootMesh);
+
+  group.userData.bones = {
+    hips:      hipsGrp,
+    spine:     spineGrp,
+    chest:     chestGrp,
+    neck:      neckGrp,
+    head:      headGrp,
+    lShoulder: lShoulderGrp,
+    lElbow:    lElbowGrp,
+    lWrist:    lWristGrp,
+    rShoulder: rShoulderGrp,
+    rElbow:    rElbowGrp,
+    rWrist:    rWristGrp,
+    lHip:      lHipGrp,
+    lKnee:     lKneeGrp,
+    lAnkle:    lAnkleGrp,
+    rHip:      rHipGrp,
+    rKnee:     rKneeGrp,
+    rAnkle:    rAnkleGrp,
+  };
+  return group;
+}
+
+function drawMannequinThumb(canvas) {
+  canvas.width  = 64;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#102540';
+  ctx.fillRect(0, 0, 64, 96);
+  ctx.strokeStyle = '#d4a26a';
+  ctx.lineWidth   = 2;
+  ctx.lineCap     = 'round';
+
+  function seg(x1, y1, x2, y2) {
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+  function jnt(x, y) {
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#c8a96e'; ctx.fill();
+  }
+
+  // Head
+  ctx.beginPath(); ctx.arc(32, 32, 9, 0, Math.PI * 2);
+  ctx.strokeStyle = '#d4a26a'; ctx.stroke();
+  // Trunk: neck (32,41) → pelvis (32,64)
+  seg(32, 41, 32, 64);
+  // Left arm:  shoulder(24,42) elbow(24,54) wrist(24,64)
+  seg(32, 42, 24, 42); seg(24, 42, 24, 54); seg(24, 54, 24, 64);
+  // Right arm: shoulder(40,42) elbow(40,54) wrist(40,64)
+  seg(32, 42, 40, 42); seg(40, 42, 40, 54); seg(40, 54, 40, 64);
+  // Left leg:  hip(29,64) knee(29,75) ankle(29,85) foot
+  seg(32, 64, 29, 64); seg(29, 64, 29, 75); seg(29, 75, 29, 85); seg(29, 85, 22, 87);
+  // Right leg: hip(35,64) knee(35,75) ankle(35,85) foot
+  seg(32, 64, 35, 64); seg(35, 64, 35, 75); seg(35, 75, 35, 85); seg(35, 85, 42, 87);
+
+  // Joints (Messing)
+  jnt(24, 42); jnt(40, 42);  // shoulders
+  jnt(24, 54); jnt(40, 54);  // elbows
+  jnt(24, 64); jnt(40, 64);  // wrists
+  jnt(29, 64); jnt(35, 64);  // hips
+  jnt(29, 75); jnt(35, 75);  // knees
+  jnt(29, 85); jnt(35, 85);  // ankles
+}
+
+function tickMannequinWalk(fig, t) {
+  if (!fig.walking || !fig.bones) return;
+  const b    = fig.bones;
+  const freq = 1.8 * Math.PI * 2;
+  const tA   = freq * t;
+
+  b.lHip.rotation.x      =  0.45 * Math.sin(tA);
+  b.rHip.rotation.x      = -0.45 * Math.sin(tA);
+  b.lKnee.rotation.x     =  0.30 * Math.max(0, Math.sin(tA - 0.4));
+  b.rKnee.rotation.x     =  0.30 * Math.max(0, Math.sin(tA - 0.4 + Math.PI));
+  b.lShoulder.rotation.x = -0.35 * Math.sin(tA);
+  b.rShoulder.rotation.x =  0.35 * Math.sin(tA);
+  b.hips.rotation.z      =  0.06 * Math.sin(2 * tA);
+}
+
+function tickAllMannequinWalks(t) {
+  for (const fig of figures) {
+    if (fig.type === 'mannequin' && fig.walking) tickMannequinWalk(fig, t);
+  }
+}
+
+let jointDrag = null;
+// { boneGroup, startX, startY, startRotZ, startRotX }
+
+function pickJoint(ndc) {
+  if (!selectedFigure || selectedFigure.type !== 'mannequin') return null;
+  raycaster.setFromCamera(ndc, camera_obj);
+  const hits = raycaster.intersectObject(selectedFigure.mesh, true);
+  for (const hit of hits) {
+    if (hit.object.userData.isBrassJoint) return hit.object.userData.boneGroup;
+  }
+  return null;
+}
+
 animate();
 
 // ── Minimap Widget ────────────────────────────────────────────────────────────

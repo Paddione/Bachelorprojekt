@@ -35,6 +35,7 @@
     { "id": "baum",   "kind": "character", "label": "Baum",  "category": "natur", "files": { "figurine": "baum.svg"   } },
     { "id": "fels",   "kind": "character", "label": "Fels",  "category": "natur", "files": { "figurine": "fels.svg"   } },
     { "id": "fluss",  "kind": "character", "label": "Fluss", "category": "natur", "files": { "figurine": "fluss.svg"  } },
-    { "id": "wurzel", "kind": "character", "label": "Wurzel","category": "natur", "files": { "figurine": "wurzel.svg" } }
+    { "id": "wurzel", "kind": "character", "label": "Wurzel","category": "natur", "files": { "figurine": "wurzel.svg" } },
+    { "id": "mannequin", "kind": "mannequin", "label": "Mannequin", "category": "3d" }
   ]
 }

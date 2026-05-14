@@ -102,6 +102,7 @@ spec:
           - CreateNamespace=true
           - ServerSideApply=true
           - RespectIgnoreDifferences=true
+          - ServerSideDiff=true
 
       # Ignore fields that legitimately drift (HPA-managed replicas, secret data
       # managed outside ArgoCD like manually rotated tokens).

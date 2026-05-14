@@ -127,6 +127,14 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
+    label: 'Coaching',
+    items: [
+      { href: '/admin/coaching/sessions',     label: 'Sessions',     icon: 'clipboard',
+        matches: ['/admin/coaching/sessions'] },
+      { href: '/admin/coaching/sessions/new', label: 'Neue Session', icon: 'plus' },
+    ],
+  },
+  {
     label: 'System',
     items: [
       { href: '/admin/monitoring',       label: 'Monitoring',        icon: 'monitor' },

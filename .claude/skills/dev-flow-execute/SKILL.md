@@ -38,6 +38,29 @@ Kein Blocker — nur Warnung und Bestätigung vom User, wenn Überschneidung erk
 
 ---
 
+## Schritt 0.5: Sync mit main
+
+Bevor irgendein Agent Code schreibt, Branch auf `origin/main` rebsen — verhindert Merge-Konflikte im PR.
+
+```bash
+git fetch origin main
+git rebase origin/main
+```
+
+Falls `git rebase` Konflikte meldet:
+
+```bash
+# Konfliktdateien anzeigen
+git diff --name-only --diff-filter=U
+
+# Rebase abbrechen — Agent darf NICHT mit Konflikten weitermachen
+git rebase --abort
+```
+
+**STOPP.** Melde die Konflikt-Dateien an den User. Erst nach manueller Auflösung (`git rebase origin/main` erneut, dann `git rebase --continue`) weitermachen.
+
+---
+
 ## Schritt 1: Plan finden
 
 **Default — neuester Plan:**

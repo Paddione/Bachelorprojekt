@@ -20,12 +20,19 @@ Führe **immer als erstes** aus — bevor Pfad oder Branch bestimmt werden:
 git worktree list
 
 # Bereits in main gemergte Branches mit noch aktiven Worktrees finden
-MERGED=$(git branch --merged main 2>/dev/null | grep -vE '^\*|main|HEAD' | tr -d ' ')
-for branch in $MERGED; do
-  WT=$(git worktree list --porcelain \
-    | awk -v b="refs/heads/$branch" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
-  [[ -n "$WT" ]] && echo "⚠️  STALER WORKTREE: $branch → $WT (bereits in main gemergt)"
-done
+# (squash-merge-safe: prüft GitHub PR-Status statt git branch --merged)
+git worktree list --porcelain \
+  | awk '/^branch /{print $2}' \
+  | grep -v 'refs/heads/main' \
+  | sed 's|refs/heads/||' \
+  | while read -r branch; do
+    MERGED=$(gh pr list --head "$branch" --state merged --json number --jq 'length' 2>/dev/null || echo 0)
+    if [[ "$MERGED" -gt 0 ]]; then
+      WT=$(git worktree list --porcelain \
+        | awk -v b="refs/heads/$branch" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+      echo "⚠️  STALER WORKTREE: $branch → $WT (PR wurde gemergt)"
+    fi
+  done
 ```
 
 Falls stale Worktrees ausgegeben werden: Dem User mitteilen und anbieten, sie zuerst zu bereinigen. Bereinigung auf Anfrage:

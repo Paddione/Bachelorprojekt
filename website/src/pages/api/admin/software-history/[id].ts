@@ -1,12 +1,9 @@
 import type { APIRoute } from 'astro';
-import { Pool } from 'pg';
 import { z } from 'zod';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { overrideEvent } from '../../../../lib/software-history-db';
+import { overrideEvent, trackingPool as pool } from '../../../../lib/software-history-db';
 
 export const prerender = false;
-
-const pool = new Pool();
 
 const PatchBody = z.object({
   service: z.string().min(1).max(64),

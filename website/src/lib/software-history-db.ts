@@ -1,5 +1,20 @@
 import { Pool, type PoolClient } from 'pg';
+import { resolve4 } from 'node:dns';
 import type { Event } from './software-history-classifier';
+
+function nodeLookup(
+  hostname: string,
+  _opts: unknown,
+  cb: (err: Error | null, addr: string, family: number) => void,
+) {
+  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+}
+
+export const trackingPool = new Pool({
+  connectionString: process.env.TRACKING_DB_URL
+    ?? (process.env.SESSIONS_DATABASE_URL ?? '').replace(/\/website$/, '/postgres'),
+  lookup: nodeLookup,
+} as unknown as import('pg').PoolConfig);
 
 export interface StackRow {
   service: string;

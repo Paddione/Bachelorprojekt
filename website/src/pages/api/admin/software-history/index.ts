@@ -1,11 +1,8 @@
 import type { APIRoute } from 'astro';
-import { Pool } from 'pg';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listHistory, listStack } from '../../../../lib/software-history-db';
+import { listHistory, listStack, trackingPool as pool } from '../../../../lib/software-history-db';
 
 export const prerender = false;
-
-const pool = new Pool();
 
 export const GET: APIRoute = async ({ request, url }) => {
   const session = await getSession(request.headers.get('cookie'));

@@ -26,6 +26,71 @@
       border-radius:20px; font-size:13px; pointer-events:none; z-index:10;
     }
     canvas { display:block; }
+
+    /* ── Character-Editor Panel ─────────────────────────────────── */
+    #fig-panel-wrap { position: relative; display: inline-flex; align-items: center; }
+
+    #fig-panel-btn {
+      background: transparent; color: inherit;
+      border: 1px solid rgba(231,234,208,0.18);
+      border-radius: 4px; padding: 4px 10px;
+      font: inherit; cursor: pointer; white-space: nowrap;
+    }
+    #fig-panel-btn:hover, #fig-panel-btn.open { background: rgba(231,234,208,0.12); }
+
+    #fig-panel {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      z-index: 200;
+      background: #161a22; border: 1px solid rgba(200,169,110,0.35);
+      border-radius: 10px; padding: 12px 14px;
+      width: 240px; display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+
+    #fig-panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #fig-panel-title {
+      font-size: 10px; font-weight: 600; color: #c8a96e;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    #fig-panel-close {
+      background: none; border: none; color: rgba(231,234,208,0.4);
+      cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
+    }
+    #fig-panel-close:hover { color: #e7ead0; }
+
+    .fig-panel-label {
+      font-size: 10px; color: rgba(231,234,208,0.5);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    #fig-panel-colors { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+    .fig-color-swatch {
+      width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
+    }
+    .fig-color-swatch:hover { transform: scale(1.15); }
+    .fig-color-swatch.active { border-color: #c8a96e; }
+
+    #fig-label-input {
+      background: rgba(231,234,208,0.06); border: 1px solid rgba(231,234,208,0.18);
+      border-radius: 5px; color: #e7ead0; font: inherit; font-size: 12px;
+      padding: 5px 8px; width: 100%;
+    }
+    #fig-label-input:focus { outline: none; border-color: rgba(200,169,110,0.5); }
+    #fig-label-input::placeholder { color: rgba(231,234,208,0.3); }
+
+    #fig-panel-add {
+      background: #c8a96e; color: #0a0a14;
+      border: none; border-radius: 6px;
+      padding: 7px 10px; font-size: 12px; font-weight: 600;
+      cursor: pointer; width: 100%;
+    }
+    #fig-panel-add:hover { filter: brightness(1.1); }
+
+    body.placing-figure { cursor: crosshair !important; }
   </style>
 </head>
 <body>
@@ -46,7 +111,28 @@
     </div>
     <div class="sep"></div>
     <div class="group" style="margin-left:auto;">
-      <button id="add-figure" class="icon-btn">+ Figur</button>
+      <div id="fig-panel-wrap">
+        <button id="fig-panel-btn" aria-expanded="false" aria-controls="fig-panel">＋ Figur ▾</button>
+        <div id="fig-panel" hidden role="dialog" aria-label="Figur-Editor">
+          <div id="fig-panel-header">
+            <span id="fig-panel-title">NEUE FIGUR</span>
+            <button id="fig-panel-close" aria-label="Panel schließen">✕</button>
+          </div>
+          <span class="fig-panel-label">Farbe</span>
+          <div id="fig-panel-colors">
+            <div class="fig-color-swatch active" data-color="#b8c0a8" style="background:#b8c0a8;" title="Standard"></div>
+            <div class="fig-color-swatch" data-color="#e06b6b" style="background:#e06b6b;" title="Rot"></div>
+            <div class="fig-color-swatch" data-color="#6ba8e0" style="background:#6ba8e0;" title="Blau"></div>
+            <div class="fig-color-swatch" data-color="#6be0a0" style="background:#6be0a0;" title="Grün"></div>
+            <div class="fig-color-swatch" data-color="#e0c06b" style="background:#e0c06b;" title="Gelb"></div>
+            <div class="fig-color-swatch" data-color="#c06be0" style="background:#c06be0;" title="Lila"></div>
+            <div class="fig-color-swatch" data-color="#e0906b" style="background:#e0906b;" title="Orange"></div>
+          </div>
+          <span class="fig-panel-label">Name</span>
+          <input id="fig-label-input" type="text" placeholder="Figur benennen …" maxlength="40" />
+          <button id="fig-panel-add">＋ Auf Brett setzen</button>
+        </div>
+      </div>
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
     </div>
   </div>

@@ -24,6 +24,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-mannequin",
+    "file": "tests/e2e/specs/brett-mannequin.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",

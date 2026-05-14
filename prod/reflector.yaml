@@ -99,14 +99,13 @@ spec:
                     echo "synced $SRC_NS/$SRC -> $NS/$DST"
                   }
 
-                  # workspace-wildcard-tls → argocd, coturn (used by argocd-server-ingress)
-                  for NS in argocd coturn; do
-                    sync_secret workspace workspace-wildcard-tls workspace-wildcard-tls "$NS"
-                  done
-
-                  # korczewski-tls (cert-manager source) → workspace-office, website
-                  for NS in workspace-office website; do
-                    sync_secret workspace korczewski-tls korczewski-tls "$NS"
+                  # Sync the cluster's wildcard TLS cert to all service namespaces.
+                  # ${WORKSPACE_NAMESPACE} and ${TLS_SECRET_NAME} are substituted by
+                  # envsubst during workspace:deploy so the correct values per env land here.
+                  # Destinations that don't exist on a given cluster are skipped gracefully.
+                  for NS in argocd coturn workspace-office ${WEBSITE_NAMESPACE}; do
+                    sync_secret ${WORKSPACE_NAMESPACE} ${TLS_SECRET_NAME} ${TLS_SECRET_NAME} "$NS" || \
+                      echo "warn: sync to $NS failed or namespace absent — skipping"
                   done
               resources:
                 requests:

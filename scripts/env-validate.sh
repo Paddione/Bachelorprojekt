@@ -314,9 +314,11 @@ validate_env() {
 
       while IFS= read -r key; do
         [[ -z "$key" ]] && continue
-        local sealed
+        local sealed required_sv
         sealed=$(schema_field "$SCHEMA" "setup_vars" "$key" "sealed")
         [[ "$sealed" != "true" ]] && continue
+        required_sv=$(schema_field "$SCHEMA" "setup_vars" "$key" "required")
+        [[ "$required_sv" != "true" ]] && continue
 
         if ! echo "$sealed_keys" | grep -qx "$key"; then
           die "Sealed secret missing sealed setup_var: ${key}"

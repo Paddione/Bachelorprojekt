@@ -11,6 +11,36 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will: neue Funktion, Bug 
 
 **Sage zu Beginn:** "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."
 
+## Schritt −1: Stale-Worktree-Audit
+
+Führe **immer als erstes** aus — bevor Pfad oder Branch bestimmt werden:
+
+```bash
+# Alle aktiven Worktrees zeigen
+git worktree list
+
+# Bereits in main gemergte Branches mit noch aktiven Worktrees finden
+MERGED=$(git branch --merged main 2>/dev/null | grep -vE '^\*|main|HEAD' | tr -d ' ')
+for branch in $MERGED; do
+  WT=$(git worktree list --porcelain \
+    | awk -v b="refs/heads/$branch" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+  [[ -n "$WT" ]] && echo "⚠️  STALER WORKTREE: $branch → $WT (bereits in main gemergt)"
+done
+```
+
+Falls stale Worktrees ausgegeben werden: Dem User mitteilen und anbieten, sie zuerst zu bereinigen. Bereinigung auf Anfrage:
+
+```bash
+# Für jeden stalen Worktree/Branch:
+git worktree remove <path> --force
+git branch -D <branch>
+git push origin --delete <branch> 2>/dev/null || true
+```
+
+Kein Blocker — wenn der User weitermachen will, einfach fortfahren.
+
+---
+
 ## Schritt 0: Pfad bestimmen
 
 Lies die Anfrage und schlage einen der drei Pfade vor. Bestätigung beim User einholen, BEVOR du weitermachst.
@@ -29,7 +59,21 @@ Sage z.B.: "Das klingt nach einem **fix** — wir reparieren ein bestehendes Ver
 
 ### Schritt 1: Worktree anlegen
 
-Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `feature/<kurzer-slug>`.
+**Vor dem Anlegen — Konflikt-Check:**
+
+```bash
+BRANCH_NAME="feature/<kurzer-slug>"
+EXISTING_WT=$(git worktree list --porcelain \
+  | awk -v b="refs/heads/$BRANCH_NAME" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+if [[ -n "$EXISTING_WT" ]]; then
+  echo "Worktree für $BRANCH_NAME existiert bereits: $EXISTING_WT"
+  echo "→ Nicht neu anlegen. Stattdessen: cd $EXISTING_WT"
+fi
+```
+
+Falls Worktree bereits existiert: **nicht** `using-git-worktrees` aufrufen — direkt in den vorhandenen Worktree wechseln.
+
+Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `feature/<kurzer-slug>`.
 
 ### Schritt 2: Pre-launch Brainstorming-Tunnel
 
@@ -163,7 +207,21 @@ Melde: **"Ticket `$TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bu
 
 ### Schritt 2: Worktree anlegen
 
-Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `fix/<kurzer-slug>`.
+**Vor dem Anlegen — Konflikt-Check:**
+
+```bash
+BRANCH_NAME="fix/<kurzer-slug>"
+EXISTING_WT=$(git worktree list --porcelain \
+  | awk -v b="refs/heads/$BRANCH_NAME" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+if [[ -n "$EXISTING_WT" ]]; then
+  echo "Worktree für $BRANCH_NAME existiert bereits: $EXISTING_WT"
+  echo "→ Nicht neu anlegen. Stattdessen: cd $EXISTING_WT"
+fi
+```
+
+Falls Worktree bereits existiert: **nicht** `using-git-worktrees` aufrufen — direkt in den vorhandenen Worktree wechseln.
+
+Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `fix/<kurzer-slug>`.
 
 ### Schritt 3: Failing Test schreiben
 
@@ -210,6 +268,21 @@ git push -u origin fix/<slug>
 
 Chores brauchen keinen Plan — sie werden direkt hier vollständig ausgeführt.
 
+### Schritt 0.5: Wiederkehrend oder einmalig?
+
+Frage vor allem anderen: **"Soll diese Chore regelmäßig wiederholt werden — z.B. wöchentlich, monatlich, täglich?"**
+
+Erkennungsmerkmale für wiederkehrende Chores:
+- Dependency-Bumps (wöchentlich/monatlich)
+- Zertifikat- oder Token-Rotation (monatlich/quartalsmäßig)
+- Log-Bereinigung, Backup-Checks (täglich/wöchentlich)
+- Jeglicher Satz mit "regelmäßig", "jede Woche", "jeden Monat", "automatisch"
+
+| Antwort | Aktion |
+|---|---|
+| **Wiederkehrend** | Rufe `schedule` auf. Die Routine richtet einen Cron-Job für die Aufgabe ein. Kein Branch, kein Worktree, **STOPP hier**. |
+| **Einmalig** | Weiter mit "Vor dem Worktree — offene Chore-Branches prüfen". |
+
 ### Vor dem Worktree — offene Chore-Branches prüfen
 
 ```bash
@@ -224,7 +297,21 @@ Beispiele: "Astro auf 5.x bumpen", "Variable `foo` zu `bar` umbenennen", "Tippfe
 
 ### Schritt 2: Worktree anlegen
 
-Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `chore/<kurzer-slug>`.
+**Vor dem Anlegen — Konflikt-Check:**
+
+```bash
+BRANCH_NAME="chore/<kurzer-slug>"
+EXISTING_WT=$(git worktree list --porcelain \
+  | awk -v b="refs/heads/$BRANCH_NAME" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+if [[ -n "$EXISTING_WT" ]]; then
+  echo "Worktree für $BRANCH_NAME existiert bereits: $EXISTING_WT"
+  echo "→ Nicht neu anlegen. Stattdessen: cd $EXISTING_WT"
+fi
+```
+
+Falls Worktree bereits existiert: **nicht** `using-git-worktrees` aufrufen — direkt in den vorhandenen Worktree wechseln.
+
+Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `chore/<kurzer-slug>`.
 
 ### Schritt 3: Änderung machen
 

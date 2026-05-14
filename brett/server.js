@@ -310,16 +310,6 @@ function applyMutation(room, msg) {
         figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
       }
       break;
-    case 'appearance':
-      if (figs.has(msg.id) && msg.appearance) {
-        const aerr = validateAppearance(msg.appearance);
-        if (aerr) {
-          console.warn(`[ws] rejected appearance for ${msg.id}: ${aerr}`);
-          break;
-        }
-        figs.set(msg.id, { ...figs.get(msg.id), appearance: msg.appearance });
-      }
-      break;
   }
 }
 
@@ -394,7 +384,7 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear','optik','stiffness','appearance'].includes(msg.type)) {
+      if (['add','move','update','delete','clear','optik','stiffness'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
         if (msg.type === 'clear') {

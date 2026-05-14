@@ -1,0 +1,13 @@
+{
+  "pr_number": 759,
+  "title": "add brands table and foreign key constraints (Audit Phase 2)",
+  "description": "## Summary\n\n- Adds a `brands` lookup table (id, slug, display_name) to the shared-db schema so that multi-tenant data (mentolder / korczewski) is tracked with a proper FK instead of raw string columns.\n- Introduces FK constraints in `website-db.ts` and `tickets-db.ts` referencing the new `brands` table.\n- Updates `k3d/website-schema.yaml` with the new table and FK migrations.\n- Patches `arena-server/src/db/migrations/0001_init.sql` and `deploy/tracking/init.sql` to seed/reference the brands table on their respective schemas.\n- Updates `docs/db-schema-diagram.md` and `k3d/docs-content/db-schema.md` to reflect the new 104-table schema.\n- Adjusts test files (`website-db.test.ts`, `coaching-db.test.ts`, `coaching-session-db.test.ts`, `knowledge-db.test.ts`) to satisfy the new FK constraints in test fixtures.\n\n**Files changed:** `website/src/lib/website-db.ts`, `website/src/lib/tickets-db.ts`, `k3d/website-schema.yaml`, `arena-server/src/db/migrations/0001_init.sql`, `deploy/tracking/init.sql`, `docs/db-schema-diagram.md`, `k3d/docs-content/db-schema.md`, `k3d/migrations-arena.yaml`, `scripts/db-schema-diagram.py`, and associated test files.\n\n## Test plan\n\n- [ ] `task test:unit` passes locally (BATS + schema validation)\n- [ ] `task test:manifests` shows no kustomize regressions\n- [ ] `task workspace:validate` dry-run passes\n- [ ] `task workspace:psql ENV=mentolder -- website` — verify `brands` table exists and FK constraints are live after deploy\n- [ ] Website and arena-server pods restart cleanly (`task workspace:status ENV=mentolder`)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "db",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T20:45:23Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": []
+}

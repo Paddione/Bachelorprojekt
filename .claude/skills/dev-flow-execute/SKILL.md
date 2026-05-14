@@ -304,6 +304,37 @@ Ergebnis: kein staler Worktree, keine Altlasten im lokalen oder Remote-Repo.
 
 ---
 
+## Schritt 7.5: Worktree & Branch bereinigen
+
+Nach erfolgreichem Merge und Plan-Archivierung immer ausführen:
+
+```bash
+BRANCH="feature/<slug>"   # oder fix/<slug> bzw. chore/<slug>
+
+# Worktree-Pfad ermitteln
+WORKTREE_PATH=$(git worktree list --porcelain \
+  | awk -v b="refs/heads/$BRANCH" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
+
+# In Haupt-Repo wechseln (falls noch im Worktree)
+cd /home/patrick/Bachelorprojekt
+
+# Worktree entfernen
+if [[ -n "$WORKTREE_PATH" && "$WORKTREE_PATH" != "/home/patrick/Bachelorprojekt" ]]; then
+  git worktree remove "$WORKTREE_PATH" --force
+  echo "✓ Worktree $WORKTREE_PATH entfernt"
+fi
+
+# Lokalen Branch löschen
+git branch -D "$BRANCH" 2>/dev/null && echo "✓ Lokaler Branch $BRANCH gelöscht" || echo "(Branch lokal nicht vorhanden)"
+
+# Remote Branch löschen (GitHub löscht bei auto-merge automatisch, trotzdem absichern)
+git push origin --delete "$BRANCH" 2>/dev/null && echo "✓ Remote origin/$BRANCH gelöscht" || echo "(Remote bereits gelöscht)"
+```
+
+Ergebnis: kein staler Worktree, keine Altlasten im lokalen oder Remote-Repo.
+
+---
+
 ## Schritt 8: Post-Merge Deploy
 
 Schau dir die geänderten Dateien an (`gh pr view <pr> --json files`) und führe den passenden Task aus:

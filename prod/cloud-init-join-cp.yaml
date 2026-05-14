@@ -61,6 +61,7 @@ write_files:
       tls-san:
         - PROD_DOMAIN
         - "*.PROD_DOMAIN"
+        - REPLACEME_NODE_PUBLIC_IP
       disable:
         - traefik
         - servicelb
@@ -127,7 +128,7 @@ runcmd:
   # Services
   - systemctl enable fail2ban
   - systemctl start fail2ban
-  - systemctl restart sshd
+  - systemctl restart ssh
   - systemctl enable unattended-upgrades
   - systemctl start unattended-upgrades
   - systemctl enable --now iscsid

@@ -27,7 +27,7 @@ tasks:
       - sh: "node --version | awk -F. '{ exit ($1 == \"v24\" || ($1 == \"v22\" && $2 >= 16)) ? 0 : 1 }'"
         msg: "Node 22.16+ or 24 required (got $(node --version 2>/dev/null || echo 'no node'))"
     cmds:
-      - npm install -g openclaw@latest
+      - sudo npm install -g openclaw@latest
       - openclaw --version
 
   configure:
@@ -82,7 +82,7 @@ tasks:
     desc: "Roll back: stop daemon, uninstall, remove fresh ~/.openclaw, move backup back"
     cmds:
       - systemctl --user disable --now openclaw || true
-      - npm uninstall -g openclaw || true
+      - sudo npm uninstall -g openclaw || true
       - rm -rf "{{.OPENCLAW_HOME}}"
       - |
         if [[ -d "{{.OPENCLAW_BACKUP_DIR}}" ]]; then
@@ -101,6 +101,6 @@ tasks:
           exit 1
         fi
       - systemctl --user disable --now openclaw || true
-      - npm uninstall -g openclaw || true
+      - sudo npm uninstall -g openclaw || true
       - rm -rf "{{.OPENCLAW_HOME}}" "{{.OPENCLAW_BACKUP_DIR}}"
       - echo "Wiped."

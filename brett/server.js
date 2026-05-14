@@ -26,12 +26,25 @@ if (!process.env.DATABASE_URL && require.main === module) {
   process.exit(1);
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-});
+let pool;
+if (process.env.MOCK_DB === 'true') {
+  class MockPool {
+    async query() { return { rows: [] }; }
+    async connect() { return { query: this.query, release: () => {} }; }
+    async end() {}
+    on() {} 
+  }
+  pool = new MockPool();
+} else {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+  });
+}
+
+
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -245,6 +258,11 @@ function applyMutation(room, msg) {
         figs.set('__optik__', { id: '__optik__', settings: msg.settings });
       }
       break;
+    case 'stiffness':
+      if (typeof msg.value === 'number') {
+        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
+      }
+      break;
     case 'appearance':
       if (figs.has(msg.id) && msg.outfit && msg.proportions) {
         figs.set(msg.id, { ...figs.get(msg.id), outfit: msg.outfit, proportions: msg.proportions });
@@ -256,10 +274,12 @@ function applyMutation(room, msg) {
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const figures = Array.from(figs.values()).filter(f => f.id !== '__optik__');
+  const figures = Array.from(figs.values()).filter(f => !['__optik__', '__stiffness__'].includes(f.id));
   const optikEntry = figs.get('__optik__');
+  const stiffEntry = figs.get('__stiffness__');
   const result = { figures };
   if (optikEntry) result.optik = optikEntry.settings;
+  if (stiffEntry) result.stiffness = stiffEntry.value;
   return result;
 }
 
@@ -314,7 +334,7 @@ wss.on('connection', (ws) => {
         }
 
         const state = buildStateFromMutations(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik }));
+        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65 }));
         broadcastInfo(msg.room);
         return;
       }
@@ -322,7 +342,7 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear','optik','appearance'].includes(msg.type)) {
+      if (['add','move','update','delete','clear','optik','stiffness','appearance'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
         if (msg.type === 'clear') {

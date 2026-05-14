@@ -1,3 +1,56 @@
+---
+title: Brett Mannequin Focus Implementation Plan
+domains: [website]
+status: active
+pr_number: null
+---
+
+# Brett Mannequin Focus Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Strip Brett of all settings/panels and rebuild it as a pure 3D mannequin sandbox with pose presets, a Verlet-spring↔CCD-IK ragdoll, click/WASD walking, and WebSocket sync.
+
+**Architecture:** Single-file rewrite of `brett/public/index.html` (~3900 → ~1200 lines). Three.js scene with a slim topbar (6 pose buttons + stiffness slider + add/online), full-canvas viewport, and a floating status pill. Per-bone `targetRot`/`currentRot`/`velocity` drive a Verlet spring; dragging a contact-point sphere runs CCD-IK on the affected chain and writes into `boneOverrides`. Walk system is a 4-state machine (IDLE/WALKING/DRAG_PAUSED) with click-to-walk + camera-relative WASD. WebSocket reuses existing `server.js` with two added fields (`stiffness`, `boneOverrides`) and one new top-level message (`stiffness` broadcast).
+
+**Tech Stack:** Three.js (existing `three.min.js`), vanilla JS, Express + `ws` (existing `server.js`), no new dependencies.
+
+**Conventions for this rewrite**
+- Build the new file as `brett/public/index.html` from scratch; the old file is fully replaced (squash-commit at the end is fine — incremental commits per task below).
+- Keep all code in `index.html` (one module `<script>` block), mirroring the existing project style.
+- Use the bone names already produced by the existing mannequin builder so we can reuse `tickMannequinWalk` math: `head, hips, lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle`.
+- No automated tests exist for Brett; "verify" means **load `http://localhost:3000` in a browser and exercise the listed behaviour**. Each task has a concrete manual-verify step.
+
+---
+
+## File Structure
+
+| File | Action | Purpose |
+|---|---|---|
+| `brett/public/index.html` | Full rewrite | Entire client: scene, topbar, mannequin, spring, IK, walk, WS |
+| `brett/server.js` | Modify (small) | Add `stiffness` message broadcast; drop `art-library` static mount |
+| `brett/public/art-library/` | Delete | No longer referenced |
+| `brett/package.json` | Unchanged | — |
+
+---
+
+## Task 1: Snapshot the existing client and start a clean scaffold
+
+**Files:**
+- Create: `brett/public/index.html.legacy` (backup of current ~3900-line file, kept for reference during the rewrite; deleted in the final task)
+- Modify: `brett/public/index.html` → replace with scaffold below
+
+- [ ] **Step 1: Back up the existing file**
+
+```bash
+cp brett/public/index.html brett/public/index.html.legacy
+```
+
+- [ ] **Step 2: Write the new scaffold**
+
+Overwrite `brett/public/index.html` with:
+
+```html
 <!doctype html>
 <html lang="de">
 <head>
@@ -54,80 +107,159 @@
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====
-    window.STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
+    // Tasks 2..10 fill this block.
+    const STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
+    console.log('[brett] scaffold loaded');
+  </script>
+</body>
+</html>
+```
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight - 36);
-    renderer.domElement.style.position = 'absolute';
-    renderer.domElement.style.top = '36px';
-    renderer.domElement.style.left = '0';
-    document.body.appendChild(renderer.domElement);
+- [ ] **Step 3: Verify scaffold loads**
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e1014);
+```bash
+cd brett && node server.js &
+SERVER=$!
+sleep 1
+curl -sf http://localhost:3000/ | head -5
+kill $SERVER
+```
 
-    const camera = new THREE.PerspectiveCamera(
-      50, window.innerWidth / (window.innerHeight - 36), 0.1, 200
+Expected: HTML response starts with `<!doctype html>`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add brett/public/index.html brett/public/index.html.legacy
+git commit -m "feat(brett): scaffold new mannequin-focus UI shell"
+```
+
+---
+
+## Task 2: Scene bootstrap (Three.js renderer, camera, floor, lights)
+
+**Files:**
+- Modify: `brett/public/index.html` — replace the `<script>` block body with the scene bootstrap below.
+
+- [ ] **Step 1: Add scene + camera + renderer + floor + orbit controls**
+
+Replace the `<script>` block that contains `// ===== Brett Mannequin Focus =====` with:
+
+```html
+<script>
+  // ===== Brett Mannequin Focus =====
+  const STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight - 36);
+  renderer.domElement.style.position = 'absolute';
+  renderer.domElement.style.top = '36px';
+  renderer.domElement.style.left = '0';
+  document.body.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0e1014);
+
+  const camera = new THREE.PerspectiveCamera(
+    50, window.innerWidth / (window.innerHeight - 36), 0.1, 200
+  );
+  camera.position.set(4, 4, 6);
+  camera.lookAt(0, 1, 0);
+
+  const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+  scene.add(ambient);
+  const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+  sun.position.set(5, 10, 4);
+  scene.add(sun);
+
+  // Floor grid
+  const grid = new THREE.GridHelper(40, 40, 0x445566, 0x2a3340);
+  grid.position.y = 0;
+  scene.add(grid);
+  const floorGeo = new THREE.PlaneGeometry(40, 40);
+  const floorMat = new THREE.MeshBasicMaterial({ color: 0x10131a, transparent: true, opacity: 0.6 });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = 0;
+  scene.add(floor);
+
+  // Minimal manual orbit (mouse drag with middle button + wheel)
+  const cameraOrbit = { theta: Math.atan2(camera.position.x, camera.position.z), phi: 0.6, dist: Math.hypot(camera.position.x, camera.position.z, camera.position.y) };
+  function updateCameraFromOrbit() {
+    const r = cameraOrbit.dist;
+    camera.position.set(
+      Math.sin(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r,
+      Math.sin(cameraOrbit.phi) * r,
+      Math.cos(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r
     );
-    camera.position.set(4, 4, 6);
     camera.lookAt(0, 1, 0);
-
-    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
-    scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
-    sun.position.set(5, 10, 4);
-    scene.add(sun);
-
-    // Floor grid
-    const grid = new THREE.GridHelper(40, 40, 0x445566, 0x2a3340);
-    grid.position.y = 0;
-    scene.add(grid);
-    const floorGeo = new THREE.PlaneGeometry(40, 40);
-    const floorMat = new THREE.MeshBasicMaterial({ color: 0x10131a, transparent: true, opacity: 0.6 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = 0;
-    scene.add(floor);
-
-    // Minimal manual orbit (mouse drag with middle button + wheel)
-    const cameraOrbit = { theta: Math.atan2(camera.position.x, camera.position.z), phi: 0.6, dist: Math.hypot(camera.position.x, camera.position.z, camera.position.y) };
-    function updateCameraFromOrbit() {
-      const r = cameraOrbit.dist;
-      camera.position.set(
-        Math.sin(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r,
-        Math.sin(cameraOrbit.phi) * r,
-        Math.cos(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r
-      );
-      camera.lookAt(0, 1, 0);
-    }
-    updateCameraFromOrbit();
-    let dragMode = null, dragLast = null;
-    renderer.domElement.addEventListener('mousedown', (e) => {
-      if (e.button === 1 || (e.button === 0 && e.shiftKey)) { dragMode = 'orbit'; dragLast = { x: e.clientX, y: e.clientY }; }
-    });
-    window.addEventListener('mousemove', (e) => {
-      if (dragMode === 'orbit' && dragLast) {
-        const dx = e.clientX - dragLast.x, dy = e.clientY - dragLast.y;
-        cameraOrbit.theta -= dx * 0.005;
-        cameraOrbit.phi = Math.max(-1.2, Math.min(1.2, cameraOrbit.phi + dy * 0.005));
-        updateCameraFromOrbit();
-        dragLast = { x: e.clientX, y: e.clientY };
-      }
-    });
-    window.addEventListener('mouseup', () => { dragMode = null; dragLast = null; });
-    renderer.domElement.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      cameraOrbit.dist = Math.max(2, Math.min(40, cameraOrbit.dist * (1 + e.deltaY * 0.001)));
+  }
+  updateCameraFromOrbit();
+  let dragMode = null, dragLast = null;
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    if (e.button === 1 || (e.button === 0 && e.shiftKey)) { dragMode = 'orbit'; dragLast = { x: e.clientX, y: e.clientY }; }
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (dragMode === 'orbit' && dragLast) {
+      const dx = e.clientX - dragLast.x, dy = e.clientY - dragLast.y;
+      cameraOrbit.theta -= dx * 0.005;
+      cameraOrbit.phi = Math.max(-1.2, Math.min(1.2, cameraOrbit.phi + dy * 0.005));
       updateCameraFromOrbit();
-    }, { passive: false });
+      dragLast = { x: e.clientX, y: e.clientY };
+    }
+  });
+  window.addEventListener('mouseup', () => { dragMode = null; dragLast = null; });
+  renderer.domElement.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    cameraOrbit.dist = Math.max(2, Math.min(40, cameraOrbit.dist * (1 + e.deltaY * 0.001)));
+    updateCameraFromOrbit();
+  }, { passive: false });
 
-    window.addEventListener('resize', () => {
-      renderer.setSize(window.innerWidth, window.innerHeight - 36);
-      camera.aspect = window.innerWidth / (window.innerHeight - 36);
-      camera.updateProjectionMatrix();
-    });
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight - 36);
+    camera.aspect = window.innerWidth / (window.innerHeight - 36);
+    camera.updateProjectionMatrix();
+  });
 
+  // Main render loop — figure ticks added in later tasks
+  function tick() {
+    requestAnimationFrame(tick);
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  console.log('[brett] scene up');
+</script>
+```
+
+- [ ] **Step 2: Manual verify**
+
+```bash
+cd brett && node server.js
+```
+
+Open `http://localhost:3000/`. Expected: dark background, visible grid at y=0, topbar at top, status pill at bottom. Shift+drag rotates camera, wheel zooms.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): bring up empty Three.js scene with floor + orbit"
+```
+
+---
+
+## Task 3: Mannequin builder with named bones and contact-point spheres
+
+**Files:**
+- Modify: `brett/public/index.html` — append the mannequin builder before `function tick()`.
+
+- [ ] **Step 1: Add mannequin builder**
+
+Insert the following just **above** `function tick()`:
+
+```js
   // ----- Mannequin model -----
   const BONE_NAMES = [
     'hips','head',
@@ -255,10 +387,43 @@
       });
     }
   }
+```
 
+- [ ] **Step 2: Wire `+ Figur` button to spawn at origin**
+
+Append, still above `tick()`:
+
+```js
   document.getElementById('add-figure').addEventListener('click', () => {
     addFigure({ x: (Math.random()-0.5)*2, z: (Math.random()-0.5)*2 });
   });
+  // Seed one figure so the scene is not empty on first load
+  addFigure({ x: 0, z: 0 });
+```
+
+- [ ] **Step 3: Manual verify**
+
+Reload `http://localhost:3000/`. Expected: one mannequin at origin with a gold dashed-look selection ring; clicking `+ Figur` spawns more mannequins nearby and the new one is selected (ring moves to it, previous one dims).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): mannequin builder with named bones and contact spheres"
+```
+
+---
+
+## Task 4: Pose preset tables and immediate-write target rotations
+
+**Files:**
+- Modify: `brett/public/index.html`
+
+- [ ] **Step 1: Add preset tables and apply function**
+
+Insert below the `addFigure` definition:
+
+```js
   // ----- Pose presets (target rotations in radians; only x and z used) -----
   // Each value is { x: pitch, z: roll } applied via group.rotation.x / .z.
   const PRESETS = {
@@ -326,22 +491,48 @@
       fig.bone[name].targetRot.x = p[name].x;
       fig.bone[name].targetRot.z = p[name].z;
     }
-
+    // Hard-write right now so the user sees something even before spring is wired up.
+    for (const name of BONE_NAMES) {
+      fig.bone[name].currentRot.x = p[name].x;
+      fig.bone[name].currentRot.z = p[name].z;
+      fig.bones[name].rotation.x = p[name].x;
+      fig.bones[name].rotation.z = p[name].z;
+    }
     sendUpdate(fig, { preset: presetKey });
   }
 
-
+  function sendUpdate(/* fig, changes */) { /* placeholder until Task 10 */ }
 
   document.getElementById('presets').addEventListener('click', (e) => {
-    const btn = e.target.closest("button[data-preset]");
+    const btn = e.target.closest('button[data-preset]');
     if (!btn || !STATE.selectedId) return;
     applyPreset(STATE.selectedId, btn.dataset.preset);
   });
+```
 
-  // Seed one figure so the scene is not empty on first load
-  addFigure({ x: 0, z: 0 });
+- [ ] **Step 2: Manual verify**
 
-  // Main render loop — figure ticks added in later tasks
+Reload. Click each of the 6 preset buttons in turn; the selected mannequin should snap to: standing, kneeling, prone (face-down), crawl (on hands and knees), slumped, T-pose.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): six pose presets with immediate apply"
+```
+
+---
+
+## Task 5: Verlet spring simulation
+
+**Files:**
+- Modify: `brett/public/index.html`
+
+- [ ] **Step 1: Add spring tick and wire it into the render loop**
+
+Insert above `function tick()`:
+
+```js
   // ----- Verlet spring -----
   const K_SPRING = 80;
   const DAMPING  = 0.85;
@@ -398,14 +589,81 @@
       if (minY < 0) fig.root.position.y -= minY; // lift onto floor
     }
   }
+```
 
+- [ ] **Step 2: Drop the hard-write block from `applyPreset`**
+
+In `applyPreset`, remove the lines that immediately overwrite `currentRot` and `bones[name].rotation` after writing `targetRot`. Keep only the `targetRot` assignment and `sendUpdate(...)` call. The spring now drives the visual rotation.
+
+- [ ] **Step 3: Call `tickSpring` from the render loop**
+
+Replace `function tick()` body with:
+
+```js
+  function tick() {
+    requestAnimationFrame(tick);
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastTickMs) / 1000);
+    lastTickMs = now;
+    tickSpring(dt);
+    renderer.render(scene, camera);
+  }
+```
+
+- [ ] **Step 4: Manual verify**
+
+Reload. Set slider to ~0.65; click `Stand` then `Slump` — the body should swing smoothly between poses rather than snap. Drag the slider to ~0.05 — the body should sag forward over a second or two (head droops, shoulders fall). Crank to 1.0 — it snaps stiff and holds the current preset exactly.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): Verlet spring with gravity-blended stiffness"
+```
+
+---
+
+## Task 6: Stiffness slider wiring (local-only for now)
+
+**Files:**
+- Modify: `brett/public/index.html`
+
+- [ ] **Step 1: Bind the slider**
+
+Append above `tick()`:
+
+```js
   const stiffSlider = document.getElementById('stiffness');
   stiffSlider.addEventListener('input', () => {
     STATE.stiffness = parseFloat(stiffSlider.value);
     sendStiffness(STATE.stiffness);
   });
+  function sendStiffness(/* value */) { /* placeholder until Task 10 */ }
+```
 
+- [ ] **Step 2: Manual verify**
 
+Slider visibly updates `STATE.stiffness` in the console (`STATE.stiffness` after each input) and the spring response above already reflects it.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): wire stiffness slider to spring state"
+```
+
+---
+
+## Task 7: CCD-IK with contact-point drag
+
+**Files:**
+- Modify: `brett/public/index.html`
+
+- [ ] **Step 1: Add raycaster + chain definitions**
+
+Insert above `tick()`:
+
+```js
   // ----- CCD-IK -----
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
@@ -543,19 +801,40 @@
     }
     dragging = null;
   });
+```
 
+- [ ] **Step 2: Manual verify**
+
+Reload. Click `Stand`, set slider to 0.5. Drag the gold sphere on the left wrist around with the mouse — the left arm should follow the cursor; the rest of the body stays under spring control. Release: the arm springs back toward the preset target.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): CCD-IK on contact-sphere drag with override resume"
+```
+
+---
+
+## Task 8: Click-to-select and double-click-to-add figure
+
+**Files:**
+- Modify: `brett/public/index.html`
+
+- [ ] **Step 1: Add click handlers**
+
+Insert above `tick()`:
+
+```js
   renderer.domElement.addEventListener('click', (e) => {
     if (dragging) return;
+    // Already handled by mousedown for contact spheres; this handles body / floor clicks
     if (e.shiftKey) return;
-    if (pickMannequinBody(e)) return; // selection click already happened
+    const body = pickMannequinBody(e);
+    if (body) { selectFigure(body.id); return; }
     const floorPt = pickFloor(e);
-    if (!floorPt || !STATE.selectedId) return;
-    if (STATE.stiffness < 0.3) return; // body too limp
-    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (fig) {
-      fig.walkTarget = { x: floorPt.x, z: floorPt.z };
-      fig.walking = true;
-      sendUpdate(fig, { walkTarget: fig.walkTarget, walking: true });
+    if (floorPt && STATE.selectedId) {
+      // Walk-to-click handled in Task 9; for now: deselect on empty floor click only via ESC
     }
   });
 
@@ -584,8 +863,32 @@
       selectFigure(next.id);
     }
   });
+  function sendDelete() { /* placeholder until Task 10 */ }
+```
 
+- [ ] **Step 2: Manual verify**
 
+Reload. Double-click on the floor → new mannequin appears at that point and is selected. Click on another mannequin → selection moves. `Tab` → cycles. `Esc` → deselects. `Delete` → removes selected.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): figure click/dblclick/tab/delete management"
+```
+
+---
+
+## Task 9: Walk system (click-to-walk + WASD + walk animation + state pill)
+
+**Files:**
+- Modify: `brett/public/index.html`
+
+- [ ] **Step 1: Add walk tick, WASD state, click-to-walk, status pill updates**
+
+Insert above `tick()`:
+
+```js
   // ----- Walking -----
   const WALK_SPEED = 2.0;          // units/s
   const TURN_RATE  = 8.0;          // rad/s
@@ -597,6 +900,21 @@
   });
   window.addEventListener('keyup', (e) => {
     if (e.key.length === 1 && wasdKeys.hasOwnProperty(e.key.toLowerCase())) wasdKeys[e.key.toLowerCase()] = false;
+  });
+
+  // Click-to-walk: extend the existing click handler — replace the empty branch from Task 8.
+  // (Search for the comment "Walk-to-click handled in Task 9" and replace that line with the body below.)
+  function _walkBindings_marker() {}
+  // Real handler:
+  renderer.domElement.addEventListener('click', (e) => {
+    if (dragging) return;
+    if (e.shiftKey) return;
+    if (pickMannequinBody(e)) return; // selection click already happened
+    const floorPt = pickFloor(e);
+    if (!floorPt || !STATE.selectedId) return;
+    if (STATE.stiffness < 0.3) return; // body too limp
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) { fig.walkTarget = { x: floorPt.x, z: floorPt.z }; fig.walking = true; sendUpdate(fig, { walkTarget: fig.walkTarget, walking: true }); }
   });
 
   function tickWalkAnimation(fig, t) {
@@ -671,22 +989,68 @@
     pillEl.textContent = '🚶 WALK · WASD / Klick Boden = Ziel · Tab = nächste';
   }
 
+  // Replace tick() to integrate walk + pill
+  function _replaced_tick() {}
+```
+
+- [ ] **Step 2: Replace the render loop again to call `tickWalk` and `updateStatusPill`**
+
+Find `function tick()` and replace it with:
+
+```js
+  function tick() {
+    requestAnimationFrame(tick);
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastTickMs) / 1000);
+    lastTickMs = now;
+    tickWalk(dt, now / 1000);
+    tickSpring(dt);
+    updateStatusPill();
+    renderer.render(scene, camera);
+  }
+```
+
+Also: remove the placeholder click handler from Task 8 (the one with `// Walk-to-click handled in Task 9`) since the new handler above replaces it. Make sure only one floor-click handler attaches walk targets — keep the new one, delete the older empty branch.
+
+- [ ] **Step 3: Manual verify**
+
+Reload. Click the floor with stiffness ≥ 0.3 → selected mannequin walks toward the click with leg/arm swing; arrives within ~0.3 of the target. Click another floor point mid-walk → retargets. Press `W`/`A`/`S`/`D` → walks camera-relative; facing rotates smoothly. Drop slider below 0.3 → pill switches to "zu schlaff…", walking stops. While dragging a contact sphere → pill shows "Drag …".
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): click + WASD walk system with leg/arm animation"
+```
+
+---
+
+## Task 10: WebSocket sync — client side
+
+**Files:**
+- Modify: `brett/public/index.html`
+
+- [ ] **Step 1: Connect to `/sync`, join a room, handle snapshot + per-message types**
+
+Insert above `tick()`:
+
+```js
   // ----- WebSocket sync -----
-  const roomFromUrl = new URLSearchParams(location.search).get("room") || "default";
-  const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+  const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
+  const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   const ws = new WebSocket(`${wsProto}//${location.host}/sync`);
   let wsReady = false;
 
-  ws.addEventListener("open", () => {
+  ws.addEventListener('open', () => {
     wsReady = true;
-    ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
+    ws.send(JSON.stringify({ type: 'join', room: roomFromUrl }));
   });
-  ws.addEventListener("close", () => { wsReady = false; });
+  ws.addEventListener('close', () => { wsReady = false; });
 
-  ws.addEventListener("message", (evt) => {
+  ws.addEventListener('message', (evt) => {
     let msg; try { msg = JSON.parse(evt.data); } catch { return; }
     switch (msg.type) {
-      case "snapshot":
+      case 'snapshot':
         // Reset world from server state
         for (const f of STATE.figures) scene.remove(f.root);
         STATE.figures.length = 0; STATE.selectedId = null;
@@ -703,21 +1067,21 @@
           if (f.walkTarget) fig.walkTarget = f.walkTarget;
           STATE.figures.push(fig);
         }
-        if (typeof msg.stiffness === "number") {
+        if (typeof msg.stiffness === 'number') {
           STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
         }
         if (STATE.figures[0]) selectFigure(STATE.figures[0].id);
         break;
-      case "stiffness":
+      case 'stiffness':
         STATE.stiffness = msg.value; stiffSlider.value = String(msg.value);
         break;
-      case "add": {
+      case 'add': {
         if (STATE.figures.find(f => f.id === msg.figure.id)) break;
         const fig = makeMannequin(msg.figure.id, { x: msg.figure.x, z: msg.figure.z });
         STATE.figures.push(fig);
         break;
       }
-      case "update": {
+      case 'update': {
         const fig = STATE.figures.find(f => f.id === msg.id);
         if (!fig) break;
         const c = msg.changes || {};
@@ -732,21 +1096,21 @@
         if (c.walking !== undefined) fig.walking = !!c.walking;
         break;
       }
-      case "move": {
+      case 'move': {
         const fig = STATE.figures.find(f => f.id === msg.id);
         if (!fig) break;
         fig.root.position.x = msg.x; fig.root.position.z = msg.z;
-        if (typeof msg.facingY === "number") { fig.facingY = msg.facingY; fig.root.rotation.y = fig.facingY; }
+        if (typeof msg.facingY === 'number') { fig.facingY = msg.facingY; fig.root.rotation.y = msg.facingY; }
         break;
       }
-      case "delete": {
+      case 'delete': {
         const idx = STATE.figures.findIndex(f => f.id === msg.id);
         if (idx >= 0) { scene.remove(STATE.figures[idx].root); STATE.figures.splice(idx, 1); }
         break;
       }
-      case "info":
+      case 'info':
         STATE.online = msg.count || 1;
-        document.getElementById("online-count").textContent = String(STATE.online);
+        document.getElementById('online-count').textContent = String(STATE.online);
         break;
     }
   });
@@ -754,22 +1118,22 @@
   // Replace the placeholders defined earlier
   window.sendUpdate = function(fig, changes) {
     if (!wsReady) return;
-    ws.send(JSON.stringify({ type: "update", id: fig.id, changes }));
+    ws.send(JSON.stringify({ type: 'update', id: fig.id, changes }));
   };
   window.sendStiffness = function(value) {
     if (!wsReady) return;
-    ws.send(JSON.stringify({ type: "stiffness", value }));
+    ws.send(JSON.stringify({ type: 'stiffness', value }));
   };
   window.sendDelete = function(/* idx */) {
     if (!wsReady || !STATE.selectedId) return;
-    ws.send(JSON.stringify({ type: "delete", id: STATE.selectedId }));
+    ws.send(JSON.stringify({ type: 'delete', id: STATE.selectedId }));
   };
 
   // When adding a figure locally, also broadcast it
   const _origAdd = addFigure;
   addFigure = function(position) {
     const fig = _origAdd(position);
-    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z } }));
+    if (wsReady) ws.send(JSON.stringify({ type: 'add', figure: { id: fig.id, type: 'mannequin', x: position.x, z: position.z } }));
     return fig;
   };
 
@@ -778,21 +1142,167 @@
     if (!wsReady) return;
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
     if (!fig) return;
-    ws.send(JSON.stringify({ type: "move", id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
+    ws.send(JSON.stringify({ type: 'move', id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
   }, 100);
-  function tick() {
-    requestAnimationFrame(tick);
-    const now = performance.now();
-    const dt = Math.min(0.05, (now - lastTickMs) / 1000);
-    lastTickMs = now;
-    tickWalk(dt, now / 1000);
-    tickSpring(dt);
-    updateStatusPill();
-    renderer.render(scene, camera);
-  }
-    tick();
+```
 
-    console.log('[brett] scene up');
-  </script>
-</body>
-</html>
+- [ ] **Step 2: Replace the previously-declared placeholder helpers**
+
+Earlier tasks declared `function sendUpdate() {}`, `function sendStiffness() {}`, `function sendDelete() {}` as no-ops. The block above re-assigns them on `window`. Remove the earlier `function sendX() {}` placeholder declarations so the assignments aren't shadowed by hoisted empties — or change those earlier declarations to `var sendUpdate = function(){}` etc. so the later `window.sendUpdate = ...` actually wins. Pick one approach and apply consistently.
+
+- [ ] **Step 3: Manual verify**
+
+Open two browser tabs to `http://localhost:3000/?room=test`. Click `Stand` in tab 1 — both tabs animate to standing. Drag a contact sphere in tab 1 — tab 2 sees the IK rotation. Walk in tab 1 — tab 2 sees the figure translate. Move the stiffness slider in tab 1 — tab 2's slider position updates. Online indicator shows `● 2 online` in both.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add brett/public/index.html
+git commit -m "feat(brett): WebSocket sync for figures, presets, IK, walk, stiffness"
+```
+
+---
+
+## Task 11: Server — handle `stiffness` broadcast, drop art-library static mount
+
+**Files:**
+- Modify: `brett/server.js`
+
+- [ ] **Step 1: Add `stiffness` to the message switch and persist it on room state**
+
+In `brett/server.js`, find the `switch` inside the message handler (look for `case 'optik':` near line 192) and add a `case 'stiffness':` arm next to it that:
+1. Stores `state.stiffness = msg.value` on the room state object (alongside whatever already lives there for `optik`).
+2. Broadcasts the message to all other connections in the room: `broadcast(room, msg, ws);`
+
+Then, in the snapshot send (look for the line that sends `{ type: 'snapshot', figures: ..., optik: ... }`), add `stiffness: state.stiffness ?? 0.65` to the object.
+
+- [ ] **Step 2: Drop the `art-library` static mount**
+
+Search for any `express.static(...art-library...)` or `app.use('/art-library', ...)` line in `server.js`. Delete it. If nothing matches, no change is needed.
+
+- [ ] **Step 3: Manual verify**
+
+```bash
+cd brett && node server.js
+```
+
+Open two tabs to `http://localhost:3000/?room=t11`. Move the slider in tab 1 → tab 2 follows. Refresh tab 2 → it snapshots with the same `stiffness` value (slider position matches).
+
+Also verify `curl -sI http://localhost:3000/art-library/anything` returns 404.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add brett/server.js
+git commit -m "feat(brett): server-side stiffness sync; drop art-library mount"
+```
+
+---
+
+## Task 12: Delete the legacy art-library directory and the .legacy backup
+
+**Files:**
+- Delete: `brett/public/art-library/`
+- Delete: `brett/public/index.html.legacy`
+
+- [ ] **Step 1: Remove the directories**
+
+```bash
+git rm -r brett/public/art-library
+git rm brett/public/index.html.legacy
+```
+
+- [ ] **Step 2: Verify the app still loads**
+
+```bash
+cd brett && node server.js &
+SERVER=$!
+sleep 1
+curl -sf http://localhost:3000/ > /dev/null && echo OK
+kill $SERVER
+```
+
+Expected: `OK`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git commit -m "chore(brett): remove art-library assets and legacy index backup"
+```
+
+---
+
+## Task 13: Final smoke test and PR-prep
+
+- [ ] **Step 1: Full feature smoke (single session, single tab)**
+
+```bash
+cd brett && node server.js
+```
+
+In a browser, walk through every spec section:
+
+1. Topbar present, no rail/dock/minimap (§1).
+2. Click each of the 6 presets — body morphs to each (§4).
+3. Slider at 0.05 → body sags forward; at 1.0 → snaps stiff (§3).
+4. Drag every coloured contact sphere (gold/green/blue/brass/red) — chain follows cursor, release springs back (§2, §3).
+5. Double-click floor → new figure spawns at click (§6).
+6. Click another figure → selection moves, dim/bright swap correctly (§6).
+7. `Tab` cycles, `Esc` deselects, `Del` removes (§6).
+8. Click floor with selection → figure walks to target with arm/leg swing (§5).
+9. WASD → camera-relative walk; facing slerps (§5).
+10. Slider < 0.3 → status pill says "zu schlaff …" and walking stops (§5, §1).
+
+- [ ] **Step 2: Two-tab sync smoke**
+
+Open two tabs at `?room=smoke`. Verify add / select / preset / drag / walk / stiffness all propagate, and `● N online` updates on connect/disconnect.
+
+- [ ] **Step 3: Commit anything that was tweaked**
+
+```bash
+git status
+git add -A
+git diff --cached
+git commit -m "chore(brett): final tweaks from manual smoke" || echo "nothing to commit"
+```
+
+- [ ] **Step 4: Push and open PR**
+
+```bash
+git push -u origin feature/brett-mannequin-focus
+gh pr create --title "feat(brett): rebuild as mannequin-focus sandbox" --body "$(cat <<'EOF'
+## Summary
+- Strips Brett of settings panels, art-library, constellation selector
+- Adds slim topbar with 6 pose presets + stiffness slider
+- Implements Verlet spring + CCD-IK ragdoll on 9 contact points
+- Adds click-to-walk + WASD walk system with arm/leg animation
+- Extends WebSocket sync: stiffness broadcast, boneOverrides, walkTarget
+
+Spec: docs/superpowers/specs/2026-05-14-brett-mannequin-focus-design.md
+Plan: docs/superpowers/plans/2026-05-14-brett-mannequin-focus.md
+
+## Test plan
+- [x] All 6 presets transition smoothly
+- [x] Slider blends physics ↔ IK as expected
+- [x] All 9 contact spheres are draggable with CCD-IK chain
+- [x] Click-to-walk and WASD both honour camera azimuth
+- [x] Two-tab sync covers add/select/preset/drag/walk/stiffness
+EOF
+)"
+```
+
+- [ ] **Step 5: Deploy to both prod clusters after merge**
+
+```bash
+task feature:brett
+```
+
+(Per CLAUDE.md: `feature:brett` rebuilds and rolls Brett on both `mentolder` and `korczewski` clusters.)
+
+---
+
+## Self-Review Notes
+
+- **Spec coverage:** §1 topbar+pill (Tasks 1, 9), §2 mannequin+spheres (Task 3), §3 spring+IK (Tasks 5, 7), §4 presets (Task 4), §5 walk (Task 9), §6 figure mgmt (Task 8), §7 WS sync (Tasks 10, 11), §8 file changes (Tasks 1, 11, 12), §9 out-of-scope respected (no physics lib, no recording, no save).
+- **No-placeholder check:** every code step shows the actual code. The Task 7 floor-click branch is intentionally a stub line replaced in Task 9 — note left for the engineer.
+- **Type/name consistency:** bone names are reused across tasks (`bones[name]`, `fig.bone[name].targetRot`); `STATE.figures`, `STATE.selectedId`, `STATE.stiffness` are stable; sync message types match between client (Task 10) and server (Task 11) — `stiffness`, `update`, `add`, `move`, `delete`, `info`, `snapshot`.

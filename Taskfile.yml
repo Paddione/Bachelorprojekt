@@ -1035,6 +1035,20 @@ tasks:
           python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
         echo "Written to docs/db-schema-diagram.md"
 
+  datamodel:build:
+    desc: "Regenerate k3d/docs-content/datamodel-workflow.md from shared-db + workflow-map.yaml"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
+          python3 scripts/datamodel/build_datamodel.py \
+            --map scripts/datamodel/workflow-map.yaml \
+            --out k3d/docs-content/datamodel-workflow.md
+        echo "Written. Review the diff, then commit + task docs:deploy."
+
   workspace:teardown:
     desc: Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
     vars:

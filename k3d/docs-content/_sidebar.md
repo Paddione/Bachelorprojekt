@@ -51,5 +51,6 @@
   - [Systemisches Brett (3D)](systemisches-brett)
 
 - **Referenz**
+  - [Datamodel × Workflow](datamodel-workflow)
   - [Glossar](glossary)
   - [Decision-Log](decisions)

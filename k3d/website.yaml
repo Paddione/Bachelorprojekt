@@ -219,6 +219,8 @@ spec:
                   key: WEBSITE_DB_PASSWORD
             - name: SESSIONS_DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local:5432/website"
+            - name: TRACKING_DB_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local:5432/postgres"
             - name: CRON_SECRET
               valueFrom:
                 secretKeyRef:

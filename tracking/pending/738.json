@@ -1,0 +1,12 @@
+{
+  "pr_number": 738,
+  "title": "add deployment-assist skill",
+  "description": "## Summary\n\n- Adds `.claude/skills/deployment-assist/SKILL.md` — a new `/deployment-assist` skill\n- Interactive 6-phase runbook: env selection → tool check → credential assessment → cluster status → gap table → sequential task execution\n- Works from a fresh clone (nothing deployed) or partially-deployed environment\n- Covers dev (`task workspace:up`) and prod (15-step ordered task list per env)\n- Includes common blockers table for the most frequent failure modes\n\n## Test plan\n\n- [ ] Skill is auto-discovered in the Claude Code session (visible in system reminder)\n- [ ] `/deployment-assist` invokes the skill and triggers Phase 0 env selection prompt\n- [ ] No manifest or code changes — `task test:manifests` / `task test:unit` unaffected by this PR\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "skills",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T08:39:29Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

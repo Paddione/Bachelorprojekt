@@ -1012,14 +1012,15 @@ function findFigById(id) {
 }
 function figToJSON(fig) {
   return {
-    id:    fig.id,
-    type:  fig.type,
-    color: fig.color,
-    label: fig.label || '',
-    scale: fig.scale,
-    rotY:  fig.rotY,
-    x:     fig.mesh.position.x,
-    z:     fig.mesh.position.z,
+    id:      fig.id,
+    type:    fig.type,
+    color:   fig.color,
+    label:   fig.label || '',
+    scale:   fig.scale,
+    rotY:    fig.rotY,
+    x:       fig.mesh.position.x,
+    z:       fig.mesh.position.z,
+    walking: fig.walking || false,
   };
 }
 
@@ -1045,8 +1046,9 @@ function applySnapshot(figList) {
   try {
     figures.slice().forEach(f => { scene.remove(f.mesh); });
     figures.length = 0;
-    for (const f of figList) {
-      addFigure(f.type, f.color, f.x, f.z, f.label || '', f.scale || 1.0, f.rotY || 0, f.id);
+    for (const fd of figList) {
+      const fig = addFigure(fd.type, fd.color, fd.x, fd.z, fd.label || '', fd.scale || 1.0, fd.rotY || 0, fd.id);
+      if (fd.walking && fig.type === 'mannequin') fig.walking = true;
     }
     selectFigure(null);
   } finally { applyingRemote = false; }
@@ -1056,18 +1058,20 @@ function applyRemote(msg) {
   applyingRemote = true;
   try {
     if (msg.type === 'add' && msg.fig && !findFigById(msg.fig.id)) {
-      addFigure(msg.fig.type, msg.fig.color, msg.fig.x, msg.fig.z,
-                msg.fig.label, msg.fig.scale, msg.fig.rotY, msg.fig.id);
+      const newFig = addFigure(msg.fig.type, msg.fig.color, msg.fig.x, msg.fig.z,
+                               msg.fig.label, msg.fig.scale, msg.fig.rotY, msg.fig.id);
+      if (msg.fig.walking && newFig && newFig.type === 'mannequin') newFig.walking = true;
     } else if (msg.type === 'move') {
       const f = findFigById(msg.id);
       if (f) { f.mesh.position.x = msg.x; f.mesh.position.z = msg.z; }
     } else if (msg.type === 'update') {
       const f = findFigById(msg.id);
       if (f && msg.changes) {
-        if (msg.changes.label !== undefined) setLabel(f, msg.changes.label);
-        if (msg.changes.scale !== undefined) setScale(f, msg.changes.scale);
-        if (msg.changes.rotY  !== undefined) setRotY (f, msg.changes.rotY);
-        if (msg.changes.color !== undefined) recolorFigure(f, msg.changes.color);
+        if (msg.changes.label   !== undefined) setLabel(f, msg.changes.label);
+        if (msg.changes.scale   !== undefined) setScale(f, msg.changes.scale);
+        if (msg.changes.rotY    !== undefined) setRotY (f, msg.changes.rotY);
+        if (msg.changes.color   !== undefined) recolorFigure(f, msg.changes.color);
+        if (msg.changes.walking !== undefined) f.walking = msg.changes.walking;
       }
     } else if (msg.type === 'delete') {
       const f = findFigById(msg.id);

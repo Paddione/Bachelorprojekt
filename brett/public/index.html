@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Brett · Mannequin</title>
+  <link rel="stylesheet" href="/assets/figure-pack/colors_and_type.css">
   <style>
     *,*::before,*::after { box-sizing: border-box; }
     html, body { margin:0; height:100%; background:#0e1014; color:#e7ead0; font-family: ui-sans-serif, system-ui, sans-serif; overflow:hidden; }
@@ -26,6 +27,49 @@
       border-radius:20px; font-size:13px; pointer-events:none; z-index:10;
     }
     canvas { display:block; }
+
+    /* ===== Figure-pack editor bubble ===== */
+    #edit-bubble {
+      position: fixed; z-index: 50;
+      width: 320px; padding: 16px;
+      background: var(--slate-1, #161922);
+      border: 1px solid var(--slate-3, #2a3040);
+      border-radius: 14px;
+      box-shadow: var(--shadow-2, 0 10px 30px rgba(0,0,0,0.4));
+      color: var(--parchment, #e7ead0);
+      font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+      font-size: 13px;
+      max-height: 80vh; overflow-y: auto;
+    }
+    #edit-bubble[hidden] { display: none; }
+    .bubble-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .bubble-title { font-family: 'Newsreader', serif; font-size: 16px; }
+    .bubble-section { margin-bottom: 14px; }
+    .bubble-label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--parchment-3, #7c8071); margin-bottom: 6px; }
+    .face-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+    .face-grid button { width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1px solid transparent;
+      background-size: cover; background-position: center; cursor: pointer; background-color: var(--slate-2, #1f2330); }
+    .face-grid button.active { border-color: var(--brass, #c8a96e); box-shadow: 0 0 0 2px var(--brass, #c8a96e); }
+    .seg-row { display: flex; gap: 4px; flex-wrap: wrap; }
+    .seg-row button { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--slate-3, #2a3040);
+      background: transparent; color: inherit; cursor: pointer; font-size: 11px; }
+    .seg-row button.active { background: var(--brass, #c8a96e); color: var(--slate-0, #0e1014); border-color: var(--brass, #c8a96e); }
+    .acc-group { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+    .acc-group button { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--slate-3, #2a3040);
+      background: transparent; color: inherit; cursor: pointer; font-size: 11px; }
+    .acc-group button.active { background: var(--brass, #c8a96e); color: var(--slate-0, #0e1014); border-color: var(--brass, #c8a96e); }
+    .prop-row { display: grid; grid-template-columns: 90px 1fr 50px; gap: 8px; align-items: center; margin-bottom: 4px; }
+    .prop-row .val { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; text-align: right; }
+    .prop-row input[type=range] { accent-color: var(--brass, #c8a96e); }
+    .bubble-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .action-btn { flex: 1; padding: 6px 10px; border: 1px solid var(--slate-3, #2a3040); border-radius: 6px;
+      background: transparent; color: inherit; cursor: pointer; font: inherit; }
+    .action-btn:hover { background: var(--slate-2, #1f2330); }
+    .link-btn { background: transparent; border: none; color: var(--brass, #c8a96e); cursor: pointer;
+      font: inherit; padding: 0 4px; float: right; }
+    .icon-btn-bubble { background: transparent; color: inherit; border: 1px solid var(--slate-3, #2a3040);
+      border-radius: 4px; padding: 2px 8px; cursor: pointer; font: inherit; }
   </style>
 </head>
 <body>
@@ -51,10 +95,65 @@
     </div>
   </div>
   <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = neue Figur</div>
+
+  <div id="edit-bubble" hidden>
+    <div class="bubble-head">
+      <span class="bubble-title">✦ Figur einrichten</span>
+      <button id="edit-close" class="icon-btn-bubble" aria-label="Schließen">✕</button>
+    </div>
+    <section class="bubble-section">
+      <span class="bubble-label">Gesicht</span>
+      <div id="face-grid" class="face-grid"></div>
+    </section>
+    <section class="bubble-section">
+      <span class="bubble-label">Körper</span>
+      <div id="body-row" class="seg-row"></div>
+    </section>
+    <section class="bubble-section">
+      <span class="bubble-label">Proportionen <button id="prop-reset" class="link-btn">↻ Reset</button></span>
+      <div id="prop-sliders"></div>
+    </section>
+    <section class="bubble-section">
+      <span class="bubble-label">Zubehör</span>
+      <div id="acc-head"  class="acc-group" data-group="head"></div>
+      <div id="acc-torso" class="acc-group" data-group="torso"></div>
+      <div id="acc-other" class="acc-group" data-group="other"></div>
+    </section>
+    <div class="bubble-actions">
+      <button id="acc-random" class="action-btn">🎲 Würfeln</button>
+      <button id="acc-save"   class="action-btn">💾 Speichern</button>
+      <select id="acc-presets" class="action-btn"></select>
+    </div>
+  </div>
+
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====
     window.STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
+
+    // ===== Figure-pack spec + texture cache =====
+    let SPEC = { faces: {}, accessories: {}, bodies: {} };
+    const _texCache = new Map();
+    const _texLoader = new THREE.TextureLoader();
+    let SPEC_READY = (async () => {
+      try {
+        const res = await fetch('/assets/figure-pack/placement_spec.json');
+        SPEC = await res.json();
+        console.log('[figure-pack] spec loaded');
+      } catch (e) {
+        console.warn('[figure-pack] failed to load spec', e);
+      }
+    })();
+    function loadTex(relPath) {
+      if (_texCache.has(relPath)) return _texCache.get(relPath);
+      const p = new Promise((resolve, reject) => {
+        _texLoader.load(`/assets/figure-pack/${relPath}`,
+          t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; resolve(t); },
+          undefined, reject);
+      });
+      _texCache.set(relPath, p);
+      return p;
+    }
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -230,6 +329,128 @@
       boneOverrides: {},
       label: 'Figur',
       facingY: 0,
+      headMesh,
+      baseLengths: { upperArm: 0.32, forearm: 0.30, thigh: 0.42, shin: 0.40, torso: 0.70 },
+      appearance: null,
+    };
+  }
+
+  // ===== Figure-pack apply helpers =====
+  const NECK_FALLBACK = { bone: 'head', y: -0.18 };
+
+  async function applyFace(fig, name) {
+    await SPEC_READY;
+    const spec = SPEC.faces?.[name];
+    if (!spec || !fig.headMesh) return;
+    const tex = await loadTex(spec.file);
+    const m = fig.headMesh.material;
+    m.map = tex;
+    m.transparent = true;
+    m.alphaTest = 0.5;
+    if (m.color) m.color.setHex(0xd9c89b);
+    m.needsUpdate = true;
+    fig.appearance = { ...(fig.appearance ?? {}), face: name };
+  }
+
+  async function applyAccessories(fig, names) {
+    await SPEC_READY;
+    for (const bone of Object.values(fig.bones)) {
+      [...bone.children]
+        .filter(c => c.name?.startsWith('accessory:'))
+        .forEach(c => bone.remove(c));
+    }
+    for (const name of names || []) {
+      const spec = SPEC.accessories?.[name];
+      if (!spec) continue;
+      const tex = await loadTex(spec.file);
+      const [w, h] = spec.sizeMeters || [0.3, 0.3];
+      const mat = new THREE.MeshBasicMaterial({
+        map: tex, transparent: true, alphaTest: 0.5,
+        side: THREE.DoubleSide, depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+      let boneKey = spec.bone;
+      let extraY = 0;
+      if (!fig.bones[boneKey]) { boneKey = NECK_FALLBACK.bone; extraY = NECK_FALLBACK.y; }
+      const [ox, oy, oz] = spec.positionOffset || [0, 0, 0];
+      mesh.position.set(ox, oy + extraY, oz);
+      const [rx, ry, rz] = spec.rotation || [0, 0, 0];
+      mesh.userData.baseRot = { x: rx, y: ry, z: rz };
+      mesh.rotation.set(rx, ry, rz);
+      mesh.userData.billboard = spec.billboard || false;
+      mesh.name = `accessory:${name}`;
+      fig.bones[boneKey].add(mesh);
+    }
+    fig.appearance = { ...(fig.appearance ?? {}), accessories: (names || []).slice() };
+  }
+
+  const _tmpV = new THREE.Vector3();
+  function updateBillboards(sc, cam) {
+    sc.traverse(obj => {
+      if (obj.userData?.billboard !== 'yAxis') return;
+      obj.getWorldPosition(_tmpV);
+      const angle = Math.atan2(cam.position.x - _tmpV.x, cam.position.z - _tmpV.z);
+      const br = obj.userData.baseRot || { x: 0, z: 0 };
+      obj.rotation.set(br.x, angle, br.z);
+    });
+  }
+
+  function scaleSegment(parent, child, baseLen, factor) {
+    parent.scale.y = factor;
+    if (child) child.position.y = -baseLen * factor;
+    // counter-scale contact sphere children so they stay round
+    for (const c of parent.children) {
+      if (c.userData?.isContact) c.scale.y = 1 / factor;
+    }
+  }
+
+  function applyProportions(fig, props) {
+    const B = fig.baseLengths;
+    const safe = (v, dflt) => (typeof v === 'number' && isFinite(v) && v > 0) ? v : dflt;
+    const ua = safe(props.upperArm, 1), fa = safe(props.forearm, 1);
+    const th = safe(props.thigh, 1),    sh = safe(props.shin, 1);
+    const hd = safe(props.head, 1);
+    scaleSegment(fig.bones.lShoulder, fig.bones.lElbow, B.upperArm, ua);
+    scaleSegment(fig.bones.rShoulder, fig.bones.rElbow, B.upperArm, ua);
+    scaleSegment(fig.bones.lElbow,    fig.bones.lWrist, B.forearm,  fa);
+    scaleSegment(fig.bones.rElbow,    fig.bones.rWrist, B.forearm,  fa);
+    scaleSegment(fig.bones.lHip,      fig.bones.lKnee,  B.thigh,    th);
+    scaleSegment(fig.bones.rHip,      fig.bones.rKnee,  B.thigh,    th);
+    scaleSegment(fig.bones.lKnee,     fig.bones.lAnkle, B.shin,     sh);
+    scaleSegment(fig.bones.rKnee,     fig.bones.rAnkle, B.shin,     sh);
+    fig.bones.head.scale.setScalar(hd);
+  }
+
+  function applyBodyPreset(fig, name) {
+    const preset = SPEC.bodies?.[name];
+    if (!preset || !SPEC.bodies['adult-average']) return;
+    const base = SPEC.bodies['adult-average'].scale;
+    const s = preset.scale;
+    const proportions = {
+      upperArm: s.upperArm / base.upperArm,
+      forearm:  s.forearm  / base.forearm,
+      thigh:    s.thigh    / base.thigh,
+      shin:     s.shin     / base.shin,
+      torso:    s.torsoH   / base.torsoH,
+      head:     1.0,
+    };
+    fig.bones.head.rotation.x = (name === 'elder') ? 0.105 : 0;
+    applyProportions(fig, proportions);
+    fig.appearance = { ...(fig.appearance ?? {}), bodyPreset: name, proportions };
+  }
+
+  async function applyAppearance(fig, a) {
+    if (!a) return;
+    await SPEC_READY;
+    if (a.face)              await applyFace(fig, a.face);
+    if (a.bodyPreset)        applyBodyPreset(fig, a.bodyPreset);
+    if (a.proportions)       applyProportions(fig, a.proportions);
+    if (Array.isArray(a.accessories)) await applyAccessories(fig, a.accessories);
+    fig.appearance = {
+      face: a.face,
+      bodyPreset: a.bodyPreset,
+      proportions: a.proportions ?? fig.appearance?.proportions ?? null,
+      accessories: a.accessories ?? [],
     };
   }
 
@@ -560,6 +781,7 @@
   });
 
   renderer.domElement.addEventListener('dblclick', (e) => {
+    if (pickMannequinBody(e)) return; // body dblclick = open editor (handled below)
     const floorPt = pickFloor(e);
     if (floorPt) addFigure({ x: floorPt.x, z: floorPt.z });
   });
@@ -748,8 +970,34 @@
         STATE.online = msg.count || 1;
         document.getElementById("online-count").textContent = String(STATE.online);
         break;
+      case "appearance": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (fig && msg.appearance) applyAppearance(fig, msg.appearance);
+        break;
+      }
     }
   });
+
+  // After snapshot replays figures, re-apply appearance for any figure whose server state has it.
+  ws.addEventListener("message", (evt) => {
+    let msg; try { msg = JSON.parse(evt.data); } catch { return; }
+    if (msg.type !== "snapshot") return;
+    for (const f of (msg.figures || [])) {
+      if (!f.appearance) continue;
+      const fig = STATE.figures.find(x => x.id === f.id);
+      if (fig) applyAppearance(fig, f.appearance);
+    }
+  });
+
+  let _appearanceBroadcast = null;
+  function broadcastAppearance(fig) {
+    clearTimeout(_appearanceBroadcast);
+    _appearanceBroadcast = setTimeout(() => {
+      if (ws?.readyState === WebSocket.OPEN && fig.appearance) {
+        ws.send(JSON.stringify({ type: 'appearance', id: fig.id, appearance: fig.appearance }));
+      }
+    }, 100);
+  }
 
   // Replace the placeholders defined earlier
   window.sendUpdate = function(fig, changes) {
@@ -780,6 +1028,271 @@
     if (!fig) return;
     ws.send(JSON.stringify({ type: "move", id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
   }, 100);
+  // ===== Editor bubble + camera tween =====
+  const ACC_GROUPS = {
+    head:  ['cap', 'crown', 'veil', 'blindfold'],
+    torso: ['shawl', 'swaddle'],
+    other: ['satchel', 'cane'],
+  };
+  const BODY_LABEL = {
+    child: 'child', adolescent: 'adolescent',
+    'adult-short': 'short', 'adult-average': 'avg', 'adult-tall': 'tall',
+    elder: 'elder',
+  };
+  const PROP_LABEL = {
+    upperArm:'Oberarm', forearm:'Unterarm',
+    thigh:'Oberschenkel', shin:'Unterschenkel',
+    torso:'Torso', head:'Kopf',
+  };
+
+  function applyAccGroupRule(current, picked) {
+    const groupOf = name => {
+      for (const [g, members] of Object.entries(ACC_GROUPS)) if (members.includes(name)) return g;
+      return null;
+    };
+    const g = groupOf(picked);
+    if (!g) return current;
+    let next = current.slice();
+    if (g === 'head' || g === 'torso') {
+      const wasActive = current.includes(picked);
+      next = next.filter(n => !ACC_GROUPS[g].includes(n));
+      if (!wasActive) next.push(picked);
+    } else {
+      next = current.includes(picked) ? current.filter(n => n !== picked) : [...current, picked];
+    }
+    return next;
+  }
+
+  function clearNode(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+  function makeBtn(text, onClick, opts = {}) {
+    const b = document.createElement('button');
+    if (text !== undefined) b.textContent = text;
+    if (opts.title) b.title = opts.title;
+    if (opts.bg)    b.style.backgroundImage = `url(${opts.bg})`;
+    if (opts.active) b.classList.add('active');
+    if (onClick) b.addEventListener('click', onClick);
+    return b;
+  }
+
+  const bubble = document.getElementById('edit-bubble');
+  let editFig = null;
+
+  let _camSnapshot = null;
+  function tweenCameraTo(targetPos, targetLook, frames = 24) {
+    if (!_camSnapshot) {
+      _camSnapshot = {
+        pos: camera.position.clone(),
+        orbit: { ...cameraOrbit },
+      };
+    }
+    const startPos = camera.position.clone();
+    const startLook = new THREE.Vector3(0, 1, 0);
+    let f = 0;
+    function step() {
+      f++;
+      const t = Math.min(1, f / frames);
+      const ease = 1 - Math.pow(1 - t, 3);
+      camera.position.lerpVectors(startPos, targetPos, ease);
+      const look = new THREE.Vector3().lerpVectors(startLook, targetLook, ease);
+      camera.lookAt(look);
+      if (f < frames) requestAnimationFrame(step);
+    }
+    step();
+  }
+  function restoreCamera() {
+    if (!_camSnapshot) return;
+    const { pos, orbit } = _camSnapshot;
+    _camSnapshot = null;
+    const target = pos.clone();
+    tweenCameraTo(target, new THREE.Vector3(0, 1, 0));
+    setTimeout(() => {
+      Object.assign(cameraOrbit, orbit);
+      updateCameraFromOrbit();
+    }, 420);
+  }
+
+  function openEditor(fig) {
+    if (!fig) return;
+    editFig = fig;
+    bubble.hidden = false;
+    populateBubble(fig);
+    const figPos = new THREE.Vector3();
+    fig.root.getWorldPosition(figPos);
+    figPos.y += 1.0;
+    const target = figPos.clone().add(new THREE.Vector3(2, 1.5, 2));
+    tweenCameraTo(target, figPos);
+  }
+  function closeEditor() {
+    editFig = null;
+    bubble.hidden = true;
+    restoreCamera();
+  }
+  document.getElementById('edit-close').addEventListener('click', closeEditor);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !bubble.hidden) { closeEditor(); return; }
+    if (e.key && e.key.toLowerCase() === 'e' && STATE.selectedId && bubble.hidden) {
+      const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+      if (fig) openEditor(fig);
+    }
+  });
+  renderer.domElement.addEventListener('dblclick', (e) => {
+    // existing handler creates a new figure on floor; only open editor if a body is hit
+    const fig = pickMannequinBody(e);
+    if (fig) { e.stopImmediatePropagation?.(); openEditor(fig); }
+  });
+
+  function updateBubblePosition() {
+    if (!editFig || bubble.hidden) return;
+    const p = new THREE.Vector3();
+    editFig.root.getWorldPosition(p);
+    p.y += 1.2;
+    p.project(camera);
+    const x = (p.x + 1) / 2 * window.innerWidth + 80;
+    const y = (1 - p.y) / 2 * window.innerHeight - bubble.offsetHeight / 2;
+    const maxX = window.innerWidth  - 8 - bubble.offsetWidth;
+    const maxY = window.innerHeight - 8 - bubble.offsetHeight;
+    bubble.style.left = Math.max(8, Math.min(maxX, x)) + 'px';
+    bubble.style.top  = Math.max(8, Math.min(maxY, y)) + 'px';
+  }
+
+  async function populateBubble(fig) {
+    await SPEC_READY;
+    const a = fig.appearance ?? {
+      face: 'neutral', bodyPreset: 'adult-average',
+      accessories: [], proportions: null,
+    };
+
+    const faceGrid = document.getElementById('face-grid');
+    clearNode(faceGrid);
+    for (const name of Object.keys(SPEC.faces).filter(k => !k.startsWith('_'))) {
+      faceGrid.appendChild(makeBtn(undefined, async () => {
+        await applyFace(fig, name);
+        broadcastAppearance(fig);
+        populateBubble(fig);
+      }, {
+        title: name,
+        bg: `/assets/figure-pack/faces/${name}.png`,
+        active: a.face === name,
+      }));
+    }
+
+    const bodyRow = document.getElementById('body-row');
+    clearNode(bodyRow);
+    for (const name of Object.keys(SPEC.bodies).filter(k => !k.startsWith('_'))) {
+      bodyRow.appendChild(makeBtn(BODY_LABEL[name] ?? name, () => {
+        applyBodyPreset(fig, name);
+        broadcastAppearance(fig);
+        populateBubble(fig);
+      }, { active: a.bodyPreset === name }));
+    }
+
+    const props = document.getElementById('prop-sliders');
+    clearNode(props);
+    const current = { ...(fig.appearance?.proportions ?? { upperArm:1, forearm:1, thigh:1, shin:1, torso:1, head:1 }) };
+    for (const k of ['upperArm','forearm','thigh','shin','torso','head']) {
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      const lab = document.createElement('span');
+      lab.textContent = PROP_LABEL[k];
+      const inp = document.createElement('input');
+      inp.type = 'range'; inp.min = '0.5'; inp.max = '2.0'; inp.step = '0.05';
+      inp.value = String(current[k] ?? 1);
+      const val = document.createElement('span');
+      val.className = 'val';
+      val.textContent = (current[k] ?? 1).toFixed(2) + '×';
+      inp.addEventListener('input', () => {
+        current[k] = parseFloat(inp.value);
+        val.textContent = current[k].toFixed(2) + '×';
+        fig.appearance = { ...(fig.appearance ?? {}), proportions: { ...current } };
+        applyProportions(fig, current);
+        broadcastAppearance(fig);
+      });
+      row.append(lab, inp, val);
+      props.appendChild(row);
+    }
+    document.getElementById('prop-reset').onclick = () => {
+      applyBodyPreset(fig, a.bodyPreset ?? 'adult-average');
+      broadcastAppearance(fig);
+      populateBubble(fig);
+    };
+
+    for (const [group, members] of Object.entries(ACC_GROUPS)) {
+      const root = document.getElementById('acc-' + group);
+      clearNode(root);
+      for (const name of members) {
+        root.appendChild(makeBtn(name, async () => {
+          const next = applyAccGroupRule(a.accessories ?? [], name);
+          await applyAccessories(fig, next);
+          broadcastAppearance(fig);
+          populateBubble(fig);
+        }, { active: (a.accessories ?? []).includes(name) }));
+      }
+    }
+
+    document.getElementById('acc-random').onclick = () => randomiseAppearance(fig);
+    document.getElementById('acc-save').onclick   = () => savePresetPrompt(fig);
+    refreshPresetList(fig);
+  }
+
+  function randomiseAppearance(fig) {
+    const faces  = Object.keys(SPEC.faces).filter(k => !k.startsWith('_'));
+    const bodies = Object.keys(SPEC.bodies).filter(k => !k.startsWith('_'));
+    const pickFrom = arr => arr[Math.floor(Math.random() * arr.length)];
+    const head  = pickFrom([...ACC_GROUPS.head,  null, null]);
+    const torso = pickFrom([...ACC_GROUPS.torso, null, null]);
+    const acc = [
+      head, torso,
+      Math.random() < 0.3  ? 'satchel' : null,
+      Math.random() < 0.15 ? 'cane'    : null,
+    ].filter(Boolean);
+    (async () => {
+      await applyAppearance(fig, {
+        face: pickFrom(faces),
+        bodyPreset: pickFrom(bodies),
+        accessories: acc,
+        proportions: null,
+      });
+      broadcastAppearance(fig);
+      populateBubble(fig);
+    })();
+  }
+
+  async function savePresetPrompt(fig) {
+    const name = prompt('Preset-Name?');
+    if (!name) return;
+    await fetch('/presets', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, appearance: fig.appearance }),
+    });
+    refreshPresetList(fig);
+  }
+
+  async function refreshPresetList(fig) {
+    const sel = document.getElementById('acc-presets');
+    clearNode(sel);
+    const placeholder = document.createElement('option');
+    placeholder.textContent = 'Presets…';
+    placeholder.value = '';
+    sel.appendChild(placeholder);
+    const list = await fetch('/presets').then(r => r.json()).catch(() => []);
+    for (const p of list) {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    }
+    sel.onchange = async () => {
+      const p = list.find(x => x.id === sel.value);
+      if (!p) return;
+      await applyAppearance(fig, p.appearance);
+      broadcastAppearance(fig);
+      populateBubble(fig);
+      sel.value = '';
+    };
+  }
+
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();
@@ -788,6 +1301,8 @@
     tickWalk(dt, now / 1000);
     tickSpring(dt);
     updateStatusPill();
+    updateBillboards(scene, camera);
+    updateBubblePosition();
     renderer.render(scene, camera);
   }
     tick();

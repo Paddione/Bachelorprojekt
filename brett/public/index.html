@@ -559,9 +559,34 @@
     }
   });
 
+  function easeFigure(fig, tx, tz, durationMs) {
+    const sx = fig.root.position.x, sz = fig.root.position.z;
+    const start = performance.now();
+    function step() {
+      const t = Math.min(1, (performance.now() - start) / durationMs);
+      const e = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+      fig.root.position.x = sx + (tx - sx) * e;
+      fig.root.position.z = sz + (tz - sz) * e;
+      if (t < 1) { requestAnimationFrame(step); }
+      else {
+        fig.root.position.x = tx; fig.root.position.z = tz;
+        if (wsReady) ws.send(JSON.stringify({ type: 'move', id: fig.id, x: tx, z: tz, facingY: fig.facingY }));
+      }
+    }
+    fig.walkTarget = null; fig.walking = false;
+    requestAnimationFrame(step);
+  }
+  window.easeFigure = easeFigure;
+
   renderer.domElement.addEventListener('dblclick', (e) => {
     const floorPt = pickFloor(e);
-    if (floorPt) addFigure({ x: floorPt.x, z: floorPt.z });
+    if (!floorPt) return;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) {
+      easeFigure(fig, floorPt.x, floorPt.z, 300);
+    } else {
+      addFigure({ x: floorPt.x, z: floorPt.z });
+    }
   });
 
   window.addEventListener('keydown', (e) => {
@@ -680,8 +705,8 @@
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
     if (STATE.stiffness < 0.3) { pillEl.textContent = 'zu schlaff zum Laufen — Slider nach rechts'; return; }
     if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
-    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur'; return; }
-    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · ESC = stop'; return; }
+    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur hinzufügen'; return; }
+    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · Doppelklick = Teleport · ESC = stop'; return; }
     pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Klick Boden = Ziel · Tab = nächste';
   }
 

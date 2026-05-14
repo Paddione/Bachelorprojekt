@@ -236,6 +236,12 @@ spec:
     ports:
     - port: 8188
       protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 10.13.14.0/24   # korczewski wg-mesh node IPs (Janus hostNetwork after DNAT)
+    ports:
+    - port: 8188
+      protocol: TCP
 ---
 # Nextcloud → Collabora (workspace-office Namespace, WOPI Port 9980)
 apiVersion: networking.k8s.io/v1

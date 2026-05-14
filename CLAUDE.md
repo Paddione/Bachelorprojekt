@@ -443,6 +443,20 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **`envsubst` variable lists are hardcoded per task in `Taskfile.yml` (not `Taskfile.yaml`).** If you add a new `${VAR}` reference to a manifest, also add it to the `envsubst "\$VAR1 \$VAR2 ..."` list in every task that builds that manifest, or the placeholder stays literal and kubectl apply fails with an invalid manifest. Key locations: dev deploy (line ~1117, vars: `PROD_DOMAIN BRAND_NAME CONTACT_EMAIL BRAND_ID`), prod deploy (line ~1145, dynamic `ENVSUBST_VARS` build — append there), `mcp:deploy` (line ~1350), `workspace:office:deploy` (line ~510).
 - **`env:generate ENV=<target>` must run before `env:seal` and before deploying prod.** `talk-hpb-setup.sh` aborts on placeholder `MANAGED_EXTERNALLY` values if signaling/turn secrets were never generated.
 
+### Cluster reset / fresh cluster bring-up order
+After any cluster reset (including replacing a Sealed Secrets controller keypair), the mandatory order is:
+
+1. `task sealed-secrets:install ENV=<env>` — controller must exist before any SealedSecret is applied
+2. `task env:fetch-cert ENV=<env>` — refreshes the sealing cert from the new controller
+3. `task env:seal ENV=<env>` — re-encrypts plaintext secrets with the new cert
+4. `task cert:install ENV=<env>` — installs cert-manager CRDs; must precede `workspace:deploy`
+5. `task cert:secret -- <ipv64-key> ENV=<env>` — stores the ACME DNS-01 key; creates it in both `cert-manager` AND `$WORKSPACE_NAMESPACE`
+6. `task workspace:deploy ENV=<env>` — applies SealedSecrets + kustomize overlay
+
+**SealedSecrets keypair rotation is expected on every cluster reset.** Old sealed files won't decrypt. Always run steps 2–3 after a reset.
+
+**`knowledge-secrets` conflict:** if the overlay contains a `secretGenerator`-managed Secret with the same name as a SealedSecret, the controller refuses to adopt it. Delete the plain Secret first (`kubectl delete secret knowledge-secrets -n $WORKSPACE_NS`) then re-apply.
+
 ### Operational
 - **Docs ConfigMap is not auto-synced by ArgoCD.** After changing `k3d/docs-content/`, run `task docs:deploy` (it updates the ConfigMap and rolls the `docs` Deployment on both clusters). Applying the ConfigMap alone leaves the old content served.
 - **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.

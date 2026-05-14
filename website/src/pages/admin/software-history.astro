@@ -1,0 +1,15 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import SoftwareHistory from '../../components/admin/SoftwareHistory.svelte';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname + Astro.url.search));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+---
+
+<AdminLayout title="Software-History">
+  <h1>Software-History</h1>
+  <p class="lede">Klassifizierte PR-Events: wann ein Service hinzukam, sich änderte oder verschwand.</p>
+  <SoftwareHistory client:load />
+</AdminLayout>

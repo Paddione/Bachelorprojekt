@@ -1,0 +1,12 @@
+{
+  "pr_number": 720,
+  "title": "archive dev-flow-pr-link-plan-archive plan to postgres",
+  "description": "## Summary\n- Plan-Markdown `2026-05-14-dev-flow-pr-link-plan-archive.md` in `tickets.ticket_plans` (T000290, PR #719) archiviert und `.md`-Datei gelöscht\n\n## Test plan\n- [x] `tickets.ticket_plans` enthält 1 Zeile (verifiziert)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+  "category": "chore",
+  "scope": "plans",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T00:21:51Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

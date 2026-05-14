@@ -1,0 +1,13 @@
+{
+  "pr_number": 768,
+  "title": "dev-flow attachments, tunnel verify, ArgoCD fixes, wg-mesh, hetzner-node",
+  "description": "## Summary\n\n- **dev-flow-plan**: prompt for supporting files before brainstorming and upload them to the Linear ticket on creation; verify brainstorm tunnel is reachable before announcing the URL (authorized_keys check + curl probe)\n- **dev-flow-execute**: hint to attach failure screenshots/logs to the ticket on CI/verify failure\n- **scripts/ticket-attach.sh**: helper to base64-upload files into `tickets.ticket_attachments` (10 MB inline cap)\n- **hetzner-node skill**: updated with lessons from korczewski cluster reset\n- **deployment-assist skill**: added ArgoCD blockers & common fixes\n- **ArgoCD**: add missing cluster annotations and `ignoreDifferences` for k8s 1.35\n- **wg-mesh**: add keys + endpoints for korczewski nodes (pk4/pk6/pk8)\n- **docs/plans**: clean up archived systemtest plans; add brett-ux-overhaul plan + design spec\n\n## Test plan\n\n- [ ] `dev-flow-plan` prompts for attachments and verifies tunnel before announcing URL\n- [ ] `ticket-attach.sh` uploads files correctly\n- [ ] ArgoCD syncs cleanly without annotation drift warnings\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": null,
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T23:57:40Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": []
+}

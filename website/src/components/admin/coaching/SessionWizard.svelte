@@ -19,8 +19,8 @@
 
   let session = $state<Session>(initialSession);
   let currentStep = $state(getInitialStep());
-  let inputs = $state<Record<string, string>>({});
-  let coachNotes = $state('');
+  let inputs = $state<Record<string, string>>(getStepInputs(getInitialStep()));
+  let coachNotes = $state(getStepNotes(getInitialStep()));
   let loading = $state(false);
   let error = $state('');
 
@@ -29,15 +29,25 @@
     return firstPending?.stepNumber ?? 1;
   }
 
+  function getStepInputs(stepNum: number): Record<string, string> {
+    const s = initialSession.steps.find(st => st.stepNumber === stepNum);
+    return s?.coachInputs ? { ...s.coachInputs } : {};
+  }
+
+  function getStepNotes(stepNum: number): string {
+    return initialSession.steps.find(st => st.stepNumber === stepNum)?.coachNotes ?? '';
+  }
+
   function getStepData(n: number): SessionStep | undefined {
     return session.steps.find(s => s.stepNumber === n);
   }
 
-  $effect(() => {
-    const existing = getStepData(currentStep);
-    inputs = existing?.coachInputs ? { ...existing.coachInputs } : {};
-    coachNotes = existing?.coachNotes ?? '';
-  });
+  function navigateTo(n: number) {
+    currentStep = n;
+    const step = session.steps.find(s => s.stepNumber === n);
+    inputs = step?.coachInputs ? { ...step.coachInputs } : {};
+    coachNotes = step?.coachNotes ?? '';
+  }
 
   const def = $derived(STEP_DEFINITIONS.find(s => s.stepNumber === currentStep)!);
   const stepData = $derived(getStepData(currentStep));
@@ -87,21 +97,32 @@
         ...session,
         steps: session.steps.map(s => s.stepNumber === currentStep ? { ...s, status: 'accepted', coachNotes } : s),
       };
-      if (currentStep < 10) { currentStep++; }
+      if (currentStep < 10) { navigateTo(currentStep + 1); }
     } catch { error = 'Fehler beim Speichern'; }
     finally { loading = false; }
   }
 
   async function reject() {
+    loading = true; error = '';
+    const prev = session.steps.find(s => s.stepNumber === currentStep);
     session = {
       ...session,
-      steps: session.steps.map(s => s.stepNumber === currentStep ? { ...s, status: 'pending', aiResponse: null } : s),
+      steps: session.steps.map(s => s.stepNumber === currentStep ? { ...s, status: 'pending' as const, aiResponse: null } : s),
     };
-    await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ coachInputs: inputs, status: 'pending' }),
-    });
+    try {
+      await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coachInputs: inputs, status: 'pending' }),
+      });
+    } catch {
+      if (prev) {
+        session = { ...session, steps: session.steps.map(s => s.stepNumber === currentStep ? prev : s) };
+      }
+      error = 'Fehler beim Verwerfen';
+    } finally {
+      loading = false;
+    }
   }
 
   async function skip() {
@@ -116,7 +137,7 @@
         ...session,
         steps: session.steps.map(s => s.stepNumber === currentStep ? { ...s, status: 'skipped' } : s),
       };
-      if (currentStep < 10) { currentStep++; }
+      if (currentStep < 10) { navigateTo(currentStep + 1); }
     } catch { error = 'Fehler'; }
     finally { loading = false; }
   }
@@ -147,7 +168,7 @@
       {@const status = stepStatus(s.stepNumber)}
       <button
         class="progress-step {PHASE_COLORS[s.phase]} {status === 'current' ? 'ring-2 ring-white scale-110' : ''} {status === 'done' ? 'opacity-100' : 'opacity-40'}"
-        onclick={() => { currentStep = s.stepNumber; }}
+        onclick={() => { navigateTo(s.stepNumber); }}
         title="Schritt {s.stepNumber}: {s.stepName}"
         aria-current={status === 'current' ? 'step' : undefined}
       >
@@ -231,7 +252,7 @@
     {#if !isCompleted && stepData.status !== 'accepted'}
       <div class="action-buttons">
         {#if currentStep > 1}
-          <button class="btn-secondary" onclick={() => { currentStep--; }}>&larr; Zurück</button>
+          <button class="btn-secondary" onclick={() => { navigateTo(currentStep - 1); }}>&larr; Zurück</button>
         {/if}
         <button class="btn-ghost" onclick={reject} disabled={loading}>Verwerfen &amp; neu</button>
         <button class="btn-ghost" onclick={skip} disabled={loading}>Überspringen</button>
@@ -241,7 +262,7 @@
   {:else if stepData?.status !== 'accepted'}
     <div class="action-buttons">
       {#if currentStep > 1}
-        <button class="btn-secondary" onclick={() => { currentStep--; }}>&larr; Zurück</button>
+        <button class="btn-secondary" onclick={() => { navigateTo(currentStep - 1); }}>&larr; Zurück</button>
       {/if}
       <button class="btn-ghost" onclick={skip} disabled={loading || isCompleted}>Schritt überspringen</button>
     </div>
@@ -250,10 +271,10 @@
     <div class="accepted-badge">&#x2713; Abgeschlossen</div>
     <div class="action-buttons">
       {#if currentStep > 1}
-        <button class="btn-secondary" onclick={() => { currentStep--; }}>&larr; Zurück</button>
+        <button class="btn-secondary" onclick={() => { navigateTo(currentStep - 1); }}>&larr; Zurück</button>
       {/if}
       {#if currentStep < 10}
-        <button class="btn-primary" onclick={() => { currentStep++; }}>Weiter &rarr;</button>
+        <button class="btn-primary" onclick={() => { navigateTo(currentStep + 1); }}>Weiter &rarr;</button>
       {:else if !isCompleted}
         <button class="btn-complete" onclick={completeSession} disabled={loading}>
           {loading ? 'Bericht wird erstellt…' : 'Session abschließen &amp; Bericht generieren'}

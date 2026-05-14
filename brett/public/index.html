@@ -647,6 +647,67 @@
 }
 .cat-tab:hover { border-color: #2c4d80; color: #ccc; }
 .cat-tab.active { background: #1a4a8a; border-color: #4a90d9; color: #fff; }
+
+/* ── Character Editor Bubble ──────────────────────────────────────────────── */
+#outfit-bubble {
+  position: fixed;
+  background: rgba(16,24,40,0.97);
+  border: 1px solid rgba(200,169,110,0.35);
+  border-radius: 12px;
+  padding: 14px;
+  min-width: 280px;
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  color: #e8e0d0;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+  z-index: 300;
+  display: none;
+  user-select: none;
+}
+#outfit-bubble.visible { display: block; }
+.ob-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; font-weight: 700; color: #c8a96e; font-size: 14px;
+}
+.ob-close-btn {
+  background: none; border: none; color: #888; cursor: pointer;
+  font-size: 18px; line-height: 1; padding: 0 2px;
+}
+.ob-close-btn:hover { color: #c8a96e; }
+.ob-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.ob-label { width: 72px; color: #a09070; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
+.ob-btn {
+  background: rgba(200,169,110,0.08); border: 1px solid rgba(200,169,110,0.22);
+  border-radius: 6px; color: #c8a96e; cursor: pointer; padding: 4px 8px;
+  font-size: 13px; transition: background 0.15s;
+}
+.ob-btn:hover { background: rgba(200,169,110,0.18); }
+.ob-btn.active { border-color: #c8a96e; background: rgba(200,169,110,0.25); color: #f0d890; }
+.ob-btn.none-btn { color: #666; border-color: rgba(100,100,100,0.3); background: none; }
+.ob-btn.none-btn.active { border-color: #666; background: rgba(100,100,100,0.15); color: #999; }
+.ob-divider { border: none; border-top: 1px solid rgba(200,169,110,0.12); margin: 8px 0; }
+.ob-prop-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.ob-prop-label { width: 110px; color: #a09070; font-size: 12px; flex-shrink: 0; }
+.ob-prop-row input[type=range] { flex: 1; accent-color: #c8a96e; }
+.ob-prop-val { width: 32px; text-align: right; color: #c8a96e; font-size: 12px; }
+.ob-footer { display: flex; gap: 8px; margin-top: 10px; }
+.ob-footer button {
+  flex: 1; background: rgba(200,169,110,0.12); border: 1px solid rgba(200,169,110,0.3);
+  border-radius: 7px; color: #c8a96e; cursor: pointer; padding: 6px 8px; font-size: 12px;
+}
+.ob-footer button:hover { background: rgba(200,169,110,0.22); }
+.ob-presets { margin-top: 8px; display: none; }
+.ob-presets.open { display: block; }
+.ob-preset-card {
+  display: flex; align-items: center; gap: 6px; padding: 4px 8px;
+  border-radius: 6px; cursor: pointer; margin-bottom: 4px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(200,169,110,0.12);
+}
+.ob-preset-card:hover { background: rgba(200,169,110,0.10); }
+.ob-preset-name { flex: 1; font-size: 12px; color: #c8e0c8; }
+.ob-preset-del { background: none; border: none; color: #666; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
+.ob-preset-del:hover { color: #e07060; }
 </style>
 </head>
 <body>
@@ -996,6 +1057,87 @@
   </div>
 </div>
 
+<!-- ── Character Editor Bubble ──────────────────────────────────────────── -->
+<div id="outfit-bubble">
+  <div class="ob-header">
+    <span>&#10022; Figur bearbeiten</span>
+    <button class="ob-close-btn" id="ob-close" aria-label="Schließen">&#x2715;</button>
+  </div>
+
+  <!-- Outfit Slots -->
+  <div class="ob-row">
+    <span class="ob-label">Hut</span>
+    <button class="ob-btn none-btn active" data-slot="hat" data-choice="null">—</button>
+    <button class="ob-btn" data-slot="hat" data-choice="top-hat">🎩</button>
+    <button class="ob-btn" data-slot="hat" data-choice="cowboy-hat">🤠</button>
+  </div>
+  <div class="ob-row">
+    <span class="ob-label">Haar</span>
+    <button class="ob-btn none-btn active" data-slot="hair" data-choice="null">—</button>
+    <button class="ob-btn" data-slot="hair" data-choice="short-brown">🟫</button>
+    <button class="ob-btn" data-slot="hair" data-choice="long-blonde">🟡</button>
+  </div>
+  <div class="ob-row">
+    <span class="ob-label">Maske</span>
+    <button class="ob-btn none-btn active" data-slot="mask" data-choice="null">—</button>
+    <button class="ob-btn" data-slot="mask" data-choice="mask">😷</button>
+  </div>
+  <div class="ob-row">
+    <span class="ob-label">Körper</span>
+    <button class="ob-btn none-btn active" data-slot="body" data-choice="null">—</button>
+    <button class="ob-btn" data-slot="body" data-choice="shirt">👔</button>
+    <button class="ob-btn" data-slot="body" data-choice="dress">👗</button>
+  </div>
+  <div class="ob-row">
+    <span class="ob-label">Schuhe</span>
+    <button class="ob-btn none-btn active" data-slot="shoes" data-choice="null">—</button>
+    <button class="ob-btn" data-slot="shoes" data-choice="sneakers">👟</button>
+    <button class="ob-btn" data-slot="shoes" data-choice="boots">👢</button>
+  </div>
+
+  <hr class="ob-divider">
+
+  <!-- Proportions -->
+  <div class="ob-prop-row">
+    <span class="ob-prop-label">Oberarm</span>
+    <input type="range" min="0.5" max="2.0" step="0.05" value="1.0" data-prop="upperArm">
+    <span class="ob-prop-val" data-propval="upperArm">1.0×</span>
+  </div>
+  <div class="ob-prop-row">
+    <span class="ob-prop-label">Unterarm</span>
+    <input type="range" min="0.5" max="2.0" step="0.05" value="1.0" data-prop="forearm">
+    <span class="ob-prop-val" data-propval="forearm">1.0×</span>
+  </div>
+  <div class="ob-prop-row">
+    <span class="ob-prop-label">Oberschenkel</span>
+    <input type="range" min="0.5" max="2.0" step="0.05" value="1.0" data-prop="thigh">
+    <span class="ob-prop-val" data-propval="thigh">1.0×</span>
+  </div>
+  <div class="ob-prop-row">
+    <span class="ob-prop-label">Unterschenkel</span>
+    <input type="range" min="0.5" max="2.0" step="0.05" value="1.0" data-prop="shin">
+    <span class="ob-prop-val" data-propval="shin">1.0×</span>
+  </div>
+  <div class="ob-prop-row">
+    <span class="ob-prop-label">Torso</span>
+    <input type="range" min="0.5" max="2.0" step="0.05" value="1.0" data-prop="torso">
+    <span class="ob-prop-val" data-propval="torso">1.0×</span>
+  </div>
+  <div class="ob-prop-row">
+    <span class="ob-prop-label">Kopf</span>
+    <input type="range" min="0.5" max="2.0" step="0.05" value="1.0" data-prop="head">
+    <span class="ob-prop-val" data-propval="head">1.0×</span>
+  </div>
+
+  <hr class="ob-divider">
+
+  <div class="ob-footer">
+    <button id="ob-save">💾 Speichern</button>
+    <button id="ob-preset-toggle">Presets ▾</button>
+  </div>
+  <div class="ob-presets" id="ob-presets-panel"></div>
+</div>
+
 <script src="/three.min.js"></script>
 <script>
 (function(){
@@ -1012,15 +1154,17 @@ function findFigById(id) {
 }
 function figToJSON(fig) {
   return {
-    id:      fig.id,
-    type:    fig.type,
-    color:   fig.color,
-    label:   fig.label || '',
-    scale:   fig.scale,
-    rotY:    fig.rotY,
-    x:       fig.mesh.position.x,
-    z:       fig.mesh.position.z,
-    walking: fig.walking || false,
+    id:          fig.id,
+    type:        fig.type,
+    color:       fig.color,
+    label:       fig.label || '',
+    scale:       fig.scale,
+    rotY:        fig.rotY,
+    x:           fig.mesh.position.x,
+    z:           fig.mesh.position.z,
+    walking:     fig.walking || false,
+    outfit:      fig.outfit      || null,
+    proportions: fig.proportions || null,
   };
 }
 
@@ -1048,7 +1192,11 @@ function applySnapshot(figList) {
     figures.length = 0;
     for (const fd of figList) {
       const fig = addFigure(fd.type, fd.color, fd.x, fd.z, fd.label || '', fd.scale || 1.0, fd.rotY || 0, fd.id);
-      if (fd.walking && fig.type === 'mannequin') fig.walking = true;
+      if (fig.type === 'mannequin') {
+        if (fd.walking) fig.walking = true;
+        if (fd.outfit)      { Object.assign(fig.outfit, fd.outfit);           OUTFIT_SLOTS.forEach(s => applyOutfitSlot(fig, s, fig.outfit[s])); }
+        if (fd.proportions) { Object.assign(fig.proportions, fd.proportions); applyProportions(fig, fig.proportions); }
+      }
     }
     selectFigure(null);
   } finally { applyingRemote = false; }
@@ -1061,6 +1209,10 @@ function applyRemote(msg) {
       const newFig = addFigure(msg.fig.type, msg.fig.color, msg.fig.x, msg.fig.z,
                                msg.fig.label, msg.fig.scale, msg.fig.rotY, msg.fig.id);
       if (msg.fig.walking && newFig && newFig.type === 'mannequin') newFig.walking = true;
+      if (newFig && newFig.type === 'mannequin') {
+        if (msg.fig.outfit)      { Object.assign(newFig.outfit, msg.fig.outfit);           OUTFIT_SLOTS.forEach(s => applyOutfitSlot(newFig, s, newFig.outfit[s])); }
+        if (msg.fig.proportions) { Object.assign(newFig.proportions, msg.fig.proportions); applyProportions(newFig, newFig.proportions); }
+      }
     } else if (msg.type === 'move') {
       const f = findFigById(msg.id);
       if (f) { f.mesh.position.x = msg.x; f.mesh.position.z = msg.z; }
@@ -1083,6 +1235,12 @@ function applyRemote(msg) {
       }
     } else if (msg.type === 'clear') {
       clearBoard();
+    } else if (msg.type === 'appearance') {
+      const f = findFigById(msg.id);
+      if (f && f.type === 'mannequin') {
+        if (msg.outfit)      { Object.assign(f.outfit, msg.outfit);           OUTFIT_SLOTS.forEach(s => applyOutfitSlot(f, s, f.outfit[s])); }
+        if (msg.proportions) { Object.assign(f.proportions, msg.proportions); applyProportions(f, f.proportions); }
+      }
     }
   } finally { applyingRemote = false; }
 }
@@ -1924,8 +2082,11 @@ function addFigure(type, color, x, z, label, scale, rotY, id) {
   const fig = { type, color, mesh, label: label||'', sprite: null, scale: scale||1.0, rotY: rotY||0 };
   fig.id = id || `fig_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   if (type === 'mannequin') {
-    fig.bones   = mesh.userData.bones;
-    fig.walking = false;
+    fig.bones       = mesh.userData.bones;
+    fig.baseLengths = mesh.userData.baseLengths;
+    fig.outfit      = { ...mesh.userData.outfit };
+    fig.proportions = { ...mesh.userData.proportions };
+    fig.walking     = false;
   }
   if (fig.label) { attachLabel(fig); }
   figures.push(fig);
@@ -3330,6 +3491,185 @@ if (sheetTabs) {
   });
 }
 
+// ── Character Editor — Outfit Mode ───────────────────────────────────────────
+
+const outfitBubble   = document.getElementById('outfit-bubble');
+let outfitFig        = null;
+let outfitCameraSnap = null;
+let appearDebounce   = null;
+
+function updateOutfitBubblePos() {
+  if (!outfitFig || !outfitBubble.classList.contains('visible')) return;
+  const projected = outfitFig.mesh.position.clone().project(camera_obj);
+  const x = (projected.x + 1) / 2 * window.innerWidth;
+  const y = (1 - projected.y) / 2 * window.innerHeight;
+  const bw = outfitBubble.offsetWidth  || 300;
+  const bh = outfitBubble.offsetHeight || 400;
+  const px = Math.max(8, Math.min(window.innerWidth  - bw - 8, x + 60));
+  const py = Math.max(8, Math.min(window.innerHeight - bh - 8, y - bh / 2));
+  outfitBubble.style.left = px + 'px';
+  outfitBubble.style.top  = py + 'px';
+}
+
+function syncOutfitBubble(fig) {
+  OUTFIT_SLOTS.forEach(slot => {
+    const val = fig.outfit[slot];
+    outfitBubble.querySelectorAll('[data-slot="' + slot + '"]').forEach(btn => {
+      const bc = btn.dataset.choice;
+      const match = (bc === 'null') ? val === null : bc === val;
+      btn.classList.toggle('active', match);
+    });
+  });
+  ['upperArm','forearm','thigh','shin','torso','head'].forEach(prop => {
+    const v = fig.proportions[prop] != null ? fig.proportions[prop] : 1.0;
+    const inp = outfitBubble.querySelector('[data-prop="' + prop + '"]');
+    const lbl = outfitBubble.querySelector('[data-propval="' + prop + '"]');
+    if (inp) inp.value = v;
+    if (lbl) lbl.textContent = v.toFixed(2) + '×';
+  });
+}
+
+function enterOutfitMode(fig) {
+  if (!fig || fig.type !== 'mannequin') return;
+  outfitFig = fig;
+  outfitCameraSnap = snapshot();
+  easeCamera({
+    theta: camera.theta,
+    phi: Math.max(0.2, camera.phi - 0.15),
+    radius: Math.max(8, camera.radius * 0.65),
+    target: { x: fig.mesh.position.x, y: 1.5, z: fig.mesh.position.z },
+  }, 420);
+  syncOutfitBubble(fig);
+  outfitBubble.classList.add('visible');
+  updateOutfitBubblePos();
+}
+
+function exitOutfitMode() {
+  if (!outfitFig) return;
+  outfitBubble.classList.remove('visible');
+  if (outfitCameraSnap) {
+    easeCamera(outfitCameraSnap, 420);
+    outfitCameraSnap = null;
+  }
+  outfitFig = null;
+}
+
+function sendAppearance(fig) {
+  if (!applyingRemote) {
+    send({ type: 'appearance', id: fig.id, outfit: Object.assign({}, fig.outfit), proportions: Object.assign({}, fig.proportions) });
+  }
+}
+
+outfitBubble.querySelectorAll('[data-slot]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (!outfitFig) return;
+    const slot   = btn.dataset.slot;
+    const choice = btn.dataset.choice === 'null' ? null : btn.dataset.choice;
+    outfitFig.outfit[slot] = choice;
+    applyOutfitSlot(outfitFig, slot, choice);
+    syncOutfitBubble(outfitFig);
+    sendAppearance(outfitFig);
+  });
+});
+
+outfitBubble.querySelectorAll('[data-prop]').forEach(function(inp) {
+  inp.addEventListener('input', function() {
+    if (!outfitFig) return;
+    const prop = inp.dataset.prop;
+    const val  = parseFloat(inp.value);
+    outfitFig.proportions[prop] = val;
+    const lbl = outfitBubble.querySelector('[data-propval="' + prop + '"]');
+    if (lbl) lbl.textContent = val.toFixed(2) + '×';
+    applyProportions(outfitFig, outfitFig.proportions);
+    clearTimeout(appearDebounce);
+    appearDebounce = setTimeout(function() { sendAppearance(outfitFig); }, 200);
+  });
+});
+
+document.getElementById('ob-close').addEventListener('click', exitOutfitMode);
+
+document.getElementById('ob-preset-toggle').addEventListener('click', function() {
+  const panel = document.getElementById('ob-presets-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) loadPresetsPanel();
+});
+
+document.getElementById('ob-save').addEventListener('click', async function() {
+  if (!outfitFig) return;
+  const name = prompt('Preset-Name?');
+  if (!name || !name.trim()) return;
+  await fetch('/presets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name.trim(), outfit: outfitFig.outfit, proportions: outfitFig.proportions }),
+  });
+  loadPresetsPanel();
+  document.getElementById('ob-presets-panel').classList.add('open');
+});
+
+async function loadPresetsPanel() {
+  const panel = document.getElementById('ob-presets-panel');
+  try {
+    const presets = await fetch('/presets').then(function(r) { return r.json(); });
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+    if (presets.length === 0) {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'color:#666;font-size:12px;padding:4px 0';
+      msg.textContent = 'Keine Presets gespeichert';
+      panel.appendChild(msg);
+    } else {
+      presets.forEach(function(p) {
+        const card = document.createElement('div');
+        card.className = 'ob-preset-card';
+        card.dataset.presetId = p.id;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'ob-preset-name';
+        nameSpan.textContent = p.name;
+        const delBtn = document.createElement('button');
+        delBtn.className = 'ob-preset-del';
+        delBtn.title = 'Löschen';
+        delBtn.textContent = '×';
+        delBtn.dataset.delPreset = p.id;
+        card.appendChild(nameSpan);
+        card.appendChild(delBtn);
+        card.addEventListener('click', async function(ev) {
+          if (ev.target.dataset.delPreset) return;
+          if (!outfitFig) return;
+          const pid = card.dataset.presetId;
+          const presetList = await fetch('/presets').then(function(r) { return r.json(); });
+          const preset = presetList.find(function(x) { return x.id === pid; });
+          if (!preset) return;
+          Object.assign(outfitFig.outfit, preset.outfit);
+          Object.assign(outfitFig.proportions, preset.proportions);
+          OUTFIT_SLOTS.forEach(function(s) { applyOutfitSlot(outfitFig, s, outfitFig.outfit[s]); });
+          applyProportions(outfitFig, outfitFig.proportions);
+          syncOutfitBubble(outfitFig);
+          sendAppearance(outfitFig);
+        });
+        delBtn.addEventListener('click', async function(ev) {
+          ev.stopPropagation();
+          await fetch('/presets/' + delBtn.dataset.delPreset, { method: 'DELETE' });
+          loadPresetsPanel();
+        });
+        panel.appendChild(card);
+      });
+    }
+  } catch(err) {
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+    const msg = document.createElement('div');
+    msg.style.cssText = 'color:#e07060;font-size:12px';
+    msg.textContent = 'Fehler beim Laden';
+    panel.appendChild(msg);
+  }
+}
+
+canvas.addEventListener('dblclick', function(e) {
+  if (selectedFigure && selectedFigure.type === 'mannequin') {
+    enterOutfitMode(selectedFigure);
+    e.preventDefault();
+  }
+});
+
 // ── Keyboard shortcuts ───────────────────────────────────
 function isTypingTarget(el) {
   return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
@@ -3338,6 +3678,7 @@ function isTypingTarget(el) {
 document.addEventListener('keydown', e => {
   // Escape — highest priority
   if (e.key === 'Escape') {
+    if (outfitBubble.classList.contains('visible')) { exitOutfitMode(); e.preventDefault(); return; }
     if (!document.getElementById('bc-help-overlay').hidden) { closeHelp(); e.preventDefault(); return; }
     if (camera.mode === 'pov') { exitPOV(); e.preventDefault(); return; }
     if (camera.mode === 'freefly') { exitFreeFly(); e.preventDefault(); return; }
@@ -3398,9 +3739,14 @@ document.addEventListener('keydown', e => {
     setActiveTool(tk); e.preventDefault(); return;
   }
   if (tk === 'E') {
-    setActiveTool('E');
-    if (camera.mode === 'pov') exitPOV();
-    else if (selectedFigure) enterPOV(selectedFigure.id);
+    if (selectedFigure && selectedFigure.type === 'mannequin') {
+      if (outfitBubble.classList.contains('visible')) exitOutfitMode();
+      else enterOutfitMode(selectedFigure);
+    } else {
+      setActiveTool('E');
+      if (camera.mode === 'pov') exitPOV();
+      else if (selectedFigure) enterPOV(selectedFigure.id);
+    }
     e.preventDefault(); return;
   }
   if (tk === 'F' && !e.shiftKey) {
@@ -3452,6 +3798,7 @@ function animate() {
     });
   }
   tickAllMannequinWalks(t);
+  updateOutfitBubblePos();
   const dt = tickAutoOrbit();
   tickFreeFly(dt);
   tickOrbitKeys(dt);
@@ -3685,6 +4032,16 @@ function buildMannequin(color, group) {
     rKnee:     rKneeGrp,
     rAnkle:    rAnkleGrp,
   };
+  group.userData.baseLengths = {
+    upperArm: 0.35,
+    forearm:  0.30,
+    thigh:    0.45,
+    shin:     0.42,
+    hipsY:    1.10,
+    headRadius: 0.22,
+  };
+  group.userData.outfit = { hat: null, hair: null, mask: null, body: null, shoes: null };
+  group.userData.proportions = { upperArm: 1.0, forearm: 1.0, thigh: 1.0, shin: 1.0, torso: 1.0, head: 1.0 };
   return group;
 }
 
@@ -3748,6 +4105,122 @@ function tickAllMannequinWalks(t) {
   for (const fig of figures) {
     if (fig.type === 'mannequin' && fig.walking) tickMannequinWalk(fig, t);
   }
+}
+
+// ── Character Editor — Outfit & Proportions ───────────────────────────────────
+
+const OUTFIT_SLOTS = ['hat', 'hair', 'mask', 'body', 'shoes'];
+
+const SLOT_BONE = { hat: 'head', hair: 'head', mask: 'head', body: 'hips', shoes: null };
+
+function makeSlotMesh(slot, choice, side) {
+  if (slot === 'hat') {
+    const g = new THREE.Group();
+    const crown = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.10, 0.10, 0.18, 12),
+      new THREE.MeshLambertMaterial({ color: 0xc8a96e })
+    );
+    crown.position.y = 0.09;
+    const brim = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.22, 0.03, 16),
+      new THREE.MeshLambertMaterial({ color: 0xb8994e })
+    );
+    brim.position.y = 0;
+    g.add(crown, brim);
+    g.position.y = 0.22 + 0.01;
+    return g;
+  }
+  if (slot === 'hair') {
+    const col = choice === 'long-blonde' ? 0xf5d060 : 0x6B3A2A;
+    const g = new THREE.Group();
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.20, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshLambertMaterial({ color: col, side: THREE.DoubleSide })
+    );
+    cap.position.y = 0.22;
+    g.add(cap);
+    if (choice === 'long-blonde') {
+      const strand = new THREE.Mesh(
+        new THREE.CapsuleGeometry(0.05, 0.30, 4, 8),
+        new THREE.MeshLambertMaterial({ color: col })
+      );
+      strand.position.set(0, 0.10, -0.18);
+      g.add(strand);
+    }
+    return g;
+  }
+  if (slot === 'mask') {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.22, 0.16),
+      new THREE.MeshLambertMaterial({ color: 0xe07060, side: THREE.DoubleSide })
+    );
+    m.position.set(0, 0.22, 0.22 + 0.01);
+    return m;
+  }
+  if (slot === 'body') {
+    const col = choice === 'dress' ? 0x8B3A6A : 0x3a5f7a;
+    const m = new THREE.Mesh(
+      new THREE.BoxGeometry(0.56, 0.76, 0.30),
+      new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: 0.9 })
+    );
+    m.position.y = 0.38 + 0.05;
+    return m;
+  }
+  if (slot === 'shoes') {
+    const m = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.08, 0.22),
+      new THREE.MeshLambertMaterial({ color: 0x4a4a4a })
+    );
+    m.position.set(0, -0.04, 0.04);
+    return m;
+  }
+  return null;
+}
+
+function applyOutfitSlot(fig, slot, choice) {
+  if (slot === 'shoes') {
+    ['lAnkle', 'rAnkle'].forEach((bName, i) => {
+      const bone = fig.bones[bName];
+      const old = bone.getObjectByName('shoes');
+      if (old) bone.remove(old);
+      if (choice !== null) {
+        const mesh = makeSlotMesh('shoes', choice, i === 0 ? 'l' : 'r');
+        if (mesh) { mesh.name = 'shoes'; bone.add(mesh); }
+      }
+    });
+    return;
+  }
+  const boneName = SLOT_BONE[slot];
+  if (!boneName) return;
+  const bone = fig.bones[boneName];
+  const old = bone.getObjectByName(slot);
+  if (old) bone.remove(old);
+  if (choice === null) return;
+  const mesh = makeSlotMesh(slot, choice);
+  if (mesh) { mesh.name = slot; bone.add(mesh); }
+}
+
+function scaleSegment(parentBone, childBone, baseLength, factor) {
+  parentBone.scale.y = factor;
+  childBone.position.y = -baseLength * factor;
+}
+
+function scaleTorso(fig, factor) {
+  fig.bones.hips.position.y = fig.baseLengths.hipsY * factor;
+}
+
+function applyProportions(fig, proportions) {
+  const { bones, baseLengths } = fig;
+  scaleSegment(bones.lShoulder, bones.lElbow, baseLengths.upperArm, proportions.upperArm);
+  scaleSegment(bones.rShoulder, bones.rElbow, baseLengths.upperArm, proportions.upperArm);
+  scaleSegment(bones.lElbow,    bones.lWrist, baseLengths.forearm,  proportions.forearm);
+  scaleSegment(bones.rElbow,    bones.rWrist, baseLengths.forearm,  proportions.forearm);
+  scaleSegment(bones.lHip,      bones.lKnee,  baseLengths.thigh,    proportions.thigh);
+  scaleSegment(bones.rHip,      bones.rKnee,  baseLengths.thigh,    proportions.thigh);
+  scaleSegment(bones.lKnee,     bones.lAnkle, baseLengths.shin,     proportions.shin);
+  scaleSegment(bones.rKnee,     bones.rAnkle, baseLengths.shin,     proportions.shin);
+  scaleTorso(fig, proportions.torso);
+  bones.head.scale.setScalar(proportions.head);
 }
 
 let jointDrag = null;
@@ -3924,5 +4397,6 @@ connect();
 
 })();
 </script>
+
 </body>
 </html>

@@ -33,6 +33,10 @@
       --chore-dim:   rgba(107,130,168,0.12);
       --chore-glow:  rgba(107,130,168,0.30);
 
+      --audit:       #A87BC4;
+      --audit-dim:   rgba(168,123,196,0.14);
+      --audit-glow:  rgba(168,123,196,0.30);
+
       --text:        #DCE8F5;
       --text-2:      #8A9BB8;
       --text-3:      #485670;
@@ -54,7 +58,6 @@
       overflow-x: hidden;
     }
 
-    /* ── Dot-grid background ───────────────────────────── */
     body::before {
       content: '';
       position: fixed;
@@ -65,7 +68,6 @@
       z-index: 0;
     }
 
-    /* ── NAV ───────────────────────────────────────────── */
     nav {
       position: sticky;
       top: 0;
@@ -78,6 +80,7 @@
       gap: 0;
       padding: 0 2rem;
       height: 52px;
+      overflow-x: auto;
     }
 
     .nav-brand {
@@ -89,6 +92,7 @@
       text-transform: uppercase;
       margin-right: auto;
       text-decoration: none;
+      white-space: nowrap;
     }
 
     nav a {
@@ -105,20 +109,20 @@
       align-items: center;
       border-bottom: 2px solid transparent;
       transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
     }
     nav a:hover { color: var(--text); border-color: var(--border-mid); }
     nav a.feature { --c: var(--feature); }
     nav a.fix     { --c: var(--fix); }
     nav a.chore   { --c: var(--chore); }
     nav a.execute { --c: var(--gold); }
+    nav a.audit   { --c: var(--audit); }
     nav a.active  { color: var(--c, var(--gold)); border-color: var(--c, var(--gold)); }
 
-    /* ── LAYOUT ────────────────────────────────────────── */
     main { position: relative; z-index: 1; }
     section { padding: 5rem 2rem; max-width: 1080px; margin: 0 auto; }
     .section-full { max-width: none; padding: 5rem 0; }
 
-    /* ── HERO ──────────────────────────────────────────── */
     #hero {
       min-height: 80vh;
       display: flex;
@@ -171,13 +175,12 @@
       margin-bottom: 3rem;
     }
 
-    /* Pipeline graphic */
     .pipeline {
       display: flex;
       align-items: center;
       gap: 0;
       margin: 2rem auto;
-      max-width: 640px;
+      max-width: 720px;
     }
 
     .pipe-node {
@@ -194,8 +197,9 @@
       border-color: var(--nc);
       box-shadow: 0 0 24px var(--nglow, transparent);
     }
-    .pipe-node.plan { --nc: var(--feature); --nglow: var(--feature-glow); }
-    .pipe-node.exec { --nc: var(--gold);    --nglow: var(--gold-glow); }
+    .pipe-node.audit { --nc: var(--audit);  --nglow: var(--audit-glow); }
+    .pipe-node.plan  { --nc: var(--feature);--nglow: var(--feature-glow); }
+    .pipe-node.exec  { --nc: var(--gold);   --nglow: var(--gold-glow); }
 
     .pipe-label {
       font-family: var(--ff-mono);
@@ -219,7 +223,7 @@
     }
 
     .pipe-arrow {
-      width: 56px;
+      width: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -244,7 +248,6 @@
       color: var(--chore);
     }
 
-    /* ── SECTION HEADERS ───────────────────────────────── */
     .section-header {
       display: flex;
       align-items: baseline;
@@ -252,6 +255,7 @@
       margin-bottom: 3rem;
       border-bottom: 1px solid var(--border);
       padding-bottom: 1.5rem;
+      flex-wrap: wrap;
     }
 
     .skill-badge {
@@ -264,8 +268,9 @@
       font-weight: 600;
       flex-shrink: 0;
     }
-    .skill-badge.plan-badge { background: var(--feature-dim); color: var(--feature); border: 1px solid rgba(91,158,106,0.25); }
-    .skill-badge.exec-badge { background: var(--gold-dim);    color: var(--gold);    border: 1px solid rgba(201,168,76,0.25); }
+    .skill-badge.plan-badge  { background: var(--feature-dim); color: var(--feature); border: 1px solid rgba(91,158,106,0.25); }
+    .skill-badge.exec-badge  { background: var(--gold-dim);    color: var(--gold);    border: 1px solid rgba(201,168,76,0.25); }
+    .skill-badge.audit-badge { background: var(--audit-dim);   color: var(--audit);   border: 1px solid rgba(168,123,196,0.25); }
 
     h2 {
       font-family: var(--ff-display);
@@ -285,14 +290,12 @@
       gap: 0.75rem;
     }
 
-    /* ── PFAD-WAHL CARDS ───────────────────────────────── */
     .path-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1.25rem;
       margin-bottom: 3rem;
     }
-
     @media (max-width: 700px) { .path-grid { grid-template-columns: 1fr; } }
 
     .path-card {
@@ -345,7 +348,6 @@
       border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent);
     }
 
-    /* ── PFAD SECTIONS ─────────────────────────────────── */
     .path-section {
       margin-bottom: 4rem;
       background: var(--surface);
@@ -357,6 +359,7 @@
     .path-section.feature { --pc: var(--feature); --pdim: var(--feature-dim); }
     .path-section.fix     { --pc: var(--fix);     --pdim: var(--fix-dim); }
     .path-section.chore   { --pc: var(--chore);   --pdim: var(--chore-dim); }
+    .path-section.audit   { --pc: var(--audit);   --pdim: var(--audit-dim); }
 
     .path-header {
       background: var(--pdim);
@@ -365,6 +368,7 @@
       align-items: center;
       gap: 0.75rem;
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
     }
     .path-header-label {
       font-family: var(--ff-mono);
@@ -391,7 +395,6 @@
       border: 1px solid color-mix(in srgb, var(--pc) 25%, transparent);
     }
 
-    /* ── STEPS ─────────────────────────────────────────── */
     .steps { padding: 1.5rem; display: flex; flex-direction: column; gap: 0; }
 
     .step {
@@ -408,7 +411,6 @@
     .step.visible { opacity: 1; transform: translateY(0); }
     .step:last-child { border-bottom: none; }
 
-    /* Vertical connector line */
     .step:not(:last-child) .step-num::after {
       content: '';
       position: absolute;
@@ -449,7 +451,6 @@
       box-shadow: 0 0 12px color-mix(in srgb, var(--pc, var(--gold)) 40%, transparent);
     }
 
-    /* Ticket-highlighted steps */
     .step.ticket {
       background: var(--gold-dim);
       border-radius: 8px;
@@ -462,7 +463,17 @@
       box-shadow: 0 0 10px var(--gold-glow);
     }
 
-    .step-body {}
+    .step.audit-step {
+      background: var(--audit-dim);
+      border-radius: 8px;
+      margin: 0.25rem 0;
+      padding: 1.25rem 1rem;
+    }
+    .step.audit-step .step-num-inner {
+      border-color: var(--audit);
+      color: var(--audit);
+      box-shadow: 0 0 10px var(--audit-glow);
+    }
 
     .step-title {
       font-weight: 600;
@@ -484,17 +495,17 @@
       border-radius: 3px;
       font-weight: 600;
     }
-    .badge-new  { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
-    .badge-stop { background: rgba(201,107,74,0.15); color: #E09070; border: 1px solid rgba(201,107,74,0.25); }
-    .badge-opt  { background: rgba(107,130,168,0.12); color: var(--chore); border: 1px solid rgba(107,130,168,0.2); }
-    .badge-req  { background: rgba(201,107,74,0.12); color: var(--fix); border: 1px solid rgba(201,107,74,0.2); }
+    .badge-new    { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+    .badge-stop   { background: rgba(201,107,74,0.15); color: #E09070; border: 1px solid rgba(201,107,74,0.25); }
+    .badge-opt    { background: rgba(107,130,168,0.12); color: var(--chore); border: 1px solid rgba(107,130,168,0.2); }
+    .badge-req    { background: rgba(201,107,74,0.12); color: var(--fix); border: 1px solid rgba(201,107,74,0.2); }
+    .badge-guard  { background: var(--audit-dim); color: var(--audit); border: 1px solid rgba(168,123,196,0.3); }
 
     .step-desc {
       font-size: 13.5px;
       color: var(--text-2);
       line-height: 1.6;
     }
-
     .step-desc strong { color: var(--text); font-weight: 600; }
     .step-desc em { color: var(--gold); font-style: normal; font-family: var(--ff-mono); font-size: 12.5px; }
 
@@ -507,7 +518,6 @@
     .step-desc ul li { color: var(--text-2); font-size: 13px; }
     .step-desc ul li::marker { color: var(--text-3); }
 
-    /* inline code */
     code {
       font-family: var(--ff-mono);
       font-size: 12px;
@@ -518,7 +528,6 @@
       color: #A8D8C0;
     }
 
-    /* code block */
     pre {
       background: rgba(0,0,0,0.4);
       border: 1px solid var(--border);
@@ -531,12 +540,12 @@
       line-height: 1.7;
       color: #8BA8C0;
     }
-    pre .c  { color: var(--text-3); } /* comment */
-    pre .k  { color: #A8C8E8; }      /* keyword */
-    pre .s  { color: #A8D8A8; }      /* string */
-    pre .v  { color: #D8B870; }      /* variable */
+    pre .c  { color: var(--text-3); }
+    pre .k  { color: #A8C8E8; }
+    pre .s  { color: #A8D8A8; }
+    pre .v  { color: #D8B870; }
+    pre .hl { color: #E0C078; font-weight: 600; }
 
-    /* ── TICKET HIGHLIGHT BOX ──────────────────────────── */
     .ticket-highlight {
       background: var(--gold-dim);
       border: 1px solid rgba(201,168,76,0.25);
@@ -549,7 +558,18 @@
     }
     .ticket-highlight strong { color: var(--gold); }
 
-    /* ── DEPLOY TABLE ──────────────────────────────────── */
+    .audit-highlight {
+      background: var(--audit-dim);
+      border: 1px solid rgba(168,123,196,0.25);
+      border-left: 3px solid var(--audit);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      margin-top: 0.75rem;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .audit-highlight strong { color: var(--audit); }
+
     .deploy-table-wrap { overflow-x: auto; margin-top: 1rem; }
     table {
       width: 100%;
@@ -577,14 +597,12 @@
     td code { background: none; border: none; padding: 0; color: #A8D8C0; font-size: 12px; }
     tr:hover td { background: rgba(255,255,255,0.02); }
 
-    /* ── FAILURE SECTION ───────────────────────────────── */
     .failure-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1rem;
       margin-top: 1rem;
     }
-
     .failure-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -605,14 +623,12 @@
     }
     .failure-card p { font-size: 13px; color: var(--text-2); line-height: 1.6; }
 
-    /* ── AGENT ROUTING ─────────────────────────────────── */
     .agent-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 0.75rem;
       margin-top: 1rem;
     }
-
     .agent-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -634,14 +650,12 @@
       font-size: 12px;
     }
 
-    /* ── DIVIDER ───────────────────────────────────────── */
     .divider {
       border: none;
       border-top: 1px solid var(--border);
       margin: 0;
     }
 
-    /* ── SCROLL ANIMATIONS ─────────────────────────────── */
     .fade-in {
       opacity: 0;
       transform: translateY(16px);
@@ -649,7 +663,6 @@
     }
     .fade-in.visible { opacity: 1; transform: translateY(0); }
 
-    /* ── RESPONSIVE ────────────────────────────────────── */
     @media (max-width: 600px) {
       nav { padding: 0 1rem; }
       nav a { padding: 0 0.6rem; font-size: 10px; }
@@ -664,6 +677,7 @@
 
 <nav id="main-nav">
   <a href="#hero" class="nav-brand">dev-flow</a>
+  <a href="#audit" class="nav-link audit">Audit</a>
   <a href="#pfad" class="nav-link">Pfad-Wahl</a>
   <a href="#plan" class="nav-link feature">plan</a>
   <a href="#execute" class="nav-link execute">execute</a>
@@ -677,22 +691,96 @@
   <section id="hero">
     <div class="hero-eyebrow">Bachelorprojekt · Claude Code Workflow</div>
     <h1>dev-flow</h1>
-    <p class="hero-sub">Pfad-Wahl, Planung &amp; Plan-Ausführung</p>
+    <p class="hero-sub">Stale-Audit · Pfad-Wahl · Plan · Execute</p>
 
     <div class="pipeline">
+      <div class="pipe-node audit">
+        <div class="pipe-label">Schritt −1</div>
+        <div class="pipe-name">stale audit</div>
+        <div class="pipe-desc">Tote Worktrees &amp; Branches finden — bereinigen oder ignorieren</div>
+      </div>
+      <div class="pipe-arrow">→</div>
       <div class="pipe-node plan">
         <div class="pipe-label">Skill 1</div>
         <div class="pipe-name">dev-flow-plan</div>
-        <div class="pipe-desc">Pfad bestimmen · Brainstorming · Spec &amp; Plan · Ticket anlegen · Commit &amp; Push</div>
+        <div class="pipe-desc">Pfad · Worktree · Brainstorm · Spec &amp; Plan · Ticket · Push</div>
       </div>
       <div class="pipe-arrow">→</div>
       <div class="pipe-node exec">
         <div class="pipe-label">Skill 2</div>
         <div class="pipe-name">dev-flow-execute</div>
-        <div class="pipe-desc">Plan laden · Implementieren · Verifizieren · PR · Ticket abschließen · Deploy</div>
+        <div class="pipe-desc">Plan laden · Implementieren · PR · Ticket schließen · Plan→Postgres · Cleanup · Deploy</div>
       </div>
     </div>
-    <div class="pipe-chore">Chore-Pfad: vollständig inline in <span>dev-flow-plan</span> — kein execute nötig</div>
+    <div class="pipe-chore">Chore-Pfad: vollständig inline in <span>dev-flow-plan</span> — kein execute · wiederkehrend → <span>schedule</span></div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SCHRITT −1: STALE AUDIT ───────────────────────── -->
+  <section id="audit">
+    <div class="section-header fade-in">
+      <span class="skill-badge audit-badge">Schritt −1</span>
+      <h2>Stale-Worktree-Audit</h2>
+    </div>
+
+    <p class="fade-in" style="font-size:14px; color:var(--text-2); margin-bottom:1.5rem; max-width:680px;">
+      <strong>Läuft immer zuerst</strong> — vor Pfad- oder Branch-Entscheidung. Findet Worktrees zu Branches, die längst in <code>main</code> gemergt sind, und bietet Cleanup an. Kein Blocker — wenn der User weitermachen will, einfach fortfahren.
+    </p>
+
+    <div class="path-section audit fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Audit-Pass</span>
+        <span class="path-header-desc">Lesend &amp; idempotent</span>
+      </div>
+      <div class="steps">
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">a</div></div>
+          <div class="step-body">
+            <div class="step-title">Worktrees enumerieren</div>
+            <div class="step-desc">
+              <pre><span class="k">git</span> worktree list
+<span class="c"># auch porcelain für Parsing:</span>
+<span class="k">git</span> worktree list <span class="v">--porcelain</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">b</div></div>
+          <div class="step-body">
+            <div class="step-title">Gemergte Branches × aktive Worktrees</div>
+            <div class="step-desc">
+              <pre><span class="v">MERGED</span>=$(<span class="k">git</span> branch <span class="v">--merged</span> main | <span class="k">grep</span> <span class="v">-vE</span> <span class="s">'^\*|main|HEAD'</span> | <span class="k">tr</span> <span class="v">-d</span> <span class="s">' '</span>)
+<span class="k">for</span> branch <span class="k">in</span> $MERGED; <span class="k">do</span>
+  <span class="v">WT</span>=$(<span class="k">git</span> worktree list <span class="v">--porcelain</span> \
+    | <span class="k">awk</span> <span class="v">-v</span> b=<span class="s">"refs/heads/$branch"</span> <span class="s">'/^worktree/{wt=$2} $0==("branch " b){print wt}'</span>)
+  [[ <span class="v">-n</span> <span class="s">"$WT"</span> ]] &amp;&amp; <span class="k">echo</span> <span class="s">"⚠️  STALE: $branch → $WT (already merged into main)"</span>
+<span class="k">done</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">c</div></div>
+          <div class="step-body">
+            <div class="step-title">Cleanup auf Anfrage</div>
+            <div class="step-desc">
+              Bei Treffern: User informieren, Cleanup anbieten. Wenn bestätigt:
+              <pre><span class="k">git</span> worktree remove <span class="v">&lt;path&gt;</span> <span class="v">--force</span>
+<span class="k">git</span> branch <span class="v">-D</span> <span class="v">&lt;branch&gt;</span>
+<span class="k">git</span> push origin <span class="v">--delete</span> <span class="v">&lt;branch&gt;</span> <span class="c">2&gt;/dev/null || true</span></pre>
+              <div class="audit-highlight">
+                <strong>Idempotent:</strong> kein Treffer → still und weiter mit Schritt 0.
+                Treffer ignorieren ist ok — Cleanup bleibt für später möglich.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </section>
 
   <hr class="divider">
@@ -719,14 +807,14 @@
       <div class="path-card chore">
         <div class="path-type">chore</div>
         <h4>Wartungsarbeit</h4>
-        <p>Keine Verhaltensänderung — Dependency-Bumps, Refactors, Doku-Updates, CI-Tweaks.</p>
-        <span class="path-note">Kein Plan, kein Ticket nötig</span>
+        <p>Keine Verhaltensänderung — Dependency-Bumps, Refactors, Doku-Updates, CI-Tweaks. Wiederkehrend? → <em>schedule</em>.</p>
+        <span class="path-note">Kein Plan, kein Ticket</span>
       </div>
     </div>
 
-    <p class="fade-in" style="font-size:13.5px; color:var(--text-2); max-width:620px;">
+    <p class="fade-in" style="font-size:13.5px; color:var(--text-2); max-width:640px;">
       Bestätigung beim User einholen, <strong>bevor</strong> der gewählte Pfad startet.
-      Beim Fix-Pfad: <em>"Das klingt nach einem fix — Hast du eine T-###### Ticket-ID?"</em>
+      Beim Fix-Pfad: <em>"Das klingt nach einem fix — hast du eine T-###### Ticket-ID?"</em>
     </p>
   </section>
 
@@ -751,10 +839,22 @@
         <div class="step">
           <div class="step-num"><div class="step-num-inner">1</div></div>
           <div class="step-body">
-            <div class="step-title">Worktree anlegen</div>
+            <div class="step-title">
+              Worktree anlegen
+              <span class="badge badge-guard">Konflikt-Check</span>
+            </div>
             <div class="step-desc">
-              Ruft <em>superpowers:using-git-worktrees</em> auf.<br>
-              Branch-Name: <code>feature/&lt;kurzer-slug&gt;</code>
+              <strong>Vor dem Anlegen:</strong> prüfen ob Worktree für den Branch schon existiert.
+              <pre><span class="v">BRANCH_NAME</span>=<span class="s">"feature/&lt;kurzer-slug&gt;"</span>
+<span class="v">EXISTING_WT</span>=$(<span class="k">git</span> worktree list <span class="v">--porcelain</span> \
+  | <span class="k">awk</span> <span class="v">-v</span> b=<span class="s">"refs/heads/$BRANCH_NAME"</span> <span class="s">'/^worktree/{wt=$2} $0==("branch " b){print wt}'</span>)
+
+<span class="k">if</span> [[ <span class="v">-n</span> <span class="s">"$EXISTING_WT"</span> ]]; <span class="k">then</span>
+  <span class="c"># Worktree existiert → NICHT neu anlegen, direkt rein wechseln</span>
+  <span class="k">cd</span> <span class="s">"$EXISTING_WT"</span>
+<span class="k">else</span>
+  <span class="c"># Sonst: superpowers:using-git-worktrees aufrufen</span>
+<span class="k">fi</span></pre>
             </div>
           </div>
         </div>
@@ -764,10 +864,10 @@
           <div class="step-body">
             <div class="step-title">Brainstorming-Tunnel starten</div>
             <div class="step-desc">
-              <strong>a)</strong> <code>bash scripts/superpowers-helper-patch.sh</code> — stellt <code>wss://</code> sicher<br>
-              <strong>b)</strong> Brainstorm-Server starten, Port ermitteln<br>
+              <strong>a)</strong> <code>bash scripts/superpowers-helper-patch.sh</code> — stellt <code>wss://</code> sicher (idempotent)<br>
+              <strong>b)</strong> Brainstorm-Server starten, <code>PORT</code>/<code>SCREEN_DIR</code>/<code>STATE_DIR</code> aus <code>jq</code>-Output ziehen<br>
               <strong>c)</strong> <code>task brainstorm:publish -- $PORT</code> im Hintergrund<br>
-              Companion erreichbar unter: <em>https://brainstorm.mentolder.de</em>
+              Companion erreichbar unter: <em>https://brainstorm.mentolder.de</em> — niemals <code>http://localhost:*</code> erwähnen.
             </div>
           </div>
         </div>
@@ -777,7 +877,7 @@
           <div class="step-body">
             <div class="step-title">Brainstorming</div>
             <div class="step-desc">
-              Ruft <em>superpowers:brainstorming</em> auf.<br>
+              Ruft <em>superpowers:brainstorming</em> auf — vor dem ersten Turn dem Brainstorming-Skill die laufenden Server-Pfade (<code>$PORT</code>, <code>$SCREEN_DIR</code>, <code>$STATE_DIR</code>) mitteilen, damit es <code>start-server.sh</code> nicht doppelt aufruft.<br>
               Ergebnis: Spec in <code>docs/superpowers/specs/&lt;slug&gt;.md</code>
             </div>
           </div>
@@ -788,9 +888,9 @@
           <div class="step-body">
             <div class="step-title">Plan schreiben</div>
             <div class="step-desc">
-              Ruft <em>superpowers:writing-plans</em> auf, dann sofort:<br>
-              <code>bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;slug&gt;.md</code><br>
-              Ergebnis: Plan in <code>docs/superpowers/plans/&lt;slug&gt;.md</code>
+              Ruft <em>superpowers:writing-plans</em> auf, dann <strong>sofort</strong>:
+              <pre><span class="k">bash</span> scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<span class="v">&lt;slug&gt;</span>.md</pre>
+              Setzt <code>domains:</code> + <code>status:</code> ins Frontmatter — Voraussetzung für <code>plan-context.sh</code>.
             </div>
           </div>
         </div>
@@ -803,12 +903,20 @@
               <span class="badge badge-new">Neu</span>
             </div>
             <div class="step-desc">
-              Legt ein Ticket vom Typ <code>task</code> in der Produktionsdatenbank an:
-              <ul>
-                <li>Postgres-Pod im <code>workspace</code>-Namespace (mentolder-Cluster) ermitteln</li>
-                <li><code>kubectl exec</code> → <code>INSERT INTO tickets.tickets</code> → <code>RETURNING external_id</code></li>
-                <li><code>ticket_id: T######</code> ins Plan-Frontmatter einschreiben (awk)</li>
-              </ul>
+              <code>INSERT INTO tickets.tickets</code> in der Produktionsdatenbank (mentolder-Cluster), Typ <code>task</code>:
+              <pre><span class="v">PGPOD</span>=$(<span class="k">kubectl</span> get pod <span class="v">-n</span> workspace <span class="v">--context</span> mentolder \
+  <span class="v">-l</span> app=shared-db <span class="v">-o</span> name | <span class="k">head</span> <span class="v">-1</span>)
+
+<span class="v">TICKET_RESULT</span>=$(<span class="k">kubectl</span> exec <span class="s">"$PGPOD"</span> <span class="v">-n</span> workspace <span class="v">--context</span> mentolder <span class="v">--</span> \
+  <span class="k">psql</span> <span class="v">-U</span> website <span class="v">-d</span> website <span class="v">-At</span> <span class="v">-c</span> \
+  <span class="s">"INSERT INTO tickets.tickets (type, brand, title, description, status)
+   VALUES ('task', 'mentolder', 'Plan: &lt;slug&gt;',
+           'Branch: feature/&lt;slug&gt;' || E'\n' || 'Plan: docs/superpowers/plans/&lt;slug&gt;.md',
+           'triage')
+   RETURNING external_id, id;"</span>)
+
+<span class="v">TICKET_EXT_ID</span>=$(<span class="k">echo</span> <span class="s">"$TICKET_RESULT"</span> | <span class="k">cut</span> <span class="v">-d</span><span class="s">'|'</span> <span class="v">-f1</span>)   <span class="c"># T######</span></pre>
+              <code>ticket_id: $TICKET_EXT_ID</code> via <code>awk</code> in die Plan-Frontmatter einschreiben.
               <div class="ticket-highlight">
                 <strong>Meldung:</strong> „Ticket <code>T######</code> angelegt →
                 <code>https://web.mentolder.de/admin/bugs</code>"
@@ -825,9 +933,9 @@
               <span class="badge badge-stop">STOPP</span>
             </div>
             <div class="step-desc">
-              <pre>git add docs/superpowers/specs/&lt;slug&gt;.md docs/superpowers/plans/&lt;slug&gt;.md
-git commit -m "chore(plans): stage &lt;slug&gt; for execution [T######]"
-git push -u origin feature/&lt;slug&gt;</pre>
+              <pre><span class="k">git</span> add docs/superpowers/specs/<span class="v">&lt;slug&gt;</span>.md docs/superpowers/plans/<span class="v">&lt;slug&gt;</span>.md
+<span class="k">git</span> commit <span class="v">-m</span> <span class="s">"chore(plans): stage &lt;slug&gt; for execution [$TICKET_EXT_ID]"</span>
+<span class="k">git</span> push <span class="v">-u</span> origin feature/<span class="v">&lt;slug&gt;</span></pre>
               Keine Implementation, keine Verifikation, kein PR — das übernimmt <em>dev-flow-execute</em>.
             </div>
           </div>
@@ -841,7 +949,7 @@ git push -u origin feature/&lt;slug&gt;</pre>
       <div class="path-header">
         <span class="path-header-label">Fix-Pfad</span>
         <span class="path-header-badge">fix/&lt;slug&gt;</span>
-        <span class="path-header-desc">Red → Green → Refactor · Ticket Pflicht</span>
+        <span class="path-header-desc">Ticket Pflicht · red → green → refactor</span>
       </div>
       <div class="steps">
 
@@ -853,11 +961,9 @@ git push -u origin feature/&lt;slug&gt;</pre>
               <span class="badge badge-req">Pflicht</span>
             </div>
             <div class="step-desc">
-              Ticket-ID vom User erfragen (Format: <code>T######</code>, z.B. <code>T000288</code>).
               <ul>
-                <li><strong>Vorhanden:</strong> direkt übernehmen → <code>TICKET_EXT_ID=T######</code></li>
-                <li><strong>Fehlt:</strong> Titel, Schweregrad &amp; Beschreibung erfragen, dann via SQL anlegen:<br>
-                  Typ <code>bug</code>, Status <code>triage</code>, Priority <code>hoch</code></li>
+                <li><strong>User hat ID:</strong> direkt übernehmen → <code>TICKET_EXT_ID=T######</code></li>
+                <li><strong>Keine ID:</strong> Titel + Schweregrad (<code>critical|major|minor|trivial</code>) + Beschreibung erfragen, dann via SQL anlegen — Typ <code>bug</code>, Status <code>triage</code>, Priority <code>hoch</code>.</li>
               </ul>
               <div class="ticket-highlight">
                 <strong>Ohne Ticket-ID geht der Fix-Pfad nicht weiter.</strong>
@@ -869,10 +975,13 @@ git push -u origin feature/&lt;slug&gt;</pre>
         <div class="step">
           <div class="step-num"><div class="step-num-inner">2</div></div>
           <div class="step-body">
-            <div class="step-title">Worktree anlegen</div>
+            <div class="step-title">
+              Worktree anlegen
+              <span class="badge badge-guard">Konflikt-Check</span>
+            </div>
             <div class="step-desc">
-              Ruft <em>superpowers:using-git-worktrees</em> auf.<br>
-              Branch-Name: <code>fix/&lt;kurzer-slug&gt;</code>
+              Selbe <code>EXISTING_WT</code>-Logik wie Feature-Schritt 1 — Branch <code>fix/&lt;kurzer-slug&gt;</code>.
+              Wenn ein Worktree existiert: <code>cd</code> rein, kein <em>using-git-worktrees</em> nochmal aufrufen.
             </div>
           </div>
         </div>
@@ -882,8 +991,9 @@ git push -u origin feature/&lt;slug&gt;</pre>
           <div class="step-body">
             <div class="step-title">Failing Test schreiben</div>
             <div class="step-desc">
-              Schreibt einen Test, der den Bug beweist — <strong>Pflicht</strong>:<br>
-              <code>./tests/runner.sh local &lt;neue-test-id&gt;</code> → Erwartet: <strong>FAIL</strong>
+              <strong>Red</strong> — Pflicht, beweist den Bug:
+              <pre>./tests/runner.sh local <span class="v">&lt;neue-test-id&gt;</span>
+<span class="c"># Erwartet: FAIL</span></pre>
             </div>
           </div>
         </div>
@@ -891,11 +1001,12 @@ git push -u origin feature/&lt;slug&gt;</pre>
         <div class="step">
           <div class="step-num"><div class="step-num-inner">4</div></div>
           <div class="step-body">
-            <div class="step-title">Plan schreiben <span style="font-weight:400;color:var(--text-2)">(nicht-triviale Fixes)</span></div>
+            <div class="step-title">Plan schreiben <span style="font-weight:400;color:var(--text-2)">(bei nicht-trivialen Fixes)</span></div>
             <div class="step-desc">
-              Bei Einzeilern: Inline-Begründung im Commit reicht.<br>
-              Bei komplexen Fixes: <em>superpowers:writing-plans</em>, dann Frontmatter-Hook ausführen
-              und <code>ticket_id: T######</code> ins Frontmatter einschreiben.
+              <ul>
+                <li><strong>Einzeiler:</strong> Inline-Begründung im Commit reicht, Schritt 4 überspringen (Ticket-ID trotzdem im Commit).</li>
+                <li><strong>Nicht-trivial:</strong> <em>superpowers:writing-plans</em> + Frontmatter-Hook + <code>ticket_id</code> ins Frontmatter via <code>awk</code>.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -908,9 +1019,13 @@ git push -u origin feature/&lt;slug&gt;</pre>
               <span class="badge badge-stop">STOPP</span>
             </div>
             <div class="step-desc">
-              <pre>git add tests/&lt;relevante-test-datei&gt; [docs/superpowers/plans/&lt;slug&gt;.md]
-git commit -m "chore(plans): stage &lt;slug&gt; fix for execution [T######]"
-git push -u origin fix/&lt;slug&gt;</pre>
+              <pre><span class="c"># Failing Test gehört IMMER dazu</span>
+<span class="k">git</span> add tests/<span class="v">&lt;test-datei&gt;</span>
+<span class="c"># Plan nur falls geschrieben:</span>
+<span class="k">git</span> add docs/superpowers/plans/<span class="v">&lt;slug&gt;</span>.md
+
+<span class="k">git</span> commit <span class="v">-m</span> <span class="s">"chore(plans): stage &lt;slug&gt; fix for execution [$TICKET_EXT_ID]"</span>
+<span class="k">git</span> push <span class="v">-u</span> origin fix/<span class="v">&lt;slug&gt;</span></pre>
             </div>
           </div>
         </div>
@@ -927,12 +1042,33 @@ git push -u origin fix/&lt;slug&gt;</pre>
       </div>
       <div class="steps">
 
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">0.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Wiederkehrend oder einmalig?
+              <span class="badge badge-new">Neu</span>
+            </div>
+            <div class="step-desc">
+              <strong>Allererste Frage:</strong> „Soll diese Chore regelmäßig wiederholt werden — wöchentlich, monatlich, täglich?"
+              <ul>
+                <li>Trigger-Wörter: „regelmäßig", „jede Woche", „jeden Monat", „automatisch"</li>
+                <li>Klassische Kandidaten: Dependency-Bumps, Zertifikat-/Token-Rotation, Log-Cleanups, Backup-Checks</li>
+              </ul>
+              <div class="audit-highlight">
+                <strong>Wiederkehrend:</strong> <em>schedule</em>-Skill aufrufen → Cron-Routine wird angelegt. Kein Branch, kein Worktree, <strong>STOPP hier</strong>.<br>
+                <strong>Einmalig:</strong> weiter mit Schritt 0.6.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="step">
-          <div class="step-num"><div class="step-num-inner">0</div></div>
+          <div class="step-num"><div class="step-num-inner">0.6</div></div>
           <div class="step-body">
             <div class="step-title">Offene Chore-Branches prüfen</div>
             <div class="step-desc">
-              <code>git branch -r | grep 'origin/chore/'</code><br>
+              <pre><span class="k">git</span> branch <span class="v">-r</span> | <span class="k">grep</span> <span class="s">'origin/chore/'</span></pre>
               Passender Branch vorhanden? → Änderung dort einbauen, bestehenden PR updaten. Kein neuer Worktree.
             </div>
           </div>
@@ -942,38 +1078,50 @@ git push -u origin fix/&lt;slug&gt;</pre>
           <div class="step-num"><div class="step-num-inner">1</div></div>
           <div class="step-body">
             <div class="step-title">Änderung in einem Satz beschreiben</div>
-            <div class="step-desc">Beispiele: „Astro auf 5.x bumpen", „Variable umbenennen", „Tippfehler korrigieren"</div>
+            <div class="step-desc">Beispiele: „Astro auf 5.x bumpen", „Variable umbenennen", „Tippfehler korrigieren".</div>
           </div>
         </div>
 
         <div class="step">
           <div class="step-num"><div class="step-num-inner">2</div></div>
           <div class="step-body">
-            <div class="step-title">Worktree anlegen &amp; Änderung machen</div>
-            <div class="step-desc">Kein Plan, kein Spec, kein TDD nötig.</div>
+            <div class="step-title">
+              Worktree anlegen
+              <span class="badge badge-guard">Konflikt-Check</span>
+            </div>
+            <div class="step-desc">Selbe <code>EXISTING_WT</code>-Logik. Branch <code>chore/&lt;kurzer-slug&gt;</code>.</div>
           </div>
         </div>
 
         <div class="step">
           <div class="step-num"><div class="step-num-inner">3</div></div>
           <div class="step-body">
-            <div class="step-title">Verifikation</div>
-            <div class="step-desc">
-              <code>task test:all</code> — muss grün sein<br>
-              <code>task workspace:validate</code> — falls Manifests betroffen<br>
-              <code>task website:dev</code> — falls <code>website/src/</code> betroffen
-            </div>
+            <div class="step-title">Änderung machen</div>
+            <div class="step-desc">Kein Plan, kein Spec, kein TDD nötig.</div>
           </div>
         </div>
 
         <div class="step">
           <div class="step-num"><div class="step-num-inner">4</div></div>
           <div class="step-body">
+            <div class="step-title">Verifikation</div>
+            <div class="step-desc">
+              <code>task test:all</code> — MUSS grün sein<br>
+              <code>task workspace:validate</code> — falls Manifests betroffen<br>
+              <code>task website:dev</code> — Smoke-Test falls <code>website/src/</code> betroffen
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">5</div></div>
+          <div class="step-body">
             <div class="step-title">PR, Auto-Merge &amp; Post-Merge Deploy</div>
             <div class="step-desc">
               <em>commit-commands:commit-push-pr</em> aufrufen.<br>
               Titel: <code>chore(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code><br>
-              Nach Merge: passenden Deploy-Task ausführen (siehe Deploy-Tabelle unten).
+              Body: <code>## Summary</code> (1-2 Bullets) + <code>## Test plan</code> (was du gelaufen bist).<br>
+              Nach Merge: passenden Deploy-Task ausführen (siehe Deploy-Tabelle bei <em>execute</em>).
             </div>
           </div>
         </div>
@@ -996,20 +1144,42 @@ git push -u origin fix/&lt;slug&gt;</pre>
       <div class="path-header" style="background: var(--gold-dim);">
         <span class="path-header-label" style="color: var(--gold);">Ausführung</span>
         <span style="font-family:var(--ff-mono);font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;border:1px solid rgba(201,168,76,0.2);border-radius:3px;padding:0.2rem 0.5rem;">feature/* · fix/*</span>
-        <span class="path-header-desc">Startet nach dev-flow-plan auf bestehendem Branch</span>
+        <span class="path-header-desc">Startet auf dem von dev-flow-plan gepushten Branch</span>
       </div>
       <div class="steps">
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">0</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Worktree-Konsistenz prüfen
+              <span class="badge badge-guard">Guard</span>
+            </div>
+            <div class="step-desc">
+              Wo bin ich und auf welchem Branch?
+              <pre><span class="v">CURRENT_BRANCH</span>=$(<span class="k">git</span> branch <span class="v">--show-current</span>)
+<span class="v">CURRENT_DIR</span>=$(<span class="k">pwd</span>)</pre>
+              <ul>
+                <li><strong>main + Haupt-Repo</strong> → falscher Ausgangspunkt; in den Feature-Worktree wechseln.</li>
+                <li><strong>Branch passt zum Verzeichnis</strong> (z.B. <code>feature/foo</code> in <code>.../Bachelorprojekt-feature-foo</code>) → ✓ weiter.</li>
+                <li><strong>Anderer Claude-Prozess aktiv im selben Worktree</strong> → Warnung, User-Bestätigung holen, ggf. warten. Parallel laufende Sessions sichtbar machen via <code>git worktree list --porcelain</code>.</li>
+              </ul>
+              Kein Blocker — nur Warnung und Sync mit dem User.
+            </div>
+          </div>
+        </div>
 
         <div class="step">
           <div class="step-num"><div class="step-num-inner">1</div></div>
           <div class="step-body">
             <div class="step-title">Plan finden &amp; lesen</div>
             <div class="step-desc">
-              Neuesten Plan laden: <code>ls -t docs/superpowers/plans/*.md | grep -v '/executed/' | head -1</code><br>
-              Plan vollständig lesen. Pfad aus Branch-Prefix ableiten (<code>feature/</code> → Feature, <code>fix/</code> → Fix).<br>
-              Ticket-ID aus Frontmatter extrahieren:
-              <pre>TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
-# z.B. TICKET_ID=T000301 — leer wenn kein Ticket im Plan</pre>
+              Default — neuester Plan:
+              <pre><span class="k">ls</span> <span class="v">-t</span> docs/superpowers/plans/*.md | <span class="k">grep</span> <span class="v">-v</span> <span class="s">'/executed/'</span> | <span class="k">head</span> <span class="v">-1</span></pre>
+              User sagt „show all" oder „wähle"? → ohne <code>| head -1</code> listen, User wählt.<br><br>
+              Pfad aus Branch-Prefix ableiten (<code>feature/</code> → Feature, <code>fix/</code> → Fix). Ticket-ID aus Frontmatter:
+              <pre><span class="v">TICKET_ID</span>=$(<span class="k">awk</span> <span class="s">'/^ticket_id:/{print $2; exit}'</span> <span class="s">"$PLAN_FILE"</span>)
+<span class="c"># T000301 oder leer (kein Ticket im Plan)</span></pre>
             </div>
           </div>
         </div>
@@ -1023,13 +1193,11 @@ git push -u origin fix/&lt;slug&gt;</pre>
             </div>
             <div class="step-desc">
               Falls <code>$TICKET_ID</code> gesetzt:
-              <pre>kubectl exec "$PGPOD" -n workspace --context mentolder -- \
-  psql -U website -d website -At -c \
-  "UPDATE tickets.tickets SET status = 'in_progress'
-   WHERE external_id = '$TICKET_ID';"</pre>
-              <div class="ticket-highlight">
-                <strong>Meldung:</strong> „Ticket <code>$TICKET_ID</code> → in_progress"
-              </div>
+              <pre><span class="k">kubectl</span> exec <span class="s">"$PGPOD"</span> <span class="v">-n</span> workspace <span class="v">--context</span> mentolder <span class="v">--</span> \
+  <span class="k">psql</span> <span class="v">-U</span> website <span class="v">-d</span> website <span class="v">-At</span> <span class="v">-c</span> \
+  <span class="s">"UPDATE tickets.tickets SET status = 'in_progress'
+   WHERE external_id = '$TICKET_ID';"</span></pre>
+              <div class="ticket-highlight"><strong>Meldung:</strong> „Ticket <code>$TICKET_ID</code> → in_progress"</div>
             </div>
           </div>
         </div>
@@ -1039,12 +1207,13 @@ git push -u origin fix/&lt;slug&gt;</pre>
           <div class="step-body">
             <div class="step-title">Implementierung</div>
             <div class="step-desc">
-              <strong>Feature:</strong> bevorzugt <em>superpowers:subagent-driven-development</em> (parallele Agents);<br>
-              alternativ <em>superpowers:executing-plans</em> (sequenziell).<br>
-              Backend/k8s: TDD via <em>superpowers:test-driven-development</em> · UI: <em>frontend-design</em> + Playwright<br>
+              <strong>Feature:</strong> bevorzugt <em>superpowers:subagent-driven-development</em> (parallele Agents, schnell);<br>
+              alternativ <em>superpowers:executing-plans</em> (sequenziell, wenn Tasks voneinander abhängen).<br>
+              Backend/k8s: TDD via <em>superpowers:test-driven-development</em>. UI: <em>frontend-design</em> + Playwright Smoke.<br>
               <br>
-              <strong>Fix:</strong> implementieren bis der Failing Test grün ist. Pflicht: <strong>red → green → refactor</strong>.<br>
-              <code>./tests/runner.sh local &lt;test-id&gt;</code> → Ziel: PASS
+              <strong>Fix:</strong> implementieren bis der failing Test grün ist. Pflicht: <strong>red → green → refactor</strong>.
+              <pre>./tests/runner.sh local <span class="v">&lt;test-id&gt;</span>
+<span class="c"># Ziel: PASS</span></pre>
             </div>
           </div>
         </div>
@@ -1069,7 +1238,8 @@ git push -u origin fix/&lt;slug&gt;</pre>
               <span class="badge badge-opt">Optional</span>
             </div>
             <div class="step-desc">
-              <strong>Status:</strong> k3d-Dev-Cluster läuft derzeit nicht. Lokal verifizieren und direkt auf Prod deployen.
+              <strong>Status (2026-05-13):</strong> Der k3d-Dev-Cluster läuft aktuell <strong>nicht</strong>. Schritt überspringen — lokal verifizieren und direkt auf Prod deployen.
+              Sobald der Cluster wieder läuft: <code>task dev:cluster:status</code> / <code>task dev:deploy</code> / <code>task dev:redeploy:website|brett</code>.
             </div>
           </div>
         </div>
@@ -1081,7 +1251,33 @@ git push -u origin fix/&lt;slug&gt;</pre>
             <div class="step-desc">
               Ruft <em>commit-commands:commit-push-pr</em> auf.<br>
               <strong>Feature:</strong> <code>feat(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code><br>
-              <strong>Fix:</strong> <code>fix(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code> — Body <strong>muss</strong> <code>Closes T######</code> enthalten
+              <strong>Fix:</strong> <code>fix(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code> — Body <strong>MUSS</strong> <code>Closes $TICKET_ID</code> enthalten (z.B. <code>Closes T000301</code>), sonst Push blockieren und nochmal nachfragen.<br>
+              Body-Skeleton: <code>## Summary</code> · <code>## Test plan</code> · <code>Closes T######</code> · <code>Co-Authored-By</code>.
+            </div>
+          </div>
+        </div>
+
+        <div class="step ticket">
+          <div class="step-num"><div class="step-num-inner">5.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              PR-Link im Ticket speichern
+              <span class="badge badge-new">Neu</span>
+            </div>
+            <div class="step-desc">
+              Direkt nach dem PR-Erstellen — idempotent via <code>WHERE NOT EXISTS</code>:
+              <pre><span class="v">PR_NUM</span>=$(<span class="k">gh</span> pr view <span class="v">--json</span> number <span class="v">-q</span> <span class="s">'.number'</span>)
+<span class="v">TICKET_UUID</span>=$(<span class="k">kubectl</span> exec <span class="s">"$PGPOD"</span> ... <span class="v">-At</span> <span class="v">-c</span> \
+  <span class="s">"SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';"</span>)
+
+<span class="k">kubectl</span> exec <span class="s">"$PGPOD"</span> ... <span class="v">-c</span> <span class="s">"
+  INSERT INTO tickets.ticket_links (from_id, kind, pr_number)
+  SELECT '$TICKET_UUID', 'pr', $PR_NUM
+  WHERE NOT EXISTS (
+    SELECT 1 FROM tickets.ticket_links
+    WHERE from_id = '$TICKET_UUID' AND kind = 'pr' AND pr_number = $PR_NUM
+  );"</span></pre>
+              <code>to_id</code> bleibt NULL (kein NOT NULL-Constraint). Kein UNIQUE — daher <code>WHERE NOT EXISTS</code>.
             </div>
           </div>
         </div>
@@ -1090,7 +1286,7 @@ git push -u origin fix/&lt;slug&gt;</pre>
           <div class="step-num"><div class="step-num-inner">6</div></div>
           <div class="step-body">
             <div class="step-title">Auto-Merge wenn CI grün</div>
-            <div class="step-desc">CI muss grün sein vor dem Merge.</div>
+            <div class="step-desc">CI muss grün sein vor dem Merge. Auto-Merge ist konfiguriert — PRs sind nur für die History.</div>
           </div>
         </div>
 
@@ -1102,37 +1298,75 @@ git push -u origin fix/&lt;slug&gt;</pre>
               <span class="badge badge-new">Neu</span>
             </div>
             <div class="step-desc">
-              Falls <code>$TICKET_ID</code> gesetzt, nach erfolgreichem Merge:
+              Falls <code>$TICKET_ID</code> gesetzt, nach Merge:
               <ul>
                 <li><strong>Feature:</strong> <code>resolution = 'shipped'</code></li>
                 <li><strong>Fix:</strong> <code>resolution = 'fixed'</code></li>
               </ul>
-              <pre>UPDATE tickets.tickets
-  SET status = 'done', resolution = '$RESOLUTION'
-WHERE external_id = '$TICKET_ID';
+              <pre><span class="k">UPDATE</span> tickets.tickets
+  <span class="k">SET</span> status = <span class="s">'done'</span>, resolution = <span class="s">'$RESOLUTION'</span>
+<span class="k">WHERE</span> external_id = <span class="s">'$TICKET_ID'</span>;
 
-INSERT INTO tickets.ticket_comments (ticket_id, body, visibility)
-SELECT id,
-  'PR #$PR_NUM merged. Plan executed: docs/superpowers/plans/&lt;slug&gt;.md',
-  'internal'
-FROM tickets.tickets WHERE external_id = '$TICKET_ID';</pre>
-              <div class="ticket-highlight">
-                <strong>Meldung:</strong> „Ticket <code>$TICKET_ID</code> → done (<code>$RESOLUTION</code>)"
-              </div>
+<span class="k">INSERT INTO</span> tickets.ticket_comments (ticket_id, body, visibility)
+<span class="k">SELECT</span> id,
+  <span class="s">'PR #$PR_NUM merged. Plan archived to tickets.ticket_plans in Postgres.'</span>,
+  <span class="s">'internal'</span>
+<span class="k">FROM</span> tickets.tickets <span class="k">WHERE</span> external_id = <span class="s">'$TICKET_ID'</span>;</pre>
+              <div class="ticket-highlight"><strong>Meldung:</strong> „Ticket <code>$TICKET_ID</code> → done (<code>$RESOLUTION</code>)"</div>
             </div>
           </div>
         </div>
 
-        <div class="step">
+        <div class="step ticket">
           <div class="step-num"><div class="step-num-inner">7</div></div>
           <div class="step-body">
-            <div class="step-title">Plan archivieren</div>
+            <div class="step-title">
+              Plan → Postgres archivieren · Datei löschen
+              <span class="badge badge-new">Geändert</span>
+            </div>
             <div class="step-desc">
-              <pre>mkdir -p docs/superpowers/plans/executed
-mv docs/superpowers/plans/&lt;slug&gt;.md docs/superpowers/plans/executed/
-git add docs/superpowers/plans/
-git commit -m "chore(plans): mark &lt;slug&gt; as executed"
-git push</pre>
+              <strong>Neuer Flow seit PR #719:</strong> Plan wird in <code>tickets.ticket_plans</code> (Postgres) abgelegt, die <em>Datei</em> wird <strong>gelöscht</strong> — nicht mehr nach <code>docs/superpowers/plans/executed/</code> verschoben.
+              <pre><span class="c"># SQL via temp-file → keine Shell-Expansion des Plan-Inhalts</span>
+<span class="v">TMPFILE</span>=$(<span class="k">mktemp</span> /tmp/plan-archive-XXXXXX.sql)
+{
+  <span class="k">printf</span> <span class="s">"INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)
+VALUES ('%s','%s','%s', \$plan\$"</span> <span class="s">"$TICKET_UUID"</span> <span class="s">"$SLUG"</span> <span class="s">"$BRANCH"</span>
+  <span class="k">cat</span> <span class="s">"$PLAN_FILE"</span>
+  <span class="k">printf</span> <span class="s">"\$plan\$, %s );\n"</span> <span class="s">"$PR_NUM_SQL"</span>
+} &gt; <span class="s">"$TMPFILE"</span>
+
+<span class="k">kubectl</span> exec <span class="v">-i</span> <span class="s">"$PGPOD"</span> ... <span class="k">psql</span> ... <span class="v">-v</span> ON_ERROR_STOP=1 &lt; <span class="s">"$TMPFILE"</span>
+
+<span class="k">rm</span> <span class="s">"$TMPFILE"</span> <span class="s">"$PLAN_FILE"</span>
+<span class="k">git</span> add <span class="s">"$PLAN_FILE"</span>
+<span class="k">git</span> commit <span class="v">-m</span> <span class="s">"chore(plans): archive $SLUG → postgres [$TICKET_ID]"</span>
+<span class="k">git</span> push</pre>
+              Dollar-Quoting <code>$plan$...$plan$</code> erlaubt beliebigen Markdown. Falls kein Ticket: nur <code>rm "$PLAN_FILE"</code> + Commit (keine SQL-Archivierung).
+            </div>
+          </div>
+        </div>
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">7.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Worktree &amp; Branch bereinigen
+              <span class="badge badge-new">Neu</span>
+            </div>
+            <div class="step-desc">
+              Immer ausführen nach Merge + Plan-Archivierung — verhindert die staffelnden Altlasten, die Schritt −1 bei der nächsten Session aufräumen müsste:
+              <pre><span class="v">BRANCH</span>=<span class="s">"feature/&lt;slug&gt;"</span>   <span class="c"># oder fix/ / chore/</span>
+<span class="v">WORKTREE_PATH</span>=$(<span class="k">git</span> worktree list <span class="v">--porcelain</span> \
+  | <span class="k">awk</span> <span class="v">-v</span> b=<span class="s">"refs/heads/$BRANCH"</span> <span class="s">'/^worktree/{wt=$2} $0==("branch " b){print wt}'</span>)
+
+<span class="k">cd</span> /home/patrick/Bachelorprojekt    <span class="c"># raus aus dem Worktree</span>
+
+[[ <span class="v">-n</span> <span class="s">"$WORKTREE_PATH"</span> &amp;&amp; <span class="s">"$WORKTREE_PATH"</span> != /home/patrick/Bachelorprojekt ]] \
+  &amp;&amp; <span class="k">git</span> worktree remove <span class="s">"$WORKTREE_PATH"</span> <span class="v">--force</span>
+
+<span class="k">git</span> branch <span class="v">-D</span> <span class="s">"$BRANCH"</span> <span class="c">2&gt;/dev/null || true</span>
+<span class="k">git</span> push origin <span class="v">--delete</span> <span class="s">"$BRANCH"</span> <span class="c">2&gt;/dev/null || true</span>  <span class="c"># GitHub macht das beim Auto-Merge meist schon</span></pre>
+              Ergebnis: kein staler Worktree, kein toter Branch lokal/remote.
             </div>
           </div>
         </div>
@@ -1154,7 +1388,7 @@ git push</pre>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><code>website/src/**</code>, <code>website/public/**</code></td>
+                      <td><code>website/src/**</code>, <code>website/public/**</code>, <code>website/package*.json</code></td>
                       <td><code>task feature:website</code></td>
                       <td>web.mentolder.de + web.korczewski.de</td>
                     </tr>
@@ -1171,15 +1405,15 @@ git push</pre>
                     <tr>
                       <td><code>k3d/livekit*.yaml</code></td>
                       <td><code>task feature:livekit</code></td>
-                      <td><code>task livekit:status</code> ENV=mentolder + korczewski</td>
+                      <td><code>task livekit:status ENV=mentolder</code> + <code>ENV=korczewski</code></td>
                     </tr>
                     <tr>
-                      <td><code>k3d/**</code>, <code>prod/**</code>, <code>environments/sealed-secrets/**</code></td>
+                      <td><code>k3d/**</code>, <code>prod/**</code>, <code>prod-mentolder/**</code>, <code>prod-korczewski/**</code>, <code>environments/sealed-secrets/**</code></td>
                       <td><code>task feature:deploy</code></td>
                       <td><code>task workspace:verify:all-prods</code> + <code>task health</code></td>
                     </tr>
                     <tr>
-                      <td><code>docs/</code>, <code>*.md</code>, <code>tests/</code>, <code>.claude/</code>, <code>scripts/</code></td>
+                      <td>nur <code>docs/</code>, <code>*.md</code>, <code>CLAUDE.md</code>, <code>tests/</code>, <code>.github/</code>, <code>Taskfile*.yml</code>, <code>scripts/</code>, <code>.claude/</code></td>
                       <td colspan="2" style="color:var(--text-3);font-style:italic;">kein Deploy</td>
                     </tr>
                   </tbody>
@@ -1187,7 +1421,7 @@ git push</pre>
               </div>
               <p style="margin-top:0.6rem;font-size:12px;color:var(--text-3);">
                 Priorität bei mehreren Matches: workspace → website → brett → livekit → docs.<br>
-                Verify scheitert? → Keinen Fix auf <code>main</code>. Neuen <code>fix/</code>-Branch via dev-flow-plan öffnen.
+                <strong>Verify scheitert?</strong> → KEINEN Fix auf <code>main</code>. Neuen <code>fix/&lt;slug&gt;</code>-Branch via <em>dev-flow-plan</em> öffnen und Patrick benachrichtigen.
               </p>
             </div>
           </div>
@@ -1211,21 +1445,21 @@ git push</pre>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           CI rot vor Merge
         </div>
-        <p>Diagnose, Fix auf demselben Branch, neu pushen. Keinen zweiten PR aufmachen. Nach 2 erfolglosen Versuchen: internen Ticket-Kommentar hinterlassen. Ticket bleibt auf <code>in_progress</code>.</p>
+        <p>Diagnose, Fix auf demselben Branch, neu pushen. Keinen zweiten PR aufmachen. Nach 2 erfolglosen Versuchen: <code>INSERT</code> in <code>tickets.ticket_comments</code> mit Branch-Verweis, Ticket bleibt auf <code>in_progress</code>.</p>
       </div>
       <div class="failure-card">
         <div class="f-title">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           Deploy scheitert post-merge
         </div>
-        <p>Loggen, Patrick benachrichtigen, Cluster wie ist lassen. <strong>Kein Auto-Rollback.</strong> Ticket bleibt auf <code>in_progress</code> — Patrick muss manuell auf <code>done</code> oder <code>blocked</code> setzen.</p>
+        <p>Loggen, Patrick benachrichtigen, Cluster wie ist lassen. <strong>Kein Auto-Rollback.</strong> Ticket bleibt <code>in_progress</code> — Patrick setzt manuell auf <code>done</code> oder <code>blocked</code>.</p>
       </div>
       <div class="failure-card">
         <div class="f-title">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           Verify scheitert post-merge
         </div>
-        <p>Neuen <code>fix/&lt;slug&gt;</code>-Branch via <em>dev-flow-plan</em> Fix-Pfad öffnen. Regression als Bug behandeln. Am aktuellen Ticket internen Kommentar mit dem neuen Ticket-Link hinterlassen.</p>
+        <p>Neuen <code>fix/&lt;slug&gt;</code>-Branch via <em>dev-flow-plan</em> Fix-Pfad. Regression als Bug behandeln. Am bestehenden Ticket internen Kommentar mit Link zum neuen Ticket hinterlassen.</p>
       </div>
     </div>
   </section>
@@ -1241,7 +1475,7 @@ git push</pre>
     <p class="fade-in" style="font-size:13.5px; color:var(--text-2); margin-bottom:1.5rem; max-width:640px;">
       Beide Skills delegieren Spezialarbeit an Sub-Agents. <strong>Pflicht vor jedem Dispatch:</strong>
       <code>bash scripts/plan-context.sh &lt;role&gt;</code> ausführen und Output in
-      <code>&lt;active-plans&gt;</code>-Tags voranstellen.
+      <code>&lt;active-plans&gt;</code>-Tags an den Prompt voranstellen.
     </p>
 
     <div class="agent-grid fade-in">
@@ -1275,7 +1509,6 @@ git push</pre>
 </main>
 
 <script>
-  // ── Intersection Observer für Fade-In ────────────────
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -1292,8 +1525,7 @@ git push</pre>
     observer.observe(el);
   });
 
-  // ── Active Nav Highlighting ───────────────────────────
-  const sections = ['hero','pfad','plan','execute','failure','agents'];
+  const sections = ['hero','audit','pfad','plan','execute','failure','agents'];
   const navLinks = document.querySelectorAll('nav a.nav-link');
   const sectionMap = {};
   sections.forEach(id => {

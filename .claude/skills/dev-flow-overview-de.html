@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entwicklungsablauf — Wie Änderungen entstehen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #070A0E;
+      --surface:     #0E1520;
+      --surface-2:   #141C2A;
+      --border:      rgba(255,255,255,0.07);
+      --border-mid:  rgba(255,255,255,0.12);
+
+      --gold:        #C9A84C;
+      --gold-dim:    rgba(201,168,76,0.18);
+      --gold-glow:   rgba(201,168,76,0.35);
+
+      --feature:     #5B9E6A;
+      --feature-dim: rgba(91,158,106,0.12);
+      --feature-glow:rgba(91,158,106,0.30);
+
+      --fix:         #C96B4A;
+      --fix-dim:     rgba(201,107,74,0.12);
+      --fix-glow:    rgba(201,107,74,0.30);
+
+      --chore:       #6B82A8;
+      --chore-dim:   rgba(107,130,168,0.12);
+      --chore-glow:  rgba(107,130,168,0.30);
+
+      --audit:       #A87BC4;
+      --audit-dim:   rgba(168,123,196,0.14);
+      --audit-glow:  rgba(168,123,196,0.30);
+
+      --text:        #DCE8F5;
+      --text-2:      #8A9BB8;
+      --text-3:      #485670;
+
+      --ff-display: 'Playfair Display', Georgia, serif;
+      --ff-body:    'Syne', sans-serif;
+      --ff-mono:    'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ff-body);
+      font-size: 15px;
+      line-height: 1.65;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,10,14,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0 2rem;
+      height: 52px;
+      overflow-x: auto;
+    }
+
+    .nav-brand {
+      font-family: var(--ff-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-right: auto;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    nav a {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      text-decoration: none;
+      padding: 0 1rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    nav a:hover { color: var(--text); border-color: var(--border-mid); }
+    nav a.feature { --c: var(--feature); }
+    nav a.fix     { --c: var(--fix); }
+    nav a.chore   { --c: var(--chore); }
+    nav a.execute { --c: var(--gold); }
+    nav a.audit   { --c: var(--audit); }
+    nav a.active  { color: var(--c, var(--gold)); border-color: var(--c, var(--gold)); }
+
+    main { position: relative; z-index: 1; }
+    section { padding: 5rem 2rem; max-width: 1080px; margin: 0 auto; }
+
+    #hero {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+
+    h1 {
+      font-family: var(--ff-display);
+      font-size: clamp(3rem, 7vw, 6rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #DCE8F5 0%, #8A9BB8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-family: var(--ff-display);
+      font-size: clamp(1rem, 2.2vw, 1.35rem);
+      font-style: italic;
+      color: var(--text-2);
+      margin-bottom: 3rem;
+      max-width: 640px;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 2rem auto;
+      max-width: 720px;
+    }
+
+    .pipe-node {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      text-align: left;
+      position: relative;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .pipe-node:hover {
+      border-color: var(--nc);
+      box-shadow: 0 0 24px var(--nglow, transparent);
+    }
+    .pipe-node.audit { --nc: var(--audit);  --nglow: var(--audit-glow); }
+    .pipe-node.plan  { --nc: var(--feature);--nglow: var(--feature-glow); }
+    .pipe-node.exec  { --nc: var(--gold);   --nglow: var(--gold-glow); }
+
+    .pipe-label {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--nc, var(--text-3));
+      margin-bottom: 0.4rem;
+    }
+    .pipe-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .pipe-desc {
+      font-size: 12.5px;
+      color: var(--text-2);
+      margin-top: 0.35rem;
+      line-height: 1.5;
+    }
+
+    .pipe-arrow {
+      width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-3);
+      font-size: 20px;
+    }
+
+    .pipe-chore {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-3);
+    }
+    .pipe-chore span {
+      background: var(--chore-dim);
+      border: 1px solid rgba(107,130,168,0.2);
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      color: var(--chore);
+      font-weight: 600;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .skill-badge {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border-radius: 4px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .skill-badge.plan-badge  { background: var(--feature-dim); color: var(--feature); border: 1px solid rgba(91,158,106,0.25); }
+    .skill-badge.exec-badge  { background: var(--gold-dim);    color: var(--gold);    border: 1px solid rgba(201,168,76,0.25); }
+    .skill-badge.audit-badge { background: var(--audit-dim);   color: var(--audit);   border: 1px solid rgba(168,123,196,0.25); }
+
+    h2 {
+      font-family: var(--ff-display);
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+    @media (max-width: 700px) { .path-grid { grid-template-columns: 1fr; } }
+
+    .path-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--pc);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: box-shadow 0.25s, transform 0.25s;
+    }
+    .path-card:hover {
+      box-shadow: 0 8px 32px var(--pglow);
+      transform: translateY(-2px);
+    }
+    .path-card.feature { --pc: var(--feature); --pglow: var(--feature-glow); }
+    .path-card.fix     { --pc: var(--fix);     --pglow: var(--fix-glow); }
+    .path-card.chore   { --pc: var(--chore);   --pglow: var(--chore-glow); }
+
+    .path-type {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--pc);
+      margin-bottom: 0.5rem;
+    }
+    .path-card h4 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .path-card p {
+      font-size: 13.5px;
+      color: var(--text-2);
+      line-height: 1.55;
+    }
+    .path-note {
+      display: inline-block;
+      margin-top: 0.6rem;
+      font-size: 12px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      background: var(--pglow);
+      color: var(--pc);
+      border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent);
+    }
+
+    .path-section {
+      margin-bottom: 4rem;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--pc);
+      overflow: hidden;
+    }
+    .path-section.feature { --pc: var(--feature); --pdim: var(--feature-dim); }
+    .path-section.fix     { --pc: var(--fix);     --pdim: var(--fix-dim); }
+    .path-section.chore   { --pc: var(--chore);   --pdim: var(--chore-dim); }
+    .path-section.audit   { --pc: var(--audit);   --pdim: var(--audit-dim); }
+
+    .path-header {
+      background: var(--pdim);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .path-header-label {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--pc);
+    }
+    .path-header-desc {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-left: auto;
+    }
+    .path-header-badge {
+      font-size: 11px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      background: var(--pdim);
+      color: var(--pc);
+      border: 1px solid color-mix(in srgb, var(--pc) 25%, transparent);
+    }
+
+    .steps { padding: 1.5rem; display: flex; flex-direction: column; gap: 0; }
+
+    .step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 0 1.25rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .step.visible { opacity: 1; transform: translateY(0); }
+    .step:last-child { border-bottom: none; }
+
+    .step:not(:last-child) .step-num::after {
+      content: '';
+      position: absolute;
+      left: 27px;
+      top: calc(1.25rem + 28px);
+      bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .step-num {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      padding-top: 2px;
+    }
+
+    .step-num-inner {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border-mid);
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      flex-shrink: 0;
+      transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    }
+
+    .step:hover .step-num-inner {
+      border-color: var(--pc, var(--gold));
+      color: var(--pc, var(--gold));
+      box-shadow: 0 0 12px color-mix(in srgb, var(--pc, var(--gold)) 40%, transparent);
+    }
+
+    .step.highlight {
+      background: var(--gold-dim);
+      border-radius: 8px;
+      margin: 0.25rem 0;
+      padding: 1.25rem 1rem;
+    }
+    .step.highlight .step-num-inner {
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .step.audit-step {
+      background: var(--audit-dim);
+      border-radius: 8px;
+      margin: 0.25rem 0;
+      padding: 1.25rem 1rem;
+    }
+    .step.audit-step .step-num-inner {
+      border-color: var(--audit);
+      color: var(--audit);
+      box-shadow: 0 0 10px var(--audit-glow);
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .badge-wichtig { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+    .badge-stopp   { background: rgba(201,107,74,0.15); color: #E09070; border: 1px solid rgba(201,107,74,0.25); }
+    .badge-opt     { background: rgba(107,130,168,0.12); color: var(--chore); border: 1px solid rgba(107,130,168,0.2); }
+    .badge-pflicht { background: rgba(201,107,74,0.12); color: var(--fix); border: 1px solid rgba(201,107,74,0.2); }
+    .badge-vorab   { background: var(--audit-dim); color: var(--audit); border: 1px solid rgba(168,123,196,0.3); }
+
+    .step-desc {
+      font-size: 13.5px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+    .step-desc strong { color: var(--text); font-weight: 600; }
+
+    .step-desc ul {
+      margin: 0.5rem 0 0 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .step-desc ul li { color: var(--text-2); font-size: 13.5px; }
+    .step-desc ul li::marker { color: var(--text-3); }
+
+    .erklaerung {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--pc, var(--gold));
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      margin: 0.75rem 0 0;
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+    .erklaerung strong { color: var(--text); }
+    .erklaerung .was-passiert {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+
+    .ticket-highlight {
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-left: 3px solid var(--gold);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      margin-top: 0.75rem;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .ticket-highlight strong { color: var(--gold); }
+
+    .audit-highlight {
+      background: var(--audit-dim);
+      border: 1px solid rgba(168,123,196,0.25);
+      border-left: 3px solid var(--audit);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      margin-top: 0.75rem;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .audit-highlight strong { color: var(--audit); }
+
+    .deploy-table-wrap { overflow-x: auto; margin-top: 1rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: var(--surface-2);
+      color: var(--text-2);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-mid);
+      font-weight: 600;
+    }
+    td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2);
+      vertical-align: top;
+    }
+    td:first-child { color: var(--text); font-weight: 500; font-size: 13.5px; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .failure-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .failure-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .failure-card .f-title {
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      color: var(--fix);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .failure-card p { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
+
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .agent-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      font-size: 13.5px;
+    }
+    .agent-card .a-domain {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+    .agent-card .a-name {
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+    .agent-card .a-desc {
+      font-size: 12.5px;
+      color: var(--text-2);
+      margin-top: 0.3rem;
+      line-height: 1.5;
+    }
+
+    .glossar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .glossar-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+    }
+    .glossar-item .g-term {
+      font-weight: 700;
+      color: var(--gold);
+      font-size: 13.5px;
+      margin-bottom: 0.2rem;
+    }
+    .glossar-item .g-def {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.55;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      nav a { padding: 0 0.6rem; font-size: 10px; }
+      section { padding: 3rem 1rem; }
+      .step { grid-template-columns: 44px 1fr; gap: 0 0.75rem; }
+      .pipeline { flex-direction: column; }
+      .pipe-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="main-nav">
+  <a href="#hero" class="nav-brand">Entwicklungsablauf</a>
+  <a href="#audit" class="nav-link audit">Aufräumen</a>
+  <a href="#pfad" class="nav-link">Pfad-Wahl</a>
+  <a href="#plan" class="nav-link feature">Planung</a>
+  <a href="#execute" class="nav-link execute">Umsetzung</a>
+  <a href="#failure" class="nav-link fix">Probleme</a>
+  <a href="#agents" class="nav-link chore">Spezialisten</a>
+  <a href="#glossar" class="nav-link">Begriffe</a>
+</nav>
+
+<main>
+
+  <!-- ── HERO ── -->
+  <section id="hero">
+    <div class="hero-eyebrow">Bachelorprojekt · So entstehen Änderungen</div>
+    <h1>Entwicklungsablauf</h1>
+    <p class="hero-sub">Eine verständliche Erklärung, wie der KI-Assistent Claude neue Funktionen plant, umsetzt und veröffentlicht — ohne technisches Vorwissen.</p>
+
+    <div class="pipeline">
+      <div class="pipe-node audit">
+        <div class="pipe-label">Schritt vorab</div>
+        <div class="pipe-name">Aufräumen</div>
+        <div class="pipe-desc">Verwaiste Arbeitskopien finden und auf Wunsch wegräumen</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node plan">
+        <div class="pipe-label">Phase 1</div>
+        <div class="pipe-name">Planung</div>
+        <div class="pipe-desc">Idee durchdenken · Anforderungen aufschreiben · Plan erstellen · Aufgabenzettel anlegen</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node exec">
+        <div class="pipe-label">Phase 2</div>
+        <div class="pipe-name">Umsetzung</div>
+        <div class="pipe-desc">Plan ausführen · Testen · Veröffentlichen · Aufgabenzettel abhaken · Arbeitskopie wegräumen</div>
+      </div>
+    </div>
+    <div class="pipe-chore">Wartungsarbeiten werden vollständig in Phase 1 erledigt — <span>kein zweiter Schritt nötig</span>. Wiederkehrende Wartungen werden als <span>Routine</span> hinterlegt.</div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── AUFRÄUMEN ── -->
+  <section id="audit">
+    <div class="section-header fade-in">
+      <span class="skill-badge audit-badge">Schritt vorab</span>
+      <h2>Aufräumen vor dem Start</h2>
+    </div>
+
+    <p class="fade-in" style="font-size:14px; color:var(--text-2); margin-bottom:1.5rem; max-width:680px;">
+      <strong>Bevor irgendetwas anderes passiert</strong>, prüft der Assistent, ob noch Arbeitskopien aus früheren Aufgaben herumliegen, die längst abgeschlossen sind — und bietet an, sie wegzuräumen. So sammeln sich keine Altlasten an. Wenn ihr es eilig habt: einfach überspringen, das Aufräumen kann später nachgeholt werden.
+    </p>
+
+    <div class="path-section audit fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Aufräum-Durchgang</span>
+        <span class="path-header-desc">Nur Anschauen — verändert nichts ungefragt</span>
+      </div>
+      <div class="steps">
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">a</div></div>
+          <div class="step-body">
+            <div class="step-title">Alle laufenden Arbeitskopien auflisten</div>
+            <div class="step-desc">
+              Der Assistent fragt das Werkzeugsystem: „Welche separaten Arbeitskopien existieren gerade?"
+              <div class="erklaerung">
+                <div class="was-passiert">Was das bedeutet</div>
+                Eine „Arbeitskopie" ist ein eigener Ordner, in dem an einer bestimmten Aufgabe gearbeitet wird —
+                getrennt vom Haupt-Projekt, damit nichts durcheinander gerät.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">b</div></div>
+          <div class="step-body">
+            <div class="step-title">Erkennen, welche schon erledigt sind</div>
+            <div class="step-desc">
+              Für jede Arbeitskopie wird geprüft: „Gehört diese zu einer Aufgabe, deren Änderungen bereits
+              im Hauptzweig zusammengeführt wurden?" Wenn ja, ist sie überflüssig — fertig, aber nicht weggeräumt.
+            </div>
+          </div>
+        </div>
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">c</div></div>
+          <div class="step-body">
+            <div class="step-title">Wegräumen — nur auf Wunsch</div>
+            <div class="step-desc">
+              Findet der Assistent verwaiste Arbeitskopien, meldet er sie und fragt, ob er sie löschen soll.
+              <div class="audit-highlight">
+                <strong>Kein Zwang:</strong> wenn nichts gefunden wird — still und weiter mit Phase 1.
+                Wenn etwas gefunden wird und ihr nicht aufräumen wollt — auch ok, dann eben weiter wie sonst.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── PFAD-WAHL ── -->
+  <section id="pfad">
+    <div class="section-header fade-in">
+      <h2>Schritt 0 — Was soll gemacht werden?</h2>
+    </div>
+
+    <div class="path-grid fade-in">
+      <div class="path-card feature">
+        <div class="path-type">Neue Funktion</div>
+        <h4>Etwas Neues bauen</h4>
+        <p>Eine neue Seite, ein neuer Bereich, eine neue Möglichkeit für Nutzer — irgendetwas, das vorher nicht existiert hat und von Besuchern bemerkt wird.</p>
+        <span class="path-note">Arbeitsbereich: Neue-Funktion / …</span>
+      </div>
+      <div class="path-card fix">
+        <div class="path-type">Fehler beheben</div>
+        <h4>Etwas Kaputtes reparieren</h4>
+        <p>Eine Seite lädt falsch, ein Knopf tut nicht was er soll, Daten werden falsch angezeigt — irgendetwas verhält sich nicht so wie es sollte.</p>
+        <span class="path-note">Benötigt eine Aufgabenzettel-Nummer</span>
+      </div>
+      <div class="path-card chore">
+        <div class="path-type">Wartung</div>
+        <h4>Interna aufräumen</h4>
+        <p>Für Nutzer unsichtbare Pflege-Arbeiten: Software-Bausteine aktualisieren, internen Code aufräumen, Dokumentation verbessern. Soll es regelmäßig wiederholt werden? Dann wird es als Routine hinterlegt.</p>
+        <span class="path-note">Kein Aufgabenzettel nötig</span>
+      </div>
+    </div>
+
+    <p class="fade-in" style="font-size:13.5px; color:var(--text-2); max-width:680px;">
+      <strong>Bevor es losgeht:</strong> Der Assistent fragt kurz nach, welchen Weg er einschlagen soll —
+      und ob bei einer Fehler-Reparatur bereits ein Aufgabenzettel existiert.
+    </p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── PLANUNG ── -->
+  <section id="plan">
+    <div class="section-header fade-in">
+      <span class="skill-badge plan-badge">Phase 1</span>
+      <h2>Planung</h2>
+    </div>
+
+    <!-- NEUE FUNKTION -->
+    <div class="path-section feature fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Neue Funktion</span>
+        <span class="path-header-badge">Neue-Funktion / …</span>
+        <span class="path-header-desc">Endet mit Pause — Umsetzung folgt separat</span>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Eigene Arbeitskopie einrichten
+              <span class="badge badge-vorab">Erst prüfen</span>
+            </div>
+            <div class="step-desc">
+              Vor dem Anlegen schaut der Assistent nach, ob bereits eine Arbeitskopie für genau diese Aufgabe
+              existiert (zum Beispiel weil eine ältere Sitzung sie schon vorbereitet hat). Falls ja: er
+              wechselt einfach hinein, statt eine zweite, parallele Kopie anzulegen.<br><br>
+              Falls nicht: er legt eine neue Arbeitskopie an. So kann er nach Belieben ausprobieren,
+              ohne den laufenden Betrieb zu gefährden.
+              <div class="erklaerung">
+                <div class="was-passiert">Was das bedeutet</div>
+                Stellt euch vor, ihr wollt ein Zimmer neu streichen — ihr mietet euch erst eine
+                identische Übungswohnung, probiert die Farben dort aus und streicht erst dann das
+                echte Zimmer, wenn ihr mit dem Ergebnis zufrieden seid. Bevor ihr eine zweite
+                Übungswohnung mietet, schaut ihr nach, ob ihr nicht schon eine habt.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">Ideen-Werkzeug öffnen</div>
+            <div class="step-desc">
+              Ein interaktives <strong>Brainstorming-Werkzeug</strong> wird gestartet und ist für
+              kurze Zeit unter einer öffentlichen Web-Adresse erreichbar. Ihr könnt dem Assistenten
+              dort in Echtzeit beim Denken zuschauen.
+              <div class="erklaerung">
+                <div class="was-passiert">Was das bedeutet</div>
+                Eine Art „Tafel", auf der Claude seine Überlegungen aufzeichnet —
+                erreichbar unter <strong>brainstorm.mentolder.de</strong> während dieser Phase.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Brainstorming — Was soll es wirklich tun?</div>
+            <div class="step-desc">
+              Der Assistent denkt die Funktion von allen Seiten durch: Was braucht der Nutzer?
+              Welche Szenarien müssen abgedeckt sein? Welche Randfälle gibt es?
+              <ul>
+                <li>Nutzer-Erfahrung: Wie soll sich die Funktion anfühlen?</li>
+                <li>Inhalt: Welche Daten werden gezeigt oder gespeichert?</li>
+                <li>Grenzen: Was gehört <em>nicht</em> dazu?</li>
+              </ul>
+              Das Ergebnis wird als <strong>Anforderungsbeschreibung</strong> gespeichert.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">Umsetzungsplan schreiben</div>
+            <div class="step-desc">
+              Aus der Anforderungsbeschreibung wird ein konkreter <strong>Schritt-für-Schritt-Plan</strong>:
+              Welche Dateien werden wie verändert? In welcher Reihenfolge? Wie wird geprüft,
+              ob alles korrekt ist?
+              <div class="erklaerung">
+                <div class="was-passiert">Was das bedeutet</div>
+                Der Plan landet in einem dafür vorgesehenen Ordner und erhält einen eindeutigen Namen.
+                Dazu schreibt der Assistent eine kleine Markierung in den Kopf der Datei (z. B. zu welchem
+                Bereich die Änderung gehört) — daran erkennen andere Werkzeuge später automatisch,
+                worum es geht.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step highlight">
+          <div class="step-num"><div class="step-num-inner">4.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Aufgabenzettel anlegen
+              <span class="badge badge-wichtig">Neu</span>
+            </div>
+            <div class="step-desc">
+              In der <strong>echten, live laufenden Datenbank</strong> wird automatisch ein Aufgabenzettel
+              erstellt. Er bekommt eine eindeutige Nummer wie <em>T000301</em>, taucht sofort im
+              Verwaltungsbereich der Website auf, und seine Nummer wird in den Plan eingetragen —
+              damit Plan und Aufgabenzettel später eindeutig zueinander gehören.
+              <div class="ticket-highlight">
+                <strong>Meldung an euch:</strong> „Aufgabenzettel T000301 angelegt —
+                sichtbar unter web.mentolder.de/admin/bugs"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Plan sichern &amp; hochladen
+              <span class="badge badge-stopp">Pause</span>
+            </div>
+            <div class="step-desc">
+              Plan und Anforderungsbeschreibung werden <strong>gespeichert und auf den Server hochgeladen</strong>.
+              Damit sind sie für jeden sichtbar und können nicht mehr versehentlich verloren gehen.
+              <div class="erklaerung">
+                <div class="was-passiert">Was das bedeutet</div>
+                Kein Code wird geschrieben. Kein Knopf gedrückt. Die Umsetzung beginnt
+                erst in Phase 2 — absichtlich getrennt, damit ihr die Planung prüfen könnt.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FEHLER BEHEBEN -->
+    <div class="path-section fix fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Fehler beheben</span>
+        <span class="path-header-badge">Reparatur / …</span>
+        <span class="path-header-desc">Erst beweisen, dann reparieren · Aufgabenzettel ist Pflicht</span>
+      </div>
+      <div class="steps">
+
+        <div class="step highlight">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Aufgabenzettel-Nummer klären
+              <span class="badge badge-pflicht">Pflicht</span>
+            </div>
+            <div class="step-desc">
+              <strong>Falls bereits ein Zettel existiert:</strong> Nummer übernehmen — fertig.<br>
+              <strong>Falls noch kein Zettel existiert:</strong> Der Assistent fragt nach Titel,
+              wie schwer der Fehler wiegt (kritisch, groß, klein, geringfügig) und einer kurzen
+              Beschreibung, dann legt er den Zettel selbst an (Art: Fehler, Priorität: hoch).
+              <div class="ticket-highlight">
+                <strong>Ohne Aufgabenzettel-Nummer geht es nicht weiter.</strong>
+                Das ist bewusst so — jede Reparatur muss verfolgbar sein.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Eigene Arbeitskopie einrichten
+              <span class="badge badge-vorab">Erst prüfen</span>
+            </div>
+            <div class="step-desc">
+              Wie bei einer neuen Funktion: Der Assistent prüft erst, ob bereits eine passende
+              Arbeitskopie existiert, und wechselt nur hinein. Andernfalls legt er eine neue an
+              — diesmal mit einem beschreibenden Namen für die Reparatur.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Den Fehler zuerst beweisbar machen</div>
+            <div class="step-desc">
+              Bevor irgendwas repariert wird, schreibt der Assistent eine <strong>automatische Probe</strong>
+              (einen Test), der den Fehler eindeutig nachweist. Dieser Test muss zunächst
+              <em>fehlschlagen</em> — sonst hätte er den Fehler nicht wirklich gefunden.
+              <div class="erklaerung">
+                <div class="was-passiert">Warum das wichtig ist</div>
+                Eine Reparatur gilt nur dann als erfolgreich, wenn dieselbe Probe danach
+                besteht. So kann niemand versehentlich den Fehler „reparieren", ohne ihn
+                wirklich behoben zu haben.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">Reparaturplan schreiben <span style="font-weight:400;color:var(--text-2)">(bei komplexen Fehlern)</span></div>
+            <div class="step-desc">
+              Lässt sich der Fehler mit einer einzigen kleinen Änderung beheben,
+              reicht eine kurze Begründung im Speicherprotokoll.<br>
+              Bei komplizierteren Fehlern: vollständigen Schritt-für-Schritt-Plan erstellen
+              und die Aufgabenzettel-Nummer dort vermerken.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Plan sichern &amp; hochladen
+              <span class="badge badge-stopp">Pause</span>
+            </div>
+            <div class="step-desc">
+              Probe und Plan werden gespeichert und hochgeladen — bereit für Phase 2.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- WARTUNG -->
+    <div class="path-section chore fade-in">
+      <div class="path-header">
+        <span class="path-header-label">Wartung</span>
+        <span class="path-header-badge">Wartung / …</span>
+        <span class="path-header-desc">Vollständig in einem Schritt — kein Aufgabenzettel</span>
+      </div>
+      <div class="steps">
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">0.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Einmalig oder wiederkehrend?
+              <span class="badge badge-wichtig">Neu</span>
+            </div>
+            <div class="step-desc">
+              <strong>Allererste Frage:</strong> „Soll diese Wartung regelmäßig wiederholt werden —
+              wöchentlich, monatlich, täglich?"
+              <ul>
+                <li>Klassische Kandidaten: Software-Bausteine aktualisieren, Zertifikate erneuern,
+                    Protokolle aufräumen, Sicherungen prüfen.</li>
+                <li>Erkennungsmerkmale: jede Formulierung mit „regelmäßig", „jede Woche", „jeden Monat", „automatisch".</li>
+              </ul>
+              <div class="audit-highlight">
+                <strong>Wiederkehrend:</strong> Der Assistent richtet eine <strong>Routine</strong> ein, die
+                ab sofort selbstständig zur gewünschten Zeit läuft — keine Arbeitskopie, kein einmaliger Lauf,
+                <strong>hier endet die Wartung</strong>.<br>
+                <strong>Einmalig:</strong> weiter mit dem nächsten Schritt.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">0.6</div></div>
+          <div class="step-body">
+            <div class="step-title">Gibt es schon offene Wartungs-Arbeitsbereiche?</div>
+            <div class="step-desc">
+              Zuerst prüfen, ob bereits ein passender Wartungszweig offen ist.
+              Falls ja: Änderung dort einbauen, statt einen neuen zu öffnen.
+              So wird verhindert, dass viele kleine Wartungs-Änderungen das Protokoll unübersichtlich machen.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">In einem Satz beschreiben, was zu tun ist</div>
+            <div class="step-desc">
+              Beispiele: „Astro auf Version 5 aktualisieren", „Variablenname korrigieren",
+              „Schreibfehler in der Dokumentation beheben".
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Arbeitskopie einrichten &amp; Änderung durchführen
+              <span class="badge badge-vorab">Erst prüfen</span>
+            </div>
+            <div class="step-desc">
+              Wie bei den anderen Pfaden: erst prüfen, ob bereits eine Arbeitskopie existiert,
+              sonst eine neue anlegen. Kein ausführlicher Plan, kein Anforderungsdokument,
+              keine Test-zuerst-Methode nötig — direkt machen.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Prüfen, ob nichts kaputt gegangen ist</div>
+            <div class="step-desc">
+              Alle automatischen Prüfroutinen laufen durch:
+              <ul>
+                <li>Allgemeine Probe-Suite — muss komplett grün sein</li>
+                <li>Konfigurationsdatei-Prüfung — falls Systemkonfigurationen betroffen</li>
+                <li>Website-Vorschau — falls Webseiten-Dateien betroffen</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">Freigabe einholen, zusammenführen &amp; veröffentlichen</div>
+            <div class="step-desc">
+              Änderungsantrag erstellen, nach automatischer Prüfung zusammenführen und den passenden
+              Veröffentlichungs-Befehl ausführen. Fertig.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── UMSETZUNG ── -->
+  <section id="execute">
+    <div class="section-header fade-in">
+      <span class="skill-badge exec-badge">Phase 2</span>
+      <h2>Umsetzung</h2>
+    </div>
+
+    <div class="path-section fade-in" style="border-left-color: var(--gold); --pc: var(--gold); --pdim: var(--gold-dim);">
+      <div class="path-header" style="background: var(--gold-dim);">
+        <span class="path-header-label" style="color: var(--gold);">Ausführung</span>
+        <span style="font-size:11px;color:var(--text-3);border:1px solid rgba(201,168,76,0.2);border-radius:3px;padding:0.2rem 0.5rem;">Neue Funktion · Fehler-Reparatur</span>
+        <span class="path-header-desc">Startet auf der in Phase 1 vorbereiteten Arbeitskopie</span>
+      </div>
+      <div class="steps">
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">0</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Bin ich am richtigen Ort?
+              <span class="badge badge-vorab">Sicherheit</span>
+            </div>
+            <div class="step-desc">
+              Bevor irgendetwas verändert wird, prüft der Assistent zwei Dinge:
+              <ul>
+                <li><strong>Bin ich in der richtigen Arbeitskopie?</strong> — Wenn er versehentlich im Haupt-Ordner statt in der für die Aufgabe vorbereiteten Kopie steht, würde er den falschen Bereich verändern.</li>
+                <li><strong>Arbeitet gerade jemand anderes hier?</strong> — Wenn parallel eine andere KI-Sitzung in derselben Arbeitskopie aktiv ist, gäbe es Datensalat. In dem Fall: kurz warten oder Rücksprache halten.</li>
+              </ul>
+              Findet der Assistent etwas Verdächtiges, meldet er es — keine Änderungen ohne Bestätigung.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">1</div></div>
+          <div class="step-body">
+            <div class="step-title">Plan laden &amp; verstehen</div>
+            <div class="step-desc">
+              Der neueste Plan aus dem Planordner wird geladen und vollständig gelesen.
+              Aus dem Namen der Arbeitskopie ergibt sich, ob es sich um eine neue Funktion oder eine Reparatur handelt.
+              Falls ein Aufgabenzettel verknüpft ist, wird die Nummer für spätere Schritte vorgemerkt.
+              <div class="erklaerung">
+                <div class="was-passiert">Was das bedeutet</div>
+                Wenn mehrere Pläne offen sind, kann der Assistent auch eine Liste anzeigen und
+                euch wählen lassen — falls die Reihenfolge wichtig ist.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step highlight">
+          <div class="step-num"><div class="step-num-inner">1.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Aufgabenzettel auf „In Bearbeitung" setzen
+              <span class="badge badge-wichtig">Neu</span>
+            </div>
+            <div class="step-desc">
+              Falls ein Aufgabenzettel verknüpft ist, wird er in der Datenbank automatisch
+              auf <strong>„In Bearbeitung"</strong> gesetzt — damit jeder im Team sieht, dass
+              gerade daran gearbeitet wird.
+              <div class="ticket-highlight">
+                <strong>Meldung an euch:</strong> „Aufgabenzettel T000301 → In Bearbeitung"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">2</div></div>
+          <div class="step-body">
+            <div class="step-title">Eigentliche Umsetzung</div>
+            <div class="step-desc">
+              <strong>Bei neuen Funktionen:</strong> Mehrere spezialisierte Hilfs-Assistenten
+              arbeiten parallel — einer kümmert sich um die Datenbankseite,
+              ein anderer um die Benutzeroberfläche, ein dritter um die Systemkonfiguration.
+              Das spart Zeit und nutzt das Fachwissen der jeweiligen Spezialisten.<br><br>
+              <strong>Bei Reparaturen:</strong> Schritt für Schritt umsetzen, bis die in Phase 1
+              geschriebene Probe erstmals <em>besteht</em> statt fehlzuschlagen.
+              Dann noch aufräumen und vereinfachen.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">3</div></div>
+          <div class="step-body">
+            <div class="step-title">Lokale Prüfung</div>
+            <div class="step-desc">
+              Bevor irgendetwas veröffentlicht wird, laufen alle automatischen Proben durch:
+              <ul>
+                <li>Konfigurationsdateien auf Fehler prüfen</li>
+                <li>Relevante Funktions- und Sicherheitstests ausführen</li>
+                <li>Gesamte Test-Suite starten — alles muss grün sein</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">4</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Vorab-Vorschau
+              <span class="badge badge-opt">Optional</span>
+            </div>
+            <div class="step-desc">
+              <strong>Aktueller Stand:</strong> Die Vorschau-Umgebung läuft derzeit nicht.
+              Änderungen werden lokal geprüft und danach direkt in der echten Umgebung veröffentlicht.
+              Sobald die Vorschau wieder läuft, kann der Assistent die Änderung dort gefahrlos in Aktion zeigen, bevor sie live geht.
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">5</div></div>
+          <div class="step-body">
+            <div class="step-title">Änderungsantrag stellen</div>
+            <div class="step-desc">
+              Der Assistent erstellt einen formalen <strong>Änderungsantrag</strong> —
+              eine Zusammenfassung aller gemachten Änderungen mit Begründung,
+              die vor dem Veröffentlichen nicht mehr von Hand geprüft werden muss
+              (ihr habt das so vereinbart).<br><br>
+              <strong>Bei Reparaturen</strong> muss der Antrag die Aufgabenzettel-Nummer enthalten,
+              damit der Zettel später automatisch geschlossen wird, sobald der Antrag durchgeht.
+            </div>
+          </div>
+        </div>
+
+        <div class="step highlight">
+          <div class="step-num"><div class="step-num-inner">5.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Änderungsantrag mit dem Aufgabenzettel verknüpfen
+              <span class="badge badge-wichtig">Neu</span>
+            </div>
+            <div class="step-desc">
+              Direkt nach dem Stellen des Änderungsantrags wird in der Datenbank notiert:
+              „Aufgabenzettel T000301 gehört zu Antrag Nummer 723." So kann man später
+              vom Aufgabenzettel direkt zum Antrag springen — und umgekehrt.
+              <div class="erklaerung">
+                <div class="was-passiert">Warum das wichtig ist</div>
+                Beim Nachschauen, was zu einem bestimmten Fehler unternommen wurde, ist sofort sichtbar:
+                Welcher Antrag hat ihn behoben? Welche Dateien wurden geändert?
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">6</div></div>
+          <div class="step-body">
+            <div class="step-title">Automatische Freigabe nach bestandenen Prüfungen</div>
+            <div class="step-desc">
+              Alle automatischen Prüfungen (Tests, Sicherheitsscans) laufen in der Cloud.
+              Sind sie grün, wird der Antrag automatisch übernommen.
+            </div>
+          </div>
+        </div>
+
+        <div class="step highlight">
+          <div class="step-num"><div class="step-num-inner">6.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Aufgabenzettel abschließen
+              <span class="badge badge-wichtig">Neu</span>
+            </div>
+            <div class="step-desc">
+              Nach erfolgreichem Zusammenführen wird der Aufgabenzettel automatisch abgehakt:
+              <ul>
+                <li><strong>Neue Funktion:</strong> Auflösung „Ausgeliefert"</li>
+                <li><strong>Reparatur:</strong> Auflösung „Behoben"</li>
+              </ul>
+              Zusätzlich wird ein interner Kommentar hinterlassen, der auf den Änderungsantrag
+              und den ausgeführten Plan verweist.
+              <div class="ticket-highlight">
+                <strong>Meldung an euch:</strong> „Aufgabenzettel T000301 → Erledigt (Ausgeliefert)"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step highlight">
+          <div class="step-num"><div class="step-num-inner">7</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Plan in der Datenbank ablegen &amp; Datei löschen
+              <span class="badge badge-wichtig">Geändert</span>
+            </div>
+            <div class="step-desc">
+              <strong>Neuer Ablauf:</strong> Der ausgeführte Plan wird nicht mehr in einen Erledigt-Ordner verschoben,
+              sondern <strong>vollständig in der Datenbank archiviert</strong> (zusammen mit Aufgabenzettel-Nummer und Antrags-Nummer).
+              Anschließend wird die Plan-Datei aus dem Projekt entfernt.
+              <div class="erklaerung">
+                <div class="was-passiert">Warum das so ist</div>
+                Der Plan-Ordner bleibt schlank — nur was gerade in Arbeit ist, ist dort sichtbar.
+                Wer nachsehen möchte, was historisch geplant und umgesetzt wurde, schaut in
+                die Datenbank über den Verwaltungsbereich der Website. Der Plan ist also nicht weg,
+                nur an einen sinnvolleren Ort umgezogen.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step audit-step">
+          <div class="step-num"><div class="step-num-inner">7.5</div></div>
+          <div class="step-body">
+            <div class="step-title">
+              Arbeitskopie wegräumen
+              <span class="badge badge-wichtig">Neu</span>
+            </div>
+            <div class="step-desc">
+              Nach Abschluss wird die nicht mehr benötigte Arbeitskopie sauber entfernt — sowohl
+              lokal als auch auf dem Server. So bleibt für die nächste Aufgabe alles aufgeräumt
+              und der Aufräum-Durchgang aus Schritt vorab hat weniger zu tun.
+              <div class="audit-highlight">
+                <strong>Was bleibt:</strong> der Eintrag im Verlaufsprotokoll des Hauptzweigs.
+                Der ist unveränderlich und zeigt nachvollziehbar, wann was geändert wurde.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num"><div class="step-num-inner">8</div></div>
+          <div class="step-body">
+            <div class="step-title">Auf den echten Servern veröffentlichen</div>
+            <div class="step-desc">
+              Je nachdem, welche Dateien verändert wurden, wird der passende
+              Veröffentlichungsbefehl ausgeführt. Die Tabelle unten zeigt, was wann passiert:
+              <div class="deploy-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Was wurde verändert?</th>
+                      <th>Was passiert dann?</th>
+                      <th>Wie prüft man es?</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Website-Seiten oder -Bilder</td>
+                      <td>Website auf beiden Servern neu bauen und starten</td>
+                      <td>web.mentolder.de + web.korczewski.de besuchen</td>
+                    </tr>
+                    <tr>
+                      <td>Das 3D-Brett (Systembrett)</td>
+                      <td>Brett-Dienst auf beiden Servern neu starten</td>
+                      <td>brett.mentolder.de + brett.korczewski.de besuchen</td>
+                    </tr>
+                    <tr>
+                      <td>Dokumentations-Inhalte</td>
+                      <td>Dokumentations-Seite auf beiden Servern aktualisieren</td>
+                      <td>docs.mentolder.de + docs.korczewski.de besuchen</td>
+                    </tr>
+                    <tr>
+                      <td>Video-/Livestream-Konfiguration</td>
+                      <td>Livestream-Dienst neu verbinden und DNS-Einträge aktualisieren</td>
+                      <td>Livestream-Status prüfen</td>
+                    </tr>
+                    <tr>
+                      <td>Systemkonfiguration oder Geheimnisse</td>
+                      <td>Gesamten Arbeitsbereich auf beiden Servern neu ausrollen</td>
+                      <td>Automatische Smoke-Tests + Gesundheitscheck</td>
+                    </tr>
+                    <tr>
+                      <td>Nur Dokumentation, Tests oder interne Skripte</td>
+                      <td colspan="2" style="color:var(--text-3);font-style:italic;">Kein Veröffentlichen nötig</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p style="margin-top:0.75rem;font-size:12.5px;color:var(--text-3);">
+                Schlägt eine Prüfung nach dem Veröffentlichen fehl: Kein Notfall-Fix auf dem Hauptzweig.
+                Stattdessen neuen Reparatur-Auftrag über Phase 1 starten.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── PROBLEME ── -->
+  <section id="failure">
+    <div class="section-header fade-in">
+      <h2>Was passiert bei Problemen?</h2>
+    </div>
+
+    <div class="failure-grid fade-in">
+      <div class="failure-card">
+        <div class="f-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7 4v4M7 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Automatische Prüfung schlägt fehl
+        </div>
+        <p>Der Assistent sucht die Ursache, behebt sie auf derselben Arbeitskopie und lädt die korrigierte Version erneut hoch. Kein zweiter Antrag wird gestellt. Nach zwei erfolglosen Versuchen wird ein interner Kommentar am Aufgabenzettel hinterlassen — der Zettel bleibt auf „In Bearbeitung".</p>
+      </div>
+      <div class="failure-card">
+        <div class="f-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7 4v4M7 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Veröffentlichen schlägt fehl
+        </div>
+        <p>Das Problem wird protokolliert, Patrick wird benachrichtigt, und die Server bleiben im aktuellen Zustand. <strong>Kein automatisches Zurücksetzen.</strong> Der Aufgabenzettel bleibt auf „In Bearbeitung" — Patrick entscheidet manuell, was als nächstes passiert.</p>
+      </div>
+      <div class="failure-card">
+        <div class="f-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7 4v4M7 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Prüfung nach Veröffentlichen schlägt fehl
+        </div>
+        <p>Über Phase 1 wird sofort ein neuer Reparatur-Auftrag gestartet. Der Rückschritt wird wie ein normaler Fehler behandelt. Am betroffenen Aufgabenzettel wird ein interner Kommentar mit der Nummer des neuen Zettels hinterlassen.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SPEZIALISTENTEAMS ── -->
+  <section id="agents">
+    <div class="section-header fade-in">
+      <h2>Spezialistenteams</h2>
+    </div>
+
+    <p class="fade-in" style="font-size:13.5px; color:var(--text-2); margin-bottom:1.5rem; max-width:680px;">
+      Bei größeren Aufgaben arbeitet Claude nicht allein — es gibt spezialisierte Hilfs-Assistenten
+      für verschiedene Bereiche. Bevor einer davon eingesetzt wird, liest der Haupt-Assistent alle
+      aktiven Pläne, damit der Spezialist den vollständigen Kontext kennt.
+    </p>
+
+    <div class="agent-grid fade-in">
+      <div class="agent-card">
+        <div class="a-domain">Datenbank-Spezialist</div>
+        <div class="a-name">bachelorprojekt-db</div>
+        <div class="a-desc">Zuständig für Datenbankstruktur, Abfragen, Datensicherung und -wiederherstellung.</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Infrastruktur-Spezialist</div>
+        <div class="a-name">bachelorprojekt-infra</div>
+        <div class="a-desc">Zuständig für Server-Konfiguration, Kustomize-Layouts und automatisierte Deployment-Aufgaben.</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Betriebs-Spezialist</div>
+        <div class="a-name">bachelorprojekt-ops</div>
+        <div class="a-desc">Zuständig für laufende Server, Protokoll-Überwachung, Diagnose und Neustart von Diensten.</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Test-Spezialist</div>
+        <div class="a-name">bachelorprojekt-test</div>
+        <div class="a-desc">Zuständig für das Schreiben, Ausführen und Debuggen aller automatischen Proben.</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Website-Spezialist</div>
+        <div class="a-name">bachelorprojekt-website</div>
+        <div class="a-desc">Zuständig für Webseiten-Entwicklung: Seiten, Komponenten, Design und Benutzeroberfläche.</div>
+      </div>
+      <div class="agent-card">
+        <div class="a-domain">Sicherheits-Spezialist</div>
+        <div class="a-name">bachelorprojekt-security</div>
+        <div class="a-desc">Zuständig für Geheimnisse, verschlüsselte Zugangsdaten, Anmeldung und Datenschutz-Konformität.</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── GLOSSAR ── -->
+  <section id="glossar">
+    <div class="section-header fade-in">
+      <h2>Fachbegriff-Übersetzungen</h2>
+    </div>
+
+    <p class="fade-in" style="font-size:13.5px; color:var(--text-2); margin-bottom:2rem; max-width:680px;">
+      Diese Begriffe tauchen häufig in technischen Unterhaltungen auf — hier in verständlichem Deutsch.
+    </p>
+
+    <div class="glossar-grid fade-in">
+      <div class="glossar-item">
+        <div class="g-term">Branch / Arbeitszweig</div>
+        <div class="g-def">Eine separate Kopie des gesamten Projekts, in der Änderungen gefahrlos ausprobiert werden können, ohne den laufenden Betrieb zu beeinflussen. Wie eine Übungswohnung.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Worktree / Arbeitskopie</div>
+        <div class="g-def">Der konkrete Ordner auf dem Computer, in dem an einem Arbeitszweig gearbeitet wird. Mehrere Arbeitskopien können parallel existieren — eine pro offener Aufgabe.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Stale / Verwaist</div>
+        <div class="g-def">Eine Arbeitskopie, deren Aufgabe längst abgeschlossen ist, die aber noch nicht weggeräumt wurde. Der „Aufräumen vor dem Start"-Schritt findet solche und bietet das Wegräumen an.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Commit / Änderung speichern</div>
+        <div class="g-def">Ein Schnappschuss des aktuellen Zustands aller Dateien — mit Datum, Uhrzeit und einer kurzen Beschreibung, was geändert wurde. Unveränderlich, immer nachvollziehbar.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Push / Hochladen</div>
+        <div class="g-def">Die lokalen, gespeicherten Änderungen werden auf den gemeinsamen Server übertragen, damit sie für andere sichtbar und gesichert sind.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Pull Request / Änderungsantrag</div>
+        <div class="g-def">Ein formaler Antrag, die Änderungen aus einer Arbeitskopie in den Hauptzweig zu übernehmen. Enthält eine Zusammenfassung und kann von anderen geprüft werden.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Merge / Zusammenführen</div>
+        <div class="g-def">Die Änderungen aus der Arbeitskopie werden in den Hauptzweig integriert. Danach sind sie offiziell Teil des Projekts und können veröffentlicht werden.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">CI / Automatische Prüfung</div>
+        <div class="g-def">Ein automatisches System, das bei jeder Änderung sofort alle Tests ausführt und prüft, ob der Code fehlerfrei und sicher ist. Läuft in der Cloud, ohne menschliches Zutun.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Deploy / Veröffentlichen</div>
+        <div class="g-def">Geprüfte Änderungen werden auf die echten, öffentlich zugänglichen Server übertragen. Erst dann sind sie für alle Nutzer sichtbar.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Routine / Cron / Schedule</div>
+        <div class="g-def">Eine Aufgabe, die automatisch zu festgelegten Zeiten wiederholt wird (z. B. wöchentlich Abhängigkeiten prüfen). Statt einer einmaligen Reparatur wird das ganze Vorgehen einmal hinterlegt — der Server kümmert sich danach selbst darum.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Kustomize / Konfigurationsdateien</div>
+        <div class="g-def">Beschreibungen, wie die verschiedenen Dienste (Website, Datenbank, Chat usw.) auf dem Server eingerichtet und miteinander verbunden sein sollen.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Namespace / Bereich</div>
+        <div class="g-def">Eine isolierte Abteilung auf dem Server — ähnlich wie verschiedene Stockwerke in einem Gebäude. Jeder Bereich hat seine eigenen Dienste und Einstellungen.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">kubectl / Clusterverwaltung</div>
+        <div class="g-def">Das Werkzeug, mit dem der Assistent dem Server-Cluster Befehle gibt: Dienste starten, Protokolle abrufen, Konfigurationen anpassen.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Sealed Secret / Versiegeltes Geheimnis</div>
+        <div class="g-def">Ein verschlüsseltes Paket mit Passwörtern und Zugangsdaten. Nur der richtige Server kann es öffnen — selbst wer den Code liest, sieht nur unlesbaren Text.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">TDD / Test-zuerst-Methode</div>
+        <div class="g-def">Eine Methode, bei der man zuerst eine automatische Probe schreibt, die den gewünschten Zustand beschreibt (und zunächst fehlschlägt), und erst danach den Code schreibt, der sie bestehen lässt.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Spec / Anforderungsbeschreibung</div>
+        <div class="g-def">Ein Dokument, das beschreibt, was eine neue Funktion können soll, wie sie sich anfühlen soll und was sie ausdrücklich nicht tun soll.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Plan / Umsetzungsplan</div>
+        <div class="g-def">Eine geordnete Liste konkreter Schritte, die ausgeführt werden müssen, um die Anforderungsbeschreibung umzusetzen. Wird zunächst als Datei gespeichert und nach Abschluss in die Datenbank verschoben.</div>
+      </div>
+      <div class="glossar-item">
+        <div class="g-term">Playwright / Browser-Test</div>
+        <div class="g-def">Ein automatisches Werkzeug, das einen echten Browser steuert und Benutzerinteraktionen nachspielt — um zu prüfen, ob die Website korrekt funktioniert.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-in, .step').forEach((el, i) => {
+    if (el.classList.contains('step')) {
+      el.style.transitionDelay = `${(i % 8) * 60}ms`;
+    }
+    observer.observe(el);
+  });
+
+  const sections = ['hero','audit','pfad','plan','execute','failure','agents','glossar'];
+  const navLinks = document.querySelectorAll('nav a.nav-link');
+  const sectionMap = {};
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) sectionMap[id] = el;
+  });
+
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        navLinks.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  Object.values(sectionMap).forEach(s => navObserver.observe(s));
+</script>
+</body>
+</html>

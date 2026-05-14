@@ -1432,7 +1432,6 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$DOCS_IMAGE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
           # Ensure DEV_* defaults exist for non-mentolder envs (korczewski/dev).
           export DEV_DOMAIN="${DEV_DOMAIN:-}"
@@ -1764,8 +1763,7 @@ tasks:
           source scripts/env-resolve.sh "$env"
           NS="${WORKSPACE_NAMESPACE:-workspace}"
           echo "-> Rolling out docs on ${env} (ns=${NS})..."
-          # docs.yaml uses ${DOCS_IMAGE} — pass the shared image name
-          DOCS_IMAGE=workspace-docs envsubst "\$DOCS_IMAGE" < k3d/docs.yaml | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
+          kubectl apply -f k3d/docs.yaml --context "${ENV_CONTEXT}" --server-side --force-conflicts
           kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"
           kubectl --context "${ENV_CONTEXT}" rollout status deployment/docs -n "${NS}" --timeout=120s
         done

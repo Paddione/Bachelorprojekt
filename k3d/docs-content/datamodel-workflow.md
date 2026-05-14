@@ -1142,7 +1142,6 @@ erDiagram
     uuid id PK
     uuid assignment_id
     uuid dimension_id
-    string dimension_name
     int final_score
     int threshold_mid
     int threshold_high
@@ -1624,6 +1623,8 @@ erDiagram
     string file_path
     timestamp created_at
     timestamp completed_at
+    string brainstorm_choice
+    string brainstorm_session
   }
   plan_sections {
     int id PK
@@ -1686,6 +1687,8 @@ erDiagram
 <li><code>bugs.bug_tickets</code></li>
 <li><code>coaching.books</code></li>
 <li><code>coaching.drafts</code></li>
+<li><code>coaching.session_steps</code></li>
+<li><code>coaching.sessions</code></li>
 <li><code>coaching.snippet_clusters</code></li>
 <li><code>coaching.snippets</code></li>
 <li><code>coaching.template_assignments</code></li>
@@ -1714,13 +1717,11 @@ erDiagram
 <li><code>public.customers</code></li>
 <li><code>public.document_assignments</code></li>
 <li><code>public.document_templates</code></li>
-<li><code>public.eur_bookings</code></li>
-<li><code>public.free_time_windows</code></li>
-<li><i>… and 44 more</i></li>
+<li><i>… and 46 more</i></li>
 </ul>
 
 ## Coverage
-<aside class="coverage-footer"><p><b>17/101</b> documented tables have at least one declared writer.</p><p><b>32</b> columns flagged by the unbound-FK heuristic.</p><p><b>3</b> declared cross-skill gaps.</p></aside>
+<aside class="coverage-footer"><p><b>17/103</b> documented tables have at least one declared writer.</p><p><b>32</b> columns flagged by the unbound-FK heuristic.</p><p><b>3</b> declared cross-skill gaps.</p></aside>
 
 <script>/* Datamodel × Workflow — page interactivity.
  * Scope: hover-highlight, cell click → drilldown, filter buttons, Ctrl+K.

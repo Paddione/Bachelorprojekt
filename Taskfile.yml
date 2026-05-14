@@ -905,6 +905,16 @@ tasks:
     cmds:
       - node scripts/track-pr.mjs --ingest
 
+  software-history:classify:
+    desc: 'Classify all unclassified PRs into bachelorprojekt.software_events (requires TRACKING_DB_URL)'
+    cmds:
+      - cd website && npx tsx ../scripts/software-history-classify.mts {{.CLI_ARGS}}
+
+  software-history:psql:
+    desc: 'psql into shared-db with software_events focus'
+    cmds:
+      - source scripts/env-resolve.sh "{{.ENV}}" && kubectl exec -it -n "${WORKSPACE_NAMESPACE:-workspace}" --context "${ENV_CONTEXT:-k3d-mentolder}" deploy/shared-db -- psql -U postgres -d postgres
+
   plans:import:
     desc: "Parse all active plan files → tracking/pending/ (seeds DB on next CronJob run)"
     cmds:

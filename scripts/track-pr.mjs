@@ -197,20 +197,32 @@ async function ensurePlanSchema(pgClient) {
   `);
   await pgClient.query(`CREATE INDEX IF NOT EXISTS plans_domains_idx ON superpowers.plans USING GIN(domains)`);
   await pgClient.query(`CREATE INDEX IF NOT EXISTS plans_status_idx ON superpowers.plans(status)`);
+  await pgClient.query(`
+    ALTER TABLE superpowers.plans
+      ADD COLUMN IF NOT EXISTS brainstorm_choice  TEXT,
+      ADD COLUMN IF NOT EXISTS brainstorm_session TEXT
+  `);
 }
 
 async function writePlanToDb(row, pgClient) {
   const result = await pgClient.query(
-    `INSERT INTO superpowers.plans (slug, title, domains, status, pr_number, file_path)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO superpowers.plans
+       (slug, title, domains, status, pr_number, file_path,
+        brainstorm_choice, brainstorm_session)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      ON CONFLICT (slug) DO UPDATE SET
-       title = EXCLUDED.title,
-       domains = EXCLUDED.domains,
-       status = EXCLUDED.status,
-       pr_number = EXCLUDED.pr_number,
-       file_path = EXCLUDED.file_path
+       title              = EXCLUDED.title,
+       domains            = EXCLUDED.domains,
+       status             = EXCLUDED.status,
+       pr_number          = EXCLUDED.pr_number,
+       file_path          = EXCLUDED.file_path,
+       brainstorm_choice  = COALESCE(EXCLUDED.brainstorm_choice,
+                                     superpowers.plans.brainstorm_choice),
+       brainstorm_session = COALESCE(EXCLUDED.brainstorm_session,
+                                     superpowers.plans.brainstorm_session)
      RETURNING id`,
-    [row.slug, row.title, row.domains, row.status, row.pr_number ?? null, row.file_path]
+    [row.slug, row.title, row.domains, row.status, row.pr_number ?? null, row.file_path,
+     row.brainstorm_choice ?? null, row.brainstorm_session ?? null]
   );
   const planId = result.rows[0].id;
 

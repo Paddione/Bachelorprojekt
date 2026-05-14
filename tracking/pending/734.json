@@ -1,0 +1,12 @@
+{
+  "pr_number": 734,
+  "title": "fresh install via Taskfile + Ollama backend",
+  "description": "## Summary\n- Add `openclaw/` config dir (`.env.example` + README) and `Taskfile.openclaw.yml` with backup/install/configure/start/status/logs/restore/wipe.\n- OpenClaw on the WSL host points at the existing Ollama (`10.10.0.3:11434/v1`); no cluster/llm-router/GPU-host change.\n- BATS unit test pins the Taskfile shape and `.env.example` keys; CLAUDE.md gains a pointer in the Local-first LLM pipeline section.\n\n## Test plan\n- [x] `bats tests/unit/openclaw-taskfile.bats` — 6/6 pass\n- [x] `task --list-all | grep openclaw` — all 8 tasks discovered\n- [x] `task test:all` — only pre-existing unrelated failure (`\\${DOCS_IMAGE}:latest` on main)\n- [ ] Runtime (WSL host, manual per plan Task 7+8): `task openclaw:backup && task openclaw:install && task openclaw:configure && task openclaw:status`\n\nImplements plan `docs/superpowers/plans/2026-05-14-openclaw-fresh-install.md`.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+  "category": "feat",
+  "scope": "openclaw",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T05:09:40Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

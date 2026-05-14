@@ -133,6 +133,22 @@ configMapGenerator:
       - docs-content/backup.md
       - docs-content/dsgvo.md
       - docs-content/contributing.md
+      - docs-content/admin-tickets.md
+      - docs-content/admin-webinterface.md
+      - docs-content/arena.md
+      - docs-content/decisions.md
+      - docs-content/einvoice.md
+      - docs-content/glossary.md
+      - docs-content/livestream.md
+      - docs-content/mcp-actions.md
+      - docs-content/quickstart-admin.md
+      - docs-content/quickstart-dev.md
+      - docs-content/quickstart-enduser.md
+      - docs-content/services.md
+      - docs-content/systembrett.md
+      - docs-content/systemisches-brett.md
+      - docs-content/datamodel-workflow.md
+      - docs-content/db-schema.md
 
 generatorOptions:
   disableNameSuffixHash: true

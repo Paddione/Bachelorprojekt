@@ -1724,7 +1724,7 @@ tasks:
         echo "  https://docs.mentolder.de"
 
   docs:refresh-diagrams:
-    desc: "Regenerate all auto-generated diagrams (DB schema, …) and deploy docs to both clusters"
+    desc: "Regenerate all auto-generated diagrams (DB schema, …) and push to both clusters via ConfigMap"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -1738,8 +1738,13 @@ tasks:
       - |
         echo "→ Copying to k3d/docs-content/db-schema.md..."
         cp docs/db-schema-diagram.md k3d/docs-content/db-schema.md
-      - task: docs:deploy
+      - task: docs:configmap:apply
     silent: false
+
+  docs:configmap:apply:
+    desc: "Apply the docs-content ConfigMap to both prod clusters and restart docs pods"
+    cmds:
+      - bash scripts/docs-configmap-apply.sh
 
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers

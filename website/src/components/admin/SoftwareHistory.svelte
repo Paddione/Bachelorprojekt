@@ -21,14 +21,28 @@
     added: '➕', removed: '➖', changed: '✏️', irrelevant: '⊘',
   };
 
+  let loadError = '';
   async function load() {
+    loadError = '';
     const sp = new URLSearchParams();
     if (kindFilter) sp.set('kind', kindFilter);
     if (areaFilter) sp.set('area', areaFilter);
     if (q)          sp.set('q', q);
-    const r = await fetch(`/api/admin/software-history?${sp.toString()}`);
-    const j = await r.json();
-    stack = j.stack; events = j.events;
+    try {
+      const r = await fetch(`/api/admin/software-history?${sp.toString()}`);
+      if (!r.ok) { loadError = `Fehler ${r.status}`; return; }
+      const j = await r.json();
+      stack = j.stack ?? [];
+      events = j.events ?? [];
+    } catch (err) {
+      loadError = err instanceof Error ? err.message : 'Unbekannter Fehler';
+    }
+  }
+
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+  function debouncedLoad() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(load, 250);
   }
 
   onMount(load);
@@ -57,6 +71,10 @@
   }, {});
 </script>
 
+{#if loadError}
+  <p class="error">{loadError}</p>
+{/if}
+
 <section class="stack">
   <h2>Heutiger Stack</h2>
   {#each Object.entries(stackByArea) as [area, rows]}
@@ -75,7 +93,7 @@
 </section>
 
 <section class="filters">
-  <input type="text" placeholder="Volltext…" bind:value={q} on:input={load} />
+  <input type="text" placeholder="Volltext…" bind:value={q} on:input={debouncedLoad} />
   <select bind:value={kindFilter} on:change={load}>
     <option value="">alle Kinds</option>
     <option value="added">added</option>
@@ -84,7 +102,7 @@
   </select>
   <select bind:value={areaFilter} on:change={load}>
     <option value="">alle Areas</option>
-    {#each Array.from(new Set(events.map((e) => e.area))).sort() as a}
+    {#each Array.from(new Set(stack.map((s) => s.area))).sort() as a}
       <option value={a}>{a}</option>
     {/each}
   </select>
@@ -146,4 +164,5 @@
   .modal { background: white; padding: 1.5rem; border-radius: .5rem; min-width: 400px; display: grid; gap: .5rem; }
   .modal label { display: grid; gap: .25rem; }
   .modal footer { display: flex; justify-content: end; gap: .5rem; margin-top: 1rem; }
+  .error { color: red; font-weight: bold; margin-bottom: 1rem; }
 </style>

@@ -31,7 +31,7 @@ Die gesamte Konfiguration liegt im Verzeichnis `environments/` als YAML-Dateien.
 | Domain | localhost | mentolder.de | korczewski.de |
 | TLS | Kein TLS (HTTP) | Let's Encrypt Wildcard | Let's Encrypt Wildcard |
 | Cluster-Typ | k3d (lokal) | k3s auf Hetzner | k3s auf Hetzner |
-| ArgoCD | Nein (direktes kubectl) | Ja (Hub-Cluster) | Ja (Hub-Cluster) |
+| ArgoCD | Nein (direktes kubectl) | Ja (Hub-Cluster) | Ja (Spoke, Hub: mentolder) |
 | Sealed Secrets | Nein (Klartext) | Ja | Ja |
 | DDNS | Nein | Ja (ipv64) | Nein (statische IP) |
 | E-Mail | Mailpit (lokal, kein Versand) | smtp.mailbox.org | smtp.mailbox.org |

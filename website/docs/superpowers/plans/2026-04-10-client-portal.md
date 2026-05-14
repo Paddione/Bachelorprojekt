@@ -1,5 +1,7 @@
 # Client Portal Implementation Plan
 
+> ⚠️ **Veraltet:** Dieser Plan referenziert InvoiceNinja (entfernt 2026-04) und Mattermost (entfernt 2026-04). Vor Implementierung müssen diese Abhängigkeiten durch aktuell vorhandene Services ersetzt werden.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add `/portal` (client view) and `/admin` (admin view) routes that show bookings, invoices, shared files, pending signatures, and past meetings — all gated behind Keycloak session auth.

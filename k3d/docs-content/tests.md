@@ -81,6 +81,18 @@ task workspace:deploy
 | FA-24 | Kollaboratives Whiteboard — Nextcloud Whiteboard Deployment |
 | FA-25 | Mailpit E-Mail-Server — SMTP-Relay und Web-UI |
 | FA-26 | Bug Report Form — Bug-Report-Endpunkt der Website |
+| FA-27 | Systemisches Brett — Pod, REST API, WebSocket-Sync, Snapshot CRUD |
+| FA-28 | Website-Messaging — internes Chat-System (Threads, Rooms, Portalnachrichten) |
+| FA-29 | Requirements-Tracking-UI (bachelorprojekt) — Pod, HTTP, Datenbank |
+| FA-31 | /admin/monitoring Auth-Gate — unauthentifizierter Request leitet zu Keycloak um (prod-Tier) |
+| FA-32 | LLM-Router bge-m3 — 1024-dim Vektoren wenn TEI aktiv |
+| FA-33 | LLM-Router voyage-multilingual-2 — Vektoren unabhängig von TEI-Status |
+| FA-34 | LLM-Router strict-fail — kein silent fallback bei bge-m3 + TEI down |
+| FA-35 | LLM-Router MixedEmbeddingModelError — gemischte Embedding-Modelle werden abgelehnt |
+| FA-36 | Rerank-Endpunkt — sortierte Ergebnisse, korrekte Top-1-Position |
+| FA-37 | workspace-chat — 200-Token Deutsch-Prompt Roundtrip |
+| FA-39 | Arena DB schema bootstrap + Service-Health-Smoke |
+| FA-40 | Arena Spectator-join Smoke — arena-server erreichbar, Protokoll gültig |
 
 ---
 

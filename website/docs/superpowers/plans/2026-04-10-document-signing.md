@@ -1,5 +1,7 @@
 # Document Signing Implementation Plan
 
+> ⚠️ **Veraltet:** Dieser Plan referenziert Mattermost (entfernt 2026-04). Signing-Bestätigungen müssen über einen anderen Kanal (z.B. Outline oder Datenbank-Log) abgebildet werden.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Clients see documents pending their signature in the portal. They open each document in Collabora, read it, click "Gelesen und akzeptiert" — this timestamps a confirmation record to Mattermost and Outline, then moves the file to a `signed/` folder.

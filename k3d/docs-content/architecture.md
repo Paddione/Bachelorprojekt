@@ -16,7 +16,7 @@
 
 ## Ueberblick
 
-Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Kubernetes Deployments und werden mit Kustomize gebaut — `k3d/` ist das einzige Basis-Manifest-Verzeichnis. Lokal laeuft der Cluster in k3d (Docker-in-Docker), in Produktion ist es ein vereinter k3s-Cluster mit zwei Namespaces (`workspace` und `workspace-korczewski`) auf 12 Nodes (6 Hetzner CP + 6 Home Worker via WireGuard). Als Ingress Controller dient Traefik (k3s built-in), der alle eingehenden HTTP/HTTPS-Anfragen per Subdomain-Routing an die jeweiligen Services weiterleitet. Alle Nutzerdaten verbleiben vollstaendig on-premises (DSGVO by Design).
+Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Kubernetes Deployments und werden mit Kustomize gebaut — `k3d/` ist das einzige Basis-Manifest-Verzeichnis. Lokal laeuft der Cluster in k3d (Docker-in-Docker), in Produktion laufen zwei physische k3s-Cluster: `mentolder` (9 Nodes: 3 Hetzner-CPs + 6 Home-Worker via WireGuard-Mesh, Namespace `workspace`) und `korczewski-ha` (3 Hetzner-Nodes, Namespace `workspace-korczewski`). Als Ingress Controller dient Traefik (k3s built-in), der alle eingehenden HTTP/HTTPS-Anfragen per Subdomain-Routing an die jeweiligen Services weiterleitet. Alle Nutzerdaten verbleiben vollstaendig on-premises (DSGVO by Design).
 
 ---
 
@@ -27,33 +27,41 @@ Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine T
 ```mermaid
 flowchart TB
   User([Benutzer / Browser])
-  subgraph cluster["Vereinter k3s Cluster · 12 Nodes (6 Hetzner CP + 6 Home Worker)"]
+  subgraph mentolder["mentolder-Cluster · 9 Nodes (3 Hetzner CP + 6 Home Worker via WireGuard)"]
     direction TB
-    Traefik{{"Traefik Ingress · 80/443"}}
+    TR1{{"Traefik · 80/443"}}
     subgraph ns1["Namespace: workspace (mentolder.de)"]
       KC1[Keycloak]
       NC1[Nextcloud + Talk]
       VW1[Vaultwarden]
       WEB1[Website + Portal]
       LK1[LiveKit]
+      DB1[(shared-db · PG 16)]
+      BU1[Backup CronJob]
     end
+  end
+  subgraph korczewski["korczewski-ha-Cluster · 3 Nodes (Hetzner)"]
+    direction TB
+    TR2{{"Traefik · 80/443"}}
     subgraph ns2["Namespace: workspace-korczewski (korczewski.de)"]
       KC2[Keycloak]
       NC2[Nextcloud + Talk]
       WEB2[Website + Portal]
-    end
-    subgraph data["Geteilte Datenebene"]
-      DB[(shared-db · PG 16)]
-      BU[Backup CronJob]
+      ARENA[Arena Server]
+      DB2[(shared-db · PG 16)]
+      BU2[Backup CronJob]
     end
   end
 
-  User --> Traefik
-  Traefik --> KC1 & NC1 & VW1 & WEB1 & LK1 & KC2 & NC2 & WEB2
+  User --> TR1 & TR2
+  TR1 --> KC1 & NC1 & VW1 & WEB1 & LK1
+  TR2 --> KC2 & NC2 & WEB2 & ARENA
   KC1 -. OIDC .-> NC1 & VW1 & WEB1
   KC2 -. OIDC .-> NC2 & WEB2
-  KC1 & NC1 & VW1 & WEB1 & KC2 & NC2 & WEB2 --> DB
-  DB --> BU
+  KC1 & NC1 & VW1 & WEB1 --> DB1
+  KC2 & NC2 & WEB2 & ARENA --> DB2
+  DB1 --> BU1
+  DB2 --> BU2
 ```
 
 ---

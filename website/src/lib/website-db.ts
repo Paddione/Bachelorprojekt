@@ -45,6 +45,7 @@ export type TimelineRow = {
   requirement_id: string | null;
   requirement_name: string | null;
   bugs_fixed: number;
+  ticket_external_id: string | null;
 };
 
 export async function listTimeline(opts: {
@@ -80,22 +81,38 @@ export async function listTimeline(opts: {
       ORDER BY merged_at DESC
       LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
-  )).rows as Omit<TimelineRow, 'bugs_fixed'>[];
+  )).rows as Omit<TimelineRow, 'bugs_fixed' | 'ticket_external_id'>[];
 
   const prNumbers = rows.map(r => r.pr_number).filter((n): n is number => n != null);
   const bugCounts = new Map<number, number>();
+  const ticketIds = new Map<number, string>();
+
   if (prNumbers.length > 0) {
-    const counts = (await pool.query(
-      `SELECT pr_number AS pr, COUNT(*)::int AS n
-         FROM tickets.ticket_links
-        WHERE kind = 'fixes' AND pr_number = ANY($1::int[])
-        GROUP BY pr_number`,
-      [prNumbers],
-    )).rows as { pr: number; n: number }[];
-    for (const c of counts) bugCounts.set(c.pr, c.n);
+    const [counts, links] = await Promise.all([
+      pool.query<{ pr: number; n: number }>(
+        `SELECT pr_number AS pr, COUNT(*)::int AS n
+           FROM tickets.ticket_links
+          WHERE kind = 'fixes' AND pr_number = ANY($1::int[])
+          GROUP BY pr_number`,
+        [prNumbers],
+      ),
+      pool.query<{ pr: number; external_id: string }>(
+        `SELECT tl.pr_number AS pr, t.external_id
+           FROM tickets.ticket_links tl
+           JOIN tickets.tickets t ON t.id = tl.from_id
+          WHERE tl.kind = 'implements' AND tl.pr_number = ANY($1::int[])`,
+        [prNumbers],
+      ),
+    ]);
+    for (const c of counts.rows) bugCounts.set(c.pr, c.n);
+    for (const l of links.rows) ticketIds.set(l.pr, l.external_id);
   }
 
-  return rows.map(r => ({ ...r, bugs_fixed: r.pr_number ? (bugCounts.get(r.pr_number) ?? 0) : 0 }));
+  return rows.map(r => ({
+    ...r,
+    bugs_fixed: r.pr_number ? (bugCounts.get(r.pr_number) ?? 0) : 0,
+    ticket_external_id: r.pr_number ? (ticketIds.get(r.pr_number) ?? null) : null,
+  }));
 }
 
 // ── Customer ────────────────────────────────────────────────────────────────

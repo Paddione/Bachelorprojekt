@@ -12,8 +12,11 @@ setup() {
   export TRACKING_DB_URL="$TEST_PG_URL"
 
   node tests/unit/fixtures/software-history/mock-anthropic.mjs &
-  MOCK_PID=$!
-  sleep 0.2
+  export MOCK_PID=$!
+  for i in {1..50}; do
+    curl -s "http://127.0.0.1:${MOCK_PORT}/" >/dev/null 2>&1 && break
+    sleep 0.1
+  done
 
   psql "$TEST_PG_URL" -v ON_ERROR_STOP=1 -f deploy/tracking/init.sql >/dev/null
   psql "$TEST_PG_URL" -v ON_ERROR_STOP=1 <<SQL
@@ -28,6 +31,7 @@ SQL
 
 teardown() {
   [[ -n "${MOCK_PID:-}" ]] && kill "$MOCK_PID" 2>/dev/null || true
+  pkill -f mock-anthropic.mjs 2>/dev/null || true
 }
 
 @test "classifies every unclassified PR exactly once" {

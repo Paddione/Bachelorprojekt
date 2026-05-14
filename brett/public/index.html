@@ -406,6 +406,144 @@
   });
   function sendStiffness(/* value */) { /* placeholder until Task 10 */ }
 
+  // ----- CCD-IK -----
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+
+  // Chains: end-effector first, root last. Only bones in the chain are rotated.
+  const IK_CHAINS = {
+    lWrist: ['lElbow', 'lShoulder'],
+    rWrist: ['rElbow', 'rShoulder'],
+    lAnkle: ['lKnee',  'lHip'],
+    rAnkle: ['rKnee',  'rHip'],
+    lKnee:  ['lHip'],
+    rKnee:  ['rHip'],
+    lElbow: ['lShoulder'],
+    rElbow: ['rShoulder'],
+    head:   ['hips'],
+  };
+
+  function setNdc(ev) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.x =  ((ev.clientX - rect.left) / rect.width)  * 2 - 1;
+    ndc.y = -((ev.clientY - rect.top)  / rect.height) * 2 + 1;
+  }
+
+  function pickContact(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    const meshes = [];
+    for (const fig of STATE.figures) {
+      fig.root.traverse(o => { if (o.userData && o.userData.isContact) meshes.push(o); });
+    }
+    const hit = raycaster.intersectObjects(meshes, false)[0];
+    return hit ? hit.object : null;
+  }
+
+  function pickMannequinBody(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    for (const fig of STATE.figures) {
+      const hits = raycaster.intersectObject(fig.root, true);
+      const nonContact = hits.find(h => !(h.object.userData && h.object.userData.isContact));
+      if (nonContact) return fig;
+    }
+    return null;
+  }
+
+  function pickFloor(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObject(floor, false)[0];
+    return hit ? hit.point : null;
+  }
+
+  // CCD: rotate chain bones so end-effector sphere world position approaches targetWorld.
+  function ccdIK(fig, endBoneName, targetWorld, iterations = 8) {
+    const chain = IK_CHAINS[endBoneName];
+    if (!chain) return;
+    const endSphere = fig.bones[endBoneName].children.find(c => c.userData && c.userData.isContact);
+    if (!endSphere) return;
+    const endWorld = new THREE.Vector3();
+    const boneWorld = new THREE.Vector3();
+    const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+    const qWorld = new THREE.Quaternion();
+    for (let iter = 0; iter < iterations; iter++) {
+      for (const boneName of chain) {
+        const bone = fig.bones[boneName];
+        bone.updateMatrixWorld(true);
+        endSphere.getWorldPosition(endWorld);
+        bone.getWorldPosition(boneWorld);
+        tmpA.subVectors(endWorld, boneWorld).normalize();
+        tmpB.subVectors(targetWorld, boneWorld).normalize();
+        if (tmpA.lengthSq() < 1e-8 || tmpB.lengthSq() < 1e-8) continue;
+        const dot = Math.max(-1, Math.min(1, tmpA.dot(tmpB)));
+        const angle = Math.acos(dot);
+        if (angle < 1e-3) continue;
+        const axis = new THREE.Vector3().crossVectors(tmpA, tmpB).normalize();
+        if (!isFinite(axis.x)) continue;
+        qWorld.setFromAxisAngle(axis, angle);
+        // Convert world rotation to local
+        const parentQ = new THREE.Quaternion();
+        bone.parent.getWorldQuaternion(parentQ).invert();
+        const localDelta = new THREE.Quaternion().multiplyQuaternions(parentQ, qWorld).multiply(bone.parent.getWorldQuaternion(new THREE.Quaternion()));
+        bone.quaternion.premultiply(localDelta);
+        // Re-extract x/z Euler for the override store
+        const e = new THREE.Euler().setFromQuaternion(bone.quaternion, 'XYZ');
+        fig.boneOverrides[boneName] = { x: e.x, z: e.z };
+        bone.rotation.x = e.x; bone.rotation.z = e.z; bone.rotation.y = 0;
+      }
+    }
+  }
+
+  // ----- Drag handling -----
+  let dragging = null; // { figId, boneName, plane: Plane }
+
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.shiftKey) return;
+    const sphere = pickContact(e);
+    if (sphere) {
+      const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
+      if (!fig) return;
+      selectFigure(fig.id);
+      const worldPos = new THREE.Vector3();
+      sphere.getWorldPosition(worldPos);
+      // Drag plane parallel to camera, through the sphere
+      const camDir = new THREE.Vector3();
+      camera.getWorldDirection(camDir);
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, worldPos);
+      dragging = { figId: fig.id, boneName: sphere.userData.boneName, plane };
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    setNdc(e);
+    raycaster.setFromCamera(ndc, camera);
+    const target = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragging.plane, target);
+    if (!target) return;
+    const fig = STATE.figures.find(f => f.id === dragging.figId);
+    if (!fig) return;
+    ccdIK(fig, dragging.boneName, target, 6);
+    sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    const fig = STATE.figures.find(f => f.id === dragging.figId);
+    if (fig) {
+      // Clear overrides for the dragged chain so spring resumes
+      const chain = IK_CHAINS[dragging.boneName] || [];
+      for (const b of chain) delete fig.boneOverrides[b];
+      // Also clear the end-effector entry if any
+      delete fig.boneOverrides[dragging.boneName];
+      sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+    }
+    dragging = null;
+  });
+
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();

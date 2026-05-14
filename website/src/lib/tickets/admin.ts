@@ -32,6 +32,8 @@ export interface ListedTicket {
   resolution: TicketResolution | null;
   priority: TicketPriority;
   severity: TicketSeverity | null;
+  attentionMode: 'auto' | 'ai_ready' | 'needs_human';
+  effectiveAttentionMode: 'ai_ready' | 'needs_human';
   component: string | null;
   thesisTag: string | null;
   parentId: string | null;
@@ -105,6 +107,7 @@ export interface ListFilters {
   brand: string;
   type?: TicketType;
   status?: TicketStatus | 'open';   // 'open' = NOT IN ('done','archived')
+  attention?: 'ai_ready' | 'needs_human' | 'auto';
   component?: string;
   assigneeId?: string;
   customerId?: string;
@@ -127,6 +130,8 @@ export interface ListFilters {
 const LIST_COLS = `
     t.id, t.external_id AS "externalId", t.type, t.brand, t.title,
     t.status, t.resolution, t.priority, t.severity, t.component,
+    t.attention_mode AS "attentionMode",
+    tickets.fn_effective_attention_mode(t) AS "effectiveAttentionMode",
     t.thesis_tag AS "thesisTag", t.parent_id AS "parentId",
     t.assignee_id AS "assigneeId",
     a.name AS "assigneeLabel",
@@ -181,6 +186,7 @@ export async function listAdminTickets(f: ListFilters): Promise<ListedTicket[]> 
   } else if (f.status) {
     push('t.status = $N', f.status);
   }
+  if (f.attention)  push('tickets.fn_effective_attention_mode(t) = $N', f.attention);
   if (f.component)  push('t.component = $N', f.component);
   if (f.assigneeId) push('t.assignee_id = $N::uuid', f.assigneeId);
   if (f.customerId) push('t.customer_id = $N::uuid', f.customerId);
@@ -217,6 +223,7 @@ export async function countAdminTickets(f: ListFilters): Promise<number> {
   if (f.type)        push('t.type = $N', f.type);
   if (f.status === 'open') where.push(`t.status NOT IN ('done','archived')`);
   else if (f.status) push('t.status = $N', f.status);
+  if (f.attention)   push('tickets.fn_effective_attention_mode(t) = $N', f.attention);
   if (f.component)   push('t.component = $N', f.component);
   if (f.assigneeId)  push('t.assignee_id = $N::uuid', f.assigneeId);
   if (f.customerId)  push('t.customer_id = $N::uuid', f.customerId);
@@ -459,6 +466,7 @@ export async function patchAdminTicket(p: {
   priority?: TicketPriority;
   severity?: TicketSeverity | null;
   component?: string | null;
+  attentionMode?: 'auto' | 'ai_ready' | 'needs_human';
   thesisTag?: string | null;
   parentId?: string | null;
   customerId?: string | null;
@@ -482,6 +490,7 @@ export async function patchAdminTicket(p: {
   if (p.priority    !== undefined) push('priority',        p.priority);
   if (p.severity    !== undefined) push('severity',        p.severity);
   if (p.component   !== undefined) push('component',       p.component);
+  if (p.attentionMode !== undefined) push('attention_mode', p.attentionMode);
   if (p.thesisTag   !== undefined) push('thesis_tag',      p.thesisTag);
   if (p.parentId    !== undefined) push('parent_id',       p.parentId);
   if (p.customerId  !== undefined) push('customer_id',     p.customerId);

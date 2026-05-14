@@ -1,0 +1,45 @@
+families:
+  - id: dev-flow
+    label: "Dev-Flow Skills"
+    color: feature
+  - id: ci
+    label: "CI/CD Pipeline"
+    color: gold
+
+domain_order:
+  - { id: tickets, label: "Tickets & Issues" }
+  - { id: bachelorprojekt, label: "Bachelorprojekt & Superpowers" }
+
+steps:
+  - id: dev-flow-plan
+    family: dev-flow
+    label: "dev-flow-plan skill"
+    description: "Orchestrates path-choice + worktree + plan + ticket."
+    writes:
+      tables: ["tickets.tickets"]
+      files: ["docs/superpowers/plans/*.md"]
+    reads: {}
+    gaps: []
+  - id: tracking-import
+    family: ci
+    label: "tracking-import CronJob"
+    writes:
+      tables: ["bachelorprojekt.features"]
+    reads:
+      files: ["tracking/pending/*.json"]
+    gaps: []
+
+cross_skill_gaps:
+  - from: dev-flow-plan
+    to: tracking-import
+    via: "tickets.tickets.external_id → bachelorprojekt.features (no ticket_id column today)"
+    explanation: "Plan ticket is set, tracking-import doesn't enrich features with it."
+
+heuristics:
+  unbound_fk_candidates:
+    enabled: true
+    column_pattern: "_id$"
+    exclude_schemas: ["keycloak"]
+  table_with_no_writer:
+    enabled: true
+    exclude_schemas: ["keycloak", "nextcloud", "vaultwarden"]

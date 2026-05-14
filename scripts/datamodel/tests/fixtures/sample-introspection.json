@@ -1,0 +1,16 @@
+{
+  "tables": [
+    {"schema": "tickets", "name": "tickets", "columns": [
+      {"name": "id", "type": "uuid", "nullable": false, "pk": true},
+      {"name": "external_id", "type": "text", "nullable": false, "pk": false},
+      {"name": "title", "type": "text", "nullable": false, "pk": false},
+      {"name": "brand_id", "type": "text", "nullable": true, "pk": false}
+    ]},
+    {"schema": "bachelorprojekt", "name": "features", "columns": [
+      {"name": "id", "type": "uuid", "nullable": false, "pk": true},
+      {"name": "pr_number", "type": "int", "nullable": false, "pk": false},
+      {"name": "title", "type": "text", "nullable": false, "pk": false}
+    ]}
+  ],
+  "foreign_keys": []
+}

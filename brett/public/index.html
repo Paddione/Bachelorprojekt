@@ -2333,6 +2333,25 @@ function pickBoard(ndc) {
   return t;
 }
 
+// ── Hint ────────────────────────────────────────────────
+const HINTS = {
+  V: 'Tap = auswählen · Drag = Figur ziehen · Doppel-Tap = Beschriftung',
+  O: 'Drag = Brett rotieren · Wheel/Pinch = Zoom · RMB = Orbit (frei drehen)',
+  P: 'Drag = Brett verschieben',
+  R: 'Drag horizontal auf Figur = drehen (snap π/4)',
+  F: 'F = alles einrahmen · Klick auf Figur = darauf fokussieren',
+  E: 'Figur wählen, dann E oder Klick = aus deren Augen sehen',
+};
+let hintFadeTimer = null;
+function updateHint() {
+  const el = document.getElementById('bc-hint');
+  if (!el) return;
+  el.textContent = HINTS[activeTool] || '';
+  el.classList.remove('bc-fade');
+  clearTimeout(hintFadeTimer);
+  hintFadeTimer = setTimeout(() => el.classList.add('bc-fade'), 10_000);
+}
+
 // ── Tool-Mode system ─────────────────────────────────────
 let activeTool = 'V';
 let spaceHeld = false;
@@ -2355,24 +2374,6 @@ setActiveTool('V');
 window.setActiveTool = setActiveTool;
 window.getActiveTool = () => activeTool;
 
-// ── Hint ────────────────────────────────────────────────
-const HINTS = {
-  V: 'Tap = auswählen · Drag = Figur ziehen · Doppel-Tap = Beschriftung',
-  O: 'Drag = Brett rotieren · Wheel/Pinch = Zoom · RMB = Pan',
-  P: 'Drag = Brett verschieben',
-  R: 'Drag horizontal auf Figur = drehen (snap π/4)',
-  F: 'F = alles einrahmen · Klick auf Figur = darauf fokussieren',
-  E: 'Figur wählen, dann E oder Klick = aus deren Augen sehen',
-};
-let hintFadeTimer = null;
-function updateHint() {
-  const el = document.getElementById('bc-hint');
-  if (!el) return;
-  el.textContent = HINTS[activeTool] || '';
-  el.classList.remove('bc-fade');
-  clearTimeout(hintFadeTimer);
-  hintFadeTimer = setTimeout(() => el.classList.add('bc-fade'), 10_000);
-}
 updateHint();
 
 // ── Mouse / touch ─────────────────────────────────────────────────────────────

@@ -103,7 +103,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Seed public.brands for arena FK
-        run: psql postgresql://arena_test:arena_test@localhost:5432/arena_test -c "CREATE TABLE IF NOT EXISTS public.brands (id text PRIMARY KEY);"
+        run: |
+          psql postgresql://arena_test:arena_test@localhost:5432/arena_test \
+            -c "CREATE TABLE IF NOT EXISTS public.brands (id text PRIMARY KEY);" \
+            -c "INSERT INTO public.brands (id) VALUES ('mentolder'),('korczewski') ON CONFLICT DO NOTHING;"
 
       - name: Test (unit + integration via TEST_DB_URL)
         working-directory: arena-server

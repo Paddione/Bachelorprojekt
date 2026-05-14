@@ -139,6 +139,35 @@ Co-Authored-By: <model-name>
 
 ---
 
+## Schritt 5.5: PR-Link im Ticket speichern
+
+Falls `$TICKET_ID` gesetzt, direkt nach dem PR-Erstellen:
+
+```bash
+PR_NUM=$(gh pr view --json number -q '.number')
+
+PGPOD=$(kubectl get pod -n workspace --context mentolder \
+  -l app=shared-db -o name | head -1)
+
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
+
+kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -c \
+  "INSERT INTO tickets.ticket_links (from_id, kind, pr_number)
+   SELECT '$TICKET_UUID', 'pr', $PR_NUM
+   WHERE NOT EXISTS (
+     SELECT 1 FROM tickets.ticket_links
+     WHERE from_id = '$TICKET_UUID' AND kind = 'pr' AND pr_number = $PR_NUM
+   );"
+```
+
+- `to_id` bleibt NULL (kein NOT NULL-Constraint auf der Spalte).
+- `WHERE NOT EXISTS` macht den Insert idempotent ohne UNIQUE-Constraint.
+
+---
+
 ## Schritt 6: Auto-Merge wenn CI grün
 
 ---
@@ -164,7 +193,7 @@ kubectl exec "$PGPOD" -n workspace --context mentolder -- \
 
    INSERT INTO tickets.ticket_comments (ticket_id, body, visibility)
    SELECT id,
-     'PR #$PR_NUM merged. Plan executed: docs/superpowers/plans/<slug>.md',
+     'PR #$PR_NUM merged. Plan archived to tickets.ticket_plans in Postgres.',
      'internal'
    FROM tickets.tickets WHERE external_id = '$TICKET_ID';"
 
@@ -173,17 +202,49 @@ echo "Ticket $TICKET_ID → done ($RESOLUTION)"
 
 ---
 
-## Schritt 7: Plan archivieren
+## Schritt 7: Plan in Postgres archivieren + Datei löschen
 
-Nach erfolgreichem Merge den Plan in `executed/` verschieben:
+Falls `$TICKET_ID` gesetzt und `$PLAN_FILE` vorhanden:
 
 ```bash
-mkdir -p docs/superpowers/plans/executed
-mv docs/superpowers/plans/<slug>.md docs/superpowers/plans/executed/
-git add docs/superpowers/plans/
-git commit -m "chore(plans): mark <slug> as executed"
+PLAN_FILE="docs/superpowers/plans/<slug>.md"
+SLUG="<slug>"
+BRANCH=$(git branch --show-current)
+PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
+
+PGPOD=$(kubectl get pod -n workspace --context mentolder \
+  -l app=shared-db -o name | head -1)
+
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
+
+PR_NUM_SQL=$([ -z "$PR_NUM" ] && echo "NULL" || echo "$PR_NUM")
+
+# SQL in temp-Datei schreiben — verhindert Shell-Expansion des Plan-Inhalts
+TMPFILE=$(mktemp /tmp/plan-archive-XXXXXX.sql)
+{
+  printf "INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nVALUES (\n  '%s',\n  '%s',\n  '%s',\n  \$plan\$" \
+    "$TICKET_UUID" "$SLUG" "$BRANCH"
+  cat "$PLAN_FILE"
+  printf "\$plan\$,\n  %s\n);\n" "$PR_NUM_SQL"
+} > "$TMPFILE"
+
+kubectl exec -i "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -v ON_ERROR_STOP=1 < "$TMPFILE"
+
+rm "$TMPFILE"
+
+# Datei löschen (nicht nach executed/ verschieben)
+rm "$PLAN_FILE"
+git add "$PLAN_FILE"
+git commit -m "chore(plans): archive $SLUG → postgres [$TICKET_ID]"
 git push
 ```
+
+Falls `$TICKET_ID` leer (Chore ohne Ticket): SQL-Archivierung überspringen — nur `rm "$PLAN_FILE"` + commit.
+
+**Hinweis Dollar-Quoting:** `$plan$...$plan$` ist psql-Dollar-Quoting; sicher für beliebigen Markdown-Inhalt, solange der Plan selbst nicht den String `$plan$` enthält (praktisch ausgeschlossen).
 
 ---
 

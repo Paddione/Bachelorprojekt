@@ -1,6 +1,7 @@
 const TITLE_RE = /^(feat|fix|chore|docs|refactor|infra|perf|test|build|ci|style)(\(([^)]+)\))?(!)?:\s*(.+?)\s*$/i;
 const BUG_RE   = /\bBR-\d{8}-\d{4}\b/g;
 const REQ_RE   = /\b(FA|SA|NFA|AK|L)-\d+\b/i;
+const TICKET_RE = /\bT\d{6}\b/g;
 
 const BRAND_SCOPES = new Set(['mentolder', 'korczewski', 'kore']);
 
@@ -21,6 +22,7 @@ export function parsePr(pr) {
   const bug_refs = Array.from(new Set((body.match(BUG_RE) || [])));
   const reqMatch = REQ_RE.exec(body);
   const requirement_id = reqMatch ? reqMatch[0].toUpperCase() : null;
+  const ticket_refs = Array.from(new Set((body.match(TICKET_RE) || [])));
 
   let brand = null;
   if (scope && BRAND_SCOPES.has(scope)) {
@@ -38,6 +40,7 @@ export function parsePr(pr) {
     merged_at: pr.mergedAt,
     merged_by: pr.mergedBy?.login || null,
     bug_refs,
+    ticket_refs,
   };
 }
 

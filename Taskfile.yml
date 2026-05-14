@@ -1753,16 +1753,19 @@ tasks:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:
       - |
+        # Build and push once — both clusters use the same image content
+        node scripts/build-docs.js
+        SHARED_IMAGE="ghcr.io/paddione/workspace-docs"
+        docker build -t "${SHARED_IMAGE}:latest" -f scripts/docs.Dockerfile .
+        docker push "${SHARED_IMAGE}:latest"
+
+        # Roll out to each cluster
         for env in korczewski mentolder; do
           source scripts/env-resolve.sh "$env"
-          IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
-          echo "-> Building/Pushing docs image for ${env}..."
-          task docs:image:build ENV=$env
-          task docs:image:push ENV=$env
-          
           NS="${WORKSPACE_NAMESPACE:-workspace}"
-          echo "-> Updating docs deployment on ${env} (ns=${NS})..."
-          envsubst "\$DOCS_IMAGE" < k3d/docs.yaml | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
+          echo "-> Rolling out docs on ${env} (ns=${NS})..."
+          # docs.yaml uses ${DOCS_IMAGE} — pass the shared image name
+          DOCS_IMAGE=workspace-docs envsubst "\$DOCS_IMAGE" < k3d/docs.yaml | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
           kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"
           kubectl --context "${ENV_CONTEXT}" rollout status deployment/docs -n "${NS}" --timeout=120s
         done
@@ -1772,7 +1775,7 @@ tasks:
         echo "  https://docs.mentolder.de"
 
   docs:refresh-diagrams:
-    desc: "Regenerate all auto-generated diagrams (DB schema, …) and push to both clusters via ConfigMap"
+    desc: "Regenerate all auto-generated diagrams (DB schema, …) and redeploy docs to both clusters"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -1786,11 +1789,11 @@ tasks:
       - |
         echo "→ Copying to k3d/docs-content/db-schema.md..."
         cp docs/db-schema-diagram.md k3d/docs-content/db-schema.md
-      - task: docs:configmap:apply
+      - task: docs:deploy
     silent: false
 
   docs:configmap:apply:
-    desc: "Apply the docs-content ConfigMap to both prod clusters and restart docs pods"
+    desc: "NOTE: ConfigMap not mounted in docs pods — use docs:deploy for real updates. Kept for kustomize validation."
     cmds:
       - bash scripts/docs-configmap-apply.sh
 

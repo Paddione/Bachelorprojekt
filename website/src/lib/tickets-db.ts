@@ -139,7 +139,7 @@ export async function initTicketsSchema(): Promise<void> {
       id          BIGSERIAL PRIMARY KEY,
       from_id     UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
       to_id       UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
-      kind        TEXT NOT NULL CONSTRAINT ticket_links_kind_check CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements')),
+      kind        TEXT NOT NULL CONSTRAINT ticket_links_kind_check CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements','pr')),
       pr_number   INTEGER,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       created_by  UUID REFERENCES customers(id),
@@ -149,8 +149,9 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_links_from_idx ON tickets.ticket_links (from_id, kind)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_links_to_idx   ON tickets.ticket_links (to_id, kind)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_links_pr_idx   ON tickets.ticket_links (pr_number) WHERE pr_number IS NOT NULL`);
-  // Extend kind CHECK constraint to include 'implements' (used by track-pr.mjs for T-ref links).
-  // Idempotent: only runs when 'implements' is not yet in the allowed values.
+  // Extend kind CHECK constraint to include 'implements' and 'pr'.
+  // 'implements': track-pr.mjs T-ref links; 'pr': dev-flow PR association links.
+  // Idempotent: only runs when 'pr' is not yet in the allowed values.
   await pool.query(`
     DO $$
     BEGIN
@@ -158,11 +159,11 @@ export async function initTicketsSchema(): Promise<void> {
         SELECT 1 FROM information_schema.check_constraints
          WHERE constraint_schema = 'tickets'
            AND constraint_name LIKE '%ticket_links%kind%'
-           AND check_clause NOT LIKE '%implements%'
+           AND check_clause NOT LIKE '%''pr''%'
       ) THEN
         ALTER TABLE tickets.ticket_links DROP CONSTRAINT ticket_links_kind_check;
         ALTER TABLE tickets.ticket_links ADD CONSTRAINT ticket_links_kind_check
-          CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements'));
+          CHECK (kind IN ('blocks','blocked_by','duplicate_of','relates_to','fixes','fixed_by','implements','pr'));
       END IF;
     END $$
   `);

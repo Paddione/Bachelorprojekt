@@ -1,158 +1,3 @@
-# Static HTML Docs Build System — Implementation Plan
-
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
-**Goal:** Replace the Docsify runtime with a Node.js build script that converts every `.md` file in `k3d/docs-content/` to a fully self-contained, zero-dependency `.html` file with sidebar navigation, copy buttons, pre-rendered Mermaid SVGs, and Ctrl+K search.
-
-**Architecture:** `scripts/build-docs.js` (ESM, ~350 lines) reads source `.md` files, converts them with `marked`, pre-renders Mermaid code blocks to inline SVG via `mmdc`, post-processes the DOM with `cheerio` (copy buttons, TOC, link rewriting), then wraps each result in a full HTML template with inlined CSS and JS. Output goes to `k3d/docs-content-built/`; `task docs:deploy` is updated to deploy from there.
-
-**Tech Stack:** Node.js 20 (ESM), `marked` 12, `cheerio` 1.x, `@mermaid-js/mermaid-cli` (mmdc) for SVG pre-rendering, go-task for integration.
-
----
-
-## File Map
-
-| Action | Path | Responsibility |
-|---|---|---|
-| Create | `scripts/build-docs.js` | Full build pipeline — orchestrator + all helpers |
-| Create | `scripts/build-docs.test.js` | Unit tests using `node:test` |
-| Create | `k3d/docs-content-built/` | Generated HTML output (gitignored) |
-| Modify | `package.json` | Add `marked`, `cheerio`, `@mermaid-js/mermaid-cli` as devDeps |
-| Modify | `.gitignore` | Add `k3d/docs-content-built/` |
-| Modify | `Taskfile.yml` | Add `docs:build`, update `docs:deploy` to use `docs-content-built/` |
-
----
-
-### Task 1: Install dependencies and create output directory
-
-**Files:**
-- Modify: `package.json`
-- Modify: `.gitignore`
-
-- [ ] **Step 1: Add dev dependencies to package.json**
-
-Open `package.json`. It currently has `"type": "module"` and a `"pg"` dependency. Add devDependencies:
-
-```json
-{
-  "name": "bachelorprojekt-scripts",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test:track-pr": "node --test scripts/track-pr.test.mjs",
-    "test:build-docs": "node --test scripts/build-docs.test.js",
-    "build:docs": "node scripts/build-docs.js"
-  },
-  "dependencies": {
-    "pg": "^8.20.0"
-  },
-  "devDependencies": {
-    "marked": "^12.0.0",
-    "cheerio": "^1.0.0",
-    "@mermaid-js/mermaid-cli": "^11.0.0"
-  }
-}
-```
-
-- [ ] **Step 2: Install**
-
-```bash
-npm install
-```
-
-Expected: `node_modules/.bin/mmdc` exists after install.
-
-- [ ] **Step 3: Add Puppeteer no-sandbox config (required for WSL2 / Docker)**
-
-Create `.puppeteerrc.cjs` in the project root:
-
-```javascript
-module.exports = {
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-};
-```
-
-- [ ] **Step 4: Update .gitignore**
-
-Add at the bottom of `.gitignore`:
-
-```
-# Generated docs HTML
-k3d/docs-content-built/
-```
-
-- [ ] **Step 5: Create output directory placeholder**
-
-```bash
-mkdir -p k3d/docs-content-built
-touch k3d/docs-content-built/.keep
-```
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add package.json package-lock.json .puppeteerrc.cjs .gitignore k3d/docs-content-built/.keep
-git commit -m "chore(docs): add static HTML build deps"
-```
-
----
-
-### Task 2: Write the test file (failing first)
-
-**Files:**
-- Create: `scripts/build-docs.test.js`
-
-- [ ] **Step 1: Create the test file**
-
-```javascript
-// scripts/build-docs.test.js
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { parseSidebar, rewriteLinks, buildToc } from './build-docs.js';
-
-test('parseSidebar: builds HTML nav from _sidebar.md content', () => {
-  const md = `- **Section**\n  - [Page One](page-one)\n  - [Page Two](page-two)\n`;
-  const html = parseSidebar(md, 'page-one');
-  assert.ok(html.includes('Page One'), 'should include link text');
-  assert.ok(html.includes('href="./page-one.html"'), 'should produce relative .html href');
-  assert.ok(html.includes('class="active"'), 'should mark active page');
-  assert.ok(html.includes('Page Two'), 'should include second link');
-});
-
-test('rewriteLinks: converts Docsify hash links to relative .html links', () => {
-  const html = '<a href="#/quickstart-enduser">QS</a> <a href="#/">Home</a>';
-  const out = rewriteLinks(html);
-  assert.ok(out.includes('href="./quickstart-enduser.html"'));
-  assert.ok(out.includes('href="./index.html"'));
-});
-
-test('buildToc: generates toc-box from h2 list', () => {
-  const headings = ['Installation', 'Konfiguration', 'Betrieb'];
-  const html = buildToc(headings);
-  assert.ok(html.includes('Auf dieser Seite'));
-  assert.ok(html.includes('Installation'));
-  assert.ok(html.includes('class="toc-box auto-toc"'));
-});
-```
-
-- [ ] **Step 2: Run tests to confirm they fail**
-
-```bash
-node --test scripts/build-docs.test.js
-```
-
-Expected: `ERR_MODULE_NOT_FOUND` — `build-docs.js` does not exist yet.
-
----
-
-### Task 3: Scaffold build-docs.js with parseSidebar, rewriteLinks, buildToc
-
-**Files:**
-- Create: `scripts/build-docs.js`
-
-- [ ] **Step 1: Create the file**
-
-```javascript
 // scripts/build-docs.js
 import { readFileSync, writeFileSync, mkdirSync, readdirSync,
          existsSync, mkdtempSync, rmSync } from 'node:fs';
@@ -216,59 +61,7 @@ function slugifyHeading(text) {
     .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
     .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 }
-```
 
-- [ ] **Step 2: Run tests — all three should pass**
-
-```bash
-node --test scripts/build-docs.test.js
-```
-
-Expected: `✓ parseSidebar ...`, `✓ rewriteLinks ...`, `✓ buildToc ...`
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add scripts/build-docs.js scripts/build-docs.test.js
-git commit -m "feat(docs): add parseSidebar, rewriteLinks, buildToc"
-```
-
----
-
-### Task 4: Add Mermaid pre-renderer
-
-**Files:**
-- Modify: `scripts/build-docs.js` — add `renderMermaidBlocks`
-- Modify: `scripts/build-docs.test.js` — add mermaid test
-
-- [ ] **Step 1: Add a test for mermaid fallback (bad mmdc path)**
-
-Append to `scripts/build-docs.test.js`:
-
-```javascript
-test('renderMermaidBlocks: returns fallback pre block when mmdc unavailable', async () => {
-  const { renderMermaidBlocks } = await import('./build-docs.js');
-  const html = '<p>before</p><pre><code class="language-mermaid">flowchart LR\n  A--&gt;B</code></pre><p>after</p>';
-  const out = renderMermaidBlocks(html, '/nonexistent/mmdc');
-  assert.ok(out.includes('before'));
-  assert.ok(out.includes('after'));
-  assert.ok(out.includes('<pre') || out.includes('<svg'));
-});
-```
-
-- [ ] **Step 2: Run test to confirm it fails**
-
-```bash
-node --test scripts/build-docs.test.js 2>&1 | tail -5
-```
-
-Expected: fails with `renderMermaidBlocks is not exported`.
-
-- [ ] **Step 3: Add renderMermaidBlocks to build-docs.js**
-
-Append after `slugifyHeading`:
-
-```javascript
 // ─── renderMermaidBlocks ──────────────────────────────────────────────────────
 // Finds <pre><code class="language-mermaid">…</code></pre> blocks in HTML,
 // pre-renders each to inline SVG via mmdc, wraps in .mermaid-svg-wrapper.
@@ -302,62 +95,7 @@ export function renderMermaidBlocks(html, mmdc = join(__dirname, '../node_module
   });
   return $.html();
 }
-```
 
-- [ ] **Step 4: Run all tests**
-
-```bash
-node --test scripts/build-docs.test.js
-```
-
-Expected: all 4 pass.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add scripts/build-docs.js scripts/build-docs.test.js
-git commit -m "feat(docs): add mermaid pre-renderer with fallback"
-```
-
----
-
-### Task 5: Add DOM post-processor (copy buttons + TOC injection)
-
-**Files:**
-- Modify: `scripts/build-docs.js` — add `postProcess`
-- Modify: `scripts/build-docs.test.js` — add postProcess test
-
-- [ ] **Step 1: Add the test**
-
-Append to `scripts/build-docs.test.js`:
-
-```javascript
-test('postProcess: injects copy buttons and TOC, rewrites links', async () => {
-  const { postProcess } = await import('./build-docs.js');
-  const html = `<h1>Title</h1>
-<h2>Section A</h2><p>text</p>
-<h2>Section B</h2>
-<pre><code class="language-bash">echo hello</code></pre>
-<a href="#/other-page">link</a>`;
-  const out = postProcess(html);
-  assert.ok(out.includes('class="copy-btn"'), 'copy button injected');
-  assert.ok(out.includes('class="toc-box auto-toc"'), 'toc box injected');
-  assert.ok(out.includes('href="./other-page.html"'), 'link rewritten');
-  assert.ok(out.includes('<h2 id="section-a"'), 'h2 gets id attribute');
-});
-```
-
-- [ ] **Step 2: Run to confirm failure**
-
-```bash
-node --test scripts/build-docs.test.js 2>&1 | grep -E 'fail|not exported'
-```
-
-- [ ] **Step 3: Add postProcess to build-docs.js**
-
-Append after `renderMermaidBlocks`:
-
-```javascript
 // ─── postProcess ──────────────────────────────────────────────────────────────
 // Runs cheerio DOM post-processing:
 //   1. Adds id attributes to h2 elements for TOC anchors
@@ -394,33 +132,7 @@ export function postProcess(html) {
 
   return $.html();
 }
-```
 
-- [ ] **Step 4: Run all tests**
-
-```bash
-node --test scripts/build-docs.test.js
-```
-
-Expected: all 5 pass.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add scripts/build-docs.js scripts/build-docs.test.js
-git commit -m "feat(docs): add postProcess (copy buttons, TOC, link rewrite)"
-```
-
----
-
-### Task 6: Build the inlined CSS string
-
-**Files:**
-- Modify: `scripts/build-docs.js` — add `getPageCss()`
-
-- [ ] **Step 1: Append getPageCss() to build-docs.js**
-
-```javascript
 // ─── getPageCss ───────────────────────────────────────────────────────────────
 export function getPageCss() {
   return `
@@ -558,28 +270,7 @@ li{margin-bottom:.3em}
 .search-no-results{color:var(--muted-dark);text-align:center;padding:1.5em;font-size:.9rem}
 `;
 }
-```
 
-- [ ] **Step 2: Verify no syntax errors**
-
-```bash
-node -e "import('./scripts/build-docs.js').then(m => console.log('CSS length:', m.getPageCss().length))"
-```
-
-Expected: `CSS length: <number>` — no error.
-
----
-
-### Task 7: Add inline JS template
-
-**Files:**
-- Modify: `scripts/build-docs.js` — add `getPageJs(searchIndex)`
-
-- [ ] **Step 1: Append getPageJs() after getPageCss()**
-
-Note: all DOM manipulation in the search renderer uses safe `textContent` and `createElement` — no `innerHTML` on user-derived strings.
-
-```javascript
 // ─── getPageJs ────────────────────────────────────────────────────────────────
 // Returns inlined JS for a page. searchIndex: [{slug,title,excerpt}].
 export function getPageJs(searchIndex) {
@@ -588,20 +279,20 @@ export function getPageJs(searchIndex) {
 (function(){
   // ── {DOMAIN}/{PROTO} replacement via TreeWalker (text nodes only) ──
   var host=window.location.hostname;
-  var domain=host.replace(/^docs\\./,'')||host;
+  var domain=host.replace(/^docs\./,'')||host;
   var proto=window.location.protocol.replace(':','');
   var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null);
   var node;
   while((node=walker.nextNode())){
     var v=node.nodeValue;
     if(v.includes('{DOMAIN}')||v.includes('{PROTO}')){
-      node.nodeValue=v.replace(/\\{DOMAIN\\}/g,domain).replace(/\\{PROTO\\}/g,proto);
+      node.nodeValue=v.replace(/\{DOMAIN\}/g,domain).replace(/\{PROTO\}/g,proto);
     }
   }
   document.querySelectorAll('a[href]').forEach(function(a){
     var h=a.getAttribute('href')||'';
     if(h.includes('{DOMAIN}')||h.includes('{PROTO}')){
-      a.setAttribute('href',h.replace(/\\{DOMAIN\\}/g,domain).replace(/\\{PROTO\\}/g,proto));
+      a.setAttribute('href',h.replace(/\{DOMAIN\}/g,domain).replace(/\{PROTO\}/g,proto));
     }
   });
 
@@ -680,27 +371,7 @@ export function getPageJs(searchIndex) {
 })();
 `;
 }
-```
 
-- [ ] **Step 2: Verify no syntax errors**
-
-```bash
-node -e "import('./scripts/build-docs.js').then(m => console.log('JS length:', m.getPageJs([]).length))"
-```
-
-Expected: `JS length: <number>` — no error.
-
----
-
-### Task 8: Add buildSearchIndex and wrapPage
-
-**Files:**
-- Modify: `scripts/build-docs.js` — add `buildSearchIndex`, `wrapPage`, `escHtml`
-- Modify: `scripts/build-docs.test.js` — add wrapPage test
-
-- [ ] **Step 1: Append to build-docs.js**
-
-```javascript
 // ─── buildSearchIndex ─────────────────────────────────────────────────────────
 // Builds the search index from a list of {slug, title, rawHtml} objects.
 export function buildSearchIndex(pages) {
@@ -751,55 +422,7 @@ export function wrapPage({ slug, title, content, sidebarHtml, searchIndex }) {
 function escHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
-```
 
-- [ ] **Step 2: Add wrapPage test**
-
-Append to `scripts/build-docs.test.js`:
-
-```javascript
-test('wrapPage: generates valid HTML with sidebar, search overlay, and active link', async () => {
-  const { wrapPage, parseSidebar } = await import('./build-docs.js');
-  const html = wrapPage({
-    slug: 'test-page',
-    title: 'Test Page',
-    content: '<h1>Hello</h1><p>World</p>',
-    sidebarHtml: parseSidebar('- **Section**\n  - [Test Page](test-page)\n', 'test-page'),
-    searchIndex: [{ slug: 'test-page', title: 'Test Page', excerpt: 'World' }],
-  });
-  assert.ok(html.startsWith('<!DOCTYPE html>'));
-  assert.ok(html.includes('<title>Test Page'));
-  assert.ok(html.includes('class="active"'));
-  assert.ok(html.includes('<h1>Hello</h1>'));
-  assert.ok(html.includes('id="search-overlay"'));
-});
-```
-
-- [ ] **Step 3: Run all tests**
-
-```bash
-node --test scripts/build-docs.test.js
-```
-
-Expected: all 6 tests pass.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add scripts/build-docs.js scripts/build-docs.test.js
-git commit -m "feat(docs): add wrapPage, buildSearchIndex, CSS/JS templates"
-```
-
----
-
-### Task 9: Main orchestrator
-
-**Files:**
-- Modify: `scripts/build-docs.js` — add `main()` at the bottom
-
-- [ ] **Step 1: Append main() to build-docs.js**
-
-```javascript
 // ─── main ─────────────────────────────────────────────────────────────────────
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
@@ -846,170 +469,3 @@ async function main() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch(err => { console.error(err); process.exit(1); });
 }
-```
-
-- [ ] **Step 2: Run a fast build**
-
-```bash
-node scripts/build-docs.js --fast
-```
-
-Expected: one `→ <slug>.html ✓` line per page, then `✓ Built N pages → k3d/docs-content-built/`. No errors.
-
-- [ ] **Step 3: Spot-check output**
-
-```bash
-ls k3d/docs-content-built/ | head -10
-wc -c k3d/docs-content-built/index.html
-```
-
-Expected: ~30–80 KB per file.
-
-- [ ] **Step 4: Open a page visually**
-
-```bash
-xdg-open k3d/docs-content-built/quickstart-enduser.html 2>/dev/null \
-  || echo "Open k3d/docs-content-built/quickstart-enduser.html in your browser"
-```
-
-Verify: sidebar visible, page-hero rendered, TOC present below the hero, copy button on code blocks.
-
-- [ ] **Step 5: Run full build (with Mermaid, ~2–4 min)**
-
-```bash
-node scripts/build-docs.js
-```
-
-Expected: all pages ✓, Mermaid SVGs rendered (no `language-mermaid` code blocks remain).
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add scripts/build-docs.js
-git commit -m "feat(docs): add build orchestrator"
-```
-
----
-
-### Task 10: Taskfile integration
-
-**Files:**
-- Modify: `Taskfile.yml`
-
-- [ ] **Step 1: Add docs:build task**
-
-Find the `docs:deploy:` entry in `Taskfile.yml` (line ~1657). Insert directly before it:
-
-```yaml
-  docs:build:
-    desc: Build docs MD -> static HTML (output to k3d/docs-content-built/)
-    cmds:
-      - node scripts/build-docs.js {{if .FAST}}--fast{{end}}
-    vars:
-      FAST: '{{.FAST | default ""}}'
-```
-
-- [ ] **Step 2: Update docs:deploy**
-
-Replace the existing `docs:deploy:` block with:
-
-```yaml
-  docs:deploy:
-    desc: Build and deploy docs ConfigMap to both production environments (korczewski + mentolder)
-    deps: [docs:build]
-    cmds:
-      - |
-        for env in korczewski mentolder; do
-          source scripts/env-resolve.sh "$env"
-          NS="${WORKSPACE_NAMESPACE:-workspace}"
-          echo "-> Updating docs-content ConfigMap on ${env} (ns=${NS})..."
-          kubectl create configmap docs-content \
-            --from-file=k3d/docs-content-built/ \
-            --dry-run=client -o yaml -n "${NS}" \
-            | kubectl apply -f - --context "${ENV_CONTEXT}" --server-side --force-conflicts
-          kubectl --context "${ENV_CONTEXT}" rollout restart deployment/docs -n "${NS}"
-          kubectl --context "${ENV_CONTEXT}" rollout status deployment/docs -n "${NS}" --timeout=120s
-        done
-        echo
-        echo "✓ Docs deployed to both clusters"
-        echo "  https://docs.korczewski.de"
-        echo "  https://docs.mentolder.de"
-```
-
-- [ ] **Step 3: Verify Taskfile parses without error**
-
-```bash
-task --list 2>&1 | grep docs
-```
-
-Expected: shows both `docs:build` and `docs:deploy`.
-
-- [ ] **Step 4: Test fast task build**
-
-```bash
-task docs:build FAST=1
-```
-
-Expected: same fast-build output as `node scripts/build-docs.js --fast`.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add Taskfile.yml
-git commit -m "feat(docs): add task docs:build, update docs:deploy to built output"
-```
-
----
-
-### Task 11: Final verification
-
-- [ ] **Step 1: Run unit tests**
-
-```bash
-node --test scripts/build-docs.test.js
-```
-
-Expected: 6 tests, all pass.
-
-- [ ] **Step 2: Full build**
-
-```bash
-node scripts/build-docs.js
-```
-
-Expected: all pages ✓, no errors.
-
-- [ ] **Step 3: Check no pages missing sidebar or search overlay**
-
-```bash
-for f in k3d/docs-content-built/*.html; do
-  grep -q 'class="sidebar"' "$f" || echo "MISSING SIDEBAR: $f"
-  grep -q 'id="search-overlay"' "$f" || echo "MISSING SEARCH: $f"
-done
-echo "Structural check complete"
-```
-
-Expected: only `Structural check complete`.
-
-- [ ] **Step 4: Check no unconverted Docsify links remain**
-
-```bash
-grep -rl 'href="#/' k3d/docs-content-built/ && echo "UNCONVERTED LINKS FOUND" || echo "All links converted ✓"
-```
-
-Expected: `All links converted ✓`
-
-- [ ] **Step 5: Check no unrendered mermaid blocks remain**
-
-```bash
-grep -l 'language-mermaid' k3d/docs-content-built/*.html && echo "UNRENDERED MERMAID" || echo "All Mermaid rendered ✓"
-```
-
-Expected: `All Mermaid rendered ✓`
-
-- [ ] **Step 6: Final commit**
-
-```bash
-git add -A
-git commit -m "chore(docs): verify static HTML build output is clean"
-```

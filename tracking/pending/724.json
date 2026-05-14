@@ -1,0 +1,12 @@
+{
+  "pr_number": 724,
+  "title": "add bachelorprojekt agent defs + dedup dev-flow-execute step",
+  "description": "## Summary\n- Add the six `.claude/agents/bachelorprojekt-*` definitions (db, infra, ops, security, test, website) referenced by the routing table in CLAUDE.md so Agent dispatch resolves them.\n- Drop a duplicated \"Schritt 7.5: Worktree & Branch bereinigen\" section in `.claude/skills/dev-flow-execute/SKILL.md` (the same block appeared twice back-to-back).\n\n## Test plan\n- [x] `git diff` shows only the new agent files + the second copy of Schritt 7.5 removed.\n- [ ] CI (`task test:all`) green — local tooling change, no manifests touched.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "chore",
+  "scope": "claude",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-14T01:25:39Z",
+  "merged_by": "Paddione",
+  "bug_refs": []
+}

@@ -328,6 +328,14 @@ Wenn mehrere Kategorien matchen: workspace → website → brett → livekit →
 
 ## Failure-Handling
 
+- **Beweismaterial ans Ticket hängen (bei jedem Failure-Pfad):** Wenn du einen Failure-Screenshot, Log-Auszug oder Trace-Output hast, frage Patrick nach Pfaden (`.png`/`.log`/`.txt`/`.mp4`) und hänge sie ans Ticket — der Fix-Branch erbt dann sofort den Kontext:
+  ```bash
+  # TICKET_UUID aus dem aktuellen Ticket holen:
+  TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+    psql -U website -d website -At -c \
+    "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_ID';")
+  bash scripts/ticket-attach.sh "$TICKET_UUID" /pfad/zu/failure.png /pfad/zu/ci.log
+  ```
 - **CI rot vor Merge:** Diagnose, Fix auf demselben Branch, neu pushen. Keinen zweiten PR aufmachen. Falls nach 2 Versuchen noch rot: Ticket-Kommentar hinterlassen:
   ```bash
   kubectl exec "$PGPOD" -n workspace --context mentolder -- \

@@ -1845,6 +1845,8 @@ function buildFigure(type, color) {
     octF.position.y = 1.05; octF.castShadow = true;
     group.add(octF);
     const dot = makeFaceMarker(color); dot.position.set(0, 1.05, 1.0); dot.scale.set(0.45, 0.45, 1); group.add(dot);
+  } else if (type === 'mannequin') {
+    buildMannequin(color, group);
   } else {
     const m = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8),
       new THREE.MeshBasicMaterial({ color: 0xff00ff }));
@@ -3406,6 +3408,216 @@ function animate() {
     renderer.render(scene, camera_obj);
   }
 }
+// ── Mannequin ─────────────────────────────────────────────────────────────────
+
+function buildMannequin(color, group) {
+  const woodCol  = new THREE.Color(color).lerp(new THREE.Color(0xd4a26a), 0.5);
+  const brassCol = new THREE.Color(0xc8a96e);
+
+  function woodMat() {
+    return new THREE.MeshStandardMaterial({ color: woodCol.clone(), roughness: 0.75, metalness: 0.0 });
+  }
+  function brassMat() {
+    return new THREE.MeshStandardMaterial({ color: brassCol.clone(), roughness: 0.35, metalness: 0.55 });
+  }
+  function brassJoint(r, parentGrp) {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 8), brassMat());
+    s.castShadow = true;
+    s.userData.isBrassJoint = true;
+    s.userData.boneGroup    = parentGrp;
+    parentGrp.add(s);
+    return s;
+  }
+
+  // ── Trunk ────────────────────────────────────────────────────────
+  const hipsGrp = new THREE.Group();
+  hipsGrp.position.y = 1.10;
+  group.add(hipsGrp);
+
+  const pelvisMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.26, 0.22, 16), woodMat());
+  pelvisMesh.castShadow = true;
+  hipsGrp.add(pelvisMesh);
+
+  const spineGrp = new THREE.Group();
+  spineGrp.position.y = 0.22;
+  hipsGrp.add(spineGrp);
+
+  const spineMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.20, 0.28, 12), woodMat());
+  spineMesh.position.y = 0.14;
+  spineMesh.castShadow = true;
+  spineGrp.add(spineMesh);
+
+  const chestGrp = new THREE.Group();
+  chestGrp.position.y = 0.28;
+  spineGrp.add(chestGrp);
+
+  const chestMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.34, 16), woodMat());
+  chestMesh.position.y = 0.17;
+  chestMesh.castShadow = true;
+  chestGrp.add(chestMesh);
+
+  const neckGrp = new THREE.Group();
+  neckGrp.position.y = 0.34;
+  chestGrp.add(neckGrp);
+
+  const neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.18, 10), woodMat());
+  neckMesh.position.y = 0.09;
+  neckMesh.castShadow = true;
+  neckGrp.add(neckMesh);
+
+  const headGrp = new THREE.Group();
+  headGrp.position.y = 0.18;
+  neckGrp.add(headGrp);
+
+  const headSphere = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), woodMat());
+  headSphere.position.y = 0.22;
+  headSphere.castShadow = true;
+  headGrp.add(headSphere);
+
+  // ── Arms ─────────────────────────────────────────────────────────
+  const lShoulderGrp = new THREE.Group();
+  lShoulderGrp.position.set(0.35, 0.28, 0);
+  chestGrp.add(lShoulderGrp);
+  brassJoint(0.070, lShoulderGrp);
+
+  const lUpperArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.35, 10), woodMat());
+  lUpperArmMesh.position.y = -0.175;
+  lUpperArmMesh.castShadow = true;
+  lShoulderGrp.add(lUpperArmMesh);
+
+  const lElbowGrp = new THREE.Group();
+  lElbowGrp.position.y = -0.35;
+  lShoulderGrp.add(lElbowGrp);
+  brassJoint(0.065, lElbowGrp);
+
+  const lForearmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.30, 10), woodMat());
+  lForearmMesh.position.y = -0.15;
+  lForearmMesh.castShadow = true;
+  lElbowGrp.add(lForearmMesh);
+
+  const lWristGrp = new THREE.Group();
+  lWristGrp.position.y = -0.30;
+  lElbowGrp.add(lWristGrp);
+  brassJoint(0.055, lWristGrp);
+
+  const lHandMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.05), woodMat());
+  lHandMesh.position.y = -0.07;
+  lHandMesh.castShadow = true;
+  lWristGrp.add(lHandMesh);
+
+  const rShoulderGrp = new THREE.Group();
+  rShoulderGrp.position.set(-0.35, 0.28, 0);
+  chestGrp.add(rShoulderGrp);
+  brassJoint(0.070, rShoulderGrp);
+
+  const rUpperArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.35, 10), woodMat());
+  rUpperArmMesh.position.y = -0.175;
+  rUpperArmMesh.castShadow = true;
+  rShoulderGrp.add(rUpperArmMesh);
+
+  const rElbowGrp = new THREE.Group();
+  rElbowGrp.position.y = -0.35;
+  rShoulderGrp.add(rElbowGrp);
+  brassJoint(0.065, rElbowGrp);
+
+  const rForearmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.30, 10), woodMat());
+  rForearmMesh.position.y = -0.15;
+  rForearmMesh.castShadow = true;
+  rElbowGrp.add(rForearmMesh);
+
+  const rWristGrp = new THREE.Group();
+  rWristGrp.position.y = -0.30;
+  rElbowGrp.add(rWristGrp);
+  brassJoint(0.055, rWristGrp);
+
+  const rHandMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.05), woodMat());
+  rHandMesh.position.y = -0.07;
+  rHandMesh.castShadow = true;
+  rWristGrp.add(rHandMesh);
+
+  // ── Legs ─────────────────────────────────────────────────────────
+  const lHipGrp = new THREE.Group();
+  lHipGrp.position.set(0.14, 0, 0);
+  hipsGrp.add(lHipGrp);
+  brassJoint(0.075, lHipGrp);
+
+  const lThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.45, 12), woodMat());
+  lThighMesh.position.y = -0.225;
+  lThighMesh.castShadow = true;
+  lHipGrp.add(lThighMesh);
+
+  const lKneeGrp = new THREE.Group();
+  lKneeGrp.position.y = -0.45;
+  lHipGrp.add(lKneeGrp);
+  brassJoint(0.070, lKneeGrp);
+
+  const lShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.065, 0.42, 12), woodMat());
+  lShinMesh.position.y = -0.21;
+  lShinMesh.castShadow = true;
+  lKneeGrp.add(lShinMesh);
+
+  const lAnkleGrp = new THREE.Group();
+  lAnkleGrp.position.y = -0.42;
+  lKneeGrp.add(lAnkleGrp);
+  brassJoint(0.060, lAnkleGrp);
+
+  const lFootMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.06, 0.22), woodMat());
+  lFootMesh.position.set(0, -0.03, 0.06);
+  lFootMesh.castShadow = true;
+  lAnkleGrp.add(lFootMesh);
+
+  const rHipGrp = new THREE.Group();
+  rHipGrp.position.set(-0.14, 0, 0);
+  hipsGrp.add(rHipGrp);
+  brassJoint(0.075, rHipGrp);
+
+  const rThighMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.45, 12), woodMat());
+  rThighMesh.position.y = -0.225;
+  rThighMesh.castShadow = true;
+  rHipGrp.add(rThighMesh);
+
+  const rKneeGrp = new THREE.Group();
+  rKneeGrp.position.y = -0.45;
+  rHipGrp.add(rKneeGrp);
+  brassJoint(0.070, rKneeGrp);
+
+  const rShinMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.065, 0.42, 12), woodMat());
+  rShinMesh.position.y = -0.21;
+  rShinMesh.castShadow = true;
+  rKneeGrp.add(rShinMesh);
+
+  const rAnkleGrp = new THREE.Group();
+  rAnkleGrp.position.y = -0.42;
+  rKneeGrp.add(rAnkleGrp);
+  brassJoint(0.060, rAnkleGrp);
+
+  const rFootMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.06, 0.22), woodMat());
+  rFootMesh.position.set(0, -0.03, 0.06);
+  rFootMesh.castShadow = true;
+  rAnkleGrp.add(rFootMesh);
+
+  group.userData.bones = {
+    hips:      hipsGrp,
+    spine:     spineGrp,
+    chest:     chestGrp,
+    neck:      neckGrp,
+    head:      headGrp,
+    lShoulder: lShoulderGrp,
+    lElbow:    lElbowGrp,
+    lWrist:    lWristGrp,
+    rShoulder: rShoulderGrp,
+    rElbow:    rElbowGrp,
+    rWrist:    rWristGrp,
+    lHip:      lHipGrp,
+    lKnee:     lKneeGrp,
+    lAnkle:    lAnkleGrp,
+    rHip:      rHipGrp,
+    rKnee:     rKneeGrp,
+    rAnkle:    rAnkleGrp,
+  };
+  return group;
+}
+
 animate();
 
 // ── Minimap Widget ────────────────────────────────────────────────────────────

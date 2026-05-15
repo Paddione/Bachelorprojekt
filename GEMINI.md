@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod clusters (`mentolder` + `korczewski-ha`) plus k3d for dev. All services in `workspace` (mentolder) / `workspace-korczewski` (korczewski) namespaces, fronted by Traefik.
+Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod clusters (`mentolder` + `korczewski`) plus k3d for dev. All services in `workspace` (mentolder) / `workspace-korczewski` (korczewski) namespaces, fronted by Traefik.
 
 **Core Services:**
 *   **Keycloak:** Identity Provider (SSO/OIDC, eigene Realm pro Cluster)
@@ -15,7 +15,7 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod 
 *   **DocuSeal:** E-Signature
 *   **Whiteboard / Brett (Systembrett):** Kollaborative Tools
 *   **LiveKit (Server + Ingress + Egress):** Streaming + Recording
-*   **Arena (nur korczewski-ha):** Multiplayer-Backend, von beiden Brands genutzt
+*   **Arena (nur korczewski):** Multiplayer-Backend, von beiden Brands genutzt
 *   **Website:** Astro + Svelte (Brand-aware: mentolder + korczewski via `BRAND_ID`)
 *   **Claude Code MCP Monolith:** AI-Tooling
 *   **Traefik:** Ingress Controller
@@ -23,7 +23,7 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod 
 
 **Infrastructure:**
 *   k3d (Dev) + k3s (Prod). Kustomize ist das alleinige Build-Tool.
-*   ArgoCD-Federation: Hub auf `mentolder`, Spoke `cluster-korczewski-ha`.
+*   ArgoCD-Federation: Hub auf `mentolder`, Spoke `cluster-korczewski`.
 *   SealedSecrets (bitnami) pro Cluster; Secrets-Pipeline via `task env:seal ENV=<env>`.
 
 ## Building and Running

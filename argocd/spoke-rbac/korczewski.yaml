@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════
-# ArgoCD spoke RBAC — korczewski-ha cluster
+# ArgoCD spoke RBAC — korczewski cluster
 # ═══════════════════════════════════════════════════════════════════
-# Applied with: kubectl --context korczewski-ha apply -f argocd/spoke-rbac/korczewski-ha.yaml
+# Applied with: kubectl --context korczewski apply -f argocd/spoke-rbac/korczewski.yaml
 #
 # Creates a ServiceAccount + long-lived token Secret that the ArgoCD
 # hub (running on mentolder) uses to manage workloads on this cluster.

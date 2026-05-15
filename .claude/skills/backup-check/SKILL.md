@@ -30,7 +30,7 @@ End-to-end audit of the backup system: verify setup → trigger live backup → 
 | Cluster      | kubectl context | Namespace            |
 |--------------|-----------------|----------------------|
 | mentolder    | mentolder       | workspace            |
-| korczewski-ha| korczewski-ha   | workspace-korczewski |
+| korczewski   | korczewski      | workspace-korczewski |
 
 Always run the full check on **both clusters** unless the user specifies one.
 
@@ -104,7 +104,7 @@ Trigger one backup per cluster and watch it complete:
 
 ```bash
 bash scripts/backup-restore.sh trigger --context mentolder
-bash scripts/backup-restore.sh trigger --context korczewski-ha --namespace workspace-korczewski
+bash scripts/backup-restore.sh trigger --context korczewski --namespace workspace-korczewski
 ```
 
 **If trigger fails with "cronjob not found":** the name-drift issue from 1.1 is present — fix it first, then retry.
@@ -119,7 +119,7 @@ Backup complete: /backups/YYYYMMDD-HHMMSS
 Then list backups to confirm the new timestamp appeared:
 ```bash
 bash scripts/backup-restore.sh list --context mentolder
-bash scripts/backup-restore.sh list --context korczewski-ha --namespace workspace-korczewski
+bash scripts/backup-restore.sh list --context korczewski --namespace workspace-korczewski
 ```
 
 ---
@@ -304,4 +304,4 @@ Script: `scripts/backup-restore.sh restore <db> <timestamp> --context <ctx>`
 
 After completing all steps in this skill, invoke `mishap-tracker` with your
 accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
-cleanly with "No mishaps found."
+cleanly with "No mishaps found."nd."nd."

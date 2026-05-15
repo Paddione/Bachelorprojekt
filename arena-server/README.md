@@ -20,4 +20,4 @@ pnpm test
 
 ## Deployment
 
-See `task arena:deploy ENV=korczewski` in the repo root Taskfile. Arena runs on the korczewski-ha cluster only (`arena-ws.korczewski.de`).
+See `task arena:deploy ENV=korczewski` in the repo root Taskfile. Arena runs on the korczewski cluster only (`arena-ws.korczewski.de`).

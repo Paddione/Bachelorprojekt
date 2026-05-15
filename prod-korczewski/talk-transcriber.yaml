@@ -6,7 +6,7 @@
 # Markdown-Datei in Nextcloud speichert.
 #
 # Lives under prod-korczewski/ alongside whisper.yaml: the whisper
-# backend only runs on korczewski-ha, so the bot only makes sense
+# backend only runs on korczewski, so the bot only makes sense
 # there. PROD_DOMAIN is substituted by envsubst at deploy time.
 apiVersion: apps/v1
 kind: Deployment

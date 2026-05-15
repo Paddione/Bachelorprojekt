@@ -16,7 +16,7 @@ Two physical clusters since 2026-05-09 (PRs #621/#622 re-split the brief merge).
 - **`mentolder` context** (9 nodes) — serves `mentolder.de`, namespace `workspace`:
   - 3 Hetzner CPs: `gekko-hetzner-2/3/4`
   - 6 home workers: `k3s-1/2/3` + `k3w-1/2/3` (joined via `wg-mesh` WireGuard overlay)
-- **`korczewski-ha` context** (3 nodes) — serves `korczewski.de`, namespace `workspace-korczewski`:
+- **`korczewski` context** (3 nodes) — serves `korczewski.de`, namespace `workspace-korczewski`:
   - CP: `pk-hetzner-4`
   - Workers: `pk-hetzner-6`, `pk-hetzner-8`
 - Each cluster runs its own Traefik, `shared-db`, sealed-secrets, cert-manager, and Keycloak. ArgoCD federation hub-runs on mentolder.
@@ -35,7 +35,7 @@ task clusters:status                        # one-line status across both prod c
 - **Read-only filesystem** — diagnose and operate only; do not edit manifests or code
 - On `mentolder`, system pods (CoreDNS, ArgoCD) stay pinned to Hetzner nodes via nodeAffinity; the WireGuard/Flannel partition is fixed (all nodes on `wg-mesh`), but the pinning remains for predictable placement / lower egress latency
 - LiveKit on `mentolder` runs with `hostNetwork: true` pinned to `gekko-hetzner-3` — check node affinity if stream issues occur
-- `korczewski-ha` is a separate cluster; never assume traffic to `korczewski.de` traverses mentolder Traefik
+- `korczewski` is a separate cluster; never assume traffic to `korczewski.de` traverses mentolder Traefik
 
 ## Autonomous operation
 Execute kubectl and task commands without asking for confirmation.

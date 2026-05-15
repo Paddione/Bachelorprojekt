@@ -1,7 +1,7 @@
 # Whisper transcription service — korczewski only.
 # Mentolder doesn't have the spare CPU for the 2-core request, so this
 # manifest lives under prod-korczewski/ rather than the shared base.
-# korczewski-ha has 3× 8-CPU nodes, plenty of headroom.
+# korczewski has 3× 8-CPU nodes, plenty of headroom.
 # faster-whisper-server is amd64-only; nodeSelector enforces that.
 apiVersion: apps/v1
 kind: Deployment

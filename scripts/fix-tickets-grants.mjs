@@ -67,33 +67,37 @@ async function audit(client) {
   return out;
 }
 
-async function reownSuperpowers(client) {
-  // The superpowers schema is owned by postgres in some clusters (mentolder)
-  // and by website in others (korczewski). Normalise to website-owned so the
+async function reownSchemas(client) {
+  // The tickets and superpowers schemas should be owned by website so the
   // tracking-import cron can CREATE TABLE / CREATE INDEX without escalating
   // to postgres on every run.
-  const ownerRow = (await client.query(
-    `SELECT pg_get_userbyid(nspowner) AS owner FROM pg_namespace WHERE nspname = 'superpowers'`,
-  )).rows[0];
-  if (!ownerRow || ownerRow.owner === 'website') return;
-  await client.query('ALTER SCHEMA superpowers OWNER TO website');
-  // ALTER SCHEMA OWNER doesn't cascade — re-own existing tables + sequences too.
-  const objs = (await client.query(`
-    SELECT c.relname AS name, c.relkind AS kind
-      FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-     WHERE n.nspname = 'superpowers'
-       AND c.relkind IN ('r','S')
-       AND pg_get_userbyid(c.relowner) <> 'website'
-  `)).rows;
-  for (const o of objs) {
-    const kw = o.kind === 'S' ? 'SEQUENCE' : 'TABLE';
-    await client.query(`ALTER ${kw} superpowers.${o.name} OWNER TO website`);
+  for (const schema of ['tickets', 'superpowers']) {
+    const ownerRow = (await client.query(
+      `SELECT pg_get_userbyid(nspowner) AS owner FROM pg_namespace WHERE nspname = $1`,
+      [schema]
+    )).rows[0];
+    if (!ownerRow || ownerRow.owner === 'website') continue;
+    await client.query(`ALTER SCHEMA ${schema} OWNER TO website`);
+    // ALTER SCHEMA OWNER doesn't cascade — re-own existing tables + sequences too.
+    const objs = (await client.query(`
+      SELECT c.relname AS name, c.relkind AS kind
+        FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+       WHERE n.nspname = $1
+         AND c.relkind IN ('r','S')
+         AND pg_get_userbyid(c.relowner) <> 'website'
+    `, [schema])).rows;
+    for (const o of objs) {
+      const kw = o.kind === 'S' ? 'SEQUENCE' : 'TABLE';
+      try {
+        await client.query(`ALTER ${kw} ${schema}.${o.name} OWNER TO website`);
+      } catch (err) {
+        console.warn(`      Skipping ownership change for ${o.name} in ${schema}: ${err.message}`);
+      }
+    }
   }
 }
 
 async function applyGrants(client) {
-  await reownSuperpowers(client);
-
   for (const schema of SCHEMAS) {
     const { tablePrivs, seqPrivs } = SCHEMA_GRANTS[schema];
 
@@ -147,6 +151,8 @@ async function main() {
       console.log('\n(dry-run — pass --apply to execute the GRANTs)');
       return;
     }
+
+    await reownSchemas(client);
 
     await client.query('BEGIN');
     await applyGrants(client);

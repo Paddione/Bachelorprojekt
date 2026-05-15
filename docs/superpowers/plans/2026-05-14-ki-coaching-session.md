@@ -123,9 +123,9 @@ Erwartet: `CREATE TABLE` zweimal — keine Fehler.
 - [ ] **Schritt 1.3: Gleiches für korczewski**
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace-korczewski --context korczewski-ha -l app=shared-db -o name | head -1)
+PGPOD=$(kubectl get pod -n workspace-korczewski --context korczewski -l app=shared-db -o name | head -1)
 # Selbes SQL wie oben — beide Cluster müssen synchron sein
-kubectl exec "$PGPOD" -n workspace-korczewski --context korczewski-ha -- psql -U website -d website -c "... (selbes SQL)"
+kubectl exec "$PGPOD" -n workspace-korczewski --context korczewski -- psql -U website -d website -c "... (selbes SQL)"
 ```
 
 - [ ] **Schritt 1.4: Commit**

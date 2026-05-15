@@ -22,7 +22,7 @@ task workspace:post-setup      # Nextcloud-Apps + OIDC
 
 ## Produktion
 
-Zwei k3s-Cluster mit ArgoCD-Federation (Hub auf `mentolder`, Spoke `korczewski-ha`). Jede ENV-aware Task akzeptiert `ENV=mentolder` oder `ENV=korczewski`:
+Zwei k3s-Cluster mit ArgoCD-Federation (Hub auf `mentolder`, Spoke `korczewski`). Jede ENV-aware Task akzeptiert `ENV=mentolder` oder `ENV=korczewski`:
 
 ```bash
 task workspace:deploy ENV=mentolder

@@ -13,7 +13,7 @@
 #   k3s-1..3   use 192.168.100.2-4   (home servers)
 #   k3w-1..3   use 192.168.100.11-13 (RPis)
 #
-# Usage:  ./scripts/enroll-korczewski-ha.sh
+# Usage:  ./scripts/enroll-korczewski.sh
 # ═══════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -353,7 +353,7 @@ join_node "$CP3_PUB" "$CP3_WG" "$CP3_NAME"
 # ══════════════════════════════════════════════════════════════════════
 step "Phase 5: Fetch kubeconfig"
 
-KUBECONFIG_PATH="$HOME/.kube/config-korczewski-ha"
+KUBECONFIG_PATH="$HOME/.kube/config-korczewski"
 run1 "cat /etc/rancher/k3s/k3s.yaml" \
   | sed "s/127.0.0.1/${CP1_PUB}/g" \
   | sed "s/: default$/: korczewski/g" \

@@ -1392,7 +1392,7 @@ git commit -m "feat(coaching): generate-api provider-aware (claude/openai/mistra
 **Files:**
 - Create: `website/src/components/admin/coaching/SessionsOverview.svelte`
 
-- [ ] **Schritt 1: Komponente erstellen**
+- [x] **Schritt 1: Komponente erstellen**
 
 ```svelte
 <script lang="ts">
@@ -1624,7 +1624,7 @@ git commit -m "feat(coaching): generate-api provider-aware (claude/openai/mistra
 </style>
 ```
 
-- [ ] **Schritt 2: Commit**
+- [x] **Schritt 2: Commit**
 
 ```bash
 git add website/src/components/admin/coaching/SessionsOverview.svelte
@@ -1638,7 +1638,7 @@ git commit -m "feat(ui): SessionsOverview — suche, sortierung, status-dropdown
 **Files:**
 - Modify: `website/src/pages/admin/coaching/sessions/index.astro`
 
-- [ ] **Schritt 1: index.astro ersetzen**
+- [x] **Schritt 1: index.astro ersetzen**
 
 ```astro
 ---
@@ -1672,7 +1672,7 @@ try {
 </AdminLayout>
 ```
 
-- [ ] **Schritt 2: Commit**
+- [x] **Schritt 2: Commit**
 
 ```bash
 git add website/src/pages/admin/coaching/sessions/index.astro
@@ -1686,7 +1686,7 @@ git commit -m "feat(ui): sessions/index.astro auf SessionsOverview umstellen"
 **Files:**
 - Modify: `website/src/pages/admin/coaching/sessions/[id].astro`
 
-- [ ] **Schritt 1: Audit-Log-Import und Datenladen hinzufügen**
+- [x] **Schritt 1: Audit-Log-Import und Datenladen hinzufügen**
 
 Ergänze im Frontmatter (nach `import { pool }...`):
 
@@ -1699,7 +1699,7 @@ try { auditLog = await getAuditLog(pool, sessionId); } catch {}
 
 (Variablenname `sessionId` — nutze `id` aus `Astro.params` wie zuvor.)
 
-- [ ] **Schritt 2: client_name-Feld im PATCH-Handler ergänzen**
+- [x] **Schritt 2: client_name-Feld im PATCH-Handler ergänzen**
 
 Im `POST`-Handler nach `customerName` und `customerEmail`:
 
@@ -1720,7 +1720,7 @@ if (action === 'update-meta') {
 }
 ```
 
-- [ ] **Schritt 3: Formular für client_name + Audit-Log-Sektion hinzufügen**
+- [x] **Schritt 3: Formular für client_name + Audit-Log-Sektion hinzufügen**
 
 Füge am Ende des `<div class="grid ...">` folgende Sektionen hinzu:
 
@@ -1772,7 +1772,7 @@ Füge am Ende des `<div class="grid ...">` folgende Sektionen hinzu:
 )}
 ```
 
-- [ ] **Schritt 4: Commit**
+- [x] **Schritt 4: Commit**
 
 ```bash
 git add website/src/pages/admin/coaching/sessions/[id].astro
@@ -1787,7 +1787,7 @@ git commit -m "feat(ui): session-detail — client_name edit + audit-log timelin
 - Create: `website/src/components/admin/coaching/CoachingSettings.svelte`
 - Create: `website/src/pages/admin/coaching/settings.astro`
 
-- [ ] **Schritt 1: CoachingSettings.svelte erstellen**
+- [x] **Schritt 1: CoachingSettings.svelte erstellen**
 
 ```svelte
 <script lang="ts">
@@ -1974,7 +1974,7 @@ git commit -m "feat(ui): session-detail — client_name edit + audit-log timelin
 </style>
 ```
 
-- [ ] **Schritt 2: settings.astro erstellen**
+- [x] **Schritt 2: settings.astro erstellen**
 
 ```astro
 ---
@@ -2013,7 +2013,7 @@ try {
 </AdminLayout>
 ```
 
-- [ ] **Schritt 3: Link in sessions/index.astro hinzufügen**
+- [x] **Schritt 3: Link in sessions/index.astro hinzufügen**
 
 In `SessionsOverview.svelte` ergänze nach dem "+ Neue Session"-Button:
 
@@ -2021,7 +2021,7 @@ In `SessionsOverview.svelte` ergänze nach dem "+ Neue Session"-Button:
 <a href="/admin/coaching/settings" class="btn-sm">⚙ Einstellungen</a>
 ```
 
-- [ ] **Schritt 4: Alle Tests ausführen**
+- [x] **Schritt 4: Alle Tests ausführen**
 
 ```bash
 cd website && npx vitest run
@@ -2029,13 +2029,13 @@ cd website && npx vitest run
 
 Erwartet: alle Tests grün
 
-- [ ] **Schritt 5: Manifest validieren**
+- [x] **Schritt 5: Manifest validieren**
 
 ```bash
 task workspace:validate
 ```
 
-- [ ] **Schritt 6: Commit**
+- [x] **Schritt 6: Commit**
 
 ```bash
 git add website/src/components/admin/coaching/CoachingSettings.svelte \

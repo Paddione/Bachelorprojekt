@@ -8,7 +8,6 @@ Dieses Handbuch richtet sich an Plattform-Administratoren, die den Workspace bet
 |----------|-------|
 | `kubectl` | Kubernetes CLI mit Kontext für den Ziel-Cluster (`mentolder` oder `korczewski`) |
 | `task` (go-task) | Aufgaben-Orchestrierer (`Taskfile.yml`) |
-| `argocd` CLI | GitOps-Sync und Diff (Hub: `mentolder`) |
 | `kubeseal` | Erzeugen von SealedSecrets für Produktion |
 | `git` | Quellcode-Verwaltung; alle Änderungen laufen über Pull Requests |
 
@@ -36,7 +35,7 @@ Details: [Umgebungen](environments.md).
 
 ### Produktion (mentolder / korczewski)
 
-Die Produktionsumgebungen werden via ArgoCD aus `main` synchronisiert (siehe **Deployment in Produktion**). Bei einem Push auf `main` syncen die Cluster automatisch. Manuelles initiales Setup eines neuen Cluster-Tenants ist in [Umgebungen → Neue Umgebung einrichten](environments.md#neue-umgebung-einrichten) beschrieben.
+Produktionsumgebungen werden manuell via `task workspace:deploy ENV=<env>` ausgerollt. Workloads werden nur dann aktualisiert, wenn du es explizit auslöst (`task feature:*`). Geheimnisse werden separat synchronisiert: `task env:seal ENV=<env>` → `task secrets:sync`. Manuelles initiales Setup eines neuen Cluster-Tenants ist in [Umgebungen → Neue Umgebung einrichten](environments.md#neue-umgebung-einrichten) beschrieben.
 
 ### Lokale Entwicklung (k3d)
 
@@ -272,39 +271,35 @@ Details: [Umgebungen](environments.md).
 
 ## Deployment in Produktion
 
-### ArgoCD (GitOps)
-
-Die Produktion läuft vollständig über ArgoCD. Ein Push auf `main` triggert den Sync auf die Ziel-Cluster. Der ArgoCD-Hub läuft auf dem `mentolder`-Cluster und verwaltet beide Produktions-Cluster via Cluster-Secrets.
+### Workloads ausrollen
 
 ```bash
-# Sync-Status aller Apps anzeigen
-task argocd:status
-
-# Manueller Sync
-task argocd:sync -- workspace-mentolder
-task argocd:sync -- workspace-korczewski
-
-# Diff zwischen Git und Live-Zustand
-task argocd:diff -- workspace-mentolder
+task feature:deploy               # Alle Services auf beiden Clustern ausrollen
+task workspace:deploy ENV=mentolder   # Nur mentolder
+task workspace:deploy ENV=korczewski  # Nur korczewski
+task feature:website              # Nur Website (beide Cluster)
 ```
-
-> ArgoCD-Tasks sind auf den Hub-Cluster (`mentolder`) festgelegt (`--context mentolder`). `argocd:*`-Aufrufe greifen nicht direkt auf `korczewski` zu.
 
 ### Overlays
 
 - `prod/` ist Basis für die Umgebungen und enthält den `$patch: delete`-Block — **nicht allein anwenden**
 - `prod-mentolder/` und `prod-korczewski/` sind die tatsächlich applizierbaren Overlays
-- `k3d/office-stack` (Collabora) und `k3d/coturn-stack` sind eigenständige ArgoCD-Apps (`argocd/applicationset-office.yaml`) — sie liegen nicht in der Basis-Kustomization
+- `k3d/office-stack` (Collabora) und `k3d/coturn-stack` werden separat via `task workspace:office:deploy` ausgerollt
+
+### Geheimnisse synchronisieren
+
+```bash
+task env:seal ENV=<env>    # Nach Rotation: neu versiegeln
+task secrets:sync          # SealedSecrets auf beide Cluster anwenden (kein Workload-Roll)
+```
 
 ### Docs-ConfigMap aktualisieren
 
-ArgoCD synct die Docs-ConfigMap **nicht automatisch**. Nach Änderungen an `k3d/docs-content/` den Rollout auf beide Cluster auslösen:
+Nach Änderungen an `k3d/docs-content/` den Rollout auf beide Cluster auslösen:
 
 ```bash
 task docs:deploy
 ```
-
-Details: [ArgoCD](argocd.md).
 
 ---
 
@@ -373,7 +368,7 @@ Details: [Keycloak & SSO](keycloak.md).
 2. Ingress-Regel in `k3d/ingress.yaml` ergänzen
 3. `task workspace:validate` ausführen
 4. Falls ein Envvar neu eingeführt wird: in `environments/schema.yaml` deklarieren und in den `envsubst`-Listen der betroffenen Tasks ergänzen
-5. PR erstellen und nach Merge deployen (in Produktion via ArgoCD-Sync)
+5. PR erstellen und nach Merge mit `task feature:deploy` oder `task workspace:deploy ENV=<env>` ausrollen
 
 ### Wie richte ich eine neue Produktionsumgebung ein?
 
@@ -381,7 +376,7 @@ Schritt-für-Schritt in [Umgebungen → Neue Umgebung einrichten](environments.m
 
 ### Secrets rotieren
 
-Siehe oben **Secrets-Management** — Klartext in `.secrets/<env>.yaml` aktualisieren, erneut `task env:seal ENV=<env>` ausführen, Commit + ArgoCD-Sync.
+Siehe oben **Secrets-Management** — Klartext in `.secrets/<env>.yaml` aktualisieren, `task env:seal ENV=<env>` ausführen, Commit, dann `task secrets:sync`.
 
 ---
 
@@ -398,7 +393,6 @@ Siehe oben **Secrets-Management** — Klartext in `.secrets/<env>.yaml` aktualis
 | Projektmanagement (API) | [Projekt-Verwaltung](admin-projekte.md) |
 | MCP-Server (Claude Code) | [MCP-Server](claude-code.md) |
 | Deployment & Taskfile | [Operations](operations.md) |
-| ArgoCD (GitOps) | [ArgoCD](argocd.md) |
 | Sicherheit & DSGVO | [Sicherheit](security.md) · [DSGVO](dsgvo.md) |
 | Skripte & Automatisierung | [Skripte](scripts.md) |
 | Fehlerbehebung | [Fehlerbehebung](troubleshooting.md) |

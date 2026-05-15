@@ -1,4 +1,4 @@
-# Monthly CronJob that copies workspace-wildcard-tls to argocd and coturn namespaces.
+# Monthly CronJob that copies workspace-wildcard-tls to coturn and other namespaces.
 # Uses the K8s API via curl + ServiceAccount token — no kubectl image needed.
 # Runs on the 1st of each month, well within Let's Encrypt's 90-day cert lifetime.
 apiVersion: v1
@@ -103,7 +103,7 @@ spec:
                   # ${WORKSPACE_NAMESPACE} and ${TLS_SECRET_NAME} are substituted by
                   # envsubst during workspace:deploy so the correct values per env land here.
                   # Destinations that don't exist on a given cluster are skipped gracefully.
-                  for NS in argocd coturn workspace-office ${WEBSITE_NAMESPACE}; do
+                  for NS in coturn workspace-office ${WEBSITE_NAMESPACE}; do
                     sync_secret ${WORKSPACE_NAMESPACE} ${TLS_SECRET_NAME} ${TLS_SECRET_NAME} "$NS" || \
                       echo "warn: sync to $NS failed or namespace absent — skipping"
                   done

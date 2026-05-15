@@ -9,7 +9,7 @@ flowchart TB
   TF --> BU[workspace: backup / restore]
   TF --> WEB[website: deploy / dev / redeploy]
   TF --> Brett[brett: build / deploy / logs]
-  TF --> Argo[argocd: setup / sync / status]
+  TF --> Secrets[secrets: sync]
   TF --> ENV[env: validate / generate / seal]
   TF --> Test[test: unit / manifests / all]
   TF --> Cert[cert: install / status]
@@ -113,20 +113,12 @@ task website:deploy       # 6. Astro-Website bauen und deployen
 
 ---
 
-## ArgoCD (GitOps)
+## Secrets
 
 | Befehl | Beschreibung |
 |--------|-------------|
-| `task argocd:setup` | Vollständiges Setup: install → login → cluster:register → apps:apply (einmalig) |
-| `task argocd:install` | ArgoCD auf Hub-Cluster (Hetzner) mit CMP-Sidecar installieren |
-| `task argocd:password` | Initiales Admin-Passwort ausgeben |
-| `task argocd:ui` | ArgoCD UI auf http://localhost:8090 weiterleiten |
-| `task argocd:login` | Mit ArgoCD CLI einloggen |
-| `task argocd:cluster:register` | Alle Produktions-Cluster bei ArgoCD registrieren und Labels setzen |
-| `task argocd:apps:apply` | AppProject und ApplicationSet anwenden |
-| `task argocd:status` | Sync/Health-Status aller Apps über alle Cluster anzeigen |
-| `task argocd:sync -- <app>` | Sync für eine App manuell auslösen (z.B. `workspace-hetzner`) |
-| `task argocd:diff -- <app>` | Diff zwischen Git- und Live-Zustand anzeigen |
+| `task env:seal ENV=<env>` | SealedSecrets verschlüsseln (nach Rotation) |
+| `task secrets:sync` | Aktuelle SealedSecrets auf beide Prod-Cluster anwenden (ohne Workload-Roll) |
 
 ---
 

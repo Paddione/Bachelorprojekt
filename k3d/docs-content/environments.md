@@ -31,7 +31,6 @@ Die gesamte Konfiguration liegt im Verzeichnis `environments/` als YAML-Dateien.
 | Domain | localhost | mentolder.de | korczewski.de |
 | TLS | Kein TLS (HTTP) | Let's Encrypt Wildcard | Let's Encrypt Wildcard |
 | Cluster-Typ | k3d (lokal) | k3s auf Hetzner | k3s auf Hetzner |
-| ArgoCD | Nein (direktes kubectl) | Ja (Hub-Cluster) | Ja (Spoke, Hub: mentolder) |
 | Sealed Secrets | Nein (Klartext) | Ja | Ja |
 | DDNS | Nein | Ja (ipv64) | Nein (statische IP) |
 | E-Mail | Mailpit (lokal, kein Versand) | smtp.mailbox.org | smtp.mailbox.org |
@@ -124,19 +123,6 @@ git add environments/sealed-secrets/mentolder.yaml
 
 ---
 
-## ArgoCD Multi-Cluster
-
-In Produktion synchronisiert ArgoCD automatisch Git-Anderungen auf alle Ziel-Cluster:
-
-- ArgoCD lauft auf einem dedizierten Hub-Cluster (Hetzner).
-- Jeder Ziel-Cluster ist bei ArgoCD als Cluster-Secret mit den Labels `workspace=true` und einem Umgebungs-Label registriert.
-- Das ApplicationSet generiert automatisch eine App pro Cluster.
-- Die Umgebungsspezifischen Variablen (Domain, Brand, SMTP usw.) werden als Annotationen auf den Cluster-Secrets gespeichert.
-
-Details: [ArgoCD-Dokumentation](argocd.md)
-
----
-
 ## Neue Umgebung einrichten
 
 Schritt-fur-Schritt-Anleitung fur eine neue Produktionsumgebung:
@@ -171,10 +157,8 @@ git add environments/sealed-secrets/meinecluster.yaml
 task sealed-secrets:install  # (kubeconfig auf Ziel-Cluster zeigen)
 ```
 
-**5. ArgoCD Cluster registrieren und Apps deployen**
+**5. Workspace deployen**
 
 ```bash
-task argocd:cluster:register   # Cluster mit workspace-Labels registrieren
-task argocd:apps:apply         # ApplicationSet aktualisieren
-task argocd:status             # Sync-Status pruefen
+task workspace:deploy ENV=<neue-umgebung>
 ```

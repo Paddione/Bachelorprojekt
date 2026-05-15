@@ -15,10 +15,9 @@ resources:
   - nextcloud-redis.yaml
   # Nextcloud Talk HPB + Whiteboard
   # NB: coturn + janus (k3d/coturn-stack) and Collabora
-  # (k3d/office-stack) each live in their own ArgoCD Application
+  # (k3d/office-stack) are deployed separately via task workspace:office:deploy
   # because they need dedicated privileged namespaces and can't be
-  # transformed by this kustomization's `namespace: workspace`
-  # directive.
+  # transformed by this kustomization's `namespace: workspace` directive.
   - talk-hpb.yaml
   - whiteboard.yaml
   - talk-recording.yaml
@@ -96,9 +95,6 @@ configMapGenerator:
     files:
       - zz-extra.config.php=nextcloud-extra-config.php
   - name: docs-content
-    options:
-      annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
     files:
       - docs-content/index.html
       - docs-content/README.md
@@ -129,7 +125,6 @@ configMapGenerator:
       - docs-content/shared-db.md
       - docs-content/operations.md
       - docs-content/environments.md
-      - docs-content/argocd.md
       - docs-content/backup.md
       - docs-content/dsgvo.md
       - docs-content/contributing.md

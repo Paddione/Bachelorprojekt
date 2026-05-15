@@ -1,8 +1,0 @@
-# Run argocd-server in insecure (HTTP) mode so Traefik can handle TLS termination.
-# The server is still only reachable over HTTPS externally via the Ingress.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: argocd-cmd-params-cm
-data:
-  server.insecure: "true"

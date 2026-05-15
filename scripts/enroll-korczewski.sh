@@ -378,5 +378,5 @@ log "═════════════════════════
 echo ""
 run1 "kubectl get nodes -o wide"
 echo ""
-log "Next: re-register the cluster in ArgoCD:"
-log "  task argocd:cluster:register"
+log "Next: deploy the workspace:"
+log "  task workspace:deploy ENV=korczewski"

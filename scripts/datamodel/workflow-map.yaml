@@ -124,7 +124,7 @@ steps:
   - id: bp-infra
     family: agents
     label: "bachelorprojekt-infra"
-    description: "Sub-agent for Kubernetes manifest work, Kustomize overlays, and ArgoCD."
+    description: "Sub-agent for Kubernetes manifest work, Kustomize overlays, and Taskfile deploy tasks."
     writes:
       files: ["k3d/**/*.yaml", "prod*/**/*.yaml"]
     reads:
@@ -218,16 +218,14 @@ steps:
       files: ["k3d/**", "website/**", "brett/**"]
     gaps: []
 
-  - id: argocd-reconcile
+  - id: manual-deploy
     family: ci
-    label: "ArgoCD reconcile"
-    description: "GitOps controller: continuously syncs cluster state to git HEAD."
+    label: "Manual deploy"
+    description: "Developer triggers workload rollout via task feature:deploy or task workspace:deploy ENV=<env>."
     writes: {}
     reads:
       files: ["k3d/**/*.yaml", "prod-mentolder/**", "prod-korczewski/**"]
-    gaps:
-      - type: workflow-to-db
-        explanation: "ArgoCD sync events are not recorded in the shared-db; they are only visible in the ArgoCD UI and its own etcd."
+    gaps: []
 
   # ── App Workflows family ──────────────────────────────────────────────────
   - id: keycloak-sso-login

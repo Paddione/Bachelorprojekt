@@ -11,12 +11,6 @@
 
 <p class="kicker">Referenz · Begriffe von A bis Z</p>
 
-## A
-
-**ApplicationSet (ArgoCD)** — Eine ArgoCD-Ressource, die mehrere Applications generisch erzeugt (z. B. eine Application pro Cluster). Im Workspace fan-out-en wir damit dasselbe Manifest auf mentolder + korczewski. Siehe [ArgoCD (GitOps)](argocd).
-
-**ArgoCD** — GitOps-Controller. Synct Manifeste aus Git ins Cluster und meldet Drift. Hub-Cluster ist mentolder; alle `argocd:*`-Tasks laufen ausschließlich gegen den Hub. Siehe [ArgoCD (GitOps)](argocd).
-
 ## B
 
 **Brand** — Visuelles Identitätsset. Workspace betreibt zwei Brands: `mentolder` und `korczewski`. Erscheint als `BRAND_ID`-ConfigMap und steuert Theme/Logo/Texte in Website und Docs.

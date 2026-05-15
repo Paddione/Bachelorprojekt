@@ -74,7 +74,6 @@ flowchart TB
 | `website` | Astro + Svelte Website (Messaging, Admin-Panel) | Standard |
 | `workspace-office` | Collabora Online (eigener Namespace wegen privilegierten Containern) | Privileged |
 | `coturn` | Janus Gateway, NATS, coturn (eigener Namespace, hostNetwork) | Privileged |
-| `argocd` | ArgoCD GitOps Controller (Hub-Cluster, Produktion) | Standard |
 | `cert-manager` | cert-manager, lego DNS-01 Webhook (Produktion, TLS) | Standard |
 | `kube-system` | Traefik Ingress Controller (k3s built-in) | System |
 
@@ -215,38 +214,40 @@ Init-Skripte in `shared-db` erstellen Datenbanken und User idempotent beim erste
 | `k3d/nextcloud-oidc-dev.php` | Nextcloud OIDC-Client-Config | Nextcloud |
 | `.env` | `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL` | envsubst bei Prod-Deployment |
 | `prod/` | Kustomize-Overlays (TLS, Ressource-Limits, Replicas) | Produktion |
-| `environments/` | Pro-Namespace-Variablen (mentolder, korczewski) | ArgoCD-gesteuerter Roll-out |
+| `environments/` | Pro-Cluster-Variablen (mentolder, korczewski) | `task workspace:deploy ENV=<env>` |
 
-### Vereinter Cluster mit ArgoCD
+### Zwei physische Cluster
 
-In Produktion betreibt das Projekt einen einzigen vereinten k3s-Cluster mit 12 Nodes (6 Hetzner Control-Plane-Nodes + 6 Home-Worker-Nodes, verbunden via WireGuard-Mesh). Beide Marken (mentolder und korczewski) laufen auf demselben Cluster, getrennt nur durch Namespaces (`workspace` fuer mentolder, `workspace-korczewski` fuer korczewski). ArgoCD selbst laeuft auf den Hetzner-Nodes und synchronisiert beide Namespaces aus demselben Git-Repository. Pro-Marke-spezifische Einstellungen (Domain, Branding) werden als Annotationen auf ArgoCD Cluster-Secrets gespeichert.
+Produktion laeuft als zwei getrennte k3s-Cluster. Jeder Cluster hat eigene sealed-secrets Controller, cert-manager, shared-db und Keycloak-Realm. Deployments werden manuell via `task feature:*` oder `task workspace:deploy ENV=<env>` ausgeloest.
 
 ```mermaid
 flowchart TB
-    GIT[("fa:fa-code-branch GitHub\nPaddione/Bachelorprojekt")] --> ARGO
+    GIT[("fa:fa-code-branch GitHub\nPaddione/Bachelorprojekt")]
+    DEV["fa:fa-laptop Entwickler\ntask feature:deploy"]
 
-    subgraph hub ["Vereinter k3s-Cluster (12 Nodes)"]
-        ARGO["fa:fa-rotate ArgoCD\n(auf Hetzner CP)"]
-        APPSET["ApplicationSet"]
-        ARGO --> APPSET
+    GIT --> DEV
 
-        subgraph mentolder_ns ["Namespace: workspace (mentolder)"]
+    subgraph mentolder_cluster ["k3s-Cluster mentolder (9 Nodes)"]
+        subgraph mentolder_ns ["Namespace: workspace"]
             M_WS["mentolder Services"]
             M_WEB["website (mentolder)"]
         end
+    end
 
+    subgraph korczewski_cluster ["k3s-Cluster korczewski (3 Nodes)"]
         subgraph korczewski_ns ["Namespace: workspace-korczewski"]
             K_WS["korczewski Services"]
             K_WEB["website (korczewski)"]
         end
     end
 
-    APPSET -->|"sync"| mentolder_ns
-    APPSET -->|"sync"| korczewski_ns
+    DEV -->|"task workspace:deploy ENV=mentolder"| mentolder_ns
+    DEV -->|"task workspace:deploy ENV=korczewski"| korczewski_ns
 
-    style hub fill:#2a1654,color:#e8c870
+    style mentolder_cluster fill:#2a1654,color:#e8c870
+    style korczewski_cluster fill:#1b3766,color:#e8c870
     style mentolder_ns fill:#0a1a0a,color:#b8e8b8
-    style korczewski_ns fill:#1b3766,color:#e8c870
+    style korczewski_ns fill:#0a2a10,color:#b8e8b8
     style GIT fill:#1a1a2e,color:#aabbcc
 ```
 
@@ -329,8 +330,8 @@ flowchart TD
     CI -->|"PR erstellen"| PR["Pull Request\n(squash-merge)"]
     PR -->|"Merge"| MAIN["main Branch"]
 
-    MAIN -->|"lokal: task workspace:deploy"| K3D["k3d Cluster\n(Entwicklung)"]
-    MAIN -->|"ArgoCD sync"| PROD["k3s Cluster\n(Produktion)"]
+    MAIN -->|"task workspace:deploy ENV=dev"| K3D["k3d Cluster\n(Entwicklung)"]
+    MAIN -->|"task feature:deploy"| PROD["k3s Cluster\n(Produktion)"]
 
     subgraph K3D_STEPS ["k3d Deployment-Schritte"]
         direction TB

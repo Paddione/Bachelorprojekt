@@ -1,0 +1,13 @@
+{
+  "pr_number": 786,
+  "title": "repair brand-FK SQL syntax + add is_test_data ALTER",
+  "description": "## Summary\n- Phase 2 brands-FK migration (#a5e46671) inlined `DO $$ ... END $$;` inside the `CREATE TABLE tickets.tickets (...)` parens — invalid SQL, broke `initTicketsSchema()` on every load.\n- Symptom on mentolder: `/admin/tickets` rendered \"Datenbankfehler beim Laden der Tickets\" because every `listAdminTickets` call awaited the failing schema init.\n- Move the brand-FK ALTER into its own `pool.query()` so the CREATE TABLE stays well-formed.\n- Add the long-missing `is_test_data BOOLEAN NOT NULL DEFAULT false` ALTER that admin filter queries (`t.is_test_data = false`) already referenced.\n\nLive fix on mentolder also required restarting `shared-db` so the `subPath`-mounted `ensure-meetings-schema.sh` re-mounted with the brands DDL — that part is environmental, not code.\n\n## Test plan\n- [x] `task feature:website` rolls out on both clusters\n- [x] `https://web.mentolder.de/admin/tickets` lists tickets without DB error\n- [x] `https://web.korczewski.de/admin/tickets` still loads (regression check)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "fix",
+  "scope": "tickets",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-15T15:06:00Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": []
+}

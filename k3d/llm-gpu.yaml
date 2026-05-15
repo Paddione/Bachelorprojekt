@@ -1,9 +1,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# llm-gpu: external GPU peer (TEI embed, TEI rerank, Ollama chat)
+# llm-gpu: external GPU peer (TEI embed, TEI rerank, Ollama chat, LM Studio chat)
 #
-# The GPU box runs on the wg-mesh overlay. Three Services + Endpoints route
+# The GPU box runs on the wg-mesh overlay. Four Services + Endpoints route
 # traffic to it from inside the cluster. ${LLM_HOST_IP} is filled by envsubst
-# at deploy time from environments/<env>.yaml.
+# at deploy time from environments/<env>.yaml. Ollama (11434) and LM Studio
+# (1234) run side-by-side as parallel OpenAI-compatible chat backends.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Embeddings (TEI bge-m3) ──────────────────────────────────────────────────
@@ -71,3 +72,25 @@ subsets:
     ports:
       - name: http
         port: 11434
+---
+# ── Chat (LM Studio — parallel OpenAI-compatible backend) ────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-lmstudio
+spec:
+  ports:
+    - name: http
+      port: 1234
+      targetPort: 1234
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway-lmstudio
+subsets:
+  - addresses:
+      - ip: ${LLM_HOST_IP}
+    ports:
+      - name: http
+        port: 1234

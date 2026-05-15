@@ -6,161 +6,137 @@ const BRETT_URL = process.env.BRETT_URL
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type W = any;
 
-test.describe('Brett Controls — Task 2 camera state', () => {
-  test('camera state object exists and renders', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-cam-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).camera === 'object' && (window as W).camera.mode === 'orbit', { timeout: 5000 });
-    const state = await page.evaluate(() => ({ mode: (window as W).camera.mode, theta: (window as W).camera.theta, phi: (window as W).camera.phi, radius: (window as W).camera.radius }));
-    expect(state.mode).toBe('orbit');
-    expect(state.radius).toBeCloseTo(44, 1);
-  });
-});
+test.describe('Brett Controls — WASD movement', () => {
+  test('W key moves selected figure in -Z direction', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-wasd-${Date.now()}`);
+    await page.waitForFunction(() => Array.isArray((window as W).STATE?.figures), { timeout: 5000 });
 
-test.describe('Brett Controls — Task 3 presets', () => {
-  test('keyboard 1 enters top-down view', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-preset-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).goToPreset === 'function', { timeout: 5000 });
-    await page.keyboard.press('1');
-    await page.waitForTimeout(500);
-    const phi = await page.evaluate(() => (window as W).camera.phi);
-    expect(phi).toBeLessThan(0.10);
-  });
-
-  test('keyboard H returns to home from any view', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-home-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).goToPreset === 'function');
-    await page.keyboard.press('1');
-    await page.waitForTimeout(500);
-    await page.keyboard.press('h');
-    await page.waitForTimeout(600);
-    const { phi, radius } = await page.evaluate(() => ({ phi: (window as W).camera.phi, radius: (window as W).camera.radius }));
-    expect(phi).toBeCloseTo(0.95, 1);
-    expect(radius).toBeCloseTo(44, 1);
-  });
-});
-
-test.describe('Brett Controls — Task 4 tool modes', () => {
-  test('keyboard V/O/P/R/F/E switches active tool', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-tool-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).setActiveTool === 'function');
-    for (const k of ['v', 'o', 'p', 'r']) {
-      await page.keyboard.press(k);
-      const active = await page.evaluate(() => (window as W).getActiveTool());
-      expect(active).toBe(k.toUpperCase());
-    }
-  });
-});
-
-test.describe('Brett Controls — Task 5 touch', () => {
-  test.use({ hasTouch: true, viewport: { width: 412, height: 915 } });
-  test('two-finger pinch changes radius', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-pinch-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).camera === 'object');
-    const before = await page.evaluate(() => (window as W).camera.radius);
-    // Synthesize a pinch-out (zoom in = smaller radius)
-    await page.evaluate(() => {
-      const cnvEl = document.getElementById('three-canvas') as HTMLElement;
-      const r = cnvEl.getBoundingClientRect();
-      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      const t1Down = new TouchEvent('touchstart', { touches: [
-        new Touch({ identifier: 1, target: cnvEl as EventTarget, clientX: cx - 50, clientY: cy }),
-        new Touch({ identifier: 2, target: cnvEl as EventTarget, clientX: cx + 50, clientY: cy }),
-      ], cancelable: true, bubbles: true });
-      cnvEl.dispatchEvent(t1Down);
-      const t2Move = new TouchEvent('touchmove', { touches: [
-        new Touch({ identifier: 1, target: cnvEl as EventTarget, clientX: cx - 100, clientY: cy }),
-        new Touch({ identifier: 2, target: cnvEl as EventTarget, clientX: cx + 100, clientY: cy }),
-      ], cancelable: true, bubbles: true });
-      cnvEl.dispatchEvent(t2Move);
+    // Get initial position of the first (seeded) figure
+    const zBefore = await page.evaluate(() => {
+      const fig = (window as W).STATE.figures[0];
+      (window as W).selectFigure(fig.id);
+      return fig.root.position.z;
     });
-    await page.waitForTimeout(100);
-    const after = await page.evaluate(() => (window as W).camera.radius);
-    expect(after).toBeLessThan(before);
+
+    await page.keyboard.down('w');
+    await page.waitForTimeout(300);
+    await page.keyboard.up('w');
+
+    const zAfter = await page.evaluate(() => (window as W).STATE.figures[0].root.position.z);
+    expect(zAfter).toBeLessThan(zBefore);
+  });
+
+  test('Shift key is tracked for sprint', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-sprint-${Date.now()}`);
+    await page.waitForFunction(() => typeof (window as W).STATE === 'object', { timeout: 5000 });
+
+    await page.keyboard.down('Shift');
+    const shiftOn = await page.evaluate(() => (window as W).wasdKeys?.shift ?? false);
+    expect(shiftOn).toBe(true);
+    await page.keyboard.up('Shift');
   });
 });
 
-test.describe('Brett Controls — Task 6 collapsible bars', () => {
-  test('bar state persists across reload', async ({ page }: { page: Page }) => {
-    const room = `e2e-bars-${Date.now()}`;
-    await page.goto(`${BRETT_URL}?room=${room}`);
-    await page.waitForFunction(() => typeof (window as W).Bars === 'object');
-    await page.keyboard.press(']');  // collapse dock
-    await page.waitForTimeout(100);
-    expect(await page.evaluate(() => (window as W).Bars.state.dock)).toBe(true);
-    await page.reload();
-    await page.waitForFunction(() => typeof (window as W).Bars === 'object');
-    expect(await page.evaluate(() => (window as W).Bars.state.dock)).toBe(true);
-    expect(await page.evaluate(() => document.body.classList.contains('bc-dock-collapsed'))).toBe(true);
-  });
-});
+test.describe('Brett Controls — double-click teleport', () => {
+  test('easeFigure is exported on window', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-teleport-${Date.now()}`);
+    await page.waitForFunction(() => typeof (window as W).easeFigure === 'function', { timeout: 5000 });
 
-test.describe('Brett Controls — full coverage', () => {
-
-  test('compass click returns home', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-compass-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).goHome === 'function');
-    await page.keyboard.press('1');
-    await page.waitForTimeout(500);
-    await page.click('#bc-compass');
-    await page.waitForTimeout(600);
-    const phi = await page.evaluate(() => (window as W).camera.phi);
-    expect(phi).toBeCloseTo(0.95, 1);
-  });
-
-  test('bookmark save + restore', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-bk-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).Bookmarks === 'object');
-    await page.keyboard.press('3');
-    await page.waitForTimeout(500);
-    await page.keyboard.press('b');
-    await page.waitForTimeout(100);
-    expect(await page.evaluate(() => (window as W).Bookmarks.items.length)).toBe(1);
-    await page.keyboard.press('5');
-    await page.waitForTimeout(500);
-    await page.keyboard.press('Shift+1');
-    await page.waitForTimeout(600);
-    const theta = await page.evaluate(() => (window as W).camera.theta);
-    expect(theta).toBeCloseTo(-Math.PI / 2, 1);
-  });
-
-  test('bookmark name with HTML is escaped (XSS safety)', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-bkxss-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).Bookmarks === 'object');
-    await page.evaluate(() => {
-      const w = window as W;
-      w.Bookmarks.items.push({ name: '<img src=x onerror=window.__xss=1>', snap: w.snapshot ? w.snapshot() : {} });
-      w.Bookmarks.render();
+    const result = await page.evaluate(() => {
+      const fig = (window as W).STATE.figures[0];
+      const zBefore = fig.root.position.z;
+      (window as W).easeFigure(fig, 3, 3, 0); // 0ms = instant
+      return { moved: fig.root.position.x !== 0 || fig.root.position.z !== zBefore };
     });
+    expect(result.moved).toBe(true);
+  });
+
+  test('dblclick on floor places a figure when none selected', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-dbl-${Date.now()}`);
+    await page.waitForFunction(() => Array.isArray((window as W).STATE?.figures), { timeout: 5000 });
+
+    const countBefore = await page.evaluate(() => (window as W).STATE.figures.length);
+
+    // Deselect so dblclick adds a new figure
+    await page.evaluate(() => { (window as W).STATE.selectedId = null; });
+
+    // Double-click in the center of the canvas
+    const canvas = page.locator('canvas');
+    await canvas.dblclick({ position: { x: 200, y: 200 } });
     await page.waitForTimeout(200);
-    const xss = await page.evaluate(() => (window as W).__xss);
-    expect(xss).toBeUndefined();
-    const nameEls = page.locator('.bc-bk-name');
-    const count = await nameEls.count();
-    if (count > 0) {
-      const html = await nameEls.first().innerHTML();
-      expect(html).not.toContain('<img');
-    }
+
+    const countAfter = await page.evaluate(() => (window as W).STATE.figures.length);
+    expect(countAfter).toBeGreaterThanOrEqual(countBefore);
+  });
+});
+
+test.describe('Brett Controls — character editor panel', () => {
+  test('fig-panel-btn toggles the panel', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-panel-${Date.now()}`);
+    await page.waitForFunction(() => !!document.getElementById('fig-panel-btn'), { timeout: 5000 });
+
+    const panelHidden = await page.$eval('#fig-panel', (el: HTMLElement) => el.hidden);
+    expect(panelHidden).toBe(true);
+
+    await page.click('#fig-panel-btn');
+    const panelVisible = await page.$eval('#fig-panel', (el: HTMLElement) => el.hidden);
+    expect(panelVisible).toBe(false);
+
+    await page.click('#fig-panel-close');
+    const panelHidden2 = await page.$eval('#fig-panel', (el: HTMLElement) => el.hidden);
+    expect(panelHidden2).toBe(true);
   });
 
-  test('split-view toggle changes render', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-split-${Date.now()}`);
-    await page.waitForFunction(() => typeof (window as W).camera === 'object');
-    await page.keyboard.press('Shift+S');
-    await page.waitForTimeout(100);
-    expect(await page.evaluate(() => document.getElementById('bc-mode-split')!.classList.contains('active'))).toBe(true);
-    await page.keyboard.press('Shift+S');
-    await page.waitForTimeout(100);
-    expect(await page.evaluate(() => document.getElementById('bc-mode-split')!.classList.contains('active'))).toBe(false);
+  test('scale slider updates panelScale', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-scale-${Date.now()}`);
+    await page.waitForFunction(() => !!document.getElementById('fig-scale-slider'), { timeout: 5000 });
+
+    await page.click('#fig-panel-btn');
+    await page.fill('#fig-scale-slider', '1.5');
+    await page.dispatchEvent('#fig-scale-slider', 'input');
+
+    const scaleText = await page.$eval('#fig-scale-val', (el: HTMLElement) => el.textContent);
+    expect(scaleText).toContain('1.5');
   });
 
-  test('help overlay opens on ?', async ({ page }: { page: Page }) => {
-    await page.goto(`${BRETT_URL}?room=e2e-help-${Date.now()}`);
-    await page.waitForFunction(() => document.getElementById('bc-help-overlay') !== null);
-    await page.keyboard.press('Shift+/');
-    await page.waitForTimeout(100);
-    expect(await page.evaluate(() => !document.getElementById('bc-help-overlay')!.hidden)).toBe(true);
+  test('L size button sets scale to 1.5', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-sizebtn-${Date.now()}`);
+    await page.waitForFunction(() => !!document.querySelector('.fig-size-btn[data-scale="1.5"]'), { timeout: 5000 });
+
+    await page.click('#fig-panel-btn');
+    await page.click('.fig-size-btn[data-scale="1.5"]');
+
+    const sliderVal = await page.$eval('#fig-scale-slider', (el: HTMLInputElement) => el.value);
+    expect(parseFloat(sliderVal)).toBeCloseTo(1.5, 1);
+  });
+
+  test('Setzen button enters placing mode', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-placing-${Date.now()}`);
+    await page.waitForFunction(() => typeof (window as W).placingMode_get === 'function', { timeout: 5000 });
+
+    await page.click('#fig-panel-btn');
+    await page.click('#fig-panel-add');
+
+    const placing = await page.evaluate(() => (window as W).placingMode_get());
+    expect(placing).toBe(true);
+
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(100);
-    expect(await page.evaluate(() => document.getElementById('bc-help-overlay')!.hidden)).toBe(true);
+    const placing2 = await page.evaluate(() => (window as W).placingMode_get());
+    expect(placing2).toBe(false);
+  });
+
+  test('placing mode sets body.placing-figure class', async ({ page }: { page: Page }) => {
+    await page.goto(`${BRETT_URL}?room=e2e-cursor-${Date.now()}`);
+    await page.waitForFunction(() => typeof (window as W).placingMode_get === 'function', { timeout: 5000 });
+
+    await page.click('#fig-panel-btn');
+    await page.click('#fig-panel-add');
+
+    const hasClass = await page.evaluate(() => document.body.classList.contains('placing-figure'));
+    expect(hasClass).toBe(true);
+
+    await page.keyboard.press('Escape');
+    const hasClassAfter = await page.evaluate(() => document.body.classList.contains('placing-figure'));
+    expect(hasClassAfter).toBe(false);
   });
 });

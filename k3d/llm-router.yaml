@@ -57,6 +57,36 @@ data:
           api_base: http://llm-gateway-chat:11434
           timeout: 30
 
+      # ── LM Studio chat backend (parallel to Ollama, OpenAI-compatible) ────
+      # Named Qwen aliases — adjust the right-hand `model:` to the exact ID
+      # that `curl http://${LLM_HOST_IP}:1234/v1/models` reports.
+      - model_name: lmstudio-code-14b
+        litellm_params:
+          model: openai/qwen2.5-coder-14b-instruct
+          api_base: http://llm-gateway-lmstudio:1234/v1
+          api_key: "lm-studio"
+          timeout: 60
+      - model_name: lmstudio-code-7b
+        litellm_params:
+          model: openai/qwen2.5-coder-7b-instruct
+          api_base: http://llm-gateway-lmstudio:1234/v1
+          api_key: "lm-studio"
+          timeout: 60
+      - model_name: lmstudio-reasoning-14b
+        litellm_params:
+          model: openai/qwen3-14b
+          api_base: http://llm-gateway-lmstudio:1234/v1
+          api_key: "lm-studio"
+          timeout: 60
+      # Passthrough: callers using `lmstudio/<any-model>` are forwarded
+      # verbatim, so swapping models inside LM Studio needs no ConfigMap roll.
+      - model_name: lmstudio/*
+        litellm_params:
+          model: openai/*
+          api_base: http://llm-gateway-lmstudio:1234/v1
+          api_key: "lm-studio"
+          timeout: 60
+
     litellm_settings:
       drop_params: true
       set_verbose: false

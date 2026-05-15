@@ -1,7 +1,7 @@
 'use strict';
 const STATE = Object.freeze({
   IDLE: 'idle', RUNNING: 'running', FLAILING: 'flailing',
-  RAGDOLL: 'ragdoll', RECOVERING: 'recovering',
+  RAGDOLL: 'ragdoll', RECOVERING: 'recovering', DEAD: 'dead',
 });
 const WALK_SPEED = 2.6;
 const SPRINT_MUL = 1.6;
@@ -27,6 +27,8 @@ class PlayerAvatar {
     this.lastHits = new Map();
     this.netTarget = null;
     this._t = 0;
+    this.hp = 100;
+    this.burnInterval = null;
     this._applyColor();
   }
   _applyColor() {
@@ -45,7 +47,34 @@ class PlayerAvatar {
       flailing: this.flailing,
     };
   }
+  applyDamage(amount) {
+    if (this.isDead) return;
+    this.hp = Math.max(0, this.hp - amount);
+  }
+
+  get isDead() { return this.hp <= 0; }
+
+  resetHp() {
+    this.hp = 100;
+    if (this.burnInterval) { clearInterval(this.burnInterval); this.burnInterval = null; }
+  }
+
+  startBurn(damagePerSec, durationSec, onTick) {
+    if (this.burnInterval) { clearInterval(this.burnInterval); }
+    let elapsed = 0;
+    this.burnInterval = setInterval(() => {
+      elapsed++;
+      this.applyDamage(damagePerSec);
+      if (onTick) onTick(this.hp);
+      if (elapsed >= durationSec || this.isDead) {
+        clearInterval(this.burnInterval);
+        this.burnInterval = null;
+      }
+    }, 1000);
+  }
+
   applyHit(impulse, source) {
+    if (this.isDead) return;
     this.state = STATE.RAGDOLL;
     this.ragdollUntil = performance.now() + RAGDOLL_DURATION_MS;
     this.vx = impulse.x;
@@ -160,7 +189,8 @@ class PlayerAvatar {
   _animate(dt) {
     const b = this.mannequin.bone;
     if (this.state === STATE.RUNNING || this.state === STATE.FLAILING) {
-      const phase = this._t * 8;
+      const inp = this._input || {};
+      const phase = this._t * (inp.sprint ? 14 : 10);
       b.lHip.targetRot.x = Math.sin(phase) * 0.6;
       b.rHip.targetRot.x = -Math.sin(phase) * 0.6;
       if (this.flailing) {

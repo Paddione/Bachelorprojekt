@@ -76,9 +76,13 @@ check_service() {
   fi
 
   local code
+  local resolve_args=()
+  if [[ "$ENV" == "dev" ]]; then
+    resolve_args=(--resolve "${subdomain}.${DOMAIN}:80:127.0.0.1" --resolve "${subdomain}.${DOMAIN}:443:127.0.0.1")
+  fi
+
   code=$(curl -sk --max-time "$TIMEOUT" -o /dev/null -w "%{http_code}" \
-    --resolve "${subdomain}.${DOMAIN}:80:127.0.0.1" \
-    --resolve "${subdomain}.${DOMAIN}:443:127.0.0.1" \
+    "${resolve_args[@]}" \
     "$url" 2>/dev/null || echo "000")
 
   local padded

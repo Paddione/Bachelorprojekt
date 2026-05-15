@@ -38,6 +38,29 @@ Kein Blocker — nur Warnung und Bestätigung vom User, wenn Überschneidung erk
 
 ---
 
+## Schritt 0.5: Sync mit main
+
+Bevor irgendein Agent Code schreibt, Branch auf `origin/main` rebsen — verhindert Merge-Konflikte im PR.
+
+```bash
+git fetch origin main
+git rebase origin/main
+```
+
+Falls `git rebase` Konflikte meldet:
+
+```bash
+# Konfliktdateien anzeigen
+git diff --name-only --diff-filter=U
+
+# Rebase abbrechen — Agent darf NICHT mit Konflikten weitermachen
+git rebase --abort
+```
+
+**STOPP.** Melde die Konflikt-Dateien an den User. Erst nach manueller Auflösung (`git rebase origin/main` erneut, dann `git rebase --continue`) weitermachen.
+
+---
+
 ## Schritt 1: Plan finden
 
 **Default — neuester Plan:**
@@ -164,32 +187,21 @@ Co-Authored-By: <model-name>
 
 ---
 
-## Schritt 5.5: PR-Link im Ticket speichern
+## Schritt 5.5: PR-Nummer für Ticket-Abschluss merken
 
 Falls `$TICKET_ID` gesetzt, direkt nach dem PR-Erstellen:
 
 ```bash
 PR_NUM=$(gh pr view --json number -q '.number')
-
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
-  -l app=shared-db -o name | head -1)
-
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
-  psql -U website -d website -At -c \
-  "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
-
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
-  psql -U website -d website -c \
-  "INSERT INTO tickets.ticket_links (from_id, kind, pr_number)
-   SELECT '$TICKET_UUID', 'pr', $PR_NUM
-   WHERE NOT EXISTS (
-     SELECT 1 FROM tickets.ticket_links
-     WHERE from_id = '$TICKET_UUID' AND kind = 'pr' AND pr_number = $PR_NUM
-   );"
 ```
 
-- `to_id` bleibt NULL (kein NOT NULL-Constraint auf der Spalte).
-- `WHERE NOT EXISTS` macht den Insert idempotent ohne UNIQUE-Constraint.
+Das ist alles — die PR-Nummer landet in Schritt 6.5 als Comment-Body und in Schritt 7 als `ticket_plans.pr_number`.
+
+`tickets.ticket_links` ist **nicht** für PR-Referenzen geeignet:
+- `to_id` ist `NOT NULL` (FK auf `tickets.tickets`), also kein Ticket→PR möglich.
+- `kind`-Check-Constraint erlaubt nur `blocks | blocked_by | duplicate_of | relates_to | fixes | fixed_by`.
+
+`tickets.pr_events` führt PRs unabhängig (kein `ticket_id`-FK) — die Verknüpfung lebt allein über `ticket_plans.pr_number` und den Schluss-Kommentar.
 
 ---
 
@@ -216,8 +228,9 @@ kubectl exec "$PGPOD" -n workspace --context mentolder -- \
      SET status = 'done', resolution = '$RESOLUTION'
    WHERE external_id = '$TICKET_ID';
 
-   INSERT INTO tickets.ticket_comments (ticket_id, body, visibility)
+   INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
    SELECT id,
+     'claude-code',
      'PR #$PR_NUM merged. Plan archived to tickets.ticket_plans in Postgres.',
      'internal'
    FROM tickets.tickets WHERE external_id = '$TICKET_ID';"
@@ -340,8 +353,9 @@ Wenn mehrere Kategorien matchen: workspace → website → brett → livekit →
   ```bash
   kubectl exec "$PGPOD" -n workspace --context mentolder -- \
     psql -U website -d website -c \
-    "INSERT INTO tickets.ticket_comments (ticket_id, body, visibility)
+    "INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
      SELECT id,
+       'claude-code',
        'CI blockiert nach Diagnose — manuelle Intervention nötig. Branch: fix/<slug>',
        'internal'
      FROM tickets.tickets WHERE external_id = '$TICKET_ID';"

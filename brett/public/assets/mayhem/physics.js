@@ -28,7 +28,20 @@ function aabbCapsule(box, cap) {
   return (dx * dx + dz * dz) < (cap.radius * cap.radius);
 }
 
-const api = { capsuleCapsule, aabbCapsule };
+function integrateRagdollRoot(root, dt) {
+  root.vy -= 9.8 * dt;
+  root.y += root.vy * dt;
+  if (root.y < 0) { root.y = 0; root.vy = 0; }
+}
+
+function integrateRagdollBone(bone, dt) {
+  bone.velocity.x *= 0.85;
+  bone.velocity.z *= 0.85;
+  bone.currentRot.x += bone.velocity.x * dt;
+  bone.currentRot.z += bone.velocity.z * dt;
+}
+
+const api = { capsuleCapsule, aabbCapsule, integrateRagdollRoot, integrateRagdollBone };
 
 // Dual export: CommonJS (for node --test) and window global (for browser).
 if (typeof module !== 'undefined' && module.exports) {

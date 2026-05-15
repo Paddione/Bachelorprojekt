@@ -40,3 +40,24 @@ test('aabbCapsule: capsule touching corner within radius collides', () => {
   const cap = { x: 1.2, y: 0, z: 1.2, radius: 0.35, height: 1.8 };
   assert.strictEqual(physics.aabbCapsule(box, cap), true);
 });
+
+test('integrateRagdollRoot: applies gravity and integrates y', () => {
+  const root = { y: 2.0, vy: 0 };
+  physics.integrateRagdollRoot(root, 0.1);
+  assert.ok(root.vy < 0, 'vy should be negative after gravity');
+  assert.ok(root.y < 2.0, 'y should decrease');
+});
+
+test('integrateRagdollRoot: clamps y at ground and zeroes vy', () => {
+  const root = { y: 0.0, vy: -5.0 };
+  physics.integrateRagdollRoot(root, 0.1);
+  assert.strictEqual(root.y, 0);
+  assert.strictEqual(root.vy, 0);
+});
+
+test('integrateRagdollBone: damps velocity and integrates rotation', () => {
+  const bone = { velocity: { x: 1.0, z: 0.5 }, currentRot: { x: 0, z: 0 } };
+  physics.integrateRagdollBone(bone, 0.016);
+  assert.ok(bone.velocity.x < 1.0, 'velocity should damp');
+  assert.ok(bone.currentRot.x !== 0, 'rotation should integrate');
+});

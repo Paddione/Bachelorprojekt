@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><!--TITLE--></title>
+<style>
+<!--SHARED_STYLES-->
+
+/* single-page layout */
+.layout-single { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 3em; max-width: 1180px; margin: 0 auto; padding: 2em 1.6em 6em; }
+.content { min-width: 0; }
+.content > .file-section { scroll-margin-top: 5em; }
+.toc { position: sticky; top: 5em; align-self: start; max-height: calc(100vh - 6em); overflow-y: auto; font-size: 0.85rem; padding-right: 0.5em; }
+.toc h5 { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-faint); margin: 0 0 0.8em; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--border); }
+.toc li { margin: 0; }
+.toc a { display: block; padding: 0.25em 0 0.25em 0.9em; color: var(--fg-dim); border-bottom: 0; border-left: 1px solid transparent; margin-left: -1px; line-height: 1.4; transition: color 0.15s, border-color 0.15s; }
+.toc a:hover { color: var(--fg); border-left-color: var(--accent-2); }
+.toc .toc-h2 { padding-left: 0.9em; }
+.toc .toc-h3 { padding-left: 1.8em; font-size: 0.92em; }
+.toc .toc-h4 { padding-left: 2.7em; font-size: 0.88em; color: var(--fg-faint); }
+
+@media (max-width: 900px) {
+  .layout-single { grid-template-columns: 1fr; }
+  .toc { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-title"><!--TITLE--></div>
+  <div class="search-wrap">
+    <input type="text" class="search-input" placeholder="Search…" aria-label="Search">
+    <span class="search-shortcut">⌘K</span>
+  </div>
+  <button class="theme-toggle" data-theme-toggle>Light theme</button>
+</header>
+<nav class="chips" aria-label="Tag filters">
+  <!--CHIPS-->
+</nav>
+<main class="layout-single">
+  <article class="content">
+    <!--CONTENT-->
+  </article>
+  <aside class="toc" aria-label="Contents">
+    <h5>On this page</h5>
+    <!--TOC-->
+  </aside>
+</main>
+<script>
+window.__DOCS_INDEX__ = <!--SEARCH_INDEX-->;
+</script>
+<script>
+<!--SHARED_SCRIPT-->
+</script>
+</body>
+</html>

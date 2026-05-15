@@ -576,18 +576,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-29",
-    "file": "tests/local/FA-29.sh",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-29",
-    "file": "tests/e2e/specs/fa-29-tracking.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-30",
     "file": "tests/local/FA-30.bats",
     "category": "FA",

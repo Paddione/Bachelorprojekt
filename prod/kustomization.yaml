@@ -51,6 +51,16 @@ patches:
       metadata:
         name: workspace-secrets
       $patch: delete
+  # Drop dev-placeholder knowledge-secrets.
+  - target:
+      kind: Secret
+      name: knowledge-secrets
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: knowledge-secrets
+      $patch: delete
   # Drop dev-placeholder backup-passphrase — in production this secret is
   # managed via SealedSecrets (never overwritten by workspace:deploy).
   - target:

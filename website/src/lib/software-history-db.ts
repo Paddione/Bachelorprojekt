@@ -11,8 +11,7 @@ function nodeLookup(
 }
 
 export const trackingPool = new Pool({
-  connectionString: process.env.TRACKING_DB_URL
-    ?? (process.env.SESSIONS_DATABASE_URL ?? '').replace(/\/website$/, '/postgres'),
+  connectionString: (process.env.SESSIONS_DATABASE_URL ?? '').replace(/\/website$/, '/postgres'),
   lookup: nodeLookup,
 } as unknown as import('pg').PoolConfig);
 

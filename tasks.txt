@@ -1,0 +1,215 @@
+task: Available tasks for this project:
+* clean:                                       Full cleanup — delete cluster, prune Docker images
+* down:                                        Tear down everything
+* health:                                      Cross-cluster health check (status + connectivity + deployment verification)
+* shell:                                       Open a debug shell in the cluster
+* up:                                          Full setup: create cluster → build → deploy
+* arena:build:                                 Build arena-server image and (in dev) import into k3d
+* arena:db:                                    psql into arena schema
+* arena:deploy:                                Build, push, and roll out arena-server (korczewski only)
+* arena:deploy:all-prods:                      Build + roll out arena-server on korczewski (arena's home cluster)
+* arena:logs:                                  Tail arena-server logs
+* arena:push:                                  Push arena-server image to ghcr.io
+* arena:status:                                Show arena-server status
+* arena:sync:                                  Fast-sync arena-server src to the running pod and rebuild (ENV=dev|korczewski|...)
+* arena:teardown:                              Remove arena-server resources
+* billing:validate-einvoice:                   Validate XML/PDF e-invoice(s) via Mustangproject. With no args, validates every fixture in website/test/fixtures/einvoice/. Pass `-- <file>` for a single file.
+* brainstorm:cleanup-scratch:                  [brainstorm] Delete the parallel-session's ad-hoc brainstorm-proxy Pod (Service+Ingress are reused by the new manifest)
+* brainstorm:firewall:open:                    [brainstorm] Open ufw tcp/32223 on gekko-hetzner-2 so operators can reach the sish NodePort
+* brainstorm:materialise-keys:                 [brainstorm] Push DEV_SISH_AUTHORIZED_KEYS into the brainstorm-sish ConfigMap and roll sish
+* brainstorm:publish:                          [brainstorm] Publish a local port at https://brainstorm.${PROD_DOMAIN}. Usage: task brainstorm:publish -- <localport>
+* brainstorm:setup:                            [brainstorm] One-time setup: open firewall on the sish node + materialise authorized_keys
+* brainstorm:status:                           [brainstorm] Show sish pod status and probe the public Ingress
+* brett:bot-setup:                             Register the Nextcloud Talk bot for /brett (ENV=dev|mentolder|korczewski)
+* brett:build:                                 Build brett image (and import into k3d in dev)
+* brett:deploy:                                Build, import/push, and roll out brett (ENV=dev|mentolder|korczewski)
+* brett:deploy:all-prods:                      Build, push, and roll brett on mentolder + korczewski
+* brett:logs:                                  Tail brett logs (ENV=dev|mentolder|korczewski)
+* brett:push:                                  Build and push brett image to ghcr.io (for production)
+* brett:sync:                                  Fast-sync brett source to the running pod and restart (ENV=dev|mentolder|...)
+* cert:install:                                Install cert-manager + lego DNS-01 webhook for wildcard certs
+* cert:secret:                                 Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml). ENV=dev|mentolder|korczewski selects target cluster + workspace ns.
+* cert:status:                                 Show wildcard certificate and ClusterIssuer status (ENV=dev|mentolder|korczewski)
+* claude-code:export:                          Export a ready-to-use settings.json for another user (usage: task claude-code:export -- cluster|business)
+* claude-code:invite:                          Print claude mcp add commands for a user (usage: task claude-code:invite -- cluster|business)
+* claude-code:rotate-tokens:                   Generate new MCP access tokens and update the Secret (ENV=mentolder|korczewski)
+* claude-code:setup:                           Generate Claude Code settings.json (usage: task claude-code:setup -- cluster|business)
+* cluster:create:                              Create the k3d dev cluster with local registry
+* cluster:delete:                              Delete the k3d dev cluster and clean up
+* cluster:start:                               Start a previously stopped cluster
+* cluster:status:                              Show cluster status, nodes, and resource usage
+* cluster:stop:                                Stop the cluster (preserves state, frees resources)
+* clusters:status:                             Show status of all clusters (mentolder + korczewski)
+* coaching:classify:                           Run AI classifier over UNCLASSIFIED chunks of a coaching book. Args: -- --slug=<slug> | --all
+* coaching:ingest:                             Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]
+* config:show:                                 Show resolved config for an environment (usage: task config:show ENV=mentolder)
+* datamodel:build:                             Regenerate k3d/docs-content/datamodel-workflow.md from shared-db + workflow-map.yaml
+* db:diagram:                                  Regenerate docs/db-schema-diagram.md from live shared-db
+* dev:apply:                                   [dev] Apply the dev-stack overlay to the dev k3d cluster (no image build)
+* dev:build:brett:                             [dev] Build the brett image and import it into the dev k3d cluster
+* dev:build:website:                           [dev] Build the website image and import it into the dev k3d cluster
+* dev:cluster:create:                          [dev] Create the dev k3d cluster on $DEV_NODE with the right port bindings
+* dev:cluster:delete:                          [dev] Destroy the dev k3d cluster (data lost — refresh from prod with dev:db:refresh)
+* dev:cluster:status:                          [dev] Show pod status on the dev k3d cluster
+* dev:db:refresh:                              [dev] Restore latest prod snapshot into shared-db-dev (drops + recreates DBs)
+* dev:deploy:                                  [dev] Build images, import to k3d, apply manifests
+* dev:firewall:open:                           [dev] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules on $DEV_NODE
+* dev:logs:                                    [dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)
+* dev:psql:                                    [dev] Open psql shell to shared-db-dev
+* dev:redeploy:brett:                          [dev] Rebuild + roll brett only
+* dev:redeploy:website:                        [dev] Rebuild + roll website only
+* dev:tunnel:                                  [dev] ssh -R wrapper. Usage: task dev:tunnel -- <name> <localport>
+* docs:build:                                  Build docs MD -> static HTML (output to k3d/docs-content-built/)
+* docs:configmap:apply:                        NOTE: ConfigMap not mounted in docs pods — use docs:deploy for real updates. Kept for kustomize validation.
+* docs:deploy:                                 Build, push and deploy docs image to both production environments (korczewski + mentolder)
+* docs:image:build:                            Build docs Docker image
+* docs:image:push:                             Push docs Docker image
+* docs:refresh-diagrams:                       Regenerate all auto-generated diagrams (DB schema, …) and redeploy docs to both clusters
+* docs:sync:                                   Fast-sync docs MD -> HTML and push to running pod (ENV=dev|mentolder|...)
+* einvoice-sidecar:build:                      Build the einvoice-sidecar Docker image
+* einvoice-sidecar:import:                     Import einvoice-sidecar image into k3d cluster
+* einvoice-sidecar:logs:                       Tail einvoice-sidecar logs (ENV=dev|mentolder|korczewski)
+* einvoice-sidecar:push:                       Build and push einvoice-sidecar image to ghcr.io
+* env:fetch-cert:                              Fetch the sealing certificate from a cluster
+* env:generate:                                Generate secrets for an environment from schema
+* env:init:                                    Create a new environment file from schema template
+* env:seal:                                    Encrypt secrets into a SealedSecret manifest
+* env:show:                                    Show resolved config for an environment
+* env:validate:                                Validate environment config against schema
+* env:validate:all:                            Validate all environment configs (schema-only, no cluster needed)
+* feature:arena:                               Build + deploy arena-server to korczewski (arena's home cluster)
+* feature:brett:                               Rebuild + redeploy brett on BOTH prod clusters
+* feature:deploy:                              Roll a code change to BOTH prod clusters (workspace:deploy + post-setup + verify on mentolder + korczewski)
+* feature:livekit:                             Re-pin livekit/stream → LiveKit node and turn → TURN node on BOTH prod clusters
+* feature:website:                             Rebuild + redeploy the Astro website on BOTH prod clusters
+* gemini:setup:                                Generate Gemini CLI settings.json (usage: task gemini:setup -- cluster|business)
+* gemini:setup:all:                            Generate Gemini CLI settings.json for all environments (dev, korczewski, mentolder)
+* ha:cert-renew:                               Renew wildcard TLS cert via acme.sh on node 1 and update K8s secret
+* ha:import-image:                             Build a local Docker image and import to all HA nodes (usage: task ha:import-image -- <path> <image:tag>)
+* ha:setup:                                    Bootstrap 3-node k3s HA cluster on Hetzner (run once)
+* ha:status:                                   Show HA cluster node and pod status (ENV=mentolder|korczewski)
+* hooks:install:                               Install git hooks (branch naming, kustomize validation, secret scanning)
+* ingress:status:                              Show Traefik ingress controller status (built into k3s)
+* keycloak:ensure-mappers:                     Idempotent upsert of protocol mappers that secret-only sync misses (currently: website→audience-arena). ENV=dev|mentolder|korczewski.
+* keycloak:sync:                               Sync OIDC clients + secrets von realm-template → Keycloak Admin API (ENV=dev|mentolder|korczewski)
+* knowledge:reindex:                           Re-index knowledge collections (SOURCE=prs|markdown|bugs|all, ENV=dev|mentolder|korczewski)
+* livekit:dns-pin:                             Print the ipv64 API calls that pin livekit/stream → LIVEKIT_PIN_IP and turn → TURN_PUBLIC_IP (run with APPLY=true to actually invoke). ENV=dev|mentolder|korczewski. PIN_IP overrides livekit/stream only; turn always tracks TURN_PUBLIC_IP.
+* livekit:end-stream:                          Forcibly end the active livestream — restarts livekit-server, which closes the room and disconnects all publishers (ENV=dev|mentolder|korczewski)
+* livekit:firewall-open:                       Open LiveKit ports (7880/tcp, 7881/tcp, 50000-60000/udp, 30000-40000/udp) on a Hetzner node via SSH (NODE=<ip>)
+* livekit:logs:                                Tail LiveKit logs (ENV=dev|mentolder|korczewski; CLI_ARGS = server|ingress|egress|redis, default: server)
+* livekit:recordings:                          List recorded streams in the egress PVC (ENV=dev|mentolder|korczewski)
+* livekit:status:                              Show LiveKit pods, services, ingress, and recordings (ENV=dev|mentolder|korczewski)
+* llm:bootstrap-host:                          Bootstrap the GPU host (Docker, systemd units, ufw). HOST=<wg-mesh-ip>
+* llm:deploy:                                  Apply llm-gpu Endpoints + llm-router Deployment to ENV=mentolder
+* llm:logs:                                    Tail llm-router logs. ENV=<env>
+* llm:pull-models:                             Pull all 4 Ollama models + warm TEI HF cache. HOST=<wg-mesh-ip>
+* llm:redeploy-router:                         Roll the llm-router Deployment (e.g. after config.yaml change). ENV=<env>
+* llm:status:                                  Show LLM pipeline status (router pod, gateway endpoints, model availability). ENV=<env>
+* llm:test:                                    Smoke-test all four router routes (embed bge-m3, embed voyage, rerank, chat). ENV=<env>
+* mcp:deploy:                                  Deploy all Claude Code MCP pods (core + apps + auth)
+* mcp:logs:                                    Tail logs for a container in the MCP monolith (usage: task mcp:logs -- <container>, e.g. postgres|browser|github|keycloak|kubernetes)
+* mcp:restart:                                 Restart the MCP monolith pod
+* mcp:select:                                  Interactive MCP server selector (pick env + servers → .mcp.json)
+* mcp:set-github-pat:                          Update GITHUB_PAT in claude-code-secrets
+* mcp:status:                                  Show status of all Claude Code MCP pods and containers
+* openclaw:backup:                             Move existing ~/.openclaw to a dated backup directory (no-op if absent)
+* openclaw:configure:                          Run onboard --install-daemon, then write ~/.openclaw/.env from template
+* openclaw:install:                            npm install -g openclaw@latest (Node ≥ 22.16 required)
+* openclaw:logs:                               Tail daemon log via journalctl --user
+* openclaw:restore:                            Roll back: stop daemon, uninstall, remove fresh ~/.openclaw, move backup back
+* openclaw:start:                              Restart the systemd --user openclaw service
+* openclaw:status:                             Show daemon status + gateway health probe
+* openclaw:wipe:                               Destructive: remove fresh ~/.openclaw AND backup. Requires CONFIRM=yes
+* plans:import:                                Parse all active plan files → tracking/pending/ (seeds DB on next CronJob run)
+* plans:query:                                 Show active plan sections for a given role. Usage: task plans:query -- <role>
+* registry:list:                               List images in the local registry
+* sealed-secrets:install:                      Install Sealed Secrets controller on a cluster via Helm
+* sealed-secrets:status:                       Show Sealed Secrets controller status
+* secrets:sync:                                Apply SealedSecrets to both prod clusters without touching workloads. Run after env:seal ENV=<env>.
+* software-history:classify:                   Classify all unclassified PRs into bachelorprojekt.software_events (requires TRACKING_DB_URL)
+* software-history:psql:                       psql into shared-db with software_events focus
+* systemtest:all:                              Run all 12 system-test specs across 4 cycles (ENV=mentolder|korczewski|dev)
+* systemtest:all-prods:                        Run all 12 system-test specs against mentolder then korczewski
+* systemtest:analyze:                          Analyse system-test outcome files and produce drift report (ENV=mentolder|korczewski)
+* systemtest:cycle:                            Fan out 3 parallel Playwright sessions, one per System-Test (CYCLE=1..4, ENV=mentolder|korczewski|dev)
+* test:all:                                    Run all offline tests: unit + manifests + art-library + dry-run
+* test:art-library:                            Validate every art-library/sets/* manifest
+* test:ci:                                     CI-friendly test suite (non-zero exit on failure)
+* test:dry-run:                                Dry-run key tasks to catch Taskfile syntax errors
+* test:e2e:                                    Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)
+* test:e2e:all-prods:                          Run Playwright e2e suite against mentolder + korczewski
+* test:inventory:                              Regenerate website/src/data/test-inventory.json (requirement → test mapping)
+* test:manifests:                              Validate kustomize output structure (no cluster needed)
+* test:unit:                                   Run BATS unit tests (assertion lib, scripts, configs)
+* tickets:sunset:                              Drop legacy back-compat views + _legacy tables (PR1–3 migration window end)
+* tickets:sunset:audit:                        Audit legacy table activity before sunset (reads pg_stat_user_tables)
+* tracking:backfill:                           Backfill bachelorprojekt.features from all closed PRs (idempotent)
+* tracking:backfill:dry:                       Dry-run backfill (prints first 3 parsed rows, writes nothing)
+* tracking:ingest:local:                       Manually drain tracking/pending into shared-db (requires TRACKING_DB_URL env var)
+* tracking:psql:                               Open psql shell with bachelorprojekt search_path on mentolder shared-db (requirements tracking DB lives only in mentolder workspace)
+* website:build:                               Build the Astro website Docker image (ENV=dev|mentolder|...)
+* website:build:import:                        Build and import website image into k3d cluster
+* website:deploy:                              Deploy the Astro website to the website namespace (ENV=dev|mentolder|...)
+* website:dev:                                 Run Astro dev server locally (hot-reload)
+* website:logs:                                Tail website logs (ENV=dev|mentolder|korczewski)
+* website:pull-secret:                         Create/update ghcr-pull-secret in website + workspace namespaces (ENV=dev|mentolder|korczewski)
+* website:push:                                Build and push website image to ghcr.io (for production)
+* website:redeploy:                            Rebuild image, import (or push), and restart the website (ENV=dev|mentolder|korczewski)
+* website:redeploy:all-prods:                  Rebuild + redeploy the website on mentolder + korczewski
+* website:restart:                             Restart the website pod (ENV=dev|mentolder|korczewski)
+* website:status:                              Show website deployment status (ENV=dev|mentolder|korczewski)
+* website:sync:                                Fast-sync website/src to the running pod and rebuild (ENV=dev|mentolder|...)
+* website:teardown:                            Remove website namespace and all resources (ENV=dev|mentolder|korczewski)
+* workspace:admin-users-setup:                 Provision SSO admin users in Keycloak workspace realm
+* workspace:admin-users-setup:all-prods:       Provision SSO admin users in Keycloak on mentolder + korczewski
+* workspace:backup:                            Trigger an immediate database backup (usage: task workspace:backup [-- --context <ctx>])
+* workspace:backup:list:                       List available database backup timestamps (usage: task workspace:backup:list [-- --context <ctx>])
+* workspace:check-connectivity:                Test HTTPS reachability of all workspace services
+* workspace:check-updates:                     Compare running container images against registry for available updates
+* workspace:coturn:sync-secret:                Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets (ENV=dev|mentolder|korczewski)
+* workspace:db:drop:                           Drop a database from shared-db (usage: task workspace:db:drop -- <dbname> [ENV=...])
+* workspace:db:restore:                        List available backups then restore a database (usage: task workspace:db:restore -- <db> <timestamp> [ENV=...])
+* workspace:db:start:                          Ensure shared-db is running; scale up if at 0 replicas, otherwise restart (ENV=dev|mentolder|korczewski)
+* workspace:deploy:                            Deploy workspace to any environment (ENV=dev|mentolder|korczewski|...)
+* workspace:deploy:all-prods:                  Run workspace:deploy on mentolder + korczewski
+* workspace:dsgvo-check:                       Run DSGVO compliance verification (NFA-01 data sovereignty proof)
+* workspace:fix-tickets-grants:                Idempotent: GRANT website role on tickets+bachelorprojekt schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails on tickets.* with permission denied.
+* workspace:import-users:                      Import users from CSV or LDIF into Keycloak
+* workspace:logs:                              Tail logs for a workspace service (usage: task workspace:logs -- <service>)
+* workspace:migrate:                           Interactive data migration assistant (import/export)
+* workspace:office:deploy:                     Deploy the office-stack (Collabora in a privileged workspace-office ns, ENV=dev|mentolder|...)
+* workspace:office:pull-secret:                Create/update ghcr-pull-secret in workspace-office (for the custom collabora-code image, ENV=dev|mentolder|...)
+* workspace:office:sync-secret:                Copy COLLABORA_ADMIN_PASSWORD from workspace-secrets into workspace-office/collabora-secrets (ENV=dev|mentolder|korczewski)
+* workspace:port-forward:                      Forward shared-db to localhost:5432
+* workspace:post-setup:                        Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair)
+* workspace:post-setup:all-prods:              Run workspace:post-setup + talk-setup + recording-setup on mentolder + korczewski
+* workspace:preflight:                         Pre-deploy checklist — secrets, SealedSecrets, overlay, cluster health (ENV=dev|mentolder|korczewski)
+* workspace:psql:                              Open psql shell to shared-db (usage: task workspace:psql -- <dbname>, default: postgres)
+* workspace:recording-setup:                   Configure Nextcloud Talk recording backend (ENV=dev|mentolder|korczewski)
+* workspace:recording-setup:all-prods:         Configure Talk recording backend on all production clusters (mentolder + korczewski)
+* workspace:restart:                           Restart a workspace service (usage: task workspace:restart -- <service>)
+* workspace:restore:                           Restore a database from backup (usage: task workspace:restore -- <db> <timestamp> [--context <ctx>])
+* workspace:setup:                             Full deploy on existing cluster: preflight -> deploy -> office -> mcp -> post-config (ENV=dev|mentolder|korczewski)
+* workspace:shortcuts:seed:                    Seed default admin shortcuts into website DB (usage: task workspace:shortcuts:seed ENV=mentolder|korczewski)
+* workspace:sso-bridge:build:                  Build and push sso-bridge image to local registry
+* workspace:status:                            Show Workspace MVP deployment status
+* workspace:status:all-prods:                  Show detailed workspace:status (pods + svc + ingress + PVC) on mentolder + korczewski
+* workspace:sync-db-passwords:                 Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)
+* workspace:systembrett-setup:                 Upload Systembrett Whiteboard template into admin's Coaching/ folder (ENV=dev|mentolder|korczewski)
+* workspace:talk-dns-fix:                      Apply CoreDNS signaling override (kube-system is shared by mentolder + korczewski; ENV defaults to mentolder)
+* workspace:talk-dns-fix:all-prods:            Apply CoreDNS signaling override (single shared kube-system; one apply suffices)
+* workspace:talk-setup:                        Configure Nextcloud Talk to use the spreed-signaling HPB + coturn TURN server (ENV=dev|mentolder|korczewski)
+* workspace:talk-setup:all-prods:              Run workspace:talk-setup against every non-dev environment (mentolder + korczewski)
+* workspace:teardown:                          Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
+* workspace:theme:                             Apply dark+gold theme to Nextcloud (idempotent, run after post-setup)
+* workspace:theme:nextcloud:                   Apply dark+gold Nextcloud branding via OCC (idempotent)
+* workspace:transcriber-build:                 Build talk-transcriber image (imports into k3d dev registry)
+* workspace:transcriber-push:                  Push talk-transcriber image to ghcr.io (for production)
+* workspace:transcriber-setup:                 Build talk-transcriber image and create transcriber-bot Nextcloud user
+* workspace:up:                                Full automated setup: Cluster -> MVP -> Office -> MCP -> Post-config
+* workspace:validate:                          Validate k3d manifests with kustomize dry-run
+* workspace:vaultwarden:seed:                  Seed Vaultwarden with production secret templates (ENV=dev|mentolder|korczewski). Run once after first login — see vaultwarden-seed-credentials.yaml.
+* workspace:vaultwarden:seed-logs:             Show logs from the last Vaultwarden seed job run (ENV=dev|mentolder|korczewski)
+* workspace:verify:                            Post-deploy sanity check — cross-namespace netpol probes + credential state (ENV=mentolder|korczewski)
+* workspace:verify:all-prods:                  Run workspace:verify on mentolder + korczewski
+* workspace:whiteboard-setup:                  Install + configure the Nextcloud Whiteboard app (sync JWT secret with backend)

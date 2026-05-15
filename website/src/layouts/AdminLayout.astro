@@ -2,8 +2,7 @@
 import ArenaBanner from '../components/arena/ArenaBanner.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
-import BugReportWidget from '../components/BugReportWidget.svelte';
-import HelpPanel from '../components/HelpPanel.svelte';
+import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
 import ChatWidget from '../components/ChatWidget.svelte';
@@ -392,10 +391,8 @@ const isKore = brandId === 'korczewski';
 
     {ASSISTANT_ENABLED ? (
       <AssistantWidget client:load profile="admin" />
-    ) : (
-      <HelpPanel client:load section={helpSection} context="admin" />
-    )}
-    <BugReportWidget client:load />
+    ) : null}
+    <TicketWidgetBar context="admin" showEdit={!ASSISTANT_ENABLED} />
     <ChatWidget client:load />
     <SessionExpiryWarning client:load />
 

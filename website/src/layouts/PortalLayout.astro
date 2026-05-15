@@ -5,7 +5,7 @@ import { config } from '../config/index';
 import { isAdmin } from '../lib/auth';
 import type { UserSession } from '../lib/auth';
 import ChatWidget from '../components/ChatWidget.svelte';
-import HelpPanel from '../components/HelpPanel.svelte';
+import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_PORTAL ?? 'false') === 'true';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
@@ -261,9 +261,8 @@ const isKore        = brandId === 'korczewski';
 
     {ASSISTANT_ENABLED ? (
       <AssistantWidget client:load profile="portal" />
-    ) : (
-      <HelpPanel client:load section={section} context="portal" />
-    )}
+    ) : null}
+    <TicketWidgetBar context="portal" showEdit={!ASSISTANT_ENABLED} />
     <ChatWidget client:load />
     <SessionExpiryWarning client:load />
 

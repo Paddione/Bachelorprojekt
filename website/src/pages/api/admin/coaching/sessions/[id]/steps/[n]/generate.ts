@@ -83,8 +83,10 @@ export const POST: APIRoute = async ({ request, params }) => {
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
       });
       aiResponse = (resp.choices?.[0]?.message.content as string) ?? '';
+    } else if (providerName === 'lumo') {
+      return new Response(JSON.stringify({ error: 'Lumo-Integration noch nicht verfügbar' }), { status: 503, headers: { 'content-type': 'application/json' } });
     } else {
-      return new Response(JSON.stringify({ error: `Provider '${providerName}' noch nicht implementiert` }), { status: 503, headers: { 'content-type': 'application/json' } });
+      return new Response(JSON.stringify({ error: `Unbekannter Provider: '${providerName}'` }), { status: 503, headers: { 'content-type': 'application/json' } });
     }
   } catch (err) {
     console.error('[coaching/generate]', err);

@@ -193,3 +193,22 @@ describe('listSessions paginiert', () => {
     expect(result).toHaveProperty('pageSize');
   });
 });
+
+describe('updateSessionFields', () => {
+  it('ändert title und clientName und schreibt audit log', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Alt', mode: 'live', createdBy: 'coach',
+    });
+    const updated = await updateSessionFields(pool, s.id, { title: 'Neu', clientName: 'Müller' }, 'coach');
+    expect(updated?.title).toBe('Neu');
+    expect(updated?.clientName).toBe('Müller');
+    const log = await getAuditLog(pool, s.id);
+    expect(log.some(e => e.eventType === 'field_change' && (e.payload as Record<string,unknown>)['field'] === 'title')).toBe(true);
+    expect(log.some(e => e.eventType === 'field_change' && (e.payload as Record<string,unknown>)['field'] === 'client_name')).toBe(true);
+  });
+
+  it('gibt null zurück bei unbekannter id', async () => {
+    const result = await updateSessionFields(pool, '00000000-0000-4000-8000-000000000000', { title: 'X' }, 'coach');
+    expect(result).toBeNull();
+  });
+});

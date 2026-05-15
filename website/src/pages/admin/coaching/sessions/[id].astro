@@ -2,22 +2,49 @@
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import SessionWizard from '../../../../components/admin/coaching/SessionWizard.svelte';
 import { getSession as getAuthSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
-import { getSession as getCoachingSession } from '../../../../lib/coaching-session-db';
+import { getSession as getCoachingSession, getAuditLog } from '../../../../lib/coaching-session-db';
 import { pool } from '../../../../lib/website-db';
 
 const authSession = await getAuthSession(Astro.request.headers.get('cookie'));
 if (!authSession) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(authSession)) return Astro.redirect('/admin');
 
-const sessionId = Astro.params.id as string;
+const id = Astro.params.id as string;
 let coachingSession = null;
-try { coachingSession = await getCoachingSession(pool, sessionId); } catch { /* ignore */ }
+try { coachingSession = await getCoachingSession(pool, id); } catch { /* ignore */ }
 
 if (!coachingSession) return Astro.redirect('/admin/coaching/sessions');
+
+let auditLog: Awaited<ReturnType<typeof getAuditLog>> = [];
+try { auditLog = await getAuditLog(pool, id); } catch {}
+
+let saveOk = false;
+let saveError = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action')?.toString();
+
+  if (action === 'update-meta') {
+    const clientName = form.get('clientName')?.toString().trim() ?? '';
+    const title = form.get('title')?.toString().trim() ?? '';
+    const res = await fetch(
+      `${Astro.url.origin}/api/admin/coaching/sessions/${id}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', cookie: Astro.request.headers.get('cookie') ?? '' },
+        body: JSON.stringify({ clientName, title }),
+      }
+    );
+    if (res.ok) saveOk = true; else saveError = 'Fehler beim Speichern';
+  }
+}
 
 const report = coachingSession.status === 'completed'
   ? coachingSession.steps.find(s => s.stepNumber === 0)
   : null;
+
+const session = coachingSession;
 ---
 
 <AdminLayout title={`Session: ${coachingSession.title}`}>
@@ -40,7 +67,52 @@ const report = coachingSession.status === 'completed'
         <a href="/admin/coaching/sessions" class="btn-ghost">← Zur Übersicht</a>
       </div>
     ) : (
-      <SessionWizard sessionId={sessionId} initialSession={coachingSession} client:load />
+      <SessionWizard sessionId={id} initialSession={coachingSession} client:load />
+    )}
+
+    <!-- Klient-Name direkt editierbar -->
+    <div class="bg-dark-light rounded-xl p-5 border border-dark-lighter">
+      <h2 class="text-sm font-semibold text-light mb-4">Klient bearbeiten</h2>
+      <form method="POST" class="space-y-3">
+        <input type="hidden" name="_action" value="update-meta" />
+        <div>
+          <label class="block text-xs text-muted mb-1">Klienten-Name</label>
+          <input
+            type="text" name="clientName"
+            value={session.clientName ?? ''}
+            class="w-full bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm focus:border-gold outline-none"
+          />
+        </div>
+        <button type="submit" class="w-full py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors">
+          Speichern
+        </button>
+      </form>
+    </div>
+
+    {auditLog.length > 0 && (
+      <div class="lg:col-span-3 bg-dark-light rounded-xl p-5 border border-dark-lighter">
+        <h2 class="text-sm font-semibold text-light mb-4">Verlaufsprotokoll</h2>
+        <ul class="space-y-2 text-sm">
+          {auditLog.map(e => (
+            <li class="flex items-start gap-3 text-muted">
+              <span class="shrink-0 mt-0.5">
+                {e.eventType === 'status_change' ? '🔄' :
+                 e.eventType === 'field_change'  ? '✏️' :
+                 e.eventType === 'ai_request'    ? '🤖' : '📝'}
+              </span>
+              <div class="flex-1 min-w-0">
+                <span class="text-light">
+                  {e.eventType === 'status_change' && `Status: ${(e.payload as any).from ?? ''} → ${(e.payload as any).to ?? (e.payload as any).action ?? ''}`}
+                  {e.eventType === 'field_change'  && `Feld ${(e.payload as any).field}: "${(e.payload as any).from}" → "${(e.payload as any).to}"`}
+                  {e.eventType === 'ai_request'    && `KI-Anfrage Schritt ${e.stepNumber} (${(e.payload as any).provider}, ${(e.payload as any).duration_ms}ms)`}
+                  {e.eventType === 'notes_change'  && `Notiz Schritt ${e.stepNumber} geändert`}
+                </span>
+                <span class="ml-2 text-xs">{new Date(e.changedAt).toLocaleString('de-DE')} · {e.actor}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     )}
   </div>
 </AdminLayout>

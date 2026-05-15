@@ -1,0 +1,34 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { listKiProviders } from '../../../lib/coaching-ki-config-db';
+import { listStepTemplates } from '../../../lib/coaching-templates-db';
+import { pool } from '../../../lib/website-db';
+import CoachingSettings from '../../../components/admin/coaching/CoachingSettings.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const brand = process.env.BRAND || 'mentolder';
+let initialProviders = [];
+let initialTemplates = [];
+try {
+  initialProviders = await listKiProviders(pool, brand);
+  initialTemplates = await listStepTemplates(pool, brand);
+} catch {}
+---
+
+<AdminLayout title="Coaching-Einstellungen">
+  <div style="padding: 1rem 0;">
+    <nav style="font-size:0.78rem;color:var(--text-muted,#888);margin-bottom:0.4rem;padding:0 1.5rem;">
+      <a href="/admin" style="color:var(--text-muted,#888);text-decoration:none;">Admin</a>
+      <span style="margin:0 0.4rem;">›</span>
+      <a href="/admin/coaching/sessions" style="color:var(--text-muted,#888);text-decoration:none;">Coaching</a>
+      <span style="margin:0 0.4rem;">›</span>
+      Einstellungen
+    </nav>
+    <h1 style="font-size:1.8rem;font-weight:700;color:var(--text-light,#f0f0f0);margin:0 0 1.5rem;padding:0 1.5rem;">Coaching-Einstellungen</h1>
+    <CoachingSettings client:load {initialProviders} {initialTemplates} />
+  </div>
+</AdminLayout>

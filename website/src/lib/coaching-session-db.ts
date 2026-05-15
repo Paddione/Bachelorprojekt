@@ -4,13 +4,42 @@ export interface Session {
   id: string;
   brand: string;
   clientId: string | null;
+  clientName: string | null;
   mode: 'live' | 'prep';
   title: string;
-  status: 'active' | 'completed' | 'abandoned';
+  status: 'active' | 'paused' | 'completed' | 'abandoned';
   createdBy: string;
   createdAt: Date;
   completedAt: Date | null;
+  archivedAt: Date | null;
   steps: SessionStep[];
+}
+
+export interface AuditEntry {
+  id: string;
+  sessionId: string;
+  eventType: 'status_change' | 'field_change' | 'ai_request' | 'notes_change';
+  actor: string;
+  stepNumber: number | null;
+  payload: Record<string, unknown>;
+  changedAt: Date;
+}
+
+export interface ListSessionsOpts {
+  q?: string;
+  status?: string[];
+  archived?: boolean;
+  sort?: 'title' | 'client_name' | 'created_at' | 'status';
+  order?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ListSessionsResult {
+  sessions: Session[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 export interface SessionStep {
@@ -52,12 +81,14 @@ function rowToSession(row: Record<string, unknown>, steps: SessionStep[] = []): 
     id: row.id as string,
     brand: row.brand as string,
     clientId: (row.client_id as string | null) ?? null,
+    clientName: (row.client_name as string | null) ?? null,
     mode: row.mode as 'live' | 'prep',
     title: row.title as string,
     status: row.status as Session['status'],
     createdBy: row.created_by as string,
     createdAt: row.created_at as Date,
     completedAt: (row.completed_at as Date | null) ?? null,
+    archivedAt: (row.archived_at as Date | null) ?? null,
     steps,
   };
 }
@@ -97,15 +128,69 @@ export async function getSession(pool: Pool, id: string): Promise<Session | null
   return rowToSession(sessionRes.rows[0], stepsRes.rows.map(rowToStep));
 }
 
-export async function listSessions(pool: Pool, brand: string): Promise<Session[]> {
+export async function listSessions(
+  pool: Pool,
+  brand: string,
+  opts: ListSessionsOpts = {},
+): Promise<ListSessionsResult> {
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = Math.min(100, Math.max(1, opts.pageSize ?? 20));
+  const offset = (page - 1) * pageSize;
+  const showArchived = opts.archived ?? false;
+
+  const sortColMap: Record<string, string> = {
+    title: 's.title',
+    client_name: 's.client_name',
+    status: 's.status',
+    created_at: 's.created_at',
+  };
+  const sortCol = sortColMap[opts.sort ?? 'created_at'] ?? 's.created_at';
+  const sortDir = opts.order === 'asc' ? 'ASC' : 'DESC';
+
+  const statusFilter = (opts.status ?? []).length > 0 ? opts.status! : null;
+  const searchPattern = opts.q ? `%${opts.q}%` : null;
+
+  // Build WHERE clauses dynamically to avoid ANY(null) which pg-mem doesn't support
+  const whereParts: string[] = [`s.brand = $1`];
+  const baseParams: unknown[] = [brand];
+
+  let p = 2;
+  if (!showArchived) {
+    whereParts.push(`s.archived_at IS NULL`);
+  }
+  if (searchPattern) {
+    whereParts.push(`(s.title ILIKE $${p} OR s.client_name ILIKE $${p})`);
+    baseParams.push(searchPattern);
+    p++;
+  }
+  if (statusFilter) {
+    whereParts.push(`s.status = ANY($${p})`);
+    baseParams.push(statusFilter);
+    p++;
+  }
+  const whereClause = whereParts.join(' AND ');
+
+  // Count separately for pg-mem compatibility (window functions may not be supported)
+  const countR = await pool.query(
+    `SELECT COUNT(*) AS total FROM coaching.sessions s WHERE ${whereClause}`,
+    baseParams,
+  );
+  const total = Number(countR.rows[0]?.total ?? 0);
+
+  const dataParams = [...baseParams, pageSize, offset];
+  const limitIdx = p;
+  const offsetIdx = p + 1;
+
   const r = await pool.query(
     `SELECT s.*
      FROM coaching.sessions s
-     WHERE s.brand = $1
-     ORDER BY s.created_at DESC`,
-    [brand],
+     WHERE ${whereClause}
+     ORDER BY ${sortCol} ${sortDir}
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+    dataParams,
   );
-  return r.rows.map(row => rowToSession(row));
+
+  return { sessions: r.rows.map(row => rowToSession(row)), total, page, pageSize };
 }
 
 export async function upsertStep(pool: Pool, args: UpsertStepArgs): Promise<SessionStep> {
@@ -154,4 +239,126 @@ export async function completeSession(pool: Pool, sessionId: string, reportMarkd
     aiResponse: reportMarkdown,
     status: 'accepted',
   });
+}
+
+export async function appendAuditLog(
+  pool: Pool,
+  entry: Omit<AuditEntry, 'id' | 'changedAt'>,
+): Promise<void> {
+  await pool.query(
+    `INSERT INTO coaching.session_audit_log
+       (session_id, event_type, actor, step_number, payload)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [entry.sessionId, entry.eventType, entry.actor, entry.stepNumber ?? null, entry.payload],
+  );
+}
+
+export async function updateSessionStatus(
+  pool: Pool,
+  id: string,
+  newStatus: Session['status'],
+  actor: string,
+): Promise<Session | null> {
+  const current = await pool.query(
+    `SELECT status FROM coaching.sessions WHERE id = $1`,
+    [id],
+  );
+  if (!current.rows[0]) return null;
+  const fromStatus = current.rows[0].status as string;
+  if (fromStatus === 'completed' && newStatus === 'active') return null;
+
+  const r = await pool.query(
+    `UPDATE coaching.sessions SET status = $2 WHERE id = $1 RETURNING *`,
+    [id, newStatus],
+  );
+  await appendAuditLog(pool, {
+    sessionId: id,
+    eventType: 'status_change',
+    actor,
+    stepNumber: null,
+    payload: { from: fromStatus, to: newStatus },
+  });
+  return rowToSession(r.rows[0]);
+}
+
+export async function updateSessionFields(
+  pool: Pool,
+  id: string,
+  fields: Partial<{ title: string; clientId: string | null; clientName: string | null }>,
+  actor: string,
+): Promise<Session | null> {
+  const current = await pool.query(`SELECT * FROM coaching.sessions WHERE id = $1`, [id]);
+  if (!current.rows[0]) return null;
+  const row = current.rows[0];
+
+  const sets: string[] = [];
+  const vals: unknown[] = [id];
+  const changedFields: { field: string; from: unknown; to: unknown }[] = [];
+
+  if (fields.title !== undefined && fields.title !== row.title) {
+    vals.push(fields.title);
+    sets.push(`title = $${vals.length}`);
+    changedFields.push({ field: 'title', from: row.title, to: fields.title });
+  }
+  if (fields.clientId !== undefined && fields.clientId !== row.client_id) {
+    vals.push(fields.clientId);
+    sets.push(`client_id = $${vals.length}`);
+    changedFields.push({ field: 'client_id', from: row.client_id, to: fields.clientId });
+  }
+  if (fields.clientName !== undefined && fields.clientName !== row.client_name) {
+    vals.push(fields.clientName);
+    sets.push(`client_name = $${vals.length}`);
+    changedFields.push({ field: 'client_name', from: row.client_name, to: fields.clientName });
+  }
+  if (sets.length === 0) return rowToSession(row);
+
+  const r = await pool.query(
+    `UPDATE coaching.sessions SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
+    vals,
+  );
+  for (const f of changedFields) {
+    await appendAuditLog(pool, {
+      sessionId: id, eventType: 'field_change', actor, stepNumber: null, payload: f,
+    });
+  }
+  return rowToSession(r.rows[0]);
+}
+
+export async function archiveSession(pool: Pool, id: string, actor: string): Promise<void> {
+  await pool.query(
+    `UPDATE coaching.sessions SET archived_at = now() WHERE id = $1`,
+    [id],
+  );
+  await appendAuditLog(pool, {
+    sessionId: id, eventType: 'status_change', actor, stepNumber: null,
+    payload: { action: 'archived' },
+  });
+}
+
+export async function unarchiveSession(pool: Pool, id: string, actor: string): Promise<void> {
+  await pool.query(
+    `UPDATE coaching.sessions SET archived_at = null WHERE id = $1`,
+    [id],
+  );
+  await appendAuditLog(pool, {
+    sessionId: id, eventType: 'status_change', actor, stepNumber: null,
+    payload: { action: 'unarchived' },
+  });
+}
+
+export async function getAuditLog(pool: Pool, sessionId: string, limit = 50): Promise<AuditEntry[]> {
+  const r = await pool.query(
+    `SELECT * FROM coaching.session_audit_log WHERE session_id = $1
+     ORDER BY changed_at DESC LIMIT $2`,
+    [sessionId, limit],
+  );
+  return r.rows.map(row => ({
+    id: row.id as string,
+    sessionId: row.session_id as string,
+    eventType: row.event_type as AuditEntry['eventType'],
+    actor: row.actor as string,
+    stepNumber: (row.step_number as number | null) ?? null,
+    payload: row.payload as Record<string, unknown>,
+    changedAt: row.changed_at as Date,
+  }));
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { newDb } from 'pg-mem';
 import type { Pool } from 'pg';
-import { listKiProviders, getActiveProvider, setActiveProvider } from './coaching-ki-config-db';
+import { listKiProviders, getActiveProvider, setActiveProvider, type KiConfig } from './coaching-ki-config-db';
 
 let pool: Pool;
 
@@ -60,5 +60,13 @@ describe('setActiveProvider', () => {
     expect(all.filter(p => p.isActive)).toHaveLength(1);
     // Reset
     await setActiveProvider(pool, 'mentolder', 'claude');
+  });
+
+  it('wirft Fehler bei unbekanntem Provider — aktiver bleibt erhalten', async () => {
+    await expect(
+      setActiveProvider(pool, 'mentolder', 'nonexistent' as KiConfig['provider']),
+    ).rejects.toThrow("Provider 'nonexistent' not found for brand 'mentolder'");
+    const active = await getActiveProvider(pool, 'mentolder');
+    expect(active).not.toBeNull();
   });
 });

@@ -39,6 +39,13 @@ export async function getActiveProvider(pool: Pool, brand: string): Promise<KiCo
 }
 
 export async function setActiveProvider(pool: Pool, brand: string, provider: KiConfig['provider']): Promise<void> {
+  const exists = await pool.query(
+    `SELECT id FROM coaching.ki_config WHERE brand = $1 AND provider = $2`,
+    [brand, provider],
+  );
+  if (exists.rows.length === 0) {
+    throw new Error(`Provider '${provider}' not found for brand '${brand}'`);
+  }
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -52,7 +59,7 @@ export async function setActiveProvider(pool: Pool, brand: string, provider: KiC
     );
     await client.query('COMMIT');
   } catch (e) {
-    await client.query('ROLLBACK');
+    try { await client.query('ROLLBACK'); } catch { /* ignore */ }
     throw e;
   } finally {
     client.release();

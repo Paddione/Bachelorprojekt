@@ -1,6 +1,6 @@
 {
   "$schema": "https://brett.mentolder.de/schemas/figure-pack-v1.json",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "units": "meters",
   "rotation": "radians",
   "coordinateSystem": "Y-up, right-handed (Three.js default)",
@@ -12,15 +12,21 @@
     "uvMapping": "default equirectangular: u=0.5,v=0.5 lies at the front of the sphere (positive Z). The texture seam runs along the back."
   },
   "bones": [
-    "hips", "head",
-    "lShoulder", "rShoulder",
-    "lElbow", "rElbow",
-    "lWrist", "rWrist",
-    "lHip", "rHip",
-    "lKnee", "rKnee",
-    "lAnkle", "rAnkle"
+    "hips",
+    "head",
+    "lShoulder",
+    "rShoulder",
+    "lElbow",
+    "rElbow",
+    "lWrist",
+    "rWrist",
+    "lHip",
+    "rHip",
+    "lKnee",
+    "rKnee",
+    "lAnkle",
+    "rAnkle"
   ],
-
   "faces": {
     "_usage": "Each face PNG is a 512×512 sRGB texture meant to be applied as the head sphere's `map`. Features are centered at (u=0.5, v=0.5) — the front of the head. Pixels outside the central ~62% wrap to the sides/back of the head; design accommodates this.",
     "_applyTo": {
@@ -34,49 +40,159 @@
         "map.colorSpace": "SRGBColorSpace",
         "map.anisotropy": 4,
         "map.flipY": true,
-        "rotation": { "x": 0, "y": 0, "z": 0 },
-        "uvOffset": [0, 0],
-        "uvRepeat": [1, 1]
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "uvOffset": [
+          0,
+          0
+        ],
+        "uvRepeat": [
+          1,
+          1
+        ]
       }
     },
-    "neutral":     { "file": "faces/neutral.png",     "stance": "the rest face — present but unreactive" },
-    "observing":   { "file": "faces/observing.png",   "stance": "watching, not yet engaged" },
-    "distant":     { "file": "faces/distant.png",     "stance": "drifting outward, eyes loose" },
-    "overwhelmed": { "file": "faces/overwhelmed.png", "stance": "wide-eyed, brows up, too much input" },
-    "protective":  { "file": "faces/protective.png",  "stance": "firm gaze, brow shielded, holding ground" },
-    "yearning":    { "file": "faces/yearning.png",    "stance": "eyes lifted, mouth parted, reaching" },
-    "resolved":    { "file": "faces/resolved.png",    "stance": "soft-closed eyes, brass tilaka — at peace" },
-    "withdrawn":   { "file": "faces/withdrawn.png",   "stance": "shut tight, no mouth, pulled in" },
-    "present":     { "file": "faces/present.png",     "stance": "eyes forward with pupils, brass dot — most here" },
-    "mourning":    { "file": "faces/mourning.png",    "stance": "closed eyes, single brass tear" },
-    "curious":     { "file": "faces/curious.png",     "stance": "asymmetric, brow raised, slight tilt" },
-    "blocked":     { "file": "faces/blocked.png",     "stance": "horizontal slate bar across eyes — cannot see"  }
+    "neutral": {
+      "file": "faces/neutral.png",
+      "stance": "the rest face — present but unreactive"
+    },
+    "observing": {
+      "file": "faces/observing.png",
+      "stance": "watching, not yet engaged"
+    },
+    "distant": {
+      "file": "faces/distant.png",
+      "stance": "drifting outward, eyes loose"
+    },
+    "overwhelmed": {
+      "file": "faces/overwhelmed.png",
+      "stance": "wide-eyed, brows up, too much input"
+    },
+    "protective": {
+      "file": "faces/protective.png",
+      "stance": "firm gaze, brow shielded, holding ground"
+    },
+    "yearning": {
+      "file": "faces/yearning.png",
+      "stance": "eyes lifted, mouth parted, reaching"
+    },
+    "resolved": {
+      "file": "faces/resolved.png",
+      "stance": "soft-closed eyes, brass tilaka — at peace"
+    },
+    "withdrawn": {
+      "file": "faces/withdrawn.png",
+      "stance": "shut tight, no mouth, pulled in"
+    },
+    "present": {
+      "file": "faces/present.png",
+      "stance": "eyes forward with pupils, brass dot — most here"
+    },
+    "mourning": {
+      "file": "faces/mourning.png",
+      "stance": "closed eyes, single brass tear"
+    },
+    "curious": {
+      "file": "faces/curious.png",
+      "stance": "asymmetric, brow raised, slight tilt"
+    },
+    "blocked": {
+      "file": "faces/blocked.png",
+      "stance": "horizontal slate bar across eyes — cannot see"
+    }
   },
-
   "bodies": {
     "_usage": "Reference renders only — the 3D mesh remains your existing rig. Use the proportions table below to scale your bone lengths per role. Joint-ball colors (wrist=yellow, ankle=green, knee=blue, elbow=brass, head=blush) MUST be preserved as semantic markers.",
-    "adult-tall":    { "file": "bodies/adult-tall.png",    "headsTall": 8.0,
-                       "scale": { "torsoH": 2.20, "shoulderW": 1.95, "hipW": 1.50, "upperArm": 1.50, "forearm": 1.40, "thigh": 1.95, "shin": 1.85 },
-                       "approxMeters": 1.92 },
-    "adult-average": { "file": "bodies/adult-average.png", "headsTall": 7.5,
-                       "scale": { "torsoH": 2.10, "shoulderW": 1.75, "hipW": 1.45, "upperArm": 1.40, "forearm": 1.30, "thigh": 1.80, "shin": 1.70 },
-                       "approxMeters": 1.70 },
-    "adult-short":   { "file": "bodies/adult-short.png",   "headsTall": 7.0,
-                       "scale": { "torsoH": 2.00, "shoulderW": 1.70, "hipW": 1.50, "upperArm": 1.30, "forearm": 1.20, "thigh": 1.65, "shin": 1.55 },
-                       "approxMeters": 1.55 },
-    "adolescent":    { "file": "bodies/adolescent.png",    "headsTall": 6.5,
-                       "scale": { "torsoH": 1.90, "shoulderW": 1.45, "hipW": 1.25, "upperArm": 1.25, "forearm": 1.20, "thigh": 1.55, "shin": 1.50 },
-                       "approxMeters": 1.45 },
-    "child":         { "file": "bodies/child.png",         "headsTall": 4.8,
-                       "scale": { "torsoH": 1.55, "shoulderW": 1.30, "hipW": 1.20, "upperArm": 0.95, "forearm": 0.85, "thigh": 1.10, "shin": 1.00 },
-                       "approxMeters": 1.05,
-                       "notes": "Head ratio is enlarged — keep head radius at 0.16 and the proportional read is correct." },
-    "elder":         { "file": "bodies/elder.png",         "headsTall": 7.0,
-                       "scale": { "torsoH": 2.00, "shoulderW": 1.55, "hipW": 1.40, "upperArm": 1.35, "forearm": 1.25, "thigh": 1.55, "shin": 1.45 },
-                       "approxMeters": 1.58,
-                       "notes": "Apply a small forward stoop: rotate the upper spine ~6° around the X-axis at the hips→head segment." }
+    "adult-tall": {
+      "file": "bodies/adult-tall.png",
+      "headsTall": 8.0,
+      "scale": {
+        "torsoH": 2.2,
+        "shoulderW": 1.95,
+        "hipW": 1.5,
+        "upperArm": 1.5,
+        "forearm": 1.4,
+        "thigh": 1.95,
+        "shin": 1.85
+      },
+      "approxMeters": 1.92
+    },
+    "adult-average": {
+      "file": "bodies/adult-average.png",
+      "headsTall": 7.5,
+      "scale": {
+        "torsoH": 2.1,
+        "shoulderW": 1.75,
+        "hipW": 1.45,
+        "upperArm": 1.4,
+        "forearm": 1.3,
+        "thigh": 1.8,
+        "shin": 1.7
+      },
+      "approxMeters": 1.7
+    },
+    "adult-short": {
+      "file": "bodies/adult-short.png",
+      "headsTall": 7.0,
+      "scale": {
+        "torsoH": 2.0,
+        "shoulderW": 1.7,
+        "hipW": 1.5,
+        "upperArm": 1.3,
+        "forearm": 1.2,
+        "thigh": 1.65,
+        "shin": 1.55
+      },
+      "approxMeters": 1.55
+    },
+    "adolescent": {
+      "file": "bodies/adolescent.png",
+      "headsTall": 6.5,
+      "scale": {
+        "torsoH": 1.9,
+        "shoulderW": 1.45,
+        "hipW": 1.25,
+        "upperArm": 1.25,
+        "forearm": 1.2,
+        "thigh": 1.55,
+        "shin": 1.5
+      },
+      "approxMeters": 1.45
+    },
+    "child": {
+      "file": "bodies/child.png",
+      "headsTall": 4.8,
+      "scale": {
+        "torsoH": 1.55,
+        "shoulderW": 1.3,
+        "hipW": 1.2,
+        "upperArm": 0.95,
+        "forearm": 0.85,
+        "thigh": 1.1,
+        "shin": 1.0
+      },
+      "approxMeters": 1.05,
+      "notes": "Head ratio is enlarged — keep head radius at 0.16 and the proportional read is correct."
+    },
+    "elder": {
+      "file": "bodies/elder.png",
+      "headsTall": 7.0,
+      "scale": {
+        "torsoH": 2.0,
+        "shoulderW": 1.55,
+        "hipW": 1.4,
+        "upperArm": 1.35,
+        "forearm": 1.25,
+        "thigh": 1.55,
+        "shin": 1.45
+      },
+      "approxMeters": 1.58,
+      "notes": "Apply a small forward stoop: rotate the upper spine ~6° around the X-axis at the hips→head segment."
+    }
   },
-
   "accessories": {
     "_usage": "Each accessory is a 256×256 transparent PNG meant to be applied to a `PlaneGeometry` parented to the named bone. Anchor (in PNG pixels) is the point that lands on the bone origin. After scaling, the visible content sits where you want it without further offsetting. Use MeshBasicMaterial with transparent:true, alphaTest:0.5 (no need to fight z-fighting).",
     "_defaultMaterial": {
@@ -88,70 +204,571 @@
         "depthWrite": false
       }
     },
-    "cap":       { "file": "accessories/cap.png",       "bone": "head",
-                   "anchorPx": [128, 168],
-                   "sizeMeters": [0.45, 0.45],
-                   "positionOffset": [0, 0.16, 0],
-                   "rotation": [0, 0, 0],
-                   "billboard": "yAxis",
-                   "notes": "Sits on top of head sphere. Y offset puts the plane at the apex; billboarding around Y keeps it facing the camera horizontally." },
-    "satchel":   { "file": "accessories/satchel.png",   "bone": "lShoulder",
-                   "anchorPx": [88, 24],
-                   "sizeMeters": [0.55, 0.55],
-                   "positionOffset": [-0.02, 0, 0.06],
-                   "rotation": [0, 0, 0.16],
-                   "billboard": "yAxis",
-                   "notes": "Strap top sits at left shoulder; bag hangs to right hip via Z-axis tilt and rotation around Z." },
-    "cane":      { "file": "accessories/cane.png",      "bone": "rWrist",
-                   "anchorPx": [152, 96],
-                   "sizeMeters": [0.40, 0.85],
-                   "positionOffset": [0.02, -0.04, 0.04],
-                   "rotation": [0, 0, 0.04],
-                   "billboard": "yAxis",
-                   "notes": "Anchor is the curl-grip of the hook. Plane is taller than wide; cane shaft extends downward toward the floor." },
-    "shawl":     { "file": "accessories/shawl.png",     "bone": "neck",
-                   "anchorPx": [128, 80],
-                   "sizeMeters": [0.80, 0.80],
-                   "positionOffset": [0, -0.02, 0.04],
-                   "rotation": [0, 0, 0],
-                   "billboard": "yAxis",
-                   "notes": "Drapes over both shoulders. Slight Z forward so it doesn't clip the torso." },
-    "swaddle":   { "file": "accessories/swaddle.png",   "bone": "hips",
-                   "anchorPx": [128, 140],
-                   "sizeMeters": [0.65, 0.65],
-                   "positionOffset": [0, 0.05, 0.05],
-                   "rotation": [0, 0, 0],
-                   "billboard": "yAxis",
-                   "notes": "Centred on the torso. Primarily for the `child` body (infant role)." },
-    "blindfold": { "file": "accessories/blindfold.png", "bone": "head",
-                   "anchorPx": [128, 128],
-                   "sizeMeters": [0.36, 0.36],
-                   "positionOffset": [0, 0.01, 0.155],
-                   "rotation": [0, 0, 0],
-                   "billboard": false,
-                   "notes": "Pin to front of head — Z offset = head radius minus 5mm so the plane is flush with the sphere surface." },
-    "crown":     { "file": "accessories/crown.png",     "bone": "head",
-                   "anchorPx": [128, 180],
-                   "sizeMeters": [0.34, 0.34],
-                   "positionOffset": [0, 0.14, 0],
-                   "rotation": [0, 0, 0],
-                   "billboard": "yAxis",
-                   "notes": "Sits on top of head. Anchor near bottom of crown lets the band rest on the head apex." },
-    "veil":      { "file": "accessories/veil.png",      "bone": "head",
-                   "anchorPx": [128, 56],
-                   "sizeMeters": [0.55, 0.55],
-                   "positionOffset": [0, 0.10, 0],
-                   "rotation": [0, 0, 0],
-                   "billboard": "yAxis",
-                   "notes": "Drapes from the head crown downward. The PNG uses SVG opacity gradient — Three.js renders alpha correctly with transparent:true." }
+    "cap": {
+      "file": "accessories/cap.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        168
+      ],
+      "sizeMeters": [
+        0.45,
+        0.45
+      ],
+      "positionOffset": [
+        0,
+        0.16,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Sits on top of head sphere. Y offset puts the plane at the apex; billboarding around Y keeps it facing the camera horizontally."
+    },
+    "satchel": {
+      "file": "accessories/satchel.png",
+      "bone": "lShoulder",
+      "anchorPx": [
+        88,
+        24
+      ],
+      "sizeMeters": [
+        0.55,
+        0.55
+      ],
+      "positionOffset": [
+        -0.02,
+        0,
+        0.06
+      ],
+      "rotation": [
+        0,
+        0,
+        0.16
+      ],
+      "billboard": "yAxis",
+      "notes": "Strap top sits at left shoulder; bag hangs to right hip via Z-axis tilt and rotation around Z."
+    },
+    "cane": {
+      "file": "accessories/cane.png",
+      "bone": "rWrist",
+      "anchorPx": [
+        152,
+        96
+      ],
+      "sizeMeters": [
+        0.4,
+        0.85
+      ],
+      "positionOffset": [
+        0.02,
+        -0.04,
+        0.04
+      ],
+      "rotation": [
+        0,
+        0,
+        0.04
+      ],
+      "billboard": "yAxis",
+      "notes": "Anchor is the curl-grip of the hook. Plane is taller than wide; cane shaft extends downward toward the floor."
+    },
+    "shawl": {
+      "file": "accessories/shawl.png",
+      "bone": "neck",
+      "anchorPx": [
+        128,
+        80
+      ],
+      "sizeMeters": [
+        0.8,
+        0.8
+      ],
+      "positionOffset": [
+        0,
+        -0.02,
+        0.04
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Drapes over both shoulders. Slight Z forward so it doesn't clip the torso."
+    },
+    "swaddle": {
+      "file": "accessories/swaddle.png",
+      "bone": "hips",
+      "anchorPx": [
+        128,
+        140
+      ],
+      "sizeMeters": [
+        0.65,
+        0.65
+      ],
+      "positionOffset": [
+        0,
+        0.05,
+        0.05
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Centred on the torso. Primarily for the `child` body (infant role)."
+    },
+    "blindfold": {
+      "file": "accessories/blindfold.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        128
+      ],
+      "sizeMeters": [
+        0.36,
+        0.36
+      ],
+      "positionOffset": [
+        0,
+        0.01,
+        0.155
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": false,
+      "notes": "Pin to front of head — Z offset = head radius minus 5mm so the plane is flush with the sphere surface."
+    },
+    "crown": {
+      "file": "accessories/crown.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        180
+      ],
+      "sizeMeters": [
+        0.34,
+        0.34
+      ],
+      "positionOffset": [
+        0,
+        0.14,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Sits on top of head. Anchor near bottom of crown lets the band rest on the head apex."
+    },
+    "veil": {
+      "file": "accessories/veil.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        56
+      ],
+      "sizeMeters": [
+        0.55,
+        0.55
+      ],
+      "positionOffset": [
+        0,
+        0.1,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Drapes from the head crown downward. The PNG uses SVG opacity gradient — Three.js renders alpha correctly with transparent:true."
+    },
+    "hair-short": {
+      "file": "accessories/hair-short.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        188
+      ],
+      "sizeMeters": [
+        0.42,
+        0.42
+      ],
+      "positionOffset": [
+        0,
+        0.04,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Hugs the dome of the head sphere. Anchor below center so the cap-shape sits over the crown."
+    },
+    "hair-bun": {
+      "file": "accessories/hair-bun.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        168
+      ],
+      "sizeMeters": [
+        0.46,
+        0.46
+      ],
+      "positionOffset": [
+        0,
+        0.08,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Compact bun + base — anchor places the bun slightly above the head apex. Brass pin reads as small accent."
+    },
+    "hair-long": {
+      "file": "accessories/hair-long.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        56
+      ],
+      "sizeMeters": [
+        0.5,
+        0.85
+      ],
+      "positionOffset": [
+        0,
+        -0.08,
+        -0.01
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": false,
+      "notes": "Cascades below shoulders. PNG is taller than wide — DO NOT billboard, pin to the BACK of the head so it sits behind. Slight negative Z so it doesn't clip the head sphere."
+    },
+    "hair-braid": {
+      "file": "accessories/hair-braid.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        80
+      ],
+      "sizeMeters": [
+        0.36,
+        0.85
+      ],
+      "positionOffset": [
+        0,
+        -0.05,
+        -0.01
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": false,
+      "notes": "Center braid down the spine. Pin to back of head like hair-long. Brass tassel-tie at the bottom reads as a small accent."
+    },
+    "hair-curls": {
+      "file": "accessories/hair-curls.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        168
+      ],
+      "sizeMeters": [
+        0.52,
+        0.42
+      ],
+      "positionOffset": [
+        0,
+        0.03,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Wraps the head with a cloud of bumps. Wider than tall — the cluster extends past the head silhouette."
+    },
+    "tunic": {
+      "file": "accessories/tunic.png",
+      "bone": "hips",
+      "anchorPx": [
+        128,
+        40
+      ],
+      "sizeMeters": [
+        0.7,
+        0.95
+      ],
+      "positionOffset": [
+        0,
+        0.45,
+        0.04
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Knee-length tunic with brass belt. Anchor at the neckline → positionOffset.y raises the plane so neckline lands at the shoulders."
+    },
+    "coat": {
+      "file": "accessories/coat.png",
+      "bone": "hips",
+      "anchorPx": [
+        128,
+        32
+      ],
+      "sizeMeters": [
+        0.8,
+        1.05
+      ],
+      "positionOffset": [
+        0,
+        0.5,
+        0.05
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Open formal coat with V-lapels and three brass buttons. Slightly wider than tunic to read as outer layer."
+    },
+    "apron": {
+      "file": "accessories/apron.png",
+      "bone": "hips",
+      "anchorPx": [
+        128,
+        56
+      ],
+      "sizeMeters": [
+        0.65,
+        0.9
+      ],
+      "positionOffset": [
+        0,
+        0.42,
+        0.06
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Bib-apron in parchment with brass tie at waist + bow. Z forward so it sits on top of any tunic underneath."
+    },
+    "robe": {
+      "file": "accessories/robe.png",
+      "bone": "hips",
+      "anchorPx": [
+        128,
+        30
+      ],
+      "sizeMeters": [
+        0.85,
+        1.2
+      ],
+      "positionOffset": [
+        0,
+        0.58,
+        0.04
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Full-length flowing robe with V-neck and brass clasp. Tallest of the clothing items."
+    },
+    "vest": {
+      "file": "accessories/vest.png",
+      "bone": "hips",
+      "anchorPx": [
+        128,
+        56
+      ],
+      "sizeMeters": [
+        0.55,
+        0.55
+      ],
+      "positionOffset": [
+        0,
+        0.42,
+        0.06
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Short open vest, ends at waist. Z forward so it sits on top of any base layer."
+    },
+    "boots-work": {
+      "file": "accessories/boots-work.png",
+      "bone": "lAnkle",
+      "anchorPx": [
+        128,
+        80
+      ],
+      "sizeMeters": [
+        0.2,
+        0.2
+      ],
+      "positionOffset": [
+        0,
+        -0.05,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "PAIRED — instantiate the same PNG twice, parented to lAnkle and rAnkle. Anchor at the top of the boot-shaft puts the ankle at the cuff."
+    },
+    "shoes-dress": {
+      "file": "accessories/shoes-dress.png",
+      "bone": "lAnkle",
+      "anchorPx": [
+        128,
+        132
+      ],
+      "sizeMeters": [
+        0.22,
+        0.18
+      ],
+      "positionOffset": [
+        0,
+        -0.06,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "PAIRED — lAnkle + rAnkle. Sleek oxford. Anchor near top of upper means the ankle joint sits just above the shoe."
+    },
+    "sandals": {
+      "file": "accessories/sandals.png",
+      "bone": "lAnkle",
+      "anchorPx": [
+        128,
+        132
+      ],
+      "sizeMeters": [
+        0.22,
+        0.18
+      ],
+      "positionOffset": [
+        0,
+        -0.06,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "PAIRED — lAnkle + rAnkle. Skin-toned foot visible, brass straps over instep + ankle wrap."
+    },
+    "barefoot": {
+      "file": "accessories/barefoot.png",
+      "bone": "lAnkle",
+      "anchorPx": [
+        128,
+        132
+      ],
+      "sizeMeters": [
+        0.22,
+        0.18
+      ],
+      "positionOffset": [
+        0,
+        -0.06,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "PAIRED — lAnkle + rAnkle. Explicit 'none' marker. Use when persona is intentionally barefoot (child, contemplation, vulnerability)."
+    }
   },
-
   "selectionRing": {
     "file": null,
     "geometry": "RingGeometry(0.28, 0.30, 64)",
     "material": "MeshBasicMaterial({ color: 0xc8a96e, transparent: true, opacity: 0.9 })",
-    "positionOffset": [0, 0.001, 0],
-    "rotation": [-1.5707963267948966, 0, 0],
+    "positionOffset": [
+      0,
+      0.001,
+      0
+    ],
+    "rotation": [
+      -1.5707963267948966,
+      0,
+      0
+    ],
     "notes": "Lies flat on the floor (rotated -π/2 around X). Sits 1mm above the floor plane to avoid z-fighting."
+  },
+  "_accessoryGrouping": {
+    "hair": [
+      "hair-short",
+      "hair-bun",
+      "hair-long",
+      "hair-braid",
+      "hair-curls"
+    ],
+    "clothing": [
+      "tunic",
+      "coat",
+      "apron",
+      "robe",
+      "vest"
+    ],
+    "shoes": [
+      "boots-work",
+      "shoes-dress",
+      "sandals",
+      "barefoot"
+    ]
   }
 }

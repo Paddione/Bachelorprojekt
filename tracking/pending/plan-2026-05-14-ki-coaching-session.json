@@ -62,5 +62,7 @@
       "section_type": "other",
       "content": "Self-Review Ergebnis\n\n\n**Spec-Abdeckung:**\n- [x] coaching.sessions + session_steps DB \u2014 Task 1\n- [x] coaching-session-db.ts + Tests \u2014 Task 3\n- [x] 10 Schritt-Definitionen mit Prompts \u2014 Task 2\n- [x] 5 API-Routen \u2014 Task 4\n- [x] SessionWizard.svelte (Stepper, Fortschrittsbalken, Human-in-the-loop) \u2014 Task 5\n- [x] Sessions-Liste, Neu-Formular, Wizard-Seite \u2014 Task 6\n- [x] AdminLayout Navigation \u2014 Task 7\n- [x] Abschlussbericht + Markdown-Export \u2014 Tasks 4.5 + 6.3\n- [x] `mode: 'prep'` f\u00fcr Vorbereitungsrunde \u2014 Tasks 1, 4.1, 6.2\n- [x] Fehlerbehandlung KI fehlt \u2192 503 \u2014 Task 4.4\n\n**Typ-Konsistenz:** `Session`, `SessionStep`, `CreateSessionArgs`, `UpsertStepArgs` in `coaching-session-db.ts` definiert und konsistent in API-Routen und Svelte-Komponente verwendet."
     }
-  ]
+  ],
+  "brainstorm_choice": null,
+  "brainstorm_session": null
 }

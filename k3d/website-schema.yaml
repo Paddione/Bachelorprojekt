@@ -261,12 +261,15 @@ data:
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL DEFAULT 'mentolder',
         client_id     UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+        client_name   TEXT,
         mode          TEXT NOT NULL DEFAULT 'live' CHECK (mode IN ('live','prep')),
         title         TEXT NOT NULL,
-        status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','completed','abandoned')),
+        status        TEXT NOT NULL DEFAULT 'active'
+                        CHECK (status IN ('active','paused','completed','abandoned')),
         created_by    TEXT NOT NULL,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-        completed_at  TIMESTAMPTZ
+        completed_at  TIMESTAMPTZ,
+        archived_at   TIMESTAMPTZ
       );
       DO $$
       BEGIN
@@ -292,6 +295,59 @@ data:
         UNIQUE (session_id, step_number)
       );
       CREATE INDEX IF NOT EXISTS idx_session_steps_session ON coaching.session_steps(session_id);
+
+      CREATE TABLE IF NOT EXISTS coaching.session_audit_log (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id  UUID NOT NULL REFERENCES coaching.sessions(id) ON DELETE CASCADE,
+        event_type  TEXT NOT NULL
+                      CHECK (event_type IN
+                        ('status_change','field_change','ai_request','notes_change')),
+        actor       TEXT NOT NULL,
+        step_number INT,
+        payload     JSONB NOT NULL DEFAULT '{}',
+        changed_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS idx_audit_session
+        ON coaching.session_audit_log(session_id, changed_at DESC);
+
+      CREATE TABLE IF NOT EXISTS coaching.ki_config (
+        id           SERIAL PRIMARY KEY,
+        brand        TEXT NOT NULL,
+        provider     TEXT NOT NULL
+                       CHECK (provider IN ('claude','openai','mistral','lumo')),
+        is_active    BOOLEAN NOT NULL DEFAULT false,
+        model_name   TEXT,
+        display_name TEXT NOT NULL,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, provider)
+      );
+      INSERT INTO coaching.ki_config (brand, provider, is_active, model_name, display_name)
+      VALUES
+        ('mentolder',  'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('mentolder',  'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('mentolder',  'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('mentolder',  'lumo',    false, null,                       'Lumo'),
+        ('korczewski', 'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('korczewski', 'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('korczewski', 'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('korczewski', 'lumo',    false, null,                       'Lumo')
+      ON CONFLICT (brand, provider) DO NOTHING;
+
+      CREATE TABLE IF NOT EXISTS coaching.step_templates (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        brand            TEXT NOT NULL,
+        step_number      INT NOT NULL,
+        step_name        TEXT NOT NULL,
+        phase            TEXT NOT NULL,
+        system_prompt    TEXT NOT NULL,
+        user_prompt_tpl  TEXT NOT NULL,
+        input_schema     JSONB NOT NULL DEFAULT '[]',
+        keywords         TEXT[] NOT NULL DEFAULT '{}',
+        is_active        BOOLEAN NOT NULL DEFAULT true,
+        sort_order       INT NOT NULL DEFAULT 0,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, step_number)
+      );
 
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables
@@ -847,12 +903,15 @@ data:
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL DEFAULT 'mentolder',
         client_id     UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+        client_name   TEXT,
         mode          TEXT NOT NULL DEFAULT 'live' CHECK (mode IN ('live','prep')),
         title         TEXT NOT NULL,
-        status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','completed','abandoned')),
+        status        TEXT NOT NULL DEFAULT 'active'
+                        CHECK (status IN ('active','paused','completed','abandoned')),
         created_by    TEXT NOT NULL,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-        completed_at  TIMESTAMPTZ
+        completed_at  TIMESTAMPTZ,
+        archived_at   TIMESTAMPTZ
       );
       DO $$
       BEGIN
@@ -878,6 +937,59 @@ data:
         UNIQUE (session_id, step_number)
       );
       CREATE INDEX IF NOT EXISTS idx_session_steps_session ON coaching.session_steps(session_id);
+
+      CREATE TABLE IF NOT EXISTS coaching.session_audit_log (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id  UUID NOT NULL REFERENCES coaching.sessions(id) ON DELETE CASCADE,
+        event_type  TEXT NOT NULL
+                      CHECK (event_type IN
+                        ('status_change','field_change','ai_request','notes_change')),
+        actor       TEXT NOT NULL,
+        step_number INT,
+        payload     JSONB NOT NULL DEFAULT '{}',
+        changed_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS idx_audit_session
+        ON coaching.session_audit_log(session_id, changed_at DESC);
+
+      CREATE TABLE IF NOT EXISTS coaching.ki_config (
+        id           SERIAL PRIMARY KEY,
+        brand        TEXT NOT NULL,
+        provider     TEXT NOT NULL
+                       CHECK (provider IN ('claude','openai','mistral','lumo')),
+        is_active    BOOLEAN NOT NULL DEFAULT false,
+        model_name   TEXT,
+        display_name TEXT NOT NULL,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, provider)
+      );
+      INSERT INTO coaching.ki_config (brand, provider, is_active, model_name, display_name)
+      VALUES
+        ('mentolder',  'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('mentolder',  'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('mentolder',  'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('mentolder',  'lumo',    false, null,                       'Lumo'),
+        ('korczewski', 'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('korczewski', 'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('korczewski', 'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('korczewski', 'lumo',    false, null,                       'Lumo')
+      ON CONFLICT (brand, provider) DO NOTHING;
+
+      CREATE TABLE IF NOT EXISTS coaching.step_templates (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        brand            TEXT NOT NULL,
+        step_number      INT NOT NULL,
+        step_name        TEXT NOT NULL,
+        phase            TEXT NOT NULL,
+        system_prompt    TEXT NOT NULL,
+        user_prompt_tpl  TEXT NOT NULL,
+        input_schema     JSONB NOT NULL DEFAULT '[]',
+        keywords         TEXT[] NOT NULL DEFAULT '{}',
+        is_active        BOOLEAN NOT NULL DEFAULT true,
+        sort_order       INT NOT NULL DEFAULT 0,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, step_number)
+      );
 
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables

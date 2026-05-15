@@ -57,6 +57,9 @@ spec:
             - --service-console=false
             - --tcp-aliases=false
             - --bind-hosts=brainstorm.${PROD_DOMAIN}
+            # Persist the SSH hostkey on the pinned node so operators
+            # don't have to re-accept it after every pod restart. T000380.
+            - --private-keys-directory=/etc/sish-hostkey
           ports:
             - containerPort: 2222
               name: ssh
@@ -66,6 +69,8 @@ spec:
             - name: keys
               mountPath: /keys
               readOnly: true
+            - name: hostkey
+              mountPath: /etc/sish-hostkey
           resources:
             requests:
               memory: 64Mi
@@ -80,6 +85,13 @@ spec:
             items:
               - key: authorized_keys
                 path: authorized_keys
+        # hostPath on gekko-hetzner-2 (the deployment is nodeSelector-pinned
+        # there). Survives pod restarts; sish generates the ED25519 hostkey
+        # on first start when the directory is empty.
+        - name: hostkey
+          hostPath:
+            path: /var/lib/brainstorm-sish/hostkeys
+            type: DirectoryOrCreate
 ---
 # NodePort Service — exposes the SSH endpoint on every node at :32223 so
 # `ssh -R` from the operator's laptop has a stable target. The HTTP port

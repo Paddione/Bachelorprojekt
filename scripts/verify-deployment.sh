@@ -162,6 +162,15 @@ if [[ "$ENV" != "dev" ]]; then
     "$WEB_NS" "website" \
     "shared-db.${NS}.svc.cluster.local" "5432"
 
+  # korczewski: also check cross-namespace path to mentolder's shared-db (tracking-import)
+  if [[ "$NS" == "workspace-korczewski" ]]; then
+    _tcp_probe \
+      "${NS} → shared-db.workspace:5432 (tracking-import)" \
+      "$NS" "nextcloud" \
+      "shared-db.workspace.svc.cluster.local" "5432"
+  fi
+
+
   if [[ "$ENV" == "korczewski" ]]; then
     _http_probe \
       "${WEB_NS} → arena-server:80 (healthz)" \

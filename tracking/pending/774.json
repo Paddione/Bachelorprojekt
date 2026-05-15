@@ -1,0 +1,15 @@
+{
+  "pr_number": 774,
+  "title": "docs-to-html — turn local files into one interactive HTML",
+  "description": "## Summary\n- New Claude Code plugin at `.claude/plugins/docs-to-html/` that bundles local files (`.md`, `.html`, `.txt`, `.log`, `.json`, `.yaml`, images) into one self-contained interactive HTML file.\n- Auto-picks layout by input count: single-page (1–3) → sidebar (4–20) → card grid (>20); overridable.\n- Output ships with full-text search (⌘K), tag filter chips (auto-extracted from frontmatter/brackets/parent-dirs), light/dark theme toggle (persists), and copy-link anchors on every heading.\n- All third-party deps vendored under `scripts/vendor/` (marked@13, prismjs@1.29). No CDN, no fonts, no network at runtime — works fully offline.\n\n## Test plan\n- [x] Manifest valid (`python3 -m json.tool plugin.json`)\n- [x] Single-file render: 70 KB for `dev-flow-plan/SKILL.md`\n- [x] Directory render: 13 plan files → 593 KB sidebar bundle in ~0.1 s\n- [x] Grid render: 30 docs → 976 KB grid bundle in ~0.14 s\n- [x] No leaked template placeholders in output (fixed `$&` replacement bug)\n- [x] Search index parses as valid JSON (129 entries across 13 plans)\n- [x] Heading IDs stable, tag chips populated\n- [ ] Manual browser check (open `/tmp/d2h/test-sidebar.html` in Firefox + Chromium; verify search, theme toggle, copy-link, tag filter)\n\nCloses T000386\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "plugin",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-15T01:41:41Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": [
+    "T000386"
+  ]
+}

@@ -1,4 +1,5 @@
 'use strict';
+process.env.MOCK_DB = 'true';
 const test = require('node:test');
 const assert = require('node:assert');
 const { applyMutation, buildStateFromMutations, RELAY_TYPES, lmsAlive, handleLmsDeath } = require('../server.js');

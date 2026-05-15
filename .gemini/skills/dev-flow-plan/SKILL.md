@@ -182,7 +182,11 @@ Ergebnis: Spec in `docs/superpowers/specs/<date>-<slug>-design.md`.
 
 ### Schritt 4: Plan schreiben
 
-Rufe `superpowers:writing-plans` auf. Führe danach sofort aus:
+Rufe `superpowers:writing-plans` auf. 
+
+**Effizienz-Tipp:** Wenn der Dienst einen Fast-Sync-Task hat (z.B. `task arena:sync`, `task website:sync`, `task brett:sync`), nimm diesen explizit in die Verifikationsschritte des Plans auf, um den Dev-Cycle zu beschleunigen.
+
+Führe danach sofort aus:
 
 ```bash
 bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md

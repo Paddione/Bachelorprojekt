@@ -22,7 +22,7 @@ includes:
     dir: .
 
 vars:
-  CLUSTER_NAME: dev
+  CLUSTER_NAME: korczewski
   REGISTRY: localhost:5000
   DEV_DOMAIN: localhost
 
@@ -1751,6 +1751,25 @@ tasks:
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
 
+  docs:sync:
+    desc: "Fast-sync docs MD -> HTML and push to running pod (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        POD=$(kubectl $CTX get pod -n "$NS" -l app=docs -o name | head -n 1 | cut -d'/' -f2)
+        if [[ -z "$POD" ]]; then echo "ERROR: No docs pod found in $NS" >&2; exit 1; fi
+        
+        echo "1/2 Building docs MD -> HTML..."
+        node scripts/build-docs.js
+        
+        echo "2/2 Syncing k3d/docs-content-built to $POD:/public..."
+        kubectl $CTX cp k3d/docs-content-built "$NS/$POD:/public"
+        echo "✓ Docs synced. Changes should be live immediately (static server)."
+
   docs:deploy:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:
@@ -1821,8 +1840,8 @@ tasks:
         # Falls back to placeholders on a fresh cluster before workspace-secrets exists.
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
         NS="${WORKSPACE_NAMESPACE:-workspace}"
-        # mentolder/dev → deploy/mcp/ (default ns); korczewski → deploy/mcp-korczewski/ (workspace-korczewski ns)
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        # korczewski/dev → deploy/mcp-korczewski/ (workspace-korczewski ns); mentolder → deploy/mcp/ (default ns)
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           OVERLAY="deploy/mcp-korczewski"
           MCP_NS="$NS"
         else
@@ -1848,7 +1867,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           MCP_NS="default"
@@ -1870,7 +1889,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           NS_FLAG="-n default"
@@ -1896,7 +1915,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           NS_FLAG="-n default"
@@ -1916,7 +1935,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           NS_FLAG="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           NS_FLAG="-n default"
@@ -1937,7 +1956,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           NS="-n ${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           NS="-n default"
@@ -1973,7 +1992,7 @@ tasks:
         fi
 
         # Read token from k8s Secret (production context)
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           MCP_NS="default"
@@ -2086,7 +2105,7 @@ tasks:
         fi
 
         # Read token from k8s Secret (production context)
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           MCP_NS="default"
@@ -2138,7 +2157,7 @@ tasks:
         fi
 
         # Read token from k8s Secret (production context)
-        if [ "{{.ENV}}" = "korczewski" ]; then
+        if [ "{{.ENV}}" = "korczewski" ] || [ "{{.ENV}}" = "dev" ]; then
           MCP_NS="${WORKSPACE_NAMESPACE:-workspace-korczewski}"
         else
           MCP_NS="default"
@@ -2219,7 +2238,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
-        docker build --no-cache -t "${IMAGE}:latest" \
+        docker build -t "${IMAGE}:latest" \
           -f website/Dockerfile \
           --build-arg PROD_DOMAIN="${PROD_DOMAIN}" \
           --build-arg BRAND_NAME="${BRAND_NAME}" \
@@ -2234,6 +2253,36 @@ tasks:
           --build-arg LEGAL_WEBSITE="${LEGAL_WEBSITE}" \
           .
         echo "✓ Docker image built: ${IMAGE}:latest"
+
+  website:sync:
+    desc: "Fast-sync website/src to the running pod and rebuild (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WEBSITE_NAMESPACE:-website}"
+        POD=$(kubectl $CTX get pod -n "$NS" -l app=website -o name | head -n 1 | cut -d'/' -f2)
+        if [[ -z "$POD" ]]; then echo "ERROR: No website pod found in $NS" >&2; exit 1; fi
+        
+        echo "1/3 Syncing source and assets to $POD..."
+        # We sync src/, public/ and configs to ensure the build can run correctly.
+        kubectl $CTX cp website/src "$NS/$POD:/app/src"
+        kubectl $CTX cp website/public "$NS/$POD:/app/public"
+        kubectl $CTX cp website/astro.config.mjs "$NS/$POD:/app/astro.config.mjs"
+        kubectl $CTX cp website/tsconfig.json "$NS/$POD:/app/tsconfig.json"
+        
+        echo "2/3 Running incremental build inside pod..."
+        # This uses the node_modules already present in the container.
+        # We use --no-install to be fast.
+        kubectl $CTX exec -n "$NS" "$POD" -- npm run build
+        
+        echo "3/3 Restarting node process..."
+        # Killing the entry point makes Kubernetes restart the container (fast)
+        # while keeping the synced files in the ephemeral storage.
+        kubectl $CTX exec -n "$NS" "$POD" -- pkill -f "node ./dist/server/entry.mjs" || true
+        echo "✓ Website synced and rebuilt. Changes should be live in a few seconds."
 
   website:build:import:
     desc: Build and import website image into k3d cluster
@@ -2548,6 +2597,26 @@ tasks:
       - 'echo ""'
       - 'echo "  Next → task brett:bot-setup ENV={{.ENV}}"'
 
+  brett:sync:
+    desc: "Fast-sync brett source to the running pod and restart (ENV=dev|mentolder|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        POD=$(kubectl $CTX get pod -n "$NS" -l app=brett -o name | head -n 1 | cut -d'/' -f2)
+        if [[ -z "$POD" ]]; then echo "ERROR: No brett pod found in $NS" >&2; exit 1; fi
+        
+        echo "1/2 Syncing brett/server.js and brett/public to $POD..."
+        kubectl $CTX cp brett/server.js "$NS/$POD:/app/server.js"
+        kubectl $CTX cp brett/public "$NS/$POD:/app/public"
+        
+        echo "2/2 Restarting node process..."
+        kubectl $CTX exec -n "$NS" "$POD" -- pkill -f "node server.js" || true
+        echo "✓ Brett synced and restarted. Changes should be live in a few seconds."
+
   brett:deploy:all-prods:
     desc: "Build, push, and roll brett on mentolder + korczewski"
     cmds:
@@ -2610,10 +2679,38 @@ tasks:
           source scripts/env-resolve.sh "{{.ENV}}"
           CTX_ARG=""
           if [ -n "$ENV_CONTEXT" ]; then CTX_ARG="--context $ENV_CONTEXT"; fi
-          envsubst "\$WORKSPACE_NAMESPACE \$PROD_DOMAIN" < k3d/arena.yaml | kubectl $CTX_ARG apply -f -
+          # Prod uses pinned digest; dev uses :latest.
+          export ARENA_IMAGE="ghcr.io/paddione/arena-server:latest"
+          if [ "{{.ENV}}" != "dev" ]; then
+            export ARENA_IMAGE="ghcr.io/paddione/arena-server@sha256:217da324d77995196721d84ccc41e227c26f4647cea9d8d71e2eb0fe9e62c163"
+          fi
+          envsubst "\$WORKSPACE_NAMESPACE \$PROD_DOMAIN \$ARENA_IMAGE" < k3d/arena.yaml | kubectl $CTX_ARG apply -f -
           envsubst "\$WORKSPACE_NAMESPACE" < k3d/migrations-arena.yaml | kubectl $CTX_ARG apply -f -
           kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" rollout restart deployment/arena-server || true
       - echo "✓ arena deployed to {{.ENV}}"
+
+  arena:sync:
+    desc: "Fast-sync arena-server src to the running pod and rebuild (ENV=dev|korczewski|...)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+          source scripts/env-resolve.sh "{{.ENV}}"
+          CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
+          NS="${WORKSPACE_NAMESPACE:-workspace}"
+          POD=$(kubectl $CTX get pod -n "$NS" -l app=arena-server -o name | head -n 1 | cut -d'/' -f2)
+          if [[ -z "$POD" ]]; then echo "ERROR: No arena-server pod found in $NS" >&2; exit 1; fi
+          
+          echo "1/3 Syncing arena-server/src to $POD..."
+          kubectl $CTX cp arena-server/src "$NS/$POD:/app/src"
+          kubectl $CTX cp arena-server/tsconfig.json "$NS/$POD:/app/tsconfig.json"
+          
+          echo "2/3 Rebuilding inside pod..."
+          kubectl $CTX exec -n "$NS" "$POD" -- pnpm run build
+          
+          echo "3/3 Restarting node process..."
+          kubectl $CTX exec -n "$NS" "$POD" -- pkill -f "node dist/index.js" || true
+          echo "✓ Arena synced and restarted. Changes should be live in a few seconds."
 
   arena:deploy:all-prods:
     desc: "Build + roll out arena-server on korczewski (arena's home cluster)"

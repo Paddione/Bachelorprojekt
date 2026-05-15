@@ -1,5 +1,6 @@
 import { jwtVerify, type KeyLike } from 'jose';
 import { getJwks } from './jwks';
+import { log } from '../log';
 
 export type Brand = 'mentolder' | 'korczewski';
 
@@ -40,12 +41,15 @@ export async function verifyArenaJwt(token: string, opts: VerifyOpts): Promise<A
         exp: payload.exp!,
       };
     } catch (err: any) {
+      log.info({ issuer: ti.url, err: err.message }, 'verification failed for issuer');
       // Try the next issuer only when issuer mismatch; otherwise rethrow.
       if (!/issuer|iss|JWSSignatureVerificationFailed/i.test(err.message)) {
+        log.error({ issuer: ti.url, err: err.message }, 'fatal verification error');
         throw err;
       }
     }
   }
+  log.info('no trusted issuer matched the token');
   throw new Error('untrusted issuer');
 }
 

@@ -2,20 +2,81 @@
 import PortalLayout from '../../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../../lib/auth';
 import { ArenaIsland } from '../../components/arena/ArenaIsland';
+import { isAdmin } from '../../lib/auth';
 
 const user = await getSession(Astro.request.headers.get('cookie'));
 if (!user) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 
-const lobbyCode = Astro.url.searchParams.get('lobby');
-if (!lobbyCode) return Astro.redirect('/portal');
+let lobbyCode = Astro.url.searchParams.get('lobby');
+
+// If no lobby code in URL, check if there's an active one
+if (!lobbyCode) {
+  try {
+    const res = await fetch(`${Astro.url.origin}/api/arena/lobby`, {
+      headers: { cookie: Astro.request.headers.get('cookie') ?? '' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.active) lobbyCode = data.code;
+    }
+  } catch (e) {
+    console.error('Failed to fetch active lobby:', e);
+  }
+}
 
 const wsUrl = process.env.ARENA_WS_URL ?? 'http://arena.localhost';
 const userKey = `${user.sub}@${user.brand ?? 'mentolder'}`;
+const isUserAdmin = isAdmin(user);
 ---
 
 <PortalLayout title="Arena" section="overview" session={user} pendingSignatures={0}>
-  <ArenaIsland client:load wsUrl={wsUrl} lobbyCode={lobbyCode} myKey={userKey} />
+  {lobbyCode ? (
+    <ArenaIsland client:load wsUrl={wsUrl} lobbyCode={lobbyCode} myKey={userKey} />
+  ) : (
+    <div class="pt-16 px-8 max-w-2xl mx-auto text-center">
+      <div class="mb-8 text-4xl">⚔️</div>
+      <h1 class="text-2xl font-bold text-light mb-4">Arena</h1>
+      <p class="text-muted mb-10">
+        Gerade findet kein Match statt. Sobald eine Lobby geöffnet wird, 
+        erscheint hier (oder im Banner oben) der Beitritts-Link.
+      </p>
+
+      {isUserAdmin && (
+        <button
+          id="start-arena"
+          class="px-6 py-3 bg-gold text-dark font-bold rounded-lg hover:bg-gold/80 transition-colors"
+        >
+          Neue Lobby öffnen
+        </button>
+      )}
+    </div>
+  )}
 </PortalLayout>
+
+<script>
+  const btn = document.getElementById('start-arena');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      btn.innerText = 'Wird gestartet...';
+      btn.setAttribute('disabled', 'true');
+      try {
+        const res = await fetch('/api/arena/start', { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          window.location.href = `/portal/arena?lobby=${data.code}`;
+        } else {
+          alert('Fehler beim Starten der Arena.');
+          btn.innerText = 'Neue Lobby öffnen';
+          btn.removeAttribute('disabled');
+        }
+      } catch (e) {
+        alert('Netzwerkfehler.');
+        btn.innerText = 'Neue Lobby öffnen';
+        btn.removeAttribute('disabled');
+      }
+    });
+  }
+</script>
 
 <style>
   :global(body) { background: #120d1c; color: #eceff3; }

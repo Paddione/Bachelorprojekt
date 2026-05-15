@@ -40,16 +40,14 @@ spec:
                     values: [hetzner]
       containers:
         - name: arena-server
-          # Pinned by digest. To roll forward: build/push a new arena-server image,
-          # then resolve the digest with `gh api /users/paddione/packages/container/arena-server/versions`
-          # and update this line. Closes #656.
-          image: ghcr.io/paddione/arena-server@sha256:dd06fee5f30c585441ac83843e1c68c44fbbbfdd63c0755c9e8346f45e5ab336
+          # Pinned by digest in prod. In dev, we use :latest.
+          image: ${ARENA_IMAGE}
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
             runAsNonRoot: true
-            runAsUser: 65532
+            runAsUser: 1000
             capabilities: { drop: [ALL] }
           ports:
             - containerPort: 8090

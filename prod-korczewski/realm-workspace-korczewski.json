@@ -510,5 +510,16 @@
         }
       ]
     }
-  ]
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "arena_admin",
+        "description": "Allowed to host an Arena match",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "workspace"
+      }
+    ]
+  }
 }

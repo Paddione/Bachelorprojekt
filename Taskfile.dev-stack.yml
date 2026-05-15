@@ -10,7 +10,7 @@
 version: "3"
 
 vars:
-  CTX_DEV: k3d-mentolder-dev
+  CTX_DEV: k3d-korczewski
   CTX_PROD: mentolder
   NS_DEV: workspace-dev
   NS_PROD: workspace

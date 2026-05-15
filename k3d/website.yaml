@@ -68,7 +68,7 @@ data:
   LLM_ROUTER_URL: "${LLM_ROUTER_URL}"
   LLM_ENABLED: "${LLM_ENABLED}"
   LLM_RERANK_ENABLED: "${LLM_RERANK_ENABLED}"
-  # Mentolder-Assistent (no-LLM keyword-search mode for now)
+  # KORE-Assistent (no-LLM keyword-search mode for now)
   ENABLE_ASSISTANT_ADMIN: "true"
   ENABLE_ASSISTANT_PORTAL: "true"
   # Brett

@@ -121,7 +121,7 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
     </div>
   )}
   {section === 'fragebögen'     && <FragebogenSection assignments={questionnaires} />}
-  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {bretUrl} {keycloakBase} />}
+  {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {bretUrl} {keycloakBase} isKore={session.brand === 'korczewski'} />}
   {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
   {section === 'buchung'        && <BuchungSection ncBase={ncBase} />}
 </PortalLayout>

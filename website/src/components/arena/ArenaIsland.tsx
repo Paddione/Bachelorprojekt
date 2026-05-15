@@ -126,6 +126,10 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
     window.location.href = '/portal';
   }, []);
 
+  const handleStart = useCallback(() => {
+    socketRef.current?.emit('msg', { t: 'lobby:start' });
+  }, []);
+
   if (scene === 'loading') {
     return (
       <div style={{ padding: 32, fontFamily: 'monospace', color: '#8A8497' }}>
@@ -146,6 +150,7 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
   }
 
   if (scene === 'lobby') {
+    const isHost = players.length > 0 && players[0].key === myKey;
     return (
       <LobbyScene
         code={lobbyCode}
@@ -153,8 +158,10 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
         phase={lobbyPhase}
         countdownMs={countdownMs}
         myKey={myKey}
+        isHost={isHost}
         onCharacter={handleCharacter}
         onLeave={handleLeave}
+        onStart={handleStart}
       />
     );
   }

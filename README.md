@@ -45,7 +45,6 @@ Cluster-Topologie, Footguns und Operations-Befehle siehe **[CLAUDE.md](CLAUDE.md
 | Whiteboard | http://board.localhost | Kollaboratives Whiteboard |
 | Brett (Systembrett) | http://brett.localhost | 3D-Aufstellungsboard |
 | DocuSeal | http://sign.localhost | E-Signaturen |
-| Tracking | http://tracking.localhost | Anforderungs-Tracking |
 | Docs | http://docs.localhost | Docsify-Dokumentation |
 | Mailpit | http://mail.localhost | Dev-Mailserver |
 | LiveKit | http://livekit.localhost | WebRTC Server (Streaming) |

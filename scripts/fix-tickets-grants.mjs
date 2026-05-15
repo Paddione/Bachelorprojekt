@@ -139,7 +139,7 @@ function summarize(label, audit) {
 
 async function main() {
   const apply = process.argv.includes('--apply');
-  const url = process.env.TRACKING_DB_URL ?? process.env.WEBSITE_DB_URL
+  const url = process.env.PGURL ?? process.env.WEBSITE_DB_URL
     ?? 'postgres://postgres:postgres@localhost:5432/website';
   const client = new pg.Client({ connectionString: url });
   await client.connect();

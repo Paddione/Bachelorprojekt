@@ -911,28 +911,8 @@ tasks:
         NS="${WORKSPACE_NAMESPACE:-workspace}"
         kubectl $CTX exec -it -n "$NS" deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
 
-  tracking:psql:
-    desc: 'Open psql shell with bachelorprojekt search_path on mentolder shared-db (requirements tracking DB lives only in mentolder workspace)'
-    cmds:
-      - kubectl --context mentolder exec -it -n workspace deploy/shared-db -- env PGOPTIONS="-c search_path=bachelorprojekt,public" psql -U postgres -d postgres
-
-  tracking:backfill:
-    desc: 'Backfill bachelorprojekt.features from all closed PRs (idempotent)'
-    cmds:
-      - bash scripts/backfill-features.sh
-
-  tracking:backfill:dry:
-    desc: 'Dry-run backfill (prints first 3 parsed rows, writes nothing)'
-    cmds:
-      - bash scripts/backfill-features.sh --dry-run
-
-  tracking:ingest:local:
-    desc: 'Manually drain tracking/pending into shared-db (requires TRACKING_DB_URL env var)'
-    cmds:
-      - node scripts/track-pr.mjs --ingest
-
   software-history:classify:
-    desc: 'Classify all unclassified PRs into bachelorprojekt.software_events (requires TRACKING_DB_URL)'
+    desc: 'Classify all unclassified PRs into bachelorprojekt.software_events'
     cmds:
       - cd website && npx tsx ../scripts/software-history-classify.mts {{.CLI_ARGS}}
 
@@ -940,21 +920,6 @@ tasks:
     desc: 'psql into shared-db with software_events focus'
     cmds:
       - source scripts/env-resolve.sh "{{.ENV}}" && kubectl exec -it -n "${WORKSPACE_NAMESPACE:-workspace}" --context "${ENV_CONTEXT:-k3d-mentolder}" deploy/shared-db -- psql -U postgres -d postgres
-
-  plans:import:
-    desc: "Parse all active plan files → tracking/pending/ (seeds DB on next CronJob run)"
-    cmds:
-      - |
-        PLANS_DIR="docs/superpowers/plans"
-        count=0
-        for f in "$PLANS_DIR"/*.md; do
-          [[ -f "$f" ]] || continue
-          status=$(awk 'BEGIN{n=0} /^---/{n++;next} n==1 && /^status:/{print $2; exit}' "$f" | tr -d ' \r')
-          [[ "$status" == "active" ]] || continue
-          bash scripts/plans-parse.sh "$f"
-          count=$((count+1))
-        done
-        echo "Imported $count active plan(s) to tracking/pending/"
 
   plans:query:
     desc: "Show active plan sections for a given role. Usage: task plans:query -- <role>"
@@ -1515,7 +1480,7 @@ tasks:
         trap 'kill $PF 2>/dev/null' EXIT
         sleep 3
 
-        TRACKING_DB_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+        PGURL="postgres://postgres:${PG_PW}@localhost:5432/website" \
           node scripts/fix-tickets-grants.mjs --apply
 
   tickets:sunset:audit:
@@ -2994,10 +2959,12 @@ tasks:
           --namespace cert-manager \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
           --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX annotate secret ipv64-api-key -n cert-manager sealedsecrets.bitnami.com/managed="true" --overwrite
         kubectl $CTX create secret generic ipv64-api-key \
           --namespace "$NS" \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
           --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX annotate secret ipv64-api-key -n "$NS" sealedsecrets.bitnami.com/managed="true" --overwrite
         kubectl $CTX set env deployment/cert-manager-lego-webhook \
           -n cert-manager --from=secret/ipv64-api-key
         echo "✓ Secret 'ipv64-api-key' created/updated in cert-manager + ${NS} (ENV={{.ENV}})"

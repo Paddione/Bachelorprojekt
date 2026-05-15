@@ -7,7 +7,7 @@
 //   --apply: executes drops.
 import pg from 'pg';
 
-const PGURL = process.env.PGURL ?? process.env.TRACKING_DB_URL ?? 'postgres://website:website@localhost:5432/website';
+const PGURL = process.env.PGURL ?? 'postgres://website:website@localhost:5432/website';
 const apply = process.argv.includes('--apply');
 const client = new pg.Client({ connectionString: PGURL });
 

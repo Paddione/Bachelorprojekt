@@ -21,10 +21,10 @@ function parseFlags(argv: string[]): Flags {
 
 async function main() {
   const flags = parseFlags(process.argv.slice(2));
-  const connectionString = process.env.TRACKING_DB_URL;
+  const connectionString = process.env.PGURL ?? process.env.WEBSITE_DB_URL;
   if (!connectionString) {
-    console.error('TRACKING_DB_URL is required (port-forward shared-db or run inside cluster).');
-    process.exit(2);
+    console.error('PGURL or WEBSITE_DB_URL is required (port-forward shared-db or run inside cluster).');
+    process.exit(1);
   }
   const pool = new Pool({ connectionString });
   const classifier = `llm:${DEFAULT_MODEL}`;

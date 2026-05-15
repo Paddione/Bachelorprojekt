@@ -35,28 +35,12 @@
 - [ ] `k3d/realm-workspace-dev.json` aktualisiert falls Clients geaendert
 - [ ] SSO-Login fuer alle betroffenen Services getestet
 
-### Tracking-Datenbank-Update (Pflicht)
-- [ ] **Pipeline-Status aktualisiert** in der Tracking-DB fuer betroffene Anforderung(en)
-  - Via Tracking-UI (http://tracking.localhost), `task tracking:psql` oder PostgreSQL MCP
-  - Stage aktualisiert (`idea` / `implementation` / `testing` / `documentation` / `archive`)
-  - Status aktualisiert (`pending` / `in_progress` / `done` / `fail` / `skip`)
-- [ ] **Falls neue Anforderung:** Eintrag in `bachelorprojekt.requirements` mit Kategorie, Name und Beschreibung erstellt
-
-**Verwendete Tracking-Update-Methode:** <!-- UI / psql / MCP -->
-
-## Anforderungs-Nachverfolgbarkeit
-
-> Die **Tracking-Datenbank** ist die einzige Wahrheitsquelle fuer alle Anforderungen und den Deployment-Status.
-> Zugriff via: Tracking-UI (http://tracking.localhost), `task tracking:psql` oder PostgreSQL MCP.
-
-- [ ] **Geprueft**, ob eine passende Anforderung in der Tracking-DB existiert (`bachelorprojekt.requirements`)
-- [ ] **Falls kein Eintrag existiert:** Via Tracking-UI oder SQL erstellt mit: id, category, name, description, acceptance_criteria, test_cases, priority
 
 **Anforderungs-ID:** <!-- z.B. FA-09, SA-08, NFA-08 -->
 
 ## Testplan
 
-> Tests in diesem PR muessen der `test_cases`-Spalte der Anforderung in der Tracking-DB entsprechen.
+
 
 **Anforderungs-JSON Testfall:**
 <!-- Testfall-Feld aus dem JSON-Eintrag einfuegen, damit Reviewer die Abdeckung pruefen koennen -->

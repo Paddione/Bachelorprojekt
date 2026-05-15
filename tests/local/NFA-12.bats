@@ -9,8 +9,6 @@
 # SealedSecret) and a persistent SSH hostkey is wired up so known_hosts
 # stays valid across pod restarts.
 
-load ../unit/lib/bats-assert.bash
-
 CTX="${BRAINSTORM_CTX:-mentolder}"
 NS="${BRAINSTORM_NS:-workspace}"
 CM="brainstorm-sish-authorized-keys"
@@ -55,12 +53,12 @@ setup() {
   echo "$VOLS" | tr ' ' '\n' | grep -qE '^(hostkey|hostkeys|ssh-host-keys)$'
 }
 
-# T3: task brainstorm:_materialise-keys must be invokable from CLI
+# T3: task brainstorm:materialise-keys must be invokable from CLI
 #     (skill documents direct invocation; internal: true breaks that).
-@test "NFA-12 T3: brainstorm:_materialise-keys is invokable from CLI" {
+@test "NFA-12 T3: brainstorm:materialise-keys is invokable from CLI" {
   cd "$BATS_TEST_DIRNAME/../.."
   command -v task >/dev/null || skip "go-task required"
-  run task --summary brainstorm:_materialise-keys 2>&1
+  run task --summary brainstorm:materialise-keys 2>&1
   # internal tasks are rejected by go-task with "Task X is internal"
   ! echo "$output" | grep -q 'is internal'
 }

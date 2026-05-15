@@ -128,6 +128,3 @@ if [[ $FAIL -gt 0 ]]; then
   echo -e "\n  ${YELLOW}Note:${RESET} unreachable services may be optional or not yet deployed."
   exit 1
 fi
-al or not yet deployed."
-  exit 1
-fi

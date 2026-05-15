@@ -332,13 +332,16 @@ data:
         ('korczewski', 'mistral', false, 'mistral-small-latest',     'Mistral'),
         ('korczewski', 'lumo',    false, null,                       'Lumo')
       ON CONFLICT (brand, provider) DO NOTHING;
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_ki_config_one_active_per_brand
+        ON coaching.ki_config (brand)
+        WHERE is_active = true;
 
       CREATE TABLE IF NOT EXISTS coaching.step_templates (
         id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         brand            TEXT NOT NULL,
         step_number      INT NOT NULL,
         step_name        TEXT NOT NULL,
-        phase            TEXT NOT NULL,
+        phase            TEXT NOT NULL CHECK (phase IN ('problem_ziel','analyse','loesung','umsetzung')),
         system_prompt    TEXT NOT NULL,
         user_prompt_tpl  TEXT NOT NULL,
         input_schema     JSONB NOT NULL DEFAULT '[]',
@@ -348,6 +351,7 @@ data:
         created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
         UNIQUE (brand, step_number)
       );
+      CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
 
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables
@@ -919,6 +923,27 @@ data:
           ALTER TABLE coaching.sessions ADD CONSTRAINT sessions_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
         END IF;
       END $$;
+      ALTER TABLE coaching.sessions ADD COLUMN IF NOT EXISTS client_name TEXT;
+      ALTER TABLE coaching.sessions ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'sessions_status_check'
+            AND conrelid = 'coaching.sessions'::regclass
+        ) THEN
+          ALTER TABLE coaching.sessions DROP CONSTRAINT sessions_status_check;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'sessions_status_check'
+            AND conrelid = 'coaching.sessions'::regclass
+        ) THEN
+          ALTER TABLE coaching.sessions
+            ADD CONSTRAINT sessions_status_check
+            CHECK (status IN ('active','paused','completed','abandoned'));
+        END IF;
+      END $$;
       CREATE INDEX IF NOT EXISTS idx_sessions_brand ON coaching.sessions(brand);
       CREATE INDEX IF NOT EXISTS idx_sessions_client ON coaching.sessions(client_id);
 
@@ -974,13 +999,16 @@ data:
         ('korczewski', 'mistral', false, 'mistral-small-latest',     'Mistral'),
         ('korczewski', 'lumo',    false, null,                       'Lumo')
       ON CONFLICT (brand, provider) DO NOTHING;
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_ki_config_one_active_per_brand
+        ON coaching.ki_config (brand)
+        WHERE is_active = true;
 
       CREATE TABLE IF NOT EXISTS coaching.step_templates (
         id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         brand            TEXT NOT NULL,
         step_number      INT NOT NULL,
         step_name        TEXT NOT NULL,
-        phase            TEXT NOT NULL,
+        phase            TEXT NOT NULL CHECK (phase IN ('problem_ziel','analyse','loesung','umsetzung')),
         system_prompt    TEXT NOT NULL,
         user_prompt_tpl  TEXT NOT NULL,
         input_schema     JSONB NOT NULL DEFAULT '[]',
@@ -990,6 +1018,7 @@ data:
         created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
         UNIQUE (brand, step_number)
       );
+      CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
 
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables

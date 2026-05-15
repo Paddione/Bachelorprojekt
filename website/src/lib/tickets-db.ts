@@ -50,17 +50,21 @@ export async function initTicketsSchema(): Promise<void> {
       CONSTRAINT resolution_only_when_closed CHECK (
         (resolution IS NULL AND status NOT IN ('done','archived'))
         OR status IN ('done','archived')
-      );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_brand_fkey') THEN
-          ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-        END IF;
-      END $$;
+      )
     )
   `);
 
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_brand_fkey') THEN
+        ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+      END IF;
+    END $$
+  `);
+
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS notes TEXT`);
+  await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false`);
 
   await pool.query(`
     ALTER TABLE tickets.tickets

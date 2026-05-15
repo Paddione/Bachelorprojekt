@@ -310,10 +310,8 @@ function applyMutation(room, msg) {
         figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
       }
       break;
-    case 'stiffness':
-      if (typeof msg.value === 'number') {
-        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
-      }
+    case 'jump':
+      // transient — no persisted state
       break;
   }
 }
@@ -389,12 +387,12 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear','optik','stiffness'].includes(msg.type)) {
+      if (['add','move','update','delete','clear','optik','stiffness','jump'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
         if (msg.type === 'clear') {
           flushImmediate(room).catch(err => console.error('[brett] flush:', err));
-        } else {
+        } else if (msg.type !== 'jump') {
           schedulePersist(room);
         }
       }

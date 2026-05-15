@@ -756,6 +756,12 @@
     "kind": "shell"
   },
   {
+    "id": "NFA-12",
+    "file": "tests/local/NFA-12.bats",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
     "id": "SA-01",
     "file": "tests/local/SA-01.bats",
     "category": "SA",

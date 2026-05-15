@@ -52,7 +52,7 @@ patches:
         name: workspace-secrets
       $patch: delete
   # Drop dev-placeholder backup-passphrase — in production this secret is
-  # managed directly on the cluster (never reset by ArgoCD).
+  # managed via SealedSecrets (never overwritten by workspace:deploy).
   - target:
       kind: Secret
       name: backup-passphrase
@@ -159,9 +159,8 @@ patches:
   - path: patch-oauth2-proxy-traefik.yaml
   - path: patch-oauth2-proxy-mailpit.yaml
   - path: patch-oauth2-proxy-brett.yaml
-  # Collabora lives in the workspace-office namespace via its own
-  # ArgoCD Application (argocd/applicationset-office.yaml) — no
-  # patch target on this overlay.
+  # Collabora lives in the workspace-office namespace, deployed via
+  # task workspace:office:deploy — no patch target on this overlay.
   # Reduce shared-db resource requests for smaller production clusters
   - path: patch-shared-db.yaml
   # Override signaling backend URL for production (HTTPS + real domain)

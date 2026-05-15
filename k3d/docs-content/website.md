@@ -351,12 +351,6 @@ Siehe `prod/website/` für Production-Patches:
 - Resource Limits gesetzt
 - SMTP auf echten Server umgeleitet
 
-### ArgoCD Sync
-Falls die Website über ArgoCD deployed wird:
-```bash
-task argocd:sync -- workspace-website-prod
-```
-
 ---
 
 ## Weitere Ressourcen

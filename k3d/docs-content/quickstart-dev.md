@@ -25,7 +25,6 @@ Diese Seite ist die Karte. Jede ausführliche Erklärung steht woanders — hier
 | `prod/` | Gemeinsame Prod-Patches (TLS, Limits, Replicas) |
 | `prod-mentolder/`, `prod-korczewski/` | Per-Env-Overlays |
 | `environments/` | Per-Env-Config (`<env>.yaml`), SealedSecrets, Schema |
-| `argocd/` | GitOps-Konfiguration für Multi-Cluster-Federation |
 | `website/` | Astro + Svelte Portal |
 | `brett/` | 3D Systembrett-Service |
 | `scripts/` | Bash-Utilities (env-resolve, talk-hpb-setup, …) |
@@ -74,7 +73,7 @@ flowchart TB
   TF --> WSP[workspace:post-setup / talk-setup / recording-setup]
   TF --> WSB[workspace:backup / restore]
   TF --> WEB[website:deploy / dev / redeploy]
-  TF --> ARGO[argocd:setup / sync / status]
+  TF --> Secrets[secrets:sync]
   TF --> ENV[env:validate / generate / seal]
   TF --> Test[test:unit / manifests / all]
 ```

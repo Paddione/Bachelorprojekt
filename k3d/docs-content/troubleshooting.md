@@ -345,19 +345,6 @@ yamllint k3d/
 shellcheck scripts/*.sh
 ```
 
-### ArgoCD synchronisiert nicht
-
-```bash
-# Sync-Status pruefen
-task argocd:status
-
-# Manuell synchronisieren
-task argocd:sync -- workspace-hetzner
-
-# Diff anzeigen
-task argocd:diff -- workspace-hetzner
-```
-
 ---
 
 ## Nuetzliche kubectl-Befehle

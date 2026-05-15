@@ -21,7 +21,6 @@
 - **Betrieb**
   - [Deployment & Taskfile](operations)
   - [Umgebungen & Secrets](environments)
-  - [ArgoCD (GitOps)](argocd)
   - [Backup & Wiederherstellung](backup)
 
 - **Sicherheit**

@@ -8,7 +8,7 @@ Before responding to any request, check these signals and delegate to the named 
 |---------|-------|
 | `website/`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend | `bachelorprojekt-website` |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing" | `bachelorprojekt-ops` |
-| `k3d/`, `prod*/`, manifest, kustomize, overlay, ArgoCD, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |
+| `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |
 | test, `FA-*`, `SA-*`, `NFA-*`, BATS, Playwright, `runner.sh`, test case | `bachelorprojekt-test` |
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline | `bachelorprojekt-db` |
 | SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate | `bachelorprojekt-security` |
@@ -156,24 +156,12 @@ task livekit:dns-pin ENV=<env>           # Druckt ipv64-API-Calls für DNS-Pinni
 task livekit:firewall-open NODE=<ip>     # Öffnet ufw 7880/7881/tcp + 50000-60000/udp + 30000-40000/udp via SSH
 ```
 
-### ArgoCD — GitOps Multi-Cluster Federation
-**HUB-ONLY**: ALL `argocd:*` tasks run exclusively against `--context mentolder`.
-`ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
-Tasks live in `Taskfile.argocd.yml` (included under the `argocd` namespace).
+### Secrets Sync
 ```bash
-task argocd:setup                # Full setup: install → login → register clusters → apply apps (run once on fresh hub)
-task argocd:install              # Install ArgoCD on mentolder hub cluster
-task argocd:password             # Print initial admin password
-task argocd:ui                   # Port-forward ArgoCD UI to http://localhost:8090
-task argocd:login                # Log in with argocd CLI
-task argocd:cluster:register     # Register hetzner + korczewski clusters with workspace labels
-task argocd:apps:apply           # Apply AppProject and ApplicationSet
-task argocd:status               # Show sync/health status of all apps across all clusters
-task argocd:sync -- <app>        # Manually trigger sync (e.g. workspace-hetzner)
-task argocd:diff -- <app>        # Show diff between git and live state
+task env:seal ENV=<env>          # Encrypt .secrets/<env>.yaml → environments/sealed-secrets/<env>.yaml
+task secrets:sync                # Apply current SealedSecrets to both prod clusters (no workload rollout)
 ```
-ArgoCD files: `argocd/install/` (CMP sidecar, Ingress), `argocd/project.yaml`, `argocd/applicationset.yaml`.
-Cluster config lives as annotations on ArgoCD cluster Secrets — set via `task argocd:cluster:register`.
+Workloads are only rolled when you explicitly run `task feature:*` or `task workspace:deploy ENV=<env>`.
 
 ### Brett (Systembrett)
 ```bash
@@ -227,20 +215,12 @@ separate k3s clusters; verify with `kubectl config get-contexts`.
 - Workspace lives in the `workspace-korczewski` namespace, with `WEBSITE_NAMESPACE=website-korczewski`.
 - Has its own `shared-db` — DB password rotations on one cluster never propagate to the other.
 
-**ArgoCD federation** still hub-runs on mentolder. Annotations on the cluster Secrets
-(`cluster-mentolder`, `cluster-korczewski`) drive the per-cluster overlay path
-(`prod-mentolder` vs `prod-korczewski`). The spoke RBAC for korczewski lives in
-`argocd/spoke-rbac/korczewski.yaml` (ServiceAccount `argocd-manager` in ns `argocd`,
-cluster-admin binding, long-lived token Secret); `task argocd:cluster:register`
-applies it and bootstraps the `cluster-korczewski` Secret on the hub from the
-SA's CA + bearer token (API server `https://204.168.244.104:6443`).
-
 **WireGuard mesh (`wg-mesh`):** since the partition fix, all mentolder nodes —
 Hetzner CPs and home workers — peer over `wg-mesh` with Flannel pinned to that
 interface (`flannel-iface=wg-mesh` on Hetzner CPs, `node-ip=<public>` for the
 control-planes). VXLAN now traverses correctly; system-pod nodeAffinity to
 Hetzner nodes is no longer load-bearing for connectivity (it remains for
-predictable placement of CoreDNS/ArgoCD/etc.).
+predictable placement of CoreDNS/etc.).
 
 ```bash
 task ha:setup                    # Bootstrap 3-node k3s HA cluster on Hetzner (run once — historical)
@@ -379,7 +359,6 @@ graph TB
   - `environments/schema.yaml` -- authoritative list of every env/setup var; validated by `env:validate`.
   - `environments/certs/` -- per-cluster sealing certs fetched via `env:fetch-cert`.
 - **`deploy/`** -- Kustomize overlays for dev iteration. Contains `mcp/` for MCP server overlays.
-- **`argocd/`** -- ArgoCD AppProject + three ApplicationSets (`applicationset.yaml`, `applicationset-office.yaml`, `applicationset-coturn.yaml`) and the `install/` CMP sidecar.
 - **`brett/`** -- Node.js 3D systemic-constellation board (Systembrett) at `brett.localhost`; deployed as `k3d/brett.yaml`.
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
@@ -425,17 +404,16 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 ### Environment targeting
 - **`ENV=` is always explicit.** Env-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`, etc.) default to `ENV=dev` when unset. The kubectl context mismatch check only runs when `ENV != dev`, so a missing `ENV=` + wrong active context silently deploys to whatever cluster is current. Always pass `ENV=mentolder` or `ENV=korczewski` for live work — or use the `feature:*` / `*:all-prods` umbrellas which fan out across both prod clusters explicitly.
 - **All workspace tasks now honour `WORKSPACE_NAMESPACE`.** Earlier the Taskfile and several `scripts/*.sh` hardcoded `-n workspace`, which silently wrote korczewski-targeted post-config (theming, OIDC redirects, talk signaling) into mentolder's `workspace` namespace. After 2026-05-05 every ENV-aware task sources `env-resolve.sh` and uses `${WORKSPACE_NAMESPACE:-workspace}` (mentolder=`workspace`, korczewski=`workspace-korczewski`); scripts default to `${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}` and the Taskfile call sites export the env var before invoking. If you add a new task that touches workspace resources, follow this pattern.
-- **ArgoCD tasks are hub-only and enforce it.** All `argocd:*` tasks live in `Taskfile.argocd.yml` and have a `_hub-guard` precondition that aborts with a clear error if the `mentolder` context is unreachable. `ENV=korczewski` is silently ignored — it does NOT redirect kubectl to korczewski.
 - **`mentolder` and `korczewski` are two physical clusters.** The 2026-05-05 merge was reverted on 2026-05-09 (PRs #621/#622). The `korczewski` context targets a standalone 3-node cluster on `pk-hetzner-4/6/8`; korczewski.de no longer routes through mentolder Traefik. Each cluster has its own `shared-db`, sealed-secrets controller, cert-manager, and Keycloak realm — anything cross-cluster (DB password rotation, OIDC client tweaks, schema changes) must be applied to **both** explicitly.
 
 ### Cluster node placement (mentolder)
-- **System pods are pinned to Hetzner nodes by nodeAffinity, even though the CNI partition is fixed.** Pre-2026-05-05 Flannel VXLAN couldn't traverse the WireGuard double-hop; the fix moved every mentolder node onto the `wg-mesh` overlay with `flannel-iface=wg-mesh` (and `node-ip=<public>` on the Hetzner CPs). Connectivity now works end-to-end, but CoreDNS/ArgoCD/etc. stay pinned to `gekko-hetzner-*` for predictable placement and lower egress latency. Removing the affinity won't break DNS today — but unpinning without thinking about it loses the deliberate locality.
+- **System pods are pinned to Hetzner nodes by nodeAffinity, even though the CNI partition is fixed.** Pre-2026-05-05 Flannel VXLAN couldn't traverse the WireGuard double-hop; the fix moved every mentolder node onto the `wg-mesh` overlay with `flannel-iface=wg-mesh` (and `node-ip=<public>` on the Hetzner CPs). Connectivity now works end-to-end, but CoreDNS/etc. stay pinned to `gekko-hetzner-*` for predictable placement and lower egress latency. Removing the affinity won't break DNS today — but unpinning without thinking about it loses the deliberate locality.
 - **`wg-mesh` membership is load-bearing for mentolder.** Adding a node without joining the mesh + setting `flannel-iface=wg-mesh` will silently break pod-to-pod traffic from that node. See `wireguard/` for the peer config and the partition-fix memory for the gory details.
 
 ### Kustomize overlays
 - **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.
 - **Never remove the `$patch: delete` block in `prod/kustomization.yaml`.** Its job is to strip the dev placeholder from `k3d/secrets.yaml` so SealedSecrets-managed secrets survive each deploy. Removing it overwrites production secrets with dev values.
-- **Collabora and CoTURN are NOT in the base kustomization.** `k3d/office-stack` and `k3d/coturn-stack` deploy via separate ArgoCD Applications (`argocd/applicationset-office.yaml`, `argocd/applicationset-coturn.yaml`) and `task workspace:office:deploy`. A full bring-up order is `workspace:deploy` → `workspace:office:deploy` → CoTURN apply.
+- **Collabora and CoTURN are NOT in the base kustomization.** `k3d/office-stack` and `k3d/coturn-stack` are deployed separately via `task workspace:office:deploy`. A full bring-up order is `workspace:deploy` → `workspace:office:deploy` → CoTURN apply.
 - **Website, Brett, and Docs images use `:latest` intentionally** (`k3d/website.yaml`, `k3d/brett.yaml`, `k3d/docs.yaml`). CI warns about `:latest` for all three; do not "fix" these tags to a digest — each image is rebuilt and re-imported/pushed on every release (`task feature:brett`, `task docs:deploy`, `task feature:website`).
 
 ### Scripts & env

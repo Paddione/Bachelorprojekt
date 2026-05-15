@@ -54,6 +54,11 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
           socket.join(`lobby:${m.code}`);
           break;
         }
+        case 'lobby:start':
+          for (const room of socket.rooms) {
+            if (room.startsWith('lobby:')) deps.lc.start(room.slice(6), key);
+          }
+          break;
         case 'lobby:leave':
           // best-effort: caller is responsible for emitting state via lifecycle
           break;

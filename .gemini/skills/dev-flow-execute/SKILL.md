@@ -109,9 +109,12 @@ echo "Ticket $TICKET_ID → in_progress"
 
 ## Schritt 2: Implementierung
 
-### Feature
+### Die "Source of Truth" Regel
+Alle Änderungen im Pod (via `sync`-Tasks) sind **ephemer**. Nur was im lokalen Git committed und via `deploy`-Task (Image Build) ausgerollt wird, ist permanent.
 
+### Feature
 Bevorzugt: `superpowers:subagent-driven-development` (parallele Agents, schnell).
+Nutze die Fast-Sync Tasks (`task arena:sync`, `task website:sync`, `task brett:sync`), um Änderungen sofort im laufenden Pod zu testen, ohne ein Image bauen zu müssen.
 
 Alternative: `superpowers:executing-plans` (sequenziell, wenn Tasks voneinander abhängen).
 
@@ -119,22 +122,22 @@ Alternative: `superpowers:executing-plans` (sequenziell, wenn Tasks voneinander 
 - UI-Arbeit: `frontend-design` Skill + Playwright Smoke Tests
 
 ### Fix
-
 Implementiere bis der failing Test (aus `dev-flow-plan` Schritt 3) grün ist. Pflicht: red → green → refactor.
-
-```bash
-./tests/runner.sh local <test-id>
-# Ziel: PASS
-```
+Auch hier: `task <svc>:sync` nutzen für schnelles Feedback.
 
 ---
 
-## Schritt 3: Lokale Verifikation
+## Schritt 3: Lokale Verifikation & Persistenz
+Bevor du den PR erstellst, stelle sicher, dass die ephemeren Änderungen aus dem Pod im lokalen Source-Code reflektiert sind.
 
 ```bash
 task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX oder NFA-XX>   # falls relevant
 task test:all
+
+# WICHTIG: Einmaliger Build-Test (lokal oder k3d), um sicherzustellen, 
+# dass das Docker-Image mit den neuen Änderungen baut.
+task arena:build ENV=dev # Beispiel für Arena
 ```
 
 ---

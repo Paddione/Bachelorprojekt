@@ -69,6 +69,7 @@ const SVG = {
   network:    `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="3" r="1.5"/><circle cx="2.5" cy="12" r="1.5"/><circle cx="13.5" cy="12" r="1.5"/><path d="M8 4.5v3M8 7.5l-4.5 3M8 7.5l4.5 3"/></svg>`,
   dashboard:  `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
   mail:       `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 4.5l6 4.5 6-4.5"/></svg>`,
+  arena:      `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L3 13M14 5l-2-2L2 13l2 2 10-10z"/></svg>`,
 };
 
 const adminLinks = [
@@ -80,6 +81,7 @@ const adminLinks = [
     { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: SVG.video },
   ] : []),
   ...(bretUrl  ? [{ href: bretUrl, label: 'Brett', icon: SVG.brett }] : []),
+  { href: '/portal/arena', label: 'Arena', icon: SVG.arena },
   { href: '/admin/rechnungen', label: 'Abrechnung', icon: SVG.receipt },
   ...(vaultUrl   ? [{ href: vaultUrl,                                 label: 'Passwörter', icon: SVG.lock }] : []),
   ...(authUrl    ? [{ href: `${authUrl}/admin/workspace/console/`,    label: 'Keycloak',   icon: SVG.key }] : []),

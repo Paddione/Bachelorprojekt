@@ -26,7 +26,7 @@ export function makeAuthMiddleware(opts: { issuers: TrustedIssuer[] }): AuthMidd
 
   const requireAdmin: RequestHandler = (req, res, next) => {
     if (!req.user) { res.status(401).json({ error: 'unauthenticated' }); return; }
-    if (req.user.brand !== 'mentolder' || !req.user.realmRoles.includes('arena_admin')) {
+    if (!req.user.realmRoles.includes('arena_admin')) {
       res.status(403).json({ error: 'arena_admin role required' }); return;
     }
     next();

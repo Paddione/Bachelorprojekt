@@ -1,14 +1,16 @@
 # environments/dev.yaml
 environment: dev
-context: k3d-dev
+context: k3d-korczewski
 domain: localhost
 
 env_vars:
   EINVOICE_SIDECAR_ENABLED: "true"
   # Dev uses default_dev from schema.yaml for most values.
   # Override only where the dev default differs from schema:
-  WEBSITE_IMAGE: workspace-website
-  DOCS_IMAGE: workspace-docs
+  BRAND_ID: korczewski
+  BRAND_NAME: "KORE"
+  WEBSITE_IMAGE: korczewski-website
+  DOCS_IMAGE: korczewski-docs
   LLM_ENABLED: "false"
   LLM_RERANK_ENABLED: "false"
   LLM_HOST_IP: ""

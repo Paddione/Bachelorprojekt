@@ -17,11 +17,13 @@ interface Props {
   phase: 'open' | 'starting';
   countdownMs: number;
   myKey: string;
+  isHost: boolean;
   onCharacter: (characterId: CharacterId) => void;
   onLeave: () => void;
+  onStart: () => void;
 }
 
-export function LobbyScene({ code, players, phase, countdownMs, myKey, onCharacter, onLeave }: Props) {
+export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, onCharacter, onLeave, onStart }: Props) {
   const [charIdx, setCharIdx] = useState(0);
 
   function cycleChar(delta: 1 | -1) {
@@ -99,12 +101,23 @@ export function LobbyScene({ code, players, phase, countdownMs, myKey, onCharact
         ))}
       </div>
 
-      <button
-        onClick={onLeave}
-        style={{ alignSelf: 'flex-start', background: 'transparent', border: '1px solid rgba(255,255,255,.2)', color: '#8A8497', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
-      >
-        Leave lobby
-      </button>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button
+          onClick={onLeave}
+          style={{ background: 'transparent', border: '1px solid rgba(255,255,255,.2)', color: '#8A8497', padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+        >
+          Leave lobby
+        </button>
+
+        {isHost && phase === 'open' && (
+          <button
+            onClick={onStart}
+            style={{ background: '#C8F76A', border: 'none', color: '#1a0e22', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
+          >
+            Start Match (with Bots)
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -19,11 +19,11 @@ env_vars:
 
   - name: BRAND_NAME
     required: true
-    default_dev: "Workspace"
+    default_dev: "KORE"
 
   - name: BRAND_ID
     required: true
-    default_dev: "mentolder"
+    default_dev: "korczewski"
 
   - name: CONTACT_EMAIL
     required: true

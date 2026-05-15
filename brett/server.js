@@ -227,6 +227,30 @@ const rooms = new Map();
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = new Map();
 
+const RELAY_TYPES = [
+  'add','move','update','delete','clear','optik','stiffness','jump',
+  'mayhem_mode','player_join','player_state','player_leave',
+  'hit','vehicle_spawn',
+  'hp_update','player_death','player_respawn',
+  'obstacle_layout','game_mode_change',
+];
+
+const TRANSIENT_TYPES = new Set([
+  'jump','player_join','player_state','player_leave','hit','vehicle_spawn',
+  'hp_update','player_death','player_respawn',
+]);
+
+const lmsAlive = new Map(); // roomToken -> Set<playerId>
+
+function handleLmsDeath(room, victimId) {
+  const alive = lmsAlive.get(room);
+  if (!alive) return { winner: null, draw: false };
+  alive.delete(victimId);
+  if (alive.size === 0) return { winner: null, draw: true };
+  if (alive.size === 1) return { winner: [...alive][0], draw: false };
+  return { winner: null, draw: false };
+}
+
 function joinRoom(ws, room) {
   ws._room = room;
   if (!rooms.has(room)) rooms.set(room, new Set());
@@ -318,21 +342,28 @@ function applyMutation(room, msg) {
         figs.set('__mayhem__', { id: '__mayhem__', enabled: msg.enabled });
       }
       break;
+    case 'game_mode_change':
+      if (typeof msg.mode === 'string') {
+        figs.set('__game_mode__', { id: '__game_mode__', mode: msg.mode });
+      }
+      break;
   }
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const SPECIAL = ['__optik__', '__stiffness__', '__mayhem__'];
+  const SPECIAL = ['__optik__', '__stiffness__', '__mayhem__', '__game_mode__'];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
-  const optikEntry  = figs.get('__optik__');
-  const stiffEntry  = figs.get('__stiffness__');
-  const mayhemEntry = figs.get('__mayhem__');
+  const optikEntry    = figs.get('__optik__');
+  const stiffEntry    = figs.get('__stiffness__');
+  const mayhemEntry   = figs.get('__mayhem__');
+  const gameModeEntry = figs.get('__game_mode__');
   const result = { figures };
-  if (optikEntry)  result.optik     = optikEntry.settings;
-  if (stiffEntry)  result.stiffness = stiffEntry.value;
-  if (mayhemEntry) result.mayhem    = !!mayhemEntry.enabled;
+  if (optikEntry)    result.optik     = optikEntry.settings;
+  if (stiffEntry)    result.stiffness = stiffEntry.value;
+  if (mayhemEntry)   result.mayhem    = !!mayhemEntry.enabled;
+  if (gameModeEntry) result.gameMode  = gameModeEntry.mode;
   return result;
 }
 
@@ -404,18 +435,32 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear','optik','stiffness','jump',
-           'mayhem_mode','player_join','player_state','player_leave',
-           'hit','vehicle_spawn'].includes(msg.type)) {
+      if (RELAY_TYPES.includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
         if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
           ws._playerId = msg.playerId;
+          const alive = lmsAlive.get(room);
+          if (alive) alive.add(msg.playerId);
+        } else if (msg.type === 'game_mode_change' && typeof msg.mode === 'string') {
+          if (msg.mode === 'lms') {
+            const alive = new Set();
+            for (const [sock] of rooms.get(room) || []) {
+              if (sock._playerId) alive.add(sock._playerId);
+            }
+            lmsAlive.set(room, alive);
+          } else {
+            lmsAlive.delete(room);
+          }
+        } else if (msg.type === 'player_death' && typeof msg.playerId === 'string') {
+          const { winner, draw } = handleLmsDeath(room, msg.playerId);
+          if (winner !== null || draw) {
+            broadcast(room, draw ? { type: 'lms_draw' } : { type: 'lms_winner', playerId: winner });
+          }
         } else if (msg.type === 'clear') {
           flushImmediate(room).catch(err => console.error('[brett] flush:', err));
-        } else if (msg.type !== 'jump' && msg.type !== 'player_join' &&
-                   msg.type !== 'player_state' && msg.type !== 'player_leave' &&
-                   msg.type !== 'hit' && msg.type !== 'vehicle_spawn') {
+        }
+        if (!TRANSIENT_TYPES.has(msg.type) && msg.type !== 'clear') {
           schedulePersist(room);
         }
       }
@@ -463,5 +508,9 @@ async function shutdown(signal) {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));
 
-module.exports = { app, server, pool, wss, applyMutation, buildStateFromMutations, figureMaps };
-module.exports.handleDisconnect = handleDisconnect;
+module.exports = {
+  app, server, pool, wss,
+  applyMutation, buildStateFromMutations, figureMaps,
+  handleDisconnect,
+  RELAY_TYPES, TRANSIENT_TYPES, lmsAlive, handleLmsDeath,
+};

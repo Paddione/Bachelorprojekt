@@ -126,6 +126,16 @@ spec:
           kind: StatefulSet
           jsonPointers:
             - /status/terminatingReplicas
+        # brainstorm-sish authorized_keys is operator-managed via
+        # `task brainstorm:materialise-keys` (sourced from the sealed
+        # DEV_SISH_AUTHORIZED_KEYS). Without this carve-out ArgoCD reverts
+        # .data back to the placeholder in k3d/brainstorm-sish.yaml and the
+        # SSH tunnel breaks within seconds of every sync. T000380.
+        - group: ""
+          kind: ConfigMap
+          name: brainstorm-sish-authorized-keys
+          jsonPointers:
+            - /data
         - group: autoscaling
           kind: HorizontalPodAutoscaler
           jsonPointers:

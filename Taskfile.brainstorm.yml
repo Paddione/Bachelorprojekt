@@ -22,8 +22,13 @@ vars:
 
 tasks:
 
-  _materialise-keys:
-    internal: true
+  setup:
+    desc: "[brainstorm] One-time setup: open firewall on the sish node + materialise authorized_keys"
+    cmds:
+      - task: firewall:open
+      - task: materialise-keys
+
+  materialise-keys:
     desc: "[brainstorm] Push DEV_SISH_AUTHORIZED_KEYS into the brainstorm-sish ConfigMap and roll sish"
     cmds:
       - |

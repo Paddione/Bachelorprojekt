@@ -78,7 +78,7 @@ jobs:
           # Un-pin to :latest in case a past `task website:deploy ENV=korczewski`
           # set the deployment image to a specific digest — otherwise rollout
           # restart re-pulls the same old digest and the new :latest is ignored.
-          kubectl --context korczewski-ha -n website-korczewski set image deployment/website website=ghcr.io/paddione/korczewski-website:latest
-          kubectl --context korczewski-ha -n website-korczewski rollout restart deployment/website
-          kubectl --context korczewski-ha -n website-korczewski rollout status deployment/website --timeout=180s
+          kubectl --context korczewski -n website-korczewski set image deployment/website website=ghcr.io/paddione/korczewski-website:latest
+          kubectl --context korczewski -n website-korczewski rollout restart deployment/website
+          kubectl --context korczewski -n website-korczewski rollout status deployment/website --timeout=180s
           echo "✓ Website live auf https://web.korczewski.de"

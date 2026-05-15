@@ -1,6 +1,6 @@
 # Pin all livekit-* Deployments to pk-hetzner-6 (37.27.251.38).
 #
-# Standalone korczewski-ha cluster: 3 nodes (pk-hetzner-4 control-plane,
+# Standalone korczewski cluster: 3 nodes (pk-hetzner-4 control-plane,
 # pk-hetzner-6 + pk-hetzner-8 workers). livekit-server uses hostNetwork: true;
 # on the dedicated public node STUN discovers the real public IP. All four
 # components are co-located on the same node so livekit-egress / livekit-ingress

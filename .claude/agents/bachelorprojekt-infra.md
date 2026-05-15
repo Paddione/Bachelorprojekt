@@ -13,7 +13,7 @@ You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform
 - `mentolder` cluster (9 nodes) → `workspace` namespace, serves `mentolder.de`
   - 3 Hetzner CPs: `gekko-hetzner-2/3/4`
   - 6 home workers: `k3s-1/2/3` + `k3w-1/2/3` (joined via `wg-mesh` WireGuard overlay)
-- `korczewski-ha` cluster (3 nodes) → `workspace-korczewski` namespace, serves `korczewski.de`
+- `korczewski` cluster (3 nodes) → `workspace-korczewski` namespace, serves `korczewski.de`
   - 1 Hetzner CP: `pk-hetzner-4`
   - 2 Hetzner workers: `pk-hetzner-6`, `pk-hetzner-8`
 - Each cluster has its **own** `shared-db`, sealed-secrets controller, cert-manager, and Keycloak realm. Cross-cluster changes (DB password rotations, OIDC tweaks, schema migrations) must be applied to **both** explicitly.

@@ -47,7 +47,7 @@ spec:
             # tries to bind 0.0.0.0:3478 directly without SO_REUSEPORT, so
             # the first wins and the rest abort with EADDRINUSE, killing
             # the process every ~60s on multi-core nodes (observed on
-            # korczewski-ha / pk-hetzner-6, 8 cores). Force the legacy
+            # korczewski / pk-hetzner-6, 8 cores). Force the legacy
             # single-threaded net engine — TURN load on this cluster is
             # tiny (single-host Talk SFU), so the perf hit is irrelevant
             # and the bind race goes away entirely. coturn 4.9-alpine

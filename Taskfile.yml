@@ -2329,7 +2329,7 @@ tasks:
         envsubst "\$WEBSITE_IMAGE \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -
         envsubst "\$WEBSITE_NAMESPACE" < k3d/website-seller-config.yaml | kubectl ${CTX_ARG} apply -f -
 
-        # Override node affinity when the env specifies non-default nodes (e.g. korczewski-ha
+        # Override node affinity when the env specifies non-default nodes (e.g. korczewski
         # uses pk-hetzner-4/6/8, not the mentolder defaults gekko-hetzner-2/3).
         if [ -n "${WEBSITE_NODE_AFFINITY:-}" ]; then
           kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" patch deployment website --type=json \

@@ -158,42 +158,42 @@ tasks:
         fi
       # ── Korczewski (standalone 3-node k3s HA cluster) ──
       # The 2026-05-05 cluster merge was reverted on 2026-05-09 (PRs #621/#622).
-      # korczewski-ha is its own physical cluster on pk-hetzner-4/6/8 (API server
+      # korczewski is its own physical cluster on pk-hetzner-4/6/8 (API server
       # https://204.168.244.104:6443); web.korczewski.de routes through that
       # cluster's Traefik (NOT mentolder's). It has its own shared-db,
       # sealed-secrets controller, cert-manager, and Keycloak realm.
-      # workspace-korczewski namespace lives on korczewski-ha; ArgoCD still hub-runs
-      # on mentolder and reaches korczewski-ha via the registered cluster Secret
-      # `cluster-korczewski-ha` (created by the bootstrap below).
+      # workspace-korczewski namespace lives on korczewski; ArgoCD still hub-runs
+      # on mentolder and reaches korczewski via the registered cluster Secret
+      # `cluster-korczewski` (created by the bootstrap below).
       # No workspace-office / workspace-coturn labels — korczewski shares mentolder's Collabora + coturn.
       - |
         # Bootstrap the spoke RBAC + token Secret if missing. Idempotent.
-        kubectl --context korczewski-ha apply -f argocd/spoke-rbac/korczewski-ha.yaml > /dev/null
-        if ! kubectl --context mentolder get secret cluster-korczewski-ha -n argocd > /dev/null 2>&1; then
-          echo "Creating cluster-korczewski-ha Secret on mentolder hub..."
-          TOKEN=$(kubectl --context korczewski-ha -n argocd get secret argocd-manager-token -o jsonpath='{.data.token}' | base64 -d)
-          CA_B64=$(kubectl --context korczewski-ha -n argocd get secret argocd-manager-token -o jsonpath='{.data.ca\.crt}')
+        kubectl --context korczewski apply -f argocd/spoke-rbac/korczewski.yaml > /dev/null
+        if ! kubectl --context mentolder get secret cluster-korczewski -n argocd > /dev/null 2>&1; then
+          echo "Creating cluster-korczewski Secret on mentolder hub..."
+          TOKEN=$(kubectl --context korczewski -n argocd get secret argocd-manager-token -o jsonpath='{.data.token}' | base64 -d)
+          CA_B64=$(kubectl --context korczewski -n argocd get secret argocd-manager-token -o jsonpath='{.data.ca\.crt}')
           CONFIG=$(printf '{"bearerToken":"%s","tlsClientConfig":{"insecure":false,"caData":"%s"}}' "$TOKEN" "$CA_B64")
           kubectl --context mentolder apply -f - <<EOF
         apiVersion: v1
         kind: Secret
         metadata:
-          name: cluster-korczewski-ha
+          name: cluster-korczewski
           namespace: argocd
           labels:
             argocd.argoproj.io/secret-type: cluster
             workspace: "true"
         type: Opaque
         stringData:
-          name: korczewski-ha
+          name: korczewski
           server: https://204.168.244.104:6443
           config: '${CONFIG}'
         EOF
-          echo "  ✓ cluster-korczewski-ha Secret created"
+          echo "  ✓ cluster-korczewski Secret created"
         fi
       - |
         source scripts/env-resolve.sh "korczewski"
-        echo "Annotating korczewski cluster secret (targets korczewski-ha)..."
+        echo "Annotating korczewski cluster secret (targets korczewski)..."
         KORCZ_SECRET=$(kubectl --context mentolder get secret -n argocd \
           -l argocd.argoproj.io/secret-type=cluster \
           --no-headers 2>/dev/null | grep "korczewski" | awk '{print $1}' | head -1)
@@ -224,8 +224,8 @@ tasks:
           echo "  ✓ korczewski annotated (namespace=workspace-korczewski, no office/coturn labels)"
         else
           echo "  ✗ Could not find korczewski cluster Secret — create it manually"
-          echo "  Hint: korczewski-ha is a standalone cluster — register its API endpoint with"
-          echo "        argocd cluster add korczewski-ha (kubeconfig context for pk-hetzner-4/6/8)"
+          echo "  Hint: korczewski is a standalone cluster — register its API endpoint with"
+          echo "        argocd cluster add korczewski (kubeconfig context for pk-hetzner-4/6/8)"
         fi
       - |
         echo ""

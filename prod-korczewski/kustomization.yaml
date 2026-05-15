@@ -11,7 +11,7 @@ resources:
   - netpol-cross-namespace.yaml
   # Whisper (faster-whisper transcription) — korczewski-only.
   # Removed from the shared base in #623 because mentolder couldn't
-  # spare the 2-CPU request after the cluster split. korczewski-ha
+  # spare the 2-CPU request after the cluster split. korczewski
   # has 3× 8-CPU nodes, so transcription stays alive here.
   - whisper.yaml
   # Talk-Transcriber bot — korczewski-only, calls whisper.
@@ -32,7 +32,7 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 
-# korczewski standalone cluster (korczewski-ha).
+# korczewski standalone cluster (korczewski).
 #
 # Three-node dedicated cluster: pk-hetzner-4 (control-plane,etcd),
 # pk-hetzner-6 + pk-hetzner-8 (workers). All cluster-scoped resources
@@ -47,7 +47,7 @@ generatorOptions:
 # discovers the real public IP via TURN_PUBLIC_IP=37.27.251.38).
 patches:
   # livekit-recordings-pvc uses the base manifest's storage class.
-  # Longhorn is NOT installed on korczewski-ha; recordings live on local-path,
+  # Longhorn is NOT installed on korczewski; recordings live on local-path,
   # tied to the livekit pin-node (pk-hetzner-6). This is acceptable because
   # livekit-* are pinned to that node anyway via patch-livekit.yaml.
   - path: patch-livekit.yaml
@@ -55,10 +55,10 @@ patches:
   - path: patch-cronjob-urls.yaml
   - path: patch-mcp-config.yaml
 
-  # ── Standalone korczewski-ha node placement ──────────────────────
+  # ── Standalone korczewski node placement ──────────────────────
   # Base manifests pin certain workloads to the mentolder Hetzner CPs
   # (gekko-hetzner-2/3/4, pk-hetzner/-2/-3) which do NOT exist on
-  # korczewski-ha. Override the node values list to korczewski-ha's
+  # korczewski. Override the node values list to korczewski's
   # nodes (pk-hetzner-4, pk-hetzner-6, pk-hetzner-8) so workloads can
   # actually schedule. Replace operates on the whole values array.
 
@@ -75,7 +75,7 @@ patches:
           - pk-hetzner-8
 
   # arena-server Deployment (k3d/arena.yaml) — base pin: node-location=hetzner.
-  # Replace with explicit hostname-based placement on korczewski-ha nodes.
+  # Replace with explicit hostname-based placement on korczewski nodes.
   - target:
       kind: Deployment
       name: arena-server
@@ -91,9 +91,9 @@ patches:
             - pk-hetzner-8
 
   # brett Deployment (k3d/brett.yaml) — base uses NotIn against pk-hetzner
-  # and gekko-hetzner-4 (mentolder home-worker exclusion). On korczewski-ha
+  # and gekko-hetzner-4 (mentolder home-worker exclusion). On korczewski
   # neither node is in our pool, so the NotIn list is vacuous; flip to a
-  # positive In selector against korczewski-ha nodes for clarity.
+  # positive In selector against korczewski nodes for clarity.
   - target:
       kind: Deployment
       name: brett
@@ -116,11 +116,11 @@ patches:
   #
   # Note: tests-retention-cronjob.yaml is applied OUTSIDE kustomize (see
   # workspace:deploy task line ~1304). The base affinity there must also
-  # be safe on korczewski-ha; on this 3-node cluster the In-list misses,
+  # be safe on korczewski; on this 3-node cluster the In-list misses,
   # so the pod stays Pending. The CronJob is best-effort — flag for follow-up.
   #
   # CronJobs in k3d/knowledge-ingest-cronjob.yaml — 4 of them, all pinned to
-  # mentolder Hetzner CPs in base. Repoint to korczewski-ha node pool.
+  # mentolder Hetzner CPs in base. Repoint to korczewski node pool.
   - target:
       kind: CronJob
       name: knowledge-ingest-prs

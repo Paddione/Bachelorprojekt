@@ -1,0 +1,15 @@
+{
+  "pr_number": 780,
+  "title": "jump (space) + bounce-on-collision für figuren [T000397]",
+  "description": "## Summary\n- **Space-Sprung** für die selektierte (oder gehoverte) Figur — Parabel-Bahn via `JUMP_V0`/`GRAVITY`, Landungs-Impact löst Kollision aus.\n- **Inter-Figur-Kollision**: Kreis-AABB (`BODY_RADIUS=0.30`), Overlap-Resolution mit iterativem Push + Bone-Impuls für sichtbares Schlackern beim Reinlaufen oder Auflanden.\n- **Sync** via neuem transientem `jump`-WS-Event (broadcast-only, kein Persist im Server-State).\n\n## Test plan\n- [x] `task test:all` grün\n- [x] `task workspace:validate` grün\n- [x] `node --check brett/server.js` + Inline-JS-Syntaxcheck in `index.html`\n- [ ] Manueller Smoke: zwei Browser im gleichen Raum, Figur A, Space → Sprung; Landung neben B → B wird verschoben + schlackert; Drag A in B hinein → B wird sanft weggeschoben.\n- [ ] Performance-Check (200 Figuren, Frame-Time < 16 ms).\n\nCloses T000397\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-15T06:02:44Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": [
+    "T000397"
+  ]
+}

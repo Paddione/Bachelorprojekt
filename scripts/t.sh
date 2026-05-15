@@ -12,7 +12,7 @@ if ! command -v fzf &>/dev/null; then
 fi
 
 # ENV-sensitive task name patterns: tasks that accept ENV=
-ENV_PATTERN='workspace:|website:|brett:|arena:|livekit:|cert:|dev:|llm:|mcp:|keycloak:|docs:|argocd:|ha:|feature:'
+ENV_PATTERN='workspace:|website:|brett:|arena:|livekit:|cert:|dev:|llm:|mcp:|keycloak:|docs:|argocd:|ha:|feature:|tracking:|tickets:|env:|config:|db:'
 
 # Build list: "<name>  <description>"
 TASK_LIST=$(cd "$ROOT" && task --list-all 2>/dev/null \

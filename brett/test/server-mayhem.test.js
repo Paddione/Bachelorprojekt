@@ -1,7 +1,12 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
-const { applyMutation, buildStateFromMutations } = require('../server.js');
+const { pool, server, applyMutation, buildStateFromMutations, handleDisconnect } = require('../server.js');
+
+test.after(async () => {
+  if (server) server.close();
+  if (pool) await pool.end();
+});
 
 test('mutation: mayhem_mode enabled', () => {
   const room = 'test-room-1';
@@ -21,7 +26,6 @@ test('handleDisconnect: emits player_leave when ws had a _playerId', () => {
   const broadcasts = [];
   const fakeBroadcast = (room, msg) => broadcasts.push({ room, msg });
   const ws = { _room: 'test-room-3', _playerId: 'p-abc' };
-  const { handleDisconnect } = require('../server.js');
   handleDisconnect(ws, fakeBroadcast);
   const leave = broadcasts.find(b => b.msg.type === 'player_leave');
   assert.ok(leave, 'expected player_leave broadcast');

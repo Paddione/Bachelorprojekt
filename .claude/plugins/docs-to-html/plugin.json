@@ -1,0 +1,7 @@
+{
+  "name": "docs-to-html",
+  "version": "0.1.0",
+  "description": "Turn one or more local files (markdown, html, json, images) into a single self-contained, information-dense, interactive HTML bundle.",
+  "author": "patrick@mentolder.de",
+  "skills": ["./skills/docs-to-html"]
+}

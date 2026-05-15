@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><!--TITLE--></title>
+<style>
+<!--SHARED_STYLES-->
+
+/* sidebar layout */
+.layout-sidebar { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 96px); }
+.sidebar { border-right: 1px solid var(--border); padding: 1.4em 1em 4em; overflow-y: auto; position: sticky; top: 96px; align-self: start; max-height: calc(100vh - 96px); background: var(--bg); }
+.sidebar h5 { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-faint); margin: 1.3em 0 0.4em; font-weight: 500; }
+.sidebar h5:first-child { margin-top: 0; }
+.sidebar ul { list-style: none; padding: 0; margin: 0; }
+.sidebar li { margin: 0; }
+.sidebar a { display: block; padding: 0.32em 0.6em; color: var(--fg-dim); border-bottom: 0; border-radius: var(--radius); font-size: 0.9rem; line-height: 1.4; }
+.sidebar a:hover { color: var(--fg); background: var(--bg-2); }
+.sidebar a.active { color: var(--accent); background: var(--bg-2); }
+.sidebar .file-meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--fg-faint); padding: 0.2em 0.6em 0.5em; }
+
+.layout-sidebar .content { padding: 2em 2.4em 6em; max-width: 88ch; }
+.layout-sidebar .content > .file-section { scroll-margin-top: 1em; }
+
+@media (max-width: 760px) {
+  .layout-sidebar { grid-template-columns: 1fr; }
+  .sidebar { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-title"><!--TITLE--></div>
+  <div class="search-wrap">
+    <input type="text" class="search-input" placeholder="Search…" aria-label="Search">
+    <span class="search-shortcut">⌘K</span>
+  </div>
+  <button class="theme-toggle" data-theme-toggle>Light theme</button>
+</header>
+<nav class="chips" aria-label="Tag filters">
+  <!--CHIPS-->
+</nav>
+<div class="layout-sidebar">
+  <aside class="sidebar" aria-label="Files">
+    <!--FILES_NAV-->
+  </aside>
+  <main class="content">
+    <!--CONTENT-->
+  </main>
+</div>
+<script>
+window.__DOCS_INDEX__ = <!--SEARCH_INDEX-->;
+</script>
+<script>
+<!--SHARED_SCRIPT-->
+</script>
+</body>
+</html>
